@@ -1,0 +1,245 @@
+/* Transaction Line Items Table Styles */
+
+.transaction-items-section {
+  margin-top: 2rem;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.transaction-items-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--medium-gray);
+}
+
+.transaction-items-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 0.5rem;
+  background-color: var(--muted-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  flex-shrink: 0;
+}
+
+.transaction-items-header h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--black);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.transaction-items-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-gray);
+  margin: 0.25rem 0 0 0;
+  line-height: 1.4;
+}
+
+/* Summary Cards */
+.transaction-summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.transaction-summary-card {
+  background-color: var(--light-gray);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  border: 1px solid var(--medium-gray);
+}
+
+.summary-card-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-gray);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.summary-card-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--muted-blue);
+  line-height: 1;
+}
+
+/* Table Container */
+.transaction-items-table-container {
+  background-color: var(--white);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--medium-gray);
+}
+
+/* Table Styles */
+.transaction-items-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.transaction-items-table thead {
+  background-color: var(--light-gray);
+  border-bottom: 2px solid var(--medium-gray);
+}
+
+.transaction-items-table th {
+  padding: 1rem 1.25rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--black);
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.transaction-items-table tbody tr {
+  border-bottom: 1px solid var(--medium-gray);
+  transition: background-color 0.15s;
+}
+
+.transaction-items-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.transaction-items-table tbody tr:hover {
+  background-color: var(--light-gray);
+}
+
+.transaction-items-table td {
+  padding: 1rem 1.25rem;
+  vertical-align: top;
+}
+
+/* Column Specific Styles */
+.date-column {
+  width: 130px;
+}
+
+.date-cell {
+  color: var(--text-gray);
+  font-weight: 500;
+  white-space: nowrap;
+  font-size: 0.875rem;
+}
+
+.description-column {
+  width: auto;
+  min-width: 250px;
+}
+
+.description-cell {
+  color: var(--black);
+}
+
+.transaction-description {
+  font-weight: 500;
+  line-height: 1.4;
+  margin-bottom: 0.25rem;
+}
+
+.transaction-category {
+  font-size: 0.8rem;
+  color: var(--text-gray);
+  font-style: italic;
+}
+
+.vendor-column {
+  width: 200px;
+}
+
+.vendor-cell {
+  color: var(--text-gray);
+  font-weight: 500;
+}
+
+.amount-column {
+  width: 140px;
+  text-align: right;
+}
+
+.amount-cell {
+  text-align: right;
+  font-weight: 600;
+  color: var(--muted-blue);
+  font-size: 0.9375rem;
+  white-space: nowrap;
+}
+
+/* Footer */
+.transaction-items-table tfoot {
+  background-color: var(--light-gray);
+  border-top: 2px solid var(--medium-gray);
+}
+
+.transaction-items-table tfoot .total-row td {
+  padding: 1.25rem 1.25rem;
+  font-size: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .transaction-summary-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .transaction-items-table-container {
+    overflow-x: auto;
+  }
+  
+  .transaction-items-table {
+    font-size: 0.8125rem;
+  }
+  
+  .transaction-items-table th,
+  .transaction-items-table td {
+    padding: 0.75rem 0.875rem;
+  }
+  
+  .date-column {
+    width: 100px;
+  }
+  
+  .description-column {
+    min-width: 200px;
+  }
+  
+  .vendor-column {
+    width: 150px;
+  }
+  
+  .amount-column {
+    width: 110px;
+  }
+  
+  .summary-card-value {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .transaction-summary-cards {
+    grid-template-columns: 1fr;
+  }
+}

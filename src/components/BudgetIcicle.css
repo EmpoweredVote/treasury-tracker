@@ -1,0 +1,188 @@
+/* Icicle Chart Wrapper */
+.icicle-wrapper {
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+/* Icicle Container - holds all levels */
+.icicle-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+/* Each level is a horizontal bar */
+.icicle-level {
+  display: flex;
+  width: 100%;
+  border-radius: 6px;
+  overflow: hidden;
+  transition: height 0.3s ease, opacity 0.3s ease;
+}
+
+/* Ancestor levels are compressed */
+.icicle-level.ancestor {
+  height: 32px;
+}
+
+/* Current level (bottom) is full height */
+.icicle-level.current {
+  height: 64px;
+}
+
+/* Individual segment within a level */
+.icicle-segment {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2px;
+  transition: opacity 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  overflow: hidden;
+  border-right: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
+.icicle-segment:last-child {
+  border-right: none;
+}
+
+/* Clickable segments */
+.icicle-segment.clickable {
+  cursor: pointer;
+}
+
+.icicle-segment.clickable:hover {
+  opacity: 1 !important;
+  z-index: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.icicle-segment.clickable:focus-visible {
+  outline: 3px solid #FF5740;
+  outline-offset: -3px;
+  z-index: 2;
+}
+
+/* Selected segment indicator */
+.icicle-segment.selected {
+  opacity: 1 !important;
+}
+
+.selection-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background-color: #FF5740;
+}
+
+/* Content within segment */
+.segment-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 4px 8px;
+  text-align: center;
+  width: 100%;
+  overflow: hidden;
+}
+
+.segment-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  line-height: 1.2;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.segment-amount {
+  font-size: 0.7rem;
+  font-weight: 500;
+  opacity: 0.9;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Ancestor level has smaller text */
+.icicle-level.ancestor .segment-name {
+  font-size: 0.7rem;
+}
+
+.icicle-level.ancestor .segment-content {
+  flex-direction: row;
+  gap: 6px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .icicle-level.ancestor {
+    height: 28px;
+  }
+
+  .icicle-level.current {
+    height: 56px;
+  }
+
+  .segment-name {
+    font-size: 0.7rem;
+  }
+
+  .segment-amount {
+    font-size: 0.65rem;
+  }
+
+  .icicle-level.ancestor .segment-name {
+    font-size: 0.65rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .icicle-level.ancestor {
+    height: 24px;
+  }
+
+  .icicle-level.current {
+    height: 48px;
+  }
+
+  .segment-content {
+    padding: 2px 4px;
+  }
+
+  .segment-name {
+    font-size: 0.65rem;
+  }
+
+  .segment-amount {
+    font-size: 0.6rem;
+  }
+}
+
+/* Animation for level transitions */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.icicle-level {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Ensure proper stacking during hover */
+.icicle-container {
+  position: relative;
+}

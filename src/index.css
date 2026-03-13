@@ -1,0 +1,179 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  /* EV Brand Colors */
+  --black: #1c1c1c;
+  --white: #ffffff;
+  --coral: #ff5740;
+  --muted-blue: #00657c;
+  --light-blue: #59b0c4;
+  --accent-yellow: #fed12e;
+  --light-gray: #f5f5f5;
+  --medium-gray: #e0e0e0;
+  --text-gray: #6b7280;
+
+  /* Data Visualization Colors - From Tailwind Config */
+  /* Navy Palette */
+  --data-navy-50: #f5f9fa;
+  --data-navy-100: #dff1fb;
+  --data-navy-200: #bbdff7;
+  --data-navy-300: #8bbeeb;
+  --data-navy-400: #5999da;
+  --data-navy-500: #4476ca;
+  --data-navy-600: #385ab4;
+  --data-navy-700: #2d4390;
+  --data-navy-800: #1f2d67;
+  --data-navy-900: #121c41;
+
+  /* Blue Palette */
+  --data-blue-50: #f7fafb;
+  --data-blue-100: #e6f1fc;
+  --data-blue-200: #c9dbf9;
+  --data-blue-300: #a0b7f0;
+  --data-blue-400: #798fe4;
+  --data-blue-500: #616bd9;
+  --data-blue-600: #4f4ec7;
+  --data-blue-700: #3c3aa4;
+  --data-blue-800: #2a2877;
+  --data-blue-900: #171849;
+
+  /* Indigo Palette */
+  --data-indigo-50: #f8fafb;
+  --data-indigo-100: #ebf1fb;
+  --data-indigo-200: #d5d8f8;
+  --data-indigo-300: #b2b4ed;
+  --data-indigo-400: #938ae0;
+  --data-indigo-500: #7965d3;
+  --data-indigo-600: #6249bf;
+  --data-indigo-700: #4a369b;
+  --data-indigo-800: #32256d;
+  --data-indigo-900: #1c1741;
+
+  /* Purple Palette */
+  --data-purple-50: #fbfbfb;
+  --data-purple-100: #f7f1f7;
+  --data-purple-200: #eed3ef;
+  --data-purple-300: #daaada;
+  --data-purple-400: #cf7cc0;
+  --data-purple-500: #b957a8;
+  --data-purple-600: #9d3c89;
+  --data-purple-700: #772d66;
+  --data-purple-800: #521f43;
+  --data-purple-900: #2f1325;
+
+  /* Puce Palette */
+  --data-puce-50: #fcfbfb;
+  --data-puce-100: #f9f1f3;
+  --data-puce-200: #f2d3e6;
+  --data-puce-300: #e3a9c9;
+  --data-puce-400: #da7aa5;
+  --data-puce-500: #c75586;
+  --data-puce-600: #ab3b65;
+  --data-puce-700: #832c4a;
+  --data-puce-800: #5b1e30;
+  --data-puce-900: #35131b;
+
+  /* Coral Palette */
+  --data-coral-50: #fcfcfa;
+  --data-coral-100: #faf1ea;
+  --data-coral-200: #f5d4d3;
+  --data-coral-300: #e8a9aa;
+  --data-coral-400: #e07a7e;
+  --data-coral-500: #ce5659;
+  --data-coral-600: #b33b3e;
+  --data-coral-700: #8b2c2e;
+  --data-coral-800: #611e1f;
+  --data-coral-900: #3a1312;
+
+  /* Cocoa Palette */
+  --data-cocoa-50: #fcfbf9;
+  --data-cocoa-100: #faf1e4;
+  --data-cocoa-200: #f4d7c6;
+  --data-cocoa-300: #e4ae97;
+  --data-cocoa-400: #d68067;
+  --data-cocoa-500: #c05d43;
+  --data-cocoa-600: #a2422d;
+  --data-cocoa-700: #7c3122;
+  --data-cocoa-800: #552219;
+  --data-cocoa-900: #34150f;
+
+  /* Chestnut Palette */
+  --data-chestnut-50: #fcfbf8;
+  --data-chestnut-100: #f9f1e1;
+  --data-chestnut-200: #f1d9be;
+  --data-chestnut-300: #deb28d;
+  --data-chestnut-400: #ca865d;
+  --data-chestnut-500: #b0633a;
+  --data-chestnut-600: #914926;
+  --data-chestnut-700: #6e361e;
+  --data-chestnut-800: #4b2516;
+  --data-chestnut-900: #2e160e;
+
+  /* Olive Palette */
+  --data-olive-50: #f9f9f7;
+  --data-olive-100: #f1f1ea;
+  --data-olive-200: #e0dfd0;
+  --data-olive-300: #bcbda4;
+  --data-olive-400: #8d9575;
+  --data-olive-500: #6e744e;
+  --data-olive-600: #585937;
+  --data-olive-700: #43432b;
+  --data-olive-800: #2e2d1f;
+  --data-olive-900: #1d1b15;
+
+  /* Teal/Navy Palette */
+  --data-teal-50: #f6f8f8;
+  --data-teal-100: #e4f1f5;
+  --data-teal-200: #c3e1ea;
+  --data-teal-300: #92c2cf;
+  --data-teal-400: #589dac;
+  --data-teal-500: #417d8a;
+  --data-teal-600: #00657c;
+  --data-teal-700: #2b4a54;
+  --data-teal-800: #1f323b;
+  --data-teal-900: #131e27;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--light-gray);
+  color: var(--black);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+button {
+  font-family: 'Manrope', sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Screen Reader Only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
