@@ -1,0 +1,3217 @@
+{
+  "metadata": {
+    "cityName": "Bloomington",
+    "fiscalYear": 2025,
+    "population": 85000,
+    "totalBudget": 205848964.9,
+    "generatedAt": "2025-12-15T01:48:29.530Z",
+    "hierarchy": [
+      "primary_function",
+      "priority",
+      "service"
+    ],
+    "dataSource": "data/operating-budget.csv"
+  },
+  "categories": [
+    {
+      "name": "Utilities",
+      "amount": 56203888.64,
+      "percentage": 27.30345944042199,
+      "color": "#00657C",
+      "items": 751,
+      "description": "Material & Supplies - Worksite Safety Equipment - Supplies; Cell Phone Charges - Other Services and Charges; Materials & Supplies Tanks - Supplies",
+      "subcategories": [
+        {
+          "name": "Utilities",
+          "amount": 16153062,
+          "percentage": 28.74011459147322,
+          "color": "#00657C",
+          "items": 20,
+          "description": "Bond Fees - Other Services and Charges; Interest Expense Bond Issue 2017 - Other Services and Charges; Interfund Transfer OUT - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "Administrative & General",
+              "amount": 14237147,
+              "percentage": 88.13899804260022,
+              "color": "#FF5740",
+              "items": 12,
+              "description": "Bond Fees - Other Services and Charges; Interest Expense Bond Issue 2017 - Other Services and Charges; Interest Expense - 2022 Water Bond - Other Services and Charges"
+            },
+            {
+              "name": "Default",
+              "amount": 1915915,
+              "percentage": 11.861001957399779,
+              "color": "#FED12E",
+              "items": 8,
+              "description": "Interfund Transfer OUT - Other Services and Charges; Extensions & Replacements - Other Services and Charges; Interest Expense Capital Lease - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Utilities Transmission & Distrib",
+          "amount": 7236233.24,
+          "percentage": 12.874969001433136,
+          "color": "#59B0C4",
+          "items": 65,
+          "description": "Cell Phone Charges - Other Services and Charges; Miscellaneous Expense - Membership Dues/License/Fees - Other Services and Charges; Materials & Supplies Maintenance - Supplies",
+          "subcategories": [
+            {
+              "name": "Administrative & General",
+              "amount": 5371733.24,
+              "percentage": 74.23383218642631,
+              "color": "#004D5C",
+              "items": 41,
+              "description": "Cell Phone Charges - Other Services and Charges; Miscellaneous Expense - Membership Dues/License/Fees - Other Services and Charges; Materials & Supplies Maintenance - Supplies"
+            },
+            {
+              "name": "T&D Maintenance",
+              "amount": 1351000,
+              "percentage": 18.669934414662396,
+              "color": "#00657C",
+              "items": 6,
+              "description": "Miscellaneous Expense Tanks - Other Services and Charges; Materials & Supplies Lines - Supplies; Materials & Supplies Services - Supplies"
+            },
+            {
+              "name": "Collection Expense - Maintenance",
+              "amount": 489000,
+              "percentage": 6.757659458749011,
+              "color": "#FF8C42",
+              "items": 3,
+              "description": "Transportation - Other Services and Charges; Materials & Supplies Lines - Supplies; Transportation Lines - Other Services and Charges"
+            },
+            {
+              "name": "Treatment & Disposal - Maint",
+              "amount": 8000,
+              "percentage": 0.11055475597135395,
+              "color": "#2D6A4F",
+              "items": 2,
+              "description": "Transportation Lines - Other Services and Charges; Materials & Supplies Lines - Supplies"
+            },
+            {
+              "name": "T&D - Operations",
+              "amount": 7000,
+              "percentage": 0.09673541147493471,
+              "color": "#6B4E71",
+              "items": 4,
+              "description": "Materials & Supplies General - Supplies; Materials & Supplies Lines - Supplies; Training - Other Services and Charges"
+            },
+            {
+              "name": "Collection Expense - Operations",
+              "amount": 5000,
+              "percentage": 0.06909672248209622,
+              "color": "#008B9C",
+              "items": 5,
+              "description": "Materials & Supplies General - Supplies; Transportation - Other Services and Charges; Materials & Supplies Lines - Supplies"
+            },
+            {
+              "name": "Source of Supp & Exp - Maint",
+              "amount": 4500,
+              "percentage": 0.0621870502338866,
+              "color": "#B5838D",
+              "items": 3,
+              "description": "Materials & Supplies General - Supplies; Materials & Supplies Lines - Supplies; Materials & Supplies Pumps - Supplies"
+            },
+            {
+              "name": "Treatment & Disposal - Ops",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FF5740",
+              "items": 1,
+              "description": "Materials & Supplies General - Supplies"
+            }
+          ]
+        },
+        {
+          "name": "Utilities Monroe WTP",
+          "amount": 5014173.25,
+          "percentage": 8.921399161750243,
+          "color": "#FED12E",
+          "items": 53,
+          "description": "Materials & Supplies Tanks - Supplies; Purchased Water - Supplies; Purchased Power Pumping - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "Water Treat Exp - Oper",
+              "amount": 2026750,
+              "percentage": 40.420422250068846,
+              "color": "#FF8C42",
+              "items": 18,
+              "description": "Purchased Power Treatment - Other Services and Charges; Chemicals Miscellaneous - Supplies; Chemicals Alum - Supplies"
+            },
+            {
+              "name": "Administrative & General",
+              "amount": 1569123.25,
+              "percentage": 31.293758148464455,
+              "color": "#6B4E71",
+              "items": 24,
+              "description": "Taxes - FICA - Personnel Services; Salaries & Wages Employees - Personnel Services; Utilities General - Other Services and Charges"
+            },
+            {
+              "name": "Source of Sup & Exp - Operations",
+              "amount": 997300,
+              "percentage": 19.8896198889817,
+              "color": "#004D5C",
+              "items": 3,
+              "description": "Purchased Water - Supplies; Purchased Power Pumping - Other Services and Charges; Materials & Supplies Structures - Supplies"
+            },
+            {
+              "name": "Water Treatment - Maint",
+              "amount": 351000,
+              "percentage": 7.00015700494593,
+              "color": "#59B0C4",
+              "items": 6,
+              "description": "Materials & Supplies Tanks - Supplies; Materials & Supplies Structures - Supplies; Materials & Supplies Pumps - Supplies"
+            },
+            {
+              "name": "Source of Supp & Exp - Maint",
+              "amount": 70000,
+              "percentage": 1.3960427075390742,
+              "color": "#008B9C",
+              "items": 2,
+              "description": "Materials & Supplies Pumps - Supplies; Contracted  Services - Other - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Utilities Dillman Road WWTP",
+          "amount": 4516957.619999999,
+          "percentage": 8.036735053925263,
+          "color": "#FED12E",
+          "items": 58,
+          "description": "Materials & Supplies Tanks - Supplies; Contract Services Testing - Other Services and Charges; Miscellaneous Expense - Membership Dues/License/Fees - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "Administrative & General",
+              "amount": 2021657.62,
+              "percentage": 44.75706415859621,
+              "color": "#008B9C",
+              "items": 28,
+              "description": "Contract Services Testing - Other Services and Charges; Miscellaneous Expense - Membership Dues/License/Fees - Other Services and Charges; Materials & Supplies Maintenance - Supplies"
+            },
+            {
+              "name": "Treatment & Disposal - Ops",
+              "amount": 1990810,
+              "percentage": 44.07413501479787,
+              "color": "#004D5C",
+              "items": 19,
+              "description": "Contract Services Testing - Other Services and Charges; Materials & Supplies General - Supplies; Transportation Sludge Removal - Other Services and Charges"
+            },
+            {
+              "name": "Treatment & Disposal - Maint",
+              "amount": 400340,
+              "percentage": 8.863045299061275,
+              "color": "#59B0C4",
+              "items": 9,
+              "description": "Materials & Supplies Tanks - Supplies; Materials & Supplies General - Supplies; Transportation - Other Services and Charges"
+            },
+            {
+              "name": "Pumping Expense - Operations",
+              "amount": 104150,
+              "percentage": 2.3057555275446666,
+              "color": "#FF8C42",
+              "items": 2,
+              "description": "Purchased Power Pumping - Other Services and Charges; Contracted  Services - Other - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Utilities USB",
+          "amount": 4356423.05,
+          "percentage": 7.751106116347184,
+          "color": "#FF5740",
+          "items": 60,
+          "description": "Material & Supplies - Worksite Safety Equipment - Supplies; Materials & Supplies Maintenance - Supplies; Training - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "Administrative & General",
+              "amount": 4356423.05,
+              "percentage": 100,
+              "color": "#FED12E",
+              "items": 60,
+              "description": "Material & Supplies - Worksite Safety Equipment - Supplies; Materials & Supplies Maintenance - Supplies; Training - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Utilities Stormwater",
+          "amount": 3757059.0900000003,
+          "percentage": 6.68469598974709,
+          "color": "#B5838D",
+          "items": 40,
+          "description": "Cell Phone Charges - Other Services and Charges; Contracted  Services - Other - Other Services and Charges; Miscellaneous Expense - Membership Dues/License/Fees - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "Default",
+              "amount": 2218107,
+              "percentage": 59.038384727667406,
+              "color": "#FF5740",
+              "items": 3,
+              "description": "Extensions & Replacements - Other Services and Charges; Bad Debt - Other Services and Charges; Interfund Transfer OUT - Other Services and Charges"
+            },
+            {
+              "name": "Administrative & General",
+              "amount": 1432652.09,
+              "percentage": 38.13227462440576,
+              "color": "#00657C",
+              "items": 29,
+              "description": "Cell Phone Charges - Other Services and Charges; Contracted  Services - Other - Other Services and Charges; Miscellaneous Expense - Membership Dues/License/Fees - Other Services and Charges"
+            },
+            {
+              "name": "Treatment & Disposal - Maint",
+              "amount": 95550,
+              "percentage": 2.543212595572991,
+              "color": "#59B0C4",
+              "items": 4,
+              "description": "Materials & Supplies General - Supplies; Materials & Supplies Structures - Supplies; Transportation - Other Services and Charges"
+            },
+            {
+              "name": "Treatment & Disposal - Ops",
+              "amount": 10750,
+              "percentage": 0.28612805235384253,
+              "color": "#FED12E",
+              "items": 4,
+              "description": "Materials & Supplies General - Supplies; Transportation - Other Services and Charges; Training - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Utilities Director",
+          "amount": 2803984.0500000003,
+          "percentage": 4.988950262783811,
+          "color": "#FF8C42",
+          "items": 44,
+          "description": "Miscellaneous Expense - Other Services and Charges; Miscellaneous Expense Shipping - Other Services and Charges; Miscellaneous Expense Software - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "Administrative & General",
+              "amount": 2803984.0500000003,
+              "percentage": 100,
+              "color": "#6B4E71",
+              "items": 44,
+              "description": "Miscellaneous Expense - Other Services and Charges; Miscellaneous Expense Shipping - Other Services and Charges; Miscellaneous Expense Software - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Utilities Blucher Poole WWTP",
+          "amount": 2377025.13,
+          "percentage": 4.229289445122635,
+          "color": "#00657C",
+          "items": 49,
+          "description": "Utilities General - Other Services and Charges; Materials & Supplies Maintenance - Supplies; Contracted  Services - Other - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "Administrative & General",
+              "amount": 1398825.1300000001,
+              "percentage": 58.84772156363363,
+              "color": "#FF5740",
+              "items": 25,
+              "description": "Utilities General - Other Services and Charges; Materials & Supplies Maintenance - Supplies; Contracted  Services - Other - Other Services and Charges"
+            },
+            {
+              "name": "Treatment & Disposal - Ops",
+              "amount": 528800,
+              "percentage": 22.246294047383504,
+              "color": "#FED12E",
+              "items": 15,
+              "description": "Materials & Supplies General - Supplies; Transportation Sludge Removal - Other Services and Charges; Purchased Power Treatment - Other Services and Charges"
+            },
+            {
+              "name": "Treatment & Disposal - Maint",
+              "amount": 359200,
+              "percentage": 15.111325306013908,
+              "color": "#59B0C4",
+              "items": 5,
+              "description": "Transportation - Other Services and Charges; Materials & Supplies Structures - Supplies; Materials & Supplies Treatment - Supplies"
+            },
+            {
+              "name": "Pumping Expense - Maintenance",
+              "amount": 65000,
+              "percentage": 2.7345104256428288,
+              "color": "#008B9C",
+              "items": 3,
+              "description": "Materials & Supplies Pumps - Supplies; Materials & Supplies Structures - Supplies; Contracted  Services - Other - Other Services and Charges"
+            },
+            {
+              "name": "Pumping Expense - Operations",
+              "amount": 25200,
+              "percentage": 1.0601486573261427,
+              "color": "#004D5C",
+              "items": 1,
+              "description": "Purchased Power Pumping - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Utilities Engineering",
+          "amount": 2041321.22,
+          "percentage": 3.63199285564594,
+          "color": "#6B4E71",
+          "items": 41,
+          "description": "Materials & Supplies General - Supplies; Materials & Supplies Equipment - Supplies; Materials & Supplies Office Furniture - Supplies",
+          "subcategories": [
+            {
+              "name": "Administrative & General",
+              "amount": 2041321.22,
+              "percentage": 100,
+              "color": "#2D6A4F",
+              "items": 41,
+              "description": "Materials & Supplies General - Supplies; Materials & Supplies Equipment - Supplies; Materials & Supplies Office Furniture - Supplies"
+            }
+          ]
+        },
+        {
+          "name": "Utilities Meters",
+          "amount": 1455459.83,
+          "percentage": 2.589606992004744,
+          "color": "#2D6A4F",
+          "items": 35,
+          "description": "Miscellaneous Expense Software - Other Services and Charges; Cell Phone Charges - Other Services and Charges; Salaries & Wages Employees - Personnel Services",
+          "subcategories": [
+            {
+              "name": "Administrative & General",
+              "amount": 1230459.83,
+              "percentage": 84.5409680595582,
+              "color": "#B5838D",
+              "items": 29,
+              "description": "Miscellaneous Expense Software - Other Services and Charges; Cell Phone Charges - Other Services and Charges; Salaries & Wages Employees - Personnel Services"
+            },
+            {
+              "name": "Customer Accts Expense",
+              "amount": 135000,
+              "percentage": 9.275419164265083,
+              "color": "#00657C",
+              "items": 2,
+              "description": "Materials & Supplies Meters - Supplies; Transportation Meter - Other Services and Charges"
+            },
+            {
+              "name": "Customer Accounts Exp",
+              "amount": 70000,
+              "percentage": 4.809476603693006,
+              "color": "#FF5740",
+              "items": 2,
+              "description": "Materials & Supplies Meters - Supplies; Transportation Meter - Other Services and Charges"
+            },
+            {
+              "name": "T&D - Operations",
+              "amount": 10000,
+              "percentage": 0.687068086241858,
+              "color": "#FED12E",
+              "items": 1,
+              "description": "Materials & Supplies Meters - Supplies"
+            },
+            {
+              "name": "T&D Maintenance",
+              "amount": 10000,
+              "percentage": 0.687068086241858,
+              "color": "#59B0C4",
+              "items": 1,
+              "description": "Materials & Supplies Meters - Supplies"
+            }
+          ]
+        },
+        {
+          "name": "Utilities Environmental Services",
+          "amount": 1384798.3499999999,
+          "percentage": 2.4638835203556475,
+          "color": "#B5838D",
+          "items": 65,
+          "description": "Contract Services Testing - Other Services and Charges; Cell Phone Charges - Other Services and Charges; Materials & Supplies General - Supplies",
+          "subcategories": [
+            {
+              "name": "Administrative & General",
+              "amount": 1377498.3499999999,
+              "percentage": 99.47284743659608,
+              "color": "#FF5740",
+              "items": 63,
+              "description": "Cell Phone Charges - Other Services and Charges; Materials & Supplies General - Supplies; Materials & Supplies Computer - Supplies"
+            },
+            {
+              "name": "Treatment & Disposal - Ops",
+              "amount": 7300,
+              "percentage": 0.5271525634039065,
+              "color": "#00657C",
+              "items": 2,
+              "description": "Contract Services Testing - Other Services and Charges; Purchased Power Treatment - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Utilities Billings & Collections",
+          "amount": 1176074.03,
+          "percentage": 2.092513629320293,
+          "color": "#004D5C",
+          "items": 26,
+          "description": "Training - Other Services and Charges; Salaries & Wages Employees - Personnel Services; Materials & Supplies Statements - Supplies",
+          "subcategories": [
+            {
+              "name": "Customer Accts Expense",
+              "amount": 698455.86,
+              "percentage": 59.388766538786676,
+              "color": "#6B4E71",
+              "items": 6,
+              "description": "Salaries & Wages Employees - Personnel Services; Bad Debt - Other Services and Charges; Taxes - FICA - Personnel Services"
+            },
+            {
+              "name": "Customer Accounts Exp",
+              "amount": 452430.17000000004,
+              "percentage": 38.46953154811182,
+              "color": "#FF8C42",
+              "items": 6,
+              "description": "Salaries & Wages Employees - Personnel Services; Materials & Supplies Statements - Supplies; Miscellaneous Expense - Other Services and Charges"
+            },
+            {
+              "name": "Administrative & General",
+              "amount": 25188,
+              "percentage": 2.1417019131015076,
+              "color": "#008B9C",
+              "items": 14,
+              "description": "Training - Other Services and Charges; Materials & Supplies Office Supplies - Supplies; Furniture & Fixtures Computer - Supplies"
+            }
+          ]
+        },
+        {
+          "name": "Utilities Accounting",
+          "amount": 1090374.65,
+          "percentage": 1.940034179812936,
+          "color": "#2D6A4F",
+          "items": 28,
+          "description": "Salaries & Wages Employees - Personnel Services; Materials & Supplies General - Supplies; Taxes - FICA - Personnel Services",
+          "subcategories": [
+            {
+              "name": "Administrative & General",
+              "amount": 1090374.65,
+              "percentage": 100,
+              "color": "#B5838D",
+              "items": 28,
+              "description": "Salaries & Wages Employees - Personnel Services; Materials & Supplies General - Supplies; Taxes - FICA - Personnel Services"
+            }
+          ]
+        },
+        {
+          "name": "Utilities Booster & Lift Station",
+          "amount": 837590,
+          "percentage": 1.4902705493653188,
+          "color": "#004D5C",
+          "items": 35,
+          "description": "Natural Gas - Other Services and Charges; Cell Phone Charges - Other Services and Charges; Materials & Supplies Maintenance - Supplies",
+          "subcategories": [
+            {
+              "name": "Administrative & General",
+              "amount": 630890,
+              "percentage": 75.32205494334937,
+              "color": "#008B9C",
+              "items": 20,
+              "description": "Natural Gas - Other Services and Charges; Cell Phone Charges - Other Services and Charges; Materials & Supplies Maintenance - Supplies"
+            },
+            {
+              "name": "Pumping Expense - Operations",
+              "amount": 152700,
+              "percentage": 18.230876681908807,
+              "color": "#6B4E71",
+              "items": 3,
+              "description": "Purchased Power Pumping - Other Services and Charges; Materials & Supplies Pumps - Supplies; Miscellaneous Expense - Other Services and Charges"
+            },
+            {
+              "name": "T&D Maintenance",
+              "amount": 28000,
+              "percentage": 3.342924342458721,
+              "color": "#B5838D",
+              "items": 4,
+              "description": "Materials & Supplies Structures - Supplies; Materials & Supplies Pumps - Supplies; Miscellaneous Expense Pumping - Other Services and Charges"
+            },
+            {
+              "name": "Pumping Expense - Maintenance",
+              "amount": 21000,
+              "percentage": 2.5071932568440407,
+              "color": "#FF8C42",
+              "items": 5,
+              "description": "Transportation - Other Services and Charges; Miscellaneous Expense Pumping - Other Services and Charges; Materials & Supplies Structures - Supplies"
+            },
+            {
+              "name": "Source of Supp & Exp - Maint",
+              "amount": 5000,
+              "percentage": 0.5969507754390573,
+              "color": "#2D6A4F",
+              "items": 3,
+              "description": "Materials & Supplies Structures - Supplies; Materials & Supplies Pumps - Supplies; Transportation - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Utilities Purchasing",
+          "amount": 577279.85,
+          "percentage": 1.0271172759906742,
+          "color": "#2D6A4F",
+          "items": 42,
+          "description": "Material & Supplies - Personal Protective Equipment - Supplies; Material & Supplies - Worksite Safety Equipment - Supplies; Salaries & Wages Employees - Personnel Services",
+          "subcategories": [
+            {
+              "name": "Administrative & General",
+              "amount": 577279.85,
+              "percentage": 100,
+              "color": "#B5838D",
+              "items": 42,
+              "description": "Material & Supplies - Personal Protective Equipment - Supplies; Material & Supplies - Worksite Safety Equipment - Supplies; Salaries & Wages Employees - Personnel Services"
+            }
+          ]
+        },
+        {
+          "name": "Utilities Laboratory",
+          "amount": 520457.33,
+          "percentage": 0.9260165846061998,
+          "color": "#00657C",
+          "items": 37,
+          "description": "Contract Services Testing - Other Services and Charges; Salaries & Wages Employees - Personnel Services; Chemicals Miscellaneous - Supplies",
+          "subcategories": [
+            {
+              "name": "Administrative & General",
+              "amount": 477257.33,
+              "percentage": 91.69960772768826,
+              "color": "#59B0C4",
+              "items": 21,
+              "description": "Salaries & Wages Employees - Personnel Services; Materials & Supplies General - Supplies; Miscellaneous Expense Shipping - Other Services and Charges"
+            },
+            {
+              "name": "Water Treat Exp - Oper",
+              "amount": 32400,
+              "percentage": 6.225294204233803,
+              "color": "#004D5C",
+              "items": 4,
+              "description": "Chemicals Miscellaneous - Supplies; Contract Services Testing - Other Services and Charges; Materials & Supplies General - Supplies"
+            },
+            {
+              "name": "Treatment & Disposal - Ops",
+              "amount": 10600,
+              "percentage": 2.036670326076491,
+              "color": "#FED12E",
+              "items": 6,
+              "description": "Contract Services Testing - Other Services and Charges; Transportation - Other Services and Charges; Chemicals Miscellaneous - Supplies"
+            },
+            {
+              "name": "Treatment & Disposal - Maint",
+              "amount": 200,
+              "percentage": 0.03842774200144323,
+              "color": "#FF8C42",
+              "items": 4,
+              "description": "Transportation - Other Services and Charges; Materials & Supplies Treatment - Supplies; Materials & Supplies General - Supplies"
+            },
+            {
+              "name": "Pumping Expense - Operations",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FF5740",
+              "items": 1,
+              "description": "Contract Services Testing - Other Services and Charges"
+            },
+            {
+              "name": "Water Treatment - Maint",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#008B9C",
+              "items": 1,
+              "description": "Transportation - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Utilities Communications",
+          "amount": 494486.05,
+          "percentage": 0.8798075399503176,
+          "color": "#6B4E71",
+          "items": 20,
+          "description": "Advertising - Other Services and Charges; Salaries & Wages Employees - Personnel Services; Materials & Supplies General - Supplies",
+          "subcategories": [
+            {
+              "name": "Administrative & General",
+              "amount": 494486.05,
+              "percentage": 100,
+              "color": "#2D6A4F",
+              "items": 20,
+              "description": "Advertising - Other Services and Charges; Salaries & Wages Employees - Personnel Services; Materials & Supplies General - Supplies"
+            }
+          ]
+        },
+        {
+          "name": "Utilities Customer Relations",
+          "amount": 400679.89999999997,
+          "percentage": 0.7129042308201399,
+          "color": "#59B0C4",
+          "items": 31,
+          "description": "Salaries & Wages Employees - Personnel Services; Materials & Supplies General - Supplies; Materials & Supplies Computer - Supplies",
+          "subcategories": [
+            {
+              "name": "Customer Accts Expense",
+              "amount": 235055.24,
+              "percentage": 58.664095703328265,
+              "color": "#004D5C",
+              "items": 9,
+              "description": "Salaries & Wages Employees - Personnel Services; Taxes - FICA - Personnel Services; Materials & Supplies Statements - Supplies"
+            },
+            {
+              "name": "Customer Accounts Exp",
+              "amount": 156624.66,
+              "percentage": 39.08972224461472,
+              "color": "#FF8C42",
+              "items": 8,
+              "description": "Taxes - FICA - Personnel Services; Employee Pensions & Benefits - Personnel Services; Salaries & Wages Employees - Personnel Services"
+            },
+            {
+              "name": "Administrative & General",
+              "amount": 9000,
+              "percentage": 2.2461820520570166,
+              "color": "#008B9C",
+              "items": 14,
+              "description": "Materials & Supplies General - Supplies; Materials & Supplies Computer - Supplies; Furniture & Fixtures Maintenance - Supplies"
+            }
+          ]
+        },
+        {
+          "name": "Utilities Griffy Lake",
+          "amount": 10450,
+          "percentage": 0.018593019545204197,
+          "color": "#6B4E71",
+          "items": 2,
+          "description": "Contract Services Engineering - Other Services and Charges; Purchased Power Treatment - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "Administrative & General",
+              "amount": 10000,
+              "percentage": 95.69377990430623,
+              "color": "#2D6A4F",
+              "items": 1,
+              "description": "Contract Services Engineering - Other Services and Charges"
+            },
+            {
+              "name": "Water Treat Exp - Oper",
+              "amount": 450,
+              "percentage": 4.30622009569378,
+              "color": "#B5838D",
+              "items": 1,
+              "description": "Purchased Power Treatment - Other Services and Charges"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Public Safety",
+      "amount": 48599901.510000005,
+      "percentage": 23.60949521102013,
+      "color": "#008B9C",
+      "items": 209,
+      "description": "Other Services and Charges - Other Services and Charges; Office Supplies - Supplies; Other Repairs - Other Services and Charges",
+      "subcategories": [
+        {
+          "name": "Police",
+          "amount": 26297104.360000003,
+          "percentage": 54.10937788544502,
+          "color": "#FF8C42",
+          "items": 113,
+          "description": "Other Services and Charges - Other Services and Charges; Office Supplies - Supplies; Salaries and Wages - Regular - Personnel Services",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 21981642.22,
+              "percentage": 83.58959191505447,
+              "color": "#2D6A4F",
+              "items": 57,
+              "description": "Office Supplies - Supplies; Instruction - Other Services and Charges; Other Supplies - Supplies"
+            },
+            {
+              "name": "Dispatch",
+              "amount": 4315462.140000001,
+              "percentage": 16.410408084945516,
+              "color": "#6B4E71",
+              "items": 42,
+              "description": "Other Services and Charges - Other Services and Charges; Salaries and Wages - Regular - Personnel Services; Salaries and Wages- Overtime - Personnel Services"
+            },
+            {
+              "name": "Fed Equitable Sharing Asset Forf",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#B5838D",
+              "items": 1,
+              "description": "Other Services and Charges - Other Services and Charges"
+            },
+            {
+              "name": "FY2024 ICAC Grant",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#00657C",
+              "items": 1,
+              "description": "Other Supplies - Supplies"
+            },
+            {
+              "name": "2023 Bullet Proof Vest",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FF5740",
+              "items": 1,
+              "description": "Uniforms and Tools - Supplies"
+            },
+            {
+              "name": "2023 Edward Bryne JAG",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FED12E",
+              "items": 2,
+              "description": "Grants - Other Services and Charges; Other Capital Outlays - Capital Outlays"
+            },
+            {
+              "name": "FY22 Justice Assist Grant (JAG)",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#59B0C4",
+              "items": 1,
+              "description": "Grants - Other Services and Charges"
+            },
+            {
+              "name": "2024 BVP Grant",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#004D5C",
+              "items": 1,
+              "description": "Uniforms and Tools - Supplies"
+            },
+            {
+              "name": "2025 CHIRP CITLI",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#008B9C",
+              "items": 2,
+              "description": "Other Services and Charges - Other Services and Charges; Salaries and Wages- Overtime - Personnel Services"
+            },
+            {
+              "name": "FY2025 ICAC Grant",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FF8C42",
+              "items": 1,
+              "description": "Other Supplies - Supplies"
+            },
+            {
+              "name": "2025 CHIRP EQUIPMENT",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6B4E71",
+              "items": 1,
+              "description": "Other Services and Charges - Other Services and Charges"
+            },
+            {
+              "name": "2025 CHIRP MC-HVA",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#2D6A4F",
+              "items": 2,
+              "description": "Other Services and Charges - Other Services and Charges; Salaries and Wages- Overtime - Personnel Services"
+            },
+            {
+              "name": "2025 CHIRP DUI",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#B5838D",
+              "items": 1,
+              "description": "Other Services and Charges - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Fire",
+          "amount": 22299382.5,
+          "percentage": 45.883596071509814,
+          "color": "#00657C",
+          "items": 85,
+          "description": "Other Repairs - Other Services and Charges; Office Supplies - Supplies; Salaries and Wages - Regular - Personnel Services",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 22142601.5,
+              "percentage": 99.29692671983182,
+              "color": "#FF5740",
+              "items": 45,
+              "description": "Other Repairs - Other Services and Charges; Salaries and Wages - Regular - Personnel Services; FICA - Personnel Services"
+            },
+            {
+              "name": "Station #2",
+              "amount": 58157,
+              "percentage": 0.26080094370326173,
+              "color": "#59B0C4",
+              "items": 7,
+              "description": "Office Supplies - Supplies; Institutional Supplies - Supplies; Garage and Motor Supplies - Supplies"
+            },
+            {
+              "name": "Station #5",
+              "amount": 39266,
+              "percentage": 0.17608559340152133,
+              "color": "#FF8C42",
+              "items": 7,
+              "description": "Office Supplies - Supplies; Institutional Supplies - Supplies; Garage and Motor Supplies - Supplies"
+            },
+            {
+              "name": "Station #4",
+              "amount": 31748,
+              "percentage": 0.14237165535861812,
+              "color": "#008B9C",
+              "items": 6,
+              "description": "Office Supplies - Supplies; Institutional Supplies - Supplies; Garage and Motor Supplies - Supplies"
+            },
+            {
+              "name": "Station #1",
+              "amount": 19323,
+              "percentage": 0.08665262367691123,
+              "color": "#FED12E",
+              "items": 7,
+              "description": "Office Supplies - Supplies; Institutional Supplies - Supplies; Garage and Motor Supplies - Supplies"
+            },
+            {
+              "name": "Station #3",
+              "amount": 8287,
+              "percentage": 0.03716246402787163,
+              "color": "#004D5C",
+              "items": 6,
+              "description": "Office Supplies - Supplies; Institutional Supplies - Supplies; Garage and Motor Supplies - Supplies"
+            },
+            {
+              "name": "Mobile Integrated Healthcare",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6B4E71",
+              "items": 2,
+              "description": "Hardware and Software Maintenance - Other Services and Charges; Other Supplies - Supplies"
+            },
+            {
+              "name": "Next Level Jobs FY24-Emp Trng",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#2D6A4F",
+              "items": 3,
+              "description": "FICA - Personnel Services; Salaries and Wages - Regular - Personnel Services; PERF - Personnel Services"
+            },
+            {
+              "name": "Mobile Integrated Health FY25",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#B5838D",
+              "items": 2,
+              "description": "Other Supplies - Supplies; Motor Equipment - Capital Outlays"
+            }
+          ]
+        },
+        {
+          "name": "Board of Public Safety",
+          "amount": 3414.65,
+          "percentage": 0.007026043045164187,
+          "color": "#2D6A4F",
+          "items": 2,
+          "description": "Salaries and Wages - Temporary - Personnel Services; FICA - Personnel Services",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 3414.65,
+              "percentage": 100,
+              "color": "#B5838D",
+              "items": 2,
+              "description": "Salaries and Wages - Temporary - Personnel Services; FICA - Personnel Services"
+            }
+          ]
+        },
+        {
+          "name": "Controller's Office",
+          "amount": 0,
+          "percentage": 0,
+          "color": "#00657C",
+          "items": 9,
+          "description": "Other Services and Charges - Other Services and Charges; Bank Charges - Other Services and Charges; Uniforms and Tools - Supplies",
+          "subcategories": [
+            {
+              "name": "Police Programs & Events",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FF5740",
+              "items": 1,
+              "description": "Other Services and Charges - Other Services and Charges"
+            },
+            {
+              "name": "Explorer Teen Programs",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FED12E",
+              "items": 3,
+              "description": "Bank Charges - Other Services and Charges; Uniforms and Tools - Supplies; Other Services and Charges - Other Services and Charges"
+            },
+            {
+              "name": "Fire Shower's West",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#59B0C4",
+              "items": 1,
+              "description": "Other Capital Outlays - Capital Outlays"
+            },
+            {
+              "name": "Fire Community MIH",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#004D5C",
+              "items": 1,
+              "description": "Other Supplies - Supplies"
+            },
+            {
+              "name": "Fire Station 1",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#008B9C",
+              "items": 1,
+              "description": "Other Capital Outlays - Capital Outlays"
+            },
+            {
+              "name": "Fire Station 3",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FF8C42",
+              "items": 1,
+              "description": "Other Capital Outlays - Capital Outlays"
+            },
+            {
+              "name": "Fire Logistics",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6B4E71",
+              "items": 1,
+              "description": "Other Capital Outlays - Capital Outlays"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "General Government",
+      "amount": 36995819.940000005,
+      "percentage": 17.972312835273335,
+      "color": "#B5838D",
+      "items": 383,
+      "description": "Instruction - Other Services and Charges; Other Repairs and Maintenance - Supplies; Dues and Subscriptions - Other Services and Charges",
+      "subcategories": [
+        {
+          "name": "Human Resources",
+          "amount": 7003212.14,
+          "percentage": 18.929738957962932,
+          "color": "#FED12E",
+          "items": 17,
+          "description": "Other Services and Charges - Other Services and Charges; FICA - Personnel Services; PERF - Personnel Services",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 7003212.14,
+              "percentage": 100,
+              "color": "#004D5C",
+              "items": 16,
+              "description": "FICA - Personnel Services; PERF - Personnel Services; Other Personal Services - Personnel Services"
+            },
+            {
+              "name": "ARPA COVID Local Fiscal Recovery",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#59B0C4",
+              "items": 1,
+              "description": "Other Services and Charges - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Parking",
+          "amount": 5226478.199999999,
+          "percentage": 14.127212772892522,
+          "color": "#FED12E",
+          "items": 65,
+          "description": "Other Repairs and Maintenance - Supplies; Dues and Subscriptions - Other Services and Charges; Other Supplies - Supplies",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 5226478.199999999,
+              "percentage": 100,
+              "color": "#59B0C4",
+              "items": 64,
+              "description": "Other Repairs and Maintenance - Supplies; Dues and Subscriptions - Other Services and Charges; Other Supplies - Supplies"
+            },
+            {
+              "name": "PARKING  CRED",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#004D5C",
+              "items": 1,
+              "description": "Other Capital Outlays - Capital Outlays"
+            }
+          ]
+        },
+        {
+          "name": "Fleet Maintenance",
+          "amount": 4223298,
+          "percentage": 11.415608592671726,
+          "color": "#008B9C",
+          "items": 35,
+          "description": "Exterminator Services - Other Services and Charges; Motor Equipment - Capital Outlays; Salaries and Wages - Regular - Personnel Services",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 4223298,
+              "percentage": 100,
+              "color": "#FF8C42",
+              "items": 35,
+              "description": "Exterminator Services - Other Services and Charges; Motor Equipment - Capital Outlays; Salaries and Wages - Regular - Personnel Services"
+            }
+          ]
+        },
+        {
+          "name": "ITS",
+          "amount": 4204873.11,
+          "percentage": 11.365805966240195,
+          "color": "#6B4E71",
+          "items": 27,
+          "description": "Salaries and Wages - Regular - Personnel Services; Salaries and Wages - Temporary - Personnel Services; FICA - Personnel Services",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 4204873.11,
+              "percentage": 100,
+              "color": "#2D6A4F",
+              "items": 26,
+              "description": "Salaries and Wages - Regular - Personnel Services; Salaries and Wages - Temporary - Personnel Services; FICA - Personnel Services"
+            },
+            {
+              "name": "ARPA COVID Local Fiscal Recovery",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#B5838D",
+              "items": 1,
+              "description": "Purchase of Equipment - Capital Outlays"
+            }
+          ]
+        },
+        {
+          "name": "Legal",
+          "amount": 3264771.2699999996,
+          "percentage": 8.824703102390542,
+          "color": "#008B9C",
+          "items": 34,
+          "description": "Salaries and Wages - Regular - Personnel Services; FICA - Personnel Services; PERF - Personnel Services",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 3264771.2699999996,
+              "percentage": 100,
+              "color": "#FF8C42",
+              "items": 34,
+              "description": "Salaries and Wages - Regular - Personnel Services; FICA - Personnel Services; PERF - Personnel Services"
+            }
+          ]
+        },
+        {
+          "name": "Engineering",
+          "amount": 2867723.71,
+          "percentage": 7.751480341970762,
+          "color": "#FF5740",
+          "items": 25,
+          "description": "Other Personal Services -DC Match - Personnel Services; Salaries and Wages - Regular - Personnel Services; Salaries and Wages - Temporary - Personnel Services",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 2867723.71,
+              "percentage": 100,
+              "color": "#FED12E",
+              "items": 24,
+              "description": "Other Personal Services -DC Match - Personnel Services; Salaries and Wages - Regular - Personnel Services; Salaries and Wages - Temporary - Personnel Services"
+            },
+            {
+              "name": "ENG CRED",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#59B0C4",
+              "items": 1,
+              "description": "Other Capital Outlays - Capital Outlays"
+            }
+          ]
+        },
+        {
+          "name": "Public Works",
+          "amount": 2713696.76,
+          "percentage": 7.335144252515787,
+          "color": "#008B9C",
+          "items": 27,
+          "description": "Street , Alley,  and Sewer Material - Supplies; Inter-Fund Transfers - Capital Outlays; Other Personal Services -DC Match - Personnel Services",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 2713696.76,
+              "percentage": 100,
+              "color": "#FF8C42",
+              "items": 27,
+              "description": "Street , Alley,  and Sewer Material - Supplies; Inter-Fund Transfers - Capital Outlays; Other Personal Services -DC Match - Personnel Services"
+            }
+          ]
+        },
+        {
+          "name": "Animal Shelter",
+          "amount": 2224715.35,
+          "percentage": 6.013423553277246,
+          "color": "#6B4E71",
+          "items": 42,
+          "description": "Salaries and Wages - Regular - Personnel Services; Salaries and Wages - Temporary - Personnel Services; Salaries and Wages- Overtime - Personnel Services",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 2169146.21,
+              "percentage": 97.50219101063873,
+              "color": "#2D6A4F",
+              "items": 37,
+              "description": "Salaries and Wages - Regular - Personnel Services; Salaries and Wages - Temporary - Personnel Services; Salaries and Wages- Overtime - Personnel Services"
+            },
+            {
+              "name": "Donations Over $5K",
+              "amount": 55569.14,
+              "percentage": 2.497808989361268,
+              "color": "#B5838D",
+              "items": 5,
+              "description": "Salaries and Wages - Temporary - Personnel Services; FICA - Personnel Services; Institutional Supplies - Supplies"
+            }
+          ]
+        },
+        {
+          "name": "Mayor's Office",
+          "amount": 1340725.75,
+          "percentage": 3.623992527194681,
+          "color": "#6B4E71",
+          "items": 20,
+          "description": "Salaries and Wages - Regular - Personnel Services; Salaries and Wages - Temporary - Personnel Services; FICA - Personnel Services",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 1340725.75,
+              "percentage": 100,
+              "color": "#2D6A4F",
+              "items": 20,
+              "description": "Salaries and Wages - Regular - Personnel Services; Salaries and Wages - Temporary - Personnel Services; FICA - Personnel Services"
+            }
+          ]
+        },
+        {
+          "name": "Facilities Maintenance",
+          "amount": 1329475.35,
+          "percentage": 3.5935826051595816,
+          "color": "#00657C",
+          "items": 26,
+          "description": "Instruction - Other Services and Charges; Travel - Other Services and Charges; Telephone - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 1329475.35,
+              "percentage": 100,
+              "color": "#FF5740",
+              "items": 26,
+              "description": "Instruction - Other Services and Charges; Travel - Other Services and Charges; Telephone - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Street",
+          "amount": 1000000,
+          "percentage": 2.703008073944042,
+          "color": "#FF5740",
+          "items": 1,
+          "description": "Other Services and Charges - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 1000000,
+              "percentage": 100,
+              "color": "#FED12E",
+              "items": 1,
+              "description": "Other Services and Charges - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Common Council",
+          "amount": 772736.4099999999,
+          "percentage": 2.0887127552605333,
+          "color": "#B5838D",
+          "items": 19,
+          "description": "Salaries and Wages - Regular - Personnel Services; Salaries and Wages - Temporary - Personnel Services; Other Personal Services -DC Match - Personnel Services",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 772736.4099999999,
+              "percentage": 100,
+              "color": "#00657C",
+              "items": 19,
+              "description": "Salaries and Wages - Regular - Personnel Services; Salaries and Wages - Temporary - Personnel Services; Other Personal Services -DC Match - Personnel Services"
+            }
+          ]
+        },
+        {
+          "name": "City Clerk",
+          "amount": 599874.89,
+          "percentage": 1.6214666710262942,
+          "color": "#00657C",
+          "items": 19,
+          "description": "Instruction - Other Services and Charges; Mgt. Fee, Consultants, and Workshops - Other Services and Charges; Telephone - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 599874.89,
+              "percentage": 100,
+              "color": "#FF5740",
+              "items": 19,
+              "description": "Instruction - Other Services and Charges; Mgt. Fee, Consultants, and Workshops - Other Services and Charges; Telephone - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Controller's Office",
+          "amount": 224239,
+          "percentage": 0.6061198274931381,
+          "color": "#00657C",
+          "items": 20,
+          "description": "Medical - Other Services and Charges; Other Services and Charges - Other Services and Charges; Bank Charges - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 224239,
+              "percentage": 100,
+              "color": "#FED12E",
+              "items": 15,
+              "description": "Other Services and Charges - Other Services and Charges; Office Supplies - Supplies; Other Supplies - Supplies"
+            },
+            {
+              "name": "Animal Medical Services",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FF5740",
+              "items": 2,
+              "description": "Medical - Other Services and Charges; Bank Charges - Other Services and Charges"
+            },
+            {
+              "name": "Animal Supplies",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#59B0C4",
+              "items": 2,
+              "description": "Bank Charges - Other Services and Charges; Institutional Supplies - Supplies"
+            },
+            {
+              "name": "IFA Corona Virus Relief Fund",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#004D5C",
+              "items": 1,
+              "description": "Other Services and Charges - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Economic & Sustainable Dev",
+          "amount": 0,
+          "percentage": 0,
+          "color": "#004D5C",
+          "items": 2,
+          "description": "Grants - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "ESD CRED",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#008B9C",
+              "items": 1,
+              "description": "Grants - Other Services and Charges"
+            },
+            {
+              "name": "ARPA COVID Local Fiscal Recovery",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FF8C42",
+              "items": 1,
+              "description": "Grants - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Parks & Recreation",
+          "amount": 0,
+          "percentage": 0,
+          "color": "#6B4E71",
+          "items": 2,
+          "description": "Other Services and Charges - Other Services and Charges; Other Capital Outlays - Capital Outlays",
+          "subcategories": [
+            {
+              "name": "ARPA COVID Local Fiscal Recovery",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#2D6A4F",
+              "items": 2,
+              "description": "Other Services and Charges - Other Services and Charges; Other Capital Outlays - Capital Outlays"
+            }
+          ]
+        },
+        {
+          "name": "HAND",
+          "amount": 0,
+          "percentage": 0,
+          "color": "#B5838D",
+          "items": 1,
+          "description": "Grants - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "ARPA COVID Local Fiscal Recovery",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#00657C",
+              "items": 1,
+              "description": "Grants - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "CFRD",
+          "amount": 0,
+          "percentage": 0,
+          "color": "#59B0C4",
+          "items": 1,
+          "description": "Grants - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "ARPA COVID Local Fiscal Recovery",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#004D5C",
+              "items": 1,
+              "description": "Grants - Other Services and Charges"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Substainable & Economic",
+      "amount": 18767918.23,
+      "percentage": 9.117324558380618,
+      "color": "#004D5C",
+      "items": 104,
+      "description": "Other Personal Services -DC Match - Personnel Services; Other Services and Charges - Other Services and Charges; Dues and Subscriptions - Other Services and Charges",
+      "subcategories": [
+        {
+          "name": "Economic & Sustainable Dev",
+          "amount": 7559161.93,
+          "percentage": 40.277039985803476,
+          "color": "#004D5C",
+          "items": 26,
+          "description": "Dues and Subscriptions - Other Services and Charges; Temporary Contractual Employee - Other Services and Charges; Grants - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 7559161.93,
+              "percentage": 100,
+              "color": "#008B9C",
+              "items": 23,
+              "description": "Dues and Subscriptions - Other Services and Charges; Temporary Contractual Employee - Other Services and Charges; Grants - Other Services and Charges"
+            },
+            {
+              "name": "City Hall Lighting Efficiency",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FF8C42",
+              "items": 1,
+              "description": "Grants - Other Services and Charges"
+            },
+            {
+              "name": "Trades Tech Center",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6B4E71",
+              "items": 1,
+              "description": "Other Services and Charges - Other Services and Charges"
+            },
+            {
+              "name": "Buskirk-Chumley Theater Project",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#2D6A4F",
+              "items": 1,
+              "description": "Grants - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Controller's Office",
+          "amount": 4698008.46,
+          "percentage": 25.032123448248843,
+          "color": "#008B9C",
+          "items": 18,
+          "description": "Salaries and Wages - Regular - Personnel Services; Salaries and Wages - Temporary - Personnel Services; FICA - Personnel Services",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 4698008.46,
+              "percentage": 100,
+              "color": "#FF8C42",
+              "items": 16,
+              "description": "Salaries and Wages - Regular - Personnel Services; Salaries and Wages - Temporary - Personnel Services; FICA - Personnel Services"
+            },
+            {
+              "name": "ARPA COVID Local Fiscal Recovery",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6B4E71",
+              "items": 2,
+              "description": "Other Services and Charges - Other Services and Charges; Grants - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Police",
+          "amount": 1837495.14,
+          "percentage": 9.79061778446378,
+          "color": "#B5838D",
+          "items": 7,
+          "description": "Salaries and Wages - Regular - Personnel Services; FICA - Personnel Services; PERF - Personnel Services",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 1837495.14,
+              "percentage": 100,
+              "color": "#00657C",
+              "items": 7,
+              "description": "Salaries and Wages - Regular - Personnel Services; FICA - Personnel Services; PERF - Personnel Services"
+            }
+          ]
+        },
+        {
+          "name": "CFRD",
+          "amount": 1063580.29,
+          "percentage": 5.66701259546142,
+          "color": "#2D6A4F",
+          "items": 5,
+          "description": "Salaries and Wages - Regular - Personnel Services; FICA - Personnel Services; PERF - Personnel Services",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 1063580.29,
+              "percentage": 100,
+              "color": "#B5838D",
+              "items": 5,
+              "description": "Salaries and Wages - Regular - Personnel Services; FICA - Personnel Services; PERF - Personnel Services"
+            }
+          ]
+        },
+        {
+          "name": "Human Resources",
+          "amount": 1046511.99,
+          "percentage": 5.576068571777872,
+          "color": "#00657C",
+          "items": 7,
+          "description": "Salaries and Wages - Temporary - Personnel Services; Other Services and Charges - Other Services and Charges; Salaries and Wages - Regular - Personnel Services",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 1046511.99,
+              "percentage": 100,
+              "color": "#FF5740",
+              "items": 7,
+              "description": "Salaries and Wages - Temporary - Personnel Services; Other Services and Charges - Other Services and Charges; Salaries and Wages - Regular - Personnel Services"
+            }
+          ]
+        },
+        {
+          "name": "HAND",
+          "amount": 925115.04,
+          "percentage": 4.929236309870688,
+          "color": "#6B4E71",
+          "items": 17,
+          "description": "Other Services and Charges - Other Services and Charges; Salaries and Wages - Regular - Personnel Services; FICA - Personnel Services",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 925115.04,
+              "percentage": 100,
+              "color": "#FED12E",
+              "items": 8,
+              "description": "Salaries and Wages - Regular - Personnel Services; FICA - Personnel Services; PERF - Personnel Services"
+            },
+            {
+              "name": "Adams Crossing Area",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#2D6A4F",
+              "items": 1,
+              "description": "Other Services and Charges - Other Services and Charges"
+            },
+            {
+              "name": "Downtown Area",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#B5838D",
+              "items": 2,
+              "description": "Other Services and Charges - Other Services and Charges; Inter-Fund Transfers - Other Services and Charges"
+            },
+            {
+              "name": "Thomson-Walnut-Winslow Area",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#00657C",
+              "items": 1,
+              "description": "Other Services and Charges - Other Services and Charges"
+            },
+            {
+              "name": "West 17th Street Area",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FF5740",
+              "items": 2,
+              "description": "Other Services and Charges - Other Services and Charges"
+            },
+            {
+              "name": "Admin",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#59B0C4",
+              "items": 3,
+              "description": "Principal - Other Services and Charges; Interest - Other Services and Charges; Bank Charges - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "ITS",
+          "amount": 729029.51,
+          "percentage": 3.8844452595422463,
+          "color": "#008B9C",
+          "items": 9,
+          "description": "Other Personal Services -DC Match - Personnel Services; Salaries and Wages - Regular - Personnel Services; FICA - Personnel Services",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 729029.51,
+              "percentage": 100,
+              "color": "#FF8C42",
+              "items": 9,
+              "description": "Other Personal Services -DC Match - Personnel Services; Salaries and Wages - Regular - Personnel Services; FICA - Personnel Services"
+            }
+          ]
+        },
+        {
+          "name": "Facilities Maintenance",
+          "amount": 486000,
+          "percentage": 2.5895253487578733,
+          "color": "#59B0C4",
+          "items": 2,
+          "description": "Other Services and Charges - Other Services and Charges; Building Repairs - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 486000,
+              "percentage": 100,
+              "color": "#004D5C",
+              "items": 2,
+              "description": "Other Services and Charges - Other Services and Charges; Building Repairs - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Fire",
+          "amount": 423015.87,
+          "percentage": 2.253930696073797,
+          "color": "#FF5740",
+          "items": 8,
+          "description": "Salaries and Wages- Overtime - Personnel Services; Salaries and Wages - Regular - Personnel Services; FICA - Personnel Services",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 423015.87,
+              "percentage": 100,
+              "color": "#FED12E",
+              "items": 8,
+              "description": "Salaries and Wages- Overtime - Personnel Services; Salaries and Wages - Regular - Personnel Services; FICA - Personnel Services"
+            }
+          ]
+        },
+        {
+          "name": "Engineering",
+          "amount": 0,
+          "percentage": 0,
+          "color": "#FED12E",
+          "items": 4,
+          "description": "Salaries and Wages - Regular - Personnel Services; FICA - Personnel Services; PERF - Personnel Services",
+          "subcategories": [
+            {
+              "name": "MDA Meridiam",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#59B0C4",
+              "items": 4,
+              "description": "Salaries and Wages - Regular - Personnel Services; FICA - Personnel Services; PERF - Personnel Services"
+            }
+          ]
+        },
+        {
+          "name": "Public Works",
+          "amount": 0,
+          "percentage": 0,
+          "color": "#004D5C",
+          "items": 1,
+          "description": "Other Services and Charges - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#008B9C",
+              "items": 1,
+              "description": "Other Services and Charges - Other Services and Charges"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Culture & Recreation",
+      "amount": 15159533.429999998,
+      "percentage": 7.364396239429426,
+      "color": "#00657C",
+      "items": 834,
+      "description": "Other Supplies - Supplies; Other Repairs and Maintenance - Supplies; Health and Life Insurance - Personnel Services",
+      "subcategories": [
+        {
+          "name": "Parks & Recreation",
+          "amount": 14463987.429999998,
+          "percentage": 95.41182449175153,
+          "color": "#FF5740",
+          "items": 820,
+          "description": "Other Supplies - Supplies; Other Repairs and Maintenance - Supplies; Health and Life Insurance - Personnel Services",
+          "subcategories": [
+            {
+              "name": "Operations",
+              "amount": 2418280.5,
+              "percentage": 16.719321084199812,
+              "color": "#004D5C",
+              "items": 41,
+              "description": "Other Supplies - Supplies; Hardware and Software Maintenance - Other Services and Charges; Bank Charges - Other Services and Charges"
+            },
+            {
+              "name": "Twin Lakes Recreation Center",
+              "amount": 1408304.2299999997,
+              "percentage": 9.736625096057622,
+              "color": "#FED12E",
+              "items": 39,
+              "description": "Other Supplies - Supplies; Salaries and Wages - Temporary - Personnel Services; FICA - Personnel Services"
+            },
+            {
+              "name": "Golf Services",
+              "amount": 1244229.0899999999,
+              "percentage": 8.602255056025033,
+              "color": "#FF8C42",
+              "items": 48,
+              "description": "Other Supplies - Supplies; Travel - Other Services and Charges; Printing - Other Services and Charges"
+            },
+            {
+              "name": "Administration",
+              "amount": 1172964.6900000002,
+              "percentage": 8.10955274730905,
+              "color": "#FF5740",
+              "items": 31,
+              "description": "Other Supplies - Supplies; Uniforms and Tools - Supplies; Instruction - Other Services and Charges"
+            },
+            {
+              "name": "Switchyard Property",
+              "amount": 1167333.22,
+              "percentage": 8.070618324645489,
+              "color": "#2D6A4F",
+              "items": 33,
+              "description": "Other Personal Services -DC Match - Personnel Services; Bank Charges - Other Services and Charges; Salaries and Wages - Temporary - Personnel Services"
+            },
+            {
+              "name": "Urban Greenspace",
+              "amount": 1154904.58,
+              "percentage": 7.984690152624117,
+              "color": "#6B4E71",
+              "items": 24,
+              "description": "Other Repairs and Maintenance - Supplies; Other Supplies - Supplies; Uniforms and Tools - Supplies"
+            },
+            {
+              "name": "Frank Southern Center",
+              "amount": 586653.6200000001,
+              "percentage": 4.055960521530958,
+              "color": "#59B0C4",
+              "items": 47,
+              "description": "Other Repairs and Maintenance - Supplies; Other Supplies - Supplies; Uniforms and Tools - Supplies"
+            },
+            {
+              "name": "Urban Forestry",
+              "amount": 575953.5800000001,
+              "percentage": 3.9819834107806615,
+              "color": "#FF8C42",
+              "items": 30,
+              "description": "Salaries and Wages- Overtime - Personnel Services; Salaries and Wages - Regular - Personnel Services; Salaries and Wages - Temporary - Personnel Services"
+            },
+            {
+              "name": "Natural Resources",
+              "amount": 535965.1599999999,
+              "percentage": 3.7055145587885785,
+              "color": "#59B0C4",
+              "items": 31,
+              "description": "Other Services and Charges - Other Services and Charges; Salaries and Wages - Regular - Personnel Services; Other Supplies - Supplies"
+            },
+            {
+              "name": "Banneker",
+              "amount": 507620.52999999997,
+              "percentage": 3.509547643460584,
+              "color": "#004D5C",
+              "items": 30,
+              "description": "Salaries and Wages - Regular - Personnel Services; Salaries and Wages - Temporary - Personnel Services; FICA - Personnel Services"
+            },
+            {
+              "name": "Marketing",
+              "amount": 503282.66,
+              "percentage": 3.479556812640289,
+              "color": "#FF8C42",
+              "items": 17,
+              "description": "Printing - Other Services and Charges; Advertising - Other Services and Charges; Dues and Subscriptions - Other Services and Charges"
+            },
+            {
+              "name": "Aquatics - Bryan Pool",
+              "amount": 462877.59,
+              "percentage": 3.2002073580341883,
+              "color": "#2D6A4F",
+              "items": 44,
+              "description": "Other Repairs and Maintenance - Supplies; Other Supplies - Supplies; Uniforms and Tools - Supplies"
+            },
+            {
+              "name": "Community Events",
+              "amount": 417714.32999999996,
+              "percentage": 2.887961096631014,
+              "color": "#008B9C",
+              "items": 29,
+              "description": "Purchase of Equipment - Capital Outlays; Printing - Other Services and Charges; Advertising - Other Services and Charges"
+            },
+            {
+              "name": "Adult Sports-Softball",
+              "amount": 346262.65,
+              "percentage": 2.3939639859048194,
+              "color": "#00657C",
+              "items": 41,
+              "description": "Advertising - Other Services and Charges; Other Repairs - Other Services and Charges; Bank Charges - Other Services and Charges"
+            },
+            {
+              "name": "Youth Sports-Winslow",
+              "amount": 268797.37,
+              "percentage": 1.8583905116128827,
+              "color": "#008B9C",
+              "items": 36,
+              "description": "Other Personal Services -DC Match - Personnel Services; Salaries and Wages - Regular - Personnel Services; Salaries and Wages - Temporary - Personnel Services"
+            },
+            {
+              "name": "Cemeteries",
+              "amount": 242062.93000000002,
+              "percentage": 1.6735560036365438,
+              "color": "#00657C",
+              "items": 27,
+              "description": "Other Services and Charges - Other Services and Charges; Salaries and Wages - Regular - Personnel Services; Salaries and Wages - Temporary - Personnel Services"
+            },
+            {
+              "name": "Aquatics - Mills Pool",
+              "amount": 222414.55000000002,
+              "percentage": 1.5377125504042288,
+              "color": "#004D5C",
+              "items": 31,
+              "description": "Health and Life Insurance - Personnel Services; Institutional Supplies - Supplies; Agricultural Supplies - Supplies"
+            },
+            {
+              "name": "Youth Services -Juke Box",
+              "amount": 147719.28999999998,
+              "percentage": 1.021290226605237,
+              "color": "#FED12E",
+              "items": 20,
+              "description": "Dues and Subscriptions - Other Services and Charges; Salaries and Wages - Temporary - Personnel Services; Salaries and Wages- Overtime - Personnel Services"
+            },
+            {
+              "name": "Community Events-Farmers' Market",
+              "amount": 145023.37000000002,
+              "percentage": 1.0026513829734436,
+              "color": "#B5838D",
+              "items": 19,
+              "description": "Salaries and Wages - Regular - Personnel Services; Salaries and Wages - Temporary - Personnel Services; FICA - Personnel Services"
+            },
+            {
+              "name": "Community Events-Gardens",
+              "amount": 122027.61,
+              "percentage": 0.8436650722393502,
+              "color": "#2D6A4F",
+              "items": 23,
+              "description": "Temporary Contractual Employee - Other Services and Charges; Salaries and Wages - Regular - Personnel Services; Salaries and Wages - Temporary - Personnel Services"
+            },
+            {
+              "name": "Health & Wellness",
+              "amount": 119824.37,
+              "percentage": 0.8284324815677748,
+              "color": "#6B4E71",
+              "items": 17,
+              "description": "Other Supplies - Supplies; Institutional Supplies - Supplies; Travel - Other Services and Charges"
+            },
+            {
+              "name": "Youth Services-Kid City Camps",
+              "amount": 113949.87,
+              "percentage": 0.787817816846651,
+              "color": "#008B9C",
+              "items": 14,
+              "description": "Bank Charges - Other Services and Charges; Salaries and Wages - Temporary - Personnel Services; FICA - Personnel Services"
+            },
+            {
+              "name": "Inclusive Recreation",
+              "amount": 92770.87,
+              "percentage": 0.6413920811876702,
+              "color": "#59B0C4",
+              "items": 9,
+              "description": "Salaries and Wages - Regular - Personnel Services; Salaries and Wages - Temporary - Personnel Services; FICA - Personnel Services"
+            },
+            {
+              "name": "Golf Course - Pro Shop",
+              "amount": 80500,
+              "percentage": 0.5565546872160135,
+              "color": "#B5838D",
+              "items": 3,
+              "description": "Street , Alley,  and Sewer Material - Supplies; Advertising - Other Services and Charges; Bank Charges - Other Services and Charges"
+            },
+            {
+              "name": "TLRC-Concessions",
+              "amount": 75735.82,
+              "percentage": 0.5236164672192336,
+              "color": "#59B0C4",
+              "items": 15,
+              "description": "Instruction - Other Services and Charges; Building Repairs - Other Services and Charges; Machinery and Equipment Repairs - Other Services and Charges"
+            },
+            {
+              "name": "Youth Sports-Olcott",
+              "amount": 63060.05999999999,
+              "percentage": 0.4359797760139508,
+              "color": "#004D5C",
+              "items": 16,
+              "description": "Agricultural Supplies - Supplies; Building Materials and Supplies - Supplies; Other Repairs and Maintenance - Supplies"
+            },
+            {
+              "name": "Aquatics - Pool Concessions",
+              "amount": 57011.78999999999,
+              "percentage": 0.39416371367795083,
+              "color": "#6B4E71",
+              "items": 13,
+              "description": "Printing - Other Services and Charges; Building Repairs - Other Services and Charges; Machinery and Equipment Repairs - Other Services and Charges"
+            },
+            {
+              "name": "TLRC-Health & Wellness",
+              "amount": 55619.45,
+              "percentage": 0.38453746084318885,
+              "color": "#FF5740",
+              "items": 5,
+              "description": "Bank Charges - Other Services and Charges; Temporary Contractual Employee - Other Services and Charges; Salaries and Wages - Temporary - Personnel Services"
+            },
+            {
+              "name": "TLRC-Basketball",
+              "amount": 46700.4,
+              "percentage": 0.32287362130264247,
+              "color": "#00657C",
+              "items": 7,
+              "description": "Salaries and Wages - Temporary - Personnel Services; FICA - Personnel Services; Other Supplies - Supplies"
+            },
+            {
+              "name": "Performing Art Series",
+              "amount": 24858.480000000003,
+              "percentage": 0.1718646405101308,
+              "color": "#2D6A4F",
+              "items": 5,
+              "description": "FICA - Personnel Services; Other Supplies - Supplies; Other Services and Charges - Other Services and Charges"
+            },
+            {
+              "name": "Adult Sports-Concessions",
+              "amount": 24837.25,
+              "percentage": 0.17171786217460785,
+              "color": "#B5838D",
+              "items": 13,
+              "description": "Institutional Supplies - Supplies; Street , Alley,  and Sewer Material - Supplies; Other Repairs and Maintenance - Supplies"
+            },
+            {
+              "name": "Cell Tower",
+              "amount": 18000,
+              "percentage": 0.12444701080606513,
+              "color": "#FED12E",
+              "items": 2,
+              "description": "Building Materials and Supplies - Supplies; Other Services and Charges - Other Services and Charges"
+            },
+            {
+              "name": "Frank Southern Center Concession",
+              "amount": 13100,
+              "percentage": 0.09056976897552518,
+              "color": "#FF5740",
+              "items": 3,
+              "description": "Street , Alley,  and Sewer Material - Supplies; Other Supplies - Supplies; Machinery and Equipment Repairs - Other Services and Charges"
+            },
+            {
+              "name": "Operations-Open Shelters",
+              "amount": 10900,
+              "percentage": 0.075359578765895,
+              "color": "#FED12E",
+              "items": 3,
+              "description": "Other Services and Charges - Other Services and Charges; Other Supplies - Supplies; Bank Charges - Other Services and Charges"
+            },
+            {
+              "name": "Adult Sports-Tennis",
+              "amount": 8302.52,
+              "percentage": 0.057401322008753995,
+              "color": "#6B4E71",
+              "items": 11,
+              "description": "Other Services and Charges - Other Services and Charges; Salaries and Wages - Regular - Personnel Services; Improvements Other Than Building - Capital Outlays"
+            },
+            {
+              "name": "Banneker-Classes",
+              "amount": 5375,
+              "percentage": 0.03716126017125556,
+              "color": "#B5838D",
+              "items": 4,
+              "description": "Other Services and Charges - Other Services and Charges; Other Supplies - Supplies; Uniforms and Tools - Supplies"
+            },
+            {
+              "name": "Aquatics-Health & Safety",
+              "amount": 3050,
+              "percentage": 0.02108685460880548,
+              "color": "#FF5740",
+              "items": 2,
+              "description": "Other Supplies - Supplies; Bank Charges - Other Services and Charges"
+            },
+            {
+              "name": "2021-2024 Leonard Sp Nature Days",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#008B9C",
+              "items": 1,
+              "description": "Other Supplies - Supplies"
+            },
+            {
+              "name": "Griffy Lake Nature Days 2024-25",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#00657C",
+              "items": 2,
+              "description": "Other Supplies - Supplies; Other Services and Charges - Other Services and Charges"
+            },
+            {
+              "name": "Hopewell",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#B5838D",
+              "items": 7,
+              "description": "Water and Sewer - Other Services and Charges; Electrical Services - Other Services and Charges; Other Supplies - Supplies"
+            },
+            {
+              "name": "2024-25 21st Century Learn Ctr",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FED12E",
+              "items": 3,
+              "description": "Salaries and Wages - Temporary - Personnel Services; FICA - Personnel Services; Other Supplies - Supplies"
+            },
+            {
+              "name": "Main",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FF8C42",
+              "items": 2,
+              "description": "Other Capital Outlays - Capital Outlays; Other Services and Charges - Other Services and Charges"
+            },
+            {
+              "name": "YAPA Grant 2024",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#59B0C4",
+              "items": 3,
+              "description": "Salaries and Wages - Temporary - Personnel Services; FICA - Personnel Services; Other Supplies - Supplies"
+            },
+            {
+              "name": "TLRC- Reserve",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#004D5C",
+              "items": 1,
+              "description": "Building Repairs - Other Services and Charges"
+            },
+            {
+              "name": "DHPA Banneker Front Steps Grant",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#008B9C",
+              "items": 1,
+              "description": "Other Services and Charges - Other Services and Charges"
+            },
+            {
+              "name": "2016 A FSC BBC Golf  Rose Goat",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FF8C42",
+              "items": 1,
+              "description": "Other Capital Outlays - Capital Outlays"
+            },
+            {
+              "name": "2020 NRPA Nutrition Hub",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6B4E71",
+              "items": 1,
+              "description": "Other Supplies - Supplies"
+            },
+            {
+              "name": "2016 C BP GN OP PP SO 3rd WinSP",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#2D6A4F",
+              "items": 1,
+              "description": "Other Capital Outlays - Capital Outlays"
+            },
+            {
+              "name": "2023-24 21St Century Lear Ctr",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#00657C",
+              "items": 2,
+              "description": "Salaries and Wages - Temporary - Personnel Services; FICA - Personnel Services"
+            },
+            {
+              "name": "Leonard Sprg Nature Days 2024-27",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FF5740",
+              "items": 2,
+              "description": "Other Supplies - Supplies; Other Services and Charges - Other Services and Charges"
+            },
+            {
+              "name": "Griffy Lake Nature Days 2025-26",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FED12E",
+              "items": 4,
+              "description": "FICA - Personnel Services; Salaries and Wages - Temporary - Personnel Services; Other Services and Charges - Other Services and Charges"
+            },
+            {
+              "name": "2025 Banneker Nature Days",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#59B0C4",
+              "items": 4,
+              "description": "Other Supplies - Supplies; FICA - Personnel Services; Salaries and Wages - Temporary - Personnel Services"
+            },
+            {
+              "name": "2025 Summer Food Service Program",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#004D5C",
+              "items": 1,
+              "description": "Other Services and Charges - Other Services and Charges"
+            },
+            {
+              "name": "2025 Griffy Lake LARE Grant",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#008B9C",
+              "items": 1,
+              "description": "Other Services and Charges - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Telecommunications",
+          "amount": 695546,
+          "percentage": 4.588175508248476,
+          "color": "#2D6A4F",
+          "items": 13,
+          "description": "Other Supplies - Supplies; Communications Contract - Other Services and Charges; Mgt. Fee, Consultants, and Workshops - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "Services",
+              "amount": 389266,
+              "percentage": 55.96552923890009,
+              "color": "#B5838D",
+              "items": 5,
+              "description": "Other Supplies - Supplies; Communications Contract - Other Services and Charges; Mgt. Fee, Consultants, and Workshops - Other Services and Charges"
+            },
+            {
+              "name": "Infrastructure",
+              "amount": 306280,
+              "percentage": 44.03447076109991,
+              "color": "#00657C",
+              "items": 8,
+              "description": "Dues and Subscriptions - Other Services and Charges; Other Supplies - Supplies; Mgt. Fee, Consultants, and Workshops - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Economic & Sustainable Dev",
+          "amount": 0,
+          "percentage": 0,
+          "color": "#FF8C42",
+          "items": 1,
+          "description": "Grants - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "Duke public art grant",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6B4E71",
+              "items": 1,
+              "description": "Grants - Other Services and Charges"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Highway & Streets",
+      "amount": 12367511.700000001,
+      "percentage": 6.008051440048801,
+      "color": "#FF5740",
+      "items": 125,
+      "description": "Salaries and Wages - Regular - Personnel Services; Building Materials and Supplies - Supplies; Printing - Other Services and Charges",
+      "subcategories": [
+        {
+          "name": "Street",
+          "amount": 8498452.240000002,
+          "percentage": 68.71594259336744,
+          "color": "#004D5C",
+          "items": 64,
+          "description": "Building Materials and Supplies - Supplies; Other Repairs - Other Services and Charges; Street Lights / Traffic Signals - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 8498452.240000002,
+              "percentage": 100,
+              "color": "#008B9C",
+              "items": 57,
+              "description": "Building Materials and Supplies - Supplies; Other Repairs - Other Services and Charges; Street Lights / Traffic Signals - Other Services and Charges"
+            },
+            {
+              "name": "6.0 Training Grant (CDL B)",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FF8C42",
+              "items": 1,
+              "description": "Other Services and Charges - Other Services and Charges"
+            },
+            {
+              "name": "7.0 Training Grant (CDL B)",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6B4E71",
+              "items": 1,
+              "description": "Other Services and Charges - Other Services and Charges"
+            },
+            {
+              "name": "ARPA COVID Local Fiscal Recovery",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#2D6A4F",
+              "items": 1,
+              "description": "Other Capital Outlays - Capital Outlays"
+            },
+            {
+              "name": "STREET CRED",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#B5838D",
+              "items": 1,
+              "description": "Other Capital Outlays - Capital Outlays"
+            },
+            {
+              "name": "9.0 Training Grant",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#00657C",
+              "items": 1,
+              "description": "Other Services and Charges - Other Services and Charges"
+            },
+            {
+              "name": "CCMG 2025-1 N. Walnut Street",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FF5740",
+              "items": 1,
+              "description": "Other Capital Outlays - Capital Outlays"
+            },
+            {
+              "name": "8.0 Training Grant (CDL B)",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FED12E",
+              "items": 1,
+              "description": "Other Services and Charges - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Planning",
+          "amount": 2310248.98,
+          "percentage": 18.679982166501606,
+          "color": "#59B0C4",
+          "items": 33,
+          "description": "Printing - Other Services and Charges; Advertising - Other Services and Charges; Motor Repairs - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 2303948.98,
+              "percentage": 99.72730211961829,
+              "color": "#004D5C",
+              "items": 25,
+              "description": "Printing - Other Services and Charges; Advertising - Other Services and Charges; Motor Repairs - Other Services and Charges"
+            },
+            {
+              "name": "MPO",
+              "amount": 5000,
+              "percentage": 0.21642688919183076,
+              "color": "#FF8C42",
+              "items": 6,
+              "description": "Advertising - Other Services and Charges; Other Services and Charges - Other Services and Charges; Other Supplies - Supplies"
+            },
+            {
+              "name": "Environmental",
+              "amount": 1300,
+              "percentage": 0.056270991189875996,
+              "color": "#008B9C",
+              "items": 1,
+              "description": "Other Supplies - Supplies"
+            },
+            {
+              "name": "PLANNING CRED",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6B4E71",
+              "items": 1,
+              "description": "Other Capital Outlays - Capital Outlays"
+            }
+          ]
+        },
+        {
+          "name": "Engineering",
+          "amount": 940000,
+          "percentage": 7.600558809255058,
+          "color": "#FED12E",
+          "items": 3,
+          "description": "Improvements Other Than Building - Capital Outlays; Engineering and Architectural - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 940000,
+              "percentage": 100,
+              "color": "#59B0C4",
+              "items": 3,
+              "description": "Improvements Other Than Building - Capital Outlays; Engineering and Architectural - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Common Council",
+          "amount": 350000,
+          "percentage": 2.8299953013183723,
+          "color": "#00657C",
+          "items": 1,
+          "description": "Improvements Other Than Building - Capital Outlays",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 350000,
+              "percentage": 100,
+              "color": "#FF5740",
+              "items": 1,
+              "description": "Improvements Other Than Building - Capital Outlays"
+            }
+          ]
+        },
+        {
+          "name": "Parking",
+          "amount": 268810.48,
+          "percentage": 2.1735211295575323,
+          "color": "#FED12E",
+          "items": 17,
+          "description": "Salaries and Wages - Regular - Personnel Services; FICA - Personnel Services; PERF - Personnel Services",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 268810.48,
+              "percentage": 100,
+              "color": "#59B0C4",
+              "items": 17,
+              "description": "Salaries and Wages - Regular - Personnel Services; FICA - Personnel Services; PERF - Personnel Services"
+            }
+          ]
+        },
+        {
+          "name": "Public Works",
+          "amount": 0,
+          "percentage": 0,
+          "color": "#2D6A4F",
+          "items": 1,
+          "description": "Improvements Other Than Building - Capital Outlays",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#B5838D",
+              "items": 1,
+              "description": "Improvements Other Than Building - Capital Outlays"
+            }
+          ]
+        },
+        {
+          "name": "Controller's Office",
+          "amount": 0,
+          "percentage": 0,
+          "color": "#004D5C",
+          "items": 5,
+          "description": "Other Capital Outlays - Capital Outlays; Improvements Other Than Building - Capital Outlays; Other Services and Charges - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "2016 A Signal Modernization",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#008B9C",
+              "items": 1,
+              "description": "Other Capital Outlays - Capital Outlays"
+            },
+            {
+              "name": "2016 B Ped/Signal/Intersection",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FF8C42",
+              "items": 1,
+              "description": "Other Capital Outlays - Capital Outlays"
+            },
+            {
+              "name": "2016 C Jackson Trail",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6B4E71",
+              "items": 1,
+              "description": "Improvements Other Than Building - Capital Outlays"
+            },
+            {
+              "name": "2016 D Multi Use Paths",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#2D6A4F",
+              "items": 1,
+              "description": "Improvements Other Than Building - Capital Outlays"
+            },
+            {
+              "name": "Planning EC Eco Hero",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#B5838D",
+              "items": 1,
+              "description": "Other Services and Charges - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Fleet Maintenance",
+          "amount": 0,
+          "percentage": 0,
+          "color": "#00657C",
+          "items": 1,
+          "description": "Other Services and Charges - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "9.0 Training Grant",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FF5740",
+              "items": 1,
+              "description": "Other Services and Charges - Other Services and Charges"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Sanitation",
+      "amount": 4642455.24,
+      "percentage": 2.255272569505158,
+      "color": "#FED12E",
+      "items": 40,
+      "description": "Garage and Motor Supplies - Supplies; Fuel and Oil - Supplies; Building Materials and Supplies - Supplies",
+      "subcategories": [
+        {
+          "name": "Sanitation",
+          "amount": 4642455.24,
+          "percentage": 100,
+          "color": "#59B0C4",
+          "items": 37,
+          "description": "Garage and Motor Supplies - Supplies; Fuel and Oil - Supplies; Building Materials and Supplies - Supplies",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 4642455.24,
+              "percentage": 100,
+              "color": "#004D5C",
+              "items": 37,
+              "description": "Garage and Motor Supplies - Supplies; Fuel and Oil - Supplies; Building Materials and Supplies - Supplies"
+            }
+          ]
+        },
+        {
+          "name": "Controller's Office",
+          "amount": 0,
+          "percentage": 0,
+          "color": "#008B9C",
+          "items": 3,
+          "description": "Motor Equipment - Capital Outlays; Other Capital Outlays - Capital Outlays",
+          "subcategories": [
+            {
+              "name": "2016 E 7 Sanitation Trucks",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FF8C42",
+              "items": 1,
+              "description": "Motor Equipment - Capital Outlays"
+            },
+            {
+              "name": "2016 F 2 Rear loader Sanitation",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6B4E71",
+              "items": 1,
+              "description": "Motor Equipment - Capital Outlays"
+            },
+            {
+              "name": "2016 G Sanitation Carts",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#2D6A4F",
+              "items": 1,
+              "description": "Other Capital Outlays - Capital Outlays"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Debt Service",
+      "amount": 4289626,
+      "percentage": 2.083870570874073,
+      "color": "#FED12E",
+      "items": 23,
+      "description": "Principal - Other Services and Charges; Interest - Other Services and Charges; Bank Charges - Other Services and Charges",
+      "subcategories": [
+        {
+          "name": "Controller's Office",
+          "amount": 4289626,
+          "percentage": 100,
+          "color": "#59B0C4",
+          "items": 23,
+          "description": "Principal - Other Services and Charges; Interest - Other Services and Charges; Bank Charges - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 4289626,
+              "percentage": 100,
+              "color": "#004D5C",
+              "items": 23,
+              "description": "Principal - Other Services and Charges; Interest - Other Services and Charges; Bank Charges - Other Services and Charges"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Urban Redevelopment",
+      "amount": 3644477.3399999994,
+      "percentage": 1.7704618246540424,
+      "color": "#00657C",
+      "items": 107,
+      "description": "FICA - Personnel Services; PERF - Personnel Services; Instruction - Other Services and Charges",
+      "subcategories": [
+        {
+          "name": "HAND",
+          "amount": 3644477.3399999994,
+          "percentage": 100,
+          "color": "#FF5740",
+          "items": 107,
+          "description": "FICA - Personnel Services; PERF - Personnel Services; Instruction - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "Housing",
+              "amount": 2072055.91,
+              "percentage": 56.854679469621836,
+              "color": "#004D5C",
+              "items": 18,
+              "description": "Grants - Other Services and Charges; Other Services and Charges - Other Services and Charges; Other Personal Services -DC Match - Personnel Services"
+            },
+            {
+              "name": "Title 16",
+              "amount": 577264.65,
+              "percentage": 15.839435840750765,
+              "color": "#FF8C42",
+              "items": 20,
+              "description": "Salaries and Wages - Regular - Personnel Services; FICA - Personnel Services; PERF - Personnel Services"
+            },
+            {
+              "name": "Neighborhood",
+              "amount": 399832.01,
+              "percentage": 10.97090124862733,
+              "color": "#008B9C",
+              "items": 13,
+              "description": "Salaries and Wages - Regular - Personnel Services; FICA - Personnel Services; PERF - Personnel Services"
+            },
+            {
+              "name": "Title 6",
+              "amount": 293689.2,
+              "percentage": 8.058472384410546,
+              "color": "#6B4E71",
+              "items": 9,
+              "description": "Bank Charges - Other Services and Charges; Salaries and Wages - Regular - Personnel Services; Other Personal Services -DC Match - Personnel Services"
+            },
+            {
+              "name": "Main",
+              "amount": 173444.93000000002,
+              "percentage": 4.759116707802058,
+              "color": "#FED12E",
+              "items": 28,
+              "description": "FICA - Personnel Services; PERF - Personnel Services; Advertising - Other Services and Charges"
+            },
+            {
+              "name": "Historic Preservation",
+              "amount": 128190.64,
+              "percentage": 3.5173943487874735,
+              "color": "#59B0C4",
+              "items": 15,
+              "description": "Instruction - Other Services and Charges; Mgt. Fee, Consultants, and Workshops - Other Services and Charges; Postage - Other Services and Charges"
+            },
+            {
+              "name": "HAND Programs",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#2D6A4F",
+              "items": 1,
+              "description": "Grants - Other Services and Charges"
+            },
+            {
+              "name": "Housing Counseling",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#B5838D",
+              "items": 3,
+              "description": "Salaries and Wages - Regular - Personnel Services; FICA - Personnel Services; PERF - Personnel Services"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Capital Outlays",
+      "amount": 2808664,
+      "percentage": 1.3644294987659664,
+      "color": "#FF8C42",
+      "items": 25,
+      "description": "Other Capital Outlays - Capital Outlays; Motor Repairs - Other Services and Charges; Improvements Other Than Building - Capital Outlays",
+      "subcategories": [
+        {
+          "name": "Public Works",
+          "amount": 2372664,
+          "percentage": 84.47660524719225,
+          "color": "#59B0C4",
+          "items": 8,
+          "description": "Motor Repairs - Other Services and Charges; Inter-Fund Transfers - Other Services and Charges; Street , Alley,  and Sewer Material - Supplies",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 2372664,
+              "percentage": 100,
+              "color": "#004D5C",
+              "items": 8,
+              "description": "Motor Repairs - Other Services and Charges; Inter-Fund Transfers - Other Services and Charges; Street , Alley,  and Sewer Material - Supplies"
+            }
+          ]
+        },
+        {
+          "name": "Controller's Office",
+          "amount": 436000,
+          "percentage": 15.52339475280774,
+          "color": "#6B4E71",
+          "items": 12,
+          "description": "Other Capital Outlays - Capital Outlays; Improvements Other Than Building - Capital Outlays; Motor Equipment - Capital Outlays",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 436000,
+              "percentage": 100,
+              "color": "#2D6A4F",
+              "items": 4,
+              "description": "Other Capital Outlays - Capital Outlays; Equipment - Capital Outlays; Mgt. Fee, Consultants, and Workshops - Other Services and Charges"
+            },
+            {
+              "name": "Parks 2024 Capital",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#B5838D",
+              "items": 4,
+              "description": "Improvements Other Than Building - Capital Outlays; Motor Equipment - Capital Outlays; Equipment - Capital Outlays"
+            },
+            {
+              "name": "ENG 2024 Capital",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#00657C",
+              "items": 1,
+              "description": "Other Capital Outlays - Capital Outlays"
+            },
+            {
+              "name": "Controller 2024 Capital",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FF5740",
+              "items": 1,
+              "description": "Mgt. Fee, Consultants, and Workshops - Other Services and Charges"
+            },
+            {
+              "name": "PW Facilities 2024 Capital",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FED12E",
+              "items": 2,
+              "description": "Engineering and Architectural - Other Services and Charges; Improvements Other Than Building - Capital Outlays"
+            }
+          ]
+        },
+        {
+          "name": "Planning",
+          "amount": 0,
+          "percentage": 0,
+          "color": "#008B9C",
+          "items": 1,
+          "description": "Improvements Other Than Building - Capital Outlays",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FF8C42",
+              "items": 1,
+              "description": "Improvements Other Than Building - Capital Outlays"
+            }
+          ]
+        },
+        {
+          "name": "Parks & Recreation",
+          "amount": 0,
+          "percentage": 0,
+          "color": "#6B4E71",
+          "items": 4,
+          "description": "Other Capital Outlays - Capital Outlays; Mgt. Fee, Consultants, and Workshops - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "7th St Green Way, RCA Power Line",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#2D6A4F",
+              "items": 1,
+              "description": "Other Capital Outlays - Capital Outlays"
+            },
+            {
+              "name": "Griffy Loop Trail Lower Cascades",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#B5838D",
+              "items": 1,
+              "description": "Other Capital Outlays - Capital Outlays"
+            },
+            {
+              "name": "Enrty Ways St Trees Alley Enhanc",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#00657C",
+              "items": 1,
+              "description": "Other Capital Outlays - Capital Outlays"
+            },
+            {
+              "name": "Main",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FF5740",
+              "items": 1,
+              "description": "Mgt. Fee, Consultants, and Workshops - Other Services and Charges"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Community",
+      "amount": 2097056.87,
+      "percentage": 1.0187356885757166,
+      "color": "#2D6A4F",
+      "items": 59,
+      "description": "Other Services and Charges - Other Services and Charges; Other Supplies - Supplies; Bank Charges - Other Services and Charges",
+      "subcategories": [
+        {
+          "name": "CFRD",
+          "amount": 1597056.87,
+          "percentage": 76.15706053789567,
+          "color": "#B5838D",
+          "items": 44,
+          "description": "Other Services and Charges - Other Services and Charges; Other Supplies - Supplies; Bank Charges - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 1597056.87,
+              "percentage": 100,
+              "color": "#FF5740",
+              "items": 20,
+              "description": "Other Services and Charges - Other Services and Charges; Other Personal Services -DC Match - Personnel Services; Salaries and Wages - Regular - Personnel Services"
+            },
+            {
+              "name": "CBVN",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#00657C",
+              "items": 2,
+              "description": "Other Services and Charges - Other Services and Charges; Other Supplies - Supplies"
+            },
+            {
+              "name": "Com Serv - MLK  Comm",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FED12E",
+              "items": 3,
+              "description": "Other Services and Charges - Other Services and Charges; Other Supplies - Supplies; Printing - Other Services and Charges"
+            },
+            {
+              "name": "Commission on Aging",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#59B0C4",
+              "items": 1,
+              "description": "Other Supplies - Supplies"
+            },
+            {
+              "name": "Blgtn/Mo Co Human Rights Comm",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#004D5C",
+              "items": 1,
+              "description": "Other Services and Charges - Other Services and Charges"
+            },
+            {
+              "name": "Latino Programs",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#008B9C",
+              "items": 2,
+              "description": "Other Supplies - Supplies; Other Services and Charges - Other Services and Charges"
+            },
+            {
+              "name": "Comm on Hisp & Latino Affairs",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FF8C42",
+              "items": 1,
+              "description": "Other Supplies - Supplies"
+            },
+            {
+              "name": "Com Serv - Safe & Civil",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6B4E71",
+              "items": 4,
+              "description": "Bank Charges - Other Services and Charges; Other Supplies - Supplies; Dues and Subscriptions - Other Services and Charges"
+            },
+            {
+              "name": "Com Serv- Accessibility",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#2D6A4F",
+              "items": 2,
+              "description": "Other Services and Charges - Other Services and Charges; Other Supplies - Supplies"
+            },
+            {
+              "name": "Com Serv - Status of Women",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#B5838D",
+              "items": 2,
+              "description": "Other Supplies - Supplies; Other Services and Charges - Other Services and Charges"
+            },
+            {
+              "name": "Com Serv - Black Males",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#00657C",
+              "items": 2,
+              "description": "Other Services and Charges - Other Services and Charges; Other Supplies - Supplies"
+            },
+            {
+              "name": "Children & Youths",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FF5740",
+              "items": 2,
+              "description": "Other Services and Charges - Other Services and Charges; Other Supplies - Supplies"
+            },
+            {
+              "name": "Outreach App Ord 2025-02",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FED12E",
+              "items": 1,
+              "description": "Other Services and Charges - Other Services and Charges"
+            },
+            {
+              "name": "OR Outreach AppOrd 2025-02",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#59B0C4",
+              "items": 1,
+              "description": "Other Services and Charges - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Common Council",
+          "amount": 500000,
+          "percentage": 23.842939462104333,
+          "color": "#FF8C42",
+          "items": 1,
+          "description": "Grants - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 500000,
+              "percentage": 100,
+              "color": "#6B4E71",
+              "items": 1,
+              "description": "Grants - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Economic & Sustainable Dev",
+          "amount": 0,
+          "percentage": 0,
+          "color": "#004D5C",
+          "items": 7,
+          "description": "Other Supplies - Supplies; Salaries and Wages - Regular - Personnel Services; FICA - Personnel Services",
+          "subcategories": [
+            {
+              "name": "CCC (Lilly Endowment)",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#008B9C",
+              "items": 7,
+              "description": "Other Supplies - Supplies; Salaries and Wages - Regular - Personnel Services; FICA - Personnel Services"
+            }
+          ]
+        },
+        {
+          "name": "Parks & Recreation",
+          "amount": 0,
+          "percentage": 0,
+          "color": "#2D6A4F",
+          "items": 4,
+          "description": "Salaries and Wages - Temporary - Personnel Services; Other Supplies - Supplies; FICA - Personnel Services",
+          "subcategories": [
+            {
+              "name": "2025/26 MCCSC Age Care 21st Cent",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#B5838D",
+              "items": 3,
+              "description": "Salaries and Wages - Temporary - Personnel Services; Other Supplies - Supplies; FICA - Personnel Services"
+            },
+            {
+              "name": "Banneker Comm Ctr Roof Repair",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#00657C",
+              "items": 1,
+              "description": "Other Services and Charges - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Animal Shelter",
+          "amount": 0,
+          "percentage": 0,
+          "color": "#FF5740",
+          "items": 3,
+          "description": "Other Services and Charges - Other Services and Charges; Other Supplies - Supplies",
+          "subcategories": [
+            {
+              "name": "ASPCA Shelter Initiative",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FED12E",
+              "items": 1,
+              "description": "Other Services and Charges - Other Services and Charges"
+            },
+            {
+              "name": "Sensory Yard Const/Maint",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#59B0C4",
+              "items": 2,
+              "description": "Other Supplies - Supplies; Other Services and Charges - Other Services and Charges"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "None",
+      "amount": 272112,
+      "percentage": 0.13219012305074748,
+      "color": "#00657C",
+      "items": 106,
+      "description": "Materials & Supplies Office Supplies - Supplies; Cell Phone Charges - Other Services and Charges; Materials & Supplies General - Supplies",
+      "subcategories": [
+        {
+          "name": "Utilities USB",
+          "amount": 191705,
+          "percentage": 70.45077027106485,
+          "color": "#6B4E71",
+          "items": 21,
+          "description": "Cell Phone Charges - Other Services and Charges; Materials & Supplies General - Supplies; Materials & Supplies Computer - Supplies",
+          "subcategories": [
+            {
+              "name": "Administrative & General",
+              "amount": 191705,
+              "percentage": 100,
+              "color": "#2D6A4F",
+              "items": 21,
+              "description": "Cell Phone Charges - Other Services and Charges; Materials & Supplies General - Supplies; Materials & Supplies Computer - Supplies"
+            }
+          ]
+        },
+        {
+          "name": "Utilities Billings & Collections",
+          "amount": 45197,
+          "percentage": 16.609704827424,
+          "color": "#004D5C",
+          "items": 7,
+          "description": "Miscellaneous Expense Shipping - Other Services and Charges; Materials & Supplies Statements - Supplies; Materials & Supplies Computer - Supplies",
+          "subcategories": [
+            {
+              "name": "Administrative & General",
+              "amount": 45197,
+              "percentage": 100,
+              "color": "#008B9C",
+              "items": 5,
+              "description": "Miscellaneous Expense Shipping - Other Services and Charges; Materials & Supplies Computer - Supplies; Materials & Supplies Office Supplies - Supplies"
+            },
+            {
+              "name": "Customer Accts Expense",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FF8C42",
+              "items": 2,
+              "description": "Materials & Supplies Statements - Supplies; Training - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Utilities Engineering",
+          "amount": 31836,
+          "percentage": 11.699594284706299,
+          "color": "#2D6A4F",
+          "items": 13,
+          "description": "Cell Phone Charges - Other Services and Charges; Materials & Supplies General - Supplies; Materials & Supplies Computer - Supplies",
+          "subcategories": [
+            {
+              "name": "Administrative & General",
+              "amount": 31836,
+              "percentage": 100,
+              "color": "#B5838D",
+              "items": 13,
+              "description": "Cell Phone Charges - Other Services and Charges; Materials & Supplies General - Supplies; Materials & Supplies Computer - Supplies"
+            }
+          ]
+        },
+        {
+          "name": "Utilities Director",
+          "amount": 2315,
+          "percentage": 0.8507526312694772,
+          "color": "#00657C",
+          "items": 14,
+          "description": "Salaries & Wages Employees - Personnel Services; Miscellaneous Expense Shipping - Other Services and Charges; Employee Pensions & Benefits - Personnel Services",
+          "subcategories": [
+            {
+              "name": "Administrative & General",
+              "amount": 2315,
+              "percentage": 100,
+              "color": "#FF5740",
+              "items": 14,
+              "description": "Salaries & Wages Employees - Personnel Services; Miscellaneous Expense Shipping - Other Services and Charges; Employee Pensions & Benefits - Personnel Services"
+            }
+          ]
+        },
+        {
+          "name": "Utilities Purchasing",
+          "amount": 696,
+          "percentage": 0.25577703298641735,
+          "color": "#004D5C",
+          "items": 11,
+          "description": "Cell Phone Charges - Other Services and Charges; Materials & Supplies General - Supplies; Materials & Supplies Computer - Supplies",
+          "subcategories": [
+            {
+              "name": "Administrative & General",
+              "amount": 696,
+              "percentage": 100,
+              "color": "#008B9C",
+              "items": 11,
+              "description": "Cell Phone Charges - Other Services and Charges; Materials & Supplies General - Supplies; Materials & Supplies Computer - Supplies"
+            }
+          ]
+        },
+        {
+          "name": "Utilities Customer Relations",
+          "amount": 150,
+          "percentage": 0.05512436055741753,
+          "color": "#FF5740",
+          "items": 9,
+          "description": "Materials & Supplies Office Supplies - Supplies; Miscellaneous Expense Shipping - Other Services and Charges; Cell Phone Charges - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "Administrative & General",
+              "amount": 150,
+              "percentage": 100,
+              "color": "#FED12E",
+              "items": 6,
+              "description": "Materials & Supplies Office Supplies - Supplies; Miscellaneous Expense Shipping - Other Services and Charges; Cell Phone Charges - Other Services and Charges"
+            },
+            {
+              "name": "Customer Accts Expense",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#59B0C4",
+              "items": 3,
+              "description": "Materials & Supplies Office Supplies - Supplies; Cell Phone Charges - Other Services and Charges; Materials & Supplies Statements - Supplies"
+            }
+          ]
+        },
+        {
+          "name": "Utilities Accounting",
+          "amount": 125,
+          "percentage": 0.045936967131181276,
+          "color": "#FED12E",
+          "items": 9,
+          "description": "Contract Services Legal - Other Services and Charges; Miscellaneous Expense Shipping - Other Services and Charges; Materials & Supplies General - Supplies",
+          "subcategories": [
+            {
+              "name": "Administrative & General",
+              "amount": 125,
+              "percentage": 100,
+              "color": "#59B0C4",
+              "items": 9,
+              "description": "Contract Services Legal - Other Services and Charges; Miscellaneous Expense Shipping - Other Services and Charges; Materials & Supplies General - Supplies"
+            }
+          ]
+        },
+        {
+          "name": "Utilities Communications",
+          "amount": 88,
+          "percentage": 0.03233962486035162,
+          "color": "#FF8C42",
+          "items": 7,
+          "description": "Salaries & Wages Employees - Personnel Services; OT Salary & Wages - Personnel Services; Employee Pensions & Benefits - Personnel Services",
+          "subcategories": [
+            {
+              "name": "Administrative & General",
+              "amount": 88,
+              "percentage": 100,
+              "color": "#6B4E71",
+              "items": 7,
+              "description": "Salaries & Wages Employees - Personnel Services; OT Salary & Wages - Personnel Services; Employee Pensions & Benefits - Personnel Services"
+            }
+          ]
+        },
+        {
+          "name": "Utilities Environmental Services",
+          "amount": 0,
+          "percentage": 0,
+          "color": "#B5838D",
+          "items": 9,
+          "description": "Materials & Supplies General - Supplies; Materials & Supplies Office Furniture - Supplies; Training - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "Collection Expense - Operations",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#00657C",
+              "items": 8,
+              "description": "Materials & Supplies General - Supplies; Materials & Supplies Office Furniture - Supplies; Training - Other Services and Charges"
+            },
+            {
+              "name": "Collection Expense - Maintenance",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#FF5740",
+              "items": 1,
+              "description": "Materials & Supplies Office Supplies - Supplies"
+            }
+          ]
+        },
+        {
+          "name": "Street",
+          "amount": 0,
+          "percentage": 0,
+          "color": "#FED12E",
+          "items": 1,
+          "description": "Other Capital Outlays - Capital Outlays",
+          "subcategories": [
+            {
+              "name": "CCMG 2024-2 Winslow/Rogers",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#59B0C4",
+              "items": 1,
+              "description": "Other Capital Outlays - Capital Outlays"
+            }
+          ]
+        },
+        {
+          "name": "Controller's Office",
+          "amount": 0,
+          "percentage": 0,
+          "color": "#004D5C",
+          "items": 3,
+          "description": "Principal - Other Services and Charges; Interest - Other Services and Charges; Bank Charges - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "Main",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#008B9C",
+              "items": 3,
+              "description": "Principal - Other Services and Charges; Interest - Other Services and Charges; Bank Charges - Other Services and Charges"
+            }
+          ]
+        },
+        {
+          "name": "Utilities Stormwater",
+          "amount": 0,
+          "percentage": 0,
+          "color": "#FF8C42",
+          "items": 2,
+          "description": "Materials & Supplies Structures - Supplies; Contracted  Services - Other - Other Services and Charges",
+          "subcategories": [
+            {
+              "name": "Collection Expense - Maintenance",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6B4E71",
+              "items": 2,
+              "description": "Materials & Supplies Structures - Supplies; Contracted  Services - Other - Other Services and Charges"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
