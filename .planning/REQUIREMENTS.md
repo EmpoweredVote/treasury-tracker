@@ -65,27 +65,27 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ROUTE-01 | — | Pending |
-| ROUTE-02 | — | Pending |
-| ROUTE-03 | — | Pending |
-| ROUTE-04 | — | Pending |
-| CITY-01 | — | Pending |
-| CITY-02 | — | Pending |
-| CITY-03 | — | Pending |
-| DATA-01 | — | Pending |
-| DATA-02 | — | Pending |
-| DATA-03 | — | Pending |
-| PIPE-01 | — | Pending |
-| PIPE-02 | — | Pending |
-| LA-01 | — | Pending |
-| LA-02 | — | Pending |
-| LA-03 | — | Pending |
+| ROUTE-01 | Phase 1 | Pending |
+| ROUTE-02 | Phase 1 | Pending |
+| ROUTE-03 | Phase 1 | Pending |
+| ROUTE-04 | Phase 1 | Pending |
+| DATA-01 | Phase 1 | Pending |
+| DATA-02 | Phase 1 | Pending |
+| DATA-03 | Phase 1 | Pending |
+| CITY-01 | Phase 2 | Pending |
+| CITY-02 | Phase 2 | Pending |
+| CITY-03 | Phase 2 | Pending |
+| PIPE-01 | Phase 3 | Pending |
+| PIPE-02 | Phase 3 | Pending |
+| LA-01 | Phase 4 | Pending |
+| LA-02 | Phase 4 | Pending |
+| LA-03 | Phase 4 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 15 total
-- Mapped to phases: 0
-- Unmapped: 15 ⚠️
+- Mapped to phases: 15
+- Unmapped: 0 — full coverage
 
 ---
 *Requirements defined: 2026-03-21*
-*Last updated: 2026-03-21 after initial definition*
+*Last updated: 2026-03-21 — phase mappings added after roadmap creation*

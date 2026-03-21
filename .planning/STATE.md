@@ -5,17 +5,50 @@
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** A citizen can load the app and within seconds understand the top-level budget breakdown, then drill down to any department or line item.
-**Current focus:** Defining milestone v1.1
+**Current milestone:** v1.1 Multi-City Platform
+**Current focus:** Phase 1 — Routing Shell + Data Namespacing
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-03-21 — Milestone v1.1 started
+**Phase:** 1 — Routing Shell + Data Namespacing
+**Plan:** Not started (no plans created yet)
+**Status:** Roadmap created, ready to plan Phase 1
+**Last activity:** 2026-03-21 — Roadmap created for v1.1
+
+```
+Progress: [--------------------] 0% — 0 of 4 phases complete
+```
+
+## Performance Metrics
+
+- Phases complete: 0 / 4
+- Requirements shipped: 0 / 15
+- Plans complete: 0 / ?
 
 ## Accumulated Context
 
-- Codebase bootstrapped into GSD on 2026-03-21
-- v1.0 represents all existing functionality (pre-GSD)
-- Phase numbering will start at 1 for v1.1
+### Decisions
+
+- Codebase bootstrapped into GSD on 2026-03-21; v1.0 represents all pre-GSD functionality
+- Phase numbering starts at 1 for v1.1 (first milestone using GSD)
+- Phase 1 must bundle routing + data file migration in the same commit — the existing silent mock-data fallback makes a split approach dangerous (a 404 after file move renders as plausible-looking mock data)
+- Mock-data fallback removal is a Phase 1 blocker, not optional cleanup
+- Phase 3 is independent of Phase 2 and can begin in parallel once Phase 1 merges
+- ROUTE-03 is assigned to Phase 1 (the route shell + unknown-slug redirect); LA data behind it is Phase 4
+- LA transactions are explicitly out of scope for v1.1 (`hasTransactions: false` in LA config)
+
+### Known Risks / Blockers
+
+- **LA CSV column names unconfirmed** — must download and inspect actual LA dataset from data.lacity.org before writing LA hierarchy config in Phase 3; do not assume column names match Bloomington
+- **LA data file size unknown** — Bloomington transaction files are 38–47MB; LA checkbook could exceed Netlify's 100MB deploy limit; audit before pipeline work
+- **Two `loadDataset` implementations exist** — one live in `App.tsx`, one dead in `dataLoader.ts`; Phase 1 must decide to consolidate or update both; leaving them diverged adds maintenance risk
+- **Socrata dataset IDs for LA may change annually** — verify current-year dataset ID from data.lacity.org before Phase 4 download
+
+### Todos
+
+- [ ] Plan Phase 1 (`/gsd:plan-phase 1`)
+
+## Session Continuity
+
+To resume: read ROADMAP.md for phase structure, then REQUIREMENTS.md for requirement details.
+Next action: `/gsd:plan-phase 1`
