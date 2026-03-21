@@ -65,7 +65,7 @@ Two weights only: 400 (Body) and 700 (Label/Heading/Display). The 14px size diff
 - City picker page heading: use Heading role — 32px, weight 700, line-height 1.2
 - "Back to Cities" link: use Label role — 14px, weight 700, line-height 1.3
 - City picker city link (placeholder): use Body role — 16px, weight 400, line-height 1.6
-- Data error message heading: use Heading role at 20px (1.25rem), weight 700 — matches existing h2 in error state (App.tsx line 229)
+- Data error message heading: use Heading role — 32px, weight 700, line-height 1.2
 
 ---
 
