@@ -52,18 +52,20 @@ Exceptions:
 
 All values pre-populated from `src/index.css` + `src/App.css`. No new type styles introduced in Phase 1.
 
+Two weights only: 400 (Body) and 700 (Label/Heading/Display). The 14px size differentiates Label from Body at 16px without requiring a third weight.
+
 | Role | Size | Weight | Line Height | Source |
 |------|------|--------|-------------|--------|
 | Body | 16px (1rem) | 400 | 1.6 | index.css body rule |
-| Label | 14px (0.875rem) | 600 | 1.3 | App.css tab/badge labels |
+| Label | 14px (0.875rem) | 700 | 1.3 | App.css tab/badge labels |
 | Heading | 32px (2rem) | 700 | 1.2 | App.css .hero-section h1 |
 | Display | 36px (2.25rem) | 700 | 1.0 | App.css .info-card .amount |
 
 **Phase 1 new elements:**
 - City picker page heading: use Heading role — 32px, weight 700, line-height 1.2
-- "Back to Cities" link: use Label role — 14px, weight 600, line-height 1.3
+- "Back to Cities" link: use Label role — 14px, weight 700, line-height 1.3
 - City picker city link (placeholder): use Body role — 16px, weight 400, line-height 1.6
-- Data error message heading: use Heading role at 20px (1.25rem), weight 600 — matches existing h2 in error state (App.tsx line 229)
+- Data error message heading: use Heading role at 20px (1.25rem), weight 700 — matches existing h2 in error state (App.tsx line 229)
 
 ---
 
@@ -121,6 +123,8 @@ New UI surfaces introduced in Phase 1 (minimal by design — Phase 2 replaces wi
 | "Back to Cities" link | Inside `CityPage.tsx` header area | `<Link to="/">` with lucide `ArrowLeft` icon (16px, inline) |
 
 **Existing components unchanged:** All chart components, `LinkedTransactionsPanel`, `LineItemsTable`, `TransactionLineItemsTable`, dataset tabs — carry forward from v1.0 with no visual changes.
+
+**Primary focal point:** The h1 "Choose a City" heading is the dominant visual element on the CityPickerPage screen. All other elements (city link, empty state) are subordinate to it in visual hierarchy.
 
 ---
 
