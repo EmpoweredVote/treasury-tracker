@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { DollarSign, TrendingDown, Users, ChevronDown } from 'lucide-react';
+import type { DatasetId } from '../../config/types';
 
 export interface Dataset {
   id: 'revenue' | 'operating' | 'salaries';
@@ -15,6 +16,7 @@ interface DatasetTabsProps {
   onDatasetChange: (datasetId: string) => void;
   revenueTotal?: number;
   operatingTotal?: number;
+  availableDatasets: DatasetId[];
 }
 
 const DATASETS: Dataset[] = [
@@ -60,10 +62,11 @@ const formatCurrency = (amount: number): string => {
   }).format(amount);
 };
 
-export default function DatasetTabs({ activeDataset, onDatasetChange, revenueTotal, operatingTotal }: DatasetTabsProps) {
+export default function DatasetTabs({ activeDataset, onDatasetChange, revenueTotal, operatingTotal, availableDatasets }: DatasetTabsProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
-  const activeDatasetObj = DATASETS.find(d => d.id === activeDataset) || DATASETS[1];
+
+  const visibleDatasets = DATASETS.filter(d => availableDatasets.includes(d.id as DatasetId));
+  const activeDatasetObj = visibleDatasets.find(d => d.id === activeDataset) || visibleDatasets[0];
   const IconComponent = activeDatasetObj.icon;
 
   const handleDatasetSelect = (datasetId: string) => {
@@ -124,7 +127,7 @@ export default function DatasetTabs({ activeDataset, onDatasetChange, revenueTot
         {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
           <div className="dataset-dropdown-menu">
-            {DATASETS.map((dataset) => {
+            {visibleDatasets.map((dataset) => {
               const Icon = dataset.icon;
               const isActive = dataset.id === activeDataset;
               const total = getDatasetTotal(dataset.id);
@@ -160,7 +163,7 @@ export default function DatasetTabs({ activeDataset, onDatasetChange, revenueTot
 
       {/* Desktop Tabs (≥ 768px) */}
       <div className="dataset-tabs-desktop">
-        {DATASETS.map((dataset) => {
+        {visibleDatasets.map((dataset) => {
           const Icon = dataset.icon;
           const isActive = dataset.id === activeDataset;
           const total = getDatasetTotal(dataset.id);

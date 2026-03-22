@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
-import { Link } from 'react-router';
+import { Link, Navigate } from 'react-router';
 import { SiteHeader } from '@chrisandrewsedu/ev-ui';
+import { getCityConfig } from '../config/cityRegistry';
 import { ArrowLeft } from 'lucide-react';
 import DatasetTabs from '../components/datasets/DatasetTabs';
 import NavigationTabs from '../components/NavigationTabs';
@@ -91,12 +92,17 @@ function getDatasetLabel(type: DatasetType): string {
 }
 
 export default function CityPage({ slug }: { slug: string }) {
+  const cityConfig = getCityConfig(slug);
+  if (!cityConfig) {
+    return <Navigate to="/" replace />;
+  }
+
   // Dataset selection
-  const [activeDataset, setActiveDataset] = useState<DatasetType>('operating');
+  const [activeDataset, setActiveDataset] = useState<DatasetType>(cityConfig.availableDatasets[0] as DatasetType);
 
   // Existing state
   const [activeTab, setActiveTab] = useState('city');
-  const [selectedYear, setSelectedYear] = useState('2025');
+  const [selectedYear, setSelectedYear] = useState(cityConfig.defaultYear);
   const [searchQuery, setSearchQuery] = useState('');
   const [budgetData, setBudgetData] = useState<BudgetData | null>(null);
   const [operatingBudgetData, setOperatingBudgetData] = useState<BudgetData | null>(null);
@@ -146,7 +152,7 @@ export default function CityPage({ slug }: { slug: string }) {
     { id: 'federal', label: 'Federal' }
   ];
 
-  const years = ['2025', '2024', '2023', '2022', '2021'];
+  const years = cityConfig.availableYears;
 
   const handleCategoryClick = useCallback((category: BudgetCategory) => {
     // Navigate into category if it has subcategories OR if it has line items (lowest level)
@@ -334,7 +340,7 @@ export default function CityPage({ slug }: { slug: string }) {
           <>
             <div className="hero-and-cards-row">
               <div className="hero-section" style={{
-                backgroundImage: "url('https://upload.wikimedia.org/wikipedia/commons/8/85/Monroe_County_Courthouse_in_Bloomington_from_west-southwest.jpg')",
+                backgroundImage: `url('${cityConfig.heroImageUrl}')`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat'
@@ -343,7 +349,7 @@ export default function CityPage({ slug }: { slug: string }) {
                   background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.3) 100%)'
                 }}></div>
                 <div className="hero-content">
-                  <h1>Bloomington, Indiana Finances</h1>
+                  <h1>{cityConfig.heroTitle}</h1>
                   <p>Explore how public funds are allocated and spent.</p>
                 </div>
               </div>
@@ -358,9 +364,9 @@ export default function CityPage({ slug }: { slug: string }) {
                   <div className="info-card-right">
                     <h3>City Context</h3>
                     <div className="description">
-                      Population ~{operatingBudgetData.metadata.population.toLocaleString()} residents
+                      Population ~{cityConfig.population.toLocaleString()} residents
                       <br />
-                      ${formatPerResident(operatingBudgetData.metadata.totalBudget, operatingBudgetData.metadata.population)} per resident annually
+                      ${formatPerResident(operatingBudgetData.metadata.totalBudget, cityConfig.population)} per resident annually
                     </div>
                   </div>
                 </div>
@@ -374,6 +380,7 @@ export default function CityPage({ slug }: { slug: string }) {
                 onDatasetChange={(id) => setActiveDataset(id as DatasetType)}
                 revenueTotal={revenueData?.metadata.totalBudget}
                 operatingTotal={operatingBudgetData?.metadata.totalBudget}
+                availableDatasets={cityConfig.availableDatasets}
               />
             </div>
           </>
@@ -465,7 +472,7 @@ export default function CityPage({ slug }: { slug: string }) {
                   />
 
                   {/* Show linked transactions directly */}
-                  {currentCategory?.linkedTransactions && (
+                  {cityConfig.hasTransactions && currentCategory?.linkedTransactions && (
                     <LinkedTransactionsPanel
                       linkedTransactions={currentCategory.linkedTransactions}
                       categoryName={currentCategory.name}
@@ -500,7 +507,7 @@ export default function CityPage({ slug }: { slug: string }) {
               />
 
               {/* Show linked transactions summary for intermediate budget categories */}
-              {activeDataset === 'operating' && currentCategory?.linkedTransactions && (
+              {cityConfig.hasTransactions && activeDataset === 'operating' && currentCategory?.linkedTransactions && (
                 <LinkedTransactionsPanel
                   linkedTransactions={currentCategory.linkedTransactions}
                   categoryName={currentCategory.name}
