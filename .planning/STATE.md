@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-22T04:33:37.879Z"
+last_updated: "2026-03-22T05:06:09.748Z"
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # State
@@ -52,6 +52,7 @@ Plan: 2 of 2
 - [Phase 02-city-config-dynamic-ui]: LA placeholder in CITY_REGISTRY with isComingSoon:true shows in city picker as disabled but is filtered from routes
 - [Phase 02-city-config-dynamic-ui]: cityConfig.hasTransactions gates LinkedTransactionsPanel rendering — cities without transaction data see no broken UI
 - [Phase 02-city-config-dynamic-ui]: availableDatasets prop on DatasetTabs filters to visibleDatasets — future cities can omit tabs not supported by their data
+- [Phase 02-city-config-dynamic-ui]: Smoke test deferred: NPM_TOKEN not available on current machine; all 16 automated checks passed; visual verification to be completed within 1-2 days from main computer
 
 ### Known Risks / Blockers
 

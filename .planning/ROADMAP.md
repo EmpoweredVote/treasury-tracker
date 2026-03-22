@@ -11,7 +11,7 @@
 ## Phases
 
 - [x] **Phase 1: Routing Shell + Data Namespacing** — Wire React Router, migrate Bloomington data to namespaced paths, and eliminate the silent mock-data fallback — all atomically to prevent broken data states (completed 2026-03-22)
-- [ ] **Phase 2: City Config + Dynamic UI** — Replace every hardcoded Bloomington string with config-driven values; city picker renders a real card grid; tabs, year selector, and context cards all read from city config
+- [x] **Phase 2: City Config + Dynamic UI** — Replace every hardcoded Bloomington string with config-driven values; city picker renders a real card grid; tabs, year selector, and context cards all read from city config (completed 2026-03-22)
 - [ ] **Phase 3: ETL Script Parameterization** — Generalize all processing scripts to accept `--city` flag; create LA city config with correct column mapping; document new-city onboarding
 - [ ] **Phase 4: Los Angeles Data + Live** — Source LA budget data, run it through parameterized scripts, wire up `/los-angeles`, and verify Bloomington unaffected
 
@@ -58,11 +58,11 @@ Plans:
 4. The per-resident cost and fiscal year badge on context cards display the values from city config, not hardcoded constants
 5. The city picker at `/` renders a card for each entry in the city registry, including placeholder "coming soon" cards
 
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 02-01-PLAN.md — Create CityConfig type system, Bloomington config, city registry; wire all 7 hardcoded locations to config
-- [ ] 02-02-PLAN.md — Automated verification + human smoke test of all 5 success criteria
+- [x] 02-02-PLAN.md — Automated verification + human smoke test of all 5 success criteria
 
 ---
 
@@ -106,7 +106,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Routing Shell + Data Namespacing | 3/3 | Complete   | 2026-03-22 |
-| 2. City Config + Dynamic UI | 1/2 | In Progress|  |
+| 2. City Config + Dynamic UI | 2/2 | Complete   | 2026-03-22 |
 | 3. ETL Script Parameterization | 0/? | Not started | — |
 | 4. Los Angeles Data + Live | 0/? | Not started | — |
 
