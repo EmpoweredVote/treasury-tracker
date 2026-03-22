@@ -57,9 +57,9 @@ export async function loadBudgetData(
 function transformAPIResponse(budget: any, categories: BudgetCategory[]): BudgetData {
   return {
     metadata: {
-      cityName: budget.city?.name || 'Unknown',
+      cityName: budget.municipality?.name || 'Unknown',
       fiscalYear: budget.fiscal_year,
-      population: budget.city?.population || 0,
+      population: budget.municipality?.population || 0,
       totalBudget: budget.total_budget,
       generatedAt: budget.generated_at || new Date().toISOString(),
       hierarchy: budget.hierarchy || [],
