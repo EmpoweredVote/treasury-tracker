@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-22T01:42:16.334Z"
+last_updated: "2026-03-22T02:25:14.935Z"
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 3
+  completed_plans: 3
 ---
 
 # State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 ## Current Position
 
 Phase: 01 (routing-shell-data-namespacing) — EXECUTING
-Plan: 2 of 2
+Plan: 2 of 3
 
 ## Performance Metrics
 
@@ -47,6 +47,7 @@ Plan: 2 of 2
 - [Phase 01]: CityPage receives slug as prop not via useParams -- clean testability, explicit over implicit
 - [Phase 01]: NPM_TOKEN (GitHub Packages) required for npm install -- ev-ui is private; devs must set this env var
 - [Phase 01-routing-shell-data-namespacing]: Phase 1 marked complete with one known gap: Criterion 5 (error state on missing data) never transitions from loading to error UI; gap deferred to Phase 2 or standalone fix
+- [Phase 01-routing-shell-data-namespacing]: Error state checked before loading guard — if (loadError) at line 220 appears before if (loading) at line 235; prevents infinite spinner on fetch failure
 
 ### Known Risks / Blockers
 
