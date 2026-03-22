@@ -1,0 +1,86 @@
+.city-picker-page {
+  min-height: 100vh;
+  background-color: var(--light-gray);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 64px 24px;
+}
+
+.city-picker-container {
+  width: 100%;
+  max-width: 640px;
+}
+
+.city-picker-heading {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+  font-family: 'Manrope', sans-serif;
+  color: var(--black);
+  margin-bottom: 32px;
+}
+
+.city-picker-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 480px) {
+  .city-picker-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.city-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px;
+  background-color: var(--white);
+  border-radius: 8px;
+  border: 1px solid var(--medium-gray);
+  min-height: 44px;
+  text-decoration: none;
+  color: var(--black);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.city-card--active {
+  cursor: pointer;
+}
+
+.city-card--active:hover,
+.city-card--active:focus {
+  border-color: var(--muted-blue);
+  box-shadow: 0 2px 8px rgba(0, 101, 124, 0.15);
+  outline: none;
+}
+
+.city-card--disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.city-card-name {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.city-card-action {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--muted-blue);
+}
+
+.city-card-badge {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text-gray);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}

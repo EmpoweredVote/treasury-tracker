@@ -1,0 +1,5430 @@
+{
+  "metadata": {
+    "cityName": "Bloomington",
+    "fiscalYear": 2025,
+    "population": 79168,
+    "totalBudget": 194464106,
+    "totalRevenue": 194464106,
+    "generatedAt": "2025-12-28T17:47:32.582Z",
+    "hierarchy": [
+      "primary_function",
+      "item_category",
+      "fund"
+    ],
+    "dataSource": "data/revenue_budget-all.csv",
+    "datasetType": "revenue"
+  },
+  "categories": [
+    {
+      "name": "General Government",
+      "amount": 66565837,
+      "percentage": 34.230397768110485,
+      "color": "#43432b",
+      "items": 80,
+      "description": "Liquor Gallonage Tax; Cigarette Tax; Sale of Scrap",
+      "whyMatters": "Revenue that supports city operations and services.",
+      "subcategories": [
+        {
+          "name": "Taxes",
+          "amount": 45536114,
+          "percentage": 68.40763378367795,
+          "color": "#bcbda4",
+          "items": 8,
+          "description": "Liquor Gallonage Tax; Cigarette Tax; Financial Institutions Tax",
+          "whyMatters": "Taxes are the primary revenue source, including property, income, and sales taxes paid by residents and businesses.",
+          "subcategories": [
+            {
+              "name": "General",
+              "amount": 45536114,
+              "percentage": 100,
+              "color": "#585937",
+              "items": 8,
+              "description": "Liquor Gallonage Tax; Cigarette Tax; Financial Institutions Tax",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Liquor Gallonage Tax",
+                  "approvedAmount": 188285,
+                  "actualAmount": 178864.14
+                },
+                {
+                  "description": "Cigarette Tax",
+                  "approvedAmount": 36163,
+                  "actualAmount": 32093.38
+                },
+                {
+                  "description": "Financial Institutions Tax",
+                  "approvedAmount": 366963,
+                  "actualAmount": 213721.99
+                },
+                {
+                  "description": "License Excise Tax",
+                  "approvedAmount": 1213039,
+                  "actualAmount": 916952.72
+                },
+                {
+                  "description": "Commercial Vehicle Excise Tax",
+                  "approvedAmount": 97574,
+                  "actualAmount": 33684.72
+                },
+                {
+                  "description": "Local Income Tax (LIT) Certified Shares",
+                  "approvedAmount": 15383282,
+                  "actualAmount": 16577469.04
+                },
+                {
+                  "description": "General Property Tax",
+                  "approvedAmount": 28191312,
+                  "actualAmount": 28497990.73
+                },
+                {
+                  "description": "Liquor Excise Tax",
+                  "approvedAmount": 59496,
+                  "actualAmount": 61990.5
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Charges for Services",
+          "amount": 11275835,
+          "percentage": 16.939372369042697,
+          "color": "#bcbda4",
+          "items": 30,
+          "description": "Other Sales; Other Services; Animal Impound Fees",
+          "whyMatters": "Fees paid by residents and businesses for specific city services like permits and utilities.",
+          "subcategories": [
+            {
+              "name": "Fleet Maintenance",
+              "amount": 3104392,
+              "percentage": 27.531371290906613,
+              "color": "#43432b",
+              "items": 1,
+              "description": "Interdepartmental Services Agreement",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interdepartmental Services Agreement",
+                  "approvedAmount": 3104392,
+                  "actualAmount": 3083979.48
+                }
+              ]
+            },
+            {
+              "name": "Parking Meter",
+              "amount": 3048737,
+              "percentage": 27.03779365341902,
+              "color": "#6e744e",
+              "items": 3,
+              "description": "Permits- Parklets; Hourly Parking; Credit Card Convenience Fee",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Permits- Parklets",
+                  "approvedAmount": 35000,
+                  "actualAmount": 19250
+                },
+                {
+                  "description": "Hourly Parking",
+                  "approvedAmount": 2900000,
+                  "actualAmount": 2755360.82
+                },
+                {
+                  "description": "Credit Card Convenience Fee",
+                  "approvedAmount": 113737,
+                  "actualAmount": 0
+                }
+              ]
+            },
+            {
+              "name": "General",
+              "amount": 2522239,
+              "percentage": 22.368534126297522,
+              "color": "#585937",
+              "items": 13,
+              "description": "Other Sales; Other Services; Animal Impound Fees",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Other Sales",
+                  "approvedAmount": 500,
+                  "actualAmount": 511
+                },
+                {
+                  "description": "Other Services",
+                  "approvedAmount": 320,
+                  "actualAmount": 222
+                },
+                {
+                  "description": "Animal Impound Fees",
+                  "approvedAmount": 3400,
+                  "actualAmount": 2951
+                },
+                {
+                  "description": "Animal Adoption Fees",
+                  "approvedAmount": 100000,
+                  "actualAmount": 113708.94
+                },
+                {
+                  "description": "Equipment Deposits",
+                  "approvedAmount": 0,
+                  "actualAmount": 200
+                },
+                {
+                  "description": "Boarding Fees",
+                  "approvedAmount": 4000,
+                  "actualAmount": 6440
+                },
+                {
+                  "description": "Medical",
+                  "approvedAmount": 6000,
+                  "actualAmount": 3161
+                },
+                {
+                  "description": "In Lieu of Annexation",
+                  "approvedAmount": 100000,
+                  "actualAmount": 100000
+                },
+                {
+                  "description": "Permits- Parklets",
+                  "approvedAmount": 500,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "In Lieu of Taxes",
+                  "approvedAmount": 680000,
+                  "actualAmount": 844471.51
+                },
+                {
+                  "description": "Interdepartmental Services Agreement",
+                  "approvedAmount": 1622019,
+                  "actualAmount": 1807079
+                },
+                {
+                  "description": "Private Parking",
+                  "approvedAmount": 1000,
+                  "actualAmount": 290
+                },
+                {
+                  "description": "Transaction Fees",
+                  "approvedAmount": 4500,
+                  "actualAmount": 7635
+                }
+              ]
+            },
+            {
+              "name": "Parking Facilities(S9502)",
+              "amount": 1668166,
+              "percentage": 14.794168236764726,
+              "color": "#8d9575",
+              "items": 11,
+              "description": "Hourly Parking Lot #1 4th & Dunn; Hourly Parking Lot #3 4th & Washington; Hourly Parking Lot #5 6th & Lincoln",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Hourly Parking Lot #1 4th & Dunn",
+                  "approvedAmount": 0,
+                  "actualAmount": 6367.56
+                },
+                {
+                  "description": "Hourly Parking Lot #3 4th & Washington",
+                  "approvedAmount": 0,
+                  "actualAmount": 7423.88
+                },
+                {
+                  "description": "Hourly Parking Lot #5 6th & Lincoln",
+                  "approvedAmount": 125000,
+                  "actualAmount": 3552.32
+                },
+                {
+                  "description": "Hourly Parking Lot #6 Police Station",
+                  "approvedAmount": 0,
+                  "actualAmount": 684.12
+                },
+                {
+                  "description": "Lot/Garage Leases - Annual Lot #5 6th & Lincoln",
+                  "approvedAmount": 0,
+                  "actualAmount": 34938
+                },
+                {
+                  "description": "Lot/Garage Leases - Annual Lot #13 CFC",
+                  "approvedAmount": 0,
+                  "actualAmount": 10
+                },
+                {
+                  "description": "Other Reimbursements Lot #2 Walnut St Garage",
+                  "approvedAmount": 0,
+                  "actualAmount": 24909.72
+                },
+                {
+                  "description": "Electric Car Charging Station",
+                  "approvedAmount": 0,
+                  "actualAmount": 15305.41
+                },
+                {
+                  "description": "Hourly Parking",
+                  "approvedAmount": 307400,
+                  "actualAmount": 393159.37
+                },
+                {
+                  "description": "Lot Permit - Annual",
+                  "approvedAmount": 54500,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Lot/Garage Leases - Annual",
+                  "approvedAmount": 1181266,
+                  "actualAmount": 1015337.79
+                }
+              ]
+            },
+            {
+              "name": "Self-Insurance",
+              "amount": 932201,
+              "percentage": 8.26724584033023,
+              "color": "#e0dfd0",
+              "items": 1,
+              "description": "Interdepartmental Services Agreement",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interdepartmental Services Agreement",
+                  "approvedAmount": 932201,
+                  "actualAmount": 843836
+                }
+              ]
+            },
+            {
+              "name": "Electronic Map Generation Fund",
+              "amount": 100,
+              "percentage": 0.0008868522818930927,
+              "color": "#bcbda4",
+              "items": 1,
+              "description": "Map Sales",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Map Sales",
+                  "approvedAmount": 100,
+                  "actualAmount": 0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Miscellaneous",
+          "amount": 6434965,
+          "percentage": 9.667068409280274,
+          "color": "#8d9575",
+          "items": 23,
+          "description": "Sale of Scrap; Other Reimbursements; Interest on Investments",
+          "whyMatters": "Other revenue sources including interest, fines, and donations.",
+          "subcategories": [
+            {
+              "name": "General",
+              "amount": 5000000,
+              "percentage": 77.70050031352152,
+              "color": "#585937",
+              "items": 11,
+              "description": "Other Reimbursements; Refunds; Donations",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Other Reimbursements",
+                  "approvedAmount": 0,
+                  "actualAmount": 210.14
+                },
+                {
+                  "description": "Refunds",
+                  "approvedAmount": 0,
+                  "actualAmount": 43.28
+                },
+                {
+                  "description": "Other Reimbursements",
+                  "approvedAmount": 0,
+                  "actualAmount": 737.82
+                },
+                {
+                  "description": "Donations",
+                  "approvedAmount": 0,
+                  "actualAmount": 108032
+                },
+                {
+                  "description": "Other Reimbursements",
+                  "approvedAmount": 0,
+                  "actualAmount": 138432.04
+                },
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 5000000,
+                  "actualAmount": 4640718.9
+                },
+                {
+                  "description": "Refunds",
+                  "approvedAmount": 0,
+                  "actualAmount": 74780.53
+                },
+                {
+                  "description": "Other Reimbursements",
+                  "approvedAmount": 0,
+                  "actualAmount": 45448.04
+                },
+                {
+                  "description": "Miscellaneous",
+                  "approvedAmount": 0,
+                  "actualAmount": 1
+                },
+                {
+                  "description": "Miscellaneous",
+                  "approvedAmount": 0,
+                  "actualAmount": 10.76
+                },
+                {
+                  "description": "Other Reimbursements",
+                  "approvedAmount": 0,
+                  "actualAmount": 17685
+                }
+              ]
+            },
+            {
+              "name": "Fleet Maintenance",
+              "amount": 1240242,
+              "percentage": 19.273484781968513,
+              "color": "#6e744e",
+              "items": 3,
+              "description": "Sale of Scrap; Refunds; Other Reimbursements",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Sale of Scrap",
+                  "approvedAmount": 1060,
+                  "actualAmount": 2312.9
+                },
+                {
+                  "description": "Refunds",
+                  "approvedAmount": 0,
+                  "actualAmount": 1380.15
+                },
+                {
+                  "description": "Other Reimbursements",
+                  "approvedAmount": 1239182,
+                  "actualAmount": 1028716.76
+                }
+              ]
+            },
+            {
+              "name": "Rainy Day",
+              "amount": 176451,
+              "percentage": 2.742066196164237,
+              "color": "#6e744e",
+              "items": 1,
+              "description": "Interest on Investments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 176451,
+                  "actualAmount": 119123.55
+                }
+              ]
+            },
+            {
+              "name": "Parking Facilities(S9502)",
+              "amount": 18272,
+              "percentage": 0.28394870834573305,
+              "color": "#bcbda4",
+              "items": 2,
+              "description": "Insurance Reimbursements; Other Reimbursements",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Insurance Reimbursements",
+                  "approvedAmount": 0,
+                  "actualAmount": 5817.75
+                },
+                {
+                  "description": "Other Reimbursements",
+                  "approvedAmount": 18272,
+                  "actualAmount": 0
+                }
+              ]
+            },
+            {
+              "name": "Self-Insurance",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#e0dfd0",
+              "items": 1,
+              "description": "Other Reimbursements",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Other Reimbursements",
+                  "approvedAmount": 0,
+                  "actualAmount": 133.52
+                }
+              ]
+            },
+            {
+              "name": "City 2016 GO Bond Proceeds",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#43432b",
+              "items": 1,
+              "description": "Interest on Investments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 26166.5
+                }
+              ]
+            },
+            {
+              "name": "2024 GO Bonds Proceeds",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#8d9575",
+              "items": 1,
+              "description": "Interest on Investments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 143982.23
+                }
+              ]
+            },
+            {
+              "name": "Donations (restricted; not used for capital items)",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#e0dfd0",
+              "items": 2,
+              "description": "Donations",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Donations",
+                  "approvedAmount": 0,
+                  "actualAmount": 110170.27
+                },
+                {
+                  "description": "Donations",
+                  "approvedAmount": 0,
+                  "actualAmount": 267.5
+                }
+              ]
+            },
+            {
+              "name": "Parking Meter",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#43432b",
+              "items": 1,
+              "description": "Sale of Scrap",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Sale of Scrap",
+                  "approvedAmount": 0,
+                  "actualAmount": 231.3
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Intergovernmental",
+          "amount": 1366871,
+          "percentage": 2.0534121729739536,
+          "color": "#585937",
+          "items": 5,
+          "description": "Interlocal Agreement; Other State Shared Revenue",
+          "whyMatters": "Money received from state and federal government programs and grants.",
+          "subcategories": [
+            {
+              "name": "General",
+              "amount": 1366871,
+              "percentage": 100,
+              "color": "#8d9575",
+              "items": 5,
+              "description": "Interlocal Agreement; Other State Shared Revenue",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interlocal Agreement",
+                  "approvedAmount": 489681,
+                  "actualAmount": 456281.1
+                },
+                {
+                  "description": "Other State Shared Revenue",
+                  "approvedAmount": 478313,
+                  "actualAmount": 453389.95
+                },
+                {
+                  "description": "Interlocal Agreement",
+                  "approvedAmount": 387287,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Interlocal Agreement",
+                  "approvedAmount": 11590,
+                  "actualAmount": 12953.03
+                },
+                {
+                  "description": "Interlocal Agreement",
+                  "approvedAmount": 0,
+                  "actualAmount": 35455.1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Fines and Forfeitures",
+          "amount": 991500,
+          "percentage": 1.489502791048808,
+          "color": "#bcbda4",
+          "items": 6,
+          "description": "Animal Control Violations; Other Violations - Scooters; Other Violations",
+          "whyMatters": "Revenue that supports city operations and services.",
+          "subcategories": [
+            {
+              "name": "General",
+              "amount": 991500,
+              "percentage": 100,
+              "color": "#585937",
+              "items": 5,
+              "description": "Animal Control Violations; Other Violations - Scooters; Other Violations",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Animal Control Violations",
+                  "approvedAmount": 7500,
+                  "actualAmount": 5679.95
+                },
+                {
+                  "description": "Other Violations - Scooters",
+                  "approvedAmount": 13000,
+                  "actualAmount": 24270
+                },
+                {
+                  "description": "Other Violations",
+                  "approvedAmount": 950000,
+                  "actualAmount": 1033831.78
+                },
+                {
+                  "description": "Other Fines and Forfeitures",
+                  "approvedAmount": 1000,
+                  "actualAmount": 860
+                },
+                {
+                  "description": "Other Fines and Forfeitures",
+                  "approvedAmount": 20000,
+                  "actualAmount": 18000
+                }
+              ]
+            },
+            {
+              "name": "Parking Facilities(S9502)",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#8d9575",
+              "items": 1,
+              "description": "Other Violations",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Other Violations",
+                  "approvedAmount": 0,
+                  "actualAmount": 830
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Other",
+          "amount": 681552,
+          "percentage": 1.0238765569792205,
+          "color": "#6e744e",
+          "items": 5,
+          "description": "Inter-Fund Transfers",
+          "whyMatters": "Revenue that supports city operations and services.",
+          "subcategories": [
+            {
+              "name": "Parking Facilities(S9502)",
+              "amount": 681552,
+              "percentage": 100,
+              "color": "#43432b",
+              "items": 1,
+              "description": "Inter-Fund Transfers",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Inter-Fund Transfers",
+                  "approvedAmount": 681552,
+                  "actualAmount": 757773.48
+                }
+              ]
+            },
+            {
+              "name": "Self-Insurance",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#e0dfd0",
+              "items": 1,
+              "description": "Inter-Fund Transfers",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Inter-Fund Transfers",
+                  "approvedAmount": 0,
+                  "actualAmount": 39623
+                }
+              ]
+            },
+            {
+              "name": "General",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#bcbda4",
+              "items": 1,
+              "description": "Inter-Fund Transfers",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Inter-Fund Transfers",
+                  "approvedAmount": 0,
+                  "actualAmount": -250000
+                }
+              ]
+            },
+            {
+              "name": "Parking Meter",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#585937",
+              "items": 1,
+              "description": "Inter-Fund Transfers",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Inter-Fund Transfers",
+                  "approvedAmount": 0,
+                  "actualAmount": 31442
+                }
+              ]
+            },
+            {
+              "name": "Fleet Maintenance",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#8d9575",
+              "items": 1,
+              "description": "Inter-Fund Transfers",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Inter-Fund Transfers",
+                  "approvedAmount": 0,
+                  "actualAmount": 53616
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Licenses",
+          "amount": 279000,
+          "percentage": 0.4191339169970927,
+          "color": "#6e744e",
+          "items": 3,
+          "description": "Permits",
+          "whyMatters": "Revenue that supports city operations and services.",
+          "subcategories": [
+            {
+              "name": "General",
+              "amount": 204000,
+              "percentage": 73.11827956989248,
+              "color": "#e0dfd0",
+              "items": 2,
+              "description": "Permits",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Permits",
+                  "approvedAmount": 201000,
+                  "actualAmount": 132321.65
+                },
+                {
+                  "description": "Permits",
+                  "approvedAmount": 3000,
+                  "actualAmount": 3875
+                }
+              ]
+            },
+            {
+              "name": "Parking Meter",
+              "amount": 75000,
+              "percentage": 26.881720430107524,
+              "color": "#43432b",
+              "items": 1,
+              "description": "Permits",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Permits",
+                  "approvedAmount": 75000,
+                  "actualAmount": 45010
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Utilities",
+      "amount": 56476000,
+      "percentage": 29.041863386346478,
+      "color": "#e0dfd0",
+      "items": 57,
+      "description": "Interest Stormwater O&M; Metered Sales Single Family; Metered Sales Commercial",
+      "whyMatters": "Revenue from city-operated utilities like water and wastewater services.",
+      "subcategories": [
+        {
+          "name": "Operating Revenues",
+          "amount": 55253500,
+          "percentage": 97.83536369431263,
+          "color": "#e0dfd0",
+          "items": 37,
+          "description": "Metered Sales Single Family; Metered Sales Commercial; Metered Sales Industrial",
+          "whyMatters": "Income from utility operations and other city-run services.",
+          "subcategories": [
+            {
+              "name": "Sewage Utility Operating",
+              "amount": 28013800,
+              "percentage": 50.70049861094772,
+              "color": "#43432b",
+              "items": 8,
+              "description": "Metered Sales Single Family; Metered Sales Commercial; Metered Sales Industrial",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Metered Sales Single Family",
+                  "approvedAmount": 7617000,
+                  "actualAmount": 7390616.59
+                },
+                {
+                  "description": "Metered Sales Commercial",
+                  "approvedAmount": 4974400,
+                  "actualAmount": 4969571.01
+                },
+                {
+                  "description": "Metered Sales Industrial",
+                  "approvedAmount": 915700,
+                  "actualAmount": 967703.33
+                },
+                {
+                  "description": "Metered Sales Public Authority",
+                  "approvedAmount": 4099200,
+                  "actualAmount": 3829086.23
+                },
+                {
+                  "description": "Metered Sales Multiple Family",
+                  "approvedAmount": 9392500,
+                  "actualAmount": 9085507.56
+                },
+                {
+                  "description": "Forfeited Discounts",
+                  "approvedAmount": 159600,
+                  "actualAmount": 219258.97
+                },
+                {
+                  "description": "Dumping Revenue",
+                  "approvedAmount": 130100,
+                  "actualAmount": 149134.12
+                },
+                {
+                  "description": "Connection Charge",
+                  "approvedAmount": 725300,
+                  "actualAmount": 631874.42
+                }
+              ]
+            },
+            {
+              "name": "Water Utility Operating",
+              "amount": 22646000,
+              "percentage": 40.98563891880153,
+              "color": "#bcbda4",
+              "items": 22,
+              "description": "Irrigation Sales - Public Authority; Metered Sales Single Family; Metered Sales Commercial",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Irrigation Sales - Public Authority",
+                  "approvedAmount": 200000,
+                  "actualAmount": 253384.92
+                },
+                {
+                  "description": "Metered Sales Single Family",
+                  "approvedAmount": 5000000,
+                  "actualAmount": 4843185.61
+                },
+                {
+                  "description": "Metered Sales Commercial",
+                  "approvedAmount": 3000000,
+                  "actualAmount": 2224793.56
+                },
+                {
+                  "description": "Metered Sales Industrial",
+                  "approvedAmount": 500000,
+                  "actualAmount": 398031.29
+                },
+                {
+                  "description": "Metered Sales Public Authority",
+                  "approvedAmount": 2400000,
+                  "actualAmount": 1948259.58
+                },
+                {
+                  "description": "Metered Sales Multiple Family",
+                  "approvedAmount": 5000000,
+                  "actualAmount": 4603977.73
+                },
+                {
+                  "description": "Public Fire Protection Single",
+                  "approvedAmount": 1000000,
+                  "actualAmount": 854377.94
+                },
+                {
+                  "description": "Private Fire Protection Commercial",
+                  "approvedAmount": 395000,
+                  "actualAmount": 328346.6
+                },
+                {
+                  "description": "Private Fire Protection Industrial",
+                  "approvedAmount": 25000,
+                  "actualAmount": 19938.49
+                },
+                {
+                  "description": "Private Fire Protection Public",
+                  "approvedAmount": 140100,
+                  "actualAmount": 113139.7
+                },
+                {
+                  "description": "Private Fire Protection Multiple",
+                  "approvedAmount": 475000,
+                  "actualAmount": 429674.17
+                },
+                {
+                  "description": "Irrigation Sales Single Family",
+                  "approvedAmount": 45000,
+                  "actualAmount": 69475.32
+                },
+                {
+                  "description": "Irrigation Sales Commercial",
+                  "approvedAmount": 120000,
+                  "actualAmount": 133204.08
+                },
+                {
+                  "description": "Irrigation Sales Industrial",
+                  "approvedAmount": 6600,
+                  "actualAmount": 7035.6
+                },
+                {
+                  "description": "Irrigation Sales Multiple Family",
+                  "approvedAmount": 25000,
+                  "actualAmount": 53426.28
+                },
+                {
+                  "description": "Metered Sales for Resale",
+                  "approvedAmount": 3415000,
+                  "actualAmount": 3319779.98
+                },
+                {
+                  "description": "Forfeited Discounts",
+                  "approvedAmount": 26500,
+                  "actualAmount": 37054.83
+                },
+                {
+                  "description": "Connection Charge",
+                  "approvedAmount": 288000,
+                  "actualAmount": 348593.05
+                },
+                {
+                  "description": "Turn On Reset Charge",
+                  "approvedAmount": 225000,
+                  "actualAmount": 154981.93
+                },
+                {
+                  "description": "Other Water Revenues",
+                  "approvedAmount": 350600,
+                  "actualAmount": 980257.44
+                },
+                {
+                  "description": "Non-Sufficient Funds (NSF)",
+                  "approvedAmount": 9000,
+                  "actualAmount": 16992.77
+                },
+                {
+                  "description": "Water Station Revenue",
+                  "approvedAmount": 200,
+                  "actualAmount": 2426.59
+                }
+              ]
+            },
+            {
+              "name": "Storm Water Utility Operating",
+              "amount": 4593700,
+              "percentage": 8.313862470250752,
+              "color": "#585937",
+              "items": 7,
+              "description": "Forfeited Discounts - Storm; Stormwater Single Family; Stormwater Sales Commercial",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Forfeited Discounts - Storm",
+                  "approvedAmount": 24200,
+                  "actualAmount": 19531.77
+                },
+                {
+                  "description": "Stormwater Single Family",
+                  "approvedAmount": 1281500,
+                  "actualAmount": 1208604.51
+                },
+                {
+                  "description": "Stormwater Sales Commercial",
+                  "approvedAmount": 1263400,
+                  "actualAmount": 580379.17
+                },
+                {
+                  "description": "Stormwater Sales Industrial",
+                  "approvedAmount": 42600,
+                  "actualAmount": 40012.32
+                },
+                {
+                  "description": "Stormwater Sales Public Authority",
+                  "approvedAmount": 808700,
+                  "actualAmount": 760756.36
+                },
+                {
+                  "description": "Stormwater Sales Multiple Family",
+                  "approvedAmount": 955300,
+                  "actualAmount": 927041.47
+                },
+                {
+                  "description": "Other Stormwater Revenue",
+                  "approvedAmount": 218000,
+                  "actualAmount": 569821.34
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Non-Operating Revenues",
+          "amount": 1222500,
+          "percentage": 2.1646363056873716,
+          "color": "#43432b",
+          "items": 20,
+          "description": "Interest Stormwater O&M; Other Revenue; Interest O&M Sweep",
+          "whyMatters": "Income from utility operations and other city-run services.",
+          "subcategories": [
+            {
+              "name": "Sewage Utility Operating",
+              "amount": 1206200,
+              "percentage": 98.66666666666667,
+              "color": "#585937",
+              "items": 6,
+              "description": "Other Revenue; Gain Loss Disposition of Property; Revenue from Contract Work",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Other Revenue",
+                  "approvedAmount": 463200,
+                  "actualAmount": 853111.02
+                },
+                {
+                  "description": "Gain Loss Disposition of Property",
+                  "approvedAmount": 0,
+                  "actualAmount": -186630.04
+                },
+                {
+                  "description": "Revenue from Contract Work",
+                  "approvedAmount": 630300,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Miscellaneous Rent Income",
+                  "approvedAmount": 0,
+                  "actualAmount": 6000
+                },
+                {
+                  "description": "Interest O&M Sweep",
+                  "approvedAmount": 112700,
+                  "actualAmount": 526778.97
+                },
+                {
+                  "description": "Non Utility Income",
+                  "approvedAmount": 0,
+                  "actualAmount": 9945.12
+                }
+              ]
+            },
+            {
+              "name": "Water Utility Operating",
+              "amount": 10000,
+              "percentage": 0.81799591002045,
+              "color": "#8d9575",
+              "items": 2,
+              "description": "Interest O&M Sweep; Non Utility Income",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest O&M Sweep",
+                  "approvedAmount": 5000,
+                  "actualAmount": 326255.07
+                },
+                {
+                  "description": "Non Utility Income",
+                  "approvedAmount": 5000,
+                  "actualAmount": 25559.02
+                }
+              ]
+            },
+            {
+              "name": "Storm Water Utility Operating",
+              "amount": 6300,
+              "percentage": 0.5153374233128835,
+              "color": "#bcbda4",
+              "items": 4,
+              "description": "Interest Stormwater O&M; Stormwater Plan Review Revenue; Revenue from Contract Work",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest Stormwater O&M",
+                  "approvedAmount": 5000,
+                  "actualAmount": 138151.31
+                },
+                {
+                  "description": "Stormwater Plan Review Revenue",
+                  "approvedAmount": 800,
+                  "actualAmount": 104024.37
+                },
+                {
+                  "description": "Revenue from Contract Work",
+                  "approvedAmount": 500,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Non Utility Income",
+                  "approvedAmount": 0,
+                  "actualAmount": 170229
+                }
+              ]
+            },
+            {
+              "name": "Sewage Utility Bond and Interest Sinking",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6e744e",
+              "items": 2,
+              "description": "Interest Sinking; Other Revenue",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest Sinking",
+                  "approvedAmount": 0,
+                  "actualAmount": 88058.85
+                },
+                {
+                  "description": "Other Revenue",
+                  "approvedAmount": 0,
+                  "actualAmount": 100000
+                }
+              ]
+            },
+            {
+              "name": "Water Utility Bond and Interest Sinking",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#e0dfd0",
+              "items": 1,
+              "description": "Interest Sinking",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest Sinking",
+                  "approvedAmount": 0,
+                  "actualAmount": 56532.85
+                }
+              ]
+            },
+            {
+              "name": "Water Debt Service Reserve",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#43432b",
+              "items": 1,
+              "description": "Interest Debt Reserve",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest Debt Reserve",
+                  "approvedAmount": 0,
+                  "actualAmount": 213939.24
+                }
+              ]
+            },
+            {
+              "name": "Sewer Debt Service Reserve",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#bcbda4",
+              "items": 1,
+              "description": "Interest Debt Reserve",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest Debt Reserve",
+                  "approvedAmount": 0,
+                  "actualAmount": 83592.32
+                }
+              ]
+            },
+            {
+              "name": "Sewage Utility Construction (in progress)",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#585937",
+              "items": 1,
+              "description": "Interest Construction",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest Construction",
+                  "approvedAmount": 0,
+                  "actualAmount": 1104135.61
+                }
+              ]
+            },
+            {
+              "name": "Water Utility Construction (in progress)",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#8d9575",
+              "items": 1,
+              "description": "Interest Construction",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest Construction",
+                  "approvedAmount": 0,
+                  "actualAmount": 88226.12
+                }
+              ]
+            },
+            {
+              "name": "Storm Water Construction (in progress)",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6e744e",
+              "items": 1,
+              "description": "Interest Stormwater Construction",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest Stormwater Construction",
+                  "approvedAmount": 0,
+                  "actualAmount": 101096.29
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Substainable & Economic",
+      "amount": 26162163,
+      "percentage": 13.453466317326448,
+      "color": "#43432b",
+      "items": 51,
+      "description": "General Property Tax; Insurance Reimbursements; Other Reimbursements",
+      "whyMatters": "Revenue that supports city operations and services.",
+      "subcategories": [
+        {
+          "name": "Taxes",
+          "amount": 17234163,
+          "percentage": 65.87438125815514,
+          "color": "#bcbda4",
+          "items": 16,
+          "description": "General Property Tax; Economic Development LIT Local Income Tax",
+          "whyMatters": "Taxes are the primary revenue source, including property, income, and sales taxes paid by residents and businesses.",
+          "subcategories": [
+            {
+              "name": "LIT - Economic Development",
+              "amount": 17234163,
+              "percentage": 100,
+              "color": "#6e744e",
+              "items": 1,
+              "description": "Economic Development LIT Local Income Tax",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Economic Development LIT Local Income Tax",
+                  "approvedAmount": 17234163,
+                  "actualAmount": 18570564
+                }
+              ]
+            },
+            {
+              "name": "Consolidated TIF",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#585937",
+              "items": 14,
+              "description": "General Property Tax",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "General Property Tax",
+                  "approvedAmount": 0,
+                  "actualAmount": 613096.53
+                },
+                {
+                  "description": "General Property Tax",
+                  "approvedAmount": 0,
+                  "actualAmount": 145708.42
+                },
+                {
+                  "description": "General Property Tax",
+                  "approvedAmount": 0,
+                  "actualAmount": 356418.48
+                },
+                {
+                  "description": "General Property Tax",
+                  "approvedAmount": 0,
+                  "actualAmount": 45244.51
+                },
+                {
+                  "description": "General Property Tax",
+                  "approvedAmount": 0,
+                  "actualAmount": 349613.64
+                },
+                {
+                  "description": "General Property Tax",
+                  "approvedAmount": 0,
+                  "actualAmount": 224885.56
+                },
+                {
+                  "description": "General Property Tax",
+                  "approvedAmount": 0,
+                  "actualAmount": 0.02
+                },
+                {
+                  "description": "General Property Tax",
+                  "approvedAmount": 0,
+                  "actualAmount": 2137774.37
+                },
+                {
+                  "description": "General Property Tax",
+                  "approvedAmount": 0,
+                  "actualAmount": 7341964.16
+                },
+                {
+                  "description": "General Property Tax",
+                  "approvedAmount": 0,
+                  "actualAmount": 477955.76
+                },
+                {
+                  "description": "General Property Tax",
+                  "approvedAmount": 0,
+                  "actualAmount": 3615020.57
+                },
+                {
+                  "description": "General Property Tax",
+                  "approvedAmount": 0,
+                  "actualAmount": 1377702.01
+                },
+                {
+                  "description": "General Property Tax",
+                  "approvedAmount": 0,
+                  "actualAmount": 2907267.49
+                },
+                {
+                  "description": "General Property Tax",
+                  "approvedAmount": 0,
+                  "actualAmount": 686538.8
+                }
+              ]
+            },
+            {
+              "name": "TIF - Prow",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#8d9575",
+              "items": 1,
+              "description": "General Property Tax",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "General Property Tax",
+                  "approvedAmount": 0,
+                  "actualAmount": 91473.61
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Intergovernmental",
+          "amount": 4560000,
+          "percentage": 17.429751507931513,
+          "color": "#6e744e",
+          "items": 6,
+          "description": "Grants - Federal; Food & Beverage Tax; Grants - State",
+          "whyMatters": "Money received from state and federal government programs and grants.",
+          "subcategories": [
+            {
+              "name": "Food and Beverage Tax",
+              "amount": 4560000,
+              "percentage": 100,
+              "color": "#585937",
+              "items": 1,
+              "description": "Food & Beverage Tax",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Food & Beverage Tax",
+                  "approvedAmount": 4560000,
+                  "actualAmount": 3929761.2
+                }
+              ]
+            },
+            {
+              "name": "ARP COVID Local Fiscal Recovery",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#e0dfd0",
+              "items": 1,
+              "description": "Grants - Federal",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Grants - Federal",
+                  "approvedAmount": 0,
+                  "actualAmount": 507716.51
+                }
+              ]
+            },
+            {
+              "name": "Grants Non Approp",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#43432b",
+              "items": 2,
+              "description": "Grants - Federal",
+              "whyMatters": "Funding from state and federal sources for specific programs and projects.",
+              "lineItems": [
+                {
+                  "description": "Grants - Federal",
+                  "approvedAmount": 0,
+                  "actualAmount": 13423.47
+                },
+                {
+                  "description": "Grants - Federal",
+                  "approvedAmount": 0,
+                  "actualAmount": 3525075
+                }
+              ]
+            },
+            {
+              "name": "Consolidated TIF",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#bcbda4",
+              "items": 2,
+              "description": "Grants - Federal; Grants - State",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Grants - Federal",
+                  "approvedAmount": 0,
+                  "actualAmount": 48846.26
+                },
+                {
+                  "description": "Grants - State",
+                  "approvedAmount": 0,
+                  "actualAmount": 691214
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Other",
+          "amount": 3940000,
+          "percentage": 15.059916873081175,
+          "color": "#585937",
+          "items": 3,
+          "description": "Inter-Fund Transfers",
+          "whyMatters": "Revenue that supports city operations and services.",
+          "subcategories": [
+            {
+              "name": "Consolidated TIF",
+              "amount": 3940000,
+              "percentage": 100,
+              "color": "#8d9575",
+              "items": 1,
+              "description": "Inter-Fund Transfers",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Inter-Fund Transfers",
+                  "approvedAmount": 3940000,
+                  "actualAmount": 0
+                }
+              ]
+            },
+            {
+              "name": "Fiber Connectivity",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6e744e",
+              "items": 1,
+              "description": "Inter-Fund Transfers",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Inter-Fund Transfers",
+                  "approvedAmount": 0,
+                  "actualAmount": 250000
+                }
+              ]
+            },
+            {
+              "name": "LIT - Economic Development",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#e0dfd0",
+              "items": 1,
+              "description": "Inter-Fund Transfers",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Inter-Fund Transfers",
+                  "approvedAmount": 0,
+                  "actualAmount": 439964
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Miscellaneous",
+          "amount": 347000,
+          "percentage": 1.3263429327307532,
+          "color": "#e0dfd0",
+          "items": 17,
+          "description": "Insurance Reimbursements; Other Reimbursements; Interest on Investments",
+          "whyMatters": "Other revenue sources including interest, fines, and donations.",
+          "subcategories": [
+            {
+              "name": "Food and Beverage Tax",
+              "amount": 212000,
+              "percentage": 61.09510086455331,
+              "color": "#6e744e",
+              "items": 2,
+              "description": "Interest Other; Principal Repayments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest Other",
+                  "approvedAmount": 12000,
+                  "actualAmount": 2270.63
+                },
+                {
+                  "description": "Principal Repayments",
+                  "approvedAmount": 200000,
+                  "actualAmount": 106368.14
+                }
+              ]
+            },
+            {
+              "name": "Digital Opportunity Fund",
+              "amount": 85000,
+              "percentage": 24.495677233429394,
+              "color": "#e0dfd0",
+              "items": 1,
+              "description": "Voluntary Contributions",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Voluntary Contributions",
+                  "approvedAmount": 85000,
+                  "actualAmount": 0
+                }
+              ]
+            },
+            {
+              "name": "General",
+              "amount": 50000,
+              "percentage": 14.409221902017292,
+              "color": "#8d9575",
+              "items": 2,
+              "description": "Refunds; Other Reimbursements",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Refunds",
+                  "approvedAmount": 0,
+                  "actualAmount": 1000
+                },
+                {
+                  "description": "Other Reimbursements",
+                  "approvedAmount": 50000,
+                  "actualAmount": 276
+                }
+              ]
+            },
+            {
+              "name": "Consolidated TIF",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#43432b",
+              "items": 3,
+              "description": "Insurance Reimbursements; Interest on Investments; Sale of Property",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Insurance Reimbursements",
+                  "approvedAmount": 0,
+                  "actualAmount": 44.87
+                },
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 727921.02
+                },
+                {
+                  "description": "Sale of Property",
+                  "approvedAmount": 0,
+                  "actualAmount": 4593092.5
+                }
+              ]
+            },
+            {
+              "name": "RDC",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#bcbda4",
+              "items": 3,
+              "description": "Other Reimbursements; Refunds; Interest on Investments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Other Reimbursements",
+                  "approvedAmount": 0,
+                  "actualAmount": 237750
+                },
+                {
+                  "description": "Refunds",
+                  "approvedAmount": 0,
+                  "actualAmount": 15232.74
+                },
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 133364.29
+                }
+              ]
+            },
+            {
+              "name": "Non-Reverting Improve I(S0113)",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#585937",
+              "items": 1,
+              "description": "Other Reimbursements",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Other Reimbursements",
+                  "approvedAmount": 0,
+                  "actualAmount": -159.6
+                }
+              ]
+            },
+            {
+              "name": "TIF - Prow",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#43432b",
+              "items": 1,
+              "description": "Interest on Investments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 24895.97
+                }
+              ]
+            },
+            {
+              "name": "LIT - Economic Development",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#bcbda4",
+              "items": 1,
+              "description": "Insurance Reimbursements",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Insurance Reimbursements",
+                  "approvedAmount": 0,
+                  "actualAmount": 50250
+                }
+              ]
+            },
+            {
+              "name": "Certified Technology Park Dwntwn",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#585937",
+              "items": 1,
+              "description": "Interest on Investments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 915.3
+                }
+              ]
+            },
+            {
+              "name": "Bloomington Technology",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#8d9575",
+              "items": 1,
+              "description": "Interest on Investments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 1292.92
+                }
+              ]
+            },
+            {
+              "name": "Consolidated TIF Bond Proceeds",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6e744e",
+              "items": 1,
+              "description": "Interest on Investments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 7733.98
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Licenses",
+          "amount": 81000,
+          "percentage": 0.309607428101415,
+          "color": "#8d9575",
+          "items": 2,
+          "description": "Permits",
+          "whyMatters": "Revenue that supports city operations and services.",
+          "subcategories": [
+            {
+              "name": "General",
+              "amount": 81000,
+              "percentage": 100,
+              "color": "#e0dfd0",
+              "items": 1,
+              "description": "Permits",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Permits",
+                  "approvedAmount": 81000,
+                  "actualAmount": 10105
+                }
+              ]
+            },
+            {
+              "name": "Rental Inspection Program(S0012)",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6e744e",
+              "items": 1,
+              "description": "Permits",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Permits",
+                  "approvedAmount": 0,
+                  "actualAmount": 262373.48
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Charges for Services",
+          "amount": 0,
+          "percentage": 0,
+          "color": "#e0dfd0",
+          "items": 6,
+          "description": "Late Fees; Application Fee; Inspection Fees Reinspection Fines",
+          "whyMatters": "Fees paid by residents and businesses for specific city services like permits and utilities.",
+          "subcategories": [
+            {
+              "name": "Food and Beverage Tax",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#43432b",
+              "items": 1,
+              "description": "Late Fees",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Late Fees",
+                  "approvedAmount": 0,
+                  "actualAmount": 769.03
+                }
+              ]
+            },
+            {
+              "name": "Rental Inspection Program(S0012)",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#bcbda4",
+              "items": 3,
+              "description": "Application Fee; Inspection Fees Reinspection Fines; Inspection Fees No Show",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Application Fee",
+                  "approvedAmount": 0,
+                  "actualAmount": 1800
+                },
+                {
+                  "description": "Inspection Fees Reinspection Fines",
+                  "approvedAmount": 0,
+                  "actualAmount": 20251
+                },
+                {
+                  "description": "Inspection Fees No Show",
+                  "approvedAmount": 0,
+                  "actualAmount": 7500
+                }
+              ]
+            },
+            {
+              "name": "General",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#585937",
+              "items": 1,
+              "description": "Registration Fees",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Registration Fees",
+                  "approvedAmount": 0,
+                  "actualAmount": 46474.8
+                }
+              ]
+            },
+            {
+              "name": "RDC",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#8d9575",
+              "items": 1,
+              "description": "Facility Rentals",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Facility Rentals",
+                  "approvedAmount": 0,
+                  "actualAmount": 499908.41
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Fines and Forfeitures",
+          "amount": 0,
+          "percentage": 0,
+          "color": "#43432b",
+          "items": 1,
+          "description": "Other Violations",
+          "whyMatters": "Revenue that supports city operations and services.",
+          "subcategories": [
+            {
+              "name": "General",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#bcbda4",
+              "items": 1,
+              "description": "Other Violations",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Other Violations",
+                  "approvedAmount": 0,
+                  "actualAmount": 2500
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Culture & Recreation",
+      "amount": 13281564,
+      "percentage": 6.829828019778622,
+      "color": "#8d9575",
+      "items": 156,
+      "description": "Advertising; Equipment Rentals; Facility Rentals",
+      "whyMatters": "Revenue that supports city operations and services.",
+      "subcategories": [
+        {
+          "name": "Taxes",
+          "amount": 9391470,
+          "percentage": 70.71057294156019,
+          "color": "#43432b",
+          "items": 4,
+          "description": "General Property Tax; Financial Institutions Tax; License Excise Tax",
+          "whyMatters": "Taxes are the primary revenue source, including property, income, and sales taxes paid by residents and businesses.",
+          "subcategories": [
+            {
+              "name": "Park and Recreation - Operating",
+              "amount": 9391470,
+              "percentage": 100,
+              "color": "#bcbda4",
+              "items": 4,
+              "description": "General Property Tax; Financial Institutions Tax; License Excise Tax",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "General Property Tax",
+                  "approvedAmount": 8863986,
+                  "actualAmount": 8987162.09
+                },
+                {
+                  "description": "Financial Institutions Tax",
+                  "approvedAmount": 115385,
+                  "actualAmount": 26148.1
+                },
+                {
+                  "description": "License Excise Tax",
+                  "approvedAmount": 381419,
+                  "actualAmount": 270233.97
+                },
+                {
+                  "description": "Commercial Vehicle Excise Tax",
+                  "approvedAmount": 30680,
+                  "actualAmount": 10586.44
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Charges for Services",
+          "amount": 3789794,
+          "percentage": 28.534244912722627,
+          "color": "#6e744e",
+          "items": 106,
+          "description": "Advertising; Equipment Rentals; Facility Rentals",
+          "whyMatters": "Fees paid by residents and businesses for specific city services like permits and utilities.",
+          "subcategories": [
+            {
+              "name": "Park Nonreverting Operating",
+              "amount": 1992514,
+              "percentage": 52.57578644116276,
+              "color": "#e0dfd0",
+              "items": 81,
+              "description": "Advertising; Equipment Rentals; Facility Rentals",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Advertising",
+                  "approvedAmount": 7000,
+                  "actualAmount": 11800
+                },
+                {
+                  "description": "Equipment Rentals",
+                  "approvedAmount": 100,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Facility Rentals",
+                  "approvedAmount": 49000,
+                  "actualAmount": 22764.93
+                },
+                {
+                  "description": "Registration Fees",
+                  "approvedAmount": 0,
+                  "actualAmount": 4389
+                },
+                {
+                  "description": "Transaction Fees",
+                  "approvedAmount": 35000,
+                  "actualAmount": 18226.65
+                },
+                {
+                  "description": "Application Fee",
+                  "approvedAmount": 500,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Registration Fees",
+                  "approvedAmount": 27000,
+                  "actualAmount": 57335
+                },
+                {
+                  "description": "Facility Rentals",
+                  "approvedAmount": 37000,
+                  "actualAmount": 30002.84
+                },
+                {
+                  "description": "Registration Fees",
+                  "approvedAmount": 3500,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Advertising",
+                  "approvedAmount": 25000,
+                  "actualAmount": 42900
+                },
+                {
+                  "description": "Facility Rentals",
+                  "approvedAmount": 8500,
+                  "actualAmount": 17503.84
+                },
+                {
+                  "description": "Concessions",
+                  "approvedAmount": 3850,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Season Passes/Memberships",
+                  "approvedAmount": 0,
+                  "actualAmount": -65
+                },
+                {
+                  "description": "Registration Fees",
+                  "approvedAmount": 21000,
+                  "actualAmount": 31008
+                },
+                {
+                  "description": "Season Passes/Memberships",
+                  "approvedAmount": 13400,
+                  "actualAmount": 13641
+                },
+                {
+                  "description": "Advertising",
+                  "approvedAmount": 500,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Concessions",
+                  "approvedAmount": 65000,
+                  "actualAmount": 83456.58
+                },
+                {
+                  "description": "Equipment Rentals",
+                  "approvedAmount": 52000,
+                  "actualAmount": 49827.82
+                },
+                {
+                  "description": "Registration Fees",
+                  "approvedAmount": 15000,
+                  "actualAmount": 7561
+                },
+                {
+                  "description": "Registration Fees",
+                  "approvedAmount": 6000,
+                  "actualAmount": 4164.5
+                },
+                {
+                  "description": "Season Passes/Memberships",
+                  "approvedAmount": 100,
+                  "actualAmount": 20
+                },
+                {
+                  "description": "Advertising",
+                  "approvedAmount": 0,
+                  "actualAmount": 1200
+                },
+                {
+                  "description": "Registration Fees",
+                  "approvedAmount": 10000,
+                  "actualAmount": 13641.75
+                },
+                {
+                  "description": "Rental Fees",
+                  "approvedAmount": 22440,
+                  "actualAmount": 20570
+                },
+                {
+                  "description": "Concessions",
+                  "approvedAmount": 30000,
+                  "actualAmount": 31112.24
+                },
+                {
+                  "description": "Advertising",
+                  "approvedAmount": 1200,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Equipment Rentals",
+                  "approvedAmount": 0,
+                  "actualAmount": 3337.7
+                },
+                {
+                  "description": "Registration Fees",
+                  "approvedAmount": 48000,
+                  "actualAmount": 32235.22
+                },
+                {
+                  "description": "Other Services",
+                  "approvedAmount": 0,
+                  "actualAmount": 471
+                },
+                {
+                  "description": "Other Sales",
+                  "approvedAmount": 0,
+                  "actualAmount": -19.52
+                },
+                {
+                  "description": "Other Services",
+                  "approvedAmount": 7200,
+                  "actualAmount": 5100
+                },
+                {
+                  "description": "Health and Wellness",
+                  "approvedAmount": 0,
+                  "actualAmount": 5
+                },
+                {
+                  "description": "Pro Shop Sales",
+                  "approvedAmount": 90000,
+                  "actualAmount": 124133.66
+                },
+                {
+                  "description": "Other Sales",
+                  "approvedAmount": 0,
+                  "actualAmount": -22.71
+                },
+                {
+                  "description": "Facility Rentals",
+                  "approvedAmount": 750,
+                  "actualAmount": 1411.22
+                },
+                {
+                  "description": "Registration Fees",
+                  "approvedAmount": 95000,
+                  "actualAmount": 58569.5
+                },
+                {
+                  "description": "Advertising",
+                  "approvedAmount": 1000,
+                  "actualAmount": 4400
+                },
+                {
+                  "description": "Player Fees",
+                  "approvedAmount": 20000,
+                  "actualAmount": 14072
+                },
+                {
+                  "description": "Registration Fees",
+                  "approvedAmount": 50000,
+                  "actualAmount": 42670
+                },
+                {
+                  "description": "Registration Fees",
+                  "approvedAmount": 0,
+                  "actualAmount": 70
+                },
+                {
+                  "description": "Registration Fees",
+                  "approvedAmount": 4500,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Facility Rentals",
+                  "approvedAmount": 3000,
+                  "actualAmount": 6853.01
+                },
+                {
+                  "description": "Facility Rentals",
+                  "approvedAmount": 2520,
+                  "actualAmount": 2060
+                },
+                {
+                  "description": "Advertising",
+                  "approvedAmount": 1500,
+                  "actualAmount": 2900
+                },
+                {
+                  "description": "Concessions FB Tax",
+                  "approvedAmount": 15000,
+                  "actualAmount": 20569.37
+                },
+                {
+                  "description": "Concessions FB Tax",
+                  "approvedAmount": 0,
+                  "actualAmount": 5633.84
+                },
+                {
+                  "description": "Concessions FB Tax",
+                  "approvedAmount": 35000,
+                  "actualAmount": 36633.28
+                },
+                {
+                  "description": "Registration Fees",
+                  "approvedAmount": 67000,
+                  "actualAmount": 70592
+                },
+                {
+                  "description": "Concessions FB Tax",
+                  "approvedAmount": 0,
+                  "actualAmount": 25928.6
+                },
+                {
+                  "description": "Other Services",
+                  "approvedAmount": 0,
+                  "actualAmount": 33
+                },
+                {
+                  "description": "Registration Fees",
+                  "approvedAmount": 10500,
+                  "actualAmount": 15331.87
+                },
+                {
+                  "description": "Rental Fees",
+                  "approvedAmount": 97204,
+                  "actualAmount": 91600.25
+                },
+                {
+                  "description": "Concessions",
+                  "approvedAmount": 65000,
+                  "actualAmount": 47188.09
+                },
+                {
+                  "description": "Advertising",
+                  "approvedAmount": 0,
+                  "actualAmount": 32083
+                },
+                {
+                  "description": "Vending",
+                  "approvedAmount": 1500,
+                  "actualAmount": 4065.93
+                },
+                {
+                  "description": "Advertising",
+                  "approvedAmount": 0,
+                  "actualAmount": 8500
+                },
+                {
+                  "description": "Concessions",
+                  "approvedAmount": 7700,
+                  "actualAmount": 5501.81
+                },
+                {
+                  "description": "Vending",
+                  "approvedAmount": 0,
+                  "actualAmount": 3134.08
+                },
+                {
+                  "description": "Program Rental",
+                  "approvedAmount": 2250,
+                  "actualAmount": 2500
+                },
+                {
+                  "description": "Advertising",
+                  "approvedAmount": 3000,
+                  "actualAmount": 2100
+                },
+                {
+                  "description": "Registration Fees",
+                  "approvedAmount": 20000,
+                  "actualAmount": 19349.75
+                },
+                {
+                  "description": "Pro Shop Sales",
+                  "approvedAmount": 1300,
+                  "actualAmount": 1545.72
+                },
+                {
+                  "description": "Rental Fees",
+                  "approvedAmount": 0,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Facility Rentals",
+                  "approvedAmount": 10000,
+                  "actualAmount": 8764.93
+                },
+                {
+                  "description": "Registration Fees",
+                  "approvedAmount": 100000,
+                  "actualAmount": 93851.75
+                },
+                {
+                  "description": "Registration Fees",
+                  "approvedAmount": 23000,
+                  "actualAmount": 6549.5
+                },
+                {
+                  "description": "Facility Rentals",
+                  "approvedAmount": 0,
+                  "actualAmount": 40403.35
+                },
+                {
+                  "description": "Registration Fees",
+                  "approvedAmount": 1800,
+                  "actualAmount": 250
+                },
+                {
+                  "description": "Facility Rentals",
+                  "approvedAmount": 205000,
+                  "actualAmount": 194693.53
+                },
+                {
+                  "description": "Season Passes/Memberships",
+                  "approvedAmount": 400000,
+                  "actualAmount": 420159.52
+                },
+                {
+                  "description": "Registration Fees",
+                  "approvedAmount": 56000,
+                  "actualAmount": 58534.5
+                },
+                {
+                  "description": "Facility Rentals",
+                  "approvedAmount": 2200,
+                  "actualAmount": 5911.77
+                },
+                {
+                  "description": "Registration Fees",
+                  "approvedAmount": 4000,
+                  "actualAmount": 1483.25
+                },
+                {
+                  "description": "Registration Fees",
+                  "approvedAmount": 0,
+                  "actualAmount": 337.5
+                },
+                {
+                  "description": "Facility Rentals",
+                  "approvedAmount": 70000,
+                  "actualAmount": 80067.26
+                },
+                {
+                  "description": "Other Sales",
+                  "approvedAmount": 4000,
+                  "actualAmount": 3411.82
+                },
+                {
+                  "description": "Vending",
+                  "approvedAmount": 0,
+                  "actualAmount": 32.98
+                },
+                {
+                  "description": "Facility Rentals",
+                  "approvedAmount": 32000,
+                  "actualAmount": 911.77
+                },
+                {
+                  "description": "Concessions",
+                  "approvedAmount": 2500,
+                  "actualAmount": 2337.32
+                },
+                {
+                  "description": "Facility Rentals",
+                  "approvedAmount": 0,
+                  "actualAmount": -10.74
+                },
+                {
+                  "description": "Advertising",
+                  "approvedAmount": 0,
+                  "actualAmount": 1600
+                }
+              ]
+            },
+            {
+              "name": "Park and Recreation - Operating",
+              "amount": 1332280,
+              "percentage": 35.15441736411003,
+              "color": "#43432b",
+              "items": 23,
+              "description": "Other Services; Facility Rentals; General Admissions",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Other Services",
+                  "approvedAmount": 75000,
+                  "actualAmount": 85690.69
+                },
+                {
+                  "description": "Facility Rentals",
+                  "approvedAmount": 0,
+                  "actualAmount": 865.74
+                },
+                {
+                  "description": "Facility Rentals",
+                  "approvedAmount": 115000,
+                  "actualAmount": 145143.09
+                },
+                {
+                  "description": "General Admissions",
+                  "approvedAmount": 62000,
+                  "actualAmount": 43101.6
+                },
+                {
+                  "description": "Equipment Rentals",
+                  "approvedAmount": 20000,
+                  "actualAmount": 10973.84
+                },
+                {
+                  "description": "Skate Sharpening",
+                  "approvedAmount": 2500,
+                  "actualAmount": 2238
+                },
+                {
+                  "description": "Facility Rentals",
+                  "approvedAmount": 6000,
+                  "actualAmount": 5710.71
+                },
+                {
+                  "description": "Facility Rentals",
+                  "approvedAmount": 20030,
+                  "actualAmount": 33817.93
+                },
+                {
+                  "description": "General Admissions",
+                  "approvedAmount": 110000,
+                  "actualAmount": 181225.25
+                },
+                {
+                  "description": "Season Passes/Memberships",
+                  "approvedAmount": 65000,
+                  "actualAmount": 39728.25
+                },
+                {
+                  "description": "Registration Fees",
+                  "approvedAmount": 15000,
+                  "actualAmount": 16307
+                },
+                {
+                  "description": "Cemetary Lot Sales",
+                  "approvedAmount": 10300,
+                  "actualAmount": 2550
+                },
+                {
+                  "description": "Burial Services",
+                  "approvedAmount": 33000,
+                  "actualAmount": 15425
+                },
+                {
+                  "description": "General Admissions",
+                  "approvedAmount": 30000,
+                  "actualAmount": 51583.61
+                },
+                {
+                  "description": "Season Passes/Memberships",
+                  "approvedAmount": 1000,
+                  "actualAmount": 4885
+                },
+                {
+                  "description": "Other Services",
+                  "approvedAmount": 450,
+                  "actualAmount": 625
+                },
+                {
+                  "description": "Player Fees",
+                  "approvedAmount": 32000,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Application Fee",
+                  "approvedAmount": 0,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Facility Rentals",
+                  "approvedAmount": 0,
+                  "actualAmount": 863.87
+                },
+                {
+                  "description": "Facility Rentals",
+                  "approvedAmount": 0,
+                  "actualAmount": 333.77
+                },
+                {
+                  "description": "General Admissions",
+                  "approvedAmount": 350000,
+                  "actualAmount": 605228.25
+                },
+                {
+                  "description": "Season Passes/Memberships",
+                  "approvedAmount": 115000,
+                  "actualAmount": 193015
+                },
+                {
+                  "description": "Equipment Rentals",
+                  "approvedAmount": 270000,
+                  "actualAmount": 374259.93
+                }
+              ]
+            },
+            {
+              "name": "Non-Reverting Telecom (S1146)",
+              "amount": 465000,
+              "percentage": 12.269796194727208,
+              "color": "#bcbda4",
+              "items": 2,
+              "description": "Franchise Fees",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Franchise Fees",
+                  "approvedAmount": 185000,
+                  "actualAmount": 153865.53
+                },
+                {
+                  "description": "Franchise Fees",
+                  "approvedAmount": 280000,
+                  "actualAmount": 230798.31
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Miscellaneous",
+          "amount": 70400,
+          "percentage": 0.530058056415645,
+          "color": "#585937",
+          "items": 31,
+          "description": "Other Reimbursements; Interest on Investments; Donations",
+          "whyMatters": "Other revenue sources including interest, fines, and donations.",
+          "subcategories": [
+            {
+              "name": "Park Nonreverting Operating",
+              "amount": 59400,
+              "percentage": 84.375,
+              "color": "#8d9575",
+              "items": 22,
+              "description": "Other Reimbursements; Donations; Insurance Reimbursements",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Other Reimbursements",
+                  "approvedAmount": 0,
+                  "actualAmount": 1290
+                },
+                {
+                  "description": "Other Reimbursements",
+                  "approvedAmount": 0,
+                  "actualAmount": 1421.19
+                },
+                {
+                  "description": "Donations",
+                  "approvedAmount": 0,
+                  "actualAmount": 9
+                },
+                {
+                  "description": "Donations",
+                  "approvedAmount": 20100,
+                  "actualAmount": 8000
+                },
+                {
+                  "description": "Other Reimbursements",
+                  "approvedAmount": 0,
+                  "actualAmount": 23697.28
+                },
+                {
+                  "description": "Other Reimbursements",
+                  "approvedAmount": 0,
+                  "actualAmount": 130
+                },
+                {
+                  "description": "Insurance Reimbursements",
+                  "approvedAmount": 1000,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Refunds",
+                  "approvedAmount": 0,
+                  "actualAmount": 3465
+                },
+                {
+                  "description": "Donations",
+                  "approvedAmount": 0,
+                  "actualAmount": 19.42
+                },
+                {
+                  "description": "Insurance Reimbursements",
+                  "approvedAmount": 2000,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Miscellaneous",
+                  "approvedAmount": 2500,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Gift Certificate",
+                  "approvedAmount": 0,
+                  "actualAmount": 1212.53
+                },
+                {
+                  "description": "EBT Market Bucks",
+                  "approvedAmount": 0,
+                  "actualAmount": 7832.82
+                },
+                {
+                  "description": "Non Rev Economic Development",
+                  "approvedAmount": 9000,
+                  "actualAmount": 9415
+                },
+                {
+                  "description": "Miscellaneous",
+                  "approvedAmount": 0,
+                  "actualAmount": 14.96
+                },
+                {
+                  "description": "Sale of Scrap",
+                  "approvedAmount": 1800,
+                  "actualAmount": 1894.85
+                },
+                {
+                  "description": "Donations",
+                  "approvedAmount": 0,
+                  "actualAmount": 620
+                },
+                {
+                  "description": "Other Reimbursements",
+                  "approvedAmount": 0,
+                  "actualAmount": 710.96
+                },
+                {
+                  "description": "Donations",
+                  "approvedAmount": 23000,
+                  "actualAmount": 5450
+                },
+                {
+                  "description": "Grant - Other",
+                  "approvedAmount": 0,
+                  "actualAmount": 4860
+                },
+                {
+                  "description": "Grant - Other",
+                  "approvedAmount": 0,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Sale of Property",
+                  "approvedAmount": 0,
+                  "actualAmount": 875
+                }
+              ]
+            },
+            {
+              "name": "Park and Recreation - Operating",
+              "amount": 11000,
+              "percentage": 15.625,
+              "color": "#6e744e",
+              "items": 4,
+              "description": "Other Reimbursements; Sale of Property; Miscellaneous",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Other Reimbursements",
+                  "approvedAmount": 0,
+                  "actualAmount": 27751.14
+                },
+                {
+                  "description": "Sale of Property",
+                  "approvedAmount": 0,
+                  "actualAmount": 6527
+                },
+                {
+                  "description": "Miscellaneous",
+                  "approvedAmount": 1000,
+                  "actualAmount": 3326.25
+                },
+                {
+                  "description": "Gift Certificate",
+                  "approvedAmount": 10000,
+                  "actualAmount": 7835.5
+                }
+              ]
+            },
+            {
+              "name": "Parks GO Bonds 2022",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#e0dfd0",
+              "items": 1,
+              "description": "Interest on Investments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 150654.03
+                }
+              ]
+            },
+            {
+              "name": "Non-Reverting Telecom (S1146)",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#43432b",
+              "items": 2,
+              "description": "Other Reimbursements",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Other Reimbursements",
+                  "approvedAmount": 0,
+                  "actualAmount": 38.44
+                },
+                {
+                  "description": "Other Reimbursements",
+                  "approvedAmount": 0,
+                  "actualAmount": 57.65
+                }
+              ]
+            },
+            {
+              "name": "Rosehill Trust",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#bcbda4",
+              "items": 1,
+              "description": "Interest on Investments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 4374.04
+                }
+              ]
+            },
+            {
+              "name": "Parks 2016 GO Bond Proceeds",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#585937",
+              "items": 1,
+              "description": "Interest on Investments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 173.87
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Intergovernmental",
+          "amount": 24900,
+          "percentage": 0.18747792052201082,
+          "color": "#585937",
+          "items": 10,
+          "description": "Grants - Federal; Grants - State; Interlocal Agreement",
+          "whyMatters": "Money received from state and federal government programs and grants.",
+          "subcategories": [
+            {
+              "name": "Park Nonreverting Operating",
+              "amount": 24900,
+              "percentage": 100,
+              "color": "#8d9575",
+              "items": 8,
+              "description": "Grants - Federal; Grants - State; Grants - Local",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Grants - Federal",
+                  "approvedAmount": 21500,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Grants - State",
+                  "approvedAmount": 3400,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Grants - State",
+                  "approvedAmount": 0,
+                  "actualAmount": 12605.4
+                },
+                {
+                  "description": "Grants - Federal",
+                  "approvedAmount": 0,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Grants - State",
+                  "approvedAmount": 0,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Grants - Local",
+                  "approvedAmount": 0,
+                  "actualAmount": 40622.66
+                },
+                {
+                  "description": "Grants - State",
+                  "approvedAmount": 0,
+                  "actualAmount": 3356.64
+                },
+                {
+                  "description": "Grants - Federal",
+                  "approvedAmount": 0,
+                  "actualAmount": 14638.24
+                }
+              ]
+            },
+            {
+              "name": "Grants Non Approp",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6e744e",
+              "items": 1,
+              "description": "Grants - State",
+              "whyMatters": "Funding from state and federal sources for specific programs and projects.",
+              "lineItems": [
+                {
+                  "description": "Grants - State",
+                  "approvedAmount": 0,
+                  "actualAmount": -3750
+                }
+              ]
+            },
+            {
+              "name": "Parks GO Bonds 2022",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#e0dfd0",
+              "items": 1,
+              "description": "Interlocal Agreement",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interlocal Agreement",
+                  "approvedAmount": 0,
+                  "actualAmount": 150000
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Licenses",
+          "amount": 4000,
+          "percentage": 0.030116935023616197,
+          "color": "#43432b",
+          "items": 2,
+          "description": "Permits",
+          "whyMatters": "Revenue that supports city operations and services.",
+          "subcategories": [
+            {
+              "name": "Park Nonreverting Operating",
+              "amount": 4000,
+              "percentage": 100,
+              "color": "#bcbda4",
+              "items": 2,
+              "description": "Permits",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Permits",
+                  "approvedAmount": 0,
+                  "actualAmount": 912
+                },
+                {
+                  "description": "Permits",
+                  "approvedAmount": 4000,
+                  "actualAmount": 6220
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Other",
+          "amount": 1000,
+          "percentage": 0.007529233755904049,
+          "color": "#8d9575",
+          "items": 3,
+          "description": "Inter-Fund Transfers; Prior Year Voided Checks",
+          "whyMatters": "Revenue that supports city operations and services.",
+          "subcategories": [
+            {
+              "name": "Park Nonreverting Operating",
+              "amount": 1000,
+              "percentage": 100,
+              "color": "#e0dfd0",
+              "items": 1,
+              "description": "Prior Year Voided Checks",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Prior Year Voided Checks",
+                  "approvedAmount": 1000,
+                  "actualAmount": 0
+                }
+              ]
+            },
+            {
+              "name": "Park and Recreation - Operating",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6e744e",
+              "items": 2,
+              "description": "Inter-Fund Transfers",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Inter-Fund Transfers",
+                  "approvedAmount": 0,
+                  "actualAmount": 116173
+                },
+                {
+                  "description": "Inter-Fund Transfers",
+                  "approvedAmount": 0,
+                  "actualAmount": 564183
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Public Safety",
+      "amount": 12478468,
+      "percentage": 6.416848978803317,
+      "color": "#585937",
+      "items": 50,
+      "description": "Public Safety LIT; Other Fines and Forfeitures; Tow Fee Admin",
+      "whyMatters": "Revenue that supports city operations and services.",
+      "subcategories": [
+        {
+          "name": "Intergovernmental",
+          "amount": 6536596,
+          "percentage": 52.38300086196479,
+          "color": "#43432b",
+          "items": 23,
+          "description": "PSAP LIT; Grants - Federal; Grants - State",
+          "whyMatters": "Money received from state and federal government programs and grants.",
+          "subcategories": [
+            {
+              "name": "LIT - Public Safety",
+              "amount": 2679096,
+              "percentage": 40.98610347036898,
+              "color": "#bcbda4",
+              "items": 1,
+              "description": "PSAP LIT",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "PSAP LIT",
+                  "approvedAmount": 2679096,
+                  "actualAmount": 248155.34
+                }
+              ]
+            },
+            {
+              "name": "Fire Pension",
+              "amount": 2155000,
+              "percentage": 32.968229947207995,
+              "color": "#43432b",
+              "items": 1,
+              "description": "Other State Shared Revenue",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Other State Shared Revenue",
+                  "approvedAmount": 2155000,
+                  "actualAmount": 1655156.4
+                }
+              ]
+            },
+            {
+              "name": "Police Pension",
+              "amount": 1500000,
+              "percentage": 22.94772386116566,
+              "color": "#6e744e",
+              "items": 1,
+              "description": "Other State Shared Revenue",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Other State Shared Revenue",
+                  "approvedAmount": 1500000,
+                  "actualAmount": 1197922.76
+                }
+              ]
+            },
+            {
+              "name": "General",
+              "amount": 202500,
+              "percentage": 3.097942721257364,
+              "color": "#e0dfd0",
+              "items": 5,
+              "description": "Interlocal Agreement; Other State Shared Revenue; Grants - State",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interlocal Agreement",
+                  "approvedAmount": 100000,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Other State Shared Revenue",
+                  "approvedAmount": 2500,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Grants - State",
+                  "approvedAmount": 50000,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Grants - State",
+                  "approvedAmount": 50000,
+                  "actualAmount": 50000
+                },
+                {
+                  "description": "Grants - State",
+                  "approvedAmount": 0,
+                  "actualAmount": 10000
+                }
+              ]
+            },
+            {
+              "name": "PSAP LIT - Dispatch",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#bcbda4",
+              "items": 1,
+              "description": "PSAP LIT",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "PSAP LIT",
+                  "approvedAmount": 0,
+                  "actualAmount": 2533276.66
+                }
+              ]
+            },
+            {
+              "name": "Grants Non Approp",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#585937",
+              "items": 13,
+              "description": "Grants - Federal; Grants - State; Grants - Local",
+              "whyMatters": "Funding from state and federal sources for specific programs and projects.",
+              "lineItems": [
+                {
+                  "description": "Grants - Federal",
+                  "approvedAmount": 0,
+                  "actualAmount": 10
+                },
+                {
+                  "description": "Grants - State",
+                  "approvedAmount": 0,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Grants - State",
+                  "approvedAmount": 0,
+                  "actualAmount": 5977.74
+                },
+                {
+                  "description": "Grants - Federal",
+                  "approvedAmount": 0,
+                  "actualAmount": 11766.8
+                },
+                {
+                  "description": "Grants - Federal",
+                  "approvedAmount": 0,
+                  "actualAmount": 50533
+                },
+                {
+                  "description": "Grants - Federal",
+                  "approvedAmount": 0,
+                  "actualAmount": 4443
+                },
+                {
+                  "description": "Grants - Federal",
+                  "approvedAmount": 0,
+                  "actualAmount": 26458.29
+                },
+                {
+                  "description": "Grants - Federal",
+                  "approvedAmount": 0,
+                  "actualAmount": 5670.44
+                },
+                {
+                  "description": "Grants - Federal",
+                  "approvedAmount": 0,
+                  "actualAmount": 6869
+                },
+                {
+                  "description": "Grants - Federal",
+                  "approvedAmount": 0,
+                  "actualAmount": 3012
+                },
+                {
+                  "description": "Grants - State",
+                  "approvedAmount": 0,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Grants - Federal",
+                  "approvedAmount": 0,
+                  "actualAmount": 17852.39
+                },
+                {
+                  "description": "Grants - Local",
+                  "approvedAmount": 0,
+                  "actualAmount": 1862.5
+                }
+              ]
+            },
+            {
+              "name": "Crime Control",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#8d9575",
+              "items": 1,
+              "description": "Grants - Federal",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Grants - Federal",
+                  "approvedAmount": 0,
+                  "actualAmount": 1741.12
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Taxes",
+          "amount": 4308965,
+          "percentage": 34.53120206743328,
+          "color": "#8d9575",
+          "items": 1,
+          "description": "Public Safety LIT",
+          "whyMatters": "Taxes are the primary revenue source, including property, income, and sales taxes paid by residents and businesses.",
+          "subcategories": [
+            {
+              "name": "LIT - Public Safety",
+              "amount": 4308965,
+              "percentage": 100,
+              "color": "#6e744e",
+              "items": 1,
+              "description": "Public Safety LIT",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Public Safety LIT",
+                  "approvedAmount": 4308965,
+                  "actualAmount": 4636742.04
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Charges for Services",
+          "amount": 1568407,
+          "percentage": 12.56890669591812,
+          "color": "#585937",
+          "items": 5,
+          "description": "Other Services; Fire Protection Contracts; Law Enforcement Recordings",
+          "whyMatters": "Fees paid by residents and businesses for specific city services like permits and utilities.",
+          "subcategories": [
+            {
+              "name": "General",
+              "amount": 1538387,
+              "percentage": 98.08595600504206,
+              "color": "#e0dfd0",
+              "items": 3,
+              "description": "Fire Protection Contracts; Law Enforcement Recordings; Other Services",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Fire Protection Contracts",
+                  "approvedAmount": 1528387,
+                  "actualAmount": 1528387
+                },
+                {
+                  "description": "Law Enforcement Recordings",
+                  "approvedAmount": 0,
+                  "actualAmount": 2479.02
+                },
+                {
+                  "description": "Other Services",
+                  "approvedAmount": 10000,
+                  "actualAmount": 5468
+                }
+              ]
+            },
+            {
+              "name": "Police Education (S1151)",
+              "amount": 30000,
+              "percentage": 1.912768815747443,
+              "color": "#6e744e",
+              "items": 1,
+              "description": "Other Services",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Other Services",
+                  "approvedAmount": 30000,
+                  "actualAmount": 11997
+                }
+              ]
+            },
+            {
+              "name": "Enhanced Access Fund",
+              "amount": 20,
+              "percentage": 0.0012751792104982954,
+              "color": "#8d9575",
+              "items": 1,
+              "description": "Other Services",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Other Services",
+                  "approvedAmount": 20,
+                  "actualAmount": 0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Miscellaneous",
+          "amount": 50000,
+          "percentage": 0.4006902129331902,
+          "color": "#6e744e",
+          "items": 16,
+          "description": "Tow Fee Admin; Interest on Investments; Refunds",
+          "whyMatters": "Other revenue sources including interest, fines, and donations.",
+          "subcategories": [
+            {
+              "name": "General",
+              "amount": 50000,
+              "percentage": 100,
+              "color": "#e0dfd0",
+              "items": 8,
+              "description": "Tow Fee Admin; Refunds; Insurance Reimbursements",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Tow Fee Admin",
+                  "approvedAmount": 0,
+                  "actualAmount": 5500
+                },
+                {
+                  "description": "Refunds",
+                  "approvedAmount": 0,
+                  "actualAmount": 148.56
+                },
+                {
+                  "description": "Insurance Reimbursements",
+                  "approvedAmount": 0,
+                  "actualAmount": 60821.18
+                },
+                {
+                  "description": "Other Reimbursements",
+                  "approvedAmount": 50000,
+                  "actualAmount": 75511.16
+                },
+                {
+                  "description": "Insurance Reimbursements",
+                  "approvedAmount": 0,
+                  "actualAmount": 6049
+                },
+                {
+                  "description": "Other Reimbursements",
+                  "approvedAmount": 0,
+                  "actualAmount": 9930.13
+                },
+                {
+                  "description": "Sale of Property",
+                  "approvedAmount": 0,
+                  "actualAmount": 47
+                },
+                {
+                  "description": "Sale of Scrap",
+                  "approvedAmount": 0,
+                  "actualAmount": 4386.75
+                }
+              ]
+            },
+            {
+              "name": "Fire Pension",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#43432b",
+              "items": 1,
+              "description": "Interest on Investments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 50792.46
+                }
+              ]
+            },
+            {
+              "name": "Police Pension",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#bcbda4",
+              "items": 2,
+              "description": "Sale of Property; Interest on Investments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Sale of Property",
+                  "approvedAmount": 0,
+                  "actualAmount": 976.78
+                },
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 34881.38
+                }
+              ]
+            },
+            {
+              "name": "Donations (restricted; not used for capital items)",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#585937",
+              "items": 2,
+              "description": "Donations",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Donations",
+                  "approvedAmount": 0,
+                  "actualAmount": 944
+                },
+                {
+                  "description": "Donations",
+                  "approvedAmount": 0,
+                  "actualAmount": 520
+                }
+              ]
+            },
+            {
+              "name": "Police Education (S1151)",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#8d9575",
+              "items": 1,
+              "description": "Other Reimbursements",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Other Reimbursements",
+                  "approvedAmount": 0,
+                  "actualAmount": 32502
+                }
+              ]
+            },
+            {
+              "name": "LIT - Public Safety",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6e744e",
+              "items": 1,
+              "description": "Insurance Reimbursements",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Insurance Reimbursements",
+                  "approvedAmount": 0,
+                  "actualAmount": 19013
+                }
+              ]
+            },
+            {
+              "name": "Crime Control",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#e0dfd0",
+              "items": 1,
+              "description": "Interest on Investments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 18480.33
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Fines and Forfeitures",
+          "amount": 14500,
+          "percentage": 0.11620016175062516,
+          "color": "#e0dfd0",
+          "items": 5,
+          "description": "Other Fines and Forfeitures; Emergency Alarms; Court Docket Fees",
+          "whyMatters": "Revenue that supports city operations and services.",
+          "subcategories": [
+            {
+              "name": "Dispatch Training(S9501)",
+              "amount": 10000,
+              "percentage": 68.96551724137932,
+              "color": "#585937",
+              "items": 1,
+              "description": "Emergency Alarms",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Emergency Alarms",
+                  "approvedAmount": 10000,
+                  "actualAmount": 0
+                }
+              ]
+            },
+            {
+              "name": "General",
+              "amount": 4500,
+              "percentage": 31.03448275862069,
+              "color": "#43432b",
+              "items": 1,
+              "description": "Other Fines and Forfeitures",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Other Fines and Forfeitures",
+                  "approvedAmount": 4500,
+                  "actualAmount": 15450
+                }
+              ]
+            },
+            {
+              "name": "Crime Control",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#bcbda4",
+              "items": 2,
+              "description": "Other Fines and Forfeitures",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Other Fines and Forfeitures",
+                  "approvedAmount": 0,
+                  "actualAmount": 13332.78
+                },
+                {
+                  "description": "Other Fines and Forfeitures",
+                  "approvedAmount": 0,
+                  "actualAmount": -2439
+                }
+              ]
+            },
+            {
+              "name": "Police Education (S1151)",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#8d9575",
+              "items": 1,
+              "description": "Court Docket Fees",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Court Docket Fees",
+                  "approvedAmount": 0,
+                  "actualAmount": 1991.39
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Highway & Streets",
+      "amount": 7652124,
+      "percentage": 3.934980165439889,
+      "color": "#6e744e",
+      "items": 45,
+      "description": "Sale of Scrap; Residential Neighborhood Permits Zone #11; Grant - Other",
+      "whyMatters": "Revenue that supports city operations and services.",
+      "subcategories": [
+        {
+          "name": "Taxes",
+          "amount": 5831249,
+          "percentage": 76.20431921908218,
+          "color": "#6e744e",
+          "items": 4,
+          "description": "Gasoline Taxes; Wheel and Excise Surtax",
+          "whyMatters": "Taxes are the primary revenue source, including property, income, and sales taxes paid by residents and businesses.",
+          "subcategories": [
+            {
+              "name": "Motor Vehicle Highway",
+              "amount": 3087176,
+              "percentage": 52.94193405220734,
+              "color": "#e0dfd0",
+              "items": 2,
+              "description": "Gasoline Taxes; Wheel and Excise Surtax",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Gasoline Taxes",
+                  "approvedAmount": 1655350,
+                  "actualAmount": 1703022.62
+                },
+                {
+                  "description": "Wheel and Excise Surtax",
+                  "approvedAmount": 1431826,
+                  "actualAmount": 1279976.3
+                }
+              ]
+            },
+            {
+              "name": "MVH Restricted (subfund of Motor Vehicle Highway)",
+              "amount": 1655350,
+              "percentage": 28.3875718563896,
+              "color": "#43432b",
+              "items": 1,
+              "description": "Gasoline Taxes",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Gasoline Taxes",
+                  "approvedAmount": 1655350,
+                  "actualAmount": 1703022.69
+                }
+              ]
+            },
+            {
+              "name": "Local Road and Street",
+              "amount": 1088723,
+              "percentage": 18.670494091403057,
+              "color": "#bcbda4",
+              "items": 1,
+              "description": "Gasoline Taxes",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Gasoline Taxes",
+                  "approvedAmount": 1088723,
+                  "actualAmount": 1185569.96
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Miscellaneous",
+          "amount": 414475,
+          "percentage": 5.41646998924743,
+          "color": "#e0dfd0",
+          "items": 10,
+          "description": "Sale of Scrap; Grant - Other; Interest on Investments",
+          "whyMatters": "Other revenue sources including interest, fines, and donations.",
+          "subcategories": [
+            {
+              "name": "Motor Vehicle Highway",
+              "amount": 349825,
+              "percentage": 84.40195427951022,
+              "color": "#43432b",
+              "items": 5,
+              "description": "Sale of Scrap; Refunds; Insurance Reimbursements",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Sale of Scrap",
+                  "approvedAmount": 0,
+                  "actualAmount": 936.05
+                },
+                {
+                  "description": "Refunds",
+                  "approvedAmount": 0,
+                  "actualAmount": 330.41
+                },
+                {
+                  "description": "Insurance Reimbursements",
+                  "approvedAmount": 0,
+                  "actualAmount": 22276.23
+                },
+                {
+                  "description": "Other Reimbursements",
+                  "approvedAmount": 349825,
+                  "actualAmount": 641991.74
+                },
+                {
+                  "description": "Sale of Property",
+                  "approvedAmount": 0,
+                  "actualAmount": 1997
+                }
+              ]
+            },
+            {
+              "name": "Grants Non Approp",
+              "amount": 64000,
+              "percentage": 15.4412208215212,
+              "color": "#bcbda4",
+              "items": 1,
+              "description": "Grant - Other",
+              "whyMatters": "Funding from state and federal sources for specific programs and projects.",
+              "lineItems": [
+                {
+                  "description": "Grant - Other",
+                  "approvedAmount": 64000,
+                  "actualAmount": 0
+                }
+              ]
+            },
+            {
+              "name": "General",
+              "amount": 650,
+              "percentage": 0.15682489896857468,
+              "color": "#8d9575",
+              "items": 2,
+              "description": "Refunds; Miscellaneous",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Refunds",
+                  "approvedAmount": 250,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Miscellaneous",
+                  "approvedAmount": 400,
+                  "actualAmount": 0
+                }
+              ]
+            },
+            {
+              "name": "LOIT Special Distribution",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#585937",
+              "items": 1,
+              "description": "Interest on Investments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 43619.24
+                }
+              ]
+            },
+            {
+              "name": "Donations (restricted; not used for capital items)",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#e0dfd0",
+              "items": 1,
+              "description": "Donations",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Donations",
+                  "approvedAmount": 0,
+                  "actualAmount": 281.16
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Fines and Forfeitures",
+          "amount": 379200,
+          "percentage": 4.955486868743894,
+          "color": "#43432b",
+          "items": 3,
+          "description": "Title 20 Violations; Neighborhood Violations; Other Violations",
+          "whyMatters": "Revenue that supports city operations and services.",
+          "subcategories": [
+            {
+              "name": "Alternative Transport(S6301)",
+              "amount": 360000,
+              "percentage": 94.9367088607595,
+              "color": "#585937",
+              "items": 1,
+              "description": "Other Violations",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Other Violations",
+                  "approvedAmount": 360000,
+                  "actualAmount": 160999.4
+                }
+              ]
+            },
+            {
+              "name": "General",
+              "amount": 19200,
+              "percentage": 5.063291139240507,
+              "color": "#bcbda4",
+              "items": 2,
+              "description": "Title 20 Violations; Neighborhood Violations",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Title 20 Violations",
+                  "approvedAmount": 15000,
+                  "actualAmount": 5510
+                },
+                {
+                  "description": "Neighborhood Violations",
+                  "approvedAmount": 4200,
+                  "actualAmount": 3882
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Other",
+          "amount": 350000,
+          "percentage": 4.57389347062332,
+          "color": "#8d9575",
+          "items": 2,
+          "description": "Inter-Fund Transfers",
+          "whyMatters": "Revenue that supports city operations and services.",
+          "subcategories": [
+            {
+              "name": "Alternative Transport(S6301)",
+              "amount": 350000,
+              "percentage": 100,
+              "color": "#6e744e",
+              "items": 1,
+              "description": "Inter-Fund Transfers",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Inter-Fund Transfers",
+                  "approvedAmount": 350000,
+                  "actualAmount": 361614
+                }
+              ]
+            },
+            {
+              "name": "Motor Vehicle Highway",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#e0dfd0",
+              "items": 1,
+              "description": "Inter-Fund Transfers",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Inter-Fund Transfers",
+                  "approvedAmount": 0,
+                  "actualAmount": 156967
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Intergovernmental",
+          "amount": 300000,
+          "percentage": 3.920480117677131,
+          "color": "#8d9575",
+          "items": 10,
+          "description": "Grants - State; Grants - Federal; F.H.W.A. Planning",
+          "whyMatters": "Money received from state and federal government programs and grants.",
+          "subcategories": [
+            {
+              "name": "General",
+              "amount": 300000,
+              "percentage": 100,
+              "color": "#43432b",
+              "items": 2,
+              "description": "F.H.W.A. Planning; Interlocal Agreement",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "F.H.W.A. Planning",
+                  "approvedAmount": 300000,
+                  "actualAmount": 252122.43
+                },
+                {
+                  "description": "Interlocal Agreement",
+                  "approvedAmount": 0,
+                  "actualAmount": 237060.24
+                }
+              ]
+            },
+            {
+              "name": "Grants Non Approp",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6e744e",
+              "items": 6,
+              "description": "Grants - State",
+              "whyMatters": "Funding from state and federal sources for specific programs and projects.",
+              "lineItems": [
+                {
+                  "description": "Grants - State",
+                  "approvedAmount": 0,
+                  "actualAmount": 8720
+                },
+                {
+                  "description": "Grants - State",
+                  "approvedAmount": 0,
+                  "actualAmount": 17440
+                },
+                {
+                  "description": "Grants - State",
+                  "approvedAmount": 0,
+                  "actualAmount": 10000
+                },
+                {
+                  "description": "Grants - State",
+                  "approvedAmount": 0,
+                  "actualAmount": 7990
+                },
+                {
+                  "description": "Grants - State",
+                  "approvedAmount": 0,
+                  "actualAmount": 7990
+                },
+                {
+                  "description": "Grants - State",
+                  "approvedAmount": 0,
+                  "actualAmount": 666450
+                }
+              ]
+            },
+            {
+              "name": "City 2016 GO Bond Proceeds",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#e0dfd0",
+              "items": 1,
+              "description": "Grants - Federal",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Grants - Federal",
+                  "approvedAmount": 0,
+                  "actualAmount": 4999.99
+                }
+              ]
+            },
+            {
+              "name": "Alternative Transport(S6301)",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#bcbda4",
+              "items": 1,
+              "description": "Grants - Federal",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Grants - Federal",
+                  "approvedAmount": 0,
+                  "actualAmount": 78376.47
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Charges for Services",
+          "amount": 257200,
+          "percentage": 3.3611582875551935,
+          "color": "#43432b",
+          "items": 15,
+          "description": "Residential Neighborhood Permits Zone #11; Application Fee; Residential Neighborhood Permits Zone # 1",
+          "whyMatters": "Fees paid by residents and businesses for specific city services like permits and utilities.",
+          "subcategories": [
+            {
+              "name": "Alternative Transport(S6301)",
+              "amount": 210000,
+              "percentage": 81.64852255054433,
+              "color": "#bcbda4",
+              "items": 12,
+              "description": "Residential Neighborhood Permits Zone #11; Residential Neighborhood Permits Zone # 1; Residential Neighborhood Permits Zone # 2",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Residential Neighborhood Permits Zone #11",
+                  "approvedAmount": 0,
+                  "actualAmount": 3590
+                },
+                {
+                  "description": "Residential Neighborhood Permits Zone # 1",
+                  "approvedAmount": 210000,
+                  "actualAmount": 47784
+                },
+                {
+                  "description": "Residential Neighborhood Permits Zone # 2",
+                  "approvedAmount": 0,
+                  "actualAmount": 9409
+                },
+                {
+                  "description": "Residential Neighborhood Permits Zone # 3",
+                  "approvedAmount": 0,
+                  "actualAmount": 7537
+                },
+                {
+                  "description": "Residential Neighborhood Permits Zone # 4",
+                  "approvedAmount": 0,
+                  "actualAmount": 37418
+                },
+                {
+                  "description": "Residential Neighborhood Permits Zone # 5",
+                  "approvedAmount": 0,
+                  "actualAmount": 24637
+                },
+                {
+                  "description": "Residential Neighborhood Permits Zone # 6",
+                  "approvedAmount": 0,
+                  "actualAmount": 7073
+                },
+                {
+                  "description": "Residential Neighborhood Permits Zone # 9",
+                  "approvedAmount": 0,
+                  "actualAmount": 5840
+                },
+                {
+                  "description": "Residential Neighborhood Permits Zone # 10",
+                  "approvedAmount": 0,
+                  "actualAmount": 3999
+                },
+                {
+                  "description": "Residential Neighborhood Permits All Zones Sevice Permit",
+                  "approvedAmount": 0,
+                  "actualAmount": 69332
+                },
+                {
+                  "description": "NSF Fees on Returns Checks",
+                  "approvedAmount": 0,
+                  "actualAmount": 20
+                },
+                {
+                  "description": "Private Parking",
+                  "approvedAmount": 0,
+                  "actualAmount": 145
+                }
+              ]
+            },
+            {
+              "name": "General",
+              "amount": 47200,
+              "percentage": 18.35147744945568,
+              "color": "#585937",
+              "items": 3,
+              "description": "Application Fee; Inspection Fees; Other Services",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Application Fee",
+                  "approvedAmount": 41000,
+                  "actualAmount": 24300
+                },
+                {
+                  "description": "Inspection Fees",
+                  "approvedAmount": 4200,
+                  "actualAmount": 5100
+                },
+                {
+                  "description": "Other Services",
+                  "approvedAmount": 2000,
+                  "actualAmount": 6200
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Licenses",
+          "amount": 120000,
+          "percentage": 1.5681920470708526,
+          "color": "#585937",
+          "items": 1,
+          "description": "Permits",
+          "whyMatters": "Revenue that supports city operations and services.",
+          "subcategories": [
+            {
+              "name": "General",
+              "amount": 120000,
+              "percentage": 100,
+              "color": "#8d9575",
+              "items": 1,
+              "description": "Permits",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Permits",
+                  "approvedAmount": 120000,
+                  "actualAmount": 19603.75
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Debt Service",
+      "amount": 4248061,
+      "percentage": 2.1844961969485515,
+      "color": "#e0dfd0",
+      "items": 33,
+      "description": "Interest on Investments; Inter-Fund Transfers; General Property Tax",
+      "whyMatters": "Revenue that supports city operations and services.",
+      "subcategories": [
+        {
+          "name": "Taxes",
+          "amount": 4248061,
+          "percentage": 100,
+          "color": "#e0dfd0",
+          "items": 24,
+          "description": "General Property Tax; Financial Institutions Tax; License Excise Tax",
+          "whyMatters": "Taxes are the primary revenue source, including property, income, and sales taxes paid by residents and businesses.",
+          "subcategories": [
+            {
+              "name": "2022 Parks GO Bond(Park Bond #2)",
+              "amount": 1108584,
+              "percentage": 26.096235435413945,
+              "color": "#6e744e",
+              "items": 4,
+              "description": "General Property Tax; Financial Institutions Tax; License Excise Tax",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "General Property Tax",
+                  "approvedAmount": 1043313,
+                  "actualAmount": 1048825.21
+                },
+                {
+                  "description": "Financial Institutions Tax",
+                  "approvedAmount": 14278,
+                  "actualAmount": 3051.42
+                },
+                {
+                  "description": "License Excise Tax",
+                  "approvedAmount": 47197,
+                  "actualAmount": 31550.75
+                },
+                {
+                  "description": "Commercial Vehicle Excise Tax",
+                  "approvedAmount": 3796,
+                  "actualAmount": 1235.41
+                }
+              ]
+            },
+            {
+              "name": "2022 GO Bonds (Bond #4)",
+              "amount": 1108358,
+              "percentage": 26.090915361149474,
+              "color": "#e0dfd0",
+              "items": 4,
+              "description": "General Property Tax; Financial Institutions Tax; License Excise Tax",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "General Property Tax",
+                  "approvedAmount": 1042507,
+                  "actualAmount": 1048825.21
+                },
+                {
+                  "description": "Financial Institutions Tax",
+                  "approvedAmount": 14405,
+                  "actualAmount": 3051.42
+                },
+                {
+                  "description": "License Excise Tax",
+                  "approvedAmount": 47616,
+                  "actualAmount": 31550.75
+                },
+                {
+                  "description": "Commercial Vehicle Excise Tax",
+                  "approvedAmount": 3830,
+                  "actualAmount": 1235.41
+                }
+              ]
+            },
+            {
+              "name": "2016 GO Bonds Bond #2 (S0182)",
+              "amount": 795119,
+              "percentage": 18.71722181013879,
+              "color": "#bcbda4",
+              "items": 4,
+              "description": "General Property Tax; Financial Institutions Tax; License Excise Tax",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "General Property Tax",
+                  "approvedAmount": 750446,
+                  "actualAmount": 753117.44
+                },
+                {
+                  "description": "Financial Institutions Tax",
+                  "approvedAmount": 9772,
+                  "actualAmount": 2191.18
+                },
+                {
+                  "description": "License Excise Tax",
+                  "approvedAmount": 32303,
+                  "actualAmount": 22656.13
+                },
+                {
+                  "description": "Commercial Vehicle Excise Tax",
+                  "approvedAmount": 2598,
+                  "actualAmount": 887.13
+                }
+              ]
+            },
+            {
+              "name": "2018 Parks Bicentennial (S1380)",
+              "amount": 731666,
+              "percentage": 17.223528569858107,
+              "color": "#43432b",
+              "items": 4,
+              "description": "General Property Tax; Financial Institutions Tax; License Excise Tax",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "General Property Tax",
+                  "approvedAmount": 689892,
+                  "actualAmount": 691752.33
+                },
+                {
+                  "description": "Financial Institutions Tax",
+                  "approvedAmount": 9138,
+                  "actualAmount": 2012.64
+                },
+                {
+                  "description": "License Excise Tax",
+                  "approvedAmount": 30206,
+                  "actualAmount": 20810.09
+                },
+                {
+                  "description": "Commercial Vehicle Excise Tax",
+                  "approvedAmount": 2430,
+                  "actualAmount": 814.85
+                }
+              ]
+            },
+            {
+              "name": "2016 Parks GO Bond #3 (S0183)",
+              "amount": 504334,
+              "percentage": 11.872098823439682,
+              "color": "#8d9575",
+              "items": 4,
+              "description": "General Property Tax; Financial Institutions Tax; License Excise Tax",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "General Property Tax",
+                  "approvedAmount": 475325,
+                  "actualAmount": 479763.71
+                },
+                {
+                  "description": "Financial Institutions Tax",
+                  "approvedAmount": 6346,
+                  "actualAmount": 1395.86
+                },
+                {
+                  "description": "License Excise Tax",
+                  "approvedAmount": 20976,
+                  "actualAmount": 14432.8
+                },
+                {
+                  "description": "Commercial Vehicle Excise Tax",
+                  "approvedAmount": 1687,
+                  "actualAmount": 565.14
+                }
+              ]
+            },
+            {
+              "name": "2024 GO Bonds (Bond #5)",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#585937",
+              "items": 4,
+              "description": "General Property Tax; Financial Institutions Tax; License Excise Tax",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "General Property Tax",
+                  "approvedAmount": 0,
+                  "actualAmount": 3867280.52
+                },
+                {
+                  "description": "Financial Institutions Tax",
+                  "approvedAmount": 0,
+                  "actualAmount": 11231.84
+                },
+                {
+                  "description": "License Excise Tax",
+                  "approvedAmount": 0,
+                  "actualAmount": 116133.66
+                },
+                {
+                  "description": "Commercial Vehicle Excise Tax",
+                  "approvedAmount": 0,
+                  "actualAmount": 4547.37
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Miscellaneous",
+          "amount": 0,
+          "percentage": 0,
+          "color": "#43432b",
+          "items": 7,
+          "description": "Interest on Investments",
+          "whyMatters": "Other revenue sources including interest, fines, and donations.",
+          "subcategories": [
+            {
+              "name": "2019 4th St Tax Debt Res F524",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#bcbda4",
+              "items": 1,
+              "description": "Interest on Investments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 16457.25
+                }
+              ]
+            },
+            {
+              "name": "2019 Trades Garage Debt Rec F525",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#585937",
+              "items": 1,
+              "description": "Interest on Investments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 19778.36
+                }
+              ]
+            },
+            {
+              "name": "Redevelopment Dist Bond(S2482)",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#8d9575",
+              "items": 1,
+              "description": "Interest on Investments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 441.4
+                }
+              ]
+            },
+            {
+              "name": "2001 Parks Bond (S1380)",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6e744e",
+              "items": 1,
+              "description": "Interest on Investments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 59.14
+                }
+              ]
+            },
+            {
+              "name": "1998 Street Bond II (S6380)",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#e0dfd0",
+              "items": 1,
+              "description": "Interest on Investments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 181.43
+                }
+              ]
+            },
+            {
+              "name": "Surplus CTP Bond",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#43432b",
+              "items": 1,
+              "description": "Interest on Investments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 3076.05
+                }
+              ]
+            },
+            {
+              "name": "Debt Service Reserve for 518",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#bcbda4",
+              "items": 1,
+              "description": "Interest on Investments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 57151.78
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Other",
+          "amount": 0,
+          "percentage": 0,
+          "color": "#585937",
+          "items": 2,
+          "description": "Inter-Fund Transfers",
+          "whyMatters": "Revenue that supports city operations and services.",
+          "subcategories": [
+            {
+              "name": "2017 Refund 517 2011 DT Red Bond",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#8d9575",
+              "items": 1,
+              "description": "Inter-Fund Transfers",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Inter-Fund Transfers",
+                  "approvedAmount": 0,
+                  "actualAmount": 907666.31
+                }
+              ]
+            },
+            {
+              "name": "2019 Trades Garage (S )",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6e744e",
+              "items": 1,
+              "description": "Inter-Fund Transfers",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Inter-Fund Transfers",
+                  "approvedAmount": 0,
+                  "actualAmount": 1070200
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Sanitation",
+      "amount": 3627032,
+      "percentage": 1.8651421460781046,
+      "color": "#6e744e",
+      "items": 5,
+      "description": "Sale of Scrap; Solid Waste; Other Sales",
+      "whyMatters": "Revenue that supports city operations and services.",
+      "subcategories": [
+        {
+          "name": "Charges for Services",
+          "amount": 2825532,
+          "percentage": 77.90204222074688,
+          "color": "#bcbda4",
+          "items": 2,
+          "description": "Solid Waste; Other Sales",
+          "whyMatters": "Fees paid by residents and businesses for specific city services like permits and utilities.",
+          "subcategories": [
+            {
+              "name": "Sanitation",
+              "amount": 2825532,
+              "percentage": 100,
+              "color": "#585937",
+              "items": 2,
+              "description": "Solid Waste; Other Sales",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Solid Waste",
+                  "approvedAmount": 2825532,
+                  "actualAmount": 2269532.97
+                },
+                {
+                  "description": "Other Sales",
+                  "approvedAmount": 0,
+                  "actualAmount": -428.21
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Other",
+          "amount": 800000,
+          "percentage": 22.056601651157198,
+          "color": "#8d9575",
+          "items": 1,
+          "description": "Inter-Fund Transfers",
+          "whyMatters": "Revenue that supports city operations and services.",
+          "subcategories": [
+            {
+              "name": "Sanitation",
+              "amount": 800000,
+              "percentage": 100,
+              "color": "#6e744e",
+              "items": 1,
+              "description": "Inter-Fund Transfers",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Inter-Fund Transfers",
+                  "approvedAmount": 800000,
+                  "actualAmount": 850210
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Miscellaneous",
+          "amount": 1500,
+          "percentage": 0.04135612809591975,
+          "color": "#e0dfd0",
+          "items": 2,
+          "description": "Sale of Scrap; Insurance Reimbursements",
+          "whyMatters": "Other revenue sources including interest, fines, and donations.",
+          "subcategories": [
+            {
+              "name": "Sanitation",
+              "amount": 1500,
+              "percentage": 100,
+              "color": "#43432b",
+              "items": 2,
+              "description": "Sale of Scrap; Insurance Reimbursements",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Sale of Scrap",
+                  "approvedAmount": 1500,
+                  "actualAmount": 1916.6
+                },
+                {
+                  "description": "Insurance Reimbursements",
+                  "approvedAmount": 0,
+                  "actualAmount": 79
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Capital Outlays",
+      "amount": 3252241,
+      "percentage": 1.6724119771491404,
+      "color": "#585937",
+      "items": 15,
+      "description": "Interest on Investments; Other Reimbursements; Cigarette Tax",
+      "whyMatters": "Revenue that supports city operations and services.",
+      "subcategories": [
+        {
+          "name": "Taxes",
+          "amount": 2899741,
+          "percentage": 89.16131984068831,
+          "color": "#6e744e",
+          "items": 5,
+          "description": "Cigarette Tax; General Property Tax; Financial Institutions Tax",
+          "whyMatters": "Taxes are the primary revenue source, including property, income, and sales taxes paid by residents and businesses.",
+          "subcategories": [
+            {
+              "name": "Cumulative Capital Development",
+              "amount": 2767142,
+              "percentage": 95.42721229240819,
+              "color": "#43432b",
+              "items": 4,
+              "description": "General Property Tax; Financial Institutions Tax; License Excise Tax",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "General Property Tax",
+                  "approvedAmount": 2628768,
+                  "actualAmount": 2661014.98
+                },
+                {
+                  "description": "Financial Institutions Tax",
+                  "approvedAmount": 30269,
+                  "actualAmount": 7742.18
+                },
+                {
+                  "description": "License Excise Tax",
+                  "approvedAmount": 100057,
+                  "actualAmount": 80051.67
+                },
+                {
+                  "description": "Commercial Vehicle Excise Tax",
+                  "approvedAmount": 8048,
+                  "actualAmount": 3134.53
+                }
+              ]
+            },
+            {
+              "name": "Cumulative Capital Improvement - Cigarette Tax",
+              "amount": 132599,
+              "percentage": 4.572787707591816,
+              "color": "#e0dfd0",
+              "items": 1,
+              "description": "Cigarette Tax",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Cigarette Tax",
+                  "approvedAmount": 132599,
+                  "actualAmount": 117675.73
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Other",
+          "amount": 202500,
+          "percentage": 6.226475836200331,
+          "color": "#bcbda4",
+          "items": 1,
+          "description": "Inter-Fund Transfers",
+          "whyMatters": "Revenue that supports city operations and services.",
+          "subcategories": [
+            {
+              "name": "Vehicle Replacement Fund(S0012)",
+              "amount": 202500,
+              "percentage": 100,
+              "color": "#585937",
+              "items": 1,
+              "description": "Inter-Fund Transfers",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Inter-Fund Transfers",
+                  "approvedAmount": 202500,
+                  "actualAmount": 202500
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Miscellaneous",
+          "amount": 150000,
+          "percentage": 4.612204323111356,
+          "color": "#8d9575",
+          "items": 7,
+          "description": "Interest on Investments; Other Reimbursements; Sale of Property",
+          "whyMatters": "Other revenue sources including interest, fines, and donations.",
+          "subcategories": [
+            {
+              "name": "Vehicle Replacement Fund(S0012)",
+              "amount": 150000,
+              "percentage": 100,
+              "color": "#43432b",
+              "items": 1,
+              "description": "Sale of Property",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Sale of Property",
+                  "approvedAmount": 150000,
+                  "actualAmount": 23850
+                }
+              ]
+            },
+            {
+              "name": "GO Bonds 2022",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6e744e",
+              "items": 1,
+              "description": "Interest on Investments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 193737.43
+                }
+              ]
+            },
+            {
+              "name": "Cumulative Capital Development",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#e0dfd0",
+              "items": 1,
+              "description": "Other Reimbursements",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Other Reimbursements",
+                  "approvedAmount": 0,
+                  "actualAmount": 24761.17
+                }
+              ]
+            },
+            {
+              "name": "2018 BicentennialBnd Prcd900030",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#bcbda4",
+              "items": 1,
+              "description": "Interest on Investments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 96578.34
+                }
+              ]
+            },
+            {
+              "name": "Econ Dev LIT Bonds of 2022",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#585937",
+              "items": 2,
+              "description": "Interest on Investments; Insurance Reimbursements",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 391961.81
+                },
+                {
+                  "description": "Insurance Reimbursements",
+                  "approvedAmount": 0,
+                  "actualAmount": 21729.42
+                }
+              ]
+            },
+            {
+              "name": "Parks 2017 Refnd Bnd Procd (9507",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#8d9575",
+              "items": 1,
+              "description": "Interest on Investments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 421.85
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Intergovernmental",
+          "amount": 0,
+          "percentage": 0,
+          "color": "#8d9575",
+          "items": 2,
+          "description": "Grants - Federal",
+          "whyMatters": "Money received from state and federal government programs and grants.",
+          "subcategories": [
+            {
+              "name": "Cumulative Capital Development",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6e744e",
+              "items": 1,
+              "description": "Grants - Federal",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Grants - Federal",
+                  "approvedAmount": 0,
+                  "actualAmount": 139219.97
+                }
+              ]
+            },
+            {
+              "name": "GO Bonds 2022",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#e0dfd0",
+              "items": 1,
+              "description": "Grants - Federal",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Grants - Federal",
+                  "approvedAmount": 0,
+                  "actualAmount": 300799.82
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Community",
+      "amount": 681766,
+      "percentage": 0.35058706412380286,
+      "color": "#43432b",
+      "items": 20,
+      "description": "Donations; Grant - Other; Grants - State",
+      "whyMatters": "Revenue that supports city operations and services.",
+      "subcategories": [
+        {
+          "name": "Other",
+          "amount": 500000,
+          "percentage": 73.33894620734974,
+          "color": "#43432b",
+          "items": 1,
+          "description": "Inter-Fund Transfers",
+          "whyMatters": "Revenue that supports city operations and services.",
+          "subcategories": [
+            {
+              "name": "CC Jack Hopkins NR17-42 (S0011)",
+              "amount": 500000,
+              "percentage": 100,
+              "color": "#bcbda4",
+              "items": 1,
+              "description": "Inter-Fund Transfers",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Inter-Fund Transfers",
+                  "approvedAmount": 500000,
+                  "actualAmount": 500000
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Intergovernmental",
+          "amount": 114566,
+          "percentage": 16.80429942238246,
+          "color": "#585937",
+          "items": 3,
+          "description": "Grants - State; Grants - Local",
+          "whyMatters": "Money received from state and federal government programs and grants.",
+          "subcategories": [
+            {
+              "name": "Opioid Settlement Restricted",
+              "amount": 67876,
+              "percentage": 59.246198697693906,
+              "color": "#6e744e",
+              "items": 1,
+              "description": "Grants - State",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Grants - State",
+                  "approvedAmount": 67876,
+                  "actualAmount": 182493.8
+                }
+              ]
+            },
+            {
+              "name": "Opioid Settlement Unrestricted",
+              "amount": 46690,
+              "percentage": 40.753801302306094,
+              "color": "#8d9575",
+              "items": 1,
+              "description": "Grants - State",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Grants - State",
+                  "approvedAmount": 46690,
+                  "actualAmount": 28278.22
+                }
+              ]
+            },
+            {
+              "name": "Park Nonreverting Operating",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#e0dfd0",
+              "items": 1,
+              "description": "Grants - Local",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Grants - Local",
+                  "approvedAmount": 0,
+                  "actualAmount": 19201.47
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Miscellaneous",
+          "amount": 67200,
+          "percentage": 9.856754370267804,
+          "color": "#bcbda4",
+          "items": 16,
+          "description": "Donations; Grant - Other; Refunds",
+          "whyMatters": "Other revenue sources including interest, fines, and donations.",
+          "subcategories": [
+            {
+              "name": "Community Services",
+              "amount": 67200,
+              "percentage": 100,
+              "color": "#585937",
+              "items": 9,
+              "description": "Donations",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Donations",
+                  "approvedAmount": 6000,
+                  "actualAmount": 250
+                },
+                {
+                  "description": "Donations",
+                  "approvedAmount": 0,
+                  "actualAmount": 3000
+                },
+                {
+                  "description": "Donations",
+                  "approvedAmount": 0,
+                  "actualAmount": 3250
+                },
+                {
+                  "description": "Donations",
+                  "approvedAmount": 0,
+                  "actualAmount": 6433.35
+                },
+                {
+                  "description": "Donations",
+                  "approvedAmount": 0,
+                  "actualAmount": 19385
+                },
+                {
+                  "description": "Donations",
+                  "approvedAmount": 0,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Donations",
+                  "approvedAmount": 0,
+                  "actualAmount": 2800
+                },
+                {
+                  "description": "Donations",
+                  "approvedAmount": 55500,
+                  "actualAmount": 27361.8
+                },
+                {
+                  "description": "Donations",
+                  "approvedAmount": 5700,
+                  "actualAmount": 0
+                }
+              ]
+            },
+            {
+              "name": "College & Comm Collaboration-CCC",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#8d9575",
+              "items": 1,
+              "description": "Grant - Other",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Grant - Other",
+                  "approvedAmount": 0,
+                  "actualAmount": 79651.29
+                }
+              ]
+            },
+            {
+              "name": "General",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6e744e",
+              "items": 1,
+              "description": "Refunds",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Refunds",
+                  "approvedAmount": 0,
+                  "actualAmount": 2616.89
+                }
+              ]
+            },
+            {
+              "name": "Surety Bond Proceeds Fund",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#e0dfd0",
+              "items": 1,
+              "description": "Insurance Reimbursements",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Insurance Reimbursements",
+                  "approvedAmount": 0,
+                  "actualAmount": 1000000
+                }
+              ]
+            },
+            {
+              "name": "Grants Non Approp",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#43432b",
+              "items": 2,
+              "description": "Grant - Other",
+              "whyMatters": "Funding from state and federal sources for specific programs and projects.",
+              "lineItems": [
+                {
+                  "description": "Grant - Other",
+                  "approvedAmount": 0,
+                  "actualAmount": 4710
+                },
+                {
+                  "description": "Grant - Other",
+                  "approvedAmount": 0,
+                  "actualAmount": 17500
+                }
+              ]
+            },
+            {
+              "name": "Park Nonreverting Operating",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#bcbda4",
+              "items": 2,
+              "description": "Grant - Other",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Grant - Other",
+                  "approvedAmount": 0,
+                  "actualAmount": 20000
+                },
+                {
+                  "description": "Grant - Other",
+                  "approvedAmount": 0,
+                  "actualAmount": 4875
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Urban Redevelopment",
+      "amount": 38850,
+      "percentage": 0.019977979895168932,
+      "color": "#585937",
+      "items": 27,
+      "description": "Neighborhood Violations; Interest on Investments; Unsafe Building",
+      "whyMatters": "Revenue that supports city operations and services.",
+      "subcategories": [
+        {
+          "name": "Miscellaneous",
+          "amount": 21000,
+          "percentage": 54.054054054054056,
+          "color": "#43432b",
+          "items": 10,
+          "description": "Interest on Investments; Donations; Voluntary Contributions",
+          "whyMatters": "Other revenue sources including interest, fines, and donations.",
+          "subcategories": [
+            {
+              "name": "Housing Develp (Ord16-41)(S9506)",
+              "amount": 21000,
+              "percentage": 100,
+              "color": "#8d9575",
+              "items": 3,
+              "description": "Voluntary Contributions; Principal Repayments; Interest on Investments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Voluntary Contributions",
+                  "approvedAmount": 0,
+                  "actualAmount": 2440000
+                },
+                {
+                  "description": "Principal Repayments",
+                  "approvedAmount": 21000,
+                  "actualAmount": 19744.47
+                },
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 149240.81
+                }
+              ]
+            },
+            {
+              "name": "2019 4th St Garage Debt Res F523",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#bcbda4",
+              "items": 1,
+              "description": "Interest on Investments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 25142.95
+                }
+              ]
+            },
+            {
+              "name": "Special Grants",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#585937",
+              "items": 1,
+              "description": "Donations",
+              "whyMatters": "Funding from state and federal sources for specific programs and projects.",
+              "lineItems": [
+                {
+                  "description": "Donations",
+                  "approvedAmount": 0,
+                  "actualAmount": 53500
+                }
+              ]
+            },
+            {
+              "name": "HOME",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6e744e",
+              "items": 1,
+              "description": "Principal Repayments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Principal Repayments",
+                  "approvedAmount": 0,
+                  "actualAmount": 10094
+                }
+              ]
+            },
+            {
+              "name": "2019 Trades Garage Bond Proceeds",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#e0dfd0",
+              "items": 1,
+              "description": "Interest on Investments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 329.88
+                }
+              ]
+            },
+            {
+              "name": "2019 4th St Bnd Proceeds Taxable",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#43432b",
+              "items": 1,
+              "description": "Interest on Investments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Interest on Investments",
+                  "approvedAmount": 0,
+                  "actualAmount": 18741.74
+                }
+              ]
+            },
+            {
+              "name": "General",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#bcbda4",
+              "items": 1,
+              "description": "Sale of Scrap",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Sale of Scrap",
+                  "approvedAmount": 0,
+                  "actualAmount": 652.3
+                }
+              ]
+            },
+            {
+              "name": "CDBG",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#585937",
+              "items": 1,
+              "description": "Principal Repayments",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Principal Repayments",
+                  "approvedAmount": 0,
+                  "actualAmount": 20868.85
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Fines and Forfeitures",
+          "amount": 15500,
+          "percentage": 39.897039897039896,
+          "color": "#8d9575",
+          "items": 10,
+          "description": "Neighborhood Violations; Unsafe Building; Other Fines and Forfeitures",
+          "whyMatters": "Revenue that supports city operations and services.",
+          "subcategories": [
+            {
+              "name": "General",
+              "amount": 15500,
+              "percentage": 100,
+              "color": "#6e744e",
+              "items": 6,
+              "description": "Neighborhood Violations; Other Fines and Forfeitures; Neighborhood Violations Trash Ticket",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Neighborhood Violations",
+                  "approvedAmount": 13000,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Other Fines and Forfeitures",
+                  "approvedAmount": 2500,
+                  "actualAmount": 2500
+                },
+                {
+                  "description": "Neighborhood Violations Trash Ticket",
+                  "approvedAmount": 0,
+                  "actualAmount": 5450
+                },
+                {
+                  "description": "Neighborhood Violations Weed ticket",
+                  "approvedAmount": 0,
+                  "actualAmount": 2750
+                },
+                {
+                  "description": "Neighborhood Violations Can at the Curb",
+                  "approvedAmount": 0,
+                  "actualAmount": 465
+                },
+                {
+                  "description": "Neighborhood Violations Snow Ticket",
+                  "approvedAmount": 0,
+                  "actualAmount": 350
+                }
+              ]
+            },
+            {
+              "name": "Unsafe Building",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#e0dfd0",
+              "items": 4,
+              "description": "Unsafe Building; Unsafe Building Legal Fines; Unsafe Building TRR",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Unsafe Building",
+                  "approvedAmount": 0,
+                  "actualAmount": 70151.9
+                },
+                {
+                  "description": "Unsafe Building Legal Fines",
+                  "approvedAmount": 0,
+                  "actualAmount": 174.95
+                },
+                {
+                  "description": "Unsafe Building TRR",
+                  "approvedAmount": 0,
+                  "actualAmount": 2800
+                },
+                {
+                  "description": "Unsafe Building IDL",
+                  "approvedAmount": 0,
+                  "actualAmount": 6625
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Charges for Services",
+          "amount": 2350,
+          "percentage": 6.048906048906049,
+          "color": "#8d9575",
+          "items": 2,
+          "description": "Inspection Fees; Application Fee",
+          "whyMatters": "Fees paid by residents and businesses for specific city services like permits and utilities.",
+          "subcategories": [
+            {
+              "name": "General",
+              "amount": 2350,
+              "percentage": 100,
+              "color": "#6e744e",
+              "items": 2,
+              "description": "Inspection Fees; Application Fee",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Inspection Fees",
+                  "approvedAmount": 1350,
+                  "actualAmount": 0
+                },
+                {
+                  "description": "Application Fee",
+                  "approvedAmount": 1000,
+                  "actualAmount": 0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Intergovernmental",
+          "amount": 0,
+          "percentage": 0,
+          "color": "#e0dfd0",
+          "items": 5,
+          "description": "Grants - Federal",
+          "whyMatters": "Money received from state and federal government programs and grants.",
+          "subcategories": [
+            {
+              "name": "CDBG -COVID(B20-MW-180013)",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#43432b",
+              "items": 1,
+              "description": "Grants - Federal",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Grants - Federal",
+                  "approvedAmount": 0,
+                  "actualAmount": 136625.87
+                }
+              ]
+            },
+            {
+              "name": "Special Grants",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#bcbda4",
+              "items": 1,
+              "description": "Grants - Federal",
+              "whyMatters": "Funding from state and federal sources for specific programs and projects.",
+              "lineItems": [
+                {
+                  "description": "Grants - Federal",
+                  "approvedAmount": 0,
+                  "actualAmount": 11145
+                }
+              ]
+            },
+            {
+              "name": "HOME",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#585937",
+              "items": 1,
+              "description": "Grants - Federal",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Grants - Federal",
+                  "approvedAmount": 0,
+                  "actualAmount": 1255176.64
+                }
+              ]
+            },
+            {
+              "name": "HOME-ARP(M-21-MP18-0200)",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#8d9575",
+              "items": 1,
+              "description": "Grants - Federal",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Grants - Federal",
+                  "approvedAmount": 0,
+                  "actualAmount": 3719.26
+                }
+              ]
+            },
+            {
+              "name": "CDBG",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6e744e",
+              "items": 1,
+              "description": "Grants - Federal",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Grants - Federal",
+                  "approvedAmount": 0,
+                  "actualAmount": 706360.98
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "None",
+      "amount": 0,
+      "percentage": 0,
+      "color": "#43432b",
+      "items": 2,
+      "description": "Grants - State; Inter-Fund Transfers",
+      "whyMatters": "Revenue that supports city operations and services.",
+      "subcategories": [
+        {
+          "name": "Intergovernmental",
+          "amount": 0,
+          "percentage": 0,
+          "color": "#bcbda4",
+          "items": 1,
+          "description": "Grants - State",
+          "whyMatters": "Money received from state and federal government programs and grants.",
+          "subcategories": [
+            {
+              "name": "Grants Non Approp",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#585937",
+              "items": 1,
+              "description": "Grants - State",
+              "whyMatters": "Funding from state and federal sources for specific programs and projects.",
+              "lineItems": [
+                {
+                  "description": "Grants - State",
+                  "approvedAmount": 0,
+                  "actualAmount": 642174.06
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Other",
+          "amount": 0,
+          "percentage": 0,
+          "color": "#8d9575",
+          "items": 1,
+          "description": "Inter-Fund Transfers",
+          "whyMatters": "Revenue that supports city operations and services.",
+          "subcategories": [
+            {
+              "name": "2019 4th St Garage (S )",
+              "amount": 0,
+              "percentage": 0,
+              "color": "#6e744e",
+              "items": 1,
+              "description": "Inter-Fund Transfers",
+              "whyMatters": "Revenue that supports city operations and services.",
+              "lineItems": [
+                {
+                  "description": "Inter-Fund Transfers",
+                  "approvedAmount": 0,
+                  "actualAmount": 1291325
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
