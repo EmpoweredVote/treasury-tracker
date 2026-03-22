@@ -93,16 +93,15 @@ function getDatasetLabel(type: DatasetType): string {
 
 export default function CityPage({ slug }: { slug: string }) {
   const cityConfig = getCityConfig(slug);
-  if (!cityConfig) {
-    return <Navigate to="/" replace />;
-  }
 
-  // Dataset selection
-  const [activeDataset, setActiveDataset] = useState<DatasetType>(cityConfig.availableDatasets[0] as DatasetType);
+  // Dataset selection — use first available dataset from config (or 'operating' as fallback)
+  const [activeDataset, setActiveDataset] = useState<DatasetType>(
+    (cityConfig?.availableDatasets[0] ?? 'operating') as DatasetType
+  );
 
   // Existing state
   const [activeTab, setActiveTab] = useState('city');
-  const [selectedYear, setSelectedYear] = useState(cityConfig.defaultYear);
+  const [selectedYear, setSelectedYear] = useState(cityConfig?.defaultYear ?? '2025');
   const [searchQuery, setSearchQuery] = useState('');
   const [budgetData, setBudgetData] = useState<BudgetData | null>(null);
   const [operatingBudgetData, setOperatingBudgetData] = useState<BudgetData | null>(null);
@@ -223,6 +222,11 @@ export default function CityPage({ slug }: { slug: string }) {
 
   // Get display text based on active dataset
   const displayText = getDatasetDisplayText(activeDataset);
+
+  // Redirect unknown slugs — placed after all hooks to comply with rules of hooks
+  if (!cityConfig) {
+    return <Navigate to="/" replace />;
+  }
 
   // Show error state (must be checked before loading guard -- loadError bypasses spinner)
   if (loadError) {
