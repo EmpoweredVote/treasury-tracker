@@ -10,7 +10,7 @@
 
 ## Phases
 
-- [ ] **Phase 1: Routing Shell + Data Namespacing** — Wire React Router, migrate Bloomington data to namespaced paths, and eliminate the silent mock-data fallback — all atomically to prevent broken data states
+- [x] **Phase 1: Routing Shell + Data Namespacing** — Wire React Router, migrate Bloomington data to namespaced paths, and eliminate the silent mock-data fallback — all atomically to prevent broken data states (completed 2026-03-22)
 - [ ] **Phase 2: City Config + Dynamic UI** — Replace every hardcoded Bloomington string with config-driven values; city picker renders a real card grid; tabs, year selector, and context cards all read from city config
 - [ ] **Phase 3: ETL Script Parameterization** — Generalize all processing scripts to accept `--city` flag; create LA city config with correct column mapping; document new-city onboarding
 - [ ] **Phase 4: Los Angeles Data + Live** — Source LA budget data, run it through parameterized scripts, wire up `/los-angeles`, and verify Bloomington unaffected
@@ -34,11 +34,11 @@
 4. Clicking the browser back button or a "back to cities" link from `/bloomington` returns the user to `/`
 5. When a data file is missing or the path is wrong, the app shows a visible error message — not silent mock data
 
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 01-01-PLAN.md — Install react-router, migrate data files, extract CityPage, wire router shell
-- [ ] 01-02-PLAN.md — Automated smoke checks + human verification of all 5 success criteria
+- [x] 01-02-PLAN.md — Automated smoke checks + human verification of all 5 success criteria
 
 ---
 
@@ -100,7 +100,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Routing Shell + Data Namespacing | 1/2 | In Progress|  |
+| 1. Routing Shell + Data Namespacing | 2/2 | Complete   | 2026-03-22 |
 | 2. City Config + Dynamic UI | 0/? | Not started | — |
 | 3. ETL Script Parameterization | 0/? | Not started | — |
 | 4. Los Angeles Data + Live | 0/? | Not started | — |
