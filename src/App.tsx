@@ -81,6 +81,8 @@ function App() {
       })
       .catch(error => {
         console.error('Failed to load dataset totals:', error);
+        setOperatingBudgetData(null);
+        setRevenueData(null);
       });
   }, [selectedYear]);
 
@@ -181,7 +183,7 @@ function App() {
   const displayText = getDatasetDisplayText(activeDataset);
 
   // Show loading state
-  if (loading || !operatingBudgetData) {
+  if (loading) {
     return (
       <div className="app">
         <div className="main-content" style={{ padding: '4rem', textAlign: 'center' }}>
