@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-22T03:35:34.233Z"
+last_updated: "2026-03-22T04:33:37.879Z"
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 5
+  completed_plans: 4
 ---
 
 # State
@@ -19,12 +19,12 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** A citizen can load the app and within seconds understand the top-level budget breakdown, then drill down to any department or line item.
 **Current milestone:** v1.1 Multi-City Platform
-**Current focus:** Phase 01 — routing-shell-data-namespacing
+**Current focus:** Phase 02 — city-config-dynamic-ui
 
 ## Current Position
 
-Phase: 2
-Plan: Not started
+Phase: 02 (city-config-dynamic-ui) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -48,6 +48,10 @@ Plan: Not started
 - [Phase 01]: NPM_TOKEN (GitHub Packages) required for npm install -- ev-ui is private; devs must set this env var
 - [Phase 01-routing-shell-data-namespacing]: Phase 1 marked complete with one known gap: Criterion 5 (error state on missing data) never transitions from loading to error UI; gap deferred to Phase 2 or standalone fix
 - [Phase 01-routing-shell-data-namespacing]: Error state checked before loading guard — if (loadError) at line 220 appears before if (loading) at line 235; prevents infinite spinner on fetch failure
+- [Phase 02-city-config-dynamic-ui]: getCityConfig guard placed after all hooks (Navigate rendered after displayText) to comply with React rules of hooks
+- [Phase 02-city-config-dynamic-ui]: LA placeholder in CITY_REGISTRY with isComingSoon:true shows in city picker as disabled but is filtered from routes
+- [Phase 02-city-config-dynamic-ui]: cityConfig.hasTransactions gates LinkedTransactionsPanel rendering — cities without transaction data see no broken UI
+- [Phase 02-city-config-dynamic-ui]: availableDatasets prop on DatasetTabs filters to visibleDatasets — future cities can omit tabs not supported by their data
 
 ### Known Risks / Blockers
 

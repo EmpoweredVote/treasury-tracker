@@ -58,10 +58,10 @@ Plans:
 4. The per-resident cost and fiscal year badge on context cards display the values from city config, not hardcoded constants
 5. The city picker at `/` renders a card for each entry in the city registry, including placeholder "coming soon" cards
 
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
-- [ ] 02-01-PLAN.md — Create CityConfig type system, Bloomington config, city registry; wire all 7 hardcoded locations to config
+- [x] 02-01-PLAN.md — Create CityConfig type system, Bloomington config, city registry; wire all 7 hardcoded locations to config
 - [ ] 02-02-PLAN.md — Automated verification + human smoke test of all 5 success criteria
 
 ---
@@ -106,7 +106,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Routing Shell + Data Namespacing | 3/3 | Complete   | 2026-03-22 |
-| 2. City Config + Dynamic UI | 0/2 | Planned | — |
+| 2. City Config + Dynamic UI | 1/2 | In Progress|  |
 | 3. ETL Script Parameterization | 0/? | Not started | — |
 | 4. Los Angeles Data + Live | 0/? | Not started | — |
 

@@ -16,9 +16,9 @@ Requirements for making Treasury Tracker a reusable multi-city platform.
 
 ### City Config
 
-- [ ] **CITY-01**: Each city has a config file defining name, slug, hero image URL, available datasets, and metadata (population, fiscal year)
-- [ ] **CITY-02**: Dataset tabs render only the datasets configured as available for that city
-- [ ] **CITY-03**: Context cards (population, per-resident cost, fiscal year) are driven by city config/metadata — not hardcoded
+- [x] **CITY-01**: Each city has a config file defining name, slug, hero image URL, available datasets, and metadata (population, fiscal year)
+- [x] **CITY-02**: Dataset tabs render only the datasets configured as available for that city
+- [x] **CITY-03**: Context cards (population, per-resident cost, fiscal year) are driven by city config/metadata — not hardcoded
 
 ### Data
 
@@ -72,9 +72,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DATA-01 | Phase 1 | Complete |
 | DATA-02 | Phase 1 | Complete |
 | DATA-03 | Phase 1 | Complete |
-| CITY-01 | Phase 2 | Pending |
-| CITY-02 | Phase 2 | Pending |
-| CITY-03 | Phase 2 | Pending |
+| CITY-01 | Phase 2 | Complete |
+| CITY-02 | Phase 2 | Complete |
+| CITY-03 | Phase 2 | Complete |
 | PIPE-01 | Phase 3 | Pending |
 | PIPE-02 | Phase 3 | Pending |
 | LA-01 | Phase 4 | Pending |
