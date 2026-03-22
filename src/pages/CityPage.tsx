@@ -100,6 +100,7 @@ export default function CityPage({ slug }: { slug: string }) {
   const [operatingBudgetData, setOperatingBudgetData] = useState<BudgetData | null>(null);
   const [revenueData, setRevenueData] = useState<BudgetData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [navigationPath, setNavigationPath] = useState<BudgetCategory[]>([]);
 
   // Load operating budget and revenue data for static info card and totals
@@ -114,12 +115,14 @@ export default function CityPage({ slug }: { slug: string }) {
       })
       .catch(error => {
         console.error('Failed to load dataset totals:', error);
+        setLoadError(true);
       });
   }, [selectedYear, slug]);
 
   // Load data when dataset or year changes
   useEffect(() => {
     setLoading(true);
+    setLoadError(false);
     setNavigationPath([]); // Reset navigation
     setSearchQuery(''); // Reset search
 
@@ -131,6 +134,7 @@ export default function CityPage({ slug }: { slug: string }) {
       .catch(error => {
         console.error(`Failed to load ${activeDataset} data:`, error);
         setLoading(false);
+        setLoadError(true);
       });
   }, [activeDataset, selectedYear, slug]);
 
@@ -211,6 +215,21 @@ export default function CityPage({ slug }: { slug: string }) {
 
   // Get display text based on active dataset
   const displayText = getDatasetDisplayText(activeDataset);
+
+  // Show error state (must be checked before loading guard -- loadError bypasses spinner)
+  if (loadError) {
+    return (
+      <div className="app">
+        <div className="main-content" style={{ padding: '4rem', textAlign: 'center' }}>
+          <h2>Unable to load budget data</h2>
+          <p>The data file could not be loaded. Check the browser console for the specific file path and HTTP status.</p>
+          <Link to="/" style={{ display: 'inline-block', marginTop: '16px', color: 'var(--muted-blue)' }}>
+            Back to Cities
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   // Show loading state
   if (loading || !operatingBudgetData) {
