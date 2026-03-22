@@ -1,95 +1,54 @@
 /**
  * Data Loader
  *
- * Handles loading budget data from the API, with fallback to static JSON or mock data
+ * Handles loading budget data from the API.
+ * API is the sole data source — no JSON file fallback, no hardcoded placeholder data (per D-06).
  */
 
 import type { BudgetData, BudgetCategory } from '../types/budget';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.empowered.vote';
 
-// Cache structure to support multiple city/year/dataset combinations
+// Cache structure to support multiple municipality/year/dataset combinations
 const cache: Map<string, BudgetData> = new Map();
 
 /**
- * Load budget data for a specific city and year
- * Tries API first, then static JSON files, then mock data
+ * Load budget data for a specific municipality and year.
+ * Throws on API failure — callers must handle errors (no silent fallback).
  */
 export async function loadBudgetData(
   year: number = 2025,
-  cityName: string = 'Bloomington',
+  municipalityName: string = 'Bloomington',
   dataset: string = 'operating'
 ): Promise<BudgetData> {
-  const cacheKey = `${cityName}-${year}-${dataset}`;
+  const cacheKey = `${municipalityName}-${year}-${dataset}`;
 
-  // Check cache first
   if (cache.has(cacheKey)) {
     return cache.get(cacheKey)!;
   }
 
-  // Try API first
-  try {
-    const apiUrl = `${API_BASE}/treasury/budgets?city=${encodeURIComponent(cityName)}&year=${year}&dataset=${dataset}`;
-    const response = await fetch(apiUrl);
-
-    if (response.ok) {
-      const apiData = await response.json();
-
-      // If we got an array, take the first budget
-      const budget = Array.isArray(apiData) ? apiData[0] : apiData;
-
-      if (budget && budget.id) {
-        // Fetch categories separately
-        const categoriesUrl = `${API_BASE}/treasury/budgets/${budget.id}/categories`;
-        const catResponse = await fetch(categoriesUrl);
-
-        if (catResponse.ok) {
-          const categories = await catResponse.json();
-          const data = transformAPIResponse(budget, categories);
-          cache.set(cacheKey, data);
-          console.log(`Loaded budget from API: ${cityName} ${year} (${dataset})`);
-          return data;
-        }
-      }
-    }
-  } catch (error) {
-    console.warn('API not available, falling back to static files:', error);
+  // API is the sole data source — no fallback (per D-06)
+  const budgetsUrl = `${API_BASE}/treasury/budgets?city=${encodeURIComponent(municipalityName)}&year=${year}&dataset=${dataset}`;
+  const response = await fetch(budgetsUrl);
+  if (!response.ok) {
+    throw new Error(`Budget API returned ${response.status}`);
   }
 
-  // Fall back to static JSON files
-  try {
-    const staticUrl = `./data/budget-${year}.json`;
-    const response = await fetch(staticUrl);
-
-    if (response.ok) {
-      const data: BudgetData = await response.json();
-      cache.set(cacheKey, data);
-      console.log(`Loaded budget from static JSON: ${year}`);
-      return data;
-    }
-  } catch (error) {
-    console.warn('Static JSON not available:', error);
+  const apiData = await response.json();
+  const budget = Array.isArray(apiData) ? apiData[0] : apiData;
+  if (!budget?.id) {
+    throw new Error(`No budget found for ${municipalityName} ${year} (${dataset})`);
   }
 
-  // Final fallback to mock data
-  console.log('Falling back to mock data...');
-  const { bloomingtonBudget2025, totalBudget2025 } = await import('./budgetData');
+  const catResponse = await fetch(`${API_BASE}/treasury/budgets/${budget.id}/categories`);
+  if (!catResponse.ok) {
+    throw new Error(`Categories API returned ${catResponse.status}`);
+  }
+  const categories = await catResponse.json();
 
-  const fallbackData: BudgetData = {
-    metadata: {
-      cityName: 'Bloomington',
-      fiscalYear: 2025,
-      population: 85000,
-      totalBudget: totalBudget2025,
-      generatedAt: new Date().toISOString(),
-      hierarchy: ['mock', 'data'],
-      dataSource: 'budgetData.ts (mock)'
-    },
-    categories: bloomingtonBudget2025
-  };
-
-  cache.set(cacheKey, fallbackData);
-  return fallbackData;
+  const data = transformAPIResponse(budget, categories);
+  cache.set(cacheKey, data);
+  return data;
 }
 
 /**
@@ -119,17 +78,12 @@ export function clearCache() {
 }
 
 /**
- * Get a list of available cities from the API
+ * Get a list of available municipalities from the API
  */
-export async function listCities(): Promise<Array<{ id: string; name: string; state: string }>> {
-  try {
-    const response = await fetch(`${API_BASE}/treasury/cities`);
-    if (response.ok) {
-      return await response.json();
-    }
-  } catch (error) {
-    console.warn('Failed to fetch cities from API:', error);
+export async function listMunicipalities(): Promise<Array<{ id: string; name: string; state: string; entity_type: string }>> {
+  const response = await fetch(`${API_BASE}/treasury/municipalities`);
+  if (!response.ok) {
+    throw new Error(`Municipalities API returned ${response.status}`);
   }
-  // Return default city if API unavailable
-  return [{ id: 'mock', name: 'Bloomington', state: 'IN' }];
+  return await response.json();
 }

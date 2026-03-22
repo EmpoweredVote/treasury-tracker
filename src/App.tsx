@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { SiteHeader } from '@chrisandrewsedu/ev-ui';
 import { ArrowLeft } from 'lucide-react';
+import { loadBudgetData } from './data/dataLoader';
 import DatasetTabs from './components/datasets/DatasetTabs';
 import NavigationTabs from './components/NavigationTabs';
 import SearchBar from './components/SearchBar';
@@ -19,38 +20,6 @@ interface BreadcrumbItem {
 }
 
 type DatasetType = 'revenue' | 'operating' | 'salaries';
-
-// Helper function to load any dataset
-async function loadDataset(type: DatasetType, year: number): Promise<BudgetData> {
-  const fileMap: Record<DatasetType, string> = {
-    revenue: 'revenue',
-    operating: 'budget',
-    salaries: 'salaries'
-  };
-
-  const fileName = fileMap[type];
-
-  // For operating budget, try to load the linked version first (includes transaction data)
-  if (type === 'operating') {
-    try {
-      const linkedResponse = await fetch(`./data/${fileName}-${year}-linked.json`);
-      if (linkedResponse.ok) {
-        return linkedResponse.json();
-      }
-    } catch {
-      // Fall back to regular budget file
-    }
-  }
-
-  // Use relative path that works with Vite's public directory
-  const response = await fetch(`./data/${fileName}-${year}.json`);
-
-  if (!response.ok) {
-    throw new Error(`Failed to load ${type} data for ${year}`);
-  }
-
-  return response.json();
-}
 
 // Get display text for each dataset
 function getDatasetDisplayText(type: DatasetType) {
@@ -103,8 +72,8 @@ function App() {
   // Load operating budget and revenue data for static info card and totals
   useEffect(() => {
     Promise.all([
-      loadDataset('operating', parseInt(selectedYear)),
-      loadDataset('revenue', parseInt(selectedYear))
+      loadBudgetData(parseInt(selectedYear), 'Bloomington', 'operating'),
+      loadBudgetData(parseInt(selectedYear), 'Bloomington', 'revenue')
     ])
       .then(([operating, revenue]) => {
         setOperatingBudgetData(operating);
@@ -118,16 +87,17 @@ function App() {
   // Load data when dataset or year changes
   useEffect(() => {
     setLoading(true);
-    setNavigationPath([]); // Reset navigation
-    setSearchQuery(''); // Reset search
-    
-    loadDataset(activeDataset, parseInt(selectedYear))
+    setNavigationPath([]);
+    setSearchQuery('');
+
+    loadBudgetData(parseInt(selectedYear), 'Bloomington', activeDataset)
       .then(data => {
         setBudgetData(data);
         setLoading(false);
       })
       .catch(error => {
         console.error(`Failed to load ${activeDataset} data:`, error);
+        setBudgetData(null);
         setLoading(false);
       });
   }, [activeDataset, selectedYear]);
@@ -225,9 +195,32 @@ function App() {
   if (!budgetData) {
     return (
       <div className="app">
-        <div className="main-content" style={{ padding: '4rem', textAlign: 'center' }}>
-          <h2>Unable to load data</h2>
-          <p>Please check the console for errors.</p>
+        <div className="main-content" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, lineHeight: 1.2, color: '#1c1c1c', margin: 0 }}>
+            Budget data unavailable
+          </h2>
+          <p style={{ fontSize: '16px', fontWeight: 400, lineHeight: 1.6, color: '#6b7280', marginTop: '8px' }}>
+            The budget API could not be reached. Check your connection and try again.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              marginTop: '16px',
+              backgroundColor: '#00657c',
+              color: '#ffffff',
+              padding: '8px 24px',
+              borderRadius: '8px',
+              border: 'none',
+              fontSize: '16px',
+              fontWeight: 400,
+              fontFamily: 'Manrope, sans-serif',
+              cursor: 'pointer',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#005467'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#00657c'; }}
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
