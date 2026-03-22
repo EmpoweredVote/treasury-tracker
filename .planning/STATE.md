@@ -1,3 +1,16 @@
+---
+gsd_state_version: 1.0
+milestone: v1.1
+milestone_name: milestone
+status: unknown
+last_updated: "2026-03-22T00:55:50.644Z"
+progress:
+  total_phases: 4
+  completed_phases: 0
+  total_plans: 2
+  completed_plans: 1
+---
+
 # State
 
 ## Project Reference
@@ -6,18 +19,12 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** A citizen can load the app and within seconds understand the top-level budget breakdown, then drill down to any department or line item.
 **Current milestone:** v1.1 Multi-City Platform
-**Current focus:** Phase 1 — Routing Shell + Data Namespacing
+**Current focus:** Phase 01 — routing-shell-data-namespacing
 
 ## Current Position
 
-**Phase:** 1 — Routing Shell + Data Namespacing
-**Plan:** Not started (no plans created yet)
-**Status:** Roadmap created, ready to plan Phase 1
-**Last activity:** 2026-03-21 — Roadmap created for v1.1
-
-```
-Progress: [--------------------] 0% — 0 of 4 phases complete
-```
+Phase: 01 (routing-shell-data-namespacing) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -36,6 +43,9 @@ Progress: [--------------------] 0% — 0 of 4 phases complete
 - Phase 3 is independent of Phase 2 and can begin in parallel once Phase 1 merges
 - ROUTE-03 is assigned to Phase 1 (the route shell + unknown-slug redirect); LA data behind it is Phase 4
 - LA transactions are explicitly out of scope for v1.1 (`hasTransactions: false` in LA config)
+- [Phase 01]: Import from react-router not react-router-dom (v7 consolidates into single package)
+- [Phase 01]: CityPage receives slug as prop not via useParams -- clean testability, explicit over implicit
+- [Phase 01]: NPM_TOKEN (GitHub Packages) required for npm install -- ev-ui is private; devs must set this env var
 
 ### Known Risks / Blockers
 

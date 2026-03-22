@@ -34,10 +34,10 @@
 4. Clicking the browser back button or a "back to cities" link from `/bloomington` returns the user to `/`
 5. When a data file is missing or the path is wrong, the app shows a visible error message — not silent mock data
 
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
-- [ ] 01-01-PLAN.md — Install react-router, migrate data files, extract CityPage, wire router shell
+- [x] 01-01-PLAN.md — Install react-router, migrate data files, extract CityPage, wire router shell
 - [ ] 01-02-PLAN.md — Automated smoke checks + human verification of all 5 success criteria
 
 ---
@@ -100,7 +100,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Routing Shell + Data Namespacing | 0/2 | Planned | — |
+| 1. Routing Shell + Data Namespacing | 1/2 | In Progress|  |
 | 2. City Config + Dynamic UI | 0/? | Not started | — |
 | 3. ETL Script Parameterization | 0/? | Not started | — |
 | 4. Los Angeles Data + Live | 0/? | Not started | — |

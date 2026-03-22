@@ -9,10 +9,10 @@ Requirements for making Treasury Tracker a reusable multi-city platform.
 
 ### Routing
 
-- [ ] **ROUTE-01**: User sees a city picker at `/` showing all available cities
-- [ ] **ROUTE-02**: User navigates to `/bloomington` and gets the full existing tracker (behavior identical to v1.0)
-- [ ] **ROUTE-03**: User navigates to `/los-angeles` and gets a functional Los Angeles tracker
-- [ ] **ROUTE-04**: User on any city route can return to the city picker
+- [x] **ROUTE-01**: User sees a city picker at `/` showing all available cities
+- [x] **ROUTE-02**: User navigates to `/bloomington` and gets the full existing tracker (behavior identical to v1.0)
+- [x] **ROUTE-03**: User navigates to `/los-angeles` and gets a functional Los Angeles tracker
+- [x] **ROUTE-04**: User on any city route can return to the city picker
 
 ### City Config
 
@@ -22,9 +22,9 @@ Requirements for making Treasury Tracker a reusable multi-city platform.
 
 ### Data
 
-- [ ] **DATA-01**: Data files are namespaced by city slug (`public/data/{slug}/budget-2025.json`, etc.)
-- [ ] **DATA-02**: App data loader accepts city slug and loads from the correct namespaced path
-- [ ] **DATA-03**: Bloomington data migrated to new namespacing with behavior identical to v1.0
+- [x] **DATA-01**: Data files are namespaced by city slug (`public/data/{slug}/budget-2025.json`, etc.)
+- [x] **DATA-02**: App data loader accepts city slug and loads from the correct namespaced path
+- [x] **DATA-03**: Bloomington data migrated to new namespacing with behavior identical to v1.0
 
 ### Pipeline
 
@@ -65,13 +65,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ROUTE-01 | Phase 1 | Pending |
-| ROUTE-02 | Phase 1 | Pending |
-| ROUTE-03 | Phase 1 | Pending |
-| ROUTE-04 | Phase 1 | Pending |
-| DATA-01 | Phase 1 | Pending |
-| DATA-02 | Phase 1 | Pending |
-| DATA-03 | Phase 1 | Pending |
+| ROUTE-01 | Phase 1 | Complete |
+| ROUTE-02 | Phase 1 | Complete |
+| ROUTE-03 | Phase 1 | Complete |
+| ROUTE-04 | Phase 1 | Complete |
+| DATA-01 | Phase 1 | Complete |
+| DATA-02 | Phase 1 | Complete |
+| DATA-03 | Phase 1 | Complete |
 | CITY-01 | Phase 2 | Pending |
 | CITY-02 | Phase 2 | Pending |
 | CITY-03 | Phase 2 | Pending |
