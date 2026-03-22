@@ -151,7 +151,7 @@ export default function CityPage({ slug }: { slug: string }) {
     { id: 'federal', label: 'Federal' }
   ];
 
-  const years = cityConfig.availableYears;
+  const years = cityConfig?.availableYears ?? [];
 
   const handleCategoryClick = useCallback((category: BudgetCategory) => {
     // Navigate into category if it has subcategories OR if it has line items (lowest level)
