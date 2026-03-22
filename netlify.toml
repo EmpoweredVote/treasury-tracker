@@ -5,7 +5,7 @@
 # API proxy (must come before SPA redirects)
 [[redirects]]
   from = "/api/*"
-  to = "https://ev-backend-h3n8.onrender.com/:splat"
+  to = "https://accounts.empowered.vote/api/:splat"
   status = 200
   force = true
 
