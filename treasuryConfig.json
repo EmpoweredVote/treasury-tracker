@@ -1,0 +1,128 @@
+{
+  "cityName": "Bloomington",
+  "population": 79168,
+  "fiscalYears": [2021, 2022, 2023, 2024, 2025],
+  
+  "datasets": {
+    "revenue": {
+      "label": "Money In",
+      "description": "Where city funds come from",
+      "inputFile": "data/revenue_budget-all.csv",
+      "outputFile": "public/data/revenue-{year}.json",
+      "amountColumn": "approved_amount",
+      "hierarchy": ["primary_function", "item_category", "fund"],
+      "colorTheme": "olive",
+      "icon": "dollar-sign",
+      "colorPalette": [
+        "#6e744e",
+        "#585937",
+        "#8d9575",
+        "#43432b",
+        "#bcbda4",
+        "#e0dfd0"
+      ]
+    },
+    
+    "operating": {
+      "label": "Money Out",
+      "description": "How city funds are spent",
+      "inputFile": "data/operating_budget-all.csv",
+      "outputFile": "public/data/budget-{year}.json",
+      "amountColumn": "approved_amount",
+      "hierarchy": ["primary_function", "priority", "service", "fund", "item_category"],
+      "colorTheme": "navy",
+      "icon": "trending-down",
+      "colorPalette": [
+        "#4476ca",
+        "#616bd9",
+        "#7965d3",
+        "#b957a8",
+        "#c75586",
+        "#ce5659",
+        "#c05d43",
+        "#b0633a",
+        "#6e744e",
+        "#417d8a",
+        "#5999da",
+        "#798fe4",
+        "#938ae0",
+        "#cf7cc0",
+        "#da7aa5",
+        "#e07a7e",
+        "#d68067",
+        "#ca865d",
+        "#8d9575",
+        "#589dac",
+        "#8bbeeb",
+        "#a0b7f0",
+        "#b2b4ed",
+        "#daaada",
+        "#e3a9c9",
+        "#e8a9aa",
+        "#e4ae97",
+        "#deb28d",
+        "#bcbda4",
+        "#92c2cf"
+      ]
+    },
+    
+    "salaries": {
+      "label": "People",
+      "description": "City workforce & compensation",
+      "inputFile": "data/checkbook-all.csv",
+      "outputFile": "public/data/salaries-{year}.json",
+      "amountColumn": "pay_total_actual",
+      "hierarchy": ["department", "position_type"],
+      "colorTheme": "purple",
+      "icon": "users",
+      "colorPalette": [
+        "#b957a8",
+        "#9d3c89",
+        "#cf7cc0",
+        "#772d66",
+        "#daaada",
+        "#eed3ef"
+      ],
+      "privacyMode": true,
+      "aggregateByDefault": true
+    },
+    
+    "transactions": {
+      "label": "Transactions",
+      "description": "Individual purchases & payments",
+      "inputFile": "data/payroll-all.csv",
+      "outputFile": "public/data/transactions-{year}.json",
+      "amountColumn": "Amount",
+      "hierarchy": ["Priority", "Service", "Department"],
+      "colorTheme": "chestnut",
+      "icon": "receipt",
+      "colorPalette": [
+        "#b0633a",
+        "#914926",
+        "#c05d43",
+        "#6e361e",
+        "#d68067",
+        "#f1d9be"
+      ],
+      "loadStrategy": "lazy",
+      "enableFiltering": true
+    }
+  },
+  
+  "perDollarBreakdown": {
+    "enabled": true,
+    "denominations": [1, 10, 100],
+    "defaultDenomination": 10,
+    "description": "For every ${amount} in city taxes, here's where it goes"
+  },
+  
+  "descriptionFields": ["description", "item_category"],
+  
+  "features": {
+    "budgetVsActual": true,
+    "yearOverYear": true,
+    "crossDatasetLinks": true,
+    "educationalContent": true,
+    "mobileOptimized": true
+  }
+}

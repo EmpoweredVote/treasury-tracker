@@ -1,0 +1,51 @@
+{
+  "cityName": "Bloomington",
+  "population": 79168,
+  "fiscalYears": [2021, 2022, 2023, 2024, 2025],
+  "inputFile": "data/operating-budget.csv",
+  "outputFile": "public/data/budget-{year}.json",
+  "amountColumn": "approved_amount",
+  "hierarchy": [
+    "primary_function",
+    "priority",
+    "service",
+    "fund",
+    "item_category"
+  ],
+  "colorPalette": [
+    "#4476ca",
+    "#616bd9",
+    "#7965d3",
+    "#b957a8",
+    "#c75586",
+    "#ce5659",
+    "#c05d43",
+    "#b0633a",
+    "#6e744e",
+    "#417d8a",
+    "#5999da",
+    "#798fe4",
+    "#938ae0",
+    "#cf7cc0",
+    "#da7aa5",
+    "#e07a7e",
+    "#d68067",
+    "#ca865d",
+    "#8d9575",
+    "#589dac",
+    "#8bbeeb",
+    "#a0b7f0",
+    "#b2b4ed",
+    "#daaada",
+    "#e3a9c9",
+    "#e8a9aa",
+    "#e4ae97",
+    "#deb28d",
+    "#bcbda4",
+    "#92c2cf"
+  ],
+  "descriptionFields": [
+    "description",
+    "item_category"
+  ]
+}

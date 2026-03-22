@@ -36,7 +36,8 @@ async function loadDataset(type: DatasetType, year: number, citySlug: string): P
     try {
       const linkedPath = `/data/${citySlug}/${fileName}-${year}-linked.json`;
       const linkedResponse = await fetch(linkedPath);
-      if (linkedResponse.ok) {
+      const linkedContentType = linkedResponse.headers.get('content-type') || '';
+      if (linkedResponse.ok && linkedContentType.includes('json')) {
         return linkedResponse.json();
       }
     } catch {
@@ -46,8 +47,9 @@ async function loadDataset(type: DatasetType, year: number, citySlug: string): P
 
   const path = `/data/${citySlug}/${fileName}-${year}.json`;
   const response = await fetch(path);
+  const contentType = response.headers.get('content-type') || '';
 
-  if (!response.ok) {
+  if (!response.ok || !contentType.includes('json')) {
     throw new Error(`Failed to load ${type} data for ${year} (city: ${citySlug}) -- HTTP ${response.status}`);
   }
 
@@ -122,7 +124,6 @@ export default function CityPage({ slug }: { slug: string }) {
   // Load data when dataset or year changes
   useEffect(() => {
     setLoading(true);
-    setLoadError(false);
     setNavigationPath([]); // Reset navigation
     setSearchQuery(''); // Reset search
 
@@ -130,6 +131,7 @@ export default function CityPage({ slug }: { slug: string }) {
       .then(data => {
         setBudgetData(data);
         setLoading(false);
+        setLoadError(false);
       })
       .catch(error => {
         console.error(`Failed to load ${activeDataset} data:`, error);
