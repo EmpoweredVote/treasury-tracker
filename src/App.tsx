@@ -129,13 +129,24 @@ function App() {
     });
   }, []);
 
-  // Load operating budget and revenue totals for info cards
+  // Load operating budget and revenue totals for info cards (only if entity has that data)
   useEffect(() => {
     if (!selectedEntity) return;
-    Promise.all([
-      loadBudgetData(parseInt(selectedYear), selectedEntity.name, selectedEntity.state, 'operating'),
-      loadBudgetData(parseInt(selectedYear), selectedEntity.name, selectedEntity.state, 'revenue')
-    ])
+    const yearNum = parseInt(selectedYear);
+    const entityDatasets = selectedEntity.available_datasets.filter(d => d.fiscal_year === yearNum);
+    const hasOperating = entityDatasets.some(d => d.dataset_type === 'operating');
+    const hasRevenue = entityDatasets.some(d => d.dataset_type === 'revenue');
+
+    const promises: Promise<BudgetData | null>[] = [
+      hasOperating
+        ? loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'operating')
+        : Promise.resolve(null),
+      hasRevenue
+        ? loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'revenue')
+        : Promise.resolve(null),
+    ];
+
+    Promise.all(promises)
       .then(([operating, revenue]) => {
         setOperatingBudgetData(operating);
         setRevenueData(revenue);
