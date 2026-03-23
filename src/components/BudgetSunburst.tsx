@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useMemo } from 'react';
 import * as d3 from 'd3';
 import type { BudgetCategory } from '../types/budget';
+import { getCategoryColor } from '../utils/chartColors';
 import './BudgetSunburst.css';
 
 // Target angle for selected category (right side, 90 degrees from top)
@@ -19,6 +20,7 @@ interface HierarchyNode {
   name: string;
   value?: number;
   color?: string;
+  categoryIndex?: number; // root-level category index for color cycling
   category?: BudgetCategory;
   children?: HierarchyNode[];
 }
@@ -38,16 +40,19 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
 
   // Build hierarchical data structure for D3
   const hierarchyData = useMemo(() => {
-    const buildHierarchy = (cats: BudgetCategory[]): HierarchyNode[] => {
-      return cats.map(cat => ({
-        name: cat.name,
-        value: cat.subcategories && cat.subcategories.length > 0 ? undefined : cat.amount,
-        color: cat.color,
-        category: cat,
-        children: cat.subcategories && cat.subcategories.length > 0
-          ? buildHierarchy(cat.subcategories)
-          : undefined,
-      }));
+    const buildHierarchy = (cats: BudgetCategory[], rootIndex?: number): HierarchyNode[] => {
+      return cats.map((cat, i) => {
+        const idx = rootIndex !== undefined ? rootIndex : i;
+        return {
+          name: cat.name,
+          value: cat.subcategories && cat.subcategories.length > 0 ? undefined : cat.amount,
+          categoryIndex: idx,
+          category: cat,
+          children: cat.subcategories && cat.subcategories.length > 0
+            ? buildHierarchy(cat.subcategories, idx)
+            : undefined,
+        };
+      });
     };
 
     return {
@@ -271,7 +276,7 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
       .join('path')
       .attr('class', 'arc')
       .attr('d', d => arc(d) || '')
-      .attr('fill', d => d.data.color || '#ccc')
+      .attr('fill', d => getCategoryColor(d.data.categoryIndex ?? 0))
       .attr('fill-opacity', d => {
         // In path = full opacity, siblings = semi-transparent
         if (isInCurrentPath(d)) return 1;
@@ -346,7 +351,7 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
     // Add center circle - always shows total budget
     svg.append('circle')
       .attr('r', centerRadius)
-      .attr('fill', 'var(--muted-blue)')
+      .attr('fill', 'var(--color-ev-muted-blue)')
       .attr('opacity', 0.9)
       .style('cursor', currentPathNames.length > 0 ? 'pointer' : 'default')
       .on('click', () => {

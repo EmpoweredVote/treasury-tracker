@@ -233,7 +233,7 @@
 
 /* Focus states for accessibility */
 .sunburst-svg path:focus {
-  outline: 2px solid var(--muted-blue);
+  outline: 2px solid var(--color-ev-muted-blue);
   outline-offset: 2px;
 }
 
