@@ -5,7 +5,7 @@
  * API is the sole data source — no JSON file fallback, no hardcoded placeholder data (per D-06).
  */
 
-import type { BudgetData, BudgetCategory } from '../types/budget';
+import type { BudgetData, BudgetCategory, Municipality } from '../types/budget';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://api.empowered.vote';
 
@@ -19,9 +19,10 @@ const cache: Map<string, BudgetData> = new Map();
 export async function loadBudgetData(
   year: number = 2025,
   municipalityName: string = 'Bloomington',
+  municipalityState: string = 'IN',
   dataset: string = 'operating'
 ): Promise<BudgetData> {
-  const cacheKey = `${municipalityName}-${year}-${dataset}`;
+  const cacheKey = `${municipalityName}-${municipalityState}-${year}-${dataset}`;
 
   if (cache.has(cacheKey)) {
     return cache.get(cacheKey)!;
@@ -80,7 +81,7 @@ export function clearCache() {
 /**
  * Get a list of available municipalities from the API
  */
-export async function listMunicipalities(): Promise<Array<{ id: string; name: string; state: string; entity_type: string }>> {
+export async function listMunicipalities(): Promise<Municipality[]> {
   const response = await fetch(`${API_BASE}/treasury/municipalities`);
   if (!response.ok) {
     throw new Error(`Municipalities API returned ${response.status}`);

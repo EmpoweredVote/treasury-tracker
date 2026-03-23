@@ -73,6 +73,20 @@ export interface BudgetCategory {
   };
 }
 
+/** Municipality with available dataset metadata — matches ListMunicipalities API response */
+export interface Municipality {
+  id: string;
+  name: string;
+  state: string;
+  entity_type: 'city' | 'county' | 'township';
+  population: number;
+  hero_image_url?: string | null;
+  available_datasets: Array<{
+    fiscal_year: number;
+    dataset_type: 'operating' | 'revenue' | 'salaries';
+  }>;
+}
+
 export interface BudgetData {
   metadata: {
     cityName: string;
