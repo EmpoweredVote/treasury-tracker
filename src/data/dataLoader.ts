@@ -8,7 +8,7 @@
 import type { BudgetData, BudgetCategory, Municipality } from '../types/budget';
 
 const API_BASE = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL}/api`
+  ? `${import.meta.env.VITE_API_URL.replace(/\/+$/, '')}/api`
   : '/api';
 
 // Cache structure to support multiple municipality/year/dataset combinations
@@ -30,8 +30,22 @@ export async function loadBudgetData(
     return cache.get(cacheKey)!;
   }
 
-  // API is the sole data source — no fallback (per D-06)
-  const budgetsUrl = `${API_BASE}/treasury/budgets?city=${encodeURIComponent(municipalityName)}&year=${year}&dataset=${dataset}`;
+  // Step 1: Find the city by name from /treasury/cities
+  const citiesResponse = await fetch(`${API_BASE}/treasury/cities`);
+  if (!citiesResponse.ok) {
+    throw new Error(`Cities API returned ${citiesResponse.status}`);
+  }
+  const cities = await citiesResponse.json();
+  const city = cities.find((c: any) =>
+    c.name?.toLowerCase() === municipalityName.toLowerCase() &&
+    (!municipalityState || c.state?.toLowerCase() === municipalityState.toLowerCase())
+  );
+  if (!city?.id) {
+    throw new Error(`City not found: ${municipalityName}, ${municipalityState}`);
+  }
+
+  // Step 2: Get budgets for this city, optionally filtered by fiscal year
+  const budgetsUrl = `${API_BASE}/treasury/cities/${city.id}/budgets?fiscal_year=${year}`;
   const response = await fetch(budgetsUrl);
   if (!response.ok) {
     throw new Error(`Budget API returned ${response.status}`);
@@ -43,9 +57,10 @@ export async function loadBudgetData(
     throw new Error(`No budget found for ${municipalityName} ${year} (${dataset})`);
   }
 
-  const catResponse = await fetch(`${API_BASE}/treasury/budgets/${budget.id}/categories`);
+  // Step 3: Get line items for the budget
+  const catResponse = await fetch(`${API_BASE}/treasury/budgets/${budget.id}/line-items`);
   if (!catResponse.ok) {
-    throw new Error(`Categories API returned ${catResponse.status}`);
+    throw new Error(`Line items API returned ${catResponse.status}`);
   }
   const categories = await catResponse.json();
 
@@ -84,9 +99,9 @@ export function clearCache() {
  * Get a list of available municipalities from the API
  */
 export async function listMunicipalities(): Promise<Municipality[]> {
-  const response = await fetch(`${API_BASE}/treasury/municipalities`);
+  const response = await fetch(`${API_BASE}/treasury/cities`);
   if (!response.ok) {
-    throw new Error(`Municipalities API returned ${response.status}`);
+    throw new Error(`Cities API returned ${response.status}`);
   }
   return await response.json();
 }
