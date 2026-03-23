@@ -82,7 +82,11 @@
   /* Font */
   --font-manrope: 'Manrope', sans-serif;
 
-  /* Data Visualization Palette — SEPARATE namespace (D-08) */
+}
+
+/* Data Visualization Palette — plain :root so var() works in inline styles and D3 attrs.
+   NOT in @theme because Tailwind tree-shakes unused theme tokens. */
+:root {
   --color-data-teal-100: #C0E8F2;
   --color-data-teal-300: #55D9F6;
   --color-data-teal-400: #3AABB8;

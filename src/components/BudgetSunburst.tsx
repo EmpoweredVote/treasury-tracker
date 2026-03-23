@@ -101,9 +101,8 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
     const size = Math.min(containerWidth, 900);
     const radius = size / 2;
 
-    // Display dimensions - show the full width but crop height aggressively
-    // Since selection rotates to 90 degrees (right), we show a horizontal band
-    const displayHeight = size * 0.45; // Show 45% of the height (crops top and bottom significantly)
+    // Display dimensions - show full width, crop top/bottom slightly
+    const displayHeight = size * 0.7;
     const cropTop = (size - displayHeight) / 2; // Center the crop vertically
 
     const svg = d3.select(svgRef.current)
@@ -315,8 +314,8 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
         const hasChildren = d.data.category?.subcategories && d.data.category.subcategories.length > 0;
         tooltip
           .style('opacity', 1)
-          .style('left', `${event.pageX + 10}px`)
-          .style('top', `${event.pageY - 10}px`)
+          .style('left', `${event.clientX + 10}px`)
+          .style('top', `${event.clientY - 10}px`)
           .html(`
             <div class="tooltip-name">${d.data.name}</div>
             <div class="tooltip-amount">${formatCurrency(d.value || 0)}</div>
@@ -326,8 +325,8 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
       })
       .on('mousemove', function(event) {
         d3.select('#sunburst-tooltip')
-          .style('left', `${event.pageX + 10}px`)
-          .style('top', `${event.pageY - 10}px`);
+          .style('left', `${event.clientX + 10}px`)
+          .style('top', `${event.clientY - 10}px`);
       })
       .on('mouseleave', function(_event, d) {
         d3.select(this)

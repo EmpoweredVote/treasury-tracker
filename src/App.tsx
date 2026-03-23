@@ -208,6 +208,13 @@ function App() {
   }, [navigationPath]);
 
   const handlePathClick = useCallback((path: BudgetCategory[]) => {
+    // Guard: don't navigate to a leaf node that has nothing to display
+    if (path.length > 0) {
+      const target = path[path.length - 1];
+      const hasChildren = target.subcategories && target.subcategories.length > 0;
+      const hasLineItems = target.lineItems && target.lineItems.length > 0;
+      if (!hasChildren && !hasLineItems) return; // ignore click on empty leaf
+    }
     setNavigationPath(path);
   }, []);
 
@@ -378,7 +385,7 @@ function App() {
               <div className="flex gap-6 flex-col lg:flex-row mb-8">
                 {/* Hero image card */}
                 <div
-                  className="relative h-48 lg:h-64 rounded-xl overflow-hidden flex-1 min-w-0"
+                  className="relative rounded-xl overflow-hidden flex-1 min-w-0 min-h-[120px]"
                   style={{
                     backgroundImage: selectedEntity.hero_image_url
                       ? `url('${selectedEntity.hero_image_url}')`
@@ -389,7 +396,7 @@ function App() {
                   }}
                 >
                   <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 100%)' }} />
-                  <div className="absolute bottom-0 left-0 p-6 text-white">
+                  <div className="relative p-6 pt-10 text-white">
                     <h1 className="text-xl font-bold mb-1">{selectedEntity.name} Finances</h1>
                     <p className="text-sm opacity-90">Explore how public funds are allocated and spent.</p>
                   </div>
@@ -397,29 +404,27 @@ function App() {
 
                 {/* Info card */}
                 <div className="bg-white border border-[#E2EBEF] rounded-xl p-6 lg:w-72 shrink-0">
-                  <div className="flex gap-6">
-                    <div className="flex-1">
-                      <h3 className="text-xs font-bold uppercase tracking-wider text-[#6B7280] mb-1">
-                        Total {operatingBudgetData?.metadata.fiscalYear ?? selectedYear} Budget
-                      </h3>
-                      <div className="text-[30px] font-bold text-[#1C1C1C] leading-tight">
-                        {operatingBudgetData ? formatCurrency(operatingBudgetData.metadata.totalBudget) : '—'}
-                      </div>
+                  <div>
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#6B7280] mb-1">
+                      Total {operatingBudgetData?.metadata.fiscalYear ?? selectedYear} Budget
+                    </h3>
+                    <div className="text-[30px] font-bold text-[#1C1C1C] leading-tight">
+                      {operatingBudgetData ? formatCurrency(operatingBudgetData.metadata.totalBudget) : '—'}
                     </div>
-                    {selectedEntity.population > 0 && operatingBudgetData && (
-                      <>
-                        <div className="w-px bg-[#E2EBEF]" />
-                        <div className="flex-1">
-                          <h3 className="text-xs font-bold uppercase tracking-wider text-[#6B7280] mb-1">Context</h3>
-                          <div className="text-sm text-[#6B7280] leading-relaxed">
-                            Population ~{selectedEntity.population.toLocaleString()} residents
-                            <br />
-                            ${formatPerResident(operatingBudgetData.metadata.totalBudget, selectedEntity.population)} per resident annually
-                          </div>
-                        </div>
-                      </>
-                    )}
                   </div>
+                  {selectedEntity.population > 0 && operatingBudgetData && (
+                    <>
+                      <div className="h-px bg-[#E2EBEF] my-4" />
+                      <div>
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-[#6B7280] mb-1">Context</h3>
+                        <div className="text-sm text-[#6B7280] leading-relaxed">
+                          Population ~{selectedEntity.population.toLocaleString()} residents
+                          <br />
+                          ${formatPerResident(operatingBudgetData.metadata.totalBudget, selectedEntity.population)} per resident annually
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
