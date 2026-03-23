@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useMemo } from 'react';
 import * as d3 from 'd3';
 import type { BudgetCategory } from '../types/budget';
+import { getCategoryColor } from '../utils/chartColors';
 import './BudgetTree.css';
 
 interface BudgetTreeProps {
@@ -13,7 +14,7 @@ interface BudgetTreeProps {
 interface TreeNode {
   name: string;
   value: number;
-  color: string;
+  categoryIndex: number; // root-level category index for color cycling; -1 for root Budget node
   category?: BudgetCategory;
   path: BudgetCategory[]; // Full path to this node
   isAncestor: boolean; // Is this node in the ancestor path?
@@ -35,11 +36,15 @@ const BudgetTree: React.FC<BudgetTreeProps> = ({
   const visibleNodes = useMemo(() => {
     const nodes: TreeNode[] = [];
 
-    // Add root node (Budget)
+    // Build a lookup from root category name to its index
+    const rootIndexMap = new Map<string, number>();
+    categories.forEach((cat, i) => rootIndexMap.set(cat.name, i));
+
+    // Add root node (Budget) — uses ev-muted-blue (index -1 signals special treatment)
     nodes.push({
       name: 'Budget',
       value: totalBudget,
-      color: 'var(--muted-blue)',
+      categoryIndex: -1,
       path: [],
       isAncestor: true,
       isCurrentLevel: navigationPath.length === 0,
@@ -48,10 +53,11 @@ const BudgetTree: React.FC<BudgetTreeProps> = ({
 
     // Add ancestor nodes from the navigation path
     navigationPath.forEach((cat, index) => {
+      const rootCatIndex = rootIndexMap.get(navigationPath[0].name) ?? 0;
       nodes.push({
         name: cat.name,
         value: cat.amount,
-        color: cat.color || '#ccc',
+        categoryIndex: rootCatIndex,
         category: cat,
         path: navigationPath.slice(0, index + 1),
         isAncestor: true,
@@ -65,11 +71,16 @@ const BudgetTree: React.FC<BudgetTreeProps> = ({
       ? categories
       : navigationPath[navigationPath.length - 1].subcategories || [];
 
-    currentCategories.forEach(cat => {
+    currentCategories.forEach((cat, i) => {
+      // For root-level children, use their own index.
+      // For deeper children, inherit root index.
+      const catIndex = navigationPath.length === 0
+        ? i
+        : (rootIndexMap.get(navigationPath[0].name) ?? 0);
       nodes.push({
         name: cat.name,
         value: cat.amount,
-        color: cat.color || '#ccc',
+        categoryIndex: catIndex,
         category: cat,
         path: [...navigationPath, cat],
         isAncestor: false,
@@ -102,15 +113,11 @@ const BudgetTree: React.FC<BudgetTreeProps> = ({
     return ((value / total) * 100).toFixed(1) + '%';
   };
 
-  // Helper function to determine text color based on background
-  const getContrastColor = (hexColor: string): string => {
-    if (hexColor.startsWith('var(')) return '#ffffff';
-    const hex = hexColor.replace('#', '');
-    const r = parseInt(hex.substring(0, 2), 16);
-    const g = parseInt(hex.substring(2, 4), 16);
-    const b = parseInt(hex.substring(4, 6), 16);
-    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    return luminance > 0.5 ? '#1a1a1a' : '#ffffff';
+  // Resolve fill color for a tree node
+  // The root "Budget" node (categoryIndex -1) uses ev-muted-blue
+  const getNodeFill = (node: TreeNode): string => {
+    if (node.categoryIndex === -1) return 'var(--color-ev-muted-blue)';
+    return getCategoryColor(node.categoryIndex);
   };
 
   useEffect(() => {
@@ -236,7 +243,7 @@ const BudgetTree: React.FC<BudgetTreeProps> = ({
       .attr('height', nodeHeight)
       .attr('rx', 4)
       .attr('ry', 4)
-      .attr('fill', d => d.color)
+      .attr('fill', d => getNodeFill(d))
       .attr('stroke', d => d.isAncestor ? '#FF5740' : 'transparent')
       .attr('stroke-width', d => d.isAncestor ? 2 : 0);
 
@@ -279,7 +286,7 @@ const BudgetTree: React.FC<BudgetTreeProps> = ({
         d3.select('#tree-tooltip').style('opacity', 0);
       });
 
-  }, [visibleNodes, totalBudget, onPathClick, formatCurrency, getContrastColor]);
+  }, [visibleNodes, totalBudget, onPathClick, getNodeFill]);
 
   return (
     <div className="tree-wrapper">

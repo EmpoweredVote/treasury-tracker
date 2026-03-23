@@ -99,7 +99,6 @@ export default function LinkedTransactionsPanel({
       setVisibleCount(TRANSACTIONS_PER_PAGE);
     } else {
       setIsExpanded(true);
-      // Load all transactions if we haven't yet and there are more available
       if (hasMore && !hasLoadedAll) {
         await loadAllTransactions();
       }
@@ -107,144 +106,152 @@ export default function LinkedTransactionsPanel({
   };
 
   return (
-    <div className="linked-transactions-panel">
-      <div className="linked-transactions-header">
-        <div className="linked-transactions-icon">
+    <div className="bg-white border border-[#E2EBEF] rounded-xl overflow-hidden mt-6">
+      {/* Header */}
+      <div className="flex items-start gap-4 px-6 py-4 bg-[#F7F7F8] border-b border-[#D3D7DE]">
+        <div className="w-10 h-10 bg-ev-muted-blue text-white rounded-lg flex items-center justify-center flex-shrink-0">
           <Receipt size={20} />
         </div>
         <div>
-          <h3>Related Transactions</h3>
-          <p className="linked-transactions-subtitle">
+          <h3 className="text-base font-bold font-manrope text-[#1C1C1C] m-0">Related Transactions</h3>
+          <p className="text-sm text-[#6B7280] mt-0.5 leading-snug">
             {transactionCount.toLocaleString()} transaction{transactionCount !== 1 ? 's' : ''} linked to {categoryName}
           </p>
         </div>
       </div>
 
-      {/* Summary Stats */}
-      <div className="linked-transactions-stats">
-        <div className="stat-card">
-          <div className="stat-value">{formatCurrency(totalAmount)}</div>
-          <div className="stat-label">Total Spent</div>
+      <div className="p-6">
+        {/* Summary Stats */}
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="bg-[#F7F7F8] rounded-lg p-4 text-center">
+            <div className="text-lg font-bold font-manrope text-[#1C1C1C] tabular-nums">{formatCurrency(totalAmount)}</div>
+            <div className="text-xs font-bold uppercase tracking-wider text-[#6B7280] mt-1">Total Spent</div>
+          </div>
+          <div className="bg-[#F7F7F8] rounded-lg p-4 text-center">
+            <div className="text-lg font-bold font-manrope text-[#1C1C1C] tabular-nums">{transactionCount.toLocaleString()}</div>
+            <div className="text-xs font-bold uppercase tracking-wider text-[#6B7280] mt-1">Transactions</div>
+          </div>
+          <div className="bg-[#F7F7F8] rounded-lg p-4 text-center">
+            <div className="text-lg font-bold font-manrope text-[#1C1C1C] tabular-nums">{vendorCount}</div>
+            <div className="text-xs font-bold uppercase tracking-wider text-[#6B7280] mt-1">Vendors</div>
+          </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-value">{transactionCount.toLocaleString()}</div>
-          <div className="stat-label">Transactions</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-value">{vendorCount}</div>
-          <div className="stat-label">Vendors</div>
-        </div>
-      </div>
 
-      {/* Top Vendors */}
-      {topVendors && topVendors.length > 0 && (
-        <div className="linked-transactions-vendors">
-          <h4>Top Vendors</h4>
-          <div className="vendor-list">
-            {topVendors.map((vendor, index) => (
-              <div key={index} className="vendor-item">
-                <div className="vendor-icon">
-                  <Building2 size={16} />
+        {/* Top Vendors */}
+        {topVendors && topVendors.length > 0 && (
+          <div className="mb-6">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-[#6B7280] mb-3">Top Vendors</h4>
+            <div className="flex flex-col gap-2">
+              {topVendors.map((vendor, index) => (
+                <div key={index} className="flex items-center gap-3 px-3 py-2 bg-[#F7F7F8] rounded-lg">
+                  <div className="w-7 h-7 bg-white rounded flex items-center justify-center text-[#6B7280] flex-shrink-0">
+                    <Building2 size={16} />
+                  </div>
+                  <div className="flex flex-col flex-1 min-w-0">
+                    <span className="text-sm font-medium text-[#1C1C1C] truncate">{vendor.name}</span>
+                    <span className="text-xs text-[#6B7280] tabular-nums">
+                      {formatCurrency(vendor.amount)} ({vendor.count} transaction{vendor.count !== 1 ? 's' : ''})
+                    </span>
+                  </div>
                 </div>
-                <div className="vendor-info">
-                  <span className="vendor-name">{vendor.name}</span>
-                  <span className="vendor-stats">
-                    {formatCurrency(vendor.amount)} ({vendor.count} transaction{vendor.count !== 1 ? 's' : ''})
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Transactions List */}
+        <div className="border-t border-[#E2EBEF] pt-6">
+          <div className="flex justify-between items-center mb-3">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-[#6B7280]">
+              {isExpanded ? 'All Transactions' : 'Recent Transactions'}
+            </h4>
+            {isExpanded && (
+              <span className="text-xs text-[#6B7280] tabular-nums">
+                Showing {displayTransactions.length} of {transactionCount.toLocaleString()}
+              </span>
+            )}
+          </div>
+
+          <div className={`flex flex-col gap-3 ${isExpanded ? 'max-h-[600px] overflow-y-auto pr-1' : ''}`}>
+            {displayTransactions.map((tx, index) => (
+              <div key={index} className="px-4 py-3 bg-[#F7F7F8] rounded-lg border-l-2 border-ev-muted-blue">
+                <div className="flex justify-between items-start gap-4 mb-2">
+                  <div className="text-sm text-[#1C1C1C] flex-1 min-w-0 leading-snug">{tx.description}</div>
+                  <div className="text-sm font-bold text-[#1C1C1C] whitespace-nowrap tabular-nums">{formatCurrency(tx.amount)}</div>
+                </div>
+                <div className="flex flex-wrap gap-3 text-xs text-[#6B7280]">
+                  <span className="flex items-center gap-1">
+                    <Building2 size={12} className="opacity-70" />
+                    {tx.vendor}
                   </span>
+                  {tx.date && (
+                    <span className="flex items-center gap-1">
+                      <Calendar size={12} className="opacity-70" />
+                      {formatDate(tx.date)}
+                    </span>
+                  )}
+                  {tx.paymentMethod && (
+                    <span className="flex items-center gap-1">
+                      <CreditCard size={12} className="opacity-70" />
+                      {tx.paymentMethod}
+                    </span>
+                  )}
                 </div>
               </div>
             ))}
           </div>
-        </div>
-      )}
 
-      {/* Transactions List */}
-      <div className="linked-transactions-list">
-        <div className="transactions-list-header">
-          <h4>{isExpanded ? 'All Transactions' : 'Recent Transactions'}</h4>
-          {isExpanded && (
-            <span className="transactions-count">
-              Showing {displayTransactions.length} of {transactionCount.toLocaleString()}
-            </span>
-          )}
-        </div>
-
-        <div className={`transaction-list ${isExpanded ? 'expanded' : ''}`}>
-          {displayTransactions.map((tx, index) => (
-            <div key={index} className="transaction-item">
-              <div className="transaction-main">
-                <div className="transaction-description">{tx.description}</div>
-                <div className="transaction-amount">{formatCurrency(tx.amount)}</div>
-              </div>
-              <div className="transaction-meta">
-                <span className="transaction-vendor">
-                  <Building2 size={12} />
-                  {tx.vendor}
-                </span>
-                {tx.date && (
-                  <span className="transaction-date">
-                    <Calendar size={12} />
-                    {formatDate(tx.date)}
-                  </span>
-                )}
-                {tx.paymentMethod && (
-                  <span className="transaction-payment">
-                    <CreditCard size={12} />
-                    {tx.paymentMethod}
-                  </span>
-                )}
-              </div>
+          {/* Loading indicator */}
+          {isLoading && (
+            <div className="flex items-center justify-center gap-2 py-4 text-sm text-[#6B7280]">
+              <Loader2 size={20} className="animate-spin" />
+              Loading all transactions...
             </div>
-          ))}
-        </div>
-
-        {/* Loading indicator */}
-        {isLoading && (
-          <div className="loading-indicator">
-            <Loader2 size={20} className="spinner" />
-            Loading all transactions...
-          </div>
-        )}
-
-        {/* Error message */}
-        {loadError && (
-          <div className="load-error">
-            {loadError}
-          </div>
-        )}
-
-        {/* Action Buttons */}
-        <div className="transactions-actions">
-          {isExpanded && hasMoreToLoad && !isLoading && (
-            <button className="load-more-button" onClick={handleLoadMore}>
-              Load more ({Math.min(TRANSACTIONS_PER_PAGE, allTransactions.length - visibleCount)} more)
-            </button>
           )}
 
-          {canExpand && (
-            <button
-              className="toggle-expand-button"
-              onClick={handleToggleExpand}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 size={16} className="spinner" />
-                  Loading...
-                </>
-              ) : isExpanded ? (
-                <>
-                  <ChevronUp size={16} />
-                  Collapse
-                </>
-              ) : (
-                <>
-                  <ChevronDown size={16} />
-                  View all {transactionCount.toLocaleString()} transactions
-                </>
-              )}
-            </button>
+          {/* Error message */}
+          {loadError && (
+            <div className="mt-2 px-3 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 text-center">
+              {loadError}
+            </div>
           )}
+
+          {/* Action Buttons */}
+          <div className="flex flex-col gap-2 mt-4">
+            {isExpanded && hasMoreToLoad && !isLoading && (
+              <button
+                className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-white border border-[#E2EBEF] rounded-lg text-sm font-medium text-[#1C1C1C] hover:bg-[#F7F7F8] transition-colors duration-200 cursor-pointer font-manrope"
+                onClick={handleLoadMore}
+              >
+                Load more ({Math.min(TRANSACTIONS_PER_PAGE, allTransactions.length - visibleCount)} more)
+              </button>
+            )}
+
+            {canExpand && (
+              <button
+                className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-white border border-[#E2EBEF] rounded-lg text-sm font-medium text-ev-muted-blue hover:bg-[#F7F7F8] hover:border-ev-muted-blue transition-colors duration-200 cursor-pointer font-manrope disabled:opacity-70 disabled:cursor-not-allowed"
+                onClick={handleToggleExpand}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    Loading...
+                  </>
+                ) : isExpanded ? (
+                  <>
+                    <ChevronUp size={16} />
+                    Collapse
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown size={16} />
+                    View all {transactionCount.toLocaleString()} transactions
+                  </>
+                )}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

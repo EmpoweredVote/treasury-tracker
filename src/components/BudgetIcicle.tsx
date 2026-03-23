@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import type { BudgetCategory } from '../types/budget';
+import { getCategoryColor } from '../utils/chartColors';
 import './BudgetIcicle.css';
 
 interface BudgetIcicleProps {
@@ -15,6 +16,7 @@ interface BarSegment {
   width: number; // percentage
   isSelected: boolean;
   hasChildren: boolean;
+  categoryIndex: number; // root-level category index for color cycling
 }
 
 interface BarLevel {
@@ -34,13 +36,18 @@ const BudgetIcicle: React.FC<BudgetIcicleProps> = ({
   const levels = useMemo(() => {
     const result: BarLevel[] = [];
 
+    // Build a lookup from root category name to its index
+    const rootIndexMap = new Map<string, number>();
+    categories.forEach((cat, i) => rootIndexMap.set(cat.name, i));
+
     // Always add root level (top-level categories)
-    const rootSegments: BarSegment[] = categories.map(cat => ({
+    const rootSegments: BarSegment[] = categories.map((cat, i) => ({
       category: cat,
       path: [cat],
       width: (cat.amount / totalBudget) * 100,
       isSelected: navigationPath.length > 0 && navigationPath[0].name === cat.name,
       hasChildren: (cat.subcategories && cat.subcategories.length > 0) || false,
+      categoryIndex: i,
     }));
 
     result.push({
@@ -58,12 +65,16 @@ const BudgetIcicle: React.FC<BudgetIcicleProps> = ({
       const parentAmount = pathCat.amount;
       const isCurrentLevel = pathIndex === navigationPath.length - 1;
 
+      // Inherit the root-level index from the first path item
+      const rootCatIndex = rootIndexMap.get(navigationPath[0].name) ?? 0;
+
       const segments: BarSegment[] = subcats.map(cat => ({
         category: cat,
         path: [...navigationPath.slice(0, pathIndex + 1), cat],
         width: (cat.amount / parentAmount) * 100,
         isSelected: !isCurrentLevel && navigationPath[pathIndex + 1]?.name === cat.name,
         hasChildren: (cat.subcategories && cat.subcategories.length > 0) || false,
+        categoryIndex: rootCatIndex,
       }));
 
       result.push({
@@ -144,7 +155,7 @@ const BudgetIcicle: React.FC<BudgetIcicleProps> = ({
                   className={`icicle-segment ${segment.isSelected ? 'selected' : ''} ${isClickable ? 'clickable' : ''}`}
                   style={{
                     width: `${segment.width}%`,
-                    backgroundColor: segment.category.color,
+                    backgroundColor: getCategoryColor(segment.categoryIndex),
                     opacity: level.isAncestor && !segment.isSelected ? 0.4 : 1,
                   }}
                   onClick={() => isClickable && handleSegmentClick(segment, levelIndex)}
