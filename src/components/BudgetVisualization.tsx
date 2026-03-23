@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import BudgetIcicle from './BudgetIcicle';
 import BudgetSunburst from './BudgetSunburst';
 import type { BudgetCategory } from '../types/budget';
-import './BudgetVisualization.css';
 
 type ViewMode = 'icicle' | 'sunburst';
 
@@ -22,15 +21,20 @@ const BudgetVisualization: React.FC<BudgetVisualizationProps> = ({
   const [viewMode, setViewMode] = useState<ViewMode>('icicle');
 
   return (
-    <div className="budget-visualization">
-      <div className="view-toggle">
+    <div className="w-full">
+      {/* View toggle */}
+      <div className="flex justify-center gap-2 mb-4">
         <button
-          className={`toggle-btn ${viewMode === 'icicle' ? 'active' : ''}`}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium font-manrope transition-all duration-200 cursor-pointer border ${
+            viewMode === 'icicle'
+              ? 'bg-ev-muted-blue border-ev-muted-blue text-white'
+              : 'bg-white border-[#E2EBEF] text-[#6B7280] hover:border-ev-muted-blue hover:text-ev-muted-blue'
+          }`}
           onClick={() => setViewMode('icicle')}
           aria-pressed={viewMode === 'icicle'}
           title="Bar chart view"
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
             <rect x="2" y="4" width="20" height="5" rx="1" />
             <rect x="2" y="11" width="14" height="5" rx="1" />
             <rect x="2" y="18" width="8" height="5" rx="1" />
@@ -38,12 +42,16 @@ const BudgetVisualization: React.FC<BudgetVisualizationProps> = ({
           <span>Bars</span>
         </button>
         <button
-          className={`toggle-btn ${viewMode === 'sunburst' ? 'active' : ''}`}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium font-manrope transition-all duration-200 cursor-pointer border ${
+            viewMode === 'sunburst'
+              ? 'bg-ev-muted-blue border-ev-muted-blue text-white'
+              : 'bg-white border-[#E2EBEF] text-[#6B7280] hover:border-ev-muted-blue hover:text-ev-muted-blue'
+          }`}
           onClick={() => setViewMode('sunburst')}
           aria-pressed={viewMode === 'sunburst'}
           title="Sunburst view"
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
             <circle cx="12" cy="12" r="4" />
             <circle cx="12" cy="12" r="8" />
             <circle cx="12" cy="12" r="11" />
@@ -56,7 +64,8 @@ const BudgetVisualization: React.FC<BudgetVisualizationProps> = ({
         </button>
       </div>
 
-      <div className="visualization-content">
+      {/* Visualization content */}
+      <div className="w-full">
         {viewMode === 'icicle' ? (
           <BudgetIcicle
             categories={categories}

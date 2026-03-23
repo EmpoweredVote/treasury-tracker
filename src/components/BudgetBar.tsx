@@ -1,5 +1,6 @@
 import React from 'react';
 import type { BudgetCategory } from '../types/budget';
+import { DATA_VIZ_HUES } from '../utils/chartColors';
 
 interface BudgetBarProps {
   categories: BudgetCategory[];
@@ -23,33 +24,49 @@ const BudgetBar: React.FC<BudgetBarProps> = ({ categories }) => {
   };
 
   return (
-    <div className="budget-bar-wrapper">
-      <div 
-        className="budget-bar budget-bar-static" 
+    <div className="w-full">
+      {/* Segmented bar */}
+      <div
+        className="w-full h-3 bg-[#EBEDEF] rounded-full overflow-hidden flex"
         role="img"
         aria-label="Budget allocation visualization"
       >
-        {categories.map((category, index) => (
-          <div
-            key={`${category.name}-${index}`}
-            className="budget-segment budget-segment-static"
-            style={{
-              width: `${category.percentage}%`,
-              backgroundColor: category.color,
-            }}
-            title={`${category.name}: ${formatCurrency(category.amount)} (${formatPercentage(category.percentage)}%)`}
-          >
-            {/* Show labels for categories that are at least 5% of the budget */}
-            {category.percentage >= 5 && (
-              <div className="segment-label">
-                <div className="segment-name">{category.name}</div>
-                <div className="segment-amount">{formatCurrency(category.amount)}</div>
-                <div className="segment-percentage">({formatPercentage(category.percentage)}%)</div>
-              </div>
-            )}
-          </div>
-        ))}
+        {categories.map((category, index) => {
+          const hue = DATA_VIZ_HUES[index % DATA_VIZ_HUES.length];
+          return (
+            <div
+              key={`${category.name}-${index}`}
+              className="h-full transition-all duration-200"
+              style={{
+                width: `${category.percentage}%`,
+                backgroundColor: `var(--color-data-${hue}-500)`,
+              }}
+              title={`${category.name}: ${formatCurrency(category.amount)} (${formatPercentage(category.percentage)}%)`}
+            />
+          );
+        })}
       </div>
+
+      {/* Labels for categories >= 5% */}
+      {categories.some(c => c.percentage >= 5) && (
+        <div className="flex mt-2 gap-x-1 flex-wrap">
+          {categories.map((category, index) => {
+            if (category.percentage < 5) return null;
+            const hue = DATA_VIZ_HUES[index % DATA_VIZ_HUES.length];
+            return (
+              <div key={index} className="flex items-center gap-1 mr-3 mb-1">
+                <div
+                  className="w-2 h-2 rounded-sm flex-shrink-0"
+                  style={{ backgroundColor: `var(--color-data-${hue}-500)` }}
+                />
+                <span className="text-xs text-[#6B7280] tabular-nums">
+                  {category.name} {formatPercentage(category.percentage)}%
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

@@ -25,7 +25,7 @@
 .tree-tooltip {
   position: fixed;
   background-color: rgba(0, 0, 0, 0.92);
-  color: var(--white);
+  color: #FFFFFF;
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
   font-size: 0.875rem;
