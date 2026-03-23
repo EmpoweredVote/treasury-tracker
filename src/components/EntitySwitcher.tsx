@@ -58,45 +58,45 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
 
   const displayName = selectedEntity
     ? `${selectedEntity.name}, ${selectedEntity.state}`
-    : 'Select entity';
+    : 'Select jurisdiction';
 
   return (
-    <div className="entity-switcher" ref={dropdownRef} onKeyDown={handleKeyDown}>
+    <div className="relative" ref={dropdownRef} onKeyDown={handleKeyDown}>
       <button
-        className="entity-switcher-button"
+        className="flex items-center gap-2 min-h-[44px] px-4 py-2 bg-white border border-[#E2EBEF] rounded-lg font-manrope text-base font-medium text-[#1C1C1C] cursor-pointer transition-colors duration-200 hover:bg-[#F7F7F8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ev-muted-blue focus-visible:ring-offset-2"
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Select jurisdiction"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
-        style={isOpen ? { backgroundColor: 'var(--light-gray)' } : undefined}
       >
         <span>{displayName}</span>
         <ChevronDown
           size={16}
-          style={{
-            transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-            transition: 'transform 0.2s',
-            color: 'var(--text-gray)',
-            flexShrink: 0,
-          }}
+          className={`text-[#6B7280] shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
         />
       </button>
 
       {isOpen && (
         <div
-          className="entity-switcher-dropdown"
+          className="absolute top-full mt-1 left-0 min-w-56 bg-white border border-[#E2EBEF] rounded-lg shadow-lg z-10 overflow-hidden"
           role="listbox"
           aria-label="Available jurisdictions"
         >
           {grouped.city.length > 0 && (
             <>
-              <div className="entity-group-label">Cities</div>
+              <span className="block px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#6B7280]">
+                Cities
+              </span>
               {grouped.city.map((entity) => (
                 <button
                   key={entity.id}
                   role="option"
                   aria-selected={entity.id === selectedEntity?.id}
-                  className={`entity-option${entity.id === selectedEntity?.id ? ' selected' : ''}`}
+                  className={`block w-full px-4 py-3 text-sm text-left border-l-2 transition-colors duration-150 hover:bg-[#F7F7F8] ${
+                    entity.id === selectedEntity?.id
+                      ? 'border-ev-muted-blue bg-[#F7F7F8]'
+                      : 'border-transparent'
+                  }`}
                   onClick={() => {
                     onEntityChange(entity);
                     setIsOpen(false);
@@ -110,13 +110,19 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
 
           {grouped.county.length > 0 && (
             <>
-              <div className="entity-group-label">Counties</div>
+              <span className="block px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#6B7280]">
+                Counties
+              </span>
               {grouped.county.map((entity) => (
                 <button
                   key={entity.id}
                   role="option"
                   aria-selected={entity.id === selectedEntity?.id}
-                  className={`entity-option${entity.id === selectedEntity?.id ? ' selected' : ''}`}
+                  className={`block w-full px-4 py-3 text-sm text-left border-l-2 transition-colors duration-150 hover:bg-[#F7F7F8] ${
+                    entity.id === selectedEntity?.id
+                      ? 'border-ev-muted-blue bg-[#F7F7F8]'
+                      : 'border-transparent'
+                  }`}
                   onClick={() => {
                     onEntityChange(entity);
                     setIsOpen(false);
@@ -130,13 +136,19 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
 
           {grouped.township.length > 0 && (
             <>
-              <div className="entity-group-label">Townships</div>
+              <span className="block px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#6B7280]">
+                Townships
+              </span>
               {grouped.township.map((entity) => (
                 <button
                   key={entity.id}
                   role="option"
                   aria-selected={entity.id === selectedEntity?.id}
-                  className={`entity-option${entity.id === selectedEntity?.id ? ' selected' : ''}`}
+                  className={`block w-full px-4 py-3 text-sm text-left border-l-2 transition-colors duration-150 hover:bg-[#F7F7F8] ${
+                    entity.id === selectedEntity?.id
+                      ? 'border-ev-muted-blue bg-[#F7F7F8]'
+                      : 'border-transparent'
+                  }`}
                   onClick={() => {
                     onEntityChange(entity);
                     setIsOpen(false);

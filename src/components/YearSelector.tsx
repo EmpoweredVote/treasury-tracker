@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 
 interface YearSelectorProps {
   selectedYear: string;
@@ -7,78 +7,28 @@ interface YearSelectorProps {
 }
 
 const YearSelector: React.FC<YearSelectorProps> = ({ selectedYear, years, onYearChange }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen]);
-
-  // Handle keyboard navigation
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === 'Escape') {
-      setIsOpen(false);
-    }
-  };
+  if (years.length === 0) return null;
 
   return (
-    <div className="year-selector" ref={dropdownRef} onKeyDown={handleKeyDown}>
-      <button 
-        className="year-button" 
-        onClick={() => setIsOpen(!isOpen)}
-        aria-label="Select year"
-        aria-expanded={isOpen}
-        aria-haspopup="listbox"
-      >
-        <span>Year {selectedYear}</span>
-        <svg 
-          width="12" 
-          height="8" 
-          viewBox="0 0 12 8" 
-          fill="currentColor"
-          style={{ 
-            transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-            transition: 'transform 0.2s'
-          }}
-        >
-          <path d="M1.41 0.59L6 5.17L10.59 0.59L12 2L6 8L0 2L1.41 0.59Z" />
-        </svg>
-      </button>
-      {isOpen && (
-        <div 
-          className="year-dropdown"
-          role="listbox"
-          aria-label="Year options"
-        >
-          {years.map((year) => (
-            <button
-              key={year}
-              role="option"
-              aria-selected={selectedYear === year}
-              className={`year-option ${selectedYear === year ? 'selected' : ''}`}
-              onClick={() => {
-                onYearChange(year);
-                setIsOpen(false);
-              }}
-            >
-              {year}
-            </button>
-          ))}
-        </div>
-      )}
+    <div className="flex flex-wrap gap-2" role="group" aria-label="Select fiscal year">
+      {years.map((year) => {
+        const isActive = selectedYear === year;
+        return (
+          <button
+            key={year}
+            role="radio"
+            aria-checked={isActive}
+            onClick={() => onYearChange(year)}
+            className={`px-3 py-1.5 text-sm font-medium rounded-full cursor-pointer transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ev-muted-blue focus-visible:ring-offset-2 ${
+              isActive
+                ? 'font-bold text-white bg-ev-muted-blue border border-ev-muted-blue'
+                : 'text-[#6B7280] bg-white border border-[#E2EBEF] hover:bg-[#F7F7F8]'
+            }`}
+          >
+            {year}
+          </button>
+        );
+      })}
     </div>
   );
 };

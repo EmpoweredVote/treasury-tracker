@@ -5,8 +5,6 @@ export interface Dataset {
   id: 'revenue' | 'operating' | 'salaries';
   label: string;
   icon: typeof DollarSign;
-  color: string;
-  lightColor: string;
   description: string;
 }
 
@@ -15,7 +13,7 @@ interface DatasetTabsProps {
   onDatasetChange: (datasetId: string) => void;
   revenueTotal?: number;
   operatingTotal?: number;
-  availableDatasets?: string[];  // NEW — datasets available for current entity
+  availableDatasets?: string[];  // datasets available for current entity
 }
 
 const DATASETS: Dataset[] = [
@@ -23,31 +21,23 @@ const DATASETS: Dataset[] = [
     id: 'revenue',
     label: 'Money In',
     icon: DollarSign,
-    color: '#585937', // olive-600
-    lightColor: '#6e744e', // olive-500
     description: 'Where funds come from'
   },
   {
     id: 'operating',
     label: 'Money Out',
     icon: TrendingDown,
-    color: '#00657c', // navy-600
-    lightColor: '#417d8a', // navy-500
     description: 'How funds are spent'
   },
   {
     id: 'salaries',
     label: 'People',
     icon: Users,
-    color: '#9d3c89', // purple-600
-    lightColor: '#b957a8', // purple-500
     description: 'Workforce & compensation'
   }
-  // Transactions tab removed - transactions are now shown within Money Out drill-down
 ];
 
 const formatCurrency = (amount: number): string => {
-  // Format large numbers more compactly
   if (amount >= 1000000) {
     return `$${(amount / 1000000).toFixed(1)}M`;
   } else if (amount >= 1000) {
@@ -87,48 +77,40 @@ export default function DatasetTabs({ activeDataset, onDatasetChange, revenueTot
   };
 
   return (
-    <div className="dataset-tabs-container">
+    <div className="w-full">
       {/* Mobile Dropdown (< 768px) */}
-      <div className="dataset-tabs-mobile">
+      <div className="block md:hidden rounded-xl border border-[#E2EBEF] bg-white overflow-hidden">
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="dataset-dropdown-button"
+          className="w-full px-4 py-3 flex items-center justify-between bg-transparent cursor-pointer transition-colors duration-200 hover:bg-[#F7F7F8] font-manrope focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ev-muted-blue focus-visible:ring-offset-2"
           aria-label="Select dataset"
           aria-expanded={mobileMenuOpen}
         >
-          <div className="dataset-dropdown-selected">
-            <div 
-              className="dataset-icon-mobile"
-              style={{ backgroundColor: activeDatasetObj.color }}
-            >
-              <IconComponent size={18} style={{ color: 'white' }} />
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-lg bg-ev-muted-blue flex items-center justify-center shrink-0">
+              <IconComponent size={18} className="text-white" />
             </div>
-            <div className="dataset-info-mobile">
-              <div className="dataset-label-mobile">
+            <div className="text-left">
+              <div className="text-sm font-semibold text-[#1C1C1C] leading-tight">
                 {activeDatasetObj.label}
                 {getDatasetTotal(activeDatasetObj.id) && (
-                  <span className="dataset-total-mobile"> · {getDatasetTotal(activeDatasetObj.id)}</span>
+                  <span className="text-ev-muted-blue font-bold ml-1"> · {getDatasetTotal(activeDatasetObj.id)}</span>
                 )}
               </div>
-              <div className="dataset-description-mobile">
+              <div className="text-xs text-[#6B7280] mt-0.5">
                 {activeDatasetObj.description}
               </div>
             </div>
           </div>
           <ChevronDown
             size={20}
-            className="dataset-chevron"
-            style={{ 
-              color: 'var(--text-gray)',
-              transform: mobileMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-              transition: 'transform 0.2s'
-            }}
+            className={`text-[#6B7280] shrink-0 transition-transform duration-200 ${mobileMenuOpen ? 'rotate-180' : 'rotate-0'}`}
           />
         </button>
 
         {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
-          <div className="dataset-dropdown-menu">
+          <div className="border-t border-[#E2EBEF] bg-[#F7F7F8]">
             {DATASETS.map((dataset) => {
               const Icon = dataset.icon;
               const isActive = dataset.id === activeDataset;
@@ -139,25 +121,23 @@ export default function DatasetTabs({ activeDataset, onDatasetChange, revenueTot
                 <button
                   key={dataset.id}
                   onClick={() => handleDatasetSelect(dataset.id)}
-                  className={`dataset-dropdown-item ${isActive ? 'active' : ''}`}
-                  style={isDisabled
-                    ? { opacity: 0.4, cursor: 'not-allowed', pointerEvents: 'none' as const }
-                    : isActive ? { borderLeftColor: dataset.color } : undefined}
+                  className={`w-full px-4 py-3 flex items-center gap-3.5 border-none border-l-4 text-left font-manrope cursor-pointer transition-all duration-200 ${
+                    isActive
+                      ? 'border-l-ev-muted-blue bg-white'
+                      : 'border-l-transparent hover:bg-white'
+                  } ${isDisabled ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                   aria-disabled={isDisabled || undefined}
                   title={isDisabled ? `No ${dataset.label} data available` : undefined}
                 >
-                  <div 
-                    className="dataset-icon-mobile"
-                    style={{ backgroundColor: isActive ? dataset.color : dataset.lightColor }}
-                  >
-                    <Icon size={20} style={{ color: 'white' }} />
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${isActive ? 'bg-ev-muted-blue' : 'bg-[#6B7280]'}`}>
+                    <Icon size={20} className="text-white" />
                   </div>
                   <div>
-                    <div className={`dataset-label-mobile ${isActive ? 'active' : ''}`}>
+                    <div className={`text-sm leading-tight ${isActive ? 'font-bold text-[#1C1C1C]' : 'font-medium text-[#1C1C1C]'}`}>
                       {dataset.label}
-                      {total && <span className="dataset-total-mobile"> · {total}</span>}
+                      {total && <span className="text-ev-muted-blue font-bold ml-1"> · {total}</span>}
                     </div>
-                    <div className="dataset-description-mobile">
+                    <div className="text-xs text-[#6B7280] mt-0.5">
                       {dataset.description}
                     </div>
                   </div>
@@ -168,8 +148,8 @@ export default function DatasetTabs({ activeDataset, onDatasetChange, revenueTot
         )}
       </div>
 
-      {/* Desktop Tabs (≥ 768px) */}
-      <div className="dataset-tabs-desktop">
+      {/* Desktop Tabs (>= 768px) */}
+      <div className="hidden md:flex gap-0 border-b border-[#E2EBEF]">
         {DATASETS.map((dataset) => {
           const Icon = dataset.icon;
           const isActive = dataset.id === activeDataset;
@@ -180,32 +160,19 @@ export default function DatasetTabs({ activeDataset, onDatasetChange, revenueTot
             <button
               key={dataset.id}
               onClick={() => handleDatasetSelect(dataset.id)}
-              className={`dataset-tab ${isActive ? 'active' : ''}`}
-              style={isDisabled
-                ? { opacity: 0.4, cursor: 'not-allowed', pointerEvents: 'none' as const }
-                : isActive ? {
-                  backgroundColor: 'var(--white)',
-                  borderColor: dataset.color,
-                  boxShadow: `0 2px 8px ${dataset.color}20`
-                } : undefined}
+              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors duration-200 cursor-pointer font-manrope focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ev-muted-blue focus-visible:ring-offset-2 ${
+                isActive
+                  ? 'text-ev-muted-blue border-b-ev-muted-blue font-bold'
+                  : 'text-[#6B7280] border-transparent hover:text-[#374151]'
+              } ${isDisabled ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
               aria-disabled={isDisabled || undefined}
               title={isDisabled ? `No ${dataset.label} data available` : undefined}
             >
-              <div 
-                className="dataset-tab-icon"
-                style={{ backgroundColor: dataset.color }}
-              >
-                <Icon size={18} style={{ color: 'white' }} />
-              </div>
-              <div className="dataset-tab-content">
-                <div className="dataset-tab-label-row">
-                  <span className="dataset-tab-label">{dataset.label}</span>
-                  {total && (
-                    <span className="dataset-tab-amount">{total}</span>
-                  )}
-                </div>
-                <span className="dataset-tab-description">{dataset.description}</span>
-              </div>
+              <span className="flex items-center gap-2">
+                <Icon size={16} />
+                {dataset.label}
+                {total && <span className="text-xs font-bold ml-1">{total}</span>}
+              </span>
             </button>
           );
         })}

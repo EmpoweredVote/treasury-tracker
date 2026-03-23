@@ -3,7 +3,6 @@ import { SiteHeader } from '@chrisandrewsedu/ev-ui';
 import { ArrowLeft } from 'lucide-react';
 import { loadBudgetData, listMunicipalities } from './data/dataLoader';
 import EntitySwitcher from './components/EntitySwitcher';
-import './components/EntitySwitcher.css';
 import DatasetTabs from './components/datasets/DatasetTabs';
 import SearchBar from './components/SearchBar';
 import YearSelector from './components/YearSelector';
@@ -13,7 +12,6 @@ import CategoryList from './components/CategoryList';
 import LineItemsTable from './components/LineItemsTable';
 import LinkedTransactionsPanel from './components/LinkedTransactionsPanel';
 import type { BudgetCategory, BudgetData, Municipality } from './types/budget';
-import './App.css'
 
 interface BreadcrumbItem {
   label: string;
@@ -268,10 +266,13 @@ function App() {
   // Initial load guard — municipalities not yet resolved
   if (!selectedEntity) {
     return (
-      <div className="app">
+      <div className="min-h-screen bg-[#F7F7F8] font-manrope">
         <SiteHeader logoSrc={`${import.meta.env.BASE_URL}EVLogo.svg`} />
-        <div className="main-content" style={{ padding: '4rem', textAlign: 'center' }}>
-          <div className="spinner" style={{ margin: '0 auto' }} />
+        <div className="flex items-center justify-center py-16">
+          <div role="status" aria-live="polite" aria-label="Loading budget data" className="flex flex-col items-center gap-4">
+            <div className="w-8 h-8 rounded-full border-4 border-[#E2EBEF] border-t-ev-muted-blue animate-spin" />
+            <span className="sr-only">Loading budget data...</span>
+          </div>
         </div>
       </div>
     );
@@ -280,31 +281,23 @@ function App() {
   // Show error state when data load fails (after entity is resolved)
   if (!loading && !budgetData) {
     return (
-      <div className="app">
+      <div className="min-h-screen bg-[#F7F7F8] font-manrope">
         <SiteHeader logoSrc={`${import.meta.env.BASE_URL}EVLogo.svg`} />
-        <div className="main-content" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: 700, lineHeight: 1.2, color: '#1c1c1c', margin: 0 }}>
-            Couldn't load {selectedEntity.name} data. Check your connection and try again.
-          </h2>
-          <button
-            onClick={() => window.location.reload()}
-            style={{
-              marginTop: '16px',
-              backgroundColor: '#00657c',
-              color: '#ffffff',
-              padding: '8px 24px',
-              borderRadius: '8px',
-              border: 'none',
-              fontSize: '16px',
-              fontWeight: 400,
-              fontFamily: 'Manrope, sans-serif',
-              cursor: 'pointer',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#005467'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#00657c'; }}
-          >
-            Retry
-          </button>
+        <div className="max-w-[1400px] mx-auto px-6 py-16 flex justify-center">
+          <div className="bg-white border border-[#E2EBEF] rounded-xl p-8 text-center max-w-md w-full">
+            <h2 className="text-base font-bold text-[#1C1C1C] mb-2">
+              Unable to load budget data
+            </h2>
+            <p className="text-sm text-[#6B7280] mb-6">
+              Unable to load budget data. Check your connection and try again.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-2 bg-[#005366] text-white text-sm font-medium rounded-lg cursor-pointer transition-colors duration-200 hover:bg-ev-teal-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ev-muted-blue focus-visible:ring-offset-2"
+            >
+              Retry
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -334,21 +327,25 @@ function App() {
   const displayCategories = searchQuery ? filteredCategories : currentCategories;
 
   return (
-    <div className="app">
+    <div className="min-h-screen bg-[#F7F7F8] font-manrope">
       <SiteHeader logoSrc={`${import.meta.env.BASE_URL}EVLogo.svg`} />
-      <div className="header">
-        <div className="header-content">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+
+      {/* Header / Controls bar */}
+      <div className="bg-white shadow-sm">
+        <div className="max-w-[1400px] mx-auto px-6 py-4">
+          <div className="flex items-center gap-4 flex-wrap">
             <EntitySwitcher
               municipalities={municipalities}
               selectedEntity={selectedEntity}
               onEntityChange={handleEntityChange}
             />
-            <div className="search-year-container">
-              <SearchBar
-                value={searchQuery}
-                onChange={setSearchQuery}
-              />
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="flex-1 min-w-0">
+                <SearchBar
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                />
+              </div>
               <YearSelector
                 selectedYear={selectedYear}
                 years={availableYears}
@@ -361,48 +358,60 @@ function App() {
 
       {breadcrumbItems.length > 2 && <Breadcrumb items={breadcrumbItems} />}
 
-      <div className="main-content-wrapper">
+      {/* Main content area */}
+      <div className="relative">
         {loading && (
-          <div className="content-loading-overlay" role="status" aria-live="polite" aria-label="Loading budget data">
-            <div className="spinner" />
+          <div
+            className="absolute inset-0 flex items-center justify-center bg-[#F7F7F8]/80 z-10"
+            role="status"
+            aria-live="polite"
+            aria-label="Loading budget data"
+          >
+            <div className="w-8 h-8 rounded-full border-4 border-[#E2EBEF] border-t-ev-muted-blue animate-spin" />
+            <span className="sr-only">Loading budget data...</span>
           </div>
         )}
-        <div className="main-content">
+        <div className="max-w-[1400px] mx-auto px-6 py-8">
           {/* Hero Section — only show at top level */}
           {navigationPath.length === 0 && (
             <>
-              <div className="hero-and-cards-row">
-                <div className="hero-section" style={{
-                  backgroundImage: selectedEntity.hero_image_url
-                    ? `url('${selectedEntity.hero_image_url}')`
-                    : "url('https://upload.wikimedia.org/wikipedia/commons/8/85/Monroe_County_Courthouse_in_Bloomington_from_west-southwest.jpg')",
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat'
-                }}>
-                  <div className="hero-overlay" style={{
-                    background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.3) 100%)'
-                  }}></div>
-                  <div className="hero-content">
-                    <h1>{selectedEntity.name} Finances</h1>
-                    <p>Explore how public funds are allocated and spent.</p>
+              <div className="flex gap-6 flex-col lg:flex-row mb-8">
+                {/* Hero image card */}
+                <div
+                  className="relative h-48 lg:h-64 rounded-xl overflow-hidden flex-1 min-w-0"
+                  style={{
+                    backgroundImage: selectedEntity.hero_image_url
+                      ? `url('${selectedEntity.hero_image_url}')`
+                      : "url('https://upload.wikimedia.org/wikipedia/commons/8/85/Monroe_County_Courthouse_in_Bloomington_from_west-southwest.jpg')",
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat'
+                  }}
+                >
+                  <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 100%)' }} />
+                  <div className="absolute bottom-0 left-0 p-6 text-white">
+                    <h1 className="text-xl font-bold mb-1">{selectedEntity.name} Finances</h1>
+                    <p className="text-sm opacity-90">Explore how public funds are allocated and spent.</p>
                   </div>
                 </div>
 
-                <div className="info-cards">
-                  <div className="info-card">
-                    <div className="info-card-left">
-                      <h3>Total {operatingBudgetData?.metadata.fiscalYear ?? selectedYear} Budget</h3>
-                      <div className="amount">
+                {/* Info card */}
+                <div className="bg-white border border-[#E2EBEF] rounded-xl p-6 lg:w-72 shrink-0">
+                  <div className="flex gap-6">
+                    <div className="flex-1">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-[#6B7280] mb-1">
+                        Total {operatingBudgetData?.metadata.fiscalYear ?? selectedYear} Budget
+                      </h3>
+                      <div className="text-[30px] font-bold text-[#1C1C1C] leading-tight">
                         {operatingBudgetData ? formatCurrency(operatingBudgetData.metadata.totalBudget) : '—'}
                       </div>
                     </div>
                     {selectedEntity.population > 0 && operatingBudgetData && (
                       <>
-                        <div className="info-card-divider"></div>
-                        <div className="info-card-right">
-                          <h3>Context</h3>
-                          <div className="description">
+                        <div className="w-px bg-[#E2EBEF]" />
+                        <div className="flex-1">
+                          <h3 className="text-xs font-bold uppercase tracking-wider text-[#6B7280] mb-1">Context</h3>
+                          <div className="text-sm text-[#6B7280] leading-relaxed">
                             Population ~{selectedEntity.population.toLocaleString()} residents
                             <br />
                             ${formatPerResident(operatingBudgetData.metadata.totalBudget, selectedEntity.population)} per resident annually
@@ -415,7 +424,7 @@ function App() {
               </div>
 
               {/* Dataset Tabs */}
-              <div style={{ marginTop: '2rem', marginBottom: '2rem' }}>
+              <div className="mb-8">
                 <DatasetTabs
                   activeDataset={activeDataset}
                   onDatasetChange={(id) => setActiveDataset(id as DatasetType)}
@@ -431,41 +440,17 @@ function App() {
           {navigationPath.length > 0 && (
             <button
               onClick={handleBack}
-              className="back-button"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                padding: '0.75rem 1rem',
-                marginBottom: '1.5rem',
-                backgroundColor: 'var(--white)',
-                border: '1px solid var(--medium-gray)',
-                borderRadius: '0.5rem',
-                fontSize: '0.9rem',
-                fontWeight: '500',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                fontFamily: 'Manrope, sans-serif',
-                color: 'var(--muted-blue)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'var(--muted-blue)';
-                e.currentTarget.style.backgroundColor = 'var(--light-gray)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'var(--medium-gray)';
-                e.currentTarget.style.backgroundColor = 'var(--white)';
-              }}
+              className="flex items-center gap-2 text-ev-muted-blue hover:underline text-sm font-medium mb-6 bg-transparent border-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ev-muted-blue focus-visible:ring-offset-2 rounded"
               aria-label="Go back"
             >
-              <ArrowLeft size={20} />
+              <ArrowLeft size={16} />
               Back to {navigationPath.length === 1 ? 'Overview' : navigationPath[navigationPath.length - 2].name}
             </button>
           )}
 
           {/* Search Results Message */}
           {searchQuery && (
-            <div className="search-results-message">
+            <div className="mb-4 text-sm text-[#6B7280]">
               {displayCategories.length > 0 ? (
                 <p>Found {displayCategories.length} {displayCategories.length === 1 ? 'result' : 'results'} for "{searchQuery}"</p>
               ) : (
@@ -476,13 +461,22 @@ function App() {
 
           {/* Budget Visualization Section */}
           {budgetData && (
-            <div className="budget-section">
-              <div className="section-header">
-                <h2>
-                  {navigationPath.length === 0
-                    ? `How ${budgetData.metadata.cityName} ${displayText.title}`
-                    : navigationPath[navigationPath.length - 1].name}
-                </h2>
+            <div className="space-y-6">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-base font-bold text-[#1C1C1C]">
+                    {navigationPath.length === 0
+                      ? `How ${budgetData.metadata.cityName} ${displayText.title}`
+                      : navigationPath[navigationPath.length - 1].name}
+                  </h2>
+                  <p className="text-sm text-[#6B7280] mt-1">
+                    {navigationPath.length === 0
+                      ? displayText.description
+                      : showLineItems
+                        ? displayText.lineItemsDescription
+                        : 'The colored backgrounds show each subcategory\'s relative size. Tap to explore further or use the back button to return.'}
+                  </p>
+                </div>
                 {navigationPath.length > 1 && (
                   <YearSelector
                     selectedYear={selectedYear}
@@ -491,13 +485,6 @@ function App() {
                   />
                 )}
               </div>
-              <p className="section-description">
-                {navigationPath.length === 0
-                  ? displayText.description
-                  : showLineItems
-                    ? displayText.lineItemsDescription
-                    : 'The colored backgrounds show each subcategory\'s relative size. Tap to explore further or use the back button to return.'}
-              </p>
 
               {showLineItems ? (
                 <>
@@ -547,8 +534,8 @@ function App() {
                   )}
                 </>
               ) : (
-                <div className="no-results">
-                  <p>Try adjusting your search query</p>
+                <div className="bg-white border border-[#E2EBEF] rounded-xl p-8 text-center">
+                  <p className="text-sm text-[#6B7280]">Try adjusting your search query</p>
                 </div>
               )}
             </div>
@@ -556,15 +543,8 @@ function App() {
 
           {/* Info tip */}
           {navigationPath.length === 0 && budgetData && (
-            <div style={{
-              marginTop: '1.5rem',
-              padding: '1rem',
-              backgroundColor: 'rgba(59, 130, 246, 0.08)',
-              borderRadius: '0.5rem',
-              fontSize: '0.875rem',
-              color: 'var(--text-gray)'
-            }}>
-              <strong>Tip:</strong> Tap any category to drill down into its breakdown. Use breadcrumbs or the back button to navigate back. Switch datasets using the tabs above to explore revenue and salaries. Drill into Money Out to see individual transactions.
+            <div className="mt-6 p-4 bg-ev-teal-050 border border-ev-teal-100 rounded-lg text-sm text-[#6B7280]">
+              <strong className="text-[#1C1C1C]">Tip:</strong> Tap any category to drill down into its breakdown. Use breadcrumbs or the back button to navigate back. Switch datasets using the tabs above to explore revenue and salaries. Drill into Money Out to see individual transactions.
             </div>
           )}
         </div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Search, X } from 'lucide-react';
 
 interface SearchBarProps {
   value: string;
@@ -6,31 +7,21 @@ interface SearchBarProps {
   placeholder?: string;
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ 
-  value, 
-  onChange, 
-  placeholder = "Search city departments or categories..." 
+const SearchBar: React.FC<SearchBarProps> = ({
+  value,
+  onChange,
+  placeholder = "Search city departments or categories..."
 }) => {
   return (
-    <div className="search-bar" role="search">
+    <div className="relative flex items-center" role="search">
       <label htmlFor="budget-search" className="sr-only">
         Search budget categories
       </label>
-      <svg 
-        className="search-icon" 
-        width="18" 
-        height="18" 
-        viewBox="0 0 24 24" 
-        fill="none" 
-        stroke="currentColor" 
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+      <Search
+        size={16}
+        className="absolute left-3 text-ev-muted-blue pointer-events-none"
         aria-hidden="true"
-      >
-        <circle cx="11" cy="11" r="8"></circle>
-        <path d="m21 21-4.35-4.35"></path>
-      </svg>
+      />
       <input
         id="budget-search"
         type="text"
@@ -38,7 +29,18 @@ const SearchBar: React.FC<SearchBarProps> = ({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         aria-label="Search budget departments and categories"
+        className="w-full pl-10 pr-10 py-2 bg-white border border-[#E2EBEF] rounded-lg text-sm font-manrope focus:outline-none focus:ring-2 focus:ring-ev-muted-blue focus:ring-offset-2 placeholder:text-[#6B7280] text-[#1C1C1C]"
       />
+      {value && (
+        <button
+          type="button"
+          onClick={() => onChange('')}
+          aria-label="Clear search"
+          className="absolute right-3 text-ev-coral hover:text-ev-coral/80 cursor-pointer transition-colors duration-200"
+        >
+          <X size={16} aria-hidden="true" />
+        </button>
+      )}
     </div>
   );
 };

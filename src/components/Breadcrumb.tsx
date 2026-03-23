@@ -13,19 +13,19 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ items }) => {
   if (items.length === 0) return null;
 
   return (
-    <nav className="breadcrumb" aria-label="Breadcrumb navigation">
-      <ol className="breadcrumb-content">
+    <nav className="px-6 py-3 max-w-[1400px] mx-auto" aria-label="Breadcrumb navigation">
+      <ol className="flex items-center gap-1 text-sm">
         {items.map((item, index) => (
           <React.Fragment key={index}>
             {index > 0 && (
-              <li className="breadcrumb-separator" aria-hidden="true">
-                ›
+              <li className="text-[#6B7280]" aria-hidden="true">
+                /
               </li>
             )}
             <li>
               {item.onClick ? (
                 <button
-                  className="breadcrumb-item breadcrumb-button"
+                  className="text-ev-muted-blue hover:underline cursor-pointer font-medium bg-transparent border-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ev-muted-blue focus-visible:ring-offset-2 rounded"
                   onClick={item.onClick}
                   aria-current={index === items.length - 1 ? 'page' : undefined}
                 >
@@ -33,22 +33,10 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ items }) => {
                 </button>
               ) : (
                 <span
-                  className={`breadcrumb-item ${index === items.length - 1 ? 'active selected-breadcrumb' : ''}`}
+                  className="text-[#1C1C1C] font-medium"
                   aria-current={index === items.length - 1 ? 'page' : undefined}
                 >
                   {item.label}
-                  {index === items.length - 1 && (
-                    <svg 
-                      width="14" 
-                      height="14" 
-                      viewBox="0 0 16 16" 
-                      fill="none"
-                      style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }}
-                      aria-hidden="true"
-                    >
-                      <path d="M13.5 4L6 11.5L2.5 8" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  )}
                 </span>
               )}
             </li>
