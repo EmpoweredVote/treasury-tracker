@@ -6,7 +6,9 @@
 
 import type { BudgetData, BudgetCategory } from '../types/budget';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'https://api.empowered.vote';
+const API_BASE = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api`
+  : '/api';
 
 // Cache structure to support multiple city/year/dataset combinations
 const cache: Map<string, BudgetData> = new Map();
