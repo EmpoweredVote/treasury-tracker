@@ -15,6 +15,7 @@ interface DatasetTabsProps {
   onDatasetChange: (datasetId: string) => void;
   revenueTotal?: number;
   operatingTotal?: number;
+  availableDatasets?: string[];  // NEW — datasets available for current entity
 }
 
 const DATASETS: Dataset[] = [
@@ -60,13 +61,17 @@ const formatCurrency = (amount: number): string => {
   }).format(amount);
 };
 
-export default function DatasetTabs({ activeDataset, onDatasetChange, revenueTotal, operatingTotal }: DatasetTabsProps) {
+export default function DatasetTabs({ activeDataset, onDatasetChange, revenueTotal, operatingTotal, availableDatasets }: DatasetTabsProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
+
+  // Default to all datasets if prop omitted (backward compat)
+  const available = availableDatasets ?? DATASETS.map(d => d.id);
+
   const activeDatasetObj = DATASETS.find(d => d.id === activeDataset) || DATASETS[1];
   const IconComponent = activeDatasetObj.icon;
 
   const handleDatasetSelect = (datasetId: string) => {
+    if (!available.includes(datasetId)) return;
     onDatasetChange(datasetId);
     setMobileMenuOpen(false);
   };
@@ -127,14 +132,19 @@ export default function DatasetTabs({ activeDataset, onDatasetChange, revenueTot
             {DATASETS.map((dataset) => {
               const Icon = dataset.icon;
               const isActive = dataset.id === activeDataset;
+              const isDisabled = !available.includes(dataset.id);
               const total = getDatasetTotal(dataset.id);
-              
+
               return (
                 <button
                   key={dataset.id}
                   onClick={() => handleDatasetSelect(dataset.id)}
                   className={`dataset-dropdown-item ${isActive ? 'active' : ''}`}
-                  style={isActive ? { borderLeftColor: dataset.color } : undefined}
+                  style={isDisabled
+                    ? { opacity: 0.4, cursor: 'not-allowed', pointerEvents: 'none' as const }
+                    : isActive ? { borderLeftColor: dataset.color } : undefined}
+                  aria-disabled={isDisabled || undefined}
+                  title={isDisabled ? `No ${dataset.label} data available` : undefined}
                 >
                   <div 
                     className="dataset-icon-mobile"
@@ -163,18 +173,23 @@ export default function DatasetTabs({ activeDataset, onDatasetChange, revenueTot
         {DATASETS.map((dataset) => {
           const Icon = dataset.icon;
           const isActive = dataset.id === activeDataset;
+          const isDisabled = !available.includes(dataset.id);
           const total = getDatasetTotal(dataset.id);
-          
+
           return (
             <button
               key={dataset.id}
               onClick={() => handleDatasetSelect(dataset.id)}
               className={`dataset-tab ${isActive ? 'active' : ''}`}
-              style={isActive ? { 
-                backgroundColor: 'var(--white)',
-                borderColor: dataset.color,
-                boxShadow: `0 2px 8px ${dataset.color}20`
-              } : undefined}
+              style={isDisabled
+                ? { opacity: 0.4, cursor: 'not-allowed', pointerEvents: 'none' as const }
+                : isActive ? {
+                  backgroundColor: 'var(--white)',
+                  borderColor: dataset.color,
+                  boxShadow: `0 2px 8px ${dataset.color}20`
+                } : undefined}
+              aria-disabled={isDisabled || undefined}
+              title={isDisabled ? `No ${dataset.label} data available` : undefined}
             >
               <div 
                 className="dataset-tab-icon"

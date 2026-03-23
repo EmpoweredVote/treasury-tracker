@@ -1,9 +1,10 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { SiteHeader } from '@chrisandrewsedu/ev-ui';
 import { ArrowLeft } from 'lucide-react';
-import { loadBudgetData } from './data/dataLoader';
+import { loadBudgetData, listMunicipalities } from './data/dataLoader';
+import EntitySwitcher from './components/EntitySwitcher';
+import './components/EntitySwitcher.css';
 import DatasetTabs from './components/datasets/DatasetTabs';
-import NavigationTabs from './components/NavigationTabs';
 import SearchBar from './components/SearchBar';
 import YearSelector from './components/YearSelector';
 import Breadcrumb from './components/Breadcrumb';
@@ -11,7 +12,7 @@ import BudgetVisualization from './components/BudgetVisualization';
 import CategoryList from './components/CategoryList';
 import LineItemsTable from './components/LineItemsTable';
 import LinkedTransactionsPanel from './components/LinkedTransactionsPanel';
-import type { BudgetCategory, BudgetData } from './types/budget';
+import type { BudgetCategory, BudgetData, Municipality } from './types/budget';
 import './App.css'
 
 interface BreadcrumbItem {
@@ -21,12 +22,23 @@ interface BreadcrumbItem {
 
 type DatasetType = 'revenue' | 'operating' | 'salaries';
 
+// Derive URL slug from municipality at runtime
+function toSlug(m: Municipality): string {
+  return `${m.name.toLowerCase().replace(/\s+/g, '-')}-${m.state.toLowerCase()}`;
+}
+
+// Sync all three params to URL without page reload (D-10, D-11)
+function syncURL(entity: Municipality, year: string, dataset: string) {
+  const params = new URLSearchParams({ entity: toSlug(entity), year, dataset });
+  window.history.pushState({}, '', `?${params.toString()}`);
+}
+
 // Get display text for each dataset
 function getDatasetDisplayText(type: DatasetType) {
   const texts: Record<DatasetType, { title: string; description: string; lineItemsDescription: string; transactionsDescription?: string }> = {
     revenue: {
       title: 'funds its budget',
-      description: 'Each segment shows where city revenue comes from. Tap any source to explore its breakdown.',
+      description: 'Each segment shows where funds come from. Tap any source to explore its breakdown.',
       lineItemsDescription: 'Detailed revenue sources showing approved and actual amounts received.'
     },
     operating: {
@@ -58,22 +70,71 @@ function getDatasetLabel(type: DatasetType): string {
 function App() {
   // Dataset selection
   const [activeDataset, setActiveDataset] = useState<DatasetType>('operating');
-  
-  // Existing state
-  const [activeTab, setActiveTab] = useState('city');
+
+  // Entity state
+  const [municipalities, setMunicipalities] = useState<Municipality[]>([]);
+  const [selectedEntity, setSelectedEntity] = useState<Municipality | null>(null);
+
   const [selectedYear, setSelectedYear] = useState('2025');
   const [searchQuery, setSearchQuery] = useState('');
   const [budgetData, setBudgetData] = useState<BudgetData | null>(null);
   const [operatingBudgetData, setOperatingBudgetData] = useState<BudgetData | null>(null);
   const [revenueData, setRevenueData] = useState<BudgetData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [navigationPath, setNavigationPath] = useState<BudgetCategory[]>([]);
 
-  // Load operating budget and revenue data for static info card and totals
+  // Derive available years and datasets from selected entity
+  const availableYears = useMemo(() => {
+    if (!selectedEntity) return [];
+    const years = [...new Set(selectedEntity.available_datasets.map(d => d.fiscal_year))];
+    return years.sort((a, b) => b - a).map(String);
+  }, [selectedEntity]);
+
+  const availableDatasetTypes = useMemo(() => {
+    if (!selectedEntity) return ['operating', 'revenue', 'salaries'];
+    return [...new Set(
+      selectedEntity.available_datasets
+        .filter(d => d.fiscal_year === parseInt(selectedYear))
+        .map(d => d.dataset_type)
+    )];
+  }, [selectedEntity, selectedYear]);
+
+  // Load municipalities on mount, resolve entity from URL (or default to Bloomington per D-12)
   useEffect(() => {
+    listMunicipalities().then(list => {
+      setMunicipalities(list);
+      const params = new URLSearchParams(window.location.search);
+      const entityParam = params.get('entity');
+      const yearParam = params.get('year');
+      const datasetParam = params.get('dataset');
+
+      const matched = entityParam ? list.find(m => toSlug(m) === entityParam) : null;
+      const entity = matched ?? list.find(m => m.name === 'Bloomington' && m.state === 'IN') ?? list[0];
+      setSelectedEntity(entity);
+
+      // Resolve year: from URL param if valid for entity, else most recent available
+      const entityYears = [...new Set(entity.available_datasets.map(d => d.fiscal_year))].sort((a, b) => b - a);
+      if (yearParam && entityYears.includes(parseInt(yearParam))) {
+        setSelectedYear(yearParam);
+      } else if (entityYears.length > 0) {
+        setSelectedYear(String(entityYears[0]));
+      }
+
+      // Resolve dataset from URL param if valid
+      if (datasetParam && ['operating', 'revenue', 'salaries'].includes(datasetParam)) {
+        setActiveDataset(datasetParam as DatasetType);
+      }
+    }).catch(error => {
+      console.error('Failed to load municipalities:', error);
+    });
+  }, []);
+
+  // Load operating budget and revenue totals for info cards
+  useEffect(() => {
+    if (!selectedEntity) return;
     Promise.all([
-      loadBudgetData(parseInt(selectedYear), 'Bloomington', 'operating'),
-      loadBudgetData(parseInt(selectedYear), 'Bloomington', 'revenue')
+      loadBudgetData(parseInt(selectedYear), selectedEntity.name, selectedEntity.state, 'operating'),
+      loadBudgetData(parseInt(selectedYear), selectedEntity.name, selectedEntity.state, 'revenue')
     ])
       .then(([operating, revenue]) => {
         setOperatingBudgetData(operating);
@@ -84,15 +145,16 @@ function App() {
         setOperatingBudgetData(null);
         setRevenueData(null);
       });
-  }, [selectedYear]);
+  }, [selectedYear, selectedEntity]);
 
-  // Load data when dataset or year changes
+  // Load main budget data when dataset, year, or entity changes
   useEffect(() => {
+    if (!selectedEntity) return;
     setLoading(true);
     setNavigationPath([]);
     setSearchQuery('');
 
-    loadBudgetData(parseInt(selectedYear), 'Bloomington', activeDataset)
+    loadBudgetData(parseInt(selectedYear), selectedEntity.name, selectedEntity.state, activeDataset)
       .then(data => {
         setBudgetData(data);
         setLoading(false);
@@ -102,27 +164,40 @@ function App() {
         setBudgetData(null);
         setLoading(false);
       });
-  }, [activeDataset, selectedYear]);
+  }, [activeDataset, selectedYear, selectedEntity]);
 
-  const tabs = [
-    { id: 'city', label: 'City' },
-    { id: 'state', label: 'State' },
-    { id: 'federal', label: 'Federal' }
-  ];
+  // Entity change handler — computes effective year BEFORE triggering data load (avoids Pitfall 1)
+  const handleEntityChange = useCallback((entity: Municipality) => {
+    const entityYears = [...new Set(entity.available_datasets.map(d => d.fiscal_year))].sort((a, b) => b - a);
+    const currentYearValid = entityYears.includes(parseInt(selectedYear));
+    const effectiveYear = currentYearValid ? selectedYear : (entityYears.length > 0 ? String(entityYears[0]) : selectedYear);
 
-  const years = ['2025', '2024', '2023', '2022', '2021'];
+    // Check if current dataset is available for new entity in effective year
+    const entityDatasets = entity.available_datasets
+      .filter(d => d.fiscal_year === parseInt(effectiveYear))
+      .map(d => d.dataset_type);
+    const effectiveDataset = entityDatasets.includes(activeDataset) ? activeDataset : 'operating';
+
+    setSelectedEntity(entity);
+    setSelectedYear(effectiveYear);
+    setActiveDataset(effectiveDataset as DatasetType);
+    syncURL(entity, effectiveYear, effectiveDataset);
+  }, [selectedYear, activeDataset]);
+
+  // Sync URL when year or dataset changes (guard avoids Pitfall 2 — no sync on mount)
+  useEffect(() => {
+    if (!selectedEntity) return;
+    syncURL(selectedEntity, selectedYear, activeDataset);
+  }, [selectedEntity, selectedYear, activeDataset]);
 
   const handleCategoryClick = useCallback((category: BudgetCategory) => {
-    // Navigate into category if it has subcategories OR if it has line items (lowest level)
     if (category.subcategories && category.subcategories.length > 0) {
       setNavigationPath([...navigationPath, category]);
     } else if (category.lineItems && category.lineItems.length > 0) {
-      // Navigate to show the line items for this category
       setNavigationPath([...navigationPath, category]);
     }
   }, [navigationPath]);
 
-  // Handler for sunburst clicks - sets the full navigation path directly
   const handlePathClick = useCallback((path: BudgetCategory[]) => {
     setNavigationPath(path);
   }, []);
@@ -132,8 +207,6 @@ function App() {
   }, [navigationPath]);
 
   const handleBreadcrumbClick = useCallback((index: number) => {
-    // index 0 = City, index 1 = Dataset, index 2+ = categories
-    // Clicking dataset should go back to overview
     if (index === 1) {
       setNavigationPath([]);
     } else if (index > 1) {
@@ -152,58 +225,56 @@ function App() {
 
   const breadcrumbItems: BreadcrumbItem[] = useMemo(() => {
     const items: BreadcrumbItem[] = [
-      { 
-        label: 'City', 
-        onClick: navigationPath.length > 0 ? () => setNavigationPath([]) : undefined 
+      {
+        label: selectedEntity?.name ?? 'City',
+        onClick: navigationPath.length > 0 ? () => setNavigationPath([]) : undefined
       },
       {
         label: getDatasetLabel(activeDataset),
         onClick: navigationPath.length > 0 ? () => handleBreadcrumbClick(1) : undefined
       }
     ];
-    
+
     navigationPath.forEach((category, index) => {
       items.push({
         label: category.name,
-        onClick: index < navigationPath.length - 1 
+        onClick: index < navigationPath.length - 1
           ? () => handleBreadcrumbClick(index + 2)
-          : undefined // Current selection, not clickable
+          : undefined
       });
     });
-    
+
     return items;
-  }, [navigationPath, activeDataset, handleBreadcrumbClick]);
+  }, [navigationPath, activeDataset, handleBreadcrumbClick, selectedEntity]);
 
   const formatPerResident = (total: number, population: number) => {
     const perResident = total / population;
     return `${perResident.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
   };
 
-  // Get display text based on active dataset
   const displayText = getDatasetDisplayText(activeDataset);
 
-  // Show loading state
-  if (loading) {
+  // Initial load guard — municipalities not yet resolved
+  if (!selectedEntity) {
     return (
       <div className="app">
+        <SiteHeader logoSrc={`${import.meta.env.BASE_URL}EVLogo.svg`} />
         <div className="main-content" style={{ padding: '4rem', textAlign: 'center' }}>
-          <h2>Loading data...</h2>
+          <div className="spinner" style={{ margin: '0 auto' }} />
         </div>
       </div>
     );
   }
 
-  // Show error state
-  if (!budgetData) {
+  // Show error state when data load fails (after entity is resolved)
+  if (!loading && !budgetData) {
     return (
       <div className="app">
+        <SiteHeader logoSrc={`${import.meta.env.BASE_URL}EVLogo.svg`} />
         <div className="main-content" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
           <h2 style={{ fontSize: '20px', fontWeight: 700, lineHeight: 1.2, color: '#1c1c1c', margin: 0 }}>
-            Budget data unavailable
+            Couldn't load {selectedEntity.name} data. Check your connection and try again.
           </h2>
-          <p style={{ fontSize: '16px', fontWeight: 400, lineHeight: 1.6, color: '#6b7280', marginTop: '8px' }}>
-            The budget API could not be reached. Check your connection and try again.
-          </p>
           <button
             onClick={() => window.location.reload()}
             style={{
@@ -228,23 +299,21 @@ function App() {
     );
   }
 
-  // Determine what to display
+  // Determine what to display (only when budgetData is loaded)
   const currentCategory = navigationPath.length > 0 ? navigationPath[navigationPath.length - 1] : null;
-  const showLineItems = currentCategory && 
-                        currentCategory.lineItems && 
+  const showLineItems = currentCategory &&
+                        currentCategory.lineItems &&
                         currentCategory.lineItems.length > 0 &&
                         (!currentCategory.subcategories || currentCategory.subcategories.length === 0);
-  
+
   const currentCategories = navigationPath.length === 0
-    ? budgetData.categories // Top level
+    ? (budgetData?.categories ?? [])
     : navigationPath[navigationPath.length - 1].subcategories || [];
 
-  // Filter categories based on search query
   const filterCategories = (categories: BudgetCategory[], query: string): BudgetCategory[] => {
     if (!query.trim()) return categories;
-    
     const lowerQuery = query.toLowerCase();
-    return categories.filter(cat => 
+    return categories.filter(cat =>
       cat.name.toLowerCase().includes(lowerQuery) ||
       (cat.description && cat.description.toLowerCase().includes(lowerQuery))
     );
@@ -258,21 +327,20 @@ function App() {
       <SiteHeader logoSrc={`${import.meta.env.BASE_URL}EVLogo.svg`} />
       <div className="header">
         <div className="header-content">
-          {/* City/State/Federal tabs and controls */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <NavigationTabs 
-              tabs={tabs} 
-              activeTab={activeTab} 
-              onTabChange={setActiveTab} 
+            <EntitySwitcher
+              municipalities={municipalities}
+              selectedEntity={selectedEntity}
+              onEntityChange={handleEntityChange}
             />
             <div className="search-year-container">
-              <SearchBar 
-                value={searchQuery} 
-                onChange={setSearchQuery} 
+              <SearchBar
+                value={searchQuery}
+                onChange={setSearchQuery}
               />
-              <YearSelector 
+              <YearSelector
                 selectedYear={selectedYear}
-                years={years}
+                years={availableYears}
                 onYearChange={setSelectedYear}
               />
             </div>
@@ -282,144 +350,183 @@ function App() {
 
       {breadcrumbItems.length > 2 && <Breadcrumb items={breadcrumbItems} />}
 
-      <div className="main-content">
-        {/* Hero Section - Static, only show at top level */}
-        {navigationPath.length === 0 && (
-          <>
-            <div className="hero-and-cards-row">
-              <div className="hero-section" style={{
-                backgroundImage: "url('https://upload.wikimedia.org/wikipedia/commons/8/85/Monroe_County_Courthouse_in_Bloomington_from_west-southwest.jpg')",
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat'
-              }}>
-                <div className="hero-overlay" style={{
-                  background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.3) 100%)'
-                }}></div>
-                <div className="hero-content">
-                  <h1>Bloomington, Indiana Finances</h1>
-                  <p>Explore how public funds are allocated and spent.</p>
-                </div>
-              </div>
-
-              <div className="info-cards">
-                <div className="info-card">
-                  <div className="info-card-left">
-                    <h3>Total {operatingBudgetData.metadata.fiscalYear} Budget</h3>
-                    <div className="amount">{formatCurrency(operatingBudgetData.metadata.totalBudget)}</div>
-                  </div>
-                  <div className="info-card-divider"></div>
-                  <div className="info-card-right">
-                    <h3>City Context</h3>
-                    <div className="description">
-                      Population ~{operatingBudgetData.metadata.population.toLocaleString()} residents
-                      <br />
-                      ${formatPerResident(operatingBudgetData.metadata.totalBudget, operatingBudgetData.metadata.population)} per resident annually
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Dataset Tabs - NEW LOCATION */}
-            <div style={{ marginTop: '2rem', marginBottom: '2rem' }}>
-              <DatasetTabs 
-                activeDataset={activeDataset}
-                onDatasetChange={(id) => setActiveDataset(id as DatasetType)}
-                revenueTotal={revenueData?.metadata.totalBudget}
-                operatingTotal={operatingBudgetData?.metadata.totalBudget}
-              />
-            </div>
-          </>
-        )}
-
-        {/* Back button when navigated into categories */}
-        {navigationPath.length > 0 && (
-          <button
-            onClick={handleBack}
-            className="back-button"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              padding: '0.75rem 1rem',
-              marginBottom: '1.5rem',
-              backgroundColor: 'var(--white)',
-              border: '1px solid var(--medium-gray)',
-              borderRadius: '0.5rem',
-              fontSize: '0.9rem',
-              fontWeight: '500',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              fontFamily: 'Manrope, sans-serif',
-              color: 'var(--muted-blue)'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = 'var(--muted-blue)';
-              e.currentTarget.style.backgroundColor = 'var(--light-gray)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = 'var(--medium-gray)';
-              e.currentTarget.style.backgroundColor = 'var(--white)';
-            }}
-            aria-label="Go back"
-          >
-            <ArrowLeft size={20} />
-            Back to {navigationPath.length === 1 ? 'Overview' : navigationPath[navigationPath.length - 2].name}
-          </button>
-        )}
-
-        {/* Search Results Message */}
-        {searchQuery && (
-          <div className="search-results-message">
-            {displayCategories.length > 0 ? (
-              <p>Found {displayCategories.length} {displayCategories.length === 1 ? 'result' : 'results'} for "{searchQuery}"</p>
-            ) : (
-              <p>No results found for "{searchQuery}"</p>
-            )}
+      <div className="main-content-wrapper">
+        {loading && (
+          <div className="content-loading-overlay" role="status" aria-live="polite" aria-label="Loading budget data">
+            <div className="spinner" />
           </div>
         )}
-
-        {/* Budget Visualization Section */}
-        <div className="budget-section">
-          <div className="section-header">
-            <h2>
-              {navigationPath.length === 0 
-                ? `How ${budgetData.metadata.cityName} ${displayText.title}` 
-                : navigationPath[navigationPath.length - 1].name}
-            </h2>
-            {navigationPath.length > 1 && (
-              <YearSelector 
-                selectedYear={selectedYear}
-                years={years}
-                onYearChange={setSelectedYear}
-              />
-            )}
-          </div>
-          <p className="section-description">
-            {navigationPath.length === 0 
-              ? displayText.description
-              : showLineItems
-                ? displayText.lineItemsDescription
-                : 'The colored backgrounds show each subcategory\'s relative size. Tap to explore further or use the back button to return.'}
-          </p>
-          
-          {showLineItems ? (
-            // At the lowest level
+        <div className="main-content">
+          {/* Hero Section — only show at top level */}
+          {navigationPath.length === 0 && (
             <>
-              {/* For Money Out, show visualization + transactions instead of line items */}
-              {activeDataset === 'operating' ? (
+              <div className="hero-and-cards-row">
+                <div className="hero-section" style={{
+                  backgroundImage: selectedEntity.hero_image_url
+                    ? `url('${selectedEntity.hero_image_url}')`
+                    : "url('https://upload.wikimedia.org/wikipedia/commons/8/85/Monroe_County_Courthouse_in_Bloomington_from_west-southwest.jpg')",
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat'
+                }}>
+                  <div className="hero-overlay" style={{
+                    background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.3) 100%)'
+                  }}></div>
+                  <div className="hero-content">
+                    <h1>{selectedEntity.name} Finances</h1>
+                    <p>Explore how public funds are allocated and spent.</p>
+                  </div>
+                </div>
+
+                <div className="info-cards">
+                  <div className="info-card">
+                    <div className="info-card-left">
+                      <h3>Total {operatingBudgetData?.metadata.fiscalYear ?? selectedYear} Budget</h3>
+                      <div className="amount">
+                        {operatingBudgetData ? formatCurrency(operatingBudgetData.metadata.totalBudget) : '—'}
+                      </div>
+                    </div>
+                    {selectedEntity.population > 0 && operatingBudgetData && (
+                      <>
+                        <div className="info-card-divider"></div>
+                        <div className="info-card-right">
+                          <h3>Context</h3>
+                          <div className="description">
+                            Population ~{selectedEntity.population.toLocaleString()} residents
+                            <br />
+                            ${formatPerResident(operatingBudgetData.metadata.totalBudget, selectedEntity.population)} per resident annually
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Dataset Tabs */}
+              <div style={{ marginTop: '2rem', marginBottom: '2rem' }}>
+                <DatasetTabs
+                  activeDataset={activeDataset}
+                  onDatasetChange={(id) => setActiveDataset(id as DatasetType)}
+                  revenueTotal={revenueData?.metadata.totalBudget}
+                  operatingTotal={operatingBudgetData?.metadata.totalBudget}
+                  availableDatasets={availableDatasetTypes}
+                />
+              </div>
+            </>
+          )}
+
+          {/* Back button when navigated into categories */}
+          {navigationPath.length > 0 && (
+            <button
+              onClick={handleBack}
+              className="back-button"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.75rem 1rem',
+                marginBottom: '1.5rem',
+                backgroundColor: 'var(--white)',
+                border: '1px solid var(--medium-gray)',
+                borderRadius: '0.5rem',
+                fontSize: '0.9rem',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                fontFamily: 'Manrope, sans-serif',
+                color: 'var(--muted-blue)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'var(--muted-blue)';
+                e.currentTarget.style.backgroundColor = 'var(--light-gray)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--medium-gray)';
+                e.currentTarget.style.backgroundColor = 'var(--white)';
+              }}
+              aria-label="Go back"
+            >
+              <ArrowLeft size={20} />
+              Back to {navigationPath.length === 1 ? 'Overview' : navigationPath[navigationPath.length - 2].name}
+            </button>
+          )}
+
+          {/* Search Results Message */}
+          {searchQuery && (
+            <div className="search-results-message">
+              {displayCategories.length > 0 ? (
+                <p>Found {displayCategories.length} {displayCategories.length === 1 ? 'result' : 'results'} for "{searchQuery}"</p>
+              ) : (
+                <p>No results found for "{searchQuery}"</p>
+              )}
+            </div>
+          )}
+
+          {/* Budget Visualization Section */}
+          {budgetData && (
+            <div className="budget-section">
+              <div className="section-header">
+                <h2>
+                  {navigationPath.length === 0
+                    ? `How ${budgetData.metadata.cityName} ${displayText.title}`
+                    : navigationPath[navigationPath.length - 1].name}
+                </h2>
+                {navigationPath.length > 1 && (
+                  <YearSelector
+                    selectedYear={selectedYear}
+                    years={availableYears}
+                    onYearChange={setSelectedYear}
+                  />
+                )}
+              </div>
+              <p className="section-description">
+                {navigationPath.length === 0
+                  ? displayText.description
+                  : showLineItems
+                    ? displayText.lineItemsDescription
+                    : 'The colored backgrounds show each subcategory\'s relative size. Tap to explore further or use the back button to return.'}
+              </p>
+
+              {showLineItems ? (
                 <>
-                  {/* Budget visualization at lowest level too */}
+                  {activeDataset === 'operating' ? (
+                    <>
+                      <BudgetVisualization
+                        categories={budgetData.categories}
+                        navigationPath={navigationPath}
+                        totalBudget={budgetData.metadata.totalBudget}
+                        onPathClick={handlePathClick}
+                      />
+                      {currentCategory?.linkedTransactions && (
+                        <LinkedTransactionsPanel
+                          linkedTransactions={currentCategory.linkedTransactions}
+                          categoryName={currentCategory.name}
+                          linkKey={currentCategory.linkKey}
+                          fiscalYear={parseInt(selectedYear)}
+                        />
+                      )}
+                    </>
+                  ) : (
+                    <LineItemsTable
+                      lineItems={currentCategory!.lineItems!}
+                      categoryName={currentCategory!.name}
+                    />
+                  )}
+                </>
+              ) : displayCategories.length > 0 ? (
+                <>
                   <BudgetVisualization
                     categories={budgetData.categories}
                     navigationPath={navigationPath}
                     totalBudget={budgetData.metadata.totalBudget}
                     onPathClick={handlePathClick}
                   />
-
-                  {/* Show linked transactions directly */}
-                  {currentCategory?.linkedTransactions && (
+                  <CategoryList
+                    categories={displayCategories}
+                    onCategoryClick={handleCategoryClick}
+                  />
+                  {activeDataset === 'operating' && currentCategory?.linkedTransactions && (
                     <LinkedTransactionsPanel
                       linkedTransactions={currentCategory.linkedTransactions}
                       categoryName={currentCategory.name}
@@ -429,59 +536,27 @@ function App() {
                   )}
                 </>
               ) : (
-                // For other datasets (revenue, salaries), show line items table
-                <LineItemsTable
-                  lineItems={currentCategory!.lineItems!}
-                  categoryName={currentCategory!.name}
-                />
+                <div className="no-results">
+                  <p>Try adjusting your search query</p>
+                </div>
               )}
-            </>
-          ) : displayCategories.length > 0 ? (
-            <>
-              {/* Budget visualization - shows full hierarchy with current selection highlighted */}
-              <BudgetVisualization
-                categories={budgetData.categories}
-                navigationPath={navigationPath}
-                totalBudget={budgetData.metadata.totalBudget}
-                onPathClick={handlePathClick}
-              />
+            </div>
+          )}
 
-              {/* Interactive category list */}
-              <CategoryList
-                categories={displayCategories}
-                onCategoryClick={handleCategoryClick}
-              />
-
-              {/* Show linked transactions summary for intermediate budget categories */}
-              {activeDataset === 'operating' && currentCategory?.linkedTransactions && (
-                <LinkedTransactionsPanel
-                  linkedTransactions={currentCategory.linkedTransactions}
-                  categoryName={currentCategory.name}
-                  linkKey={currentCategory.linkKey}
-                  fiscalYear={parseInt(selectedYear)}
-                />
-              )}
-            </>
-          ) : (
-            <div className="no-results">
-              <p>Try adjusting your search query</p>
+          {/* Info tip */}
+          {navigationPath.length === 0 && budgetData && (
+            <div style={{
+              marginTop: '1.5rem',
+              padding: '1rem',
+              backgroundColor: 'rgba(59, 130, 246, 0.08)',
+              borderRadius: '0.5rem',
+              fontSize: '0.875rem',
+              color: 'var(--text-gray)'
+            }}>
+              <strong>Tip:</strong> Tap any category to drill down into its breakdown. Use breadcrumbs or the back button to navigate back. Switch datasets using the tabs above to explore revenue and salaries. Drill into Money Out to see individual transactions.
             </div>
           )}
         </div>
-
-        {/* Info tip */}
-        {navigationPath.length === 0 && (
-          <div style={{
-            marginTop: '1.5rem',
-            padding: '1rem',
-            backgroundColor: 'rgba(59, 130, 246, 0.08)',
-            borderRadius: '0.5rem',
-            fontSize: '0.875rem',
-            color: 'var(--text-gray)'
-          }}>
-            <strong>💡 Tip:</strong> Tap any category to drill down into its breakdown. Use breadcrumbs or the back button to navigate back. Switch datasets using the tabs above to explore revenue and salaries. Drill into Money Out to see individual transactions.
-          </div>
-        )}
       </div>
     </div>
   )
