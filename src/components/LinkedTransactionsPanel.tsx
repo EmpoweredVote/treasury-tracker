@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Receipt, Building2, Calendar, CreditCard, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import type { LinkedTransactionSummary, LinkedTransaction } from '../types/budget';
-import './LinkedTransactionsPanel.css';
 
 interface LinkedTransactionsPanelProps {
   linkedTransactions: LinkedTransactionSummary;

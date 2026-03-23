@@ -1,6 +1,5 @@
 import { Receipt } from 'lucide-react';
 import type { LineItem } from '../types/budget';
-import './TransactionLineItemsTable.css';
 
 interface TransactionLineItemsTableProps {
   lineItems: LineItem[];
