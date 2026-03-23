@@ -57,10 +57,10 @@ export async function loadBudgetData(
     throw new Error(`No budget found for ${municipalityName} ${year} (${dataset})`);
   }
 
-  // Step 3: Get line items for the budget
-  const catResponse = await fetch(`${API_BASE}/treasury/budgets/${budget.id}/line-items`);
+  // Step 3: Get categories for the budget
+  const catResponse = await fetch(`${API_BASE}/treasury/budgets/${budget.id}/categories`);
   if (!catResponse.ok) {
-    throw new Error(`Line items API returned ${catResponse.status}`);
+    throw new Error(`Categories API returned ${catResponse.status}`);
   }
   const categories = await catResponse.json();
 
