@@ -26,4 +26,4 @@ dist-ssr
 # Static data files — all data served from Supabase via API
 public/data/
 src/data/processedBudget.json
-data/
+/data/
