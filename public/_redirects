@@ -1,1 +1,1 @@
-/api/*  https://accounts.empowered.vote/api/:splat  200
+/api/*  https://ev-accounts-api.onrender.com/api/:splat  200
