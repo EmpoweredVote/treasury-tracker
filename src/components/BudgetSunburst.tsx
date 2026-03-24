@@ -96,9 +96,8 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
     // Clear previous render
     d3.select(svgRef.current).selectAll('*').remove();
 
-    const containerWidth = containerRef.current.clientWidth;
-    // Use a larger base size for the sunburst
-    const size = Math.min(containerWidth, 900);
+    // Use a fixed logical size for the viewBox — the SVG scales via CSS width:100%
+    const size = 900;
     const radius = size / 2;
 
     // Display dimensions - show full width, crop top/bottom slightly
@@ -106,10 +105,13 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
     const cropTop = (size - displayHeight) / 2; // Center the crop vertically
 
     const svg = d3.select(svgRef.current)
-      .attr('width', size)
-      .attr('height', displayHeight)
+      .attr('width', '100%')
       .attr('viewBox', `${-size / 2} ${-size / 2 + cropTop} ${size} ${displayHeight}`)
-      .style('font-family', 'Manrope, sans-serif');
+      .attr('preserveAspectRatio', 'xMidYMid meet')
+      .style('font-family', 'Manrope, sans-serif')
+      .style('max-width', '900px')
+      .style('display', 'block')
+      .style('margin', '0 auto');
 
     // Create a group for rotatable content (arcs only, not center)
     const rotatableGroup = svg.append('g')
@@ -431,13 +433,14 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
         .attr('opacity', 1);
 
       const calloutBox = containerRef.current?.querySelector('.sunburst-callout') as HTMLElement;
-      if (calloutBox) {
-        // Map SVG coordinates to container coordinates, accounting for viewBox crop
-        // The center of the sunburst (0,0 in SVG) maps to (size/2, displayHeight/2) in container
-        const centerX = size / 2;
-        const centerY = displayHeight / 2;
-        const boxX = centerX + lineEndX;
-        const boxY = centerY + lineEndY;
+      if (calloutBox && svgRef.current) {
+        // Scale from viewBox coordinates to actual rendered size
+        const renderedWidth = svgRef.current.clientWidth;
+        const scale = renderedWidth / size;
+        const centerX = renderedWidth / 2;
+        const centerY = (displayHeight * scale) / 2;
+        const boxX = centerX + lineEndX * scale;
+        const boxY = centerY + lineEndY * scale;
 
         // Delay showing the callout box until after rotation
         calloutBox.style.opacity = '0';
@@ -450,7 +453,7 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
           calloutBox.classList.remove('left-side');
           calloutBox.classList.add('right-side');
         } else {
-          calloutBox.style.right = `${size - boxX + 10}px`;
+          calloutBox.style.right = `${renderedWidth - boxX + 10}px`;
           calloutBox.style.left = 'auto';
           calloutBox.classList.remove('right-side');
           calloutBox.classList.add('left-side');

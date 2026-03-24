@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Receipt, Building2, Calendar, CreditCard, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
-import type { LinkedTransactionSummary, LinkedTransaction } from '../types/budget';
+import type { LinkedTransactionSummary } from '../types/budget';
 
 interface LinkedTransactionsPanelProps {
   linkedTransactions: LinkedTransactionSummary;
@@ -43,25 +43,19 @@ const formatDate = (dateStr: string): string => {
 export default function LinkedTransactionsPanel({
   linkedTransactions,
   categoryName,
-  linkKey,
-  fiscalYear = 2025
 }: LinkedTransactionsPanelProps) {
   const { totalAmount, transactionCount, vendorCount, topVendors, transactions: initialTransactions, hasMore } = linkedTransactions;
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [visibleCount, setVisibleCount] = useState(TRANSACTIONS_PER_PAGE);
-  const [allTransactions, setAllTransactions] = useState<LinkedTransaction[]>(initialTransactions);
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [hasLoadedAll, setHasLoadedAll] = useState(!hasMore);
+  const allTransactions = initialTransactions;
+  const isLoading = false;
+  const loadError: string | null = null;
+  const hasLoadedAll = !hasMore;
 
-  // Load all transactions — data comes from initialTransactions prop.
-  // Static JSON files have been removed; all data now served from API.
   const loadAllTransactions = useCallback(async () => {
-    if (hasLoadedAll) return;
-    // All available transactions are already in initialTransactions
-    setHasLoadedAll(true);
-  }, [hasLoadedAll]);
+    // All available transactions are already in initialTransactions — no-op
+  }, []);
 
   // When collapsed, show 5 transactions; when expanded, show paginated list
   const displayTransactions = isExpanded
