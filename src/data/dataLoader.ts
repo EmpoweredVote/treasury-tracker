@@ -52,7 +52,8 @@ export async function loadBudgetData(
   }
 
   const apiData = await response.json();
-  const budget = Array.isArray(apiData) ? apiData[0] : apiData;
+  const budgets = Array.isArray(apiData) ? apiData : [apiData];
+  const budget = budgets.find((b: any) => b.dataset_type === dataset) ?? budgets[0];
   if (!budget?.id) {
     throw new Error(`No budget found for ${municipalityName} ${year} (${dataset})`);
   }
