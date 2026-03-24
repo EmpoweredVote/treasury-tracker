@@ -64,7 +64,7 @@ export async function loadBudgetData(
   }
   const categories = await catResponse.json();
 
-  const data = transformAPIResponse(budget, categories);
+  const data = transformAPIResponse(budget, categories, city);
   cache.set(cacheKey, data);
   return data;
 }
@@ -72,17 +72,17 @@ export async function loadBudgetData(
 /**
  * Transform API response to BudgetData format
  */
-function transformAPIResponse(budget: any, categories: BudgetCategory[]): BudgetData {
+function transformAPIResponse(budget: any, categories: BudgetCategory[], city?: any): BudgetData {
   return {
     metadata: {
-      cityName: budget.municipality?.name || 'Unknown',
-      fiscalYear: budget.fiscal_year,
-      population: budget.municipality?.population || 0,
-      totalBudget: budget.total_budget,
-      generatedAt: budget.generated_at || new Date().toISOString(),
+      cityName: city?.name || budget.municipality?.name || 'Unknown',
+      fiscalYear: budget.fiscal_year || budget.fiscalYear,
+      population: city?.population || budget.municipality?.population || 0,
+      totalBudget: budget.total_budget || budget.totalBudget,
+      generatedAt: budget.generated_at || budget.generatedAt || new Date().toISOString(),
       hierarchy: budget.hierarchy || [],
-      dataSource: budget.data_source || 'API',
-      datasetType: budget.dataset_type
+      dataSource: budget.data_source || budget.dataSource || 'API',
+      datasetType: budget.dataset_type || budget.datasetType
     },
     categories: categories
   };
