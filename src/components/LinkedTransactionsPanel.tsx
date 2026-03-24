@@ -55,31 +55,13 @@ export default function LinkedTransactionsPanel({
   const [loadError, setLoadError] = useState<string | null>(null);
   const [hasLoadedAll, setHasLoadedAll] = useState(!hasMore);
 
-  // Load all transactions from the index file
+  // Load all transactions — data comes from initialTransactions prop.
+  // Static JSON files have been removed; all data now served from API.
   const loadAllTransactions = useCallback(async () => {
-    if (!linkKey || hasLoadedAll) return;
-
-    setIsLoading(true);
-    setLoadError(null);
-
-    try {
-      const response = await fetch(`./data/transactions-${fiscalYear}-index.json`);
-      if (!response.ok) {
-        throw new Error('Failed to load transaction index');
-      }
-
-      const index = await response.json();
-      if (index[linkKey]) {
-        setAllTransactions(index[linkKey].transactions);
-        setHasLoadedAll(true);
-      }
-    } catch (error) {
-      console.error('Error loading transactions:', error);
-      setLoadError('Failed to load additional transactions');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [linkKey, fiscalYear, hasLoadedAll]);
+    if (hasLoadedAll) return;
+    // All available transactions are already in initialTransactions
+    setHasLoadedAll(true);
+  }, [hasLoadedAll]);
 
   // When collapsed, show 5 transactions; when expanded, show paginated list
   const displayTransactions = isExpanded
