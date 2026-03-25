@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { SiteHeader } from '@chrisandrewsedu/ev-ui';
 import { ArrowLeft } from 'lucide-react';
-import { loadBudgetData, listMunicipalities } from './data/dataLoader';
+import { loadBudgetData, loadLinkedTransactions, listMunicipalities } from './data/dataLoader';
 import EntitySwitcher from './components/EntitySwitcher';
 import DatasetTabs from './components/datasets/DatasetTabs';
 import SearchBar from './components/SearchBar';
@@ -11,7 +11,7 @@ import BudgetVisualization from './components/BudgetVisualization';
 import CategoryList from './components/CategoryList';
 import LineItemsTable from './components/LineItemsTable';
 import LinkedTransactionsPanel from './components/LinkedTransactionsPanel';
-import type { BudgetCategory, BudgetData, Municipality } from './types/budget';
+import type { BudgetCategory, BudgetData, LinkedTransactionSummary, Municipality } from './types/budget';
 
 interface BreadcrumbItem {
   label: string;
@@ -80,6 +80,7 @@ function App() {
   const [revenueData, setRevenueData] = useState<BudgetData | null>(null);
   const [loading, setLoading] = useState(false);
   const [navigationPath, setNavigationPath] = useState<BudgetCategory[]>([]);
+  const [linkedTransactions, setLinkedTransactions] = useState<LinkedTransactionSummary | null>(null);
 
   // Derive available years and datasets from selected entity
   const availableYears = useMemo(() => {
@@ -198,6 +199,22 @@ function App() {
     if (!selectedEntity) return;
     syncURL(selectedEntity, selectedYear, activeDataset);
   }, [selectedEntity, selectedYear, activeDataset]);
+
+  // Lazy-load linked transactions when navigating into a category (operating only)
+  useEffect(() => {
+    setLinkedTransactions(null);
+
+    if (activeDataset !== 'operating' || navigationPath.length === 0 || !budgetData) return;
+
+    const currentCat = navigationPath[navigationPath.length - 1];
+    if (!currentCat.linkKey) return;
+
+    const budgetId = budgetData.budgetId;
+    if (!budgetId) return;
+
+    loadLinkedTransactions(budgetId, currentCat.linkKey)
+      .then(summary => setLinkedTransactions(summary));
+  }, [navigationPath, activeDataset, budgetData]);
 
   const handleCategoryClick = useCallback((category: BudgetCategory) => {
     if (category.subcategories && category.subcategories.length > 0) {
@@ -501,11 +518,11 @@ function App() {
                         totalBudget={budgetData.metadata.totalBudget}
                         onPathClick={handlePathClick}
                       />
-                      {currentCategory?.linkedTransactions ? (
+                      {linkedTransactions ? (
                         <LinkedTransactionsPanel
-                          linkedTransactions={currentCategory.linkedTransactions}
-                          categoryName={currentCategory.name}
-                          linkKey={currentCategory.linkKey}
+                          linkedTransactions={linkedTransactions}
+                          categoryName={currentCategory!.name}
+                          linkKey={currentCategory!.linkKey}
                           fiscalYear={parseInt(selectedYear)}
                         />
                       ) : currentCategory?.lineItems && currentCategory.lineItems.length > 0 ? (
@@ -534,9 +551,9 @@ function App() {
                     categories={displayCategories}
                     onCategoryClick={handleCategoryClick}
                   />
-                  {activeDataset === 'operating' && currentCategory?.linkedTransactions && (
+                  {activeDataset === 'operating' && linkedTransactions && currentCategory && (
                     <LinkedTransactionsPanel
-                      linkedTransactions={currentCategory.linkedTransactions}
+                      linkedTransactions={linkedTransactions}
                       categoryName={currentCategory.name}
                       linkKey={currentCategory.linkKey}
                       fiscalYear={parseInt(selectedYear)}

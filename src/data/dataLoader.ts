@@ -65,40 +65,42 @@ export async function loadBudgetData(
   }
   const categories = await catResponse.json();
 
-  // Step 4: For operating budgets, fetch linked transactions and attach to categories
-  if (dataset === 'operating') {
-    try {
-      const txResponse = await fetch(`${API_BASE}/treasury/budgets/${budget.id}/transactions`);
-      if (txResponse.ok) {
-        const transactionIndex: Record<string, LinkedTransactionSummary> = await txResponse.json();
-        linkTransactionsToCategories(categories, transactionIndex);
-      }
-    } catch (err) {
-      // Non-fatal — transactions are supplementary, budget data still works without them
-      console.warn('Failed to load linked transactions:', err);
-    }
-  }
-
   const data = transformAPIResponse(budget, categories, city);
   cache.set(cacheKey, data);
   return data;
 }
 
 /**
- * Recursively attach linked transaction summaries to categories by matching link_key.
- * Mirrors the old linkBudgetTransactions.js script behavior.
+ * Fetch linked transactions for a specific category by link_key.
+ * Uses prefix matching on the server so "fire" returns all transactions
+ * under fire|main|general|..., enabling transaction display at every drill-down level.
+ *
+ * Results are cached per budget+linkKey to avoid redundant fetches.
  */
-function linkTransactionsToCategories(
-  categories: BudgetCategory[],
-  transactionIndex: Record<string, LinkedTransactionSummary>
-): void {
-  for (const category of categories) {
-    if (category.linkKey && transactionIndex[category.linkKey]) {
-      category.linkedTransactions = transactionIndex[category.linkKey];
-    }
-    if (category.subcategories) {
-      linkTransactionsToCategories(category.subcategories, transactionIndex);
-    }
+const txCache: Map<string, LinkedTransactionSummary | null> = new Map();
+
+export async function loadLinkedTransactions(
+  budgetId: string,
+  linkKey: string,
+  limit: number = 20
+): Promise<LinkedTransactionSummary | null> {
+  const cacheKey = `${budgetId}:${linkKey}:${limit}`;
+  if (txCache.has(cacheKey)) {
+    return txCache.get(cacheKey)!;
+  }
+
+  try {
+    const response = await fetch(
+      `${API_BASE}/treasury/budgets/${budgetId}/transactions?link_key=${encodeURIComponent(linkKey)}&limit=${limit}`
+    );
+    if (!response.ok) return null;
+
+    const summary: LinkedTransactionSummary | null = await response.json();
+    txCache.set(cacheKey, summary);
+    return summary;
+  } catch (err) {
+    console.warn('Failed to load linked transactions:', err);
+    return null;
   }
 }
 
@@ -108,6 +110,7 @@ function linkTransactionsToCategories(
  */
 function transformAPIResponse(budget: any, categories: BudgetCategory[], city?: any): BudgetData {
   return {
+    budgetId: budget.id,
     metadata: {
       cityName: city?.name || budget.municipality?.name || 'Unknown',
       fiscalYear: budget.fiscal_year || budget.fiscalYear,
@@ -127,6 +130,7 @@ function transformAPIResponse(budget: any, categories: BudgetCategory[], city?: 
  */
 export function clearCache() {
   cache.clear();
+  txCache.clear();
 }
 
 /**
