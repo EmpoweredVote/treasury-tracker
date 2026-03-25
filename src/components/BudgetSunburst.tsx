@@ -130,14 +130,23 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
     // Center circle radius (defined early so arcs can respect it)
     const centerRadius = radius * 0.28;
 
-    // Arc generator - innerRadius uses Math.max to prevent overlapping the center circle
+    // Fixed ring boundaries so chart diameter is consistent regardless of hierarchy depth
+    const ringStart = centerRadius + 4;
+    const ringEnd = radius;
+    const maxDepth = root.height; // number of levels below root
+    const ringWidth = (ringEnd - ringStart) / maxDepth;
+
+    const ringInner = (depth: number) => ringStart + (depth - 1) * ringWidth;
+    const ringOuter = (depth: number) => ringStart + depth * ringWidth;
+
+    // Arc generator - uses fixed ring boundaries per depth
     const arc = d3.arc<PartitionNode>()
       .startAngle(d => d.x0)
       .endAngle(d => d.x1)
       .padAngle(d => Math.min((d.x1 - d.x0) / 2, 0.005))
       .padRadius(radius / 2)
-      .innerRadius(d => Math.max(d.y0, centerRadius + 2))
-      .outerRadius(d => d.y1 - 1);
+      .innerRadius(d => ringInner(d.depth))
+      .outerRadius(d => ringOuter(d.depth) - 1);
 
     // Build the path from root to a node (excluding root) - returns names
     const getNodePath = (node: PartitionNode): string[] => {
@@ -384,7 +393,7 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
     // Draw callout line and update callout box position if there's a selection
     if (selectedNode && currentPathNames.length > 0) {
       const midAngle = (selectedNode.x0 + selectedNode.x1) / 2;
-      const midRadius = (selectedNode.y0 + selectedNode.y1) / 2;
+      const midRadius = (ringInner(selectedNode.depth) + ringOuter(selectedNode.depth)) / 2;
 
       // Apply rotation to the angle for callout positioning
       const rotationRad = (targetRotation * Math.PI) / 180;
