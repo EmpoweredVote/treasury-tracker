@@ -109,7 +109,6 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
       .attr('viewBox', `${-size / 2} ${-size / 2 + cropTop} ${size} ${displayHeight}`)
       .attr('preserveAspectRatio', 'xMidYMid meet')
       .style('font-family', 'Manrope, sans-serif')
-      .style('max-width', '900px')
       .style('display', 'block')
       .style('margin', '0 auto');
 
@@ -129,7 +128,7 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
     const partitionedRoot = partition(root);
 
     // Center circle radius (defined early so arcs can respect it)
-    const centerRadius = radius * 0.22;
+    const centerRadius = radius * 0.28;
 
     // Arc generator - innerRadius uses Math.max to prevent overlapping the center circle
     const arc = d3.arc<PartitionNode>()
@@ -369,16 +368,16 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
       .style('pointer-events', 'none');
 
     centerGroup.append('text')
-      .attr('y', -8)
+      .attr('y', -14)
       .attr('fill', 'white')
-      .attr('font-size', '11px')
+      .attr('font-size', '28px')
       .attr('font-weight', '500')
       .text('Total Budget');
 
     centerGroup.append('text')
-      .attr('y', 12)
+      .attr('y', 24)
       .attr('fill', 'white')
-      .attr('font-size', '14px')
+      .attr('font-size', '36px')
       .attr('font-weight', '700')
       .text(formatCurrency(totalBudget));
 
