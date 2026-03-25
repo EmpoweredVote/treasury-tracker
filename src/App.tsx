@@ -501,14 +501,19 @@ function App() {
                         totalBudget={budgetData.metadata.totalBudget}
                         onPathClick={handlePathClick}
                       />
-                      {currentCategory?.linkedTransactions && (
+                      {currentCategory?.linkedTransactions ? (
                         <LinkedTransactionsPanel
                           linkedTransactions={currentCategory.linkedTransactions}
                           categoryName={currentCategory.name}
                           linkKey={currentCategory.linkKey}
                           fiscalYear={parseInt(selectedYear)}
                         />
-                      )}
+                      ) : currentCategory?.lineItems && currentCategory.lineItems.length > 0 ? (
+                        <LineItemsTable
+                          lineItems={currentCategory.lineItems}
+                          categoryName={currentCategory.name}
+                        />
+                      ) : null}
                     </>
                   ) : (
                     <LineItemsTable
