@@ -88,6 +88,7 @@ export interface Municipality {
 }
 
 export interface BudgetData {
+  budgetId?: string; // API budget UUID for follow-up queries (e.g., transactions)
   metadata: {
     cityName: string;
     fiscalYear: number;
