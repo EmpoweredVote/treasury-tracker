@@ -268,16 +268,20 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
       targetRotation = ((TARGET_ANGLE - midAngle) * 180) / Math.PI;
     }
 
-    // Apply rotation with animation
+    // Normalize rotation to take the shortest angular path (avoid multi-spin)
     const previousRotation = currentRotationRef.current;
-    currentRotationRef.current = targetRotation;
+    let delta = targetRotation - previousRotation;
+    // Wrap delta into [-180, 180] so the transition always takes the short way
+    delta = ((delta % 360) + 540) % 360 - 180;
+    const adjustedTarget = previousRotation + delta;
+    currentRotationRef.current = adjustedTarget;
 
     rotatableGroup
       .attr('transform', `rotate(${previousRotation})`)
       .transition()
       .duration(500)
       .ease(d3.easeCubicInOut)
-      .attr('transform', `rotate(${targetRotation})`);
+      .attr('transform', `rotate(${adjustedTarget})`);
 
     // Draw arcs on the rotatable group
     rotatableGroup.selectAll('path.arc')

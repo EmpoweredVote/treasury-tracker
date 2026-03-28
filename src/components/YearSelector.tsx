@@ -26,7 +26,7 @@ const YearSelector: React.FC<YearSelectorProps> = ({ selectedYear, years, onYear
   return (
     <div className="relative" ref={dropdownRef}>
       <button
-        className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-white border border-[#E2EBEF] rounded-lg cursor-pointer transition-colors duration-200 hover:bg-[#F7F7F8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ev-muted-blue focus-visible:ring-offset-2"
+        className="flex items-center gap-2 h-[42px] px-4 py-2 text-sm font-medium bg-white border border-[#E2EBEF] rounded-lg cursor-pointer transition-colors duration-200 hover:bg-[#F7F7F8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ev-muted-blue focus-visible:ring-offset-2"
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Select fiscal year"
         aria-expanded={isOpen}
