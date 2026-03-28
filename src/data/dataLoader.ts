@@ -7,9 +7,11 @@
 
 import type { BudgetData, BudgetCategory, LinkedTransactionSummary, Municipality, SearchResult } from '../types/budget';
 
-// Always use the Vite proxy path (/api) so requests route through vite.config.ts
-// proxy to the target backend (local or production). This avoids CORS issues.
-const API_BASE = '/api';
+// In dev: use /api which Vite proxies to the backend (avoids CORS).
+// In production: no proxy exists, so use the full API URL directly.
+const API_BASE = import.meta.env.PROD && import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api`
+  : '/api';
 
 // Cache structure to support multiple municipality/year/dataset combinations
 const cache: Map<string, BudgetData> = new Map();
