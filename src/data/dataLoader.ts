@@ -5,7 +5,7 @@
  * API is the sole data source — no JSON file fallback, no hardcoded placeholder data (per D-06).
  */
 
-import type { BudgetData, BudgetCategory, LinkedTransactionSummary, Municipality } from '../types/budget';
+import type { BudgetData, BudgetCategory, LinkedTransactionSummary, Municipality, SearchResult } from '../types/budget';
 
 // Always use the Vite proxy path (/api) so requests route through vite.config.ts
 // proxy to the target backend (local or production). This avoids CORS issues.
@@ -131,6 +131,32 @@ function transformAPIResponse(budget: any, categories: BudgetCategory[], city?: 
 export function clearCache() {
   cache.clear();
   txCache.clear();
+}
+
+/**
+ * Search budget categories by keyword across enriched names, descriptions, and tags.
+ * Optionally scoped to a specific city ID and/or fiscal year.
+ */
+export async function searchBudget(
+  query: string,
+  cityId?: string,
+  year?: number,
+  limit: number = 20
+): Promise<SearchResult[]> {
+  if (!query || query.trim().length < 2) return [];
+
+  const params = new URLSearchParams({ q: query.trim(), limit: String(limit) });
+  if (cityId) params.set('city_id', cityId);
+  if (year) params.set('year', String(year));
+
+  try {
+    const response = await fetch(`${API_BASE}/treasury/search?${params}`);
+    if (!response.ok) return [];
+    return await response.json();
+  } catch (err) {
+    console.warn('Search failed:', err);
+    return [];
+  }
 }
 
 /**

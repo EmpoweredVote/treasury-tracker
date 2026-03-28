@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import PlainLanguageSummary from './components/dashboard/PlainLanguageSummary';
 import QuickFactsRow from './components/dashboard/QuickFactsRow';
 import SpendingBreakdownBar from './components/dashboard/SpendingBreakdownBar';
+import BudgetSearch from './components/dashboard/BudgetSearch';
 import { loadBudgetData, loadLinkedTransactions, listMunicipalities } from './data/dataLoader';
 import EntitySwitcher from './components/EntitySwitcher';
 import DatasetTabs from './components/datasets/DatasetTabs';
@@ -388,6 +389,30 @@ function App() {
           {/* Dashboard Section — only show at top level */}
           {navigationPath.length === 0 && (
             <>
+              {/* Global search — Ask about your city's budget */}
+              <div className="mb-6">
+                <BudgetSearch
+                  cityId={selectedEntity.id}
+                  cityName={selectedEntity.name}
+                  fiscalYear={parseInt(selectedYear)}
+                  onResultClick={(result) => {
+                    // Try to find this category in the loaded budget data and navigate to it
+                    const allCategories = [
+                      ...(operatingBudgetData?.categories ?? []),
+                      ...(revenueData?.categories ?? []),
+                    ];
+                    const match = allCategories.find(c => c.name === result.categoryName);
+                    if (match) {
+                      // Switch to the right dataset first if needed
+                      if (result.datasetType !== activeDataset && ['operating', 'revenue', 'salaries'].includes(result.datasetType)) {
+                        setActiveDataset(result.datasetType as DatasetType);
+                      }
+                      handleCategoryClick(match);
+                    }
+                  }}
+                />
+              </div>
+
               {/* Plain language summary — lead with the story */}
               <div className="mb-6">
                 <PlainLanguageSummary

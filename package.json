@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@chrisandrewsedu/ev-ui": "^0.1.53",
+    "@supabase/supabase-js": "^2.100.1",
     "@types/d3": "^7.4.3",
     "d3": "^7.9.0",
     "lucide-react": "^0.562.0",
