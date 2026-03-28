@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { ChevronDown } from 'lucide-react';
 
 interface YearSelectorProps {
   selectedYear: string;
@@ -7,28 +8,63 @@ interface YearSelectorProps {
 }
 
 const YearSelector: React.FC<YearSelectorProps> = ({ selectedYear, years, onYearChange }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
   if (years.length === 0) return null;
 
   return (
-    <div className="flex flex-wrap gap-2" role="group" aria-label="Select fiscal year">
-      {years.map((year) => {
-        const isActive = selectedYear === year;
-        return (
-          <button
-            key={year}
-            role="radio"
-            aria-checked={isActive}
-            onClick={() => onYearChange(year)}
-            className={`px-3 py-1.5 text-sm font-medium rounded-full cursor-pointer transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ev-muted-blue focus-visible:ring-offset-2 ${
-              isActive
-                ? 'font-bold text-white bg-ev-muted-blue border border-ev-muted-blue'
-                : 'text-[#6B7280] bg-white border border-[#E2EBEF] hover:bg-[#F7F7F8]'
-            }`}
-          >
-            {year}
-          </button>
-        );
-      })}
+    <div className="relative" ref={dropdownRef}>
+      <button
+        className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-white border border-[#E2EBEF] rounded-lg cursor-pointer transition-colors duration-200 hover:bg-[#F7F7F8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ev-muted-blue focus-visible:ring-offset-2"
+        onClick={() => setIsOpen(!isOpen)}
+        aria-label="Select fiscal year"
+        aria-expanded={isOpen}
+        aria-haspopup="listbox"
+      >
+        <span>FY {selectedYear}</span>
+        <ChevronDown
+          size={14}
+          className={`text-[#6B7280] shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
+        />
+      </button>
+
+      {isOpen && (
+        <div
+          className="absolute top-full mt-1 right-0 min-w-24 bg-white border border-[#E2EBEF] rounded-lg shadow-lg z-10 overflow-hidden max-h-64 overflow-y-auto"
+          role="listbox"
+          aria-label="Available fiscal years"
+        >
+          {years.map((year) => (
+            <button
+              key={year}
+              role="option"
+              aria-selected={year === selectedYear}
+              className={`block w-full px-4 py-2 text-sm text-left transition-colors duration-150 hover:bg-[#F7F7F8] ${
+                year === selectedYear
+                  ? 'font-bold text-ev-muted-blue bg-[#F7F7F8]'
+                  : 'text-[#1C1C1C]'
+              }`}
+              onClick={() => {
+                onYearChange(year);
+                setIsOpen(false);
+              }}
+            >
+              {year}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

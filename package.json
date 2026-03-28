@@ -15,6 +15,7 @@
     "process-all": "npm run process-budget && npm run process-revenue && npm run process-salaries && npm run process-transactions"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.80.0",
     "@chrisandrewsedu/ev-ui": "^0.1.53",
     "@supabase/supabase-js": "^2.100.1",
     "@types/d3": "^7.4.3",

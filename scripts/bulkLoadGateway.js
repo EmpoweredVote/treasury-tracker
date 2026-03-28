@@ -364,7 +364,7 @@ async function importReceipts(rows, year) {
   }
 }
 
-// ── Import: Disbursements ───────────────────────────────────────────────
+// ── Import: Disbursements (deep hierarchy: fund → dept → class → item) ──
 async function importDisbursements(rows, year) {
   const byEntity = new Map();
   for (const row of rows) {
@@ -383,38 +383,60 @@ async function importDisbursements(rows, year) {
       console.log(`  Columns: ${Object.keys(entityRows[0]).slice(0, 20).join(', ')}...`);
     }
 
-    // Disbursements are transaction-like: fund, department, disbursement name, amount
     const fundCol = ['unit_fund_name', 'fund_name'].find(c => entityRows[0][c] !== undefined);
     const deptCol = ['department_name', 'department'].find(c => entityRows[0][c] !== undefined);
-    const disbCol = ['disburse_name', 'disburse_class_name', 'category_name'].find(c => entityRows[0][c] !== undefined);
+    const classCol = ['disburse_class_name'].find(c => entityRows[0][c] !== undefined);
+    const disbCol = ['disburse_name', 'category_name'].find(c => entityRows[0][c] !== undefined);
     const amtCol = ['amount', 'disburse_amount'].find(c => entityRows[0][c] !== undefined);
 
     if (!amtCol) { console.log(`  ⚠️  No amount column found`); continue; }
 
     const total = entityRows.reduce((s, r) => s + amt(r[amtCol]), 0);
-    console.log(`  Using: fund=${fundCol}, dept=${deptCol}, disb=${disbCol}, amount=${amtCol}. Total: $${Math.round(total).toLocaleString()}`);
+    console.log(`  Using: fund=${fundCol}, dept=${deptCol}, class=${classCol}, disb=${disbCol}, amount=${amtCol}`);
+    console.log(`  Total: $${Math.round(total).toLocaleString()}`);
 
-    // Build tree: fund -> department -> disbursement items
-    const tree = new Map();
+    // Build deep tree: fund → department → disburse_class → disburse_name (line items)
+    // This creates 3 levels of categories + line items at the leaf
+    const tree = new Map(); // fund → Map<dept, Map<class, items[]>>
     for (const row of entityRows) {
       const fund = row[fundCol] || 'General';
       const dept = deptCol ? (row[deptCol] || 'General') : 'General';
+      const cls = classCol ? (row[classCol] || 'Other') : 'Other';
+      const itemName = row[disbCol] || 'Disbursement';
+
       if (!tree.has(fund)) tree.set(fund, new Map());
-      if (!tree.get(fund).has(dept)) tree.get(fund).set(dept, []);
-      tree.get(fund).get(dept).push({
-        d: row[disbCol] || 'Disbursement', a: amt(row[amtCol]), aa: null, f: fund, e: null,
+      const fundNode = tree.get(fund);
+      if (!fundNode.has(dept)) fundNode.set(dept, new Map());
+      const deptNode = fundNode.get(dept);
+      if (!deptNode.has(cls)) deptNode.set(cls, []);
+      deptNode.get(cls).push({
+        d: itemName, a: amt(row[amtCol]), aa: null, f: fund, e: cls,
       });
     }
 
+    // Convert to JSON tree: fund → dept children → class children → line items
     const jsonTree = [];
     for (const [fundName, depts] of tree) {
-      let fundTotal = 0; const children = [];
-      for (const [deptName, items] of depts) {
-        const t = items.reduce((s, i) => s + i.a, 0); fundTotal += t;
-        children.push({ n: deptName, a: t, i: items });
+      let fundTotal = 0;
+      const deptChildren = [];
+
+      for (const [deptName, classes] of depts) {
+        let deptTotal = 0;
+        const classChildren = [];
+
+        for (const [className, items] of classes) {
+          const classTotal = items.reduce((s, i) => s + i.a, 0);
+          deptTotal += classTotal;
+          classChildren.push({ n: className, a: classTotal, i: items });
+        }
+
+        classChildren.sort((a, b) => b.a - a.a);
+        fundTotal += deptTotal;
+        deptChildren.push({ n: deptName, a: deptTotal, c: classChildren });
       }
-      children.sort((a, b) => b.a - a.a);
-      jsonTree.push({ n: fundName, a: fundTotal, c: children });
+
+      deptChildren.sort((a, b) => b.a - a.a);
+      jsonTree.push({ n: fundName, a: fundTotal, c: deptChildren });
     }
     jsonTree.sort((a, b) => b.a - a.a);
 
