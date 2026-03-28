@@ -1,0 +1,14 @@
+services:
+  - type: cron
+    name: enrichment-queue-processor
+    env: node
+    schedule: "0 2 * * 1"  # 2am Monday — weekly is plenty, queue is rarely busy
+    buildCommand: npm install
+    startCommand: node scripts/processEnrichmentQueue.js --limit 200
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
