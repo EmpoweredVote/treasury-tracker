@@ -1,6 +1,9 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { SiteHeader } from '@chrisandrewsedu/ev-ui';
 import { ArrowLeft } from 'lucide-react';
+import PlainLanguageSummary from './components/dashboard/PlainLanguageSummary';
+import QuickFactsRow from './components/dashboard/QuickFactsRow';
+import SpendingBreakdownBar from './components/dashboard/SpendingBreakdownBar';
 import { loadBudgetData, loadLinkedTransactions, listMunicipalities } from './data/dataLoader';
 import EntitySwitcher from './components/EntitySwitcher';
 import DatasetTabs from './components/datasets/DatasetTabs';
@@ -247,15 +250,6 @@ function App() {
     }
   }, [navigationPath]);
 
-  const formatCurrency = useCallback((amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  }, []);
-
   const breadcrumbItems: BreadcrumbItem[] = useMemo(() => {
     const items: BreadcrumbItem[] = [
       {
@@ -279,11 +273,6 @@ function App() {
 
     return items;
   }, [navigationPath, activeDataset, handleBreadcrumbClick, selectedEntity]);
-
-  const formatPerResident = (total: number, population: number) => {
-    const perResident = total / population;
-    return `${perResident.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
-  };
 
   const displayText = getDatasetDisplayText(activeDataset);
 
@@ -396,54 +385,41 @@ function App() {
           </div>
         )}
         <div className="max-w-[1400px] mx-auto px-6 py-8">
-          {/* Hero Section — only show at top level */}
+          {/* Dashboard Section — only show at top level */}
           {navigationPath.length === 0 && (
             <>
-              <div className="flex gap-6 flex-col lg:flex-row mb-8">
-                {/* Hero image card */}
-                <div
-                  className="relative rounded-xl overflow-hidden flex-1 min-w-0 min-h-[120px]"
-                  style={{
-                    backgroundImage: selectedEntity.hero_image_url
-                      ? `url('${selectedEntity.hero_image_url}')`
-                      : "url('https://upload.wikimedia.org/wikipedia/commons/8/85/Monroe_County_Courthouse_in_Bloomington_from_west-southwest.jpg')",
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat'
-                  }}
-                >
-                  <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 100%)' }} />
-                  <div className="relative p-6 pt-10 text-white">
-                    <h1 className="text-xl font-bold mb-1">{selectedEntity.name} Finances</h1>
-                    <p className="text-sm opacity-90">Explore how public funds are allocated and spent.</p>
-                  </div>
-                </div>
-
-                {/* Info card */}
-                <div className="bg-white border border-[#E2EBEF] rounded-xl p-6 lg:w-72 shrink-0">
-                  <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#6B7280] mb-1">
-                      Total {operatingBudgetData?.metadata.fiscalYear ?? selectedYear} Budget
-                    </h3>
-                    <div className="text-[30px] font-bold text-[#1C1C1C] leading-tight">
-                      {operatingBudgetData ? formatCurrency(operatingBudgetData.metadata.totalBudget) : '—'}
-                    </div>
-                  </div>
-                  {selectedEntity.population > 0 && operatingBudgetData && (
-                    <>
-                      <div className="h-px bg-[#E2EBEF] my-4" />
-                      <div>
-                        <h3 className="text-xs font-bold uppercase tracking-wider text-[#6B7280] mb-1">Context</h3>
-                        <div className="text-sm text-[#6B7280] leading-relaxed">
-                          Population ~{selectedEntity.population.toLocaleString()} residents
-                          <br />
-                          ${formatPerResident(operatingBudgetData.metadata.totalBudget, selectedEntity.population)} per resident annually
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
+              {/* Plain language summary — lead with the story */}
+              <div className="mb-6">
+                <PlainLanguageSummary
+                  entity={selectedEntity}
+                  operatingData={operatingBudgetData}
+                  revenueData={revenueData}
+                  fiscalYear={selectedYear}
+                />
               </div>
+
+              {/* Quick facts — key numbers at a glance */}
+              <div className="mb-6">
+                <QuickFactsRow
+                  entity={selectedEntity}
+                  operatingData={operatingBudgetData}
+                  revenueData={revenueData}
+                  fiscalYear={selectedYear}
+                />
+              </div>
+
+              {/* Quick spending overview bar */}
+              {budgetData && budgetData.categories.length > 0 && (
+                <div className="mb-6 bg-white border border-ev-gray-200 rounded-xl p-5">
+                  <h3 className="text-sm font-semibold text-ev-gray-700 mb-3">
+                    Where the money goes — at a glance
+                  </h3>
+                  <SpendingBreakdownBar
+                    categories={budgetData.categories}
+                    onCategoryClick={handleCategoryClick}
+                  />
+                </div>
+              )}
 
               {/* Dataset Tabs */}
               <div className="mb-8">
@@ -568,10 +544,12 @@ function App() {
             </div>
           )}
 
-          {/* Info tip */}
+          {/* Contextual help — subtle, not preachy */}
           {navigationPath.length === 0 && budgetData && (
-            <div className="mt-6 p-4 bg-ev-teal-050 border border-ev-teal-100 rounded-lg text-sm text-[#6B7280]">
-              <strong className="text-[#1C1C1C]">Tip:</strong> Tap any category to drill down into its breakdown. Use breadcrumbs or the back button to navigate back. Switch datasets using the tabs above to explore revenue and salaries. Drill into Money Out to see individual transactions.
+            <div className="mt-6 p-4 bg-ev-gray-050 border border-ev-gray-200 rounded-lg text-sm text-ev-gray-500">
+              <strong className="text-ev-gray-700">How to explore:</strong> Tap any category above to see its breakdown.
+              Use the tabs to switch between spending, revenue, and employee compensation.
+              Every level lets you dig deeper until you reach individual line items and transactions.
             </div>
           )}
         </div>
