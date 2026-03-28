@@ -191,14 +191,16 @@ async function getLineItems(categoryId) {
 
 async function getTopVendors(budgetId, linkKey) {
   if (!linkKey) return [];
-  const { data } = await supabase
-    .rpc('get_top_vendors_for_category', {
+  try {
+    const { data } = await supabase.rpc('get_top_vendors_for_category', {
       p_budget_id: budgetId,
       p_link_key: linkKey,
       p_limit: 8,
-    })
-    .catch(() => ({ data: null }));
-  return data || [];
+    });
+    return data || [];
+  } catch {
+    return [];
+  }
 }
 
 async function callClaude(cat, municipality, budget) {
@@ -239,7 +241,7 @@ Respond with ONLY valid JSON (no markdown, no code blocks):
 }`;
 
   const response = await anthropic.messages.create({
-    model: process.env.ENRICHMENT_MODEL || 'claude-3-5-haiku-20241022',
+    model: process.env.ENRICHMENT_MODEL || 'claude-haiku-4-5-20251001',
     max_tokens: 512,
     messages: [{ role: 'user', content: prompt }],
   });

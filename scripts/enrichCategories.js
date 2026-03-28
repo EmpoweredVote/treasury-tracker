@@ -234,12 +234,16 @@ async function getLineItems(categoryId) {
 
 async function getTopVendors(budgetId, linkKey) {
   if (!linkKey) return [];
-  const { data } = await supabase.rpc('get_top_vendors_for_category', {
-    p_budget_id: budgetId,
-    p_link_key: linkKey,
-    p_limit: 8,
-  }).catch(() => ({ data: null }));
-  return data || [];
+  try {
+    const { data } = await supabase.rpc('get_top_vendors_for_category', {
+      p_budget_id: budgetId,
+      p_link_key: linkKey,
+      p_limit: 8,
+    });
+    return data || [];
+  } catch {
+    return [];
+  }
 }
 
 // ─── Concurrency Limiter ──────────────────────────────────────────────────────
@@ -321,7 +325,7 @@ async function enrichCategory(cat, municipality, existingResearch = '') {
   const prompt = buildPrompt(cat, municipality, lineItemSummary, vendorSummary, existingResearch);
 
   const response = await anthropic.messages.create({
-    model: process.env.ENRICHMENT_MODEL || 'claude-3-5-haiku-20241022',
+    model: process.env.ENRICHMENT_MODEL || 'claude-haiku-4-5-20251001',
     max_tokens: 512,
     messages: [{ role: 'user', content: prompt }],
   });
