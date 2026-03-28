@@ -35,14 +35,26 @@ const QuickFactsRow: React.FC<QuickFactsRowProps> = ({
   const totalRevenue = revenueData?.metadata.totalBudget ?? 0;
   const population = entity.population;
   const perResident = population > 0 ? totalBudget / population : 0;
-  const categoryCount = operatingData?.categories?.length ?? 0;
+
+  // Count spending areas: if only 1 top-level fund, count its children (departments).
+  // Otherwise count the top-level funds themselves.
+  const topCategories = operatingData?.categories ?? [];
+  const isGeneralFundOnly = topCategories.length === 1;
+  const spendingAreaCount = isGeneralFundOnly
+    ? (topCategories[0]?.subcategories?.length ?? 0)
+    : topCategories.length;
+
+  // Label the budget card accurately based on scope
+  const budgetLabel = isGeneralFundOnly
+    ? `${fiscalYear} General Fund`
+    : `${fiscalYear} Total Budget`;
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       <InsightCard
-        label={`${fiscalYear} Total Budget`}
+        label={budgetLabel}
         value={totalBudget > 0 ? formatCompact(totalBudget) : '—'}
-        subtext="What the city plans to spend"
+        subtext={isGeneralFundOnly ? 'Core city operations' : 'What the city plans to spend'}
         variant="primary"
         icon={<DollarSign size={18} className="text-ev-gray-500" />}
       />
@@ -65,7 +77,7 @@ const QuickFactsRow: React.FC<QuickFactsRowProps> = ({
 
       <InsightCard
         label="Spending Areas"
-        value={categoryCount > 0 ? `${categoryCount}` : '—'}
+        value={spendingAreaCount > 0 ? `${spendingAreaCount}` : '—'}
         subtext="Departments & categories"
         icon={<Building2 size={18} className="text-ev-gray-500" />}
       />

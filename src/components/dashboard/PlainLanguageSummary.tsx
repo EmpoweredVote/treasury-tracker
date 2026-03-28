@@ -28,8 +28,15 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
   const population = entity.population;
   const perResident = population > 0 ? total / population : 0;
 
-  // Find the top 3 spending categories
-  const topCategories = [...(operatingData.categories || [])]
+  // If only 1 top-level fund (e.g., General), use its children for "top categories"
+  const rawTopLevel = operatingData.categories || [];
+  const isGeneralFundOnly = rawTopLevel.length === 1;
+  const drillLevel = isGeneralFundOnly
+    ? (rawTopLevel[0]?.subcategories || [])
+    : rawTopLevel;
+
+  // Find the top 3 spending categories from the meaningful level
+  const topCategories = [...drillLevel]
     .sort((a, b) => b.amount - a.amount)
     .slice(0, 3);
 
@@ -66,11 +73,16 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
 
         <div className="space-y-4 text-[15px] leading-relaxed text-ev-gray-600 ml-[18px]">
           <p>
-            In {fiscalYear}, {entity.name} {population > 0 ? (
+            In {fiscalYear}, {entity.name}'s {isGeneralFundOnly ? 'General Fund ' : ''}
+            {population > 0 ? (
               <>
-                budgeted <strong className="text-ev-gray-800">{formatAmount(total)}</strong> to
-                serve its {population.toLocaleString()} residents — that's roughly{' '}
-                <strong className="text-ev-gray-800">{formatPerResident(perResident)} per person</strong>.
+                {isGeneralFundOnly ? 'totaled' : 'budgeted'}{' '}
+                <strong className="text-ev-gray-800">{formatAmount(total)}</strong>
+                {isGeneralFundOnly
+                  ? <> for core city operations serving {population.toLocaleString()} residents.</>
+                  : <> to serve its {population.toLocaleString()} residents — that's roughly{' '}
+                      <strong className="text-ev-gray-800">{formatPerResident(perResident)} per person</strong>.</>
+                }
               </>
             ) : (
               <>
@@ -82,9 +94,9 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
 
           {topCategories.length > 0 && (
             <p>
-              The biggest share goes to{' '}
+              The biggest {isGeneralFundOnly ? 'department' : 'share'} is{' '}
               <strong className="text-ev-gray-800">{toDisplayName(topCategories[0]?.name)}</strong>
-              {' '}({Math.round(topCategories[0]?.percentage)}% of the budget)
+              {' '}({Math.round(topCategories[0]?.percentage)}% of the {isGeneralFundOnly ? 'fund' : 'budget'})
               {topCategories[1] && (
                 <>, followed by{' '}
                   <strong className="text-ev-gray-800">{toDisplayName(topCategories[1]?.name)}</strong>
