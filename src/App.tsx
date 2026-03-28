@@ -13,6 +13,7 @@ import BudgetVisualization from './components/BudgetVisualization';
 import CategoryList from './components/CategoryList';
 import LineItemsTable from './components/LineItemsTable';
 import LinkedTransactionsPanel from './components/LinkedTransactionsPanel';
+import { getHeroImage } from './utils/wikiImage';
 import type { BudgetCategory, BudgetData, LinkedTransactionSummary, Municipality } from './types/budget';
 
 interface BreadcrumbItem {
@@ -83,6 +84,14 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [navigationPath, setNavigationPath] = useState<BudgetCategory[]>([]);
   const [linkedTransactions, setLinkedTransactions] = useState<LinkedTransactionSummary | null>(null);
+  const [heroImageUrl, setHeroImageUrl] = useState<string | null>(null);
+
+  // Fetch hero image from Wikipedia when entity changes
+  useEffect(() => {
+    if (!selectedEntity) return;
+    setHeroImageUrl(null); // clear while loading
+    getHeroImage(selectedEntity).then(url => setHeroImageUrl(url));
+  }, [selectedEntity]);
 
   // Derive available years and datasets from selected entity
   const availableYears = useMemo(() => {
@@ -329,14 +338,10 @@ function App() {
 
       {/* Hero banner */}
       <div
-        className="relative h-48 bg-cover bg-center"
-        style={{
-          backgroundImage: selectedEntity.hero_image_url
-            ? `url('${selectedEntity.hero_image_url}')`
-            : "url('https://upload.wikimedia.org/wikipedia/commons/8/85/Monroe_County_Courthouse_in_Bloomington_from_west-southwest.jpg')",
-        }}
+        className={`relative h-48 bg-cover bg-center ${!heroImageUrl ? 'bg-gradient-to-r from-[#005366] to-[#007A8C]' : ''}`}
+        style={heroImageUrl ? { backgroundImage: `url('${heroImageUrl}')` } : undefined}
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/30" />
+        <div className={`absolute inset-0 ${heroImageUrl ? 'bg-gradient-to-r from-black/60 to-black/30' : ''}`} />
         <div className="relative h-full max-w-[1400px] mx-auto px-6 flex flex-col justify-end pb-6">
           <h1 className="text-white text-3xl font-bold drop-shadow-lg">
             {selectedEntity.name} Finances
