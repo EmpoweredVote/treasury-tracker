@@ -164,7 +164,6 @@ function App() {
     if (!selectedEntity) return;
     setLoading(true);
     setNavigationPath([]);
-    setSearchQuery('');
 
     loadBudgetData(parseInt(selectedYear), selectedEntity.name, selectedEntity.state, activeDataset)
       .then(data => {
