@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown } from 'lucide-react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { ChevronDown, Search } from 'lucide-react';
 import type { Municipality } from '../types/budget';
 
 interface EntitySwitcherProps {
@@ -8,54 +8,84 @@ interface EntitySwitcherProps {
   onEntityChange: (entity: Municipality) => void;
 }
 
+const ENTITY_TYPE_LABELS: Record<string, string> = {
+  city: 'Cities',
+  county: 'Counties',
+  township: 'Townships',
+  special_district: 'Special Districts',
+  school_district: 'School Districts',
+  library: 'Libraries',
+  conservancy: 'Conservancy Districts',
+};
+
+const STATE_LABELS: Record<string, string> = {
+  IN: 'Indiana',
+  CA: 'California',
+};
+
 const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
   municipalities,
   selectedEntity,
   onEntityChange,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [filter, setFilter] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
+        setFilter('');
       }
     };
-
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
+      // Focus search input when opening
+      setTimeout(() => searchRef.current?.focus(), 0);
     }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
-  // Handle keyboard navigation
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Escape') {
       setIsOpen(false);
+      setFilter('');
     }
   };
 
-  // Group municipalities by entity_type
-  const grouped = municipalities.reduce<{
-    city: Municipality[];
-    county: Municipality[];
-    township: Municipality[];
-  }>(
-    (acc, m) => {
-      const key = m.entity_type;
-      if (key === 'city' || key === 'county' || key === 'township') {
-        acc[key].push(m);
-      }
-      return acc;
-    },
-    { city: [], county: [], township: [] }
-  );
+  // Group by state → entity_type, with filtering
+  const grouped = useMemo(() => {
+    const lowerFilter = filter.toLowerCase();
+    const filtered = filter
+      ? municipalities.filter(m =>
+          m.name.toLowerCase().includes(lowerFilter) ||
+          m.state.toLowerCase().includes(lowerFilter) ||
+          (STATE_LABELS[m.state] || '').toLowerCase().includes(lowerFilter)
+        )
+      : municipalities;
 
+    const byState = new Map<string, Map<string, Municipality[]>>();
+    for (const m of filtered) {
+      if (!byState.has(m.state)) byState.set(m.state, new Map());
+      const stateMap = byState.get(m.state)!;
+      const type = m.entity_type || 'city';
+      if (!stateMap.has(type)) stateMap.set(type, []);
+      stateMap.get(type)!.push(m);
+    }
+
+    // Sort entities within each group
+    for (const stateMap of byState.values()) {
+      for (const entities of stateMap.values()) {
+        entities.sort((a, b) => a.name.localeCompare(b.name));
+      }
+    }
+
+    return byState;
+  }, [municipalities, filter]);
+
+  const totalCount = municipalities.length;
   const displayName = selectedEntity
     ? `${selectedEntity.name}, ${selectedEntity.state}`
     : 'Select jurisdiction';
@@ -78,87 +108,71 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
 
       {isOpen && (
         <div
-          className="absolute top-full mt-1 left-0 min-w-56 bg-white border border-[#E2EBEF] rounded-lg shadow-lg z-10 overflow-hidden"
+          className="absolute top-full mt-1 left-0 w-72 bg-white border border-[#E2EBEF] rounded-lg shadow-lg z-10 overflow-hidden"
           role="listbox"
           aria-label="Available jurisdictions"
         >
-          {grouped.city.length > 0 && (
-            <>
-              <span className="block px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#6B7280]">
-                Cities
-              </span>
-              {grouped.city.map((entity) => (
-                <button
-                  key={entity.id}
-                  role="option"
-                  aria-selected={entity.id === selectedEntity?.id}
-                  className={`block w-full px-4 py-3 text-sm text-left border-l-2 transition-colors duration-150 hover:bg-[#F7F7F8] ${
-                    entity.id === selectedEntity?.id
-                      ? 'border-ev-muted-blue bg-[#F7F7F8]'
-                      : 'border-transparent'
-                  }`}
-                  onClick={() => {
-                    onEntityChange(entity);
-                    setIsOpen(false);
-                  }}
-                >
-                  {entity.name}, {entity.state}
-                </button>
-              ))}
-            </>
-          )}
+          {/* Search input */}
+          <div className="p-2 border-b border-[#E2EBEF]">
+            <div className="relative">
+              <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#6B7280]" />
+              <input
+                ref={searchRef}
+                type="text"
+                placeholder={`Search ${totalCount} jurisdictions...`}
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                className="w-full pl-8 pr-3 py-2 text-sm border border-[#E2EBEF] rounded-md bg-[#F7F7F8] focus:outline-none focus:ring-2 focus:ring-ev-muted-blue focus:border-transparent"
+              />
+            </div>
+          </div>
 
-          {grouped.county.length > 0 && (
-            <>
-              <span className="block px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#6B7280]">
-                Counties
-              </span>
-              {grouped.county.map((entity) => (
-                <button
-                  key={entity.id}
-                  role="option"
-                  aria-selected={entity.id === selectedEntity?.id}
-                  className={`block w-full px-4 py-3 text-sm text-left border-l-2 transition-colors duration-150 hover:bg-[#F7F7F8] ${
-                    entity.id === selectedEntity?.id
-                      ? 'border-ev-muted-blue bg-[#F7F7F8]'
-                      : 'border-transparent'
-                  }`}
-                  onClick={() => {
-                    onEntityChange(entity);
-                    setIsOpen(false);
-                  }}
-                >
-                  {entity.name}, {entity.state}
-                </button>
-              ))}
-            </>
-          )}
+          {/* Grouped list */}
+          <div className="max-h-80 overflow-y-auto">
+            {grouped.size === 0 && (
+              <div className="px-4 py-6 text-sm text-[#6B7280] text-center">
+                No jurisdictions match "{filter}"
+              </div>
+            )}
 
-          {grouped.township.length > 0 && (
-            <>
-              <span className="block px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#6B7280]">
-                Townships
-              </span>
-              {grouped.township.map((entity) => (
-                <button
-                  key={entity.id}
-                  role="option"
-                  aria-selected={entity.id === selectedEntity?.id}
-                  className={`block w-full px-4 py-3 text-sm text-left border-l-2 transition-colors duration-150 hover:bg-[#F7F7F8] ${
-                    entity.id === selectedEntity?.id
-                      ? 'border-ev-muted-blue bg-[#F7F7F8]'
-                      : 'border-transparent'
-                  }`}
-                  onClick={() => {
-                    onEntityChange(entity);
-                    setIsOpen(false);
-                  }}
-                >
-                  {entity.name}, {entity.state}
-                </button>
-              ))}
-            </>
-          )}
+            {[...grouped.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([state, typeMap]) => (
+              <div key={state}>
+                {/* State header */}
+                <div className="sticky top-0 bg-[#F7F7F8] px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-[#6B7280] border-b border-[#E2EBEF]">
+                  {STATE_LABELS[state] || state}
+                </div>
+
+                {[...typeMap.entries()].map(([type, entities]) => (
+                  <div key={`${state}-${type}`}>
+                    {/* Entity type subheader */}
+                    <div className="px-4 py-1 text-xs text-[#9CA3AF] font-medium">
+                      {ENTITY_TYPE_LABELS[type] || type} ({entities.length})
+                    </div>
+
+                    {entities.map((entity) => (
+                      <button
+                        key={entity.id}
+                        role="option"
+                        aria-selected={entity.id === selectedEntity?.id}
+                        className={`block w-full px-4 py-2 text-sm text-left border-l-2 transition-colors duration-150 hover:bg-[#F7F7F8] ${
+                          entity.id === selectedEntity?.id
+                            ? 'border-ev-muted-blue bg-[#F7F7F8] font-medium'
+                            : 'border-transparent'
+                        }`}
+                        onClick={() => {
+                          onEntityChange(entity);
+                          setIsOpen(false);
+                          setFilter('');
+                        }}
+                      >
+                        {entity.name}
+                      </button>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

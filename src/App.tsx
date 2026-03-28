@@ -1,9 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { SiteHeader } from '@chrisandrewsedu/ev-ui';
-import { ArrowLeft } from 'lucide-react';
 import PlainLanguageSummary from './components/dashboard/PlainLanguageSummary';
 import QuickFactsRow from './components/dashboard/QuickFactsRow';
-import SpendingBreakdownBar from './components/dashboard/SpendingBreakdownBar';
 import BudgetSearch from './components/dashboard/BudgetSearch';
 import { loadBudgetData, loadLinkedTransactions, listMunicipalities } from './data/dataLoader';
 import EntitySwitcher from './components/EntitySwitcher';
@@ -239,10 +237,6 @@ function App() {
     setNavigationPath(path);
   }, []);
 
-  const handleBack = useCallback(() => {
-    setNavigationPath(navigationPath.slice(0, -1));
-  }, [navigationPath]);
-
   const handleBreadcrumbClick = useCallback((index: number) => {
     if (index === 1) {
       setNavigationPath([]);
@@ -265,7 +259,7 @@ function App() {
 
     navigationPath.forEach((category, index) => {
       items.push({
-        label: category.name,
+        label: category.enrichment?.plainName || category.name,
         onClick: index < navigationPath.length - 1
           ? () => handleBreadcrumbClick(index + 2)
           : undefined
@@ -353,17 +347,15 @@ function App() {
               selectedEntity={selectedEntity}
               onEntityChange={handleEntityChange}
             />
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <div className="flex-1 min-w-0">
-                <SearchBar
-                  value={searchQuery}
-                  onChange={setSearchQuery}
-                />
-              </div>
-              <YearSelector
-                selectedYear={selectedYear}
-                years={availableYears}
-                onYearChange={setSelectedYear}
+            <YearSelector
+              selectedYear={selectedYear}
+              years={availableYears}
+              onYearChange={setSelectedYear}
+            />
+            <div className="flex-1 min-w-0">
+              <SearchBar
+                value={searchQuery}
+                onChange={setSearchQuery}
               />
             </div>
           </div>
@@ -433,19 +425,6 @@ function App() {
                 />
               </div>
 
-              {/* Quick spending overview bar */}
-              {budgetData && budgetData.categories.length > 0 && (
-                <div className="mb-6 bg-white border border-ev-gray-200 rounded-xl p-5">
-                  <h3 className="text-sm font-semibold text-ev-gray-700 mb-3">
-                    Where the money goes — at a glance
-                  </h3>
-                  <SpendingBreakdownBar
-                    categories={budgetData.categories}
-                    onCategoryClick={handleCategoryClick}
-                  />
-                </div>
-              )}
-
               {/* Dataset Tabs */}
               <div className="mb-8">
                 <DatasetTabs
@@ -457,18 +436,6 @@ function App() {
                 />
               </div>
             </>
-          )}
-
-          {/* Back button when navigated into categories */}
-          {navigationPath.length > 0 && (
-            <button
-              onClick={handleBack}
-              className="flex items-center gap-2 text-ev-muted-blue hover:underline text-sm font-medium mb-6 bg-transparent border-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ev-muted-blue focus-visible:ring-offset-2 rounded"
-              aria-label="Go back"
-            >
-              <ArrowLeft size={16} />
-              Back to {navigationPath.length === 1 ? 'Overview' : navigationPath[navigationPath.length - 2].name}
-            </button>
           )}
 
           {/* Search Results Message */}
@@ -490,23 +457,16 @@ function App() {
                   <h2 className="text-base font-bold text-[#1C1C1C]">
                     {navigationPath.length === 0
                       ? `How ${budgetData.metadata.cityName} ${displayText.title}`
-                      : navigationPath[navigationPath.length - 1].name}
+                      : navigationPath[navigationPath.length - 1].enrichment?.plainName || navigationPath[navigationPath.length - 1].name}
                   </h2>
                   <p className="text-sm text-[#6B7280] mt-1">
                     {navigationPath.length === 0
                       ? displayText.description
                       : showLineItems
                         ? displayText.lineItemsDescription
-                        : 'The colored backgrounds show each subcategory\'s relative size. Tap to explore further or use the back button to return.'}
+                        : 'The colored backgrounds show each subcategory\'s relative size. Tap to explore further or use the breadcrumb above to navigate back.'}
                   </p>
                 </div>
-                {navigationPath.length > 1 && (
-                  <YearSelector
-                    selectedYear={selectedYear}
-                    years={availableYears}
-                    onYearChange={setSelectedYear}
-                  />
-                )}
               </div>
 
               {showLineItems ? (
