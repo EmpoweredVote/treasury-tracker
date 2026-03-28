@@ -6,7 +6,7 @@ import BudgetSearch from './components/dashboard/BudgetSearch';
 import { loadBudgetData, loadLinkedTransactions, listMunicipalities } from './data/dataLoader';
 import EntitySwitcher from './components/EntitySwitcher';
 import DatasetTabs from './components/datasets/DatasetTabs';
-import SearchBar from './components/SearchBar';
+
 import YearSelector from './components/YearSelector';
 import Breadcrumb from './components/Breadcrumb';
 import BudgetVisualization from './components/BudgetVisualization';
@@ -76,7 +76,7 @@ function App() {
   const [selectedEntity, setSelectedEntity] = useState<Municipality | null>(null);
 
   const [selectedYear, setSelectedYear] = useState('2025');
-  const [searchQuery, setSearchQuery] = useState('');
+
   const [budgetData, setBudgetData] = useState<BudgetData | null>(null);
   const [operatingBudgetData, setOperatingBudgetData] = useState<BudgetData | null>(null);
   const [revenueData, setRevenueData] = useState<BudgetData | null>(null);
@@ -322,17 +322,7 @@ function App() {
     ? (budgetData?.categories ?? [])
     : navigationPath[navigationPath.length - 1].subcategories || [];
 
-  const filterCategories = (categories: BudgetCategory[], query: string): BudgetCategory[] => {
-    if (!query.trim()) return categories;
-    const lowerQuery = query.toLowerCase();
-    return categories.filter(cat =>
-      cat.name.toLowerCase().includes(lowerQuery) ||
-      (cat.description && cat.description.toLowerCase().includes(lowerQuery))
-    );
-  };
-
-  const filteredCategories = filterCategories(currentCategories, searchQuery);
-  const displayCategories = searchQuery ? filteredCategories : currentCategories;
+  const displayCategories = currentCategories;
 
   return (
     <div className="min-h-screen bg-[#F7F7F8] font-manrope">
@@ -373,9 +363,23 @@ function App() {
               onYearChange={setSelectedYear}
             />
             <div className="flex-1 min-w-0">
-              <SearchBar
-                value={searchQuery}
-                onChange={setSearchQuery}
+              <BudgetSearch
+                cityId={selectedEntity.id}
+                cityName={selectedEntity.name}
+                fiscalYear={parseInt(selectedYear)}
+                onResultClick={(result) => {
+                  const allCategories = [
+                    ...(operatingBudgetData?.categories ?? []),
+                    ...(revenueData?.categories ?? []),
+                  ];
+                  const match = allCategories.find(c => c.name === result.categoryName);
+                  if (match) {
+                    if (result.datasetType !== activeDataset && ['operating', 'revenue', 'salaries'].includes(result.datasetType)) {
+                      setActiveDataset(result.datasetType as DatasetType);
+                    }
+                    handleCategoryClick(match);
+                  }
+                }}
               />
             </div>
           </div>
@@ -401,30 +405,6 @@ function App() {
           {/* Dashboard Section — only show at top level */}
           {navigationPath.length === 0 && (
             <>
-              {/* Global search — Ask about your city's budget */}
-              <div className="mb-6">
-                <BudgetSearch
-                  cityId={selectedEntity.id}
-                  cityName={selectedEntity.name}
-                  fiscalYear={parseInt(selectedYear)}
-                  onResultClick={(result) => {
-                    // Try to find this category in the loaded budget data and navigate to it
-                    const allCategories = [
-                      ...(operatingBudgetData?.categories ?? []),
-                      ...(revenueData?.categories ?? []),
-                    ];
-                    const match = allCategories.find(c => c.name === result.categoryName);
-                    if (match) {
-                      // Switch to the right dataset first if needed
-                      if (result.datasetType !== activeDataset && ['operating', 'revenue', 'salaries'].includes(result.datasetType)) {
-                        setActiveDataset(result.datasetType as DatasetType);
-                      }
-                      handleCategoryClick(match);
-                    }
-                  }}
-                />
-              </div>
-
               {/* Plain language summary — lead with the story */}
               <div className="mb-6">
                 <PlainLanguageSummary
@@ -456,17 +436,6 @@ function App() {
                 />
               </div>
             </>
-          )}
-
-          {/* Search Results Message */}
-          {searchQuery && (
-            <div className="mb-4 text-sm text-[#6B7280]">
-              {displayCategories.length > 0 ? (
-                <p>Found {displayCategories.length} {displayCategories.length === 1 ? 'result' : 'results'} for "{searchQuery}"</p>
-              ) : (
-                <p>No results found for "{searchQuery}"</p>
-              )}
-            </div>
           )}
 
           {/* Budget Visualization Section */}
