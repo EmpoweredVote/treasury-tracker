@@ -111,8 +111,8 @@ const BudgetSearch: React.FC<BudgetSearchProps> = ({
       <div
         className={`relative flex items-center transition-shadow duration-200 ${
           isOpen
-            ? 'ring-2 ring-ev-muted-blue ring-offset-0 rounded-xl shadow-md'
-            : 'rounded-xl'
+            ? 'ring-2 ring-ev-muted-blue ring-offset-0 rounded-lg shadow-md'
+            : 'rounded-lg'
         }`}
       >
         <div className="absolute left-4 text-ev-gray-400 pointer-events-none flex items-center">
@@ -131,7 +131,7 @@ const BudgetSearch: React.FC<BudgetSearchProps> = ({
           onBlur={() => setTimeout(() => setFocused(false), 150)}
           placeholder={`Ask about ${cityName}'s budget — try "roads" or "police"`}
           aria-label={`Search ${cityName} budget categories`}
-          className="w-full pl-10 pr-10 py-3 bg-white border border-ev-gray-200 rounded-xl text-sm font-manrope focus:outline-none placeholder:text-ev-gray-400 text-ev-gray-900"
+          className="w-full h-[42px] pl-10 pr-10 bg-white border border-ev-gray-200 rounded-lg text-sm font-manrope focus:outline-none placeholder:text-ev-gray-400 text-ev-gray-900"
         />
         {query && (
           <button
