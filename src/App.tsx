@@ -338,10 +338,30 @@ function App() {
     <div className="min-h-screen bg-[#F7F7F8] font-manrope">
       <SiteHeader logoSrc={`${import.meta.env.BASE_URL}EVLogo.svg`} />
 
+      {/* Hero banner */}
+      <div
+        className="relative h-48 bg-cover bg-center"
+        style={{
+          backgroundImage: selectedEntity.hero_image_url
+            ? `url('${selectedEntity.hero_image_url}')`
+            : "url('https://upload.wikimedia.org/wikipedia/commons/8/85/Monroe_County_Courthouse_in_Bloomington_from_west-southwest.jpg')",
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/30" />
+        <div className="relative h-full max-w-[1400px] mx-auto px-6 flex flex-col justify-end pb-6">
+          <h1 className="text-white text-3xl font-bold drop-shadow-lg">
+            {selectedEntity.name} Finances
+          </h1>
+          <p className="text-white/80 text-sm mt-1">
+            Explore how public funds are allocated and spent.
+          </p>
+        </div>
+      </div>
+
       {/* Header / Controls bar */}
       <div className="bg-white shadow-sm">
-        <div className="max-w-[1400px] mx-auto px-6 py-4">
-          <div className="flex items-center gap-4 flex-wrap">
+        <div className="max-w-[1400px] mx-auto px-6 py-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <EntitySwitcher
               municipalities={municipalities}
               selectedEntity={selectedEntity}

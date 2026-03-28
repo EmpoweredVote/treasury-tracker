@@ -93,7 +93,7 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
   return (
     <div className="relative" ref={dropdownRef} onKeyDown={handleKeyDown}>
       <button
-        className="flex items-center gap-2 min-h-[44px] px-4 py-2 bg-white border border-[#E2EBEF] rounded-lg font-manrope text-base font-medium text-[#1C1C1C] cursor-pointer transition-colors duration-200 hover:bg-[#F7F7F8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ev-muted-blue focus-visible:ring-offset-2"
+        className="flex items-center gap-2 h-[42px] px-4 py-2 bg-white border border-[#E2EBEF] rounded-lg font-manrope text-sm font-medium text-[#1C1C1C] cursor-pointer transition-colors duration-200 hover:bg-[#F7F7F8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ev-muted-blue focus-visible:ring-offset-2"
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Select jurisdiction"
         aria-expanded={isOpen}
