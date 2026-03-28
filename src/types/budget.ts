@@ -2,6 +2,23 @@
  * Budget Data Types
  */
 
+export interface SearchResult {
+  categoryId: string;
+  budgetId: string;
+  categoryName: string;
+  plainName: string;
+  shortDescription: string;
+  amount: number;
+  percentage: number;
+  datasetType: string;
+  fiscalYear: number;
+  cityName: string;
+  cityState: string;
+  tags: string[];
+  source: string;
+  confidence: string;
+}
+
 export interface LineItem {
   description: string;
   approvedAmount: number;
@@ -43,6 +60,17 @@ export interface LinkedTransactionSummary {
   hasMore?: boolean; // True if there are more transactions available in the index file
 }
 
+export interface CategoryEnrichment {
+  plainName: string;
+  shortDescription: string;
+  description: string;
+  tags: string[];
+  source: string;       // 'ai' | 'official' | 'hybrid'
+  sourceLabel?: string | null;
+  sourceUrl?: string | null;
+  confidence: string;   // 'high' | 'medium' | 'low'
+}
+
 export interface BudgetCategory {
   name: string;
   amount: number;
@@ -50,6 +78,7 @@ export interface BudgetCategory {
   color: string;
   subcategories?: BudgetCategory[];
   description?: string;
+  enrichment?: CategoryEnrichment | null;
   whyMatters?: string;
   historicalChange?: number;
   items?: number; // Number of line items aggregated into this category

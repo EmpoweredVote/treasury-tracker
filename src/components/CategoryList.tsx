@@ -18,7 +18,8 @@ import {
   Zap,
   TrendingUp,
   Navigation,
-  ChevronRight
+  ChevronRight,
+  ExternalLink,
 } from 'lucide-react';
 import { DATA_VIZ_HUES } from '../utils/chartColors';
 
@@ -119,12 +120,35 @@ const CategoryList: React.FC<CategoryListProps> = ({ categories, onCategoryClick
 
               {/* Category info */}
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-bold font-manrope text-[#1C1C1C] truncate">{category.name}</div>
+                {/* Plain name (enriched) or raw name */}
+                <div className="text-sm font-bold font-manrope text-[#1C1C1C] truncate">
+                  {category.enrichment?.plainName || category.name}
+                </div>
+                {/* Raw name as subtitle if enriched and different */}
+                {category.enrichment?.plainName && category.enrichment.plainName !== category.name && (
+                  <div className="text-[10px] text-ev-gray-400 truncate -mt-0.5 mb-0.5">
+                    {category.name}
+                  </div>
+                )}
+                {/* Amount + percentage */}
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="text-sm font-medium tabular-nums text-[#1C1C1C]">{formatCurrency(category.amount)}</span>
                   <span className="text-[#D3D7DE]">•</span>
                   <span className="text-xs text-[#6B7280] tabular-nums">{formatPercentage(category.percentage)}%</span>
+                  {/* Official source badge */}
+                  {category.enrichment?.source === 'official' && (
+                    <span className="flex items-center gap-0.5 text-[9px] font-semibold px-1 py-0.5 rounded bg-ev-yellow-100 text-ev-yellow-700 uppercase tracking-wide">
+                      <ExternalLink size={8} />
+                      Official
+                    </span>
+                  )}
                 </div>
+                {/* Short description from enrichment */}
+                {category.enrichment?.shortDescription && (
+                  <p className="text-[11px] text-ev-gray-500 leading-snug mt-1 line-clamp-2">
+                    {category.enrichment.shortDescription}
+                  </p>
+                )}
               </div>
 
               {/* Arrow indicator for drilldown */}
