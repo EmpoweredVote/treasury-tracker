@@ -10,6 +10,7 @@ interface PlainLanguageSummaryProps {
   operatingData: BudgetData | null;
   revenueData: BudgetData | null;
   fiscalYear: string;
+  onCategoryClick?: (categoryName: string, dataset: 'operating' | 'revenue') => void;
 }
 
 /**
@@ -21,6 +22,7 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
   operatingData,
   revenueData,
   fiscalYear,
+  onCategoryClick,
 }) => {
   if (!operatingData) return null;
 
@@ -95,17 +97,26 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
           {topCategories.length > 0 && (
             <p>
               The biggest {isGeneralFundOnly ? 'department' : 'share'} is{' '}
-              <strong className="text-ev-gray-800">{toDisplayName(topCategories[0]?.name)}</strong>
+              <button
+                className="font-bold text-ev-gray-800 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
+                onClick={() => onCategoryClick?.(topCategories[0]?.name, 'operating')}
+              >{toDisplayName(topCategories[0]?.name)}</button>
               {' '}({Math.round(topCategories[0]?.percentage)}% of the {isGeneralFundOnly ? 'fund' : 'budget'})
               {topCategories[1] && (
                 <>, followed by{' '}
-                  <strong className="text-ev-gray-800">{toDisplayName(topCategories[1]?.name)}</strong>
+                  <button
+                    className="font-bold text-ev-gray-800 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
+                    onClick={() => onCategoryClick?.(topCategories[1]?.name, 'operating')}
+                  >{toDisplayName(topCategories[1]?.name)}</button>
                   {' '}({Math.round(topCategories[1]?.percentage)}%)
                 </>
               )}
               {topCategories[2] && (
                 <> and{' '}
-                  <strong className="text-ev-gray-800">{toDisplayName(topCategories[2]?.name)}</strong>
+                  <button
+                    className="font-bold text-ev-gray-800 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
+                    onClick={() => onCategoryClick?.(topCategories[2]?.name, 'operating')}
+                  >{toDisplayName(topCategories[2]?.name)}</button>
                   {' '}({Math.round(topCategories[2]?.percentage)}%)
                 </>
               )}.
@@ -119,9 +130,12 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
               {' '}in expected revenue
               {revenueData.categories?.[0] && (
                 <>, with the largest source being{' '}
-                  <strong className="text-ev-gray-800">
+                  <button
+                    className="font-bold text-ev-gray-800 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
+                    onClick={() => onCategoryClick?.(revenueData!.categories[0].name, 'revenue')}
+                  >
                     {toDisplayName(revenueData.categories[0].name)}
-                  </strong>
+                  </button>
                 </>
               )}.
             </p>
