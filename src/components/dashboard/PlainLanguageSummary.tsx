@@ -109,6 +109,9 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
                 className="font-bold text-ev-gray-800 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
                 onClick={() => onCategoryClick?.(topCategories[0]?.name, 'operating')}
               >{toDisplayName(topCategories[0]?.name)}</button>
+              {topCategories[0]?.enrichment?.shortDescription && (
+                <span className="text-ev-gray-400 text-[13px]">{' '}— {topCategories[0].enrichment.shortDescription.toLowerCase()}</span>
+              )}
               {' '}({Math.round(topCategories[0]?.percentage)}% of the {isGeneralFundOnly ? 'fund' : 'budget'})
               {topCategories[1] && (
                 <>, followed by{' '}
@@ -116,6 +119,9 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
                     className="font-bold text-ev-gray-800 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
                     onClick={() => onCategoryClick?.(topCategories[1]?.name, 'operating')}
                   >{toDisplayName(topCategories[1]?.name)}</button>
+                  {topCategories[1]?.enrichment?.shortDescription && (
+                    <span className="text-ev-gray-400 text-[13px]">{' '}— {topCategories[1].enrichment.shortDescription.toLowerCase()}</span>
+                  )}
                   {' '}({Math.round(topCategories[1]?.percentage)}%)
                 </>
               )}
@@ -125,6 +131,9 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
                     className="font-bold text-ev-gray-800 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
                     onClick={() => onCategoryClick?.(topCategories[2]?.name, 'operating')}
                   >{toDisplayName(topCategories[2]?.name)}</button>
+                  {topCategories[2]?.enrichment?.shortDescription && (
+                    <span className="text-ev-gray-400 text-[13px]">{' '}— {topCategories[2].enrichment.shortDescription.toLowerCase()}</span>
+                  )}
                   {' '}({Math.round(topCategories[2]?.percentage)}%)
                 </>
               )}.
@@ -144,6 +153,9 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
                   >
                     {toDisplayName(revenueData.categories[0].name)}
                   </button>
+                  {revenueData.categories[0]?.enrichment?.shortDescription && (
+                    <span className="text-ev-gray-400 text-[13px]">{' '}— {revenueData.categories[0].enrichment.shortDescription.toLowerCase()}</span>
+                  )}
                 </>
               )}.
             </p>
