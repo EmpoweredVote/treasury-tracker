@@ -539,6 +539,37 @@ function App() {
                     totalBudget={budgetData.metadata.totalBudget}
                     onPathClick={handlePathClick}
                   />
+                  {/* Attribution for descriptions */}
+                  {(() => {
+                    const cats = displayCategories || [];
+                    const officialCats = cats.filter(c => c.enrichment?.source === 'official');
+                    const aiCats = cats.filter(c => c.enrichment?.source === 'ai' || c.enrichment?.source === 'hybrid');
+                    const sourceUrl = officialCats[0]?.enrichment?.sourceUrl;
+                    const sourceLabel = officialCats[0]?.enrichment?.sourceLabel || 'official budget documents';
+
+                    if (officialCats.length === 0 && aiCats.length === 0) return null;
+
+                    return (
+                      <p className="text-xs text-ev-gray-400 mb-3">
+                        {officialCats.length > 0 && (
+                          <>
+                            Top-level descriptions from{' '}
+                            {sourceUrl ? (
+                              <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="underline hover:text-ev-muted-blue">
+                                {sourceLabel}
+                              </a>
+                            ) : (
+                              sourceLabel
+                            )}
+                            .{' '}
+                          </>
+                        )}
+                        {aiCats.length > 0 && (
+                          <>Subcategory descriptions are summarized from budget line items.</>
+                        )}
+                      </p>
+                    );
+                  })()}
                   <CategoryList
                     categories={displayCategories}
                     onCategoryClick={handleCategoryClick}

@@ -19,7 +19,6 @@ import {
   TrendingUp,
   Navigation,
   ChevronRight,
-  ExternalLink,
 } from 'lucide-react';
 import { DATA_VIZ_HUES } from '../utils/chartColors';
 
@@ -135,13 +134,7 @@ const CategoryList: React.FC<CategoryListProps> = ({ categories, onCategoryClick
                   <span className="text-sm font-medium tabular-nums text-[#1C1C1C]">{formatCurrency(category.amount)}</span>
                   <span className="text-[#D3D7DE]">•</span>
                   <span className="text-xs text-[#6B7280] tabular-nums">{formatPercentage(category.percentage)}%</span>
-                  {/* Official source badge */}
-                  {category.enrichment?.source === 'official' && (
-                    <span className="flex items-center gap-0.5 text-[9px] font-semibold px-1 py-0.5 rounded bg-ev-yellow-100 text-ev-yellow-700 uppercase tracking-wide">
-                      <ExternalLink size={8} />
-                      Official
-                    </span>
-                  )}
+
                 </div>
                 {/* Short description from enrichment */}
                 {category.enrichment?.shortDescription && (
