@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { SiteHeader } from '@chrisandrewsedu/ev-ui';
 import PlainLanguageSummary from './components/dashboard/PlainLanguageSummary';
 import QuickFactsRow from './components/dashboard/QuickFactsRow';
@@ -69,6 +69,9 @@ function getDatasetLabel(type: DatasetType): string {
 }
 
 function App() {
+  // Ref for auto-scrolling to chart section
+  const chartSectionRef = useRef<HTMLDivElement>(null);
+
   // Dataset selection
   const [activeDataset, setActiveDataset] = useState<DatasetType>('operating');
 
@@ -233,6 +236,37 @@ function App() {
       setNavigationPath([...navigationPath, category]);
     }
   }, [navigationPath]);
+
+  const handleSummaryCategoryClick = useCallback((categoryName: string, dataset: 'operating' | 'revenue') => {
+    // Switch dataset if needed
+    if (dataset !== activeDataset) {
+      setActiveDataset(dataset as DatasetType);
+    }
+
+    // Find the category in the appropriate data
+    const data = dataset === 'operating' ? operatingBudgetData : revenueData;
+    if (!data) return;
+
+    // Handle single-fund drill: if only 1 top-level category, look in its subcategories
+    const topLevel = data.categories || [];
+    const isGeneralFundOnly = topLevel.length === 1;
+    const searchLevel = isGeneralFundOnly ? (topLevel[0]?.subcategories || []) : topLevel;
+
+    const category = searchLevel.find(c => c.name === categoryName);
+    if (!category) return;
+
+    // Build navigation path (same as clicking the chart)
+    if (isGeneralFundOnly) {
+      setNavigationPath([topLevel[0], category]);
+    } else {
+      setNavigationPath([category]);
+    }
+
+    // Auto-scroll chart into view
+    setTimeout(() => {
+      chartSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  }, [activeDataset, operatingBudgetData, revenueData]);
 
   const handlePathClick = useCallback((path: BudgetCategory[]) => {
     // Guard: don't navigate to a leaf node that has nothing to display
@@ -416,6 +450,7 @@ function App() {
                   operatingData={operatingBudgetData}
                   revenueData={revenueData}
                   fiscalYear={selectedYear}
+                  onCategoryClick={handleSummaryCategoryClick}
                 />
               </div>
 
@@ -444,7 +479,7 @@ function App() {
 
           {/* Budget Visualization Section */}
           {budgetData && (
-            <div className="space-y-6">
+            <div ref={chartSectionRef} className="space-y-6">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <h2 className="text-base font-bold text-[#1C1C1C]">
