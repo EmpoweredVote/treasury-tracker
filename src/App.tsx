@@ -1,7 +1,6 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { SiteHeader } from '@chrisandrewsedu/ev-ui';
 import PlainLanguageSummary from './components/dashboard/PlainLanguageSummary';
-import QuickFactsRow from './components/dashboard/QuickFactsRow';
 import BudgetSearch from './components/dashboard/BudgetSearch';
 import { loadBudgetData, loadLinkedTransactions, listMunicipalities } from './data/dataLoader';
 import EntitySwitcher from './components/EntitySwitcher';
@@ -456,16 +455,6 @@ function App() {
                   fiscalYear={selectedYear}
                   onCategoryClick={handleSummaryCategoryClick}
                   onYearClick={() => yearSelectorRef.current?.open()}
-                />
-              </div>
-
-              {/* Quick facts — key numbers at a glance */}
-              <div className="mb-6">
-                <QuickFactsRow
-                  entity={selectedEntity}
-                  operatingData={operatingBudgetData}
-                  revenueData={revenueData}
-                  fiscalYear={selectedYear}
                 />
               </div>
 
