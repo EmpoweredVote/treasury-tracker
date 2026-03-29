@@ -8,6 +8,7 @@ import EntitySwitcher from './components/EntitySwitcher';
 import DatasetTabs from './components/datasets/DatasetTabs';
 
 import YearSelector from './components/YearSelector';
+import type { YearSelectorHandle } from './components/YearSelector';
 import Breadcrumb from './components/Breadcrumb';
 import BudgetVisualization from './components/BudgetVisualization';
 import CategoryList from './components/CategoryList';
@@ -71,6 +72,8 @@ function getDatasetLabel(type: DatasetType): string {
 function App() {
   // Ref for auto-scrolling to chart section
   const chartSectionRef = useRef<HTMLDivElement>(null);
+  // Ref for programmatically opening the YearSelector dropdown
+  const yearSelectorRef = useRef<YearSelectorHandle>(null);
 
   // Dataset selection
   const [activeDataset, setActiveDataset] = useState<DatasetType>('operating');
@@ -396,6 +399,7 @@ function App() {
               onEntityChange={handleEntityChange}
             />
             <YearSelector
+              ref={yearSelectorRef}
               selectedYear={selectedYear}
               years={availableYears}
               onYearChange={setSelectedYear}
@@ -451,6 +455,7 @@ function App() {
                   revenueData={revenueData}
                   fiscalYear={selectedYear}
                   onCategoryClick={handleSummaryCategoryClick}
+                  onYearClick={() => yearSelectorRef.current?.open()}
                 />
               </div>
 
