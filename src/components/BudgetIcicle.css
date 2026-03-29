@@ -60,7 +60,7 @@
 }
 
 .icicle-segment.clickable:focus-visible {
-  outline: 3px solid #FF5740;
+  outline: 3px solid var(--color-ev-yellow-500);
   outline-offset: -3px;
   z-index: 2;
 }
@@ -76,7 +76,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background-color: #FF5740;
+  background-color: var(--color-ev-yellow-500);
 }
 
 /* Content within segment */

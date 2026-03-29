@@ -299,7 +299,7 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
         return 0.3;
       })
       .attr('stroke', d => {
-        if (isInCurrentPath(d)) return '#FF5740';
+        if (isInCurrentPath(d)) return '#FED12E';
         return 'rgba(255,255,255,0.5)';
       })
       .attr('stroke-width', d => {
@@ -424,7 +424,7 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
         .attr('y1', arcY)
         .attr('x2', lineEndX)
         .attr('y2', lineEndY)
-        .attr('stroke', '#FF5740')
+        .attr('stroke', '#FED12E')
         .attr('stroke-width', 2)
         .attr('stroke-dasharray', '4,2')
         .attr('opacity', 0)
@@ -437,7 +437,7 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
         .attr('cx', arcX)
         .attr('cy', arcY)
         .attr('r', 4)
-        .attr('fill', '#FF5740')
+        .attr('fill', '#FED12E')
         .attr('opacity', 0)
         .transition()
         .delay(300)
