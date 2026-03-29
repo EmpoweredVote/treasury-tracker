@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { ChevronDown } from 'lucide-react';
 
 interface YearSelectorProps {
@@ -7,9 +7,20 @@ interface YearSelectorProps {
   onYearChange: (year: string) => void;
 }
 
-const YearSelector: React.FC<YearSelectorProps> = ({ selectedYear, years, onYearChange }) => {
+export interface YearSelectorHandle {
+  open: () => void;
+}
+
+const YearSelector = forwardRef<YearSelectorHandle, YearSelectorProps>(({ selectedYear, years, onYearChange }, ref) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useImperativeHandle(ref, () => ({
+    open: () => {
+      setIsOpen(true);
+      dropdownRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    },
+  }));
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -67,6 +78,8 @@ const YearSelector: React.FC<YearSelectorProps> = ({ selectedYear, years, onYear
       )}
     </div>
   );
-};
+});
+
+YearSelector.displayName = 'YearSelector';
 
 export default YearSelector;

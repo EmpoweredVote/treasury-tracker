@@ -11,6 +11,7 @@ interface PlainLanguageSummaryProps {
   revenueData: BudgetData | null;
   fiscalYear: string;
   onCategoryClick?: (categoryName: string, dataset: 'operating' | 'revenue') => void;
+  onYearClick?: () => void;
 }
 
 /**
@@ -23,6 +24,7 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
   revenueData,
   fiscalYear,
   onCategoryClick,
+  onYearClick,
 }) => {
   if (!operatingData) return null;
 
@@ -75,7 +77,13 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
 
         <div className="space-y-4 text-[15px] leading-relaxed text-ev-gray-600 ml-[18px]">
           <p>
-            In {fiscalYear}, {entity.name}'s {isGeneralFundOnly ? 'General Fund ' : ''}
+            In <button
+              type="button"
+              className="font-bold text-ev-gray-800 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
+              onClick={() => onYearClick?.()}
+            >
+              {fiscalYear}
+            </button>, {entity.name}'s {isGeneralFundOnly ? 'General Fund ' : ''}
             {population > 0 ? (
               <>
                 {isGeneralFundOnly ? 'totaled' : 'budgeted'}{' '}
