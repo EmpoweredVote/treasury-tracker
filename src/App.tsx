@@ -488,6 +488,15 @@ function App() {
                         ? displayText.lineItemsDescription
                         : 'The colored backgrounds show each subcategory\'s relative size. Tap to explore further or use the breadcrumb above to navigate back.'}
                   </p>
+                  {navigationPath.length > 0 && (() => {
+                    const currentCat = navigationPath[navigationPath.length - 1];
+                    const desc = currentCat.enrichment?.description;
+                    return desc ? (
+                      <p className="text-sm text-ev-gray-500 mt-2 max-w-2xl leading-relaxed">
+                        {desc}
+                      </p>
+                    ) : null;
+                  })()}
                 </div>
               </div>
 
