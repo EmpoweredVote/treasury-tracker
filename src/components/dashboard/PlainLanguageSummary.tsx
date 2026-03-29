@@ -162,11 +162,6 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
           )}
         </div>
 
-        <div className="mt-6 ml-[18px]">
-          <p className="text-xs text-ev-gray-400">
-            Explore the categories below to see exactly where every dollar goes →
-          </p>
-        </div>
       </div>
     </div>
   );
