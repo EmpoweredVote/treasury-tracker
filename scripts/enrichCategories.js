@@ -18,6 +18,8 @@
  *   node scripts/enrichCategories.js --city "Bloomington" --state "IN" --dry-run
  *   node scripts/enrichCategories.js --all --concurrency 5 --limit 100
  *   node scripts/enrichCategories.js --all --skip-universal --dataset-format gateway
+ *   node scripts/enrichCategories.js --city "Bloomington" --state "IN" --depth 1
+ *   node scripts/enrichCategories.js --city "Bloomington" --state "IN" --depth all
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -70,6 +72,7 @@ const DATASET_FORMAT = args['dataset-format'] || 'auto'; // gateway | cafr | aut
 const CONCURRENCY = parseInt(args.concurrency || '3');
 const SKIP_UNIVERSAL = 'skip-universal' in args;
 const LIMIT = args.limit ? parseInt(args.limit) : null;
+const DEPTH = args.depth || '0'; // '0' = top-level only (default), '1' = depth 1, 'all' = all depths
 
 // Validate args
 if (!ALL_MODE && !CITY) {
@@ -181,19 +184,41 @@ async function getBudgetCategories(municipalityId) {
 
   const allCategories = [];
   for (const budget of budgets) {
-    const { data: cats } = await supabase
+    let query = supabase
       .from('budget_categories')
-      .select('id, name, amount, percentage, parent_id, link_key')
+      .select('id, name, amount, percentage, parent_id, link_key, depth')
       .eq('budget_id', budget.id)
-      .is('parent_id', null)
       .order('amount', { ascending: false });
 
+    if (DEPTH === '0') {
+      query = query.is('parent_id', null);
+    } else if (DEPTH !== 'all') {
+      query = query.eq('depth', parseInt(DEPTH));
+    }
+    // 'all' = no depth filter
+
+    const { data: cats } = await query;
+
     if (cats) {
+      // For subcategories, fetch parent name for context
+      const parentIds = [...new Set(cats.filter(c => c.parent_id).map(c => c.parent_id))];
+      let parentMap = {};
+      if (parentIds.length > 0) {
+        const { data: parents } = await supabase
+          .from('budget_categories')
+          .select('id, name')
+          .in('id', parentIds);
+        if (parents) {
+          parentMap = Object.fromEntries(parents.map(p => [p.id, p.name]));
+        }
+      }
+
       allCategories.push(...cats.map(c => ({
         ...c,
         budget_id: budget.id,
         dataset_type: budget.dataset_type,
         total_budget: budget.total_budget,
+        parent_name: c.parent_id ? (parentMap[c.parent_id] || null) : null,
       })));
     }
   }
@@ -286,7 +311,7 @@ function buildPrompt(cat, municipality, lineItemSummary, vendorSummary, existing
   return `You are helping citizens understand their local government budget. A government budget has a fund or department named "${cat.name}" that represents ${amount} (${pct} of the ${cat.dataset_type} budget) for ${municipality.name}, ${municipality.state} in fiscal year ${YEAR}.
 
 ${entityContext}
-
+${cat.parent_name ? `\nThis is a subcategory under "${cat.parent_name}".\n` : ''}
 Line items within this fund:
 ${lineItemSummary}
 
@@ -341,8 +366,11 @@ async function enrichCategory(cat, municipality, existingResearch = '') {
 }
 
 async function saveEnrichment(cat, municipality, result) {
+  const nameKey = cat.parent_name
+    ? `${normalize(cat.parent_name)}|${normalize(cat.name)}`
+    : normalize(cat.name);
   const row = {
-    name_key: normalize(cat.name),
+    name_key: nameKey,
     municipality_id: municipality.id,
     plain_name: result.plain_name,
     description: result.description,
@@ -391,7 +419,9 @@ async function processMunicipality(municipality, universalKeys, progress, runSta
   let skippedUniversal = 0;
 
   for (const cat of categories) {
-    const key = normalize(cat.name);
+    const key = cat.parent_name
+      ? `${normalize(cat.parent_name)}|${normalize(cat.name)}`
+      : normalize(cat.name);
 
     // Skip if already in progress file
     if (progress.processed.includes(`${municipality.id}::${key}`)) continue;
@@ -442,7 +472,10 @@ async function processMunicipality(municipality, universalKeys, progress, runSta
       }
 
       // Record progress
-      const progressKey = `${municipality.id}::${normalize(cat.name)}`;
+      const nameKey = cat.parent_name
+        ? `${normalize(cat.parent_name)}|${normalize(cat.name)}`
+        : normalize(cat.name);
+      const progressKey = `${municipality.id}::${nameKey}`;
       progress.processed.push(progressKey);
       saveProgress(progress);
 
