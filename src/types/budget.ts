@@ -127,6 +127,7 @@ export interface BudgetData {
     generatedAt: string;
     hierarchy: string[];
     dataSource: string;
+    dataSourceInfo?: { displayName: string; url: string } | null;
     datasetType?: string;
     // For salaries
     totalCompensation?: number;
