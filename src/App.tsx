@@ -366,7 +366,10 @@ function App() {
     ? (budgetData?.categories ?? [])
     : navigationPath[navigationPath.length - 1].subcategories || [];
 
-  const displayCategories = currentCategories;
+  const isPastYear = parseInt(selectedYear) < new Date().getFullYear();
+  const displayCategories = currentCategories.filter(c =>
+    isPastYear ? (c.actualAmount ?? c.amount) !== 0 : c.amount !== 0
+  );
 
   return (
     <div className="min-h-screen bg-[#F7F7F8] font-manrope">
@@ -573,6 +576,7 @@ function App() {
                   <CategoryList
                     categories={displayCategories}
                     onCategoryClick={handleCategoryClick}
+                    isPastYear={isPastYear}
                   />
                   {activeDataset === 'operating' && linkedTransactions && currentCategory && (
                     <LinkedTransactionsPanel

@@ -25,6 +25,7 @@ import { DATA_VIZ_HUES } from '../utils/chartColors';
 interface CategoryListProps {
   categories: BudgetCategory[];
   onCategoryClick: (category: BudgetCategory) => void;
+  isPastYear?: boolean;
 }
 
 // Icon mapping for budget categories
@@ -67,7 +68,7 @@ const getCategoryIcon = (categoryName: string): React.ElementType => {
   return Building2;
 };
 
-const CategoryList: React.FC<CategoryListProps> = ({ categories, onCategoryClick }) => {
+const CategoryList: React.FC<CategoryListProps> = ({ categories, onCategoryClick, isPastYear = false }) => {
   const formatCurrency = (amount: number) => {
     if (amount >= 1000000) {
       return `$${(amount / 1000000).toFixed(1)}M`;
@@ -131,7 +132,9 @@ const CategoryList: React.FC<CategoryListProps> = ({ categories, onCategoryClick
                 )}
                 {/* Amount + percentage */}
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="text-sm font-medium tabular-nums text-[#1C1C1C]">{formatCurrency(category.amount)}</span>
+                  <span className="text-sm font-medium tabular-nums text-[#1C1C1C]">
+                    {formatCurrency(isPastYear && category.actualAmount != null ? category.actualAmount : category.amount)}
+                  </span>
                   <span className="text-[#D3D7DE]">•</span>
                   <span className="text-xs text-[#6B7280] tabular-nums">{formatPercentage(category.percentage)}%</span>
 
