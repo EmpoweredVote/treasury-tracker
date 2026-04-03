@@ -121,6 +121,7 @@ function transformAPIResponse(budget: any, categories: BudgetCategory[], city?: 
       generatedAt: budget.generated_at || budget.generatedAt || new Date().toISOString(),
       hierarchy: budget.hierarchy || [],
       dataSource: budget.data_source || budget.dataSource || 'API',
+      dataSourceInfo: budget.data_source_info || budget.dataSourceInfo || null,
       datasetType: budget.dataset_type || budget.datasetType
     },
     categories: categories
