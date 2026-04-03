@@ -74,6 +74,7 @@ export interface CategoryEnrichment {
 export interface BudgetCategory {
   name: string;
   amount: number;
+  actualAmount?: number;
   percentage: number;
   color: string;
   subcategories?: BudgetCategory[];
