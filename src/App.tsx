@@ -456,6 +456,7 @@ function App() {
                   operatingData={operatingBudgetData}
                   revenueData={revenueData}
                   fiscalYear={selectedYear}
+                  isPastYear={isPastYear}
                   onCategoryClick={handleSummaryCategoryClick}
                   onYearClick={() => yearSelectorRef.current?.open()}
                 />
