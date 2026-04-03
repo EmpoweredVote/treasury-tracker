@@ -53,6 +53,18 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
     .sort((a, b) => b.amount - a.amount)
     .slice(0, 3);
 
+  // Collect unique data sources across operating + revenue
+  const sourceMap = new Map<string, { displayName: string; url: string }>();
+  if (operatingData?.metadata.dataSourceInfo) {
+    const s = operatingData.metadata.dataSourceInfo;
+    sourceMap.set(s.displayName, s);
+  }
+  if (revenueData?.metadata.dataSourceInfo) {
+    const s = revenueData.metadata.dataSourceInfo;
+    sourceMap.set(s.displayName, s);
+  }
+  const dataSources = [...sourceMap.values()];
+
   // Convert ALL_CAPS names (Indiana Gateway) to Title Case for readable display
   const toDisplayName = (name: string) => {
     if (name === name.toUpperCase() && name.length > 2) {
@@ -170,6 +182,26 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
                   )}
                 </>
               )}.
+            </p>
+          )}
+
+          {dataSources.length > 0 && (
+            <p className="text-[11px] text-ev-gray-400 pt-2 border-t border-ev-gray-100 mt-4">
+              Data sourced from{' '}
+              {dataSources.map((source, i) => (
+                <span key={source.displayName}>
+                  {i > 0 && i === dataSources.length - 1 && ' and '}
+                  {i > 0 && i < dataSources.length - 1 && ', '}
+                  <a
+                    href={source.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline decoration-ev-gray-300 underline-offset-2 hover:text-ev-gray-600 transition-colors"
+                  >
+                    {source.displayName}
+                  </a>
+                </span>
+              ))}
             </p>
           )}
         </div>
