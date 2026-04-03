@@ -367,8 +367,10 @@ function App() {
     : navigationPath[navigationPath.length - 1].subcategories || [];
 
   const isPastYear = parseInt(selectedYear) < new Date().getFullYear();
+  // Only use actual data if the categories actually have it (non-zero actualAmount)
+  const hasActualData = isPastYear && currentCategories.some(c => (c.actualAmount ?? 0) > 0);
   const displayCategories = currentCategories.filter(c =>
-    isPastYear ? (c.actualAmount ?? c.amount) !== 0 : c.amount !== 0
+    hasActualData ? (c.actualAmount ?? c.amount) !== 0 : c.amount !== 0
   );
 
   return (
@@ -577,7 +579,7 @@ function App() {
                   <CategoryList
                     categories={displayCategories}
                     onCategoryClick={handleCategoryClick}
-                    isPastYear={isPastYear}
+                    isPastYear={hasActualData}
                   />
                   {activeDataset === 'operating' && linkedTransactions && currentCategory && (
                     <LinkedTransactionsPanel

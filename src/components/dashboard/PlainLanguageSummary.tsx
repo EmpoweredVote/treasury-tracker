@@ -32,9 +32,12 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
 
   const budgetedTotal = operatingData.metadata.totalBudget;
   const actualTotal = (operatingData.categories || []).reduce(
-    (sum, c) => sum + (c.actualAmount ?? c.amount), 0
+    (sum, c) => sum + (c.actualAmount ?? 0), 0
   );
-  const total = isPastYear ? actualTotal : budgetedTotal;
+  // Only use "spent" language if we actually have actual spending data
+  const hasActualData = actualTotal > 0;
+  const showActual = isPastYear && hasActualData;
+  const total = showActual ? actualTotal : budgetedTotal;
   const population = entity.population;
   const perResident = population > 0 ? total / population : 0;
 
@@ -77,7 +80,7 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
         <div className="flex items-start gap-3 mb-4">
           <div className="w-1.5 h-1.5 rounded-full bg-ev-yellow-400 mt-2.5 flex-shrink-0 opacity-70" />
           <h2 className="text-lg md:text-xl font-bold text-ev-gray-900 leading-snug">
-            How {entity.name} {isPastYear ? 'spent' : 'plans to spend'} your money
+            How {entity.name} {showActual ? 'spent' : 'plans to spend'} your money
           </h2>
         </div>
 
@@ -92,20 +95,20 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
             </button>, {entity.name}'s {isGeneralFundOnly ? 'General Fund ' : ''}
             {population > 0 ? (
               <>
-                {isPastYear
+                {showActual
                   ? <>spent <strong className="text-ev-gray-800">{formatAmount(total)}</strong> serving its {population.toLocaleString()} residents</>
                   : isGeneralFundOnly
                     ? <>totaled <strong className="text-ev-gray-800">{formatAmount(total)}</strong> for core city operations serving {population.toLocaleString()} residents.</>
                     : <>budgeted <strong className="text-ev-gray-800">{formatAmount(total)}</strong> to serve its {population.toLocaleString()} residents — that's roughly{' '}
                         <strong className="text-ev-gray-800">{formatPerResident(perResident)} per person</strong>.</>
                 }
-                {isPastYear && <> — roughly{' '}
+                {showActual && <> — roughly{' '}
                   <strong className="text-ev-gray-800">{formatPerResident(perResident)} per person</strong>.</>
                 }
               </>
             ) : (
               <>
-                {isPastYear ? 'spent' : 'budgeted'} <strong className="text-ev-gray-800">{formatAmount(total)}</strong> across
+                {showActual ? 'spent' : 'budgeted'} <strong className="text-ev-gray-800">{formatAmount(total)}</strong> across
                 all departments and services.
               </>
             )}
@@ -113,7 +116,7 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
 
           {topCategories.length > 0 && (
             <p>
-              The biggest {isGeneralFundOnly ? 'department' : 'share'} {isPastYear ? 'was' : 'is'}{' '}
+              The biggest {isGeneralFundOnly ? 'department' : 'share'} {showActual ? 'was' : 'is'}{' '}
               <button
                 className="font-bold text-ev-gray-800 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
                 onClick={() => onCategoryClick?.(topCategories[0]?.name, 'operating')}
@@ -151,9 +154,9 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
 
           {revenueData && (
             <p>
-              The city {isPastYear ? 'funded' : 'funds'} this through{' '}
+              The city {showActual ? 'funded' : 'funds'} this through{' '}
               <strong className="text-ev-gray-800">{formatAmount(revenueData.metadata.totalBudget)}</strong>
-              {' '}in {isPastYear ? '' : 'expected '}revenue
+              {' '}in {showActual ? '' : 'expected '}revenue
               {revenueData.categories?.[0] && (
                 <>, with the largest source being{' '}
                   <button
