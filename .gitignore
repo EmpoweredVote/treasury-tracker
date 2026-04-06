@@ -23,6 +23,10 @@ dist-ssr
 *.sln
 *.sw?
 
+# Claude Code internals
+.claude/worktrees/
+.superpowers/
+
 # Static data files — all data served from Supabase via API
 public/data/
 src/data/processedBudget.json
