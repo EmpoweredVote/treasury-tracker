@@ -4,6 +4,9 @@ import PlainLanguageSummary from './components/dashboard/PlainLanguageSummary';
 import BudgetSearch from './components/dashboard/BudgetSearch';
 import { loadBudgetData, loadLinkedTransactions, listMunicipalities } from './data/dataLoader';
 import EntitySwitcher from './components/EntitySwitcher';
+import AlphaLanding from './components/AlphaLanding';
+import type { LandingReason } from './components/AlphaLanding';
+import { resolveToken, fetchUserSession } from './utils/auth';
 import DatasetTabs from './components/datasets/DatasetTabs';
 
 import YearSelector from './components/YearSelector';
@@ -77,6 +80,10 @@ function App() {
   // Dataset selection
   const [activeDataset, setActiveDataset] = useState<DatasetType>('operating');
 
+  // App-level view state: resolving auth → landing or budget
+  const [appView, setAppView] = useState<'resolving' | 'landing' | 'budget'>('resolving');
+  const [landingReason, setLandingReason] = useState<LandingReason>({ type: 'unauthenticated' });
+
   // Entity state
   const [municipalities, setMunicipalities] = useState<Municipality[]>([]);
   const [selectedEntity, setSelectedEntity] = useState<Municipality | null>(null);
@@ -114,35 +121,111 @@ function App() {
     )];
   }, [selectedEntity, selectedYear]);
 
-  // Load municipalities on mount, resolve entity from URL (or default to Bloomington per D-12)
-  useEffect(() => {
-    listMunicipalities().then(list => {
-      setMunicipalities(list);
-      const params = new URLSearchParams(window.location.search);
-      const entityParam = params.get('entity');
-      const yearParam = params.get('year');
-      const datasetParam = params.get('dataset');
-
-      const matched = entityParam ? list.find(m => toSlug(m) === entityParam) : null;
-      const entity = matched ?? list.find(m => m.name === 'Bloomington' && m.state === 'IN') ?? list[0];
-      setSelectedEntity(entity);
-
-      // Resolve year: from URL param if valid for entity, else most recent available
-      const entityYears = [...new Set(entity.available_datasets.map(d => d.fiscal_year))].sort((a, b) => b - a);
-      if (yearParam && entityYears.includes(parseInt(yearParam))) {
-        setSelectedYear(yearParam);
-      } else if (entityYears.length > 0) {
-        setSelectedYear(String(entityYears[0]));
-      }
-
-      // Resolve dataset from URL param if valid
-      if (datasetParam && ['operating', 'revenue', 'salaries'].includes(datasetParam)) {
-        setActiveDataset(datasetParam as DatasetType);
-      }
-    }).catch(error => {
-      console.error('Failed to load municipalities:', error);
-    });
+  // Helper: navigate directly to an entity (used by landing page and auth routing)
+  const navigateToEntity = useCallback((entity: Municipality, list: Municipality[]) => {
+    const entityYears = [...new Set(entity.available_datasets.map(d => d.fiscal_year))].sort((a, b) => b - a);
+    const year = entityYears.length > 0 ? String(entityYears[0]) : '2025';
+    setMunicipalities(list);
+    setSelectedEntity(entity);
+    setSelectedYear(year);
+    setAppView('budget');
+    syncURL(entity, year, 'operating');
   }, []);
+
+  // On mount: resolve auth + load municipalities in parallel, then route
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const entityParam = params.get('entity');
+    const yearParam = params.get('year');
+    const datasetParam = params.get('dataset');
+
+    // If a URL entity param is present, bypass auth routing entirely (shared/bookmarked link)
+    if (entityParam) {
+      listMunicipalities().then(list => {
+        setMunicipalities(list);
+        const matched = list.find(m => toSlug(m) === entityParam);
+        const entity = matched ?? list.find(m => m.name === 'Bloomington' && m.state === 'IN') ?? list[0];
+        setSelectedEntity(entity);
+
+        const entityYears = [...new Set(entity.available_datasets.map(d => d.fiscal_year))].sort((a, b) => b - a);
+        if (yearParam && entityYears.includes(parseInt(yearParam))) {
+          setSelectedYear(yearParam);
+        } else if (entityYears.length > 0) {
+          setSelectedYear(String(entityYears[0]));
+        }
+        if (datasetParam && ['operating', 'revenue', 'salaries'].includes(datasetParam)) {
+          setActiveDataset(datasetParam as DatasetType);
+        }
+        setAppView('budget');
+      }).catch(() => setAppView('budget'));
+      return;
+    }
+
+    // No URL param — run auth-based routing
+    Promise.all([
+      resolveToken(),
+      listMunicipalities(),
+    ]).then(async ([token, list]) => {
+      setMunicipalities(list);
+
+      // Unauthenticated — full access, manual city search
+      if (!token) {
+        setLandingReason({ type: 'guest' });
+        setAppView('landing');
+        return;
+      }
+
+      const session = await fetchUserSession(token);
+
+      // Token invalid or expired — treat as guest
+      if (!session) {
+        setLandingReason({ type: 'guest' });
+        setAppView('landing');
+        return;
+      }
+
+      // Inform tier — full access, manual city search (same as guest)
+      if (session.tier === 'inform') {
+        setLandingReason({ type: 'guest' });
+        setAppView('landing');
+        return;
+      }
+
+      // Connected/Empowered but no address on file
+      if (!session.jurisdiction?.city || !session.jurisdiction?.state) {
+        setLandingReason({ type: 'no_location' });
+        setAppView('landing');
+        return;
+      }
+
+      // Try to match their city to a treasury city
+      const cityNorm = session.jurisdiction.city.trim().toLowerCase();
+      const stateNorm = session.jurisdiction.state.trim().toUpperCase();
+      const match = list.find(
+        m =>
+          m.name.trim().toLowerCase() === cityNorm &&
+          m.state.trim().toUpperCase() === stateNorm &&
+          m.available_datasets.length > 0
+      );
+
+      if (match) {
+        // Auto-navigate to their city
+        navigateToEntity(match, list);
+      } else {
+        // City not in treasury yet
+        setLandingReason({
+          type: 'city_not_available',
+          cityName: session.jurisdiction.city,
+          state: session.jurisdiction.state,
+        });
+        setAppView('landing');
+      }
+    }).catch(() => {
+      // On any error, fall through to guest landing rather than a broken state
+      setLandingReason({ type: 'guest' });
+      setAppView('landing');
+    });
+  }, [navigateToEntity]);
 
   // Load operating budget and revenue totals for info cards (only if entity has that data)
   useEffect(() => {
@@ -315,7 +398,39 @@ function App() {
 
   const displayText = getDatasetDisplayText(activeDataset);
 
-  // Initial load guard — municipalities not yet resolved
+  // Explore Bloomington from the landing page
+  const handleExploreBloomington = useCallback(() => {
+    const bloomington = municipalities.find(m => m.name === 'Bloomington' && m.state === 'IN') ?? municipalities[0];
+    if (bloomington) navigateToEntity(bloomington, municipalities);
+  }, [municipalities, navigateToEntity]);
+
+  // Resolving auth — show spinner
+  if (appView === 'resolving') {
+    return (
+      <div className="min-h-screen bg-[#F7F7F8] font-manrope">
+        <SiteHeader logoSrc={`${import.meta.env.BASE_URL}EVLogo.svg`} />
+        <div className="flex items-center justify-center py-16">
+          <div role="status" aria-live="polite" aria-label="Loading" className="flex flex-col items-center gap-4">
+            <div className="w-8 h-8 rounded-full border-4 border-[#E2EBEF] border-t-ev-muted-blue animate-spin" />
+            <span className="sr-only">Loading…</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Landing page — guest, no location, or city not in treasury
+  if (appView === 'landing') {
+    return (
+      <AlphaLanding
+        reason={landingReason}
+        municipalities={municipalities}
+        onNavigateToCity={(city) => navigateToEntity(city, municipalities)}
+      />
+    );
+  }
+
+  // Budget view — initial load guard while entity resolves
   if (!selectedEntity) {
     return (
       <div className="min-h-screen bg-[#F7F7F8] font-manrope">
