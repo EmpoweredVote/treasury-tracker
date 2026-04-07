@@ -398,6 +398,15 @@ function App() {
 
   const displayText = getDatasetDisplayText(activeDataset);
 
+  // Only show search when the city has enriched categories (plain names + tags)
+  const hasEnrichment = useMemo(() => {
+    const cats = [
+      ...(operatingBudgetData?.categories ?? []),
+      ...(revenueData?.categories ?? []),
+    ];
+    return cats.some(c => c.enrichment != null);
+  }, [operatingBudgetData, revenueData]);
+
   // Resolving auth — show spinner
   if (appView === 'resolving') {
     return (
@@ -517,26 +526,28 @@ function App() {
               years={availableYears}
               onYearChange={setSelectedYear}
             />
-            <div className="flex-1 min-w-0">
-              <BudgetSearch
-                cityId={selectedEntity.id}
-                cityName={selectedEntity.name}
-                fiscalYear={parseInt(selectedYear)}
-                onResultClick={(result) => {
-                  const allCategories = [
-                    ...(operatingBudgetData?.categories ?? []),
-                    ...(revenueData?.categories ?? []),
-                  ];
-                  const match = allCategories.find(c => c.name === result.categoryName);
-                  if (match) {
-                    if (result.datasetType !== activeDataset && ['operating', 'revenue', 'salaries'].includes(result.datasetType)) {
-                      setActiveDataset(result.datasetType as DatasetType);
+            {hasEnrichment && (
+              <div className="flex-1 min-w-0">
+                <BudgetSearch
+                  cityId={selectedEntity.id}
+                  cityName={selectedEntity.name}
+                  fiscalYear={parseInt(selectedYear)}
+                  onResultClick={(result) => {
+                    const allCategories = [
+                      ...(operatingBudgetData?.categories ?? []),
+                      ...(revenueData?.categories ?? []),
+                    ];
+                    const match = allCategories.find(c => c.name === result.categoryName);
+                    if (match) {
+                      if (result.datasetType !== activeDataset && ['operating', 'revenue', 'salaries'].includes(result.datasetType)) {
+                        setActiveDataset(result.datasetType as DatasetType);
+                      }
+                      handleCategoryClick(match);
                     }
-                    handleCategoryClick(match);
-                  }
-                }}
-              />
-            </div>
+                  }}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>
