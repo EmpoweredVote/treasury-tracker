@@ -82,7 +82,7 @@ function App() {
 
   // App-level view state: resolving auth → landing or budget
   const [appView, setAppView] = useState<'resolving' | 'landing' | 'budget'>('resolving');
-  const [landingReason, setLandingReason] = useState<LandingReason>({ type: 'unauthenticated' });
+  const [landingReason, setLandingReason] = useState<LandingReason>({ type: 'guest' });
 
   // Entity state
   const [municipalities, setMunicipalities] = useState<Municipality[]>([]);
@@ -397,12 +397,6 @@ function App() {
   }, [navigationPath, activeDataset, handleBreadcrumbClick, selectedEntity]);
 
   const displayText = getDatasetDisplayText(activeDataset);
-
-  // Explore Bloomington from the landing page
-  const handleExploreBloomington = useCallback(() => {
-    const bloomington = municipalities.find(m => m.name === 'Bloomington' && m.state === 'IN') ?? municipalities[0];
-    if (bloomington) navigateToEntity(bloomington, municipalities);
-  }, [municipalities, navigateToEntity]);
 
   // Resolving auth — show spinner
   if (appView === 'resolving') {
