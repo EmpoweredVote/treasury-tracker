@@ -1,4 +1,4 @@
-declare module '@chrisandrewsedu/ev-ui' {
+declare module '@empoweredvote/ev-ui' {
   import { CSSProperties, ReactNode } from 'react';
 
   export interface NavDropdownItem {
