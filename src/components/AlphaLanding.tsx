@@ -101,6 +101,17 @@ function CitySearch({
   );
 }
 
+function readUserAddressState(): string | null {
+  try {
+    const match = document.cookie.split('; ').find(c => c.startsWith('evUserAddress='));
+    if (!match) return null;
+    const parsed = JSON.parse(decodeURIComponent(match.split('=').slice(1).join('=')));
+    const TTL_MS = 30 * 24 * 60 * 60 * 1000;
+    if (parsed?.ts && Date.now() - parsed.ts > TTL_MS) return null;
+    return parsed?.state ?? null;
+  } catch { return null; }
+}
+
 // ── Available city cards ──
 function CityGrid({
   municipalities,
@@ -119,8 +130,9 @@ function CityGrid({
     );
   }
 
-  const featured = available.filter(m => m.state === 'IN');
-  const others = available.filter(m => m.state !== 'IN');
+  const userState = readUserAddressState();
+  const nearby = userState ? available.filter(m => m.state === userState) : [];
+  const others = userState ? available.filter(m => m.state !== userState) : available;
 
   const renderCityButton = (city: Municipality) => {
     const years = [...new Set(city.available_datasets.map(d => d.fiscal_year))].sort((a, b) => b - a);
@@ -154,17 +166,19 @@ function CityGrid({
 
   return (
     <div className="space-y-6">
-      {featured.length > 0 && (
+      {nearby.length > 0 && (
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-[#6B7280] mb-2">Featured communities</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-[#6B7280] mb-2">Near you</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {featured.map(renderCityButton)}
+            {nearby.map(renderCityButton)}
           </div>
         </div>
       )}
       {others.length > 0 && (
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-[#6B7280] mb-2">Other communities</p>
+          {nearby.length > 0 && (
+            <p className="text-xs font-semibold uppercase tracking-wider text-[#6B7280] mb-2">Other communities</p>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {others.map(renderCityButton)}
           </div>
