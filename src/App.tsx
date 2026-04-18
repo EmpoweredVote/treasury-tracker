@@ -511,6 +511,17 @@ function App() {
         </div>
       </div>
 
+      {/* FY notice — shown when selected entity has no FY2026 data yet */}
+      {selectedEntity && availableYears.length > 0 && !availableYears.includes('2026') && (
+        <div className="bg-[#FFF8ED] border-l-4 border-[#F5D98B]">
+          <div className="max-w-[1400px] mx-auto px-6 py-2">
+            <p className="text-sm text-[#92400E]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+              Latest available: FY{availableYears[0]}. FY2026 data not yet published by {selectedEntity.name}.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Header / Controls bar */}
       <div className="bg-white shadow-sm">
         <div className="max-w-[1400px] mx-auto px-6 py-3">
