@@ -101,14 +101,15 @@ function CitySearch({
   );
 }
 
-function readUserAddressState(): string | null {
+function readUserAddress(): { state: string; addr: string } | null {
   try {
     const match = document.cookie.split('; ').find(c => c.startsWith('evUserAddress='));
     if (!match) return null;
     const parsed = JSON.parse(decodeURIComponent(match.split('=').slice(1).join('=')));
     const TTL_MS = 30 * 24 * 60 * 60 * 1000;
     if (parsed?.ts && Date.now() - parsed.ts > TTL_MS) return null;
-    return parsed?.state ?? null;
+    if (!parsed?.state) return null;
+    return { state: parsed.state, addr: parsed.addr ?? '' };
   } catch { return null; }
 }
 
@@ -130,9 +131,9 @@ function CityGrid({
     );
   }
 
-  const userState = readUserAddressState();
-  const nearby = userState ? available.filter(m => m.state === userState) : [];
-  const others = userState ? available.filter(m => m.state !== userState) : available;
+  const userAddress = readUserAddress();
+  const nearby = userAddress ? available.filter(m => m.state === userAddress.state) : [];
+  const others = userAddress ? available.filter(m => m.state !== userAddress.state) : available;
 
   const renderCityButton = (city: Municipality) => {
     const years = [...new Set(city.available_datasets.map(d => d.fiscal_year))].sort((a, b) => b - a);
@@ -168,7 +169,12 @@ function CityGrid({
     <div className="space-y-6">
       {nearby.length > 0 && (
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-[#6B7280] mb-2">Near you</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-[#6B7280] mb-2">
+            Near you
+            {userAddress?.addr && (
+              <span className="ml-2 normal-case font-normal tracking-normal text-[#9CA3AF]">· {userAddress.addr}</span>
+            )}
+          </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {nearby.map(renderCityButton)}
           </div>
