@@ -119,37 +119,57 @@ function CityGrid({
     );
   }
 
+  const featured = available.filter(m => m.state === 'IN');
+  const others = available.filter(m => m.state !== 'IN');
+
+  const renderCityButton = (city: Municipality) => {
+    const years = [...new Set(city.available_datasets.map(d => d.fiscal_year))].sort((a, b) => b - a);
+    const isPilot = city.name === 'Bloomington' && city.state === 'IN';
+    return (
+      <button
+        key={city.id}
+        onClick={() => onNavigateToCity(city)}
+        className="flex items-center gap-3 bg-white border border-[#E2EBEF] rounded-xl p-4 text-left hover:border-[#005366] hover:shadow-sm transition-all duration-200 group"
+      >
+        <div className="w-9 h-9 rounded-lg bg-[#EAF4F7] flex items-center justify-center shrink-0 group-hover:bg-[#005366] transition-colors duration-200">
+          <Building2 size={16} className="text-[#005366] group-hover:text-white transition-colors duration-200" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-[#1C1C1C] truncate">
+            {city.name}, {city.state}
+            {isPilot && (
+              <span className="ml-2 text-xs font-normal text-[#005366] bg-[#EAF4F7] px-1.5 py-0.5 rounded">
+                Pilot
+              </span>
+            )}
+          </p>
+          <p className="text-xs text-[#6B7280] mt-0.5">
+            {years.length} fiscal year{years.length !== 1 ? 's' : ''} · {years[0]} most recent
+          </p>
+        </div>
+        <ArrowRight size={14} className="text-[#9CA3AF] shrink-0 group-hover:text-[#005366] transition-colors duration-200" />
+      </button>
+    );
+  };
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      {available.map(city => {
-        const years = [...new Set(city.available_datasets.map(d => d.fiscal_year))].sort((a, b) => b - a);
-        const isPilot = city.name === 'Bloomington' && city.state === 'IN';
-        return (
-          <button
-            key={city.id}
-            onClick={() => onNavigateToCity(city)}
-            className="flex items-center gap-3 bg-white border border-[#E2EBEF] rounded-xl p-4 text-left hover:border-[#005366] hover:shadow-sm transition-all duration-200 group"
-          >
-            <div className="w-9 h-9 rounded-lg bg-[#EAF4F7] flex items-center justify-center shrink-0 group-hover:bg-[#005366] transition-colors duration-200">
-              <Building2 size={16} className="text-[#005366] group-hover:text-white transition-colors duration-200" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-[#1C1C1C] truncate">
-                {city.name}, {city.state}
-                {isPilot && (
-                  <span className="ml-2 text-xs font-normal text-[#005366] bg-[#EAF4F7] px-1.5 py-0.5 rounded">
-                    Pilot
-                  </span>
-                )}
-              </p>
-              <p className="text-xs text-[#6B7280] mt-0.5">
-                {years.length} fiscal year{years.length !== 1 ? 's' : ''} · {years[0]} most recent
-              </p>
-            </div>
-            <ArrowRight size={14} className="text-[#9CA3AF] shrink-0 group-hover:text-[#005366] transition-colors duration-200" />
-          </button>
-        );
-      })}
+    <div className="space-y-6">
+      {featured.length > 0 && (
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-[#6B7280] mb-2">Featured communities</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {featured.map(renderCityButton)}
+          </div>
+        </div>
+      )}
+      {others.length > 0 && (
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-[#6B7280] mb-2">Other communities</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {others.map(renderCityButton)}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
