@@ -147,7 +147,7 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
                 ? <>{entity.name} {showActual ? 'paid' : 'budgets'}{' '}
                     <strong className="text-ev-gray-800">{formatAmount(salariesTotal)}</strong> in staff compensation.
                   </>
-                : <>All work {showActual ? 'was' : 'is'} done by unpaid volunteers — {entity.name} {showActual ? 'paid' : 'pays'} <strong className="text-ev-gray-800">$0</strong> in staff compensation.</>
+                : <>All work is done by unpaid volunteers — in {fiscalYear}, {entity.name} paid <strong className="text-ev-gray-800">$0</strong> in staff compensation.</>
               }
             </p>
           )}
