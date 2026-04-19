@@ -84,6 +84,8 @@ const CATEGORY_LOGOS: Record<string, string> = {
   'AWS':                                   `${base}logos/aws-logo.png`,
   'GoDaddy':                               `${base}logos/godaddy-logo.png`,
   'TechSoup (AWS Credits)':                `${base}logos/techsoup-logo.jpg`,
+  'Supabase':                              `${base}logos/supabase-logo.svg`,
+  'Render.com':                            `${base}logos/render-logo.png`,
   // Platform Fees (vendor/payee names from EV data)
   'Benevity Processing Fee':               `${base}logos/benevity-logo.svg`,
   'Givebutter Fees':                       `${base}logos/givebutter-logo.png`,
