@@ -4,6 +4,12 @@
  * the generic data viz hue when a category name matches a brand.
  */
 export const BRAND_BAR_COLORS: Record<string, string> = {
+  // EV top-level categories (prevent all-blue icicle at root level)
+  'Donations':                               '#22C55E',
+  'Interest':                                '#86EFAC',
+  'Software & Tools':                        '#8B5CF6',
+  'Platform Fees':                           '#EF4444',
+  'Operations':                              '#F59E0B',
   // Revenue sources
   'Patreon':                                 '#FF424D',
   'Give Butter':                             '#19C037',
