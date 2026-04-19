@@ -6,9 +6,11 @@ interface DatasetCardsProps {
   revenueTotal?: number;
   operatingTotal?: number;
   availableDatasets?: string[];
+  isNonprofit?: boolean;
 }
 
-const formatCurrency = (amount: number): string => {
+const formatCurrency = (amount: number, exact = false): string => {
+  if (exact) return `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   if (amount >= 1_000_000_000) return `$${(amount / 1_000_000_000).toFixed(1)}B`;
   if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`;
   if (amount >= 1_000) return `$${(amount / 1_000).toFixed(0)}K`;
@@ -36,6 +38,7 @@ export default function DatasetTabs({
   revenueTotal,
   operatingTotal,
   availableDatasets,
+  isNonprofit = false,
 }: DatasetCardsProps) {
   const available = availableDatasets ?? ['operating', 'revenue'];
 
@@ -73,7 +76,7 @@ export default function DatasetTabs({
             </div>
             {total != null && (
               <div className={`text-2xl font-bold ${isActive ? 'text-ev-gray-900' : 'text-ev-gray-600'}`}>
-                {formatCurrency(total)}
+                {formatCurrency(total, isNonprofit)}
               </div>
             )}
             <div className="text-xs text-ev-gray-400 mt-1">{description}</div>
