@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import type { BudgetCategory } from '../types/budget';
 import { getCategoryColor } from '../utils/chartColors';
+import { BRAND_BAR_COLORS } from '../utils/brandColors';
 import './BudgetIcicle.css';
 
 interface BudgetIcicleProps {
@@ -155,7 +156,7 @@ const BudgetIcicle: React.FC<BudgetIcicleProps> = ({
                   className={`icicle-segment ${segment.isSelected ? 'selected' : ''} ${isClickable ? 'clickable' : ''}`}
                   style={{
                     width: `${segment.width}%`,
-                    backgroundColor: getCategoryColor(segment.categoryIndex),
+                    backgroundColor: BRAND_BAR_COLORS[segment.category.name] ?? getCategoryColor(segment.categoryIndex),
                     opacity: level.isAncestor && !segment.isSelected ? 0.4 : 1,
                   }}
                   onClick={() => isClickable && handleSegmentClick(segment, levelIndex)}
