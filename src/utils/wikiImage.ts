@@ -99,6 +99,9 @@ export async function getHeroImage(entity: Municipality): Promise<string | null>
   // Return from DB if set
   if (entity.hero_image_url) return entity.hero_image_url;
 
+  // Non-geographic entities have no Wikipedia article — use gradient fallback
+  if (entity.entity_type === 'nonprofit') return null;
+
   const cacheKey = `${entity.name}|${entity.state}|${entity.entity_type}`;
   if (cache.has(cacheKey)) return cache.get(cacheKey) ?? null;
 
