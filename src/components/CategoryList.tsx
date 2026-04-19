@@ -68,6 +68,13 @@ const getCategoryIcon = (categoryName: string): React.ElementType => {
   return Building2;
 };
 
+// Brand logos for known payment platforms / sources
+const CATEGORY_LOGOS: Record<string, { src: string; bg: string }> = {
+  'Patreon':     { src: `${import.meta.env.BASE_URL}logos/patreon.svg`,     bg: '#F96854' },
+  'Give Butter': { src: `${import.meta.env.BASE_URL}logos/givebutter.svg`,  bg: '#19C037' },
+  'Benevity':    { src: `${import.meta.env.BASE_URL}logos/benevity.svg`,     bg: '#00B388' },
+};
+
 const CategoryList: React.FC<CategoryListProps> = ({ categories, onCategoryClick, isPastYear = false }) => {
   const formatCurrency = (amount: number) => {
     if (amount >= 1000000) {
@@ -89,6 +96,7 @@ const CategoryList: React.FC<CategoryListProps> = ({ categories, onCategoryClick
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {categories.map((category, index) => {
         const IconComponent = getCategoryIcon(category.name);
+        const logo = CATEGORY_LOGOS[category.name];
         const hasSubcategories = category.subcategories && category.subcategories.length > 0;
         const hue = DATA_VIZ_HUES[index % DATA_VIZ_HUES.length];
 
@@ -110,12 +118,14 @@ const CategoryList: React.FC<CategoryListProps> = ({ categories, onCategoryClick
 
             {/* Content layer */}
             <div className="relative flex items-start gap-3">
-              {/* Icon */}
+              {/* Icon or brand logo */}
               <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
-                style={{ backgroundColor: `var(--color-data-${hue}-500)` }}
+                className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden"
+                style={{ backgroundColor: logo ? logo.bg : `var(--color-data-${hue}-500)` }}
               >
-                <IconComponent size={20} color="white" />
+                {logo
+                  ? <img src={logo.src} alt={category.name} className="w-6 h-6 object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
+                  : <IconComponent size={20} color="white" />}
               </div>
 
               {/* Category info */}
