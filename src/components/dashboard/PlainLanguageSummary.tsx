@@ -42,6 +42,7 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
   const population = entity.population;
   const perResident = population > 0 ? total / population : 0;
   const isNonprofit = entity.entity_type === 'nonprofit';
+  console.debug('[PlainLanguageSummary] entity_type:', entity.entity_type, '| isNonprofit:', isNonprofit);
 
   // If only 1 top-level fund (e.g., General), use its children for "top categories"
   const rawTopLevel = operatingData.categories || [];
