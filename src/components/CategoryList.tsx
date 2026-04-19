@@ -143,7 +143,7 @@ const CategoryList: React.FC<CategoryListProps> = ({ categories, onCategoryClick
               {/* Icon or brand logo */}
               <div
                 className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden"
-                style={{ backgroundColor: logo ? logo.bg : `var(--color-data-${hue}-500)` }}
+                style={{ backgroundColor: logo ? logo.bg : (BRAND_BAR_COLORS[category.name] ?? `var(--color-data-${hue}-500)`) }}
               >
                 {logo
                   ? <img
