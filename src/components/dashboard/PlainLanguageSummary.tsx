@@ -6,6 +6,7 @@ interface PlainLanguageSummaryProps {
     name: string;
     state: string;
     population: number;
+    entity_type: string;
   };
   operatingData: BudgetData | null;
   revenueData: BudgetData | null;
@@ -40,6 +41,7 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
   const total = showActual ? actualTotal : budgetedTotal;
   const population = entity.population;
   const perResident = population > 0 ? total / population : 0;
+  const isNonprofit = entity.entity_type === 'nonprofit';
 
   // If only 1 top-level fund (e.g., General), use its children for "top categories"
   const rawTopLevel = operatingData.categories || [];
@@ -92,7 +94,9 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
         <div className="flex items-start gap-3 mb-4">
           <div className="w-1.5 h-1.5 rounded-full bg-ev-yellow-400 mt-2.5 flex-shrink-0 opacity-70" />
           <h2 className="text-lg md:text-xl font-bold text-ev-gray-900 leading-snug">
-            How {entity.name} {showActual ? 'spent' : 'plans to spend'} your money
+            {isNonprofit
+              ? `How ${entity.name} ${showActual ? 'used its' : 'uses its'} funds`
+              : `How ${entity.name} ${showActual ? 'spent' : 'plans to spend'} your money`}
           </h2>
         </div>
 
@@ -104,31 +108,39 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
               onClick={() => onYearClick?.()}
             >
               {fiscalYear}
-            </button>, {entity.name}'s {isGeneralFundOnly ? 'General Fund ' : ''}
-            {population > 0 ? (
+            </button>,{' '}
+            {isNonprofit ? (
               <>
-                {showActual
-                  ? <>spent <strong className="text-ev-gray-800">{formatAmount(total)}</strong> serving its {population.toLocaleString()} residents</>
-                  : isGeneralFundOnly
-                    ? <>totaled <strong className="text-ev-gray-800">{formatAmount(total)}</strong> for core city operations serving {population.toLocaleString()} residents.</>
-                    : <>budgeted <strong className="text-ev-gray-800">{formatAmount(total)}</strong> to serve its {population.toLocaleString()} residents — that's roughly{' '}
-                        <strong className="text-ev-gray-800">{formatPerResident(perResident)} per person</strong>.</>
-                }
-                {showActual && <> — roughly{' '}
-                  <strong className="text-ev-gray-800">{formatPerResident(perResident)} per person</strong>.</>
-                }
+                {entity.name} {showActual ? 'spent' : 'budgeted'}{' '}
+                <strong className="text-ev-gray-800">{formatAmount(total)}</strong> on operations.
               </>
             ) : (
-              <>
-                {showActual ? 'spent' : 'budgeted'} <strong className="text-ev-gray-800">{formatAmount(total)}</strong> across
-                all departments and services.
-              </>
+              <>{entity.name}'s {isGeneralFundOnly ? 'General Fund ' : ''}
+              {population > 0 ? (
+                <>
+                  {showActual
+                    ? <>spent <strong className="text-ev-gray-800">{formatAmount(total)}</strong> serving its {population.toLocaleString()} residents</>
+                    : isGeneralFundOnly
+                      ? <>totaled <strong className="text-ev-gray-800">{formatAmount(total)}</strong> for core city operations serving {population.toLocaleString()} residents.</>
+                      : <>budgeted <strong className="text-ev-gray-800">{formatAmount(total)}</strong> to serve its {population.toLocaleString()} residents — that's roughly{' '}
+                          <strong className="text-ev-gray-800">{formatPerResident(perResident)} per person</strong>.</>
+                  }
+                  {showActual && <> — roughly{' '}
+                    <strong className="text-ev-gray-800">{formatPerResident(perResident)} per person</strong>.</>
+                  }
+                </>
+              ) : (
+                <>
+                  {showActual ? 'spent' : 'budgeted'} <strong className="text-ev-gray-800">{formatAmount(total)}</strong> across
+                  all departments and services.
+                </>
+              )}</>
             )}
           </p>
 
           {topCategories.length > 0 && (
             <p>
-              The biggest {isGeneralFundOnly ? 'department' : 'share'} {showActual ? 'was' : 'is'}{' '}
+              The {isNonprofit ? 'largest expense' : `biggest ${isGeneralFundOnly ? 'department' : 'share'}`} {showActual ? 'was' : 'is'}{' '}
               <button
                 className="font-bold text-ev-gray-800 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
                 onClick={() => onCategoryClick?.(topCategories[0]?.name, 'operating')}
@@ -136,7 +148,7 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
               {topCategories[0]?.enrichment?.shortDescription && (
                 <span className="text-ev-gray-400 text-[13px]">{' '}— {topCategories[0].enrichment.shortDescription.toLowerCase()}</span>
               )}
-              {' '}({Math.round(topCategories[0]?.percentage)}% of the {isGeneralFundOnly ? 'fund' : 'budget'})
+              {' '}({Math.round(topCategories[0]?.percentage)}% of the {isNonprofit ? 'total' : isGeneralFundOnly ? 'fund' : 'budget'})
               {topCategories[1] && (
                 <>, followed by{' '}
                   <button
@@ -166,11 +178,14 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
 
           {revenueData && (
             <p>
-              The city {showActual ? 'funded' : 'funds'} this through{' '}
+              {isNonprofit
+                ? <>{entity.name} {showActual ? 'raised' : 'raises'}{' '}</>
+                : <>The city {showActual ? 'funded' : 'funds'} this through{' '}</>
+              }
               <strong className="text-ev-gray-800">{formatAmount(revenueData.metadata.totalBudget)}</strong>
-              {' '}in {showActual ? '' : 'expected '}revenue
+              {' '}in {isNonprofit ? 'income' : `${showActual ? '' : 'expected '}revenue`}
               {revenueData.categories?.[0] && (
-                <>, with the largest source being{' '}
+                <>, with the {isNonprofit ? 'primary source being' : 'largest source being'}{' '}
                   <button
                     className="font-bold text-ev-gray-800 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
                     onClick={() => onCategoryClick?.(revenueData!.categories[0].name, 'revenue')}
