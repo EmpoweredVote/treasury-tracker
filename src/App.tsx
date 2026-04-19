@@ -135,7 +135,8 @@ function App() {
   // On mount: resolve auth + load municipalities in parallel, then route
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const entityParam = params.get('entity');
+    const isFinancialsHost = window.location.hostname === 'financials.empowered.vote';
+    const entityParam = params.get('entity') ?? (isFinancialsHost ? 'empowered-vote-ca' : null);
     const yearParam = params.get('year');
     const datasetParam = params.get('dataset');
 
