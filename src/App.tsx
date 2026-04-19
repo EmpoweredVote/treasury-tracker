@@ -620,6 +620,7 @@ function App() {
                   revenueTotal={revenueData?.metadata.totalBudget}
                   operatingTotal={operatingBudgetData?.metadata.totalBudget}
                   availableDatasets={availableDatasetTypes}
+                  isNonprofit={selectedEntity?.entity_type === 'nonprofit'}
                 />
               </div>
             </>
