@@ -6,7 +6,7 @@
 export const BRAND_BAR_COLORS: Record<string, string> = {
   // EV top-level categories (prevent all-blue icicle at root level)
   'Donations':                               '#22C55E',
-  'Interest':                                '#86EFAC',
+  'Interest':                                '#D1D5DB',
   'Software & Tools':                        '#8B5CF6',
   'Platform Fees':                           '#EF4444',
   'Operations':                              '#F59E0B',
