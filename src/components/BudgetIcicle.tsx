@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import type { BudgetCategory } from '../types/budget';
 import { getCategoryColor } from '../utils/chartColors';
-import { BRAND_BAR_COLORS } from '../utils/brandColors';
+import { BRAND_BAR_COLORS, getContrastText } from '../utils/brandColors';
 import './BudgetIcicle.css';
 
 interface BudgetIcicleProps {
@@ -150,14 +150,18 @@ const BudgetIcicle: React.FC<BudgetIcicleProps> = ({
               const isClickable = level.isAncestor || segment.hasChildren;
               const showText = canFitText(segment.width, level.isAncestor);
 
+              const bgColor = BRAND_BAR_COLORS[segment.category.name] ?? getCategoryColor(segment.categoryIndex);
+              const textColor = getContrastText(bgColor);
               return (
                 <div
                   key={segment.category.name}
                   className={`icicle-segment ${segment.isSelected ? 'selected' : ''} ${isClickable ? 'clickable' : ''}`}
                   style={{
                     width: `${segment.width}%`,
-                    backgroundColor: BRAND_BAR_COLORS[segment.category.name] ?? getCategoryColor(segment.categoryIndex),
+                    backgroundColor: bgColor,
                     opacity: level.isAncestor && !segment.isSelected ? 0.4 : 1,
+                    color: textColor,
+                    textShadow: textColor === '#000000' ? 'none' : undefined,
                   }}
                   onClick={() => isClickable && handleSegmentClick(segment, levelIndex)}
                   role="listitem"

@@ -84,10 +84,10 @@ const CATEGORY_LOGOS: Record<string, { src: string; bg: string; cover?: boolean;
   'OpenAI (ChatGPT)':                        { src: `${base}logos/chatgpt-logo.png`,     bg: '#10A37F'                                   },
   'Figma':                                   { src: `${base}logos/figma-logo.png`,       bg: '#1E1E1E', cover: true,  scale: 1.4         },
   'Read.AI':                                 { src: `${base}logos/readai-logo.png`,      bg: '#6C47FF'                                   },
-  'MindMeister':                             { src: `${base}logos/mindmeister-logo.png`, bg: '#ffffff'                                   },
-  'AWS':                                     { src: `${base}logos/aws-logo.png`,         bg: '#ffffff'                                   },
+  'MindMeister':                             { src: `${base}logos/mindmeister-logo.png`, bg: '#F96FAD'                                   },
+  'AWS':                                     { src: `${base}logos/aws-color.png`,        bg: '#ffffff'                                   },
   'GoDaddy':                                 { src: `${base}logos/godaddy-logo.png`,     bg: '#ffffff'                                   },
-  'TechSoup (AWS Credits)':                  { src: `${base}logos/techsoup-logo.jpg`,    bg: '#0082C9'                                   },
+  'TechSoup (AWS Credits)':                  { src: `${base}logos/techsoup-logo.jpg`,    bg: '#282828'                                   },
   'Supabase':                                { src: `${base}logos/supabase-logo.svg`,    bg: '#1C1C1C'                                   },
   'Render.com':                              { src: `${base}logos/render-logo.png`,      bg: '#000000', cover: true                      },
   // Platform Fees
