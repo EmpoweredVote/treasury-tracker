@@ -17,7 +17,7 @@ export const BRAND_BAR_COLORS: Record<string, string> = {
   // Software & Tools
   'Anthropic (Claude)':                      '#D97757',
   'OpenAI (ChatGPT)':                        '#10A37F',
-  'Figma':                                   '#1ABCFE',
+  'Figma':                                   '#A259FF',
   'Read.AI':                                 '#6C47FF',
   'MindMeister':                             '#F96FAD',
   'AWS':                                     '#FF9900',
