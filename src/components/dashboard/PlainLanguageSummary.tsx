@@ -10,6 +10,7 @@ interface PlainLanguageSummaryProps {
   };
   operatingData: BudgetData | null;
   revenueData: BudgetData | null;
+  salariesTotal?: number | null;
   fiscalYear: string;
   isPastYear?: boolean;
   onCategoryClick?: (categoryName: string, dataset: 'operating' | 'revenue') => void;
@@ -24,6 +25,7 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
   entity,
   operatingData,
   revenueData,
+  salariesTotal = null,
   fiscalYear,
   isPastYear = false,
   onCategoryClick,
@@ -138,6 +140,17 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
               )}</>
             )}
           </p>
+
+          {isNonprofit && (
+            <p>
+              {salariesTotal != null && salariesTotal > 0
+                ? <>{entity.name} {showActual ? 'paid' : 'budgets'}{' '}
+                    <strong className="text-ev-gray-800">{formatAmount(salariesTotal)}</strong> in staff compensation.
+                  </>
+                : <>All work {showActual ? 'was' : 'is'} done by unpaid volunteers — {entity.name} {showActual ? 'paid' : 'pays'} <strong className="text-ev-gray-800">$0</strong> in staff compensation.</>
+              }
+            </p>
+          )}
 
           {topCategories.length > 0 && (
             <p>

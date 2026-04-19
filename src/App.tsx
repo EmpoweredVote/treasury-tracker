@@ -95,6 +95,7 @@ function App() {
   const [budgetData, setBudgetData] = useState<BudgetData | null>(null);
   const [operatingBudgetData, setOperatingBudgetData] = useState<BudgetData | null>(null);
   const [revenueData, setRevenueData] = useState<BudgetData | null>(null);
+  const [salariesData, setSalariesData] = useState<BudgetData | null>(null);
   const [loading, setLoading] = useState(false);
   const [navigationPath, setNavigationPath] = useState<BudgetCategory[]>([]);
   const [linkedTransactions, setLinkedTransactions] = useState<LinkedTransactionSummary | null>(null);
@@ -249,6 +250,7 @@ function App() {
     const entityDatasets = selectedEntity.available_datasets.filter(d => d.fiscal_year === yearNum);
     const hasOperating = entityDatasets.some(d => d.dataset_type === 'operating');
     const hasRevenue = entityDatasets.some(d => d.dataset_type === 'revenue');
+    const hasSalaries = entityDatasets.some(d => d.dataset_type === 'salaries');
 
     const promises: Promise<BudgetData | null>[] = [
       hasOperating
@@ -257,17 +259,22 @@ function App() {
       hasRevenue
         ? loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'revenue')
         : Promise.resolve(null),
+      hasSalaries
+        ? loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'salaries')
+        : Promise.resolve(null),
     ];
 
     Promise.all(promises)
-      .then(([operating, revenue]) => {
+      .then(([operating, revenue, salaries]) => {
         setOperatingBudgetData(operating);
         setRevenueData(revenue);
+        setSalariesData(salaries);
       })
       .catch(error => {
         console.error('Failed to load dataset totals:', error);
         setOperatingBudgetData(null);
         setRevenueData(null);
+        setSalariesData(null);
       });
   }, [selectedYear, selectedEntity]);
 
@@ -605,6 +612,7 @@ function App() {
                   entity={selectedEntity}
                   operatingData={operatingBudgetData}
                   revenueData={revenueData}
+                  salariesTotal={salariesData?.metadata.totalCompensation ?? salariesData?.metadata.totalBudget ?? null}
                   fiscalYear={selectedYear}
                   isPastYear={isPastYear}
                   onCategoryClick={handleSummaryCategoryClick}
