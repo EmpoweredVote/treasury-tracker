@@ -108,7 +108,7 @@ export interface Municipality {
   id: string;
   name: string;
   state: string;
-  entity_type: 'city' | 'county' | 'township';
+  entity_type: 'city' | 'county' | 'township' | 'nonprofit';
   population: number;
   hero_image_url?: string | null;
   available_datasets: Array<{
