@@ -71,6 +71,8 @@ function getDatasetLabel(type: DatasetType): string {
   return labels[type];
 }
 
+const isFinancialsHost = window.location.hostname === 'financials.empowered.vote';
+
 function App() {
   // Ref for auto-scrolling to chart section
   const chartSectionRef = useRef<HTMLDivElement>(null);
@@ -105,6 +107,19 @@ function App() {
     getHeroImage(selectedEntity).then(url => setHeroImageUrl(url));
   }, [selectedEntity]);
 
+  // Update page title when entity changes
+  useEffect(() => {
+    if (!selectedEntity) {
+      document.title = isFinancialsHost ? 'Empowered Vote Finances' : 'Treasury Tracker';
+      return;
+    }
+    if (selectedEntity.entity_type === 'nonprofit') {
+      document.title = `${selectedEntity.name} Finances`;
+    } else {
+      document.title = `${selectedEntity.name} ${selectedYear} Budget | Treasury Tracker`;
+    }
+  }, [selectedEntity, selectedYear]);
+
   // Derive available years and datasets from selected entity
   const availableYears = useMemo(() => {
     if (!selectedEntity) return [];
@@ -135,7 +150,6 @@ function App() {
   // On mount: resolve auth + load municipalities in parallel, then route
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const isFinancialsHost = window.location.hostname === 'financials.empowered.vote';
     const entityParam = params.get('entity') ?? (isFinancialsHost ? 'empowered-vote-ca' : null);
     const yearParam = params.get('year');
     const datasetParam = params.get('dataset');
@@ -527,11 +541,13 @@ function App() {
       <div className="bg-white shadow-sm">
         <div className="max-w-[1400px] mx-auto px-6 py-3">
           <div className="flex items-center gap-3 flex-wrap">
-            <EntitySwitcher
-              municipalities={municipalities}
-              selectedEntity={selectedEntity}
-              onEntityChange={handleEntityChange}
-            />
+            {!isFinancialsHost && (
+              <EntitySwitcher
+                municipalities={municipalities}
+                selectedEntity={selectedEntity}
+                onEntityChange={handleEntityChange}
+              />
+            )}
             <YearSelector
               ref={yearSelectorRef}
               selectedYear={selectedYear}
