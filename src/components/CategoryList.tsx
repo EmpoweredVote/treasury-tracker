@@ -68,29 +68,29 @@ const getCategoryIcon = (categoryName: string): React.ElementType => {
   return Building2;
 };
 
-// Brand logos for known vendors/platforms — shown on white background at natural colors
+// Brand logos — full-bleed with brand background color (no white frame)
 const base = import.meta.env.BASE_URL;
-const CATEGORY_LOGOS: Record<string, string> = {
+const CATEGORY_LOGOS: Record<string, { src: string; bg: string }> = {
   // Revenue sources
-  'Patreon':                               `${base}logos/patreon-logo.png`,
-  'Give Butter':                           `${base}logos/givebutter-logo.png`,
-  'Benevity':                              `${base}logos/benevity-logo.svg`,
+  'Patreon':                                 { src: `${base}logos/patreon-logo.png`,     bg: '#FF424D' },
+  'Give Butter':                             { src: `${base}logos/givebutter-logo.png`,  bg: '#19C037' },
+  'Benevity':                                { src: `${base}logos/benevity-logo.svg`,    bg: '#009DD1' },
   // Software & Tools
-  'Anthropic (Claude)':                    `${base}logos/anthropic-logo.svg`,
-  'OpenAI (ChatGPT)':                      `${base}logos/chatgpt-logo.png`,
-  'Figma':                                 `${base}logos/figma-logo.png`,
-  'Read.AI':                               `${base}logos/readai-logo.png`,
-  'MindMeister':                           `${base}logos/mindmeister-logo.png`,
-  'AWS':                                   `${base}logos/aws-logo.png`,
-  'GoDaddy':                               `${base}logos/godaddy-logo.png`,
-  'TechSoup (AWS Credits)':                `${base}logos/techsoup-logo.jpg`,
-  'Supabase':                              `${base}logos/supabase-logo.svg`,
-  'Render.com':                            `${base}logos/render-logo.png`,
-  // Platform Fees (vendor/payee names from EV data)
-  'Benevity Processing Fee':               `${base}logos/benevity-logo.svg`,
-  'Givebutter Fees':                       `${base}logos/givebutter-logo.png`,
-  'Patreon Fees (Processing + Patreon fee)': `${base}logos/patreon-logo.png`,
-  'Patreon Fees (adjustment)':             `${base}logos/patreon-logo.png`,
+  'Anthropic (Claude)':                      { src: `${base}logos/anthropic-logo.svg`,   bg: '#191919' },
+  'OpenAI (ChatGPT)':                        { src: `${base}logos/chatgpt-logo.png`,     bg: '#10A37F' },
+  'Figma':                                   { src: `${base}logos/figma-logo.png`,       bg: '#1E1E1E' },
+  'Read.AI':                                 { src: `${base}logos/readai-logo.png`,      bg: '#6C47FF' },
+  'MindMeister':                             { src: `${base}logos/mindmeister-logo.png`, bg: '#E74C3C' },
+  'AWS':                                     { src: `${base}logos/aws-logo.png`,         bg: '#232F3E' },
+  'GoDaddy':                                 { src: `${base}logos/godaddy-logo.png`,     bg: '#00A4A6' },
+  'TechSoup (AWS Credits)':                  { src: `${base}logos/techsoup-logo.jpg`,    bg: '#0082C9' },
+  'Supabase':                                { src: `${base}logos/supabase-logo.svg`,    bg: '#1C1C1C' },
+  'Render.com':                              { src: `${base}logos/render-logo.png`,      bg: '#5E44FF' },
+  // Platform Fees
+  'Benevity Processing Fee':                 { src: `${base}logos/benevity-logo.svg`,    bg: '#009DD1' },
+  'Givebutter Fees':                         { src: `${base}logos/givebutter-logo.png`,  bg: '#19C037' },
+  'Patreon Fees (Processing + Patreon fee)': { src: `${base}logos/patreon-logo.png`,     bg: '#FF424D' },
+  'Patreon Fees (adjustment)':               { src: `${base}logos/patreon-logo.png`,     bg: '#FF424D' },
 };
 
 const CategoryList: React.FC<CategoryListProps> = ({ categories, onCategoryClick, isPastYear = false }) => {
@@ -114,7 +114,7 @@ const CategoryList: React.FC<CategoryListProps> = ({ categories, onCategoryClick
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {categories.map((category, index) => {
         const IconComponent = getCategoryIcon(category.name);
-        const logoSrc = CATEGORY_LOGOS[category.name];
+        const logo = CATEGORY_LOGOS[category.name];
         const hasSubcategories = category.subcategories && category.subcategories.length > 0;
         const hue = DATA_VIZ_HUES[index % DATA_VIZ_HUES.length];
 
@@ -138,11 +138,11 @@ const CategoryList: React.FC<CategoryListProps> = ({ categories, onCategoryClick
             <div className="relative flex items-start gap-3">
               {/* Icon or brand logo */}
               <div
-                className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden ${logoSrc ? 'bg-white border border-ev-gray-200 p-1' : ''}`}
-                style={logoSrc ? undefined : { backgroundColor: `var(--color-data-${hue}-500)` }}
+                className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden"
+                style={{ backgroundColor: logo ? logo.bg : `var(--color-data-${hue}-500)` }}
               >
-                {logoSrc
-                  ? <img src={logoSrc} alt={category.name} className="w-full h-full object-contain" />
+                {logo
+                  ? <img src={logo.src} alt={category.name} className="w-full h-full object-contain" />
                   : <IconComponent size={20} color="white" />}
               </div>
 
