@@ -9,6 +9,7 @@ interface BudgetIcicleProps {
   navigationPath: BudgetCategory[];
   totalBudget: number;
   onPathClick: (path: BudgetCategory[]) => void;
+  isNonprofit?: boolean;
 }
 
 interface BarSegment {
@@ -32,6 +33,7 @@ const BudgetIcicle: React.FC<BudgetIcicleProps> = ({
   navigationPath,
   totalBudget,
   onPathClick,
+  isNonprofit = false,
 }) => {
   // Build the levels to display
   const levels = useMemo(() => {
@@ -91,6 +93,14 @@ const BudgetIcicle: React.FC<BudgetIcicleProps> = ({
 
   // Format currency
   const formatCurrency = (amount: number) => {
+    if (isNonprofit) {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(amount);
+    }
     if (amount >= 1_000_000_000) {
       return `$${(amount / 1_000_000_000).toFixed(1)}B`;
     }

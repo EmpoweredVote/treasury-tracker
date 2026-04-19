@@ -672,6 +672,7 @@ function App() {
                         navigationPath={navigationPath}
                         totalBudget={budgetData.metadata.totalBudget}
                         onPathClick={handlePathClick}
+                        isNonprofit={selectedEntity?.entity_type === 'nonprofit'}
                       />
                       {linkedTransactions ? (
                         <LinkedTransactionsPanel
@@ -701,6 +702,7 @@ function App() {
                     navigationPath={navigationPath}
                     totalBudget={budgetData.metadata.totalBudget}
                     onPathClick={handlePathClick}
+                    isNonprofit={selectedEntity?.entity_type === 'nonprofit'}
                   />
                   {/* Attribution for descriptions */}
                   {(() => {

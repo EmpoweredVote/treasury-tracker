@@ -10,6 +10,7 @@ interface BudgetVisualizationProps {
   navigationPath: BudgetCategory[];
   totalBudget: number;
   onPathClick: (path: BudgetCategory[]) => void;
+  isNonprofit?: boolean;
 }
 
 const BudgetVisualization: React.FC<BudgetVisualizationProps> = ({
@@ -17,6 +18,7 @@ const BudgetVisualization: React.FC<BudgetVisualizationProps> = ({
   navigationPath,
   totalBudget,
   onPathClick,
+  isNonprofit = false,
 }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('icicle');
 
@@ -72,6 +74,7 @@ const BudgetVisualization: React.FC<BudgetVisualizationProps> = ({
             navigationPath={navigationPath}
             totalBudget={totalBudget}
             onPathClick={onPathClick}
+            isNonprofit={isNonprofit}
           />
         ) : (
           <BudgetSunburst
