@@ -71,28 +71,29 @@ const getCategoryIcon = (categoryName: string): React.ElementType => {
 // Brand logos — full-bleed tile bg + distinct bar color per brand
 // bg: tile background (chosen for logo visibility)
 // barColor: bright brand color for the percentage bar (never dark/black)
+// cover: true = object-cover to zoom in and eliminate letterbox gaps
 const base = import.meta.env.BASE_URL;
-const CATEGORY_LOGOS: Record<string, { src: string; bg: string; barColor: string }> = {
+const CATEGORY_LOGOS: Record<string, { src: string; bg: string; barColor: string; cover?: boolean }> = {
   // Revenue sources
-  'Patreon':                                 { src: `${base}logos/patreon-logo.png`,     bg: '#FF424D', barColor: '#FF424D' },
-  'Give Butter':                             { src: `${base}logos/givebutter-logo.png`,  bg: '#19C037', barColor: '#19C037' },
-  'Benevity':                                { src: `${base}logos/benevity-logo.svg`,    bg: '#009DD1', barColor: '#009DD1' },
+  'Patreon':                                 { src: `${base}logos/patreon-logo.png`,     bg: '#ffffff', barColor: '#FF424D', cover: true  },
+  'Give Butter':                             { src: `${base}logos/givebutter-logo.png`,  bg: '#ffffff', barColor: '#19C037', cover: true  },
+  'Benevity':                                { src: `${base}logos/benevity-logo.svg`,    bg: '#ffffff', barColor: '#009DD1'               },
   // Software & Tools
-  'Anthropic (Claude)':                      { src: `${base}logos/anthropic-logo.svg`,   bg: '#191919', barColor: '#D97757' }, // copper from logo
-  'OpenAI (ChatGPT)':                        { src: `${base}logos/chatgpt-logo.png`,     bg: '#10A37F', barColor: '#10A37F' },
-  'Figma':                                   { src: `${base}logos/figma-logo.png`,       bg: '#1E1E1E', barColor: '#1ABCFE' }, // Figma sky blue
-  'Read.AI':                                 { src: `${base}logos/readai-logo.png`,      bg: '#6C47FF', barColor: '#6C47FF' },
-  'MindMeister':                             { src: `${base}logos/mindmeister-logo.png`, bg: '#E74C3C', barColor: '#E74C3C' },
-  'AWS':                                     { src: `${base}logos/aws-logo.png`,         bg: '#232F3E', barColor: '#FF9900' }, // AWS orange
-  'GoDaddy':                                 { src: `${base}logos/godaddy-logo.png`,     bg: '#00A4A6', barColor: '#00A4A6' },
-  'TechSoup (AWS Credits)':                  { src: `${base}logos/techsoup-logo.jpg`,    bg: '#0082C9', barColor: '#0082C9' },
-  'Supabase':                                { src: `${base}logos/supabase-logo.svg`,    bg: '#1C1C1C', barColor: '#3FCF8E' }, // Supabase green
-  'Render.com':                              { src: `${base}logos/render-logo.png`,      bg: '#5E44FF', barColor: '#46E3B7' }, // Render teal
+  'Anthropic (Claude)':                      { src: `${base}logos/anthropic-logo.svg`,   bg: '#ffffff', barColor: '#D97757'               },
+  'OpenAI (ChatGPT)':                        { src: `${base}logos/chatgpt-logo.png`,     bg: '#10A37F', barColor: '#10A37F'               },
+  'Figma':                                   { src: `${base}logos/figma-logo.png`,       bg: '#1E1E1E', barColor: '#1ABCFE', cover: true  },
+  'Read.AI':                                 { src: `${base}logos/readai-logo.png`,      bg: '#6C47FF', barColor: '#6C47FF'               },
+  'MindMeister':                             { src: `${base}logos/mindmeister-logo.png`, bg: '#E74C3C', barColor: '#E74C3C'               },
+  'AWS':                                     { src: `${base}logos/aws-logo.png`,         bg: '#232F3E', barColor: '#FF9900'               },
+  'GoDaddy':                                 { src: `${base}logos/godaddy-logo.png`,     bg: '#ffffff', barColor: '#00A4A6'               },
+  'TechSoup (AWS Credits)':                  { src: `${base}logos/techsoup-logo.jpg`,    bg: '#0082C9', barColor: '#0082C9'               },
+  'Supabase':                                { src: `${base}logos/supabase-logo.svg`,    bg: '#1C1C1C', barColor: '#3FCF8E'               },
+  'Render.com':                              { src: `${base}logos/render-logo.png`,      bg: '#000000', barColor: '#46E3B7', cover: true  },
   // Platform Fees
-  'Benevity Processing Fee':                 { src: `${base}logos/benevity-logo.svg`,    bg: '#009DD1', barColor: '#009DD1' },
-  'Givebutter Fees':                         { src: `${base}logos/givebutter-logo.png`,  bg: '#19C037', barColor: '#19C037' },
-  'Patreon Fees (Processing + Patreon fee)': { src: `${base}logos/patreon-logo.png`,     bg: '#FF424D', barColor: '#FF424D' },
-  'Patreon Fees (adjustment)':               { src: `${base}logos/patreon-logo.png`,     bg: '#FF424D', barColor: '#FF424D' },
+  'Benevity Processing Fee':                 { src: `${base}logos/benevity-logo.svg`,    bg: '#ffffff', barColor: '#009DD1'               },
+  'Givebutter Fees':                         { src: `${base}logos/givebutter-logo.png`,  bg: '#ffffff', barColor: '#19C037', cover: true  },
+  'Patreon Fees (Processing + Patreon fee)': { src: `${base}logos/patreon-logo.png`,     bg: '#ffffff', barColor: '#FF424D', cover: true  },
+  'Patreon Fees (adjustment)':               { src: `${base}logos/patreon-logo.png`,     bg: '#ffffff', barColor: '#FF424D', cover: true  },
 };
 
 const CategoryList: React.FC<CategoryListProps> = ({ categories, onCategoryClick, isPastYear = false }) => {
@@ -144,7 +145,7 @@ const CategoryList: React.FC<CategoryListProps> = ({ categories, onCategoryClick
                 style={{ backgroundColor: logo ? logo.bg : `var(--color-data-${hue}-500)` }}
               >
                 {logo
-                  ? <img src={logo.src} alt={category.name} className="w-full h-full object-contain" />
+                  ? <img src={logo.src} alt={category.name} className={`w-full h-full ${logo.cover ? 'object-cover' : 'object-contain'}`} />
                   : <IconComponent size={20} color="white" />}
               </div>
 
