@@ -21,10 +21,10 @@ export const BRAND_BAR_COLORS: Record<string, string> = {
   'Read.AI':                                 '#6C47FF',
   'MindMeister':                             '#F96FAD',
   'AWS':                                     '#FF9900',
-  'GoDaddy':                                 '#00A4A6',
+  'GoDaddy':                                 '#00C2CB',
   'TechSoup (AWS Credits)':                  '#E8752A',
   'Supabase':                                '#3FCF8E',
-  'Render.com':                              '#46E3B7',
+  'Render.com':                              '#000000',
   // Platform Fees
   'Benevity Processing Fee':                 '#009DD1',
   'Givebutter Fees':                         '#F5A623',
