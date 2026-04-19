@@ -8,6 +8,7 @@ interface QuickFactsRowProps {
     name: string;
     state: string;
     population: number;
+    entity_type?: string;
   };
   operatingData: BudgetData | null;
   revenueData: BudgetData | null;
@@ -24,7 +25,10 @@ const QuickFactsRow: React.FC<QuickFactsRowProps> = ({
   revenueData,
   fiscalYear,
 }) => {
+  const isNonprofit = entity.entity_type === 'nonprofit';
+
   const formatCompact = (n: number) => {
+    if (isNonprofit) return `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(1)}B`;
     if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(0)}M`;
     if (n >= 1_000) return `$${(n / 1_000).toFixed(0)}K`;
@@ -44,22 +48,23 @@ const QuickFactsRow: React.FC<QuickFactsRowProps> = ({
     ? (topCategories[0]?.subcategories?.length ?? 0)
     : topCategories.length;
 
-  // Label the budget card accurately based on scope
-  const budgetLabel = isGeneralFundOnly
-    ? `${fiscalYear} General Fund`
-    : `${fiscalYear} Total Budget`;
+  const budgetLabel = isNonprofit
+    ? `${fiscalYear} Total Expenses`
+    : isGeneralFundOnly
+      ? `${fiscalYear} General Fund`
+      : `${fiscalYear} Total Budget`;
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       <InsightCard
         label={budgetLabel}
         value={totalBudget > 0 ? formatCompact(totalBudget) : '—'}
-        subtext={isGeneralFundOnly ? 'Core city operations' : 'What the city plans to spend'}
+        subtext={isNonprofit ? 'Total operating expenses' : isGeneralFundOnly ? 'Core city operations' : 'What the city plans to spend'}
         variant="primary"
         icon={<DollarSign size={18} className="text-ev-gray-500" />}
       />
 
-      {population > 0 && (
+      {population > 0 && !isNonprofit && (
         <InsightCard
           label="Cost Per Resident"
           value={perResident > 0 ? `$${Math.round(perResident).toLocaleString()}` : '—'}
@@ -69,16 +74,16 @@ const QuickFactsRow: React.FC<QuickFactsRowProps> = ({
       )}
 
       <InsightCard
-        label="Expected Revenue"
+        label={isNonprofit ? 'Total Income' : 'Expected Revenue'}
         value={totalRevenue > 0 ? formatCompact(totalRevenue) : '—'}
-        subtext="Money coming in"
+        subtext={isNonprofit ? 'Money raised' : 'Money coming in'}
         icon={<Receipt size={18} className="text-ev-gray-500" />}
       />
 
       <InsightCard
-        label="Spending Areas"
+        label={isNonprofit ? 'Expense Categories' : 'Spending Areas'}
         value={spendingAreaCount > 0 ? `${spendingAreaCount}` : '—'}
-        subtext="Departments & categories"
+        subtext={isNonprofit ? 'How funds are used' : 'Departments & categories'}
         icon={<Building2 size={18} className="text-ev-gray-500" />}
       />
     </div>
