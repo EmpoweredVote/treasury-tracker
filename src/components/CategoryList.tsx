@@ -80,8 +80,8 @@ const CATEGORY_LOGOS: Record<string, { src: string; bg: string; cover?: boolean;
   'Give Butter':                             { src: `${base}logos/givebutter-logo.png`,  bg: '#ffffff', cover: true,  scale: 1.4         },
   'Benevity':                                { src: `${base}logos/benevity-logo.svg`,    bg: '#ffffff'                                   },
   // Software & Tools
-  'Anthropic (Claude)':                      { src: `${base}logos/anthropic-logo.svg`,   bg: '#ffffff', barColor: '#D97757'               },
-  'OpenAI (ChatGPT)':                        { src: `${base}logos/chatgpt-logo.png`,     bg: '#10A37F', barColor: '#10A37F'               },
+  'Anthropic (Claude)':                      { src: `${base}logos/anthropic-logo.svg`,   bg: '#ffffff'                                   },
+  'OpenAI (ChatGPT)':                        { src: `${base}logos/chatgpt-logo.png`,     bg: '#10A37F'                                   },
   'Figma':                                   { src: `${base}logos/figma-logo.png`,       bg: '#1E1E1E', cover: true,  scale: 1.4         },
   'Read.AI':                                 { src: `${base}logos/readai-logo.png`,      bg: '#6C47FF'                                   },
   'MindMeister':                             { src: `${base}logos/mindmeister-logo.png`, bg: '#E74C3C'                                   },
