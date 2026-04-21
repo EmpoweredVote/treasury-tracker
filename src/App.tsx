@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
-import { FileText } from 'lucide-react'
+import { FileText, Heart } from 'lucide-react'
 import { SiteHeader } from '@empoweredvote/ev-ui';
 import PlainLanguageSummary from './components/dashboard/PlainLanguageSummary';
 import BudgetSearch from './components/dashboard/BudgetSearch';
@@ -571,6 +571,18 @@ function App() {
               >
                 <FileText size={14} className="shrink-0" />
                 <span>Annual Report</span>
+              </a>
+            )}
+            {selectedEntity?.entity_type === 'nonprofit' && isFinancialsHost && (
+              <a
+                href="https://givebutter.com/g3e9u9"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 h-[42px] px-3 py-2 text-sm font-medium bg-white border border-[#E2EBEF] rounded-lg text-ev-gray-600 hover:bg-[#F7F7F8] hover:text-ev-muted-blue transition-colors duration-200 whitespace-nowrap"
+                title="Donate to Empowered Vote"
+              >
+                <Heart size={14} className="shrink-0" />
+                <span>Donate</span>
               </a>
             )}
             {hasEnrichment && (
