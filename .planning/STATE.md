@@ -9,10 +9,10 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 
 ## Current Position
 
-Phase: Phase 1 complete — Phase 2 (data layer audit) is next
-Plan: —
-Status: Phase 1 shipped; awaiting Phase 2 (DATA-01 audit before backend work)
-Last activity: 2026-04-21 — Donate button shipped (UI-01, UI-02, UI-03 complete)
+Phase: Phase 2 complete — Phase 3 (webhook backend) is next
+Plan: 02-01 complete
+Status: Phase 2 audit complete; Phase 3 has unambiguous technical contract (see .planning/phases/02-data-layer-audit/02-01-SUMMARY.md)
+Last activity: 2026-04-21 — Phase 2 data layer audit complete (DATA-01, DATA-02 answered)
 
 ## Accumulated Context
 
@@ -20,7 +20,14 @@ Last activity: 2026-04-21 — Donate button shipped (UI-01, UI-02, UI-03 complet
 - Redirect-driven flow chosen over websockets — simpler, webhook fires before redirect completes
 - GiveButter only for v1 real-time — best webhook support among the three platforms
 - Supabase Edge Functions as webhook receiver — already in stack
+- Frontend reads pre-aggregated budget_categories.amount — webhook MUST update pre-aggregated columns
+- Atomic 3-row update per donation: INSERT budget_line_items + UPDATE leaf category amount + UPDATE parent category amount + UPDATE budgets.total_budget
+- Use Postgres function treasury.record_givebutter_donation via supabase.rpc() — encapsulates dedup check and atomic multi-row update
+- Schema changes applied via Supabase SQL editor (NOT via EV-Backend GORM) — Go API never writes webhook rows
+- Dedup via unique partial index on (external_id, source) WHERE external_id IS NOT NULL; loadEVFinances.js preserves source='webhook' rows on clearExistingBudget
 
 ### Known Constraints
 - Must deduplicate: CSV re-imports should not double-count transactions already written by webhook
 - GiveButter return URL must point back to financials.empowered.vote
+- Category hierarchy for EV revenue: Donations (depth=0) → Give Butter (depth=1); webhook must update BOTH category amounts + budget total
+- Category UUIDs are generated at import time — Edge Function must look up (budget_id, name='Give Butter') and (budget_id, name='Donations') dynamically
