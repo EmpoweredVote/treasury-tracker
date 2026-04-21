@@ -40,6 +40,9 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
   // Only use "spent" language if we actually have actual spending data
   const hasActualData = actualTotal > 0;
   const showActual = isPastYear && hasActualData;
+  // Current year with actual spend data — year isn't done, so use "has spent" + "As of {month}"
+  const isCurrentYearWithActuals = !isPastYear && hasActualData;
+  const currentMonthName = new Date().toLocaleString('en-US', { month: 'long' });
   const total = showActual ? actualTotal : budgetedTotal;
   const population = entity.population;
   const perResident = population > 0 ? total / population : 0;
@@ -105,17 +108,21 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
 
         <div className="space-y-4 text-[15px] leading-relaxed text-ev-gray-600 ml-[18px]">
           <p>
-            In <button
-              type="button"
-              className="font-bold text-ev-gray-800 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
-              onClick={() => onYearClick?.()}
-            >
-              {fiscalYear}
-            </button>,{' '}
+            {isNonprofit && isCurrentYearWithActuals
+              ? <>As of {currentMonthName}, {fiscalYear},{' '}</>
+              : <>In <button
+                  type="button"
+                  className="font-bold text-ev-gray-800 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
+                  onClick={() => onYearClick?.()}
+                >
+                  {fiscalYear}
+                </button>,{' '}</>
+            }
             {isNonprofit ? (
               <>
-                {entity.name} {showActual ? 'spent' : 'budgeted'}{' '}
-                <strong className="text-ev-gray-800">{formatAmount(total)}</strong> on operations.
+                {entity.name}{' '}
+                {showActual ? 'spent' : isCurrentYearWithActuals ? 'has spent' : isPastYear ? 'budgeted' : 'is spending'}{' '}
+                <strong className="text-ev-gray-800">{formatAmount(isCurrentYearWithActuals ? actualTotal : total)}</strong> on operations.
               </>
             ) : (
               <>{entity.name}'s {isGeneralFundOnly ? 'General Fund ' : ''}
