@@ -15,8 +15,8 @@
 
 ### Phase 2 — Data Layer Audit (prerequisite)
 
-- [ ] **DATA-01**: Confirm whether frontend reads from pre-aggregated `budget_categories.amount` or sums `budget_line_items.actual_amount` directly (audit `loadBudgetData`)
-- [ ] **DATA-02**: If pre-aggregated: define strategy for Edge Function to also update `budget_categories.amount` atomically
+- [x] **DATA-01**: Confirmed — frontend reads pre-aggregated `budget_categories.amount` directly; no runtime aggregation. See `.planning/phases/02-data-layer-audit/02-01-SUMMARY.md`.
+- [x] **DATA-02**: Strategy defined — Edge Function calls Postgres RPC `treasury.record_givebutter_donation` that atomically updates 3 rows. See `.planning/phases/02-data-layer-audit/02-01-SUMMARY.md`.
 
 ### Phase 3 — Webhook Backend
 
@@ -56,8 +56,8 @@
 | UI-01 | Phase 1 | ✓ Complete |
 | UI-02 | Phase 1 | ✓ Complete |
 | UI-03 | Phase 1 | ✓ Complete |
-| DATA-01 | Phase 2 | Pending |
-| DATA-02 | Phase 2 | Pending |
+| DATA-01 | Phase 2 | ✓ Complete |
+| DATA-02 | Phase 2 | ✓ Complete |
 | SCH-01 | Phase 3 | Pending |
 | SCH-02 | Phase 3 | Pending |
 | SCH-03 | Phase 3 | Pending |
@@ -71,9 +71,9 @@
 | UI-05 | Phase 4 | Pending |
 | UI-06 | Phase 4 | Pending |
 
-**Coverage:** 17 requirements · 3 complete · 14 pending
+**Coverage:** 17 requirements · 5 complete · 12 pending
 
 ---
 
 *Requirements defined: 2026-04-21*
-*Last updated: 2026-04-21 — Phase 1 shipped (donate button)*
+*Last updated: 2026-04-21 — Phase 2 audit complete (DATA-01, DATA-02 answered)*
