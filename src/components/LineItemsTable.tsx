@@ -1,6 +1,18 @@
 import { FileText } from 'lucide-react';
 import type { LineItem } from '../types/budget';
 
+const VENDOR_DESCRIPTIONS: Record<string, string> = {
+  'Read.AI': 'We record and transcribe each of our meetings to help with alignment and to normalize having a high degree of transparency.',
+  'MindMeister': 'Mind map service that allows us to convey and explore complicated solutions with clarity and simplicity.',
+  'Anthropic (Claude)': 'AI assistant used for research, code generation, and drafting — the engine behind much of our rapid development.',
+  'OpenAI (ChatGPT)': 'AI assistant used for research, writing, and ideation across the team.',
+  'Figma': 'Collaborative design tool where our UI/UX team builds and shares every screen and prototype.',
+  'Supabase': 'Our open-source database and backend — stores all city financial data and powers the platform.',
+  'TechSoup (AWS Credits)': 'Nonprofit technology program that provides discounted AWS cloud infrastructure credits.',
+  'AWS': 'Cloud infrastructure hosting our application servers and data pipelines.',
+  'GoDaddy': 'Domain registrar for empowered.vote and related domains.',
+};
+
 interface LineItemsTableProps {
   lineItems: LineItem[];
   categoryName: string;
@@ -75,8 +87,15 @@ export default function LineItemsTable({ lineItems, categoryName }: LineItemsTab
               const variance = calculateVariance(item.approvedAmount, item.actualAmount);
               return (
                 <tr key={index} className="border-b border-[#E2EBEF] hover:bg-[#F7F7F8] transition-colors duration-150">
-                  <td className="px-4 py-3 text-sm font-medium text-[#1C1C1C] leading-snug">
-                    {item.description || 'No description provided'}
+                  <td className="px-4 py-3 leading-snug">
+                    <span className="text-sm font-medium text-[#1C1C1C]">
+                      {item.description || 'No description provided'}
+                    </span>
+                    {item.metadata?.vendor && VENDOR_DESCRIPTIONS[item.metadata.vendor] && (
+                      <p className="text-xs text-[#6B7280] mt-0.5 leading-relaxed">
+                        {VENDOR_DESCRIPTIONS[item.metadata.vendor]}
+                      </p>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-sm font-medium text-[#1C1C1C] text-right tabular-nums">
                     {formatCurrency(item.approvedAmount)}
