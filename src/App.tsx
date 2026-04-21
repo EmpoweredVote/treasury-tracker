@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
+import { FileText } from 'lucide-react'
 import { SiteHeader } from '@empoweredvote/ev-ui';
 import PlainLanguageSummary from './components/dashboard/PlainLanguageSummary';
 import BudgetSearch from './components/dashboard/BudgetSearch';
@@ -561,6 +562,17 @@ function App() {
               years={availableYears}
               onYearChange={setSelectedYear}
             />
+            {selectedYear === '2025' && selectedEntity?.entity_type === 'nonprofit' && (
+              <a
+                href="/Empowered%20Vote%20Annual%20Report%202025.pdf"
+                download="Empowered Vote Annual Report 2025.pdf"
+                className="flex items-center gap-1.5 h-[42px] px-3 py-2 text-sm font-medium bg-white border border-[#E2EBEF] rounded-lg text-ev-gray-600 hover:bg-[#F7F7F8] hover:text-ev-muted-blue transition-colors duration-200 whitespace-nowrap"
+                title="Download 2025 Annual Report"
+              >
+                <FileText size={14} className="shrink-0" />
+                <span>Annual Report</span>
+              </a>
+            )}
             {hasEnrichment && (
               <div className="flex-1 min-w-0">
                 <BudgetSearch
