@@ -252,7 +252,11 @@ async function clearExistingBudget(municipalityId, fiscalYear, datasetType) {
 
   if (catIds?.length) {
     const ids = catIds.map(c => c.id);
-    await supabase.from('budget_line_items').delete().in('category_id', ids);
+    await supabase
+      .from('budget_line_items')
+      .delete()
+      .in('category_id', ids)
+      .neq('source', 'givebutter_webhook');
   }
 
   await supabase.from('budget_categories').delete().eq('budget_id', existing.id);
