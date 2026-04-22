@@ -9,10 +9,10 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 
 ## Current Position
 
-Phase: Phase 3 executing — Plans 03-01 and 03-03 complete; 03-02 at checkpoint
-Plan: 03-02 checkpoint — Task 1 complete (SQL file written, committed 5809bb1); Task 2 pending (apply function via Supabase MCP)
-Status: In progress — awaiting orchestrator to apply postgres-function.sql via Supabase MCP and confirm function exists
-Last activity: 2026-04-22 — 03-02 Task 1: wrote postgres-function.sql with CREATE OR REPLACE FUNCTION treasury.record_givebutter_donation; checkpoint at Task 2
+Phase: Phase 3 executing — Plans 03-01, 03-02, and 03-03 complete; 03-04 is next
+Plan: 03-02 complete — treasury.record_givebutter_donation live in Supabase, dry-run verified
+Status: In progress — 03-04 (Edge Function) unblocked and ready to execute
+Last activity: 2026-04-22 — 03-02 Task 2: applied Postgres RPC function via Supabase MCP, dry-run confirmed 1 row with source='givebutter_webhook', rolled back cleanly
 
 ## Accumulated Context
 
@@ -32,3 +32,4 @@ Last activity: 2026-04-22 — 03-02 Task 1: wrote postgres-function.sql with CRE
 - GiveButter return URL must point back to financials.empowered.vote
 - Category hierarchy for EV revenue: Donations (depth=0) → Give Butter (depth=1); webhook must update BOTH category amounts + budget total
 - Category UUIDs are generated at import time — Edge Function must look up (budget_id, name='Give Butter') and (budget_id, name='Donations') dynamically
+- Confirmed live UUIDs (most recent FY revenue budget): budget_id=441b60a0-a946-44a8-9592-2029e890b072, Give Butter category=0f2c3038-3ce4-4166-9685-75e4fb7bb133, Donations category=a9f1086f-40fd-4f18-a0e0-5f2a3d0bd5d5
