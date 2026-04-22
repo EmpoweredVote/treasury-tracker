@@ -9,10 +9,10 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 
 ## Current Position
 
-Phase: Phase 3 executing — Plan 03-01 (Schema Migration) at checkpoint
-Plan: 03-01 partial — Task 1 complete, Task 2 awaiting human action in Supabase SQL editor
-Status: Checkpoint: human-action — migration SQL prepared, awaiting user to run in Supabase dashboard
-Last activity: 2026-04-22 — 03-01 Task 1 complete (schema-migration.sql prepared, commit 631e628)
+Phase: Phase 3 executing — Plan 03-03 complete (loadEVFinances source tagging)
+Plan: 03-03 complete; 03-01 partial (schema migration awaiting human action in Supabase SQL editor)
+Status: In progress — Wave 1 advancing; 03-01 migration still pending, 03-02 RPC function pending
+Last activity: 2026-04-21 — Completed 03-03: CSV re-import safety now enforced in code (commits c752b8e, 1e55e93)
 
 ## Accumulated Context
 
