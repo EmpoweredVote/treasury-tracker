@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 
 ## Current Position
 
-Phase: Phase 3 complete — Phase 4 (Live Feedback UI) is next
-Plan: 03-05 complete — $1 live test passed, all three go-live criteria confirmed (382a0b6)
-Status: Phase 3 complete — ready to plan Phase 4
-Last activity: 2026-04-22 — 03-05: GiveButter webhook registered, $1 test donation processed, idempotency confirmed, both payload ambiguities resolved
+Phase: Phase 4 (Live Feedback UI) — executing
+Plan: 04-01 complete — useAnimatedCounter hook + Donate-click visibilitychange listener (19274b1)
+Status: In progress — 04-02 is next
+Last activity: 2026-04-22 — 04-01: useAnimatedCounter hook created, Donate-click visibility plumbing wired in App.tsx
 
-Progress: ██████████  (5/5 plans in Phase 3 complete — Phase 3 done)
+Progress: ██████████░░  (6/7 plans complete — Phase 3 done, Phase 4 plan 1/2 done)
 
 ## Accumulated Context
 
@@ -39,11 +39,18 @@ Progress: ██████████  (5/5 plans in Phase 3 complete — Pha
 - Confirmed live UUIDs (most recent FY revenue budget): budget_id=441b60a0-a946-44a8-9592-2029e890b072, Give Butter category=0f2c3038-3ce4-4166-9685-75e4fb7bb133, Donations category=a9f1086f-40fd-4f18-a0e0-5f2a3d0bd5d5
 - GiveButter payload confirmed: uses `event` field (not `type`), amount is in dollars (not cents), Signature header = raw secret (raw string timingSafeEqual, no HMAC-SHA256)
 
+- visibilitychange (not window focus) for tab-return detection — more reliable on mobile
+- Fire once per page load only — module-level let flag, not useState
+- Silent refetch — no spinner, no loading state
+- { once: true } explicitly rejected — fires on hide event (navigate-away) before donor returns
+- donationRefetchArmed is module-level let, not useState — component state would cause re-renders
+- useAnimatedCounter onComplete must be wrapped in useCallback with stable deps (documented in JSDoc)
+
 ### Blockers / Concerns
-- None — Phase 3 complete. Phase 4 (Live Feedback UI) requires planning via /gsd:plan-phase.
+- None
 
 ## Session Continuity
 
 Last session: 2026-04-22
-Stopped at: Completed 03-05-PLAN.md — Phase 3 fully complete
+Stopped at: Completed 04-01-PLAN.md — useAnimatedCounter hook + Donate-click visibility plumbing
 Resume file: None

@@ -40,10 +40,10 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — useAnimatedCounter hook + Donate-click → visibilitychange → silent revenue refetch in App.tsx
+- [x] 04-01-PLAN.md — useAnimatedCounter hook + Donate-click → visibilitychange → silent revenue refetch in App.tsx
 - [ ] 04-02-PLAN.md — Wire animated count-up + green-glow settle into PlainLanguageSummary and DatasetTabs revenue displays
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-04-22 — Phase 4 planned; 2 plans, 2 waves*
+*Last updated: 2026-04-22 — 04-01 complete (hook + listener); 04-02 next*
