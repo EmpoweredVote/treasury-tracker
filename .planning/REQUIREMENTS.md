@@ -20,15 +20,15 @@
 
 ### Phase 3 — Webhook Backend
 
-- [ ] **SCH-01**: `budget_line_items` gains `external_id` TEXT column (nullable, unique partial index where not null)
-- [ ] **SCH-02**: `budget_line_items` gains `source` TEXT column (default `'csv'`)
-- [ ] **SCH-03**: `loadEVFinances.js` sets `source: 'csv'` on all upserts
-- [ ] **WH-01**: Supabase Edge Function at `/functions/v1/givebutter-webhook` accepts POST
-- [ ] **WH-02**: Edge Function verifies GiveButter signature against raw request body
-- [ ] **WH-03**: Edge Function writes `transaction.succeeded` events to `budget_line_items` with `external_id` and `source: 'givebutter_webhook'`
-- [ ] **WH-04**: Edge Function is idempotent — upserts on `external_id` conflict (handles GiveButter retries)
-- [ ] **WH-05**: GiveButter webhook registered in dashboard pointing to Edge Function URL
-- [ ] **WH-06**: Validate amount unit (cents vs dollars) and signature header name with a real $1 test donation before go-live
+- [x] **SCH-01**: `budget_line_items` gains `external_id` TEXT column (nullable, unique partial index where not null)
+- [x] **SCH-02**: `budget_line_items` gains `source` TEXT column (default `'csv'`)
+- [x] **SCH-03**: `loadEVFinances.js` sets `source: 'csv'` on all upserts
+- [x] **WH-01**: Supabase Edge Function at `/functions/v1/givebutter-webhook` accepts POST
+- [x] **WH-02**: Edge Function verifies GiveButter signature against raw request body
+- [x] **WH-03**: Edge Function writes `transaction.succeeded` events to `budget_line_items` with `external_id` and `source: 'givebutter_webhook'`
+- [x] **WH-04**: Edge Function is idempotent — upserts on `external_id` conflict (handles GiveButter retries)
+- [x] **WH-05**: GiveButter webhook registered in dashboard pointing to Edge Function URL
+- [x] **WH-06**: Validate amount unit (cents vs dollars) and signature header name with a real $1 test donation before go-live
 
 ### Phase 4 — Live Feedback UI
 
@@ -58,22 +58,22 @@
 | UI-03 | Phase 1 | ✓ Complete |
 | DATA-01 | Phase 2 | ✓ Complete |
 | DATA-02 | Phase 2 | ✓ Complete |
-| SCH-01 | Phase 3 | Pending |
-| SCH-02 | Phase 3 | Pending |
-| SCH-03 | Phase 3 | Pending |
-| WH-01 | Phase 3 | Pending |
-| WH-02 | Phase 3 | Pending |
-| WH-03 | Phase 3 | Pending |
-| WH-04 | Phase 3 | Pending |
-| WH-05 | Phase 3 | Pending |
-| WH-06 | Phase 3 | Pending |
+| SCH-01 | Phase 3 | Complete |
+| SCH-02 | Phase 3 | Complete |
+| SCH-03 | Phase 3 | Complete |
+| WH-01 | Phase 3 | Complete |
+| WH-02 | Phase 3 | Complete |
+| WH-03 | Phase 3 | Complete |
+| WH-04 | Phase 3 | Complete |
+| WH-05 | Phase 3 | Complete |
+| WH-06 | Phase 3 | Complete |
 | UI-04 | Phase 4 | Pending |
 | UI-05 | Phase 4 | Pending |
 | UI-06 | Phase 4 | Pending |
 
-**Coverage:** 17 requirements · 5 complete · 12 pending
+**Coverage:** 17 requirements · 14 complete · 3 pending
 
 ---
 
 *Requirements defined: 2026-04-21*
-*Last updated: 2026-04-21 — Phase 2 audit complete (DATA-01, DATA-02 answered)*
+*Last updated: 2026-04-22 — Phase 3 complete (SCH-01–03, WH-01–06 all confirmed via $1 live test)*
