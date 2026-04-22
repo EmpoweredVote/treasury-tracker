@@ -37,7 +37,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // Parse JSON
-    let payload: { type?: string; data?: Record<string, unknown> }
+    let payload: { event?: string; data?: Record<string, unknown> }
     try {
       payload = JSON.parse(rawBody)
     } catch {
@@ -45,7 +45,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // Discard unrecognized events silently
-    if (payload.type !== 'transaction.succeeded') {
+    if (payload.event !== 'transaction.succeeded') {
       return new Response('OK', { status: 200 })
     }
 
@@ -57,11 +57,11 @@ Deno.serve(async (req: Request) => {
     const lastName = String(tx['last_name'] ?? '')
     const transactedAt = String(tx['transacted_at'] ?? '')
 
-    // Log everything — primary diagnostic for $1 test (amount unit + signature algorithm)
+    // Log everything — amount is in cents, divide by 100 for dollars
     console.log('givebutter-webhook: transaction.succeeded', {
       externalId,
-      amount,
-      rawAmount: tx['amount'],
+      amountCents: amount,
+      amountDollars: amount / 100,
       signatureHeader: sig,
       transactedAt,
     })
