@@ -3,7 +3,7 @@ import { FileText } from 'lucide-react'
 import { SiteHeader } from '@empoweredvote/ev-ui';
 import PlainLanguageSummary from './components/dashboard/PlainLanguageSummary';
 import BudgetSearch from './components/dashboard/BudgetSearch';
-import { loadBudgetData, loadLinkedTransactions, listMunicipalities } from './data/dataLoader';
+import { loadBudgetData, loadLinkedTransactions, listMunicipalities, clearCache } from './data/dataLoader';
 import EntitySwitcher from './components/EntitySwitcher';
 import AlphaLanding from './components/AlphaLanding';
 import type { LandingReason } from './components/AlphaLanding';
@@ -321,6 +321,31 @@ function App() {
     if (!selectedEntity) return;
     syncURL(selectedEntity, selectedYear, activeDataset);
   }, [selectedEntity, selectedYear, activeDataset]);
+
+  // Silently refetch revenue once when the user returns to this tab.
+  // Fires at most once per entity+year — the listener removes itself after the first visible-return.
+  useEffect(() => {
+    if (!selectedEntity || selectedEntity.entity_type !== 'nonprofit' || !isFinancialsHost) return;
+
+    const handleVisibility = () => {
+      if (document.visibilityState !== 'visible') return;
+      document.removeEventListener('visibilitychange', handleVisibility);
+
+      const yearNum = parseInt(selectedYear);
+      const hasRevenue = selectedEntity.available_datasets.some(
+        d => d.fiscal_year === yearNum && d.dataset_type === 'revenue'
+      );
+      if (!hasRevenue) return;
+
+      clearCache();
+      loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'revenue')
+        .then(data => setRevenueData(data))
+        .catch(err => console.error('Post-donation revenue refetch failed:', err));
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [selectedEntity, selectedYear]);
 
   // Lazy-load linked transactions when navigating into a category (operating only)
   useEffect(() => {
