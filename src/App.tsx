@@ -3,7 +3,7 @@ import { FileText } from 'lucide-react'
 import { SiteHeader } from '@empoweredvote/ev-ui';
 import PlainLanguageSummary from './components/dashboard/PlainLanguageSummary';
 import BudgetSearch from './components/dashboard/BudgetSearch';
-import { loadBudgetData, loadLinkedTransactions, listMunicipalities, clearCache } from './data/dataLoader';
+import { loadBudgetData, loadLinkedTransactions, listMunicipalities } from './data/dataLoader';
 import EntitySwitcher from './components/EntitySwitcher';
 import AlphaLanding from './components/AlphaLanding';
 import type { LandingReason } from './components/AlphaLanding';
@@ -74,9 +74,6 @@ function getDatasetLabel(type: DatasetType): string {
 
 const isFinancialsHost = window.location.hostname === 'financials.empowered.vote';
 
-// Module-level flag: survives re-renders, resets on hard reload.
-// Ensures the visibilitychange listener is armed at most once per page load.
-let donationRefetchArmed = false;
 
 function App() {
   // Ref for auto-scrolling to chart section
@@ -399,37 +396,6 @@ function App() {
     }
   }, [navigationPath]);
 
-  // Donate-click: arms a one-shot visibilitychange listener so that when the
-  // donor returns from GiveButter the revenue dataset is silently re-fetched.
-  // NOTE: { once: true } is NOT used — it fires on the hide event (navigate-away),
-  // consuming the listener before the donor returns. Manual removal inside the
-  // handler, gated on visibilityState === 'visible', is the correct pattern.
-  const handleDonateClick = useCallback(() => {
-    if (donationRefetchArmed) return;
-    donationRefetchArmed = true;
-
-    const handleVisibility = () => {
-      // visibilitychange fires BOTH when hiding and when returning — guard for visible only
-      if (document.visibilityState !== 'visible') return;
-      // Remove ourselves FIRST so re-entry (alt-tab loops) can't double-fire
-      document.removeEventListener('visibilitychange', handleVisibility);
-
-      if (!selectedEntity) return;
-      const yearNum = parseInt(selectedYear);
-      const hasRevenue = selectedEntity.available_datasets.some(
-        d => d.fiscal_year === yearNum && d.dataset_type === 'revenue'
-      );
-      if (!hasRevenue) return;
-
-      // Silent background refetch — no loading state, no spinner
-      clearCache();
-      loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'revenue')
-        .then(data => { setRevenueData(data); })
-        .catch(err => { console.error('Post-donation revenue refetch failed:', err); });
-    };
-
-    document.addEventListener('visibilitychange', handleVisibility);
-  }, [selectedEntity, selectedYear]);
 
   const breadcrumbItems: BreadcrumbItem[] = useMemo(() => {
     const items: BreadcrumbItem[] = [
