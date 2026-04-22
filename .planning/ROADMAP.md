@@ -20,17 +20,17 @@ Plans:
 
 ---
 
-## Phase 3: Webhook Backend
+## Phase 3: Webhook Backend (COMPLETE)
 
 **Goal:** Build the GiveButter → Supabase Edge Function → Postgres RPC pipeline that atomically writes donation events and updates pre-aggregated budget totals.
-**Plans:** 5 plans
+**Status:** Complete — 2026-04-22
 
 Plans:
-- [ ] 03-01-PLAN.md — Schema migration: add external_id + source columns + dedup index
-- [ ] 03-02-PLAN.md — Postgres RPC function: treasury.record_givebutter_donation
-- [ ] 03-03-PLAN.md — loadEVFinances.js: source tagging + webhook row preservation
-- [ ] 03-04-PLAN.md — Edge Function: create + deploy givebutter-webhook
-- [ ] 03-05-PLAN.md — Go-live: register webhook + $1 test + validate all three criteria
+- [x] 03-01-PLAN.md — Schema migration: add external_id + source columns + dedup index
+- [x] 03-02-PLAN.md — Postgres RPC function: treasury.record_givebutter_donation
+- [x] 03-03-PLAN.md — loadEVFinances.js: source tagging + webhook row preservation
+- [x] 03-04-PLAN.md — Edge Function: create + deploy givebutter-webhook
+- [x] 03-05-PLAN.md — Go-live: register webhook + $1 test + validate all three criteria
 
 ---
 
@@ -45,4 +45,4 @@ Plans:
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-04-21 — Phase 3 plans written*
+*Last updated: 2026-04-22 — Phase 3 complete; Phase 4 ready to plan*
