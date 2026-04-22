@@ -9,10 +9,10 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 
 ## Current Position
 
-Phase: Phase 2 complete — Phase 3 (webhook backend) is next
-Plan: 02-01 complete
-Status: Phase 2 audit complete; Phase 3 has unambiguous technical contract (see .planning/phases/02-data-layer-audit/02-01-SUMMARY.md)
-Last activity: 2026-04-21 — Phase 2 data layer audit complete (DATA-01, DATA-02 answered)
+Phase: Phase 3 executing — Plan 03-01 (Schema Migration) at checkpoint
+Plan: 03-01 partial — Task 1 complete, Task 2 awaiting human action in Supabase SQL editor
+Status: Checkpoint: human-action — migration SQL prepared, awaiting user to run in Supabase dashboard
+Last activity: 2026-04-22 — 03-01 Task 1 complete (schema-migration.sql prepared, commit 631e628)
 
 ## Accumulated Context
 
