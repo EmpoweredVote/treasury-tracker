@@ -9,10 +9,10 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 
 ## Current Position
 
-Phase: Phase 3 executing — Plan 03-03 complete (loadEVFinances source tagging)
-Plan: 03-03 complete; 03-01 partial (schema migration awaiting human action in Supabase SQL editor)
-Status: In progress — Wave 1 advancing; 03-01 migration still pending, 03-02 RPC function pending
-Last activity: 2026-04-21 — Completed 03-03: CSV re-import safety now enforced in code (commits c752b8e, 1e55e93)
+Phase: Phase 3 executing — Plans 03-01 and 03-03 complete
+Plan: 03-01 complete (schema migration applied and verified in Supabase); 03-02 RPC function pending
+Status: In progress — Wave 1 advancing; 03-02 is next
+Last activity: 2026-04-21 — Completed 03-01: external_id + source columns + partial unique index live in Supabase (migration applied via SQL editor, verified)
 
 ## Accumulated Context
 

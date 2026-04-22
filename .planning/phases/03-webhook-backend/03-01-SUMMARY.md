@@ -9,7 +9,9 @@ requires:
   - phase: 02-data-layer-audit
     provides: "Confirmed treasury.budget_line_items schema and dedup strategy"
 provides:
-  - "schema-migration.sql: idempotent DDL for external_id + source columns and partial unique index"
+  - "external_id TEXT nullable column on treasury.budget_line_items (live in Supabase)"
+  - "source TEXT DEFAULT 'csv' column on treasury.budget_line_items (live in Supabase)"
+  - "idx_line_items_external_id_source unique partial index WHERE external_id IS NOT NULL (live in Supabase)"
 affects: [03-02, 03-03, 03-04, 03-05]
 
 # Tech tracking
@@ -18,6 +20,7 @@ tech-stack:
   patterns:
     - "Idempotent DDL via IF NOT EXISTS guards for safe re-execution"
     - "Partial unique index (WHERE external_id IS NOT NULL) for deduplication without affecting CSV rows"
+    - "source DEFAULT 'csv' backfills all pre-existing rows at ALTER TABLE time — no separate UPDATE needed"
 
 key-files:
   created:
@@ -28,53 +31,70 @@ key-decisions:
   - "external_id is nullable TEXT with no default — only webhook rows will have it populated"
   - "source TEXT DEFAULT 'csv' — existing rows auto-backfilled to csv on migration"
   - "Unique partial index on (external_id, source) WHERE external_id IS NOT NULL — CSV rows (external_id=NULL) are excluded from uniqueness constraint"
+  - "Schema changes applied via Supabase SQL editor only (NOT via EV-Backend GORM or migration tooling)"
 
 patterns-established:
+  - "Dedup key: external_id (platform transaction ID) + source (platform name e.g. 'givebutter')"
+  - "Webhook rows: source='givebutter', external_id=<UUID>; CSV rows: source='csv', external_id=NULL"
   - "Schema changes applied via Supabase SQL editor only (NOT via EV-Backend GORM or migration tooling)"
 
 # Metrics
-duration: ~3min (Task 1 only; awaiting human action for Task 2)
-completed: 2026-04-22
+duration: ~5min (Task 1 automated; Task 2 human-action checkpoint)
+completed: 2026-04-21
 ---
 
 # Phase 3 Plan 01: Schema Migration Summary
 
-**STATUS: PARTIAL — Task 1 complete, Task 2 pending human action in Supabase SQL editor**
-
-**schema-migration.sql prepared with idempotent DDL adding external_id TEXT + source TEXT DEFAULT 'csv' columns and partial unique index idx_line_items_external_id_source to treasury.budget_line_items**
+**external_id + source deduplication columns and partial unique index applied to live treasury.budget_line_items — webhook idempotency foundation now active in Supabase**
 
 ## Performance
 
-- **Duration:** ~3 min (Task 1 only)
-- **Started:** 2026-04-22T02:54:33Z
-- **Completed:** 2026-04-22T02:57:00Z (partial — checkpoint reached)
-- **Tasks:** 1/2 complete
+- **Duration:** ~5 min (Task 1 automated SQL prep; Task 2 human-action in Supabase SQL editor)
+- **Started:** 2026-04-21
+- **Completed:** 2026-04-21
+- **Tasks:** 2/2 complete
 - **Files modified:** 1
 
 ## Accomplishments
 
-- Prepared idempotent schema migration SQL with IF NOT EXISTS guards
-- Defined partial unique index that enforces deduplication for webhook rows without affecting CSV rows
-- Verification queries included in the same file for immediate post-migration confirmation
+- Prepared idempotent schema migration SQL (`schema-migration.sql`) with IF NOT EXISTS guards on all DDL
+- User applied migration via Supabase SQL editor and ran verification queries
+- `external_id TEXT` nullable column confirmed live — receives GiveButter transaction UUIDs from webhook
+- `source TEXT DEFAULT 'csv'` column confirmed live — all pre-existing CSV rows automatically backfilled to source='csv'
+- `idx_line_items_external_id_source` unique partial index confirmed live with `WHERE (external_id IS NOT NULL)` — DB-level idempotency guard active
+
+## Verification Results
+
+Confirmed via Supabase SQL editor verification query:
+
+| column_name | data_type | column_default | is_nullable |
+|-------------|-----------|----------------|-------------|
+| external_id | text      | null           | YES         |
+| source      | text      | 'csv'::text    | YES         |
+
+Index `idx_line_items_external_id_source` present with `WHERE (external_id IS NOT NULL)`.
 
 ## Task Commits
 
 1. **Task 1: Prepare schema migration SQL** - `631e628` (chore)
-2. **Task 2: Apply migration in Supabase SQL editor** - PENDING (human-action checkpoint)
+2. **Task 2: Apply migration in Supabase SQL editor** - human-action (DDL applied live in Supabase; no source code commit)
+
+**Checkpoint commit:** `e139a05` (docs: checkpoint — Task 1 complete, awaiting Supabase migration)
 
 ## Files Created/Modified
 
-- `.planning/phases/03-webhook-backend/schema-migration.sql` - Full migration DDL + verification queries
+- `.planning/phases/03-webhook-backend/schema-migration.sql` - Idempotent migration DDL + verification queries
 
 ## Decisions Made
 
 - `external_id` column is nullable with no default — NULL means "originated from CSV import"; only webhook rows will have a value
 - `source TEXT DEFAULT 'csv'` ensures all existing rows are backfilled to source='csv' at migration time without a separate UPDATE
 - Partial unique index `WHERE external_id IS NOT NULL` means the uniqueness constraint only applies to webhook-originated rows — CSV rows (NULL external_id) are always insertable
+- Applied via Supabase SQL editor rather than GORM migrations — keeps DDL out of Go application lifecycle and avoids migration state conflicts
 
 ## Deviations from Plan
 
-None - plan executed exactly as written.
+None - plan executed exactly as written. Task 1 automated SQL preparation; Task 2 was the planned human-action checkpoint.
 
 ## Issues Encountered
 
@@ -82,20 +102,15 @@ None.
 
 ## User Setup Required
 
-**Task 2 requires manual execution in the Supabase SQL editor.**
-
-Steps:
-1. Open: https://supabase.com/dashboard/project/kxsdzaojfaibhuzmclfq/sql/new
-2. Copy the ALTER TABLE + CREATE UNIQUE INDEX block from `.planning/phases/03-webhook-backend/schema-migration.sql`
-3. Click "Run" — expect "Success. No rows returned."
-4. Run the verification SELECT queries from the same file
-5. Confirm results match expected column definitions and index
+Migration was applied manually by the user in the Supabase SQL editor — this was the intended flow for this plan (DDL cannot be automated via CLI for Supabase hosted projects in this stack).
 
 ## Next Phase Readiness
 
-- **Blocked:** Plans 03-02 through 03-05 require these columns to exist in the live database
-- **Ready after checkpoint:** Once migration is applied and verified, 03-02 (Postgres RPC function) can proceed immediately — the function references external_id and source directly
+- Schema foundation is complete and live — the two dedup columns and partial index are active in the database
+- Plan 03-02 (Postgres RPC function `treasury.record_givebutter_donation`) can now proceed — it depends on `external_id` and `source` columns existing
+- Plan 03-03 (Edge Function source tagging in `loadEVFinances.js`) was already completed ahead of this migration
+- No blockers for the remaining Wave 1 plans
 
 ---
 *Phase: 03-webhook-backend*
-*Completed: 2026-04-22 (partial)*
+*Completed: 2026-04-21*
