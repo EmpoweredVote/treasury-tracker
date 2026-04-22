@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { BudgetData } from '../../types/budget';
+import { useAnimatedCounter } from '../../hooks/useAnimatedCounter';
 
 interface PlainLanguageSummaryProps {
   entity: {
@@ -90,6 +91,28 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
 
   const formatPerResident = (n: number) =>
     `$${Math.round(n).toLocaleString()}`;
+
+  // Revenue count-up animation + green-glow settle
+  const revenueTarget = revenueData?.metadata.totalBudget ?? 0;
+  const [revenueGlowing, setRevenueGlowing] = useState(false);
+  const glowTimerRef = useRef<number | null>(null);
+
+  // CRITICAL: onComplete MUST be wrapped in useCallback with stable deps,
+  // or the useAnimatedCounter effect resets on every render.
+  const handleRevenueSettled = useCallback(() => {
+    setRevenueGlowing(true);
+    if (glowTimerRef.current != null) window.clearTimeout(glowTimerRef.current);
+    glowTimerRef.current = window.setTimeout(() => setRevenueGlowing(false), 2000);
+  }, []);
+
+  const animatedRevenue = useAnimatedCounter(revenueTarget, 600, handleRevenueSettled);
+
+  // Cleanup pending timer on unmount
+  useEffect(() => {
+    return () => {
+      if (glowTimerRef.current != null) window.clearTimeout(glowTimerRef.current);
+    };
+  }, []);
 
   return (
     <div className="bg-white border border-ev-gray-200 rounded-xl overflow-hidden">
@@ -203,7 +226,15 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
                 ? <>{entity.name} {showActual ? 'raised' : 'raises'}{' '}</>
                 : <>The city {showActual ? 'funded' : 'funds'} this through{' '}</>
               }
-              <strong className="text-ev-gray-800">{formatAmount(revenueData.metadata.totalBudget)}</strong>
+              <strong
+                className="text-ev-gray-800 inline-block rounded-sm px-0.5"
+                style={{
+                  transition: 'box-shadow 700ms ease-out',
+                  boxShadow: revenueGlowing
+                    ? '0 0 0 2px #22c55e, 0 0 16px 4px rgba(34, 197, 94, 0.4)'
+                    : 'none',
+                }}
+              >{formatAmount(animatedRevenue)}</strong>
               {' '}in {isNonprofit ? 'income' : `${showActual ? '' : 'expected '}revenue`}
               {revenueData.categories?.[0] && (
                 <>, with the {isNonprofit ? 'primary source being' : 'largest source being'}{' '}
