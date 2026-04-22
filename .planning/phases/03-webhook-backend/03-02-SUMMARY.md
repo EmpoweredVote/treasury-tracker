@@ -33,22 +33,20 @@ patterns-established:
   - "RPC pattern: Edge Function resolves UUIDs dynamically, passes them to Postgres function — no hardcoded IDs"
 
 # Metrics
-duration: PENDING (Task 2 not yet complete)
-completed: PENDING
+duration: ~3 minutes (Task 1 + checkpoint + Task 2 MCP apply)
+completed: 2026-04-22
 ---
 
 # Phase 3 Plan 02: Postgres RPC Function Summary
 
-**STATUS: PARTIAL — Task 1 complete, Task 2 (Supabase function creation) pending orchestrator**
-
-**PL/pgSQL atomic donation writer: treasury.record_givebutter_donation with 8-parameter signature, IF EXISTS dedup guard, and 4-step transaction (INSERT + 3 UPDATEs)**
+**PL/pgSQL atomic donation writer: treasury.record_givebutter_donation with 8-parameter signature, IF EXISTS dedup guard, and 4-step transaction (INSERT + 3 UPDATEs) — confirmed live in Supabase treasury schema**
 
 ## Performance
 
-- **Duration:** In progress
+- **Duration:** ~3 minutes
 - **Started:** 2026-04-22T03:28:12Z
-- **Completed:** PENDING
-- **Tasks:** 1 of 2 complete
+- **Completed:** 2026-04-22T03:31:02Z
+- **Tasks:** 2 of 2 complete
 - **Files modified:** 1
 
 ## Accomplishments
@@ -57,16 +55,46 @@ completed: PENDING
 - Function signature matches Phase 2 technical contract (8 parameters)
 - Idempotency guard: IF EXISTS check on (external_id, source='givebutter_webhook')
 - Atomic body: 1 INSERT into budget_line_items + 3 UPDATEs (leaf category, parent category, budget total)
-- Dry-run test block included with UUID lookup query for safe verification in SQL editor
+- Function created live in Supabase via MCP tools and verified via information_schema.routines query
+- Dry-run test (BEGIN/SELECT/ROLLBACK) confirmed 1 row returned with correct fields — transaction rolled back, no permanent data written
 
 ## Task Commits
 
 1. **Task 1: Prepare Postgres function SQL** - `5809bb1` (chore)
-2. **Task 2: Create function in Supabase and verify** - PENDING
+2. **Task 2: Create function in Supabase and verify** - applied via Supabase MCP (no code commit — DB-only change)
 
 ## Files Created/Modified
 
 - `.planning/phases/03-webhook-backend/postgres-function.sql` — Complete CREATE OR REPLACE FUNCTION SQL with dry-run test block
+
+## Verification Results
+
+### Function existence confirmed
+
+```
+routine_name: record_givebutter_donation
+routine_schema: treasury
+```
+
+### Dry-run UUIDs used (most recent FY revenue budget)
+
+| Variable | UUID |
+|---|---|
+| budget_id | 441b60a0-a946-44a8-9592-2029e890b072 |
+| Give Butter category_id (depth=1) | 0f2c3038-3ce4-4166-9685-75e4fb7bb133 |
+| Donations category_id (depth=0) | a9f1086f-40fd-4f18-a0e0-5f2a3d0bd5d5 |
+
+### Dry-run SELECT result (1 row, rolled back)
+
+| Column | Value |
+|---|---|
+| id | c1693fb5-dadd-426d-b43e-034056e19d5d |
+| description | Test donation — dry run |
+| actual_amount | 1.00 |
+| source | givebutter_webhook |
+| external_id | test-external-id-dry-run |
+
+Transaction was rolled back — no permanent data written.
 
 ## Decisions Made
 
@@ -76,21 +104,18 @@ completed: PENDING
 
 ## Deviations from Plan
 
-None - plan executed exactly as written for Task 1.
+None - plan executed exactly as written.
 
 ## Issues Encountered
 
-None for Task 1.
-
-## User Setup Required
-
-Task 2 requires applying the SQL via Supabase MCP tools (orchestrator-handled, not manual user action).
+None.
 
 ## Next Phase Readiness
 
-- BLOCKED on Task 2: function must exist in treasury schema before 03-04 (Edge Function) can call supabase.rpc()
-- Once Task 2 is confirmed, 03-04 can proceed immediately
+- UNBLOCKED: `treasury.record_givebutter_donation` exists and is callable
+- 03-04 (Edge Function) can now proceed — it will call `supabase.rpc('record_givebutter_donation', {...})` with dynamically resolved UUIDs
+- Dynamic UUID resolution pattern confirmed: Edge Function must look up budget_id and category IDs at runtime (not hardcoded)
 
 ---
 *Phase: 03-webhook-backend*
-*Completed: PENDING*
+*Completed: 2026-04-22*
