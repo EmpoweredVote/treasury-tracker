@@ -9,10 +9,10 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 
 ## Current Position
 
-Phase: Phase 3 executing — Plans 03-01, 03-02, and 03-03 complete; 03-04 is next
-Plan: 03-02 complete — treasury.record_givebutter_donation live in Supabase, dry-run verified
-Status: In progress — 03-04 (Edge Function) unblocked and ready to execute
-Last activity: 2026-04-22 — 03-02 Task 2: applied Postgres RPC function via Supabase MCP, dry-run confirmed 1 row with source='givebutter_webhook', rolled back cleanly
+Phase: Phase 3 executing — Plans 03-01, 03-02, 03-03 complete; 03-04 at checkpoint
+Plan: 03-04 Task 1 complete — Edge Function source written and committed (fb94990)
+Status: In progress — 03-04 paused at Task 2 checkpoint (deploy + signing secret)
+Last activity: 2026-04-21 — 03-04 Task 1: created supabase/functions/givebutter-webhook/index.ts, all verification checks passed, committed fb94990
 
 ## Accumulated Context
 
