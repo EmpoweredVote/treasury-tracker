@@ -37,12 +37,13 @@ Plans:
 ## Phase 4: Live Feedback UI
 
 **Goal:** Add window focus listener and animated counter on financials.empowered.vote to re-fetch and display updated revenue when donor returns from GiveButter.
-**Plans:** TBD — planned after Phase 3 complete
+**Plans:** 2 plans
 
 Plans:
-- [ ] TBD (created by /gsd:plan-phase)
+- [ ] 04-01-PLAN.md — useAnimatedCounter hook + Donate-click → visibilitychange → silent revenue refetch in App.tsx
+- [ ] 04-02-PLAN.md — Wire animated count-up + green-glow settle into PlainLanguageSummary and DatasetTabs revenue displays
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-04-22 — Phase 3 complete; Phase 4 ready to plan*
+*Last updated: 2026-04-22 — Phase 4 planned; 2 plans, 2 waves*
