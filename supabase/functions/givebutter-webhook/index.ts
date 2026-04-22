@@ -53,8 +53,6 @@ Deno.serve(async (req: Request) => {
     const tx = payload.data ?? {}
     const externalId = String(tx['id'] ?? '')
     const amount = Number(tx['amount'] ?? 0)
-    const firstName = String(tx['first_name'] ?? '')
-    const lastName = String(tx['last_name'] ?? '')
     const transactedAt = String(tx['transacted_at'] ?? '')
 
     // Log everything — amount is in cents, divide by 100 for dollars
@@ -116,9 +114,7 @@ Deno.serve(async (req: Request) => {
       return new Response('Internal Server Error', { status: 500 })
     }
 
-    const description = firstName
-      ? `Donation from ${firstName} ${lastName}`.trim()
-      : 'GiveButter donation'
+    const description = 'GiveButter donation'
 
     // Call atomic Postgres RPC
     const { error: rpcError } = await supabase.rpc('record_givebutter_donation', {
