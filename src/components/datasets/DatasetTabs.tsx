@@ -1,4 +1,6 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { DollarSign, TrendingDown } from 'lucide-react';
+import { useAnimatedCounter } from '../../hooks/useAnimatedCounter';
 
 interface DatasetCardsProps {
   activeDataset: string;
@@ -42,6 +44,27 @@ export default function DatasetTabs({
 }: DatasetCardsProps) {
   const available = availableDatasets ?? ['operating', 'revenue'];
 
+  // Revenue count-up animation + green-glow settle (revenue card only)
+  const revenueAnimTarget = revenueTotal ?? 0;
+  const [revenueGlowing, setRevenueGlowing] = useState(false);
+  const glowTimerRef = useRef<number | null>(null);
+
+  // CRITICAL: onComplete MUST be wrapped in useCallback with stable deps
+  const handleRevenueSettled = useCallback(() => {
+    setRevenueGlowing(true);
+    if (glowTimerRef.current != null) window.clearTimeout(glowTimerRef.current);
+    glowTimerRef.current = window.setTimeout(() => setRevenueGlowing(false), 2000);
+  }, []);
+
+  const animatedRevenue = useAnimatedCounter(revenueAnimTarget, 600, handleRevenueSettled);
+
+  // Cleanup pending timer on unmount
+  useEffect(() => {
+    return () => {
+      if (glowTimerRef.current != null) window.clearTimeout(glowTimerRef.current);
+    };
+  }, []);
+
   const getTotal = (id: string) => {
     if (id === 'operating' && operatingTotal != null) return operatingTotal;
     if (id === 'revenue' && revenueTotal != null) return revenueTotal;
@@ -75,8 +98,16 @@ export default function DatasetTabs({
               </span>
             </div>
             {total != null && (
-              <div className={`text-2xl font-bold ${isActive ? 'text-ev-gray-900' : 'text-ev-gray-600'}`}>
-                {formatCurrency(total, isNonprofit)}
+              <div
+                className={`text-2xl font-bold inline-block rounded-sm px-0.5 ${isActive ? 'text-ev-gray-900' : 'text-ev-gray-600'}`}
+                style={id === 'revenue' ? {
+                  transition: 'box-shadow 700ms ease-out',
+                  boxShadow: revenueGlowing
+                    ? '0 0 0 2px #22c55e, 0 0 16px 4px rgba(34, 197, 94, 0.4)'
+                    : 'none',
+                } : undefined}
+              >
+                {id === 'revenue' ? formatCurrency(animatedRevenue, isNonprofit) : formatCurrency(total, isNonprofit)}
               </div>
             )}
             <div className="text-xs text-ev-gray-400 mt-1">{description}</div>
