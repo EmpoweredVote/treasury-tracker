@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 
 ## Current Position
 
-Phase: Phase 4 (Live Feedback UI) — executing
-Plan: 04-01 complete — useAnimatedCounter hook + Donate-click visibilitychange listener (19274b1)
-Status: In progress — 04-02 is next
-Last activity: 2026-04-22 — 04-01: useAnimatedCounter hook created, Donate-click visibility plumbing wired in App.tsx
+Phase: Phase 4 complete — milestone v1.0 complete
+Plan: 04-02 complete — animated revenue count-up + green glow in PlainLanguageSummary + DatasetTabs
+Status: Phase 4 complete
+Last activity: 2026-04-22 — 04-02: revenue animation + glow shipped, visual verification approved
 
-Progress: ██████████░░  (6/7 plans complete — Phase 3 done, Phase 4 plan 1/2 done)
+Progress: ████████████  (7/7 plans complete — all phases done)
 
 ## Accumulated Context
 
@@ -40,11 +40,11 @@ Progress: ██████████░░  (6/7 plans complete — Phase 3 
 - GiveButter payload confirmed: uses `event` field (not `type`), amount is in dollars (not cents), Signature header = raw secret (raw string timingSafeEqual, no HMAC-SHA256)
 
 - visibilitychange (not window focus) for tab-return detection — more reliable on mobile
-- Fire once per page load only — module-level let flag, not useState
+- Listener attached on mount (not donate click) — always-on for nonprofit+isFinancialsHost, fires once per entity+year
 - Silent refetch — no spinner, no loading state
-- { once: true } explicitly rejected — fires on hide event (navigate-away) before donor returns
-- donationRefetchArmed is module-level let, not useState — component state would cause re-renders
 - useAnimatedCounter onComplete must be wrapped in useCallback with stable deps (documented in JSDoc)
+- Inline style for box-shadow glow — Tailwind v4 arbitrary shadow does not animate via transition-shadow
+- Donor name stripped from webhook line items — always writes 'GiveButter donation' as description
 
 ### Blockers / Concerns
 - None
@@ -52,5 +52,5 @@ Progress: ██████████░░  (6/7 plans complete — Phase 3 
 ## Session Continuity
 
 Last session: 2026-04-22
-Stopped at: Completed 04-01-PLAN.md — useAnimatedCounter hook + Donate-click visibility plumbing
+Stopped at: Completed 04-02-PLAN.md — Phase 4 and milestone v1.0 complete
 Resume file: None
