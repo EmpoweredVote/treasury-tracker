@@ -9,12 +9,12 @@
 
 ### Tier 1 — Dallas Socrata Integration
 
-- [ ] **DAL-01**: `data_sources` rows exist for Dallas operating budget (dataset `e2fs-y4nb`) and revenue budget (dataset `rtn4-pmj9`) linked to the Dallas municipality record
-- [ ] **DAL-02**: `bulkLoadBudget.js` script fetches paginated Socrata operating budget data and inserts into `treasury.budgets` + `treasury.budget_categories` tree via existing RPC pattern
-- [ ] **DAL-03**: `bulkLoadBudget.js` handles revenue budget dataset with appropriate column mapping (`budcurr` → approved, `revbfy` → actual, `department`/`revsource` as hierarchy)
-- [ ] **DAL-04**: Dallas operating budget FY2025 and FY2026 successfully loaded and visible in the app
-- [ ] **DAL-05**: Dallas revenue budget FY2025 and FY2026 successfully loaded and visible in the app
-- [ ] **DAL-06**: `bulkLoadBudget.js` is generic — `column_mapping` in `data_sources` drives field names, not hardcoded Dallas logic
+- [x] **DAL-01**: `data_sources` rows exist for Dallas operating budget (dataset `e2fs-y4nb`) and revenue budget (dataset `rtn4-pmj9`) linked to the Dallas municipality record
+- [x] **DAL-02**: `bulkLoadBudget.js` script fetches paginated Socrata operating budget data and inserts into `treasury.budgets` + `treasury.budget_categories` tree via existing RPC pattern
+- [x] **DAL-03**: `bulkLoadBudget.js` handles revenue budget dataset with appropriate column mapping (`budcurr` → approved, `revbfy` → actual, `department`/`revsource` as hierarchy)
+- [x] **DAL-04**: Dallas operating budget FY2025 and FY2026 successfully loaded and visible in the app
+- [x] **DAL-05**: Dallas revenue budget FY2025 and FY2026 successfully loaded and visible in the app
+- [x] **DAL-06**: `bulkLoadBudget.js` is generic — `column_mapping` in `data_sources` drives field names, not hardcoded Dallas logic
 
 ### Tier 2 — XLSX Pipeline
 
