@@ -2,52 +2,50 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-21)
+See: .planning/PROJECT.md (updated 2026-05-01)
 
 **Core value:** Any citizen can open financials.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Milestone v1.1 — Texas Municipal Financial Transparency
+**Current focus:** Milestone v1.1 — Texas Municipal Financial Transparency (Phase 5: Dallas Socrata)
 
 ## Current Position
 
-Phase: Not started — defining requirements
+Phase: 5 of 7 (Dallas Socrata Integration)
 Plan: —
-Status: Defining requirements for milestone v1.1
-Last activity: 2026-05-01 — Milestone v1.1 started (Texas Municipal Financial Transparency)
+Status: Ready to plan
+Last activity: 2026-05-01 — Roadmap created for milestone v1.1; Phase 5 ready to plan
 
-Progress: ░░░░░░░░░░░░  (0/? plans complete)
+Progress: ████████░░░░░░░░  (9/19 plans complete — v1.0 done, v1.1 not started)
+
+## Performance Metrics
+
+**Velocity:**
+- Total plans completed: 9 (v1.0)
+- Average duration: ~30 min/plan (estimated)
+- Total execution time: ~4.5 hours
+
+**By Phase:**
+
+| Phase | Plans | Total | Avg/Plan |
+|-------|-------|-------|----------|
+| 1 Donate Button | 1/1 | — | — |
+| 2 Data Layer Audit | 1/1 | — | — |
+| 3 Webhook Backend | 5/5 | — | — |
+| 4 Live Feedback UI | 2/2 | — | — |
+
+*Updated after each plan completion*
 
 ## Accumulated Context
 
-### Decisions
-- Redirect-driven flow chosen over websockets — simpler, webhook fires before redirect completes
-- GiveButter only for v1 real-time — best webhook support among the three platforms
-- Supabase Edge Functions as webhook receiver — already in stack
-- Frontend reads pre-aggregated budget_categories.amount — webhook MUST update pre-aggregated columns
-- Atomic 3-row update per donation: INSERT budget_line_items + UPDATE leaf category amount + UPDATE parent category amount + UPDATE budgets.total_budget
-- Use Postgres function treasury.record_givebutter_donation via supabase.rpc() — encapsulates dedup check and atomic multi-row update
-- Schema changes applied via Supabase SQL editor (NOT via EV-Backend GORM) — Go API never writes webhook rows
-- Dedup via unique partial index on (external_id, source) WHERE external_id IS NOT NULL; loadEVFinances.js preserves source='webhook' rows on clearExistingBudget
-- treasury.record_givebutter_donation: VOID return, both approved_amount and actual_amount set to p_amount, source hardcoded in function body as 'givebutter_webhook'
-- GIVEBUTTER_SIGNING_SECRET stored as Supabase secret (never in source) — --no-verify-jwt deploy flag required
-- Dynamic UUID resolution in Edge Function — budget_categories queried by name on each request, never hardcoded
-
-### Known Constraints
-- Must deduplicate: CSV re-imports should not double-count transactions already written by webhook
-- GiveButter return URL must point back to financials.empowered.vote
-- Category hierarchy for EV revenue: Donations (depth=0) → Give Butter (depth=1); webhook must update BOTH category amounts + budget total
-- Category UUIDs are generated at import time — Edge Function must look up (budget_id, name='Give Butter') and (budget_id, name='Donations') dynamically
-- Confirmed live UUIDs (most recent FY revenue budget): budget_id=441b60a0-a946-44a8-9592-2029e890b072, Give Butter category=0f2c3038-3ce4-4166-9685-75e4fb7bb133, Donations category=a9f1086f-40fd-4f18-a0e0-5f2a3d0bd5d5
-- GiveButter payload confirmed: uses `event` field (not `type`), amount is in dollars (not cents), Signature header = raw secret (raw string timingSafeEqual, no HMAC-SHA256)
-
-- visibilitychange (not window focus) for tab-return detection — more reliable on mobile
-- Listener attached on mount (not donate click) — always-on for nonprofit+isFinancialsHost, fires once per entity+year
-- Silent refetch — no spinner, no loading state
-- useAnimatedCounter onComplete must be wrapped in useCallback with stable deps (documented in JSDoc)
-- Inline style for box-shadow glow — Tailwind v4 arbitrary shadow does not animate via transition-shadow
-- Donor name stripped from webhook line items — always writes 'GiveButter donation' as description
+### Decisions (v1.1 relevant)
+- Dallas municipality_id: `17ce5baf-277d-41c9-a3f6-2e44f9def106` (confirmed via quick task 001)
+- `bulkLoadBudget.js` follows `bulkLoadTransactions.js` pattern — column_mapping in data_sources, no hardcoded city logic
+- PDF extraction model: `claude-haiku-4-5-20251001` — cost-effective for high-volume page processing
+- PDF pipeline validates: Transparent Motivations project uses identical PDF → PNG → Haiku approach
+- XLSX dedup: `source_row_id` from row hash preferred over position+date
 
 ### Blockers / Concerns
-- None
+- `treasury_sync_budget` RPC may not yet exist — Phase 5 plan must confirm or create it
+- PDF rendering library not yet chosen — needs Node/system capability check before Phase 7
 
 ### Quick Tasks Completed
 
@@ -57,6 +55,6 @@ Progress: ░░░░░░░░░░░░  (0/? plans complete)
 
 ## Session Continuity
 
-Last session: 2026-04-22
-Stopped at: Completed 04-02-PLAN.md — Phase 4 and milestone v1.0 complete
+Last session: 2026-05-01
+Stopped at: Roadmap created for v1.1 — Phase 5 Dallas Socrata ready to plan
 Resume file: None
