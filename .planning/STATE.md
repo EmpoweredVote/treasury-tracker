@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-05-01)
 ## Current Position
 
 Phase: 5 of 7 (Dallas Socrata Integration)
-Plan: —
-Status: Ready to plan
-Last activity: 2026-05-01 — Roadmap created for milestone v1.1; Phase 5 ready to plan
+Plan: 2 of 3 complete
+Status: In progress
+Last activity: 2026-05-01 — Completed 05-02-PLAN.md (generic Socrata budget loader)
 
-Progress: ████████░░░░░░░░  (9/19 plans complete — v1.0 done, v1.1 not started)
+Progress: ██████████░░░░░░  (11/19 plans complete — v1.0 done, 05-01 + 05-02 complete)
 
 ## Performance Metrics
 
@@ -42,9 +42,15 @@ Progress: ████████░░░░░░░░  (9/19 plans complete
 - PDF extraction model: `claude-haiku-4-5-20251001` — cost-effective for high-volume page processing
 - PDF pipeline validates: Transparent Motivations project uses identical PDF → PNG → Haiku approach
 - XLSX dedup: `source_row_id` from row hash preferred over position+date
+- `treasury.data_sources` has NO unique constraint on `name` — only PK (id) is unique; idempotent seeding requires select-by-name then insert/update pattern
+- Dallas Operating Budget data_sources id: `443a5578-568c-4684-8d47-43ef5f10e773` (dataset e2fs-y4nb)
+- Dallas Revenue Budget data_sources id: `493449a0-d4fd-43aa-b989-71f758edf2e6` (dataset rtn4-pmj9)
+- `treasury_sync_budget_tree` is the correct RPC (bare `treasury_sync_budget` does not exist)
+- Socrata fiscal year fields are strings — WHERE clause must quote: `bfy='2025'` not `bfy=2025`
+- `bulkLoadBudget.js` verified: Dallas Operating FY2025 = 1,062 rows / $4.38B; Dallas Revenue FY2025 = 853 rows / $4.13B
 
 ### Blockers / Concerns
-- `treasury_sync_budget` RPC may not yet exist — Phase 5 plan must confirm or create it
+- `treasury_sync_budget` (bare, without _tree) does not exist — confirmed; always use `treasury_sync_budget_tree`
 - PDF rendering library not yet chosen — needs Node/system capability check before Phase 7
 
 ### Quick Tasks Completed
@@ -56,5 +62,5 @@ Progress: ████████░░░░░░░░  (9/19 plans complete
 ## Session Continuity
 
 Last session: 2026-05-01
-Stopped at: Roadmap created for v1.1 — Phase 5 Dallas Socrata ready to plan
+Stopped at: Completed 05-02-PLAN.md — bulkLoadBudget.js; ready for 05-03 (live load + verify in app)
 Resume file: None

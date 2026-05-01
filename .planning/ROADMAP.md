@@ -86,8 +86,8 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — Idempotent seeder for Dallas operating + revenue `data_sources` rows
-- [ ] 05-02-PLAN.md — Generic Socrata budget loader (`bulkLoadBudget.js`) calling `treasury_sync_budget_tree`
+- [x] 05-01-PLAN.md — Idempotent seeder for Dallas operating + revenue `data_sources` rows
+- [x] 05-02-PLAN.md — Generic Socrata budget loader (`bulkLoadBudget.js`) calling `treasury_sync_budget_tree`
 - [ ] 05-03-PLAN.md — Live load Dallas FY2025 + FY2026 operating + revenue, verify in app + idempotency
 
 ---
@@ -167,11 +167,11 @@ Plans:
 | 2. Data Layer Audit | v1.0 | 1/1 | Complete | 2026-04-21 |
 | 3. Webhook Backend | v1.0 | 5/5 | Complete | 2026-04-22 |
 | 4. Live Feedback UI | v1.0 | 2/2 | Complete | 2026-04-22 |
-| 5. Dallas Socrata | v1.1 | 0/3 | Not started | - |
+| 5. Dallas Socrata | v1.1 | 2/3 | In progress | - |
 | 6. XLSX Pipeline | v1.1 | 0/3 | Not started | - |
 | 7. PDF/Haiku Vision | v1.1 | 0/4 | Not started | - |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-05-01 — v1.1 phases 5-7 added (Texas Municipal Financial Transparency)*
+*Last updated: 2026-05-01 — 05-02 complete (bulkLoadBudget.js generic Socrata loader)*
