@@ -26,10 +26,11 @@ Any citizen can open financials.empowered.vote and immediately understand where 
 
 ### Active
 
-- [ ] GiveButter webhook → Supabase Edge Function → live DB write
-- [ ] Donate button on financials page linking to GiveButter campaign
-- [ ] Incoming total updates immediately when user returns from donation
-- [ ] Deduplication between webhook-written and CSV-imported transactions
+- [ ] Dallas operating and revenue budget data loaded via Socrata SODA API
+- [ ] Generic `bulkLoadBudget.js` for any Socrata city's operating/revenue budgets
+- [ ] XLSX check register importer for Plano, McKinney, Frisco, Richardson, Sachse
+- [ ] PDF → image → Claude Haiku vision pipeline for ACFR budget extraction
+- [ ] Allen, Prosper, Celina budget data loaded via PDF pipeline
 
 ### Out of Scope
 
@@ -59,5 +60,16 @@ Any citizen can open financials.empowered.vote and immediately understand where 
 | Supabase Edge Function as webhook receiver | Already in stack, no new infra | — Pending |
 | GiveButter-only for v1 | Best webhook support; Patreon/Benevity less suitable | — Pending |
 
+## Current Milestone: v1.1 Texas Municipal Financial Transparency
+
+**Goal:** Load real financial data for Collin County, TX cities using three progressively harder ingestion pipelines — Socrata API, XLSX download, and PDF/Haiku vision extraction.
+
+**Target features:**
+- Dallas Socrata integration (operating + revenue budgets via SODA API)
+- Generic `bulkLoadBudget.js` script reusable for any Socrata city
+- XLSX pipeline for Plano, McKinney, Frisco, Richardson, Sachse check registers / budgets
+- PDF → image → Claude Haiku vision pipeline for ACFR parsing
+- Allen, Prosper, Celina loaded via PDF pipeline
+
 ---
-*Last updated: 2026-04-21 — GSD planning system initialized, milestone v1.0 started*
+*Last updated: 2026-05-01 — Milestone v1.1 Texas Municipal Financial Transparency started*

@@ -1,51 +1,75 @@
-# Requirements: GiveButter Real-Time Donation Feedback
+# Requirements: Texas Municipal Financial Transparency
 
-**Defined:** 2026-04-21
-**Core Value:** A donor clicks Donate, gives on GiveButter, and immediately sees their contribution reflected in the live incoming total — closing the "did it matter?" loop instantly.
-
----
-
-## v1 Requirements
-
-### Phase 1 — Donate Button (SHIPPED ✓)
-
-- ✓ **UI-01**: Donate button visible on financials.empowered.vote for EV nonprofit entity only
-- ✓ **UI-02**: Donate button opens GiveButter campaign (givebutter.com/g3e9u9) in a new tab
-- ✓ **UI-03**: Button uses secondary visual weight (border style, not filled CTA) — transparency page, not a fundraising page
-
-### Phase 2 — Data Layer Audit (prerequisite)
-
-- [x] **DATA-01**: Confirmed — frontend reads pre-aggregated `budget_categories.amount` directly; no runtime aggregation. See `.planning/phases/02-data-layer-audit/02-01-SUMMARY.md`.
-- [x] **DATA-02**: Strategy defined — Edge Function calls Postgres RPC `treasury.record_givebutter_donation` that atomically updates 3 rows. See `.planning/phases/02-data-layer-audit/02-01-SUMMARY.md`.
-
-### Phase 3 — Webhook Backend
-
-- [x] **SCH-01**: `budget_line_items` gains `external_id` TEXT column (nullable, unique partial index where not null)
-- [x] **SCH-02**: `budget_line_items` gains `source` TEXT column (default `'csv'`)
-- [x] **SCH-03**: `loadEVFinances.js` sets `source: 'csv'` on all upserts
-- [x] **WH-01**: Supabase Edge Function at `/functions/v1/givebutter-webhook` accepts POST
-- [x] **WH-02**: Edge Function verifies GiveButter signature against raw request body
-- [x] **WH-03**: Edge Function writes `transaction.succeeded` events to `budget_line_items` with `external_id` and `source: 'givebutter_webhook'`
-- [x] **WH-04**: Edge Function is idempotent — upserts on `external_id` conflict (handles GiveButter retries)
-- [x] **WH-05**: GiveButter webhook registered in dashboard pointing to Edge Function URL
-- [x] **WH-06**: Validate amount unit (cents vs dollars) and signature header name with a real $1 test donation before go-live
-
-### Phase 4 — Live Feedback UI
-
-- [ ] **UI-04**: Page re-fetches revenue data when window regains focus after donate tab is closed (listener attached only after donate click, removed after first fire)
-- [ ] **UI-05**: Incoming total animates (~1000ms counter) when new data loads on focus-return and total has changed
-- [ ] **UI-06**: Brief acknowledgment shown after focus-return detects a higher total
+**Defined:** 2026-05-01
+**Core Value:** Any citizen can open financials.empowered.vote and immediately understand where money comes from and where it goes — for Texas cities, not just Indiana and California.
 
 ---
 
-## Out of Scope
+## v1.1 Requirements
+
+### Tier 1 — Dallas Socrata Integration
+
+- [ ] **DAL-01**: `data_sources` rows exist for Dallas operating budget (dataset `e2fs-y4nb`) and revenue budget (dataset `rtn4-pmj9`) linked to the Dallas municipality record
+- [ ] **DAL-02**: `bulkLoadBudget.js` script fetches paginated Socrata operating budget data and inserts into `treasury.budgets` + `treasury.budget_categories` tree via existing RPC pattern
+- [ ] **DAL-03**: `bulkLoadBudget.js` handles revenue budget dataset with appropriate column mapping (`budcurr` → approved, `revbfy` → actual, `department`/`revsource` as hierarchy)
+- [ ] **DAL-04**: Dallas operating budget FY2025 and FY2026 successfully loaded and visible in the app
+- [ ] **DAL-05**: Dallas revenue budget FY2025 and FY2026 successfully loaded and visible in the app
+- [ ] **DAL-06**: `bulkLoadBudget.js` is generic — `column_mapping` in `data_sources` drives field names, not hardcoded Dallas logic
+
+### Tier 2 — XLSX Pipeline
+
+- [ ] **XLSX-01**: `bulkLoadXLSX.js` (or equivalent) can download an XLSX file from a city URL, parse it, and load operating/revenue budget data into the treasury schema
+- [ ] **XLSX-02**: Plano check register (from `checkregister.plano.gov` Excel export) loaded as `transactions` dataset type
+- [ ] **XLSX-03**: McKinney check register XLSX (direct download from `mckinneytexas.org` Traditional Finances page) loaded as `transactions`
+- [ ] **XLSX-04**: McKinney payroll register XLSX loaded as `salaries` dataset type
+- [ ] **XLSX-05**: Frisco check register XLSX (from `friscotexas.gov/1276/Check-Register`) loaded as `transactions`
+- [ ] **XLSX-06**: `data_sources` rows created for each XLSX source with `api_type = 'xlsx_download'`, storing download URL and column mapping
+- [ ] **XLSX-07**: XLSX loader is idempotent — re-running does not duplicate rows (dedup by `source_row_id` derived from row hash or position+date)
+
+### Tier 3 — PDF/Haiku Vision Pipeline
+
+- [ ] **PDF-01**: Script renders each page of a PDF as a PNG image (using an available Node/system library)
+- [ ] **PDF-02**: Each page image is sent to Claude Haiku with a structured extraction prompt targeting GFOA ACFR budget tables
+- [ ] **PDF-03**: Haiku returns structured JSON (department, category, approved_amount, actual_amount, fiscal_year) which is validated and loaded
+- [ ] **PDF-04**: Pipeline is parameterized — accepts city name, PDF path or URL, fiscal year
+- [ ] **PDF-05**: Allen ACFR (most recent available year) budget data loaded via PDF pipeline
+- [ ] **PDF-06**: Prosper ACFR budget data loaded via PDF pipeline
+- [ ] **PDF-07**: Celina ACFR budget data loaded via PDF pipeline
+- [ ] **PDF-08**: Extraction confidence is logged per page — low-confidence pages flagged for human review rather than silently skipped
+
+---
+
+## Future Requirements (v1.2+)
+
+### Remaining Collin County Cities
+- Richardson custom check register DB scraper
+- Sachse OpenGov manual CSV loader
+- Garland investigation (may have machine-readable data not yet surfaced)
+- Wylie check register format confirmation and loader
+- Murphy ClearGov export
+
+### Enrichment
+- Category enrichment (plain-language descriptions) for all newly loaded TX cities
+- Population data for TX municipalities
+
+### Statewide Expansion
+- Generalize XLSX pipeline for other Texas cities beyond Collin County
+- Texas Comptroller debt data integration
+- Census Bureau annual survey data as fallback for cities with no other source
+
+---
+
+## Out of Scope (v1.1)
 
 | Feature | Reason |
 |---------|--------|
-| Patreon / Benevity real-time | Webhook story weaker; CSV import sufficient for those platforms |
-| Websocket / Supabase Realtime subscriptions | Redirect-driven focus pattern is simpler and sufficient |
-| Admin donation management UI | Different milestone |
-| GiveButter return_url redirect | GiveButter does not support this natively |
+| Richardson custom DB scraper | Requires form interaction / scraping — higher complexity, defer to v1.2 |
+| Sachse OpenGov CSV | Manual export only, no programmatic API — defer to v1.2 |
+| Real-time sync / scheduler for TX cities | Manual/scripted loads sufficient for initial coverage |
+| Category enrichment for TX cities | Separate milestone concern — load data first |
+| Garland deep investigation | Unconfirmed data existence — needs separate research spike |
+| Wylie check register | Format unconfirmed — needs manual verification first |
+| Dallas vendor payments (spending.dallasopendata.com) | Transactions dataset; operating/revenue budget is higher priority for v1.1 |
 
 ---
 
@@ -53,27 +77,33 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| UI-01 | Phase 1 | ✓ Complete |
-| UI-02 | Phase 1 | ✓ Complete |
-| UI-03 | Phase 1 | ✓ Complete |
-| DATA-01 | Phase 2 | ✓ Complete |
-| DATA-02 | Phase 2 | ✓ Complete |
-| SCH-01 | Phase 3 | Complete |
-| SCH-02 | Phase 3 | Complete |
-| SCH-03 | Phase 3 | Complete |
-| WH-01 | Phase 3 | Complete |
-| WH-02 | Phase 3 | Complete |
-| WH-03 | Phase 3 | Complete |
-| WH-04 | Phase 3 | Complete |
-| WH-05 | Phase 3 | Complete |
-| WH-06 | Phase 3 | Complete |
-| UI-04 | Phase 4 | Pending |
-| UI-05 | Phase 4 | Pending |
-| UI-06 | Phase 4 | Pending |
+| DAL-01 | Phase 5 | Pending |
+| DAL-02 | Phase 5 | Pending |
+| DAL-03 | Phase 5 | Pending |
+| DAL-04 | Phase 5 | Pending |
+| DAL-05 | Phase 5 | Pending |
+| DAL-06 | Phase 5 | Pending |
+| XLSX-01 | Phase 6 | Pending |
+| XLSX-02 | Phase 6 | Pending |
+| XLSX-03 | Phase 6 | Pending |
+| XLSX-04 | Phase 6 | Pending |
+| XLSX-05 | Phase 6 | Pending |
+| XLSX-06 | Phase 6 | Pending |
+| XLSX-07 | Phase 6 | Pending |
+| PDF-01 | Phase 7 | Pending |
+| PDF-02 | Phase 7 | Pending |
+| PDF-03 | Phase 7 | Pending |
+| PDF-04 | Phase 7 | Pending |
+| PDF-05 | Phase 7 | Pending |
+| PDF-06 | Phase 7 | Pending |
+| PDF-07 | Phase 7 | Pending |
+| PDF-08 | Phase 7 | Pending |
 
-**Coverage:** 17 requirements · 14 complete · 3 pending
+**Coverage:**
+- v1.1 requirements: 21 total
+- Mapped to phases: 21
+- Unmapped: 0 ✓
 
 ---
-
-*Requirements defined: 2026-04-21*
-*Last updated: 2026-04-22 — Phase 3 complete (SCH-01–03, WH-01–06 all confirmed via $1 live test)*
+*Requirements defined: 2026-05-01*
+*Last updated: 2026-05-01 — initial definition for milestone v1.1*

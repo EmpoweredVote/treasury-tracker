@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-04-21)
 
 **Core value:** Any citizen can open financials.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Defining requirements for milestone v1.0
+**Current focus:** Milestone v1.1 — Texas Municipal Financial Transparency
 
 ## Current Position
 
-Phase: Phase 4 complete — milestone v1.0 complete
-Plan: 04-02 complete — animated revenue count-up + green glow in PlainLanguageSummary + DatasetTabs
-Status: Phase 4 complete
-Last activity: 2026-05-01 — Quick 001: seeded all 28 Collin County TX municipalities into treasury.municipalities
+Phase: Not started — defining requirements
+Plan: —
+Status: Defining requirements for milestone v1.1
+Last activity: 2026-05-01 — Milestone v1.1 started (Texas Municipal Financial Transparency)
 
-Progress: ████████████  (7/7 plans complete — all phases done)
+Progress: ░░░░░░░░░░░░  (0/? plans complete)
 
 ## Accumulated Context
 
