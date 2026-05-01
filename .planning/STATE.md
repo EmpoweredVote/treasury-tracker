@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-04-21)
 Phase: Phase 4 complete — milestone v1.0 complete
 Plan: 04-02 complete — animated revenue count-up + green glow in PlainLanguageSummary + DatasetTabs
 Status: Phase 4 complete
-Last activity: 2026-04-22 — 04-02: revenue animation + glow shipped, visual verification approved
+Last activity: 2026-05-01 — Quick 001: seeded all 28 Collin County TX municipalities into treasury.municipalities
 
 Progress: ████████████  (7/7 plans complete — all phases done)
 
@@ -48,6 +48,12 @@ Progress: ████████████  (7/7 plans complete — all phas
 
 ### Blockers / Concerns
 - None
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 001 | Create treasury tracker entries for every municipality in Collin County, Texas | 2026-05-01 | 9584b2a | [001-create-treasury-tracker-entries-for-ever](./quick/001-create-treasury-tracker-entries-for-ever/) |
 
 ## Session Continuity
 
