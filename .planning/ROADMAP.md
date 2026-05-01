@@ -73,7 +73,7 @@ Plans:
 - Revenue budget dataset: `rtn4-pmj9` — fields: `bfy, ftyp, fundtype, department, rsrc, revsource, budcurr, revbfy`
 - Operating column mapping: `budcurr` → approved_amount, `expbfy` → actual_amount; hierarchy: `service` → `objectgroup`
 - Revenue column mapping: `budcurr` → approved_amount, `revbfy` → actual_amount; hierarchy: `department` → `revsource`
-- Loader follows `bulkLoadTransactions.js` pattern: `data_sources.column_mapping` JSON drives field names, `treasury_sync_budget` RPC handles upsert
+- Loader follows `bulkLoadTransactions.js` pattern: `data_sources.column_mapping` JSON drives field names, `treasury_sync_budget_tree` RPC handles upsert (the bare `treasury_sync_budget` RPC does not exist in the deployed schema)
 - `bulkLoadBudget.js` must be generic — no hardcoded Dallas logic; column mapping lives entirely in `data_sources`
 
 **Success Criteria** (what must be TRUE when phase completes):
@@ -83,12 +83,12 @@ Plans:
 4. Re-running the loader does not create duplicate budget rows (idempotent via upsert or truncate-reload strategy)
 5. `data_sources` rows exist for both Dallas datasets with correct `api_type`, dataset IDs, and column mapping JSON
 
-**Plans:** TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 05-01: Create `data_sources` rows for Dallas operating + revenue datasets
-- [ ] 05-02: Write `bulkLoadBudget.js` with generic Socrata pagination + `treasury_sync_budget` RPC call
-- [ ] 05-03: Load Dallas FY2025 + FY2026 operating and revenue budgets, verify in app
+- [ ] 05-01-PLAN.md — Idempotent seeder for Dallas operating + revenue `data_sources` rows
+- [ ] 05-02-PLAN.md — Generic Socrata budget loader (`bulkLoadBudget.js`) calling `treasury_sync_budget_tree`
+- [ ] 05-03-PLAN.md — Live load Dallas FY2025 + FY2026 operating + revenue, verify in app + idempotency
 
 ---
 
