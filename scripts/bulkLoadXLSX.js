@@ -178,13 +178,19 @@ function buildBatch(rows, cm) {
 async function syncSource(ds, opts = {}) {
   const cm = ds.column_mapping;
 
+  // ── Normalize schema fields: XLSX sources store URL in base_url and fiscal
+  //    year as fiscal_years[0] (matching the treasury.data_sources schema).
+  //    Use local vars so the rest of the function is consistent. ───────────────
+  const fiscalYear = ds.fiscal_year ?? (Array.isArray(ds.fiscal_years) ? ds.fiscal_years[0] : ds.fiscal_years);
+  const downloadUrl = ds.download_url ?? ds.base_url;
+
   // ── Fail-fast config validation (before any download attempt) ──────────────
-  if (!ds.fiscal_year) {
-    console.error('Config error: data_sources row "' + ds.name + '" is missing fiscal_year');
+  if (!fiscalYear) {
+    console.error('Config error: data_sources row "' + ds.name + '" is missing fiscal_year / fiscal_years');
     process.exit(1);
   }
-  if (!ds.download_url) {
-    console.error('Config error: data_sources row "' + ds.name + '" is missing download_url');
+  if (!downloadUrl) {
+    console.error('Config error: data_sources row "' + ds.name + '" is missing download_url / base_url');
     process.exit(1);
   }
   if (!cm) {
@@ -192,7 +198,7 @@ async function syncSource(ds, opts = {}) {
     process.exit(1);
   }
 
-  console.log('\n' + ds.name + ' FY' + ds.fiscal_year + ': downloading...');
+  console.log('\n' + ds.name + ' FY' + fiscalYear + ': downloading...');
 
   // ── force-reload: clear existing rows for this source + fiscal year ─────────
   if (opts.forceReload) {
@@ -201,16 +207,16 @@ async function syncSource(ds, opts = {}) {
       .from('transactions')
       .delete()
       .eq('data_source_id', ds.id)
-      .eq('fiscal_year', ds.fiscal_year);
+      .eq('fiscal_year', fiscalYear);
     if (delErr) {
       console.error('  force-reload delete failed: ' + delErr.message);
       process.exit(1);
     }
-    console.log('  --force-reload: cleared existing rows for FY' + ds.fiscal_year);
+    console.log('  --force-reload: cleared existing rows for FY' + fiscalYear);
   }
 
   // ── Download + parse ────────────────────────────────────────────────────────
-  const buffer = await downloadXLSX(ds.download_url);
+  const buffer = await downloadXLSX(downloadUrl);
   const { headers, rows, blankSkipped, headerDupeSkipped } = await parseXLSX(buffer, cm);
   console.log('  Parsed ' + rows.length.toLocaleString() + ' data rows (' +
     blankSkipped + ' blank skipped, ' + headerDupeSkipped + ' header-dupe skipped)');
@@ -235,7 +241,7 @@ async function syncSource(ds, opts = {}) {
     for (let i = 0; i < Math.min(3, rows.length); i++) {
       console.log('  Row ' + (i + 1) + ':', JSON.stringify(rows[i]).slice(0, 200));
     }
-    console.log(ds.name + ' FY' + ds.fiscal_year + ': ' +
+    console.log(ds.name + ' FY' + fiscalYear + ': ' +
       rows.length.toLocaleString() + ' inserted | ' +
       (blankSkipped + headerDupeSkipped).toLocaleString() + ' skipped | ' +
       parseErrors.toLocaleString() + ' errors');
@@ -253,7 +259,7 @@ async function syncSource(ds, opts = {}) {
 
     const { data, error } = await supabase.rpc('treasury_sync_transactions', {
       p_data_source_id: ds.id,
-      p_fiscal_year: ds.fiscal_year,
+      p_fiscal_year: fiscalYear,
       p_vendors: vendors,
       p_transactions: transactions,
       p_row_count: chunk.length,
@@ -272,7 +278,7 @@ async function syncSource(ds, opts = {}) {
   console.log('');
 
   // ── Final summary — EXACT format required ───────────────────────────────────
-  console.log(ds.name + ' FY' + ds.fiscal_year + ': ' +
+  console.log(ds.name + ' FY' + fiscalYear + ': ' +
     totalInserted.toLocaleString() + ' inserted | ' +
     (totalSkipped + blankSkipped + headerDupeSkipped).toLocaleString() + ' skipped | ' +
     parseErrors.toLocaleString() + ' errors');
@@ -306,7 +312,8 @@ async function main() {
     } else {
       console.log('\nAvailable XLSX data sources:\n');
       for (const s of xlsxSources) {
-        console.log('  ' + s.name + ' (' + s.dataset_type + ') — FY: ' + (s.fiscal_year || 'not set'));
+        const fy = s.fiscal_year ?? (Array.isArray(s.fiscal_years) ? s.fiscal_years[0] : s.fiscal_years) ?? 'not set';
+        console.log('  ' + s.name + ' (' + s.dataset_type + ') — FY: ' + fy);
       }
     }
     return;
