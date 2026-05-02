@@ -438,9 +438,11 @@ async function processPDF(ds, opts = {}) {
     p_total: total,
     p_tree: jsonTree,
     p_row_count: budgetRows.length,
-    p_triggered_by: 'pdf_haiku_load',
+    p_triggered_by: 'bulk_load',
   });
   if (error) { console.error('  RPC error: ' + error.message); process.exit(2); }
+  // RPC may return { error, rows_inserted } or just rows_inserted — check both
+  if (data?.error) { console.error('  RPC returned error: ' + data.error); process.exit(2); }
   const rowsLoaded = data?.rows_inserted || 0;
   console.log('  inserted ' + rowsLoaded + ' line items');
 
