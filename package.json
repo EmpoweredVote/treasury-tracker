@@ -12,7 +12,8 @@
     "process-revenue": "node scripts/processRevenue.js",
     "process-salaries": "node scripts/processSalaries.js",
     "process-transactions": "node scripts/processTransactions.js",
-    "process-all": "npm run process-budget && npm run process-revenue && npm run process-salaries && npm run process-transactions"
+    "process-all": "npm run process-budget && npm run process-revenue && npm run process-salaries && npm run process-transactions",
+    "load-ev-finances": "node scripts/loadEVFinances.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.80.0",
@@ -20,6 +21,7 @@
     "@supabase/supabase-js": "^2.100.1",
     "@types/d3": "^7.4.3",
     "d3": "^7.9.0",
+    "exceljs": "^4.4.0",
     "lucide-react": "^0.562.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
