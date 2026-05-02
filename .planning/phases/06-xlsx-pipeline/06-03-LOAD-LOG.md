@@ -81,3 +81,15 @@ The `treasury_sync_transactions` RPC creates budgets with `dataset_type='transac
 - McKinney FY2025 budget: 93,436 rows (48,988 check + 44,448 payroll combined)
 
 The app's "Salaries" tab (`dataset_type='salaries'`) may not show McKinney payroll data since no `salaries` budget exists for McKinney. This is a known limitation requiring a future RPC enhancement to pass `p_dataset_type`. All payroll data IS in the database — it just appears under the `transactions` budget type.
+
+---
+
+## Verification Summary
+
+- Idempotency tests run: 2026-05-01
+  - Frisco Check FY2025: PASS (0 inserted, 16,750 skipped)
+  - McKinney Check FY2025: PASS (0 inserted, 50,097 skipped)
+  - McKinney Payroll FY2025: PASS (0 inserted, 44,451 skipped)
+- Force-reload test run: 2026-05-01
+  - Frisco Check FY2025: PASS (cleared + re-inserted 16,358; FY2024 row count unchanged)
+- App verification: PENDING (Task 3 human checkpoint)
