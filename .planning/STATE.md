@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-05-01)
 ## Current Position
 
 Phase: 7 of 7 (PDF/Haiku Vision Pipeline)
-Plan: 2 of 3 complete
-Status: In progress
-Last activity: 2026-05-02 — Completed 07-02-PLAN.md (full Haiku vision pipeline, 591-line bulkLoadPDF.js)
+Plan: 3 of 3 complete
+Status: Phase complete
+Last activity: 2026-05-02 — Completed 07-03 — Allen/Prosper/Celina FY2025 ACFR data loaded and verified in app
 
-Progress: █████████████████░  (17/19 plans complete — Phase 7 plans 1-2/3 done)
+Progress: ███████████████████  (19/19 plans complete — Phase 7 complete)
 
 ## Performance Metrics
 
@@ -64,6 +64,12 @@ Progress: █████████████████░  (17/19 plans c
 - pdfjs font warning "TT: undefined function: 32" is benign — rendering unaffected
 - @napi-rs/canvas loads correctly on Windows + Node 24 (pre-built win32-x64-msvc binary, no node-gyp)
 
+### Decisions (Phase 7 Plan 03)
+- `p_triggered_by` must be `'bulk_load'` (not `'pdf_haiku_load'`) — `sync_logs_triggered_by_check` DB constraint accepts: webhook, manual, bulk_load
+- Exit code 2 (JSON truncation on dense statistical ACFR pages) is accepted disposition — these are not operating budget pages
+- `data_source_id` in `treasury.budgets` is NULL by design — `treasury_sync_budget_tree` keys on (municipality_id, fiscal_year, dataset_type)
+- RPC errors surface inside `data.error` payload (not PostgREST top-level) — defensive check added to bulkLoadPDF.js
+
 ### Decisions (Phase 7 Plan 02)
 - EXTRACTION_PROMPT verbatim from research — classify page_type first, extract rows from budget_table pages only
 - maxRetries: 0 on Anthropic client — manual retry loop (3 attempts, 1s/2s/4s + jitter)
@@ -74,8 +80,8 @@ Progress: █████████████████░  (17/19 plans c
 
 ### Blockers / Concerns
 - `treasury_sync_budget` (bare, without _tree) does not exist — confirmed; always use `treasury_sync_budget_tree`
-- If Prosper ACFR (>10MB, likely 200+ pages) causes OOM during rendering, switch to chunked rendering in renderPDFPages
-- Full --dry-run against Celina ACFR not yet run (ANTHROPIC_API_KEY needed) — Plan 03 operator should run --dry-run before live load
+- "Unknown" department dominance in PDF-extracted budgets — ACFR section headings not tracked across pages; v1.2 improvement opportunity
+- JSON truncation on dense statistical pages causes exit code 2 on all PDF loads — accepted disposition; fix deferred to v1.2 (chunked extraction or higher max_tokens)
 
 ### Quick Tasks Completed
 
@@ -86,5 +92,5 @@ Progress: █████████████████░  (17/19 plans c
 ## Session Continuity
 
 Last session: 2026-05-02
-Stopped at: Completed 07-02-PLAN.md — full Haiku pipeline in bulkLoadPDF.js (591 lines); Plan 03 (seeder + live load with human checkpoint) is next
+Stopped at: Completed 07-03-PLAN.md — Allen/Prosper/Celina FY2025 ACFR data loaded and operator-verified; Phase 7 complete
 Resume file: None
