@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { FileText } from 'lucide-react'
-import { SiteHeader } from '@empoweredvote/ev-ui';
+import { SiteHeader, Header, defaultNavItems, defaultCtaButton } from '@empoweredvote/ev-ui';
 import PlainLanguageSummary from './components/dashboard/PlainLanguageSummary';
 import BudgetSearch from './components/dashboard/BudgetSearch';
 import { loadBudgetData, loadLinkedTransactions, listMunicipalities, clearCache } from './data/dataLoader';
@@ -543,7 +543,23 @@ function App() {
 
   return (
     <div className="min-h-screen bg-[#F7F7F8] font-manrope">
-      <SiteHeader logoSrc={`${import.meta.env.BASE_URL}EVLogo.svg`} />
+      <Header
+        logoSrc={`${import.meta.env.BASE_URL}EVLogo.svg`}
+        logoAlt="Empowered Vote"
+        navItems={defaultNavItems}
+        ctaButton={
+          selectedEntity?.entity_type === 'nonprofit' && isFinancialsHost
+            ? { label: 'Donate', href: 'https://givebutter.com/g3e9u9' }
+            : defaultCtaButton
+        }
+        onNavigate={(href) => {
+          if (href === 'https://givebutter.com/g3e9u9') {
+            window.open(href, '_blank', 'noopener,noreferrer');
+          } else {
+            window.location.href = href;
+          }
+        }}
+      />
 
       {/* Hero banner */}
       <div
@@ -666,6 +682,7 @@ function App() {
                   onDatasetChange={(id) => setActiveDataset(id as DatasetType)}
                   revenueTotal={revenueData?.metadata.totalBudget}
                   operatingTotal={operatingBudgetData?.metadata.totalBudget}
+                  salariesTotal={salariesData?.metadata.totalBudget}
                   availableDatasets={availableDatasetTypes}
                   isNonprofit={selectedEntity?.entity_type === 'nonprofit'}
                 />

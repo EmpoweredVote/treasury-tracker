@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { DollarSign, TrendingDown } from 'lucide-react';
+import { DollarSign, TrendingDown, Users } from 'lucide-react';
 import { useAnimatedCounter } from '../../hooks/useAnimatedCounter';
 
 interface DatasetCardsProps {
@@ -7,6 +7,7 @@ interface DatasetCardsProps {
   onDatasetChange: (datasetId: string) => void;
   revenueTotal?: number;
   operatingTotal?: number;
+  salariesTotal?: number;
   availableDatasets?: string[];
   isNonprofit?: boolean;
 }
@@ -19,7 +20,7 @@ const formatCurrency = (amount: number, exact = false): string => {
   return `$${amount.toFixed(0)}`;
 };
 
-const CARDS = [
+const BASE_CARDS = [
   {
     id: 'operating' as const,
     label: 'Money Out',
@@ -34,15 +35,25 @@ const CARDS = [
   },
 ];
 
+const SALARIES_CARD = {
+  id: 'salaries' as const,
+  label: 'Employees',
+  icon: Users,
+  description: 'Employee compensation',
+};
+
 export default function DatasetTabs({
   activeDataset,
   onDatasetChange,
   revenueTotal,
   operatingTotal,
+  salariesTotal,
   availableDatasets,
   isNonprofit = false,
 }: DatasetCardsProps) {
   const available = availableDatasets ?? ['operating', 'revenue'];
+  const hasSalaries = available.includes('salaries');
+  const CARDS = hasSalaries ? [...BASE_CARDS, SALARIES_CARD] : BASE_CARDS;
 
   // Revenue count-up animation + green-glow settle (revenue card only)
   const revenueAnimTarget = revenueTotal ?? 0;
@@ -68,11 +79,12 @@ export default function DatasetTabs({
   const getTotal = (id: string) => {
     if (id === 'operating' && operatingTotal != null) return operatingTotal;
     if (id === 'revenue' && revenueTotal != null) return revenueTotal;
+    if (id === 'salaries' && salariesTotal != null) return salariesTotal;
     return null;
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <div className={`grid grid-cols-1 gap-3 ${hasSalaries ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
       {CARDS.map(({ id, label, icon: Icon, description }) => {
         const isActive = id === activeDataset;
         const isDisabled = !available.includes(id);
@@ -118,4 +130,4 @@ export default function DatasetTabs({
   );
 }
 
-export { CARDS as DATASETS };
+export { BASE_CARDS as DATASETS };

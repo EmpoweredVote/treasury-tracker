@@ -17,9 +17,9 @@
  *   - bulkLoadXLSX.js normalizes these via fiscalYear/downloadUrl locals
  *
  * Cities:
- *   McKinney check register FY22-FY25 (transactions)
+ *   McKinney check register FY22-FY25 (operating)
  *   McKinney payroll register FY22-FY25 (salaries)
- *   Frisco check register FY18-FY26 (transactions)
+ *   Frisco check register FY18-FY26 (operating)
  *   Plano check register FY25 placeholder (transactions, manual export)
  */
 
@@ -117,7 +117,7 @@ async function buildSources() {
     sources.push({
       name: `McKinney Check Register FY${fy}`,
       api_type: 'xlsx_download',
-      dataset_type: 'transactions',
+      dataset_type: 'operating',
       dataset_id: `fy${fy}`,    // required to satisfy unique(muni, api_type, dataset_id, dataset_type)
       base_url: url,             // download URL stored in base_url per schema
       fiscal_years: [parseInt(fy)], // single-element array per schema
@@ -145,7 +145,7 @@ async function buildSources() {
     sources.push({
       name: `Frisco Check Register FY${fy}`,
       api_type: 'xlsx_download',
-      dataset_type: 'transactions',
+      dataset_type: 'operating',
       dataset_id: `fy${fy}`,
       base_url: url,
       fiscal_years: [parseInt(fy)],
