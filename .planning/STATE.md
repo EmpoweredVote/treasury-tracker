@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-05-01)
 
 **Core value:** Any citizen can open financials.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Milestone v1.1 — Texas Municipal Financial Transparency (Phase 6: XLSX Pipeline)
+**Current focus:** Milestone v1.1 — Texas Municipal Financial Transparency (Phase 7: PDF/Haiku Vision Pipeline)
 
 ## Current Position
 
-Phase: 6 of 7 (XLSX Pipeline)
-Plan: 2 of 3 complete
-Status: In progress
-Last activity: 2026-05-01 — Completed 06-02-PLAN.md (18 XLSX data_sources rows seeded)
+Phase: 7 of 7 (PDF/Haiku Vision Pipeline)
+Plan: 0 of 4 complete
+Status: Not started
+Last activity: 2026-05-01 — Completed Phase 6 XLSX Pipeline (all 3 plans done, 506,580 rows loaded)
 
-Progress: █████████████░░░  (14/19 plans complete — v1.0 done, Phase 5 all 3 complete, Phase 6 plans 1-2 complete)
+Progress: ███████████████░  (15/19 plans complete — v1.0 done, Phases 5-6 all 6 complete)
 
 ## Performance Metrics
 
@@ -67,6 +67,6 @@ Progress: █████████████░░░  (14/19 plans complet
 
 ## Session Continuity
 
-Last session: 2026-05-02
-Stopped at: Completed 06-02-PLAN.md — 18 XLSX data_sources rows seeded; Plan 06-03 (live load) ready
+Last session: 2026-05-01
+Stopped at: Phase 6 complete — XLSX pipeline shipped, McKinney + Frisco visible in app; Phase 7 (PDF/Haiku) is next
 Resume file: None

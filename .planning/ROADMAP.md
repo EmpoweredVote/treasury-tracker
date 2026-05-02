@@ -53,7 +53,7 @@ Plans:
 
 ---
 
-### 🚧 v1.1 Texas Municipal Financial Transparency (In Progress — Phase 5 complete, Phase 6 next)
+### 🚧 v1.1 Texas Municipal Financial Transparency (In Progress — Phases 5-6 complete, Phase 7 next)
 
 **Milestone Goal:** Load real financial data for Texas cities using three progressively capable ingestion pipelines — Socrata API, XLSX download, and PDF/Haiku vision extraction.
 
@@ -92,7 +92,7 @@ Plans:
 
 ---
 
-### Phase 6: XLSX Pipeline
+### Phase 6: XLSX Pipeline (COMPLETE — 2026-05-01)
 
 **Goal:** Citizens can view check register and payroll data for Plano, McKinney, and Frisco, loaded via a generic XLSX download pipeline that is idempotent and reusable for any city with an Excel export.
 
@@ -117,9 +117,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — Build generic bulkLoadXLSX.js (download, parse, SHA-256 dedup, treasury_sync_transactions RPC)
-- [ ] 06-02-PLAN.md — Investigate sources + idempotent seedXLSXDataSources.js for Plano, McKinney (transactions + payroll), Frisco
-- [ ] 06-03-PLAN.md — Live load all seeded sources, verify idempotency + force-reload, confirm data visible in app
+- [x] 06-01-PLAN.md — Build generic bulkLoadXLSX.js (download, parse, SHA-256 dedup, treasury_sync_transactions RPC)
+- [x] 06-02-PLAN.md — Investigate sources + idempotent seedXLSXDataSources.js for Plano, McKinney (transactions + payroll), Frisco
+- [x] 06-03-PLAN.md — Live load all seeded sources, verify idempotency + force-reload, confirm data visible in app
 
 ---
 
@@ -168,10 +168,10 @@ Plans:
 | 3. Webhook Backend | v1.0 | 5/5 | Complete | 2026-04-22 |
 | 4. Live Feedback UI | v1.0 | 2/2 | Complete | 2026-04-22 |
 | 5. Dallas Socrata | v1.1 | 3/3 | Complete | 2026-05-01 |
-| 6. XLSX Pipeline | v1.1 | 0/3 | Planned | - |
+| 6. XLSX Pipeline | v1.1 | 3/3 | Complete | 2026-05-01 |
 | 7. PDF/Haiku Vision | v1.1 | 0/4 | Not started | - |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-05-01 — Phase 5 complete (Dallas Socrata integration, all 3 plans done)*
+*Last updated: 2026-05-01 — Phase 6 complete (XLSX pipeline — McKinney + Frisco loaded, 506,580 rows, Plano deferred)*
