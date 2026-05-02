@@ -114,12 +114,12 @@ Plans:
 4. `data_sources` rows exist for all XLSX sources with `api_type = 'xlsx_download'`, download URL, and column mapping
 5. The loader accepts only a city config (data_sources row) — no city-specific code branches
 
-**Plans:** TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 06-01: Write `bulkLoadXLSX.js` with XLSX download, parse, dedup, and treasury schema load
-- [ ] 06-02: Create `data_sources` rows for Plano, McKinney (transactions + payroll), Frisco
-- [ ] 06-03: Load all three cities, verify dedup behavior, confirm data visible in app
+- [ ] 06-01-PLAN.md — Build generic bulkLoadXLSX.js (download, parse, SHA-256 dedup, treasury_sync_transactions RPC)
+- [ ] 06-02-PLAN.md — Investigate sources + idempotent seedXLSXDataSources.js for Plano, McKinney (transactions + payroll), Frisco
+- [ ] 06-03-PLAN.md — Live load all seeded sources, verify idempotency + force-reload, confirm data visible in app
 
 ---
 
@@ -168,7 +168,7 @@ Plans:
 | 3. Webhook Backend | v1.0 | 5/5 | Complete | 2026-04-22 |
 | 4. Live Feedback UI | v1.0 | 2/2 | Complete | 2026-04-22 |
 | 5. Dallas Socrata | v1.1 | 3/3 | Complete | 2026-05-01 |
-| 6. XLSX Pipeline | v1.1 | 0/3 | Not started | - |
+| 6. XLSX Pipeline | v1.1 | 0/3 | Planned | - |
 | 7. PDF/Haiku Vision | v1.1 | 0/4 | Not started | - |
 
 ---
