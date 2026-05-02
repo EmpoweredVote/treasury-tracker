@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 GiveButter Real-Time Donation Feedback** — Phases 1-4 (shipped 2026-04-22)
-- 🚧 **v1.1 Texas Municipal Financial Transparency** — Phases 5-7 (in progress)
+- ✅ **v1.1 Texas Municipal Financial Transparency** — Phases 5-7 (shipped 2026-05-02)
 
 ---
 
@@ -53,7 +53,7 @@ Plans:
 
 ---
 
-### 🚧 v1.1 Texas Municipal Financial Transparency (In Progress — Phases 5-6 complete, Phase 7 next)
+### ✅ v1.1 Texas Municipal Financial Transparency (SHIPPED 2026-05-02 — Phases 5-7 complete)
 
 **Milestone Goal:** Load real financial data for Texas cities using three progressively capable ingestion pipelines — Socrata API, XLSX download, and PDF/Haiku vision extraction.
 
@@ -123,7 +123,7 @@ Plans:
 
 ---
 
-### Phase 7: PDF/Haiku Vision Pipeline
+### Phase 7: PDF/Haiku Vision Pipeline (COMPLETE — 2026-05-02)
 
 **Goal:** Citizens can view budget data for Allen, Prosper, and Celina, extracted from ACFR PDFs using a Claude Haiku vision pipeline that surfaces extraction confidence and flags uncertain pages for human review.
 
@@ -150,9 +150,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 07-01-PLAN.md — PDF rendering foundation: install pdftoimg-js + @napi-rs/canvas, scaffold bulkLoadPDF.js, render PDF pages to PNG with SHA-256-keyed disk cache
-- [ ] 07-02-PLAN.md — Haiku vision extraction + treasury_sync_budget_tree RPC integration: full per-page pipeline with confidence threshold, JSONL review log, tiered exit codes (0/1/2)
-- [ ] 07-03-PLAN.md — Seed Allen/Prosper/Celina data_sources, dry-run + live-load all three ACFRs, verify in app (human checkpoint)
+- [x] 07-01-PLAN.md — PDF rendering foundation: install pdftoimg-js + @napi-rs/canvas, scaffold bulkLoadPDF.js, render PDF pages to PNG with SHA-256-keyed disk cache
+- [x] 07-02-PLAN.md — Haiku vision extraction + treasury_sync_budget_tree RPC integration: full per-page pipeline with confidence threshold, JSONL review log, tiered exit codes (0/1/2)
+- [x] 07-03-PLAN.md — Seed Allen/Prosper/Celina data_sources, dry-run + live-load all three ACFRs, verify in app (human checkpoint)
 
 ---
 
@@ -168,9 +168,9 @@ Plans:
 | 4. Live Feedback UI | v1.0 | 2/2 | Complete | 2026-04-22 |
 | 5. Dallas Socrata | v1.1 | 3/3 | Complete | 2026-05-01 |
 | 6. XLSX Pipeline | v1.1 | 3/3 | Complete | 2026-05-01 |
-| 7. PDF/Haiku Vision | v1.1 | 0/3 | Planned | - |
+| 7. PDF/Haiku Vision | v1.1 | 3/3 | Complete | 2026-05-02 |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-05-01 — Phase 7 plans created (3 plans, 3 waves; PDF/Haiku vision pipeline for Allen/Prosper/Celina ACFRs)*
+*Last updated: 2026-05-02 — Phase 7 complete; v1.1 milestone shipped (Allen/Prosper/Celina ACFR data live)*

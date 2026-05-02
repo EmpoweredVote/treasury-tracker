@@ -18,24 +18,24 @@
 
 ### Tier 2 — XLSX Pipeline
 
-- [ ] **XLSX-01**: `bulkLoadXLSX.js` (or equivalent) can download an XLSX file from a city URL, parse it, and load operating/revenue budget data into the treasury schema
-- [ ] **XLSX-02**: Plano check register (from `checkregister.plano.gov` Excel export) loaded as `transactions` dataset type
-- [ ] **XLSX-03**: McKinney check register XLSX (direct download from `mckinneytexas.org` Traditional Finances page) loaded as `transactions`
-- [ ] **XLSX-04**: McKinney payroll register XLSX loaded as `salaries` dataset type
-- [ ] **XLSX-05**: Frisco check register XLSX (from `friscotexas.gov/1276/Check-Register`) loaded as `transactions`
-- [ ] **XLSX-06**: `data_sources` rows created for each XLSX source with `api_type = 'xlsx_download'`, storing download URL and column mapping
-- [ ] **XLSX-07**: XLSX loader is idempotent — re-running does not duplicate rows (dedup by `source_row_id` derived from row hash or position+date)
+- [x] **XLSX-01**: `bulkLoadXLSX.js` (or equivalent) can download an XLSX file from a city URL, parse it, and load operating/revenue budget data into the treasury schema
+- [x] **XLSX-02**: Plano check register (from `checkregister.plano.gov` Excel export) loaded as `transactions` dataset type
+- [x] **XLSX-03**: McKinney check register XLSX (direct download from `mckinneytexas.org` Traditional Finances page) loaded as `transactions`
+- [x] **XLSX-04**: McKinney payroll register XLSX loaded as `salaries` dataset type
+- [x] **XLSX-05**: Frisco check register XLSX (from `friscotexas.gov/1276/Check-Register`) loaded as `transactions`
+- [x] **XLSX-06**: `data_sources` rows created for each XLSX source with `api_type = 'xlsx_download'`, storing download URL and column mapping
+- [x] **XLSX-07**: XLSX loader is idempotent — re-running does not duplicate rows (dedup by `source_row_id` derived from row hash or position+date)
 
 ### Tier 3 — PDF/Haiku Vision Pipeline
 
-- [ ] **PDF-01**: Script renders each page of a PDF as a PNG image (using an available Node/system library)
-- [ ] **PDF-02**: Each page image is sent to Claude Haiku with a structured extraction prompt targeting GFOA ACFR budget tables
-- [ ] **PDF-03**: Haiku returns structured JSON (department, category, approved_amount, actual_amount, fiscal_year) which is validated and loaded
-- [ ] **PDF-04**: Pipeline is parameterized — accepts city name, PDF path or URL, fiscal year
-- [ ] **PDF-05**: Allen ACFR (most recent available year) budget data loaded via PDF pipeline
-- [ ] **PDF-06**: Prosper ACFR budget data loaded via PDF pipeline
-- [ ] **PDF-07**: Celina ACFR budget data loaded via PDF pipeline
-- [ ] **PDF-08**: Extraction confidence is logged per page — low-confidence pages flagged for human review rather than silently skipped
+- [x] **PDF-01**: Script renders each page of a PDF as a PNG image (using an available Node/system library)
+- [x] **PDF-02**: Each page image is sent to Claude Haiku with a structured extraction prompt targeting GFOA ACFR budget tables
+- [x] **PDF-03**: Haiku returns structured JSON (department, category, approved_amount, actual_amount, fiscal_year) which is validated and loaded
+- [x] **PDF-04**: Pipeline is parameterized — accepts city name, PDF path or URL, fiscal year
+- [x] **PDF-05**: Allen ACFR (most recent available year) budget data loaded via PDF pipeline
+- [x] **PDF-06**: Prosper ACFR budget data loaded via PDF pipeline
+- [x] **PDF-07**: Celina ACFR budget data loaded via PDF pipeline
+- [x] **PDF-08**: Extraction confidence is logged per page — low-confidence pages flagged for human review rather than silently skipped
 
 ---
 
@@ -83,21 +83,21 @@
 | DAL-04 | Phase 5 | Pending |
 | DAL-05 | Phase 5 | Pending |
 | DAL-06 | Phase 5 | Pending |
-| XLSX-01 | Phase 6 | Pending |
-| XLSX-02 | Phase 6 | Pending |
-| XLSX-03 | Phase 6 | Pending |
-| XLSX-04 | Phase 6 | Pending |
-| XLSX-05 | Phase 6 | Pending |
-| XLSX-06 | Phase 6 | Pending |
-| XLSX-07 | Phase 6 | Pending |
-| PDF-01 | Phase 7 | Pending |
-| PDF-02 | Phase 7 | Pending |
-| PDF-03 | Phase 7 | Pending |
-| PDF-04 | Phase 7 | Pending |
-| PDF-05 | Phase 7 | Pending |
-| PDF-06 | Phase 7 | Pending |
-| PDF-07 | Phase 7 | Pending |
-| PDF-08 | Phase 7 | Pending |
+| XLSX-01 | Phase 6 | Complete |
+| XLSX-02 | Phase 6 | Complete |
+| XLSX-03 | Phase 6 | Complete |
+| XLSX-04 | Phase 6 | Complete |
+| XLSX-05 | Phase 6 | Complete |
+| XLSX-06 | Phase 6 | Complete |
+| XLSX-07 | Phase 6 | Complete |
+| PDF-01 | Phase 7 | Complete |
+| PDF-02 | Phase 7 | Complete |
+| PDF-03 | Phase 7 | Complete |
+| PDF-04 | Phase 7 | Complete |
+| PDF-05 | Phase 7 | Complete |
+| PDF-06 | Phase 7 | Complete |
+| PDF-07 | Phase 7 | Complete |
+| PDF-08 | Phase 7 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 21 total
@@ -106,4 +106,4 @@
 
 ---
 *Requirements defined: 2026-05-01*
-*Last updated: 2026-05-01 — initial definition for milestone v1.1*
+*Last updated: 2026-05-02 — v1.1 complete; all 21 requirements marked Complete*
