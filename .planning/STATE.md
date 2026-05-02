@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-05-01)
 ## Current Position
 
 Phase: 6 of 7 (XLSX Pipeline)
-Plan: 1 of 3 complete
+Plan: 2 of 3 complete
 Status: In progress
-Last activity: 2026-05-01 — Completed 06-01-PLAN.md (generic XLSX loader built)
+Last activity: 2026-05-01 — Completed 06-02-PLAN.md (18 XLSX data_sources rows seeded)
 
-Progress: ████████████░░░░  (13/19 plans complete — v1.0 done, Phase 5 all 3 complete, Phase 6 plan 1 complete)
+Progress: █████████████░░░  (14/19 plans complete — v1.0 done, Phase 5 all 3 complete, Phase 6 plans 1-2 complete)
 
 ## Performance Metrics
 
@@ -50,7 +50,10 @@ Progress: ████████████░░░░  (13/19 plans complet
 - `bulkLoadBudget.js` verified: Dallas Operating FY2025 = 1,062 rows / $4.38B; Dallas Revenue FY2025 = 853 rows / $4.13B
 - XLSX loader uses exceljs@4.4.0 (NOT xlsx/SheetJS — CVE-2023-30533); ExcelJS row.values.slice(1) required (1-indexed)
 - XLSX dedup: SHA-256 of full row with sorted keys as `rid` — deterministic across re-downloads
-- XLSX data_sources: one row per city+dataset+FY; `fiscal_year` is a single value (not array like Socrata sources)
+- XLSX data_sources: one row per city+dataset+FY; fiscal year stored as `fiscal_years:[YYYY]` array; URL stored in `base_url`
+- XLSX data_sources unique constraint: `(municipality_id, api_type, COALESCE(dataset_id,''), dataset_type)` — set `dataset_id='fyYYYY'` per row
+- Frisco XLSX headers at row 5 (header_row:5 in column_mapping); McKinney payroll employee names redacted (employee_number used as vendor)
+- Plano uses manual export (file:// URL in base_url, column_mapping TBD — inspect headers after download)
 
 ### Blockers / Concerns
 - `treasury_sync_budget` (bare, without _tree) does not exist — confirmed; always use `treasury_sync_budget_tree`
@@ -65,5 +68,5 @@ Progress: ████████████░░░░  (13/19 plans complet
 ## Session Continuity
 
 Last session: 2026-05-02
-Stopped at: Completed 06-01-PLAN.md — bulkLoadXLSX.js built; Plan 06-02 can configure data_sources rows
+Stopped at: Completed 06-02-PLAN.md — 18 XLSX data_sources rows seeded; Plan 06-03 (live load) ready
 Resume file: None
