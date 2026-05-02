@@ -181,21 +181,126 @@ async function renderPDFPages(pdfBuffer, pdfHash, cacheDir, opts = {}) {
   return pageFiles;
 }
 
-// ── Haiku vision call (stub — Plan 02) ──────────────────────────────────────
+// ── Extraction prompt ────────────────────────────────────────────────────────
+const EXTRACTION_PROMPT = `Analyze this page from a government Annual Comprehensive Financial Report (ACFR).
+
+First, classify this page as one of: budget_table, narrative, chart, cover, table_of_contents, notes, statistical, other.
+
+If the page type is "budget_table", extract all budget line items you can see.
+Return ONLY valid JSON with this exact structure:
+{
+  "page_type": "budget_table",
+  "confidence": 85,
+  "reason": "Clear budget comparison table with department/fund/adopted/actual columns",
+  "rows": [
+    { "department": "Public Safety", "category": "Police Department", "approved_amount": 18500000, "actual_amount": 17832000, "fiscal_year": 2025, "fund": "General Fund" }
+  ]
+}
+
+If the page is NOT a budget_table, return:
+{ "page_type": "narrative", "confidence": 95, "reason": "Text-only page with no tabular budget data", "rows": [] }
+
+Rules:
+- confidence: 0-100, your certainty that the extracted data is accurate
+- approved_amount and actual_amount: numeric dollars only (no $ or commas), null if not visible
+- fiscal_year: 4-digit year from the table or document header, null if unclear
+- fund: fund name if labeled, null if not shown
+- Extract ALL rows visible — do not summarize or aggregate
+- Return ONLY the JSON object, no other text`;
+
+// ── Lazy Anthropic client ────────────────────────────────────────────────────
+let anthropic = null;
+
+// ── Helper: strip markdown fences from Haiku JSON output ────────────────────
+/**
+ * Strip optional ```json or ``` fences from Haiku text output, then JSON.parse().
+ * @param {string} text
+ * @returns {object}
+ */
+function extractJSON(text) {
+  if (typeof text !== 'string') throw new Error('extractJSON: expected string, got ' + typeof text);
+  const cleaned = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
+  return JSON.parse(cleaned);
+}
+
+// ── Helper: validate Haiku extraction result shape ───────────────────────────
+const VALID_PAGE_TYPES = new Set(['budget_table', 'narrative', 'chart', 'cover', 'table_of_contents', 'notes', 'statistical', 'other']);
+
+/**
+ * Validate that Haiku returned the expected schema.
+ * Returns { ok: true } or { ok: false, reason: string } — does NOT throw.
+ * @param {object} obj
+ * @param {number} pageNum
+ * @returns {{ ok: boolean, reason?: string }}
+ */
+function validateExtractionResult(obj, pageNum) {
+  if (!obj || typeof obj !== 'object') return { ok: false, reason: 'Schema violation: result is not an object' };
+  if (typeof obj.page_type !== 'string' || !VALID_PAGE_TYPES.has(obj.page_type))
+    return { ok: false, reason: 'Schema violation: page_type invalid (' + obj.page_type + ')' };
+  if (typeof obj.confidence !== 'number' || obj.confidence < 0 || obj.confidence > 100)
+    return { ok: false, reason: 'Schema violation: confidence must be number 0-100' };
+  if (typeof obj.reason !== 'string')
+    return { ok: false, reason: 'Schema violation: reason must be a string' };
+  if (!Array.isArray(obj.rows))
+    return { ok: false, reason: 'Schema violation: rows must be an array' };
+  return { ok: true };
+}
+
+// ── Haiku vision call with retry/backoff ─────────────────────────────────────
 /**
  * Call Claude Haiku with a PNG image (base64) and return structured extraction result.
- * Retries up to 3 times on API errors.
- * TODO: Plan 02 — implement Haiku extraction prompt + JSON parsing
+ * Retries up to 3 times on API errors with exponential backoff (1s, 2s, 4s + jitter).
+ * On 3rd failure returns null (hard error — logged by caller).
  *
  * @param {string} base64 - base64-encoded PNG
  * @param {number} pageNum
  * @param {object} [opts]
- * @returns {Promise<{page_type: string, confidence: number, reason: string, rows: object[]}>}
+ * @returns {Promise<{page_type: string, confidence: number, reason: string, rows: object[]}|null>}
  */
 async function callHaikuWithRetry(base64, pageNum, opts = {}) {
-  // TODO: Plan 02 — implement Haiku API call with EXTRACTION_PROMPT
-  // The Anthropic client is declared above and instantiated lazily in Plan 02
-  throw new Error('callHaikuWithRetry not yet implemented (Plan 02)');
+  if (!anthropic) {
+    if (!process.env.ANTHROPIC_API_KEY) {
+      console.error('Missing ANTHROPIC_API_KEY env var (Haiku vision)');
+      process.exit(2);
+    }
+    anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, maxRetries: 0 });
+  }
+
+  const MAX_ATTEMPTS = 3;
+  let lastErr = null;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      const response = await anthropic.messages.create({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 2048,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: 'image/png', data: base64 } },
+            { type: 'text', text: EXTRACTION_PROMPT },
+          ],
+        }],
+      });
+      const text = response.content?.[0]?.text;
+      if (!text) throw new Error('Haiku returned no text content');
+      const parsed = extractJSON(text);
+      const validated = validateExtractionResult(parsed, pageNum);
+      if (!validated.ok) {
+        return { page_type: 'other', confidence: 0, reason: 'malformed_haiku_output: ' + validated.reason, rows: [] };
+      }
+      return parsed;
+    } catch (err) {
+      lastErr = err;
+      if (attempt < MAX_ATTEMPTS) {
+        const backoffMs = (2 ** (attempt - 1)) * 1000; // 1s, 2s, 4s
+        const jitter = Math.floor(Math.random() * 250);
+        await new Promise(r => setTimeout(r, backoffMs + jitter));
+        if (!opts.quiet) console.warn('  page ' + pageNum + ' Haiku retry ' + attempt + '/' + MAX_ATTEMPTS + ': ' + err.message);
+      }
+    }
+  }
+  console.error('  page ' + pageNum + ' Haiku FAILED after ' + MAX_ATTEMPTS + ' attempts: ' + lastErr?.message);
+  return null;
 }
 
 // ── Process full PDF pipeline (stub — Plans 02-03) ──────────────────────────
