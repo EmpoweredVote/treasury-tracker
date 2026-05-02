@@ -303,19 +303,149 @@ async function callHaikuWithRetry(base64, pageNum, opts = {}) {
   return null;
 }
 
-// ── Process full PDF pipeline (stub — Plans 02-03) ──────────────────────────
+// ── Full PDF pipeline ─────────────────────────────────────────────────────────
 /**
- * Full PDF → Haiku → DB pipeline for a single data_sources row.
- * TODO: Plan 02 — implement Haiku per-page loop + confidence filtering + review log
- * TODO: Plan 03 — implement DB load via treasury_sync_budget_tree
+ * Full PDF → render → Haiku per-page → confidence routing → budget tree → RPC pipeline.
  *
- * @param {object} ds - data_sources row with base_url, municipality_id, fiscal_years, etc.
+ * @param {object} ds - data_sources row (id, name, base_url, dataset_type, fiscal_years)
  * @param {object} [opts]
- * @returns {Promise<void>}
+ * @param {string} [opts.pdf] - override PDF URL/path (for ad-hoc --pdf mode)
+ * @param {string} [opts.city] - city name for review log slug
+ * @param {number} [opts.fiscalYear] - fiscal year (CLI source of truth)
+ * @param {number} [opts.confidenceThreshold] - min confidence to include in DB load
+ * @param {boolean} [opts.dryRun] - skip RPC + delete; print tree summary
+ * @param {boolean} [opts.quiet] - suppress per-page progress output
+ * @returns {Promise<{ totalPages, budgetTablePages, rowsLoaded, flaggedPages, reviewLogPath, exitCode }>}
  */
 async function processPDF(ds, opts = {}) {
-  // TODO: Plan 02 — implement per-page Haiku extraction loop
-  throw new Error('processPDF not yet implemented (Plan 02)');
+  const fiscalYear = parseInt(opts.fiscalYear, 10);
+  if (Number.isNaN(fiscalYear)) {
+    console.error('Config error: --fiscal-year required (integer)');
+    process.exit(2);
+  }
+  const threshold = Number.isFinite(opts.confidenceThreshold) ? opts.confidenceThreshold : DEFAULT_CONFIDENCE_THRESHOLD;
+  const citySlug = (ds.name || opts.city || 'unknown').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  const reviewLogPath = path.join('logs', 'review-' + citySlug + '-' + today + '.jsonl');
+
+  // Step 1: Render pages (cache hit if already rendered)
+  const pdfInput = opts.pdf || ds.base_url;
+  const pdfBuffer = await downloadOrReadPDF(pdfInput);
+  const pdfHash = hashPDF(pdfBuffer);
+  const cacheDir = path.join(CACHE_ROOT, pdfHash);
+  const pageFiles = await renderPDFPages(pdfBuffer, pdfHash, cacheDir, { quiet: opts.quiet });
+  const totalPages = pageFiles.length;
+  console.log('  Processing ' + totalPages + ' pages with Haiku...');
+
+  // Step 2: Per-page Haiku loop
+  const budgetRows = [];
+  const flaggedPages = [];
+  let budgetTablePages = 0;
+  let haikuFatal = false;
+
+  for (let i = 0; i < pageFiles.length; i++) {
+    const pageNum = i + 1;
+    const pngBuffer = await fs.readFile(pageFiles[i]);
+    const base64 = pngBuffer.toString('base64');
+    const result = await callHaikuWithRetry(base64, pageNum, opts);
+
+    if (result === null) {
+      haikuFatal = true;
+      if (!opts.quiet) console.log('Page ' + pageNum + '/' + totalPages + ' — HAIKU FAIL');
+      continue;
+    }
+
+    if (!opts.quiet) {
+      console.log('Page ' + pageNum + '/' + totalPages + ' — ' + result.page_type + ' — ' + result.confidence + '% confidence — ' + result.rows.length + ' rows extracted');
+    }
+
+    if (result.page_type !== 'budget_table') continue; // silently skip non-budget pages
+    budgetTablePages++;
+
+    if (result.confidence < threshold) {
+      flaggedPages.push({
+        page_number: pageNum,
+        confidence: result.confidence,
+        reason: result.reason || '(no reason given)',
+        extracted_data_attempt: result.rows,
+      });
+      continue;
+    }
+
+    // Confident budget_table — override fiscal_year with CLI value (source of truth)
+    for (const row of result.rows) {
+      budgetRows.push({ ...row, fiscal_year: fiscalYear });
+    }
+  }
+
+  // Step 3: Write review log if any flagged pages
+  if (flaggedPages.length > 0) {
+    await fs.mkdir('logs', { recursive: true });
+    const lines = flaggedPages.map(p => JSON.stringify(p)).join('\n') + '\n';
+    await fs.writeFile(reviewLogPath, lines);
+    console.log('  Flagged ' + flaggedPages.length + ' pages — review log: ' + reviewLogPath);
+  }
+
+  // Step 4: Build budget tree (compact-key shape: n, a, c, i — same as bulkLoadBudget.js)
+  const tree = new Map();
+  let total = 0;
+  for (const row of budgetRows) {
+    const approved = Number(row.approved_amount) || 0;
+    const actual = row.actual_amount != null ? Number(row.actual_amount) : null;
+    if (approved === 0 && (actual === null || actual === 0)) continue;
+    const cat = row.department || 'Unknown';
+    const sub = row.category || 'General';
+    if (!tree.has(cat)) tree.set(cat, new Map());
+    if (!tree.get(cat).has(sub)) tree.get(cat).set(sub, []);
+    tree.get(cat).get(sub).push({ d: sub, a: approved, aa: actual, f: row.fund || null, e: null });
+    total += approved;
+  }
+  const jsonTree = [];
+  for (const [catName, subs] of tree) {
+    let catTotal = 0;
+    const children = [];
+    for (const [subName, items] of subs) {
+      const subTotal = items.reduce((s, i) => s + i.a, 0);
+      catTotal += subTotal;
+      children.push({ n: subName, a: subTotal, i: items });
+    }
+    children.sort((a, b) => b.a - a.a);
+    jsonTree.push({ n: catName, a: catTotal, c: children });
+  }
+  jsonTree.sort((a, b) => b.a - a.a);
+
+  // Step 5: Dry-run early exit
+  if (opts.dryRun) {
+    console.log('  (dry run — skipping RPC and DB delete)');
+    console.log('  tree summary: ' + jsonTree.length + ' departments, total $' + Math.round(total).toLocaleString());
+    for (const dept of jsonTree.slice(0, 3)) {
+      console.log('    ' + dept.n + ': $' + Math.round(dept.a).toLocaleString() + ' (' + dept.c.length + ' categories)');
+    }
+    const exitCode = haikuFatal ? 2 : (flaggedPages.length > 0 ? 1 : 0);
+    return { totalPages, budgetTablePages, rowsLoaded: 0, flaggedPages: flaggedPages.length, reviewLogPath: flaggedPages.length > 0 ? reviewLogPath : null, exitCode };
+  }
+
+  // Step 6: Truncate-and-reload
+  const { error: delErr } = await supabase.schema('treasury').from('budgets').delete().eq('data_source_id', ds.id).eq('fiscal_year', fiscalYear);
+  if (delErr) { console.error('  truncate failed: ' + delErr.message); process.exit(2); }
+  console.log('  cleared existing budget rows for FY' + fiscalYear);
+
+  // Step 7: RPC load
+  const { data, error } = await supabase.rpc('treasury_sync_budget_tree', {
+    p_data_source_id: ds.id,
+    p_fiscal_year: fiscalYear,
+    p_dataset_type: ds.dataset_type || 'operating',
+    p_total: total,
+    p_tree: jsonTree,
+    p_row_count: budgetRows.length,
+    p_triggered_by: 'pdf_haiku_load',
+  });
+  if (error) { console.error('  RPC error: ' + error.message); process.exit(2); }
+  const rowsLoaded = data?.rows_inserted || 0;
+  console.log('  inserted ' + rowsLoaded + ' line items');
+
+  const exitCode = haikuFatal ? 2 : (flaggedPages.length > 0 ? 1 : 0);
+  return { totalPages, budgetTablePages, rowsLoaded, flaggedPages: flaggedPages.length, reviewLogPath: flaggedPages.length > 0 ? reviewLogPath : null, exitCode };
 }
 
 // ── CLI entry point ───────────────────────────────────────────────────────────
