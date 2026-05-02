@@ -107,6 +107,11 @@ async function parseXLSX(buffer, cm = {}) {
       else if (val && typeof val === 'object' && val.text !== undefined) {
         val = val.text;
       }
+      // Flatten formula cells to their computed result
+      else if (val && typeof val === 'object' && val.formula !== undefined) {
+        val = val.result ?? null;
+        if (val instanceof Date) val = val.toISOString().slice(0, 10);
+      }
 
       obj[h] = val;
     });
@@ -114,6 +119,13 @@ async function parseXLSX(buffer, cm = {}) {
     // Skip header-duplicate rows (row where column values match the header names)
     if (headers.some(h => h && String(obj[h] ?? '').toLowerCase() === h)) {
       headerDupeSkipped++;
+      return;
+    }
+
+    // Skip footer/summary rows: first column contains 'total', 'subtotal', 'grand total', etc.
+    const firstVal = String(obj[headers[0]] ?? '').trim().toLowerCase();
+    if (firstVal === 'total' || firstVal === 'subtotal' || firstVal === 'grand total' || firstVal === 'totals') {
+      blankSkipped++;
       return;
     }
 
@@ -201,18 +213,39 @@ async function syncSource(ds, opts = {}) {
   console.log('\n' + ds.name + ' FY' + fiscalYear + ': downloading...');
 
   // ── force-reload: clear existing rows for this source + fiscal year ─────────
+  // The treasury_sync_transactions RPC creates budgets keyed on
+  // (municipality_id, fiscal_year, dataset_type). The budget rows do not store
+  // data_source_id (the RPC sets it to null). We therefore find the matching
+  // budget via municipality_id + fiscal_year + dataset_type, then delete
+  // only its transactions — leaving other fiscal years of the same source untouched.
   if (opts.forceReload) {
-    const { error: delErr } = await supabase
+    const { data: matchBudgets, error: findErr } = await supabase
       .schema('treasury')
-      .from('transactions')
-      .delete()
-      .eq('data_source_id', ds.id)
-      .eq('fiscal_year', fiscalYear);
-    if (delErr) {
-      console.error('  force-reload delete failed: ' + delErr.message);
+      .from('budgets')
+      .select('id')
+      .eq('municipality_id', ds.municipality_id)
+      .eq('fiscal_year', fiscalYear)
+      .eq('dataset_type', ds.dataset_type);
+    if (findErr) {
+      console.error('  force-reload budget lookup failed: ' + findErr.message);
       process.exit(1);
     }
-    console.log('  --force-reload: cleared existing rows for FY' + fiscalYear);
+    if (!matchBudgets || matchBudgets.length === 0) {
+      console.log('  --force-reload: no existing budget found for FY' + fiscalYear + ' (nothing to clear)');
+    } else {
+      for (const budget of matchBudgets) {
+        const { error: delErr } = await supabase
+          .schema('treasury')
+          .from('transactions')
+          .delete()
+          .eq('budget_id', budget.id);
+        if (delErr) {
+          console.error('  force-reload delete failed for budget ' + budget.id + ': ' + delErr.message);
+          process.exit(1);
+        }
+      }
+      console.log('  --force-reload: cleared existing rows for FY' + fiscalYear);
+    }
   }
 
   // ── Download + parse ────────────────────────────────────────────────────────
@@ -263,12 +296,18 @@ async function syncSource(ds, opts = {}) {
       p_vendors: vendors,
       p_transactions: transactions,
       p_row_count: chunk.length,
-      p_triggered_by: 'bulk_xlsx_load',
+      p_triggered_by: 'bulk_load',
     });
 
     if (error) {
       console.error('  RPC error at batch ' + i + ': ' + error.message);
       continue;
+    }
+
+    // Detect RPC-level errors returned in the response body (e.g., constraint violations)
+    if (data?.error) {
+      console.error('  RPC returned error at batch ' + i + ': ' + data.error);
+      process.exit(1);
     }
 
     totalInserted += data?.rows_inserted || 0;
