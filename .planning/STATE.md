@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-05-01)
 ## Current Position
 
 Phase: 7 of 7 (PDF/Haiku Vision Pipeline)
-Plan: 1 of 4 complete
+Plan: 2 of 3 complete
 Status: In progress
-Last activity: 2026-05-02 — Completed 07-01-PLAN.md (PDF rendering foundation, Celina ACFR 133 pages rendered)
+Last activity: 2026-05-02 — Completed 07-02-PLAN.md (full Haiku vision pipeline, 591-line bulkLoadPDF.js)
 
-Progress: ████████████████░  (16/19 plans complete — Phase 7 plan 1/4 done)
+Progress: █████████████████░  (17/19 plans complete — Phase 7 plans 1-2/3 done)
 
 ## Performance Metrics
 
@@ -64,9 +64,18 @@ Progress: ████████████████░  (16/19 plans comp
 - pdfjs font warning "TT: undefined function: 32" is benign — rendering unaffected
 - @napi-rs/canvas loads correctly on Windows + Node 24 (pre-built win32-x64-msvc binary, no node-gyp)
 
+### Decisions (Phase 7 Plan 02)
+- EXTRACTION_PROMPT verbatim from research — classify page_type first, extract rows from budget_table pages only
+- maxRetries: 0 on Anthropic client — manual retry loop (3 attempts, 1s/2s/4s + jitter)
+- malformed Haiku JSON → confidence=0 flagged page (not retry) — schema violations are not transient
+- haikuFatal flag accumulates null returns; pipeline continues to maximize data recovery
+- Ad-hoc --pdf mode requires --dry-run until Plan 03 seeder creates data_sources row
+- Windows Node 24 fix: await setTimeout(50ms) before process.exit on --list to prevent libuv UV_HANDLE_CLOSING assertion
+
 ### Blockers / Concerns
 - `treasury_sync_budget` (bare, without _tree) does not exist — confirmed; always use `treasury_sync_budget_tree`
 - If Prosper ACFR (>10MB, likely 200+ pages) causes OOM during rendering, switch to chunked rendering in renderPDFPages
+- Full --dry-run against Celina ACFR not yet run (ANTHROPIC_API_KEY needed) — Plan 03 operator should run --dry-run before live load
 
 ### Quick Tasks Completed
 
@@ -76,6 +85,6 @@ Progress: ████████████████░  (16/19 plans comp
 
 ## Session Continuity
 
-Last session: 2026-05-02T04:15:20Z
-Stopped at: Completed 07-01-PLAN.md — PDF rendering foundation; Celina ACFR 133 pages in cache; Plan 02 (Haiku extraction) is next
+Last session: 2026-05-02
+Stopped at: Completed 07-02-PLAN.md — full Haiku pipeline in bulkLoadPDF.js (591 lines); Plan 03 (seeder + live load with human checkpoint) is next
 Resume file: None
