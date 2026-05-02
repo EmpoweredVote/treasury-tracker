@@ -31,3 +31,6 @@ dist-ssr
 public/data/
 src/data/processedBudget.json
 /data/
+
+# PDF render cache — PNG files rendered from ACFRs (can be large, regenerated on demand)
+cache/
