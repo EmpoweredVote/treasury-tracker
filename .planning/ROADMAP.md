@@ -147,13 +147,12 @@ Plans:
 4. The pipeline accepts `--city`, `--pdf`, and `--fiscal-year` parameters and requires no code changes to run against a new city's ACFR
 5. Extracted JSON is validated against the expected schema before loading — malformed Haiku output is rejected with a clear error, not silently written
 
-**Plans:** TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 07-01: PDF → PNG rendering script (parameterized, all pages of a given PDF)
-- [ ] 07-02: Haiku vision extraction script — prompt engineering for ACFR tables + confidence logging
-- [ ] 07-03: Validated JSON → treasury schema loader (reuse `treasury_sync_budget` RPC)
-- [ ] 07-04: Load Allen, Prosper, Celina ACFRs; verify data in app; confirm review log for low-confidence pages
+- [ ] 07-01-PLAN.md — PDF rendering foundation: install pdftoimg-js + @napi-rs/canvas, scaffold bulkLoadPDF.js, render PDF pages to PNG with SHA-256-keyed disk cache
+- [ ] 07-02-PLAN.md — Haiku vision extraction + treasury_sync_budget_tree RPC integration: full per-page pipeline with confidence threshold, JSONL review log, tiered exit codes (0/1/2)
+- [ ] 07-03-PLAN.md — Seed Allen/Prosper/Celina data_sources, dry-run + live-load all three ACFRs, verify in app (human checkpoint)
 
 ---
 
@@ -169,9 +168,9 @@ Plans:
 | 4. Live Feedback UI | v1.0 | 2/2 | Complete | 2026-04-22 |
 | 5. Dallas Socrata | v1.1 | 3/3 | Complete | 2026-05-01 |
 | 6. XLSX Pipeline | v1.1 | 3/3 | Complete | 2026-05-01 |
-| 7. PDF/Haiku Vision | v1.1 | 0/4 | Not started | - |
+| 7. PDF/Haiku Vision | v1.1 | 0/3 | Planned | - |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-05-01 — Phase 6 complete (XLSX pipeline — McKinney + Frisco loaded, 506,580 rows, Plano deferred)*
+*Last updated: 2026-05-01 — Phase 7 plans created (3 plans, 3 waves; PDF/Haiku vision pipeline for Allen/Prosper/Celina ACFRs)*
