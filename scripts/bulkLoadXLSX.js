@@ -21,6 +21,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { parseArgs } from 'node:util';
 import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import ExcelJS from 'exceljs';
 
 // ── Config ──────────────────────────────────────────────────────────────────
@@ -36,24 +38,34 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── Download helper ──────────────────────────────────────────────────────────
 async function downloadXLSX(url) {
+  // Local file support for manual exports (e.g., Plano)
+  if (url.startsWith('file://')) {
+    const filePath = decodeURIComponent(url.replace(/^file:\/\/\/?/, '').replace(/\//g, path.sep || '\\'));
+    console.log('  Reading local file: ' + filePath);
+    return readFileSync(filePath);
+  }
+  if (!url.startsWith('http')) {
+    console.log('  Reading local file: ' + url);
+    return readFileSync(url);
+  }
   const resp = await fetch(url, { redirect: 'follow' });
   if (!resp.ok) {
     console.error('Download failed: ' + url + ' — HTTP ' + resp.status);
     process.exit(1);
   }
-  // Warn if content-type looks unexpected, but do not fail
-  const ct = resp.headers.get('content-type') || '';
-  if (!ct.includes('spreadsheet') && !ct.includes('excel') && !ct.includes('octet-stream')) {
-    console.warn('  Warning: unexpected content-type "' + ct + '" — proceeding anyway');
+  const contentType = resp.headers.get('content-type') || '';
+  if (!contentType.includes('spreadsheet') && !contentType.includes('excel') && !contentType.includes('octet-stream')) {
+    console.warn('  Warning: unexpected content-type "' + contentType + '" — may not be XLSX');
   }
   return Buffer.from(await resp.arrayBuffer());
 }
 
 // ── Parse helper ─────────────────────────────────────────────────────────────
-async function parseXLSX(buffer) {
+async function parseXLSX(buffer, cm = {}) {
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.load(buffer);
   const worksheet = workbook.worksheets[0];
+  const headerRow = cm.header_row || 1;
 
   let headers = [];
   const rows = [];
@@ -64,7 +76,9 @@ async function parseXLSX(buffer) {
     // CRITICAL: ExcelJS row.values[0] is always null (1-indexed) — slice(1)
     const values = row.values.slice(1);
 
-    if (rowNumber === 1) {
+    if (rowNumber < headerRow) return; // skip title rows before header row
+
+    if (rowNumber === headerRow) {
       // Normalize header row
       headers = values.map(v => String(v ?? '').trim().toLowerCase().replace(/\s+/g, '_'));
       return;
@@ -78,9 +92,8 @@ async function parseXLSX(buffer) {
 
     // Build row object, convert special ExcelJS cell types
     const obj = {};
-    for (let i = 0; i < headers.length; i++) {
-      const h = headers[i];
-      let val = values[i] !== undefined ? values[i] : null;
+    headers.forEach((h, i) => {
+      let val = values[i] ?? null;
 
       // Convert ExcelJS Date objects to ISO date string
       if (val instanceof Date) {
@@ -96,10 +109,10 @@ async function parseXLSX(buffer) {
       }
 
       obj[h] = val;
-    }
+    });
 
     // Skip header-duplicate rows (row where column values match the header names)
-    if (headers.some(h => String(obj[h] ?? '').toLowerCase() === h)) {
+    if (headers.some(h => h && String(obj[h] ?? '').toLowerCase() === h)) {
       headerDupeSkipped++;
       return;
     }
@@ -198,7 +211,7 @@ async function syncSource(ds, opts = {}) {
 
   // ── Download + parse ────────────────────────────────────────────────────────
   const buffer = await downloadXLSX(ds.download_url);
-  const { headers, rows, blankSkipped, headerDupeSkipped } = await parseXLSX(buffer);
+  const { headers, rows, blankSkipped, headerDupeSkipped } = await parseXLSX(buffer, cm);
   console.log('  Parsed ' + rows.length.toLocaleString() + ' data rows (' +
     blankSkipped + ' blank skipped, ' + headerDupeSkipped + ' header-dupe skipped)');
   console.log('  Headers: ' + headers.join(', '));
