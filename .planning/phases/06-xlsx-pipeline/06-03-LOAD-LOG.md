@@ -71,16 +71,36 @@ All re-runs inserted 0 new rows. SHA-256 `source_row_id` hash is deterministic a
 
 ---
 
-## Architectural Note: Payroll/Salaries Budget Type
+## Post-Load Fix: Dataset Type Bug + Category Generation (2026-05-01)
 
-The `treasury_sync_transactions` RPC creates budgets with `dataset_type='transactions'` regardless of the data source's `dataset_type`. McKinney Payroll data (data source `dataset_type='salaries'`) was therefore inserted into the same `transactions` budgets as check register data. This means:
+**Bug found after initial load:** `treasury_sync_transactions` RPC was hardcoding `dataset_type='transactions'` in both the budget SELECT and INSERT statements, regardless of the data source's actual `dataset_type`. All XLSX data landed under `transactions` budgets, which the app never queries (it only knows `operating`, `revenue`, `salaries`). Result: all XLSX cities showed disabled tabs and no categories.
 
-- McKinney FY2022 budget: 84,050 rows (44,260 check + 39,790 payroll combined)
-- McKinney FY2023 budget: 86,596 rows (46,019 check + 40,577 payroll combined)
-- McKinney FY2024 budget: 88,779 rows (46,206 check + 42,573 payroll combined)
-- McKinney FY2025 budget: 93,436 rows (48,988 check + 44,448 payroll combined)
+**Fix 1 — Supabase migration `fix_sync_transactions_use_dataset_type`:**
+- Changed `AND dataset_type = 'transactions'` → `AND dataset_type = v_ds.dataset_type` (budget lookup)
+- Changed `VALUES (..., 'transactions', ...)` → `VALUES (..., v_ds.dataset_type, ...)` (budget insert)
 
-The app's "Salaries" tab (`dataset_type='salaries'`) may not show McKinney payroll data since no `salaries` budget exists for McKinney. This is a known limitation requiring a future RPC enhancement to pass `p_dataset_type`. All payroll data IS in the database — it just appears under the `transactions` budget type.
+**Fix 2 — Re-seeded data sources (`scripts/seedXLSXDataSources.js`):**
+- McKinney Check Register: `dataset_type: 'transactions'` → `'operating'`
+- Frisco Check Register: `dataset_type: 'transactions'` → `'operating'`
+(McKinney Payroll already had `'salaries'` which is correct.)
+
+**Fix 3 — Cleared old `transactions` budgets and re-loaded all XLSX data:**
+- Deleted transactions first (FK constraint), then deleted budgets
+- Re-ran `bulkLoadXLSX.js` for all McKinney and Frisco sources
+- Final DB state:
+  - McKinney: 4 `operating` budgets + 4 `salaries` budgets (separate, not mixed)
+  - Frisco: 9 `operating` budgets
+
+**Fix 4 — Supabase migration `build_xlsx_budget_categories`:**
+Generated `budget_categories` rows so the app's donut chart renders correctly:
+- McKinney operating: 94–97 department-level categories per FY (from `link_key` = department code)
+- McKinney salaries: Updated `link_key` on transactions to slugified position title; then inserted 50 top-position + "Other Positions" categories per FY (51 total)
+- Frisco operating: Updated `link_key` on transactions to slugified vendor name; then inserted 30 top-vendor + "Other Vendors" categories per FY (31 total)
+
+**Fix 5 — Frontend (`DatasetTabs.tsx`, `App.tsx`):**
+- DatasetTabs now renders a dynamic third "Employees" card when `available_datasets` includes `'salaries'`
+- App.tsx passes `salariesTotal` from salary budget metadata to DatasetTabs
+- Committed as `38b273f` "feat(06-03): fix dataset_type bug + add salaries tab + xlsx budget categories"
 
 ---
 
