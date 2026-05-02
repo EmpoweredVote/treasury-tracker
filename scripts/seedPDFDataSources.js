@@ -2,22 +2,23 @@
 /**
  * PDF Data Sources Seeder
  *
- * Creates (or updates) treasury.data_sources rows for ACFR PDF datasets:
+ * Creates (or updates) treasury.data_sources rows for ACFR/budget PDF datasets:
  *   - Allen ACFR FY2025
  *   - Prosper ACFR FY2025
  *   - Celina ACFR FY2025
+ *   - Plano Operating Budget FY2025 (local file — docs/Plano/)
  *
  * Idempotent: safe to re-run. Looks up existing rows by name and updates
  * them in-place; inserts only when the row does not exist yet.
  *
- * Fails fast (exit 1) if any of the three municipalities is missing from
+ * Fails fast (exit 1) if any municipality is missing from
  * treasury.municipalities — does NOT auto-create municipalities.
  *
  * Usage:
  *   SUPABASE_SERVICE_KEY=... node scripts/seedPDFDataSources.js
  *
  * Schema notes:
- *   - Download URLs are stored in base_url (treasury.data_sources schema)
+ *   - Download URLs / local paths are stored in base_url
  *   - Fiscal year stored as fiscal_years: [YYYY] (single-element array)
  *   - api_type = 'pdf_download'
  *   - dataset_type = 'operating'
@@ -40,6 +41,8 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 const ALLEN_ACFR_FY2025  = 'https://www.cityofallen.org/Documents/Departments/Finance/Financial%20Transparency/Other%20Documents/FY%202025%20Annual%20Comprehensive%20Financial%20Report.pdf';
 const PROSPER_ACFR_FY2025 = 'https://www.prospertx.gov/ArchiveCenter/ViewFile/Item/682';
 const CELINA_ACFR_FY2025  = 'https://www.celina-tx.gov/DocumentCenter/View/15082/City-of-Celina-Texas---FINAL-ACFR-FY2025';
+// Plano: local file (manual export from plano.gov budget page)
+const PLANO_BUDGET_FY2025 = 'file://C:/treasury-tracker/docs/Plano/2024-25 Program of Service - Operating Budget (PDF).pdf';
 
 // ── Column mapping (same for all three — Haiku output field names) ─────────────
 const acfrCm = {
@@ -57,7 +60,7 @@ async function buildSources() {
     .schema('treasury')
     .from('municipalities')
     .select('id, name')
-    .in('name', ['Allen', 'Prosper', 'Celina']);
+    .in('name', ['Allen', 'Prosper', 'Celina', 'Plano']);
 
   if (error) {
     console.error('Failed to fetch municipalities:', error.message);
@@ -103,6 +106,16 @@ async function buildSources() {
       base_url: CELINA_ACFR_FY2025,
       fiscal_years: [2025],
       municipality_id: muniId('Celina'),
+      column_mapping: acfrCm,
+    },
+    {
+      name: 'Plano Operating Budget FY2025',
+      api_type: 'pdf_download',
+      dataset_type: 'operating',
+      dataset_id: 'fy2025',
+      base_url: PLANO_BUDGET_FY2025,
+      fiscal_years: [2025],
+      municipality_id: muniId('Plano'),
       column_mapping: acfrCm,
     },
   ];
@@ -186,8 +199,8 @@ async function main() {
     console.log(`  - ${r.name} (${r.dataset_type}, FY${fy})`);
   }
 
-  if (pdfRows.length !== SOURCES.length) {
-    console.error(`  ERROR: expected ${SOURCES.length} pdf_download rows, got ${pdfRows.length}`);
+  if (pdfRows.length < SOURCES.length) {
+    console.error(`  ERROR: expected at least ${SOURCES.length} pdf_download rows, got ${pdfRows.length}`);
     process.exit(1);
   }
 

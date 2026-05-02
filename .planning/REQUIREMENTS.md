@@ -19,7 +19,7 @@
 ### Tier 2 — XLSX Pipeline
 
 - [x] **XLSX-01**: `bulkLoadXLSX.js` (or equivalent) can download an XLSX file from a city URL, parse it, and load operating/revenue budget data into the treasury schema
-- [x] **XLSX-02**: Plano check register (from `checkregister.plano.gov` Excel export) loaded as `transactions` dataset type
+- [ ] **XLSX-02**: Plano check register (from `checkregister.plano.gov` Excel export) loaded as `transactions` dataset type — *deferred: manual export not yet downloaded; Plano operating budget loaded via PDF pipeline instead (PDF-09)*
 - [x] **XLSX-03**: McKinney check register XLSX (direct download from `mckinneytexas.org` Traditional Finances page) loaded as `transactions`
 - [x] **XLSX-04**: McKinney payroll register XLSX loaded as `salaries` dataset type
 - [x] **XLSX-05**: Frisco check register XLSX (from `friscotexas.gov/1276/Check-Register`) loaded as `transactions`
