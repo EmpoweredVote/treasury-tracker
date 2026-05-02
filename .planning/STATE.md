@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-05-01)
 
 **Core value:** Any citizen can open financials.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Milestone v1.1 — Texas Municipal Financial Transparency (Phase 5: Dallas Socrata)
+**Current focus:** Milestone v1.1 — Texas Municipal Financial Transparency (Phase 6: XLSX Pipeline)
 
 ## Current Position
 
-Phase: 5 of 7 (Dallas Socrata Integration)
-Plan: 3 of 3 complete
-Status: Phase complete
-Last activity: 2026-05-01 — Completed 05-03-PLAN.md (Phase 5 complete)
+Phase: 6 of 7 (XLSX Pipeline)
+Plan: 1 of 3 complete
+Status: In progress
+Last activity: 2026-05-01 — Completed 06-01-PLAN.md (generic XLSX loader built)
 
-Progress: ███████████░░░░░  (12/19 plans complete — v1.0 done, Phase 5 all 3 plans complete)
+Progress: ████████████░░░░  (13/19 plans complete — v1.0 done, Phase 5 all 3 complete, Phase 6 plan 1 complete)
 
 ## Performance Metrics
 
@@ -48,6 +48,9 @@ Progress: ███████████░░░░░  (12/19 plans complet
 - `treasury_sync_budget_tree` is the correct RPC (bare `treasury_sync_budget` does not exist)
 - Socrata fiscal year fields are strings — WHERE clause must quote: `bfy='2025'` not `bfy=2025`
 - `bulkLoadBudget.js` verified: Dallas Operating FY2025 = 1,062 rows / $4.38B; Dallas Revenue FY2025 = 853 rows / $4.13B
+- XLSX loader uses exceljs@4.4.0 (NOT xlsx/SheetJS — CVE-2023-30533); ExcelJS row.values.slice(1) required (1-indexed)
+- XLSX dedup: SHA-256 of full row with sorted keys as `rid` — deterministic across re-downloads
+- XLSX data_sources: one row per city+dataset+FY; `fiscal_year` is a single value (not array like Socrata sources)
 
 ### Blockers / Concerns
 - `treasury_sync_budget` (bare, without _tree) does not exist — confirmed; always use `treasury_sync_budget_tree`
@@ -61,6 +64,6 @@ Progress: ███████████░░░░░  (12/19 plans complet
 
 ## Session Continuity
 
-Last session: 2026-05-01
-Stopped at: Completed 05-03-PLAN.md — Phase 5 complete; ready for Phase 6 (XLSX Pipeline)
+Last session: 2026-05-02
+Stopped at: Completed 06-01-PLAN.md — bulkLoadXLSX.js built; Plan 06-02 can configure data_sources rows
 Resume file: None
