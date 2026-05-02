@@ -452,19 +452,15 @@ async function processPDF(ds, opts = {}) {
 async function main() {
   const { values } = parseArgs({
     options: {
-      // Plan 01 flags (implemented here)
-      pdf: { type: 'string' },
-      'render-only': { type: 'boolean' },
-      quiet: { type: 'boolean' },
-      list: { type: 'boolean', short: 'l' },
-
-      // Plan 02+ flags (parsed now, stubs in logic)
       source: { type: 'string', short: 's' },
+      pdf: { type: 'string' },
       city: { type: 'string' },
       'fiscal-year': { type: 'string' },
-      'confidence-threshold': { type: 'string' },
+      list: { type: 'boolean', short: 'l' },
       'dry-run': { type: 'boolean' },
-      'force-reload': { type: 'boolean' },
+      'render-only': { type: 'boolean' },
+      quiet: { type: 'boolean', short: 'q' },
+      'confidence-threshold': { type: 'string' },
     },
     strict: false,
   });
@@ -475,7 +471,6 @@ async function main() {
       console.error('--render-only requires --pdf <url-or-path>');
       process.exit(2);
     }
-
     console.log('PDF render-only mode');
     const buf = await downloadOrReadPDF(values.pdf);
     const hash = hashPDF(buf);
@@ -485,17 +480,112 @@ async function main() {
     process.exit(0);
   }
 
-  // ── --list: show available PDF sources ─────────────────────────────────────
+  // ── --list: show available PDF data sources ─────────────────────────────────
   if (values.list) {
-    // TODO: Plan 02 — query data_sources for pdf_download api_type
-    console.log('TODO: --list for PDF sources (Plan 02 — after seedPDFDataSources.js runs)');
+    const { data: sources, error } = await supabase.rpc('treasury_list_source_ids');
+    if (error) { console.error('Failed to list sources: ' + error.message); process.exit(2); }
+    const pdfSources = (sources || []).filter(s => s.api_type === 'pdf_download');
+    if (pdfSources.length === 0) {
+      console.log('No PDF data sources configured. Run seedPDFDataSources.js first.');
+    } else {
+      console.log('\nAvailable PDF data sources:\n');
+      for (const s of pdfSources) {
+        const fy = Array.isArray(s.fiscal_years) ? s.fiscal_years[0] : (s.fiscal_year || '?');
+        console.log('  ' + s.name + ' (' + s.dataset_type + ', FY' + fy + ')');
+      }
+    }
+    // Allow background async handles (Anthropic SDK, Supabase WS) to settle before
+    // calling process.exit — prevents Windows libuv UV_HANDLE_CLOSING assertion
+    // that manifests on Node 24 + win32 when both SDKs are imported at module level.
+    await new Promise(r => setTimeout(r, 50));
     process.exit(0);
   }
 
-  // ── All other modes: full pipeline (Plans 02-03) ────────────────────────────
-  // TODO: Plan 02 — implement --source / --pdf + --city + --fiscal-year full pipeline
-  console.log('TODO: full pipeline lands in Plan 02');
-  process.exit(0);
+  // ── Resolve data source and fiscal year ────────────────────────────────────
+  let ds;
+
+  if (values.source) {
+    // Path A: --source lookup from data_sources
+    const { data: sources, error } = await supabase.rpc('treasury_list_source_ids');
+    if (error) { console.error('Failed to list sources: ' + error.message); process.exit(2); }
+    const matches = (sources || []).filter(s =>
+      s.api_type === 'pdf_download' &&
+      s.name.toLowerCase().includes(values.source.toLowerCase())
+    );
+    if (matches.length === 0) {
+      console.log('No matching PDF sources found. Use --list to see available sources.');
+      process.exit(2);
+    }
+    if (matches.length > 1) {
+      console.log('Ambiguous --source "' + values.source + '" matches multiple sources:');
+      for (const m of matches) console.log('  ' + m.name);
+      process.exit(2);
+    }
+    const { data: fullDs, error: cfgErr } = await supabase.rpc('treasury_get_data_source_config', {
+      p_data_source_id: matches[0].id,
+    });
+    if (cfgErr || !fullDs) {
+      console.error('Config not found for ' + matches[0].name + (cfgErr ? ': ' + cfgErr.message : ''));
+      process.exit(2);
+    }
+    ds = fullDs;
+  } else if (values.pdf) {
+    // Path B: ad-hoc --pdf mode (dry-run only until Plan 03 seeder runs)
+    if (!values['dry-run']) {
+      console.error('Ad-hoc --pdf invocation requires --dry-run (add data_sources row via seedPDFDataSources.js for live load)');
+      process.exit(2);
+    }
+    ds = {
+      id: null,
+      name: (values.city || 'Unknown') + ' ACFR FY' + (values['fiscal-year'] || '?'),
+      base_url: values.pdf,
+      dataset_type: 'operating',
+      fiscal_years: [parseInt(values['fiscal-year'] || '2025', 10)],
+    };
+  } else {
+    console.error('Usage: --source <name> | --pdf <url> --city <name> --fiscal-year <year> [--dry-run]');
+    process.exit(2);
+  }
+
+  // Resolve fiscal year
+  const rawFY = values['fiscal-year'] || (Array.isArray(ds.fiscal_years) ? String(ds.fiscal_years[0]) : null);
+  if (!rawFY) {
+    console.error('Config error: --fiscal-year required (or set in data_sources.fiscal_years)');
+    process.exit(2);
+  }
+  const fiscalYear = parseInt(rawFY, 10);
+
+  // Resolve confidence threshold
+  const rawThreshold = values['confidence-threshold'];
+  const confidenceThreshold = rawThreshold ? parseInt(rawThreshold, 10) : DEFAULT_CONFIDENCE_THRESHOLD;
+  if (Number.isNaN(confidenceThreshold) || confidenceThreshold < 0 || confidenceThreshold > 100) {
+    console.error('Config error: --confidence-threshold must be 0-100');
+    process.exit(2);
+  }
+
+  // Run pipeline
+  const result = await processPDF(ds, {
+    pdf: values.pdf,
+    city: values.city,
+    fiscalYear,
+    confidenceThreshold,
+    dryRun: values['dry-run'],
+    quiet: values.quiet,
+  });
+
+  // End-of-run summary (always printed)
+  console.log('');
+  console.log('=== Summary ===');
+  console.log('  Source:           ' + ds.name);
+  console.log('  Pages processed:  ' + result.totalPages);
+  console.log('  Budget tables:    ' + result.budgetTablePages);
+  console.log('  Rows loaded:      ' + (values['dry-run'] ? '0 (dry run)' : result.rowsLoaded));
+  console.log('  Pages flagged:    ' + result.flaggedPages);
+  if (result.reviewLogPath) {
+    console.log('  Review log:       ' + result.reviewLogPath);
+  }
+  console.log('  Exit code:        ' + result.exitCode);
+  process.exit(result.exitCode);
 }
 
 main().catch(err => { console.error('Fatal:', err); process.exit(2); });
