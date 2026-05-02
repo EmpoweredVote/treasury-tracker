@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-05-01)
 ## Current Position
 
 Phase: 7 of 7 (PDF/Haiku Vision Pipeline)
-Plan: 0 of 4 complete
-Status: Not started
-Last activity: 2026-05-01 — Completed Phase 6 XLSX Pipeline (all 3 plans done, 506,580 rows loaded)
+Plan: 1 of 4 complete
+Status: In progress
+Last activity: 2026-05-02 — Completed 07-01-PLAN.md (PDF rendering foundation, Celina ACFR 133 pages rendered)
 
-Progress: ███████████████░  (15/19 plans complete — v1.0 done, Phases 5-6 all 6 complete)
+Progress: ████████████████░  (16/19 plans complete — Phase 7 plan 1/4 done)
 
 ## Performance Metrics
 
@@ -55,9 +55,18 @@ Progress: ███████████████░  (15/19 plans complet
 - Frisco XLSX headers at row 5 (header_row:5 in column_mapping); McKinney payroll employee names redacted (employee_number used as vendor)
 - Plano uses manual export (file:// URL in base_url, column_mapping TBD — inspect headers after download)
 
+### Decisions (Phase 7 Plan 01)
+- pdftoimg-js v2 exports `pdfToImg` (not `convertPDF`) — use `pdfToImg(Uint8Array, { pages: 'all', imgType: 'png', scale: 2.08 })`
+- pdfToImg returns base64 DataURL strings (not Buffer/path arrays) — strip `data:image/png;base64,` prefix before writing PNG
+- pdftoimg-js v2 has no concurrency parameter — RENDER_CONCURRENCY=2 is for a chunked approach if OOM occurs on 200+ page PDFs
+- Scale 2.08 ≈ 150 DPI (from 72 DPI PDF baseline); Celina pages ~3MB each — sufficient for Haiku extraction
+- Cache key: SHA-256 of full PDF buffer → `cache/pdf-render/<hex>/page-NNN.png` (3-digit zero-padded)
+- pdfjs font warning "TT: undefined function: 32" is benign — rendering unaffected
+- @napi-rs/canvas loads correctly on Windows + Node 24 (pre-built win32-x64-msvc binary, no node-gyp)
+
 ### Blockers / Concerns
 - `treasury_sync_budget` (bare, without _tree) does not exist — confirmed; always use `treasury_sync_budget_tree`
-- PDF rendering library not yet chosen — needs Node/system capability check before Phase 7
+- If Prosper ACFR (>10MB, likely 200+ pages) causes OOM during rendering, switch to chunked rendering in renderPDFPages
 
 ### Quick Tasks Completed
 
@@ -67,6 +76,6 @@ Progress: ███████████████░  (15/19 plans complet
 
 ## Session Continuity
 
-Last session: 2026-05-01
-Stopped at: Phase 6 complete — XLSX pipeline shipped, McKinney + Frisco visible in app; Phase 7 (PDF/Haiku) is next
+Last session: 2026-05-02T04:15:20Z
+Stopped at: Completed 07-01-PLAN.md — PDF rendering foundation; Celina ACFR 133 pages in cache; Plan 02 (Haiku extraction) is next
 Resume file: None
