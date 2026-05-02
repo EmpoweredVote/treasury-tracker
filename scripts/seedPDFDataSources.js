@@ -41,8 +41,14 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 const ALLEN_ACFR_FY2025  = 'https://www.cityofallen.org/Documents/Departments/Finance/Financial%20Transparency/Other%20Documents/FY%202025%20Annual%20Comprehensive%20Financial%20Report.pdf';
 const PROSPER_ACFR_FY2025 = 'https://www.prospertx.gov/ArchiveCenter/ViewFile/Item/682';
 const CELINA_ACFR_FY2025  = 'https://www.celina-tx.gov/DocumentCenter/View/15082/City-of-Celina-Texas---FINAL-ACFR-FY2025';
-// Plano: local file (manual export from plano.gov budget page)
+// Plano: local files (manual exports from plano.gov budget page)
+const PLANO_BUDGET_FY2019 = 'file://C:/treasury-tracker/docs/Plano/2018-19 Program of Service - Operating Budget (PDF).pdf';
+const PLANO_BUDGET_FY2020 = 'file://C:/treasury-tracker/docs/Plano/2019-20 Program of Service - Operating Budget (PDF).pdf';
+const PLANO_BUDGET_FY2022 = 'file://C:/treasury-tracker/docs/Plano/2021-22 Program of Service - Operating Budget (PDF).pdf';
+const PLANO_BUDGET_FY2023 = 'file://C:/treasury-tracker/docs/Plano/2022-23 Program of Service - Operating Budget (PDF).pdf';
+const PLANO_BUDGET_FY2024 = 'file://C:/treasury-tracker/docs/Plano/2023-24 Program of Service - Operating Budget (PDF).pdf';
 const PLANO_BUDGET_FY2025 = 'file://C:/treasury-tracker/docs/Plano/2024-25 Program of Service - Operating Budget (PDF).pdf';
+const PLANO_BUDGET_FY2026 = 'file://C:/treasury-tracker/docs/Plano/2025-26 Program of Service - Operating Budget (PDF).pdf';
 
 // ── Column mapping (same for all three — Haiku output field names) ─────────────
 const acfrCm = {
@@ -109,12 +115,72 @@ async function buildSources() {
       column_mapping: acfrCm,
     },
     {
+      name: 'Plano Operating Budget FY2019',
+      api_type: 'pdf_download',
+      dataset_type: 'operating',
+      dataset_id: 'fy2019',
+      base_url: PLANO_BUDGET_FY2019,
+      fiscal_years: [2019],
+      municipality_id: muniId('Plano'),
+      column_mapping: acfrCm,
+    },
+    {
+      name: 'Plano Operating Budget FY2020',
+      api_type: 'pdf_download',
+      dataset_type: 'operating',
+      dataset_id: 'fy2020',
+      base_url: PLANO_BUDGET_FY2020,
+      fiscal_years: [2020],
+      municipality_id: muniId('Plano'),
+      column_mapping: acfrCm,
+    },
+    {
+      name: 'Plano Operating Budget FY2022',
+      api_type: 'pdf_download',
+      dataset_type: 'operating',
+      dataset_id: 'fy2022',
+      base_url: PLANO_BUDGET_FY2022,
+      fiscal_years: [2022],
+      municipality_id: muniId('Plano'),
+      column_mapping: acfrCm,
+    },
+    {
+      name: 'Plano Operating Budget FY2023',
+      api_type: 'pdf_download',
+      dataset_type: 'operating',
+      dataset_id: 'fy2023',
+      base_url: PLANO_BUDGET_FY2023,
+      fiscal_years: [2023],
+      municipality_id: muniId('Plano'),
+      column_mapping: acfrCm,
+    },
+    {
+      name: 'Plano Operating Budget FY2024',
+      api_type: 'pdf_download',
+      dataset_type: 'operating',
+      dataset_id: 'fy2024',
+      base_url: PLANO_BUDGET_FY2024,
+      fiscal_years: [2024],
+      municipality_id: muniId('Plano'),
+      column_mapping: acfrCm,
+    },
+    {
       name: 'Plano Operating Budget FY2025',
       api_type: 'pdf_download',
       dataset_type: 'operating',
       dataset_id: 'fy2025',
       base_url: PLANO_BUDGET_FY2025,
       fiscal_years: [2025],
+      municipality_id: muniId('Plano'),
+      column_mapping: acfrCm,
+    },
+    {
+      name: 'Plano Operating Budget FY2026',
+      api_type: 'pdf_download',
+      dataset_type: 'operating',
+      dataset_id: 'fy2026',
+      base_url: PLANO_BUDGET_FY2026,
+      fiscal_years: [2026],
       municipality_id: muniId('Plano'),
       column_mapping: acfrCm,
     },
