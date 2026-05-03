@@ -128,14 +128,11 @@ const BudgetIcicle: React.FC<BudgetIcicleProps> = ({
   // Handle segment click
   const handleSegmentClick = (segment: BarSegment, levelIndex: number) => {
     if (levelIndex < levels.length - 1) {
-      // Clicking an ancestor level - navigate back to that level + this selection
-      // Find the path up to and including this segment
+      // Clicking an ancestor level — navigate back to that point
       onPathClick(segment.path);
     } else {
-      // Clicking current level - drill down if has children
-      if (segment.hasChildren) {
-        onPathClick(segment.path);
-      }
+      // Clicking current level — always navigate (leaf state shows "no breakdown" if needed)
+      onPathClick(segment.path);
     }
   };
 
@@ -157,7 +154,7 @@ const BudgetIcicle: React.FC<BudgetIcicleProps> = ({
             aria-label={`${level.levelName} breakdown`}
           >
             {level.segments.map((segment) => {
-              const isClickable = level.isAncestor || segment.hasChildren;
+              const isClickable = true;
               const showText = canFitText(segment.width, level.isAncestor);
 
               const bgColor = BRAND_BAR_COLORS[segment.category.name] ?? getCategoryColor(segment.categoryIndex);
