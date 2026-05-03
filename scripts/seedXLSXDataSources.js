@@ -164,6 +164,25 @@ async function buildSources() {
     payment_method_column: 'documenttype',
   };
 
+  // Plano check register FY2020–FY2023 — CSV exports from checkregister.plano.gov
+  for (const [fy, file] of [
+    [2020, 'PlanoFinancialReport 2020.csv'],
+    [2021, 'PlanoFinancialReport 2021.csv'],
+    [2022, 'PlanoFinancialReport 2022.csv'],
+    [2023, 'PlanoFinancialReport 2023.csv'],
+  ]) {
+    sources.push({
+      name: `Plano Check Register FY${fy}`,
+      api_type: 'xlsx_download',
+      dataset_type: 'transactions',
+      dataset_id: `fy${fy}`,
+      base_url: `file://C:/Transparent Motivations/Data Drop/Plano, TX/${file}`,
+      fiscal_years: [fy],
+      municipality_id: muniId('Plano'),
+      column_mapping: planoCm,
+    });
+  }
+
   // Plano check register FY2024 — CSV export (Oct 2023–Sep 2024)
   sources.push({
     name: 'Plano Check Register FY2024',
