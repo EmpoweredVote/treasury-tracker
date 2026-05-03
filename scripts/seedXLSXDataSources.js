@@ -154,7 +154,17 @@ async function buildSources() {
     });
   }
 
-  // Plano check register FY2024 — CSV export from checkregister.plano.gov (Oct 2023–Sep 2024)
+  const planoCm = {
+    date_column: 'checkdate',
+    amount_column: 'amount',
+    vendor_column: 'payeename',
+    description_column: 'description',
+    department_column: 'costcentername',
+    fund_column: 'fundname',
+    payment_method_column: 'documenttype',
+  };
+
+  // Plano check register FY2024 — CSV export (Oct 2023–Sep 2024)
   sources.push({
     name: 'Plano Check Register FY2024',
     api_type: 'xlsx_download',
@@ -163,15 +173,19 @@ async function buildSources() {
     base_url: 'file://C:/Transparent Motivations/Data Drop/Plano, TX/PlanoFinancialReport.csv',
     fiscal_years: [2024],
     municipality_id: muniId('Plano'),
-    column_mapping: {
-      date_column: 'checkdate',
-      amount_column: 'amount',
-      vendor_column: 'payeename',
-      description_column: 'description',
-      department_column: 'costcentername',
-      fund_column: 'fundname',
-      payment_method_column: 'documenttype',
-    },
+    column_mapping: planoCm,
+  });
+
+  // Plano check register FY2025 — CSV export (Oct 2024–Sep 2025)
+  sources.push({
+    name: 'Plano Check Register FY2025',
+    api_type: 'xlsx_download',
+    dataset_type: 'transactions',
+    dataset_id: 'fy2025',
+    base_url: 'file://C:/Transparent Motivations/Data Drop/Plano, TX/PlanoFinancialReport_till05032026.csv',
+    fiscal_years: [2025],
+    municipality_id: muniId('Plano'),
+    column_mapping: planoCm,
   });
 
   return sources;
