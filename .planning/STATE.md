@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-05-01)
 
 **Core value:** Any citizen can open financials.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Milestone v1.1 — Texas Municipal Financial Transparency (Phase 7: PDF/Haiku Vision Pipeline)
+**Current focus:** Milestone v1.1 complete — all requirements done; ready for audit or v1.2 planning
 
 ## Current Position
 
 Phase: 7 of 7 (PDF/Haiku Vision Pipeline)
 Plan: 3 of 3 complete
-Status: Phase complete
-Last activity: 2026-05-02 — Completed 07-03 — Allen/Prosper/Celina FY2025 ACFR data loaded and verified in app
+Status: Milestone v1.1 COMPLETE
+Last activity: 2026-05-03 — Plano fully loaded: operating budget FY2019–FY2026 (PDF) + check register FY2020–FY2025 (CSV, 179,292 transactions); XLSX-02 complete; all 21 v1.1 requirements done
 
 Progress: ███████████████████  (19/19 plans complete — Phase 7 complete)
 
