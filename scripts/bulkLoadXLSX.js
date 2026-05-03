@@ -60,6 +60,48 @@ async function downloadXLSX(url) {
   return Buffer.from(await resp.arrayBuffer());
 }
 
+// ── CSV parsing helpers ───────────────────────────────────────────────────────
+function splitCSVLine(line) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQuotes && line[i + 1] === '"') { current += '"'; i++; }
+      else inQuotes = !inQuotes;
+    } else if (ch === ',' && !inQuotes) {
+      result.push(current);
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  result.push(current);
+  return result;
+}
+
+function parseCSV(buffer) {
+  const lines = buffer.toString('utf8').split(/\r?\n/);
+  const headers = splitCSVLine(lines[0]).map(h => h.trim().toLowerCase().replace(/\s+/g, '_'));
+  const rows = [];
+  let blankSkipped = 0;
+
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line.trim()) { blankSkipped++; continue; }
+    const values = splitCSVLine(line);
+    const obj = {};
+    headers.forEach((h, idx) => {
+      const val = values[idx]?.trim() ?? null;
+      obj[h] = val === '' ? null : val;
+    });
+    rows.push(obj);
+  }
+
+  return { headers, rows, blankSkipped, headerDupeSkipped: 0 };
+}
+
 // ── Parse helper ─────────────────────────────────────────────────────────────
 async function parseXLSX(buffer, cm = {}) {
   const workbook = new ExcelJS.Workbook();
@@ -160,11 +202,18 @@ function buildBatch(rows, cm) {
     const vn = r[cm.vendor_column] || 'Unknown';
     vendors.add(vn);
 
-    // Date: convert Date objects to ISO string, or use raw value
+    // Date: normalize to ISO date string (YYYY-MM-DD)
     let dt = null;
     if (cm.date_column && r[cm.date_column]) {
       const raw = r[cm.date_column];
-      dt = raw instanceof Date ? raw.toISOString() : raw;
+      if (raw instanceof Date) {
+        dt = raw.toISOString().slice(0, 10);
+      } else if (typeof raw === 'string' && /^\d{1,2}\/\d{1,2}\/\d{4}/.test(raw)) {
+        const d = new Date(raw);
+        dt = isNaN(d.getTime()) ? raw : d.toISOString().slice(0, 10);
+      } else {
+        dt = raw;
+      }
     }
 
     return {
@@ -250,7 +299,10 @@ async function syncSource(ds, opts = {}) {
 
   // ── Download + parse ────────────────────────────────────────────────────────
   const buffer = await downloadXLSX(downloadUrl);
-  const { headers, rows, blankSkipped, headerDupeSkipped } = await parseXLSX(buffer, cm);
+  const isCsv = downloadUrl.toLowerCase().endsWith('.csv');
+  const { headers, rows, blankSkipped, headerDupeSkipped } = isCsv
+    ? parseCSV(buffer)
+    : await parseXLSX(buffer, cm);
   console.log('  Parsed ' + rows.length.toLocaleString() + ' data rows (' +
     blankSkipped + ' blank skipped, ' + headerDupeSkipped + ' header-dupe skipped)');
   console.log('  Headers: ' + headers.join(', '));

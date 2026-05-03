@@ -154,22 +154,23 @@ async function buildSources() {
     });
   }
 
-  // Plano check register FY25 — manual export placeholder
-  // User downloads XLSX from checkregister.plano.gov and places at this path.
-  // Update column_mapping after inspecting the actual file headers.
+  // Plano check register FY2024 — CSV export from checkregister.plano.gov (Oct 2023–Sep 2024)
   sources.push({
-    name: 'Plano Check Register FY2025',
+    name: 'Plano Check Register FY2024',
     api_type: 'xlsx_download',
     dataset_type: 'transactions',
-    dataset_id: 'fy2025',
-    base_url: 'file:///C:/Users/Chris/Downloads/plano_checkregister_fy25.xlsx',
-    fiscal_years: [2025],
+    dataset_id: 'fy2024',
+    base_url: 'file://C:/Transparent Motivations/Data Drop/Plano, TX/PlanoFinancialReport.csv',
+    fiscal_years: [2024],
     municipality_id: muniId('Plano'),
     column_mapping: {
-      date_column: 'tbd',
-      amount_column: 'tbd',
-      vendor_column: 'tbd',
-      note: 'Column mapping TBD — download XLSX from checkregister.plano.gov, inspect headers, then update this row',
+      date_column: 'checkdate',
+      amount_column: 'amount',
+      vendor_column: 'payeename',
+      description_column: 'description',
+      department_column: 'costcentername',
+      fund_column: 'fundname',
+      payment_method_column: 'documenttype',
     },
   });
 
@@ -247,8 +248,8 @@ async function main() {
   }
 
   const xlsxRows = (listing || []).filter(r => r.api_type === 'xlsx_download');
-  if (xlsxRows.length !== SOURCES.length) {
-    console.error(`  ERROR: expected ${SOURCES.length} xlsx_download rows, got ${xlsxRows.length}`);
+  if (xlsxRows.length < SOURCES.length) {
+    console.error(`  ERROR: expected at least ${SOURCES.length} xlsx_download rows, got ${xlsxRows.length}`);
     process.exit(1);
   }
 
