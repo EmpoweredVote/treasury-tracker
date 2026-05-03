@@ -364,11 +364,7 @@ function App() {
   }, [navigationPath, activeDataset, budgetData]);
 
   const handleCategoryClick = useCallback((category: BudgetCategory) => {
-    if (category.subcategories && category.subcategories.length > 0) {
-      setNavigationPath([...navigationPath, category]);
-    } else if (category.lineItems && category.lineItems.length > 0) {
-      setNavigationPath([...navigationPath, category]);
-    }
+    setNavigationPath([...navigationPath, category]);
   }, [navigationPath]);
 
   const handleSummaryCategoryClick = useCallback((categoryName: string, dataset: 'operating' | 'revenue') => {
@@ -403,13 +399,6 @@ function App() {
   }, [activeDataset, operatingBudgetData, revenueData]);
 
   const handlePathClick = useCallback((path: BudgetCategory[]) => {
-    // Guard: don't navigate to a leaf node that has nothing to display
-    if (path.length > 0) {
-      const target = path[path.length - 1];
-      const hasChildren = target.subcategories && target.subcategories.length > 0;
-      const hasLineItems = target.lineItems && target.lineItems.length > 0;
-      if (!hasChildren && !hasLineItems) return; // ignore click on empty leaf
-    }
     setNavigationPath(path);
   }, []);
 
@@ -805,9 +794,38 @@ function App() {
                     />
                   )}
                 </>
+              ) : navigationPath.length > 0 ? (
+                // Leaf node: no subcategories and no line items — show chart context + transactions or message
+                <>
+                  <BudgetVisualization
+                    categories={budgetData.categories}
+                    navigationPath={navigationPath}
+                    totalBudget={budgetData.metadata.totalBudget}
+                    onPathClick={handlePathClick}
+                    isNonprofit={selectedEntity?.entity_type === 'nonprofit'}
+                  />
+                  {linkedTransactions ? (
+                    <LinkedTransactionsPanel
+                      linkedTransactions={linkedTransactions}
+                      categoryName={currentCategory!.name}
+                      linkKey={currentCategory!.linkKey}
+                      fiscalYear={parseInt(selectedYear)}
+                    />
+                  ) : activeDataset === 'operating' && currentCategory?.linkKey ? (
+                    <div className="bg-white border border-[#E2EBEF] rounded-xl p-8 flex flex-col items-center gap-3">
+                      <div className="w-6 h-6 rounded-full border-[3px] border-[#E2EBEF] border-t-ev-muted-blue animate-spin" />
+                      <p className="text-sm text-[#6B7280]">Loading transactions…</p>
+                    </div>
+                  ) : (
+                    <div className="bg-white border border-[#E2EBEF] rounded-xl p-6 text-center">
+                      <p className="text-sm font-medium text-[#1C1C1C] mb-1">No further breakdown available</p>
+                      <p className="text-xs text-[#6B7280]">This category has no subcategories or line items in the current dataset.</p>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="bg-white border border-[#E2EBEF] rounded-xl p-8 text-center">
-                  <p className="text-sm text-[#6B7280]">Try adjusting your search query</p>
+                  <p className="text-sm text-[#6B7280]">No data available for the selected filters.</p>
                 </div>
               )}
             </div>
