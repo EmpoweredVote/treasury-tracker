@@ -26,7 +26,16 @@ dist-ssr
 
 # Claude Code internals
 .claude/worktrees/
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
 .superpowers/
+
+# Local data files — financial exports and large PDFs (not for version control)
+EV/
+docs/
+
+# Supabase temp files
+supabase/.temp/
 
 # Static data files — all data served from Supabase via API
 public/data/
