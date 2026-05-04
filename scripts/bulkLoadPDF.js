@@ -272,7 +272,7 @@ async function callHaikuWithRetry(base64, pageNum, opts = {}) {
     try {
       const response = await anthropic.messages.create({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 2048,
+        max_tokens: 8192,
         messages: [{
           role: 'user',
           content: [
@@ -281,6 +281,14 @@ async function callHaikuWithRetry(base64, pageNum, opts = {}) {
           ],
         }],
       });
+      if (response.stop_reason === 'max_tokens') {
+        return {
+          page_type: 'other',
+          confidence: 0,
+          reason: 'max_tokens_truncation: response truncated, JSON incomplete',
+          rows: [],
+        };
+      }
       const text = response.content?.[0]?.text;
       if (!text) throw new Error('Haiku returned no text content');
       const parsed = extractJSON(text);
