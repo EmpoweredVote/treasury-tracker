@@ -90,4 +90,4 @@
 
 ---
 *Requirements defined: 2026-05-03*
-*Last updated: 2026-05-03 after milestone v1.2 initialization*
+*Last updated: 2026-05-03 — phase assignments confirmed in ROADMAP.md*

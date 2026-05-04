@@ -4,6 +4,7 @@
 
 - ✅ **v1.0 GiveButter Real-Time Donation Feedback** — Phases 1-4 (shipped 2026-04-22)
 - ✅ **v1.1 Texas Municipal Financial Transparency** — Phases 5-7 (shipped 2026-05-02)
+- 🚧 **v1.2 Collin County Completion & Data Quality** — Phases 8-10 (in progress)
 
 ---
 
@@ -53,11 +54,8 @@ Plans:
 
 ---
 
-### ✅ v1.1 Texas Municipal Financial Transparency (SHIPPED 2026-05-02 — Phases 5-7 complete)
-
-**Milestone Goal:** Load real financial data for Texas cities using three progressively capable ingestion pipelines — Socrata API, XLSX download, and PDF/Haiku vision extraction.
-
----
+<details>
+<summary>✅ v1.1 Texas Municipal Financial Transparency (Phases 5-7) — SHIPPED 2026-05-02</summary>
 
 ### Phase 5: Dallas Socrata Integration (COMPLETE — 2026-05-01)
 
@@ -67,15 +65,6 @@ Plans:
 
 **Requirements:** DAL-01, DAL-02, DAL-03, DAL-04, DAL-05, DAL-06
 
-**Technical context:**
-- Dallas municipality_id: `17ce5baf-277d-41c9-a3f6-2e44f9def106`
-- Operating budget dataset: `e2fs-y4nb` — fields: `bfy, ftyp, fundtype, appr, appropriation, svc, service, objectgroup, budcurr, encbfy, expbfy, encexp`
-- Revenue budget dataset: `rtn4-pmj9` — fields: `bfy, ftyp, fundtype, department, rsrc, revsource, budcurr, revbfy`
-- Operating column mapping: `budcurr` → approved_amount, `expbfy` → actual_amount; hierarchy: `service` → `objectgroup`
-- Revenue column mapping: `budcurr` → approved_amount, `revbfy` → actual_amount; hierarchy: `department` → `revsource`
-- Loader follows `bulkLoadTransactions.js` pattern: `data_sources.column_mapping` JSON drives field names, `treasury_sync_budget_tree` RPC handles upsert (the bare `treasury_sync_budget` RPC does not exist in the deployed schema)
-- `bulkLoadBudget.js` must be generic — no hardcoded Dallas logic; column mapping lives entirely in `data_sources`
-
 **Success Criteria** (what must be TRUE when phase completes):
 1. Dallas operating budget FY2025 and FY2026 are visible in the app with correct category breakdowns and dollar amounts
 2. Dallas revenue budget FY2025 and FY2026 are visible in the app with correct department/source hierarchy
@@ -83,14 +72,10 @@ Plans:
 4. Re-running the loader does not create duplicate budget rows (idempotent via upsert or truncate-reload strategy)
 5. `data_sources` rows exist for both Dallas datasets with correct `api_type`, dataset IDs, and column mapping JSON
 
-**Plans:** 3 plans
-
 Plans:
 - [x] 05-01-PLAN.md — Idempotent seeder for Dallas operating + revenue `data_sources` rows
 - [x] 05-02-PLAN.md — Generic Socrata budget loader (`bulkLoadBudget.js`) calling `treasury_sync_budget_tree`
 - [x] 05-03-PLAN.md — Live load Dallas FY2025 + FY2026 operating + revenue, verify in app + idempotency
-
----
 
 ### Phase 6: XLSX Pipeline (COMPLETE — 2026-05-01)
 
@@ -100,13 +85,6 @@ Plans:
 
 **Requirements:** XLSX-01, XLSX-02, XLSX-03, XLSX-04, XLSX-05, XLSX-06, XLSX-07
 
-**Technical context:**
-- Plano: `checkregister.plano.gov` Excel export — `dataset_type = 'transactions'`
-- McKinney: direct XLSX download from `mckinneytexas.org` Traditional Finances page — transactions + payroll (`dataset_type = 'salaries'`)
-- Frisco: `friscotexas.gov/1276/Check-Register` XLSX — `dataset_type = 'transactions'`
-- `data_sources.api_type = 'xlsx_download'`; column mapping JSON stored in `data_sources` row same as Socrata pattern
-- Dedup strategy: `source_row_id` derived from row hash (preferred) or position+date composite; prevents re-run duplicates
-
 **Success Criteria** (what must be TRUE when phase completes):
 1. Plano, McKinney, and Frisco each have at least one loaded dataset visible in the app (check register transactions)
 2. McKinney payroll data is loaded and visible under a `salaries` dataset type
@@ -114,14 +92,10 @@ Plans:
 4. `data_sources` rows exist for all XLSX sources with `api_type = 'xlsx_download'`, download URL, and column mapping
 5. The loader accepts only a city config (data_sources row) — no city-specific code branches
 
-**Plans:** 3 plans
-
 Plans:
 - [x] 06-01-PLAN.md — Build generic bulkLoadXLSX.js (download, parse, SHA-256 dedup, treasury_sync_transactions RPC)
 - [x] 06-02-PLAN.md — Investigate sources + idempotent seedXLSXDataSources.js for Plano, McKinney (transactions + payroll), Frisco
 - [x] 06-03-PLAN.md — Live load all seeded sources, verify idempotency + force-reload, confirm data visible in app
-
----
 
 ### Phase 7: PDF/Haiku Vision Pipeline (COMPLETE — 2026-05-02)
 
@@ -131,15 +105,6 @@ Plans:
 
 **Requirements:** PDF-01, PDF-02, PDF-03, PDF-04, PDF-05, PDF-06, PDF-07, PDF-08
 
-**Technical context:**
-- PDF → PNG rendering using available Node/system library (e.g., `pdf2pic`, `pdfjs-dist`, or system `pdftoppm`)
-- Each page PNG sent to Claude Haiku vision API: model `claude-haiku-4-5-20251001` (cost-effective for high-volume page processing)
-- Extraction prompt targets GFOA ACFR budget tables; returns structured JSON: `{ department, category, approved_amount, actual_amount, fiscal_year }`
-- Validated JSON loaded to `treasury.budgets` + `treasury.budget_categories` via `treasury_sync_budget` RPC (same as Phase 5)
-- Pipeline parameterized: accepts `--city`, `--pdf` (path or URL), `--fiscal-year`
-- Confidence logging: each page logs a confidence score; pages below threshold flagged in a review log rather than silently dropped
-- Approach validated by Transparent Motivations project using identical PDF → PNG → Haiku pattern
-
 **Success Criteria** (what must be TRUE when phase completes):
 1. Allen, Prosper, and Celina each have at least one fiscal year of budget data visible in the app, sourced from their ACFR PDFs
 2. Running the pipeline against a new PDF (any of the three cities) completes without manual intervention for well-formed ACFR pages
@@ -147,18 +112,95 @@ Plans:
 4. The pipeline accepts `--city`, `--pdf`, and `--fiscal-year` parameters and requires no code changes to run against a new city's ACFR
 5. Extracted JSON is validated against the expected schema before loading — malformed Haiku output is rejected with a clear error, not silently written
 
-**Plans:** 3 plans
-
 Plans:
 - [x] 07-01-PLAN.md — PDF rendering foundation: install pdftoimg-js + @napi-rs/canvas, scaffold bulkLoadPDF.js, render PDF pages to PNG with SHA-256-keyed disk cache
 - [x] 07-02-PLAN.md — Haiku vision extraction + treasury_sync_budget_tree RPC integration: full per-page pipeline with confidence threshold, JSONL review log, tiered exit codes (0/1/2)
 - [x] 07-03-PLAN.md — Seed Allen/Prosper/Celina data_sources, dry-run + live-load all three ACFRs, verify in app (human checkpoint)
 
+</details>
+
+---
+
+### 🚧 v1.2 Collin County Completion & Data Quality (In Progress — Phases 8-10)
+
+**Milestone Goal:** Fix department attribution in PDF-extracted budgets, surface and complete revenue data for all loaded TX cities, and expand coverage to 6 remaining Collin County cities.
+
+---
+
+### Phase 8: Data Quality
+
+**Goal:** PDF-extracted budgets for Allen, Prosper, Celina, Frisco, and Plano show correct department names instead of "Unknown", and dense ACFR pages no longer cause JSON truncation failures.
+
+**Depends on:** Phase 7 (PDF/Haiku pipeline established and in production)
+
+**Requirements:** DQ-01, DQ-02, DQ-03, DQ-04
+
+**Success Criteria** (what must be TRUE when phase completes):
+1. Budget rows in Allen, Prosper, and Celina are attributed to named departments (not "Unknown") for the majority of their budget data
+2. Budget rows in Frisco and Plano are attributed to named departments (not "Unknown") for the majority of their budget data
+3. Running `bulkLoadPDF.js` against a dense statistical ACFR completes with exit code 0 or 1 — exit code 2 JSON truncation no longer occurs on operating budget pages
+4. Re-extracted data replaces prior "Unknown" rows — old incorrect attributions are not left in the database alongside corrected rows
+
+**Plans:** TBD
+
+Plans:
+- [ ] 08-01-PLAN.md — Extend bulkLoadPDF.js to track ACFR section headings across pages; carry department context forward when rows lack explicit headers
+- [ ] 08-02-PLAN.md — Fix JSON truncation: implement chunked extraction or increase max_tokens for dense pages; add page-size guard
+- [ ] 08-03-PLAN.md — Re-extract and reload Allen, Prosper, Celina, Frisco, Plano; verify department attribution in app
+
+---
+
+### Phase 9: Revenue Completion
+
+**Goal:** Citizens can view revenue data for all six loaded TX cities — Plano, McKinney, Frisco, and Allen (already loaded) are verified correct in the app, and Prosper and Celina revenue data is loaded and visible.
+
+**Depends on:** Phase 8 (operating budget quality fixes complete; Prosper/Celina data is clean before adding revenue layer)
+
+**Requirements:** REV-01, REV-02, REV-03, REV-04, REV-05, REV-06
+
+**Success Criteria** (what must be TRUE when phase completes):
+1. Plano revenue data (FY2018–2024) appears correctly in the app's revenue view with valid amounts and category hierarchy
+2. McKinney revenue data (FY2021–2025) appears correctly in the app's revenue view with valid amounts and category hierarchy
+3. Frisco revenue data (FY2026) appears correctly in the app's revenue view with valid amounts and category hierarchy
+4. Allen revenue data (FY2026) appears correctly in the app's revenue view with valid amounts and category hierarchy
+5. Prosper and Celina each have at least one fiscal year of revenue data loaded and visible in the app
+
+**Plans:** TBD
+
+Plans:
+- [ ] 09-01-PLAN.md — Verify Plano/McKinney/Frisco/Allen revenue in app: inspect DB rows, confirm UI renders revenue tab with correct totals and hierarchy
+- [ ] 09-02-PLAN.md — Extract and load Prosper revenue from ACFR PDF; verify in app
+- [ ] 09-03-PLAN.md — Extract and load Celina revenue from ACFR PDF; verify in app
+
+---
+
+### Phase 10: Collin County Expansion
+
+**Goal:** Citizens can view operating budget data for the 6 remaining Collin County cities — Garland, Richardson, Wylie, Sachse, Murphy, and Princeton — each loaded from their ACFR PDFs via the existing Haiku vision pipeline.
+
+**Depends on:** Phase 8 (improved PDF pipeline with correct department attribution reduces rework for new cities)
+
+**Requirements:** COL-01, COL-02, COL-03, COL-04, COL-05, COL-06
+
+**Success Criteria** (what must be TRUE when phase completes):
+1. Garland and Richardson each have at least one fiscal year of operating budget data visible in the app with named departments
+2. Wylie and Sachse each have at least one fiscal year of operating budget data visible in the app with named departments
+3. Murphy and Princeton each have at least one fiscal year of operating budget data visible in the app with named departments
+4. Each city has a seeded `data_sources` row and was loaded using `bulkLoadPDF.js` without city-specific code changes
+5. ACFRs for all 6 cities are sourced and documented (URL or local path recorded in data_sources or a reference file)
+
+**Plans:** TBD
+
+Plans:
+- [ ] 10-01-PLAN.md — Source ACFRs for all 6 cities; seed data_sources rows; dry-run pipeline against each PDF
+- [ ] 10-02-PLAN.md — Live load Garland and Richardson; verify in app
+- [ ] 10-03-PLAN.md — Live load Wylie, Sachse, Murphy, and Princeton; verify in app
+
 ---
 
 ## Progress
 
-**Execution Order:** 5 → 6 → 7
+**Execution Order:** 8 → 9 → 10
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -169,8 +211,11 @@ Plans:
 | 5. Dallas Socrata | v1.1 | 3/3 | Complete | 2026-05-01 |
 | 6. XLSX Pipeline | v1.1 | 3/3 | Complete | 2026-05-01 |
 | 7. PDF/Haiku Vision | v1.1 | 3/3 | Complete | 2026-05-02 |
+| 8. Data Quality | v1.2 | 0/3 | Not started | - |
+| 9. Revenue Completion | v1.2 | 0/3 | Not started | - |
+| 10. Collin County Expansion | v1.2 | 0/3 | Not started | - |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-05-02 — Phase 7 complete; v1.1 milestone shipped (Allen/Prosper/Celina ACFR data live)*
+*Last updated: 2026-05-03 — v1.2 roadmap added (Phases 8-10); v1.1 phases collapsed to details block*
