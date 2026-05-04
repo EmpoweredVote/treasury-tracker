@@ -60,16 +60,16 @@ Any citizen can open financials.empowered.vote and immediately understand where 
 | Supabase Edge Function as webhook receiver | Already in stack, no new infra | — Pending |
 | GiveButter-only for v1 | Best webhook support; Patreon/Benevity less suitable | — Pending |
 
-## Current Milestone: v1.1 Texas Municipal Financial Transparency
+## Current Milestone: v1.2 Collin County Completion & Data Quality
 
-**Goal:** Load real financial data for Collin County, TX cities using three progressively harder ingestion pipelines — Socrata API, XLSX download, and PDF/Haiku vision extraction.
+**Goal:** Fix department attribution in PDF-extracted budgets, surface and complete revenue data for all loaded TX cities, and expand coverage to 6 remaining Collin County cities.
 
 **Target features:**
-- Dallas Socrata integration (operating + revenue budgets via SODA API)
-- Generic `bulkLoadBudget.js` script reusable for any Socrata city
-- XLSX pipeline for Plano, McKinney, Frisco, Richardson, Sachse check registers / budgets
-- PDF → image → Claude Haiku vision pipeline for ACFR parsing
-- Allen, Prosper, Celina loaded via PDF pipeline
+- Fix "Unknown" department in PDF-extracted budgets (Allen, Prosper, Celina, Frisco, Plano) — track ACFR section headings across pages
+- Fix JSON truncation (exit code 2) on dense statistical ACFR pages
+- Surface and verify revenue data for Plano, McKinney, Allen, Frisco (loaded post-v1.1)
+- Load revenue data for Prosper and Celina
+- Load operating budgets for 6 remaining Collin County cities: Garland, Richardson, Wylie, Sachse, Murphy, Princeton
 
 ---
-*Last updated: 2026-05-01 — Milestone v1.1 Texas Municipal Financial Transparency started*
+*Last updated: 2026-05-03 — Milestone v1.2 Collin County Completion & Data Quality started*
