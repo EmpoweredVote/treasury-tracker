@@ -146,6 +146,17 @@ async function buildSources() {
       municipality_id: muniId('Celina'),
       column_mapping: acfrCm,
     },
+    // Celina revenue data_sources — same ACFR PDF, dataset_type='revenue'
+    {
+      name: 'Celina Revenue FY2025',
+      api_type: 'pdf_download',
+      dataset_type: 'revenue',
+      dataset_id: 'fy2025',
+      base_url: CELINA_ACFR_FY2025,
+      fiscal_years: [2025],
+      municipality_id: muniId('Celina'),
+      column_mapping: acfrCm,
+    },
     {
       name: 'Frisco Operating Budget FY2026',
       api_type: 'pdf_download',
