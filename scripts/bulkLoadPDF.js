@@ -182,7 +182,7 @@ async function renderPDFPages(pdfBuffer, pdfHash, cacheDir, opts = {}) {
 }
 
 // ── Extraction prompt ────────────────────────────────────────────────────────
-const EXTRACTION_PROMPT = `Analyze this page from a government Annual Comprehensive Financial Report (ACFR).
+const EXTRACTION_PROMPT_BASE = `Analyze this page from a government Annual Comprehensive Financial Report (ACFR).
 
 First, classify this page as one of: budget_table, narrative, chart, cover, table_of_contents, notes, statistical, other.
 
@@ -192,21 +192,35 @@ Return ONLY valid JSON with this exact structure:
   "page_type": "budget_table",
   "confidence": 85,
   "reason": "Clear budget comparison table with department/fund/adopted/actual columns",
+  "section_heading": "Public Safety",
   "rows": [
     { "department": "Public Safety", "category": "Police Department", "approved_amount": 18500000, "actual_amount": 17832000, "fiscal_year": 2025, "fund": "General Fund" }
   ]
 }
 
 If the page is NOT a budget_table, return:
-{ "page_type": "narrative", "confidence": 95, "reason": "Text-only page with no tabular budget data", "rows": [] }
+{ "page_type": "narrative", "confidence": 95, "reason": "Text-only page with no tabular budget data", "section_heading": null, "rows": [] }
+
+Note: A 'Context: Current ACFR section is "<name>".' line may appear below. If present, use that section name as the department for any row that does not have its own department/header label.
 
 Rules:
 - confidence: 0-100, your certainty that the extracted data is accurate
 - approved_amount and actual_amount: numeric dollars only (no $ or commas), null if not visible
 - fiscal_year: 4-digit year from the table or document header, null if unclear
 - fund: fund name if labeled, null if not shown
+- section_heading: if a major ACFR section header is visible on this page (e.g. "Public Safety", "Public Works", "General Government", "Culture and Recreation"), return the heading text; otherwise return null. This is used to attribute department for budget rows on subsequent pages that lack an explicit department column.
 - Extract ALL rows visible — do not summarize or aggregate
 - Return ONLY the JSON object, no other text`;
+
+/**
+ * Build the per-page extraction prompt, optionally injecting the current section context.
+ * @param {string|null} sectionContext
+ * @returns {string}
+ */
+function buildExtractionPrompt(sectionContext) {
+  if (!sectionContext) return EXTRACTION_PROMPT_BASE;
+  return EXTRACTION_PROMPT_BASE + '\n\nContext: Current ACFR section is "' + sectionContext + '". Apply as department for rows without an explicit department header.';
+}
 
 // ── Lazy Anthropic client ────────────────────────────────────────────────────
 let anthropic = null;
@@ -243,6 +257,9 @@ function validateExtractionResult(obj, pageNum) {
     return { ok: false, reason: 'Schema violation: reason must be a string' };
   if (!Array.isArray(obj.rows))
     return { ok: false, reason: 'Schema violation: rows must be an array' };
+  if ('section_heading' in obj && obj.section_heading !== null && (typeof obj.section_heading !== 'string' || obj.section_heading.trim() === '')) {
+    return { ok: false, reason: 'Schema violation: section_heading must be null or non-empty string' };
+  }
   return { ok: true };
 }
 
@@ -254,10 +271,11 @@ function validateExtractionResult(obj, pageNum) {
  *
  * @param {string} base64 - base64-encoded PNG
  * @param {number} pageNum
+ * @param {string} prompt - extraction prompt text (built via buildExtractionPrompt)
  * @param {object} [opts]
  * @returns {Promise<{page_type: string, confidence: number, reason: string, rows: object[]}|null>}
  */
-async function callHaikuWithRetry(base64, pageNum, opts = {}) {
+async function callHaikuWithRetry(base64, pageNum, prompt, opts = {}) {
   if (!anthropic) {
     if (!process.env.ANTHROPIC_API_KEY) {
       console.error('Missing ANTHROPIC_API_KEY env var (Haiku vision)');
@@ -277,7 +295,7 @@ async function callHaikuWithRetry(base64, pageNum, opts = {}) {
           role: 'user',
           content: [
             { type: 'image', source: { type: 'base64', media_type: 'image/png', data: base64 } },
-            { type: 'text', text: EXTRACTION_PROMPT },
+            { type: 'text', text: prompt },
           ],
         }],
       });
@@ -350,12 +368,17 @@ async function processPDF(ds, opts = {}) {
   const flaggedPages = [];
   let budgetTablePages = 0;
   let haikuFatal = false;
+  // currentSection tracks the most-recently-seen ACFR section heading across pages,
+  // so rows on continuation pages (which lack their own department header) can be
+  // attributed to the correct section. Scoped per processPDF call — resets per document.
+  let currentSection = null;
 
   for (let i = 0; i < pageFiles.length; i++) {
     const pageNum = i + 1;
     const pngBuffer = await fs.readFile(pageFiles[i]);
     const base64 = pngBuffer.toString('base64');
-    const result = await callHaikuWithRetry(base64, pageNum, opts);
+    const prompt = buildExtractionPrompt(currentSection);
+    const result = await callHaikuWithRetry(base64, pageNum, prompt, opts);
 
     if (result === null) {
       haikuFatal = true;
@@ -365,6 +388,12 @@ async function processPDF(ds, opts = {}) {
 
     if (!opts.quiet) {
       console.log('Page ' + pageNum + '/' + totalPages + ' — ' + result.page_type + ' — ' + result.confidence + '% confidence — ' + result.rows.length + ' rows extracted');
+    }
+
+    // Update section context from this page's section_heading (before page_type check,
+    // so even non-budget pages that carry a heading advance the context forward)
+    if (result && result.section_heading) {
+      currentSection = result.section_heading;
     }
 
     if (result.page_type !== 'budget_table') continue; // silently skip non-budget pages
@@ -381,7 +410,11 @@ async function processPDF(ds, opts = {}) {
     }
 
     // Confident budget_table — override fiscal_year with CLI value (source of truth)
+    // Apply currentSection fallback for rows lacking an explicit department
     for (const row of result.rows) {
+      if (!row.department && currentSection) {
+        row.department = currentSection;
+      }
       budgetRows.push({ ...row, fiscal_year: fiscalYear });
     }
   }
