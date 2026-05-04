@@ -141,12 +141,12 @@ Plans:
 3. Running `bulkLoadPDF.js` against a dense statistical ACFR completes with exit code 0 or 1 — exit code 2 JSON truncation no longer occurs on operating budget pages
 4. Re-extracted data replaces prior "Unknown" rows — old incorrect attributions are not left in the database alongside corrected rows
 
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 
 Plans:
-- [ ] 08-01-PLAN.md — Pipeline fixes: max_tokens 8192 + stop_reason guard, cross-page section_heading context, seed Frisco Operating Budget FY2026 data_source
+- [x] 08-01-PLAN.md — Pipeline fixes: max_tokens 8192 + stop_reason guard, cross-page section_heading context, seed Frisco Operating Budget FY2026 data_source
 - [x] 08-02-PLAN.md — Re-extract and reload Allen / Prosper / Celina ACFR FY2025; verify named-department dominance in app
-- [ ] 08-03-PLAN.md — Re-extract and reload Frisco FY2026 (after dry-run validation) + all 7 Plano fiscal years; verify named-department dominance in app
+- [x] 08-03-PLAN.md — Re-extract and reload Frisco FY2026 (after dry-run validation) + all 7 Plano fiscal years; verify named-department dominance in app
 
 ---
 
@@ -211,11 +211,11 @@ Plans:
 | 5. Dallas Socrata | v1.1 | 3/3 | Complete | 2026-05-01 |
 | 6. XLSX Pipeline | v1.1 | 3/3 | Complete | 2026-05-01 |
 | 7. PDF/Haiku Vision | v1.1 | 3/3 | Complete | 2026-05-02 |
-| 8. Data Quality | v1.2 | 2/3 | In progress | - |
+| 8. Data Quality | v1.2 | 3/3 | Complete | 2026-05-04 |
 | 9. Revenue Completion | v1.2 | 0/3 | Not started | - |
 | 10. Collin County Expansion | v1.2 | 0/3 | Not started | - |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-05-03 — v1.2 roadmap added (Phases 8-10); v1.1 phases collapsed to details block*
+*Last updated: 2026-05-04 — Phase 8 complete (3/3 plans); Frisco/Plano re-extractions done*

@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-05-03)
 ## Current Position
 
 Phase: 8 of 10 (Data Quality)
-Plan: 2 of 3 in current phase
-Status: In progress
-Last activity: 2026-05-04 — Completed 08-02: Allen/Prosper/Celina re-extracted, Celina Unknown resolved
+Plan: 3 of 3 in current phase
+Status: Phase complete — pending verification
+Last activity: 2026-05-04 — Completed 08-03: Frisco FY2026 and Plano FY2019/2020/2022 re-extracted; phase execution complete
 
-Progress: [████████░░░░░░░░░░░░] 40% (8/20 plans complete)
+Progress: [██████████░░░░░░░░░░] 50% (10/20 plans complete)
 
 ## Performance Metrics
 
@@ -53,6 +53,9 @@ Progress: [████████░░░░░░░░░░░░] 40% (8/
 - `treasury_sync_budget` (bare) does not exist — always use `treasury_sync_budget_tree`
 - pct_unknown is the re-extraction success metric, not total row count (Haiku is non-deterministic; row counts differ between runs)
 - Allen and Prosper FY2025 were already clean (0% Unknown) before 08-02; Celina's single Unknown row covering $207M (17.9% of dollars) resolved by re-extraction
+- Plano FY2023–2026 skipped in 08-03 — already 99.9% clean (1 unknown row/year), ~$20 API cost not justified for unfunded nonprofit
+- Sequential PDF runs for same city share rate limit and disk cache — preferred over parallel for cost control
+- Exit code 2 on Plano FY2022 accepted — flagged page was "Budget Assumption Matrix" projection data, not operating budget; main load succeeded
 
 ### Blockers / Concerns
 
@@ -68,5 +71,5 @@ Progress: [████████░░░░░░░░░░░░] 40% (8/
 ## Session Continuity
 
 Last session: 2026-05-04
-Stopped at: Completed 08-02-PLAN.md — Allen/Prosper/Celina re-extracted; all three at 0% Unknown; ready for 08-03
+Stopped at: Completed 08-03-PLAN.md — Frisco/Plano re-extracted; Phase 8 execution complete; ready for Phase 9
 Resume file: None
