@@ -1,75 +1,64 @@
-# Requirements: Texas Municipal Financial Transparency
+# Requirements: Collin County Completion & Data Quality
 
-**Defined:** 2026-05-01
-**Core Value:** Any citizen can open financials.empowered.vote and immediately understand where money comes from and where it goes — for Texas cities, not just Indiana and California.
-
----
-
-## v1.1 Requirements
-
-### Tier 1 — Dallas Socrata Integration
-
-- [x] **DAL-01**: `data_sources` rows exist for Dallas operating budget (dataset `e2fs-y4nb`) and revenue budget (dataset `rtn4-pmj9`) linked to the Dallas municipality record
-- [x] **DAL-02**: `bulkLoadBudget.js` script fetches paginated Socrata operating budget data and inserts into `treasury.budgets` + `treasury.budget_categories` tree via existing RPC pattern
-- [x] **DAL-03**: `bulkLoadBudget.js` handles revenue budget dataset with appropriate column mapping (`budcurr` → approved, `revbfy` → actual, `department`/`revsource` as hierarchy)
-- [x] **DAL-04**: Dallas operating budget FY2025 and FY2026 successfully loaded and visible in the app
-- [x] **DAL-05**: Dallas revenue budget FY2025 and FY2026 successfully loaded and visible in the app
-- [x] **DAL-06**: `bulkLoadBudget.js` is generic — `column_mapping` in `data_sources` drives field names, not hardcoded Dallas logic
-
-### Tier 2 — XLSX Pipeline
-
-- [x] **XLSX-01**: `bulkLoadXLSX.js` (or equivalent) can download an XLSX file from a city URL, parse it, and load operating/revenue budget data into the treasury schema
-- [x] **XLSX-02**: Plano check register (from `checkregister.plano.gov` Excel export) loaded as `transactions` dataset type — *loaded as CSV; FY2020–FY2025 (179,292 transactions)*
-- [x] **XLSX-03**: McKinney check register XLSX (direct download from `mckinneytexas.org` Traditional Finances page) loaded as `transactions`
-- [x] **XLSX-04**: McKinney payroll register XLSX loaded as `salaries` dataset type
-- [x] **XLSX-05**: Frisco check register XLSX (from `friscotexas.gov/1276/Check-Register`) loaded as `transactions`
-- [x] **XLSX-06**: `data_sources` rows created for each XLSX source with `api_type = 'xlsx_download'`, storing download URL and column mapping
-- [x] **XLSX-07**: XLSX loader is idempotent — re-running does not duplicate rows (dedup by `source_row_id` derived from row hash or position+date)
-
-### Tier 3 — PDF/Haiku Vision Pipeline
-
-- [x] **PDF-01**: Script renders each page of a PDF as a PNG image (using an available Node/system library)
-- [x] **PDF-02**: Each page image is sent to Claude Haiku with a structured extraction prompt targeting GFOA ACFR budget tables
-- [x] **PDF-03**: Haiku returns structured JSON (department, category, approved_amount, actual_amount, fiscal_year) which is validated and loaded
-- [x] **PDF-04**: Pipeline is parameterized — accepts city name, PDF path or URL, fiscal year
-- [x] **PDF-05**: Allen ACFR (most recent available year) budget data loaded via PDF pipeline
-- [x] **PDF-06**: Prosper ACFR budget data loaded via PDF pipeline
-- [x] **PDF-07**: Celina ACFR budget data loaded via PDF pipeline
-- [x] **PDF-08**: Extraction confidence is logged per page — low-confidence pages flagged for human review rather than silently skipped
+**Defined:** 2026-05-03
+**Core Value:** Any citizen can open financials.empowered.vote and immediately understand where money comes from and where it goes — with accurate department attribution and complete revenue data.
 
 ---
 
-## Future Requirements (v1.2+)
+## v1.2 Requirements
 
-### Remaining Collin County Cities
-- Richardson custom check register DB scraper
-- Sachse OpenGov manual CSV loader
-- Garland investigation (may have machine-readable data not yet surfaced)
-- Wylie check register format confirmation and loader
-- Murphy ClearGov export
+### Data Quality
+
+- [ ] **DQ-01**: PDF pipeline tracks ACFR section headings across pages so budget rows are attributed to the correct department instead of "Unknown"
+- [ ] **DQ-02**: Allen, Prosper, and Celina operating budgets re-extracted and reloaded with improved department attribution
+- [ ] **DQ-03**: Frisco and Plano operating budgets re-extracted and reloaded with improved department attribution
+- [ ] **DQ-04**: Dense statistical ACFR pages no longer cause exit code 2 JSON truncation — chunked extraction or increased max_tokens resolves the issue
+
+### Revenue
+
+- [ ] **REV-01**: Plano revenue data (FY2018–2024, loaded post-v1.1) is visible and correct in the app
+- [ ] **REV-02**: McKinney revenue data (FY2021–2025, loaded post-v1.1) is visible and correct in the app
+- [ ] **REV-03**: Frisco revenue data (FY2026, loaded post-v1.1) is visible and correct in the app
+- [ ] **REV-04**: Allen revenue data (FY2026, loaded post-v1.1) is visible and correct in the app
+- [ ] **REV-05**: Prosper revenue data loaded and visible in the app
+- [ ] **REV-06**: Celina revenue data loaded and visible in the app
+
+### Collin County Expansion
+
+- [ ] **COL-01**: Garland operating budget loaded and visible in the app
+- [ ] **COL-02**: Richardson operating budget loaded and visible in the app
+- [ ] **COL-03**: Wylie operating budget loaded and visible in the app
+- [ ] **COL-04**: Sachse operating budget loaded and visible in the app
+- [ ] **COL-05**: Murphy operating budget loaded and visible in the app
+- [ ] **COL-06**: Princeton operating budget loaded and visible in the app
+
+---
+
+## Future Requirements (v1.3+)
+
+### Remaining Small Collin County Towns
+- Blue Ridge, Josephine, Lavon, Lowry Crossing, Lucas, Nevada, New Hope, Parker, St. Paul, Weston — very small populations, limited/no structured budget data published
 
 ### Enrichment
-- Category enrichment (plain-language descriptions) for all newly loaded TX cities
+- Category enrichment for all newly loaded TX cities (v1.2 loads data; enrichment follows)
 - Population data for TX municipalities
 
 ### Statewide Expansion
-- Generalize XLSX pipeline for other Texas cities beyond Collin County
+- Generalize pipeline for other Texas cities beyond Collin County
 - Texas Comptroller debt data integration
-- Census Bureau annual survey data as fallback for cities with no other source
+- Census Bureau annual survey data as fallback
 
 ---
 
-## Out of Scope (v1.1)
+## Out of Scope (v1.2)
 
 | Feature | Reason |
 |---------|--------|
-| Richardson custom DB scraper | Requires form interaction / scraping — higher complexity, defer to v1.2 |
-| Sachse OpenGov CSV | Manual export only, no programmatic API — defer to v1.2 |
-| Real-time sync / scheduler for TX cities | Manual/scripted loads sufficient for initial coverage |
-| Category enrichment for TX cities | Separate milestone concern — load data first |
-| Garland deep investigation | Unconfirmed data existence — needs separate research spike |
-| Wylie check register | Format unconfirmed — needs manual verification first |
-| Dallas vendor payments (spending.dallasopendata.com) | Transactions dataset; operating/revenue budget is higher priority for v1.1 |
+| Small Collin County towns (Josephine, Lavon, etc.) | Very small population; unlikely to have structured public budget data |
+| Category enrichment for new cities | Load data first; enrichment is a separate pass |
+| Multi-year ACFR loads for new cities | Most recent year is sufficient for initial coverage |
+| Real-time sync / scheduler | Manual scripted loads remain sufficient |
+| Dallas vendor payments (transactions) | Operating/revenue budget is higher priority |
 
 ---
 
@@ -77,33 +66,28 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DAL-01 | Phase 5 | Pending |
-| DAL-02 | Phase 5 | Pending |
-| DAL-03 | Phase 5 | Pending |
-| DAL-04 | Phase 5 | Pending |
-| DAL-05 | Phase 5 | Pending |
-| DAL-06 | Phase 5 | Pending |
-| XLSX-01 | Phase 6 | Complete |
-| XLSX-02 | Phase 6 | Complete |
-| XLSX-03 | Phase 6 | Complete |
-| XLSX-04 | Phase 6 | Complete |
-| XLSX-05 | Phase 6 | Complete |
-| XLSX-06 | Phase 6 | Complete |
-| XLSX-07 | Phase 6 | Complete |
-| PDF-01 | Phase 7 | Complete |
-| PDF-02 | Phase 7 | Complete |
-| PDF-03 | Phase 7 | Complete |
-| PDF-04 | Phase 7 | Complete |
-| PDF-05 | Phase 7 | Complete |
-| PDF-06 | Phase 7 | Complete |
-| PDF-07 | Phase 7 | Complete |
-| PDF-08 | Phase 7 | Complete |
+| DQ-01 | Phase 8 | Pending |
+| DQ-02 | Phase 8 | Pending |
+| DQ-03 | Phase 8 | Pending |
+| DQ-04 | Phase 8 | Pending |
+| REV-01 | Phase 9 | Pending |
+| REV-02 | Phase 9 | Pending |
+| REV-03 | Phase 9 | Pending |
+| REV-04 | Phase 9 | Pending |
+| REV-05 | Phase 9 | Pending |
+| REV-06 | Phase 9 | Pending |
+| COL-01 | Phase 10 | Pending |
+| COL-02 | Phase 10 | Pending |
+| COL-03 | Phase 10 | Pending |
+| COL-04 | Phase 10 | Pending |
+| COL-05 | Phase 10 | Pending |
+| COL-06 | Phase 10 | Pending |
 
 **Coverage:**
-- v1.1 requirements: 21 total
-- Mapped to phases: 21
+- v1.2 requirements: 16 total
+- Mapped to phases: 16
 - Unmapped: 0 ✓
 
 ---
-*Requirements defined: 2026-05-01*
-*Last updated: 2026-05-02 — v1.1 complete; all 21 requirements marked Complete*
+*Requirements defined: 2026-05-03*
+*Last updated: 2026-05-03 after milestone v1.2 initialization*

@@ -9,12 +9,10 @@ See: .planning/PROJECT.md (updated 2026-05-01)
 
 ## Current Position
 
-Phase: 7 of 7 (PDF/Haiku Vision Pipeline)
-Plan: 3 of 3 complete
-Status: Milestone v1.1 COMPLETE
-Last activity: 2026-05-03 — Plano fully loaded: operating budget FY2019–FY2026 (PDF) + check register FY2020–FY2025 (CSV, 179,292 transactions); XLSX-02 complete; all 21 v1.1 requirements done
-
-Progress: ███████████████████  (19/19 plans complete — Phase 7 complete)
+Phase: Not started (defining requirements)
+Plan: —
+Status: Milestone v1.2 started — defining requirements
+Last activity: 2026-05-03 — Milestone v1.2 Collin County Completion & Data Quality initialized
 
 ## Performance Metrics
 
