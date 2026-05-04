@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-05-03)
 
 **Core value:** Any citizen can open financials.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Milestone v1.2 — Phase 8: Data Quality (in progress)
+**Current focus:** Milestone v1.2 — Phase 9: Revenue Completion (complete); Phase 10: Collin County Expansion (pending)
 
 ## Current Position
 
-Phase: 9 of 10 (Revenue Completion)
-Plan: 2 of 3 in current phase
-Status: In progress — 09-01 and 09-02 complete, 09-03 (Celina) pending
-Last activity: 2026-05-04 — Completed 09-02: Prosper revenue extraction (skipped — ACFR not extractable via Haiku)
+Phase: 9 of 10 (Revenue Completion) — COMPLETE
+Plan: 3 of 3 in current phase (all plans complete)
+Status: Phase 9 complete — ready for Phase 10 (Collin County expansion)
+Last activity: 2026-05-04 — Completed 09-03: Celina revenue extraction (skipped — ACFR not extractable via Haiku, same pattern as Prosper)
 
-Progress: [████████████░░░░░░░░] 60% (12/20 plans complete)
+Progress: [█████████████░░░░░░░] 65% (13/20 plans complete)
 
 ## Performance Metrics
 
@@ -61,6 +61,10 @@ Progress: [████████████░░░░░░░░] 60% (12
 - Prosper revenue skipped 09-02: ACFR dry-run showed $768M total (expected $50-150M) — capital/debt tables extracted instead of revenue tables
 - Prosper Revenue FY2023/2024/2025 data_source rows seeded and retained for future pdftotext-based extraction
 - Future Prosper revenue approach: pdftotext + text-marker targeting of "STATEMENT OF REVENUES, EXPENDITURES, AND CHANGES IN FUND BALANCES" section (see processRevenuePDF.js pattern)
+- Celina revenue skipped 09-03: ACFR dry-run showed $1.38B total (expected $40-120M) — same extraction failure as Prosper; both cities need pdftotext approach
+- ACFR extraction failure is now confirmed pattern for 2+ cities: ACFRs extract balance sheet/fund tables (Nonmajor Governmental Funds, Financial Section) not revenue statements
+- Celina Revenue FY2025 data_source row seeded and retained (id=0e2e54c5) for future pdftotext-based extraction
+- Phase 9 revenue loaded: Plano (6 years), McKinney (5 years), Frisco (1 year), Allen (1 year) — 4 of 6 cities; Prosper/Celina skipped due to ACFR structural limitation
 
 ### Blockers / Concerns
 
@@ -76,5 +80,5 @@ Progress: [████████████░░░░░░░░] 60% (12
 ## Session Continuity
 
 Last session: 2026-05-04
-Stopped at: Completed 09-02 — Prosper revenue extraction (skipped due to ACFR extraction quality); ready for 09-03: Celina revenue
+Stopped at: Completed 09-03 — Celina revenue extraction (skipped due to ACFR extraction quality); checkpoint awaiting user verification of revenue in app
 Resume file: None
