@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-05-03)
 ## Current Position
 
 Phase: 8 of 10 (Data Quality)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-05-04 — Completed 08-01-PLAN.md (PDF pipeline fixes + Frisco data source)
+Last activity: 2026-05-04 — Completed 08-02: Allen/Prosper/Celina re-extracted, Celina Unknown resolved
 
 Progress: [████████░░░░░░░░░░░░] 40% (8/20 plans complete)
 
@@ -51,6 +51,8 @@ Progress: [████████░░░░░░░░░░░░] 40% (8/
 - Haiku model: `claude-haiku-4-5-20251001`; malformed JSON → confidence=0 flagged (not retry)
 - `treasury.data_sources` no unique constraint on `name` — select-by-name then insert/update pattern
 - `treasury_sync_budget` (bare) does not exist — always use `treasury_sync_budget_tree`
+- pct_unknown is the re-extraction success metric, not total row count (Haiku is non-deterministic; row counts differ between runs)
+- Allen and Prosper FY2025 were already clean (0% Unknown) before 08-02; Celina's single Unknown row covering $207M (17.9% of dollars) resolved by re-extraction
 
 ### Blockers / Concerns
 
@@ -66,5 +68,5 @@ Progress: [████████░░░░░░░░░░░░] 40% (8/
 ## Session Continuity
 
 Last session: 2026-05-04
-Stopped at: Completed 08-01-PLAN.md — PDF pipeline fixes landed; ready for 08-02 and 08-03
+Stopped at: Completed 08-02-PLAN.md — Allen/Prosper/Celina re-extracted; all three at 0% Unknown; ready for 08-03
 Resume file: None

@@ -145,7 +145,7 @@ Plans:
 
 Plans:
 - [ ] 08-01-PLAN.md — Pipeline fixes: max_tokens 8192 + stop_reason guard, cross-page section_heading context, seed Frisco Operating Budget FY2026 data_source
-- [ ] 08-02-PLAN.md — Re-extract and reload Allen / Prosper / Celina ACFR FY2025; verify named-department dominance in app
+- [x] 08-02-PLAN.md — Re-extract and reload Allen / Prosper / Celina ACFR FY2025; verify named-department dominance in app
 - [ ] 08-03-PLAN.md — Re-extract and reload Frisco FY2026 (after dry-run validation) + all 7 Plano fiscal years; verify named-department dominance in app
 
 ---
@@ -211,7 +211,7 @@ Plans:
 | 5. Dallas Socrata | v1.1 | 3/3 | Complete | 2026-05-01 |
 | 6. XLSX Pipeline | v1.1 | 3/3 | Complete | 2026-05-01 |
 | 7. PDF/Haiku Vision | v1.1 | 3/3 | Complete | 2026-05-02 |
-| 8. Data Quality | v1.2 | 0/3 | Not started | - |
+| 8. Data Quality | v1.2 | 2/3 | In progress | - |
 | 9. Revenue Completion | v1.2 | 0/3 | Not started | - |
 | 10. Collin County Expansion | v1.2 | 0/3 | Not started | - |
 
