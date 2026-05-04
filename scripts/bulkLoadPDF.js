@@ -213,13 +213,27 @@ Rules:
 - Return ONLY the JSON object, no other text`;
 
 /**
- * Build the per-page extraction prompt, optionally injecting the current section context.
+ * Build the per-page extraction prompt, optionally injecting the current section context
+ * and/or revenue-specific guidance.
  * @param {string|null} sectionContext
+ * @param {string} [datasetType] - 'revenue' triggers revenue-context injection
  * @returns {string}
  */
-function buildExtractionPrompt(sectionContext) {
-  if (!sectionContext) return EXTRACTION_PROMPT_BASE;
-  return EXTRACTION_PROMPT_BASE + '\n\nContext: Current ACFR section is "' + sectionContext + '". Apply as department for rows without an explicit department header.';
+function buildExtractionPrompt(sectionContext, datasetType) {
+  let prompt = EXTRACTION_PROMPT_BASE;
+
+  // Revenue context injection: guide Haiku to recognize revenue tables
+  // (tax collections, fees, intergovernmental transfers, etc.) and use the
+  // correct column mapping (approved_amount = budgeted revenue, actual_amount = actual receipts).
+  if (datasetType === 'revenue') {
+    prompt = prompt.replace(
+      'Extract ALL rows visible',
+      'This PDF contains REVENUE data. Classify pages with revenue tables (tax collections, fees, intergovernmental, charges for services, grants, fines, etc.) as budget_table. Use "approved_amount" for budgeted revenue and "actual_amount" for actual receipts. Extract ALL rows visible'
+    );
+  }
+
+  if (!sectionContext) return prompt;
+  return prompt + '\n\nContext: Current ACFR section is "' + sectionContext + '". Apply as department for rows without an explicit department header.';
 }
 
 // ── Lazy Anthropic client ────────────────────────────────────────────────────
@@ -377,7 +391,7 @@ async function processPDF(ds, opts = {}) {
     const pageNum = i + 1;
     const pngBuffer = await fs.readFile(pageFiles[i]);
     const base64 = pngBuffer.toString('base64');
-    const prompt = buildExtractionPrompt(currentSection);
+    const prompt = buildExtractionPrompt(currentSection, ds.dataset_type);
     const result = await callHaikuWithRetry(base64, pageNum, prompt, opts);
 
     if (result === null) {
