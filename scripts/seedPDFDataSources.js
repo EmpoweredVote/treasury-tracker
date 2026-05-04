@@ -41,6 +41,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 const ALLEN_ACFR_FY2025  = 'https://www.cityofallen.org/Documents/Departments/Finance/Financial%20Transparency/Other%20Documents/FY%202025%20Annual%20Comprehensive%20Financial%20Report.pdf';
 const PROSPER_ACFR_FY2025 = 'https://www.prospertx.gov/ArchiveCenter/ViewFile/Item/682';
 const CELINA_ACFR_FY2025  = 'https://www.celina-tx.gov/DocumentCenter/View/15082/City-of-Celina-Texas---FINAL-ACFR-FY2025';
+const FRISCO_BUDGET_FY2026 = 'https://www.friscotexas.gov/DocumentCenter/View/39479/Budget-Fiscal-Year-26-PDF';
 // Plano: local files (manual exports from plano.gov budget page)
 const PLANO_BUDGET_FY2019 = 'file://C:/treasury-tracker/docs/Plano/2018-19 Program of Service - Operating Budget (PDF).pdf';
 const PLANO_BUDGET_FY2020 = 'file://C:/treasury-tracker/docs/Plano/2019-20 Program of Service - Operating Budget (PDF).pdf';
@@ -66,7 +67,7 @@ async function buildSources() {
     .schema('treasury')
     .from('municipalities')
     .select('id, name')
-    .in('name', ['Allen', 'Prosper', 'Celina', 'Plano']);
+    .in('name', ['Allen', 'Prosper', 'Celina', 'Plano', 'Frisco']);
 
   if (error) {
     console.error('Failed to fetch municipalities:', error.message);
@@ -112,6 +113,16 @@ async function buildSources() {
       base_url: CELINA_ACFR_FY2025,
       fiscal_years: [2025],
       municipality_id: muniId('Celina'),
+      column_mapping: acfrCm,
+    },
+    {
+      name: 'Frisco Operating Budget FY2026',
+      api_type: 'pdf_download',
+      dataset_type: 'operating',
+      dataset_id: 'fy2026',
+      base_url: FRISCO_BUDGET_FY2026,
+      fiscal_years: [2026],
+      municipality_id: muniId('Frisco'),
       column_mapping: acfrCm,
     },
     {
