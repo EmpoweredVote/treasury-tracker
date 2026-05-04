@@ -141,12 +141,12 @@ Plans:
 3. Running `bulkLoadPDF.js` against a dense statistical ACFR completes with exit code 0 or 1 — exit code 2 JSON truncation no longer occurs on operating budget pages
 4. Re-extracted data replaces prior "Unknown" rows — old incorrect attributions are not left in the database alongside corrected rows
 
-**Plans:** TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 08-01-PLAN.md — Extend bulkLoadPDF.js to track ACFR section headings across pages; carry department context forward when rows lack explicit headers
-- [ ] 08-02-PLAN.md — Fix JSON truncation: implement chunked extraction or increase max_tokens for dense pages; add page-size guard
-- [ ] 08-03-PLAN.md — Re-extract and reload Allen, Prosper, Celina, Frisco, Plano; verify department attribution in app
+- [ ] 08-01-PLAN.md — Pipeline fixes: max_tokens 8192 + stop_reason guard, cross-page section_heading context, seed Frisco Operating Budget FY2026 data_source
+- [ ] 08-02-PLAN.md — Re-extract and reload Allen / Prosper / Celina ACFR FY2025; verify named-department dominance in app
+- [ ] 08-03-PLAN.md — Re-extract and reload Frisco FY2026 (after dry-run validation) + all 7 Plano fiscal years; verify named-department dominance in app
 
 ---
 
