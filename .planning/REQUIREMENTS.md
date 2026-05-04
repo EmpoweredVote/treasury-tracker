@@ -9,10 +9,10 @@
 
 ### Data Quality
 
-- [ ] **DQ-01**: PDF pipeline tracks ACFR section headings across pages so budget rows are attributed to the correct department instead of "Unknown"
-- [ ] **DQ-02**: Allen, Prosper, and Celina operating budgets re-extracted and reloaded with improved department attribution
-- [ ] **DQ-03**: Frisco and Plano operating budgets re-extracted and reloaded with improved department attribution
-- [ ] **DQ-04**: Dense statistical ACFR pages no longer cause exit code 2 JSON truncation — chunked extraction or increased max_tokens resolves the issue
+- [x] **DQ-01**: PDF pipeline tracks ACFR section headings across pages so budget rows are attributed to the correct department instead of "Unknown"
+- [x] **DQ-02**: Allen, Prosper, and Celina operating budgets re-extracted and reloaded with improved department attribution
+- [x] **DQ-03**: Frisco and Plano operating budgets re-extracted and reloaded with improved department attribution
+- [x] **DQ-04**: Dense statistical ACFR pages no longer cause exit code 2 JSON truncation — chunked extraction or increased max_tokens resolves the issue
 
 ### Revenue
 
@@ -66,10 +66,10 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DQ-01 | Phase 8 | Pending |
-| DQ-02 | Phase 8 | Pending |
-| DQ-03 | Phase 8 | Pending |
-| DQ-04 | Phase 8 | Pending |
+| DQ-01 | Phase 8 | Complete |
+| DQ-02 | Phase 8 | Complete |
+| DQ-03 | Phase 8 | Complete |
+| DQ-04 | Phase 8 | Complete |
 | REV-01 | Phase 9 | Pending |
 | REV-02 | Phase 9 | Pending |
 | REV-03 | Phase 9 | Pending |
