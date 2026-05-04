@@ -16,12 +16,12 @@
 
 ### Revenue
 
-- [ ] **REV-01**: Plano revenue data (FY2018–2024, loaded post-v1.1) is visible and correct in the app
-- [ ] **REV-02**: McKinney revenue data (FY2021–2025, loaded post-v1.1) is visible and correct in the app
-- [ ] **REV-03**: Frisco revenue data (FY2026, loaded post-v1.1) is visible and correct in the app
-- [ ] **REV-04**: Allen revenue data (FY2026, loaded post-v1.1) is visible and correct in the app
-- [ ] **REV-05**: Prosper revenue data loaded and visible in the app
-- [ ] **REV-06**: Celina revenue data loaded and visible in the app
+- [x] **REV-01**: Plano revenue data (FY2018–2024, loaded post-v1.1) is visible and correct in the app
+- [x] **REV-02**: McKinney revenue data (FY2021–2025, loaded post-v1.1) is visible and correct in the app
+- [x] **REV-03**: Frisco revenue data (FY2026, loaded post-v1.1) is visible and correct in the app
+- [x] **REV-04**: Allen revenue data (FY2026, loaded post-v1.1) is visible and correct in the app
+- [ ] **REV-05**: Prosper revenue data loaded and visible in the app *(deferred — ACFR PDF not cleanly extractable via Haiku vision; pdftotext approach needed)*
+- [ ] **REV-06**: Celina revenue data loaded and visible in the app *(deferred — ACFR PDF not cleanly extractable via Haiku vision; pdftotext approach needed)*
 
 ### Collin County Expansion
 
@@ -70,12 +70,12 @@
 | DQ-02 | Phase 8 | Complete |
 | DQ-03 | Phase 8 | Complete |
 | DQ-04 | Phase 8 | Complete |
-| REV-01 | Phase 9 | Pending |
-| REV-02 | Phase 9 | Pending |
-| REV-03 | Phase 9 | Pending |
-| REV-04 | Phase 9 | Pending |
-| REV-05 | Phase 9 | Pending |
-| REV-06 | Phase 9 | Pending |
+| REV-01 | Phase 9 | Complete |
+| REV-02 | Phase 9 | Complete |
+| REV-03 | Phase 9 | Complete |
+| REV-04 | Phase 9 | Complete |
+| REV-05 | Phase 9 | Deferred |
+| REV-06 | Phase 9 | Deferred |
 | COL-01 | Phase 10 | Pending |
 | COL-02 | Phase 10 | Pending |
 | COL-03 | Phase 10 | Pending |
