@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-05-03)
 ## Current Position
 
 Phase: 9 of 10 (Revenue Completion)
-Plan: 0 of 3 in current phase
-Status: Phase 8 verified and complete — ready for Phase 9
-Last activity: 2026-05-04 — Phase 8 verified (4/4 must-haves passed); ready for Phase 9: Revenue Completion
+Plan: 2 of 3 in current phase
+Status: In progress — 09-01 and 09-02 complete, 09-03 (Celina) pending
+Last activity: 2026-05-04 — Completed 09-02: Prosper revenue extraction (skipped — ACFR not extractable via Haiku)
 
-Progress: [██████████░░░░░░░░░░] 50% (10/20 plans complete)
+Progress: [████████████░░░░░░░░] 60% (12/20 plans complete)
 
 ## Performance Metrics
 
@@ -56,6 +56,11 @@ Progress: [██████████░░░░░░░░░░] 50% (10
 - Plano FY2023–2026 skipped in 08-03 — already 99.9% clean (1 unknown row/year), ~$20 API cost not justified for unfunded nonprofit
 - Sequential PDF runs for same city share rate limit and disk cache — preferred over parallel for cost control
 - Exit code 2 on Plano FY2022 accepted — flagged page was "Budget Assumption Matrix" projection data, not operating budget; main load succeeded
+- ACFR PDFs mix financial statement types (balance sheet, revenue/expenditure, notes) — Haiku vision cannot cleanly separate revenue pages from capital/debt pages; produces ~5x inflated totals
+- buildExtractionPrompt() now accepts datasetType param — when 'revenue', injects revenue-context guidance
+- Prosper revenue skipped 09-02: ACFR dry-run showed $768M total (expected $50-150M) — capital/debt tables extracted instead of revenue tables
+- Prosper Revenue FY2023/2024/2025 data_source rows seeded and retained for future pdftotext-based extraction
+- Future Prosper revenue approach: pdftotext + text-marker targeting of "STATEMENT OF REVENUES, EXPENDITURES, AND CHANGES IN FUND BALANCES" section (see processRevenuePDF.js pattern)
 
 ### Blockers / Concerns
 
@@ -71,5 +76,5 @@ Progress: [██████████░░░░░░░░░░] 50% (10
 ## Session Continuity
 
 Last session: 2026-05-04
-Stopped at: Phase 8 verified (4/4 must-haves) — ready to plan Phase 9: Revenue Completion
+Stopped at: Completed 09-02 — Prosper revenue extraction (skipped due to ACFR extraction quality); ready for 09-03: Celina revenue
 Resume file: None
