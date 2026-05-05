@@ -40,7 +40,8 @@ const PDFS = {
   2023: 'docs/Plano/2022-23 Program of Service - Operating Budget (PDF).pdf',
   2024: 'docs/Plano/2023-24 Program of Service - Operating Budget (PDF).pdf',
   2025: 'docs/Plano/2024-25 Program of Service - Operating Budget (PDF).pdf',
-  // 2026 PDF has scrambled label-value alignment throughout — skip until manually corrected
+  // 2026 PDF has scrambled label-value alignment — TOTAL TAXES values appear on the
+  // "Bingo Gross Receipts Tax" label line, inflating totals. Skip until manually corrected.
   // 2026: 'docs/Plano/2025-26 Program of Service - Operating Budget (PDF).pdf',
 };
 
@@ -96,13 +97,15 @@ function detectColumns(headerLines) {
   }
   if (!yearLine) return null;
 
-  // Collect year positions in the left data area only (< 85 chars).
-  // The current-year Budget column appears far right on a separate line — exclude it.
+  // Collect year positions in the left data area only (< 100 chars).
+  // The current-year Budget column appears at position 111+ and must be excluded.
+  // The cutoff is 100 (not 85) to include Re-Est at position 85 in the FY2025-26 PDF
+  // where the Variance column pushed Re-Est further right than in prior PDFs.
   const yearRe = /20\d\d-\d\d/g;
   const leftYears = [];
   let m;
   while ((m = yearRe.exec(yearLine)) !== null) {
-    if (m.index < 85) leftYears.push({ str: m[0], pos: m.index });
+    if (m.index < 100) leftYears.push({ str: m[0], pos: m.index });
   }
   if (!leftYears.length) return null;
 
@@ -150,9 +153,11 @@ function extractValues(line, colInfo) {
 
   // Use midpoints between column positions as zone boundaries so that values
   // landing 1-2 chars left of their header position are still assigned correctly.
+  // The last column uses +18 (not +22) to stay clear of stray current-year values
+  // that appear at positions 103-106 in the FY2025-26 PDF.
   const zones = colPositions.map((lo, i) => ({
     lo: i === 0 ? lo - 2 : Math.round((colPositions[i - 1] + lo) / 2),
-    hi: i + 1 < colPositions.length ? Math.round((lo + colPositions[i + 1]) / 2) : lo + 22,
+    hi: i + 1 < colPositions.length ? Math.round((lo + colPositions[i + 1]) / 2) : lo + 18,
   }));
 
   // Match money tokens: $NNN,NNN  (NNN,NNN)  NNN,NNN  bare integers
