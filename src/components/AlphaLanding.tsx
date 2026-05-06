@@ -199,6 +199,7 @@ function CityGrid({
 // ── Main component ──
 export default function AlphaLanding({ reason, municipalities, onNavigateToCity }: AlphaLandingProps) {
   const cityPickerRef = useRef<HTMLDivElement>(null);
+  const [showHeroSearch, setShowHeroSearch] = useState(false);
   const bloomington = municipalities.find(m => m.name === 'Bloomington' && m.state === 'IN') ?? municipalities[0];
 
   // Detect preloaded city from cookie address
@@ -206,7 +207,6 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity 
   const preloadedCity = useMemo((): Municipality | null => {
     if (!userAddress) return null;
     const available = municipalities.filter(m => m.available_datasets.length > 0);
-    // Match by state + city name contained in the address string
     const addrLower = userAddress.addr.toLowerCase();
     const match = available.find(m =>
       m.state === userAddress.state &&
@@ -215,34 +215,35 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity 
     return match ?? null;
   }, [municipalities, userAddress]);
 
-  const scrollToCityPicker = () => {
-    cityPickerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const DARK_HEADER_STYLE = {
+    backgroundColor: '#020618',
+    borderBottom: '1px solid rgba(255,255,255,0.08)',
   };
 
   return (
     <div className="min-h-screen bg-[#F7F7F8] font-manrope">
-      <SiteHeader logoSrc={`${import.meta.env.BASE_URL}EVLogo.svg`} />
+      <SiteHeader logoSrc={`${import.meta.env.BASE_URL}EVLogo.svg`} style={DARK_HEADER_STYLE} />
 
       {/* ── Hero ── */}
-      <section style={{ backgroundColor: '#020618', color: 'white' }}>
-        <div className="max-w-5xl mx-auto px-6 py-16 sm:py-24">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+      <section style={{ backgroundColor: '#020618', color: 'white' }} className="min-h-[calc(100vh-73px)] flex items-center">
+        <div className="w-full px-12 sm:px-16 lg:px-24 py-16">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-16 lg:gap-24 items-center">
 
             {/* Left: headline + copy + CTA */}
             <div>
               <p className="text-ev-skyblue-500 text-xs font-bold uppercase tracking-widest mb-5">
                 Treasury Tracker
               </p>
-              <h1 className="text-4xl sm:text-5xl font-bold leading-tight text-white">
+              <h1 className="text-5xl sm:text-6xl font-bold leading-tight text-white">
                 See how your government<br />spends its money,
               </h1>
-              <p className="text-4xl sm:text-5xl font-bold text-ev-skyblue-500 leading-tight mt-1 mb-6">
+              <p className="text-5xl sm:text-6xl font-bold text-ev-skyblue-500 leading-tight mt-1 mb-8">
                 down to the last dollar.
               </p>
-              <p style={{ color: '#9CA3AF' }} className="text-base leading-relaxed mb-3">
+              <p style={{ color: '#9CA3AF' }} className="text-lg leading-relaxed mb-3">
                 Dense budget documents, turned into plain-language visuals anyone can understand.
               </p>
-              <p style={{ color: '#D1D5DB' }} className="text-base leading-relaxed mb-8">
+              <p style={{ color: '#D1D5DB' }} className="text-lg leading-relaxed mb-10">
                 Our Alpha communities show exactly where we're headed: full transparency for every city, county, and district.
               </p>
 
@@ -250,23 +251,34 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity 
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
                     onClick={() => onNavigateToCity(preloadedCity)}
-                    className="inline-flex items-center gap-2 bg-ev-yellow text-black font-bold px-7 py-3.5 rounded-xl hover:bg-ev-yellow-dark transition-colors text-base"
+                    className="inline-flex items-center gap-2 bg-ev-yellow text-black font-bold px-8 py-4 rounded-xl hover:bg-ev-yellow-dark transition-colors text-lg"
                   >
-                    <MapPin size={16} />
+                    <MapPin size={18} />
                     Go to {preloadedCity.name} →
                   </button>
                   <button
-                    onClick={scrollToCityPicker}
+                    onClick={() => setShowHeroSearch(s => !s)}
                     style={{ color: '#9CA3AF' }}
                     className="inline-flex items-center gap-1 text-sm hover:text-white transition-colors px-2"
                   >
                     Browse all cities
                   </button>
                 </div>
+              ) : showHeroSearch ? (
+                <div className="max-w-md">
+                  <CitySearch municipalities={municipalities} onNavigateToCity={onNavigateToCity} />
+                  <button
+                    onClick={() => setShowHeroSearch(false)}
+                    style={{ color: '#6B7280' }}
+                    className="text-sm hover:text-white transition-colors mt-2 block"
+                  >
+                    ← Back
+                  </button>
+                </div>
               ) : (
                 <button
-                  onClick={scrollToCityPicker}
-                  className="inline-flex items-center gap-2 bg-ev-yellow text-black font-bold px-7 py-3.5 rounded-xl hover:bg-ev-yellow-dark transition-colors text-base"
+                  onClick={() => setShowHeroSearch(true)}
+                  className="inline-flex items-center gap-2 bg-ev-yellow text-black font-bold px-8 py-4 rounded-xl hover:bg-ev-yellow-dark transition-colors text-lg"
                 >
                   Find My City →
                 </button>
