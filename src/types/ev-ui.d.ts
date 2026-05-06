@@ -17,6 +17,16 @@ declare module '@empoweredvote/ev-ui' {
     href: string;
   }
 
+  export interface ProfileMenuItem {
+    label: string;
+    onClick: () => void;
+  }
+
+  export interface ProfileMenu {
+    label: string;
+    items: ProfileMenuItem[];
+  }
+
   export interface HeaderProps {
     logoSrc?: string;
     logoAlt?: string;
@@ -25,6 +35,8 @@ declare module '@empoweredvote/ev-ui' {
     currentPath?: string;
     onNavigate?: (href: string) => void;
     style?: CSSProperties;
+    secondaryAction?: ReactNode;
+    profileMenu?: ProfileMenu;
   }
 
   export function Header(props: HeaderProps): JSX.Element;
