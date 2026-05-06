@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap') layer(base);
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* EV Brand Colors (inline from ev-ui/src/tokens.js — CSS-first Tailwind v4) */
   --color-ev-coral: #FF5740;

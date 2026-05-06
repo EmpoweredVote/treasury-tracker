@@ -114,3 +114,11 @@ export function getLoginUrl(): string {
   const returnUrl = window.location.origin + '/';
   return `https://accounts.empowered.vote/login?redirect=${encodeURIComponent(returnUrl)}`;
 }
+
+/**
+ * Sign the user out: clear stored token and reload so auth routing sends them to landing.
+ */
+export function signOut(): void {
+  localStorage.removeItem(TOKEN_KEY);
+  window.location.href = '/';
+}

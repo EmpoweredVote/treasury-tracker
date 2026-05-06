@@ -7,7 +7,9 @@ import { loadBudgetData, loadLinkedTransactions, listMunicipalities, clearCache 
 import EntitySwitcher from './components/EntitySwitcher';
 import AlphaLanding from './components/AlphaLanding';
 import type { LandingReason } from './components/AlphaLanding';
-import { resolveToken, fetchUserSession } from './utils/auth';
+import { resolveToken, fetchUserSession, getLoginUrl, signOut } from './utils/auth';
+import { ThemeToggle } from './components/ThemeToggle';
+import { useTheme } from './hooks/useTheme';
 import DatasetTabs from './components/datasets/DatasetTabs';
 
 import YearSelector from './components/YearSelector';
@@ -76,6 +78,12 @@ const isFinancialsHost = window.location.hostname === 'financials.empowered.vote
 
 
 function App() {
+  const { isDark } = useTheme();
+  const darkHeaderStyle = isDark ? {
+    backgroundColor: '#020618',
+    borderBottom: '1px solid rgba(255,255,255,0.08)',
+  } : undefined;
+
   // Ref for auto-scrolling to chart section
   const chartSectionRef = useRef<HTMLDivElement>(null);
   // Ref for programmatically opening the YearSelector dropdown
@@ -87,6 +95,7 @@ function App() {
   // App-level view state: resolving auth → landing or budget
   const [appView, setAppView] = useState<'resolving' | 'landing' | 'budget'>('resolving');
   const [landingReason, setLandingReason] = useState<LandingReason>({ type: 'guest' });
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Entity state
   const [municipalities, setMunicipalities] = useState<Municipality[]>([]);
@@ -201,6 +210,8 @@ function App() {
         setAppView('landing');
         return;
       }
+
+      setIsAuthenticated(true);
 
       // Inform tier — full access, manual city search (same as guest)
       if (session.tier === 'inform') {
@@ -446,11 +457,17 @@ function App() {
     return cats.some(c => c.enrichment != null);
   }, [operatingBudgetData, revenueData]);
 
+  const profileMenu = isAuthenticated
+    ? { label: 'Account', items: [{ label: 'Sign out', onClick: signOut }] }
+    : { label: 'Account', items: [{ label: 'Sign in', onClick: () => { window.location.href = getLoginUrl(); } }] };
+
+  const secondaryAction = <ThemeToggle />;
+
   // Resolving auth — show spinner
   if (appView === 'resolving') {
     return (
       <div className="min-h-screen bg-[#F7F7F8] font-manrope">
-        <SiteHeader logoSrc={`${import.meta.env.BASE_URL}EVLogo.svg`} />
+        <SiteHeader logoSrc={`${import.meta.env.BASE_URL}EVLogo.svg`} style={darkHeaderStyle} />
         <div className="flex items-center justify-center py-16">
           <div role="status" aria-live="polite" aria-label="Loading" className="flex flex-col items-center gap-4">
             <div className="w-8 h-8 rounded-full border-4 border-[#E2EBEF] border-t-ev-muted-blue animate-spin" />
@@ -468,6 +485,8 @@ function App() {
         reason={landingReason}
         municipalities={municipalities}
         onNavigateToCity={(city) => navigateToEntity(city, municipalities)}
+        profileMenu={profileMenu}
+        secondaryAction={secondaryAction}
       />
     );
   }
@@ -476,7 +495,7 @@ function App() {
   if (!selectedEntity) {
     return (
       <div className="min-h-screen bg-[#F7F7F8] font-manrope">
-        <SiteHeader logoSrc={`${import.meta.env.BASE_URL}EVLogo.svg`} />
+        <SiteHeader logoSrc={`${import.meta.env.BASE_URL}EVLogo.svg`} style={darkHeaderStyle} />
         <div className="flex items-center justify-center py-16">
           <div role="status" aria-live="polite" aria-label="Loading budget data" className="flex flex-col items-center gap-4">
             <div className="w-8 h-8 rounded-full border-4 border-[#E2EBEF] border-t-ev-muted-blue animate-spin" />
@@ -491,7 +510,7 @@ function App() {
   if (!loading && !budgetData) {
     return (
       <div className="min-h-screen bg-[#F7F7F8] font-manrope">
-        <SiteHeader logoSrc={`${import.meta.env.BASE_URL}EVLogo.svg`} />
+        <SiteHeader logoSrc={`${import.meta.env.BASE_URL}EVLogo.svg`} style={darkHeaderStyle} />
         <div className="max-w-[1400px] mx-auto px-6 py-16 flex justify-center">
           <div className="bg-white border border-[#E2EBEF] rounded-xl p-8 text-center max-w-md w-full">
             <h2 className="text-base font-bold text-[#1C1C1C] mb-2">
@@ -541,6 +560,9 @@ function App() {
             ? { label: 'Donate', href: 'https://givebutter.com/g3e9u9' }
             : defaultCtaButton
         }
+        secondaryAction={secondaryAction}
+        profileMenu={profileMenu}
+        style={darkHeaderStyle}
         onNavigate={(href) => {
           if (href === 'https://givebutter.com/g3e9u9') {
             window.open(href, '_blank', 'noopener,noreferrer');

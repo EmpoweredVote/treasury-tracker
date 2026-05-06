@@ -1,8 +1,9 @@
-import { useState, useMemo, useRef } from 'react';
-import { SiteHeader } from '@empoweredvote/ev-ui';
+import { useState, useMemo, useRef, type ReactNode } from 'react';
+import { Header, defaultNavItems, defaultCtaButton } from '@empoweredvote/ev-ui';
 import { MapPin, ArrowRight, Building2, Search, X } from 'lucide-react';
 import type { Municipality } from '../types/budget';
 import { getLoginUrl } from '../utils/auth';
+import { useTheme } from '../hooks/useTheme';
 
 export type LandingReason =
   | { type: 'guest' }
@@ -13,6 +14,8 @@ interface AlphaLandingProps {
   reason: LandingReason;
   municipalities: Municipality[];
   onNavigateToCity: (city: Municipality) => void;
+  profileMenu?: { label: string; items: { label: string; onClick: () => void }[] };
+  secondaryAction?: ReactNode;
 }
 
 const STEPS = [
@@ -197,10 +200,11 @@ function CityGrid({
 }
 
 // ── Main component ──
-export default function AlphaLanding({ reason, municipalities, onNavigateToCity }: AlphaLandingProps) {
+export default function AlphaLanding({ reason, municipalities, onNavigateToCity, profileMenu, secondaryAction }: AlphaLandingProps) {
   const cityPickerRef = useRef<HTMLDivElement>(null);
   const [showHeroSearch, setShowHeroSearch] = useState(false);
   const bloomington = municipalities.find(m => m.name === 'Bloomington' && m.state === 'IN') ?? municipalities[0];
+  const { isDark } = useTheme();
 
   // Detect preloaded city from cookie address
   const userAddress = readUserAddress();
@@ -215,14 +219,28 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity 
     return match ?? null;
   }, [municipalities, userAddress]);
 
-  const DARK_HEADER_STYLE = {
+  const darkHeaderStyle = isDark ? {
     backgroundColor: '#020618',
     borderBottom: '1px solid rgba(255,255,255,0.08)',
+  } : undefined;
+
+  const defaultProfileMenu = {
+    label: 'Account',
+    items: [{ label: 'Sign in', onClick: () => { window.location.href = getLoginUrl(); } }],
   };
 
   return (
     <div className="min-h-screen bg-[#F7F7F8] font-manrope">
-      <SiteHeader logoSrc={`${import.meta.env.BASE_URL}EVLogo.svg`} style={DARK_HEADER_STYLE} />
+      <Header
+        logoSrc={`${import.meta.env.BASE_URL}EVLogo.svg`}
+        logoAlt="Empowered Vote"
+        navItems={defaultNavItems}
+        ctaButton={defaultCtaButton}
+        secondaryAction={secondaryAction}
+        profileMenu={profileMenu ?? defaultProfileMenu}
+        style={darkHeaderStyle}
+        onNavigate={(href) => { window.location.href = href; }}
+      />
 
       {/* ── Hero ── */}
       <section style={{ backgroundColor: '#020618', color: 'white' }} className="min-h-[calc(100vh-73px)] flex items-center">
