@@ -1,12 +1,12 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { SiteHeader } from '@empoweredvote/ev-ui';
 import { MapPin, ArrowRight, Building2, Search, X } from 'lucide-react';
 import type { Municipality } from '../types/budget';
 import { getLoginUrl } from '../utils/auth';
 
 export type LandingReason =
-  | { type: 'guest' }                  // unauthenticated or Inform tier — full access, manual search
-  | { type: 'no_location' }            // Connected but no address on file
+  | { type: 'guest' }
+  | { type: 'no_location' }
   | { type: 'city_not_available'; cityName: string; state: string };
 
 interface AlphaLandingProps {
@@ -15,7 +15,25 @@ interface AlphaLandingProps {
   onNavigateToCity: (city: Municipality) => void;
 }
 
-// ── City search (city name only — zip lookup requires geocoding, coming later) ──
+const STEPS = [
+  { n: '01', heading: 'Choose Your City', body: 'Browse our Alpha communities or search for yours.', active: true },
+  { n: '02', heading: 'Explore the Budget', body: 'Interactive charts break revenue and spending into digestible slices.' },
+  { n: '03', heading: 'Trace the Money', body: 'Drill down to individual payments and see exactly who was paid.' },
+];
+
+function readUserAddress(): { state: string; addr: string } | null {
+  try {
+    const match = document.cookie.split('; ').find(c => c.startsWith('evUserAddress='));
+    if (!match) return null;
+    const parsed = JSON.parse(decodeURIComponent(match.split('=').slice(1).join('=')));
+    const TTL_MS = 30 * 24 * 60 * 60 * 1000;
+    if (parsed?.ts && Date.now() - parsed.ts > TTL_MS) return null;
+    if (!parsed?.state) return null;
+    return { state: parsed.state, addr: parsed.addr ?? '' };
+  } catch { return null; }
+}
+
+// ── City search ──
 function CitySearch({
   municipalities,
   onNavigateToCity,
@@ -59,7 +77,6 @@ function CitySearch({
         )}
       </div>
 
-      {/* Search results */}
       {results.length > 0 && (
         <div className="mt-2 bg-white border border-[#E2EBEF] rounded-xl overflow-hidden shadow-sm">
           {results.map(city => {
@@ -82,44 +99,29 @@ function CitySearch({
         </div>
       )}
 
-      {/* No match — city not in Alpha yet */}
       {noMatch && (
         <div className="mt-2 bg-[#FFF8ED] border border-[#F5D98B] rounded-xl px-4 py-3">
-          <p className="text-sm font-medium text-[#92400E]">
-            That city isn't in our Alpha yet.
-          </p>
+          <p className="text-sm font-medium text-[#92400E]">That city isn't in our Alpha yet.</p>
           <p className="text-sm text-[#6B7280] mt-0.5">
             We're expanding soon. In the meantime, explore Bloomington, Indiana to see the feature in action.
           </p>
         </div>
       )}
 
-      <p className="text-xs text-[#9CA3AF] mt-2 pl-1">
-        Zip code search coming soon — for now, search by city name.
-      </p>
+      <p className="text-xs text-[#9CA3AF] mt-2 pl-1">Zip code search coming soon — for now, search by city name.</p>
     </div>
   );
 }
 
-function readUserAddress(): { state: string; addr: string } | null {
-  try {
-    const match = document.cookie.split('; ').find(c => c.startsWith('evUserAddress='));
-    if (!match) return null;
-    const parsed = JSON.parse(decodeURIComponent(match.split('=').slice(1).join('=')));
-    const TTL_MS = 30 * 24 * 60 * 60 * 1000;
-    if (parsed?.ts && Date.now() - parsed.ts > TTL_MS) return null;
-    if (!parsed?.state) return null;
-    return { state: parsed.state, addr: parsed.addr ?? '' };
-  } catch { return null; }
-}
-
-// ── Available city cards ──
+// ── City cards ──
 function CityGrid({
   municipalities,
   onNavigateToCity,
+  preloadedCity,
 }: {
   municipalities: Municipality[];
   onNavigateToCity: (city: Municipality) => void;
+  preloadedCity?: Municipality | null;
 }) {
   const available = municipalities.filter(m => m.available_datasets.length > 0);
 
@@ -132,8 +134,8 @@ function CityGrid({
   }
 
   const userAddress = readUserAddress();
-  const nearby = userAddress ? available.filter(m => m.state === userAddress.state) : [];
-  const others = userAddress ? available.filter(m => m.state !== userAddress.state) : available;
+  const nearby = userAddress ? available.filter(m => m.state === userAddress.state && m.id !== preloadedCity?.id) : [];
+  const others = available.filter(m => m.id !== preloadedCity?.id && (!userAddress || m.state !== userAddress.state));
 
   const renderCityButton = (city: Municipality) => {
     const years = [...new Set(city.available_datasets.map(d => d.fiscal_year))].sort((a, b) => b - a);
@@ -182,7 +184,7 @@ function CityGrid({
       )}
       {others.length > 0 && (
         <div>
-          {nearby.length > 0 && (
+          {(nearby.length > 0 || preloadedCity) && (
             <p className="text-xs font-semibold uppercase tracking-wider text-[#6B7280] mb-2">Other communities</p>
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -196,34 +198,140 @@ function CityGrid({
 
 // ── Main component ──
 export default function AlphaLanding({ reason, municipalities, onNavigateToCity }: AlphaLandingProps) {
+  const cityPickerRef = useRef<HTMLDivElement>(null);
   const bloomington = municipalities.find(m => m.name === 'Bloomington' && m.state === 'IN') ?? municipalities[0];
+
+  // Detect preloaded city from cookie address
+  const userAddress = readUserAddress();
+  const preloadedCity = useMemo((): Municipality | null => {
+    if (!userAddress) return null;
+    const available = municipalities.filter(m => m.available_datasets.length > 0);
+    // Match by state + city name contained in the address string
+    const addrLower = userAddress.addr.toLowerCase();
+    const match = available.find(m =>
+      m.state === userAddress.state &&
+      addrLower.includes(m.name.toLowerCase())
+    );
+    return match ?? null;
+  }, [municipalities, userAddress]);
+
+  const scrollToCityPicker = () => {
+    cityPickerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   return (
     <div className="min-h-screen bg-[#F7F7F8] font-manrope">
       <SiteHeader logoSrc={`${import.meta.env.BASE_URL}EVLogo.svg`} />
 
-      {/* Hero */}
-      <div className="bg-gradient-to-r from-[#005366] to-[#007A8C]">
-        <div className="max-w-[900px] mx-auto px-6 py-16 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-white/90 text-xs font-semibold uppercase tracking-wider mb-5">
-            Alpha Program
+      {/* ── Hero ── */}
+      <section style={{ backgroundColor: '#020618', color: 'white' }}>
+        <div className="max-w-5xl mx-auto px-6 py-16 sm:py-24">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+
+            {/* Left: headline + copy + CTA */}
+            <div>
+              <p className="text-ev-skyblue-500 text-xs font-bold uppercase tracking-widest mb-5">
+                Treasury Tracker
+              </p>
+              <h1 className="text-4xl sm:text-5xl font-bold leading-tight text-white">
+                See how your government<br />spends its money,
+              </h1>
+              <p className="text-4xl sm:text-5xl font-bold text-ev-skyblue-500 leading-tight mt-1 mb-6">
+                down to the last dollar.
+              </p>
+              <p style={{ color: '#9CA3AF' }} className="text-base leading-relaxed mb-3">
+                Dense budget documents, turned into plain-language visuals anyone can understand.
+              </p>
+              <p style={{ color: '#D1D5DB' }} className="text-base leading-relaxed mb-8">
+                Our Alpha communities show exactly where we're headed: full transparency for every city, county, and district.
+              </p>
+
+              {preloadedCity ? (
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <button
+                    onClick={() => onNavigateToCity(preloadedCity)}
+                    className="inline-flex items-center gap-2 bg-ev-yellow text-black font-bold px-7 py-3.5 rounded-xl hover:bg-ev-yellow-dark transition-colors text-base"
+                  >
+                    <MapPin size={16} />
+                    Go to {preloadedCity.name} →
+                  </button>
+                  <button
+                    onClick={scrollToCityPicker}
+                    style={{ color: '#9CA3AF' }}
+                    className="inline-flex items-center gap-1 text-sm hover:text-white transition-colors px-2"
+                  >
+                    Browse all cities
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={scrollToCityPicker}
+                  className="inline-flex items-center gap-2 bg-ev-yellow text-black font-bold px-7 py-3.5 rounded-xl hover:bg-ev-yellow-dark transition-colors text-base"
+                >
+                  Find My City →
+                </button>
+              )}
+            </div>
+
+            {/* Right: step cards */}
+            <div className="space-y-3">
+              {STEPS.map(({ n, heading, body, active }) => (
+                <div
+                  key={n}
+                  style={{
+                    backgroundColor: active ? '#1a2235' : '#0d1424',
+                    borderColor: active ? '#59B0C4' : 'rgba(255,255,255,0.1)',
+                  }}
+                  className="flex items-start gap-4 p-5 rounded-2xl border transition-colors"
+                >
+                  <div
+                    style={{
+                      backgroundColor: active ? 'rgba(89,176,196,0.2)' : 'rgba(255,255,255,0.1)',
+                      color: active ? '#59B0C4' : '#6B7280',
+                    }}
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                  >
+                    {n}
+                  </div>
+                  <div>
+                    <p style={{ color: active ? 'white' : '#9CA3AF' }} className="font-bold mb-1">{heading}</p>
+                    <p style={{ color: active ? '#D1D5DB' : '#374151' }} className="text-sm leading-relaxed">{body}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
           </div>
-          <h1 className="text-4xl font-bold text-white leading-tight">
-            Your government's finances,<br className="hidden sm:block" /> made transparent
-          </h1>
-          <p className="mt-4 text-white/80 text-base max-w-xl mx-auto leading-relaxed">
-            Treasury Tracker turns dense public budget documents into visual, plain-language
-            summaries — so every citizen can understand how their tax dollars are spent.
-          </p>
         </div>
-      </div>
+      </section>
 
-      <div className="max-w-[900px] mx-auto px-6 py-12 space-y-10">
+      {/* ── City picker ── */}
+      <div ref={cityPickerRef} className="scroll-mt-4 max-w-[900px] mx-auto px-6 py-12 space-y-10">
 
-        {/* ── Guest: alpha notice + search + city list ── */}
+        {/* Preloaded city — prominent card */}
+        {preloadedCity && (
+          <div className="bg-white border-2 border-[#005366] rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <MapPin size={15} className="text-[#005366]" />
+                <p className="text-sm font-bold text-[#1C1C1C]">Your City</p>
+              </div>
+              <p className="text-lg font-semibold text-[#005366]">{preloadedCity.name}, {preloadedCity.state}</p>
+              <p className="text-sm text-[#6B7280] mt-0.5">Based on your saved address</p>
+            </div>
+            <button
+              onClick={() => onNavigateToCity(preloadedCity)}
+              className="shrink-0 inline-flex items-center gap-2 px-6 py-3 bg-[#FED12E] text-[#1C1C1C] text-sm font-bold rounded-xl hover:bg-[#D0A301] transition-colors duration-200"
+            >
+              Explore Budget
+              <ArrowRight size={14} />
+            </button>
+          </div>
+        )}
+
+        {/* ── Guest ── */}
         {reason.type === 'guest' && (
           <>
-            {/* Alpha notice */}
             <div className="bg-[#EAF4F7] border border-[#B3D9E3] rounded-xl p-5">
               <p className="text-sm font-semibold text-[#005366]">
                 Treasury Tracker is currently serving a limited number of Alpha communities.
@@ -234,22 +342,19 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity 
               </p>
             </div>
 
-            {/* Available cities */}
             <div>
               <h2 className="text-base font-bold text-[#1C1C1C] mb-3">Available communities</h2>
-              <CityGrid municipalities={municipalities} onNavigateToCity={onNavigateToCity} />
+              <CityGrid municipalities={municipalities} onNavigateToCity={onNavigateToCity} preloadedCity={preloadedCity} />
             </div>
 
-            {/* Search */}
             <div>
               <h2 className="text-base font-bold text-[#1C1C1C] mb-3">Find your city</h2>
               <CitySearch municipalities={municipalities} onNavigateToCity={onNavigateToCity} />
             </div>
 
-            {/* Gentle sign-in nudge — not a gate */}
             <div className="flex items-center gap-3 py-4 border-t border-[#E2EBEF]">
               <p className="text-sm text-[#6B7280] flex-1">
-                Have an Empowered account? Sign in and Treasury Tracker will route you to your city automatically — no searching required.
+                Have an Empowered account? Sign in and Treasury Tracker will route you to your city automatically.
               </p>
               <a
                 href={getLoginUrl()}
@@ -262,14 +367,14 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity 
           </>
         )}
 
-        {/* ── Connected, no address on file ── */}
+        {/* ── Connected, no address ── */}
         {reason.type === 'no_location' && (
           <>
             <div className="bg-[#EAF4F7] border border-[#B3D9E3] rounded-xl p-5 flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="flex-1">
                 <p className="text-sm font-semibold text-[#005366]">Set your location to see your city's budget</p>
                 <p className="text-sm text-[#6B7280] mt-0.5">
-                  Treasury Tracker uses your stored address to route you automatically — no searching required on future visits.
+                  Treasury Tracker uses your stored address to route you automatically on future visits.
                 </p>
               </div>
               <a
@@ -288,7 +393,7 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity 
 
             <div>
               <h2 className="text-base font-bold text-[#1C1C1C] mb-3">Available communities</h2>
-              <CityGrid municipalities={municipalities} onNavigateToCity={onNavigateToCity} />
+              <CityGrid municipalities={municipalities} onNavigateToCity={onNavigateToCity} preloadedCity={preloadedCity} />
             </div>
           </>
         )}
@@ -301,8 +406,7 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity 
                 We don't have {reason.cityName}, {reason.state} in Treasury Tracker yet.
               </p>
               <p className="text-sm text-[#6B7280] mt-1">
-                We're actively expanding to more communities. In the meantime, explore Bloomington
-                to see everything Treasury Tracker can do.
+                We're actively expanding. In the meantime, explore Bloomington to see everything Treasury Tracker can do.
               </p>
             </div>
 
@@ -330,18 +434,18 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity 
 
             <div>
               <h2 className="text-base font-bold text-[#1C1C1C] mb-3">Available communities</h2>
-              <CityGrid municipalities={municipalities} onNavigateToCity={onNavigateToCity} />
+              <CityGrid municipalities={municipalities} onNavigateToCity={onNavigateToCity} preloadedCity={null} />
             </div>
           </>
         )}
 
-        {/* How it works */}
+        {/* What you can do */}
         <div>
           <h2 className="text-base font-bold text-[#1C1C1C] mb-4">What you can do</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
               { heading: 'Visualize spending', body: 'Interactive charts break the budget into digestible slices you can drill into.' },
-              { heading: 'Trace transactions', body: 'Drill down to the individual payment level and see exactly who was paid and when.' },
+              { heading: 'Trace transactions', body: 'Drill down to the individual payment level — see exactly who was paid and when.' },
               { heading: 'Compare years', body: 'See how budgets and actual spending have changed year over year.' },
             ].map(item => (
               <div key={item.heading} className="bg-white border border-[#E2EBEF] rounded-xl p-5">
