@@ -131,7 +131,7 @@ const BudgetSearch: React.FC<BudgetSearchProps> = ({
           onBlur={() => setTimeout(() => setFocused(false), 150)}
           placeholder={`Ask about ${cityName}'s budget — try "roads" or "police"`}
           aria-label={`Search ${cityName} budget categories`}
-          className="w-full h-[42px] pl-10 pr-10 bg-white border border-ev-gray-200 rounded-lg text-sm font-manrope focus:outline-none placeholder:text-ev-gray-400 text-ev-gray-900"
+          className="w-full h-[42px] pl-10 pr-10 bg-white dark:bg-ev-gray-800 border border-ev-gray-200 dark:border-ev-gray-700 rounded-lg text-sm font-manrope focus:outline-none placeholder:text-ev-gray-400 text-ev-gray-900 dark:text-ev-gray-100"
         />
         {query && (
           <button
@@ -147,15 +147,15 @@ const BudgetSearch: React.FC<BudgetSearchProps> = ({
 
       {/* Results panel */}
       {isOpen && (
-        <div className="mt-2 bg-white border border-ev-gray-200 rounded-xl shadow-lg overflow-hidden">
+        <div className="mt-2 bg-white dark:bg-ev-gray-800 border border-ev-gray-200 dark:border-ev-gray-700 rounded-xl shadow-lg dark:shadow-black/40 overflow-hidden">
           {/* Aggregate summary bar */}
           {!loading && results.length > 1 && (
-            <div className="px-4 py-2.5 bg-ev-gray-050 border-b border-ev-gray-100 flex items-center justify-between gap-4 flex-wrap">
-              <span className="text-xs text-ev-gray-600">
-                <strong className="text-ev-gray-800">{results.length} categories</strong>
+            <div className="px-4 py-2.5 bg-ev-gray-050 dark:bg-ev-gray-900 border-b border-ev-gray-100 dark:border-ev-gray-700 flex items-center justify-between gap-4 flex-wrap">
+              <span className="text-xs text-ev-gray-600 dark:text-ev-gray-400">
+                <strong className="text-ev-gray-800 dark:text-ev-gray-200">{results.length} categories</strong>
                 {' '}matching "{query}" in {cityName} {fiscalYear}
               </span>
-              <span className="text-xs font-semibold text-ev-gray-700">
+              <span className="text-xs font-semibold text-ev-gray-700 dark:text-ev-gray-300">
                 Total: {formatAmount(totalAmount)}
               </span>
             </div>
@@ -171,13 +171,13 @@ const BudgetSearch: React.FC<BudgetSearchProps> = ({
                     role="option"
                     aria-selected="false"
                     onClick={() => onResultClick?.(result)}
-                    className="w-full text-left px-4 py-3.5 hover:bg-ev-gray-050 transition-colors duration-100 focus:outline-none focus-visible:bg-ev-gray-050 group"
+                    className="w-full text-left px-4 py-3.5 hover:bg-ev-gray-050 dark:hover:bg-ev-gray-700 transition-colors duration-100 focus:outline-none focus-visible:bg-ev-gray-050 dark:focus-visible:bg-ev-gray-700 group"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         {/* Plain name + dataset badge */}
                         <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                          <span className="text-sm font-semibold text-ev-gray-900 group-hover:text-ev-teal-700 transition-colors">
+                          <span className="text-sm font-semibold text-ev-gray-900 dark:text-ev-gray-100 group-hover:text-ev-teal-700 dark:group-hover:text-ev-skyblue-400 transition-colors">
                             {result.plainName || result.categoryName}
                           </span>
                           <span
@@ -197,7 +197,7 @@ const BudgetSearch: React.FC<BudgetSearchProps> = ({
 
                         {/* Short description */}
                         {result.shortDescription && (
-                          <p className="text-xs text-ev-gray-500 line-clamp-2 leading-relaxed">
+                          <p className="text-xs text-ev-gray-500 dark:text-ev-gray-400 line-clamp-2 leading-relaxed">
                             {result.shortDescription}
                           </p>
                         )}
@@ -208,7 +208,7 @@ const BudgetSearch: React.FC<BudgetSearchProps> = ({
                             {result.tags.slice(0, 4).map((tag) => (
                               <span
                                 key={tag}
-                                className="text-[10px] px-1.5 py-0.5 bg-ev-gray-100 text-ev-gray-500 rounded"
+                                className="text-[10px] px-1.5 py-0.5 bg-ev-gray-100 dark:bg-ev-gray-700 text-ev-gray-500 dark:text-ev-gray-400 rounded"
                               >
                                 {tag}
                               </span>
@@ -220,7 +220,7 @@ const BudgetSearch: React.FC<BudgetSearchProps> = ({
                       {/* Amount + chevron */}
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <div className="text-right">
-                          <div className="text-sm font-bold text-ev-gray-800">
+                          <div className="text-sm font-bold text-ev-gray-800 dark:text-ev-gray-100">
                             {formatAmount(result.amount)}
                           </div>
                           {result.percentage > 0 && (
@@ -243,10 +243,10 @@ const BudgetSearch: React.FC<BudgetSearchProps> = ({
 
           {/* Dataset breakdown (when multiple datasets) */}
           {!loading && results.length > 1 && Object.keys(datasetBreakdown).length > 1 && (
-            <div className="px-4 py-2.5 bg-ev-gray-050 border-t border-ev-gray-100 flex items-center gap-4 flex-wrap">
+            <div className="px-4 py-2.5 bg-ev-gray-050 dark:bg-ev-gray-900 border-t border-ev-gray-100 dark:border-ev-gray-700 flex items-center gap-4 flex-wrap">
               {Object.entries(datasetBreakdown).map(([type, amount]) => (
-                <span key={type} className="text-[11px] text-ev-gray-500">
-                  <span className="font-medium text-ev-gray-700">{DATASET_LABELS[type] ?? type}:</span>{' '}
+                <span key={type} className="text-[11px] text-ev-gray-500 dark:text-ev-gray-400">
+                  <span className="font-medium text-ev-gray-700 dark:text-ev-gray-300">{DATASET_LABELS[type] ?? type}:</span>{' '}
                   {formatAmount(amount)}
                 </span>
               ))}
@@ -256,10 +256,10 @@ const BudgetSearch: React.FC<BudgetSearchProps> = ({
           {/* No results */}
           {!loading && hasSearched && results.length === 0 && (
             <div className="px-4 py-5 text-center">
-              <p className="text-sm text-ev-gray-500 mb-1">
-                No results for <strong className="text-ev-gray-700">"{query}"</strong>
+              <p className="text-sm text-ev-gray-500 dark:text-ev-gray-400 mb-1">
+                No results for <strong className="text-ev-gray-700 dark:text-ev-gray-200">"{query}"</strong>
               </p>
-              <p className="text-xs text-ev-gray-400">
+              <p className="text-xs text-ev-gray-400 dark:text-ev-gray-500">
                 Try simpler keywords — "fire", "roads", "parks"
               </p>
             </div>
@@ -278,7 +278,7 @@ const BudgetSearch: React.FC<BudgetSearchProps> = ({
                     key={example}
                     type="button"
                     onClick={() => handleExampleClick(example)}
-                    className="text-xs px-2.5 py-1 bg-ev-gray-100 hover:bg-ev-teal-050 hover:text-ev-teal-700 text-ev-gray-600 rounded-full border border-transparent hover:border-ev-teal-200 transition-colors cursor-pointer"
+                    className="text-xs px-2.5 py-1 bg-ev-gray-100 dark:bg-ev-gray-700 hover:bg-ev-teal-050 dark:hover:bg-ev-gray-600 hover:text-ev-teal-700 dark:hover:text-ev-skyblue-400 text-ev-gray-600 dark:text-ev-gray-300 rounded-full border border-transparent hover:border-ev-teal-200 dark:hover:border-ev-skyblue-700 transition-colors cursor-pointer"
                   >
                     {example}
                   </button>

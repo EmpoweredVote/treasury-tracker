@@ -23,9 +23,9 @@ const InsightCard: React.FC<InsightCardProps> = ({
   variant = 'default',
 }) => {
   const trendColor = trend?.direction === 'up'
-    ? 'text-[#059669]'
+    ? 'text-[#059669] dark:text-[#34D399]'
     : trend?.direction === 'down'
-    ? 'text-[#E61B00]'
+    ? 'text-[#E61B00] dark:text-[#F87171]'
     : 'text-ev-gray-500';
 
   const TrendIcon = trend?.direction === 'up'
@@ -37,30 +37,30 @@ const InsightCard: React.FC<InsightCardProps> = ({
   return (
     <div
       className={`
-        relative bg-white rounded-xl p-5
-        border border-ev-gray-200
+        relative bg-white dark:bg-ev-gray-800 rounded-xl p-5
+        border border-ev-gray-200 dark:border-ev-gray-700
         transition-all duration-200
-        hover:shadow-sm hover:border-ev-gray-300
+        hover:shadow-sm hover:border-ev-gray-300 dark:hover:border-ev-gray-600
         ${variant === 'primary' ? 'border-t-2 border-t-ev-yellow-400' : ''}
-        ${variant === 'highlight' ? 'bg-ev-teal-050 border-ev-teal-200' : ''}
+        ${variant === 'highlight' ? 'bg-ev-teal-050 dark:bg-ev-teal-950 border-ev-teal-200 dark:border-ev-teal-800' : ''}
       `}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-wider text-ev-gray-500 mb-1.5">
+          <p className="text-xs font-semibold uppercase tracking-wider text-ev-gray-500 dark:text-ev-gray-400 mb-1.5">
             {label}
           </p>
-          <p className="text-2xl font-bold text-ev-gray-900 tabular-nums leading-tight">
+          <p className="text-2xl font-bold text-ev-gray-900 dark:text-ev-gray-100 tabular-nums leading-tight">
             {value}
           </p>
           {subtext && (
-            <p className="text-sm text-ev-gray-500 mt-1 leading-snug">
+            <p className="text-sm text-ev-gray-500 dark:text-ev-gray-400 mt-1 leading-snug">
               {subtext}
             </p>
           )}
         </div>
         {icon && (
-          <div className="w-10 h-10 rounded-lg bg-ev-gray-050 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-ev-gray-050 dark:bg-ev-gray-700 flex items-center justify-center flex-shrink-0">
             {icon}
           </div>
         )}

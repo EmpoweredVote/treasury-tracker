@@ -93,7 +93,7 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
   return (
     <div className="relative" ref={dropdownRef} onKeyDown={handleKeyDown}>
       <button
-        className="flex items-center gap-2 h-[42px] px-4 py-2 bg-white border border-[#E2EBEF] rounded-lg font-manrope text-sm font-medium text-[#1C1C1C] cursor-pointer transition-colors duration-200 hover:bg-[#F7F7F8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ev-muted-blue focus-visible:ring-offset-2"
+        className="flex items-center gap-2 h-[42px] px-4 py-2 bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-lg font-manrope text-sm font-medium text-[#1C1C1C] dark:text-ev-gray-200 cursor-pointer transition-colors duration-200 hover:bg-[#F7F7F8] dark:hover:bg-ev-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ev-muted-blue focus-visible:ring-offset-2"
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Select jurisdiction"
         aria-expanded={isOpen}
@@ -108,7 +108,7 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
 
       {isOpen && (
         <div
-          className="absolute top-full mt-1 left-0 w-72 bg-white border border-[#E2EBEF] rounded-lg shadow-lg z-10 overflow-hidden"
+          className="absolute top-full mt-1 left-0 w-72 bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-lg shadow-lg dark:shadow-black/40 z-10 overflow-hidden"
           role="listbox"
           aria-label="Available jurisdictions"
         >
@@ -122,7 +122,7 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
                 placeholder={`Search ${totalCount} jurisdictions...`}
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
-                className="w-full pl-8 pr-3 py-2 text-sm border border-[#E2EBEF] rounded-md bg-[#F7F7F8] focus:outline-none focus:ring-2 focus:ring-ev-muted-blue focus:border-transparent"
+                className="w-full pl-8 pr-3 py-2 text-sm border border-[#E2EBEF] dark:border-ev-gray-700 rounded-md bg-[#F7F7F8] dark:bg-ev-gray-900 text-[#1C1C1C] dark:text-ev-gray-200 placeholder:text-ev-gray-400 focus:outline-none focus:ring-2 focus:ring-ev-muted-blue focus:border-transparent"
               />
             </div>
           </div>
@@ -138,14 +138,14 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
             {[...grouped.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([state, typeMap]) => (
               <div key={state}>
                 {/* State header */}
-                <div className="sticky top-0 bg-[#F7F7F8] px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-[#6B7280] border-b border-[#E2EBEF]">
+                <div className="sticky top-0 bg-[#F7F7F8] dark:bg-ev-gray-900 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-[#6B7280] dark:text-ev-gray-400 border-b border-[#E2EBEF] dark:border-ev-gray-700">
                   {STATE_LABELS[state] || state}
                 </div>
 
                 {[...typeMap.entries()].map(([type, entities]) => (
                   <div key={`${state}-${type}`}>
                     {/* Entity type subheader */}
-                    <div className="px-4 py-1 text-xs text-[#9CA3AF] font-medium">
+                    <div className="px-4 py-1 text-xs text-[#9CA3AF] dark:text-ev-gray-500 font-medium">
                       {ENTITY_TYPE_LABELS[type] || type} ({entities.length})
                     </div>
 
@@ -154,9 +154,9 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
                         key={entity.id}
                         role="option"
                         aria-selected={entity.id === selectedEntity?.id}
-                        className={`block w-full px-4 py-2 text-sm text-left border-l-2 transition-colors duration-150 hover:bg-[#F7F7F8] ${
+                        className={`block w-full px-4 py-2 text-sm text-left border-l-2 transition-colors duration-150 hover:bg-[#F7F7F8] dark:hover:bg-ev-gray-700 dark:text-ev-gray-200 ${
                           entity.id === selectedEntity?.id
-                            ? 'border-ev-muted-blue bg-[#F7F7F8] font-medium'
+                            ? 'border-ev-muted-blue bg-[#F7F7F8] dark:bg-ev-gray-700 font-medium'
                             : 'border-transparent'
                         }`}
                         onClick={() => {

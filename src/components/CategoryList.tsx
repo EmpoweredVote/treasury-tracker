@@ -125,7 +125,7 @@ const CategoryList: React.FC<CategoryListProps> = ({ categories, onCategoryClick
         return (
           <button
             key={`${category.name}-${index}`}
-            className="relative bg-white border border-[#E2EBEF] rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:border-[#D3D7DE] text-left w-full overflow-hidden"
+            className="relative bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:border-[#D3D7DE] dark:hover:border-ev-gray-500 text-left w-full overflow-hidden"
             onClick={() => onCategoryClick(category)}
             aria-label={`${category.name}, ${formatCurrency(category.amount)}, ${formatPercentage(category.percentage)}%${hasSubcategories ? ', tap to explore' : ''}`}
           >
@@ -158,7 +158,7 @@ const CategoryList: React.FC<CategoryListProps> = ({ categories, onCategoryClick
               {/* Category info */}
               <div className="flex-1 min-w-0">
                 {/* Plain name (enriched) or raw name */}
-                <div className="text-sm font-bold font-manrope text-[#1C1C1C] truncate">
+                <div className="text-sm font-bold font-manrope text-[#1C1C1C] dark:text-ev-gray-100 truncate">
                   {category.enrichment?.plainName || category.name}
                 </div>
                 {/* Raw name as subtitle if enriched and different */}
@@ -169,10 +169,10 @@ const CategoryList: React.FC<CategoryListProps> = ({ categories, onCategoryClick
                 )}
                 {/* Amount + percentage */}
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="text-sm font-medium tabular-nums text-[#1C1C1C]">
+                  <span className="text-sm font-medium tabular-nums text-[#1C1C1C] dark:text-ev-gray-200">
                     {formatCurrency(isPastYear && category.actualAmount != null ? category.actualAmount : category.amount)}
                   </span>
-                  <span className="text-[#D3D7DE]">•</span>
+                  <span className="text-[#D3D7DE] dark:text-ev-gray-600">•</span>
                   <span className="text-xs text-[#6B7280] tabular-nums">{formatPercentage(category.percentage)}%</span>
 
                 </div>

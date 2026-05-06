@@ -42,7 +42,7 @@ const SpendingBreakdownBar: React.FC<SpendingBreakdownBarProps> = ({
   return (
     <div className="space-y-3">
       {/* The bar */}
-      <div className="flex h-10 rounded-lg overflow-hidden bg-ev-gray-100" role="img" aria-label="Spending breakdown bar">
+      <div className="flex h-10 rounded-lg overflow-hidden bg-ev-gray-100 dark:bg-ev-gray-700" role="img" aria-label="Spending breakdown bar">
         {visible.map((cat, i) => {
           const pct = total > 0 ? (cat.amount / total) * 100 : 0;
           if (pct < 0.5) return null; // too small to render
@@ -82,7 +82,7 @@ const SpendingBreakdownBar: React.FC<SpendingBreakdownBarProps> = ({
               backgroundColor: 'var(--color-data-stone-300)',
             }}
           >
-            <span className="text-[10px] font-medium text-ev-gray-700">Other</span>
+            <span className="text-[10px] font-medium text-ev-gray-700 dark:text-ev-gray-300">Other</span>
           </div>
         )}
       </div>
@@ -100,7 +100,7 @@ const SpendingBreakdownBar: React.FC<SpendingBreakdownBarProps> = ({
               className={`
                 flex items-center gap-1.5 text-xs cursor-pointer bg-transparent border-none p-0
                 transition-colors duration-150
-                ${isHovered ? 'text-ev-gray-900' : 'text-ev-gray-600'}
+                ${isHovered ? 'text-ev-gray-900 dark:text-ev-gray-100' : 'text-ev-gray-600 dark:text-ev-gray-300'}
               `}
               onMouseEnter={() => setHoveredIndex(i)}
               onMouseLeave={() => setHoveredIndex(null)}
@@ -113,7 +113,7 @@ const SpendingBreakdownBar: React.FC<SpendingBreakdownBarProps> = ({
               <span className={`${isHovered ? 'font-semibold' : 'font-medium'} truncate max-w-[140px]`}>
                 {toDisplayName(cat.name)}
               </span>
-              <span className="text-ev-gray-400 tabular-nums">{Math.round(pct)}%</span>
+              <span className="text-ev-gray-400 dark:text-ev-gray-500 tabular-nums">{Math.round(pct)}%</span>
             </button>
           );
         })}
@@ -121,7 +121,7 @@ const SpendingBreakdownBar: React.FC<SpendingBreakdownBarProps> = ({
 
       {/* Hover detail tooltip */}
       {hoveredIndex !== null && visible[hoveredIndex] && (
-        <div className="bg-ev-gray-900 text-white text-xs rounded-lg px-3 py-2 inline-flex items-center gap-3">
+        <div className="bg-ev-gray-900 dark:bg-ev-gray-700 dark:border dark:border-ev-gray-600 text-white text-xs rounded-lg px-3 py-2 inline-flex items-center gap-3">
           <span className="font-semibold">{toDisplayName(visible[hoveredIndex].name)}</span>
           <span className="text-ev-gray-300">·</span>
           <span className="tabular-nums">{formatCurrency(visible[hoveredIndex].amount)}</span>

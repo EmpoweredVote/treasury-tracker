@@ -115,27 +115,27 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
   }, []);
 
   return (
-    <div className="bg-white border border-ev-gray-200 rounded-xl overflow-hidden">
+    <div className="bg-white dark:bg-ev-gray-800 border border-ev-gray-200 dark:border-ev-gray-700 rounded-xl overflow-hidden">
       {/* Subtle yellow top accent — inform pillar whisper */}
       <div className="h-[2px] bg-gradient-to-r from-ev-yellow-300 via-ev-yellow-400 to-ev-yellow-300 opacity-60" />
 
       <div className="p-6 md:p-8">
         <div className="flex items-start gap-3 mb-4">
           <div className="w-1.5 h-1.5 rounded-full bg-ev-yellow-400 mt-2.5 flex-shrink-0 opacity-70" />
-          <h2 className="text-lg md:text-xl font-bold text-ev-gray-900 leading-snug">
+          <h2 className="text-lg md:text-xl font-bold text-ev-gray-900 dark:text-ev-gray-100 leading-snug">
             {isNonprofit
               ? `How ${entity.name} ${showActual ? 'used its' : 'uses its'} funds`
               : `How ${entity.name} ${showActual ? 'spent' : 'plans to spend'} your money`}
           </h2>
         </div>
 
-        <div className="space-y-4 text-[15px] leading-relaxed text-ev-gray-600 ml-[18px]">
+        <div className="space-y-4 text-[15px] leading-relaxed text-ev-gray-600 dark:text-ev-gray-400 ml-[18px]">
           <p>
             {isNonprofit && isCurrentYearWithActuals
               ? <>As of {currentMonthName}, {fiscalYear},{' '}</>
               : <>In <button
                   type="button"
-                  className="font-bold text-ev-gray-800 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
+                  className="font-bold text-ev-gray-800 dark:text-ev-gray-100 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
                   onClick={() => onYearClick?.()}
                 >
                   {fiscalYear}
@@ -145,26 +145,26 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
               <>
                 {entity.name}{' '}
                 {showActual ? 'spent' : isCurrentYearWithActuals ? 'has spent' : isPastYear ? 'budgeted' : 'is spending'}{' '}
-                <strong className="text-ev-gray-800">{formatAmount(isCurrentYearWithActuals ? actualTotal : total)}</strong> on operations.
+                <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(isCurrentYearWithActuals ? actualTotal : total)}</strong> on operations.
               </>
             ) : (
               <>{entity.name}'s {isGeneralFundOnly ? 'General Fund ' : ''}
               {population > 0 ? (
                 <>
                   {showActual
-                    ? <>spent <strong className="text-ev-gray-800">{formatAmount(total)}</strong> serving its {population.toLocaleString()} residents</>
+                    ? <>spent <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(total)}</strong> serving its {population.toLocaleString()} residents</>
                     : isGeneralFundOnly
-                      ? <>totaled <strong className="text-ev-gray-800">{formatAmount(total)}</strong> for core city operations serving {population.toLocaleString()} residents.</>
-                      : <>budgeted <strong className="text-ev-gray-800">{formatAmount(total)}</strong> to serve its {population.toLocaleString()} residents — that's roughly{' '}
-                          <strong className="text-ev-gray-800">{formatPerResident(perResident)} per person</strong>.</>
+                      ? <>totaled <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(total)}</strong> for core city operations serving {population.toLocaleString()} residents.</>
+                      : <>budgeted <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(total)}</strong> to serve its {population.toLocaleString()} residents — that's roughly{' '}
+                          <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatPerResident(perResident)} per person</strong>.</>
                   }
                   {showActual && <> — roughly{' '}
-                    <strong className="text-ev-gray-800">{formatPerResident(perResident)} per person</strong>.</>
+                    <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatPerResident(perResident)} per person</strong>.</>
                   }
                 </>
               ) : (
                 <>
-                  {showActual ? 'spent' : 'budgeted'} <strong className="text-ev-gray-800">{formatAmount(total)}</strong> across
+                  {showActual ? 'spent' : 'budgeted'} <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(total)}</strong> across
                   all departments and services.
                 </>
               )}</>
@@ -175,7 +175,7 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
             <p>
               {salariesTotal != null && salariesTotal > 0
                 ? <>{entity.name} {showActual ? 'paid' : 'budgets'}{' '}
-                    <strong className="text-ev-gray-800">{formatAmount(salariesTotal)}</strong> in staff compensation.
+                    <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(salariesTotal)}</strong> in staff compensation.
                   </>
                 : <>All work is done by unpaid volunteers — {isPastYear ? <>in {fiscalYear}, {entity.name} paid</> : <>so far in {fiscalYear}, {entity.name} has paid</>} <strong className="text-ev-gray-800">$0</strong> in staff compensation.</>
               }
@@ -186,7 +186,7 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
             <p>
               The {isNonprofit ? 'largest expense' : `biggest ${isGeneralFundOnly ? 'department' : 'share'}`} {showActual ? 'was' : 'is'}{' '}
               <button
-                className="font-bold text-ev-gray-800 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
+                className="font-bold text-ev-gray-800 dark:text-ev-gray-100 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
                 onClick={() => onCategoryClick?.(topCategories[0]?.name, 'operating')}
               >{toDisplayName(topCategories[0]?.name)}</button>
               {topCategories[0]?.enrichment?.shortDescription && (
@@ -196,7 +196,7 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
               {topCategories[1] && (
                 <>, followed by{' '}
                   <button
-                    className="font-bold text-ev-gray-800 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
+                    className="font-bold text-ev-gray-800 dark:text-ev-gray-100 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
                     onClick={() => onCategoryClick?.(topCategories[1]?.name, 'operating')}
                   >{toDisplayName(topCategories[1]?.name)}</button>
                   {topCategories[1]?.enrichment?.shortDescription && (
@@ -208,7 +208,7 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
               {topCategories[2] && (
                 <> and{' '}
                   <button
-                    className="font-bold text-ev-gray-800 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
+                    className="font-bold text-ev-gray-800 dark:text-ev-gray-100 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
                     onClick={() => onCategoryClick?.(topCategories[2]?.name, 'operating')}
                   >{toDisplayName(topCategories[2]?.name)}</button>
                   {topCategories[2]?.enrichment?.shortDescription && (
@@ -227,7 +227,7 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
                 : <>The city {showActual ? 'funded' : 'funds'} this through{' '}</>
               }
               <strong
-                className="text-ev-gray-800 inline-block rounded-sm px-0.5"
+                className="text-ev-gray-800 dark:text-ev-gray-100 inline-block rounded-sm px-0.5"
                 style={{
                   transition: 'box-shadow 700ms ease-out',
                   boxShadow: revenueGlowing
@@ -239,7 +239,7 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
               {revenueData.categories?.[0] && (
                 <>, with the {isNonprofit ? 'primary source being' : 'largest source being'}{' '}
                   <button
-                    className="font-bold text-ev-gray-800 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
+                    className="font-bold text-ev-gray-800 dark:text-ev-gray-100 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
                     onClick={() => onCategoryClick?.(revenueData!.categories[0].name, 'revenue')}
                   >
                     {toDisplayName(revenueData.categories[0].name)}
@@ -253,7 +253,7 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
           )}
 
           {dataSources.length > 0 && (
-            <p className="text-[11px] text-ev-gray-400 pt-2 border-t border-ev-gray-100 mt-4">
+            <p className="text-[11px] text-ev-gray-400 dark:text-ev-gray-500 pt-2 border-t border-ev-gray-100 dark:border-ev-gray-700 mt-4">
               Data sourced from{' '}
               {dataSources.map((source, i) => (
                 <span key={source.displayName}>

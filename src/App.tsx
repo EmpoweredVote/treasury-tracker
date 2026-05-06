@@ -466,11 +466,11 @@ function App() {
   // Resolving auth — show spinner
   if (appView === 'resolving') {
     return (
-      <div className="min-h-screen bg-[#F7F7F8] font-manrope">
+      <div className="min-h-screen bg-[#F7F7F8] dark:bg-ev-gray-950 font-manrope">
         <SiteHeader logoSrc={`${import.meta.env.BASE_URL}EVLogo.svg`} style={darkHeaderStyle} />
         <div className="flex items-center justify-center py-16">
           <div role="status" aria-live="polite" aria-label="Loading" className="flex flex-col items-center gap-4">
-            <div className="w-8 h-8 rounded-full border-4 border-[#E2EBEF] border-t-ev-muted-blue animate-spin" />
+            <div className="w-8 h-8 rounded-full border-4 border-[#E2EBEF] dark:border-ev-gray-700 border-t-ev-muted-blue animate-spin" />
             <span className="sr-only">Loading…</span>
           </div>
         </div>
@@ -494,11 +494,11 @@ function App() {
   // Budget view — initial load guard while entity resolves
   if (!selectedEntity) {
     return (
-      <div className="min-h-screen bg-[#F7F7F8] font-manrope">
+      <div className="min-h-screen bg-[#F7F7F8] dark:bg-ev-gray-950 font-manrope">
         <SiteHeader logoSrc={`${import.meta.env.BASE_URL}EVLogo.svg`} style={darkHeaderStyle} />
         <div className="flex items-center justify-center py-16">
           <div role="status" aria-live="polite" aria-label="Loading budget data" className="flex flex-col items-center gap-4">
-            <div className="w-8 h-8 rounded-full border-4 border-[#E2EBEF] border-t-ev-muted-blue animate-spin" />
+            <div className="w-8 h-8 rounded-full border-4 border-[#E2EBEF] dark:border-ev-gray-700 border-t-ev-muted-blue animate-spin" />
             <span className="sr-only">Loading budget data...</span>
           </div>
         </div>
@@ -509,14 +509,14 @@ function App() {
   // Show error state when data load fails (after entity is resolved)
   if (!loading && !budgetData) {
     return (
-      <div className="min-h-screen bg-[#F7F7F8] font-manrope">
+      <div className="min-h-screen bg-[#F7F7F8] dark:bg-ev-gray-950 font-manrope">
         <SiteHeader logoSrc={`${import.meta.env.BASE_URL}EVLogo.svg`} style={darkHeaderStyle} />
         <div className="max-w-[1400px] mx-auto px-6 py-16 flex justify-center">
-          <div className="bg-white border border-[#E2EBEF] rounded-xl p-8 text-center max-w-md w-full">
-            <h2 className="text-base font-bold text-[#1C1C1C] mb-2">
+          <div className="bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl p-8 text-center max-w-md w-full">
+            <h2 className="text-base font-bold text-[#1C1C1C] dark:text-ev-gray-100 mb-2">
               Unable to load budget data
             </h2>
-            <p className="text-sm text-[#6B7280] mb-6">
+            <p className="text-sm text-[#6B7280] dark:text-ev-gray-400 mb-6">
               Unable to load budget data. Check your connection and try again.
             </p>
             <button
@@ -550,7 +550,7 @@ function App() {
   );
 
   return (
-    <div className="min-h-screen bg-[#F7F7F8] font-manrope">
+    <div className="min-h-screen bg-[#F7F7F8] dark:bg-ev-gray-950 font-manrope">
       <Header
         logoSrc={`${import.meta.env.BASE_URL}EVLogo.svg`}
         logoAlt="Empowered Vote"
@@ -590,9 +590,9 @@ function App() {
 
       {/* FY notice — shown when selected entity has no FY2026 data yet */}
       {selectedEntity && availableYears.length > 0 && !availableYears.includes('2026') && (
-        <div className="bg-[#FFF8ED] border-l-4 border-[#F5D98B]">
+        <div className="bg-[#FFF8ED] dark:bg-ev-yellow-950/30 border-l-4 border-[#F5D98B] dark:border-ev-yellow-700/60">
           <div className="max-w-[1400px] mx-auto px-6 py-2">
-            <p className="text-sm text-[#92400E]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+            <p className="text-sm text-[#92400E] dark:text-ev-yellow-300" style={{ fontFamily: "'Manrope', sans-serif" }}>
               Latest available: FY{availableYears[0]}. FY2026 data not yet published by {selectedEntity.name}.
             </p>
           </div>
@@ -600,7 +600,7 @@ function App() {
       )}
 
       {/* Header / Controls bar */}
-      <div className="bg-white shadow-sm">
+      <div className="bg-white dark:bg-ev-gray-800 shadow-sm dark:shadow-none dark:border-b dark:border-ev-gray-700">
         <div className="max-w-[1400px] mx-auto px-6 py-3">
           <div className="flex items-center gap-3 flex-wrap">
             {!isFinancialsHost && (
@@ -620,7 +620,7 @@ function App() {
               <a
                 href="/Empowered%20Vote%20Annual%20Report%202025.pdf"
                 download="Empowered Vote Annual Report 2025.pdf"
-                className="flex items-center gap-1.5 h-[42px] px-3 py-2 text-sm font-medium bg-white border border-[#E2EBEF] rounded-lg text-ev-gray-600 hover:bg-[#F7F7F8] hover:text-ev-muted-blue transition-colors duration-200 whitespace-nowrap"
+                className="flex items-center gap-1.5 h-[42px] px-3 py-2 text-sm font-medium bg-white dark:bg-ev-gray-700 border border-[#E2EBEF] dark:border-ev-gray-600 rounded-lg text-ev-gray-600 dark:text-ev-gray-300 hover:bg-[#F7F7F8] dark:hover:bg-ev-gray-600 hover:text-ev-muted-blue transition-colors duration-200 whitespace-nowrap"
                 title="Download 2025 Annual Report"
               >
                 <FileText size={14} className="shrink-0" />
@@ -659,12 +659,12 @@ function App() {
       <div className="relative">
         {loading && (
           <div
-            className="absolute inset-0 flex items-center justify-center bg-[#F7F7F8]/80 z-10"
+            className="absolute inset-0 flex items-center justify-center bg-[#F7F7F8]/80 dark:bg-ev-gray-950/80 z-10"
             role="status"
             aria-live="polite"
             aria-label="Loading budget data"
           >
-            <div className="w-8 h-8 rounded-full border-4 border-[#E2EBEF] border-t-ev-muted-blue animate-spin" />
+            <div className="w-8 h-8 rounded-full border-4 border-[#E2EBEF] dark:border-ev-gray-700 border-t-ev-muted-blue animate-spin" />
             <span className="sr-only">Loading budget data...</span>
           </div>
         )}
@@ -706,12 +706,12 @@ function App() {
             <div ref={chartSectionRef} className="space-y-6">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-base font-bold text-[#1C1C1C]">
+                  <h2 className="text-base font-bold text-[#1C1C1C] dark:text-ev-gray-100">
                     {navigationPath.length === 0
                       ? `How ${budgetData.metadata.cityName} ${displayText.title}`
                       : navigationPath[navigationPath.length - 1].enrichment?.plainName || navigationPath[navigationPath.length - 1].name}
                   </h2>
-                  <p className="text-sm text-[#6B7280] mt-1">
+                  <p className="text-sm text-[#6B7280] dark:text-ev-gray-400 mt-1">
                     {navigationPath.length === 0
                       ? displayText.description
                       : showLineItems
@@ -782,7 +782,7 @@ function App() {
                     if (officialCats.length === 0 && aiCats.length === 0) return null;
 
                     return (
-                      <p className="text-xs text-ev-gray-400 mb-3">
+                      <p className="text-xs text-ev-gray-400 dark:text-ev-gray-500 mb-3">
                         {officialCats.length > 0 && (
                           <>
                             Top-level descriptions from{' '}
@@ -834,20 +834,20 @@ function App() {
                       fiscalYear={parseInt(selectedYear)}
                     />
                   ) : activeDataset === 'operating' && currentCategory?.linkKey ? (
-                    <div className="bg-white border border-[#E2EBEF] rounded-xl p-8 flex flex-col items-center gap-3">
-                      <div className="w-6 h-6 rounded-full border-[3px] border-[#E2EBEF] border-t-ev-muted-blue animate-spin" />
-                      <p className="text-sm text-[#6B7280]">Loading transactions…</p>
+                    <div className="bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl p-8 flex flex-col items-center gap-3">
+                      <div className="w-6 h-6 rounded-full border-[3px] border-[#E2EBEF] dark:border-ev-gray-600 border-t-ev-muted-blue animate-spin" />
+                      <p className="text-sm text-[#6B7280] dark:text-ev-gray-400">Loading transactions…</p>
                     </div>
                   ) : (
-                    <div className="bg-white border border-[#E2EBEF] rounded-xl p-6 text-center">
-                      <p className="text-sm font-medium text-[#1C1C1C] mb-1">No further breakdown available</p>
-                      <p className="text-xs text-[#6B7280]">This category has no subcategories or line items in the current dataset.</p>
+                    <div className="bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl p-6 text-center">
+                      <p className="text-sm font-medium text-[#1C1C1C] dark:text-ev-gray-100 mb-1">No further breakdown available</p>
+                      <p className="text-xs text-[#6B7280] dark:text-ev-gray-400">This category has no subcategories or line items in the current dataset.</p>
                     </div>
                   )}
                 </>
               ) : (
-                <div className="bg-white border border-[#E2EBEF] rounded-xl p-8 text-center">
-                  <p className="text-sm text-[#6B7280]">No data available for the selected filters.</p>
+                <div className="bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl p-8 text-center">
+                  <p className="text-sm text-[#6B7280] dark:text-ev-gray-400">No data available for the selected filters.</p>
                 </div>
               )}
             </div>
@@ -855,8 +855,8 @@ function App() {
 
           {/* Contextual help — subtle, not preachy */}
           {navigationPath.length === 0 && budgetData && (
-            <div className="mt-6 p-4 bg-ev-gray-050 border border-ev-gray-200 rounded-lg text-sm text-ev-gray-500">
-              <strong className="text-ev-gray-700">How to explore:</strong> Tap any category above to see its breakdown.
+            <div className="mt-6 p-4 bg-ev-gray-050 dark:bg-ev-gray-900 border border-ev-gray-200 dark:border-ev-gray-700 rounded-lg text-sm text-ev-gray-500 dark:text-ev-gray-400">
+              <strong className="text-ev-gray-700 dark:text-ev-gray-300">How to explore:</strong> Tap any category above to see its breakdown.
               Use the tabs to switch between spending, revenue, and employee compensation.
               Every level lets you dig deeper until you reach individual line items and transactions.
             </div>

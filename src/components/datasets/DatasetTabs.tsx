@@ -97,21 +97,21 @@ export default function DatasetTabs({
             disabled={isDisabled}
             className={`relative text-left p-4 rounded-xl border-2 transition-all duration-200 cursor-pointer font-manrope focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ev-muted-blue focus-visible:ring-offset-2
               ${isActive
-                ? 'border-ev-muted-blue bg-white shadow-sm'
-                : 'border-ev-gray-200 bg-ev-gray-50 hover:bg-white hover:border-ev-gray-300'
+                ? 'border-ev-muted-blue bg-white dark:bg-ev-gray-800 shadow-sm'
+                : 'border-ev-gray-200 dark:border-ev-gray-700 bg-ev-gray-50 dark:bg-ev-gray-900 hover:bg-white dark:hover:bg-ev-gray-800 hover:border-ev-gray-300 dark:hover:border-ev-gray-600'
               }
               ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}
             `}
           >
             <div className="flex items-center gap-2 mb-1">
               <Icon size={16} className={isActive ? 'text-ev-muted-blue' : 'text-ev-gray-400'} />
-              <span className={`text-sm font-semibold ${isActive ? 'text-ev-muted-blue' : 'text-ev-gray-500'}`}>
+              <span className={`text-sm font-semibold ${isActive ? 'text-ev-muted-blue' : 'text-ev-gray-500 dark:text-ev-gray-400'}`}>
                 {label}
               </span>
             </div>
             {total != null && (
               <div
-                className={`text-2xl font-bold inline-block rounded-sm px-0.5 ${isActive ? 'text-ev-gray-900' : 'text-ev-gray-600'}`}
+                className={`text-2xl font-bold inline-block rounded-sm px-0.5 ${isActive ? 'text-ev-gray-900 dark:text-ev-gray-100' : 'text-ev-gray-600 dark:text-ev-gray-300'}`}
                 style={id === 'revenue' ? {
                   transition: 'box-shadow 700ms ease-out',
                   boxShadow: revenueGlowing
@@ -122,7 +122,7 @@ export default function DatasetTabs({
                 {id === 'revenue' ? formatCurrency(animatedRevenue, isNonprofit) : formatCurrency(total, isNonprofit)}
               </div>
             )}
-            <div className="text-xs text-ev-gray-400 mt-1">{description}</div>
+            <div className="text-xs text-ev-gray-400 dark:text-ev-gray-500 mt-1">{description}</div>
           </button>
         );
       })}
