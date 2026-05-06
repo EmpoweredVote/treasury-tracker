@@ -150,6 +150,46 @@
   --color-data-stone-700: #41454E;
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+   Dark Mode — page chrome
+   ──────────────────────────────────────────────────────────────────────── */
+.dark body {
+  background-color: #131416;   /* ev-gray-950 */
+  color: #B3BBCC;               /* ev-gray-300 */
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Dark Mode — token overrides
+   Only override tokens where the light-mode value is illegible on dark bgs.
+   ──────────────────────────────────────────────────────────────────────── */
+.dark {
+  /* ev-muted-blue (#00657C) is 1.5:1 on dark layerBase — shift to skyblue-500
+     which is 7.4:1. Affects text-ev-muted-blue, border-ev-muted-blue,
+     bg-ev-muted-blue, ring-ev-muted-blue, and border-t-ev-muted-blue. */
+  --color-ev-muted-blue: #59B0C4;
+
+  /* ── Data viz palette — shift darker hues to lighter shades ──
+     Teal, Ocean, Dusk, Sage, Stone are all too dark against dark bgs at
+     their 500 value. Bright hues (Skyblue, Coral, Terracotta, Yellow,
+     Honey) are visible as-is.
+     Also shift the 400 hover fills one step lighter (→ 300) so the
+     active/hover relationship is preserved. */
+
+  /* Primary fills: 500 → 400-value */
+  --color-data-teal-500:  #3AABB8;   /* was #00657C */
+  --color-data-ocean-500: #4D8FC2;   /* was #2563A0 */
+  --color-data-dusk-500:  #9788B8;   /* was #7C6B9E */
+  --color-data-sage-500:  #74B589;   /* was #5A9A6E */
+  --color-data-stone-500: #8F9EBC;   /* was #6B7280 */
+
+  /* Hover fills: 400 → 300-value */
+  --color-data-teal-400:  #7DD4E8;   /* was #3AABB8 */
+  --color-data-ocean-400: #7BADD4;   /* was #4D8FC2 */
+  --color-data-dusk-400:  #B5A8CF;   /* was #9788B8 */
+  --color-data-sage-400:  #9ACBAA;   /* was #74B589 */
+  --color-data-stone-400: #B3BBCC;   /* was #8F9EBC */
+}
+
 /* Global reset */
 *, *::before, *::after {
   box-sizing: border-box;

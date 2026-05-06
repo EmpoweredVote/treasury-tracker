@@ -82,15 +82,15 @@ export default function LinkedTransactionsPanel({
   };
 
   return (
-    <div className="bg-white border border-[#E2EBEF] rounded-xl overflow-hidden mt-6">
+    <div className="bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl overflow-hidden mt-6">
       {/* Header */}
-      <div className="flex items-start gap-4 px-6 py-4 bg-[#F7F7F8] border-b border-[#D3D7DE]">
+      <div className="flex items-start gap-4 px-6 py-4 bg-[#F7F7F8] dark:bg-ev-gray-900 border-b border-[#D3D7DE] dark:border-ev-gray-700">
         <div className="w-10 h-10 bg-ev-muted-blue text-white rounded-lg flex items-center justify-center flex-shrink-0">
           <Receipt size={20} />
         </div>
         <div>
-          <h3 className="text-base font-bold font-manrope text-[#1C1C1C] m-0">Related Transactions</h3>
-          <p className="text-sm text-[#6B7280] mt-0.5 leading-snug">
+          <h3 className="text-base font-bold font-manrope text-[#1C1C1C] dark:text-ev-gray-100 m-0">Related Transactions</h3>
+          <p className="text-sm text-[#6B7280] dark:text-ev-gray-400 mt-0.5 leading-snug">
             {transactionCount.toLocaleString()} transaction{transactionCount !== 1 ? 's' : ''} linked to {categoryName}
           </p>
         </div>
@@ -99,17 +99,17 @@ export default function LinkedTransactionsPanel({
       <div className="p-6">
         {/* Summary Stats */}
         <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="bg-[#F7F7F8] rounded-lg p-4 text-center">
-            <div className="text-lg font-bold font-manrope text-[#1C1C1C] tabular-nums">{formatCurrency(totalAmount)}</div>
-            <div className="text-xs font-bold uppercase tracking-wider text-[#6B7280] mt-1">Total Spent</div>
+          <div className="bg-[#F7F7F8] dark:bg-ev-gray-700 rounded-lg p-4 text-center">
+            <div className="text-lg font-bold font-manrope text-[#1C1C1C] dark:text-ev-gray-100 tabular-nums">{formatCurrency(totalAmount)}</div>
+            <div className="text-xs font-bold uppercase tracking-wider text-[#6B7280] dark:text-ev-gray-400 mt-1">Total Spent</div>
           </div>
-          <div className="bg-[#F7F7F8] rounded-lg p-4 text-center">
-            <div className="text-lg font-bold font-manrope text-[#1C1C1C] tabular-nums">{transactionCount.toLocaleString()}</div>
-            <div className="text-xs font-bold uppercase tracking-wider text-[#6B7280] mt-1">Transactions</div>
+          <div className="bg-[#F7F7F8] dark:bg-ev-gray-700 rounded-lg p-4 text-center">
+            <div className="text-lg font-bold font-manrope text-[#1C1C1C] dark:text-ev-gray-100 tabular-nums">{transactionCount.toLocaleString()}</div>
+            <div className="text-xs font-bold uppercase tracking-wider text-[#6B7280] dark:text-ev-gray-400 mt-1">Transactions</div>
           </div>
-          <div className="bg-[#F7F7F8] rounded-lg p-4 text-center">
-            <div className="text-lg font-bold font-manrope text-[#1C1C1C] tabular-nums">{vendorCount}</div>
-            <div className="text-xs font-bold uppercase tracking-wider text-[#6B7280] mt-1">Vendors</div>
+          <div className="bg-[#F7F7F8] dark:bg-ev-gray-700 rounded-lg p-4 text-center">
+            <div className="text-lg font-bold font-manrope text-[#1C1C1C] dark:text-ev-gray-100 tabular-nums">{vendorCount}</div>
+            <div className="text-xs font-bold uppercase tracking-wider text-[#6B7280] dark:text-ev-gray-400 mt-1">Vendors</div>
           </div>
         </div>
 
@@ -119,13 +119,13 @@ export default function LinkedTransactionsPanel({
             <h4 className="text-xs font-bold uppercase tracking-wider text-[#6B7280] mb-3">Top Vendors</h4>
             <div className="flex flex-col gap-2">
               {topVendors.map((vendor, index) => (
-                <div key={index} className="flex items-center gap-3 px-3 py-2 bg-[#F7F7F8] rounded-lg">
-                  <div className="w-7 h-7 bg-white rounded flex items-center justify-center text-[#6B7280] flex-shrink-0">
+                <div key={index} className="flex items-center gap-3 px-3 py-2 bg-[#F7F7F8] dark:bg-ev-gray-700 rounded-lg">
+                  <div className="w-7 h-7 bg-white dark:bg-ev-gray-600 rounded flex items-center justify-center text-[#6B7280] dark:text-ev-gray-300 flex-shrink-0">
                     <Building2 size={16} />
                   </div>
                   <div className="flex flex-col flex-1 min-w-0">
-                    <span className="text-sm font-medium text-[#1C1C1C] truncate">{vendor.name}</span>
-                    <span className="text-xs text-[#6B7280] tabular-nums">
+                    <span className="text-sm font-medium text-[#1C1C1C] dark:text-ev-gray-200 truncate">{vendor.name}</span>
+                    <span className="text-xs text-[#6B7280] dark:text-ev-gray-400 tabular-nums">
                       {formatCurrency(vendor.amount)} ({vendor.count} transaction{vendor.count !== 1 ? 's' : ''})
                     </span>
                   </div>
@@ -136,13 +136,13 @@ export default function LinkedTransactionsPanel({
         )}
 
         {/* Transactions List */}
-        <div className="border-t border-[#E2EBEF] pt-6">
+        <div className="border-t border-[#E2EBEF] dark:border-ev-gray-700 pt-6">
           <div className="flex justify-between items-center mb-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[#6B7280]">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-[#6B7280] dark:text-ev-gray-400">
               {isExpanded ? 'All Transactions' : 'Recent Transactions'}
             </h4>
             {isExpanded && (
-              <span className="text-xs text-[#6B7280] tabular-nums">
+              <span className="text-xs text-[#6B7280] dark:text-ev-gray-400 tabular-nums">
                 Showing {displayTransactions.length} of {transactionCount.toLocaleString()}
               </span>
             )}
@@ -150,12 +150,12 @@ export default function LinkedTransactionsPanel({
 
           <div className={`flex flex-col gap-3 ${isExpanded ? 'max-h-[600px] overflow-y-auto pr-1' : ''}`}>
             {displayTransactions.map((tx, index) => (
-              <div key={index} className="px-4 py-3 bg-[#F7F7F8] rounded-lg border-l-2 border-ev-muted-blue">
+              <div key={index} className="px-4 py-3 bg-[#F7F7F8] dark:bg-ev-gray-700 rounded-lg border-l-2 border-ev-muted-blue">
                 <div className="flex justify-between items-start gap-4 mb-2">
-                  <div className="text-sm text-[#1C1C1C] flex-1 min-w-0 leading-snug">{tx.description}</div>
-                  <div className="text-sm font-bold text-[#1C1C1C] whitespace-nowrap tabular-nums">{formatCurrency(tx.amount)}</div>
+                  <div className="text-sm text-[#1C1C1C] dark:text-ev-gray-200 flex-1 min-w-0 leading-snug">{tx.description}</div>
+                  <div className="text-sm font-bold text-[#1C1C1C] dark:text-ev-gray-100 whitespace-nowrap tabular-nums">{formatCurrency(tx.amount)}</div>
                 </div>
-                <div className="flex flex-wrap gap-3 text-xs text-[#6B7280]">
+                <div className="flex flex-wrap gap-3 text-xs text-[#6B7280] dark:text-ev-gray-400">
                   <span className="flex items-center gap-1">
                     <Building2 size={12} className="opacity-70" />
                     {tx.vendor}
@@ -196,7 +196,7 @@ export default function LinkedTransactionsPanel({
           <div className="flex flex-col gap-2 mt-4">
             {isExpanded && hasMoreToLoad && !isLoading && (
               <button
-                className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-white border border-[#E2EBEF] rounded-lg text-sm font-medium text-[#1C1C1C] hover:bg-[#F7F7F8] transition-colors duration-200 cursor-pointer font-manrope"
+                className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-white dark:bg-ev-gray-700 border border-[#E2EBEF] dark:border-ev-gray-600 rounded-lg text-sm font-medium text-[#1C1C1C] dark:text-ev-gray-200 hover:bg-[#F7F7F8] dark:hover:bg-ev-gray-600 transition-colors duration-200 cursor-pointer font-manrope"
                 onClick={handleLoadMore}
               >
                 Load more ({Math.min(TRANSACTIONS_PER_PAGE, allTransactions.length - visibleCount)} more)
@@ -205,7 +205,7 @@ export default function LinkedTransactionsPanel({
 
             {canExpand && (
               <button
-                className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-white border border-[#E2EBEF] rounded-lg text-sm font-medium text-ev-muted-blue hover:bg-[#F7F7F8] hover:border-ev-muted-blue transition-colors duration-200 cursor-pointer font-manrope disabled:opacity-70 disabled:cursor-not-allowed"
+                className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-white dark:bg-ev-gray-700 border border-[#E2EBEF] dark:border-ev-gray-600 rounded-lg text-sm font-medium text-ev-muted-blue hover:bg-[#F7F7F8] dark:hover:bg-ev-gray-600 hover:border-ev-muted-blue transition-colors duration-200 cursor-pointer font-manrope disabled:opacity-70 disabled:cursor-not-allowed"
                 onClick={handleToggleExpand}
                 disabled={isLoading}
               >

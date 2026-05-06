@@ -18,7 +18,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ items }) => {
         {items.map((item, index) => (
           <React.Fragment key={index}>
             {index > 0 && (
-              <li className="text-[#6B7280]" aria-hidden="true">
+              <li className="text-[#6B7280] dark:text-ev-gray-600" aria-hidden="true">
                 /
               </li>
             )}
@@ -33,7 +33,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ items }) => {
                 </button>
               ) : (
                 <span
-                  className="text-[#1C1C1C] font-medium"
+                  className="text-[#1C1C1C] dark:text-ev-gray-100 font-medium"
                   aria-current={index === items.length - 1 ? 'page' : undefined}
                 >
                   {item.label}

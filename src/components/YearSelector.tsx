@@ -37,7 +37,7 @@ const YearSelector = forwardRef<YearSelectorHandle, YearSelectorProps>(({ select
   return (
     <div className="relative" ref={dropdownRef}>
       <button
-        className="flex items-center gap-2 h-[42px] px-4 py-2 text-sm font-medium bg-white border border-[#E2EBEF] rounded-lg cursor-pointer transition-colors duration-200 hover:bg-[#F7F7F8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ev-muted-blue focus-visible:ring-offset-2"
+        className="flex items-center gap-2 h-[42px] px-4 py-2 text-sm font-medium bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 text-[#1C1C1C] dark:text-ev-gray-200 rounded-lg cursor-pointer transition-colors duration-200 hover:bg-[#F7F7F8] dark:hover:bg-ev-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ev-muted-blue focus-visible:ring-offset-2"
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Select fiscal year"
         aria-expanded={isOpen}
@@ -52,7 +52,7 @@ const YearSelector = forwardRef<YearSelectorHandle, YearSelectorProps>(({ select
 
       {isOpen && (
         <div
-          className="absolute top-full mt-1 right-0 min-w-24 bg-white border border-[#E2EBEF] rounded-lg shadow-lg z-10 overflow-hidden max-h-64 overflow-y-auto"
+          className="absolute top-full mt-1 right-0 min-w-24 bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-lg shadow-lg dark:shadow-black/40 z-10 overflow-hidden max-h-64 overflow-y-auto"
           role="listbox"
           aria-label="Available fiscal years"
         >
@@ -61,10 +61,10 @@ const YearSelector = forwardRef<YearSelectorHandle, YearSelectorProps>(({ select
               key={year}
               role="option"
               aria-selected={year === selectedYear}
-              className={`block w-full px-4 py-2 text-sm text-left transition-colors duration-150 hover:bg-[#F7F7F8] ${
+              className={`block w-full px-4 py-2 text-sm text-left transition-colors duration-150 hover:bg-[#F7F7F8] dark:hover:bg-ev-gray-700 ${
                 year === selectedYear
-                  ? 'font-bold text-ev-muted-blue bg-[#F7F7F8]'
-                  : 'text-[#1C1C1C]'
+                  ? 'font-bold text-ev-muted-blue bg-[#F7F7F8] dark:bg-ev-gray-700'
+                  : 'text-[#1C1C1C] dark:text-ev-gray-200'
               }`}
               onClick={() => {
                 onYearChange(year);

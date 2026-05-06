@@ -67,7 +67,7 @@ function CitySearch({
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="Search by city name or state…"
-          className="w-full pl-10 pr-10 py-3 bg-white border border-[#E2EBEF] rounded-xl text-sm text-[#1C1C1C] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#005366] focus:border-transparent"
+          className="w-full pl-10 pr-10 py-3 bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl text-sm text-[#1C1C1C] dark:text-ev-gray-200 placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#005366] focus:border-transparent"
         />
         {query && (
           <button
@@ -81,17 +81,17 @@ function CitySearch({
       </div>
 
       {results.length > 0 && (
-        <div className="mt-2 bg-white border border-[#E2EBEF] rounded-xl overflow-hidden shadow-sm">
+        <div className="mt-2 bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl overflow-hidden shadow-sm dark:shadow-black/40">
           {results.map(city => {
             const years = [...new Set(city.available_datasets.map(d => d.fiscal_year))].sort((a, b) => b - a);
             return (
               <button
                 key={city.id}
                 onClick={() => onNavigateToCity(city)}
-                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-[#F7F7F8] border-b border-[#E2EBEF] last:border-0 transition-colors duration-150"
+                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-[#F7F7F8] dark:hover:bg-ev-gray-700 border-b border-[#E2EBEF] dark:border-ev-gray-700 last:border-0 transition-colors duration-150"
               >
                 <Building2 size={14} className="text-[#005366] shrink-0" />
-                <span className="flex-1 text-sm font-medium text-[#1C1C1C]">
+                <span className="flex-1 text-sm font-medium text-[#1C1C1C] dark:text-ev-gray-200">
                   {city.name}, {city.state}
                 </span>
                 <span className="text-xs text-[#9CA3AF]">{years[0]}</span>
@@ -103,9 +103,9 @@ function CitySearch({
       )}
 
       {noMatch && (
-        <div className="mt-2 bg-[#FFF8ED] border border-[#F5D98B] rounded-xl px-4 py-3">
-          <p className="text-sm font-medium text-[#92400E]">That city isn't in our Alpha yet.</p>
-          <p className="text-sm text-[#6B7280] mt-0.5">
+        <div className="mt-2 bg-[#FFF8ED] dark:bg-ev-yellow-950/30 border border-[#F5D98B] dark:border-ev-yellow-700/50 rounded-xl px-4 py-3">
+          <p className="text-sm font-medium text-[#92400E] dark:text-ev-yellow-300">That city isn't in our Alpha yet.</p>
+          <p className="text-sm text-[#6B7280] dark:text-ev-gray-400 mt-0.5">
             We're expanding soon. In the meantime, explore Bloomington, Indiana to see the feature in action.
           </p>
         </div>
@@ -130,7 +130,7 @@ function CityGrid({
 
   if (available.length === 0) {
     return (
-      <div className="bg-white border border-[#E2EBEF] rounded-xl p-6 text-center text-sm text-[#6B7280]">
+      <div className="bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl p-6 text-center text-sm text-[#6B7280] dark:text-ev-gray-400">
         Loading communities…
       </div>
     );
@@ -147,13 +147,13 @@ function CityGrid({
       <button
         key={city.id}
         onClick={() => onNavigateToCity(city)}
-        className="flex items-center gap-3 bg-white border border-[#E2EBEF] rounded-xl p-4 text-left hover:border-[#005366] hover:shadow-sm transition-all duration-200 group"
+        className="flex items-center gap-3 bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl p-4 text-left hover:border-[#005366] dark:hover:border-ev-muted-blue hover:shadow-sm transition-all duration-200 group"
       >
-        <div className="w-9 h-9 rounded-lg bg-[#EAF4F7] flex items-center justify-center shrink-0 group-hover:bg-[#005366] transition-colors duration-200">
+        <div className="w-9 h-9 rounded-lg bg-[#EAF4F7] dark:bg-ev-teal-950 flex items-center justify-center shrink-0 group-hover:bg-[#005366] transition-colors duration-200">
           <Building2 size={16} className="text-[#005366] group-hover:text-white transition-colors duration-200" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-[#1C1C1C] truncate">
+          <p className="text-sm font-semibold text-[#1C1C1C] dark:text-ev-gray-100 truncate">
             {city.name}, {city.state}
             {isPilot && (
               <span className="ml-2 text-xs font-normal text-[#005366] bg-[#EAF4F7] px-1.5 py-0.5 rounded">
@@ -161,7 +161,7 @@ function CityGrid({
               </span>
             )}
           </p>
-          <p className="text-xs text-[#6B7280] mt-0.5">
+          <p className="text-xs text-[#6B7280] dark:text-ev-gray-400 mt-0.5">
             {years.length} fiscal year{years.length !== 1 ? 's' : ''} · {years[0]} most recent
           </p>
         </div>
@@ -174,7 +174,7 @@ function CityGrid({
     <div className="space-y-6">
       {nearby.length > 0 && (
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-[#6B7280] mb-2">
+          <p className="text-xs font-semibold uppercase tracking-wider text-[#6B7280] dark:text-ev-gray-400 mb-2">
             Near you
             {userAddress?.addr && (
               <span className="ml-2 normal-case font-normal tracking-normal text-[#9CA3AF]">· {userAddress.addr}</span>
@@ -188,7 +188,7 @@ function CityGrid({
       {others.length > 0 && (
         <div>
           {(nearby.length > 0 || preloadedCity) && (
-            <p className="text-xs font-semibold uppercase tracking-wider text-[#6B7280] mb-2">Other communities</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-[#6B7280] dark:text-ev-gray-400 mb-2">Other communities</p>
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {others.map(renderCityButton)}
@@ -230,7 +230,7 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F7F8] font-manrope">
+    <div className="min-h-screen bg-[#F7F7F8] dark:bg-ev-gray-950 font-manrope">
       <Header
         logoSrc={`${import.meta.env.BASE_URL}EVLogo.svg`}
         logoAlt="Empowered Vote"
@@ -340,14 +340,14 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
 
         {/* Preloaded city — prominent card */}
         {preloadedCity && (
-          <div className="bg-white border-2 border-[#005366] rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="bg-white dark:bg-ev-gray-800 border-2 border-[#005366] dark:border-ev-muted-blue rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
                 <MapPin size={15} className="text-[#005366]" />
-                <p className="text-sm font-bold text-[#1C1C1C]">Your City</p>
+                <p className="text-sm font-bold text-[#1C1C1C] dark:text-ev-gray-100">Your City</p>
               </div>
-              <p className="text-lg font-semibold text-[#005366]">{preloadedCity.name}, {preloadedCity.state}</p>
-              <p className="text-sm text-[#6B7280] mt-0.5">Based on your saved address</p>
+              <p className="text-lg font-semibold text-[#005366] dark:text-ev-muted-blue">{preloadedCity.name}, {preloadedCity.state}</p>
+              <p className="text-sm text-[#6B7280] dark:text-ev-gray-400 mt-0.5">Based on your saved address</p>
             </div>
             <button
               onClick={() => onNavigateToCity(preloadedCity)}
@@ -362,33 +362,33 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
         {/* ── Guest ── */}
         {reason.type === 'guest' && (
           <>
-            <div className="bg-[#EAF4F7] border border-[#B3D9E3] rounded-xl p-5">
-              <p className="text-sm font-semibold text-[#005366]">
+            <div className="bg-[#EAF4F7] dark:bg-ev-teal-950/50 border border-[#B3D9E3] dark:border-ev-teal-800 rounded-xl p-5">
+              <p className="text-sm font-semibold text-[#005366] dark:text-ev-muted-blue">
                 Treasury Tracker is currently serving a limited number of Alpha communities.
               </p>
-              <p className="text-sm text-[#6B7280] mt-1">
+              <p className="text-sm text-[#6B7280] dark:text-ev-gray-400 mt-1">
                 Search below to see if your city is available, or browse our current communities.
                 If your city isn't here yet, explore Bloomington to see the feature in action.
               </p>
             </div>
 
             <div>
-              <h2 className="text-base font-bold text-[#1C1C1C] mb-3">Available communities</h2>
+              <h2 className="text-base font-bold text-[#1C1C1C] dark:text-ev-gray-100 mb-3">Available communities</h2>
               <CityGrid municipalities={municipalities} onNavigateToCity={onNavigateToCity} preloadedCity={preloadedCity} />
             </div>
 
             <div>
-              <h2 className="text-base font-bold text-[#1C1C1C] mb-3">Find your city</h2>
+              <h2 className="text-base font-bold text-[#1C1C1C] dark:text-ev-gray-100 mb-3">Find your city</h2>
               <CitySearch municipalities={municipalities} onNavigateToCity={onNavigateToCity} />
             </div>
 
-            <div className="flex items-center gap-3 py-4 border-t border-[#E2EBEF]">
-              <p className="text-sm text-[#6B7280] flex-1">
+            <div className="flex items-center gap-3 py-4 border-t border-[#E2EBEF] dark:border-ev-gray-700">
+              <p className="text-sm text-[#6B7280] dark:text-ev-gray-400 flex-1">
                 Have an Empowered account? Sign in and Treasury Tracker will route you to your city automatically.
               </p>
               <a
                 href={getLoginUrl()}
-                className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 border border-[#005366] text-[#005366] text-sm font-medium rounded-lg hover:bg-[#EAF4F7] transition-colors duration-200"
+                className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 border border-[#005366] dark:border-ev-muted-blue text-[#005366] dark:text-ev-muted-blue text-sm font-medium rounded-lg hover:bg-[#EAF4F7] dark:hover:bg-ev-teal-950 transition-colors duration-200"
               >
                 Sign In
                 <ArrowRight size={13} />
@@ -400,10 +400,10 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
         {/* ── Connected, no address ── */}
         {reason.type === 'no_location' && (
           <>
-            <div className="bg-[#EAF4F7] border border-[#B3D9E3] rounded-xl p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="bg-[#EAF4F7] dark:bg-ev-teal-950/50 border border-[#B3D9E3] dark:border-ev-teal-800 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="flex-1">
-                <p className="text-sm font-semibold text-[#005366]">Set your location to see your city's budget</p>
-                <p className="text-sm text-[#6B7280] mt-0.5">
+                <p className="text-sm font-semibold text-[#005366] dark:text-ev-muted-blue">Set your location to see your city's budget</p>
+                <p className="text-sm text-[#6B7280] dark:text-ev-gray-400 mt-0.5">
                   Treasury Tracker uses your stored address to route you automatically on future visits.
                 </p>
               </div>
@@ -417,12 +417,12 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
             </div>
 
             <div>
-              <h2 className="text-base font-bold text-[#1C1C1C] mb-3">Or search for a city</h2>
+              <h2 className="text-base font-bold text-[#1C1C1C] dark:text-ev-gray-100 mb-3">Or search for a city</h2>
               <CitySearch municipalities={municipalities} onNavigateToCity={onNavigateToCity} />
             </div>
 
             <div>
-              <h2 className="text-base font-bold text-[#1C1C1C] mb-3">Available communities</h2>
+              <h2 className="text-base font-bold text-[#1C1C1C] dark:text-ev-gray-100 mb-3">Available communities</h2>
               <CityGrid municipalities={municipalities} onNavigateToCity={onNavigateToCity} preloadedCity={preloadedCity} />
             </div>
           </>
@@ -431,23 +431,23 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
         {/* ── Connected, city not in treasury yet ── */}
         {reason.type === 'city_not_available' && (
           <>
-            <div className="bg-[#FFF8ED] border border-[#F5D98B] rounded-xl p-5">
-              <p className="text-sm font-semibold text-[#92400E]">
+            <div className="bg-[#FFF8ED] dark:bg-ev-yellow-950/30 border border-[#F5D98B] dark:border-ev-yellow-700/50 rounded-xl p-5">
+              <p className="text-sm font-semibold text-[#92400E] dark:text-ev-yellow-300">
                 We don't have {reason.cityName}, {reason.state} in Treasury Tracker yet.
               </p>
-              <p className="text-sm text-[#6B7280] mt-1">
+              <p className="text-sm text-[#6B7280] dark:text-ev-gray-400 mt-1">
                 We're actively expanding. In the meantime, explore Bloomington to see everything Treasury Tracker can do.
               </p>
             </div>
 
             {bloomington && (
-              <div className="bg-white border border-[#E2EBEF] rounded-xl p-6 flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl p-6 flex flex-col sm:flex-row sm:items-center gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <MapPin size={15} className="text-[#005366]" />
-                    <p className="text-sm font-semibold text-[#1C1C1C]">See Treasury Tracker in action</p>
+                    <p className="text-sm font-semibold text-[#1C1C1C] dark:text-ev-gray-100">See Treasury Tracker in action</p>
                   </div>
-                  <p className="text-sm text-[#6B7280]">
+                  <p className="text-sm text-[#6B7280] dark:text-ev-gray-400">
                     Explore Bloomington, Indiana's full budget — drill into departments, compare years,
                     and trace spending down to individual transactions.
                   </p>
@@ -463,7 +463,7 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
             )}
 
             <div>
-              <h2 className="text-base font-bold text-[#1C1C1C] mb-3">Available communities</h2>
+              <h2 className="text-base font-bold text-[#1C1C1C] dark:text-ev-gray-100 mb-3">Available communities</h2>
               <CityGrid municipalities={municipalities} onNavigateToCity={onNavigateToCity} preloadedCity={null} />
             </div>
           </>
@@ -471,16 +471,16 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
 
         {/* What you can do */}
         <div>
-          <h2 className="text-base font-bold text-[#1C1C1C] mb-4">What you can do</h2>
+          <h2 className="text-base font-bold text-[#1C1C1C] dark:text-ev-gray-100 mb-4">What you can do</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
               { heading: 'Visualize spending', body: 'Interactive charts break the budget into digestible slices you can drill into.' },
               { heading: 'Trace transactions', body: 'Drill down to the individual payment level — see exactly who was paid and when.' },
               { heading: 'Compare years', body: 'See how budgets and actual spending have changed year over year.' },
             ].map(item => (
-              <div key={item.heading} className="bg-white border border-[#E2EBEF] rounded-xl p-5">
-                <p className="text-sm font-semibold text-[#1C1C1C] mb-1">{item.heading}</p>
-                <p className="text-sm text-[#6B7280] leading-relaxed">{item.body}</p>
+              <div key={item.heading} className="bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl p-5">
+                <p className="text-sm font-semibold text-[#1C1C1C] dark:text-ev-gray-100 mb-1">{item.heading}</p>
+                <p className="text-sm text-[#6B7280] dark:text-ev-gray-400 leading-relaxed">{item.body}</p>
               </div>
             ))}
           </div>
