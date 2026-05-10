@@ -377,8 +377,7 @@ function App() {
   const handleCategoryClick = useCallback((category: BudgetCategory) => {
     const hasSubs = category.subcategories && category.subcategories.length > 0;
     const hasLines = category.lineItems && category.lineItems.length > 0;
-    const hasItems = category.items != null && category.items > 0;
-    if (!hasSubs && !hasLines && !hasItems) return;
+    if (!hasSubs && !hasLines) return;
     setNavigationPath([...navigationPath, category]);
   }, [navigationPath]);
 
