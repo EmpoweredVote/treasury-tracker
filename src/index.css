@@ -74,7 +74,7 @@
   --color-ev-gray-200: #D3D7DE;
   --color-ev-gray-300: #B3BBCC;
   --color-ev-gray-400: #8F9EBC;
-  --color-ev-gray-500: #6B7280;
+  --color-ev-gray-500: #535964;   /* bumped from #6B7280 — passes WCAG AA on white */
   --color-ev-gray-600: #535964;
   --color-ev-gray-700: #41454E;
   --color-ev-gray-800: #2F3237;
@@ -167,6 +167,14 @@
      which is 7.4:1. Affects text-ev-muted-blue, border-ev-muted-blue,
      bg-ev-muted-blue, ring-ev-muted-blue, and border-t-ev-muted-blue. */
   --color-ev-muted-blue: #59B0C4;
+
+  /* ── Gray scale — supporting text must be readable on dark backgrounds ──
+     ev-gray-500 (#6B7280) and ev-gray-400 (#8F9EBC) both fail contrast on
+     ev-gray-900/950 dark surfaces. Shift them two steps lighter so
+     text-ev-gray-500 and text-ev-gray-400 pass WCAG AA without touching
+     individual components. */
+  --color-ev-gray-400: #D3D7DE;   /* was #8F9EBC — now ev-gray-200 value */
+  --color-ev-gray-500: #B3BBCC;   /* was #6B7280 — now ev-gray-300 value */
 
   /* ── Data viz palette — shift darker hues to lighter shades ──
      Teal, Ocean, Dusk, Sage, Stone are all too dark against dark bgs at
