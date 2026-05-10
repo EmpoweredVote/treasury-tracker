@@ -121,8 +121,7 @@ const CategoryList: React.FC<CategoryListProps> = ({ categories, onCategoryClick
         const logo = CATEGORY_LOGOS[category.name];
         const hasSubcategories = category.subcategories && category.subcategories.length > 0;
         const hasLines = category.lineItems && category.lineItems.length > 0;
-        const hasItems = category.items != null && category.items > 0;
-        const isDrillable = hasSubcategories || hasLines || hasItems;
+        const isDrillable = hasSubcategories || hasLines;
         const hue = DATA_VIZ_HUES[index % DATA_VIZ_HUES.length];
 
         const cardContent = (
