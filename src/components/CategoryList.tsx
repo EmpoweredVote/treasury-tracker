@@ -167,10 +167,10 @@ const CategoryList: React.FC<CategoryListProps> = ({ categories, onCategoryClick
                     {formatCurrency(isPastYear && category.actualAmount != null ? category.actualAmount : category.amount)}
                   </span>
                   <span className="text-[#D3D7DE] dark:text-ev-gray-600">•</span>
-                  <span className="text-xs text-[#6B7280] tabular-nums">{formatPercentage(category.percentage)}%</span>
+                  <span className="text-xs text-[#4B5563] dark:text-ev-gray-300 tabular-nums">{formatPercentage(category.percentage)}%</span>
                 </div>
                 {category.enrichment?.shortDescription && (
-                  <p className="text-[11px] text-ev-gray-500 leading-snug mt-1 line-clamp-2">
+                  <p className="text-xs text-[#374151] dark:text-ev-gray-300 leading-snug mt-1 line-clamp-2">
                     {category.enrichment.shortDescription}
                   </p>
                 )}
