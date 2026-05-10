@@ -57,9 +57,11 @@ async function importCityData(cityName, state, population, rows, fiscalYear, dat
   });
   if (munErr) { console.error(`    Municipality error: ${munErr.message}`); return null; }
 
-  // Build tree from hierarchy: category -> subcategory_1 -> subcategory_2
+  // Build tree from hierarchy: category -> subcategory_1 -> subcategory_2/line_description
   const tree = new Map();
   for (const row of rows) {
+    const a = amt(row.value);
+    if (a === 0) continue;  // skip zero-value rows
     const cat = row.category || 'Unknown';
     const sub1 = row.subcategory_1 || 'General';
     if (!tree.has(cat)) tree.set(cat, new Map());
@@ -67,8 +69,8 @@ async function importCityData(cityName, state, population, rows, fiscalYear, dat
     if (!catNode.has(sub1)) catNode.set(sub1, []);
     catNode.get(sub1).push({
       d: row.line_description || row.subcategory_2 || sub1,
-      a: amt(row.value),
-      aa: null,
+      a,
+      aa: a,
       f: row.category || null,
       e: row.subcategory_2 || null,
     });
@@ -122,6 +124,7 @@ async function main() {
   const { values } = parseArgs({
     options: {
       county: { type: 'string', short: 'c' },
+      city:   { type: 'string' },
       fy: { type: 'string', short: 'y', multiple: true },
       type: { type: 'string', short: 't' },
       'dry-run': { type: 'boolean' },
@@ -131,12 +134,14 @@ async function main() {
   });
 
   const county = values.county || 'Los Angeles';
+  const cityFilter = values.city || null;
   const state = 'CA';
   const fiscalYears = values.fy ? values.fy.map(Number) : [2023];
   const types = values.type ? [values.type] : ['expenditures', 'revenues'];
 
   console.log(`\n🏛️  CA State Controller Bulk Loader`);
   console.log(`   County: ${county}`);
+  if (cityFilter) console.log(`   City filter: ${cityFilter}`);
   console.log(`   Fiscal Years: ${fiscalYears.join(', ')}`);
   console.log(`   Types: ${types.join(', ')}\n`);
 
@@ -147,7 +152,9 @@ async function main() {
     for (const fy of fiscalYears) {
       console.log(`\n📊 ${ds.label} FY ${fy} — ${county} County`);
 
-      const where = `county='${county}' AND fiscal_year='${fy}'`;
+      const where = cityFilter
+        ? `entity_name='${cityFilter}' AND fiscal_year='${fy}'`
+        : `county='${county}' AND fiscal_year='${fy}'`;
       const rows = await fetchAllPages(ds.id, where);
 
       if (rows.length === 0) { console.log('  No data found'); continue; }
