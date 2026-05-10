@@ -120,15 +120,13 @@ const CategoryList: React.FC<CategoryListProps> = ({ categories, onCategoryClick
         const IconComponent = getCategoryIcon(category.name);
         const logo = CATEGORY_LOGOS[category.name];
         const hasSubcategories = category.subcategories && category.subcategories.length > 0;
+        const hasLines = category.lineItems && category.lineItems.length > 0;
+        const hasItems = category.items != null && category.items > 0;
+        const isDrillable = hasSubcategories || hasLines || hasItems;
         const hue = DATA_VIZ_HUES[index % DATA_VIZ_HUES.length];
 
-        return (
-          <button
-            key={`${category.name}-${index}`}
-            className="relative bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:border-[#D3D7DE] dark:hover:border-ev-gray-500 text-left w-full overflow-hidden"
-            onClick={() => onCategoryClick(category)}
-            aria-label={`${category.name}, ${formatCurrency(category.amount)}, ${formatPercentage(category.percentage)}%${hasSubcategories ? ', tap to explore' : ''}`}
-          >
+        const cardContent = (
+          <>
             {/* Background bar showing percentage */}
             <div
               className="absolute inset-y-0 left-0 opacity-[0.07]"
@@ -157,26 +155,21 @@ const CategoryList: React.FC<CategoryListProps> = ({ categories, onCategoryClick
 
               {/* Category info */}
               <div className="flex-1 min-w-0">
-                {/* Plain name (enriched) or raw name */}
                 <div className="text-sm font-bold font-manrope text-[#1C1C1C] dark:text-ev-gray-100 truncate">
                   {category.enrichment?.plainName || category.name}
                 </div>
-                {/* Raw name as subtitle if enriched and different */}
                 {category.enrichment?.plainName && category.enrichment.plainName !== category.name && (
                   <div className="text-[10px] text-ev-gray-400 truncate -mt-0.5 mb-0.5">
                     {category.name}
                   </div>
                 )}
-                {/* Amount + percentage */}
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="text-sm font-medium tabular-nums text-[#1C1C1C] dark:text-ev-gray-200">
                     {formatCurrency(isPastYear && category.actualAmount != null ? category.actualAmount : category.amount)}
                   </span>
                   <span className="text-[#D3D7DE] dark:text-ev-gray-600">•</span>
                   <span className="text-xs text-[#6B7280] tabular-nums">{formatPercentage(category.percentage)}%</span>
-
                 </div>
-                {/* Short description from enrichment */}
                 {category.enrichment?.shortDescription && (
                   <p className="text-[11px] text-ev-gray-500 leading-snug mt-1 line-clamp-2">
                     {category.enrichment.shortDescription}
@@ -184,12 +177,34 @@ const CategoryList: React.FC<CategoryListProps> = ({ categories, onCategoryClick
                 )}
               </div>
 
-              {/* Arrow indicator for drilldown */}
               {hasSubcategories && (
                 <ChevronRight size={20} className="text-[#6B7280] flex-shrink-0 self-center" />
               )}
             </div>
-          </button>
+          </>
+        );
+
+        if (isDrillable) {
+          return (
+            <button
+              key={`${category.name}-${index}`}
+              className="relative bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:border-[#D3D7DE] dark:hover:border-ev-gray-500 text-left w-full overflow-hidden"
+              onClick={() => onCategoryClick(category)}
+              aria-label={`${category.name}, ${formatCurrency(category.amount)}, ${formatPercentage(category.percentage)}%, tap to explore`}
+            >
+              {cardContent}
+            </button>
+          );
+        }
+
+        return (
+          <div
+            key={`${category.name}-${index}`}
+            className="relative bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl p-4 overflow-hidden"
+            aria-label={`${category.name}, ${formatCurrency(category.amount)}, ${formatPercentage(category.percentage)}%`}
+          >
+            {cardContent}
+          </div>
         );
       })}
     </div>

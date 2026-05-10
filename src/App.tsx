@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { FileText } from 'lucide-react'
-import { SiteHeader, defaultNavItems, defaultCtaButton } from '@empoweredvote/ev-ui';
+import { SiteHeader } from '@empoweredvote/ev-ui';
 import { AppHeader } from './components/AppHeader';
 import PlainLanguageSummary from './components/dashboard/PlainLanguageSummary';
 import BudgetSearch from './components/dashboard/BudgetSearch';
@@ -375,6 +375,10 @@ function App() {
   }, [navigationPath, activeDataset, budgetData]);
 
   const handleCategoryClick = useCallback((category: BudgetCategory) => {
+    const hasSubs = category.subcategories && category.subcategories.length > 0;
+    const hasLines = category.lineItems && category.lineItems.length > 0;
+    const hasItems = category.items != null && category.items > 0;
+    if (!hasSubs && !hasLines && !hasItems) return;
     setNavigationPath([...navigationPath, category]);
   }, [navigationPath]);
 
@@ -549,21 +553,9 @@ function App() {
   return (
     <div className="min-h-screen bg-[#F7F7F8] dark:bg-ev-gray-950 font-manrope">
       <AppHeader
-        navItems={defaultNavItems}
-        ctaButton={
-          selectedEntity?.entity_type === 'nonprofit' && isFinancialsHost
-            ? { label: 'Donate', href: 'https://givebutter.com/g3e9u9' }
-            : defaultCtaButton
-        }
         profileMenu={profileMenu}
         style={darkHeaderStyle}
-        onNavigate={(href) => {
-          if (href === 'https://givebutter.com/g3e9u9') {
-            window.open(href, '_blank', 'noopener,noreferrer');
-          } else {
-            window.location.href = href;
-          }
-        }}
+        onNavigate={(href) => { window.location.href = href; }}
       />
 
       {/* Hero banner */}
