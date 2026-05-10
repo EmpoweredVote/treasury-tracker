@@ -461,7 +461,11 @@ function App() {
   }, [operatingBudgetData, revenueData]);
 
   const profileMenu = isAuthenticated
-    ? { label: 'Account', items: [{ label: 'Sign out', onClick: signOut }] }
+    ? { label: 'Account', items: [
+        { label: 'Profile', onClick: () => { window.location.href = 'https://login.empowered.vote/profile'; } },
+        { label: 'EV Financials', onClick: () => { window.location.href = 'https://financials.empowered.vote'; } },
+        { label: 'Sign out', onClick: signOut },
+      ]}
     : { label: 'Account', items: [{ label: 'Sign in', onClick: () => { window.location.href = getLoginUrl(); } }] };
 
   // Resolving auth — show spinner
@@ -554,7 +558,7 @@ function App() {
       <AppHeader
         profileMenu={profileMenu}
         style={darkHeaderStyle}
-        onNavigate={(href) => { window.location.href = href; }}
+        onNavigate={(href) => { window.location.href = href === '/' ? 'https://alpha.empowered.vote' : href; }}
       />
 
       {/* Hero banner */}
