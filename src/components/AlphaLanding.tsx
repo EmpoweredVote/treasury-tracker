@@ -1,5 +1,4 @@
 import { useState, useMemo, useRef } from 'react';
-import { defaultNavItems, defaultCtaButton } from '@empoweredvote/ev-ui';
 import { AppHeader } from './AppHeader';
 import { MapPin, ArrowRight, Building2, Search, X } from 'lucide-react';
 import type { Municipality } from '../types/budget';
@@ -106,7 +105,7 @@ function CitySearch({
         <div className="mt-2 bg-[#FFF8ED] dark:bg-ev-yellow-950/30 border border-[#F5D98B] dark:border-ev-yellow-700/50 rounded-xl px-4 py-3">
           <p className="text-sm font-medium text-[#92400E] dark:text-ev-yellow-300">That city isn't in our Alpha yet.</p>
           <p className="text-sm text-[#6B7280] dark:text-ev-gray-400 mt-0.5">
-            We're expanding soon. In the meantime, explore Bloomington, Indiana to see the feature in action.
+            We're expanding soon — check back for updates.
           </p>
         </div>
       )}
@@ -203,7 +202,6 @@ function CityGrid({
 export default function AlphaLanding({ reason, municipalities, onNavigateToCity, profileMenu }: AlphaLandingProps) {
   const cityPickerRef = useRef<HTMLDivElement>(null);
   const [showHeroSearch, setShowHeroSearch] = useState(false);
-  const bloomington = municipalities.find(m => m.name === 'Bloomington' && m.state === 'IN') ?? municipalities[0];
   const { isDark } = useTheme();
 
   // Detect preloaded city from cookie address
@@ -232,33 +230,31 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
   return (
     <div className="min-h-screen bg-[#F7F7F8] dark:bg-ev-gray-950 font-manrope">
       <AppHeader
-        navItems={defaultNavItems}
-        ctaButton={defaultCtaButton}
         profileMenu={profileMenu ?? defaultProfileMenu}
         style={darkHeaderStyle}
         onNavigate={(href) => { window.location.href = href; }}
       />
 
       {/* ── Hero ── */}
-      <section style={{ backgroundColor: '#020618', color: 'white' }} className="min-h-[calc(100vh-73px)] flex items-center">
+      <section className="min-h-[calc(100vh-73px)] flex items-center bg-ev-teal-100 dark:bg-[#020618]">
         <div className="w-full px-12 sm:px-16 lg:px-24 py-16">
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-16 lg:gap-24 items-center">
 
             {/* Left: headline + copy + CTA */}
             <div>
-              <p className="text-ev-skyblue-500 text-xs font-bold uppercase tracking-widest mb-5">
+              <p className="text-ev-teal-600 dark:text-ev-skyblue-500 text-xs font-bold uppercase tracking-widest mb-5">
                 Treasury Tracker
               </p>
-              <h1 className="text-5xl sm:text-6xl font-bold leading-tight text-white">
+              <h1 className="text-5xl sm:text-6xl font-bold leading-tight text-ev-gray-900 dark:text-white">
                 See how your government<br />spends its money,
               </h1>
-              <p className="text-5xl sm:text-6xl font-bold text-ev-skyblue-500 leading-tight mt-1 mb-8">
+              <p className="text-5xl sm:text-6xl font-bold text-ev-teal-600 dark:text-ev-skyblue-500 leading-tight mt-1 mb-8">
                 down to the last dollar.
               </p>
-              <p style={{ color: '#9CA3AF' }} className="text-lg leading-relaxed mb-3">
+              <p className="text-ev-gray-500 dark:text-[#9CA3AF] text-lg leading-relaxed mb-3">
                 Dense budget documents, turned into plain-language visuals anyone can understand.
               </p>
-              <p style={{ color: '#D1D5DB' }} className="text-lg leading-relaxed mb-10">
+              <p className="text-ev-gray-600 dark:text-[#D1D5DB] text-lg leading-relaxed mb-10">
                 Our Alpha communities show exactly where we're headed: full transparency for every city, county, and district.
               </p>
 
@@ -273,8 +269,7 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
                   </button>
                   <button
                     onClick={() => setShowHeroSearch(s => !s)}
-                    style={{ color: '#9CA3AF' }}
-                    className="inline-flex items-center gap-1 text-sm hover:text-white transition-colors px-2"
+                    className="inline-flex items-center gap-1 text-sm text-ev-gray-400 dark:text-[#9CA3AF] hover:text-ev-gray-900 dark:hover:text-white transition-colors px-2"
                   >
                     Browse all cities
                   </button>
@@ -284,8 +279,7 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
                   <CitySearch municipalities={municipalities} onNavigateToCity={onNavigateToCity} />
                   <button
                     onClick={() => setShowHeroSearch(false)}
-                    style={{ color: '#6B7280' }}
-                    className="text-sm hover:text-white transition-colors mt-2 block"
+                    className="text-sm text-ev-gray-500 dark:text-[#6B7280] hover:text-ev-gray-900 dark:hover:text-white transition-colors mt-2 block"
                   >
                     ← Back
                   </button>
@@ -306,23 +300,45 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
                 <div
                   key={n}
                   style={{
-                    backgroundColor: active ? '#1a2235' : '#0d1424',
-                    borderColor: active ? '#59B0C4' : 'rgba(255,255,255,0.1)',
+                    backgroundColor: isDark
+                      ? (active ? '#1a2235' : '#0d1424')
+                      : (active ? '#EAF4F7' : '#F5F9FA'),
+                    borderColor: isDark
+                      ? (active ? '#59B0C4' : 'rgba(255,255,255,0.1)')
+                      : (active ? '#005366' : '#D3D7DE'),
                   }}
                   className="flex items-start gap-4 p-5 rounded-2xl border transition-colors"
                 >
                   <div
                     style={{
-                      backgroundColor: active ? 'rgba(89,176,196,0.2)' : 'rgba(255,255,255,0.1)',
-                      color: active ? '#59B0C4' : '#6B7280',
+                      backgroundColor: isDark
+                        ? (active ? 'rgba(89,176,196,0.2)' : 'rgba(255,255,255,0.1)')
+                        : (active ? 'rgba(0,83,102,0.12)' : 'rgba(0,0,0,0.06)'),
+                      color: isDark
+                        ? (active ? '#59B0C4' : '#6B7280')
+                        : (active ? '#005366' : '#9CA3AF'),
                     }}
                     className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
                   >
                     {n}
                   </div>
                   <div>
-                    <p style={{ color: active ? 'white' : '#9CA3AF' }} className="font-bold mb-1">{heading}</p>
-                    <p style={{ color: active ? '#D1D5DB' : '#374151' }} className="text-sm leading-relaxed">{body}</p>
+                    <p
+                      style={{ color: isDark
+                        ? (active ? 'white' : '#9CA3AF')
+                        : (active ? '#1C1C1C' : '#9CA3AF') }}
+                      className="font-bold mb-1"
+                    >
+                      {heading}
+                    </p>
+                    <p
+                      style={{ color: isDark
+                        ? (active ? '#D1D5DB' : '#374151')
+                        : (active ? '#6B7280' : '#9CA3AF') }}
+                      className="text-sm leading-relaxed"
+                    >
+                      {body}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -365,7 +381,6 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
               </p>
               <p className="text-sm text-[#6B7280] dark:text-ev-gray-400 mt-1">
                 Search below to see if your city is available, or browse our current communities.
-                If your city isn't here yet, explore Bloomington to see the feature in action.
               </p>
             </div>
 
@@ -433,31 +448,9 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
                 We don't have {reason.cityName}, {reason.state} in Treasury Tracker yet.
               </p>
               <p className="text-sm text-[#6B7280] dark:text-ev-gray-400 mt-1">
-                We're actively expanding. In the meantime, explore Bloomington to see everything Treasury Tracker can do.
+                We're actively expanding — check back for updates.
               </p>
             </div>
-
-            {bloomington && (
-              <div className="bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl p-6 flex flex-col sm:flex-row sm:items-center gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <MapPin size={15} className="text-[#005366]" />
-                    <p className="text-sm font-semibold text-[#1C1C1C] dark:text-ev-gray-100">See Treasury Tracker in action</p>
-                  </div>
-                  <p className="text-sm text-[#6B7280] dark:text-ev-gray-400">
-                    Explore Bloomington, Indiana's full budget — drill into departments, compare years,
-                    and trace spending down to individual transactions.
-                  </p>
-                </div>
-                <button
-                  onClick={() => onNavigateToCity(bloomington)}
-                  className="shrink-0 inline-flex items-center gap-2 px-6 py-3 bg-[#FBBF24] text-[#1C1C1C] text-sm font-semibold rounded-lg hover:bg-[#F59E0B] transition-colors duration-200"
-                >
-                  Explore Bloomington
-                  <ArrowRight size={14} />
-                </button>
-              </div>
-            )}
 
             <div>
               <h2 className="text-base font-bold text-[#1C1C1C] dark:text-ev-gray-100 mb-3">Available communities</h2>
