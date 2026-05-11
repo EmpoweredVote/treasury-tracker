@@ -59,9 +59,15 @@ export default function DatasetTabs({
   const revenueAnimTarget = revenueTotal ?? 0;
   const [revenueGlowing, setRevenueGlowing] = useState(false);
   const glowTimerRef = useRef<number | null>(null);
+  // Skip the glow on the initial null→value load; only glow on genuine increases.
+  const isFirstRevenueAnimRef = useRef(true);
 
   // CRITICAL: onComplete MUST be wrapped in useCallback with stable deps
   const handleRevenueSettled = useCallback(() => {
+    if (isFirstRevenueAnimRef.current) {
+      isFirstRevenueAnimRef.current = false;
+      return;
+    }
     setRevenueGlowing(true);
     if (glowTimerRef.current != null) window.clearTimeout(glowTimerRef.current);
     glowTimerRef.current = window.setTimeout(() => setRevenueGlowing(false), 2000);
@@ -95,6 +101,7 @@ export default function DatasetTabs({
             key={id}
             onClick={() => !isDisabled && onDatasetChange(id)}
             disabled={isDisabled}
+            {...(isNonprofit && id === 'revenue' ? { 'data-donate-target': '' } : {})}
             className={`relative text-left p-4 rounded-xl border-2 transition-all duration-200 cursor-pointer font-manrope focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ev-muted-blue focus-visible:ring-offset-2
               ${isActive
                 ? 'border-ev-muted-blue bg-white dark:bg-ev-gray-800 shadow-sm'

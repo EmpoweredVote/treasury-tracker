@@ -96,10 +96,16 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
   const revenueTarget = revenueData?.metadata.totalBudget ?? 0;
   const [revenueGlowing, setRevenueGlowing] = useState(false);
   const glowTimerRef = useRef<number | null>(null);
+  // Skip the glow on the initial null→value load; only glow on genuine increases.
+  const isFirstRevenueAnimRef = useRef(true);
 
   // CRITICAL: onComplete MUST be wrapped in useCallback with stable deps,
   // or the useAnimatedCounter effect resets on every render.
   const handleRevenueSettled = useCallback(() => {
+    if (isFirstRevenueAnimRef.current) {
+      isFirstRevenueAnimRef.current = false;
+      return;
+    }
     setRevenueGlowing(true);
     if (glowTimerRef.current != null) window.clearTimeout(glowTimerRef.current);
     glowTimerRef.current = window.setTimeout(() => setRevenueGlowing(false), 2000);
