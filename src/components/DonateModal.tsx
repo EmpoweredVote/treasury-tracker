@@ -63,12 +63,10 @@ export default function DonateModal({ open, onClose }: Props) {
         {/* Body */}
         <div className="px-6 pb-6 space-y-4">
           <p className="text-ev-gray-700 dark:text-ev-gray-300 leading-relaxed text-[15px]">
-            We will show you how we spend our donations and seek to earn trust through transparency.
-            We won't ever sell ads, subscriptions, or user data.
+            We show our spend and seek to earn trust through transparency. We will never sell ads, subscriptions, or user data.
           </p>
           <p className="text-ev-gray-700 dark:text-ev-gray-300 leading-relaxed text-[15px]">
-            We prefer small monthly donations, but if you're not in a spot where that makes sense
-            or ever need to stop — you will still have full access to all the features.
+            We prefer small monthly donations. If you're not in a spot where that makes sense, you will still have full access to all our features.
           </p>
           <a
             href="https://givebutter.com/g3e9u9"
