@@ -1,19 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { X, Heart } from 'lucide-react';
 
-// Inject the GiveButter script once, regardless of how many times the modal mounts.
-let scriptInjected = false;
-function ensureGivebutterScript() {
-  if (scriptInjected || document.querySelector('script[src*="givebutter"]')) {
-    scriptInjected = true;
-    return;
-  }
-  const s = document.createElement('script');
-  s.src = 'https://js.givebutter.com/elements/latest.js';
-  s.async = true;
-  document.head.appendChild(s);
-  scriptInjected = true;
-}
+// GiveButter script is loaded via index.html — no dynamic injection needed here.
 
 interface Props {
   open: boolean;
@@ -22,10 +10,6 @@ interface Props {
 
 export default function DonateModal({ open, onClose }: Props) {
   const closeRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    ensureGivebutterScript();
-  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -51,7 +35,7 @@ export default function DonateModal({ open, onClose }: Props) {
         aria-hidden="true"
       />
 
-      {/* Modal card — wider to give the widget room to breathe */}
+      {/* Modal card */}
       <div className="relative z-10 bg-white dark:bg-ev-gray-800 rounded-2xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto">
 
         {/* Header */}
@@ -86,8 +70,11 @@ export default function DonateModal({ open, onClose }: Props) {
             We prefer small monthly donations, but if you're not in a spot where that makes sense
             or ever need to stop — you will still have full access to all the features.
           </p>
+          <p className="text-ev-gray-700 dark:text-ev-gray-300 leading-relaxed text-[15px]">
+            We use Givebutter for donations here:
+          </p>
 
-          {/* GiveButter inline widget — React.createElement avoids JSX type declaration issues */}
+          {/* GiveButter inline widget */}
           {React.createElement('givebutter-widget', { id: 'jb95Pp' })}
         </div>
       </div>
