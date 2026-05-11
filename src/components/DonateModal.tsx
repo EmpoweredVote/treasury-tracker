@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { X, Heart } from 'lucide-react';
 
 // GiveButter script is loaded via index.html — no dynamic injection needed here.
@@ -70,12 +70,18 @@ export default function DonateModal({ open, onClose }: Props) {
             We prefer small monthly donations, but if you're not in a spot where that makes sense
             or ever need to stop — you will still have full access to all the features.
           </p>
-          <p className="text-ev-gray-700 dark:text-ev-gray-300 leading-relaxed text-[15px]">
-            We use Givebutter for donations here:
-          </p>
-
-          {/* GiveButter inline widget */}
-          {React.createElement('givebutter-widget', { id: 'jb95Pp' })}
+          <a
+            href="https://givebutter.com/g3e9u9"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 w-full py-3.5 px-4 rounded-xl font-semibold text-[15px] text-white transition-colors"
+            style={{ backgroundColor: '#16a34a' }}
+            onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#15803d')}
+            onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#16a34a')}
+          >
+            <Heart size={16} fill="currentColor" />
+            Donate on Givebutter
+          </a>
         </div>
       </div>
     </div>
