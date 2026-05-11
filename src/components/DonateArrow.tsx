@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useTheme } from '../hooks/useTheme';
 
 interface Props {
@@ -25,6 +25,8 @@ function ensureCaveatFont() {
 export default function DonateArrow({ visible }: Props) {
   const { isDark } = useTheme();
   const [drawing, setDrawing] = useState<Drawing | null>(null);
+  const [hovered, setHovered] = useState(false);
+  const cardRef = useRef<HTMLElement | null>(null);
 
   const measure = useCallback(() => {
     if (!visible || window.innerWidth < 768) { setDrawing(null); return; }
@@ -36,8 +38,6 @@ export default function DonateArrow({ visible }: Props) {
     const br = btn.getBoundingClientRect();
     const cr = card.getBoundingClientRect();
 
-    // Arrow starts from just above the Money In card (top-center),
-    // sweeps up and right to just below the Donate button.
     const sx = cr.left + cr.width * 0.35;
     const sy = cr.top - 2;
     const ex = br.left + br.width * 0.5;
@@ -49,11 +49,7 @@ export default function DonateArrow({ visible }: Props) {
     const cp2y = ey + 100;
 
     const arrowPath = `M ${sx},${sy} C ${cp1x},${cp1y} ${cp2x},${cp2y} ${ex},${ey}`;
-
-    // "If you want to watch this go up..." — left of arrow start, above the card.
     const label1 = { x: sx - 18, y: sy - 12 };
-
-    // "go here." — to the right of the Donate button, vertically centered on it.
     const label2 = { x: br.right + 10, y: br.top + br.height * 0.5 };
 
     setDrawing({ arrowPath, label1, label2 });
@@ -61,13 +57,33 @@ export default function DonateArrow({ visible }: Props) {
 
   useEffect(() => { ensureCaveatFont(); }, []);
 
+  // Poll until the card is in its final position, then measure + attach hover listeners.
   useEffect(() => {
     let attempts = 0;
     let raf: number;
+    let ro: ResizeObserver | null = null;
+
+    const onEnter = () => setHovered(true);
+    const onLeave = () => setHovered(false);
+
+    function attachListeners(card: HTMLElement) {
+      if (cardRef.current === card) return; // already attached
+      if (cardRef.current) {
+        cardRef.current.removeEventListener('mouseenter', onEnter);
+        cardRef.current.removeEventListener('mouseleave', onLeave);
+      }
+      card.addEventListener('mouseenter', onEnter);
+      card.addEventListener('mouseleave', onLeave);
+      cardRef.current = card;
+    }
+
     function poll() {
       const card = document.querySelector<HTMLElement>('[data-donate-target]');
       if (card && card.getBoundingClientRect().bottom > 300) {
         measure();
+        attachListeners(card);
+        ro = new ResizeObserver(measure);
+        ro.observe(card);
       } else if (attempts++ < 40) {
         raf = requestAnimationFrame(poll);
       }
@@ -77,27 +93,32 @@ export default function DonateArrow({ visible }: Props) {
     window.addEventListener('resize', measure);
     window.addEventListener('scroll', measure, { passive: true });
 
-    let ro: ResizeObserver | null = null;
-    const card = document.querySelector<HTMLElement>('[data-donate-target]');
-    if (card) { ro = new ResizeObserver(measure); ro.observe(card); }
-
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', measure);
       window.removeEventListener('scroll', measure);
       ro?.disconnect();
+      if (cardRef.current) {
+        cardRef.current.removeEventListener('mouseenter', onEnter);
+        cardRef.current.removeEventListener('mouseleave', onLeave);
+      }
     };
   }, [measure]);
 
   if (!drawing || !visible) return null;
 
   const { arrowPath, label1, label2 } = drawing;
-  const color = isDark ? '#FACC15' : '#3AABB8';  // yellow in dark mode, teal in light
+  const color = isDark ? '#FACC15' : '#3AABB8';
   const font  = "'Caveat', cursive";
 
   return createPortal(
     <svg
-      style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', pointerEvents: 'none', zIndex: 30, overflow: 'visible' }}
+      style={{
+        position: 'fixed', inset: 0, width: '100vw', height: '100vh',
+        pointerEvents: 'none', zIndex: 30, overflow: 'visible',
+        opacity: hovered ? 1 : 0,
+        transition: 'opacity 0.5s ease',
+      }}
       aria-hidden="true"
     >
       <defs>
@@ -108,33 +129,13 @@ export default function DonateArrow({ visible }: Props) {
 
       <path d={arrowPath} stroke={color} strokeWidth="2.5" fill="none" strokeLinecap="round" strokeOpacity="0.85" markerEnd="url(#donate-arrowhead)" />
 
-      {/* "If you want to watch this go up..." right-aligned, just above where the arrow leaves the card */}
-      <text
-        x={label1.x}
-        y={label1.y}
-        textAnchor="end"
-        dominantBaseline="auto"
-        fontSize="26"
-        fontFamily={font}
-        fontWeight="500"
-        fill={color}
-        fillOpacity="0.9"
-      >
+      <text x={label1.x} y={label1.y} textAnchor="end" dominantBaseline="auto"
+        fontSize="26" fontFamily={font} fontWeight="500" fill={color} fillOpacity="0.9">
         If you want to watch this go up...
       </text>
 
-      {/* "go here." to the right of the Donate button */}
-      <text
-        x={label2.x}
-        y={label2.y}
-        textAnchor="start"
-        dominantBaseline="middle"
-        fontSize="26"
-        fontFamily={font}
-        fontWeight="500"
-        fill={color}
-        fillOpacity="0.9"
-      >
+      <text x={label2.x} y={label2.y} textAnchor="start" dominantBaseline="middle"
+        fontSize="26" fontFamily={font} fontWeight="500" fill={color} fillOpacity="0.9">
         go here.
       </text>
     </svg>,
