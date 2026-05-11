@@ -1,5 +1,6 @@
 import { createPortal } from 'react-dom';
 import { useEffect, useState, useCallback } from 'react';
+import { useTheme } from '../hooks/useTheme';
 
 interface Props {
   visible: boolean;
@@ -22,6 +23,7 @@ function ensureCaveatFont() {
 }
 
 export default function DonateArrow({ visible }: Props) {
+  const { isDark } = useTheme();
   const [drawing, setDrawing] = useState<Drawing | null>(null);
 
   const measure = useCallback(() => {
@@ -51,8 +53,8 @@ export default function DonateArrow({ visible }: Props) {
     // "If you want to watch this go up..." — left of arrow start, above the card.
     const label1 = { x: sx - 18, y: sy - 12 };
 
-    // "go here." — below the arrowhead, right-aligned to button center.
-    const label2 = { x: ex, y: ey + 22 };
+    // "go here." — to the right of the Donate button, vertically centered on it.
+    const label2 = { x: br.right + 10, y: br.top + br.height * 0.5 };
 
     setDrawing({ arrowPath, label1, label2 });
   }, [visible]);
@@ -90,7 +92,7 @@ export default function DonateArrow({ visible }: Props) {
   if (!drawing || !visible) return null;
 
   const { arrowPath, label1, label2 } = drawing;
-  const color = '#3AABB8';
+  const color = isDark ? '#FACC15' : '#3AABB8';  // yellow in dark mode, teal in light
   const font  = "'Caveat', cursive";
 
   return createPortal(
@@ -121,12 +123,12 @@ export default function DonateArrow({ visible }: Props) {
         If you want to watch this go up...
       </text>
 
-      {/* "go here." centered below the Donate button */}
+      {/* "go here." to the right of the Donate button */}
       <text
         x={label2.x}
         y={label2.y}
-        textAnchor="middle"
-        dominantBaseline="hanging"
+        textAnchor="start"
+        dominantBaseline="middle"
         fontSize="26"
         fontFamily={font}
         fontWeight="500"
