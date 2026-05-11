@@ -72,10 +72,7 @@ export default function DonateModal({ open, onClose }: Props) {
             href="https://givebutter.com/g3e9u9"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-3.5 px-4 rounded-xl font-semibold text-[15px] text-white transition-colors"
-            style={{ backgroundColor: '#16a34a' }}
-            onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#15803d')}
-            onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#16a34a')}
+            className="flex items-center justify-center gap-2 w-full py-3.5 px-4 rounded-xl font-semibold text-[15px] text-white bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-400 dark:text-gray-900 transition-colors"
           >
             <Heart size={16} fill="currentColor" />
             Donate on Givebutter
