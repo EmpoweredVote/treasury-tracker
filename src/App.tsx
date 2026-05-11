@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
-import { FileText } from 'lucide-react'
+import { FileText, Heart } from 'lucide-react'
 import { SiteHeader } from '@empoweredvote/ev-ui';
 import { AppHeader } from './components/AppHeader';
 import PlainLanguageSummary from './components/dashboard/PlainLanguageSummary';
@@ -11,6 +11,8 @@ import type { LandingReason } from './components/AlphaLanding';
 import { resolveToken, fetchUserSession, getLoginUrl, signOut } from './utils/auth';
 import { useTheme } from './hooks/useTheme';
 import DatasetTabs from './components/datasets/DatasetTabs';
+import DonateModal from './components/DonateModal';
+import DonateArrow from './components/DonateArrow';
 
 import YearSelector from './components/YearSelector';
 import type { YearSelectorHandle } from './components/YearSelector';
@@ -111,6 +113,7 @@ function App() {
   const [navigationPath, setNavigationPath] = useState<BudgetCategory[]>([]);
   const [linkedTransactions, setLinkedTransactions] = useState<LinkedTransactionSummary | null>(null);
   const [heroImageUrl, setHeroImageUrl] = useState<string | null>(null);
+  const [donateOpen, setDonateOpen] = useState(false);
 
   // Fetch hero image from Wikipedia when entity changes
   useEffect(() => {
@@ -638,11 +641,31 @@ function App() {
                 />
               </div>
             )}
+            {selectedEntity?.entity_type === 'nonprofit' &&
+              selectedYear === String(new Date().getFullYear()) && (
+              <button
+                data-donate-btn=""
+                onClick={() => setDonateOpen(true)}
+                className="flex items-center gap-1.5 h-[42px] px-4 py-2 text-sm font-semibold bg-green-600 hover:bg-green-700 active:bg-green-800 text-white rounded-lg transition-colors duration-200 whitespace-nowrap ml-auto"
+              >
+                <Heart size={14} className="shrink-0" fill="currentColor" />
+                <span>Donate</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
 
       {breadcrumbItems.length > 2 && <Breadcrumb items={breadcrumbItems} />}
+
+      {/* Donate arrow annotation — only on current-year nonprofit top-level view */}
+      <DonateArrow
+        visible={
+          selectedEntity?.entity_type === 'nonprofit' &&
+          selectedYear === String(new Date().getFullYear()) &&
+          navigationPath.length === 0
+        }
+      />
 
       {/* Main content area */}
       <div className="relative">
@@ -852,6 +875,8 @@ function App() {
           )}
         </div>
       </div>
+
+      <DonateModal open={donateOpen} onClose={() => setDonateOpen(false)} />
     </div>
   )
 }
