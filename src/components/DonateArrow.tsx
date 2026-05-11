@@ -49,21 +49,21 @@ export default function DonateArrow({ visible }: Props) {
     const br = btn.getBoundingClientRect();
     const cr = card.getBoundingClientRect();
 
-    // Circle: just around the dollar amount on the LEFT side of the Money In tile.
-    // Roughly the left 45% of the card width, centered vertically.
-    const cx = cr.left + cr.width * 0.27;
-    const cy = cr.top  + cr.height * 0.5;
-    const rx = cr.width  * 0.26;
-    const ry = cr.height * 0.60;
+    // Circle: anchor by its top-left corner so the topmost point sits over "Money In".
+    // The card has ~16px top padding before the label, so cy - ry ≈ cr.top + 16.
+    const ry = cr.height * 0.52;
+    const cy = cr.top + ry + 16;   // top of oval is over the "Money In" label
+    const rx = cr.width  * 0.22;
+    const cx = cr.left + rx + 18;  // left of oval hugs the card's left padding
     const circlePath = roughEllipse(cx, cy, rx, ry);
 
     // Arrow: from the upper-right of the circle up to just below the Donate button.
-    const sx = cx + rx * 0.7;
+    const sx = cx + rx * 0.8;
     const sy = cy - ry;
     const ex = br.left + br.width  * 0.5;
     const ey = br.bottom + 18;
 
-    // Curve sweeps right then up — natural hand-drawn arc.
+    // Curve sweeps right then up.
     const cp1x = sx + 90;
     const cp1y = sy - 60;
     const cp2x = ex + 30;
@@ -72,10 +72,10 @@ export default function DonateArrow({ visible }: Props) {
     const arrowPath = `M ${sx},${sy} C ${cp1x},${cp1y} ${cp2x},${cp2y} ${ex},${ey}`;
 
     // Label 1: horizontal, centred above the circle.
-    const label1 = { x: cx, y: cy - ry - 14 };
+    const label1 = { x: cx, y: cy - ry - 10 };
 
-    // Label 2: just below and slightly left of the arrow tip (under the button).
-    const label2 = { x: ex - 10, y: ey + 6 };
+    // Label 2: well below the arrowhead so it doesn't overlap the arrow line.
+    const label2 = { x: ex, y: ey + 28 };
 
     setDrawing({ circlePath, arrowPath, label1, label2 });
   }, [visible]);
@@ -142,7 +142,7 @@ export default function DonateArrow({ visible }: Props) {
         y={label1.y}
         textAnchor="middle"
         dominantBaseline="auto"
-        fontSize="17"
+        fontSize="26"
         fontFamily={font}
         fontWeight="500"
         fill={color}
@@ -157,7 +157,7 @@ export default function DonateArrow({ visible }: Props) {
         y={label2.y}
         textAnchor="middle"
         dominantBaseline="hanging"
-        fontSize="17"
+        fontSize="26"
         fontFamily={font}
         fontWeight="500"
         fill={color}
