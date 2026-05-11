@@ -5,11 +5,24 @@ interface Props {
   visible: boolean;
 }
 
-interface Paths {
-  fwd: string;   // card → button (arrowhead at button end)
-  tmx: number;   // text midpoint x
-  tmy: number;   // text midpoint y
-  angle: number; // text rotation (degrees)
+interface Drawing {
+  circlePath: string;
+  arrowPath: string;
+  label1: { x: number; y: number; angle: number }; // "If you want to watch this go up..."
+  label2: { x: number; y: number };                 // "go here"
+}
+
+// Slightly irregular closed ellipse path — looks like a quick pen circle.
+function roughEllipse(cx: number, cy: number, rx: number, ry: number): string {
+  const k = 0.552;
+  return [
+    `M ${cx - rx},${cy + 4}`,
+    `C ${cx - rx},${cy - k * ry - 4} ${cx - k * rx + 3},${cy - ry} ${cx + 2},${cy - ry - 3}`,
+    `C ${cx + k * rx},${cy - ry + 1} ${cx + rx + 3},${cy - k * ry} ${cx + rx + 2},${cy}`,
+    `C ${cx + rx - 1},${cy + k * ry + 3} ${cx + k * rx - 2},${cy + ry + 2} ${cx - 3},${cy + ry + 1}`,
+    `C ${cx - k * rx + 2},${cy + ry} ${cx - rx + 1},${cy + k * ry - 2} ${cx - rx},${cy + 4}`,
+    `Z`,
+  ].join(' ');
 }
 
 function bezierAt(t: number, p0: number, p1: number, p2: number, p3: number): number {
@@ -23,10 +36,10 @@ function bezierTangent(t: number, p0: number, p1: number, p2: number, p3: number
 }
 
 export default function DonateArrow({ visible }: Props) {
-  const [paths, setPaths] = useState<Paths | null>(null);
+  const [drawing, setDrawing] = useState<Drawing | null>(null);
 
   const measure = useCallback(() => {
-    if (!visible || window.innerWidth < 768) { setPaths(null); return; }
+    if (!visible || window.innerWidth < 768) { setDrawing(null); return; }
 
     const btn  = document.querySelector<HTMLElement>('[data-donate-btn]');
     const card = document.querySelector<HTMLElement>('[data-donate-target]');
@@ -35,36 +48,41 @@ export default function DonateArrow({ visible }: Props) {
     const br = btn.getBoundingClientRect();
     const cr = card.getBoundingClientRect();
 
-    // Arrow: FROM the money-in card TO the donate button (arrowhead points at button).
-    // Start at the upper-left area of the card; end at the bottom-center of the button.
-    const sx = cr.left + cr.width * 0.38;
-    const sy = cr.top + 10;
-    const ex = br.left + br.width * 0.5;
-    const ey = br.top + br.height * 0.5;
+    // Pen circle around the Money In card
+    const cx  = cr.left + cr.width  / 2;
+    const cy  = cr.top  + cr.height / 2;
+    const rx  = cr.width  / 2 + 10;
+    const ry  = cr.height / 2 + 10;
+    const circlePath = roughEllipse(cx, cy, rx, ry);
 
-    // S-curve: initially pull leftward from the card, then sweep right/up to the button.
-    // This mirrors the hand-drawn arc in the sketch.
-    const cp1x = sx - 110;
-    const cp1y = sy - 70;
-    const cp2x = ex - 55;
-    const cp2y = ey + 130;
+    // Arrow starts from the upper-right of the circle, ends just below the Donate button.
+    const sx = cx + rx * 0.65;
+    const sy = cy - ry;
+    const ex = br.left + br.width  * 0.5;
+    const ey = br.bottom + 16;
 
-    const fwd = `M ${sx},${sy} C ${cp1x},${cp1y} ${cp2x},${cp2y} ${ex},${ey}`;
+    // Control points: pull outward from each endpoint to create a sweeping S-curve.
+    const cp1x = sx + 55;
+    const cp1y = sy - 50;
+    const cp2x = ex + 45;
+    const cp2y = ey + 90;
 
-    // Text midpoint at t=0.45 (slightly before center, in the sweeping arc area)
-    const T = 0.45;
-    const tmx = bezierAt(T, sx, cp1x, cp2x, ex);
-    const tmy = bezierAt(T, sy, cp1y, cp2y, ey);
+    const arrowPath = `M ${sx},${sy} C ${cp1x},${cp1y} ${cp2x},${cp2y} ${ex},${ey}`;
 
-    // Angle: use the tangent direction so the text tilts naturally with the curve.
-    // When the path is going leftward (dx < 0) at the text position, flip 180° so
-    // text reads left-to-right rather than appearing reversed.
-    const dx = bezierTangent(T, sx, cp1x, cp2x, ex);
-    const dy = bezierTangent(T, sy, cp1y, cp2y, ey);
-    const rawAngle = Math.atan2(dy, dx) * (180 / Math.PI);
-    const angle = dx < 0 ? rawAngle + 180 : rawAngle;
+    // Label 1 — "If you want to watch this go up..." near the Money In card (t ≈ 0.08)
+    const T1 = 0.08;
+    const l1x    = bezierAt(T1, sx, cp1x, cp2x, ex);
+    const l1y    = bezierAt(T1, sy, cp1y, cp2y, ey);
+    const dx1    = bezierTangent(T1, sx, cp1x, cp2x, ex);
+    const dy1    = bezierTangent(T1, sy, cp1y, cp2y, ey);
+    const raw1   = Math.atan2(dy1, dx1) * (180 / Math.PI);
+    const angle1 = dx1 < 0 ? raw1 + 180 : raw1;
 
-    setPaths({ fwd, tmx, tmy, angle });
+    // Label 2 — "go here" just below the Donate button
+    const l2x = ex;
+    const l2y = ey + 6;
+
+    setDrawing({ circlePath, arrowPath, label1: { x: l1x, y: l1y, angle: angle1 }, label2: { x: l2x, y: l2y } });
   }, [visible]);
 
   useEffect(() => {
@@ -78,63 +96,55 @@ export default function DonateArrow({ visible }: Props) {
     };
   }, [measure]);
 
-  if (!paths || !visible) return null;
+  if (!drawing || !visible) return null;
 
-  const { fwd, tmx, tmy, angle } = paths;
-
-  // Teal brand color — visible in both light and dark mode.
+  const { circlePath, arrowPath, label1, label2 } = drawing;
   const color = '#3AABB8';
 
   return createPortal(
     <svg
-      style={{
-        position: 'fixed',
-        inset: 0,
-        width: '100vw',
-        height: '100vh',
-        pointerEvents: 'none',
-        zIndex: 30,
-        overflow: 'visible',
-      }}
+      style={{ position: 'fixed', inset: 0, width: '100vw', height: '100vh', pointerEvents: 'none', zIndex: 30, overflow: 'visible' }}
       aria-hidden="true"
     >
       <defs>
-        <marker
-          id="donate-arrowhead"
-          markerWidth="10"
-          markerHeight="7"
-          refX="9"
-          refY="3.5"
-          orient="auto"
-        >
+        <marker id="donate-arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
           <polygon points="0 0, 10 3.5, 0 7" fill={color} fillOpacity="0.85" />
         </marker>
       </defs>
 
-      {/* Arrow curve */}
-      <path
-        d={fwd}
-        stroke={color}
-        strokeWidth="2.5"
-        fill="none"
-        strokeLinecap="round"
-        strokeOpacity="0.85"
-        markerEnd="url(#donate-arrowhead)"
-      />
+      {/* Pen circle around Money In card */}
+      <path d={circlePath} stroke={color} strokeWidth="2" fill="none" strokeLinecap="round" strokeOpacity="0.8" />
 
-      {/* Annotation text, rotated to follow the curve at the midpoint */}
+      {/* Sweeping arrow from circle → below Donate button */}
+      <path d={arrowPath} stroke={color} strokeWidth="2.5" fill="none" strokeLinecap="round" strokeOpacity="0.85" markerEnd="url(#donate-arrowhead)" />
+
+      {/* "If you want to watch this go up..." — rotated to follow the arrow near the card */}
       <text
-        transform={`translate(${tmx}, ${tmy}) rotate(${angle})`}
+        transform={`translate(${label1.x},${label1.y}) rotate(${label1.angle})`}
         textAnchor="middle"
-        dominantBaseline="auto"
         dy="-9"
-        fontSize="12.5"
-        fontFamily="Georgia, 'Times New Roman', serif"
+        fontSize="12"
+        fontFamily="Georgia,'Times New Roman',serif"
         fontStyle="italic"
         fill={color}
         fillOpacity="0.85"
       >
-        If you want to watch this go up, go here.
+        If you want to watch this go up...
+      </text>
+
+      {/* "go here" — below the Donate button */}
+      <text
+        x={label2.x}
+        y={label2.y}
+        textAnchor="middle"
+        dominantBaseline="hanging"
+        fontSize="12"
+        fontFamily="Georgia,'Times New Roman',serif"
+        fontStyle="italic"
+        fill={color}
+        fillOpacity="0.85"
+      >
+        go here.
       </text>
     </svg>,
     document.body,
