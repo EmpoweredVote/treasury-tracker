@@ -86,13 +86,41 @@ export default function DonateArrow({ visible }: Props) {
   }, [visible]);
 
   useEffect(() => {
-    const t = setTimeout(measure, 200);
+    // Poll until the Money In card has settled into its final position.
+    // The card starts near the top (y≈0) while React is still rendering, so we
+    // keep trying until its bottom edge is meaningfully below the controls bar.
+    let attempts = 0;
+    let raf: number;
+
+    function poll() {
+      const card = document.querySelector<HTMLElement>('[data-donate-target]');
+      // Require the card bottom to be at least 300px from the top of the viewport
+      // before we trust the measurement.
+      if (card && card.getBoundingClientRect().bottom > 300) {
+        measure();
+      } else if (attempts++ < 40) {
+        raf = requestAnimationFrame(poll);
+      }
+    }
+    raf = requestAnimationFrame(poll);
+
+    // Re-measure on resize/scroll.
     window.addEventListener('resize', measure);
     window.addEventListener('scroll', measure, { passive: true });
+
+    // Re-measure whenever the card itself changes size (e.g. data loads).
+    let ro: ResizeObserver | null = null;
+    const card = document.querySelector<HTMLElement>('[data-donate-target]');
+    if (card) {
+      ro = new ResizeObserver(measure);
+      ro.observe(card);
+    }
+
     return () => {
-      clearTimeout(t);
+      cancelAnimationFrame(raf);
       window.removeEventListener('resize', measure);
       window.removeEventListener('scroll', measure);
+      ro?.disconnect();
     };
   }, [measure]);
 
