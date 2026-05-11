@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { AppHeader } from './AppHeader';
 import { MapPin, ArrowRight, Building2, Search, X } from 'lucide-react';
 import type { Municipality } from '../types/budget';
