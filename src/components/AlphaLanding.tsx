@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { AppHeader } from './AppHeader';
 import { MapPin, ArrowRight, Building2, Search, X } from 'lucide-react';
 import type { Municipality } from '../types/budget';
@@ -201,7 +201,6 @@ function CityGrid({
 // ── Main component ──
 export default function AlphaLanding({ reason, municipalities, onNavigateToCity, profileMenu }: AlphaLandingProps) {
   const cityPickerRef = useRef<HTMLDivElement>(null);
-  const [showHeroSearch, setShowHeroSearch] = useState(false);
   const { isDark } = useTheme();
 
   // Detect preloaded city from cookie address
@@ -268,29 +267,16 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
                     Go to {preloadedCity.name} →
                   </button>
                   <button
-                    onClick={() => setShowHeroSearch(s => !s)}
+                    onClick={() => cityPickerRef.current?.scrollIntoView({ behavior: 'smooth' })}
                     className="inline-flex items-center gap-1 text-sm text-ev-gray-400 dark:text-[#9CA3AF] hover:text-ev-gray-900 dark:hover:text-white transition-colors px-2"
                   >
                     Browse all cities
                   </button>
                 </div>
-              ) : showHeroSearch ? (
+              ) : (
                 <div className="max-w-md">
                   <CitySearch municipalities={municipalities} onNavigateToCity={onNavigateToCity} />
-                  <button
-                    onClick={() => setShowHeroSearch(false)}
-                    className="text-sm text-ev-gray-500 dark:text-[#6B7280] hover:text-ev-gray-900 dark:hover:text-white transition-colors mt-2 block"
-                  >
-                    ← Back
-                  </button>
                 </div>
-              ) : (
-                <button
-                  onClick={() => setShowHeroSearch(true)}
-                  className="inline-flex items-center gap-2 bg-ev-yellow text-black font-bold px-8 py-4 rounded-xl hover:bg-ev-yellow-dark transition-colors text-lg"
-                >
-                  Find My City →
-                </button>
               )}
             </div>
 
