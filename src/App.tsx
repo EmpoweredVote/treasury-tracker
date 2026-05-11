@@ -110,6 +110,7 @@ function App() {
   const [revenueData, setRevenueData] = useState<BudgetData | null>(null);
   const [salariesData, setSalariesData] = useState<BudgetData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [budgetLoadError, setBudgetLoadError] = useState(false);
   const [navigationPath, setNavigationPath] = useState<BudgetCategory[]>([]);
   const [linkedTransactions, setLinkedTransactions] = useState<LinkedTransactionSummary | null>(null);
   const [heroImageUrl, setHeroImageUrl] = useState<string | null>(null);
@@ -298,6 +299,7 @@ function App() {
   useEffect(() => {
     if (!selectedEntity) return;
     setLoading(true);
+    setBudgetLoadError(false);
     setNavigationPath([]);
 
     loadBudgetData(parseInt(selectedYear), selectedEntity.name, selectedEntity.state, activeDataset)
@@ -309,6 +311,7 @@ function App() {
         console.error(`Failed to load ${activeDataset} data:`, error);
         setBudgetData(null);
         setLoading(false);
+        setBudgetLoadError(true);
       });
   }, [activeDataset, selectedYear, selectedEntity]);
 
@@ -678,6 +681,22 @@ function App() {
           >
             <div className="w-8 h-8 rounded-full border-4 border-[#E2EBEF] dark:border-ev-gray-700 border-t-ev-muted-blue animate-spin" />
             <span className="sr-only">Loading budget data...</span>
+          </div>
+        )}
+        {budgetLoadError && !loading && (
+          <div className="max-w-[1400px] mx-auto px-6 py-16 text-center">
+            <p className="text-lg font-semibold text-ev-gray-700 dark:text-ev-gray-300 mb-2">
+              Couldn't load budget data for {selectedEntity?.name}.
+            </p>
+            <p className="text-sm text-ev-gray-500 dark:text-ev-gray-400 mb-6">
+              This city may not have data available yet, or there was a temporary error.
+            </p>
+            <button
+              onClick={() => { setBudgetLoadError(false); window.history.back(); }}
+              className="text-sm text-ev-muted-blue hover:underline"
+            >
+              ← Go back
+            </button>
           </div>
         )}
         <div className="max-w-[1400px] mx-auto px-6 py-8">
