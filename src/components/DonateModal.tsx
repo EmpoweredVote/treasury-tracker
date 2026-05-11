@@ -1,14 +1,5 @@
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { X, Heart } from 'lucide-react';
-
-// Tell TypeScript about the GiveButter custom element.
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'givebutter-widget': React.HTMLAttributes<HTMLElement> & { id: string };
-    }
-  }
-}
 
 // Inject the GiveButter script once, regardless of how many times the modal mounts.
 let scriptInjected = false;
@@ -96,8 +87,8 @@ export default function DonateModal({ open, onClose }: Props) {
             or ever need to stop — you will still have full access to all the features.
           </p>
 
-          {/* GiveButter inline widget */}
-          <givebutter-widget id="jb95Pp" />
+          {/* GiveButter inline widget — React.createElement avoids JSX type declaration issues */}
+          {React.createElement('givebutter-widget', { id: 'jb95Pp' })}
         </div>
       </div>
     </div>
