@@ -35,7 +35,7 @@ const STATE_NAMES: Record<string, string> = {
  * Key format: "Name|STATE"
  */
 const CITY_WIKI_OVERRIDES: Record<string, string> = {
-  'Los Angeles|CA': 'Griffith Observatory',
+  'Los Angeles|CA': 'Los Angeles skyline',
 };
 
 /**
