@@ -44,7 +44,7 @@ const CITY_WIKI_OVERRIDES: Record<string, string> = {
  * Key format: "Name|STATE"
  */
 const CITY_BG_POSITION_OVERRIDES: Record<string, string> = {
-  'Los Angeles|CA': 'center 25%',
+  'Los Angeles|CA': 'center 30%',
 };
 
 /** Returns a CSS background-position value for the entity, or null to use the default. */
