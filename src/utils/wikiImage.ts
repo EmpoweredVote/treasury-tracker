@@ -39,6 +39,21 @@ const CITY_WIKI_OVERRIDES: Record<string, string> = {
 };
 
 /**
+ * Per-city CSS background-position overrides for when the default center crop
+ * misses the subject (e.g. a skyline shot with foreground trees).
+ * Key format: "Name|STATE"
+ */
+const CITY_BG_POSITION_OVERRIDES: Record<string, string> = {
+  'Los Angeles|CA': 'center 20%',
+};
+
+/** Returns a CSS background-position value for the entity, or null to use the default. */
+export function getHeroBgPosition(entity: Municipality): string | null {
+  const key = `${entity.name}|${entity.state.toUpperCase()}`;
+  return CITY_BG_POSITION_OVERRIDES[key] ?? null;
+}
+
+/**
  * Build candidate Wikipedia article titles for a municipality.
  * Wikipedia uses different naming conventions depending on entity type:
  *   City: "Bloomington, Indiana"
