@@ -21,7 +21,7 @@ import BudgetVisualization from './components/BudgetVisualization';
 import CategoryList from './components/CategoryList';
 import LineItemsTable from './components/LineItemsTable';
 import LinkedTransactionsPanel from './components/LinkedTransactionsPanel';
-import { getHeroImage } from './utils/wikiImage';
+import { getHeroImage, getHeroBgPosition } from './utils/wikiImage';
 import type { BudgetCategory, BudgetData, LinkedTransactionSummary, Municipality } from './types/budget';
 
 interface BreadcrumbItem {
@@ -570,7 +570,10 @@ function App() {
       {/* Hero banner */}
       <div
         className={`relative h-48 bg-cover bg-center ${!heroImageUrl ? 'bg-gradient-to-r from-[#005366] to-[#007A8C]' : ''}`}
-        style={heroImageUrl ? { backgroundImage: `url('${heroImageUrl}')` } : undefined}
+        style={heroImageUrl ? {
+          backgroundImage: `url('${heroImageUrl}')`,
+          ...(getHeroBgPosition(selectedEntity) ? { backgroundPosition: getHeroBgPosition(selectedEntity)! } : {}),
+        } : undefined}
       >
         <div className={`absolute inset-0 ${heroImageUrl ? 'bg-gradient-to-r from-black/60 to-black/30' : ''}`} />
         <div className="relative h-full max-w-[1400px] mx-auto px-6 flex flex-col justify-end pb-6">
