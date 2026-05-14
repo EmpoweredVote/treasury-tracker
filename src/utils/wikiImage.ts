@@ -30,6 +30,15 @@ const STATE_NAMES: Record<string, string> = {
 };
 
 /**
+ * Override Wikipedia article titles for cities where the standard article's
+ * lead image is unrepresentative (e.g. Hollywood sign for all of Los Angeles).
+ * Key format: "Name|STATE"
+ */
+const CITY_WIKI_OVERRIDES: Record<string, string> = {
+  'Los Angeles|CA': 'Griffith Observatory',
+};
+
+/**
  * Build candidate Wikipedia article titles for a municipality.
  * Wikipedia uses different naming conventions depending on entity type:
  *   City: "Bloomington, Indiana"
@@ -39,6 +48,12 @@ const STATE_NAMES: Record<string, string> = {
 function buildSearchTitles(entity: Municipality): string[] {
   const stateFull = STATE_NAMES[entity.state.toUpperCase()] ?? entity.state;
   const titles: string[] = [];
+
+  const cityOverride = CITY_WIKI_OVERRIDES[`${entity.name}|${entity.state.toUpperCase()}`];
+  if (cityOverride) {
+    titles.push(cityOverride);
+    return titles;
+  }
 
   switch (entity.entity_type) {
     case 'county':
