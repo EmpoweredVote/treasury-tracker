@@ -1,7 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { X, Heart } from 'lucide-react';
-
-// GiveButter script is loaded via index.html — no dynamic injection needed here.
+import { X, Heart, ShieldCheck, Users } from 'lucide-react';
 
 interface Props {
   open: boolean;
@@ -30,53 +28,76 @@ export default function DonateModal({ open, onClose }: Props) {
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Modal card */}
-      <div className="relative z-10 bg-white dark:bg-ev-gray-800 rounded-2xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="relative z-10 bg-white dark:bg-ev-gray-900 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
 
-        {/* Header */}
-        <div className="flex items-start justify-between p-6 pb-3">
-          <div className="flex items-center gap-2.5">
-            <Heart size={20} className="text-green-500 shrink-0 mt-0.5" fill="currentColor" />
-            <h2
-              id="donate-modal-title"
-              className="text-xl font-bold text-ev-gray-900 dark:text-ev-gray-100"
-              style={{ fontFamily: "'Manrope', sans-serif" }}
-            >
-              Thanks for offering to help.
-            </h2>
-          </div>
+        {/* Teal hero header */}
+        <div className="relative px-6 pt-5 pb-6"
+          style={{ background: 'linear-gradient(135deg, #3AABB8 0%, #00657C 60%, #003E4D 100%)' }}>
           <button
             ref={closeRef}
             onClick={onClose}
-            className="ml-4 p-1.5 rounded-lg text-ev-gray-400 hover:text-ev-gray-600 dark:hover:text-ev-gray-300 hover:bg-ev-gray-100 dark:hover:bg-ev-gray-700 transition-colors shrink-0"
+            className="absolute top-3 right-3 p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/15 transition-colors"
             aria-label="Close"
           >
             <X size={18} />
           </button>
+
+          <div className="flex items-center gap-3 mb-2.5">
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/20 shrink-0">
+              <Heart size={20} className="text-white" fill="currentColor" />
+            </div>
+            <h2
+              id="donate-modal-title"
+              className="text-[17px] font-bold text-white leading-tight"
+              style={{ fontFamily: "'Manrope', sans-serif" }}
+            >
+              Support free civic transparency
+            </h2>
+          </div>
+
+          <p className="text-[13px] text-white/75 leading-relaxed pl-[52px]">
+            All-volunteer nonprofit &middot; No ads &middot; No subscriptions &middot; No catch.
+          </p>
         </div>
 
         {/* Body */}
-        <div className="px-6 pb-6 space-y-4">
-          <p className="text-ev-gray-700 dark:text-ev-gray-300 leading-relaxed text-[15px]">
-            We show our spend and seek to earn trust through transparency. We will never sell ads, subscriptions, or user data.
-          </p>
-          <p className="text-ev-gray-700 dark:text-ev-gray-300 leading-relaxed text-[15px]">
-            We prefer small monthly donations. If you're not in a spot where that makes sense, you will still have full access to all our features.
-          </p>
+        <div className="px-6 py-5 space-y-4">
+
+          <div className="space-y-3">
+            <div className="flex gap-3 items-start">
+              <ShieldCheck size={17} className="text-ev-teal-500 shrink-0 mt-0.5" />
+              <p className="text-ev-gray-700 dark:text-ev-gray-300 text-[14px] leading-relaxed">
+                We publish our own finances here — every dollar we receive and spend — holding ourselves to the same standard we hold cities.
+              </p>
+            </div>
+            <div className="flex gap-3 items-start">
+              <Users size={17} className="text-ev-teal-500 shrink-0 mt-0.5" />
+              <p className="text-ev-gray-700 dark:text-ev-gray-300 text-[14px] leading-relaxed">
+                Small monthly donations help most. But you'll always have full access — no donation required, ever.
+              </p>
+            </div>
+          </div>
+
           <a
             href="https://givebutter.com/g3e9u9"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full py-3.5 px-4 rounded-xl font-semibold text-[15px] text-black bg-green-500 hover:bg-green-400 transition-colors"
+            className="flex items-center justify-center gap-2 w-full py-3.5 px-4 rounded-xl font-bold text-[15px] text-white transition-all duration-150 shadow-md hover:shadow-lg hover:-translate-y-px active:translate-y-0"
+            style={{ background: 'linear-gradient(135deg, #FF6B52 0%, #FF5740 50%, #E61B00 100%)' }}
           >
             <Heart size={16} fill="currentColor" />
             Donate on Givebutter
           </a>
+
+          <p className="text-center text-ev-gray-400 dark:text-ev-gray-500 text-[12px]">
+            Empowered Vote is a volunteer-run nonprofit.
+          </p>
         </div>
       </div>
     </div>
