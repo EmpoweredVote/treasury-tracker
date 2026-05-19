@@ -89,7 +89,7 @@ export default function DonateModal({ open, onClose }: Props) {
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 w-full py-3.5 px-4 rounded-xl font-bold text-[15px] text-white transition-all duration-150 shadow-md hover:shadow-lg hover:-translate-y-px active:translate-y-0"
-            style={{ background: 'linear-gradient(135deg, #FF6B52 0%, #FF5740 50%, #E61B00 100%)' }}
+            style={{ background: 'linear-gradient(135deg, #FF6B52 0%, #FF5740 50%, #E61B00 100%)', color: 'white' }}
           >
             <Heart size={16} fill="currentColor" />
             Donate on Givebutter
