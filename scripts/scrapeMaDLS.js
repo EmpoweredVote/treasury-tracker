@@ -70,11 +70,21 @@ const REPORTS = [
   {
     name: 'revenue-by-source',
     label: 'General Fund Revenue by Source',
-    rdreport: 'RevenueBySource.RBS.RevbySourceMAIN',
-    tableID: 'xtRBS',
+    // RevbySourceMAIN is a wrapper that iframes RevbySource2 — use the subreport directly.
+    // Form uses iclMuni2/iclYear2 (checkbox list) instead of iclMuni/islYear (select).
+    rdreport: 'RevenueBySource.RBS.RevbySource2',
+    rdreportParams: '&rdSubReport=True&rdResizeFrame=True',
+    tableID: 'dtCurrent',
     exportFilename: 'revbysource',
     datasetType: 'revenue',
     supportsType: false,
+    muniInputName: 'iclMuni2',
+    yearInputName: 'iclYear2',        // checkbox list, not select
+    paginationType: 'post',           // POST-based SubmitForm, not AJAX GET
+    // Header override: dtCurrent uses colspan/rowspan so th extraction misaligns.
+    columnNames: ['DOR Code', 'Municipality', 'Fiscal Year',
+                  'Tax Levy', 'State Aid', 'Local Receipts', 'All Other',
+                  'Enterprise & CPA Funds', 'Total Receipts'],
   },
 ];
 
@@ -257,33 +267,47 @@ async function scrapeViaHtml(report, rdDataCache, formFields, cookies, html1) {
   const { headers, rows: allRows } = page1;
   console.log(`   Page 1: ${allRows.length} rows, headers: ${headers.join(' | ')}`);
 
-  // Detect total pages
-  const pageNrs = [...html1.matchAll(/xtFedGrants-PageNr=(\d+)/g)].map(m => parseInt(m[1]));
+  // Detect total pages — search for any tableID-PageNr=N references
+  const pageNrRe = new RegExp(`${report.tableID}-PageNr=(\\d+)`, 'g');
+  const pageNrs = [...html1.matchAll(pageNrRe)].map(m => parseInt(m[1]));
   const maxPage = pageNrs.length > 0 ? Math.max(...pageNrs) : 1;
   console.log(`   Total pages: ${maxPage}`);
 
-  // Fetch pages 2..N via AJAX GET (replicates rdAjaxRequest() JS calls in the page).
-  // IMPORTANT: AWSALB sticky-session cookies rotate with every response — using the rotated
-  // cookie routes to a different backend that doesn't have the rdDataCache in memory.
-  // Always use the original cookies from the initial GET.
+  const paginationType = report.paginationType || 'ajax-get';
+
   for (let page = 2; page <= maxPage; page++) {
     await sleep(DELAY_MS);
     console.log(`   Page ${page}/${maxPage}...`);
 
-    const ajaxParams = new URLSearchParams({
-      rdReport: report.rdreport,
-      [`${report.tableID}-PageNr`]: String(page),
-      rdDataCache,
-      rdShowModes: '',
-      rdSort: '',
-      rdNewPageNr: 'True1',
-      rdAjaxCommand: 'RefreshElement',
-      rdDataTablePaging: 'True',
-      rdRefreshElementID: report.tableID,
-      rdRequestForwarding: 'Form',
-    });
-    const ajaxUrl = `${BASE_URL}?${ajaxParams}`;
-    const { html: pageHtml } = await getPage(ajaxUrl, cookies); // keep original cookies always
+    let pageHtml;
+
+    if (paginationType === 'post') {
+      // POST-based SubmitForm pagination (e.g. revenue-by-source subreport).
+      // Must re-send all form fields (iclMuni2, iclYear2, etc.) with updated page number.
+      const pageFormFields = { ...formFields, [`${report.tableID}-PageNr`]: String(page) };
+      const postUrl = `${BASE_URL}?rdReport=${report.rdreport}&${report.tableID}-PageNr=${page}&rdDataCache=${rdDataCache}&rdShowModes=&rdSort=&rdNewPageNr=True1&rdRequestForwarding=Form`;
+      const result = await postPage(postUrl, pageFormFields, cookies);
+      pageHtml = result.bytes.toString('utf8');
+    } else {
+      // AJAX GET pagination (default — e.g. special-revenue).
+      // IMPORTANT: AWSALB sticky-session cookies rotate with every response — using the rotated
+      // cookie routes to a different backend that doesn't have rdDataCache in memory.
+      // Always use the original cookies from the initial GET.
+      const ajaxParams = new URLSearchParams({
+        rdReport: report.rdreport,
+        [`${report.tableID}-PageNr`]: String(page),
+        rdDataCache,
+        rdShowModes: '',
+        rdSort: '',
+        rdNewPageNr: 'True1',
+        rdAjaxCommand: 'RefreshElement',
+        rdDataTablePaging: 'True',
+        rdRefreshElementID: report.tableID,
+        rdRequestForwarding: 'Form',
+      });
+      const ajaxUrl = `${BASE_URL}?${ajaxParams}`;
+      ({ html: pageHtml } = await getPage(ajaxUrl, cookies));
+    }
 
     const tableData = parseTable(pageHtml, report.tableID);
     if (tableData && tableData.rows.length > 0) {
@@ -301,39 +325,57 @@ async function scrapeViaHtml(report, rdDataCache, formFields, cookies, html1) {
 // ── Core scrape logic ────────────────────────────────────────────────────────
 
 async function scrapeReport(report, fiscalYear, amountType = 'Expenditures') {
-  const reportUrl = `${BASE_URL}?rdreport=${report.rdreport}`;
+  const muniInputName = report.muniInputName || 'iclMuni';
+  const yearInputName = report.yearInputName || 'islYear';
+  const reportUrl = `${BASE_URL}?rdreport=${report.rdreport}${report.rdreportParams || ''}`;
   console.log(`\n📥  ${report.label}`);
   console.log(`    FY${fiscalYear}${report.supportsType ? ` — ${amountType}` : ''}`);
 
-  // Step 1: GET the page (establishes session, page 1 data already present)
+  // Step 1: GET the page (establishes session, discovers form structure)
   console.log('    Step 1: GET initial page...');
-  const { html: html1, cookies } = await getPage(reportUrl);
-  const rdDataCache = extractRdDataCache(html1);
-  const yearOpts = extractSelectOptions(html1, 'islYear');
-  const municValues = extractCheckboxValues(html1, 'iclMuni');
+  const { html: html0, cookies } = await getPage(reportUrl);
+  const yearOpts = extractSelectOptions(html0, yearInputName);
+  const yearCheckboxes = extractCheckboxValues(html0, yearInputName);
+  const municValues = extractCheckboxValues(html0, muniInputName);
 
-  console.log(`    rdDataCache: ${rdDataCache || '⚠️  NOT FOUND'}`);
+  const allYearValues = yearOpts.length > 0 ? yearOpts.map(o => o.value) : yearCheckboxes;
   console.log(`    Municipalities in form: ${municValues.length}`);
-  console.log(`    Years available: ${yearOpts.map(o => o.value).join(', ')}`);
+  console.log(`    Years available: ${allYearValues.join(', ')}`);
 
-  if (!rdDataCache) {
-    throw new Error('Could not extract rdDataCache — page structure may have changed');
+  const fyAvailable = allYearValues.some(v => v === String(fiscalYear));
+  if (allYearValues.length > 0 && !fyAvailable) {
+    throw new Error(`FY${fiscalYear} not available. Options: ${allYearValues.join(', ')}`);
   }
 
-  const fyAvailable = yearOpts.some(o => o.value === String(fiscalYear));
-  if (yearOpts.length > 0 && !fyAvailable) {
-    throw new Error(`FY${fiscalYear} not available. Options: ${yearOpts.map(o => o.value).join(', ')}`);
-  }
-
-  // Build form fields — iclMuni as array so postPage uses .append() for each value
+  // Build form fields — municipality input as array so postPage uses .append() per value
   const formFields = {
     rdreport: report.rdreport,
-    islYear: String(fiscalYear),
+    [yearInputName]: String(fiscalYear),   // single year selection
     ...(report.supportsType ? { islAmountType: amountType } : {}),
-    iclMuni: municValues,           // array → multi-value POST params
+    [muniInputName]: municValues,           // array → multi-value POST params
     [`${report.tableID}-PageNr`]: '1',
     rdShowElementHistory: '',
   };
+
+  // For POST-based reports (e.g. revenue-by-source), the initial GET establishes an
+  // rdDataCache for all default-checked years. We must POST the form first to get a
+  // year-filtered rdDataCache before paginating.
+  let html1, rdDataCache;
+  if (report.paginationType === 'post') {
+    console.log('    Step 1b: POST form submission to filter by FY...');
+    await sleep(DELAY_MS);
+    const { bytes } = await postPage(reportUrl, formFields, cookies);
+    html1 = bytes.toString('utf8');
+    rdDataCache = extractRdDataCache(html1);
+  } else {
+    html1 = html0;
+    rdDataCache = extractRdDataCache(html1);
+  }
+
+  console.log(`    rdDataCache: ${rdDataCache || '⚠️  NOT FOUND'}`);
+  if (!rdDataCache) {
+    throw new Error('Could not extract rdDataCache — page structure may have changed');
+  }
 
   let headers, rows;
 
@@ -366,6 +408,9 @@ async function scrapeReport(report, fiscalYear, amountType = 'Expenditures') {
     rows = result.rows;
   }
 
+  // Use report.columnNames override when present (handles misaligned th/td from colspan headers)
+  const colNames = report.columnNames || headers;
+
   // Normalise records
   const records = [];
   for (const row of rows) {
@@ -377,13 +422,13 @@ async function scrapeReport(report, fiscalYear, amountType = 'Expenditures') {
     if (!dorCode || !municipality || !/^\d+$/.test(dorCode)) continue;
 
     const record = { dorCode, municipality, fiscalYear: fy };
-    for (let i = 3; i < headers.length; i++) {
-      if (headers[i]) record[headers[i]] = parseAmount(row[i]);
+    for (let i = 3; i < colNames.length; i++) {
+      if (colNames[i]) record[colNames[i]] = parseAmount(row[i]);
     }
     records.push(record);
   }
 
-  const amountCols = headers.slice(3).filter(h => h && h !== 'Total Revenues' && h !== 'Total Expenditures');
+  const amountCols = colNames.slice(3).filter(h => h && h !== 'Total Revenues' && h !== 'Total Expenditures' && h !== 'Total Receipts');
   console.log(`\n    Valid records: ${records.length}`);
   console.log(`    Columns: ${amountCols.join(', ')}`);
   if (records[0]) console.log(`    Sample: ${JSON.stringify(records[0]).slice(0, 120)}`);
@@ -398,7 +443,7 @@ async function scrapeReport(report, fiscalYear, amountType = 'Expenditures') {
 // ── Explore mode ─────────────────────────────────────────────────────────────
 
 async function exploreReport(report) {
-  const url = `${BASE_URL}?rdreport=${report.rdreport}`;
+  const url = `${BASE_URL}?rdreport=${report.rdreport}${report.rdreportParams || ''}`;
   console.log(`\n🔍  ${report.label}`);
   console.log(`    URL: ${url}`);
 
@@ -415,14 +460,19 @@ async function exploreReport(report) {
   console.log(`    Page size: ${(html.length / 1024).toFixed(1)} KB → ${htmlFile}`);
 
   const rdDataCache = extractRdDataCache(html);
-  const yearOpts = extractSelectOptions(html, 'islYear');
+  const muniInputName = report.muniInputName || 'iclMuni';
+  const yearInputName = report.yearInputName || 'islYear';
+  const yearOpts = extractSelectOptions(html, yearInputName) || [];
+  const yearCheckboxes = extractCheckboxValues(html, yearInputName);
   const typeOpts = extractSelectOptions(html, 'islAmountType');
-  const municValues = extractCheckboxValues(html, 'iclMuni');
+  const municValues = extractCheckboxValues(html, muniInputName);
 
+  const yearDisplay = yearOpts.length > 0 ? yearOpts.map(o => o.value).join(', ') :
+                      yearCheckboxes.length > 0 ? yearCheckboxes.slice(0, 6).join(', ') + ' (checkboxes)' : 'none found';
   console.log(`    rdDataCache: ${rdDataCache || 'NOT FOUND'}`);
-  console.log(`    Years: ${yearOpts.map(o => o.value).join(', ') || 'none found'}`);
+  console.log(`    Years: ${yearDisplay}`);
   console.log(`    Types: ${typeOpts.map(o => o.label).join(', ') || 'none found'}`);
-  console.log(`    Municipalities (checkboxes): ${municValues.length}`);
+  console.log(`    Municipalities (${muniInputName}): ${municValues.length}`);
   if (municValues.length > 0) console.log(`    Sample: ${municValues.slice(0, 5).join(', ')} ...`);
 
   // Try to parse the table already in page 1
@@ -480,7 +530,6 @@ async function seedMunicipalities(supabase, records) {
       name,
       state: 'MA',
       entity_type: 'city',
-      metadata: { dor_code: dorCode },
     });
 
     if (error) { console.log(`    ⚠️  ${name}: ${error.message}`); errored++; }
@@ -502,7 +551,9 @@ async function loadToSupabase(supabase, report, fiscalYear, records, headers) {
   if (mErr) throw new Error(`Could not fetch municipalities: ${mErr.message}`);
 
   const municMap = new Map(municipalities.map(m => [m.name, m.id]));
-  const amountCols = headers.slice(3).filter(h => h && !h.toLowerCase().startsWith('total'));
+  // Use report.columnNames override when present (revenue-by-source has misaligned th headers)
+  const colNames = report.columnNames || headers;
+  const amountCols = colNames.slice(3).filter(h => h && !h.toLowerCase().startsWith('total'));
 
   console.log(`\n📤  Loading ${records.length} records into Supabase...`);
   console.log(`    Amount columns: ${amountCols.join(', ')}`);
