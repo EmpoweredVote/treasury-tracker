@@ -154,10 +154,12 @@ Fixed PDF department attribution, loaded revenue for 4 TX cities, added 5 Collin
 4. `municipalities` table has a `population_year` column and all 12 TX city rows have non-null population and population_year values
 5. Re-running `loadTXPopulation.js` does not corrupt existing population values (idempotent upsert)
 
+**Plans:** 3 plans
+
 Plans:
-- [ ] 11-01-PLAN.md — Schema migration: add `population_year` column to `treasury.municipalities`
-- [ ] 11-02-PLAN.md — Build `loadTXPopulation.js`: download Census `sub-est2024_48.csv`, normalize city names, upsert population + population_year for all 12 TX cities
-- [ ] 11-03-PLAN.md — Verify per-capita display in app: confirm $/resident visible for all 12 cities, labels correct, fast-growing city sanity check passes
+- [ ] 11-01-PLAN.md — Schema migration: add `population_year` INTEGER column to `treasury.municipalities` (EV-Accounts repo migration 194 + apply via Supabase Dashboard)
+- [ ] 11-02-PLAN.md — Build `loadTXPopulation.js` Census CSV loader + update EV-Accounts `treasuryService.ts` (CityRow/TreasuryCity/mapCity/SELECTs) to expose population_year
+- [ ] 11-03-PLAN.md — Thread population_year through frontend (budget.ts/PlainLanguageSummary/QuickFactsRow), execute live load, push both repos, human-verify $/resident label for 12 TX cities in production
 
 ### Phase 12: Prosper and Celina Revenue via pdftotext
 
