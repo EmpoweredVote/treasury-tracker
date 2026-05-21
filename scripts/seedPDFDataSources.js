@@ -39,6 +39,20 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── URL constants ─────────────────────────────────────────────────────────────
 const ALLEN_ACFR_FY2025  = 'https://www.cityofallen.org/Documents/Departments/Finance/Financial%20Transparency/Other%20Documents/FY%202025%20Annual%20Comprehensive%20Financial%20Report.pdf';
+
+// ── Collin County operating budget URLs (Phase 10) ───────────────────────────
+const GARLAND_BUDGET_FY2025    = 'https://garlandtx.gov/DocumentCenter/View/20565/City-of-Garland-2024-25-Annual-Operating-Budget-PDF';
+const GARLAND_BUDGET_FY2026    = 'https://garlandtx.gov/DocumentCenter/View/22610/Adopted-Annual-Operating-Budget-2025-26';
+const RICHARDSON_BUDGET_FY2025 = 'https://cdnsm5-hosted.civiclive.com/UserFiles/Servers/Server_7964838/File/Government/Departments/Finance/Financial%20Transparency/Annual%20Budgets/2025%20Budget%20Book%20-%20compressed%208-28.pdf';
+const RICHARDSON_BUDGET_FY2026 = 'https://cdnsm5-hosted.civiclive.com/UserFiles/Servers/Server_7964838/File/Government/Departments/Finance/Budget/2026%20Adopted%20Budget%20Book.8-5-25%20compressed.final%20with%20TOC.pdf';
+const WYLIE_BUDGET_FY2025      = 'https://cms2.revize.com/revize/wylienew/Departments/Finance/Budget/Wylie%20Budget%20Book%20for%20Web%20(1).pdf';
+const WYLIE_BUDGET_FY2026      = 'https://cms2.revize.com/revize/wylienew/Departments/Finance/Budget/FY%202026%20Final%20Budget.pdf';
+const SACHSE_BUDGET_FY2025     = 'https://www.cityofsachse.com/DocumentCenter/View/11115/2024-2025-Budget-Workbook';
+const SACHSE_BUDGET_FY2026     = 'https://www.cityofsachse.com/DocumentCenter/View/12467/FY2025-2026-Adopted-Budget';
+const MURPHY_BUDGET_FY2025     = 'https://www.murphytx.org/DocumentCenter/View/9835/City-of-Murphy-Budget-Book-with-amendments-as-of-09162025';
+const MURPHY_BUDGET_FY2026     = 'https://www.murphytx.org/DocumentCenter/View/9984/FY26-Adopted-Budget-Book-with-amendments-as-of-031726-';
+const PRINCETON_BUDGET_FY2025  = 'https://www.princetontx.gov/DocumentCenter/View/2902/City-of-Princeton-Proposed-Budget-FY-2024-25';
+const PRINCETON_BUDGET_FY2026  = 'https://princetontx.gov/DocumentCenter/View/6974/Adopted-Budget-2025-26';
 const PROSPER_ACFR_FY2025 = 'https://www.prospertx.gov/ArchiveCenter/ViewFile/Item/682';
 const CELINA_ACFR_FY2025  = 'https://www.celina-tx.gov/DocumentCenter/View/15082/City-of-Celina-Texas---FINAL-ACFR-FY2025';
 const FRISCO_BUDGET_FY2026 = 'https://www.friscotexas.gov/DocumentCenter/View/39479/Budget-Fiscal-Year-26-PDF';
@@ -67,7 +81,7 @@ async function buildSources() {
     .schema('treasury')
     .from('municipalities')
     .select('id, name')
-    .in('name', ['Allen', 'Prosper', 'Celina', 'Plano', 'Frisco']);
+    .in('name', ['Allen', 'Prosper', 'Celina', 'Plano', 'Frisco', 'Garland', 'Richardson', 'Wylie', 'Sachse', 'Murphy', 'Princeton']);
 
   if (error) {
     console.error('Failed to fetch municipalities:', error.message);
@@ -236,6 +250,127 @@ async function buildSources() {
       fiscal_years: [2026],
       municipality_id: muniId('Plano'),
       column_mapping: acfrCm,
+    },
+    // ── Phase 10: Collin County cities ────────────────────────────────────────
+    {
+      name:            'Garland Operating Budget FY2025',
+      api_type:        'pdf_download',
+      dataset_type:    'operating',
+      dataset_id:      'fy2025',
+      base_url:        GARLAND_BUDGET_FY2025,
+      fiscal_years:    [2025],
+      municipality_id: muniId('Garland'),
+      column_mapping:  acfrCm,
+    },
+    {
+      name:            'Garland Operating Budget FY2026',
+      api_type:        'pdf_download',
+      dataset_type:    'operating',
+      dataset_id:      'fy2026',
+      base_url:        GARLAND_BUDGET_FY2026,
+      fiscal_years:    [2026],
+      municipality_id: muniId('Garland'),
+      column_mapping:  acfrCm,
+    },
+    {
+      name:            'Richardson Operating Budget FY2025',
+      api_type:        'pdf_download',
+      dataset_type:    'operating',
+      dataset_id:      'fy2025',
+      base_url:        RICHARDSON_BUDGET_FY2025,
+      fiscal_years:    [2025],
+      municipality_id: muniId('Richardson'),
+      column_mapping:  acfrCm,
+    },
+    {
+      name:            'Richardson Operating Budget FY2026',
+      api_type:        'pdf_download',
+      dataset_type:    'operating',
+      dataset_id:      'fy2026',
+      base_url:        RICHARDSON_BUDGET_FY2026,
+      fiscal_years:    [2026],
+      municipality_id: muniId('Richardson'),
+      column_mapping:  acfrCm,
+    },
+    {
+      name:            'Wylie Operating Budget FY2025',
+      api_type:        'pdf_download',
+      dataset_type:    'operating',
+      dataset_id:      'fy2025',
+      base_url:        WYLIE_BUDGET_FY2025,
+      fiscal_years:    [2025],
+      municipality_id: muniId('Wylie'),
+      column_mapping:  acfrCm,
+    },
+    {
+      name:            'Wylie Operating Budget FY2026',
+      api_type:        'pdf_download',
+      dataset_type:    'operating',
+      dataset_id:      'fy2026',
+      base_url:        WYLIE_BUDGET_FY2026,
+      fiscal_years:    [2026],
+      municipality_id: muniId('Wylie'),
+      column_mapping:  acfrCm,
+    },
+    {
+      name:            'Sachse Operating Budget FY2025',
+      api_type:        'pdf_download',
+      dataset_type:    'operating',
+      dataset_id:      'fy2025',
+      base_url:        SACHSE_BUDGET_FY2025,
+      fiscal_years:    [2025],
+      municipality_id: muniId('Sachse'),
+      column_mapping:  acfrCm,
+    },
+    {
+      name:            'Sachse Operating Budget FY2026',
+      api_type:        'pdf_download',
+      dataset_type:    'operating',
+      dataset_id:      'fy2026',
+      base_url:        SACHSE_BUDGET_FY2026,
+      fiscal_years:    [2026],
+      municipality_id: muniId('Sachse'),
+      column_mapping:  acfrCm,
+    },
+    {
+      name:            'Murphy Operating Budget FY2025',
+      api_type:        'pdf_download',
+      dataset_type:    'operating',
+      dataset_id:      'fy2025',
+      base_url:        MURPHY_BUDGET_FY2025,
+      fiscal_years:    [2025],
+      municipality_id: muniId('Murphy'),
+      column_mapping:  acfrCm,
+    },
+    {
+      name:            'Murphy Operating Budget FY2026',
+      api_type:        'pdf_download',
+      dataset_type:    'operating',
+      dataset_id:      'fy2026',
+      base_url:        MURPHY_BUDGET_FY2026,
+      fiscal_years:    [2026],
+      municipality_id: muniId('Murphy'),
+      column_mapping:  acfrCm,
+    },
+    {
+      name:            'Princeton Operating Budget FY2025',
+      api_type:        'pdf_download',
+      dataset_type:    'operating',
+      dataset_id:      'fy2025',
+      base_url:        PRINCETON_BUDGET_FY2025,
+      fiscal_years:    [2025],
+      municipality_id: muniId('Princeton'),
+      column_mapping:  acfrCm,
+    },
+    {
+      name:            'Princeton Operating Budget FY2026',
+      api_type:        'pdf_download',
+      dataset_type:    'operating',
+      dataset_id:      'fy2026',
+      base_url:        PRINCETON_BUDGET_FY2026,
+      fiscal_years:    [2026],
+      municipality_id: muniId('Princeton'),
+      column_mapping:  acfrCm,
     },
   ];
 }
