@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-05-03)
 Phase: 9 of 10 (Revenue Completion) — COMPLETE
 Plan: 3 of 3 in current phase (all plans complete)
 Status: Phase 9 complete — ready for Phase 10 (Collin County expansion)
-Last activity: 2026-05-20 — Completed quick task 002: Added Longview TX FY2026 revenue via pdftotext (15 rows, $87.6M)
+Last activity: 2026-05-20 — Completed quick tasks 002+003: Longview TX revenue (15 rows, $87.6M) and operating budget (27 depts, $104.8M) via pdftotext
 
 Progress: [█████████████░░░░░░░] 65% (13/20 plans complete)
 
@@ -77,6 +77,7 @@ Progress: [█████████████░░░░░░░] 65% (13
 |---|-------------|------|--------|
 | 001 | Create treasury tracker entries for every municipality in Collin County, Texas | 2026-05-01 | 9584b2a |
 | 002 | Add Longview TX as new city with FY2026 revenue via pdftotext (no Haiku) | 2026-05-20 | [see 002-add-longview-tx-revenue] |
+| 003 | Add Longview TX FY2026 operating budget (27 depts, $104.8M) via pdftotext | 2026-05-20 | 0eb1f6d |
 
 ## Session Continuity
 
