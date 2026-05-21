@@ -5,6 +5,7 @@
 - ✅ **v1.0 GiveButter Real-Time Donation Feedback** — Phases 1-4 (shipped 2026-04-22)
 - ✅ **v1.1 Texas Municipal Financial Transparency** — Phases 5-7 (shipped 2026-05-02)
 - ✅ **v1.2 Collin County Completion & Data Quality** — Phases 8-10 (shipped 2026-05-21)
+- 🚧 **v1.3 Revenue Completion & Per-Capita Context** — Phases 11-14 (in progress)
 
 ---
 
@@ -134,9 +135,90 @@ Fixed PDF department attribution, loaded revenue for 4 TX cities, added 5 Collin
 
 ---
 
+### 🚧 v1.3 Revenue Completion & Per-Capita Context (In Progress)
+
+**Milestone Goal:** Close out all deferred v1.2 data work and add population-based per-capita spending display so citizens can compare cities of different sizes.
+
+### Phase 11: Population Schema, Census Data Load, and Per-Capita Display
+
+**Goal:** Citizens can see per-capita spending ($/resident) for all TX cities, labeled with the population year source.
+
+**Depends on:** Phase 10 (all TX cities loaded; frontend per-capita display already built, gated on population > 0 in DB)
+
+**Requirements:** POP-01, POP-02, POP-03
+
+**Success Criteria** (what must be TRUE when phase completes):
+1. All 12 TX cities show a per-capita spending figure ($/resident) in the app for their most recent fiscal year
+2. Each per-capita figure is labeled with its population source year (e.g., "Based on 2024 Census estimate")
+3. Celina and Princeton show populations consistent with 2024 vintage estimates (Celina >= 60k, Princeton >= 25k) — confirming 2020 Census data was not used
+4. `municipalities` table has a `population_year` column and all 12 TX city rows have non-null population and population_year values
+5. Re-running `loadTXPopulation.js` does not corrupt existing population values (idempotent upsert)
+
+Plans:
+- [ ] 11-01-PLAN.md — Schema migration: add `population_year` column to `treasury.municipalities`
+- [ ] 11-02-PLAN.md — Build `loadTXPopulation.js`: download Census `sub-est2024_48.csv`, normalize city names, upsert population + population_year for all 12 TX cities
+- [ ] 11-03-PLAN.md — Verify per-capita display in app: confirm $/resident visible for all 12 cities, labels correct, fast-growing city sanity check passes
+
+### Phase 12: Prosper and Celina Revenue via pdftotext
+
+**Goal:** Citizens can see revenue data for Prosper and Celina, extracted via pdftotext targeting the "STATEMENT OF REVENUES" section and validated against published ACFR totals before display is enabled.
+
+**Depends on:** Phase 11 (population loaded; per-capita revenue display for Prosper/Celina depends on revenue validation passing)
+
+**Requirements:** REV-01, REV-02, REV-03, REV-04
+
+**Success Criteria** (what must be TRUE when phase completes):
+1. Prosper revenue data is visible in the app for FY2023, FY2024, and FY2025 with correct fund/source breakdowns
+2. Celina revenue data is visible in the app for FY2025 with correct fund/source breakdowns
+3. Prosper revenue totals match ACFR published figures within 20% tolerance — validation result documented before data_source last_synced_at is set
+4. Celina revenue totals match ACFR published figures within 20% tolerance — validation result documented before data_source last_synced_at is set
+5. Per-capita revenue figures for Prosper and Celina are visible in the app (unlocked by both population load and revenue validation passing)
+
+Plans:
+- [ ] 12-01-PLAN.md — Build `processProsperjRevenuePDF.js` targeting "STATEMENT OF REVENUES, EXPENDITURES, AND CHANGES IN FUND BALANCES" section; load FY2023, FY2024, FY2025
+- [ ] 12-02-PLAN.md — Validate Prosper revenue totals against ACFR; document results; set last_synced_at if within tolerance
+- [ ] 12-03-PLAN.md — Build `processCelinaRevenuePDF.js` following same pattern; load FY2025; validate against ACFR; set last_synced_at if within tolerance
+
+### Phase 13: Richardson Operating Budget
+
+**Goal:** Citizens can see Richardson TX operating budget data in the app, loaded after manually sourcing the PDF URL from cor.net.
+
+**Depends on:** Phase 10 (Collin County pdftotext parser pattern established; Richardson placeholder data_source rows already seeded)
+
+**Requirements:** COL-01
+
+**Success Criteria** (what must be TRUE when phase completes):
+1. Richardson TX operating budget is visible in the app for at least one fiscal year (FY2025 or FY2026) with correct department/category breakdowns
+2. `processRichardsonBudget.js` follows the processGarlandBudget.js pattern and requires no city-specific logic outside its own file
+3. Richardson data_source rows have last_synced_at set (no longer null) confirming successful load
+4. Re-running the loader does not create duplicate budget rows
+
+Plans:
+- [ ] 13-01-PLAN.md — Manually source Richardson PDF URL from cor.net/departments/budget; build `processRichardsonBudget.js` following processGarlandBudget.js pattern; load FY2025 and FY2026; verify in app
+
+### Phase 14: Category Enrichment — 5 Collin County Cities
+
+**Goal:** Citizens see plain-language category descriptions for Garland, Wylie, Sachse, Murphy, and Princeton — the 5 cities loaded in v1.2 whose enrichment was deferred.
+
+**Depends on:** Phase 10 (operating budget data loaded for all 5 cities; enrichment infrastructure operational from prior phases)
+
+**Requirements:** ENR-01, ENR-02, ENR-03, ENR-04, ENR-05
+
+**Success Criteria** (what must be TRUE when phase completes):
+1. Every budget category for Garland, Wylie, Sachse, Murphy, and Princeton displays a short plain-language description in the app (no blank description fields)
+2. Enrichment records in the DB have correct municipality_id values (not NULL/universal) — preventing bleed into other cities
+3. Re-running enrichment for any of the 5 cities does not create duplicate enrichment rows
+4. Enrichment covers all fiscal years currently loaded for each city
+
+Plans:
+- [ ] 14-01-PLAN.md — Run category enrichment for Garland and Wylie; verify descriptions visible in app and municipality_id scoped correctly
+- [ ] 14-02-PLAN.md — Run category enrichment for Sachse, Murphy, and Princeton; verify descriptions visible in app and municipality_id scoped correctly
+
+---
+
 ## Progress
 
-**Execution Order:** 8 → 9 → 10
+**Execution Order:** 11 → 12 → 13 → 14 (13 and 14 can run in parallel after 11 completes)
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -150,8 +232,12 @@ Fixed PDF department attribution, loaded revenue for 4 TX cities, added 5 Collin
 | 8. Data Quality | v1.2 | 3/3 | Complete | 2026-05-04 |
 | 9. Revenue Completion | v1.2 | 3/3 | Complete | 2026-05-04 |
 | 10. Collin County Expansion | v1.2 | 3/3 | Complete | 2026-05-21 |
+| 11. Population & Per-Capita | v1.3 | 0/3 | Not started | - |
+| 12. Prosper + Celina Revenue | v1.3 | 0/3 | Not started | - |
+| 13. Richardson Operating Budget | v1.3 | 0/1 | Not started | - |
+| 14. Category Enrichment (5 cities) | v1.3 | 0/2 | Not started | - |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-05-21 — v1.2 milestone archived; planning v1.3*
+*Last updated: 2026-05-21 — v1.3 phases 11-14 added*
