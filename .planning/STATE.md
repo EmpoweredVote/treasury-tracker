@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-05-03)
 Phase: 9 of 10 (Revenue Completion) — COMPLETE
 Plan: 3 of 3 in current phase (all plans complete)
 Status: Phase 9 complete — ready for Phase 10 (Collin County expansion)
-Last activity: 2026-05-04 — Completed 09-03: Celina revenue extraction (skipped — ACFR not extractable via Haiku, same pattern as Prosper)
+Last activity: 2026-05-20 — Completed quick task 002: Added Longview TX FY2026 revenue via pdftotext (15 rows, $87.6M)
 
 Progress: [█████████████░░░░░░░] 65% (13/20 plans complete)
 
@@ -76,9 +76,10 @@ Progress: [█████████████░░░░░░░] 65% (13
 | # | Description | Date | Commit |
 |---|-------------|------|--------|
 | 001 | Create treasury tracker entries for every municipality in Collin County, Texas | 2026-05-01 | 9584b2a |
+| 002 | Add Longview TX as new city with FY2026 revenue via pdftotext (no Haiku) | 2026-05-20 | [see 002-add-longview-tx-revenue] |
 
 ## Session Continuity
 
-Last session: 2026-05-04
+Last session: 2026-05-20
 Stopped at: Completed 09-03 — Celina revenue extraction (skipped due to ACFR extraction quality); checkpoint awaiting user verification of revenue in app
 Resume file: None
