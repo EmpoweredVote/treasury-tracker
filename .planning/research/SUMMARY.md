@@ -1,28 +1,32 @@
-# Research Summary: GiveButter Real-Time Donation Feedback
+# Research Summary: v1.3 Revenue Completion & Per-Capita Context
 
 **Project:** Treasury Tracker
-**Domain:** Webhook-driven donation ingestion + post-donation UX
-**Researched:** 2026-04-20
+**Domain:** TX city population data, per-capita spending display, pdftotext revenue extraction
+**Researched:** 2026-05-21
 **Confidence:** HIGH
 
 ---
 
-## Critical Constraints
+## Critical Findings
 
-**1. GiveButter does NOT support a native return_url after donation.**
-Confirmed HIGH confidence. The four supported URL params are amount, frequency, fund, and promo. There is no return_url. The return flow must use window focus detection (visibilitychange/focus event) on our side.
+**1. Frontend per-capita display is already built — population in DB is the only unlock.**
+`QuickFactsRow.tsx` and `PlainLanguageSummary.tsx` already read `entity.population` and display $/resident when `population > 0`. No frontend code needs to be written for the basic per-capita feature.
 
-**2. GiveButter signature verification is shared-secret header comparison, not HMAC-SHA256.**
-The Signature header contains the signing secret itself -- compare directly against GIVEBUTTER_SIGNING_SECRET. Raw body must be read as text before JSON parsing. Verify exact header name on first real test delivery.
+**2. Use Census Bureau flat CSV, NOT the Census API.**
+`sub-est2024_48.csv` (Texas vintage 2024 estimates) — unauthenticated download, no API key. Filter `SUMLEV === '162'`, use `POPESTIMATE2024` column. The Census API explicitly does not serve current estimates for this vintage.
 
-**3. budget_line_items needs two new columns for deduplication.**
-source (TEXT default csv) and external_id (TEXT nullable). Partial unique index on (category_id, external_id) WHERE external_id IS NOT NULL blocks duplicate webhook writes.
+**3. Name normalization is required.**
+Census names include suffixes: "Prosper town", "Celina city", "Princeton city". Must strip/normalize before matching to `municipalities.name`.
 
-**4. Amount unit conflict: cents vs dollars.**
-ARCHITECTURE.md says cents (divide by 100). STACK.md says dollars. Validate with a real $1.00 test donation before go-live. Assume cents until confirmed.
+**4. Fast-growing cities need 2024 estimates — 2020 Census data produces 2-4x errors.**
+Celina: ~16k (2020) vs. ~64k (2024). Princeton: ~11k (2020) vs. ~26k (2024). Using 2020 data inflates per-capita spending dramatically for these cities.
 
-**5. Frontend totals may be pre-aggregated.**
-If revenueData reads budget_categories.amount instead of summing line items, a new line item will not update the display. Audit loadBudgetData before Phase 4. If pre-aggregated, Edge Function must also UPDATE budget_categories SET amount = amount + new_amount atomically.
+**5. Prosper/Celina revenue must be validated before enabling per-capita revenue display.**
+Prior Haiku vision pipeline produced inflated revenue totals. pdftotext extraction must be validated against ACFR published totals (reject if >20% over) before per-capita revenue figures are shown.
+
+**6. Schema path decision required before Phase 1.**
+- Path A (fast): Add `population_year` column to existing `municipalities.population` — zero frontend changes, one migration, valid for v1.3
+- Path B (recommended): New `municipality_populations` table with `municipality_id, population, pop_year, vintage, source` — correct long-term, enables multi-year history
 
 ---
 
@@ -30,43 +34,42 @@ If revenueData reads budget_categories.amount instead of summing line items, a n
 
 | Addition | Purpose | Notes |
 |----------|---------|-------|
-| supabase/functions/givebutter-webhook/index.ts | Receive POST verify signature upsert to DB | New Edge Function; supabase/ dir does not exist yet |
-| supabase/config.toml verify_jwt=false | Allow public webhook endpoint | Required; GiveButter has no Supabase JWT |
-| GIVEBUTTER_SIGNING_SECRET secret | Signature verification | supabase secrets set |
-| SUPABASE_SERVICE_ROLE_KEY secret | Bypass RLS for server-side write | Do not use anon key |
-| visibilitychange/focus listener | Trigger re-fetch when donor returns | Attach after donate click; remove after first fire |
-| CountUp.js or rAF | Animated counter roll-up | Only fires when ?donated=true param detected |
+| `scripts/loadTXPopulation.js` | Download Census CSV, parse, upsert to municipalities | Node 18+ fetch(), no new packages |
+| Census flat CSV `sub-est2024_48.csv` | TX city population estimates (2024 vintage) | Unauthenticated download from Census Bureau |
+| DB migration | Add `population_year` (Path A) or new table (Path B) | Decision required before execution |
 
-No new npm packages for Edge Function (Deno Web Crypto built-in). No new frontend packages (supabase-js installed).
+No new npm packages. No new infrastructure. No new API credentials.
 
 ---
 
-## Build Order
+## Feature Table Stakes
 
-**Phase 1: Schema migration**
-ALTER TABLE treasury.budget_line_items ADD source TEXT DEFAULT csv, ADD external_id TEXT. CREATE UNIQUE INDEX ... WHERE external_id IS NOT NULL. Zero risk -- additive only. Must run before Phase 2.
+**Must have (per-capita display):**
+- Population year label on per-capita figures (e.g., "Based on 2024 Census estimate")
+- Scope label: "Operating Budget" vs. "General Fund" — clarifies what the per-capita figure represents
+- Per-capita restricted to most recent fiscal year for v1.3 (multi-year with single population vintage creates false "spending declining" trend)
 
-**Phase 2: Edge Function + webhook registration**
-Create supabase/ dir, write index.ts, set secrets, deploy --no-verify-jwt. Register URL in GiveButter for transaction.succeeded. Verify Signature header name with test delivery before hardening.
+**Should have:**
+- Enterprise fund disclosure where applicable (Sachse vs. Dallas — audit which budgets include utility funds)
 
-**Phase 3: Donate button UI**
-Secondary-weight button (EV teal border, white fill) in QuickFactsRow linking to GiveButter campaign URL in new tab. Attach focus listener to trigger re-fetch. No URL params needed.
-
-**Phase 4: Aggregation audit + animated feedback**
-Audit whether revenueData sums line items or reads budget_categories.amount. Fix if pre-aggregated. Detect ?donated=true on mount, run CountUp (1000ms ease-out), show thank-you banner, CSS pulse on InsightCard (#F5C842 2s fade). Clear param via history.replaceState.
+**Defer:**
+- Cross-city per-capita comparison table
+- Sub-category per-capita
+- Multi-year population loading
 
 ---
 
-## Key Pitfalls
+## Top Pitfalls
 
-**1. Read raw body before parsing.**
-Call req.text() first. Use it for signature check. Then JSON.parse(rawBody). Never verify against a re-serialized object -- key ordering may differ.
+1. **Wrong population vintage** — Celina grew 285% since 2020. If `POPESTIMATE2024` is not used, per-capita errors of 2-4x result. Detection: if Celina < 20k or Princeton < 25k after load, wrong vintage was used.
 
-**2. Always return HTTP 200 for events you do not handle.**
-GiveButter retries on non-2xx. Return {received:true} 200 for unknown events and for category_not_found. Only 5xx for genuine infra failures. Non-compliance causes retry storms and duplicate rows.
+2. **Inflated Prosper/Celina revenue displayed as per-capita** — Gate per-capita revenue on pdftotext validation. Don't enable until DB total matches ACFR within 20%.
 
-**3. Window focus fires on every tab switch.**
-Gate the listener: attach only after donate button click, remove after first re-fetch. Or debounce 300ms. Without this every tab switch triggers a Supabase query.
+3. **No vintage year stored** — Add `population_year` from day one. Vintage 2025 data will release ~mid-2026 and you'll need to update.
+
+4. **Richardson missing from population load** — Include Richardson in the population load even if its budget isn't yet loaded. Cities missing population produce inconsistent per-capita display.
+
+5. **Multi-year per-capita false trend** — One population figure across FY2018–FY2026 makes fast-growing cities look like spending per resident is declining. Restrict per-capita to most recent FY for v1.3.
 
 ---
 
@@ -74,11 +77,9 @@ Gate the listener: attach only after donate button click, remove after first re-
 
 | Question | Impact | Resolution |
 |----------|--------|------------|
-| Frontend sums line items or reads budget_categories.amount? | HIGH | Audit loadBudgetData before Phase 4 |
-| Signature header named Signature or givebutter-signature? | MEDIUM | Log req.headers on first test delivery; check both until confirmed |
-| GiveButter amount in cents or dollars? | HIGH | Validate with real $1.00 donation before go-live |
-| EV GiveButter campaign code/URL? | LOW | Retrieve from GiveButter dashboard |
-| Give Butter subcategory exists for current fiscal year? | MEDIUM | Verify in DB or run loadEVFinances.js before testing |
+| Schema Path A vs. B? | HIGH | Decide before Phase 1 — affects all subsequent work |
+| Richardson URL accessible? | HIGH | Was blocked in v1.2 — verify before committing to Phase 3 |
+| Enterprise fund scope per city? | MEDIUM | Audit before cross-city per-capita comparison (deferred to v1.4+) |
 
 ---
 
@@ -86,32 +87,18 @@ Gate the listener: attach only after donate button click, remove after first re-
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Edge Function pattern well-documented; no-verify-jwt confirmed |
-| Features | HIGH | URL param absence confirmed; UX pattern is clear |
-| Architecture | HIGH structure / MEDIUM details | Build order correct; amount unit and header name need live-test validation |
-| Pitfalls | HIGH | Dedup and retry patterns standard; focus-listener behavior deterministic |
+| Stack | HIGH | Census CSV URL, column names, FIPS codes verified; frontend integration confirmed via source file audit |
+| Features | HIGH | Milestone scope is concrete; deferred features are well-bounded |
+| Architecture | HIGH | Schema tradeoffs clear; per-capita calculation placement unambiguous |
+| Pitfalls | HIGH | Growth rates verified; Haiku inflation confirmed from Phase 9 context |
 
-**Overall:** HIGH for structure and build order. Two MEDIUM details (amount unit, header name) must be validated with a real test webhook. Neither blocks Phases 1-3.
-
----
-
-## Sources
-
-### Primary (HIGH confidence)
-- GiveButter URL parameters: https://help.givebutter.com/en/articles/4868782-how-to-leverage-url-and-html-parameters
-- GiveButter webhook events: https://help.givebutter.com/en/articles/8828428-how-to-automate-workflows-and-data-using-webhooks
-- GiveButter campaign page config: https://help.givebutter.com/en/articles/3688273-how-to-configure-a-page-campaign
-- Supabase Edge Function config: https://supabase.com/docs/guides/functions/function-configuration
-- Supabase upsert: https://supabase.com/docs/reference/javascript/upsert
-
-### Secondary (MEDIUM confidence)
-- Rollout GiveButter guide: references givebutter-signature header (conflicts with official docs)
-- GiveButter Elements donation.complete: confirmed via search excerpt; direct URL 404
-
-### Tertiary (LOW / needs validation)
-- Webflow+GiveButter integration: states amount in cents (conflicts with help center sample showing dollars)
+**Overall: HIGH** — unknowns are operational checks (Richardson URL, PDF extraction quality), not research gaps.
 
 ---
 
-*Research completed: 2026-04-20*
+**Note:** `.planning/research/FEATURES.md` and `ARCHITECTURE.md` in this directory contain GiveButter donation UX research from a prior session. Valid for a future milestone but not relevant to v1.3.
+
+---
+
+*Research synthesized: 2026-05-21*
 *Ready for roadmap: yes*
