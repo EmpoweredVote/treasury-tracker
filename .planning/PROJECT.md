@@ -72,13 +72,16 @@ Any citizen can open financials.empowered.vote and immediately understand where 
 
 13/16 requirements shipped. 5 new Collin County cities added. Revenue data loaded for 4 TX cities. PDF pipeline attribution fixed. Prosper/Celina revenue and Richardson operating budget deferred to v1.3.
 
-## Next Milestone: v1.3
+## Current Milestone: v1.3 Revenue Completion & Per-Capita Context
 
-**Candidate goals:**
-- Prosper and Celina revenue via pdftotext (infrastructure seeded; approach documented)
-- Richardson operating budget (manual URL sourcing + parser)
-- Category enrichment for newly loaded TX cities
-- Statewide expansion beyond Collin County
+**Goal:** Close out all deferred v1.2 data work and add population-based per-capita spending display so citizens can compare cities of different sizes.
+
+**Target features:**
+- Prosper revenue loaded via pdftotext targeting STATEMENT OF REVENUES section
+- Celina revenue loaded via same pdftotext approach
+- Richardson operating budget via manual URL sourcing + processRichardsonBudget.js
+- Category enrichment for Garland, Wylie, Sachse, Murphy, Princeton
+- TX city population data loaded; per-capita spending displayed in app
 
 ---
-*Last updated: 2026-05-21 — v1.2 complete; planning v1.3*
+*Last updated: 2026-05-21 — v1.3 started*

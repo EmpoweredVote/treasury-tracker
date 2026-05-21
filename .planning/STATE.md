@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-05-21)
 
 ## Current Position
 
-Phase: N/A — between milestones
+Phase: N/A — defining requirements
 Plan: None
-Status: v1.2 complete (2026-05-21); v1.3 not yet started
-Last activity: 2026-05-21 — v1.2 milestone archived and tagged
+Status: v1.3 started (2026-05-21); requirements and roadmap in progress
+Last activity: 2026-05-21 — v1.3 milestone initialized
 
-Progress: v1.2 COMPLETE [████████████████████] 10/10 phases
+Progress: v1.3 ░░░░░░░░░░░░░░░░░░░░ 0% (phases not yet defined)
 
 ## Accumulated Context
 
@@ -47,4 +47,4 @@ Progress: v1.2 COMPLETE [██████████████████�
 
 Last session: 2026-05-21
 Stopped at: v1.2 archived, tagged, and committed
-Resume file: None — start fresh with `/gsd:new-milestone` for v1.3
+Resume file: None — run `/gsd:plan-phase [N]` after roadmap is created
