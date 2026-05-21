@@ -189,12 +189,12 @@ Plans:
 4. Each city has a seeded `data_sources` row and was loaded using `bulkLoadPDF.js` without city-specific code changes
 5. ACFRs for all 6 cities are sourced and documented (URL or local path recorded in data_sources or a reference file)
 
-**Plans:** TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 10-01-PLAN.md — Source ACFRs for all 6 cities; seed data_sources rows; dry-run pipeline against each PDF
-- [ ] 10-02-PLAN.md — Live load Garland and Richardson; verify in app
-- [ ] 10-03-PLAN.md — Live load Wylie, Sachse, Murphy, and Princeton; verify in app
+- [ ] 10-01-PLAN.md — Seed data_sources rows for all 6 cities, dry-run pdftotext against each PDF, record routing decisions
+- [ ] 10-02-PLAN.md — Live load Garland and Richardson (per 10-01 routing); verify in app
+- [ ] 10-03-PLAN.md — Live load Wylie, Sachse, Murphy, and Princeton (per 10-01 routing); verify in app
 
 ---
 
