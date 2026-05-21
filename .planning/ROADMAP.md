@@ -176,7 +176,7 @@ Plans:
 
 ### Phase 10: Collin County Expansion
 
-**Goal:** Citizens can view operating budget data for the 6 remaining Collin County cities — Garland, Richardson, Wylie, Sachse, Murphy, and Princeton — each loaded from their ACFR PDFs via the existing Haiku vision pipeline.
+**Goal:** Citizens can view operating budget data for the 6 remaining Collin County cities — Garland, Richardson, Wylie, Sachse, Murphy, and Princeton — each loaded from their standalone operating budget PDFs using a pdftotext-first approach (Haiku vision as fallback).
 
 **Depends on:** Phase 8 (improved PDF pipeline with correct department attribution reduces rework for new cities)
 
@@ -186,8 +186,8 @@ Plans:
 1. Garland and Richardson each have at least one fiscal year of operating budget data visible in the app with named departments
 2. Wylie and Sachse each have at least one fiscal year of operating budget data visible in the app with named departments
 3. Murphy and Princeton each have at least one fiscal year of operating budget data visible in the app with named departments
-4. Each city has a seeded `data_sources` row and was loaded using `bulkLoadPDF.js` without city-specific code changes
-5. ACFRs for all 6 cities are sourced and documented (URL or local path recorded in data_sources or a reference file)
+4. Each city has a seeded `data_sources` row and was loaded via either a city-specific pdftotext parser script or `bulkLoadPDF.js` (Haiku fallback) — no new loader infrastructure was required
+5. Operating budget PDFs for all 6 cities are sourced and documented (URLs recorded in `data_sources.base_url` and verified via dry-run in `10-01-DRYRUN-NOTES.md`)
 
 **Plans:** 3 plans
 
@@ -218,4 +218,4 @@ Plans:
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-05-04 — Phase 9 complete (4/6 cities have revenue; Prosper/Celina skipped per CONTEXT.md — ACFR PDFs not cleanly parseable via Haiku vision)*
+*Last updated: 2026-05-21 — Phase 10 plans created; corrected Phase 10 goal/SC wording from ACFR/bulkLoadPDF-only to pdftotext-first approach per 10-CONTEXT.md*
