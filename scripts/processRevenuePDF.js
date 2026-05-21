@@ -617,18 +617,25 @@ function parseAllenFormat(lines) {
 
 // ── Longview format parser ────────────────────────────────────────────────────
 // "Summary of Revenues by Departments- General"
-// 3-page PDF, digital text.  pdftotext -layout produces a fragmented layout
-// because individual line items have 8+ numeric columns that wrap onto extra lines.
-// Strategy: capture DEPARTMENT-LEVEL SUBTOTALS from "Total [Dept]" lines where
-// the numbers appear on the same line, plus the top-level "Revenues" line for
-// dept 0 (General Revenue / tax/franchise base).
+// 3-page PDF, digital text.  pdftotext -layout produces a severely fragmented
+// layout: 8+ numeric columns per row cause values to wrap onto extra lines.
 //
-// Columns in the PDF: [0] 2023-24 Actual | [1] 2024-25 Budget | [2] 2024-25 Yr End Est |
-//                     [3] Over/Under Budget | [4] % change | [5] 2025-26 Proposed |
-//                     [6] $ Chg | [7] % Chg to Budget
-// We want: approved_amount = 2025-26 Proposed (last large dollar value on line)
-//          actual_amount   = 2023-24 Actual   (first large dollar value on line)
-// "Large" = value >= 1000 (comma-grouped, 7+ chars) to skip small codes/percentages.
+// PDF has 8 data columns:
+//   [0]2023-24 Actual  [1]2024-25 Budget  [2]2024-25 YrEnd  [3]Over/Under
+//   [4]%change  [5]2025-26 Proposed  [6]$Chg  [7]%Chg
+//
+// Character positions (from pdftotext -layout header analysis):
+//   - 2023-24 Actual  ≈ pos 51-70  (leftmost dollar value)
+//   - 2025-26 Proposed ≈ pos 130-148
+//   - $Chg             ≈ pos 150-160 (rightmost, SKIP — it's a difference, not a total)
+//
+// Strategy:
+//   1. Detect "Total [Dept]" label lines.
+//   2. Read that line + the NEXT non-empty line into a "window".
+//   3. In the window, find the number nearest to pos 130-148 as proposed.
+//   4. The leftmost number ≥ 1,000 is actual (to skip small percentage-column values).
+//   5. Special case dept 0: "Revenues" header has all 8 columns clean on one line.
+//   6. Grand total line (contains 94,401,252) → actual / proposed for verification only.
 function parseLongviewFormat(lines) {
   // Department number -> human name
   const DEPT_MAP = {
@@ -650,16 +657,16 @@ function parseLongviewFormat(lines) {
     '851': 'Interfund Transfers',
   };
 
-  // Find the start of revenue table (title or header line)
+  // Find the start of revenue table (title line)
   let start = -1;
   for (let i = 0; i < lines.length; i++) {
     if (lines[i].includes('Summary of Revenues by Departments')) { start = i; break; }
   }
   if (start < 0) return null;
 
-  // Adopted FY: look for "2025-26" in first 15 lines after start
+  // Adopted FY: look for "NNNN-NN Proposed" in header area (spans first 3 pages)
   let adoptedFY = null;
-  for (let i = start; i < Math.min(start + 20, lines.length); i++) {
+  for (let i = start; i < Math.min(start + 30, lines.length); i++) {
     const m = lines[i].match(/(\d{4})-(\d{2})\s+Proposed/);
     if (m) {
       const suffix = parseInt(m[2], 10);
@@ -667,97 +674,223 @@ function parseLongviewFormat(lines) {
       break;
     }
   }
-  // Fallback: look for year pattern anywhere in header area
   if (!adoptedFY) {
-    for (let i = start; i < Math.min(start + 20, lines.length); i++) {
-      const m = lines[i].match(/20(\d{2})-(\d{2})/g);
-      if (m && m.length >= 2) {
-        const last = m[m.length - 1];
-        const suffix = parseInt(last.slice(-2), 10);
+    for (let i = start; i < Math.min(start + 30, lines.length); i++) {
+      const ms = [...lines[i].matchAll(/20\d{2}-(\d{2})/g)];
+      if (ms.length >= 2) {
+        const suffix = parseInt(ms[ms.length - 1][1], 10);
         adoptedFY = suffix < 50 ? 2000 + suffix : 1900 + suffix;
         break;
       }
     }
   }
 
-  // Extract all large comma-grouped dollar amounts from a line.
-  // "Large" = at least 1,000 (7+ chars with comma).  This filters out
-  // small account codes like "5,000" that are actually real but small,
-  // but more importantly we just take first = actual, last = proposed.
-  function extractDollarValues(line) {
-    // Match any comma-grouped number (with optional leading paren/negative)
-    const all = [...line.matchAll(/\(?\$? ?(\d{1,3}(?:,\d{3})+)\s*\)?/g)]
-      .map(m => parseMoney(m[0]));
-    return all;
+  // Find number at or near target character position in a line.
+  // Returns { value, pos } or null.
+  // Find number nearest to targetPos within tolerance, respecting right boundary.
+  function numNear(line, targetPos, tolerance) {
+    let best = null, bestDist = Infinity;
+    for (const m of line.matchAll(/\(?\$? ?(\d{1,3}(?:,\d{3})+)\s*\)?/g)) {
+      if (m.index > proposedRight) continue;  // skip $ Chg / % Chg columns
+      const dist = Math.abs(m.index - targetPos);
+      if (dist <= tolerance && dist < bestDist) {
+        bestDist = dist;
+        best = { value: parseMoney(m[0]), pos: m.index };
+      }
+    }
+    return best;
+  }
+
+  // Find leftmost number ≥ minAbs in a line (actual column is leftmost).
+  function firstLargeNum(line, minAbs) {
+    for (const m of line.matchAll(/\(?\$? ?(\d{1,3}(?:,\d{3})+)\s*\)?/g)) {
+      const v = parseMoney(m[0]);
+      if (v !== null && Math.abs(v) >= minAbs) return { value: v, pos: m.index };
+    }
+    return null;
+  }
+
+  // Extract just the name portion from a "Total ..." line (text before first number).
+  // e.g. "Total City Secretary                   2,588,050  ..." -> "City Secretary"
+  function extractTotalName(rest) {
+    const m = /\d{1,3}(?:,\d{3})/.exec(rest);
+    const name = m ? rest.slice(0, m.index) : rest;
+    return name.trim();
+  }
+
+  // Proposed column position — calibrated from page header "2025-26" year label.
+  // Page 1 & 2: pos ~140.  Page 3: pos ~131.  Defaults to 139 until first header seen.
+  // The "$ Chg" column sits 8-12 chars after proposed; we cap the right edge of the search
+  // window to keep proposed and $ Chg columns from colliding.
+  let proposedPos   = 139;
+  let proposedRight = 155;   // right boundary: numbers at pos > proposedRight are $ Chg / % Chg
+  const PROPOSED_TOL = 14;  // tight tolerance to avoid capturing adjacent columns
+
+  // Detect proposed column position from a year-header line.
+  function calibrateProposedPos(line) {
+    const m = line.match(/\b2025-26\b/);
+    if (m) {
+      proposedPos   = m.index;
+      proposedRight = proposedPos + 16;
+    }
   }
 
   const rows = [];
   let currentDept = 'General Revenue';
 
+  // Helper: is this line a page/section header to skip?
+  function isSkippable(t) {
+    if (!t) return true;
+    if (/Summary of Revenues by Departments/i.test(t)) return true;
+    // "Page N of N" as standalone (not embedded in a data line with money values)
+    if (/^Page \d+ of \d+$/.test(t)) return true;
+    // Line that contains "Page N of N" in the middle (corrupted pagination e.g. "...536Page 3 of 3...")
+    if (/Page \d+ of \d+/.test(t)) return true;
+    if (/City of Longview/i.test(t)) return true;
+    // "General Fund:" header row — skip only when it carries NO money values
+    // (the header row itself has no numbers; continuation data rows start with "General Fund:")
+    if (/General Fund:/i.test(t) && !/\d{1,3},\d{3}/.test(t)) return true;
+    // Column header line: contains type words but no money values
+    if (/\bActual\b|\bProposed\b|\bBudget\b|\bEst\b/.test(t) && !/\d{1,3},\d{3}/.test(t)) return true;
+    // Year-range header line (e.g. "2023-24  2024-25 ...") — year patterns but no money values
+    if (/\b20\d{2}-\d{2}\b/.test(t) && !/\d{1,3},\d{3}/.test(t)) return true;
+    return false;
+  }
+
+  // Helper: find the next data line after index i, skipping blanks and page headers.
+  // Returns { line, index } or null if none found within maxLook lines.
+  function nextDataLine(fromIdx, maxLook = 8) {
+    for (let j = fromIdx; j < Math.min(fromIdx + maxLook, lines.length); j++) {
+      const l = lines[j].replace(/\r/, '');
+      if (isSkippable(l.trim())) continue;
+      return { line: l, index: j };
+    }
+    return null;
+  }
+
   for (let i = start; i < lines.length; i++) {
-    const line = lines[i];
-    const t = line.trim();
+    const line = lines[i].replace(/\r/, '');
+    const t    = line.trim();
 
     // Stop at grand total line
     if (/Total General Revenues/i.test(t) || /Total General Fund/i.test(t)) break;
 
-    // Skip page headers
-    if (/Summary of Revenues by Departments|Page \d+ of \d+|City of Longview/i.test(t)) continue;
-    // Skip column header lines (no dollar amounts, contains "Actual"/"Proposed")
-    if (/\bActual\b|\bProposed\b|\bBudget\b|\bEst\b/.test(t) && !/\d{1,3},\d{3}/.test(t)) continue;
+    // Calibrate proposed column from year-range header lines (must use full line for positions)
+    if (/\b20\d{2}-\d{2}\b/.test(t) && !/\d{1,3},\d{3}/.test(t)) calibrateProposedPos(line);
 
-    // Department number line (standalone): update currentDept
-    if (/^\d+$/.test(t) && DEPT_MAP[t]) {
-      currentDept = DEPT_MAP[t];
-      continue;
-    }
-    // Department number with slash (e.g. "850/851")
-    if (/^\d+\/\d+$/.test(t)) {
-      const first = t.split('/')[0];
-      if (DEPT_MAP[first]) { currentDept = DEPT_MAP[first]; }
-      continue;
+    // Skip page headers and column-header lines
+    if (isSkippable(t)) continue;
+
+    // Department number detection.
+    // Dept numbers appear in two formats:
+    //   (a) standalone:  "                210\n"            -> t === '210'
+    //   (b) with data:   "                210    235,485..." -> t starts with '210 '
+    // Also handles "850/851" slash notation.
+    //
+    // IMPORTANT: department header lines are indented ≤ 25 chars.  Data rows that happen
+    // to start with "0" (an account code suffix like "0  2,000  ...") sit at column 70+.
+    // Guard on leading-space count to avoid false dept detection.
+    const leadingSpaces = line.length - line.trimStart().length;
+    const deptNum = t.split(/\s+/)[0];  // first token before any spaces/numbers
+    const slashNum = deptNum.split('/')[0];
+    if (leadingSpaces <= 25 && DEPT_MAP[deptNum]) {
+      currentDept = DEPT_MAP[deptNum];
+      // If the line also contains numbers, it may be a data continuation — don't skip
+      // (we'll fall through to subsequent checks below)
+      if (/^\d+$/.test(t) || /^\d+\/\d+$/.test(t)) continue;  // pure dept-number line
+    } else if (leadingSpaces <= 25 && DEPT_MAP[slashNum]) {
+      currentDept = DEPT_MAP[slashNum];
+      if (/^\d+\/\d+$/.test(t)) continue;
     }
 
-    // Look for "Revenues" header line for dept 0 (General Revenue / base GF revenues)
-    // This line appears early in dept 0 and has the biggest dollar amounts.
-    if (/^\s+Revenues\s/.test(line) && currentDept === 'General Revenue') {
-      const vals = extractDollarValues(line);
-      if (vals.length >= 2) {
-        const approved = vals[vals.length - 1]; // last = 2025-26 Proposed
-        const actual   = vals[0];               // first = 2023-24 Actual
-        if (approved !== null && actual !== null && approved > 0) {
-          rows.push({
-            department:      currentDept,
-            category:        'General Revenue',
-            approved_amount: approved,
-            actual_amount:   actual,
-            fund: 'General Fund',
-          });
-        }
+    // "General Fund:" data line under dept 0 — captures the main General Fund revenue aggregation.
+    // This line appears at the top of each page as a rollup; only the FIRST occurrence (page 1,
+    // dept 0 context) is captured as a revenue line item.
+    if (/^General Fund:/i.test(t) && currentDept === 'General Revenue' && rows.length === 0) {
+      const proposed = numNear(line, proposedPos, PROPOSED_TOL);
+      const actual   = firstLargeNum(line, 10000);
+      if (proposed && proposed.value > 0) {
+        rows.push({
+          department:      'General Revenue',
+          category:        'General Fund Revenue',
+          approved_amount: proposed.value,
+          actual_amount:   actual ? actual.value : null,
+          fund: 'General Fund',
+        });
       }
       continue;
     }
 
-    // Capture "Total [Dept Name]" subtotal lines
+    // "Revenues" header for dept 0 — all 8 columns present on one line.
+    // Use it only once (when still in General Revenue dept before dept 0 marker).
+    if (/^\s+Revenues\s/.test(line) && currentDept === 'General Revenue') {
+      const proposed = numNear(line, proposedPos, PROPOSED_TOL);
+      const actual   = firstLargeNum(line, 10000); // Actual is ~32M, can't miss it
+      if (proposed && actual && proposed.value > 0) {
+        rows.push({
+          department:      'General Revenue',
+          category:        'Tax & Franchise Revenue',
+          approved_amount: proposed.value,
+          actual_amount:   actual.value,
+          fund: 'General Fund',
+        });
+      }
+      continue;
+    }
+
+    // "Total [Dept Name]" subtotal lines
     const totalMatch = /^\s+Total\s+(.+)/.exec(line);
     if (totalMatch) {
-      const cat = totalMatch[1].trim();
-      // Skip grand totals
+      const cat = extractTotalName(totalMatch[1]);
       if (/General Revenues|General Fund/i.test(cat)) break;
+      // Skip internal dept-0 subtotals (Miscelaneous, Franchise Tax) — already covered by Revenues
+      if (currentDept === 'General Revenue' && /Miscellaneous|Miscelaneous|Franchise/i.test(cat)) continue;
 
-      const vals = extractDollarValues(line);
-      if (vals.length >= 2) {
-        const approved = vals[vals.length - 1]; // last = 2025-26 Proposed
-        const actual   = vals[0];               // first = 2023-24 Actual
-        if (approved !== null && (approved !== 0 || actual !== 0)) {
-          rows.push({
-            department:      currentDept,
-            category:        cat,
-            approved_amount: approved,
-            actual_amount:   actual,
-            fund: 'General Fund',
-          });
+      // Look for proposed value on THIS line first
+      let proposed = numNear(line, proposedPos, PROPOSED_TOL);
+      let actual   = firstLargeNum(line, 1000);
+
+      // If proposed not found (line is split), scan forward — skip blanks AND page headers
+      if (!proposed) {
+        const cont = nextDataLine(i + 1, 12);
+        if (cont) {
+          const nl = cont.line;
+          // Don't consume a new "Total", dept-number-only, or "Total General" line
+          if (!/^\s+Total\s/.test(nl) && !/Total General/i.test(nl)) {
+            proposed = numNear(nl, proposedPos, PROPOSED_TOL);
+            if (!actual) actual = firstLargeNum(nl, 1000);
+          }
         }
+      }
+
+      // If still no proposed, look back to the last data line ABOVE the Total.
+      // This handles cases where the Total row is immediately after the last line-item
+      // (e.g. Total Information Services — the data sits at lines[i-1]).
+      if (!proposed) {
+        for (let j = i - 1; j >= Math.max(0, i - 6); j--) {
+          const prev = (lines[j] || '').replace(/\r/, '');
+          const pt = prev.trim();
+          if (!pt) continue;
+          // Stop if we hit another Total line or a dept-number header
+          if (/^\s+Total\s/.test(prev)) break;
+          if (/^\d+$/.test(pt) || /^\d+\/\d+$/.test(pt)) break;
+          const p = numNear(prev, proposedPos, PROPOSED_TOL);
+          if (p) {
+            proposed = p;
+            if (!actual) actual = firstLargeNum(prev, 1000);
+            break;
+          }
+        }
+      }
+
+      if (proposed && proposed.value !== null && proposed.value !== 0) {
+        rows.push({
+          department:      currentDept,
+          category:        cat,
+          approved_amount: proposed.value,
+          actual_amount:   actual ? actual.value : null,
+          fund: 'General Fund',
+        });
       }
       continue;
     }
