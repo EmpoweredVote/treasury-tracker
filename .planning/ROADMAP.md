@@ -192,9 +192,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 10-01-PLAN.md — Seed data_sources rows for all 6 cities, dry-run pdftotext against each PDF, record routing decisions
-- [ ] 10-02-PLAN.md — Live load Garland and Richardson (per 10-01 routing); verify in app
-- [ ] 10-03-PLAN.md — Live load Wylie, Sachse, Murphy, and Princeton (per 10-01 routing); verify in app
+- [x] 10-01-PLAN.md — Seed data_sources rows for all 6 cities, dry-run pdftotext against each PDF, record routing decisions
+- [x] 10-02-PLAN.md — Live load Garland and Richardson (per 10-01 routing); verify in app
+- [x] 10-03-PLAN.md — Live load Wylie, Sachse, Murphy, and Princeton (per 10-01 routing); verify in app
 
 ---
 
@@ -213,9 +213,9 @@ Plans:
 | 7. PDF/Haiku Vision | v1.1 | 3/3 | Complete | 2026-05-02 |
 | 8. Data Quality | v1.2 | 3/3 | Verified ✓ | 2026-05-04 |
 | 9. Revenue Completion | v1.2 | 3/3 | Verified ✓ | 2026-05-04 |
-| 10. Collin County Expansion | v1.2 | 0/3 | Not started | - |
+| 10. Collin County Expansion | v1.2 | 3/3 | Verified ✓ | 2026-05-21 |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-05-21 — Phase 10 plans created; corrected Phase 10 goal/SC wording from ACFR/bulkLoadPDF-only to pdftotext-first approach per 10-CONTEXT.md*
+*Last updated: 2026-05-21 — Phase 10 complete: 5/6 cities loaded (Richardson skipped — cor.net HTTP block); v1.2 milestone complete*

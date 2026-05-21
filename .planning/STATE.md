@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-05-03)
 
 **Core value:** Any citizen can open financials.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Milestone v1.2 — Phase 10: Collin County Expansion (10-01 complete, executing 10-02/10-03 next)
+**Current focus:** Milestone v1.2 complete — all 10 phases done
 
 ## Current Position
 
-Phase: 10 of 10 (Collin County Expansion) — IN PROGRESS
-Plan: 1 of 3 complete (10-01 done)
-Status: Plan 10-01 complete (2026-05-21) — 12 data_sources seeded, dry-runs done, routing decisions documented
-Last activity: 2026-05-21 — 10-01 complete: 5/6 cities pdftotext-parser, Richardson skipped (wrong URL)
+Phase: 10 of 10 (Collin County Expansion) — COMPLETE
+Plan: 3 of 3 complete
+Status: Phase 10 complete (2026-05-21) — 5/6 cities loaded; Richardson skipped (cor.net HTTP block)
+Last activity: 2026-05-21 — 10-03 complete: Wylie/Sachse/Murphy/Princeton loaded; v1.2 milestone complete
 
-Progress: [█████████████░░░░░░░] 65% (13/20 plans complete)
+Progress: [████████████████████] 100% (20/20 plans complete)
 
 ## Performance Metrics
 
@@ -86,6 +86,6 @@ Progress: [█████████████░░░░░░░] 65% (13
 
 ## Session Continuity
 
-Last session: 2026-05-20
-Stopped at: Phase 10 context discussion complete — 10-CONTEXT.md written at .planning/phases/10-collin-county/
+Last session: 2026-05-21
+Stopped at: Phase 10 complete — all 3 plans executed; v1.2 milestone done
 Resume file: None
