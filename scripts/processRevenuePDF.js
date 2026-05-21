@@ -51,6 +51,8 @@ const SOURCES = [
   { city: 'Allen', fy: 2026, url: 'https://cms3.revize.com/revize/allentx/Documents/Departments/Finance/Financial%20Transparency/Budget/Adopted%20Budget/FY%202025-2026%20City%20of%20Allen%20Annual%20Budget.pdf', format: 'allen' },
   // Frisco — FY2026 adopted budget PDF contains Actual FY23+FY24 and Budget FY25+FY26
   { city: 'Frisco', fy: 2026, url: 'https://www.friscotexas.gov/DocumentCenter/View/39479/Budget-Fiscal-Year-26-PDF', format: 'frisco' },
+  // Longview — FY2026 proposed budget "Summary of Revenues by Departments - General"
+  { city: 'Longview', fy: 2026, url: 'https://www.longviewtexas.gov/DocumentCenter/View/16182/Summary-of-Revenues-by-Dept-GF', format: 'longview' },
 ];
 
 // ── Money parser ──────────────────────────────────────────────────────────────
@@ -613,6 +615,158 @@ function parseAllenFormat(lines) {
   return { rows, fiscalYear: adoptedFY, colInfo: { colCount, adoptedIdx, eoyIdx } };
 }
 
+// ── Longview format parser ────────────────────────────────────────────────────
+// "Summary of Revenues by Departments- General"
+// 3-page PDF, digital text.  pdftotext -layout produces a fragmented layout
+// because individual line items have 8+ numeric columns that wrap onto extra lines.
+// Strategy: capture DEPARTMENT-LEVEL SUBTOTALS from "Total [Dept]" lines where
+// the numbers appear on the same line, plus the top-level "Revenues" line for
+// dept 0 (General Revenue / tax/franchise base).
+//
+// Columns in the PDF: [0] 2023-24 Actual | [1] 2024-25 Budget | [2] 2024-25 Yr End Est |
+//                     [3] Over/Under Budget | [4] % change | [5] 2025-26 Proposed |
+//                     [6] $ Chg | [7] % Chg to Budget
+// We want: approved_amount = 2025-26 Proposed (last large dollar value on line)
+//          actual_amount   = 2023-24 Actual   (first large dollar value on line)
+// "Large" = value >= 1000 (comma-grouped, 7+ chars) to skip small codes/percentages.
+function parseLongviewFormat(lines) {
+  // Department number -> human name
+  const DEPT_MAP = {
+    '0':   'General Revenue',
+    '102': 'City Secretary',
+    '200': 'Municipal Court',
+    '210': 'Police',
+    '224': 'Fire',
+    '225': 'Code Compliance',
+    '350': 'Planning & Zoning',
+    '352': 'Building Inspection',
+    '520': 'Recreation',
+    '531': 'Library',
+    '600': 'Environmental Health',
+    '601': 'PIP',
+    '604': 'Animal Services',
+    '704': 'Information Services',
+    '850': 'Interfund Transfers',
+    '851': 'Interfund Transfers',
+  };
+
+  // Find the start of revenue table (title or header line)
+  let start = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].includes('Summary of Revenues by Departments')) { start = i; break; }
+  }
+  if (start < 0) return null;
+
+  // Adopted FY: look for "2025-26" in first 15 lines after start
+  let adoptedFY = null;
+  for (let i = start; i < Math.min(start + 20, lines.length); i++) {
+    const m = lines[i].match(/(\d{4})-(\d{2})\s+Proposed/);
+    if (m) {
+      const suffix = parseInt(m[2], 10);
+      adoptedFY = suffix < 50 ? 2000 + suffix : 1900 + suffix;
+      break;
+    }
+  }
+  // Fallback: look for year pattern anywhere in header area
+  if (!adoptedFY) {
+    for (let i = start; i < Math.min(start + 20, lines.length); i++) {
+      const m = lines[i].match(/20(\d{2})-(\d{2})/g);
+      if (m && m.length >= 2) {
+        const last = m[m.length - 1];
+        const suffix = parseInt(last.slice(-2), 10);
+        adoptedFY = suffix < 50 ? 2000 + suffix : 1900 + suffix;
+        break;
+      }
+    }
+  }
+
+  // Extract all large comma-grouped dollar amounts from a line.
+  // "Large" = at least 1,000 (7+ chars with comma).  This filters out
+  // small account codes like "5,000" that are actually real but small,
+  // but more importantly we just take first = actual, last = proposed.
+  function extractDollarValues(line) {
+    // Match any comma-grouped number (with optional leading paren/negative)
+    const all = [...line.matchAll(/\(?\$? ?(\d{1,3}(?:,\d{3})+)\s*\)?/g)]
+      .map(m => parseMoney(m[0]));
+    return all;
+  }
+
+  const rows = [];
+  let currentDept = 'General Revenue';
+
+  for (let i = start; i < lines.length; i++) {
+    const line = lines[i];
+    const t = line.trim();
+
+    // Stop at grand total line
+    if (/Total General Revenues/i.test(t) || /Total General Fund/i.test(t)) break;
+
+    // Skip page headers
+    if (/Summary of Revenues by Departments|Page \d+ of \d+|City of Longview/i.test(t)) continue;
+    // Skip column header lines (no dollar amounts, contains "Actual"/"Proposed")
+    if (/\bActual\b|\bProposed\b|\bBudget\b|\bEst\b/.test(t) && !/\d{1,3},\d{3}/.test(t)) continue;
+
+    // Department number line (standalone): update currentDept
+    if (/^\d+$/.test(t) && DEPT_MAP[t]) {
+      currentDept = DEPT_MAP[t];
+      continue;
+    }
+    // Department number with slash (e.g. "850/851")
+    if (/^\d+\/\d+$/.test(t)) {
+      const first = t.split('/')[0];
+      if (DEPT_MAP[first]) { currentDept = DEPT_MAP[first]; }
+      continue;
+    }
+
+    // Look for "Revenues" header line for dept 0 (General Revenue / base GF revenues)
+    // This line appears early in dept 0 and has the biggest dollar amounts.
+    if (/^\s+Revenues\s/.test(line) && currentDept === 'General Revenue') {
+      const vals = extractDollarValues(line);
+      if (vals.length >= 2) {
+        const approved = vals[vals.length - 1]; // last = 2025-26 Proposed
+        const actual   = vals[0];               // first = 2023-24 Actual
+        if (approved !== null && actual !== null && approved > 0) {
+          rows.push({
+            department:      currentDept,
+            category:        'General Revenue',
+            approved_amount: approved,
+            actual_amount:   actual,
+            fund: 'General Fund',
+          });
+        }
+      }
+      continue;
+    }
+
+    // Capture "Total [Dept Name]" subtotal lines
+    const totalMatch = /^\s+Total\s+(.+)/.exec(line);
+    if (totalMatch) {
+      const cat = totalMatch[1].trim();
+      // Skip grand totals
+      if (/General Revenues|General Fund/i.test(cat)) break;
+
+      const vals = extractDollarValues(line);
+      if (vals.length >= 2) {
+        const approved = vals[vals.length - 1]; // last = 2025-26 Proposed
+        const actual   = vals[0];               // first = 2023-24 Actual
+        if (approved !== null && (approved !== 0 || actual !== 0)) {
+          rows.push({
+            department:      currentDept,
+            category:        cat,
+            approved_amount: approved,
+            actual_amount:   actual,
+            fund: 'General Fund',
+          });
+        }
+      }
+      continue;
+    }
+  }
+
+  const colInfo = { colCount: 8, adoptedIdx: 5, eoyIdx: 0 };
+  return { rows, fiscalYear: adoptedFY, colInfo };
+}
+
 // ── Parse a PDF file ──────────────────────────────────────────────────────────
 function parsePDF(filePath, format) {
   let text;
@@ -626,8 +780,9 @@ function parsePDF(filePath, format) {
     return null;
   }
   const lines = text.split('\n');
-  if (format === 'allen')  return parseAllenFormat(lines);
-  if (format === 'frisco') return parseFriscoFormat(lines);
+  if (format === 'longview') return parseLongviewFormat(lines);
+  if (format === 'allen')    return parseAllenFormat(lines);
+  if (format === 'frisco')   return parseFriscoFormat(lines);
   return parseMcKinneyFormat(lines);
 }
 
@@ -707,7 +862,7 @@ async function main() {
 
   // Load municipalities
   const { data: munis } = await supabase.schema('treasury').from('municipalities')
-    .select('id, name').in('name', ['McKinney', 'Allen', 'Frisco']);
+    .select('id, name').in('name', ['McKinney', 'Allen', 'Frisco', 'Longview']);
   const muniMap = Object.fromEntries((munis || []).map(m => [m.name, m.id]));
 
   const sources = SOURCES.filter(s =>
