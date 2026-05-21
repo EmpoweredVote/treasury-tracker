@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-05-03)
 
 **Core value:** Any citizen can open financials.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Milestone v1.2 — Phase 10: Collin County Expansion (plans ready, execute next)
+**Current focus:** Milestone v1.2 — Phase 10: Collin County Expansion (10-01 complete, executing 10-02/10-03 next)
 
 ## Current Position
 
-Phase: 10 of 10 (Collin County Expansion) — PLANS COMPLETE, ready to execute
-Plan: 0 of 3 in current phase
-Status: Phase 10 plans created (2026-05-21) — run /gsd:execute-phase 10 to begin
-Last activity: 2026-05-21 — Created 3 Phase 10 plans; pdftotext-first approach; PDF URLs for all 6 cities embedded; dry-run routing in 10-01; live loads in 10-02 + 10-03
+Phase: 10 of 10 (Collin County Expansion) — IN PROGRESS
+Plan: 1 of 3 complete (10-01 done)
+Status: Plan 10-01 complete (2026-05-21) — 12 data_sources seeded, dry-runs done, routing decisions documented
+Last activity: 2026-05-21 — 10-01 complete: 5/6 cities pdftotext-parser, Richardson skipped (wrong URL)
 
 Progress: [█████████████░░░░░░░] 65% (13/20 plans complete)
 
@@ -65,6 +65,11 @@ Progress: [█████████████░░░░░░░] 65% (13
 - ACFR extraction failure is now confirmed pattern for 2+ cities: ACFRs extract balance sheet/fund tables (Nonmajor Governmental Funds, Financial Section) not revenue statements
 - Celina Revenue FY2025 data_source row seeded and retained (id=0e2e54c5) for future pdftotext-based extraction
 - Phase 9 revenue loaded: Plano (6 years), McKinney (5 years), Frisco (1 year), Allen (1 year) — 4 of 6 cities; Prosper/Celina skipped due to ACFR structural limitation
+- Phase 10-01: 12 data_sources rows seeded for Garland/Richardson/Wylie/Sachse/Murphy/Princeton (FY2025+FY2026 each)
+- Richardson TX cor.net blocks automated HTTP — CivicLive Server_7964838 is Roseville CA (wrong city); placeholder URLs seeded; correct URL must be sourced manually from cor.net/departments/budget
+- Garland FY2025 ($246.9M GF), Wylie FY2026 (~$80M), Sachse FY2026 ($31.2M), Murphy FY2025 ($19.7M), Princeton FY2026 ($36.9M) — all pdftotext-parser routing confirmed
+- Garland FY2026 (/22610/) confirmed summary brochure (211KB) — use FY2025 for extraction
+- All 5 loadable cities PDFs cached in C:/tmp/collin-budgets/ — parser scripts to be written in 10-02/10-03 following processLongviewBudget.js pattern
 
 ### Blockers / Concerns
 
