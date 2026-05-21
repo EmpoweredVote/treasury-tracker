@@ -43,8 +43,10 @@ const ALLEN_ACFR_FY2025  = 'https://www.cityofallen.org/Documents/Departments/Fi
 // ── Collin County operating budget URLs (Phase 10) ───────────────────────────
 const GARLAND_BUDGET_FY2025    = 'https://garlandtx.gov/DocumentCenter/View/20565/City-of-Garland-2024-25-Annual-Operating-Budget-PDF';
 const GARLAND_BUDGET_FY2026    = 'https://garlandtx.gov/DocumentCenter/View/22610/Adopted-Annual-Operating-Budget-2025-26';
-const RICHARDSON_BUDGET_FY2025 = 'https://cdnsm5-hosted.civiclive.com/UserFiles/Servers/Server_7964838/File/Government/Departments/Finance/Financial%20Transparency/Annual%20Budgets/2025%20Budget%20Book%20-%20compressed%208-28.pdf';
-const RICHARDSON_BUDGET_FY2026 = 'https://cdnsm5-hosted.civiclive.com/UserFiles/Servers/Server_7964838/File/Government/Departments/Finance/Budget/2026%20Adopted%20Budget%20Book.8-5-25%20compressed.final%20with%20TOC.pdf';
+// Richardson TX: cor.net blocks direct HTTP fetch; CivicLive Server_7964838 is Roseville CA (wrong city).
+// Placeholder URLs — replace with correct cor.net PDF URL once manually sourced from cor.net/departments/budget.
+const RICHARDSON_BUDGET_FY2025 = 'https://www.cor.net/departments/budget/2024-2025-budget';
+const RICHARDSON_BUDGET_FY2026 = 'https://www.cor.net/departments/budget/2025-2026-budget';
 const WYLIE_BUDGET_FY2025      = 'https://cms2.revize.com/revize/wylienew/Departments/Finance/Budget/Wylie%20Budget%20Book%20for%20Web%20(1).pdf';
 const WYLIE_BUDGET_FY2026      = 'https://cms2.revize.com/revize/wylienew/Departments/Finance/Budget/FY%202026%20Final%20Budget.pdf';
 const SACHSE_BUDGET_FY2025     = 'https://www.cityofsachse.com/DocumentCenter/View/11115/2024-2025-Budget-Workbook';
