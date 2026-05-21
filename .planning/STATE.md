@@ -5,37 +5,30 @@
 See: .planning/PROJECT.md (updated 2026-05-21)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Planning v1.3 — Prosper/Celina revenue, Richardson, enrichment, statewide expansion
+**Current focus:** v1.3 — Phase 11: Population Schema, Census Data Load, and Per-Capita Display
 
 ## Current Position
 
-Phase: N/A — defining requirements
-Plan: None
-Status: v1.3 started (2026-05-21); requirements and roadmap in progress
-Last activity: 2026-05-21 — v1.3 milestone initialized
+Phase: 11 of 14 (Population & Per-Capita)
+Plan: None — ready to plan
+Status: Roadmap created (2026-05-21); ready to plan Phase 11
+Last activity: 2026-05-21 — v1.3 roadmap created (phases 11-14 defined)
 
-Progress: v1.3 ░░░░░░░░░░░░░░░░░░░░ 0% (phases not yet defined)
+Progress: v1.3 ░░░░░░░░░░░░░░░░░░░░ 0% (0/9 plans complete)
 
 ## Accumulated Context
 
 ### Key Technical Decisions Carried Forward
 
 - `bulkLoadPDF.js`: max_tokens=8192; stop_reason guard; section_heading cross-page context; datasetType param in buildExtractionPrompt
-- ACFR revenue extraction limitation confirmed for 2+ cities: Haiku vision extracts capital/balance sheet tables, not revenue statements; future revenue work for ACFR cities requires pdftotext + text-marker section targeting
-- Future Prosper/Celina revenue path: pdftotext targeting "STATEMENT OF REVENUES, EXPENDITURES, AND CHANGES IN FUND BALANCES" section (see processRevenuePDF.js pattern)
+- Future Prosper/Celina revenue path: pdftotext targeting "STATEMENT OF REVENUES, EXPENDITURES, AND CHANGES IN FUND BALANCES" section (processRevenuePDF.js pattern)
 - pdftotext-parser pattern: processLongviewBudget.js / processGarlandBudget.js as reference implementations
-- Richardson TX: cor.net blocks HTTP; manually browse https://www.cor.net/departments/budget to get PDF URL; implement processRichardsonBudget.js following processGarlandBudget.js
-- Cost gating rule: estimate API cost before running; stop and get approval if >$5; document skipped runs explicitly
-- Sequential PDF runs for same city (share rate limit + disk cache); cache key = SHA-256 of full PDF buffer
-
-### Deferred Work (v1.3 backlog)
-
-| Item | ID | Next Step |
-|------|----|-----------|
-| Prosper revenue | REV-05 | pdftotext + STATEMENT OF REVENUES section targeting |
-| Celina revenue | REV-06 | Same as Prosper |
-| Richardson operating budget | COL-02 | Manual URL from cor.net browser; processRichardsonBudget.js |
-| Category enrichment (new TX cities) | — | Separate enrichment pass after v1.2 data loads |
+- Richardson TX: cor.net blocks HTTP; manually browse https://www.cor.net/departments/budget to get PDF URL
+- Population schema decision: Path A (add `population_year` column to existing `municipalities` table) — zero frontend changes, one migration, valid for v1.3
+- Census source: `sub-est2024_48.csv` (TX vintage 2024), filter `SUMLEV === '162'`, use `POPESTIMATE2024` column — unauthenticated download, no API key
+- Name normalization required: Census names include suffixes ("Prosper town", "Celina city") — must strip before matching to municipalities.name
+- Per-capita restricted to most recent FY for v1.3 — one population vintage across FY2018-FY2026 creates false trends for fast-growing cities
+- Cost gating rule: estimate API cost before running; stop and get approval if >$5
 
 ### Seeded Infrastructure (ready for v1.3)
 
@@ -43,8 +36,13 @@ Progress: v1.3 ░░░░░░░░░░░░░░░░░░░░ 0% (
 - Celina Revenue FY2025 data_source row (id=0e2e54c5, last_synced_at=null)
 - Richardson Operating Budget FY2025/FY2026 placeholder data_source rows (placeholder URLs)
 
+### Blockers/Concerns
+
+- Phase 12 (Richardson): cor.net blocked HTTP in v1.2 — manual browser URL sourcing required before loader can be built; verify URL is accessible before committing time
+- Phase 12 (Revenue): pdftotext extraction quality for Prosper/Celina revenue unknown until attempted — validate against ACFR before enabling display
+
 ## Session Continuity
 
 Last session: 2026-05-21
-Stopped at: v1.2 archived, tagged, and committed
-Resume file: None — run `/gsd:plan-phase [N]` after roadmap is created
+Stopped at: v1.3 roadmap created; phases 11-14 defined and written to ROADMAP.md
+Resume file: None — run `/gsd:plan-phase 11` to begin
