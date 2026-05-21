@@ -23,14 +23,22 @@ Any citizen can open financials.empowered.vote and immediately understand where 
 - ✓ Annual Report PDF download (FY 2025, shown beside year selector)
 - ✓ Linked transactions panel
 - ✓ Budget search
+- ✓ Dallas operating and revenue budget data loaded via Socrata SODA API — v1.1
+- ✓ Generic `bulkLoadBudget.js` for any Socrata city's operating/revenue budgets — v1.1
+- ✓ XLSX check register importer for Plano, McKinney, Frisco — v1.1
+- ✓ PDF → Claude Haiku vision pipeline for ACFR budget extraction — v1.1
+- ✓ Allen, Prosper, Celina budget data loaded via PDF pipeline — v1.1
+- ✓ PDF pipeline "Unknown" department attribution fixed (max_tokens + cross-page section context) — v1.2
+- ✓ Revenue data visible for Plano (FY2018–2024), McKinney (FY2021–2025), Frisco (FY2026), Allen (FY2026) — v1.2
+- ✓ Garland, Wylie, Sachse, Murphy, Princeton operating budgets loaded via pdftotext parsers — v1.2
 
 ### Active
 
-- [ ] Dallas operating and revenue budget data loaded via Socrata SODA API
-- [ ] Generic `bulkLoadBudget.js` for any Socrata city's operating/revenue budgets
-- [ ] XLSX check register importer for Plano, McKinney, Frisco, Richardson, Sachse
-- [ ] PDF → image → Claude Haiku vision pipeline for ACFR budget extraction
-- [ ] Allen, Prosper, Celina budget data loaded via PDF pipeline
+- [ ] Prosper revenue data loaded — pdftotext targeting "STATEMENT OF REVENUES" section needed (ACFR Haiku vision produces inflated totals)
+- [ ] Celina revenue data loaded — same pdftotext approach as Prosper
+- [ ] Richardson operating budget loaded — cor.net blocks HTTP; manual browser URL sourcing required, then processRichardsonBudget.js following processGarlandBudget.js pattern
+- [ ] Category enrichment for all newly loaded TX cities (v1.2 loads data; enrichment is a separate pass)
+- [ ] Population data for TX municipalities
 
 ### Out of Scope
 
@@ -60,16 +68,17 @@ Any citizen can open financials.empowered.vote and immediately understand where 
 | Supabase Edge Function as webhook receiver | Already in stack, no new infra | — Pending |
 | GiveButter-only for v1 | Best webhook support; Patreon/Benevity less suitable | — Pending |
 
-## Current Milestone: v1.2 Collin County Completion & Data Quality
+## Shipped: v1.2 Collin County Completion & Data Quality (2026-05-21)
 
-**Goal:** Fix department attribution in PDF-extracted budgets, surface and complete revenue data for all loaded TX cities, and expand coverage to 6 remaining Collin County cities.
+13/16 requirements shipped. 5 new Collin County cities added. Revenue data loaded for 4 TX cities. PDF pipeline attribution fixed. Prosper/Celina revenue and Richardson operating budget deferred to v1.3.
 
-**Target features:**
-- Fix "Unknown" department in PDF-extracted budgets (Allen, Prosper, Celina, Frisco, Plano) — track ACFR section headings across pages
-- Fix JSON truncation (exit code 2) on dense statistical ACFR pages
-- Surface and verify revenue data for Plano, McKinney, Allen, Frisco (loaded post-v1.1)
-- Load revenue data for Prosper and Celina
-- Load operating budgets for 6 remaining Collin County cities: Garland, Richardson, Wylie, Sachse, Murphy, Princeton
+## Next Milestone: v1.3
+
+**Candidate goals:**
+- Prosper and Celina revenue via pdftotext (infrastructure seeded; approach documented)
+- Richardson operating budget (manual URL sourcing + parser)
+- Category enrichment for newly loaded TX cities
+- Statewide expansion beyond Collin County
 
 ---
-*Last updated: 2026-05-03 — Milestone v1.2 Collin County Completion & Data Quality started*
+*Last updated: 2026-05-21 — v1.2 complete; planning v1.3*

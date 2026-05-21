@@ -4,7 +4,7 @@
 
 - ✅ **v1.0 GiveButter Real-Time Donation Feedback** — Phases 1-4 (shipped 2026-04-22)
 - ✅ **v1.1 Texas Municipal Financial Transparency** — Phases 5-7 (shipped 2026-05-02)
-- 🚧 **v1.2 Collin County Completion & Data Quality** — Phases 8-10 (in progress)
+- ✅ **v1.2 Collin County Completion & Data Quality** — Phases 8-10 (shipped 2026-05-21)
 
 ---
 
@@ -121,80 +121,16 @@ Plans:
 
 ---
 
-### 🚧 v1.2 Collin County Completion & Data Quality (In Progress — Phases 8-10)
+<details>
+<summary>✅ v1.2 Collin County Completion & Data Quality (Phases 8-10) — SHIPPED 2026-05-21</summary>
 
-**Milestone Goal:** Fix department attribution in PDF-extracted budgets, surface and complete revenue data for all loaded TX cities, and expand coverage to 6 remaining Collin County cities.
+Fixed PDF department attribution, loaded revenue for 4 TX cities, added 5 Collin County cities via pdftotext parsers. 13/16 requirements shipped. See [milestones/v1.2-ROADMAP.md](milestones/v1.2-ROADMAP.md).
 
----
+- [x] Phase 8: Data Quality (3/3 plans) — completed 2026-05-04
+- [x] Phase 9: Revenue Completion (3/3 plans) — completed 2026-05-04
+- [x] Phase 10: Collin County Expansion (3/3 plans) — completed 2026-05-21
 
-### Phase 8: Data Quality
-
-**Goal:** PDF-extracted budgets for Allen, Prosper, Celina, Frisco, and Plano show correct department names instead of "Unknown", and dense ACFR pages no longer cause JSON truncation failures.
-
-**Depends on:** Phase 7 (PDF/Haiku pipeline established and in production)
-
-**Requirements:** DQ-01, DQ-02, DQ-03, DQ-04
-
-**Success Criteria** (what must be TRUE when phase completes):
-1. Budget rows in Allen, Prosper, and Celina are attributed to named departments (not "Unknown") for the majority of their budget data
-2. Budget rows in Frisco and Plano are attributed to named departments (not "Unknown") for the majority of their budget data
-3. Running `bulkLoadPDF.js` against a dense statistical ACFR completes with exit code 0 or 1 — exit code 2 JSON truncation no longer occurs on operating budget pages
-4. Re-extracted data replaces prior "Unknown" rows — old incorrect attributions are not left in the database alongside corrected rows
-
-**Plans:** 3/3 plans complete
-
-Plans:
-- [x] 08-01-PLAN.md — Pipeline fixes: max_tokens 8192 + stop_reason guard, cross-page section_heading context, seed Frisco Operating Budget FY2026 data_source
-- [x] 08-02-PLAN.md — Re-extract and reload Allen / Prosper / Celina ACFR FY2025; verify named-department dominance in app
-- [x] 08-03-PLAN.md — Re-extract and reload Frisco FY2026 (after dry-run validation) + all 7 Plano fiscal years; verify named-department dominance in app
-
----
-
-### Phase 9: Revenue Completion
-
-**Goal:** Citizens can view revenue data for all six loaded TX cities — Plano, McKinney, Frisco, and Allen (already loaded) are verified correct in the app, and Prosper and Celina revenue data is loaded and visible.
-
-**Depends on:** Phase 8 (operating budget quality fixes complete; Prosper/Celina data is clean before adding revenue layer)
-
-**Requirements:** REV-01, REV-02, REV-03, REV-04, REV-05, REV-06
-
-**Success Criteria** (what must be TRUE when phase completes):
-1. Plano revenue data (FY2018–2024) appears correctly in the app's revenue view with valid amounts and category hierarchy
-2. McKinney revenue data (FY2021–2025) appears correctly in the app's revenue view with valid amounts and category hierarchy
-3. Frisco revenue data (FY2026) appears correctly in the app's revenue view with valid amounts and category hierarchy
-4. Allen revenue data (FY2026) appears correctly in the app's revenue view with valid amounts and category hierarchy
-5. Prosper and Celina each have at least one fiscal year of revenue data loaded and visible in the app
-
-**Plans:** 3/3 plans complete
-
-Plans:
-- [x] 09-01-PLAN.md — Audit DB revenue state, load missing years for Plano/McKinney/Frisco/Allen via pdftotext scripts, verify revenue tabs in app
-- [x] 09-02-PLAN.md — Seed Prosper revenue data_source, dry-run + live-load via Haiku pipeline, verify in app
-- [x] 09-03-PLAN.md — Seed Celina revenue data_source, dry-run + live-load via Haiku pipeline, verify in app
-
----
-
-### Phase 10: Collin County Expansion
-
-**Goal:** Citizens can view operating budget data for the 6 remaining Collin County cities — Garland, Richardson, Wylie, Sachse, Murphy, and Princeton — each loaded from their standalone operating budget PDFs using a pdftotext-first approach (Haiku vision as fallback).
-
-**Depends on:** Phase 8 (improved PDF pipeline with correct department attribution reduces rework for new cities)
-
-**Requirements:** COL-01, COL-02, COL-03, COL-04, COL-05, COL-06
-
-**Success Criteria** (what must be TRUE when phase completes):
-1. Garland and Richardson each have at least one fiscal year of operating budget data visible in the app with named departments
-2. Wylie and Sachse each have at least one fiscal year of operating budget data visible in the app with named departments
-3. Murphy and Princeton each have at least one fiscal year of operating budget data visible in the app with named departments
-4. Each city has a seeded `data_sources` row and was loaded via either a city-specific pdftotext parser script or `bulkLoadPDF.js` (Haiku fallback) — no new loader infrastructure was required
-5. Operating budget PDFs for all 6 cities are sourced and documented (URLs recorded in `data_sources.base_url` and verified via dry-run in `10-01-DRYRUN-NOTES.md`)
-
-**Plans:** 3 plans
-
-Plans:
-- [x] 10-01-PLAN.md — Seed data_sources rows for all 6 cities, dry-run pdftotext against each PDF, record routing decisions
-- [x] 10-02-PLAN.md — Live load Garland and Richardson (per 10-01 routing); verify in app
-- [x] 10-03-PLAN.md — Live load Wylie, Sachse, Murphy, and Princeton (per 10-01 routing); verify in app
+</details>
 
 ---
 
@@ -211,11 +147,11 @@ Plans:
 | 5. Dallas Socrata | v1.1 | 3/3 | Complete | 2026-05-01 |
 | 6. XLSX Pipeline | v1.1 | 3/3 | Complete | 2026-05-01 |
 | 7. PDF/Haiku Vision | v1.1 | 3/3 | Complete | 2026-05-02 |
-| 8. Data Quality | v1.2 | 3/3 | Verified ✓ | 2026-05-04 |
-| 9. Revenue Completion | v1.2 | 3/3 | Verified ✓ | 2026-05-04 |
-| 10. Collin County Expansion | v1.2 | 3/3 | Verified ✓ | 2026-05-21 |
+| 8. Data Quality | v1.2 | 3/3 | Complete | 2026-05-04 |
+| 9. Revenue Completion | v1.2 | 3/3 | Complete | 2026-05-04 |
+| 10. Collin County Expansion | v1.2 | 3/3 | Complete | 2026-05-21 |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-05-21 — Phase 10 complete: 5/6 cities loaded (Richardson skipped — cor.net HTTP block); v1.2 milestone complete*
+*Last updated: 2026-05-21 — v1.2 milestone archived; planning v1.3*
