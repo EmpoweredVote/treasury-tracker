@@ -45,7 +45,7 @@ export default function PerDollarBreakdown({
           <h3 className="text-base font-bold font-manrope text-[#1C1C1C] mb-1">
             Tax Dollar Breakdown
           </h3>
-          <p className="text-sm text-[#6B7280]">
+          <p className="text-sm text-ev-gray-500">
             For every{' '}
             <span className="font-bold text-ev-muted-blue tabular-nums">${selectedDenomination}</span>{' '}
             you pay in city taxes, here's where it goes:
@@ -61,7 +61,7 @@ export default function PerDollarBreakdown({
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 cursor-pointer font-manrope ${
                 selectedDenomination === amount
                   ? 'bg-ev-muted-blue text-white'
-                  : 'bg-white text-[#6B7280] border border-[#E2EBEF] hover:border-ev-muted-blue hover:text-ev-muted-blue'
+                  : 'bg-white text-ev-gray-500 border border-[#E2EBEF] hover:border-ev-muted-blue hover:text-ev-muted-blue'
               }`}
             >
               ${amount}
@@ -115,7 +115,7 @@ export default function PerDollarBreakdown({
                 />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-[#1C1C1C] truncate">{item.name}</div>
-                  <div className="text-xs text-[#6B7280] tabular-nums">{item.percentage.toFixed(1)}% of budget</div>
+                  <div className="text-xs text-ev-gray-500 tabular-nums">{item.percentage.toFixed(1)}% of budget</div>
                 </div>
               </div>
               <div className="text-sm font-bold tabular-nums text-[#1C1C1C] flex-shrink-0">
@@ -134,7 +134,7 @@ export default function PerDollarBreakdown({
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>
           </div>
-          <div className="text-sm text-[#6B7280]">
+          <div className="text-sm text-ev-gray-500">
             <strong className="text-[#1C1C1C]">About this breakdown:</strong>{' '}
             This shows the approximate allocation based on the total city budget. Your actual tax contribution depends on your income, property value, and other factors. This visualization helps understand spending priorities at a glance.
           </div>

@@ -29,7 +29,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         aria-label="Search budget departments and categories"
-        className="w-full h-[42px] pl-10 pr-10 bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-lg text-sm font-manrope focus:outline-none focus:ring-2 focus:ring-ev-muted-blue focus:ring-offset-2 dark:focus:ring-offset-ev-gray-900 placeholder:text-[#6B7280] dark:placeholder:text-ev-gray-500 text-[#1C1C1C] dark:text-ev-gray-100"
+        className="w-full h-[42px] pl-10 pr-10 bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-lg text-sm font-manrope focus:outline-none focus:ring-2 focus:ring-ev-muted-blue focus:ring-offset-2 dark:focus:ring-offset-ev-gray-900 placeholder:text-ev-gray-500 text-[#1C1C1C] dark:text-ev-gray-100"
       />
       {value && (
         <button

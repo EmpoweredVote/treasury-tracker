@@ -526,7 +526,7 @@ function App() {
             <h2 className="text-base font-bold text-[#1C1C1C] dark:text-ev-gray-100 mb-2">
               Unable to load budget data
             </h2>
-            <p className="text-sm text-[#6B7280] dark:text-ev-gray-400 mb-6">
+            <p className="text-sm text-ev-gray-500 mb-6">
               Unable to load budget data. Check your connection and try again.
             </p>
             <button
@@ -745,7 +745,7 @@ function App() {
                       ? `How ${budgetData.metadata.cityName} ${displayText.title}`
                       : navigationPath[navigationPath.length - 1].enrichment?.plainName || navigationPath[navigationPath.length - 1].name}
                   </h2>
-                  <p className="text-sm text-[#6B7280] dark:text-ev-gray-400 mt-1">
+                  <p className="text-sm text-ev-gray-500 mt-1">
                     {navigationPath.length === 0
                       ? displayText.description
                       : showLineItems
@@ -756,7 +756,7 @@ function App() {
                     const currentCat = navigationPath[navigationPath.length - 1];
                     const desc = currentCat.enrichment?.description;
                     return desc ? (
-                      <p className="text-[15px] text-ev-gray-600 dark:text-ev-gray-300 mt-3 leading-relaxed">
+                      <p className="text-[15px] text-ev-gray-600 mt-3 leading-relaxed">
                         {desc}
                       </p>
                     ) : null;
@@ -870,18 +870,18 @@ function App() {
                   ) : activeDataset === 'operating' && currentCategory?.linkKey ? (
                     <div className="bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl p-8 flex flex-col items-center gap-3">
                       <div className="w-6 h-6 rounded-full border-[3px] border-[#E2EBEF] dark:border-ev-gray-600 border-t-ev-muted-blue animate-spin" />
-                      <p className="text-sm text-[#6B7280] dark:text-ev-gray-400">Loading transactions…</p>
+                      <p className="text-sm text-ev-gray-500">Loading transactions…</p>
                     </div>
                   ) : (
                     <div className="bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl p-6 text-center">
                       <p className="text-sm font-medium text-[#1C1C1C] dark:text-ev-gray-100 mb-1">No further breakdown available</p>
-                      <p className="text-xs text-[#6B7280] dark:text-ev-gray-400">This category has no subcategories or line items in the current dataset.</p>
+                      <p className="text-xs text-ev-gray-500">This category has no subcategories or line items in the current dataset.</p>
                     </div>
                   )}
                 </>
               ) : (
                 <div className="bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl p-8 text-center">
-                  <p className="text-sm text-[#6B7280] dark:text-ev-gray-400">No data available for the selected filters.</p>
+                  <p className="text-sm text-ev-gray-500">No data available for the selected filters.</p>
                 </div>
               )}
             </div>

@@ -90,7 +90,7 @@ export default function LinkedTransactionsPanel({
         </div>
         <div>
           <h3 className="text-base font-bold font-manrope text-[#1C1C1C] dark:text-ev-gray-100 m-0">Related Transactions</h3>
-          <p className="text-sm text-[#6B7280] dark:text-ev-gray-400 mt-0.5 leading-snug">
+          <p className="text-sm text-ev-gray-500 mt-0.5 leading-snug">
             {transactionCount.toLocaleString()} transaction{transactionCount !== 1 ? 's' : ''} linked to {categoryName}
           </p>
         </div>
@@ -101,31 +101,31 @@ export default function LinkedTransactionsPanel({
         <div className="grid grid-cols-3 gap-4 mb-6">
           <div className="bg-[#F7F7F8] dark:bg-ev-gray-700 rounded-lg p-4 text-center">
             <div className="text-lg font-bold font-manrope text-[#1C1C1C] dark:text-ev-gray-100 tabular-nums">{formatCurrency(totalAmount)}</div>
-            <div className="text-xs font-bold uppercase tracking-wider text-[#6B7280] dark:text-ev-gray-400 mt-1">Total Spent</div>
+            <div className="text-xs font-bold uppercase tracking-wider text-ev-gray-500 mt-1">Total Spent</div>
           </div>
           <div className="bg-[#F7F7F8] dark:bg-ev-gray-700 rounded-lg p-4 text-center">
             <div className="text-lg font-bold font-manrope text-[#1C1C1C] dark:text-ev-gray-100 tabular-nums">{transactionCount.toLocaleString()}</div>
-            <div className="text-xs font-bold uppercase tracking-wider text-[#6B7280] dark:text-ev-gray-400 mt-1">Transactions</div>
+            <div className="text-xs font-bold uppercase tracking-wider text-ev-gray-500 mt-1">Transactions</div>
           </div>
           <div className="bg-[#F7F7F8] dark:bg-ev-gray-700 rounded-lg p-4 text-center">
             <div className="text-lg font-bold font-manrope text-[#1C1C1C] dark:text-ev-gray-100 tabular-nums">{vendorCount}</div>
-            <div className="text-xs font-bold uppercase tracking-wider text-[#6B7280] dark:text-ev-gray-400 mt-1">Vendors</div>
+            <div className="text-xs font-bold uppercase tracking-wider text-ev-gray-500 mt-1">Vendors</div>
           </div>
         </div>
 
         {/* Top Vendors */}
         {topVendors && topVendors.length > 0 && (
           <div className="mb-6">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[#6B7280] mb-3">Top Vendors</h4>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-ev-gray-500 mb-3">Top Vendors</h4>
             <div className="flex flex-col gap-2">
               {topVendors.map((vendor, index) => (
                 <div key={index} className="flex items-center gap-3 px-3 py-2 bg-[#F7F7F8] dark:bg-ev-gray-700 rounded-lg">
-                  <div className="w-7 h-7 bg-white dark:bg-ev-gray-600 rounded flex items-center justify-center text-[#6B7280] dark:text-ev-gray-300 flex-shrink-0">
+                  <div className="w-7 h-7 bg-white dark:bg-ev-gray-600 rounded flex items-center justify-center text-ev-gray-500 flex-shrink-0">
                     <Building2 size={16} />
                   </div>
                   <div className="flex flex-col flex-1 min-w-0">
                     <span className="text-sm font-medium text-[#1C1C1C] dark:text-ev-gray-200 truncate">{vendor.name}</span>
-                    <span className="text-xs text-[#6B7280] dark:text-ev-gray-400 tabular-nums">
+                    <span className="text-xs text-ev-gray-500 tabular-nums">
                       {formatCurrency(vendor.amount)} ({vendor.count} transaction{vendor.count !== 1 ? 's' : ''})
                     </span>
                   </div>
@@ -138,11 +138,11 @@ export default function LinkedTransactionsPanel({
         {/* Transactions List */}
         <div className="border-t border-[#E2EBEF] dark:border-ev-gray-700 pt-6">
           <div className="flex justify-between items-center mb-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[#6B7280] dark:text-ev-gray-400">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-ev-gray-500">
               {isExpanded ? 'All Transactions' : 'Recent Transactions'}
             </h4>
             {isExpanded && (
-              <span className="text-xs text-[#6B7280] dark:text-ev-gray-400 tabular-nums">
+              <span className="text-xs text-ev-gray-500 tabular-nums">
                 Showing {displayTransactions.length} of {transactionCount.toLocaleString()}
               </span>
             )}
@@ -155,7 +155,7 @@ export default function LinkedTransactionsPanel({
                   <div className="text-sm text-[#1C1C1C] dark:text-ev-gray-200 flex-1 min-w-0 leading-snug">{tx.description}</div>
                   <div className="text-sm font-bold text-[#1C1C1C] dark:text-ev-gray-100 whitespace-nowrap tabular-nums">{formatCurrency(tx.amount)}</div>
                 </div>
-                <div className="flex flex-wrap gap-3 text-xs text-[#6B7280] dark:text-ev-gray-400">
+                <div className="flex flex-wrap gap-3 text-xs text-ev-gray-500">
                   <span className="flex items-center gap-1">
                     <Building2 size={12} className="opacity-70" />
                     {tx.vendor}
@@ -179,7 +179,7 @@ export default function LinkedTransactionsPanel({
 
           {/* Loading indicator */}
           {isLoading && (
-            <div className="flex items-center justify-center gap-2 py-4 text-sm text-[#6B7280]">
+            <div className="flex items-center justify-center gap-2 py-4 text-sm text-ev-gray-500">
               <Loader2 size={20} className="animate-spin" />
               Loading all transactions...
             </div>

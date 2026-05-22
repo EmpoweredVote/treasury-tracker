@@ -102,7 +102,7 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
         <span>{displayName}</span>
         <ChevronDown
           size={16}
-          className={`text-[#6B7280] shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
+          className={`text-ev-gray-500 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
         />
       </button>
 
@@ -115,7 +115,7 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
           {/* Search input */}
           <div className="p-2 border-b border-[#E2EBEF]">
             <div className="relative">
-              <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#6B7280]" />
+              <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-ev-gray-500" />
               <input
                 ref={searchRef}
                 type="text"
@@ -130,7 +130,7 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
           {/* Grouped list */}
           <div className="max-h-80 overflow-y-auto">
             {grouped.size === 0 && (
-              <div className="px-4 py-6 text-sm text-[#6B7280] text-center">
+              <div className="px-4 py-6 text-sm text-ev-gray-500 text-center">
                 No jurisdictions match "{filter}"
               </div>
             )}
@@ -138,14 +138,14 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
             {[...grouped.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([state, typeMap]) => (
               <div key={state}>
                 {/* State header */}
-                <div className="sticky top-0 bg-[#F7F7F8] dark:bg-ev-gray-900 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-[#6B7280] dark:text-ev-gray-400 border-b border-[#E2EBEF] dark:border-ev-gray-700">
+                <div className="sticky top-0 bg-[#F7F7F8] dark:bg-ev-gray-900 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-ev-gray-500 border-b border-[#E2EBEF] dark:border-ev-gray-700">
                   {STATE_LABELS[state] || state}
                 </div>
 
                 {[...typeMap.entries()].map(([type, entities]) => (
                   <div key={`${state}-${type}`}>
                     {/* Entity type subheader */}
-                    <div className="px-4 py-1 text-xs text-[#9CA3AF] dark:text-ev-gray-500 font-medium">
+                    <div className="px-4 py-1 text-xs text-ev-gray-400 dark:text-ev-gray-500 font-medium">
                       {ENTITY_TYPE_LABELS[type] || type} ({entities.length})
                     </div>
 

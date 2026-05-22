@@ -56,7 +56,7 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
             <h3 className="text-base font-bold font-manrope text-[#1C1C1C] dark:text-ev-gray-100">{category.name} Summary</h3>
           </div>
           <div className="p-6">
-            <p className="text-sm text-[#374151] dark:text-ev-gray-300 mb-4">How this department uses its share of the budget.</p>
+            <p className="text-sm text-ev-gray-600 mb-4">How this department uses its share of the budget.</p>
             <div className="space-y-3">
               {summaryPoints.map((point, idx) => (
                 <div key={idx} className="flex gap-3">
@@ -83,36 +83,36 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
             <h3 className="text-base font-bold font-manrope text-[#1C1C1C] dark:text-ev-gray-100">{category.name}</h3>
           </div>
           <div className="p-6">
-            <p className="text-sm text-[#374151] dark:text-ev-gray-300 mb-6">
+            <p className="text-sm text-ev-gray-600 mb-6">
               {category.description || "Personnel costs for sworn officers, civilian staff, and administrative personnel across all units. Click to explore each category"}
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
               <div className="bg-[#F7F7F8] dark:bg-ev-gray-800 rounded-xl p-4 border border-[#E2EBEF] dark:border-ev-gray-700 text-center">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-[#4B5563] dark:text-ev-gray-300 mb-2">Budget Allocation</h4>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-ev-gray-600 mb-2">Budget Allocation</h4>
                 <div className="text-[30px] font-bold font-manrope text-ev-muted-blue tabular-nums leading-tight">
                   {formatPercentage(category.percentage)}%
                 </div>
-                <div className="text-xs text-[#4B5563] dark:text-ev-gray-300 mt-1">of Salaries</div>
+                <div className="text-xs text-ev-gray-600 mt-1">of Salaries</div>
               </div>
 
               <div className="bg-[#F7F7F8] dark:bg-ev-gray-800 rounded-xl p-4 border border-[#E2EBEF] dark:border-ev-gray-700 text-center">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-[#4B5563] dark:text-ev-gray-300 mb-2">Annual Amount</h4>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-ev-gray-600 mb-2">Annual Amount</h4>
                 <div className="text-[30px] font-bold font-manrope text-ev-muted-blue tabular-nums leading-tight">
                   {formatCurrency(category.amount)}
                 </div>
-                <div className="text-xs text-[#4B5563] dark:text-ev-gray-300 mt-1">for 2024</div>
+                <div className="text-xs text-ev-gray-600 mt-1">for 2024</div>
               </div>
 
               <div className="bg-[#F7F7F8] dark:bg-ev-gray-800 rounded-xl p-4 border border-[#E2EBEF] dark:border-ev-gray-700 text-center">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-[#4B5563] dark:text-ev-gray-300 mb-2">Parent Category</h4>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-ev-gray-600 mb-2">Parent Category</h4>
                 <div className="text-base font-bold font-manrope text-ev-muted-blue">Salaries</div>
-                <div className="text-xs text-[#4B5563] dark:text-ev-gray-300 mt-1">Police Department</div>
+                <div className="text-xs text-ev-gray-600 mt-1">Police Department</div>
               </div>
             </div>
 
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#4B5563] dark:text-ev-gray-300 mb-2">Description</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-ev-gray-600 mb-2">Description</h4>
               <p className="text-sm text-[#1C1C1C] dark:text-ev-gray-200 leading-snug">
                 {category.description || "Front-line officers responding to calls and conducting patrols"}
               </p>
@@ -129,7 +129,7 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
               {depth === 1 ? 'Department Budget Breakdown' : `${category.name} Breakdown`}
             </h3>
             <button
-              className="w-8 h-8 flex items-center justify-center rounded-lg text-[#4B5563] dark:text-ev-gray-300 hover:text-[#1C1C1C] dark:hover:text-ev-gray-100 hover:bg-[#EBEDEF] dark:hover:bg-ev-gray-700 transition-colors duration-150 cursor-pointer"
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-ev-gray-600 hover:text-[#1C1C1C] dark:hover:text-ev-gray-100 hover:bg-[#EBEDEF] dark:hover:bg-ev-gray-700 transition-colors duration-150 cursor-pointer"
               onClick={onCollapse}
               aria-label="Close breakdown"
             >
@@ -140,7 +140,7 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
           </div>
 
           <div className="p-6">
-            <p className="text-sm text-[#374151] dark:text-ev-gray-300 mb-4">
+            <p className="text-sm text-ev-gray-600 mb-4">
               {depth === 1
                 ? `This bar shows how the ${category.name} budget is distributed internally.`
                 : 'Click any category to see detailed breakdown and subcategories.'}
@@ -150,7 +150,7 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
 
             {/* Legend */}
             <div className="mt-4">
-              <div className="text-xs font-bold uppercase tracking-wider text-[#4B5563] dark:text-ev-gray-300 mb-2">Legend</div>
+              <div className="text-xs font-bold uppercase tracking-wider text-ev-gray-600 mb-2">Legend</div>
               <div className="flex flex-wrap gap-3">
                 {category.subcategories!.map((subcat, index) => {
                   const hue = DATA_VIZ_HUES[index % DATA_VIZ_HUES.length];
@@ -160,7 +160,7 @@ const CategoryDetail: React.FC<CategoryDetailProps> = ({
                         className="w-3 h-3 rounded flex-shrink-0"
                         style={{ backgroundColor: `var(--color-data-${hue}-500)` }}
                       />
-                      <span className="text-xs text-[#374151] dark:text-ev-gray-300">
+                      <span className="text-xs text-ev-gray-600">
                         {subcat.name} — {formatPercentage(subcat.percentage)}%
                       </span>
                     </div>
