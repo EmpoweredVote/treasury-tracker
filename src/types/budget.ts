@@ -110,6 +110,7 @@ export interface Municipality {
   state: string;
   entity_type: 'city' | 'county' | 'township' | 'nonprofit';
   population: number;
+  population_year?: number | null;
   hero_image_url?: string | null;
   available_datasets: Array<{
     fiscal_year: number;

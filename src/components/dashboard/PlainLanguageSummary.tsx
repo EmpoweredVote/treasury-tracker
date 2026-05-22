@@ -7,6 +7,7 @@ interface PlainLanguageSummaryProps {
     name: string;
     state: string;
     population: number;
+    population_year?: number | null;
     entity_type: string;
   };
   operatingData: BudgetData | null;
@@ -46,6 +47,8 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
   const currentMonthName = new Date().toLocaleString('en-US', { month: 'long' });
   const total = showActual ? actualTotal : budgetedTotal;
   const population = entity.population;
+  const populationYear = entity.population_year;
+  const yearSuffix = populationYear ? ` (${populationYear} est.)` : '';
   const perResident = population > 0 ? total / population : 0;
   const isNonprofit = entity.entity_type === 'nonprofit';
 
@@ -158,10 +161,10 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
               {population > 0 ? (
                 <>
                   {showActual
-                    ? <>spent <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(total)}</strong> serving its {population.toLocaleString()} residents</>
+                    ? <>spent <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(total)}</strong> serving its {population.toLocaleString()} residents{yearSuffix}</>
                     : isGeneralFundOnly
-                      ? <>totaled <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(total)}</strong> for core city operations serving {population.toLocaleString()} residents.</>
-                      : <>budgeted <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(total)}</strong> to serve its {population.toLocaleString()} residents — that's roughly{' '}
+                      ? <>totaled <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(total)}</strong> for core city operations serving {population.toLocaleString()} residents{yearSuffix}.</>
+                      : <>budgeted <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(total)}</strong> to serve its {population.toLocaleString()} residents{yearSuffix} — that's roughly{' '}
                           <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatPerResident(perResident)} per person</strong>.</>
                   }
                   {showActual && <> — roughly{' '}
