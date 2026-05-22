@@ -754,12 +754,23 @@ function App() {
                   </p>
                   {navigationPath.length > 0 && (() => {
                     const currentCat = navigationPath[navigationPath.length - 1];
+                    const shortDesc = currentCat.enrichment?.shortDescription;
                     const desc = currentCat.enrichment?.description;
-                    return desc ? (
-                      <p className="text-[15px] text-ev-gray-600 mt-3 leading-relaxed">
-                        {desc}
-                      </p>
-                    ) : null;
+                    if (!shortDesc && !desc) return null;
+                    return (
+                      <div className="mt-3 space-y-2">
+                        {shortDesc && (
+                          <p className="text-[15px] font-medium text-ev-gray-700 dark:text-ev-gray-200 leading-relaxed">
+                            {shortDesc}
+                          </p>
+                        )}
+                        {desc && desc !== shortDesc && (
+                          <p className="text-[14px] text-ev-gray-600 leading-relaxed">
+                            {desc}
+                          </p>
+                        )}
+                      </div>
+                    );
                   })()}
                 </div>
               </div>
