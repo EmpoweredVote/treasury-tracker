@@ -176,10 +176,12 @@ Plans:
 4. Celina revenue totals match ACFR published figures within 20% tolerance — validation result documented before data_source last_synced_at is set
 5. Per-capita revenue figures for Prosper and Celina are visible in the app (unlocked by both population load and revenue validation passing)
 
+**Plans:** 3 plans
+
 Plans:
-- [ ] 12-01-PLAN.md — Build `processProsperjRevenuePDF.js` targeting "STATEMENT OF REVENUES, EXPENDITURES, AND CHANGES IN FUND BALANCES" section; load FY2023, FY2024, FY2025
-- [ ] 12-02-PLAN.md — Validate Prosper revenue totals against ACFR; document results; set last_synced_at if within tolerance
-- [ ] 12-03-PLAN.md — Build `processCelinaRevenuePDF.js` following same pattern; load FY2025; validate against ACFR; set last_synced_at if within tolerance
+- [ ] 12-01-PLAN.md — Look up FY2023/FY2024 expected totals from ACFRs; build `processProsperjRevenuePDF.js` with validation gate; fix corrupted data_source URLs; run all 3 FYs
+- [ ] 12-02-PLAN.md — Human verify Prosper revenue data visible in app for loaded FYs; confirm per-capita displaying; document validation results
+- [ ] 12-03-PLAN.md — Build `processCelinaRevenuePDF.js`; run FY2025; validate against $129,568,278 expected total; human verify Celina revenue and per-capita in app
 
 ### Phase 13: Richardson Operating Budget
 
@@ -242,4 +244,4 @@ Plans:
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-05-21 — v1.3 phases 11-14 added*
+*Last updated: 2026-05-21 — Phase 12 plans created*
