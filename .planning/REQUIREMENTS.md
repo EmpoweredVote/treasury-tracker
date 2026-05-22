@@ -18,11 +18,11 @@
 
 ### Enrichment
 
-- [ ] **ENR-01**: Category enrichment run for Garland TX (Collin County cities added in v1.2 — enrichment deferred)
-- [ ] **ENR-02**: Category enrichment run for Wylie TX
-- [ ] **ENR-03**: Category enrichment run for Sachse TX
-- [ ] **ENR-04**: Category enrichment run for Murphy TX
-- [ ] **ENR-05**: Category enrichment run for Princeton TX
+- [x] **ENR-01**: Category enrichment run for Garland TX (Collin County cities added in v1.2 — enrichment deferred)
+- [x] **ENR-02**: Category enrichment run for Wylie TX
+- [x] **ENR-03**: Category enrichment run for Sachse TX
+- [x] **ENR-04**: Category enrichment run for Murphy TX
+- [x] **ENR-05**: Category enrichment run for Princeton TX
 
 ### Population & Per-Capita
 
@@ -65,11 +65,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REV-03 | Phase 12 | Pending |
 | REV-04 | Phase 12 | Pending |
 | COL-01 | Phase 13 | Pending |
-| ENR-01 | Phase 14 | Pending |
-| ENR-02 | Phase 14 | Pending |
-| ENR-03 | Phase 14 | Pending |
-| ENR-04 | Phase 14 | Pending |
-| ENR-05 | Phase 14 | Pending |
+| ENR-01 | Phase 14 | Complete |
+| ENR-02 | Phase 14 | Complete |
+| ENR-03 | Phase 14 | Complete |
+| ENR-04 | Phase 14 | Complete |
+| ENR-05 | Phase 14 | Complete |
 
 **Coverage:**
 - v1 requirements: 13 total
