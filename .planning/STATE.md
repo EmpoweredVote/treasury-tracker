@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-05-21)
 ## Current Position
 
 Phase: 11 of 14 (Population & Per-Capita)
-Plan: 11-02 complete
-Status: In progress — Phase 11
-Last activity: 2026-05-21 — 11-02: loadTXPopulation.js + treasuryService.ts population_year
+Plan: All 3 plans complete
+Status: Phase 11 complete — verifying
+Last activity: 2026-05-21 — Phase 11 complete: population_year live, 12 TX cities showing (2024 est.) label
 
-Progress: v1.3 ██░░░░░░░░░░░░░░░░░░ 11% (1/9 plans complete)
+Progress: v1.3 ██████░░░░░░░░░░░░░░ 33% (3/9 plans complete)
 
 ## Accumulated Context
 
@@ -41,8 +41,13 @@ Progress: v1.3 ██░░░░░░░░░░░░░░░░░░ 11% 
 - Phase 12 (Richardson): cor.net blocked HTTP in v1.2 — manual browser URL sourcing required before loader can be built; verify URL is accessible before committing time
 - Phase 12 (Revenue): pdftotext extraction quality for Prosper/Celina revenue unknown until attempted — validate against ACFR before enabling display
 
+### Additional Decisions (Phase 11)
+
+- mcp__supabase-local__apply_migration: use for DDL migrations instead of Supabase Dashboard manual paste — faster, no human gate
+- population column is `bigint` in DB (not `integer` as assumed in research) — no impact on loader
+
 ## Session Continuity
 
-Last session: 2026-05-21T23:28Z
-Stopped at: Completed 11-02-PLAN.md (loadTXPopulation.js + treasuryService.ts)
-Resume file: None — run plan 11-03 to execute live DB load and push both repos
+Last session: 2026-05-21
+Stopped at: Phase 11 complete (11-03 approved and summarized)
+Resume file: None

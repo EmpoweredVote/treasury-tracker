@@ -135,7 +135,7 @@ Fixed PDF department attribution, loaded revenue for 4 TX cities, added 5 Collin
 
 ---
 
-### 🚧 v1.3 Revenue Completion & Per-Capita Context (In Progress)
+### 🚧 v1.3 Revenue Completion & Per-Capita Context (In Progress — Phase 11 complete 2026-05-21)
 
 **Milestone Goal:** Close out all deferred v1.2 data work and add population-based per-capita spending display so citizens can compare cities of different sizes.
 
@@ -157,9 +157,9 @@ Fixed PDF department attribution, loaded revenue for 4 TX cities, added 5 Collin
 **Plans:** 3 plans
 
 Plans:
-- [ ] 11-01-PLAN.md — Schema migration: add `population_year` INTEGER column to `treasury.municipalities` (EV-Accounts repo migration 194 + apply via Supabase Dashboard)
-- [ ] 11-02-PLAN.md — Build `loadTXPopulation.js` Census CSV loader + update EV-Accounts `treasuryService.ts` (CityRow/TreasuryCity/mapCity/SELECTs) to expose population_year
-- [ ] 11-03-PLAN.md — Thread population_year through frontend (budget.ts/PlainLanguageSummary/QuickFactsRow), execute live load, push both repos, human-verify $/resident label for 12 TX cities in production
+- [x] 11-01-PLAN.md — Schema migration: add `population_year` INTEGER column to `treasury.municipalities` (EV-Accounts repo migration 194 + apply via Supabase Dashboard)
+- [x] 11-02-PLAN.md — Build `loadTXPopulation.js` Census CSV loader + update EV-Accounts `treasuryService.ts` (CityRow/TreasuryCity/mapCity/SELECTs) to expose population_year
+- [x] 11-03-PLAN.md — Thread population_year through frontend (budget.ts/PlainLanguageSummary/QuickFactsRow), execute live load, push both repos, human-verify $/resident label for 12 TX cities in production
 
 ### Phase 12: Prosper and Celina Revenue via pdftotext
 
@@ -234,7 +234,7 @@ Plans:
 | 8. Data Quality | v1.2 | 3/3 | Complete | 2026-05-04 |
 | 9. Revenue Completion | v1.2 | 3/3 | Complete | 2026-05-04 |
 | 10. Collin County Expansion | v1.2 | 3/3 | Complete | 2026-05-21 |
-| 11. Population & Per-Capita | v1.3 | 0/3 | Not started | - |
+| 11. Population & Per-Capita | v1.3 | 3/3 | Complete | 2026-05-21 |
 | 12. Prosper + Celina Revenue | v1.3 | 0/3 | Not started | - |
 | 13. Richardson Operating Budget | v1.3 | 0/1 | Not started | - |
 | 14. Category Enrichment (5 cities) | v1.3 | 0/2 | Not started | - |

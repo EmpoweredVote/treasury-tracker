@@ -57,9 +57,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| POP-01 | Phase 11 | Pending |
-| POP-02 | Phase 11 | Pending |
-| POP-03 | Phase 11 | Pending |
+| POP-01 | Phase 11 | Complete |
+| POP-02 | Phase 11 | Complete |
+| POP-03 | Phase 11 | Complete |
 | REV-01 | Phase 12 | Pending |
 | REV-02 | Phase 12 | Pending |
 | REV-03 | Phase 12 | Pending |
