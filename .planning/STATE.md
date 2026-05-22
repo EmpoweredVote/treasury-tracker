@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-05-21)
 
 ## Current Position
 
-Phase: 14 of 14 (Category Enrichment — 5 Collin County Cities)
-Plan: 2 of 2 in current phase
-Status: Phase 14 complete — 82 enrichment rows across 5 Collin County cities
-Last activity: 2026-05-22 — Completed 14-02-PLAN.md (Sachse + Murphy + Princeton enrichment)
+Phase: 15 of 15 (Los Angeles Socrata Budget Load + Enrichment)
+Plan: 1 of 3 in current phase
+Status: In progress — Plan 15-01 complete (LA municipality + data_sources seeded)
+Last activity: 2026-05-22 — Completed 15-01-PLAN.md (seed LA data sources)
 
-Progress: v1.3 ████████████████████ 100% (9/9 plans complete)
+Progress: v1.4 ████░░░░░░░░░░░░░░░░ 33% (1/3 plans complete in phase 15)
 
 ## Accumulated Context
 
@@ -71,8 +71,20 @@ Progress: v1.3 ████████████████████ 100%
 - mcp__supabase-local__apply_migration: use for DDL migrations instead of Supabase Dashboard manual paste — faster, no human gate
 - population column is `bigint` in DB (not `integer` as assumed in research) — no impact on loader
 
+### Additional Decisions (Phase 15 Plan 01)
+
+- LA pre-existing row 'LA City Budget & Expenditures' renamed to 'Los Angeles Operating Budget' via fallback upsert by dataset_id+municipality_id — id=01c50191 preserved
+- LA municipality id: 391bf791-1c1f-424f-a7a5-1b698c79093f
+- LA data_sources id: 01c50191-831e-4c88-82ef-e62a2e200e2b
+- Revenue dataset 6cbx-e2fd intentionally excluded — only through FY2022, summary-level only
+- base_url must be controllerdata.lacity.org (NOT data.lacity.org) — two separate Socrata portals
+
+### Roadmap Evolution
+
+- Phase 15 added: Los Angeles Socrata budget load + enrichment (extends Socrata pipeline from Phase 5 + enrichment from Phase 14 to LA)
+
 ## Session Continuity
 
 Last session: 2026-05-22
-Stopped at: Phase 14 complete — v1.3 all 9 plans done
+Stopped at: Completed 15-01-PLAN.md (seed LA data sources)
 Resume file: None
