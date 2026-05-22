@@ -6,6 +6,7 @@
 - ✅ **v1.1 Texas Municipal Financial Transparency** — Phases 5-7 (shipped 2026-05-02)
 - ✅ **v1.2 Collin County Completion & Data Quality** — Phases 8-10 (shipped 2026-05-21)
 - ✅ **v1.3 Revenue Completion & Per-Capita Context** — Phases 11-14 (shipped 2026-05-22)
+- 🚧 **v1.4 Geographic Expansion** — Phase 15+ (in progress)
 
 ---
 
@@ -220,9 +221,44 @@ Plans:
 
 ---
 
+## 🚧 v1.4 Geographic Expansion (in progress)
+
+**Milestone Goal:** Expand Treasury Tracker beyond Texas. Phase 15 (Los Angeles, CA) is the first non-TX city and proves the generic Socrata + enrichment pipeline scales to any US city with a Socrata SODA portal.
+
+### Phase 15: Los Angeles Socrata Budget Load + Enrichment
+
+**Goal:** Citizens can view Los Angeles operating budget data (FY2025 + FY2026) in the app, loaded via the existing generic Socrata SODA pipeline from `controllerdata.lacity.org` dataset `uyzw-yi8n`, with plain-language category enrichment and per-capita spending labeled with the 2024 Census population estimate.
+
+**Depends on:** Phase 5 (generic `bulkLoadBudget.js` Socrata pipeline), Phase 11 (population schema + per-capita display), Phase 14 (enrichment pipeline validated)
+
+**Requirements:** Derived from phase goal:
+- LA-01: Los Angeles municipality row exists with 2024 Census population (3,878,704)
+- LA-02: LA Operating Budget data_sources row seeded with verified `uyzw-yi8n` column_mapping
+- LA-03: LA operating budgets FY2025 and FY2026 visible in the app with correct totals and category breakdowns
+- LA-04: Every top-level LA budget category has a plain-language description, scoped via municipality_id (no cross-city bleed)
+- LA-05: LA per-capita spending displays in the app, labeled with the 2024 Census source year
+
+**Success Criteria** (what must be TRUE when phase completes):
+1. `treasury.municipalities` has a row for Los Angeles, CA with population=3878704 and population_year=2024
+2. `treasury.data_sources` has a row for 'Los Angeles Operating Budget' (Socrata dataset `uyzw-yi8n` at `controllerdata.lacity.org`) — no code changes required to the generic loader
+3. LA operating budget FY2025 and FY2026 are loaded into `treasury.budgets` + `treasury.budget_categories` with totals in expected ranges (~$19.8B FY2025) and >= 50 top-level departments per year
+4. `treasury.category_enrichment` has rows for LA top-level categories, all with correct `municipality_id` (no NULL/universal bleed)
+5. Re-running the seeder, loader, and enrichment scripts is idempotent — no duplicates, no errors
+6. Citizens visiting treasurytracker.empowered.vote see Los Angeles in the city picker, can browse the FY2025 and FY2026 operating budget with descriptions, and see per-capita spending labeled with "2024 Census estimate"
+7. No revenue data is loaded for LA (revenue dataset `6cbx-e2fd` is not suitable — only through FY2022, summary-level only)
+
+**Plans:** 3 plans
+
+Plans:
+- [ ] 15-01-PLAN.md — Build `seedLADataSources.js`: insert LA municipality (population 3,878,704, year 2024) + seed Operating Budget data_sources row (`uyzw-yi8n`, `controllerdata.lacity.org`, verified column_mapping)
+- [ ] 15-02-PLAN.md — Dry-run + live-load LA Operating FY2025 + FY2026 via `bulkLoadBudget.js`; verify totals/category tree in DB; prove idempotency
+- [ ] 15-03-PLAN.md — Dry-run + live enrichment via `enrichCategories.js`; verify scoping + no bleed; human-verify LA in app at treasurytracker.empowered.vote
+
+---
+
 ## Progress
 
-**Execution Order:** 11 → 12 → 13 → 14 (13 and 14 can run in parallel after 11 completes)
+**Execution Order:** 11 → 12 → 13 → 14 → 15 (each phase sequential; v1.4 milestone opens with Phase 15)
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -240,8 +276,9 @@ Plans:
 | 12. Prosper + Celina Revenue | v1.3 | 3/3 | Complete | 2026-05-22 |
 | 13. Richardson Operating Budget | v1.3 | 1/1 | Complete | 2026-05-22 |
 | 14. Category Enrichment (5 cities) | v1.3 | 2/2 | Complete | 2026-05-22 |
+| 15. Los Angeles Socrata + Enrichment | v1.4 | 0/3 | Planned | — |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-05-22 — Phase 14 complete; v1.3 milestone shipped*
+*Last updated: 2026-05-22 — Phase 15 planned (v1.4 milestone opens)*
