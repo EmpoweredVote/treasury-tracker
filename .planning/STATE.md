@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-05-21)
 
 ## Current Position
 
-Phase: 11 of 14 (Population & Per-Capita)
-Plan: All 3 plans complete
-Status: Phase 11 complete — verifying
-Last activity: 2026-05-21 — Phase 11 complete: population_year live, 12 TX cities showing (2024 est.) label
+Phase: 12 of 14 (Prosper & Celina Revenue)
+Plan: 1 of 3 complete (12-01 done)
+Status: In progress — 12-01 complete, 12-02 and 12-03 pending
+Last activity: 2026-05-21 — Completed 12-01: Prosper revenue FY2023/FY2024/FY2025 loaded
 
-Progress: v1.3 ██████░░░░░░░░░░░░░░ 33% (3/9 plans complete)
+Progress: v1.3 ████████░░░░░░░░░░░░ 44% (4/9 plans complete)
 
 ## Accumulated Context
 
@@ -36,10 +36,18 @@ Progress: v1.3 ██████░░░░░░░░░░░░░░ 33% 
 - Celina Revenue FY2025 data_source row (id=0e2e54c5, last_synced_at=null)
 - Richardson Operating Budget FY2025/FY2026 placeholder data_source rows (placeholder URLs)
 
+### Additional Decisions (Phase 12 Plan 01)
+
+- Parse GF Budget-and-Actual statement for Prosper revenue (not all-funds governmental table) — avoids split-page alignment issue
+- Expected totals = GF actual from REVENUES header row: FY2023=$23,634,916, FY2024=$20,579,402, FY2025=$23,102,540
+- Overflow guard (>105% REVENUES total) blocks garbled continuation lines from adjacent all-funds table
+- FY2024/FY2025 yield 5 items (vs FY2023 9) due to two-column PDF layout in those ACFRs — within tolerance
+- processProsperjRevenuePDF.js is reference implementation for processCelinaRevenuePDF.js
+
 ### Blockers/Concerns
 
 - Phase 12 (Richardson): cor.net blocked HTTP in v1.2 — manual browser URL sourcing required before loader can be built; verify URL is accessible before committing time
-- Phase 12 (Revenue): pdftotext extraction quality for Prosper/Celina revenue unknown until attempted — validate against ACFR before enabling display
+- Prosper FY2024/FY2025 only yield 5 of ~10 revenue line items due to two-column PDF layout; 20% tolerance gate passes but detail is partial (not a blocker for display)
 
 ### Additional Decisions (Phase 11)
 
@@ -49,5 +57,5 @@ Progress: v1.3 ██████░░░░░░░░░░░░░░ 33% 
 ## Session Continuity
 
 Last session: 2026-05-21
-Stopped at: Phase 11 complete (11-03 approved and summarized)
+Stopped at: Phase 12 Plan 01 complete (Prosper revenue FY2023/FY2024/FY2025 loaded)
 Resume file: None
