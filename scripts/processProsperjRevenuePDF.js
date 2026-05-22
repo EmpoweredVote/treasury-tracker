@@ -856,12 +856,16 @@ async function processFY(supabase, muniId, fiscalYear, opts) {
   }
 
   // ── Step 7: Build JSON tree ───────────────────────────────────────────────
-  const { jsonTree, total } = buildTree(fundResults);
-  console.log(`\n  Tree built: ${jsonTree.length} fund(s), ${totalRowCount} items, total=$${Math.round(total).toLocaleString()}`);
+  const { jsonTree, total: budgetTotal } = buildTree(fundResults);
+  // totalActual is the all-governmental-funds actual revenue total (the correct DB value).
+  // budgetTotal is the sum of original budgets from the tree (used for tree rendering only).
+  console.log(`\n  Tree built: ${jsonTree.length} fund(s), ${totalRowCount} items`);
+  console.log(`  Budget total (tree): $${Math.round(budgetTotal).toLocaleString()}`);
+  console.log(`  Actual revenue total: $${Math.round(totalActual).toLocaleString()}`);
 
   if (dryRun) {
     console.log('  (dry-run — skipping DB writes)');
-    return { fy: fiscalYear, passed: true, total, rowCount: totalRowCount, dsId: 'dry-run' };
+    return { fy: fiscalYear, passed: true, total: totalActual, rowCount: totalRowCount, dsId: 'dry-run' };
   }
 
   // ── Step 8: Look up existing data_source row ──────────────────────────────
@@ -875,11 +879,11 @@ async function processFY(supabase, muniId, fiscalYear, opts) {
 
   if (dsErr) {
     console.error(`data_sources lookup error for FY${fiscalYear}: ${dsErr.message}`);
-    return { fy: fiscalYear, passed: false, total, rowCount: totalRowCount, dsId: null };
+    return { fy: fiscalYear, passed: false, total: totalActual, rowCount: totalRowCount, dsId: null };
   }
   if (!ds?.id) {
     console.error(`data_source row not found for Prosper revenue FY${fiscalYear} — Phase 9 seeder must have run first`);
-    return { fy: fiscalYear, passed: false, total, rowCount: totalRowCount, dsId: null };
+    return { fy: fiscalYear, passed: false, total: totalActual, rowCount: totalRowCount, dsId: null };
   }
   console.log(`  data_source: ${ds.id}`);
 
@@ -906,11 +910,14 @@ async function processFY(supabase, muniId, fiscalYear, opts) {
   console.log('  Prior revenue rows cleared');
 
   // ── Step 11: Call treasury_sync_budget_tree RPC ───────────────────────────
+  // p_total = totalActual (all-governmental-funds actual revenues) — this is what
+  // gets stored in budgets.total_budget and displayed in the UI.
+  // budgetTotal (original budget sum) is embedded in the tree for the breakdown view.
   const { data: rpcResult, error: rpcErr } = await supabase.rpc('treasury_sync_budget_tree', {
     p_data_source_id: ds.id,
     p_fiscal_year:    fiscalYear,
     p_dataset_type:   'revenue',
-    p_total:          total,
+    p_total:          totalActual,
     p_tree:           jsonTree,
     p_row_count:      totalRowCount,
     p_triggered_by:   'bulk_load',
@@ -929,7 +936,7 @@ async function processFY(supabase, muniId, fiscalYear, opts) {
   if (syncErr) throw new Error(`last_synced_at update failed: ${syncErr.message}`);
   console.log(`  last_synced_at set for data_source ${ds.id}`);
 
-  return { fy: fiscalYear, passed: true, total, rowCount: totalRowCount, dsId: ds.id };
+  return { fy: fiscalYear, passed: true, total: totalActual, rowCount: totalRowCount, dsId: ds.id };
 }
 
 // ── main ──────────────────────────────────────────────────────────────────────
