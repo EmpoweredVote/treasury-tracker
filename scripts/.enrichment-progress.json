@@ -1,16 +1,16 @@
 {
   "processed": [
     "13c35569-f44d-4354-86f0-28f578c32669::fire",
-    "13c35569-f44d-4354-86f0-28f578c32669::police",
     "13c35569-f44d-4354-86f0-28f578c32669::combined services",
+    "13c35569-f44d-4354-86f0-28f578c32669::police",
     "13c35569-f44d-4354-86f0-28f578c32669::streets",
     "13c35569-f44d-4354-86f0-28f578c32669::emergency medical services",
     "13c35569-f44d-4354-86f0-28f578c32669::emergency communications",
-    "13c35569-f44d-4354-86f0-28f578c32669::library",
     "13c35569-f44d-4354-86f0-28f578c32669::parks",
     "13c35569-f44d-4354-86f0-28f578c32669::information technology",
-    "13c35569-f44d-4354-86f0-28f578c32669::finance",
+    "13c35569-f44d-4354-86f0-28f578c32669::library",
     "13c35569-f44d-4354-86f0-28f578c32669::facilities",
+    "13c35569-f44d-4354-86f0-28f578c32669::finance",
     "13c35569-f44d-4354-86f0-28f578c32669::city manager",
     "13c35569-f44d-4354-86f0-28f578c32669::human resources",
     "13c35569-f44d-4354-86f0-28f578c32669::municipal court",
@@ -18,9 +18,9 @@
     "13c35569-f44d-4354-86f0-28f578c32669::code enforcement",
     "13c35569-f44d-4354-86f0-28f578c32669::building inspection",
     "13c35569-f44d-4354-86f0-28f578c32669::city secretary",
-    "13c35569-f44d-4354-86f0-28f578c32669::purchasing",
     "13c35569-f44d-4354-86f0-28f578c32669::city attorney",
     "13c35569-f44d-4354-86f0-28f578c32669::planning",
+    "13c35569-f44d-4354-86f0-28f578c32669::purchasing",
     "13c35569-f44d-4354-86f0-28f578c32669::city council"
   ],
   "failed": []
