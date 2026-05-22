@@ -163,7 +163,8 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
                   {showActual
                     ? <>spent <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(total)}</strong> serving its {population.toLocaleString()} residents{yearSuffix}</>
                     : isGeneralFundOnly
-                      ? <>totaled <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(total)}</strong> for core city operations serving {population.toLocaleString()} residents{yearSuffix}.</>
+                      ? <>totaled <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(total)}</strong> for core city operations serving {population.toLocaleString()} residents{yearSuffix} — that's roughly{' '}
+                          <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatPerResident(perResident)} per person</strong>.</>
                       : <>budgeted <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(total)}</strong> to serve its {population.toLocaleString()} residents{yearSuffix} — that's roughly{' '}
                           <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatPerResident(perResident)} per person</strong>.</>
                   }
@@ -257,6 +258,11 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
                     <span className="text-ev-gray-400 text-[13px]">{' '}— {revenueData.categories[0].enrichment.shortDescription.toLowerCase()}</span>
                   )}
                 </>
+              )}
+              {!isNonprofit && population > 0 && revenueTarget > 0 && (
+                <>{' '}— that's{' '}
+                  <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatPerResident(revenueTarget / population)} per resident</strong>
+                  {populationYear ? ` (${populationYear} est.)` : ''}</>
               )}.
             </p>
           )}
