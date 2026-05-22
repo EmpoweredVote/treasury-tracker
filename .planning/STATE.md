@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-05-21)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** v1.3 — Phase 11: Population Schema, Census Data Load, and Per-Capita Display
+**Current focus:** v1.3 — Phase 13: Richardson Operating Budget
 
 ## Current Position
 
-Phase: 12 of 14 (Prosper & Celina Revenue)
-Plan: 12-03 of 3 — paused at Task 3 checkpoint (human verify)
-Status: In progress — 12-01 complete, 12-03 Tasks 1+2 complete
-Last activity: 2026-05-22 — Celina FY2025 revenue loaded (8.0% diff, validation passed, 13 items)
+Phase: 12 of 14 complete (Prosper + Celina Revenue)
+Plan: All 3 plans complete
+Status: Phase 12 complete — verified 5/5
+Last activity: 2026-05-22 — Phase 12 complete: Prosper FY2023/2024/2025 + Celina FY2025 revenue loaded; per-capita revenue sentence added to frontend; Haiku garbage data fixed for Celina/Prosper/Allen operating + Frisco FY2026
 
-Progress: v1.3 ████████░░░░░░░░░░░░ 44% (4/9 plans complete)
+Progress: v1.3 ████████████░░░░░░░░ 67% (6/9 plans complete)
 
 ## Accumulated Context
 
@@ -59,6 +59,6 @@ Progress: v1.3 ████████░░░░░░░░░░░░ 44% 
 
 ## Session Continuity
 
-Last session: 2026-05-22
-Stopped at: Prosper all-governmental-funds fix complete — FY2023/FY2024/FY2025 loaded at 0.0% diff
+Last session: 2026-05-21
+Stopped at: Prosper FY2025 operating budget fixed — rewritten to pdftotext -raw mode, $1.28B Haiku data cleared, $53,010,770 loaded at 0.00% diff (c84207c)
 Resume file: None

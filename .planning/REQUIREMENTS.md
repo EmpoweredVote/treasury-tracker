@@ -7,10 +7,10 @@
 
 ### Revenue Completion
 
-- [ ] **REV-01**: Prosper TX revenue data loaded via pdftotext targeting "STATEMENT OF REVENUES" section — FY2023, FY2024, FY2025 (data_source rows already seeded, last_synced_at=null)
-- [ ] **REV-02**: Prosper revenue totals validated against ACFR published totals before enabling display
-- [ ] **REV-03**: Celina TX revenue data loaded via same pdftotext approach — FY2025 (data_source row id=0e2e54c5 already seeded)
-- [ ] **REV-04**: Celina revenue totals validated against ACFR published totals
+- [x] **REV-01**: Prosper TX revenue data loaded via pdftotext targeting "STATEMENT OF REVENUES" section — FY2023, FY2024, FY2025 (data_source rows already seeded, last_synced_at=null)
+- [x] **REV-02**: Prosper revenue totals validated against ACFR published totals before enabling display
+- [x] **REV-03**: Celina TX revenue data loaded via same pdftotext approach — FY2025 (data_source row id=0e2e54c5 already seeded)
+- [x] **REV-04**: Celina revenue totals validated against ACFR published totals
 
 ### Collin County Expansion
 
