@@ -448,12 +448,27 @@ async function processFY(supabase, muniId, fiscalYear, opts) {
     // Create new data_source row for this FY
     const { data: created, error: createErr } = await supabase.schema('treasury').from('data_sources')
       .insert({
-        municipality_id: muniId,
-        api_type:        'pdf_download',
-        dataset_id:      'fy' + fiscalYear,
-        dataset_type:    'operating',
-        fiscal_years:    [fiscalYear],
-        base_url:        PDF_URLS[fiscalYear],
+        municipality_id:        muniId,
+        name:                   `Prosper ACFR FY${fiscalYear}`,
+        api_type:               'pdf_download',
+        dataset_id:             'fy' + fiscalYear,
+        dataset_type:           'operating',
+        fiscal_years:           [fiscalYear],
+        base_url:               PDF_URLS[fiscalYear],
+        column_mapping: {
+          fund_column:             'fund',
+          category_column:         'category',
+          department_column:       'department',
+          fiscal_year_column:      'fiscal_year',
+          actual_amount_column:    'actual_amount',
+          approved_amount_column:  'approved_amount',
+        },
+        fiscal_year_start_month: 1,
+        default_filters:         {},
+        api_config:              {},
+        is_enabled:              true,
+        sync_frequency:          'monthly',
+        sync_status:             'idle',
       })
       .select('id')
       .single();
