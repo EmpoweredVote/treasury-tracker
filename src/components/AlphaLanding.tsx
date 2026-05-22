@@ -110,7 +110,7 @@ function CitySearch({
         </div>
       )}
 
-      <p className="text-xs text-ev-gray-400 mt-2 pl-1">Zip code search coming soon — for now, search by city name.</p>
+      <p className="text-xs text-ev-gray-500 mt-2 pl-1">Zip code search coming soon — for now, search by city name.</p>
     </div>
   );
 }
@@ -302,7 +302,7 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
                         : (active ? 'rgba(0,83,102,0.12)' : 'rgba(0,0,0,0.06)'),
                       color: isDark
                         ? (active ? '#59B0C4' : '#6B7280')
-                        : (active ? '#005366' : '#9CA3AF'),
+                        : (active ? '#005366' : '#6B7280'),
                     }}
                     className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
                   >
@@ -312,7 +312,7 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
                     <p
                       style={{ color: isDark
                         ? (active ? 'white' : '#9CA3AF')
-                        : (active ? '#1C1C1C' : '#9CA3AF') }}
+                        : (active ? '#1C1C1C' : '#374151') }}
                       className="font-bold mb-1"
                     >
                       {heading}
@@ -320,7 +320,7 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
                     <p
                       style={{ color: isDark
                         ? (active ? '#D1D5DB' : '#374151')
-                        : (active ? '#6B7280' : '#9CA3AF') }}
+                        : (active ? '#6B7280' : '#535964') }}
                       className="text-sm leading-relaxed"
                     >
                       {body}
