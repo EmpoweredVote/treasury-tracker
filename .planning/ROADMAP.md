@@ -198,7 +198,7 @@ Plans:
 4. Re-running the loader does not create duplicate budget rows
 
 Plans:
-- [ ] 13-01-PLAN.md — Manually source Richardson PDF URL from cor.net/departments/budget; build `processRichardsonBudget.js` following processGarlandBudget.js pattern; load FY2025 and FY2026; verify in app
+- [x] 13-01-PLAN.md — Manually source Richardson PDF URL from cor.net/departments/budget; build `processRichardsonBudget.js` following processGarlandBudget.js pattern; load FY2025 and FY2026; verify in app
 
 ### Phase 14: Category Enrichment — 5 Collin County Cities
 
