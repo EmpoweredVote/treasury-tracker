@@ -14,7 +14,7 @@
 
 ### Collin County Expansion
 
-- [ ] **COL-01**: Richardson TX operating budget loaded — manual URL sourcing from cor.net/departments/budget + processRichardsonBudget.js following processGarlandBudget.js pattern (placeholder data_source rows for FY2025/FY2026 already seeded)
+- [x] **COL-01**: Richardson TX operating budget loaded — manual URL sourcing from cor.net/departments/budget + processRichardsonBudget.js following processGarlandBudget.js pattern (placeholder data_source rows for FY2025/FY2026 already seeded)
 
 ### Enrichment
 
