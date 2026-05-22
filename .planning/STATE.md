@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-05-21)
 ## Current Position
 
 Phase: 15 of 15 (Los Angeles Socrata Budget Load + Enrichment)
-Plan: 1 of 3 in current phase
-Status: In progress — Plan 15-01 complete (LA municipality + data_sources seeded)
-Last activity: 2026-05-22 — Completed 15-01-PLAN.md (seed LA data sources)
+Plan: 2 of 3 in current phase
+Status: In progress — Plan 15-02 complete (LA operating budgets FY2025+FY2026 loaded)
+Last activity: 2026-05-22 — Completed 15-02-PLAN.md (load LA operating budgets)
 
-Progress: v1.4 ████░░░░░░░░░░░░░░░░ 33% (1/3 plans complete in phase 15)
+Progress: v1.4 ████████░░░░░░░░░░░░ 67% (2/3 plans complete in phase 15)
 
 ## Accumulated Context
 
@@ -79,6 +79,15 @@ Progress: v1.4 ████░░░░░░░░░░░░░░░░ 33% 
 - Revenue dataset 6cbx-e2fd intentionally excluded — only through FY2022, summary-level only
 - base_url must be controllerdata.lacity.org (NOT data.lacity.org) — two separate Socrata portals
 
+### Additional Decisions (Phase 15 Plan 02)
+
+- treasury.budgets column is `total_budget` (NOT `total_amount`) — plan SQL templates reference wrong column name; actual data verified correctly
+- treasury_sync_budget_tree RPC matches budget rows by municipality_id+fiscal_year+dataset_type (not data_source_id); pre-existing LA rows updated in-place
+- LA FY2025 budget_id: 5a85c4a6-456f-49ba-af63-771dd0dde3a5 (total_budget=$19,855,424,569)
+- LA FY2026 budget_id: c24fec94-e886-4c47-ab1d-2cd7a505c4d1 (total_budget=$21,431,295,120)
+- 58 depth-0 categories for FY2025, 56 for FY2026 — ready for enrichCategories.js
+- Socrata counts matched RESEARCH.md exactly: FY2025=3,786 rows, FY2026=3,306 rows
+
 ### Roadmap Evolution
 
 - Phase 15 added: Los Angeles Socrata budget load + enrichment (extends Socrata pipeline from Phase 5 + enrichment from Phase 14 to LA)
@@ -86,5 +95,5 @@ Progress: v1.4 ████░░░░░░░░░░░░░░░░ 33% 
 ## Session Continuity
 
 Last session: 2026-05-22
-Stopped at: Completed 15-01-PLAN.md (seed LA data sources)
+Stopped at: Completed 15-02-PLAN.md (load LA operating budgets FY2025+FY2026)
 Resume file: None
