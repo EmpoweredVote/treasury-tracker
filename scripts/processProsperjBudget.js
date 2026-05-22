@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * Prosper Operating Budget Extractor
+ * Prosper Operating Budget Extractor — Multi-FY
  *
- * Extracts General Fund operating expenditures from Prosper's FY2025 ACFR PDF
- * using pdftotext -raw — no AI/API calls, pure text parsing.
+ * Extracts General Fund operating expenditures from Prosper ACFR PDFs
+ * (FY2023, FY2024, FY2025) using pdftotext -raw — no AI/API calls.
  *
  * Targets the "STATEMENT OF REVENUES, EXPENDITURES AND CHANGES IN FUND BALANCE —
  * GENERAL FUND — BUDGET AND ACTUAL" section, EXPENDITURES subsection.
@@ -16,19 +16,11 @@
  *
  * pdftotext -layout FAILS for this PDF: it renders both pages together and the
  * right page bleeds its values into the left page column positions, producing
- * garbled labels and wrong values (e.g., Administration picks up wrong dept values,
- * labels get assigned to wrong rows).
+ * garbled labels and wrong values.
  *
  * pdftotext -raw reads words in document order, producing one line per ACFR row:
  *   "Administration 10,928,574 10,817,388 10,300,769"
  * This correctly isolates each department name and its three budget columns.
- *
- * === EXPECTED TOTAL (FY2025) ===
- *
- * Total expenditures (Original Budget): $53,010,770
- * Individual items: Administration, Police, Fire and EMS, Development services,
- *   Public works, Community services, Engineering, Capital outlay (orig=0),
- *   Principal, Interest and fiscal charges (orig=0)
  *
  * === COLUMN MAPPING ===
  *
@@ -37,7 +29,8 @@
  *   actual_amount  = actual (token index 2 after label)
  *
  * Usage:
- *   node scripts/processProsperjBudget.js              # production (loads to DB)
+ *   node scripts/processProsperjBudget.js              # all three FYs
+ *   node scripts/processProsperjBudget.js --fy 2025    # single FY
  *   node scripts/processProsperjBudget.js --dry-run    # parse and print, no DB write
  *   node scripts/processProsperjBudget.js --verbose    # log parse decisions to stderr
  *   node scripts/processProsperjBudget.js --no-cache   # re-download even if cached
@@ -52,18 +45,37 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// ── Config ─────────────────────────────────────────────────────────────────────
-const PDF_URL    = 'https://www.prospertx.gov/ArchiveCenter/ViewFile/Item/682';
-const CACHE_PATH = 'C:/tmp/prosper_acfr_fy2025.pdf';
-const FISCAL_YEAR = 2025;
+// ── Per-FY configuration ───────────────────────────────────────────────────────
+const PDF_URLS = {
+  2025: 'https://www.prospertx.gov/ArchiveCenter/ViewFile/Item/682',
+  2024: 'https://www.prospertx.gov/ArchiveCenter/ViewFile/Item/574',
+  2023: 'https://www.prospertx.gov/ArchiveCenter/ViewFile/Item/489',
+};
 
-// Expected total expenditures (Original Budget) from ACFR page 29
-const EXPECTED_TOTAL = 53_010_770;
+const CACHE_PATHS = {
+  2025: 'C:/tmp/prosper_acfr_fy2025.pdf',
+  2024: 'C:/tmp/prosper_acfr_fy2024.pdf',
+  2023: 'C:/tmp/prosper_acfr_fy2023.pdf',
+};
+
+// Expected total expenditures (Original Budget) from ACFR GF B&A section.
+// FY2025: from ACFR page 29 "Total expenditures" original budget column.
+// FY2024: from ACFR "Total expenditures" = 49,027,952 (original budget).
+// FY2023: from ACFR "Total expenditures" = 44,052,927 (original budget).
+const EXPECTED_TOTALS = {
+  2025: 53_010_770,
+  2024: 49_027_952,
+  2023: 44_052_927,
+};
+
 const TOLERANCE = 0.05; // 5% — tight because -raw gives clean values
 
 // ── Supabase ───────────────────────────────────────────────────────────────────
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+// Population for per-capita check (2024 estimate — used for all three FYs for consistency)
+const POPULATION = 44_503;
 
 // ── parseMoney ─────────────────────────────────────────────────────────────────
 // Handles: "12,010,754"  "(2,161,383)"  "-"  "$"  ""
@@ -94,10 +106,35 @@ function extractPdfText(pdfPath) {
 }
 
 // ── findBudgetSection ─────────────────────────────────────────────────────────
-// Locates "STATEMENT OF REVENUES, EXPENDITURES AND CHANGES IN FUND BALANCE"
-// followed by "GENERAL FUND" and "BUDGET AND ACTUAL" within the next 15 lines.
-// Returns the line index of the section header, or -1 if not found.
+// Locates the GF Budget-and-Actual EXPENDITURES section.
+//
+// Strategy A (FY2024, FY2025): Find "STATEMENT OF REVENUES, EXPENDITURES..."
+//   followed by "GENERAL FUND" and "BUDGET AND ACTUAL" within 15 lines.
+//   Return that line index so parseExpenditureLines can scan forward for EXPENDITURES.
+//
+// Strategy B (FY2023): The GF B&A data appears BEFORE the section title in -raw
+//   output (two-page spread: data page renders first, title page renders second).
+//   Detect by finding the column header "Budget Budget GAAP Basis" which
+//   immediately precedes the REVENUES / EXPENDITURES data.
+//   Return the column-header line so parseExpenditureLines scans forward correctly.
+//
+// Returns the line index to start scanning from, or -1 if not found.
 function findBudgetSection(lines, verbose) {
+  // Strategy B (checked first): FY2023 — the GF B&A data appears BEFORE its section
+  // title in -raw output. The column header "Budget Budget GAAP Basis" immediately
+  // precedes the REVENUES section. Check for this pattern first.
+  for (let i = 0; i < lines.length; i++) {
+    if (!/^Budget Budget GAAP Basis/.test(lines[i].trim())) continue;
+    // Confirm by looking for REVENUES section nearby
+    for (let j = i + 1; j < Math.min(i + 15, lines.length); j++) {
+      if (/^REVENUES\s*$/.test(lines[j].trim())) {
+        if (verbose) console.error(`[section-found] GF B&A section at line ${i} (strategy B — FY2023 layout)`);
+        return i;
+      }
+    }
+  }
+
+  // Strategy A: standard layout (FY2024, FY2025) — section title followed by data
   for (let i = 0; i < lines.length; i++) {
     if (!/STATEMENT OF REVENUES, EXPENDITURES/.test(lines[i])) continue;
 
@@ -108,11 +145,12 @@ function findBudgetSection(lines, verbose) {
       if (/^GENERAL FUND\s*$/.test(t)) foundGF = true;
       if (/^BUDGET AND ACTUAL\s*$/.test(t)) foundBA = true;
       if (foundGF && foundBA) {
-        if (verbose) console.error(`[section-found] GF B&A section at line ${i}`);
+        if (verbose) console.error(`[section-found] GF B&A section at line ${i} (strategy A)`);
         return i;
       }
     }
   }
+
   return -1;
 }
 
@@ -272,101 +310,79 @@ function buildTree(rows) {
 }
 
 // ── validateTotal ─────────────────────────────────────────────────────────────
-function validateTotal(extracted, expected) {
+function validateTotal(extracted, expected, fyLabel) {
   const diff = Math.abs(extracted - expected) / expected;
   const pct  = (diff * 100).toFixed(2);
-  console.log('Validation:');
+  console.log(`Validation (${fyLabel}):`);
   console.log(`  Extracted (from line items): $${Math.round(extracted).toLocaleString()}`);
   console.log(`  Expected  (ACFR page total): $${Math.round(expected).toLocaleString()}`);
   console.log(`  Difference: ${pct}%  (tolerance: ${(TOLERANCE * 100).toFixed(0)}%)`);
   return diff <= TOLERANCE;
 }
 
-// ── main ──────────────────────────────────────────────────────────────────────
-async function main() {
-  const { values: opts } = parseArgs({
-    options: {
-      'dry-run':  { type: 'boolean', default: false },
-      'verbose':  { type: 'boolean', default: false },
-      'no-cache': { type: 'boolean', default: false },
-    },
-    strict: false,
-  });
+// ── processFY ────────────────────────────────────────────────────────────────
+async function processFY(supabase, muniId, fiscalYear, opts) {
+  const { dryRun, verbose, noCache } = opts;
+  console.log(`\n${'─'.repeat(70)}`);
+  console.log(`Processing Prosper FY${fiscalYear} — Operating Budget`);
+  console.log('─'.repeat(70));
 
-  const dryRun  = opts['dry-run'];
-  const verbose = opts['verbose'];
-  const noCache = opts['no-cache'];
-
-  // ── Supabase client ────────────────────────────────────────────────────────
-  if (!SUPABASE_KEY) {
-    console.error('Missing SUPABASE_SERVICE_KEY env var');
-    process.exit(2);
-  }
-  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-  // ── Municipality lookup ───────────────────────────────────────────────────
-  const { data: muni, error: muniErr } = await supabase.schema('treasury')
-    .from('municipalities').select('id, name').ilike('name', 'Prosper').single();
-  if (muniErr || !muni) {
-    console.error('Could not find Prosper municipality:', muniErr?.message);
-    process.exit(2);
-  }
-  console.log(`Municipality: ${muni.name} (${muni.id})\n`);
-
-  // ── Download or load PDF ──────────────────────────────────────────────────
-  const cacheExists = fs.existsSync(CACHE_PATH);
+  // ── Step 1: Resolve PDF path ──────────────────────────────────────────────
+  const pdfPath = CACHE_PATHS[fiscalYear];
+  const cacheExists = fs.existsSync(pdfPath);
   if (!cacheExists || noCache) {
-    console.log(`Downloading PDF from ${PDF_URL} ...`);
-    const resp = await fetch(PDF_URL, {
+    const url = PDF_URLS[fiscalYear];
+    console.log(`Downloading FY${fiscalYear} PDF from ${url} ...`);
+    const resp = await fetch(url, {
       headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/pdf,*/*' },
     });
     if (!resp.ok) {
       console.error(`Download failed: HTTP ${resp.status} ${resp.statusText}`);
-      process.exit(2);
+      return { fy: fiscalYear, passed: false, total: 0, rowCount: 0 };
     }
     const buf = Buffer.from(await resp.arrayBuffer());
-    const dir = path.dirname(CACHE_PATH);
+    const dir = path.dirname(pdfPath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(CACHE_PATH, buf);
-    console.log(`Saved to ${CACHE_PATH} (${(buf.length / 1024 / 1024).toFixed(1)} MB)`);
+    fs.writeFileSync(pdfPath, buf);
+    console.log(`Saved to ${pdfPath} (${(buf.length / 1024 / 1024).toFixed(1)} MB)`);
   } else {
-    console.log(`Using cached PDF: ${CACHE_PATH}`);
+    console.log(`Using cached PDF: ${pdfPath}`);
   }
 
-  // ── Extract PDF text (using -raw mode to avoid column bleed) ─────────────
+  // ── Step 2: Extract PDF text ──────────────────────────────────────────────
   console.log('Extracting text with pdftotext -raw...');
-  const lines = extractPdfText(CACHE_PATH);
+  const lines = extractPdfText(pdfPath);
   if (!lines) {
-    console.error('pdftotext failed');
-    process.exit(2);
+    console.error(`pdftotext failed for FY${fiscalYear}`);
+    return { fy: fiscalYear, passed: false, total: 0, rowCount: 0 };
   }
   console.log(`  Total lines: ${lines.length}`);
 
-  // ── Find GF Budget-and-Actual section ─────────────────────────────────────
+  // ── Step 3: Find GF Budget-and-Actual section ─────────────────────────────
   const sectionIdx = findBudgetSection(lines, verbose);
   if (sectionIdx < 0) {
-    console.error('Could not find GF B&A section — PDF layout may have changed');
-    process.exit(2);
+    console.error(`Could not find GF B&A section for FY${fiscalYear} — PDF layout may differ`);
+    return { fy: fiscalYear, passed: false, total: 0, rowCount: 0 };
   }
   console.log(`  Section found at line ${sectionIdx}`);
 
-  // ── Parse expenditure lines ───────────────────────────────────────────────
+  // ── Step 4: Parse expenditure lines ──────────────────────────────────────
   console.log('Parsing expenditure lines...');
   const { rows, totalExpenditures } = parseExpenditureLines(lines, sectionIdx, verbose);
 
   if (rows.length === 0) {
-    console.error('No expenditure rows extracted — check PDF section detection');
-    process.exit(2);
+    console.error(`No expenditure rows extracted for FY${fiscalYear} — check PDF section detection`);
+    return { fy: fiscalYear, passed: false, total: 0, rowCount: 0 };
   }
   console.log(`  Expenditure line items parsed: ${rows.length}`);
   if (totalExpenditures !== null) {
     console.log(`  "Total expenditures" from ACFR: $${Math.round(totalExpenditures).toLocaleString()}`);
   }
 
-  // ── Build tree ────────────────────────────────────────────────────────────
+  // ── Step 5: Build tree ────────────────────────────────────────────────────
   const { jsonTree, total } = buildTree(rows);
 
-  // ── Print summary table ───────────────────────────────────────────────────
+  // ── Step 6: Print summary table ───────────────────────────────────────────
   console.log('\nExpenditure Line Items:');
   console.log('─'.repeat(80));
   console.log(`${'Label'.padEnd(40)} ${'Adopted ($)'.padStart(16)}  ${'Actual ($)'.padStart(16)}`);
@@ -379,79 +395,103 @@ async function main() {
   console.log('─'.repeat(80));
   console.log(`${'TOTAL (sum of items)'.padEnd(40)} ${Math.round(total).toLocaleString().padStart(16)}\n`);
 
-  // ── Per-capita sanity check ───────────────────────────────────────────────
-  const POPULATION = 44_503;
+  // ── Step 7: Per-capita sanity check ───────────────────────────────────────
   const perCapita = Math.round(total / POPULATION);
   console.log(`Per-capita check: $${Math.round(total).toLocaleString()} / ${POPULATION.toLocaleString()} = $${perCapita.toLocaleString()}/person`);
 
-  const SANITY_MIN = 30_000_000;
+  const SANITY_MIN = 20_000_000;  // Prosper was smaller in FY2023
   const SANITY_MAX = 150_000_000;
   if (total < SANITY_MIN || total > SANITY_MAX) {
-    console.error(`\nSANITY FAIL: Total $${Math.round(total).toLocaleString()} is outside $30M–$150M range`);
-    process.exit(2);
+    console.error(`\nSANITY FAIL: Total $${Math.round(total).toLocaleString()} outside $20M–$150M range`);
+    return { fy: fiscalYear, passed: false, total, rowCount: rows.length };
   }
-  console.log(`Sanity check: PASS ($${Math.round(total).toLocaleString()} in $30M–$150M range)\n`);
+  console.log(`Sanity check: PASS ($${Math.round(total).toLocaleString()} in $20M–$150M range)\n`);
 
-  // ── Validate against ACFR "Total expenditures" line ──────────────────────
-  const expectedForValidation = totalExpenditures ?? EXPECTED_TOTAL;
-  const valid = validateTotal(total, expectedForValidation);
+  // ── Step 8: Validate ──────────────────────────────────────────────────────
+  const expectedForValidation = totalExpenditures ?? EXPECTED_TOTALS[fiscalYear];
+  const valid = validateTotal(total, expectedForValidation, `Prosper FY${fiscalYear}`);
   if (!valid) {
-    console.error('\nVALIDATION FAILED — Prosper FY2025 operating budget NOT loaded to DB.');
-    process.exit(2);
+    console.error(`\nVALIDATION FAILED — FY${fiscalYear} operating budget NOT loaded to DB.`);
+    return { fy: fiscalYear, passed: false, total, rowCount: rows.length };
   }
   console.log('\nVALIDATION PASSED');
 
   if (dryRun) {
     console.log('\n(dry-run — skipping DB writes)');
-    return;
+    return { fy: fiscalYear, passed: true, total, rowCount: rows.length, dsId: 'dry-run' };
   }
 
-  // ── Look up existing data_source row ─────────────────────────────────────
-  const { data: ds, error: dsErr } = await supabase.schema('treasury').from('data_sources')
+  // ── Step 9: Resolve data_source row (create if missing) ──────────────────
+  const { data: existing, error: dsErr } = await supabase.schema('treasury').from('data_sources')
     .select('id, last_synced_at')
-    .eq('municipality_id', muni.id)
+    .eq('municipality_id', muniId)
     .eq('api_type', 'pdf_download')
-    .eq('dataset_id', 'fy2025')
+    .eq('dataset_id', 'fy' + fiscalYear)
     .eq('dataset_type', 'operating')
     .maybeSingle();
 
   if (dsErr) {
-    console.error('data_sources lookup error:', dsErr.message);
-    process.exit(2);
+    console.error(`data_sources lookup error for FY${fiscalYear}: ${dsErr.message}`);
+    return { fy: fiscalYear, passed: false, total, rowCount: rows.length };
   }
-  if (!ds?.id) {
-    console.error('No data_source row found for Prosper operating FY2025 — must be seeded first');
-    process.exit(2);
-  }
-  console.log(`\ndata_source: ${ds.id} (last_synced_at: ${ds.last_synced_at || 'null'})`);
 
-  // ── Clear old Haiku data (bad data from Phase 7, data_source_id = null) ──
+  let dsId;
+  if (existing?.id) {
+    dsId = existing.id;
+    // Update base_url in case it changed
+    const { error: upErr } = await supabase.schema('treasury').from('data_sources')
+      .update({ base_url: PDF_URLS[fiscalYear] })
+      .eq('id', dsId);
+    if (upErr) console.warn(`  WARNING: Could not update base_url: ${upErr.message}`);
+    console.log(`\ndata_source: ${dsId} (existing)`);
+  } else {
+    // Create new data_source row for this FY
+    const { data: created, error: createErr } = await supabase.schema('treasury').from('data_sources')
+      .insert({
+        municipality_id: muniId,
+        api_type:        'pdf_download',
+        dataset_id:      'fy' + fiscalYear,
+        dataset_type:    'operating',
+        fiscal_years:    [fiscalYear],
+        base_url:        PDF_URLS[fiscalYear],
+      })
+      .select('id')
+      .single();
+
+    if (createErr || !created?.id) {
+      console.error(`Failed to create data_source for FY${fiscalYear}: ${createErr?.message}`);
+      return { fy: fiscalYear, passed: false, total, rowCount: rows.length };
+    }
+    dsId = created.id;
+    console.log(`\ndata_source: ${dsId} (created)`);
+  }
+
+  // ── Step 10: Clear old rows (idempotency) ──────────────────────────────────
   const { error: delErr1 } = await supabase.schema('treasury').from('budgets')
     .delete()
-    .eq('municipality_id', muni.id)
-    .eq('fiscal_year', FISCAL_YEAR)
+    .eq('municipality_id', muniId)
+    .eq('fiscal_year', fiscalYear)
     .eq('dataset_type', 'operating')
     .is('data_source_id', null);
   if (delErr1) {
-    console.error('Delete (orphaned Haiku rows) failed:', delErr1.message);
-    process.exit(2);
+    console.error(`Delete (orphaned rows) failed: ${delErr1.message}`);
+    return { fy: fiscalYear, passed: false, total, rowCount: rows.length };
   }
-  console.log('Cleared old Haiku data (data_source_id = null)');
 
-  // Also clear any rows already linked to this data_source (idempotency)
   const { error: delErr2 } = await supabase.schema('treasury').from('budgets')
     .delete()
-    .eq('data_source_id', ds.id)
-    .eq('fiscal_year', FISCAL_YEAR);
+    .eq('data_source_id', dsId)
+    .eq('fiscal_year', fiscalYear);
   if (delErr2) {
-    console.error('Delete (by data_source_id) failed:', delErr2.message);
-    process.exit(2);
+    console.error(`Delete (by data_source_id) failed: ${delErr2.message}`);
+    return { fy: fiscalYear, passed: false, total, rowCount: rows.length };
   }
+  console.log('Cleared old rows');
 
-  // ── Call treasury_sync_budget_tree RPC ────────────────────────────────────
+  // ── Step 11: Call treasury_sync_budget_tree RPC ───────────────────────────
   const { data: rpcResult, error: rpcErr } = await supabase.rpc('treasury_sync_budget_tree', {
-    p_data_source_id: ds.id,
-    p_fiscal_year:    FISCAL_YEAR,
+    p_data_source_id: dsId,
+    p_fiscal_year:    fiscalYear,
     p_dataset_type:   'operating',
     p_total:          total,
     p_tree:           jsonTree,
@@ -459,25 +499,108 @@ async function main() {
     p_triggered_by:   'bulk_load',
   });
 
-  if (rpcErr)           { console.error('RPC error:', rpcErr.message); process.exit(2); }
-  if (rpcResult?.error) { console.error('RPC returned error:', rpcResult.error); process.exit(2); }
+  if (rpcErr)           { console.error(`RPC error for FY${fiscalYear}: ${rpcErr.message}`); return { fy: fiscalYear, passed: false, total, rowCount: rows.length }; }
+  if (rpcResult?.error) { console.error(`RPC returned error for FY${fiscalYear}: ${rpcResult.error}`); return { fy: fiscalYear, passed: false, total, rowCount: rows.length }; }
 
   const inserted = rpcResult?.rows_inserted ?? rows.length;
-  console.log(`Loaded ${inserted} rows for FY${FISCAL_YEAR} (total $${Math.round(total).toLocaleString()})`);
+  console.log(`Loaded ${inserted} rows for FY${fiscalYear} (total $${Math.round(total).toLocaleString()})`);
 
-  // ── Set last_synced_at ────────────────────────────────────────────────────
+  // ── Step 12: Set last_synced_at ───────────────────────────────────────────
   const { error: syncErr } = await supabase.schema('treasury').from('data_sources')
     .update({ last_synced_at: new Date().toISOString() })
-    .eq('id', ds.id);
+    .eq('id', dsId);
   if (syncErr) {
-    console.error('last_synced_at update error:', syncErr.message);
-    // Non-fatal
+    console.warn(`last_synced_at update error: ${syncErr.message}`);
   } else {
-    console.log(`last_synced_at set for data_source ${ds.id}`);
+    console.log(`last_synced_at set for data_source ${dsId}`);
   }
 
-  console.log(`\nDone. Prosper FY${FISCAL_YEAR} operating budget loaded successfully.`);
+  console.log(`Done. Prosper FY${fiscalYear} operating budget loaded successfully.`);
   console.log(`Total: $${Math.round(total).toLocaleString()} ($${perCapita.toLocaleString()}/person)`);
+
+  return { fy: fiscalYear, passed: true, total, rowCount: inserted ?? rows.length, dsId };
+}
+
+// ── main ──────────────────────────────────────────────────────────────────────
+async function main() {
+  const { values: opts } = parseArgs({
+    options: {
+      'dry-run':  { type: 'boolean', default: false },
+      'verbose':  { type: 'boolean', default: false },
+      'no-cache': { type: 'boolean', default: false },
+      'fy':       { type: 'string'  },
+    },
+    strict: false,
+  });
+
+  const dryRun  = opts['dry-run'];
+  const verbose = opts['verbose'];
+  const noCache = opts['no-cache'];
+  const fyFilter = opts['fy'] ? parseInt(opts['fy'], 10) : null;
+
+  if (!SUPABASE_KEY) {
+    console.error('Missing SUPABASE_SERVICE_KEY or SUPABASE_SERVICE_ROLE_KEY env var');
+    process.exit(2);
+  }
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // ── Municipality lookup ───────────────────────────────────────────────────
+  const { data: muni, error: muniErr } = await supabase.schema('treasury')
+    .from('municipalities').select('id, name').ilike('name', 'Prosper').single();
+  if (muniErr || !muni) {
+    console.error('Could not find Prosper municipality:', muniErr?.message);
+    process.exit(2);
+  }
+  console.log(`Municipality: ${muni.name} (${muni.id})`);
+
+  const allFYs = [2023, 2024, 2025];
+  const targetFYs = fyFilter ? [fyFilter] : allFYs;
+
+  for (const fy of targetFYs) {
+    if (!PDF_URLS[fy]) {
+      console.error(`FY${fy} is not configured in this script`);
+      process.exit(2);
+    }
+  }
+
+  const results = [];
+  for (const fy of targetFYs) {
+    try {
+      const result = await processFY(supabase, muni.id, fy, { dryRun, verbose, noCache });
+      results.push(result);
+    } catch (e) {
+      console.error(`\nFatal error processing FY${fy}: ${e.message}`);
+      results.push({ fy, passed: false, total: 0, rowCount: 0 });
+    }
+  }
+
+  // ── Summary table ──────────────────────────────────────────────────────────
+  console.log(`\n${'═'.repeat(70)}`);
+  console.log('SUMMARY — Prosper Operating Budget');
+  console.log('═'.repeat(70));
+  console.log(`${'FY'.padEnd(6)} ${'Status'.padEnd(8)} ${'Total'.padStart(16)} ${'Per-capita'.padStart(12)} ${'Rows'.padStart(6)}`);
+  console.log('─'.repeat(70));
+  for (const r of results) {
+    const status    = r.passed ? 'PASS' : 'FAIL';
+    const totalStr  = r.total  ? `$${Math.round(r.total).toLocaleString()}` : '—';
+    const pcStr     = r.total  ? `$${Math.round(r.total / POPULATION).toLocaleString()}` : '—';
+    console.log(`${String(r.fy).padEnd(6)} ${status.padEnd(8)} ${totalStr.padStart(16)} ${pcStr.padStart(12)} ${String(r.rowCount).padStart(6)}`);
+  }
+  console.log('─'.repeat(70));
+
+  const allPassed = results.every(r => r.passed);
+  const anyPassed = results.some(r => r.passed);
+  if (allPassed) {
+    console.log('\nAll fiscal years passed validation and loaded successfully.');
+  } else if (anyPassed) {
+    const failed = results.filter(r => !r.passed).map(r => `FY${r.fy}`).join(', ');
+    console.log(`\nPartial success — ${failed} failed. See output above.`);
+  } else {
+    console.error('\nAll fiscal years failed. No data was written to the database.');
+    process.exit(2);
+  }
+
+  if (dryRun) console.log('(dry-run mode — no data was written to the database)');
 }
 
 main().catch(e => {
