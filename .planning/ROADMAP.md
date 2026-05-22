@@ -5,7 +5,7 @@
 - ✅ **v1.0 GiveButter Real-Time Donation Feedback** — Phases 1-4 (shipped 2026-04-22)
 - ✅ **v1.1 Texas Municipal Financial Transparency** — Phases 5-7 (shipped 2026-05-02)
 - ✅ **v1.2 Collin County Completion & Data Quality** — Phases 8-10 (shipped 2026-05-21)
-- 🚧 **v1.3 Revenue Completion & Per-Capita Context** — Phases 11-14 (in progress)
+- ✅ **v1.3 Revenue Completion & Per-Capita Context** — Phases 11-14 (shipped 2026-05-22)
 
 ---
 
@@ -135,7 +135,7 @@ Fixed PDF department attribution, loaded revenue for 4 TX cities, added 5 Collin
 
 ---
 
-### 🚧 v1.3 Revenue Completion & Per-Capita Context (In Progress — Phase 11 complete 2026-05-21)
+### ✅ v1.3 Revenue Completion & Per-Capita Context (Shipped 2026-05-22 — all 4 phases complete)
 
 **Milestone Goal:** Close out all deferred v1.2 data work and add population-based per-capita spending display so citizens can compare cities of different sizes.
 
@@ -216,7 +216,7 @@ Plans:
 
 Plans:
 - [x] 14-01-PLAN.md — Run category enrichment for Garland and Wylie; verify descriptions visible in app and municipality_id scoped correctly
-- [ ] 14-02-PLAN.md — Run category enrichment for Sachse, Murphy, and Princeton; verify descriptions visible in app and municipality_id scoped correctly
+- [x] 14-02-PLAN.md — Run category enrichment for Sachse, Murphy, and Princeton; verify descriptions visible in app and municipality_id scoped correctly
 
 ---
 
@@ -239,9 +239,9 @@ Plans:
 | 11. Population & Per-Capita | v1.3 | 3/3 | Complete | 2026-05-21 |
 | 12. Prosper + Celina Revenue | v1.3 | 3/3 | Complete | 2026-05-22 |
 | 13. Richardson Operating Budget | v1.3 | 1/1 | Complete | 2026-05-22 |
-| 14. Category Enrichment (5 cities) | v1.3 | 1/2 | In progress | - |
+| 14. Category Enrichment (5 cities) | v1.3 | 2/2 | Complete | 2026-05-22 |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-05-21 — Phase 12 plans created*
+*Last updated: 2026-05-22 — Phase 14 complete; v1.3 milestone shipped*
