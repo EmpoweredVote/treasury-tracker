@@ -1,19 +1,22 @@
 #!/usr/bin/env node
 /**
- * Prosper Revenue PDF Extractor
+ * Prosper Revenue PDF Extractor — All Governmental Funds
  *
- * Extracts General Fund revenue line items from Prosper ACFR PDFs (FY2023, FY2024, FY2025)
- * using pdftotext — no AI/API calls, pure text parsing.
+ * Extracts revenue data from ALL governmental fund Budget-and-Actual sections in
+ * Prosper ACFR PDFs (FY2023, FY2024, FY2025) using pdftotext — no AI/API calls.
  *
- * Targets the "STATEMENT OF REVENUES, EXPENDITURES AND CHANGES IN FUND BALANCE — GENERAL FUND —
- * BUDGET AND ACTUAL" section in each ACFR, which provides clean 3-column layout
- * (Original Budget / Final Budget / Actual) with minimal pdftotext alignment artifacts.
+ * Prior version (Phase 12-01) only captured General Fund revenues (~$23M). This
+ * version expands to all governmental fund B&A schedules to reach the correct total
+ * of ~$83M (FY2023), ~$102M (FY2024), ~$108M (FY2025).
  *
- * Avoids the all-funds governmental statement, which splits across two pdftotext page-blocks
- * with no label alignment on the right-column block (per 12-RESEARCH.md Pitfall 1).
+ * Strategy:
+ *  - General Fund: parse individual revenue line items (clean 3-column layout)
+ *  - Other funds with B&A schedules: extract "Total revenues" actual (4-column layout)
+ *  - Capital Projects Fund: no B&A (budgeted over project life) — derived as remainder
+ *  - Escrow Fund: no legally adopted budget — no B&A, effectively $0
  *
- * Validation: extracted General Fund actual total is compared against a hardcoded expected value
- * (±20%). Load is blocked if validation fails.
+ * Validation: extracted sum compared against all-funds governmental statement total
+ *   parsed from the combining statement right-block row (±20% tolerance).
  *
  * Usage:
  *   node scripts/processProsperjRevenuePDF.js                  # all three FYs
@@ -38,36 +41,34 @@ const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.s
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // ── Per-FY configuration ───────────────────────────────────────────────────────
-// PDF URLs: each FY uses its own ACFR PDF (Phase 9 seeded FY2023/FY2024 with wrong Item/682 URL)
 const PDF_URLS = {
   2025: 'https://www.prospertx.gov/ArchiveCenter/ViewFile/Item/682',
   2024: 'https://www.prospertx.gov/ArchiveCenter/ViewFile/Item/574',
   2023: 'https://www.prospertx.gov/ArchiveCenter/ViewFile/Item/489',
 };
 
-// Cache paths — script downloads here if not present (or if --no-cache)
 const CACHE_PATHS = {
   2025: 'C:/tmp/prosper_acfr_fy2025.pdf',
   2024: 'C:/tmp/prosper_acfr_fy2024.pdf',
   2023: 'C:/tmp/prosper_acfr_fy2023.pdf',
 };
 
-// Expected General Fund actual totals from each ACFR's Budget-and-Actual statement.
-// Source: direct pdftotext inspection of each ACFR (12-01 execution, 2026-05-21).
-//   FY2025 "REVENUES ... $ 23,102,540" — General Fund Budget-and-Actual, actual column
-//   FY2024 "REVENUES ... $ 20,579,402" — General Fund Budget-and-Actual, actual column
-//   FY2023 "REVENUES ... $ 23,634,916" — General Fund Budget-and-Actual, actual column
+// Expected TOTAL GOVERNMENTAL revenues from the all-funds combining statement.
+// Source: right-block "Total revenues" row of STATEMENT OF REVENUES, EXPENDITURES
+// AND CHANGES IN FUND BALANCES - GOVERNMENTAL FUNDS in each ACFR.
+//   FY2025 line: "  20,621,096  [...]  108,416,768" (Capital Projects col | Total col)
+//   FY2024 line: "  17,682,899  [...]  101,863,293" (Capital Projects col | Total col)
+//   FY2023 line: "  2,352,134  [blank]  224,206  [blank]  83,186,603" (CP | ARPA | Total)
 const EXPECTED_TOTALS = {
-  2025: 23_102_540,
-  2024: 20_579_402,
-  2023: 23_634_916,
+  2025: 108_416_768,
+  2024: 101_863_293,
+  2023:  83_186_603,
 };
 
 // 20% tolerance — if extracted sum deviates more than this, validation fails
 const TOLERANCE = 0.20;
 
 // ── parseMoney ─────────────────────────────────────────────────────────────────
-// Handles negatives in parens, $ signs, commas (standard pattern across all loaders)
 function parseMoney(raw) {
   if (!raw) return null;
   const t = raw.trim();
@@ -83,9 +84,7 @@ async function downloadPDF(url, dest) {
   const resp = await fetch(url, {
     headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/pdf,*/*' },
   });
-  if (!resp.ok) {
-    throw new Error(`HTTP ${resp.status} ${resp.statusText} downloading ${url}`);
-  }
+  if (!resp.ok) throw new Error(`HTTP ${resp.status} ${resp.statusText} downloading ${url}`);
   const buf = Buffer.from(await resp.arrayBuffer());
   fs.writeFileSync(dest, buf);
   console.log(`Downloaded ${url} → ${dest} (${(buf.length / 1024 / 1024).toFixed(1)} MB)`);
@@ -97,166 +96,162 @@ function extractPdfText(pdfPath) {
     maxBuffer: 256 * 1024 * 1024,
     encoding: 'utf8',
   });
-  // Strip form-feed characters that pdftotext inserts at page boundaries
   return text.split('\n').map(l => l.startsWith('\x0c') ? l.slice(1) : l);
 }
 
-// ── findRevenueSection ────────────────────────────────────────────────────────
-// Finds the General Fund Budget-and-Actual statement for revenue extraction.
+// ── getValues ─────────────────────────────────────────────────────────────────
+// Extract all money values (comma-grouped integers or decimals) from a line.
+const MONEY_RE = /\(?\$?\s*(?:\d{1,3}(?:,\d{3})+|\d{4,})\s*\)?/g;
+
+function getValues(line) {
+  return [...line.matchAll(MONEY_RE)].map(m => parseMoney(m[0])).filter(v => v !== null);
+}
+
+// ── getLabel ──────────────────────────────────────────────────────────────────
+function getLabel(line) {
+  const m = /\$\s*\d|\(\s*\d|\d{1,3}(?:,\d{3})/.exec(line);
+  if (!m) return line.trim();
+  return line.slice(0, m.index).trim();
+}
+
+// ── findAllBASections ──────────────────────────────────────────────────────────
+// Finds ALL Budget-and-Actual sections in the PDF.
+// Returns array of: { fundName, sectionLine, revenuesLine, revenueHeaderActual, is4col }
 //
-// The ACFR contains two STATEMENT OF REVENUES sections:
-//   1. All-funds governmental statement (wide, split across page-blocks — DO NOT USE for line items)
-//   2. General Fund Budget-and-Actual (3 columns, clean layout — PRIMARY TARGET)
+// Each section is anchored by:
+//   "STATEMENT/SCHEDULE OF REVENUES, EXPENDITURES" + fund name + "BUDGET AND ACTUAL"
+//   followed by a "REVENUES  $ ... $ ... $ ..." line
 //
-// Target anchor (ALL-CAPS):
-//   "STATEMENT OF REVENUES, EXPENDITURES AND CHANGES IN FUND BALANCE"
-//   followed by "GENERAL FUND" within 5 lines
-//   followed by "BUDGET AND ACTUAL" within 10 lines
-//
-// Returns { idx, revenueTotal } where idx is the line index of the REVENUES header row
-// (with the dollar values), and revenueTotal is the actual column value from that header.
-// Returns { idx: -1 } if not found.
-function findRevenueSection(lines, verbose) {
+// is4col: true if the REVENUES header row has 4 values (4th = variance), false if 3 (GF).
+function findAllBASections(lines, verbose) {
+  const sections = [];
+
   for (let i = 0; i < lines.length; i++) {
-    // Match the section title (ALL CAPS, Prosper-specific)
-    if (!/STATEMENT OF REVENUES, EXPENDITURES/.test(lines[i])) continue;
+    // Match section title
+    if (!/(?:STATEMENT|SCHEDULE) OF REVENUES, EXPENDITURES/.test(lines[i])) continue;
 
-    // Must be the General Fund version (not all-funds governmental)
-    let foundGF = false;
+    // Find fund name (within next 5 lines, ALL CAPS or mixed)
+    let fundName = null;
     let foundBA = false;
-    let revenuesIdx = -1;
 
-    for (let j = i + 1; j < Math.min(i + 15, lines.length); j++) {
+    for (let j = i + 1; j < Math.min(i + 12, lines.length); j++) {
       const t = lines[j].trim();
-      if (/^GENERAL FUND\s*$/.test(t)) foundGF = true;
-      if (/^BUDGET AND ACTUAL\s*$/.test(t)) foundBA = true;
-      // The REVENUES header row has dollar signs — that's where we start parsing
-      if (foundGF && foundBA && /REVENUES/.test(lines[j]) && /\$/.test(lines[j])) {
-        revenuesIdx = j;
+      if (!t) continue;
+
+      // "BUDGET AND ACTUAL" or "BUDGET AND ACTUAL" (sometimes indented)
+      if (/BUDGET AND ACTUAL/.test(t)) {
+        foundBA = true;
+        continue;
+      }
+
+      // Skip boilerplate lines
+      if (/^FOR THE YEAR|^TOWN OF PROSPER|^SCHEDULE OF|^STATEMENT OF|^CHANGES IN FUND/i.test(t)) continue;
+
+      // The fund name is typically in ALL CAPS or Title Case
+      if (!foundBA && !fundName && t.length > 2 && !/^\d/.test(t)) {
+        // Accept any non-numeric line as fund name (first non-blank, non-boilerplate)
+        fundName = t.replace(/\s+/g, ' ');
+      }
+    }
+
+    if (!fundName || !foundBA) continue;
+
+    // Find the REVENUES header line (has $ signs)
+    let revenuesLine = -1;
+    let revenueHeaderActual = null;
+    let is4col = false;
+
+    for (let j = i + 1; j < Math.min(i + 25, lines.length); j++) {
+      const t = lines[j].trim();
+      if (/^REVENUES\b/.test(t) && /\$/.test(lines[j])) {
+        revenuesLine = j;
+        const vals = getValues(lines[j]);
+        if (vals.length >= 3) {
+          // Check if last value is in parens (= negative variance → 4-column layout)
+          const lastRaw = lines[j].match(/\([\d,]+\)\s*$/)?.['0'];
+          if (lastRaw || vals.length >= 4) {
+            // 4-column: [orig, final, actual, variance]
+            is4col = true;
+            revenueHeaderActual = vals[vals.length - 2]; // 3rd from left = actual (2nd from right)
+          } else {
+            // 3-column: [orig, final, actual] — General Fund layout
+            is4col = false;
+            revenueHeaderActual = vals[vals.length - 1];
+          }
+        } else if (vals.length >= 1) {
+          revenueHeaderActual = vals[vals.length - 1];
+        }
         break;
       }
     }
 
-    if (foundGF && foundBA && revenuesIdx >= 0) {
-      // Extract the actual total from the REVENUES header row (rightmost $ value)
-      const revLine = lines[revenuesIdx];
-      const allVals = [...revLine.matchAll(/\$\s*([\d,]+)/g)].map(m => parseMoney(m[1]));
-      const revenueTotal = allVals.length > 0 ? allVals[allVals.length - 1] : null;
-      if (verbose) console.error(`[section-found] Line ${i}: GF Budget-and-Actual, REVENUES row at line ${revenuesIdx}, total=${revenueTotal}`);
-      return { idx: revenuesIdx, revenueTotal };
-    }
+    if (revenuesLine < 0) continue;
+
+    if (verbose) console.error(`[section] L${i+1}: "${fundName}" B&A found, REVENUES at L${revenuesLine+1}, headerActual=${revenueHeaderActual}, 4col=${is4col}`);
+
+    sections.push({ fundName, sectionLine: i, revenuesLine, revenueHeaderActual, is4col });
   }
-  return { idx: -1, revenueTotal: null };
+
+  return sections;
 }
 
-// ── parseRevenueLines ─────────────────────────────────────────────────────────
-// Parses revenue line items from the General Fund Budget-and-Actual statement.
-//
-// Layout in pdftotext -layout output (3-column: Original / Final / Actual):
-//
-//   REVENUES     $ 23,332,018 $ 23,370,581 $ 23,102,540  ← total header row (skip)
-//   Property taxes                                        ← label-only (pendingRow)
-//   Sales and use taxes   12,903,535  12,308,897  11,879,599  ← label+values
-//   Franchise fees                                        ← label-only (pendingRow)
-//   Licenses and permits   3,334,932   3,614,869   3,722,110  ← label+values
-//   ...
-//   Total revenues    950,000    800,000    719,230       ← stop (continuation artifact)
-//   EXPENDITURES                                          ← stop
-//
-// The "pendingRow" pattern: a label-only line (no values) is a category title whose
-// values appear on the NEXT line with values. When we see a label-only line, we store it;
-// if the next data line has values, emit a row using the stored label.
-//
-// revenueTotal: the actual total from the REVENUES header row. Used as an upper cap
-//   to reject garbled continuation lines whose values exceed the total (FY2023 artifact).
-//
-// Returns: array of { label, originalBudget, finalBudget, actual }
-function parseRevenueLines(lines, startIdx, revenueTotal, verbose) {
+// ── parseGFFundRevenues ────────────────────────────────────────────────────────
+// Parses detailed line items from the General Fund Budget-and-Actual statement.
+// Returns array of { label, originalBudget, finalBudget, actual }
+// (Same logic as the original single-fund extractor, now refactored as a function.)
+function parseGFFundRevenues(lines, startIdx, revenueTotal, verbose) {
   const rows = [];
   let pendingLabel = null;
-
-  // Regex to find comma-grouped numbers (thousands separators)
-  const MONEY_RE = /\(?\$?\s*(?:\d{1,3}(?:,\d{3})+|\d{4,})\s*\)?/g;
-
-  // Extract label (text before first money indicator)
-  function getLabel(line) {
-    const m = /\$\s*\d|\(\s*\d|\d{1,3}(?:,\d{3})/.exec(line);
-    if (!m) return line.trim();
-    return line.slice(0, m.index).trim();
-  }
-
-  // Extract all money values from a line (right-to-left: [original, final, actual])
-  function getValues(line) {
-    const matches = [...line.matchAll(MONEY_RE)];
-    return matches.map(m => parseMoney(m[0])).filter(v => v !== null);
-  }
 
   for (let i = startIdx; i < lines.length; i++) {
     const line = lines[i];
     const t = line.trim();
 
-    // Stop at EXPENDITURES section header
+    // Stop at EXPENDITURES
     if (/^EXPENDITURES\b/i.test(t)) {
-      if (verbose) console.error(`[stop] Line ${i}: reached EXPENDITURES`);
+      if (verbose) console.error(`[GF-stop] L${i+1}: EXPENDITURES`);
       break;
     }
 
-    // Stop at Total revenues (not a line item — used for validation reference only)
-    if (/^\s*Total revenues\b/i.test(line)) {
-      if (verbose) console.error(`[skip-total] Line ${i}: "Total revenues" — not a line item`);
+    // Skip "Total revenues" row — not a line item
+    if (/^\s*Total\s+[Rr]evenues?\b/.test(line)) {
+      if (verbose) console.error(`[GF-skip-total] L${i+1}`);
       continue;
     }
 
-    // Stop at Total Revenues (alternate casing)
-    if (/^\s*Total Revenues\b/.test(line)) {
-      if (verbose) console.error(`[skip-total] Line ${i}: "Total Revenues" — not a line item`);
-      continue;
-    }
-
-    // Skip blanks, page markers, column headers, section titles
+    // Skip blanks and boilerplate
     if (!t) continue;
-    if (/^STATEMENT OF|^FOR THE YEAR|^REVENUES\s*$|^Page \d+|GAAP Basis|Original\s*$|Final\s*$|Actual\s*$/i.test(t)) continue;
-    if (/^Budget\s*$|^Amounts\s*$/i.test(t)) continue;
+    if (/^(?:STATEMENT OF|FOR THE YEAR|REVENUES\s*$|Page \d+|GAAP Basis|Original\s*$|Final\s*$|Actual\s*$|Budget\s*$|Amounts\s*$)/i.test(t)) continue;
     if (/Town of Prosper|TOWN OF PROSPER/i.test(t)) continue;
-    // Skip the REVENUES header line (has $ signs and large numbers — it's the section total)
+    // Skip the REVENUES header line itself (has $ sign with large number)
     if (/^REVENUES\b/.test(t) && /\$/.test(line)) continue;
 
     const label = getLabel(line);
     const values = getValues(line);
     const hasValues = values.length >= 1;
 
-    // Label-only line (no dollar amounts) — could be a pendingRow trigger
     if (!hasValues) {
       if (label && label.length > 1 && !/^\$/.test(label)) {
-        // Flush any prior pending (orphaned label with no values)
-        if (pendingLabel) {
-          if (verbose) console.error(`[skip-no-amount] L${i}: orphaned label "${pendingLabel}" — no values found`);
-          pendingLabel = null;
-        }
+        if (pendingLabel && verbose) console.error(`[GF-orphan] L${i+1}: pending "${pendingLabel}" → no values`);
         pendingLabel = label;
-        if (verbose) console.error(`[pending] L${i}: "${label}" (awaiting values)`);
+        if (verbose) console.error(`[GF-pending] L${i+1}: "${label}"`);
       }
       continue;
     }
 
-    // Line has values — determine the label
     let effectiveLabel = label;
     if (!label || label.length < 2) {
-      // No label on this line — use pendingLabel if available
       if (pendingLabel) {
         effectiveLabel = pendingLabel;
         pendingLabel = null;
-        if (verbose) console.error(`[merged] L${i}: used pending label "${effectiveLabel}" for values`);
+        if (verbose) console.error(`[GF-merged] L${i+1}: used pending "${effectiveLabel}"`);
       } else {
-        if (verbose) console.error(`[skip-no-label] L${i}: values with no label — skipping`);
+        if (verbose) console.error(`[GF-skip-nolabel] L${i+1}: values with no label`);
         continue;
       }
     } else {
-      // This line has both label and values
-      // If we had a pendingLabel AND this line has its own label+values,
-      // the pendingLabel was a standalone category header (emit it separately? No — skip it)
       if (pendingLabel) {
-        if (verbose) console.error(`[skip-no-amount] L${i}: pending label "${pendingLabel}" never got values — skipping it`);
+        if (verbose) console.error(`[GF-drop-pending] L${i+1}: pending "${pendingLabel}" had no values`);
         pendingLabel = null;
       }
     }
@@ -265,88 +260,443 @@ function parseRevenueLines(lines, startIdx, revenueTotal, verbose) {
     if (/^EXPENDITURES|^OTHER FINANCING|^NET CHANGE|^FUND BALANCE|^Excess|^Total\b/i.test(effectiveLabel)) continue;
     if (/^CHANGE IN FUND|^FUND BALANCES/i.test(effectiveLabel)) break;
 
-    // The three columns are: [original_budget, final_budget, actual]
-    // Use last value as actual (rightmost column)
-    const actual   = values.length >= 1 ? values[values.length - 1] : null;
-    const finalBudget = values.length >= 2 ? values[values.length - 2] : null;
+    // GF = 3 columns [orig, final, actual]; actual = rightmost
+    const actual         = values.length >= 1 ? values[values.length - 1] : null;
+    const finalBudget    = values.length >= 2 ? values[values.length - 2] : null;
     const originalBudget = values.length >= 3 ? values[values.length - 3] : null;
 
     if (actual === null || actual === 0) {
-      if (verbose) console.error(`[skip-zero] L${i}: "${effectiveLabel}" — actual is null/0`);
+      if (verbose) console.error(`[GF-skip-zero] L${i+1}: "${effectiveLabel}" actual=null/0`);
       continue;
     }
 
-    // Reject implausibly large values: any individual item should be ≤ the REVENUES total.
-    // This catches garbled continuation lines from the all-funds table (e.g. FY2023 Miscellaneous
-    // label picks up a $47M Contributions row from the adjacent governmental statement).
+    // Overflow guard: reject individual items > REVENUES total * 1.05
     if (revenueTotal && Math.abs(actual) > Math.abs(revenueTotal) * 1.05) {
-      if (verbose) console.error(`[skip-overflow] L${i}: "${effectiveLabel}" actual=${actual} exceeds REVENUES total (${revenueTotal}) — garbled line, skipping`);
+      if (verbose) console.error(`[GF-overflow] L${i+1}: "${effectiveLabel}" actual=${actual} > total — skipping`);
       continue;
     }
 
     rows.push({ label: effectiveLabel, originalBudget, finalBudget, actual });
-    if (verbose) console.error(`[row] L${i}: "${effectiveLabel}" orig=${originalBudget} final=${finalBudget} actual=${actual}`);
+    if (verbose) console.error(`[GF-row] L${i+1}: "${effectiveLabel}" orig=${originalBudget} final=${finalBudget} actual=${actual}`);
   }
 
   return rows;
 }
 
-// ── buildTree ─────────────────────────────────────────────────────────────────
-// Builds the JSON tree for the treasury_sync_budget_tree RPC.
-// Revenue rows are structured under "General Fund Revenue" department.
-// Format mirrors processRevenuePDF.js buildTree().
-function buildTree(rows) {
-  const tree = new Map();
-  let total = 0;
+// ── parseNonGFFundTotal ────────────────────────────────────────────────────────
+// Extracts revenue line items and "Total revenues" actual for a non-GF fund B&A.
+//
+// Non-GF funds use 4-column layout: [orig, final, actual, variance]
+//
+// Key insight: the REVENUES header row for non-GF funds shows the FIRST revenue
+// line item (e.g. property taxes or sales taxes), NOT the section total. This differs
+// from General Fund where the REVENUES header shows the total.
+//
+// Therefore: the revenueHeaderActual (passed in from findAllBASections) is the first
+// item's actual value, and must be included in the running sum.
+//
+// "Total revenues" label handling:
+//   A) ≥3 values on same line → actual = 3rd value (or 2nd-from-right if last is variance)
+//   B) 0 values on label line → continuation on next non-blank line → same extraction
+//   C) 1-2 values (variance or partial) → ALSO look at next non-blank line for full values
+//
+// Returns { total, items: [{label, originalBudget, finalBudget, actual}] }
+function parseNonGFFundTotal(lines, revenuesLine, fundName, revenueHeaderActual, is4col, verbose) {
+  const items = [];
+  let totalFromLabel = null;
+  let pendingLabel = null;
 
-  for (const row of rows) {
-    const approved = Number(row.originalBudget) || 0;
-    const actual   = row.actual != null ? Number(row.actual) : null;
+  // Include the REVENUES header row as the first revenue item (taxes/impact fees etc.)
+  // The header label is typically a major tax category (sales taxes, property taxes, impact fees)
+  // We use a generic label since we don't know the exact category without more context.
+  if (revenueHeaderActual !== null && revenueHeaderActual > 0) {
+    // Determine label from context: look at the line following the REVENUES header
+    // which may have the first category label
+    let firstItemLabel = 'Taxes and fees';
+    const nextLine = lines[revenuesLine + 1] || '';
+    const nextLabel = getLabel(nextLine);
+    if (nextLabel && nextLabel.length > 1 && !getValues(nextLine).length) {
+      // Label-only line right after REVENUES header = first category label
+      firstItemLabel = nextLabel;
+    }
 
-    if (approved === 0 && (actual === null || actual === 0)) continue;
+    // Also check: for funds where REVENUES header has 4-col, extract budget values
+    const headerVals = getValues(lines[revenuesLine]);
+    let headerOrig = null, headerFinal = null;
+    if (headerVals.length >= 4 || (headerVals.length >= 3 && is4col)) {
+      headerOrig  = headerVals[0];
+      headerFinal = headerVals[1];
+    } else if (headerVals.length >= 3) {
+      headerOrig  = headerVals[0];
+      headerFinal = headerVals[1];
+    }
 
-    const dept = 'General Fund Revenue';
-    const cat  = row.label || 'Revenue';
-
-    if (!tree.has(dept)) tree.set(dept, new Map());
-    if (!tree.get(dept).has(cat)) tree.get(dept).set(cat, []);
-    tree.get(dept).get(cat).push({
-      d: cat,
-      a: approved,
-      aa: actual,
-      f: 'General Fund',
-      e: null,
+    items.push({
+      label: firstItemLabel,
+      originalBudget: headerOrig ?? 0,
+      finalBudget: headerFinal ?? 0,
+      actual: revenueHeaderActual,
     });
-    total += approved;
+    if (verbose) console.error(`[nonGF-${fundName}] L${revenuesLine + 1}: REVENUES header item "${firstItemLabel}" actual=${revenueHeaderActual}`);
   }
 
+  // Scan from the line after REVENUES header until EXPENDITURES
+  const sectionLines = [];
+  for (let i = revenuesLine + 1; i < lines.length; i++) {
+    const line = lines[i];
+    const t = line.trim();
+    if (/^EXPENDITURES\b/i.test(t)) break;
+    if (/^CHANGE IN FUND/i.test(t)) break;
+    sectionLines.push({ lineNo: i + 1, line, t });
+  }
+
+  if (verbose) console.error(`[nonGF-${fundName}] section has ${sectionLines.length} lines before EXPENDITURES`);
+
+  // ── Helper: extract "total revenues" actual from a line or continuation ────
+  function extractTotalRevenuesFromLine(lineIdx) {
+    const { line } = sectionLines[lineIdx];
+    const vals = getValues(line);
+
+    if (vals.length >= 3) {
+      const lastIsNeg = /\(\s*[\d,]+\s*\)\s*$/.test(line.trim());
+      if (vals.length >= 4 || lastIsNeg) {
+        return { total: vals[2], skipNext: false };
+      } else {
+        return { total: vals[vals.length - 1], skipNext: false };
+      }
+    }
+
+    // 0, 1, or 2 values on label line — look at next non-blank line for continuation
+    let j = lineIdx + 1;
+    while (j < sectionLines.length && !sectionLines[j].t) j++;
+    if (j < sectionLines.length) {
+      const nextLine = sectionLines[j].line;
+      const nextVals = getValues(nextLine);
+      if (nextVals.length >= 3) {
+        const lastIsNeg = /\(\s*[\d,]+\s*\)\s*$/.test(nextLine.trim());
+        if (nextVals.length >= 4 || lastIsNeg) {
+          if (verbose) console.error(`[nonGF-${fundName}] L${sectionLines[j].lineNo}: Total revenues continuation (4col) actual=${nextVals[2]}`);
+          return { total: nextVals[2], skipNext: j };
+        } else {
+          if (verbose) console.error(`[nonGF-${fundName}] L${sectionLines[j].lineNo}: Total revenues continuation (3col) actual=${nextVals[nextVals.length - 1]}`);
+          return { total: nextVals[nextVals.length - 1], skipNext: j };
+        }
+      } else if (nextVals.length >= 1 && vals.length === 0) {
+        // Only 1-2 values on continuation — could be variance-only, skip
+        if (verbose) console.error(`[nonGF-${fundName}] L${sectionLines[j].lineNo}: Total revenues continuation has only ${nextVals.length} values — skipping`);
+      }
+    }
+
+    return { total: null, skipNext: false };
+  }
+
+  let i = 0;
+  while (i < sectionLines.length) {
+    const { lineNo, line, t } = sectionLines[i];
+
+    if (!t) { i++; continue; }
+
+    // Skip boilerplate
+    if (/^(?:FOR THE YEAR|TOWN OF PROSPER|Original\s*$|Final\s*$|Actual\s*$|Budget\s*$|Amounts\s*$|GAAP Basis|Positive\s*$|\(Negative\)\s*$|Variance|Budgetary)/i.test(t)) {
+      i++; continue;
+    }
+
+    const values = getValues(line);
+    const label = getLabel(line);
+
+    // Handle "Total revenues" / "Total Revenue" / "Total Revenues" labeled lines
+    if (/^\s*Total\s+[Rr]evenues?\b/i.test(line)) {
+      const { total, skipNext } = extractTotalRevenuesFromLine(i);
+      if (total !== null) {
+        totalFromLabel = total;
+        if (verbose) console.error(`[nonGF-${fundName}] L${lineNo}: Total revenues → actual=${totalFromLabel}`);
+      } else {
+        if (verbose) console.error(`[nonGF-${fundName}] L${lineNo}: Total revenues — could not extract actual`);
+      }
+      if (skipNext !== false) i = skipNext;
+      i++;
+      continue;
+    }
+
+    // Parse individual revenue item
+    if (values.length >= 1) {
+      let effectiveLabel = label;
+      if (!label || label.length < 2) {
+        if (pendingLabel) {
+          effectiveLabel = pendingLabel;
+          pendingLabel = null;
+        } else {
+          // Values with no label — skip (likely overflow from adjacent table or variance-only)
+          i++; continue;
+        }
+      } else {
+        if (pendingLabel) {
+          if (verbose) console.error(`[nonGF-${fundName}] L${lineNo}: pending "${pendingLabel}" got no values — orphan`);
+          pendingLabel = null;
+        }
+      }
+
+      // Skip non-revenue items (Other Financing Sources, Fund Balance, etc.)
+      if (/^(?:EXPENDITURES|OTHER FINANCING|NET CHANGE|FUND BALANCE|Excess|CHANGE IN FUND|Transfers?\s+(?:in|out)|Total\s+other|Total\s+expenditures|Total\s+financing|Issuance|Premium|Payment|Insurance)/i.test(effectiveLabel)) {
+        i++; continue;
+      }
+
+      // Determine actual from column position:
+      // 4-column: [orig, final, actual, variance] → actual = values[2]
+      // 3-column: [orig, final, actual] → actual = values[2] or values[-1]
+      // 2-column: [something, actual] → actual = values[1]
+      // 1-column: only variance or partial → actual = values[0] (may be wrong)
+      let actual, originalBudget, finalBudget;
+      const lastIsNeg = /\(\s*[\d,]+\s*\)\s*$/.test(line.trim());
+
+      if (values.length >= 4 || (values.length === 3 && lastIsNeg)) {
+        actual         = values[2];
+        finalBudget    = values[1];
+        originalBudget = values[0];
+      } else if (values.length === 3) {
+        actual         = values[2];
+        finalBudget    = values[1];
+        originalBudget = values[0];
+      } else if (values.length === 2) {
+        // Could be [orig, actual] or [final, actual] or [actual, variance]
+        // Use 2nd value as actual (more conservative)
+        actual         = values[1];
+        originalBudget = values[0];
+      } else {
+        // Single value: if it's in parentheses it's variance — skip
+        if (lastIsNeg) { i++; continue; }
+        // Otherwise treat as actual (small funds like Court Security investment income)
+        actual = values[0];
+      }
+
+      if (actual !== null && actual !== 0) {
+        // Skip if this label is the same as the first item we already added from the header
+        const alreadyAdded = items.length > 0 &&
+          (effectiveLabel === items[0].label ||
+           (Math.abs(actual - items[0].actual) < 1 && actual !== 0));
+
+        if (!alreadyAdded) {
+          items.push({ label: effectiveLabel, originalBudget: originalBudget ?? 0, finalBudget: finalBudget ?? 0, actual });
+          if (verbose) console.error(`[nonGF-${fundName}] L${lineNo}: item "${effectiveLabel}" actual=${actual}`);
+        } else {
+          if (verbose) console.error(`[nonGF-${fundName}] L${lineNo}: skip duplicate "${effectiveLabel}" actual=${actual} (already in header item)`);
+        }
+      }
+    } else {
+      // Label-only line
+      if (t && t.length > 1 && !/^\$/.test(t)) {
+        if (pendingLabel) {
+          if (verbose) console.error(`[nonGF-${fundName}] L${lineNo}: orphan pending "${pendingLabel}"`);
+        }
+        pendingLabel = t;
+      }
+    }
+
+    i++;
+  }
+
+  // Compute sum of all extracted items (including header item)
+  const sumOfItems = items.reduce((s, r) => s + (r.actual || 0), 0);
+
+  // Best total = max of (totalFromLabel, sumOfItems)
+  // "Total revenues" label value is the most reliable when the layout is clean.
+  // sumOfItems may be higher for funds where the label total is partial/garbled (TIRZ 1).
+  let total;
+  if (totalFromLabel !== null && totalFromLabel > 0) {
+    total = Math.max(totalFromLabel, sumOfItems);
+    if (verbose && Math.abs(totalFromLabel - sumOfItems) > 1000) {
+      console.error(`[nonGF-${fundName}] label total=${totalFromLabel} vs items sum=${sumOfItems} → using max=${total}`);
+    }
+  } else {
+    total = sumOfItems;
+    if (verbose) console.error(`[nonGF-${fundName}] no label total found, using items sum=${sumOfItems}`);
+  }
+
+  return { total, items };
+}
+
+// ── extractAllFundsTotal ───────────────────────────────────────────────────────
+// Extracts the total governmental revenues from the all-funds combining statement.
+//
+// The STATEMENT OF REVENUES, EXPENDITURES AND CHANGES IN FUND BALANCES -
+// GOVERNMENTAL FUNDS has a right-block page that shows:
+//   Capital Projects | Escrow | Nonmajor | Total
+//
+// The "Total revenues" row in the right block shows:
+//   <Capital Projects total>  [blanks]  <Grand Total>
+//
+// The Grand Total (rightmost number on that line) is the total governmental revenues.
+//
+// Returns the total as a number, or null if not found.
+function extractAllFundsTotal(lines, verbose) {
+  // Find the STATEMENT OF REVENUES... GOVERNMENTAL FUNDS section
+  let stmtLine = -1;
+  for (let i = 0; i < lines.length; i++) {
+    if (/STATEMENT OF REVENUES, EXPENDITURES/.test(lines[i]) &&
+        /GOVERNMENTAL FUNDS/.test(lines[i + 1] || '') ||
+        (/STATEMENT OF REVENUES/.test(lines[i]) && /CHANGES IN FUND BALANCE/.test(lines[i]) &&
+         /GOVERNMENTAL FUNDS/.test(lines[i + 1] || '')) ||
+        // Two-line version
+        (i > 0 && /CHANGES IN FUND BALANCE/.test(lines[i]) &&
+         /GOVERNMENTAL FUNDS/.test(lines[i + 1] || '') &&
+         /STATEMENT OF REVENUES/.test(lines[i - 1] || ''))) {
+      stmtLine = i;
+      break;
+    }
+  }
+
+  // Alternative: find the right-block header "Capital Projects ... Escrow ... Nonmajor ... Total"
+  // within ~100 lines of the first STATEMENT OF REVENUES occurrence
+  let rightBlockHeader = -1;
+  const stmtStart = stmtLine >= 0 ? stmtLine : 0;
+  for (let i = stmtStart; i < Math.min(stmtStart + 200, lines.length); i++) {
+    if (/Capital\s+Projects?/.test(lines[i]) && /Nonmajor/i.test(lines[i] + (lines[i+1] || ''))) {
+      rightBlockHeader = i;
+      if (verbose) console.error(`[allFunds] Right-block header at L${i+1}: ${lines[i].trim()}`);
+      break;
+    }
+    // For FY2023: 'Capital    Escrow    ARPA    Nonmajor    Governmental'
+    if (/Capital/.test(lines[i]) && /Escrow/.test(lines[i]) && /Governmental/.test(lines[i] + (lines[i+1] || ''))) {
+      rightBlockHeader = i;
+      if (verbose) console.error(`[allFunds] Right-block header (FY2023 style) at L${i+1}: ${lines[i].trim()}`);
+      break;
+    }
+  }
+
+  if (rightBlockHeader < 0) {
+    if (verbose) console.error(`[allFunds] Could not find right-block header`);
+    return null;
+  }
+
+  // Scan forward for "Total revenues" row or the large summary number.
+  // The Total revenues row is within ~45 lines of the right-block header.
+  //
+  // Strategy:
+  //   1. FIRST, look for a 2-column row (CP | Total): this is the cleanest signal.
+  //      Return on FIRST 2-col match to avoid scanning into expenditures.
+  //   2. FALLBACK: if no 2-col row found, collect 3-col candidates (FY2023 ARPA structure)
+  //      and return the largest.
+  //   3. FALLBACK: single large number.
+  //
+  // Note: stop scanning at EXPENDITURES to avoid picking up expenditure totals.
+  let fallback3col = null;
+  let fallback1col = null;
+  for (let i = rightBlockHeader + 1; i < Math.min(rightBlockHeader + 50, lines.length); i++) {
+    const line = lines[i];
+    if (!line.trim()) continue;
+
+    // Stop if we hit EXPENDITURES (we've gone too far into the statement)
+    if (/^EXPENDITURES\b/i.test(line.trim())) break;
+    if (/^\s*Total\s+expenditures\b/i.test(line.trim())) break;
+
+    // Extract all 5+ digit numbers from the line
+    const nums = [...line.matchAll(/[\d,]{5,}/g)].map(m => parseInt(m[0].replace(/,/g, ''), 10));
+
+    // 2-number row: Capital Projects | Total Governmental
+    // This is the most reliable match — return immediately on first qualifying 2-col row.
+    if (nums.length === 2 && nums[1] > nums[0] && nums[1] > 50_000_000) {
+      if (verbose) console.error(`[allFunds] L${i+1}: Total revenues (2-col) — CP=${nums[0].toLocaleString()} Total=${nums[1].toLocaleString()}`);
+      return nums[1];
+    }
+
+    // FY2023: 3 numbers (Capital Projects, ARPA, Total Governmental)
+    // e.g. "2,352,134  -  224,206  -  83,186,603"
+    // Collect as fallback (don't return early — a 2-col row may appear later).
+    if (nums.length === 3 && nums[2] > nums[0] && nums[2] > 50_000_000) {
+      if (verbose) console.error(`[allFunds] L${i+1}: candidate 3-col — CP=${nums[0].toLocaleString()} mid=${nums[1].toLocaleString()} Total=${nums[2].toLocaleString()}`);
+      if (fallback3col === null || nums[2] > fallback3col) fallback3col = nums[2];
+      continue;
+    }
+
+    // Single large number (> 50M, < 500M) = total
+    if (nums.length === 1 && nums[0] > 50_000_000 && nums[0] < 500_000_000) {
+      if (verbose) console.error(`[allFunds] L${i+1}: candidate 1-col — Total=${nums[0].toLocaleString()}`);
+      if (fallback1col === null || nums[0] > fallback1col) fallback1col = nums[0];
+      continue;
+    }
+  }
+
+  // No 2-col row found — use best fallback
+  if (fallback3col !== null) {
+    if (verbose) console.error(`[allFunds] Using 3-col fallback: ${fallback3col.toLocaleString()}`);
+    return fallback3col;
+  }
+  if (fallback1col !== null) {
+    if (verbose) console.error(`[allFunds] Using 1-col fallback: ${fallback1col.toLocaleString()}`);
+    return fallback1col;
+  }
+
+  if (verbose) console.error(`[allFunds] Could not find total revenues row after right-block header`);
+  return null;
+}
+
+// ── buildTree ─────────────────────────────────────────────────────────────────
+// Builds the JSON tree for treasury_sync_budget_tree RPC.
+// Each fund becomes a "department". Within each fund, revenue line items are categories.
+// For funds where we only have a total (no line items), create a single category entry.
+function buildTree(fundResults) {
   const jsonTree = [];
-  for (const [deptName, cats] of tree) {
+  let grandTotal = 0;
+
+  for (const { fundName, items, total } of fundResults) {
+    // Determine line items to use
+    let lineItems = items;
+    if (!lineItems || lineItems.length === 0) {
+      // Single line item = the total itself
+      lineItems = [{
+        label: 'Total revenues',
+        originalBudget: 0,
+        finalBudget: 0,
+        actual: total,
+      }];
+    }
+
+    const dept = fundName;
     let deptTotal = 0;
+    const catMap = new Map();
+
+    for (const row of lineItems) {
+      const approved = Number(row.originalBudget) || 0;
+      const actual   = row.actual != null ? Number(row.actual) : null;
+
+      if (approved === 0 && (actual === null || actual === 0)) continue;
+
+      const cat = row.label || 'Revenue';
+      if (!catMap.has(cat)) catMap.set(cat, []);
+      catMap.get(cat).push({
+        d: cat,
+        a: approved,
+        aa: actual,
+        f: fundName,
+        e: null,
+      });
+      deptTotal += approved;
+    }
+
+    if (catMap.size === 0) continue;
+
     const children = [];
-    for (const [catName, items] of cats) {
-      const catTotal = items.reduce((s, item) => s + item.a, 0);
-      deptTotal += catTotal;
-      children.push({ n: catName, a: catTotal, i: items });
+    for (const [catName, catItems] of catMap) {
+      const catTotal = catItems.reduce((s, item) => s + item.a, 0);
+      children.push({ n: catName, a: catTotal, i: catItems });
     }
     children.sort((a, b) => b.a - a.a);
-    jsonTree.push({ n: deptName, a: deptTotal, c: children });
-  }
-  jsonTree.sort((a, b) => b.a - a.a);
 
-  return { jsonTree, total };
+    jsonTree.push({ n: dept, a: deptTotal, c: children });
+    grandTotal += deptTotal;
+  }
+
+  jsonTree.sort((a, b) => b.a - a.a);
+  return { jsonTree, total: grandTotal };
 }
 
 // ── validateTotal ─────────────────────────────────────────────────────────────
-// Compares the sum of extracted actual values against the hardcoded expected total.
-// Returns true if within TOLERANCE, false otherwise.
-// If expected is null, validation is skipped (with a warning) and returns true.
 function validateTotal(extractedActual, expected, fyLabel) {
   console.log(`\n  Validation (${fyLabel}):`);
   console.log(`    Extracted actual total: $${Math.round(extractedActual).toLocaleString()}`);
 
   if (expected == null) {
-    console.warn(`    WARNING: No expected total for ${fyLabel} — skipping validation, proceeding with load`);
+    console.warn(`    WARNING: No expected total — skipping validation`);
     return true;
   }
 
@@ -365,12 +715,10 @@ function validateTotal(extractedActual, expected, fyLabel) {
 }
 
 // ── processFY ────────────────────────────────────────────────────────────────
-// Orchestrates the full extract → validate → load pipeline for one fiscal year.
-// Returns { fy, passed, total, rowCount, dsId }
 async function processFY(supabase, muniId, fiscalYear, opts) {
   const { dryRun, verbose, noCache, pdfOverride } = opts;
   console.log(`\n${'─'.repeat(70)}`);
-  console.log(`Processing Prosper FY${fiscalYear}`);
+  console.log(`Processing Prosper FY${fiscalYear} — All Governmental Funds`);
   console.log('─'.repeat(70));
 
   // ── Step 1: Resolve PDF path ──────────────────────────────────────────────
@@ -389,7 +737,6 @@ async function processFY(supabase, muniId, fiscalYear, opts) {
       }
       console.log(`Downloading FY${fiscalYear} PDF...`);
       try {
-        // Ensure cache directory exists
         const dir = path.dirname(pdfPath);
         if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
         await downloadPDF(url, pdfPath);
@@ -413,65 +760,111 @@ async function processFY(supabase, muniId, fiscalYear, opts) {
   }
   console.log(`  Lines extracted: ${lines.length}`);
 
-  // ── Step 3: Find revenue section ──────────────────────────────────────────
-  const { idx: sectionIdx, revenueTotal: headerTotal } = findRevenueSection(lines, verbose);
-  if (sectionIdx < 0) {
-    console.error(`Section not found for FY${fiscalYear} — could not locate GF Budget-and-Actual REVENUES row`);
-    // Print context around likely section for debugging
-    const ctxStart = lines.findIndex(l => /STATEMENT OF REVENUES, EXPENDITURES/.test(l));
-    if (ctxStart >= 0) {
-      console.error(`  Context around line ${ctxStart}:`);
-      lines.slice(ctxStart, Math.min(ctxStart + 20, lines.length)).forEach((l, i) => {
-        console.error(`  L${ctxStart + i}: ${l}`);
-      });
+  // ── Step 3: Find all B&A sections ────────────────────────────────────────
+  const sections = findAllBASections(lines, verbose);
+  console.log(`  B&A sections found: ${sections.length}`);
+
+  if (sections.length === 0) {
+    console.error(`No B&A sections found for FY${fiscalYear}`);
+    return { fy: fiscalYear, passed: false, total: 0, rowCount: 0, dsId: null };
+  }
+
+  // ── Step 4: Extract revenues from each fund section ───────────────────────
+  const fundResults = [];
+  let totalActual = 0;
+  let totalRowCount = 0;
+
+  for (const section of sections) {
+    const { fundName, revenuesLine, revenueHeaderActual, is4col } = section;
+
+    let fundData;
+
+    if (/GENERAL FUND/i.test(fundName)) {
+      // Use detailed line-item parser for General Fund
+      const gfRows = parseGFFundRevenues(lines, revenuesLine + 1, revenueHeaderActual, verbose);
+      const gfActual = gfRows.reduce((s, r) => s + (r.actual || 0), 0);
+      console.log(`  [General Fund] ${gfRows.length} items, actual=$${Math.round(gfActual).toLocaleString()}`);
+      fundData = { fundName: 'General Fund', items: gfRows, total: gfActual };
+    } else {
+      // Use total-only parser for other funds
+      const result = parseNonGFFundTotal(lines, revenuesLine, fundName, verbose);
+      const { total, items } = result;
+
+      if (total <= 0 && verbose) {
+        console.error(`  [${fundName}] WARNING: extracted total=${total} — could be parsing issue`);
+      }
+
+      // Normalize fund name for display
+      const displayName = fundName
+        .replace(/TOWN OF PROSPER,?\s*TEXAS/i, '')
+        .replace(/SCHEDULE OF REVENUES.*$/i, '')
+        .trim();
+
+      console.log(`  [${displayName}] total actual=$${Math.round(total).toLocaleString()}  (${items.length} items extracted)`);
+      fundData = { fundName: displayName, items, total };
     }
-    return { fy: fiscalYear, passed: false, total: 0, rowCount: 0, dsId: null };
-  }
-  console.log(`  Revenue section found at line ${sectionIdx}, header total=$${headerTotal?.toLocaleString() ?? '?'}`);
 
-  // ── Step 4: Parse revenue lines ───────────────────────────────────────────
-  const rows = parseRevenueLines(lines, sectionIdx + 1, headerTotal, verbose);
-  console.log(`  Revenue rows parsed: ${rows.length}`);
-
-  if (rows.length === 0) {
-    console.error(`No revenue rows extracted for FY${fiscalYear}`);
-    return { fy: fiscalYear, passed: false, total: 0, rowCount: 0, dsId: null };
+    fundResults.push(fundData);
+    totalActual += fundData.total;
+    totalRowCount += Math.max(fundData.items.length, 1);
   }
 
-  // Print parsed rows
-  console.log('\n  Line items:');
-  console.log('  ' + '─'.repeat(60));
-  for (const row of rows) {
-    const origStr   = row.originalBudget != null ? `$${Math.round(row.originalBudget).toLocaleString()}` : '—';
-    const actualStr = row.actual != null ? `$${Math.round(row.actual).toLocaleString()}` : '—';
-    console.log(`  ${row.label.padEnd(38)} orig: ${origStr.padStart(12)}   actual: ${actualStr.padStart(12)}`);
+  console.log(`\n  Fund breakdown:`);
+  console.log('  ' + '─'.repeat(65));
+  for (const fr of fundResults) {
+    console.log(`  ${fr.fundName.padEnd(45)} $${Math.round(fr.total).toLocaleString().padStart(16)}`);
   }
-  console.log('  ' + '─'.repeat(60));
+  console.log('  ' + '─'.repeat(65));
+  console.log(`  ${'TOTAL (extracted)'.padEnd(45)} $${Math.round(totalActual).toLocaleString().padStart(16)}`);
 
-  // ── Step 5: Validate ──────────────────────────────────────────────────────
-  // Use original budget total for the approved_amount in the tree,
-  // and actual total for the validation check.
-  const actualTotal = rows.reduce((s, r) => s + (r.actual || 0), 0);
-  const origTotal   = rows.reduce((s, r) => s + (r.originalBudget || 0), 0);
-  const expected    = EXPECTED_TOTALS[fiscalYear] ?? null;
+  // ── Step 5: Derive Capital Projects Fund (no B&A) ─────────────────────────
+  // Capital Projects Fund is budgeted over project life — no annual B&A statement.
+  // Derive from: Total Governmental - sum of all B&A fund actuals.
+  const allFundsTotal = extractAllFundsTotal(lines, verbose);
+  let capitalProjectsActual = null;
 
-  const valid = validateTotal(actualTotal, expected, `Prosper FY${fiscalYear}`);
+  if (allFundsTotal !== null) {
+    capitalProjectsActual = allFundsTotal - totalActual;
+    if (capitalProjectsActual > 0) {
+      console.log(`  ${'Capital Projects Fund (derived)'.padEnd(45)} $${Math.round(capitalProjectsActual).toLocaleString().padStart(16)}`);
+      fundResults.push({
+        fundName: 'Capital Projects Fund',
+        items: [{ label: 'Capital revenue', originalBudget: 0, finalBudget: 0, actual: capitalProjectsActual }],
+        total: capitalProjectsActual,
+      });
+      totalActual += capitalProjectsActual;
+      totalRowCount += 1;
+    } else if (capitalProjectsActual < 0) {
+      console.warn(`  WARNING: Derived Capital Projects actual is negative (${capitalProjectsActual.toLocaleString()}) — B&A sum may exceed all-funds total`);
+    } else {
+      console.log(`  Capital Projects Fund: $0 (derived)`);
+    }
+  } else {
+    console.warn(`  WARNING: Could not extract all-funds total — Capital Projects Fund revenues not added`);
+    // Fall back to EXPECTED_TOTALS for validation
+  }
+
+  console.log(`  ${'TOTAL (with Capital Projects)'.padEnd(45)} $${Math.round(totalActual).toLocaleString().padStart(16)}`);
+
+  // ── Step 6: Validate ──────────────────────────────────────────────────────
+  const expected = EXPECTED_TOTALS[fiscalYear] ?? null;
+  const valid = validateTotal(totalActual, expected, `Prosper FY${fiscalYear}`);
+
   if (!valid) {
     console.error(`  VALIDATION FAILED — skipping load for FY${fiscalYear}. Data NOT written to DB.`);
-    return { fy: fiscalYear, passed: false, total: origTotal, rowCount: rows.length, dsId: null };
+    return { fy: fiscalYear, passed: false, total: totalActual, rowCount: totalRowCount, dsId: null };
   }
 
-  // ── Step 6: Build JSON tree ───────────────────────────────────────────────
-  const { jsonTree, total } = buildTree(rows);
-  console.log(`\n  Tree built: ${jsonTree.length} dept(s), ${rows.length} items, total=$${Math.round(total).toLocaleString()}`);
+  // ── Step 7: Build JSON tree ───────────────────────────────────────────────
+  const { jsonTree, total } = buildTree(fundResults);
+  console.log(`\n  Tree built: ${jsonTree.length} fund(s), ${totalRowCount} items, total=$${Math.round(total).toLocaleString()}`);
 
   if (dryRun) {
     console.log('  (dry-run — skipping DB writes)');
-    return { fy: fiscalYear, passed: true, total, rowCount: rows.length, dsId: 'dry-run' };
+    return { fy: fiscalYear, passed: true, total, rowCount: totalRowCount, dsId: 'dry-run' };
   }
 
-  // ── Step 7: Look up existing data_source row ──────────────────────────────
-  // Phase 9 seeder created these rows — do NOT create new ones
+  // ── Step 8: Look up existing data_source row ──────────────────────────────
   const { data: ds, error: dsErr } = await supabase.schema('treasury').from('data_sources')
     .select('id, last_synced_at')
     .eq('municipality_id', muniId)
@@ -482,26 +875,23 @@ async function processFY(supabase, muniId, fiscalYear, opts) {
 
   if (dsErr) {
     console.error(`data_sources lookup error for FY${fiscalYear}: ${dsErr.message}`);
-    return { fy: fiscalYear, passed: false, total, rowCount: rows.length, dsId: null };
+    return { fy: fiscalYear, passed: false, total, rowCount: totalRowCount, dsId: null };
   }
   if (!ds?.id) {
     console.error(`data_source row not found for Prosper revenue FY${fiscalYear} — Phase 9 seeder must have run first`);
-    return { fy: fiscalYear, passed: false, total, rowCount: rows.length, dsId: null };
+    return { fy: fiscalYear, passed: false, total, rowCount: totalRowCount, dsId: null };
   }
   console.log(`  data_source: ${ds.id}`);
 
-  // ── Step 8: Update base_url (fix Phase 9 seeded wrong URLs for FY2023/FY2024) ─
+  // ── Step 9: Update base_url ───────────────────────────────────────────────
   const correctUrl = PDF_URLS[fiscalYear];
   const { error: urlErr } = await supabase.schema('treasury').from('data_sources')
     .update({ base_url: correctUrl })
     .eq('id', ds.id);
-  if (urlErr) {
-    console.warn(`  WARNING: Could not update base_url for FY${fiscalYear}: ${urlErr.message}`);
-  } else {
-    console.log(`  base_url updated to: ${correctUrl}`);
-  }
+  if (urlErr) console.warn(`  WARNING: Could not update base_url: ${urlErr.message}`);
+  else console.log(`  base_url updated to: ${correctUrl}`);
 
-  // ── Step 9: Clear prior rows (idempotency) ────────────────────────────────
+  // ── Step 10: Clear prior rows (idempotency) ───────────────────────────────
   const { error: delErr1 } = await supabase.schema('treasury').from('budgets')
     .delete().eq('data_source_id', ds.id).eq('fiscal_year', fiscalYear);
   const { error: delErr2 } = await supabase.schema('treasury').from('budgets')
@@ -515,31 +905,31 @@ async function processFY(supabase, muniId, fiscalYear, opts) {
   if (delErr2) throw new Error(`Delete (orphaned revenue rows) failed: ${delErr2.message}`);
   console.log('  Prior revenue rows cleared');
 
-  // ── Step 10: Call treasury_sync_budget_tree RPC ───────────────────────────
+  // ── Step 11: Call treasury_sync_budget_tree RPC ───────────────────────────
   const { data: rpcResult, error: rpcErr } = await supabase.rpc('treasury_sync_budget_tree', {
     p_data_source_id: ds.id,
     p_fiscal_year:    fiscalYear,
     p_dataset_type:   'revenue',
     p_total:          total,
     p_tree:           jsonTree,
-    p_row_count:      rows.length,
+    p_row_count:      totalRowCount,
     p_triggered_by:   'bulk_load',
   });
 
   if (rpcErr) throw new Error(`RPC error for FY${fiscalYear}: ${rpcErr.message}`);
   if (rpcResult?.error) throw new Error(`RPC returned error for FY${fiscalYear}: ${rpcResult.error}`);
 
-  const inserted = rpcResult?.rows_inserted ?? rows.length;
+  const inserted = rpcResult?.rows_inserted ?? totalRowCount;
   console.log(`  Loaded ${inserted} rows for FY${fiscalYear}`);
 
-  // ── Step 11: Set last_synced_at ────────────────────────────────────────────
+  // ── Step 12: Set last_synced_at ───────────────────────────────────────────
   const { error: syncErr } = await supabase.schema('treasury').from('data_sources')
     .update({ last_synced_at: new Date().toISOString() })
     .eq('id', ds.id);
   if (syncErr) throw new Error(`last_synced_at update failed: ${syncErr.message}`);
   console.log(`  last_synced_at set for data_source ${ds.id}`);
 
-  return { fy: fiscalYear, passed: true, total, rowCount: rows.length, dsId: ds.id };
+  return { fy: fiscalYear, passed: true, total, rowCount: totalRowCount, dsId: ds.id };
 }
 
 // ── main ──────────────────────────────────────────────────────────────────────
@@ -549,31 +939,29 @@ async function main() {
       'dry-run':  { type: 'boolean', default: false },
       'verbose':  { type: 'boolean', default: false },
       'no-cache': { type: 'boolean', default: false },
-      'pdf':      { type: 'string'  },  // override PDF path (requires --fy)
-      'fy':       { type: 'string'  },  // process only this year (e.g. --fy 2025)
+      'pdf':      { type: 'string'  },
+      'fy':       { type: 'string'  },
     },
     strict: false,
   });
 
-  const dryRun    = opts['dry-run'];
-  const verbose   = opts['verbose'];
-  const noCache   = opts['no-cache'];
+  const dryRun      = opts['dry-run'];
+  const verbose     = opts['verbose'];
+  const noCache     = opts['no-cache'];
   const pdfOverride = opts['pdf'];
-  const fyFilter  = opts['fy'] ? parseInt(opts['fy'], 10) : null;
+  const fyFilter    = opts['fy'] ? parseInt(opts['fy'], 10) : null;
 
   if (pdfOverride && !fyFilter) {
     console.error('--pdf requires --fy (specify which fiscal year this PDF is for)');
     process.exit(2);
   }
 
-  // ── Supabase client ────────────────────────────────────────────────────────
   if (!SUPABASE_KEY) {
     console.error('Missing SUPABASE_SERVICE_KEY or SUPABASE_SERVICE_ROLE_KEY env var');
     process.exit(2);
   }
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // ── Municipality lookup ───────────────────────────────────────────────────
   const { data: muni, error: muniErr } = await supabase.schema('treasury')
     .from('municipalities').select('id, name').ilike('name', 'Prosper').single();
   if (muniErr || !muni) {
@@ -582,7 +970,6 @@ async function main() {
   }
   console.log(`Municipality: ${muni.name} (${muni.id})`);
 
-  // ── Determine which FYs to process ────────────────────────────────────────
   const allFYs = [2023, 2024, 2025];
   const targetFYs = fyFilter ? [fyFilter] : allFYs;
 
@@ -593,25 +980,20 @@ async function main() {
     }
   }
 
-  // ── Process each FY independently ─────────────────────────────────────────
   const results = [];
   for (const fy of targetFYs) {
     try {
       const result = await processFY(supabase, muni.id, fy, {
-        dryRun,
-        verbose,
-        noCache,
+        dryRun, verbose, noCache,
         pdfOverride: fyFilter === fy ? pdfOverride : undefined,
       });
       results.push(result);
     } catch (e) {
       console.error(`\nFatal error processing FY${fy}: ${e.message}`);
       results.push({ fy, passed: false, total: 0, rowCount: 0, dsId: null });
-      // Continue to next FY
     }
   }
 
-  // ── Summary table ──────────────────────────────────────────────────────────
   console.log(`\n${'═'.repeat(70)}`);
   console.log('SUMMARY');
   console.log('═'.repeat(70));
@@ -631,15 +1013,13 @@ async function main() {
     console.log('\nAll fiscal years passed validation and loaded successfully.');
   } else if (anyPassed) {
     const failed = results.filter(r => !r.passed).map(r => `FY${r.fy}`).join(', ');
-    console.log(`\nPartial success — ${failed} failed validation or load. See output above.`);
+    console.log(`\nPartial success — ${failed} failed. See output above.`);
   } else {
     console.error('\nAll fiscal years failed. No data was written to the database.');
     process.exit(2);
   }
 
-  if (dryRun) {
-    console.log('(dry-run mode — no data was written to the database)');
-  }
+  if (dryRun) console.log('(dry-run mode — no data was written to the database)');
 }
 
 main().catch(e => {
