@@ -8,6 +8,7 @@ interface QuickFactsRowProps {
     name: string;
     state: string;
     population: number;
+    population_year?: number | null;
     entity_type?: string;
   };
   operatingData: BudgetData | null;
@@ -26,6 +27,7 @@ const QuickFactsRow: React.FC<QuickFactsRowProps> = ({
   fiscalYear,
 }) => {
   const isNonprofit = entity.entity_type === 'nonprofit';
+  const populationYear = entity.population_year;
 
   const formatCompact = (n: number) => {
     if (isNonprofit) return `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -68,7 +70,9 @@ const QuickFactsRow: React.FC<QuickFactsRowProps> = ({
         <InsightCard
           label="Cost Per Resident"
           value={perResident > 0 ? `$${Math.round(perResident).toLocaleString()}` : '—'}
-          subtext={`Based on ${population.toLocaleString()} residents`}
+          subtext={populationYear
+            ? `Based on ${population.toLocaleString()} residents (${populationYear} est.)`
+            : `Based on ${population.toLocaleString()} residents`}
           icon={<Users size={18} className="text-ev-gray-500" />}
         />
       )}
