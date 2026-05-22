@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-05-21)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** v1.3 — Phase 13: Richardson Operating Budget
+**Current focus:** v1.3 — Phase 13 complete; next: verify Richardson display live
 
 ## Current Position
 
-Phase: 12 of 14 complete (Prosper + Celina Revenue)
-Plan: All 3 plans complete
-Status: Phase 12 complete — verified 5/5
-Last activity: 2026-05-22 — Phase 12 complete: Prosper FY2023/2024/2025 + Celina FY2025 revenue loaded; per-capita revenue sentence added to frontend; Haiku garbage data fixed for Celina/Prosper/Allen operating + Frisco FY2026
+Phase: 13 of 14 complete (Richardson Operating Budget)
+Plan: 13-01 complete
+Status: Phase 13 complete — 8 FYs loaded, 658 budget_categories rows in DB
+Last activity: 2026-05-22 — Richardson TX GF operating budget FY2018-FY2026 loaded ($123M-$166M)
 
-Progress: v1.3 ████████████░░░░░░░░ 67% (6/9 plans complete)
+Progress: v1.3 ████████████████░░░░ 78% (7/9 plans complete)
 
 ## Accumulated Context
 
@@ -47,9 +47,16 @@ Progress: v1.3 ████████████░░░░░░░░ 67% 
 - Celina GF actuals sum exactly to $68,888,029 (exact ACFR match); adopted_amount (total gov) has 8% over-estimate for ~3 rows with misaligned continuation
 - budget_categories table stores line items (not budgets.hierarchy which is always empty); RPC rows_inserted = budget_categories rows
 
+### Additional Decisions (Phase 13)
+
+- Richardson XLSX uses 4 distinct formats across years — dispatched via FY_CONFIG.format key
+- Old format (FY2018-2022): Fund column is integer 11, uses Total DEPTNAME aggregated rows
+- New formats (FY2024+): account prefix 0110- filters GF; -767- account codes are transfers-out (excluded)
+- FY2023 unavailable from city — gap in series is expected
+- actual_amount populated from prior-year actuals column where available in sheet
+
 ### Blockers/Concerns
 
-- Phase 12 (Richardson): cor.net blocked HTTP in v1.2 — manual browser URL sourcing required before loader can be built; verify URL is accessible before committing time
 - Prosper FY2024/FY2025 only yield 5 of ~10 revenue line items due to two-column PDF layout; 20% tolerance gate passes but detail is partial (not a blocker for display)
 
 ### Additional Decisions (Phase 11)
@@ -59,6 +66,6 @@ Progress: v1.3 ████████████░░░░░░░░ 67% 
 
 ## Session Continuity
 
-Last session: 2026-05-21
-Stopped at: Prosper FY2025 operating budget fixed — rewritten to pdftotext -raw mode, $1.28B Haiku data cleared, $53,010,770 loaded at 0.00% diff (c84207c)
+Last session: 2026-05-22
+Stopped at: Phase 13 complete — Richardson operating budget FY2018-FY2026 loaded to DB
 Resume file: None
