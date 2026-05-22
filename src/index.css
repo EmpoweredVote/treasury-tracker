@@ -74,8 +74,8 @@
   --color-ev-gray-200: #D3D7DE;
   --color-ev-gray-300: #B3BBCC;
   --color-ev-gray-400: #8F9EBC;
-  --color-ev-gray-500: #535964;   /* bumped from #6B7280 — passes WCAG AA on white */
-  --color-ev-gray-600: #535964;
+  --color-ev-gray-500: #6B7280;   /* soft gray — passes WCAG AA on white (4.6:1) */
+  --color-ev-gray-600: #535964;   /* medium dark — passes WCAG AAA on white (7:1) */
   --color-ev-gray-700: #41454E;
   --color-ev-gray-800: #2F3237;
   --color-ev-gray-900: #212326;
@@ -173,8 +173,9 @@
      ev-gray-900/950 dark surfaces. Shift them two steps lighter so
      text-ev-gray-500 and text-ev-gray-400 pass WCAG AA without touching
      individual components. */
-  --color-ev-gray-400: #D3D7DE;   /* was #8F9EBC — now ev-gray-200 value */
-  --color-ev-gray-500: #B3BBCC;   /* was #6B7280 — now ev-gray-300 value */
+  --color-ev-gray-400: #D3D7DE;   /* was #8F9EBC */
+  --color-ev-gray-500: #B3BBCC;   /* was #6B7280 */
+  --color-ev-gray-600: #D3D7DE;   /* no light-mode equivalent — shifts to readable on dark bg */
 
   /* ── Data viz palette — shift darker hues to lighter shades ──
      Teal, Ocean, Dusk, Sage, Stone are all too dark against dark bgs at

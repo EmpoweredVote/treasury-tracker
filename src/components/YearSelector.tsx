@@ -46,7 +46,7 @@ const YearSelector = forwardRef<YearSelectorHandle, YearSelectorProps>(({ select
         <span>FY {selectedYear}</span>
         <ChevronDown
           size={14}
-          className={`text-[#6B7280] shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
+          className={`text-ev-gray-500 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
         />
       </button>
 

@@ -59,8 +59,8 @@ const BudgetBar: React.FC<BudgetBarProps> = ({ categories }) => {
                   className="w-2 h-2 rounded-sm flex-shrink-0"
                   style={{ backgroundColor: `var(--color-data-${hue}-500)` }}
                 />
-                <span className="text-xs text-[#6B7280] tabular-nums">
-                  {category.name} {formatPercentage(category.percentage)}%
+                <span className="text-xs text-ev-gray-500 tabular-nums">
+                  {category.enrichment?.plainName || category.name} {formatPercentage(category.percentage)}%
                 </span>
               </div>
             );

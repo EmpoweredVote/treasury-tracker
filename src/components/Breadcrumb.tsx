@@ -18,7 +18,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ items }) => {
         {items.map((item, index) => (
           <React.Fragment key={index}>
             {index > 0 && (
-              <li className="text-[#6B7280] dark:text-ev-gray-600" aria-hidden="true">
+              <li className="text-ev-gray-500" aria-hidden="true">
                 /
               </li>
             )}

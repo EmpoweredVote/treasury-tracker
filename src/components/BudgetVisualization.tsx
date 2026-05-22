@@ -30,7 +30,7 @@ const BudgetVisualization: React.FC<BudgetVisualizationProps> = ({
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium font-manrope transition-all duration-200 cursor-pointer border ${
             viewMode === 'icicle'
               ? 'bg-ev-muted-blue border-ev-muted-blue text-white'
-              : 'bg-white dark:bg-ev-gray-800 border-[#E2EBEF] dark:border-ev-gray-700 text-[#6B7280] dark:text-ev-gray-400 hover:border-ev-muted-blue hover:text-ev-muted-blue'
+              : 'bg-white dark:bg-ev-gray-800 border-[#E2EBEF] dark:border-ev-gray-700 text-ev-gray-500 hover:border-ev-muted-blue hover:text-ev-muted-blue'
           }`}
           onClick={() => setViewMode('icicle')}
           aria-pressed={viewMode === 'icicle'}
@@ -47,7 +47,7 @@ const BudgetVisualization: React.FC<BudgetVisualizationProps> = ({
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium font-manrope transition-all duration-200 cursor-pointer border ${
             viewMode === 'sunburst'
               ? 'bg-ev-muted-blue border-ev-muted-blue text-white'
-              : 'bg-white dark:bg-ev-gray-800 border-[#E2EBEF] dark:border-ev-gray-700 text-[#6B7280] dark:text-ev-gray-400 hover:border-ev-muted-blue hover:text-ev-muted-blue'
+              : 'bg-white dark:bg-ev-gray-800 border-[#E2EBEF] dark:border-ev-gray-700 text-ev-gray-500 hover:border-ev-muted-blue hover:text-ev-muted-blue'
           }`}
           onClick={() => setViewMode('sunburst')}
           aria-pressed={viewMode === 'sunburst'}

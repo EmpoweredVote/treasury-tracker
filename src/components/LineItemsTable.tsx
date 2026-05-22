@@ -36,7 +36,7 @@ const calculateVariance = (approved: number, actual: number): { amount: number; 
 const getVarianceClasses = (amount: number): string => {
   if (amount > 0) return 'text-red-700 dark:text-red-400';
   if (amount < 0) return 'text-[#059669] dark:text-emerald-400';
-  return 'text-[#6B7280] dark:text-ev-gray-400';
+  return 'text-ev-gray-500';
 };
 
 export default function LineItemsTable({ lineItems, categoryName }: LineItemsTableProps) {
@@ -57,7 +57,7 @@ export default function LineItemsTable({ lineItems, categoryName }: LineItemsTab
         </div>
         <div>
           <h3 className="text-base font-bold font-manrope text-[#1C1C1C] dark:text-ev-gray-100 m-0">Line Item Details</h3>
-          <p className="text-sm text-[#6B7280] dark:text-ev-gray-400 mt-0.5 leading-snug">
+          <p className="text-sm text-ev-gray-500 mt-0.5 leading-snug">
             Detailed breakdown of {lineItems.length} expenditure{lineItems.length !== 1 ? 's' : ''} in {categoryName}
           </p>
         </div>
@@ -68,16 +68,16 @@ export default function LineItemsTable({ lineItems, categoryName }: LineItemsTab
         <table className="w-full text-sm border-collapse">
           <thead className="sticky top-0 z-10 bg-[#F7F7F8] dark:bg-ev-gray-900">
             <tr className="border-b border-[#D3D7DE] dark:border-ev-gray-700">
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-[#6B7280] dark:text-ev-gray-400 w-[40%]">
+              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-ev-gray-500 w-[40%]">
                 Description
               </th>
-              <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-[#6B7280] dark:text-ev-gray-400 w-[20%]">
+              <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-ev-gray-500 w-[20%]">
                 Budgeted
               </th>
-              <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-[#6B7280] dark:text-ev-gray-400 w-[20%]">
+              <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-ev-gray-500 w-[20%]">
                 Actual
               </th>
-              <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-[#6B7280] dark:text-ev-gray-400 w-[20%]">
+              <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-ev-gray-500 w-[20%]">
                 Variance
               </th>
             </tr>
@@ -92,7 +92,7 @@ export default function LineItemsTable({ lineItems, categoryName }: LineItemsTab
                       {item.description || 'No description provided'}
                     </span>
                     {item.metadata?.vendor && VENDOR_DESCRIPTIONS[item.metadata.vendor] && (
-                      <p className="text-xs text-[#6B7280] dark:text-ev-gray-400 mt-0.5 leading-relaxed">
+                      <p className="text-xs text-ev-gray-500 mt-0.5 leading-relaxed">
                         {VENDOR_DESCRIPTIONS[item.metadata.vendor]}
                       </p>
                     )}
@@ -155,15 +155,15 @@ export default function LineItemsTable({ lineItems, categoryName }: LineItemsTab
       <div className="flex gap-6 px-6 py-3 bg-[#F7F7F8] dark:bg-ev-gray-900 border-t border-[#E2EBEF] dark:border-ev-gray-700 text-sm">
         <div className="flex items-center gap-2">
           <span className="w-3 h-3 rounded-full bg-[#059669] dark:bg-emerald-400 flex-shrink-0"></span>
-          <span className="text-[#6B7280] dark:text-ev-gray-400">Under Budget</span>
+          <span className="text-ev-gray-500">Under Budget</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="w-3 h-3 rounded-full bg-[#6B7280] dark:bg-ev-gray-500 flex-shrink-0"></span>
-          <span className="text-[#6B7280] dark:text-ev-gray-400">On Budget</span>
+          <span className="text-ev-gray-500">On Budget</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="w-3 h-3 rounded-full bg-red-700 dark:bg-red-400 flex-shrink-0"></span>
-          <span className="text-[#6B7280] dark:text-ev-gray-400">Over Budget</span>
+          <span className="text-ev-gray-500">Over Budget</span>
         </div>
       </div>
     </div>

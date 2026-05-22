@@ -4,6 +4,16 @@ import { getCategoryColor } from '../utils/chartColors';
 import { BRAND_BAR_COLORS, getContrastText } from '../utils/brandColors';
 import './BudgetIcicle.css';
 
+function displayName(cat: BudgetCategory): string {
+  if (cat.enrichment?.plainName) return cat.enrichment.plainName;
+  const n = cat.name;
+  // Convert ALL-CAPS raw database names to Title Case
+  if (n === n.toUpperCase() && n.length > 2) {
+    return n.toLowerCase().replace(/(?:^|[\s\-–])\S/g, c => c.toUpperCase());
+  }
+  return n;
+}
+
 interface BudgetIcicleProps {
   categories: BudgetCategory[];
   navigationPath: BudgetCategory[];
@@ -184,7 +194,7 @@ const BudgetIcicle: React.FC<BudgetIcicleProps> = ({
                 >
                   {showText && (
                     <div className="segment-content">
-                      <span className="segment-name">{segment.category.name}</span>
+                      <span className="segment-name">{displayName(segment.category)}</span>
                       {!level.isAncestor && (
                         <span className="segment-amount">
                           {formatCurrency(segment.category.amount)}

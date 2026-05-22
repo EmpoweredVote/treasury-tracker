@@ -60,7 +60,7 @@ function CitySearch({
   return (
     <div>
       <div className="relative">
-        <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9CA3AF] pointer-events-none" />
+        <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ev-gray-400 pointer-events-none" />
         <input
           type="text"
           value={query}
@@ -71,7 +71,7 @@ function CitySearch({
         {query && (
           <button
             onClick={() => setQuery('')}
-            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#6B7280]"
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ev-gray-400 hover:text-ev-gray-500"
             aria-label="Clear search"
           >
             <X size={14} />
@@ -93,8 +93,8 @@ function CitySearch({
                 <span className="flex-1 text-sm font-medium text-[#1C1C1C] dark:text-ev-gray-200">
                   {city.name}, {city.state}
                 </span>
-                <span className="text-xs text-[#9CA3AF]">{years[0]}</span>
-                <ArrowRight size={13} className="text-[#9CA3AF] shrink-0" />
+                <span className="text-xs text-ev-gray-400">{years[0]}</span>
+                <ArrowRight size={13} className="text-ev-gray-400 shrink-0" />
               </button>
             );
           })}
@@ -104,13 +104,13 @@ function CitySearch({
       {noMatch && (
         <div className="mt-2 bg-[#FFF8ED] dark:bg-ev-yellow-950/30 border border-[#F5D98B] dark:border-ev-yellow-700/50 rounded-xl px-4 py-3">
           <p className="text-sm font-medium text-[#92400E] dark:text-ev-yellow-300">That city isn't in our Alpha yet.</p>
-          <p className="text-sm text-[#6B7280] dark:text-ev-gray-400 mt-0.5">
+          <p className="text-sm text-ev-gray-500 mt-0.5">
             We're expanding soon — check back for updates.
           </p>
         </div>
       )}
 
-      <p className="text-xs text-[#9CA3AF] mt-2 pl-1">Zip code search coming soon — for now, search by city name.</p>
+      <p className="text-xs text-ev-gray-400 mt-2 pl-1">Zip code search coming soon — for now, search by city name.</p>
     </div>
   );
 }
@@ -129,7 +129,7 @@ function CityGrid({
 
   if (available.length === 0) {
     return (
-      <div className="bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl p-6 text-center text-sm text-[#6B7280] dark:text-ev-gray-400">
+      <div className="bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl p-6 text-center text-sm text-ev-gray-500">
         Loading communities…
       </div>
     );
@@ -160,11 +160,11 @@ function CityGrid({
               </span>
             )}
           </p>
-          <p className="text-xs text-[#6B7280] dark:text-ev-gray-400 mt-0.5">
+          <p className="text-xs text-ev-gray-500 mt-0.5">
             {years.length} fiscal year{years.length !== 1 ? 's' : ''} · {years[0]} most recent
           </p>
         </div>
-        <ArrowRight size={14} className="text-[#9CA3AF] shrink-0 group-hover:text-[#005366] transition-colors duration-200" />
+        <ArrowRight size={14} className="text-ev-gray-400 shrink-0 group-hover:text-[#005366] transition-colors duration-200" />
       </button>
     );
   };
@@ -173,10 +173,10 @@ function CityGrid({
     <div className="space-y-6">
       {nearby.length > 0 && (
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-[#6B7280] dark:text-ev-gray-400 mb-2">
+          <p className="text-xs font-semibold uppercase tracking-wider text-ev-gray-500 mb-2">
             Near you
             {userAddress?.addr && (
-              <span className="ml-2 normal-case font-normal tracking-normal text-[#9CA3AF]">· {userAddress.addr}</span>
+              <span className="ml-2 normal-case font-normal tracking-normal text-ev-gray-400">· {userAddress.addr}</span>
             )}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -187,7 +187,7 @@ function CityGrid({
       {others.length > 0 && (
         <div>
           {(nearby.length > 0 || preloadedCity) && (
-            <p className="text-xs font-semibold uppercase tracking-wider text-[#6B7280] dark:text-ev-gray-400 mb-2">Other communities</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-ev-gray-500 mb-2">Other communities</p>
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {others.map(renderCityButton)}
@@ -250,7 +250,7 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
               <p className="text-5xl sm:text-6xl font-bold text-ev-teal-600 dark:text-ev-skyblue-500 leading-tight mt-1 mb-8">
                 down to the last dollar.
               </p>
-              <p className="text-ev-gray-500 dark:text-[#9CA3AF] text-lg leading-relaxed mb-3">
+              <p className="text-ev-gray-500 dark:text-ev-gray-400 text-lg leading-relaxed mb-3">
                 Dense budget documents, turned into plain-language visuals anyone can understand.
               </p>
               <p className="text-ev-gray-600 dark:text-[#D1D5DB] text-lg leading-relaxed mb-10">
@@ -268,7 +268,7 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
                   </button>
                   <button
                     onClick={() => cityPickerRef.current?.scrollIntoView({ behavior: 'smooth' })}
-                    className="inline-flex items-center gap-1 text-sm text-ev-gray-400 dark:text-[#9CA3AF] hover:text-ev-gray-900 dark:hover:text-white transition-colors px-2"
+                    className="inline-flex items-center gap-1 text-sm text-ev-gray-400 dark:text-ev-gray-400 hover:text-ev-gray-900 dark:hover:text-white transition-colors px-2"
                   >
                     Browse all cities
                   </button>
@@ -346,7 +346,7 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
                 <p className="text-sm font-bold text-[#1C1C1C] dark:text-ev-gray-100">Your City</p>
               </div>
               <p className="text-lg font-semibold text-[#005366] dark:text-ev-muted-blue">{preloadedCity.name}, {preloadedCity.state}</p>
-              <p className="text-sm text-[#6B7280] dark:text-ev-gray-400 mt-0.5">Based on your saved address</p>
+              <p className="text-sm text-ev-gray-500 mt-0.5">Based on your saved address</p>
             </div>
             <button
               onClick={() => onNavigateToCity(preloadedCity)}
@@ -365,7 +365,7 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
               <p className="text-sm font-semibold text-[#005366] dark:text-ev-muted-blue">
                 Treasury Tracker is currently serving a limited number of Alpha communities.
               </p>
-              <p className="text-sm text-[#6B7280] dark:text-ev-gray-400 mt-1">
+              <p className="text-sm text-ev-gray-500 mt-1">
                 Search below to see if your city is available, or browse our current communities.
               </p>
             </div>
@@ -381,7 +381,7 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
             </div>
 
             <div className="flex items-center gap-3 py-4 border-t border-[#E2EBEF] dark:border-ev-gray-700">
-              <p className="text-sm text-[#6B7280] dark:text-ev-gray-400 flex-1">
+              <p className="text-sm text-ev-gray-500 flex-1">
                 Have an Empowered account? Sign in and Treasury Tracker will route you to your city automatically.
               </p>
               <a
@@ -401,7 +401,7 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
             <div className="bg-[#EAF4F7] dark:bg-ev-teal-950/50 border border-[#B3D9E3] dark:border-ev-teal-800 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="flex-1">
                 <p className="text-sm font-semibold text-[#005366] dark:text-ev-muted-blue">Set your location to see your city's budget</p>
-                <p className="text-sm text-[#6B7280] dark:text-ev-gray-400 mt-0.5">
+                <p className="text-sm text-ev-gray-500 mt-0.5">
                   Treasury Tracker uses your stored address to route you automatically on future visits.
                 </p>
               </div>
@@ -433,7 +433,7 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
               <p className="text-sm font-semibold text-[#92400E] dark:text-ev-yellow-300">
                 We don't have {reason.cityName}, {reason.state} in Treasury Tracker yet.
               </p>
-              <p className="text-sm text-[#6B7280] dark:text-ev-gray-400 mt-1">
+              <p className="text-sm text-ev-gray-500 mt-1">
                 We're actively expanding — check back for updates.
               </p>
             </div>
@@ -456,7 +456,7 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
             ].map(item => (
               <div key={item.heading} className="bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl p-5">
                 <p className="text-sm font-semibold text-[#1C1C1C] dark:text-ev-gray-100 mb-1">{item.heading}</p>
-                <p className="text-sm text-[#6B7280] dark:text-ev-gray-400 leading-relaxed">{item.body}</p>
+                <p className="text-sm text-ev-gray-500 leading-relaxed">{item.body}</p>
               </div>
             ))}
           </div>
