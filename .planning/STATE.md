@@ -38,10 +38,11 @@ Progress: v1.3 ████████░░░░░░░░░░░░ 44% 
 
 ### Additional Decisions (Phase 12 Plans 01 and 03)
 
-- Parse GF Budget-and-Actual statement for Prosper revenue (not all-funds governmental table) — avoids split-page alignment issue
-- Expected totals = GF actual from REVENUES header row: FY2023=$23,634,916, FY2024=$20,579,402, FY2025=$23,102,540
+- Prosper revenue now captures ALL governmental fund B&A schedules (not just GF) — expected totals: FY2023=$83,186,603, FY2024=$101,863,293, FY2025=$108,416,768
+- Capital Projects Fund (no annual B&A) is derived as: all-funds total − sum of B&A fund actuals
+- extractAllFundsTotal: prefer FIRST 2-column row over 3-column candidates — avoids expenditure totals that appear later with higher values
+- FY2023 ACFR: Impact Fees / Debt Service / Parks Dedication / TIRZ 1 missing from B&A section detection (REVENUES header has no $ on same line); lumped into Capital Projects derived remainder
 - Overflow guard (>105% REVENUES total) blocks garbled continuation lines from adjacent all-funds table
-- FY2024/FY2025 yield 5 items (vs FY2023 9) due to two-column PDF layout in those ACFRs — within tolerance
 - Celina wide-table: position-based column detection (Total Governmental column at char pos >= 130); sanity check rejects total < GF
 - Celina GF actuals sum exactly to $68,888,029 (exact ACFR match); adopted_amount (total gov) has 8% over-estimate for ~3 rows with misaligned continuation
 - budget_categories table stores line items (not budgets.hierarchy which is always empty); RPC rows_inserted = budget_categories rows
@@ -59,5 +60,5 @@ Progress: v1.3 ████████░░░░░░░░░░░░ 44% 
 ## Session Continuity
 
 Last session: 2026-05-22
-Stopped at: Phase 12 Plan 03, Task 3 checkpoint — Celina revenue loaded, awaiting human verify
+Stopped at: Prosper all-governmental-funds fix complete — FY2023/FY2024/FY2025 loaded at 0.0% diff
 Resume file: None
