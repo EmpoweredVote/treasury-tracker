@@ -215,7 +215,7 @@ Plans:
 4. Enrichment covers all fiscal years currently loaded for each city
 
 Plans:
-- [ ] 14-01-PLAN.md — Run category enrichment for Garland and Wylie; verify descriptions visible in app and municipality_id scoped correctly
+- [x] 14-01-PLAN.md — Run category enrichment for Garland and Wylie; verify descriptions visible in app and municipality_id scoped correctly
 - [ ] 14-02-PLAN.md — Run category enrichment for Sachse, Murphy, and Princeton; verify descriptions visible in app and municipality_id scoped correctly
 
 ---
@@ -237,9 +237,9 @@ Plans:
 | 9. Revenue Completion | v1.2 | 3/3 | Complete | 2026-05-04 |
 | 10. Collin County Expansion | v1.2 | 3/3 | Complete | 2026-05-21 |
 | 11. Population & Per-Capita | v1.3 | 3/3 | Complete | 2026-05-21 |
-| 12. Prosper + Celina Revenue | v1.3 | 0/3 | Not started | - |
-| 13. Richardson Operating Budget | v1.3 | 0/1 | Not started | - |
-| 14. Category Enrichment (5 cities) | v1.3 | 0/2 | Not started | - |
+| 12. Prosper + Celina Revenue | v1.3 | 3/3 | Complete | 2026-05-22 |
+| 13. Richardson Operating Budget | v1.3 | 1/1 | Complete | 2026-05-22 |
+| 14. Category Enrichment (5 cities) | v1.3 | 1/2 | In progress | - |
 
 ---
 

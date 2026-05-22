@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-05-21)
 
 ## Current Position
 
-Phase: 13 of 14 complete (Richardson Operating Budget)
-Plan: 13-01 complete
-Status: Phase 13 complete — 8 FYs loaded, 658 budget_categories rows in DB
-Last activity: 2026-05-22 — Richardson TX GF operating budget FY2018-FY2026 loaded ($123M-$166M)
+Phase: 14 of 14 (Category Enrichment — 5 Collin County Cities)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-05-22 — Completed 14-01-PLAN.md (Garland + Wylie enrichment)
 
-Progress: v1.3 ████████████████░░░░ 78% (7/9 plans complete)
+Progress: v1.3 ██████████████████░░ 89% (8/9 plans complete)
 
 ## Accumulated Context
 
@@ -47,6 +47,11 @@ Progress: v1.3 ████████████████░░░░ 78% 
 - Celina GF actuals sum exactly to $68,888,029 (exact ACFR match); adopted_amount (total gov) has 8% over-estimate for ~3 rows with misaligned continuation
 - budget_categories table stores line items (not budgets.hierarchy which is always empty); RPC rows_inserted = budget_categories rows
 
+### Additional Decisions (Phase 14)
+
+- enrichCategories.js: run --dry-run first, then live sequentially (no --force); idempotent — avoids re-billing API calls on re-run
+- dark:text-ev-gray-300 fix applied to App.tsx category description paragraph (ev-gray-600 fails contrast on dark bg)
+
 ### Additional Decisions (Phase 13)
 
 - Richardson XLSX uses 4 distinct formats across years — dispatched via FY_CONFIG.format key
@@ -67,5 +72,5 @@ Progress: v1.3 ████████████████░░░░ 78% 
 ## Session Continuity
 
 Last session: 2026-05-22
-Stopped at: Phase 13 complete — Richardson operating budget FY2018-FY2026 loaded to DB
+Stopped at: Completed 14-01-PLAN.md — Garland + Wylie category enrichment (52 rows)
 Resume file: None
