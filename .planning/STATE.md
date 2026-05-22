@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-05-21)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** v1.3 complete — ready for milestone audit
+**Current focus:** v1.4 in progress — Phase 15 (LA) complete; planning Phase 16 (Fremont, San Diego, San Francisco, Berkeley CA)
 
 ## Current Position
 
-Phase: 15 of 15 (Los Angeles Socrata Budget Load + Enrichment)
-Plan: 3 of 3 in current phase (at checkpoint — awaiting human verification)
-Status: In progress — Plan 15-03 Tasks 1+2 complete; at checkpoint:human-verify
-Last activity: 2026-05-22 — Completed 15-03 Tasks 1+2 (LA category enrichment + DB verification)
+Phase: 15 of 15+ (Phase 15 complete; Phase 16 planning in progress)
+Plan: Phase 15 all plans complete (3/3)
+Status: Phase 15 COMPLETE — planning Phase 16 (Fremont, San Diego, San Francisco, Berkeley CA)
+Last activity: 2026-05-22 — Phase 15-03 human verification approved; Phase 15 closed
 
-Progress: v1.4 ████████░░░░░░░░░░░░ 67% (2/3 plans complete in phase 15)
+Progress: v1.4 ████████████████████ Phase 15 100% — Phase 16 scope TBD
 
 ## Accumulated Context
 

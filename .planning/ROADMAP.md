@@ -250,9 +250,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 15-01-PLAN.md — Build `seedLADataSources.js`: insert LA municipality (population 3,878,704, year 2024) + seed Operating Budget data_sources row (`uyzw-yi8n`, `controllerdata.lacity.org`, verified column_mapping)
-- [ ] 15-02-PLAN.md — Dry-run + live-load LA Operating FY2025 + FY2026 via `bulkLoadBudget.js`; verify totals/category tree in DB; prove idempotency
-- [ ] 15-03-PLAN.md — Dry-run + live enrichment via `enrichCategories.js`; verify scoping + no bleed; human-verify LA in app at treasurytracker.empowered.vote
+- [x] 15-01-PLAN.md — Build `seedLADataSources.js`: insert LA municipality (population 3,878,704, year 2024) + seed Operating Budget data_sources row (`uyzw-yi8n`, `controllerdata.lacity.org`, verified column_mapping)
+- [x] 15-02-PLAN.md — Dry-run + live-load LA Operating FY2025 + FY2026 via `bulkLoadBudget.js`; verify totals/category tree in DB; prove idempotency
+- [x] 15-03-PLAN.md — Dry-run + live enrichment via `enrichCategories.js`; verify scoping + no bleed; human-verify LA in app at treasurytracker.empowered.vote
 
 ---
 
@@ -276,9 +276,9 @@ Plans:
 | 12. Prosper + Celina Revenue | v1.3 | 3/3 | Complete | 2026-05-22 |
 | 13. Richardson Operating Budget | v1.3 | 1/1 | Complete | 2026-05-22 |
 | 14. Category Enrichment (5 cities) | v1.3 | 2/2 | Complete | 2026-05-22 |
-| 15. Los Angeles Socrata + Enrichment | v1.4 | 0/3 | Planned | — |
+| 15. Los Angeles Socrata + Enrichment | v1.4 | 3/3 | Complete | 2026-05-22 |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-05-22 — Phase 15 planned (v1.4 milestone opens)*
+*Last updated: 2026-05-22 — Phase 15 complete; next: Phase 16 (Fremont, San Diego, San Francisco, Berkeley CA)*
