@@ -756,7 +756,7 @@ function App() {
                     const currentCat = navigationPath[navigationPath.length - 1];
                     const desc = currentCat.enrichment?.description;
                     return desc ? (
-                      <p className="text-[15px] text-ev-gray-600 mt-3 leading-relaxed">
+                      <p className="text-[15px] text-ev-gray-600 dark:text-ev-gray-300 mt-3 leading-relaxed">
                         {desc}
                       </p>
                     ) : null;
