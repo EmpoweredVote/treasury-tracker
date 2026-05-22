@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-05-21)
 ## Current Position
 
 Phase: 14 of 14 (Category Enrichment — 5 Collin County Cities)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-05-22 — Completed 14-01-PLAN.md (Garland + Wylie enrichment)
+Plan: 2 of 2 in current phase
+Status: Awaiting human-verify checkpoint (Task 3)
+Last activity: 2026-05-22 — Completed 14-02 Tasks 1+2; awaiting visual verification of Sachse/Murphy/Princeton descriptions in app
 
-Progress: v1.3 ██████████████████░░ 89% (8/9 plans complete)
+Progress: v1.3 ████████████████████ 95% (9/9 plans complete — pending checkpoint approval)
 
 ## Accumulated Context
 
@@ -51,6 +51,8 @@ Progress: v1.3 ██████████████████░░ 89% 
 
 - enrichCategories.js: run --dry-run first, then live sequentially (no --force); idempotent — avoids re-billing API calls on re-run
 - dark:text-ev-gray-300 fix applied to App.tsx category description paragraph (ev-gray-600 fails contrast on dark bg)
+- enrichCategories.js: always specify --year flag for non-2025 fiscal years (Sachse FY2026, Princeton FY2026 need --year 2026)
+- Sachse had 19 depth-0 categories (not ~9 estimated) — actual city budget has more granular dept structure; all enriched correctly
 
 ### Additional Decisions (Phase 13)
 
@@ -72,5 +74,5 @@ Progress: v1.3 ██████████████████░░ 89% 
 ## Session Continuity
 
 Last session: 2026-05-22
-Stopped at: Completed 14-01-PLAN.md — Garland + Wylie category enrichment (52 rows)
+Stopped at: 14-02 Tasks 1+2 complete — awaiting human-verify checkpoint (Task 3) for Sachse/Murphy/Princeton visual verification
 Resume file: None
