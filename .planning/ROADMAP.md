@@ -179,9 +179,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 12-01-PLAN.md — Look up FY2023/FY2024 expected totals from ACFRs; build `processProsperjRevenuePDF.js` with validation gate; fix corrupted data_source URLs; run all 3 FYs
-- [ ] 12-02-PLAN.md — Human verify Prosper revenue data visible in app for loaded FYs; confirm per-capita displaying; document validation results
-- [ ] 12-03-PLAN.md — Build `processCelinaRevenuePDF.js`; run FY2025; validate against $129,568,278 expected total; human verify Celina revenue and per-capita in app
+- [x] 12-01-PLAN.md — Look up FY2023/FY2024 expected totals from ACFRs; build `processProsperjRevenuePDF.js` with validation gate; fix corrupted data_source URLs; run all 3 FYs
+- [x] 12-02-PLAN.md — Human verify Prosper revenue data visible in app for loaded FYs; confirm per-capita displaying; document validation results
+- [x] 12-03-PLAN.md — Build `processCelinaRevenuePDF.js`; run FY2025; validate against $129,568,278 expected total; human verify Celina revenue and per-capita in app
 
 ### Phase 13: Richardson Operating Budget
 
