@@ -217,7 +217,9 @@ function SD_OPERATING(municipalityId) {
       budget_cycle_column: 'budget_cycle',
       budget_cycle_value: 'adopted',
     },
-    fiscal_years: [2025, 2026],
+    // FY2026 rows in the source CSV have empty budget_cycle — loader returns 0 rows under adopted filter.
+    // Only FY2025 is loadable until San Diego labels FY2026 rows with a cycle value.
+    fiscal_years: [2025],
     municipality_id: municipalityId,
   };
 }
