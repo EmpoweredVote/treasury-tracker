@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-05-21)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** v1.4 in progress — Phase 15 (LA) complete; planning Phase 16 (Fremont, San Diego, San Francisco, Berkeley CA)
+**Current focus:** v1.4 in progress — Phase 16 (SF, SD, LA Revenue CA cities) in progress
 
 ## Current Position
 
 Phase: 16 of 16+ (Phase 16 in progress)
-Plan: 2 of 5 complete (16-01 + 16-02 done)
-Status: In progress — Phase 16 Plan 02 complete; 16-03 (SD data_sources seeding) next
-Last activity: 2026-05-22 — Completed 16-02-PLAN.md (loadSanDiegoCSV.js + live CSV probe)
+Plan: 3 of 5 complete (16-01 + 16-02 + 16-03 done)
+Status: In progress — Phase 16 Plan 03 complete; 16-04 (live loads) next
+Last activity: 2026-05-22 — Completed 16-03-PLAN.md (seedCaliforniaCities.js seeder)
 
-Progress: v1.4 ████████████████████ Phase 15 100% — Phase 16 ██░░░ 2/5 plans complete
+Progress: v1.4 ████████████████████ Phase 15 100% — Phase 16 ███░░ 3/5 plans complete
 
 ## Accumulated Context
 
@@ -71,6 +71,17 @@ Progress: v1.4 ████████████████████ Phas
 - mcp__supabase-local__apply_migration: use for DDL migrations instead of Supabase Dashboard manual paste — faster, no human gate
 - population column is `bigint` in DB (not `integer` as assumed in research) — no impact on loader
 
+### Additional Decisions (Phase 16 Plan 03)
+
+- seedCaliforniaCities.js: dataset_id+municipality_id fallback lookup REMOVED — SF Op + SF Rev share xdgd-c79v + SF muni_id, SD Op + Rev share budget_operating_datasd + SD muni_id; fallback would collide. Primary name lookup sufficient for Phase 16 (no pre-existing rows to rename).
+- SF municipality id: a98fa397-e459-4a9b-b37c-214d6af275b6 (pop=827526, year=2024)
+- SD municipality id: 1ee32637-1f2e-4a91-a7c1-1cd976dd4aa2 (pop=1404452, year=2024)
+- SF Operating data_source id: 86ba2211-8730-4d60-b265-869e22902e48
+- SF Revenue data_source id: 663ca6af-509c-4b44-a964-7df0da3446af
+- SD Operating data_source id: 5548ecff-4197-483d-a324-cec466ce524f
+- SD Revenue data_source id: fa69d8ed-20a6-4a5b-bde8-0224542534c9
+- LA Revenue data_source id: 993fdef9-9270-4d71-9a8c-b1a4dfaf9c39
+
 ### Additional Decisions (Phase 16 Plan 02)
 
 - SD CSV (seshat.datasd.org) is fully double-quoted — all fields including headers are wrapped in `"..."`. Quote-aware parseCSV() in loadSanDiegoCSV.js handles this; naive split(',') does not.
@@ -109,5 +120,5 @@ Progress: v1.4 ████████████████████ Phas
 ## Session Continuity
 
 Last session: 2026-05-22
-Stopped at: Completed 16-02-PLAN.md (loadSanDiegoCSV.js + live CSV probe)
+Stopped at: Completed 16-03-PLAN.md (seedCaliforniaCities.js seeder)
 Resume file: None
