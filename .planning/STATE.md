@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-05-21)
 ## Current Position
 
 Phase: 16 of 16+ (Phase 16 in progress)
-Plan: 3 of 5 complete (16-01 + 16-02 + 16-03 done)
-Status: In progress — Phase 16 Plan 03 complete; 16-04 (live loads) next
-Last activity: 2026-05-22 — Completed 16-03-PLAN.md (seedCaliforniaCities.js seeder)
+Plan: 4 of 5 complete (16-01 + 16-02 + 16-03 + 16-04 done)
+Status: In progress — Phase 16 Plan 04 complete; 16-05 (enrichment + human verify) next
+Last activity: 2026-05-22 — Completed 16-04-PLAN.md (California cities live loads)
 
-Progress: v1.4 ████████████████████ Phase 15 100% — Phase 16 ███░░ 3/5 plans complete
+Progress: v1.4 ████████████████████ Phase 15 100% — Phase 16 ████░ 4/5 plans complete
 
 ## Accumulated Context
 
@@ -71,6 +71,14 @@ Progress: v1.4 ████████████████████ Phas
 - mcp__supabase-local__apply_migration: use for DDL migrations instead of Supabase Dashboard manual paste — faster, no human gate
 - population column is `bigint` in DB (not `integer` as assumed in research) — no impact on loader
 
+### Additional Decisions (Phase 16 Plan 04)
+
+- treasury.budgets: 8 new CA rows loaded — SF (op+rev FY2025/FY2026), SD (op+rev FY2025), LA Revenue (FY2025/FY2026)
+- SD FY2026 confirmed absent — empty budget_cycle in live CSV; Plan 16-05 enriches SD FY2025 only
+- LA Operating FY2026 category_rows is 519 (vs 442 in Phase 15-02) — total_budget exact, drift is pre-existing (not caused by Plan 16-04 LA Revenue loads)
+- Supabase execute_sql RPC not available — use supabase.schema('treasury').from(...) with count:exact for DB verification
+- New budget_ids for Plan 16-05: SF Op 2025=58049b08, SF Op 2026=d308f4e1, SF Rev 2025=55ef294b, SF Rev 2026=efa6c216, SD Op 2025=fbe493a3, SD Rev 2025=9a2389a8, LA Rev 2025=89bf4c59, LA Rev 2026=0424364d
+
 ### Additional Decisions (Phase 16 Plan 03)
 
 - seedCaliforniaCities.js: dataset_id+municipality_id fallback lookup REMOVED — SF Op + SF Rev share xdgd-c79v + SF muni_id, SD Op + Rev share budget_operating_datasd + SD muni_id; fallback would collide. Primary name lookup sufficient for Phase 16 (no pre-existing rows to rename).
@@ -120,5 +128,5 @@ Progress: v1.4 ████████████████████ Phas
 ## Session Continuity
 
 Last session: 2026-05-22
-Stopped at: Completed 16-03-PLAN.md (seedCaliforniaCities.js seeder)
+Stopped at: Completed 16-04-PLAN.md (California cities live loads — 8 budget rows)
 Resume file: None
