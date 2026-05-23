@@ -2,11 +2,11 @@
 
 ## What This Is
 
-A public-facing financial transparency platform for cities and nonprofits, deployed at financials.empowered.vote. It translates raw budget and transaction data into plain-language summaries, visual breakdowns, and searchable spending categories — making government and nonprofit finances accessible to everyday citizens.
+A public-facing financial transparency platform for cities and nonprofits, deployed at treasurytracker.empowered.vote. It translates raw budget and transaction data into plain-language summaries, visual breakdowns, and searchable spending categories — making government and nonprofit finances accessible to everyday citizens.
 
 ## Core Value
 
-Any citizen can open financials.empowered.vote and immediately understand where money comes from and where it goes — without needing a finance background.
+Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes — without needing a finance background.
 
 ## Requirements
 
@@ -31,20 +31,29 @@ Any citizen can open financials.empowered.vote and immediately understand where 
 - ✓ PDF pipeline "Unknown" department attribution fixed (max_tokens + cross-page section context) — v1.2
 - ✓ Revenue data visible for Plano (FY2018–2024), McKinney (FY2021–2025), Frisco (FY2026), Allen (FY2026) — v1.2
 - ✓ Garland, Wylie, Sachse, Murphy, Princeton operating budgets loaded via pdftotext parsers — v1.2
+- ✓ Prosper TX revenue data loaded via pdftotext (FY2023, FY2024, FY2025) — v1.3
+- ✓ Celina TX revenue data loaded via pdftotext (FY2025) — v1.3
+- ✓ Richardson TX operating budget loaded (FY2025, FY2026) via 4-format XLSX dispatcher — v1.3
+- ✓ Category enrichment for Garland, Wylie, Sachse, Murphy, Princeton — v1.3
+- ✓ Population data loaded for all 12 TX cities (2024 Census vintage); per-capita ($/resident) visible in app — v1.3
+- ✓ Los Angeles operating budget (FY2025+2026, $19.8B/$21.4B) with enrichment and per-capita — v1.4
+- ✓ San Francisco operating + revenue (FY2025+2026, $15.9B each) with enrichment and per-capita — v1.4
+- ✓ San Diego operating + revenue (FY2025, $4.9B op/$5.5B rev) with enrichment and per-capita — v1.4
+- ✓ LA revenue budget (FY2025+2026, $10.2B) added — v1.4
+- ✓ `bulkLoadBudget.js` extended with `fiscal_year_type` + `where_extra` for integer FY columns and multi-type datasets — v1.4
 
 ### Active
 
-- [ ] Prosper revenue data loaded — pdftotext targeting "STATEMENT OF REVENUES" section needed (ACFR Haiku vision produces inflated totals)
-- [ ] Celina revenue data loaded — same pdftotext approach as Prosper
-- [ ] Richardson operating budget loaded — cor.net blocks HTTP; manual browser URL sourcing required, then processRichardsonBudget.js following processGarlandBudget.js pattern
-- [ ] Category enrichment for all newly loaded TX cities (v1.2 loads data; enrichment is a separate pass)
-- [ ] Population data for TX municipalities
+- [ ] Geographic expansion: next city group (Long Beach, San Jose, Sacramento, or first non-CA city)
+- [ ] `EntitySwitcher.tsx` `STATE_LABELS` map: add TX (and other states added) so state group headers show full names not two-letter codes
 
 ### Out of Scope
 
 - Real-time websocket subscriptions — redirect-driven flow is sufficient and simpler
 - Patreon/Benevity real-time — webhook story is weaker; CSV import remains for those platforms
 - Admin donation management UI — out of scope for this milestone
+- Multi-year per-capita trends — single 2024 population vintage across FY2018–FY2026 creates false trends for fast-growing cities
+- Enterprise fund audit across cities — complex scope analysis; deferred until cross-city comparison is in scope
 
 ## Context
 
@@ -53,6 +62,7 @@ Any citizen can open financials.empowered.vote and immediately understand where 
 - Donation platforms: GiveButter (primary, lowest fees), Patreon (recurring), Benevity (workplace giving)
 - GiveButter supports webhooks and custom return URLs after donation completion
 - The webhook fires before the redirect, so DB should be updated by the time user lands back
+- Currently covers: 12 TX cities (Dallas, Plano, McKinney, Frisco, Allen, Prosper, Celina, Richardson, Garland, Wylie, Sachse, Murphy, Princeton, Princeton) + 3 CA cities (Los Angeles, San Francisco, San Diego)
 
 ## Constraints
 
@@ -64,24 +74,33 @@ Any citizen can open financials.empowered.vote and immediately understand where 
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Redirect-driven (not websockets) | Simpler, no always-on subscription needed; webhook fires before redirect completes | — Pending |
-| Supabase Edge Function as webhook receiver | Already in stack, no new infra | — Pending |
-| GiveButter-only for v1 | Best webhook support; Patreon/Benevity less suitable | — Pending |
+| Redirect-driven (not websockets) | Simpler, no always-on subscription needed; webhook fires before redirect completes | ✓ Good |
+| Supabase Edge Function as webhook receiver | Already in stack, no new infra | ✓ Good |
+| GiveButter-only for v1 | Best webhook support; Patreon/Benevity less suitable | ✓ Good |
+| Socrata SODA API for city budgets | Generic loader reusable for any Socrata city; no city-specific code | ✓ Good — proven across Dallas, LA, SF |
+| pdftotext over Haiku vision for revenue sections | PDF structure too irregular for vision; pdftotext + regex targeting yields higher accuracy | ✓ Good |
+| Path A population schema (add column to municipalities) | Zero frontend changes, one migration; multi-year history deferred to v2 | ✓ Good |
+| 2024 Census vintage applied uniformly across all FYs | Single-year population; false trends would mislead for fast-growing cities | — Single vintage only |
+| `where_extra` caller supplies leading AND | More flexible (allows OR, parentheses); matches column_mapping per-dataset contract | ✓ Good |
+| `fiscal_year_type` defaults to 'string' | Backward-compatible; only 'integer' triggers unquoted WHERE branch | ✓ Good |
+| SD FY2026 excluded (empty budget_cycle in source) | Source-driven gap; update fiscal_years when SD publishes FY2026 adopted data | — No code change needed |
 
-## Shipped: v1.2 Collin County Completion & Data Quality (2026-05-21)
+## Shipped
 
-13/16 requirements shipped. 5 new Collin County cities added. Revenue data loaded for 4 TX cities. PDF pipeline attribution fixed. Prosper/Celina revenue and Richardson operating budget deferred to v1.3.
+- ✅ **v1.4 Geographic Expansion** — 2026-05-22 — Phases 15-16 (LA, SF, SD, LA Revenue)
+- ✅ **v1.3 Revenue Completion & Per-Capita Context** — 2026-05-22 — Phases 11-14
+- ✅ **v1.2 Collin County Completion & Data Quality** — 2026-05-21 — Phases 8-10
+- ✅ **v1.1 Texas Municipal Financial Transparency** — 2026-05-02 — Phases 5-7
+- ✅ **v1.0 GiveButter Real-Time Donation Feedback** — 2026-04-22 — Phases 1-4
 
-## Current Milestone: v1.3 Revenue Completion & Per-Capita Context
+## Next Milestone: v1.5 (Not Yet Planned)
 
-**Goal:** Close out all deferred v1.2 data work and add population-based per-capita spending display so citizens can compare cities of different sizes.
+Run `/gsd:new-milestone` to define goals, research, and requirements for v1.5.
 
-**Target features:**
-- Prosper revenue loaded via pdftotext targeting STATEMENT OF REVENUES section
-- Celina revenue loaded via same pdftotext approach
-- Richardson operating budget via manual URL sourcing + processRichardsonBudget.js
-- Category enrichment for Garland, Wylie, Sachse, Murphy, Princeton
-- TX city population data loaded; per-capita spending displayed in app
+Likely directions:
+- Geographic expansion: Long Beach, San Jose, Sacramento, or first non-CA city
+- `EntitySwitcher` state label cleanup
+- Category enrichment for Richardson TX (depends on COL-01 data being stable)
 
 ---
-*Last updated: 2026-05-21 — v1.3 started*
+*Last updated: 2026-05-23 — v1.4 complete; planning v1.5*
