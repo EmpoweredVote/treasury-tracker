@@ -6,7 +6,7 @@
 - ✅ **v1.1 Texas Municipal Financial Transparency** — Phases 5-7 (shipped 2026-05-02)
 - ✅ **v1.2 Collin County Completion & Data Quality** — Phases 8-10 (shipped 2026-05-21)
 - ✅ **v1.3 Revenue Completion & Per-Capita Context** — Phases 11-14 (shipped 2026-05-22)
-- 🚧 **v1.4 Geographic Expansion** — Phase 15+ (in progress)
+- ✅ **v1.4 Geographic Expansion** — Phases 15-16 (shipped 2026-05-22)
 
 ---
 
@@ -221,7 +221,7 @@ Plans:
 
 ---
 
-## 🚧 v1.4 Geographic Expansion (in progress)
+## ✅ v1.4 Geographic Expansion (SHIPPED 2026-05-22)
 
 **Milestone Goal:** Expand Treasury Tracker beyond Texas. Phase 15 (Los Angeles, CA) is the first non-TX city and proves the generic Socrata + enrichment pipeline scales to any US city with a Socrata SODA portal.
 
@@ -270,11 +270,11 @@ Plans:
 **Plans:** 5 plans across 3 waves
 
 Plans:
-- [ ] 16-01-PLAN.md — Extend `bulkLoadBudget.js` with `fiscal_year_type: "integer"` and `where_extra` column_mapping support
-- [ ] 16-02-PLAN.md — Build `scripts/loadSanDiegoCSV.js` for San Diego CSV endpoint
-- [ ] 16-03-PLAN.md — Create `scripts/seedCaliforniaCities.js` — seeds SF + SD municipalities + 5 data_sources rows
-- [ ] 16-04-PLAN.md — Dry-run + live load all 5 datasets (SF op+rev, SD op+rev, LA rev) via updated loaders
-- [ ] 16-05-PLAN.md — Enrichment for SF + SD + (conditional) LA revenue categories; human verification checkpoint
+- [x] 16-01-PLAN.md — Extend `bulkLoadBudget.js` with `fiscal_year_type: "integer"` and `where_extra` column_mapping support
+- [x] 16-02-PLAN.md — Build `scripts/loadSanDiegoCSV.js` for San Diego CSV endpoint
+- [x] 16-03-PLAN.md — Create `scripts/seedCaliforniaCities.js` — seeds SF + SD municipalities + 5 data_sources rows
+- [x] 16-04-PLAN.md — Dry-run + live load all 5 datasets (SF op+rev, SD op+rev, LA rev) via updated loaders
+- [x] 16-05-PLAN.md — Enrichment for SF + SD + (conditional) LA revenue categories; human verification checkpoint
 
 ---
 
@@ -299,9 +299,9 @@ Plans:
 | 13. Richardson Operating Budget | v1.3 | 1/1 | Complete | 2026-05-22 |
 | 14. Category Enrichment (5 cities) | v1.3 | 2/2 | Complete | 2026-05-22 |
 | 15. Los Angeles Socrata + Enrichment | v1.4 | 3/3 | Complete | 2026-05-22 |
-| 16. California Cities Expansion | v1.4 | 0/? | Planned | — |
+| 16. California Cities Expansion | v1.4 | 5/5 | Complete | 2026-05-22 |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-05-22 — Phase 15 complete; next: Phase 16 (Fremont, San Diego, San Francisco, Berkeley CA)*
+*Last updated: 2026-05-22 — Phase 16 complete; v1.4 milestone shipped; next: Phase 17 (Long Beach, San Jose, Sacramento, or first non-CA city)*

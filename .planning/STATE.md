@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-05-21)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** v1.4 in progress — Phase 16 (SF, SD, LA Revenue CA cities) in progress
+**Current focus:** v1.4 COMPLETE — Phase 16 (SF, SD, LA Revenue) shipped 2026-05-22; next: Phase 17 expansion (Long Beach, San Jose, Sacramento, or first non-CA city)
 
 ## Current Position
 
-Phase: 16 of 16+ (Phase 16 in progress)
-Plan: 4 of 5 complete (16-01 + 16-02 + 16-03 + 16-04 done)
-Status: In progress — Phase 16 Plan 04 complete; 16-05 (enrichment + human verify) next
-Last activity: 2026-05-22 — Completed 16-04-PLAN.md (California cities live loads)
+Phase: 16 of 16+ (Phase 16 COMPLETE)
+Plan: 5 of 5 complete
+Status: Phase 16 COMPLETE — v1.4 milestone complete
+Last activity: 2026-05-22 — Completed 16-05-PLAN.md (CA cities enrichment + human verification)
 
-Progress: v1.4 ████████████████████ Phase 15 100% — Phase 16 ████░ 4/5 plans complete
+Progress: v1.4 ████████████████████ Phase 15 100% — Phase 16 █████ 5/5 plans complete
 
 ## Accumulated Context
 
@@ -70,6 +70,15 @@ Progress: v1.4 ████████████████████ Phas
 
 - mcp__supabase-local__apply_migration: use for DDL migrations instead of Supabase Dashboard manual paste — faster, no human gate
 - population column is `bigint` in DB (not `integer` as assumed in research) — no impact on loader
+
+### Additional Decisions (Phase 16 Plan 05)
+
+- SF: 53 enrichment rows (municipality_id=a98fa397-e459-4a9b-b37c-214d6af275b6), FY2025+FY2026 operating+revenue covered
+- SD: 61 enrichment rows (municipality_id=1ee32637-1f2e-4a91-a7c1-1cd976dd4aa2), FY2025 only (FY2026 absent in source CSV)
+- LA Revenue enrichment: no-op — all LA revenue department names matched existing Phase 15-03 enrichment via name_key deduplication; 70 Phase 15-03 rows preserved, 0 new rows added
+- Total Phase 16 enrichment API cost: ~$0.43 (well under $5 threshold; ~60% above $0.27 RESEARCH.md estimate due to more distinct category names)
+- No --year 2026 follow-up runs needed — Step E confirmed 0 unenriched depth-0 categories across all 3 cities × 2 fiscal years
+- Human verification approved at treasurytracker.empowered.vote on 2026-05-22 — SF and SD visible in city picker, all descriptions present, per-capita labeled "2024 Census estimate"
 
 ### Additional Decisions (Phase 16 Plan 04)
 
@@ -128,5 +137,5 @@ Progress: v1.4 ████████████████████ Phas
 ## Session Continuity
 
 Last session: 2026-05-22
-Stopped at: Completed 16-04-PLAN.md (California cities live loads — 8 budget rows)
+Stopped at: Completed 16-05-PLAN.md (CA cities enrichment + human verification — Phase 16 COMPLETE)
 Resume file: None
