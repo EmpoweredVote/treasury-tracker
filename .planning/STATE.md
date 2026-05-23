@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-05-21)
 
 ## Current Position
 
-Phase: 15 of 15+ (Phase 15 complete; Phase 16 planning in progress)
-Plan: Phase 15 all plans complete (3/3)
-Status: Phase 15 COMPLETE — planning Phase 16 (Fremont, San Diego, San Francisco, Berkeley CA)
-Last activity: 2026-05-22 — Phase 15-03 human verification approved; Phase 15 closed
+Phase: 16 of 16+ (Phase 16 in progress)
+Plan: 1 of 5 complete (16-01 done)
+Status: In progress — Phase 16 Plan 01 complete; executing Plan 16-02 next
+Last activity: 2026-05-22 — Completed 16-01-PLAN.md (bulkLoadBudget.js fiscal_year_type + where_extra extensions)
 
-Progress: v1.4 ████████████████████ Phase 15 100% — Phase 16 scope TBD
+Progress: v1.4 ████████████████████ Phase 15 100% — Phase 16 █░░░░ 1/5 plans complete
 
 ## Accumulated Context
 
@@ -71,6 +71,13 @@ Progress: v1.4 ████████████████████ Phas
 - mcp__supabase-local__apply_migration: use for DDL migrations instead of Supabase Dashboard manual paste — faster, no human gate
 - population column is `bigint` in DB (not `integer` as assumed in research) — no impact on loader
 
+### Additional Decisions (Phase 16 Plan 01)
+
+- where_extra caller supplies the leading AND — more flexible (allows OR, parentheses); matches column_mapping per-dataset contract
+- fiscal_year_type defaults to 'string' (backward-compatible); only 'integer' triggers unquoted branch
+- Store where_extra as raw unencoded string in column_mapping — URLSearchParams encodes it automatically in fetchSocrataPage
+- No new CLI flags — these are column_mapping runtime keys, not operator options
+
 ### Additional Decisions (Phase 15 Plan 01)
 
 - LA pre-existing row 'LA City Budget & Expenditures' renamed to 'Los Angeles Operating Budget' via fallback upsert by dataset_id+municipality_id — id=01c50191 preserved
@@ -95,5 +102,5 @@ Progress: v1.4 ████████████████████ Phas
 ## Session Continuity
 
 Last session: 2026-05-22
-Stopped at: Completed 15-02-PLAN.md (load LA operating budgets FY2025+FY2026)
+Stopped at: Completed 16-01-PLAN.md (bulkLoadBudget.js WHERE clause extensions)
 Resume file: None
