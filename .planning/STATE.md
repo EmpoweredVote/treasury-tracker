@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-05-21)
 ## Current Position
 
 Phase: 16 of 16+ (Phase 16 in progress)
-Plan: 1 of 5 complete (16-01 done)
-Status: In progress — Phase 16 Plan 01 complete; executing Plan 16-02 next
-Last activity: 2026-05-22 — Completed 16-01-PLAN.md (bulkLoadBudget.js fiscal_year_type + where_extra extensions)
+Plan: 2 of 5 complete (16-01 + 16-02 done)
+Status: In progress — Phase 16 Plan 02 complete; 16-03 (SD data_sources seeding) next
+Last activity: 2026-05-22 — Completed 16-02-PLAN.md (loadSanDiegoCSV.js + live CSV probe)
 
-Progress: v1.4 ████████████████████ Phase 15 100% — Phase 16 █░░░░ 1/5 plans complete
+Progress: v1.4 ████████████████████ Phase 15 100% — Phase 16 ██░░░ 2/5 plans complete
 
 ## Accumulated Context
 
@@ -71,6 +71,13 @@ Progress: v1.4 ████████████████████ Phas
 - mcp__supabase-local__apply_migration: use for DDL migrations instead of Supabase Dashboard manual paste — faster, no human gate
 - population column is `bigint` in DB (not `integer` as assumed in research) — no impact on loader
 
+### Additional Decisions (Phase 16 Plan 02)
+
+- SD CSV (seshat.datasd.org) is fully double-quoted — all fields including headers are wrapped in `"..."`. Quote-aware parseCSV() in loadSanDiegoCSV.js handles this; naive split(',') does not.
+- FY26 budget_cycle is BLANK in the live SD CSV (not 'proposed' or 'adopted'). FY25 correctly has 'adopted'/'proposed'. Plan 16-03 MUST use fiscal_years=[2025] only until SD labels FY26 rows.
+- SD CSV total: 548,811 rows, FY2011–FY2026. FY25 adopted: 33,436 rows (1,098 revenue 4xxxxx + 32,338 operating 5xxxxx).
+- loadSanDiegoCSV.js filters to api_type='csv_download' sources — bulkLoadBudget.js uses api_type='socrata'. The two loaders are mutually exclusive by api_type.
+
 ### Additional Decisions (Phase 16 Plan 01)
 
 - where_extra caller supplies the leading AND — more flexible (allows OR, parentheses); matches column_mapping per-dataset contract
@@ -102,5 +109,5 @@ Progress: v1.4 ████████████████████ Phas
 ## Session Continuity
 
 Last session: 2026-05-22
-Stopped at: Completed 16-01-PLAN.md (bulkLoadBudget.js WHERE clause extensions)
+Stopped at: Completed 16-02-PLAN.md (loadSanDiegoCSV.js + live CSV probe)
 Resume file: None
