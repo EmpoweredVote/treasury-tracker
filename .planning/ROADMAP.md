@@ -254,11 +254,33 @@ Plans:
 - [x] 15-02-PLAN.md — Dry-run + live-load LA Operating FY2025 + FY2026 via `bulkLoadBudget.js`; verify totals/category tree in DB; prove idempotency
 - [x] 15-03-PLAN.md — Dry-run + live enrichment via `enrichCategories.js`; verify scoping + no bleed; human-verify LA in app at treasurytracker.empowered.vote
 
+### Phase 16: California Cities Expansion (San Francisco, San Diego, LA Revenue)
+
+**Goal:** Citizens can view budget data for San Francisco CA (operating + revenue), San Diego CA (operating + revenue), and Los Angeles CA (revenue added to existing operating data) — all loaded via Socrata or CSV pipelines, with per-capita display and plain-language enrichment.
+
+**Depends on:** Phase 15 (LA operating loaded, Socrata + enrichment pipeline validated), Phase 5 (bulkLoadBudget.js)
+
+**Requirements:**
+- SF-01: San Francisco operating + revenue data loaded from `data.sfgov.org` dataset `xdgd-c79v`
+- SD-01: San Diego operating + revenue data loaded from static CSV at seshat.datasd.org
+- LA-REV-01: LA revenue data loaded from `controllerdata.lacity.org` dataset `vvm4-a2zu`
+- CA-01: All three cities have plain-language enrichment on top-level categories
+- CA-02: All three cities display per-capita spending with correct Census population year
+
+**Plans:** 5 plans across 3 waves
+
+Plans:
+- [ ] 16-01-PLAN.md — Extend `bulkLoadBudget.js` with `fiscal_year_type: "integer"` and `where_extra` column_mapping support
+- [ ] 16-02-PLAN.md — Build `scripts/loadSanDiegoCSV.js` for San Diego CSV endpoint
+- [ ] 16-03-PLAN.md — Create `scripts/seedCaliforniaCities.js` — seeds SF + SD municipalities + 5 data_sources rows
+- [ ] 16-04-PLAN.md — Dry-run + live load all 5 datasets (SF op+rev, SD op+rev, LA rev) via updated loaders
+- [ ] 16-05-PLAN.md — Enrichment for SF + SD + (conditional) LA revenue categories; human verification checkpoint
+
 ---
 
 ## Progress
 
-**Execution Order:** 11 → 12 → 13 → 14 → 15 (each phase sequential; v1.4 milestone opens with Phase 15)
+**Execution Order:** 11 → 12 → 13 → 14 → 15 → 16 (each phase sequential)
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -277,6 +299,7 @@ Plans:
 | 13. Richardson Operating Budget | v1.3 | 1/1 | Complete | 2026-05-22 |
 | 14. Category Enrichment (5 cities) | v1.3 | 2/2 | Complete | 2026-05-22 |
 | 15. Los Angeles Socrata + Enrichment | v1.4 | 3/3 | Complete | 2026-05-22 |
+| 16. California Cities Expansion | v1.4 | 0/? | Planned | — |
 
 ---
 
