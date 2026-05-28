@@ -25,6 +25,7 @@
     "exceljs": "^4.4.0",
     "lucide-react": "^0.562.0",
     "pdftoimg-js": "^0.2.5",
+    "posthog-js": "^1.376.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "recharts": "^3.5.1"
