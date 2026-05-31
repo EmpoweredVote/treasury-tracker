@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: — Oregon Expansion
-status: planning
-last_updated: "2026-05-31T14:37:22.551Z"
-last_activity: 2026-05-23 — v1.4 milestone archived
+status: executing
+last_updated: "2026-05-31T15:24:12.390Z"
+last_activity: 2026-05-31 -- Phase 17 planning complete
 progress:
   total_phases: 4
   completed_phases: 3
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-05-23)
 
 Phase: 17+ (v1.5 not yet planned)
 Plan: Not started
-Status: Ready to plan v1.5
-Last activity: 2026-05-23 — v1.4 milestone archived
+Status: Ready to execute
+Last activity: 2026-05-31 -- Phase 17 planning complete
 
 Progress: v1.4 COMPLETE ████████████████████ Phases 1–16 all shipped
 

@@ -22,6 +22,7 @@
 **Status:** Shipped (pre-GSD)
 
 Plans:
+
 - [x] Phase 1 complete (pre-GSD planning)
 
 ### Phase 2: Data Layer Audit (COMPLETE)
@@ -30,6 +31,7 @@ Plans:
 **Status:** Complete — 2026-04-21
 
 Plans:
+
 - [x] 02-01-PLAN.md — Audit pre-aggregation pattern + produce Phase 3 technical contract
 
 ### Phase 3: Webhook Backend (COMPLETE)
@@ -38,6 +40,7 @@ Plans:
 **Status:** Complete — 2026-04-22
 
 Plans:
+
 - [x] 03-01-PLAN.md — Schema migration: add external_id + source columns + dedup index
 - [x] 03-02-PLAN.md — Postgres RPC function: treasury.record_givebutter_donation
 - [x] 03-03-PLAN.md — loadEVFinances.js: source tagging + webhook row preservation
@@ -50,6 +53,7 @@ Plans:
 **Status:** Complete — 2026-04-22
 
 Plans:
+
 - [x] 04-01-PLAN.md — useAnimatedCounter hook + visibilitychange → silent revenue refetch in App.tsx
 - [x] 04-02-PLAN.md — Wire animated count-up + green-glow settle into PlainLanguageSummary and DatasetTabs revenue displays
 
@@ -65,6 +69,7 @@ Plans:
 **Goal:** Citizens can view Dallas operating and revenue budget data in the app, loaded via a generic Socrata SODA pipeline reusable for any future city.
 
 Plans:
+
 - [x] 05-01-PLAN.md — Idempotent seeder for Dallas operating + revenue `data_sources` rows
 - [x] 05-02-PLAN.md — Generic Socrata budget loader (`bulkLoadBudget.js`) calling `treasury_sync_budget_tree`
 - [x] 05-03-PLAN.md — Live load Dallas FY2025 + FY2026 operating + revenue, verify in app + idempotency
@@ -74,6 +79,7 @@ Plans:
 **Goal:** Citizens can view check register and payroll data for Plano, McKinney, and Frisco, loaded via a generic XLSX download pipeline.
 
 Plans:
+
 - [x] 06-01-PLAN.md — Build generic bulkLoadXLSX.js (download, parse, SHA-256 dedup, treasury_sync_transactions RPC)
 - [x] 06-02-PLAN.md — Investigate sources + idempotent seedXLSXDataSources.js for Plano, McKinney (transactions + payroll), Frisco
 - [x] 06-03-PLAN.md — Live load all seeded sources, verify idempotency + force-reload, confirm data visible in app
@@ -83,6 +89,7 @@ Plans:
 **Goal:** Citizens can view budget data for Allen, Prosper, and Celina, extracted from ACFR PDFs using a Claude Haiku vision pipeline.
 
 Plans:
+
 - [x] 07-01-PLAN.md — PDF rendering foundation: install pdftoimg-js + @napi-rs/canvas, scaffold bulkLoadPDF.js
 - [x] 07-02-PLAN.md — Haiku vision extraction + treasury_sync_budget_tree RPC integration
 - [x] 07-03-PLAN.md — Seed Allen/Prosper/Celina data_sources, dry-run + live-load all three ACFRs
@@ -137,11 +144,18 @@ First non-TX cities launched: LA, SF, SD operating + revenue budgets with per-ca
 **Goal:** Citizens can view Portland, OR operating budget data in the app, with per-capita display and AI-enriched category descriptions. (Revenue budget deferred to a follow-up per D-03 — Portland publishes revenue only in PDF Vol 2 at fund level, more complex than the bureau-level operating tables.)
 
 **Plans:** 4 plans
-
 Plans:
+**Wave 1**
+
 - [ ] 17-01-PLAN.md — Foundation: verify pdfplumber, download + inspect Vol 1 PDFs, seed Portland municipality + operating data_source, add OR:'Oregon' label
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 17-02-PLAN.md — extractPortland.py + processPortland.js PDF→treasury_sync_budget_tree pipeline (dry-run validated)
 - [ ] 17-03-PLAN.md — loadORPopulation.js: Census FIPS-41 population load (635,749)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 17-04-PLAN.md — Live load operating budget, enrich categories, human-verify in app, write 17-VERIFICATION.md
 
 ---
@@ -169,7 +183,6 @@ Plans:
 | 15. Los Angeles Socrata + Enrichment | v1.4 | 3/3 | Complete | 2026-05-22 |
 | 16. California Cities Expansion | v1.4 | 5/5 | Complete | 2026-05-22 |
 | 17. Portland OR Budget Load | v1.5 | 0/4 | Planned | — |
-
 
 ---
 
