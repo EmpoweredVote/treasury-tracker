@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: — Oregon Expansion
 status: executing
-last_updated: "2026-05-31T15:24:12.390Z"
-last_activity: 2026-05-31 -- Phase 17 planning complete
+last_updated: "2026-05-31T16:50:00.754Z"
+last_activity: 2026-05-31 -- Phase 17 execution started
 progress:
   total_phases: 4
   completed_phases: 3
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-23)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** v1.4 COMPLETE — planning v1.5 (next city expansion or feature work)
+**Current focus:** Phase 17 — portland-or-budget-load
 
 ## Current Position
 
-Phase: 17+ (v1.5 not yet planned)
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-05-31 -- Phase 17 planning complete
+Phase: 17 (portland-or-budget-load) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 17
+Last activity: 2026-05-31 -- Phase 17 execution started
 
 Progress: v1.4 COMPLETE ████████████████████ Phases 1–16 all shipped
 
