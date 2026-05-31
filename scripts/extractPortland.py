@@ -215,6 +215,30 @@ def extract_budget(pdf_path):
     return results
 
 
+# ── Strip doubled fund name artifact in older Vol 2 PDFs ─────────────────────
+def _dedup_name(name):
+    """Remove doubled fund name from older Portland Vol 2 PDFs.
+
+    Older PDFs repeat the fund name in the header cell:
+      'Water Fund Water Fund' → 'Water Fund'
+      'Portland Clean Energy...FundPortland...' → 'Portland Clean Energy...Fund'
+    Safe on normal names: only triggers on exact self-repetition.
+    """
+    n = len(name)
+    # 'XX' pattern (no separator)
+    if n % 2 == 0:
+        half = n // 2
+        if name[:half] == name[half:]:
+            return name[:half]
+    # 'X X' pattern (space separator at midpoint)
+    mid = (n - 1) // 2
+    space_idx = name.find(' ', mid)
+    if space_idx > 0:
+        first, rest = name[:space_idx], name[space_idx + 1:]
+        if first == rest:
+            return first
+    return name
+
 # ── Extract fund-level Resources Total from Vol 2 PDFs ───────────────────────
 def extract_revenue(pdf_path):
     """
@@ -250,7 +274,7 @@ def extract_revenue(pdf_path):
             )
             for line in lines[:4]:
                 if line and len(line) > 5 and not skip_patterns.search(line):
-                    fund_name = line
+                    fund_name = _dedup_name(line)
                     break
 
             if not fund_name:

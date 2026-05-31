@@ -70,6 +70,9 @@ const PDF_URLS = {
   revenue: {
     2026: 'https://www.portland.gov/budget/documents/fy-2025-26-city-portland-adopted-budget-vol-2-city-funds-and-capital-projects/download',
     2025: 'https://www.portland.gov/budget/2024-2025-budget/documents/fy-2024-25-volume-2-city-portland-city-funds-and-capital-projects/download',
+    2024: 'https://www.portland.gov/budget/2023-2024-budget/documents/fy-2023-24-adopted-budget-volume-2-funds-and-capital-projects/download',
+    2023: 'https://www.portland.gov/budget/2022-2023-budget/documents/fy-2022-23-adopted-budget-volume-2-funds-and-capital-projects/download',
+    2022: 'https://www.portland.gov/budget/2021-2022-budget/documents/fy-2021-22-adopted-budget-volume-2-funds-and-capital-projects/download',
   },
 };
 
