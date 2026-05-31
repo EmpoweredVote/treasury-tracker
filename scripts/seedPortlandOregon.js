@@ -33,7 +33,7 @@ if (!SUPABASE_KEY) {
   process.exit(1);
 }
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, { db: { schema: 'treasury' } });
 
 // ── Municipality payload ─────────────────────────────────────────────────
 // Population from Census sub-est2024_41.csv, SUMLEV=162, "Portland city" → 635749
@@ -48,7 +48,6 @@ const PORTLAND = {
 // ── Idempotent upsert for municipality: select by name+state → insert or update ──
 async function upsertMunicipality(m) {
   const { data: existing, error: selectErr } = await supabase
-    .schema('treasury')
     .from('municipalities')
     .select('id')
     .eq('name', m.name)
@@ -64,7 +63,6 @@ async function upsertMunicipality(m) {
 
   if (existing?.id) {
     ({ data, error } = await supabase
-      .schema('treasury')
       .from('municipalities')
       .update(m)
       .eq('id', existing.id)
@@ -72,7 +70,6 @@ async function upsertMunicipality(m) {
     if (!error) console.log(`  (updated existing municipality row ${existing.id})`);
   } else {
     ({ data, error } = await supabase
-      .schema('treasury')
       .from('municipalities')
       .insert(m)
       .select());
@@ -132,7 +129,6 @@ async function main() {
 
   // ── Step 3: Verify municipality row population ────────────────────────
   const { data: muniCheck, error: muniCheckErr } = await supabase
-    .schema('treasury')
     .from('municipalities')
     .select('id, population, population_year')
     .eq('name', 'Portland')
