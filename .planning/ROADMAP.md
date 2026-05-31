@@ -143,7 +143,7 @@ First non-TX cities launched: LA, SF, SD operating + revenue budgets with per-ca
 
 **Goal:** Citizens can view Portland, OR operating budget data in the app, with per-capita display and AI-enriched category descriptions. (Revenue budget deferred to a follow-up per D-03 — Portland publishes revenue only in PDF Vol 2 at fund level, more complex than the bureau-level operating tables.)
 
-**Plans:** 4/4 plans executed — COMPLETE 2026-05-31
+**Plans:** 4/4 plans complete
 Plans:
 **Wave 1**
 
@@ -182,7 +182,7 @@ Plans:
 | 14. Category Enrichment (5 cities) | v1.3 | 2/2 | Complete | 2026-05-22 |
 | 15. Los Angeles Socrata + Enrichment | v1.4 | 3/3 | Complete | 2026-05-22 |
 | 16. California Cities Expansion | v1.4 | 5/5 | Complete | 2026-05-22 |
-| 17. Portland OR Budget Load | v1.5 | 4/4 | Complete | 2026-05-31 |
+| 17. Portland OR Budget Load | v1.5 | 4/4 | Complete    | 2026-05-31 |
 
 ---
 
