@@ -1,3 +1,18 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: — Oregon Expansion
+status: planning
+last_updated: "2026-05-31T14:37:22.551Z"
+last_activity: 2026-05-23 — v1.4 milestone archived
+progress:
+  total_phases: 4
+  completed_phases: 3
+  total_plans: 8
+  completed_plans: 8
+  percent: 75
+---
+
 # State
 
 ## Project Reference
@@ -43,6 +58,6 @@ $5 per run — estimate before running AI enrichment or PDF extraction.
 
 ## Session Continuity
 
-Last session: 2026-05-23
-Stopped at: v1.4 milestone archived and tagged
-Resume file: None
+Last session: 2026-05-31T14:37:22.541Z
+Stopped at: Phase 17 context gathered
+Resume file: .planning/phases/17-portland-or-budget-load/17-CONTEXT.md
