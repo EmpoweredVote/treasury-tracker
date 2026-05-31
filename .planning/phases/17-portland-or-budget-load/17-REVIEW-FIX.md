@@ -2,9 +2,9 @@
 phase: 17-portland-or-budget-load
 fixed_at: 2026-05-31T00:00:00Z
 review_path: .planning/phases/17-portland-or-budget-load/17-REVIEW.md
-iteration: 1
-findings_in_scope: 8
-fixed: 8
+iteration: 2
+findings_in_scope: 11
+fixed: 11
 skipped: 0
 status: all_fixed
 ---
@@ -13,11 +13,11 @@ status: all_fixed
 
 **Fixed at:** 2026-05-31
 **Source review:** .planning/phases/17-portland-or-budget-load/17-REVIEW.md
-**Iteration:** 1
+**Iteration:** 2
 
 **Summary:**
-- Findings in scope: 8 (3 Critical + 5 Warning; Info findings excluded per fix_scope=critical_warning)
-- Fixed: 8
+- Findings in scope: 11 (3 Critical + 5 Warning + 3 Info; fix_scope=all)
+- Fixed: 11
 - Skipped: 0
 
 ## Fixed Issues
@@ -86,6 +86,30 @@ status: all_fixed
 
 ---
 
+### IN-01: `_inspect-portland-temp.py` is a development artifact that should be deleted
+
+**Files modified:** `scripts/_inspect-portland-temp.py` (deleted)
+**Commit:** 4f63954
+**Applied fix:** Deleted the file via `git rm`. The script's own docstring confirmed it was safe to delete after Plan 01 is complete. The file added noise to the scripts directory and had no further purpose once `extractPortland.py` was built.
+
+---
+
+### IN-02: `EntitySwitcher.tsx` state grouping has no deterministic type ordering within a state
+
+**Files modified:** `src/components/EntitySwitcher.tsx`
+**Commit:** 0e60df7
+**Applied fix:** Added `.sort(([a], [b]) => a.localeCompare(b))` before `.map()` on the inner `[...typeMap.entries()]` call (line 147). Entity type subheaders within each state group now render in stable alphabetical order regardless of municipality insertion order in the prop array. This matches the same sort already applied to state-level entries on line 140.
+
+---
+
+### IN-03: `seedPortlandOregon.js` creates the Supabase client without `.schema('treasury')`
+
+**Files modified:** `scripts/seedPortlandOregon.js`
+**Commit:** b7dbb56
+**Applied fix:** Added `{ db: { schema: 'treasury' } }` as the third argument to `createClient()` (line 36). Removed all four per-query `.schema('treasury')` chains from `upsertMunicipality()` and Step 3 verification. The RPC call (which correctly had no `.schema()` chain) was left untouched. Style is now consistent with `loadORPopulation.js`.
+
+---
+
 ## Skipped Issues
 
 None — all in-scope findings were successfully fixed.
@@ -94,4 +118,4 @@ None — all in-scope findings were successfully fixed.
 
 _Fixed: 2026-05-31_
 _Fixer: Claude (gsd-code-fixer)_
-_Iteration: 1_
+_Iteration: 2_
