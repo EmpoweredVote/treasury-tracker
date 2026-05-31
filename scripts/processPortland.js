@@ -68,6 +68,9 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 const PDF_URLS = {
   2026: 'https://www.portland.gov/budget/documents/fy-2025-26-city-portland-adopted-budget-vol-1-city-summaries-and-bureau-budgets/download',
   2025: 'https://www.portland.gov/budget/2024-2025-budget/documents/fy-2024-25-volume-1-city-portland-city-summaries-and-bureau/download',
+  2024: 'https://www.portland.gov/budget/2023-2024-budget/documents/fy-2023-24-adopted-budget-volume-1-citywide-summaries-and-bureau/download',
+  2023: 'https://www.portland.gov/budget/2022-2023-budget/documents/fy-2022-23-adopted-budget-volume-1-citywide-summaries-and-bureau/download',
+  2022: 'https://www.portland.gov/budget/2021-2022-budget/documents/fy-2021-22-adopted-budget-volume-i-citywide-summaries-and-bureau/download',
 };
 
 // ── Run Python extractor, return parsed JSON ──────────────────────────────────
