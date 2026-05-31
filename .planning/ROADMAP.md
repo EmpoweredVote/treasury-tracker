@@ -134,10 +134,15 @@ First non-TX cities launched: LA, SF, SD operating + revenue budgets with per-ca
 
 ### Phase 17: Portland OR Budget Load
 
-**Goal:** Citizens can view Portland, OR operating and revenue budget data in the app, with per-capita display and AI-enriched category descriptions.
+**Goal:** Citizens can view Portland, OR operating budget data in the app, with per-capita display and AI-enriched category descriptions. (Revenue budget deferred to a follow-up per D-03 — Portland publishes revenue only in PDF Vol 2 at fund level, more complex than the bureau-level operating tables.)
+
+**Plans:** 4 plans
 
 Plans:
-- [ ] TBD — pending research and planning
+- [ ] 17-01-PLAN.md — Foundation: verify pdfplumber, download + inspect Vol 1 PDFs, seed Portland municipality + operating data_source, add OR:'Oregon' label
+- [ ] 17-02-PLAN.md — extractPortland.py + processPortland.js PDF→treasury_sync_budget_tree pipeline (dry-run validated)
+- [ ] 17-03-PLAN.md — loadORPopulation.js: Census FIPS-41 population load (635,749)
+- [ ] 17-04-PLAN.md — Live load operating budget, enrich categories, human-verify in app, write 17-VERIFICATION.md
 
 ---
 
@@ -163,10 +168,10 @@ Plans:
 | 14. Category Enrichment (5 cities) | v1.3 | 2/2 | Complete | 2026-05-22 |
 | 15. Los Angeles Socrata + Enrichment | v1.4 | 3/3 | Complete | 2026-05-22 |
 | 16. California Cities Expansion | v1.4 | 5/5 | Complete | 2026-05-22 |
-| 17. Portland OR Budget Load | v1.5 | — | Not started | — |
+| 17. Portland OR Budget Load | v1.5 | 0/4 | Planned | — |
 
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-05-23 — v1.4 complete; v1.5 not yet planned*
+*Last updated: 2026-05-31 — Phase 17 planned (4 plans, 3 waves)*
