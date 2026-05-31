@@ -75,7 +75,9 @@ function extractPDF(pdfPath) {
   const pyScript = path.join(ROOT, 'scripts', 'extractPortland.py');
   // Quote both paths to handle spaces. T-17-03: paths come from controlled
   // docs/Portland/ readdir — not from user input.
-  const raw = execSync(`python "${pyScript}" "${pdfPath}"`, {
+  // Prefer python3 (Linux/macOS); Windows py launcher maps 'python' correctly.
+  const pythonBin = process.platform === 'win32' ? 'python' : 'python3';
+  const raw = execSync(`${pythonBin} "${pyScript}" "${pdfPath}"`, {
     maxBuffer: 8 * 1024 * 1024,  // 8MB — T-17-04: bureau-only JSON is compact
     encoding: 'utf8',
   });
@@ -141,14 +143,17 @@ async function ensureMunicipality() {
 
 // ── Upsert a per-fiscal-year data_source record ───────────────────────────────
 async function upsertDataSource(muniId, fiscalYear, datasetType) {
-  const baseUrl = PDF_URLS[fiscalYear] || PDF_URLS[2026];
+  const baseUrl = PDF_URLS[fiscalYear];
+  if (!baseUrl) {
+    console.warn(`  WARNING: No PDF URL configured for FY${fiscalYear} — base_url will be empty`);
+  }
 
   const src = {
     name:            `Portland Operating Budget FY${fiscalYear}`,
     api_type:        'pdf_download',
     dataset_type:    datasetType,
     dataset_id:      `fy${fiscalYear}`,
-    base_url:        baseUrl,
+    base_url:        baseUrl ?? '',
     fiscal_years:    [fiscalYear],
     municipality_id: muniId,
   };
@@ -179,8 +184,12 @@ async function loadFiscalYear(muniId, fiscalYear, datasetType, tree, total, rowC
   console.log(`    data_source: ${ds.id}`);
 
   // Clear existing rows for idempotency
-  await supabase.schema('treasury').from('budgets')
+  const { error: delErr } = await supabase.schema('treasury').from('budgets')
     .delete().eq('data_source_id', ds.id).eq('fiscal_year', fiscalYear);
+  if (delErr) {
+    console.error('    Pre-load delete failed:', delErr.message);
+    return false;
+  }
 
   const { data: rpc, error: rpcErr } = await supabase.rpc('treasury_sync_budget_tree', {
     p_data_source_id: ds.id,
