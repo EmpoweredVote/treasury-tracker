@@ -130,9 +130,14 @@ First non-TX cities launched: LA, SF, SD operating + revenue budgets with per-ca
 
 ---
 
-## Next: v1.5 (Not Yet Planned)
+## v1.5 — Oregon Expansion
 
-Run `/gsd:new-milestone` to define goals, research, and requirements.
+### Phase 17: Portland OR Budget Load
+
+**Goal:** Citizens can view Portland, OR operating and revenue budget data in the app, with per-capita display and AI-enriched category descriptions.
+
+Plans:
+- [ ] TBD — pending research and planning
 
 ---
 
@@ -158,7 +163,8 @@ Run `/gsd:new-milestone` to define goals, research, and requirements.
 | 14. Category Enrichment (5 cities) | v1.3 | 2/2 | Complete | 2026-05-22 |
 | 15. Los Angeles Socrata + Enrichment | v1.4 | 3/3 | Complete | 2026-05-22 |
 | 16. California Cities Expansion | v1.4 | 5/5 | Complete | 2026-05-22 |
-| 17. v1.5 Phase 1 | v1.5 | — | Not started | — |
+| 17. Portland OR Budget Load | v1.5 | — | Not started | — |
+
 
 ---
 
