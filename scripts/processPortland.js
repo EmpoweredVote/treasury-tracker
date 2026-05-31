@@ -1,18 +1,13 @@
 #!/usr/bin/env node
 /**
- * Portland OR Operating Budget Loader
+ * Portland OR Budget Loader — operating (Vol 1) and revenue (Vol 2)
  *
- * Extracts bureau-level appropriation data from Portland Adopted Budget Volume 1
- * PDFs using pdfplumber (Python, zero AI cost). Loads data into
- * treasury_sync_budget_tree RPC for each fiscal year found.
- *
- * The Appropriation Schedule (Table 2) provides bureau-level Total Appropriation
- * amounts in full dollars. Each bureau becomes a top-level tree node.
- *
- * PDF amounts are in full dollars — no thousands multiplication.
+ * Operating mode (default): extracts bureau-level appropriation data from Vol 1
+ * PDFs. Revenue mode (--revenue): extracts fund-level Resources Total from Vol 2.
  *
  * Usage:
- *   node scripts/processPortland.js              # all PDFs in docs/Portland/
+ *   node scripts/processPortland.js              # operating, all vol1 PDFs
+ *   node scripts/processPortland.js --revenue    # revenue, all vol2 PDFs
  *   node scripts/processPortland.js --dry-run    # parse and print, no DB writes
  *   node scripts/processPortland.js --pdf "docs/Portland/fy2025-26-vol1.pdf"
  *
@@ -21,8 +16,7 @@
  *
  * Security (T-17-03): PDF path comes from controlled docs/Portland/ readdir,
  * not user input; argument is quoted in execSync invocation.
- * Security (T-17-04): maxBuffer 8MB matches Fremont; extractor emits bureau
- * rows only (not full page text), so overflow risk is negligible.
+ * Security (T-17-04): maxBuffer 8MB; extractor emits compact rows only.
  */
 
 import { execSync }        from 'node:child_process';
@@ -63,25 +57,28 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SE
 if (!SUPABASE_KEY) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit(2); }
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ── PDF URLs by fiscal year (ending-year convention) ──────────────────────────
+// ── PDF URLs by mode and fiscal year ──────────────────────────────────────────
 // URLs confirmed working 2026-05-31 (RESEARCH Pitfall 2: Portland CMS URLs unstable)
 const PDF_URLS = {
-  2026: 'https://www.portland.gov/budget/documents/fy-2025-26-city-portland-adopted-budget-vol-1-city-summaries-and-bureau-budgets/download',
-  2025: 'https://www.portland.gov/budget/2024-2025-budget/documents/fy-2024-25-volume-1-city-portland-city-summaries-and-bureau/download',
-  2024: 'https://www.portland.gov/budget/2023-2024-budget/documents/fy-2023-24-adopted-budget-volume-1-citywide-summaries-and-bureau/download',
-  2023: 'https://www.portland.gov/budget/2022-2023-budget/documents/fy-2022-23-adopted-budget-volume-1-citywide-summaries-and-bureau/download',
-  2022: 'https://www.portland.gov/budget/2021-2022-budget/documents/fy-2021-22-adopted-budget-volume-i-citywide-summaries-and-bureau/download',
+  operating: {
+    2026: 'https://www.portland.gov/budget/documents/fy-2025-26-city-portland-adopted-budget-vol-1-city-summaries-and-bureau-budgets/download',
+    2025: 'https://www.portland.gov/budget/2024-2025-budget/documents/fy-2024-25-volume-1-city-portland-city-summaries-and-bureau/download',
+    2024: 'https://www.portland.gov/budget/2023-2024-budget/documents/fy-2023-24-adopted-budget-volume-1-citywide-summaries-and-bureau/download',
+    2023: 'https://www.portland.gov/budget/2022-2023-budget/documents/fy-2022-23-adopted-budget-volume-1-citywide-summaries-and-bureau/download',
+    2022: 'https://www.portland.gov/budget/2021-2022-budget/documents/fy-2021-22-adopted-budget-volume-i-citywide-summaries-and-bureau/download',
+  },
+  revenue: {
+    2026: 'https://www.portland.gov/budget/documents/fy-2025-26-city-portland-adopted-budget-vol-2-city-funds-and-capital-projects/download',
+    2025: 'https://www.portland.gov/budget/2024-2025-budget/documents/fy-2024-25-volume-2-city-portland-city-funds-and-capital-projects/download',
+  },
 };
 
 // ── Run Python extractor, return parsed JSON ──────────────────────────────────
-function extractPDF(pdfPath) {
+function extractPDF(pdfPath, mode = 'operating') {
   const pyScript = path.join(ROOT, 'scripts', 'extractPortland.py');
-  // Quote both paths to handle spaces. T-17-03: paths come from controlled
-  // docs/Portland/ readdir — not from user input.
-  // Prefer python3 (Linux/macOS); Windows py launcher maps 'python' correctly.
   const pythonBin = process.platform === 'win32' ? 'python' : 'python3';
-  const raw = execSync(`${pythonBin} "${pyScript}" "${pdfPath}"`, {
-    maxBuffer: 8 * 1024 * 1024,  // 8MB — T-17-04: bureau-only JSON is compact
+  const raw = execSync(`${pythonBin} "${pyScript}" "${pdfPath}" --mode ${mode}`, {
+    maxBuffer: 8 * 1024 * 1024,
     encoding: 'utf8',
   });
   return JSON.parse(raw);
@@ -96,6 +93,21 @@ function inferFiscalYearFromFilename(filename) {
     return century + parseInt(m[2], 10);
   }
   return null;
+}
+
+// ── Build revenue tree from extracted fund rows (Vol 2) ──────────────────────
+// Each fund becomes a top-level node. Funds with $0 Resources Total are excluded.
+function buildRevenueTree(rows) {
+  const nodes = rows
+    .filter(r => r.resources_total > 0)
+    .map(r => ({
+      n: r.fund,
+      a: r.resources_total,
+      i: [{ d: r.fund, a: r.resources_total, aa: null, f: null, e: null }],
+    }));
+  nodes.sort((a, b) => b.a - a.a);
+  const total = nodes.reduce((s, n) => s + n.a, 0);
+  return { tree: nodes, total };
 }
 
 // ── Build operating budget tree from extracted rows ───────────────────────────
@@ -146,13 +158,15 @@ async function ensureMunicipality() {
 
 // ── Upsert a per-fiscal-year data_source record ───────────────────────────────
 async function upsertDataSource(muniId, fiscalYear, datasetType) {
-  const baseUrl = PDF_URLS[fiscalYear];
+  const urlMap = PDF_URLS[datasetType] ?? PDF_URLS.operating;
+  const baseUrl = urlMap[fiscalYear];
   if (!baseUrl) {
-    console.warn(`  WARNING: No PDF URL configured for FY${fiscalYear} — base_url will be empty`);
+    console.warn(`  WARNING: No PDF URL configured for FY${fiscalYear} ${datasetType} — base_url will be empty`);
   }
 
+  const label = datasetType === 'revenue' ? 'Revenue Budget' : 'Operating Budget';
   const src = {
-    name:            `Portland Operating Budget FY${fiscalYear}`,
+    name:            `Portland ${label} FY${fiscalYear}`,
     api_type:        'pdf_download',
     dataset_type:    datasetType,
     dataset_id:      `fy${fiscalYear}`,
@@ -212,20 +226,20 @@ async function loadFiscalYear(muniId, fiscalYear, datasetType, tree, total, rowC
 }
 
 // ── Process one PDF ───────────────────────────────────────────────────────────
-async function processPDF(pdfAbsPath, muniId, dryRun) {
+async function processPDF(pdfAbsPath, muniId, dryRun, mode = 'operating') {
   const filename = path.basename(pdfAbsPath);
   console.log(`\n  PDF: ${filename}`);
 
   let rows;
   try {
-    rows = extractPDF(pdfAbsPath);
+    rows = extractPDF(pdfAbsPath, mode);
   } catch (e) {
     console.error('  Extract failed:', e.message.slice(0, 200));
     return;
   }
 
   if (!rows.length) {
-    console.warn('  No bureau rows extracted — skipping');
+    console.warn(`  No ${mode === 'revenue' ? 'fund' : 'bureau'} rows extracted — skipping`);
     return;
   }
 
@@ -255,18 +269,23 @@ async function processPDF(pdfAbsPath, muniId, dryRun) {
       continue;
     }
 
-    const { tree, total } = buildOperatingTree(fyRows);
+    const isRevenue = mode === 'revenue';
+    const { tree, total } = isRevenue ? buildRevenueTree(fyRows) : buildOperatingTree(fyRows);
+    const rowCount = tree.length;
+    const unitLabel = isRevenue ? 'funds' : 'bureaus';
+    const typeLabel = isRevenue ? 'Revenue' : 'Operating';
+    const datasetType = isRevenue ? 'revenue' : 'operating';
 
-    console.log(`\n  FY${fy} Operating — $${total.toLocaleString()} total (${fyRows.length} bureaus)`);
+    console.log(`\n  FY${fy} ${typeLabel} — $${total.toLocaleString()} total (${rowCount} ${unitLabel})`);
     for (const n of tree.slice(0, 8)) {
       console.log(`    ${n.n}: $${n.a.toLocaleString()}`);
     }
     if (tree.length > 8) console.log(`    … +${tree.length - 8} more`);
 
     if (dryRun) {
-      console.log(`  [dry-run] fiscal_year=${fy} row_count=${fyRows.length} total=$${total.toLocaleString()}`);
+      console.log(`  [dry-run] fiscal_year=${fy} row_count=${rowCount} total=$${total.toLocaleString()}`);
     } else if (muniId) {
-      await loadFiscalYear(muniId, fy, 'operating', tree, total, fyRows.length);
+      await loadFiscalYear(muniId, fy, datasetType, tree, total, rowCount);
     }
   }
 }
@@ -276,12 +295,15 @@ async function main() {
   const { values: opts } = parseArgs({
     options: {
       'dry-run': { type: 'boolean', default: false },
+      revenue:   { type: 'boolean', default: false },
       pdf:       { type: 'string' },
     },
     strict: false,
   });
 
   const dryRun = opts['dry-run'];
+  const mode = opts.revenue ? 'revenue' : 'operating';
+  const volSuffix = mode === 'revenue' ? 'vol2' : 'vol1';
 
   // Discover PDFs from docs/Portland/ (worktree-safe: falls back to main working tree)
   const pdfDir = resolvePdfDir();
@@ -290,17 +312,17 @@ async function main() {
   if (opts.pdf) {
     pdfPaths = [path.resolve(ROOT, opts.pdf)];
   } else {
-    const files = readdirSync(pdfDir).filter(f => f.toLowerCase().endsWith('.pdf'));
+    const files = readdirSync(pdfDir)
+      .filter(f => f.toLowerCase().endsWith('.pdf') && f.toLowerCase().includes(volSuffix));
     if (!files.length) {
-      console.error('No PDFs found in docs/Portland/');
+      console.error(`No ${volSuffix} PDFs found in docs/Portland/`);
       process.exit(1);
     }
-    // Sort to process FY2025 before FY2026
     files.sort();
     pdfPaths = files.map(f => path.join(pdfDir, f));
   }
 
-  console.log(`Portland Budget Loader${dryRun ? ' (dry-run)' : ''}`);
+  console.log(`Portland Budget Loader${dryRun ? ' (dry-run)' : ''} [${mode}]`);
   console.log(`PDFs to process: ${pdfPaths.length}`);
 
   let muniId = null;
@@ -309,7 +331,7 @@ async function main() {
   }
 
   for (const p of pdfPaths) {
-    await processPDF(p, muniId, dryRun);
+    await processPDF(p, muniId, dryRun, mode);
   }
 
   console.log('\nDone.');

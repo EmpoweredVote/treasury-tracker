@@ -2,27 +2,13 @@
 """
 Portland Budget PDF Extractor
 
-Extracts bureau-level appropriation data from Portland Adopted Budget Volume 1
-PDFs using pdfplumber (no AI). Outputs JSON to stdout.
-
-The Appropriation Schedule (Table 2) spans multiple pages and has this structure:
-  Bureau of Emergency Communications          [header row — all None except col 0]
-  Emergency Communication Fund  37,208,701  0  1,821,650  363,873  39,394,224
-  Bureau of Emergency Communications Subtotal  37,208,701  ...  39,394,224
-
-Columns (0-indexed):
-  0: Bureau/Fund name
-  1: Program Expenses
-  2: Interfund Contingency
-  3: Interfund Transfers
-  4: Cash Debt Service
-  5: Total Appropriation  <-- this is the adopted total we capture
-
-Subtotal rows contain the bureau-level total. Fund sub-rows show fund breakdown.
-Amounts are in full dollars — do NOT multiply by 1000.
+Supports two modes:
+  operating (default) — extracts bureau-level appropriation data from Vol 1 PDFs
+  revenue             — extracts fund-level Resources Total from Vol 2 PDFs
 
 Usage:
   python scripts/extractPortland.py "docs/Portland/fy2025-26-vol1.pdf"
+  python scripts/extractPortland.py "docs/Portland/fy2025-26-vol2.pdf" --mode revenue
 """
 
 import sys
@@ -32,12 +18,29 @@ import pdfplumber
 
 # ── Money parsing ─────────────────────────────────────────────────────────────
 def parse_money(s):
-    """Parse dollar string like '39,394,224' or '(1,234)' → integer."""
+    """Parse dollar string like '39,394,224' or '(1,234)' → integer.
+    Also handles Vol 2 garbled double-rendered artifact (e.g. '778899,,116666,,330066').
+    """
     if s is None:
         return 0
     s = s.strip()
     if not s or s == '-':
         return 0
+    if ',,' in s:
+        # PDF rendering artifact: every digit doubled, commas doubled.
+        # '778899,,116666,,330066' → '789,166,306'
+        cleaned = s.replace(',,', ',')
+        result = ''
+        i = 0
+        while i < len(cleaned):
+            c = cleaned[i]
+            if c.isdigit() and i + 1 < len(cleaned) and cleaned[i + 1] == c:
+                result += c
+                i += 2
+            else:
+                result += c
+                i += 1
+        s = result
     neg = s.startswith('(')
     val = re.sub(r'[$()\s,]', '', s)
     try:
@@ -212,10 +215,89 @@ def extract_budget(pdf_path):
     return results
 
 
-if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print('Usage: python scripts/extractPortland.py <pdf_path>', file=sys.stderr)
-        sys.exit(1)
+# ── Extract fund-level Resources Total from Vol 2 PDFs ───────────────────────
+def extract_revenue(pdf_path):
+    """
+    Walk Vol 2 PDF pages looking for Fund Summary pages.
+    Extract fund name + Resources Total (Adopted, col 6) from each fund.
 
-    data = extract_budget(sys.argv[1])
+    Returns list of dicts: { fund, resources_total, fiscal_year, page_num }
+    """
+    results = []
+    fiscal_year = None
+
+    with pdfplumber.open(pdf_path) as pdf:
+        # Fiscal year from cover page: "Fiscal Year 2025-26" → 2026
+        cover_text = pdf.pages[0].extract_text() or ''
+        m = re.search(r'Fiscal Year\s+(\d{4})-(\d{2})', cover_text, re.I)
+        if m:
+            century = int(m.group(1)) // 100 * 100
+            fiscal_year = century + int(m.group(2))
+
+        for page_num, page in enumerate(pdf.pages, 1):
+            text = page.extract_text() or ''
+            if 'Fund Summary' not in text or 'Resources Total' not in text:
+                continue
+
+            lines = [l.strip() for l in text.split('\n') if l.strip()]
+
+            # Fund name: first line that is not a section header or cover label
+            fund_name = None
+            skip_patterns = re.compile(
+                r'(Service Area Funds|City Funds|City of Portland|Table of Contents'
+                r'|Fund Summary|^Resources$|FY \d{4})',
+                re.I
+            )
+            for line in lines[:4]:
+                if line and len(line) > 5 and not skip_patterns.search(line):
+                    fund_name = line
+                    break
+
+            if not fund_name:
+                print(f'  [skipped] No fund name found on page {page_num}', file=sys.stderr)
+                continue
+
+            # Find Resources Total row; Adopted is col 6
+            res_total = None
+            for table in page.extract_tables():
+                if not table:
+                    continue
+                for row in table:
+                    if not row or not row[0]:
+                        continue
+                    if row[0].strip() == 'Resources Total':
+                        val = row[6] if len(row) > 6 else None
+                        res_total = parse_money(val)
+                        break
+                if res_total is not None:
+                    break
+
+            if res_total is None:
+                print(f'  [skipped] No Resources Total on page {page_num}: {fund_name}',
+                      file=sys.stderr)
+                continue
+
+            results.append({
+                'fund':            fund_name,
+                'resources_total': res_total,
+                'fiscal_year':     fiscal_year,
+                'page_num':        page_num,
+            })
+
+    none_fy = [r for r in results if r['fiscal_year'] is None]
+    if none_fy:
+        print(f'  WARNING: {len(none_fy)} rows have None fiscal_year', file=sys.stderr)
+
+    return results
+
+
+if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser(description='Portland budget PDF extractor')
+    parser.add_argument('pdf_path', help='Path to PDF file')
+    parser.add_argument('--mode', choices=['operating', 'revenue'], default='operating',
+                        help='operating=Vol 1 bureau data, revenue=Vol 2 fund data')
+    args = parser.parse_args()
+
+    data = extract_revenue(args.pdf_path) if args.mode == 'revenue' else extract_budget(args.pdf_path)
     print(json.dumps(data, indent=2))
