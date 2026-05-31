@@ -2,12 +2,14 @@
 import { createClient } from '@supabase/supabase-js';
 import { readFileSync, existsSync, createWriteStream } from 'node:fs';
 import { get as httpsGet } from 'node:https';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { parseArgs } from 'node:util';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 const CSV_URL = 'https://www2.census.gov/programs-surveys/popest/datasets/2020-2024/cities/totals/sub-est2024_41.csv';
-const CSV_PATH = 'C:/tmp/sub-est2024_41.csv';
+const CSV_PATH = path.join(tmpdir(), 'sub-est2024_41.csv');
 const POP_YEAR = 2024;
 
 // Exact DB names for OR cities (must match municipalities.name)
@@ -26,9 +28,19 @@ function downloadFile(url, dest) {
   return new Promise((resolve, reject) => {
     const file = createWriteStream(dest);
     httpsGet(url, (res) => {
+      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        file.close();
+        // Follow redirect (one level)
+        return downloadFile(res.headers.location, dest).then(resolve, reject);
+      }
+      if (res.statusCode !== 200) {
+        file.close();
+        return reject(new Error(`HTTP ${res.statusCode} downloading ${url}`));
+      }
       res.pipe(file);
       file.on('finish', () => { file.close(); resolve(); });
-    }).on('error', reject);
+      file.on('error', reject);
+    }).on('error', (err) => { file.close(); reject(err); });
   });
 }
 
