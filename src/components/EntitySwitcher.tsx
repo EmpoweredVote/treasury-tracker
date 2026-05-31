@@ -21,6 +21,7 @@ const ENTITY_TYPE_LABELS: Record<string, string> = {
 const STATE_LABELS: Record<string, string> = {
   IN: 'Indiana',
   CA: 'California',
+  TX: 'Texas',
 };
 
 const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
