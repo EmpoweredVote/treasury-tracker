@@ -94,22 +94,9 @@ def is_subtotal_row(row):
     name = row[0].replace('\n', ' ').strip()
     return name.endswith('Subtotal') or name.endswith('Total')
 
-# ── Check if a row is a valid fund-level line (not header, not subtotal) ──────
-def is_fund_row(row):
-    """Fund rows have a non-empty name and a numeric amount in col[5] (Total Appropriation)."""
-    if not row or not row[0]:
-        return False
-    if is_bureau_header(row):
-        return False
-    if is_subtotal_row(row):
-        return False
-    # Must have at least 6 columns with a parseable total
-    if len(row) < 6:
-        return False
-    total = parse_money(row[5]) if row[5] else 0
-    return total != 0
-
 # ── Extract all bureau-level budget rows from one PDF ─────────────────────────
+# Design: bureau subtotals only — fund-level rows are excluded.
+# To add fund breakdown, see the fund detection logic in _inspect-portland-temp.py.
 def extract_budget(pdf_path):
     """
     Walk the PDF pages looking for Appropriation Schedule pages.
