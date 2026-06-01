@@ -1,10 +1,15 @@
 {
   "processed": [
-    "5d4675f1-c207-4d7b-a346-85a799da0d4d::co mmunity services",
-    "5d4675f1-c207-4d7b-a346-85a799da0d4d::fire & emergency services",
-    "5d4675f1-c207-4d7b-a346-85a799da0d4d::ci tywide services",
-    "5d4675f1-c207-4d7b-a346-85a799da0d4d::ec onomic & developement services",
-    "5d4675f1-c207-4d7b-a346-85a799da0d4d::budget & finance *"
+    "5d4675f1-c207-4d7b-a346-85a799da0d4d::interfund transfers",
+    "5d4675f1-c207-4d7b-a346-85a799da0d4d::charges for services",
+    "5d4675f1-c207-4d7b-a346-85a799da0d4d::intergovernmental",
+    "5d4675f1-c207-4d7b-a346-85a799da0d4d::utility license fees",
+    "5d4675f1-c207-4d7b-a346-85a799da0d4d::internal svc chrg",
+    "5d4675f1-c207-4d7b-a346-85a799da0d4d::taxes",
+    "5d4675f1-c207-4d7b-a346-85a799da0d4d::miscellaneous income",
+    "5d4675f1-c207-4d7b-a346-85a799da0d4d::financing proceeds",
+    "5d4675f1-c207-4d7b-a346-85a799da0d4d::internal payments",
+    "5d4675f1-c207-4d7b-a346-85a799da0d4d::licenses & permits"
   ],
   "failed": []
 }
