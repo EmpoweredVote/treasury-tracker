@@ -197,11 +197,11 @@ Plans:
 
 **Depends on:** Phase 20
 
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 **Wave 1**
 
-- [ ] 21-01-PLAN.md — Add extract_revenue() + --mode to extractGresham.py and --revenue pipeline to processGresham.js; validate all 4 FYs via dry-run
+- [x] 21-01-PLAN.md — Add extract_revenue() + --mode to extractGresham.py and --revenue pipeline to processGresham.js; validate all 4 FYs via dry-run
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -243,7 +243,7 @@ Plans:
 | 18. Portland Historical Operating | v1.5 | — | Complete | 2026-05-31 |
 | 19. Portland Revenue Budget | v1.5 | — | Complete | 2026-05-31 |
 | 20. Gresham OR Budget Load | v1.5 | 4/4 | Complete    | 2026-06-01 |
-| 21. Gresham OR Revenue Load | v1.5 | 0/2 | Pending | — |
+| 21. Gresham OR Revenue Load | v1.5 | 1/2 | In Progress|  |
 | 22. Troutdale OR Budget Load | v1.5 | 0/? | Pending | — |
 
 ---

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: — Oregon Expansion
 status: executing
-last_updated: "2026-06-01T17:18:48.911Z"
-last_activity: 2026-06-01 -- Phase 21 planning complete
+last_updated: "2026-06-01T18:05:00.000Z"
+last_activity: 2026-06-01 -- Phase 21 Plan 01 complete
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 10
-  completed_plans: 8
+  completed_plans: 9
   percent: 33
 ---
 
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-05-23)
 ## Current Position
 
 Phase: 21
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-01 -- Phase 21 planning complete
+Plan: 1 of 2 complete
+Status: Executing (Plan 02 ready)
+Last activity: 2026-06-01 -- Phase 21 Plan 01 complete
 
 Progress: [████████░░] 80%
 
@@ -53,12 +53,19 @@ Progress: [████████░░] 80%
 - SD FY2026 absent from source CSV — update `fiscal_years: [2025]` → `[2025, 2026]` in SD data_source rows when SD publishes FY2026 adopted data
 - Portland revenue budget (Vol 2, fund-level) deferred per D-03 — requires a new phase if/when prioritized
 
+### Decisions (Phase 21 Plan 01)
+
+- Revenue section detection uses `s.startswith('Resources ')` fallback — FY2024-2026 PDFs have "Resources Proposed Approved Adopted" on one line, not standalone "Resources"
+- OCR split-number fix: `r'^\d{1,3},'` condition (handles FY2023 `N,NNN,NNN` splits like `2 0,175,800`)
+- NORMALIZE dict covers 3 FY2023 name variants: Internal Service Charges, Li censes & Permits, In ternal Payments
+- SANITY_MAX gated on operating mode — revenue FY2026 ~$512M legitimately exceeds $500M cap
+
 ### API Cost Threshold
 
 $5 per run — estimate before running AI enrichment or PDF extraction.
 
 ## Session Continuity
 
-Last session: 2026-06-01T16:41:14.922Z
-Stopped at: context exhaustion at 75% (2026-06-01)
+Last session: 2026-06-01T18:05:00.000Z
+Stopped at: Phase 21 Plan 01 complete; Plan 02 (live revenue load) ready to execute
 Resume file: None
