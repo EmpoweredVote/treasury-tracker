@@ -1,0 +1,163 @@
+#!/usr/bin/env node
+/**
+ * Gresham, Oregon Municipality Seeder (Phase 20)
+ *
+ * Creates (or updates) the municipality row for Gresham, OR.
+ * NOTE: data_source rows are owned by processGresham.js (one per fiscal year:
+ * 'Gresham Operating Budget FY2023' through 'Gresham Operating Budget FY2026').
+ * This seeder intentionally does NOT create data_source rows to avoid
+ * dataset_id collisions between a base seeder row and the per-FY loader rows.
+ * Run processGresham.js --dry-run to verify data_source rows after loading.
+ *
+ * Idempotent: safe to re-run. Looks up rows by name and updates them in-place;
+ * inserts only when the row does not exist yet.
+ *
+ * Usage:
+ *   SUPABASE_SERVICE_KEY=... node scripts/seedGreshamOregon.js
+ *
+ * Population source: Census sub-est2024_41.csv, SUMLEV=162, 2024 vintage
+ */
+
+import { createClient } from '@supabase/supabase-js';
+
+// ── Config ──────────────────────────────────────────────────────────────
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+if (!SUPABASE_KEY) {
+  console.error('Missing SUPABASE_SERVICE_KEY env var');
+  process.exit(1);
+}
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, { db: { schema: 'treasury' } });
+
+// ── Municipality payload ─────────────────────────────────────────────────
+// Population from Census sub-est2024_41.csv, SUMLEV=162, "Gresham city" → 111507
+const GRESHAM = {
+  name: 'Gresham',
+  state: 'OR',
+  entity_type: 'city',
+  population: 111507,
+  population_year: 2024,
+};
+
+// ── Idempotent upsert for municipality: select by name+state → insert or update ──
+async function upsertMunicipality(m) {
+  const { data: existing, error: selectErr } = await supabase
+    .from('municipalities')
+    .select('id')
+    .eq('name', m.name)
+    .eq('state', m.state)
+    .maybeSingle();
+
+  if (selectErr) {
+    console.error(`  ERROR selecting municipality "${m.name}, ${m.state}": ${selectErr.message}`);
+    process.exit(1);
+  }
+
+  let data, error;
+
+  if (existing?.id) {
+    ({ data, error } = await supabase
+      .from('municipalities')
+      .update(m)
+      .eq('id', existing.id)
+      .select());
+    if (!error) console.log(`  (updated existing municipality row ${existing.id})`);
+  } else {
+    ({ data, error } = await supabase
+      .from('municipalities')
+      .insert(m)
+      .select());
+    if (!error) console.log(`  (inserted new municipality row)`);
+  }
+
+  if (error) {
+    console.error(`  ERROR writing municipality "${m.name}": ${error.message}`);
+    process.exit(1);
+  }
+
+  const row = data?.[0];
+  if (!row) {
+    console.error(`  ERROR: no row returned for municipality "${m.name}"`);
+    process.exit(1);
+  }
+
+  return row.id;
+}
+
+// ── Main ─────────────────────────────────────────────────────────────────
+async function main() {
+  console.log('Seeding Gresham, OR (Phase 20) — municipality only...\n');
+  console.log('NOTE: data_source rows are created by processGresham.js (one per FY).\n');
+
+  // ── Step 1: Upsert Gresham municipality ──────────────────────────────
+  console.log(`Upserting municipality: ${GRESHAM.name}, ${GRESHAM.state}`);
+  const muniId = await upsertMunicipality(GRESHAM);
+  console.log(`  id: ${muniId}\n`);
+
+  // ── Step 2: Verification via treasury_list_source_ids ────────────────
+  // data_source rows are created by processGresham.js; check for them here
+  // as a post-load confirmation (they may not exist yet before first load).
+  // NOTE: treasury_list_source_ids lives in the public schema; call it via
+  // a public-schema client (init-option schema only affects .from() calls).
+  console.log('Verifying via treasury_list_source_ids RPC...');
+  const { createClient: createPublicClient } = await import('@supabase/supabase-js');
+  const publicClient = createPublicClient(SUPABASE_URL, SUPABASE_KEY);
+  const { data: listing, error: listErr } = await publicClient.rpc('treasury_list_source_ids');
+  if (listErr) {
+    // Non-fatal: RPC may not exist if this is a fresh DB. Log and continue.
+    console.log(`  NOTE: treasury_list_source_ids RPC not available (${listErr.message})`);
+    console.log('        This is expected before processGresham.js creates data_source rows.');
+  }
+
+  if (listing) {
+    const expectedNames = [
+      'Gresham Operating Budget FY2023',
+      'Gresham Operating Budget FY2024',
+      'Gresham Operating Budget FY2025',
+      'Gresham Operating Budget FY2026',
+    ];
+    let anyFound = false;
+
+    for (const name of expectedNames) {
+      const hit = (listing || []).filter(r => r.name === name);
+      if (hit.length === 1) {
+        console.log(`  OK: ${name} (api_type=${hit[0].api_type}, type=${hit[0].dataset_type})`);
+        anyFound = true;
+      } else if (hit.length === 0) {
+        console.log(`  NOT YET: ${name} — run processGresham.js to create data_source rows`);
+      } else {
+        console.log(`  DUPLICATE (${hit.length} rows): ${name} — idempotency check failed`);
+      }
+    }
+
+    if (!anyFound) {
+      console.log('\nNOTE: No Gresham data_source rows found yet — this is expected before');
+      console.log('      first run of processGresham.js. Municipality seed is complete.');
+    }
+  }
+
+  // ── Step 3: Verify municipality row population ────────────────────────
+  const { data: muniCheck, error: muniCheckErr } = await supabase
+    .from('municipalities')
+    .select('id, population, population_year')
+    .eq('name', 'Gresham')
+    .eq('state', 'OR');
+
+  if (muniCheckErr) { console.error(`  ERROR: ${muniCheckErr.message}`); process.exit(1); }
+  if (muniCheck.length !== 1) {
+    console.error(`  ERROR: expected 1 Gresham, OR row, found ${muniCheck.length}`);
+    process.exit(1);
+  }
+  const mc = muniCheck[0];
+  console.log(`  OK: Gresham, OR municipality (id=${mc.id}, population=${mc.population}, population_year=${mc.population_year})`);
+
+  if (mc.population !== 111507) {
+    console.error(`  WARNING: expected population 111507, got ${mc.population}`);
+  }
+
+  console.log('\nDone.');
+}
+
+main().catch(err => { console.error('Fatal:', err); process.exit(1); });
