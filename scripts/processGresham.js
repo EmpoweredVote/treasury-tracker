@@ -19,7 +19,7 @@
  * Security (T-20-05): dry-run + amounts assert FY2026 total under $500M.
  */
 
-import { execSync }        from 'node:child_process';
+import { execSync, spawnSync } from 'node:child_process';
 import { createClient }    from '@supabase/supabase-js';
 import { parseArgs }       from 'node:util';
 import { readdirSync, existsSync } from 'node:fs';
@@ -70,11 +70,14 @@ const PDF_URLS = {
 function extractPDF(pdfPath) {
   const pyScript = path.join(ROOT, 'scripts', 'extractGresham.py');
   const pythonBin = process.platform === 'win32' ? 'python' : 'python3';
-  const raw = execSync(`${pythonBin} "${pyScript}" "${pdfPath}"`, {
+  const result = spawnSync(pythonBin, [pyScript, pdfPath], {
     maxBuffer: 8 * 1024 * 1024,
     encoding: 'utf8',
   });
-  return JSON.parse(raw);
+  if (result.status !== 0) {
+    throw new Error(`extractGresham.py failed (exit ${result.status}): ${result.stderr}`);
+  }
+  return JSON.parse(result.stdout);
 }
 
 // ── Infer fiscal year from PDF filename ───────────────────────────────────────

@@ -133,14 +133,18 @@ async function main() {
       continue;
     }
 
-    const { error } = await supabase
+    const { data: updatedRows, error } = await supabase
       .from('municipalities')
       .update({ population: pop, population_year: POP_YEAR })
       .eq('name', city)
-      .eq('state', 'OR');
+      .eq('state', 'OR')
+      .select('id');
 
     if (error) {
       console.error(`FAILED ${city}: ${error.message}`);
+      failed++;
+    } else if (!updatedRows || updatedRows.length === 0) {
+      console.error(`FAILED ${city}: update matched 0 rows — municipality may not exist`);
       failed++;
     } else {
       console.log(`UPDATED ${city}: ${pop} (${POP_YEAR})`);
