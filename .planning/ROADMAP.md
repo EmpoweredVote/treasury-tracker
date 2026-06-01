@@ -191,7 +191,15 @@ Plans:
 
 - [x] 20-04-PLAN.md — Live load operating budget FY2023–FY2026, enrich categories, human-verify in app, write 20-VERIFICATION.md
 
-### Phase 21: Troutdale OR Budget Load
+### Phase 21: Gresham OR Revenue Load
+
+**Goal:** Citizens can view Gresham, OR revenue (Money In) data alongside the existing operating budget. Revenue rows are extracted from the Resources section of the same 4 adopted budget PDFs (FY2023-FY2026) already used for phase 20.
+
+**Depends on:** Phase 20
+
+---
+
+### Phase 22: Troutdale OR Budget Load
 
 **Goal:** Citizens can view Troutdale, OR operating budget data in the app, with per-capita display and AI-enriched category descriptions. Troutdale (~17,000 pop) is the third-largest incorporated city in Multnomah County.
 
@@ -225,7 +233,8 @@ Plans:
 | 18. Portland Historical Operating | v1.5 | — | Complete | 2026-05-31 |
 | 19. Portland Revenue Budget | v1.5 | — | Complete | 2026-05-31 |
 | 20. Gresham OR Budget Load | v1.5 | 4/4 | Complete    | 2026-06-01 |
-| 21. Troutdale OR Budget Load | v1.5 | 0/? | Pending | — |
+| 21. Gresham OR Revenue Load | v1.5 | 0/? | Pending | — |
+| 22. Troutdale OR Budget Load | v1.5 | 0/? | Pending | — |
 
 ---
 
