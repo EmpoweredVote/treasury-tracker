@@ -1,22 +1,25 @@
 #!/usr/bin/env node
 /**
- * Gresham OR Budget Loader — operating only
+ * Gresham OR Budget Loader — operating and revenue modes
  *
- * Extracts department-level appropriation data from Gresham adopted budget PDFs
- * and loads them via the treasury_sync_budget_tree RPC.
+ * Extracts department-level (operating) or category-level (revenue) budget data
+ * from Gresham adopted budget PDFs and loads them via the treasury_sync_budget_tree RPC.
  *
  * Usage:
- *   node scripts/processGresham.js --dry-run    # parse and print, no DB writes
- *   node scripts/processGresham.js              # live load all four PDFs
+ *   node scripts/processGresham.js --dry-run           # parse and print, no DB writes
+ *   node scripts/processGresham.js                     # live load all four PDFs (operating)
+ *   node scripts/processGresham.js --revenue --dry-run # revenue dry-run
+ *   node scripts/processGresham.js --revenue           # live load revenue
  *   node scripts/processGresham.js --pdf "docs/Gresham/fy2025-26.pdf"
  *
  * Requires: Python 3 + pdfplumber  (pip install pdfplumber)
  * Requires: Gresham municipality seeded via seedGreshamOregon.js
  *
- * Security (T-20-03): PDF path comes from controlled docs/Gresham/ readdir,
- * not user input; argument is quoted in execSync invocation.
+ * Security (T-20-03 / T-21-01): PDF path comes from controlled docs/Gresham/ readdir,
+ * not user input; spawnSync with args array (no shell injection).
  * Security (T-20-04): maxBuffer 8MB; extractor emits compact rows only.
- * Security (T-20-05): amounts assert FY2026 total under $500M (enforced in processPDF).
+ * Security (T-20-05): amounts assert FY2026 operating total under $500M (gated on operating mode).
+ * Security (T-21-02): upsertDataSource filters on dataset_type param to avoid collision.
  */
 
 import { execSync, spawnSync } from 'node:child_process';
@@ -67,10 +70,12 @@ const PDF_URLS = {
 };
 
 // ── Run Python extractor, return parsed JSON ──────────────────────────────────
-function extractPDF(pdfPath) {
+function extractPDF(pdfPath, mode = 'operating') {
   const pyScript = path.join(ROOT, 'scripts', 'extractGresham.py');
   const pythonBin = process.platform === 'win32' ? 'python' : 'python3';
-  const result = spawnSync(pythonBin, [pyScript, pdfPath], {
+  const args = [pyScript, pdfPath];
+  if (mode === 'revenue') args.push('--mode', 'revenue');
+  const result = spawnSync(pythonBin, args, {
     maxBuffer: 8 * 1024 * 1024,
     encoding: 'utf8',
   });
@@ -121,6 +126,22 @@ function buildOperatingTree(rows) {
   return { tree: nodes, total };
 }
 
+// ── Build revenue budget tree from extracted category rows ────────────────────
+// Each revenue category becomes a top-level node { n, a, i[] }.
+// Uses row.category and row.adopted_amount (Gresham revenue fields).
+function buildRevenueTree(rows) {
+  const nodes = rows
+    .filter(r => r.adopted_amount > 0)
+    .map(r => ({
+      n: r.category,
+      a: r.adopted_amount,
+      i: [{ d: r.category, a: r.adopted_amount, aa: null, f: null, e: null }],
+    }));
+  nodes.sort((a, b) => b.a - a.a);
+  const total = nodes.reduce((s, n) => s + n.a, 0);
+  return { tree: nodes, total };
+}
+
 // ── Ensure Gresham municipality exists; return its id ─────────────────────────
 async function ensureMunicipality() {
   const { data: existing } = await supabase.schema('treasury')
@@ -140,11 +161,12 @@ async function ensureMunicipality() {
 }
 
 // ── Upsert a per-fiscal-year data_source record ───────────────────────────────
-async function upsertDataSource(muniId, fiscalYear) {
+async function upsertDataSource(muniId, fiscalYear, datasetType) {
+  const label = datasetType === 'revenue' ? 'Revenue Budget' : 'Operating Budget';
   const src = {
-    name:            `Gresham Operating Budget FY${fiscalYear}`,
+    name:            `Gresham ${label} FY${fiscalYear}`,
     api_type:        'pdf_download',
-    dataset_type:    'operating',
+    dataset_type:    datasetType,
     dataset_id:      `fy${fiscalYear}`,
     base_url:        PDF_URLS[fiscalYear] ?? '',
     fiscal_years:    [fiscalYear],
@@ -157,7 +179,7 @@ async function upsertDataSource(muniId, fiscalYear) {
     .eq('municipality_id', muniId)
     .eq('api_type', 'pdf_download')
     .eq('dataset_id', `fy${fiscalYear}`)
-    .eq('dataset_type', 'operating')
+    .eq('dataset_type', datasetType)
     .maybeSingle();
 
   if (existing?.id) {
@@ -173,8 +195,8 @@ async function upsertDataSource(muniId, fiscalYear) {
 }
 
 // ── Load one fiscal year into DB ──────────────────────────────────────────────
-async function loadFiscalYear(muniId, fiscalYear, tree, total, rowCount) {
-  const ds = await upsertDataSource(muniId, fiscalYear);
+async function loadFiscalYear(muniId, fiscalYear, datasetType, tree, total, rowCount) {
+  const ds = await upsertDataSource(muniId, fiscalYear, datasetType);
   if (!ds?.id) { console.error('    data_source upsert failed'); return false; }
   console.log(`    data_source: ${ds.id}`);
 
@@ -189,7 +211,7 @@ async function loadFiscalYear(muniId, fiscalYear, tree, total, rowCount) {
   const { data: rpc, error: rpcErr } = await supabase.rpc('treasury_sync_budget_tree', {
     p_data_source_id: ds.id,
     p_fiscal_year:    fiscalYear,
-    p_dataset_type:   'operating',
+    p_dataset_type:   datasetType,
     p_total:          total,
     p_tree:           tree,
     p_row_count:      rowCount,
@@ -204,20 +226,25 @@ async function loadFiscalYear(muniId, fiscalYear, tree, total, rowCount) {
 }
 
 // ── Process one PDF ───────────────────────────────────────────────────────────
-async function processPDF(pdfAbsPath, muniId, dryRun) {
+async function processPDF(pdfAbsPath, muniId, dryRun, mode = 'operating') {
   const filename = path.basename(pdfAbsPath);
   console.log(`\n  PDF: ${filename}`);
 
+  const isRevenue   = mode === 'revenue';
+  const unitLabel   = isRevenue ? 'categories' : 'departments';
+  const typeLabel   = isRevenue ? 'Revenue' : 'Operating';
+  const datasetType = isRevenue ? 'revenue' : 'operating';
+
   let rows;
   try {
-    rows = extractPDF(pdfAbsPath);
+    rows = extractPDF(pdfAbsPath, mode);
   } catch (e) {
     console.error('  Extract failed:', e.message.slice(0, 200));
     return;
   }
 
   if (!rows.length) {
-    console.warn('  No department rows extracted — skipping');
+    console.warn(`  No ${isRevenue ? 'category' : 'department'} rows extracted — skipping`);
     return;
   }
 
@@ -247,15 +274,17 @@ async function processPDF(pdfAbsPath, muniId, dryRun) {
       continue;
     }
 
-    const { tree, total } = buildOperatingTree(fyRows);
+    const { tree, total } = isRevenue ? buildRevenueTree(fyRows) : buildOperatingTree(fyRows);
     const rowCount = tree.length;
 
-    if (SANITY_MAX[fy] && total > SANITY_MAX[fy]) {
+    // Sanity check: only applies to operating mode (revenue FY2026 ~$512M legitimately
+    // exceeds the $500M operating cap — T-21 threat accepted for revenue mode)
+    if (mode === 'operating' && SANITY_MAX[fy] && total > SANITY_MAX[fy]) {
       console.error(`  SANITY FAIL FY${fy}: total $${total.toLocaleString()} exceeds $500M cap — aborting`);
       return;
     }
 
-    console.log(`\n  FY${fy} Operating — $${total.toLocaleString()} total (${rowCount} departments)`);
+    console.log(`\n  FY${fy} ${typeLabel} — $${total.toLocaleString()} total (${rowCount} ${unitLabel})`);
     for (const n of tree.slice(0, 8)) {
       console.log(`    ${n.n}: $${n.a.toLocaleString()}`);
     }
@@ -264,7 +293,7 @@ async function processPDF(pdfAbsPath, muniId, dryRun) {
     if (dryRun) {
       console.log(`  [dry-run] fiscal_year=${fy} row_count=${rowCount} total=$${total.toLocaleString()}`);
     } else if (muniId) {
-      await loadFiscalYear(muniId, fy, tree, total, rowCount);
+      await loadFiscalYear(muniId, fy, datasetType, tree, total, rowCount);
     }
   }
 }
@@ -274,12 +303,14 @@ async function main() {
   const { values: opts } = parseArgs({
     options: {
       'dry-run': { type: 'boolean', default: false },
+      revenue:   { type: 'boolean', default: false },
       pdf:       { type: 'string' },
     },
     strict: false,
   });
 
   const dryRun = opts['dry-run'];
+  const mode   = opts.revenue ? 'revenue' : 'operating';
 
   // Discover PDFs from docs/Gresham/ (worktree-safe: falls back to main working tree)
   const pdfDir = resolvePdfDir();
@@ -298,7 +329,7 @@ async function main() {
     pdfPaths = files.map(f => path.join(pdfDir, f));
   }
 
-  console.log(`Gresham Budget Loader${dryRun ? ' (dry-run)' : ''} [operating]`);
+  console.log(`Gresham Budget Loader${dryRun ? ' (dry-run)' : ''} [${mode}]`);
   console.log(`PDFs to process: ${pdfPaths.length}`);
 
   let muniId = null;
@@ -307,7 +338,7 @@ async function main() {
   }
 
   for (const p of pdfPaths) {
-    await processPDF(p, muniId, dryRun);
+    await processPDF(p, muniId, dryRun, mode);
   }
 
   console.log('\nDone.');

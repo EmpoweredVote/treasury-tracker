@@ -178,7 +178,13 @@ def extract_revenue(pdf_path):
     Amounts are in full dollars (no multiply-by-1000).
     """
     REVENUE_SKIP = {'Total Resources', 'Beginning Balance'}
-    NORMALIZE    = {'Internal Service Charges': 'Internal Svc Chrg'}
+    NORMALIZE    = {
+        # FY2023: long form → canonical short form used in FY2024–FY2026
+        'Internal Service Charges': 'Internal Svc Chrg',
+        # FY2023 OCR artifacts: mid-word spaces in category names
+        'Li censes & Permits': 'Licenses & Permits',
+        'In ternal Payments': 'Internal Payments',
+    }
 
     results = []
     with pdfplumber.open(pdf_path) as pdf:
@@ -244,12 +250,14 @@ def extract_revenue(pdf_path):
                 if category in REVENUE_SKIP:
                     continue
                 # Adopted amount = last column.
-                # OCR may split e.g. '61,494,586' into tokens ['6', '1,494,586'].
+                # OCR may split e.g. '20,175,800' into tokens ['2', '0,175,800'] or
+                # '35,569,000' into ['3', '5,569,000'].  Detect this: second-to-last
+                # is a short pure-digit fragment (1-3 digits) and last token starts
+                # with 1-3 digits immediately followed by a comma (N,NNN,NNN pattern).
                 adopted_raw = num_tokens[-1]
                 if (len(num_tokens) >= 2
                         and re.match(r'^\d{1,3}$', num_tokens[-2])
-                        and re.match(r'^\d{3,}', num_tokens[-1])
-                        and ',' in num_tokens[-1]):
+                        and re.match(r'^\d{1,3},', num_tokens[-1])):
                     adopted_raw = num_tokens[-2] + num_tokens[-1]
                 adopted = parse_money(adopted_raw)
                 if adopted <= 0:
