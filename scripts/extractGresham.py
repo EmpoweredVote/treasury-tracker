@@ -166,9 +166,120 @@ def extract_budget(pdf_path):
     return results
 
 
+# ── Extract Resources (revenue) categories from Gresham All Funds page ────────
+def extract_revenue(pdf_path):
+    """
+    Extract revenue categories from the Resources section of the All Funds page.
+    Uses page.extract_text() text-line parsing (NOT extract_tables() — that
+    returns empty on Gresham's All Funds page).
+
+    Returns list of: { category, adopted_amount, fiscal_year, page_num }
+    Excludes: Beginning Balance, Total Resources (sum rows, not revenue categories)
+    Amounts are in full dollars (no multiply-by-1000).
+    """
+    REVENUE_SKIP = {'Total Resources', 'Beginning Balance'}
+    NORMALIZE    = {'Internal Service Charges': 'Internal Svc Chrg'}
+
+    results = []
+    with pdfplumber.open(pdf_path) as pdf:
+        for page_num, page in enumerate(pdf.pages, 1):
+            text = page.extract_text() or ''
+            if 'Resources and Requirements' not in text or 'All Funds' not in text:
+                continue
+            if 'Taxes' not in text:  # skip table-of-contents page
+                continue
+            # Parse fiscal year from column headers (first 8 lines of page)
+            fiscal_year = None
+            lines = text.split('\n')
+            for line in lines[:8]:
+                fy = parse_fy_from_header(line)
+                if fy:
+                    fiscal_year = fy
+                    break
+            if not fiscal_year:
+                print(f'  WARNING: Could not parse fiscal year on page {page_num}', file=sys.stderr)
+                continue
+            # Extract category rows from Resources section only
+            in_resources = False
+            for line in lines:
+                s = line.strip()
+                if not s:
+                    continue
+                # Normalize OCR spacing before checking section marker.
+                # FY2023 has 'Resou rces' (OCR artifact) → normalizes to 'Resources'.
+                # FY2024–2026 have 'Resources Proposed Approved Adopted' on one line;
+                # normalize-strip produces 'ResourcesProposedApprovedAdopted', so also
+                # check for lines that begin with the word 'Resources' followed by a space
+                # (but not 'Resources and Requirements').
+                s_norm = re.sub(r'\s+', '', s)
+                if s_norm == 'Resources' or (
+                        s.startswith('Resources ') and
+                        not s.startswith('Resources and')):
+                    in_resources = True
+                    continue
+                if s_norm == 'Requirements' or s.startswith('Requirements'):
+                    in_resources = False
+                    continue
+                if not in_resources:
+                    continue
+                # Each data line: "Category Name  num  num  num  num  num  ADOPTED"
+                tokens = s.split()
+                if len(tokens) < 2:
+                    continue
+                # Split: name tokens vs number tokens
+                name_tokens = []
+                num_tokens = []
+                in_nums = False
+                for t in tokens:
+                    if not in_nums and (re.match(r'^[\d,]+$', t) or t == '-'):
+                        in_nums = True
+                    if in_nums:
+                        num_tokens.append(t)
+                    else:
+                        name_tokens.append(t)
+                # Need at least 6 numeric tokens to be a valid data row
+                if not name_tokens or len(num_tokens) < 6:
+                    continue
+                category = re.sub(r'\s+', ' ', ' '.join(name_tokens)).strip()
+                if category in REVENUE_SKIP:
+                    continue
+                # Adopted amount = last column.
+                # OCR may split e.g. '61,494,586' into tokens ['6', '1,494,586'].
+                adopted_raw = num_tokens[-1]
+                if (len(num_tokens) >= 2
+                        and re.match(r'^\d{1,3}$', num_tokens[-2])
+                        and re.match(r'^\d{3,}', num_tokens[-1])
+                        and ',' in num_tokens[-1]):
+                    adopted_raw = num_tokens[-2] + num_tokens[-1]
+                adopted = parse_money(adopted_raw)
+                if adopted <= 0:
+                    continue
+                category = NORMALIZE.get(category, category)
+                results.append({
+                    'category':       category,
+                    'adopted_amount': adopted,
+                    'fiscal_year':    fiscal_year,
+                    'page_num':       page_num,
+                })
+            if results:
+                break  # Found real data on this page — done
+
+    # Post-validation: warn about any rows with None fiscal_year
+    none_fy = [r for r in results if r['fiscal_year'] is None]
+    if none_fy:
+        print(f'  WARNING: {len(none_fy)} rows have None fiscal_year — check PDF header',
+              file=sys.stderr)
+
+    return results
+
+
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print('Usage: python extractGresham.py <pdf_path>', file=sys.stderr)
-        sys.exit(1)
-    data = extract_budget(sys.argv[1])
+    import argparse
+    parser = argparse.ArgumentParser(description='Gresham budget PDF extractor')
+    parser.add_argument('pdf_path', help='Path to PDF file')
+    parser.add_argument('--mode', choices=['operating', 'revenue'], default='operating',
+                        help='operating=Requirements section departments, revenue=Resources section categories')
+    args = parser.parse_args()
+
+    data = extract_revenue(args.pdf_path) if args.mode == 'revenue' else extract_budget(args.pdf_path)
     print(json.dumps(data, indent=2))
