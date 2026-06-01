@@ -1,10 +1,11 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.5
-milestone_name: Oregon Expansion
-status: executing
-last_updated: "2026-06-01T06:07:01.788Z"
-last_activity: 2026-06-01 -- Phase 20 planning complete
+milestone_name: — Oregon Expansion
+status: completed
+stopped_at: Phase 20 plan 04 complete — Gresham budget loaded (FY2023-FY2026), enriched (23 rows), verified
+last_updated: "2026-06-01T16:21:40.369Z"
+last_activity: 2026-06-01
 progress:
   total_phases: 5
   completed_phases: 2
@@ -24,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-05-23)
 
 ## Current Position
 
-Phase: 20
-Plan: 04 (complete)
+Phase: 21
+Plan: Not started
 Status: Phase 20 complete — Phase 21 (Troutdale OR) pending
-Last activity: 2026-06-01 -- Phase 20 plan 04 complete (Gresham live load + enrichment + verification)
+Last activity: 2026-06-01
 
 Progress: [████████░░] 80%
 
