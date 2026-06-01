@@ -176,7 +176,7 @@ Plans:
 
 **Depends on:** Phase 17
 
-**Plans:** 1/4 plans executed
+**Plans:** 3/4 plans executed
 Plans:
 **Wave 1**
 
@@ -184,8 +184,8 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 20-02-PLAN.md — extractGresham.py (text-line parser, NOT extract_tables) + processGresham.js → treasury_sync_budget_tree pipeline (dry-run validated, all 4 PDFs)
-- [ ] 20-03-PLAN.md — loadORPopulation.js: two-constant edit to add Gresham (Census 111,507)
+- [x] 20-02-PLAN.md — extractGresham.py (text-line parser, NOT extract_tables) + processGresham.js → treasury_sync_budget_tree pipeline (dry-run validated, all 4 PDFs)
+- [x] 20-03-PLAN.md — loadORPopulation.js: two-constant edit to add Gresham (Census 111,507)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -224,7 +224,7 @@ Plans:
 | 17. Portland OR Budget Load | v1.5 | 4/4 | Complete | 2026-05-31 |
 | 18. Portland Historical Operating | v1.5 | — | Complete | 2026-05-31 |
 | 19. Portland Revenue Budget | v1.5 | — | Complete | 2026-05-31 |
-| 20. Gresham OR Budget Load | v1.5 | 1/4 | In Progress|  |
+| 20. Gresham OR Budget Load | v1.5 | 3/4 | In Progress|  |
 | 21. Troutdale OR Budget Load | v1.5 | 0/? | Pending | — |
 
 ---
