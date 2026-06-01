@@ -170,13 +170,13 @@ Plans:
 
 **Status:** Complete — executed directly from 19-RESEARCH.md (extract_revenue() added to extractPortland.py; --revenue flag added to processPortland.js)
 
-### Phase 20: Gresham OR Budget Load
+### Phase 20: Gresham OR Budget Load (COMPLETE — 2026-06-01)
 
 **Goal:** Citizens can view Gresham, OR operating budget data in the app, with per-capita display and AI-enriched category descriptions. Gresham is the second-largest city in Multnomah County (~115,000 pop), completing the county's two major cities.
 
 **Depends on:** Phase 17
 
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 Plans:
 **Wave 1**
 
@@ -189,7 +189,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 20-04-PLAN.md — Live load operating budget FY2023–FY2026, enrich categories, human-verify in app, write 20-VERIFICATION.md
+- [x] 20-04-PLAN.md — Live load operating budget FY2023–FY2026, enrich categories, human-verify in app, write 20-VERIFICATION.md
 
 ### Phase 21: Troutdale OR Budget Load
 
@@ -224,10 +224,10 @@ Plans:
 | 17. Portland OR Budget Load | v1.5 | 4/4 | Complete | 2026-05-31 |
 | 18. Portland Historical Operating | v1.5 | — | Complete | 2026-05-31 |
 | 19. Portland Revenue Budget | v1.5 | — | Complete | 2026-05-31 |
-| 20. Gresham OR Budget Load | v1.5 | 3/4 | In Progress|  |
+| 20. Gresham OR Budget Load | v1.5 | 4/4 | Complete | 2026-06-01 |
 | 21. Troutdale OR Budget Load | v1.5 | 0/? | Pending | — |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-05-31 — Phase 20 planned (Gresham OR, 4 plans across 3 waves)*
+*Last updated: 2026-06-01 — Phase 20 complete (Gresham OR budget loaded, 4/4 plans done)*

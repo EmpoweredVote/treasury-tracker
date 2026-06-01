@@ -7,10 +7,10 @@ last_updated: "2026-06-01T06:07:01.788Z"
 last_activity: 2026-06-01 -- Phase 20 planning complete
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 8
-  completed_plans: 5
-  percent: 20
+  completed_plans: 8
+  percent: 40
 ---
 
 # State
@@ -24,12 +24,12 @@ See: .planning/PROJECT.md (updated 2026-05-23)
 
 ## Current Position
 
-Phase: 17
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-01 -- Phase 20 planning complete
+Phase: 20
+Plan: 04 (complete)
+Status: Phase 20 complete — Phase 21 (Troutdale OR) pending
+Last activity: 2026-06-01 -- Phase 20 plan 04 complete (Gresham live load + enrichment + verification)
 
-Progress: [██████░░░░] 63%
+Progress: [████████░░] 80%
 
 ## Accumulated Context
 
@@ -45,7 +45,7 @@ Progress: [██████░░░░] 63%
 
 - TX (13): Dallas, Plano, McKinney, Frisco, Allen, Prosper, Celina, Richardson, Garland, Wylie, Sachse, Murphy, Princeton
 - CA (3): Los Angeles, San Francisco, San Diego
-- OR (1): Portland (FY2025+FY2026 operating, 635,749 population, 41 enrichment rows)
+- OR (2): Portland (FY2022–FY2026 operating + revenue, 635,749 population, 41 enrichment rows), Gresham (FY2023–FY2026 operating, 111,507 population, 23 enrichment rows)
 
 ### Known Tech Debt
 
@@ -59,6 +59,6 @@ $5 per run — estimate before running AI enrichment or PDF extraction.
 
 ## Session Continuity
 
-Last session: 2026-06-01T06:07:01.780Z
-Stopped at: Phase 17 complete — all 4 plans done, 17-VERIFICATION.md filed
+Last session: 2026-06-01T00:00:00Z
+Stopped at: Phase 20 plan 04 complete — Gresham budget loaded (FY2023-FY2026), enriched (23 rows), verified
 Resume file: None
