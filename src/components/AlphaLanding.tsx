@@ -203,9 +203,9 @@ function CityGrid({
           {(nearby.length > 0 || preloadedCity) && (
             <p className="text-xs font-semibold uppercase tracking-wider text-ev-gray-500">Other communities</p>
           )}
-          {otherStates.map(state => (
-            <div key={state}>
-              <p className="text-xs font-semibold uppercase tracking-wider text-ev-gray-500 mb-2">
+          {otherStates.map((state, i) => (
+            <div key={state} className={i > 0 ? "pt-4 border-t border-[#E2EBEF] dark:border-ev-gray-700" : ""}>
+              <p className="text-xs font-semibold uppercase tracking-wider text-ev-gray-600 dark:text-ev-gray-400 mb-2">
                 {STATE_NAMES[state] || state}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
