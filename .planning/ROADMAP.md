@@ -217,6 +217,20 @@ Plans:
 
 ---
 
+### Phase 23: OR All Funds Consistency — Requirements Extraction (Portland + Gresham)
+
+**Goal:** Resolve the scope mismatch between the Budget tab (~$330M departmental operating) and Money In tab (~$512M All Funds Resources) for Oregon cities. Both sides of the financial picture should use the same "All Funds" scope so totals balance and citizens aren't misled by an apparent surplus that is actually an accounting artifact.
+
+**Problem:** Money In already uses the All Funds Resources section (~10 categories, all funds combined). The Budget tab uses the departmental operating budget (a subset). Displaying them together implies the city brings in $512M and only spends $330M, which looks like a $180M windfall but is actually just mismatched scopes — the same $180M appears on the Requirements side of the same All Funds page.
+
+**Approach:** Extract the Requirements column from the "Resources and Requirements — All Funds" page in each OR city's adopted budget PDF (the same page already used for revenue extraction). Store as `dataset_type='all_funds_requirements'`. Show as the primary Budget tab total, with the existing departmental operating breakdown as a drill-down detail. Both tabs then display ~$512M (Gresham) / matching totals for Portland, and the numbers tell a coherent story.
+
+**Scope:** Portland (extractPortland.py + processPortland.js) and Gresham (extractGresham.py + processGresham.js). Same extractor pattern as extract_revenue() — flip section gating from `in_resources` to `in_requirements` on the same page.
+
+**Depends on:** Phases 19, 21
+
+---
+
 ## Progress
 
 **Execution Order:** Sequential phases 1→16 (all complete)
@@ -245,8 +259,9 @@ Plans:
 | 20. Gresham OR Budget Load | v1.5 | 4/4 | Complete    | 2026-06-01 |
 | 21. Gresham OR Revenue Load | v1.5 | 2/2 | Complete    | 2026-06-01 |
 | 22. Troutdale OR Budget Load | v1.5 | 0/? | Pending | — |
+| 23. OR All Funds Consistency | v1.5 | 0/? | Pending | — |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-06-01 — Phase 21 complete (Gresham OR revenue load, 2/2 plans done; Money In tab human-verified)*
+*Last updated: 2026-06-01 — Phase 21 complete; Phase 23 scoped (OR All Funds Consistency — Requirements Extraction)*
