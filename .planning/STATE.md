@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: — Oregon Expansion
-status: executing
-last_updated: "2026-06-01T19:00:00.000Z"
+status: ready_to_plan
+last_updated: 2026-06-01T20:42:00.123Z
 last_activity: 2026-06-01 -- Phase 21 Plan 02 complete (Gresham revenue load fully verified)
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 10
-  completed_plans: 10
+  completed_plans: 53
   percent: 50
+stopped_at: Phase 21 complete (2/2) — ready to discuss Phase 22
 ---
 
 # State
@@ -20,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-23)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Milestone complete
+**Current focus:** Phase 22 — troutdale or budget load
 
 ## Current Position
 
-Phase: 21 COMPLETE
-Plan: 2 of 2 complete
-Status: Phase 21 complete; Phase 22 (Troutdale OR Budget Load) is next
-Last activity: 2026-06-01 -- Phase 21 Plan 02 complete (Gresham revenue load fully verified)
+Phase: 22
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-06-01
 
 Progress: [█████████░] 90%
 
