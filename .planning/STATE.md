@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: — Oregon Expansion
 status: executing
-last_updated: "2026-06-01T18:05:00.000Z"
-last_activity: 2026-06-01 -- Phase 21 Plan 01 complete
+last_updated: "2026-06-01T19:00:00.000Z"
+last_activity: 2026-06-01 -- Phase 21 Plan 02 complete (Gresham revenue load fully verified)
 progress:
   total_phases: 6
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 10
-  completed_plans: 9
-  percent: 33
+  completed_plans: 10
+  percent: 50
 ---
 
 # State
@@ -24,12 +24,12 @@ See: .planning/PROJECT.md (updated 2026-05-23)
 
 ## Current Position
 
-Phase: 21
-Plan: 1 of 2 complete
-Status: Executing (Plan 02 ready)
-Last activity: 2026-06-01 -- Phase 21 Plan 01 complete
+Phase: 21 COMPLETE
+Plan: 2 of 2 complete
+Status: Phase 21 complete; Phase 22 (Troutdale OR Budget Load) is next
+Last activity: 2026-06-01 -- Phase 21 Plan 02 complete (Gresham revenue load fully verified)
 
-Progress: [████████░░] 80%
+Progress: [█████████░] 90%
 
 ## Accumulated Context
 
@@ -45,7 +45,7 @@ Progress: [████████░░] 80%
 
 - TX (13): Dallas, Plano, McKinney, Frisco, Allen, Prosper, Celina, Richardson, Garland, Wylie, Sachse, Murphy, Princeton
 - CA (3): Los Angeles, San Francisco, San Diego
-- OR (2): Portland (FY2022–FY2026 operating + revenue, 635,749 population, 41 enrichment rows), Gresham (FY2023–FY2026 operating, 111,507 population, 23 enrichment rows)
+- OR (2): Portland (FY2022–FY2026 operating + revenue, 635,749 population, 41 enrichment rows), Gresham (FY2023–FY2026 operating + revenue, 111,507 population, 33 enrichment rows — 23 operating + 10 revenue)
 
 ### Known Tech Debt
 
@@ -60,12 +60,17 @@ Progress: [████████░░] 80%
 - NORMALIZE dict covers 3 FY2023 name variants: Internal Service Charges, Li censes & Permits, In ternal Payments
 - SANITY_MAX gated on operating mode — revenue FY2026 ~$512M legitimately exceeds $500M cap
 
+### Decisions (Phase 21 Plan 02)
+
+- Enrichment decision RUN: 4 of 10 revenue categories opaque to non-finance citizens ("Internal Svc Chrg", "Financing Proceeds", "Interfund Transfers", "Utility License Fees") — ~$0.01 cost, well under $5 threshold
+- UI auto-discovery confirmed: no frontend changes needed — App.tsx available_datasets pattern auto-shows Money In tab for dataset_type='revenue' rows
+
 ### API Cost Threshold
 
 $5 per run — estimate before running AI enrichment or PDF extraction.
 
 ## Session Continuity
 
-Last session: 2026-06-01T18:05:00.000Z
-Stopped at: Phase 21 Plan 01 complete; Plan 02 (live revenue load) ready to execute
+Last session: 2026-06-01T19:00:00.000Z
+Stopped at: Phase 21 complete (Plan 02 done); Phase 22 (Troutdale OR Budget Load) is next
 Resume file: None

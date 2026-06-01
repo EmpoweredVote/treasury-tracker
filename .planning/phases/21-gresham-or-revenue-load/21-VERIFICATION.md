@@ -1,13 +1,15 @@
 ---
 phase: 21-gresham-or-revenue-load
 verified: 2026-06-01T18:30:00Z
-status: human_needed
-score: 5/6 must-haves verified
+human_verified: 2026-06-01T19:00:00Z
+status: passed
+score: 6/6 must-haves verified
 overrides_applied: 0
 re_verification: false
 human_verification:
   - test: "Open the app and select Gresham, OR. Confirm a 'Money In' tab appears alongside the existing 'Budget' tab. Select Money In and verify ~10 revenue categories display with totals in the $400M–$525M range (not $731M–$896M). Switch FY2023–FY2026 and confirm each year shows data."
     expected: "Money In tab appears. 10 revenue categories render (Taxes, Intergovernmental, Charges for Services, Interfund Transfers, Internal Svc Chrg, Utility License Fees, Internal Payments, Miscellaneous Income, Financing Proceeds, Licenses & Permits). FY2026 total ~$512M, FY2025 ~$521M, FY2024 ~$460M, FY2023 ~$411M. No 'Beginning Balance' or 'Total Resources' node visible."
+    result: "APPROVED — ~10 revenue categories displayed with totals in the $400M–$525M range across FY2023–FY2026."
     why_human: "App rendering, Money In tab auto-discovery, fiscal-year selector behavior, and category display all require a live browser session."
 ---
 
@@ -15,7 +17,8 @@ human_verification:
 
 **Phase Goal:** Load Gresham revenue (Money In) data for FY2023–FY2026 so citizens can view it alongside the operating budget in the app.
 **Verified:** 2026-06-01T18:30:00Z
-**Status:** human_needed
+**Human-verified:** 2026-06-01T19:00:00Z
+**Status:** PASSED
 **Re-verification:** No — initial verification by executor
 
 ---
@@ -31,9 +34,9 @@ human_verification:
 | 3 | No Gresham revenue budget row's tree contains a 'Beginning Balance' or 'Total Resources' node | VERIFIED | Live DB query on treasury.budget_categories for FY2026 revenue budget_id=61d60302-f1fb-42bc-a913-a38cb9fc7595: 10 nodes, none named 'Beginning Balance' or 'Total Resources'. Verified for all FYs via dry-run (totals in $400M–$521M band, not $731M–$896M). |
 | 4 | Re-running `node scripts/processGresham.js --revenue` leaves exactly 4 revenue rows (idempotency) | VERIFIED | Second live run executed; DB query after re-run still shows exactly 4 revenue rows with identical totals. Delete-then-insert RPC pattern confirmed working. |
 | 5 | 10 revenue category enrichment rows exist for Gresham, municipality_id-scoped | VERIFIED | enrichCategories.js ran for FY2026 (--year 2026), 10 categories enriched, 0 failures. Plain-name descriptions generated (e.g., "Borrowed Money for Projects" for Financing Proceeds, "Money From Other Governments" for Intergovernmental). All scoped to municipality_id=5d4675f1-c207-4d7b-a346-85a799da0d4d. |
-| 6 | Citizens can select Gresham, OR and see a 'Money In' tab with revenue categories alongside the Budget tab | HUMAN NEEDED | DB backend confirmed. App display (Money In tab auto-display, category rendering, fiscal-year selector) requires live browser verification. |
+| 6 | Citizens can select Gresham, OR and see a 'Money In' tab with revenue categories alongside the Budget tab | VERIFIED | Human-approved 2026-06-01: ~10 revenue categories visible with totals in the $400M–$525M range across FY2023–FY2026. Money In tab auto-discovered from dataset_type='revenue'. |
 
-**Score: 5/6 truths verified (Truth 6 requires human confirmation)**
+**Score: 6/6 truths verified — all must-haves passed**
 
 ---
 
@@ -57,7 +60,7 @@ human_verification:
 |------|----|-----|--------|----------|
 | `scripts/processGresham.js --revenue` | `scripts/extractGresham.py --mode revenue` | spawnSync args array | WIRED | Live run: Python extractor called with ['--mode', 'revenue']; 10 categories returned per PDF |
 | `scripts/processGresham.js` | `treasury_sync_budget_tree RPC` | supabase.rpc(..., p_dataset_type='revenue') | WIRED | Live run: "Inserted: 10 rows" for each FY; DB confirms 4 revenue budget rows |
-| `treasury.budgets revenue rows` | App.tsx Money In tab | available_datasets dataset_type='revenue' auto-discovery | PENDING HUMAN | DB backend confirmed; UI rendering requires browser verification |
+| `treasury.budgets revenue rows` | App.tsx Money In tab | available_datasets dataset_type='revenue' auto-discovery | VERIFIED | Human-approved: Money In tab displayed ~10 categories with totals in $400M–$525M range across all 4 fiscal years |
 | `upsertDataSource()` | dataset_type parametric lookup | .eq('dataset_type', datasetType) | WIRED | Live run: 8 data_source rows with correct type separation; no operating row overwritten |
 
 ---
@@ -117,28 +120,21 @@ Revenue category names are mostly plain English, but 4 categories benefit from e
 
 ---
 
-### Human Verification Required
+### Human Verification Result
 
 #### 1. App display — Gresham Money In tab
 
-**Test:** Open the app at treasurytracker.empowered.vote (or `npm run dev`). Navigate to the city picker. Select Gresham, OR.
+**Status: APPROVED — 2026-06-01**
 
-**Expected:**
-1. Gresham appears in the picker listed under "Oregon", alongside Portland
-2. A "Money In" tab appears next to the existing "Budget" tab
-3. Select the Money In tab — ~10 revenue categories render (Taxes, Intergovernmental, Charges for Services, etc.)
-4. Revenue total per fiscal year is in the $400M–$525M range (FY2026 ~$512M, FY2025 ~$521M, FY2024 ~$460M, FY2023 ~$411M)
-5. No "Beginning Balance" or "Total Resources" row visible (those inflate to $731M–$896M)
-6. Fiscal-year selector shows FY2023–FY2026 with revenue data for each year
-7. Enriched descriptions appear where applicable (e.g., "Borrowed Money for Projects" for Financing Proceeds)
+**Test:** Open the app at treasurytracker.empowered.vote. Navigate to the city picker. Select Gresham, OR.
 
-**Why human:** App rendering, Money In tab auto-discovery, and fiscal-year selector behavior all require a live browser session.
+**Result:** Human confirmed — ~10 revenue categories displayed with totals in the $400M–$525M range across FY2023–FY2026. Money In tab auto-discovered and rendered correctly alongside the existing Budget tab. No Beginning Balance inflation detected.
 
 ---
 
 ### Gaps Summary
 
-No blocking gaps found. All backend deliverables verified:
+No gaps. All deliverables verified — DB backend and UI frontend:
 
 - 4 Gresham PDFs on disk (from Phase 20) — no re-download needed
 - scripts/extractGresham.py: extract_revenue() function verified for all 4 PDFs
@@ -146,10 +142,12 @@ No blocking gaps found. All backend deliverables verified:
 - DB: 4 revenue budget rows (correct totals), 8 data_source rows (4 op preserved + 4 rev new)
 - DB: 10 budget_categories per FY2026 revenue budget (no exclusion violations)
 - DB: 10 enrichment rows for revenue categories
+- UI: Money In tab confirmed by human — ~10 categories, $400M–$525M range, all 4 FYs
 
-The single remaining item is human confirmation that the app UI correctly auto-discovers and renders the Money In tab.
+Phase 21 is complete.
 
 ---
 
 _Verified: 2026-06-01T18:30:00Z_
-_Verifier: Claude (gsd-executor)_
+_Human-verified: 2026-06-01T19:00:00Z_
+_Verifier: Claude (gsd-executor) + human approval_

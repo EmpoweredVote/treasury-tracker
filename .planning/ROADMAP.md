@@ -191,13 +191,13 @@ Plans:
 
 - [x] 20-04-PLAN.md — Live load operating budget FY2023–FY2026, enrich categories, human-verify in app, write 20-VERIFICATION.md
 
-### Phase 21: Gresham OR Revenue Load
+### Phase 21: Gresham OR Revenue Load (COMPLETE — 2026-06-01)
 
 **Goal:** Citizens can view Gresham, OR revenue (Money In) data alongside the existing operating budget. Revenue rows are extracted from the Resources section of the same 4 adopted budget PDFs (FY2023-FY2026) already used for phase 20.
 
 **Depends on:** Phase 20
 
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 **Wave 1**
 
@@ -205,7 +205,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 21-02-PLAN.md — Live-load revenue FY2023-FY2026, DB-verify (no collision, no Beginning Balance), conditional enrichment, human-verify Money In tab, write 21-VERIFICATION.md
+- [x] 21-02-PLAN.md — Live-load revenue FY2023-FY2026, DB-verify (no collision, no Beginning Balance), conditional enrichment, human-verify Money In tab, write 21-VERIFICATION.md
 
 ---
 
@@ -243,10 +243,10 @@ Plans:
 | 18. Portland Historical Operating | v1.5 | — | Complete | 2026-05-31 |
 | 19. Portland Revenue Budget | v1.5 | — | Complete | 2026-05-31 |
 | 20. Gresham OR Budget Load | v1.5 | 4/4 | Complete    | 2026-06-01 |
-| 21. Gresham OR Revenue Load | v1.5 | 1/2 | In Progress|  |
+| 21. Gresham OR Revenue Load | v1.5 | 2/2 | Complete | 2026-06-01 |
 | 22. Troutdale OR Budget Load | v1.5 | 0/? | Pending | — |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-06-01 — Phase 21 planned (Gresham OR revenue load, 2 plans across 2 waves)*
+*Last updated: 2026-06-01 — Phase 21 complete (Gresham OR revenue load, 2/2 plans done; Money In tab human-verified)*
