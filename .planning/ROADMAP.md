@@ -215,11 +215,11 @@ Plans:
 
 **Depends on:** Phase 20
 
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 Plans:
 **Wave 1**
 
-- [ ] 22-01-PLAN.md — Download Troutdale PDFs, create extractTroutdale.py (General Fund operating + All Funds revenue), seed Troutdale municipality (pop 15,749)
+- [x] 22-01-PLAN.md — Download Troutdale PDFs, create extractTroutdale.py (General Fund operating + All Funds revenue), seed Troutdale municipality (pop 15,749)
 
 **Wave 2** *(blocked on Wave 1)*
 
@@ -272,7 +272,7 @@ Plans:
 | 19. Portland Revenue Budget | v1.5 | — | Complete | 2026-05-31 |
 | 20. Gresham OR Budget Load | v1.5 | 4/4 | Complete    | 2026-06-01 |
 | 21. Gresham OR Revenue Load | v1.5 | 2/2 | Complete    | 2026-06-01 |
-| 22. Troutdale OR Budget Load | v1.5 | 0/3 | Planned | — |
+| 22. Troutdale OR Budget Load | v1.5 | 1/3 | In Progress|  |
 | 23. OR All Funds Consistency | v1.5 | 0/? | Pending | — |
 
 ---

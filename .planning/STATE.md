@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: — Oregon Expansion
 status: executing
-last_updated: "2026-06-01T23:25:46.966Z"
-last_activity: 2026-06-01 -- Phase 22 planning complete
+last_updated: "2026-06-01T23:39:21.308Z"
+last_activity: 2026-06-01
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 13
-  completed_plans: 10
+  completed_plans: 11
   percent: 43
 ---
 
@@ -20,16 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-23)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 22 — troutdale or budget load
+**Current focus:** Phase 22 — troutdale-or-budget-load
 
 ## Current Position
 
-Phase: 22
-Plan: Not started
+Phase: 22 (troutdale-or-budget-load) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-06-01 -- Phase 22 planning complete
+Last activity: 2026-06-01
 
-Progress: [█████████░] 90%
+Progress: [█████████░] 85%
 
 ## Accumulated Context
 
@@ -45,7 +45,7 @@ Progress: [█████████░] 90%
 
 - TX (13): Dallas, Plano, McKinney, Frisco, Allen, Prosper, Celina, Richardson, Garland, Wylie, Sachse, Murphy, Princeton
 - CA (3): Los Angeles, San Francisco, San Diego
-- OR (2): Portland (FY2022–FY2026 operating + revenue, 635,749 population, 41 enrichment rows), Gresham (FY2023–FY2026 operating + revenue, 111,507 population, 33 enrichment rows — 23 operating + 10 revenue)
+- OR (3): Portland (FY2022–FY2026 operating + revenue, 635,749 population, 41 enrichment rows), Gresham (FY2023–FY2026 operating + revenue, 111,507 population, 33 enrichment rows — 23 operating + 10 revenue), Troutdale (municipality seeded, 15,749 population — budget data loads in Plans 02-03)
 
 ### Known Tech Debt
 
@@ -65,12 +65,26 @@ Progress: [█████████░] 90%
 - Enrichment decision RUN: 4 of 10 revenue categories opaque to non-finance citizens ("Internal Svc Chrg", "Financing Proceeds", "Interfund Transfers", "Utility License Fees") — ~$0.01 cost, well under $5 threshold
 - UI auto-discovery confirmed: no frontend changes needed — App.tsx available_datasets pattern auto-shows Money In tab for dataset_type='revenue' rows
 
+### Decisions (Phase 22 Plan 01)
+
+- Troutdale fiscal year parsing uses YYYY-YY (dash) regex — Gresham slash regex returns 0 matches on Troutdale PDFs
+- Operating extraction targets General Fund page (ACCOUNT 01.00), not All Funds — All Funds Requirements has expenditure categories not departments
+- All 8 Troutdale PDFs downloaded successfully (FY2018-19 through FY2025-26) — no download failures
+- Troutdale population confirmed as 15749 (Census sub-est2024_41.csv, SUMLEV=162, 2024) — not 17000 estimate from CONTEXT.md
+- Troutdale OR seeded in DB (id=5acc9a64-6d95-4013-94d8-abf2b714928e); OR city count now 3 (Portland, Gresham, Troutdale)
+
 ### API Cost Threshold
 
 $5 per run — estimate before running AI enrichment or PDF extraction.
 
 ## Session Continuity
 
-Last session: 2026-06-01T21:55:35.869Z
-Stopped at: Phase 22 context gathered
-Resume file: .planning/phases/22-troutdale-or-budget-load/22-CONTEXT.md
+Last session: 2026-06-01T23:39:21.298Z
+Stopped at: Completed 22-01-PLAN.md — extractTroutdale.py + seedTroutdaleOregon.js created
+Resume file: .planning/phases/22-troutdale-or-budget-load/22-01-SUMMARY.md
+
+## Performance Metrics
+
+| Phase | Plan | Duration | Notes |
+|-------|------|----------|-------|
+| Phase 22-troutdale-or-budget-load P01 | 7 | 3 tasks | 2 files |
