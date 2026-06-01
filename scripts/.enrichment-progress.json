@@ -1,15 +1,10 @@
 {
   "processed": [
-    "2abac6c2-78b0-466a-98d1-6cd38e19a411::convention center area debt service fund",
-    "2abac6c2-78b0-466a-98d1-6cd38e19a411::portland police association health insurance fund portland police association health insurance",
-    "2abac6c2-78b0-466a-98d1-6cd38e19a411::central eastside industrial district debt service fundcentral eastside industrial district debt ser-",
-    "2abac6c2-78b0-466a-98d1-6cd38e19a411::south park blocks redemption fund",
-    "2abac6c2-78b0-466a-98d1-6cd38e19a411::fire & police disability & retirement reserve fund fire & police disability & retirement reserve",
-    "2abac6c2-78b0-466a-98d1-6cd38e19a411::waterfront renewal bond sinking fund",
-    "2abac6c2-78b0-466a-98d1-6cd38e19a411::hydroelectric power renewal and replacement fund hydroelectric power renewal and replace-",
-    "2abac6c2-78b0-466a-98d1-6cd38e19a411::cully tif debt service",
-    "2abac6c2-78b0-466a-98d1-6cd38e19a411::fire & police supplemental retirement reserve fund fire & police supplemental retirement re-",
-    "2abac6c2-78b0-466a-98d1-6cd38e19a411::82nd ave/division npi debt service fund"
+    "5d4675f1-c207-4d7b-a346-85a799da0d4d::co mmunity services",
+    "5d4675f1-c207-4d7b-a346-85a799da0d4d::fire & emergency services",
+    "5d4675f1-c207-4d7b-a346-85a799da0d4d::ci tywide services",
+    "5d4675f1-c207-4d7b-a346-85a799da0d4d::ec onomic & developement services",
+    "5d4675f1-c207-4d7b-a346-85a799da0d4d::budget & finance *"
   ],
   "failed": []
 }
