@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Oregon Expansion
-status: milestone_complete
-last_updated: 2026-05-31T18:24:14.229Z
-last_activity: 2026-05-31 -- Phase 17 complete (Portland OR budget load, enrichment, verification)
+status: executing
+last_updated: "2026-06-01T05:45:34.783Z"
+last_activity: 2026-06-01 -- Phase 20 planning complete
 progress:
-  total_phases: 4
-  completed_phases: 4
+  total_phases: 5
+  completed_phases: 1
   total_plans: 8
-  completed_plans: 47
-  percent: 100
-stopped_at: Milestone complete (Phase 17 was final phase)
+  completed_plans: 4
+  percent: 20
 ---
 
 # State
@@ -27,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-05-23)
 
 Phase: 17
 Plan: Not started
-Status: Milestone complete
-Last activity: 2026-05-31
+Status: Ready to execute
+Last activity: 2026-06-01 -- Phase 20 planning complete
 
 Progress: v1.5 COMPLETE ████████████████████ Phases 1–17 all shipped
 
