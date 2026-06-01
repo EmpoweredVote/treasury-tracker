@@ -176,11 +176,11 @@ Plans:
 
 **Depends on:** Phase 17
 
-**Plans:** 4 plans
+**Plans:** 1/4 plans executed
 Plans:
 **Wave 1**
 
-- [ ] 20-01-PLAN.md — Foundation: verify pdfplumber, create docs/Gresham/ + download 4 PDFs (FY2023–FY2026), inspect FY2023-24 All Funds structure, seed Gresham municipality (pop 111,507)
+- [x] 20-01-PLAN.md — Foundation: verify pdfplumber, create docs/Gresham/ + download 4 PDFs (FY2023–FY2026), inspect FY2023-24 All Funds structure, seed Gresham municipality (pop 111,507)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -224,7 +224,7 @@ Plans:
 | 17. Portland OR Budget Load | v1.5 | 4/4 | Complete | 2026-05-31 |
 | 18. Portland Historical Operating | v1.5 | — | Complete | 2026-05-31 |
 | 19. Portland Revenue Budget | v1.5 | — | Complete | 2026-05-31 |
-| 20. Gresham OR Budget Load | v1.5 | 0/4 | Planned | — |
+| 20. Gresham OR Budget Load | v1.5 | 1/4 | In Progress|  |
 | 21. Troutdale OR Budget Load | v1.5 | 0/? | Pending | — |
 
 ---
