@@ -197,6 +197,16 @@ Plans:
 
 **Depends on:** Phase 20
 
+**Plans:** 2 plans
+Plans:
+**Wave 1**
+
+- [ ] 21-01-PLAN.md — Add extract_revenue() + --mode to extractGresham.py and --revenue pipeline to processGresham.js; validate all 4 FYs via dry-run
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 21-02-PLAN.md — Live-load revenue FY2023-FY2026, DB-verify (no collision, no Beginning Balance), conditional enrichment, human-verify Money In tab, write 21-VERIFICATION.md
+
 ---
 
 ### Phase 22: Troutdale OR Budget Load
@@ -233,10 +243,10 @@ Plans:
 | 18. Portland Historical Operating | v1.5 | — | Complete | 2026-05-31 |
 | 19. Portland Revenue Budget | v1.5 | — | Complete | 2026-05-31 |
 | 20. Gresham OR Budget Load | v1.5 | 4/4 | Complete    | 2026-06-01 |
-| 21. Gresham OR Revenue Load | v1.5 | 0/? | Pending | — |
+| 21. Gresham OR Revenue Load | v1.5 | 0/2 | Pending | — |
 | 22. Troutdale OR Budget Load | v1.5 | 0/? | Pending | — |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-06-01 — Phase 20 complete (Gresham OR budget loaded, 4/4 plans done)*
+*Last updated: 2026-06-01 — Phase 21 planned (Gresham OR revenue load, 2 plans across 2 waves)*
