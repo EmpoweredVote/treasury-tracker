@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { createClient } from '@supabase/supabase-js';
-import { readFileSync, existsSync, createWriteStream } from 'node:fs';
+import { readFileSync, existsSync, createWriteStream, unlinkSync } from 'node:fs';
 import { get as httpsGet } from 'node:https';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -28,20 +28,20 @@ function normalizeCensusName(name) {
 function downloadFile(url, dest) {
   return new Promise((resolve, reject) => {
     const file = createWriteStream(dest);
+    const cleanup = () => { try { unlinkSync(dest); } catch (_) {} };
     httpsGet(url, (res) => {
       if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
         file.close();
-        // Follow redirect (one level)
         return downloadFile(res.headers.location, dest).then(resolve, reject);
       }
       if (res.statusCode !== 200) {
-        file.close();
+        file.close(); cleanup();
         return reject(new Error(`HTTP ${res.statusCode} downloading ${url}`));
       }
       res.pipe(file);
       file.on('finish', () => { file.close(); resolve(); });
-      file.on('error', reject);
-    }).on('error', (err) => { file.close(); reject(err); });
+      file.on('error', (err) => { file.close(); cleanup(); reject(err); });
+    }).on('error', (err) => { file.close(); cleanup(); reject(err); });
   });
 }
 

@@ -102,8 +102,7 @@ async function main() {
   // NOTE: treasury_list_source_ids lives in the public schema; call it via
   // a public-schema client (init-option schema only affects .from() calls).
   console.log('Verifying via treasury_list_source_ids RPC...');
-  const { createClient: createPublicClient } = await import('@supabase/supabase-js');
-  const publicClient = createPublicClient(SUPABASE_URL, SUPABASE_KEY);
+  const publicClient = createClient(SUPABASE_URL, SUPABASE_KEY);
   const { data: listing, error: listErr } = await publicClient.rpc('treasury_list_source_ids');
   if (listErr) {
     // Non-fatal: RPC may not exist if this is a fresh DB. Log and continue.

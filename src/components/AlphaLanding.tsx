@@ -115,6 +115,13 @@ function CitySearch({
   );
 }
 
+const STATE_NAMES: Record<string, string> = {
+  IN: 'Indiana',
+  CA: 'California',
+  TX: 'Texas',
+  OR: 'Oregon',
+};
+
 // ── City cards ──
 function CityGrid({
   municipalities,
@@ -138,6 +145,13 @@ function CityGrid({
   const userAddress = readUserAddress();
   const nearby = userAddress ? available.filter(m => m.state === userAddress.state && m.id !== preloadedCity?.id) : [];
   const others = available.filter(m => m.id !== preloadedCity?.id && (!userAddress || m.state !== userAddress.state));
+
+  const othersByState = new Map<string, Municipality[]>();
+  for (const m of others) {
+    if (!othersByState.has(m.state)) othersByState.set(m.state, []);
+    othersByState.get(m.state)!.push(m);
+  }
+  const otherStates = [...othersByState.keys()].sort();
 
   const renderCityButton = (city: Municipality) => {
     const years = [...new Set(city.available_datasets.map(d => d.fiscal_year))].sort((a, b) => b - a);
@@ -185,13 +199,20 @@ function CityGrid({
         </div>
       )}
       {others.length > 0 && (
-        <div>
+        <div className="space-y-5">
           {(nearby.length > 0 || preloadedCity) && (
-            <p className="text-xs font-semibold uppercase tracking-wider text-ev-gray-500 mb-2">Other communities</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-ev-gray-500">Other communities</p>
           )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {others.map(renderCityButton)}
-          </div>
+          {otherStates.map(state => (
+            <div key={state}>
+              <p className="text-xs font-semibold uppercase tracking-wider text-ev-gray-500 mb-2">
+                {STATE_NAMES[state] || state}
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {othersByState.get(state)!.map(renderCityButton)}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

@@ -16,7 +16,7 @@
  * Security (T-20-03): PDF path comes from controlled docs/Gresham/ readdir,
  * not user input; argument is quoted in execSync invocation.
  * Security (T-20-04): maxBuffer 8MB; extractor emits compact rows only.
- * Security (T-20-05): dry-run + amounts assert FY2026 total under $500M.
+ * Security (T-20-05): amounts assert FY2026 total under $500M (enforced in processPDF).
  */
 
 import { execSync, spawnSync } from 'node:child_process';
@@ -91,6 +91,8 @@ function inferFiscalYearFromFilename(filename) {
   return null;
 }
 
+const SANITY_MAX = { 2026: 500_000_000 };
+
 // ── Build operating budget tree from extracted department rows ─────────────────
 // Each department becomes a top-level node { n, a, i[] }.
 // Uses row.department (Gresham field) NOT row.bureau (Portland field).
@@ -159,12 +161,14 @@ async function upsertDataSource(muniId, fiscalYear) {
     .maybeSingle();
 
   if (existing?.id) {
-    const { data } = await supabase.schema('treasury').from('data_sources')
+    const { data, error } = await supabase.schema('treasury').from('data_sources')
       .update(src).eq('id', existing.id).select().single();
+    if (error) console.error('  data_source update error:', error.message);
     return data;
   }
-  const { data } = await supabase.schema('treasury').from('data_sources')
+  const { data, error } = await supabase.schema('treasury').from('data_sources')
     .insert(src).select().single();
+  if (error) console.error('  data_source insert error:', error.message);
   return data;
 }
 
@@ -245,6 +249,11 @@ async function processPDF(pdfAbsPath, muniId, dryRun) {
 
     const { tree, total } = buildOperatingTree(fyRows);
     const rowCount = tree.length;
+
+    if (SANITY_MAX[fy] && total > SANITY_MAX[fy]) {
+      console.error(`  SANITY FAIL FY${fy}: total $${total.toLocaleString()} exceeds $500M cap — aborting`);
+      return;
+    }
 
     console.log(`\n  FY${fy} Operating — $${total.toLocaleString()} total (${rowCount} departments)`);
     for (const n of tree.slice(0, 8)) {

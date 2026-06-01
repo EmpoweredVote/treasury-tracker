@@ -103,6 +103,9 @@ def extract_budget(pdf_path):
                 if re.sub(r'\s+', '', s) == 'Requirements':
                     in_requirements = True
                     continue
+                if re.sub(r'\s+', '', s) == 'Resources':
+                    in_requirements = False
+                    continue
                 if not in_requirements:
                     continue
                 # Each data line: "Dept Name  num  num  num  num  num  ADOPTED"
@@ -138,7 +141,8 @@ def extract_budget(pdf_path):
                 adopted_raw = num_tokens[-1]
                 if (len(num_tokens) >= 2
                         and re.match(r'^\d{1,3}$', num_tokens[-2])
-                        and re.match(r'^\d', num_tokens[-1])):
+                        and re.match(r'^\d{3,}', num_tokens[-1])
+                        and ',' in num_tokens[-1]):
                     adopted_raw = num_tokens[-2] + num_tokens[-1]
                 adopted = parse_money(adopted_raw)
                 if adopted <= 0:
