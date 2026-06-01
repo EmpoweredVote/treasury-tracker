@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: — Oregon Expansion
-status: ready_to_plan
-last_updated: 2026-06-01T20:42:00.123Z
-last_activity: 2026-06-01 -- Phase 21 Plan 02 complete (Gresham revenue load fully verified)
+status: planning
+last_updated: "2026-06-01T21:55:35.878Z"
+last_activity: 2026-06-01
 progress:
-  total_phases: 6
+  total_phases: 7
   completed_phases: 3
   total_plans: 10
-  completed_plans: 53
-  percent: 50
-stopped_at: Phase 21 complete (2/2) — ready to discuss Phase 22
+  completed_plans: 10
+  percent: 43
 ---
 
 # State
@@ -72,6 +71,6 @@ $5 per run — estimate before running AI enrichment or PDF extraction.
 
 ## Session Continuity
 
-Last session: 2026-06-01T19:00:00.000Z
-Stopped at: Phase 21 complete (Plan 02 done); Phase 22 (Troutdale OR Budget Load) is next
-Resume file: None
+Last session: 2026-06-01T21:55:35.869Z
+Stopped at: Phase 22 context gathered
+Resume file: .planning/phases/22-troutdale-or-budget-load/22-CONTEXT.md
