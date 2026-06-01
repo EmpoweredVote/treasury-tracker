@@ -211,9 +211,23 @@ Plans:
 
 ### Phase 22: Troutdale OR Budget Load
 
-**Goal:** Citizens can view Troutdale, OR operating budget data in the app, with per-capita display and AI-enriched category descriptions. Troutdale (~17,000 pop) is the third-largest incorporated city in Multnomah County.
+**Goal:** Citizens can view Troutdale, OR operating budget data in the app, with per-capita display and AI-enriched category descriptions. Troutdale (15,749 pop, Census 2024) is the third-largest incorporated city in Multnomah County. Revenue (Money In) is folded into this phase per D-01.
 
 **Depends on:** Phase 20
+
+**Plans:** 3 plans
+Plans:
+**Wave 1**
+
+- [ ] 22-01-PLAN.md — Download Troutdale PDFs, create extractTroutdale.py (General Fund operating + All Funds revenue), seed Troutdale municipality (pop 15,749)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 22-02-PLAN.md — Create processTroutdale.js loader ($30M sanity cap, --revenue mode); dry-run all FYs and resolve D-02 FY depth
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 22-03-PLAN.md — Live-load operating + revenue, loadORPopulation.js Troutdale edit, conditional enrichment, human-verify, write 22-VERIFICATION.md
 
 ---
 
@@ -258,7 +272,7 @@ Plans:
 | 19. Portland Revenue Budget | v1.5 | — | Complete | 2026-05-31 |
 | 20. Gresham OR Budget Load | v1.5 | 4/4 | Complete    | 2026-06-01 |
 | 21. Gresham OR Revenue Load | v1.5 | 2/2 | Complete    | 2026-06-01 |
-| 22. Troutdale OR Budget Load | v1.5 | 0/? | Pending | — |
+| 22. Troutdale OR Budget Load | v1.5 | 0/3 | Planned | — |
 | 23. OR All Funds Consistency | v1.5 | 0/? | Pending | — |
 
 ---
