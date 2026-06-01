@@ -13,11 +13,12 @@ const CSV_PATH = path.join(tmpdir(), 'sub-est2024_41.csv');
 const POP_YEAR = 2024;
 
 // Exact DB names for OR cities (must match municipalities.name)
-const EXPECTED_CITIES = ['Portland'];
+const EXPECTED_CITIES = ['Portland', 'Gresham'];
 
 // Known-good 2024 Census values for sanity check (from sub-est2024_41.csv verified 2026-05-31)
 const KNOWN_VALUES = {
   Portland: 635749,
+  Gresham: 111507,   // Census sub-est2024_41.csv, SUMLEV=162, "Gresham city" → 111507 (2024)
 };
 
 function normalizeCensusName(name) {
