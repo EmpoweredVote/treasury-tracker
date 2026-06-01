@@ -215,7 +215,7 @@ Plans:
 
 **Depends on:** Phase 20
 
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 Plans:
 **Wave 1**
 
@@ -223,7 +223,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1)*
 
-- [ ] 22-02-PLAN.md — Create processTroutdale.js loader ($30M sanity cap, --revenue mode); dry-run all FYs and resolve D-02 FY depth
+- [x] 22-02-PLAN.md — Create processTroutdale.js loader ($30M sanity cap, --revenue mode); dry-run all FYs and resolve D-02 FY depth
 
 **Wave 3** *(blocked on Wave 2)*
 
@@ -272,7 +272,7 @@ Plans:
 | 19. Portland Revenue Budget | v1.5 | — | Complete | 2026-05-31 |
 | 20. Gresham OR Budget Load | v1.5 | 4/4 | Complete    | 2026-06-01 |
 | 21. Gresham OR Revenue Load | v1.5 | 2/2 | Complete    | 2026-06-01 |
-| 22. Troutdale OR Budget Load | v1.5 | 1/3 | In Progress|  |
+| 22. Troutdale OR Budget Load | v1.5 | 2/3 | In Progress|  |
 | 23. OR All Funds Consistency | v1.5 | 0/? | Pending | — |
 
 ---

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: — Oregon Expansion
 status: executing
-last_updated: "2026-06-01T23:39:21.308Z"
+last_updated: "2026-06-01T23:52:18.301Z"
 last_activity: 2026-06-01
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 13
-  completed_plans: 11
+  completed_plans: 12
   percent: 43
 ---
 
@@ -25,11 +25,11 @@ See: .planning/PROJECT.md (updated 2026-05-23)
 ## Current Position
 
 Phase: 22 (troutdale-or-budget-load) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-06-01
 
-Progress: [█████████░] 85%
+Progress: [█████████░] 92%
 
 ## Accumulated Context
 
@@ -79,12 +79,18 @@ $5 per run — estimate before running AI enrichment or PDF extraction.
 
 ## Session Continuity
 
-Last session: 2026-06-01T23:39:21.298Z
-Stopped at: Completed 22-01-PLAN.md — extractTroutdale.py + seedTroutdaleOregon.js created
-Resume file: .planning/phases/22-troutdale-or-budget-load/22-01-SUMMARY.md
+Last session: 2026-06-01T23:52:18.292Z
+Stopped at: Completed 22-02-PLAN.md — processTroutdale.js created; all 8 FY dry-runs pass; D-02 resolved
+Resume file: .planning/phases/22-troutdale-or-budget-load/22-02-SUMMARY.md
 
 ## Performance Metrics
 
 | Phase | Plan | Duration | Notes |
 |-------|------|----------|-------|
 | Phase 22-troutdale-or-budget-load P01 | 7 | 3 tasks | 2 files |
+| Phase Phase 22-troutdale-or-budget-load P02 P7 | 2 tasks | - tasks | - files |
+
+## Decisions
+
+- [Phase ?]: D-02 resolved: all 8 Troutdale FYs (FY2019-FY2026) included in Plan 03 live load — all parse cleanly with no SANITY FAIL
+- [Phase ?]: FY2019/FY2020 show 16 departments (COMMUNITY SERVICES absent) vs 17 for FY2021-FY2026 — structural difference, not parse error; both FYs included in live load
