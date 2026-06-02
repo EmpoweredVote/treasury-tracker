@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: — Oregon Expansion
 status: executing
-last_updated: "2026-06-02T19:55:15.655Z"
-last_activity: 2026-06-02
+last_updated: "2026-06-02T22:25:40.712Z"
+last_activity: 2026-06-02 -- Phase 25 planning complete
 progress:
-  total_phases: 8
+  total_phases: 9
   completed_phases: 6
-  total_plans: 20
+  total_plans: 23
   completed_plans: 20
-  percent: 75
+  percent: 67
 ---
 
 # State
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-05-23)
 Phase: 24 (los-angeles-data-refresh) — EXECUTING
 Plan: 3 of 3
 Status: Ready to execute
-Last activity: 2026-06-02
+Last activity: 2026-06-02 -- Phase 25 planning complete
 
 Progress: [██████████] 100%
 
