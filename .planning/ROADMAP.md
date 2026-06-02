@@ -231,17 +231,29 @@ Plans:
 
 ---
 
-### Phase 23: OR All Funds Consistency — Requirements Extraction (Portland + Gresham)
+### Phase 23: OR All Funds Consistency — Requirements Extraction (Portland + Gresham + Troutdale)
 
 **Goal:** Resolve the scope mismatch between the Budget tab (~$330M departmental operating) and Money In tab (~$512M All Funds Resources) for Oregon cities. Both sides of the financial picture should use the same "All Funds" scope so totals balance and citizens aren't misled by an apparent surplus that is actually an accounting artifact.
 
 **Problem:** Money In already uses the All Funds Resources section (~10 categories, all funds combined). The Budget tab uses the departmental operating budget (a subset). Displaying them together implies the city brings in $512M and only spends $330M, which looks like a $180M windfall but is actually just mismatched scopes — the same $180M appears on the Requirements side of the same All Funds page.
 
-**Approach:** Extract the Requirements column from the "Resources and Requirements — All Funds" page in each OR city's adopted budget PDF (the same page already used for revenue extraction). Store as `dataset_type='all_funds_requirements'`. Show as the primary Budget tab total, with the existing departmental operating breakdown as a drill-down detail. Both tabs then display ~$512M (Gresham) / matching totals for Portland, and the numbers tell a coherent story.
+**Approach:** Extract the Requirements column from the "Resources and Requirements — All Funds" page in each OR city's adopted budget PDF (the same page already used for revenue extraction). Store as `dataset_type='all_funds_requirements'`. Show as the primary Budget tab total, with the existing departmental operating breakdown as a drill-down detail. The frontend headline + gap-explanation label are data-driven (D-04) — any city/year with the data gets them; TX/CA unchanged.
 
-**Scope:** Portland (extractPortland.py + processPortland.js) and Gresham (extractGresham.py + processGresham.js). Same extractor pattern as extract_revenue() — flip section gating from `in_resources` to `in_requirements` on the same page.
+**Scope:** Portland (Vol 1, FY2022–FY2026), Gresham (FY2023–FY2026), Troutdale (FY2019–FY2026, D-05 confirmed) — full end-to-end (D-01): data extraction + DB load + frontend display change.
 
 **Depends on:** Phases 19, 21
+
+**Plans:** 4 plans
+Plans:
+**Wave 1** *(three independent city pipelines, parallel)*
+
+- [ ] 23-01-PLAN.md — Gresham: extract_requirements() + processGresham.js --requirements; live-load FY2023–FY2026 (~$897M FY2026)
+- [ ] 23-02-PLAN.md — Portland: table-based multi-page extract_requirements() (Vol 1, D-07) + processPortland.js --requirements; live-load FY2022–FY2026
+- [ ] 23-03-PLAN.md — Troutdale: extract_requirements() (RESOURCES→REQUIREMENTS gate flip, D-05) + processTroutdale.js --requirements; live-load FY2019–FY2026 (~$81M FY2026)
+
+**Wave 2** *(blocked on Wave 1 — needs all_funds_requirements rows in DB to verify)*
+
+- [ ] 23-04-PLAN.md — Frontend: dataset_type union + App.tsx detection/load/prop/operatingTotal override/tab-filter + PlainLanguageSummary headline override + gap-explanation label (D-02/D-03/D-04); human-verify all OR + TX/CA cities
 
 ---
 
@@ -273,9 +285,9 @@ Plans:
 | 20. Gresham OR Budget Load | v1.5 | 4/4 | Complete    | 2026-06-01 |
 | 21. Gresham OR Revenue Load | v1.5 | 2/2 | Complete    | 2026-06-01 |
 | 22. Troutdale OR Budget Load | v1.5 | 3/3 | Complete    | 2026-06-02 |
-| 23. OR All Funds Consistency | v1.5 | 0/? | Pending | — |
+| 23. OR All Funds Consistency | v1.5 | 0/4 | Planned | — |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-06-01 — Phase 21 complete; Phase 23 scoped (OR All Funds Consistency — Requirements Extraction)*
+*Last updated: 2026-06-02 — Phase 23 planned (4 plans, 2 waves: 3 parallel city pipelines + frontend display change)*
