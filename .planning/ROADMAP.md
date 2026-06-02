@@ -257,6 +257,22 @@ Plans:
 
 ---
 
+### Phase 24: Los Angeles Data Refresh
+
+**Goal:** Improve the quality, accuracy, and completeness of Los Angeles financial data. Fix the suspicious FY2025 revenue figure (~$44.6B — likely enterprise fund bleed), backfill real expenditure actuals for FY2021–2024 from the LA Controller dataset, add department-level category trees for FY2017–2020 (currently totals-only), repair orphaned data_source_id FK references, and improve plain-language section summaries using existing enrichment data — no new AI API calls.
+
+**Depends on:** Phase 15
+
+**Plans:** 3 plans (1 wave — all independent, parallel)
+Plans:
+**Wave 1** *(three independent fixes, no file overlap, fully parallel)*
+
+- [ ] 24-01-PLAN.md — Revenue accuracy: LA_REVENUE actual_amount_column → null; reload FY2025/FY2026 revenue (~$44.6B → ~$10.2B)
+- [ ] 24-02-PLAN.md — Operating fix: where_extra adopted>0 filter + fiscal_years 2017-2026; reload FY2017-2026 (enterprise-bleed fix + FY2021-24 actuals + FY2017-20 trees + orphaned FK repair)
+- [ ] 24-03-PLAN.md — Summaries UI: surface enrichment.description (2-3 sentences) in PlainLanguageSummary; zero AI spend, zero DB writes
+
+---
+
 ## Progress
 
 **Execution Order:** Sequential phases 1→16 (all complete)
@@ -286,8 +302,9 @@ Plans:
 | 21. Gresham OR Revenue Load | v1.5 | 2/2 | Complete    | 2026-06-01 |
 | 22. Troutdale OR Budget Load | v1.5 | 3/3 | Complete    | 2026-06-02 |
 | 23. OR All Funds Consistency | v1.5 | 3/4 | In Progress|  |
+| 24. Los Angeles Data Refresh | v1.5 | 0/3 | Planned |  |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-06-02 — Phase 23 planned (4 plans, 2 waves: 3 parallel city pipelines + frontend display change)*
+*Last updated: 2026-06-02 — Phase 24 planned (3 plans, 1 wave: revenue fix + operating reload + summaries UI, all parallel, zero AI spend)*
