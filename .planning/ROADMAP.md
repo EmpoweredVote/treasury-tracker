@@ -243,13 +243,13 @@ Plans:
 
 **Depends on:** Phases 19, 21
 
-**Plans:** 4 plans
+**Plans:** 3/4 plans executed
 Plans:
 **Wave 1** *(three independent city pipelines, parallel)*
 
-- [ ] 23-01-PLAN.md — Gresham: extract_requirements() + processGresham.js --requirements; live-load FY2023–FY2026 (~$897M FY2026)
-- [ ] 23-02-PLAN.md — Portland: table-based multi-page extract_requirements() (Vol 1, D-07) + processPortland.js --requirements; live-load FY2022–FY2026
-- [ ] 23-03-PLAN.md — Troutdale: extract_requirements() (RESOURCES→REQUIREMENTS gate flip, D-05) + processTroutdale.js --requirements; live-load FY2019–FY2026 (~$81M FY2026)
+- [x] 23-01-PLAN.md — Gresham: extract_requirements() + processGresham.js --requirements; live-load FY2023–FY2026 (~$897M FY2026)
+- [x] 23-02-PLAN.md — Portland: table-based multi-page extract_requirements() (Vol 1, D-07) + processPortland.js --requirements; live-load FY2022–FY2026
+- [x] 23-03-PLAN.md — Troutdale: extract_requirements() (RESOURCES→REQUIREMENTS gate flip, D-05) + processTroutdale.js --requirements; live-load FY2019–FY2026 (~$81M FY2026)
 
 **Wave 2** *(blocked on Wave 1 — needs all_funds_requirements rows in DB to verify)*
 
@@ -285,7 +285,7 @@ Plans:
 | 20. Gresham OR Budget Load | v1.5 | 4/4 | Complete    | 2026-06-01 |
 | 21. Gresham OR Revenue Load | v1.5 | 2/2 | Complete    | 2026-06-01 |
 | 22. Troutdale OR Budget Load | v1.5 | 3/3 | Complete    | 2026-06-02 |
-| 23. OR All Funds Consistency | v1.5 | 0/4 | Planned | — |
+| 23. OR All Funds Consistency | v1.5 | 3/4 | In Progress|  |
 
 ---
 
