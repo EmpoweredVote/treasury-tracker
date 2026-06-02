@@ -179,7 +179,7 @@ async function upsertDataSource(muniId, fiscalYear, datasetType) {
     municipality_id: muniId,
   };
 
-  const { data: existing } = await supabase.schema('treasury')
+  const { data: existing, error: selectErr } = await supabase.schema('treasury')
     .from('data_sources')
     .select('id')
     .eq('municipality_id', muniId)
@@ -187,6 +187,11 @@ async function upsertDataSource(muniId, fiscalYear, datasetType) {
     .eq('dataset_id', `fy${fiscalYear}`)
     .eq('dataset_type', datasetType)
     .maybeSingle();
+
+  if (selectErr) {
+    console.error('  data_source lookup error:', selectErr.message);
+    return null;  // caller at line 206 handles null ds
+  }
 
   if (existing?.id) {
     const { data, error } = await supabase.schema('treasury').from('data_sources')
