@@ -282,25 +282,29 @@ function App() {
       hasSalaries
         ? loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'salaries')
         : Promise.resolve(null),
-      hasAllFundsRequirements
-        ? loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'all_funds_requirements')
-        : Promise.resolve(null),
     ];
 
     Promise.all(promises)
-      .then(([operating, revenue, salaries, allFundsReqs]) => {
+      .then(([operating, revenue, salaries]) => {
         setOperatingBudgetData(operating);
         setRevenueData(revenue);
         setSalariesData(salaries);
-        setAllFundsRequirementsData(allFundsReqs);
       })
       .catch(error => {
         console.error('Failed to load dataset totals:', error);
         setOperatingBudgetData(null);
         setRevenueData(null);
         setSalariesData(null);
-        setAllFundsRequirementsData(null);
       });
+
+    // Load all_funds_requirements separately so a failure never affects the main data loads
+    if (hasAllFundsRequirements) {
+      loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'all_funds_requirements')
+        .then(data => setAllFundsRequirementsData(data))
+        .catch(() => setAllFundsRequirementsData(null));
+    } else {
+      setAllFundsRequirementsData(null);
+    }
   }, [selectedYear, selectedEntity]);
 
   // Load main budget data when dataset, year, or entity changes
@@ -735,7 +739,7 @@ function App() {
                   activeDataset={activeDataset}
                   onDatasetChange={(id) => setActiveDataset(id as DatasetType)}
                   revenueTotal={revenueData?.metadata.totalBudget}
-                  operatingTotal={allFundsRequirementsData?.metadata.totalBudget ?? operatingBudgetData?.metadata.totalBudget}
+                  operatingTotal={allFundsRequirementsData?.metadata.totalBudget ?? operatingBudgetData?.metadata.totalBudget ?? undefined}
                   salariesTotal={salariesData?.metadata.totalBudget}
                   availableDatasets={availableDatasetTypes}
                   isNonprofit={selectedEntity?.entity_type === 'nonprofit'}
