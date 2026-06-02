@@ -243,7 +243,7 @@ function LA_REVENUE(municipalityId) {
     column_mapping: {
       fiscal_year_column: 'fiscal_year',
       approved_amount_column: 'revenue_budget',
-      actual_amount_column: 'revenue_collected',
+      actual_amount_column: null,
       category_column: 'department_name',
       subcategory_column: 'revenue_source_name',
       fiscal_year_type: 'integer',                   // critical — activates integer WHERE clause in bulkLoadBudget.js
