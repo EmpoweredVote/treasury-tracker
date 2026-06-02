@@ -215,7 +215,7 @@ Plans:
 
 **Depends on:** Phase 20
 
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 **Wave 1**
 
@@ -227,7 +227,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2)*
 
-- [ ] 22-03-PLAN.md — Live-load operating + revenue, loadORPopulation.js Troutdale edit, conditional enrichment, human-verify, write 22-VERIFICATION.md
+- [x] 22-03-PLAN.md — Live-load operating + revenue, loadORPopulation.js Troutdale edit, conditional enrichment, human-verify, write 22-VERIFICATION.md
 
 ---
 
@@ -272,7 +272,7 @@ Plans:
 | 19. Portland Revenue Budget | v1.5 | — | Complete | 2026-05-31 |
 | 20. Gresham OR Budget Load | v1.5 | 4/4 | Complete    | 2026-06-01 |
 | 21. Gresham OR Revenue Load | v1.5 | 2/2 | Complete    | 2026-06-01 |
-| 22. Troutdale OR Budget Load | v1.5 | 2/3 | In Progress|  |
+| 22. Troutdale OR Budget Load | v1.5 | 3/3 | Complete   | 2026-06-02 |
 | 23. OR All Funds Consistency | v1.5 | 0/? | Pending | — |
 
 ---
