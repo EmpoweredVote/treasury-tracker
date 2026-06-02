@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: — Oregon Expansion
-status: ready_to_plan
-last_updated: 2026-06-02T00:35:30.376Z
+status: planning
+last_updated: "2026-06-02T01:56:07.602Z"
 last_activity: 2026-06-02
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 13
-  completed_plans: 56
+  completed_plans: 13
   percent: 57
-stopped_at: Phase 22 complete (3/3) — ready to discuss Phase 23
 ---
 
 # State
@@ -80,9 +79,9 @@ $5 per run — estimate before running AI enrichment or PDF extraction.
 
 ## Session Continuity
 
-Last session: 2026-06-02T00:16:18.224Z
-Stopped at: Completed 22-02-PLAN.md — processTroutdale.js created; all 8 FY dry-runs pass; D-02 resolved
-Resume file: None
+Last session: 2026-06-02T01:56:07.593Z
+Stopped at: Phase 23 context gathered
+Resume file: .planning/phases/23-or-all-funds-consistency-requirements-extraction-portland-gr/23-CONTEXT.md
 
 ## Performance Metrics
 
