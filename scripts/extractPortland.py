@@ -2,13 +2,15 @@
 """
 Portland Budget PDF Extractor
 
-Supports two modes:
-  operating (default) — extracts bureau-level appropriation data from Vol 1 PDFs
-  revenue             — extracts fund-level Resources Total from Vol 2 PDFs
+Supports three modes:
+  operating    (default) — extracts bureau-level appropriation data from Vol 1 PDFs
+  revenue                — extracts fund-level Resources Total from Vol 2 PDFs
+  requirements           — extracts All Funds Requirements categories from Vol 1 PDFs
 
 Usage:
   python scripts/extractPortland.py "docs/Portland/fy2025-26-vol1.pdf"
   python scripts/extractPortland.py "docs/Portland/fy2025-26-vol2.pdf" --mode revenue
+  python scripts/extractPortland.py "docs/Portland/fy2025-26-vol1.pdf" --mode requirements
 """
 
 import sys
@@ -315,13 +317,236 @@ def extract_revenue(pdf_path):
     return results
 
 
+# ── Skip set for All Funds Requirements extraction ───────────────────────────
+# Row names in PORTLAND_REQUIREMENTS_SKIP are section headers, sum rows, or
+# balance-sheet items that must not appear as expenditure categories.
+# Security (T-23-02): PDF path from controlled docs/ readdir, not user input.
+PORTLAND_REQUIREMENTS_SKIP = {
+    'Resources', 'Requirements',
+    'External Revenues', 'Internal Revenues',
+    'Bureau Expenditures', 'Fund Expenditures',
+    'Total External Revenues', 'Total Internal Revenues', 'Total Resources',
+    'Less Intracity Transfers', 'Total NET Budget',
+    'Total Bureau Expenditures', 'Total Fund Expenditures',
+    'Total Requirements', 'Ending Fund Balance', 'Beginning Fund Balance',
+}
+
+# ── Detect fiscal year from the All Funds Resources/Requirements page ──────────
+def _detect_fy_allfunds(text):
+    """Detect fiscal year from the 'Total City Budget — Resources and Requirements' page.
+
+    The page header area contains lines like:
+      'Actuals Actuals Revised Propose d Adopte d'
+      'FY 2022-23 FY 2023-24 FY 2024-25 FY 2025-26 FY 2025-26'
+
+    The Adopted column is the LAST FY column, so we extract all FY matches and
+    return the last one (rightmost = Adopted year).  detect_fiscal_year() returns
+    the first match, which is always the first Actuals year — wrong for this page.
+    """
+    matches = re.findall(r'FY\s+(\d{4})-(\d{2})', text)
+    if not matches:
+        return None
+    # Last match is the Adopted column FY
+    start_str, end_str = matches[-1]
+    century = int(start_str) // 100 * 100
+    return century + int(end_str)
+
+# ── Extract All Funds Requirements categories from Vol 1 PDFs ────────────────
+def extract_requirements(pdf_path):
+    """
+    Walk Vol 1 PDF pages looking for 'Total City Budget — Resources and Requirements' page.
+    Extracts expenditure category rows (Personnel Services, External/Internal Materials and
+    Services, Capital Outlay, Debt Service, Contingency, Fund Transfers - Expense,
+    Debt Service Reserves) from the table at Adopted column (index 5).
+
+    Multi-page: FY2026 spans pages 116-117; accumulates rows across both pages.
+    Uses page.extract_tables() (NOT text-line parsing — this page extracts cleanly).
+
+    Page detection: 'Total City Budget' + 'Resources and Requirements' + 'Personnel Services'
+    The 'Personnel Services' guard eliminates the Table-of-Contents false positive.
+
+    Continuation page: found_data_page=True AND 'Total City Budget' + 'Resources and
+    Requirements' in text AND 'Personnel Services' NOT in text.
+
+    Section gating: The table contains both Resources and Requirements rows.  Only rows
+    that appear AFTER the 'Requirements' section header row are captured.  Rows that appear
+    before (i.e., in the Resources section) are skipped even if their name is not in
+    PORTLAND_REQUIREMENTS_SKIP.
+
+    Fiscal year: The All Funds page lists multiple FY columns; the Adopted column is the
+    LAST (rightmost) FY shown.  Use _detect_fy_allfunds() not detect_fiscal_year().
+
+    Returns list of dicts: { category, adopted_amount, fiscal_year, page_num }
+    """
+    results = []
+    fiscal_year = None
+    found_data_page = False
+    in_requirements_section = False
+    total_requirements_value = None   # for fallback reconciliation check
+    total_requirements_page = None
+
+    with pdfplumber.open(pdf_path) as pdf:
+        for page_num, page in enumerate(pdf.pages, 1):
+            text = page.extract_text() or ''
+
+            is_data_page = (
+                'Total City Budget' in text and
+                'Resources and Requirements' in text and
+                'Personnel Services' in text  # eliminates TOC false positive
+            )
+            is_continuation = (
+                found_data_page and
+                'Total City Budget' in text and
+                'Resources and Requirements' in text and
+                'Personnel Services' not in text  # continuation: only Requirements rows remain
+            )
+
+            if not (is_data_page or is_continuation):
+                if found_data_page:
+                    break  # past the table — no need to scan further
+                continue
+
+            found_data_page = True
+
+            # Detect fiscal year once from the first data page.
+            # Use _detect_fy_allfunds() to get the Adopted (last/rightmost) FY column.
+            if fiscal_year is None:
+                fy = _detect_fy_allfunds(text)
+                if fy:
+                    fiscal_year = fy
+
+            # On continuation pages, we are already in the Requirements section.
+            if is_continuation:
+                in_requirements_section = True
+
+            tables = page.extract_tables()
+            if not tables:
+                continue
+
+            # Track whether we've passed the Resources section's 'Total NET Budget' row.
+            # In all Portland Vol 1 formats (FY2022–FY2026), the Resources section ends
+            # with 'Total NET Budget' and the Requirements section follows immediately.
+            # Older FYs (2022-2024) use empty-string section headers; newer FYs use
+            # 'Requirements'/'Requirements\nBureau Expenditures'. Both cases are handled
+            # by gating on 'past_resources_net_budget' rather than looking for a named
+            # 'Requirements' header row.
+            past_resources_net_budget = False
+
+            for row in tables[0]:
+                # row[0] may be None (no cell) or an empty string (blank section header)
+                raw_name = row[0] if row and row[0] is not None else ''
+
+                # Normalize: replace newlines within cell, then take only first segment.
+                # Handles FY2026 compound keys like 'Requirements\nBureau Expenditures'.
+                name_first = raw_name.split('\n')[0].strip()
+                name = name_first.replace('\n', ' ').strip()
+
+                # Always capture the 'Total Requirements' value for reconciliation,
+                # even though it stays in the skip set and won't appear in final results.
+                if name == 'Total Requirements' and len(row) >= 6 and row[5] is not None:
+                    v = parse_money(row[5])
+                    if v > 0:
+                        total_requirements_value = v
+                        total_requirements_page = page_num
+
+                # Section gate strategy: The Resources section always ends with
+                # 'Total NET Budget'.  After the first occurrence of 'Total NET Budget'
+                # (within the Resources section), all subsequent rows are Requirements rows.
+                # A second 'Total NET Budget' row exists at the end of Requirements —
+                # we can safely collect all rows between the two occurrences.
+                if name == 'Total NET Budget':
+                    if not past_resources_net_budget:
+                        past_resources_net_budget = True
+                    # else: second occurrence — end of Requirements; still fine to continue
+                    continue
+
+                # Also handle explicit 'Requirements' section header rows (FY2026 format)
+                if name == 'Requirements' or raw_name.startswith('Requirements'):
+                    in_requirements_section = True
+                    continue  # skip header row
+
+                # Rows before the Resources section's 'Total NET Budget' are Resources rows.
+                # Also: on the first data page, use 'past_resources_net_budget' as the gate.
+                if not past_resources_net_budget and not in_requirements_section:
+                    continue
+
+                # Once past Resources, all non-empty, non-skip rows are Requirements rows.
+                if not name:
+                    continue  # skip blank section header rows
+
+                # Skip section header names and sum/balance rows
+                if name in PORTLAND_REQUIREMENTS_SKIP:
+                    continue
+
+                # Guard: Adopted column is index 5 (0-based); skip short or empty rows
+                if len(row) < 6 or row[5] is None:
+                    continue
+
+                adopted = parse_money(row[5])
+                if adopted <= 0:
+                    continue
+
+                results.append({
+                    'category':       name,
+                    'adopted_amount': adopted,
+                    'fiscal_year':    fiscal_year,
+                    'page_num':       page_num,
+                })
+
+    # Reconciliation check: warn if no data found
+    if not results:
+        print('  WARNING: extract_requirements() returned 0 rows — check page detection',
+              file=sys.stderr)
+        return results
+
+    # Verify summed line items reconcile to within 1% of published Total Requirements.
+    # If not, use the fallback: return a single 'Total Requirements' row from the
+    # published grand-total cell (from the continuation/same page rows captured above).
+    if total_requirements_value is not None:
+        line_sum = sum(r['adopted_amount'] for r in results)
+        pct_diff = abs(line_sum - total_requirements_value) / total_requirements_value * 100
+        if pct_diff > 1.0:
+            print(
+                f'  INFO: Line-item sum ${line_sum:,} differs from published '
+                f'Total Requirements ${total_requirements_value:,} by {pct_diff:.2f}% '
+                f'(>1%) — using fallback single-row capture.',
+                file=sys.stderr
+            )
+            # Fallback: single row representing the gross Total Requirements figure
+            results = [{
+                'category':       'Total Requirements',
+                'adopted_amount': total_requirements_value,
+                'fiscal_year':    fiscal_year,
+                'page_num':       total_requirements_page,
+            }]
+        else:
+            print(
+                f'  INFO: Line-item sum ${line_sum:,} reconciles with published '
+                f'Total Requirements ${total_requirements_value:,} ({pct_diff:.2f}%)',
+                file=sys.stderr
+            )
+
+    none_fy = [r for r in results if r['fiscal_year'] is None]
+    if none_fy:
+        print(f'  WARNING: {len(none_fy)} rows have None fiscal_year', file=sys.stderr)
+
+    return results
+
+
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description='Portland budget PDF extractor')
     parser.add_argument('pdf_path', help='Path to PDF file')
-    parser.add_argument('--mode', choices=['operating', 'revenue'], default='operating',
-                        help='operating=Vol 1 bureau data, revenue=Vol 2 fund data')
+    parser.add_argument('--mode', choices=['operating', 'revenue', 'requirements'],
+                        default='operating',
+                        help='operating=Vol 1 bureau data, revenue=Vol 2 fund data, '
+                             'requirements=Vol 1 All Funds Requirements categories')
     args = parser.parse_args()
 
-    data = extract_revenue(args.pdf_path) if args.mode == 'revenue' else extract_budget(args.pdf_path)
+    if args.mode == 'revenue':
+        data = extract_revenue(args.pdf_path)
+    elif args.mode == 'requirements':
+        data = extract_requirements(args.pdf_path)
+    else:
+        data = extract_budget(args.pdf_path)
     print(json.dumps(data, indent=2))
