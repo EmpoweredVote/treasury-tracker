@@ -33,6 +33,7 @@ function downloadFile(url, dest) {
     httpsGet(url, (res) => {
       if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
         file.close();
+        res.resume();   // drain the (empty) redirect body, release the socket
         return downloadFile(res.headers.location, dest).then(resolve, reject);
       }
       if (res.statusCode !== 200) {
