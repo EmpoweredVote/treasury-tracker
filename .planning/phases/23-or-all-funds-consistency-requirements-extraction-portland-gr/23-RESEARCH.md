@@ -651,18 +651,18 @@ No missing dependencies.
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Portland total to display — gross or net?**
    - What we know: Portland Total Requirements (~$8.6B) includes Fund Transfers - Expense (~$1.7B) which is an intracity transfer. Total NET Budget (~$6.5B) nets this out.
    - What's unclear: Should the Money Out card show gross $8.6B or net $6.5B? For citizen clarity, the net figure may be more meaningful (avoids double-counting internal transfers).
    - Recommendation: Match what Money In (revenue) side already shows. Phase 21 Portland revenue was deferred, so there is no existing revenue display to match against. Use Total NET Budget for Portland to be consistent with the "same page" approach Gresham uses (Gresham money in = Total Resources net of Beginning Balance; Gresham money out should = Total Requirements net of Ending Fund Balance / Beginning Balance).
-   - **Planner decision needed:** Lock down whether to store Total Requirements or Total NET Budget for Portland. For Gresham and Troutdale, the Total Requirements line is the right number.
+   - **RESOLVED: Planner locked gross Total Requirements in Plan 02 T1 (per Gresham/Troutdale consistency). Executor must sum line-item rows; if sum doesn't reconcile within 1% of the published Total Requirements, capture the Total Requirements row directly.**
 
 2. **Gresham: which rows to show in the icicle?**
    - What we know: When `activeDataset === 'operating'`, the icicle shows departmental rows from the `operating` dataset. Phase 23 does not change the `operating` dataset.
    - What's unclear: D-02 says "existing icicle/department breakdown remains." This is achieved by not changing what `operating` data loads — only the headline total changes to use `all_funds_requirements`. No icicle change needed.
-   - Recommendation: Confirm the planner understands this — the icicle always uses `budgetData` (the active dataset), and when `activeDataset === 'operating'`, `budgetData` is still the departmental operating data. The `all_funds_requirements` data is loaded in the background for the headline only.
+   - **RESOLVED: No icicle change needed — operating data drives the icicle regardless. The `all_funds_requirements` data loads in the background for the headline only; `budgetData` (icicle source) remains the operating dataset when `activeDataset === 'operating'`.**
 
 ---
 
