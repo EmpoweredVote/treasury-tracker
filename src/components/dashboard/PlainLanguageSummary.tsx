@@ -250,6 +250,13 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
             </p>
           )}
 
+          {topCategories[0]?.enrichment?.description &&
+            topCategories[0].enrichment.description !== topCategories[0].enrichment.shortDescription && (
+            <p className="text-[14px] text-ev-gray-500 dark:text-ev-gray-500 leading-relaxed italic">
+              {topCategories[0].enrichment.description}
+            </p>
+          )}
+
           {revenueData && (
             <p>
               {isNonprofit
