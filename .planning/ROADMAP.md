@@ -272,7 +272,7 @@ Plans:
 | 19. Portland Revenue Budget | v1.5 | — | Complete | 2026-05-31 |
 | 20. Gresham OR Budget Load | v1.5 | 4/4 | Complete    | 2026-06-01 |
 | 21. Gresham OR Revenue Load | v1.5 | 2/2 | Complete    | 2026-06-01 |
-| 22. Troutdale OR Budget Load | v1.5 | 3/3 | Complete   | 2026-06-02 |
+| 22. Troutdale OR Budget Load | v1.5 | 3/3 | Complete    | 2026-06-02 |
 | 23. OR All Funds Consistency | v1.5 | 0/? | Pending | — |
 
 ---
