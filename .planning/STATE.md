@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: — Oregon Expansion
 status: executing
-last_updated: "2026-06-02T17:19:05.756Z"
-last_activity: 2026-06-02 -- Phase 24 planning complete
+last_updated: "2026-06-02T18:31:19.905Z"
+last_activity: 2026-06-02 -- Phase 24 execution started
 progress:
   total_phases: 8
   completed_phases: 5
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-23)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 23 — or-all-funds-consistency-requirements-extraction-portland-gr
+**Current focus:** Phase 24 — los-angeles-data-refresh
 
 ## Current Position
 
-Phase: 23 (or-all-funds-consistency-requirements-extraction-portland-gr) — EXECUTING
-Plan: 1 of 4
-Status: Ready to execute
-Last activity: 2026-06-02 -- Phase 24 planning complete
+Phase: 24 (los-angeles-data-refresh) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 24
+Last activity: 2026-06-02 -- Phase 24 execution started
 
 Progress: [██████████] 100%
 

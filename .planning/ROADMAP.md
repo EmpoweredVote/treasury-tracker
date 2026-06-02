@@ -263,12 +263,12 @@ Plans:
 
 **Depends on:** Phase 15
 
-**Plans:** 3 plans (1 wave — all independent, parallel)
+**Plans:** 2/3 plans executed
 Plans:
 **Wave 1** *(three independent fixes, no file overlap, fully parallel)*
 
-- [ ] 24-01-PLAN.md — Revenue accuracy: LA_REVENUE actual_amount_column → null; reload FY2025/FY2026 revenue (~$44.6B → ~$10.2B)
-- [ ] 24-02-PLAN.md — Operating fix: where_extra adopted>0 filter + fiscal_years 2017-2026; reload FY2017-2026 (enterprise-bleed fix + FY2021-24 actuals + FY2017-20 trees + orphaned FK repair)
+- [x] 24-01-PLAN.md — Revenue accuracy: LA_REVENUE actual_amount_column → null; reload FY2025/FY2026 revenue (~$44.6B → ~$10.2B)
+- [x] 24-02-PLAN.md — Operating fix: where_extra adopted>0 filter + fiscal_years 2017-2026; reload FY2017-2026 (enterprise-bleed fix + FY2021-24 actuals + FY2017-20 trees + orphaned FK repair)
 - [ ] 24-03-PLAN.md — Summaries UI: surface enrichment.description (2-3 sentences) in PlainLanguageSummary; zero AI spend, zero DB writes
 
 ---
@@ -302,7 +302,7 @@ Plans:
 | 21. Gresham OR Revenue Load | v1.5 | 2/2 | Complete    | 2026-06-01 |
 | 22. Troutdale OR Budget Load | v1.5 | 3/3 | Complete    | 2026-06-02 |
 | 23. OR All Funds Consistency | v1.5 | 3/4 | In Progress|  |
-| 24. Los Angeles Data Refresh | v1.5 | 0/3 | Planned |  |
+| 24. Los Angeles Data Refresh | v1.5 | 2/3 | In Progress|  |
 
 ---
 
