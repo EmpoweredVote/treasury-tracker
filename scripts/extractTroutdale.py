@@ -321,13 +321,152 @@ def extract_revenue(pdf_path):
     return results
 
 
+# ── Extract Requirements (expenditure categories) from All Funds Combined page ─
+def extract_requirements(pdf_path):
+    """
+    Extract expenditure categories from the Requirements section of the
+    'CITY-WIDE FUND SUMMARY ALL FUNDS COMBINED' page.
+
+    Near-mirror of extract_revenue() with the section gate flipped:
+      - extract_revenue(): in_resources = True on 'RESOURCES', False on 'REQUIREMENTS'
+      - extract_requirements(): in_requirements = True on 'REQUIREMENTS', False on 'RESOURCES'
+
+    Uses page.extract_text() text-line parsing (NOT extract_tables() — that
+    returns empty on Troutdale's All Funds Combined page).
+
+    Guard: skips General Fund page (ACCOUNT 01.00) which also contains a
+    FUND SUMMARY and REQUIREMENTS section but covers only ~$17M (General Fund only).
+
+    Skips: TOTAL REQUIREMENTS (sum row), RESERVE FOR FUTURE EXPENDITURE ($0 row).
+    Also skips any row whose parsed adopted amount is <= 0.
+
+    Surviving rows (7 expenditure categories):
+      PERSONNEL SERVICES, MATERIALS & SERVICES, CAPITAL OUTLAY, DEBT SERVICE,
+      TRANSFERS TO OTHER FUNDS, CONTINGENCY, UNAPPROPRIATED
+
+    FY2026 total: ~$81,181,239. FY2019 total: ~$44,892,732.
+
+    Returns list of: { category, adopted_amount, fiscal_year, page_num }
+    Amounts are in full dollars (no multiply-by-1000).
+    """
+    REQUIREMENTS_SKIP = {
+        'TOTAL REQUIREMENTS',             # sum row
+        'RESERVE FOR FUTURE EXPENDITURE', # $0 row
+    }
+
+    results = []
+    with pdfplumber.open(pdf_path) as pdf:
+        for page_num, page in enumerate(pdf.pages, 1):
+            text = page.extract_text() or ''
+            # Target the All Funds Combined Fund Summary page
+            if 'ALL FUNDS COMBINED' not in text or 'FUND SUMMARY' not in text:
+                continue
+            # Guard: General Fund page also has FUND SUMMARY — skip it
+            if 'ACCOUNT 01.00' in text:
+                continue
+
+            # Parse fiscal year from column headers (first 8 lines of page)
+            fiscal_year = None
+            lines = text.split('\n')
+            for line in lines[:8]:
+                fy = parse_fy_from_header(line)  # same YYYY-YY dash function
+                if fy:
+                    fiscal_year = fy
+                    break
+            if not fiscal_year:
+                print(f'  WARNING: Could not parse fiscal year on page {page_num}', file=sys.stderr)
+                continue
+
+            # Extract category rows from Requirements section only.
+            # Gate is flipped from extract_revenue: in_requirements True on REQUIREMENTS,
+            # False on RESOURCES.
+            in_requirements = False
+            for line in lines:
+                s = line.strip()
+                if not s:
+                    continue
+                # Troutdale uses UPPERCASE section markers
+                if s == 'REQUIREMENTS':
+                    in_requirements = True
+                    continue
+                if s == 'RESOURCES':
+                    in_requirements = False
+                    continue
+                if not in_requirements:
+                    continue
+
+                # Each data line: "CATEGORY NAME  $  num  num  num  num  num  ADOPTED"
+                tokens = s.split()
+                if len(tokens) < 2:
+                    continue
+
+                # Split: name tokens vs number tokens.
+                # Strip dollar signs AND commas before numeric check (Troutdale-specific:
+                # rows contain standalone '$' tokens that Gresham does not have).
+                name_tokens = []
+                num_tokens = []
+                in_nums = False
+                for t in tokens:
+                    clean_t = re.sub(r'[\$,]', '', t)
+                    if not in_nums and (re.match(r'^\d+$', clean_t) or t == '-' or t == '$'):
+                        in_nums = True
+                    if in_nums:
+                        num_tokens.append(t)
+                    else:
+                        name_tokens.append(t)
+
+                # Need at least 6 numeric tokens to be a valid data row
+                if not name_tokens or len(num_tokens) < 6:
+                    continue
+
+                category = re.sub(r'\s+', ' ', ' '.join(name_tokens)).strip()
+
+                if category in REQUIREMENTS_SKIP:
+                    continue
+
+                # Adopted amount = last column.
+                # OCR may split numbers — detect and concatenate fragments.
+                adopted_raw = num_tokens[-1]
+                if (len(num_tokens) >= 2
+                        and re.match(r'^\d{1,3}$', num_tokens[-2])
+                        and re.match(r'^\d{1,3},', num_tokens[-1])):
+                    adopted_raw = num_tokens[-2] + num_tokens[-1]
+                adopted = parse_money(adopted_raw)
+
+                if adopted <= 0:
+                    continue
+
+                results.append({
+                    'category':       category,
+                    'adopted_amount': adopted,
+                    'fiscal_year':    fiscal_year,
+                    'page_num':       page_num,
+                })
+
+            if results:
+                break  # Found real data on this page — done
+
+    # Post-validation: warn about any rows with None fiscal_year
+    none_fy = [r for r in results if r['fiscal_year'] is None]
+    if none_fy:
+        print(f'  WARNING: {len(none_fy)} rows have None fiscal_year — check PDF header',
+              file=sys.stderr)
+
+    return results
+
+
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description='Troutdale budget PDF extractor')
     parser.add_argument('pdf_path', help='Path to PDF file')
-    parser.add_argument('--mode', choices=['operating', 'revenue'], default='operating',
-                        help='operating=Requirements section departments, revenue=Resources section categories')
+    parser.add_argument('--mode', choices=['operating', 'revenue', 'requirements'], default='operating',
+                        help='operating=Requirements section departments, revenue=Resources section categories, requirements=All Funds Requirements categories')
     args = parser.parse_args()
 
-    data = extract_revenue(args.pdf_path) if args.mode == 'revenue' else extract_budget(args.pdf_path)
+    if args.mode == 'revenue':
+        data = extract_revenue(args.pdf_path)
+    elif args.mode == 'requirements':
+        data = extract_requirements(args.pdf_path)
+    else:
+        data = extract_budget(args.pdf_path)
     print(json.dumps(data, indent=2))

@@ -1,15 +1,18 @@
 #!/usr/bin/env node
 /**
- * Troutdale OR Budget Loader — operating and revenue modes
+ * Troutdale OR Budget Loader — operating, revenue, and requirements modes
  *
- * Extracts department-level (operating) or category-level (revenue) budget data
- * from Troutdale adopted budget PDFs and loads them via the treasury_sync_budget_tree RPC.
+ * Extracts department-level (operating), category-level (revenue), or
+ * all-funds expenditure category (requirements) budget data from Troutdale
+ * adopted budget PDFs and loads them via the treasury_sync_budget_tree RPC.
  *
  * Usage:
- *   node scripts/processTroutdale.js --dry-run           # parse and print, no DB writes
- *   node scripts/processTroutdale.js                     # live load all PDFs (operating)
- *   node scripts/processTroutdale.js --revenue --dry-run # revenue dry-run
- *   node scripts/processTroutdale.js --revenue           # live load revenue
+ *   node scripts/processTroutdale.js --dry-run                # parse and print, no DB writes
+ *   node scripts/processTroutdale.js                          # live load all PDFs (operating)
+ *   node scripts/processTroutdale.js --revenue --dry-run      # revenue dry-run
+ *   node scripts/processTroutdale.js --revenue                # live load revenue
+ *   node scripts/processTroutdale.js --requirements --dry-run # all-funds requirements dry-run
+ *   node scripts/processTroutdale.js --requirements           # live load all-funds requirements
  *   node scripts/processTroutdale.js --pdf "docs/Troutdale/fy2025-26.pdf"
  *
  * Requires: Python 3 + pdfplumber  (pip install pdfplumber)
@@ -79,6 +82,7 @@ function extractPDF(pdfPath, mode = 'operating') {
   const pythonBin = process.platform === 'win32' ? 'python' : 'python3';
   const args = [pyScript, pdfPath];
   if (mode === 'revenue') args.push('--mode', 'revenue');
+  if (mode === 'requirements') args.push('--mode', 'requirements');
   const result = spawnSync(pythonBin, args, {
     maxBuffer: 8 * 1024 * 1024,
     encoding: 'utf8',
@@ -173,7 +177,9 @@ async function ensureMunicipality() {
 
 // ── Upsert a per-fiscal-year data_source record ───────────────────────────────
 async function upsertDataSource(muniId, fiscalYear, datasetType) {
-  const label = datasetType === 'revenue' ? 'Revenue Budget' : 'Operating Budget';
+  const label = datasetType === 'revenue'                ? 'Revenue Budget'
+              : datasetType === 'all_funds_requirements' ? 'All Funds Requirements'
+              : 'Operating Budget';
   const src = {
     name:            `Troutdale ${label} FY${fiscalYear}`,
     api_type:        'pdf_download',
@@ -246,10 +252,13 @@ async function processPDF(pdfAbsPath, muniId, dryRun, mode = 'operating') {
   const filename = path.basename(pdfAbsPath);
   console.log(`\n  PDF: ${filename}`);
 
-  const isRevenue   = mode === 'revenue';
-  const unitLabel   = isRevenue ? 'categories' : 'departments';
-  const typeLabel   = isRevenue ? 'Revenue' : 'Operating';
-  const datasetType = isRevenue ? 'revenue' : 'operating';
+  const isRevenue      = mode === 'revenue';
+  const isRequirements = mode === 'requirements';
+  const unitLabel   = isRevenue || isRequirements ? 'categories' : 'departments';
+  const typeLabel   = isRevenue ? 'Revenue' : isRequirements ? 'All Funds Requirements' : 'Operating';
+  const datasetType = mode === 'requirements' ? 'all_funds_requirements'
+                    : mode === 'revenue'      ? 'revenue'
+                    : 'operating';
 
   let rows;
   try {
@@ -260,7 +269,7 @@ async function processPDF(pdfAbsPath, muniId, dryRun, mode = 'operating') {
   }
 
   if (!rows.length) {
-    console.warn(`  No ${isRevenue ? 'category' : 'department'} rows extracted — skipping`);
+    console.warn(`  No ${isRevenue || isRequirements ? 'category' : 'department'} rows extracted — skipping`);
     return;
   }
 
@@ -290,7 +299,7 @@ async function processPDF(pdfAbsPath, muniId, dryRun, mode = 'operating') {
       continue;
     }
 
-    const { tree, total } = isRevenue ? buildRevenueTree(fyRows) : buildOperatingTree(fyRows);
+    const { tree, total } = (isRevenue || isRequirements) ? buildRevenueTree(fyRows) : buildOperatingTree(fyRows);
     const rowCount = tree.length;
 
     // Sanity check: only applies to operating mode (revenue total legitimately
@@ -318,15 +327,18 @@ async function processPDF(pdfAbsPath, muniId, dryRun, mode = 'operating') {
 async function main() {
   const { values: opts } = parseArgs({
     options: {
-      'dry-run': { type: 'boolean', default: false },
-      revenue:   { type: 'boolean', default: false },
-      pdf:       { type: 'string' },
+      'dry-run':    { type: 'boolean', default: false },
+      revenue:      { type: 'boolean', default: false },
+      requirements: { type: 'boolean', default: false },
+      pdf:          { type: 'string' },
     },
     strict: false,
   });
 
   const dryRun = opts['dry-run'];
-  const mode   = opts.revenue ? 'revenue' : 'operating';
+  const mode   = opts.requirements ? 'requirements'
+               : opts.revenue      ? 'revenue'
+               : 'operating';
 
   // Discover PDFs from docs/Troutdale/ (worktree-safe: falls back to main working tree)
   const pdfDir = resolvePdfDir();
