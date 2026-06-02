@@ -266,10 +266,10 @@ async function processPDF(pdfAbsPath, muniId, dryRun, mode = 'operating') {
   if (fyMap.has(null) || fyMap.has(undefined)) {
     const inferred = inferFiscalYearFromFilename(filename);
     if (inferred) {
-      const nullRows = fyMap.get(null) || fyMap.get(undefined);
+      const nullRows = [...(fyMap.get(null) ?? []), ...(fyMap.get(undefined) ?? [])];
       fyMap.delete(null);
       fyMap.delete(undefined);
-      fyMap.set(inferred, nullRows);
+      if (nullRows.length > 0) fyMap.set(inferred, nullRows);
       console.warn(`  WARNING: Fiscal year inferred from filename: ${inferred}`);
     }
   }
