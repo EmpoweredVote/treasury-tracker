@@ -41,6 +41,9 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - ✓ San Diego operating + revenue (FY2025, $4.9B op/$5.5B rev) with enrichment and per-capita — v1.4
 - ✓ LA revenue budget (FY2025+2026, $10.2B) added — v1.4
 - ✓ `bulkLoadBudget.js` extended with `fiscal_year_type` + `where_extra` for integer FY columns and multi-type datasets — v1.4
+- ✓ Portland OR operating + revenue (FY2022–FY2026, 635,749 population, 41 enrichment rows) — v1.5
+- ✓ Gresham OR operating + revenue (FY2023–FY2026, 111,507 population, 33 enrichment rows) — v1.5
+- ✓ Troutdale OR operating + revenue (FY2019–FY2026, 15,749 population, 26 enrichment rows) — v1.5, Phase 22
 
 ### Active
 
@@ -62,7 +65,7 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - Donation platforms: GiveButter (primary, lowest fees), Patreon (recurring), Benevity (workplace giving)
 - GiveButter supports webhooks and custom return URLs after donation completion
 - The webhook fires before the redirect, so DB should be updated by the time user lands back
-- Currently covers: 12 TX cities (Dallas, Plano, McKinney, Frisco, Allen, Prosper, Celina, Richardson, Garland, Wylie, Sachse, Murphy, Princeton, Princeton) + 3 CA cities (Los Angeles, San Francisco, San Diego)
+- Currently covers: 12 TX cities (Dallas, Plano, McKinney, Frisco, Allen, Prosper, Celina, Richardson, Garland, Wylie, Sachse, Murphy, Princeton) + 3 CA cities (Los Angeles, San Francisco, San Diego) + 3 OR cities (Portland, Gresham, Troutdale)
 
 ## Constraints
 
@@ -103,4 +106,4 @@ Likely directions:
 - Category enrichment for Richardson TX (depends on COL-01 data being stable)
 
 ---
-*Last updated: 2026-05-23 — v1.4 complete; planning v1.5*
+*Last updated: 2026-06-01 — Phase 22 complete; Troutdale OR added (3 OR cities now live)*
