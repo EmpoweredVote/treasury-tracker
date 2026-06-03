@@ -243,7 +243,7 @@ Plans:
 
 **Depends on:** Phases 19, 21
 
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 Plans:
 **Wave 1** *(three independent city pipelines, parallel)*
 
@@ -253,7 +253,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 — needs all_funds_requirements rows in DB to verify)*
 
-- [ ] 23-04-PLAN.md — Frontend: dataset_type union + App.tsx detection/load/prop/operatingTotal override/tab-filter + PlainLanguageSummary headline override + gap-explanation label (D-02/D-03/D-04); human-verify all OR + TX/CA cities
+- [x] 23-04-PLAN.md — Frontend: dataset_type union + App.tsx detection/load/prop/operatingTotal override/tab-filter + PlainLanguageSummary headline override + gap-explanation label (D-02/D-03/D-04); human-verify all OR + TX/CA cities
 
 ---
 
@@ -263,7 +263,7 @@ Plans:
 
 **Depends on:** Phase 15
 
-**Plans:** 3/3 plans complete
+**Plans:** 4/4 plans complete
 Plans:
 **Wave 1** *(three independent fixes, no file overlap, fully parallel)*
 
@@ -328,8 +328,8 @@ Plans:
 | 20. Gresham OR Budget Load | v1.5 | 4/4 | Complete    | 2026-06-01 |
 | 21. Gresham OR Revenue Load | v1.5 | 2/2 | Complete    | 2026-06-01 |
 | 22. Troutdale OR Budget Load | v1.5 | 3/3 | Complete    | 2026-06-02 |
-| 23. OR All Funds Consistency | v1.5 | 3/4 | In Progress|  |
-| 24. Los Angeles Data Refresh | v1.5 | 3/3 | Complete   | 2026-06-02 |
+| 23. OR All Funds Consistency | v1.5 | 4/4 | Complete | 2026-06-03 |
+| 24. Los Angeles Data Refresh | v1.5 | 4/4 | Complete   | 2026-06-03 |
 | 25. LA County Data Completion + County-City Linking | v1.5 | 3/3 | Complete | 2026-06-03 |
 
 ---
