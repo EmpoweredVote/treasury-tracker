@@ -331,8 +331,16 @@ function App() {
   // Entity change handler — computes effective year BEFORE triggering data load (avoids Pitfall 1)
   const handleEntityChange = useCallback((entity: Municipality) => {
     const entityYears = [...new Set(entity.available_datasets.map(d => d.fiscal_year))].sort((a, b) => b - a);
-    const currentYearValid = entityYears.includes(parseInt(selectedYear));
-    const effectiveYear = currentYearValid ? selectedYear : (entityYears.length > 0 ? String(entityYears[0]) : selectedYear);
+    const operatingYears = [...new Set(
+      entity.available_datasets.filter(d => d.dataset_type === 'operating').map(d => d.fiscal_year)
+    )].sort((a, b) => b - a);
+    // Prefer a year with operating data; only keep current year if it has operating data
+    const currentHasOperating = operatingYears.includes(parseInt(selectedYear));
+    const effectiveYear = currentHasOperating
+      ? selectedYear
+      : operatingYears.length > 0
+        ? String(operatingYears[0])
+        : (entityYears.length > 0 ? String(entityYears[0]) : selectedYear);
 
     // Check if current dataset is available for new entity in effective year
     const entityDatasets = entity.available_datasets
