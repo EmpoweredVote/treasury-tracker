@@ -329,7 +329,7 @@ Plans:
 | 21. Gresham OR Revenue Load | v1.5 | 2/2 | Complete    | 2026-06-01 |
 | 22. Troutdale OR Budget Load | v1.5 | 3/3 | Complete    | 2026-06-02 |
 | 23. OR All Funds Consistency | v1.5 | 4/4 | Complete | 2026-06-03 |
-| 24. Los Angeles Data Refresh | v1.5 | 4/4 | Complete   | 2026-06-03 |
+| 24. Los Angeles Data Refresh | v1.5 | 4/4 | Complete    | 2026-06-03 |
 | 25. LA County Data Completion + County-City Linking | v1.5 | 3/3 | Complete | 2026-06-03 |
 
 ---

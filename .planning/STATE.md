@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: — Oregon Expansion
-status: verifying
-last_updated: "2026-06-03T18:00:00.000Z"
+status: ready_to_plan
+last_updated: 2026-06-03T19:38:31.821Z
 last_activity: 2026-06-03
 progress:
   total_phases: 9
   completed_phases: 7
   total_plans: 24
-  completed_plans: 24
+  completed_plans: 67
   percent: 78
+stopped_at: Phase 24 complete (4/4) — ready to discuss Phase 25
 ---
 
 # State
@@ -20,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-23)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 23 — or-all-funds-consistency (Plan 04 remaining — frontend dataset_type union + App.tsx changes)
+**Current focus:** Phase 25 — la county data completion county city linking
 
 ## Current Position
 
-Phase: 25 (la-county-data-completion-county-city-linking) — COMPLETE
-Plan: 3 of 3
-Status: Phase complete — ready for verification
+Phase: 25
+Plan: Not started
+Status: Ready to plan
 Last activity: 2026-06-03
 
 Progress: [██████████] 100%
