@@ -105,6 +105,11 @@ function LA_DATA_SOURCE(municipalityId) {
       actual_amount_column: 'total_expenditures',
       category_column: 'department_name',
       subcategory_column: 'fund_name',
+      // SECURITY NOTE: where_extra is a raw SQL fragment appended to Socrata
+      // API filter queries by the ETL pipeline. It MUST only ever be set by
+      // trusted seeder scripts — never sourced from user input or editable
+      // admin UI paths. Any future admin path that allows editing column_mapping
+      // must sanitize or allowlist this field before interpolation.
       where_extra: "AND adopted_budget_amount > 0",
     },
     fiscal_years: [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026],
