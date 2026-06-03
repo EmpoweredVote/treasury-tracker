@@ -21,6 +21,7 @@ import BudgetVisualization from './components/BudgetVisualization';
 import CategoryList from './components/CategoryList';
 import LineItemsTable from './components/LineItemsTable';
 import LinkedTransactionsPanel from './components/LinkedTransactionsPanel';
+import CitiesInCountyPanel from './components/CitiesInCountyPanel';
 import { getHeroImage, getHeroBgPosition } from './utils/wikiImage';
 import type { BudgetCategory, BudgetData, LinkedTransactionSummary, Municipality } from './types/budget';
 
@@ -157,7 +158,8 @@ function App() {
   // Helper: navigate directly to an entity (used by landing page and auth routing)
   const navigateToEntity = useCallback((entity: Municipality, list: Municipality[]) => {
     const entityYears = [...new Set(entity.available_datasets.map(d => d.fiscal_year))].sort((a, b) => b - a);
-    const year = entityYears.length > 0 ? String(entityYears[0]) : '2025';
+    const operatingYears = [...new Set(entity.available_datasets.filter(d => d.dataset_type === 'operating').map(d => d.fiscal_year))].sort((a, b) => b - a);
+    const year = operatingYears.length > 0 ? String(operatingYears[0]) : (entityYears.length > 0 ? String(entityYears[0]) : '2025');
     setMunicipalities(list);
     setSelectedEntity(entity);
     setSelectedYear(year);
@@ -181,8 +183,11 @@ function App() {
         setSelectedEntity(entity);
 
         const entityYears = [...new Set(entity.available_datasets.map(d => d.fiscal_year))].sort((a, b) => b - a);
+        const operatingYears = [...new Set(entity.available_datasets.filter(d => d.dataset_type === 'operating').map(d => d.fiscal_year))].sort((a, b) => b - a);
         if (yearParam && entityYears.includes(parseInt(yearParam))) {
           setSelectedYear(yearParam);
+        } else if (operatingYears.length > 0) {
+          setSelectedYear(String(operatingYears[0]));
         } else if (entityYears.length > 0) {
           setSelectedYear(String(entityYears[0]));
         }
@@ -330,8 +335,16 @@ function App() {
   // Entity change handler — computes effective year BEFORE triggering data load (avoids Pitfall 1)
   const handleEntityChange = useCallback((entity: Municipality) => {
     const entityYears = [...new Set(entity.available_datasets.map(d => d.fiscal_year))].sort((a, b) => b - a);
-    const currentYearValid = entityYears.includes(parseInt(selectedYear));
-    const effectiveYear = currentYearValid ? selectedYear : (entityYears.length > 0 ? String(entityYears[0]) : selectedYear);
+    const operatingYears = [...new Set(
+      entity.available_datasets.filter(d => d.dataset_type === 'operating').map(d => d.fiscal_year)
+    )].sort((a, b) => b - a);
+    // Prefer a year with operating data; only keep current year if it has operating data
+    const currentHasOperating = operatingYears.includes(parseInt(selectedYear));
+    const effectiveYear = currentHasOperating
+      ? selectedYear
+      : operatingYears.length > 0
+        ? String(operatingYears[0])
+        : (entityYears.length > 0 ? String(entityYears[0]) : selectedYear);
 
     // Check if current dataset is available for new entity in effective year
     const entityDatasets = entity.available_datasets
@@ -443,29 +456,45 @@ function App() {
   }, [navigationPath]);
 
 
+  const countyEntity = useMemo(() =>
+    selectedEntity?.county_id
+      ? municipalities.find(m => m.id === selectedEntity.county_id) ?? null
+      : null,
+    [selectedEntity, municipalities]
+  );
+
   const breadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-    const items: BreadcrumbItem[] = [
-      {
-        label: selectedEntity?.name ?? 'City',
-        onClick: navigationPath.length > 0 ? () => setNavigationPath([]) : undefined
-      },
-      {
-        label: getDatasetLabel(activeDataset),
-        onClick: navigationPath.length > 0 ? () => handleBreadcrumbClick(1) : undefined
-      }
-    ];
+    const items: BreadcrumbItem[] = [];
+
+    // County prefix — only for cities with county_id
+    if (countyEntity) {
+      items.push({
+        label: countyEntity.name,
+        onClick: () => handleEntityChange(countyEntity)
+      });
+    }
+
+    items.push({
+      label: selectedEntity?.name ?? 'City',
+      onClick: navigationPath.length > 0 ? () => setNavigationPath([]) : undefined
+    });
+
+    items.push({
+      label: getDatasetLabel(activeDataset),
+      onClick: navigationPath.length > 0 ? () => handleBreadcrumbClick(items.length - 1) : undefined
+    });
 
     navigationPath.forEach((category, index) => {
       items.push({
         label: category.enrichment?.plainName || category.name,
         onClick: index < navigationPath.length - 1
-          ? () => handleBreadcrumbClick(index + 2)
+          ? () => handleBreadcrumbClick(index + items.length - navigationPath.length + index)
           : undefined
       });
     });
 
     return items;
-  }, [navigationPath, activeDataset, handleBreadcrumbClick, selectedEntity]);
+  }, [navigationPath, activeDataset, handleBreadcrumbClick, selectedEntity, countyEntity, municipalities]);
 
   const displayText = getDatasetDisplayText(activeDataset);
 
@@ -674,7 +703,7 @@ function App() {
         </div>
       </div>
 
-      {breadcrumbItems.length > 2 && <Breadcrumb items={breadcrumbItems} />}
+      {(countyEntity != null || breadcrumbItems.length > 2) && <Breadcrumb items={breadcrumbItems} />}
 
       {/* Donate arrow annotation — only on current-year nonprofit top-level view */}
       <DonateArrow
@@ -921,6 +950,15 @@ function App() {
               Use the tabs to switch between spending, revenue, and employee compensation.
               Every level lets you dig deeper until you reach individual line items and transactions.
             </div>
+          )}
+
+          {/* Cities in County panel — rendered below budget on county pages */}
+          {navigationPath.length === 0 && selectedEntity?.entity_type === 'county' && (
+            <CitiesInCountyPanel
+              county={selectedEntity}
+              municipalities={municipalities}
+              onCityClick={handleEntityChange}
+            />
           )}
         </div>
       </div>

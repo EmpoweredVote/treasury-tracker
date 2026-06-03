@@ -273,6 +273,33 @@ Plans:
 
 ---
 
+### Phase 25: LA County Data Completion + County-City Linking
+
+**Goal:** Citizens can view LA County government's full budget (Money In and Money Out) with accurate FY2021–2024 coverage from the CA State Controller county-specific datasets. The current "LA County" data in the DB was loaded from the city-aggregated datasets (not the county government's own budget) and is mislabeled — this phase re-loads from the correct county sources (uctr-c2j8 + emxv-k8xv), fixes population (currently 0), and repairs orphaned data_source_id FKs. Additionally, a `county_id` FK is added to the municipalities schema and populated for all LA County cities (plus San Diego, Sacramento, Berkeley, Fremont), enabling the first county-city relationship in the app — cities show a "Los Angeles County →" context link, and the county page shows which incorporated cities have budget data.
+
+**Depends on:** Phase 24
+
+**Key data facts:**
+- LA County municipality: `f3db6f9f-2575-48e3-bf42-a1f9dd1ec6a1`, population = 0 (fix to 10,014,009, year 2020)
+- County datasets uctr-c2j8 (operating) + emxv-k8xv (revenue) have data through FY2024 only — FY2025/FY2026 return 0 rows (D-02 resolved)
+- FY2025 operating row (~$44.1B, wrong-sourced) disposition decided via checkpoint in 25-01
+- Stale city-aggregate data_source rows: `c68cc1d2-...`, `1f2e2694-...` (deleted + replaced)
+- All 88 LA County cities already in DB; only 3 new county rows needed (San Diego/Sacramento/Alameda — linking only)
+- ev-accounts-api `/api/treasury/cities` must return county_id (verified before UI work — highest risk)
+
+**Plans:** 3 plans (2 waves)
+Plans:
+**Wave 1** *(data + schema, no file overlap, parallel)*
+
+- [x] 25-01-PLAN.md — Data re-load: clear stale operating/revenue + orphaned data_sources, reload FY2021-2024 from county datasets, fix population, resolve FY2025 operating disposition (decision checkpoint)
+- [x] 25-02-PLAN.md — Schema + linking: add `county_id UUID REFERENCES treasury.municipalities(id)` via MCP migration; seed 3 county rows + link 88 LA cities and 4 other-CA cities; update Municipality type
+
+**Wave 2** *(blocked on 25-02 county_id data + type)*
+
+- [ ] 25-03-PLAN.md — UI: verify ev-accounts-api returns county_id; county breadcrumb chip on city pages; CitiesInCountyPanel (Available now / Coming soon) on county pages
+
+---
+
 ## Progress
 
 **Execution Order:** Sequential phases 1→16 (all complete)
@@ -303,8 +330,9 @@ Plans:
 | 22. Troutdale OR Budget Load | v1.5 | 3/3 | Complete    | 2026-06-02 |
 | 23. OR All Funds Consistency | v1.5 | 3/4 | In Progress|  |
 | 24. Los Angeles Data Refresh | v1.5 | 3/3 | Complete   | 2026-06-02 |
+| 25. LA County Data Completion + County-City Linking | v1.5 | 2/3 | In Progress | |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-06-02 — Phase 24 planned (3 plans, 1 wave: revenue fix + operating reload + summaries UI, all parallel, zero AI spend)*
+*Last updated: 2026-06-02 — Phase 25 planned (3 plans, 2 waves: county data re-load + county_id schema/linking parallel, then bidirectional UI)*

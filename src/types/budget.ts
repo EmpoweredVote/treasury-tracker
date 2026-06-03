@@ -112,6 +112,7 @@ export interface Municipality {
   population: number;
   population_year?: number | null;
   hero_image_url?: string | null;
+  county_id?: string | null;           // UUID reference to parent county municipality row
   available_datasets: Array<{
     fiscal_year: number;
     dataset_type: 'operating' | 'revenue' | 'salaries' | 'all_funds_requirements';
