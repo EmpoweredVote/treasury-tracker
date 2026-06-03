@@ -114,7 +114,7 @@ export interface Municipality {
   hero_image_url?: string | null;
   available_datasets: Array<{
     fiscal_year: number;
-    dataset_type: 'operating' | 'revenue' | 'salaries';
+    dataset_type: 'operating' | 'revenue' | 'salaries' | 'all_funds_requirements';
   }>;
 }
 

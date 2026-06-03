@@ -4,7 +4,17 @@
     "43f10ae9-6789-47d0-9ddc-8078192062d2::public safety",
     "43f10ae9-6789-47d0-9ddc-8078192062d2::general government",
     "43f10ae9-6789-47d0-9ddc-8078192062d2::public service and operations",
-    "43f10ae9-6789-47d0-9ddc-8078192062d2::public works"
+    "43f10ae9-6789-47d0-9ddc-8078192062d2::public works",
+    "5d4675f1-c207-4d7b-a346-85a799da0d4d::interfund transfers",
+    "5d4675f1-c207-4d7b-a346-85a799da0d4d::charges for services",
+    "5d4675f1-c207-4d7b-a346-85a799da0d4d::intergovernmental",
+    "5d4675f1-c207-4d7b-a346-85a799da0d4d::utility license fees",
+    "5d4675f1-c207-4d7b-a346-85a799da0d4d::internal svc chrg",
+    "5d4675f1-c207-4d7b-a346-85a799da0d4d::taxes",
+    "5d4675f1-c207-4d7b-a346-85a799da0d4d::miscellaneous income",
+    "5d4675f1-c207-4d7b-a346-85a799da0d4d::financing proceeds",
+    "5d4675f1-c207-4d7b-a346-85a799da0d4d::internal payments",
+    "5d4675f1-c207-4d7b-a346-85a799da0d4d::licenses & permits"
   ],
   "failed": []
 }

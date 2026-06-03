@@ -21,6 +21,8 @@ const ENTITY_TYPE_LABELS: Record<string, string> = {
 const STATE_LABELS: Record<string, string> = {
   IN: 'Indiana',
   CA: 'California',
+  TX: 'Texas',
+  OR: 'Oregon',
 };
 
 const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
@@ -142,7 +144,7 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
                   {STATE_LABELS[state] || state}
                 </div>
 
-                {[...typeMap.entries()].map(([type, entities]) => (
+                {[...typeMap.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([type, entities]) => (
                   <div key={`${state}-${type}`}>
                     {/* Entity type subheader */}
                     <div className="px-4 py-1 text-xs text-ev-gray-400 dark:text-ev-gray-500 font-medium">

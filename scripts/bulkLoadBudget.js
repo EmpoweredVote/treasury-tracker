@@ -130,9 +130,26 @@ function buildBudgetTree(rows, cm) {
 async function syncBudgetSource(ds, fiscalYear, opts = {}) {
   const cm = ds.column_mapping || {};
   const fyCol = cm.fiscal_year_column || 'bfy';
+  const fyType = cm.fiscal_year_type || 'string';
+  const whereExtra = cm.where_extra || '';
 
-  // bfy is a STRING in Socrata — WHERE clause must quote it
-  const where = `${fyCol}='${fiscalYear}'`;
+  // column_mapping extensions (both optional):
+  //   fiscal_year_type: 'integer' -> WHERE fiscal_year=2025 (no quotes; for LA revenue vvm4-a2zu)
+  //                     anything else / absent -> WHERE bfy='2025' (default, matches TX cities)
+  //   where_extra:      additional WHERE clause fragment appended after the year filter.
+  //                     Caller supplies the leading 'AND' (e.g., "AND revenue_or_spending='Spending'").
+  //                     Used by SF Budget (xdgd-c79v) to filter combined spending/revenue dataset.
+
+  // Build base WHERE — integer columns must NOT be quoted (e.g., LA Revenue vvm4-a2zu)
+  // String columns (default) match the prior behavior exactly
+  const baseWhere =
+    fyType === 'integer'
+      ? `${fyCol}=${fiscalYear}`
+      : `${fyCol}='${fiscalYear}'`;
+
+  // Append where_extra verbatim if provided (e.g., SF xdgd-c79v needs
+  // "AND revenue_or_spending='Spending'"). Caller supplies the leading AND.
+  const where = whereExtra ? `${baseWhere} ${whereExtra}` : baseWhere;
 
   const totalCount = await fetchSocrataCount(ds.base_url, ds.dataset_id, where);
   console.log(`\n${ds.name} FY${fiscalYear}: ${totalCount.toLocaleString()} total rows`);

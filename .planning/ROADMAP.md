@@ -6,7 +6,8 @@
 - ✅ **v1.1 Texas Municipal Financial Transparency** — Phases 5-7 (shipped 2026-05-02)
 - ✅ **v1.2 Collin County Completion & Data Quality** — Phases 8-10 (shipped 2026-05-21)
 - ✅ **v1.3 Revenue Completion & Per-Capita Context** — Phases 11-14 (shipped 2026-05-22)
-- 🚧 **v1.4 Geographic Expansion** — Phase 15+ (in progress)
+- ✅ **v1.4 Geographic Expansion** — Phases 15-16 (shipped 2026-05-22)
+- 📋 **v1.5** — Not yet planned (run `/gsd:new-milestone`)
 
 ---
 
@@ -21,6 +22,7 @@
 **Status:** Shipped (pre-GSD)
 
 Plans:
+
 - [x] Phase 1 complete (pre-GSD planning)
 
 ### Phase 2: Data Layer Audit (COMPLETE)
@@ -29,6 +31,7 @@ Plans:
 **Status:** Complete — 2026-04-21
 
 Plans:
+
 - [x] 02-01-PLAN.md — Audit pre-aggregation pattern + produce Phase 3 technical contract
 
 ### Phase 3: Webhook Backend (COMPLETE)
@@ -37,6 +40,7 @@ Plans:
 **Status:** Complete — 2026-04-22
 
 Plans:
+
 - [x] 03-01-PLAN.md — Schema migration: add external_id + source columns + dedup index
 - [x] 03-02-PLAN.md — Postgres RPC function: treasury.record_givebutter_donation
 - [x] 03-03-PLAN.md — loadEVFinances.js: source tagging + webhook row preservation
@@ -49,6 +53,7 @@ Plans:
 **Status:** Complete — 2026-04-22
 
 Plans:
+
 - [x] 04-01-PLAN.md — useAnimatedCounter hook + visibilitychange → silent revenue refetch in App.tsx
 - [x] 04-02-PLAN.md — Wire animated count-up + green-glow settle into PlainLanguageSummary and DatasetTabs revenue displays
 
@@ -63,61 +68,31 @@ Plans:
 
 **Goal:** Citizens can view Dallas operating and revenue budget data in the app, loaded via a generic Socrata SODA pipeline reusable for any future city.
 
-**Depends on:** Phase 4 (existing treasury schema and app infrastructure)
-
-**Requirements:** DAL-01, DAL-02, DAL-03, DAL-04, DAL-05, DAL-06
-
-**Success Criteria** (what must be TRUE when phase completes):
-1. Dallas operating budget FY2025 and FY2026 are visible in the app with correct category breakdowns and dollar amounts
-2. Dallas revenue budget FY2025 and FY2026 are visible in the app with correct department/source hierarchy
-3. `bulkLoadBudget.js` can be pointed at any Socrata city by changing only the `data_sources` row — no code changes required
-4. Re-running the loader does not create duplicate budget rows (idempotent via upsert or truncate-reload strategy)
-5. `data_sources` rows exist for both Dallas datasets with correct `api_type`, dataset IDs, and column mapping JSON
-
 Plans:
+
 - [x] 05-01-PLAN.md — Idempotent seeder for Dallas operating + revenue `data_sources` rows
 - [x] 05-02-PLAN.md — Generic Socrata budget loader (`bulkLoadBudget.js`) calling `treasury_sync_budget_tree`
 - [x] 05-03-PLAN.md — Live load Dallas FY2025 + FY2026 operating + revenue, verify in app + idempotency
 
 ### Phase 6: XLSX Pipeline (COMPLETE — 2026-05-01)
 
-**Goal:** Citizens can view check register and payroll data for Plano, McKinney, and Frisco, loaded via a generic XLSX download pipeline that is idempotent and reusable for any city with an Excel export.
-
-**Depends on:** Phase 5 (established loader patterns and data_sources schema conventions)
-
-**Requirements:** XLSX-01, XLSX-02, XLSX-03, XLSX-04, XLSX-05, XLSX-06, XLSX-07
-
-**Success Criteria** (what must be TRUE when phase completes):
-1. Plano, McKinney, and Frisco each have at least one loaded dataset visible in the app (check register transactions)
-2. McKinney payroll data is loaded and visible under a `salaries` dataset type
-3. Re-running `bulkLoadXLSX.js` against any of these cities does not create duplicate rows
-4. `data_sources` rows exist for all XLSX sources with `api_type = 'xlsx_download'`, download URL, and column mapping
-5. The loader accepts only a city config (data_sources row) — no city-specific code branches
+**Goal:** Citizens can view check register and payroll data for Plano, McKinney, and Frisco, loaded via a generic XLSX download pipeline.
 
 Plans:
+
 - [x] 06-01-PLAN.md — Build generic bulkLoadXLSX.js (download, parse, SHA-256 dedup, treasury_sync_transactions RPC)
 - [x] 06-02-PLAN.md — Investigate sources + idempotent seedXLSXDataSources.js for Plano, McKinney (transactions + payroll), Frisco
 - [x] 06-03-PLAN.md — Live load all seeded sources, verify idempotency + force-reload, confirm data visible in app
 
 ### Phase 7: PDF/Haiku Vision Pipeline (COMPLETE — 2026-05-02)
 
-**Goal:** Citizens can view budget data for Allen, Prosper, and Celina, extracted from ACFR PDFs using a Claude Haiku vision pipeline that surfaces extraction confidence and flags uncertain pages for human review.
-
-**Depends on:** Phase 6 (loader conventions established; XLSX phase confirms treasury schema handles multiple city types)
-
-**Requirements:** PDF-01, PDF-02, PDF-03, PDF-04, PDF-05, PDF-06, PDF-07, PDF-08
-
-**Success Criteria** (what must be TRUE when phase completes):
-1. Allen, Prosper, and Celina each have at least one fiscal year of budget data visible in the app, sourced from their ACFR PDFs
-2. Running the pipeline against a new PDF (any of the three cities) completes without manual intervention for well-formed ACFR pages
-3. Low-confidence pages produce a flagged entry in the review log rather than silently corrupting or skipping data
-4. The pipeline accepts `--city`, `--pdf`, and `--fiscal-year` parameters and requires no code changes to run against a new city's ACFR
-5. Extracted JSON is validated against the expected schema before loading — malformed Haiku output is rejected with a clear error, not silently written
+**Goal:** Citizens can view budget data for Allen, Prosper, and Celina, extracted from ACFR PDFs using a Claude Haiku vision pipeline.
 
 Plans:
-- [x] 07-01-PLAN.md — PDF rendering foundation: install pdftoimg-js + @napi-rs/canvas, scaffold bulkLoadPDF.js, render PDF pages to PNG with SHA-256-keyed disk cache
-- [x] 07-02-PLAN.md — Haiku vision extraction + treasury_sync_budget_tree RPC integration: full per-page pipeline with confidence threshold, JSONL review log, tiered exit codes (0/1/2)
-- [x] 07-03-PLAN.md — Seed Allen/Prosper/Celina data_sources, dry-run + live-load all three ACFRs, verify in app (human checkpoint)
+
+- [x] 07-01-PLAN.md — PDF rendering foundation: install pdftoimg-js + @napi-rs/canvas, scaffold bulkLoadPDF.js
+- [x] 07-02-PLAN.md — Haiku vision extraction + treasury_sync_budget_tree RPC integration
+- [x] 07-03-PLAN.md — Seed Allen/Prosper/Celina data_sources, dry-run + live-load all three ACFRs
 
 </details>
 
@@ -126,7 +101,7 @@ Plans:
 <details>
 <summary>✅ v1.2 Collin County Completion & Data Quality (Phases 8-10) — SHIPPED 2026-05-21</summary>
 
-Fixed PDF department attribution, loaded revenue for 4 TX cities, added 5 Collin County cities via pdftotext parsers. 13/16 requirements shipped. See [milestones/v1.2-ROADMAP.md](milestones/v1.2-ROADMAP.md).
+Fixed PDF department attribution, loaded revenue for 4 TX cities, added 5 Collin County cities via pdftotext parsers. See [milestones/v1.2-ROADMAP.md](milestones/v1.2-ROADMAP.md).
 
 - [x] Phase 8: Data Quality (3/3 plans) — completed 2026-05-04
 - [x] Phase 9: Revenue Completion (3/3 plans) — completed 2026-05-04
@@ -136,151 +111,171 @@ Fixed PDF department attribution, loaded revenue for 4 TX cities, added 5 Collin
 
 ---
 
-### ✅ v1.3 Revenue Completion & Per-Capita Context (Shipped 2026-05-22 — all 4 phases complete)
+<details>
+<summary>✅ v1.3 Revenue Completion & Per-Capita Context (Phases 11-14) — SHIPPED 2026-05-22</summary>
 
-**Milestone Goal:** Close out all deferred v1.2 data work and add population-based per-capita spending display so citizens can compare cities of different sizes.
+Closed all deferred v1.2 data work: Prosper + Celina revenue via pdftotext, Richardson operating budget, enrichment for 5 Collin County cities, TX population data with per-capita display. See [milestones/v1.3-ROADMAP.md](milestones/v1.3-ROADMAP.md) (planned) or .planning/phases/11-14 for full execution history.
 
-### Phase 11: Population Schema, Census Data Load, and Per-Capita Display
+- [x] Phase 11: Population Schema, Census Data Load, and Per-Capita Display (3/3 plans) — completed 2026-05-21
+- [x] Phase 12: Prosper and Celina Revenue via pdftotext (3/3 plans) — completed 2026-05-22
+- [x] Phase 13: Richardson Operating Budget (1/1 plan) — completed 2026-05-22
+- [x] Phase 14: Category Enrichment — 5 Collin County Cities (2/2 plans) — completed 2026-05-22
 
-**Goal:** Citizens can see per-capita spending ($/resident) for all TX cities, labeled with the population year source.
-
-**Depends on:** Phase 10 (all TX cities loaded; frontend per-capita display already built, gated on population > 0 in DB)
-
-**Requirements:** POP-01, POP-02, POP-03
-
-**Success Criteria** (what must be TRUE when phase completes):
-1. All 12 TX cities show a per-capita spending figure ($/resident) in the app for their most recent fiscal year
-2. Each per-capita figure is labeled with its population source year (e.g., "Based on 2024 Census estimate")
-3. Celina and Princeton show populations consistent with 2024 vintage estimates (Celina >= 60k, Princeton >= 25k) — confirming 2020 Census data was not used
-4. `municipalities` table has a `population_year` column and all 12 TX city rows have non-null population and population_year values
-5. Re-running `loadTXPopulation.js` does not corrupt existing population values (idempotent upsert)
-
-**Plans:** 3 plans
-
-Plans:
-- [x] 11-01-PLAN.md — Schema migration: add `population_year` INTEGER column to `treasury.municipalities` (EV-Accounts repo migration 194 + apply via Supabase Dashboard)
-- [x] 11-02-PLAN.md — Build `loadTXPopulation.js` Census CSV loader + update EV-Accounts `treasuryService.ts` (CityRow/TreasuryCity/mapCity/SELECTs) to expose population_year
-- [x] 11-03-PLAN.md — Thread population_year through frontend (budget.ts/PlainLanguageSummary/QuickFactsRow), execute live load, push both repos, human-verify $/resident label for 12 TX cities in production
-
-### Phase 12: Prosper and Celina Revenue via pdftotext
-
-**Goal:** Citizens can see revenue data for Prosper and Celina, extracted via pdftotext targeting the "STATEMENT OF REVENUES" section and validated against published ACFR totals before display is enabled.
-
-**Depends on:** Phase 11 (population loaded; per-capita revenue display for Prosper/Celina depends on revenue validation passing)
-
-**Requirements:** REV-01, REV-02, REV-03, REV-04
-
-**Success Criteria** (what must be TRUE when phase completes):
-1. Prosper revenue data is visible in the app for FY2023, FY2024, and FY2025 with correct fund/source breakdowns
-2. Celina revenue data is visible in the app for FY2025 with correct fund/source breakdowns
-3. Prosper revenue totals match ACFR published figures within 20% tolerance — validation result documented before data_source last_synced_at is set
-4. Celina revenue totals match ACFR published figures within 20% tolerance — validation result documented before data_source last_synced_at is set
-5. Per-capita revenue figures for Prosper and Celina are visible in the app (unlocked by both population load and revenue validation passing)
-
-**Plans:** 3 plans
-
-Plans:
-- [x] 12-01-PLAN.md — Look up FY2023/FY2024 expected totals from ACFRs; build `processProsperjRevenuePDF.js` with validation gate; fix corrupted data_source URLs; run all 3 FYs
-- [x] 12-02-PLAN.md — Human verify Prosper revenue data visible in app for loaded FYs; confirm per-capita displaying; document validation results
-- [x] 12-03-PLAN.md — Build `processCelinaRevenuePDF.js`; run FY2025; validate against $129,568,278 expected total; human verify Celina revenue and per-capita in app
-
-### Phase 13: Richardson Operating Budget
-
-**Goal:** Citizens can see Richardson TX operating budget data in the app, loaded after manually sourcing the PDF URL from cor.net.
-
-**Depends on:** Phase 10 (Collin County pdftotext parser pattern established; Richardson placeholder data_source rows already seeded)
-
-**Requirements:** COL-01
-
-**Success Criteria** (what must be TRUE when phase completes):
-1. Richardson TX operating budget is visible in the app for at least one fiscal year (FY2025 or FY2026) with correct department/category breakdowns
-2. `processRichardsonBudget.js` follows the processGarlandBudget.js pattern and requires no city-specific logic outside its own file
-3. Richardson data_source rows have last_synced_at set (no longer null) confirming successful load
-4. Re-running the loader does not create duplicate budget rows
-
-Plans:
-- [x] 13-01-PLAN.md — Manually source Richardson PDF URL from cor.net/departments/budget; build `processRichardsonBudget.js` following processGarlandBudget.js pattern; load FY2025 and FY2026; verify in app
-
-### Phase 14: Category Enrichment — 5 Collin County Cities
-
-**Goal:** Citizens see plain-language category descriptions for Garland, Wylie, Sachse, Murphy, and Princeton — the 5 cities loaded in v1.2 whose enrichment was deferred.
-
-**Depends on:** Phase 10 (operating budget data loaded for all 5 cities; enrichment infrastructure operational from prior phases)
-
-**Requirements:** ENR-01, ENR-02, ENR-03, ENR-04, ENR-05
-
-**Success Criteria** (what must be TRUE when phase completes):
-1. Every budget category for Garland, Wylie, Sachse, Murphy, and Princeton displays a short plain-language description in the app (no blank description fields)
-2. Enrichment records in the DB have correct municipality_id values (not NULL/universal) — preventing bleed into other cities
-3. Re-running enrichment for any of the 5 cities does not create duplicate enrichment rows
-4. Enrichment covers all fiscal years currently loaded for each city
-
-Plans:
-- [x] 14-01-PLAN.md — Run category enrichment for Garland and Wylie; verify descriptions visible in app and municipality_id scoped correctly
-- [x] 14-02-PLAN.md — Run category enrichment for Sachse, Murphy, and Princeton; verify descriptions visible in app and municipality_id scoped correctly
+</details>
 
 ---
 
-## 🚧 v1.4 Geographic Expansion (in progress)
+<details>
+<summary>✅ v1.4 Geographic Expansion (Phases 15-16) — SHIPPED 2026-05-22</summary>
 
-**Milestone Goal:** Expand Treasury Tracker beyond Texas. Phase 15 (Los Angeles, CA) is the first non-TX city and proves the generic Socrata + enrichment pipeline scales to any US city with a Socrata SODA portal.
+First non-TX cities launched: LA, SF, SD operating + revenue budgets with per-capita and enrichment. See [milestones/v1.4-ROADMAP.md](milestones/v1.4-ROADMAP.md).
 
-### Phase 15: Los Angeles Socrata Budget Load + Enrichment
+- [x] Phase 15: Los Angeles Socrata Budget Load + Enrichment (3/3 plans) — completed 2026-05-22
+- [x] Phase 16: California Cities Expansion (SF, SD, LA Revenue) (5/5 plans) — completed 2026-05-22
 
-**Goal:** Citizens can view Los Angeles operating budget data (FY2025 + FY2026) in the app, loaded via the existing generic Socrata SODA pipeline from `controllerdata.lacity.org` dataset `uyzw-yi8n`, with plain-language category enrichment and per-capita spending labeled with the 2024 Census population estimate.
+</details>
 
-**Depends on:** Phase 5 (generic `bulkLoadBudget.js` Socrata pipeline), Phase 11 (population schema + per-capita display), Phase 14 (enrichment pipeline validated)
+---
 
-**Requirements:** Derived from phase goal:
-- LA-01: Los Angeles municipality row exists with 2024 Census population (3,878,704)
-- LA-02: LA Operating Budget data_sources row seeded with verified `uyzw-yi8n` column_mapping
-- LA-03: LA operating budgets FY2025 and FY2026 visible in the app with correct totals and category breakdowns
-- LA-04: Every top-level LA budget category has a plain-language description, scoped via municipality_id (no cross-city bleed)
-- LA-05: LA per-capita spending displays in the app, labeled with the 2024 Census source year
+## v1.5 — Oregon Expansion
 
-**Success Criteria** (what must be TRUE when phase completes):
-1. `treasury.municipalities` has a row for Los Angeles, CA with population=3878704 and population_year=2024
-2. `treasury.data_sources` has a row for 'Los Angeles Operating Budget' (Socrata dataset `uyzw-yi8n` at `controllerdata.lacity.org`) — no code changes required to the generic loader
-3. LA operating budget FY2025 and FY2026 are loaded into `treasury.budgets` + `treasury.budget_categories` with totals in expected ranges (~$19.8B FY2025) and >= 50 top-level departments per year
-4. `treasury.category_enrichment` has rows for LA top-level categories, all with correct `municipality_id` (no NULL/universal bleed)
-5. Re-running the seeder, loader, and enrichment scripts is idempotent — no duplicates, no errors
-6. Citizens visiting treasurytracker.empowered.vote see Los Angeles in the city picker, can browse the FY2025 and FY2026 operating budget with descriptions, and see per-capita spending labeled with "2024 Census estimate"
-7. No revenue data is loaded for LA (revenue dataset `6cbx-e2fd` is not suitable — only through FY2022, summary-level only)
+### Phase 17: Portland OR Budget Load (COMPLETE — 2026-05-31)
 
-**Plans:** 3 plans
+**Goal:** Citizens can view Portland, OR operating budget data in the app, with per-capita display and AI-enriched category descriptions. (Revenue budget deferred to a follow-up per D-03 — Portland publishes revenue only in PDF Vol 2 at fund level, more complex than the bureau-level operating tables.)
 
+**Plans:** 4/4 plans complete
 Plans:
-- [x] 15-01-PLAN.md — Build `seedLADataSources.js`: insert LA municipality (population 3,878,704, year 2024) + seed Operating Budget data_sources row (`uyzw-yi8n`, `controllerdata.lacity.org`, verified column_mapping)
-- [x] 15-02-PLAN.md — Dry-run + live-load LA Operating FY2025 + FY2026 via `bulkLoadBudget.js`; verify totals/category tree in DB; prove idempotency
-- [x] 15-03-PLAN.md — Dry-run + live enrichment via `enrichCategories.js`; verify scoping + no bleed; human-verify LA in app at treasurytracker.empowered.vote
+**Wave 1**
 
-### Phase 16: California Cities Expansion (San Francisco, San Diego, LA Revenue)
+- [x] 17-01-PLAN.md — Foundation: verify pdfplumber, download + inspect Vol 1 PDFs, seed Portland municipality + operating data_source, add OR:'Oregon' label
 
-**Goal:** Citizens can view budget data for San Francisco CA (operating + revenue), San Diego CA (operating + revenue), and Los Angeles CA (revenue added to existing operating data) — all loaded via Socrata or CSV pipelines, with per-capita display and plain-language enrichment.
+**Wave 2** *(blocked on Wave 1 completion)*
 
-**Depends on:** Phase 15 (LA operating loaded, Socrata + enrichment pipeline validated), Phase 5 (bulkLoadBudget.js)
+- [x] 17-02-PLAN.md — extractPortland.py + processPortland.js PDF→treasury_sync_budget_tree pipeline (dry-run validated)
+- [x] 17-03-PLAN.md — loadORPopulation.js: Census FIPS-41 population load (635,749)
 
-**Requirements:**
-- SF-01: San Francisco operating + revenue data loaded from `data.sfgov.org` dataset `xdgd-c79v`
-- SD-01: San Diego operating + revenue data loaded from static CSV at seshat.datasd.org
-- LA-REV-01: LA revenue data loaded from `controllerdata.lacity.org` dataset `vvm4-a2zu`
-- CA-01: All three cities have plain-language enrichment on top-level categories
-- CA-02: All three cities display per-capita spending with correct Census population year
+**Wave 3** *(blocked on Wave 2 completion)*
 
-**Plans:** 5 plans across 3 waves
+- [x] 17-04-PLAN.md — Live load operating budget, enrich categories, human-verify in app, write 17-VERIFICATION.md
 
+### Phase 18: Portland Historical Operating Budget (COMPLETE — 2026-05-31)
+
+**Goal:** Portland operating budget data extended to FY2022–FY2024 so citizens can see historical spending trends.
+
+**Status:** Complete — executed directly from 18-RESEARCH.md (no formal plan files; processPortland.js run unchanged against historical PDFs)
+
+### Phase 19: Portland Revenue Budget (COMPLETE — 2026-05-31)
+
+**Goal:** Portland revenue budget (Vol 2, fund-level) loaded for FY2022–FY2026 so citizens can see both spending and revenue sides.
+
+**Status:** Complete — executed directly from 19-RESEARCH.md (extract_revenue() added to extractPortland.py; --revenue flag added to processPortland.js)
+
+### Phase 20: Gresham OR Budget Load (COMPLETE — 2026-06-01)
+
+**Goal:** Citizens can view Gresham, OR operating budget data in the app, with per-capita display and AI-enriched category descriptions. Gresham is the second-largest city in Multnomah County (~115,000 pop), completing the county's two major cities.
+
+**Depends on:** Phase 17
+
+**Plans:** 4/4 plans complete
 Plans:
-- [ ] 16-01-PLAN.md — Extend `bulkLoadBudget.js` with `fiscal_year_type: "integer"` and `where_extra` column_mapping support
-- [ ] 16-02-PLAN.md — Build `scripts/loadSanDiegoCSV.js` for San Diego CSV endpoint
-- [ ] 16-03-PLAN.md — Create `scripts/seedCaliforniaCities.js` — seeds SF + SD municipalities + 5 data_sources rows
-- [ ] 16-04-PLAN.md — Dry-run + live load all 5 datasets (SF op+rev, SD op+rev, LA rev) via updated loaders
-- [ ] 16-05-PLAN.md — Enrichment for SF + SD + (conditional) LA revenue categories; human verification checkpoint
+**Wave 1**
+
+- [x] 20-01-PLAN.md — Foundation: verify pdfplumber, create docs/Gresham/ + download 4 PDFs (FY2023–FY2026), inspect FY2023-24 All Funds structure, seed Gresham municipality (pop 111,507)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 20-02-PLAN.md — extractGresham.py (text-line parser, NOT extract_tables) + processGresham.js → treasury_sync_budget_tree pipeline (dry-run validated, all 4 PDFs)
+- [x] 20-03-PLAN.md — loadORPopulation.js: two-constant edit to add Gresham (Census 111,507)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 20-04-PLAN.md — Live load operating budget FY2023–FY2026, enrich categories, human-verify in app, write 20-VERIFICATION.md
+
+### Phase 21: Gresham OR Revenue Load (COMPLETE — 2026-06-01)
+
+**Goal:** Citizens can view Gresham, OR revenue (Money In) data alongside the existing operating budget. Revenue rows are extracted from the Resources section of the same 4 adopted budget PDFs (FY2023-FY2026) already used for phase 20.
+
+**Depends on:** Phase 20
+
+**Plans:** 2/2 plans complete
+Plans:
+**Wave 1**
+
+- [x] 21-01-PLAN.md — Add extract_revenue() + --mode to extractGresham.py and --revenue pipeline to processGresham.js; validate all 4 FYs via dry-run
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 21-02-PLAN.md — Live-load revenue FY2023-FY2026, DB-verify (no collision, no Beginning Balance), conditional enrichment, human-verify Money In tab, write 21-VERIFICATION.md
+
+---
+
+### Phase 22: Troutdale OR Budget Load
+
+**Goal:** Citizens can view Troutdale, OR operating budget data in the app, with per-capita display and AI-enriched category descriptions. Troutdale (15,749 pop, Census 2024) is the third-largest incorporated city in Multnomah County. Revenue (Money In) is folded into this phase per D-01.
+
+**Depends on:** Phase 20
+
+**Plans:** 3/3 plans complete
+Plans:
+**Wave 1**
+
+- [x] 22-01-PLAN.md — Download Troutdale PDFs, create extractTroutdale.py (General Fund operating + All Funds revenue), seed Troutdale municipality (pop 15,749)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [x] 22-02-PLAN.md — Create processTroutdale.js loader ($30M sanity cap, --revenue mode); dry-run all FYs and resolve D-02 FY depth
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [x] 22-03-PLAN.md — Live-load operating + revenue, loadORPopulation.js Troutdale edit, conditional enrichment, human-verify, write 22-VERIFICATION.md
+
+---
+
+### Phase 23: OR All Funds Consistency — Requirements Extraction (Portland + Gresham + Troutdale)
+
+**Goal:** Resolve the scope mismatch between the Budget tab (~$330M departmental operating) and Money In tab (~$512M All Funds Resources) for Oregon cities. Both sides of the financial picture should use the same "All Funds" scope so totals balance and citizens aren't misled by an apparent surplus that is actually an accounting artifact.
+
+**Problem:** Money In already uses the All Funds Resources section (~10 categories, all funds combined). The Budget tab uses the departmental operating budget (a subset). Displaying them together implies the city brings in $512M and only spends $330M, which looks like a $180M windfall but is actually just mismatched scopes — the same $180M appears on the Requirements side of the same All Funds page.
+
+**Approach:** Extract the Requirements column from the "Resources and Requirements — All Funds" page in each OR city's adopted budget PDF (the same page already used for revenue extraction). Store as `dataset_type='all_funds_requirements'`. Show as the primary Budget tab total, with the existing departmental operating breakdown as a drill-down detail. The frontend headline + gap-explanation label are data-driven (D-04) — any city/year with the data gets them; TX/CA unchanged.
+
+**Scope:** Portland (Vol 1, FY2022–FY2026), Gresham (FY2023–FY2026), Troutdale (FY2019–FY2026, D-05 confirmed) — full end-to-end (D-01): data extraction + DB load + frontend display change.
+
+**Depends on:** Phases 19, 21
+
+**Plans:** 3/4 plans executed
+Plans:
+**Wave 1** *(three independent city pipelines, parallel)*
+
+- [x] 23-01-PLAN.md — Gresham: extract_requirements() + processGresham.js --requirements; live-load FY2023–FY2026 (~$897M FY2026)
+- [x] 23-02-PLAN.md — Portland: table-based multi-page extract_requirements() (Vol 1, D-07) + processPortland.js --requirements; live-load FY2022–FY2026
+- [x] 23-03-PLAN.md — Troutdale: extract_requirements() (RESOURCES→REQUIREMENTS gate flip, D-05) + processTroutdale.js --requirements; live-load FY2019–FY2026 (~$81M FY2026)
+
+**Wave 2** *(blocked on Wave 1 — needs all_funds_requirements rows in DB to verify)*
+
+- [ ] 23-04-PLAN.md — Frontend: dataset_type union + App.tsx detection/load/prop/operatingTotal override/tab-filter + PlainLanguageSummary headline override + gap-explanation label (D-02/D-03/D-04); human-verify all OR + TX/CA cities
+
+---
+
+### Phase 24: Los Angeles Data Refresh
+
+**Goal:** Improve the quality, accuracy, and completeness of Los Angeles financial data. Fix the suspicious FY2025 revenue figure (~$44.6B — likely enterprise fund bleed), backfill real expenditure actuals for FY2021–2024 from the LA Controller dataset, add department-level category trees for FY2017–2020 (currently totals-only), repair orphaned data_source_id FK references, and improve plain-language section summaries using existing enrichment data — no new AI API calls.
+
+**Depends on:** Phase 15
+
+**Plans:** 3/3 plans complete
+Plans:
+**Wave 1** *(three independent fixes, no file overlap, fully parallel)*
+
+- [x] 24-01-PLAN.md — Revenue accuracy: LA_REVENUE actual_amount_column → null; reload FY2025/FY2026 revenue (~$44.6B → ~$10.2B)
+- [x] 24-02-PLAN.md — Operating fix: where_extra adopted>0 filter + fiscal_years 2017-2026; reload FY2017-2026 (enterprise-bleed fix + FY2021-24 actuals + FY2017-20 trees + orphaned FK repair)
+- [x] 24-03-PLAN.md — Summaries UI: surface enrichment.description (2-3 sentences) in PlainLanguageSummary; zero AI spend, zero DB writes
 
 ---
 
 ## Progress
 
-**Execution Order:** 11 → 12 → 13 → 14 → 15 → 16 (each phase sequential)
+**Execution Order:** Sequential phases 1→16 (all complete)
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -299,9 +294,17 @@ Plans:
 | 13. Richardson Operating Budget | v1.3 | 1/1 | Complete | 2026-05-22 |
 | 14. Category Enrichment (5 cities) | v1.3 | 2/2 | Complete | 2026-05-22 |
 | 15. Los Angeles Socrata + Enrichment | v1.4 | 3/3 | Complete | 2026-05-22 |
-| 16. California Cities Expansion | v1.4 | 0/? | Planned | — |
+| 16. California Cities Expansion | v1.4 | 5/5 | Complete | 2026-05-22 |
+| 17. Portland OR Budget Load | v1.5 | 4/4 | Complete | 2026-05-31 |
+| 18. Portland Historical Operating | v1.5 | — | Complete | 2026-05-31 |
+| 19. Portland Revenue Budget | v1.5 | — | Complete | 2026-05-31 |
+| 20. Gresham OR Budget Load | v1.5 | 4/4 | Complete    | 2026-06-01 |
+| 21. Gresham OR Revenue Load | v1.5 | 2/2 | Complete    | 2026-06-01 |
+| 22. Troutdale OR Budget Load | v1.5 | 3/3 | Complete    | 2026-06-02 |
+| 23. OR All Funds Consistency | v1.5 | 3/4 | In Progress|  |
+| 24. Los Angeles Data Refresh | v1.5 | 3/3 | Complete   | 2026-06-02 |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-05-22 — Phase 15 complete; next: Phase 16 (Fremont, San Diego, San Francisco, Berkeley CA)*
+*Last updated: 2026-06-02 — Phase 24 planned (3 plans, 1 wave: revenue fix + operating reload + summaries UI, all parallel, zero AI spend)*

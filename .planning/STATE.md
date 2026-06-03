@@ -1,99 +1,99 @@
+---
+gsd_state_version: 1.0
+milestone: v1.5
+milestone_name: — Oregon Expansion
+status: executing
+last_updated: "2026-06-02T18:55:35.478Z"
+last_activity: 2026-06-02
+progress:
+  total_phases: 8
+  completed_phases: 6
+  total_plans: 20
+  completed_plans: 20
+  percent: 75
+---
+
 # State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-21)
+See: .planning/PROJECT.md (updated 2026-05-23)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** v1.4 in progress — Phase 15 (LA) complete; planning Phase 16 (Fremont, San Diego, San Francisco, Berkeley CA)
+**Current focus:** Phase 24 — los-angeles-data-refresh
 
 ## Current Position
 
-Phase: 15 of 15+ (Phase 15 complete; Phase 16 planning in progress)
-Plan: Phase 15 all plans complete (3/3)
-Status: Phase 15 COMPLETE — planning Phase 16 (Fremont, San Diego, San Francisco, Berkeley CA)
-Last activity: 2026-05-22 — Phase 15-03 human verification approved; Phase 15 closed
+Phase: 24 (los-angeles-data-refresh) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-06-02
 
-Progress: v1.4 ████████████████████ Phase 15 100% — Phase 16 scope TBD
+Progress: [██████████] 100%
 
 ## Accumulated Context
 
-### Key Technical Decisions Carried Forward
+### Loaders Available
 
-- `bulkLoadPDF.js`: max_tokens=8192; stop_reason guard; section_heading cross-page context; datasetType param in buildExtractionPrompt
-- Future Prosper/Celina revenue path: pdftotext targeting "STATEMENT OF REVENUES, EXPENDITURES, AND CHANGES IN FUND BALANCES" section (processRevenuePDF.js pattern)
-- pdftotext-parser pattern: processLongviewBudget.js / processGarlandBudget.js as reference implementations
-- Richardson TX: cor.net blocks HTTP; manually browse https://www.cor.net/departments/budget to get PDF URL
-- Population schema decision: Path A (add `population_year` column to existing `municipalities` table) — zero frontend changes, one migration, valid for v1.3
-- Census source: `sub-est2024_48.csv` (TX vintage 2024), filter `SUMLEV === '162'`, use `POPESTIMATE2024` column — unauthenticated download, no API key
-- Name normalization required: Census names include suffixes ("Prosper town", "Celina city") — must strip before matching to municipalities.name
-- Per-capita restricted to most recent FY for v1.3 — one population vintage across FY2018-FY2026 creates false trends for fast-growing cities
-- Cost gating rule: estimate API cost before running; stop and get approval if >$5
+- `bulkLoadBudget.js` — generic Socrata SODA loader; supports `fiscal_year_type: 'integer'` and `where_extra` WHERE fragment in column_mapping
+- `loadSanDiegoCSV.js` — CSV download loader for seshat.datasd.org double-quoted format
+- `enrichCategories.js` — AI enrichment pipeline; `--city`, `--state`, `--year` flags; idempotent via name_key upsert
+- `bulkLoadXLSX.js` — XLSX check register / payroll loader
+- `bulkLoadPDF.js` — Claude Haiku vision PDF pipeline for ACFR budget extraction
 
-### Seeded Infrastructure (ready for v1.3)
+### Seeded Cities (active in DB)
 
-- Prosper Revenue FY2023/FY2024/FY2025 data_source rows (last_synced_at=null)
-- Celina Revenue FY2025 data_source row (id=0e2e54c5, last_synced_at=null)
-- Richardson Operating Budget FY2025/FY2026 placeholder data_source rows (placeholder URLs)
+- TX (13): Dallas, Plano, McKinney, Frisco, Allen, Prosper, Celina, Richardson, Garland, Wylie, Sachse, Murphy, Princeton
+- CA (3): Los Angeles, San Francisco, San Diego
+- OR (3): Portland (FY2022–FY2026 operating + revenue, 635,749 population, 41 enrichment rows), Gresham (FY2023–FY2026 operating + revenue, 111,507 population, 33 enrichment rows — 23 operating + 10 revenue), Troutdale (municipality seeded, 15,749 population — budget data loads in Plans 02-03)
 
-### Additional Decisions (Phase 12 Plans 01 and 03)
+### Known Tech Debt
 
-- Prosper revenue now captures ALL governmental fund B&A schedules (not just GF) — expected totals: FY2023=$83,186,603, FY2024=$101,863,293, FY2025=$108,416,768
-- Capital Projects Fund (no annual B&A) is derived as: all-funds total − sum of B&A fund actuals
-- extractAllFundsTotal: prefer FIRST 2-column row over 3-column candidates — avoids expenditure totals that appear later with higher values
-- FY2023 ACFR: Impact Fees / Debt Service / Parks Dedication / TIRZ 1 missing from B&A section detection (REVENUES header has no $ on same line); lumped into Capital Projects derived remainder
-- Overflow guard (>105% REVENUES total) blocks garbled continuation lines from adjacent all-funds table
-- Celina wide-table: position-based column detection (Total Governmental column at char pos >= 130); sanity check rejects total < GF
-- Celina GF actuals sum exactly to $68,888,029 (exact ACFR match); adopted_amount (total gov) has 8% over-estimate for ~3 rows with misaligned continuation
-- budget_categories table stores line items (not budgets.hierarchy which is always empty); RPC rows_inserted = budget_categories rows
+- `data_source_id` FK null on some budget rows (SF/SD/LA Rev FY2026) — pre-existing loader pattern, no UI impact
+- SD FY2026 absent from source CSV — update `fiscal_years: [2025]` → `[2025, 2026]` in SD data_source rows when SD publishes FY2026 adopted data
+- Portland revenue budget (Vol 2, fund-level) deferred per D-03 — requires a new phase if/when prioritized
 
-### Additional Decisions (Phase 14)
+### Decisions (Phase 21 Plan 01)
 
-- enrichCategories.js: run --dry-run first, then live sequentially (no --force); idempotent — avoids re-billing API calls on re-run
-- dark:text-ev-gray-300 fix applied to App.tsx category description paragraph (ev-gray-600 fails contrast on dark bg)
-- enrichCategories.js: always specify --year flag for non-2025 fiscal years (Sachse FY2026, Princeton FY2026 need --year 2026)
-- Sachse had 19 depth-0 categories (not ~9 estimated) — actual city budget has more granular dept structure; all enriched correctly
+- Revenue section detection uses `s.startswith('Resources ')` fallback — FY2024-2026 PDFs have "Resources Proposed Approved Adopted" on one line, not standalone "Resources"
+- OCR split-number fix: `r'^\d{1,3},'` condition (handles FY2023 `N,NNN,NNN` splits like `2 0,175,800`)
+- NORMALIZE dict covers 3 FY2023 name variants: Internal Service Charges, Li censes & Permits, In ternal Payments
+- SANITY_MAX gated on operating mode — revenue FY2026 ~$512M legitimately exceeds $500M cap
 
-### Additional Decisions (Phase 13)
+### Decisions (Phase 21 Plan 02)
 
-- Richardson XLSX uses 4 distinct formats across years — dispatched via FY_CONFIG.format key
-- Old format (FY2018-2022): Fund column is integer 11, uses Total DEPTNAME aggregated rows
-- New formats (FY2024+): account prefix 0110- filters GF; -767- account codes are transfers-out (excluded)
-- FY2023 unavailable from city — gap in series is expected
-- actual_amount populated from prior-year actuals column where available in sheet
+- Enrichment decision RUN: 4 of 10 revenue categories opaque to non-finance citizens ("Internal Svc Chrg", "Financing Proceeds", "Interfund Transfers", "Utility License Fees") — ~$0.01 cost, well under $5 threshold
+- UI auto-discovery confirmed: no frontend changes needed — App.tsx available_datasets pattern auto-shows Money In tab for dataset_type='revenue' rows
 
-### Blockers/Concerns
+### Decisions (Phase 22 Plan 01)
 
-- Prosper FY2024/FY2025 only yield 5 of ~10 revenue line items due to two-column PDF layout; 20% tolerance gate passes but detail is partial (not a blocker for display)
+- Troutdale fiscal year parsing uses YYYY-YY (dash) regex — Gresham slash regex returns 0 matches on Troutdale PDFs
+- Operating extraction targets General Fund page (ACCOUNT 01.00), not All Funds — All Funds Requirements has expenditure categories not departments
+- All 8 Troutdale PDFs downloaded successfully (FY2018-19 through FY2025-26) — no download failures
+- Troutdale population confirmed as 15749 (Census sub-est2024_41.csv, SUMLEV=162, 2024) — not 17000 estimate from CONTEXT.md
+- Troutdale OR seeded in DB (id=5acc9a64-6d95-4013-94d8-abf2b714928e); OR city count now 3 (Portland, Gresham, Troutdale)
 
-### Additional Decisions (Phase 11)
+### API Cost Threshold
 
-- mcp__supabase-local__apply_migration: use for DDL migrations instead of Supabase Dashboard manual paste — faster, no human gate
-- population column is `bigint` in DB (not `integer` as assumed in research) — no impact on loader
-
-### Additional Decisions (Phase 15 Plan 01)
-
-- LA pre-existing row 'LA City Budget & Expenditures' renamed to 'Los Angeles Operating Budget' via fallback upsert by dataset_id+municipality_id — id=01c50191 preserved
-- LA municipality id: 391bf791-1c1f-424f-a7a5-1b698c79093f
-- LA data_sources id: 01c50191-831e-4c88-82ef-e62a2e200e2b
-- Revenue dataset 6cbx-e2fd intentionally excluded — only through FY2022, summary-level only
-- base_url must be controllerdata.lacity.org (NOT data.lacity.org) — two separate Socrata portals
-
-### Additional Decisions (Phase 15 Plan 02)
-
-- treasury.budgets column is `total_budget` (NOT `total_amount`) — plan SQL templates reference wrong column name; actual data verified correctly
-- treasury_sync_budget_tree RPC matches budget rows by municipality_id+fiscal_year+dataset_type (not data_source_id); pre-existing LA rows updated in-place
-- LA FY2025 budget_id: 5a85c4a6-456f-49ba-af63-771dd0dde3a5 (total_budget=$19,855,424,569)
-- LA FY2026 budget_id: c24fec94-e886-4c47-ab1d-2cd7a505c4d1 (total_budget=$21,431,295,120)
-- 58 depth-0 categories for FY2025, 56 for FY2026 — ready for enrichCategories.js
-- Socrata counts matched RESEARCH.md exactly: FY2025=3,786 rows, FY2026=3,306 rows
-
-### Roadmap Evolution
-
-- Phase 15 added: Los Angeles Socrata budget load + enrichment (extends Socrata pipeline from Phase 5 + enrichment from Phase 14 to LA)
+$5 per run — estimate before running AI enrichment or PDF extraction.
 
 ## Session Continuity
 
-Last session: 2026-05-22
-Stopped at: Completed 15-02-PLAN.md (load LA operating budgets FY2025+FY2026)
+Last session: 2026-06-02T18:55:14.961Z
+Stopped at: Phase 23 context gathered
 Resume file: None
+
+## Performance Metrics
+
+| Phase | Plan | Duration | Notes |
+|-------|------|----------|-------|
+| Phase 22-troutdale-or-budget-load P01 | 7 | 3 tasks | 2 files |
+| Phase Phase 22-troutdale-or-budget-load P02 P7 | 2 tasks | - tasks | - files |
+| Phase 22 P03 | 45min | 3 tasks | 3 files |
+
+## Decisions
+
+- [Phase ?]: D-02 resolved: all 8 Troutdale FYs (FY2019-FY2026) included in Plan 03 live load — all parse cleanly with no SANITY FAIL
+- [Phase ?]: FY2019/FY2020 show 16 departments (COMMUNITY SERVICES absent) vs 17 for FY2021-FY2026 — structural difference, not parse error; both FYs included in live load
+- [Phase ?]: All 8 Troutdale FYs included
+- [Phase ?]: Enrichment scoped and run

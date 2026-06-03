@@ -117,7 +117,7 @@ function transformAPIResponse(budget: any, categories: BudgetCategory[], city?: 
       cityName: city?.name || budget.municipality?.name || 'Unknown',
       fiscalYear: budget.fiscal_year || budget.fiscalYear,
       population: city?.population || budget.municipality?.population || 0,
-      totalBudget: budget.total_budget || budget.totalBudget,
+      totalBudget: budget.total_budget ?? budget.totalBudget ?? 0,
       generatedAt: budget.generated_at || budget.generatedAt || new Date().toISOString(),
       hierarchy: budget.hierarchy || [],
       dataSource: budget.data_source || budget.dataSource || 'API',

@@ -17,6 +17,7 @@ interface PlainLanguageSummaryProps {
   isPastYear?: boolean;
   onCategoryClick?: (categoryName: string, dataset: 'operating' | 'revenue') => void;
   onYearClick?: () => void;
+  allFundsRequirementsData?: BudgetData | null;
 }
 
 /**
@@ -32,10 +33,11 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
   isPastYear = false,
   onCategoryClick,
   onYearClick,
+  allFundsRequirementsData = null,
 }) => {
   if (!operatingData) return null;
 
-  const budgetedTotal = operatingData.metadata.totalBudget;
+  const budgetedTotal = allFundsRequirementsData?.metadata.totalBudget ?? operatingData.metadata.totalBudget;
   const actualTotal = (operatingData.categories || []).reduce(
     (sum, c) => sum + (c.actualAmount ?? 0), 0
   );
@@ -181,6 +183,26 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
             )}
           </p>
 
+
+          {allFundsRequirementsData && operatingData &&
+            allFundsRequirementsData.metadata.totalBudget > operatingData.metadata.totalBudget && (
+            <p className="text-[13px] text-ev-gray-400 dark:text-ev-gray-500 mt-1 italic">
+              This {formatAmount(allFundsRequirementsData.metadata.totalBudget)} total covers all city funds.
+              The department breakdown below accounts for{' '}
+              <strong className="text-ev-gray-600 dark:text-ev-gray-300">
+                {formatAmount(operatingData.metadata.totalBudget)}
+              </strong>{' '}
+              in departmental operations; the remaining{' '}
+              <strong className="text-ev-gray-600 dark:text-ev-gray-300">
+                {formatAmount(
+                  allFundsRequirementsData.metadata.totalBudget - operatingData.metadata.totalBudget
+                )}
+              </strong>{' '}
+              covers debt service, capital projects, and other city-wide requirements.
+            </p>
+          )}
+
+
           {isNonprofit && (
             <p>
               {salariesTotal != null && salariesTotal > 0
@@ -229,6 +251,15 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
               )}.
             </p>
           )}
+
+
+          {topCategories[0]?.enrichment?.description &&
+            topCategories[0].enrichment.description !== topCategories[0].enrichment.shortDescription && (
+            <p className="text-[14px] text-ev-gray-500 dark:text-ev-gray-500 leading-relaxed italic">
+              {topCategories[0].enrichment.description}
+            </p>
+          )}
+
 
           {revenueData && (
             <p>

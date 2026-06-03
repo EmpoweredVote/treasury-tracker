@@ -109,6 +109,7 @@ function App() {
   const [operatingBudgetData, setOperatingBudgetData] = useState<BudgetData | null>(null);
   const [revenueData, setRevenueData] = useState<BudgetData | null>(null);
   const [salariesData, setSalariesData] = useState<BudgetData | null>(null);
+  const [allFundsRequirementsData, setAllFundsRequirementsData] = useState<BudgetData | null>(null);
   const [loading, setLoading] = useState(false);
   const [budgetLoadError, setBudgetLoadError] = useState(false);
   const [navigationPath, setNavigationPath] = useState<BudgetCategory[]>([]);
@@ -149,6 +150,7 @@ function App() {
       selectedEntity.available_datasets
         .filter(d => d.fiscal_year === parseInt(selectedYear))
         .map(d => d.dataset_type)
+        .filter(t => t !== 'all_funds_requirements')
     )];
   }, [selectedEntity, selectedYear]);
 
@@ -268,6 +270,7 @@ function App() {
     const hasOperating = entityDatasets.some(d => d.dataset_type === 'operating');
     const hasRevenue = entityDatasets.some(d => d.dataset_type === 'revenue');
     const hasSalaries = entityDatasets.some(d => d.dataset_type === 'salaries');
+    const hasAllFundsRequirements = entityDatasets.some(d => d.dataset_type === 'all_funds_requirements');
 
     const promises: Promise<BudgetData | null>[] = [
       hasOperating
@@ -293,6 +296,15 @@ function App() {
         setRevenueData(null);
         setSalariesData(null);
       });
+
+    // Load all_funds_requirements separately so a failure never affects the main data loads
+    if (hasAllFundsRequirements) {
+      loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'all_funds_requirements')
+        .then(data => setAllFundsRequirementsData(data))
+        .catch(() => setAllFundsRequirementsData(null));
+    } else {
+      setAllFundsRequirementsData(null);
+    }
   }, [selectedYear, selectedEntity]);
 
   // Load main budget data when dataset, year, or entity changes
@@ -717,6 +729,7 @@ function App() {
                   isPastYear={isPastYear}
                   onCategoryClick={handleSummaryCategoryClick}
                   onYearClick={() => yearSelectorRef.current?.open()}
+                  allFundsRequirementsData={allFundsRequirementsData}
                 />
               </div>
 
@@ -726,7 +739,7 @@ function App() {
                   activeDataset={activeDataset}
                   onDatasetChange={(id) => setActiveDataset(id as DatasetType)}
                   revenueTotal={revenueData?.metadata.totalBudget}
-                  operatingTotal={operatingBudgetData?.metadata.totalBudget}
+                  operatingTotal={allFundsRequirementsData?.metadata.totalBudget ?? operatingBudgetData?.metadata.totalBudget ?? undefined}
                   salariesTotal={salariesData?.metadata.totalBudget}
                   availableDatasets={availableDatasetTypes}
                   isNonprofit={selectedEntity?.entity_type === 'nonprofit'}
