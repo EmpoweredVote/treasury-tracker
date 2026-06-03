@@ -24,7 +24,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { parseArgs } from 'node:util';
 
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
+const SUPABASE_URL = process.env.SUPABASE_URL;
+if (!SUPABASE_URL) { console.error('Missing SUPABASE_URL env var'); process.exit(1); }
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!SUPABASE_KEY) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit(1); }
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -69,7 +70,7 @@ async function main() {
     const { error, count } = await supabase
       .schema('treasury')
       .from('data_sources')
-      .delete()
+      .delete({ count: 'exact' })
       .in('id', STALE_SOURCE_IDS);
 
     if (error) {
@@ -90,7 +91,7 @@ async function main() {
     const { error, count } = await supabase
       .schema('treasury')
       .from('budgets')
-      .delete()
+      .delete({ count: 'exact' })
       .eq('municipality_id', LA_COUNTY_ID)
       .in('dataset_type', ['operating', 'revenue'])
       .in('fiscal_year', FYS_TO_DELETE);
@@ -113,7 +114,7 @@ async function main() {
       const { error, count } = await supabase
         .schema('treasury')
         .from('budgets')
-        .delete()
+        .delete({ count: 'exact' })
         .eq('municipality_id', LA_COUNTY_ID)
         .eq('dataset_type', 'operating')
         .eq('fiscal_year', 2025);
