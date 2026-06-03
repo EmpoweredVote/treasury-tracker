@@ -35,10 +35,11 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
   onYearClick,
   allFundsRequirementsData = null,
 }) => {
-  if (!operatingData) return null;
-
-  const budgetedTotal = allFundsRequirementsData?.metadata.totalBudget ?? operatingData.metadata.totalBudget;
-  const actualTotal = (operatingData.categories || []).reduce(
+  // ── Derive values needed by hooks (safe even when operatingData is null) ──
+  const budgetedTotal = allFundsRequirementsData?.metadata.totalBudget
+    ?? operatingData?.metadata.totalBudget
+    ?? 0;
+  const actualTotal = (operatingData?.categories ?? []).reduce(
     (sum, c) => sum + (c.actualAmount ?? 0), 0
   );
   // Only use "spent" language if we actually have actual spending data
@@ -46,6 +47,39 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
   const showActual = isPastYear && hasActualData;
   // Current year with actual spend data — year isn't done, so use "has spent" + "As of {month}"
   const isCurrentYearWithActuals = !isPastYear && hasActualData;
+  // Revenue count-up animation + green-glow settle
+  const revenueTarget = revenueData?.metadata.totalBudget ?? 0;
+
+  // ── All hooks must be called unconditionally, before any return ───────
+  const [revenueGlowing, setRevenueGlowing] = useState(false);
+  const glowTimerRef = useRef<number | null>(null);
+  // Skip the glow on the initial null→value load; only glow on genuine increases.
+  const isFirstRevenueAnimRef = useRef(true);
+
+  // CRITICAL: onComplete MUST be wrapped in useCallback with stable deps,
+  // or the useAnimatedCounter effect resets on every render.
+  const handleRevenueSettled = useCallback(() => {
+    if (isFirstRevenueAnimRef.current) {
+      isFirstRevenueAnimRef.current = false;
+      return;
+    }
+    setRevenueGlowing(true);
+    if (glowTimerRef.current != null) window.clearTimeout(glowTimerRef.current);
+    glowTimerRef.current = window.setTimeout(() => setRevenueGlowing(false), 2000);
+  }, []);
+
+  const animatedRevenue = useAnimatedCounter(revenueTarget, 600, handleRevenueSettled);
+
+  // Cleanup pending timer on unmount
+  useEffect(() => {
+    return () => {
+      if (glowTimerRef.current != null) window.clearTimeout(glowTimerRef.current);
+    };
+  }, []);
+
+  // ── Guard: nothing to render without operating data ───────────────────
+  if (!operatingData) return null;
+
   const currentMonthName = new Date().toLocaleString('en-US', { month: 'long' });
   const total = showActual ? actualTotal : budgetedTotal;
   const population = entity.population;
@@ -96,34 +130,6 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
 
   const formatPerResident = (n: number) =>
     `$${Math.round(n).toLocaleString()}`;
-
-  // Revenue count-up animation + green-glow settle
-  const revenueTarget = revenueData?.metadata.totalBudget ?? 0;
-  const [revenueGlowing, setRevenueGlowing] = useState(false);
-  const glowTimerRef = useRef<number | null>(null);
-  // Skip the glow on the initial null→value load; only glow on genuine increases.
-  const isFirstRevenueAnimRef = useRef(true);
-
-  // CRITICAL: onComplete MUST be wrapped in useCallback with stable deps,
-  // or the useAnimatedCounter effect resets on every render.
-  const handleRevenueSettled = useCallback(() => {
-    if (isFirstRevenueAnimRef.current) {
-      isFirstRevenueAnimRef.current = false;
-      return;
-    }
-    setRevenueGlowing(true);
-    if (glowTimerRef.current != null) window.clearTimeout(glowTimerRef.current);
-    glowTimerRef.current = window.setTimeout(() => setRevenueGlowing(false), 2000);
-  }, []);
-
-  const animatedRevenue = useAnimatedCounter(revenueTarget, 600, handleRevenueSettled);
-
-  // Cleanup pending timer on unmount
-  useEffect(() => {
-    return () => {
-      if (glowTimerRef.current != null) window.clearTimeout(glowTimerRef.current);
-    };
-  }, []);
 
   return (
     <div className="bg-white dark:bg-ev-gray-800 border border-ev-gray-200 dark:border-ev-gray-700 rounded-xl overflow-hidden">
