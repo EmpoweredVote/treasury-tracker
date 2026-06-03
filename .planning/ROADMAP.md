@@ -296,7 +296,7 @@ Plans:
 
 **Wave 2** *(blocked on 25-02 county_id data + type)*
 
-- [ ] 25-03-PLAN.md — UI: verify ev-accounts-api returns county_id; county breadcrumb chip on city pages; CitiesInCountyPanel (Available now / Coming soon) on county pages
+- [x] 25-03-PLAN.md — UI: verify ev-accounts-api returns county_id; county breadcrumb chip on city pages; CitiesInCountyPanel (Available now / Coming soon) on county pages
 
 ---
 
@@ -330,7 +330,7 @@ Plans:
 | 22. Troutdale OR Budget Load | v1.5 | 3/3 | Complete    | 2026-06-02 |
 | 23. OR All Funds Consistency | v1.5 | 3/4 | In Progress|  |
 | 24. Los Angeles Data Refresh | v1.5 | 3/3 | Complete   | 2026-06-02 |
-| 25. LA County Data Completion + County-City Linking | v1.5 | 2/3 | In Progress | |
+| 25. LA County Data Completion + County-City Linking | v1.5 | 3/3 | Complete | 2026-06-03 |
 
 ---
 
