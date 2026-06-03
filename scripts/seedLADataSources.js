@@ -179,7 +179,13 @@ async function upsertDataSourceByName(src) {
     process.exit(1);
   }
 
-  return data?.[0];
+  const row = data?.[0];
+  if (!row) {
+    console.error(`  ERROR: no row returned for "${src.name}" after write`);
+    process.exit(1);
+  }
+
+  return row;
 }
 
 // ── Main ────────────────────────────────────────────────────────────────
@@ -197,11 +203,6 @@ async function main() {
   console.log(`Upserting data_source: ${src.name}`);
 
   const row = await upsertDataSourceByName(src);
-
-  if (!row) {
-    console.error(`  ERROR: no row returned for "${src.name}"`);
-    process.exit(1);
-  }
 
   console.log(`  id:           ${row.id}`);
   console.log(`  api_type:     ${row.api_type}`);
