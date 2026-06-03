@@ -402,7 +402,11 @@ function App() {
     if (!budgetId) return;
 
     loadLinkedTransactions(budgetId, currentCat.linkKey)
-      .then(summary => setLinkedTransactions(summary));
+      .then(summary => setLinkedTransactions(summary))
+      .catch(err => {
+        console.error('Failed to load linked transactions:', err);
+        setLinkedTransactions(null);
+      });
   }, [navigationPath, activeDataset, budgetData]);
 
   const handleCategoryClick = useCallback((category: BudgetCategory) => {
@@ -481,20 +485,20 @@ function App() {
 
     items.push({
       label: getDatasetLabel(activeDataset),
-      onClick: navigationPath.length > 0 ? () => handleBreadcrumbClick(items.length - 1) : undefined
+      onClick: navigationPath.length > 0 ? () => setNavigationPath([]) : undefined
     });
 
     navigationPath.forEach((category, index) => {
       items.push({
         label: category.enrichment?.plainName || category.name,
         onClick: index < navigationPath.length - 1
-          ? () => handleBreadcrumbClick(index + items.length - navigationPath.length + index)
+          ? () => setNavigationPath(navigationPath.slice(0, index + 1))
           : undefined
       });
     });
 
     return items;
-  }, [navigationPath, activeDataset, handleBreadcrumbClick, selectedEntity, countyEntity, municipalities]);
+  }, [navigationPath, activeDataset, selectedEntity, countyEntity, municipalities]);
 
   const displayText = getDatasetDisplayText(activeDataset);
 
@@ -558,7 +562,7 @@ function App() {
   }
 
   // Show error state when data load fails (after entity is resolved)
-  if (!loading && !budgetData) {
+  if (!loading && !budgetData && budgetLoadError) {
     return (
       <div className="min-h-screen bg-[#F7F7F8] dark:bg-ev-gray-950 font-manrope">
         <SiteHeader logoSrc={`${import.meta.env.BASE_URL}${isDark ? 'EV-Dark-Logo.png' : 'EV-Light-Logo.png'}`} style={darkHeaderStyle} />
