@@ -158,7 +158,8 @@ function App() {
   // Helper: navigate directly to an entity (used by landing page and auth routing)
   const navigateToEntity = useCallback((entity: Municipality, list: Municipality[]) => {
     const entityYears = [...new Set(entity.available_datasets.map(d => d.fiscal_year))].sort((a, b) => b - a);
-    const year = entityYears.length > 0 ? String(entityYears[0]) : '2025';
+    const operatingYears = [...new Set(entity.available_datasets.filter(d => d.dataset_type === 'operating').map(d => d.fiscal_year))].sort((a, b) => b - a);
+    const year = operatingYears.length > 0 ? String(operatingYears[0]) : (entityYears.length > 0 ? String(entityYears[0]) : '2025');
     setMunicipalities(list);
     setSelectedEntity(entity);
     setSelectedYear(year);
@@ -182,8 +183,11 @@ function App() {
         setSelectedEntity(entity);
 
         const entityYears = [...new Set(entity.available_datasets.map(d => d.fiscal_year))].sort((a, b) => b - a);
+        const operatingYears = [...new Set(entity.available_datasets.filter(d => d.dataset_type === 'operating').map(d => d.fiscal_year))].sort((a, b) => b - a);
         if (yearParam && entityYears.includes(parseInt(yearParam))) {
           setSelectedYear(yearParam);
+        } else if (operatingYears.length > 0) {
+          setSelectedYear(String(operatingYears[0]));
         } else if (entityYears.length > 0) {
           setSelectedYear(String(entityYears[0]));
         }
