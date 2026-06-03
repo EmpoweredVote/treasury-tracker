@@ -273,7 +273,7 @@ Plans:
 
 ---
 
-### Phase 25: LA County Data Completion + County-City Linking
+### Phase 25: LA County Data Completion + County-City Linking (COMPLETE — 2026-06-02)
 
 **Goal:** Citizens can view LA County government's full budget (Money In and Money Out) with accurate FY2021–2024 coverage from the CA State Controller county-specific datasets. The current "LA County" data in the DB was loaded from the city-aggregated datasets (not the county government's own budget) and is mislabeled — this phase re-loads from the correct county sources (uctr-c2j8 + emxv-k8xv), fixes population (currently 0), and repairs orphaned data_source_id FKs. Additionally, a `county_id` FK is added to the municipalities schema and populated for all LA County cities (plus San Diego, Sacramento, Berkeley, Fremont), enabling the first county-city relationship in the app — cities show a "Los Angeles County →" context link, and the county page shows which incorporated cities have budget data.
 
@@ -335,4 +335,4 @@ Plans:
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-06-02 — Phase 25 planned (3 plans, 2 waves: county data re-load + county_id schema/linking parallel, then bidirectional UI)*
+*Last updated: 2026-06-02 — Phase 25 complete (3/3 plans, county data reloaded, county_id schema + 88-city links seeded, bidirectional UI shipped)*
