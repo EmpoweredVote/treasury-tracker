@@ -20,7 +20,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { parseArgs } from 'node:util';
 
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
+const SUPABASE_URL = process.env.SUPABASE_URL;
+if (!SUPABASE_URL) { console.error('Missing SUPABASE_URL env var'); process.exit(1); }
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!SUPABASE_KEY) {
   console.error('Missing SUPABASE_SERVICE_KEY env var');
@@ -44,9 +45,9 @@ const OTHER_COUNTY_CITIES = {
 
 /** Three county rows to insert (linking-only — no budget data in this phase) */
 const COUNTY_ROWS_TO_INSERT = [
-  { name: 'San Diego County', state: 'CA', entity_type: 'county', population: 0, population_year: null },
-  { name: 'Sacramento County', state: 'CA', entity_type: 'county', population: 0, population_year: null },
-  { name: 'Alameda County', state: 'CA', entity_type: 'county', population: 0, population_year: null },
+  { name: 'San Diego County', state: 'CA', entity_type: 'county', population: null, population_year: null },
+  { name: 'Sacramento County', state: 'CA', entity_type: 'county', population: null, population_year: null },
+  { name: 'Alameda County', state: 'CA', entity_type: 'county', population: null, population_year: null },
 ];
 
 /** All 88 LA County incorporated cities (D-04) — all get county_id = LA_COUNTY_ID */
