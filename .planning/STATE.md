@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: — Oregon Expansion
 status: verifying
-last_updated: "2026-06-03T17:29:36.891Z"
+last_updated: "2026-06-03T18:00:00.000Z"
 last_activity: 2026-06-03
 progress:
   total_phases: 9

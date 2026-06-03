@@ -335,4 +335,4 @@ Plans:
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-06-02 — Phase 25 complete (3/3 plans, county data reloaded, county_id schema + 88-city links seeded, bidirectional UI shipped)*
+*Last updated: 2026-06-03 — Phase 24 gap-closure plan 24-04 complete (LA Money Out FY2025 confirmed ≈$19.86B, human-verified); Phase 25 complete (3/3 plans, county data reloaded, county_id schema + 88-city links seeded, bidirectional UI shipped)*
