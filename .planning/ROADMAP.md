@@ -291,8 +291,8 @@ Plans:
 Plans:
 **Wave 1** *(data + schema, no file overlap, parallel)*
 
-- [ ] 25-01-PLAN.md — Data re-load: clear stale operating/revenue + orphaned data_sources, reload FY2021-2024 from county datasets, fix population, resolve FY2025 operating disposition (decision checkpoint)
-- [ ] 25-02-PLAN.md — Schema + linking: add `county_id UUID REFERENCES treasury.municipalities(id)` via MCP migration; seed 3 county rows + link 88 LA cities and 4 other-CA cities; update Municipality type
+- [x] 25-01-PLAN.md — Data re-load: clear stale operating/revenue + orphaned data_sources, reload FY2021-2024 from county datasets, fix population, resolve FY2025 operating disposition (decision checkpoint)
+- [x] 25-02-PLAN.md — Schema + linking: add `county_id UUID REFERENCES treasury.municipalities(id)` via MCP migration; seed 3 county rows + link 88 LA cities and 4 other-CA cities; update Municipality type
 
 **Wave 2** *(blocked on 25-02 county_id data + type)*
 
@@ -330,7 +330,7 @@ Plans:
 | 22. Troutdale OR Budget Load | v1.5 | 3/3 | Complete    | 2026-06-02 |
 | 23. OR All Funds Consistency | v1.5 | 3/4 | In Progress|  |
 | 24. Los Angeles Data Refresh | v1.5 | 3/3 | Complete   | 2026-06-02 |
-| 25. LA County Data Completion + County-City Linking | v1.5 | 0/3 | Planned | |
+| 25. LA County Data Completion + County-City Linking | v1.5 | 2/3 | In Progress | |
 
 ---
 

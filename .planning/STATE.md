@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-23)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 24 — los-angeles-data-refresh
+**Current focus:** Phase 25 — la-county-data-completion-county-city-linking
 
 ## Current Position
 
-Phase: 24 (los-angeles-data-refresh) — EXECUTING
-Plan: 3 of 3
-Status: Ready to execute
-Last activity: 2026-06-02 -- Phase 25 planning complete
+Phase: 25 (la-county-data-completion-county-city-linking) — EXECUTING
+Plan: 2 of 3 (Wave 1 complete — Wave 2 starting)
+Status: In progress
+Last activity: 2026-06-02 -- Wave 1 complete: data reload + county_id schema seeded
 
 Progress: [██████████] 100%
 
