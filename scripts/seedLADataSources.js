@@ -105,7 +105,7 @@ function LA_DATA_SOURCE(municipalityId) {
       actual_amount_column: 'total_expenditures',
       category_column: 'department_name',
       subcategory_column: 'fund_name',
-      where_extra: "AND fund_name = 'GENERAL FUND (GENERAL BUDGET)'",
+      where_extra: "AND adopted_budget_amount > 0",
     },
     fiscal_years: [2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026],
     municipality_id: municipalityId,
