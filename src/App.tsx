@@ -21,6 +21,7 @@ import BudgetVisualization from './components/BudgetVisualization';
 import CategoryList from './components/CategoryList';
 import LineItemsTable from './components/LineItemsTable';
 import LinkedTransactionsPanel from './components/LinkedTransactionsPanel';
+import CitiesInCountyPanel from './components/CitiesInCountyPanel';
 import { getHeroImage, getHeroBgPosition } from './utils/wikiImage';
 import type { BudgetCategory, BudgetData, LinkedTransactionSummary, Municipality } from './types/budget';
 
@@ -443,29 +444,45 @@ function App() {
   }, [navigationPath]);
 
 
+  const countyEntity = useMemo(() =>
+    selectedEntity?.county_id
+      ? municipalities.find(m => m.id === selectedEntity.county_id) ?? null
+      : null,
+    [selectedEntity, municipalities]
+  );
+
   const breadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-    const items: BreadcrumbItem[] = [
-      {
-        label: selectedEntity?.name ?? 'City',
-        onClick: navigationPath.length > 0 ? () => setNavigationPath([]) : undefined
-      },
-      {
-        label: getDatasetLabel(activeDataset),
-        onClick: navigationPath.length > 0 ? () => handleBreadcrumbClick(1) : undefined
-      }
-    ];
+    const items: BreadcrumbItem[] = [];
+
+    // County prefix — only for cities with county_id
+    if (countyEntity) {
+      items.push({
+        label: countyEntity.name,
+        onClick: () => handleEntityChange(countyEntity)
+      });
+    }
+
+    items.push({
+      label: selectedEntity?.name ?? 'City',
+      onClick: navigationPath.length > 0 ? () => setNavigationPath([]) : undefined
+    });
+
+    items.push({
+      label: getDatasetLabel(activeDataset),
+      onClick: navigationPath.length > 0 ? () => handleBreadcrumbClick(items.length - 1) : undefined
+    });
 
     navigationPath.forEach((category, index) => {
       items.push({
         label: category.enrichment?.plainName || category.name,
         onClick: index < navigationPath.length - 1
-          ? () => handleBreadcrumbClick(index + 2)
+          ? () => handleBreadcrumbClick(index + items.length - navigationPath.length + index)
           : undefined
       });
     });
 
     return items;
-  }, [navigationPath, activeDataset, handleBreadcrumbClick, selectedEntity]);
+  }, [navigationPath, activeDataset, handleBreadcrumbClick, selectedEntity, countyEntity, municipalities]);
 
   const displayText = getDatasetDisplayText(activeDataset);
 
@@ -674,7 +691,7 @@ function App() {
         </div>
       </div>
 
-      {breadcrumbItems.length > 2 && <Breadcrumb items={breadcrumbItems} />}
+      {(countyEntity != null || breadcrumbItems.length > 2) && <Breadcrumb items={breadcrumbItems} />}
 
       {/* Donate arrow annotation — only on current-year nonprofit top-level view */}
       <DonateArrow
@@ -921,6 +938,15 @@ function App() {
               Use the tabs to switch between spending, revenue, and employee compensation.
               Every level lets you dig deeper until you reach individual line items and transactions.
             </div>
+          )}
+
+          {/* Cities in County panel — rendered below budget on county pages */}
+          {navigationPath.length === 0 && selectedEntity?.entity_type === 'county' && (
+            <CitiesInCountyPanel
+              county={selectedEntity}
+              municipalities={municipalities}
+              onCityClick={handleEntityChange}
+            />
           )}
         </div>
       </div>
