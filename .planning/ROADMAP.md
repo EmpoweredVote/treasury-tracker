@@ -366,7 +366,22 @@ Plans:
   4. Both cities show Revenue / Money In tabs with at least one fiscal year populated
   5. Per-capita displays correctly for Oakland (~444K) and San Jose (~997K)
   6. Enrichment descriptions visible for top categories in both cities
-**Plans:** TBD
+**Plans:** 4 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 28-01-PLAN.md — Seed Oakland + San Jose municipality rows (pop 444K / 997K) and the four GPF/General-Fund data_source rows; verify via treasury_list_source_ids
+
+**Wave 2** *(blocked on 28-01; Oakland and San Jose run in parallel — no file overlap)*
+
+- [ ] 28-02-PLAN.md — Oakland: download biennial PDFs, extractOakland.py (per-page FY detection, GPF label D-06) + processOakland.js; dry-run + live-load operating (best-effort revenue D-05)
+- [ ] 28-03-PLAN.md — San Jose: download PDFs, extractSanJose.py (General Fund only, enterprise-fund filter D-03, large-PDF early exit) + processSanJose.js; dry-run + live-load operating + best-effort revenue
+
+**Wave 3** *(blocked on 28-02 + 28-03 — needs loaded budget rows to enrich and verify)*
+
+- [ ] 28-04-PLAN.md — Enrichment for both cities behind the $0.10 cost gate (D-07); app spot-check all 6 success criteria; write 28-VERIFICATION.md
+
 **UI hint:** yes
 
 ### Phase 29: Long Beach + Bakersfield CA Data Load

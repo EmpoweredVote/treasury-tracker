@@ -117,12 +117,12 @@
 | POPUL-01 (Sacramento) | Phase 26 | 26-01, 26-02 |
 | CARRY-01 (Longview revenue) | Phase 27 | 27-01 |
 | CARRY-02 (STATE_LABELS) | Phase 27 | 27-02 |
-| DATA-02 (Oakland) | Phase 28 | TBD |
-| DATA-03 (San Jose) | Phase 28 | TBD |
-| ENRICH-01 (Oakland) | Phase 28 | TBD |
-| ENRICH-01 (San Jose) | Phase 28 | TBD |
-| POPUL-01 (Oakland) | Phase 28 | TBD |
-| POPUL-01 (San Jose) | Phase 28 | TBD |
+| DATA-02 (Oakland) | Phase 28 | 28-01, 28-02 |
+| DATA-03 (San Jose) | Phase 28 | 28-01, 28-03 |
+| ENRICH-01 (Oakland) | Phase 28 | 28-04 |
+| ENRICH-01 (San Jose) | Phase 28 | 28-04 |
+| POPUL-01 (Oakland) | Phase 28 | 28-01 |
+| POPUL-01 (San Jose) | Phase 28 | 28-01 |
 | DATA-04 (Long Beach) | Phase 29 | TBD |
 | DATA-07 (Bakersfield) | Phase 29 | TBD |
 | ENRICH-01 (Long Beach) | Phase 29 | TBD |
