@@ -8,7 +8,7 @@
 - ✅ **v1.3 Revenue Completion & Per-Capita Context** — Phases 11-14 (shipped 2026-05-22)
 - ✅ **v1.4 Geographic Expansion** — Phases 15-16 (shipped 2026-05-22)
 - ✅ **v1.5 Oregon Expansion** — Phases 17-25 (shipped 2026-06-04)
-- 📋 **v1.6** — Not yet planned (run `/gsd-new-milestone`)
+- 📋 **v1.6 California City Expansion** — Phases 26-30 (in progress)
 
 ---
 
@@ -304,6 +304,84 @@ Plans:
 
 ---
 
+## v1.6 California City Expansion (Phases 26–30)
+
+**Milestone goal:** Add 7 new California cities with full operating and revenue budget data, expanding CA coverage beyond LA/SF/SD, and close two carry-forward items from v1.5. All data loaded via PDF/CSV — no Socrata SODA API calls.
+
+**Requirements:** 11 discrete requirements (DATA-01–07, ENRICH-01, POPUL-01, CARRY-01, CARRY-02) | All covered ✓
+
+### Phase 26: Sacramento CA Data Load
+
+**Goal:** Sacramento is visible in the app with correct operating and revenue budget data, enrichment, and per-capita display
+**Depends on:** Nothing (loadSacramentoCSV.js already written)
+**Requirements:** DATA-01, ENRICH-01 (Sacramento), POPUL-01 (Sacramento)
+**Success Criteria** (what must be TRUE):
+  1. "Sacramento" appears in the city picker at treasurytracker.empowered.vote under "California"
+  2. Operating budget tab shows a total in the ~$1.6B range for the latest available FY
+  3. Revenue / Money In tab shows data with at least one fiscal year populated
+  4. Per-capita ($/resident) displays correctly using ~536K population
+  5. Category enrichment descriptions are visible (not empty) for top operating categories
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 27: Carry-forwards — Longview TX Revenue + STATE_LABELS
+
+**Goal:** Longview TX shows Money In data in the app and state group headers display full names everywhere in the city picker
+**Depends on:** Nothing (independent carry-forwards)
+**Requirements:** CARRY-01, CARRY-02
+**Success Criteria** (what must be TRUE):
+  1. Longview TX city page shows a Money In tab with revenue categories populated
+  2. City picker state group headers display "California", "Texas", and "Oregon" (not abbreviations)
+  3. Longview revenue categories have enrichment descriptions visible
+**Plans:** TBD
+
+### Phase 28: Oakland + San Jose CA Data Load
+
+**Goal:** Oakland and San Jose are visible in the app with operating and revenue budget data, covering both fiscal years of Oakland's biennial budget and General-Fund-scoped data for San Jose
+**Depends on:** Phase 26 (CA municipality seeding pattern confirmed)
+**Requirements:** DATA-02, DATA-03, ENRICH-01 (Oakland + San Jose), POPUL-01 (Oakland + San Jose)
+**Success Criteria** (what must be TRUE):
+  1. "Oakland" and "San Jose" appear in the city picker under "California"
+  2. Oakland operating budget shows data for at least 2 fiscal years (biennial); totals in the ~$2.1B/year range
+  3. San Jose operating budget tab shows a total in the ~$1.7–1.9B General Fund range (enterprise funds filtered or documented)
+  4. Both cities show Revenue / Money In tabs with at least one fiscal year populated
+  5. Per-capita displays correctly for Oakland (~444K) and San Jose (~997K)
+  6. Enrichment descriptions visible for top categories in both cities
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 29: Long Beach + Bakersfield CA Data Load
+
+**Goal:** Long Beach and Bakersfield are visible in the app with operating and revenue budget data; Port of Long Beach excluded, Long Beach non-standard FY documented
+**Depends on:** Phase 26 (CA municipality seeding pattern confirmed)
+**Requirements:** DATA-04, DATA-07, ENRICH-01 (Long Beach + Bakersfield), POPUL-01 (Long Beach + Bakersfield)
+**Success Criteria** (what must be TRUE):
+  1. "Long Beach" and "Bakersfield" appear in the city picker under "California"
+  2. Long Beach operating budget total is in the ~$1.5B General Fund range (Port of LB excluded; Oct–Sep FY documented in seeder)
+  3. Bakersfield operating budget total is in the ~$765M range
+  4. Both cities show Revenue / Money In tabs with at least one fiscal year populated
+  5. Per-capita displays correctly for Long Beach (~451K) and Bakersfield (~417K)
+  6. Enrichment descriptions visible for top categories in both cities
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 30: Fresno + Riverside CA Data Load
+
+**Goal:** Fresno and Riverside are visible in the app with operating and revenue budget data; Fresno enterprise funds filtered, Riverside biennial budget covers both fiscal years
+**Depends on:** Phase 26 (CA municipality seeding pattern confirmed)
+**Requirements:** DATA-05, DATA-06, ENRICH-01 (Fresno + Riverside), POPUL-01 (Fresno + Riverside)
+**Success Criteria** (what must be TRUE):
+  1. "Fresno" and "Riverside" appear in the city picker under "California"
+  2. Fresno operating budget total reflects ~$483M General Fund (enterprise funds filtered; not the ~$2.0B all-funds figure)
+  3. Riverside operating budget shows data for at least 2 fiscal years (biennial); totals in the ~$1.45B/year range (RPU utility filtered or documented)
+  4. Both cities show Revenue / Money In tabs with at least one fiscal year populated
+  5. Per-capita displays correctly for Fresno (~550K) and Riverside (~324K)
+  6. Enrichment descriptions visible for top categories in both cities
+**Plans:** TBD
+**UI hint:** yes
+
+---
+
 ## Progress
 
 **Execution Order:** Sequential phases 1→16 (all complete)
@@ -335,8 +413,13 @@ Plans:
 | 23. OR All Funds Consistency | v1.5 | 4/4 | Complete | 2026-06-03 |
 | 24. Los Angeles Data Refresh | v1.5 | 4/4 | Complete    | 2026-06-03 |
 | 25. LA County Data Completion + County-City Linking | v1.5 | 3/3 | Complete | 2026-06-03 |
+| 26. Sacramento CA Data Load | v1.6 | 0/? | Not started | - |
+| 27. Carry-forwards (Longview + STATE_LABELS) | v1.6 | 0/? | Not started | - |
+| 28. Oakland + San Jose CA Data Load | v1.6 | 0/? | Not started | - |
+| 29. Long Beach + Bakersfield CA Data Load | v1.6 | 0/? | Not started | - |
+| 30. Fresno + Riverside CA Data Load | v1.6 | 0/? | Not started | - |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-06-03 — Phase 24 gap-closure plan 24-04 complete (LA Money Out FY2025 confirmed ≈$19.86B, human-verified); Phase 25 complete (3/3 plans, county data reloaded, county_id schema + 88-city links seeded, bidirectional UI shipped)*
+*Last updated: 2026-06-03 — v1.6 roadmap added (Phases 26–30, California City Expansion)*

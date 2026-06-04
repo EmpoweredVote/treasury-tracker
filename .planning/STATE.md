@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: California City Expansion
 status: planning
-last_updated: "2026-06-04T03:46:28.230Z"
-last_activity: 2026-06-04
+last_updated: "2026-06-03T00:00:00.000Z"
+last_activity: 2026-06-03
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,59 +17,68 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-23)
+See: .planning/PROJECT.md (updated 2026-06-03)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 25 — la county data completion county city linking
+**Current focus:** Phase 26 — Sacramento CA Data Load
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 26 — Sacramento CA Data Load
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-04 — Milestone v1.6 started
+Status: Not started — roadmap defined, awaiting first plan
+Last activity: 2026-06-03 — v1.6 roadmap created (Phases 26–30)
+
+Progress: [ Phase 26 ] [ Phase 27 ] [ Phase 28 ] [ Phase 29 ] [ Phase 30 ]
+          [  pending  ] [  pending  ] [  pending  ] [  pending  ] [  pending  ]
 
 ## Accumulated Context
 
 ### Loaders Available
 
 - `bulkLoadBudget.js` — generic Socrata SODA loader; supports `fiscal_year_type: 'integer'` and `where_extra` WHERE fragment in column_mapping
+- `loadSacramentoCSV.js` — ArcGIS CSV loader for Sacramento; already written, seed + run
 - `loadSanDiegoCSV.js` — CSV download loader for seshat.datasd.org double-quoted format
 - `enrichCategories.js` — AI enrichment pipeline; `--city`, `--state`, `--year` flags; idempotent via name_key upsert
 - `bulkLoadXLSX.js` — XLSX check register / payroll loader
 - `bulkLoadPDF.js` — Claude Haiku vision PDF pipeline for ACFR budget extraction
+- pdfplumber Python extractor — used for Portland, Gresham, Troutdale OR; primary tool for CA PDF cities
 
 ### Seeded Cities (active in DB)
 
-- TX (13): Dallas, Plano, McKinney, Frisco, Allen, Prosper, Celina, Richardson, Garland, Wylie, Sachse, Murphy, Princeton
-- CA (3): Los Angeles, San Francisco, San Diego
-- OR (3): Portland (FY2022–FY2026 operating + revenue, 635,749 population, 41 enrichment rows), Gresham (FY2023–FY2026 operating + revenue, 111,507 population, 33 enrichment rows — 23 operating + 10 revenue), Troutdale (municipality seeded, 15,749 population — budget data loads in Plans 02-03)
+- TX (14): Dallas, Plano, McKinney, Frisco, Allen, Prosper, Celina, Richardson, Garland, Wylie, Sachse, Murphy, Princeton, Longview
+- CA (3 + LA County): Los Angeles, San Francisco, San Diego, LA County
+- OR (3): Portland (FY2022–FY2026 operating + revenue, 635,749 population, 41 enrichment rows), Gresham (FY2023–FY2026 operating + revenue, 111,507 population, 33 enrichment rows), Troutdale (FY2019–FY2026 operating + revenue, 15,749 population, 26 enrichment rows)
 
-### Known Tech Debt
+### CA PDF Extraction Notes (from Research)
+
+- Sacramento: `loadSacramentoCSV.js` already exists — fastest phase in milestone; FY label "FY2024/25" → integer 2025
+- Oakland: pdfplumber; biennial budget (one PDF = 2 FYs); fund name is "General Purpose Fund" (GPF), NOT "General Fund"
+- San Jose: pdfplumber; 400+ page PDFs — use targeted page-range extraction; 100+ funds, enterprise funds (Airport, Wastewater, Water) to filter
+- Long Beach: pdfplumber; non-standard FY Oct–Sep; Port of Long Beach (~$760M) is a SEPARATE entity — exclude entirely
+- Fresno: pdfplumber; enterprise funds (~$899M) exceed General Fund (~$483M) — apply fund filter
+- Riverside: pdfplumber; biennial budget; RPU municipal electric utility — large enterprise fund; do NOT confuse with Riverside County
+- Bakersfield: pdfplumber or pdftotext; investigate `budget.bakersfieldcity.us` SODA endpoint first before defaulting to PDF
+
+### Population Source (CA cities)
+
+Census `sub-est2024_06.csv` (SUMLEV=162, California sub-county estimates) — same methodology as TX and OR.
+
+Values (2024 estimates): Sacramento ~536K, Oakland ~444K, San Jose ~997K, Long Beach ~451K, Fresno ~550K, Riverside ~324K, Bakersfield ~417K
+
+### Enrichment Cost Estimate (v1.6)
+
+~315 enrichment calls across 7 cities (7 × ~45 categories avg) ≈ $0.06 total — well under $5 threshold.
+
+### Known Tech Debt (carried from v1.5)
 
 - `data_source_id` FK null on some budget rows (SF/SD/LA Rev FY2026) — pre-existing loader pattern, no UI impact
-- SD FY2026 absent from source CSV — update `fiscal_years: [2025]` → `[2025, 2026]` in SD data_source rows when SD publishes FY2026 adopted data
+- SD FY2026 absent from source CSV — update `fiscal_years: [2025]` → `[2025, 2026]` when SD publishes FY2026 adopted data
 - Portland revenue budget (Vol 2, fund-level) deferred per D-03 — requires a new phase if/when prioritized
-
-### Decisions (Phase 21 Plan 01)
-
-- Revenue section detection uses `s.startswith('Resources ')` fallback — FY2024-2026 PDFs have "Resources Proposed Approved Adopted" on one line, not standalone "Resources"
-- OCR split-number fix: `r'^\d{1,3},'` condition (handles FY2023 `N,NNN,NNN` splits like `2 0,175,800`)
-- NORMALIZE dict covers 3 FY2023 name variants: Internal Service Charges, Li censes & Permits, In ternal Payments
-- SANITY_MAX gated on operating mode — revenue FY2026 ~$512M legitimately exceeds $500M cap
-
-### Decisions (Phase 21 Plan 02)
-
-- Enrichment decision RUN: 4 of 10 revenue categories opaque to non-finance citizens ("Internal Svc Chrg", "Financing Proceeds", "Interfund Transfers", "Utility License Fees") — ~$0.01 cost, well under $5 threshold
-- UI auto-discovery confirmed: no frontend changes needed — App.tsx available_datasets pattern auto-shows Money In tab for dataset_type='revenue' rows
-
-### Decisions (Phase 22 Plan 01)
-
-- Troutdale fiscal year parsing uses YYYY-YY (dash) regex — Gresham slash regex returns 0 matches on Troutdale PDFs
-- Operating extraction targets General Fund page (ACCOUNT 01.00), not All Funds — All Funds Requirements has expenditure categories not departments
-- All 8 Troutdale PDFs downloaded successfully (FY2018-19 through FY2025-26) — no download failures
-- Troutdale population confirmed as 15749 (Census sub-est2024_41.csv, SUMLEV=162, 2024) — not 17000 estimate from CONTEXT.md
-- Troutdale OR seeded in DB (id=5acc9a64-6d95-4013-94d8-abf2b714928e); OR city count now 3 (Portland, Gresham, Troutdale)
+- Phase 07 verification (07-VERIFICATION.md) — human_needed, pre-v1.5, shipped milestone
+- Phase 14 verification (14-VERIFICATION.md) — human_needed, pre-v1.5, shipped milestone
+- Phase 22 Troutdale app spot-check (22-VERIFICATION.md) — deferred
+- Phase 25 LA County app spot-check (25-VERIFICATION.md) — deferred
 
 ### API Cost Threshold
 
@@ -77,29 +86,23 @@ $5 per run — estimate before running AI enrichment or PDF extraction.
 
 ## Session Continuity
 
-Last session: 2026-06-03T17:29:36.880Z
-Stopped at: context exhaustion at 76% (2026-06-03)
+Last session: 2026-06-03
+Stopped at: Roadmap defined for v1.6
 Resume file: None
 
 ## Performance Metrics
 
 | Phase | Plan | Duration | Notes |
 |-------|------|----------|-------|
-| Phase 22-troutdale-or-budget-load P01 | 7 | 3 tasks | 2 files |
-| Phase Phase 22-troutdale-or-budget-load P02 P7 | 2 tasks | - tasks | - files |
-| Phase 22 P03 | 45min | 3 tasks | 3 files |
-| Phase 24 P03 | 10min | 2 tasks | 1 files |
+| (v1.6 not started) | - | - | - |
 
 ## Decisions
 
-- [Phase ?]: D-02 resolved: all 8 Troutdale FYs (FY2019-FY2026) included in Plan 03 live load — all parse cleanly with no SANITY FAIL
-- [Phase ?]: FY2019/FY2020 show 16 departments (COMMUNITY SERVICES absent) vs 17 for FY2021-FY2026 — structural difference, not parse error; both FYs included in live load
-- [Phase ?]: All 8 Troutdale FYs included
-- [Phase ?]: Enrichment scoped and run
+(No v1.6 decisions yet)
 
 ## Deferred Items
 
-Items acknowledged and deferred at milestone close on 2026-06-04:
+Items deferred at v1.5 milestone close (2026-06-04):
 
 | Category | Item | Status |
 |----------|------|--------|
@@ -107,10 +110,3 @@ Items acknowledged and deferred at milestone close on 2026-06-04:
 | verification | Phase 14 (14-VERIFICATION.md) | human_needed — pre-v1.5, shipped milestone |
 | verification | Phase 22 (22-VERIFICATION.md) | human_needed — Troutdale app spot-check deferred |
 | verification | Phase 25 (25-VERIFICATION.md) | human_needed — LA County app spot-check deferred |
-| quick_task | 001-create-treasury-tracker-entries-for-ever | complete (SUMMARY.md exists; audit format mismatch) |
-| quick_task | 002-add-longview-tx-revenue | complete (SUMMARY.md exists; Longview live in app) |
-| quick_task | 003-longview-operating-budget | complete (SUMMARY.md exists; Longview live in app) |
-
-## Operator Next Steps
-
-- Start the next milestone with /gsd-new-milestone

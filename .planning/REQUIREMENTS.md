@@ -16,15 +16,17 @@
   - FY label normalization: "FY2024/25" → integer `2025` (ending year convention)
 
 - [ ] **DATA-02**: Oakland CA operating + revenue budget loaded and visible in app
-  - Socrata (data.oaklandca.gov) — confirm dataset ID during phase research
+  - PDF extraction (pdfplumber) — download adopted budget PDFs from oaklandca.gov
+  - No API calls; no Socrata SODA API
   - Biennial budget: one document covers 2 FYs — run two extraction passes per document
   - Fund name: "General Purpose Fund" (GPF), not "General Fund"
   - Target totals: ~$2.1B/year operating
 
 - [ ] **DATA-03**: San Jose CA operating + revenue budget loaded and visible in app
-  - Socrata (data.sanjoseca.gov) — confirm dataset ID during phase research
+  - PDF extraction (pdfplumber) — download adopted budget PDFs from sanjoseca.gov
+  - No API calls; no Socrata SODA API
   - 100+ fund structure; enterprise funds (Airport, Wastewater, Water) to be filtered or documented
-  - Large PDFs (400+ pages) if fallback to PDF extraction needed — use targeted page-range approach
+  - Large PDFs (400+ pages) — use targeted page-range extraction approach
   - Target totals: ~$5.3B all-funds; ~$1.7–1.9B General Fund
 
 - [ ] **DATA-04**: Long Beach CA operating + revenue budget loaded and visible in app
@@ -47,9 +49,10 @@
   - Do NOT confuse with Riverside County budget (separate government)
 
 - [ ] **DATA-07**: Bakersfield CA operating + revenue budget loaded and visible in app
-  - Confirm portal type first: `budget.bakersfieldcity.us` — check for SODA endpoint before defaulting to PDF
+  - PDF extraction (pdfplumber or pdftotext) — download adopted budget PDF from bakersfieldcity.us
+  - No API calls; Open Budget portal used for reference/validation only, not as data source
   - Target totals: ~$853M total (operating ~$765M + capital ~$88M)
-  - Smallest city in this set; Open Budget portal is primary data access point
+  - Smallest city in this set
 
 ### Enrichment
 
@@ -110,13 +113,25 @@
 | REQ-ID | Phase | Plan |
 |--------|-------|------|
 | DATA-01 (Sacramento) | Phase 26 | TBD |
+| ENRICH-01 (Sacramento) | Phase 26 | TBD |
+| POPUL-01 (Sacramento) | Phase 26 | TBD |
 | CARRY-01 (Longview revenue) | Phase 27 | TBD |
 | CARRY-02 (STATE_LABELS) | Phase 27 | TBD |
 | DATA-02 (Oakland) | Phase 28 | TBD |
 | DATA-03 (San Jose) | Phase 28 | TBD |
+| ENRICH-01 (Oakland) | Phase 28 | TBD |
+| ENRICH-01 (San Jose) | Phase 28 | TBD |
+| POPUL-01 (Oakland) | Phase 28 | TBD |
+| POPUL-01 (San Jose) | Phase 28 | TBD |
 | DATA-04 (Long Beach) | Phase 29 | TBD |
 | DATA-07 (Bakersfield) | Phase 29 | TBD |
+| ENRICH-01 (Long Beach) | Phase 29 | TBD |
+| ENRICH-01 (Bakersfield) | Phase 29 | TBD |
+| POPUL-01 (Long Beach) | Phase 29 | TBD |
+| POPUL-01 (Bakersfield) | Phase 29 | TBD |
 | DATA-05 (Fresno) | Phase 30 | TBD |
 | DATA-06 (Riverside) | Phase 30 | TBD |
-| ENRICH-01 | Phases 26–30 | Per-city enrichment within each phase |
-| POPUL-01 | Phases 26–30 | Per-city population seed within each phase |
+| ENRICH-01 (Fresno) | Phase 30 | TBD |
+| ENRICH-01 (Riverside) | Phase 30 | TBD |
+| POPUL-01 (Fresno) | Phase 30 | TBD |
+| POPUL-01 (Riverside) | Phase 30 | TBD |
