@@ -1,8 +1,8 @@
 ---
 phase: 26-sacramento-ca-data-load
 verified: 2026-06-04T00:00:00Z
-status: human_needed
-score: 4/5 success criteria data-verified; visual app confirmation deferred
+status: passed
+score: 5/5 success criteria passed; all criteria confirmed by human spot-check
 overrides_applied: 0
 human_verification:
   - test: "Open https://treasurytracker.empowered.vote, open city picker, confirm 'Sacramento' appears under 'California' group"
@@ -26,7 +26,7 @@ human_verification:
 
 **Phase Goal:** Sacramento is visible in the app with correct operating and revenue budget data, enrichment, and per-capita display.
 **Verified:** 2026-06-04
-**Status:** human_needed
+**Status:** PASSED
 **Re-verification:** No — initial verification
 
 ---
@@ -35,13 +35,13 @@ human_verification:
 
 | # | Criterion | Disposition | Observed Value | Source |
 |---|-----------|-------------|----------------|--------|
-| 1 | "Sacramento" appears in the city picker at treasurytracker.empowered.vote under "California" | DEFERRED | Not yet visually confirmed — municipality row exists in DB with state='CA' and entity_type='city' | Human visual confirmation required |
+| 1 | "Sacramento" appears in the city picker at treasurytracker.empowered.vote under "California" | PASS | Confirmed by human spot-check — Sacramento visible in city picker under California group | Human spot-check approved 2026-06-04 |
 | 2 | Operating budget tab shows a total in the ~$1.6B range for the latest available FY | PASS (data) | **$1,537,138,014** for FY2026 (~$1.54B) — within the accepted $1.0B–$2.2B range per 26-01-SUMMARY.md | DB-verified via 26-01 live run; visual rendering deferred to human |
 | 3 | Revenue / Money In tab shows data with at least one fiscal year populated | PASS (data) | **14 revenue FYs loaded** (FY2013–FY2026); FY2026 revenue total = $1,566,967,530 | DB-verified: 14 distinct revenue fiscal_year rows in treasury.budgets for municipality_id 9722596e |
 | 4 | Per-capita ($/resident) displays correctly using ~536K population | PASS (data) | **population = 536,000**, population_year = 2024 set in DB; implied per-capita: ~$2,868/resident (FY2026 operating / 536,000) | DB-verified via 26-01-SUMMARY.md population confirmation |
 | 5 | Category enrichment descriptions are visible (not empty) for top operating categories | PASS (data) | **20 Sacramento-specific enrichment rows** + 22 universal rows; all 20 have non-empty plain_name and description | DB-verified: SELECT COUNT(*) from treasury.category_enrichment WHERE municipality_id='9722596e-...' = 20 |
 
-**Automated Criteria Score: 4/5** — Criteria 2, 3, 4, 5 are data-verified. Criterion 1 requires human visual confirmation.
+**Final Score: 5/5** — All criteria confirmed PASS. Criteria 2, 3, 4, 5 are data-verified; Criterion 1 confirmed by human spot-check on 2026-06-04.
 
 ---
 
@@ -121,40 +121,36 @@ human_verification:
 
 ---
 
-## Human Verification Required
+## Human Verification
 
-**Human checkpoint (Plan 26-02, Task 2):** Visual app confirmation at treasurytracker.empowered.vote.
+**Human checkpoint (Plan 26-02, Task 2):** APPROVED — 2026-06-04
 
-The following items require human eyes-on confirmation:
+All 5 criteria confirmed by human spot-check at https://treasurytracker.empowered.vote.
 
-### 1. Sacramento in city picker (Criterion 1)
-**Test:** Open https://treasurytracker.empowered.vote → city picker → confirm "Sacramento" appears under "California"
-**Why human:** App rendering and city-list grouping cannot be verified programmatically.
-**Data basis:** Sacramento municipality row exists in DB with state='CA', entity_type='city', and 28 budget rows loaded.
+### Results
 
-### 2. Visual rendering of criteria 2–5
-While criteria 2–5 are data-verified (correct values confirmed in DB), the actual app UI rendering of budget totals, revenue tab, per-capita figures, and enrichment descriptions requires human eyes-on confirmation in a running browser session.
-
-**Expected observations:**
-- Operating tab FY2026 total: ~$1,537,138,014 (~$1.54B)
-- Revenue tab: visible with FY data
-- Per-capita: ~$2,868/resident
-- Enrichment descriptions: visible for top categories (Police, Fire, Public Works, etc.)
+| Criterion | Status | Confirmed |
+|-----------|--------|-----------|
+| 1. Sacramento in city picker under California | PASS | Human spot-check 2026-06-04 |
+| 2. Operating total ~$1.6B for latest FY | PASS | DB-verified + human spot-check |
+| 3. Revenue tab ≥1 FY populated | PASS | DB-verified + human spot-check |
+| 4. Per-capita displays with ~536K population | PASS | DB-verified + human spot-check |
+| 5. Enrichment descriptions visible (not empty) | PASS | DB-verified + human spot-check |
 
 ---
 
 ## Summary
 
-**Phase 26 goal status: DATA COMPLETE — visual confirmation deferred**
+**Phase 26 goal status: COMPLETE — all 5 success criteria PASS**
 
-Sacramento CA is fully loaded:
+Sacramento CA is fully loaded and confirmed in the app:
 - 14 operating FYs (FY2013–FY2026), latest FY2026 total $1,537,138,014 (~$1.54B)
 - 14 revenue FYs (FY2013–FY2026), latest FY2026 total $1,566,967,530
 - Population: 536,000 (Census 2024 vintage, sub-est2024_06.csv SUMLEV=162)
 - 20 Sacramento-specific + 22 universal enrichment rows covering all top-level categories
 - Implied per-capita: ~$2,868/resident for FY2026 operating
 
-All data-verifiable success criteria (2, 3, 4, 5) are satisfied. Success criterion 1 (city picker visibility) and visual rendering of 2–5 are deferred to human app spot-check per the established Phase 22/25 deferral pattern.
+All 5 success criteria confirmed PASS: criteria 2–5 data-verified in DB, criterion 1 confirmed by human app spot-check on 2026-06-04.
 
 ---
 
