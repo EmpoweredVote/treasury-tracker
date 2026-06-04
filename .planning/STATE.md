@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: California City Expansion
-status: ready_to_plan
-last_updated: "2026-06-04T22:30:00Z"
-last_activity: 2026-06-04 -- Phase 27 complete
+status: planning
+last_updated: "2026-06-04T22:49:33.478Z"
+last_activity: 2026-06-04
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 4
-  completed_plans: 5
+  completed_plans: 4
   percent: 40
 ---
 
@@ -86,9 +86,9 @@ $5 per run — estimate before running AI enrichment or PDF extraction.
 
 ## Session Continuity
 
-Last session: 2026-06-04T22:07:45.385Z
-Stopped at: Phase 26 context gathered
-Resume file: None
+Last session: 2026-06-04T22:49:33.470Z
+Stopped at: Phase 28 context gathered
+Resume file: .planning/phases/28-oakland-san-jose-ca-data-load/28-CONTEXT.md
 
 ## Performance Metrics
 
