@@ -1,206 +1,192 @@
-# Feature Landscape: Donate and Immediately See Your Impact
+# Feature Research: v1.6 California City Expansion
 
-**Domain:** Post-donation return flow on a financial transparency dashboard
-**Researched:** 2026-04-20
-**Milestone:** Real-time donation feedback UX
-
----
-
-## Emotional Goal
-
-The user must feel: "I gave $5 and I can see that $5 in the total right now."
-
-This closes the "did my donation matter?" loop that research confirms is the single
-biggest driver of donor return behavior. Nearly 1 in 4 donors stop giving due to a
-lack of transparency about how their donations are used. Showing the updated total
-instantly — not in an email, not in a week — is the differentiating act.
+**Researched:** 2026-06-03
+**Milestone:** v1.6 — Seven new California cities added to Treasury Tracker
 
 ---
 
-## Table Stakes
+## City Data Profiles
 
-Features that must exist for the flow to feel complete. Missing any of these and the
-moment falls flat.
+### Long Beach, CA
 
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Donate button on the financials page | Users expect a direct path from seeing the need to acting on it | Low | Must be visible at the QuickFactsRow level, near the "Incoming" total |
-| Post-donation landing back on financials.empowered.vote | Without this the loop never closes | Medium | GiveButter does not natively support redirect URLs; this requires the donate link to encode a return path, or use a GiveButter webhook + Supabase to refresh the total |
-| Updated "Incoming" total visible immediately | The core promise of the flow | Medium | Total must reflect the new donation, not a cached value from before the user left |
-| Brief thank-you message on return | Donors expect confirmation that the system received their gift | Low | A banner or callout, not a full interstitial page |
-| Clear copy on the donate button | "Donate" is fine; context should connect giving to the financials being shown | Low | "Support this work" or "Donate to EV" anchors the ask to the page they are on |
-
----
-
-## Differentiators
-
-Features that elevate this from "generic donation CTA" to something memorable.
-
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| Animated counter roll-up on the "Incoming" total | Makes the impact visceral — the number visibly climbs to include the donor's contribution | Low-Med | CountUp.js or pure CSS/JS; duration 800–1200ms; easing makes it feel organic, not mechanical |
-| Personalized thank-you that names the amount | "You just added $5. Total incoming: $2,224." connects the abstract total to the specific gift | Low | Requires amount to survive the redirect (query param or sessionStorage) |
-| Subtle highlight/pulse on the updated card | Draws the eye to the changed value after the animation completes without being garish | Low | CSS keyframe: yellow (#F5C842) glow fading over ~2s; brand-consistent and reads as "new" |
-| "Your $X is X.XX% of total incoming" micro-stat | Transforms a small dollar amount into a concrete share of the mission | Low | Pure math; deeply satisfying for small donors who feel their gift is trivial |
-| Persistent "you contributed" chip on the QuickFacts card | Stays visible for the session so the donor can share the page and still see their mark | Low | sessionStorage keyed to the amount; disappears on refresh |
-| Social share nudge after the moment lands | "Share your impact" after the animation lets donor evangelism happen at peak emotional engagement | Med | Secondary — do not interrupt the impact moment; offer it after a 3–4s delay |
+- **Population:** ~451,000 (ACS 2024 1-year estimate: 450,917)
+- **Operating budget total:** ~$3.6B total all funds (FY2025, Oct 2024–Sep 2025); ~$3.7B FY2026
+- **General Fund:** ~$1.5B estimated (general services portion; enterprise funds account for ~32% of total, roughly $1.15B)
+- **Revenue budget total:** Revenue data is included in the adopted budget documents; not broken out as a standalone document, but is present within the full budget book
+- **Fiscal years available:** FY2005 through FY2026 (22 years of adopted budget documents published on longbeach.gov/finance)
+- **Fiscal year calendar:** October 1 – September 30 (non-standard; does NOT align with July–June CA norm)
+- **Data quality notes:**
+  - Large enterprise fund complex: Gas, Refuse, Water, Airport, Development Services, and Harbor each operate as self-contained enterprise funds. The Harbor Department alone has its own Comprehensive Annual Financial Report.
+  - Port of Long Beach is a separate entity (~$760M annual budget) and is NOT part of the city budget — do not include it.
+  - October–September fiscal year means FY25 = Oct 2024–Sep 2025. All year labels must be confirmed carefully during data load to avoid off-by-one confusion with other CA cities.
+  - City is facing a projected $28M General Fund deficit in coming years (oil revenue decline); budget documents include both General Fund and all-funds figures.
+  - Budget book is available as PDF sections; no interactive OpenGov portal confirmed for Long Beach.
 
 ---
 
-## Anti-Features
+### San Jose, CA
 
-Things that would actively hurt the experience. These are common patterns in nonprofit
-fundraising UX that would feel wrong on a transparency-first dashboard.
-
-| Anti-Feature | Why Avoid | What to Do Instead |
-|--------------|-----------|-------------------|
-| Full-page interstitial "Thank You" overlay | Breaks context; the whole point is staying on the financials page to see the impact | Brief banner at top of QuickFactsRow — transient, dismissible |
-| Popups or modals requesting email opt-in on return | Donor just gave; immediately asking for more is a trust-killer | GiveButter handles the receipt email; do not duplicate or append asks |
-| Showing a stale/cached total (no refresh) | The loop never closes if the number does not change | Force a data refetch on return, or pass the new total as a query param as a fallback |
-| Requiring login to see the updated total | Adds friction at the most emotionally charged moment of the flow | The page is public; no auth gate on this path |
-| Animating on every page load (not just post-donation return) | Desensitizes users and makes the animation meaningless | Gate the animation behind detection of the `?donated=true` (or equivalent) query param |
-| Donate button that navigates away without context | Loses the page state; donor returns to homepage or a generic GiveButter page | Use `?return_url=` or `?redirect=` in the GiveButter link so the browser returns to the exact financials URL with the right entity/year params |
-| Showing a "Thank You" message on subsequent loads | Awkward if the donor refreshes or bookmarks the page | Clear the banner after first render or on query-param removal via `replaceState` |
-| Large, aggressive CTAs that compete with the data | This is a transparency page, not a fundraising page | Donate button should be secondary in visual weight to the financial data |
+- **Population:** ~997,000 (ACS 2024: 997,368 — just under 1 million)
+- **Operating budget total:** ~$5.3B total all funds (FY2024-25 adopted); ~$6.1B is cited in some sources but appears to include capital
+- **General Fund:** ~$1.7B–$1.9B estimated (general fund is a subset; city operates 100+ individual funds)
+- **Revenue budget total:** Revenue data is embedded in the adopted operating budget book; Financial Transparency Portal (sanjoseca.opengov.com) provides interactive access
+- **Fiscal years available:** FY1999-2000 through FY2025-26 (25+ years; archived budget documents confirmed at sanjoseca.gov; FY2019-20 through FY2025-26 are recent and confirmed accessible)
+- **Fiscal year calendar:** July 1 – June 30 (standard California)
+- **Data quality notes:**
+  - Over 100 funds in the budget structure. Enterprise funds include: Airport (SJC), Wastewater Treatment, Water Utility, and Parking — all intended to be self-sustaining via user fees and do not draw on General Fund.
+  - $35.6M current-year gap and a projected FY2026 deficit of $25.9M; budget documents reflect ongoing structural challenges.
+  - OpenGov Financial Transparency Portal is available for interactive exploration.
+  - Largest city in the set; budget documents are comprehensive PDFs, typically 400+ pages.
 
 ---
 
-## Feature Dependencies
+### Sacramento, CA
 
-```
-GiveButter return URL encodes entity + year + ?donated=true + ?amount=5
-  → App.tsx detects ?donated=true on mount (already reads URL params)
-      → Triggers fresh data fetch (already has loadBudgetData pattern)
-          → QuickFactsRow receives updated revenueData total
-              → Counter animation fires (new: triggered by donated param)
-                  → Thank-you banner renders (new: derived from donated param)
-                      → Pulse animation on Incoming card (new: CSS class applied once)
-```
-
-The existing URL-param-reading code in App.tsx (lines 155–179) is the natural hook.
-No new routing infrastructure is needed.
-
----
-
-## Donate Button: Placement and Copy
-
-**Placement:** Inside or immediately below the QuickFactsRow, visually attached to
-the "Total Income" InsightCard. The spatial relationship between the number and the
-button communicates "this number goes up when you click this."
-
-**Visual weight:** Secondary button, not primary. EV teal (#1B6C8C) border with teal
-text, white fill. On hover, fill with teal. This keeps the data as the hero.
-
-**Copy options (ranked):**
-1. "Donate to Empowered Vote" — direct, accurate, no ambiguity
-2. "Support this work" — warmer, connects to mission
-3. "Donate" — fine but generic; loses the transparency-page context
-
-Avoid: "Give Now", "Contribute Today" — urgency language feels out of place on a
-data-first page.
-
-**Mobile:** Button must be full-width below the QuickFactsRow grid on small screens.
-The tap target needs minimum 44px height (WCAG 2.5.5).
+- **Population:** ~536,000 (2024 estimate: 535,798)
+- **Operating budget total:** ~$1.57B–$1.7B total all funds (FY2024-25: ~$1.57B proposed / $1.6B approved; FY2025-26: $1.7B adopted)
+- **General Fund:** Not confirmed separately from search results; budget documents required for breakdown
+- **Revenue budget total:** Revenue data present in adopted budget PDFs; Open Budget Sacramento (openbudgetsac.org) provides visualization
+- **Fiscal years available:** FY2013 through FY2026-27 confirmed via Open Data portal (data.cityofsacramento.org) and official budget documents page; FY2020-21 confirmed PDF link found
+- **Fiscal year calendar:** July 1 – June 30 (standard California)
+- **Data quality notes:**
+  - Budget is labeled as "FY2024/25" (slash format) rather than "FY2025" — be precise during data load.
+  - FY2025-26 budget closed a $62.2M deficit without layoffs; documents include detailed fund summaries.
+  - Open Budget Sacramento portal exists for visualization but data may lag official documents.
+  - Sacramento uses an annual budget cycle (not biennial), which means a new document each year — straightforward for loading.
 
 ---
 
-## GiveButter Integration Constraints
+### Oakland, CA
 
-**Confirmed (HIGH confidence, via official docs):**
-- GiveButter does NOT support a native redirect/return URL parameter after donation
-  completion. The four supported URL params are: `amount`, `frequency`, `fund`, `promo`.
-- GiveButter DOES support `transaction.succeeded` webhooks with full payload (amount,
-  donor info, campaign ID).
-- GiveButter widgets do not expose post-donation JavaScript callbacks to the host page.
-
-**Implication for the flow:**
-
-Two viable implementation paths:
-
-**Path A — Link opens GiveButter in new tab, webhook updates Supabase, page polls/
-refreshes:**
-- Donate button opens `https://givebutter.com/ev` (or campaign URL) in a new tab
-- GiveButter fires `transaction.succeeded` webhook to an EV backend endpoint
-- Backend upserts the new total into Supabase
-- Financials page detects focus-return (window `visibilitychange` or `focus` event)
-  and refetches revenue data
-- If total changed, triggers animation
-- No query params needed; more reliable but requires backend webhook handler
-
-**Path B — Link encodes return URL manually, user clicks "Back to Financials" on
-GiveButter thank-you page:**
-- Donate link: open GiveButter, instruct donor to return via a link the thank-you
-  message includes (not native redirect — GiveButter does not auto-redirect)
-- Return URL includes `?donated=true&amount=5` as a soft signal
-- Page detects param, fetches fresh data, runs animation
-- Simpler to build; less reliable (user may not click back; amount is unverified)
-
-**Recommended:** Path A for production fidelity. Path B as a fast-follow MVP to
-ship the UX shell quickly while the webhook backend is being built.
+- **Population:** ~444,000 (2024 estimate: 443,554)
+- **Operating budget total:** ~$2.1B per year average (biennial FY2023-25: ~$4.26B total for two years; biennial FY2025-27: ~$4.2B adopted June 2025)
+- **General Fund (General Purpose Fund):** ~39% of total budget, roughly $820M/year
+- **Revenue budget total:** Revenue data is embedded in biennial budget books; Open Budget Oakland (openbudgetoakland.org) provides visualization
+- **Fiscal years available:** FY2019-21 biennial through FY2025-27 biennial; previous biennial budgets going back to at least FY2013 available via Oakland's Previous Years Budget Information page
+- **Fiscal year calendar:** July 1 – June 30 (standard California); BIENNIAL budget cycle — one budget document covers two fiscal years
+- **Data quality notes:**
+  - BIENNIAL budget cycle is the key complexity: Oakland adopts a two-year budget every odd year (FY2019-21, FY2021-23, FY2023-25, FY2025-27). Midcycle amendments are adopted in the even year. This means loading requires extracting year-by-year figures from a multi-year document.
+  - "General Purpose Fund" (GPF) is Oakland's term for what most cities call the General Fund; 39% of budget.
+  - Restricted funds (grants, voter-approved bonds) make up 61% of budget — these often inflate all-funds totals and should be noted during validation.
+  - City facing structural $265M two-year deficit for FY2025-27; budget includes cuts to vacant positions.
+  - Open Budget Oakland portal exists; ACFR (Annual Comprehensive Financial Report) published annually.
+  - Measure A sales tax (approved April 2025) adds ~$30M/year in new general revenue.
 
 ---
 
-## MVP Recommendation
+### Fresno, CA
 
-For MVP (proving the emotional loop), prioritize:
-
-1. Donate button on the QuickFactsRow with correct copy and placement
-2. Path B return URL with `?donated=true&amount=[x]` (manual, unverified but works)
-3. Fresh data fetch on return
-4. Animated counter roll-up on the Incoming total (CountUp.js or vanilla — 1000ms ease-out)
-5. Personalized thank-you banner: "Thanks for your $[x] donation. This page reflects your contribution."
-6. CSS pulse/glow on the updated InsightCard (yellow #F5C842, 2s fade)
-
-Defer to post-MVP:
-- "Your $X is X% of total income" micro-stat — low complexity but not needed to prove the loop
-- Social share nudge — real value, but adds decision load right after donation
-- Persistent session chip — nice but not essential for MVP
-- Path A webhook backend — needed for production reliability; not needed to validate the UX
+- **Population:** ~550,000 (2024 estimate: 550,105 — largest of the five mid-size cities in this set)
+- **Operating budget total:** ~$2.0B total all funds (FY2025: ~$2.0B; FY2026: $2.36B adopted); FY2027 proposed at ~$2.55B — rapidly growing
+- **General Fund:** ~$483M (FY2025); ~$512M (FY2026)
+- **Revenue budget total:** Revenue data embedded in adopted budget PDF; general fund revenue ~80% from property tax, sales tax, business license, and room tax
+- **Fiscal years available:** FY2013 through FY2027 (both adopted and proposed) confirmed at fresno.gov/finance/budget — 14+ years of PDFs
+- **Fiscal year calendar:** July 1 – June 30 (standard California)
+- **Data quality notes:**
+  - Budget has grown significantly: ~$1.7B in FY2022, ~$2.0B in FY2025, ~$2.36B in FY2026. Rapid growth driven by Measure C (transportation) and large capital program (~$1B in CIP projects in FY2026).
+  - FY2025 Adopted Budget PDF confirmed accessible at fresno.gov/wp-content/uploads/2024/10/FY-2025-ADOPTED-BUDGET.pdf.
+  - Enterprise and internal service funds total ~$899M in FY2025 (versus $483M general fund); confirms significant enterprise complexity — utilities, transit, etc.
+  - Measure C and Measure P are major special revenue funds; these are voter-approved and restricted, not general purpose. They inflate all-funds totals substantially.
+  - No OpenGov portal confirmed for Fresno; data access is PDF-based.
 
 ---
 
-## Animation Specification
+### Riverside, CA
 
-For the animated counter on the Incoming total:
+- **Population:** ~324,000 (2024 estimate: 323,757)
+- **Operating budget total:** ~$1.45B per year (biennial FY2024-26: $1.45B/year adopted)
+- **General Fund:** Not confirmed separately; General Fund plus Measure Z comprise unrestricted funds
+- **Revenue budget total:** Revenue data embedded in biennial budget book PDF; Open Budget portal exists (budget.countyofriverside.us — note this is the COUNTY portal, city uses riversideca.gov)
+- **Fiscal years available:** FY2004-05 through FY2024-26 biennial confirmed at riversideca.gov/finance/budget.asp; includes FY2020-21, FY2021-22, FY2022-24 biennial, FY2024-26 biennial
+- **Fiscal year calendar:** July 1 – June 30 (standard California); BIENNIAL budget cycle
+- **Data quality notes:**
+  - BIENNIAL budget cycle: Riverside adopts a two-year budget (similar to Oakland). FY2024-26 is the current biennial. This means loading requires extracting individual fiscal year figures from a two-year document.
+  - Major enterprise funds: Electric (Riverside Public Utilities — RPU is a publicly-owned utility serving 112,000 electric customers), Water (66,000 metered customers), Refuse, and Sewer. RPU is one of the more unusual enterprise assets among this city set — a full municipal electric utility.
+  - Measure Z is a voter-approved public safety tax providing unrestricted general revenue.
+  - Budget book URL pattern: riversideca.gov/finance/PDF/FY24-26%20Budget/FY%202024-2026%20Budget%20Book.pdf
+  - Do NOT confuse with Riverside County budget (rivco.gov) — two separate governments.
+  - Budget documents are PDFs; no confirmed city-level OpenGov interactive portal (county has one, city does not appear to).
 
-- **Duration:** 1000ms (research consensus: 200–500ms for micro-interactions, but
-  counting to a dollar amount reads better slower; 1000ms is the sweet spot for
-  financial figures)
-- **Easing:** ease-out (starts fast, slows as it reaches the new value — feels like
-  the number "settling")
-- **Start value:** previous total (from before the donation; can be derived from the
-  pre-fetch state)
-- **End value:** new total from fresh data fetch
-- **Format:** matches existing formatCompact — dollar sign, two decimals for nonprofit
-- **Trigger:** only when `?donated=true` param is present AND the refetched total
-  differs from the prior total
-- **Library recommendation:** CountUp.js (well-maintained, zero dependencies, handles
-  number formatting) or vanilla requestAnimationFrame (avoids a dependency for a
-  single use case)
+---
 
-For the pulse/glow on the InsightCard:
+### Bakersfield, CA
 
-```css
-@keyframes donation-pulse {
-  0%   { box-shadow: 0 0 0 0 rgba(245, 200, 66, 0.7); }  /* EV yellow */
-  50%  { box-shadow: 0 0 0 10px rgba(245, 200, 66, 0.2); }
-  100% { box-shadow: 0 0 0 0 rgba(245, 200, 66, 0); }
-}
-/* Applied once via a class added on post-donation render */
-.donation-highlight {
-  animation: donation-pulse 2s ease-out 1;
-}
-```
+- **Population:** ~417,000 (2024 estimate: 417,468)
+- **Operating budget total:** ~$853M total (FY2025-26: $852.7M adopted — operating $765M + capital $87.5M)
+- **General Fund:** Not confirmed separately from available sources; budget portal required
+- **Revenue budget total:** Revenue data in adopted budget and Open Budget portal (budget.bakersfieldcity.us)
+- **Fiscal years available:** FY2020-21 confirmed (PDF links found); Open Budget portal provides interactive access; Annual Comprehensive Financial Reports available back to at least FY2020
+- **Fiscal year calendar:** July 1 – June 30 (standard California)
+- **Data quality notes:**
+  - Smallest budget in this set at ~$853M total; General Fund is likely ~$250–350M (not confirmed from available sources — Open Budget portal required for exact figures).
+  - Open Budget portal (budget.bakersfieldcity.us) is the best source for interactive data; covers revenues, expenditures, and CIP with adopted vs. amended vs. actual year-to-date data.
+  - Budget document format: annual cycle (not biennial); July–June fiscal year.
+  - FY2025-26 was adopted June 25, 2025 (recent).
+  - Budget labels: Bakersfield may use FY2024-25 or FY25 style labels — confirm during load.
+  - Less press coverage and fewer secondary sources than the larger cities; Open Budget portal is primary data access point.
+
+---
+
+## Coverage Summary
+
+| City | Op. Budget | Revenue | FY Range | Population | FY Calendar | Notes |
+|------|-----------|---------|----------|------------|-------------|-------|
+| Long Beach | ~$3.6B | In budget docs | FY05–FY26 | ~451K | Oct–Sep | Non-standard FY; large enterprise complex |
+| San Jose | ~$5.3B | In budget docs / OpenGov | FY00–FY26 | ~997K | Jul–Jun | 100+ funds; airport, water, sewer enterprise |
+| Sacramento | ~$1.6B | In budget docs / OpenBudget | FY13–FY27 | ~536K | Jul–Jun | Annual budget; slash-format FY labels |
+| Oakland | ~$2.1B/yr | In budget docs / OpenBudget | FY19–FY27 | ~444K | Jul–Jun | Biennial; General Purpose Fund (not General Fund) |
+| Fresno | ~$2.0B | In budget docs | FY13–FY27 | ~550K | Jul–Jun | Fast growth; large Measure C/P special revenue funds |
+| Riverside | ~$1.45B | In budget docs | FY04–FY26 | ~324K | Jul–Jun | Biennial; municipal electric utility (RPU) |
+| Bakersfield | ~$853M | OpenBudget portal | FY20–FY26 | ~417K | Jul–Jun | Smallest; Open Budget portal primary source |
+
+---
+
+## Gaps and Deferred Items
+
+### Confirmed gaps requiring phase-specific research
+
+1. **General Fund breakdowns not confirmed for Riverside and Bakersfield.** All-funds totals are confirmed but general fund vs. enterprise fund splits need the full budget PDFs. Expect these during data load, not pre-load.
+
+2. **Long Beach non-standard fiscal year (Oct–Sep) requires label mapping.** All other cities use Jul–Jun. The Treasury Tracker year selector will need to handle Long Beach's FY labels distinctly or document the convention used during load (e.g., "FY2025" = Oct 2024–Sep 2025 for Long Beach, but = Jul 2024–Jun 2025 for the others).
+
+3. **Oakland and Riverside biennial budget extraction.** Both cities publish a single document covering two fiscal years. The data load process will need to extract per-year figures from a multi-year document rather than reading a single-year adopted budget. This adds complexity; plan for ~2x effort on these two cities.
+
+4. **Revenue budget availability for Riverside and Bakersfield not independently confirmed.** Revenue is expected to be present in the budget PDFs (standard municipal practice), but was not confirmed from available search sources. Verify before claiming revenue coverage.
+
+5. **Historical depth beyond FY2020.** Research confirmed FY2020+ documents for all cities. Pre-FY2020 data may exist but was not fully explored. Given Treasury Tracker's typical 5-year display window, FY2020–FY2026 (or FY2026 equivalent) is sufficient for v1.6.
+
+6. **Population data source for per-capita display.** All figures above are 2024 ACS estimates. If the app uses a specific vintage (e.g., Census Bureau QuickFacts PST045224 vintage), confirm the exact values at load time.
+
+### Items out of scope for v1.6
+
+- Port of Long Beach (~$760M) — separate entity, not city budget
+- Riverside County budget — separate from City of Riverside
+- Sacramento County budget — separate from City of Sacramento
+- Kern County budget — separate from City of Bakersfield
+- Pre-FY2020 historical data for any city
+- CAFR/ACFR financial statements (actuals) — v1.6 loads adopted budget documents only
 
 ---
 
 ## Sources
 
-- GiveButter URL parameters (confirmed via official help docs): https://help.givebutter.com/en/articles/4868782-how-to-leverage-url-and-html-parameters
-- GiveButter webhooks, transaction.succeeded event: https://help.givebutter.com/en/articles/8828428-how-to-automate-workflows-and-data-using-webhooks
-- NN/g donation usability research: https://www.nngroup.com/articles/donation-usability/
-- Donate button best practices (Neon One): https://neonone.com/resources/blog/donate-button/
-- Donor psychology — impact confirmation loop: https://www.donorperfect.com/nonprofit-technology-blog/featured/donor-behavior/
-- Animation duration guidance (200–500ms micro-interactions): https://www.concretecms.com/about/blog/web-design/using-animation-to-improve-ux
-- CountUp.js: https://inorganik.github.io/countUp.js/
-- Tailwind CSS animation utilities: https://tailwindcss.com/docs/animation
+- Long Beach FY2025 budget adoption press release: https://www.longbeach.gov/press-releases/long-beach-city-council-adopts-fiscal-year-2025-budget/
+- Long Beach budget archive (FY05–FY26): https://www.longbeach.gov/finance/city-budget-and-finances/budget/budget-information/
+- San Jose budget documents (FY19–FY26): https://www.sanjoseca.gov/your-government/departments-offices/office-of-the-city-manager/budget/budget-documents
+- San Jose enterprise funds guide: https://www.sanjoseca.gov/your-government/departments-offices/office-of-the-city-manager/budget/budgeted-funds-guide
+- Sacramento FY2025-26 adopted budget: https://sacramentocityexpress.com/2025/06/11/city-council-adopts-1-7-billion-budget-for-fy2025-26-avoids-layoffs-despite-deficit/
+- Sacramento open data (FY2013+): https://data.cityofsacramento.org/datasets/city-of-sacramento-approved-budgets
+- Oakland FY2023-25 budget guide (OpenGov): https://stories.opengov.com/oaklandca/published/yyE4hSYfk3
+- Oakland FY2025-27 budget adoption: https://oaklandside.org/2025/06/11/oakland-budget-adopted-illegal-dumping-police/
+- Oakland previous years budget: https://www.oaklandca.gov/topics/previous-years-budget-information
+- Fresno budget archive (FY13–FY27): https://www.fresno.gov/finance/budget/
+- Fresno FY2026 budget adoption: https://fresnoland.org/2025/06/17/2026-fresno-budget/
+- Fresno FY2025 total breakdown: https://abc30.com/post/city-of-fresno-2025-budget-jerry-dyer-mayor-fiscal-year/14820827/
+- Riverside budget archive (FY04–FY26): https://riversideca.gov/finance/budget.asp
+- Riverside biennial budget approval: https://riversideca.gov/press/city-riverside-approves-balanced-biennial-budget-145-billion-year-promote-financial-stability
+- Bakersfield FY2025-26 adoption: https://www.turnto23.com/news/in-your-neighborhood/bakersfield/city-council-passes-852-7m-budget
+- Bakersfield Open Budget portal: https://budget.bakersfieldcity.us/
+- Population — Census Bureau QuickFacts (Sacramento, Bakersfield): https://www.census.gov/quickfacts/fact/table/bakersfieldcitycalifornia/HEA775224
+- Population — California DOF E-1 2025 press release: https://dof.ca.gov/media/docs/forecasting/Demographics/estimates/E-1_2025_Press_Release.pdf
+- Population — Long Beach ACS 2024: https://www.census.gov/quickfacts/fact/table/longbeachcitycalifornia/PST045225
+- Population — San Jose ACS 2024: https://www.census.gov/quickfacts/fact/table/sanjosecitycalifornia/PST045224
