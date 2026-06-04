@@ -67,7 +67,8 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - Donation platforms: GiveButter (primary, lowest fees), Patreon (recurring), Benevity (workplace giving)
 - GiveButter supports webhooks and custom return URLs after donation completion
 - The webhook fires before the redirect, so DB should be updated by the time user lands back
-- Currently covers: 12 TX cities (Dallas, Plano, McKinney, Frisco, Allen, Prosper, Celina, Richardson, Garland, Wylie, Sachse, Murphy, Princeton) + 3 CA cities (Los Angeles, San Francisco, San Diego) + 3 OR cities (Portland, Gresham, Troutdale)
+- Currently covers: 13 TX cities (Dallas, Plano, McKinney, Frisco, Allen, Prosper, Celina, Richardson, Garland, Wylie, Sachse, Murphy, Princeton, Longview) + 3 CA cities (Los Angeles, San Francisco, San Diego) + 3 OR cities (Portland, Gresham, Troutdale) + LA County government
+- county_id FK on municipalities; 88 LA County cities linked; county breadcrumb chip on city pages; CitiesInCountyPanel on county pages
 
 ## Constraints
 
@@ -92,20 +93,12 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 
 ## Shipped
 
+- ✅ **v1.5 Oregon Expansion** — 2026-06-04 — Phases 17-25 (Portland/Gresham/Troutdale OR, all-funds consistency, LA data quality, LA County + county-city linking)
 - ✅ **v1.4 Geographic Expansion** — 2026-05-22 — Phases 15-16 (LA, SF, SD, LA Revenue)
 - ✅ **v1.3 Revenue Completion & Per-Capita Context** — 2026-05-22 — Phases 11-14
 - ✅ **v1.2 Collin County Completion & Data Quality** — 2026-05-21 — Phases 8-10
 - ✅ **v1.1 Texas Municipal Financial Transparency** — 2026-05-02 — Phases 5-7
 - ✅ **v1.0 GiveButter Real-Time Donation Feedback** — 2026-04-22 — Phases 1-4
 
-## Next Milestone: v1.5 (Not Yet Planned)
-
-Run `/gsd:new-milestone` to define goals, research, and requirements for v1.5.
-
-Likely directions:
-- Geographic expansion: Long Beach, San Jose, Sacramento, or first non-CA city
-- `EntitySwitcher` state label cleanup
-- Category enrichment for Richardson TX (depends on COL-01 data being stable)
-
 ---
-*Last updated: 2026-06-01 — Phase 22 complete; Troutdale OR added (3 OR cities now live)*
+*Last updated: 2026-06-04 — v1.5 Oregon Expansion shipped; 9 phases, 24 plans complete*

@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: — Oregon Expansion
-status: ready_to_plan
-last_updated: 2026-06-03T19:38:31.821Z
-last_activity: 2026-06-03
+status: Awaiting next milestone
+last_updated: "2026-06-04T03:31:09.553Z"
+last_activity: 2026-06-04 — Milestone v1.5 completed and archived
 progress:
   total_phases: 9
   completed_phases: 7
   total_plans: 24
-  completed_plans: 67
+  completed_plans: 24
   percent: 78
-stopped_at: Phase 24 complete (4/4) — ready to discuss Phase 25
 ---
 
 # State
@@ -25,12 +24,10 @@ See: .planning/PROJECT.md (updated 2026-05-23)
 
 ## Current Position
 
-Phase: 25
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-06-03
-
-Progress: [██████████] 100%
+Phase: Milestone v1.5 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-04 — Milestone v1.5 completed and archived
 
 ## Accumulated Context
 
@@ -99,3 +96,21 @@ Resume file: None
 - [Phase ?]: FY2019/FY2020 show 16 departments (COMMUNITY SERVICES absent) vs 17 for FY2021-FY2026 — structural difference, not parse error; both FYs included in live load
 - [Phase ?]: All 8 Troutdale FYs included
 - [Phase ?]: Enrichment scoped and run
+
+## Deferred Items
+
+Items acknowledged and deferred at milestone close on 2026-06-04:
+
+| Category | Item | Status |
+|----------|------|--------|
+| verification | Phase 07 (07-VERIFICATION.md) | human_needed — pre-v1.5, shipped milestone |
+| verification | Phase 14 (14-VERIFICATION.md) | human_needed — pre-v1.5, shipped milestone |
+| verification | Phase 22 (22-VERIFICATION.md) | human_needed — Troutdale app spot-check deferred |
+| verification | Phase 25 (25-VERIFICATION.md) | human_needed — LA County app spot-check deferred |
+| quick_task | 001-create-treasury-tracker-entries-for-ever | complete (SUMMARY.md exists; audit format mismatch) |
+| quick_task | 002-add-longview-tx-revenue | complete (SUMMARY.md exists; Longview live in app) |
+| quick_task | 003-longview-operating-budget | complete (SUMMARY.md exists; Longview live in app) |
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone

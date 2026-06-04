@@ -1,5 +1,34 @@
 # Milestones — Treasury Tracker / Empowered Vote Financials
 
+## v1.5 Oregon Expansion (Shipped: 2026-06-04)
+
+**Phases completed:** 9 phases, 24 plans, 36 tasks
+
+**Key accomplishments:**
+
+- Portland municipality seeded (id 2abac6c2, pop 635,749), two Adopted Budget PDFs downloaded, pdfplumber confirmed, Appropriation Schedule table structure documented for Plan 02 extractor, and Oregon added to city picker
+- pdfplumber Python extractor and Node.js loader pipeline built and dry-run validated against both Portland Adopted Budget Vol 1 PDFs; FY2025 yields 39 bureaus totaling $8.045B and FY2026 yields 34 bureaus totaling $8.483B in full-dollar amounts
+- Portland, OR operating budget live-loaded for FY2025 (39 bureaus, $8.045B) and FY2026 (34 bureaus, $8.483B), categories AI-enriched (41 rows scoped to Portland), human-verify checkpoint approved, and 17-VERIFICATION.md filed — Phase 17 ROADMAP goal confirmed met
+- One-liner:
+- One-liner:
+- One-liner:
+- One-liner:
+- Revenue extraction pipeline for Gresham: extract_revenue() + --mode argparse in extractGresham.py; buildRevenueTree() + parametric dataset_type plumbing in processGresham.js; dry-run validates 4 FYs x 10 revenue categories ($411M-$521M)
+- Gresham revenue FY2023–FY2026 live-loaded ($411M/$460M/$521M/$512M), 10 categories enriched, no operating collision, Money In tab human-verified in app
+- pdfplumber extractor for Troutdale's General Fund (17 depts, $21.1M) and All Funds revenue (10 cats, $33.7M) with all 8 adopted-budget PDFs downloaded and municipality seeded at population 15749
+- processTroutdale.js created and validated — all 8 fiscal years (FY2019-FY2026) parse cleanly in operating and revenue dry-runs; D-02 resolved with full FY include-list for Plan 03
+- Troutdale, OR live-loaded FY2019–FY2026 operating ($21.1M) + revenue ($33.7M), population 15749 for per-capita display (~$1,342/person), and 26 enrichment rows — all verified by human in the app.
+- extract_requirements() added to extractGresham.py with REQUIREMENTS_CATEGORIES whitelist; processGresham.js --requirements mode loads FY2023-FY2026 all_funds_requirements rows into treasury.budgets via treasury_sync_budget_tree RPC
+- table-based extract_requirements() from Vol 1 All Funds page with multi-page continuation and reconciliation fallback, loading Portland all_funds_requirements for FY2022-FY2026 ($5.9B-$8.6B)
+- Troutdale all_funds_requirements extracted from All Funds Combined PDF pages and loaded to DB for FY2019-FY2026 (8 years, 7 categories, FY2026 total $81.18M) via section-gate flip of extract_revenue()
+- One-liner:
+- LA FY2025 revenue corrected from $44.6B to $10.2B by nulling actual_amount_column in seedCaliforniaCities.js LA_REVENUE() and reloading both fiscal years via bulkLoadBudget.js
+- LA Operating Budget seeder updated with enterprise-fund exclusion filter and fiscal_years expanded to FY2017-FY2026; all 10 years reloaded with clean approved totals and department-level category trees
+- Guarded enrichment.description paragraph added to PlainLanguageSummary, surfacing 2-3 sentence context for the top operating category using zero new AI calls
+- Fixed General Fund-only WHERE filter to load all-funds LA budget; FY2025 Money Out tile now shows $19.86B across all 10 fiscal years
+
+---
+
 ---
 
 ## v1.4 Geographic Expansion (Shipped: 2026-05-22)
@@ -70,6 +99,7 @@
 **Phases completed:** 5–7 (9 plans total)
 
 **Key accomplishments:**
+
 - Generic Socrata SODA loader for Dallas operating + revenue budgets (FY2025, FY2026)
 - Generic XLSX pipeline for Plano, McKinney, Frisco check registers + McKinney payroll
 - Claude Haiku vision PDF pipeline for Allen, Prosper, Celina ACFR budget extraction
@@ -83,6 +113,7 @@
 **Phases completed:** 1–4 (9 plans total)
 
 **Key accomplishments:**
+
 - GiveButter webhook → Supabase Edge Function → Postgres RPC atomic donation write
 - Animated counter + visibilitychange refetch on donor return
 - loadEVFinances.js source-tagging + webhook row deduplication
@@ -92,12 +123,15 @@
 ## Pre-GSD History (shipped before planning system)
 
 ### SSO Auth Integration
+
 Empowered Vote SSO integration with Alpha landing page. Full read access for Inform/unauthenticated users.
 
 ### EV Financials Brand & Logo System
+
 BRAND_BAR_COLORS map, logo tile config, contrast text logic, nonprofit-specific icicle/summary behaviors, annual report download link.
 
 ### Enrichment & Municipality Fixes
+
 Category enrichment system, NULL municipality_id fix, Cambridge enrichment.
 
 ---
