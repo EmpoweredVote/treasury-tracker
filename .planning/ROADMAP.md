@@ -310,7 +310,7 @@ Plans:
 
 **Requirements:** 11 discrete requirements (DATA-01–07, ENRICH-01, POPUL-01, CARRY-01, CARRY-02) | All covered ✓
 
-### Phase 26: Sacramento CA Data Load
+### Phase 26: Sacramento CA Data Load (COMPLETE — 2026-06-04)
 
 **Goal:** Sacramento is visible in the app with correct operating and revenue budget data, enrichment, and per-capita display
 **Depends on:** Nothing (loadSacramentoCSV.js already written)
