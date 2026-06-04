@@ -178,7 +178,7 @@ async function getDataSources() {
   const operating = (sources || []).find(s => s.name === 'Sacramento Operating Budget');
   const revenue   = (sources || []).find(s => s.name === 'Sacramento Revenue Budget');
   if (!operating || !revenue) {
-    console.error('Sacramento data_sources rows not found — run seedCaliforniaCities or the DB setup first');
+    console.error('Sacramento data_sources rows not found — run scripts/seedSacramentoCA.js first');
     process.exit(1);
   }
 
