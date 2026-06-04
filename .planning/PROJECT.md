@@ -46,6 +46,9 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - ✓ Troutdale OR operating + revenue (FY2019–FY2026, 15,749 population, 26 enrichment rows) — v1.5, Phase 22
 - ✓ LA County accurate operating + revenue data (FY2021–FY2024) from CA State Controller county datasets — v1.5, Phase 25
 - ✓ Self-referential `county_id` FK on municipalities; 88 LA County cities linked; county breadcrumb chip on city pages; CitiesInCountyPanel on county pages — v1.5, Phase 25
+- ✓ Sacramento CA operating + revenue (FY2013–FY2026, 536K population, enriched) — v1.6, Phase 26
+- ✓ Longview TX revenue enrichment fixed (2 corrupted names repaired, 36 enrichment rows added) — v1.6, Phase 27
+- ✓ City picker STATE_LABELS verified: "California", "Texas", "Oregon" full names confirmed in live app — v1.6, Phase 27
 
 ## Current Milestone: v1.6 California City Expansion
 
@@ -71,8 +74,8 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - [ ] Fresno CA operating + revenue budget data loaded
 - [ ] Riverside CA operating + revenue budget data loaded
 - [ ] Bakersfield CA operating + revenue budget data loaded
-- [ ] Longview TX revenue data loaded
-- [ ] `EntitySwitcher.tsx` STATE_LABELS map fix shipped
+- [x] Longview TX revenue enrichment fixed — v1.6, Phase 27
+- [x] `EntitySwitcher.tsx` STATE_LABELS full names verified in live app — v1.6, Phase 27
 
 ### Out of Scope
 
@@ -123,4 +126,4 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - ✅ **v1.0 GiveButter Real-Time Donation Feedback** — 2026-04-22 — Phases 1-4
 
 ---
-*Last updated: 2026-06-03 — v1.6 California City Expansion started*
+*Last updated: 2026-06-04 — Phase 27 complete (CARRY-01 + CARRY-02 verified)*
