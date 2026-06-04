@@ -112,9 +112,9 @@
 
 | REQ-ID | Phase | Plan |
 |--------|-------|------|
-| DATA-01 (Sacramento) | Phase 26 | TBD |
-| ENRICH-01 (Sacramento) | Phase 26 | TBD |
-| POPUL-01 (Sacramento) | Phase 26 | TBD |
+| DATA-01 (Sacramento) | Phase 26 | 26-01, 26-02 |
+| ENRICH-01 (Sacramento) | Phase 26 | 26-02 |
+| POPUL-01 (Sacramento) | Phase 26 | 26-01, 26-02 |
 | CARRY-01 (Longview revenue) | Phase 27 | TBD |
 | CARRY-02 (STATE_LABELS) | Phase 27 | TBD |
 | DATA-02 (Oakland) | Phase 28 | TBD |

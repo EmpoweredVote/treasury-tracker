@@ -321,7 +321,17 @@ Plans:
   3. Revenue / Money In tab shows data with at least one fiscal year populated
   4. Per-capita ($/resident) displays correctly using ~536K population
   5. Category enrichment descriptions are visible (not empty) for top operating categories
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 26-01-PLAN.md — Seed Sacramento (population 536000 + data_sources + source_registry) and live-load operating + revenue FY2013–FY2026 via loadSacramentoCSV.js
+
+**Wave 2** *(blocked on 26-01)*
+
+- [ ] 26-02-PLAN.md — Enrich Sacramento categories (enrichCategories.js per FY), app spot-check, write 26-VERIFICATION.md
+
 **UI hint:** yes
 
 ### Phase 27: Carry-forwards — Longview TX Revenue + STATE_LABELS
@@ -413,7 +423,7 @@ Plans:
 | 23. OR All Funds Consistency | v1.5 | 4/4 | Complete | 2026-06-03 |
 | 24. Los Angeles Data Refresh | v1.5 | 4/4 | Complete    | 2026-06-03 |
 | 25. LA County Data Completion + County-City Linking | v1.5 | 3/3 | Complete | 2026-06-03 |
-| 26. Sacramento CA Data Load | v1.6 | 0/? | Not started | - |
+| 26. Sacramento CA Data Load | v1.6 | 0/2 | Planned | - |
 | 27. Carry-forwards (Longview + STATE_LABELS) | v1.6 | 0/? | Not started | - |
 | 28. Oakland + San Jose CA Data Load | v1.6 | 0/? | Not started | - |
 | 29. Long Beach + Bakersfield CA Data Load | v1.6 | 0/? | Not started | - |
