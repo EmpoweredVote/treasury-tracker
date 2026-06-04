@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: California City Expansion
-status: ready_to_plan
-last_updated: 2026-06-04T15:37:57.846Z
-last_activity: 2026-06-04 -- Phase 26 UAT complete
+status: ready_to_execute
+last_updated: 2026-06-04T16:00:00Z
+last_activity: 2026-06-04 -- Phase 27 planned
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 2
+  total_plans: 4
   completed_plans: 69
   percent: 20
-stopped_at: Phase 26 UAT passed (5/5) — ready to plan Phase 27
+stopped_at: Phase 27 planned (2 plans) — ready to execute
 ---
 
 # State
