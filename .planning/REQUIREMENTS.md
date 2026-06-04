@@ -78,7 +78,7 @@
 
 ### Carry-forwards from v1.5
 
-- [ ] **CARRY-01**: Longview TX revenue budget loaded
+- [x] **CARRY-01**: Longview TX revenue budget loaded
   - Write `processLongviewRevenue.js` (pdftotext from cached PDF at `C:/tmp/longview_budget_fy2526.pdf`)
   - Seed `'Longview Revenue Budget FY2026'` data_source row (`dataset_type: 'revenue'`)
   - Run enrichment for Longview revenue categories
