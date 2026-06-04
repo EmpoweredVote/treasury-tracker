@@ -52,7 +52,11 @@ function loadEnv() {
 loadEnv();
 
 // ── Config ───────────────────────────────────────────────────────────────────
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
+const SUPABASE_URL = process.env.SUPABASE_URL;
+if (!SUPABASE_URL) {
+  console.error('Missing SUPABASE_URL env var');
+  process.exit(1);
+}
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!SUPABASE_KEY) {
@@ -160,6 +164,7 @@ async function main() {
       api_type: 'csv_download',
       base_url: GITHUB_BASE,
       municipality_id: SACRAMENTO_ID,
+      fiscal_years: [2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026],
     },
     {
       name: 'Sacramento Revenue Budget',
@@ -167,6 +172,7 @@ async function main() {
       api_type: 'csv_download',
       base_url: GITHUB_BASE,
       municipality_id: SACRAMENTO_ID,
+      fiscal_years: [2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026],
     },
   ];
 
@@ -212,7 +218,7 @@ async function main() {
       .maybeSingle();
 
     if (srInsertErr) {
-      console.warn(`  WARNING: source_registry insert failed (${srInsertErr.message}). Attribution will be null — non-blocking.`);
+      console.warn(`  WARNING: source_registry insert failed (${srInsertErr.message}) [code=${srInsertErr.code}]. Attribution will be null — non-blocking.`);
     } else if (srInserted?.id) {
       console.log(`  OK: source_registry row inserted (id=${srInserted.id})`);
     } else {
