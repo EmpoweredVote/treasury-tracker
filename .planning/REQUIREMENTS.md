@@ -2,7 +2,7 @@
 
 **Milestone:** v1.6 — California City Expansion
 **Status:** Defined
-**Last updated:** 2026-06-03
+**Last updated:** 2026-06-04
 
 ---
 
@@ -83,7 +83,7 @@
   - Seed `'Longview Revenue Budget FY2026'` data_source row (`dataset_type: 'revenue'`)
   - Run enrichment for Longview revenue categories
 
-- [ ] **CARRY-02**: STATE_LABELS verified live in app
+- [x] **CARRY-02**: STATE_LABELS verified live in app
   - `EntitySwitcher.tsx` lines 21–26 already contain full state names (CA, TX, OR)
   - Verify at treasurytracker.empowered.vote that state group headers show "California", "Texas", "Oregon"
   - If abbreviations still appear: investigate build/deploy state (no code change expected)
@@ -115,8 +115,8 @@
 | DATA-01 (Sacramento) | Phase 26 | 26-01, 26-02 |
 | ENRICH-01 (Sacramento) | Phase 26 | 26-02 |
 | POPUL-01 (Sacramento) | Phase 26 | 26-01, 26-02 |
-| CARRY-01 (Longview revenue) | Phase 27 | TBD |
-| CARRY-02 (STATE_LABELS) | Phase 27 | TBD |
+| CARRY-01 (Longview revenue) | Phase 27 | 27-01 |
+| CARRY-02 (STATE_LABELS) | Phase 27 | 27-02 |
 | DATA-02 (Oakland) | Phase 28 | TBD |
 | DATA-03 (San Jose) | Phase 28 | TBD |
 | ENRICH-01 (Oakland) | Phase 28 | TBD |

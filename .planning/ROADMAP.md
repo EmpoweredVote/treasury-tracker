@@ -343,7 +343,7 @@ Plans:
   1. Longview TX city page shows a Money In tab with revenue categories populated
   2. City picker state group headers display "California", "Texas", and "Oregon" (not abbreviations)
   3. Longview revenue categories have enrichment descriptions visible
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 **Wave 1**
@@ -352,7 +352,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 27-02-PLAN.md — Human visual verification: Longview Money In tab + STATE_LABELS full names in city picker (CARRY-01 + CARRY-02 end-to-end)
+- [x] 27-02-PLAN.md — Human visual verification: Longview Money In tab + STATE_LABELS full names in city picker (CARRY-01 + CARRY-02 end-to-end)
 
 ### Phase 28: Oakland + San Jose CA Data Load
 
@@ -433,7 +433,7 @@ Plans:
 | 24. Los Angeles Data Refresh | v1.5 | 4/4 | Complete    | 2026-06-03 |
 | 25. LA County Data Completion + County-City Linking | v1.5 | 3/3 | Complete | 2026-06-03 |
 | 26. Sacramento CA Data Load | v1.6 | 2/2 | Complete    | 2026-06-04 |
-| 27. Carry-forwards (Longview + STATE_LABELS) | v1.6 | 1/2 | In Progress|  |
+| 27. Carry-forwards (Longview + STATE_LABELS) | v1.6 | 2/2 | Complete    | 2026-06-04 |
 | 28. Oakland + San Jose CA Data Load | v1.6 | 0/? | Not started | - |
 | 29. Long Beach + Bakersfield CA Data Load | v1.6 | 0/? | Not started | - |
 | 30. Fresno + Riverside CA Data Load | v1.6 | 0/? | Not started | - |
@@ -441,4 +441,4 @@ Plans:
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-06-04 — Phase 27 plans added (2 plans, CARRY-01 + CARRY-02)*
+*Last updated: 2026-06-04 — Phase 27 complete (CARRY-01 + CARRY-02 verified)*

@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: California City Expansion
-status: executing
-last_updated: "2026-06-04T22:07:45.395Z"
-last_activity: 2026-06-04
+status: ready_to_plan
+last_updated: "2026-06-04T22:30:00Z"
+last_activity: 2026-06-04 -- Phase 27 complete
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
-  percent: 20
+  completed_plans: 5
+  percent: 40
 ---
 
 # State
@@ -20,17 +20,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-03)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 27 — carry forwards — longview tx revenue + state_labels
+**Current focus:** Phase 28 — Oakland + San Jose CA Data Load
 
 ## Current Position
 
-Phase: 27
-Plan: 2 of 2
-Status: Ready to execute
+Phase: 28
+Plan: Not started
+Status: Ready to plan
 Last activity: 2026-06-04
 
-Progress: [████████░░] 75%
-          [ complete  ] [  pending  ] [  pending  ] [  pending  ] [  pending  ]
+Progress: [ Phase 26 ] [ Phase 27 ] [ Phase 28 ] [ Phase 29 ] [ Phase 30 ]
+          [ complete  ] [ complete  ] [  pending  ] [  pending  ] [  pending  ]
 
 ## Accumulated Context
 
