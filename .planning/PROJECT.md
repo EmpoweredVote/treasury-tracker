@@ -47,10 +47,32 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - ✓ LA County accurate operating + revenue data (FY2021–FY2024) from CA State Controller county datasets — v1.5, Phase 25
 - ✓ Self-referential `county_id` FK on municipalities; 88 LA County cities linked; county breadcrumb chip on city pages; CitiesInCountyPanel on county pages — v1.5, Phase 25
 
+## Current Milestone: v1.6 California City Expansion
+
+**Goal:** Add 7 new California cities with full operating and revenue budget data, expanding CA coverage beyond the initial LA/SF/SD trio, and close two carry-forward items from v1.5.
+
+**Target features:**
+- Long Beach CA — operating + revenue
+- San Jose CA — operating + revenue
+- Sacramento CA — operating + revenue
+- Oakland CA — operating + revenue
+- Fresno CA — operating + revenue
+- Riverside CA — operating + revenue
+- Bakersfield CA — operating + revenue
+- Longview TX revenue data (seeded, revenue missing)
+- `EntitySwitcher.tsx` `STATE_LABELS` map fix (TX → Texas, CA → California, OR → Oregon)
+
 ### Active
 
-- [ ] Geographic expansion: next city group (Long Beach, San Jose, Sacramento, or first non-CA city)
-- [ ] `EntitySwitcher.tsx` `STATE_LABELS` map: add TX (and other states added) so state group headers show full names not two-letter codes
+- [ ] Long Beach CA operating + revenue budget data loaded
+- [ ] San Jose CA operating + revenue budget data loaded
+- [ ] Sacramento CA operating + revenue budget data loaded
+- [ ] Oakland CA operating + revenue budget data loaded
+- [ ] Fresno CA operating + revenue budget data loaded
+- [ ] Riverside CA operating + revenue budget data loaded
+- [ ] Bakersfield CA operating + revenue budget data loaded
+- [ ] Longview TX revenue data loaded
+- [ ] `EntitySwitcher.tsx` STATE_LABELS map fix shipped
 
 ### Out of Scope
 
@@ -101,4 +123,4 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - ✅ **v1.0 GiveButter Real-Time Donation Feedback** — 2026-04-22 — Phases 1-4
 
 ---
-*Last updated: 2026-06-04 — v1.5 Oregon Expansion shipped; 9 phases, 24 plans complete*
+*Last updated: 2026-06-03 — v1.6 California City Expansion started*
