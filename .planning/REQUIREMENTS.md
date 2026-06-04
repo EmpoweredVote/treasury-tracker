@@ -10,7 +10,7 @@
 
 ### Data Loads — New California Cities
 
-- [ ] **DATA-01**: Sacramento CA operating + revenue budget loaded and visible in app
+- [x] **DATA-01**: Sacramento CA operating + revenue budget loaded and visible in app
   - FY2020–FY2026 target range
   - `loadSacramentoCSV.js` already written — seed + run
   - FY label normalization: "FY2024/25" → integer `2025` (ending year convention)
@@ -56,7 +56,7 @@
 
 ### Enrichment
 
-- [ ] **ENRICH-01**: All 7 new CA cities have AI-generated category enrichment
+- [x] **ENRICH-01**: All 7 new CA cities have AI-generated category enrichment
   - Operating and revenue departments described in plain language
   - Run `enrichCategories.js --city [Name] --state CA --year [FY]` per city
   - Estimated cost: ~$0.06 total across all 7 cities (well under $5 threshold)
@@ -64,7 +64,7 @@
 
 ### Population / Per-Capita
 
-- [ ] **POPUL-01**: All 7 new CA cities seeded with 2024 population data
+- [x] **POPUL-01**: All 7 new CA cities seeded with 2024 population data
   - Source: Census `sub-est2024_06.csv` (SUMLEV=162, California sub-county estimates)
   - Per-capita ($/resident) displays correctly in app for each city
   - Population values (2024 estimates):

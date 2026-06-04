@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: California City Expansion
-status: executing
-last_updated: "2026-06-04T14:21:42.063Z"
+status: ready_to_plan
+last_updated: 2026-06-04T15:37:57.846Z
 last_activity: 2026-06-04 -- Phase 26 execution started
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 2
-  completed_plans: 0
+  completed_plans: 69
   percent: 0
+stopped_at: Phase 26 complete (2/2) — ready to discuss Phase 27
 ---
 
 # State
@@ -20,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-03)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 26 — sacramento-ca-data-load
+**Current focus:** Phase 27 — carry forwards — longview tx revenue + state_labels
 
 ## Current Position
 
-Phase: 26 (sacramento-ca-data-load) — EXECUTING
-Plan: 1 of 2
-Status: Executing Phase 26
-Last activity: 2026-06-04 -- Phase 26 execution started
+Phase: 27
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-06-04
 
 Progress: [ Phase 26 ] [ Phase 27 ] [ Phase 28 ] [ Phase 29 ] [ Phase 30 ]
           [  pending  ] [  pending  ] [  pending  ] [  pending  ] [  pending  ]
