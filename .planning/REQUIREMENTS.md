@@ -129,9 +129,9 @@
 | ENRICH-01 (Bakersfield) | Phase 29 | TBD |
 | POPUL-01 (Long Beach) | Phase 29 | TBD |
 | POPUL-01 (Bakersfield) | Phase 29 | TBD |
-| DATA-05 (Fresno) | Phase 30 | TBD |
-| DATA-06 (Riverside) | Phase 30 | TBD |
-| ENRICH-01 (Fresno) | Phase 30 | TBD |
-| ENRICH-01 (Riverside) | Phase 30 | TBD |
-| POPUL-01 (Fresno) | Phase 30 | TBD |
-| POPUL-01 (Riverside) | Phase 30 | TBD |
+| DATA-05 (Fresno) | Phase 30 | 30-01, 30-02 |
+| DATA-06 (Riverside) | Phase 30 | 30-01, 30-03 |
+| ENRICH-01 (Fresno) | Phase 30 | 30-04 |
+| ENRICH-01 (Riverside) | Phase 30 | 30-04 |
+| POPUL-01 (Fresno) | Phase 30 | 30-01 |
+| POPUL-01 (Riverside) | Phase 30 | 30-01 |

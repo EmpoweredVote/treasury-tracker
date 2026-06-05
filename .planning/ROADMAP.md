@@ -426,7 +426,25 @@ Plans:
   4. Both cities show Revenue / Money In tabs with at least one fiscal year populated
   5. Per-capita displays correctly for Fresno (~550K) and Riverside (~324K)
   6. Enrichment descriptions visible for top categories in both cities
-**Plans:** TBD
+**Plans:** 4 plans (4 waves)
+
+Plans:
+**Wave 1**
+
+- [ ] 30-01-PLAN.md — Seed Fresno (pop 550K) + Riverside (pop 324K) municipality rows and four canonical data_source rows; verify via treasury_list_source_ids
+
+**Wave 2** *(blocked on 30-01)*
+
+- [ ] 30-02-PLAN.md — Fresno: download PDFs, extractFresno.py (single-year, General-Fund filter at extraction time) + processFresno.js ($383M–$583M sanity band); dry-run + live-load operating + best-effort revenue (D-09: Fresno first)
+
+**Wave 3** *(blocked on 30-02 — Fresno baseline established first per D-09)*
+
+- [ ] 30-03-PLAN.md — Riverside: download biennial PDFs, extractRiverside.py (per-page FY detection, General-Fund filter, RPU excluded) + processRiverside.js ($1.1B–$1.8B sanity band); dry-run + live-load 2 biennial FYs + best-effort revenue
+
+**Wave 4** *(blocked on 30-02 + 30-03 — needs loaded rows to enrich and verify)*
+
+- [ ] 30-04-PLAN.md — Enrichment for both cities behind the $0.10 combined cost gate (D-10); human-verify all 6 success criteria; write 30-VERIFICATION.md
+
 **UI hint:** yes
 
 ---
@@ -466,9 +484,9 @@ Plans:
 | 27. Carry-forwards (Longview + STATE_LABELS) | v1.6 | 2/2 | Complete    | 2026-06-04 |
 | 28. Oakland + San Jose CA Data Load | v1.6 | 3/4 | In Progress|  |
 | 29. Long Beach + Bakersfield CA Data Load | v1.6 | 4/4 | Complete    | 2026-06-05 |
-| 30. Fresno + Riverside CA Data Load | v1.6 | 0/? | Not started | - |
+| 30. Fresno + Riverside CA Data Load | v1.6 | 0/4 | Not started | - |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-06-05 — Phase 29 planned (4 plans, 3 waves)*
+*Last updated: 2026-06-05 — Phase 30 planned (4 plans, 4 waves)*
