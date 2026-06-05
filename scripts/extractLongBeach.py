@@ -204,10 +204,13 @@ def extract_from_page(page, fiscal_year, mode='operating'):
     # Determine which section to extract from
     if mode == 'revenue':
         section_start_marker = 'Revenues:'
-        section_stop_markers = ['Expenditures:', 'Uses:', 'Total Revenues']
+        # Stop at expenditure section headers OR total lines
+        section_stop_markers = ['Expenditures:', 'Uses:', 'Total Revenues', 'Total Resources']
     else:
         section_start_marker = 'Expenditures:'
-        section_stop_markers = ['Net Increase', 'Total Expenditures', 'Beginning Funds', 'Uses:']
+        # Stop at summary/balance lines
+        section_stop_markers = ['Net Increase', 'Total Expenditures', 'Beginning Funds',
+                                 'Total Uses', 'Ending Funds']
 
     # Also look for "Uses:" as the expenditure section header (FY22 format)
     if mode == 'operating':
@@ -239,8 +242,7 @@ def extract_from_page(page, fiscal_year, mode='operating'):
 
         # Stop at section boundary
         if any(stripped.startswith(m) for m in section_stop_markers):
-            if mode == 'operating' or (mode == 'revenue' and stripped.startswith('Total Revenues')):
-                break
+            break
 
         # Skip header and separator lines
         if not stripped or stripped.startswith('-') or stripped.startswith('='):
