@@ -55,7 +55,11 @@ function loadEnv() {
         const [k, ...v] = line.split('=');
         if (k && v.length && !process.env[k.trim()]) process.env[k.trim()] = v.join('=').trim();
       }
-    } catch {}
+    } catch (e) {
+      if (e.code !== 'ENOENT') {
+        console.warn(`  loadEnv: unexpected error reading ${f}: ${e.message}`);
+      }
+    }
   }
 }
 loadEnv();
