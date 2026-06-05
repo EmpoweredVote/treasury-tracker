@@ -3,8 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: California City Expansion
 status: executing
-last_updated: "2026-06-05T00:00:00.000Z"
-last_activity: 2026-06-05 -- Phase 28 COMPLETE (Oakland + San Jose loaded + enriched + human verified)
+last_updated: "2026-06-05T15:04:00.380Z"
 progress:
   total_phases: 5
   completed_phases: 3
@@ -84,9 +83,9 @@ $5 per run — estimate before running AI enrichment or PDF extraction.
 
 ## Session Continuity
 
-Last session: 2026-06-05T14:46:56.349Z
-Stopped at: context exhaustion at 75% (2026-06-05)
-Resume file: None
+Last session: 2026-06-05T15:04:00.371Z
+Stopped at: Phase 29 context gathered
+Resume file: .planning/phases/29-long-beach-bakersfield-ca-data-load/29-CONTEXT.md
 
 ## Performance Metrics
 
