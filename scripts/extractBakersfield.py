@@ -5,14 +5,15 @@ Bakersfield Budget PDF Extractor
 Extracts department-level operating expenditure data from Bakersfield
 Adopted Budget PDFs using pdfplumber.
 
-Target: ALL operating funds (~$765M per REQUIREMENTS.md DATA-07), NOT just General Fund.
-$765M = General Fund (~$287M) + PUBSAF 1% Sales Tax + Internal Service Funds +
-        Enterprise Funds + Special Revenue Funds + others.
+Target: General Fund ONLY (~$412M FY2025, ~$427M FY2026), NOT all operating funds.
+Scope matches the GF revenue extraction (~$372M) for comparable Money In / Money Out.
 
-Source section: "Resources & Appropriations - Operating Budget - All Funds"
-(or "RESOURCES AND APPROPRIATIONS / OPERATING BUDGET - ALL FUNDS" in FY2024-25 style).
-The Appropriations subsection lists departments + amounts summing ~$728M (FY25) / ~$765M (FY26).
-Both are within the required $600M-$900M sanity band.
+Source section: "Resources and Appropriations - General Fund"
+(or "RESOURCES AND APPROPRIATIONS / GENERAL FUND" in FY2024-25 style).
+This is the same page used by extract_revenue(). The Appropriations block lists:
+  Police, Fire, Public Works, Recreation & Parks, Development Services,
+  Economic & Community Development, General Government, Non-Departmental,
+  Contingencies, Transfers Out — summing to ~$412M (FY25) / ~$427M (FY26).
 
 FY is detected from PDF filename (ending-year convention):
   fy2024-25-adopted-budget.pdf -> 2025
@@ -108,36 +109,57 @@ def extract_last_amount(parts):
     return dept, amount
 
 
-# ── Find "Operating Budget - All Funds" section page ─────────────────────────
-def find_operating_all_funds_page(pdf):
+# ── Find "General Fund" resources & appropriations page ───────────────────────
+def find_general_fund_page(pdf):
     """
-    Scan pages to find the "Operating Budget - All Funds" appropriations section.
-    Returns the page index (0-based) where the department-level appropriations table lives.
+    Scan pages to find the "Resources and Appropriations - General Fund" tabular page.
+    Returns the page index (0-based) where the GF department-level data lives.
 
-    FY2024-25 style: "RESOURCES AND APPROPRIATIONS / OPERATING BUDGET - ALL FUNDS"
-    FY2025-26 style: "Resources & Appropriations / Operating Budget - All Funds"
-    Both are on the same page and contain dept rows (Police, Fire, etc.)
+    FY2024-25 style: "RESOURCES AND APPROPRIATIONS / GENERAL FUND"
+    FY2025-26 style: "Resources and Appropriations / General Fund"
+
+    Both PDFs place this at page 32 (index 31). The page contains:
+    - Resources block: Property Tax, Sales Tax, PSVS, etc.
+    - Appropriations block: Police, Fire, Public Works, etc.
+
+    Detection: must have General Fund heading + Property Tax tabular data (with numbers)
+               + Police + Total Resources line (confirms it's the tabular page, not narrative).
     """
     for i, page in enumerate(pdf.pages):
         text = page.extract_text() or ''
         text_upper = text.upper()
-        if ('OPERATING' in text_upper and 'ALL FUNDS' in text_upper
-                and ('POLICE' in text_upper or 'FIRE' in text_upper)
-                and ('PUBLIC WORKS' in text_upper or 'GENERAL GOVERNMENT' in text_upper)):
+        if ('GENERAL FUND' in text_upper
+                and 'PROPERTY TAX' in text_upper
+                and re.search(r'Property Tax\s+[\d,]+', text)
+                and 'POLICE' in text_upper
+                and 'TOTAL RESOURCES' in text_upper.replace('\n', ' ')):
             return i
     return None
 
 
-# ── Extract operating budget rows from the all-funds section ──────────────────
+# ── Extract operating budget rows from the General Fund section ───────────────
 def extract_budget(pdf_path):
     """
-    Parse Bakersfield Adopted Budget PDF for all-funds operating department totals.
-    Target: ~$728M (FY2025) or ~$765M (FY2026) across all operating funds.
+    Parse Bakersfield Adopted Budget PDF for General Fund operating department totals.
+    Target: ~$412M (FY2025) or ~$427M (FY2026) — General Fund only, matches GF revenue scope.
     Returns list of dicts: { department, fund, adopted_amount, fiscal_year, page_num }
 
     PDF layout (confirmed from FY2024-25 and FY2025-26):
-    The page has two sections: Resources (fund types) and Appropriations (by department).
+    Page 32 in both PDFs. Contains Resources (revenue) and Appropriations (by department).
     We parse the Appropriations block only.
+
+    FY2025-26 Appropriations block departments (page 32):
+      Police, Fire, (Total Public Safety — SKIP), Development Services,
+      Economic & Community Development, General Government, Non Departmental Activity,
+      Public Works, Recreation & Parks, (Total Operations — SKIP),
+      Contingencies, Transfers Out
+    Summing to ~$427M.
+
+    FY2024-25 Appropriations block (same structure, FY25 adopted column):
+      Police, Fire, (Total Public Safety — SKIP), Public Works, Recreation and Parks,
+      Development Services, Economic and Community Development, General Government,
+      Non-Departmental, (Total Operations — SKIP), Contingencies, Transfers Out
+    Summing to ~$412M.
 
     Each row format: "DeptName PriorYear1 PriorYear2 CurrentYear"
     Numbers may have internal spaces: "412, 196,800" = 412196800
@@ -150,9 +172,10 @@ def extract_budget(pdf_path):
     results = []
 
     with pdfplumber.open(pdf_path) as pdf:
-        page_idx = find_operating_all_funds_page(pdf)
+        page_idx = find_general_fund_page(pdf)
         if page_idx is None:
-            print('  WARNING: Could not find "Operating Budget - All Funds" section', file=sys.stderr)
+            print('  WARNING: Could not find "General Fund" resources & appropriations section',
+                  file=sys.stderr)
             return []
 
         page = pdf.pages[page_idx]
@@ -162,47 +185,67 @@ def extract_budget(pdf_path):
         lines = text.split('\n')
 
         in_appropriations = False
+        pending_label = None  # carries over a label-only line (no numbers) for split-line depts
 
         for line in lines:
             stripped = line.strip()
             if not stripped:
                 continue
 
-            # Detect start of Appropriations block
+            # Detect start of Appropriations block (comes after Resources block on same page)
             if re.match(r'^Appropriations?\s*$', stripped, re.IGNORECASE):
                 in_appropriations = True
+                pending_label = None
                 continue
 
             if not in_appropriations:
                 continue
 
-            # Detect end of Appropriations block
-            # "Total ...", "Appropriation Total", "Successor Agency" (footer row), "Formerly..."
-            if re.match(r'^(Total\b|Appropriations?\s+Total|Formerly\s+Redevelopment)', stripped, re.IGNORECASE):
+            # Detect end of Appropriations block:
+            # "TOTAL APPROPRIATIONS" or "Note:" footer (handles both capitalization styles)
+            if re.match(r'^(TOTAL\s+APPROPRIATIONS|Total\s+Appropriations|Note\s*:)', stripped, re.IGNORECASE):
                 break
 
-            # Skip pure header/label lines (no numbers)
+            # ── Split-line dept name handling ─────────────────────────────────
+            # FY2024-25: "Economic and Community" appears alone on one line (no numbers),
+            # followed by "Development 12,849,017 11, 043,719 17,165,251" on the next.
+            # Carry the label-only line as a prefix for the next line.
             if not re.search(r'\d', stripped):
+                # Label-only line — hold as prefix
+                pending_label = stripped
                 continue
+
+            # Combine with pending_label if we have one
+            if pending_label is not None:
+                stripped = pending_label + ' ' + stripped
+                pending_label = None
 
             # ── Parse the department row ──────────────────────────────────────
             # The row has format: "DeptName N1 N2 N3" where numbers may have spaces
-            # e.g.: "General Government 53,861, 430 $ 82,485,341 $ 84,768,062"
-            # e.g.: "Non- Departmental & Transfers 102,584,242 96,079,074 79,076,736"
-            # e.g.: "General Government 80,673, 680 $ 73,897,483 $ 82,612, 125"
+            # e.g.: "General Government 28, 132, 728 28, 101, 017 29,402,699"
+            # e.g.: "Non Departmental Activity 8,177, 124 1,450,347 1, 181, 281)"
+            # e.g.: "Transfers Out 38,453,035 22, 751, 482 19, 915,664"
+            # e.g.: "Contingencies 3,165,000 700,000" (2 columns only = $0 current FY)
             #
-            # Strategy: normalize spaces in number groups, then split on numbers
+            # Require exactly 3 columns (prior2, prior1, current). Lines with only 2 columns
+            # (like Contingencies when no current-year budget is set) yield $0 and are skipped.
 
             # Step 1: Remove $ signs (they appear before some columns)
             normalized = re.sub(r'\$\s*', '', stripped)
 
-            # Step 2: Identify all number tokens (digit sequences with commas/spaces)
-            # A number token pattern: starts with digit, may have commas, spaces, digits
-            # We tokenize by splitting at word boundaries around numbers
-
-            # Split into tokens. Numbers with internal spaces like "53,861, 430" are tricky.
-            # Approach: find the department name (text before first standalone number),
-            # then parse the remaining as 2-3 columns of numbers.
+            # Require at least 3 distinct numeric tokens (3 columns) to ensure a current-FY
+            # column exists. A numeric token is a whitespace-delimited word consisting only
+            # of digits and commas (possibly preceded by a dollar sign we already removed).
+            # e.g. "Contingencies 3,165,000 700,000" has 2 tokens → skip (no FY value).
+            # We split on whitespace then count word-tokens that are purely digit/comma.
+            tokens = re.findall(r'[\d,]+', normalized)
+            # Remove tokens that are just a year-style 4-digit number from the header area
+            # (e.g. "2022", "2023") — those appear before the first department row, so
+            # by the time we're in_appropriations we won't encounter them. Still, be safe.
+            numeric_tokens = [t for t in tokens if re.match(r'^[\d,]+$', t) and len(t) >= 3]
+            if len(numeric_tokens) < 3:
+                # Only 1-2 number columns — no current FY value; treat as $0 (skip)
+                continue
 
             # Find the position where numbers begin: first standalone number group
             # (preceded by a letter-ending word)
@@ -212,31 +255,44 @@ def extract_budget(pdf_path):
                 r'(\d[\d,\s]*\d|\d)'               # first number (may have internal spaces)
                 r'(?:\s+\$?\s*\d[\d,\s]*\d|\d)*'  # optional more numbers
                 r'\s+\$?\s*'
-                r'(\d[\d,\s]*\d|\d)\s*$',          # last number = current FY
+                r'(\d[\d,\s]*\d|\d)\s*[\)]*\s*$',  # last number = current FY (may have trailing paren)
                 normalized
             )
 
             if m:
                 dept_raw = m.group(1).strip()
                 last_amount_str = re.sub(r'\s', '', m.group(3))
+
+                # Detect negative value: trailing ) in the original normalized line
+                # e.g. "Non Departmental Activity 8,177, 124 1,450,347 1, 181, 281)"
+                # means the last amount (FY26) is negative: ($1,181,281)
+                is_negative = normalized.rstrip().endswith(')')
+                if is_negative:
+                    last_amount_str = last_amount_str.rstrip(')')
                 amount = parse_money(last_amount_str)
+                if is_negative:
+                    amount = -amount
 
                 dept = re.sub(r'\s+', ' ', dept_raw).strip()
 
-                # Skip rows that start with numbers (those are fund-type rows in Resources)
+                # Skip rows that start with numbers
                 if re.match(r'^\d', dept):
                     continue
 
-                # Skip obvious non-department rows
+                # Skip subtotal rows ("Total Public Safety", "Total Operations")
+                # but keep "Transfers Out" and "Contingencies"
                 skip_patterns = [
-                    r'^(Total|Adopted|Actual|FY\d|Sources|Type|Resources?|Successor)',
+                    r'^(Total\s+Public\s+Safety|Total\s+Operations)',
+                    r'^(Adopted|Actual|FY\d|Sources|Type|Resources?|Beginning)',
                 ]
                 skip = any(re.match(p, dept, re.IGNORECASE) for p in skip_patterns)
 
-                if not skip and amount > 100_000 and len(dept) > 2:
+                # Include row if not skipped and amount is non-zero
+                # (negative Non-Departmental transfers are valid and should be included)
+                if not skip and amount != 0 and len(dept) > 2:
                     results.append({
                         'department':     dept,
-                        'fund':           'All Operating Funds',
+                        'fund':           'General Fund',
                         'adopted_amount': amount,
                         'fiscal_year':    fiscal_year,
                         'page_num':       page_num,
