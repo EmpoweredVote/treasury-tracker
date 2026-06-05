@@ -219,6 +219,8 @@ def extract_budget(pdf_path):
         # For a 585-page PDF: ~325; for 537-page: ~300
         # Start a bit earlier to catch any leading dept section pages
         scan_start = max(0, total_pages // 2 - 75)
+        print(f'  Scanning pages {scan_start+1}-{total_pages} of {total_pages} '
+              f'(skipping first {scan_start} pages by heuristic)', file=sys.stderr)
 
         for page_idx in range(scan_start, total_pages):
             page = pdf.pages[page_idx]
