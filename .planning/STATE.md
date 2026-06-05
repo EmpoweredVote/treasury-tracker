@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: California City Expansion
 status: executing
-last_updated: "2026-06-05T15:04:00.380Z"
+last_updated: "2026-06-05T16:14:38.550Z"
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 8
+  total_plans: 12
   completed_plans: 8
   percent: 60
 ---
