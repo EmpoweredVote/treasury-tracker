@@ -160,4 +160,20 @@ processBakersfield.js OP_BAND: $600M-$900M → $300M-$550M (GF operating scope)
 
 ## Task 4: App Spot-Check — 6 Phase 29 Success Criteria
 
-*(Pending — awaiting human verification)*
+**Date:** 2026-06-05
+**Verified by:** User (human spot-check at https://treasurytracker.empowered.vote)
+**Overall result: APPROVED — all 6 criteria passed**
+
+Note: Criteria 3 and 5 reflect the Bakersfield General Fund scope fix applied during this plan
+(operating narrowed from all-funds ~$762M to GF-only ~$412-427M to match revenue GF scope).
+
+| # | Criterion | Expected | Observed | Result |
+|---|-----------|----------|----------|--------|
+| 1 | Both cities in California city picker | "Long Beach" and "Bakersfield" visible under CA | Both cities present in the CA picker | PASS |
+| 2 | Long Beach operating total | ~$634-773M General Fund range | ~$634-773M GF operating (FY2022-FY2026) | PASS |
+| 3 | Bakersfield operating total | ~$412-427M GF only (post scope-fix) | ~$412-427M GF operating (FY2025-FY2026) | PASS |
+| 4 | Revenue / Money In populated for both cities | At least one FY populated for each | Both cities have Revenue tab populated | PASS |
+| 5 | Per-capita displays correctly | LB ~$1,600-1,700/capita; BF ~$988-1,024/capita (GF scope) | Per-capita visible and in expected range for both cities | PASS |
+| 6 | Enrichment descriptions visible | Non-empty plain-language descriptions for top categories | Descriptions visible for both cities | PASS |
+
+### Status: PASSED
