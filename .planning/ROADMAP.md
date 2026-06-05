@@ -426,7 +426,7 @@ Plans:
   4. Both cities show Revenue / Money In tabs with at least one fiscal year populated
   5. Per-capita displays correctly for Fresno (~550K) and Riverside (~324K)
   6. Enrichment descriptions visible for top categories in both cities
-**Plans:** 1/4 plans executed
+**Plans:** 2/4 plans executed
 
 Plans:
 **Wave 1**
@@ -435,7 +435,7 @@ Plans:
 
 **Wave 2** *(blocked on 30-01)*
 
-- [ ] 30-02-PLAN.md — Fresno: download PDFs, extractFresno.py (single-year, General-Fund filter at extraction time) + processFresno.js ($383M–$583M sanity band); dry-run + live-load operating + best-effort revenue (D-09: Fresno first)
+- [x] 30-02-PLAN.md — Fresno: download PDFs, extractFresno.py (single-year, General-Fund filter at extraction time) + processFresno.js ($383M–$583M sanity band); dry-run + live-load operating + best-effort revenue (D-09: Fresno first)
 
 **Wave 3** *(blocked on 30-02 — Fresno baseline established first per D-09)*
 
@@ -484,7 +484,7 @@ Plans:
 | 27. Carry-forwards (Longview + STATE_LABELS) | v1.6 | 2/2 | Complete    | 2026-06-04 |
 | 28. Oakland + San Jose CA Data Load | v1.6 | 3/4 | In Progress|  |
 | 29. Long Beach + Bakersfield CA Data Load | v1.6 | 4/4 | Complete    | 2026-06-05 |
-| 30. Fresno + Riverside CA Data Load | v1.6 | 1/4 | In Progress|  |
+| 30. Fresno + Riverside CA Data Load | v1.6 | 2/4 | In Progress|  |
 
 ---
 
