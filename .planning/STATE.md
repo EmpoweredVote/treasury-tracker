@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: California City Expansion
 status: executing
-last_updated: "2026-06-05T00:22:22.299Z"
-last_activity: 2026-06-05 -- Phase 28 planning complete
+last_updated: "2026-06-05T00:26:17.663Z"
+last_activity: 2026-06-05 -- Phase 28 execution started
 progress:
   total_phases: 5
   completed_phases: 2
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-03)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 28 — Oakland + San Jose CA Data Load
+**Current focus:** Phase 28 — oakland-san-jose-ca-data-load
 
 ## Current Position
 
-Phase: 28
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-05 -- Phase 28 planning complete
+Phase: 28 (oakland-san-jose-ca-data-load) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 28
+Last activity: 2026-06-05 -- Phase 28 execution started
 
 Progress: [ Phase 26 ] [ Phase 27 ] [ Phase 28 ] [ Phase 29 ] [ Phase 30 ]
           [ complete  ] [ complete  ] [  pending  ] [  pending  ] [  pending  ]

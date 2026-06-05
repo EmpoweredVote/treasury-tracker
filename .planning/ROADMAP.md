@@ -366,12 +366,12 @@ Plans:
   4. Both cities show Revenue / Money In tabs with at least one fiscal year populated
   5. Per-capita displays correctly for Oakland (~444K) and San Jose (~997K)
   6. Enrichment descriptions visible for top categories in both cities
-**Plans:** 4 plans
+**Plans:** 1/4 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 28-01-PLAN.md — Seed Oakland + San Jose municipality rows (pop 444K / 997K) and the four GPF/General-Fund data_source rows; verify via treasury_list_source_ids
+- [x] 28-01-PLAN.md — Seed Oakland + San Jose municipality rows (pop 444K / 997K) and the four GPF/General-Fund data_source rows; verify via treasury_list_source_ids
 
 **Wave 2** *(blocked on 28-01; Oakland and San Jose run in parallel — no file overlap)*
 
@@ -449,7 +449,7 @@ Plans:
 | 25. LA County Data Completion + County-City Linking | v1.5 | 3/3 | Complete | 2026-06-03 |
 | 26. Sacramento CA Data Load | v1.6 | 2/2 | Complete    | 2026-06-04 |
 | 27. Carry-forwards (Longview + STATE_LABELS) | v1.6 | 2/2 | Complete    | 2026-06-04 |
-| 28. Oakland + San Jose CA Data Load | v1.6 | 0/? | Not started | - |
+| 28. Oakland + San Jose CA Data Load | v1.6 | 1/4 | In Progress|  |
 | 29. Long Beach + Bakersfield CA Data Load | v1.6 | 0/? | Not started | - |
 | 30. Fresno + Riverside CA Data Load | v1.6 | 0/? | Not started | - |
 
