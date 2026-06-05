@@ -484,7 +484,7 @@ Plans:
 | 27. Carry-forwards (Longview + STATE_LABELS) | v1.6 | 2/2 | Complete    | 2026-06-04 |
 | 28. Oakland + San Jose CA Data Load | v1.6 | 3/4 | In Progress|  |
 | 29. Long Beach + Bakersfield CA Data Load | v1.6 | 4/4 | Complete    | 2026-06-05 |
-| 30. Fresno + Riverside CA Data Load | v1.6 | 4/4 | Complete   | 2026-06-05 |
+| 30. Fresno + Riverside CA Data Load | v1.6 | 4/4 | Complete    | 2026-06-05 |
 
 ---
 

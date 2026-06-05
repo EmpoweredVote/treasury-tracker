@@ -36,12 +36,12 @@
   - Exclude enterprise funds (Gas, Refuse, Water, Airport, Harbor) unless displaying all-funds
   - Target totals: ~$3.6B all-funds; ~$1.5B General Fund
 
-- [ ] **DATA-05**: Fresno CA operating + revenue budget loaded and visible in app
+- [x] **DATA-05**: Fresno CA operating + revenue budget loaded and visible in app
   - PDF extractor required (no open data portal)
   - Enterprise + internal service funds (~$899M) exceed General Fund (~$483M) — apply fund filter
   - Target totals: ~$2.0B all-funds; ~$483M General Fund (FY2025)
 
-- [ ] **DATA-06**: Riverside CA operating + revenue budget loaded and visible in app
+- [x] **DATA-06**: Riverside CA operating + revenue budget loaded and visible in app
   - PDF extractor required (custom city transparency portal)
   - Biennial budget: one document covers 2 FYs — run two extraction passes per document
   - Riverside Public Utilities (RPU) is a full municipal electric utility — large enterprise fund

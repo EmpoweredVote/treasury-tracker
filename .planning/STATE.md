@@ -2,14 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: California City Expansion
-status: ready_to_plan
-last_updated: "2026-06-05T19:29:26.947Z"
+status: milestone_complete
+last_updated: 2026-06-05T22:52:00.766Z
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 16
-  completed_plans: 12
-  percent: 75
+  completed_plans: 83
+  percent: 80
+stopped_at: Milestone complete (Phase 30 was final phase)
 ---
 
 # State
@@ -19,12 +20,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-03)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 30 — fresno-riverside-ca-data-load
+**Current focus:** Milestone complete
 
 ## Current Position
 
-Phase: 30 (fresno-riverside-ca-data-load) — EXECUTING
-Plan: 1 of 4
+Phase: 30
+Plan: Not started
 Next: Phase 29
 
 Progress: [████████░░] 75%
