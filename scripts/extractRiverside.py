@@ -286,9 +286,15 @@ def extract_budget(pdf_path):
                           f'-- skipping', file=sys.stderr)
                     continue
                 else:
-                    # Use filename-derived FYs as fallback
+                    # Use filename-derived FYs as fallback (column headers mismatched)
+                    print(f'  [info] page {page_num}: column FY header mismatched '
+                          f'({col_fy1}/{col_fy2} vs {fy1_from_name}/{fy2_from_name}) — '
+                          f'using filename FYs', file=sys.stderr)
                     fy1, fy2 = fy1_from_name, fy2_from_name
             else:
+                # column FY header not found — use filename-derived FYs as fallback
+                print(f'  [info] page {page_num}: column FY header not found — '
+                      f'using filename FYs ({fy1_from_name}/{fy2_from_name})', file=sys.stderr)
                 fy1, fy2 = fy1_from_name, fy2_from_name
 
             # Extract amounts from the GF line
