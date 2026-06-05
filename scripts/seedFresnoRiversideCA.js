@@ -205,6 +205,7 @@ async function main() {
       api_type:        'pdf_download',
       dataset_type:    'operating',
       dataset_id:      'fresno-gf-operating',
+      base_url:        'https://www.fresno.gov/finance/city-budget/',
       municipality_id: fresnoId,
     },
     {
@@ -212,6 +213,7 @@ async function main() {
       api_type:        'pdf_download',
       dataset_type:    'revenue',
       dataset_id:      'fresno-gf-revenue',
+      base_url:        'https://www.fresno.gov/finance/city-budget/',
       municipality_id: fresnoId,
     },
     {
@@ -219,6 +221,7 @@ async function main() {
       api_type:        'pdf_download',
       dataset_type:    'operating',
       dataset_id:      'riverside-gf-operating',
+      base_url:        'https://www.riversideca.gov/finance/budget',
       municipality_id: riversideId,
     },
     {
@@ -226,6 +229,7 @@ async function main() {
       api_type:        'pdf_download',
       dataset_type:    'revenue',
       dataset_id:      'riverside-gf-revenue',
+      base_url:        'https://www.riversideca.gov/finance/budget',
       municipality_id: riversideId,
     },
   ];
