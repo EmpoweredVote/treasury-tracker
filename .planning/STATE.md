@@ -2,14 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: California City Expansion
-status: executing
-last_updated: "2026-06-05T16:25:45.775Z"
+status: ready_to_plan
+last_updated: 2026-06-05T18:32:59.746Z
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 12
-  completed_plans: 9
+  completed_plans: 79
   percent: 60
+stopped_at: Phase 29 complete (4/4) — ready to discuss Phase 30
 ---
 
 # State
@@ -19,11 +20,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-03)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 28 — oakland-san-jose-ca-data-load
+**Current focus:** Phase 30 — fresno + riverside ca data load
 
 ## Current Position
 
-Phase: 28 (oakland-san-jose-ca-data-load) — COMPLETE
+Phase: 30
 Next: Phase 29
 
 Progress: [████████░░] 75%

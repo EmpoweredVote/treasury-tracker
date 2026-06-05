@@ -29,7 +29,7 @@
   - Large PDFs (400+ pages) — use targeted page-range extraction approach
   - Target totals: ~$5.3B all-funds; ~$1.7–1.9B General Fund
 
-- [ ] **DATA-04**: Long Beach CA operating + revenue budget loaded and visible in app
+- [x] **DATA-04**: Long Beach CA operating + revenue budget loaded and visible in app
   - PDF extractor required (OpenDataSoft portal, not Socrata)
   - Fiscal year: October 1 – September 30 (non-standard; documented in seeder)
   - Exclude Port of Long Beach (~$760M separate entity) entirely
@@ -48,7 +48,7 @@
   - Target totals: ~$1.45B/year
   - Do NOT confuse with Riverside County budget (separate government)
 
-- [ ] **DATA-07**: Bakersfield CA operating + revenue budget loaded and visible in app
+- [x] **DATA-07**: Bakersfield CA operating + revenue budget loaded and visible in app
   - PDF extraction (pdfplumber or pdftotext) — download adopted budget PDF from bakersfieldcity.us
   - No API calls; Open Budget portal used for reference/validation only, not as data source
   - Target totals: ~$853M total (operating ~$765M + capital ~$88M)
