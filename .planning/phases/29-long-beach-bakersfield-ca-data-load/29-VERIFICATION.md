@@ -96,6 +96,68 @@ Categories enriched: 0
 
 ---
 
+## Scope Fix: Bakersfield Operating — All-Funds to General Fund Only
+
+**Date:** 2026-06-05
+**Reason:** Operating data was loaded from "All Operating Funds" section (~$762M), but revenue
+data uses General Fund scope (~$372M). The mismatch made Money Out / Money In incomparable.
+
+### Decision
+
+Narrow Bakersfield operating extraction to General Fund only (~$412M FY2025, ~$427M FY2026).
+
+| | Before (All-Funds) | After (GF Only) |
+|---|---|---|
+| FY2025 operating | $724,515,879 (9 depts) | $412,196,800 (9 depts) |
+| FY2026 operating | $762,585,301 (9 depts) | $426,975,801 (10 depts) |
+| FY2025 revenue | $368,535,800 (GF scope) | unchanged |
+| FY2026 revenue | $371,980,800 (GF scope) | unchanged |
+
+### Source Section
+
+The General Fund page is "Resources and Appropriations — General Fund" (page 32 in both PDFs).
+This is the same page used by the revenue extractor. The Appropriations block lists:
+- Police, Fire, Development Services, Economic & Community Dev, General Government,
+  Non-Departmental (FY2025) / Non Departmental Activity (FY2026), Public Works,
+  Recreation & Parks, Contingencies (when budgeted), Transfers Out
+
+### Per-Capita Estimates (GF scope, population 417,000)
+
+| FY | Operating per capita | Revenue per capita | Ratio (Op/Rev) |
+|----|---------------------|-------------------|----------------|
+| 2025 | $988 | $884 | 1.12 |
+| 2026 | $1,024 | $892 | 1.15 |
+
+Both FYs show operating slightly exceeding revenue — consistent with a modest deficit
+covered by beginning balance drawdown. This is a plausible comparison.
+
+(Previous all-funds comparison: ~$1,735 operating / $884 revenue = 1.96x ratio — clearly mismatched.)
+
+### Enrichment Re-Run
+
+New GF-specific categories enriched after scope fix:
+
+| FY | Category | Plain Name | Confidence |
+|----|----------|------------|------------|
+| 2025 | Transfers Out | Money Sent to Other Agencies | medium |
+| 2025 | Economic and Community Development | Business and Community Support | medium |
+| 2025 | Non-Departmental | Miscellaneous City Expenses | low |
+| 2026 | Contingencies | Emergency Reserve Fund | medium |
+| 2026 | Non Departmental Activity | Budget Adjustments and Corrections | low |
+
+Total new enrichment API calls: 5 (Transfers Out deduplicated across FY2025/FY2026)
+
+### Sanity Band Updated
+
+processBakersfield.js OP_BAND: $600M-$900M → $300M-$550M (GF operating scope)
+
+### Commits
+
+- `073a24f` — fix(29-bakersfield): narrow extractBakersfield.py to General Fund operating scope
+- `262e2e3` — fix(29-bakersfield): update processBakersfield.js sanity band for GF-only scope
+
+---
+
 ## Task 4: App Spot-Check — 6 Phase 29 Success Criteria
 
 *(Pending — awaiting human verification)*
