@@ -67,14 +67,15 @@ def detect_fy_from_filename(pdf_path):
     fy2025-fund-summary-gp.pdf -> 2025 (if 4-digit form used)
     """
     fname = pdf_path.replace('\\', '/').split('/')[-1].lower()
+    # Four-digit year must be checked first: fy2025 -> 2025
+    # (two-digit pattern r'fy(\d{2})-' would match 'fy20' inside 'fy2025' and return 2020)
+    m4 = re.search(r'fy(\d{4})-', fname)
+    if m4:
+        return int(m4.group(1))
     # Two-digit year: fy25 -> 2025, fy22 -> 2022
     m = re.search(r'fy(\d{2})-', fname)
     if m:
         return 2000 + int(m.group(1))
-    # Four-digit year: fy2025 -> 2025
-    m4 = re.search(r'fy(\d{4})-', fname)
-    if m4:
-        return int(m4.group(1))
     return None
 
 
