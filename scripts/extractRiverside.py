@@ -299,7 +299,7 @@ def extract_budget(pdf_path):
 
             # Columns: [FY-2 Actual, FY-1 Actual, FY0 Actual, FY1 Adopted, FY2 Adopted]
             amt1 = amounts[3]   # Fourth amount = first adopted year (FY1)
-            amt2 = amounts[4] if len(amounts) >= 5 else 0  # Fifth = second adopted (FY2)
+            amt2 = amounts[4] if len(amounts) >= 5 else None  # Fifth = second adopted (FY2); None = not applicable
 
             dept = current_dept
 
@@ -321,7 +321,7 @@ def extract_budget(pdf_path):
                       f'already emitted', file=sys.stderr)
 
             # Emit row for FY2
-            if fy2:
+            if fy2 and amt2 is not None:
                 key2 = (dept, fy2)
                 if key2 not in seen:
                     seen.add(key2)
