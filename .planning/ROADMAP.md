@@ -396,7 +396,22 @@ Plans:
   4. Both cities show Revenue / Money In tabs with at least one fiscal year populated
   5. Per-capita displays correctly for Long Beach (~451K) and Bakersfield (~417K)
   6. Enrichment descriptions visible for top categories in both cities
-**Plans:** TBD
+**Plans:** 4 plans (3 waves)
+
+Plans:
+**Wave 1**
+
+- [ ] 29-01-PLAN.md — Seed Long Beach + Bakersfield municipality rows (pop 451K / 417K, Long Beach county_id=LA County) and four operating/revenue data_source rows; idempotency check
+
+**Wave 2** *(blocked on 29-01; Long Beach and Bakersfield run in parallel — no file overlap)*
+
+- [ ] 29-02-PLAN.md — Long Beach: download GF fund-summary PDFs (FY22–FY26), extractLongBeach.py (ending-year FY, Port/Harbor exclusion) + processLongBeach.js ($1.3B–$1.7B sanity band); dry-run + live-load operating + best-effort revenue
+- [ ] 29-03-PLAN.md — Bakersfield: download adopted budget PDFs (FY2024-25, FY2025-26), extractBakersfield.py (all-operating-funds scope ~$765M, not GF-only ~$287M) + processBakersfield.js ($600M–$900M sanity band); dry-run + live-load operating + best-effort revenue
+
+**Wave 3** *(blocked on 29-02 + 29-03 — needs loaded budget rows to enrich and verify)*
+
+- [ ] 29-04-PLAN.md — Enrichment for both cities behind the $0.10 combined cost gate (D-08); app spot-check all 6 success criteria; write 29-VERIFICATION.md
+
 **UI hint:** yes
 
 ### Phase 30: Fresno + Riverside CA Data Load
@@ -450,10 +465,10 @@ Plans:
 | 26. Sacramento CA Data Load | v1.6 | 2/2 | Complete    | 2026-06-04 |
 | 27. Carry-forwards (Longview + STATE_LABELS) | v1.6 | 2/2 | Complete    | 2026-06-04 |
 | 28. Oakland + San Jose CA Data Load | v1.6 | 3/4 | In Progress|  |
-| 29. Long Beach + Bakersfield CA Data Load | v1.6 | 0/? | Not started | - |
+| 29. Long Beach + Bakersfield CA Data Load | v1.6 | 0/4 | Planned | - |
 | 30. Fresno + Riverside CA Data Load | v1.6 | 0/? | Not started | - |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-06-04 — Phase 27 complete (CARRY-01 + CARRY-02 verified)*
+*Last updated: 2026-06-05 — Phase 29 planned (4 plans, 3 waves)*
