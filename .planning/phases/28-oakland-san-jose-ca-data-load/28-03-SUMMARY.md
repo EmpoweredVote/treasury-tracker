@@ -191,6 +191,26 @@ None — no new network endpoints introduced. Threat mitigations applied:
 - [x] No modifications to STATE.md or ROADMAP.md
 
 ---
+## Live Load Results (2026-06-05)
+
+| FY | Operating | Revenue |
+|----|-----------|---------|
+| 2021 | $1.33B (23 cats) | $1.52B |
+| 2022 | $1.38B (23 cats) | $1.54B |
+| 2023 | $1.50B (23 cats) | $1.91B |
+| 2024 | $1.69B (23 cats) | $2.09B |
+| 2025 | $1.82B (23 cats) | $2.11B |
+
+PDFs loaded: FY2020-21 through FY2024-25 (5 years). FY2016-17 through FY2019-20 use an older PDF format not yet supported — skipped (non-blocking). Human verified: San Jose visible in app under California with correct operating totals and revenue tab populated.
+
+## Extractor Fixes Required (found during live load)
+
+`extractSanJose.py` needed three fixes before working (commit 5eb55d5):
+1. **Dual marker support**: FY2024-25 PDF uses both "SUMMARY OF GENERAL FUND" (pages 162-163) and "FIVE-YEAR COMPARISON OF GENERAL FUND" (pages 200-202) — needed both format sets with SOURCE/USE OF FUNDS confirmation to avoid pie-chart false positives
+2. **CIP exit marker**: "CAPITAL IMPROVEMENT PROGRAM" appears in narrative text from page 47 onward — changed to "SUMMARY OF CAPITAL IMPROVEMENT PROGRAM" (section-level header only)
+3. **Double-count prevention**: BY CATEGORY section sets done=True to prevent re-reading from FIVE-YEAR COMPARISON pages which duplicate the same values
+4. **Page cap**: 200 → 250 (FY2022-23 summary tables are on pages 208-211)
+
 *Phase: 28-oakland-san-jose-ca-data-load*
-*Plan 03 paused at checkpoint — awaiting PDF download + human verification*
+*Plan 03 COMPLETE — 5 fiscal years loaded + human verified*
 *Completed: 2026-06-05*
