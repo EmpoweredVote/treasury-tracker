@@ -181,7 +181,7 @@ def extract_budget(pdf_path):
     # that appear as the second line after "City of Riverside ... Biennial Budget"
     DEPT_HEADER_RE = re.compile(
         r"^(?:"
-        r"CITY (?:ATTORNEY|CLERK|COUNCIL|MANAGER)[''’\s]"  # City offices
+        r"CITY (?:ATTORNEY|CLERK|COUNCIL|MANAGER)[''’\s]?"  # City offices
         r"|COMMUNITY (?:&|AND) ECONOMIC DEVELOPMENT"                  # CED
         r"|FINANCE(?:\s+DEPARTMENT)?"                           # Finance
         r"|FIRE(?:\s+DEPARTMENT)?"                              # Fire
