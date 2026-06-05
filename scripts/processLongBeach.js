@@ -118,9 +118,10 @@ function extractPDF(pdfPath, mode) {
 
 // ── Build operating/revenue budget tree from extracted rows ───────────────────
 // Each category becomes a top-level node { n, a, i[] }.
-function buildTree(rows) {
+function buildTree(rows, datasetType) {
   const nodes = [];
   let total = 0;
+  const fundLabel = datasetType === 'revenue' ? 'General Fund Revenue' : 'General Fund';
 
   for (const row of rows) {
     const amount = row.adopted_amount;
@@ -131,7 +132,7 @@ function buildTree(rows) {
         d: row.department,
         a: amount,
         aa: null,
-        f: 'General Fund',
+        f: fundLabel,
         e: null,
       }],
     });
@@ -251,7 +252,7 @@ async function processPDF(pdfAbsPath, muniId, dryRun, datasetType) {
       continue;
     }
 
-    const { tree, total } = buildTree(fyRows);
+    const { tree, total } = buildTree(fyRows, datasetType);
     const rowCount = tree.length;
 
     const label = mode === 'revenue' ? 'Revenue' : 'GF Operating';
