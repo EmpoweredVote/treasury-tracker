@@ -3,14 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: California City Expansion
 status: ready_to_plan
-last_updated: 2026-06-05T18:32:59.746Z
+last_updated: "2026-06-05T18:45:41.811Z"
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 12
-  completed_plans: 79
-  percent: 60
-stopped_at: Phase 29 complete (4/4) — ready to discuss Phase 30
+  completed_plans: 12
+  percent: 80
 ---
 
 # State
@@ -84,9 +83,9 @@ $5 per run — estimate before running AI enrichment or PDF extraction.
 
 ## Session Continuity
 
-Last session: 2026-06-05T16:25:45.767Z
-Stopped at: Phase 29 context gathered
-Resume file: None
+Last session: 2026-06-05T18:45:41.802Z
+Stopped at: Phase 30 context gathered
+Resume file: .planning/phases/30-fresno-riverside-ca-data-load/30-CONTEXT.md
 
 ## Performance Metrics
 
