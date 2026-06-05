@@ -182,13 +182,13 @@ def extract_budget(pdf_path):
     DEPT_HEADER_RE = re.compile(
         r"^(?:"
         r"CITY (?:ATTORNEY|CLERK|COUNCIL|MANAGER)[''’\s]"  # City offices
-        r"|COMMUNITY [&A] ECONOMIC DEVELOPMENT"                  # CED
+        r"|COMMUNITY (?:&|AND) ECONOMIC DEVELOPMENT"                  # CED
         r"|FINANCE(?:\s+DEPARTMENT)?"                           # Finance
         r"|FIRE(?:\s+DEPARTMENT)?"                              # Fire
         r"|GENERAL SERVICES(?:\s+DEPARTMENT)?"                  # General Services
-        r"|HOUSING [&A] HUMAN SERVICES"                         # Housing
+        r"|HOUSING (?:&|AND) HUMAN SERVICES"                         # Housing
         r"|HUMAN RESOURCES(?:\s+DEPARTMENT)?"                   # HR
-        r"|INNOVATION [&A] TECHNOLOGY"                          # I&T
+        r"|INNOVATION (?:&|AND) TECHNOLOGY"                          # I&T
         r"|MARKETING AND COMMUNICATIONS"                        # Marketing
         r"|MAYOR[''’\s]?S? OFFICE"                        # Mayor
         r"|MUSEUM OF RIVERSIDE"                                 # Museum
