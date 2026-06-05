@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Bakersfield CA Budget Loader — All Operating Funds
+ * Bakersfield CA Budget Loader — General Fund Operating
  *
  * Extracts department-level operating budget data from Bakersfield Adopted Budget
  * PDFs using extractBakersfield.py (pdfplumber), groups rows by fiscal year,
@@ -10,8 +10,11 @@
  * No scale conversion required.
  *
  * PDF coverage:
- *   fy2024-25-adopted-budget.pdf → FY2025 ($724.5M all-funds operating)
- *   fy2025-26-adopted-budget.pdf → FY2026 ($762.6M all-funds operating)
+ *   fy2024-25-adopted-budget.pdf → FY2025 ($412.2M General Fund operating)
+ *   fy2025-26-adopted-budget.pdf → FY2026 ($427.0M General Fund operating)
+ *
+ * Scope: General Fund only — matches GF revenue scope (~$372M) for comparable
+ * Money In / Money Out display. Prior all-funds scope (~$762M) was mismatched.
  *
  * Usage:
  *   node scripts/processBakersfield.js                     # load all PDFs
@@ -26,7 +29,7 @@
  * Security (T-29-04): maxBuffer 8MB cap on execSync
  * Security (T-29-05): PDF path from controlled docs/Bakersfield/ readdir; double-quoted
  * Security (T-29-06): SUPABASE_SERVICE_KEY read via loadEnv(); never logged
- * Security (T-29-07): sanity band $600M-$900M; halt on scale mismatch before DB write
+ * Security (T-29-07): sanity band $300M-$550M; halt on scale mismatch before DB write
  */
 
 import { execSync }              from 'node:child_process';
@@ -61,12 +64,12 @@ if (!SUPABASE_KEY) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── Operating band sanity (T-29-07) ───────────────────────────────────────────
-// Bakersfield ALL operating funds: ~$600M-$900M per fiscal year
-// Target: ~$765M operating per REQUIREMENTS.md DATA-07
-// FY2025: $724.5M (confirmed), FY2026: $762.6M (confirmed)
+// Bakersfield GENERAL FUND operating: ~$300M-$550M per fiscal year
+// Target: ~$412M (FY2025), ~$427M (FY2026) — GF scope matches GF revenue (~$372M)
+// Scope narrowed from all-funds (~$762M) to General Fund only for Money In/Out comparability
 // If total falls outside this band, halt before any DB write
-const OP_BAND_MIN = 600_000_000;   // $600M
-const OP_BAND_MAX = 900_000_000;   // $900M
+const OP_BAND_MIN = 300_000_000;   // $300M
+const OP_BAND_MAX = 550_000_000;   // $550M
 
 // ── Resolve PDF directory (worktree-safe) ─────────────────────────────────────
 // In a git worktree, ROOT resolves to the worktree root, but gitignored files
@@ -104,7 +107,7 @@ function extractPDF(pdfPath, revenue = false) {
 
 // ── Build operating budget tree from extracted rows ───────────────────────────
 // Each department becomes a top-level node { n, a, i[] }.
-// Fund field: 'All Operating Funds' (all-funds scope, not GF-only)
+// Fund field: 'General Fund' (GF-only scope for Money In/Out comparability)
 function buildOperatingTree(rows) {
   const nodes = [];
   let total = 0;
@@ -118,7 +121,7 @@ function buildOperatingTree(rows) {
         d: row.department,
         a: amount,
         aa: null,
-        f: 'All Operating Funds',
+        f: 'General Fund',
         e: null,
       }],
     });
@@ -265,7 +268,7 @@ async function processPDF(pdfAbsPath, muniId, dryRun, loadRevenue) {
     const { tree, total } = buildOperatingTree(fyRows);
     const rowCount = tree.length;
 
-    console.log(`\n  FY${fy} All-Funds Operating — $${total.toLocaleString()} total (${rowCount} departments)`);
+    console.log(`\n  FY${fy} GF Operating — $${total.toLocaleString()} total (${rowCount} departments)`);
 
     // Print top departments
     for (const n of tree.slice(0, 8)) {
@@ -273,13 +276,13 @@ async function processPDF(pdfAbsPath, muniId, dryRun, loadRevenue) {
     }
     if (tree.length > 8) console.log(`    … +${tree.length - 8} more`);
 
-    // Sanity check (T-29-07): operating band $600M-$900M
-    // Target ~$765M (all-funds); ~$287M GF-only is WRONG — halt if too low
+    // Sanity check (T-29-07): operating band $300M-$550M (GF scope)
+    // Target ~$412M FY2025, ~$427M FY2026; ~$762M all-funds is WRONG scope now
     if (total < OP_BAND_MIN || total > OP_BAND_MAX) {
       console.error(`\n  SCALE MISMATCH WARNING: FY${fy} operating total $${total.toLocaleString()} is outside`);
       console.error(`  expected band $${OP_BAND_MIN.toLocaleString()}-$${OP_BAND_MAX.toLocaleString()}.`);
-      console.error('  Possible causes: General-Fund-only extraction yielding ~$287M, wrong units,');
-      console.error('  or wrong section parsed. HALTING before live load to prevent bad data.');
+      console.error('  Possible causes: wrong section parsed (~$762M all-funds or ~$287M GF-only),');
+      console.error('  wrong units, or extractor regression. HALTING before live load to prevent bad data.');
       process.exit(3);
     }
 
@@ -363,7 +366,7 @@ async function main() {
     pdfPaths = files.map(f => path.join(pdfDir, f));
   }
 
-  console.log(`Bakersfield All-Funds Budget Loader${dryRun ? ' (dry-run)' : ''}${loadRev ? ' +revenue' : ''}`);
+  console.log(`Bakersfield GF Budget Loader${dryRun ? ' (dry-run)' : ''}${loadRev ? ' +revenue' : ''}`);
   console.log(`PDFs to process: ${pdfPaths.length}`);
   for (const p of pdfPaths) console.log(`  - ${path.basename(p)}`);
 
