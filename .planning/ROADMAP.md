@@ -396,7 +396,7 @@ Plans:
   4. Both cities show Revenue / Money In tabs with at least one fiscal year populated
   5. Per-capita displays correctly for Long Beach (~451K) and Bakersfield (~417K)
   6. Enrichment descriptions visible for top categories in both cities
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 **Wave 1**
@@ -410,7 +410,7 @@ Plans:
 
 **Wave 3** *(blocked on 29-02 + 29-03 — needs loaded budget rows to enrich and verify)*
 
-- [ ] 29-04-PLAN.md — Enrichment for both cities behind the $0.10 combined cost gate (D-08); app spot-check all 6 success criteria; write 29-VERIFICATION.md
+- [x] 29-04-PLAN.md — Enrichment for both cities behind the $0.10 combined cost gate (D-08); app spot-check all 6 success criteria; write 29-VERIFICATION.md
 
 **UI hint:** yes
 
@@ -465,7 +465,7 @@ Plans:
 | 26. Sacramento CA Data Load | v1.6 | 2/2 | Complete    | 2026-06-04 |
 | 27. Carry-forwards (Longview + STATE_LABELS) | v1.6 | 2/2 | Complete    | 2026-06-04 |
 | 28. Oakland + San Jose CA Data Load | v1.6 | 3/4 | In Progress|  |
-| 29. Long Beach + Bakersfield CA Data Load | v1.6 | 3/4 | In Progress|  |
+| 29. Long Beach + Bakersfield CA Data Load | v1.6 | 4/4 | Complete   | 2026-06-05 |
 | 30. Fresno + Riverside CA Data Load | v1.6 | 0/? | Not started | - |
 
 ---
