@@ -33,7 +33,7 @@ Riverside: General Fund only (~$1.45B/year); RPU electric utility and all other 
 - **D-07:** Best-effort revenue from operating budget PDF — same as Phase 28 D-05. If the operating budget PDF contains a clear revenue / sources-of-funds section, extract and load it. If revenue data is not cleanly available, note it as deferred rather than blocking the phase. Do NOT search for standalone revenue documents unless operating PDF yields nothing.
 
 ### Plan Structure
-- **D-08:** Four plans:
+- **D-08** [informational]: Four plans:
   - Plan 1: Seed both cities (Fresno + Riverside municipality rows, data_source rows, population)
   - Plan 2: Fresno — write extractor, write processor, dry-run, live-run (operating + revenue)
   - Plan 3: Riverside — write extractor (biennial, per-page FY detection), write processor, dry-run, live-run (operating + revenue)
