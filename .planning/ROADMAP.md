@@ -426,7 +426,7 @@ Plans:
   4. Both cities show Revenue / Money In tabs with at least one fiscal year populated
   5. Per-capita displays correctly for Fresno (~550K) and Riverside (~324K)
   6. Enrichment descriptions visible for top categories in both cities
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 **Wave 1**
@@ -443,7 +443,7 @@ Plans:
 
 **Wave 4** *(blocked on 30-02 + 30-03 — needs loaded rows to enrich and verify)*
 
-- [ ] 30-04-PLAN.md — Enrichment for both cities behind the $0.10 combined cost gate (D-10); human-verify all 6 success criteria; write 30-VERIFICATION.md
+- [x] 30-04-PLAN.md — Enrichment for both cities behind the $0.10 combined cost gate (D-10); human-verify all 6 success criteria; write 30-VERIFICATION.md
 
 **UI hint:** yes
 
@@ -484,7 +484,7 @@ Plans:
 | 27. Carry-forwards (Longview + STATE_LABELS) | v1.6 | 2/2 | Complete    | 2026-06-04 |
 | 28. Oakland + San Jose CA Data Load | v1.6 | 3/4 | In Progress|  |
 | 29. Long Beach + Bakersfield CA Data Load | v1.6 | 4/4 | Complete    | 2026-06-05 |
-| 30. Fresno + Riverside CA Data Load | v1.6 | 3/4 | In Progress|  |
+| 30. Fresno + Riverside CA Data Load | v1.6 | 4/4 | Complete   | 2026-06-05 |
 
 ---
 
