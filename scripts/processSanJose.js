@@ -60,20 +60,25 @@ if (!SUPABASE_KEY) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // ── Resolve PDF directory (worktree-safe, from processPortland.js) ───────────
+// Checks both 'SanJose' (no space) and 'San Jose' (with space) variants.
 function resolvePdfDir() {
-  const candidate = path.join(ROOT, 'docs', 'SanJose');
-  if (existsSync(candidate)) return candidate;
+  for (const dirName of ['SanJose', 'San Jose']) {
+    const candidate = path.join(ROOT, 'docs', dirName);
+    if (existsSync(candidate)) return candidate;
+  }
 
   try {
     const gitDir = execSync('git rev-parse --git-common-dir', {
       cwd: ROOT, encoding: 'utf8'
     }).trim();
     const mainRoot = path.dirname(path.resolve(ROOT, gitDir));
-    const mainCandidate = path.join(mainRoot, 'docs', 'SanJose');
-    if (existsSync(mainCandidate)) return mainCandidate;
+    for (const dirName of ['SanJose', 'San Jose']) {
+      const mainCandidate = path.join(mainRoot, 'docs', dirName);
+      if (existsSync(mainCandidate)) return mainCandidate;
+    }
   } catch (_) { /* not in git */ }
 
-  return candidate;
+  return path.join(ROOT, 'docs', 'SanJose');
 }
 
 // ── Tax revenue line item names — grouped under "Taxes" parent ───────────────
@@ -97,10 +102,9 @@ function extractPDF(pdfPath) {
   return JSON.parse(raw);
 }
 
-// ── Convert thousands → full dollars (San Jose PDF amounts are in thousands) ──
-// Verify during dry-run: if total is ~$1.7M instead of ~$1.7B, apply this;
-// if total is ~$1.7B already, amounts are full dollars — set AMOUNTS_IN_THOUSANDS = false
-const AMOUNTS_IN_THOUSANDS = true; // Update if dry-run shows full dollar amounts
+// San Jose PDF amounts are in FULL DOLLARS (confirmed from FY2024-25 inspection).
+// City Attorney = $19,031,941 full dollars; total GF uses = $2.13B full dollars.
+const AMOUNTS_IN_THOUSANDS = false;
 
 function toFullDollars(thousands) {
   return AMOUNTS_IN_THOUSANDS ? Math.round(thousands * 1000) : thousands;
