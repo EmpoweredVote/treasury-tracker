@@ -56,10 +56,46 @@ Runs execute sequentially; progress file deduplication prevents re-enriching sam
 
 ---
 
-## Tasks 2–4
+---
 
-*(Pending — to be completed after cost gate approval)*
+## Task 3: Live Enrichment Results
 
-- Task 2: Cost gate decision (awaiting user approval)
-- Task 3: Live enrichment run
-- Task 4: App spot-check — all 6 ROADMAP Phase 29 success criteria
+**Date:** 2026-06-05
+**Gate status at run time:** Combined estimate $0.0666 < $0.10 — approved by user
+
+### Per-Run Results
+
+| Command | Categories Enriched | Notes |
+|---------|---------------------|-------|
+| `enrichCategories.js --city "Long Beach" --state CA --year 2025` | 20 | 6 operating + 13 revenue + 1 other; all new |
+| `enrichCategories.js --city "Long Beach" --state CA --year 2026` | 0 | All names identical to FY2025 — already covered by upsert |
+| `enrichCategories.js --city Bakersfield --state CA --year 2025` | 17 | 9 operating + 8 revenue; all new |
+| `enrichCategories.js --city Bakersfield --state CA --year 2026` | 7 | 3 operating + 4 revenue (new name variants vs FY2025) |
+
+**Total enrichment calls made:** 44
+**Total failures:** 0
+**All runs exited 0:** Yes
+
+### Idempotency Re-Check
+
+Re-ran `--dry-run` for Long Beach FY2025 after live enrichment:
+
+```
+[Long Beach] Nothing new to enrich
+Categories enriched: 0
+```
+
+**Result: PASS** — near-zero remaining cost confirmed; DB write deduplication working correctly.
+
+### Enrichment Coverage Summary
+
+| City | FYs Covered | Operating Categories Enriched | Revenue Categories Enriched |
+|------|-------------|-------------------------------|------------------------------|
+| Long Beach | 2025, 2026 | 6 | 14 |
+| Bakersfield | 2025, 2026 | 12 | 13 |
+
+---
+
+## Task 4: App Spot-Check — 6 Phase 29 Success Criteria
+
+*(Pending — awaiting human verification)*
