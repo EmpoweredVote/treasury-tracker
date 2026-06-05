@@ -1,12 +1,23 @@
 {
   "processed": [
-    "3286b941-d34f-462e-90be-d104ef19693d::water department",
-    "3286b941-d34f-462e-90be-d104ef19693d::non- departmental",
-    "3286b941-d34f-462e-90be-d104ef19693d::recreation & parks",
-    "3286b941-d34f-462e-90be-d104ef19693d::sales and uses tax",
-    "3286b941-d34f-462e-90be-d104ef19693d::charges and services",
-    "3286b941-d34f-462e-90be-d104ef19693d::intergovenmental",
-    "3286b941-d34f-462e-90be-d104ef19693d::license and permits"
+    "c17b6fbe-947f-4e7d-9186-b1e65e5d5197::fire department",
+    "c17b6fbe-947f-4e7d-9186-b1e65e5d5197::police department",
+    "c17b6fbe-947f-4e7d-9186-b1e65e5d5197::non-departmental",
+    "c17b6fbe-947f-4e7d-9186-b1e65e5d5197::community & economic development department",
+    "c17b6fbe-947f-4e7d-9186-b1e65e5d5197::parks, recreation & community services department",
+    "c17b6fbe-947f-4e7d-9186-b1e65e5d5197::public works department",
+    "c17b6fbe-947f-4e7d-9186-b1e65e5d5197::innovation & technology department",
+    "c17b6fbe-947f-4e7d-9186-b1e65e5d5197::public library",
+    "c17b6fbe-947f-4e7d-9186-b1e65e5d5197::finance department",
+    "c17b6fbe-947f-4e7d-9186-b1e65e5d5197::human resources department",
+    "c17b6fbe-947f-4e7d-9186-b1e65e5d5197::city attorney's office",
+    "c17b6fbe-947f-4e7d-9186-b1e65e5d5197::non-classified",
+    "c17b6fbe-947f-4e7d-9186-b1e65e5d5197::general services department",
+    "c17b6fbe-947f-4e7d-9186-b1e65e5d5197::housing & human services department",
+    "c17b6fbe-947f-4e7d-9186-b1e65e5d5197::city manager's office",
+    "c17b6fbe-947f-4e7d-9186-b1e65e5d5197::city clerk's office",
+    "c17b6fbe-947f-4e7d-9186-b1e65e5d5197::museum of riverside",
+    "c17b6fbe-947f-4e7d-9186-b1e65e5d5197::mayor's office"
   ],
   "failed": []
 }
