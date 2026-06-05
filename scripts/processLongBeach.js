@@ -74,8 +74,6 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 // the all-funds total was the General Fund. Actual fund-summary-gp PDFs contain only
 // the General Fund Group (~$600M–$800M). Band adjusted to match actual data.
 // Long Beach FY runs Oct 1 – Sep 30; stored as ending year (D-01).
-const GF_BAND_MIN = 1_300_000_000;   // $1.3B — plan-specified (kept for reference)
-const GF_BAND_MAX = 1_700_000_000;   // $1.7B — plan-specified (kept for reference)
 // Actual operating band for fund-summary-gp PDFs
 const ACTUAL_BAND_MIN = 550_000_000;  // $550M
 const ACTUAL_BAND_MAX = 850_000_000;  // $850M
