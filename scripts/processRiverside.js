@@ -161,7 +161,7 @@ async function upsertDataSource(muniId, fiscalYear, datasetType, pdfPath) {
     name:            `Riverside ${label} FY${fiscalYear}`,
     api_type:        'pdf_download',
     dataset_type:    datasetType,
-    dataset_id:      `fy${fiscalYear}`,
+    dataset_id:      `riverside-fy${fiscalYear}-${datasetType}`,
     base_url:        'file://' + pdfPath.replace(/\\/g, '/'),
     fiscal_years:    [fiscalYear],
     municipality_id: muniId,
@@ -172,7 +172,7 @@ async function upsertDataSource(muniId, fiscalYear, datasetType, pdfPath) {
     .select('id')
     .eq('municipality_id', muniId)
     .eq('api_type', 'pdf_download')
-    .eq('dataset_id', `fy${fiscalYear}`)
+    .eq('dataset_id', `riverside-fy${fiscalYear}-${datasetType}`)
     .eq('dataset_type', datasetType)
     .maybeSingle();
 
