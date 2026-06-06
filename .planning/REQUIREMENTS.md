@@ -11,9 +11,9 @@
 
 ### INFRA — State Entity Infrastructure
 
-- [ ] **INFRA-01**: Database supports `entity_type: 'state'` — migration adds 'state' to `treasury.municipalities` entity_type CHECK constraint
-- [ ] **INFRA-02**: TypeScript `Municipality.entity_type` union includes `'state'` (1-line change in `src/types/budget.ts`)
-- [ ] **INFRA-03**: Entity picker surfaces state entities in a dedicated "State Governments" section above all state/city groups — not nested inside the "CALIFORNIA" city group
+- [x] **INFRA-01**: Database supports `entity_type: 'state'` — migration adds 'state' to `treasury.municipalities` entity_type CHECK constraint
+- [x] **INFRA-02**: TypeScript `Municipality.entity_type` union includes `'state'` (1-line change in `src/types/budget.ts`)
+- [x] **INFRA-03**: Entity picker surfaces state entities in a dedicated "State Governments" section above all state/city groups — not nested inside the "CALIFORNIA" city group
 
 ### DATA — CA State Budget Data
 
@@ -67,9 +67,9 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 32 | Pending |
-| INFRA-02 | Phase 32 | Pending |
-| INFRA-03 | Phase 32 | Pending |
+| INFRA-01 | Phase 32 | Complete |
+| INFRA-02 | Phase 32 | Complete |
+| INFRA-03 | Phase 32 | Complete |
 | DATA-01 | Phase 33 | Pending |
 | DATA-02 | Phase 33 | Pending |
 | DATA-03 | Phase 33 | Pending |
