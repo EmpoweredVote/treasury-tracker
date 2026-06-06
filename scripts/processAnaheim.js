@@ -180,12 +180,20 @@ async function upsertDataSource(muniId, fiscalYear, datasetType, pdfAbsPath) {
     .maybeSingle();
 
   if (existing?.id) {
-    const { data } = await supabase.schema('treasury').from('data_sources')
+    const { data, error } = await supabase.schema('treasury').from('data_sources')
       .update(src).eq('id', existing.id).select().single();
+    if (error) {
+      console.error(`  ERROR updating data_source "${src.name}": ${error.message}`);
+      return null;
+    }
     return data;
   }
-  const { data } = await supabase.schema('treasury').from('data_sources')
+  const { data, error } = await supabase.schema('treasury').from('data_sources')
     .insert(src).select().single();
+  if (error) {
+    console.error(`  ERROR inserting data_source "${src.name}": ${error.message}`);
+    return null;
+  }
   return data;
 }
 
