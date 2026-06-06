@@ -13,7 +13,7 @@ import type { Municipality } from '../types/budget';
 const cache = new Map<string, string | null>();
 
 /** State abbreviation â†’ full name for Wikipedia article titles */
-const STATE_NAMES: Record<string, string> = {
+export const STATE_NAMES: Record<string, string> = {
   AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas',
   CA: 'California', CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware',
   FL: 'Florida', GA: 'Georgia', HI: 'Hawaii', ID: 'Idaho',
@@ -87,6 +87,11 @@ function buildSearchTitles(entity: Municipality): string[] {
         titles.push(`${entity.name} Township, ${stateFull}`);
       }
       break;
+    case 'state':
+      // State entities: use just the state name (e.g. "Indiana")
+      titles.push(entity.name);
+      titles.push(`${entity.name} (state)`);
+      return titles; // return early — state fallback to stateFull would duplicate
     default:
       // city, town, school_district, library, etc.
       titles.push(`${entity.name}, ${stateFull}`);
