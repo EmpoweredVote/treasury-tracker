@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: California City Expansion
 status: milestone_complete
-last_updated: 2026-06-06T05:26:00.628Z
+last_updated: 2026-06-06T06:06:49.073Z
 progress:
   total_phases: 6
   completed_phases: 5
@@ -46,7 +46,7 @@ Progress: [████████░░] 75%
 ### Seeded Cities (active in DB)
 
 - TX (14): Dallas, Plano, McKinney, Frisco, Allen, Prosper, Celina, Richardson, Garland, Wylie, Sachse, Murphy, Princeton, Longview
-- CA (3 + LA County): Los Angeles, San Francisco, San Diego, LA County
+- CA (10 + LA County): Los Angeles, San Francisco, San Diego, Sacramento, Long Beach, Bakersfield, Fresno, Riverside, Anaheim, Santa Ana, LA County
 - OR (3): Portland (FY2022–FY2026 operating + revenue, 635,749 population, 41 enrichment rows), Gresham (FY2023–FY2026 operating + revenue, 111,507 population, 33 enrichment rows), Troutdale (FY2019–FY2026 operating + revenue, 15,749 population, 26 enrichment rows)
 
 ### CA PDF Extraction Notes (from Research)
@@ -85,9 +85,9 @@ $5 per run — estimate before running AI enrichment or PDF extraction.
 
 ## Session Continuity
 
-Last session: 2026-06-05T18:45:41.802Z
-Stopped at: Phase 30 context gathered
-Resume file: .planning/phases/30-fresno-riverside-ca-data-load/30-CONTEXT.md
+Last session: 2026-06-06
+Stopped at: Phase 31 UAT complete (7/7 passed); v1.6 milestone shipped
+Resume file: None
 
 ## Performance Metrics
 
