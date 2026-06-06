@@ -1,86 +1,90 @@
-# Stack Research: v1.6 California City Expansion
-**Researched:** 2026-06-03
+# Stack Research: v1.7 California State Budget + Deep Icicles
+
+**Domain:** Government financial transparency — CA state budget loading + 3-level icicle hierarchy
+**Researched:** 2026-06-06
+**Confidence:** HIGH — derived from codebase inspection + confirmed source availability
+
+---
 
 ## Summary
 
-Of the seven target cities, only two (San Jose and Oakland) run confirmed Socrata portals compatible with `bulkLoadBudget.js`. Long Beach uses OpenDataSoft (not Socrata), Sacramento uses ArcGIS-based open data, and Fresno, Riverside (city), and Bakersfield publish budget data as PDFs with no confirmed machine-readable API. Five of seven cities require PDF loaders; Bakersfield needs a quick API probe before assigning a loader.
+No new npm or pip packages are needed for the 3-level tree change — it is a purely logic change to the Node.js RPC walk and the ev-accounts-api categories endpoint. The CA state budget has no Socrata API; the best sources are the CA ebudget.ca.gov PDF (pdfplumber, same pattern as existing CA cities) or the LAO historical Excel pivot table (openpyxl, already available). The `BudgetIcicle.tsx` frontend requires zero stack changes — it already renders arbitrary depth.
 
-## City-by-City Assessment
+---
 
-### Long Beach, CA
-- **Open data portal:** https://data.longbeach.gov/
-- **Platform:** OpenDataSoft (NOT Socrata — confirmed via portal footer referencing "Huwise/OpenDataSoft"; uses its own REST API, not SODA)
-- **Socrata:** No
-- **Budget dataset:** Budget documents available as PDF at https://www.longbeach.gov/finance/city-budget-and-finances/budget/ — no machine-readable budget dataset confirmed on the open data portal
-- **Recommended loader:** bulkLoadPDF.js (Claude Haiku vision) or Python pdfplumber
-- **Notes:** data.longbeach.gov has an API console but it is OpenDataSoft's proprietary API. bulkLoadBudget.js is incompatible without a new OpenDataSoft adapter. PDF approach avoids that dependency.
+## CA State Budget Data Sources
 
-### San Jose, CA
-- **Open data portal:** https://data.sanjoseca.gov/
-- **Platform:** Socrata (confirmed — data.sanjoseca.gov is a Socrata-hosted portal)
-- **Socrata:** Yes
-- **Budget dataset:** No specific dataset ID confirmed. Portal has budget data but dataset ID requires a direct search on data.sanjoseca.gov for "operating budget" or "expenditures." Fallback PDFs at https://www.sanjoseca.gov/your-government/departments-offices/office-of-the-city-manager/budget/budget-documents
-- **Recommended loader:** bulkLoadBudget.js — contingent on confirming a budget dataset exists with a usable department-level schema
-- **Notes:** If no structured budget dataset is found on the Socrata portal, fall back to PDF approach.
+| Source | Format | Loader | Confidence | Notes |
+|--------|--------|--------|------------|-------|
+| ebudget.ca.gov Enacted Budget Summary PDF | PDF | pdfplumber | MEDIUM | Well-structured table; must inspect for merged cells |
+| LAO historical Excel pivot | XLSX | openpyxl / xlsx | HIGH | Multi-year FY1985–FY2026; department-level aggregates |
+| Open FISCal (open.fiscal.ca.gov) | CKAN CSVs | Custom | LOW | 151 department CSVs per FY; not practical for totals |
+| CA Open Data (data.ca.gov) | No Socrata endpoint | — | HIGH | Confirmed no SODA API for state budget |
 
-### Sacramento, CA
-- **Open data portal:** https://data.cityofsacramento.org/ (also https://data-saccity.opendata.arcgis.com/)
-- **Platform:** ArcGIS Online (NOT Socrata — confirmed via search showing ArcGIS Online hosting)
-- **Socrata:** No
-- **Budget dataset:** Budget available as PDF at cityofsacramento.gov. No structured API budget dataset found.
-- **Recommended loader:** bulkLoadPDF.js (Claude Haiku vision) or Python pdfplumber
-- **Notes:** Sacramento's open data portal is ArcGIS-based. SODA API does not apply.
+**Recommendation:** Use LAO Excel for multi-year history (clean, machine-readable) + ebudget.ca.gov PDF for current-year program detail (pdfplumber — same pattern as existing CA cities). Do NOT attempt Open FISCal aggregation — engineering cost is disproportionate.
 
-### Oakland, CA
-- **Open data portal:** https://data.oaklandca.gov/
-- **Platform:** Socrata (confirmed — multiple datasets documented at dev.socrata.com/foundry/data.oaklandca.gov/)
-- **Socrata:** Yes
-- **Budget dataset:** Portal covers "budget, governmental spending, taxes, revenues, and expenses." Specific dataset ID not confirmed — requires a direct search on data.oaklandca.gov. Example confirmed Socrata dataset IDs on this domain: dxdg-872h, 4jcx-enxf, ppgh-7dqv.
-- **Recommended loader:** bulkLoadBudget.js — contingent on confirming a budget dataset with usable department-level schema
-- **Notes:** Oakland is the strongest Socrata candidate. Verify dataset existence and column schema before building the phase plan.
+---
 
-### Fresno, CA
-- **Open data portal:** None found. City GIS data is in a separate ArcGIS hub (County level only: datasharing-cofgisonline.hub.arcgis.com).
-- **Socrata:** No
-- **Budget dataset:** PDF only. Financial reports confirmed at https://www.fresno.gov/finance/financial-reports/ — all documents are PDF with no CSV or API alternative available.
-- **Recommended loader:** bulkLoadPDF.js (Claude Haiku vision) or Python pdfplumber
-- **Notes:** Fresno has no city-level open data portal. PDF quality should be verified before committing to a loader approach — check whether the budget PDFs are text-based or scanned.
+## Recommended Stack
 
-### Riverside, CA
-- **Open data portal:** https://riversideca.gov/transparency/data/ ("Engage Riverside") — a custom city transparency site, NOT Socrata
-- **Platform:** Custom city transparency portal. Riverside County has Socrata (riversideco-ca.data.socrata.com) but that is the county, not the city.
-- **Socrata:** No (city); County yes — but county is out of scope
-- **Budget dataset:** PDF at https://riversideca.gov/finance/budget.asp — FY 2024-2026 Budget Book is a multi-year PDF. No structured API dataset found for city operating expenditures.
-- **Recommended loader:** bulkLoadPDF.js (Claude Haiku vision) or Python pdfplumber
-- **Notes:** Do not confuse Riverside County (has Socrata) with City of Riverside (does not). City budget is a multi-year PDF book requiring extraction.
+### Core Technologies (already in use — no additions needed)
 
-### Bakersfield, CA
-- **Open data portal:** https://bakersfielddatalibrary-cob.opendata.arcgis.com/ (ArcGIS-based general data library)
-- **Platform:** ArcGIS Open Data for general data. Budget at https://budget.bakersfieldcity.us/#/view-data uses an interactive Open Budget viewer — URL pattern matches Socrata Open Budget hosting but no SODA endpoint confirmed.
-- **Socrata:** Unclear — budget.bakersfieldcity.us strongly resembles the Socrata Open Budget product (same URL convention as other Socrata budget sites) but no downloadable dataset or API endpoint was confirmed
-- **Budget dataset:** budget.bakersfieldcity.us — interactive viewer with revenues, expenditures, capital improvements. No CSV download or SODA API confirmed.
-- **Recommended loader:** Needs investigation — probe GET https://budget.bakersfieldcity.us/api/views to check for SODA response. If confirmed Socrata, use bulkLoadBudget.js; if not, use bulkLoadPDF.js.
-- **Notes:** If the budget viewer is backed by Socrata, dataset IDs will be discoverable. This is worth a 15-minute investigation before defaulting to PDF.
+| Technology | Version | Purpose | Notes |
+|------------|---------|---------|-------|
+| Node.js loader scripts | existing | Build 3-level JSON tree, call RPC | Logic change only |
+| pdfplumber (Python) | existing | CA state budget PDF extraction | Same pattern as Anaheim, Santa Ana |
+| openpyxl (Python) | existing | LAO Excel historical data | Same as Richardson XLSX loader |
+| Supabase JS client | existing | Call `treasury_sync_budget_tree` RPC | RPC signature unchanged |
+| React + BudgetIcicle.tsx | existing | Render N-level icicle | Zero changes needed |
 
-## Loader Assignment Summary
+### New Scripts (no new packages — new files only)
 
-| City | Platform | Socrata | Recommended Loader |
-|------|----------|---------|-------------------|
-| Long Beach | OpenDataSoft | No | bulkLoadPDF.js |
-| San Jose | Socrata | Yes | bulkLoadBudget.js (verify dataset ID first) |
-| Sacramento | ArcGIS Online | No | bulkLoadPDF.js |
-| Oakland | Socrata | Yes | bulkLoadBudget.js (verify dataset ID first) |
-| Fresno | None | No | bulkLoadPDF.js |
-| Riverside | Custom | No | bulkLoadPDF.js |
-| Bakersfield | ArcGIS + custom budget viewer | Unclear | Needs investigation |
+| Script | Purpose |
+|--------|---------|
+| `scripts/seedCaliforniaState.js` | Seeds municipality row (entity_type: 'state') + data_source rows |
+| `scripts/loadCaliforniaState.js` | Builds 3-level tree, calls `treasury_sync_budget_tree` RPC |
 
-## New Dependencies Needed
+### ev-accounts-api Changes (separate repo — no package additions)
 
-None — existing loaders cover all confirmed scenarios. If Bakersfield is confirmed as Socrata Open Budget, `bulkLoadBudget.js` applies with no new dependencies. PDF-based cities use existing `bulkLoadPDF.js` and/or `pdfplumber` infrastructure.
+| Change | Purpose |
+|--------|---------|
+| `treasury_sync_budget_tree` RPC update | Depth-adaptive walk: handles both 2-level (legacy) and 3-level trees |
+| `/api/treasury/budgets/:id/categories` endpoint | GROUP BY (category, subcategory, department); 3rd level when department non-NULL |
 
-## Cities Needing Manual Investigation
+---
 
-- **Bakersfield** — Probe `GET https://budget.bakersfieldcity.us/api/views` before assigning loader. If JSON returns dataset records, it's Socrata and `bulkLoadBudget.js` applies.
-- **San Jose** — Socrata portal confirmed but no budget dataset ID found. Search data.sanjoseca.gov for "operating budget" or "expenditures" to find a dataset with department-level columns.
-- **Oakland** — Socrata portal confirmed but no budget dataset ID found. Search data.oaklandca.gov for budget/expenditures dataset; confirm it has department/category columns compatible with the existing loader schema.
-- **Long Beach** — PDF budget quality unknown. Verify that longbeach.gov/finance budget PDFs are text-based (not scanned) before committing to pdfplumber vs. Claude Haiku vision loader.
+## What NOT to Add
+
+| Avoid | Why | Use Instead |
+|-------|-----|-------------|
+| D3.js for icicle | BudgetIcicle.tsx already works with arbitrary depth | Existing component |
+| Open FISCal CKAN aggregation | 151 CSVs × multiple FYs; massive engineering overhead | LAO Excel |
+| Socrata `bulkLoadBudget.js` for CA state | No state-level Socrata endpoint exists | pdfplumber or XLSX |
+| New `entity_type` DB column | Existing CHECK constraint modification is sufficient | ALTER TABLE migration |
+
+---
+
+## Required Schema Changes (no packages — pure SQL)
+
+```sql
+-- Migration: add 'state' to municipalities entity_type check constraint
+ALTER TABLE treasury.municipalities
+  DROP CONSTRAINT IF EXISTS municipalities_entity_type_check;
+ALTER TABLE treasury.municipalities
+  ADD CONSTRAINT municipalities_entity_type_check
+  CHECK (entity_type IN ('city', 'county', 'township', 'nonprofit', 'state'));
+```
+
+No new columns needed in `budget_line_items` — the existing `department` column already provides the 3rd level slot.
+
+---
+
+## Sources
+
+- Direct codebase inspection: `scripts/bulkLoadBudget.js`, `src/types/budget.ts`, `src/components/BudgetIcicle.tsx`
+- Web research: confirmed no Socrata endpoint for CA state budget; ebudget.ca.gov and LAO sources verified
+- Architecture research (ARCHITECTURE.md): confirmed `department` column availability + RPC contract
+
+---
+*Stack research for: v1.7 CA state budget + 3-level icicle hierarchy*
+*Researched: 2026-06-06*
