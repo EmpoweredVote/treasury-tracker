@@ -511,7 +511,7 @@ Plans:
   5. Per-capita displays correctly for Anaheim (~348K) and Santa Ana (~335K)
   6. Enrichment descriptions visible for top categories in both cities
 
-**Plans:** 2/4 plans executed
+**Plans:** 3/4 plans executed
 Plans:
 **Wave 1**
 
@@ -523,7 +523,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 31-03-PLAN.md — Santa Ana: download PDFs, write extractSantaAna.py + processSantaAna.js, dry-run + live-load GF operating
+- [x] 31-03-PLAN.md — Santa Ana: download PDFs, write extractSantaAna.py + processSantaAna.js, dry-run + live-load GF operating
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
