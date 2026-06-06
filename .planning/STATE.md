@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.7
-milestone_name: TBD
+milestone_name: California State Budget + Deep Icicles
 status: planning
-last_updated: 2026-06-06T00:00:00.000Z
+last_updated: "2026-06-06T06:56:28.046Z"
+last_activity: 2026-06-06
 progress:
   total_phases: 0
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
   percent: 0
-stopped_at: v1.6 archived; ready for /gsd-new-milestone
 ---
 
 # State
@@ -24,9 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-06)
 
 ## Current Position
 
-Phase: —
+Phase: Not started (defining requirements)
 Plan: —
-Next: `/gsd-new-milestone` to define v1.7
+Status: Defining requirements
+Last activity: 2026-06-06 — Milestone v1.7 started
 
 ## Accumulated Context
 

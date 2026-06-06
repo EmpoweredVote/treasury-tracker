@@ -58,13 +58,18 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - ✓ Anaheim CA operating + revenue (FY2025–FY2026, GF $491M–$530M, 344K population, 25 enrichment rows) — v1.6, Phase 31
 - ✓ Santa Ana CA operating + revenue (FY2023–FY2026, GF $404M–$424M, 312K population, 26 enrichment rows) — v1.6, Phase 31
 
-## Current Milestone: v1.7 (planning)
+## Current Milestone: v1.7 California State Budget + Deep Icicles
 
-**Status:** v1.6 shipped 2026-06-06. Run `/gsd-new-milestone` to define v1.7.
+**Goal:** Add California as a state-level entity with its budget loaded, and deepen the icicle chart from 2 to 3 levels — CA state as the pilot, then retrofitting all existing cities.
+
+**Target features:**
+- `entity_type` extended to include `'state'`; California seeded as a state-level municipality row
+- California state budget data loaded (source TBD — research needed)
+- Icicle data layer deepened: Department → Category → Line Item (currently only 2 levels)
+- CA state budget serves as the 3-level depth pilot
+- All existing city/county loaders retrofitted to emit 3 levels
 
 ### Active
-
-*(No active work — run `/gsd-new-milestone` to start v1.7)*
 
 ### Out of Scope
 
