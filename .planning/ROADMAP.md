@@ -513,7 +513,18 @@ Plans:
   2. TypeScript compiles cleanly with 'state' added to the `Municipality.entity_type` union in `src/types/budget.ts`
   3. Entity picker shows a "State Governments" section above all state/city groups â€” not nested inside the "CALIFORNIA" group
   4. All existing city and county pages render identically to before (no regression)
-**Plans:** TBD
+**Plans:** 3 plans (2 waves)
+
+Plans:
+**Wave 1** *(parallel — no file overlap)*
+
+- [ ] 32-01-PLAN.md — DB migration: ADD CONSTRAINT municipalities_entity_type_check (INFRA-01)
+- [ ] 32-02-PLAN.md — TypeScript: add 'state' to Municipality.entity_type union (INFRA-02)
+
+**Wave 2** *(blocked on Wave 1 — requires updated Municipality type)*
+
+- [ ] 32-03-PLAN.md — EntitySwitcher UI: pre-filter state entities + STATE GOVERNMENTS section + displayName fix (INFRA-03)
+
 **UI hint:** yes
 
 ### Phase 33: CA State Budget Data
@@ -619,7 +630,7 @@ Plans:
 | 29. Long Beach + Bakersfield CA Data Load | v1.6 | 4/4 | Complete | 2026-06-05 |
 | 30. Fresno + Riverside CA Data Load | v1.6 | 4/4 | Complete | 2026-06-05 |
 | 31. Anaheim + Santa Ana CA Data Load | v1.6 | 4/4 | Complete | 2026-06-06 |
-| 32. State Entity Infrastructure | v1.7 | 0/TBD | Not started | - |
+| 32. State Entity Infrastructure | v1.7 | 0/3 | Not started | - |
 | 33. CA State Budget Data | v1.7 | 0/TBD | Not started | - |
 | 34. 3-Level Tree Infrastructure (ev-accounts-api) | v1.7 | 0/TBD | Not started | - |
 | 35. CA State 3-Level Icicle Pilot | v1.7 | 0/TBD | Not started | - |
