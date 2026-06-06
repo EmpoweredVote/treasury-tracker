@@ -140,13 +140,17 @@ function buildTree(rows, datasetType) {
 
 // ── Ensure Anaheim municipality exists; return its id ────────────────────────
 async function ensureMunicipality() {
-  const { data: existing } = await supabase.schema('treasury')
+  const { data: existing, error } = await supabase.schema('treasury')
     .from('municipalities')
     .select('id, name')
     .eq('name', 'Anaheim')
     .eq('state', 'CA')
     .maybeSingle();
 
+  if (error) {
+    console.error(`  DB error querying municipality: ${error.message}`);
+    process.exit(2);
+  }
   if (existing?.id) {
     console.log(`  Municipality: ${existing.name} (${existing.id})`);
     return existing.id;
