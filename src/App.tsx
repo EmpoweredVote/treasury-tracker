@@ -451,15 +451,6 @@ function App() {
     setNavigationPath(path);
   }, []);
 
-  const handleBreadcrumbClick = useCallback((index: number) => {
-    if (index === 1) {
-      setNavigationPath([]);
-    } else if (index > 1) {
-      setNavigationPath(navigationPath.slice(0, index - 1));
-    }
-  }, [navigationPath]);
-
-
   const countyEntity = useMemo(() =>
     selectedEntity?.county_id
       ? municipalities.find(m => m.id === selectedEntity.county_id) ?? null
