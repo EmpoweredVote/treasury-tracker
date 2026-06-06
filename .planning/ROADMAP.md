@@ -493,7 +493,7 @@ Plans:
 
 #### Phase Summary
 
-- [ ] **Phase 32: State Entity Infrastructure** — Schema migration + TypeScript type + EntitySwitcher UI fixes
+- [x] **Phase 32: State Entity Infrastructure** — Schema migration + TypeScript type + EntitySwitcher UI fixes (completed 2026-06-06)
 - [ ] **Phase 33: CA State Budget Data** — Seed CA state entity, load General Fund budget, enrich with state-level framing
 - [ ] **Phase 34: 3-Level Tree Infrastructure (ev-accounts-api)** — RPC + API update to accept and serve 3-level trees, backward-compatible
 - [ ] **Phase 35: CA State 3-Level Icicle Pilot** — Reload CA state as genuine 3-level tree; end-to-end validation
@@ -513,7 +513,7 @@ Plans:
   2. TypeScript compiles cleanly with 'state' added to the `Municipality.entity_type` union in `src/types/budget.ts`
   3. Entity picker shows a "State Governments" section above all state/city groups — not nested inside the "CALIFORNIA" group
   4. All existing city and county pages render identically to before (no regression)
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 **Wave 1** *(parallel � no file overlap)*
@@ -523,7 +523,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 � requires updated Municipality type)*
 
-- [ ] 32-03-PLAN.md � EntitySwitcher UI: pre-filter state entities + STATE GOVERNMENTS section + displayName fix (INFRA-03)
+- [x] 32-03-PLAN.md � EntitySwitcher UI: pre-filter state entities + STATE GOVERNMENTS section + displayName fix (INFRA-03)
 
 **UI hint:** yes
 
@@ -630,7 +630,7 @@ Plans:
 | 29. Long Beach + Bakersfield CA Data Load | v1.6 | 4/4 | Complete | 2026-06-05 |
 | 30. Fresno + Riverside CA Data Load | v1.6 | 4/4 | Complete | 2026-06-05 |
 | 31. Anaheim + Santa Ana CA Data Load | v1.6 | 4/4 | Complete | 2026-06-06 |
-| 32. State Entity Infrastructure | v1.7 | 2/3 | In Progress|  |
+| 32. State Entity Infrastructure | v1.7 | 3/3 | Complete   | 2026-06-06 |
 | 33. CA State Budget Data | v1.7 | 0/TBD | Not started | - |
 | 34. 3-Level Tree Infrastructure (ev-accounts-api) | v1.7 | 0/TBD | Not started | - |
 | 35. CA State 3-Level Icicle Pilot | v1.7 | 0/TBD | Not started | - |
