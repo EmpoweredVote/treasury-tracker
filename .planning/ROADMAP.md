@@ -282,6 +282,7 @@ Plans:
 **Depends on:** Phase 24
 
 **Key data facts:**
+
 - LA County municipality: `f3db6f9f-2575-48e3-bf42-a1f9dd1ec6a1`, population = 0 (fix to 10,014,009, year 2020)
 - County datasets uctr-c2j8 (operating) + emxv-k8xv (revenue) have data through FY2024 only — FY2025/FY2026 return 0 rows (D-02 resolved)
 - FY2025 operating row (~$44.1B, wrong-sourced) disposition decided via checkpoint in 25-01
@@ -316,11 +317,13 @@ Plans:
 **Depends on:** Nothing (loadSacramentoCSV.js already written)
 **Requirements:** DATA-01, ENRICH-01 (Sacramento), POPUL-01 (Sacramento)
 **Success Criteria** (what must be TRUE):
+
   1. "Sacramento" appears in the city picker at treasurytracker.empowered.vote under "California"
   2. Operating budget tab shows a total in the ~$1.6B range for the latest available FY
   3. Revenue / Money In tab shows data with at least one fiscal year populated
   4. Per-capita ($/resident) displays correctly using ~536K population
   5. Category enrichment descriptions are visible (not empty) for top operating categories
+
 **Plans:** 2/2 plans complete
 
 Plans:
@@ -340,9 +343,11 @@ Plans:
 **Depends on:** Nothing (independent carry-forwards)
 **Requirements:** CARRY-01, CARRY-02
 **Success Criteria** (what must be TRUE):
+
   1. Longview TX city page shows a Money In tab with revenue categories populated
   2. City picker state group headers display "California", "Texas", and "Oregon" (not abbreviations)
   3. Longview revenue categories have enrichment descriptions visible
+
 **Plans:** 2/2 plans complete
 
 Plans:
@@ -360,12 +365,14 @@ Plans:
 **Depends on:** Phase 26 (CA municipality seeding pattern confirmed)
 **Requirements:** DATA-02, DATA-03, ENRICH-01 (Oakland + San Jose), POPUL-01 (Oakland + San Jose)
 **Success Criteria** (what must be TRUE):
+
   1. "Oakland" and "San Jose" appear in the city picker under "California"
   2. Oakland operating budget shows data for at least 2 fiscal years (biennial); totals in the ~$2.1B/year range
   3. San Jose operating budget tab shows a total in the ~$1.7–1.9B General Fund range (enterprise funds filtered or documented)
   4. Both cities show Revenue / Money In tabs with at least one fiscal year populated
   5. Per-capita displays correctly for Oakland (~444K) and San Jose (~997K)
   6. Enrichment descriptions visible for top categories in both cities
+
 **Plans:** 3/4 plans executed
 
 Plans:
@@ -390,12 +397,14 @@ Plans:
 **Depends on:** Phase 26 (CA municipality seeding pattern confirmed)
 **Requirements:** DATA-04, DATA-07, ENRICH-01 (Long Beach + Bakersfield), POPUL-01 (Long Beach + Bakersfield)
 **Success Criteria** (what must be TRUE):
+
   1. "Long Beach" and "Bakersfield" appear in the city picker under "California"
   2. Long Beach operating budget total is in the ~$1.5B General Fund range (Port of LB excluded; Oct–Sep FY documented in seeder)
   3. Bakersfield operating budget total is in the ~$765M range
   4. Both cities show Revenue / Money In tabs with at least one fiscal year populated
   5. Per-capita displays correctly for Long Beach (~451K) and Bakersfield (~417K)
   6. Enrichment descriptions visible for top categories in both cities
+
 **Plans:** 4/4 plans complete
 
 Plans:
@@ -420,12 +429,14 @@ Plans:
 **Depends on:** Phase 26 (CA municipality seeding pattern confirmed)
 **Requirements:** DATA-05, DATA-06, ENRICH-01 (Fresno + Riverside), POPUL-01 (Fresno + Riverside)
 **Success Criteria** (what must be TRUE):
+
   1. "Fresno" and "Riverside" appear in the city picker under "California"
   2. Fresno operating budget total reflects ~$483M General Fund (enterprise funds filtered; not the ~$2.0B all-funds figure)
   3. Riverside operating budget shows data for at least 2 fiscal years (biennial); totals in the ~$1.45B/year range (RPU utility filtered or documented)
   4. Both cities show Revenue / Money In tabs with at least one fiscal year populated
   5. Per-capita displays correctly for Fresno (~550K) and Riverside (~324K)
   6. Enrichment descriptions visible for top categories in both cities
+
 **Plans:** 4/4 plans complete
 
 Plans:
@@ -486,7 +497,28 @@ Plans:
 | 29. Long Beach + Bakersfield CA Data Load | v1.6 | 4/4 | Complete    | 2026-06-05 |
 | 30. Fresno + Riverside CA Data Load | v1.6 | 4/4 | Complete    | 2026-06-05 |
 
+### Phase 31: Anaheim + Santa Ana CA Data Load
+
+**Goal:** Anaheim and Santa Ana are visible in the app with operating and revenue budget data; General Fund scoped, enterprise funds filtered where applicable
+**Depends on:** Phase 26 (CA municipality seeding pattern confirmed)
+**Requirements:** DATA-08, DATA-09, ENRICH-02 (Anaheim + Santa Ana), POPUL-02 (Anaheim + Santa Ana)
+**Success Criteria** (what must be TRUE):
+  1. "Anaheim" and "Santa Ana" appear in the city picker under "California"
+  2. Anaheim operating budget total reflects General Fund scope (enterprise utility funds filtered)
+  3. Santa Ana operating budget shows General Fund data for at least one fiscal year
+  4. Both cities show Revenue / Money In tabs with at least one fiscal year populated
+  5. Per-capita displays correctly for Anaheim (~348K) and Santa Ana (~335K)
+  6. Enrichment descriptions visible for top categories in both cities
+**Plans:** 4 plans
+
+Plans:
+
+- [ ] 31-01-PLAN.md — Seed Anaheim + Santa Ana municipality rows (2024 population) + 4 canonical data_source rows; verify via treasury_list_source_ids
+- [ ] 31-02-PLAN.md — Anaheim: download PDFs, write extractAnaheim.py + processAnaheim.js, dry-run + live-load GF operating
+- [ ] 31-03-PLAN.md — Santa Ana: download PDFs, write extractSantaAna.py + processSantaAna.js, dry-run + live-load GF operating
+- [ ] 31-04-PLAN.md — Enrichment for both cities ($0.10 gate) + human app spot-check of all 6 criteria + write 31-VERIFICATION.md
+
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-06-05 — Phase 30 planned (4 plans, 4 waves)*
+*Last updated: 2026-06-05 — Phase 31 added (Anaheim + Santa Ana CA Data Load)*
