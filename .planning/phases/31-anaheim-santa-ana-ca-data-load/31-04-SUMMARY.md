@@ -38,20 +38,20 @@ key-decisions:
 requirements-completed: [ENRICH-02]
 
 # Metrics
-duration: ~15min (Task 1) + pending checkpoint
+duration: ~20min (Tasks 1 + 3) + human checkpoint
 completed: 2026-06-06
 ---
 
 # Phase 31 Plan 04: Enrichment + Verification Summary
 
-**Anaheim (25 categories) and Santa Ana (26 categories) enriched via AI pipeline within the $0.10 combined cost gate; both cities have plain-language descriptions in treasury.category_enrichment; awaiting human app spot-check (Task 2 checkpoint)**
+**Anaheim (25 categories) and Santa Ana (26 categories) enriched via AI pipeline within the $0.10 combined cost gate; both cities have plain-language descriptions in treasury.category_enrichment; human app spot-check APPROVED (all 6 criteria); 31-VERIFICATION.md written confirming Phase 31 complete**
 
 ## Performance
 
-- **Duration:** ~15 min (Task 1)
+- **Duration:** ~20 min (Tasks 1 + 3)
 - **Started:** 2026-06-06T03:20:00Z
-- **Tasks:** 1/3 complete (Task 2 = human checkpoint; Task 3 pending approval)
-- **Files modified:** 1 (scripts/.enrichment-progress.json)
+- **Tasks:** 3/3 complete
+- **Files modified:** 2 (scripts/.enrichment-progress.json, .planning/phases/31-anaheim-santa-ana-ca-data-load/31-VERIFICATION.md)
 
 ## Accomplishments
 
@@ -81,13 +81,21 @@ Human needs to verify at https://treasurytracker.empowered.vote:
 5. Per-capita ($/resident) visible for both cities
 6. Enrichment descriptions visible for top categories (Police, Fire, etc.)
 
-### Task 3: Write 31-VERIFICATION.md (pending Task 2 approval)
+### Task 3: Write 31-VERIFICATION.md — COMPLETE
 
-Will be completed after human checkpoint is approved.
+- Wrote `.planning/phases/31-anaheim-santa-ana-ca-data-load/31-VERIFICATION.md` following the 30-VERIFICATION.md format
+- 6-row Observable Truths table maps each ROADMAP Phase 31 success criterion to PASS with evidence from 31-02-SUMMARY and 31-03-SUMMARY
+- Requirements Coverage table maps DATA-08, DATA-09, ENRICH-02, POPUL-02 to SATISFIED with evidence
+- Human spot-check outcome documented: "approved — all 6 criteria passed" (Plan 04 Task 2)
+- Deferred Items section confirms revenue was fully loaded for both cities (not deferred)
+- All 4 requirement IDs (DATA-08, DATA-09, ENRICH-02, POPUL-02) verified present in file
+- Commit: cb7a304
 
 ## Task Commits
 
 1. **Task 1: Enrichment** — `23cd1fd` (feat): enrich Anaheim and Santa Ana CA operating categories
+2. **Task 2: Human checkpoint** — APPROVED on 2026-06-06; all 6 criteria passed (no commit — checkpoint only)
+3. **Task 3: Write 31-VERIFICATION.md** — `cb7a304` (docs): write 31-VERIFICATION.md — all 6 Phase 31 criteria passed
 
 ## Deviations from Plan
 
@@ -102,7 +110,7 @@ Will be completed after human checkpoint is approved.
 
 ## Known Stubs
 
-None — enrichment rows are fully populated in the DB. 31-VERIFICATION.md will be created in Task 3 after human checkpoint.
+None — enrichment rows are fully populated in the DB. 31-VERIFICATION.md created in Task 3 (commit cb7a304).
 
 ## Threat Flags
 
@@ -111,15 +119,18 @@ No new network endpoints, auth paths, or schema changes. Enrichment follows T-31
 - T-31-15: API keys via loadEnv() — keys never logged
 - T-31-SC: No new package installs — enrichCategories.js already present with @anthropic-ai/sdk wired
 
-## Self-Check: PARTIAL (Task 1 complete; Tasks 2 and 3 pending checkpoint)
+## Self-Check: PASSED
 
 - scripts/.enrichment-progress.json: FOUND (69 entries: Riverside + Anaheim + Santa Ana)
 - DB Anaheim enrichment rows: 25 CONFIRMED
 - DB Santa Ana enrichment rows: 26 CONFIRMED
 - Commit 23cd1fd (Task 1): FOUND
-- 31-VERIFICATION.md: PENDING (Task 3, after human checkpoint)
+- Human checkpoint Task 2: APPROVED (2026-06-06, all 6 criteria)
+- .planning/phases/31-anaheim-santa-ana-ca-data-load/31-VERIFICATION.md: FOUND
+- All 4 req IDs (DATA-08, DATA-09, ENRICH-02, POPUL-02) in VERIFICATION.md: CONFIRMED
+- Commit cb7a304 (Task 3): FOUND
 
 ---
 *Phase: 31-anaheim-santa-ana-ca-data-load*
-*Status: CHECKPOINT — awaiting human app spot-check (Task 2)*
+*Status: COMPLETE — all 3 tasks done; Phase 31 verified*
 *Completed: 2026-06-06*
