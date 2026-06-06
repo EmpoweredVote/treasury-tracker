@@ -65,16 +65,25 @@
 
 ## Traceability
 
-*(Filled by roadmapper)*
-
-| Requirement | Phase |
-|-------------|-------|
-| INFRA-01, INFRA-02, INFRA-03 | TBD |
-| DATA-01, DATA-02, DATA-03, DATA-04 | TBD |
-| TREE-01, TREE-02, TREE-03 | TBD |
-| ICICLE-01, ICICLE-02, ICICLE-03 | TBD |
-| RETROFIT-01, RETROFIT-02, RETROFIT-03 | TBD |
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| INFRA-01 | Phase 32 | Pending |
+| INFRA-02 | Phase 32 | Pending |
+| INFRA-03 | Phase 32 | Pending |
+| DATA-01 | Phase 33 | Pending |
+| DATA-02 | Phase 33 | Pending |
+| DATA-03 | Phase 33 | Pending |
+| DATA-04 | Phase 33 | Pending |
+| TREE-01 | Phase 34 | Pending |
+| TREE-02 | Phase 34 | Pending |
+| TREE-03 | Phase 34 | Pending |
+| ICICLE-01 | Phase 35 | Pending |
+| ICICLE-02 | Phase 35 | Pending |
+| ICICLE-03 | Phase 35 | Pending |
+| RETROFIT-01 | Phase 36 | Pending |
+| RETROFIT-02 | Phase 36 | Pending |
+| RETROFIT-03 | Phase 36 | Pending |
 
 ---
 
-*Last updated: 2026-06-06 — v1.7 milestone start*
+*Last updated: 2026-06-06 — traceability filled by roadmapper (Phases 32-36)*

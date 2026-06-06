@@ -9,6 +9,7 @@
 - ✅ **v1.4 Geographic Expansion** — Phases 15-16 (shipped 2026-05-22)
 - ✅ **v1.5 Oregon Expansion** — Phases 17-25 (shipped 2026-06-04)
 - ✅ **v1.6 California City Expansion** — Phases 26-31 (shipped 2026-06-06)
+- 🚧 **v1.7 California State Budget + Deep Icicles** — Phases 32-36 (in progress)
 
 ---
 
@@ -486,6 +487,103 @@ Plans:
 
 ---
 
+### 🚧 v1.7 California State Budget + Deep Icicles (In Progress)
+
+**Milestone goal:** Add California as a state-level entity with its General Fund budget loaded (~$212B), and deepen the icicle chart from 2 to 3 levels — CA state as the pilot, then selectively retrofitting cities where source data has a genuine 3rd level.
+
+#### Phase Summary
+
+- [ ] **Phase 32: State Entity Infrastructure** — Schema migration + TypeScript type + EntitySwitcher UI fixes
+- [ ] **Phase 33: CA State Budget Data** — Seed CA state entity, load General Fund budget, enrich with state-level framing
+- [ ] **Phase 34: 3-Level Tree Infrastructure (ev-accounts-api)** — RPC + API update to accept and serve 3-level trees, backward-compatible
+- [ ] **Phase 35: CA State 3-Level Icicle Pilot** — Reload CA state as genuine 3-level tree; end-to-end validation
+- [ ] **Phase 36: Selective City Retrofit** — Source data audit + retrofit 1-2 cities with genuine 3rd-level data
+
+---
+
+## Phase Details
+
+### Phase 32: State Entity Infrastructure
+
+**Goal:** The database, TypeScript types, and entity picker are all ready to host a state-level entity — without breaking any existing city or county page.
+**Depends on:** Nothing (first phase of v1.7)
+**Requirements:** INFRA-01, INFRA-02, INFRA-03
+**Success Criteria** (what must be TRUE):
+  1. `entity_type: 'state'` migration is applied — the CHECK constraint in `treasury.municipalities` now accepts 'state'
+  2. TypeScript compiles cleanly with 'state' added to the `Municipality.entity_type` union in `src/types/budget.ts`
+  3. Entity picker shows a "State Governments" section above all state/city groups — not nested inside the "CALIFORNIA" group
+  4. All existing city and county pages render identically to before (no regression)
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 33: CA State Budget Data
+
+**Goal:** California appears as a state entity in the app with its General Fund operating budget loaded, per-capita display working, and AI-enriched category descriptions using state-level framing.
+**Depends on:** Phase 32
+**Requirements:** DATA-01, DATA-02, DATA-03, DATA-04
+
+**Note:** No Socrata API exists for the CA state budget. Use the LAO historical Excel file (openpyxl, FY1985-FY2026) as the primary source, or the ebudget.ca.gov Enacted Budget Summary PDF (pdfplumber) as fallback. Confirm column structure at phase start before writing the loader. General Fund only (~$212B) — do NOT load all-funds (~$495B).
+
+**Success Criteria** (what must be TRUE):
+  1. "California" appears as a selectable entity in the entity picker under a "State Governments" section
+  2. Clicking California opens a Money Out tab showing General Fund budget total in the ~$212B range for FY2025-26
+  3. Per-capita display shows approximately $5,400 per resident (using ~39.5M population)
+  4. Category enrichment descriptions use state-level policy framing (not city-department language)
+  5. Year selector shows at least FY2024-25 and FY2025-26 as selectable years
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 34: 3-Level Tree Infrastructure (ev-accounts-api)
+
+**Goal:** The `treasury_sync_budget_tree` RPC and the `/api/treasury/budgets/:id/categories` endpoint both support 3-level trees, while remaining fully backward-compatible with all 2-level city and county data already in the DB.
+**Depends on:** Phase 32
+**Requirements:** TREE-01, TREE-02, TREE-03
+
+**Critical notes:**
+- This phase is entirely in the **ev-accounts-api repo** (separate from this repo).
+- Day-1 mandatory step: inspect live `budget_line_items.department` column values (`SELECT category, subcategory, department FROM treasury.budget_line_items LIMIT 20`) to confirm current state before writing any code.
+- Day-1 mandatory step: locate the `treasury_sync_budget_tree` RPC function body in the ev-accounts-api codebase before writing any code.
+- Backward compat is non-negotiable: the `department IS NULL` branch must return `lineItems` directly on the subcategory node, matching current behavior for all 30+ existing cities.
+
+**Success Criteria** (what must be TRUE):
+  1. A test 3-level tree submitted to `treasury_sync_budget_tree` lands correctly in `budget_line_items.department` (non-NULL)
+  2. The categories API returns a 3-level `BudgetCategory[]` for that test data — Level 3 nodes visible in the response
+  3. Spot-check of at least 3 existing city pages (e.g., Portland, San Jose, Dallas) confirms they render identically to before — no regressions in the 2-level paths
+**Plans:** TBD
+
+### Phase 35: CA State 3-Level Icicle Pilot
+
+**Goal:** The California state budget is reloaded as a genuine 3-level tree (Program Area → Department → Budget Category) and the icicle chart shows all 3 drill-down levels working end-to-end in the live app.
+**Depends on:** Phases 33 AND 34 (both data and infrastructure must be complete)
+**Requirements:** ICICLE-01, ICICLE-02, ICICLE-03
+
+**Note:** No frontend changes are required — `BudgetIcicle.tsx` already renders arbitrary depth via `navigationPath`. This phase is a data reload using the loader from Phase 33 against the updated RPC from Phase 34.
+
+**Success Criteria** (what must be TRUE):
+  1. CA state icicle shows 3 clickable drill-down levels in the live app (Program Area → Department → Budget Category)
+  2. Clicking to Level 3 opens the `LineItemsTable` with leaf-level line items (identical behavior to existing 2-level cities at their deepest level)
+  3. Drill-down animation and layout look correct at all 3 levels — no visual layout breakage
+  4. The CA state page looks and works as expected end-to-end (correct totals, correct year, correct per-capita, correct enrichment)
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 36: Selective City Retrofit
+
+**Goal:** At least 1 existing city with genuine 3rd-level source data is retrofitted to show a 3-level icicle, validating the retrofit pattern before any broader rollout decision.
+**Depends on:** Phase 35 (infrastructure validated with CA state before touching any existing city)
+**Requirements:** RETROFIT-01, RETROFIT-02, RETROFIT-03
+
+**Critical note:** Begin with a source data audit of 2-3 candidate cities before writing any loader code. Only retrofit cities where the source PDF or dataset has a natural, extractable 3rd level — do not synthesize a 3rd level from 2-level data.
+
+**Success Criteria** (what must be TRUE):
+  1. Source data audit identifies at least 1 city (from the existing 30+ entities) with a genuine, extractable 3rd-level structure in its source data
+  2. At least 1 retrofitted city shows a 3-level icicle drill-down in the live app after reload
+  3. Retrofitted city's existing enrichment descriptions remain intact (no descriptions wiped or corrupted)
+  4. Non-retrofitted cities continue to render correctly — no regression in any 2-level city or county page
+**Plans:** TBD
+
+---
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -521,8 +619,13 @@ Plans:
 | 29. Long Beach + Bakersfield CA Data Load | v1.6 | 4/4 | Complete | 2026-06-05 |
 | 30. Fresno + Riverside CA Data Load | v1.6 | 4/4 | Complete | 2026-06-05 |
 | 31. Anaheim + Santa Ana CA Data Load | v1.6 | 4/4 | Complete | 2026-06-06 |
+| 32. State Entity Infrastructure | v1.7 | 0/TBD | Not started | - |
+| 33. CA State Budget Data | v1.7 | 0/TBD | Not started | - |
+| 34. 3-Level Tree Infrastructure (ev-accounts-api) | v1.7 | 0/TBD | Not started | - |
+| 35. CA State 3-Level Icicle Pilot | v1.7 | 0/TBD | Not started | - |
+| 36. Selective City Retrofit | v1.7 | 0/TBD | Not started | - |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-06-06 — v1.6 milestone archived*
+*Last updated: 2026-06-06 — v1.7 milestone roadmap added (Phases 32-36)*
