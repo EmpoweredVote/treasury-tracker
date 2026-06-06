@@ -511,7 +511,7 @@ Plans:
   5. Per-capita displays correctly for Anaheim (~348K) and Santa Ana (~335K)
   6. Enrichment descriptions visible for top categories in both cities
 
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 Plans:
 **Wave 1**
 
@@ -527,7 +527,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 31-04-PLAN.md — Enrichment for both cities ($0.10 gate) + human app spot-check of all 6 criteria + write 31-VERIFICATION.md
+- [x] 31-04-PLAN.md — Enrichment for both cities ($0.10 gate) + human app spot-check of all 6 criteria + write 31-VERIFICATION.md
 
 ---
 

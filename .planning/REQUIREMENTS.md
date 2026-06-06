@@ -94,13 +94,13 @@
 
 ### Data Loads
 
-- [ ] **DATA-08**: Anaheim CA operating + revenue budget loaded and visible in app
+- [x] **DATA-08**: Anaheim CA operating + revenue budget loaded and visible in app
   - PDF extraction (pdfplumber) — download adopted budget PDFs from anaheim.net
   - No API calls
   - General Fund scope; utility enterprise funds (water, electric) to be filtered
   - Target totals: TBD (pending research)
 
-- [ ] **DATA-09**: Santa Ana CA operating + revenue budget loaded and visible in app
+- [x] **DATA-09**: Santa Ana CA operating + revenue budget loaded and visible in app
   - PDF extraction (pdfplumber) — download adopted budget PDFs from santa-ana.org or santaana.gov
   - No API calls
   - General Fund scope; enterprise funds to be filtered where applicable
@@ -108,14 +108,14 @@
 
 ### Enrichment
 
-- [ ] **ENRICH-02**: Anaheim + Santa Ana have AI-generated category enrichment
+- [x] **ENRICH-02**: Anaheim + Santa Ana have AI-generated category enrichment
   - Operating and revenue departments described in plain language
   - Run `enrichCategories.js --city [Name] --state CA --year [FY]` per city
   - Idempotent via name_key upsert — safe to re-run
 
 ### Population / Per-Capita
 
-- [ ] **POPUL-02**: Anaheim + Santa Ana seeded with 2024 population data
+- [x] **POPUL-02**: Anaheim + Santa Ana seeded with 2024 population data
   - Source: Census `sub-est2024_06.csv` (SUMLEV=162, California sub-county estimates)
   - Per-capita ($/resident) displays correctly in app for each city
   - Population values (2024 estimates):
