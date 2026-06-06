@@ -165,6 +165,7 @@ def extract_operating_from_pdf(pdf, fiscal_year):
     results = []
     pending_label = None  # last department header label seen
     in_gf_summary = False
+    done = False  # set True when stop-marker found; terminates outer page loop
 
     # Skip labels that are not real departments
     skip_labels = {
@@ -210,6 +211,8 @@ def extract_operating_from_pdf(pdf, fiscal_year):
     CITY_HEADER = re.compile(r'^City of Santa Ana', re.IGNORECASE)
 
     for page in pdf.pages:
+        if done:  # stop-marker was found on a prior page; skip all remaining pages
+            break
         text = page.extract_text() or ''
 
         if 'General Fund Expenditure Summary' not in text:
@@ -277,6 +280,7 @@ def extract_operating_from_pdf(pdf, fiscal_year):
             if 'TOTAL GENERAL FUND USES' in stripped:
                 print(f'  [stop] Found TOTAL GENERAL FUND USES: {stripped[:60]}', file=sys.stderr)
                 pending_label = None
+                done = True  # signal outer loop to stop after this page
                 break
 
             # "TOTAL GENERAL FUND EXPENDITURES" in FY2022-23 PDF is NOT the final stop —
@@ -357,8 +361,11 @@ def extract_revenue_from_pdf(pdf, fiscal_year):
     """
     results = []
     in_revenue_summary = False
+    done = False  # set True when stop-marker found; terminates outer page loop
 
     for page in pdf.pages:
+        if done:  # stop-marker was found on a prior page; skip all remaining pages
+            break
         text = page.extract_text() or ''
 
         if 'General Fund Revenue Summary' not in text:
@@ -380,6 +387,7 @@ def extract_revenue_from_pdf(pdf, fiscal_year):
                 # Skip "TOTAL GENERAL FUND SOURCES/USES/REVENUES" master totals
                 if 'TOTAL GENERAL FUND' in stripped.upper() or 'Total GENERAL' in stripped:
                     print(f'  [stop] Revenue master total: {stripped[:60]}', file=sys.stderr)
+                    done = True  # signal outer loop to stop after this page
                     break
 
                 # Extract category name after "Total " — stop at first digit/comma
@@ -412,6 +420,7 @@ def extract_revenue_from_pdf(pdf, fiscal_year):
             # Also stop at TOTAL GENERAL FUND SOURCES
             if stripped.startswith('TOTAL GENERAL FUND'):
                 print(f'  [stop] Revenue total: {stripped[:60]}', file=sys.stderr)
+                done = True  # signal outer loop to stop after this page
                 break
 
     return results
