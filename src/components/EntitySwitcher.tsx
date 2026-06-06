@@ -147,6 +147,34 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
               </div>
             )}
 
+            {/* STATE GOVERNMENTS section — rendered above all state/city groups */}
+            {grouped.stateEntities.length > 0 && (
+              <div>
+                <div className="sticky top-0 bg-[#F7F7F8] dark:bg-ev-gray-900 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-ev-gray-500 border-b border-[#E2EBEF] dark:border-ev-gray-700">
+                  STATE GOVERNMENTS
+                </div>
+                {grouped.stateEntities.map((entity) => (
+                  <button
+                    key={entity.id}
+                    role="option"
+                    aria-selected={entity.id === selectedEntity?.id}
+                    className={`block w-full px-4 py-2 text-sm text-left border-l-2 transition-colors duration-150 hover:bg-[#F7F7F8] dark:hover:bg-ev-gray-700 dark:text-ev-gray-200 ${
+                      entity.id === selectedEntity?.id
+                        ? 'border-ev-muted-blue bg-[#F7F7F8] dark:bg-ev-gray-700 font-medium'
+                        : 'border-transparent'
+                    }`}
+                    onClick={() => {
+                      onEntityChange(entity);
+                      setIsOpen(false);
+                      setFilter('');
+                    }}
+                  >
+                    {entity.name}
+                  </button>
+                ))}
+              </div>
+            )}
+
             {[...grouped.byState.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([state, typeMap]) => (
               <div key={state}>
                 {/* State header */}
