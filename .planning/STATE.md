@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: California State Budget + Deep Icicles
 status: planning
-last_updated: "2026-06-06T07:00:00.000Z"
-last_activity: 2026-06-06
+last_updated: "2026-06-06T16:10:08.333Z"
+last_activity: 2026-06-06 — v1.7 roadmap written (Phases 32-36)
 progress:
   total_phases: 5
   completed_phases: 0
@@ -67,30 +67,36 @@ Progress: [----------] 0% (0/5 phases)
 ### v1.7 Architecture Notes
 
 **CA State data source — NO Socrata API:**
+
 - Primary: LAO historical Excel (openpyxl, FY1985–FY2026, machine-readable) — HIGH confidence
 - Fallback: ebudget.ca.gov Enacted Budget Summary PDF (pdfplumber) — MEDIUM confidence
 - Do NOT use Open FISCal CKAN (151 department CSVs per FY, disproportionate engineering cost)
 - Load General Fund only (~$212B FY2025-26) — all-funds (~$495B) inflates by $280B+ federal pass-through
 
 **3-Level tree shape (new):**
+
 - Current 2-level: `{ n, a, c: [{ n, a, i: [...] }] }` — category → items
 - New 3-level: `{ n, a, c: [{ n, a, c: [{ n, a, i: [...] }] }] }` — program → dept → items
 - RPC must walk adaptively: branch nodes have `c`, leaf nodes have `i`, never both
 - Backward compat: `department IS NULL` in DB → 2-level response from categories API
 
 **Phase 34 is in ev-accounts-api repo (separate repo):**
+
 - Must locate `treasury_sync_budget_tree` RPC function body before writing code
 - Must run `SELECT category, subcategory, department FROM treasury.budget_line_items LIMIT 20` before writing RPC update — department column current state is unconfirmed
 
 **EntitySwitcher circular nesting risk:**
+
 - A CA state entity defaults to nested under "CALIFORNIA" header — creates "California > States > California" loop
 - Fix: pre-filter state entities before building the byState map; render as separate top section
 
 **Enrichment prompt for state entities:**
+
 - Default `enrichCategories.js` prompt uses city-level framing — wrong for CA state program areas
 - Must add `--entity-type state` flag or equivalent to switch to policy/program framing
 
 **Frontend is unchanged in v1.7:**
+
 - `BudgetIcicle.tsx` already renders arbitrary depth via `navigationPath` — no changes needed
 - `App.tsx`, `dataLoader.ts`, `BudgetCategory` recursive type — all unchanged
 - Only data shape and API response change; icicle rendering is depth-agnostic
@@ -98,6 +104,7 @@ Progress: [----------] 0% (0/5 phases)
 ### Retrofit Candidate Guidance
 
 Source data audit required before any loader work in Phase 36. Target cities most likely to have genuine dept/subdept structure:
+
 - Portland OR (bureaus → programs → activities) — likely candidate
 - San Francisco (departments → programs) — may have genuine 3rd level in Socrata
 - Dallas (departments → divisions) — check Socrata column set
@@ -127,9 +134,9 @@ $5 per run — estimate before running AI enrichment or PDF extraction. CA state
 
 ## Session Continuity
 
-Last session: 2026-06-06
-Stopped at: v1.7 roadmap written; Phase 32 ready to plan
-Resume file: None — run `/gsd-plan-phase 32` to start
+Last session: 2026-06-06T16:10:08.323Z
+Stopped at: Phase 32 context gathered
+Resume file: .planning/phases/32-state-entity-infrastructure/32-CONTEXT.md
 
 ## Performance Metrics
 
