@@ -1,5 +1,31 @@
 # Milestones — Treasury Tracker / Empowered Vote Financials
 
+## v1.6 California City Expansion (Shipped: 2026-06-06)
+
+**Delivered:** Added 9 new California cities — Sacramento, Oakland, San Jose, Long Beach, Bakersfield, Fresno, Riverside, Anaheim, Santa Ana — with operating + revenue budgets, enrichment, and per-capita display. Closed two v1.5 carry-forwards (Longview TX revenue enrichment, STATE_LABELS full names).
+
+**Phases completed:** 26–31 (6 phases, 20 plans)
+
+**Key accomplishments:**
+
+- Sacramento loaded via existing loadSacramentoCSV.js pipeline — FY2013–FY2026 operating + revenue (14 FYs each), 536K population, 20 enrichment rows; Phase 26 fastest in milestone
+- Longview TX revenue enrichment completed (2 corrupted category names fixed, 36 rows added); STATE_LABELS full names verified in live app — carry-forwards closed in under 1 day
+- Oakland (GPF biennial, $807M–$834M/yr, FY2024–2025) and San Jose (General Fund, $1.69B–$1.82B, FY2021–2025) loaded via pdfplumber — 50 enrichment rows, all 6 criteria PASS
+- Long Beach ($634M–$773M GF, FY2022–2026, Port excluded) and Bakersfield (GF ~$412-427M; scope corrected from all-funds during verification) loaded; Bakersfield scope fix discovered and applied inline during enrichment phase
+- Fresno (GF ~$483M, enterprise funds excluded) and Riverside (biennial, GF ~$1.45B/yr, RPU excluded) loaded — 30 enrichment rows, revenue deferred for both (no extractable GF revenue section in PDFs)
+- Anaheim (GF $491M–$530M, utility enterprise filtered) and Santa Ana (GF $404M–$424M) loaded — 51 enrichment rows; all 6 criteria PASS in live app
+
+**Stats:** 6 phases, 20 plans; 3 days (2026-06-04 → 2026-06-06); ~143 commits
+
+**Known deferred at close:**
+- Oakland revenue (OpenGov embedded chart format — not extractable via pdfplumber)
+- Fresno + Riverside revenue (no extractable GF revenue section in PDFs)
+- San Jose FY2016–2020 (older PDF format)
+
+**Archive:** [v1.6-ROADMAP.md](milestones/v1.6-ROADMAP.md) | [v1.6-REQUIREMENTS.md](milestones/v1.6-REQUIREMENTS.md)
+
+---
+
 ## v1.5 Oregon Expansion (Shipped: 2026-06-04)
 
 **Phases completed:** 9 phases, 24 plans, 36 tasks
@@ -137,4 +163,4 @@ Category enrichment system, NULL municipality_id fix, Cambridge enrichment.
 ---
 
 *GSD planning system initialized: 2026-04-21*
-*Last updated: 2026-05-23 after v1.4 milestone*
+*Last updated: 2026-06-06 after v1.6 milestone*

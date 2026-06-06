@@ -49,37 +49,22 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - ✓ Sacramento CA operating + revenue (FY2013–FY2026, 536K population, enriched) — v1.6, Phase 26
 - ✓ Longview TX revenue enrichment fixed (2 corrupted names repaired, 36 enrichment rows added) — v1.6, Phase 27
 - ✓ City picker STATE_LABELS verified: "California", "Texas", "Oregon" full names confirmed in live app — v1.6, Phase 27
+- ✓ Oakland CA operating (FY2024–FY2025, GPF $807M–$834M/yr, 444K population, 26 enrichment rows) — v1.6, Phase 28
+- ✓ San Jose CA operating (FY2021–FY2025, GF $1.69B–$1.82B, 997K population, 24 enrichment rows) — v1.6, Phase 28
+- ✓ Long Beach CA operating + revenue (FY2022–FY2026, GF $634M–$773M, 451K population, 20 enrichment rows) — v1.6, Phase 29
+- ✓ Bakersfield CA operating + revenue (FY2025–FY2026, GF $412M–$427M, 417K population, 25 enrichment rows) — v1.6, Phase 29
+- ✓ Fresno CA operating (FY2020–FY2026, GF ~$483M, 550K population, 12 enrichment rows; revenue deferred) — v1.6, Phase 30
+- ✓ Riverside CA operating (FY2023–FY2026 biennial, GF ~$1.45B/yr, 324K population, 18 enrichment rows; revenue deferred) — v1.6, Phase 30
 - ✓ Anaheim CA operating + revenue (FY2025–FY2026, GF $491M–$530M, 344K population, 25 enrichment rows) — v1.6, Phase 31
 - ✓ Santa Ana CA operating + revenue (FY2023–FY2026, GF $404M–$424M, 312K population, 26 enrichment rows) — v1.6, Phase 31
 
-## Current Milestone: v1.6 California City Expansion
+## Current Milestone: v1.7 (planning)
 
-**Goal:** Add 7 new California cities with full operating and revenue budget data, expanding CA coverage beyond the initial LA/SF/SD trio, and close two carry-forward items from v1.5.
-
-**Target features:**
-- Long Beach CA — operating + revenue
-- San Jose CA — operating + revenue
-- Sacramento CA — operating + revenue
-- Oakland CA — operating + revenue
-- Fresno CA — operating + revenue
-- Riverside CA — operating + revenue
-- Bakersfield CA — operating + revenue
-- Longview TX revenue data (seeded, revenue missing)
-- `EntitySwitcher.tsx` `STATE_LABELS` map fix (TX → Texas, CA → California, OR → Oregon)
+**Status:** v1.6 shipped 2026-06-06. Run `/gsd-new-milestone` to define v1.7.
 
 ### Active
 
-- [x] Sacramento CA operating + revenue — v1.6, Phase 26
-- [x] Long Beach CA operating + revenue — v1.6, Phase 29
-- [x] Bakersfield CA operating + revenue — v1.6, Phase 29
-- [x] Fresno CA operating + revenue — v1.6, Phase 30
-- [x] Riverside CA operating + revenue — v1.6, Phase 30
-- [x] Anaheim CA operating + revenue — v1.6, Phase 31
-- [x] Santa Ana CA operating + revenue — v1.6, Phase 31
-- [x] Longview TX revenue enrichment fixed — v1.6, Phase 27
-- [x] `EntitySwitcher.tsx` STATE_LABELS full names verified in live app — v1.6, Phase 27
-- [ ] Oakland CA operating + revenue budget data loaded (Phase 28 — 3/4 plans, carries to v1.7)
-- [ ] San Jose CA operating + revenue budget data loaded (Phase 28 — 3/4 plans, carries to v1.7)
+*(No active work — run `/gsd-new-milestone` to start v1.7)*
 
 ### Out of Scope
 
@@ -96,7 +81,7 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - Donation platforms: GiveButter (primary, lowest fees), Patreon (recurring), Benevity (workplace giving)
 - GiveButter supports webhooks and custom return URLs after donation completion
 - The webhook fires before the redirect, so DB should be updated by the time user lands back
-- Currently covers: 14 TX cities (Dallas, Plano, McKinney, Frisco, Allen, Prosper, Celina, Richardson, Garland, Wylie, Sachse, Murphy, Princeton, Longview) + 9 CA cities (Los Angeles, San Francisco, San Diego, Sacramento, Long Beach, Bakersfield, Fresno, Riverside, Anaheim, Santa Ana) + LA County + 3 OR cities (Portland, Gresham, Troutdale)
+- Currently covers: 14 TX cities (Dallas, Plano, McKinney, Frisco, Allen, Prosper, Celina, Richardson, Garland, Wylie, Sachse, Murphy, Princeton, Longview) + 11 CA cities (Los Angeles, San Francisco, San Diego, Sacramento, Oakland, San Jose, Long Beach, Bakersfield, Fresno, Riverside, Anaheim, Santa Ana) + LA County + 3 OR cities (Portland, Gresham, Troutdale)
 - county_id FK on municipalities; 88 LA County cities linked; county breadcrumb chip on city pages; CitiesInCountyPanel on county pages
 
 ## Constraints
@@ -122,7 +107,7 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 
 ## Shipped
 
-- ✅ **v1.6 California City Expansion** — 2026-06-06 — Phases 26-31 (Sacramento, Long Beach, Bakersfield, Fresno, Riverside, Anaheim, Santa Ana CA; Oakland+San Jose partial → carry to v1.7)
+- ✅ **v1.6 California City Expansion** — 2026-06-06 — Phases 26-31 (Sacramento, Oakland, San Jose, Long Beach, Bakersfield, Fresno, Riverside, Anaheim, Santa Ana CA; Longview TX revenue; STATE_LABELS)
 - ✅ **v1.5 Oregon Expansion** — 2026-06-04 — Phases 17-25 (Portland/Gresham/Troutdale OR, all-funds consistency, LA data quality, LA County + county-city linking)
 - ✅ **v1.4 Geographic Expansion** — 2026-05-22 — Phases 15-16 (LA, SF, SD, LA Revenue)
 - ✅ **v1.3 Revenue Completion & Per-Capita Context** — 2026-05-22 — Phases 11-14
@@ -131,4 +116,4 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - ✅ **v1.0 GiveButter Real-Time Donation Feedback** — 2026-04-22 — Phases 1-4
 
 ---
-*Last updated: 2026-06-06 — Phase 31 UAT complete; v1.6 milestone shipped*
+*Last updated: 2026-06-06 after v1.6 milestone archived*

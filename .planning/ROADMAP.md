@@ -8,7 +8,7 @@
 - ✅ **v1.3 Revenue Completion & Per-Capita Context** — Phases 11-14 (shipped 2026-05-22)
 - ✅ **v1.4 Geographic Expansion** — Phases 15-16 (shipped 2026-05-22)
 - ✅ **v1.5 Oregon Expansion** — Phases 17-25 (shipped 2026-06-04)
-- 📋 **v1.6 California City Expansion** — Phases 26-30 (in progress)
+- ✅ **v1.6 California City Expansion** — Phases 26-31 (shipped 2026-06-06)
 
 ---
 
@@ -305,11 +305,10 @@ Plans:
 
 ---
 
-## v1.6 California City Expansion (Phases 26–30)
+<details>
+<summary>✅ v1.6 California City Expansion (Phases 26-31) — SHIPPED 2026-06-06</summary>
 
-**Milestone goal:** Add 7 new California cities with full operating and revenue budget data, expanding CA coverage beyond LA/SF/SD, and close two carry-forward items from v1.5. All data loaded via PDF/CSV — no Socrata SODA API calls.
-
-**Requirements:** 11 discrete requirements (DATA-01–07, ENRICH-01, POPUL-01, CARRY-01, CARRY-02) | All covered ✓
+**Milestone goal:** Add 9 new California cities (Sacramento, Oakland, San Jose, Long Beach, Bakersfield, Fresno, Riverside, Anaheim, Santa Ana) with full operating and revenue budget data, and close two carry-forward items from v1.5.
 
 ### Phase 26: Sacramento CA Data Load (COMPLETE — 2026-06-04)
 
@@ -458,11 +457,36 @@ Plans:
 
 **UI hint:** yes
 
+### Phase 31: Anaheim + Santa Ana CA Data Load (COMPLETE — 2026-06-06)
+
+**Goal:** Anaheim and Santa Ana are visible in the app with operating and revenue budget data; General Fund scoped, enterprise funds filtered where applicable
+**Depends on:** Phase 26 (CA municipality seeding pattern confirmed)
+**Requirements:** DATA-08, DATA-09, ENRICH-02 (Anaheim + Santa Ana), POPUL-02 (Anaheim + Santa Ana)
+
+**Plans:** 4/4 plans complete
+
+Plans:
+**Wave 1**
+
+- [x] 31-01-PLAN.md — Seed Anaheim + Santa Ana municipality rows (2024 population) + 4 canonical data_source rows; verify via treasury_list_source_ids
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [x] 31-02-PLAN.md — Anaheim: download PDFs, write extractAnaheim.py + processAnaheim.js, dry-run + live-load GF operating
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [x] 31-03-PLAN.md — Santa Ana: download PDFs, write extractSantaAna.py + processSantaAna.js, dry-run + live-load GF operating
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [x] 31-04-PLAN.md — Enrichment for both cities ($0.10 gate) + human app spot-check of all 6 criteria + write 31-VERIFICATION.md
+
+</details>
+
 ---
 
 ## Progress
-
-**Execution Order:** Sequential phases 1→16 (all complete)
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -485,51 +509,20 @@ Plans:
 | 17. Portland OR Budget Load | v1.5 | 4/4 | Complete | 2026-05-31 |
 | 18. Portland Historical Operating | v1.5 | — | Complete | 2026-05-31 |
 | 19. Portland Revenue Budget | v1.5 | — | Complete | 2026-05-31 |
-| 20. Gresham OR Budget Load | v1.5 | 4/4 | Complete    | 2026-06-01 |
-| 21. Gresham OR Revenue Load | v1.5 | 2/2 | Complete    | 2026-06-01 |
-| 22. Troutdale OR Budget Load | v1.5 | 3/3 | Complete    | 2026-06-02 |
+| 20. Gresham OR Budget Load | v1.5 | 4/4 | Complete | 2026-06-01 |
+| 21. Gresham OR Revenue Load | v1.5 | 2/2 | Complete | 2026-06-01 |
+| 22. Troutdale OR Budget Load | v1.5 | 3/3 | Complete | 2026-06-02 |
 | 23. OR All Funds Consistency | v1.5 | 4/4 | Complete | 2026-06-03 |
-| 24. Los Angeles Data Refresh | v1.5 | 4/4 | Complete    | 2026-06-03 |
+| 24. Los Angeles Data Refresh | v1.5 | 4/4 | Complete | 2026-06-03 |
 | 25. LA County Data Completion + County-City Linking | v1.5 | 3/3 | Complete | 2026-06-03 |
-| 26. Sacramento CA Data Load | v1.6 | 2/2 | Complete    | 2026-06-04 |
-| 27. Carry-forwards (Longview + STATE_LABELS) | v1.6 | 2/2 | Complete    | 2026-06-04 |
-| 28. Oakland + San Jose CA Data Load | v1.6 | 3/4 | In Progress|  |
-| 29. Long Beach + Bakersfield CA Data Load | v1.6 | 4/4 | Complete    | 2026-06-05 |
-| 30. Fresno + Riverside CA Data Load | v1.6 | 4/4 | Complete    | 2026-06-05 |
-
-### Phase 31: Anaheim + Santa Ana CA Data Load
-
-**Goal:** Anaheim and Santa Ana are visible in the app with operating and revenue budget data; General Fund scoped, enterprise funds filtered where applicable
-**Depends on:** Phase 26 (CA municipality seeding pattern confirmed)
-**Requirements:** DATA-08, DATA-09, ENRICH-02 (Anaheim + Santa Ana), POPUL-02 (Anaheim + Santa Ana)
-**Success Criteria** (what must be TRUE):
-
-  1. "Anaheim" and "Santa Ana" appear in the city picker under "California"
-  2. Anaheim operating budget total reflects General Fund scope (enterprise utility funds filtered)
-  3. Santa Ana operating budget shows General Fund data for at least one fiscal year
-  4. Both cities show Revenue / Money In tabs with at least one fiscal year populated
-  5. Per-capita displays correctly for Anaheim (~348K) and Santa Ana (~335K)
-  6. Enrichment descriptions visible for top categories in both cities
-
-**Plans:** 4/4 plans complete
-Plans:
-**Wave 1**
-
-- [x] 31-01-PLAN.md — Seed Anaheim + Santa Ana municipality rows (2024 population) + 4 canonical data_source rows; verify via treasury_list_source_ids
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [x] 31-02-PLAN.md — Anaheim: download PDFs, write extractAnaheim.py + processAnaheim.js, dry-run + live-load GF operating
-
-**Wave 3** *(blocked on Wave 2 completion)*
-
-- [x] 31-03-PLAN.md — Santa Ana: download PDFs, write extractSantaAna.py + processSantaAna.js, dry-run + live-load GF operating
-
-**Wave 4** *(blocked on Wave 3 completion)*
-
-- [x] 31-04-PLAN.md — Enrichment for both cities ($0.10 gate) + human app spot-check of all 6 criteria + write 31-VERIFICATION.md
+| 26. Sacramento CA Data Load | v1.6 | 2/2 | Complete | 2026-06-04 |
+| 27. Carry-forwards (Longview + STATE_LABELS) | v1.6 | 2/2 | Complete | 2026-06-04 |
+| 28. Oakland + San Jose CA Data Load | v1.6 | 4/4 | Complete | 2026-06-05 |
+| 29. Long Beach + Bakersfield CA Data Load | v1.6 | 4/4 | Complete | 2026-06-05 |
+| 30. Fresno + Riverside CA Data Load | v1.6 | 4/4 | Complete | 2026-06-05 |
+| 31. Anaheim + Santa Ana CA Data Load | v1.6 | 4/4 | Complete | 2026-06-06 |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-06-05 — Phase 31 added (Anaheim + Santa Ana CA Data Load)*
+*Last updated: 2026-06-06 — v1.6 milestone archived*

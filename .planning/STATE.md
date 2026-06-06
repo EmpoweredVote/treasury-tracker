@@ -1,35 +1,32 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.6
-milestone_name: California City Expansion
-status: milestone_complete
-last_updated: 2026-06-06T06:06:49.073Z
+milestone: v1.7
+milestone_name: TBD
+status: planning
+last_updated: 2026-06-06T00:00:00.000Z
 progress:
-  total_phases: 6
-  completed_phases: 5
-  total_plans: 20
-  completed_plans: 87
-  percent: 83
-stopped_at: Milestone complete (Phase 31 was final phase)
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
+stopped_at: v1.6 archived; ready for /gsd-new-milestone
 ---
 
 # State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-03)
+See: .planning/PROJECT.md (updated 2026-06-06)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Milestone complete
+**Current focus:** Planning v1.7 — run `/gsd-new-milestone`
 
 ## Current Position
 
-Phase: 31
-Plan: Not started
-Next: Phase 29
-
-Progress: [████████░░] 75%
-          [ complete  ] [ complete  ] [ complete  ] [  pending  ] [  pending  ]
+Phase: —
+Plan: —
+Next: `/gsd-new-milestone` to define v1.7
 
 ## Accumulated Context
 
