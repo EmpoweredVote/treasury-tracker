@@ -9,6 +9,7 @@ interface EntitySwitcherProps {
 }
 
 const ENTITY_TYPE_LABELS: Record<string, string> = {
+  state: 'State Governments',
   city: 'Cities',
   county: 'Counties',
   township: 'Townships',
@@ -68,8 +69,15 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
         )
       : municipalities;
 
+    // Pre-filter state entities before building byState to prevent circular nesting
+    const stateEntities = filtered.filter(m => m.entity_type === 'state');
+    const cityEntities = filtered.filter(m => m.entity_type !== 'state');
+
+    // Sort state entities alphabetically
+    stateEntities.sort((a, b) => a.name.localeCompare(b.name));
+
     const byState = new Map<string, Map<string, Municipality[]>>();
-    for (const m of filtered) {
+    for (const m of cityEntities) {
       if (!byState.has(m.state)) byState.set(m.state, new Map());
       const stateMap = byState.get(m.state)!;
       const type = m.entity_type || 'city';
@@ -84,12 +92,14 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
       }
     }
 
-    return byState;
+    return { byState, stateEntities };
   }, [municipalities, filter]);
 
   const totalCount = municipalities.length;
   const displayName = selectedEntity
-    ? `${selectedEntity.name}, ${selectedEntity.state}`
+    ? selectedEntity.entity_type === 'state'
+      ? selectedEntity.name
+      : `${selectedEntity.name}, ${selectedEntity.state}`
     : 'Select jurisdiction';
 
   return (
@@ -131,13 +141,13 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
 
           {/* Grouped list */}
           <div className="max-h-80 overflow-y-auto">
-            {grouped.size === 0 && (
+            {grouped.byState.size === 0 && grouped.stateEntities.length === 0 && (
               <div className="px-4 py-6 text-sm text-ev-gray-500 text-center">
                 No jurisdictions match "{filter}"
               </div>
             )}
 
-            {[...grouped.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([state, typeMap]) => (
+            {[...grouped.byState.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([state, typeMap]) => (
               <div key={state}>
                 {/* State header */}
                 <div className="sticky top-0 bg-[#F7F7F8] dark:bg-ev-gray-900 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-ev-gray-500 border-b border-[#E2EBEF] dark:border-ev-gray-700">
