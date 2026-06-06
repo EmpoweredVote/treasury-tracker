@@ -503,19 +503,30 @@ Plans:
 **Depends on:** Phase 26 (CA municipality seeding pattern confirmed)
 **Requirements:** DATA-08, DATA-09, ENRICH-02 (Anaheim + Santa Ana), POPUL-02 (Anaheim + Santa Ana)
 **Success Criteria** (what must be TRUE):
+
   1. "Anaheim" and "Santa Ana" appear in the city picker under "California"
   2. Anaheim operating budget total reflects General Fund scope (enterprise utility funds filtered)
   3. Santa Ana operating budget shows General Fund data for at least one fiscal year
   4. Both cities show Revenue / Money In tabs with at least one fiscal year populated
   5. Per-capita displays correctly for Anaheim (~348K) and Santa Ana (~335K)
   6. Enrichment descriptions visible for top categories in both cities
-**Plans:** 4 plans
 
+**Plans:** 4 plans
 Plans:
+**Wave 1**
 
 - [ ] 31-01-PLAN.md — Seed Anaheim + Santa Ana municipality rows (2024 population) + 4 canonical data_source rows; verify via treasury_list_source_ids
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 31-02-PLAN.md — Anaheim: download PDFs, write extractAnaheim.py + processAnaheim.js, dry-run + live-load GF operating
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 31-03-PLAN.md — Santa Ana: download PDFs, write extractSantaAna.py + processSantaAna.js, dry-run + live-load GF operating
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 31-04-PLAN.md — Enrichment for both cities ($0.10 gate) + human app spot-check of all 6 criteria + write 31-VERIFICATION.md
 
 ---

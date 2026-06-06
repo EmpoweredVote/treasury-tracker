@@ -90,11 +90,45 @@
 
 ---
 
+## v1.7 Requirements — Anaheim + Santa Ana (Phase 31)
+
+### Data Loads
+
+- [ ] **DATA-08**: Anaheim CA operating + revenue budget loaded and visible in app
+  - PDF extraction (pdfplumber) — download adopted budget PDFs from anaheim.net
+  - No API calls
+  - General Fund scope; utility enterprise funds (water, electric) to be filtered
+  - Target totals: TBD (pending research)
+
+- [ ] **DATA-09**: Santa Ana CA operating + revenue budget loaded and visible in app
+  - PDF extraction (pdfplumber) — download adopted budget PDFs from santa-ana.org or santaana.gov
+  - No API calls
+  - General Fund scope; enterprise funds to be filtered where applicable
+  - Target totals: TBD (pending research)
+
+### Enrichment
+
+- [ ] **ENRICH-02**: Anaheim + Santa Ana have AI-generated category enrichment
+  - Operating and revenue departments described in plain language
+  - Run `enrichCategories.js --city [Name] --state CA --year [FY]` per city
+  - Idempotent via name_key upsert — safe to re-run
+
+### Population / Per-Capita
+
+- [ ] **POPUL-02**: Anaheim + Santa Ana seeded with 2024 population data
+  - Source: Census `sub-est2024_06.csv` (SUMLEV=162, California sub-county estimates)
+  - Per-capita ($/resident) displays correctly in app for each city
+  - Population values (2024 estimates):
+    - Anaheim: ~348K
+    - Santa Ana: ~335K
+
+---
+
 ## Future Requirements (Deferred)
 
 - Pre-FY2020 historical data for any new CA city
 - CAFR/ACFR actuals (vs. adopted budget)
-- Other CA cities (Anaheim, Santa Ana, Stockton, etc.)
+- Other CA cities (Stockton, Irvine, Chula Vista, etc.)
 - Riverside County, Sacramento County, Alameda County data
 - Port of Long Beach (separate government entity)
 
@@ -135,3 +169,9 @@
 | ENRICH-01 (Riverside) | Phase 30 | 30-04 |
 | POPUL-01 (Fresno) | Phase 30 | 30-01 |
 | POPUL-01 (Riverside) | Phase 30 | 30-01 |
+| DATA-08 (Anaheim) | Phase 31 | TBD |
+| DATA-09 (Santa Ana) | Phase 31 | TBD |
+| ENRICH-02 (Anaheim) | Phase 31 | TBD |
+| ENRICH-02 (Santa Ana) | Phase 31 | TBD |
+| POPUL-02 (Anaheim) | Phase 31 | TBD |
+| POPUL-02 (Santa Ana) | Phase 31 | TBD |
