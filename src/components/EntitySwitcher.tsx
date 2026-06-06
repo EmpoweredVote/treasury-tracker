@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { ChevronDown, Search } from 'lucide-react';
 import type { Municipality } from '../types/budget';
+import { STATE_NAMES } from '../utils/wikiImage';
 
 interface EntitySwitcherProps {
   municipalities: Municipality[];
@@ -13,17 +14,12 @@ const ENTITY_TYPE_LABELS: Record<string, string> = {
   city: 'Cities',
   county: 'Counties',
   township: 'Townships',
+  town: 'Towns',
+  municipality: 'Municipalities',
   special_district: 'Special Districts',
   school_district: 'School Districts',
   library: 'Libraries',
   conservancy: 'Conservancy Districts',
-};
-
-const STATE_LABELS: Record<string, string> = {
-  IN: 'Indiana',
-  CA: 'California',
-  TX: 'Texas',
-  OR: 'Oregon',
 };
 
 const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
@@ -65,7 +61,7 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
       ? municipalities.filter(m =>
           m.name.toLowerCase().includes(lowerFilter) ||
           m.state.toLowerCase().includes(lowerFilter) ||
-          (STATE_LABELS[m.state] || '').toLowerCase().includes(lowerFilter)
+          (STATE_NAMES[m.state] || '').toLowerCase().includes(lowerFilter)
         )
       : municipalities;
 
@@ -80,7 +76,7 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
     for (const m of cityEntities) {
       if (!byState.has(m.state)) byState.set(m.state, new Map());
       const stateMap = byState.get(m.state)!;
-      const type = m.entity_type || 'city';
+      const type = m.entity_type;
       if (!stateMap.has(type)) stateMap.set(type, []);
       stateMap.get(type)!.push(m);
     }
@@ -179,7 +175,7 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
               <div key={state}>
                 {/* State header */}
                 <div className="sticky top-0 bg-[#F7F7F8] dark:bg-ev-gray-900 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-ev-gray-500 border-b border-[#E2EBEF] dark:border-ev-gray-700">
-                  {STATE_LABELS[state] || state}
+                  {STATE_NAMES[state] || state}
                 </div>
 
                 {[...typeMap.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([type, entities]) => (
