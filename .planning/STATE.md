@@ -3,14 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: California City Expansion
 status: milestone_complete
-last_updated: 2026-06-05T22:52:00.766Z
+last_updated: "2026-06-06T01:59:05.003Z"
 progress:
-  total_phases: 5
-  completed_phases: 4
-  total_plans: 16
-  completed_plans: 83
+  total_phases: 6
+  completed_phases: 5
+  total_plans: 20
+  completed_plans: 16
   percent: 80
-stopped_at: Milestone complete (Phase 30 was final phase)
 ---
 
 # State
@@ -20,12 +19,12 @@ stopped_at: Milestone complete (Phase 30 was final phase)
 See: .planning/PROJECT.md (updated 2026-06-03)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Milestone complete
+**Current focus:** Phase 31 — anaheim-santa-ana-ca-data-load
 
 ## Current Position
 
-Phase: 30
-Plan: Not started
+Phase: 31 (anaheim-santa-ana-ca-data-load) — EXECUTING
+Plan: 1 of 4
 Next: Phase 29
 
 Progress: [████████░░] 75%

@@ -511,11 +511,11 @@ Plans:
   5. Per-capita displays correctly for Anaheim (~348K) and Santa Ana (~335K)
   6. Enrichment descriptions visible for top categories in both cities
 
-**Plans:** 4 plans
+**Plans:** 1/4 plans executed
 Plans:
 **Wave 1**
 
-- [ ] 31-01-PLAN.md — Seed Anaheim + Santa Ana municipality rows (2024 population) + 4 canonical data_source rows; verify via treasury_list_source_ids
+- [x] 31-01-PLAN.md — Seed Anaheim + Santa Ana municipality rows (2024 population) + 4 canonical data_source rows; verify via treasury_list_source_ids
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
