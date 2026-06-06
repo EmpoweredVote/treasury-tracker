@@ -167,7 +167,7 @@ async function upsertDataSource(muniId, fiscalYear, datasetType, pdfAbsPath) {
     api_type:        'pdf_download',
     dataset_type:    datasetType,
     dataset_id:      `santa-ana-fy${fiscalYear}-${datasetType}`,
-    base_url:        'file://' + pdfAbsPath.replace(/\\/g, '/'),
+    base_url:        'https://www.santa-ana.org/budget/',
     fiscal_years:    [fiscalYear],
     municipality_id: muniId,
   };
