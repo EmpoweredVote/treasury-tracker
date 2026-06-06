@@ -174,6 +174,16 @@ No new network endpoints, auth paths, or schema changes introduced. PDF extracti
 - T-31-06: Command injection — PDF paths from controlled readdir; double-quoted
 - T-31-07: SUPABASE_KEY logging — loadEnv() pattern; key never logged
 
+## Self-Check: PASSED
+
+- scripts/extractAnaheim.py: FOUND
+- scripts/processAnaheim.js: FOUND
+- .planning/phases/31-anaheim-santa-ana-ca-data-load/31-02-SUMMARY.md: FOUND
+- Commit b5103cc (Task 2): FOUND
+- Commit 8aad602 (SUMMARY): FOUND
+- JS syntax check: PASSED
+- Python AST check: PASSED
+
 ---
 *Phase: 31-anaheim-santa-ana-ca-data-load*
 *Completed: 2026-06-06*
