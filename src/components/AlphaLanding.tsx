@@ -122,6 +122,7 @@ const STATE_NAMES: Record<string, string> = {
   OR: 'Oregon',
 };
 
+
 // ── City cards ──
 function CityGrid({
   municipalities,
@@ -152,6 +153,7 @@ function CityGrid({
     othersByState.get(m.state)!.push(m);
   }
   const otherStates = [...othersByState.keys()].sort();
+
 
   const renderCityButton = (city: Municipality) => {
     const years = [...new Set(city.available_datasets.map(d => d.fiscal_year))].sort((a, b) => b - a);

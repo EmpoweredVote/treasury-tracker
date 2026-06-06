@@ -189,6 +189,7 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
             )}
           </p>
 
+
           {allFundsRequirementsData && operatingData &&
             allFundsRequirementsData.metadata.totalBudget > operatingData.metadata.totalBudget && (
             <p className="text-[13px] text-ev-gray-400 dark:text-ev-gray-500 mt-1 italic">
@@ -206,6 +207,7 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
               covers debt service, capital projects, and other city-wide requirements.
             </p>
           )}
+
 
           {isNonprofit && (
             <p>
@@ -256,12 +258,14 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
             </p>
           )}
 
+
           {topCategories[0]?.enrichment?.description &&
             topCategories[0].enrichment.description !== topCategories[0].enrichment.shortDescription && (
             <p className="text-[14px] text-ev-gray-500 dark:text-ev-gray-500 leading-relaxed italic">
               {topCategories[0].enrichment.description}
             </p>
           )}
+
 
           {revenueData && (
             <p>
