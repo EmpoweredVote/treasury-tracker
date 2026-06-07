@@ -144,7 +144,8 @@ function CityGrid({
   }
 
   const userAddress = readUserAddress();
-  const nearby = userAddress ? available.filter(m => m.state === userAddress.state && m.id !== preloadedCity?.id) : [];
+  // Exclude state entities from "Near you" — they aren't a local city
+  const nearby = userAddress ? available.filter(m => m.entity_type !== 'state' && m.state === userAddress.state && m.id !== preloadedCity?.id) : [];
   const others = available.filter(m => m.id !== preloadedCity?.id && (!userAddress || m.state !== userAddress.state));
 
   const othersByState = new Map<string, Municipality[]>();
@@ -152,12 +153,20 @@ function CityGrid({
     if (!othersByState.has(m.state)) othersByState.set(m.state, []);
     othersByState.get(m.state)!.push(m);
   }
+  // Within each state section, pin state entities to the top
+  for (const [state, list] of othersByState) {
+    othersByState.set(state, [
+      ...list.filter(m => m.entity_type === 'state'),
+      ...list.filter(m => m.entity_type !== 'state'),
+    ]);
+  }
   const otherStates = [...othersByState.keys()].sort();
 
 
   const renderCityButton = (city: Municipality) => {
     const years = [...new Set(city.available_datasets.map(d => d.fiscal_year))].sort((a, b) => b - a);
     const isPilot = city.name === 'Bloomington' && city.state === 'IN';
+    const isState = city.entity_type === 'state';
     return (
       <button
         key={city.id}
@@ -169,7 +178,12 @@ function CityGrid({
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-[#1C1C1C] dark:text-ev-gray-100 truncate">
-            {city.name}, {city.state}
+            {isState ? city.name : `${city.name}, ${city.state}`}
+            {isState && (
+              <span className="ml-2 text-xs font-normal text-[#005366] bg-[#EAF4F7] px-1.5 py-0.5 rounded">
+                State Budget
+              </span>
+            )}
             {isPilot && (
               <span className="ml-2 text-xs font-normal text-[#005366] bg-[#EAF4F7] px-1.5 py-0.5 rounded">
                 Pilot
