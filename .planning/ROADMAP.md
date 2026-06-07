@@ -542,12 +542,12 @@ Plans:
   3. Per-capita display shows approximately $5,800 per resident (using ~39.5M population)
   4. Category enrichment descriptions use state-level policy framing (not city-department language)
   5. Year selector shows at least FY2024-25 and FY2025-26 as selectable years
-**Plans:** 3 plans (Wave 1: seed + download; Wave 2: extract + load; Wave 3: enrich + verify)
+**Plans:** 1/3 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 33-01-PLAN.md — Seed CA state municipality + data_source row; download LAO Excel to docs/California/
+- [x] 33-01-PLAN.md — Seed CA state municipality + data_source row; download LAO Excel to docs/California/
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -646,7 +646,7 @@ Plans:
 | 30. Fresno + Riverside CA Data Load | v1.6 | 4/4 | Complete | 2026-06-05 |
 | 31. Anaheim + Santa Ana CA Data Load | v1.6 | 4/4 | Complete | 2026-06-06 |
 | 32. State Entity Infrastructure | v1.7 | 4/4 | Complete    | 2026-06-07 |
-| 33. CA State Budget Data | v1.7 | 0/3 | In progress | - |
+| 33. CA State Budget Data | v1.7 | 1/3 | In Progress|  |
 | 34. 3-Level Tree Infrastructure (ev-accounts-api) | v1.7 | 0/TBD | Not started | - |
 | 35. CA State 3-Level Icicle Pilot | v1.7 | 0/TBD | Not started | - |
 | 36. Selective City Retrofit | v1.7 | 0/TBD | Not started | - |

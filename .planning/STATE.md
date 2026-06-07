@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: California State Budget + Deep Icicles
-status: ready_to_execute
-last_updated: 2026-06-07T07:15:26.070Z
-last_activity: 2026-06-07
+status: executing
+last_updated: "2026-06-07T15:25:17.122Z"
+last_activity: 2026-06-07 -- Phase 33 execution started
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 7
   completed_plans: 4
   percent: 20
-stopped_at: Phase 33 planned (3/3 plans) — ready to execute Phase 33
 ---
 
 # State
@@ -21,14 +20,14 @@ stopped_at: Phase 33 planned (3/3 plans) — ready to execute Phase 33
 See: .planning/PROJECT.md (updated 2026-06-06)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 33 — ca state budget data
+**Current focus:** Phase 33 — ca-state-budget-data
 
 ## Current Position
 
-Phase: 33
-Plan: Not started
-Status: Ready to execute (3 plans)
-Last activity: 2026-06-07
+Phase: 33 (ca-state-budget-data) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 33
+Last activity: 2026-06-07 -- Phase 33 execution started
 
 ```
 Progress: [██████████] 100%
@@ -135,8 +134,8 @@ $5 per run — estimate before running AI enrichment or PDF extraction. CA state
 
 ## Session Continuity
 
-Last session: 2026-06-07T07:00:54.324Z
-Stopped at: Phase 32 context gathered
+Last session: 2026-06-07T08:33:24.572Z
+Stopped at: context exhaustion at 75% (2026-06-07)
 Resume file: None
 
 ## Performance Metrics
