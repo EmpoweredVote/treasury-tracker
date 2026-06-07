@@ -542,17 +542,15 @@ node scripts/enrichCategories.js --city "California" --state CA --year 2026 --dr
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Fiscal year depth: 2 years or 4 years?**
    - What we know: Minimum is FY2024-25 + FY2025-26 (DATA-02 requirement). LAO Excel has data back to 1984-85.
-   - What's unclear: Whether the planner should include FY2022-23 and FY2023-24 as well (4-year total).
-   - Recommendation: Load FY2022-26 (4 years) to match prior city patterns and give the year selector meaningful depth. Exclude pre-2022 due to LAO's own caveat about trend comparability.
+   - RESOLVED: Load FY2022-2026 (5 FYs: 2021-22 through 2025-26) — consistent with prior city patterns, gives meaningful year-selector depth. Pre-2022 excluded per LAO's trend-comparability caveat. Decision encoded in 33-02.
 
 2. **Should `fiscal_years` array on the data_source row reflect all loaded FYs?**
    - What we know: Anaheim seeder sets `fiscal_years: null` on the canonical row; per-FY rows are created by the processor. Sacramento seeder sets `fiscal_years` explicitly on a single shared row.
-   - What's unclear: Which pattern is more appropriate for CA state (single canonical row vs. per-FY rows).
-   - Recommendation: Use a single canonical data_source row with `fiscal_years: [2022, 2023, 2024, 2025, 2026]`, following the Sacramento pattern. Simpler and sufficient for a non-Socrata, Excel-based source.
+   - RESOLVED: Use a single canonical data_source row with `fiscal_years: [2022, 2023, 2024, 2025, 2026]`, following the Sacramento pattern. Decision encoded in 33-01.
 
 ---
 
