@@ -94,7 +94,10 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
     return { byState, stateEntities };
   }, [municipalities, filter]);
 
-  const totalCount = municipalities.filter(m => m.available_datasets && m.available_datasets.length > 0).length;
+  const totalCount = useMemo(
+    () => municipalities.filter(m => m.available_datasets && m.available_datasets.length > 0).length,
+    [municipalities]
+  );
   const displayName = selectedEntity
     ? selectedEntity.entity_type === 'state'
       ? selectedEntity.name
