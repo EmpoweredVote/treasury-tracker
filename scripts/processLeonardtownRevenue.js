@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Leonardtown, MD General Fund Revenue Loader — FY2023 + FY2024
+ * Leonardtown, MD General Fund Revenue Loader — FY2023 + FY2024 + FY2025
  *
  * Loads approved General Fund revenue into treasury database using the
  * treasury_sync_budget_tree RPC (p_dataset_type = 'revenue').
@@ -10,14 +10,16 @@
  * Data sources:
  *   FY2023: leonardtown.somd.com/pdf/Budget-FY2023.pdf (text PDF)
  *   FY2024: leonardtown.somd.com/pdf/BudgetFY2024.pdf (scanned PDF, read from page images)
+ *   FY2025: leonardtown.somd.com/pdf/BudgetFY2025.pdf (scanned PDF, read from page images)
  *
  * True revenue totals (excluding fund balance appropriation):
- *   FY2023: $2,430,580   FY2024: $2,487,335
+ *   FY2023: $2,430,580   FY2024: $2,487,335   FY2025: $2,683,356
  *
  * Usage:
- *   node scripts/processLeonardtownRevenue.js              # load FY2023 + FY2024
+ *   node scripts/processLeonardtownRevenue.js              # load FY2023 + FY2024 + FY2025
  *   node scripts/processLeonardtownRevenue.js --fy 2023    # single year
  *   node scripts/processLeonardtownRevenue.js --fy 2024
+ *   node scripts/processLeonardtownRevenue.js --fy 2025
  *   node scripts/processLeonardtownRevenue.js --dry-run    # parse + print, no DB
  */
 
@@ -166,6 +168,72 @@ const REVENUE = {
       },
     ],
   },
+
+  2025: {
+    total: 2_683_356,
+    categories: [
+      {
+        name: 'Local Property Taxes',
+        total: 862_500,
+        lineItems: [
+          { name: 'Real Estate Full Year and Half Year',  amount: 800_000 },
+          { name: 'Public Utilities',                     amount:  60_000 },
+          { name: 'Penalties and Interest',               amount:   2_500 },
+        ],
+      },
+      {
+        name: 'Local Other Taxes',
+        total: 1_100_100,
+        lineItems: [
+          { name: 'Income Tax',                           amount: 1_100_000 },
+          { name: 'Admissions and Amusement Tax',         amount:       100 },
+        ],
+      },
+      {
+        name: 'State Shared Taxes',
+        total: 342_620,
+        lineItems: [
+          { name: 'Highway User Revenue',                 amount: 342_620 },
+        ],
+      },
+      {
+        name: 'Licenses and Permits',
+        total: 74_950,
+        lineItems: [
+          { name: 'Beer, Wine and Liquor License',        amount:  16_800 },
+          { name: 'Traders License',                      amount:  12_000 },
+          { name: 'Building, Occupancy and Sign Permits', amount:  21_150 },
+          { name: 'CATV Franchise Fee',                   amount:  25_000 },
+        ],
+      },
+      {
+        name: 'Intergovernmental Revenues',
+        total: 147_686,
+        lineItems: [
+          { name: 'County Payments in Lieu of Taxes',     amount:  72_795 },
+          { name: 'Accommodation Tax',                    amount:  52_000 },
+          { name: 'Law Enforcement Grants (SAPP)',         amount:  22_891 },
+        ],
+      },
+      {
+        name: 'Charges for Services',
+        total: 4_000,
+        lineItems: [
+          { name: 'Event Fees',                           amount:   2_000 },
+          { name: 'Zoning and Subdivision Fees',          amount:   2_000 },
+        ],
+      },
+      {
+        name: 'Miscellaneous Revenue',
+        total: 151_500,
+        lineItems: [
+          { name: 'Interest',                             amount:  55_000 },
+          { name: 'Restricted Grants',                    amount:  95_000 },
+          { name: 'Private Contributions',                amount:   1_500 },
+        ],
+      },
+    ],
+  },
 };
 
 // ── Validate hardcoded amounts ─────────────────────────────────────────────────
@@ -233,7 +301,7 @@ async function main() {
 
   const dryRun   = opts['dry-run'];
   const targetFY = opts['fy'] ? parseInt(opts['fy'], 10) : null;
-  const years    = targetFY ? [targetFY] : [2023, 2024];
+  const years    = targetFY ? [targetFY] : [2023, 2024, 2025];
 
   if (!SUPABASE_KEY && !dryRun) {
     console.error('Missing SUPABASE_SERVICE_KEY env var');
@@ -259,6 +327,7 @@ async function main() {
   const PDF_URLS = {
     2023: 'https://leonardtown.somd.com/pdf/Budget-FY2023.pdf',
     2024: 'https://leonardtown.somd.com/pdf/BudgetFY2024.pdf',
+    2025: 'https://leonardtown.somd.com/pdf/BudgetFY2025.pdf',
   };
 
   for (const fy of years) {
@@ -296,7 +365,7 @@ async function main() {
       municipality_id: muniId,
       column_mapping:  {
         url_path: new URL(PDF_URLS[fy]).pathname,
-        pdf_type: fy === 2024 ? 'scanned' : 'text',
+        pdf_type: fy >= 2024 ? 'scanned' : 'text',
       },
     };
 

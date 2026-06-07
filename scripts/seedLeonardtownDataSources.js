@@ -6,6 +6,7 @@
  * Sources:
  *   FY2023 Operating: https://leonardtown.somd.com/pdf/Budget-FY2023.pdf (text PDF)
  *   FY2024 Operating: https://leonardtown.somd.com/pdf/BudgetFY2024.pdf (scanned PDF)
+ *   FY2025 Operating: https://leonardtown.somd.com/pdf/BudgetFY2025.pdf (scanned PDF)
  *
  * Run this AFTER insertLeonardtownMunicipality.js.
  */
@@ -56,6 +57,19 @@ const sources = [
     municipality_id: municipalityId,
     column_mapping:  {
       url_path: '/pdf/BudgetFY2024.pdf',
+      pdf_type: 'scanned',
+    },
+  },
+  {
+    name:            'Leonardtown Operating Budget FY2025',
+    api_type:        'pdf_download',
+    dataset_type:    'operating',
+    dataset_id:      'fy2025',
+    base_url:        'https://leonardtown.somd.com',
+    fiscal_years:    [2025],
+    municipality_id: municipalityId,
+    column_mapping:  {
+      url_path: '/pdf/BudgetFY2025.pdf',
       pdf_type: 'scanned',
     },
   },

@@ -2,8 +2,8 @@
 /**
  * Leonardtown, MD Operating Budget Loader — General Fund + Enterprise Fund
  *
- * Loads approved expenditures for FY2023 and FY2024 into treasury database
- * using the treasury_sync_budget_tree RPC.
+ * Loads approved expenditures for FY2023, FY2024, and FY2025 into treasury
+ * database using the treasury_sync_budget_tree RPC.
  *
  * Tree structure (two top-level fund groups):
  *   General Fund  → 7 departments  → line items
@@ -13,9 +13,11 @@
  *   FY2023: leonardtown.somd.com/pdf/Budget-FY2023.pdf (text PDF, pdftotext)
  *   FY2024: leonardtown.somd.com/pdf/BudgetFY2024.pdf (Xerox scan; data
  *           extracted from rendered page images)
+ *   FY2025: leonardtown.somd.com/pdf/BudgetFY2025.pdf (scanned PDF, approved
+ *           April 8, 2024; data extracted from rendered page images)
  *
  * Combined approved totals (General Fund + Enterprise Fund):
- *   FY2023: $6,094,754   FY2024: $7,114,937
+ *   FY2023: $6,094,754   FY2024: $7,114,937   FY2025: $7,762,229
  *
  * Enterprise Fund is expenses-only. The town's enterprise revenues equal
  * expenses (self-funded utilities); the revenue side is NOT loaded here.
@@ -24,9 +26,10 @@
  * County seat of St. Mary's County, MD.
  *
  * Usage:
- *   node scripts/processLeonardtownBudget.js              # load FY2023 + FY2024
+ *   node scripts/processLeonardtownBudget.js              # load FY2023 + FY2024 + FY2025
  *   node scripts/processLeonardtownBudget.js --fy 2023    # single year
  *   node scripts/processLeonardtownBudget.js --fy 2024
+ *   node scripts/processLeonardtownBudget.js --fy 2025
  *   node scripts/processLeonardtownBudget.js --dry-run    # parse + print, no DB
  */
 
@@ -341,6 +344,156 @@ const BUDGETS = {
       ],
     },
   },
+
+  2025: {
+    generalFund: {
+      total: 2_683_356,
+      departments: [
+        {
+          name: 'General Government', amount: 806_312,
+          lineItems: [
+            { name: 'Salaries',                       amount: 336_243 },
+            { name: 'Payroll Taxes and Benefits',     amount:  93_943 },
+            { name: 'Legal Counsel',                  amount:   7_500 },
+            { name: 'Accounting Service',             amount:  35_600 },
+            { name: 'Other Professional Services',    amount:  49_750 },
+            { name: 'Property/Liability Insurance',   amount:  25_638 },
+            { name: 'Utilities',                      amount:  23_000 },
+            { name: 'Building Maint./Janitorial',     amount:  23_000 },
+            { name: 'Equipment Maintenance',          amount:   3_500 },
+            { name: 'Office Supplies',                amount:  11_000 },
+            { name: 'Postage',                        amount:   6_400 },
+            { name: 'Travel and Training',            amount:  25_000 },
+            { name: 'Dues, Memberships and Subs.',    amount:   6_000 },
+            { name: 'Advertising and Public Notices', amount:     800 },
+            { name: 'Hospitality',                    amount:   6_000 },
+            { name: 'Other Operating',                amount:   1_500 },
+            { name: 'Payments to Other Agencies',     amount:     750 },
+            { name: 'Capital Outlay',                 amount:   5_800 },
+            { name: 'Debt Service',                   amount: 144_000 },
+            { name: 'Lease Payments',                 amount:     888 },
+          ],
+        },
+        {
+          name: 'Community Development', amount: 489_601,
+          lineItems: [
+            { name: 'Salaries',                            amount: 189_728 },
+            { name: 'Payroll Taxes and Benefits',          amount:  42_014 },
+            { name: 'Professional Services',               amount:  47_040 },
+            { name: 'Other Operating',                     amount:  24_780 },
+            { name: 'Public Relations/Promotions',         amount:  13_400 },
+            { name: 'Arts and Entertainment District',     amount:  14_000 },
+            { name: 'Main Street',                         amount:  15_000 },
+            { name: 'Facade Improvements Pass Thru Grant', amount:  50_000 },
+            { name: 'Tree Lighting',                       amount:   8_150 },
+            { name: 'Concerts on the Square',              amount:   8_500 },
+            { name: "Veteran's Day Parade",                amount:   6_800 },
+            { name: 'Moll Dyer Weekend',                   amount:   2_500 },
+            { name: 'Boat Races',                          amount:   1_500 },
+            { name: 'Movie Festival',                      amount:   3_850 },
+            { name: 'Capital Outlay',                      amount:  62_339 },
+          ],
+        },
+        {
+          name: 'Planning and Zoning', amount: 240_611,
+          lineItems: [
+            { name: 'Salaries',                    amount: 145_454 },
+            { name: 'Payroll Taxes and Benefits',  amount:  40_907 },
+            { name: 'Legal Counsel',               amount:   4_500 },
+            { name: 'Professional Services',       amount:  45_000 },
+            { name: 'Supplies',                    amount:     750 },
+            { name: 'Other Operating',             amount:   4_000 },
+          ],
+        },
+        {
+          name: 'Public Safety', amount: 115_793,
+          lineItems: [
+            { name: 'Salaries',                    amount:  14_935 },
+            { name: 'Payroll Taxes and Benefits',  amount:   5_358 },
+            { name: 'Other Operating',             amount:     500 },
+            { name: 'Law Enforcement',             amount:  90_000 },
+            { name: 'Fire Department Grant',       amount:   1_000 },
+            { name: 'Rescue Squad Grant',          amount:   1_000 },
+            { name: 'Capital Outlay',              amount:   3_000 },
+          ],
+        },
+        {
+          name: 'Public Works', amount: 730_195,
+          lineItems: [
+            { name: 'Salaries',                         amount: 101_025 },
+            { name: 'Payroll Taxes and Benefits',       amount:  33_530 },
+            { name: 'Other Operating',                  amount:  22_550 },
+            { name: 'Street Sweeping',                  amount:  48_852 },
+            { name: 'Road Maintenance',                 amount: 235_238 },
+            { name: 'Snow and Ice Removal',             amount:  60_000 },
+            { name: 'Storm Drain/Sidewalk Maintenance', amount:  65_000 },
+            { name: 'Street Lighting/Electricity',      amount:  49_000 },
+            { name: 'Grounds Maintenance',              amount:  95_000 },
+            { name: 'Street Signs and Maintenance',     amount:  20_000 },
+          ],
+        },
+        {
+          name: 'Recreation and Parks', amount: 227_464,
+          lineItems: [
+            { name: 'Salaries',                      amount:  31_963 },
+            { name: 'Payroll Taxes and Benefits',    amount:   8_610 },
+            { name: 'Utilities',                     amount:   7_500 },
+            { name: 'Facility Maintenance',          amount:  70_691 },
+            { name: 'Other Operating',               amount:   3_500 },
+            { name: 'Contribution to Old Jail O&M',  amount:  10_000 },
+            { name: 'Grounds Maintenance',           amount:  85_000 },
+            { name: 'Capital Outlay',                amount:  10_200 },
+          ],
+        },
+        {
+          name: 'Transfers and Reserves', amount: 73_380,
+          lineItems: [
+            { name: 'Committed to Waterfront Revitalization', amount: 73_380 },
+          ],
+        },
+      ],
+    },
+
+    enterpriseFund: {
+      total: 5_078_873,
+      utilities: [
+        {
+          name: 'Sewer System', amount: 2_625_408,
+          lineItems: [
+            { name: 'Wastewater Treatment Plant - Personnel Services',  amount:   474_330 },
+            { name: 'Wastewater Treatment Plant - Operations & Maint.', amount:   751_862 },
+            { name: 'Wastewater Treatment Plant - Debt Service',        amount: 1_137_925 },
+            { name: 'Wastewater Treatment Plant - Capital Outlay',      amount:    18_600 },
+            { name: 'Wastewater Treatment Plant - Contingency',         amount:     8_907 },
+            { name: 'Collection System - Personnel Services',           amount:   100_282 },
+            { name: 'Collection System - Operations & Maintenance',     amount:   129_032 },
+            { name: 'Collection System - Contingency',                  amount:     4_470 },
+          ],
+        },
+        {
+          name: 'Water System', amount: 1_120_069,
+          lineItems: [
+            { name: 'Personnel Services',            amount: 195_558 },
+            { name: 'Operations & Maintenance',      amount: 285_341 },
+            { name: 'Debt Service',                  amount: 440_000 },
+            { name: 'Capital Outlay',                amount:  53_720 },
+            { name: 'Contingency',                   amount:  45_449 },
+            // R&R Reserve: $100,000 in document; items sum to $1,120,068 vs $1,120,069 in summary
+            // adding $1 to R&R to reconcile the source rounding artifact
+            { name: 'Repair & Replacement Reserve',  amount: 100_001 },
+          ],
+        },
+        {
+          name: 'Waste Disposal', amount: 1_333_396,
+          lineItems: [
+            { name: 'Personnel Services',       amount:  48_832 },
+            { name: 'Other Operating',          amount:  12_564 },
+            { name: 'Waste Disposal Contract',  amount: 1_272_000 },
+          ],
+        },
+      ],
+    },
+  },
 };
 
 // ── Validate hardcoded amounts ─────────────────────────────────────────────────
@@ -440,7 +593,7 @@ async function main() {
 
   const dryRun   = opts['dry-run'];
   const targetFY = opts['fy'] ? parseInt(opts['fy'], 10) : null;
-  const years    = targetFY ? [targetFY] : [2023, 2024];
+  const years    = targetFY ? [targetFY] : [2023, 2024, 2025];
 
   if (!SUPABASE_KEY && !dryRun) {
     console.error('Missing SUPABASE_SERVICE_KEY env var');
