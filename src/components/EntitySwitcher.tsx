@@ -65,9 +65,12 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
         )
       : municipalities;
 
+    // Defensive guard: exclude municipalities with no budget data loaded
+    const withData = filtered.filter(m => m.available_datasets && m.available_datasets.length > 0);
+
     // Pre-filter state entities before building byState to prevent circular nesting
-    const stateEntities = filtered.filter(m => m.entity_type === 'state');
-    const cityEntities = filtered.filter(m => m.entity_type !== 'state');
+    const stateEntities = withData.filter(m => m.entity_type === 'state');
+    const cityEntities = withData.filter(m => m.entity_type !== 'state');
 
     // Sort state entities alphabetically
     stateEntities.sort((a, b) => a.name.localeCompare(b.name));
@@ -91,7 +94,7 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
     return { byState, stateEntities };
   }, [municipalities, filter]);
 
-  const totalCount = municipalities.length;
+  const totalCount = municipalities.filter(m => m.available_datasets && m.available_datasets.length > 0).length;
   const displayName = selectedEntity
     ? selectedEntity.entity_type === 'state'
       ? selectedEntity.name
