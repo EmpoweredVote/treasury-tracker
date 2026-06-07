@@ -489,11 +489,12 @@ Plans:
 
 ### 🚧 v1.7 California State Budget + Deep Icicles (In Progress)
 
-**Milestone goal:** Add California as a state-level entity with its General Fund budget loaded (~$212B), and deepen the icicle chart from 2 to 3 levels — CA state as the pilot, then selectively retrofitting cities where source data has a genuine 3rd level.
+**Milestone goal:** Add California as a state-level entity with its General Fund budget loaded (~$228B), and deepen the icicle chart from 2 to 3 levels — CA state as the pilot, then selectively retrofitting cities where source data has a genuine 3rd level.
 
 #### Phase Summary
 
-- [x] **Phase 32: State Entity Infrastructure** — Schema migration + TypeScript type + EntitySwitcher UI fixes (completed 2026-06-06)
+- [x] **Phase 32: State Entity Infrastructure** — Schema migration + TypeScript type + EntitySwitcher UI fixes
+ (completed 2026-06-06)
 - [ ] **Phase 33: CA State Budget Data** — Seed CA state entity, load General Fund budget, enrich with state-level framing
 - [ ] **Phase 34: 3-Level Tree Infrastructure (ev-accounts-api)** — RPC + API update to accept and serve 3-level trees, backward-compatible
 - [ ] **Phase 35: CA State 3-Level Icicle Pilot** — Reload CA state as genuine 3-level tree; end-to-end validation
@@ -533,15 +534,29 @@ Plans:
 **Depends on:** Phase 32
 **Requirements:** DATA-01, DATA-02, DATA-03, DATA-04
 
-**Note:** No Socrata API exists for the CA state budget. Use the LAO historical Excel file (openpyxl, FY1985-FY2026) as the primary source, or the ebudget.ca.gov Enacted Budget Summary PDF (pdfplumber) as fallback. Confirm column structure at phase start before writing the loader. General Fund only (~$212B) — do NOT load all-funds (~$495B).
+**Note:** No Socrata API exists for the CA state budget. Use the LAO historical Excel file (openpyxl, FY1985-FY2026) as the primary source, or the ebudget.ca.gov Enacted Budget Summary PDF (pdfplumber) as fallback. Confirm column structure at phase start before writing the loader. General Fund only (~$228B enacted) — do NOT load all-funds (~$495B).
 
 **Success Criteria** (what must be TRUE):
   1. "California" appears as a selectable entity in the entity picker under a "State Governments" section
-  2. Clicking California opens a Money Out tab showing General Fund budget total in the ~$212B range for FY2025-26
-  3. Per-capita display shows approximately $5,400 per resident (using ~39.5M population)
+  2. Clicking California opens a Money Out tab showing General Fund budget total in the ~$228B range for FY2025-26
+  3. Per-capita display shows approximately $5,800 per resident (using ~39.5M population)
   4. Category enrichment descriptions use state-level policy framing (not city-department language)
   5. Year selector shows at least FY2024-25 and FY2025-26 as selectable years
-**Plans:** TBD
+**Plans:** 3 plans (Wave 1: seed + download; Wave 2: extract + load; Wave 3: enrich + verify)
+
+Plans:
+**Wave 1**
+
+- [ ] 33-01-PLAN.md — Seed CA state municipality + data_source row; download LAO Excel to docs/California/
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 33-02-PLAN.md — Create extractCA.py + processCA.js; dry-run + live load General Fund FY2022-2026
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 33-03-PLAN.md — Add state case to enrichCategories.js; run enrichment; human app spot-check; write 33-VERIFICATION.md
+
 **UI hint:** yes
 
 ### Phase 34: 3-Level Tree Infrastructure (ev-accounts-api)
@@ -631,7 +646,7 @@ Plans:
 | 30. Fresno + Riverside CA Data Load | v1.6 | 4/4 | Complete | 2026-06-05 |
 | 31. Anaheim + Santa Ana CA Data Load | v1.6 | 4/4 | Complete | 2026-06-06 |
 | 32. State Entity Infrastructure | v1.7 | 4/4 | Complete    | 2026-06-07 |
-| 33. CA State Budget Data | v1.7 | 0/TBD | Not started | - |
+| 33. CA State Budget Data | v1.7 | 0/3 | In progress | - |
 | 34. 3-Level Tree Infrastructure (ev-accounts-api) | v1.7 | 0/TBD | Not started | - |
 | 35. CA State 3-Level Icicle Pilot | v1.7 | 0/TBD | Not started | - |
 | 36. Selective City Retrofit | v1.7 | 0/TBD | Not started | - |
