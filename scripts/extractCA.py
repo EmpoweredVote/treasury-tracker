@@ -57,8 +57,19 @@ def fy_to_int(fy_str):
     if len(parts) != 2:
         return None
     try:
-        century = (int(parts[0]) // 100) * 100
-        return century + int(parts[1])
+        start_year = int(parts[0])
+        end_suffix = parts[1].strip()
+        if len(end_suffix) != 2:
+            return None  # reject malformed input like '2025-6'
+        end_two = int(end_suffix)
+        # Reconstruct full ending year: same century as start_year,
+        # but advance century if the two-digit suffix is less than the
+        # last two digits of start_year (century rollover).
+        start_two = start_year % 100
+        century = (start_year // 100) * 100
+        if end_two < start_two:
+            century += 100  # e.g. 2099-00 -> 2100 + 0 = 2100
+        return century + end_two
     except (ValueError, TypeError):
         return None
 
