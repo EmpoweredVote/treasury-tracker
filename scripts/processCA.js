@@ -99,12 +99,39 @@ function extractExcel(fiscalYears, dryRun = false) {
   const fyArgs = fiscalYears.map(fy => `--fy ${fy}`).join(' ');
   const dryFlag = dryRun ? ' --dry-run' : '';
   const mainRoot = resolveMainRoot();
-  const raw = execSync(`${pythonBin} "${pyScript}" ${fyArgs}${dryFlag}`, {
-    cwd: mainRoot,           // run from main repo root so XLSX_PATH resolves
-    maxBuffer: 8 * 1024 * 1024,
-    encoding: 'utf8',
-  });
-  if (dryRun) return [];
+
+  if (dryRun) {
+    // Dry-run: Python writes FY summaries to stderr; let them flow through so
+    // the operator can see them. No JSON to parse; return empty.
+    try {
+      execSync(`${pythonBin} "${pyScript}" ${fyArgs}${dryFlag}`, {
+        cwd: mainRoot,
+        maxBuffer: 8 * 1024 * 1024,
+        encoding: 'utf8',
+      });
+    } catch (err) {
+      console.error('Python extractor failed:');
+      if (err.stderr) console.error(err.stderr);
+      process.exit(3);
+    }
+    return [];
+  }
+
+  // Non-dry-run: capture stderr so Python errors are surfaced clearly on failure.
+  let raw;
+  try {
+    raw = execSync(`${pythonBin} "${pyScript}" ${fyArgs}${dryFlag}`, {
+      cwd: mainRoot,           // run from main repo root so XLSX_PATH resolves
+      maxBuffer: 8 * 1024 * 1024,
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe'],  // capture stderr for clean error surfacing
+    });
+  } catch (err) {
+    console.error('Python extractor failed:');
+    if (err.stderr) console.error(err.stderr);
+    if (err.stdout) console.error('stdout:', err.stdout);
+    process.exit(3);
+  }
   return JSON.parse(raw);
 }
 
