@@ -29,11 +29,14 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggle}
-      className="w-8 h-8 flex items-center justify-center rounded-full text-gray-500 dark:text-ev-gray-400 hover:text-gray-900 dark:hover:text-ev-gray-100 hover:bg-gray-100 dark:hover:bg-ev-gray-700 transition-colors"
+      className="h-8 flex items-center gap-1.5 px-2 rounded-full text-gray-500 dark:text-ev-gray-400 hover:text-gray-900 dark:hover:text-ev-gray-100 hover:bg-gray-100 dark:hover:bg-ev-gray-700 transition-colors"
       style={{ color: isDark ? '#9CA3AF' : undefined }}
       aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
     >
       {isDark ? <SunIcon /> : <MoonIcon />}
+      <span style={{ fontSize: '12px', fontWeight: 500, fontFamily: 'Manrope, sans-serif', whiteSpace: 'nowrap' }}>
+        {isDark ? 'Light Mode' : 'Dark Mode'}
+      </span>
     </button>
   );
 }

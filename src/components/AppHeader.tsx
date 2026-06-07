@@ -51,7 +51,7 @@ export function AppHeader({ style, showBackButton, onBack, ...props }: AppHeader
             title="Home"
             aria-label="Back to Treasury Tracker home"
             className="w-8 h-8 flex items-center justify-center rounded-full text-gray-500 dark:text-ev-gray-400 hover:text-gray-900 dark:hover:text-ev-gray-100 hover:bg-gray-100 dark:hover:bg-ev-gray-700 transition-colors"
-            style={{ pointerEvents: 'auto' }}
+            style={{ pointerEvents: 'auto', color: isDark ? '#9CA3AF' : undefined }}
           >
             <Home size={16} aria-hidden="true" />
           </button>
