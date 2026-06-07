@@ -75,8 +75,8 @@ const LIMIT = args.limit ? parseInt(args.limit) : null;
 const DEPTH = args.depth || '0'; // '0' = top-level only (default), '1' = depth 1, 'all' = all depths
 
 // Validate args
-if (!ALL_MODE && !CITY) {
-  // Default to single-city mode requiring --city
+if (!ALL_MODE && (!CITY || !STATE)) {
+  // Single-city mode requires both --city and --state
   console.error('Usage: --city "Name" --state "IN" OR --all [--state IN] [--entity-type city|township|county]');
   process.exit(1);
 }
