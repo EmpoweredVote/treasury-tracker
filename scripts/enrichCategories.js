@@ -297,6 +297,14 @@ function buildEntityContext(municipality) {
       return `This is a county government. County governments are overseen by a county council and board of commissioners. They commonly fund the county sheriff, county health department, courts, county clerk, assessor, recorder, and public works.`;
     case 'school_district':
       return `This is a school district. School districts focus on per-pupil spending, state tuition support (basic grant), debt service on building bonds, referendum levies, extracurricular activities, and special education.`;
+    case 'state':
+      return `This is a state government budget. The California state budget covers
+policy programs funded through the General Fund — primarily K-12 and higher education,
+health and human services (Medi-Cal), corrections and rehabilitation, and government
+operations. Programs are organized by the Department of Finance's agency groupings.
+Amounts are in the hundreds of millions to tens of billions of dollars. Frame
+descriptions as state policy programs visible to residents statewide, not as
+local city departments.`;
     case 'city':
     default:
       return `This is a city government with a mayor and city council.`;
