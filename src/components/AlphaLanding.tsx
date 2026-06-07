@@ -247,6 +247,7 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
     const available = municipalities.filter(m => m.available_datasets.length > 0);
     const addrLower = userAddress.addr.toLowerCase();
     const match = available.find(m =>
+      m.entity_type !== 'state' &&
       m.state === userAddress.state &&
       addrLower.includes(m.name.toLowerCase())
     );
