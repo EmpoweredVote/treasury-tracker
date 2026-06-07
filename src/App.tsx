@@ -601,6 +601,11 @@ function App() {
         profileMenu={profileMenu}
         style={darkHeaderStyle}
         onNavigate={(href) => { window.location.href = href === '/' ? 'https://alpha.empowered.vote' : href; }}
+        showBackButton
+        onBack={() => {
+          window.history.pushState({}, '', window.location.pathname);
+          setAppView('landing');
+        }}
       />
 
       {/* Hero banner */}
