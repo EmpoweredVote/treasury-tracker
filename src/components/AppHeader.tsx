@@ -29,10 +29,9 @@ export function AppHeader({ style, showBackButton, onBack, ...props }: AppHeader
         {...props}
         style={{ ...(style ?? {}), position: 'static', zIndex: 'auto' }}
       />
-      {/* Overlay the ThemeToggle to the left of the profile button.
-          right: max(72px, …) keeps the position aligned with the profile button
-          at any viewport width, accounting for the 1512px max-width container
-          with 24px right padding (profile button = 40px wide, +8px gap = 72px). */}
+      {/* Overlay the ThemeToggle (and optional Home button) to the left of the profile
+          button. right: max(72px, …) keeps the group aligned with the profile button
+          at any viewport width. Home button sits immediately left of ThemeToggle. */}
       <div
         style={{
           position: 'absolute',
@@ -41,58 +40,26 @@ export function AppHeader({ style, showBackButton, onBack, ...props }: AppHeader
           right: 'max(72px, calc((100% - 1512px) / 2 + 72px))',
           display: 'flex',
           alignItems: 'center',
+          gap: '4px',
           zIndex: 1,
           pointerEvents: 'none',
         }}
       >
+        {showBackButton && (
+          <button
+            onClick={onBack}
+            title="Home"
+            aria-label="Back to Treasury Tracker home"
+            className="w-8 h-8 flex items-center justify-center rounded-full text-gray-500 dark:text-ev-gray-400 hover:text-gray-900 dark:hover:text-ev-gray-100 hover:bg-gray-100 dark:hover:bg-ev-gray-700 transition-colors"
+            style={{ pointerEvents: 'auto' }}
+          >
+            <Home size={16} aria-hidden="true" />
+          </button>
+        )}
         <div style={{ pointerEvents: 'auto' }}>
           <ThemeToggle />
         </div>
       </div>
-      {/* Home button — overlaid just right of the logo (logo ≈ 90px wide at 43px height,
-          24px container padding → place at ~120px from the container left edge). */}
-      {showBackButton && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            bottom: 0,
-            left: 'max(120px, calc((100% - 1512px) / 2 + 120px))',
-            display: 'flex',
-            alignItems: 'center',
-            zIndex: 1,
-          }}
-        >
-          <button
-            onClick={onBack}
-            title="Back to Treasury Tracker home"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              padding: '4px 10px',
-              borderRadius: '6px',
-              border: `1px solid ${isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,83,102,0.2)'}`,
-              background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,83,102,0.06)',
-              color: isDark ? '#7dd3e0' : '#005366',
-              cursor: 'pointer',
-              fontSize: '13px',
-              fontWeight: 600,
-              fontFamily: 'Manrope, sans-serif',
-              transition: 'background 0.15s, border-color 0.15s',
-            }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLButtonElement).style.background = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,83,102,0.12)';
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLButtonElement).style.background = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,83,102,0.06)';
-            }}
-          >
-            <Home size={14} />
-            <span>Home</span>
-          </button>
-        </div>
-      )}
     </div>
   );
 }
