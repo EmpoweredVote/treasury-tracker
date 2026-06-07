@@ -41,7 +41,7 @@ export function AppHeader({ style, showBackButton, onBack, ...props }: AppHeader
           display: 'flex',
           alignItems: 'center',
           gap: '4px',
-          zIndex: 1,
+          zIndex: 110,
           pointerEvents: 'none',
         }}
       >
