@@ -3,75 +3,105 @@ phase: 33-ca-state-budget-data
 plan: "03"
 subsystem: data
 tags: [california, state, enrichment, enrichCategories, buildEntityContext, general-fund]
-dependency_graph:
-  requires: [phase-33-plan-02 (ca-general-fund-budget-fy2022-2026, processCA.js)]
-  provides: [ca-state-enrichment-fy2026, enrichCategories-state-case]
-  affects: [treasury.category_enrichment, scripts/enrichCategories.js]
-tech_stack:
+
+requires:
+  - phase: 33-ca-state-budget-data-plan-02
+    provides: CA General Fund operating budget FY2022-2026 loaded into treasury.operating_expenses
+
+provides:
+  - enrichCategories.js 'state' case in buildEntityContext() for state-level policy framing
+  - 12 category_enrichment rows in DB for California FY2026 with state-level descriptions
+  - 33-VERIFICATION.md confirming all 5 live-app success criteria passed
+
+affects: [treasury.category_enrichment, scripts/enrichCategories.js]
+
+tech-stack:
   added: []
-  patterns: [buildEntityContext-state-case, enrichCategories-state-framing]
-key_files:
-  created: []
+  patterns:
+    - "buildEntityContext state case: entity_type='state' returns state-level policy framing (not city-government language)"
+    - "enrichCategories CLI works with state entity via getMunicipality .ilike/.eq match on name/state"
+
+key-files:
+  created:
+    - .planning/phases/33-ca-state-budget-data/33-VERIFICATION.md
   modified:
     - scripts/enrichCategories.js
-decisions:
-  - "No CLI flag change needed — entity_type is already read from DB municipality row and passed to buildEntityContext()"
+
+key-decisions:
+  - "No CLI flag change needed — entity_type is read from DB municipality row and passed to buildEntityContext() automatically"
   - "State framing references General Fund, Medi-Cal, DOF agency groupings — not city-government language"
   - "Live enrichment run for FY2026 (12 categories, $0.002 estimated cost, well under $5 threshold)"
-metrics:
-  duration: "5 minutes (Task 1 only — Task 2 awaiting human verify)"
-  completed: "2026-06-07 (partial — checkpoint reached)"
-  tasks_completed: 1
-  files_committed: 1
+  - "Dry-run verification step required before live enrichment to confirm correct framing (T-33-11 mitigated)"
+
+patterns-established:
+  - "buildEntityContext() switch block extended with 'state' case before 'city'/default — pattern for future entity types"
+  - "enrichCategories.js --city/--state flags work for state entities without modification — municipality lookup is entity_type-agnostic"
+
+requirements-completed: [DATA-03, DATA-04]
+
+duration: "~15 minutes (Task 1: 5 min, Task 2: human checkpoint approved)"
+completed: "2026-06-07"
 ---
 
 # Phase 33 Plan 03: State Enrichment Framing and App Verification Summary
 
-**One-liner:** Added 'state' case to buildEntityContext() in enrichCategories.js; ran live enrichment for California FY2026 producing 12 category_enrichment rows with state-level policy framing (Medi-Cal, General Fund, DOF agency groupings — no city council/mayor language).
+**Added 'state' case to buildEntityContext() in enrichCategories.js; ran live enrichment for California FY2026 producing 12 category_enrichment rows with state-level policy framing (Medi-Cal, General Fund, DOF agency groupings); all 5 live-app criteria verified passed by human.**
 
-## Tasks Completed
+## Performance
 
-| # | Name | Commit | Files |
-|---|------|--------|-------|
-| 1 | Add 'state' case to buildEntityContext(), run enrichment for CA FY2026 | bf28067 | scripts/enrichCategories.js |
+- **Duration:** ~15 minutes
+- **Started:** 2026-06-07
+- **Completed:** 2026-06-07
+- **Tasks:** 2 (1 auto + 1 human-verify checkpoint)
+- **Files modified:** 1 (scripts/enrichCategories.js) + 2 docs (33-VERIFICATION.md, 33-03-SUMMARY.md)
 
-## Task 2 Status
+## Accomplishments
 
-**Awaiting human verification checkpoint.** Task 2 requires a browser spot-check of the live app at https://treasurytracker.empowered.vote to verify:
-1. California appears in "State Governments" section of entity picker
-2. Money Out tab shows ~$228B for FY2025-26
-3. Per-capita ~$5,782 per resident
-4. Enrichment descriptions use state-level language (Medi-Cal, state programs)
-5. Year selector shows FY2022-2026
+- Added `case 'state':` to `buildEntityContext()` switch block in `scripts/enrichCategories.js` — returns state-level policy framing referencing the General Fund, Medi-Cal, corrections, higher education, and DOF agency groupings
+- Ran `node scripts/enrichCategories.js --city "California" --state CA --year 2026` — produced 12 category_enrichment rows in `treasury.category_enrichment` for California FY2026 with no city council/mayor language
+- Human spot-check confirmed all 5 success criteria passed on the live app at https://treasurytracker.empowered.vote
 
-After human approval, 33-VERIFICATION.md will be written recording pass/fail for each criterion.
+## Task Commits
 
-## Verification Results (Task 1)
+1. **Task 1: Add 'state' case to buildEntityContext(), run enrichment** - `bf28067` (feat)
+2. **Task 2 docs: 33-VERIFICATION.md** - `91bd9f1` (docs)
+3. **Plan metadata: 33-03-SUMMARY.md** - (this commit)
 
-### enrichCategories.js modification
-- `grep -n "case 'state':" scripts/enrichCategories.js` → line 300 — FOUND
-- `grep "state government budget" scripts/enrichCategories.js` → confirmed in state case return string
-- Dry-run output: 12 categories, entity type `state` confirmed, no city-level framing
-- Live enrichment: 12 categories enriched, 0 failures, exits 0
+## Files Created/Modified
 
-### DB verification
-- `SELECT COUNT(*) FROM treasury.category_enrichment WHERE municipality_id = 'e1007bf5-bac9-4b1c-878e-f6834885f850'` → **12 rows**
-- Sample enrichment descriptions reviewed: references Medi-Cal, General Fund, state prisons, state universities — NO "city council" or "mayor" language
-- `Has city council/mayor language: false` — confirmed
+- `scripts/enrichCategories.js` - Added `case 'state':` to `buildEntityContext()` switch block (line 300)
+- `.planning/phases/33-ca-state-budget-data/33-VERIFICATION.md` - Phase 33 verification record, all 5 criteria PASS
+
+## Decisions Made
+
+- No CLI flag changes needed — `getMunicipality()` in enrichCategories.js uses `.ilike('name', 'California').eq('state', 'CA')` which matches the state entity by name/state fields; `entity_type` is read from the DB row and passed to `buildEntityContext()` automatically.
+- State framing in the `case 'state':` block deliberately references General Fund, Medi-Cal, corrections and rehabilitation, K-12 and higher education, and DOF agency groupings — the correct taxonomy for CA state budget data.
+- Live enrichment cost estimated at $0.002 (12 categories x ~$0.0002/call) — well under the $5 threshold per project memory.
 
 ## Deviations from Plan
 
-### [Rule 3 - Blocking] .env not found from worktree scripts/ __dirname path
+### Auto-fixed Issues
 
-**Found during:** Task 1 dry-run
+**1. [Rule 3 - Blocking] .env not found from worktree scripts/ __dirname path**
 
-**Issue:** enrichCategories.js loads .env by resolving `../` from `__dirname` (the scripts/ directory in the worktree). In the worktree context, `../` resolves to the worktree root, not the main repo root where `.env` lives. The script exited with "Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY".
+- **Found during:** Task 1 (dry-run)
+- **Issue:** `enrichCategories.js` resolves `.env` via `path.resolve(__dirname, '../.env')`. In the worktree context, `__dirname` is `C:/treasury-tracker/.claude/worktrees/agent-a9ed32e54e6c88a6c/scripts`, so `../` resolves to the worktree root — not the main repo root where `.env` lives. Script exited: "Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY".
+- **Fix:** Ran the script via a `node -e` wrapper that reads the main repo's `.env` from the absolute path `C:/treasury-tracker/.env` and injects variables into `process.env` before invoking the script. `SUPABASE_SERVICE_KEY` mapped to `SUPABASE_SERVICE_ROLE_KEY` (same value, different var name used in script). `ANTHROPIC_API_KEY` was already set in the system environment.
+- **Impact:** None — same script logic, same output. The `.env` path issue is a worktree execution context artifact; the production workflow (running from the main repo directory) works correctly.
+- **Files modified:** None (wrapper approach only, no script change).
 
-**Fix:** Ran the script via a wrapper `node -e` that reads the main repo's `.env` from the absolute path `C:/treasury-tracker/.env` and sets the process environment before invoking the script via `execSync`. `SUPABASE_SERVICE_KEY` mapped to `SUPABASE_SERVICE_ROLE_KEY` (same value, different var name). `ANTHROPIC_API_KEY` was already set in the system environment.
+---
 
-**Impact:** None — same script, same output. The .env path issue is a worktree execution context artifact, not a script bug. The production workflow (running from the main repo directory) works correctly.
+**Total deviations:** 1 auto-fixed (1 blocking — worktree .env path)
+**Impact on plan:** Minor execution context workaround. No code changes required. No scope creep.
 
-**Files modified:** None — wrapper approach only.
+## Issues Encountered
+
+None beyond the .env worktree path issue documented above.
+
+## User Setup Required
+
+None — no external service configuration required.
 
 ## Known Stubs
 
@@ -83,11 +113,26 @@ No new threat surface beyond the Phase 33 threat model:
 - T-33-10 (API key logging): ANTHROPIC_API_KEY never logged — mitigated
 - T-33-11 (wrong framing): 'state' case verified in dry-run before live API calls — mitigated
 
+## Next Phase Readiness
+
+Phase 33 is complete. All four requirements met:
+- DATA-01: CA state municipality seeded (Phase 33-01)
+- DATA-02: CA General Fund budget FY2022-2026 loaded (Phase 33-02)
+- DATA-03: State enrichment framing added and FY2026 enrichment run (this plan)
+- DATA-04: Live app verified — entity picker, $228B total, $5,782 per-capita, state enrichment language, FY2022-2026 year selector (this plan)
+
+Note: A supplementary fix was applied on `main` (commit ea29501, outside the worktree) — California state entity now appears at the top of the California landing page section with a "State Budget" badge. This is additive UI polish beyond the plan's requirements.
+
 ## Self-Check: PASSED
 
-- scripts/enrichCategories.js contains `case 'state':` at line 300: CONFIRMED
-- scripts/enrichCategories.js contains `state government budget`: CONFIRMED
-- Commit bf28067: FOUND (git log confirmed)
-- 12 category_enrichment rows in DB for California: CONFIRMED
-- No city council/mayor language in descriptions: CONFIRMED
-- 33-03-SUMMARY.md: WRITTEN
+- scripts/enrichCategories.js `case 'state':` at line 300: CONFIRMED (from Task 1 grep)
+- Commit bf28067 (Task 1 - enrichCategories.js): CONFIRMED (git log)
+- Commit 91bd9f1 (33-VERIFICATION.md): CONFIRMED (just committed)
+- 12 category_enrichment rows for California in DB: CONFIRMED (Task 1 verification)
+- No city council/mayor language in descriptions: CONFIRMED (Task 1 verification)
+- 33-VERIFICATION.md: WRITTEN (all 5 criteria PASS)
+
+---
+
+*Phase: 33-ca-state-budget-data*
+*Completed: 2026-06-07*
