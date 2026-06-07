@@ -38,7 +38,7 @@ function loadEnv() {
     const lines = readFileSync(envPath, 'utf8').split('\n');
     for (const line of lines) {
       const [k, ...v] = line.split('=');
-      if (k && v.length) process.env[k.trim()] = v.join('=').trim();
+      if (k && v.length && !process.env[k.trim()]) process.env[k.trim()] = v.join('=').trim();
     }
   } catch {}
   try {
