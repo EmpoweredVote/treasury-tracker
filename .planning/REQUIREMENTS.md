@@ -24,9 +24,9 @@
 
 ### TREE — 3-Level Tree Infrastructure
 
-- [ ] **TREE-01**: `treasury_sync_budget_tree` RPC updated to accept 3-level trees (`c` → `c` → `i`); backward-compatible with all existing 2-level loaders (`c` → `i` path unchanged)
-- [ ] **TREE-02**: `/api/treasury/budgets/:id/categories` endpoint returns 3-level `BudgetCategory[]` when `budget_line_items.department` is non-NULL; falls back to 2-level behavior for existing cities (where department IS NULL)
-- [ ] **TREE-03**: All existing city and county pages render correctly after RPC + API update (zero regressions verified by spot-check of at least 3 cities)
+- [x] **TREE-01**: `treasury_sync_budget_tree` RPC updated to accept 3-level trees (`c` → `c` → `i`); backward-compatible with all existing 2-level loaders (`c` → `i` path unchanged) (satisfied by existing infrastructure + treasury-3level.test.ts, Phase 34)
+- [x] **TREE-02**: `/api/treasury/budgets/:id/categories` endpoint returns 3-level `BudgetCategory[]` when `budget_line_items.department` is non-NULL; falls back to 2-level behavior for existing cities (where department IS NULL) (satisfied by existing infrastructure + treasury-3level.test.ts, Phase 34)
+- [x] **TREE-03**: All existing city and county pages render correctly after RPC + API update (zero regressions verified by spot-check of at least 3 cities) (satisfied by existing infrastructure + treasury-3level.test.ts, Phase 34)
 
 ### ICICLE — 3-Level Icicle Pilot
 
@@ -74,9 +74,9 @@
 | DATA-02 | Phase 33 | Pending |
 | DATA-03 | Phase 33 | Pending |
 | DATA-04 | Phase 33 | Pending |
-| TREE-01 | Phase 34 | Pending |
-| TREE-02 | Phase 34 | Pending |
-| TREE-03 | Phase 34 | Pending |
+| TREE-01 | Phase 34 | Complete |
+| TREE-02 | Phase 34 | Complete |
+| TREE-03 | Phase 34 | Complete |
 | ICICLE-01 | Phase 35 | Pending |
 | ICICLE-02 | Phase 35 | Pending |
 | ICICLE-03 | Phase 35 | Pending |
@@ -86,4 +86,4 @@
 
 ---
 
-*Last updated: 2026-06-06 — traceability filled by roadmapper (Phases 32-36)*
+*Last updated: 2026-06-08 — TREE-01/02/03 marked complete (Phase 34)*
