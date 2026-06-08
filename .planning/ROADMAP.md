@@ -497,7 +497,8 @@ Plans:
  (completed 2026-06-06)
 - [x] **Phase 33: CA State Budget Data** — Seed CA state entity, load General Fund budget, enrich with state-level framing
  (completed 2026-06-07)
-- [x] **Phase 34: 3-Level Tree Infrastructure (ev-accounts-api)** — RPC + API update to accept and serve 3-level trees, backward-compatible (completed 2026-06-08)
+- [x] **Phase 34: 3-Level Tree Infrastructure (ev-accounts-api)** — RPC + API update to accept and serve 3-level trees, backward-compatible
+ (completed 2026-06-08)
 - [ ] **Phase 35: CA State 3-Level Icicle Pilot** — Reload CA state as genuine 3-level tree; end-to-end validation
 - [ ] **Phase 36: Selective City Retrofit** — Source data audit + retrofit 1-2 cities with genuine 3rd-level data
 
@@ -597,7 +598,19 @@ Plans:
   2. Clicking to Level 3 opens the `LineItemsTable` with leaf-level line items (identical behavior to existing 2-level cities at their deepest level)
   3. Drill-down animation and layout look correct at all 3 levels — no visual layout breakage
   4. The CA state page looks and works as expected end-to-end (correct totals, correct year, correct per-capita, correct enrichment)
-**Plans:** TBD
+**Plans:** 3 plans (3 waves)
+Plans:
+**Wave 1**
+
+- [ ] 35-01-PLAN.md — Discovery: measure function-column distribution (A1) + test mixed c+i RPC node (A2); decide D-05 strategy
+
+**Wave 2** *(blocked on 35-01 — D-05 strategy gates the builder)*
+
+- [ ] 35-02-PLAN.md — Code: extractCA.py emit function (D-03) + processCA.js buildNLevelTree (D-02/D-04/D-05) + SUPABASE_URL fix (D-12); dry-run all 5 FYs
+
+**Wave 3** *(blocked on 35-02 — needs the updated loader)*
+
+- [ ] 35-03-PLAN.md — Live reload 5 FYs + DB depth verify (ICICLE-01); $5-gated depth-2 enrichment (D-09/D-10); human live-app spot-check (ICICLE-02/03); write 35-VERIFICATION.md
 **UI hint:** yes
 
 ### Phase 36: Selective City Retrofit
