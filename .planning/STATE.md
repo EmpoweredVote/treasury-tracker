@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: California State Budget + Deep Icicles
-status: executing
-last_updated: "2026-06-08T17:51:07.264Z"
+status: ready_to_plan
+last_updated: 2026-06-08T18:54:42.357Z
 last_activity: 2026-06-08 -- Phase 34 execution started
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
   percent: 40
+stopped_at: Phase 34 complete (1/1) — ready to discuss Phase 35
 ---
 
 # State
@@ -20,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-06)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 34 — 3-level-tree-infrastructure-ev-accounts-api
+**Current focus:** Phase 35 — ca state 3 level icicle pilot
 
 ## Current Position
 
-Phase: 34 (3-level-tree-infrastructure-ev-accounts-api) — EXECUTING
-Plan: 1 of 1
-Status: Executing Phase 34
-Last activity: 2026-06-08 -- Phase 34 execution started
+Phase: 35
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-06-08
 
 ```
 Progress: [████░░░░░░] 40%
