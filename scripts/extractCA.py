@@ -4,7 +4,7 @@ extractCA.py — California LAO General Fund extractor
 
 Reads 'Pivot Table Data' sheet from Historical_Expenditures.xlsx.
 Filters Fund == 'General Fund', maps FY string to ending-year int,
-groups by DOF Agency (top-level) -> Department (second-level).
+groups by DOF Agency (top-level) -> Department (second-level) -> Function (third-level).
 Emits JSON array to stdout for processCA.js to consume.
 
 Source: https://lao.ca.gov/sections/state-budget/econ_fiscal/Historical_Expenditures.xlsx
@@ -90,7 +90,7 @@ def extract_budget(requested_fys=None, dry_run=False):
     Returns
     -------
     list[dict] | []
-        Each dict: { fiscal_year, dof_agency, department, amount_thousands }
+        Each dict: { fiscal_year, dof_agency, department, function, amount_thousands }
         Empty list in dry-run mode.
     """
     if not os.path.exists(XLSX_PATH):
@@ -122,6 +122,7 @@ def extract_budget(requested_fys=None, dry_run=False):
             'fiscal_year':      fy,
             'dof_agency':       row[COLS['dof_agency']],
             'department':       row[COLS['department']],
+            'function':         row[COLS['function']],   # ADD: col 2 — 'Local Assistance', 'State Operations', 'Capital Outlay', or None
             'amount_thousands': row[COLS['amount']],   # THOUSANDS — processCA.js x1000
         })
 
