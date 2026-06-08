@@ -108,11 +108,16 @@ def extract_budget(requested_fys=None, dry_run=False):
         if row[COLS['fund']] != 'General Fund':
             continue
         # Skip null-amount rows (Pitfall 4 — ~100 null rows for GF 2025-26)
-        if not row[COLS['amount']]:
+        # WR-01: use explicit is None to avoid silently dropping zero-dollar rows
+        if row[COLS['amount']] is None:
             continue
         # Map FY string to integer
-        fy = fy_to_int(str(row[COLS['fiscal_year']] or ''))
+        # WR-02: warn when a non-empty cell value fails to parse (e.g. numeric cell type)
+        fy_raw = row[COLS['fiscal_year']]
+        fy = fy_to_int(str(fy_raw or ''))
         if not fy:
+            if fy_raw:
+                print(f'WARNING: unrecognized fiscal_year cell value: {fy_raw!r}', file=sys.stderr)
             continue
         # If specific FYs requested, skip others
         if requested_fys and fy not in requested_fys:
