@@ -598,7 +598,7 @@ Plans:
   2. Clicking to Level 3 opens the `LineItemsTable` with leaf-level line items (identical behavior to existing 2-level cities at their deepest level)
   3. Drill-down animation and layout look correct at all 3 levels — no visual layout breakage
   4. The CA state page looks and works as expected end-to-end (correct totals, correct year, correct per-capita, correct enrichment)
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 Plans:
 **Wave 1**
 
@@ -606,7 +606,7 @@ Plans:
 
 **Wave 2** *(blocked on 35-01 — D-05 strategy gates the builder)*
 
-- [ ] 35-02-PLAN.md — Code: extractCA.py emit function (D-03) + processCA.js buildNLevelTree (D-02/D-04/D-05) + SUPABASE_URL fix (D-12); dry-run all 5 FYs
+- [x] 35-02-PLAN.md — Code: extractCA.py emit function (D-03) + processCA.js buildNLevelTree (D-02/D-04/D-05) + SUPABASE_URL fix (D-12); dry-run all 5 FYs
 
 **Wave 3** *(blocked on 35-02 — needs the updated loader)*
 
@@ -668,7 +668,7 @@ Plans:
 | 32. State Entity Infrastructure | v1.7 | 4/4 | Complete    | 2026-06-07 |
 | 33. CA State Budget Data | v1.7 | 3/3 | Complete | 2026-06-07 |
 | 34. 3-Level Tree Infrastructure (ev-accounts-api) | v1.7 | 1/1 | Complete    | 2026-06-08 |
-| 35. CA State 3-Level Icicle Pilot | v1.7 | 1/3 | In Progress|  |
+| 35. CA State 3-Level Icicle Pilot | v1.7 | 2/3 | In Progress|  |
 | 36. Selective City Retrofit | v1.7 | 0/TBD | Not started | - |
 
 ---
