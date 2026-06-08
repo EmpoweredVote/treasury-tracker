@@ -497,7 +497,7 @@ Plans:
  (completed 2026-06-06)
 - [x] **Phase 33: CA State Budget Data** — Seed CA state entity, load General Fund budget, enrich with state-level framing
  (completed 2026-06-07)
-- [ ] **Phase 34: 3-Level Tree Infrastructure (ev-accounts-api)** — RPC + API update to accept and serve 3-level trees, backward-compatible
+- [x] **Phase 34: 3-Level Tree Infrastructure (ev-accounts-api)** — RPC + API update to accept and serve 3-level trees, backward-compatible (completed 2026-06-08)
 - [ ] **Phase 35: CA State 3-Level Icicle Pilot** — Reload CA state as genuine 3-level tree; end-to-end validation
 - [ ] **Phase 36: Selective City Retrofit** — Source data audit + retrofit 1-2 cities with genuine 3rd-level data
 
@@ -577,12 +577,12 @@ Plans:
   1. A test 3-level tree submitted to `treasury_sync_budget_tree` lands as depth-0/1/2 `budget_categories` rows (parent_id chain — not a `budget_line_items.department` column, which does not exist)
   2. The categories API returns a 3-level `BudgetCategory[]` for that test data — Level 3 nodes visible in the response
   3. Spot-check of at least 3 existing city pages (e.g., Portland, San Jose, Dallas) confirms they render identically to before — no regressions in the 2-level paths
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 **Wave 1**
 
-- [ ] 34-01-PLAN.md — Verification: create treasury-3level.test.ts (TREE-01 3-level RPC submit + DB depth check, TREE-02 3-level API response, TREE-03 backward-compat for Portland/San Jose/Dallas, with cleanup); human spot-check 3 city pages; mark TREE-01/02/03 complete
+- [x] 34-01-PLAN.md — Verification: create treasury-3level.test.ts (TREE-01 3-level RPC submit + DB depth check, TREE-02 3-level API response, TREE-03 backward-compat for Portland/San Jose/Dallas, with cleanup); human spot-check 3 city pages; mark TREE-01/02/03 complete
 
 ### Phase 35: CA State 3-Level Icicle Pilot
 
@@ -654,7 +654,7 @@ Plans:
 | 31. Anaheim + Santa Ana CA Data Load | v1.6 | 4/4 | Complete | 2026-06-06 |
 | 32. State Entity Infrastructure | v1.7 | 4/4 | Complete    | 2026-06-07 |
 | 33. CA State Budget Data | v1.7 | 3/3 | Complete | 2026-06-07 |
-| 34. 3-Level Tree Infrastructure (ev-accounts-api) | v1.7 | 0/TBD | Not started | - |
+| 34. 3-Level Tree Infrastructure (ev-accounts-api) | v1.7 | 1/1 | Complete   | 2026-06-08 |
 | 35. CA State 3-Level Icicle Pilot | v1.7 | 0/TBD | Not started | - |
 | 36. Selective City Retrofit | v1.7 | 0/TBD | Not started | - |
 
