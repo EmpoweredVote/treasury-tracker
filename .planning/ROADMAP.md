@@ -495,7 +495,8 @@ Plans:
 
 - [x] **Phase 32: State Entity Infrastructure** — Schema migration + TypeScript type + EntitySwitcher UI fixes
  (completed 2026-06-06)
-- [ ] **Phase 33: CA State Budget Data** — Seed CA state entity, load General Fund budget, enrich with state-level framing
+- [x] **Phase 33: CA State Budget Data** — Seed CA state entity, load General Fund budget, enrich with state-level framing
+ (completed 2026-06-07)
 - [ ] **Phase 34: 3-Level Tree Infrastructure (ev-accounts-api)** — RPC + API update to accept and serve 3-level trees, backward-compatible
 - [ ] **Phase 35: CA State 3-Level Icicle Pilot** — Reload CA state as genuine 3-level tree; end-to-end validation
 - [ ] **Phase 36: Selective City Retrofit** — Source data audit + retrofit 1-2 cities with genuine 3rd-level data
@@ -542,7 +543,7 @@ Plans:
   3. Per-capita display shows approximately $5,800 per resident (using ~39.5M population)
   4. Category enrichment descriptions use state-level policy framing (not city-department language)
   5. Year selector shows at least FY2024-25 and FY2025-26 as selectable years
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 **Wave 1**
@@ -555,7 +556,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 33-03-PLAN.md — Add state case to enrichCategories.js; run enrichment; human app spot-check; write 33-VERIFICATION.md
+- [x] 33-03-PLAN.md — Add state case to enrichCategories.js; run enrichment; human app spot-check; write 33-VERIFICATION.md
 
 **UI hint:** yes
 
@@ -646,7 +647,7 @@ Plans:
 | 30. Fresno + Riverside CA Data Load | v1.6 | 4/4 | Complete | 2026-06-05 |
 | 31. Anaheim + Santa Ana CA Data Load | v1.6 | 4/4 | Complete | 2026-06-06 |
 | 32. State Entity Infrastructure | v1.7 | 4/4 | Complete    | 2026-06-07 |
-| 33. CA State Budget Data | v1.7 | 2/3 | In Progress|  |
+| 33. CA State Budget Data | v1.7 | 3/3 | Complete | 2026-06-07 |
 | 34. 3-Level Tree Infrastructure (ev-accounts-api) | v1.7 | 0/TBD | Not started | - |
 | 35. CA State 3-Level Icicle Pilot | v1.7 | 0/TBD | Not started | - |
 | 36. Selective City Retrofit | v1.7 | 0/TBD | Not started | - |

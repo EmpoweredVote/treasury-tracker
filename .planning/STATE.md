@@ -3,14 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: California State Budget + Deep Icicles
 status: executing
-last_updated: "2026-06-07T15:25:17.122Z"
-last_activity: 2026-06-07 -- Phase 33 execution started
+stopped_at: session end 2026-06-08 — Phase 33 complete, Phase 34 next
+last_updated: "2026-06-08T00:00:00.000Z"
+last_activity: 2026-06-08 -- Phase 33 complete (all 3 plans done + verified); all 50 US states loaded
 progress:
   total_phases: 5
-  completed_phases: 1
-  total_plans: 7
-  completed_plans: 4
-  percent: 20
+  completed_phases: 2
+  total_plans: 10
+  completed_plans: 10
+  percent: 40
 ---
 
 # State
@@ -20,26 +21,26 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-06)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 33 — ca-state-budget-data
+**Current focus:** Phase 34 — 3-Level Tree Infrastructure (ev-accounts-api)
 
 ## Current Position
 
-Phase: 33 (ca-state-budget-data) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 33
-Last activity: 2026-06-07 -- Phase 33 execution started
+Phase: 34 (3-level-tree-infrastructure) — READY TO PLAN
+Plan: 0 of TBD
+Status: Phase 33 complete; Phase 34 not yet planned
+Last activity: 2026-06-08 — Phase 33 complete (33-VERIFICATION.md PASS); all 50 US state budget scripts loaded
 
 ```
-Progress: [██████████] 100%
+Progress: [████░░░░░░] 40%
 ```
 
 ## Phase Overview
 
 | Phase | Name | Depends on | Status |
 |-------|------|------------|--------|
-| 32 | State Entity Infrastructure | nothing | Not started |
-| 33 | CA State Budget Data | Phase 32 | Not started |
-| 34 | 3-Level Tree Infrastructure (ev-accounts-api) | Phase 32 | Not started |
+| 32 | State Entity Infrastructure | nothing | Complete (2026-06-07) |
+| 33 | CA State Budget Data | Phase 32 | Complete (2026-06-07) |
+| 34 | 3-Level Tree Infrastructure (ev-accounts-api) | Phase 32 | Ready to plan |
 | 35 | CA State 3-Level Icicle Pilot | Phases 33 + 34 | Not started |
 | 36 | Selective City Retrofit | Phase 35 | Not started |
 
@@ -134,20 +135,31 @@ $5 per run — estimate before running AI enrichment or PDF extraction. CA state
 
 ## Session Continuity
 
-Last session: 2026-06-07T08:33:24.572Z
-Stopped at: context exhaustion at 75% (2026-06-07)
+Last session: 2026-06-08
+Stopped at: cleanup complete — proceeding to plan Phase 34
 Resume file: None
 
 ## Performance Metrics
 
 | Phase | Plan | Duration | Notes |
 |-------|------|----------|-------|
-| (v1.7 not started) | - | - | - |
-| Phase 32 P04 | 10m | 2 tasks | 2 files |
+| Phase 32 | 4 plans | ~60m | DB migration, TS types, EntitySwitcher UI |
+| Phase 33 P01 | 15m | 2 tasks | CA state seed + LAO Excel download |
+| Phase 33 P02 | 25m | 2 tasks | extractCA.py + processCA.js, FY2022-2026 loaded |
+| Phase 33 P03 | 15m | 2 tasks | enrichCategories.js state case + CA FY2026 enrichment |
+| Bonus | — | ~4 sessions | All 50 US states: processXX.js + processXXRevenue.js for every state |
 
 ## Decisions
 
-(No v1.7 decisions yet)
+| Decision | Context |
+|----------|---------|
+| All 50 US states loaded (bonus) | state budget scripts written + run for all 50 states; data in DB as foundation for future state icicle views |
+| No Agent/Workflow tool for state loading | StructuredOutput failures + $5-15 API cost per failed run; all work done directly in main conversation |
+| No income tax states: omit category | WA TN WY SD AK FL TX NV — income tax category omitted from revenue scripts |
+| No sales tax states: omit category | MT DE AK OR NH — sales tax category omitted from revenue scripts |
+| AK: use Unrestricted General Fund | Oil Production Tax + PF Earnings Transfer are dominant revenue categories |
+| VT: K-12 via Education Fund not GF | GF is small (~$2.5-2.7B); no K-12 Education spending category in GF |
+| All state data: confidence = 'estimated' | Web-researched figures; mark all with confidence: 'estimated' |
 
 ## Deferred Items
 
