@@ -187,7 +187,7 @@ const REVENUE = {
         lineItems: [
           { name: 'Corporate Income Tax',        amount: 1_350_000_000 },
           { name: 'Insurance Company Premiums',  amount:   490_000_000 },
-          { name: 'Michigan Business Tax (net)', amount:  (130_000_000) },
+          { name: 'Michigan Business Tax (net)', amount:  -130_000_000 },
           { name: 'Other Business Taxes',        amount:   115_000_000 },
         ],
       },
@@ -241,7 +241,7 @@ const REVENUE = {
         lineItems: [
           { name: 'Corporate Income Tax',        amount: 1_501_000_000 },
           { name: 'Insurance Company Premiums',  amount:   510_000_000 },
-          { name: 'Michigan Business Tax (net)', amount:  (121_000_000) },
+          { name: 'Michigan Business Tax (net)', amount:  -121_000_000 },
           { name: 'Other Business Taxes',        amount:   100_000_000 },
         ],
       },
@@ -296,14 +296,13 @@ const REVENUE = {
       },
       {
         name: 'Business Taxes',
-        total: 2_171_400_000,
+        total: 1_671_400_000,
         lineItems: [
           { name: 'Corporate Income Tax',        amount: 1_501_400_000 },
           { name: 'Insurance Company Premiums',  amount:   526_700_000 },
-          { name: 'Michigan Business Tax (net)', amount:  (429_100_000) },
+          { name: 'Michigan Business Tax (net)', amount:  -429_100_000 },
           { name: 'Telephone & Telegraph Tax',   amount:    53_000_000 },
           { name: 'Oil & Gas Severance Tax',     amount:    19_400_000 },
-          { name: 'Other Business Taxes',        amount:   500_000_000 },
         ],
       },
       {
@@ -359,7 +358,7 @@ const REVENUE = {
         lineItems: [
           { name: 'Corporate Income Tax',        amount: 1_248_700_000 },
           { name: 'Insurance Company Premiums',  amount:   555_300_000 },
-          { name: 'Michigan Business Tax (net)', amount:  (503_100_000) },
+          { name: 'Michigan Business Tax (net)', amount:  -503_100_000 },
           { name: 'Telephone & Telegraph Tax',   amount:    54_000_000 },
           { name: 'Oil & Gas Severance Tax',     amount:    23_700_000 },
           { name: 'Other Business Taxes',        amount:   427_200_000 },
