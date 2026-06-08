@@ -1,47 +1,64 @@
 {
   "version": "1.0",
-  "timestamp": "2026-06-07T03:49:54Z",
+  "timestamp": "2026-06-08T04:00:00Z",
   "phase": "33",
   "phase_name": "ca-state-budget-data",
   "phase_dir": ".planning/phases/33-ca-state-budget-data",
   "plan": 1,
-  "task": 3,
-  "total_tasks": 6,
+  "task": 14,
+  "total_tasks": 15,
   "status": "paused",
   "completed_tasks": [
-    {"id": 1, "name": "Seed Michigan municipality + data_sources", "status": "done"},
-    {"id": 2, "name": "Fix processMIRevenue.js (negative MBT values, FY2025 Business Taxes total)", "status": "done"},
-    {"id": 3, "name": "Write processMI.js (operating budget)", "status": "done"},
-    {"id": 4, "name": "Load TX, NY, FL, PA, IL, OH, GA, NC, MI revenue + operating", "status": "done"},
-    {"id": 5, "name": "Write + load NJ revenue + operating (processNJRevenue.js, processNJ.js)", "status": "done"},
-    {"id": 6, "name": "Write + load VA revenue + operating (processVARevenue.js, processVA.js)", "status": "done"}
+    { "id": 1, "name": "Seed Michigan + data_sources", "status": "done" },
+    { "id": 2, "name": "Fix processMIRevenue.js", "status": "done" },
+    { "id": 3, "name": "Write processMI.js", "status": "done" },
+    { "id": 4, "name": "Load TX NY FL PA IL OH GA NC MI revenue+operating", "status": "done" },
+    { "id": 5, "name": "Load NJ revenue+operating", "status": "done" },
+    { "id": 6, "name": "Load VA revenue+operating", "status": "done" },
+    { "id": 7, "name": "Load WA revenue+operating (no income tax)", "status": "done" },
+    { "id": 8, "name": "Load AZ revenue+operating (flat 2.5% FY2024+)", "status": "done" },
+    { "id": 9, "name": "Load MA revenue+operating (Millionaires Tax FY2024+)", "status": "done" },
+    { "id": 10, "name": "Load TN revenue+operating (no income tax)", "status": "done" },
+    { "id": 11, "name": "Load IN revenue+operating (flat 3.05%)", "status": "done" },
+    { "id": 12, "name": "Load MO revenue+operating", "status": "done" },
+    { "id": 13, "name": "Write+load MD WI CO MN SC AL LA (7 states)", "status": "done" },
+    { "id": 14, "name": "Write+load KY OR OK CT UT IA NV AR MS KS (10 states)", "status": "done", "commit": "ed75949" }
   ],
   "remaining_tasks": [
-    {"id": 7, "name": "Write + load WA (no income tax — B&O + sales tax)", "status": "not_started"},
-    {"id": 8, "name": "Write + load AZ (income tax cuts FY2024+, revenue declining)", "status": "not_started"},
-    {"id": 9, "name": "Write + load MA (Millionaires Tax surtax from FY2025)", "status": "not_started"},
-    {"id": 10, "name": "Write + load TN IN MO MD WI CO MN SC AL LA", "status": "not_started"},
-    {"id": 11, "name": "Write + load KY OR OK CT UT IA NV AR MS KS", "status": "not_started"},
-    {"id": 12, "name": "Write + load NM NE ID WV HI NH ME RI MT DE SD ND AK VT WY", "status": "not_started"}
+    {
+      "id": 15,
+      "name": "Write+load NM NE ID WV HI NH ME RI MT DE SD ND AK VT WY (15 states)",
+      "status": "not_started"
+    }
   ],
   "blockers": [
-    {"description": "Workflow tool causes StructuredOutput failures + high API cost", "type": "technical", "workaround": "All work must be done directly in main conversation — no Agent or Workflow tool calls"}
+    {
+      "description": "Workflow tool causes StructuredOutput failures + high API cost",
+      "type": "technical",
+      "workaround": "All work must be done directly in main conversation — no Agent or Workflow tool calls"
+    }
   ],
   "human_actions_pending": [],
   "decisions": [
-    {"decision": "Script format: compact single-line boilerplate with confidence='estimated' labels", "rationale": "Faster to write 78+ scripts; matches CA/TX/NY pattern but condensed"},
-    {"decision": "Use state-source revenues for revenue scripts, enacted budget for operating", "rationale": "Consistent with how TX/NY/FL scripts define General Fund"},
-    {"decision": "States with no income tax (WA, WY, SD, NV, TX, FL): omit income tax category", "rationale": "Accuracy — these states constitutionally prohibit income tax"},
-    {"decision": "Michigan seeded via seedMIState.js, not seedRemainingStates.js", "rationale": "MI was intentionally excluded from the bulk seeder"}
+    { "decision": "No income tax states (WA TN WY SD NV FL TX): omit income tax category" },
+    { "decision": "AZ income tax dropped sharply FY2024 (flat 2.5% vs prior progressive)" },
+    { "decision": "MA Millionaires Tax surtax starts FY2024 +.5-2B/yr" },
+    { "decision": "AL: treat ETF+GF as combined General Fund" },
+    { "decision": "LA: income tax cut to 3% flat FY2024; show drop in income tax line" },
+    { "decision": "CO: TABOR limits GF appropriations; show income tax as largest revenue" },
+    { "decision": "MN: added 10.85% bracket on income >$1M starting FY2024 — split as separate line item" },
+    { "decision": "KY: income tax cut 5%→4.5%(FY2023)→4%(FY2024)" },
+    { "decision": "OR: no sales tax; Corporate Activity Tax (CAT) introduced FY2020 as growing revenue" },
+    { "decision": "OK: oil/gas gross production tax as separate revenue category (significant/volatile)" },
+    { "decision": "CT: Pass-Through Entity (PTE) tax as separate line ~$1.8-2.2B/yr" },
+    { "decision": "UT: income tax (4.65% flat) constitutionally dedicated to education since 2020" },
+    { "decision": "IA: income tax cut from graduated 8.53% max → 4.82% (FY2024) → 3.8% flat (FY2026)" },
+    { "decision": "NV: no income tax; gaming taxes + Modified Business Tax (payroll) + sales tax" },
+    { "decision": "AR: income tax cut 5.9%→4.9%(FY2023)→3.9% flat(FY2024); corporate 5.9%→4.3%" },
+    { "decision": "MS: income tax phaseout 5%→4%→3%→0% wages; highest sales tax rate 7%" },
+    { "decision": "KS: income tax 2-bracket 3.1%/5.7%; top reduced to 5.58% in FY2024" }
   ],
-  "uncommitted_files": [
-    "scripts/processMI.js",
-    "scripts/processMIRevenue.js",
-    "scripts/processNJ.js",
-    "scripts/processNJRevenue.js",
-    "scripts/processVA.js",
-    "scripts/processVARevenue.js"
-  ],
-  "next_action": "Write processWARevenue.js + processWA.js (WA has no income tax — B&O tax + sales tax dominant). Then processAZRevenue.js + processAZ.js (declining revenue due to flat income tax cuts). Then MA, TN, IN, MO... continue in population order through all 37 remaining states.",
-  "context_notes": "Pattern is established and working. Compact script format (single-line boilerplate) is ~60% smaller than full-length scripts but equally correct. All 12 states loaded so far passed validation. DB has all 50 state municipality rows. The key risk is keeping revenue totals plausible — mark everything 'estimated', use known tax-structure quirks (no income tax states, biennial budget states like VA). WA is the most interesting next state — B&O gross receipts tax instead of income tax."
+  "uncommitted_files": [],
+  "next_action": "Write processNM.js + processNMRevenue.js first (NM: graduated income tax to 5.9%, large federal payments/oil/gas). Then NE OK ID WV HI NH ME RI MT DE SD ND AK VT WY. Key notes: WY SD no income tax; HI high income tax (11%); ME 7.15% top bracket; RI 5.99% top; MT 6.75% top; DE 6.6% top; ND 2.5% flat; AK no income or sales tax (oil dividends); VT 8.75% top bracket.",
+  "context_notes": "35 states loaded: TX NY FL PA IL OH GA NC MI NJ VA WA AZ MA TN IN MO MD WI CO MN SC AL LA KY OR OK CT UT IA NV AR MS KS. 15 remaining: NM NE ID WV HI NH ME RI MT DE SD ND AK VT WY. All 50 states seeded in DB already — just need processXX.js + processXXRevenue.js and run them."
 }
