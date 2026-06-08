@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: California State Budget + Deep Icicles
-status: executing
-last_updated: "2026-06-08T23:35:55.357Z"
+status: ready_to_plan
+last_updated: 2026-06-08T23:46:21.028Z
 last_activity: 2026-06-08
 progress:
   total_phases: 5
@@ -11,6 +11,7 @@ progress:
   total_plans: 11
   completed_plans: 11
   percent: 80
+stopped_at: Phase 35 complete (3/3) — ready to discuss Phase 36
 ---
 
 # State
@@ -20,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-06)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 35 — ca-state-3-level-icicle-pilot
+**Current focus:** Phase 36 — selective city retrofit
 
 ## Current Position
 
-Phase: 35 (ca-state-3-level-icicle-pilot) — EXECUTING
-Plan: 2 of 3
-Status: Ready to execute
+Phase: 36
+Plan: Not started
+Status: Ready to plan
 Last activity: 2026-06-08
 
 ```
