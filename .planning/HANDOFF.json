@@ -1,11 +1,11 @@
 {
   "version": "1.0",
-  "timestamp": "2026-06-08T04:00:00Z",
+  "timestamp": "2026-06-08T15:00:00Z",
   "phase": "33",
   "phase_name": "ca-state-budget-data",
   "phase_dir": ".planning/phases/33-ca-state-budget-data",
   "plan": 1,
-  "task": 14,
+  "task": 15,
   "total_tasks": 15,
   "status": "paused",
   "completed_tasks": [
@@ -21,13 +21,14 @@
     { "id": 10, "name": "Load TN revenue+operating (no income tax)", "status": "done" },
     { "id": 11, "name": "Load IN revenue+operating (flat 3.05%)", "status": "done" },
     { "id": 12, "name": "Load MO revenue+operating", "status": "done" },
-    { "id": 13, "name": "Write+load MD WI CO MN SC AL LA (7 states)", "status": "done" },
-    { "id": 14, "name": "Write+load KY OR OK CT UT IA NV AR MS KS (10 states)", "status": "done", "commit": "ed75949" }
+    { "id": 13, "name": "Write+load MD WI CO MN SC AL LA (7 states)", "status": "done", "commit": "4f65a85" },
+    { "id": 14, "name": "Write+load KY OR OK CT UT IA NV AR MS KS (10 states)", "status": "done", "commit": "ed75949" },
+    { "id": "15a", "name": "Write+load NM NE ID WV HI NH (6 of 15 remaining states)", "status": "done", "commit": "af9defa" }
   ],
   "remaining_tasks": [
     {
-      "id": 15,
-      "name": "Write+load NM NE ID WV HI NH ME RI MT DE SD ND AK VT WY (15 states)",
+      "id": "15b",
+      "name": "Write+load ME RI MT DE SD ND AK VT WY (final 9 states)",
       "status": "not_started"
     }
   ],
@@ -40,25 +41,30 @@
   ],
   "human_actions_pending": [],
   "decisions": [
-    { "decision": "No income tax states (WA TN WY SD NV FL TX): omit income tax category" },
+    { "decision": "No income tax states (WA TN WY SD AK): omit income tax category" },
     { "decision": "AZ income tax dropped sharply FY2024 (flat 2.5% vs prior progressive)" },
-    { "decision": "MA Millionaires Tax surtax starts FY2024 +.5-2B/yr" },
+    { "decision": "MA Millionaires Tax surtax starts FY2024 +$0.5-2B/yr" },
     { "decision": "AL: treat ETF+GF as combined General Fund" },
-    { "decision": "LA: income tax cut to 3% flat FY2024; show drop in income tax line" },
-    { "decision": "CO: TABOR limits GF appropriations; show income tax as largest revenue" },
-    { "decision": "MN: added 10.85% bracket on income >$1M starting FY2024 — split as separate line item" },
+    { "decision": "LA: income tax cut to 3% flat FY2024" },
+    { "decision": "CO: TABOR limits GF appropriations; income tax largest revenue" },
+    { "decision": "MN: added 10.85% bracket on income >$1M starting FY2024" },
     { "decision": "KY: income tax cut 5%→4.5%(FY2023)→4%(FY2024)" },
-    { "decision": "OR: no sales tax; Corporate Activity Tax (CAT) introduced FY2020 as growing revenue" },
-    { "decision": "OK: oil/gas gross production tax as separate revenue category (significant/volatile)" },
+    { "decision": "OR: no sales tax; Corporate Activity Tax (CAT) introduced FY2020" },
+    { "decision": "OK: oil/gas gross production tax as separate revenue category" },
     { "decision": "CT: Pass-Through Entity (PTE) tax as separate line ~$1.8-2.2B/yr" },
-    { "decision": "UT: income tax (4.65% flat) constitutionally dedicated to education since 2020" },
-    { "decision": "IA: income tax cut from graduated 8.53% max → 4.82% (FY2024) → 3.8% flat (FY2026)" },
-    { "decision": "NV: no income tax; gaming taxes + Modified Business Tax (payroll) + sales tax" },
-    { "decision": "AR: income tax cut 5.9%→4.9%(FY2023)→3.9% flat(FY2024); corporate 5.9%→4.3%" },
-    { "decision": "MS: income tax phaseout 5%→4%→3%→0% wages; highest sales tax rate 7%" },
-    { "decision": "KS: income tax 2-bracket 3.1%/5.7%; top reduced to 5.58% in FY2024" }
+    { "decision": "UT: income tax (4.65%) constitutionally dedicated to education since 2020" },
+    { "decision": "IA: income tax cut from graduated 8.53% → 3.8% flat by FY2026" },
+    { "decision": "NV: no income tax; gaming + Modified Business Tax (payroll) + sales tax" },
+    { "decision": "AR: income tax cut 5.9%→3.9% flat(FY2024)" },
+    { "decision": "MS: income tax phaseout to 0% wages by FY2030; 7% sales tax (highest US)" },
+    { "decision": "KS: income tax 2-bracket 3.1%/5.58%" },
+    { "decision": "NM: Gross Receipts Tax (GRT) is NM's sales tax equivalent; large oil/gas revenue" },
+    { "decision": "NE: LB 873 cuts income tax from 6.84% graduated → 3.99% flat by FY2026" },
+    { "decision": "WV: HB 2526 cuts income tax 21.25% FY2023; further cuts each year; severance tax elevated" },
+    { "decision": "HI: General Excise Tax replaces sales tax; Transient Accommodations Tax (tourism) significant" },
+    { "decision": "NH: no broad income/sales tax; Business Profits Tax + Meals & Rooms + I&D Tax (phasing out)" }
   ],
   "uncommitted_files": [],
-  "next_action": "Write processNM.js + processNMRevenue.js first (NM: graduated income tax to 5.9%, large federal payments/oil/gas). Then NE OK ID WV HI NH ME RI MT DE SD ND AK VT WY. Key notes: WY SD no income tax; HI high income tax (11%); ME 7.15% top bracket; RI 5.99% top; MT 6.75% top; DE 6.6% top; ND 2.5% flat; AK no income or sales tax (oil dividends); VT 8.75% top bracket.",
-  "context_notes": "35 states loaded: TX NY FL PA IL OH GA NC MI NJ VA WA AZ MA TN IN MO MD WI CO MN SC AL LA KY OR OK CT UT IA NV AR MS KS. 15 remaining: NM NE ID WV HI NH ME RI MT DE SD ND AK VT WY. All 50 states seeded in DB already — just need processXX.js + processXXRevenue.js and run them."
+  "next_action": "Write processMERevenue.js + processME.js (Maine: income tax to 7.15%, sales 5.5%, very high Medicaid ~$2B+). Then RI MT DE SD ND AK VT WY. Key notes: MT/DE/AK no sales tax; SD/WY/AK no income tax; AK oil production tax dominant + Permanent Fund Earnings Transfer; VT education funded by Education Fund not GF (small GF ~$2.5-2.7B); MT fast growing, income tax to 6.75%.",
+  "context_notes": "41 states loaded. 9 remaining: ME RI MT DE SD ND AK VT WY. All 50 states seeded in DB. Scripts already established pattern — use processLA.js compact format. No Agent/Workflow tools. Context exhausted at 75% this session."
 }
