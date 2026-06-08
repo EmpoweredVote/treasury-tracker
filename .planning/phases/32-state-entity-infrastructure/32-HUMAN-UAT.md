@@ -3,7 +3,7 @@ status: partial
 phase: 32-state-entity-infrastructure
 source: [32-VERIFICATION.md]
 started: 2026-06-06T17:30:00Z
-updated: 2026-06-06T20:45:00Z
+updated: 2026-06-08T13:30:00Z
 ---
 
 ## Current Test
@@ -18,9 +18,7 @@ result: pass
 
 ### 2. STATE GOVERNMENTS visual section
 expected: When a state entity exists in the municipalities list, a sticky "STATE GOVERNMENTS" header appears above all state/city groups in the dropdown
-result: blocked
-blocked_by: prior-phase
-reason: "Phase 33 (CA State Budget Data) has not run yet — no state municipality row seeded"
+result: pass
 
 ### 3. City placement regression
 expected: Existing cities remain in their state groups (CALIFORNIA, TEXAS, OREGON, etc.) and do NOT appear under STATE GOVERNMENTS
@@ -31,11 +29,11 @@ severity: major
 ## Summary
 
 total: 3
-passed: 1
+passed: 2
 issues: 1
 pending: 0
 skipped: 0
-blocked: 1
+blocked: 0
 
 ## Gaps
 
