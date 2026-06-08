@@ -9,10 +9,12 @@
  * Amount scale: LAO Excel amounts are in THOUSANDS — multiplied by 1000 here.
  * GF totals: FY2026=$228.4B, FY2025=$233.6B, FY2024=$205.7B, FY2023=$195.2B, FY2022=$216.8B
  *
- * 2-level tree shape (Phase 33, pre-3-level RPC update):
+ * 3-level tree shape (Phase 35):
  *   [{ n: 'Health and Human Services', a: 87_139_490_000, c: [
- *       { n: 'Dept of Health Care Services', a: 50_000_000_000,
- *         i: [{ d, a, aa: null, f: null, e: null }] },
+ *       { n: 'Dept of Health Care Services', a: 50_000_000_000, c: [
+ *           { n: 'Medi-Cal', a: 40_000_000_000,
+ *             i: [{ d: 'Medi-Cal', a: 40_000_000_000, aa: null, f: null, e: null }] }
+ *       ]},
  *       ...
  *   ]}, ...]
  *
@@ -56,7 +58,8 @@ function loadEnv() {
 loadEnv();
 
 // ── Supabase ──────────────────────────────────────────────────────────────────
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
+const SUPABASE_URL = process.env.SUPABASE_URL;
+if (!SUPABASE_URL) { console.error('Missing SUPABASE_URL'); process.exit(2); }
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!SUPABASE_KEY) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit(2); }
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -67,6 +70,11 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 // If total > SANITY_MAX: all-funds loaded instead of General Fund only
 const SANITY_MIN = 150_000_000_000;   // $150B
 const SANITY_MAX = 300_000_000_000;   // $300B
+
+// ── Level columns for N-level tree (D-02) ─────────────────────────────────────
+// Order determines tree depth: index 0 = root, last index = leaf.
+// Add a 4th entry here if a future data source has a 4th level — zero code changes needed.
+const LEVEL_COLS = ['dof_agency', 'department', 'function'];
 
 // ── Resolve main repo root (worktree-safe) ────────────────────────────────────
 // In a git worktree, ROOT resolves to the worktree root, but gitignored files
@@ -135,29 +143,71 @@ function extractExcel(fiscalYears, dryRun = false) {
   return JSON.parse(raw);
 }
 
-// ── Build 2-level DOF Agency -> Department tree ───────────────────────────────
+// ── Build N-level tree (data-driven depth) ────────────────────────────────────
+// Replaces the former 2-level buildCATree. Depth is determined by levelCols length, not hardcoded.
+// D-02: N-level, data-driven — adding a 4th column requires zero code changes.
+// D-05: rows where the current level's column is empty/null collapse as line items
+//        at the nearest complete parent level (no synthetic "General" node invented).
+// A2 VERDICT: ACCEPTED — treasury_sync_budget_tree accepts mixed { n, a, c, i } nodes.
 // NOTE: LAO amounts are in THOUSANDS — multiply by 1000 for absolute dollars (Pitfall 1)
-function buildCATree(rows) {
-  const agencyMap = new Map();
-  for (const row of rows) {
-    const amtDollars = (row.amount_thousands || 0) * 1000;   // CRITICAL: x1000
-    if (!agencyMap.has(row.dof_agency)) agencyMap.set(row.dof_agency, new Map());
-    const deptMap = agencyMap.get(row.dof_agency);
-    deptMap.set(row.department, (deptMap.get(row.department) || 0) + amtDollars);
-  }
-  const tree = [];
-  for (const [agency, depts] of agencyMap) {
-    let agencyTotal = 0;
-    const children = [];
-    for (const [dept, amt] of depts) {
-      agencyTotal += amt;
-      children.push({ n: dept, a: amt, i: [{ d: dept, a: amt, aa: null, f: null, e: null }] });
+
+/**
+ * @param {Array<Object>} rows - flat rows from extractCA.py
+ * @param {string[]} levelCols - ordered column names, e.g. ['dof_agency','department','function']
+ * @returns {Array} N-level tree in treasury_sync_budget_tree shape
+ */
+function buildNLevelTree(rows, levelCols) {
+  const amtDollars = r => (r.amount_thousands || 0) * 1000;  // CRITICAL: x1000
+
+  function recurse(rows, levelIdx) {
+    const col = levelCols[levelIdx];
+    const isLastLevel = levelIdx === levelCols.length - 1;
+
+    const grouped = new Map(); // key -> { sum, rows }
+    const collapseItems = []; // rows where this level's col is null/blank (D-05)
+
+    for (const row of rows) {
+      const key = (row[col] ?? '').toString().trim();
+      if (!key) {
+        // D-05 (A2 ACCEPTED): collapse to line item at current level's parent node.
+        // Use the parent-level column value as the line item label.
+        const label = row[levelCols[levelIdx - 1]] || 'Unknown';
+        collapseItems.push({ d: label, a: amtDollars(row), aa: null, f: null, e: null });
+        continue;
+      }
+      if (!grouped.has(key)) grouped.set(key, { sum: 0, rows: [] });
+      grouped.get(key).sum += amtDollars(row);
+      grouped.get(key).rows.push(row);
     }
-    children.sort((a, b) => b.a - a.a);
-    tree.push({ n: agency, a: agencyTotal, c: children });
+
+    const nodes = [];
+    for (const [key, g] of grouped) {
+      if (isLastLevel) {
+        // Leaf level: each group key becomes a leaf node with line items
+        const items = g.rows.map(r => ({ d: key, a: amtDollars(r), aa: null, f: null, e: null }));
+        nodes.push({ n: key, a: g.sum, i: items });
+      } else {
+        // Internal level: recurse into children; collapseItems from deeper levels
+        // are handled via the mixed-node emit (A2 ACCEPTED).
+        const { nodes: children, collapseItems: deepCollapse } = recurse(g.rows, levelIdx + 1);
+        if (children.length > 0 && deepCollapse.length > 0) {
+          // Mixed node: dept has both function children AND null-function collapsed items
+          nodes.push({ n: key, a: g.sum, c: children, i: deepCollapse });
+        } else if (children.length > 0) {
+          nodes.push({ n: key, a: g.sum, c: children });
+        } else {
+          // All rows at this group collapsed — emit as leaf with items
+          nodes.push({ n: key, a: g.sum, i: deepCollapse });
+        }
+      }
+    }
+
+    nodes.sort((a, b) => b.a - a.a);
+    return { nodes, collapseItems };
   }
-  tree.sort((a, b) => b.a - a.a);
-  return tree;
+
+  const { nodes } = recurse(rows, 0);
+  return nodes;
 }
 
 // ── Ensure California municipality exists; return its id ─────────────────────
@@ -258,7 +308,7 @@ async function main() {
       continue;
     }
 
-    const tree = buildCATree(fyRows);
+    const tree = buildNLevelTree(fyRows, LEVEL_COLS);
     const total = tree.reduce((sum, n) => sum + n.a, 0);
     const agencyCount = tree.length;
 
@@ -271,7 +321,7 @@ async function main() {
     // Sanity check (T-33-04/05/06)
     if (total < SANITY_MIN || total > SANITY_MAX) {
       console.error(`\n  SCALE MISMATCH: FY${fiscalYear} total $${total.toLocaleString()} outside [$${(SANITY_MIN/1e9).toFixed(0)}B, $${(SANITY_MAX/1e9).toFixed(0)}B].`);
-      console.error('  Likely cause: forgot to multiply LAO thousands by 1000 (check buildCATree),');
+      console.error('  Likely cause: forgot to multiply LAO thousands by 1000 (check buildNLevelTree),');
       console.error('  or wrong Fund filter (all-funds ~$495B would exceed $300B upper bound).');
       process.exit(3);
     }
