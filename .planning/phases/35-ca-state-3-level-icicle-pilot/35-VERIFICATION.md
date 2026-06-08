@@ -8,8 +8,8 @@
 | Requirement | Result | Evidence |
 |-------------|--------|----------|
 | ICICLE-01 | PASS | DB shows depth-0/1/2 rows for all 5 CA FYs; FY2026 total unchanged at $228,365,858,000 |
-| ICICLE-02 | PENDING human verification | Human spot-check required |
-| ICICLE-03 | PENDING human verification | Human spot-check required |
+| ICICLE-02 | PASS | 3-level icicle drill confirmed in live app (DOF Agency → Department → Function) |
+| ICICLE-03 | PASS | Level 3 Function node opens LineItemsTable with leaf line items |
 
 ---
 
@@ -94,4 +94,42 @@ Note: FY2022-2025 enriched fewer nodes because they share many function name_key
 
 ## ICICLE-02 / ICICLE-03 — Live App Spot-Check
 
-*(To be filled in after human visual verification checkpoint)*
+**Verification date:** 2026-06-08
+**Human approval:** "approved"
+**URL:** https://treasurytracker.empowered.vote — California (State Governments section)
+
+### ICICLE-02 — 3-Level Icicle Drill
+
+| Check | Result |
+|-------|--------|
+| CA General Fund total visible (~$228B range for FY2025-26) | PASS |
+| Per-capita display (~$5,800/resident) | PASS |
+| Year selector shows FY2024-25 and FY2025-26 | PASS |
+| Level 1: DOF Agency blocks clickable | PASS |
+| Level 1 → Level 2: drills into Departments | PASS |
+| Level 2: Department blocks clickable | PASS |
+| Level 2 → Level 3: drills into Function nodes | PASS |
+| All 3 drill levels animate without layout breakage | PASS |
+
+**ICICLE-02 PASS:** 3-level drill (DOF Agency → Department → Function) fully functional in live app.
+
+### ICICLE-03 — Level 3 Opens LineItemsTable
+
+| Check | Result |
+|-------|--------|
+| Level 3 Function node is clickable | PASS |
+| Clicking Level 3 opens LineItemsTable | PASS |
+| LineItemsTable shows leaf line items | PASS |
+| Behavior identical to 2-level cities at their deepest level | PASS |
+
+**ICICLE-03 PASS:** Level 3 Function node opens LineItemsTable with leaf line items.
+
+### Regression Check — Existing 2-Level Cities
+
+| Check | Result |
+|-------|--------|
+| Existing 2-level city pages render correctly | PASS |
+| No extra empty level shown in 2-level cities | PASS |
+| No broken animation on 2-level cities | PASS |
+
+**No regression:** Existing 2-level cities unaffected by CA 3-level tree reload.

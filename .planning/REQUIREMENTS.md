@@ -30,9 +30,9 @@
 
 ### ICICLE — 3-Level Icicle Pilot
 
-- [ ] **ICICLE-01**: CA state budget loaded as a genuine 3-level tree (Program Area → Department → Budget Category) using the updated RPC
-- [ ] **ICICLE-02**: CA state icicle chart renders 3 drill-down levels in the live app (Level 1 → Level 2 → Level 3 navigation works)
-- [ ] **ICICLE-03**: Drilling to Level 3 shows line items in `LineItemsTable` (leaf behavior identical to existing 2-level cities)
+- [x] **ICICLE-01**: CA state budget loaded as a genuine 3-level tree (Program Area → Department → Budget Category) using the updated RPC
+- [x] **ICICLE-02**: CA state icicle chart renders 3 drill-down levels in the live app (Level 1 → Level 2 → Level 3 navigation works)
+- [x] **ICICLE-03**: Drilling to Level 3 shows line items in `LineItemsTable` (leaf behavior identical to existing 2-level cities)
 
 ### RETROFIT — Selective City Retrofit Pilot
 
@@ -77,13 +77,13 @@
 | TREE-01 | Phase 34 | Complete |
 | TREE-02 | Phase 34 | Complete |
 | TREE-03 | Phase 34 | Complete |
-| ICICLE-01 | Phase 35 | Pending |
-| ICICLE-02 | Phase 35 | Pending |
-| ICICLE-03 | Phase 35 | Pending |
+| ICICLE-01 | Phase 35 | Complete |
+| ICICLE-02 | Phase 35 | Complete |
+| ICICLE-03 | Phase 35 | Complete |
 | RETROFIT-01 | Phase 36 | Pending |
 | RETROFIT-02 | Phase 36 | Pending |
 | RETROFIT-03 | Phase 36 | Pending |
 
 ---
 
-*Last updated: 2026-06-08 — TREE-01/02/03 marked complete (Phase 34)*
+*Last updated: 2026-06-08 — ICICLE-01/02/03 marked complete (Phase 35)*

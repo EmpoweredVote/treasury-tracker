@@ -499,7 +499,8 @@ Plans:
  (completed 2026-06-07)
 - [x] **Phase 34: 3-Level Tree Infrastructure (ev-accounts-api)** — RPC + API update to accept and serve 3-level trees, backward-compatible
  (completed 2026-06-08)
-- [ ] **Phase 35: CA State 3-Level Icicle Pilot** — Reload CA state as genuine 3-level tree; end-to-end validation
+- [x] **Phase 35: CA State 3-Level Icicle Pilot** — Reload CA state as genuine 3-level tree; end-to-end validation
+ (completed 2026-06-08)
 - [ ] **Phase 36: Selective City Retrofit** — Source data audit + retrofit 1-2 cities with genuine 3rd-level data
 
 ---
@@ -598,7 +599,7 @@ Plans:
   2. Clicking to Level 3 opens the `LineItemsTable` with leaf-level line items (identical behavior to existing 2-level cities at their deepest level)
   3. Drill-down animation and layout look correct at all 3 levels — no visual layout breakage
   4. The CA state page looks and works as expected end-to-end (correct totals, correct year, correct per-capita, correct enrichment)
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 **Wave 1**
 
@@ -610,7 +611,7 @@ Plans:
 
 **Wave 3** *(blocked on 35-02 — needs the updated loader)*
 
-- [ ] 35-03-PLAN.md — Live reload 5 FYs + DB depth verify (ICICLE-01); $5-gated depth-2 enrichment (D-09/D-10); human live-app spot-check (ICICLE-02/03); write 35-VERIFICATION.md
+- [x] 35-03-PLAN.md — Live reload 5 FYs + DB depth verify (ICICLE-01); $5-gated depth-2 enrichment (D-09/D-10); human live-app spot-check (ICICLE-02/03); write 35-VERIFICATION.md
 **UI hint:** yes
 
 ### Phase 36: Selective City Retrofit
@@ -668,7 +669,7 @@ Plans:
 | 32. State Entity Infrastructure | v1.7 | 4/4 | Complete    | 2026-06-07 |
 | 33. CA State Budget Data | v1.7 | 3/3 | Complete | 2026-06-07 |
 | 34. 3-Level Tree Infrastructure (ev-accounts-api) | v1.7 | 1/1 | Complete    | 2026-06-08 |
-| 35. CA State 3-Level Icicle Pilot | v1.7 | 2/3 | In Progress|  |
+| 35. CA State 3-Level Icicle Pilot | v1.7 | 3/3 | Complete | 2026-06-08 |
 | 36. Selective City Retrofit | v1.7 | 0/TBD | Not started | - |
 
 ---
