@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: California State Budget + Deep Icicles
 status: executing
-last_updated: "2026-06-08T22:24:00.586Z"
-last_activity: 2026-06-08 -- Phase 35 execution started
+last_updated: "2026-06-08T23:35:55.357Z"
+last_activity: 2026-06-08
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 11
-  completed_plans: 8
-  percent: 60
+  completed_plans: 11
+  percent: 80
 ---
 
 # State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-06-06)
 ## Current Position
 
 Phase: 35 (ca-state-3-level-icicle-pilot) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 35
-Last activity: 2026-06-08 -- Phase 35 execution started
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-06-08
 
 ```
-Progress: [████░░░░░░] 40%
+Progress: [██████████] 100%
 ```
 
 ## Phase Overview
@@ -134,7 +134,7 @@ $5 per run — estimate before running AI enrichment or PDF extraction. CA state
 
 ## Session Continuity
 
-Last session: 2026-06-08
+Last session: 2026-06-08T23:35:55.347Z
 Stopped at: cleanup complete — proceeding to plan Phase 34
 Resume file: None
 
@@ -147,6 +147,7 @@ Resume file: None
 | Phase 33 P02 | 25m | 2 tasks | extractCA.py + processCA.js, FY2022-2026 loaded |
 | Phase 33 P03 | 15m | 2 tasks | enrichCategories.js state case + CA FY2026 enrichment |
 | Bonus | — | ~4 sessions | All 50 US states: processXX.js + processXXRevenue.js for every state |
+| Phase 35 P03 | 45 | 3 tasks | 3 files |
 
 ## Decisions
 

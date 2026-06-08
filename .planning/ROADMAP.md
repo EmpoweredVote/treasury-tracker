@@ -669,7 +669,7 @@ Plans:
 | 32. State Entity Infrastructure | v1.7 | 4/4 | Complete    | 2026-06-07 |
 | 33. CA State Budget Data | v1.7 | 3/3 | Complete | 2026-06-07 |
 | 34. 3-Level Tree Infrastructure (ev-accounts-api) | v1.7 | 1/1 | Complete    | 2026-06-08 |
-| 35. CA State 3-Level Icicle Pilot | v1.7 | 3/3 | Complete | 2026-06-08 |
+| 35. CA State 3-Level Icicle Pilot | v1.7 | 3/3 | Complete   | 2026-06-08 |
 | 36. Selective City Retrofit | v1.7 | 0/TBD | Not started | - |
 
 ---
