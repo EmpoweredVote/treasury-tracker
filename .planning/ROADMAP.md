@@ -568,15 +568,21 @@ Plans:
 
 **Critical notes:**
 - This phase is entirely in the **ev-accounts-api repo** (separate from this repo).
-- Day-1 mandatory step: inspect live `budget_line_items.department` column values (`SELECT category, subcategory, department FROM treasury.budget_line_items LIMIT 20`) to confirm current state before writing any code.
-- Day-1 mandatory step: locate the `treasury_sync_budget_tree` RPC function body in the ev-accounts-api codebase before writing any code.
-- Backward compat is non-negotiable: the `department IS NULL` branch must return `lineItems` directly on the subcategory node, matching current behavior for all 30+ existing cities.
+- **Research finding (34-RESEARCH.md, verified live 2026-06-08): the infrastructure already supports 3-level trees — no ev-accounts-api or treasury-tracker code changes are needed.** The `treasury_sync_budget_tree` RPC already accepts the `c -> c -> i` shape and creates depth-0/1/2 `budget_categories` rows; `getBudgetById` builds an N-level tree from `parent_id` (Bloomington IN already runs at depth 4 in production). Phase 34 is verification-only.
+- Day-1 mandatory step: confirm `budget_categories` has depth-2+ rows and that `budget_line_items` has NO `category`/`subcategory`/`department` column (hierarchy lives in `budget_categories.parent_id`; the old ARCHITECTURE.md schema is superseded).
+- Do NOT search for or edit a `.sql` file for `treasury_sync_budget_tree` — it is a live Postgres function with no source file in either repo. Verify behavior via live RPC calls.
+- Backward compat is automatic and inherent in the recursive `parent_id` tree builder: 2-level data has no depth-2 rows, so the builder returns 2 levels. Spot-check still required to satisfy the success criteria.
 
 **Success Criteria** (what must be TRUE):
-  1. A test 3-level tree submitted to `treasury_sync_budget_tree` lands correctly in `budget_line_items.department` (non-NULL)
+  1. A test 3-level tree submitted to `treasury_sync_budget_tree` lands as depth-0/1/2 `budget_categories` rows (parent_id chain — not a `budget_line_items.department` column, which does not exist)
   2. The categories API returns a 3-level `BudgetCategory[]` for that test data — Level 3 nodes visible in the response
   3. Spot-check of at least 3 existing city pages (e.g., Portland, San Jose, Dallas) confirms they render identically to before — no regressions in the 2-level paths
-**Plans:** TBD
+**Plans:** 1 plan
+
+Plans:
+**Wave 1**
+
+- [ ] 34-01-PLAN.md — Verification: create treasury-3level.test.ts (TREE-01 3-level RPC submit + DB depth check, TREE-02 3-level API response, TREE-03 backward-compat for Portland/San Jose/Dallas, with cleanup); human spot-check 3 city pages; mark TREE-01/02/03 complete
 
 ### Phase 35: CA State 3-Level Icicle Pilot
 
