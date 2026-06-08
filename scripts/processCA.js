@@ -169,6 +169,11 @@ function buildNLevelTree(rows, levelCols) {
     for (const row of rows) {
       const key = (row[col] ?? '').toString().trim();
       if (!key) {
+        if (levelIdx === 0) {
+          // Root-level: no parent to collapse to — log and skip (CR-01)
+          console.warn(`Skipping row with null ${col}: dept=${row.department}, amt=${amtDollars(row)}`);
+          continue;
+        }
         // D-05 (A2 ACCEPTED): collapse to line item at current level's parent node.
         // Use the parent-level column value as the line item label.
         const label = row[levelCols[levelIdx - 1]] || 'Unknown';
@@ -190,14 +195,18 @@ function buildNLevelTree(rows, levelCols) {
         // Internal level: recurse into children; collapseItems from deeper levels
         // are handled via the mixed-node emit (A2 ACCEPTED).
         const { nodes: children, collapseItems: deepCollapse } = recurse(g.rows, levelIdx + 1);
+        // CR-02: deepCollapse items were not accumulated into g.sum (continue skipped
+        // accumulation). Add their amounts so node.a equals the true total.
+        const collapseSum = deepCollapse.reduce((s, item) => s + item.a, 0);
+        const nodeTotal = g.sum + collapseSum;
         if (children.length > 0 && deepCollapse.length > 0) {
           // Mixed node: dept has both function children AND null-function collapsed items
-          nodes.push({ n: key, a: g.sum, c: children, i: deepCollapse });
+          nodes.push({ n: key, a: nodeTotal, c: children, i: deepCollapse });
         } else if (children.length > 0) {
-          nodes.push({ n: key, a: g.sum, c: children });
+          nodes.push({ n: key, a: nodeTotal, c: children });
         } else {
           // All rows at this group collapsed — emit as leaf with items
-          nodes.push({ n: key, a: g.sum, i: deepCollapse });
+          nodes.push({ n: key, a: nodeTotal, i: deepCollapse });
         }
       }
     }
@@ -271,16 +280,24 @@ async function main() {
   });
 
   const dryRun = opts['dry-run'];
-  const fiscalYears = opts.fy ? opts.fy.map(Number) : [2022, 2023, 2024, 2025, 2026];
+  const fiscalYears = opts.fy
+    ? opts.fy.map(s => {
+        const n = Number(s);
+        if (!Number.isInteger(n) || n < 1900 || n > 2100) {
+          console.error(`Invalid --fy value: ${s}`);
+          process.exit(1);
+        }
+        return n;
+      })
+    : [2022, 2023, 2024, 2025, 2026];
 
   console.log(`CA State Budget Loader${dryRun ? ' (dry-run)' : ''}`);
   console.log(`Fiscal years: ${fiscalYears.join(', ')}`);
 
-  let muniId = null;
   let ds = null;
   if (!dryRun) {
     console.log('\nLooking up municipality and data_source...');
-    muniId = await ensureMunicipality();
+    await ensureMunicipality(); // exits if not found; id not needed by RPC (WR-03)
     ds = await getDataSource();
     console.log(`  Data source: ${ds.name} (${ds.id})`);
   }
