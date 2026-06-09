@@ -501,7 +501,7 @@ Plans:
  (completed 2026-06-08)
 - [x] **Phase 35: CA State 3-Level Icicle Pilot** — Reload CA state as genuine 3-level tree; end-to-end validation
  (completed 2026-06-08)
-- [ ] **Phase 36: Selective City Retrofit** — Source data audit + retrofit 1-2 cities with genuine 3rd-level data
+- [x] **Phase 36: Selective City Retrofit** — Source data audit + retrofit 1-2 cities with genuine 3rd-level data (completed 2026-06-09)
 
 ---
 
@@ -627,7 +627,7 @@ Plans:
   2. At least 1 retrofitted city shows a 3-level icicle drill-down in the live app after reload
   3. Retrofitted city's existing enrichment descriptions remain intact (no descriptions wiped or corrupted)
   4. Non-retrofitted cities continue to render correctly — no regression in any 2-level city or county page
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 **Wave 1**
@@ -641,7 +641,7 @@ Plans:
 
 **Wave 3** *(blocked on 36-02 + 36-03 — needs validated loaders)*
 
-- [ ] 36-04-PLAN.md — Live-load Portland + Dallas FY2026 3-level; enrichment preservation + new-node enrichment ($5 gate); human-verify icicle + no regression (RETROFIT-02, RETROFIT-03)
+- [x] 36-04-PLAN.md — Live-load Portland + Dallas FY2026 3-level; enrichment preservation + new-node enrichment ($5 gate); human-verify icicle + no regression (RETROFIT-02, RETROFIT-03)
 
 
 ---
@@ -685,7 +685,7 @@ Plans:
 | 33. CA State Budget Data | v1.7 | 3/3 | Complete | 2026-06-07 |
 | 34. 3-Level Tree Infrastructure (ev-accounts-api) | v1.7 | 1/1 | Complete    | 2026-06-08 |
 | 35. CA State 3-Level Icicle Pilot | v1.7 | 3/3 | Complete    | 2026-06-08 |
-| 36. Selective City Retrofit | v1.7 | 3/4 | In Progress|  |
+| 36. Selective City Retrofit | v1.7 | 4/4 | Complete    | 2026-06-09 |
 
 ---
 

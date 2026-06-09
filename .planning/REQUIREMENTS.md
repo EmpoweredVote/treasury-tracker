@@ -36,9 +36,9 @@
 
 ### RETROFIT — Selective City Retrofit Pilot
 
-- [ ] **RETROFIT-01**: Source data audit completed for candidate cities — identifies which have a genuine, extractable 3rd level (not synthetic grouping)
-- [ ] **RETROFIT-02**: 1–2 cities with confirmed genuine 3rd-level data retrofitted and reloaded as 3-level trees
-- [ ] **RETROFIT-03**: Retrofitted cities display 3-level icicle drill-down in live app; existing enrichment rows remain intact
+- [x] **RETROFIT-01**: Source data audit completed for candidate cities — identifies which have a genuine, extractable 3rd level (not synthetic grouping)
+- [x] **RETROFIT-02**: 1–2 cities with confirmed genuine 3rd-level data retrofitted and reloaded as 3-level trees
+- [x] **RETROFIT-03**: Retrofitted cities display 3-level icicle drill-down in live app; existing enrichment rows remain intact
 
 ---
 
@@ -80,9 +80,9 @@
 | ICICLE-01 | Phase 35 | Complete |
 | ICICLE-02 | Phase 35 | Complete |
 | ICICLE-03 | Phase 35 | Complete |
-| RETROFIT-01 | Phase 36 | Pending |
-| RETROFIT-02 | Phase 36 | Pending |
-| RETROFIT-03 | Phase 36 | Pending |
+| RETROFIT-01 | Phase 36 | Complete |
+| RETROFIT-02 | Phase 36 | Complete |
+| RETROFIT-03 | Phase 36 | Complete |
 
 ---
 
