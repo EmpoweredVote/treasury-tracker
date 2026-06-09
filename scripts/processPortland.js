@@ -242,12 +242,14 @@ async function upsertDataSource(muniId, fiscalYear, datasetType) {
     .maybeSingle();
 
   if (existing?.id) {
-    const { data } = await supabase.schema('treasury').from('data_sources')
+    const { data, error } = await supabase.schema('treasury').from('data_sources')
       .update(src).eq('id', existing.id).select().single();
+    if (error) { console.error('    data_source update error:', error.message); return null; }
     return data;
   }
-  const { data } = await supabase.schema('treasury').from('data_sources')
+  const { data, error } = await supabase.schema('treasury').from('data_sources')
     .insert(src).select().single();
+  if (error) { console.error('    data_source insert error:', error.message); return null; }
   return data;
 }
 
