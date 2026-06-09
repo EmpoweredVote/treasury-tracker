@@ -44,6 +44,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 async function fetchSocrataCount(baseUrl, datasetId, where) {
   const url = `${baseUrl}/resource/${datasetId}.json?$select=count(*)&$where=${encodeURIComponent(where)}`;
   const resp = await fetch(url, { headers: { Accept: 'application/json' } });
+  if (!resp.ok) throw new Error(`Socrata count ${resp.status}: ${await resp.text()}`);
   const data = await resp.json();
   return parseInt(data[0]?.count || '0');
 }
