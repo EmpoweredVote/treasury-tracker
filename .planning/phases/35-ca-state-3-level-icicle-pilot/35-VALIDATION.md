@@ -6,6 +6,7 @@ nyquist_compliant: true
 wave_0_complete: true
 created: 2026-06-08
 audited: 2026-06-08
+human_verified: true
 ---
 
 # Phase 35 — Validation Strategy
@@ -44,7 +45,7 @@ audited: 2026-06-08
 | 35-02-01 | 02 | 1 | ICICLE-01 | T-35-02 | SUPABASE_URL missing → process.exit(2), no fallback | smoke | `node -e "const s=require('fs').readFileSync('scripts/processCA.js','utf8'); if(s.includes('kxsdzaojfaibhuzmclfq'))process.exit(1); if(!/function buildNLevelTree\(/.test(s))process.exit(1); if(/buildCATree\(/.test(s))process.exit(1); console.log('PASS')"` | ✅ | ✅ green |
 | 35-02-02 | 02 | 1 | ICICLE-01 | — | N/A | db-verify | `node scripts/verify-ca-depth.mjs` — asserts depth-0/1/2 rows present for CA FY2026 operating budget; depth-2 count = 219 | ✅ | ✅ green |
 | 35-03-01 | 03 | 2 | ICICLE-01 | — | N/A | db-verify | `node scripts/verify-ca-depth.mjs` — asserts depth-2 count > 0 for all 5 FYs (2022: 252, 2023: 256, 2024: 253, 2025: 253, 2026: 219) | ✅ | ✅ green |
-| 35-04-01 | 03 | 3 | ICICLE-01,ICICLE-02,ICICLE-03 | — | N/A | manual | Human spot-check at treasurytracker.empowered.vote/California — verify 3 drill levels, LineItemsTable at level 3 | ❌ Manual | manual |
+| 35-04-01 | 03 | 3 | ICICLE-01,ICICLE-02,ICICLE-03 | — | N/A | manual | Human spot-check at treasurytracker.empowered.vote/California — verify 3 drill levels, LineItemsTable at level 3 | ❌ Manual | ✅ confirmed 2026-06-09 |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -80,6 +81,7 @@ audited: 2026-06-08
 - [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** 2026-06-08 (automated audit — all 5 automated tasks green, 1 manual-only)
+**Human sign-off:** 2026-06-09 — CA icicle drills 3 levels, LineItemsTable renders at Level 3, 2-level city regression confirmed
 
 ---
 

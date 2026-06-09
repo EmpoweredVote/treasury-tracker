@@ -1,8 +1,8 @@
 ---
 phase: 35-ca-state-3-level-icicle-pilot
 verified: 2026-06-08T00:00:00Z
-status: human_needed
-score: 5/6 must-haves verified
+status: passed
+score: 6/6 must-haves verified
 overrides_applied: 0
 human_verification:
   - test: "Open https://treasurytracker.empowered.vote, navigate to California under STATE GOVERNMENTS, click a top-level DOF Agency block, then a Department block, then a Function block"
