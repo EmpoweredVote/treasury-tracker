@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: California State Budget + Deep Icicles
 status: executing
-last_updated: "2026-06-09T16:05:16.026Z"
-last_activity: 2026-06-09 -- Phase 36 execution started
+last_updated: "2026-06-09T19:00:00.000Z"
+last_activity: 2026-06-09 -- Phase 36 plan 36-04 complete (human approved Task 3 verification)
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 15
-  completed_plans: 11
-  percent: 73
+  completed_plans: 12
+  percent: 80
 ---
 
 # State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-06)
 
 ## Current Position
 
-Phase: 36 (selective-city-retrofit) — EXECUTING
-Plan: 4 of 4 (36-04 in progress — Tasks 1+2 complete, Task 3 awaiting human verification)
-Status: Executing Phase 36 — 36-04 Task 3 checkpoint
-Last activity: 2026-06-09 -- 36-04 Tasks 1+2 complete: Portland + Dallas FY2026 3-level trees loaded, depth-0 enrichment done
+Phase: 36 (selective-city-retrofit) — COMPLETE
+Plan: 4 of 4 (36-04 COMPLETE — all 3 tasks done, Task 3 human-approved 2026-06-09)
+Status: Phase 36 complete — all 4 plans done
+Last activity: 2026-06-09 -- 36-04 complete: Task 3 human verification approved, RETROFIT-02 + RETROFIT-03 closed
 
 ```
 Progress: [██████████] 100%
@@ -134,9 +134,9 @@ $5 per run — estimate before running AI enrichment or PDF extraction. CA state
 
 ## Session Continuity
 
-Last session: 2026-06-09T18:45:00Z
-Stopped at: 36-04 Task 2 complete (Task 3 = human checkpoint awaiting verification)
-Resume file: .planning/phases/36-selective-city-retrofit/36-04-PLAN.md (Task 3)
+Last session: 2026-06-09T19:00:00Z
+Stopped at: Phase 36 complete — all plans done
+Resume file: None (phase complete)
 
 ## Performance Metrics
 
