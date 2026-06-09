@@ -5,6 +5,7 @@ status: complete
 nyquist_compliant: true
 wave_0_complete: true
 updated: 2026-06-08
+last_audit: 2026-06-08
 ---
 
 # Phase 34 — Nyquist Validation
@@ -72,3 +73,17 @@ VERIFICATION.md (2026-06-08T20:00:00Z) confirms 5/6 truths verified:
 The Task 3 human checkpoint verified Portland and San Jose city pages (per context note). Dallas explicit confirmation was not captured in the SUMMARY. The VERIFICATION.md status is `human_needed`. This is the only open item — all 6 automated gaps pass.
 
 To close Task 3: confirm Dallas (Texas) renders correctly in the live app at https://treasurytracker.empowered.vote.
+
+---
+
+## Validation Audit 2026-06-08
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+| Automated (COVERED) | 6 |
+| Manual-only (PENDING) | 1 |
+
+All 6 automated gaps confirmed passing via `node scripts/verify-phase34.mjs` (exit 0). Test file at 359 lines. No new gaps introduced. Human gap 34-03-01 (Dallas live-app spot-check) remains the sole open item.
