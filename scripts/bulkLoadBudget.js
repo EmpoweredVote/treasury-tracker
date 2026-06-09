@@ -124,6 +124,14 @@ async function syncBudgetSource(ds, fiscalYear, opts = {}) {
     return { rows_fetched: allRows.length, rows_inserted: 0, status: 'dry_run' };
   }
 
+  // Clear existing rows for idempotency (mirrors processPortland.js pattern)
+  const { error: delErr } = await supabase.schema('treasury').from('budgets')
+    .delete().eq('data_source_id', ds.id).eq('fiscal_year', fiscalYear);
+  if (delErr) {
+    console.error(`  Pre-load delete failed: ${delErr.message}`);
+    return { rows_fetched: allRows.length, rows_inserted: 0, status: 'error' };
+  }
+
   // Use treasury_sync_budget_tree (NOT treasury_sync_budget — does not exist)
   const { data, error } = await supabase.rpc('treasury_sync_budget_tree', {
     p_data_source_id: ds.id,
