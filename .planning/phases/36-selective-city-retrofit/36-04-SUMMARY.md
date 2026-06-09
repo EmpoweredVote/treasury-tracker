@@ -153,16 +153,21 @@ T-36-10 (API cost overrun) — **MITIGATED**: Dry-run ran first, estimate $0.052
 T-36-11 (reload orphans prior-depth rows) — **MITIGATED**: Pre-DELETE was no-op (no prior FY2026 rows); depth distribution verified after load.
 T-36-12 (enrichment row loss) — **MITIGATED**: Baseline captured before; post-reload count 140 = baseline (Portland), 0 = baseline (Dallas). Post-enrichment counts 146/93 both >= baselines.
 
-## Task 3 Status: AWAITING HUMAN VERIFICATION
+## Task 3 Status: COMPLETE — Human Approved 2026-06-09
 
-Task 3 is a `checkpoint:human-verify` (gate="blocking") requiring the human to:
-1. Visit https://treasurytracker.empowered.vote and verify Portland 3-level icicle (Service Area → Bureau → Line Items)
-2. Verify Portland bureau enrichment descriptions still appear (D-10 preservation)
-3. Verify Dallas 3-level icicle (Department → Service → Object Group)
-4. Regression spot-check: 3 non-retrofitted cities (San Jose, Los Angeles, California state)
-5. Confirm Portland and Dallas totals/per-capita look correct
+Task 3 checkpoint was approved by the human on 2026-06-09. All 5 spot-check steps passed:
 
-See 36-04-PLAN.md Task 3 for full verification steps and resume signal.
+| Check | Result |
+|-------|--------|
+| Portland 3-level icicle drill-down (service area → bureau → line items) | PASS |
+| Portland bureau-level enrichment descriptions intact (D-10 preservation) | PASS |
+| Dallas 3-level icicle drill-down (department → service → object group) | PASS |
+| Regression check: 3 non-retrofitted entities render correctly | PASS |
+| Portland and Dallas totals/per-capita correct | PASS |
+
+**Human verdict:** APPROVED — all 5 spot-check steps passed 2026-06-09
+
+RETROFIT-02 and RETROFIT-03 are both formally COMPLETE.
 
 ## Self-Check: PASSED
 

@@ -179,21 +179,19 @@ Per plan requirement and research Pitfall 5: Portland was only loaded for FY2026
 
 ## Task 3: Human Verification (checkpoint)
 
-### Status: AWAITING HUMAN VERIFICATION
+### Status: APPROVED
 
 **Instructions for human verifier:** See how-to-verify in 36-04-PLAN.md Task 3.
 
-<!-- Populated after human verification -->
-
 | Check | Result |
 |-------|--------|
-| Portland 3-level icicle drill-down (service area → bureau → line items) | |
-| Portland bureau-level enrichment descriptions intact (D-10 preservation) | |
-| Dallas 3-level icicle drill-down (department → service → object group) | |
-| Regression check: 3 non-retrofitted entities render correctly | |
-| Portland and Dallas totals/per-capita correct | |
+| Portland 3-level icicle drill-down (service area → bureau → line items) | PASS |
+| Portland bureau-level enrichment descriptions intact (D-10 preservation) | PASS |
+| Dallas 3-level icicle drill-down (department → service → object group) | PASS |
+| Regression check: 3 non-retrofitted entities render correctly | PASS |
+| Portland and Dallas totals/per-capita correct | PASS |
 
-**Human verdict:** (APPROVED / ISSUES: description)
+**Human verdict:** APPROVED — all 5 spot-check steps passed 2026-06-09
 
 ---
 
@@ -202,5 +200,5 @@ Per plan requirement and research Pitfall 5: Portland was only loaded for FY2026
 | Requirement | Status |
 |------------|--------|
 | RETROFIT-01: Audit framework + DB verdicts (Portland, Dallas, SF) | COMPLETE (36-01) |
-| RETROFIT-02: Portland + Dallas reloaded as live 3-level trees | COMPLETE (36-04 Tasks 1-2) — pending Task 3 human verification to formally close |
-| RETROFIT-03: 3-level icicle confirmed in app, existing enrichment intact, no regression | AWAITING HUMAN VERIFICATION (Task 3) |
+| RETROFIT-02: Portland + Dallas reloaded as live 3-level trees | COMPLETE (36-04 Tasks 1-2, human-verified 2026-06-09) |
+| RETROFIT-03: 3-level icicle confirmed in app, existing enrichment intact, no regression | COMPLETE (human verified 2026-06-09 — all 5 checks passed) |
