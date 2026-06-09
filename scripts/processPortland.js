@@ -96,7 +96,7 @@ const PDF_URLS = {
 function extractPDF(pdfPath, mode = 'operating') {
   const pyScript = path.join(ROOT, 'scripts', 'extractPortland.py');
   const pythonBin = process.platform === 'win32' ? 'python' : 'python3';
-  const raw = execSync(`${pythonBin} "${pyScript}" "${pdfPath}" --mode ${mode}`, {
+  const raw = execSync(`${pythonBin} "${pyScript}" "${pdfPath}" --mode "${mode}"`, {
     maxBuffer: 8 * 1024 * 1024,
     encoding: 'utf8',
   });
