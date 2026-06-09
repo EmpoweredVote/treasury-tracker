@@ -17,10 +17,10 @@
 
 ### DATA — CA State Budget Data
 
-- [ ] **DATA-01**: California seeded as a state-level municipality row (`name: 'California'`, `state: 'CA'`, `entity_type: 'state'`, `population: ~39,500,000`)
-- [ ] **DATA-02**: California General Fund operating budget (~$212B) loaded for at least FY2024–25 and FY2025–26 via LAO Excel or ebudget.ca.gov PDF
-- [ ] **DATA-03**: CA state budget categories AI-enriched with state-level framing (policy program framing, not city-level department framing)
-- [ ] **DATA-04**: CA state budget page functional in live app — per-capita display, year selector, Money Out tab visible and correct
+- [x] **DATA-01**: California seeded as a state-level municipality row (`name: 'California'`, `state: 'CA'`, `entity_type: 'state'`, `population: ~39,500,000`)
+- [x] **DATA-02**: California General Fund operating budget (~$212B) loaded for at least FY2024–25 and FY2025–26 via LAO Excel or ebudget.ca.gov PDF
+- [x] **DATA-03**: CA state budget categories AI-enriched with state-level framing (policy program framing, not city-level department framing)
+- [x] **DATA-04**: CA state budget page functional in live app — per-capita display, year selector, Money Out tab visible and correct
 
 ### TREE — 3-Level Tree Infrastructure
 
@@ -70,10 +70,10 @@
 | INFRA-01 | Phase 32 | Complete |
 | INFRA-02 | Phase 32 | Complete |
 | INFRA-03 | Phase 32 | Complete |
-| DATA-01 | Phase 33 | Pending |
-| DATA-02 | Phase 33 | Pending |
-| DATA-03 | Phase 33 | Pending |
-| DATA-04 | Phase 33 | Pending |
+| DATA-01 | Phase 33 | Complete |
+| DATA-02 | Phase 33 | Complete |
+| DATA-03 | Phase 33 | Complete |
+| DATA-04 | Phase 33 | Complete |
 | TREE-01 | Phase 34 | Complete |
 | TREE-02 | Phase 34 | Complete |
 | TREE-03 | Phase 34 | Complete |
@@ -86,4 +86,4 @@
 
 ---
 
-*Last updated: 2026-06-08 — ICICLE-01/02/03 marked complete (Phase 35)*
+*Last updated: 2026-06-08 — DATA-01/02/03/04 marked complete (Phase 33 human verified); ICICLE-01/02/03 marked complete (Phase 35)*
