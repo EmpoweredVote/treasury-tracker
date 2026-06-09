@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-06-06)
 ## Current Position
 
 Phase: 36 (selective-city-retrofit) — EXECUTING
-Plan: 1 of 4
-Status: Executing Phase 36
-Last activity: 2026-06-09 -- Phase 36 execution started
+Plan: 4 of 4 (36-04 in progress — Tasks 1+2 complete, Task 3 awaiting human verification)
+Status: Executing Phase 36 — 36-04 Task 3 checkpoint
+Last activity: 2026-06-09 -- 36-04 Tasks 1+2 complete: Portland + Dallas FY2026 3-level trees loaded, depth-0 enrichment done
 
 ```
 Progress: [██████████] 100%
@@ -134,9 +134,9 @@ $5 per run — estimate before running AI enrichment or PDF extraction. CA state
 
 ## Session Continuity
 
-Last session: 2026-06-09T14:44:36.084Z
-Stopped at: Phase 36 context gathered
-Resume file: .planning/phases/36-selective-city-retrofit/36-CONTEXT.md
+Last session: 2026-06-09T18:45:00Z
+Stopped at: 36-04 Task 2 complete (Task 3 = human checkpoint awaiting verification)
+Resume file: .planning/phases/36-selective-city-retrofit/36-04-PLAN.md (Task 3)
 
 ## Performance Metrics
 
