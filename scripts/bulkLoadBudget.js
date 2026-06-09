@@ -23,9 +23,14 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { parseArgs } from 'node:util';
+import { buildBudgetTree, parseAmount } from './buildBudgetTree.mjs';
 
 // ── Config ──────────────────────────────────────────────────────────────
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
+const SUPABASE_URL = process.env.SUPABASE_URL;
+if (!SUPABASE_URL) {
+  console.error('Missing SUPABASE_URL env var');
+  process.exit(1);
+}
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!SUPABASE_KEY) {
@@ -54,76 +59,6 @@ async function fetchSocrataPage(baseUrl, datasetId, offset, limit, where, order)
   const resp = await fetch(url, { headers: { Accept: 'application/json' } });
   if (!resp.ok) throw new Error(`Socrata ${resp.status}: ${await resp.text()}`);
   return await resp.json();
-}
-
-// ── Amount parser ───────────────────────────────────────────────────────
-function parseAmount(v) {
-  if (v == null || v === '') return 0;
-  if (typeof v === 'number') return v;
-  return parseFloat(String(v).replace(/[,$]/g, '').replace(/\((.+)\)/, '-$1')) || 0;
-}
-
-// ── Tree builder ────────────────────────────────────────────────────────
-function buildBudgetTree(rows, cm) {
-  const catCol = cm.category_column;
-  const subCol = cm.subcategory_column;
-  const approvedCol = cm.approved_amount_column;
-  const actualCol = cm.actual_amount_column || null;
-  const fundCol = cm.fund_column || null;
-
-  if (!catCol || !approvedCol) {
-    throw new Error('column_mapping must define category_column and approved_amount_column');
-  }
-
-  const tree = new Map();
-  let total = 0;
-  let kept = 0;
-  let droppedZero = 0;
-
-  for (const row of rows) {
-    const approved = parseAmount(row[approvedCol]);
-    const actual = actualCol ? parseAmount(row[actualCol]) : null;
-
-    // Drop rows where both approved AND actual are 0
-    if (approved === 0 && (actual === null || actual === 0)) {
-      droppedZero++;
-      continue;
-    }
-
-    const cat = row[catCol] || 'Unknown';
-    const sub = subCol ? (row[subCol] || 'General') : 'General';
-
-    if (!tree.has(cat)) tree.set(cat, new Map());
-    if (!tree.get(cat).has(sub)) tree.get(cat).set(sub, []);
-
-    tree.get(cat).get(sub).push({
-      d: sub,
-      a: approved,
-      aa: actual,
-      f: fundCol ? (row[fundCol] || null) : null,
-      e: null,
-    });
-
-    total += approved;
-    kept++;
-  }
-
-  // Convert Maps to compact JSON tree
-  const jsonTree = [];
-  for (const [catName, subs] of tree) {
-    let catTotal = 0;
-    const children = [];
-    for (const [subName, items] of subs) {
-      const subTotal = items.reduce((s, i) => s + i.a, 0);
-      catTotal += subTotal;
-      children.push({ n: subName, a: subTotal, i: items });
-    }
-    children.sort((a, b) => b.a - a.a);
-    jsonTree.push({ n: catName, a: catTotal, c: children });
-  }
-  jsonTree.sort((a, b) => b.a - a.a);
-
-  return { jsonTree, total, kept, droppedZero };
 }
 
 // ── Per-source sync ─────────────────────────────────────────────────────
@@ -179,8 +114,11 @@ async function syncBudgetSource(ds, fiscalYear, opts = {}) {
 
   if (opts.dryRun) {
     console.log('  (dry run — skipping RPC call)');
+    const deptCol = cm.department_column || null;
+    const childLabel = deptCol ? 'services' : 'subcategories';
     for (const c of jsonTree.slice(0, 3)) {
-      console.log(`    ${c.n}: $${Math.round(c.a).toLocaleString()} (${c.c.length} subcategories)`);
+      const childCount = c.c ? c.c.length : 0;
+      console.log(`    ${c.n}: $${Math.round(c.a).toLocaleString()} (${childCount} ${childLabel})`);
     }
     return { rows_fetched: allRows.length, rows_inserted: 0, status: 'dry_run' };
   }
