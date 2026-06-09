@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: California State Budget + Deep Icicles
-status: ready_to_plan
-last_updated: 2026-06-08T23:46:21.028Z
+status: planning
+last_updated: "2026-06-09T14:44:36.093Z"
 last_activity: 2026-06-08
 progress:
   total_phases: 5
@@ -11,7 +11,6 @@ progress:
   total_plans: 11
   completed_plans: 11
   percent: 80
-stopped_at: Phase 35 complete (3/3) — ready to discuss Phase 36
 ---
 
 # State
@@ -135,9 +134,9 @@ $5 per run — estimate before running AI enrichment or PDF extraction. CA state
 
 ## Session Continuity
 
-Last session: 2026-06-08T23:35:55.347Z
-Stopped at: cleanup complete — proceeding to plan Phase 34
-Resume file: None
+Last session: 2026-06-09T14:44:36.084Z
+Stopped at: Phase 36 context gathered
+Resume file: .planning/phases/36-selective-city-retrofit/36-CONTEXT.md
 
 ## Performance Metrics
 
