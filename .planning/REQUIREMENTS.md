@@ -54,12 +54,12 @@
 
 | Requirement | Phase |
 |-------------|-------|
-| LOAD-01     | — |
-| LOAD-02     | — |
-| LOAD-03     | — |
-| MA-01       | — |
-| MA-02       | — |
-| MA-03       | — |
-| MA-04       | — |
-| STATE-01    | — |
-| ENRICH-01   | — |
+| LOAD-01     | Phase 37 |
+| LOAD-02     | Phase 37 |
+| LOAD-03     | Phase 37 |
+| MA-01       | Phase 38 |
+| MA-02       | Phase 38 |
+| MA-03       | Phase 38 |
+| MA-04       | Phase 39 |
+| STATE-01    | Phase 39 |
+| ENRICH-01   | Phase 39 |

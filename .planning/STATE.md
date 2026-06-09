@@ -1,170 +1,111 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.7
-milestone_name: California State Budget + Deep Icicles
-status: milestone_complete
-last_updated: 2026-06-09T17:56:33.401Z
-last_activity: 2026-06-09 -- Phase 36 plan 36-04 complete (human approved Task 3 verification)
+milestone: v1.8
+milestone_name: Massachusetts All-Cities Financial Transparency
+status: ready_to_plan
+last_updated: "2026-06-09T00:00:00.000Z"
+last_activity: 2026-06-09
 progress:
-  total_phases: 5
-  completed_phases: 4
-  total_plans: 15
-  completed_plans: 15
-  percent: 80
-stopped_at: Milestone complete (Phase 36 was final phase)
+  total_phases: 3
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-06)
+See: .planning/PROJECT.md (updated 2026-06-09)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Milestone complete
+**Current focus:** v1.8 — Massachusetts All-Cities Financial Transparency
 
 ## Current Position
 
-Phase: 36
-Plan: Not started
-Status: Milestone complete
-Last activity: 2026-06-09
-
-```
-Progress: [██████████] 100%
-```
+Phase: 37 — MA Loader Hardening
+Plan: —
+Status: Ready to plan
+Last activity: 2026-06-09 — Roadmap created, Phase 37 is next
 
 ## Phase Overview
 
 | Phase | Name | Depends on | Status |
 |-------|------|------------|--------|
-| 32 | State Entity Infrastructure | nothing | Complete (2026-06-07) |
-| 33 | CA State Budget Data | Phase 32 | Complete (2026-06-07) |
-| 34 | 3-Level Tree Infrastructure (ev-accounts-api) | Phase 32 | Ready to plan |
-| 35 | CA State 3-Level Icicle Pilot | Phases 33 + 34 | Not started |
-| 36 | Selective City Retrofit | Phase 35 | Not started |
+| 37 | MA Loader Hardening | Nothing | Ready to plan |
+| 38 | MA City Budget Load | Phase 37 | Not started |
+| 39 | MA Population, State Budget, and Enrichment | Phase 38 | Not started |
 
-**Critical path:** Phase 32 → Phase 34 → Phase 35
-**Parallel opportunity:** Phase 33 and Phase 34 can run simultaneously after Phase 32 (different repos, no file overlap)
+**Critical path:** Phase 37 → Phase 38 → Phase 39
+**Sequencing constraint:** LOAD-01 (rdreport/tableID confirmation) MUST complete before any MA city data is written. Running the bulk load against a wrong tableID would label a non-operating dataset as "operating" across all 351 cities.
 
 ## Accumulated Context
 
-### Loaders Available
+### MA DLS Loader Context
 
-- `bulkLoadBudget.js` — generic Socrata SODA loader; supports `fiscal_year_type: 'integer'` and `where_extra` WHERE fragment in column_mapping
-- `loadSacramentoCSV.js` — ArcGIS CSV loader for Sacramento; already written, seed + run
-- `loadSanDiegoCSV.js` — CSV download loader for seshat.datasd.org double-quoted format
-- `enrichCategories.js` — AI enrichment pipeline; `--city`, `--state`, `--year` flags; idempotent via name_key upsert
-- `bulkLoadXLSX.js` — XLSX check register / payroll loader
-- `bulkLoadPDF.js` — Claude Haiku vision PDF pipeline for ACFR budget extraction
-- pdfplumber Python extractor — used for Portland, Gresham, Troutdale OR; primary tool for CA PDF cities
+- `scrapeMaDLS.js` already exists and has been tested; FY2025 JSON output for all 351 MA cities is already on disk
+- MA DLS portal: `api_type: 'ma-dls'`; loader reads `rdreport` + `tableID` from `column_mapping`
+- General Fund Expenditures = Schedule A, one specific `rdreport` + `tableID` combination — must be confirmed via `--explore` before bulk load
+- Revenue by Source = a different `rdreport` + `tableID` — must also be confirmed before bulk revenue load
+- FY2021–FY2025 = 5 years × 2 report types = multi-year scrape loop required
+- 14 universal MA DLS category names total: 9 operating + 5 revenue — same column names across all 351 cities
 
-### Seeded Cities (active in DB)
+### MA-Specific Data Facts
+
+- 351 MA municipalities (towns + 26 official cities — all labeled `entity_type: 'city'` for now)
+- MA DLS goes back to FY2003 for revenue; FY2021–FY2025 is the v1.8 scope for both report types
+- Population source: 2024 Census vintage (same pattern as all prior states)
+- Category enrichment: universal across all 351 cities — no per-city re-enrichment needed or appropriate
+- STATE-01: MA state government is already in the DB with hardcoded estimates; this phase upgrades to real DLS data
+
+### Loaders Available (from prior milestones)
+
+- `bulkLoadBudget.js` — generic Socrata SODA loader (not applicable to MA DLS)
+- `enrichCategories.js` — AI enrichment pipeline; idempotent via name_key upsert; ~$0.004 for 14 MA categories
+- `scrapeMaDLS.js` — MA DLS-specific scraper; already written and tested; supports `--explore` mode
+
+### Seeded Cities (active in DB — existing)
 
 - TX (14): Dallas, Plano, McKinney, Frisco, Allen, Prosper, Celina, Richardson, Garland, Wylie, Sachse, Murphy, Princeton, Longview
-- CA (12 + LA County): Los Angeles, San Francisco, San Diego, Sacramento, Oakland, San Jose, Long Beach, Bakersfield, Fresno, Riverside, Anaheim, Santa Ana, LA County
-- OR (3): Portland (FY2022–FY2026 operating + revenue, 635,749 population, 41 enrichment rows), Gresham (FY2023–FY2026 operating + revenue, 111,507 population, 33 enrichment rows), Troutdale (FY2019–FY2026 operating + revenue, 15,749 population, 26 enrichment rows)
-
-### v1.7 Architecture Notes
-
-**CA State data source — NO Socrata API:**
-
-- Primary: LAO historical Excel (openpyxl, FY1985–FY2026, machine-readable) — HIGH confidence
-- Fallback: ebudget.ca.gov Enacted Budget Summary PDF (pdfplumber) — MEDIUM confidence
-- Do NOT use Open FISCal CKAN (151 department CSVs per FY, disproportionate engineering cost)
-- Load General Fund only (~$212B FY2025-26) — all-funds (~$495B) inflates by $280B+ federal pass-through
-
-**3-Level tree shape (new):**
-
-- Current 2-level: `{ n, a, c: [{ n, a, i: [...] }] }` — category → items
-- New 3-level: `{ n, a, c: [{ n, a, c: [{ n, a, i: [...] }] }] }` — program → dept → items
-- RPC must walk adaptively: branch nodes have `c`, leaf nodes have `i`, never both
-- Backward compat: `department IS NULL` in DB → 2-level response from categories API
-
-**Phase 34 is in ev-accounts-api repo (separate repo):**
-
-- Must locate `treasury_sync_budget_tree` RPC function body before writing code
-- Must run `SELECT category, subcategory, department FROM treasury.budget_line_items LIMIT 20` before writing RPC update — department column current state is unconfirmed
-
-**EntitySwitcher circular nesting risk:**
-
-- A CA state entity defaults to nested under "CALIFORNIA" header — creates "California > States > California" loop
-- Fix: pre-filter state entities before building the byState map; render as separate top section
-
-**Enrichment prompt for state entities:**
-
-- Default `enrichCategories.js` prompt uses city-level framing — wrong for CA state program areas
-- Must add `--entity-type state` flag or equivalent to switch to policy/program framing
-
-**Frontend is unchanged in v1.7:**
-
-- `BudgetIcicle.tsx` already renders arbitrary depth via `navigationPath` — no changes needed
-- `App.tsx`, `dataLoader.ts`, `BudgetCategory` recursive type — all unchanged
-- Only data shape and API response change; icicle rendering is depth-agnostic
-
-### Retrofit Candidate Guidance
-
-Source data audit required before any loader work in Phase 36. Target cities most likely to have genuine dept/subdept structure:
-
-- Portland OR (bureaus → programs → activities) — likely candidate
-- San Francisco (departments → programs) — may have genuine 3rd level in Socrata
-- Dallas (departments → divisions) — check Socrata column set
-
-Only retrofit where source has a natural 3rd level. Do not synthesize.
-
-### Population Source (CA state)
-
-~39,500,000 (2024 Census estimate, California total resident population)
+- CA (12 + LA County + CA State): Los Angeles, San Francisco, San Diego, Sacramento, Oakland, San Jose, Long Beach, Bakersfield, Fresno, Riverside, Anaheim, Santa Ana, LA County, California (state)
+- OR (3): Portland, Gresham, Troutdale
 
 ### API Cost Threshold
 
-$5 per run — estimate before running AI enrichment or PDF extraction. CA state enrichment: ~50-60 program categories × $0.0002/call ≈ $0.01–0.02 total.
+$5 per run — estimate before running AI enrichment. MA enrichment (14 categories × $0.0002/call) ≈ $0.004 total — well within threshold, no gate needed.
 
-### Known Tech Debt (carried from v1.6)
+### Known Tech Debt (carried from v1.7)
 
-- `data_source_id` FK null on some budget rows (SF/SD/LA Rev FY2026) — pre-existing loader pattern, no UI impact
-- SD FY2026 absent from source CSV — update `fiscal_years: [2025]` → `[2025, 2026]` when SD publishes FY2026 adopted data
-- Portland revenue budget (Vol 2, fund-level) deferred per D-03 — requires a new phase if/when prioritized
-- Phase 07 verification (07-VERIFICATION.md) — human_needed, pre-v1.5, shipped milestone
-- Phase 14 verification (14-VERIFICATION.md) — human_needed, pre-v1.5, shipped milestone
-- Phase 22 Troutdale app spot-check (22-VERIFICATION.md) — deferred
-- Phase 25 LA County app spot-check (25-VERIFICATION.md) — deferred
-- Oakland revenue (OpenGov embedded chart format — not extractable via pdfplumber) — deferred from v1.6
-- Fresno + Riverside revenue (no extractable GF revenue section in PDFs) — deferred from v1.6
-- San Jose FY2016–2020 (older PDF format) — deferred from v1.6
+- Oakland revenue (OpenGov embedded chart format — not extractable via pdfplumber) — deferred
+- Fresno + Riverside revenue (no extractable GF revenue section in PDFs) — deferred
+- San Jose FY2016–2020 (older PDF format) — deferred
+- Phase 07, 14, 22, 25 verification files — human_needed, pre-v1.5/v1.6, shipped milestones
 
 ## Session Continuity
 
-Last session: 2026-06-09T19:00:00Z
-Stopped at: Phase 36 complete — all plans done
-Resume file: None (phase complete)
+Last session: 2026-06-09
+Stopped at: Roadmap created — Phase 37 ready to plan
+Resume file: None (new milestone, phase 37 not yet started)
 
 ## Performance Metrics
 
 | Phase | Plan | Duration | Notes |
 |-------|------|----------|-------|
-| Phase 32 | 4 plans | ~60m | DB migration, TS types, EntitySwitcher UI |
-| Phase 33 P01 | 15m | 2 tasks | CA state seed + LAO Excel download |
-| Phase 33 P02 | 25m | 2 tasks | extractCA.py + processCA.js, FY2022-2026 loaded |
-| Phase 33 P03 | 15m | 2 tasks | enrichCategories.js state case + CA FY2026 enrichment |
-| Bonus | — | ~4 sessions | All 50 US states: processXX.js + processXXRevenue.js for every state |
-| Phase 35 P03 | 45 | 3 tasks | 3 files |
+| (v1.8 not yet started) | — | — | — |
 
 ## Decisions
 
 | Decision | Context |
 |----------|---------|
-| All 50 US states loaded (bonus) | state budget scripts written + run for all 50 states; data in DB as foundation for future state icicle views |
-| No Agent/Workflow tool for state loading | StructuredOutput failures + $5-15 API cost per failed run; all work done directly in main conversation |
-| No income tax states: omit category | WA TN WY SD AK FL TX NV — income tax category omitted from revenue scripts |
-| No sales tax states: omit category | MT DE AK OR NH — sales tax category omitted from revenue scripts |
-| AK: use Unrestricted General Fund | Oil Production Tax + PF Earnings Transfer are dominant revenue categories |
-| VT: K-12 via Education Fund not GF | GF is small (~$2.5-2.7B); no K-12 Education spending category in GF |
-| All state data: confidence = 'estimated' | Web-researched figures; mark all with confidence: 'estimated' |
+| 3-phase structure for v1.8 | LOAD hardening → bulk data load → population/state/enrichment; natural delivery boundaries; hardening must gate the bulk load |
+| MA-03 (city picker) bundled with Phase 38 | 1-line STATE_LABELS change; ships with the data that makes it meaningful |
+| MA-04, STATE-01, ENRICH-01 bundled in Phase 39 | All three are post-load tasks; small enough to bundle; none blocks the others |
+| Universal enrichment (not per-city) | MA DLS uses identical category column names across all 351 cities; per-city enrichment would produce 351 identical rows at $1.40 cost vs. 14 universal rows at $0.004 |
 
 ## Deferred Items
 
-Items deferred at v1.6 milestone close (2026-06-06):
+Items deferred at v1.7 milestone close (2026-06-09):
 
 | Category | Item | Status |
 |----------|------|--------|

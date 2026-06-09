@@ -58,16 +58,16 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - ✓ Anaheim CA operating + revenue (FY2025–FY2026, GF $491M–$530M, 344K population, 25 enrichment rows) — v1.6, Phase 31
 - ✓ Santa Ana CA operating + revenue (FY2023–FY2026, GF $404M–$424M, 312K population, 26 enrichment rows) — v1.6, Phase 31
 
-## Current Milestone: v1.7 California State Budget + Deep Icicles
+## Current Milestone: v1.8 Massachusetts All-Cities Financial Transparency
 
-**Goal:** Add California as a state-level entity with its budget loaded, and deepen the icicle chart from 2 to 3 levels — CA state as the pilot, then retrofitting all existing cities.
+**Goal:** Load real budget data for all 351 Massachusetts municipalities using the MA DLS (Division of Local Services) reporting portal, making MA the first fully-covered state on Treasury Tracker.
 
 **Target features:**
-- `entity_type` extended to include `'state'`; California seeded as a state-level municipality row
-- California state budget data loaded (source TBD — research needed)
-- Icicle data layer deepened: Department → Category → Line Item (currently only 2 levels)
-- CA state budget serves as the 3-level depth pilot
-- All existing city/county loaders retrofitted to emit 3 levels
+- MA DLS API loader that reads `rdreport` + `tableID` from `column_mapping` (api_type: 'ma-dls')
+- Operating budget data loaded for all 351 MA cities (Schedule A / Special Revenue Funds)
+- Revenue data loaded for all 351 MA cities (General Fund Revenue by Source)
+- Category enrichment for MA cities
+- MA shown in city picker as a new state
 
 ### Active
 
@@ -112,6 +112,7 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 
 ## Shipped
 
+- ✅ **v1.7 California State Budget + Deep Icicles** — 2026-06-09 — Phases 32-36 (CA state entity, CA state budget, 3-level icicle infrastructure, Portland/Dallas retrofit)
 - ✅ **v1.6 California City Expansion** — 2026-06-06 — Phases 26-31 (Sacramento, Oakland, San Jose, Long Beach, Bakersfield, Fresno, Riverside, Anaheim, Santa Ana CA; Longview TX revenue; STATE_LABELS)
 - ✅ **v1.5 Oregon Expansion** — 2026-06-04 — Phases 17-25 (Portland/Gresham/Troutdale OR, all-funds consistency, LA data quality, LA County + county-city linking)
 - ✅ **v1.4 Geographic Expansion** — 2026-05-22 — Phases 15-16 (LA, SF, SD, LA Revenue)
@@ -121,4 +122,4 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - ✅ **v1.0 GiveButter Real-Time Donation Feedback** — 2026-04-22 — Phases 1-4
 
 ---
-*Last updated: 2026-06-06 after v1.6 milestone archived*
+*Last updated: 2026-06-09 after v1.7 milestone archived, v1.8 started*

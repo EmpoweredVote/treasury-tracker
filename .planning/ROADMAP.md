@@ -9,7 +9,8 @@
 - ✅ **v1.4 Geographic Expansion** — Phases 15-16 (shipped 2026-05-22)
 - ✅ **v1.5 Oregon Expansion** — Phases 17-25 (shipped 2026-06-04)
 - ✅ **v1.6 California City Expansion** — Phases 26-31 (shipped 2026-06-06)
-- 🚧 **v1.7 California State Budget + Deep Icicles** — Phases 32-36 (in progress)
+- ✅ **v1.7 California State Budget + Deep Icicles** — Phases 32-36 (shipped 2026-06-09)
+- 🚧 **v1.8 Massachusetts All-Cities Financial Transparency** — Phases 37-39 (in progress)
 
 ---
 
@@ -487,7 +488,8 @@ Plans:
 
 ---
 
-### 🚧 v1.7 California State Budget + Deep Icicles (In Progress)
+<details>
+<summary>✅ v1.7 California State Budget + Deep Icicles (Phases 32-36) — SHIPPED 2026-06-09</summary>
 
 **Milestone goal:** Add California as a state-level entity with its General Fund budget loaded (~$228B), and deepen the icicle chart from 2 to 3 levels — CA state as the pilot, then selectively retrofitting cities where source data has a genuine 3rd level.
 
@@ -501,7 +503,21 @@ Plans:
  (completed 2026-06-08)
 - [x] **Phase 35: CA State 3-Level Icicle Pilot** — Reload CA state as genuine 3-level tree; end-to-end validation
  (completed 2026-06-08)
-- [x] **Phase 36: Selective City Retrofit** — Source data audit + retrofit 1-2 cities with genuine 3rd-level data (completed 2026-06-09)
+- [x] **Phase 36: Selective City Retrofit** — Source data audit + retrofit 1-2 cities with genuine 3rd-level data (completed 2026-06-09)
+
+</details>
+
+---
+
+### 🚧 v1.8 Massachusetts All-Cities Financial Transparency (In Progress)
+
+**Milestone goal:** Load real budget data for all 351 Massachusetts municipalities using the MA DLS (Division of Local Services) reporting portal, making MA the first fully-covered state on Treasury Tracker.
+
+#### Phase Summary
+
+- [ ] **Phase 37: MA Loader Hardening** — Confirm GF Expenditures rdreport/tableID, add progress checkpointing, fix fiscal_years append
+- [ ] **Phase 38: MA City Budget Load** — Operating + revenue data for all 351 MA cities (FY2021–FY2025); city picker updated
+- [ ] **Phase 39: MA Population, State Budget, and Enrichment** — Population per-capita, MA state budget upgrade, universal category enrichment
 
 ---
 
@@ -520,14 +536,14 @@ Plans:
 **Plans:** 4/4 plans complete
 
 Plans:
-**Wave 1** *(parallel � no file overlap)*
+**Wave 1** *(parallel — no file overlap)*
 
-- [x] 32-01-PLAN.md � DB migration: ADD CONSTRAINT municipalities_entity_type_check (INFRA-01)
-- [x] 32-02-PLAN.md � TypeScript: add 'state' to Municipality.entity_type union (INFRA-02)
+- [x] 32-01-PLAN.md — DB migration: ADD CONSTRAINT municipalities_entity_type_check (INFRA-01)
+- [x] 32-02-PLAN.md — TypeScript: add 'state' to Municipality.entity_type union (INFRA-02)
 
-**Wave 2** *(blocked on Wave 1 � requires updated Municipality type)*
+**Wave 2** *(blocked on Wave 1 — requires updated Municipality type)*
 
-- [x] 32-03-PLAN.md � EntitySwitcher UI: pre-filter state entities + STATE GOVERNMENTS section + displayName fix (INFRA-03)
+- [x] 32-03-PLAN.md — EntitySwitcher UI: pre-filter state entities + STATE GOVERNMENTS section + displayName fix (INFRA-03)
 
 **UI hint:** yes
 
@@ -643,6 +659,46 @@ Plans:
 
 - [x] 36-04-PLAN.md — Live-load Portland + Dallas FY2026 3-level; enrichment preservation + new-node enrichment ($5 gate); human-verify icicle + no regression (RETROFIT-02, RETROFIT-03)
 
+---
+
+### Phase 37: MA Loader Hardening
+
+**Goal:** The MA DLS loader is safe to run against all 351 cities — the correct rdreport/tableID for General Fund Expenditures is confirmed, the loader can resume a failed run without restarting from city 1, and loading a second fiscal year onto an existing data_source record appends to fiscal_years rather than overwriting.
+**Depends on:** Nothing (prerequisite to any bulk load)
+**Requirements:** LOAD-01, LOAD-02, LOAD-03
+**Success Criteria** (what must be TRUE):
+  1. Running `scrapeMaDLS.js --explore` against a sample city returns the rdreport and tableID for General Fund Expenditures — confirmed correct before any city data is written
+  2. A deliberately interrupted bulk run resumes from the last successfully loaded city (not from city 1) when restarted — no duplicate rows written for cities already processed
+  3. Loading FY2022 followed by FY2023 onto the same data_source row results in `fiscal_years: [2022, 2023]` — not `fiscal_years: [2023]` (overwrite) or a DB constraint error
+  4. A dry-run against 3–5 sample MA cities completes without errors and produces budget tree JSON that passes sanity checks (non-zero totals, recognizable DLS category names)
+**Plans:** TBD
+
+### Phase 38: MA City Budget Load
+
+**Goal:** All 351 Massachusetts municipalities have operating and revenue budget data visible in the app for FY2021–FY2025, and Massachusetts appears as a selectable state in the city picker.
+**Depends on:** Phase 37 (loader hardening must precede bulk load)
+**Requirements:** MA-01, MA-02, MA-03
+**Success Criteria** (what must be TRUE):
+  1. "Massachusetts" appears as a group in the city picker and all 351 MA cities are listed and selectable
+  2. Clicking any MA city opens a Money Out (operating) tab showing General Fund Expenditures totals for at least one fiscal year between FY2021–FY2025
+  3. Clicking any MA city opens a Money In (revenue) tab showing Revenue by Source totals for at least one fiscal year between FY2021–FY2025
+  4. The five fiscal years FY2021–FY2025 are each available in the year selector for a representative sample of MA cities (e.g., Boston, Worcester, Springfield)
+  5. DB row count for MA operating budget entries exceeds 1,000 rows (351 cities × ~5 FYs × multiple categories), confirming full bulk load completed
+**Plans:** TBD
+**UI hint:** yes
+
+### Phase 39: MA Population, State Budget, and Enrichment
+
+**Goal:** Every MA city shows per-capita spending, the MA state government budget is upgraded from estimates to real DLS data, and all 14 universal MA DLS category names are enriched with plain-language descriptions shared across all 351 cities.
+**Depends on:** Phase 38 (MA city data must be loaded before enrichment can target MA rows; per-capita display requires city rows to exist)
+**Requirements:** MA-04, STATE-01, ENRICH-01
+**Success Criteria** (what must be TRUE):
+  1. Clicking any MA city page shows a per-capita ($/resident) figure alongside the budget total, derived from 2024 Census population data
+  2. The MA state government entity in the app shows General Fund Expenditures data sourced from real MA DLS figures — not hardcoded estimates
+  3. All 9 MA DLS operating category names (e.g., "General Government", "Public Safety", "Education") display plain-language enrichment descriptions on any MA city page
+  4. All 5 MA DLS revenue category names (e.g., "Property Taxes", "State Aid") display plain-language enrichment descriptions on any MA city page
+  5. Enrichment descriptions are identical across different MA cities for the same category name — confirming universal (not per-city) reuse
+**Plans:** TBD
 
 ---
 
@@ -681,13 +737,16 @@ Plans:
 | 29. Long Beach + Bakersfield CA Data Load | v1.6 | 4/4 | Complete | 2026-06-05 |
 | 30. Fresno + Riverside CA Data Load | v1.6 | 4/4 | Complete | 2026-06-05 |
 | 31. Anaheim + Santa Ana CA Data Load | v1.6 | 4/4 | Complete | 2026-06-06 |
-| 32. State Entity Infrastructure | v1.7 | 4/4 | Complete    | 2026-06-07 |
+| 32. State Entity Infrastructure | v1.7 | 4/4 | Complete | 2026-06-07 |
 | 33. CA State Budget Data | v1.7 | 3/3 | Complete | 2026-06-07 |
-| 34. 3-Level Tree Infrastructure (ev-accounts-api) | v1.7 | 1/1 | Complete    | 2026-06-08 |
-| 35. CA State 3-Level Icicle Pilot | v1.7 | 3/3 | Complete    | 2026-06-08 |
-| 36. Selective City Retrofit | v1.7 | 4/4 | Complete    | 2026-06-09 |
+| 34. 3-Level Tree Infrastructure (ev-accounts-api) | v1.7 | 1/1 | Complete | 2026-06-08 |
+| 35. CA State 3-Level Icicle Pilot | v1.7 | 3/3 | Complete | 2026-06-08 |
+| 36. Selective City Retrofit | v1.7 | 4/4 | Complete | 2026-06-09 |
+| 37. MA Loader Hardening | v1.8 | 0/TBD | Not started | — |
+| 38. MA City Budget Load | v1.8 | 0/TBD | Not started | — |
+| 39. MA Population, State Budget, and Enrichment | v1.8 | 0/TBD | Not started | — |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-06-06 — v1.7 milestone roadmap added (Phases 32-36)*
+*Last updated: 2026-06-09 — v1.8 milestone roadmap added (Phases 37-39)*
