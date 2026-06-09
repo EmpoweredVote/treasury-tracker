@@ -3,6 +3,7 @@ phase: 34
 slug: 3-level-tree-infrastructure-ev-accounts-api
 status: complete
 nyquist_compliant: true
+human_verified: true
 wave_0_complete: true
 updated: 2026-06-08
 last_audit: 2026-06-08
@@ -22,9 +23,9 @@ last_audit: 2026-06-08
 | 34-01-04 | TREE-03 | Test file contains backward-compat assertions for Sacramento CA, Plano TX, Allen TX | Static (automated) | COVERED |
 | 34-01-05 | T-34-01 | No FY=9999 sentinel rows leaked in treasury.budgets (cleanup ran) | DB (automated) | COVERED |
 | 34-01-06 | TREE-01/02/03 | REQUIREMENTS.md marks TREE-01, TREE-02, TREE-03 as `[x]` complete | Static (automated) | COVERED |
-| 34-03-01 | TREE-03-live | Live app: Portland, San Jose, Dallas city pages render correctly | Human (UAT) | PENDING — see VERIFICATION.md |
+| 34-03-01 | TREE-03-live | Live app: Portland, San Jose, Dallas city pages render correctly | Human (UAT) | COVERED — Dallas confirmed 2026-06-08 (required data fix: re-loaded from Socrata with correct service/objectgroup columns) |
 
-**6 automated gaps / 1 human-only gap (browser visual)**
+**7/7 gaps covered — 6 automated + 1 human verified 2026-06-08**
 
 ---
 
@@ -72,7 +73,7 @@ VERIFICATION.md (2026-06-08T20:00:00Z) confirms 5/6 truths verified:
 
 The Task 3 human checkpoint verified Portland and San Jose city pages (per context note). Dallas explicit confirmation was not captured in the SUMMARY. The VERIFICATION.md status is `human_needed`. This is the only open item — all 6 automated gaps pass.
 
-To close Task 3: confirm Dallas (Texas) renders correctly in the live app at https://treasurytracker.empowered.vote.
+Dallas confirmed 2026-06-08. Data fix applied: re-loaded all 4 Dallas budgets (FY2025/2026 operating+revenue) from Socrata using correct `service`/`objectgroup` columns — original load had null values for those fields producing "Unknown" hierarchy. 188 real departments now visible in FY2026 operating icicle.
 
 ---
 
