@@ -164,9 +164,13 @@ def extract_service_area_map(pdf):
     _process_table_page(header_page_idx)
 
     # Step 3: Process the continuation page (immediately follows; lacks header keywords)
+    # Guard: only treat the next page as a continuation if it does NOT contain
+    # 'Managing Agency' — which would indicate a fresh table header, not a continuation.
     next_idx = header_page_idx + 1
     if next_idx < len(pdf.pages):
-        _process_table_page(next_idx)
+        next_text = pdf.pages[next_idx].extract_text() or ''
+        if 'Managing Agency' not in next_text:
+            _process_table_page(next_idx)
 
     return service_map
 
