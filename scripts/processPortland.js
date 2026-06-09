@@ -55,7 +55,9 @@ function resolvePdfDir() {
 }
 
 // ── Supabase ──────────────────────────────────────────────────────────────────
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
+// WR-04: No hardcoded SUPABASE_URL fallback — fail closed if env unset
+const SUPABASE_URL = process.env.SUPABASE_URL;
+if (!SUPABASE_URL) { console.error('Missing SUPABASE_URL'); process.exit(2); }
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!SUPABASE_KEY) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit(2); }
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -132,30 +134,61 @@ function buildCategoryTree(rows) {
   return { tree: nodes, total };
 }
 
-// ── Build operating budget tree from extracted rows ───────────────────────────
-// Each bureau becomes a top-level node { n, a, i[] }.
-// The single line item is the bureau itself (bureau-level granularity from this table).
+// ── Build 3-level operating budget tree from extracted rows ───────────────────
+// Tree shape: service_area (depth-0) → bureau (depth-1) → line item (depth-2)
+// Bureaus with no service_area (empty string) are NOT merged into a shared
+// bucket — each becomes a standalone depth-0 leaf with a [D-06] warning.
+// This matches processCA.js CR-01 collapse-and-log pattern.
 function buildOperatingTree(rows) {
+  // Group by service_area → bureau
+  const saMap = new Map(); // saKey → { displayName, bureaus: Map(bureau → amount) }
+
+  for (const row of rows) {
+    const sa = row.service_area || '';  // '' means no service area mapping
+    const bureau = row.bureau;
+    const amount = row.adopted_amount;
+
+    if (!sa) {
+      // D-06: bureau with no service area — log and collapse to standalone depth-0 leaf
+      console.warn(`  [D-06] Bureau with no service_area: "${bureau}" ($${amount.toLocaleString()}) — emitted as standalone depth-0 leaf`);
+    }
+
+    // Unique key prevents merging unmapped bureaus with each other
+    const saKey = sa || `__no_sa__${bureau}`;
+    if (!saMap.has(saKey)) saMap.set(saKey, { displayName: sa || bureau, bureaus: new Map() });
+    const saEntry = saMap.get(saKey);
+    saEntry.bureaus.set(bureau, (saEntry.bureaus.get(bureau) || 0) + amount);
+  }
+
   const nodes = [];
   let total = 0;
 
-  for (const row of rows) {
-    const amount = row.adopted_amount;
-    nodes.push({
-      n: row.bureau,
-      a: amount,
-      i: [{
-        d: row.bureau,
-        a: amount,
-        aa: null,
-        f: null,
-        e: null,
-      }],
-    });
-    total += amount;
+  for (const [saKey, saEntry] of saMap) {
+    const isUnmapped = saKey.startsWith('__no_sa__');
+    let saTotal = 0;
+    const bureauNodes = [];
+
+    for (const [bureau, amt] of saEntry.bureaus) {
+      bureauNodes.push({
+        n: bureau,
+        a: amt,
+        i: [{ d: bureau, a: amt, aa: null, f: null, e: null }],
+      });
+      saTotal += amt;
+    }
+    bureauNodes.sort((a, b) => b.a - a.a);
+
+    if (isUnmapped) {
+      // D-06: standalone depth-0 leaf (single bureau, no SA grouping)
+      nodes.push({ n: saEntry.displayName, a: saTotal, i: bureauNodes[0]?.i || [] });
+    } else {
+      // Normal: service area node with bureau children
+      nodes.push({ n: saEntry.displayName, a: saTotal, c: bureauNodes });
+    }
+    total += saTotal;
   }
 
-  // Sort by amount descending (largest bureaus first)
+  // Sort by amount descending (largest service areas first)
   nodes.sort((a, b) => b.a - a.a);
   return { tree: nodes, total };
 }
@@ -312,7 +345,14 @@ async function processPDF(pdfAbsPath, muniId, dryRun, mode = 'operating') {
       : buildOperatingTree(fyRows);
     const rowCount = tree.length;
 
-    console.log(`\n  FY${fy} ${typeLabel} — $${total.toLocaleString()} total (${rowCount} ${unitLabel})`);
+    // For operating mode, print service area + bureau breakdown
+    if (!isRevenue && !isRequirements) {
+      const saCount = tree.filter(n => n.c).length;
+      const bureauCount = tree.reduce((s, n) => s + (n.c ? n.c.length : 1), 0);
+      console.log(`\n  FY${fy} ${typeLabel} — $${total.toLocaleString()} total (${saCount} service areas, ${bureauCount} bureaus)`);
+    } else {
+      console.log(`\n  FY${fy} ${typeLabel} — $${total.toLocaleString()} total (${rowCount} ${unitLabel})`);
+    }
     for (const n of tree.slice(0, 8)) {
       console.log(`    ${n.n}: $${n.a.toLocaleString()}`);
     }
