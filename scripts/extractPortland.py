@@ -99,14 +99,92 @@ def is_subtotal_row(row):
     name = row[0].replace('\n', ' ').strip()
     return name.endswith('Subtotal') or name.endswith('Total')
 
+# ── Extract service area → bureau mapping from Vol 1 User's Guide table ──────
+def extract_service_area_map(pdf):
+    """
+    Returns dict: { bureau_name: service_area_name }
+    Reads the 'Managing Agency | Fund | Service Area | Fund Type' table
+    from the User's Guide section of Portland Vol 1 PDF.
+    Uses keyword search for 'Managing Agency' + 'Service Area' to locate
+    the first (header) page, then also reads the immediate continuation page
+    since the table spans two pages and the second page lacks the header keywords
+    (Pitfall 1 guard — page range shifts across fiscal years).
+    """
+    service_map = {}
+    current_bureau = None
+
+    # Step 1: Find the header page (contains both 'Managing Agency' and 'Service Area')
+    header_page_idx = None
+    # Search pages 9-20 (0-indexed) — FY2025-26: header is on page 11 (0-indexed)
+    for page_idx in range(9, min(20, len(pdf.pages))):
+        text = pdf.pages[page_idx].extract_text() or ''
+        if 'Managing Agency' in text and 'Service Area' in text:
+            header_page_idx = page_idx
+            break
+
+    if header_page_idx is None:
+        return service_map  # table not found; caller will warn via unmapped bureaus
+
+    def _process_table_page(page_idx):
+        """Process one page of the managing agency table, updating service_map."""
+        nonlocal current_bureau
+        page = pdf.pages[page_idx]
+        tables = page.extract_tables()
+        if not tables:
+            return False
+        table = tables[0]
+        # Verify this looks like the right table (4+ columns)
+        if not table or len(table[0]) < 3:
+            return False
+        for row in table:
+            if not row or len(row) < 3:
+                continue
+            agency = (row[0] or '').strip()
+            service_area = (row[2] or '').strip()
+            # Skip header row values
+            if service_area in ('Service Area', 'SERVICE AREA', ''):
+                if agency:
+                    current_bureau = agency
+                continue
+            # Skip '(blank)' service areas (Office of Vibrant Communities pattern)
+            if service_area == '(blank)':
+                if agency:
+                    current_bureau = agency
+                continue
+            if agency and service_area:
+                current_bureau = agency
+                service_map[agency] = service_area
+            elif not agency and current_bureau and service_area:
+                # Continuation row: same bureau, different fund — preserve existing SA
+                if current_bureau not in service_map:
+                    service_map[current_bureau] = service_area
+        return True
+
+    # Step 2: Process the header page
+    _process_table_page(header_page_idx)
+
+    # Step 3: Process the continuation page (immediately follows; lacks header keywords)
+    next_idx = header_page_idx + 1
+    if next_idx < len(pdf.pages):
+        _process_table_page(next_idx)
+
+    return service_map
+
+
 # ── Extract all bureau-level budget rows from one PDF ─────────────────────────
 # Design: bureau subtotals only — fund-level rows are excluded.
 # To add fund breakdown, see the fund detection logic in _inspect-portland-temp.py.
-def extract_budget(pdf_path):
+def extract_budget(pdf_path, service_area_map=None):
     """
     Walk the PDF pages looking for Appropriation Schedule pages.
-    Extract bureau subtotal rows with: bureau name, service_area (empty for now),
-    adopted_amount (Total Appropriation column), fiscal_year, page_num.
+    Extract bureau subtotal rows with: bureau name, service_area (from the
+    User's Guide mapping table on pages 12-13), adopted_amount (Total
+    Appropriation column), fiscal_year, page_num.
+
+    service_area_map: optional dict { bureau_name: service_area } built from
+    the User's Guide table. If None, it is built automatically via
+    extract_service_area_map(). If a bureau is not found in the map,
+    service_area defaults to '' (D-06: null collapse at loader level).
 
     Returns list of dicts: { bureau, service_area, adopted_amount, fiscal_year, page_num }
     """
@@ -114,6 +192,10 @@ def extract_budget(pdf_path):
     fiscal_year = None
 
     with pdfplumber.open(pdf_path) as pdf:
+        # Build service area map from this PDF if not supplied
+        if service_area_map is None:
+            service_area_map = extract_service_area_map(pdf)
+            print(f'  Service area map: {len(service_area_map)} bureaus', file=sys.stderr)
         current_bureau = None
         in_appropriation_schedule = False
 
@@ -202,11 +284,17 @@ def extract_budget(pdf_path):
 
                     results.append({
                         'bureau': bureau_name,
-                        'service_area': '',   # service area grouping not in this table
+                        'service_area': service_area_map.get(bureau_name, ''),
                         'adopted_amount': adopted_amount,
                         'fiscal_year': fiscal_year,
                         'page_num': page_num,
                     })
+
+    # Post-validation: warn about bureaus with no service_area mapping (mirrors none_fy pattern)
+    unmapped = [r['bureau'] for r in results if not r['service_area']]
+    if unmapped:
+        print(f'  WARNING: {len(unmapped)} bureaus have no service_area mapping: {unmapped}',
+              file=sys.stderr)
 
     # Post-validation: warn about any rows with None fiscal_year
     none_fy = [r for r in results if r['fiscal_year'] is None]
