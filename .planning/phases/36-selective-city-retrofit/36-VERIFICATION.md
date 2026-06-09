@@ -152,6 +152,8 @@ Per plan requirement and research Pitfall 5: Portland was only loaded for FY2026
 
 **name_key format:** `normalize(parent)|normalize(name)` for subcategories, `normalize(name)` for depth-0 — unchanged (D-11 / Pitfall 3 compliance verified). No source edits to enrichCategories.js normalize() logic.
 
+**Task 2 status:** COMPLETE. Cost gate: $0.052 estimated (well under $5). All 6 Portland + 97 Dallas depth-0 nodes enriched. DB confirmed: Portland 146 rows, Dallas 93 rows (unique name_keys after upsert dedup).
+
 **New depth-0 nodes have non-NULL descriptions:** CONFIRMED
 - Portland sample: `name_key='public works'` → `plain_name='City Streets and Infrastructure'`, description present (high confidence)
 - Dallas sample: `name_key='airport operations avi'` → `plain_name='Airport Operations'`, description present (high confidence)
