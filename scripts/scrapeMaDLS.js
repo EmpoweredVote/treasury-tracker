@@ -37,6 +37,7 @@ const { Workbook } = pkg;
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_DIR = join(__dirname, 'output');
 mkdirSync(OUTPUT_DIR, { recursive: true });
+const PROGRESS_FILE = join(OUTPUT_DIR, 'ma_dls_progress.json');
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -44,6 +45,24 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SE
 const BASE_URL = 'https://dls-gw.dor.state.ma.us/reports/rdpage.aspx';
 const USER_AGENT = 'EmpoweredVote-TreasuryTracker/1.0 (contact: jadams@empowered.vote)';
 const DELAY_MS = 1500;
+
+// ── Progress checkpoint helpers (LOAD-02) ────────────────────────────────────
+// ma_dls_progress.json records which DOR codes have been successfully loaded
+// for each (report, FY) pair. A crashed run resumes from the last success.
+// Key format: "${report.name}:${fiscalYear}" → array of DOR code strings.
+// File is never auto-deleted — acts as a permanent load ledger (D-04).
+
+function readProgress() {
+  try {
+    return JSON.parse(readFileSync(PROGRESS_FILE, 'utf8'));
+  } catch {
+    return {};
+  }
+}
+
+function writeProgress(progress) {
+  writeFileSync(PROGRESS_FILE, JSON.stringify(progress, null, 2));
+}
 
 // ── Report definitions ───────────────────────────────────────────────────────
 // rdreport values and tableID for Excel export.
@@ -559,7 +578,17 @@ async function loadToSupabase(supabase, report, fiscalYear, records, headers) {
 
   let loaded = 0, skipped = 0;
 
+  const progress = readProgress();
+  const progressKey = `${report.name}:${fiscalYear}`;
+  const alreadyLoaded = new Set(progress[progressKey] || []);
+  let checkpointSkipped = 0;
+
   for (const record of records) {
+    if (alreadyLoaded.has(record.dorCode)) {
+      checkpointSkipped++;
+      continue;
+    }
+
     const municId = municMap.get(record.municipality);
     if (!municId) {
       if (skipped === 0) console.log(`    ⚠️  No DB record for "${record.municipality}" — run --seed first`);
@@ -571,7 +600,7 @@ async function loadToSupabase(supabase, report, fiscalYear, records, headers) {
     const { data: existingDs } = await supabase
       .schema('treasury')
       .from('data_sources')
-      .select('id')
+      .select('id, fiscal_years')
       .eq('municipality_id', municId)
       .eq('api_type', 'ma-dls')
       .eq('dataset_type', report.datasetType)
@@ -601,6 +630,17 @@ async function loadToSupabase(supabase, report, fiscalYear, records, headers) {
         continue;
       }
       dsId = newDs.id;
+    } else {
+      // Existing data_source row — append fiscalYear to fiscal_years if not already present (LOAD-03)
+      const existingFiscalYears = Array.isArray(existingDs.fiscal_years) ? existingDs.fiscal_years : [];
+      if (!existingFiscalYears.includes(fiscalYear)) {
+        const { error: fyErr } = await supabase
+          .schema('treasury')
+          .from('data_sources')
+          .update({ fiscal_years: [...existingFiscalYears, fiscalYear] })
+          .eq('id', dsId);
+        if (fyErr) console.log(`    ⚠️  ${record.municipality} fiscal_years update: ${fyErr.message}`);
+      }
     }
 
     // Build compact budget tree: one category per amount column
@@ -629,11 +669,15 @@ async function loadToSupabase(supabase, report, fiscalYear, records, headers) {
     if (error) { console.log(`    ❌ ${record.municipality}: ${error.message}`); skipped++; }
     else {
       loaded++;
+      alreadyLoaded.add(record.dorCode);
+      progress[progressKey] = [...alreadyLoaded];
+      writeProgress(progress);
       if (loaded % 50 === 0) console.log(`    ... ${loaded} loaded`);
     }
   }
 
   console.log(`\n    ✅ Loaded: ${loaded} | Skipped: ${skipped}`);
+  if (checkpointSkipped > 0) console.log(`    Skipped ${checkpointSkipped} already loaded (checkpoint)`);
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────────
