@@ -39,8 +39,12 @@ const OUTPUT_DIR = join(__dirname, 'output');
 mkdirSync(OUTPUT_DIR, { recursive: true });
 const PROGRESS_FILE = join(OUTPUT_DIR, 'ma_dls_progress.json');
 
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
+const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+if (!SUPABASE_URL && SUPABASE_KEY) {
+  console.error('Missing SUPABASE_URL env var');
+  process.exit(1);
+}
 
 const BASE_URL = 'https://dls-gw.dor.state.ma.us/reports/rdpage.aspx';
 const USER_AGENT = 'EmpoweredVote-TreasuryTracker/1.0 (contact: jadams@empowered.vote)';
