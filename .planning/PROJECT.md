@@ -69,7 +69,10 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - Category enrichment for MA cities
 - MA shown in city picker as a new state
 
-### Active
+### Active (Phase 37 Complete — 2026-06-10)
+
+- ✓ MA DLS loader hardened: progress checkpoint (LOAD-02) and fiscal_years append-with-dedup (LOAD-03) — Phase 37
+- ✓ LOAD-01 resolved by exclusion: gf-expenditures removed from REPORTS[] (rdreport undiscoverable via automation); Phase 38 scoped to special-revenue + revenue-by-source
 
 ### Out of Scope
 
