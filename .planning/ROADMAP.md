@@ -515,7 +515,7 @@ Plans:
 
 #### Phase Summary
 
-- [ ] **Phase 37: MA Loader Hardening** — Confirm GF Expenditures rdreport/tableID, add progress checkpointing, fix fiscal_years append
+- [x] **Phase 37: MA Loader Hardening** — Confirm GF Expenditures rdreport/tableID, add progress checkpointing, fix fiscal_years append (completed 2026-06-10)
 - [ ] **Phase 38: MA City Budget Load** — Operating + revenue data for all 351 MA cities (FY2021–FY2025); city picker updated
 - [ ] **Phase 39: MA Population, State Budget, and Enrichment** — Population per-capita, MA state budget upgrade, universal category enrichment
 
@@ -671,15 +671,15 @@ Plans:
   2. A deliberately interrupted bulk run resumes from the last successfully loaded city (not from city 1) when restarted — no duplicate rows written for cities already processed
   3. Loading FY2022 followed by FY2023 onto the same data_source row results in `fiscal_years: [2022, 2023]` — not `fiscal_years: [2023]` (overwrite) or a DB constraint error
   4. A dry-run against 3–5 sample MA cities completes without errors and produces budget tree JSON that passes sanity checks (non-zero totals, recognizable DLS category names)
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
 **Wave 1**
 
-- [ ] 37-01-PLAN.md - LOAD-01: discover + confirm GF Expenditures rdreport/tableID via --explore; update REPORTS[] (human-decision checkpoint)
+- [x] 37-01-PLAN.md - LOAD-01: discover + confirm GF Expenditures rdreport/tableID via --explore; update REPORTS[] (human-decision checkpoint)
 
 **Wave 2** *(blocked on 37-01 - same file)*
 
-- [ ] 37-02-PLAN.md - LOAD-02 checkpoint resume + LOAD-03 fiscal_years append-dedup in loadToSupabase; .gitignore scripts/output/; SC-4 dry-run
+- [x] 37-02-PLAN.md - LOAD-02 checkpoint resume + LOAD-03 fiscal_years append-dedup in loadToSupabase; .gitignore scripts/output/; SC-4 dry-run
 
 ### Phase 38: MA City Budget Load
 
@@ -750,7 +750,7 @@ Plans:
 | 34. 3-Level Tree Infrastructure (ev-accounts-api) | v1.7 | 1/1 | Complete | 2026-06-08 |
 | 35. CA State 3-Level Icicle Pilot | v1.7 | 3/3 | Complete | 2026-06-08 |
 | 36. Selective City Retrofit | v1.7 | 4/4 | Complete | 2026-06-09 |
-| 37. MA Loader Hardening | v1.8 | 0/TBD | Not started | — |
+| 37. MA Loader Hardening | v1.8 | 2/2 | Complete   | 2026-06-10 |
 | 38. MA City Budget Load | v1.8 | 0/TBD | Not started | — |
 | 39. MA Population, State Budget, and Enrichment | v1.8 | 0/TBD | Not started | — |
 
