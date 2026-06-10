@@ -516,7 +516,7 @@ Plans:
 #### Phase Summary
 
 - [x] **Phase 37: MA Loader Hardening** — Confirm GF Expenditures rdreport/tableID, add progress checkpointing, fix fiscal_years append (completed 2026-06-10)
-- [ ] **Phase 38: MA City Budget Load** — Operating + revenue data for all 351 MA cities (FY2021–FY2025); city picker updated
+- [x] **Phase 38: MA City Budget Load** — Operating + revenue data for all 351 MA cities (FY2021–FY2025); city picker updated (completed 2026-06-10)
 - [ ] **Phase 39: MA Population, State Budget, and Enrichment** — Population per-capita, MA state budget upgrade, universal category enrichment
 
 ---
@@ -692,7 +692,7 @@ Plans:
   3. Clicking any MA city opens a Money In (revenue) tab showing Revenue by Source totals for at least one fiscal year between FY2021–FY2025
   4. The five fiscal years FY2021–FY2025 are each available in the year selector for a representative sample of MA cities (e.g., Boston, Worcester, Springfield)
   5. DB row count for MA operating budget entries exceeds 1,000 rows (351 cities × ~5 FYs × multiple categories), confirming full bulk load completed
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 **Wave 1**
 
@@ -700,7 +700,7 @@ Plans:
 
 **Wave 2** *(blocked on 38-01 — needs the scraped JSON files)*
 
-- [ ] 38-02-PLAN.md — Load all 10 FY files via treasury_sync_budget_tree; live LOAD-02 resume confirm; verify DB counts + fiscal_years; human spot-check MASSACHUSETTS picker + Boston/Worcester/Springfield (MA-01, MA-02, MA-03)
+- [x] 38-02-PLAN.md — Load all 10 FY files via treasury_sync_budget_tree; live LOAD-02 resume confirm; verify DB counts + fiscal_years; human spot-check MASSACHUSETTS picker + Boston/Worcester/Springfield (MA-01, MA-02, MA-03)
 **UI hint:** yes
 
 ### Phase 39: MA Population, State Budget, and Enrichment
@@ -759,7 +759,7 @@ Plans:
 | 35. CA State 3-Level Icicle Pilot | v1.7 | 3/3 | Complete | 2026-06-08 |
 | 36. Selective City Retrofit | v1.7 | 4/4 | Complete | 2026-06-09 |
 | 37. MA Loader Hardening | v1.8 | 2/2 | Complete   | 2026-06-10 |
-| 38. MA City Budget Load | v1.8 | 1/2 | In Progress|  |
+| 38. MA City Budget Load | v1.8 | 2/2 | Complete   | 2026-06-10 |
 | 39. MA Population, State Budget, and Enrichment | v1.8 | 0/TBD | Not started | — |
 
 ---

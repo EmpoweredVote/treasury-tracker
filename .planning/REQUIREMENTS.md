@@ -17,9 +17,9 @@
 
 ### MA — MA City Budget Data
 
-- [ ] **MA-01**: General Fund Expenditures (operating) loaded for all 351 MA cities, FY2021–FY2025
-- [ ] **MA-02**: Revenue by Source loaded for all 351 MA cities, FY2021–FY2025
-- [ ] **MA-03**: All 351 MA cities visible in city picker under "Massachusetts"
+- [x] **MA-01**: General Fund Expenditures (operating) loaded for all 351 MA cities, FY2021–FY2025
+- [x] **MA-02**: Revenue by Source loaded for all 351 MA cities, FY2021–FY2025
+- [x] **MA-03**: All 351 MA cities visible in city picker under "Massachusetts"
 - [ ] **MA-04**: Population data loaded for all 351 MA cities (2024 Census vintage); per-capita ($/resident) visible in app
 
 ### STATE — MA State Budget
