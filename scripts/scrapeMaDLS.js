@@ -379,17 +379,20 @@ async function scrapeReport(report, fiscalYear, amountType = 'Expenditures') {
     rdShowElementHistory: '',
   };
 
-  // For POST-based reports (e.g. revenue-by-source), the initial GET establishes an
-  // rdDataCache for all default-checked years. We must POST the form first to get a
-  // year-filtered rdDataCache before paginating.
+  // For all reports we must POST the form with the year filter to get a
+  // year-specific rdDataCache. The initial GET establishes a session but its
+  // rdDataCache reflects the default year (2025), NOT the requested FY.
+  // Without a POST, AJAX-GET reports (e.g. special-revenue) return the
+  // default year's data regardless of what year is requested. (Bug fix: 38-01)
   let html1, rdDataCache;
-  if (report.paginationType === 'post') {
-    console.log('    Step 1b: POST form submission to filter by FY...');
-    await sleep(DELAY_MS);
-    const { bytes } = await postPage(reportUrl, formFields, cookies);
-    html1 = bytes.toString('utf8');
-    rdDataCache = extractRdDataCache(html1);
-  } else {
+  console.log('    Step 1b: POST form submission to filter by FY...');
+  await sleep(DELAY_MS);
+  const { bytes: formBytes } = await postPage(reportUrl, formFields, cookies);
+  html1 = formBytes.toString('utf8');
+  rdDataCache = extractRdDataCache(html1);
+  if (!rdDataCache) {
+    // Fallback: use initial GET rdDataCache (may be wrong year for AJAX-GET reports)
+    console.log('    ⚠️  POST did not return rdDataCache — falling back to GET rdDataCache');
     html1 = html0;
     rdDataCache = extractRdDataCache(html1);
   }
