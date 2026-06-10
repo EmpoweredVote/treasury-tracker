@@ -44,3 +44,6 @@ src/data/processedBudget.json
 
 # PDF render cache — PNG files rendered from ACFRs (can be large, regenerated on demand)
 cache/
+
+# MA DLS scraper output — large JSON files and progress ledger
+scripts/output/
