@@ -575,22 +575,22 @@ No ASVS categories apply to this phase. Security posture unchanged.
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **STATE-01: What exact data source should the MA state entity use?**
    - What we know: The current data is hardcoded estimates in `processMA.js`. The GenFundExpenditures Excel files in `docs/MA/` contain CITY-level data (all 351 cities), not the MA state government's own budget.
    - What's unclear: Whether STATE-01 means (a) update processMA.js with real MA state budget figures from budget.digital.mass.gov, or (b) somehow aggregate city-level data into a state entity view.
-   - Recommendation: Interpretation A is correct — update processMA.js with actual figures from the MA Budget website. For FY2025, look up the enacted General Appropriations Act from https://www.mass.gov/lists/budget-information. The categories in processMA.js (Health & Human Services, Education, Local Aid, etc.) are correct; only dollar amounts need updating. This is a 30-minute research task, not a loader build.
-   - **[ASSUMED]** — MA state government FY2025 enacted GF budget total is approximately $58B. Planner should verify at budget.digital.mass.gov before updating processMA.js.
+   - **RESOLVED:** Interpretation A is correct — update processMA.js with actual figures from the MA Budget website. For FY2025, look up the enacted General Appropriations Act from https://www.mass.gov/lists/budget-information. The categories in processMA.js (Health & Human Services, Education, Local Aid, etc.) are correct; only dollar amounts need updating. This is a 30-minute research task, not a loader build.
 
 2. **Handling SUMLEV=061 rows that don't match any DB municipality**
    - What we know: SUMLEV=061 has 357 rows; we need 351 matches.
    - What's unclear: What the 6 extra rows represent (possibly county-level aggregates or duplicate entries).
-   - Recommendation: Script should log "Missing: N cities in Census CSV with no DB match" (not an error) and separately log "Unmatched Census rows: M names not in DB" — allowing the executor to verify 0 missing DB cities.
+   - **RESOLVED:** Script should log "Missing: N cities in Census CSV with no DB match" (not an error) and separately log "Unmatched Census rows: M names not in DB" — allowing the executor to verify 0 missing DB cities. The 6 extra rows are non-fatal and expected.
 
 3. **FEMA category note for enrichment**
    - What we know: "Federal Emergency Management Agency" is a category name, not a general description. The AI enrichment prompt may produce a confusing description if it thinks FEMA is an expenditure recipient.
    - What's unclear: Whether enrichCategories.js has enough context to explain this is "money received FROM FEMA" vs "payments TO FEMA".
+   - **RESOLVED:** Accept imperfect FEMA description if needed. enrichCategories.js provides the category name and context from the budget data — the description will be directionally correct even if not perfectly specific. No special handling required.
    - Recommendation: The enrichCategories.js prompt says "What does this fund pay for?" — since this is a revenue-style category (money received), the AI may need guidance. Consider adding context to the enrichment prompt or accepting a slightly imperfect enrichment and refining manually.
 
 ---
