@@ -692,7 +692,15 @@ Plans:
   3. Clicking any MA city opens a Money In (revenue) tab showing Revenue by Source totals for at least one fiscal year between FY2021–FY2025
   4. The five fiscal years FY2021–FY2025 are each available in the year selector for a representative sample of MA cities (e.g., Boston, Worcester, Springfield)
   5. DB row count for MA operating budget entries exceeds 1,000 rows (351 cities × ~5 FYs × multiple categories), confirming full bulk load completed
-**Plans:** TBD
+**Plans:** 2 plans (2 waves)
+Plans:
+**Wave 1**
+
+- [ ] 38-01-PLAN.md — Scrape MA DLS revenue-by-source + special-revenue expenditures for FY2021–FY2024 (8 JSON files) (MA-01, MA-02)
+
+**Wave 2** *(blocked on 38-01 — needs the scraped JSON files)*
+
+- [ ] 38-02-PLAN.md — Load all 10 FY files via treasury_sync_budget_tree; live LOAD-02 resume confirm; verify DB counts + fiscal_years; human spot-check MASSACHUSETTS picker + Boston/Worcester/Springfield (MA-01, MA-02, MA-03)
 **UI hint:** yes
 
 ### Phase 39: MA Population, State Budget, and Enrichment
@@ -751,10 +759,10 @@ Plans:
 | 35. CA State 3-Level Icicle Pilot | v1.7 | 3/3 | Complete | 2026-06-08 |
 | 36. Selective City Retrofit | v1.7 | 4/4 | Complete | 2026-06-09 |
 | 37. MA Loader Hardening | v1.8 | 2/2 | Complete   | 2026-06-10 |
-| 38. MA City Budget Load | v1.8 | 0/TBD | Not started | — |
+| 38. MA City Budget Load | v1.8 | 0/2 | Not started | — |
 | 39. MA Population, State Budget, and Enrichment | v1.8 | 0/TBD | Not started | — |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-06-09 — v1.8 milestone roadmap added (Phases 37-39)*
+*Last updated: 2026-06-10 — Phase 38 planned (2 plans, 2 waves)*
