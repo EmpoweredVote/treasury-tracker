@@ -664,7 +664,14 @@ async function loadToSupabase(supabase, report, fiscalYear, records, headers) {
     }
     tree.sort((a, b) => b.a - a.a);
 
-    if (tree.length === 0) { skipped++; continue; }
+    if (tree.length === 0) {
+      // Record in checkpoint so re-runs skip this city rather than re-querying (WR-02)
+      alreadyLoaded.add(record.dorCode);
+      progress[progressKey] = [...alreadyLoaded];
+      writeProgress(progress);
+      skipped++;
+      continue;
+    }
 
     const { error } = await supabase.rpc('treasury_sync_budget_tree', {
       p_data_source_id: dsId,
