@@ -601,7 +601,7 @@ async function loadToSupabase(supabase, report, fiscalYear, records, headers) {
     }
 
     // Find or create a data source for this municipality
-    const { data: existingDs } = await supabase
+    const { data: existingDs, error: dsLookupErr } = await supabase
       .schema('treasury')
       .from('data_sources')
       .select('id, fiscal_years')
@@ -609,6 +609,12 @@ async function loadToSupabase(supabase, report, fiscalYear, records, headers) {
       .eq('api_type', 'ma-dls')
       .eq('dataset_type', report.datasetType)
       .maybeSingle();
+
+    if (dsLookupErr) {
+      console.log(`    ❌ ${record.municipality} data source lookup: ${dsLookupErr.message}`);
+      skipped++;
+      continue;
+    }
 
     let dsId = existingDs?.id;
 
