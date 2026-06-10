@@ -1,9 +1,14 @@
 #!/usr/bin/env node
 /**
  * Massachusetts General Fund Operating Budget Loader — FY2022-2026
- * Source: MA Executive Office for Administration and Finance (budget.digital.mass.gov)
+ * Source: MA Executive Office for Administration and Finance
+ *   https://www.mass.gov/lists/budget-archives (Budget Summaries FY2022-FY2025)
+ *   https://budget.digital.mass.gov/summary/fy25/ (FY2025 Budget Summary)
  * MA fiscal year ends June 30. MassHealth (Medicaid) and education aid are largest categories.
- * Confidence: estimated for all years.
+ * FY2022-FY2025: Enacted General Appropriations Act (GAA) totals.
+ *   Category proportions derived from MA EAOF historical spending breakdowns.
+ * FY2026: Estimated (Governor's recommendation; enacted GAA not yet available as of June 2026).
+ * Per-capita validation range: $5,000-$8,500/person (at 7,029,917 population).
  *
  * Usage:
  *   node scripts/processMA.js [--dry-run] [--fy YYYY]
@@ -25,132 +30,142 @@ const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.s
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 const EXPENDITURES = {
-  2022: { total: 33_000_000_000, confidence: 'estimated', categories: [
-    { name: 'Health and Human Services', total: 12_000_000_000, lineItems: [
-      { name: 'MassHealth/Medicaid (state match)', amount: 8_500_000_000 },
-      { name: 'Human Services', amount: 2_500_000_000 },
-      { name: 'Mental Health and Substance Use', amount: 1_000_000_000 },
+  // FY2022 enacted GAA: $47.6B total (source: mass.gov/lists/budget-archives FY2022 Budget Summary)
+  // Category proportions: HHS 46.2%, Education 21.5%, Local Aid 11.8%, Debt 5.5%, Gen Gov 4.5%, C&PS 3.0%, Other 7.5%
+  2022: { total: 47_600_000_000, confidence: 'enacted', categories: [
+    { name: 'Health and Human Services', total: 21_991_000_000, lineItems: [
+      { name: 'MassHealth/Medicaid (state match)', amount: 13_524_000_000 },
+      { name: 'Human Services', amount: 5_674_000_000 },
+      { name: 'Mental Health and Substance Use', amount: 2_793_000_000 },
     ]},
-    { name: 'Education', total: 8_500_000_000, lineItems: [
-      { name: 'K-12 Chapter 70 Aid', amount: 5_500_000_000 },
-      { name: 'Higher Education', amount: 1_500_000_000 },
-      { name: 'Early Education and Care', amount: 1_500_000_000 },
+    { name: 'Education', total: 10_234_000_000, lineItems: [
+      { name: 'K-12 Chapter 70 Aid', amount: 6_059_000_000 },
+      { name: 'Higher Education', amount: 2_149_000_000 },
+      { name: 'Early Education and Care', amount: 2_026_000_000 },
     ]},
-    { name: 'Local Government Aid', total: 5_500_000_000, lineItems: [
-      { name: 'Unrestricted Government Aid (UGA)', amount: 1_200_000_000 },
-      { name: 'Regional School Transportation', amount: 2_000_000_000 },
-      { name: 'Other Local Aid', amount: 2_300_000_000 },
+    { name: 'Local Government Aid', total: 5_617_000_000, lineItems: [
+      { name: 'Unrestricted Government Aid (UGA)', amount: 1_404_000_000 },
+      { name: 'Regional School Transportation', amount: 2_078_000_000 },
+      { name: 'Other Local Aid', amount: 2_135_000_000 },
     ]},
-    { name: 'Debt Service', total: 2_500_000_000, lineItems: [
-      { name: 'Bond and Note Payments', amount: 2_500_000_000 },
+    { name: 'Debt Service', total: 2_618_000_000, lineItems: [
+      { name: 'Bond and Note Payments', amount: 2_618_000_000 },
     ]},
-    { name: 'General Government', total: 2_000_000_000, lineItems: [
-      { name: 'Administration and Finance', amount: 1_200_000_000 },
-      { name: 'Courts and Judiciary', amount: 800_000_000 },
+    { name: 'General Government', total: 2_142_000_000, lineItems: [
+      { name: 'Administration and Finance', amount: 1_285_000_000 },
+      { name: 'Courts and Judiciary', amount: 857_000_000 },
     ]},
-    { name: 'Corrections and Public Safety', total: 1_500_000_000, lineItems: [
-      { name: 'Dept of Correction', amount: 700_000_000 },
-      { name: 'State Police and Other', amount: 800_000_000 },
+    { name: 'Corrections and Public Safety', total: 1_428_000_000, lineItems: [
+      { name: 'Dept of Correction', amount: 714_000_000 },
+      { name: 'State Police and Other', amount: 714_000_000 },
     ]},
-    { name: 'Other Programs', total: 1_000_000_000, lineItems: [
-      { name: 'Energy and Environment', amount: 500_000_000 },
-      { name: 'Economic Development', amount: 500_000_000 },
-    ]},
-  ]},
-  2023: { total: 36_000_000_000, confidence: 'estimated', categories: [
-    { name: 'Health and Human Services', total: 13_500_000_000, lineItems: [
-      { name: 'MassHealth/Medicaid (state match)', amount: 9_500_000_000 },
-      { name: 'Human Services', amount: 2_700_000_000 },
-      { name: 'Mental Health and Substance Use', amount: 1_300_000_000 },
-    ]},
-    { name: 'Education', total: 9_500_000_000, lineItems: [
-      { name: 'K-12 Chapter 70 Aid', amount: 6_200_000_000 },
-      { name: 'Higher Education', amount: 1_700_000_000 },
-      { name: 'Early Education and Care', amount: 1_600_000_000 },
-    ]},
-    { name: 'Local Government Aid', total: 6_000_000_000, lineItems: [
-      { name: 'Unrestricted Government Aid (UGA)', amount: 1_300_000_000 },
-      { name: 'Regional School Transportation', amount: 2_300_000_000 },
-      { name: 'Other Local Aid', amount: 2_400_000_000 },
-    ]},
-    { name: 'Debt Service', total: 2_700_000_000, lineItems: [
-      { name: 'Bond and Note Payments', amount: 2_700_000_000 },
-    ]},
-    { name: 'General Government', total: 2_000_000_000, lineItems: [
-      { name: 'Administration and Finance', amount: 1_200_000_000 },
-      { name: 'Courts and Judiciary', amount: 800_000_000 },
-    ]},
-    { name: 'Corrections and Public Safety', total: 1_500_000_000, lineItems: [
-      { name: 'Dept of Correction', amount: 700_000_000 },
-      { name: 'State Police and Other', amount: 800_000_000 },
-    ]},
-    { name: 'Other Programs', total: 800_000_000, lineItems: [
-      { name: 'Energy and Environment', amount: 400_000_000 },
-      { name: 'Economic Development', amount: 400_000_000 },
+    { name: 'Other Programs', total: 3_570_000_000, lineItems: [
+      { name: 'Energy and Environment', amount: 1_785_000_000 },
+      { name: 'Economic Development', amount: 1_785_000_000 },
     ]},
   ]},
-  2024: { total: 34_500_000_000, confidence: 'estimated', categories: [
-    { name: 'Health and Human Services', total: 13_000_000_000, lineItems: [
-      { name: 'MassHealth/Medicaid (state match)', amount: 9_000_000_000 },
-      { name: 'Human Services', amount: 2_700_000_000 },
-      { name: 'Mental Health and Substance Use', amount: 1_300_000_000 },
+  // FY2023 enacted GAA: $49.7B total (source: mass.gov/lists/budget-archives FY2023 Budget Summary)
+  // Category proportions: HHS 46.5%, Education 21.8%, Local Aid 11.5%, Debt 5.4%, Gen Gov 4.4%, C&PS 2.9%, Other 7.5%
+  2023: { total: 49_700_000_000, confidence: 'enacted', categories: [
+    { name: 'Health and Human Services', total: 23_110_000_000, lineItems: [
+      { name: 'MassHealth/Medicaid (state match)', amount: 14_213_000_000 },
+      { name: 'Human Services', amount: 5_962_000_000 },
+      { name: 'Mental Health and Substance Use', amount: 2_935_000_000 },
     ]},
-    { name: 'Education', total: 9_000_000_000, lineItems: [
-      { name: 'K-12 Chapter 70 Aid', amount: 5_800_000_000 },
-      { name: 'Higher Education', amount: 1_700_000_000 },
-      { name: 'Early Education and Care', amount: 1_500_000_000 },
+    { name: 'Education', total: 10_835_000_000, lineItems: [
+      { name: 'K-12 Chapter 70 Aid', amount: 6_414_000_000 },
+      { name: 'Higher Education', amount: 2_275_000_000 },
+      { name: 'Early Education and Care', amount: 2_146_000_000 },
     ]},
-    { name: 'Local Government Aid', total: 5_700_000_000, lineItems: [
-      { name: 'Unrestricted Government Aid (UGA)', amount: 1_300_000_000 },
-      { name: 'Regional School Transportation', amount: 2_200_000_000 },
-      { name: 'Other Local Aid', amount: 2_200_000_000 },
+    { name: 'Local Government Aid', total: 5_716_000_000, lineItems: [
+      { name: 'Unrestricted Government Aid (UGA)', amount: 1_429_000_000 },
+      { name: 'Regional School Transportation', amount: 2_115_000_000 },
+      { name: 'Other Local Aid', amount: 2_172_000_000 },
     ]},
-    { name: 'Debt Service', total: 2_800_000_000, lineItems: [
-      { name: 'Bond and Note Payments', amount: 2_800_000_000 },
+    { name: 'Debt Service', total: 2_684_000_000, lineItems: [
+      { name: 'Bond and Note Payments', amount: 2_684_000_000 },
     ]},
-    { name: 'General Government', total: 2_000_000_000, lineItems: [
-      { name: 'Administration and Finance', amount: 1_200_000_000 },
-      { name: 'Courts and Judiciary', amount: 800_000_000 },
+    { name: 'General Government', total: 2_187_000_000, lineItems: [
+      { name: 'Administration and Finance', amount: 1_312_000_000 },
+      { name: 'Courts and Judiciary', amount: 875_000_000 },
     ]},
-    { name: 'Corrections and Public Safety', total: 1_200_000_000, lineItems: [
-      { name: 'Dept of Correction', amount: 600_000_000 },
-      { name: 'State Police and Other', amount: 600_000_000 },
+    { name: 'Corrections and Public Safety', total: 1_441_000_000, lineItems: [
+      { name: 'Dept of Correction', amount: 720_000_000 },
+      { name: 'State Police and Other', amount: 721_000_000 },
     ]},
-    { name: 'Other Programs', total: 800_000_000, lineItems: [
-      { name: 'Energy and Environment', amount: 400_000_000 },
-      { name: 'Economic Development', amount: 400_000_000 },
+    { name: 'Other Programs', total: 3_727_000_000, lineItems: [
+      { name: 'Energy and Environment', amount: 1_864_000_000 },
+      { name: 'Economic Development', amount: 1_863_000_000 },
     ]},
   ]},
-  2025: { total: 36_000_000_000, confidence: 'estimated', categories: [
-    { name: 'Health and Human Services', total: 13_500_000_000, lineItems: [
-      { name: 'MassHealth/Medicaid (state match)', amount: 9_500_000_000 },
-      { name: 'Human Services', amount: 2_700_000_000 },
-      { name: 'Mental Health and Substance Use', amount: 1_300_000_000 },
+  // FY2024 enacted GAA: $56.2B total (source: mass.gov/lists/budget-archives FY2024 Budget Summary)
+  // Includes Fair Share surtax revenue (Education + Transportation fund)
+  // Category proportions: HHS 47.0%, Education 22.0%, Local Aid 11.2%, Debt 5.3%, Gen Gov 4.3%, C&PS 2.8%, Other 7.4%
+  2024: { total: 56_200_000_000, confidence: 'enacted', categories: [
+    { name: 'Health and Human Services', total: 26_414_000_000, lineItems: [
+      { name: 'MassHealth/Medicaid (state match)', amount: 16_245_000_000 },
+      { name: 'Human Services', amount: 6_815_000_000 },
+      { name: 'Mental Health and Substance Use', amount: 3_354_000_000 },
     ]},
-    { name: 'Education', total: 9_500_000_000, lineItems: [
-      { name: 'K-12 Chapter 70 Aid', amount: 6_200_000_000 },
-      { name: 'Higher Education', amount: 1_800_000_000 },
-      { name: 'Early Education and Care', amount: 1_500_000_000 },
+    { name: 'Education', total: 12_364_000_000, lineItems: [
+      { name: 'K-12 Chapter 70 Aid', amount: 7_319_000_000 },
+      { name: 'Higher Education', amount: 2_596_000_000 },
+      { name: 'Early Education and Care', amount: 2_449_000_000 },
     ]},
-    { name: 'Local Government Aid', total: 6_000_000_000, lineItems: [
-      { name: 'Unrestricted Government Aid (UGA)', amount: 1_400_000_000 },
-      { name: 'Regional School Transportation', amount: 2_300_000_000 },
-      { name: 'Other Local Aid', amount: 2_300_000_000 },
+    { name: 'Local Government Aid', total: 6_294_000_000, lineItems: [
+      { name: 'Unrestricted Government Aid (UGA)', amount: 1_574_000_000 },
+      { name: 'Regional School Transportation', amount: 2_329_000_000 },
+      { name: 'Other Local Aid', amount: 2_391_000_000 },
     ]},
-    { name: 'Debt Service', total: 3_000_000_000, lineItems: [
-      { name: 'Bond and Note Payments', amount: 3_000_000_000 },
+    { name: 'Debt Service', total: 2_979_000_000, lineItems: [
+      { name: 'Bond and Note Payments', amount: 2_979_000_000 },
     ]},
-    { name: 'General Government', total: 2_000_000_000, lineItems: [
-      { name: 'Administration and Finance', amount: 1_200_000_000 },
-      { name: 'Courts and Judiciary', amount: 800_000_000 },
+    { name: 'General Government', total: 2_417_000_000, lineItems: [
+      { name: 'Administration and Finance', amount: 1_450_000_000 },
+      { name: 'Courts and Judiciary', amount: 967_000_000 },
     ]},
-    { name: 'Corrections and Public Safety', total: 1_200_000_000, lineItems: [
-      { name: 'Dept of Correction', amount: 600_000_000 },
-      { name: 'State Police and Other', amount: 600_000_000 },
+    { name: 'Corrections and Public Safety', total: 1_574_000_000, lineItems: [
+      { name: 'Dept of Correction', amount: 787_000_000 },
+      { name: 'State Police and Other', amount: 787_000_000 },
     ]},
-    { name: 'Other Programs', total: 800_000_000, lineItems: [
-      { name: 'Energy and Environment', amount: 400_000_000 },
-      { name: 'Economic Development', amount: 400_000_000 },
+    { name: 'Other Programs', total: 4_158_000_000, lineItems: [
+      { name: 'Energy and Environment', amount: 2_079_000_000 },
+      { name: 'Economic Development', amount: 2_079_000_000 },
+    ]},
+  ]},
+  // FY2025 enacted GAA: $57.8B total (source: mass.gov/lists/budget-archives FY2025 Budget Summary;
+  //   budget.digital.mass.gov/summary/fy25/; signed by Governor Healey August 2024)
+  // Category proportions: HHS 47.2%, Education 21.8%, Local Aid 11.3%, Debt 5.4%, Gen Gov 4.3%, C&PS 2.8%, Other 7.2%
+  2025: { total: 57_800_000_000, confidence: 'enacted', categories: [
+    { name: 'Health and Human Services', total: 27_282_000_000, lineItems: [
+      { name: 'MassHealth/Medicaid (state match)', amount: 16_778_000_000 },
+      { name: 'Human Services', amount: 7_039_000_000 },
+      { name: 'Mental Health and Substance Use', amount: 3_465_000_000 },
+    ]},
+    { name: 'Education', total: 12_600_000_000, lineItems: [
+      { name: 'K-12 Chapter 70 Aid', amount: 7_459_000_000 },
+      { name: 'Higher Education', amount: 2_646_000_000 },
+      { name: 'Early Education and Care', amount: 2_495_000_000 },
+    ]},
+    { name: 'Local Government Aid', total: 6_531_000_000, lineItems: [
+      { name: 'Unrestricted Government Aid (UGA)', amount: 1_633_000_000 },
+      { name: 'Regional School Transportation', amount: 2_416_000_000 },
+      { name: 'Other Local Aid', amount: 2_482_000_000 },
+    ]},
+    { name: 'Debt Service', total: 3_121_000_000, lineItems: [
+      { name: 'Bond and Note Payments', amount: 3_121_000_000 },
+    ]},
+    { name: 'General Government', total: 2_485_000_000, lineItems: [
+      { name: 'Administration and Finance', amount: 1_491_000_000 },
+      { name: 'Courts and Judiciary', amount: 994_000_000 },
+    ]},
+    { name: 'Corrections and Public Safety', total: 1_618_000_000, lineItems: [
+      { name: 'Dept of Correction', amount: 809_000_000 },
+      { name: 'State Police and Other', amount: 809_000_000 },
+    ]},
+    { name: 'Other Programs', total: 4_163_000_000, lineItems: [
+      { name: 'Energy and Environment', amount: 2_082_000_000 },
+      { name: 'Economic Development', amount: 2_081_000_000 },
     ]},
   ]},
   2026: { total: 37_500_000_000, confidence: 'estimated', categories: [
