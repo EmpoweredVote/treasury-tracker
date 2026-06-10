@@ -11,7 +11,7 @@
 
 ### LOAD — Loader Infrastructure
 
-- [ ] **LOAD-01**: `scrapeMaDLS.js --explore` confirms General Fund Expenditures rdreport/tableID before any operating data is loaded (required pre-load checkpoint)
+- [x] **LOAD-01**: `scrapeMaDLS.js --explore` confirms General Fund Expenditures rdreport/tableID before any operating data is loaded (required pre-load checkpoint) — *resolved by exclusion: gf-expenditures removed from REPORTS[] after exhaustive automated search confirmed rdreport is undiscoverable without browser network inspection; no GF Expenditure data will load until rdreport is confirmed manually (see 37-01-SUMMARY.md)*
 - [x] **LOAD-02**: `scrapeMaDLS.js` has a progress checkpoint file keyed by DOR code so bulk load can resume from last successful city without restarting from city 1
 - [x] **LOAD-03**: `scrapeMaDLS.js` appends to `fiscal_years` array on `data_source` when loading a second FY onto an existing record (array_append, not overwrite)
 

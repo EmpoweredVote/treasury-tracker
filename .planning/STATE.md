@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Massachusetts All-Cities Financial Transparency
 status: executing
-last_updated: "2026-06-10T07:54:48.540Z"
+last_updated: "2026-06-10T00:00:00.000Z"
 last_activity: 2026-06-10
 progress:
   total_phases: 8
-  completed_phases: 6
-  total_plans: 17
-  completed_plans: 17
-  percent: 75
+  completed_phases: 7
+  total_plans: 19
+  completed_plans: 19
+  percent: 88
 ---
 
 # State
@@ -20,25 +20,25 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-09)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 37 — ma-loader-hardening
+**Current focus:** Phase 38 — ma-city-budget-load
 
 ## Current Position
 
-Phase: 37 (ma-loader-hardening) — EXECUTING
-Plan: 2 of 2
-Status: Ready to execute
+Phase: 38 (ma-city-budget-load) — NEXT
+Plan: 0 of N (not yet planned)
+Status: Phase 37 complete — ready to plan Phase 38
 Last activity: 2026-06-10
 
 ## Phase Overview
 
 | Phase | Name | Depends on | Status |
 |-------|------|------------|--------|
-| 37 | MA Loader Hardening | Nothing | Ready to plan |
+| 37 | MA Loader Hardening | Nothing | Complete (2026-06-10) |
 | 38 | MA City Budget Load | Phase 37 | Not started |
 | 39 | MA Population, State Budget, and Enrichment | Phase 38 | Not started |
 
 **Critical path:** Phase 37 → Phase 38 → Phase 39
-**Sequencing constraint:** LOAD-01 (rdreport/tableID confirmation) MUST complete before any MA city data is written. Running the bulk load against a wrong tableID would label a non-operating dataset as "operating" across all 351 cities.
+**Sequencing constraint:** LOAD-01 resolved by exclusion — gf-expenditures removed from REPORTS[]. Phase 38 bulk load is scoped to 2 report types: special-revenue + revenue-by-source. GF Expenditures deferred until browser network inspection confirms rdreport (see 37-01-SUMMARY.md for re-add path).
 
 ## Accumulated Context
 
