@@ -48,6 +48,14 @@ const DELAY_MS = 1500;
 // ── Report definitions ───────────────────────────────────────────────────────
 // rdreport values and tableID for Excel export.
 // Run --explore on unknown reports to discover tableID.
+// NOTE: General Fund Expenditures is intentionally excluded.
+// The DLS Gateway wrapper ScheduleA.GenFund_MAIN exists but renders via JavaScript,
+// making the subreport rdreport undiscoverable without browser network inspection.
+// The DLS Databank (mass.gov) offers no bulk CSV/Excel download for this data.
+// To re-add: open https://dls-gw.dor.state.ma.us/reports/rdpage.aspx?rdreport=schedulea.genfund_main
+// in a browser, inspect network requests to find the subreport rdreport and tableID, then
+// add a new entry to REPORTS[] following the revenue-by-source pattern.
+
 const REPORTS = [
   {
     name: 'special-revenue',
@@ -57,15 +65,6 @@ const REPORTS = [
     exportFilename: 'fedgrants',
     datasetType: 'operating',       // expenditures from special revenue funds
     supportsType: true,             // has Expenditures/Revenues toggle
-  },
-  {
-    name: 'gf-expenditures',
-    label: 'General Fund Expenditures by Function',
-    rdreport: 'ScheduleA.GF.ExpendituresByFunctionMain',  // best guess — verify with --explore
-    tableID: 'xtGFExp',
-    exportFilename: 'gfexp',
-    datasetType: 'operating',
-    supportsType: false,
   },
   {
     name: 'revenue-by-source',
