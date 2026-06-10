@@ -683,7 +683,7 @@ async function loadToSupabase(supabase, report, fiscalYear, records, headers) {
       p_total: total,
       p_tree: tree,
       p_row_count: tree.length,
-      p_triggered_by: 'ma_dls_scraper',
+      p_triggered_by: 'bulk_load',
     });
 
     if (error) { console.log(`    ❌ ${record.municipality}: ${error.message}`); skipped++; }
