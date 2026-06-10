@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Massachusetts All-Cities Financial Transparency
 status: executing
-last_updated: "2026-06-10T21:46:05.798Z"
-last_activity: 2026-06-10 -- Phase 39 planning complete
+last_updated: "2026-06-10T00:00:00.000Z"
+last_activity: 2026-06-10 -- Phase 39 wave 1 complete (population, state budget, enrichment)
 progress:
   total_phases: 8
   completed_phases: 7
   total_plans: 23
-  completed_plans: 19
-  percent: 83
+  completed_plans: 22
+  percent: 96
 ---
 
 # State
@@ -20,22 +20,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-09)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 38 — ma-city-budget-load
+**Current focus:** Phase 39 — ma-population-state-budget-and-enrichment
 
 ## Current Position
 
-Phase: 38 (ma-city-budget-load) — EXECUTING
-Plan: 2 of 2
-Status: Ready to execute
-Last activity: 2026-06-10 -- Phase 39 planning complete
+Phase: 39 (ma-population-state-budget-and-enrichment) — EXECUTING
+Plan: 4 of 4 (wave 1 complete, wave 2 pending human verification)
+Status: Awaiting 39-04 human checkpoint
+Last activity: 2026-06-10 -- Phase 39 wave 1 complete (population, state budget, enrichment)
 
 ## Phase Overview
 
 | Phase | Name | Depends on | Status |
 |-------|------|------------|--------|
 | 37 | MA Loader Hardening | Nothing | Complete (2026-06-10) |
-| 38 | MA City Budget Load | Phase 37 | Not started |
-| 39 | MA Population, State Budget, and Enrichment | Phase 38 | Not started |
+| 38 | MA City Budget Load | Phase 37 | Complete (2026-06-10) |
+| 39 | MA Population, State Budget, and Enrichment | Phase 38 | Executing — wave 2 pending |
 
 **Critical path:** Phase 37 → Phase 38 → Phase 39
 **Sequencing constraint:** LOAD-01 resolved by exclusion — gf-expenditures removed from REPORTS[]. Phase 38 bulk load is scoped to 2 report types: special-revenue + revenue-by-source. GF Expenditures deferred until browser network inspection confirms rdreport (see 37-01-SUMMARY.md for re-add path).
