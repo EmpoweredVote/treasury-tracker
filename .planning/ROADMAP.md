@@ -714,7 +714,19 @@ Plans:
   3. All 9 MA DLS operating category names (e.g., "General Government", "Public Safety", "Education") display plain-language enrichment descriptions on any MA city page
   4. All 5 MA DLS revenue category names (e.g., "Property Taxes", "State Aid") display plain-language enrichment descriptions on any MA city page
   5. Enrichment descriptions are identical across different MA cities for the same category name — confirming universal (not per-city) reuse
-**Plans:** TBD
+**Plans:** 4 plans (2 waves)
+Plans:
+**Wave 1** *(three independent workstreams, no file overlap, fully parallel)*
+
+- [ ] 39-01-PLAN.md — MA-04: create loadMAPopulation.js (Census FIPS-25, SUMLEV=061, dynamic 351-city DB list) + live-load population for all 351 MA municipalities
+- [ ] 39-02-PLAN.md — STATE-01: update processMA.js EXPENDITURES with real MA GF figures (enacted/actual) + reload MA state entity + commit loadMaGFExcel.js
+- [ ] 39-03-PLAN.md — ENRICH-01: enrich Boston 14 MA DLS categories + universalize (municipality_id=NULL) with Pitfall-5 duplicate guard
+
+**Wave 2** *(blocked on 39-01 + 39-02 + 39-03 — needs all data loaded to verify in app)*
+
+- [ ] 39-04-PLAN.md — Automated DB verification of all 3 workstreams + human app spot-check (per-capita, MA state real data, universal enrichment identical across cities)
+
+**UI hint:** yes
 
 ---
 
@@ -760,9 +772,9 @@ Plans:
 | 36. Selective City Retrofit | v1.7 | 4/4 | Complete | 2026-06-09 |
 | 37. MA Loader Hardening | v1.8 | 2/2 | Complete   | 2026-06-10 |
 | 38. MA City Budget Load | v1.8 | 2/2 | Complete   | 2026-06-10 |
-| 39. MA Population, State Budget, and Enrichment | v1.8 | 0/TBD | Not started | — |
+| 39. MA Population, State Budget, and Enrichment | v1.8 | 0/4 | Not started | — |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-06-10 — Phase 38 planned (2 plans, 2 waves)*
+*Last updated: 2026-06-10 — Phase 39 planned (4 plans, 2 waves)*
