@@ -57,6 +57,7 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - ✓ Riverside CA operating (FY2023–FY2026 biennial, GF ~$1.45B/yr, 324K population, 18 enrichment rows; revenue deferred) — v1.6, Phase 30
 - ✓ Anaheim CA operating + revenue (FY2025–FY2026, GF $491M–$530M, 344K population, 25 enrichment rows) — v1.6, Phase 31
 - ✓ Santa Ana CA operating + revenue (FY2023–FY2026, GF $404M–$424M, 312K population, 26 enrichment rows) — v1.6, Phase 31
+- ✓ 5 MA county operating budgets loaded via PDF extraction: Barnstable $24.75M FY25, Bristol $34.39M FY25, Dukes $2.02M FY24, Norfolk $37.82M FY26, Plymouth $11.87M FY25 — county pages show Money Out tab with per-capita — v1.9, Phase 41
 
 ## Current Milestone: v1.9 MA County-City Linking
 
@@ -112,6 +113,8 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 | `where_extra` caller supplies leading AND | More flexible (allows OR, parentheses); matches column_mapping per-dataset contract | ✓ Good |
 | `fiscal_year_type` defaults to 'string' | Backward-compatible; only 'integer' triggers unquoted WHERE branch | ✓ Good |
 | SD FY2026 excluded (empty budget_cycle in source) | Source-driven gap; update fiscal_years when SD publishes FY2026 adopted data | — No code change needed |
+| Bristol + Norfolk county budgets larger than ROADMAP estimates | ROADMAP estimated Bristol ~$9-14M and Norfolk ~$14-18M; both include Agricultural Schools — Bristol $34.4M, Norfolk $37.8M | ✓ Accurate data wins |
+| Bristol/Dukes extracted via hardcoded values | Bristol PDF is scanned (no text layer); Dukes dot-leaders prevented reliable OCR parsing; hardcoded from verified sources | ✓ Good — accuracy over automation |
 
 ## Shipped
 
@@ -126,4 +129,4 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - ✅ **v1.0 GiveButter Real-Time Donation Feedback** — 2026-04-22 — Phases 1-4
 
 ---
-*Last updated: 2026-06-09 after v1.7 milestone archived, v1.8 started*
+*Last updated: 2026-06-11 after Phase 41 complete (MA county budgets loaded)*
