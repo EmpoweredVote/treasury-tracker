@@ -211,6 +211,12 @@ async function main() {
     { name: 'Plymouth County',   id: plymouthId,   cities: PLYMOUTH_CITIES,   expected: 27 },
   ];
 
+  const missingIds = countyUpdates.filter(c => !c.id).map(c => c.name);
+  if (missingIds.length > 0) {
+    console.error(`Cannot proceed with Step 2: missing county IDs for: ${missingIds.join(', ')}`);
+    process.exit(1);
+  }
+
   let totalUpdated = 0;
 
   for (const county of countyUpdates) {
