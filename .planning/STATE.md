@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Massachusetts All-Cities Financial Transparency
-status: executing
+status: complete
 last_updated: "2026-06-10T00:00:00.000Z"
-last_activity: 2026-06-10 -- Phase 39 wave 1 complete (population, state budget, enrichment)
+last_activity: 2026-06-10 -- Phase 39 complete; v1.8 milestone complete
 progress:
   total_phases: 8
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 23
-  completed_plans: 22
-  percent: 96
+  completed_plans: 23
+  percent: 100
 ---
 
 # State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-09)
 
 ## Current Position
 
-Phase: 39 (ma-population-state-budget-and-enrichment) — EXECUTING
-Plan: 4 of 4 (wave 1 complete, wave 2 pending human verification)
-Status: Awaiting 39-04 human checkpoint
-Last activity: 2026-06-10 -- Phase 39 wave 1 complete (population, state budget, enrichment)
+Phase: 39 (ma-population-state-budget-and-enrichment) — COMPLETE
+Plan: 4 of 4 — all complete
+Status: v1.8 milestone complete
+Last activity: 2026-06-10 -- Phase 39 human verification approved; v1.8 closed
 
 ## Phase Overview
 
@@ -35,7 +35,7 @@ Last activity: 2026-06-10 -- Phase 39 wave 1 complete (population, state budget,
 |-------|------|------------|--------|
 | 37 | MA Loader Hardening | Nothing | Complete (2026-06-10) |
 | 38 | MA City Budget Load | Phase 37 | Complete (2026-06-10) |
-| 39 | MA Population, State Budget, and Enrichment | Phase 38 | Executing — wave 2 pending |
+| 39 | MA Population, State Budget, and Enrichment | Phase 38 | Complete (2026-06-10) |
 
 **Critical path:** Phase 37 → Phase 38 → Phase 39
 **Sequencing constraint:** LOAD-01 resolved by exclusion — gf-expenditures removed from REPORTS[]. Phase 38 bulk load is scoped to 2 report types: special-revenue + revenue-by-source. GF Expenditures deferred until browser network inspection confirms rdreport (see 37-01-SUMMARY.md for re-add path).
@@ -84,26 +84,13 @@ $5 per run — estimate before running AI enrichment. MA enrichment (14 categori
 
 ## Session Continuity
 
-Last session: 2026-06-10 — Phase 39 wave 1 complete
-Stopped at: 39-04 human checkpoint in progress; Excel historical load deferred to next session
+Last session: 2026-06-10 — v1.8 milestone complete
+Stopped at: All phases complete; milestone closed
 Resume file: None
 
-### Next Session: Resume 39-04 + Load MA Historical Excel Data
+### Next Session
 
-**Where we left off:** Phase 39 wave 1 is fully complete (39-01 population, 39-02 state budget, 39-03 enrichment). Wave 2 plan 39-04 is a human verification checkpoint that was started but the user noticed Boston only shows FY2021–2025, not the full history available in the Excel files.
-
-**Agreed next step:** Run `loadMaGFExcel.js --clean` to load all 351 MA cities × 24 years (FY2002–2025) of General Fund data from the Excel files in `docs/MA/`. This replaces the DLS API data for FY2021–2025 (to avoid duplicates) and adds FY2002–2020 historical data, giving every MA city page 23 years of history.
-
-**Command to run:**
-```bash
-node scripts/loadMaGFExcel.js --clean
-```
-
-**What `--clean` does:** Removes existing DLS portal-scraped budget rows (api_type='ma-dls') for all 351 MA cities, then loads all Excel data with api_type='ma-dls-excel'. Prevents FY2021–2025 duplicate rows between the two sources.
-
-**Scope:** 48 Excel files (24 expenditure + 24 revenue, FY2002–2025) × 351 cities. Estimated runtime: 30–60 minutes. No cost (no AI API calls needed).
-
-**After the Excel load:** Complete 39-04 human verification (per-capita, real state budget, enrichment descriptions) and close out Phase 39.
+v1.8 is complete. All 351 MA cities loaded with FY2002–2025 General Fund data, per-capita, real state budget, and universal enrichment descriptions. Start v1.9 planning.
 
 ## Performance Metrics
 
