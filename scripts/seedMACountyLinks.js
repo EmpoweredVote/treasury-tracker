@@ -168,10 +168,14 @@ async function main() {
       process.exit(1);
     }
 
-    console.log(`  Inserted ${inserted.length} county rows:`);
-    for (const row of inserted) {
+    const safeInserted = inserted ?? [];
+    console.log(`  Inserted ${safeInserted.length} county rows:`);
+    for (const row of safeInserted) {
       console.log(`    [${row.id}] ${row.name}`);
       countyIdMap[row.name] = row.id;
+    }
+    if (safeInserted.length !== missingCounties.length) {
+      console.warn(`  WARNING: Expected to insert ${missingCounties.length} rows but received ${safeInserted.length} back. Verify DB state.`);
     }
   } else if (missingCounties.length > 0 && dryRun) {
     console.log(`  [DRY RUN] Would insert:`);
