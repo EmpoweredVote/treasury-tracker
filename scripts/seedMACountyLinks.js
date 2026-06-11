@@ -232,6 +232,7 @@ async function main() {
       .from('municipalities')
       .update({ county_id: county.id })
       .eq('state', 'MA')
+      .eq('entity_type', 'city')
       .in('name', county.cities)
       .select('id, name');
 
