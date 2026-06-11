@@ -36,7 +36,9 @@ function loadEnv() {
       const lines = readFileSync(resolve(__dirname, '..', f), 'utf8').split('\n');
       for (const line of lines) {
         const [k, ...v] = line.split('=');
-        if (k && v.length && !process.env[k.trim()]) process.env[k.trim()] = v.join('=').trim();
+        const rawVal = v.join('=').trim();
+        const val = rawVal.replace(/\s+#.*$/, '');
+        if (k && val && !process.env[k.trim()]) process.env[k.trim()] = val;
       }
     } catch { /* ignore missing files */ }
   }
