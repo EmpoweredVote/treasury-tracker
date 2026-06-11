@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.8
-milestone_name: Massachusetts All-Cities Financial Transparency
-status: complete
+milestone: v1.9
+milestone_name: MA County-City Linking
+status: planning
 last_updated: "2026-06-10T00:00:00.000Z"
-last_activity: 2026-06-10 -- Phase 39 complete; v1.8 milestone complete
+last_activity: 2026-06-10 -- Milestone v1.9 started
 progress:
-  total_phases: 8
-  completed_phases: 8
-  total_plans: 23
-  completed_plans: 23
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-09)
 
 ## Current Position
 
-Phase: 39 (ma-population-state-budget-and-enrichment) — COMPLETE
-Plan: 4 of 4 — all complete
-Status: v1.8 milestone complete
-Last activity: 2026-06-10 -- Phase 39 human verification approved; v1.8 closed
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-06-10 — Milestone v1.9 started
 
 ## Phase Overview
 

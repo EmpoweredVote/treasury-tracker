@@ -58,29 +58,28 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - ✓ Anaheim CA operating + revenue (FY2025–FY2026, GF $491M–$530M, 344K population, 25 enrichment rows) — v1.6, Phase 31
 - ✓ Santa Ana CA operating + revenue (FY2023–FY2026, GF $404M–$424M, 312K population, 26 enrichment rows) — v1.6, Phase 31
 
-## Current Milestone: v1.8 Massachusetts All-Cities Financial Transparency
+## Current Milestone: v1.9 MA County-City Linking
 
-**Goal:** Load real budget data for all 351 Massachusetts municipalities using the MA DLS (Division of Local Services) reporting portal, making MA the first fully-covered state on Treasury Tracker.
+**Goal:** Surface county context for all 351 MA municipalities — seed 14 county entities, link every city to its county, load budget data for the 5 active county governments, and show county breadcrumb + city panels in the live app.
 
 **Target features:**
-- MA DLS API loader that reads `rdreport` + `tableID` from `column_mapping` (api_type: 'ma-dls')
-- Operating budget data loaded for all 351 MA cities (Schedule A / Special Revenue Funds)
-- Revenue data loaded for all 351 MA cities (General Fund Revenue by Source)
-- Category enrichment for MA cities
-- MA shown in city picker as a new state
+- 14 MA county rows seeded (entity_type='county', state='MA', Census population)
+- All 351 MA cities linked via county_id FK (county_id column already exists)
+- Budget data loaded for 5 active MA county governments (Barnstable, Bristol, Dukes, Nantucket, Norfolk)
+- County breadcrumb chip on MA city pages (links to county page)
+- CitiesInCountyPanel on MA county pages (available / coming soon)
+- Per-capita display on county pages (county population + county budget)
 
-### Active (Phase 37 Complete — 2026-06-10)
+### Active
 
-- ✓ MA DLS loader hardened: progress checkpoint (LOAD-02) and fiscal_years append-with-dedup (LOAD-03) — Phase 37
-- ✓ LOAD-01 resolved by exclusion: gf-expenditures removed from REPORTS[] (rdreport undiscoverable via automation); Phase 38 scoped to special-revenue + revenue-by-source
+- v1.9 started 2026-06-10 — requirements definition in progress
 
 ### Out of Scope
 
+- Budget data for 9 dissolved MA counties (navigation-only: Berkshire, Dukes islands, Essex, Franklin, Hampden, Hampshire, Middlesex, Plymouth, Worcester)
 - Real-time websocket subscriptions — redirect-driven flow is sufficient and simpler
-- Patreon/Benevity real-time — webhook story is weaker; CSV import remains for those platforms
-- Admin donation management UI — out of scope for this milestone
-- Multi-year per-capita trends — single 2024 population vintage across FY2018–FY2026 creates false trends for fast-growing cities
-- Enterprise fund audit across cities — complex scope analysis; deferred until cross-city comparison is in scope
+- Multi-year per-capita trends — single vintage population creates false trends for fast-growing entities
+- Enterprise fund audit across counties — complex scope; deferred
 
 ## Context
 
@@ -89,8 +88,9 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - Donation platforms: GiveButter (primary, lowest fees), Patreon (recurring), Benevity (workplace giving)
 - GiveButter supports webhooks and custom return URLs after donation completion
 - The webhook fires before the redirect, so DB should be updated by the time user lands back
-- Currently covers: 14 TX cities (Dallas, Plano, McKinney, Frisco, Allen, Prosper, Celina, Richardson, Garland, Wylie, Sachse, Murphy, Princeton, Longview) + 11 CA cities (Los Angeles, San Francisco, San Diego, Sacramento, Oakland, San Jose, Long Beach, Bakersfield, Fresno, Riverside, Anaheim, Santa Ana) + LA County + 3 OR cities (Portland, Gresham, Troutdale)
+- Currently covers: 14 TX cities (Dallas, Plano, McKinney, Frisco, Allen, Prosper, Celina, Richardson, Garland, Wylie, Sachse, Murphy, Princeton, Longview) + 12 CA cities (Los Angeles, San Francisco, San Diego, Sacramento, Oakland, San Jose, Long Beach, Bakersfield, Fresno, Riverside, Anaheim, Santa Ana) + LA County + 3 OR cities (Portland, Gresham, Troutdale) + 351 MA cities + Massachusetts (state)
 - county_id FK on municipalities; 88 LA County cities linked; county breadcrumb chip on city pages; CitiesInCountyPanel on county pages
+- MA: 351 cities with FY2002–2025 General Fund data (24 years), per-capita, universal enrichment (14 categories), real MA state budget
 
 ## Constraints
 
@@ -115,6 +115,7 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 
 ## Shipped
 
+- ✅ **v1.8 Massachusetts All-Cities Financial Transparency** — 2026-06-10 — Phases 37-39 (MA DLS loader, 351 MA cities FY2002–2025, MA state budget, per-capita, universal enrichment)
 - ✅ **v1.7 California State Budget + Deep Icicles** — 2026-06-09 — Phases 32-36 (CA state entity, CA state budget, 3-level icicle infrastructure, Portland/Dallas retrofit)
 - ✅ **v1.6 California City Expansion** — 2026-06-06 — Phases 26-31 (Sacramento, Oakland, San Jose, Long Beach, Bakersfield, Fresno, Riverside, Anaheim, Santa Ana CA; Longview TX revenue; STATE_LABELS)
 - ✅ **v1.5 Oregon Expansion** — 2026-06-04 — Phases 17-25 (Portland/Gresham/Troutdale OR, all-funds consistency, LA data quality, LA County + county-city linking)
