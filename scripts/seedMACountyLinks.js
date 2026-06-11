@@ -250,7 +250,7 @@ async function main() {
     console.log('\nStep 3: DB verification');
 
     // Query A: total MA cities with county_id set
-    const { data: totalLinked, error: totalErr } = await supabase
+    const { count: linkedCount, error: totalErr } = await supabase
       .schema('treasury')
       .from('municipalities')
       .select('id', { count: 'exact', head: true })
@@ -260,7 +260,7 @@ async function main() {
     if (totalErr) {
       console.error('  Verification query A failed:', totalErr.message);
     } else {
-      const count = totalLinked ?? 0;
+      const count = linkedCount ?? 0;
       console.log(`  Query A — MA cities with county_id set: ${count}`);
       if (count !== 97 && count !== 96) {
         console.warn(`  WARNING: Expected 97 (or 96 if Gosnold absent) but got ${count}.`);
