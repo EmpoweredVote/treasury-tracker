@@ -6,11 +6,11 @@ status: In progress
 last_updated: "2026-06-11T00:00:00.000Z"
 last_activity: 2026-06-11 — Phase 40 complete (5 MA county rows + 97 city county_id links)
 progress:
-  total_phases: 8
+  total_phases: 9
   completed_phases: 8
-  total_plans: 23
+  total_plans: 25
   completed_plans: 23
-  percent: 100
+  percent: 88
 ---
 
 # State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-09)
 
 ## Current Position
 
-Phase: 41 (MA County Budget Load) — not started
+Phase: 41 (MA County Budget Load) — Ready to execute
 Plan: —
-Status: Phase 40 complete; ready to plan Phase 41
-Last activity: 2026-06-11 — Phase 40 complete (5 MA county rows + 97 city county_id links)
+Status: Phase 41 planned (2 plans, 2 waves)
+Last activity: 2026-06-11 — Phase 41 planned (41-01 discovery, 41-02 load)
 
 ## Phase Overview
 

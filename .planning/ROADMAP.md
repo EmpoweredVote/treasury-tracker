@@ -770,8 +770,15 @@ Plans:
 
 **Plans:** 2 plans (discovery + load)
 
-- [ ] 41-01-PLAN.md — Discovery: for each of 5 counties, locate PDF budget, run pdftotext, document column structure and extraction approach; decide per-county: custom regex vs. Haiku vision pipeline; download PDFs to docs/MA-Counties/
-- [ ] 41-02-PLAN.md — Load: write `scripts/loadMACountyBudget.js` (or per-county scripts if formats diverge); dry-run all 5; live-load; DB verify counts + totals
+**Wave 1**
+- [ ] 41-01-PLAN.md — Discovery: Bristol PDF manual download (human-action checkpoint) + pdftotext inspection of all 5 counties; confirm extraction approach per county
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 41-02-PLAN.md — Write `scripts/extractMACounties.py` + `scripts/loadMACountyBudget.js`; dry-run all 5; live-load; DB verify counts + totals
+
+**Cross-cutting constraints:**
+- `api_type` must be `'pdf_download'` (not `'ma-dls'`) — county budgets are individual PDFs, not DLS portal data
+- `loadEnv` must use inline comment stripping from `seedMACountyLinks.js` pattern (not `loadMAPopulation.js`) to avoid WR-03 bug
 
 ### Phase 42: County Enrichment + Verification
 
