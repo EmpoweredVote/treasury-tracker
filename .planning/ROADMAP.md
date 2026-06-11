@@ -771,7 +771,7 @@ Plans:
 **Plans:** 2 plans (discovery + load)
 
 **Wave 1**
-- [ ] 41-01-PLAN.md — Discovery: Bristol PDF manual download (human-action checkpoint) + pdftotext inspection of all 5 counties; confirm extraction approach per county
+- [x] 41-01-PLAN.md — Discovery: Bristol PDF manual download (human-action checkpoint) + pdftotext inspection of all 5 counties; confirm extraction approach per county
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 41-02-PLAN.md — Write `scripts/extractMACounties.py` + `scripts/loadMACountyBudget.js`; dry-run all 5; live-load; DB verify counts + totals
@@ -842,7 +842,7 @@ Plans:
 | 38. MA City Budget Load | v1.8 | 2/2 | Complete   | 2026-06-10 |
 | 39. MA Population, State Budget, and Enrichment | v1.8 | 4/4 | Complete | 2026-06-10 |
 | 40. MA County Seeding + City Linking | v1.9 | 1/1 | Complete | 2026-06-11 |
-| 41. MA County Budget Load | v1.9 | 0/2 | Not started | — |
+| 41. MA County Budget Load | v1.9 | 1/2 | In progress | 2026-06-11 |
 | 42. County Enrichment + Verification | v1.9 | 0/1 | Not started | — |
 
 ---

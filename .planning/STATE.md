@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: milestone
 status: In progress
-last_updated: "2026-06-11T00:00:00.000Z"
-last_activity: 2026-06-11 — Phase 40 complete (5 MA county rows + 97 city county_id links)
+last_updated: "2026-06-11T15:30:00.000Z"
+last_activity: 2026-06-11 — Phase 41 Plan 01 complete (MA county PDF discovery; 4/5 PDFs valid; Bristol 0-byte, needs re-download)
 progress:
   total_phases: 9
   completed_phases: 8
   total_plans: 25
-  completed_plans: 23
-  percent: 88
+  completed_plans: 24
+  percent: 90
 ---
 
 # State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-09)
 
 ## Current Position
 
-Phase: 41 (MA County Budget Load) — Ready to execute
-Plan: —
-Status: Phase 41 planned (2 plans, 2 waves)
-Last activity: 2026-06-11 — Phase 41 planned (41-01 discovery, 41-02 load)
+Phase: 41 (MA County Budget Load) — In progress
+Plan: 41-01 complete; 41-02 next
+Status: Plan 01 discovery complete — Bristol PDF re-download needed before Plan 02
+Last activity: 2026-06-11 — Phase 41 Plan 01 complete (PDF inspection; Norfolk pattern corrected; Bristol 0-byte)
 
 ## Phase Overview
 
@@ -84,13 +84,13 @@ $5 per run — estimate before running AI enrichment. MA enrichment (14 categori
 
 ## Session Continuity
 
-Last session: 2026-06-11T06:24:51.429Z
-Stopped at: context exhaustion at 76% (2026-06-11)
+Last session: 2026-06-11T15:30:00.000Z
+Stopped at: 41-01 complete (PDF discovery done)
 Resume file: None
 
 ### Next Session
 
-v1.8 is complete. All 351 MA cities loaded with FY2002–2025 General Fund data, per-capita, real state budget, and universal enrichment descriptions. Start v1.9 planning.
+41-01 discovery complete. Key finding: Bristol PDF (bristol-fy25.pdf) is 0 bytes — browser re-download required. Norfolk extraction pattern corrected (DeptName+4amounts, not Totals-prefix). Plan 02 can proceed for 4 counties; add Bristol re-download as first step in 41-02.
 
 ## Performance Metrics
 
@@ -107,6 +107,8 @@ v1.8 is complete. All 351 MA cities loaded with FY2002–2025 General Fund data,
 | MA-03 (city picker) bundled with Phase 38 | 1-line STATE_LABELS change; ships with the data that makes it meaningful |
 | MA-04, STATE-01, ENRICH-01 bundled in Phase 39 | All three are post-load tasks; small enough to bundle; none blocks the others |
 | Universal enrichment (not per-city) | MA DLS uses identical category column names across all 351 cities; per-city enrichment would produce 351 identical rows at $1.40 cost vs. 14 universal rows at $0.004 |
+| Norfolk extraction: DeptName+4amounts regex (not Totals-prefix) | 41-01 discovery confirmed RESEARCH.md Pattern 5 is wrong; actual pdftotext shows "DeptName FY23 FY24 FY25 FY26req" lines; Plan 02 must use corrected pattern or pdfplumber table extraction |
+| Bristol PDF re-download required before 41-02 extraction | bristol-fy25.pdf is 0 bytes; re-download from countyofbristol.net via browser required; 4 other counties can proceed without Bristol |
 
 ## Deferred Items
 
