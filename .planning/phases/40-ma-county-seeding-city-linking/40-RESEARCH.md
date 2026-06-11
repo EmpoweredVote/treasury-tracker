@@ -103,8 +103,8 @@ seedMACountyLinks.js
 ├── Step 2: UPDATE county_id for cities in each county
 │         WHERE state='MA' AND name IN [hardcoded list]
 │         county_id = <uuid from Step 1>
-│         (15 Barnstable + 21 Bristol + 7 Dukes + 29 Norfolk + 27 Plymouth = 99 cities)
-│         Note: 351 - 99 = 252 cities retain county_id=NULL (dissolved counties + Nantucket)
+│         (15 Barnstable + 20 Bristol + 7 Dukes + 28 Norfolk + 27 Plymouth = 97 cities)
+│         Note: 351 - 97 = 254 cities retain county_id=NULL (dissolved counties + Nantucket)
 │
 └── Step 3: Verify
           SELECT COUNT(*) WHERE state='MA' AND county_id IS NOT NULL → expected 99
@@ -594,17 +594,17 @@ A1-A5 are all LOW risk given the direct evidence trail.
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Gosnold municipality presence in DB**
    - What we know: Gosnold (DOR code 097) is one of 351 MA municipalities in the DLS data loaded in Phase 38. It should be in the DB.
    - What's unclear: Whether Phase 38's bulk load successfully loaded Gosnold (the DLS data includes it, but it's a tiny island municipality that may have had a data scraping issue).
-   - Recommendation: In `seedMACountyLinks.js`, after the Dukes County UPDATE, log the count and warn if it's 6 (not 7). A missing Gosnold is non-blocking — add it as a name-specific check: `SELECT id FROM treasury.municipalities WHERE state='MA' AND name='Gosnold'`.
+   - RESOLVED: Include Gosnold in the Dukes County city list. Script warns if Dukes UPDATE returns 6 instead of 7 — count=6 is acceptable (non-blocking). A post-run spot-check `SELECT id FROM treasury.municipalities WHERE state='MA' AND name='Gosnold'` confirms DB presence.
 
 2. **Norfolk county city count: 28 or 29?**
    - What we know: The Gazetteer shows 28 unique municipalities for Norfolk County (FIPS 021). The research verification above found 28 cities.
    - What's unclear: Whether Cohasset should be in Norfolk or Plymouth. (Cohasset is in Norfolk County per Gazetteer FIPS 021.)
-   - Recommendation: Trust the Gazetteer: Cohasset is in Norfolk County. The count is 28.
+   - RESOLVED: Trust the Gazetteer — Cohasset is in Norfolk County. Count is 28. The Norfolk city list in NORFOLK_CITIES[] includes Cohasset and counts 28 names exactly.
 
 ---
 
