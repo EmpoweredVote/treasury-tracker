@@ -128,6 +128,15 @@ async function cleanPortalScrapedRows(supabase, typeFilter) {
 
   console.log('\n🧹  Cleaning portal-scraped MA budget rows (api_type: ma-dls)...');
 
+  // Fetch MA municipality IDs once (subquery builders aren't supported by .in())
+  const { data: maMunis, error: mErr } = await supabase
+    .schema('treasury')
+    .from('municipalities')
+    .select('id')
+    .eq('state', 'MA');
+  if (mErr) { console.error(`  ❌ municipalities lookup: ${mErr.message}`); return; }
+  const maMuniIds = maMunis.map(m => m.id);
+
   for (const datasetType of datasetTypes) {
     // Collect data_source IDs for MA cities with api_type 'ma-dls'
     const { data: dsList, error: dsErr } = await supabase
@@ -136,13 +145,7 @@ async function cleanPortalScrapedRows(supabase, typeFilter) {
       .select('id')
       .eq('api_type', 'ma-dls')
       .eq('dataset_type', datasetType)
-      .in('municipality_id',
-        supabase
-          .schema('treasury')
-          .from('municipalities')
-          .select('id')
-          .eq('state', 'MA')
-      );
+      .in('municipality_id', maMuniIds);
 
     if (dsErr) { console.error(`  ❌ data_sources lookup (${datasetType}): ${dsErr.message}`); continue; }
     if (!dsList?.length) { console.log(`  ✓  No ma-dls ${datasetType} data_sources found — nothing to clean`); continue; }
