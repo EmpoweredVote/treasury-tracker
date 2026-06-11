@@ -268,6 +268,7 @@ async function main() {
       .from('municipalities')
       .select('id', { count: 'exact', head: true })
       .eq('state', 'MA')
+      .eq('entity_type', 'city')
       .not('county_id', 'is', null);
 
     if (totalErr) {
