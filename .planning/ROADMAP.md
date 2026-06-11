@@ -730,6 +730,67 @@ Plans:
 
 ---
 
+### 🚧 v1.9 MA County-City Linking (Planning)
+
+**Milestone goal:** Seed 5 active MA county entities, link MA cities to their counties, load budget data for those county governments, and surface county breadcrumb + CitiesInCountyPanel for MA in the live app.
+
+#### Phase Summary
+
+- [ ] **Phase 40: MA County Seeding + City Linking** — Seed 5 county rows (Barnstable, Bristol, Dukes, Norfolk, Plymouth), load 2024 Census population for each, link all MA cities in those counties via county_id FK. Unblocks breadcrumb chip and CitiesInCountyPanel automatically.
+- [ ] **Phase 41: MA County Budget Load** — Discover budget source format for each of the 5 active counties, download PDFs, extract and load operating budget data. Each county is independent; load in parallel where possible.
+- [ ] **Phase 42: County Enrichment + Verification** — Enrich budget categories for all 5 counties (municipality_id-scoped, never universal). Human spot-check: county breadcrumbs on MA city pages, CitiesInCountyPanel on county pages, per-capita display, budget visualization.
+
+### Phase 40: MA County Seeding + City Linking
+
+**Goal:** 5 MA county entities exist in the DB with Census population and all MA cities in those counties are linked via county_id FK.
+**Depends on:** Nothing (county_id column already exists; pattern proven from Phase 25)
+**Requirements:** COUNTY-01, COUNTY-02, COUNTY-03, UI-01, UI-02
+**Success Criteria** (what must be TRUE):
+  1. 5 county rows exist in `treasury.municipalities` with entity_type='county', state='MA', and population > 0
+  2. Running `SELECT COUNT(*) FROM treasury.municipalities WHERE state='MA' AND county_id IS NOT NULL` returns the expected city count for those 5 counties
+  3. Spot-check: opening Boston, Taunton, and Plymouth city pages in the app shows the county breadcrumb chip (after county_id set — no frontend changes needed)
+  4. County names use "County" suffix to avoid slug collision with same-named cities (e.g., "Barnstable County" not "Barnstable")
+  5. No errors on cities in the 9 dissolved counties — county_id remains NULL for those cities
+
+**Plans:** 1 plan (single wave)
+
+- [ ] 40-01-PLAN.md — `scripts/seedMACountyLinks.js`: INSERT 5 county rows with Census 2024 population; UPDATE county_id for all MA cities in those counties using Census Gazetteer GEOID mapping; dry-run + live run + DB verification
+
+### Phase 41: MA County Budget Load
+
+**Goal:** All 5 active MA county governments have operating budget data loaded and visible in the app.
+**Depends on:** Phase 40 (county municipality_id UUIDs must exist before data_source rows can be created)
+**Requirements:** DATA-01, DATA-02, DATA-03, DATA-04, DATA-05
+**Success Criteria** (what must be TRUE):
+  1. Each of the 5 county pages (Barnstable, Bristol, Dukes, Norfolk, Plymouth) shows a Money Out (operating budget) tab with at least one fiscal year of data
+  2. Budget totals are plausible for each county: Barnstable ~$22–25M, Bristol ~$9–14M, Dukes ~$1–2M, Norfolk ~$14–18M, Plymouth ~$15–25M
+  3. DB verification: `SELECT COUNT(*) FROM treasury.budgets b JOIN treasury.municipalities m ON m.id=b.municipality_id WHERE m.state='MA' AND m.entity_type='county'` returns at least 5 rows (one per county)
+  4. No budget data from any MA county bleeds into the city-level queries
+  5. Each county appears in the EntitySwitcher under "Massachusetts > Counties"
+
+**Plans:** 2 plans (discovery + load)
+
+- [ ] 41-01-PLAN.md — Discovery: for each of 5 counties, locate PDF budget, run pdftotext, document column structure and extraction approach; decide per-county: custom regex vs. Haiku vision pipeline; download PDFs to docs/MA-Counties/
+- [ ] 41-02-PLAN.md — Load: write `scripts/loadMACountyBudget.js` (or per-county scripts if formats diverge); dry-run all 5; live-load; DB verify counts + totals
+
+### Phase 42: County Enrichment + Verification
+
+**Goal:** All 5 active MA county budget categories have plain-language descriptions, and the full county-city linking feature is human-verified in the live app.
+**Depends on:** Phase 41 (budget rows must exist before enrichment can target county categories)
+**Requirements:** ENRICH-01, COUNTY-03, UI-01, UI-02
+**Success Criteria** (what must be TRUE):
+  1. At least the top 3 budget categories for each active county have enrichment descriptions (municipality_id-scoped — never NULL/universal)
+  2. A human confirms: opening any linked MA city page shows a county breadcrumb chip (e.g., "Bristol County →")
+  3. A human confirms: clicking a county breadcrumb navigates to the county page, which shows the CitiesInCountyPanel listing cities in that county
+  4. A human confirms: county page shows per-capita figure ($/resident) using the loaded Census county population
+  5. A human confirms: no regression on any existing MA city page or other entity
+
+**Plans:** 1 plan (enrichment + human gate)
+
+- [ ] 42-01-PLAN.md — Run enrichCategories.js for each of 5 counties (municipality_id-scoped, ~$0.01 total); human spot-check breadcrumb + CitiesInCountyPanel + per-capita; write 42-VERIFICATION.md
+
+---
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -772,7 +833,10 @@ Plans:
 | 36. Selective City Retrofit | v1.7 | 4/4 | Complete | 2026-06-09 |
 | 37. MA Loader Hardening | v1.8 | 2/2 | Complete   | 2026-06-10 |
 | 38. MA City Budget Load | v1.8 | 2/2 | Complete   | 2026-06-10 |
-| 39. MA Population, State Budget, and Enrichment | v1.8 | 3/4 | Executing | — |
+| 39. MA Population, State Budget, and Enrichment | v1.8 | 4/4 | Complete | 2026-06-10 |
+| 40. MA County Seeding + City Linking | v1.9 | 0/1 | Not started | — |
+| 41. MA County Budget Load | v1.9 | 0/2 | Not started | — |
+| 42. County Enrichment + Verification | v1.9 | 0/1 | Not started | — |
 
 ---
 
