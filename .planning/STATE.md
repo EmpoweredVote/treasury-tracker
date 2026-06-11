@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.9
-milestone_name: milestone
-status: In progress
-last_updated: "2026-06-11T15:30:00.000Z"
-last_activity: 2026-06-11 — Phase 41 Plan 01 complete (MA county PDF discovery; 4/5 PDFs valid; Bristol 0-byte, needs re-download)
+milestone_name: Massachusetts All-Cities Financial Transparency
+status: completed
+last_updated: "2026-06-11T16:58:02.929Z"
+last_activity: 2026-06-11 — Phase 41 Plan 01 complete (PDF inspection; Norfolk pattern corrected; Bristol 0-byte)
 progress:
-  total_phases: 9
-  completed_phases: 8
-  total_plans: 25
-  completed_plans: 24
-  percent: 90
+  total_phases: 3
+  completed_phases: 2
+  total_plans: 3
+  completed_plans: 3
+  percent: 67
 ---
 
 # State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-09)
 
 ## Current Position
 
-Phase: 41 (MA County Budget Load) — In progress
-Plan: 41-01 complete; 41-02 next
-Status: Plan 01 discovery complete — Bristol PDF re-download needed before Plan 02
-Last activity: 2026-06-11 — Phase 41 Plan 01 complete (PDF inspection; Norfolk pattern corrected; Bristol 0-byte)
+Phase: 41 (MA County Budget Load) — Complete
+Plan: 41-02 complete (final plan)
+Status: All 5 MA county budgets loaded — Barnstable, Bristol, Dukes, Norfolk, Plymouth
+Last activity: 2026-06-11 — Phase 41 Plan 02 complete (5 county budgets live in DB; all verification queries pass)
 
 ## Phase Overview
 
@@ -84,13 +84,13 @@ $5 per run — estimate before running AI enrichment. MA enrichment (14 categori
 
 ## Session Continuity
 
-Last session: 2026-06-11T15:30:00.000Z
-Stopped at: 41-01 complete (PDF discovery done)
+Last session: 2026-06-11T17:00:00.000Z
+Stopped at: Phase 41 complete — all 5 MA county budgets loaded to DB
 Resume file: None
 
 ### Next Session
 
-41-01 discovery complete. Key finding: Bristol PDF (bristol-fy25.pdf) is 0 bytes — browser re-download required. Norfolk extraction pattern corrected (DeptName+4amounts, not Totals-prefix). Plan 02 can proceed for 4 counties; add Bristol re-download as first step in 41-02.
+Phase 41 complete. All 5 MA county budgets live (Barnstable $24.75M FY25, Bristol $34.39M FY25, Dukes $2.02M FY24, Norfolk $37.82M FY26, Plymouth $11.87M FY25). County pages now show Money Out tab with per-capita figures. v1.9 milestone complete.
 
 ## Performance Metrics
 

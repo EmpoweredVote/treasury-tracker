@@ -737,7 +737,7 @@ Plans:
 #### Phase Summary
 
 - [x] **Phase 40: MA County Seeding + City Linking** — Seed 5 county rows (Barnstable, Bristol, Dukes, Norfolk, Plymouth), load 2024 Census population for each, link all MA cities in those counties via county_id FK. Unblocks breadcrumb chip and CitiesInCountyPanel automatically.
-- [ ] **Phase 41: MA County Budget Load** — Discover budget source format for each of the 5 active counties, download PDFs, extract and load operating budget data. Each county is independent; load in parallel where possible.
+- [x] **Phase 41: MA County Budget Load** — Discover budget source format for each of the 5 active counties, download PDFs, extract and load operating budget data. Each county is independent; load in parallel where possible. (completed 2026-06-11)
 - [ ] **Phase 42: County Enrichment + Verification** — Enrich budget categories for all 5 counties (municipality_id-scoped, never universal). Human spot-check: county breadcrumbs on MA city pages, CitiesInCountyPanel on county pages, per-capita display, budget visualization.
 
 ### Phase 40: MA County Seeding + City Linking
@@ -768,13 +768,13 @@ Plans:
   4. No budget data from any MA county bleeds into the city-level queries
   5. Each county appears in the EntitySwitcher under "Massachusetts > Counties"
 
-**Plans:** 2 plans (discovery + load)
+**Plans:** 2/2 plans complete
 
 **Wave 1**
 - [x] 41-01-PLAN.md — Discovery: Bristol PDF manual download (human-action checkpoint) + pdftotext inspection of all 5 counties; confirm extraction approach per county
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 41-02-PLAN.md — Write `scripts/extractMACounties.py` + `scripts/loadMACountyBudget.js`; dry-run all 5; live-load; DB verify counts + totals
+- [x] 41-02-PLAN.md — Write `scripts/extractMACounties.py` + `scripts/loadMACountyBudget.js`; dry-run all 5; live-load; DB verify counts + totals
 
 **Cross-cutting constraints:**
 - `api_type` must be `'pdf_download'` (not `'ma-dls'`) — county budgets are individual PDFs, not DLS portal data
@@ -842,7 +842,7 @@ Plans:
 | 38. MA City Budget Load | v1.8 | 2/2 | Complete   | 2026-06-10 |
 | 39. MA Population, State Budget, and Enrichment | v1.8 | 4/4 | Complete | 2026-06-10 |
 | 40. MA County Seeding + City Linking | v1.9 | 1/1 | Complete | 2026-06-11 |
-| 41. MA County Budget Load | v1.9 | 1/2 | In progress | 2026-06-11 |
+| 41. MA County Budget Load | v1.9 | 2/2 | Complete   | 2026-06-11 |
 | 42. County Enrichment + Verification | v1.9 | 0/1 | Not started | — |
 
 ---

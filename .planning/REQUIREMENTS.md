@@ -23,11 +23,11 @@ Surface county context for MA municipalities — seed 5 active MA county entitie
 
 ### Data — County Government Budget
 
-- [ ] **DATA-01**: Operating budget loaded for Barnstable County (FY2024 or latest available from capecod.gov)
-- [ ] **DATA-02**: Operating budget loaded for Bristol County (from countyofbristol.net)
-- [ ] **DATA-03**: Operating budget loaded for Dukes County (Martha's Vineyard — from dukescounty.gov)
-- [ ] **DATA-04**: Operating budget loaded for Norfolk County (from norfolkcounty.org)
-- [ ] **DATA-05**: Operating budget loaded for Plymouth County (from plymouthcountyma.gov)
+- [x] **DATA-01**: Operating budget loaded for Barnstable County (FY2024 or latest available from capecod.gov)
+- [x] **DATA-02**: Operating budget loaded for Bristol County (from countyofbristol.net)
+- [x] **DATA-03**: Operating budget loaded for Dukes County (Martha's Vineyard — from dukescounty.gov)
+- [x] **DATA-04**: Operating budget loaded for Norfolk County (from norfolkcounty.org)
+- [x] **DATA-05**: Operating budget loaded for Plymouth County (from plymouthcountyma.gov)
 
 ### UI — County Pages
 
