@@ -736,7 +736,7 @@ Plans:
 
 #### Phase Summary
 
-- [ ] **Phase 40: MA County Seeding + City Linking** — Seed 5 county rows (Barnstable, Bristol, Dukes, Norfolk, Plymouth), load 2024 Census population for each, link all MA cities in those counties via county_id FK. Unblocks breadcrumb chip and CitiesInCountyPanel automatically.
+- [x] **Phase 40: MA County Seeding + City Linking** — Seed 5 county rows (Barnstable, Bristol, Dukes, Norfolk, Plymouth), load 2024 Census population for each, link all MA cities in those counties via county_id FK. Unblocks breadcrumb chip and CitiesInCountyPanel automatically.
 - [ ] **Phase 41: MA County Budget Load** — Discover budget source format for each of the 5 active counties, download PDFs, extract and load operating budget data. Each county is independent; load in parallel where possible.
 - [ ] **Phase 42: County Enrichment + Verification** — Enrich budget categories for all 5 counties (municipality_id-scoped, never universal). Human spot-check: county breadcrumbs on MA city pages, CitiesInCountyPanel on county pages, per-capita display, budget visualization.
 
@@ -754,7 +754,7 @@ Plans:
 
 **Plans:** 1 plan (single wave)
 
-- [ ] 40-01-PLAN.md — `scripts/seedMACountyLinks.js`: INSERT 5 county rows with Census 2024 population; UPDATE county_id for all MA cities in those counties using Census Gazetteer GEOID mapping; dry-run + live run + DB verification
+- [x] 40-01-PLAN.md — `scripts/seedMACountyLinks.js`: INSERT 5 county rows with Census 2024 population; UPDATE county_id for all MA cities in those counties using Census Gazetteer GEOID mapping; dry-run + live run + DB verification
 
 ### Phase 41: MA County Budget Load
 
@@ -834,7 +834,7 @@ Plans:
 | 37. MA Loader Hardening | v1.8 | 2/2 | Complete   | 2026-06-10 |
 | 38. MA City Budget Load | v1.8 | 2/2 | Complete   | 2026-06-10 |
 | 39. MA Population, State Budget, and Enrichment | v1.8 | 4/4 | Complete | 2026-06-10 |
-| 40. MA County Seeding + City Linking | v1.9 | 0/1 | Not started | — |
+| 40. MA County Seeding + City Linking | v1.9 | 1/1 | Complete | 2026-06-11 |
 | 41. MA County Budget Load | v1.9 | 0/2 | Not started | — |
 | 42. County Enrichment + Verification | v1.9 | 0/1 | Not started | — |
 

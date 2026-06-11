@@ -2,10 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.9
 milestone_name: milestone
-status: Defining requirements
-stopped_at: context exhaustion at 76% (2026-06-11)
-last_updated: "2026-06-11T06:24:51.440Z"
-last_activity: 2026-06-10 — Milestone v1.9 started
+status: In progress
+last_updated: "2026-06-11T00:00:00.000Z"
+last_activity: 2026-06-11 — Phase 40 complete (5 MA county rows + 97 city county_id links)
 progress:
   total_phases: 8
   completed_phases: 8
@@ -21,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-09)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 39 — ma-population-state-budget-and-enrichment
+**Current focus:** Phase 41 — ma-county-budget-load
 
 ## Current Position
 
-Phase: 40 (MA County Seeding + City Linking) — not started
+Phase: 41 (MA County Budget Load) — not started
 Plan: —
-Status: Requirements and roadmap complete; ready to plan Phase 40
-Last activity: 2026-06-10 — v1.9 requirements and roadmap defined (Phases 40–42)
+Status: Phase 40 complete; ready to plan Phase 41
+Last activity: 2026-06-11 — Phase 40 complete (5 MA county rows + 97 city county_id links)
 
 ## Phase Overview
 
