@@ -84,9 +84,26 @@ $5 per run — estimate before running AI enrichment. MA enrichment (14 categori
 
 ## Session Continuity
 
-Last session: 2026-06-10T21:08:15.774Z
-Stopped at: context exhaustion at 75% (2026-06-10)
+Last session: 2026-06-10 — Phase 39 wave 1 complete
+Stopped at: 39-04 human checkpoint in progress; Excel historical load deferred to next session
 Resume file: None
+
+### Next Session: Resume 39-04 + Load MA Historical Excel Data
+
+**Where we left off:** Phase 39 wave 1 is fully complete (39-01 population, 39-02 state budget, 39-03 enrichment). Wave 2 plan 39-04 is a human verification checkpoint that was started but the user noticed Boston only shows FY2021–2025, not the full history available in the Excel files.
+
+**Agreed next step:** Run `loadMaGFExcel.js --clean` to load all 351 MA cities × 24 years (FY2002–2025) of General Fund data from the Excel files in `docs/MA/`. This replaces the DLS API data for FY2021–2025 (to avoid duplicates) and adds FY2002–2020 historical data, giving every MA city page 23 years of history.
+
+**Command to run:**
+```bash
+node scripts/loadMaGFExcel.js --clean
+```
+
+**What `--clean` does:** Removes existing DLS portal-scraped budget rows (api_type='ma-dls') for all 351 MA cities, then loads all Excel data with api_type='ma-dls-excel'. Prevents FY2021–2025 duplicate rows between the two sources.
+
+**Scope:** 48 Excel files (24 expenditure + 24 revenue, FY2002–2025) × 351 cities. Estimated runtime: 30–60 minutes. No cost (no AI API calls needed).
+
+**After the Excel load:** Complete 39-04 human verification (per-capita, real state budget, enrichment descriptions) and close out Phase 39.
 
 ## Performance Metrics
 
