@@ -24,12 +24,12 @@ Describe the US Federal Budget visually with maximum clarity and context for ave
 
 ### DATA — Core Federal Data Load
 
-- [ ] **DATA-01**: FY2025 actual outlays by budget function (~20 functions) loaded from MTS Table 9 with source metadata
+- [ ] **DATA-01**: FY2025 actual outlays by budget function loaded with source metadata, at maximum sourced depth (Chris 2026-06-12: more than 3-deep where data supports it; clarity is the goal). Primary: Function → Subfunction → Account via OMB Public Budget Database; verified fallback: Function → Subfunction (OMB 3.2/MTS T9). Depth never extends past sourced OUTLAYS (no obligations grafting)
 - [ ] **DATA-02**: FY2025 actual receipts by source loaded from MTS Table 9/4 with source metadata
 - [ ] **DATA-03**: Mandatory/Discretionary/Net Interest split loaded from OMB Historical Table 8.1 (multi-year, at minimum FY2015–FY2025)
 - [ ] **DATA-04**: Receipts/outlays/deficit history loaded from OMB Historical Table 1.1 (multi-decade context)
 - [ ] **DATA-05**: FY2026 FYTD outlays + receipts (monthly, current through latest MTS) loaded for the "this year so far" strip
-- [ ] **DATA-06**: Agency-lens outlays loaded from MTS Table 5 (department level minimum; parent_id hierarchy walked correctly, "Total--" rows never double-counted)
+- [ ] **DATA-06**: Agency-lens outlays loaded from MTS Table 5 as a Department → Bureau → Account tree (parent_id hierarchy walked correctly, "Total--" rows never double-counted)
 - [ ] **DATA-07**: Debt total (Debt to the Penny) and interest expense context figures loaded with source metadata
 
 ### VIZ — Federal Visualization
@@ -67,8 +67,7 @@ Describe the US Federal Budget visually with maximum clarity and context for ave
 
 - Votes/amendments exploration hub (the eventual mission destination)
 - Backfill sourcing standard to cities/states (once proven federally)
-- USAspending award-level drill-down (program activity / object class / recipients)
-- Agency lens below department level (bureau/account depth)
+- USAspending award-level drill-down (program activity / object class / recipients) — obligations-based; would need explicit labeling to avoid corrupting the outlays-canonical rule
 - CBO program cost estimates as explainer source (blocked: cbo.gov bot-blocks non-browser clients — needs manual download workflow)
 - Historical trend visualizations (multi-decade lines from OMB 1.1 data beyond the context strip)
 

@@ -24,17 +24,17 @@ See: .planning/PROJECT.md (updated 2026-06-09)
 
 ## Current Position
 
-Phase: 43 (Federal Entity + Sourcing Infrastructure) — Complete
-Plan: 3/3 complete
-Status: All migrations applied + verified; frontend federal-ready (build green); backend audited — zero changes needed
-Last activity: 2026-06-12 — Phase 43 executed; next: plan Phase 44 (Core Federal Data Load)
+Phase: 44 (Core Federal Data Load) — Planned, ready to execute
+Plan: 44-01 (W1) → 44-02 + 44-03 (W2) → 44-04 + 44-05 (W3)
+Status: 5 plans written. Depth directive from Chris incorporated: trees deeper than 3 levels where sourced outlays allow (infra verified N-level, no caps — RPC recurses unbounded, icicle is path-driven). 44-03 carries the go/no-go checkpoint for first public visibility
+Last activity: 2026-06-12 — Phase 44 planned inline (44-CONTEXT.md + 5 plans)
 
 ## Phase Overview
 
 | Phase | Name | Depends on | Status |
 |-------|------|------------|--------|
 | 43 | Federal Entity + Sourcing Infrastructure | Nothing (Phase 32 'state' pattern) | Complete (2026-06-12) |
-| 44 | Core Federal Data Load | Phase 43 | Not started |
+| 44 | Core Federal Data Load | Phase 43 | Planned (5 plans) |
 | 45 | Federal Visualization | Phase 44 | Not started |
 | 46 | Sourced Explainer Pipeline v2 | Phase 44 (pipeline), 45 (UI) | Not started |
 | 47 | Program Origins Pilot | Phase 43 + 46 standard + API keys | Not started |

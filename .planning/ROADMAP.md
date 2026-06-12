@@ -853,6 +853,20 @@ Plans:
 - `page[size]` must be URL-encoded in Fiscal Data API calls
 - OMB xlsx downloads require a browser User-Agent
 - USAspending obligations NEVER loaded as outlay figures
+- Depth directive (Chris 2026-06-12): trees go deeper than 3 levels where sourced outlays support it; infrastructure verified N-level with no caps
+
+**Plans:** 5 plans (3 waves)
+
+**Wave 1**
+- [ ] 44-01-PLAN.md — Schema (federal_agency dataset_type, federal_annual_summary + federal_context_metrics tables) + seedUSFederal.js (Census-fetched population) + frontend dataset_type safety audit
+
+**Wave 2** *(blocked on 44-01)*
+- [ ] 44-02-PLAN.md — OMB Hist 1.1 + 8.1 → federal_annual_summary (FY1962–2025 actuals, first split, anchors validated)
+- [ ] 44-03-PLAN.md — MTS: FY2025 receipts tree (revenue) + FYTD/debt/interest context metrics. ⚠️ Contains the phase's HUMAN GO/NO-GO checkpoint: first treasury.budgets write makes "United States" publicly visible in the default city UI
+
+**Wave 3** *(blocked on Wave 2)*
+- [ ] 44-04-PLAN.md — Function lens DEEP tree: verify-first OMB Public Budget Database → Function → Subfunction → Account; fallback Function → Subfunction (OMB 3.2)
+- [ ] 44-05-PLAN.md — Agency lens: MTS T5 parent-walked Department → Bureau → Account ('Total--' rows hard-excluded) + 44-VERIFICATION.md across all DATA requirements
 
 ### Phase 45: Federal Visualization
 
@@ -949,7 +963,7 @@ Plans:
 | 41. MA County Budget Load | v1.9 | 2/2 | Complete   | 2026-06-11 |
 | 42. County Enrichment + Verification | v1.9 | 1/1 | Complete | 2026-06-11 |
 | 43. Federal Entity + Sourcing Infrastructure | v2.0 | 3/3 | Complete | 2026-06-12 |
-| 44. Core Federal Data Load | v2.0 | 0/? | Not started | — |
+| 44. Core Federal Data Load | v2.0 | 0/5 | Planned | — |
 | 45. Federal Visualization | v2.0 | 0/? | Not started | — |
 | 46. Sourced Explainer Pipeline v2 | v2.0 | 0/? | Not started | — |
 | 47. Program Origins Pilot | v2.0 | 0/? | Not started | — |
