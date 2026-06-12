@@ -738,7 +738,7 @@ Plans:
 
 - [x] **Phase 40: MA County Seeding + City Linking** — Seed 5 county rows (Barnstable, Bristol, Dukes, Norfolk, Plymouth), load 2024 Census population for each, link all MA cities in those counties via county_id FK. Unblocks breadcrumb chip and CitiesInCountyPanel automatically.
 - [x] **Phase 41: MA County Budget Load** — Discover budget source format for each of the 5 active counties, download PDFs, extract and load operating budget data. Each county is independent; load in parallel where possible. (completed 2026-06-11)
-- [ ] **Phase 42: County Enrichment + Verification** — Enrich budget categories for all 5 counties (municipality_id-scoped, never universal). Human spot-check: county breadcrumbs on MA city pages, CitiesInCountyPanel on county pages, per-capita display, budget visualization.
+- [x] **Phase 42: County Enrichment + Verification** — Enrich budget categories for all 5 counties (municipality_id-scoped, never universal). Human spot-check: county breadcrumbs on MA city pages, CitiesInCountyPanel on county pages, per-capita display, budget visualization.
 
 ### Phase 40: MA County Seeding + City Linking
 
@@ -794,7 +794,7 @@ Plans:
 
 **Plans:** 1 plan (enrichment + human gate)
 
-- [ ] 42-01-PLAN.md — Run enrichCategories.js for each of 5 counties (municipality_id-scoped, ~$0.01 total); human spot-check breadcrumb + CitiesInCountyPanel + per-capita; write 42-VERIFICATION.md
+- [x] 42-01-PLAN.md — Run enrichCategories.js for each of 5 counties (municipality_id-scoped, ~$0.01 total); human spot-check breadcrumb + CitiesInCountyPanel + per-capita; write 42-VERIFICATION.md
 
 ---
 
@@ -843,9 +843,9 @@ Plans:
 | 39. MA Population, State Budget, and Enrichment | v1.8 | 4/4 | Complete | 2026-06-10 |
 | 40. MA County Seeding + City Linking | v1.9 | 1/1 | Complete | 2026-06-11 |
 | 41. MA County Budget Load | v1.9 | 2/2 | Complete   | 2026-06-11 |
-| 42. County Enrichment + Verification | v1.9 | 0/1 | Not started | — |
+| 42. County Enrichment + Verification | v1.9 | 1/1 | Complete | 2026-06-11 |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-06-10 — Phase 39 wave 1 complete (39-01 population, 39-02 state budget, 39-03 enrichment); awaiting 39-04 human verification*
+*Last updated: 2026-06-11 — Phase 42 complete; v1.9 MA County-City Linking shipped*
