@@ -75,7 +75,13 @@ const BudgetIcicle: React.FC<BudgetIcicleProps> = ({
       const subcats = pathCat.subcategories || [];
       if (subcats.length === 0) return; // No children to show
 
-      const parentAmount = pathCat.amount;
+      // Normalize by the sum of displayed children, not the parent's stored
+      // amount. Identical for trees where children sum to the parent (all
+      // municipal data); required for federal nets, where positive account
+      // bars sit under a parent whose official total nets out offsetting
+      // receipts (the offsets live in line items, not bars).
+      const childrenSum = subcats.reduce((sum, c) => sum + c.amount, 0);
+      const levelTotal = childrenSum > 0 ? childrenSum : pathCat.amount;
       const isCurrentLevel = pathIndex === navigationPath.length - 1;
 
       // Inherit the root-level index from the first path item
@@ -84,7 +90,7 @@ const BudgetIcicle: React.FC<BudgetIcicleProps> = ({
       const segments: BarSegment[] = subcats.map(cat => ({
         category: cat,
         path: [...navigationPath.slice(0, pathIndex + 1), cat],
-        width: (cat.amount / parentAmount) * 100,
+        width: (cat.amount / levelTotal) * 100,
         isSelected: !isCurrentLevel && navigationPath[pathIndex + 1]?.name === cat.name,
         hasChildren: (cat.subcategories && cat.subcategories.length > 0) || false,
         categoryIndex: rootCatIndex,
@@ -93,7 +99,7 @@ const BudgetIcicle: React.FC<BudgetIcicleProps> = ({
       result.push({
         segments,
         isAncestor: !isCurrentLevel,
-        totalAmount: parentAmount,
+        totalAmount: levelTotal,
         levelName: pathCat.name,
       });
     });

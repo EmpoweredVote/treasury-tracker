@@ -127,7 +127,7 @@ export interface Municipality {
   county_id?: string | null;           // UUID reference to parent county municipality row
   available_datasets: Array<{
     fiscal_year: number;
-    dataset_type: 'operating' | 'revenue' | 'salaries' | 'all_funds_requirements';
+    dataset_type: 'operating' | 'revenue' | 'salaries' | 'all_funds_requirements' | 'federal_agency';
   }>;
 }
 

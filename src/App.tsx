@@ -151,7 +151,7 @@ function App() {
       selectedEntity.available_datasets
         .filter(d => d.fiscal_year === parseInt(selectedYear))
         .map(d => d.dataset_type)
-        .filter(t => t !== 'all_funds_requirements')
+        .filter(t => t !== 'all_funds_requirements' && t !== 'federal_agency')
     )];
   }, [selectedEntity, selectedYear]);
 

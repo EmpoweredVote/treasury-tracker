@@ -858,15 +858,15 @@ Plans:
 **Plans:** 5 plans (3 waves)
 
 **Wave 1**
-- [ ] 44-01-PLAN.md — Schema (federal_agency dataset_type, federal_annual_summary + federal_context_metrics tables) + seedUSFederal.js (Census-fetched population) + frontend dataset_type safety audit
+- [x] 44-01-PLAN.md — Schema (federal_agency dataset_type, federal_annual_summary + federal_context_metrics tables) + seedUSFederal.js (Census-fetched population 340,110,988) + frontend dataset_type safety audit
 
 **Wave 2** *(blocked on 44-01)*
-- [ ] 44-02-PLAN.md — OMB Hist 1.1 + 8.1 → federal_annual_summary (FY1962–2025 actuals, first split, anchors validated)
-- [ ] 44-03-PLAN.md — MTS: FY2025 receipts tree (revenue) + FYTD/debt/interest context metrics. ⚠️ Contains the phase's HUMAN GO/NO-GO checkpoint: first treasury.budgets write makes "United States" publicly visible in the default city UI
+- [x] 44-02-PLAN.md — OMB Hist 1.1 + 8.1 → federal_annual_summary (64 years 1962–2025, anchors exact; 8.1 is in BILLIONS — units read per file)
+- [x] 44-03-PLAN.md — MTS: FY2025 receipts tree ($5,234.6B, 0.034% vs OMB) + 4 context metrics. ✅ CHECKPOINT: Chris chose GO 2026-06-12 — United States publicly visible
 
 **Wave 3** *(blocked on Wave 2)*
-- [ ] 44-04-PLAN.md — Function lens DEEP tree: verify-first OMB Public Budget Database → Function → Subfunction → Account; fallback Function → Subfunction (OMB 3.2)
-- [ ] 44-05-PLAN.md — Agency lens: MTS T5 parent-walked Department → Bureau → Account ('Total--' rows hard-excluded) + 44-VERIFICATION.md across all DATA requirements
+- [x] 44-04-PLAN.md — Function lens DEEP path taken: 18 functions → 61 subfunctions → 1,613 accounts (PBDB sums EXACTLY to OMB 1.1); BudgetIcicle child-width normalization; reconciliation identity 0.0000%
+- [x] 44-05-PLAN.md — Agency lens: 29 departments, 5 depth levels, identity 0.006% vs T5 Total Outlays; 44-VERIFICATION.md — all seven DATA requirements PASS
 
 ### Phase 45: Federal Visualization
 
@@ -963,7 +963,7 @@ Plans:
 | 41. MA County Budget Load | v1.9 | 2/2 | Complete   | 2026-06-11 |
 | 42. County Enrichment + Verification | v1.9 | 1/1 | Complete | 2026-06-11 |
 | 43. Federal Entity + Sourcing Infrastructure | v2.0 | 3/3 | Complete | 2026-06-12 |
-| 44. Core Federal Data Load | v2.0 | 0/5 | Planned | — |
+| 44. Core Federal Data Load | v2.0 | 5/5 | Complete | 2026-06-12 |
 | 45. Federal Visualization | v2.0 | 0/? | Not started | — |
 | 46. Sourced Explainer Pipeline v2 | v2.0 | 0/? | Not started | — |
 | 47. Program Origins Pilot | v2.0 | 0/? | Not started | — |

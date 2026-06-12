@@ -24,17 +24,17 @@ See: .planning/PROJECT.md (updated 2026-06-09)
 
 ## Current Position
 
-Phase: 44 (Core Federal Data Load) — Planned, ready to execute
-Plan: 44-01 (W1) → 44-02 + 44-03 (W2) → 44-04 + 44-05 (W3)
-Status: 5 plans written. Depth directive from Chris incorporated: trees deeper than 3 levels where sourced outlays allow (infra verified N-level, no caps — RPC recurses unbounded, icicle is path-driven). 44-03 carries the go/no-go checkpoint for first public visibility
-Last activity: 2026-06-12 — Phase 44 planned inline (44-CONTEXT.md + 5 plans)
+Phase: 44 (Core Federal Data Load) — Complete
+Plan: 5/5 complete
+Status: United States LIVE in production (Chris GO 2026-06-12). FY2025: function lens 18→61→1,613 (operating), agency lens 29 depts/5 levels (federal_agency), receipts 7+3 (revenue); 64-year annual summary; 71 sourced context metrics; all reconciliations ≤0.034%, two exact identities. 44-VERIFICATION.md: 7/7 DATA requirements PASS
+Last activity: 2026-06-12 — Phase 44 executed; next: plan Phase 45 (Federal Visualization)
 
 ## Phase Overview
 
 | Phase | Name | Depends on | Status |
 |-------|------|------------|--------|
 | 43 | Federal Entity + Sourcing Infrastructure | Nothing (Phase 32 'state' pattern) | Complete (2026-06-12) |
-| 44 | Core Federal Data Load | Phase 43 | Planned (5 plans) |
+| 44 | Core Federal Data Load | Phase 43 | Complete (2026-06-12) |
 | 45 | Federal Visualization | Phase 44 | Not started |
 | 46 | Sourced Explainer Pipeline v2 | Phase 44 (pipeline), 45 (UI) | Not started |
 | 47 | Program Origins Pilot | Phase 43 + 46 standard + API keys | Not started |
@@ -74,6 +74,15 @@ Last activity: 2026-06-12 — Phase 44 planned inline (44-CONTEXT.md + 5 plans)
 - FY2025 split: Discretionary $1,875.1B (Def $893.6B / Nondef $981.5B), Mandatory ~$4,165.9B, Net Interest ~$970B (OMB Hist 8.1)
 - FY2026 FYTD thru May: outlays $4,901.9B, receipts $3,655.6B; Net Interest $722.7B > Defense $630.9B (MTS T9)
 - Debt: $39.213T (Debt to the Penny, 2026-06-10)
+
+### Phase 45 Inputs (from Phase 44 execution)
+
+- US entity id `0098c405-65e1-426f-8e5f-0fcbe2a900c0`; datasets live: operating (function lens, $7,532.2B displayed), revenue ($5,234.6B), federal_agency (agency lens, $8,905.0B displayed)
+- Landing bands + deficit strip data: treasury.federal_annual_summary (64 years; FY2025 official: receipts $5,236.4B / outlays $7,011.1B / deficit $1,774.7B / mandatory $4,165.9B / disc def $893.6B / disc nondef $981.5B / net interest $970.1B)
+- Live strip: federal_context_metrics fytd_receipts/fytd_outlays/total_public_debt/fytd_interest_expense
+- DISCLOSURES OWED (44-VERIFICATION §Known disclosures): visual totals exceed official net (function +$521.1B, agency +$1,895.5B excluded negatives); 67 disclosure metrics enumerate every exclusion; offsetting items are negative '(offsetting)' line items in the data
+- budgets.data_source_id FK → source_registry (NOT data_sources) — the source-chip join; all 3 federal rows linked
+- BudgetIcicle now normalizes child widths by sum-of-children (App.tsx federal_agency excluded from tab list — Phase 45 builds the lens toggle)
 
 ### Phase 44 Loader Contract (from 43-03 audit)
 
