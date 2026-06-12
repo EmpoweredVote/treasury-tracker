@@ -1,0 +1,1478 @@
+{
+  "audited_at": "2026-06-12T22:20:54.916Z",
+  "claim_rows": 225,
+  "unique_urls": 61,
+  "counts_by_surface": {
+    "source_registry": 5,
+    "budgets_registry_chain": 3,
+    "federal_annual_summary": 64,
+    "federal_context_metrics": 73,
+    "category_enrichment": 27,
+    "program_details.enabling_bill_url": 8,
+    "program_details.public_law_url": 15,
+    "program_details.sponsor_url": 8,
+    "program_details.cosponsors_url": 6,
+    "program_details.details[]": 16
+  },
+  "budgets_registry_chain": [
+    {
+      "dataset": "revenue",
+      "budget_id": "22e35c29-4ba6-49fa-bfe4-40fac87e4eb2",
+      "api_ok": true,
+      "data_source_info": true
+    },
+    {
+      "dataset": "operating",
+      "budget_id": "10a2cb09-a43f-452d-abf1-57c245b1d57e",
+      "api_ok": true,
+      "data_source_info": true
+    },
+    {
+      "dataset": "federal_agency",
+      "budget_id": "8f97eb19-f328-4381-b9c2-93f821a4fcd3",
+      "api_ok": true,
+      "data_source_info": true
+    }
+  ],
+  "verdicts": {
+    "PASS": 61,
+    "HUMAN-CHECK": 0,
+    "FAIL": 0
+  },
+  "results": [
+    {
+      "url": "https://fiscaldata.treasury.gov",
+      "strategy": "http-get",
+      "verdict": "PASS",
+      "note": "HTTP 200",
+      "refs": [
+        {
+          "surface": "source_registry",
+          "ref": "treasury-fiscal-data"
+        }
+      ]
+    },
+    {
+      "url": "https://www.whitehouse.gov/omb/information-resources/budget/historical-tables/",
+      "strategy": "http-get",
+      "verdict": "PASS",
+      "note": "HTTP 200",
+      "refs": [
+        {
+          "surface": "source_registry",
+          "ref": "omb-historical-tables"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1962"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1963"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1964"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1965"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1966"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1967"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1968"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1969"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1970"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1971"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1972"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1973"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1974"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1975"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1976"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1977"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1978"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1979"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1980"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1981"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1982"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1983"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1984"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1985"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1986"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1987"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1988"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1989"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1990"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1991"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1992"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1993"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1994"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1995"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1996"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1997"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1998"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY1999"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY2000"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY2001"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY2002"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY2003"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY2004"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY2005"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY2006"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY2007"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY2008"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY2009"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY2010"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY2011"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY2012"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY2013"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY2014"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY2015"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY2016"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY2017"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY2018"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY2019"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY2020"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY2021"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY2022"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY2023"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY2024"
+        },
+        {
+          "surface": "federal_annual_summary",
+          "ref": "FY2025"
+        }
+      ]
+    },
+    {
+      "url": "https://www.usaspending.gov",
+      "strategy": "http-get",
+      "verdict": "PASS",
+      "note": "HTTP 200",
+      "refs": [
+        {
+          "surface": "source_registry",
+          "ref": "usaspending"
+        }
+      ]
+    },
+    {
+      "url": "https://www.congress.gov",
+      "strategy": "browser",
+      "verdict": "PASS",
+      "note": "browser: HTTP 200, content matched",
+      "expect": null,
+      "refs": [
+        {
+          "surface": "source_registry",
+          "ref": "congress-gov"
+        }
+      ]
+    },
+    {
+      "url": "https://www.govinfo.gov",
+      "strategy": "http-get",
+      "verdict": "PASS",
+      "note": "HTTP 200",
+      "refs": [
+        {
+          "surface": "source_registry",
+          "ref": "govinfo"
+        }
+      ]
+    },
+    {
+      "url": "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/mts/mts_table_9?filter=record_date:eq:2026-05-31&page%5Bsize%5D=200",
+      "strategy": "http-get",
+      "verdict": "PASS",
+      "note": "HTTP 200",
+      "refs": [
+        {
+          "surface": "federal_context_metrics",
+          "ref": "fytd_receipts"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "fytd_outlays"
+        }
+      ]
+    },
+    {
+      "url": "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/debt_to_penny?sort=-record_date&page%5Bsize%5D=1",
+      "strategy": "http-get",
+      "verdict": "PASS",
+      "note": "HTTP 200",
+      "refs": [
+        {
+          "surface": "federal_context_metrics",
+          "ref": "total_public_debt"
+        }
+      ]
+    },
+    {
+      "url": "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/accounting/od/interest_expense?filter=record_date:eq:2026-05-31&page%5Bsize%5D=900",
+      "strategy": "http-get",
+      "verdict": "PASS",
+      "note": "HTTP 200",
+      "refs": [
+        {
+          "surface": "federal_context_metrics",
+          "ref": "fytd_interest_expense"
+        }
+      ]
+    },
+    {
+      "url": "https://www.whitehouse.gov/wp-content/uploads/2026/04/outlays_fy2027.xlsx",
+      "strategy": "http-get",
+      "verdict": "PASS",
+      "note": "HTTP 200",
+      "refs": [
+        {
+          "surface": "federal_context_metrics",
+          "ref": "excluded_subfunction_commerce_and_housing_credit_mortgage_credit_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "excluded_subfunction_commerce_and_housing_credit_deposit_insurance_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "excluded_subfunction_education_training_employment_and_social_services_higher_education_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "excluded_subfunction_general_government_general_property_and_records_management_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "excluded_subfunction_general_government_deductions_for_offsetting_receipts_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "excluded_subfunction_net_interest_interest_received_by_on_budget_trust_funds_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "excluded_subfunction_net_interest_interest_received_by_off_budget_trust_funds_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "excluded_subfunction_net_interest_other_interest_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "excluded_subfunction_net_interest_other_investment_income_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "excluded_subfunction_allowances_reductions_for_joint_committee_enforcement_nondefense_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "excluded_subfunction_allowances_allowance_for_discretionary_programs_non_defense_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "excluded_function_allowances_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "excluded_subfunction_undistributed_offsetting_receipts_employer_share_employee_retirement_off_budget_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "excluded_subfunction_undistributed_offsetting_receipts_rents_and_royalties_on_the_outer_continental_shelf_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "excluded_subfunction_undistributed_offsetting_receipts_sale_of_major_assets_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "excluded_subfunction_undistributed_offsetting_receipts_other_undistributed_offsetting_receipts_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "excluded_subfunction_international_affairs_international_financial_programs_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "excluded_subfunction_undistributed_offsetting_receipts_employer_share_employee_retirement_on_budget_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "excluded_function_undistributed_offsetting_receipts_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "offsets_within_national_defense_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "offsets_within_international_affairs_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "offsets_within_general_science_space_and_technology_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "offsets_within_energy_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "offsets_within_natural_resources_and_environment_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "offsets_within_agriculture_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "offsets_within_commerce_and_housing_credit_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "offsets_within_transportation_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "offsets_within_community_and_regional_development_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "offsets_within_education_training_employment_and_social_services_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "offsets_within_health_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "offsets_within_medicare_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "offsets_within_income_security_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "offsets_within_social_security_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "offsets_within_veterans_benefits_and_services_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "offsets_within_administration_of_justice_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "offsets_within_general_government_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "offsets_within_net_interest_fy2025"
+        }
+      ]
+    },
+    {
+      "url": "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/mts/mts_table_5?filter=record_date:eq:2025-09-30&page%5Bsize%5D=900",
+      "strategy": "http-get",
+      "verdict": "PASS",
+      "note": "HTTP 200",
+      "refs": [
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_legislative_branch_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_department_of_agriculture_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_department_of_commerce_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_department_of_defense_military_programs_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_department_of_education_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_department_of_energy_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_department_of_health_and_human_services_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_department_of_homeland_security_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_department_of_housing_and_urban_development_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_department_of_the_interior_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_department_of_justice_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_department_of_labor_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_department_of_state_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_department_of_transportation_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_department_of_the_treasury_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_department_of_veterans_affairs_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_corps_of_engineers_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_other_defense_civil_programs_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_judicial_branch_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_environmental_protection_agency_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_executive_office_of_the_president_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_general_services_administration_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_international_assistance_programs_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_national_aeronautics_and_space_administration_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_national_science_foundation_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_office_of_personnel_management_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_small_business_administration_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_social_security_administration_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_independent_agencies_fy2025"
+        },
+        {
+          "surface": "federal_context_metrics",
+          "ref": "agency_offsets_undistributed_offsetting_receipts_fy2025"
+        }
+      ]
+    },
+    {
+      "url": "https://www.irs.gov/pub/irs-soi/25db-1-02-nr.xlsx",
+      "strategy": "http-get",
+      "verdict": "PASS",
+      "note": "HTTP 200",
+      "refs": [
+        {
+          "surface": "federal_context_metrics",
+          "ref": "tax_returns_filed"
+        }
+      ]
+    },
+    {
+      "url": "https://fiscal.treasury.gov/system/files/2026-03/FY-2025-Financial-Report-3-19-2025(Final).pdf",
+      "strategy": "http-get",
+      "verdict": "PASS",
+      "note": "HTTP 200",
+      "refs": [
+        {
+          "surface": "federal_context_metrics",
+          "ref": "dod_consecutive_failed_audits"
+        }
+      ]
+    },
+    {
+      "url": "https://www.gao.gov/products/gao-05-734sp",
+      "strategy": "browser",
+      "verdict": "PASS",
+      "note": "browser: HTTP 200, content matched \"GAO\"",
+      "expect": "GAO",
+      "refs": [
+        {
+          "surface": "category_enrichment",
+          "ref": "administration of justice"
+        },
+        {
+          "surface": "category_enrichment",
+          "ref": "agriculture"
+        },
+        {
+          "surface": "category_enrichment",
+          "ref": "commerce and housing credit"
+        },
+        {
+          "surface": "category_enrichment",
+          "ref": "community and regional development"
+        },
+        {
+          "surface": "category_enrichment",
+          "ref": "education, training, employment, and social services"
+        },
+        {
+          "surface": "category_enrichment",
+          "ref": "energy"
+        },
+        {
+          "surface": "category_enrichment",
+          "ref": "general government"
+        },
+        {
+          "surface": "category_enrichment",
+          "ref": "general science, space, and technology"
+        },
+        {
+          "surface": "category_enrichment",
+          "ref": "health"
+        },
+        {
+          "surface": "category_enrichment",
+          "ref": "income security"
+        },
+        {
+          "surface": "category_enrichment",
+          "ref": "international affairs"
+        },
+        {
+          "surface": "category_enrichment",
+          "ref": "medicare"
+        },
+        {
+          "surface": "category_enrichment",
+          "ref": "national defense"
+        },
+        {
+          "surface": "category_enrichment",
+          "ref": "natural resources and environment"
+        },
+        {
+          "surface": "category_enrichment",
+          "ref": "net interest"
+        },
+        {
+          "surface": "category_enrichment",
+          "ref": "social security"
+        },
+        {
+          "surface": "category_enrichment",
+          "ref": "transportation"
+        },
+        {
+          "surface": "category_enrichment",
+          "ref": "veterans benefits and services"
+        }
+      ]
+    },
+    {
+      "url": "https://www.usaspending.gov/agency/department-of-agriculture",
+      "strategy": "http-get",
+      "verdict": "PASS",
+      "note": "HTTP 200",
+      "refs": [
+        {
+          "surface": "category_enrichment",
+          "ref": "department of agriculture"
+        }
+      ]
+    },
+    {
+      "url": "https://www.usaspending.gov/agency/department-of-defense",
+      "strategy": "http-get",
+      "verdict": "PASS",
+      "note": "HTTP 200",
+      "refs": [
+        {
+          "surface": "category_enrichment",
+          "ref": "department of defense--military programs"
+        }
+      ]
+    },
+    {
+      "url": "https://www.usaspending.gov/agency/department-of-education",
+      "strategy": "http-get",
+      "verdict": "PASS",
+      "note": "HTTP 200",
+      "refs": [
+        {
+          "surface": "category_enrichment",
+          "ref": "department of education"
+        }
+      ]
+    },
+    {
+      "url": "https://www.usaspending.gov/agency/department-of-health-and-human-services",
+      "strategy": "http-get",
+      "verdict": "PASS",
+      "note": "HTTP 200",
+      "refs": [
+        {
+          "surface": "category_enrichment",
+          "ref": "department of health and human services"
+        }
+      ]
+    },
+    {
+      "url": "https://www.usaspending.gov/agency/department-of-homeland-security",
+      "strategy": "http-get",
+      "verdict": "PASS",
+      "note": "HTTP 200",
+      "refs": [
+        {
+          "surface": "category_enrichment",
+          "ref": "department of homeland security"
+        }
+      ]
+    },
+    {
+      "url": "https://www.usaspending.gov/agency/department-of-the-treasury",
+      "strategy": "http-get",
+      "verdict": "PASS",
+      "note": "HTTP 200",
+      "refs": [
+        {
+          "surface": "category_enrichment",
+          "ref": "department of the treasury"
+        }
+      ]
+    },
+    {
+      "url": "https://www.usaspending.gov/agency/department-of-veterans-affairs",
+      "strategy": "http-get",
+      "verdict": "PASS",
+      "note": "HTTP 200",
+      "refs": [
+        {
+          "surface": "category_enrichment",
+          "ref": "department of veterans affairs"
+        }
+      ]
+    },
+    {
+      "url": "https://www.usaspending.gov/agency/office-of-personnel-management",
+      "strategy": "http-get",
+      "verdict": "PASS",
+      "note": "HTTP 200",
+      "refs": [
+        {
+          "surface": "category_enrichment",
+          "ref": "office of personnel management"
+        }
+      ]
+    },
+    {
+      "url": "https://www.usaspending.gov/agency/social-security-administration",
+      "strategy": "http-get",
+      "verdict": "PASS",
+      "note": "HTTP 200",
+      "refs": [
+        {
+          "surface": "category_enrichment",
+          "ref": "social security administration"
+        }
+      ]
+    },
+    {
+      "url": "https://www.congress.gov/bill/100th-congress/house-bill/2707",
+      "strategy": "browser",
+      "verdict": "PASS",
+      "note": "browser: HTTP 200, content matched \"Major Disaster Relief and Emer\"",
+      "expect": "Major Disaster Relief and Emergency Assi",
+      "refs": [
+        {
+          "surface": "program_details.enabling_bill_url",
+          "ref": "community and regional development|disaster relief and insurance",
+          "expect_text": "Major Disaster Relief and Emergency Assi"
+        }
+      ]
+    },
+    {
+      "url": "https://www.govinfo.gov/app/details/STATUTE-102/STATUTE-102-Pg4689",
+      "strategy": "govinfo-api",
+      "verdict": "PASS",
+      "note": "record confirmed via api.govinfo.gov (STATUTE-102-Pg4689)",
+      "refs": [
+        {
+          "surface": "program_details.public_law_url",
+          "ref": "community and regional development|disaster relief and insurance"
+        }
+      ]
+    },
+    {
+      "url": "https://bioguide.congress.gov/search/bio/R000243",
+      "strategy": "browser",
+      "verdict": "PASS",
+      "note": "browser: HTTP 200, content matched \"Ridge\" (case-insensitive; page renders name uppercase)",
+      "expect": "Ridge",
+      "refs": [
+        {
+          "surface": "program_details.sponsor_url",
+          "ref": "community and regional development|disaster relief and insurance",
+          "sponsor": "Rep. Ridge, Thomas J. [R-PA-21]"
+        }
+      ]
+    },
+    {
+      "url": "https://www.congress.gov/bill/100th-congress/house-bill/2707/cosponsors",
+      "strategy": "browser",
+      "verdict": "PASS",
+      "note": "browser: HTTP 200, content matched \"Cosponsor\"",
+      "expect": "Cosponsor",
+      "refs": [
+        {
+          "surface": "program_details.cosponsors_url",
+          "ref": "community and regional development|disaster relief and insurance"
+        }
+      ]
+    },
+    {
+      "url": "https://www.congress.gov/bill/96th-congress/senate-bill/210",
+      "strategy": "browser",
+      "verdict": "PASS",
+      "note": "browser: HTTP 200, content matched \"An act to establish a Departme\"",
+      "expect": "An act to establish a Department of Educ",
+      "refs": [
+        {
+          "surface": "program_details.enabling_bill_url",
+          "ref": "department of education",
+          "expect_text": "An act to establish a Department of Educ"
+        }
+      ]
+    },
+    {
+      "url": "https://www.govinfo.gov/app/details/STATUTE-93/STATUTE-93-Pg668",
+      "strategy": "govinfo-api",
+      "verdict": "PASS",
+      "note": "record confirmed via api.govinfo.gov (STATUTE-93-Pg668)",
+      "refs": [
+        {
+          "surface": "program_details.public_law_url",
+          "ref": "department of education"
+        }
+      ]
+    },
+    {
+      "url": "https://bioguide.congress.gov/search/bio/R000191",
+      "strategy": "browser",
+      "verdict": "PASS",
+      "note": "browser: HTTP 200, content matched \"Ribicoff\" (case-insensitive; page renders name uppercase)",
+      "expect": "Ribicoff",
+      "refs": [
+        {
+          "surface": "program_details.sponsor_url",
+          "ref": "department of education",
+          "sponsor": "Sen. Ribicoff, Abraham A. [D-CT]"
+        }
+      ]
+    },
+    {
+      "url": "https://www.congress.gov/bill/96th-congress/senate-bill/210/cosponsors",
+      "strategy": "browser",
+      "verdict": "PASS",
+      "note": "browser: HTTP 200, content matched \"Cosponsor\"",
+      "expect": "Cosponsor",
+      "refs": [
+        {
+          "surface": "program_details.cosponsors_url",
+          "ref": "department of education"
+        }
+      ]
+    },
+    {
+      "url": "https://www.govinfo.gov/app/details/STATUTE-79/STATUTE-79-Pg1219",
+      "strategy": "govinfo-api",
+      "verdict": "PASS",
+      "note": "record confirmed via api.govinfo.gov (STATUTE-79-Pg1219)",
+      "refs": [
+        {
+          "surface": "program_details.details[]",
+          "ref": "department of education :: Related act: higher education (1965)",
+          "expect_text": "An Act to strengthen the educa"
+        }
+      ]
+    },
+    {
+      "url": "https://www.congress.gov/bill/107th-congress/house-bill/5005",
+      "strategy": "browser",
+      "verdict": "PASS",
+      "note": "browser: HTTP 200, content matched \"Homeland Security Act of 2002\"",
+      "expect": "Homeland Security Act of 2002",
+      "refs": [
+        {
+          "surface": "program_details.enabling_bill_url",
+          "ref": "department of homeland security",
+          "expect_text": "Homeland Security Act of 2002"
+        }
+      ]
+    },
+    {
+      "url": "https://www.govinfo.gov/app/details/PLAW-107publ296",
+      "strategy": "govinfo-api",
+      "verdict": "PASS",
+      "note": "record confirmed via api.govinfo.gov (PLAW-107publ296)",
+      "refs": [
+        {
+          "surface": "program_details.public_law_url",
+          "ref": "department of homeland security"
+        }
+      ]
+    },
+    {
+      "url": "https://bioguide.congress.gov/search/bio/A000217",
+      "strategy": "browser",
+      "verdict": "PASS",
+      "note": "browser: HTTP 200, content matched \"Armey\" (case-insensitive; page renders name uppercase)",
+      "expect": "Armey",
+      "refs": [
+        {
+          "surface": "program_details.sponsor_url",
+          "ref": "department of homeland security",
+          "sponsor": "Rep. Armey, Richard K. [R-TX-26]"
+        }
+      ]
+    },
+    {
+      "url": "https://www.congress.gov/bill/107th-congress/house-bill/5005/cosponsors",
+      "strategy": "browser",
+      "verdict": "PASS",
+      "note": "browser: HTTP 200, content matched \"Cosponsor\"",
+      "expect": "Cosponsor",
+      "refs": [
+        {
+          "surface": "program_details.cosponsors_url",
+          "ref": "department of homeland security"
+        }
+      ]
+    },
+    {
+      "url": "https://www.congress.gov/bill/108th-congress/house-bill/1350",
+      "strategy": "browser",
+      "verdict": "PASS",
+      "note": "browser: HTTP 200, content matched \"Individuals with Disabilities \"",
+      "expect": "Individuals with Disabilities Education ",
+      "refs": [
+        {
+          "surface": "program_details.enabling_bill_url",
+          "ref": "education, training, employment, and social services|elementary, secondary, and vocational education",
+          "expect_text": "Individuals with Disabilities Education "
+        }
+      ]
+    },
+    {
+      "url": "https://www.govinfo.gov/app/details/PLAW-108publ446",
+      "strategy": "govinfo-api",
+      "verdict": "PASS",
+      "note": "record confirmed via api.govinfo.gov (PLAW-108publ446)",
+      "refs": [
+        {
+          "surface": "program_details.public_law_url",
+          "ref": "education, training, employment, and social services|elementary, secondary, and vocational education"
+        }
+      ]
+    },
+    {
+      "url": "https://bioguide.congress.gov/search/bio/C000243",
+      "strategy": "browser",
+      "verdict": "PASS",
+      "note": "browser: HTTP 200, content matched \"Castle\"",
+      "expect": "Castle",
+      "refs": [
+        {
+          "surface": "program_details.sponsor_url",
+          "ref": "education, training, employment, and social services|elementary, secondary, and vocational education",
+          "sponsor": "Rep. Castle, Michael N. [R-DE-At Large]"
+        }
+      ]
+    },
+    {
+      "url": "https://www.congress.gov/bill/108th-congress/house-bill/1350/cosponsors",
+      "strategy": "browser",
+      "verdict": "PASS",
+      "note": "browser: HTTP 200, content matched \"Cosponsor\"",
+      "expect": "Cosponsor",
+      "refs": [
+        {
+          "surface": "program_details.cosponsors_url",
+          "ref": "education, training, employment, and social services|elementary, secondary, and vocational education"
+        }
+      ]
+    },
+    {
+      "url": "https://www.congress.gov/bill/117th-congress/house-bill/4346",
+      "strategy": "browser",
+      "verdict": "PASS",
+      "note": "browser: HTTP 200, content matched \"CHIPS and Science Act\"",
+      "expect": "CHIPS and Science Act",
+      "refs": [
+        {
+          "surface": "program_details.enabling_bill_url",
+          "ref": "general science, space, and technology",
+          "expect_text": "CHIPS and Science Act"
+        }
+      ]
+    },
+    {
+      "url": "https://www.govinfo.gov/app/details/PLAW-117publ167",
+      "strategy": "govinfo-api",
+      "verdict": "PASS",
+      "note": "record confirmed via api.govinfo.gov (PLAW-117publ167)",
+      "refs": [
+        {
+          "surface": "program_details.public_law_url",
+          "ref": "general science, space, and technology"
+        }
+      ]
+    },
+    {
+      "url": "https://bioguide.congress.gov/search/bio/R000577",
+      "strategy": "browser",
+      "verdict": "PASS",
+      "note": "browser: HTTP 200, content matched \"Ryan\" (case-insensitive; page renders name uppercase)",
+      "expect": "Ryan",
+      "refs": [
+        {
+          "surface": "program_details.sponsor_url",
+          "ref": "general science, space, and technology",
+          "sponsor": "Rep. Ryan, Tim [D-OH-13]"
+        }
+      ]
+    },
+    {
+      "url": "https://www.congress.gov/bill/111th-congress/house-bill/3590",
+      "strategy": "browser",
+      "verdict": "PASS",
+      "note": "browser: HTTP 200, content matched \"Patient Protection and Afforda\"",
+      "expect": "Patient Protection and Affordable Care A",
+      "refs": [
+        {
+          "surface": "program_details.enabling_bill_url",
+          "ref": "health",
+          "expect_text": "Patient Protection and Affordable Care A"
+        }
+      ]
+    },
+    {
+      "url": "https://www.govinfo.gov/app/details/PLAW-111publ148",
+      "strategy": "govinfo-api",
+      "verdict": "PASS",
+      "note": "record confirmed via api.govinfo.gov (PLAW-111publ148)",
+      "refs": [
+        {
+          "surface": "program_details.public_law_url",
+          "ref": "health"
+        }
+      ]
+    },
+    {
+      "url": "https://bioguide.congress.gov/search/bio/R000053",
+      "strategy": "browser",
+      "verdict": "PASS",
+      "note": "browser: HTTP 200, content matched \"Rangel\" (case-insensitive; page renders name uppercase)",
+      "expect": "Rangel",
+      "refs": [
+        {
+          "surface": "program_details.sponsor_url",
+          "ref": "health",
+          "sponsor": "Rep. Rangel, Charles B. [D-NY-15]"
+        }
+      ]
+    },
+    {
+      "url": "https://www.congress.gov/bill/111th-congress/house-bill/3590/cosponsors",
+      "strategy": "browser",
+      "verdict": "PASS",
+      "note": "browser: HTTP 200, content matched \"Cosponsor\"",
+      "expect": "Cosponsor",
+      "refs": [
+        {
+          "surface": "program_details.cosponsors_url",
+          "ref": "health"
+        }
+      ]
+    },
+    {
+      "url": "https://www.congress.gov/bill/104th-congress/house-bill/3734",
+      "strategy": "browser",
+      "verdict": "PASS",
+      "note": "browser: HTTP 200, content matched \"Personal Responsibility and Wo\"",
+      "expect": "Personal Responsibility and Work Opportu",
+      "refs": [
+        {
+          "surface": "program_details.enabling_bill_url",
+          "ref": "income security",
+          "expect_text": "Personal Responsibility and Work Opportu"
+        }
+      ]
+    },
+    {
+      "url": "https://www.govinfo.gov/app/details/PLAW-104publ193",
+      "strategy": "govinfo-api",
+      "verdict": "PASS",
+      "note": "record confirmed via api.govinfo.gov (PLAW-104publ193)",
+      "refs": [
+        {
+          "surface": "program_details.public_law_url",
+          "ref": "income security"
+        }
+      ]
+    },
+    {
+      "url": "https://bioguide.congress.gov/search/bio/K000016",
+      "strategy": "browser",
+      "verdict": "PASS",
+      "note": "browser: HTTP 200, content matched \"Kasich\" (case-insensitive; page renders name uppercase)",
+      "expect": "Kasich",
+      "refs": [
+        {
+          "surface": "program_details.sponsor_url",
+          "ref": "income security",
+          "sponsor": "Rep. Kasich, John R. [R-OH-12]"
+        }
+      ]
+    },
+    {
+      "url": "https://www.govinfo.gov/app/details/STATUTE-78/STATUTE-78-Pg703",
+      "strategy": "govinfo-api",
+      "verdict": "PASS",
+      "note": "record confirmed via api.govinfo.gov (STATUTE-78-Pg703)",
+      "refs": [
+        {
+          "surface": "program_details.public_law_url",
+          "ref": "income security|food and nutrition assistance"
+        },
+        {
+          "surface": "program_details.details[]",
+          "ref": "income security|food and nutrition assistance :: official_title",
+          "expect_text": "An Act to strengthen the agricultural ec"
+        }
+      ]
+    },
+    {
+      "url": "https://www.congress.gov/help/coverage-dates",
+      "strategy": "browser",
+      "verdict": "PASS",
+      "note": "browser: HTTP 200, content matched \"Coverage Dates\"",
+      "expect": "Coverage Dates",
+      "refs": [
+        {
+          "surface": "program_details.details[]",
+          "ref": "income security|food and nutrition assistance :: sponsor_note",
+          "expect_text": "Sponsor records predate the Co"
+        },
+        {
+          "surface": "program_details.details[]",
+          "ref": "income security|unemployment compensation :: sponsor_note",
+          "expect_text": "Sponsor records predate the Co"
+        },
+        {
+          "surface": "program_details.details[]",
+          "ref": "medicare :: sponsor_note",
+          "expect_text": "Sponsor records predate the Co"
+        },
+        {
+          "surface": "program_details.details[]",
+          "ref": "national aeronautics and space administration :: sponsor_note",
+          "expect_text": "Sponsor records predate the Co"
+        },
+        {
+          "surface": "program_details.details[]",
+          "ref": "natural resources and environment :: sponsor_note",
+          "expect_text": "Sponsor records predate the Co"
+        },
+        {
+          "surface": "program_details.details[]",
+          "ref": "social security :: sponsor_note",
+          "expect_text": "Sponsor records predate the Co"
+        },
+        {
+          "surface": "program_details.details[]",
+          "ref": "transportation|ground transportation :: sponsor_note",
+          "expect_text": "Sponsor records predate the Co"
+        }
+      ]
+    },
+    {
+      "url": "https://www.govinfo.gov/app/details/STATUTE-49/STATUTE-49-Pg620",
+      "strategy": "govinfo-api",
+      "verdict": "PASS",
+      "note": "record confirmed via api.govinfo.gov (STATUTE-49-Pg620)",
+      "refs": [
+        {
+          "surface": "program_details.public_law_url",
+          "ref": "income security|unemployment compensation"
+        },
+        {
+          "surface": "program_details.details[]",
+          "ref": "income security|unemployment compensation :: official_title",
+          "expect_text": "An Act To provide for the general welfar"
+        },
+        {
+          "surface": "program_details.public_law_url",
+          "ref": "social security"
+        },
+        {
+          "surface": "program_details.details[]",
+          "ref": "social security :: official_title",
+          "expect_text": "An Act To provide for the general welfar"
+        }
+      ]
+    },
+    {
+      "url": "https://www.govinfo.gov/app/details/STATUTE-79/STATUTE-79-Pg286",
+      "strategy": "govinfo-api",
+      "verdict": "PASS",
+      "note": "record confirmed via api.govinfo.gov (STATUTE-79-Pg286)",
+      "refs": [
+        {
+          "surface": "program_details.public_law_url",
+          "ref": "medicare"
+        },
+        {
+          "surface": "program_details.details[]",
+          "ref": "medicare :: official_title",
+          "expect_text": "An Act to provide a hospital insurance p"
+        }
+      ]
+    },
+    {
+      "url": "https://www.congress.gov/bill/108th-congress/house-bill/1",
+      "strategy": "browser",
+      "verdict": "PASS",
+      "note": "browser: HTTP 200, content matched \"Medicare Prescription Drug, Im\"",
+      "expect": "Medicare Prescription Drug, Im",
+      "refs": [
+        {
+          "surface": "program_details.details[]",
+          "ref": "medicare :: Related act: Medicare prescription drug coverage (2003)",
+          "expect_text": "Medicare Prescription Drug, Im"
+        }
+      ]
+    },
+    {
+      "url": "https://www.govinfo.gov/app/details/STATUTE-72/STATUTE-72-Pg426-2",
+      "strategy": "govinfo-api",
+      "verdict": "PASS",
+      "note": "record confirmed via api.govinfo.gov (STATUTE-72-Pg426-2)",
+      "refs": [
+        {
+          "surface": "program_details.public_law_url",
+          "ref": "national aeronautics and space administration"
+        },
+        {
+          "surface": "program_details.details[]",
+          "ref": "national aeronautics and space administration :: official_title",
+          "expect_text": "An Act to provide for research into prob"
+        }
+      ]
+    },
+    {
+      "url": "https://www.govinfo.gov/app/details/STATUTE-84/STATUTE-84-Pg1676",
+      "strategy": "govinfo-api",
+      "verdict": "PASS",
+      "note": "record confirmed via api.govinfo.gov (STATUTE-84-Pg1676)",
+      "refs": [
+        {
+          "surface": "program_details.public_law_url",
+          "ref": "natural resources and environment"
+        },
+        {
+          "surface": "program_details.details[]",
+          "ref": "natural resources and environment :: official_title",
+          "expect_text": "An Act to amend the Clean Air Act to pro"
+        }
+      ]
+    },
+    {
+      "url": "https://www.congress.gov/bill/117th-congress/house-bill/3684",
+      "strategy": "browser",
+      "verdict": "PASS",
+      "note": "browser: HTTP 200, content matched \"Infrastructure Investment and \"",
+      "expect": "Infrastructure Investment and Jobs Act",
+      "refs": [
+        {
+          "surface": "program_details.enabling_bill_url",
+          "ref": "transportation",
+          "expect_text": "Infrastructure Investment and Jobs Act"
+        }
+      ]
+    },
+    {
+      "url": "https://www.govinfo.gov/app/details/PLAW-117publ58",
+      "strategy": "govinfo-api",
+      "verdict": "PASS",
+      "note": "record confirmed via api.govinfo.gov (PLAW-117publ58)",
+      "refs": [
+        {
+          "surface": "program_details.public_law_url",
+          "ref": "transportation"
+        }
+      ]
+    },
+    {
+      "url": "https://bioguide.congress.gov/search/bio/D000191",
+      "strategy": "browser",
+      "verdict": "PASS",
+      "note": "browser: HTTP 200, content matched \"DeFazio\" (case-insensitive; page renders name uppercase)",
+      "expect": "DeFazio",
+      "refs": [
+        {
+          "surface": "program_details.sponsor_url",
+          "ref": "transportation",
+          "sponsor": "Rep. DeFazio, Peter A. [D-OR-4]"
+        }
+      ]
+    },
+    {
+      "url": "https://www.congress.gov/bill/117th-congress/house-bill/3684/cosponsors",
+      "strategy": "browser",
+      "verdict": "PASS",
+      "note": "browser: HTTP 200, content matched \"Cosponsor\"",
+      "expect": "Cosponsor",
+      "refs": [
+        {
+          "surface": "program_details.cosponsors_url",
+          "ref": "transportation"
+        }
+      ]
+    },
+    {
+      "url": "https://www.govinfo.gov/app/details/STATUTE-70/STATUTE-70-Pg374",
+      "strategy": "govinfo-api",
+      "verdict": "PASS",
+      "note": "record confirmed via api.govinfo.gov (STATUTE-70-Pg374)",
+      "refs": [
+        {
+          "surface": "program_details.public_law_url",
+          "ref": "transportation|ground transportation"
+        },
+        {
+          "surface": "program_details.details[]",
+          "ref": "transportation|ground transportation :: official_title",
+          "expect_text": "An Act to amend and supplement the Feder"
+        }
+      ]
+    }
+  ]
+}

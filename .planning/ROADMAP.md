@@ -949,7 +949,7 @@ Plans:
 **Plans:** 2 plans (2 waves)
 
 **Wave 1**
-- [ ] 48-01-PLAN.md — scripts/auditFederalSources.mjs: walk all 5 claim surfaces (~230 rows, ~40 unique URLs), per-domain strategy (govinfo via api.govinfo.gov — page status meaningless; congress.gov/bioguide/gao via Playwright content-match; friendly domains GET+UA), FAILs fixed at the data layer → 48-AUDIT.md committed with the HUMAN-CHECK residue list
+- [x] 48-01-PLAN.md — scripts/auditFederalSources.mjs: walk all 5 claim surfaces (~230 rows, ~40 unique URLs), per-domain strategy (govinfo via api.govinfo.gov — page status meaningless; congress.gov/bioguide/gao via Playwright content-match; friendly domains GET+UA), FAILs fixed at the data layer → 48-AUDIT.md committed with the HUMAN-CHECK residue list — **61/61 PASS, residue EMPTY**
 
 **Wave 2** *(blocked on 48-01; human checkpoint)*
 - [ ] 48-02-PLAN.md — Automated production pre-flight + 48-UAT-CHECKLIST.md (~15 min walkthrough with pinned figures) → CHECKPOINT: Chris executes UAT incl. HUMAN-CHECK URLs → 48-VERIFICATION.md (VERIFY-01/02 PASS) → v2.0 ready for milestone close

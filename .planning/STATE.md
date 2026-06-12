@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-09)
 
 ## Current Position
 
-Phase: 48 (Source-Chain Verification + UAT) — PLANNED (2 plans, 2 waves); 43–47 complete
-Plan: NEXT: execute 48-01 (auditFederalSources.mjs → 48-AUDIT.md; inventory pinned in 48-CONTEXT.md: 5 surfaces, ~230 claim rows, ~40 unique URLs) → 48-02 (pre-flight + UAT checklist → CHECKPOINT: Chris walks production + HUMAN-CHECK URLs → 48-VERIFICATION.md, closes v2.0 build scope)
-Status: Audit strategy locked from 47 gotchas — govinfo via api.govinfo.gov ONLY (SPA 200s any path); congress.gov/bioguide/gao via Playwright content-match (local chromium-1217, 47-03 harness pattern); friendly domains GET+browser-UA. budget_line_items.source='csv' is legacy format, NOT sourcing — tree figures are sourced via budgets→source_registry chip (audit that chain + data_source_info in API). EV-Accounts push carried 2 pre-existing phase-117 wip commits (flagged in 47-03-SUMMARY)
-Last activity: 2026-06-12 — Phase 48 planned inline (48-CONTEXT + 2 plans). RESUME AT: execute 48-01
+Phase: 48 (Source-Chain Verification + UAT) — 48-01 COMPLETE; 48-02 remaining (human checkpoint)
+Plan: 48-01 done — 225 claim rows / 61 unique URLs audited, **61/61 PASS, zero FAIL, HUMAN-CHECK residue EMPTY** (congress.gov 403 wall is client-based; real browser passes + content-matches everything incl. all 7 bioguide pages). 48-AUDIT.md + 48-audit-results.json committed → NEXT: 48-02 (production pre-flight sweep + 48-UAT-CHECKLIST.md → CHECKPOINT: Chris walks production → 48-VERIFICATION.md closes v2.0 build scope)
+Status: 48-02 checklist drops the URL-residue section (empty) and keeps rendered-chain clicks (chips + origins links from the UI). Fix shipped during audit: source_registry was missing service_role SELECT grant (migration 20260612180000). EV-Accounts push carried 2 pre-existing phase-117 wip commits (flagged in 47-03-SUMMARY)
+Last activity: 2026-06-12 — 48-01 executed (auditor + browser pass + report, VERIFY-01 satisfied). RESUME AT: 48-02-PLAN.md
 
 ## Phase Overview
 
