@@ -24,16 +24,16 @@ See: .planning/PROJECT.md (updated 2026-06-09)
 
 ## Current Position
 
-Phase: 43 (Federal Entity + Sourcing Infrastructure) — Not started
-Plan: —
-Status: Recon + IA design complete (2026-06-12); roadmap and requirements written
-Last activity: 2026-06-12 — v2.0 roadmap added to ROADMAP.md; RECON.md filed
+Phase: 43 (Federal Entity + Sourcing Infrastructure) — Planned, ready to execute
+Plan: 43-01 + 43-02 (Wave 1, parallel-safe), then 43-03 (Wave 2)
+Status: 3 plans written after live schema verification; key finding — sourcing infra partially exists (source_name/source_row_id on budget tables, full sourcing on category_enrichment, source_registry table), so INFRA-02 narrowed to source_url/source_date columns + registry seed
+Last activity: 2026-06-12 — Phase 43 planned inline (43-CONTEXT.md + 3 plans)
 
 ## Phase Overview
 
 | Phase | Name | Depends on | Status |
 |-------|------|------------|--------|
-| 43 | Federal Entity + Sourcing Infrastructure | Nothing (Phase 32 'state' pattern) | Not started |
+| 43 | Federal Entity + Sourcing Infrastructure | Nothing (Phase 32 'state' pattern) | Planned (3 plans) |
 | 44 | Core Federal Data Load | Phase 43 | Not started |
 | 45 | Federal Visualization | Phase 44 | Not started |
 | 46 | Sourced Explainer Pipeline v2 | Phase 44 (pipeline), 45 (UI) | Not started |

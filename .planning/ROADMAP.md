@@ -827,6 +827,15 @@ Plans:
   4. EntitySwitcher shows a "United States" federal entry (may be hidden behind a flag until Phase 45)
   5. No regression on existing city/county/state pages
 
+**Plans:** 3 plans (2 waves)
+
+**Wave 1**
+- [ ] 43-01-PLAN.md — 4 DB migrations: 'federal' entity_type, source_url/source_date on budget tables, program_details table, federal source_registry seed
+- [ ] 43-02-PLAN.md — Frontend: 'federal' in Municipality union + EntitySwitcher FEDERAL GOVERNMENT section (Phase 32 state pattern, one tier higher)
+
+**Wave 2** *(blocked on Wave 1)*
+- [ ] 43-03-PLAN.md — Backend audit + E2E simulation: prove getCities serves a data-bearing federal row and hides a data-less one; full temp-row cleanup; regression counts
+
 ### Phase 44: Core Federal Data Load
 
 **Goal:** All headline federal data is loaded, sourced, and queryable: FY2025 actuals (both lenses), the first split, multi-decade context, and FY2026 FYTD.
@@ -939,7 +948,7 @@ Plans:
 | 40. MA County Seeding + City Linking | v1.9 | 1/1 | Complete | 2026-06-11 |
 | 41. MA County Budget Load | v1.9 | 2/2 | Complete   | 2026-06-11 |
 | 42. County Enrichment + Verification | v1.9 | 1/1 | Complete | 2026-06-11 |
-| 43. Federal Entity + Sourcing Infrastructure | v2.0 | 0/? | Not started | — |
+| 43. Federal Entity + Sourcing Infrastructure | v2.0 | 0/3 | Planned | — |
 | 44. Core Federal Data Load | v2.0 | 0/? | Not started | — |
 | 45. Federal Visualization | v2.0 | 0/? | Not started | — |
 | 46. Sourced Explainer Pipeline v2 | v2.0 | 0/? | Not started | — |
