@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-09)
 
 ## Current Position
 
-Phase: 45 (Federal Visualization) — Complete (Chris UAT: PASS with notes, applied same-day)
-Plan: 4/4 complete
-Status: Full federal experience LIVE: context intro + DeficitStrip + FirstSplitBands + ThisYearStrip; lens toggle (function/agency, lens=agency URL); scale modes ($ / per-person / per-taxpayer — IRS Data Book 162,754,810 returns, visible formula disclosure); SourceChips throughout; MethodologyPanel computing disclosures live. Backend /federal/context on Render; frontend on Netlify (6406010)
-Last activity: 2026-06-12 — Phase 45 executed + UAT closed; next: plan Phase 46 (Sourced Explainer Pipeline v2)
+Phase: 46 (Sourced Explainer Pipeline v2) — Planned, ready to execute
+Plan: 46-01 (sources contract) → 46-02 (pipeline + run) ∥ 46-03 (DoD opacity + verification)
+Status: 3 plans written. Verified live during planning: USAspending /api/v2/agency/{code}/ serves official mission text (the agency explainer source); 98/111 agencies have CJ URLs; function-description source needs verify-first (A-11 / PBDB guide / GovInfo). v2 standard: generation prompt closed to fetched text + delimited sourced figures. Cost ≈ $0.15–0.45, gate enforced in-pipeline
+Last activity: 2026-06-12 — Phase 46 planned inline (46-CONTEXT.md + 3 plans)
 
 ## Phase Overview
 
@@ -36,7 +36,7 @@ Last activity: 2026-06-12 — Phase 45 executed + UAT closed; next: plan Phase 4
 | 43 | Federal Entity + Sourcing Infrastructure | Nothing (Phase 32 'state' pattern) | Complete (2026-06-12) |
 | 44 | Core Federal Data Load | Phase 43 | Complete (2026-06-12) |
 | 45 | Federal Visualization | Phase 44 | Complete (2026-06-12) |
-| 46 | Sourced Explainer Pipeline v2 | Phase 44 (pipeline), 45 (UI) | Not started |
+| 46 | Sourced Explainer Pipeline v2 | Phase 44 (pipeline), 45 (UI) | Planned (3 plans) |
 | 47 | Program Origins Pilot | Phase 43 + 46 standard + API keys | Not started |
 | 48 | Source-Chain Verification + UAT | Phases 45–47 | Not started |
 

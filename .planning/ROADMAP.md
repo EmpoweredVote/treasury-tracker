@@ -904,6 +904,15 @@ Plans:
   3. DoD entries carry an opacity flag with the official GAO/OIG audit citation
   4. Cost re-estimated before the run and logged; under the $5 gate (recon estimate: <$0.50)
 
+**Plans:** 3 plans (2 waves)
+
+**Wave 1**
+- [ ] 46-01-PLAN.md — Source-of-record discovery: function descriptions (A-11 / PBDB guide / GovInfo verify-first), agency missions (USAspending endpoint VERIFIED + top-10 name mapping) → 46-SOURCES.md contract
+
+**Wave 2** *(blocked on 46-01)*
+- [ ] 46-02-PLAN.md — enrichFederalCategories.js: fetch-then-summarize (closed prompt — fetched text + delimited sourced figures ONLY), cost gate ($5 abort / $1 confirm), run ~30 targets, 3-explainer claim-trace audit, display verification
+- [ ] 46-03-PLAN.md — SRC-03 DoD audit opacity: official record fetch (defense.gov/OIG/WebFetch/Congress.gov; human-download fallback) → dod_consecutive_failed_audits metric + MethodologyPanel audit section + 2 enrichment sentences; 46-VERIFICATION.md
+
 ### Phase 47: Program Origins Pilot
 
 **Goal:** 15–20 major programs show a sourced "details" section: enabling bill, public law, sponsor, year, cosponsors — every claim linked to Congress.gov/GovInfo.
@@ -977,7 +986,7 @@ Plans:
 | 43. Federal Entity + Sourcing Infrastructure | v2.0 | 3/3 | Complete | 2026-06-12 |
 | 44. Core Federal Data Load | v2.0 | 5/5 | Complete | 2026-06-12 |
 | 45. Federal Visualization | v2.0 | 4/4 | Complete | 2026-06-12 |
-| 46. Sourced Explainer Pipeline v2 | v2.0 | 0/? | Not started | — |
+| 46. Sourced Explainer Pipeline v2 | v2.0 | 0/3 | Planned | — |
 | 47. Program Origins Pilot | v2.0 | 0/? | Not started | — |
 | 48. Source-Chain Verification + UAT | v2.0 | 0/? | Not started | — |
 
