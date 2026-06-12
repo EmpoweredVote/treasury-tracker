@@ -924,6 +924,17 @@ Plans:
   3. Zero model-memory claims: every fact traceable to a fetched API response
   4. Safety line holds: official acts only — no personal info beyond sponsorship records
 
+**Plans:** 3 plans (3 waves)
+
+**Wave 1**
+- [ ] 47-01-PLAN.md — Pilot selection: ~18 programs live-probed (Congress.gov bill detail for modern; GovInfo STATUTE for foundational), mapping discipline enforced (fetched-title rule; skip-with-rationale), exact name_keys from SQL → 47-PROGRAMS.md
+
+**Wave 2** *(blocked on 47-01)*
+- [ ] 47-02-PLAN.md — data/federal-programs.json (identifiers ONLY — facts come from APIs at load time) + loadProgramOrigins.js (deterministic structured fetch, zero LLM, key never logged); foundational rows: NULL sponsor + boundary note
+
+**Wave 3** *(blocked on 47-02)*
+- [ ] 47-03-PLAN.md — Backend exposure (additive) + ProgramOrigins drill-view card (every value an official-record link) + 47-VERIFICATION.md
+
 ### Phase 48: Source-Chain Verification + UAT
 
 **Goal:** Every federal claim in the app resolves to a working source link, and Chris confirms the experience end-to-end.
@@ -987,7 +998,7 @@ Plans:
 | 44. Core Federal Data Load | v2.0 | 5/5 | Complete | 2026-06-12 |
 | 45. Federal Visualization | v2.0 | 4/4 | Complete | 2026-06-12 |
 | 46. Sourced Explainer Pipeline v2 | v2.0 | 3/3 | Complete | 2026-06-12 |
-| 47. Program Origins Pilot | v2.0 | 0/? | Not started | — |
+| 47. Program Origins Pilot | v2.0 | 0/3 | Planned | — |
 | 48. Source-Chain Verification + UAT | v2.0 | 0/? | Not started | — |
 
 ---

@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-09)
 
 ## Current Position
 
-Phase: 46 (Sourced Explainer Pipeline v2) — Complete
-Plan: 3/3 complete
-Status: 27 explainers live (18 functions from GAO-05-734SP App. IV + 9 agencies from official missions), authored INLINE at $0 API cost into committed data/federal-enrichment.json; DoD audit opacity disclosed from GAO's verbatim statement in the FY2025 Financial Report (metric + MethodologyPanel + 2 enrichment sentences); 46-VERIFICATION 4/4 PASS. Key discoveries: WebFetch passes GAO's bot wall; the US Financial Report (fiscal.treasury.gov) covers every agency's audit status in one curl-friendly document
-Last activity: 2026-06-12 — Phase 46 executed; next: plan Phase 47 (Program Origins Pilot)
+Phase: 47 (Program Origins Pilot) — Planned, ready to execute
+Plan: 47-01 (probe + select) → 47-02 (fetch pipeline, zero LLM) → 47-03 (display + verification)
+Status: 3 plans written. Probed live: Congress.gov bill detail gives the full ORIG-02 field set (1973+); GovInfo STATUTE surfaces pre-1973 acts (1935 Social Security Act verified) but NO sponsor data exists for those — two-tier handling with honest boundary notes. Mapping discipline: fetched-title rule (the Post-9/11 GI Bill probe showed why — officially 'Supplemental Appropriations Act, 2008'). Origins need NO LLM at all — pure structured fetch
+Last activity: 2026-06-12 — Phase 47 planned inline (47-CONTEXT.md + 3 plans)
 
 ## Phase Overview
 
@@ -37,7 +37,7 @@ Last activity: 2026-06-12 — Phase 46 executed; next: plan Phase 47 (Program Or
 | 44 | Core Federal Data Load | Phase 43 | Complete (2026-06-12) |
 | 45 | Federal Visualization | Phase 44 | Complete (2026-06-12) |
 | 46 | Sourced Explainer Pipeline v2 | Phase 44 (pipeline), 45 (UI) | Complete (2026-06-12) |
-| 47 | Program Origins Pilot | Phase 43 + 46 standard + API keys | Not started |
+| 47 | Program Origins Pilot | Phase 43 + 46 standard + API keys | Planned (3 plans) |
 | 48 | Source-Chain Verification + UAT | Phases 45–47 | Not started |
 
 **Critical path:** 43 → 44 → 45 → 48; 46 and 47 can overlap with 45 once 44 lands.
