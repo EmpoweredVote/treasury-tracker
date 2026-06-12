@@ -119,7 +119,8 @@ export interface Municipality {
     | 'school_district'
     | 'conservancy'
     | 'library'
-    | 'town';
+    | 'town'
+    | 'federal';
   population: number;
   population_year?: number | null;
   hero_image_url?: string | null;

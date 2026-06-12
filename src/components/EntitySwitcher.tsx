@@ -10,6 +10,7 @@ interface EntitySwitcherProps {
 }
 
 const ENTITY_TYPE_LABELS: Record<string, string> = {
+  federal: 'Federal Government',
   state: 'State Governments',
   city: 'Cities',
   county: 'Counties',
@@ -68,11 +69,13 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
     // Defensive guard: exclude municipalities with no budget data loaded
     const withData = filtered.filter(m => m.available_datasets && m.available_datasets.length > 0);
 
-    // Pre-filter state entities before building byState to prevent circular nesting
+    // Pre-filter federal/state entities before building byState to prevent circular nesting
+    const federalEntities = withData.filter(m => m.entity_type === 'federal');
     const stateEntities = withData.filter(m => m.entity_type === 'state');
-    const cityEntities = withData.filter(m => m.entity_type !== 'state');
+    const cityEntities = withData.filter(m => m.entity_type !== 'state' && m.entity_type !== 'federal');
 
-    // Sort state entities alphabetically
+    // Sort federal/state entities alphabetically
+    federalEntities.sort((a, b) => a.name.localeCompare(b.name));
     stateEntities.sort((a, b) => a.name.localeCompare(b.name));
 
     const byState = new Map<string, Map<string, Municipality[]>>();
@@ -91,7 +94,7 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
       }
     }
 
-    return { byState, stateEntities };
+    return { byState, stateEntities, federalEntities };
   }, [municipalities, filter]);
 
   const totalCount = useMemo(
@@ -99,7 +102,7 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
     [municipalities]
   );
   const displayName = selectedEntity
-    ? selectedEntity.entity_type === 'state'
+    ? selectedEntity.entity_type === 'state' || selectedEntity.entity_type === 'federal'
       ? selectedEntity.name
       : `${selectedEntity.name}, ${selectedEntity.state}`
     : 'Select jurisdiction';
@@ -143,9 +146,37 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
 
           {/* Grouped list */}
           <div className="max-h-80 overflow-y-auto">
-            {grouped.byState.size === 0 && grouped.stateEntities.length === 0 && (
+            {grouped.byState.size === 0 && grouped.stateEntities.length === 0 && grouped.federalEntities.length === 0 && (
               <div className="px-4 py-6 text-sm text-ev-gray-500 text-center">
                 No jurisdictions match "{filter}"
+              </div>
+            )}
+
+            {/* FEDERAL GOVERNMENT section — rendered above everything */}
+            {grouped.federalEntities.length > 0 && (
+              <div>
+                <div className="sticky top-0 bg-[#F7F7F8] dark:bg-ev-gray-900 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-ev-gray-500 border-b border-[#E2EBEF] dark:border-ev-gray-700">
+                  FEDERAL GOVERNMENT
+                </div>
+                {grouped.federalEntities.map((entity) => (
+                  <button
+                    key={entity.id}
+                    role="option"
+                    aria-selected={entity.id === selectedEntity?.id}
+                    className={`block w-full px-4 py-2 text-sm text-left border-l-2 transition-colors duration-150 hover:bg-[#F7F7F8] dark:hover:bg-ev-gray-700 dark:text-ev-gray-200 ${
+                      entity.id === selectedEntity?.id
+                        ? 'border-ev-muted-blue bg-[#F7F7F8] dark:bg-ev-gray-700 font-medium'
+                        : 'border-transparent'
+                    }`}
+                    onClick={() => {
+                      onEntityChange(entity);
+                      setIsOpen(false);
+                      setFilter('');
+                    }}
+                  >
+                    {entity.name}
+                  </button>
+                ))}
               </div>
             )}
 

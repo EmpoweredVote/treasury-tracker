@@ -24,16 +24,16 @@ See: .planning/PROJECT.md (updated 2026-06-09)
 
 ## Current Position
 
-Phase: 43 (Federal Entity + Sourcing Infrastructure) — Planned, ready to execute
-Plan: 43-01 + 43-02 (Wave 1, parallel-safe), then 43-03 (Wave 2)
-Status: 3 plans written after live schema verification; key finding — sourcing infra partially exists (source_name/source_row_id on budget tables, full sourcing on category_enrichment, source_registry table), so INFRA-02 narrowed to source_url/source_date columns + registry seed
-Last activity: 2026-06-12 — Phase 43 planned inline (43-CONTEXT.md + 3 plans)
+Phase: 43 (Federal Entity + Sourcing Infrastructure) — Complete
+Plan: 3/3 complete
+Status: All migrations applied + verified; frontend federal-ready (build green); backend audited — zero changes needed
+Last activity: 2026-06-12 — Phase 43 executed; next: plan Phase 44 (Core Federal Data Load)
 
 ## Phase Overview
 
 | Phase | Name | Depends on | Status |
 |-------|------|------------|--------|
-| 43 | Federal Entity + Sourcing Infrastructure | Nothing (Phase 32 'state' pattern) | Planned (3 plans) |
+| 43 | Federal Entity + Sourcing Infrastructure | Nothing (Phase 32 'state' pattern) | Complete (2026-06-12) |
 | 44 | Core Federal Data Load | Phase 43 | Not started |
 | 45 | Federal Visualization | Phase 44 | Not started |
 | 46 | Sourced Explainer Pipeline v2 | Phase 44 (pipeline), 45 (UI) | Not started |
@@ -74,6 +74,14 @@ Last activity: 2026-06-12 — Phase 43 planned inline (43-CONTEXT.md + 3 plans)
 - FY2025 split: Discretionary $1,875.1B (Def $893.6B / Nondef $981.5B), Mandatory ~$4,165.9B, Net Interest ~$970B (OMB Hist 8.1)
 - FY2026 FYTD thru May: outlays $4,901.9B, receipts $3,655.6B; Net Interest $722.7B > Defense $630.9B (MTS T9)
 - Debt: $39.213T (Debt to the Penny, 2026-06-10)
+
+### Phase 44 Loader Contract (from 43-03 audit)
+
+- **getCities visibility is gated on `treasury.budgets`** metadata rows (one per fiscal_year × dataset_type), NOT on operating_budgets line items — loaders must write both
+- `treasury.budgets` NOT NULLs: fiscal_year, dataset_type, total_budget, fiscal_year_start_month — federal uses **fiscal_year_start_month = 10**
+- Federal line-item rows MUST populate source_name (registry key), source_url, source_date — columns live as of 43-01
+- Registry keys available: treasury-fiscal-data, omb-historical-tables, usaspending, congress-gov, govinfo
+- The US entity appears in the app automatically when the first treasury.budgets row lands (no feature flag)
 
 ### Technical Gotchas (verified during recon)
 
