@@ -924,16 +924,16 @@ Plans:
   3. Zero model-memory claims: every fact traceable to a fetched API response
   4. Safety line holds: official acts only — no personal info beyond sponsorship records
 
-**Plans:** 3 plans (3 waves)
+**Plans:** 3/3 plans complete
 
 **Wave 1**
-- [ ] 47-01-PLAN.md — Pilot selection: ~18 programs live-probed (Congress.gov bill detail for modern; GovInfo STATUTE for foundational), mapping discipline enforced (fetched-title rule; skip-with-rationale), exact name_keys from SQL → 47-PROGRAMS.md
+- [x] 47-01-PLAN.md — Pilot selection: ~18 programs live-probed (Congress.gov bill detail for modern; GovInfo STATUTE for foundational), mapping discipline enforced (fetched-title rule; skip-with-rationale), exact name_keys from SQL → 47-PROGRAMS.md
 
 **Wave 2** *(blocked on 47-01)*
-- [ ] 47-02-PLAN.md — data/federal-programs.json (identifiers ONLY — facts come from APIs at load time) + loadProgramOrigins.js (deterministic structured fetch, zero LLM, key never logged); foundational rows: NULL sponsor + boundary note
+- [x] 47-02-PLAN.md — data/federal-programs.json (identifiers ONLY — facts come from APIs at load time) + loadProgramOrigins.js (deterministic structured fetch, zero LLM, key never logged); foundational rows: NULL sponsor + boundary note — 15 rows live
 
 **Wave 3** *(blocked on 47-02)*
-- [ ] 47-03-PLAN.md — Backend exposure (additive) + ProgramOrigins drill-view card (every value an official-record link) + 47-VERIFICATION.md
+- [x] 47-03-PLAN.md — Backend exposure (additive) + ProgramOrigins drill-view card (every value an official-record link) + 47-VERIFICATION.md — PASS, production-verified
 
 ### Phase 48: Source-Chain Verification + UAT
 
@@ -945,6 +945,14 @@ Plans:
   2. Chris confirms: landing view, both lenses, deficit strip, explainers with citations, origins sections
   3. Chris confirms: no regression on city/county/state pages
   4. 48-VERIFICATION.md filed
+
+**Plans:** 2 plans (2 waves)
+
+**Wave 1**
+- [ ] 48-01-PLAN.md — scripts/auditFederalSources.mjs: walk all 5 claim surfaces (~230 rows, ~40 unique URLs), per-domain strategy (govinfo via api.govinfo.gov — page status meaningless; congress.gov/bioguide/gao via Playwright content-match; friendly domains GET+UA), FAILs fixed at the data layer → 48-AUDIT.md committed with the HUMAN-CHECK residue list
+
+**Wave 2** *(blocked on 48-01; human checkpoint)*
+- [ ] 48-02-PLAN.md — Automated production pre-flight + 48-UAT-CHECKLIST.md (~15 min walkthrough with pinned figures) → CHECKPOINT: Chris executes UAT incl. HUMAN-CHECK URLs → 48-VERIFICATION.md (VERIFY-01/02 PASS) → v2.0 ready for milestone close
 
 ---
 

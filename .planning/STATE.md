@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-09)
 
 ## Current Position
 
-Phase: 47 (Program Origins Pilot) — COMPLETE (47-VERIFICATION.md PASS)
-Plan: all 3 done. 15 program_details rows live + ProgramOrigins card in production (treasurytracker.empowered.vote): enabling bill/public law/year/sponsor/cosponsors, every claim linked to its official record; foundational rows show the sponsor-boundary note → NEXT: Phase 48 (Source-Chain Verification + UAT)
-Status: backend ev-accounts e0521838 (programOrigins joined into getBudgetById, additive; Plano byte-stable), frontend 876ef26 (card under drill view). Gotchas for 48: govinfo app pages 200 on ANY path (verify via api.govinfo.gov only); PLAW collection starts 104th Congress (older laws pinned to STATUTE granules); congress.gov 403s all non-browser clients — its bill/cosponsors/bioguide URLs are templates around API-confirmed identifiers, BROWSER SPOT-CHECK OWED in 48. EV-Accounts push carried 2 pre-existing phase-117 wip commits (flagged in 47-03-SUMMARY)
-Last activity: 2026-06-12 — 47-03 executed (backend + frontend deployed, production drill verified, phase closed). RESUME AT: plan Phase 48
+Phase: 48 (Source-Chain Verification + UAT) — PLANNED (2 plans, 2 waves); 43–47 complete
+Plan: NEXT: execute 48-01 (auditFederalSources.mjs → 48-AUDIT.md; inventory pinned in 48-CONTEXT.md: 5 surfaces, ~230 claim rows, ~40 unique URLs) → 48-02 (pre-flight + UAT checklist → CHECKPOINT: Chris walks production + HUMAN-CHECK URLs → 48-VERIFICATION.md, closes v2.0 build scope)
+Status: Audit strategy locked from 47 gotchas — govinfo via api.govinfo.gov ONLY (SPA 200s any path); congress.gov/bioguide/gao via Playwright content-match (local chromium-1217, 47-03 harness pattern); friendly domains GET+browser-UA. budget_line_items.source='csv' is legacy format, NOT sourcing — tree figures are sourced via budgets→source_registry chip (audit that chain + data_source_info in API). EV-Accounts push carried 2 pre-existing phase-117 wip commits (flagged in 47-03-SUMMARY)
+Last activity: 2026-06-12 — Phase 48 planned inline (48-CONTEXT + 2 plans). RESUME AT: execute 48-01
 
 ## Phase Overview
 
