@@ -879,6 +879,15 @@ function App() {
                       fetchDate={budgetData.metadata.dataSourceInfo.fetchedAt}
                     />
                   )}
+                  {/* Visible formula disclosure (UAT note: tooltip-only wasn't enough —
+                      and the per-person/per-taxpayer gap needs explaining in place) */}
+                  {federalScale !== 'dollars' && (
+                    <p className="w-full text-xs text-ev-gray-500 dark:text-ev-gray-400">
+                      {federalScale === 'perPerson'
+                        ? `Each figure = total ÷ ${selectedEntity.population.toLocaleString()} (US population, Census Vintage ${selectedEntity.population_year ?? '—'}).`
+                        : `Each figure = total ÷ ${(federalContextData?.metrics.tax_returns_filed?.value ?? 0).toLocaleString()} individual income tax returns filed (IRS Data Book). Fewer returns than people — one return often covers a couple or household, and not everyone files — so per-taxpayer figures run about twice per-person.`}
+                    </p>
+                  )}
                 </div>
               )}
               <div className="flex items-center justify-between gap-4">

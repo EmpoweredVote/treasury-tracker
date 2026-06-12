@@ -48,10 +48,32 @@ const FederalLanding: React.FC = () => {
   // Headline year = latest ACTUAL year in the summary (FY2025 as of v2.0)
   const headline = context.annual_summary[context.annual_summary.length - 1];
   const displayName = (name: string) => context.source_display_names[name] ?? name;
+  const fmtT = (v: number) => `$${(Math.abs(v) / 1e12).toFixed(1)} trillion`;
 
   return (
     <div className="space-y-4">
       <h2 className="sr-only">The big picture — FY{headline.fiscal_year}</h2>
+
+      {/* Context intro (UAT request) — every figure below comes from the sourced
+          context payload; no narrative beyond what the data states */}
+      <div className="bg-white dark:bg-ev-gray-800 border border-ev-gray-200 dark:border-ev-gray-700 rounded-xl overflow-hidden">
+        <div className="h-[2px] bg-gradient-to-r from-ev-yellow-300 via-ev-yellow-400 to-ev-yellow-300 opacity-60" />
+        <div className="p-6">
+          <p className="text-base text-ev-gray-700 dark:text-ev-gray-300 leading-relaxed">
+            In fiscal year {headline.fiscal_year}, the United States federal government collected{' '}
+            <strong>{fmtT(headline.receipts)}</strong> and spent <strong>{fmtT(headline.outlays)}</strong> —
+            spending {fmtT(Math.abs(headline.surplus_or_deficit))} more than it took in.
+            {context.metrics.total_public_debt && (
+              <> Borrowing like this, accumulated over decades, adds up to a total debt of{' '}
+              <strong>{fmtT(context.metrics.total_public_debt.value)}</strong>.</>
+            )}{' '}
+            This page shows where that money came from and where it went, in the government's own
+            published numbers — every figure links to its official source. Use the breakdown below to
+            explore spending by <em>what it's for</em> or by <em>who spends it</em>, down to individual
+            federal accounts.
+          </p>
+        </div>
+      </div>
       <DeficitStrip
         summary={headline}
         debtMetric={context.metrics.total_public_debt ?? null}
