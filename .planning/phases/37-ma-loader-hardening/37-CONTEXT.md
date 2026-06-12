@@ -19,10 +19,22 @@ No new cities are added. No frontend changes. No AI API calls (zero cost).
 <decisions>
 ## Implementation Decisions
 
-### LOAD-01: gf-expenditures rdreport Confirmation
+### LOAD-01: gf-expenditures rdreport Confirmation — BLOCKED, Decision Needed
 
 - **D-01:** Human eyeball is sufficient to confirm — run `--explore --report gf-expenditures`, read the output (table headers, row count, year availability). No machine-readable verdict file needed.
 - **D-02:** The current rdreport (`ScheduleA.GF.ExpendituresByFunctionMain`) is a best guess with `// best guess — verify with --explore` comment. Plan 37-01 is a **discovery step**, not a rubber-stamp. If the rdreport is wrong (table not found, wrong headers), the plan finds the correct value via the HTML output saved by `--explore` and updates `REPORTS[]`.
+
+**LOAD-01 BLOCKER — discovered during Phase 37 execution (2026-06-10):**
+- `dls-gw.dor.state.ma.us` and `dlsgateway.dor.state.ma.us` are the same server (301 redirect).
+- The `ScheduleA.GF.*` namespace has **no working report definitions** on this server. All 15+ tested candidates fail with "lgx file does not exist."
+- The special-revenue page is labeled "Schedule A - Part 3." The GF Expenditures namespace simply does not exist on this portal.
+- `processMA.js` is hardcoded MA state-level estimates only — not city-level DLS data.
+- Decision to **find an alternate source** for city-level GF Expenditure data.
+
+**Next-session task for Plan 37-01:** Research alternate sources, specifically:
+1. `https://www.mass.gov/info-details/dls-databank` — MA DLS Databank (may have direct downloads)
+2. MA DLS Schedule A direct download page (may publish CSVs/Excel by year)
+3. Consider removing `gf-expenditures` from `REPORTS[]` scope if no source exists, and loading only `revenue-by-source` + `special-revenue` in Phase 38.
 
 ### LOAD-02: Progress Checkpoint Design
 

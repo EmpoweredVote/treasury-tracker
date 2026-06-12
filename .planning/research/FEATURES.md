@@ -1,288 +1,302 @@
-# Feature Landscape: MA DLS Data for All 351 Municipalities
+# Feature Landscape: MA County-City Linking (v1.9)
 
-**Domain:** Massachusetts municipal financial data via DLS (Division of Local Services) reporting portal
-**Researched:** 2026-06-09
-**Confidence:** HIGH — verified from live portal fetches, actual scraped JSON files in `scripts/output/`, and authoritative PDF (MBLC FY2017 Municipal Pie report citing DLS directly)
-
----
-
-## Report 1: General Fund Revenue by Source
-
-**rdreport:** `RevenueBySource.RBS.RevbySource2`
-**tableID:** `dtCurrent`
-**Data source:** Tax Rate Recapitulation sheet submitted by Board of Assessors
-**dataset_type in scraper:** `revenue`
-
-### Column Names (exact, from live scraped JSON)
-
-| Column | Notes |
-|--------|-------|
-| DOR Code | 3-digit municipality identifier (001-351) |
-| Municipality | Town/city name |
-| Fiscal Year | Integer |
-| Tax Levy | Property tax levy — largest revenue source (~71% median share) |
-| State Aid | Cherry Sheet distributions + education aid (~11% median) |
-| Local Receipts | Motor vehicle excise, permits, fees, service charges (~8% median) |
-| All Other | Transfers, free cash, miscellaneous (~7% median) |
-| Enterprise & CPA Funds | Enterprise fund revenues + Community Preservation Act (~10% median) |
-| Total Receipts | Sum of the five columns above |
-
-Also present in raw HTML but not loaded as budget items (percentage columns):
-- Tax Levy as % of Total, State Aid as % of Total, Local Receipts as % of Total, All Other as % of Total (without Enterprise/CPA)
-- Same four percentages recalculated including Enterprise & CPA
-
-### Fiscal Year Availability
-
-FY2003 through FY2026 (24 years). FY2026 is confirmed available as a checkbox on the live form. The scraper's `--list` comment says "2002-2025" but live form inspection of `explore_rbs2.html` shows FY2026 as the first checkbox.
-
-### Municipality Coverage
-
-All 351 municipalities present in FY2025 with non-zero totals. Verified from actual JSON file `scripts/output/ma_dls_revenue-by-source_2025.json`:
-- Records count: 351
-- Zero-total records: 0
-- Every municipality from DOR code 001 (Abington) through 351 (Yarmouth) is present
+**Domain:** County government pages in a financial transparency app; MA-specific county structure
+**Researched:** 2026-06-10
+**Confidence:** HIGH for MA government structure and existing codebase patterns; MEDIUM for UX recommendations (based on industry analysis, not A/B testing)
 
 ---
 
-## Report 2: Schedule A — Special Revenue Funds
+## Context: What Already Exists
 
-**rdreport:** `ScheduleA.Special_Rev_Funds.SpecialRevFunds`
-**tableID:** `xtFedGrants` (Federal Grants tab — the only tab currently scraped)
-**Data source:** Schedule A annual financial report submitted by town accountant/city auditor
-**dataset_type in scraper:** `operating`
-**supportsType:** Yes — has Expenditures / Revenues toggle
+This milestone adds to a working system. These features are ALREADY SHIPPED and must not be re-built:
 
-### This Report Has Five Tabs — Only One Is Currently Scraped
+| Feature | Shipped In | Notes |
+|---------|-----------|-------|
+| County breadcrumb chip on city pages | v1.5 (Phase 25) | "Los Angeles County →" chip navigates to county page |
+| CitiesInCountyPanel on county pages | v1.5 (Phase 25) | "Available now" / "Coming soon" city chips |
+| county_id FK on municipalities table | v1.5 (Phase 25) | Self-referential UUID FK; 88 LA County cities linked |
+| Per-capita display on any entity | v1.3 | Activates when entity.population > 0 |
+| EntitySwitcher grouped by state/type | v1.6 | ENTITY_TYPE_LABELS already includes "Counties" group |
+| Budget visualization (icicle/bars) | v1.0+ | Same component used for all entity types |
 
-| Tab | tableID | Status |
-|-----|---------|--------|
-| Federal Grants | `xtFedGrants` | Scraped; JSON exists in `scripts/output/` |
-| State Grants | unknown | Not scraped; tableID needs `--explore` |
-| Receipts Reserved for Appropriation | unknown | Not scraped |
-| Revolving Funds | unknown | Not scraped |
-| Other Special Revenue | unknown | Not scraped |
-
-The scraper only captures the Federal Grants tab. The other four tabs contain legitimate special revenue data but their tableIDs are unknown.
-
-### Federal Grants Tab — Column Names (exact, from live scraped JSON)
-
-| Column | Notes |
-|--------|-------|
-| DOR Code | 3-digit identifier |
-| Municipality | Town/city name |
-| Fiscal Year | Integer |
-| Federal General Government Grants | Admin/management federal grants |
-| Federal Public Safety Grants | Police, fire, COPS grants |
-| Federal Public Works Grants | Infrastructure federal grants |
-| Federal Education Grants | Title I, IDEA, and other education grants |
-| Federal Emergency Management Agency | FEMA disaster/hazard grants |
-| Federal Culture and Recreation Grants | Arts, parks federal grants |
-| Federal Community Development Block Grants | HUD CDBG program |
-| Other Federal Housing and Urban Development Grants | Other HUD programs |
-| Other Federal Grants | Catch-all for remaining federal programs |
-| Total Revenues | Sum (header says "Total Revenues" even in Expenditures view — this is a DLS column naming quirk) |
-
-### Fiscal Year Availability
-
-FY2002 through FY2025 (24 years). Confirmed from select dropdown in `explore_special-revenue.html`.
-
-### Municipality Coverage
-
-All 351 municipalities present in FY2025. Verified from `scripts/output/ma_dls_special-revenue_2025_expenditures.json`:
-- Records count: 351
-- 59 municipalities show $0 across all federal grant columns — this is correct and expected; small rural towns receive no federal grants
-- 292 municipalities have at least one non-zero federal grant category
-- Boston FY2025: $450.8M total federal grants (largest)
-- Many small towns: $0 (not a data gap — reflects actual funding)
+The county page is not a separate page — it is the same App.tsx budget view loaded with entity_type='county'. The CitiesInCountyPanel renders below the budget when `entity_type === 'county'`. Everything reuses the existing single-page architecture.
 
 ---
 
-## Report 3: General Fund Expenditures by Function (not yet scraped)
+## MA County Government Reality Check
 
-This is the primary operating budget report and maps most naturally to the existing Department → Category → Line Item tree. It represents the general fund — the main appropriation process governed by town meeting or city council.
+Massachusetts has 14 counties. Their government status materially affects what this milestone builds:
 
-**rdreport:** `ScheduleA.GenFund_MAIN` confirmed in search results and live URL; however the scraper's `gf-expenditures` entry used a wrong guessed rdreport (`ScheduleA.GF.ExpendituresByFunctionMain`) and returned an error. The correct tableID is not yet known and must be discovered via `--explore`.
+### Active County Governments (6 total; 5 in this milestone's budget scope)
 
-**Data source:** Schedule A annual financial report (UMAS — Uniform Municipal Accounting System)
+| County | Status | Budget Scope | Notes |
+|--------|--------|-------------|-------|
+| Barnstable | Active (home rule charter) | YES — load budget | Cape Cod regional government; ~$24M operating, manages ~$80M across 146 funds including grants |
+| Bristol | Active | YES — load budget | Government "remains substantially unchanged" |
+| Dukes | Active (modern county charter) | YES — load budget | Martha's Vineyard; ~$1.6M county budget (very small); 7 towns |
+| Nantucket | Active (consolidated town-county) | YES — load budget | Single consolidated municipality; unique structure |
+| Norfolk | Active | YES — load budget | Has county treasurer; FY23 budget available |
+| Plymouth | Active | OUT OF SCOPE for v1.9 | Has active commissioners, budget published FY2015-FY2026; deferred to future milestone |
 
-### Expenditure Function Categories
+**Why Plymouth is excluded from budget scope:** PROJECT.md explicitly defers Plymouth. It has data but was not prioritized for this milestone.
 
-Confirmed from two sources: MBLC FY2017 Municipal Pie PDF (derived from DLS Schedule A) and DLS Community Snapshot dashboard showing Abington FY2024 breakdown.
+### Abolished/Navigation-Only County Governments (9 for this milestone)
 
-| Category | FY2017 Statewide Share | Notes |
-|----------|----------------------|-------|
-| Education | 47.26% | K-12 operating + regional school district assessments — dominant category |
-| Safety | 14.40% | Police + Fire + Other Public Safety (DLS groups these; sub-breakdown may vary) |
-| Fixed Costs | 13.70% | Health insurance (largest fixed cost), pension assessments, OPEB |
-| Debt Service | 6.46% | Principal + interest on municipal debt |
-| Public Works | 5.65% | Highways, snow removal; water/sewer often in enterprise funds not here |
-| General Government | 5.22% | Selectmen/city council, assessors, finance, town clerk, legal |
-| Other | 4.59% | Miscellaneous not elsewhere classified |
-| Human Services | 1.56% | Council on aging, veterans services, health department |
-| Library Services | 1.16% | Public library (DLS separates from Culture & Recreation for analysis) |
-| Culture and Recreation | ~1% | Parks, recreation programs (excluding library) |
-| Intergovernmental Assessments | separate | County assessments, RMV surcharges |
+| County | Abolished | Navigation Use |
+|--------|----------|---------------|
+| Berkshire | July 1, 2000 | Geographic grouping for western MA cities |
+| Essex | July 1, 1999 | Groups Salem, Lawrence, Lowell-area cities |
+| Franklin | 1997 | Rural western MA towns |
+| Hampden | July 1, 1998 | Groups Springfield-area cities |
+| Hampshire | January 1, 1999 | Groups Northampton, Amherst |
+| Middlesex | 1997 | Largest abolished county; groups Cambridge, Lowell, Somerville |
+| Plymouth | (active but budget deferred) | Navigation-only for v1.9 |
+| Suffolk | July 1, 1999 | Groups Boston, Chelsea, Revere, Winthrop |
+| Worcester | July 1, 1998 | Groups Worcester and central MA cities |
 
-Note: The DLS Community Snapshot showed 12 functional categories for Abington FY2024, suggesting the web report may have a slightly finer breakdown than the 9-category MBLC summary.
-
----
-
-## Budget Size Range Across All 351 Municipalities
-
-### Revenue Distribution (Total Receipts, FY2025) — from actual scraped data
-
-| Tier | Range | Count | Examples |
-|------|-------|-------|---------|
-| Tiny | < $5M | 31 | New Ashford ($787K), Monroe ($1.1M), Hawley ($1.4M), Mt. Washington ($1.5M), Gosnold ($1.9M) |
-| Small | $5M – $20M | 61 | Rural and western MA towns |
-| Medium | $20M – $100M | 158 | Majority of MA municipalities; typical suburbs |
-| Large | $100M – $500M | 93 | Boston suburbs (Brookline, Quincy, Framingham, etc.) |
-| Very large | > $500M | 8 | Boston ($4.72B), Cambridge ($1.07B), Springfield ($958M), Worcester ($946M), Newton ($666M), and 3 others |
-
-**Median municipality total receipts: ~$51M.** Distribution is right-skewed — most municipalities are small by dollar amount but all are required to report.
-
-**Boston-to-smallest ratio:** Boston at $4.72B is approximately 6,000x the size of New Ashford at $787K. This matters for enrichment decisions.
-
-### Revenue Column Medians (share of total)
-
-| Column | Median % of Total Receipts |
-|--------|--------------------------|
-| Tax Levy | 71.2% |
-| Enterprise & CPA Funds | 10.3% |
-| State Aid | 10.9% |
-| Local Receipts | 8.2% |
-| All Other | 7.2% |
-
-Tax levy dominates in most towns. State Aid is more significant for lower-income communities with large Chapter 70 education aid.
+**Important distinction:** These counties still exist as geographic regions. Elected sheriffs, registers of deeds, and district attorneys still serve under the county name. They just have no county government budget to display.
 
 ---
 
-## How DLS Data Maps to Existing Budget Tree Format
+## Question 1: What Do Users Expect on a County Government Page?
 
-The existing tree format is: **Department → Category → Line Item** (3 levels, introduced in v1.7).
-
-### Revenue by Source (5 columns → flat structure)
-
-Each of the 5 revenue columns becomes a category with a single line item underneath it. No meaningful Department grouping — all 5 are at the same level of the revenue taxonomy.
-
-```
-[category: "Tax Levy"]
-  line item: "Tax Levy", amount: $X
-[category: "State Aid"]
-  line item: "State Aid", amount: $X
-[category: "Local Receipts"]
-  line item: "Local Receipts", amount: $X
-[category: "All Other"]
-  line item: "All Other", amount: $X
-[category: "Enterprise & CPA Funds"]
-  line item: "Enterprise & CPA Funds", amount: $X
-```
-
-The current scraper builds exactly this. 5 tree nodes per municipality. Enrichment adds plain-language descriptions to each of the 5 category names.
-
-### Special Revenue / Federal Grants (9 columns → flat structure)
-
-Same pattern: 9 grant-type columns become 9 category nodes. Zero-valued columns should be omitted (scraper already skips `amount === 0`). For the 59 towns with no federal grants, no budget nodes are created.
-
-### General Fund Expenditures (when scraped — richer structure)
-
-The 9-12 UMAS function categories map cleanly to a 2-level tree where the function name is the category and a single line item carries the dollar amount. A plausible Department grouping:
-
-```
-Department: "Public Safety"
-  Category: "Police"
-  Category: "Fire"
-  Category: "Other Public Safety"
-Department: "Education & Social Services"
-  Category: "Education"
-  Category: "Human Services"
-  Category: "Library Services"
-  Category: "Culture and Recreation"
-Department: "Infrastructure"
-  Category: "Public Works"
-Department: "Administration"
-  Category: "General Government"
-  Category: "Fixed Costs"
-  Category: "Debt Service"
-  Category: "Intergovernmental Assessments"
-```
-
-This is the most citizen-relevant data in the MA DLS portal — knowing that Education is 47% of spending is a meaningful fact. This report is the one worth prioritizing after Revenue by Source.
-
----
-
-## Table Stakes for This Milestone
+### Table Stakes (must have — page feels broken without these)
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| Revenue by Source for all 351 cities | Already scraped FY2025; scraper exists and is tested | Low | Run `--scrape --report revenue-by-source` per FY |
-| MA shown in city picker | First fully-covered state; milestone goal | Low | Add "Massachusetts" to STATE_LABELS |
-| Population data for all 351 MA towns | Per-capita display requires it | Medium | 2020 Census; MA has ~75 sub-5K towns; USCB API or lookup table |
-| Special Revenue (Federal Grants) for all 351 | Scraper already works; FY2025 JSON exists | Low | Run per FY; skip zero-grant towns in display |
+| County name in hero/header | Orientation — user must know where they are | Low | Same hero pattern as city pages |
+| Budget visualization (icicle/bars) | Core app function — same as any other entity | Low | Reuses existing BudgetVisualization component |
+| Dataset tabs (Operating / Revenue) | Same as city pages — users expect this | Low | Reuses DatasetTabs; only show tabs with available data |
+| Year selector | Users expect to explore history | Low | Reuses YearSelector |
+| Plain language summary | Core differentiator of this app | Low | PlainLanguageSummary already handles any entity |
+| Per-capita display | App already does this; county has population | Low | Activates automatically when population > 0 is loaded |
+| CitiesInCountyPanel | The whole point of a county page — see which cities belong | Low | Already built and shipping for LA County |
+| Breadcrumb back-navigation from county page | Users arrive from a city; need to go back | Low | Breadcrumb already exists; county pages have no county parent, so breadcrumb just shows county name + dataset |
 
-## Differentiators
+### Differentiators (valued but not expected)
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| General Fund Expenditures by Function | The real operating budget story; Education 47% is meaningful to citizens | Medium | Requires discovering correct tableID via `--explore schedulea.genfund_main` first |
-| Multi-year loading (FY2015–FY2025) | Year-over-year comparison for all 351 cities at once | Medium | 10 years × 351 = 3,510 loads; scraper loops per FY; plan rate limiting |
-| All 5 Special Revenue tabs | State grants, revolving funds, receipts reserved add nuance | High | 4 unknown tableIDs; each tab needs `--explore`; defer to follow-on phase |
+| Category enrichment on county budget categories | Plain-language descriptions of county spending lines | Medium | County categories differ from city categories; need separate enrichment run |
+| State breadcrumb above county | "Massachusetts → Barnstable County → Budget" navigation | Low | Would require state entity as a parent; not in v1.9 scope |
+| Population context in CitiesInCountyPanel | Show population for each city chip | High | Would clutter the panel; defer |
 
-## Anti-Features
+### Anti-Features (do not build)
 
 | Anti-Feature | Why Avoid | What to Do Instead |
 |--------------|-----------|-------------------|
-| All-funds data from enterprise/capital/trust fund tabs | Sewer/water/utilities vary wildly by fund structure across cities; DLS itself recommends GF for cross-community comparison | Load General Fund only for operating budgets |
-| Loading all 24 fiscal years in one pass | 24 × 2 reports × 351 cities = 16,848 HTTP requests at 1.5s = 7+ hours unattended | Load FY2020–FY2025 first; backfill older years as a second pass |
-| Per-municipality enrichment for all 351 cities | 351 × 9 columns = 3,159 enrichment rows at ~$0.001 each = $3+ in API calls; worse, the category names are identical across all cities | Enrich once per unique category name (~23 total); reuse across municipalities |
-| Enriching tiny-town data | A $787K town with 3 federal grant categories adds marginal transparency value | Scope enrichment to municipalities above a threshold (e.g., > $5M total receipts or > 1,000 population) |
+| Separate county page component | Needless duplication; the single-page architecture already handles counties | Load county as selected entity — same App.tsx renders correctly |
+| "County government dissolved" banner on active county pages | Confusing; all 5 budget counties ARE active | Only show dissolved-county messaging on navigation-only county pages |
+| Per-capita comparison between county and its cities | Misleading — county budget serves different functions than city budget; different denominators | Show county per-capita and city per-capita independently |
+| Multi-year per-capita trend on county pages | Already out of scope for all entities (single-vintage population) | Single per-capita figure only |
 
 ---
 
-## Fiscal Year Recommendations
+## Question 2: Navigation-Only Counties — Should They Appear in the Entity Picker?
 
-| Report | Earliest | Latest | Recommended Load Range | Rationale |
-|--------|----------|--------|----------------------|-----------|
-| Revenue by Source | FY2003 | FY2026 | FY2015–FY2026 | 11 years of trend data; FY2026 is the freshest available anywhere in the app |
-| Special Revenue Federal Grants | FY2002 | FY2025 | FY2020–FY2025 | 5 years sufficient; older data less relevant for grant programs |
-| General Fund Expenditures | FY2002 | FY2025 | FY2020–FY2025 | Needs tableID discovery first; match Revenue by Source range once working |
+### Recommendation: YES, appear in entity picker — but clearly differentiated
+
+**Rationale:**
+
+1. **The picker already groups by entity_type.** Navigation-only counties will appear under "Massachusetts → Counties" in EntitySwitcher. The grouping itself signals what they are.
+
+2. **The filter `available_datasets.length > 0` in EntitySwitcher already hides entities with no data.** Navigation-only counties with zero budget rows will NOT appear in the picker at all — the existing filter handles this automatically.
+
+3. **This means the real question is: should navigation-only counties have a page at all?**
+
+   - If they have zero available_datasets, the EntitySwitcher will hide them. Users who navigate to a navigation-only county (via a city breadcrumb) will see the county page with only the CitiesInCountyPanel and no budget content.
+   - This is the correct behavior: users click "Middlesex County →" on a Cambridge city page, land on a county page that shows all Cambridge-area cities but has no budget to display, with a clear message explaining why.
+
+4. **For the breadcrumb specifically:** Navigation-only counties MUST be in the municipalities table and linked via county_id. The city breadcrumb chip reads from `municipalities.find(m => m.id === city.county_id)`. This works whether or not the county has budget data.
+
+### Implementation Pattern for Navigation-Only County Pages
+
+When `entity_type === 'county'` and `available_datasets.length === 0`:
+
+- **Show:** Hero banner with county name, CitiesInCountyPanel with all linked cities
+- **Show:** Explanatory text: "Middlesex County's government was abolished in 1997. This page shows the cities and towns in Middlesex County that are available in Treasury Tracker."
+- **Hide:** Budget visualization, DatasetTabs, YearSelector, PlainLanguageSummary — none of these make sense with no data
+- **Do not show:** An error state or "data not found" — this is intentional, not a failure
+
+**The EntitySwitcher filter means navigation-only counties are picker-invisible unless searched by name.** Users arrive only via city breadcrumb navigation, which is the correct and intended flow.
 
 ---
 
-## Enrichment Scope Guidance
+## Question 3: UX for Active County Budget + City List
 
-The MA DLS data uses a fixed schema — the same column names appear for every municipality. This is fundamentally different from TX/CA city data where each city has hundreds of unique department/line item names.
+### Page Layout Recommendation (top to bottom)
 
-- **Revenue by Source:** 5 unique category names across all 351 cities. One enrichment call per name = 5 total AI calls.
-- **Special Revenue Federal Grants:** 9 unique category names. 9 total AI calls.
-- **General Fund Expenditures:** ~9-12 unique function categories. 12 total AI calls maximum.
-- **Grand total:** ~26 AI calls to enrich all MA DLS data statewide, regardless of how many municipalities are loaded.
+For an active county government page (has budget data), the page should render in this order:
 
-The existing `enrichCategories.js` script enriches per-municipality per-category. For MA, the team should either: (a) run enrichment once for a single representative municipality and manually copy enrichment records for others, or (b) extend the enrichment system to support a "shared enrichment" mode where one enrichment row is reused for all municipalities sharing that category name.
+1. **Hero banner** — county name, Wikipedia hero image (same as cities)
+2. **Controls bar** — EntitySwitcher (to switch away), YearSelector, budget search if enriched
+3. **Breadcrumb** — just the county name + "Budget" (no county parent since no state-county linking in this milestone)
+4. **PlainLanguageSummary** — "Barnstable County is spending $24.3M in FY2025. That's $1,460 per resident." Plain language lead
+5. **DatasetTabs** — Operating / Revenue (only show tabs with actual data)
+6. **Budget visualization** — icicle bars, same as any entity
+7. **CategoryList** — spending breakdown with enrichment if available
+8. **CitiesInCountyPanel** — "Cities in Barnstable County" — available / coming soon chips
+
+**Key decision: CitiesInCountyPanel goes BELOW the budget, not above it.**
+
+Rationale: The county IS a government entity with its own budget. The budget is the primary content. The city list is contextual — it answers "what jurisdictions are in this county?" after you've seen the county's own financials. Putting the city list first would make the page feel like a directory rather than a financial transparency page.
+
+This is exactly how the LA County page already works — CitiesInCountyPanel renders below budget in App.tsx (line 956-963).
+
+### CitiesInCountyPanel for MA Counties
+
+The existing panel design (available now / coming soon chips) works perfectly for MA:
+
+- For **Barnstable County**: shows Cape Cod towns — all 351 MA cities have budget data, so all Barnstable County towns will show as "Available now"
+- For **navigation-only counties**: shows the same panel layout; the panel IS the entire meaningful content
+- No changes needed to the component itself
+
+### "Dissolved county" page handling
+
+For the 9 navigation-only counties, App.tsx should gracefully handle `entity_type === 'county'` with no budget data:
+
+```
+if (entity_type === 'county' && available_datasets.length === 0) {
+  // Don't show: DatasetTabs, YearSelector, BudgetVisualization, PlainLanguageSummary
+  // Do show: hero banner, dissolution notice, CitiesInCountyPanel
+}
+```
+
+The dissolution notice text should be factual and brief:
+- "Berkshire County's government was abolished by the Commonwealth in 2000. This page shows cities and towns in Berkshire County with budgets available in Treasury Tracker."
+- Do not call it "dissolved" (that implies legal merger); use "abolished" — the accurate MA term.
 
 ---
 
-## Municipality Coverage Assessment (Summary)
+## Question 4: What Existing Apps Do County-City Linking Well?
 
-**Coverage is complete and consistent across all 351 municipalities for both confirmed reports.**
+### OpenGov (opengov.com)
 
-- All 351 DOR codes (001–351) appear in FY2025 for both Revenue by Source and Special Revenue Federal Grants
-- Revenue by Source: zero municipalities with missing or zero total receipts in FY2025
-- Special Revenue: 59 municipalities with $0 federal grants — accurate, not a gap
-- Tiny towns (New Ashford, Monroe, Hawley, Mount Washington, Gosnold) are all present and properly represented
-- Data is described as "current as of 06/09/2026" on the live portal
-- Schedule A is submitted each fall after fiscal year close; FY2025 data was released approximately December 2025
-- Late filers are possible but rare; DLS notes data is real-time from submissions — a very late filer could have a temporary $0 row
+**Confidence: MEDIUM** — based on public product pages and known customer demos
+
+OpenGov provides county budget transparency portals for 2,000+ governments. Their county pages:
+- Show budget breakdown with charts and graphs
+- Allow filtering by fund, department, fiscal year
+- County pages are independent — there is no built-in county-to-city navigation linking
+- Cities that also use OpenGov have their own separate portals; no unified cross-jurisdictional navigation
+
+**Takeaway for Treasury Tracker:** OpenGov has the same limitation as most tools — each entity is siloed. Treasury Tracker's county-city linking (breadcrumb + CitiesInCountyPanel) is a genuine differentiator. No major competitor does this out of the box.
+
+### ClearGov (cleargov.com)
+
+**Confidence: MEDIUM** — based on public marketing and Madison County (NY) news coverage
+
+ClearGov offers a cloud-based budget transparency tool with department narratives and multi-year trend charts. Their county pages show spending breakdowns and allow citizen exploration. Like OpenGov, each entity is standalone — no cross-jurisdictional navigation to member cities.
+
+**Takeaway:** Same limitation as OpenGov. Treasury Tracker's approach of showing city breadcrumbs back to the county and the county's city panel is differentiated.
+
+### MA-Specific: MassBudget.org
+
+**Confidence: MEDIUM**
+
+MassBudget (Massachusetts Budget and Policy Center) tracks state-level MA budget data but does not provide county or city-level financial transparency tools. No county-city navigation pattern to learn from here.
+
+### MA-Specific: MA DLS Databank / Gateway
+
+The existing MA DLS portal (dlsgateway.dor.state.ma.us) provides Schedule A data per municipality but has no visualization layer and no county-city navigation. It is a raw data portal, not a UX model.
+
+### Key insight from landscape survey
+
+No existing financial transparency tool provides the "county as a hub for navigating its member cities" pattern that Treasury Tracker has built for LA County. The CityInCountyPanel + breadcrumb pattern is industry-leading for this use case. The design is already correct — apply it to MA counties.
+
+---
+
+## Question 5: Budget Categories Typical for MA County Governments
+
+### Active MA County Government Categories
+
+Based on Barnstable County (most documented) and general MA county government structure:
+
+**Operating spending categories (typical for active MA counties):**
+| Category | Notes |
+|----------|-------|
+| County Commissioners / Administration | Governance and administrative overhead |
+| Registry of Deeds | Property records; major revenue generator for some counties |
+| Treasurer / Finance | Financial management |
+| Cape Cod Commission / Regional Planning | Barnstable-specific; equivalent: regional planning agencies |
+| Health & Environment | Water quality labs, public health functions |
+| Human Services | Social services, senior services |
+| Public Safety | Emergency planning, coordination with sheriffs |
+| Facilities / Operations | Building maintenance, county infrastructure |
+| Information Technology | IT services for county operations |
+| Agriculture / Extension | Cooperative extension (4-H, farming programs) |
+| Dredge / Infrastructure Enterprise Funds | Barnstable-specific; waterway maintenance |
+
+**Revenue categories (typical for active MA counties):**
+| Category | Notes |
+|----------|-------|
+| Registry of Deeds Fees | Real estate transaction fees; often the largest county revenue source |
+| State Assessments | State payments to counties for services |
+| Municipal Assessments | Assessments on member towns/cities |
+| Federal Grants | ARPA, CDBG, emergency management grants |
+| Departmental Revenue | Fees from health labs, dredge services, etc. |
+| Investment Income | Interest on reserves |
+
+### Key difference from city budgets
+
+MA county budgets are much smaller and simpler than city budgets. Barnstable County's general fund is ~$24M — comparable to a small MA town budget, not a city. Dukes County's budget is only ~$1.6M. The 9 DLS categories used for city budgets (Federal Grants, Tax Levy, State Aid, etc.) do NOT apply to county budgets — county revenue comes from deed fees and municipal assessments, not property tax levies.
+
+**Implication for enrichment:** County budget categories will need their own enrichment run after data is loaded. Universal enrichment for MA DLS city categories does not apply to county categories. The Barnstable County enrichment should be county-specific, not universalized (since each active county has its own department structure).
+
+### Nantucket special case
+
+Nantucket is a consolidated town-county government. Its "county" budget IS its town budget — there is no separate county layer. The town/county entity publishes a unified budget. For Treasury Tracker purposes, Nantucket county and Nantucket town may effectively be the same entity.
+
+---
+
+## Feature Dependencies on Existing Code
+
+| New Feature | Depends On | Status |
+|-------------|-----------|--------|
+| MA county rows in municipalities table | county_id FK already exists (v1.5) | Ready |
+| MA cities linked via county_id | 351 MA cities already in DB | Need UPDATE to set county_id |
+| County breadcrumb on MA city pages | Breadcrumb already reads countyEntity from municipalities list | Works as soon as county_id is set |
+| CitiesInCountyPanel on MA county pages | Component already built and rendering for county entity_type | Works as soon as county rows exist |
+| Budget data on 5 active MA county pages | Budget visualization already handles any entity | Need data load scripts |
+| Per-capita on MA county pages | PlainLanguageSummary shows per-capita when population > 0 | Need Census population for counties |
+| Navigation-only county page (no budget) | App.tsx currently assumes budget data exists when entity is selected | Needs guard for county + no datasets |
+| EntitySwitcher visibility | available_datasets.length > 0 filter already hides data-less entities | Navigation-only counties auto-hidden |
+
+---
+
+## MVP Feature Set for v1.9
+
+### Must Have (milestone success criteria per PROJECT.md)
+
+1. **14 MA county rows seeded** — entity_type='county', state='MA', Census population
+2. **351 MA cities linked via county_id FK** — enables breadcrumb and CitiesInCountyPanel
+3. **Budget data loaded for 5 active MA counties** — Barnstable, Bristol, Dukes, Nantucket, Norfolk
+4. **County breadcrumb on MA city pages** — zero frontend changes required once county_id is set
+5. **CitiesInCountyPanel on MA county pages** — zero frontend changes required once county rows exist
+6. **Per-capita on MA county pages** — requires county Census population (SUMLEV=050 from Census)
+
+### Should Have (adds real UX value, not blocking)
+
+7. **Navigation-only county page graceful state** — dissolved county message + CitiesInCountyPanel, no fake "no data" error
+8. **Category enrichment for 5 active county budgets** — plain-language descriptions; run after budget data loads
+
+### Defer (not in v1.9 scope per PROJECT.md)
+
+- Plymouth County budget data (has active government; deprioritized)
+- State breadcrumb above county ("Massachusetts →" before "Barnstable County →")
+- Cross-county comparison views
+- Enterprise fund audit across counties
 
 ---
 
 ## Sources
 
-- Live portal: `https://dls-gw.dor.state.ma.us/reports/rdpage.aspx?rdreport=schedulea.special_rev_funds.specialrevfunds` — FY2002–2025 select dropdown confirmed (HIGH)
-- Live portal: `https://dls-gw.dor.state.ma.us/reports/rdpage.aspx?rdreport=RevenueBySource.RBS.RevbySource2` — FY2003–2026 checkboxes, exact column names (HIGH)
-- Actual scraped data: `scripts/output/ma_dls_revenue-by-source_2025.json` — 351 records, all non-zero (HIGH)
-- Actual scraped data: `scripts/output/ma_dls_special-revenue_2025_expenditures.json` — 351 records, Federal Grants tab (HIGH)
-- Existing scraper: `scripts/scrapeMaDLS.js` — rdreport, tableID, paginationType, columnNames documented per report (HIGH)
-- MBLC FY2017 Municipal Pie PDF (archives.lib.state.ma.us) — confirms 9 UMAS expenditure function categories, statewide totals, confirms Schedule A as source (HIGH)
-- DLS Community Snapshot (`rdreport=CommunityPage`) — confirms 12 functional categories including Library Services separated from Culture & Recreation (MEDIUM)
-- DLS GF Revenues and Expenditures (`rdreport=dashboard.category_4`) — confirms expenditure functions: Education 48%, Fixed Costs 18%, Safety 15%, Debt Service 7%, Public Works 6%, General Government 5%, Other 1% (MEDIUM)
+- Massachusetts Secretary of State: https://www.sec.state.ma.us/divisions/cis/government/gov-county.htm — county government status (MEDIUM confidence)
+- Wikipedia List of Counties in Massachusetts: https://en.wikipedia.org/wiki/List_of_counties_in_Massachusetts — abolition dates (HIGH confidence)
+- Barnstable County Q1 FY2025 Financial Report: https://www.capecod.gov/2024/10/23/barnstable-county-reports-strong-q1-fy2025-financial-results-continuing-positive-momentum/ — budget categories and scale (MEDIUM confidence)
+- Norfolk County Budget: https://norfolkcounty.org/county_budget/ — FY2023 budget documents exist (MEDIUM confidence)
+- Plymouth County Revenue and Budgets: https://www.plymouthcountyma.gov/217/Revenues-and-Budgets — active budget FY2015-FY2026 (MEDIUM confidence)
+- Codebase inspection: `src/App.tsx` lines 454-493 (countyEntity derivation, breadcrumb logic), lines 956-963 (CitiesInCountyPanel render) — HIGH confidence
+- Codebase inspection: `src/components/CitiesInCountyPanel.tsx` — existing component filters by county_id and entity_type — HIGH confidence
+- Codebase inspection: `src/components/EntitySwitcher.tsx` lines 69 (available_datasets filter) — HIGH confidence
+- Martha's Vineyard Times: https://www.mvtimes.com/2015/06/13/dukes-county-commissioners-agree-on-1-6-county-budget/ — Dukes County ~$1.6M budget scale (MEDIUM confidence)

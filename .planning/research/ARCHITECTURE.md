@@ -1,354 +1,359 @@
-# Architecture: v1.8 MA DLS City Budget Loading
+# Architecture Patterns — MA County-City Linking
 
-**Domain:** Bulk loading 351 MA municipalities × 2 data types from MA DLS portal
-**Researched:** 2026-06-09
-**Confidence:** HIGH — derived from direct inspection of scrapeMaDLS.js, bulkLoadBudget.js, enrichCategories.js, and the two existing scraped output files
-
----
-
-## Critical Finding (Read First)
-
-**The scraper (scrapeMaDLS.js) already exists and already works.** FY2025 output files for both reports are already on disk (`scripts/output/ma_dls_special-revenue_2025_expenditures.json` and `scripts/output/ma_dls_revenue-by-source_2025.json`), each with exactly 351 records. The "702 sequential requests" framing in the milestone description is misleading: the MA DLS portal returns ALL 351 cities in **one HTTP session** per report (all municipality checkboxes are sent in a single POST). This milestone is not a concurrency problem — it is a pipeline completion problem.
-
-The missing pieces are:
-1. Progress tracking in the `loadToSupabase` function (no resume if it dies at city 200)
-2. Multi-year FY support (scraper only scrapes one FY at a time; no multi-year loop)
-3. Population data for 351 MA cities
-4. MA shown in the city picker (city picker STATE_LABELS map)
-5. Enrichment (14 universal category names — trivially cheap)
+**Domain:** Subsequent milestone on an existing financial transparency app
+**Researched:** 2026-06-10
+**Overall confidence:** HIGH — all findings verified by direct source code inspection
 
 ---
 
-## Question 1: New bulkLoadMA.js vs extending bulkLoadBudget.js
+## Q1: Seeding 14 MA County Rows + Linking 351 Cities
 
-**Answer: Keep scrapeMaDLS.js. Do NOT extend bulkLoadBudget.js.**
+### Verdict: New standalone seeder script, modeled on `seedLACountyLinks.js`
 
-Rationale:
-- `bulkLoadBudget.js` is for Socrata SODA API sources. MA DLS is an ASP.NET form-scraping portal. The fetch mechanics, session management, rdDataCache, Excel export, and HTML pagination fallback are all MA-DLS-specific. Injecting this into bulkLoadBudget.js would break its clean `api_type: 'socrata'` contract.
-- `scrapeMaDLS.js` already handles the full pipeline: scrape → seed → load. It already creates `data_source` rows with `api_type: 'ma-dls'` on first run.
-- The correct approach is to **extend scrapeMaDLS.js** with: (a) a progress file for the load phase, (b) a `--multi-year` flag that loops FYs, and (c) a batch-insert path for data_source creation.
+**Rationale:** The existing `seedLACountyLinks.js` is the canonical pattern for exactly this
+operation. It performs county row INSERT + batch UPDATE of city `county_id` FKs, is idempotent,
+supports `--dry-run`, and handles the "county row may already exist" edge case. Copy it and
+adapt for MA.
 
-The `api_type: 'ma-dls'` convention is already in the code and correctly signals to `bulkLoadBudget.js`'s filter that these sources should not be picked up by the Socrata loader.
+Do not use a one-time SQL migration. Migrations live in `supabase/migrations/` and are for
+DDL (schema changes). The `county_id` column already exists — this is pure data seeding. A
+Node.js script with Supabase client writes matches every precedent in the codebase.
+
+Do not extend an existing seeder. `seedLACountyLinks.js` is scoped to CA. Creating a parallel
+`seedMACountyLinks.js` keeps concerns isolated and follows the one-script-per-state convention
+already established (see `seedPortlandOregon.js`, `seedCaliforniaCities.js`, etc.).
+
+**Script design (from LA pattern):**
+
+```
+Step 1: INSERT 14 county rows (entity_type='county', state='MA', with Census population)
+        — detect already-existing rows, skip, build name→id map
+Step 2: UPDATE 351 MA municipalities SET county_id = [county id]
+        — keyed by city name IN (...) grouped per county
+        — state='MA' guard prevents cross-state contamination
+Step 3: Dry-run mode prints what would happen without writes
+```
+
+**Critical difference from LA:** LA has 88 cities assigned to one county. MA has 351 cities
+spread across 14 counties. The script must encode the city→county mapping either as a
+lookup table (Map of county name → city name array) or execute 14 separate UPDATE batches,
+one per county. The IN-list UPDATE approach from LA works here; just run it 14 times.
+
+**Key facts to encode in the script:**
+- 14 county names (Barnstable, Berkshire, Bristol, Dukes, Essex, Franklin, Hampden,
+  Hampshire, Middlesex, Nantucket, Norfolk, Plymouth, Suffolk, Worcester)
+- 9 are dissolved/navigation-only (no government budget): Berkshire, Essex, Franklin,
+  Hampden, Hampshire, Middlesex, Plymouth, Worcester, and potentially Dukes/Nantucket —
+  but all 14 still get `entity_type='county'` rows so city breadcrumbs work
+- 2024 Census population for each county
+- The city→county assignment for all 351 municipalities (source: MA DLS DOR code data
+  or Census TIGER county subdivision)
+
+**Integration point:** `treasury.municipalities` table — direct Supabase client writes,
+same schema used by `seedLACountyLinks.js`.
 
 ---
 
-## Question 2: Concurrency / Rate-Limiting for 702 Requests
+## Q2: County Budget Loading — Existing Loaders vs. New Script
 
-**Answer: The 702 number applies to DB load calls, not HTTP requests. HTTP is already handled.**
+### Verdict: New script needed for MA county budgets; existing loaders do not apply
 
-### HTTP Layer (scrape phase): ~6 requests total per FY
+**Why existing loaders don't work:**
 
-The MA DLS scraper sends ALL 351 city checkboxes in a single form POST per report. The portal returns all data in one Excel export (fastest path) or via paginated HTML (fallback). For `--scrape --all --fy 2025`:
+| Loader | Why Not |
+|--------|---------|
+| `bulkLoadBudget.js` | Socrata SODA API only; MA counties do not publish on Socrata |
+| `loadMaGFExcel.js` | Reads `docs/MA/GenFundExpenditures{YYYY}.xlsx` files which contain **city-level** data (351 rows per file keyed by DOR code). County government budgets are a separate source. |
+| `loadLACountyOperating.js` | CA State Controller dataset (`uctr-c2j8`) — county-specific, California only |
+| `scrapeMaDLS.js` | Scrapes city-level DLS portal; the 5 active MA county governments have their own separate budget publications |
 
-| Step | Requests |
-|------|----------|
-| GET initial page (special-revenue) | 1 |
-| POST Excel export (special-revenue) | 1 |
-| GET initial page (revenue-by-source) | 1 |
-| POST form filter (revenue-by-source) | 1 |
-| POST Excel export or HTML pages (revenue-by-source) | 1–8 |
-| **Total** | **5–12** |
+**What county budget data looks like:** MA county governments (Barnstable, Bristol, Dukes,
+Nantucket, Norfolk) each publish annual budgets as PDFs or Excel files from their own
+websites. There is no unified MA county budget portal analogous to the CA State Controller.
 
-DELAY_MS = 1500ms between steps is already implemented and appropriate. No concurrency strategy is needed at the HTTP layer. Rate-limiting is trivially handled by the existing 1.5s sleeps.
+**Recommendation:** Use the same PDF pipeline (`bulkLoadPDF.js` + Claude Haiku vision) or
+an Excel/CSV approach matching the source format for each of the 5 active counties. Given
+that loadMaGFExcel.js already handles Excel parsing + `treasury_sync_budget_tree` RPC calls
+for MA cities, a new `loadMACountyBudget.js` script can re-use those same patterns (ExcelJS
+or pdftotext) adapted to county-specific source formats.
 
-### DB Layer (load phase): 351 sequential RPC calls per report
+**The `treasury_sync_budget_tree` RPC is entity-type agnostic.** It takes `p_data_source_id`
+(UUID pointing to a municipality row of any entity_type), `p_fiscal_year`, `p_dataset_type`,
+`p_total`, `p_tree`, `p_row_count`, `p_triggered_by`. County budget rows insert identically
+to city budget rows. No RPC changes needed.
 
-The `loadToSupabase` function iterates 351 records sequentially. Each city makes:
-- 1 SELECT on `municipalities` (uses a pre-loaded Map, so 1 query total for all cities)
-- 1 SELECT on `data_sources` (per city, to check if it exists)
-- 1 INSERT on `data_sources` (per city, first run only)
-- 1 RPC call to `treasury_sync_budget_tree` (per city)
+**Data source setup:** Each county needs a `treasury.data_sources` row with
+`municipality_id` pointing to the county's municipalities row (created in Q1). The 5 active
+county loaders will INSERT these data_source rows on first run, matching the pattern in
+`loadMaGFExcel.js` lines 229–268.
 
-Total: ~1053 DB calls per report, ~2106 for both. These are supabase-js client calls (HTTPS to Supabase), so they are NOT local. At ~100–300ms per call, 2106 calls takes **3.5–10 minutes** to complete.
+**Format research needed per county** before writing the loader:
+- Barnstable County: Check barnstablecounty.org for budget PDFs/Excel
+- Bristol County: Check bristolcounty.org
+- Dukes County: Small — Martha's Vineyard Commission
+- Nantucket County: Combined with town of Nantucket (unusual consolidated structure)
+- Norfolk County: Check norfolkcounty.org
 
-**No parallelism is needed or recommended.** The bottleneck is Supabase request rate, not script CPU. Sequential is correct here — easier to reason about, easier to resume from a progress file if one city fails.
-
-**Recommended concurrency: 1 (sequential, as currently implemented)**. The enrichment phase (14 calls total) uses concurrency=3 from enrichCategories.js, which is more than sufficient.
+Nantucket is a consolidated county-town (like San Francisco in CA) — may need special
+handling. Plan phase should investigate whether a separate county budget exists or whether
+the town budget is the same document. San Francisco was intentionally excluded from county
+linking (see `seedLACountyLinks.js` line 14 comment D-06).
 
 ---
 
-## Question 3: Partial Failure Strategy
+## Q3: EntitySwitcher — Changes Needed for MA Counties?
 
-**Answer: Skip-and-continue with progress file. Never abort.**
+### Verdict: No changes needed. Zero-code.
 
-The existing `loadToSupabase` already skips individual cities with `skipped++` on error. However it has no progress file — if the process is killed at city 200, it restarts from city 1. The existing data is idempotent (treasury_sync_budget_tree deletes existing rows before insert), so reloading a city already loaded is safe but wasteful.
+**Confirmed by reading `src/components/EntitySwitcher.tsx` in full:**
 
-### Recommended pattern (extend scrapeMaDLS.js):
+Lines 58–95 group municipalities by `state` → `entity_type`. The grouping logic is
+fully data-driven:
 
-```javascript
-// At top of loadToSupabase, load a JSON progress file
-const progressFile = join(OUTPUT_DIR, `load_progress_${report.name}_${fiscalYear}.json`);
-const loaded = new Set(loadProgress(progressFile));
-
-for (const record of records) {
-  if (loaded.has(record.dorCode)) { skipped++; continue; }
-  // ... load ...
-  if (success) {
-    loaded.add(record.dorCode);
-    saveProgress(progressFile, [...loaded]);
-  }
+```typescript
+const byState = new Map<string, Map<string, Municipality[]>>();
+for (const m of cityEntities) {
+  if (!byState.has(m.state)) byState.set(m.state, new Map());
+  const stateMap = byState.get(m.state)!;
+  const type = m.entity_type;      // string key, no whitelist
+  if (!stateMap.has(type)) stateMap.set(type, []);
+  stateMap.get(type)!.push(m);
 }
 ```
 
-The DOR Code (001–351) is the natural resume key. Save after each successful city. This makes the load resumable at city-granularity with zero re-work on cities already loaded.
+`ENTITY_TYPE_LABELS` (lines 12–23) already maps `'county'` → `'Counties'`. Any municipality
+with `entity_type='county'` will appear under a "Counties" subheader within its state section.
 
-**Error categories and responses:**
+The **only gate** is `getCities()` in ev-accounts-api, which uses
+`HAVING COUNT(b.id) > 0` (confirmed line 394 of `treasuryService.ts`). A county entity
+only appears in the picker once it has at least one budget row. This means:
+- The 5 active county rows appear automatically once county budget data is loaded.
+- The 9 navigation-only (dissolved) county rows will NOT appear in the picker because
+  they have no budget data — which is correct behavior per out-of-scope spec.
 
-| Error | Response |
-|-------|----------|
-| `municipality not found in DB` | Skip (log warning) — needs `--seed` run first |
-| `Supabase RPC error` | Skip + log. Retry on next run via progress file |
-| `data_source insert conflict` | Should not happen (uses SELECT first) |
-| `network timeout` | Skip + log (idempotent, safe to rerun) |
-| `rdDataCache missing` (scrape phase) | Abort scrape — page structure changed, needs investigation |
-| Excel parse error (scrape phase) | Auto-falls back to HTML pagination — no abort |
-
----
-
-## Question 4: Fiscal Year Strategy
-
-**Answer: Load FY2025 first. Add multi-year (FY2021–FY2025) in a second pass.**
-
-### FY2025 first
-
-The scraper already has `scripts/output/ma_dls_special-revenue_2025_expenditures.json` and `scripts/output/ma_dls_revenue-by-source_2025.json` on disk with full 351-city data. The pilot can use these cached files directly with `--load --file`. No additional HTTP requests needed.
-
-### Multi-year path
-
-The MA DLS portal `--list` comment documents "Years: 2002–2025". The form discovers available years dynamically. A multi-year run would loop: for fy in [2021, 2022, 2023, 2024, 2025]: scrape(fy) → load(fy).
-
-At 5 FYs × 2 reports = 10 scrape sessions and 10 load phases. Each load phase is ~3.5–10 minutes. Total: 35–100 minutes of sequential work. This is fine for a one-time load script run by an operator. No async queue infrastructure is needed.
-
-**Recommended phase scope:**
-- Phase A: FY2025 only. Validates the pipeline end-to-end. Gets MA into the city picker.
-- Phase B (subsequent): Multi-year (FY2021–FY2025) for historical depth, once FY2025 is verified.
+**STATE_NAMES['MA'] = 'Massachusetts'** is already present in `src/utils/wikiImage.ts`
+(confirmed in Phase 38 research). MA county entities will appear under the "Massachusetts"
+header without any code change.
 
 ---
 
-## Question 5: MA DLS Tree Structure → treasury_sync_budget_tree p_tree Format
+## Q4: CitiesInCountyPanel — Changes Needed for MA Counties?
 
-**Answer: Already solved in scrapeMaDLS.js. Structure is flat-column → single-level tree.**
+### Verdict: No changes needed. Zero-code.
 
-### What MA DLS data looks like (per city per report)
+**Confirmed by reading `src/components/CitiesInCountyPanel.tsx` in full:**
 
-**special-revenue (operating):**
-```json
-{
-  "dorCode": "001",
-  "municipality": "Abington",
-  "fiscalYear": 2025,
-  "Federal General Government Grants": 1475095,
-  "Federal Public Safety Grants": 63142,
-  "Federal Education Grants": 1053037,
-  "Federal Community Development Block Grants": 104102,
-  "Other Federal Grants": 2864
-}
+```typescript
+const cities = municipalities.filter(
+  m => m.county_id === county.id && m.entity_type === 'city'
+);
 ```
 
-**revenue-by-source (revenue):**
-```json
-{
-  "dorCode": "001",
-  "municipality": "Abington",
-  "fiscalYear": 2025,
-  "Tax Levy": 42906155,
-  "State Aid": 17614336,
-  "Local Receipts": 5692102,
-  "All Other": 2332700,
-  "Enterprise & CPA Funds": 10170340
-}
+The filter is purely data-driven: it matches any municipality whose `county_id` FK points
+to the selected county entity, regardless of state or city count. MA counties with 20–60
+cities each are well within the component's rendering capability. The panel already handles
+two tiers — "Available now" (cities with budget data) and "Coming soon" (cities without).
+
+For MA, all 351 cities already have budget data (Phase 38 complete), so they will all render
+in the "Available now" section. The flex-wrap layout handles any number of city chips.
+
+**App.tsx wiring (lines 454–458, 956–963):**
+
+```typescript
+// countyEntity derivation — works for any entity with county_id
+const countyEntity = useMemo(() =>
+  selectedEntity?.county_id
+    ? municipalities.find(m => m.id === selectedEntity.county_id) ?? null
+    : null,
+  [selectedEntity, municipalities]
+);
+
+// County panel render — keyed only on entity_type === 'county'
+{navigationPath.length === 0 && selectedEntity?.entity_type === 'county' && (
+  <CitiesInCountyPanel ... />
+)}
 ```
 
-### How scrapeMaDLS.js converts this to p_tree
+Both the county breadcrumb chip and the CitiesInCountyPanel are wired entirely on
+`county_id` FK and `entity_type === 'county'` — no state-specific logic anywhere.
 
-The `loadToSupabase` function already builds the compact tree:
-
-```javascript
-// One top-level node per non-zero amount column
-tree.push({ n: col, a: amount, i: [{ d: col, a: amount, aa: null, f: 'General Fund', e: null }] });
-```
-
-This produces a **1-level tree** (no subcategories — each column becomes both the category name and its single line item). Example for Abington special-revenue FY2025:
-
-```json
-[
-  { "n": "Federal Education Grants",          "a": 1053037, "i": [{ "d": "Federal Education Grants",          "a": 1053037, "aa": null, "f": "General Fund", "e": null }] },
-  { "n": "Federal General Government Grants", "a": 1475095, "i": [{ "d": "Federal General Government Grants", "a": 1475095, "aa": null, "f": "General Fund", "e": null }] },
-  { "n": "Federal Public Safety Grants",      "a": 63142,   "i": [...] },
-  { "n": "Federal Community Development Block Grants", "a": 104102, "i": [...] },
-  { "n": "Other Federal Grants",              "a": 2864,    "i": [...] }
-]
-```
-
-This is a valid 2-level-compatible tree (root node → single line item). The `treasury_sync_budget_tree` RPC handles it. Zero-amount columns are dropped before building the tree.
-
-**No RPC changes are needed for MA DLS.** The existing 2-level RPC is sufficient. MA DLS data does not have subcategory depth — each column IS the category.
+However, note one subtlety: `CitiesInCountyPanel` filters `m.entity_type === 'city'`. MA
+municipalities are stored with `entity_type='city'` per Phase 38 research (all 351 MA city
+rows have entity_type='city'). Town, village, and other MA entity subtypes are stored the
+same way. No change needed.
 
 ---
 
-## Question 6: Build Order
+## Q5: ev-accounts-api Impact Assessment
 
-**Answer: Seed → Pilot 3 cities → Bulk load → Population → Enrichment → City picker.**
+### Verdict: No changes needed to getCities(), getBudgetById(), or any API endpoint.
 
-### Dependency graph
+**getCities() (treasuryService.ts lines 380–398):**
+The query is a generic `SELECT ... FROM treasury.municipalities` with no state or
+entity_type filters. The only filter is `HAVING COUNT(b.id) > 0`. MA county rows appear
+automatically once budget data is loaded. `county_id` is already a selected column
+(line 383, confirmed).
 
-```
-Step 1 — Seed 351 MA municipalities
-  node scripts/scrapeMaDLS.js --seed --file scripts/output/ma_dls_special-revenue_2025.json
-  Creates municipalities rows (MA, entity_type: 'city')
-  → Unblocks: Step 2
+**getBudgetById() (treasuryService.ts lines 514–670):**
+Queries `treasury.budgets WHERE id = $1` — entity-type agnostic. County budgets are stored
+in the same `treasury.budgets` table. No changes needed.
 
-Step 2 — Pilot load: 3 cities FY2025 (--dry-run first, then live)
-  node scripts/scrapeMaDLS.js --load --file scripts/output/ma_dls_special-revenue_2025_expenditures.json --dry-run
-  Confirm tree shape, amounts, city picker shows MA cities
-  → Unblocks: Step 3
+**Enrichment join (lines 532–558):**
+The LEFT JOIN to `treasury.category_enrichment` uses `e_city.municipality_id = b.municipality_id`
+and falls back to `e_univ.municipality_id IS NULL`. MA county budgets can use the same
+universal MA enrichment already loaded (14 category descriptions). If county-specific
+enrichment is needed later, it can be added as municipality-scoped rows without API changes.
 
-Step 3 — Bulk load FY2025 both reports (add progress file first)
-  Extend scrapeMaDLS.js: progress file for loadToSupabase
-  node scripts/scrapeMaDLS.js --load --file scripts/output/ma_dls_special-revenue_2025_expenditures.json
-  node scripts/scrapeMaDLS.js --load --file scripts/output/ma_dls_revenue-by-source_2025.json
-  → Unblocks: Step 4 and Step 5 (parallel)
-
-Step 4 — MA population data
-  351 cities need population for per-capita display
-  Script: extend existing loadXXXPopulation.js pattern or new loadMAPopulation.js
-  Source: US Census Bureau 2024 population estimates (CSV download)
-  → Can run in parallel with Step 5
-
-Step 5 — Enrichment (14 API calls, ~$0.004 total)
-  node scripts/enrichCategories.js --state MA --year 2025
-  All 14 MA DLS category names are universal (same for all 351 cities)
-  Use --skip-universal after first run so re-runs are instant
-  → Trivial cost, can run with FY2025 data present
-
-Step 6 — Add MA to city picker STATE_LABELS
-  Confirm STATE_LABELS['MA'] = 'Massachusetts' in app
-
-Step 7 — Multi-year scrape + load (FY2021–FY2024)
-  Separate from Step 3; add --fy loop to scrapeMaDLS.js or run 4× manually
-  → Deferred to Phase B after FY2025 is verified in production
-```
-
-### Critical path
-
-Steps 1 → 2 → 3 → 6 (MA appears in city picker with data)
-
-Steps 4 and 5 are parallel with Step 6 (no per-capita display and no enrichment descriptions until those complete, but data is visible).
-
-Step 7 is deferred (historical depth is a nice-to-have, not MVP).
+**URL routing:**
+`App.tsx` derives the URL slug via `toSlug()` which does
+`${m.name.toLowerCase().replace(/\s+/g, '-')}-${m.state.toLowerCase()}`.
+"Barnstable County" → `barnstable-county-ma`. This is unique and collision-free.
 
 ---
 
-## System Architecture: Where MA DLS Fits
+## Build Order and Dependencies
+
+The dependency chain is strict:
 
 ```
-MA DLS Portal (dls-gw.dor.state.ma.us)
-  ↓  1 HTTP session per report per FY
-  ↓  GET initial page (discover 351 city checkboxes + available FYs)
-  ↓  POST all 351 checkboxes (or GET Excel export via rdDataCache)
-  ↓  Parse Excel or HTML → 351-row flat table
-  ↓  Write JSON to scripts/output/ma_dls_<report>_<fy>.json
+Step 1: scripts/seedMACountyLinks.js (NEW)
+        — INSERT 14 county rows
+        — UPDATE 351 city county_id FKs
+        — Prerequisite: nothing (county_id column already exists)
+        ↓ county UUIDs now exist
+Step 2: scripts/loadMACountyBudget.js (NEW, one per county or one multi-county)
+        — INSERT data_source rows for 5 active counties
+        — Call treasury_sync_budget_tree RPC for each county's budget data
+        — Prerequisite: county rows from Step 1
+        ↓ budget rows created for 5 active counties
+Step 3: Automatic — no code changes
+        — getCities() returns the 5 active counties with available_datasets
+        — EntitySwitcher shows "Counties" section under Massachusetts
+        — County breadcrumb chip appears on MA city pages (county_id set)
+        — CitiesInCountyPanel renders city list on county pages
+```
 
-scrapeMaDLS.js --seed
-  ↓  INSERT 351 rows into treasury.municipalities (MA, entity_type: 'city')
-  ↓  (skip if already exists — idempotent)
+Steps 3+ require zero code changes. The entire frontend and API path already works.
 
-scrapeMaDLS.js --load
-  ↓  For each of 351 records:
-  ↓    Find municipality_id by name
-  ↓    Find or CREATE data_source (api_type: 'ma-dls', dataset_type: 'operating'|'revenue')
-  ↓    Build compact tree: { n: col, a: amount, i: [{...}] } for each non-zero column
-  ↓    Call treasury_sync_budget_tree RPC
-  ↓    (no changes to RPC needed)
-  ↓  → 351 budget rows + budget_categories + budget_line_items
+---
 
-enrichCategories.js --state MA
-  ↓  14 unique category names across all 351 cities
-  ↓  14 Claude Haiku API calls (~$0.004 total)
-  ↓  → 14 rows in treasury.category_enrichment (universal, municipality_id = NULL)
+## Component Boundary Map
 
-loadMAPopulation.js (new, ~50 lines)
-  ↓  Census 2024 estimate CSV → UPDATE treasury.municipalities SET population WHERE state='MA'
-  ↓  → Per-capita display enabled in app
+| Component | File | Change Needed | Why |
+|-----------|------|---------------|-----|
+| County row seeder | `scripts/seedMACountyLinks.js` (NEW) | Create | No MA analog exists |
+| County budget loader | `scripts/loadMACountyBudget.js` (NEW) | Create | MA county budget format unknown; source format research needed |
+| `EntitySwitcher` | `src/components/EntitySwitcher.tsx` | None | Fully data-driven by entity_type |
+| `CitiesInCountyPanel` | `src/components/CitiesInCountyPanel.tsx` | None | Fully data-driven by county_id FK |
+| `App.tsx` | `src/App.tsx` | None | County breadcrumb and panel wiring already generic |
+| ev-accounts-api `getCities()` | `C:/EV-Accounts/backend/src/lib/treasuryService.ts` | None | No entity_type filter; county_id already returned |
+| ev-accounts-api `getBudgetById()` | same file | None | Entity-type agnostic |
+| `treasury.municipalities` | Supabase DB | Data only (INSERT + UPDATE) | Schema already has county_id, entity_type, population |
+| `treasury.budgets` | Supabase DB | Data only (INSERT via RPC) | Same RPC used for all entity types |
+
+**New files to create:** 2 scripts only
+**Files to modify:** 0 (frontend, API, DB schema — all already support this pattern)
+
+---
+
+## Data Flow: County Seeding + Linking + Budget Loading
+
+```
+scripts/seedMACountyLinks.js
+  ├── INSERT 14 county rows into treasury.municipalities
+  │     fields: name, state='MA', entity_type='county', population, population_year=2024
+  ├── Build name→uuid map from INSERT results + already-existing rows
+  └── 14x UPDATE treasury.municipalities SET county_id = [county uuid]
+        WHERE state='MA' AND name IN ([city list for that county])
+
+scripts/loadMACountyBudget.js (per county, once source formats confirmed)
+  ├── For each of 5 active counties:
+  │     ├── Fetch/parse county budget source (Excel/PDF — format TBD per county)
+  │     ├── Find or INSERT treasury.data_sources row
+  │     │     municipality_id = county uuid from seeder
+  │     ├── Build budget tree (same {n, a, i} shape as all other loaders)
+  │     └── Call treasury_sync_budget_tree RPC
+  └── Print summary
+
+  → treasury.budgets rows created for 5 counties
+  → getCities() returns these 5 counties in available_datasets
+  → EntitySwitcher shows them under "Massachusetts > Counties"
+  → CitiesInCountyPanel renders city list on each county page
+  → County breadcrumb chip appears on each linked MA city page
 ```
 
 ---
 
-## Component Changes Required
+## Reusable Patterns
 
-| Component | Change | Scope | Notes |
-|-----------|--------|-------|-------|
-| `scrapeMaDLS.js` | Add progress file to `loadToSupabase` | Small | 20–30 lines; prevents restart from zero |
-| `scrapeMaDLS.js` | Add `--fy` multi-value loop (optional) | Small | Deferred to Phase B |
-| `loadMAPopulation.js` | New script | Small (~50 lines) | Copies loadTXPopulation.js pattern |
-| STATE_LABELS in app | Add `'MA': 'Massachusetts'` | Tiny | 1 line in city picker config |
-| `enrichCategories.js` | No changes needed | — | `--state MA` already works |
-| `treasury_sync_budget_tree` RPC | No changes needed | — | 1-level tree is valid 2-level |
-| DB schema | No changes needed | — | 'city' entity_type already exists |
+### Pattern 1: County Seeder (copy seedLACountyLinks.js)
+The entire structure of `seedLACountyLinks.js` is reusable. Key changes for MA:
+- Replace `COUNTY_ROWS_TO_INSERT` array with 14 MA counties (with Census population)
+- Replace `LA_COUNTY_CITY_NAMES` single-county list with a per-county Map:
+  `const MA_COUNTY_CITIES = new Map([['Barnstable County', ['Barnstable', 'Bourne', ...]], ...])`
+- Run 14 UPDATE batches instead of 1
 
----
+### Pattern 2: Budget Loader (copy loadMaGFExcel.js skeleton)
+`loadMaGFExcel.js` has the right structure for MA county budget loading:
+- Supabase client init with service key (`SUPABASE_SERVICE_KEY || SUPABASE_SERVICE_ROLE_KEY`)
+- `--dry-run` parseArgs pattern
+- data_source find-or-create + fiscal_years append/dedup (LOAD-03 pattern)
+- `treasury_sync_budget_tree` RPC call
+- If loading multiple counties/years: progress checkpoint (LOAD-02 pattern)
 
-## Enrichment Scope and Cost
+If source is PDF rather than Excel, use `bulkLoadPDF.js` pattern instead of ExcelJS parsing.
 
-**This is the most important number for the quality gate.**
-
-The MA DLS data has flat column structure — every city in MA has the same category names (the column headers are uniform across all 351 cities). This means enrichment is **universal**, not per-city.
-
-| Report | Category names | All universal? |
-|--------|---------------|----------------|
-| special-revenue (operating) | 9 columns | Yes — same 9 names for all 351 cities |
-| revenue-by-source (revenue) | 5 columns | Yes — same 5 names for all 351 cities |
-| **Total** | **14 unique names** | |
-
-**Enrichment API calls: 14** (not 351 × 14 = 4,914).
-
-At Claude Haiku pricing (~$0.0003/call): **~$0.004 total**. Well below the $5 approval threshold.
-
-Note: On average, only 2.5 of 9 special-revenue columns are non-zero per city (most small towns receive only 2–3 federal grant types). For revenue-by-source, the average is ~4.9 of 5 non-zero columns. The enrichment should cover all 14 possible names (even if a specific city's value is zero today, it may be non-zero in another FY). Run with `--skip-universal` on re-runs.
+### Pattern 3: Entity-Type Agnostic API
+No special casing needed. The entire ev-accounts-api stack treats county, city, state,
+and nonprofit entities identically once they have budget rows. This is by design
+(confirmed in getCities() and getBudgetById() source).
 
 ---
 
-## Pitfalls for Phase Execution
+## Confirmed Non-Issues
 
-### Municipality name mismatches (seed vs load)
-
-The MA DLS portal uses official DOR-registered municipality names. Some may differ slightly from Census or colloquial names. The `seedMunicipalities` function uses `name` as written in the DLS data. The `loadToSupabase` function looks up by exact name match. If a city was manually inserted with a different spelling (e.g., "Attleborough" vs "Attleboro"), the load will skip it silently. **Prevention:** run `--seed` from the same data file used for `--load`; never manually insert MA city names before running seed.
-
-### Missing `--seed` before `--load`
-
-`loadToSupabase` looks up `municipality_id` by name. If the municipality row does not exist, it logs a warning and skips. The count of skipped cities in the final summary reveals this. **Prevention:** always run `--seed` before `--load` on first run.
-
-### `fiscal_years` not updated on second FY load
-
-When `loadToSupabase` finds an existing `data_source` for a city, it uses the existing `dsId` without updating the `fiscal_years` array. So if you load FY2025 first (data_source created with `fiscal_years: [2025]`), then load FY2024, the `fiscal_years` column still shows `[2025]`. **Prevention:** add an `UPDATE data_sources SET fiscal_years = array_append(fiscal_years, $fy) WHERE id = $dsId AND NOT ($fy = ANY(fiscal_years))` after finding an existing dsId. This is a small gap in the current script.
-
-### City picker not showing MA
-
-The `STATE_LABELS` map in the frontend must include `'MA': 'Massachusetts'`. If it is missing, MA cities will be in the DB but not visible in the city picker. **Prevention:** verify `STATE_LABELS` after loading the first batch of MA cities.
-
-### No progress file = full restart on failure
-
-The current `loadToSupabase` has no progress tracking. If it fails at city 200 of 351, it restarts from city 1. Since `treasury_sync_budget_tree` is idempotent (deletes before insert), this is safe but wastes 5–10 minutes of DB calls. **Prevention:** add a progress file keyed by `dorCode` before running the bulk 351-city load.
+| Concern | Status |
+|---------|--------|
+| EntitySwitcher needs MA county section | Not needed — auto-renders via data |
+| CitiesInCountyPanel breaks at many cities | Not an issue — flex-wrap handles any count |
+| getCities() filters out counties | Not an issue — no entity_type filter in SQL |
+| county_id column missing | Already exists — added in v1.5 Phase 25 |
+| Breadcrumb chip won't show for MA cities | Will show automatically once county_id is set |
+| Budget loading RPC is city-only | RPC is entity-type agnostic |
+| API needs county-specific endpoint | Not needed — getCities() + getBudgetById() already serve counties |
+| Frontend URL slug collision | "barnstable-county-ma" does not collide with "barnstable-ma" city |
 
 ---
 
-## Phase Count Recommendation
+## Open Questions (Phase-Specific Research Needed Before Loader Can Be Written)
 
-**This milestone fits cleanly in 2 phases:**
+1. **MA city→county mapping source:** The 351 city assignments need a reliable lookup.
+   Best source: MA DLS DOR code table (each DOR code maps to a county) or Census TIGER
+   county subdivision file for FIPS 25. The seeder will need to hardcode or derive the mapping.
+   The DOR code is parsed by `loadMaGFExcel.js` but is not currently stored in the DB.
 
-**Phase A — MA DLS FY2025 Pilot + Bulk Load**
-- Extend `scrapeMaDLS.js` with progress file
-- Seed 351 municipalities
-- Load FY2025 (both reports) using existing cached output files
-- Add `MA` to STATE_LABELS
-- Run enrichment (14 calls, ~$0.004)
-- Load MA population data
-- Verify in app: 351 MA cities visible, FY2025 data showing, per-capita working
+2. **MA active county budget sources:** Barnstable, Bristol, Dukes, Nantucket, and Norfolk
+   each need a URL and format confirmation before the loader can be written. Dukes and
+   Nantucket are small island counties — their budgets may be PDFs only.
 
-**Phase B — Multi-Year Historical Depth (FY2021–FY2024)**
-- Add `--fy` looping to `scrapeMaDLS.js`
-- Scrape and load FY2021–FY2024 for both reports
-- ~4 scrape sessions + 4 load sessions per report
-- Population data already in DB; no enrichment re-run needed (universals already exist)
+3. **Nantucket consolidated status:** Nantucket County and the Town of Nantucket share
+   government functions. Determine whether a separate county budget document exists. If not,
+   treat as navigation-only (no budget data), same handling as SF County in CA.
 
-Phase A is self-contained and delivers a shippable milestone. Phase B adds historical depth and can be done independently.
+4. **Census population for 14 MA counties:** Use the same Census sub-est2024 vintage used
+   for MA cities (FIPS 25), but at SUMLEV=050 (county level) rather than SUMLEV=061 (city).
+
+---
+
+## Sources
+
+- `scripts/seedLACountyLinks.js` — canonical county seeder pattern (direct read, full file)
+- `scripts/loadMaGFExcel.js` — MA Excel loader pattern (direct read, full file)
+- `scripts/loadLACountyOperating.js` — county budget loader pattern (direct read, lines 1–60)
+- `src/components/EntitySwitcher.tsx` — entity picker grouping logic (direct read, full file)
+- `src/components/CitiesInCountyPanel.tsx` — county panel logic (direct read, full file)
+- `src/App.tsx` lines 454–458, 956–963 — county wiring (direct read)
+- `C:/EV-Accounts/backend/src/lib/treasuryService.ts` — getCities(), getBudgetById() (direct read, full file)
+- `src/types/budget.ts` — Municipality type with county_id (direct read)
+- `.planning/phases/38-ma-city-budget-load/38-RESEARCH.md` — MA EntitySwitcher zero-code analysis
+- `.planning/PROJECT.md` — milestone definition, existing CA county precedent

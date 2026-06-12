@@ -1,176 +1,243 @@
-# Domain Pitfalls — MA DLS Municipal Budget Load (v1.8)
+# Domain Pitfalls — MA County-City Linking (v1.9)
 
-**Domain:** Bulk municipal budget data load from MA DLS Gateway (351 cities × 2 data types = 702 source loads)
-**Researched:** 2026-06-09
-**Context:** `scrapeMaDLS.js` already built and partially parameterized; pitfalls apply to operating it at scale, interpreting its output correctly, and running enrichment safely.
-**Confidence:** HIGH for pitfalls derived from reading the actual scraper code and portal responses; MEDIUM for filing-gap frequency and portal downtime patterns
+**Domain:** Seeding 14 MA county entities, linking 351 municipalities to their counties, loading active county government budgets, and surfacing county pages in the app.
+**Researched:** 2026-06-10
+**Confidence:** HIGH for DB/frontend pitfalls (verified by direct code inspection); HIGH for MA government structure (verified via MA Secretary of State and official county sites); MEDIUM for budget extraction formats (verified via PDF sample and county websites).
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: AWSALB Sticky-Session Cookie Rotation Breaks HTML Pagination
+### Pitfall 1: getCities() HAVING filter hides counties with no budget data
 
-**What goes wrong:** The MA DLS portal runs behind AWS Application Load Balancer. Every response sets a new `AWSALB` cookie value. If pagination requests use the rotated cookie, they hit a different backend instance that has no `rdDataCache` in memory. The paginated requests return empty tables or silent redirects. The scraper writes debug HTML only when row count is zero — a response that returns an HTML error page without the expected table ID will trigger the debug dump, but the run appears to "succeed" with far fewer than 351 records.
+**What goes wrong:** The `getCities()` query in `ev-accounts-api/backend/src/lib/treasuryService.ts` has `HAVING COUNT(b.id) > 0` — only municipalities with at least one budget row are returned to the frontend. If a county municipality row is seeded but no budget data is loaded, that county row will be completely absent from the `municipalities` array that the app uses. The result:
 
-**Why it happens:** `rdDataCache` is a server-side key tied to the originating backend instance. The scraper comment in `scrapeViaHtml` already calls this out: "Always use the original cookies from the initial GET." The risk is that any future maintenance changes the cookie-passing logic in pagination loops.
+- The county breadcrumb chip will not appear on any city page linked to that county (the `countyEntity = municipalities.find(m => m.id === selectedEntity.county_id)` lookup returns `undefined`).
+- `CitiesInCountyPanel` will not render on that county page (the county itself can't be navigated to via the EntitySwitcher since it has no budgets).
+- Any future `county_id` update that points to a non-existent DB row (or a row excluded by HAVING) is silently invisible to users.
 
-**Consequences:** Silent data loss. The scraper runs to completion. The output JSON has, say, 49 records instead of 351 (one page's worth). The `--load` step processes only those 49 towns. The other 302 get no budget data.
+**Why it happens:** The HAVING filter was intentional for cities (prevents picker from showing empty stubs). County rows without budget data fall into the same "no budget = invisible" logic.
 
-**Prevention:**
-- Never update the `cookies` variable inside pagination loops. The `getPage` return value has a `cookies` field — ignore it during pagination; use only the cookies captured from the initial GET.
-- After every `--scrape` run, validate: `records.length === 351` (or within 5 of 351 to allow for very small towns with all-zero rows). Fail loudly if below 340. The current code logs the count but does not throw.
-- Prefer the Excel export path — it requires only 2 HTTP requests (initial GET + export POST) instead of 8 page fetches, so cookie rotation never becomes relevant.
+**Consequences:** 9 of 14 MA counties are navigation-only (no budget data). If their county rows ARE seeded and cities ARE linked to them via `county_id`, the breadcrumb will still not appear for those cities. A user clicking "Middlesex County" in a breadcrumb would navigate to an entity that returns a 404 or shows nothing.
 
----
+**Prevention:** Two choices — pick one and document it:
 
-### Pitfall 2: Schedule A "Special Revenue Funds" is Not a Department-Based Operating Budget
+Option A (recommended): Only seed county rows for the 5 active county governments (Barnstable, Bristol, Dukes, Nantucket, Norfolk). Leave `county_id = NULL` for cities in the 9 abolished counties. This matches the out-of-scope decision in PROJECT.md ("Budget data for 9 dissolved MA counties — navigation-only") and avoids the invisible-county problem entirely.
 
-**What goes wrong:** The scraper labels `special-revenue` as `datasetType: 'operating'`. But Schedule A Special Revenue Funds is a fund-type classification — the top-level categories are "Federal General Government Grants", "Federal Public Safety Grants", "State Grants", "Receipts Reserved for Appropriation", "Revolving Funds", "Other Special Revenue." Displaying this as "operating budget" alongside TX/CA/OR cities makes MA cities look like their entire operation is grant-funded. A citizen looking at Weymouth, MA and Dallas, TX will see completely different category names for what the app labels the same dataset type.
+Option B: If navigation-only county pages are desired later, a separate query must be added to `getCities()` that fetches county rows regardless of budget count (e.g., `entity_type = 'county'` gets its own non-HAVING branch). This requires an ev-accounts-api code change before those counties can be linked.
 
-**Why it happens:** Special Revenue Funds is what the MA DLS portal makes most accessible — it is the first and most prominent Schedule A tab. The scraper was built around it. But the General Fund Expenditures by Function report (`gf-expenditures` in the scraper, `rdreport: 'ScheduleA.GF.ExpendituresByFunctionMain'`) is the structural equivalent of what other states call the operating budget. Its categories are: General Government, Public Safety, Education, Public Works, Human Services, Culture and Recreation, Debt Service, Intergovernmental.
-
-**Consequences:** Citizens see "Federal Education Grants" as a category for MA cities while seeing "Public Safety" for TX cities — both labeled "Operating Budget" in the UI. This is the most visible data quality problem in the entire milestone.
-
-**Prevention — concrete decision required:**
-
-Use `gf-expenditures` (General Fund Expenditures by Function) as the primary `operating` dataset for MA. This maps to departments and matches TX/CA/OR display. The scraper already defines this report — verify the rdreport value is correct with `--explore gf-expenditures` before loading.
-
-Keep Special Revenue Funds as a separate supplemental dataset (`dataset_type: 'special-revenue'`) or defer it entirely to a post-v1.8 phase. Do not load it as `dataset_type: 'operating'`.
-
-**Phase to address:** Phase decision before any --load runs for operating data.
+**Phase to address:** County seeder script — before writing any `county_id` FK updates, confirm which approach is chosen. Phase plans must document that 9 counties are intentionally left unseeded (Option A).
 
 ---
 
-### Pitfall 3: rdDataCache Expires Between Initial GET and Excel Export POST
+### Pitfall 2: County rows must be INSERTed before the FK UPDATE that sets city county_ids
 
-**What goes wrong:** The Excel export URL (`?rdReportFormat=NativeExcel&rdExportTableID=...&rdDataCache=<N>`) requires a valid server-side cache entry. If too much time elapses between the initial GET (which creates the cache) and the export POST, the server returns an HTML page instead of an `.xlsx` file. The scraper's `tryExcelExport` function detects this via `content-type` inspection and falls back to HTML pagination. However, for the `revenue-by-source` report, HTML pagination is POST-based and sends all 351 municipality checkbox values per page — a large payload where mid-run session loss is harder to detect.
+**What goes wrong:** The `county_id` column is a self-referential FK (`REFERENCES treasury.municipalities(id)`). If a script attempts to `UPDATE municipalities SET county_id = <uuid>` using a UUID that does not yet exist in the table (because the INSERT in the same script hasn't committed yet, or the steps are in the wrong order), the update fails with a foreign key constraint violation.
 
-**Why it happens:** The `DELAY_MS = 1500` sleep between the initial GET and the Excel POST is usually short enough. But if the Node process is CPU-stalled (e.g., other async work), the delay can stretch. On slow connections or under server load, cache entries expire sooner.
+LA County precedent (Phase 25): `seedLACountyLinks.js` handles this correctly — Step 1 inserts county rows and captures their UUIDs, Step 2 uses those UUIDs to update cities. If Steps 1 and 2 are reversed, or if the county insert is in a separate run that hasn't completed, the FK update fails.
 
-**Consequences:** The scraper continues but switches to the slower, less reliable HTML pagination path. For `revenue-by-source`, POST-based pagination failures leave silent gaps. The output JSON has fewer than 351 records.
+**Why it happens:** Scripts that use hardcoded UUIDs (like `seedLACountyLinks.js` does for `LA_COUNTY_ID`) avoid the ordering problem by looking up the UUID after insert. Scripts that hardcode the UUID before running the insert can silently reference a wrong or non-existent UUID.
+
+**Consequences:** `county_id` updates silently fail (Supabase `.update()` returns rows updated = 0, not an error, when the WHERE clause matches zero rows) or throw a FK violation if the UUID is completely absent.
 
 **Prevention:**
-- Keep `DELAY_MS` at 1500ms or less between initial GET and Excel export. Do not add extra logging, DB queries, or file I/O between these two steps.
-- Always save raw Excel bytes to `scripts/output/raw_<report>_<fy>.xlsx` (the scraper already does this). If DB load fails, re-run `--load --file` from the saved JSON rather than re-scraping.
-- If Excel returns HTML in more than 2 consecutive attempts on different days, the portal's cache TTL may have been reduced — reduce any intermediate delays to near-zero for the GET→POST sequence.
+- Always perform the INSERT in Step 1, capture the returned UUID, use it in Step 2's UPDATE.
+- Never hardcode county UUIDs in the seeder script — always derive them from the INSERT return value or a SELECT after INSERT.
+- After running the seeder, verify: `SELECT COUNT(*) FROM treasury.municipalities WHERE state='MA' AND county_id IS NOT NULL`. Expected: all cities in the 5 active counties × (count of cities per county).
+- Add a post-run check: `SELECT county_id, COUNT(*) FROM treasury.municipalities WHERE state='MA' AND county_id IS NOT NULL GROUP BY county_id`. Verify 5 distinct county IDs appear.
+
+**Phase to address:** County seeder script.
+
+---
+
+### Pitfall 3: Plymouth County omitted from scope despite being an active government
+
+**What goes wrong:** The PROJECT.md milestone context lists 5 active MA county governments: Barnstable, Bristol, Dukes, Nantucket, Norfolk. Research confirms a 6th county — Plymouth County — also has an active government with annual budgets published at plymouthcountyma.gov, including an FY2025 Operating Budget dated June 6, 2024.
+
+The MA Secretary of State website explicitly lists Plymouth among the counties with functioning governments.
+
+**Why it happens:** Plymouth County has a lower profile than the other active counties; it retains a traditional county commission structure but does not have the same level of regional authority as Barnstable (Cape Cod Regional Government). The initial scope list appears to have been based on a source that omitted it or predates Plymouth's current status.
+
+**Consequences:** If Plymouth County is omitted, 27+ MA municipalities in Plymouth County (Abington, Brockton, Duxbury, Hingham, Kingston, Plymouth, Rockland, and others) will have `county_id = NULL` when a budgeted Plymouth County row exists and could link them. The app would show no county breadcrumb for these cities.
+
+**Prevention:** Confirm with the human whether Plymouth County should be added as a 6th active county for v1.9. If yes, add it to the scope. Budget format is the same PDF structure as Norfolk County. If no, document Plymouth County as explicitly deferred.
+
+**Phase to address:** Requirements definition — before any county seeding work begins.
+
+---
+
+### Pitfall 4: Nantucket is a consolidated town-county — seeding it creates a name conflict
+
+**What goes wrong:** Nantucket County and the Town of Nantucket are the same governmental entity. The Town of Nantucket already exists in the `municipalities` table (state='MA', entity_type='city', name='Nantucket'). If a new row is inserted as "Nantucket County" with entity_type='county', there are two Nantucket rows. The breadcrumb chip would show "Nantucket County" linking to the county row (no budget) while the city row has the budget. OR, if the Nantucket town row is promoted to entity_type='county' + budget data loaded, the city page ceases to exist.
+
+The Nantucket County Commission IS the Town's Select Board. There is one budget for both — the "Town & County of Nantucket" budget covers all services.
+
+**Why it happens:** The seeder naturally creates a "Nantucket County" row distinct from the existing "Nantucket" town row, not realizing they represent the same government.
+
+**Consequences:**
+- Route A (two separate rows): The county row has budget data; the town row also has budget data. Two entries for Nantucket appear in the city picker, one labeled "Nantucket" (city) and one labeled "Nantucket County" (county). Duplicate + confusing.
+- Route B (promote town row to county): All 351 cities query by `state='MA' AND entity_type='city'` — Nantucket disappears from city-level queries.
+
+**Prevention:** Treat Nantucket as a special case. Choose one of:
+- Load Nantucket County budget data INTO the existing "Nantucket" town row (keeping entity_type='city'), skipping the county entity creation entirely for Nantucket. Do not create a "Nantucket County" row.
+- OR: Create a "Nantucket County" row with entity_type='county' and link the Nantucket town municipality to it (county_id FK), but keep budget data only on the county row. Accept that the city row becomes a shell with no direct budget.
+
+The cleaner option: do not seed a Nantucket County row. Link the existing Nantucket town row as its own county_id (self-referential to itself) — or leave county_id NULL for Nantucket since there is no separate county government to navigate to.
+
+**Phase to address:** County seeder script design — requires an explicit decision before coding begins.
 
 ---
 
 ## Moderate Pitfalls
 
-### Pitfall 4: Municipality Name Mismatch Between DLS Report and the municipalities Table
+### Pitfall 5: MA municipality-to-county mapping has no authoritative machine-readable source in the existing DB
 
-**What goes wrong:** The loader (`loadToSupabase`) matches municipalities by `name` and `state = 'MA'`. If the municipalities table has a slightly different spelling than what DLS reports (which are the authoritative source for MA names), the row is silently skipped. The loader logs one warning when the first skip occurs, then stops logging further skips.
+**What goes wrong:** The 351 MA municipalities in the DB were loaded from the MA DLS gateway, which provides no county field. The DLS data has DOR codes (001–351) and municipality names — no county assignment. Building the county_id mapping requires sourcing a separate municipality-to-county table and joining it by name.
 
-**High-risk names:** Manchester-by-the-Sea, North Attleborough (DLS) vs. North Attleboro (common abbreviation), Aquinnah (formerly Gay Head), Gosnold, West Tisbury, Chilmark, Tisbury.
+**Why it happens:** MA DLS is organized by municipality, not by county. The DOR code sequence does not follow county order (code 001 = Abington, Plymouth County; code 002 = Acton, Middlesex County — no grouping by county in the numeric order).
 
-**Why it happens:** The `seedMunicipalities` function inserts names verbatim from DLS records. If the municipalities table was pre-seeded by a different route (Census FIPS names, a prior script), hyphenation and abbreviation may differ.
+**Reliable sources for the mapping:**
+- MMA directory download (mma.org/all-directory-data/) — CSV with county field, 351 rows, official
+- Census sub-est2024_25.csv SUMLEV=050 rows — 14 county rows with FIPS codes; cross-reference with SUMLEV=061 rows' COUNTYFP field
+- MA Secretary of State CIS website (sec.state.ma.us/cis/cisctlist/ctlistidx.htm) — searchable by town
+
+**Consequences:** The county_id assignment script must include a hardcoded or file-based name-to-county lookup. If this lookup is built from an unreliable source or has encoding errors, some municipalities will be assigned to the wrong county. There is no automated validation against an authoritative in-DB county field — errors would only be detected manually or via spot-checks.
 
 **Prevention:**
-- Always run `--seed` from the scraped JSON before `--load`. The seeder uses `maybeSingle()` on name+state and inserts only if not found — this ensures DLS-exact names are in the table.
-- After `--load`, verify: `SELECT COUNT(DISTINCT municipality_id) FROM treasury.data_sources WHERE api_type = 'ma-dls'`. If below 345, query for the skipped names and compare to DLS.
+- Use the MMA CSV as the authoritative source — it is official, complete, and matches DLS name conventions.
+- After building the mapping, spot-check 5-10 known assignments (e.g., Cambridge → Middlesex, Boston → Suffolk, Barnstable → Barnstable, Taunton → Bristol).
+- Run a post-assignment validation query: `SELECT m.name, county.name AS county FROM treasury.municipalities m JOIN treasury.municipalities county ON county.id = m.county_id WHERE m.state='MA' ORDER BY county.name, m.name` and review for obvious mismatches.
+- The MMA CSV uses the same DLS-normalized names (e.g., "Manchester By The Sea" not "Manchester-by-the-Sea"), so name matching should be clean. Verify this assumption for the 3-5 edge-case names before committing.
+
+**Phase to address:** County seeder + city-linking script.
 
 ---
 
-### Pitfall 5: Small Towns Return All-Zero Rows for Certain Fund Types
+### Pitfall 6: MA county budget PDFs have non-standard category structures — city enrichment bleeds
 
-**What goes wrong:** Very small towns (Gosnold ~75 people, Monroe ~121, Hawley ~337, Windsor ~825) may have no activity in certain Special Revenue fund types (no federal grants, no revolving funds). The scraper correctly calls `parseAmount` on empty cells and gets 0. The loader skips municipalities where `tree.length === 0` (all amounts were zero). The town ends up in the municipalities table with no budget record, and the frontend displays "No budget data available."
+**What goes wrong:** MA county government budgets are structured around county-specific departments: Registry of Deeds, County Commissioners, Agricultural School (Norfolk), Correctional Facility (Bristol), Wollaston Recreational Facility (Norfolk), County Treasurer. These categories do not match the MA DLS city budget categories ("Federal General Government Grants", "Tax Levy", "State Aid") or the standard municipal function categories (Public Safety, Education, General Government).
 
-**Why it happens:** DLS includes a row for every town in every report regardless of activity. A row of all-zero amounts is valid data meaning "this town had no activity in this fund type." The scraper correctly skips zero rows from the tree, but a town with only zeros produces an empty tree.
+The `enrichCategories.js` script uses existing `treasury.category_enrichment` rows as a reference when building AI prompts for a new city. If the 14 universal MA DLS city enrichments are already in the DB when county budgets are enriched, the AI will see those city-level categories as context and may produce county descriptions that inherit city framing.
 
-**Consequences for `gf-expenditures`:** Extremely unlikely. All 351 towns have at least school expenses and road maintenance in their general fund. The zero-tree problem is specific to fund-type reports (Special Revenue, Federal Grants) where small towns genuinely have no activity.
+**Concrete example:** The county budget has "Registry of Deeds" as a department. The AI enrichment prompt includes context from the 14 universal MA city categories (which are all about municipal grants and tax levies). The AI may produce a description like "Revenue from property deed recordings, used to fund county services" — which is directionally correct but influenced by the wrong frame.
 
 **Prevention:**
-- When using `gf-expenditures` as the operating dataset, expect near-zero data gaps.
-- Add explicit logging when `tree.length === 0`: output the municipality name so operator can verify it is a genuine data gap rather than a parsing failure.
-- Accept that Gosnold and 3-4 other island/rural towns may have no displayable data. Do not create placeholder zero-budget records.
+- Do NOT use universal enrichment for county budget categories. County enrichment should use `municipality_id = <county_uuid>` (county-specific, not universal). Do not SET `municipality_id = NULL` on county enrichment rows.
+- Run `enrichCategories.js` separately for each county — do not batch with city enrichment runs.
+- Estimated cost: 5 counties × ~8 categories × $0.0002 = $0.008. Well under the $5 gate.
+- Verify county enrichment descriptions reference "county government" not "city government" — spot-check after each county.
+
+**Phase to address:** County budget enrichment step.
 
 ---
 
-### Pitfall 6: Fiscal Year Gaps — Towns That Filed Late or Not at All
+### Pitfall 7: CitiesInCountyPanel receives all 351+ MA cities but only filters by county_id — no pagination
 
-**What goes wrong:** Schedule A submissions are due December 31 after the fiscal year end (June 30). As of June 2026, FY2025 data may be missing for 5-20 towns that filed late or are under DOR fiscal oversight. The scraper requests FY2025 but those towns simply have no row in the report. The output JSON records fewer than 351 municipalities without identifying which ones are absent.
+**What goes wrong:** `CitiesInCountyPanel` renders all municipalities matching `m.county_id === county.id && m.entity_type === 'city'` as individual buttons. There is no pagination or virtual scrolling. The `municipalities` prop passed to the panel is the full `listMunicipalities()` result — currently 380+ entities.
 
-**Why it happens:** DLS data is "extracted real-time based on the municipal submission." Non-filers are invisible in the report — they are not represented as zero rows.
+For Norfolk County (28 cities) and Barnstable County (15 towns), the rendered button count is manageable. For counties like Middlesex (54 municipalities) or Worcester (60 municipalities), if those counties were ever linked and had budget data, the panel would render 54+ buttons without any visible overflow control.
 
-**Prevention:**
-- Run with `--fy 2024` as a primary option for the initial load. FY2024 data is essentially complete for all 351 towns.
-- If FY2025 is desired, run the scrape and check `records.length`. If below 345, default to FY2024 instead.
-- Do not attempt to load both FY2024 and FY2025 in the same initial milestone — pick one complete year and note it in the data source description.
+For v1.9 specifically: only 5 active MA counties get budget data and county rows. Norfolk County has 28 municipalities with MA budget data (all in `withData` section). This is the largest panel in v1.9 scope and is likely fine visually.
+
+**Why this is a moderate (not minor) pitfall:** If the scope expands to Middlesex or Worcester in a future phase, the panel will break visually without any code change being required — the component scales automatically but the UI degrades.
+
+**Prevention for v1.9:** No action needed — 28 cities (Norfolk) is acceptable. Document this limit in a code comment in `CitiesInCountyPanel.tsx`: "Warning: no pagination. 28 cities (Norfolk County) is the current max in use. Review before enabling counties with 40+ cities."
+
+**Phase to address:** Low-priority documentation comment. No code change required for v1.9.
 
 ---
 
-### Pitfall 7: Dual Hostname Redirect Invalidates Session Cookies
+### Pitfall 8: MA county budget PDFs are not pdftotext-friendly — may require vision extraction
 
-**What goes wrong:** The DLS portal has two active hostnames: `dlsgateway.dor.state.ma.us` and `dls-gw.dor.state.ma.us`. Report pages under the first host return HTTP 301 redirects to the second. Node's `fetch` follows redirects, but session cookies issued for `dls-gw.dor.state.ma.us` are scoped to that domain. If a pagination request accidentally uses a URL containing `dlsgateway.dor.state.ma.us`, the redirect changes the effective domain and the cookie is not sent with the redirected request — the session is lost.
+**What goes wrong:** The Norfolk County FY2023 budget PDF (verified via pdftotext) is a multi-column financial document with line item codes (001, 101, 102, etc.), department names, and amounts spread across 5+ columns per row (FY20 Expended, FY21 Expended, FY22 Approved, FY23 Request, FY23 Commission Approved). This is extractable by pdftotext but requires custom column alignment logic — the raw text output is misaligned.
 
-**Prevention:** The scraper hardcodes `BASE_URL = 'https://dls-gw.dor.state.ma.us/reports/rdpage.aspx'`. Never change this constant and never mix the two hostnames within a single scrape run. When adding new reports, verify their rdreport value on `dls-gw.*`, not on `dlsgateway.*`.
+Barnstable County uses a flipHTML5 viewer for recent budgets and a ClearGov platform for FY27 — neither provides a direct PDF download. Barnstable's older budgets (FY14-FY23) are standard PDFs from capecod.gov. Bristol County publishes PDF budgets at countyofbristol.net. Dukes County budget accessibility is unclear — the dukescounty.gov website did not surface budget documents in the home page navigation.
+
+**Consequences:**
+- Each county requires a custom extraction approach. The existing `bulkLoadPDF.js` and pdftotext parsers are built for municipal operating budgets with consistent department/line-item structure. County budgets have county-specific line item codes (e.g., Norfolk uses 4-digit account codes 3775, 5001, etc.) and unusual department names.
+- Barnstable's flipHTML5 format cannot be scraped via standard tools — a PDF download from the FY14-FY23 archive is required for historical data.
+
+**Prevention:**
+- Plan a discovery step for each county's budget source before committing to an extraction approach. For each county:
+  1. Locate the PDF (or equivalent) for 2-3 fiscal years.
+  2. Run `pdftotext` and inspect the output structure.
+  3. Decide: custom regex parser (like Garland/Wylie) OR Claude Haiku vision pipeline (like ACFR cities).
+- The Claude Haiku vision pipeline from `bulkLoadPDF.js` is the most flexible fallback for any well-formatted PDF table. Cost estimate: 5 counties × ~15 pages/budget × $0.001/page = $0.075 per year per county — well under the $5 gate.
+- Dukes County budget availability is the highest uncertainty. Verify whether dukescounty.gov has a budget documents section before scoping the extraction approach.
+
+**Phase to address:** County budget extraction — discovery step before scripting.
+
+---
+
+### Pitfall 9: MA county names in DB need "County" suffix to distinguish from city names
+
+**What goes wrong:** Massachusetts has municipalities with the same names as their counties. "Barnstable" is both a city (entity_type='city') and a county government (entity_type='county'). "Norfolk" is both a town and a county. "Nantucket" (covered in Pitfall 4). "Plymouth" is both a town and a county seat.
+
+If county rows are inserted as "Barnstable" (no "County" suffix), the DB will have two rows named "Barnstable" in state 'MA' — one city and one county. The app's slug logic (`toSlug()`) would generate duplicate slugs ("barnstable-ma" for both), breaking URL routing.
+
+**Why it happens:** The `seedLACountyLinks.js` precedent uses full names like "Los Angeles County" — but the LA County city is "Los Angeles" (city name lacks the "County" suffix). In MA, the county seat often shares the county name.
+
+**Concrete affected names:**
+- Barnstable (city in Barnstable County) vs. "Barnstable County"
+- Norfolk (town in Norfolk County) vs. "Norfolk County"
+- Plymouth (city in Plymouth County) vs. "Plymouth County" [if Plymouth County added]
+
+**Prevention:**
+- All MA county rows must use the "County" suffix in the name field: "Barnstable County", "Bristol County", "Dukes County", "Nantucket County" (see Pitfall 4 for Nantucket special case), "Norfolk County".
+- Verify no existing municipality rows use the "County" suffix: `SELECT name FROM treasury.municipalities WHERE state='MA' AND name LIKE '% County'`. Expected: 0 rows before seeding.
+- After seeding, verify slug uniqueness: no two MA municipalities should produce the same `toSlug()` output.
+
+**Phase to address:** County seeder script.
+
+---
+
+### Pitfall 10: Suffolk County has no active government but contains Boston, Cambridge, and Revere
+
+**What goes wrong:** Suffolk County's government was abolished. If someone sets `county_id` for Boston, Cambridge, Chelsea, Revere, and Winthrop (Suffolk County's 5 municipalities), there is no county entity row to link to under Option A (Pitfall 1). This is expected behavior. However, the script that assigns county_ids must not fail silently when it encounters a municipality in a county with no county row — it should skip and log rather than error.
+
+**Why it happens:** The 9 abolished counties have no county rows in the DB. Any name-to-county lookup table includes all 14 counties. A bulk UPDATE script iterating over all 351 MA municipalities and looking up each city's county row will find null for cities in the 9 abolished counties.
+
+**Prevention:**
+- The city-linking script must handle `county_id = null` (no county row found) as a valid no-op, not an error.
+- Log all cities where no county row was found: "Skipped county_id update for N cities — no county row for [Middlesex|Suffolk|Worcester|...]."
+- Verify the skip count matches the expected number of cities in abolished counties (roughly 300 of 351).
+
+**Phase to address:** City county_id linking script.
 
 ---
 
 ## Minor Pitfalls
 
-### Pitfall 8: Revenue-by-Source Column Header Misalignment
+### Pitfall 11: Princeton name collision (MA and TX) already resolved — do not re-link
 
-**What goes wrong:** The `revenue-by-source` report uses `<th>` elements with `colspan`/`rowspan` attributes. The standard `parseTable` th-extraction counts them wrong, misaligning column names with data values. The scraper overrides this with a hardcoded `columnNames` array.
+**What goes wrong:** The milestone context notes that "Princeton exists in MA and TX — already resolved in DB." The city-linking script must use state='MA' filters on all queries. If it ever does a name-only lookup without state filtering, it could accidentally set `county_id` on the TX Princeton row.
 
-**Prevention:** Never remove or modify the `columnNames` override in the `revenue-by-source` report definition. If DLS adds a new column to the report in a future fiscal year, this hardcoded array will silently misalign — verify with `--explore revenue-by-source` on any new year before loading.
-
----
-
-### Pitfall 9: Portal Downtime Causes Partial Scrape Output
-
-**What goes wrong:** The DLS Gateway has been observed to have maintenance windows, particularly around fiscal year close (late June–early July) and sporadic off-hours outages. A full-state HTML pagination scrape takes 10-20 minutes. A mid-run HTTP 503 causes the in-progress report to have partial row counts, but the scraper may not fail — it may write a partial output JSON and report success.
-
-**Prevention:**
-- Run scrapes off-peak. The Excel export path finishes in under 5 minutes for all 351 municipalities (2-3 HTTP requests total). Prefer Excel export to minimize exposure to downtime.
-- Avoid running in late June/early July when MA fiscal year closes and DLS has historically been under higher load.
-- Always validate record counts before loading.
+**Prevention:** All DB queries in the MA county seeder must include `AND state='MA'` on every WHERE clause. Never rely on name uniqueness alone. This is a minor risk (Princeton, TX is unlikely to match any MA county UUID), but the defensive filter is free.
 
 ---
 
-### Pitfall 10: All 351 MA Municipalities Inserted as entity_type 'city'
+### Pitfall 12: MA county population data requires a different Census source than city population
 
-**What goes wrong:** Massachusetts has 14 legally incorporated cities and 337 towns. Towns are governed by Town Meeting (or Representative Town Meeting), not a Mayor/City Council. The `enrichCategories.js` entity_type 'city' prompt says "This is a city government with a mayor and city council" — factually incorrect for 337 MA municipalities.
+**What goes wrong:** Phase 39 loaded city populations from Census sub-est2024_25.csv using SUMLEV=061 (MCD/town). County population data is at SUMLEV=050. These are in the same file — but if `loadMAPopulation.js` is re-run or extended to also populate county rows, the SUMLEV=050 rows could accidentally overwrite or conflict with SUMLEV=061 data.
 
-**Consequences:** Enrichment descriptions reference "the city council" for towns governed by a Board of Selectmen. This is cosmetic inaccuracy, not a data loading bug.
+County populations for the 5 active counties (approximate 2024 Census):
+- Barnstable County: ~220,000
+- Bristol County: ~580,000
+- Dukes County: ~21,000
+- Nantucket County: ~14,000
+- Norfolk County: ~710,000
 
-**Prevention:** Accept entity_type 'city' for all MA municipalities in v1.8. This matches existing behavior for TX/CA/OR. Add a `'town'` entity type with MA-specific enrichment prompt context in a future phase. Add a `TODO` comment in `buildEntityContext` in `enrichCategories.js` noting this gap.
+**Prevention:** County population loading should be a separate script step from city population loading, even if both draw from the same CSV file. Filter SUMLEV=050 for counties, SUMLEV=061 for cities. Never mix.
 
 ---
 
-## Enrichment Cost Gate
+### Pitfall 13: entity_type='county' rows appear in EntitySwitcher if filter not updated
 
-**Risk:** Running `enrichCategories.js --all --state MA` without a `--limit` flag can approach or exceed the $5 approval threshold.
+**What goes wrong:** The `EntitySwitcher` component groups entities by entity_type. If entity_type='county' rows appear in the list (because they have budget data), they will appear in whatever group the EntitySwitcher renders for counties. The EntitySwitcher label map includes `county: 'Counties'` (confirmed in `EntitySwitcher.tsx` line 15). So county entities will appear under a "Counties" group header.
 
-**Concrete estimate — operating budget only (gf-expenditures):**
+This is actually CORRECT behavior and is how LA County currently works. However, if the EntitySwitcher filter logic changes or if a "county" group is unintentionally added to a "hide" list, county entities could disappear from the picker.
 
-| Variable | Value |
-|----------|-------|
-| Cities | 351 |
-| Categories per city (gf-expenditures) | ~8 functional categories |
-| Total enrichment calls | ~2,800 |
-| Input tokens per call | ~700 (prompt + category name + amounts) |
-| Output tokens per call | ~200 (JSON response) |
-| Total input tokens | 1.96M |
-| Total output tokens | 560K |
-| Cost at Haiku 4.5 ($1/MTok in, $5/MTok out) | $1.96 + $2.80 = **$4.76** |
-
-This is just under the $5 threshold. Cost exceeds $5 if any of these occur:
-- Revenue dataset is also enriched in the same run (+$3-4 for ~2,100 additional calls)
-- `--depth 1` or `--depth all` is passed (subcategory enrichment multiplies call count by 2-4x)
-- `--force` is used re-enriching already-covered categories
-
-**Mandatory gate procedure:**
-
-1. Run with `--limit 50 --dry-run` first to verify prompt quality for MA town categories
-2. Use `--skip-universal` to skip categories already enriched from other cities (e.g., "Debt Service", "General Government" may already be universal)
-3. First real run: `--limit 200 --state MA` — monitor actual token usage in Anthropic console before proceeding
-4. Never run `--all --state MA` without `--limit` on the first attempt
-5. Run operating and revenue enrichment in separate sessions — confirm operating cost is under $3 before starting revenue
-
-**Cost reduction option:** The Anthropic Batch API reduces Haiku 4.5 to $0.50/MTok input and $2.50/MTok output — halving estimated cost to ~$2.38 for operating budget. `enrichCategories.js` does not currently use the Batch API; adding batch support is the most impactful cost reduction available for a 351-city run.
+**Prevention:** After loading county budget data for the 5 active MA counties, verify each county appears in the EntitySwitcher under the "Counties" group. This is a smoke test, not a code change.
 
 ---
 
@@ -178,12 +245,32 @@ This is just under the $5 threshold. Cost exceeds $5 if any of these occur:
 
 | Phase Topic | Likely Pitfall | Mitigation |
 |-------------|----------------|------------|
-| MA operating data scrape | Cookie rotation + HTML pagination drops to 49 records | Validate records >= 340; prefer Excel export; save raw bytes |
-| MA operating dataset choice | Special Revenue Funds mislabeled as 'operating' | Use gf-expenditures as operating; verify rdreport value with --explore first |
-| MA revenue data scrape | POST-based pagination (revenue-by-source) more fragile | Prioritize Excel export; never update cookies during pagination |
-| Municipality seed step | Name mismatches for hyphenated/island towns | Run --seed before --load; query data_sources count after |
-| FY selection | FY2025 may be incomplete for 5-20 towns | Default to FY2024 unless FY2025 count >= 345 |
-| Small town data gaps | Towns < 500 pop may return all-zero rows | Accept; add explicit logging when tree.length === 0 |
-| Dual hostname | URL with dlsgateway.* loses session cookie | Keep BASE_URL as dls-gw.* always |
-| Enrichment run | Operating + revenue combined may exceed $5 | Use --limit; run operating first; use --dry-run; use --skip-universal |
-| entity_type for towns | 337 Town Meeting towns labeled 'city' | Accept for v1.8; add TODO comment for future 'town' entity type |
+| County seeder design | 9 dissolved counties have no budget row and must NOT get county rows under Option A | Seed only 5 county rows; document explicitly; skip county_id FK for 9 dissolved-county cities |
+| County seeder ordering | FK violation if city UPDATE runs before county INSERT | INSERT counties first, capture returned UUIDs, then UPDATE cities |
+| Plymouth County scope | SEC site says 6 active counties, scope says 5 | Confirm with human; document decision before seeding |
+| Nantucket deduplication | Town and County are the same entity | Explicit special-case handling; likely: no Nantucket County row seeded |
+| County naming | "Barnstable" city vs "Barnstable County" county | Always use "County" suffix in county row names |
+| Municipality mapping | DLS data has no county field | Use MMA CSV or Census FIPS to build name-to-county lookup |
+| Budget PDF extraction | Each county has unique PDF structure | Discovery step per county before scripting; use Haiku vision as fallback |
+| Category enrichment | County categories (Registry, Ag School) differ from city categories | Use municipality_id-scoped enrichment; never universalize county enrichments |
+| Budget-less counties in breadcrumb | getCities() HAVING hides counties with no budget | Option A: only seed rows for counties with budget data |
+| CitiesInCountyPanel scale | Norfolk has 28 cities — panels render all without pagination | No action for v1.9; document future scale limit in component |
+| Abolished county FK skip | Script must handle null county row gracefully | Log skipped cities; do not error on null county_id lookup |
+
+---
+
+## Sources
+
+- `C:\treasury-tracker\src\components\CitiesInCountyPanel.tsx` — No pagination confirmed (direct code inspection, 2026-06-10)
+- `C:\EV-Accounts\backend\src\lib\treasuryService.ts` — `HAVING COUNT(b.id) > 0` confirmed at line 394 (direct code inspection, 2026-06-10)
+- `C:\treasury-tracker\scripts\seedLACountyLinks.js` — LA County seeder pattern (direct code inspection, 2026-06-10)
+- `C:\treasury-tracker\supabase\migrations\20260602235505_add_county_id_to_municipalities.sql` — FK constraint confirmed (direct code inspection, 2026-06-10)
+- `C:\treasury-tracker\.planning\PROJECT.md` — v1.9 scope, out-of-scope decisions (direct read, 2026-06-10)
+- `https://www.sec.state.ma.us/divisions/cis/government/gov-county.htm` — MA Secretary of State: 6 active county governments listed (Barnstable, Bristol, Dukes, Nantucket, Norfolk, Plymouth); 8 abolished (Berkshire, Essex, Franklin, Hampden, Hampshire, Middlesex, Suffolk, Worcester) [VERIFIED, 2026-06-10]
+- `https://norfolkcounty.org/county_budget/index.php` — Norfolk County budget PDFs FY2022-FY2027 available [VERIFIED, 2026-06-10]
+- `https://www.capecod.gov/department-of-finance-treasurer/budgets/` — Barnstable County budgets FY14-FY27, PDF + flipHTML5 formats [VERIFIED, 2026-06-10]
+- `https://cms5.revize.com/revize/norfolkcountyma/FY23%20BUDGET%20V5%20FINAL.pdf` — Norfolk County FY2023 budget PDF structure verified via pdftotext (multi-column with account codes, department names, 5-year expenditure columns) [VERIFIED, 2026-06-10]
+- `https://www.countyofbristol.net/government/commissioners/index.php` — Bristol County FY25 PDF budget available [VERIFIED, 2026-06-10]
+- `https://www.plymouthcountyma.gov/217/Revenues-and-Budgets` — Plymouth County FY2025 Operating Budget (PDF, dated June 6, 2024) confirmed available [VERIFIED, 2026-06-10]
+- `https://en.wikipedia.org/wiki/Nantucket` — Nantucket consolidated town-county government confirmed [MEDIUM confidence, 2026-06-10]
+- `https://www.mma.org/all-directory-data/` — MMA directory provides CSV download of all 351 MA municipalities with county field [VERIFIED, 2026-06-10]

@@ -1,241 +1,233 @@
-# Stack Research: v1.8 Massachusetts All-Cities Financial Transparency
+# Stack Research: v1.9 MA County-City Linking
 
-**Domain:** MA DLS reporting portal HTTP API + loader pattern for 351 MA municipalities
-**Researched:** 2026-06-09
-**Confidence:** HIGH — verified against live portal + codebase contains completed implementation
-
----
-
-## Summary
-
-The MA DLS portal (`dls-gw.dor.state.ma.us/reports/rdPage.aspx`) is a GrapeCity ActiveReports
-web viewer — not a REST API. Data access requires: (1) a GET to establish a session and extract
-`rdDataCache`, (2) an optional POST to filter by municipality/year, and (3) either a POST-based
-Excel export using `rdReportFormat=NativeExcel` (preferred — all 351 rows in one request) or
-AJAX GET pagination through 8-51 HTML pages as a fallback.
-
-`scripts/scrapeMaDLS.js` is a complete, tested implementation already in the codebase. It
-produced real output for FY2025 (`scripts/output/ma_dls_special-revenue_2025_expenditures.json`
-and `scripts/output/ma_dls_revenue-by-source_2025.json`). No new npm packages beyond `exceljs`
-(already at `^4.4.0` in package.json) are required.
+**Milestone:** MA County Entity & Budget Loading
+**Researched:** 2026-06-10
+**Confidence:** MEDIUM — data sources confirmed; county PDF budget structures require hands-on verification
 
 ---
 
-## MA DLS Portal — HTTP API Shape
+## Question 1: Does MA DLS publish county-level General Fund data?
 
-### Base URL
+**Answer: NO.** MEDIUM confidence.
 
-```
-https://dls-gw.dor.state.ma.us/reports/rdPage.aspx
-```
+MA Division of Local Services publishes General Fund Expenditure/Revenue Excel files only for municipalities. The DLS databank and Schedule A filing system is municipality-scoped. The DLS Gateway (`dls-gw.dor.state.ma.us`) and the downloadable `GenFundExpenditures*.xlsx` / `GenFundRevenues*.xlsx` files do not include county government entities.
 
-There are two domains in use; they are interchangeable:
-- `dls-gw.dor.state.ma.us` (current canonical)
-- `dlsgateway.dor.state.ma.us` (legacy alias, also live)
+County governments are not required to file Schedule A with DLS. Each active county publishes its own budget PDFs independently.
 
-### Authentication
-
-No API key. No login required for the public report pages. A session cookie (`AWSALB`) is
-issued on first GET and must be pinned for all subsequent requests to the same backend. The
-cookie rotates on each response — use the cookies from the INITIAL GET only, not rotated values,
-to avoid routing to a different backend that lacks the in-memory `rdDataCache`.
-
-### Request Flow (3 steps)
-
-**Step 1 — GET initial page (establishes rdDataCache):**
-
-```
-GET /reports/rdPage.aspx?rdreport={rdreport}[{rdreportParams}]
-```
-
-Response: HTML page. Extract from HTML:
-- `rdDataCache` — numeric string (e.g. `"8177198124"`); present in `rdDataCache=NNN` pattern
-- Municipality list — `<input type="checkbox" name="iclMuni" value="Abington">` (or `iclMuni2`
-  for the revenue-by-source subreport)
-- Year options — `<select name="islYear">` (or `<input type="checkbox" name="iclYear2">`)
-
-**Step 2 (revenue-by-source only) — POST to filter by FY:**
-
-For `rdreport=RevenueBySource.RBS.RevbySource2`, the initial GET shows all years. Must POST
-`iclMuni2` (checkbox array) + `iclYear2` (single year) to get a year-filtered `rdDataCache`.
-
-```
-POST /reports/rdPage.aspx?rdreport=RevenueBySource.RBS.RevbySource2&rdSubReport=True&rdResizeFrame=True
-
-Body (application/x-www-form-urlencoded):
-  rdreport=RevenueBySource.RBS.RevbySource2
-  iclYear2=2025
-  iclMuni2=Abington&iclMuni2=Acton&...  (all 351 municipalities)
-  dtCurrent-PageNr=1
-  rdShowElementHistory=
-```
-
-**Step 3A — Excel export (preferred, all 351 rows in one request):**
-
-```
-POST /reports/rdPage.aspx
-  ?rdReport={rdreport}
-  &rdReportFormat=NativeExcel
-  &rdExportTableID={tableID}
-  &rdExportFilename={exportFilename}
-  &rdDataCache={rdDataCache}
-
-Body: rdDataCache={rdDataCache}
-```
-
-Response: `application/vnd.ms-excel` binary (XLSX). Parse with `exceljs`. Returns all
-municipalities for the selected fiscal year in one workbook.
-
-**Step 3B — HTML pagination fallback (if Excel export returns HTML):**
-
-For `xtFedGrants` (special-revenue): AJAX GET, 8 pages of ~45 rows each.
-For `dtCurrent` (revenue-by-source): POST-based SubmitForm, up to 51 pages.
-
-AJAX GET pattern:
-```
-GET /reports/rdPage.aspx
-  ?rdReport={rdreport}
-  &{tableID}-PageNr={page}
-  &rdDataCache={rdDataCache}
-  &rdShowModes=
-  &rdSort=
-  &rdNewPageNr=True1
-  &rdAjaxCommand=RefreshElement
-  &rdDataTablePaging=True
-  &rdRefreshElementID={tableID}
-  &rdRequestForwarding=Form
-```
-
-POST-based SubmitForm pattern:
-```
-POST /reports/rdPage.aspx
-  ?rdReport={rdreport}&{tableID}-PageNr={page}&rdDataCache={rdDataCache}&rdShowModes=&rdSort=&rdNewPageNr=True1&rdRequestForwarding=Form
-
-Body: all original form fields (iclMuni2 array, iclYear2, etc.) + {tableID}-PageNr={page}
-```
-
-### Report Definitions
-
-| Report name | rdreport param | tableID | Dataset type | FY range | Notes |
-|-------------|----------------|---------|--------------|----------|-------|
-| `special-revenue` | `ScheduleA.Special_Rev_Funds.SpecialRevFunds` | `xtFedGrants` | operating | 2002–2025 | Has Expenditures/Revenues toggle (`islAmountType`). Municipality input: `iclMuni`. Year input: `islYear` (select). |
-| `revenue-by-source` | `RevenueBySource.RBS.RevbySource2` | `dtCurrent` | revenue | 2003–2026 | Subreport — use `rdreportParams: '&rdSubReport=True&rdResizeFrame=True'`. Municipality input: `iclMuni2`. Year input: `iclYear2` (checkboxes). Pagination: POST-based. Column names must be overridden (colspan headers misalign `<th>` extraction). |
-
-### Response Format — Parsed Record Shape
-
-After Excel/HTML parsing and normalization, each record has:
-
-```json
-{
-  "dorCode": "001",
-  "municipality": "Abington",
-  "fiscalYear": 2025,
-  "Tax Levy": 42906155,
-  "State Aid": 17614336,
-  "Local Receipts": 5692102,
-  "All Other": 2332700,
-  "Enterprise & CPA Funds": 10170340,
-  "Total Receipts": 68545294
-}
-```
-
-DOR Code is a zero-padded 3-digit string (001–351). Municipality is the full plain-English name
-matching the DLS form values (e.g. "Boston", "Cambridge"). fiscalYear is an integer.
-
-### Rate Limits / Politeness
-
-No documented rate limits. The scraper uses `DELAY_MS = 1500` ms between requests as a
-courtesy delay. For 351 municipalities across multiple fiscal years, expect 1-3 seconds per
-request. Total time for one report/year is under 30 seconds with Excel export (single request)
-or 15-20 minutes with HTML pagination (8-51 pages at 1.5s each).
-
-No API key. No CAPTCHA observed. No robots.txt restriction on the reports subdirectory.
+**Implication:** `loadMaGFExcel.js` cannot be reused for county budget data. The script's `municMap` lookup is keyed on DLS-issued municipality names and DOR codes — neither applies to county entities. A new per-county loader is required.
 
 ---
 
-## Recommended Stack
+## Question 2: Budget sources for the 5 active MA county governments (project scope)
 
-### Core Technologies (all already in use — no new packages)
+### How many active counties are there?
 
-| Technology | Version | Purpose | Notes |
-|------------|---------|---------|-------|
-| Node.js ESM scripts | existing | Loader entry point | Pattern matches all existing loaders |
-| `node fetch` (built-in) | Node 18+ | HTTP GET/POST to rdPage.aspx | No node-fetch package needed |
-| `exceljs` | `^4.4.0` | Parse Excel export bytes | Already in package.json |
-| `@supabase/supabase-js` | existing | Call `treasury_sync_budget_tree` RPC | Unchanged |
-| HTML regex parsing | — | Fallback when Excel export returns HTML | Implemented in scrapeMaDLS.js |
+PROJECT.md lists 5 active counties (Barnstable, Bristol, Dukes, Nantucket, Norfolk). Research confirms **6 active county governments** including Plymouth. The project's own out-of-scope rule says "budget data for 9 dissolved MA counties" — Plymouth is not in that list, so it should be considered in-scope. The roadmapper should flag this discrepancy.
 
-### New Scripts (no new packages)
+### Budget data for each county
 
-| Script | Status | Purpose |
-|--------|--------|---------|
-| `scripts/scrapeMaDLS.js` | COMPLETE — tested | Scrapes MA DLS, seeds municipalities, loads to Supabase |
+**Barnstable County (Cape Cod)**
+- Operating budget: ~$22.5M (FY2024; ~4.5%/yr growth)
+- Source: https://www.capecod.gov/department-of-finance-treasurer/budgets/
+- Available: PDFs for FY2014–FY2027; ACFR for FY2024 available as PDF
+- ACFR URL: https://www.capecod.gov/wp-content/uploads/2025/06/FY24-Barnstable-County-ACFR.pdf
+- Format: PDF only. No Excel/CSV.
+- Loading approach: Existing PDF pipeline (Claude Haiku vision, same as Allen/Prosper/Celina TX)
 
-The script is complete. Its `--scrape`, `--seed`, and `--load` commands cover the full
-pipeline. Additional work is seeding the 351 municipality rows and running multi-year scrapes.
+**Bristol County**
+- Operating budget: ~$9–14M range
+- Source: https://www.countyofbristol.net/government/index.php — "Annual Budget FY25" PDF link in Document Center
+- Format: PDF only; multiple FYs available via Document Center search
+- Loading approach: PDF pipeline
+
+**Dukes County (Martha's Vineyard)**
+- Operating budget: ~$9–14M range
+- Source: https://www.dukescounty.gov/ — meeting archives and Document Center
+- Format: PDF budget documents via Document Center
+- Loading approach: PDF pipeline
+
+**Nantucket County**
+- Operating budget: ~$1M (very small)
+- Critical distinction: Nantucket operates as "Town & County of Nantucket" — a consolidated government. The town budget (at https://www.nantucket-ma.gov/3521/Town-Budget) covers both municipal and county functions combined. There is no separate county-only operating budget published separately. The ~$1M figure reflects only a thin residual county layer.
+- Recommendation: For purposes of the county page, load the Nantucket town General Fund budget as the county budget. The data is the same entity. Document the consolidation in the entity description.
+- Loading approach: PDF pipeline (FY2027 budget presentation and appendices available)
+
+**Norfolk County**
+- Operating budget: ~$14–18M; FY2025 showed ~$1.5M surplus
+- Source: https://www.norfolkcounty.org/county_budget/index.php — three PDF variants per FY (public viewing, commissioner-approved, advisory-board-approved final)
+- Available: FY2022–FY2027
+- Format: PDF only
+- Loading approach: PDF pipeline
+
+### PDF loading pipeline cost estimate
+
+5 county PDFs × ~10–30 pages each ≈ 100–150 pages.
+At Claude Haiku vision pricing (~$0.80/1K input tokens, images at $0.08/1K tokens), total cost is well under the $5 approval threshold. No pre-approval required.
+
+**New script needed:** `loadMACountyBudget.js`
+- Accepts: county entity name, PDF file path, fiscal year, dataset type (operating/revenue)
+- Uses: existing PDF→Haiku vision pipeline already in codebase
+- Writes: `treasury_sync_budget_tree` RPC (unchanged), `data_sources` with `api_type: 'ma-county-pdf'`
+- Lookup: find county `municipality_id` by `name + state='MA' + entity_type='county'` (unlike cities, county rows don't have DOR codes)
 
 ---
 
-## Verified Outputs (HIGH confidence)
+## Question 3: Census population for MA counties (2024 vintage)
 
-The scraper has been run successfully against the live portal:
+### Recommended approach: existing CSV download pattern
 
-- `scripts/output/ma_dls_special-revenue_2025_expenditures.json` — 351 records, FY2025
-- `scripts/output/ma_dls_revenue-by-source_2025.json` — 351 records, FY2025
+Use the same no-API-key Census CSV download pattern as `loadMAPopulation.js`.
 
-Both files confirm: correct municipality names, DOR codes 001–351, numeric dollar amounts, and
-the column structure documented above.
+**Direct CSV URL (no API key, no auth required):**
+```
+https://www2.census.gov/programs-surveys/popest/datasets/2020-2024/counties/totals/co-est2024-alldata.csv
+```
+
+File confirmed present in Census directory listing (1.7MB, released 2025-03-13).
+
+**Filter criteria:**
+- `STATE == 25` (Massachusetts FIPS)
+- `COUNTY != 000` (exclude the state-level summary row where COUNTY=000)
+- Use `POPESTIMATE2024` column for 2024 vintage population
+
+**Confirmed column layout** (from Census technical documentation):
+
+| Column | Content |
+|--------|---------|
+| `STATE` | State FIPS (25 = MA) |
+| `COUNTY` | County FIPS, 3 digits (e.g., 001 = Barnstable) |
+| `STNAME` | "Massachusetts" |
+| `CTYNAME` | County name, e.g., "Barnstable County" |
+| `POPESTIMATE2024` | 2024 population estimate |
+
+**Name normalization:** Census uses "Barnstable County", "Bristol County", etc. Strip the " County" suffix to match DB `name` field — or store county rows with the " County" suffix and match exactly. Decision must be made at seeding time and applied consistently across seeder and population loader.
+
+**County FIPS for all 14 MA counties** (confirmed from `national_county2020.txt`):
+
+| County | 3-digit FIPS |
+|--------|-------------|
+| Barnstable | 001 |
+| Berkshire | 003 |
+| Bristol | 005 |
+| Dukes | 007 |
+| Essex | 009 |
+| Franklin | 011 |
+| Hampden | 013 |
+| Hampshire | 015 |
+| Middlesex | 017 |
+| Nantucket | 019 |
+| Norfolk | 021 |
+| Plymouth | 023 |
+| Suffolk | 025 |
+| Worcester | 027 |
+
+**New script needed:** `loadMACountyPopulation.js`
+- Nearly identical to `loadMAPopulation.js`
+- Downloads same CSV; filters `STATE=25, COUNTY!=000`
+- Matches by `CTYNAME` (after stripping " County") to `municipalities.name` where `entity_type='county'`
+- Updates `population` and `population_year=2024` columns (already exist on schema)
+
+**Alternative considered:** Census API (`api.census.gov/data/2024/pep/population?for=county:*&in=state:25`) would return the same data but requires a registered API key. The CSV avoids the key requirement and matches the existing pattern. Not recommended.
 
 ---
 
-## What NOT to Add
+## Question 4: Municipality-to-county mapping source
 
-| Avoid | Why | Use Instead |
-|-------|-----|-------------|
-| Puppeteer / Playwright | Portal works with plain HTTP; no JavaScript execution needed | Native fetch |
-| Cheerio HTML parser | Regex-based table extraction already implemented in scrapeMaDLS.js | Existing implementation |
-| node-fetch package | Node 18+ has built-in fetch | Built-in fetch |
-| REST API calls | MA DLS has no REST or SODA API — it is a stateful ASP.NET reporting server | rdPage.aspx POST/GET flow |
-| Socrata bulkLoadBudget.js | Only works for Socrata-hosted datasets; MA DLS is not Socrata | scrapeMaDLS.js |
-| data.mass.gov / opendata.digital.mass.gov | Does not host DLS Schedule A or Revenue by Source datasets | dls-gw.dor.state.ma.us directly |
+### Recommended source: Census 2020 Gazetteer — MA County Subdivisions
+
+**Direct URL (confirmed accessible, no auth required):**
+```
+https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2020_Gazetteer/2020_gaz_cousubs_25.txt
+```
+
+**Format:** Tab-delimited text, one row per MA municipality.
+
+**Confirmed columns:**
+`USPS, GEOID, ANSICODE, NAME, FUNCSTAT, ALAND, AWATER, ALAND_SQMI, AWATER_SQMI, INTPTLAT, INTPTLONG`
+
+**GEOID structure** (10 characters, confirmed from file inspection):
+- Characters 1–2: State FIPS (`25`)
+- Characters 3–5: County FIPS (3 digits, e.g., `001` = Barnstable)
+- Characters 6–10: County subdivision code (5 digits)
+
+To extract county FIPS from GEOID: `geoid.substring(2, 5)`
+
+**Sample confirmed mappings from direct file fetch:**
+
+| GEOID | County FIPS | Municipality (Census NAME) |
+|-------|-------------|--------------------------|
+| 2500103690 | 001 | Barnstable Town city |
+| 2500107175 | 001 | Bourne town |
+| 2500300555 | 003 | Adams town |
+| 2500300975 | 003 | Alford town |
+| 2500500170 | 005 | Acushnet town |
+| 2500700170 | 007 | Aquinnah town |
+
+**Name normalization:** The `normalizeCensusName()` function in `loadMAPopulation.js` already strips ` city`, ` town`, ` village` suffixes and title-cases the result. This function can be directly reused (copy or `import`) in the county-linking script to match Census names to DB names.
+
+**New script needed:** `linkMAMuniToCounty.js`
+- Downloads gazetteer file (or uses local cache)
+- For each row: parses GEOID → county FIPS → looks up county `municipality_id` from DB county rows
+- Normalizes Census municipality name using `normalizeCensusName()`
+- Matches to DB municipality rows by name + `state='MA'`
+- Issues `UPDATE municipalities SET county_id = $county_id WHERE id = $muni_id`
+- Idempotent: safe to re-run
+
+**Alternatives considered and rejected:**
+
+| Source | Verdict |
+|--------|---------|
+| MMA All Directory Data CSV (mma.org/all-directory-data/) | Download available but requires manual browser interaction; not automation-friendly |
+| Wikipedia list of municipalities in Massachusetts | Only shows ~100 of 351 in table; incomplete |
+| MassGIS shapefile | Requires GIS shapefile parsing library; more complexity than tab-delimited Gazetteer |
+| MA DLS DOR codes | No county column; DOR codes are numeric municipality IDs only |
 
 ---
 
-## Gotchas
+## Summary of New Scripts Required
 
-1. **AWSALB sticky-session cookie rotation**: The AWSALB load-balancer cookie rotates with
-   each response. If you use the rotated cookie to paginate, you land on a different backend
-   that has no memory of the rdDataCache. Fix: always pass the cookies from the INITIAL GET
-   for all subsequent pagination requests.
+| Script | Primary input | Reuses | Net new work |
+|--------|--------------|--------|-------------|
+| `seedMACounties.js` | Hardcoded list of 14 MA counties | Supabase client pattern | Seed `municipalities` rows with `entity_type='county', state='MA'` |
+| `linkMAMuniToCounty.js` | Census Gazetteer URL | `normalizeCensusName()` from `loadMAPopulation.js` | Download, parse GEOID, UPDATE 351 `county_id` values |
+| `loadMACountyPopulation.js` | Census `co-est2024-alldata.csv` | `loadMAPopulation.js` (nearly identical) | Filter to `STATE=25, COUNTY!=000` instead of SUMLEV=061 |
+| `loadMACountyBudget.js` | Per-county PDF files | Existing PDF pipeline + `treasury_sync_budget_tree` RPC | Accept county name + PDF path; no DOR code lookup |
 
-2. **revenue-by-source column header misalignment**: The `dtCurrent` table uses `colspan` and
-   `rowspan` in its `<th>` rows, causing auto-extracted headers to misalign with `<td>` columns.
-   Fix: use `report.columnNames` override: `['DOR Code', 'Municipality', 'Fiscal Year', 'Tax
-   Levy', 'State Aid', 'Local Receipts', 'All Other', 'Enterprise & CPA Funds', 'Total Receipts']`.
+---
 
-3. **RevbySourceMAIN vs RevbySource2**: `rdreport=RevenueBySource.RBS.RevbySourceMAIN` is a
-   wrapper page that renders `RevbySource2` inside an iframe. Use `RevbySource2` directly to
-   avoid iframe-breaking the scraper. Add `&rdSubReport=True&rdResizeFrame=True` to the URL.
+## Stack Additions Summary
 
-4. **rdDataCache is per-session, not per-URL**: The cache identifier is returned by the server
-   after each initial GET or POST. It is a large numeric string. It does not appear in a
-   predictable URL pattern and must be extracted from the response HTML each time.
+No new npm packages required. No new infrastructure required. All work is new Node.js scripts within the existing pattern.
 
-5. **351 municipalities but DOR codes go up to ~360**: Some codes are skipped or represent
-   districts rather than municipalities. The DOR Code zero-padded string is the canonical
-   identifier. Municipality name (as it appears in the DLS form) is needed to match to the
-   `municipalities` table.
+| Layer | Existing capability | Applies to MA counties |
+|-------|--------------------|-----------------------|
+| DB schema | `municipalities.entity_type`, `county_id` FK, `population` | Already migrated — no DDL needed |
+| Budget loading | PDF pipeline + `treasury_sync_budget_tree` RPC | Reusable for county PDFs |
+| Population | CSV download pattern from `loadMAPopulation.js` | New script with different filter |
+| County-city linking | `county_id` FK already migrated, LA County pattern proven | New seeder + linker scripts |
+| Frontend | `CitiesInCountyPanel`, county breadcrumb chip already built and shipped | No frontend changes needed |
 
 ---
 
 ## Sources
 
-- `scripts/scrapeMaDLS.js` — codebase (primary, authoritative, implemented and tested)
-- `scripts/output/ma_dls_special-revenue_2025_expenditures.json` — live scrape output
-- `scripts/output/ma_dls_revenue-by-source_2025.json` — live scrape output
-- Live portal inspection: `https://dls-gw.dor.state.ma.us/reports/rdPage.aspx` (2026-06-09)
-- GrapeCity ActiveReports web viewer — confirmed backend reporting engine (rdPage.aspx pattern)
+- MA DLS Municipal Databank: https://www.mass.gov/info-details/division-of-local-services-municipal-databank
+- DLS Schedule A reports: https://mass.gov/service-details/schedule-a-reports-revenue-and-expenditure-and-more
+- Barnstable County budgets: https://www.capecod.gov/department-of-finance-treasurer/budgets/
+- Barnstable County FY24 ACFR: https://www.capecod.gov/wp-content/uploads/2025/06/FY24-Barnstable-County-ACFR.pdf
+- Barnstable County FY2024 budget size: https://www.capecod.gov/2023/02/08/county-commissioners-approve-operating-budget-for-fy24/
+- Bristol County government: https://www.countyofbristol.net/government/index.php
+- Norfolk County budgets: https://www.norfolkcounty.org/county_budget/index.php
+- Dukes County: https://www.dukescounty.gov/
+- Nantucket Town & County budget: https://www.nantucket-ma.gov/3521/Town-Budget
+- Plymouth County budget: https://www.plymouthcountyma.gov/treasurers-office/pages/revenues-and-budgets
+- Active MA county governments: https://www.boston.com/news/wickedpedia/2023/12/12/massachusetts-county-governments-abolished/
+- MA county government overview: https://www.sec.state.ma.us/divisions/cis/government/gov-county.htm
+- Census county population CSV directory: https://www2.census.gov/programs-surveys/popest/datasets/2020-2024/counties/totals/
+- Census county FIPS reference: https://www2.census.gov/geo/docs/reference/codes2020/national_county2020.txt
+- Census Gazetteer MA county subdivisions: https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2020_Gazetteer/2020_gaz_cousubs_25.txt
+- Census population estimates file layout: https://www2.census.gov/programs-surveys/popest/technical-documentation/file-layouts/2020-2024/CO-EST2024-ALLDATA.pdf
 
 ---
-*Stack research for: v1.8 MA DLS city budget loader*
-*Researched: 2026-06-09*
+*Stack research for: v1.9 MA County-City Linking milestone*
+*Researched: 2026-06-10*
