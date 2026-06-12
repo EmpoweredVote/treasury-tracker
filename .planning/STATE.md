@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-09)
 
 ## Current Position
 
-Phase: 47 (Program Origins Pilot) — 47-01 + 47-02 COMPLETE; 47-03 remaining
-Plan: 47-02 done (15 program_details rows live: 8 modern congress.gov + 7 foundational govinfo; zero LLM) → NEXT: 47-03 (backend exposure + ProgramOrigins component + 47-VERIFICATION)
-Status: data/federal-programs.json (identifiers only, loader-enforced) + scripts/loadProgramOrigins.js committed. Conditionals: Medicare/highways/Clean-Air confirmed as rows; HEA-1965 + MMA-2003 folded into details jsonb (node conflicts); Head Start skipped (title gate). Gotchas for 48: govinfo app pages 200 on ANY path (verify via api.govinfo.gov only); PLAW collection starts 104th Congress (older laws pinned to STATUTE granules); congress.gov 403s all non-browser clients — its URLs are templates around API-confirmed identifiers, browser spot-check owed in Phase 48
-Last activity: 2026-06-12 — 47-02 executed (probes + load + verification green, 47-02-SUMMARY.md). RESUME AT: 47-03-PLAN.md
+Phase: 47 (Program Origins Pilot) — COMPLETE (47-VERIFICATION.md PASS)
+Plan: all 3 done. 15 program_details rows live + ProgramOrigins card in production (treasurytracker.empowered.vote): enabling bill/public law/year/sponsor/cosponsors, every claim linked to its official record; foundational rows show the sponsor-boundary note → NEXT: Phase 48 (Source-Chain Verification + UAT)
+Status: backend ev-accounts e0521838 (programOrigins joined into getBudgetById, additive; Plano byte-stable), frontend 876ef26 (card under drill view). Gotchas for 48: govinfo app pages 200 on ANY path (verify via api.govinfo.gov only); PLAW collection starts 104th Congress (older laws pinned to STATUTE granules); congress.gov 403s all non-browser clients — its bill/cosponsors/bioguide URLs are templates around API-confirmed identifiers, BROWSER SPOT-CHECK OWED in 48. EV-Accounts push carried 2 pre-existing phase-117 wip commits (flagged in 47-03-SUMMARY)
+Last activity: 2026-06-12 — 47-03 executed (backend + frontend deployed, production drill verified, phase closed). RESUME AT: plan Phase 48
 
 ## Phase Overview
 
@@ -37,7 +37,7 @@ Last activity: 2026-06-12 — 47-02 executed (probes + load + verification green
 | 44 | Core Federal Data Load | Phase 43 | Complete (2026-06-12) |
 | 45 | Federal Visualization | Phase 44 | Complete (2026-06-12) |
 | 46 | Sourced Explainer Pipeline v2 | Phase 44 (pipeline), 45 (UI) | Complete (2026-06-12) |
-| 47 | Program Origins Pilot | Phase 43 + 46 standard + API keys | Planned (3 plans) |
+| 47 | Program Origins Pilot | Phase 43 + 46 standard + API keys | Complete (2026-06-12) |
 | 48 | Source-Chain Verification + UAT | Phases 45–47 | Not started |
 
 **Critical path:** 43 → 44 → 45 → 48; 46 and 47 can overlap with 45 once 44 lands.
