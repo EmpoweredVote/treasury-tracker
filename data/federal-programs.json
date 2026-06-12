@@ -1,0 +1,190 @@
+{
+  "_meta": {
+    "created": "2026-06-12",
+    "contract": ".planning/phases/47-program-origins-pilot/47-PROGRAMS.md",
+    "discipline": "This file holds API identifiers and curated display labels ONLY — zero factual claim values. Every stored fact (official titles, public law numbers, sponsors, enactment years, cosponsor counts) is fetched live from Congress.gov / GovInfo by scripts/loadProgramOrigins.js at load time. A program appears here only if its FETCHED official title supports the program claim (47-01/47-02 probes; unconfirmable candidates are in _skipped).",
+    "tiers": {
+      "modern": "Congress.gov v3 bill detail (structured coverage begins 93rd Congress, 1973) — full field set incl. sponsor and cosponsors",
+      "foundational": "GovInfo STATUTE granule — official title, public law citation, enactment date; sponsor fields stay NULL with an honest boundary note (no structured sponsor data exists for pre-1973 laws)"
+    },
+    "law_record": "For modern bills whose public law predates the GovInfo PLAW collection (starts 104th Congress, 1995), law_record pins the Statutes-at-Large granule used for public_law_url; the loader verifies it exists at run time.",
+    "additional_claims": "Identifier-only pointers fetched at load time and stored in details jsonb as {field, value, source_url} — used where a second act maps to an already-occupied node (UNIQUE one-program-per-node)."
+  },
+  "programs": [
+    {
+      "name_key": "health",
+      "program_name": "Affordable Care Act",
+      "tier": "modern",
+      "congress": 111,
+      "bill_type": "hr",
+      "bill_number": 3590
+    },
+    {
+      "name_key": "income security",
+      "program_name": "Welfare reform / TANF",
+      "tier": "modern",
+      "congress": 104,
+      "bill_type": "hr",
+      "bill_number": 3734
+    },
+    {
+      "name_key": "department of homeland security",
+      "program_name": "Department of Homeland Security",
+      "tier": "modern",
+      "congress": 107,
+      "bill_type": "hr",
+      "bill_number": 5005
+    },
+    {
+      "name_key": "education, training, employment, and social services|elementary, secondary, and vocational education",
+      "program_name": "Special education (IDEA)",
+      "tier": "modern",
+      "congress": 108,
+      "bill_type": "hr",
+      "bill_number": 1350
+    },
+    {
+      "name_key": "department of education",
+      "program_name": "Department of Education",
+      "tier": "modern",
+      "congress": 96,
+      "bill_type": "s",
+      "bill_number": 210,
+      "law_record": {
+        "govinfo_package_id": "STATUTE-93",
+        "govinfo_granule_id": "STATUTE-93-Pg668"
+      },
+      "additional_claims": [
+        {
+          "field": "Related act: higher education (1965)",
+          "tier": "foundational",
+          "govinfo_package_id": "STATUTE-79",
+          "govinfo_granule_id": "STATUTE-79-Pg1219"
+        }
+      ]
+    },
+    {
+      "name_key": "transportation",
+      "program_name": "Infrastructure Investment and Jobs Act",
+      "tier": "modern",
+      "congress": 117,
+      "bill_type": "hr",
+      "bill_number": 3684
+    },
+    {
+      "name_key": "general science, space, and technology",
+      "program_name": "CHIPS and Science Act",
+      "tier": "modern",
+      "congress": 117,
+      "bill_type": "hr",
+      "bill_number": 4346
+    },
+    {
+      "name_key": "community and regional development|disaster relief and insurance",
+      "program_name": "Federal disaster relief (Stafford framework)",
+      "tier": "modern",
+      "congress": 100,
+      "bill_type": "hr",
+      "bill_number": 2707,
+      "law_record": {
+        "govinfo_package_id": "STATUTE-102",
+        "govinfo_granule_id": "STATUTE-102-Pg4689"
+      }
+    },
+    {
+      "name_key": "social security",
+      "program_name": "Social Security",
+      "tier": "foundational",
+      "govinfo_package_id": "STATUTE-49",
+      "govinfo_granule_id": "STATUTE-49-Pg620"
+    },
+    {
+      "name_key": "income security|unemployment compensation",
+      "program_name": "Unemployment compensation",
+      "tier": "foundational",
+      "govinfo_package_id": "STATUTE-49",
+      "govinfo_granule_id": "STATUTE-49-Pg620"
+    },
+    {
+      "name_key": "national aeronautics and space administration",
+      "program_name": "NASA / Space Act",
+      "tier": "foundational",
+      "govinfo_package_id": "STATUTE-72",
+      "govinfo_granule_id": "STATUTE-72-Pg426-2"
+    },
+    {
+      "name_key": "income security|food and nutrition assistance",
+      "program_name": "Food stamps (1964 act)",
+      "tier": "foundational",
+      "govinfo_package_id": "STATUTE-78",
+      "govinfo_granule_id": "STATUTE-78-Pg703"
+    },
+    {
+      "name_key": "medicare",
+      "program_name": "Medicare",
+      "tier": "foundational",
+      "govinfo_package_id": "STATUTE-79",
+      "govinfo_granule_id": "STATUTE-79-Pg286",
+      "additional_claims": [
+        {
+          "field": "Related act: Medicare prescription drug coverage (2003)",
+          "tier": "modern",
+          "congress": 108,
+          "bill_type": "hr",
+          "bill_number": 1
+        }
+      ]
+    },
+    {
+      "name_key": "transportation|ground transportation",
+      "program_name": "Federal highway construction (1956 act)",
+      "tier": "foundational",
+      "govinfo_package_id": "STATUTE-70",
+      "govinfo_granule_id": "STATUTE-70-Pg374"
+    },
+    {
+      "name_key": "natural resources and environment",
+      "program_name": "Clean Air Act",
+      "tier": "foundational",
+      "govinfo_package_id": "STATUTE-84",
+      "govinfo_granule_id": "STATUTE-84-Pg1676"
+    }
+  ],
+  "_skipped": [
+    {
+      "program": "Post-9/11 GI Bill",
+      "disposition": "skipped",
+      "rationale": "47-01 probe: fetched title of 110/hr/2642 is 'Supplemental Appropriations Act, 2008' — the record alone cannot support the program claim. Veterans node keeps its Tier 1 explainer."
+    },
+    {
+      "program": "CHIP (1997)",
+      "disposition": "skipped",
+      "rationale": "Created inside the Balanced Budget Act of 1997 — same omnibus problem; fetched title does not name the program."
+    },
+    {
+      "program": "Other Defense Civil Programs / SNAP 2008 retitle",
+      "disposition": "skipped",
+      "rationale": "Farm-bill omnibus titles do not name the program."
+    },
+    {
+      "program": "Head Start lineage (Economic Opportunity Act of 1964)",
+      "disposition": "skipped",
+      "rationale": "47-02 probe: STATUTE-78-Pg508 fetched title is 'An Act to mobilize the human and financial resources of the Nation to combat poverty in the United States.' with shortTitle null — names neither Head Start nor economic opportunity; fetched-title gate failed."
+    },
+    {
+      "program": "National School Lunch Act (1946) backup candidate",
+      "disposition": "skipped",
+      "rationale": "Target node income security|food and nutrition assistance is already held by the Food Stamp Act row (UNIQUE one-program-per-node); no other pinned node."
+    },
+    {
+      "program": "Higher Education Act of 1965",
+      "disposition": "folded",
+      "rationale": "47-02 probe title-confirmed (STATUTE-79-Pg1219), but its target node 'department of education' is held by the Department of Education Organization Act — folded into that row's details jsonb as a fetched claim."
+    },
+    {
+      "program": "Medicare Modernization Act (2003)",
+      "disposition": "folded",
+      "rationale": "47-02 probe title-confirmed (108/hr/1, P.L. 108-173), but the 'medicare' node is held by the 1965 act per the 47-01 conflict resolution — folded into that row's details jsonb as a fetched claim."
+    }
+  ]
+}

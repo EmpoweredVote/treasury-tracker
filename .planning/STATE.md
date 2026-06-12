@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-09)
 
 ## Current Position
 
-Phase: 47 (Program Origins Pilot) — 47-01 COMPLETE; 47-02 + 47-03 remaining
-Plan: 47-01 done (47-PROGRAMS.md contract: 11 confirmed + 5 conditional programs) → NEXT: 47-02 (data/federal-programs.json + loadProgramOrigins.js, zero LLM) → 47-03 (backend exposure + ProgramOrigins component + 47-VERIFICATION)
-Status: 3 plans written. Probed live: Congress.gov bill detail gives the full ORIG-02 field set (1973+); GovInfo STATUTE surfaces pre-1973 acts (1935 Social Security Act verified) but NO sponsor data exists for those — two-tier handling with honest boundary notes. Mapping discipline: fetched-title rule (the Post-9/11 GI Bill probe showed why — officially 'Supplemental Appropriations Act, 2008'). Origins need NO LLM at all — pure structured fetch
-Last activity: 2026-06-12 — 47-01 executed (probes complete, contract committed). RESUME AT: 47-02-PLAN.md; the contract is 47-PROGRAMS.md; key in .env as DATA_GOV_API_KEY
+Phase: 47 (Program Origins Pilot) — 47-01 + 47-02 COMPLETE; 47-03 remaining
+Plan: 47-02 done (15 program_details rows live: 8 modern congress.gov + 7 foundational govinfo; zero LLM) → NEXT: 47-03 (backend exposure + ProgramOrigins component + 47-VERIFICATION)
+Status: data/federal-programs.json (identifiers only, loader-enforced) + scripts/loadProgramOrigins.js committed. Conditionals: Medicare/highways/Clean-Air confirmed as rows; HEA-1965 + MMA-2003 folded into details jsonb (node conflicts); Head Start skipped (title gate). Gotchas for 48: govinfo app pages 200 on ANY path (verify via api.govinfo.gov only); PLAW collection starts 104th Congress (older laws pinned to STATUTE granules); congress.gov 403s all non-browser clients — its URLs are templates around API-confirmed identifiers, browser spot-check owed in Phase 48
+Last activity: 2026-06-12 — 47-02 executed (probes + load + verification green, 47-02-SUMMARY.md). RESUME AT: 47-03-PLAN.md
 
 ## Phase Overview
 

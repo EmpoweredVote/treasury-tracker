@@ -45,6 +45,9 @@ src/data/processedBudget.json
 # …except the federal enrichment source-of-record (Phase 46: inline-authored,
 # git-reviewed explainer text — the committed file IS the audit trail)
 !/data/federal-enrichment.json
+# …and the federal program-origins identifier list (Phase 47: identifiers only,
+# all fact values fetched from Congress.gov/GovInfo at load time)
+!/data/federal-programs.json
 # …and the verbatim GAO function-definition snapshot it was authored from
 !docs/federal/
 docs/federal/*
