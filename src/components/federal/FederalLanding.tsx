@@ -1,0 +1,69 @@
+import React, { useEffect, useState } from 'react';
+import type { FederalContext } from '../../types/budget';
+import { loadFederalContext } from '../../data/dataLoader';
+import DeficitStrip from './DeficitStrip';
+import FirstSplitBands from './FirstSplitBands';
+import ThisYearStrip from './ThisYearStrip';
+
+/**
+ * Federal landing block (Phase 45): the two structural facts citizens most
+ * lack — where the money goes at the highest level, and that spending exceeds
+ * revenue — rendered proportionally from OFFICIAL sourced figures
+ * (federal_annual_summary / federal_context_metrics), never tree totals.
+ * Replaces PlainLanguageSummary for the United States entity only.
+ */
+const FederalLanding: React.FC = () => {
+  const [context, setContext] = useState<FederalContext | null>(null);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadFederalContext()
+      .then((ctx) => { if (!cancelled) setContext(ctx); })
+      .catch((err) => {
+        console.error('Federal context load failed:', err);
+        if (!cancelled) setError(true);
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  if (error) {
+    return (
+      <div className="bg-white dark:bg-ev-gray-800 border border-ev-gray-200 dark:border-ev-gray-700 rounded-xl p-6 text-sm text-ev-gray-500 dark:text-ev-gray-400">
+        Couldn't load the federal budget context. The breakdown below still works — try refreshing for the full picture.
+      </div>
+    );
+  }
+
+  if (!context) {
+    return (
+      <div
+        className="bg-white dark:bg-ev-gray-800 border border-ev-gray-200 dark:border-ev-gray-700 rounded-xl p-6 animate-pulse h-40"
+        role="status"
+        aria-label="Loading federal budget context"
+      />
+    );
+  }
+
+  // Headline year = latest ACTUAL year in the summary (FY2025 as of v2.0)
+  const headline = context.annual_summary[context.annual_summary.length - 1];
+  const displayName = (name: string) => context.source_display_names[name] ?? name;
+
+  return (
+    <div className="space-y-4">
+      <h2 className="sr-only">The big picture — FY{headline.fiscal_year}</h2>
+      <DeficitStrip
+        summary={headline}
+        debtMetric={context.metrics.total_public_debt ?? null}
+        sourceDisplayName={displayName(headline.source_name)}
+      />
+      <FirstSplitBands summary={headline} sourceDisplayName={displayName(headline.source_name)} />
+      <ThisYearStrip
+        fytdReceipts={context.metrics.fytd_receipts ?? null}
+        fytdOutlays={context.metrics.fytd_outlays ?? null}
+      />
+    </div>
+  );
+};
+
+export default FederalLanding;

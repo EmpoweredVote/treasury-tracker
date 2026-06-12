@@ -141,7 +141,12 @@ export interface BudgetData {
     generatedAt: string;
     hierarchy: string[];
     dataSource: string;
-    dataSourceInfo?: { displayName: string; url: string } | null;
+    dataSourceInfo?: {
+      displayName: string;
+      url: string;
+      datasetUrl?: string | null;  // exact dataset URL (federal source chips)
+      fetchedAt?: string | null;   // last sync timestamp
+    } | null;
     datasetType?: string;
     // For salaries
     totalCompensation?: number;
@@ -169,4 +174,38 @@ export interface BudgetData {
       transactionCount: number;
     }>;
   };
+}
+
+// ── Federal context (Phase 45) — /api/treasury/federal/context ───────────────
+// Always-sourced landing data for the United States entity. Every row carries
+// its source columns, written by the Phase 44 loaders.
+
+export interface FederalAnnualSummaryRow {
+  fiscal_year: number;
+  receipts: number;
+  outlays: number;
+  /** Raw OMB sign convention: negative = deficit. Never re-derive. */
+  surplus_or_deficit: number;
+  mandatory: number | null;
+  discretionary_defense: number | null;
+  discretionary_nondefense: number | null;
+  net_interest: number | null;
+  source_name: string;
+  source_url: string;
+  source_date: string;
+}
+
+export interface FederalContextMetric {
+  value: number;
+  as_of_date: string;
+  label: string;
+  source_name: string;
+  source_url: string;
+  source_date: string;
+}
+
+export interface FederalContext {
+  annual_summary: FederalAnnualSummaryRow[];
+  metrics: Record<string, FederalContextMetric>;
+  source_display_names: Record<string, string>;
 }

@@ -5,7 +5,7 @@
  * API is the sole data source — no JSON file fallback, no hardcoded placeholder data (per D-06).
  */
 
-import type { BudgetData, BudgetCategory, LinkedTransactionSummary, Municipality, SearchResult } from '../types/budget';
+import type { BudgetData, BudgetCategory, FederalContext, LinkedTransactionSummary, Municipality, SearchResult } from '../types/budget';
 
 // In dev: use /api which Vite proxies to the backend (avoids CORS).
 // In production: no proxy exists, so use the full API URL directly.
@@ -171,4 +171,25 @@ export async function listMunicipalities(): Promise<Municipality[]> {
     throw new Error(`Cities API returned ${response.status}`);
   }
   return await response.json();
+}
+
+// ── Federal context (Phase 45) ────────────────────────────────────────────────
+// Always-sourced landing data for the United States entity. Cached for the
+// session; throws on failure — no fallback figures, ever (D-06 + v2.0 rule 3).
+
+let federalContextCache: FederalContext | null = null;
+
+export async function loadFederalContext(): Promise<FederalContext> {
+  if (federalContextCache) return federalContextCache;
+
+  const response = await fetch(`${API_BASE}/treasury/federal/context`);
+  if (!response.ok) {
+    throw new Error(`Federal context API returned ${response.status}`);
+  }
+  const context: FederalContext = await response.json();
+  if (!context.annual_summary?.length) {
+    throw new Error('Federal context API returned no annual summary rows');
+  }
+  federalContextCache = context;
+  return context;
 }

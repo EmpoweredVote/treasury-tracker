@@ -3,8 +3,13 @@ import { FileText, Heart } from 'lucide-react'
 import { SiteHeader } from '@empoweredvote/ev-ui';
 import { AppHeader } from './components/AppHeader';
 import PlainLanguageSummary from './components/dashboard/PlainLanguageSummary';
+import FederalLanding from './components/federal/FederalLanding';
+import LensToggle from './components/federal/LensToggle';
+import SourceChip from './components/federal/SourceChip';
+import MethodologyPanel from './components/federal/MethodologyPanel';
+import ScaleToggle, { type FederalScale } from './components/federal/ScaleToggle';
 import BudgetSearch from './components/dashboard/BudgetSearch';
-import { loadBudgetData, loadLinkedTransactions, listMunicipalities, clearCache } from './data/dataLoader';
+import { loadBudgetData, loadFederalContext, loadLinkedTransactions, listMunicipalities, clearCache } from './data/dataLoader';
 import EntitySwitcher from './components/EntitySwitcher';
 import AlphaLanding from './components/AlphaLanding';
 import type { LandingReason } from './components/AlphaLanding';
@@ -23,7 +28,7 @@ import LineItemsTable from './components/LineItemsTable';
 import LinkedTransactionsPanel from './components/LinkedTransactionsPanel';
 import CitiesInCountyPanel from './components/CitiesInCountyPanel';
 import { getHeroImage, getHeroBgPosition } from './utils/wikiImage';
-import type { BudgetCategory, BudgetData, LinkedTransactionSummary, Municipality } from './types/budget';
+import type { BudgetCategory, BudgetData, FederalContext, LinkedTransactionSummary, Municipality } from './types/budget';
 
 interface BreadcrumbItem {
   label: string;
@@ -38,8 +43,10 @@ function toSlug(m: Municipality): string {
 }
 
 // Sync all three params to URL without page reload (D-10, D-11)
-function syncURL(entity: Municipality, year: string, dataset: string) {
+// lens param only appears for the federal agency lens (Phase 45)
+function syncURL(entity: Municipality, year: string, dataset: string, lens?: string) {
   const params = new URLSearchParams({ entity: toSlug(entity), year, dataset });
+  if (lens === 'agency') params.set('lens', 'agency');
   window.history.pushState({}, '', `?${params.toString()}`);
 }
 
@@ -94,6 +101,14 @@ function App() {
 
   // Dataset selection
   const [activeDataset, setActiveDataset] = useState<DatasetType>('operating');
+
+  // Federal lens (Phase 45): which Money Out tree the US entity shows.
+  // 'function' = budget functions (default); 'agency' = departments (federal_agency dataset)
+  const [federalLens, setFederalLens] = useState<'function' | 'agency'>('function');
+
+  // Federal scale (VIZ-05): display-only transform — loaded data is never mutated.
+  const [federalScale, setFederalScale] = useState<FederalScale>('dollars');
+  const [federalContextData, setFederalContextData] = useState<FederalContext | null>(null);
 
   // App-level view state: resolving auth → landing or budget
   const [appView, setAppView] = useState<'resolving' | 'landing' | 'budget'>('resolving');
@@ -193,6 +208,9 @@ function App() {
         }
         if (datasetParam && ['operating', 'revenue', 'salaries'].includes(datasetParam)) {
           setActiveDataset(datasetParam as DatasetType);
+        }
+        if (params.get('lens') === 'agency' && entity.entity_type === 'federal') {
+          setFederalLens('agency');
         }
         setAppView('budget');
       }).catch(() => setAppView('budget'));
@@ -312,25 +330,31 @@ function App() {
     }
   }, [selectedYear, selectedEntity]);
 
-  // Load main budget data when dataset, year, or entity changes
+  // Load main budget data when dataset, year, entity, or federal lens changes.
+  // The agency lens substitutes the federal_agency dataset for 'operating' —
+  // tab state stays 'operating' (the lens is a view of Money Out, not a tab).
   useEffect(() => {
     if (!selectedEntity) return;
+    const requestDataset =
+      selectedEntity.entity_type === 'federal' && activeDataset === 'operating' && federalLens === 'agency'
+        ? 'federal_agency'
+        : activeDataset;
     setLoading(true);
     setBudgetLoadError(false);
     setNavigationPath([]);
 
-    loadBudgetData(parseInt(selectedYear), selectedEntity.name, selectedEntity.state, activeDataset)
+    loadBudgetData(parseInt(selectedYear), selectedEntity.name, selectedEntity.state, requestDataset)
       .then(data => {
         setBudgetData(data);
         setLoading(false);
       })
       .catch(error => {
-        console.error(`Failed to load ${activeDataset} data:`, error);
+        console.error(`Failed to load ${requestDataset} data:`, error);
         setBudgetData(null);
         setLoading(false);
         setBudgetLoadError(true);
       });
-  }, [activeDataset, selectedYear, selectedEntity]);
+  }, [activeDataset, selectedYear, selectedEntity, federalLens]);
 
   // Entity change handler — computes effective year BEFORE triggering data load (avoids Pitfall 1)
   const handleEntityChange = useCallback((entity: Municipality) => {
@@ -355,14 +379,25 @@ function App() {
     setSelectedEntity(entity);
     setSelectedYear(effectiveYear);
     setActiveDataset(effectiveDataset as DatasetType);
+    setFederalLens('function'); // lens/scale are per-visit; reset when leaving/entering entities
+    setFederalScale('dollars');
     syncURL(entity, effectiveYear, effectiveDataset);
   }, [selectedYear, activeDataset]);
 
-  // Sync URL when year or dataset changes (guard avoids Pitfall 2 — no sync on mount)
+  // Federal context for scale denominators (cached fetch; FederalLanding shares it)
+  useEffect(() => {
+    if (selectedEntity?.entity_type !== 'federal') return;
+    loadFederalContext().then(setFederalContextData).catch(() => { /* per-taxpayer mode simply hides */ });
+  }, [selectedEntity]);
+
+  // Sync URL when year, dataset, or federal lens changes (guard avoids Pitfall 2 — no sync on mount)
   useEffect(() => {
     if (!selectedEntity) return;
-    syncURL(selectedEntity, selectedYear, activeDataset);
-  }, [selectedEntity, selectedYear, activeDataset]);
+    syncURL(
+      selectedEntity, selectedYear, activeDataset,
+      selectedEntity.entity_type === 'federal' && federalLens === 'agency' ? 'agency' : undefined
+    );
+  }, [selectedEntity, selectedYear, activeDataset, federalLens]);
 
   // Silently refetch revenue once when the user returns to this tab.
   // Fires at most once per entity+year — the listener removes itself after the first visible-return.
@@ -577,6 +612,35 @@ function App() {
     );
   }
 
+  // Federal scale transform (VIZ-05): pure display math on a COPY of the tree —
+  // amount ÷ sourced denominator (population or returns filed). Never mutates
+  // loaded data; formulas disclosed in ScaleToggle tooltips + MethodologyPanel.
+  const displayData = useMemo(() => {
+    if (!budgetData || selectedEntity?.entity_type !== 'federal' || federalScale === 'dollars') {
+      return budgetData;
+    }
+    const divisor = federalScale === 'perPerson'
+      ? (selectedEntity.population || 0)
+      : (federalContextData?.metrics.tax_returns_filed?.value ?? 0);
+    if (!divisor) return budgetData;
+    const scaleCat = (cat: BudgetCategory): BudgetCategory => ({
+      ...cat,
+      amount: cat.amount / divisor,
+      actualAmount: cat.actualAmount !== undefined ? cat.actualAmount / divisor : undefined,
+      subcategories: cat.subcategories?.map(scaleCat),
+      lineItems: cat.lineItems?.map(li => ({
+        ...li,
+        approvedAmount: li.approvedAmount / divisor,
+        actualAmount: li.actualAmount / divisor,
+      })),
+    });
+    return {
+      ...budgetData,
+      metadata: { ...budgetData.metadata, totalBudget: budgetData.metadata.totalBudget / divisor },
+      categories: budgetData.categories.map(scaleCat),
+    };
+  }, [budgetData, federalScale, selectedEntity, federalContextData]);
+
   // Determine what to display (only when budgetData is loaded)
   const currentCategory = navigationPath.length > 0 ? navigationPath[navigationPath.length - 1] : null;
   const showLineItems = currentCategory &&
@@ -585,7 +649,7 @@ function App() {
                         (!currentCategory.subcategories || currentCategory.subcategories.length === 0);
 
   const currentCategories = navigationPath.length === 0
-    ? (budgetData?.categories ?? [])
+    ? (displayData?.categories ?? [])
     : navigationPath[navigationPath.length - 1].subcategories || [];
 
   const isPastYear = parseInt(selectedYear) < new Date().getFullYear();
@@ -747,20 +811,28 @@ function App() {
           {/* Dashboard Section — only show at top level */}
           {navigationPath.length === 0 && (
             <>
-              {/* Plain language summary — lead with the story */}
-              <div className="mb-6">
-                <PlainLanguageSummary
-                  entity={selectedEntity}
-                  operatingData={operatingBudgetData}
-                  revenueData={revenueData}
-                  salariesTotal={salariesData?.metadata.totalCompensation ?? salariesData?.metadata.totalBudget ?? null}
-                  fiscalYear={selectedYear}
-                  isPastYear={isPastYear}
-                  onCategoryClick={handleSummaryCategoryClick}
-                  onYearClick={() => yearSelectorRef.current?.open()}
-                  allFundsRequirementsData={allFundsRequirementsData}
-                />
-              </div>
+              {/* Federal landing: official first-split + deficit context replaces the
+                  narrative summary (whose uncontextualized totals would mislead — 45-CONTEXT) */}
+              {selectedEntity?.entity_type === 'federal' ? (
+                <div className="mb-6">
+                  <FederalLanding />
+                </div>
+              ) : (
+                /* Plain language summary — lead with the story */
+                <div className="mb-6">
+                  <PlainLanguageSummary
+                    entity={selectedEntity}
+                    operatingData={operatingBudgetData}
+                    revenueData={revenueData}
+                    salariesTotal={salariesData?.metadata.totalCompensation ?? salariesData?.metadata.totalBudget ?? null}
+                    fiscalYear={selectedYear}
+                    isPastYear={isPastYear}
+                    onCategoryClick={handleSummaryCategoryClick}
+                    onYearClick={() => yearSelectorRef.current?.open()}
+                    allFundsRequirementsData={allFundsRequirementsData}
+                  />
+                </div>
+              )}
 
               {/* Dataset Tabs */}
               <div className="mb-8">
@@ -780,6 +852,33 @@ function App() {
           {/* Budget Visualization Section */}
           {budgetData && (
             <div ref={chartSectionRef} className="space-y-6">
+              {/* Federal controls: lens toggle (Money Out only, VIZ-03), scale modes
+                  (VIZ-05), per-dataset source chip (VIZ-04) */}
+              {selectedEntity?.entity_type === 'federal' && (
+                <div className="flex items-center gap-3 flex-wrap">
+                  {activeDataset === 'operating' && (
+                    <LensToggle
+                      lens={federalLens}
+                      onChange={(l) => { setFederalLens(l); setNavigationPath([]); }}
+                    />
+                  )}
+                  <ScaleToggle
+                    scale={federalScale}
+                    onChange={(s) => { setFederalScale(s); setNavigationPath([]); }}
+                    population={selectedEntity.population}
+                    populationYear={selectedEntity.population_year}
+                    taxReturns={federalContextData?.metrics.tax_returns_filed?.value ?? null}
+                    taxReturnsLabel={federalContextData?.metrics.tax_returns_filed?.label ?? null}
+                  />
+                  {budgetData.metadata.dataSourceInfo && (
+                    <SourceChip
+                      sourceName={budgetData.metadata.dataSourceInfo.displayName}
+                      sourceUrl={budgetData.metadata.dataSourceInfo.datasetUrl || budgetData.metadata.dataSourceInfo.url}
+                      fetchDate={budgetData.metadata.dataSourceInfo.fetchedAt}
+                    />
+                  )}
+                </div>
+              )}
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <h2 className="text-base font-bold text-[#1C1C1C] dark:text-ev-gray-100">
@@ -825,9 +924,9 @@ function App() {
                   {activeDataset === 'operating' ? (
                     <>
                       <BudgetVisualization
-                        categories={budgetData.categories}
+                        categories={displayData!.categories}
                         navigationPath={navigationPath}
-                        totalBudget={budgetData.metadata.totalBudget}
+                        totalBudget={displayData!.metadata.totalBudget}
                         onPathClick={handlePathClick}
                         isNonprofit={selectedEntity?.entity_type === 'nonprofit'}
                       />
@@ -855,9 +954,9 @@ function App() {
               ) : displayCategories.length > 0 ? (
                 <>
                   <BudgetVisualization
-                    categories={budgetData.categories}
+                    categories={displayData!.categories}
                     navigationPath={navigationPath}
-                    totalBudget={budgetData.metadata.totalBudget}
+                    totalBudget={displayData!.metadata.totalBudget}
                     onPathClick={handlePathClick}
                     isNonprofit={selectedEntity?.entity_type === 'nonprofit'}
                   />
@@ -910,9 +1009,9 @@ function App() {
                 // Leaf node: no subcategories and no line items — show chart context + transactions or message
                 <>
                   <BudgetVisualization
-                    categories={budgetData.categories}
+                    categories={displayData!.categories}
                     navigationPath={navigationPath}
-                    totalBudget={budgetData.metadata.totalBudget}
+                    totalBudget={displayData!.metadata.totalBudget}
                     onPathClick={handlePathClick}
                     isNonprofit={selectedEntity?.entity_type === 'nonprofit'}
                   />
@@ -949,6 +1048,13 @@ function App() {
               <strong className="text-ev-gray-700 dark:text-ev-gray-300">How to explore:</strong> Tap any category above to see its breakdown.
               Use the tabs to switch between spending, revenue, and employee compensation.
               Every level lets you dig deeper until you reach individual line items and transactions.
+            </div>
+          )}
+
+          {/* Federal methodology panel — VIZ-06 + Phase 44 owed disclosures */}
+          {navigationPath.length === 0 && selectedEntity?.entity_type === 'federal' && (
+            <div className="mt-6">
+              <MethodologyPanel />
             </div>
           )}
 
