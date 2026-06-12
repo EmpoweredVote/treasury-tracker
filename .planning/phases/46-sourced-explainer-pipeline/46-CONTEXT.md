@@ -34,9 +34,11 @@
 - All rows municipality_id = US entity id (`0098c405-…`) — never universal (Phase 42 lesson).
 - SRC-03 lands in three places: (1) a `dod_consecutive_failed_audits` context metric (numeric value = consecutive failed audit count from the official record, label + source_url); (2) the National Defense function + DoD agency enrichment descriptions carry one factual audit-status sentence with the same citation; (3) MethodologyPanel gains an "Can these numbers be audited?" section reading that metric (computed, chipped — same pattern as the other sections).
 
-## Cost (SRC-04)
+## Cost (SRC-04) — REVISED per Chris 2026-06-12: no API calls, work done inline
 
-~30 generations (20 functions + 10 agencies) × (~3k tokens fetched-context in, ~400 out). Haiku 4.5 ≈ **$0.15**; Sonnet 4.6 ≈ $0.45. Hard re-estimate printed by the pipeline before the run; abort > $5 (gate), warn > $1. Recon estimate (<$0.50) holds.
+**$0 API spend.** Chris asked whether the generation could happen without API calls — yes: the v2 standard constrains the INPUT (fetched official text only), not the generator. The in-session model condenses the recorded verbatim extracts directly; explainers land in a **committed data file** (`data/federal-enrichment.json`) that a small deterministic loader upserts. Same citation chain, same claim-trace audit (the no-model-memory rule binds the in-session author identically); plus the full explainer text is git-reviewable.
+
+Trade-off accepted: annual refreshes are a manual re-authoring pass instead of a script run — mechanical, because 46-SOURCES.md preserves the fetch methods. (Original API estimate for reference: ~$0.15–0.45.)
 
 ## Top-10 agencies (by FY2025 outlays, from the loaded agency lens)
 
