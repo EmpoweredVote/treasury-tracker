@@ -31,8 +31,9 @@ dist-ssr
 .superpowers/
 
 # Local data files — financial exports and large PDFs (not for version control)
+# (docs uses /* so specific source-of-record snapshots can be re-included below)
 EV/
-docs/
+docs/*
 
 # Supabase temp files
 supabase/.temp/
@@ -40,7 +41,14 @@ supabase/.temp/
 # Static data files — all data served from Supabase via API
 public/data/
 src/data/processedBudget.json
-/data/
+/data/*
+# …except the federal enrichment source-of-record (Phase 46: inline-authored,
+# git-reviewed explainer text — the committed file IS the audit trail)
+!/data/federal-enrichment.json
+# …and the verbatim GAO function-definition snapshot it was authored from
+!docs/federal/
+docs/federal/*
+!docs/federal/gao_appendix4.txt
 
 # PDF render cache — PNG files rendered from ACFRs (can be large, regenerated on demand)
 cache/

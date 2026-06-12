@@ -106,6 +106,27 @@ const MethodologyPanel: React.FC = () => {
             </p>
           </section>
 
+          {context.metrics.dod_consecutive_failed_audits && (
+            <section>
+              <h4 className="font-semibold text-ev-gray-900 dark:text-ev-gray-100 mb-1">Can these numbers be audited?</h4>
+              <p>
+                Mostly, yes — the totals here come from official Treasury and OMB records. But the
+                Department of Defense, the largest discretionary spender, received disclaimers of
+                opinion on its own financial statements for the most recent audits on record
+                ({Number(context.metrics.dod_consecutive_failed_audits.value)} fiscal years per the
+                cited report) — meaning independent auditors could not verify DoD's internal
+                accounting. The government-wide totals are what Treasury reports was spent; the
+                audit concerns whether DoD can fully account for it internally.{' '}
+                <SourceChip
+                  sourceName="GAO audit report, FY2025 Financial Report of the U.S. Government"
+                  sourceUrl={context.metrics.dod_consecutive_failed_audits.source_url}
+                  fetchDate={context.metrics.dod_consecutive_failed_audits.source_date}
+                  compact
+                />
+              </p>
+            </section>
+          )}
+
           <section>
             <h4 className="font-semibold text-ev-gray-900 dark:text-ev-gray-100 mb-1">Scale modes</h4>
             <p>

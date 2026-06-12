@@ -907,11 +907,11 @@ Plans:
 **Plans:** 3 plans (2 waves)
 
 **Wave 1**
-- [ ] 46-01-PLAN.md — Source-of-record discovery: function descriptions (A-11 / PBDB guide / GovInfo verify-first), agency missions (USAspending endpoint VERIFIED + top-10 name mapping) → 46-SOURCES.md contract
+- [x] 46-01-PLAN.md — Sources contract: function definitions from GAO-05-734SP App. IV (A-11 + PBDB guide are code-lists only; GAO acquired via WebFetch-passes-bot-wall discovery); 9/10 agency missions fetched (1 documented skip)
 
 **Wave 2** *(blocked on 46-01)*
-- [ ] 46-02-PLAN.md — enrichFederalCategories.js: fetch-then-summarize (closed prompt — fetched text + delimited sourced figures ONLY), cost gate ($5 abort / $1 confirm), run ~30 targets, 3-explainer claim-trace audit, display verification
-- [ ] 46-03-PLAN.md — SRC-03 DoD audit opacity: official record fetch (defense.gov/OIG/WebFetch/Congress.gov; human-download fallback) → dod_consecutive_failed_audits metric + MethodologyPanel audit section + 2 enrichment sentences; 46-VERIFICATION.md
+- [x] 46-02-PLAN.md — 27 explainers authored INLINE ($0 API) into committed data/federal-enrichment.json + loadFederalEnrichment.js; claim-trace audit 3/3 traced; 2 untraceable draft claims removed pre-load; production API serves citations
+- [x] 46-03-PLAN.md — DoD audit opacity: GAO's verbatim disclaimer statement from the FY2025 Financial Report (fiscal.treasury.gov — better source than all 4 planned candidates); metric value=2 (no inferred history) + MethodologyPanel audit section + 2 enrichment sentences; 46-VERIFICATION.md 4/4 PASS
 
 ### Phase 47: Program Origins Pilot
 
@@ -986,7 +986,7 @@ Plans:
 | 43. Federal Entity + Sourcing Infrastructure | v2.0 | 3/3 | Complete | 2026-06-12 |
 | 44. Core Federal Data Load | v2.0 | 5/5 | Complete | 2026-06-12 |
 | 45. Federal Visualization | v2.0 | 4/4 | Complete | 2026-06-12 |
-| 46. Sourced Explainer Pipeline v2 | v2.0 | 0/3 | Planned | — |
+| 46. Sourced Explainer Pipeline v2 | v2.0 | 3/3 | Complete | 2026-06-12 |
 | 47. Program Origins Pilot | v2.0 | 0/? | Not started | — |
 | 48. Source-Chain Verification + UAT | v2.0 | 0/? | Not started | — |
 

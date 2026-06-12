@@ -1,0 +1,930 @@
+Budget Functional Classification AppendxIiV
+
+The functional classification system is a way of grouping budgetary resources so that all budget authority and outlays of on-budget and off-budget federal entities and tax expenditures can be presented according to the national needs being addressed. National needs are grouped in 17 broad areas to provide a coherent and comprehensive basis for analyzing and understanding the budget. Three additional categories--Net Interest, Allowances, and Undistributed Offsetting Receipts--do not address specific national needs but are included to cover the entire budget. A final category, Multiple Functions, is used for accounts that involve two or more major functions.
+To the extent feasible, functional classifications are made without regard to agency or organizational distinctions.1 Each federal activity is placed in a single functional classification that best defines the activity's most important purpose even though many activities serve more than one purpose. This is necessary so that the sum of the functional categories equals the budget totals. The functional classifications are also the categories that Congress uses in the concurrent resolutions on the budget, pursuant to the Congressional Budget and Impoundment Control Act of 1974 (2 U.S.C. � 632). Different programs within a single function may fall under the jurisdiction of different committees.
+A function may be divided into one or more subfunctions, depending upon the complexity of the national need addressed by that function. A three-digit code represents each functional/subfunctional category. The functional codes also make up the last three digits of the account identification code. (See app. V.)
+The functional structure is relatively stable, but changes are made from time to time to take into account changing conditions and requirements. As a rule, any changes in this structure are made after the Office of Management and Budget (OMB) consults with the Appropriations and Budget Committees of the Senate and House of Representatives.
+Table 1 outlines the functional classification structure as taken from the President's Budget of the United States Government, Fiscal Year 2006. The definitions for the subfunctional structure are from OMB's technical staff paper, "The Functional Classification in the Budget" (1979 Revision). Where necessary, these definitions have
+
+1 For a graphic display of budget functions by agency and object class, see GAO, Federal Budget: Agency Obligations by Budget Function and Object Classification for Fiscal Year 2003, GAO-04-834 (Washington, D.C.: June 25, 2004).
+
+Page 124
+
+GAO-05-734SP Budget Glossary
+
+Appendix IV Budget Functional Classification
+
+been updated to accommodate changes since issuance of that document. The threedigit numbers listed under Code and the associated titles and definitions are for the major functions. The three-digit numbers listed under Subcode and the associated titles and definitions are for the subfunctions.
+
+Table 1: Functional Classification Structure
+
+Code
+
+Subcode Function or subfunction
+
+050
+
+National Defense
+
+Common defense and security of the United States. It encompasses the
+
+� raising, equipping, and maintaining of armed forces (including civilian support activities), development and utilization of weapons systems (including nuclear weapons), and related programs;
+
+� direct compensation and benefits paid to active military
+and civilian personnel and contributions to their retirement, health, and life insurance funds;a
+
+� defense research, development, testing, and evaluation; and
+
+� procurement, construction, stockpiling, and other activities undertaken to directly foster national security.
+
+Excludes
+
+� benefits or compensation to veterans and their dependents and military and civil service retirees;
+
+� the peaceful conduct of foreign relations;
+
+Page 125
+
+GAO-05-734SP Budget Glossary
+
+Appendix IV Budget Functional Classification
+
+Code 150
+
+Subcode Function or subfunction
+
+� foreign military, economic, and humanitarian assistance;
+
+� subsidies to businesses by civilian agencies (such as maritime subsidies) that may be partially justified as promoting national security; and
+
+� research and operations of agencies (such as space research) whose program missions are not directly designed to promote national defense but could result in some significant benefits to our national security.
+
+051
+
+Department of Defense--Military
+
+With minor exceptions, entire agency is included in this subfunction.
+
+053
+
+Atomic energy defense activities
+
+Department of Energy programs devoted to national defense, such as naval ship reactors and nuclear weapons.
+
+054
+
+Defense-related activities
+
+Miscellaneous defense activities, such as the expenses connected with selective services and with defense stockpiles outside of the Departments of Defense and Energy.
+
+International Affairs
+
+Maintaining peaceful relations, commerce, and travel between the United States and the rest of the world and promoting international security and economic
+
+Page 126
+
+GAO-05-734SP Budget Glossary
+
+Appendix IV Budget Functional Classification
+
+Code
+
+Subcode Function or subfunction
+
+development abroad. (Excludes outlays from domestic programs that may tangentially affect foreign relations or the citizens of other nations.)
+
+151
+
+International development and humanitarian assistance
+
+Humanitarian assistance, development assistance, security support assistance, grants to and investments in international financial and development institutions, and the budgetary costs associated with concessionary agricultural exports.
+
+152
+
+International security assistance
+
+The transfer of defense articles and services to foreign governments, including grants, credit sales, and training. Excludes the military sales trust fund, which is classified under subfunction 155 (international financial programs).
+
+153
+
+Conduct of foreign affairs
+
+Diplomatic and consular operations of the Department of State, assessed contributions to international organizations, and closely related activities in other agencies (such as the Arms Control and Disarmament Agency).
+
+154
+
+Foreign information and exchange activities
+
+Student and cultural exchange programs and foreign library, radio, or other media information activities designed to promote mutual understanding between the people of the United States and other nations.
+
+Page 127
+
+GAO-05-734SP Budget Glossary
+
+Appendix IV Budget Functional Classification
+
+Code
+
+Subcode Function or subfunction
+
+155
+
+International financial programs
+
+Export credit, the military sales trust fund, international commodity agreements, international monetary programs, and other programs designed to improve the functioning of the international financial system. For pre-1992 direct loans or loan guarantees, includes the total cash flows on these loans and guarantees. For loans or loan guarantees obligated or committed after 1991, includes the credit subsidy costs of the loans or guarantees.
+
+250
+
+General Science, Space, and Technology
+
+Budget resources allocated to science and research activities of the federal government that are not an integral part of the programs conducted under any other function.
+
+Includes the research conducted by the National Science Foundation, all space programs conducted by the National Aeronautics and Space Administration, and general science research supported by the Department of Energy. Includes research and technology programs that have diverse goals and cannot readily be classified under one specific function to avoid detailed splitting of accounts.
+
+251
+
+General science and basic research
+
+Conducting the National Science Foundation programs and the general science activities of the Department of Energy.
+
+252
+
+Space flight, research, and supporting activities
+
+Page 128
+
+Development and operation of space transportation systems, basic scientific research connected with outer space, research and demonstrations designed to promote
+GAO-05-734SP Budget Glossary
+
+Appendix IV Budget Functional Classification
+
+Code 270
+
+Subcode Function or subfunction
+
+terrestrial applications of technology developed through space research, and development of new space technologies for future flight missions. Also includes costs of tracking and data relay support for the National Aeronautics and Space Administration space science and applications for flight missions.
+
+Energy
+
+Promoting an adequate supply and appropriate use of energy to serve the needs of the economy. Included are the energy programs of the Department of Energy and its predecessor agencies. Excludes atomic energy defense activities and general science research not closely related to energy.
+
+271
+
+Energy supply
+
+Increasing the supply of energy through the development of domestic resources and systems capable of using them. Includes the costs of research and demonstration of supply systems.
+
+272
+
+Energy conservation
+
+Encouraging the prudent use of energy resources.
+
+274
+
+Emergency energy preparedness
+
+Developing and maintaining a stockpile of energy resources (currently confined to petroleum) to meet emergency needs and associated contingency planning activities.
+
+Page 129
+
+GAO-05-734SP Budget Glossary
+
+Appendix IV Budget Functional Classification
+
+Code 300
+
+Subcode Function or subfunction
+
+276
+
+Energy information, policy, and regulation
+
+Unallocable overhead activities of the Department of Energy plus the costs of energy information and regulation activities.
+
+Natural Resources and Environment
+
+Developing, managing, and maintaining the nation's natural resources and environment. Excludes the outlays for community water supply programs, basic sewer systems, and waste treatment plants, all of which are part of a community or regional development (rather than an environmental enhancement) program or are part of the cost of operating a federal facility (such as a military installation).
+
+301
+
+Water resources
+
+Water protection, conservation, irrigation, and related activities, including the total costs of multipurpose water projects where it is not feasible to separate the transportation (navigation) or energy (power) segments of these projects.
+
+302
+
+Conservation and land management
+
+Maintaining the public domain and national forests, encouraging conservation of private land, and reclaiming surface mining areas.
+
+Page 130
+
+GAO-05-734SP Budget Glossary
+
+Appendix IV Budget Functional Classification
+
+Code 350
+
+Subcode Function or subfunction
+
+303
+
+Recreational resources
+
+Acquisition, improvement, and operation of recreational lands and facilities, including fish, wildlife, and parks; also preserving historic areas.
+
+304
+
+Pollution control and abatement
+
+Controlling and reducing air, water, and land pollution, or enhancing the environment. Excludes water resources programs, water treatment plants, and similar programs that are not funded as part of an environmental enhancement activity.
+
+306
+
+Other natural resources
+
+Miscellaneous natural resources programs, not classified under other subfunctions, such as marine-, earth-, and atmosphere-related research and geological surveys and mapping.
+
+Agriculture
+
+Promoting the economic stability of agriculture and the nation's capability to maintain and increase agricultural production. Excludes programs that though related to rural development, are not directly related to agriculture, such as rural environmental and conservation programs classified in the natural resources function. Also excludes concessionary food export sales or food donations, whether overseas or for domestic income support purposes.
+
+Page 131
+
+GAO-05-734SP Budget Glossary
+
+Appendix IV Budget Functional Classification
+
+Code
+
+Subcode Function or subfunction
+
+351
+
+Farm income stabilization
+
+Subsidies and other payments to stabilize agricultural prices at an equitable level. Includes acquiring and storing agricultural commodity stockpiles, but does not include foreign agricultural export losses (classified in the international affairs function) or domestic donations of food (part of an income support, rather than a farm price support, program). Includes the total cash flows of farm price support loans (that is, loans that can be repaid in cash or by surrendering title to the crop used as security for the loan), which are not subject to credit reform. For all other agricultural loans and loan guarantees, includes either the total cash flows (for pre-1992 loans and loan guarantees) or the subsidy cost (for loans and loan guarantees subject to credit reform).
+
+352
+
+Agricultural research and services
+
+All other agricultural programs, such as agricultural research and extension services.
+
+370
+
+Commerce and Housing Credit
+
+Promotion and regulation of commerce and the housing credit and deposit insurance industries, which pertain to
+
+� collection and dissemination of social and economic data (unless they are an integral part of another function, such as health);
+
+Page 132
+
+� general purpose subsidies to businesses, including credit subsidies to the housing industry (for programs subject to credit reform, includes only the credit subsidy costs of loans and loan guarantees); and
+GAO-05-734SP Budget Glossary
+
+Appendix IV Budget Functional Classification
+
+Code
+
+Subcode Function or subfunction
+
+� the Postal Service fund and general fund subsidies of that fund.
+
+In general, includes credit and insurance programs; however, if such programs are a means of achieving the basic objectives of another function and are an integral part of the programs of that function, they are classified under the other function.
+
+Excludes regional economic development programs, even if they use credit or insurance to achieve a community development objective. Also excludes other insurance or loan programs (such as railroad loans) that are an integral part of other functions.
+
+371
+
+Mortgage credit
+
+Includes the cash transactions for homeownership and related loan and insurance programs for pre-credit reform activity; under credit reform, includes the credit subsidy cost of any homeownership loans or guarantees.
+
+372
+
+Postal Service
+
+Any net outlays of the Postal Service included in the budget (or off-budget).
+
+373
+
+Deposit insurance
+
+Page 133
+
+Insurance programs protecting deposits in certain financial institutions; programs to resolve failed institutions. Deposit insurance activities are not subject to credit reform, so the budget records the cash flows for deposit insurance rather than their subsidy values.
+GAO-05-734SP Budget Glossary
+
+Appendix IV Budget Functional Classification
+
+Code 400
+
+Subcode Function or subfunction
+
+376
+
+Other advancement of commerce
+
+Loan programs to aid specialized forms of business (such as small business) that are not included elsewhere in the functional structure. For such transactions undertaken prior to credit reform, includes the total cash flows. For activities under credit reform, includes the credit subsidy cost of the loans or guarantees. Also includes collecting and disseminating economic and demographic statistics (such as census data) and regulating business.
+
+Transportation
+
+Providing for the transportation of the general public, its property, or both, regardless of whether local or national and regardless of the particular mode of transportation. Includes
+
+� construction of facilities;
+
+� purchase of equipment;
+
+� research, testing, and evaluation;
+
+� provision of communications directly related to transportation (for example, air traffic control by the Federal Aviation Administration);
+
+� operating subsidies for transportation facilities (such as airports) and industries (such as railroads); and
+
+� regulatory activities directed specifically toward the transportation industry rather than toward business.
+
+Page 134
+
+GAO-05-734SP Budget Glossary
+
+Appendix IV Budget Functional Classification
+
+Code
+
+Subcode Function or subfunction
+
+Excludes
+
+� moving personnel or equipment as part of the operation of other government services;
+
+� foreign economic assistance that may involve assisting transportation facilities or programs abroad;
+
+� the construction of roads or trails as an integral part of the operation of public lands, parks, forests, or military reservations, unless they are specifically funded as a part of a broader transportation program;
+
+� the construction of roads or other transportation facilities as an integral part of a broad community facility or regional development program where the clear intent of the program is regional development and the provision of transportation facilities is only an incidental byproduct or means to attain the objective of regional development; and
+
+� research and technology activities devoted to space research (except aeronautical technology), even though this research may eventually benefit general transportation.
+
+401
+
+Ground transportation
+
+Aid, and/or regulation of both for the various components of ground transportation, such as roads and highways, railroads, and urban mass transit.
+
+Page 135
+
+GAO-05-734SP Budget Glossary
+
+Appendix IV Budget Functional Classification
+
+Code
+
+Subcode Function or subfunction
+
+402
+
+Air transportation
+
+Aid for and/or regulation of air transportation, including aeronautical research conducted by the National Aeronautics and Space Administration.
+
+403
+
+Water transportation
+
+Aid for and/or regulation of maritime commerce.
+
+407
+
+Other transportation
+
+General transportation programs and overhead not readily allocable to any of the preceding subfunctions.
+
+450
+
+Community and Regional Development
+
+Development of physical facilities or financial infrastructures designed to promote viable community economies. Includes transportation facilities developed as an integral part of a community development program (rather than a transportation program). Usually excludes aids to businesses unless such aids promote the economic development of depressed areas and are not designed to promote particular lines of business for their own sake. Usually excludes human development and services programs.
+
+451
+
+Community development
+
+Page 136
+
+Grants and related programs designed to aid largely urban community development. Includes community development block grants and predecessor activities, such as the urban renewal and model cities programs. These
+GAO-05-734SP Budget Glossary
+
+Appendix IV Budget Functional Classification
+
+Code 500
+
+Subcode Function or subfunction
+
+programs are generally carried out by the Department of Housing and Urban Development.
+
+452
+
+Area and regional development
+
+Grants, loans, subsidies, and related aids for the economic development of depressed areas. For pre-credit reform loans, includes the total cash flows of the loans; for loans under credit reform, includes the credit subsidy cost of the loans. All these aids are generally for rural areas or are more regional than the community development programs. Area and regional development programs are generally carried out by agencies other than the Department of Housing and Urban Development, such as the Farmers Home Administration, Economic Development Administration, and Bureau of Indian Affairs.
+
+453
+
+Disaster relief and insurance
+
+Helping communities and families recover from natural disasters.
+
+Education, Training, Employment, and Social Services
+
+Promoting the extension of knowledge and skills, enhancing employment and employment opportunities, protecting workplace standards, and providing services to the needy. Excludes education or training undertaken as an integral part of the achievement of other functions (such as training military personnel; veterans education, training, and rehabilitation; or training of health workers in a health program). Nutrition or food service programs funded separately from social services or education are not part of this function--they are classified as income security.
+
+Page 137
+
+GAO-05-734SP Budget Glossary
+
+Appendix IV Budget Functional Classification
+
+Code
+
+Subcode Function or subfunction
+
+501
+
+Elementary, secondary, and vocational education
+
+Preschool, elementary, secondary, and vocational education programs.
+
+502
+
+Higher education
+
+College and graduate school programs.
+
+503
+
+Research and general education aids
+
+Education research and assistance for the arts, the humanities, educational radio and television, public libraries, and museums.
+
+504
+
+Training and employment
+
+Job or skill training, employment services and placement, and payments to employers to subsidize employment.
+
+505
+
+Other labor services
+
+Aids to or regulation of the labor market, including gathering labor statistics and mediation and conciliation services; excludes employment and training programs and occupational safety and health programs.
+
+506
+
+Social services
+
+Page 138
+
+Programs that provide a broad range of services to individuals to help them improve their vocational capabilities (such as vocational rehabilitation) or family status; services to the poor and elderly that are not
+GAO-05-734SP Budget Glossary
+
+Appendix IV Budget Functional Classification
+
+Code 550
+
+Subcode Function or subfunction
+
+primarily for income support and that are not an integral part of some other function (such as social services block grants).
+
+Health
+
+Programs other than Medicare whose basic purpose is to promote physical and mental health, including the prevention of illness and accidents. Excludes the Medicare program, the largest federal health program, which by law is in a separate function (function 570). Also excludes federal health care for military personnel (051) and veterans (703). Also excludes general scientific research that has medical applications (such as that conducted by the National Science Foundation) and health programs financed through foreign assistance programs.
+
+551
+
+Health care services
+
+Medical services to individuals and families, whether such services are provided directly by the federal government or financed through grants, contracts, insurance, or reimbursements.
+
+552
+
+Health research and training
+
+All research programs--whether basic or applied--that are financed specifically as health or medical research. Excludes research that is an integral part of other functions (such as biomedical research in the space program).
+
+Page 139
+
+GAO-05-734SP Budget Glossary
+
+Appendix IV Budget Functional Classification
+
+Code
+
+Subcode Function or subfunction
+
+554
+
+Consumer and occupational health and safety
+
+Meat and poultry inspection, food and drug inspection, consumer product safety, and occupational health and safety.
+
+570
+
+Medicare
+
+Federal hospital insurance and federal supplementary medical insurance, along with general fund subsidies of these funds and associated offsetting receipts.
+
+571
+
+Medicare
+
+Entire Medicare function.
+
+600
+
+Income Security
+
+Support payments (including associated administrative expenses) to persons for whom no current service is rendered. Includes retirement, disability, unemployment, welfare, and similar programs, except for Social Security and income security for veterans, which are in other functions. Also includes the Food Stamp, Special Milk, and Child Nutrition programs (whether the benefits are in cash or in kind); both federal and trust fund unemployment compensation and workers' compensation; public assistance cash payments; benefits to the elderly and to coal miners; and low- and moderate-income housing benefits.
+
+Page 140
+
+Excludes (1) financial assistance for education, (2) medical care (whether in cash or in kind), (3) subsidies to businesses (such as farm price supports), and
+GAO-05-734SP Budget Glossary
+
+Appendix IV Budget Functional Classification
+
+Code
+
+Subcode Function or subfunction
+
+(4) reimbursement for child care services, even though any of these may end up as income to persons. Also excludes income security programs included in the Social Security function (function 650) and programs restricted to veterans and their dependents.
+
+601
+
+General retirement and disability insurance (excluding
+
+Social Security)
+
+Non-needs-tested retirement and disability programs composed mainly of the Railroad Retirement Fund and special benefits for coal miners. Excludes programs specifically restricted to federal employees.
+
+602
+
+Federal employee retirement and disability
+
+All funded retirement and disability programs restricted to federal employees. Includes military retirement benefits for all years, not just the years since the military retirement program began as a funded trust fund (1985). In cases where retirement benefits are not funded (such as in the case of Coast Guard retired pay), includes the cash benefits
+where the employees were employed (in the Coast Guard case, transportation), because otherwise those functions would never be charged for the retirement costs of their employees.
+
+603
+
+Unemployment compensation
+
+Benefits not conditioned by needs tests for unemployed workers. Excludes other benefits (such as food stamps) that an unemployed person might be eligible for under other programs.
+
+Page 141
+
+GAO-05-734SP Budget Glossary
+
+Appendix IV Budget Functional Classification
+
+Code 650
+
+Subcode Function or subfunction
+
+604
+
+Housing assistance
+
+Federal income support and related expenses that are specifically for financing or providing housing for individuals and families. Excludes loans, loan guarantees, or insurance. (The distinction between the housing assistance included in subfunction 604 and the mortgage credit assistance in subfunction 371 is that the subfunction 604 payments focus on subsidies to increase beneficiaries' effective income, whereas the credit subsidies in subfunction 371 are primarily aimed at encouraging the housing industry.)
+
+605
+
+Food and nutrition assistance
+
+Providing food or nutritional assistance to individuals and families.
+
+609
+
+Other income security
+
+Income security programs not included in any other subfunction. Primarily either direct payments or grants-inaid to finance direct payments that constitute cash income to low-income individuals and families. Also includes refugee assistance and both administrative expenses and offsetting collections in the income security function that are not part of any other subfunction.
+
+Social Security
+
+Federal Old-Age and Survivors and Disability Insurance Trust Funds, along with general fund subsidies of these funds and associated offsetting collections.
+
+Page 142
+
+GAO-05-734SP Budget Glossary
+
+Appendix IV Budget Functional Classification
+
+Code 700
+
+Subcode Function or subfunction
+
+651
+
+Social Security
+
+Includes the entire Social Security function.
+
+Veterans Benefits and Services
+
+Programs providing benefits and services, the eligibility for which is related to prior military service, but the financing of which is not an integral part of the costs of national defense. As a rule, the outlays in this function are similar to those in the broader general purpose functions (such as income security or health), but restricted to veterans, their dependents, and their survivors. Excludes earned rights of career military personnel that are a cost of the defense budget (such as military retired pay or medical care).
+
+701
+
+Income security for veterans
+
+Veterans' compensation, life insurance, pensions, and burial benefits.
+
+702
+
+Veterans' education, training, and rehabilitation
+
+Composed primarily of the "G.I. Bill" readjustment, vocational rehabilitation benefits, and related programs.
+
+703
+
+Hospital and medical care for veterans
+
+Medical care and research financed by the Department of Veterans Affairs.
+
+Page 143
+
+GAO-05-734SP Budget Glossary
+
+Appendix IV Budget Functional Classification
+
+Code
+
+Subcode Function or subfunction
+
+704
+
+Veterans' housing
+
+Housing loan and guarantee programs for veterans and dependents. Pre-1992 housing loans and guarantees are recorded on a cash basis, whereas under credit reform (post-1991), the budget records the credit subsidy cost of the activity.
+
+705
+
+Other veterans benefits and services
+
+Administrative expenses of the Department of Veterans Affairs.
+
+750
+
+Administration of Justice
+
+Programs to provide judicial services, police protection, law enforcement (including civil rights), rehabilitation and incarceration of criminals, and the general maintenance of domestic order. Includes the provision of court-appointed counsel or other legal services for individuals. Excludes the cost of the legislative branch, the police or guard activities to protect federal property, and activities that are an integral part of a broader function (such as those for postal inspectors, tax collection agents, and Park Service rangers). The cost of National Guard personnel and military personnel who are called upon occasionally to maintain public safety and the cost of military police are included under the national defense function rather than this function.
+
+751
+
+Federal law enforcement activities
+
+Page 144
+
+The costs of operating the Federal Bureau of Investigation, Customs and Border Protection, Immigration and Customs Enforcement, the Drug Enforcement Administration, and
+GAO-05-734SP Budget Glossary
+
+Appendix IV Budget Functional Classification
+
+Code 800
+
+Subcode Function or subfunction
+
+police and crime prevention activities in other programs. Also includes the readily identifiable enforcement cost of civil rights activities.
+
+752
+
+Federal litigative and judicial activities
+
+The cost of the judiciary, the cost of prosecution, and federal expenses connected with financing legal defense activities.
+
+753
+
+Federal correctional activities
+
+Covers the costs of incarceration, supervision, parole, and rehabilitation of federal prisoners.
+
+754
+
+Criminal justice assistance
+
+Grants to state and local governments to assist them in operating and improving their law enforcement and justice systems.
+
+General Government
+
+General overhead cost of the federal government, including legislative and executive activities; provision of central fiscal, personnel, and property activities; and provision of services that cannot reasonably be classified in any other major function. As a rule, all activities reasonably or closely associated with other functions are included in those functions rather than being listed as part of general government. Also includes shared revenues and other general purpose fiscal assistance.
+
+Page 145
+
+GAO-05-734SP Budget Glossary
+
+Appendix IV Budget Functional Classification
+
+Code
+
+Subcode Function or subfunction
+
+801
+
+Legislative functions
+
+Includes most of the legislative branch. However, the Library of Congress (except the Congressional Research Service), the Tax Court, the Government Printing Office (except for congressional printing and binding), and the Copyright Royalty Tribunal are classified in other subfunctions.
+
+802
+
+Executive direction and management
+
+The Executive Office of the President (unless some major grants or operating programs should be included in the Office); occasionally some closely related spending outside the Office is included.
+
+803
+
+Central fiscal operations
+
+Covers the general tax collection and fiscal operations of the Department of the Treasury.
+
+804
+
+General property and records management
+
+Most of the operations of the General Services Administration (net of reimbursements from other agencies for services rendered).
+
+805
+
+Central personnel management
+
+Most of the operating costs of the Office of Personnel Management and related agencies (net of reimbursements from other agencies for services rendered).
+
+Page 146
+
+GAO-05-734SP Budget Glossary
+
+Appendix IV Budget Functional Classification
+
+Code 900
+
+Subcode Function or subfunction
+
+806
+
+General purpose fiscal assistance
+
+Federal aid to state, local, and territorial governments that is available for general fiscal support. The transactions of the now discontinued general revenue-sharing program are included in the historical data for this subfunction. Also includes grants for more restricted purposes when the stipulated purposes cross two or more major budgetary functions and the distribution among those functions is at the discretion of the recipient jurisdiction rather than the federal government. Includes payments in lieu of taxes, broad-purpose shared revenues, and the federal payment to the District of Columbia. Excludes payments specifically for community development or social services programs.
+
+808
+
+Other general government
+
+Miscellaneous other costs, such as federal costs of territorial governments.
+
+809
+
+Deductions for offsetting receipts
+
+Includes general government function offsetting receipts that are not closely related to any other subfunction in this function.
+
+Net Interest
+
+Transactions that directly give rise to interest payments or income (lending) and the general shortfall or excess of outgo over income arising out of fiscal, monetary, and other policy considerations and leading to the creation of interest-bearing debt instruments (normally the public debt). Includes interest paid on the public debt, on
+
+Page 147
+
+GAO-05-734SP Budget Glossary
+
+Appendix IV Budget Functional Classification
+
+Code
+
+Subcode Function or subfunction
+
+uninvested funds, and on tax refunds, offset by interest collections.
+
+901
+
+Interest on the Treasury debt securities (gross)
+
+Outlays for interest on the public debt. (Where this interest is paid to the public, it is on an accrual basis; all other interest outlays in the budget are on a cash basis.)
+
+902
+
+Interest received by on-budget trust funds
+
+Interfund interest collected by on-budget nonrevolving trust funds. Most of this income derives from outlays included in subfunction 901, but this subfunction also includes offsetting receipts from investments in public debt securities issued by the Federal Financing Bank (FFB).
+
+903
+
+Interest received by off-budget trust funds
+
+Interfund interest collected by off-budget nonrevolving trust funds. Normally, all of this income comes from outlays included in subfunction 901.
+
+908
+
+Other interest
+
+All other interest expenditures and offsetting receipts. The principal expenditure in this subfunction normally is interest on refunds of receipts. Since offsetting interest receipts are included in this subfunction, the subfunction totals are usually negative.
+
+Page 148
+
+GAO-05-734SP Budget Glossary
+
+Appendix IV Budget Functional Classification
+
+Code 950
+
+Subcode Function or subfunction
+
+909
+
+Other investment income
+
+The actual and estimated earnings on private securities of the Railroad Retirement Investment Trust. The actual year returns include interest, dividends, and capital gains and losses on private equities and other securities. The trust's end-of-year balance reflects the current market value of resources available to the government to finance benefits.
+
+920
+
+Allowances
+
+A category that may be included in a budget to ensure that the budget reflects the total estimated budget authority and outlay requirements for future years.
+
+In addition to the budget authority and outlays in each of the functional classifications, the President's budget normally includes some budget authority and outlays classified as allowances.
+
+921-929 Contingencies for specific requirements
+
+The specific line entries will vary from budget to budget, depending on what projections are required.
+
+Undistributed Offsetting Receipts
+
+Most offsetting receipts are included as deductions from outlays in the applicable functions and subfunctions. However, there are five major categories of offsetting receipts that are classified as undistributed offsetting receipts rather than being included as offsets in any of the other functions.
+
+Page 149
+
+GAO-05-734SP Budget Glossary
+
+Appendix IV Budget Functional Classification
+
+Code
+
+Subcode Function or subfunction
+
+951
+
+Employer share, employee retirement (on-budget)
+
+Employing agency payments to funded retirement systems of federal employees are intragovernmental transactions (that is, they are payments by government accounts collected by other government accounts) and, hence, both the payment and collection are included in federal outlays. The payments are included in the various agency outlays, while the offsets are undistributed.b
+
+Most federal employees are now covered by the Hospital Insurance portion of the Medicare program. The employing agency payments to the Hospital Insurance fund are also offset in this subfunction.
+
+952
+
+Employer share, employee retirement (off-budget)
+
+Includes collections similar in nature to those in subfunction 951, except that the accounts collecting the money are off-budget.
+
+953
+
+Rents and royalties on the outer continental shelf
+
+Rents and royalties on the outer continental shelf constitute a large source of nontax income that is largely a windfall to the government. Since there are no major government programs that give rise to this income, it would be inappropriate to offset it against the outlays in any function. Thus, the collections are undistributed.
+
+954
+
+Sale of major assets
+
+Page 150
+
+On occasion, the government derives large returns from the sale of major assets, and the proceeds of the sales are recorded in this category rather than in any major function.
+GAO-05-734SP Budget Glossary
+
+Appendix IV Budget Functional Classification
+
+Code
+
+Subcode Function or subfunction
+
+959
+
+Other undistributed offsetting receipts
+
+This category includes items such as collections for the lease of federal lands for petroleum exploitation and a proposal for the Federal Communications Commission to conduct auctions.
+
+Multifunction Account
+
+999
+
+Multifunction account (used for accounts that involve two
+
+or more major functions).
+
+Source: GAO.
+aFor years prior to 1985, when the military retirement trust fund began, the historical data included imputed accruals for retirement, with a matching imputed undistributed offsetting collection (subfunction 951). The cash retirement benefits for all years are included in the income security function.
+
+bThe historical data for this category for years prior to 1985 include an offset equal to the imputed accrual for military retirement that is included in subfunction 051. These imputations were calculated so that the data for the years prior to the creation of the military retirement trust fund would be as comparable as feasible with the subsequent years.
+
+Page 151
+
+GAO-05-734SP Budget Glossary
+
+Appendix V
