@@ -1,5 +1,37 @@
 # Milestones — Treasury Tracker / Empowered Vote Financials
 
+## v1.9 MA County-City Linking (Shipped: 2026-06-11)
+
+*Entry backfilled 2026-06-12 at v2.0 rollover.*
+
+**Delivered:** Seeded 5 active MA county entities (Barnstable, Bristol, Dukes, Norfolk, Plymouth) with Census 2024 population, linked all MA cities in those counties via county_id FK, loaded each county's operating budget from individual PDFs, and enriched all 68 county budget categories (municipality_id-scoped). County breadcrumbs and CitiesInCountyPanel activated with zero frontend changes. UAT 27/27 passed.
+
+**Phases completed:** 40–42 (3 phases, 4 plans)
+
+**Archive:** [v1.9-REQUIREMENTS.md](milestones/v1.9-REQUIREMENTS.md)
+
+---
+
+## v1.8 Massachusetts All-Cities Financial Transparency (Shipped: 2026-06-10)
+
+*Entry backfilled 2026-06-12 at v2.0 rollover.*
+
+**Delivered:** Loaded real budget data for all 351 Massachusetts municipalities from the MA DLS reporting portal (special-revenue + revenue-by-source report types, FY2021–FY2025), making MA the first fully-covered state. Loaded MA populations (Census 2024), upgraded MA state government from hardcoded estimates to real DLS data, and applied universal enrichment for the 14 shared DLS category names. GF Expenditures report type deferred (re-add path in 37-01-SUMMARY.md).
+
+**Phases completed:** 37–39 (3 phases, 8 plans)
+
+---
+
+## v1.7 California State Budget + Deep Icicles (Shipped: 2026-06-09)
+
+*Entry backfilled 2026-06-12 at v2.0 rollover.*
+
+**Delivered:** Introduced `entity_type: 'state'` infrastructure, loaded the California state budget, built 3-level tree support in ev-accounts-api, shipped the CA state 3-level icicle pilot, and selectively retrofitted deep icicles to qualifying cities.
+
+**Phases completed:** 32–36 (5 phases, 15 plans)
+
+---
+
 ## v1.6 California City Expansion (Shipped: 2026-06-06)
 
 **Delivered:** Added 9 new California cities — Sacramento, Oakland, San Jose, Long Beach, Bakersfield, Fresno, Riverside, Anaheim, Santa Ana — with operating + revenue budgets, enrichment, and per-capita display. Closed two v1.5 carry-forwards (Longview TX revenue enrichment, STATE_LABELS full names).

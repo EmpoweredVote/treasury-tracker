@@ -1,87 +1,83 @@
-# Requirements — v1.9 MA County-City Linking
+# Requirements — v2.0 Federal Treasury Tracker
 
 ## Milestone Goal
 
-Surface county context for MA municipalities — seed 5 active MA county entities, link cities to their counties, load budget data for those county governments, and show county breadcrumb + city panels in the live app.
+Describe the US Federal Budget visually with maximum clarity and context for average citizens — a tool for clarity that explains and is ALWAYS sourced. Ship the federal entity with FY2025 actuals, the Mandatory/Discretionary/Net Interest first split, two drill lenses (function default, agency toggle), a fetch-then-summarize sourced explainer pipeline, and a program-origins pilot backed by Congress.gov.
 
-**Key scope decisions:**
-- 5 active counties with budget data: Barnstable, Bristol, Dukes, Norfolk, Plymouth
-- Nantucket: no county row (consolidated town-county, same as SF D-06 precedent — city row covers its government)
-- 9 dissolved counties: skip entirely (getCities() HAVING filter would hide them anyway)
-- Cities in dissolved county jurisdictions: county_id remains NULL
-- Zero frontend or API changes needed — county pattern already ships for LA County
+**Ground rules (Chris, 2026-06-12 — see v2.0-FEDERAL-BRIEF.md):** no paid APIs; never display unsourced data or text; no reflexive deep icicles; official public record only; opacity flagged with citations; LLM spend under the $5 approval gate.
+
+**IA decisions (recon, 2026-06-12 — see v2.0-recon/RECON.md):**
+- Headline year: FY2025 actuals (OMB); FY2026 FYTD as secondary "this year so far" strip (MTS)
+- Landing: proportional Mandatory / Discretionary / Net Interest bands + permanent receipts-vs-outlays deficit strip
+- Function lens is the default drill; agency lens behind a toggle
+- Outlays consistently (MTS/OMB); USAspending obligations never used as headline figures
 
 ---
 
-## v1.9 Requirements
+## v2.0 Requirements
 
-### County — Entity Seeding and City Linking
+### INFRA — Federal Entity + Sourcing Schema
 
-- [ ] **COUNTY-01**: 5 MA county municipality rows seeded in DB (Barnstable County, Bristol County, Dukes County, Norfolk County, Plymouth County — entity_type='county', state='MA', with 2024 Census population)
-- [ ] **COUNTY-02**: All MA cities in those 5 counties have county_id FK set to the corresponding county row
-- [ ] **COUNTY-03**: County breadcrumb chip appears on MA city pages for all cities linked via county_id (zero frontend changes — wiring already exists)
+- [ ] **INFRA-01**: `entity_type: 'federal'` supported end-to-end (DB constraint, ev-accounts-api, Municipality type, EntitySwitcher) following the Phase 32 'state' pattern
+- [ ] **INFRA-02**: Sourcing columns (`source_name`, `source_url`, `source_date`) exist on budget and enrichment rows; federal rows REQUIRED to populate them
+- [ ] **INFRA-03**: `program_details` table exists for Tier 2 origins data (enabling statute, public law number, sponsor, cosponsors, year), every claim carrying a source URL
 
-### Data — County Government Budget
+### DATA — Core Federal Data Load
 
-- [x] **DATA-01**: Operating budget loaded for Barnstable County (FY2024 or latest available from capecod.gov)
-- [x] **DATA-02**: Operating budget loaded for Bristol County (from countyofbristol.net)
-- [x] **DATA-03**: Operating budget loaded for Dukes County (Martha's Vineyard — from dukescounty.gov)
-- [x] **DATA-04**: Operating budget loaded for Norfolk County (from norfolkcounty.org)
-- [x] **DATA-05**: Operating budget loaded for Plymouth County (from plymouthcountyma.gov)
+- [ ] **DATA-01**: FY2025 actual outlays by budget function (~20 functions) loaded from MTS Table 9 with source metadata
+- [ ] **DATA-02**: FY2025 actual receipts by source loaded from MTS Table 9/4 with source metadata
+- [ ] **DATA-03**: Mandatory/Discretionary/Net Interest split loaded from OMB Historical Table 8.1 (multi-year, at minimum FY2015–FY2025)
+- [ ] **DATA-04**: Receipts/outlays/deficit history loaded from OMB Historical Table 1.1 (multi-decade context)
+- [ ] **DATA-05**: FY2026 FYTD outlays + receipts (monthly, current through latest MTS) loaded for the "this year so far" strip
+- [ ] **DATA-06**: Agency-lens outlays loaded from MTS Table 5 (department level minimum; parent_id hierarchy walked correctly, "Total--" rows never double-counted)
+- [ ] **DATA-07**: Debt total (Debt to the Penny) and interest expense context figures loaded with source metadata
 
-### UI — County Pages
+### VIZ — Federal Visualization
 
-- [ ] **UI-01**: CitiesInCountyPanel visible on each of the 5 county pages, listing all linked MA cities as "Available now" chips (zero frontend changes — component already data-driven)
-- [ ] **UI-02**: Per-capita ($/resident) displays correctly on county pages using loaded Census 2024 county population (zero frontend changes — auto-activates when population > 0)
+- [ ] **VIZ-01**: Federal landing view shows proportional Mandatory / Discretionary / Net Interest bands (FY2025) — not an icicle
+- [ ] **VIZ-02**: Permanent deficit context strip: receipts vs outlays with the gap labeled, plus debt total
+- [ ] **VIZ-03**: Function-lens drill is the default; agency-lens available via toggle
+- [ ] **VIZ-04**: Every displayed figure carries a source chip (dataset name, fetch date, link)
+- [ ] **VIZ-05**: Comparative-scale aids: per-capita, per-taxpayer, % of total (arithmetic on sourced numbers only, formula disclosed)
+- [ ] **VIZ-06**: The outlays-vs-budget-authority choice is documented visibly in-app
 
-### Enrichment — County Category Descriptions
+### SRC — Sourced Explainer Pipeline v2
 
-- [ ] **ENRICH-01**: Budget categories enriched for all 5 active MA counties using county-scoped descriptions (municipality_id = county uuid, NOT municipality_id IS NULL — never universalize county enrichments)
+- [ ] **SRC-01**: Fetch-then-summarize enrichment: explainer text generated ONLY from fetched authoritative text (agency budget justifications, official descriptions), citation stored and displayed
+- [ ] **SRC-02**: Tier 1 explainers live for all ~20 budget functions and top 10 agencies
+- [ ] **SRC-03**: Opacity handling: unauditable portions (DoD failed audits) flagged in UI with official GAO/OIG citation
+- [ ] **SRC-04**: LLM cost re-estimated before each enrichment run; total under the $5 gate
+
+### ORIG — Program Origins Pilot
+
+- [ ] **ORIG-01**: Congress.gov + GovInfo API keys obtained (free; Chris signs up) and stored in .env
+- [ ] **ORIG-02**: 15–20 major programs have Tier 2 details sections: enabling bill, public law number, sponsor, year, cosponsors — structured from Congress.gov/GovInfo, every claim linked
+- [ ] **ORIG-03**: Details sections contain official-record facts only — no model-memory claims, no personal info beyond official sponsorship records
+
+### VERIFY — Source-Chain Verification + UAT
+
+- [ ] **VERIFY-01**: Automated source-chain audit: every federal figure and text claim resolves to a working source URL
+- [ ] **VERIFY-02**: Human UAT: Chris spot-checks landing view, both lenses, deficit strip, explainers, origins sections, and confirms no regression on city/county/state pages
 
 ---
 
 ## Future Requirements
 
-*Not in v1.9 scope — tracked for future milestones.*
+*Not in v2.0 scope — tracked for future milestones.*
 
-- Nantucket County entity (consolidated government; defer until a design solution exists)
-- Navigation-only county pages for 9 dissolved counties (requires getCities() API change)
-- Revenue budget data for any MA county
-- State breadcrumb above county ("Massachusetts →" before county name)
-- Cross-county comparison views
-- County-level historical trends
+- Votes/amendments exploration hub (the eventual mission destination)
+- Backfill sourcing standard to cities/states (once proven federally)
+- USAspending award-level drill-down (program activity / object class / recipients)
+- Agency lens below department level (bureau/account depth)
+- CBO program cost estimates as explainer source (blocked: cbo.gov bot-blocks non-browser clients — needs manual download workflow)
+- Historical trend visualizations (multi-decade lines from OMB 1.1 data beyond the context strip)
 
 ---
 
 ## Out of Scope
 
-- **9 dissolved MA counties** (Berkshire, Essex, Franklin, Hampden, Hampshire, Middlesex, Suffolk, Worcester) — no county rows seeded; cities in these counties retain county_id=NULL
-- **Nantucket County row** — consolidated town-county government (same as SF D-06); existing Nantucket city row covers its government
-- **Frontend code changes** — EntitySwitcher, CitiesInCountyPanel, App.tsx, ev-accounts-api already handle county entities generically
-- **Revenue budgets for MA counties** — lower priority; defer to v2.0
-- **All-funds / requirements data** — not applicable to MA county governments
-
----
-
-## Traceability
-
-*Filled in by roadmap.*
-
-| REQ-ID | Phase |
-|--------|-------|
-| COUNTY-01 | Phase 40 |
-| COUNTY-02 | Phase 40 |
-| COUNTY-03 | Phase 40 |
-| DATA-01 | Phase 41 |
-| DATA-02 | Phase 41 |
-| DATA-03 | Phase 41 |
-| DATA-04 | Phase 41 |
-| DATA-05 | Phase 41 |
-| UI-01 | Phase 40 (auto) |
-| UI-02 | Phase 40 (auto) |
-| ENRICH-01 | Phase 42 |
-
----
-
-*Requirements defined: 2026-06-10*
-*Milestone: v1.9 MA County-City Linking*
+- **Paid APIs or data sources** — everything free, per ground rule 1
+- **Unsourced LLM text from model memory** — hard ban, per ground rule 3
+- **Deep icicles by default** — visualization chosen per data shape, per ground rule 4
+- **Anything beyond official public record** — no personal info, no addresses, no targeting, per ground rule 6
+- **Editorializing** — never change the data; transparency about opacity instead

@@ -10,7 +10,9 @@
 - ✅ **v1.5 Oregon Expansion** — Phases 17-25 (shipped 2026-06-04)
 - ✅ **v1.6 California City Expansion** — Phases 26-31 (shipped 2026-06-06)
 - ✅ **v1.7 California State Budget + Deep Icicles** — Phases 32-36 (shipped 2026-06-09)
-- 🚧 **v1.8 Massachusetts All-Cities Financial Transparency** — Phases 37-39 (in progress)
+- ✅ **v1.8 Massachusetts All-Cities Financial Transparency** — Phases 37-39 (shipped 2026-06-10)
+- ✅ **v1.9 MA County-City Linking** — Phases 40-42 (shipped 2026-06-11)
+- 🚧 **v2.0 Federal Treasury Tracker** — Phases 43-48 (in progress)
 
 ---
 
@@ -509,7 +511,7 @@ Plans:
 
 ---
 
-### 🚧 v1.8 Massachusetts All-Cities Financial Transparency (In Progress)
+### ✅ v1.8 Massachusetts All-Cities Financial Transparency (SHIPPED 2026-06-10)
 
 **Milestone goal:** Load real budget data for all 351 Massachusetts municipalities using the MA DLS (Division of Local Services) reporting portal, making MA the first fully-covered state on Treasury Tracker.
 
@@ -730,7 +732,7 @@ Plans:
 
 ---
 
-### 🚧 v1.9 MA County-City Linking (Planning)
+### ✅ v1.9 MA County-City Linking (SHIPPED 2026-06-11)
 
 **Milestone goal:** Seed 5 active MA county entities, link MA cities to their counties, load budget data for those county governments, and surface county breadcrumb + CitiesInCountyPanel for MA in the live app.
 
@@ -798,6 +800,99 @@ Plans:
 
 ---
 
+### 🚧 v2.0 Federal Treasury Tracker (In Progress)
+
+**Milestone goal:** Describe the US Federal Budget visually with maximum clarity and context for average citizens — always sourced, never editorialized. FY2025 actuals headline; Mandatory/Discretionary/Net Interest first split; function lens default with agency toggle; fetch-then-summarize explainers; Congress.gov-backed program origins pilot.
+
+**Foundation:** Data recon complete 2026-06-12 (`.planning/v2.0-recon/RECON.md`) — all free sources verified live, headline figures pinned, IA decisions made with Chris. Ground rules in `v2.0-FEDERAL-BRIEF.md` and auto-memory.
+
+#### Phase Summary
+
+- [ ] **Phase 43: Federal Entity + Sourcing Infrastructure** — entity_type 'federal' (Phase 32 'state' pattern), sourcing columns on budget/enrichment rows, program_details table. *(Sonnet-delegable)*
+- [ ] **Phase 44: Core Federal Data Load** — Loaders for MTS Table 9 (function lens, FY2025 + FY2026 FYTD), MTS Table 5 (agency lens), OMB Hist 1.1/8.1 (first split + history), debt/interest. Every row sourced. *(Sonnet-delegable)*
+- [ ] **Phase 45: Federal Visualization** — Landing first-split bands + deficit strip, function-default/agency-toggle drill, source chips, comparative-scale aids. *(Design: stronger model; implement: Sonnet)*
+- [ ] **Phase 46: Sourced Explainer Pipeline v2** — Fetch-then-summarize-with-citation enrichment for ~20 functions + top 10 agencies; DoD audit opacity flags. *(Standard: stronger model; run: Sonnet)*
+- [ ] **Phase 47: Program Origins Pilot** — 15–20 major programs with Congress.gov/GovInfo-backed details sections. Requires Chris's free API keys. *(Sonnet fetches; stronger model sets editorial format)*
+- [ ] **Phase 48: Source-Chain Verification + UAT** — Automated every-claim-resolves audit + Chris spot-check.
+
+### Phase 43: Federal Entity + Sourcing Infrastructure
+
+**Goal:** The DB, API, and frontend types accept a federal entity, and the sourcing schema exists for always-sourced data.
+**Depends on:** Nothing (Phase 32 'state' pattern proven)
+**Requirements:** INFRA-01, INFRA-02, INFRA-03
+**Success Criteria** (what must be TRUE):
+  1. A municipality row with entity_type='federal' can be created and is served by ev-accounts-api without errors
+  2. `source_name`, `source_url`, `source_date` columns exist on budget and enrichment rows (nullable for legacy city/state rows; populated on all federal rows)
+  3. `program_details` table exists with per-claim source URL fields
+  4. EntitySwitcher shows a "United States" federal entry (may be hidden behind a flag until Phase 45)
+  5. No regression on existing city/county/state pages
+
+### Phase 44: Core Federal Data Load
+
+**Goal:** All headline federal data is loaded, sourced, and queryable: FY2025 actuals (both lenses), the first split, multi-decade context, and FY2026 FYTD.
+**Depends on:** Phase 43
+**Requirements:** DATA-01 through DATA-07
+**Success Criteria** (what must be TRUE):
+  1. FY2025 outlays by function sum to ~$7,011B against OMB Hist 1.1 (within rounding); receipts to ~$5,236B
+  2. OMB 8.1 split rows exist for FY2015–FY2025 (mandatory/discretionary defense/discretionary nondefense/net interest)
+  3. FY2026 FYTD figures current through the latest MTS month load successfully and re-running the loader is idempotent
+  4. MTS Table 5 department-level outlays load with no double-counting (validated: departments sum ≈ total net outlays)
+  5. Every loaded federal row has source_name, source_url, source_date populated — zero exceptions
+  6. Debt to the Penny total and FYTD interest expense are loaded with source metadata
+
+**Cross-cutting constraints:**
+- `page[size]` must be URL-encoded in Fiscal Data API calls
+- OMB xlsx downloads require a browser User-Agent
+- USAspending obligations NEVER loaded as outlay figures
+
+### Phase 45: Federal Visualization
+
+**Goal:** A citizen landing on the United States page sees the proportional first split with deficit context and can drill either lens, every figure sourced.
+**Depends on:** Phase 44
+**Requirements:** VIZ-01 through VIZ-06
+**Success Criteria** (what must be TRUE):
+  1. Landing view: proportional Mandatory / Discretionary / Net Interest bands for FY2025 — not an icicle
+  2. Deficit strip is always visible: receipts $5,236B vs outlays $7,011B, gap labeled, debt total shown
+  3. Function lens drill is default; agency lens one toggle away; FY2026 "this year so far" strip present
+  4. Every figure displays a source chip (dataset, fetch date, working link)
+  5. Per-capita / per-taxpayer / % of total toggles work with formula disclosure
+  6. The outlays-vs-budget-authority methodology note is visible in-app
+
+### Phase 46: Sourced Explainer Pipeline v2
+
+**Goal:** Every budget function and top agency has a plain-language explainer generated ONLY from fetched authoritative text, with its citation stored and displayed.
+**Depends on:** Phase 45 (needs UI surfaces); pipeline can start after Phase 44
+**Requirements:** SRC-01 through SRC-04
+**Success Criteria** (what must be TRUE):
+  1. enrichFederal pipeline fetches authoritative source text (agency congressional justifications via USAspending URLs, OMB descriptions) BEFORE generating; generation prompt contains only fetched text
+  2. ~20 function + top-10 agency explainers live, each with displayed citation
+  3. DoD entries carry an opacity flag with the official GAO/OIG audit citation
+  4. Cost re-estimated before the run and logged; under the $5 gate (recon estimate: <$0.50)
+
+### Phase 47: Program Origins Pilot
+
+**Goal:** 15–20 major programs show a sourced "details" section: enabling bill, public law, sponsor, year, cosponsors — every claim linked to Congress.gov/GovInfo.
+**Depends on:** Phase 43 (program_details table); Phase 46 editorial standard
+**Requirements:** ORIG-01, ORIG-02, ORIG-03
+**Success Criteria** (what must be TRUE):
+  1. Congress.gov + GovInfo free API keys in .env (Chris human-action checkpoint)
+  2. 15–20 programs (e.g., Social Security, Medicare, Medicaid, SNAP, Pell) have details rows with structured origin facts, every claim carrying a working official-record URL
+  3. Zero model-memory claims: every fact traceable to a fetched API response
+  4. Safety line holds: official acts only — no personal info beyond sponsorship records
+
+### Phase 48: Source-Chain Verification + UAT
+
+**Goal:** Every federal claim in the app resolves to a working source link, and Chris confirms the experience end-to-end.
+**Depends on:** Phases 45–47
+**Requirements:** VERIFY-01, VERIFY-02
+**Success Criteria** (what must be TRUE):
+  1. Automated audit script walks every federal figure/text row and confirms its source URL returns 200 (report committed)
+  2. Chris confirms: landing view, both lenses, deficit strip, explainers with citations, origins sections
+  3. Chris confirms: no regression on city/county/state pages
+  4. 48-VERIFICATION.md filed
+
+---
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -844,8 +939,14 @@ Plans:
 | 40. MA County Seeding + City Linking | v1.9 | 1/1 | Complete | 2026-06-11 |
 | 41. MA County Budget Load | v1.9 | 2/2 | Complete   | 2026-06-11 |
 | 42. County Enrichment + Verification | v1.9 | 1/1 | Complete | 2026-06-11 |
+| 43. Federal Entity + Sourcing Infrastructure | v2.0 | 0/? | Not started | — |
+| 44. Core Federal Data Load | v2.0 | 0/? | Not started | — |
+| 45. Federal Visualization | v2.0 | 0/? | Not started | — |
+| 46. Sourced Explainer Pipeline v2 | v2.0 | 0/? | Not started | — |
+| 47. Program Origins Pilot | v2.0 | 0/? | Not started | — |
+| 48. Source-Chain Verification + UAT | v2.0 | 0/? | Not started | — |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-06-11 — Phase 42 complete; v1.9 MA County-City Linking shipped*
+*Last updated: 2026-06-12 — v2.0 Federal Treasury Tracker roadmap added (Phases 43-48); recon complete, IA decisions locked*

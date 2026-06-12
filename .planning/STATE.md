@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.9
-milestone_name: MA County-City Linking
-status: complete
-last_updated: "2026-06-11"
-last_activity: 2026-06-11 — Phase 42 complete; v1.9 MA County-City Linking shipped
+milestone: v2.0
+milestone_name: Federal Treasury Tracker
+status: roadmap_complete
+last_updated: "2026-06-12"
+last_activity: 2026-06-12 — Data recon complete, IA decisions locked, v2.0 roadmap written (Phases 43-48)
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 4
-  completed_plans: 4
-  percent: 100
+  total_phases: 6
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State
@@ -20,106 +20,114 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-09)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Milestone v1.9 complete — ready for next milestone
+**Current focus:** v2.0 Federal Treasury Tracker — roadmap written; next: plan Phase 43
 
 ## Current Position
 
-Phase: 42 (County Enrichment + Verification) — Complete
-Plan: 42-01 complete
-Status: v1.9 MA County-City Linking shipped; all 68 county categories enriched, UAT 27/27 passed
-Last activity: 2026-06-11 — Phase 42 complete; v1.9 milestone close committed
+Phase: 43 (Federal Entity + Sourcing Infrastructure) — Not started
+Plan: —
+Status: Recon + IA design complete (2026-06-12); roadmap and requirements written
+Last activity: 2026-06-12 — v2.0 roadmap added to ROADMAP.md; RECON.md filed
 
 ## Phase Overview
 
 | Phase | Name | Depends on | Status |
 |-------|------|------------|--------|
-| 37 | MA Loader Hardening | Nothing | Complete (2026-06-10) |
-| 38 | MA City Budget Load | Phase 37 | Complete (2026-06-10) |
-| 39 | MA Population, State Budget, and Enrichment | Phase 38 | Complete (2026-06-10) |
+| 43 | Federal Entity + Sourcing Infrastructure | Nothing (Phase 32 'state' pattern) | Not started |
+| 44 | Core Federal Data Load | Phase 43 | Not started |
+| 45 | Federal Visualization | Phase 44 | Not started |
+| 46 | Sourced Explainer Pipeline v2 | Phase 44 (pipeline), 45 (UI) | Not started |
+| 47 | Program Origins Pilot | Phase 43 + 46 standard + API keys | Not started |
+| 48 | Source-Chain Verification + UAT | Phases 45–47 | Not started |
 
-**Critical path:** Phase 37 → Phase 38 → Phase 39
-**Sequencing constraint:** LOAD-01 resolved by exclusion — gf-expenditures removed from REPORTS[]. Phase 38 bulk load is scoped to 2 report types: special-revenue + revenue-by-source. GF Expenditures deferred until browser network inspection confirms rdreport (see 37-01-SUMMARY.md for re-add path).
+**Critical path:** 43 → 44 → 45 → 48; 46 and 47 can overlap with 45 once 44 lands.
+**Human-action checkpoints:** Congress.gov + GovInfo free API key signup (before Phase 47); CBO/GAO documents need manual browser download if required (both domains bot-block curl).
 
 ## Accumulated Context
 
-### MA DLS Loader Context
+### v2.0 Foundation Documents
 
-- `scrapeMaDLS.js` already exists and has been tested; FY2025 JSON output for all 351 MA cities is already on disk
-- MA DLS portal: `api_type: 'ma-dls'`; loader reads `rdreport` + `tableID` from `column_mapping`
-- General Fund Expenditures = Schedule A, one specific `rdreport` + `tableID` combination — must be confirmed via `--explore` before bulk load
-- Revenue by Source = a different `rdreport` + `tableID` — must also be confirmed before bulk revenue load
-- FY2021–FY2025 = 5 years × 2 report types = multi-year scrape loop required
-- 14 universal MA DLS category names total: 9 operating + 5 revenue — same column names across all 351 cities
+- `.planning/v2.0-FEDERAL-BRIEF.md` — mission, ground rules, sourcing architecture, phase shape
+- `.planning/v2.0-recon/RECON.md` — verified sources, pinned figures, data structure findings, IA decisions
+- `.planning/v2.0-recon/samples/` — raw API samples (MTS tables 4/5/9, USAspending, OMB xlsx)
+- Auto-memory: `project_federal_tracker_ground_rules.md`
 
-### MA-Specific Data Facts
+### Ground Rules (Chris, 2026-06-12)
 
-- 351 MA municipalities (towns + 26 official cities — all labeled `entity_type: 'city'` for now)
-- MA DLS goes back to FY2003 for revenue; FY2021–FY2025 is the v1.8 scope for both report types
-- Population source: 2024 Census vintage (same pattern as all prior states)
-- Category enrichment: universal across all 351 cities — no per-city re-enrichment needed or appropriate
-- STATE-01: MA state government is already in the DB with hardcoded estimates; this phase upgrades to real DLS data
+1. No paid APIs; LLM spend under the $5 gate
+2. NEVER create or display unsourced data or text
+3. No reflexive deep icicles — visualization fits the data
+4. Explainers: Tier 1 from fetched authoritative text only; Tier 2 origins from Congress.gov/GovInfo structured records
+5. Safety line: official public record only — no personal info, no targeting
+6. Transparency about opacity (DoD failed audits flagged with GAO/OIG citation)
 
-### Loaders Available (from prior milestones)
+### IA Decisions (locked 2026-06-12)
 
-- `bulkLoadBudget.js` — generic Socrata SODA loader (not applicable to MA DLS)
-- `enrichCategories.js` — AI enrichment pipeline; idempotent via name_key upsert; ~$0.004 for 14 MA categories
-- `scrapeMaDLS.js` — MA DLS-specific scraper; already written and tested; supports `--explore` mode
+- Headline year: FY2025 actuals; FY2026 FYTD as secondary "this year so far" strip
+- Landing: proportional Mandatory/Discretionary/Net Interest bands + permanent deficit strip
+- Function lens default; agency lens behind toggle
+- Outlays consistently (MTS/OMB); USAspending obligations never headline figures
 
-### Seeded Cities (active in DB — existing)
+### Pinned Sourced Figures (recon 2026-06-12)
 
-- TX (14): Dallas, Plano, McKinney, Frisco, Allen, Prosper, Celina, Richardson, Garland, Wylie, Sachse, Murphy, Princeton, Longview
-- CA (12 + LA County + CA State): Los Angeles, San Francisco, San Diego, Sacramento, Oakland, San Jose, Long Beach, Bakersfield, Fresno, Riverside, Anaheim, Santa Ana, LA County, California (state)
-- OR (3): Portland, Gresham, Troutdale
+- FY2025 actuals: receipts $5,236.4B / outlays $7,011.1B / deficit $1,774.7B (OMB Hist 1.1)
+- FY2025 split: Discretionary $1,875.1B (Def $893.6B / Nondef $981.5B), Mandatory ~$4,165.9B, Net Interest ~$970B (OMB Hist 8.1)
+- FY2026 FYTD thru May: outlays $4,901.9B, receipts $3,655.6B; Net Interest $722.7B > Defense $630.9B (MTS T9)
+- Debt: $39.213T (Debt to the Penny, 2026-06-10)
+
+### Technical Gotchas (verified during recon)
+
+- Fiscal Data API: `page[size]` must be URL-encoded (`page%5Bsize%5D`)
+- OMB xlsx: needs browser User-Agent; URL is `/omb/information-resources/budget/historical-tables/` (moved)
+- MTS Table 5: "Total--" rows appear at mixed levels — walk parent_id, never sum "Total--" rows
+- USAspending explorer total = obligations ($10.3T FY2025) ≠ outlays ($7.0T); has "Unreported Data" line
+- CBO + GAO: entire domains 403 non-browser clients — manual download fallback
+- openpyxl available in local Python; parses OMB tables cleanly
 
 ### API Cost Threshold
 
-$5 per run — estimate before running AI enrichment. MA enrichment (14 categories × $0.0002/call) ≈ $0.004 total — well within threshold, no gate needed.
+$5 per run — estimate before running AI enrichment. Recon estimate for full federal enrichment: <$0.50 (~65 generation calls with fetched context). Re-estimate before each run.
 
-### Known Tech Debt (carried from v1.7)
+### Known Tech Debt (carried from v1.7–v1.9)
 
-- Oakland revenue (OpenGov embedded chart format — not extractable via pdfplumber) — deferred
-- Fresno + Riverside revenue (no extractable GF revenue section in PDFs) — deferred
+- Oakland revenue (OpenGov embedded chart format) — deferred
+- Fresno + Riverside revenue (no extractable GF revenue section) — deferred
 - San Jose FY2016–2020 (older PDF format) — deferred
-- Phase 07, 14, 22, 25 verification files — human_needed, pre-v1.5/v1.6, shipped milestones
+- Phase 07, 14, 22, 25 verification files — human_needed, shipped milestones
+- MA GF Expenditures report type (re-add path in 37-01-SUMMARY.md)
 
 ## Session Continuity
 
-Last session: 2026-06-11
-Stopped at: Phase 42 complete — v1.9 shipped
-Resume file: .planning/phases/42-county-enrichment-verification/42-VERIFICATION.md
+Last session: 2026-06-12
+Stopped at: v2.0 roadmap complete — ready to plan Phase 43
+Resume file: .planning/v2.0-recon/RECON.md
 
 ### Next Session
 
-v1.9 milestone complete. Begin next milestone planning with /gsd:new-milestone.
+Plan Phase 43 (`/gsd:plan-phase 43`) — federal entity migration follows the Phase 32 'state' pattern (.planning/phases/32-state-entity-infrastructure/).
 
 ## Performance Metrics
 
 | Phase | Plan | Duration | Notes |
 |-------|------|----------|-------|
-| (v1.8 not yet started) | — | — | — |
-| Phase 37 P02 | 25min | 3 tasks | 2 files |
+| (v2.0 not yet started) | — | — | — |
 
 ## Decisions
 
 | Decision | Context |
 |----------|---------|
-| 3-phase structure for v1.8 | LOAD hardening → bulk data load → population/state/enrichment; natural delivery boundaries; hardening must gate the bulk load |
-| MA-03 (city picker) bundled with Phase 38 | 1-line STATE_LABELS change; ships with the data that makes it meaningful |
-| MA-04, STATE-01, ENRICH-01 bundled in Phase 39 | All three are post-load tasks; small enough to bundle; none blocks the others |
-| Universal enrichment (not per-city) | MA DLS uses identical category column names across all 351 cities; per-city enrichment would produce 351 identical rows at $1.40 cost vs. 14 universal rows at $0.004 |
-| Norfolk extraction: DeptName+4amounts regex (not Totals-prefix) | 41-01 discovery confirmed RESEARCH.md Pattern 5 is wrong; actual pdftotext shows "DeptName FY23 FY24 FY25 FY26req" lines; Plan 02 must use corrected pattern or pdfplumber table extraction |
-| Bristol PDF re-download required before 41-02 extraction | bristol-fy25.pdf is 0 bytes; re-download from countyofbristol.net via browser required; 4 other counties can proceed without Bristol |
+| Recon before roadmap (Option 2) | Pulled live samples from every source before writing phases; caught CBO/GAO blocking and the obligations-vs-outlays trap before they could derail a phase |
+| FY2025 actuals as headline year | Complete, final, sourced; FY2026 FYTD as live strip — partial-year proportions can mislead |
+| Function lens default, agency toggle | "What it's for" is the citizen question; ~20 clean categories vs 800-row agency hierarchy |
+| MTS/OMB outlays canonical; USAspending drill-down only | $3.3T gap between obligations and outlays; mixing them would corrupt headline figures |
+| 6 phases (43–48), recon folded in | Brief's draft Phase A completed pre-roadmap; B–G became 43–48 |
 
 ## Deferred Items
 
-Items deferred at v1.7 milestone close (2026-06-09):
+Carried forward from v1.7–v1.9 (see Known Tech Debt above). New in v2.0 planning:
 
 | Category | Item | Status |
 |----------|------|--------|
-| verification | Phase 07 (07-VERIFICATION.md) | human_needed — pre-v1.5, shipped milestone |
-| verification | Phase 14 (14-VERIFICATION.md) | human_needed — pre-v1.5, shipped milestone |
-| verification | Phase 22 (22-VERIFICATION.md) | human_needed — Troutdale app spot-check deferred |
-| verification | Phase 25 (25-VERIFICATION.md) | human_needed — LA County app spot-check deferred |
-| data | Oakland revenue | OpenGov embedded chart format — not extractable via pdfplumber |
-| data | Fresno + Riverside revenue | No extractable GF revenue section in PDFs |
-| data | San Jose FY2016–2020 | Older PDF format — requires investigation |
+| data | CBO program descriptions as explainer source | cbo.gov bot-blocks; manual download workflow if needed |
+| feature | Votes/amendments exploration hub | Future milestone — the eventual mission destination |
+| feature | Sourcing backfill to cities/states | After the standard is proven federally |
