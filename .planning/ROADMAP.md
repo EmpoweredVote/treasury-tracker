@@ -881,6 +881,20 @@ Plans:
   5. Per-capita / per-taxpayer / % of total toggles work with formula disclosure
   6. The outlays-vs-budget-authority methodology note is visible in-app
 
+**Plans:** 4 plans (4 waves)
+
+**Wave 1**
+- [ ] 45-01-PLAN.md — Backend (EV-Accounts): GET /federal/context endpoint + additive source-chip fields on budgets responses; production deploy
+
+**Wave 2** *(blocked on 45-01)*
+- [ ] 45-02-PLAN.md — FederalLanding: DeficitStrip + FirstSplitBands + ThisYearStrip + SourceChip; replaces PlainLanguageSummary for federal only
+
+**Wave 3** *(blocked on 45-02)*
+- [ ] 45-03-PLAN.md — LensToggle (function default / agency toggle, lens=agency URL param) + per-dataset chips + ScaleToggle ($ / per-person / % — per-taxpayer IFF IRS-sourced) + MethodologyPanel (figures computed from data, never hardcoded)
+
+**Wave 4** *(blocked on Wave 3)*
+- [ ] 45-04-PLAN.md — Automated VIZ sweep + Chris UAT checkpoint + 45-VERIFICATION.md
+
 ### Phase 46: Sourced Explainer Pipeline v2
 
 **Goal:** Every budget function and top agency has a plain-language explainer generated ONLY from fetched authoritative text, with its citation stored and displayed.
@@ -964,7 +978,7 @@ Plans:
 | 42. County Enrichment + Verification | v1.9 | 1/1 | Complete | 2026-06-11 |
 | 43. Federal Entity + Sourcing Infrastructure | v2.0 | 3/3 | Complete | 2026-06-12 |
 | 44. Core Federal Data Load | v2.0 | 5/5 | Complete | 2026-06-12 |
-| 45. Federal Visualization | v2.0 | 0/? | Not started | — |
+| 45. Federal Visualization | v2.0 | 0/4 | Planned | — |
 | 46. Sourced Explainer Pipeline v2 | v2.0 | 0/? | Not started | — |
 | 47. Program Origins Pilot | v2.0 | 0/? | Not started | — |
 | 48. Source-Chain Verification + UAT | v2.0 | 0/? | Not started | — |
