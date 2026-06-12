@@ -41,7 +41,7 @@ Last activity: 2026-06-12 — v2.0 roadmap added to ROADMAP.md; RECON.md filed
 | 48 | Source-Chain Verification + UAT | Phases 45–47 | Not started |
 
 **Critical path:** 43 → 44 → 45 → 48; 46 and 47 can overlap with 45 once 44 lands.
-**Human-action checkpoints:** Congress.gov + GovInfo free API key signup (before Phase 47); CBO/GAO documents need manual browser download if required (both domains bot-block curl).
+**Human-action checkpoints:** ~~Congress.gov + GovInfo API key signup~~ DONE 2026-06-12 — `DATA_GOV_API_KEY` in .env, verified against both APIs (ORIG-01 ✅). Remaining: CBO/GAO documents need manual browser download if required (both domains bot-block curl).
 
 ## Accumulated Context
 

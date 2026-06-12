@@ -50,7 +50,7 @@ Describe the US Federal Budget visually with maximum clarity and context for ave
 
 ### ORIG — Program Origins Pilot
 
-- [ ] **ORIG-01**: Congress.gov + GovInfo API keys obtained (free; Chris signs up) and stored in .env
+- [x] **ORIG-01**: Congress.gov + GovInfo API keys obtained and stored in .env — single api.data.gov key (`DATA_GOV_API_KEY`) verified live against both APIs 2026-06-12
 - [ ] **ORIG-02**: 15–20 major programs have Tier 2 details sections: enabling bill, public law number, sponsor, year, cosponsors — structured from Congress.gov/GovInfo, every claim linked
 - [ ] **ORIG-03**: Details sections contain official-record facts only — no model-memory claims, no personal info beyond official sponsorship records
 
