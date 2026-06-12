@@ -884,16 +884,14 @@ Plans:
 **Plans:** 4 plans (4 waves)
 
 **Wave 1**
-- [ ] 45-01-PLAN.md — Backend (EV-Accounts): GET /federal/context endpoint + additive source-chip fields on budgets responses; production deploy
-
-**Wave 2** *(blocked on 45-01)*
-- [ ] 45-02-PLAN.md — FederalLanding: DeficitStrip + FirstSplitBands + ThisYearStrip + SourceChip; replaces PlainLanguageSummary for federal only
+- [x] 45-01-PLAN.md — Backend: /federal/context live on Render (~30s deploy); additive source fields via LATERAL join (fan-out defect prevented). ⚠️ push side-effect: 91 pre-existing local EV-Accounts commits published — flagged to Chris
+- [x] 45-02-PLAN.md — FederalLanding live: DeficitStrip + FirstSplitBands + ThisYearStrip + SourceChip; PlainLanguageSummary suppressed for federal only
 
 **Wave 3** *(blocked on 45-02)*
-- [ ] 45-03-PLAN.md — LensToggle (function default / agency toggle, lens=agency URL param) + per-dataset chips + ScaleToggle ($ / per-person / % — per-taxpayer IFF IRS-sourced) + MethodologyPanel (figures computed from data, never hardcoded)
+- [x] 45-03-PLAN.md — LensToggle + per-dataset chips + ScaleToggle ($ / per-person / per-taxpayer — IRS Data Book VERIFIED: 162,754,810 returns FY2025) + MethodologyPanel (disclosure figures computed live from metrics)
 
 **Wave 4** *(blocked on Wave 3)*
-- [ ] 45-04-PLAN.md — Automated VIZ sweep + Chris UAT checkpoint + 45-VERIFICATION.md
+- [x] 45-04-PLAN.md — Sweep 6/6 PASS; Chris UAT: PASS with notes (React #310 hooks crash found+fixed; scale-formula disclosure + context intro added same-day)
 
 ### Phase 46: Sourced Explainer Pipeline v2
 
@@ -978,7 +976,7 @@ Plans:
 | 42. County Enrichment + Verification | v1.9 | 1/1 | Complete | 2026-06-11 |
 | 43. Federal Entity + Sourcing Infrastructure | v2.0 | 3/3 | Complete | 2026-06-12 |
 | 44. Core Federal Data Load | v2.0 | 5/5 | Complete | 2026-06-12 |
-| 45. Federal Visualization | v2.0 | 0/4 | Planned | — |
+| 45. Federal Visualization | v2.0 | 4/4 | Complete | 2026-06-12 |
 | 46. Sourced Explainer Pipeline v2 | v2.0 | 0/? | Not started | — |
 | 47. Program Origins Pilot | v2.0 | 0/? | Not started | — |
 | 48. Source-Chain Verification + UAT | v2.0 | 0/? | Not started | — |
