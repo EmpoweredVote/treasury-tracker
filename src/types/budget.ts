@@ -71,6 +71,27 @@ export interface CategoryEnrichment {
   confidence: string;   // 'high' | 'medium' | 'low'
 }
 
+/**
+ * Program origins (Tier 2 details, federal pilot): enabling statute, public
+ * law, sponsor — structured from Congress.gov/GovInfo records, every claim
+ * with a paired URL. Sponsor fields are null for pre-1973 laws (no structured
+ * sponsor data exists); details carries the sponsor_note boundary claim.
+ */
+export interface ProgramOrigins {
+  programName: string;
+  enablingBill?: string | null;
+  enablingBillUrl?: string | null;
+  publicLaw?: string | null;
+  publicLawUrl?: string | null;
+  enactedYear?: number | null;
+  sponsor?: string | null;
+  sponsorUrl?: string | null;
+  cosponsorsCount?: number | null;
+  cosponsorsUrl?: string | null;
+  details?: Array<{ field: string; value: string; source_url: string }> | null;
+  sourceApi: string;
+}
+
 export interface BudgetCategory {
   name: string;
   amount: number;
@@ -80,6 +101,7 @@ export interface BudgetCategory {
   subcategories?: BudgetCategory[];
   description?: string;
   enrichment?: CategoryEnrichment | null;
+  programOrigins?: ProgramOrigins | null;
   whyMatters?: string;
   historicalChange?: number;
   items?: number; // Number of line items aggregated into this category

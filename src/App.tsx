@@ -8,6 +8,7 @@ import LensToggle from './components/federal/LensToggle';
 import SourceChip from './components/federal/SourceChip';
 import MethodologyPanel from './components/federal/MethodologyPanel';
 import ScaleToggle, { type FederalScale } from './components/federal/ScaleToggle';
+import ProgramOrigins from './components/federal/ProgramOrigins';
 import BudgetSearch from './components/dashboard/BudgetSearch';
 import { loadBudgetData, loadFederalContext, loadLinkedTransactions, listMunicipalities, clearCache } from './data/dataLoader';
 import EntitySwitcher from './components/EntitySwitcher';
@@ -929,6 +930,12 @@ function App() {
                   })()}
                 </div>
               </div>
+
+              {/* Tier 2 program origins (federal pilot) — renders only when the
+                  drilled category has a program_details row */}
+              {navigationPath.length > 0 && navigationPath[navigationPath.length - 1].programOrigins && (
+                <ProgramOrigins origins={navigationPath[navigationPath.length - 1].programOrigins!} />
+              )}
 
               {showLineItems ? (
                 <>
