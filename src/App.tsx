@@ -537,6 +537,37 @@ function App() {
     return cats.some(c => c.enrichment != null);
   }, [operatingBudgetData, revenueData]);
 
+  // Federal scale transform (VIZ-05): pure display math on a COPY of the tree —
+  // amount ÷ sourced denominator (population or returns filed). Never mutates
+  // loaded data; formulas disclosed in ScaleToggle tooltips + MethodologyPanel.
+  // MUST live above the appView early returns — hooks below them violate the
+  // Rules of Hooks when the view transitions (React #310, caught in 45 UAT).
+  const displayData = useMemo(() => {
+    if (!budgetData || selectedEntity?.entity_type !== 'federal' || federalScale === 'dollars') {
+      return budgetData;
+    }
+    const divisor = federalScale === 'perPerson'
+      ? (selectedEntity.population || 0)
+      : (federalContextData?.metrics.tax_returns_filed?.value ?? 0);
+    if (!divisor) return budgetData;
+    const scaleCat = (cat: BudgetCategory): BudgetCategory => ({
+      ...cat,
+      amount: cat.amount / divisor,
+      actualAmount: cat.actualAmount !== undefined ? cat.actualAmount / divisor : undefined,
+      subcategories: cat.subcategories?.map(scaleCat),
+      lineItems: cat.lineItems?.map(li => ({
+        ...li,
+        approvedAmount: li.approvedAmount / divisor,
+        actualAmount: li.actualAmount / divisor,
+      })),
+    });
+    return {
+      ...budgetData,
+      metadata: { ...budgetData.metadata, totalBudget: budgetData.metadata.totalBudget / divisor },
+      categories: budgetData.categories.map(scaleCat),
+    };
+  }, [budgetData, federalScale, selectedEntity, federalContextData]);
+
   const profileMenu = isAuthenticated
     ? { label: 'Account', items: [
         { label: 'Profile', onClick: () => { window.location.href = 'https://login.empowered.vote/profile'; } },
@@ -611,35 +642,6 @@ function App() {
       </div>
     );
   }
-
-  // Federal scale transform (VIZ-05): pure display math on a COPY of the tree —
-  // amount ÷ sourced denominator (population or returns filed). Never mutates
-  // loaded data; formulas disclosed in ScaleToggle tooltips + MethodologyPanel.
-  const displayData = useMemo(() => {
-    if (!budgetData || selectedEntity?.entity_type !== 'federal' || federalScale === 'dollars') {
-      return budgetData;
-    }
-    const divisor = federalScale === 'perPerson'
-      ? (selectedEntity.population || 0)
-      : (federalContextData?.metrics.tax_returns_filed?.value ?? 0);
-    if (!divisor) return budgetData;
-    const scaleCat = (cat: BudgetCategory): BudgetCategory => ({
-      ...cat,
-      amount: cat.amount / divisor,
-      actualAmount: cat.actualAmount !== undefined ? cat.actualAmount / divisor : undefined,
-      subcategories: cat.subcategories?.map(scaleCat),
-      lineItems: cat.lineItems?.map(li => ({
-        ...li,
-        approvedAmount: li.approvedAmount / divisor,
-        actualAmount: li.actualAmount / divisor,
-      })),
-    });
-    return {
-      ...budgetData,
-      metadata: { ...budgetData.metadata, totalBudget: budgetData.metadata.totalBudget / divisor },
-      categories: budgetData.categories.map(scaleCat),
-    };
-  }, [budgetData, federalScale, selectedEntity, federalContextData]);
 
   // Determine what to display (only when budgetData is loaded)
   const currentCategory = navigationPath.length > 0 ? navigationPath[navigationPath.length - 1] : null;
