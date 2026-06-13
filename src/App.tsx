@@ -395,6 +395,31 @@ function App() {
     loadFederalContext().then(setFederalContextData).catch(() => { /* per-taxpayer mode simply hides */ });
   }, [selectedEntity]);
 
+  // Per-YEAR per-capita denominators (Phase 50 fix): population + returns vary by the
+  // selected fiscal year (federal_context_metrics population_fyN / tax_returns_filed_fyN).
+  // The Transition Quarter and any year missing a denominator get null → that scale is
+  // hidden/disabled (never divide a year by another year's count).
+  const federalDenominators = useMemo(() => {
+    if (selectedEntity?.entity_type !== 'federal') return null;
+    const { fiscalYear, periodLabel } = parsePeriod(selectedYear);
+    if (periodLabel) return { population: 0, populationYear: fiscalYear, taxReturns: null, taxReturnsLabel: null };
+    const m = federalContextData?.metrics;
+    return {
+      population: m?.[`population_fy${fiscalYear}`]?.value ?? 0,
+      populationYear: fiscalYear,
+      taxReturns: m?.[`tax_returns_filed_fy${fiscalYear}`]?.value ?? null,
+      taxReturnsLabel: m?.[`tax_returns_filed_fy${fiscalYear}`]?.label ?? null,
+    };
+  }, [selectedEntity, selectedYear, federalContextData]);
+
+  // If the active per-capita scale has no denominator for the selected year (the TQ,
+  // pre-2005 per-taxpayer, etc.), fall back to dollars so we never show a wrong figure.
+  useEffect(() => {
+    if (!federalDenominators) return;
+    if (federalScale === 'perPerson' && !federalDenominators.population) setFederalScale('dollars');
+    if (federalScale === 'perTaxpayer' && !federalDenominators.taxReturns) setFederalScale('dollars');
+  }, [federalDenominators, federalScale]);
+
   // Sync URL when year, dataset, or federal lens changes (guard avoids Pitfall 2 — no sync on mount)
   useEffect(() => {
     if (!selectedEntity) return;
@@ -552,8 +577,8 @@ function App() {
       return budgetData;
     }
     const divisor = federalScale === 'perPerson'
-      ? (selectedEntity.population || 0)
-      : (federalContextData?.metrics.tax_returns_filed?.value ?? 0);
+      ? (federalDenominators?.population || 0)
+      : (federalDenominators?.taxReturns || 0);
     if (!divisor) return budgetData;
     const scaleCat = (cat: BudgetCategory): BudgetCategory => ({
       ...cat,
@@ -571,7 +596,7 @@ function App() {
       metadata: { ...budgetData.metadata, totalBudget: budgetData.metadata.totalBudget / divisor },
       categories: budgetData.categories.map(scaleCat),
     };
-  }, [budgetData, federalScale, selectedEntity, federalContextData]);
+  }, [budgetData, federalScale, selectedEntity, federalContextData, federalDenominators]);
 
   const profileMenu = isAuthenticated
     ? { label: 'Account', items: [
@@ -876,10 +901,10 @@ function App() {
                   <ScaleToggle
                     scale={federalScale}
                     onChange={(s) => { setFederalScale(s); setNavigationPath([]); }}
-                    population={selectedEntity.population}
-                    populationYear={selectedEntity.population_year}
-                    taxReturns={federalContextData?.metrics.tax_returns_filed?.value ?? null}
-                    taxReturnsLabel={federalContextData?.metrics.tax_returns_filed?.label ?? null}
+                    population={federalDenominators?.population ?? 0}
+                    populationYear={federalDenominators?.populationYear ?? null}
+                    taxReturns={federalDenominators?.taxReturns ?? null}
+                    taxReturnsLabel={federalDenominators?.taxReturnsLabel ?? null}
                   />
                   {budgetData.metadata.dataSourceInfo && (
                     <SourceChip
@@ -900,8 +925,8 @@ function App() {
                   {federalScale !== 'dollars' && (
                     <p className="w-full text-xs text-ev-gray-500 dark:text-ev-gray-400">
                       {federalScale === 'perPerson'
-                        ? `Each figure = total ÷ ${selectedEntity.population.toLocaleString()} (US population, Census Vintage ${selectedEntity.population_year ?? '—'}).`
-                        : `Each figure = total ÷ ${(federalContextData?.metrics.tax_returns_filed?.value ?? 0).toLocaleString()} individual income tax returns filed (IRS Data Book). Fewer returns than people — one return often covers a couple or household, and not everyone files — so per-taxpayer figures run about twice per-person.`}
+                        ? `Each figure = total ÷ ${(federalDenominators?.population ?? 0).toLocaleString()} (US resident population, July ${federalDenominators?.populationYear ?? '—'}; Census/BEA via FRED).`
+                        : `Each figure = total ÷ ${(federalDenominators?.taxReturns ?? 0).toLocaleString()} individual income tax returns filed (IRS SOI). Fewer returns than people — one return often covers a couple or household, and not everyone files — so per-taxpayer figures run about twice per-person.`}
                     </p>
                   )}
                 </div>

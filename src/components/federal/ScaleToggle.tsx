@@ -22,11 +22,13 @@ const ScaleToggle: React.FC<ScaleToggleProps> = ({
 }) => {
   const options: Array<{ value: FederalScale; label: string; hint: string } | null> = [
     { value: 'dollars', label: '$', hint: 'Actual dollar amounts' },
-    {
-      value: 'perPerson',
-      label: 'Per person',
-      hint: `Amount ÷ ${population.toLocaleString()} (US population, Census Vintage ${populationYear ?? '—'})`,
-    },
+    population
+      ? {
+          value: 'perPerson',
+          label: 'Per person',
+          hint: `Amount ÷ ${population.toLocaleString()} (US resident population, July ${populationYear ?? '—'})`,
+        }
+      : null,
     taxReturns
       ? {
           value: 'perTaxpayer',
