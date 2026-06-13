@@ -54,6 +54,13 @@ const FY2025_DATE = '2025-09-30';
 const OMB_FY2025_RECEIPTS = 5_236_421e6; // anchor (federal_annual_summary / OMB 1.1)
 const SOURCE_NAME = 'treasury-fiscal-data'; // source_registry key
 
+// Human-readable dataset pages for the SourceChip link. The API endpoints below
+// are used to FETCH the figures; citizens clicking a source should land on the
+// dataset page, not raw JSON (Phase 50 UAT fix). The data is identical.
+const HUMAN_SRC_MTS = 'https://fiscaldata.treasury.gov/datasets/monthly-treasury-statement/summary-of-receipts-and-outlays-of-the-u-s-government';
+const HUMAN_SRC_DEBT = 'https://fiscaldata.treasury.gov/datasets/debt-to-the-penny/debt-to-the-penny';
+const HUMAN_SRC_INTEREST = 'https://fiscaldata.treasury.gov/datasets/interest-expense-debt-outstanding/interest-expense-on-the-public-debt-outstanding';
+
 const { values: opts } = parseArgs({
   options: {
     'dry-run': { type: 'boolean', default: false },
@@ -237,15 +244,15 @@ async function loadMetrics(supabase) {
   // Federal FY = calendar year + 1 when the month is October or later
   const fy = Number(latestDate.slice(0, 4)) + (Number(latestDate.slice(5, 7)) >= 10 ? 1 : 0);
   await upsertMetric(supabase, 'fytd_receipts', amt(recTotal), latestDate,
-    `FY${fy} receipts, fiscal year to date through ${latestDate}`, monthUrl);
+    `FY${fy} receipts, fiscal year to date through ${latestDate}`, HUMAN_SRC_MTS);
   await upsertMetric(supabase, 'fytd_outlays', amt(outTotal), latestDate,
-    `FY${fy} net outlays, fiscal year to date through ${latestDate}`, monthUrl);
+    `FY${fy} net outlays, fiscal year to date through ${latestDate}`, HUMAN_SRC_MTS);
 
   // Debt to the Penny
   const dtpUrl = `${API}/v2/accounting/od/debt_to_penny?sort=-record_date&page%5Bsize%5D=1`;
   const dtp = await fetchJson(dtpUrl);
   await upsertMetric(supabase, 'total_public_debt', Number(dtp.data[0].tot_pub_debt_out_amt),
-    dtp.data[0].record_date, `Total public debt outstanding as of ${dtp.data[0].record_date}`, dtpUrl);
+    dtp.data[0].record_date, `Total public debt outstanding as of ${dtp.data[0].record_date}`, HUMAN_SRC_DEBT);
 
   // Gross interest expense FYTD: sum all security-type rows at the latest date.
   // NOTE: 'gross interest expense' ≠ the MTS 'Net Interest' budget function.
@@ -255,7 +262,7 @@ async function loadMetrics(supabase) {
   const ie = await fetchJson(ieUrl);
   const ieSum = ie.data.reduce((s, r) => s + (amt(r, 'fytd_expense_amt') ?? 0), 0);
   await upsertMetric(supabase, 'fytd_interest_expense', ieSum, ieDate,
-    `Gross federal interest expense, fiscal year to date through ${ieDate} (sum of all security types; not the same measure as the Net Interest budget function)`, ieUrl);
+    `Gross federal interest expense, fiscal year to date through ${ieDate} (sum of all security types; not the same measure as the Net Interest budget function)`, HUMAN_SRC_INTEREST);
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────────
