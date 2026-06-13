@@ -1,27 +1,32 @@
 #!/usr/bin/env node
 /**
- * Federal Function-Lens Loader (Phase 44, Plan 04)
+ * Federal Function-Lens Loader (Phase 44, Plan 04 — parameterized in Phase 49)
  *
- * Money Out, the DEFAULT lens: Function → Subfunction → Account, FY2025 actuals,
- * from the OMB Public Budget Database outlays file (account-level, function-coded,
- * in thousands — verified to sum EXACTLY to OMB Hist 1.1 FY2025 outlays).
- * Function titles sourced from OMB Hist 3.2 (never model memory).
+ * Money Out, the DEFAULT lens: Function → Subfunction → Account, from the OMB
+ * Public Budget Database outlays file (account-level, function-coded, in
+ * thousands). Function titles sourced from OMB Hist 3.2 (never model memory).
  *
- * Depth rules (Chris 2026-06-12: deeper than 3 where data supports; clarity first):
+ * Phase 49: any fiscal year FY1976–FY2025 (and the FY1976 Transition Quarter)
+ * loads from the SAME file — the PBD has one column per year (1962→present) plus
+ * a literal `TQ` column. Per-year reconciliation anchor = OMB Hist 1.1 total
+ * outlays, read from treasury.federal_annual_summary (already holds FY1962+).
+ * Historical years NEVER hard-halt on a reconciliation miss — they load anyway
+ * with a per-year visual-vs-official disclosure metric (HIST-04: no year dropped).
+ *
+ * Depth rules (unchanged from FY2025):
  *   - Function and Subfunction node amounts = NET sums (match published totals).
- *   - Every positive subfunction gets ACCOUNT CHILD NODES (positive accounts,
- *     largest first). Its NEGATIVE accounts (offsetting collections/receipts)
- *     ride along as LINE ITEMS on the same node — honestly negative in the data,
- *     surfaced by Phase 45/46 methodology display — and are aggregated into a
- *     per-function disclosure metric. (Offsetting collections exist in nearly
- *     every subfunction, so an all-positive gate would yield zero account depth.)
- *   - BudgetIcicle normalizes child widths by the sum of displayed children
- *     (identical math for city/state trees, where children sum to parent).
- *   - Functions/subfunctions with NET <= 0 are excluded from the tree, logged,
- *     and stored as federal_context_metrics rows for Phase 45 disclosure.
+ *   - Positive accounts become child nodes; negative accounts (offsetting
+ *     collections/receipts) ride as line items and aggregate into per-function
+ *     disclosure metrics. Net<=0 functions/subfunctions excluded + disclosed.
  *
- * Usage: node scripts/loadFederalFunctions.js [--dry-run]
- * Checkpoint: 44-03 GO decision (Chris, 2026-06-12) covers this load.
+ * Usage:
+ *   node scripts/loadFederalFunctions.js --fy 2024 [--dry-run]
+ *   node scripts/loadFederalFunctions.js --tq [--dry-run]   # Transition Quarter
+ *   node scripts/loadFederalFunctions.js --fy 2025          # FY2025 (back-compat)
+ *
+ * The TQ run passes p_period_label to treasury_sync_budget_tree and therefore
+ * requires migration 49-01 (period_label column + 8-arg RPC). Normal years pass
+ * only the original 7 args and work without that migration.
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -56,11 +61,34 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SE
 const SUPPLEMENTAL = 'https://www.whitehouse.gov/omb/information-resources/budget/supplemental-materials/';
 const HIST_LANDING = 'https://www.whitehouse.gov/omb/information-resources/budget/historical-tables/';
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Safari/537.36';
-const FY = 2025;
-const OMB_OUTLAYS = 7_011_105e6; // FY2025 anchor, dollars
+const RECON_TOLERANCE = 0.005; // 0.5% — anchor is rounded to the million in federal_annual_summary
 
-const { values: opts } = parseArgs({ options: { 'dry-run': { type: 'boolean', default: false } } });
+const { values: opts } = parseArgs({
+  options: {
+    'dry-run': { type: 'boolean', default: false },
+    fy: { type: 'string' },
+    tq: { type: 'boolean', default: false },
+  },
+});
 const dryRun = opts['dry-run'];
+const isTQ = opts.tq;
+if (!isTQ && !opts.fy) {
+  console.error('Specify --fy <YEAR> (e.g. --fy 2024) or --tq for the Transition Quarter');
+  process.exit(1);
+}
+
+// ── Period resolution ──────────────────────────────────────────────────────────
+const FY = isTQ ? 1976 : parseInt(opts.fy, 10);
+if (!isTQ && (!Number.isInteger(FY) || FY < 1962 || FY > 2025)) {
+  console.error(`--fy must be an integer 1962–2025 (got ${opts.fy})`);
+  process.exit(1);
+}
+const COLUMN = isTQ ? 'TQ' : String(FY);          // PBD column header to extract
+const PERIOD_LABEL = isTQ ? 'Transition Quarter (Jul–Sep 1976)' : null;
+const DATASET_ID = isTQ ? 'tq1976' : `fy${FY}`;
+const PERIOD_KEY = isTQ ? 'tq1976' : `fy${FY}`;    // metric_key suffix
+const AS_OF = isTQ ? '1976-09-30' : `${FY}-09-30`; // TQ ends Sep 30, 1976
+const PERIOD_LABEL_HUMAN = isTQ ? 'Transition Quarter (Jul–Sep 1976)' : `FY${FY}`;
 
 async function fetchText(url) {
   const res = await fetch(url, { headers: { 'User-Agent': UA } });
@@ -80,7 +108,7 @@ function findXlsxUrl(html, stem) {
 }
 const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
 
-// ── Tree builder per depth rules ──────────────────────────────────────────────
+// ── Tree builder per depth rules (unchanged from FY2025) ───────────────────────
 function buildTree(rows) {
   const byFunction = new Map();
   for (const r of rows) {
@@ -128,8 +156,6 @@ function buildTree(rows) {
             i: [{ d: `${a.account} — ${a.agency}`, a: a.amount, aa: null, f: a.bea_category || null, e: null }],
           };
         }),
-        // Negative accounts (offsetting collections/receipts) stay in the data
-        // as line items on the subfunction node — honestly negative.
         ...(negatives.length ? {
           i: negatives.map(a => ({ d: `${a.account} — ${a.agency} (offsetting)`, a: a.amount, aa: null, f: a.bea_category || null, e: null })),
         } : {}),
@@ -151,6 +177,12 @@ function buildTree(rows) {
 }
 
 async function main() {
+  console.log(`\n=== Function lens: ${PERIOD_LABEL_HUMAN} (PBD column "${COLUMN}") ===`);
+
+  // A supabase client is used (read-only in dry-run) to fetch the per-year anchor.
+  const supabase = SUPABASE_KEY ? createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+  if (!supabase) console.warn('No SUPABASE key — anchor check skipped (net reported unverified).');
+
   // Locate + download current-edition files
   const suppHtml = await fetchText(SUPPLEMENTAL);
   const outlaysUrl = findXlsxUrl(suppHtml, 'outlays');
@@ -166,15 +198,25 @@ async function main() {
   await download(outlaysUrl, fOut);
   await download(hist32Url, f32);
 
-  const json = execFileSync('python',
-    [path.join(__dirname, 'extractOMBPublicBudgetDB.py'), fOut, f32, String(FY)],
-    { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+  let json;
+  try {
+    json = execFileSync('python',
+      [path.join(__dirname, 'extractOMBPublicBudgetDB.py'), fOut, f32, COLUMN],
+      { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+  } catch (e) {
+    const stderr = e.stderr ? String(e.stderr) : e.message;
+    throw new Error(`Extractor failed for column "${COLUMN}". If this is the TQ, confirm the PBD header string (often "TQ"). Detail: ${stderr.trim()}`);
+  }
   const { rows, net_total } = JSON.parse(json);
   console.log(`Extracted ${rows.length} account rows; net total $${(net_total / 1e9).toFixed(1)}B`);
 
-  // Net total must equal the OMB anchor EXACTLY at file precision (thousands)
-  if (Math.abs(net_total - OMB_OUTLAYS) > 1000) {
-    throw new Error(`Net total ${net_total} != OMB anchor ${OMB_OUTLAYS} — halting`);
+  // Per-year anchor from federal_annual_summary (OMB Hist 1.1 outlays, dollars).
+  // No TQ row exists there (year-keyed), so the TQ self-anchors on its PBD column.
+  let anchor = null, anchorSource = null;
+  if (supabase && !isTQ) {
+    const { data: fas } = await supabase.schema('treasury').from('federal_annual_summary')
+      .select('outlays').eq('fiscal_year', FY).maybeSingle();
+    if (fas?.outlays != null) { anchor = Number(fas.outlays); anchorSource = 'federal_annual_summary (OMB Hist 1.1)'; }
   }
 
   const { tree, total, excluded, offsetsByFunction, accountNodeCount } = buildTree(rows);
@@ -182,18 +224,31 @@ async function main() {
   const offsetsTotal = [...offsetsByFunction.values()].reduce((s, v) => s + v, 0);
 
   console.log(`Tree: ${tree.length} functions, ${tree.reduce((s, n) => s + n.c.length, 0)} subfunctions, ${accountNodeCount} account nodes; within-subfunction offsets $${(offsetsTotal / 1e9).toFixed(1)}B across ${offsetsByFunction.size} functions (kept as line items)`);
-  for (const n of tree.slice(0, 10)) console.log(`  ${n.n}: $${(n.a / 1e9).toFixed(1)}B (${n.c.length} subfunctions)`);
-  for (const e of excluded) console.log(`  ⚠ EXCLUDED ${e.kind}: ${e.name} $${(e.value / 1e9).toFixed(1)}B`);
+  for (const n of tree.slice(0, 8)) console.log(`  ${n.n}: $${(n.a / 1e9).toFixed(1)}B (${n.c.length} subfunctions)`);
+  if (excluded.length) for (const e of excluded.slice(0, 6)) console.log(`  ⚠ EXCLUDED ${e.kind}: ${e.name} $${(e.value / 1e9).toFixed(1)}B`);
 
-  // Reconciliation: displayed + excluded nets == net_total (identity), and vs anchor
-  const recon = Math.abs(total + excludedSum - OMB_OUTLAYS) / OMB_OUTLAYS;
-  console.log(`Displayed $${(total / 1e9).toFixed(1)}B + excluded $${(excludedSum / 1e9).toFixed(1)}B vs anchor: ${(recon * 100).toFixed(4)}%`);
-  if (recon > 0.005) throw new Error('Reconciliation outside 0.5% — halting');
+  // Tiered reconciliation (D-05): account depth, then load-anyway+disclosure.
+  // NEVER halt on a historical miss — record the gap and write the best tree.
+  let tier = 'account';
+  let visualVsOfficial = null;
+  if (anchor != null) {
+    const netDelta = Math.abs(net_total - anchor) / anchor;
+    console.log(`Net $${(net_total / 1e9).toFixed(1)}B vs anchor $${(anchor / 1e9).toFixed(1)}B (${anchorSource}): ${(netDelta * 100).toFixed(4)}%`);
+    if (netDelta > RECON_TOLERANCE) {
+      tier = 'load-anyway';
+      visualVsOfficial = net_total - anchor;
+      console.warn(`  ⚠ Tier-2 fallback: net outside ${RECON_TOLERANCE * 100}% — loading anyway with a visual-vs-official disclosure (gap $${(visualVsOfficial / 1e9).toFixed(1)}B).`);
+    }
+  } else {
+    console.log(`No anchor (${isTQ ? 'TQ self-anchors on PBD column' : 'federal_annual_summary missing this year'}); net taken as published.`);
+  }
 
-  if (dryRun) { console.log('[dry-run] No DB writes.'); return; }
+  if (dryRun) {
+    console.log(`[dry-run] tier=${tier}; displayed $${(total / 1e9).toFixed(1)}B + excluded $${(excludedSum / 1e9).toFixed(1)}B. No DB writes.`);
+    return;
+  }
 
-  if (!SUPABASE_KEY) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit(1); }
-  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  if (!supabase) { console.error('Missing SUPABASE_SERVICE_KEY for write'); process.exit(1); }
 
   const { data: muni, error: muniErr } = await supabase.schema('treasury').from('municipalities')
     .select('id').eq('name', 'United States').eq('entity_type', 'federal').single();
@@ -201,10 +256,10 @@ async function main() {
 
   // data_sources upsert
   const src = {
-    name: `US Federal Outlays by Function FY${FY} (OMB Public Budget Database)`,
+    name: `US Federal Outlays by Function ${PERIOD_LABEL_HUMAN} (OMB Public Budget Database)`,
     api_type: 'xlsx_download',
     dataset_type: 'operating',
-    dataset_id: `fy${FY}`,
+    dataset_id: DATASET_ID,
     base_url: outlaysUrl,
     fiscal_years: [FY],
     fiscal_year_start_month: 10,
@@ -213,7 +268,7 @@ async function main() {
   };
   const { data: existing } = await supabase.schema('treasury').from('data_sources')
     .select('id').eq('municipality_id', muni.id).eq('api_type', 'xlsx_download')
-    .eq('dataset_id', `fy${FY}`).eq('dataset_type', 'operating').maybeSingle();
+    .eq('dataset_id', DATASET_ID).eq('dataset_type', 'operating').maybeSingle();
   let ds;
   if (existing?.id) {
     ({ data: ds } = await supabase.schema('treasury').from('data_sources')
@@ -229,7 +284,7 @@ async function main() {
     .delete().eq('data_source_id', ds.id).eq('fiscal_year', FY);
   if (delErr) throw new Error(`pre-delete: ${delErr.message}`);
 
-  const { data: rpc, error: rpcErr } = await supabase.rpc('treasury_sync_budget_tree', {
+  const rpcParams = {
     p_data_source_id: ds.id,
     p_fiscal_year: FY,
     p_dataset_type: 'operating',
@@ -237,23 +292,38 @@ async function main() {
     p_tree: tree,
     p_row_count: rows.length,
     p_triggered_by: 'bulk_load',
-  });
-  if (rpcErr) throw new Error(`RPC: ${rpcErr.message}`);
+  };
+  // Only TQ passes the 8th arg — keeps normal years compatible with the 7-arg RPC.
+  if (PERIOD_LABEL) rpcParams.p_period_label = PERIOD_LABEL;
+
+  const { data: rpc, error: rpcErr } = await supabase.rpc('treasury_sync_budget_tree', rpcParams);
+  if (rpcErr) {
+    if (PERIOD_LABEL) throw new Error(`RPC: ${rpcErr.message} — the TQ requires migration 49-01 (period_label column + 8-arg RPC). Apply it first.`);
+    throw new Error(`RPC: ${rpcErr.message}`);
+  }
   if (rpc?.error) throw new Error(`RPC returned: ${rpc.error}`);
   console.log(`Inserted: ${rpc?.rows_inserted} line items (budget ${rpc?.budget_id})`);
 
-  // Excluded nets + per-function offsets → disclosure metrics
+  // Disclosure metrics (per-period keys) → excluded nets, per-function offsets,
+  // and (Tier-2) the visual-vs-official gap. Recomputed per year, never copied.
   const today = new Date().toISOString().slice(0, 10);
   const metricRows = excluded.map(e => ({
-    metric_key: `excluded_${e.kind}_${slug(e.name)}_fy${FY}`,
-    value: e.value, as_of_date: `${FY}-09-30`,
-    label: `Excluded from FY${FY} spending visual (net ≤ 0 ${e.kind}): ${e.name}`,
+    metric_key: `excluded_${e.kind}_${slug(e.name)}_${PERIOD_KEY}`,
+    value: e.value, as_of_date: AS_OF,
+    label: `Excluded from ${PERIOD_LABEL_HUMAN} spending visual (net ≤ 0 ${e.kind}): ${e.name}`,
   }));
   for (const [fnTitle, negSum] of offsetsByFunction) {
     metricRows.push({
-      metric_key: `offsets_within_${slug(fnTitle)}_fy${FY}`,
-      value: negSum, as_of_date: `${FY}-09-30`,
-      label: `Offsetting collections/receipts inside ${fnTitle} (FY${FY}) — present as negative line items, not as tree bars`,
+      metric_key: `offsets_within_${slug(fnTitle)}_${PERIOD_KEY}`,
+      value: negSum, as_of_date: AS_OF,
+      label: `Offsetting collections/receipts inside ${fnTitle} (${PERIOD_LABEL_HUMAN}) — present as negative line items, not as tree bars`,
+    });
+  }
+  if (visualVsOfficial != null) {
+    metricRows.push({
+      metric_key: `visual_vs_official_function_${PERIOD_KEY}`,
+      value: visualVsOfficial, as_of_date: AS_OF,
+      label: `${PERIOD_LABEL_HUMAN} function-lens net ($${(net_total / 1e9).toFixed(1)}B) minus OMB published outlays ($${(anchor / 1e9).toFixed(1)}B) — account-level did not reconcile within ${RECON_TOLERANCE * 100}%; loaded anyway per HIST-04`,
     });
   }
   for (const m of metricRows) {
@@ -266,7 +336,7 @@ async function main() {
       .upsert(row, { onConflict: 'metric_key' });
     if (error) throw new Error(`metric: ${error.message}`);
   }
-  console.log(`Disclosure metrics: ${metricRows.length}`);
+  console.log(`Disclosure metrics: ${metricRows.length} (tier=${tier})`);
   console.log('Done.');
 }
 
