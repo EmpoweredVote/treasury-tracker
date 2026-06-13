@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Federal History
-status: Defining requirements
-last_updated: "2026-06-13T07:29:16.892Z"
-last_activity: 2026-06-13 — Milestone v2.1 started
+status: In progress
+last_updated: "2026-06-13T00:00:00.000Z"
+last_activity: 2026-06-13 — Phase 49 complete (historical federal backfill FY1976–FY2024 + TQ)
 progress:
   total_phases: 3
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 1
+  total_plans: 5
+  completed_plans: 5
+  percent: 33
 ---
 
 # State
@@ -24,16 +24,22 @@ See: .planning/PROJECT.md (updated 2026-06-13)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-06-13 — Milestone v2.1 started
+Phase: 49 complete → Phase 50 next (Federal YearSelector Wiring)
+Plan: 49-01..05 all complete + verified
+Status: Phase 49 shipped (150 federal budgets / 135,056 line items, FY1976–FY2024 + TQ, $0 spend)
+Last activity: 2026-06-13 — Phase 49 complete
+
+### Phase 49 outcomes (for Phase 50/51)
+- Federal budgets now span FY1976–FY2025 (50 years) + TQ across operating/federal_agency/revenue, all sourced.
+- **TQ storage:** fiscal_year=1976 + `budgets.period_label='Transition Quarter (Jul–Sep 1976)'`, dataset_id `tq1976`. Phase 50 YearSelector MUST treat a non-null period_label row as a separate selectable period (orders right after FY1976). Unique index is now 4-col (…, period_label) NULLS NOT DISTINCT; RPC `treasury_sync_budget_tree` has optional 8th arg `p_period_label`.
+- **Agency lens for history is OMB Public Budget Database** (not MTS T5 — API only reaches FY2015); receipts history is **OMB Hist 2.1** (5 buckets, "Other" consolidates estate&gift/customs/misc). One-year source discontinuity FY2024→FY2025 (agency PBD→MTS, receipts Hist2.1→MTS T9) → Phase 51 comparability copy.
+- Loaders: `loadFederalFunctions.js --fy N|--tq`, `loadFederalAgencies.js --source omb --fy N|--tq`, `loadFederalReceipts.js --fy N|--tq`, orchestrated by `backfillFederalHistory.mjs` (idempotent).
 
 ## Phase Overview
 
 | Phase | Name | Depends on | Status |
 |-------|------|------------|--------|
-| 49 | Historical Federal Data Backfill (FY1976–FY2024) | Nothing new (reuses Phase 44 loaders + schema) | Pending |
+| 49 | Historical Federal Data Backfill (FY1976–FY2024) | Nothing new (reuses Phase 44 loaders + schema) | Complete |
 | 50 | Federal YearSelector Wiring | Phase 49 | Pending |
 | 51 | Comparability Notes + Source-Chain Verification + UAT | Phases 49–50 | Pending |
 

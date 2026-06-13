@@ -974,7 +974,7 @@ _Full detail archived in `.planning/milestones/v2.0-ROADMAP.md`._
 
 #### Phase Summary
 
-- [ ] **Phase 49: Historical Federal Data Backfill (FY1976–FY2024)** — function (Hist 3.2), agency (Hist 4.1/5.1), revenue-by-source (Hist 2.x) for every year, per-year disclosures, every row sourced, $0 spend.
+- [x] **Phase 49: Historical Federal Data Backfill (FY1976–FY2024)** ✅ Complete 2026-06-13 — function (PBD), agency (rebuilt from PBD, not MTS), revenue (5 Hist 2.1 buckets) for every year + TQ; 150 budgets / 135,056 line items; per-year disclosures; every row sourced; $0 spend. TQ via period_label migration.
 - [ ] **Phase 50: Federal YearSelector Wiring** — citizen can select any backfilled year; function/agency/revenue + landing bands + deficit strip all update.
 - [ ] **Phase 51: Comparability Notes + Source-Chain Verification + UAT** — definition-drift + FY1976 TQ notes, every-figure-resolves audit across years, Chris sign-off.
 

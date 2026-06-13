@@ -11,10 +11,10 @@ Requirements for milestone v2.1. Each maps to a roadmap phase. All v2.0 ground r
 
 ### Historical Federal Data (HIST)
 
-- [ ] **HIST-01**: A citizen can view federal spending by budget function (OMB Hist 3.2) for every fiscal year FY1976–FY2024, with each figure carrying its official source
-- [ ] **HIST-02**: A citizen can view federal spending by agency/department (OMB Hist 4.1 / 5.1) for every fiscal year FY1976–FY2024, with each figure carrying its official source
-- [ ] **HIST-03**: A citizen can view federal receipts by source (OMB Hist 2.x) for every fiscal year FY1976–FY2024, with each figure carrying its official source
-- [ ] **HIST-04**: All fiscal years FY1976 through FY2024 load with no gaps, every line-item row populating source_name / source_url / source_date metadata
+- [x] **HIST-01**: A citizen can view federal spending by budget function (OMB Hist 3.2) for every fiscal year FY1976–FY2024, with each figure carrying its official source
+- [x] **HIST-02**: A citizen can view federal spending by agency/department (OMB Hist 4.1 / 5.1) for every fiscal year FY1976–FY2024, with each figure carrying its official source
+- [x] **HIST-03**: A citizen can view federal receipts by source (OMB Hist 2.x) for every fiscal year FY1976–FY2024, with each figure carrying its official source
+- [x] **HIST-04**: All fiscal years FY1976 through FY2024 load with no gaps, every line-item row populating source_name / source_url / source_date metadata
 
 ### Year Navigation (NAV)
 
@@ -23,7 +23,7 @@ Requirements for milestone v2.1. Each maps to a roadmap phase. All v2.0 ground r
 
 ### Data Integrity & Context (CTX)
 
-- [ ] **CTX-01**: Each loaded historical year displays its own visual-vs-official reconciliation disclosure (per-year excluded-negatives, recomputed like the Phase 44 FY2025 disclosure)
+- [x] **CTX-01**: Each loaded historical year displays its own visual-vs-official reconciliation disclosure (per-year excluded-negatives, recomputed like the Phase 44 FY2025 disclosure)
 - [ ] **CTX-02**: A citizen sees comparability notes explaining function/agency definition drift across decades and the FY1976 Transition Quarter (TQ)
 
 ## v2 Requirements
@@ -55,11 +55,11 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| HIST-01 | Phase 49 | Pending |
-| HIST-02 | Phase 49 | Pending |
-| HIST-03 | Phase 49 | Pending |
-| HIST-04 | Phase 49 | Pending |
-| CTX-01 | Phase 49 | Pending |
+| HIST-01 | Phase 49 | Complete |
+| HIST-02 | Phase 49 | Complete |
+| HIST-03 | Phase 49 | Complete |
+| HIST-04 | Phase 49 | Complete |
+| CTX-01 | Phase 49 | Complete |
 | NAV-01 | Phase 50 | Pending |
 | NAV-02 | Phase 50 | Pending |
 | CTX-02 | Phase 51 | Pending |
