@@ -884,7 +884,14 @@ function App() {
                   {budgetData.metadata.dataSourceInfo && (
                     <SourceChip
                       sourceName={budgetData.metadata.dataSourceInfo.displayName}
-                      sourceUrl={budgetData.metadata.dataSourceInfo.datasetUrl || budgetData.metadata.dataSourceInfo.url}
+                      // Federal dataset base_urls are raw fetch endpoints (OMB .xlsx / MTS API JSON),
+                      // so federal chips link to the human registry page instead. Cities keep their
+                      // datasetUrl (usually a real portal page) — don't regress them.
+                      sourceUrl={
+                        (selectedEntity?.entity_type === 'federal'
+                          ? (budgetData.metadata.dataSourceInfo.url || budgetData.metadata.dataSourceInfo.datasetUrl)
+                          : (budgetData.metadata.dataSourceInfo.datasetUrl || budgetData.metadata.dataSourceInfo.url)) || ''
+                      }
                       fetchDate={budgetData.metadata.dataSourceInfo.fetchedAt}
                     />
                   )}
