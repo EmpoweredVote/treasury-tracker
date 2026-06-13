@@ -57,6 +57,7 @@ const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.s
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 const API = 'https://api.fiscaldata.treasury.gov/services/api/fiscal_service';
+const MTS_DATASET_PAGE = 'https://fiscaldata.treasury.gov/datasets/monthly-treasury-statement/'; // human page for MTS-sourced metric chips
 const FY2025 = 2025;
 const FY2025_DATE = '2025-09-30';
 const T9_NET_OUTLAYS = 7_010_038e6; // FY2025 T9 'Total' net outlays (verified 2026-06-12)
@@ -286,7 +287,7 @@ async function loadFromMTS() {
       metric_key: `agency_offsets_${slug(dept)}_fy${FY2025}`,
       value: v, as_of_date: FY2025_DATE,
       label: `Offsetting receipts/intrabudgetary transactions inside ${dept} (FY${FY2025}, agency lens) — line items, not tree bars`,
-      source_name: 'treasury-fiscal-data', source_url: baseUrl, source_date: today,
+      source_name: 'treasury-fiscal-data', source_url: MTS_DATASET_PAGE, source_date: today,
       updated_at: new Date().toISOString(),
     };
     const { error } = await supabase.schema('treasury').from('federal_context_metrics')
@@ -510,7 +511,7 @@ async function loadFromOMB() {
   for (const m of metricRows) {
     const row = {
       ...m,
-      source_name: 'omb-historical-tables', source_url: outlaysUrl, source_date: today,
+      source_name: 'omb-historical-tables', source_url: SUPPLEMENTAL, source_date: today,
       updated_at: new Date().toISOString(),
     };
     const { error } = await supabase.schema('treasury').from('federal_context_metrics')

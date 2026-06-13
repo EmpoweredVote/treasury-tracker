@@ -344,7 +344,7 @@ async function main() {
   for (const m of metricRows) {
     const row = {
       ...m,
-      source_name: 'omb-historical-tables', source_url: outlaysUrl, source_date: today,
+      source_name: 'omb-historical-tables', source_url: SUPPLEMENTAL, source_date: today,
       updated_at: new Date().toISOString(),
     };
     const { error } = await supabase.schema('treasury').from('federal_context_metrics')
