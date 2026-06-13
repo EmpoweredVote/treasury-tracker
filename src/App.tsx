@@ -822,7 +822,11 @@ function App() {
                   narrative summary (whose uncontextualized totals would mislead — 45-CONTEXT) */}
               {selectedEntity?.entity_type === 'federal' ? (
                 <div className="mb-6">
-                  <FederalLanding />
+                  <FederalLanding
+                    fiscalYear={parsePeriod(selectedYear).fiscalYear}
+                    periodLabel={parsePeriod(selectedYear).periodLabel}
+                    isCurrent={selectedYear === availableYears[0]}
+                  />
                 </div>
               ) : (
                 /* Plain language summary — lead with the story */

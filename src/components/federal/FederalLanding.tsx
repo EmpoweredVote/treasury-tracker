@@ -6,13 +6,25 @@ import FirstSplitBands from './FirstSplitBands';
 import ThisYearStrip from './ThisYearStrip';
 
 /**
- * Federal landing block (Phase 45): the two structural facts citizens most
- * lack — where the money goes at the highest level, and that spending exceeds
- * revenue — rendered proportionally from OFFICIAL sourced figures
+ * Federal landing block (Phase 45; year-aware in Phase 50): the two structural
+ * facts citizens most lack — where the money goes at the highest level, and that
+ * spending exceeds revenue — rendered proportionally from OFFICIAL sourced figures
  * (federal_annual_summary / federal_context_metrics), never tree totals.
- * Replaces PlainLanguageSummary for the United States entity only.
+ *
+ * Phase 50: the block reflects the SELECTED period. annual_summary already carries
+ * every year (FY1962+), so the bands/deficit strip switch year with no extra fetch.
+ * The FY1976 Transition Quarter has no annual_summary row (it is year-keyed), so the
+ * Mandatory/Discretionary/Net-Interest bands and the deficit strip are hidden for it
+ * (the three lens trees below still render); Phase 51 adds the TQ explanation.
+ * The live "this year so far" FYTD strip shows only on the current/default view.
  */
-const FederalLanding: React.FC = () => {
+interface FederalLandingProps {
+  fiscalYear: number;
+  periodLabel: string | null;
+  isCurrent: boolean;
+}
+
+const FederalLanding: React.FC<FederalLandingProps> = ({ fiscalYear, periodLabel, isCurrent }) => {
   const [context, setContext] = useState<FederalContext | null>(null);
   const [error, setError] = useState(false);
 
@@ -45,25 +57,49 @@ const FederalLanding: React.FC = () => {
     );
   }
 
-  // Headline year = latest ACTUAL year in the summary (FY2025 as of v2.0)
-  const headline = context.annual_summary[context.annual_summary.length - 1];
+  // The Transition Quarter has no annual_summary row; any selected year resolves
+  // by exact fiscal_year match. Falling back to no summary hides the bands/strip
+  // rather than showing the wrong year's figures.
+  const summary = periodLabel === null
+    ? context.annual_summary.find((s) => s.fiscal_year === fiscalYear)
+    : undefined;
   const displayName = (name: string) => context.source_display_names[name] ?? name;
   const fmtT = (v: number) => `$${(Math.abs(v) / 1e12).toFixed(1)} trillion`;
 
+  // No annual-summary row (the TQ, or a year not in the summary): show a neutral,
+  // unsourced-prose-free heading; the three lens trees render below.
+  if (!summary) {
+    return (
+      <div className="bg-white dark:bg-ev-gray-800 border border-ev-gray-200 dark:border-ev-gray-700 rounded-xl overflow-hidden mb-2">
+        <div className="h-[2px] bg-gradient-to-r from-ev-yellow-300 via-ev-yellow-400 to-ev-yellow-300 opacity-60" />
+        <div className="p-6">
+          <h2 className="text-lg font-semibold text-ev-gray-800 dark:text-ev-gray-100">
+            {periodLabel ?? `FY${fiscalYear}`}
+          </h2>
+          <p className="text-sm text-ev-gray-600 dark:text-ev-gray-400 mt-1">
+            Explore this period's spending by <em>what it's for</em> or by <em>who spends it</em>,
+            and its receipts by source — in the government's own published numbers, every figure
+            linked to its official source.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
-      <h2 className="sr-only">The big picture — FY{headline.fiscal_year}</h2>
+      <h2 className="sr-only">The big picture — FY{summary.fiscal_year}</h2>
 
-      {/* Context intro (UAT request) — every figure below comes from the sourced
-          context payload; no narrative beyond what the data states */}
+      {/* Context intro — every figure below comes from the sourced annual summary;
+          no narrative beyond what the data states */}
       <div className="bg-white dark:bg-ev-gray-800 border border-ev-gray-200 dark:border-ev-gray-700 rounded-xl overflow-hidden">
         <div className="h-[2px] bg-gradient-to-r from-ev-yellow-300 via-ev-yellow-400 to-ev-yellow-300 opacity-60" />
         <div className="p-6">
           <p className="text-base text-ev-gray-700 dark:text-ev-gray-300 leading-relaxed">
-            In fiscal year {headline.fiscal_year}, the United States federal government collected{' '}
-            <strong>{fmtT(headline.receipts)}</strong> and spent <strong>{fmtT(headline.outlays)}</strong> —
-            spending {fmtT(Math.abs(headline.surplus_or_deficit))} more than it took in.
-            {context.metrics.total_public_debt && (
+            In fiscal year {summary.fiscal_year}, the United States federal government collected{' '}
+            <strong>{fmtT(summary.receipts)}</strong> and spent <strong>{fmtT(summary.outlays)}</strong> —
+            spending {fmtT(Math.abs(summary.surplus_or_deficit))} more than it took in.
+            {isCurrent && context.metrics.total_public_debt && (
               <> Borrowing like this, accumulated over decades, adds up to a total debt of{' '}
               <strong>{fmtT(context.metrics.total_public_debt.value)}</strong>.</>
             )}{' '}
@@ -75,15 +111,17 @@ const FederalLanding: React.FC = () => {
         </div>
       </div>
       <DeficitStrip
-        summary={headline}
-        debtMetric={context.metrics.total_public_debt ?? null}
-        sourceDisplayName={displayName(headline.source_name)}
+        summary={summary}
+        debtMetric={isCurrent ? (context.metrics.total_public_debt ?? null) : null}
+        sourceDisplayName={displayName(summary.source_name)}
       />
-      <FirstSplitBands summary={headline} sourceDisplayName={displayName(headline.source_name)} />
-      <ThisYearStrip
-        fytdReceipts={context.metrics.fytd_receipts ?? null}
-        fytdOutlays={context.metrics.fytd_outlays ?? null}
-      />
+      <FirstSplitBands summary={summary} sourceDisplayName={displayName(summary.source_name)} />
+      {isCurrent && (
+        <ThisYearStrip
+          fytdReceipts={context.metrics.fytd_receipts ?? null}
+          fytdOutlays={context.metrics.fytd_outlays ?? null}
+        />
+      )}
     </div>
   );
 };
