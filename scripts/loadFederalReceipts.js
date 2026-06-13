@@ -25,7 +25,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { execFileSync } from 'node:child_process';
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
@@ -86,6 +86,10 @@ async function download(url, dest) {
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
   writeFileSync(dest, Buffer.from(await res.arrayBuffer()));
 }
+async function cachedDownload(url, dest) {
+  try { if (Date.now() - statSync(dest).mtimeMs < 24 * 3600 * 1000) return; } catch { /* not cached */ }
+  await download(url, dest);
+}
 function findXlsxUrl(html, stem) {
   const re = new RegExp(`href="(https://www\\.whitehouse\\.gov/[^"]*${stem}[^"]*\\.xlsx)"`, 'i');
   const m = html.match(re);
@@ -106,7 +110,7 @@ async function main() {
   const dir = path.join(tmpdir(), 'omb-receipts');
   mkdirSync(dir, { recursive: true });
   const f21 = path.join(dir, 'hist02z1.xlsx');
-  await download(hist21Url, f21);
+  await cachedDownload(hist21Url, f21);
 
   let json;
   try {
@@ -200,6 +204,15 @@ async function main() {
   }
   if (rpc?.error) throw new Error(`RPC returned: ${rpc.error}`);
   console.log(`  Inserted: ${rpc?.rows_inserted} line items (budget ${rpc?.budget_id})`);
+
+  // Link the budget to its source_registry row. Historical receipts come from
+  // OMB Historical Table 2.1.
+  const { data: reg } = await supabase.schema('treasury').from('source_registry')
+    .select('id').eq('name', 'omb-historical-tables').single();
+  if (!reg?.id) throw new Error("source_registry 'omb-historical-tables' not found");
+  const { error: linkErr } = await supabase.schema('treasury').from('budgets')
+    .update({ data_source_id: reg.id }).eq('id', rpc.budget_id);
+  if (linkErr) throw new Error(`budget source link: ${linkErr.message}`);
 
   const today = new Date().toISOString().slice(0, 10);
   const metricRows = excluded.map(e => ({
