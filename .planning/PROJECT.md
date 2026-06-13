@@ -65,15 +65,26 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - ✓ 15-program origins pilot — enabling bill/public law/sponsor/year/cosponsors from Congress.gov+GovInfo, every claim linked, zero LLM; foundational sponsor-boundary notes — v2.0, Phase 47
 - ✓ Source-chain audit (225 rows / 61 URLs, 61/61 PASS) + Chris UAT sign-off; US pinned first on landing with flag tile — v2.0, Phase 48
 
-## Current Milestone: v2.0 shipped — planning next
+## Current Milestone: v2.1 Federal History
 
-**v2.0 Federal Treasury Tracker shipped 2026-06-13** (Phases 43-48). The federal government is live, fully sourced, and UAT-confirmed.
+**Goal:** Bring every available prior federal fiscal year (FY1976→FY2024) up to v2.0 detail — function lens, agency lens, and revenue-by-source — with a working YearSelector, every figure sourced.
 
-**Recommended next milestone — Historical backfill (v2.1):** prior fiscal years at v2.0 detail. The expensive intellectual work is already banked: the 64-year headline history exists, and explainers (category-keyed) + program origins (law-keyed) are year-independent — they carry over for free. Remaining work is mechanical: iterate the OMB loader (Hist 3.2 by-function, 4.1/5.1 by-agency) across prior years, recompute per-year visual-vs-official disclosures, load revenue-by-source per year, wire the YearSelector for the federal entity. Watch: function/agency definitions drift over decades (comparability notes); actuals vs estimates for recent years.
+**Target features:**
+- Function-lens detail per year (OMB Hist 3.2, outlays by budget function) for all years back to FY1976
+- Agency-lens detail per year (OMB Hist 4.1/5.1, outlays by agency) for the same span
+- Revenue-by-source per year (OMB Hist 2.x receipts) completing Money In for each historical year
+- Per-year visual-vs-official disclosures recomputed for each loaded year (the Phase 44 excluded-negatives pattern)
+- Federal YearSelector wiring — make all backfilled years selectable in the app
+- Comparability notes for function/agency definition drift across decades + the FY1976 Transition Quarter
 
-### Active (next milestone candidates)
+**Free carryover (zero rework):** the 64-year headline history already lives in `federal_annual_summary`; explainers (name-keyed) and program origins (law-keyed) are year-independent. The real work is mechanical — iterate the Phase 44 OMB loader across prior years, recompute disclosures, load revenue per year, wire the YearSelector. Same free sources, every row sourced (v2.0 ground rules carry forward).
 
-- [ ] Historical backfill — prior fiscal years of federal function/agency detail + per-year disclosures + YearSelector wiring
+### Active
+
+- [ ] Federal historical backfill — FY1976→FY2024 function/agency detail + revenue-by-source + per-year disclosures + YearSelector wiring (v2.1, in progress)
+
+### Future (deferred milestone candidates)
+
 - [ ] Votes/amendments exploration hub (the eventual mission destination)
 - [ ] Backfill the always-sourced standard to city/state data (now proven federally)
 
@@ -141,5 +152,22 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - ✅ **v1.1 Texas Municipal Financial Transparency** — 2026-05-02 — Phases 5-7
 - ✅ **v1.0 GiveButter Real-Time Donation Feedback** — 2026-04-22 — Phases 1-4
 
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd-transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd:complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
+
 ---
-*Last updated: 2026-06-13 after v2.0 Federal Treasury Tracker milestone*
+*Last updated: 2026-06-12 — milestone v2.1 Federal History started*
