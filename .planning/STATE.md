@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-09)
 
 ## Current Position
 
-Phase: 48 (Source-Chain Verification + UAT) — 48-01 COMPLETE; 48-02 remaining (human checkpoint)
-Plan: 48-01 done — 225 claim rows / 61 unique URLs audited, **61/61 PASS, zero FAIL, HUMAN-CHECK residue EMPTY** (congress.gov 403 wall is client-based; real browser passes + content-matches everything incl. all 7 bioguide pages). 48-AUDIT.md + 48-audit-results.json committed → NEXT: 48-02 (production pre-flight sweep + 48-UAT-CHECKLIST.md → CHECKPOINT: Chris walks production → 48-VERIFICATION.md closes v2.0 build scope)
-Status: 48-02 checklist drops the URL-residue section (empty) and keeps rendered-chain clicks (chips + origins links from the UI). Fix shipped during audit: source_registry was missing service_role SELECT grant (migration 20260612180000). EV-Accounts push carried 2 pre-existing phase-117 wip commits (flagged in 47-03-SUMMARY)
-Last activity: 2026-06-12 — 48-01 executed (auditor + browser pass + report, VERIFY-01 satisfied). RESUME AT: 48-02-PLAN.md
+Phase: 48 COMPLETE (VERIFY-01/02 PASS) — **v2.0 Federal Treasury Tracker build scope DONE (phases 43–48 all complete)**
+Plan: all of 48 done. 61/61 source URLs PASS; Chris UAT sign-off "Looks amazing!"; two polish enhancements shipped (US pinned first on landing + flag tile, b0da716). → NEXT: milestone audit/close (gsd-audit-milestone / gsd-complete-milestone), then scope the historical-backfill milestone (see Deferred Items)
+Status: v2.0 verified + sourced end-to-end. Fixes/changes this phase: source_registry service_role grant (migration 20260612180000); federal landing tile (AlphaLanding.tsx). EV-Accounts push (Phase 47) carried 2 pre-existing phase-117 wip commits (flagged in 47-03-SUMMARY)
+Last activity: 2026-06-12 — Phase 48 closed; federal tile shipped. RESUME AT: milestone close, or plan historical-backfill milestone
 
 ## Phase Overview
 
@@ -148,3 +148,4 @@ Carried forward from v1.7–v1.9 (see Known Tech Debt above). New in v2.0 planni
 | data | CBO program descriptions as explainer source | cbo.gov bot-blocks; manual download workflow if needed |
 | feature | Votes/amendments exploration hub | Future milestone — the eventual mission destination |
 | feature | Sourcing backfill to cities/states | After the standard is proven federally |
+| milestone | **Historical backfill — prior fiscal years (FY2024 ← back) at v2.0 detail** | RECOMMENDED NEXT (Chris asked 2026-06-12). Cheap parts already done: annual_summary already holds 64 years (FY1962+); explainers (name_key-keyed) + program origins (law-keyed, not year-keyed) are year-independent and need ZERO rework. Real work = iterate the OMB loader (Hist 3.2 outlays-by-function, 4.1/5.1 by-agency) across prior years + recompute per-year visual-vs-official disclosures + revenue-by-source per year + YearSelector wiring. Watch: function/agency definitions drift over decades (comparability notes); per-year actuals vs estimates. Same free sources + same loader pattern as 44. |
