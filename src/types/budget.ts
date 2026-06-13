@@ -150,6 +150,7 @@ export interface Municipality {
   available_datasets: Array<{
     fiscal_year: number;
     dataset_type: 'operating' | 'revenue' | 'salaries' | 'all_funds_requirements' | 'federal_agency';
+    period_label?: string | null; // non-null only for sub-annual periods (FY1976 Transition Quarter)
   }>;
 }
 

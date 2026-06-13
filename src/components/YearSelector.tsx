@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { parsePeriod } from '../utils/period';
 
 interface YearSelectorProps {
   selectedYear: string;
@@ -43,7 +44,7 @@ const YearSelector = forwardRef<YearSelectorHandle, YearSelectorProps>(({ select
         aria-expanded={isOpen}
         aria-haspopup="listbox"
       >
-        <span>FY {selectedYear}</span>
+        <span>{parsePeriod(selectedYear).shortLabel}</span>
         <ChevronDown
           size={14}
           className={`text-ev-gray-500 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : 'rotate-0'}`}
@@ -71,7 +72,7 @@ const YearSelector = forwardRef<YearSelectorHandle, YearSelectorProps>(({ select
                 setIsOpen(false);
               }}
             >
-              {year}
+              {parsePeriod(year).label}
             </button>
           ))}
         </div>

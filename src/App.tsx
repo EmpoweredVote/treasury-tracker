@@ -22,6 +22,7 @@ import DonateArrow from './components/DonateArrow';
 
 import YearSelector from './components/YearSelector';
 import type { YearSelectorHandle } from './components/YearSelector';
+import { parsePeriod, buildPeriodTokens } from './utils/period';
 import Breadcrumb from './components/Breadcrumb';
 import BudgetVisualization from './components/BudgetVisualization';
 import CategoryList from './components/CategoryList';
@@ -155,17 +156,19 @@ function App() {
   }, [selectedEntity, selectedYear]);
 
   // Derive available years and datasets from selected entity
+  // Period tokens: annual years descending, with the FY1976 Transition Quarter
+  // (a period_label row) inserted right after '1976'. Non-federal entities have
+  // no period_label rows, so this is a plain descending year list for them.
   const availableYears = useMemo(() => {
     if (!selectedEntity) return [];
-    const years = [...new Set(selectedEntity.available_datasets.map(d => d.fiscal_year))];
-    return years.sort((a, b) => b - a).map(String);
+    return buildPeriodTokens(selectedEntity.available_datasets);
   }, [selectedEntity]);
 
   const availableDatasetTypes = useMemo(() => {
     if (!selectedEntity) return ['operating', 'revenue', 'salaries'];
     return [...new Set(
       selectedEntity.available_datasets
-        .filter(d => d.fiscal_year === parseInt(selectedYear))
+        .filter(d => d.fiscal_year === parsePeriod(selectedYear).fiscalYear)
         .map(d => d.dataset_type)
         .filter(t => t !== 'all_funds_requirements' && t !== 'federal_agency')
     )];
@@ -289,7 +292,7 @@ function App() {
   // Load operating budget and revenue totals for info cards (only if entity has that data)
   useEffect(() => {
     if (!selectedEntity) return;
-    const yearNum = parseInt(selectedYear);
+    const { fiscalYear: yearNum, periodLabel } = parsePeriod(selectedYear);
     const entityDatasets = selectedEntity.available_datasets.filter(d => d.fiscal_year === yearNum);
     const hasOperating = entityDatasets.some(d => d.dataset_type === 'operating');
     const hasRevenue = entityDatasets.some(d => d.dataset_type === 'revenue');
@@ -298,13 +301,13 @@ function App() {
 
     const promises: Promise<BudgetData | null>[] = [
       hasOperating
-        ? loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'operating')
+        ? loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'operating', periodLabel)
         : Promise.resolve(null),
       hasRevenue
-        ? loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'revenue')
+        ? loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'revenue', periodLabel)
         : Promise.resolve(null),
       hasSalaries
-        ? loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'salaries')
+        ? loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'salaries', periodLabel)
         : Promise.resolve(null),
     ];
 
@@ -323,7 +326,7 @@ function App() {
 
     // Load all_funds_requirements separately so a failure never affects the main data loads
     if (hasAllFundsRequirements) {
-      loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'all_funds_requirements')
+      loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'all_funds_requirements', periodLabel)
         .then(data => setAllFundsRequirementsData(data))
         .catch(() => setAllFundsRequirementsData(null));
     } else {
@@ -344,7 +347,8 @@ function App() {
     setBudgetLoadError(false);
     setNavigationPath([]);
 
-    loadBudgetData(parseInt(selectedYear), selectedEntity.name, selectedEntity.state, requestDataset)
+    const { fiscalYear, periodLabel } = parsePeriod(selectedYear);
+    loadBudgetData(fiscalYear, selectedEntity.name, selectedEntity.state, requestDataset, periodLabel)
       .then(data => {
         setBudgetData(data);
         setLoading(false);
@@ -364,7 +368,7 @@ function App() {
       entity.available_datasets.filter(d => d.dataset_type === 'operating').map(d => d.fiscal_year)
     )].sort((a, b) => b - a);
     // Prefer a year with operating data; only keep current year if it has operating data
-    const currentHasOperating = operatingYears.includes(parseInt(selectedYear));
+    const currentHasOperating = operatingYears.includes(parsePeriod(selectedYear).fiscalYear);
     const effectiveYear = currentHasOperating
       ? selectedYear
       : operatingYears.length > 0
@@ -373,7 +377,7 @@ function App() {
 
     // Check if current dataset is available for new entity in effective year
     const entityDatasets = entity.available_datasets
-      .filter(d => d.fiscal_year === parseInt(effectiveYear))
+      .filter(d => d.fiscal_year === parsePeriod(effectiveYear).fiscalYear)
       .map(d => d.dataset_type);
     const effectiveDataset = entityDatasets.includes(activeDataset) ? activeDataset : 'operating';
 
@@ -409,14 +413,14 @@ function App() {
       if (document.visibilityState !== 'visible') return;
       document.removeEventListener('visibilitychange', handleVisibility);
 
-      const yearNum = parseInt(selectedYear);
+      const { fiscalYear: yearNum, periodLabel } = parsePeriod(selectedYear);
       const hasRevenue = selectedEntity.available_datasets.some(
         d => d.fiscal_year === yearNum && d.dataset_type === 'revenue'
       );
       if (!hasRevenue) return;
 
       clearCache();
-      loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'revenue')
+      loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'revenue', periodLabel)
         .then(data => setRevenueData(data))
         .catch(err => console.error('Post-donation revenue refetch failed:', err));
     };
@@ -655,7 +659,7 @@ function App() {
     ? (displayData?.categories ?? [])
     : navigationPath[navigationPath.length - 1].subcategories || [];
 
-  const isPastYear = parseInt(selectedYear) < new Date().getFullYear();
+  const isPastYear = parsePeriod(selectedYear).fiscalYear < new Date().getFullYear();
   // Only use actual data if the categories actually have it (non-zero actualAmount)
   const hasActualData = isPastYear && currentCategories.some(c => (c.actualAmount ?? 0) > 0);
   const displayCategories = currentCategories.filter(c =>
@@ -738,7 +742,7 @@ function App() {
                 <BudgetSearch
                   cityId={selectedEntity.id}
                   cityName={selectedEntity.name}
-                  fiscalYear={parseInt(selectedYear)}
+                  fiscalYear={parsePeriod(selectedYear).fiscalYear}
                   onResultClick={(result) => {
                     const allCategories = [
                       ...(operatingBudgetData?.categories ?? []),
@@ -953,7 +957,7 @@ function App() {
                           linkedTransactions={linkedTransactions}
                           categoryName={currentCategory!.name}
                           linkKey={currentCategory!.linkKey}
-                          fiscalYear={parseInt(selectedYear)}
+                          fiscalYear={parsePeriod(selectedYear).fiscalYear}
                         />
                       ) : currentCategory?.lineItems && currentCategory.lineItems.length > 0 ? (
                         <LineItemsTable
@@ -1019,7 +1023,7 @@ function App() {
                       linkedTransactions={linkedTransactions}
                       categoryName={currentCategory.name}
                       linkKey={currentCategory.linkKey}
-                      fiscalYear={parseInt(selectedYear)}
+                      fiscalYear={parsePeriod(selectedYear).fiscalYear}
                     />
                   )}
                 </>
@@ -1038,7 +1042,7 @@ function App() {
                       linkedTransactions={linkedTransactions}
                       categoryName={currentCategory!.name}
                       linkKey={currentCategory!.linkKey}
-                      fiscalYear={parseInt(selectedYear)}
+                      fiscalYear={parsePeriod(selectedYear).fiscalYear}
                     />
                   ) : activeDataset === 'operating' && currentCategory?.linkKey ? (
                     <div className="bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl p-8 flex flex-col items-center gap-3">

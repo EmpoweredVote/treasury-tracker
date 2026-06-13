@@ -24,9 +24,10 @@ export async function loadBudgetData(
   year: number = 2025,
   municipalityName: string = 'Bloomington',
   municipalityState: string = 'IN',
-  dataset: string = 'operating'
+  dataset: string = 'operating',
+  periodLabel: string | null = null
 ): Promise<BudgetData> {
-  const cacheKey = `${municipalityName}-${municipalityState}-${year}-${dataset}`;
+  const cacheKey = `${municipalityName}-${municipalityState}-${year}-${dataset}-${periodLabel ?? ''}`;
 
   if (cache.has(cacheKey)) {
     return cache.get(cacheKey)!;
@@ -55,7 +56,13 @@ export async function loadBudgetData(
 
   const apiData = await response.json();
   const budgets = Array.isArray(apiData) ? apiData : [apiData];
-  const budget = budgets.find((b: any) => b.dataset_type === dataset) ?? budgets[0];
+  // Disambiguate by period_label: a normal year wants the null-label row; the
+  // Transition Quarter wants its labeled row. Fall back to dataset-only match so
+  // annual years still resolve if the API hasn't deployed period_label yet.
+  const budget =
+    budgets.find((b: any) => b.dataset_type === dataset && (b.period_label ?? null) === (periodLabel ?? null)) ??
+    budgets.find((b: any) => b.dataset_type === dataset) ??
+    budgets[0];
   if (!budget?.id) {
     throw new Error(`No budget found for ${municipalityName} ${year} (${dataset})`);
   }
