@@ -120,7 +120,27 @@ const STATE_NAMES: Record<string, string> = {
   CA: 'California',
   TX: 'Texas',
   OR: 'Oregon',
+  US: 'Federal',
 };
+
+// Simplified U.S. flag swatch — used as the Federal tile's "logo". Inline SVG
+// (not an emoji flag — those don't render on Windows). 7 red stripes over a
+// white field, navy canton with a 3×3 star cluster reading as stars at tile size.
+function USFlagIcon({ className = '' }: { className?: string }) {
+  const stripeH = 10 / 13;
+  return (
+    <svg viewBox="0 0 19 10" className={className} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <rect width="19" height="10" fill="#fff" />
+      {Array.from({ length: 7 }, (_, i) => (
+        <rect key={`r${i}`} x="0" y={i * 2 * stripeH} width="19" height={stripeH} fill="#B22234" />
+      ))}
+      <rect x="0" y="0" width="7.6" height={stripeH * 7} fill="#3C3B6E" />
+      {Array.from({ length: 9 }, (_, i) => (
+        <circle key={`s${i}`} cx={1.4 + (i % 3) * 2.4} cy={0.9 + Math.floor(i / 3) * 1.6} r="0.45" fill="#fff" />
+      ))}
+    </svg>
+  );
+}
 
 
 // ── City cards ──
@@ -144,9 +164,11 @@ function CityGrid({
   }
 
   const userAddress = readUserAddress();
-  // Exclude state entities from "Near you" — they aren't a local city
-  const nearby = userAddress ? available.filter(m => m.entity_type !== 'state' && m.state === userAddress.state && m.id !== preloadedCity?.id) : [];
-  const others = available.filter(m => m.id !== preloadedCity?.id && (!userAddress || m.state !== userAddress.state));
+  // The federal tracker is pinned to the very top — pull it out of the regular grouping
+  const federal = available.find(m => m.entity_type === 'federal') ?? null;
+  // Exclude state + federal entities from "Near you" — they aren't a local city
+  const nearby = userAddress ? available.filter(m => m.entity_type !== 'state' && m.entity_type !== 'federal' && m.state === userAddress.state && m.id !== preloadedCity?.id) : [];
+  const others = available.filter(m => m.entity_type !== 'federal' && m.id !== preloadedCity?.id && (!userAddress || m.state !== userAddress.state));
 
   const othersByState = new Map<string, Municipality[]>();
   for (const m of others) {
@@ -167,18 +189,34 @@ function CityGrid({
     const years = [...new Set(city.available_datasets.map(d => d.fiscal_year))].sort((a, b) => b - a);
     const isPilot = city.name === 'Bloomington' && city.state === 'IN';
     const isState = city.entity_type === 'state';
+    const isFederal = city.entity_type === 'federal';
     return (
       <button
         key={city.id}
         onClick={() => onNavigateToCity(city)}
-        className="flex items-center gap-3 bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl p-4 text-left hover:border-[#005366] dark:hover:border-ev-muted-blue hover:shadow-sm transition-all duration-200 group"
+        className={`flex items-center gap-3 border rounded-xl p-4 text-left hover:shadow-sm transition-all duration-200 group ${
+          isFederal
+            ? 'bg-gradient-to-br from-[#EEF3FB] to-white dark:from-[#0e1a30] dark:to-ev-gray-800 border-[#C7D6EC] dark:border-[#2a3a55] hover:border-[#3C3B6E] dark:hover:border-ev-skyblue-500'
+            : 'bg-white dark:bg-ev-gray-800 border-[#E2EBEF] dark:border-ev-gray-700 hover:border-[#005366] dark:hover:border-ev-muted-blue'
+        }`}
       >
-        <div className="w-9 h-9 rounded-lg bg-[#EAF4F7] dark:bg-ev-teal-950 flex items-center justify-center shrink-0 group-hover:bg-[#005366] transition-colors duration-200">
-          <Building2 size={16} className="text-[#005366] group-hover:text-white transition-colors duration-200" />
-        </div>
+        {isFederal ? (
+          <div className="w-9 h-9 rounded-lg overflow-hidden border border-[#C7D6EC] dark:border-[#2a3a55] shrink-0">
+            <USFlagIcon className="w-full h-full" />
+          </div>
+        ) : (
+          <div className="w-9 h-9 rounded-lg bg-[#EAF4F7] dark:bg-ev-teal-950 flex items-center justify-center shrink-0 group-hover:bg-[#005366] transition-colors duration-200">
+            <Building2 size={16} className="text-[#005366] group-hover:text-white transition-colors duration-200" />
+          </div>
+        )}
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-[#1C1C1C] dark:text-ev-gray-100 truncate">
-            {isState ? city.name : `${city.name}, ${city.state}`}
+            {isState || isFederal ? city.name : `${city.name}, ${city.state}`}
+            {isFederal && (
+              <span className="ml-2 text-xs font-normal text-[#3C3B6E] dark:text-ev-skyblue-400 bg-[#EEF3FB] dark:bg-[#1a2540] px-1.5 py-0.5 rounded">
+                Federal Budget
+              </span>
+            )}
             {isState && (
               <span className="ml-2 text-xs font-normal text-[#005366] bg-[#EAF4F7] px-1.5 py-0.5 rounded">
                 State Budget
@@ -194,13 +232,23 @@ function CityGrid({
             {years.length} fiscal year{years.length !== 1 ? 's' : ''} · {years[0]} most recent
           </p>
         </div>
-        <ArrowRight size={14} className="text-ev-gray-400 shrink-0 group-hover:text-[#005366] transition-colors duration-200" />
+        <ArrowRight size={14} className={`text-ev-gray-400 shrink-0 transition-colors duration-200 ${isFederal ? 'group-hover:text-[#3C3B6E] dark:group-hover:text-ev-skyblue-500' : 'group-hover:text-[#005366]'}`} />
       </button>
     );
   };
 
   return (
     <div className="space-y-6">
+      {federal && (
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider text-ev-gray-500 mb-2">
+            Federal Government
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {renderCityButton(federal)}
+          </div>
+        </div>
+      )}
       {nearby.length > 0 && (
         <div>
           <p className="text-xs font-semibold uppercase tracking-wider text-ev-gray-500 mb-2">
