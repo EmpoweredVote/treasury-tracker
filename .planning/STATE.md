@@ -34,6 +34,12 @@ Last activity: 2026-06-13 — Phase 50 complete
 - `FederalLanding` is year-aware (selects annual_summary row by fiscal_year); TQ hides annual-summary bands (no TQ summary row); FYTD strip only on the current/default year.
 - **Phase 51 owes:** (1) systematic source-chain audit across every figure/year/source — Phase 50 fixed only the surfaced context-metric chips (→ human fiscaldata pages, DB + loadFederalMTS.js) and federal lens chips (→ registry url, App.tsx); deeper per-figure URLs unaudited. (2) Comparability/definition-drift notes + the FY1976 Transition Quarter explanation copy (the TQ currently renders with a neutral heading, no sourced explanation).
 
+### Per-capita denominators (Phase 50 fix, 2026-06-13)
+Per-person/per-taxpayer now use PER-YEAR denominators in federal_context_metrics: `population_fyN` (FY1976–2025, FRED POPTHM = Census/BEA resident pop incl. armed forces overseas, July) + `tax_returns_filed_fyN` (FY2005–2023 IRS SOI histab21b individual returns, + FY2025 carried). Loader: `scripts/loadFederalDenominators.js` + `extractIRSReturns.py`. Frontend: `federalDenominators` memo in App.tsx.
+- **Known gaps (by design, honest):** per-taxpayer disabled for pre-2005 + FY2024 (no clean free source — old IRS Data Books are PDF); per-capita disabled on the TQ. Frontend hides the toggle + resets to $ when a denominator is missing.
+- **Note:** FY2025 per-person shifted ~340.1M→342.1M (switched from Census Vintage resident to the consistent FRED POPTHM series for cross-year uniformity).
+- **Future (optional):** fill pre-2005/FY2024 per-taxpayer from `05in01an.xls` (SOI individual returns 1913–2005, needs `xlrd`) + a recent in01 vintage — ~1–2h, with a cross-series consistency caveat.
+
 ### Phase 49 outcomes (for Phase 50/51)
 - Federal budgets now span FY1976–FY2025 (50 years) + TQ across operating/federal_agency/revenue, all sourced.
 - **TQ storage:** fiscal_year=1976 + `budgets.period_label='Transition Quarter (Jul–Sep 1976)'`, dataset_id `tq1976`. Phase 50 YearSelector MUST treat a non-null period_label row as a separate selectable period (orders right after FY1976). Unique index is now 4-col (…, period_label) NULLS NOT DISTINCT; RPC `treasury_sync_budget_tree` has optional 8th arg `p_period_label`.
