@@ -13,6 +13,7 @@
 - ✅ **v1.8 Massachusetts All-Cities Financial Transparency** — Phases 37-39 (shipped 2026-06-10)
 - ✅ **v1.9 MA County-City Linking** — Phases 40-42 (shipped 2026-06-11)
 - ✅ **v2.0 Federal Treasury Tracker** — Phases 43-48 (shipped 2026-06-13)
+- ▶ **v2.1 Federal History** — Phases 49-51 (in progress)
 
 ---
 
@@ -961,6 +962,64 @@ _Full detail archived in `.planning/milestones/v2.0-ROADMAP.md`._
 
 ---
 
+## ▶ v2.1 Federal History (Phases 49-51) — IN PROGRESS
+
+**Milestone goal:** Bring every available prior federal fiscal year (FY1976→FY2024) up to v2.0 detail — function lens, agency lens, and revenue-by-source — with a working YearSelector, every figure sourced.
+
+**Why it's cheap:** the 64-year headline history already lives in `federal_annual_summary`; explainers (name-keyed) and program origins (law-keyed) are year-independent and carry over for free. The work is mechanical — iterate the Phase 44 OMB loader across prior years, recompute per-year disclosures, load revenue per year, wire the YearSelector.
+
+**Hard constraint (Chris, 2026-06-13):** $0 API spend — no paid APIs, no AI/LLM enrichment calls. Claude loads the free OMB historical tables directly. v2.1 has no enrichment work.
+
+**Sources (all free, from v2.0 recon):** OMB Historical Tables — Hist 3.2 (outlays by function), Hist 4.1 / 5.1 (outlays by agency), Hist 2.x (receipts by source). Browser User-Agent required; openpyxl parses cleanly. Each table is one workbook holding all years as columns.
+
+#### Phase Summary
+
+- [ ] **Phase 49: Historical Federal Data Backfill (FY1976–FY2024)** — function (Hist 3.2), agency (Hist 4.1/5.1), revenue-by-source (Hist 2.x) for every year, per-year disclosures, every row sourced, $0 spend.
+- [ ] **Phase 50: Federal YearSelector Wiring** — citizen can select any backfilled year; function/agency/revenue + landing bands + deficit strip all update.
+- [ ] **Phase 51: Comparability Notes + Source-Chain Verification + UAT** — definition-drift + FY1976 TQ notes, every-figure-resolves audit across years, Chris sign-off.
+
+### Phase 49: Historical Federal Data Backfill (FY1976–FY2024)
+
+**Goal:** Function, agency, and revenue-by-source detail is loaded for every fiscal year FY1976–FY2024, every row sourced, each year carrying its own visual-vs-official disclosure — at $0 API spend.
+**Depends on:** Nothing new (reuses Phase 44 loaders + schema; US entity `0098c405-65e1-426f-8e5f-0fcbe2a900c0`)
+**Requirements:** HIST-01, HIST-02, HIST-03, HIST-04, CTX-01
+**Success Criteria** (what must be TRUE):
+  1. Function (Hist 3.2), agency (Hist 4.1/5.1), and receipts-by-source (Hist 2.x) trees are queryable for each fiscal year FY1976–FY2024 with no gaps
+  2. Each year's loaded totals reconcile to the OMB published table values (within rounding)
+  3. Every loaded line-item row populates source_name / source_url / source_date — zero exceptions
+  4. Each year stores its own visual-vs-official reconciliation disclosure (per-year excluded-negatives) — recomputed per year, not copied from FY2025
+  5. Zero API/LLM spend (loaded directly from free OMB tables); re-running loaders is idempotent
+
+**Cross-cutting constraints:**
+- OMB xlsx downloads require a browser User-Agent
+- Function/agency definitions drift over decades — preserve the source label per year; comparability notes land in Phase 51
+- FY1976 Transition Quarter (TQ) is a distinct period in OMB tables — handle explicitly, don't fold into a fiscal year
+- All-actuals span (FY1976–FY2024 are final); no estimate-vs-actual handling needed below FY2025
+
+### Phase 50: Federal YearSelector Wiring
+
+**Goal:** A citizen can select any backfilled fiscal year in the federal view and every panel — function, agency, revenue, landing bands, deficit strip — updates to that year.
+**Depends on:** Phase 49
+**Requirements:** NAV-01, NAV-02
+**Success Criteria** (what must be TRUE):
+  1. The federal YearSelector lists all loaded years (FY1976–FY2025) and switching years updates the function, agency, and revenue views
+  2. The landing Mandatory / Discretionary / Net Interest bands and the receipts-vs-outlays deficit strip reflect the selected year's figures
+  3. The source chip on each figure updates to the selected year's source
+  4. No regression to the FY2025 default federal view or to city/county/state entities
+
+### Phase 51: Comparability Notes + Source-Chain Verification + UAT
+
+**Goal:** Historical years carry honest comparability context, every backfilled figure ties to its official OMB source, and Chris signs off before milestone close.
+**Depends on:** Phases 49–50
+**Requirements:** CTX-02
+**Success Criteria** (what must be TRUE):
+  1. Comparability notes are visible in-app explaining function/agency definition drift across decades and the FY1976 Transition Quarter (TQ)
+  2. Automated source-chain audit confirms every backfilled year's figures resolve to a working OMB source URL (PASS, zero residue)
+  3. Spot-check of representative years (e.g., FY1976, FY1990, FY2008, FY2024) confirms totals match the OMB published tables
+  4. Chris UAT sign-off on historical year navigation and data accuracy
+
+---
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -1013,8 +1072,11 @@ _Full detail archived in `.planning/milestones/v2.0-ROADMAP.md`._
 | 46. Sourced Explainer Pipeline v2 | v2.0 | 3/3 | Complete | 2026-06-12 |
 | 47. Program Origins Pilot | v2.0 | 3/3 | Complete | 2026-06-12 |
 | 48. Source-Chain Verification + UAT | v2.0 | 2/2 | Complete | 2026-06-13 |
+| 49. Historical Federal Data Backfill (FY1976–FY2024) | v2.1 | 0/0 | Pending | — |
+| 50. Federal YearSelector Wiring | v2.1 | 0/0 | Pending | — |
+| 51. Comparability Notes + Source-Chain Verification + UAT | v2.1 | 0/0 | Pending | — |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-06-13 — v2.0 Federal Treasury Tracker SHIPPED (Phases 43-48); milestone archived*
+*Last updated: 2026-06-13 — v2.1 Federal History roadmap created (Phases 49-51)*

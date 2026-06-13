@@ -6,7 +6,7 @@ status: planning
 last_updated: "2026-06-13T06:42:34.379Z"
 last_activity: 2026-06-13
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,7 +20,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-13)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** v2.0 Federal Treasury Tracker SHIPPED 2026-06-13. Planning next milestone — recommended: historical backfill (prior fiscal years at v2.0 detail).
+**Current focus:** v2.1 Federal History — backfill prior federal fiscal years (FY1976→FY2024) to v2.0 detail: function/agency/revenue per year, per-year disclosures, YearSelector wiring. $0 API spend (mechanical OMB-table loads; explainers/origins carry over). Phases 49-51.
 
 ## Current Position
 
@@ -33,15 +33,13 @@ Last activity: 2026-06-13 — Milestone v2.1 started
 
 | Phase | Name | Depends on | Status |
 |-------|------|------------|--------|
-| 43 | Federal Entity + Sourcing Infrastructure | Nothing (Phase 32 'state' pattern) | Complete (2026-06-12) |
-| 44 | Core Federal Data Load | Phase 43 | Complete (2026-06-12) |
-| 45 | Federal Visualization | Phase 44 | Complete (2026-06-12) |
-| 46 | Sourced Explainer Pipeline v2 | Phase 44 (pipeline), 45 (UI) | Complete (2026-06-12) |
-| 47 | Program Origins Pilot | Phase 43 + 46 standard + API keys | Complete (2026-06-12) |
-| 48 | Source-Chain Verification + UAT | Phases 45–47 | Complete (2026-06-13) |
+| 49 | Historical Federal Data Backfill (FY1976–FY2024) | Nothing new (reuses Phase 44 loaders + schema) | Pending |
+| 50 | Federal YearSelector Wiring | Phase 49 | Pending |
+| 51 | Comparability Notes + Source-Chain Verification + UAT | Phases 49–50 | Pending |
 
-**Critical path:** 43 → 44 → 45 → 48; 46 and 47 can overlap with 45 once 44 lands.
-**Human-action checkpoints:** ~~Congress.gov + GovInfo API key signup~~ DONE 2026-06-12 — `DATA_GOV_API_KEY` in .env, verified against both APIs (ORIG-01 ✅). Remaining: CBO/GAO documents need manual browser download if required (both domains bot-block curl).
+**Critical path:** 49 → 50 → 51 (linear; data → navigation → context/verify).
+**Constraint:** $0 API spend — no AI/LLM enrichment calls; Claude loads free OMB historical tables directly (Hist 3.2 function, 4.1/5.1 agency, 2.x receipts). Browser User-Agent required for OMB xlsx; openpyxl parses cleanly.
+**Carryover (zero rework):** `federal_annual_summary` already holds 64 yrs; explainers (name-keyed) + program origins (law-keyed) are year-independent.
 
 ## Accumulated Context
 

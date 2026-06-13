@@ -1,9 +1,9 @@
 # Requirements: Treasury Tracker — v2.1 Federal History
 
-**Defined:** 2026-06-12
+**Defined:** 2026-06-13
 **Core Value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes — without needing a finance background.
 
-**Hard constraint (Chris, 2026-06-12):** **$0 API spend this milestone.** No paid APIs and no AI/LLM enrichment calls — Claude loads the free OMB historical tables directly. v2.1 has no enrichment work (explainers and program origins are year-independent carryover), so $0 is fully achievable.
+**Hard constraint (Chris, 2026-06-13):** **$0 API spend this milestone.** No paid APIs and no AI/LLM enrichment calls — Claude loads the free OMB historical tables directly. v2.1 has no enrichment work (explainers and program origins are year-independent carryover), so $0 is fully achievable.
 
 ## v1 Requirements
 
@@ -55,20 +55,20 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| HIST-01 | TBD | Pending |
-| HIST-02 | TBD | Pending |
-| HIST-03 | TBD | Pending |
-| HIST-04 | TBD | Pending |
-| NAV-01 | TBD | Pending |
-| NAV-02 | TBD | Pending |
-| CTX-01 | TBD | Pending |
-| CTX-02 | TBD | Pending |
+| HIST-01 | Phase 49 | Pending |
+| HIST-02 | Phase 49 | Pending |
+| HIST-03 | Phase 49 | Pending |
+| HIST-04 | Phase 49 | Pending |
+| CTX-01 | Phase 49 | Pending |
+| NAV-01 | Phase 50 | Pending |
+| NAV-02 | Phase 50 | Pending |
+| CTX-02 | Phase 51 | Pending |
 
 **Coverage:**
 - v1 requirements: 8 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 8 ⚠️
+- Mapped to phases: 8 ✓
+- Unmapped: 0 ✓
 
 ---
-*Requirements defined: 2026-06-12*
-*Last updated: 2026-06-12 after initial definition*
+*Requirements defined: 2026-06-13*
+*Last updated: 2026-06-13 after initial definition*
