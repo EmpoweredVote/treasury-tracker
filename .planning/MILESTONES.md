@@ -1,5 +1,24 @@
 # Milestones — Treasury Tracker / Empowered Vote Financials
 
+## v2.0 Federal Treasury Tracker (Shipped: 2026-06-13)
+
+**Phases completed:** 6 phases, 20 plans
+
+**Delivered:** The US Federal Government live at treasurytracker.empowered.vote — FY2025 budget visualized with maximum clarity and context, every figure and text claim sourced to an official record, never editorialized.
+
+**Key accomplishments:**
+
+- **Federal entity + always-sourced schema (Phase 43)** — `entity_type='federal'` end-to-end on the Phase 32 state pattern; `source_name/url/date` columns on budget + enrichment rows; `program_details` table for Tier 2 origins. No regression on city/county/state.
+- **All headline federal data, sourced (Phase 44)** — FY2025 actuals both lenses (function: 18→61→1,613 nodes summing exactly to OMB Hist 1.1; agency: 29 departments, identity 0.006% vs MTS T5), OMB 8.1 split (FY2015–25), 64-year history, FY2026 FYTD, debt $39.2T — every row carries source metadata.
+- **Federal visualization (Phase 45)** — proportional Mandatory/Discretionary/Net Interest landing bands + permanent receipts-vs-outlays deficit strip, function-default/agency-toggle drill, a source chip on every figure, per-capita/per-taxpayer/%-of-total scales with disclosed formulas.
+- **Sourced explainer pipeline v2 (Phase 46)** — 27 Tier-1 explainers authored from fetched authoritative text only, citations stored + displayed, at **$0 API cost**; DoD failed-audit opacity flagged with GAO's verbatim disclaimer.
+- **Program origins pilot (Phase 47)** — 15 major programs show enabling bill / public law / sponsor / year / cosponsors structured from Congress.gov + GovInfo, every claim linked, **zero LLM** (deterministic fetch); foundational pre-1973 programs show an honest sponsor-boundary note.
+- **Source-chain verification + UAT (Phase 48)** — automated audit of 225 claim rows / 61 unique URLs → **61/61 PASS, zero residue** (govinfo via API, congress.gov via real-browser content match); Chris UAT sign-off "Looks amazing!"; US tracker pinned first on the landing grid with an American-flag tile.
+
+**Known deferred items at close:** 5 stale/orphaned artifacts acknowledged and deferred (3 unrelated "longview" quick-tasks with missing files; 2 empty uat/verification-gap entries matching the pre-existing Phase 07/14/22/25 `human_needed` tech debt). None are v2.0 blockers — all 6 phases have complete VERIFICATION files. See STATE.md Deferred Items.
+
+---
+
 ## v1.9 MA County-City Linking (Shipped: 2026-06-11)
 
 *Entry backfilled 2026-06-12 at v2.0 rollover.*
@@ -50,6 +69,7 @@
 **Stats:** 6 phases, 20 plans; 3 days (2026-06-04 → 2026-06-06); ~143 commits
 
 **Known deferred at close:**
+
 - Oakland revenue (OpenGov embedded chart format — not extractable via pdfplumber)
 - Fresno + Riverside revenue (no extractable GF revenue section in PDFs)
 - San Jose FY2016–2020 (older PDF format)

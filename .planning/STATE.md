@@ -2,32 +2,32 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Federal Treasury Tracker
-status: roadmap_complete
-last_updated: "2026-06-12"
-last_activity: 2026-06-12 — Data recon complete, IA decisions locked, v2.0 roadmap written (Phases 43-48)
+status: Awaiting next milestone
+last_updated: "2026-06-13T04:52:47.115Z"
+last_activity: 2026-06-13 — Milestone v2.0 completed and archived
 progress:
   total_phases: 6
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 6
+  total_plans: 20
+  completed_plans: 20
+  percent: 100
 ---
 
 # State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-09)
+See: .planning/PROJECT.md (updated 2026-06-13)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** v2.0 Federal Treasury Tracker — roadmap written; next: plan Phase 43
+**Current focus:** v2.0 Federal Treasury Tracker SHIPPED 2026-06-13. Planning next milestone — recommended: historical backfill (prior fiscal years at v2.0 detail).
 
 ## Current Position
 
-Phase: 48 COMPLETE (VERIFY-01/02 PASS) — **v2.0 Federal Treasury Tracker build scope DONE (phases 43–48 all complete)**
-Plan: all of 48 done. 61/61 source URLs PASS; Chris UAT sign-off "Looks amazing!"; two polish enhancements shipped (US pinned first on landing + flag tile, b0da716). → NEXT: milestone audit/close (gsd-audit-milestone / gsd-complete-milestone), then scope the historical-backfill milestone (see Deferred Items)
-Status: v2.0 verified + sourced end-to-end. Fixes/changes this phase: source_registry service_role grant (migration 20260612180000); federal landing tile (AlphaLanding.tsx). EV-Accounts push (Phase 47) carried 2 pre-existing phase-117 wip commits (flagged in 47-03-SUMMARY)
-Last activity: 2026-06-12 — Phase 48 closed; federal tile shipped. RESUME AT: milestone close, or plan historical-backfill milestone
+Phase: Milestone v2.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-13 — Milestone v2.0 completed and archived
 
 ## Phase Overview
 
@@ -38,7 +38,7 @@ Last activity: 2026-06-12 — Phase 48 closed; federal tile shipped. RESUME AT: 
 | 45 | Federal Visualization | Phase 44 | Complete (2026-06-12) |
 | 46 | Sourced Explainer Pipeline v2 | Phase 44 (pipeline), 45 (UI) | Complete (2026-06-12) |
 | 47 | Program Origins Pilot | Phase 43 + 46 standard + API keys | Complete (2026-06-12) |
-| 48 | Source-Chain Verification + UAT | Phases 45–47 | Not started |
+| 48 | Source-Chain Verification + UAT | Phases 45–47 | Complete (2026-06-13) |
 
 **Critical path:** 43 → 44 → 45 → 48; 46 and 47 can overlap with 45 once 44 lands.
 **Human-action checkpoints:** ~~Congress.gov + GovInfo API key signup~~ DONE 2026-06-12 — `DATA_GOV_API_KEY` in .env, verified against both APIs (ORIG-01 ✅). Remaining: CBO/GAO documents need manual browser download if required (both domains bot-block curl).
@@ -115,13 +115,13 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-12
-Stopped at: v2.0 roadmap complete — ready to plan Phase 43
-Resume file: .planning/v2.0-recon/RECON.md
+Last session: 2026-06-13
+Stopped at: v2.0 milestone shipped + archived (phases 43-48 complete; tag v2.0)
+Resume file: .planning/PROJECT.md
 
 ### Next Session
 
-Plan Phase 43 (`/gsd:plan-phase 43`) — federal entity migration follows the Phase 32 'state' pattern (.planning/phases/32-state-entity-infrastructure/).
+Start the next milestone with `/gsd:new-milestone`. Recommended scope: historical backfill — prior fiscal years of federal function/agency detail at v2.0 quality (explainers + origins are year-independent and carry over; work is iterating the OMB loader across years + per-year disclosures + YearSelector wiring). See PROJECT.md "Current Milestone" + REQUIREMENTS archive Future Requirements.
 
 ## Performance Metrics
 
@@ -149,3 +149,19 @@ Carried forward from v1.7–v1.9 (see Known Tech Debt above). New in v2.0 planni
 | feature | Votes/amendments exploration hub | Future milestone — the eventual mission destination |
 | feature | Sourcing backfill to cities/states | After the standard is proven federally |
 | milestone | **Historical backfill — prior fiscal years (FY2024 ← back) at v2.0 detail** | RECOMMENDED NEXT (Chris asked 2026-06-12). Cheap parts already done: annual_summary already holds 64 years (FY1962+); explainers (name_key-keyed) + program origins (law-keyed, not year-keyed) are year-independent and need ZERO rework. Real work = iterate the OMB loader (Hist 3.2 outlays-by-function, 4.1/5.1 by-agency) across prior years + recompute per-year visual-vs-official disclosures + revenue-by-source per year + YearSelector wiring. Watch: function/agency definitions drift over decades (comparability notes); per-year actuals vs estimates. Same free sources + same loader pattern as 44. |
+
+### Acknowledged at v2.0 close (2026-06-13)
+
+Open-artifact audit at milestone close surfaced 5 stale/orphaned items, acknowledged and deferred (none are v2.0 blockers — all phases 43–48 have complete VERIFICATION files):
+
+| Category | Item | Status |
+|----------|------|--------|
+| quick_task | 001-create-treasury-tracker-entries-for-ever | orphaned (file missing) — unrelated to v2.0 federal work |
+| quick_task | 002-add-longview-tx-revenue | orphaned (file missing) — pre-v2.0 Longview effort; see untracked scripts/_verify-longview-temp.mjs |
+| quick_task | 003-longview-operating-budget | orphaned (file missing) — pre-v2.0 Longview effort |
+| uat_gap | (unnamed) | empty/orphaned entry — no v2.0 UAT gap (Phase 48 UAT signed off) |
+| verification_gap | (unnamed, human_needed) | matches pre-existing Phase 07/14/22/25 human_needed debt (shipped milestones) |
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone

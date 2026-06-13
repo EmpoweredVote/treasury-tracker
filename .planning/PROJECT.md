@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A public-facing financial transparency platform for cities and nonprofits, deployed at treasurytracker.empowered.vote. It translates raw budget and transaction data into plain-language summaries, visual breakdowns, and searchable spending categories — making government and nonprofit finances accessible to everyday citizens.
+A public-facing financial transparency platform for governments and nonprofits — cities, counties, states, and now the **US federal government** — deployed at treasurytracker.empowered.vote. It translates raw budget and transaction data into plain-language summaries, visual breakdowns, and searchable spending categories — making public finances accessible to everyday citizens. Federal data adds an always-sourced standard: every figure and explainer carries a link to its official record, and program-origin facts come structured from Congress.gov/GovInfo with zero model-memory claims.
 
 ## Core Value
 
@@ -58,29 +58,32 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - ✓ Anaheim CA operating + revenue (FY2025–FY2026, GF $491M–$530M, 344K population, 25 enrichment rows) — v1.6, Phase 31
 - ✓ Santa Ana CA operating + revenue (FY2023–FY2026, GF $404M–$424M, 312K population, 26 enrichment rows) — v1.6, Phase 31
 - ✓ 5 MA county operating budgets loaded via PDF extraction: Barnstable $24.75M FY25, Bristol $34.39M FY25, Dukes $2.02M FY24, Norfolk $37.82M FY26, Plymouth $11.87M FY25 — county pages show Money Out tab with per-capita — v1.9, Phase 41
+- ✓ Federal entity (`entity_type='federal'`) + always-sourced schema (source_name/url/date columns, program_details table) — v2.0, Phase 43
+- ✓ US FY2025 budget loaded both lenses (function 18→61→1,613 nodes = OMB Hist 1.1 exactly; agency 29 depts vs MTS T5), OMB 8.1 split, 64-yr history, FY2026 FYTD, debt $39.2T — every row sourced — v2.0, Phase 44
+- ✓ Federal landing: proportional Mandatory/Discretionary/Net-Interest bands + deficit strip; function-default/agency-toggle drill; source chip on every figure; per-capita/per-taxpayer/%-of-total scales — v2.0, Phase 45
+- ✓ 27 Tier-1 sourced explainers (fetched-text-only, citations displayed, $0 API); DoD failed-audit opacity flagged with GAO disclaimer — v2.0, Phase 46
+- ✓ 15-program origins pilot — enabling bill/public law/sponsor/year/cosponsors from Congress.gov+GovInfo, every claim linked, zero LLM; foundational sponsor-boundary notes — v2.0, Phase 47
+- ✓ Source-chain audit (225 rows / 61 URLs, 61/61 PASS) + Chris UAT sign-off; US pinned first on landing with flag tile — v2.0, Phase 48
 
-## Current Milestone: v1.9 MA County-City Linking
+## Current Milestone: v2.0 shipped — planning next
 
-**Goal:** Surface county context for all 351 MA municipalities — seed 14 county entities, link every city to its county, load budget data for the 5 active county governments, and show county breadcrumb + city panels in the live app.
+**v2.0 Federal Treasury Tracker shipped 2026-06-13** (Phases 43-48). The federal government is live, fully sourced, and UAT-confirmed.
 
-**Target features:**
-- 14 MA county rows seeded (entity_type='county', state='MA', Census population)
-- All 351 MA cities linked via county_id FK (county_id column already exists)
-- Budget data loaded for 5 active MA county governments (Barnstable, Bristol, Dukes, Nantucket, Norfolk)
-- County breadcrumb chip on MA city pages (links to county page)
-- CitiesInCountyPanel on MA county pages (available / coming soon)
-- Per-capita display on county pages (county population + county budget)
+**Recommended next milestone — Historical backfill (v2.1):** prior fiscal years at v2.0 detail. The expensive intellectual work is already banked: the 64-year headline history exists, and explainers (category-keyed) + program origins (law-keyed) are year-independent — they carry over for free. Remaining work is mechanical: iterate the OMB loader (Hist 3.2 by-function, 4.1/5.1 by-agency) across prior years, recompute per-year visual-vs-official disclosures, load revenue-by-source per year, wire the YearSelector for the federal entity. Watch: function/agency definitions drift over decades (comparability notes); actuals vs estimates for recent years.
 
-### Active
+### Active (next milestone candidates)
 
-- v1.9 started 2026-06-10 — requirements definition in progress
+- [ ] Historical backfill — prior fiscal years of federal function/agency detail + per-year disclosures + YearSelector wiring
+- [ ] Votes/amendments exploration hub (the eventual mission destination)
+- [ ] Backfill the always-sourced standard to city/state data (now proven federally)
 
-### Out of Scope
+### Out of Scope (federal)
 
-- Budget data for 9 dissolved MA counties (navigation-only: Berkshire, Dukes islands, Essex, Franklin, Hampden, Hampshire, Middlesex, Plymouth, Worcester)
-- Real-time websocket subscriptions — redirect-driven flow is sufficient and simpler
-- Multi-year per-capita trends — single vintage population creates false trends for fast-growing entities
-- Enterprise fund audit across counties — complex scope; deferred
+- **Paid APIs / data sources** — everything free (ground rule 1)
+- **Unsourced LLM text from model memory** — hard ban (ground rule 3)
+- **Deep icicles by default** — visualization chosen per data shape (ground rule 4)
+- **Anything beyond official public record** — no personal info, no targeting (ground rule 6)
+- **USAspending obligations as headline figures** — outlays canonical; obligations drill-down only, explicitly labeled
 
 ## Context
 
@@ -92,6 +95,8 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - Currently covers: 14 TX cities (Dallas, Plano, McKinney, Frisco, Allen, Prosper, Celina, Richardson, Garland, Wylie, Sachse, Murphy, Princeton, Longview) + 12 CA cities (Los Angeles, San Francisco, San Diego, Sacramento, Oakland, San Jose, Long Beach, Bakersfield, Fresno, Riverside, Anaheim, Santa Ana) + LA County + 3 OR cities (Portland, Gresham, Troutdale) + 351 MA cities + Massachusetts (state)
 - county_id FK on municipalities; 88 LA County cities linked; county breadcrumb chip on city pages; CitiesInCountyPanel on county pages
 - MA: 351 cities with FY2002–2025 General Fund data (24 years), per-capita, universal enrichment (14 categories), real MA state budget
+- **Federal:** United States entity (id `0098c405-65e1-426f-8e5f-0fcbe2a900c0`) live with FY2025 actuals (function + agency lenses), 64-yr OMB history, FY2026 FYTD strip, $39.2T debt; 27 sourced explainers + 15 program-origin records; always-sourced standard (source chips, official-record links). Backend in the separate **ev-accounts** repo (Render); data via `scripts/load*Federal*.js` + `loadProgramOrigins.js` using free APIs (Treasury Fiscal Data, OMB, MTS, Congress.gov/GovInfo via `DATA_GOV_API_KEY`)
+- Federal data sources bot-wall caveats: congress.gov/bioguide/gao 403 non-browser clients (browser-verify); govinfo SPA returns 200 for any path (verify via api.govinfo.gov); CBO blocks entirely (manual download)
 
 ## Constraints
 
@@ -115,9 +120,17 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 | SD FY2026 excluded (empty budget_cycle in source) | Source-driven gap; update fiscal_years when SD publishes FY2026 adopted data | — No code change needed |
 | Bristol + Norfolk county budgets larger than ROADMAP estimates | ROADMAP estimated Bristol ~$9-14M and Norfolk ~$14-18M; both include Agricultural Schools — Bristol $34.4M, Norfolk $37.8M | ✓ Accurate data wins |
 | Bristol/Dukes extracted via hardcoded values | Bristol PDF is scanned (no text layer); Dukes dot-leaders prevented reliable OCR parsing; hardcoded from verified sources | ✓ Good — accuracy over automation |
+| Recon before roadmap for v2.0 | Pulled live samples from every federal source before writing phases — caught CBO/GAO bot-walls and the obligations-vs-outlays trap up front | ✓ Good — zero source surprises mid-build |
+| FY2025 actuals as federal headline; FY2026 FYTD as a strip | Complete/final/sourced; partial-year proportions mislead | ✓ Good |
+| Function lens default, agency behind toggle | "What it's for" is the citizen question; ~20 clean categories vs 800-row agency tree | ✓ Good |
+| MTS/OMB outlays canonical; USAspending obligations drill-only | $3.3T gap; mixing would corrupt headline figures | ✓ Good |
+| Explainers + origins authored/fetched, never from model memory | Always-sourced ground rule; inline authorship hit $0 API; origins need no LLM at all (pure structured fetch) | ✓ Good — $0 spend, fully auditable |
+| govinfo existence via API, congress.gov via real browser | govinfo SPA 200s any path; congress.gov 403s non-browser clients — status checks alone would give false PASS/FAIL | ✓ Good — audit caught both |
 
 ## Shipped
 
+- ✅ **v2.0 Federal Treasury Tracker** — 2026-06-13 — Phases 43-48 (US federal entity, FY2025 both lenses, first-split bands + deficit strip, 27 sourced explainers, 15-program origins pilot, source-chain audit 61/61 + UAT)
+- ✅ **v1.9 MA County-City Linking** — 2026-06-11 — Phases 40-42 (14 MA counties seeded, 351 cities linked, 5 county budgets, county enrichment)
 - ✅ **v1.8 Massachusetts All-Cities Financial Transparency** — 2026-06-10 — Phases 37-39 (MA DLS loader, 351 MA cities FY2002–2025, MA state budget, per-capita, universal enrichment)
 - ✅ **v1.7 California State Budget + Deep Icicles** — 2026-06-09 — Phases 32-36 (CA state entity, CA state budget, 3-level icicle infrastructure, Portland/Dallas retrofit)
 - ✅ **v1.6 California City Expansion** — 2026-06-06 — Phases 26-31 (Sacramento, Oakland, San Jose, Long Beach, Bakersfield, Fresno, Riverside, Anaheim, Santa Ana CA; Longview TX revenue; STATE_LABELS)
@@ -129,4 +142,4 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - ✅ **v1.0 GiveButter Real-Time Donation Feedback** — 2026-04-22 — Phases 1-4
 
 ---
-*Last updated: 2026-06-11 after Phase 41 complete (MA county budgets loaded)*
+*Last updated: 2026-06-13 after v2.0 Federal Treasury Tracker milestone*
