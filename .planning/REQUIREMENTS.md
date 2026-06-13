@@ -18,8 +18,8 @@ Requirements for milestone v2.1. Each maps to a roadmap phase. All v2.0 ground r
 
 ### Year Navigation (NAV)
 
-- [ ] **NAV-01**: A citizen can select any backfilled fiscal year from the federal YearSelector, and the function, agency, and revenue views update to that year
-- [ ] **NAV-02**: The federal landing bands (Mandatory / Discretionary / Net Interest) and the receipts-vs-outlays deficit strip reflect the fiscal year selected in the YearSelector
+- [x] **NAV-01**: A citizen can select any backfilled fiscal year from the federal YearSelector, and the function, agency, and revenue views update to that year
+- [x] **NAV-02**: The federal landing bands (Mandatory / Discretionary / Net Interest) and the receipts-vs-outlays deficit strip reflect the fiscal year selected in the YearSelector
 
 ### Data Integrity & Context (CTX)
 
@@ -60,8 +60,8 @@ Which phases cover which requirements. Populated during roadmap creation.
 | HIST-03 | Phase 49 | Complete |
 | HIST-04 | Phase 49 | Complete |
 | CTX-01 | Phase 49 | Complete |
-| NAV-01 | Phase 50 | Pending |
-| NAV-02 | Phase 50 | Pending |
+| NAV-01 | Phase 50 | Complete |
+| NAV-02 | Phase 50 | Complete |
 | CTX-02 | Phase 51 | Pending |
 
 **Coverage:**

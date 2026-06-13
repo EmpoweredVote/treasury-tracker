@@ -4,13 +4,13 @@ milestone: v2.1
 milestone_name: Federal History
 status: In progress
 last_updated: "2026-06-13T00:00:00.000Z"
-last_activity: 2026-06-13 — Phase 49 complete (historical federal backfill FY1976–FY2024 + TQ)
+last_activity: 2026-06-13 — Phase 50 complete (Federal YearSelector wiring, deployed to prod, UAT approved)
 progress:
   total_phases: 3
-  completed_phases: 1
-  total_plans: 5
-  completed_plans: 5
-  percent: 33
+  completed_phases: 2
+  total_plans: 9
+  completed_plans: 9
+  percent: 67
 ---
 
 # State
@@ -24,10 +24,15 @@ See: .planning/PROJECT.md (updated 2026-06-13)
 
 ## Current Position
 
-Phase: 49 complete → Phase 50 next (Federal YearSelector Wiring)
-Plan: 49-01..05 all complete + verified
-Status: Phase 49 shipped (150 federal budgets / 135,056 line items, FY1976–FY2024 + TQ, $0 spend)
-Last activity: 2026-06-13 — Phase 49 complete
+Phase: 50 complete → Phase 51 next (Comparability Notes + Source-Chain Verification + UAT)
+Plan: 50-01..04 all complete + verified (deployed to prod, UAT approved)
+Status: Phase 50 shipped — federal YearSelector live (FY1976–FY2025 + TQ selectable; bands/strip switch per year)
+Last activity: 2026-06-13 — Phase 50 complete
+
+### Phase 50 outcomes (for Phase 51)
+- Backend EV-Accounts exposes `period_label` on `/cities` available_datasets + `/budgets` (master 83b87196, deployed to Render). Frontend models periods via `src/utils/period.ts` (parsePeriod/buildPeriodTokens); TQ token resolves to fiscal_year 1976 + period_label; loadBudgetData disambiguates by period_label.
+- `FederalLanding` is year-aware (selects annual_summary row by fiscal_year); TQ hides annual-summary bands (no TQ summary row); FYTD strip only on the current/default year.
+- **Phase 51 owes:** (1) systematic source-chain audit across every figure/year/source — Phase 50 fixed only the surfaced context-metric chips (→ human fiscaldata pages, DB + loadFederalMTS.js) and federal lens chips (→ registry url, App.tsx); deeper per-figure URLs unaudited. (2) Comparability/definition-drift notes + the FY1976 Transition Quarter explanation copy (the TQ currently renders with a neutral heading, no sourced explanation).
 
 ### Phase 49 outcomes (for Phase 50/51)
 - Federal budgets now span FY1976–FY2025 (50 years) + TQ across operating/federal_agency/revenue, all sourced.
@@ -40,7 +45,7 @@ Last activity: 2026-06-13 — Phase 49 complete
 | Phase | Name | Depends on | Status |
 |-------|------|------------|--------|
 | 49 | Historical Federal Data Backfill (FY1976–FY2024) | Nothing new (reuses Phase 44 loaders + schema) | Complete |
-| 50 | Federal YearSelector Wiring | Phase 49 | Pending |
+| 50 | Federal YearSelector Wiring | Phase 49 | Complete |
 | 51 | Comparability Notes + Source-Chain Verification + UAT | Phases 49–50 | Pending |
 
 **Critical path:** 49 → 50 → 51 (linear; data → navigation → context/verify).
