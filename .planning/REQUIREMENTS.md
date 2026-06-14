@@ -16,8 +16,8 @@ Requirements for this milestone. Each maps to exactly one roadmap phase (52–56
 
 ### Orange County Data
 
-- [ ] **OC-01**: A citizen can view operating spending for any of Orange County's 34 cities, FY2003–2024.
-- [ ] **OC-02**: A citizen can view revenue for any of Orange County's 34 cities, FY2003–2024.
+- [x] **OC-01**: A citizen can view operating spending for any of Orange County's 34 cities, FY2003–2024.
+- [x] **OC-02**: A citizen can view revenue for any of Orange County's 34 cities, FY2003–2024.
 - [ ] **OC-03**: A citizen can browse Orange County and its cities via the county page — Orange County entity seeded, all 34 cities linked, breadcrumb chain (US → California → Orange County → city) and Cities-in-County panel populated.
 - [ ] **OC-04**: Each Orange County city's budget categories carry plain-language enrichment (plain names + descriptions), consistent with the LA County baseline.
 - [ ] **OC-05**: Anaheim and Santa Ana are linked to Orange County without altering their existing custom-sourced data.
@@ -68,8 +68,8 @@ Which phase covers each requirement. Filled during roadmap creation.
 | PIPE-02 | Phase 52 | Pending |
 | PIPE-03 | Phase 52 | Pending |
 | PIPE-04 | Phase 52 | Pending |
-| OC-01 | Phase 53 | Pending |
-| OC-02 | Phase 53 | Pending |
+| OC-01 | Phase 53 | Complete |
+| OC-02 | Phase 53 | Complete |
 | OC-03 | Phase 54 | Pending |
 | OC-04 | Phase 54 | Pending |
 | OC-05 | Phase 54 | Pending |
