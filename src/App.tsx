@@ -31,6 +31,7 @@ import CategoryList from './components/CategoryList';
 import LineItemsTable from './components/LineItemsTable';
 import LinkedTransactionsPanel from './components/LinkedTransactionsPanel';
 import CitiesInCountyPanel from './components/CitiesInCountyPanel';
+import StatesInFederalPanel from './components/StatesInFederalPanel';
 import { getHeroImage, getHeroBgPosition } from './utils/wikiImage';
 import type { BudgetCategory, BudgetData, FederalContext, LinkedTransactionSummary, Municipality } from './types/budget';
 
@@ -518,21 +519,46 @@ function App() {
     setNavigationPath(path);
   }, []);
 
-  const countyEntity = useMemo(() =>
-    selectedEntity?.county_id
+  // Jurisdiction chain for the breadcrumb: Federal → State → County above the
+  // current entity. Gives every city a link up to its State and the federal
+  // government (and its County when one is linked). The federal entity and all
+  // 50 state entities are always present in the municipalities list, so a city
+  // resolves its state by abbreviation and the nation directly.
+  const jurisdictionParents = useMemo<Municipality[]>(() => {
+    if (!selectedEntity) return [];
+    const federal = municipalities.find(m => m.entity_type === 'federal') ?? null;
+    const state = municipalities.find(
+      m => m.entity_type === 'state' && m.state === selectedEntity.state
+    ) ?? null;
+    const county = selectedEntity.county_id
       ? municipalities.find(m => m.id === selectedEntity.county_id) ?? null
-      : null,
-    [selectedEntity, municipalities]
-  );
+      : null;
+
+    const keep = (arr: (Municipality | null)[]) =>
+      arr.filter((m): m is Municipality => m != null);
+
+    switch (selectedEntity.entity_type) {
+      case 'federal':
+        return []; // top of the chain
+      case 'state':
+        return keep([federal]);
+      case 'county':
+        return keep([federal, state]);
+      case 'nonprofit':
+        return []; // not a government jurisdiction
+      default: // city, town, township, municipality, special_district, etc.
+        return keep([federal, state, county]);
+    }
+  }, [selectedEntity, municipalities]);
 
   const breadcrumbItems: BreadcrumbItem[] = useMemo(() => {
     const items: BreadcrumbItem[] = [];
 
-    // County prefix — only for cities with county_id
-    if (countyEntity) {
+    // Jurisdiction chain — Federal → State → County links above the current entity
+    for (const parent of jurisdictionParents) {
       items.push({
-        label: countyEntity.name,
-        onClick: () => handleEntityChange(countyEntity)
+        label: parent.name,
+        onClick: () => handleEntityChange(parent),
       });
     }
 
@@ -556,7 +582,7 @@ function App() {
     });
 
     return items;
-  }, [navigationPath, activeDataset, selectedEntity, countyEntity, municipalities]);
+  }, [navigationPath, activeDataset, selectedEntity, jurisdictionParents, handleEntityChange]);
 
   const displayText = getDatasetDisplayText(activeDataset);
 
@@ -801,7 +827,7 @@ function App() {
         </div>
       </div>
 
-      {(countyEntity != null || breadcrumbItems.length > 2) && <Breadcrumb items={breadcrumbItems} />}
+      {(jurisdictionParents.length > 0 || breadcrumbItems.length > 2) && <Breadcrumb items={breadcrumbItems} />}
 
       {/* Donate arrow annotation — only on current-year nonprofit top-level view */}
       <DonateArrow
@@ -1136,6 +1162,14 @@ function App() {
             <div className="mt-6">
               <MethodologyPanel />
             </div>
+          )}
+
+          {/* All 50 states — jump-off tags at the bottom of the federal page */}
+          {navigationPath.length === 0 && selectedEntity?.entity_type === 'federal' && (
+            <StatesInFederalPanel
+              municipalities={municipalities}
+              onStateClick={handleEntityChange}
+            />
           )}
 
           {/* Cities in County panel — rendered below budget on county pages */}
