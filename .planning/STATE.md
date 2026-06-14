@@ -17,10 +17,10 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-13)
+See: .planning/PROJECT.md (updated 2026-06-14)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Milestone complete
+**Current focus:** v2.1 Federal History shipped (Phases 49-51, audit passed 8/8). Planning next milestone — run `/gsd:new-milestone`.
 
 ## Current Position
 

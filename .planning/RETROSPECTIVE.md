@@ -104,6 +104,49 @@
 
 ---
 
+## Milestone: v2.1 — Federal History
+
+**Shipped:** 2026-06-14
+**Phases:** 3 (49-51) | **Plans:** 13 | **Timeline:** ~2 days (2026-06-13 → 2026-06-14)
+
+### What Was Built
+
+- Prior federal fiscal years FY1976→FY2024 brought to v2.0 detail — function (OMB Hist 3.2 / PBD), agency (rebuilt from PBD, not MTS), revenue (Hist 2.1) per year + the FY1976 Transition Quarter; 150 budgets / ~135K line items; per-year visual-vs-official disclosures; every row sourced; $0 spend
+- Federal YearSelector wiring — FY1976–FY2025 + the TQ selectable via a centralized `parsePeriod`/`buildPeriodTokens` period model; trees + landing bands + deficit strip switch per period; per-year per-capita/per-taxpayer denominators (FRED pop + IRS returns) with honest gaps disclosed
+- Source-chain durability (repointed every metric URL off version-specific xlsx/raw-API to stable human pages; audit FAIL 0, 0 fragile URLs), sourced comparability notes (TQ + function drift + 5 Cabinet reorganizations, each verified against its GovInfo public-law record), rendered in-app with source chips; Chris UAT sign-off on prod
+
+### What Worked
+
+- **The v2.0 prediction held exactly**: "the expensive work is year-independent → historical backfill is mostly mechanical loader iteration." Explainers (name-keyed) and origins (law-keyed) carried over with zero rework; the milestone was big in data, small in invention — as forecast.
+- **Inline execution beat subagent spawning for a small linear phase**: Phase 51 (3 incomplete plans, 2 of them interactive checkpoints, strict 49→50→51 dependency) ran inline on the main loop — no worktree/subagent overhead — which fit the token-economy constraint and handled the human checkpoints naturally.
+- **GovInfo as the durability anchor**: pointing comparability sources at `BUDGET-YYYY-TAB` (Historical Tables intro) and `STATUTE-…`/`PLAW-…` records — verified via `api.govinfo.gov` rather than page status — gave stable, audit-checkable URLs. The Phase 48 govinfo-API pattern dropped straight into the new comparability verifier.
+- **No-model-memory rule forced real verification, caught nothing wrong but proved the chain**: every comparability claim (incl. the HEW→HHS redesignation) was read from the fetched law text (93 STAT. 694 §509), not asserted — exactly the milestone's core promise.
+
+### What Was Inefficient
+
+- **`milestone.complete` auto-accomplishments broke again** — this time grabbing the literal "Status:" line from each SUMMARY 13×. Second milestone running (v2.0 hit the same class of bug with "**Executed:**"). The extractor and the SUMMARY one-liner convention still disagree; hand-rewriting the MILESTONES entry is now expected, not exceptional.
+- **PLAW vs STATUTE coverage boundary cost a detour**: GovInfo PLAW packages only cover 1995+ (104th Congress), so the three pre-1995 laws (Energy/Education/VA) 404'd as PLAW and had to be resolved to their `STATUTE-NN-PgNNN` granules by title-match. Worth knowing up front for any future public-law sourcing.
+
+### Patterns Established
+
+- **Durable source URLs over fetch URLs**: the metric `source_url` points at a stable human page (`…/supplemental-materials/`, `…/historical-tables/`, GovInfo app details); the exact xlsx/API endpoint lives only as the loader's fetch URL / `data_sources.base_url`. Durability is now a checked invariant (regex SQL assertion → 0 fragile URLs).
+- **GovInfo public-law sourcing split**: ≥104th Congress (1995+) → `PLAW-NNNpublNN`; older → `STATUTE-NN-PgNNN` granule (matched by Act title, law number confirmed against the record). Both verify via `api.govinfo.gov`.
+- **Static JSON import for small sourced content**: `data/*.json` (the git-reviewed audit trail) imported into the frontend via `resolveJsonModule` + a cross-root import — $0, no API/DB/backend change. Survives `tsc -b`.
+
+### Key Lessons
+
+1. **Year-independent design is the real ROI**: the v2.0 decision to key explainers on name and origins on law (not year) is what made an entire historical-backfill milestone cheap and mechanical. Architectural choices that decouple from the partition dimension pay off a milestone later.
+2. **Match execution mode to phase shape**: small, linear, checkpoint-heavy phases are cheaper and simpler run inline than fanned out to worktree subagents. Reserve parallel executors for genuinely independent, parallelizable plans.
+3. **The auto-accomplishments extractor is reliably broken** — budget for hand-writing the MILESTONES entry every close until the extractor/convention mismatch is fixed.
+4. **Per-plan doc updates finally happened** — ROADMAP plan-progress was updated as each plan completed this milestone (via `roadmap.update-plan-progress`), so close was lighter than v2.0's batch reconciliation. The recurring "docs lag at close" tax was smaller this time.
+
+### Cost Observations
+
+- **$0 API spend** — no LLM calls anywhere (comparability authored from fetched text; verification via WebFetch + `api.govinfo.gov` + Supabase SQL). Held the milestone's hard constraint.
+- Inline (no-subagent) execution of Phase 51 avoided per-plan fresh-context token costs — a deliberate token-economy choice for a small phase.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -119,10 +162,13 @@
 | v1.6 | 6 | 20 | 3 days | CA pdfplumber pattern proven across 9 cities |
 | v1.7–v1.9 | 12 | ~30 | — | (not logged) CA state + deep icicles, MA all-cities, MA county linking |
 | v2.0 | 6 | 20 | ~1 day | Federal entity + always-sourced standard; $0 enrichment; domain-aware source audit |
+| v2.1 | 3 | 13 | ~2 days | Federal history backfill (year-independent design validated); inline execution for small phase; durable source URLs; $0 spend |
 
 ### Top Lessons (Verified Across Milestones)
 
 1. **Generic loaders compress future milestones**: Every milestone that invested in a reusable loader (Socrata v1.1, XLSX v1.1, pdfplumber v1.5) made subsequent milestones faster. This compounds — v1.6 ran in 3 days because v1.5 proved the pdfplumber pattern, and v2.0's federal loaders set up a cheap historical backfill.
 2. **Scope mismatches are correctness issues, not just cosmetic**: Bakersfield (v1.6) and LA revenue (v1.5) both had scope mismatches caught during verification. A "scope parity check" before enrichment is now standard. v2.0 extended this to visual-vs-official totals (the $521B/$1,895B disclosure).
 3. **Human UAT checkpoints catch real issues**: Every milestone has had at least one real issue surfaced during human verification that automated checks missed (LA revenue $44.6B in v1.5; Bakersfield operating/revenue ratio in v1.6; React #310 hooks crash in v2.0 Phase 45).
-4. **Planning docs lag at close — recurring tax**: v1.6, and again v2.0, surfaced stale ROADMAP/PROJECT state at milestone close. Per-plan doc updates remain the unfixed process gap.
+4. **Planning docs lag at close — recurring tax (improving)**: v1.6 and v2.0 surfaced stale ROADMAP/PROJECT state at close. v2.1 updated ROADMAP plan-progress per-plan, making close lighter — the fix is "update tracking as each plan completes," and it works when actually done.
+5. **Reusable verification harnesses compound like loaders do**: the Phase 48 govinfo-API source-check dropped straight into v2.1's comparability verifier with no rework. Audit/verification tooling is as reusable as data loaders — invest in it once, reuse across milestones.
+6. **Match execution mode to phase shape**: v2.1 ran a small, linear, checkpoint-heavy phase inline (no subagents) for lower token cost; parallel worktree executors are for genuinely independent plans. One size does not fit all phases.
