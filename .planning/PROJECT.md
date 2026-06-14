@@ -68,25 +68,26 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - ✓ Federal YearSelector wiring — FY1976–FY2025 + the FY1976 Transition Quarter selectable; bands/strip/lens trees switch per period — v2.1, Phase 50
 - ✓ Source-chain durability (zero residue, audit FAIL 0) + sourced comparability notes (function/agency definition drift + the FY1976 Transition Quarter) rendered in-app with source chips; v2.1 UAT sign-off — v2.1, Phase 51
 
-## Last Milestone: ✅ v2.1 Federal History — SHIPPED 2026-06-14 (Phases 49-51)
+## Current Milestone: v2.2 Orange County + Reusable SoCal Pipeline
 
-> Next milestone TBD — run `/gsd:new-milestone`. Candidates in "Future (deferred milestone candidates)" below.
-
-**Goal:** Bring every available prior federal fiscal year (FY1976→FY2024) up to v2.0 detail — function lens, agency lens, and revenue-by-source — with a working YearSelector, every figure sourced.
+**Goal:** Bring all 34 Orange County cities into the tracker from the CA State Controller's uniform open data, and turn the bulk loader into a documented one-command pipeline for every remaining Southern California county.
 
 **Target features:**
-- Function-lens detail per year (OMB Hist 3.2, outlays by budget function) for all years back to FY1976
-- Agency-lens detail per year (OMB Hist 4.1/5.1, outlays by agency) for the same span
-- Revenue-by-source per year (OMB Hist 2.x receipts) completing Money In for each historical year
-- Per-year visual-vs-official disclosures recomputed for each loaded year (the Phase 44 excluded-negatives pattern)
-- Federal YearSelector wiring — make all backfilled years selectable in the app
-- Comparability notes for function/agency definition drift across decades + the FY1976 Transition Quarter
+- Hardened, reusable SoCal county bulk pipeline (population backfill, sourced attribution, documented runbook) — a new county becomes one command
+- All 34 OC cities loaded: Operating + Revenue, FY2003–2024 (32 net-new cities; Anaheim & Santa Ana kept as-is, linked only)
+- Orange County entity + city linking (powers the breadcrumb chain + Cities-in-County panel)
+- Standardized category enrichment across all 34 cities (cost-estimated first; $5 approval threshold)
+- **Net-new:** statewide per-city salaries integration (CA Government Compensation, publicpay.ca.gov) — spike-first to de-risk, then load OC
+- Verification + UAT against published ACFRs
 
-**Free carryover (zero rework):** the 64-year headline history already lives in `federal_annual_summary`; explainers (name-keyed) and program origins (law-keyed) are year-independent. The real work is mechanical — iterate the Phase 44 OMB loader across prior years, recompute disclosures, load revenue per year, wire the YearSelector. Same free sources, every row sourced (v2.0 ground rules carry forward).
+**Carryover (low risk):** Operating + revenue reuse the exact ByTheNumbers path that built the LA County 88 — `bulkLoadStateController.js`, datasets `ju3w-4gxp` (expenditures) / `rrtv-rsj9` (revenues), county-parameterized, auto-creating city records. The only genuinely net-new build is statewide per-city salaries — isolated to its own phase and spiked before commitment. Depth caveat accepted: SCO data is category-level (same depth as the LA County 88), not transaction/line-item.
 
 ### Active
 
-- [x] Federal historical backfill — FY1976→FY2024 function/agency detail + revenue-by-source + per-year disclosures + YearSelector wiring + comparability notes (v2.1 — **complete**, Phases 49–51; all 8 requirements verified, ready for milestone close)
+- [ ] SoCal bulk pipeline hardening — reusable one-command county loader, population backfill, sourced attribution, runbook (v2.2, Phase 52)
+- [ ] Orange County operating + revenue — 34 cities FY2003–2024, county entity + linking + enrichment (v2.2, Phase 53)
+- [ ] Statewide city-salaries integration — publicpay.ca.gov spike + loader + OC load (v2.2, Phase 54)
+- [ ] Orange County verification + UAT against ACFRs (v2.2, Phase 55)
 
 ### Future (deferred milestone candidates)
 
@@ -176,4 +177,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-14 — v2.1 Federal History complete (Phases 49–51; all 8 requirements verified) — ready for `/gsd:complete-milestone`*
+*Last updated: 2026-06-14 — v2.2 Orange County + Reusable SoCal Pipeline started (Phases 52–55)*
