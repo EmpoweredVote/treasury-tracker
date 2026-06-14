@@ -1,5 +1,23 @@
 # Milestones — Treasury Tracker / Empowered Vote Financials
 
+## v2.1 Federal History (Shipped: 2026-06-14)
+
+**Phases completed:** 3 phases, 13 plans
+
+**Delivered:** Every available prior federal fiscal year (FY1976→FY2024) brought up to v2.0 detail — function lens, agency lens, and revenue-by-source per year — selectable through the federal YearSelector, with honest comparability context and every figure sourced, at **$0 API spend**.
+
+**Key accomplishments:**
+
+- **Historical federal backfill (Phase 49)** — function (OMB Hist 3.2), agency (Hist 4.1/5.1), and receipts (Hist 2.x) detail loaded for FY1976–FY2024 plus the FY1976 Transition Quarter, every row carrying source_name/url/date and each year recomputing its own visual-vs-official disclosure; loaders parameterized across years (free OMB tables only, no LLM).
+- **Federal YearSelector wiring (Phase 50)** — FY1976–FY2025 + the Transition Quarter all selectable; function/agency/revenue trees, landing bands, and the deficit strip switch per period via a centralized `parsePeriod`/`buildPeriodTokens` model; per-year per-capita/per-taxpayer denominators (FRED population + IRS returns) with honest gaps disclosed.
+- **Source-chain durability + comparability + UAT (Phase 51)** — repointed every metric source_url off version-specific xlsx / raw-API URLs to durable human pages (audit **FAIL 0**, 0 fragile URLs); authored sourced comparability content (TQ + function drift + 5 Cabinet reorganizations, each verified against its GovInfo public-law record); rendered the notes in-app with source chips; Chris UAT sign-off on prod.
+
+**Milestone audit:** PASSED — 8/8 requirements satisfied (HIST-01..04, NAV-01/02, CTX-01/02), cross-phase integration + E2E flow verified, all phases Nyquist-compliant. See `milestones/v2.1-MILESTONE-AUDIT.md`.
+
+**Known deferred items at close:** 3 orphaned pre-v2.0 quick-tasks (`001-create-treasury-tracker-entries`, `002-add-longview-tx-revenue`, `003-longview-operating-budget`) — files missing, already acknowledged at the v2.0 close; not v2.1 scope. See STATE.md Deferred Items.
+
+---
+
 ## v2.0 Federal Treasury Tracker (Shipped: 2026-06-13)
 
 **Phases completed:** 6 phases, 20 plans

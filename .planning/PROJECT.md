@@ -68,7 +68,9 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - ✓ Federal YearSelector wiring — FY1976–FY2025 + the FY1976 Transition Quarter selectable; bands/strip/lens trees switch per period — v2.1, Phase 50
 - ✓ Source-chain durability (zero residue, audit FAIL 0) + sourced comparability notes (function/agency definition drift + the FY1976 Transition Quarter) rendered in-app with source chips; v2.1 UAT sign-off — v2.1, Phase 51
 
-## Current Milestone: v2.1 Federal History
+## Last Milestone: ✅ v2.1 Federal History — SHIPPED 2026-06-14 (Phases 49-51)
+
+> Next milestone TBD — run `/gsd:new-milestone`. Candidates in "Future (deferred milestone candidates)" below.
 
 **Goal:** Bring every available prior federal fiscal year (FY1976→FY2024) up to v2.0 detail — function lens, agency lens, and revenue-by-source — with a working YearSelector, every figure sourced.
 
@@ -143,6 +145,7 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 
 ## Shipped
 
+- ✅ **v2.1 Federal History** — 2026-06-14 — Phases 49-51 (FY1976–FY2024 function/agency/revenue per year + per-year disclosures, federal YearSelector incl. the FY1976 Transition Quarter, sourced comparability notes + definition-drift, source-chain durability audit FAIL 0; $0 API spend; milestone audit passed 8/8)
 - ✅ **v2.0 Federal Treasury Tracker** — 2026-06-13 — Phases 43-48 (US federal entity, FY2025 both lenses, first-split bands + deficit strip, 27 sourced explainers, 15-program origins pilot, source-chain audit 61/61 + UAT)
 - ✅ **v1.9 MA County-City Linking** — 2026-06-11 — Phases 40-42 (14 MA counties seeded, 351 cities linked, 5 county budgets, county enrichment)
 - ✅ **v1.8 Massachusetts All-Cities Financial Transparency** — 2026-06-10 — Phases 37-39 (MA DLS loader, 351 MA cities FY2002–2025, MA state budget, per-capita, universal enrichment)
