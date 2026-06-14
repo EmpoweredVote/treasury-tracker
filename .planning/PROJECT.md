@@ -85,7 +85,7 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 ### Active
 
 - [ ] SoCal bulk pipeline hardening — reusable one-command county loader, population backfill, sourced attribution, runbook (v2.2, Phase 52)
-- [ ] Orange County operating + revenue — 34 cities FY2003–2024, county entity + linking + enrichment (v2.2, Phase 53)
+- [x] Orange County operating + revenue — 34 cities FY2003–2024 loaded from ByTheNumbers, 32 net-new cities w/ populations, Anaheim & Santa Ana custom data preserved (v2.2, Phase 53 ✓). County entity + linking + enrichment → Phase 54.
 - [ ] Statewide city-salaries integration — publicpay.ca.gov spike + loader + OC load (v2.2, Phase 54)
 - [ ] Orange County verification + UAT against ACFRs (v2.2, Phase 55)
 
@@ -177,4 +177,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-14 — v2.2 Orange County + Reusable SoCal Pipeline started (Phases 52–55)*
+*Last updated: 2026-06-14 — Phase 53 complete: all 34 Orange County cities loaded with operating + revenue (FY2003–2024). Next: Phase 54 (OC entity, linking + enrichment).*
