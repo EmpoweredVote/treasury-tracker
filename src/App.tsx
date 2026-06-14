@@ -552,6 +552,16 @@ function App() {
     }
   }, [selectedEntity, municipalities]);
 
+  // State entity containing the current entity (itself if it's a state) — drives
+  // the Cities-in-State panel on both state and county pages.
+  const stateEntity = useMemo<Municipality | null>(() => {
+    if (!selectedEntity) return null;
+    if (selectedEntity.entity_type === 'state') return selectedEntity;
+    return municipalities.find(
+      m => m.entity_type === 'state' && m.state === selectedEntity.state
+    ) ?? null;
+  }, [selectedEntity, municipalities]);
+
   const breadcrumbItems: BreadcrumbItem[] = useMemo(() => {
     const items: BreadcrumbItem[] = [];
 
@@ -1182,14 +1192,17 @@ function App() {
             />
           )}
 
-          {/* Cities in State panel — rendered below budget on state pages */}
-          {navigationPath.length === 0 && selectedEntity?.entity_type === 'state' && (
-            <CitiesInStatePanel
-              state={selectedEntity}
-              municipalities={municipalities}
-              onCityClick={handleEntityChange}
-            />
-          )}
+          {/* Cities in State panel — on state pages, and on county pages too as a
+              state-wide jump-off (below the county's own cities) */}
+          {navigationPath.length === 0 &&
+            (selectedEntity?.entity_type === 'state' || selectedEntity?.entity_type === 'county') &&
+            stateEntity && (
+              <CitiesInStatePanel
+                state={stateEntity}
+                municipalities={municipalities}
+                onCityClick={handleEntityChange}
+              />
+            )}
         </div>
       </div>
 
