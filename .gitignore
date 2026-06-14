@@ -66,3 +66,6 @@ scripts/output/
 .env
 .env.*
 !.env.example
+
+# Planning recon data samples (large source xlsx/csv kept locally, not tracked)
+.planning/**/samples/
