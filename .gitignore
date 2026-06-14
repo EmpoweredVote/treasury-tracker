@@ -48,6 +48,9 @@ src/data/processedBudget.json
 # …and the federal program-origins identifier list (Phase 47: identifiers only,
 # all fact values fetched from Congress.gov/GovInfo at load time)
 !/data/federal-programs.json
+# …and the comparability / definition-drift notes (Phase 51: inline-authored from
+# fetched OMB Historical Tables + enabling public laws; the committed file IS the audit trail)
+!/data/federal-comparability.json
 # …and the verbatim GAO function-definition snapshot it was authored from
 !docs/federal/
 docs/federal/*

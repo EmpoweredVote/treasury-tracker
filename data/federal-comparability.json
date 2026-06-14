@@ -1,0 +1,76 @@
+{
+  "_meta": {
+    "created": "2026-06-13",
+    "authored_by": "inline in-session (Phase 51, zero API calls — Chris 2026-06-13)",
+    "purpose": "Comparability / definition-drift notes for the federal history views (FY1976–present): the fiscal-year transition quarter, how OMB keeps the function classification comparable over time, and the major Cabinet-level agency reorganizations that reshaped the agency lens across the span.",
+    "closed_input_rule": "Every factual claim derives from fetched official text — the OMB Historical Tables Introduction (GovInfo BUDGET-2025-TAB-1) and the enabling public laws confirmed against their GovInfo Statutes-at-Large / Public Law records. No model-memory claims (v2.0 ground rule). Each entry carries source_name / source_url / source_date; source_url resolves (HTTP 200 or GovInfo-API confirmed) per scripts/verifyComparabilitySources.mjs.",
+    "source_registry_keys": ["omb-historical-tables", "govinfo"]
+  },
+
+  "transition_quarter": {
+    "title": "The 1976 Transition Quarter (TQ)",
+    "text": "Through fiscal year 1976 the federal fiscal year ran July 1 to June 30. Beginning with fiscal year 1977 it runs October 1 to September 30. To bridge that shift, the July–September 1976 period was treated as a separate accounting period — the “transition quarter” (TQ). It is shown on its own because it is a single quarter, not a full year, so its totals are not comparable to an annual fiscal year.",
+    "quote": "Prior to fiscal year 1977 the Federal fiscal years began on July 1 and ended on June 30. In calendar year 1976 the July-September period was a separate accounting period (known as the transition quarter or TQ) to bridge the period required to shift to the new fiscal year.",
+    "source_name": "omb-historical-tables",
+    "source_url": "https://www.govinfo.gov/app/details/BUDGET-2025-TAB/BUDGET-2025-TAB-1",
+    "source_date": "2026-06-13"
+  },
+
+  "function_classification": {
+    "title": "Comparing spending categories across years",
+    "text": "Federal spending is grouped into budget “functions” such as National Defense, Health, or Income Security. Because the way budget data are presented has changed over the decades, OMB presents the historical series as comparably as possible: when a structural or classification change is made, the data are adjusted for all years insofar as possible, so the same stream of transactions is shown consistently across time. As a result the function totals shown for earlier years reflect today’s classifications, not necessarily the labels in use at the time.",
+    "quote": "Because of the numerous changes in the way budget data have been presented over time, there are inevitable difficulties in trying to produce comparable data to cover many years. The general rule is to provide data in as meaningful and comparable a fashion as possible. To the extent feasible, the data are presented on a basis consistent with current budget concepts. When a structural change is made, insofar as possible the data are adjusted for all years.",
+    "source_name": "omb-historical-tables",
+    "source_url": "https://www.govinfo.gov/app/details/BUDGET-2025-TAB/BUDGET-2025-TAB-1",
+    "source_date": "2026-06-13"
+  },
+
+  "agency_reorganizations": [
+    {
+      "agency": "Department of Energy",
+      "year": 1977,
+      "note": "The Department of Energy Organization Act created the Department of Energy, bringing federal energy programs together under one Cabinet department. Agency-lens spending for the Department of Energy appears only from this point forward.",
+      "enabling_law": "Pub. L. 95-91",
+      "source_name": "govinfo",
+      "source_url": "https://www.govinfo.gov/app/details/STATUTE-91/STATUTE-91-Pg565",
+      "source_date": "2026-06-13"
+    },
+    {
+      "agency": "Department of Education",
+      "year": 1979,
+      "note": "The Department of Education Organization Act of 1979 split education functions out of the former Department of Health, Education, and Welfare (HEW) into a new, separate Department of Education.",
+      "enabling_law": "Pub. L. 96-88",
+      "source_name": "govinfo",
+      "source_url": "https://www.govinfo.gov/app/details/STATUTE-93/STATUTE-93-Pg668",
+      "source_date": "2026-06-13"
+    },
+    {
+      "agency": "Department of Health and Human Services",
+      "year": 1979,
+      "note": "When education functions were split off in 1979, the same Act redesignated the remainder of the Department of Health, Education, and Welfare as the Department of Health and Human Services (HHS). Earlier-year agency-lens spending for HHS appears under its former HEW identity.",
+      "quote": "The Department of Health, Education, and Welfare is hereby redesignated the Department of Health and Human Services",
+      "enabling_law": "Pub. L. 96-88, Sec. 509",
+      "source_name": "govinfo",
+      "source_url": "https://www.govinfo.gov/app/details/STATUTE-93/STATUTE-93-Pg668",
+      "source_date": "2026-06-13"
+    },
+    {
+      "agency": "Department of Veterans Affairs",
+      "year": 1988,
+      "note": "The Department of Veterans Affairs Act established the Department of Veterans Affairs, succeeding the former Veterans Administration as a Cabinet-level department.",
+      "enabling_law": "Pub. L. 100-527",
+      "source_name": "govinfo",
+      "source_url": "https://www.govinfo.gov/app/details/STATUTE-102/STATUTE-102-Pg2635",
+      "source_date": "2026-06-13"
+    },
+    {
+      "agency": "Department of Homeland Security",
+      "year": 2002,
+      "note": "The Homeland Security Act of 2002 established the Department of Homeland Security, consolidating components from numerous existing agencies. Agency-lens spending for Homeland Security appears only from this point forward.",
+      "enabling_law": "Pub. L. 107-296",
+      "source_name": "govinfo",
+      "source_url": "https://www.govinfo.gov/app/details/PLAW-107publ296",
+      "source_date": "2026-06-13"
+    }
+  ]
+}
