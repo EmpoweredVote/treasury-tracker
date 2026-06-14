@@ -1147,7 +1147,7 @@ Success criteria:
 | 49. Historical Federal Data Backfill (FY1976–FY2024) | v2.1 | 5/5 | Complete | 2026-06-13 |
 | 50. Federal YearSelector Wiring | v2.1 | 4/4 | Complete | 2026-06-13 |
 | 51. Comparability Notes + Source-Chain Verification + UAT | v2.1 | 4/4 | Complete | 2026-06-14 |
-| 52. SoCal Bulk Pipeline Hardening | v2.2 | 1/4 | In Progress|  |
+| 52. SoCal Bulk Pipeline Hardening | v2.2 | 2/4 | In Progress|  |
 | 53. Orange County Operating + Revenue Load | v2.2 | — | Not started | — |
 | 54. Orange County Entity, Linking + Enrichment | v2.2 | — | Not started | — |
 | 55. Statewide City Salaries Integration | v2.2 | — | Not started | — |
