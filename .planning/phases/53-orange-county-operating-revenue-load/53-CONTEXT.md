@@ -50,8 +50,18 @@ exist (per Phase 52 — no frontend work).
 
 ### Dry-run-first discipline
 - **D-05:** Every write step is preceded by a `--dry-run --list-cities` pass that is read and
-  confirmed before the real load (runbook prerequisite). The dry-run must show 34 OC cities and
+  confirmed before the real load (runbook prerequisite). The dry-run must list the OC cities and
   classify Anaheim/Santa Ana as SKIP before any write occurs.
+
+### Chunked submit strategy (canary → 2-year chunks)
+- **D-06:** Do NOT run all 22 fiscal years in one command. A single full run is ~450k Socrata-fetch +
+  RPC-write rows (extrapolated from Phase 52's Ventura figures: ~6k rows for 10 cities × 1 year) and
+  would exceed the executor's 600s command timeout, risking a partial load that looks complete.
+  Instead: **canary** one recent year (FY2024), **verify it end-to-end**, then **backfill FY2003–2023
+  in ~2-year submits**. Re-running a chunk is safe — `treasury_sync_city_budget` upserts on
+  (municipality, fiscal_year, dataset_type) so a ByTheNumbers chunk is idempotent, and the collision
+  pre-pass still protects other-source cities. The strict "all 34 cities" completeness check moves to
+  the final verify (latest years may lag); the canary validates the *mechanism*, not completeness.
 
 ### Claude's Discretion
 - Which city/year to spot-check totals against the ByTheNumbers source for success criterion #4.
