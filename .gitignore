@@ -34,6 +34,9 @@ dist-ssr
 # (docs uses /* so specific source-of-record snapshots can be re-included below)
 EV/
 docs/*
+# …except the SoCal county-onboarding runbook (Phase 52: the source-of-record
+# procedure operators follow to add any CA county — a tracked deliverable)
+!docs/socal-county-onboarding.md
 
 # Supabase temp files
 supabase/.temp/
