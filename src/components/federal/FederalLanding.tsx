@@ -4,6 +4,8 @@ import { loadFederalContext } from '../../data/dataLoader';
 import DeficitStrip from './DeficitStrip';
 import FirstSplitBands from './FirstSplitBands';
 import ThisYearStrip from './ThisYearStrip';
+import ComparabilityNote from './ComparabilityNote';
+import { comparability } from '../../data/comparability';
 
 /**
  * Federal landing block (Phase 45; year-aware in Phase 50): the two structural
@@ -70,18 +72,30 @@ const FederalLanding: React.FC<FederalLandingProps> = ({ fiscalYear, periodLabel
   // unsourced-prose-free heading; the three lens trees render below.
   if (!summary) {
     return (
-      <div className="bg-white dark:bg-ev-gray-800 border border-ev-gray-200 dark:border-ev-gray-700 rounded-xl overflow-hidden mb-2">
-        <div className="h-[2px] bg-gradient-to-r from-ev-yellow-300 via-ev-yellow-400 to-ev-yellow-300 opacity-60" />
-        <div className="p-6">
-          <h2 className="text-lg font-semibold text-ev-gray-800 dark:text-ev-gray-100">
-            {periodLabel ?? `FY${fiscalYear}`}
-          </h2>
-          <p className="text-sm text-ev-gray-600 dark:text-ev-gray-400 mt-1">
-            Explore this period's spending by <em>what it's for</em> or by <em>who spends it</em>,
-            and its receipts by source — in the government's own published numbers, every figure
-            linked to its official source.
-          </p>
+      <div className="space-y-2">
+        <div className="bg-white dark:bg-ev-gray-800 border border-ev-gray-200 dark:border-ev-gray-700 rounded-xl overflow-hidden">
+          <div className="h-[2px] bg-gradient-to-r from-ev-yellow-300 via-ev-yellow-400 to-ev-yellow-300 opacity-60" />
+          <div className="p-6">
+            <h2 className="text-lg font-semibold text-ev-gray-800 dark:text-ev-gray-100">
+              {periodLabel ?? `FY${fiscalYear}`}
+            </h2>
+            <p className="text-sm text-ev-gray-600 dark:text-ev-gray-400 mt-1">
+              Explore this period's spending by <em>what it's for</em> or by <em>who spends it</em>,
+              and its receipts by source — in the government's own published numbers, every figure
+              linked to its official source.
+            </p>
+          </div>
         </div>
+        {/* The Transition Quarter view: the sourced TQ explanation replaces the
+            neutral heading Phase 50 left here (CTX-02). Open by default — the
+            note IS the context a citizen needs to read these single-quarter figures. */}
+        {periodLabel !== null && (
+          <ComparabilityNote
+            title="About the Transition Quarter"
+            entries={[comparability.transition_quarter]}
+            defaultOpen
+          />
+        )}
       </div>
     );
   }

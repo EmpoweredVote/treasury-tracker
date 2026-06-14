@@ -7,6 +7,8 @@ import FederalLanding from './components/federal/FederalLanding';
 import LensToggle from './components/federal/LensToggle';
 import SourceChip from './components/federal/SourceChip';
 import MethodologyPanel from './components/federal/MethodologyPanel';
+import ComparabilityNote from './components/federal/ComparabilityNote';
+import { comparability } from './data/comparability';
 import ScaleToggle, { type FederalScale } from './components/federal/ScaleToggle';
 import ProgramOrigins from './components/federal/ProgramOrigins';
 import BudgetSearch from './components/dashboard/BudgetSearch';
@@ -931,6 +933,26 @@ function App() {
                   )}
                 </div>
               )}
+              {/* Comparability / definition-drift note (CTX-02): on historical annual
+                  years only — suppressed on the current/default year (clean headline)
+                  and on the TQ (which gets its own note in FederalLanding). How OMB
+                  keeps functions comparable over time + the Cabinet departments created
+                  after the viewed year (which is why an old agency lens won't match today). */}
+              {selectedEntity?.entity_type === 'federal'
+                && parsePeriod(selectedYear).periodLabel === null
+                && selectedYear !== availableYears[0]
+                && (() => {
+                  const viewedYear = parsePeriod(selectedYear).fiscalYear;
+                  const laterReorgs = comparability.agency_reorganizations.filter((r) => r.year > viewedYear);
+                  return (
+                    <ComparabilityNote
+                      title="Comparing this year to today"
+                      entries={[comparability.function_classification]}
+                      reorganizations={laterReorgs}
+                      reorgHeading={`Cabinet departments created or reorganized after FY${viewedYear}`}
+                    />
+                  );
+                })()}
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <h2 className="text-base font-bold text-[#1C1C1C] dark:text-ev-gray-100">
