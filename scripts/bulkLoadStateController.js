@@ -1,16 +1,27 @@
 #!/usr/bin/env node
 /**
- * CA State Controller Bulk Loader
+ * CA State Controller Bulk Loader (hardened — Phase 52-02)
  *
- * Downloads expenditure and revenue data from bythenumbers.sco.ca.gov
- * for ALL cities in a county and imports into Supabase. Auto-creates
- * municipality records for cities that don't exist yet.
+ * Downloads expenditure and revenue data from bythenumbers.sco.ca.gov for ALL
+ * cities in a county and imports into Supabase. Auto-creates municipality
+ * records for cities that don't exist yet.
+ *
+ * Phase 52 hardening:
+ *   - Durable source attribution: each city budget carries a durable ByTheNumbers
+ *     dataset PAGE url (not the /resource/*.json API endpoint) as source_url and
+ *     the run's fetch date as source_date (--source-date, default = today).
+ *   - Population: estimated_population from the feed is persisted on created
+ *     cities and backfilled on existing cities whose population is 0/NULL (a
+ *     non-zero population is never reset to 0).
+ *   - Never-overwrite collision policy (D-06): a city that already has budget
+ *     data for (fiscal_year, dataset_type) from a DIFFERENT source (e.g. Anaheim,
+ *     Santa Ana, the LA custom load) is SKIPPED and logged — never overwritten.
  *
  * Usage:
- *   node scripts/bulkLoadStateController.js --county "Los Angeles" --fy 2023
- *   node scripts/bulkLoadStateController.js --county "Los Angeles" --fy 2023 --type expenditures
- *   node scripts/bulkLoadStateController.js --county "Los Angeles" --fy 2021 --fy 2022 --fy 2023
- *   node scripts/bulkLoadStateController.js --county "Los Angeles" --fy 2023 --dry-run
+ *   node scripts/bulkLoadStateController.js --county "Orange" --fy 2023
+ *   node scripts/bulkLoadStateController.js --county "Orange" --fy 2021 --fy 2022 --fy 2023
+ *   node scripts/bulkLoadStateController.js --county "Orange" --fy 2023 --source-date 2026-06-14
+ *   node scripts/bulkLoadStateController.js --county "Orange" --dry-run --list-cities
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -22,9 +33,12 @@ if (!SUPABASE_KEY) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const DATASETS = {
-  expenditures: { id: 'ju3w-4gxp', type: 'operating', label: 'Expenditures' },
-  revenues:     { id: 'rrtv-rsj9', type: 'revenue',   label: 'Revenues' },
+  expenditures: { id: 'ju3w-4gxp', type: 'operating', label: 'Expenditures', pageUrl: 'https://bythenumbers.sco.ca.gov/d/ju3w-4gxp' },
+  revenues:     { id: 'rrtv-rsj9', type: 'revenue',   label: 'Revenues',     pageUrl: 'https://bythenumbers.sco.ca.gov/d/rrtv-rsj9' },
 };
+
+/** The data_source label this loader writes (the "ByTheNumbers source" for collision checks). */
+function runSourceName(ds) { return `CA State Controller - ${ds.label}`; }
 
 function amt(v) {
   if (v == null || v === '') return 0;
@@ -50,12 +64,60 @@ async function fetchAllPages(datasetId, where) {
   return all;
 }
 
-async function importCityData(cityName, state, population, rows, fiscalYear, datasetType, dataSourceId) {
-  // Ensure municipality exists
+/** Read-only: find an existing city municipality by name + state (null if new). */
+async function findCityMunicipality(cityName, state) {
+  const { data, error } = await supabase
+    .schema('treasury')
+    .from('municipalities')
+    .select('id, name, population, population_year, county_id')
+    .eq('state', state)
+    .eq('entity_type', 'city')
+    .eq('name', cityName)
+    .limit(1);
+  if (error) throw new Error(`Municipality lookup failed for ${cityName}: ${error.message}`);
+  return (data && data[0]) || null;
+}
+
+/**
+ * Read-only: return the existing budget row for (muni, fy, dataset) IF it was
+ * loaded from a DIFFERENT source than this run (a collision to preserve).
+ * Returns null when there is no budget, or the existing budget is from this
+ * loader's own source (safe to refresh).
+ */
+async function findConflictingBudget(municipalityId, fiscalYear, datasetType, sourceName) {
+  const { data, error } = await supabase
+    .schema('treasury')
+    .from('budgets')
+    .select('id, data_source')
+    .eq('municipality_id', municipalityId)
+    .eq('fiscal_year', fiscalYear)
+    .eq('dataset_type', datasetType)
+    .limit(1);
+  if (error) throw new Error(`Budget lookup failed: ${error.message}`);
+  const existing = data && data[0];
+  if (!existing) return null;
+  if (existing.data_source && existing.data_source !== sourceName) return existing; // different source → preserve
+  return null; // our own source (or unlabeled) → safe to refresh
+}
+
+async function importCityData(cityName, state, population, rows, fiscalYear, datasetType, ds, fetchDate) {
+  // Ensure municipality exists (creates with feed population when provided)
   const { data: municipalityId, error: munErr } = await supabase.rpc('treasury_ensure_municipality', {
     p_name: cityName, p_state: state, p_entity_type: 'city', p_population: population || 0,
   });
   if (munErr) { console.error(`    Municipality error: ${munErr.message}`); return null; }
+
+  // Backfill population on existing cities with 0/NULL population (never lower a
+  // non-zero population to 0; only write when the feed provides a value).
+  if (population && population > 0) {
+    const { error: popErr } = await supabase
+      .schema('treasury')
+      .from('municipalities')
+      .update({ population, population_year: fiscalYear })
+      .eq('id', municipalityId)
+      .or('population.is.null,population.eq.0');
+    if (popErr) console.warn(`    Population backfill warning for ${cityName}: ${popErr.message}`);
+  }
 
   // Build tree from hierarchy: category -> subcategory_1 -> subcategory_2/line_description
   const tree = new Map();
@@ -93,15 +155,7 @@ async function importCityData(cityName, state, population, rows, fiscalYear, dat
   }
   jsonTree.sort((a, b) => b.a - a.a);
 
-  // Use the budget tree RPC — but we need to override the municipality_id
-  // The RPC uses the data_source's municipality_id, so we need a version that accepts it directly
-  // For now, use a direct approach: create budget, then call the tree inserter
-
-  // Check if budget exists
-  const { data: existingBudget } = await supabase.rpc('treasury_get_data_source_config', { p_data_source_id: dataSourceId });
-
-  // Use the tree sync RPC — it will use the data_source's municipality_id (LA County)
-  // But we actually need per-city budgets. Let's use a direct SQL approach via a new RPC.
+  // Write the per-city budget tree with durable source attribution (Phase 52-01 RPC params).
   const { data: result, error } = await supabase.rpc('treasury_sync_city_budget', {
     p_municipality_id: municipalityId,
     p_fiscal_year: fiscalYear,
@@ -109,7 +163,9 @@ async function importCityData(cityName, state, population, rows, fiscalYear, dat
     p_total: total,
     p_tree: jsonTree,
     p_row_count: rows.length,
-    p_data_source_name: `CA State Controller - ${DATASETS[datasetType === 'operating' ? 'expenditures' : 'revenues'].label}`,
+    p_data_source_name: runSourceName(ds),
+    p_source_url: ds.pageUrl,
+    p_source_date: fetchDate,
   });
 
   if (error) {
@@ -127,6 +183,7 @@ async function main() {
       city:   { type: 'string' },
       fy: { type: 'string', short: 'y', multiple: true },
       type: { type: 'string', short: 't' },
+      'source-date': { type: 'string' },
       'dry-run': { type: 'boolean' },
       'list-cities': { type: 'boolean' },
     },
@@ -138,16 +195,22 @@ async function main() {
   const state = 'CA';
   const fiscalYears = values.fy ? values.fy.map(Number) : [2023];
   const types = values.type ? [values.type] : ['expenditures', 'revenues'];
+  const dryRun = values['dry-run'] ?? false;
+  const listCities = values['list-cities'] ?? false;
+  // Fetch date computed ONCE per run (never inside the per-city loop); overridable.
+  const fetchDate = values['source-date'] || new Date().toISOString().slice(0, 10);
 
-  console.log(`\n🏛️  CA State Controller Bulk Loader`);
+  console.log(`\n🏛️  CA State Controller Bulk Loader (hardened)`);
   console.log(`   County: ${county}`);
   if (cityFilter) console.log(`   City filter: ${cityFilter}`);
   console.log(`   Fiscal Years: ${fiscalYears.join(', ')}`);
-  console.log(`   Types: ${types.join(', ')}\n`);
+  console.log(`   Types: ${types.join(', ')}`);
+  console.log(`   Source date: ${fetchDate}${values['source-date'] ? '' : ' (today)'}\n`);
 
   for (const dsType of types) {
     const ds = DATASETS[dsType];
     if (!ds) { console.error(`Unknown type: ${dsType}`); continue; }
+    const srcName = runSourceName(ds);
 
     for (const fy of fiscalYears) {
       console.log(`\n📊 ${ds.label} FY ${fy} — ${county} County`);
@@ -170,29 +233,43 @@ async function main() {
 
       console.log(`  ${byCity.size} cities found, ${rows.length.toLocaleString()} total rows\n`);
 
-      if (values['list-cities']) {
+      if (listCities) {
         for (const [city, data] of [...byCity.entries()].sort()) {
           console.log(`    ${city}: ${data.rows.length} rows, pop ${data.population.toLocaleString()}`);
         }
-        continue;
       }
 
-      if (values['dry-run']) {
-        console.log('  (dry run — skipping import)');
-        continue;
-      }
-
-      let citiesImported = 0, totalItems = 0;
+      // Collision pre-pass: classify every city BEFORE any write so SKIP lines
+      // show in dry-run too and no overwrite ever occurs.
+      let citiesImported = 0, totalItems = 0, skippedCount = 0;
+      const wouldImport = [];
       for (const [cityName, cityData] of byCity) {
-        const result = await importCityData(cityName, state, cityData.population, cityData.rows, fy, ds.type, null);
+        const existing = await findCityMunicipality(cityName, state);
+        if (existing) {
+          const conflict = await findConflictingBudget(existing.id, fy, ds.type, srcName);
+          if (conflict) {
+            console.log(`  SKIP ${cityName} (${state}) — existing ${conflict.data_source} data preserved`);
+            skippedCount++;
+            continue;
+          }
+        }
+        wouldImport.push([cityName, cityData]);
+      }
 
+      if (dryRun) {
+        console.log(`  (dry run — skipping import) ${wouldImport.length} cities would import, ${skippedCount} skipped (existing other-source data preserved)`);
+        continue;
+      }
+
+      for (const [cityName, cityData] of wouldImport) {
+        const result = await importCityData(cityName, state, cityData.population, cityData.rows, fy, ds.type, ds, fetchDate);
         if (result && result.rows_inserted) {
           totalItems += result.rows_inserted;
           citiesImported++;
-          process.stdout.write(`\r  Imported ${citiesImported}/${byCity.size} cities (${totalItems.toLocaleString()} items)...`);
+          process.stdout.write(`\r  Imported ${citiesImported}/${wouldImport.length} cities (${totalItems.toLocaleString()} items)...`);
         }
       }
-      console.log(`\n  ✅ ${citiesImported} cities, ${totalItems.toLocaleString()} items imported`);
+      console.log(`\n  ✅ ${citiesImported} cities imported, ${totalItems.toLocaleString()} items; ${skippedCount} skipped (other-source data preserved)`);
     }
   }
 
