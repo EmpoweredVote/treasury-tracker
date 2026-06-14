@@ -1074,7 +1074,7 @@ _Full detail archived in `.planning/milestones/v2.0-ROADMAP.md`._
 | 48. Source-Chain Verification + UAT | v2.0 | 2/2 | Complete | 2026-06-13 |
 | 49. Historical Federal Data Backfill (FY1976–FY2024) | v2.1 | 0/0 | Pending | — |
 | 50. Federal YearSelector Wiring | v2.1 | 0/0 | Pending | — |
-| 51. Comparability Notes + Source-Chain Verification + UAT | v2.1 | 2/4 | In Progress|  |
+| 51. Comparability Notes + Source-Chain Verification + UAT | v2.1 | 3/4 | In Progress|  |
 
 ---
 
