@@ -64,6 +64,9 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - ✓ 27 Tier-1 sourced explainers (fetched-text-only, citations displayed, $0 API); DoD failed-audit opacity flagged with GAO disclaimer — v2.0, Phase 46
 - ✓ 15-program origins pilot — enabling bill/public law/sponsor/year/cosponsors from Congress.gov+GovInfo, every claim linked, zero LLM; foundational sponsor-boundary notes — v2.0, Phase 47
 - ✓ Source-chain audit (225 rows / 61 URLs, 61/61 PASS) + Chris UAT sign-off; US pinned first on landing with flag tile — v2.0, Phase 48
+- ✓ Federal history backfill FY1976–FY2024 — function/agency/revenue per year + per-year visual-vs-official disclosures, every row sourced (free OMB tables, $0) — v2.1, Phase 49
+- ✓ Federal YearSelector wiring — FY1976–FY2025 + the FY1976 Transition Quarter selectable; bands/strip/lens trees switch per period — v2.1, Phase 50
+- ✓ Source-chain durability (zero residue, audit FAIL 0) + sourced comparability notes (function/agency definition drift + the FY1976 Transition Quarter) rendered in-app with source chips; v2.1 UAT sign-off — v2.1, Phase 51
 
 ## Current Milestone: v2.1 Federal History
 
@@ -81,7 +84,7 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 
 ### Active
 
-- [ ] Federal historical backfill — FY1976→FY2024 function/agency detail + revenue-by-source + per-year disclosures + YearSelector wiring (v2.1, in progress)
+- [x] Federal historical backfill — FY1976→FY2024 function/agency detail + revenue-by-source + per-year disclosures + YearSelector wiring + comparability notes (v2.1 — **complete**, Phases 49–51; all 8 requirements verified, ready for milestone close)
 
 ### Future (deferred milestone candidates)
 
@@ -170,4 +173,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-12 — milestone v2.1 Federal History started*
+*Last updated: 2026-06-14 — v2.1 Federal History complete (Phases 49–51; all 8 requirements verified) — ready for `/gsd:complete-milestone`*

@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Federal History
-status: In progress
-last_updated: "2026-06-13T00:00:00.000Z"
+status: milestone_complete
+last_updated: 2026-06-14T07:15:17.660Z
 last_activity: 2026-06-13 — Phase 50 complete (Federal YearSelector wiring, deployed to prod, UAT approved)
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 9
-  completed_plans: 9
+  completed_plans: 13
   percent: 67
+stopped_at: Milestone complete (Phase 51 was final phase)
 ---
 
 # State
@@ -20,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-13)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** v2.1 Federal History — backfill prior federal fiscal years (FY1976→FY2024) to v2.0 detail: function/agency/revenue per year, per-year disclosures, YearSelector wiring. $0 API spend (mechanical OMB-table loads; explainers/origins carry over). Phases 49-51.
+**Current focus:** Milestone complete
 
 ## Current Position
 
-Phase: 50 complete → Phase 51 next (Comparability Notes + Source-Chain Verification + UAT)
-Plan: 50-01..04 all complete + verified (deployed to prod, UAT approved)
-Status: Phase 50 shipped — federal YearSelector live (FY1976–FY2025 + TQ selectable; bands/strip switch per year)
-Last activity: 2026-06-13 — Phase 50 complete
+Phase: 51
+Plan: Not started
+Status: Milestone complete
+Last activity: 2026-06-14
 
 ### Phase 50 outcomes (for Phase 51)
 - Backend EV-Accounts exposes `period_label` on `/cities` available_datasets + `/budgets` (master 83b87196, deployed to Render). Frontend models periods via `src/utils/period.ts` (parsePeriod/buildPeriodTokens); TQ token resolves to fiscal_year 1976 + period_label; loadBudgetData disambiguates by period_label.

@@ -24,7 +24,7 @@ Requirements for milestone v2.1. Each maps to a roadmap phase. All v2.0 ground r
 ### Data Integrity & Context (CTX)
 
 - [x] **CTX-01**: Each loaded historical year displays its own visual-vs-official reconciliation disclosure (per-year excluded-negatives, recomputed like the Phase 44 FY2025 disclosure)
-- [ ] **CTX-02**: A citizen sees comparability notes explaining function/agency definition drift across decades and the FY1976 Transition Quarter (TQ)
+- [x] **CTX-02**: A citizen sees comparability notes explaining function/agency definition drift across decades and the FY1976 Transition Quarter (TQ)
 
 ## v2 Requirements
 
@@ -62,13 +62,14 @@ Which phases cover which requirements. Populated during roadmap creation.
 | CTX-01 | Phase 49 | Complete |
 | NAV-01 | Phase 50 | Complete |
 | NAV-02 | Phase 50 | Complete |
-| CTX-02 | Phase 51 | Pending |
+| CTX-02 | Phase 51 | Complete |
 
 **Coverage:**
 - v1 requirements: 8 total
 - Mapped to phases: 8 ✓
 - Unmapped: 0 ✓
+- **Complete: 8 / 8 ✓ — all v2.1 requirements verified**
 
 ---
 *Requirements defined: 2026-06-13*
-*Last updated: 2026-06-13 after initial definition*
+*Last updated: 2026-06-14 — CTX-02 complete (Phase 51); all 8 v2.1 requirements verified*

@@ -976,7 +976,7 @@ _Full detail archived in `.planning/milestones/v2.0-ROADMAP.md`._
 
 - [x] **Phase 49: Historical Federal Data Backfill (FY1976–FY2024)** ✅ Complete 2026-06-13 — function (PBD), agency (rebuilt from PBD, not MTS), revenue (5 Hist 2.1 buckets) for every year + TQ; 150 budgets / 135,056 line items; per-year disclosures; every row sourced; $0 spend. TQ via period_label migration.
 - [x] **Phase 50: Federal YearSelector Wiring** ✅ Complete 2026-06-13 — citizen selects any backfilled year (incl. the Transition Quarter as a distinct period); function/agency/revenue + landing bands + deficit strip all update. Backend exposes period_label (EV-Accounts); deployed to prod. UAT approved.
-- [ ] **Phase 51: Comparability Notes + Source-Chain Verification + UAT** — definition-drift + FY1976 TQ notes, every-figure-resolves audit across years, Chris sign-off.
+- [x] **Phase 51: Comparability Notes + Source-Chain Verification + UAT** — definition-drift + FY1976 TQ notes, every-figure-resolves audit across years, Chris sign-off. (completed 2026-06-14)
 
 ### Phase 49: Historical Federal Data Backfill (FY1976–FY2024)
 
@@ -1074,7 +1074,7 @@ _Full detail archived in `.planning/milestones/v2.0-ROADMAP.md`._
 | 48. Source-Chain Verification + UAT | v2.0 | 2/2 | Complete | 2026-06-13 |
 | 49. Historical Federal Data Backfill (FY1976–FY2024) | v2.1 | 0/0 | Pending | — |
 | 50. Federal YearSelector Wiring | v2.1 | 0/0 | Pending | — |
-| 51. Comparability Notes + Source-Chain Verification + UAT | v2.1 | 3/4 | In Progress|  |
+| 51. Comparability Notes + Source-Chain Verification + UAT | v2.1 | 4/4 | Complete    | 2026-06-14 |
 
 ---
 
