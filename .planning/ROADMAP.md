@@ -14,6 +14,7 @@
 - ✅ **v1.9 MA County-City Linking** — Phases 40-42 (shipped 2026-06-11)
 - ✅ **v2.0 Federal Treasury Tracker** — Phases 43-48 (shipped 2026-06-13)
 - ✅ **v2.1 Federal History** — Phases 49-51 (shipped 2026-06-14)
+- ▶ **v2.2 Orange County + Reusable SoCal Pipeline** — Phases 52-56 (in progress)
 
 ---
 
@@ -1025,6 +1026,72 @@ Milestone audit **PASSED 8/8** (HIST-01..04, NAV-01/02, CTX-01/02). Full detail 
 
 ---
 
+## ▶ v2.2 Orange County + Reusable SoCal Pipeline (Phases 52-56) — IN PROGRESS
+
+**Milestone goal:** Bring all 34 Orange County cities into the tracker from the CA State Controller's uniform open data, and turn the bulk loader into a documented one-command pipeline for every remaining Southern California county.
+
+### Phase 52: SoCal Bulk Pipeline Hardening
+
+**Goal:** Generalize `bulkLoadStateController.js` into a reusable, county-parameterized loader that any remaining SoCal county can run with one command — with population backfill, sourced attribution, and a documented runbook.
+**Requirements:** PIPE-01, PIPE-02, PIPE-03, PIPE-04
+**Status:** Not started
+
+Success criteria:
+1. `bulkLoadStateController.js --county "<Name>"` loads operating + revenue for all cities in any CA county (verified via dry-run on a non-OC county).
+2. Every loaded budget row gets a CA State Controller ByTheNumbers source-attribution row (source_name / source_url / source_date).
+3. Cities auto-created by the loader are backfilled with population (per-capita renders on first load).
+4. A runbook (`docs/` or script header) documents the full county-onboarding sequence: load → seed county + link → enrich → verify.
+
+Plans:
+
+### Phase 53: Orange County Operating + Revenue Load
+
+**Goal:** Load operating + revenue for all 34 Orange County cities (FY2003–2024) from ByTheNumbers, auto-creating the 32 net-new city records with populations.
+**Requirements:** OC-01, OC-02
+**Status:** Not started
+
+Success criteria:
+1. All 34 OC cities have operating budgets for FY2003–2024 visible in the app.
+2. All 34 OC cities have revenue budgets for FY2003–2024 visible in the app.
+3. The 32 net-new cities exist with correct populations (per-capita renders); Anaheim & Santa Ana untouched.
+4. City totals for a sampled year match the ByTheNumbers source figures.
+
+### Phase 54: Orange County Entity, Linking + Enrichment
+
+**Goal:** Seed an Orange County entity, link all 34 cities (including Anaheim & Santa Ana), and apply standardized category enrichment across the county.
+**Requirements:** OC-03, OC-04, OC-05
+**Status:** Not started
+
+Success criteria:
+1. Orange County entity exists; all 34 cities resolve the US → California → Orange County → city breadcrumb chain.
+2. The "Cities in Orange County" panel lists all 34 cities and navigates to each.
+3. Each OC city's categories carry plain-language enrichment consistent with the LA County baseline.
+4. Enrichment AI cost is estimated and approved before running (≤ $5 threshold), reusing the shared SCO taxonomy across all 34 cities.
+
+### Phase 55: Statewide City Salaries Integration
+
+**Goal:** Confirm the CA Government Compensation source covers OC cities (spike-first), build a reusable statewide city-salaries loader, and load Orange County salaries.
+**Requirements:** SAL-01, SAL-02, SAL-03
+**Status:** Not started
+
+Success criteria:
+1. Spike confirms publicpay.ca.gov coverage and depth for OC cities, documented (gates the build).
+2. A reusable statewide city-salaries loader imports compensation for any CA city from the confirmed source.
+3. OC cities show an employee-compensation (salaries) dataset wherever the source provides it.
+4. Salary figures for a sampled city/year match the published source.
+
+### Phase 56: Orange County Verification + UAT
+
+**Goal:** Verify OC data accuracy against published ACFRs and confirm the navigation experience end-to-end in the live app.
+**Requirements:** VER-01, VER-02
+**Status:** Not started
+
+Success criteria:
+1. OC city budget totals are spot-checked against published ACFRs / adopted budgets and pass, with checks documented.
+2. Breadcrumb chain + Cities-in-Orange-County panel verified live; Chris UAT sign-off.
+
+---
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -1080,8 +1147,13 @@ Milestone audit **PASSED 8/8** (HIST-01..04, NAV-01/02, CTX-01/02). Full detail 
 | 49. Historical Federal Data Backfill (FY1976–FY2024) | v2.1 | 5/5 | Complete | 2026-06-13 |
 | 50. Federal YearSelector Wiring | v2.1 | 4/4 | Complete | 2026-06-13 |
 | 51. Comparability Notes + Source-Chain Verification + UAT | v2.1 | 4/4 | Complete | 2026-06-14 |
+| 52. SoCal Bulk Pipeline Hardening | v2.2 | — | Not started | — |
+| 53. Orange County Operating + Revenue Load | v2.2 | — | Not started | — |
+| 54. Orange County Entity, Linking + Enrichment | v2.2 | — | Not started | — |
+| 55. Statewide City Salaries Integration | v2.2 | — | Not started | — |
+| 56. Orange County Verification + UAT | v2.2 | — | Not started | — |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-06-14 — v2.1 Federal History SHIPPED (Phases 49-51; audit passed 8/8)*
+*Last updated: 2026-06-14 — v2.2 Orange County + Reusable SoCal Pipeline started (Phases 52-56)*
