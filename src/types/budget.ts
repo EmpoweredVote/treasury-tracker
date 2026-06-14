@@ -232,3 +232,38 @@ export interface FederalContext {
   metrics: Record<string, FederalContextMetric>;
   source_display_names: Record<string, string>;
 }
+
+/**
+ * Comparability / definition-drift content (Phase 51, CTX-02).
+ * Authored inline from fetched official text and stored, git-reviewed, in
+ * data/federal-comparability.json (the committed audit trail). Every entry
+ * carries source_name / source_url / source_date; scripts/verifyComparabilitySources.mjs
+ * asserts the URLs resolve.
+ */
+export interface ComparabilitySource {
+  /** Optional heading for the note. */
+  title?: string;
+  text: string;
+  /** Optional verbatim excerpt from the source. */
+  quote?: string;
+  source_name: string;
+  source_url: string;
+  source_date: string;
+}
+
+export interface AgencyReorganization {
+  agency: string;
+  year: number;
+  note: string;
+  quote?: string;
+  enabling_law: string;
+  source_name: string;
+  source_url: string;
+  source_date: string;
+}
+
+export interface ComparabilityContent {
+  transition_quarter: ComparabilitySource;
+  function_classification: ComparabilitySource;
+  agency_reorganizations: AgencyReorganization[];
+}
