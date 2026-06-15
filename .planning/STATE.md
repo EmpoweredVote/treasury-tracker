@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Orange County + Reusable SoCal Pipeline
 status: executing
-last_updated: "2026-06-15T05:55:31.575Z"
+last_updated: "2026-06-15T06:22:27.930Z"
 last_activity: 2026-06-15
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 10
-  completed_plans: 8
+  completed_plans: 9
   percent: 60
 ---
 
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-06-14)
 ## Current Position
 
 Phase: 55 (statewide-city-salaries-integration) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-06-15
 
@@ -134,8 +134,8 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-15T05:55:31.566Z
-Stopped at: Phase 55 context gathered
+Last session: 2026-06-15T06:22:27.921Z
+Stopped at: Completed 55-02-PLAN.md
 Resume file: None
 
 ### Next Session
@@ -148,6 +148,7 @@ Start the next milestone with `/gsd:new-milestone`. Recommended scope: historica
 |-------|------|----------|-------|
 | (v2.0 not yet started) | — | — | — |
 | Phase 53 P53-01 | 40 minutes | 5 tasks | 0 files |
+| Phase 55 P55-02 | 45min | 3 tasks | 1 files |
 
 ## Decisions
 
@@ -158,6 +159,8 @@ Start the next milestone with `/gsd:new-milestone`. Recommended scope: historica
 | Function lens default, agency toggle | "What it's for" is the citizen question; ~20 clean categories vs 800-row agency hierarchy |
 | MTS/OMB outlays canonical; USAspending drill-down only | $3.3T gap between obligations and outlays; mixing them would corrupt headline figures |
 | 6 phases (43–48), recon folded in | Brief's draft Phase A completed pre-roadmap; B–G became 43–48 |
+
+- [Phase ?]: curl execSync for GCC download: Node 24 fetch blocked by Cloudflare TLS; curl with same browser UA returns HTTP 200, zero new deps
 
 ## Deferred Items
 
