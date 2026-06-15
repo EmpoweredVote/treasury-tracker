@@ -1154,10 +1154,17 @@ Success criteria:
 **Requirements:** VER-01, VER-02
 **Status:** Planned
 **Plans:** 3 plans
-
 Plans:
+**Wave 1**
+
 - [ ] 56-01-PLAN.md — verify-phase56.mjs DB probe (automatable VER-01 assertions; Wave 0 harness)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 56-02-PLAN.md — ACFR spot-check reconciliation → 56-VERIFICATION.md (7-city sample, all-funds basis)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 56-03-PLAN.md — Chris live-app UAT sign-off + closeout (re-run probe, mark VER-01/VER-02 complete)
 
 Success criteria:
