@@ -38,7 +38,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { parseArgs } from 'node:util';
-import { createInflateRaw, inflateSync, gunzipSync, unzipSync } from 'node:zlib';
+import { execSync } from 'node:child_process';
 import { Buffer } from 'node:buffer';
 
 // ── Env / Supabase setup ────────────────────────────────────────────────────
@@ -167,6 +167,10 @@ function extractCsvFromZipSync(zipBuffer) {
  * Download the annual GCC City ZIP for a given year, extract the CSV,
  * parse it, and filter rows to the specified city name.
  *
+ * Node 24's built-in fetch (undici) gets HTTP 403 from the GCC server due to
+ * Cloudflare TLS fingerprint filtering (curl returns 200 with the same UA).
+ * We use curl via execSync — same User-Agent, same URL, $0 cost, no new dep.
+ *
  * @param {number} year  Calendar year (2009–2024)
  * @param {string} city  City name as it appears in EmployerName (e.g. "Irvine")
  * @returns {Array}      Filtered row arrays (one per employee-position record)
@@ -175,16 +179,26 @@ async function fetchCityRows(year, city) {
   const url = GCC_ZIP_URL(year);
   console.log(`  Downloading ${url} ...`);
 
-  const resp = await fetch(url, {
-    headers: { 'User-Agent': GCC_UA },
-  });
-
-  if (!resp.ok) {
-    throw new Error(`GCC fetch failed: HTTP ${resp.status} for ${url}`);
+  // Node's fetch gets 403 (Cloudflare TLS fingerprint); curl with the browser
+  // UA returns 200. Use execSync with a 120 s timeout and 100 MB buffer.
+  let zipBuf;
+  try {
+    zipBuf = execSync(
+      `curl -s -A "${GCC_UA}" "${url}"`,
+      { maxBuffer: 100 * 1024 * 1024, timeout: 120_000 }
+    );
+  } catch (err) {
+    throw new Error(`curl download failed for ${year}: ${err.message}`);
   }
 
-  const arrayBuf = await resp.arrayBuffer();
-  const zipBuf = Buffer.from(arrayBuf);
+  // Verify we got a real ZIP (not an HTML error page)
+  if (zipBuf.length < 1000 || zipBuf.readUInt32LE(0) !== 0x04034b50) {
+    throw new Error(
+      `GCC returned non-ZIP response for ${year} (${zipBuf.length} bytes). ` +
+      'The file may have moved or Cloudflare may have blocked the request.'
+    );
+  }
+
   console.log(`  Downloaded ${(zipBuf.length / 1024 / 1024).toFixed(1)} MB ZIP`);
 
   const { fileName, data } = extractCsvFromZipSync(zipBuf);
