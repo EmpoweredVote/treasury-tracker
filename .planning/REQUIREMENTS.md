@@ -78,11 +78,18 @@ Which phase covers each requirement. Filled during roadmap creation.
 | SAL-03 | Phase 55 | Pending |
 | VER-01 | Phase 56 | Pending |
 | VER-02 | Phase 56 | Pending |
+| SOCAL-01 | Future milestone | Deferred |
+| SOCAL-02 | Future milestone | Deferred |
+| SOCAL-03 | Future milestone | Deferred |
+| SOCAL-04 | Future milestone | Deferred |
+| SOCAL-05 | Future milestone | Deferred |
+| SOCAL-06 | Future milestone | Deferred |
 
 **Coverage:**
 - v2.2 requirements: 14 total
 - Mapped to phases: 14
 - Unmapped: 0 ✓
+- SOCAL-01–06 are Future Requirements (deferred to a later milestone) — listed in traceability for sync, not counted in v2.2 coverage.
 
 ---
 *Requirements defined: 2026-06-14*
