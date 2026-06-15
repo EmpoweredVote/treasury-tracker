@@ -28,8 +28,8 @@ import { inflateRawSync } from 'node:zlib';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
-// Shared department-label normalizer (single source of truth — see loadCASalaries.js).
-import { normalizeDeptLabel } from './loadCASalaries.js';
+// Shared helpers (single source of truth — see loadCASalaries.js).
+import { normalizeDeptLabel, parseMoney } from './loadCASalaries.js';
 
 // ── Env / Supabase setup ─────────────────────────────────────────────────────
 
@@ -101,9 +101,17 @@ function extractCsvFromZipSync(zipBuffer) {
   while (offset + 30 < zipBuffer.length) {
     const sig = zipBuffer.readUInt32LE(offset);
     if (sig !== 0x04034b50) break;
+    const gpFlag      = zipBuffer.readUInt16LE(offset + 6);
     const compression = zipBuffer.readUInt16LE(offset + 8);
     const compSize    = zipBuffer.readUInt32LE(offset + 18);
     const fnLen       = zipBuffer.readUInt16LE(offset + 26);
+
+    // Streamed entry (general-purpose bit 3): sizes live in a trailing data descriptor,
+    // not the local header this extractor reads. Fail loudly rather than mis-extract (WR-03).
+    if (gpFlag & 0x08) {
+      const namePeek = zipBuffer.slice(offset + 30, offset + 30 + fnLen).toString('utf8');
+      throw new Error(`ZIP entry ${namePeek} uses a data descriptor (streamed); compSize is in the trailing descriptor and is unsupported by this extractor.`);
+    }
     const extraLen    = zipBuffer.readUInt16LE(offset + 28);
     const fileName    = zipBuffer.slice(offset + 30, offset + 30 + fnLen).toString('utf8');
     const dataStart   = offset + 30 + fnLen + extraLen;
@@ -146,11 +154,20 @@ function downloadAndIndexYear(year, cacheDir) {
     } catch (err) {
       throw new Error(`curl download failed for ${year}: ${err.message}`);
     }
-    if (zipBuf.length < 1000 || zipBuf.readUInt32LE(0) !== 0x04034b50) {
-      throw new Error(`GCC returned non-ZIP response for ${year} (${zipBuf.length} bytes)`);
-    }
-    fs.writeFileSync(cachePath, zipBuf);
+    // Write atomically (temp file + rename) so an interrupted run can never leave a
+    // truncated/partial ZIP that later becomes a silent cache hit (WR-02).
+    const tmpPath = `${cachePath}.tmp-${process.pid}`;
+    fs.writeFileSync(tmpPath, zipBuf);
+    fs.renameSync(tmpPath, cachePath);
     console.log(`  Downloaded + cached (${(zipBuf.length / 1024 / 1024).toFixed(1)} MB)`);
+  }
+
+  // Validate the ZIP integrity for BOTH sources (cache hit + fresh download). The
+  // cache-hit branch previously skipped this, so a truncated/partial cached file from a
+  // killed prior run would throw deep in the extractor or yield an empty CSV → every
+  // city silently gapped (WR-02).
+  if (zipBuf.length < 1000 || zipBuf.readUInt32LE(0) !== 0x04034b50) {
+    throw new Error(`Cached/downloaded ZIP for ${year} is not a valid ZIP (${zipBuf.length} bytes)`);
   }
 
   const { fileName, data } = extractCsvFromZipSync(zipBuf);
@@ -182,14 +199,14 @@ function buildTree(rows) {
   for (const row of rows) {
     const dept = normalizeDeptLabel(row[COL_DEPT]); // expand approved abbreviations (D-01: no fabrication)
     const pos  = (row[COL_POSITION] || 'Unknown Position').trim() || 'Unknown Position';
-    const totalWages    = parseFloat(row[COL_TOTAL_WAGES])    || 0;
-    const totalBenefits = parseFloat(row[COL_TOTAL_BENEFITS]) || 0;
+    const totalWages    = parseMoney(row[COL_TOTAL_WAGES]);
+    const totalBenefits = parseMoney(row[COL_TOTAL_BENEFITS]);
     const totalComp     = totalWages + totalBenefits;
     if (totalComp === 0) continue;
-    const base  = parseFloat(row[COL_REGULAR_PAY])  || 0;
-    const ot    = parseFloat(row[COL_OVERTIME_PAY])  || 0;
-    const lump  = parseFloat(row[COL_LUMP_SUM_PAY])  || 0;
-    const other = parseFloat(row[COL_OTHER_PAY])     || 0;
+    const base  = parseMoney(row[COL_REGULAR_PAY]);
+    const ot    = parseMoney(row[COL_OVERTIME_PAY]);
+    const lump  = parseMoney(row[COL_LUMP_SUM_PAY]);
+    const other = parseMoney(row[COL_OTHER_PAY]);
     const otOth = ot + lump + other;
     if (!depts.has(dept)) depts.set(dept, new Map());
     const posMap = depts.get(dept);
@@ -274,6 +291,12 @@ async function main() {
   const dryRun    = values['dry-run'] ?? false;
   const startYear = values['start-year'] ? Number(values['start-year']) : 2009;
   const endYear   = values['end-year']   ? Number(values['end-year'])   : 2024;
+  // Reject non-numeric bounds. A NaN bound would silently yield an empty year list, so
+  // the sweep "completes" having done nothing and reports every city as a gap (WR-04).
+  if (!Number.isInteger(startYear) || !Number.isInteger(endYear) || startYear > endYear) {
+    console.error('Invalid --start-year/--end-year range (must be integers, start <= end)');
+    process.exit(1);
+  }
   const years     = GCC_YEARS.filter(y => y >= startYear && y <= endYear);
 
   console.log('\nOC Salary Sweep — Phase 55 Plan 55-03');
@@ -292,6 +315,9 @@ async function main() {
     .order('name');
 
   if (cityErr) { console.error('Failed to fetch OC cities:', cityErr.message); process.exit(1); }
+  // Guard against a no-error/null-data response (PostgREST/schema edge cases) so we emit a
+  // clear message instead of an opaque "Cannot read properties of null" stack trace (WR-06).
+  if (!cities || cities.length === 0) { console.error(`No OC cities found for county_id ${OC_COUNTY_ID}`); process.exit(1); }
   console.log(`Found ${cities.length} OC cities in DB:\n  ${cities.map(c=>c.name).join(', ')}\n`);
 
   // Step 2: Create temp cache dir (for ZIPs)
@@ -308,6 +334,9 @@ async function main() {
 
   let totalSalaryRows = 0;
   let totalDownloads = 0;
+  // Track non-D-06 failures (download errors, sync RPC errors) so a partially-loaded
+  // DB exits non-zero. A genuine "not in GCC source for this year" gap is NOT a failure (WR-05).
+  let hadFailures = false;
 
   // Step 4: OUTER LOOP = year; INNER LOOP = city (efficient: 16 downloads, not 544)
   for (const year of years) {
@@ -320,6 +349,7 @@ async function main() {
       totalDownloads++;
     } catch (err) {
       console.error(`  ERROR downloading ${year}: ${err.message}`);
+      hadFailures = true;
       // Mark all cities as gapped for this year
       for (const c of cities) {
         cityResults[c.name].gaps.push({ year, reason: `Download failed: ${err.message}` });
@@ -346,6 +376,7 @@ async function main() {
         totalSalaryRows += result.rowCount;
       } else {
         cityResults[city.name].gaps.push({ year, reason: 'Sync RPC error' });
+        hadFailures = true;
       }
 
       // Politeness: brief pause between cities within a year (no extra downloads)
@@ -391,6 +422,11 @@ async function main() {
   const resultPath = path.join(cacheDir, 'sweep-results.json');
   fs.writeFileSync(resultPath, JSON.stringify({ cities: cityResults, covered: covered.map(c=>c.name), gapped: gapped.map(c=>c.name) }, null, 2));
   console.log(`\nResults saved to: ${resultPath}`);
+
+  if (hadFailures) {
+    console.error('\nCompleted with failures (download or sync RPC errors) — DB load is INCOMPLETE.');
+    process.exit(1);
+  }
 
   return { cityResults, covered, gapped };
 }
