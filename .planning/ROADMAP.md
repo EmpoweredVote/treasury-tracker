@@ -501,12 +501,16 @@ Plans:
 
 - [x] **Phase 32: State Entity Infrastructure** — Schema migration + TypeScript type + EntitySwitcher UI fixes
  (completed 2026-06-06)
+
 - [x] **Phase 33: CA State Budget Data** — Seed CA state entity, load General Fund budget, enrich with state-level framing
  (completed 2026-06-07)
+
 - [x] **Phase 34: 3-Level Tree Infrastructure (ev-accounts-api)** — RPC + API update to accept and serve 3-level trees, backward-compatible
  (completed 2026-06-08)
+
 - [x] **Phase 35: CA State 3-Level Icicle Pilot** — Reload CA state as genuine 3-level tree; end-to-end validation
  (completed 2026-06-08)
+
 - [x] **Phase 36: Selective City Retrofit** — Source data audit + retrofit 1-2 cities with genuine 3rd-level data (completed 2026-06-09)
 
 </details>
@@ -533,10 +537,12 @@ Plans:
 **Depends on:** Nothing (first phase of v1.7)
 **Requirements:** INFRA-01, INFRA-02, INFRA-03
 **Success Criteria** (what must be TRUE):
+
   1. `entity_type: 'state'` migration is applied — the CHECK constraint in `treasury.municipalities` now accepts 'state'
   2. TypeScript compiles cleanly with 'state' added to the `Municipality.entity_type` union in `src/types/budget.ts`
   3. Entity picker shows a "State Governments" section above all state/city groups — not nested inside the "CALIFORNIA" group
   4. All existing city and county pages render identically to before (no regression)
+
 **Plans:** 4/4 plans complete
 
 Plans:
@@ -560,11 +566,13 @@ Plans:
 **Note:** No Socrata API exists for the CA state budget. Use the LAO historical Excel file (openpyxl, FY1985-FY2026) as the primary source, or the ebudget.ca.gov Enacted Budget Summary PDF (pdfplumber) as fallback. Confirm column structure at phase start before writing the loader. General Fund only (~$228B enacted) — do NOT load all-funds (~$495B).
 
 **Success Criteria** (what must be TRUE):
+
   1. "California" appears as a selectable entity in the entity picker under a "State Governments" section
   2. Clicking California opens a Money Out tab showing General Fund budget total in the ~$228B range for FY2025-26
   3. Per-capita display shows approximately $5,800 per resident (using ~39.5M population)
   4. Category enrichment descriptions use state-level policy framing (not city-department language)
   5. Year selector shows at least FY2024-25 and FY2025-26 as selectable years
+
 **Plans:** 3/3 plans complete
 
 Plans:
@@ -589,6 +597,7 @@ Plans:
 **Requirements:** TREE-01, TREE-02, TREE-03
 
 **Critical notes:**
+
 - This phase is entirely in the **ev-accounts-api repo** (separate from this repo).
 - **Research finding (34-RESEARCH.md, verified live 2026-06-08): the infrastructure already supports 3-level trees — no ev-accounts-api or treasury-tracker code changes are needed.** The `treasury_sync_budget_tree` RPC already accepts the `c -> c -> i` shape and creates depth-0/1/2 `budget_categories` rows; `getBudgetById` builds an N-level tree from `parent_id` (Bloomington IN already runs at depth 4 in production). Phase 34 is verification-only.
 - Day-1 mandatory step: confirm `budget_categories` has depth-2+ rows and that `budget_line_items` has NO `category`/`subcategory`/`department` column (hierarchy lives in `budget_categories.parent_id`; the old ARCHITECTURE.md schema is superseded).
@@ -596,9 +605,11 @@ Plans:
 - Backward compat is automatic and inherent in the recursive `parent_id` tree builder: 2-level data has no depth-2 rows, so the builder returns 2 levels. Spot-check still required to satisfy the success criteria.
 
 **Success Criteria** (what must be TRUE):
+
   1. A test 3-level tree submitted to `treasury_sync_budget_tree` lands as depth-0/1/2 `budget_categories` rows (parent_id chain — not a `budget_line_items.department` column, which does not exist)
   2. The categories API returns a 3-level `BudgetCategory[]` for that test data — Level 3 nodes visible in the response
   3. Spot-check of at least 3 existing city pages (e.g., Portland, San Jose, Dallas) confirms they render identically to before — no regressions in the 2-level paths
+
 **Plans:** 1/1 plans complete
 
 Plans:
@@ -615,10 +626,12 @@ Plans:
 **Note:** No frontend changes are required — `BudgetIcicle.tsx` already renders arbitrary depth via `navigationPath`. This phase is a data reload using the loader from Phase 33 against the updated RPC from Phase 34.
 
 **Success Criteria** (what must be TRUE):
+
   1. CA state icicle shows 3 clickable drill-down levels in the live app (Program Area → Department → Budget Category)
   2. Clicking to Level 3 opens the `LineItemsTable` with leaf-level line items (identical behavior to existing 2-level cities at their deepest level)
   3. Drill-down animation and layout look correct at all 3 levels — no visual layout breakage
   4. The CA state page looks and works as expected end-to-end (correct totals, correct year, correct per-capita, correct enrichment)
+
 **Plans:** 3/3 plans complete
 Plans:
 **Wave 1**
@@ -632,6 +645,7 @@ Plans:
 **Wave 3** *(blocked on 35-02 — needs the updated loader)*
 
 - [x] 35-03-PLAN.md — Live reload 5 FYs + DB depth verify (ICICLE-01); $5-gated depth-2 enrichment (D-09/D-10); human live-app spot-check (ICICLE-02/03); write 35-VERIFICATION.md
+
 **UI hint:** yes
 
 ### Phase 36: Selective City Retrofit
@@ -643,10 +657,12 @@ Plans:
 **Critical note:** Begin with a source data audit of 2-3 candidate cities before writing any loader code. Only retrofit cities where the source PDF or dataset has a natural, extractable 3rd level — do not synthesize a 3rd level from 2-level data.
 
 **Success Criteria** (what must be TRUE):
+
   1. Source data audit identifies at least 1 city (from the existing 30+ entities) with a genuine, extractable 3rd-level structure in its source data
   2. At least 1 retrofitted city shows a 3-level icicle drill-down in the live app after reload
   3. Retrofitted city's existing enrichment descriptions remain intact (no descriptions wiped or corrupted)
   4. Non-retrofitted cities continue to render correctly — no regression in any 2-level city or county page
+
 **Plans:** 4/4 plans complete
 
 Plans:
@@ -671,10 +687,12 @@ Plans:
 **Depends on:** Nothing (prerequisite to any bulk load)
 **Requirements:** LOAD-01, LOAD-02, LOAD-03
 **Success Criteria** (what must be TRUE):
+
   1. Running `scrapeMaDLS.js --explore` against a sample city returns the rdreport and tableID for General Fund Expenditures — confirmed correct before any city data is written
   2. A deliberately interrupted bulk run resumes from the last successfully loaded city (not from city 1) when restarted — no duplicate rows written for cities already processed
   3. Loading FY2022 followed by FY2023 onto the same data_source row results in `fiscal_years: [2022, 2023]` — not `fiscal_years: [2023]` (overwrite) or a DB constraint error
   4. A dry-run against 3–5 sample MA cities completes without errors and produces budget tree JSON that passes sanity checks (non-zero totals, recognizable DLS category names)
+
 **Plans:** 2/2 plans complete
 Plans:
 **Wave 1**
@@ -691,11 +709,13 @@ Plans:
 **Depends on:** Phase 37 (loader hardening must precede bulk load)
 **Requirements:** MA-01, MA-02, MA-03
 **Success Criteria** (what must be TRUE):
+
   1. "Massachusetts" appears as a group in the city picker and all 351 MA cities are listed and selectable
   2. Clicking any MA city opens a Money Out (operating) tab showing General Fund Expenditures totals for at least one fiscal year between FY2021–FY2025
   3. Clicking any MA city opens a Money In (revenue) tab showing Revenue by Source totals for at least one fiscal year between FY2021–FY2025
   4. The five fiscal years FY2021–FY2025 are each available in the year selector for a representative sample of MA cities (e.g., Boston, Worcester, Springfield)
   5. DB row count for MA operating budget entries exceeds 1,000 rows (351 cities × ~5 FYs × multiple categories), confirming full bulk load completed
+
 **Plans:** 2/2 plans complete
 Plans:
 **Wave 1**
@@ -705,6 +725,7 @@ Plans:
 **Wave 2** *(blocked on 38-01 — needs the scraped JSON files)*
 
 - [x] 38-02-PLAN.md — Load all 10 FY files via treasury_sync_budget_tree; live LOAD-02 resume confirm; verify DB counts + fiscal_years; human spot-check MASSACHUSETTS picker + Boston/Worcester/Springfield (MA-01, MA-02, MA-03)
+
 **UI hint:** yes
 
 ### Phase 39: MA Population, State Budget, and Enrichment
@@ -713,11 +734,13 @@ Plans:
 **Depends on:** Phase 38 (MA city data must be loaded before enrichment can target MA rows; per-capita display requires city rows to exist)
 **Requirements:** MA-04, STATE-01, ENRICH-01
 **Success Criteria** (what must be TRUE):
+
   1. Clicking any MA city page shows a per-capita ($/resident) figure alongside the budget total, derived from 2024 Census population data
   2. The MA state government entity in the app shows General Fund Expenditures data sourced from real MA DLS figures — not hardcoded estimates
   3. All 9 MA DLS operating category names (e.g., "General Government", "Public Safety", "Education") display plain-language enrichment descriptions on any MA city page
   4. All 5 MA DLS revenue category names (e.g., "Property Taxes", "State Aid") display plain-language enrichment descriptions on any MA city page
   5. Enrichment descriptions are identical across different MA cities for the same category name — confirming universal (not per-city) reuse
+
 **Plans:** 4 plans (2 waves)
 Plans:
 **Wave 1** *(three independent workstreams, no file overlap, fully parallel)*
@@ -750,6 +773,7 @@ Plans:
 **Depends on:** Nothing (county_id column already exists; pattern proven from Phase 25)
 **Requirements:** COUNTY-01, COUNTY-02, COUNTY-03, UI-01, UI-02
 **Success Criteria** (what must be TRUE):
+
   1. 5 county rows exist in `treasury.municipalities` with entity_type='county', state='MA', and population > 0
   2. Running `SELECT COUNT(*) FROM treasury.municipalities WHERE state='MA' AND county_id IS NOT NULL` returns the expected city count for those 5 counties
   3. Spot-check: opening Boston, Taunton, and Plymouth city pages in the app shows the county breadcrumb chip (after county_id set — no frontend changes needed)
@@ -766,6 +790,7 @@ Plans:
 **Depends on:** Phase 40 (county municipality_id UUIDs must exist before data_source rows can be created)
 **Requirements:** DATA-01, DATA-02, DATA-03, DATA-04, DATA-05
 **Success Criteria** (what must be TRUE):
+
   1. Each of the 5 county pages (Barnstable, Bristol, Dukes, Norfolk, Plymouth) shows a Money Out (operating budget) tab with at least one fiscal year of data
   2. Budget totals are plausible for each county: Barnstable ~$22–25M, Bristol ~$9–14M, Dukes ~$1–2M, Norfolk ~$14–18M, Plymouth ~$15–25M
   3. DB verification: `SELECT COUNT(*) FROM treasury.budgets b JOIN treasury.municipalities m ON m.id=b.municipality_id WHERE m.state='MA' AND m.entity_type='county'` returns at least 5 rows (one per county)
@@ -775,12 +800,15 @@ Plans:
 **Plans:** 2/2 plans complete
 
 **Wave 1**
+
 - [x] 41-01-PLAN.md — Discovery: Bristol PDF manual download (human-action checkpoint) + pdftotext inspection of all 5 counties; confirm extraction approach per county
 
 **Wave 2** *(blocked on Wave 1 completion)*
+
 - [x] 41-02-PLAN.md — Write `scripts/extractMACounties.py` + `scripts/loadMACountyBudget.js`; dry-run all 5; live-load; DB verify counts + totals
 
 **Cross-cutting constraints:**
+
 - `api_type` must be `'pdf_download'` (not `'ma-dls'`) — county budgets are individual PDFs, not DLS portal data
 - `loadEnv` must use inline comment stripping from `seedMACountyLinks.js` pattern (not `loadMAPopulation.js`) to avoid WR-03 bug
 
@@ -790,6 +818,7 @@ Plans:
 **Depends on:** Phase 41 (budget rows must exist before enrichment can target county categories)
 **Requirements:** ENRICH-01, COUNTY-03, UI-01, UI-02
 **Success Criteria** (what must be TRUE):
+
   1. At least the top 3 budget categories for each active county have enrichment descriptions (municipality_id-scoped — never NULL/universal)
   2. A human confirms: opening any linked MA city page shows a county breadcrumb chip (e.g., "Bristol County →")
   3. A human confirms: clicking a county breadcrumb navigates to the county page, which shows the CitiesInCountyPanel listing cities in that county
@@ -826,6 +855,7 @@ _Full detail archived in `.planning/milestones/v2.0-ROADMAP.md`._
 **Depends on:** Nothing (Phase 32 'state' pattern proven)
 **Requirements:** INFRA-01, INFRA-02, INFRA-03
 **Success Criteria** (what must be TRUE):
+
   1. A municipality row with entity_type='federal' can be created and is served by ev-accounts-api without errors
   2. `source_name`, `source_url`, `source_date` columns exist on budget and enrichment rows (nullable for legacy city/state rows; populated on all federal rows)
   3. `program_details` table exists with per-claim source URL fields
@@ -835,10 +865,12 @@ _Full detail archived in `.planning/milestones/v2.0-ROADMAP.md`._
 **Plans:** 3/3 plans complete
 
 **Wave 1**
+
 - [x] 43-01-PLAN.md — 4 DB migrations: 'federal' entity_type, source_url/source_date on budget tables, program_details table, federal source_registry seed
 - [x] 43-02-PLAN.md — Frontend: 'federal' in Municipality union + EntitySwitcher FEDERAL GOVERNMENT section (Phase 32 state pattern, one tier higher)
 
 **Wave 2** *(blocked on Wave 1)*
+
 - [x] 43-03-PLAN.md — Backend audit + E2E simulation: prove getCities serves a data-bearing federal row and hides a data-less one; full temp-row cleanup; regression counts. Zero backend changes needed. ⚠️ Phase 44 finding: visibility gated on treasury.budgets metadata rows (fiscal_year_start_month=10 for federal)
 
 ### Phase 44: Core Federal Data Load
@@ -847,6 +879,7 @@ _Full detail archived in `.planning/milestones/v2.0-ROADMAP.md`._
 **Depends on:** Phase 43
 **Requirements:** DATA-01 through DATA-07
 **Success Criteria** (what must be TRUE):
+
   1. FY2025 outlays by function sum to ~$7,011B against OMB Hist 1.1 (within rounding); receipts to ~$5,236B
   2. OMB 8.1 split rows exist for FY2015–FY2025 (mandatory/discretionary defense/discretionary nondefense/net interest)
   3. FY2026 FYTD figures current through the latest MTS month load successfully and re-running the loader is idempotent
@@ -855,6 +888,7 @@ _Full detail archived in `.planning/milestones/v2.0-ROADMAP.md`._
   6. Debt to the Penny total and FYTD interest expense are loaded with source metadata
 
 **Cross-cutting constraints:**
+
 - `page[size]` must be URL-encoded in Fiscal Data API calls
 - OMB xlsx downloads require a browser User-Agent
 - USAspending obligations NEVER loaded as outlay figures
@@ -863,13 +897,16 @@ _Full detail archived in `.planning/milestones/v2.0-ROADMAP.md`._
 **Plans:** 5 plans (3 waves)
 
 **Wave 1**
+
 - [x] 44-01-PLAN.md — Schema (federal_agency dataset_type, federal_annual_summary + federal_context_metrics tables) + seedUSFederal.js (Census-fetched population 340,110,988) + frontend dataset_type safety audit
 
 **Wave 2** *(blocked on 44-01)*
+
 - [x] 44-02-PLAN.md — OMB Hist 1.1 + 8.1 → federal_annual_summary (64 years 1962–2025, anchors exact; 8.1 is in BILLIONS — units read per file)
 - [x] 44-03-PLAN.md — MTS: FY2025 receipts tree ($5,234.6B, 0.034% vs OMB) + 4 context metrics. ✅ CHECKPOINT: Chris chose GO 2026-06-12 — United States publicly visible
 
 **Wave 3** *(blocked on Wave 2)*
+
 - [x] 44-04-PLAN.md — Function lens DEEP path taken: 18 functions → 61 subfunctions → 1,613 accounts (PBDB sums EXACTLY to OMB 1.1); BudgetIcicle child-width normalization; reconciliation identity 0.0000%
 - [x] 44-05-PLAN.md — Agency lens: 29 departments, 5 depth levels, identity 0.006% vs T5 Total Outlays; 44-VERIFICATION.md — all seven DATA requirements PASS
 
@@ -879,6 +916,7 @@ _Full detail archived in `.planning/milestones/v2.0-ROADMAP.md`._
 **Depends on:** Phase 44
 **Requirements:** VIZ-01 through VIZ-06
 **Success Criteria** (what must be TRUE):
+
   1. Landing view: proportional Mandatory / Discretionary / Net Interest bands for FY2025 — not an icicle
   2. Deficit strip is always visible: receipts $5,236B vs outlays $7,011B, gap labeled, debt total shown
   3. Function lens drill is default; agency lens one toggle away; FY2026 "this year so far" strip present
@@ -889,13 +927,16 @@ _Full detail archived in `.planning/milestones/v2.0-ROADMAP.md`._
 **Plans:** 4 plans (4 waves)
 
 **Wave 1**
+
 - [x] 45-01-PLAN.md — Backend: /federal/context live on Render (~30s deploy); additive source fields via LATERAL join (fan-out defect prevented). ⚠️ push side-effect: 91 pre-existing local EV-Accounts commits published — flagged to Chris
 - [x] 45-02-PLAN.md — FederalLanding live: DeficitStrip + FirstSplitBands + ThisYearStrip + SourceChip; PlainLanguageSummary suppressed for federal only
 
 **Wave 3** *(blocked on 45-02)*
+
 - [x] 45-03-PLAN.md — LensToggle + per-dataset chips + ScaleToggle ($ / per-person / per-taxpayer — IRS Data Book VERIFIED: 162,754,810 returns FY2025) + MethodologyPanel (disclosure figures computed live from metrics)
 
 **Wave 4** *(blocked on Wave 3)*
+
 - [x] 45-04-PLAN.md — Sweep 6/6 PASS; Chris UAT: PASS with notes (React #310 hooks crash found+fixed; scale-formula disclosure + context intro added same-day)
 
 ### Phase 46: Sourced Explainer Pipeline v2
@@ -904,6 +945,7 @@ _Full detail archived in `.planning/milestones/v2.0-ROADMAP.md`._
 **Depends on:** Phase 45 (needs UI surfaces); pipeline can start after Phase 44
 **Requirements:** SRC-01 through SRC-04
 **Success Criteria** (what must be TRUE):
+
   1. enrichFederal pipeline fetches authoritative source text (agency congressional justifications via USAspending URLs, OMB descriptions) BEFORE generating; generation prompt contains only fetched text
   2. ~20 function + top-10 agency explainers live, each with displayed citation
   3. DoD entries carry an opacity flag with the official GAO/OIG audit citation
@@ -912,9 +954,11 @@ _Full detail archived in `.planning/milestones/v2.0-ROADMAP.md`._
 **Plans:** 3 plans (2 waves)
 
 **Wave 1**
+
 - [x] 46-01-PLAN.md — Sources contract: function definitions from GAO-05-734SP App. IV (A-11 + PBDB guide are code-lists only; GAO acquired via WebFetch-passes-bot-wall discovery); 9/10 agency missions fetched (1 documented skip)
 
 **Wave 2** *(blocked on 46-01)*
+
 - [x] 46-02-PLAN.md — 27 explainers authored INLINE ($0 API) into committed data/federal-enrichment.json + loadFederalEnrichment.js; claim-trace audit 3/3 traced; 2 untraceable draft claims removed pre-load; production API serves citations
 - [x] 46-03-PLAN.md — DoD audit opacity: GAO's verbatim disclaimer statement from the FY2025 Financial Report (fiscal.treasury.gov — better source than all 4 planned candidates); metric value=2 (no inferred history) + MethodologyPanel audit section + 2 enrichment sentences; 46-VERIFICATION.md 4/4 PASS
 
@@ -924,6 +968,7 @@ _Full detail archived in `.planning/milestones/v2.0-ROADMAP.md`._
 **Depends on:** Phase 43 (program_details table); Phase 46 editorial standard
 **Requirements:** ORIG-01, ORIG-02, ORIG-03
 **Success Criteria** (what must be TRUE):
+
   1. Congress.gov + GovInfo free API keys in .env (Chris human-action checkpoint)
   2. 15–20 programs (e.g., Social Security, Medicare, Medicaid, SNAP, Pell) have details rows with structured origin facts, every claim carrying a working official-record URL
   3. Zero model-memory claims: every fact traceable to a fetched API response
@@ -932,12 +977,15 @@ _Full detail archived in `.planning/milestones/v2.0-ROADMAP.md`._
 **Plans:** 3/3 plans complete
 
 **Wave 1**
+
 - [x] 47-01-PLAN.md — Pilot selection: ~18 programs live-probed (Congress.gov bill detail for modern; GovInfo STATUTE for foundational), mapping discipline enforced (fetched-title rule; skip-with-rationale), exact name_keys from SQL → 47-PROGRAMS.md
 
 **Wave 2** *(blocked on 47-01)*
+
 - [x] 47-02-PLAN.md — data/federal-programs.json (identifiers ONLY — facts come from APIs at load time) + loadProgramOrigins.js (deterministic structured fetch, zero LLM, key never logged); foundational rows: NULL sponsor + boundary note — 15 rows live
 
 **Wave 3** *(blocked on 47-02)*
+
 - [x] 47-03-PLAN.md — Backend exposure (additive) + ProgramOrigins drill-view card (every value an official-record link) + 47-VERIFICATION.md — PASS, production-verified
 
 ### Phase 48: Source-Chain Verification + UAT
@@ -946,6 +994,7 @@ _Full detail archived in `.planning/milestones/v2.0-ROADMAP.md`._
 **Depends on:** Phases 45–47
 **Requirements:** VERIFY-01, VERIFY-02
 **Success Criteria** (what must be TRUE):
+
   1. Automated audit script walks every federal figure/text row and confirms its source URL returns 200 (report committed)
   2. Chris confirms: landing view, both lenses, deficit strip, explainers with citations, origins sections
   3. Chris confirms: no regression on city/county/state pages
@@ -954,9 +1003,11 @@ _Full detail archived in `.planning/milestones/v2.0-ROADMAP.md`._
 **Plans:** 2/2 plans complete — **Phase 48 done; v2.0 build scope complete**
 
 **Wave 1**
+
 - [x] 48-01-PLAN.md — scripts/auditFederalSources.mjs: walk all 5 claim surfaces (~230 rows, ~40 unique URLs), per-domain strategy (govinfo via api.govinfo.gov — page status meaningless; congress.gov/bioguide/gao via Playwright content-match; friendly domains GET+UA), FAILs fixed at the data layer → 48-AUDIT.md committed with the HUMAN-CHECK residue list — **61/61 PASS, residue EMPTY**
 
 **Wave 2** *(blocked on 48-01; human checkpoint)*
+
 - [x] 48-02-PLAN.md — Automated production pre-flight (9/9) + 48-UAT-CHECKLIST.md → Chris sign-off "Looks amazing!" + 2 polish enhancements shipped (US-first flag tile, b0da716) → 48-VERIFICATION.md (VERIFY-01/02 PASS) — **v2.0 build scope complete**
 
 </details>
@@ -988,6 +1039,7 @@ Milestone audit **PASSED 8/8** (HIST-01..04, NAV-01/02, CTX-01/02). Full detail 
 **Depends on:** Nothing new (reuses Phase 44 loaders + schema; US entity `0098c405-65e1-426f-8e5f-0fcbe2a900c0`)
 **Requirements:** HIST-01, HIST-02, HIST-03, HIST-04, CTX-01
 **Success Criteria** (what must be TRUE):
+
   1. Function (Hist 3.2), agency (Hist 4.1/5.1), and receipts-by-source (Hist 2.x) trees are queryable for each fiscal year FY1976–FY2024 with no gaps
   2. Each year's loaded totals reconcile to the OMB published table values (within rounding)
   3. Every loaded line-item row populates source_name / source_url / source_date — zero exceptions
@@ -995,6 +1047,7 @@ Milestone audit **PASSED 8/8** (HIST-01..04, NAV-01/02, CTX-01/02). Full detail 
   5. Zero API/LLM spend (loaded directly from free OMB tables); re-running loaders is idempotent
 
 **Cross-cutting constraints:**
+
 - OMB xlsx downloads require a browser User-Agent
 - Function/agency definitions drift over decades — preserve the source label per year; comparability notes land in Phase 51
 - FY1976 Transition Quarter (TQ) is a distinct period in OMB tables — handle explicitly, don't fold into a fiscal year
@@ -1006,6 +1059,7 @@ Milestone audit **PASSED 8/8** (HIST-01..04, NAV-01/02, CTX-01/02). Full detail 
 **Depends on:** Phase 49
 **Requirements:** NAV-01, NAV-02
 **Success Criteria** (what must be TRUE):
+
   1. The federal YearSelector lists all loaded years (FY1976–FY2025) and switching years updates the function, agency, and revenue views
   2. The landing Mandatory / Discretionary / Net Interest bands and the receipts-vs-outlays deficit strip reflect the selected year's figures
   3. The source chip on each figure updates to the selected year's source
@@ -1017,6 +1071,7 @@ Milestone audit **PASSED 8/8** (HIST-01..04, NAV-01/02, CTX-01/02). Full detail 
 **Depends on:** Phases 49–50
 **Requirements:** CTX-02
 **Success Criteria** (what must be TRUE):
+
   1. Comparability notes are visible in-app explaining function/agency definition drift across decades and the FY1976 Transition Quarter (TQ)
   2. Automated source-chain audit confirms every backfilled year's figures resolve to a working OMB source URL (PASS, zero residue)
   3. Spot-check of representative years (e.g., FY1976, FY1990, FY2008, FY2024) confirms totals match the OMB published tables
@@ -1037,6 +1092,7 @@ Milestone audit **PASSED 8/8** (HIST-01..04, NAV-01/02, CTX-01/02). Full detail 
 **Status:** Not started
 
 Success criteria:
+
 1. `bulkLoadStateController.js --county "<Name>"` loads operating + revenue for all cities in any CA county (verified via dry-run on a non-OC county).
 2. Every loaded budget row gets a CA State Controller ByTheNumbers source-attribution row (source_name / source_url / source_date).
 3. Cities auto-created by the loader are backfilled with population (per-capita renders on first load).
@@ -1051,6 +1107,7 @@ Plans:
 **Status:** Not started
 
 Success criteria:
+
 1. All 34 OC cities have operating budgets for FY2003–2024 visible in the app.
 2. All 34 OC cities have revenue budgets for FY2003–2024 visible in the app.
 3. The 32 net-new cities exist with correct populations (per-capita renders); Anaheim & Santa Ana untouched.
@@ -1062,12 +1119,17 @@ Success criteria:
 **Requirements:** OC-03, OC-04, OC-05
 **Status:** Planned
 **Plans:** 2 plans
-
 Plans:
+**Wave 1**
+
 - [ ] 54-01-PLAN.md — Seed Orange County entity + link all loaded OC cities (incl. Anaheim/Santa Ana) via county_id; verify linkage + live breadcrumb/panel (OC-03, OC-05)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 54-02-PLAN.md — Author OC category enrichment gap set INLINE at $0 (no paid API), matching the LA baseline, bleed-safe; verify coverage (OC-04)
 
 Success criteria:
+
 1. Orange County entity exists; all 34 cities resolve the US → California → Orange County → city breadcrumb chain.
 2. The "Cities in Orange County" panel lists all 34 cities and navigates to each.
 3. Each OC city's categories carry plain-language enrichment consistent with the LA County baseline.
@@ -1080,6 +1142,7 @@ Success criteria:
 **Status:** Not started
 
 Success criteria:
+
 1. Spike confirms publicpay.ca.gov coverage and depth for OC cities, documented (gates the build).
 2. A reusable statewide city-salaries loader imports compensation for any CA city from the confirmed source.
 3. OC cities show an employee-compensation (salaries) dataset wherever the source provides it.
@@ -1092,6 +1155,7 @@ Success criteria:
 **Status:** Not started
 
 Success criteria:
+
 1. OC city budget totals are spot-checked against published ACFRs / adopted budgets and pass, with checks documented.
 2. Breadcrumb chain + Cities-in-Orange-County panel verified live; Chris UAT sign-off.
 
