@@ -40,6 +40,7 @@ import { createClient } from '@supabase/supabase-js';
 import { parseArgs } from 'node:util';
 import { execSync } from 'node:child_process';
 import { Buffer } from 'node:buffer';
+import { fileURLToPath } from 'node:url';
 
 // ── Env / Supabase setup ────────────────────────────────────────────────────
 
@@ -70,6 +71,53 @@ const COL_TOTAL_BENEFITS  = 20;  // TotalRetirementAndHealthContribution (D-02 /
 // COL_EMPLOYER_COUNTY = 25 (available for future county-scoped queries)
 
 const DATA_SOURCE_NAME = 'CA State Controller — Government Compensation in California (publicpay.ca.gov)';
+
+// ── Department label normalization (gap-closure, 2026-06-15) ──────────────────
+//
+// GCC carries the department name each city self-reports in DepartmentOrSubdivision.
+// Many cities submit terse abbreviations (e.g. Irvine reports "Pw Sust", "Hum Res",
+// "City Cnl"), which are accurate but not citizen-readable. We expand ONLY a small,
+// auditable set of HIGH-confidence, unambiguous whole-token abbreviations and apply a
+// smart Title Case that preserves acronyms and roman numerals. Genuinely ambiguous
+// codes (e.g. "Com Eng", "Pd Sustainability", "Citycnl2") are left exactly as-reported
+// — expanding them would be guessing, which violates the never-fabricate ground rule
+// (D-01). This map is statewide-safe: a city that doesn't use these tokens is untouched.
+const DEPT_TOKEN_EXPANSIONS = {
+  pw:    'Public Works',
+  sust:  'Sustainability',
+  trsp:  'Transportation',
+  hum:   'Human',
+  res:   'Resources',
+  cnl:   'Council',
+  admin: 'Administrative',
+};
+
+// Roman numerals (I–X) seen in titles like "Dispatcher II" — keep uppercase, never Title Case to "Ii".
+const ROMAN_NUMERAL = /^(i{1,3}|iv|v|vi{0,3}|ix|x)$/i;
+
+/**
+ * Normalize a self-reported department label for display.
+ * - Expands only the approved high-confidence abbreviation tokens above.
+ * - Preserves existing acronyms (already-uppercase tokens of 2–4 chars) and roman numerals.
+ * - Title-cases remaining ordinary words; leaves unrecognized codes as-reported.
+ * Never invents meaning for ambiguous tokens (D-01).
+ */
+export function normalizeDeptLabel(raw) {
+  const trimmed = (raw || '').trim();
+  if (!trimmed) return 'UNKNOWN';
+  return trimmed
+    .split(/\s+/)
+    .map((tok) => {
+      const key = tok.toLowerCase();
+      if (Object.prototype.hasOwnProperty.call(DEPT_TOKEN_EXPANSIONS, key)) {
+        return DEPT_TOKEN_EXPANSIONS[key];
+      }
+      if (ROMAN_NUMERAL.test(tok)) return tok.toUpperCase();
+      if (/^[A-Z0-9]{2,4}$/.test(tok)) return tok; // preserve existing acronyms (IT, HR, GIS…)
+      return tok.charAt(0).toUpperCase() + tok.slice(1).toLowerCase();
+    })
+    .join(' ');
+}
 
 // ── CSV parser (handles quoted fields with embedded commas/newlines) ──────────
 
@@ -251,7 +299,7 @@ function buildTree(rows) {
   const depts = new Map(); // dept name → Map<position name, posEntry>
 
   for (const row of rows) {
-    const dept = (row[COL_DEPT] || 'UNKNOWN').trim() || 'UNKNOWN';
+    const dept = normalizeDeptLabel(row[COL_DEPT]); // expand approved abbreviations + smart Title Case (D-01: no fabrication)
     const pos  = (row[COL_POSITION] || 'Unknown Position').trim() || 'Unknown Position';
 
     // D-02: Total Compensation = TotalWages + TotalRetirementAndHealthContribution
@@ -435,4 +483,8 @@ async function main() {
   console.log('\nDone.\n');
 }
 
-main().catch(err => { console.error('Fatal:', err); process.exit(1); });
+// Run main() only when executed directly — not when imported (e.g. by sweepOCSalaries.js,
+// which reuses normalizeDeptLabel so both scripts share one normalization source of truth).
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  main().catch(err => { console.error('Fatal:', err); process.exit(1); });
+}

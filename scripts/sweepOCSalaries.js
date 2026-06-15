@@ -28,6 +28,8 @@ import { inflateRawSync } from 'node:zlib';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+// Shared department-label normalizer (single source of truth — see loadCASalaries.js).
+import { normalizeDeptLabel } from './loadCASalaries.js';
 
 // ── Env / Supabase setup ─────────────────────────────────────────────────────
 
@@ -178,7 +180,7 @@ function downloadAndIndexYear(year, cacheDir) {
 function buildTree(rows) {
   const depts = new Map();
   for (const row of rows) {
-    const dept = (row[COL_DEPT] || 'UNKNOWN').trim() || 'UNKNOWN';
+    const dept = normalizeDeptLabel(row[COL_DEPT]); // expand approved abbreviations (D-01: no fabrication)
     const pos  = (row[COL_POSITION] || 'Unknown Position').trim() || 'Unknown Position';
     const totalWages    = parseFloat(row[COL_TOTAL_WAGES])    || 0;
     const totalBenefits = parseFloat(row[COL_TOTAL_BENEFITS]) || 0;
