@@ -596,6 +596,16 @@ function App() {
     return cats.some(c => c.enrichment != null);
   }, [operatingBudgetData, revenueData]);
 
+  // County "grouper" pages (e.g. Orange County) have no budget of their own —
+  // their cities carry the data. The page's value is the Cities-in-County
+  // directory below, so suppress the budget chrome (year selector, plain-language
+  // summary, dataset tabs) and let it read as a clean city directory rather than
+  // an empty budget view. Counties that DO have their own budget (e.g. LA County)
+  // are unaffected.
+  const isCountyDirectoryOnly =
+    selectedEntity?.entity_type === 'county' &&
+    (selectedEntity.available_datasets?.length ?? 0) === 0;
+
   // Federal scale transform (VIZ-05): pure display math on a COPY of the tree —
   // amount ÷ sourced denominator (population or returns filed). Never mutates
   // loaded data; formulas disclosed in ScaleToggle tooltips + MethodologyPanel.
@@ -774,12 +784,14 @@ function App() {
                 onEntityChange={handleEntityChange}
               />
             )}
-            <YearSelector
-              ref={yearSelectorRef}
-              selectedYear={selectedYear}
-              years={availableYears}
-              onYearChange={setSelectedYear}
-            />
+            {!isCountyDirectoryOnly && (
+              <YearSelector
+                ref={yearSelectorRef}
+                selectedYear={selectedYear}
+                years={availableYears}
+                onYearChange={setSelectedYear}
+              />
+            )}
             {selectedYear === '2025' && selectedEntity?.entity_type === 'nonprofit' && (
               <a
                 href="/Empowered%20Vote%20Annual%20Report%202025.pdf"
@@ -869,8 +881,9 @@ function App() {
           </div>
         )}
         <div className="max-w-[1400px] mx-auto px-6 py-8">
-          {/* Dashboard Section — only show at top level */}
-          {navigationPath.length === 0 && (
+          {/* Dashboard Section — only show at top level; hidden for budget-less
+              county directory pages (their value is the Cities-in-County panel) */}
+          {navigationPath.length === 0 && !isCountyDirectoryOnly && (
             <>
               {/* Federal landing: official first-split + deficit context replaces the
                   narrative summary (whose uncontextualized totals would mislead — 45-CONTEXT) */}
