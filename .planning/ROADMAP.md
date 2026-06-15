@@ -1218,7 +1218,7 @@ Success criteria:
 | 51. Comparability Notes + Source-Chain Verification + UAT | v2.1 | 4/4 | Complete | 2026-06-14 |
 | 52. SoCal Bulk Pipeline Hardening | v2.2 | 4/4 | Complete   | 2026-06-14 |
 | 53. Orange County Operating + Revenue Load | v2.2 | 1/1 | Complete    | 2026-06-14 |
-| 54. Orange County Entity, Linking + Enrichment | v2.2 | 2/2 | Complete   | 2026-06-15 |
+| 54. Orange County Entity, Linking + Enrichment | v2.2 | 2/2 | Complete    | 2026-06-15 |
 | 55. Statewide City Salaries Integration | v2.2 | — | Not started | — |
 | 56. Orange County Verification + UAT | v2.2 | — | Not started | — |
 
