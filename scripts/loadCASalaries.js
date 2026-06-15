@@ -119,6 +119,26 @@ export function normalizeDeptLabel(raw) {
     .join(' ');
 }
 
+// ── Money parsing ─────────────────────────────────────────────────────────────
+
+/**
+ * Parse a monetary cell into a finite Number.
+ * Strips currency symbols, thousands separators, and whitespace before parsing so
+ * a quoted value like "1,234.56" is not silently truncated to 1 by parseFloat (WR-01).
+ * Unparseable cells are warned about and treated as 0.
+ */
+export function parseMoney(raw) {
+  if (raw == null || raw === '') return 0;
+  const cleaned = String(raw).replace(/[$,\s]/g, '');
+  if (cleaned === '') return 0;
+  const n = Number(cleaned);
+  if (!Number.isFinite(n)) {
+    console.warn(`  Non-numeric money cell: ${JSON.stringify(raw)}`);
+    return 0;
+  }
+  return n;
+}
+
 // ── CSV parser (handles quoted fields with embedded commas/newlines) ──────────
 
 /**
@@ -181,8 +201,19 @@ function extractCsvFromZipSync(zipBuffer) {
     const sig = zipBuffer.readUInt32LE(offset);
     if (sig !== 0x04034b50) break; // Not a local file header
 
+    const gpFlag       = zipBuffer.readUInt16LE(offset + 6);
     const compression  = zipBuffer.readUInt16LE(offset + 8);
     const compSize     = zipBuffer.readUInt32LE(offset + 18);
+
+    // General-purpose bit 3 (0x08) = streamed entry: the local-header comp/uncomp
+    // sizes are 0 and the real sizes live in a trailing data descriptor. This extractor
+    // reads sizes from the local header, so it would mis-extract an empty buffer. Fail
+    // loudly rather than silently gapping every city (WR-03).
+    if (gpFlag & 0x08) {
+      const fnLenPeek = zipBuffer.readUInt16LE(offset + 26);
+      const namePeek  = zipBuffer.slice(offset + 30, offset + 30 + fnLenPeek).toString('utf8');
+      throw new Error(`ZIP entry ${namePeek} uses a data descriptor (streamed); compSize is in the trailing descriptor and is unsupported by this extractor.`);
+    }
     const uncompSize   = zipBuffer.readUInt32LE(offset + 22);
     const fnLen        = zipBuffer.readUInt16LE(offset + 26);
     const extraLen     = zipBuffer.readUInt16LE(offset + 28);
@@ -303,18 +334,18 @@ function buildTree(rows) {
     const pos  = (row[COL_POSITION] || 'Unknown Position').trim() || 'Unknown Position';
 
     // D-02: Total Compensation = TotalWages + TotalRetirementAndHealthContribution
-    const totalWages    = parseFloat(row[COL_TOTAL_WAGES])    || 0;
-    const totalBenefits = parseFloat(row[COL_TOTAL_BENEFITS]) || 0;
+    const totalWages    = parseMoney(row[COL_TOTAL_WAGES]);
+    const totalBenefits = parseMoney(row[COL_TOTAL_BENEFITS]);
     const totalComp     = totalWages + totalBenefits;
 
     // Skip zero-comp records (unpaid board members, partial-year officials, etc.)
     if (totalComp === 0) continue;
 
     // D-03 components
-    const base  = parseFloat(row[COL_REGULAR_PAY])   || 0;
-    const ot    = parseFloat(row[COL_OVERTIME_PAY])   || 0;
-    const lump  = parseFloat(row[COL_LUMP_SUM_PAY])   || 0;
-    const other = parseFloat(row[COL_OTHER_PAY])      || 0;
+    const base  = parseMoney(row[COL_REGULAR_PAY]);
+    const ot    = parseMoney(row[COL_OVERTIME_PAY]);
+    const lump  = parseMoney(row[COL_LUMP_SUM_PAY]);
+    const other = parseMoney(row[COL_OTHER_PAY]);
     const otOth = ot + lump + other;
 
     if (!depts.has(dept)) depts.set(dept, new Map());
@@ -393,7 +424,7 @@ async function syncYear(municipalityId, year, rows, dryRun) {
     for (const d of tree.slice(0, 5)) {
       console.log(`    ${d.n}: $${Math.round(d.a).toLocaleString()} (${d.c.length} positions)`);
     }
-    return;
+    return true;
   }
 
   console.log('  Syncing to Supabase...');
@@ -409,10 +440,11 @@ async function syncYear(municipalityId, year, rows, dryRun) {
 
   if (error) {
     console.error(`  RPC error: ${error.message}`);
-    return;
+    return false;
   }
 
   console.log(`  Inserted ${data?.rows_inserted ?? '?'} rows`);
+  return true;
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────────
@@ -437,6 +469,12 @@ async function main() {
   }
 
   const fiscalYears = values.fy ? values.fy.map(Number) : [2024];
+  // Reject non-numeric --fy up front (e.g. a letter-O typo) so a NaN year can't flow
+  // into the GCC URL and surface as a confusing generic "Fetch error" (WR-04).
+  if (fiscalYears.some(y => !Number.isInteger(y))) {
+    console.error('--fy must be integer year(s), e.g. --fy 2024');
+    process.exit(1);
+  }
   const dryRun      = values['dry-run'] ?? false;
 
   console.log('\nCA Statewide City Salaries Loader');
@@ -445,22 +483,34 @@ async function main() {
   console.log(`  Dry run      : ${dryRun}`);
   console.log(`  Source       : ${DATA_SOURCE_NAME}\n`);
 
-  // Resolve municipality ID for the --city argument
-  // OC cities already exist (Phase 53/54) — resolve, do NOT create new
-  const { data: municipalityId, error: munErr } = await supabase.rpc('treasury_ensure_municipality', {
-    p_name:        city,
-    p_state:       'CA',
-    p_entity_type: 'city',
-  });
+  // Resolve municipality ID for the --city argument.
+  // OC cities already exist (Phase 53/54) — RESOLVE ONLY, never create. We do a
+  // read-only lookup against treasury.municipalities and FAIL CLOSED when there is
+  // no exact (case-insensitive) pre-existing match. Using an ensure/upsert RPC here
+  // would silently create a phantom municipality on a typo/wrong-state input and
+  // write real GCC payroll into it (CR-01). A direct table read prevents that.
+  const { data: muni, error: munErr } = await supabase
+    .schema('treasury')
+    .from('municipalities')
+    .select('id,name')
+    .eq('state', 'CA')
+    .eq('entity_type', 'city')
+    .ilike('name', city) // exact-ish, case-insensitive — no wildcards
+    .maybeSingle();
   if (munErr) {
     console.error('Municipality lookup failed:', munErr.message);
     process.exit(1);
   }
-  if (!municipalityId) {
-    console.error(`Municipality not found for city "${city}" in CA. Ensure it exists in the DB.`);
+  if (!muni) {
+    console.error(`Municipality "${city}" (CA) not found. Will NOT create. Aborting.`);
     process.exit(1);
   }
-  console.log(`Municipality ID: ${municipalityId}`);
+  const municipalityId = muni.id;
+  console.log(`Resolved "${city}" → ${muni.name} (${municipalityId})`);
+
+  // Track non-D-06 failures so a partially-loaded DB exits non-zero (WR-05). A "city
+  // genuinely absent for that year" (D-06) is NOT a failure; a fetch/RPC error is.
+  let hadFailures = false;
 
   for (const fy of fiscalYears) {
     console.log(`\nYear ${fy}`);
@@ -469,6 +519,7 @@ async function main() {
       rows = await fetchCityRows(fy, city);
     } catch (err) {
       console.error(`  Fetch error for ${fy}: ${err.message}`);
+      hadFailures = true;
       continue;
     }
 
@@ -477,7 +528,13 @@ async function main() {
       continue;
     }
 
-    await syncYear(municipalityId, fy, rows, dryRun);
+    const ok = await syncYear(municipalityId, fy, rows, dryRun);
+    if (!ok) hadFailures = true;
+  }
+
+  if (hadFailures) {
+    console.error('\nCompleted with failures — DB load is INCOMPLETE.');
+    process.exit(1);
   }
 
   console.log('\nDone.\n');
