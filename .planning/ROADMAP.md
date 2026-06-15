@@ -1152,7 +1152,13 @@ Success criteria:
 
 **Goal:** Verify OC data accuracy against published ACFRs and confirm the navigation experience end-to-end in the live app.
 **Requirements:** VER-01, VER-02
-**Status:** Not started
+**Status:** Planned
+**Plans:** 3 plans
+
+Plans:
+- [ ] 56-01-PLAN.md — verify-phase56.mjs DB probe (automatable VER-01 assertions; Wave 0 harness)
+- [ ] 56-02-PLAN.md — ACFR spot-check reconciliation → 56-VERIFICATION.md (7-city sample, all-funds basis)
+- [ ] 56-03-PLAN.md — Chris live-app UAT sign-off + closeout (re-run probe, mark VER-01/VER-02 complete)
 
 Success criteria:
 
@@ -1220,7 +1226,7 @@ Success criteria:
 | 53. Orange County Operating + Revenue Load | v2.2 | 1/1 | Complete    | 2026-06-14 |
 | 54. Orange County Entity, Linking + Enrichment | v2.2 | 2/2 | Complete    | 2026-06-15 |
 | 55. Statewide City Salaries Integration | v2.2 | 3/3 | Complete    | 2026-06-15 |
-| 56. Orange County Verification + UAT | v2.2 | — | Not started | — |
+| 56. Orange County Verification + UAT | v2.2 | 0/3 | Planned | — |
 
 ---
 
