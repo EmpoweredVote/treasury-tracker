@@ -146,3 +146,14 @@ No salaries rows were fabricated for any city or year — data is loaded only wh
 - **D-04 (full year range):** All 16 available GCC years (2009–2024) loaded per city.
 - **D-06 (honest gaps):** No gaps found; gap protocol was ready (skip + document) but not needed.
 - **Zero-comp skip:** Records where TotalWages + TotalBenefits = 0 were skipped (unpaid board members, partial-year officials), consistent with D-02 and the LA County loader pattern.
+
+---
+
+## Gap closure — department label readability (2026-06-15)
+
+The live-app verification gate found department segments rendering as the terse codes cities self-report to the State Controller (e.g. Irvine's `Pw Sust`, `Hum Res`, `City Cnl`). Decision (operator-approved): expand only a small, auditable set of **high-confidence, unambiguous** abbreviation tokens and leave genuinely ambiguous codes exactly as-reported — no fabrication (D-01).
+
+- **Expanded (conservative):** `Pw`→Public Works, `Sust`→Sustainability, `Trsp`→Transportation, `Hum`→Human, `Res`→Resources, `Cnl`→Council, `Admin`→Administrative; smart Title Case preserves acronyms and roman numerals.
+- **Left as-reported (ambiguous):** e.g. `Com Eng`, `Pd Sustainability`, `Citycnl2`, `Citycnl4`.
+- **Implementation:** `normalizeDeptLabel` in `scripts/loadCASalaries.js` (the SAL-02 deliverable), imported by `scripts/sweepOCSalaries.js` — single source of truth. Frontend salaries copy now notes department names are shown as each entity reports them to the State Controller.
+- **Re-sweep:** all 34 OC cities × 2009–2024 re-loaded (544 rows, idempotent RPC). Totals unchanged — e.g. Irvine 2024 = $190,426,283, 14 departments (no merging). SC-4 reconciliation still holds ($0 delta).

@@ -72,7 +72,7 @@ function getDatasetDisplayText(type: DatasetType) {
     },
     salaries: {
       title: 'compensates its workforce',
-      description: 'Each segment shows department payroll. Tap any department to see position breakdowns.',
+      description: 'Each segment shows department payroll. Tap any department to see position breakdowns. Department names are shown as each entity reports them to the State Controller.',
       lineItemsDescription: 'Detailed compensation showing base pay, benefits, overtime, and other pay.'
     }
   };
