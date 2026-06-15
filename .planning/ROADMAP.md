@@ -1118,11 +1118,11 @@ Success criteria:
 **Goal:** Seed an Orange County entity, link all 34 cities (including Anaheim & Santa Ana), and apply standardized category enrichment across the county.
 **Requirements:** OC-03, OC-04, OC-05
 **Status:** Planned
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 **Wave 1**
 
-- [ ] 54-01-PLAN.md — Seed Orange County entity + link all loaded OC cities (incl. Anaheim/Santa Ana) via county_id; verify linkage + live breadcrumb/panel (OC-03, OC-05)
+- [x] 54-01-PLAN.md — Seed Orange County entity + link all loaded OC cities (incl. Anaheim/Santa Ana) via county_id; verify linkage + live breadcrumb/panel (OC-03, OC-05)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -1218,7 +1218,7 @@ Success criteria:
 | 51. Comparability Notes + Source-Chain Verification + UAT | v2.1 | 4/4 | Complete | 2026-06-14 |
 | 52. SoCal Bulk Pipeline Hardening | v2.2 | 4/4 | Complete   | 2026-06-14 |
 | 53. Orange County Operating + Revenue Load | v2.2 | 1/1 | Complete    | 2026-06-14 |
-| 54. Orange County Entity, Linking + Enrichment | v2.2 | 0/2 | Planned | — |
+| 54. Orange County Entity, Linking + Enrichment | v2.2 | 1/2 | In Progress|  |
 | 55. Statewide City Salaries Integration | v2.2 | — | Not started | — |
 | 56. Orange County Verification + UAT | v2.2 | — | Not started | — |
 
