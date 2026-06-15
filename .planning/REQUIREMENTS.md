@@ -26,7 +26,7 @@ Requirements for this milestone. Each maps to exactly one roadmap phase (52–56
 
 - [x] **SAL-01**: The statewide CA Government Compensation source (publicpay.ca.gov) is confirmed to cover Orange County cities, with coverage and depth documented (spike — gates the rest of the phase).
 - [x] **SAL-02**: A reusable statewide city-salaries loader can import employee compensation for any California city from the confirmed source.
-- [ ] **SAL-03**: A citizen can view employee compensation (salaries dataset) for Orange County cities wherever the source provides it.
+- [x] **SAL-03**: A citizen can view employee compensation (salaries dataset) for Orange County cities wherever the source provides it.
 
 ### Verification
 
@@ -75,7 +75,7 @@ Which phase covers each requirement. Filled during roadmap creation.
 | OC-05 | Phase 54 | Complete |
 | SAL-01 | Phase 55 | Complete |
 | SAL-02 | Phase 55 | Complete |
-| SAL-03 | Phase 55 | Pending |
+| SAL-03 | Phase 55 | Complete |
 | VER-01 | Phase 56 | Pending |
 | VER-02 | Phase 56 | Pending |
 | SOCAL-01 | Future milestone | Deferred |
