@@ -1,0 +1,49 @@
+diff --git a/backend/src/lib/treasuryService.ts b/backend/src/lib/treasuryService.ts
+index 886a39e6..2cd2d754 100644
+--- a/backend/src/lib/treasuryService.ts
++++ b/backend/src/lib/treasuryService.ts
+@@ -419,6 +419,9 @@ export async function getCities(): Promise<TreasuryCity[]> {
+      LEFT JOIN treasury.budgets b ON b.municipality_id = m.id
+      GROUP BY m.id
+      HAVING COUNT(b.id) > 0
++        OR (m.entity_type = 'county' AND EXISTS (
++              SELECT 1 FROM treasury.municipalities child WHERE child.county_id = m.id
++            ))
+      ORDER BY m.name`
+   );
+   return rows.map(mapCity);
+@@ -428,12 +431,16 @@ export async function getCities(): Promise<TreasuryCity[]> {
+  * Fetch a single city by UUID. Returns null if not found OR if the municipality
+  * has no associated budgets.
+  *
+- * CONTRACT: matches getCities() — only returns municipalities with at least one
+- * budget (HAVING COUNT(b.id) > 0). If the municipality exists in the DB but has
+- * no budget rows, this returns null rather than an entity with an empty
+- * available_datasets array. This prevents URL-based navigation from resolving to
+- * an entity that the EntitySwitcher would hide (its available_datasets guard)
+- * while the budget load silently fails.
++ * CONTRACT: matches getCities() — returns a municipality with at least one
++ * budget (HAVING COUNT(b.id) > 0), OR a county entity that is referenced as a
++ * parent by at least one other municipality's county_id (an intentional
++ * budget-less "grouper" county, e.g. Orange County, whose cities carry the data).
++ * A non-county municipality with no budget rows still returns null rather than an
++ * entity with an empty available_datasets array — this prevents URL-based
++ * navigation from resolving to a city that the EntitySwitcher would hide (its
++ * available_datasets guard) while its budget load silently fails. Grouper counties
++ * are exempt because they are navigation hubs by design (breadcrumb chain +
++ * CitiesInCountyPanel), not failed budget loads.
+  */
+ export async function getCityById(id: string): Promise<TreasuryCity | null> {
+   const { rows } = await pool.query<CityRow>(
+@@ -450,7 +457,10 @@ export async function getCityById(id: string): Promise<TreasuryCity | null> {
+      LEFT JOIN treasury.budgets b ON b.municipality_id = m.id
+      WHERE m.id = $1
+      GROUP BY m.id
+-     HAVING COUNT(b.id) > 0`,
++     HAVING COUNT(b.id) > 0
++        OR (m.entity_type = 'county' AND EXISTS (
++              SELECT 1 FROM treasury.municipalities child WHERE child.county_id = m.id
++            ))`,
+     [id]
+   );
+   return rows.length > 0 ? mapCity(rows[0]) : null;

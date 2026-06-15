@@ -31,7 +31,7 @@ human_verification:
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
 | VER-01 | OC city budget totals spot-checked against published ACFRs / adopted budgets and pass | VERIFIED | DB probe `verify-phase56.mjs` exits 0 (7/7); ACFR reconciliation table below — 3 genuine PASS (incl. Laguna Woods exact match + Anaheim all-funds reconciliation), remainder PASS-pending sourced for UAT confirmation; no load errors found |
-| VER-02 | Breadcrumb + CitiesInCountyPanel verified live; Chris UAT sign-off | PENDING | Live-app UAT (D-03) + operator sign-off recorded in Plan 03 (56-03) |
+| VER-02 | Breadcrumb + CitiesInCountyPanel verified live; Chris UAT sign-off | FAILED (BLOCKED) | Live UAT 2026-06-15: OC breadcrumb chip missing — see ISSUE-56-A. Fix pushed (`fix/treasury-cities-grouper-counties`); awaiting deploy + re-test |
 
 ### Behavioral Spot-Checks
 
@@ -88,7 +88,12 @@ contract above). No figure is fabricated (ground rule: never display unsourced d
 
 ## Issues Found
 
-None. No genuine load error (wrong total, wrong fiscal year, wrong city mapping) was found in any sampled row. The Anaheim FY2024 governmental-funds-vs-all-funds gap is a definitional basis difference (SCO includes enterprise funds), documented above and confirmed by the proprietary-funds statement — not a load error. No in-phase data fix (D-04) is required.
+**No ACFR/data load errors** (VER-01): no wrong total, fiscal year, or city mapping in any sampled row. The Anaheim FY2024 governmental-funds-vs-all-funds gap is a definitional basis difference (SCO includes enterprise funds), confirmed by the proprietary-funds statement — not a load error.
+
+**ISSUE-56-A — VER-02 breadcrumb chain FAILS in the live app (live UAT, 2026-06-15).** Operator (Chris) reported the Orange County chip is missing from the breadcrumb on OC city pages.
+- **Root cause (diagnosed, not a Phase 53–55 data error):** the live `/treasury/cities` endpoint (service: `ev-accounts-api`, repo `EV-Accounts`, `getCities()` in `backend/src/lib/treasuryService.ts`) filtered to municipalities with `HAVING COUNT(b.id) > 0`. The Orange County entity exists and all 34 cities correctly carry `county_id`, but OC has **0 county-level budget rows**, so the entity was excluded from the API response. The frontend builds the county chip via `municipalities.find(m => m.id === city.county_id)` (`App.tsx:535`); with OC absent, the lookup returned nothing and the chip silently dropped. Same latent bug affected Alameda, Sacramento, and San Diego counties (also budget-less groupers). LA County was unaffected (it has 13 budget rows).
+- **Disposition:** NOT a Phase 56 data load error (the OC budget data is correct) and NOT in this verification phase's D-04 fix scope (it is an API/feature gap). Fix authored + validated against the prod DB and pushed as an isolated branch for review: **`fix/treasury-cities-grouper-counties`** in `EV-Accounts` (also returns county entities referenced as a parent by ≥1 city's `county_id`, even with no budget). Patch archived at `oc-breadcrumb-api-fix.patch` in this phase directory.
+- **Status:** VER-02 is **BLOCKED** pending PR merge + `ev-accounts-api` redeploy, then re-run of the live UAT. No frontend change is required — the breadcrumb resolves automatically once the API returns the OC entity.
 
 ## UAT Sign-Off (D-03)
 
@@ -100,7 +105,7 @@ None. No genuine load error (wrong total, wrong fiscal year, wrong city mapping)
 
 | # | Checklist Item | Result | Notes |
 |---|----------------|--------|-------|
-| 1 | City → county breadcrumb chain works (e.g., Irvine → Orange County → California) | _pending_ | |
+| 1 | City → county breadcrumb chain works (e.g., Irvine → Orange County → California) | **FAIL** | OC chip missing — `/treasury/cities` excluded the budget-less OC entity (ISSUE-56-A). Fix pushed; re-test after deploy. |
 | 2 | County page → CitiesInCountyPanel lists all 34 OC cities; "Available now" count = 34 | _pending_ | |
 | 3 | Salaries tab appears on covered cities (e.g., Irvine, Anaheim) and renders Dept→Position tree | _pending_ | |
 | 4 | Per-capita display ($/resident) works for OC cities | _pending_ | |
