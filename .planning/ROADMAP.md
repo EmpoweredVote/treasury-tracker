@@ -1255,7 +1255,7 @@ Success criteria:
 | 54. Orange County Entity, Linking + Enrichment | v2.2 | 2/2 | Complete    | 2026-06-15 |
 | 55. Statewide City Salaries Integration | v2.2 | 3/3 | Complete    | 2026-06-15 |
 | 56. Orange County Verification + UAT | v2.2 | 3/3 | Complete   | 2026-06-15 |
-| 57. Orange County County-Government Budget | v2.2 | 1/2 | In Progress|  |
+| 57. Orange County County-Government Budget | v2.2 | 2/2 | Complete   | 2026-06-16 |
 
 ---
 
