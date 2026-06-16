@@ -24,7 +24,7 @@ Each maps to exactly one roadmap phase (58–62).
 ### History Backfill
 
 - [x] **HIST-01**: A citizen can view operating + revenue budget history back to FY2003 for the 88 LA County cities, every figure sourced (CA State Controller ByTheNumbers — source_name/url/date) with per-year SCO population so per-capita renders across all backfilled years — and the never-overwrite guard leaves the 12 named custom-source cities (LA, Long Beach, etc.) untouched.
-- [ ] **HIST-02**: A citizen can view FY2003+ operating + revenue history for the remaining CA cities SCO covers (the 7 unlinked + 4 other-county cities), every figure sourced + per-year population; the 1 currently budget-less city is loaded or its absence documented with a reason.
+- [x] **HIST-02**: A citizen can view FY2003+ operating + revenue history for the remaining CA cities SCO covers (the 7 unlinked + 4 other-county cities), every figure sourced + per-year population; the 1 currently budget-less city is loaded or its absence documented with a reason.
 
 ### LA County Government Budget
 
@@ -39,7 +39,7 @@ Each maps to exactly one roadmap phase (58–62).
 ### Enrichment + Linking Parity
 
 - [ ] **ENR-01**: Every parity-loaded budget category (LA County cities backfill + other-county/unlinked cities) carries standardized, bleed-safe plain-language enrichment (municipality-scoped, never universal) consistent with the OC/LA County baseline, authored inline at ~$0.
-- [ ] **ENR-02**: The 7 unlinked CA cities are linked to their counties via `county_id`, completing the breadcrumb chain (US → California → County → city) and the Cities-in-County panel for those cities.
+- [x] **ENR-02**: The 7 unlinked CA cities are linked to their counties via `county_id`, completing the breadcrumb chain (US → California → County → city) and the Cities-in-County panel for those cities.
 
 ### Verification
 
@@ -82,8 +82,8 @@ Which phase covers each requirement. Filled during roadmap creation.
 |-------------|-------|--------|
 | HIST-01 | Phase 58 | Complete |
 | LAC-01 | Phase 58 | Complete |
-| HIST-02 | Phase 59 | Pending |
-| ENR-02 | Phase 59 | Pending |
+| HIST-02 | Phase 59 | Complete |
+| ENR-02 | Phase 59 | Complete |
 | SAL-04 | Phase 60 | Pending |
 | SAL-05 | Phase 60 | Pending |
 | SAL-06 | Phase 60 | Pending |
