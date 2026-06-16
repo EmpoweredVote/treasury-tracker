@@ -986,12 +986,10 @@ function App() {
               {/* County source chip (D-03, Phase 57): OC county page only.
                   SEPARATE from the federal block above — that block carries federal-only
                   Lens/Scale toggles which must NOT appear on county pages.
-                  Renders only when dataSourceInfo is non-null; the EV-Accounts API
-                  currently returns null data_source_info for county/municipal budgets
-                  (it only populates via the source_registry FK used by federal rows).
-                  TODO (EV-Accounts follow-up, Phase 57): populate data_source_info for
-                  county budgets from source_url + source_date + data_source columns so
-                  this chip renders. Until that API change ships, this block is dormant. */}
+                  Renders only when dataSourceInfo is non-null. The EV-Accounts API
+                  populates data_source_info for county/municipal budgets from the
+                  source_url + source_date + data_source columns when data_source_id is
+                  null (treasuryService.ts, deployed 2026-06-16) — so this chip is live. */}
               {selectedEntity?.entity_type === 'county' && budgetData.metadata.dataSourceInfo && (
                 <div className="flex items-center gap-3 flex-wrap">
                   <SourceChip

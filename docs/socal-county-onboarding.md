@@ -123,6 +123,26 @@ counties (Phase 41) were loaded. Document the basis + source. If you deliberatel
 ship cities-only, record it as a known gap so the empty county page is expected,
 not a UAT surprise.
 
+**Command (the reusable Phase 57 tool — generalizes the LA County one-offs):**
+
+```bash
+# 1. Dry-run a canary year first (zero writes — prints categories/totals/population)
+node scripts/loadCountyBudget.js --county "<County>" --fy 2024 --dry-run
+
+# 2. Load the canary year for real, verify, then backfill the full range in <=2-year submits
+node scripts/loadCountyBudget.js --county "<County>" --fy 2024
+node scripts/loadCountyBudget.js --county "<County>" --fy 2003 --fy 2004   # ...repeat across the range
+
+# Args: --county (SCO entity_name) --entity (DB municipality name; default "<County> County")
+#       --type operating|revenue (default both) --population <int sourced fallback>
+#       --source-date <YYYY-MM-DD> (default today) --dry-run
+# The county entity MUST already exist (seeded in Step 1) — the loader errors if not found,
+# never ensure-creates with a clobbering population. Datasets: operating uctr-c2j8 / revenue emxv-k8xv.
+```
+
+The same locked conventions below apply (durable `/d/<id>` source_url, population backfill-only,
+never overwrite existing custom data).
+
 ---
 
 ## Locked conventions (do not regress)

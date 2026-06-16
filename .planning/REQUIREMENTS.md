@@ -9,10 +9,10 @@ Requirements for this milestone. Each maps to exactly one roadmap phase (52–56
 
 ### SoCal Bulk Pipeline
 
-- [ ] **PIPE-01**: The team can load any California county's operating + revenue data for all of its cities with a single documented command (generalized `bulkLoadStateController.js`, county-parameterized against CA State Controller ByTheNumbers).
-- [ ] **PIPE-02**: Every figure loaded by the pipeline carries a source-attribution row (CA State Controller ByTheNumbers — source_name / source_url / source_date), satisfying the always-sourced standard.
-- [ ] **PIPE-03**: Cities auto-created by the pipeline receive population data so per-capita ($/resident) works on first load.
-- [ ] **PIPE-04**: A runbook documents the end-to-end county-onboarding process (load → seed county + link → enrich → verify) so remaining SoCal counties are repeatable.
+- [x] **PIPE-01**: The team can load any California county's operating + revenue data for all of its cities with a single documented command (generalized `bulkLoadStateController.js`, county-parameterized against CA State Controller ByTheNumbers).
+- [x] **PIPE-02**: Every figure loaded by the pipeline carries a source-attribution row (CA State Controller ByTheNumbers — source_name / source_url / source_date), satisfying the always-sourced standard.
+- [x] **PIPE-03**: Cities auto-created by the pipeline receive population data so per-capita ($/resident) works on first load.
+- [x] **PIPE-04**: A runbook documents the end-to-end county-onboarding process (load → seed county + link → enrich → verify) so remaining SoCal counties are repeatable.
 
 ### Orange County Data
 
@@ -69,10 +69,10 @@ Which phase covers each requirement. Filled during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PIPE-01 | Phase 52 | Pending |
-| PIPE-02 | Phase 52 | Pending |
-| PIPE-03 | Phase 52 | Pending |
-| PIPE-04 | Phase 52 | Pending |
+| PIPE-01 | Phase 52 | Complete |
+| PIPE-02 | Phase 52 | Complete |
+| PIPE-03 | Phase 52 | Complete |
+| PIPE-04 | Phase 52 | Complete |
 | OC-01 | Phase 53 | Complete |
 | OC-02 | Phase 53 | Complete |
 | OC-03 | Phase 54 | Complete |
@@ -100,4 +100,4 @@ Which phase covers each requirement. Filled during roadmap creation.
 
 ---
 *Requirements defined: 2026-06-14*
-*Last updated: 2026-06-15 — Phase 57 Plan 57-02: OCB-02 marked [x] Complete*
+*Last updated: 2026-06-16 — v2.2 milestone audit: PIPE-01..04 marked [x] Complete (retroactive 52-VERIFICATION.md authored; corroborated by Phase 53/56 usage). All 16 v2.2 requirements now Complete.*
