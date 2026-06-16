@@ -24,4 +24,11 @@ Update the EV-Accounts backend budget API so that, when `data_source_id` is null
 - `datasetUrl` ← `source_url` (the durable `/d/<id>` ByTheNumbers page)
 - `fetchedAt` ← `source_date`
 
-Once shipped, verify on the live OC county page that the chip renders: "CA State Controller - County Expenditures · fetched 2026-06-15" linking to https://bythenumbers.sco.ca.gov/d/uctr-c2j8 (UAT item 7). This also lights up the same chip for every city row that carries durable source attribution. Follow the `C:/EV-Accounts/ACCOUNTS-FEATURE-REQUEST.md` pattern when filing against the EV-Accounts repo.
+Once shipped, verify on the live OC county page that the chip renders: "CA State Controller - County Expenditures · fetched 2026-06-15" linking to https://bythenumbers.sco.ca.gov/d/uctr-c2j8 (UAT item 7). This also lights up the same chip for every city row that carries durable source attribution.
+
+**Request filed:** `C:/EV-Accounts/ACCOUNTS-TEAM-REQUEST-sourcechip-data-source-info-2026-06-16.md` (committed in the EV-Accounts repo as `3d341702`, 2026-06-16).
+
+**Status 2026-06-16 — code done, awaiting deploy:** EV-Accounts `treasuryService.ts` implemented the fix (commit `3d341702`): `BudgetRow` gains `source_url`/`source_date`, all 3 budget SQL selects include them, and `mapBudget()` falls back to `{ displayName: data_source, url: source_url, datasetUrl: source_url, fetchedAt: source_date }` when `ds_display_name` is null and all three municipal columns are non-null. Shape matches the frontend chip (`datasetUrl || url`).
+- DB data confirmed satisfies the condition: OC county FY2024 operating + revenue rows have `data_source`, `source_url`, `source_date` all non-null and `data_source_id` null.
+- BUT production `https://ev-accounts-api.onrender.com/api/treasury/cities/65e7c643-5829-4821-9537-f8595bce61ab/budgets?fiscal_year=2024` still returns `data_source_info: null` → the running Render build predates `3d341702`. **Pending: redeploy ev-accounts-api from that commit.**
+- Re-verify after deploy: the API call above should return `data_source_info` populated; then confirm the live OC county SourceChip renders (UAT item 7) and close this todo.
