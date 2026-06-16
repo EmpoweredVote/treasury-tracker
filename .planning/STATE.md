@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: California Coverage Parity
 status: executing
-last_updated: "2026-06-16T15:11:20.504Z"
-last_activity: 2026-06-16 -- Phase 58 planning complete
+last_updated: "2026-06-16T17:00:00Z"
+last_activity: 2026-06-16 -- Plan 58-01 complete (LA County FY2003-2024 backfill)
 progress:
   total_phases: 62
   completed_phases: 0
   total_plans: 4
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 25
 ---
 
 # State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16 after v2.2)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** v2.3 California Coverage Parity (Phases 58–62) — bring LA County + remaining CA entities up to the OC standard (FY2003 history, statewide salaries, enrichment) via the hardened v2.2 pipeline. Next step: `/gsd:plan-phase 58` (or `/gsd:discuss-phase 58`).
+**Current focus:** Phase 58 — la-county-parity-backfill
 
 ## Current Position
 
-Phase: 58 — LA County Parity Backfill (planned, ready to execute)
-Plan: 4 plans (waves 1–3); 58-01 + 58-02 in wave 1
-Status: Ready to execute
-Last activity: 2026-06-16 -- Phase 58 planning complete
+Phase: 58 (la-county-parity-backfill) — EXECUTING
+Plan: 2 of 4
+Status: Plan 58-01 complete; Plan 58-02 (LA County gov budget backfill) next
+Last activity: 2026-06-16 -- Plan 58-01 complete (LA County FY2003-2024 backfill)
 
 ### v2.3 gap baseline (DB query, 2026-06-16)
 
@@ -124,13 +124,13 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-16T08:06:01.514Z
-Stopped at: Phase 58 context gathered
-Resume file: .planning/phases/58-la-county-parity-backfill/58-CONTEXT.md
+Last session: 2026-06-16T17:00:00Z
+Stopped at: Plan 58-01 complete (LA County city FY2003-2024 backfill + source_url repair)
+Resume file: .planning/phases/58-la-county-parity-backfill/58-01-SUMMARY.md
 
 ### Next Session
 
-Plan the first v2.3 phase: `/gsd:plan-phase 58` (LA County Parity Backfill — 88 cities + county-gov budget to FY2003) or `/gsd:discuss-phase 58` to gather context first. Phase 60 (salaries) can run in parallel. See PROJECT.md "Current Milestone" + REQUIREMENTS.md + ROADMAP.md. ⚠️ Phase 60 must verify salary state against production/ev-accounts (local DB has only Bloomington IN).
+Execute Plan 58-02 (LA County government budget backfill FY2003-2024 via `loadCountyBudget.js`). See 58-CONTEXT.md D-06/D-07. Then 58-03 (seedCountyLinks re-run + verify) and 58-04 (app verification).
 
 ## Performance Metrics
 
@@ -142,6 +142,7 @@ Plan the first v2.3 phase: `/gsd:plan-phase 58` (LA County Parity Backfill — 8
 | Phase 55 P55-03 | 25min | 2 tasks | 2 files |
 | Phase 57 P57-01 | 75min | 5 tasks | 1 files |
 | Phase 57 P57-02 | 35min | 3 tasks | 4 files |
+| Phase 58 P58-01 | 90min | 5 tasks | 1 file (baseline.md) |
 
 ## Decisions
 
@@ -161,6 +162,9 @@ Plan the first v2.3 phase: `/gsd:plan-phase 58` (LA County Parity Backfill — 8
 - [Phase ?]: ACFR cross-check FY2010: SCO all-governmental-funds 3.007B vs ACFR gov-activities approx 2.35B; delta is documented variance (all-funds basis includes internal service + proprietary funds)
 - [Phase ?]: County SourceChip separate block from federal controls to prevent regression
 - [Phase ?]: EV-Accounts data_source_info follow-up: API returns null for county/city rows; needs to construct from source_url/source_date/data_source columns
+- [58-01]: Calabasas (FY2004+) and Sierra Madre (FY2006+) are genuine SCO source gaps — both cities excluded from SCO FY2003 feed; 86 of 88 LA County cities reach FY2003
+- [58-01]: Long Beach FY2022 operating corrected from $634M to $4,249M by re-sync — prior value was an earlier partial SCO load; all-governmental-funds is the correct basis
+- [58-01]: 37 remaining NULL source_url are non-SCO custom rows (LA Socrata/Payroll, LB GF, WeHo Demand Register) — out of scope for SCO loader; SCO-source NULL = 0
 
 ## Deferred Items
 

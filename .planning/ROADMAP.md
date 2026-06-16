@@ -47,6 +47,15 @@
   3. The never-overwrite guard demonstrably leaves the 12 named custom-source cities' budget data unchanged (LA, Long Beach, etc. verified pre/post)
   4. Per-capita renders for the newly backfilled years on a spot-checked sample of LA County cities
 
+**Plan Progress:**
+
+| Plan | Title | Status |
+|------|-------|--------|
+| 58-01 | LA County city history backfill (FY2003-2024) | ✅ COMPLETE (2026-06-16) |
+| 58-02 | LA County government budget backfill (FY2003-2024) | Pending |
+| 58-03 | seedCountyLinks re-run + verify | Pending |
+| 58-04 | App verification + per-capita spot-check | Pending |
+
 ### Phase 59: Remaining CA Cities History + Linking
 
 **Goal:** The CA cities outside OC and LA County that SCO covers (7 unlinked + 4 other-county) reach FY2003, are linked to their counties, and the 1 budget-less city is resolved.
