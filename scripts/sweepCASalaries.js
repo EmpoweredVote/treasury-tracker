@@ -346,11 +346,35 @@ async function main() {
   // Step 3: Coverage tracking
   const cityResults = {};
   for (const c of cities) {
-    cityResults[c.name] = { id: c.id, covered: [], gaps: [] };
+    cityResults[c.name] = { id: c.id, covered: [], gaps: [], preserved: [] };
   }
+
+  // Step 3a: Never-overwrite guard (matches the budget loaders' findConflictingBudget
+  // convention). treasury_sync_city_budget has NO source-aware guard — it deletes+replaces
+  // the tree for any existing (muni, fiscal_year, dataset_type) row and leaves the old
+  // data_source label stale. So we pre-load existing 'salaries' rows for the cohort and
+  // SKIP any (municipality_id, fiscal_year) that already has a row from a DIFFERENT source
+  // (e.g. Los Angeles FY2017–2026 'LA City Payroll'). Same-source (GCC) rows are re-writable
+  // (idempotent). The protected set is keyed `${municipality_id}|${fiscal_year}`.
+  const cohortIds = cities.map(c => c.id);
+  const { data: existingSal, error: exErr } = await supabase
+    .schema('treasury')
+    .from('budgets')
+    .select('municipality_id,fiscal_year,data_source')
+    .eq('dataset_type', 'salaries')
+    .in('municipality_id', cohortIds);
+  if (exErr) { console.error('Failed to load existing salaries rows:', exErr.message); process.exit(1); }
+  const protectedKeys = new Set();
+  for (const row of existingSal || []) {
+    if (row.data_source !== DATA_SOURCE_NAME) {
+      protectedKeys.add(`${row.municipality_id}|${row.fiscal_year}`);
+    }
+  }
+  console.log(`Never-overwrite guard: ${protectedKeys.size} existing (city, year) salaries rows from another source will be preserved (skipped).\n`);
 
   let totalSalaryRows = 0;
   let totalDownloads = 0;
+  let totalPreserved = 0;
   let hadFailures = false;
 
   // Step 4: OUTER LOOP = year; INNER LOOP = city (efficient: 16 downloads, not ~1,568)
@@ -372,6 +396,14 @@ async function main() {
     }
 
     for (const city of cities) {
+      // Never-overwrite: preserve an existing salaries row from another source.
+      if (protectedKeys.has(`${city.id}|${year}`)) {
+        console.log(`  ${city.name} (${year}): SKIP — preserving existing salaries from another source (never-overwrite)`);
+        cityResults[city.name].preserved.push({ year });
+        totalPreserved++;
+        continue;
+      }
+
       const cityKey = city.name.trim().toLowerCase();
       const rows = cityMap.get(cityKey) || [];
 
@@ -411,6 +443,7 @@ async function main() {
 
   console.log(`\nCovered cities: ${covered.length}`);
   console.log(`Gap cities:     ${gapped.length}`);
+  console.log(`Preserved (city, year) rows skipped (never-overwrite): ${totalPreserved}`);
   console.log(`Total downloads: ${totalDownloads} ZIPs`);
   console.log(`Total salary records processed: ${totalSalaryRows.toLocaleString()}`);
 
