@@ -9,6 +9,7 @@ import SourceChip from './components/federal/SourceChip';
 import MethodologyPanel from './components/federal/MethodologyPanel';
 import ComparabilityNote from './components/federal/ComparabilityNote';
 import { comparability } from './data/comparability';
+import { cityBasisNotes } from './data/cityBasisNotes';
 import ScaleToggle, { type FederalScale } from './components/federal/ScaleToggle';
 import ProgramOrigins from './components/federal/ProgramOrigins';
 import BudgetSearch from './components/dashboard/BudgetSearch';
@@ -921,6 +922,27 @@ function App() {
                   />
                 </div>
               )}
+
+              {/* Basis-change disclosure note (D-08, Phase 58-03): shown only when
+                  the city's displayed budget series mixes bases across years — the
+                  curated cityBasisNotes map is authored only for Long Beach and West
+                  Hollywood (the two D-04 layered cities). Absent entry ⇒ nothing
+                  renders ⇒ no change for pure-SCO cities, Los Angeles, counties, or
+                  federal pages. Additive pattern: safe by construction. */}
+              {(() => {
+                const basisNote = selectedEntity
+                  ? cityBasisNotes[`${selectedEntity.name}|${selectedEntity.state}`]
+                  : undefined;
+                return basisNote ? (
+                  <div className="mb-6">
+                    <ComparabilityNote
+                      title="Note: budget history spans two reporting bases"
+                      intro={basisNote.intro}
+                      entries={basisNote.entries}
+                    />
+                  </div>
+                ) : null;
+              })()}
 
               {/* Dataset Tabs */}
               <div className="mb-8">
