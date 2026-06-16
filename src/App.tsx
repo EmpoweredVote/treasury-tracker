@@ -983,6 +983,26 @@ function App() {
                   )}
                 </div>
               )}
+              {/* County source chip (D-03, Phase 57): OC county page only.
+                  SEPARATE from the federal block above — that block carries federal-only
+                  Lens/Scale toggles which must NOT appear on county pages.
+                  Renders only when dataSourceInfo is non-null; the EV-Accounts API
+                  currently returns null data_source_info for county/municipal budgets
+                  (it only populates via the source_registry FK used by federal rows).
+                  TODO (EV-Accounts follow-up, Phase 57): populate data_source_info for
+                  county budgets from source_url + source_date + data_source columns so
+                  this chip renders. Until that API change ships, this block is dormant. */}
+              {selectedEntity?.entity_type === 'county' && budgetData.metadata.dataSourceInfo && (
+                <div className="flex items-center gap-3 flex-wrap">
+                  <SourceChip
+                    sourceName={budgetData.metadata.dataSourceInfo.displayName}
+                    sourceUrl={
+                      (budgetData.metadata.dataSourceInfo.datasetUrl || budgetData.metadata.dataSourceInfo.url) || ''
+                    }
+                    fetchDate={budgetData.metadata.dataSourceInfo.fetchedAt}
+                  />
+                </div>
+              )}
               {/* Comparability / definition-drift note (CTX-02): on historical annual
                   years only — suppressed on the current/default year (clean headline)
                   and on the TQ (which gets its own note in FederalLanding). How OMB
