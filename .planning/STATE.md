@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: California Coverage Parity
-status: planning
-last_updated: "2026-06-16T18:51:00.066Z"
-last_activity: 2026-06-16
+status: executing
+last_updated: "2026-06-16T19:08:02.350Z"
+last_activity: 2026-06-16 -- Phase 59 execution started
 progress:
   total_phases: 62
   completed_phases: 1
-  total_plans: 4
+  total_plans: 8
   completed_plans: 4
   percent: 2
 ---
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16 after v2.2)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 59 — remaining ca cities history + linking
+**Current focus:** Phase 59 — remaining-ca-cities-history-linking
 
 ## Current Position
 
-Phase: 59
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-06-16
+Phase: 59 (remaining-ca-cities-history-linking) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 59
+Last activity: 2026-06-16 -- Phase 59 execution started
 
 ### v2.3 gap baseline (DB query, 2026-06-16)
 
