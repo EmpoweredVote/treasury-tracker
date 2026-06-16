@@ -29,7 +29,7 @@
 
 | # | Phase | Goal | Requirements | Success criteria |
 |---|-------|------|--------------|------------------|
-| 58 | LA County Parity Backfill | 88 LA County cities + LA County gov budget back to FY2003 | HIST-01, LAC-01 | 4 |
+| 58 | ✅ LA County Parity Backfill (complete 2026-06-16) | 88 LA County cities + LA County gov budget back to FY2003 | HIST-01, LAC-01 | 4 |
 | 59 | Remaining CA Cities History + Linking | Unlinked/other-county cities FY2003+ and county-linked | HIST-02, ENR-02 | 4 |
 | 60 | Statewide CA Salaries Sweep | Salaries 2009–2024 for all non-OC CA cities | SAL-04, SAL-05, SAL-06 | 4 |
 | 61 | Enrichment Parity | Standardized enrichment for all parity-loaded categories | ENR-01 | 3 |
