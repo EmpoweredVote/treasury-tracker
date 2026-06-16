@@ -52,7 +52,7 @@
 | Plan | Title | Status |
 |------|-------|--------|
 | 58-01 | LA County city history backfill (FY2003-2024) | ✅ COMPLETE (2026-06-16) |
-| 58-02 | LA County government budget backfill (FY2003-2024) | Pending |
+| 58-02 | LA County government budget backfill (FY2003-2024) | ✅ COMPLETE (2026-06-16) |
 | 58-03 | seedCountyLinks re-run + verify | Pending |
 | 58-04 | App verification + per-capita spot-check | Pending |
 

@@ -4,13 +4,13 @@ milestone: v2.3
 milestone_name: California Coverage Parity
 status: executing
 last_updated: "2026-06-16T17:00:00Z"
-last_activity: 2026-06-16 -- Plan 58-01 complete (LA County FY2003-2024 backfill)
+last_activity: 2026-06-16 -- Plan 58-02 complete (LA County gov budget FY2003-2024 backfill)
 progress:
   total_phases: 62
   completed_phases: 0
   total_plans: 4
-  completed_plans: 1
-  percent: 25
+  completed_plans: 2
+  percent: 50
 ---
 
 # State
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-06-16 after v2.2)
 ## Current Position
 
 Phase: 58 (la-county-parity-backfill) — EXECUTING
-Plan: 2 of 4
-Status: Plan 58-01 complete; Plan 58-02 (LA County gov budget backfill) next
-Last activity: 2026-06-16 -- Plan 58-01 complete (LA County FY2003-2024 backfill)
+Plan: 3 of 4
+Status: Plans 58-01 + 58-02 complete (Wave 1 done); Plan 58-03 (basis note) next
+Last activity: 2026-06-16 -- Plan 58-02 complete (LA County gov budget FY2003-2024 backfill)
 
 ### v2.3 gap baseline (DB query, 2026-06-16)
 
