@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: California Coverage Parity
 status: executing
-last_updated: "2026-06-16T18:00:00Z"
-last_activity: 2026-06-16 -- Plan 58-03 complete (per-city basis note for Long Beach + West Hollywood)
+last_updated: "2026-06-16T17:48:00Z"
+last_activity: 2026-06-16 -- Plan 58-04 complete (light inline verification — all 4 SC pass, Phase 62 handoff documented)
 progress:
   total_phases: 62
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 4
-  completed_plans: 3
-  percent: 75
+  completed_plans: 4
+  percent: 100
 ---
 
 # State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-16 after v2.2)
 
 ## Current Position
 
-Phase: 58 (la-county-parity-backfill) — EXECUTING
-Plan: 4 of 4
-Status: Plans 58-01 + 58-02 + 58-03 complete; Plan 58-04 (app verification) next
-Last activity: 2026-06-16 -- Plan 58-03 complete (per-city basis note for Long Beach + West Hollywood)
+Phase: 58 (la-county-parity-backfill) — COMPLETE
+Plan: 4 of 4 — ALL PLANS COMPLETE
+Status: Plans 58-01 + 58-02 + 58-03 + 58-04 all complete; Phase 58 done; Phase 59 next
+Last activity: 2026-06-16 -- Plan 58-04 complete (light inline verification — all 4 SC pass, Phase 62 handoff documented)
 
 ### v2.3 gap baseline (DB query, 2026-06-16)
 
@@ -124,13 +124,13 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-16T18:00:00Z
-Stopped at: Plan 58-03 complete (per-city basis note, Long Beach + West Hollywood)
-Resume file: .planning/phases/58-la-county-parity-backfill/58-03-SUMMARY.md
+Last session: 2026-06-16T17:48:00Z
+Stopped at: Plan 58-04 complete (light inline verification — all 4 SC pass)
+Resume file: .planning/phases/58-la-county-parity-backfill/58-04-SUMMARY.md
 
 ### Next Session
 
-Execute Plan 58-04 (app verification + per-capita spot-check). Verify Long Beach + West Hollywood show basis note with working SourceChip; verify Burbank + Los Angeles show NO note; verify county + federal pages unchanged. Spot-check per-capita renders for backfilled SCO cities.
+Phase 58 is complete. Begin Phase 59 (Remaining CA Cities History + Linking). Unlinked/other-county CA cities need FY2003+ history and county_id linking.
 
 ## Performance Metrics
 
@@ -165,6 +165,11 @@ Execute Plan 58-04 (app verification + per-capita spot-check). Verify Long Beach
 - [58-01]: Calabasas (FY2004+) and Sierra Madre (FY2006+) are genuine SCO source gaps — both cities excluded from SCO FY2003 feed; 86 of 88 LA County cities reach FY2003
 - [58-01]: Long Beach FY2022 operating corrected from $634M to $4,249M by re-sync — prior value was an earlier partial SCO load; all-governmental-funds is the correct basis
 - [58-01]: 37 remaining NULL source_url are non-SCO custom rows (LA Socrata/Payroll, LB GF, WeHo Demand Register) — out of scope for SCO loader; SCO-source NULL = 0
+- [58-04]: 4/4 sampled cities (Burbank, Glendale, Pasadena, Santa Monica) reach FY2003 with /d/ source_url; population non-zero for per-capita
+- [58-04]: County entity 44 op+rev rows FY2003-2024; NULL=0; FY2024 $37.577B op / $39.322B rev confirmed; salaries 5 rows + 88 cities all unchanged
+- [58-04]: 3 custom cities byte-for-byte unchanged: LA FY2024 op $19,974.3M (Socrata), LB GF FY2025-2026 intact, WeHo Demand Register 9 rows intact
+- [58-04]: Basis note gating confirmed by code inspection — cityBasisNotes map has exactly 2 keys (Long Beach|CA, West Hollywood|CA); all other entities return null (no render)
+- [58-04]: Formal ACFR reconciliation, source-chain audit, and Chris UAT deferred to Phase 62 (D-09 honored)
 
 ## Deferred Items
 

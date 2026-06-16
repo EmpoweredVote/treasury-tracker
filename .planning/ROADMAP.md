@@ -54,7 +54,7 @@
 | 58-01 | LA County city history backfill (FY2003-2024) | ✅ COMPLETE (2026-06-16) |
 | 58-02 | LA County government budget backfill (FY2003-2024) | ✅ COMPLETE (2026-06-16) |
 | 58-03 | Per-city basis note (Long Beach + West Hollywood) | ✅ COMPLETE (2026-06-16) |
-| 58-04 | App verification + per-capita spot-check | Pending |
+| 58-04 | App verification + per-capita spot-check | ✅ COMPLETE (2026-06-16) |
 
 ### Phase 59: Remaining CA Cities History + Linking
 
