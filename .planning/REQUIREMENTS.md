@@ -36,7 +36,7 @@ Requirements for this milestone. Each maps to exactly one roadmap phase (52–56
 ### County Budget (Phase 57)
 
 - [x] **OCB-01**: Orange County's county-government operating + revenue budget is loaded onto the OC county entity from a sourced published document (ACFR all-governmental-funds basis and/or adopted budget), with the basis documented and source attribution durable — never fabricated.
-- [ ] **OCB-02**: The OC county page renders the loaded county budget (icicle/summary) with working per-capita and still lists the 34 cities; a `verify-phase57.mjs` probe confirms coverage + source attribution (exit 0).
+- [x] **OCB-02**: The OC county page renders the loaded county budget (icicle/summary) with working per-capita and still lists the 34 cities; a `verify-phase57.mjs` probe confirms coverage + source attribution (exit 0).
 
 ## Future Requirements
 
@@ -84,7 +84,7 @@ Which phase covers each requirement. Filled during roadmap creation.
 | VER-01 | Phase 56 | Complete |
 | VER-02 | Phase 56 | Complete |
 | OCB-01 | Phase 57 | Complete |
-| OCB-02 | Phase 57 | Pending |
+| OCB-02 | Phase 57 | Complete |
 | SOCAL-01 | Future milestone | Deferred |
 | SOCAL-02 | Future milestone | Deferred |
 | SOCAL-03 | Future milestone | Deferred |
@@ -100,4 +100,4 @@ Which phase covers each requirement. Filled during roadmap creation.
 
 ---
 *Requirements defined: 2026-06-14*
-*Last updated: 2026-06-14 after initial definition (milestone v2.2)*
+*Last updated: 2026-06-15 — Phase 57 Plan 57-02: OCB-02 marked [x] Complete*
