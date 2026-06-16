@@ -343,6 +343,16 @@ function App() {
   // tab state stays 'operating' (the lens is a view of Money Out, not a tab).
   useEffect(() => {
     if (!selectedEntity) return;
+    // Budget-less entities (e.g. a grouper county like Orange County, whose cities
+    // carry the data) have nothing to load — render the directory, not an error.
+    // Attempting a load here would throw "No budget found" and trip the error screen.
+    if ((selectedEntity.available_datasets?.length ?? 0) === 0) {
+      setBudgetData(null);
+      setBudgetLoadError(false);
+      setLoading(false);
+      setNavigationPath([]);
+      return;
+    }
     const requestDataset =
       selectedEntity.entity_type === 'federal' && activeDataset === 'operating' && federalLens === 'agency'
         ? 'federal_agency'
