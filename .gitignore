@@ -54,6 +54,11 @@ src/data/processedBudget.json
 # …and the comparability / definition-drift notes (Phase 51: inline-authored from
 # fetched OMB Historical Tables + enabling public laws; the committed file IS the audit trail)
 !/data/federal-comparability.json
+# …and the CA parity enrichment source-of-record (Phase 61: inline-authored,
+# git-reviewed concept library + router + expanded audit trail; $0, no paid API)
+!/data/caParityEnrichment61.mjs
+!/data/caParityEnrichment61_oprev.mjs
+!/data/ca-parity-enrichment-61.expanded.json
 # …and the verbatim GAO function-definition snapshot it was authored from
 !docs/federal/
 docs/federal/*

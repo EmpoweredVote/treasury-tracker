@@ -1,0 +1,4802 @@
+{
+  "generated_at": "2026-06-16T00:00:00.000Z",
+  "count": 528,
+  "deferred_single_city_salaries": 5236,
+  "mapping": [
+    {
+      "name_key": "general government",
+      "cities": 131,
+      "datasets": [
+        "operating",
+        "salaries"
+      ],
+      "plain_name": "General Government",
+      "via": "explicit"
+    },
+    {
+      "name_key": "public safety",
+      "cities": 129,
+      "datasets": [
+        "operating",
+        "salaries"
+      ],
+      "plain_name": "Public Safety",
+      "via": "explicit"
+    },
+    {
+      "name_key": "community development",
+      "cities": 129,
+      "datasets": [
+        "operating",
+        "salaries"
+      ],
+      "plain_name": "Community Development",
+      "via": "explicit"
+    },
+    {
+      "name_key": "culture and leisure",
+      "cities": 129,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Culture & Leisure",
+      "via": "explicit"
+    },
+    {
+      "name_key": "transportation",
+      "cities": 128,
+      "datasets": [
+        "operating",
+        "salaries"
+      ],
+      "plain_name": "Transportation",
+      "via": "explicit"
+    },
+    {
+      "name_key": "health",
+      "cities": 123,
+      "datasets": [
+        "operating",
+        "salaries"
+      ],
+      "plain_name": "Health",
+      "via": "explicit"
+    },
+    {
+      "name_key": "public utilities",
+      "cities": 78,
+      "datasets": [
+        "operating",
+        "salaries"
+      ],
+      "plain_name": "Public Utilities",
+      "via": "explicit"
+    },
+    {
+      "name_key": "other expenditures",
+      "cities": 59,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Other Spending",
+      "via": "explicit"
+    },
+    {
+      "name_key": "gas  enterprise fund",
+      "cities": 4,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Gas Utility",
+      "via": "explicit"
+    },
+    {
+      "name_key": "debt service",
+      "cities": 4,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Debt Service",
+      "via": "explicit"
+    },
+    {
+      "name_key": "economic development",
+      "cities": 26,
+      "datasets": [
+        "operating",
+        "revenue",
+        "salaries"
+      ],
+      "plain_name": "Economic Development",
+      "via": "route:economic_development (~economic)"
+    },
+    {
+      "name_key": "police",
+      "cities": 56,
+      "datasets": [
+        "operating",
+        "salaries"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~police)"
+    },
+    {
+      "name_key": "fire",
+      "cities": 36,
+      "datasets": [
+        "operating",
+        "salaries"
+      ],
+      "plain_name": "Fire & EMS",
+      "via": "route:fire (~fire)"
+    },
+    {
+      "name_key": "public works",
+      "cities": 100,
+      "datasets": [
+        "operating",
+        "salaries"
+      ],
+      "plain_name": "Public Works",
+      "via": "route:public_works (~public works)"
+    },
+    {
+      "name_key": "human services",
+      "cities": 8,
+      "datasets": [
+        "operating",
+        "salaries"
+      ],
+      "plain_name": "Human Services",
+      "via": "explicit"
+    },
+    {
+      "name_key": "public assistance",
+      "cities": 2,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Public Assistance",
+      "via": "explicit"
+    },
+    {
+      "name_key": "public protection",
+      "cities": 2,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Public Protection",
+      "via": "explicit"
+    },
+    {
+      "name_key": "public ways and facilities, health, and sanitation",
+      "cities": 2,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Ways, Health & Sanitation",
+      "via": "explicit"
+    },
+    {
+      "name_key": "education and recreation and cultural services",
+      "cities": 2,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Education, Recreation & Culture",
+      "via": "explicit"
+    },
+    {
+      "name_key": "city auditor",
+      "cities": 3,
+      "datasets": [
+        "operating",
+        "salaries"
+      ],
+      "plain_name": "City Auditor",
+      "via": "route:city_auditor (~city auditor)"
+    },
+    {
+      "name_key": "library",
+      "cities": 34,
+      "datasets": [
+        "operating",
+        "salaries"
+      ],
+      "plain_name": "Library",
+      "via": "route:library (~library)"
+    },
+    {
+      "name_key": "information technology",
+      "cities": 36,
+      "datasets": [
+        "operating",
+        "salaries"
+      ],
+      "plain_name": "Information Technology",
+      "via": "route:information_technology (~information technology)"
+    },
+    {
+      "name_key": "finance",
+      "cities": 88,
+      "datasets": [
+        "operating",
+        "salaries"
+      ],
+      "plain_name": "Finance",
+      "via": "route:finance (~finance)"
+    },
+    {
+      "name_key": "general",
+      "cities": 2,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "General Fund Activity",
+      "via": "explicit"
+    },
+    {
+      "name_key": "airport activity/enterprise",
+      "cities": 2,
+      "datasets": [
+        "operating",
+        "revenue"
+      ],
+      "plain_name": "Airport",
+      "via": "explicit"
+    },
+    {
+      "name_key": "public ways and facilities",
+      "cities": 2,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Public Ways & Facilities",
+      "via": "explicit"
+    },
+    {
+      "name_key": "education",
+      "cities": 2,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Education",
+      "via": "explicit"
+    },
+    {
+      "name_key": "recreation and cultural services",
+      "cities": 2,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Arts & Culture",
+      "via": "explicit"
+    },
+    {
+      "name_key": "platform fees",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Technology Platform Costs",
+      "via": "explicit"
+    },
+    {
+      "name_key": "software & tools",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Software & Tools",
+      "via": "explicit"
+    },
+    {
+      "name_key": "operations",
+      "cities": 3,
+      "datasets": [
+        "operating",
+        "salaries"
+      ],
+      "plain_name": "Administration",
+      "via": "explicit"
+    },
+    {
+      "name_key": "parks and recreation",
+      "cities": 20,
+      "datasets": [
+        "operating",
+        "revenue",
+        "salaries"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~park)"
+    },
+    {
+      "name_key": "maintenance (streets/facilities)",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Street Maintenance",
+      "via": "route:streets (~street)"
+    },
+    {
+      "name_key": "maintenance (parks/street medians)",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Street Maintenance",
+      "via": "route:streets (~street)"
+    },
+    {
+      "name_key": "non-departmental",
+      "cities": 3,
+      "datasets": [
+        "operating",
+        "salaries"
+      ],
+      "plain_name": "Non-Departmental",
+      "via": "explicit"
+    },
+    {
+      "name_key": "code enforcement/community development admin",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Code Enforcement",
+      "via": "route:code_enforcement (~code enforcement)"
+    },
+    {
+      "name_key": "less: citywide savings",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Citywide Savings Adjustment",
+      "via": "explicit"
+    },
+    {
+      "name_key": "hospital enterprise fund fund",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Hospital",
+      "via": "explicit"
+    },
+    {
+      "name_key": "parks, recreation and neighborhood services department",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~park)"
+    },
+    {
+      "name_key": "planning, building and code enforcement department",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Code Enforcement",
+      "via": "route:code_enforcement (~code enforcement)"
+    },
+    {
+      "name_key": "planning & development services",
+      "cities": 2,
+      "datasets": [
+        "operating",
+        "salaries"
+      ],
+      "plain_name": "Planning",
+      "via": "route:planning (~planning)"
+    },
+    {
+      "name_key": "parks, after school, recreation & community services",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~park)"
+    },
+    {
+      "name_key": "unknown",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "City Department",
+      "via": "explicit"
+    },
+    {
+      "name_key": "projects",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Projects",
+      "via": "explicit"
+    },
+    {
+      "name_key": "general services",
+      "cities": 12,
+      "datasets": [
+        "operating",
+        "revenue",
+        "salaries"
+      ],
+      "plain_name": "General Services",
+      "via": "route:general_services (~general services)"
+    },
+    {
+      "name_key": "parks & recreation",
+      "cities": 32,
+      "datasets": [
+        "operating",
+        "revenue",
+        "salaries"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~park)"
+    },
+    {
+      "name_key": "convention & cultural services",
+      "cities": 1,
+      "datasets": [
+        "operating",
+        "revenue"
+      ],
+      "plain_name": "Arts & Culture",
+      "via": "route:cultural_arts (~cultural)"
+    },
+    {
+      "name_key": "technology",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Information Technology",
+      "via": "route:information_technology (~technology)"
+    },
+    {
+      "name_key": "non appropriated",
+      "cities": 1,
+      "datasets": [
+        "operating",
+        "revenue"
+      ],
+      "plain_name": "Non-Appropriated",
+      "via": "explicit"
+    },
+    {
+      "name_key": "senior programs",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Senior Services",
+      "via": "route:senior_services (~senior)"
+    },
+    {
+      "name_key": "maintenance operations",
+      "cities": 2,
+      "datasets": [
+        "operating",
+        "salaries"
+      ],
+      "plain_name": "Facilities Maintenance",
+      "via": "route:facilities (~maintenance)"
+    },
+    {
+      "name_key": "administrative departments",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Administration",
+      "via": "route:administration (~administrative)"
+    },
+    {
+      "name_key": "community services",
+      "cities": 56,
+      "datasets": [
+        "operating",
+        "salaries"
+      ],
+      "plain_name": "Community Services",
+      "via": "route:community_services (~community service)"
+    },
+    {
+      "name_key": "non-departmental expenditures",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Non-Departmental",
+      "via": "explicit"
+    },
+    {
+      "name_key": "city council",
+      "cities": 96,
+      "datasets": [
+        "operating",
+        "salaries"
+      ],
+      "plain_name": "City Council",
+      "via": "route:city_council (~city council)"
+    },
+    {
+      "name_key": "fire department",
+      "cities": 21,
+      "datasets": [
+        "operating",
+        "salaries"
+      ],
+      "plain_name": "Fire & EMS",
+      "via": "route:fire (~fire)"
+    },
+    {
+      "name_key": "general non-dep",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Non-Departmental",
+      "via": "explicit"
+    },
+    {
+      "name_key": "plng & blg agy",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "City Department",
+      "via": "fallback:general_dept"
+    },
+    {
+      "name_key": "department of budget and management studies",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Budget Office",
+      "via": "route:budget (~budget)"
+    },
+    {
+      "name_key": "parks, recreation and neighborhood services",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~park)"
+    },
+    {
+      "name_key": "city manager",
+      "cities": 66,
+      "datasets": [
+        "operating",
+        "salaries"
+      ],
+      "plain_name": "City Manager's Office",
+      "via": "route:city_manager (~city manager)"
+    },
+    {
+      "name_key": "city attorney",
+      "cities": 27,
+      "datasets": [
+        "operating",
+        "salaries"
+      ],
+      "plain_name": "City Attorney",
+      "via": "route:city_attorney (~city attorney)"
+    },
+    {
+      "name_key": "planning, building and code enforcement",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Code Enforcement",
+      "via": "route:code_enforcement (~code enforcement)"
+    },
+    {
+      "name_key": "human resources",
+      "cities": 72,
+      "datasets": [
+        "operating",
+        "salaries"
+      ],
+      "plain_name": "Human Resources",
+      "via": "route:human_resources (~human resource)"
+    },
+    {
+      "name_key": "environmental services",
+      "cities": 5,
+      "datasets": [
+        "operating",
+        "salaries"
+      ],
+      "plain_name": "Sustainability & Environment",
+      "via": "route:sustainability (~environmental)"
+    },
+    {
+      "name_key": "city clerk",
+      "cities": 88,
+      "datasets": [
+        "operating",
+        "salaries"
+      ],
+      "plain_name": "City Clerk",
+      "via": "route:city_clerk (~city clerk)"
+    },
+    {
+      "name_key": "independent police auditor",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~police)"
+    },
+    {
+      "name_key": "housing",
+      "cities": 15,
+      "datasets": [
+        "operating",
+        "salaries"
+      ],
+      "plain_name": "Housing",
+      "via": "route:housing (~housing)"
+    },
+    {
+      "name_key": "economic & workforce development",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Economic Development",
+      "via": "route:economic_development (~economic)"
+    },
+    {
+      "name_key": "parks, recreation, & youth development",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~park)"
+    },
+    {
+      "name_key": "violence prevention",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Public Safety",
+      "via": "route:public_safety (~violence)"
+    },
+    {
+      "name_key": "animal services",
+      "cities": 3,
+      "datasets": [
+        "operating",
+        "salaries"
+      ],
+      "plain_name": "Animal Services",
+      "via": "route:animal_services (~animal)"
+    },
+    {
+      "name_key": "inspector general",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "City Auditor",
+      "via": "route:city_auditor (~inspector general)"
+    },
+    {
+      "name_key": "workplace & employment standards",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "City Department",
+      "via": "fallback:general_dept"
+    },
+    {
+      "name_key": "race & equity",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "City Department",
+      "via": "fallback:general_dept"
+    },
+    {
+      "name_key": "human resources management",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Human Resources",
+      "via": "route:human_resources (~human resource)"
+    },
+    {
+      "name_key": "housing & community development",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Housing",
+      "via": "route:housing (~housing)"
+    },
+    {
+      "name_key": "planning and development services",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Planning",
+      "via": "route:planning (~planning)"
+    },
+    {
+      "name_key": "planning and development",
+      "cities": 3,
+      "datasets": [
+        "operating",
+        "salaries"
+      ],
+      "plain_name": "Planning",
+      "via": "route:planning (~planning)"
+    },
+    {
+      "name_key": "budget and management studies",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Budget Office",
+      "via": "route:budget (~budget)"
+    },
+    {
+      "name_key": "refuse activity/enterprise",
+      "cities": 1,
+      "datasets": [
+        "operating",
+        "revenue"
+      ],
+      "plain_name": "Solid Waste & Recycling",
+      "via": "explicit"
+    },
+    {
+      "name_key": "other enterprise",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Other Enterprise",
+      "via": "explicit"
+    },
+    {
+      "name_key": "hospital enterprise fund",
+      "cities": 2,
+      "datasets": [
+        "operating",
+        "revenue"
+      ],
+      "plain_name": "Hospital",
+      "via": "explicit"
+    },
+    {
+      "name_key": "hospital activity/enterprise",
+      "cities": 1,
+      "datasets": [
+        "operating",
+        "revenue"
+      ],
+      "plain_name": "Hospital",
+      "via": "explicit"
+    },
+    {
+      "name_key": "capital outlay",
+      "cities": 1,
+      "datasets": [
+        "operating"
+      ],
+      "plain_name": "Capital Projects",
+      "via": "explicit"
+    },
+    {
+      "name_key": "revenue from use of money and property",
+      "cities": 131,
+      "datasets": [
+        "revenue"
+      ],
+      "plain_name": "Money & Property Income",
+      "via": "explicit"
+    },
+    {
+      "name_key": "fines and forfeitures and revenue from use of money and property",
+      "cities": 129,
+      "datasets": [
+        "revenue"
+      ],
+      "plain_name": "Fines & Property Income",
+      "via": "explicit"
+    },
+    {
+      "name_key": "intergovernmental - state",
+      "cities": 129,
+      "datasets": [
+        "revenue"
+      ],
+      "plain_name": "State Funding",
+      "via": "explicit"
+    },
+    {
+      "name_key": "current service charges",
+      "cities": 129,
+      "datasets": [
+        "revenue"
+      ],
+      "plain_name": "Service Charges",
+      "via": "explicit"
+    },
+    {
+      "name_key": "intergovernmental - federal",
+      "cities": 129,
+      "datasets": [
+        "revenue"
+      ],
+      "plain_name": "Federal Funding",
+      "via": "explicit"
+    },
+    {
+      "name_key": "intergovernmental - federal, county, and other taxes in-lieu",
+      "cities": 128,
+      "datasets": [
+        "revenue"
+      ],
+      "plain_name": "Aid & In-Lieu Taxes",
+      "via": "explicit"
+    },
+    {
+      "name_key": "other revenues",
+      "cities": 128,
+      "datasets": [
+        "revenue"
+      ],
+      "plain_name": "Other Revenue",
+      "via": "explicit"
+    },
+    {
+      "name_key": "fines and forfeitures",
+      "cities": 128,
+      "datasets": [
+        "revenue"
+      ],
+      "plain_name": "Fines & Forfeitures",
+      "via": "explicit"
+    },
+    {
+      "name_key": "intergovernmental - county and other taxes in-lieu",
+      "cities": 125,
+      "datasets": [
+        "revenue"
+      ],
+      "plain_name": "County & In-Lieu Taxes",
+      "via": "explicit"
+    },
+    {
+      "name_key": "other financing sources",
+      "cities": 99,
+      "datasets": [
+        "revenue"
+      ],
+      "plain_name": "Other Financing Sources",
+      "via": "explicit"
+    },
+    {
+      "name_key": "special benefit assessments for operations",
+      "cities": 95,
+      "datasets": [
+        "revenue"
+      ],
+      "plain_name": "Assessment District Fees",
+      "via": "explicit"
+    },
+    {
+      "name_key": "gas enterprise fund",
+      "cities": 4,
+      "datasets": [
+        "revenue"
+      ],
+      "plain_name": "Gas Utility",
+      "via": "explicit"
+    },
+    {
+      "name_key": "property taxes",
+      "cities": 2,
+      "datasets": [
+        "revenue"
+      ],
+      "plain_name": "Property Taxes",
+      "via": "explicit"
+    },
+    {
+      "name_key": "intergovernmental – federal",
+      "cities": 2,
+      "datasets": [
+        "revenue"
+      ],
+      "plain_name": "Federal Funding",
+      "via": "explicit"
+    },
+    {
+      "name_key": "taxes – other",
+      "cities": 2,
+      "datasets": [
+        "revenue"
+      ],
+      "plain_name": "Other Taxes",
+      "via": "explicit"
+    },
+    {
+      "name_key": "fines, forfeitures, and penalties",
+      "cities": 2,
+      "datasets": [
+        "revenue"
+      ],
+      "plain_name": "Fines & Penalties",
+      "via": "explicit"
+    },
+    {
+      "name_key": "licenses, permits, and franchises",
+      "cities": 2,
+      "datasets": [
+        "revenue"
+      ],
+      "plain_name": "Licenses & Permits",
+      "via": "explicit"
+    },
+    {
+      "name_key": "intergovernmental – other",
+      "cities": 2,
+      "datasets": [
+        "revenue"
+      ],
+      "plain_name": "Other Government Funding",
+      "via": "explicit"
+    },
+    {
+      "name_key": "aid from other governmental agencies - state",
+      "cities": 2,
+      "datasets": [
+        "revenue"
+      ],
+      "plain_name": "State Aid",
+      "via": "explicit"
+    },
+    {
+      "name_key": "aid from other governmental agencies - federal",
+      "cities": 2,
+      "datasets": [
+        "revenue"
+      ],
+      "plain_name": "Federal Aid",
+      "via": "explicit"
+    },
+    {
+      "name_key": "other taxes",
+      "cities": 2,
+      "datasets": [
+        "revenue"
+      ],
+      "plain_name": "Other Taxes",
+      "via": "explicit"
+    },
+    {
+      "name_key": "fines, forfeitures and penalties",
+      "cities": 2,
+      "datasets": [
+        "revenue"
+      ],
+      "plain_name": "Fines & Penalties",
+      "via": "explicit"
+    },
+    {
+      "name_key": "revenue from the use of money and property",
+      "cities": 2,
+      "datasets": [
+        "revenue"
+      ],
+      "plain_name": "Money & Property Income",
+      "via": "explicit"
+    },
+    {
+      "name_key": "licenses, permits and franchises",
+      "cities": 2,
+      "datasets": [
+        "revenue"
+      ],
+      "plain_name": "Licenses & Permits",
+      "via": "explicit"
+    },
+    {
+      "name_key": "other in-lieu taxes and other governmental agencies",
+      "cities": 2,
+      "datasets": [
+        "revenue"
+      ],
+      "plain_name": "In-Lieu & Other Aid",
+      "via": "explicit"
+    },
+    {
+      "name_key": "interest",
+      "cities": 1,
+      "datasets": [
+        "revenue"
+      ],
+      "plain_name": "Interest Income",
+      "via": "explicit"
+    },
+    {
+      "name_key": "non-tax revenue",
+      "cities": 1,
+      "datasets": [
+        "revenue"
+      ],
+      "plain_name": "Non-Tax Revenue",
+      "via": "explicit"
+    },
+    {
+      "name_key": "general fund revenue",
+      "cities": 1,
+      "datasets": [
+        "revenue"
+      ],
+      "plain_name": "General Fund Revenue",
+      "via": "explicit"
+    },
+    {
+      "name_key": "other activity/enterprise",
+      "cities": 1,
+      "datasets": [
+        "revenue"
+      ],
+      "plain_name": "Other Enterprise",
+      "via": "explicit"
+    },
+    {
+      "name_key": "administration",
+      "cities": 55,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Administration",
+      "via": "route:administration (~administration)"
+    },
+    {
+      "name_key": "planning",
+      "cities": 52,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Planning",
+      "via": "route:planning (~planning)"
+    },
+    {
+      "name_key": "administrative services",
+      "cities": 52,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Administration",
+      "via": "route:administration (~administrative services)"
+    },
+    {
+      "name_key": "recreation",
+      "cities": 37,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Recreation",
+      "via": "route:recreation (~recreation)"
+    },
+    {
+      "name_key": "engineering",
+      "cities": 32,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Engineering",
+      "via": "route:engineering (~engineering)"
+    },
+    {
+      "name_key": "city treasurer",
+      "cities": 29,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Treasury",
+      "via": "route:treasury (~treasur)"
+    },
+    {
+      "name_key": "code enforcement",
+      "cities": 27,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Code Enforcement",
+      "via": "route:code_enforcement (~code enforcement)"
+    },
+    {
+      "name_key": "police department",
+      "cities": 25,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~police)"
+    },
+    {
+      "name_key": "council",
+      "cities": 21,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Council",
+      "via": "route:city_council (~council)"
+    },
+    {
+      "name_key": "street maintenance",
+      "cities": 21,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Street Maintenance",
+      "via": "route:streets (~street)"
+    },
+    {
+      "name_key": "development services",
+      "cities": 20,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Community Development",
+      "via": "route:community_development (~development services)"
+    },
+    {
+      "name_key": "personnel",
+      "cities": 19,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Human Resources",
+      "via": "route:human_resources (~personnel)"
+    },
+    {
+      "name_key": "aquatics",
+      "cities": 16,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Recreation",
+      "via": "route:recreation (~aquatic)"
+    },
+    {
+      "name_key": "city manager's office",
+      "cities": 16,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Manager's Office",
+      "via": "route:city_manager (~city manager)"
+    },
+    {
+      "name_key": "communications",
+      "cities": 16,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Communications",
+      "via": "route:communications (~communication)"
+    },
+    {
+      "name_key": "building",
+      "cities": 15,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Building & Safety",
+      "via": "route:building_safety (~building)"
+    },
+    {
+      "name_key": "public works administration",
+      "cities": 15,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Public Works",
+      "via": "route:public_works (~public works)"
+    },
+    {
+      "name_key": "water",
+      "cities": 15,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Water Utility",
+      "via": "route:water (~water)"
+    },
+    {
+      "name_key": "building & safety",
+      "cities": 13,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Building & Safety",
+      "via": "route:building_safety (~building & safety)"
+    },
+    {
+      "name_key": "planning commission",
+      "cities": 13,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Planning",
+      "via": "route:planning (~planning)"
+    },
+    {
+      "name_key": "management services",
+      "cities": 12,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Administration",
+      "via": "route:administration (~management services)"
+    },
+    {
+      "name_key": "building and safety",
+      "cities": 12,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Building & Safety",
+      "via": "route:building_safety (~building and safety)"
+    },
+    {
+      "name_key": "police administration",
+      "cities": 11,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~police)"
+    },
+    {
+      "name_key": "recreation services",
+      "cities": 11,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Recreation",
+      "via": "route:recreation (~recreation)"
+    },
+    {
+      "name_key": "community services administration",
+      "cities": 11,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Community Services",
+      "via": "route:community_services (~community service)"
+    },
+    {
+      "name_key": "purchasing",
+      "cities": 11,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Purchasing",
+      "via": "route:purchasing (~purchas)"
+    },
+    {
+      "name_key": "senior center",
+      "cities": 10,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Senior Services",
+      "via": "route:senior_services (~senior)"
+    },
+    {
+      "name_key": "parks maintenance",
+      "cities": 10,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~park)"
+    },
+    {
+      "name_key": "information systems",
+      "cities": 10,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Information Technology",
+      "via": "route:information_technology (~information systems)"
+    },
+    {
+      "name_key": "building maintenance",
+      "cities": 10,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Facilities Maintenance",
+      "via": "route:facilities (~building maintenance)"
+    },
+    {
+      "name_key": "risk management",
+      "cities": 10,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Risk Management",
+      "via": "route:risk_management (~risk)"
+    },
+    {
+      "name_key": "mayor",
+      "cities": 10,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Elected Officials",
+      "via": "route:elected_officials (~mayor)"
+    },
+    {
+      "name_key": "redevelopment",
+      "cities": 10,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Redevelopment / Successor",
+      "via": "route:redevelopment (~redevelop)"
+    },
+    {
+      "name_key": "legislative",
+      "cities": 9,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Council",
+      "via": "route:city_council (~legislative)"
+    },
+    {
+      "name_key": "park maintenance",
+      "cities": 9,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~park)"
+    },
+    {
+      "name_key": "finance administration",
+      "cities": 9,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Finance",
+      "via": "route:finance (~finance)"
+    },
+    {
+      "name_key": "maintenance",
+      "cities": 9,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Facilities Maintenance",
+      "via": "route:facilities (~maintenance)"
+    },
+    {
+      "name_key": "facilities maintenance",
+      "cities": 9,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Facilities Maintenance",
+      "via": "route:facilities (~facilities)"
+    },
+    {
+      "name_key": "public works administrative",
+      "cities": 8,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Public Works",
+      "via": "route:public_works (~public works)"
+    },
+    {
+      "name_key": "fire administration",
+      "cities": 8,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Fire & EMS",
+      "via": "route:fire (~fire)"
+    },
+    {
+      "name_key": "parks",
+      "cities": 8,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~park)"
+    },
+    {
+      "name_key": "city clerk's office",
+      "cities": 8,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Clerk",
+      "via": "route:city_clerk (~city clerk)"
+    },
+    {
+      "name_key": "community development administration",
+      "cities": 8,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Community Development",
+      "via": "route:community_development (~community development)"
+    },
+    {
+      "name_key": "information services",
+      "cities": 7,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Information Technology",
+      "via": "route:information_technology (~information services)"
+    },
+    {
+      "name_key": "library services",
+      "cities": 7,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Library",
+      "via": "route:library (~library)"
+    },
+    {
+      "name_key": "public services",
+      "cities": 7,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "General Services",
+      "via": "route:general_services (~public services)"
+    },
+    {
+      "name_key": "police services",
+      "cities": 7,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~police)"
+    },
+    {
+      "name_key": "accounting",
+      "cities": 7,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Accounting",
+      "via": "route:accounting (~accounting)"
+    },
+    {
+      "name_key": "utilities",
+      "cities": 7,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Public Utilities",
+      "via": "route:utilities (~utilit)"
+    },
+    {
+      "name_key": "sewer",
+      "cities": 7,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Sewer & Wastewater",
+      "via": "route:sewer (~sewer)"
+    },
+    {
+      "name_key": "facility maintenance",
+      "cities": 7,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Facilities Maintenance",
+      "via": "route:facilities (~facility)"
+    },
+    {
+      "name_key": "community services administrative",
+      "cities": 7,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Community Services",
+      "via": "route:community_services (~community service)"
+    },
+    {
+      "name_key": "airport",
+      "cities": 7,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Airport",
+      "via": "route:airport_dept (~airport)"
+    },
+    {
+      "name_key": "water operations",
+      "cities": 7,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Water Utility",
+      "via": "route:water (~water)"
+    },
+    {
+      "name_key": "fire suppression",
+      "cities": 7,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Fire & EMS",
+      "via": "route:fire (~fire)"
+    },
+    {
+      "name_key": "business license",
+      "cities": 7,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Revenue & Licensing",
+      "via": "route:revenue_collection (~business licens)"
+    },
+    {
+      "name_key": "treasurer",
+      "cities": 6,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Treasury",
+      "via": "route:treasury (~treasur)"
+    },
+    {
+      "name_key": "public works engineering",
+      "cities": 6,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Engineering",
+      "via": "route:engineering (~engineering)"
+    },
+    {
+      "name_key": "recreation & community services",
+      "cities": 6,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Recreation",
+      "via": "route:recreation (~recreation)"
+    },
+    {
+      "name_key": "facilities",
+      "cities": 6,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Facilities Maintenance",
+      "via": "route:facilities (~facilities)"
+    },
+    {
+      "name_key": "golf course",
+      "cities": 6,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Recreation",
+      "via": "route:recreation (~golf)"
+    },
+    {
+      "name_key": "public works - engineering",
+      "cities": 6,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Engineering",
+      "via": "route:engineering (~engineering)"
+    },
+    {
+      "name_key": "recreation and community services",
+      "cities": 6,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Recreation",
+      "via": "route:recreation (~recreation)"
+    },
+    {
+      "name_key": "financial services",
+      "cities": 6,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Finance",
+      "via": "route:finance (~financial)"
+    },
+    {
+      "name_key": "parking enforcement",
+      "cities": 6,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Parking",
+      "via": "route:parking (~parking)"
+    },
+    {
+      "name_key": "fire prevention",
+      "cities": 6,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Fire & EMS",
+      "via": "route:fire (~fire)"
+    },
+    {
+      "name_key": "water department",
+      "cities": 6,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Water Utility",
+      "via": "route:water (~water)"
+    },
+    {
+      "name_key": "transit",
+      "cities": 6,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Transit",
+      "via": "route:transit (~transit)"
+    },
+    {
+      "name_key": "customer service",
+      "cities": 6,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Revenue & Licensing",
+      "via": "route:revenue_collection (~customer service)"
+    },
+    {
+      "name_key": "city administration",
+      "cities": 6,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Manager's Office",
+      "via": "route:city_manager (~city administrat)"
+    },
+    {
+      "name_key": "administrative",
+      "cities": 6,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Administration",
+      "via": "route:administration (~administrative)"
+    },
+    {
+      "name_key": "senior services",
+      "cities": 6,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Senior Services",
+      "via": "route:senior_services (~senior)"
+    },
+    {
+      "name_key": "community development department",
+      "cities": 6,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Community Development",
+      "via": "route:community_development (~community development)"
+    },
+    {
+      "name_key": "streets",
+      "cities": 6,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Street Maintenance",
+      "via": "route:streets (~street)"
+    },
+    {
+      "name_key": "parks, recreation & community services",
+      "cities": 6,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~park)"
+    },
+    {
+      "name_key": "neighborhood services",
+      "cities": 6,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Neighborhood Services",
+      "via": "route:neighborhood_services (~neighborhood)"
+    },
+    {
+      "name_key": "public works department",
+      "cities": 5,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Public Works",
+      "via": "route:public_works (~public works)"
+    },
+    {
+      "name_key": "police administrative",
+      "cities": 5,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~police)"
+    },
+    {
+      "name_key": "emergency preparedness",
+      "cities": 5,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Emergency Management",
+      "via": "route:emergency (~emergency)"
+    },
+    {
+      "name_key": "community preservation",
+      "cities": 5,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Code Enforcement",
+      "via": "route:code_enforcement (~preservation)"
+    },
+    {
+      "name_key": "cdbg",
+      "cities": 5,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Community Development",
+      "via": "route:community_development (~cdbg)"
+    },
+    {
+      "name_key": "community services commission",
+      "cities": 5,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Community Services",
+      "via": "route:community_services (~community service)"
+    },
+    {
+      "name_key": "community service",
+      "cities": 5,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Community Services",
+      "via": "route:community_services (~community service)"
+    },
+    {
+      "name_key": "special projects",
+      "cities": 5,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "General Services",
+      "via": "route:general_services (~special projects)"
+    },
+    {
+      "name_key": "equipment maintenance",
+      "cities": 5,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Fleet & Equipment",
+      "via": "route:fleet (~equipment)"
+    },
+    {
+      "name_key": "public works water",
+      "cities": 5,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Water Utility",
+      "via": "route:water (~water)"
+    },
+    {
+      "name_key": "community dev",
+      "cities": 5,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Community Development",
+      "via": "route:community_development (~community dev)"
+    },
+    {
+      "name_key": "garage",
+      "cities": 5,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Fleet & Equipment",
+      "via": "route:fleet (~garage)"
+    },
+    {
+      "name_key": "legal services",
+      "cities": 5,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Attorney",
+      "via": "route:city_attorney (~legal)"
+    },
+    {
+      "name_key": "treasury",
+      "cities": 5,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Treasury",
+      "via": "route:treasury (~treasur)"
+    },
+    {
+      "name_key": "crossing guards",
+      "cities": 5,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Public Safety",
+      "via": "route:public_safety (~crossing guard)"
+    },
+    {
+      "name_key": "city hall",
+      "cities": 4,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Facilities Maintenance",
+      "via": "route:facilities (~city hall)"
+    },
+    {
+      "name_key": "community and economic development",
+      "cities": 4,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Economic Development",
+      "via": "route:economic_development (~economic)"
+    },
+    {
+      "name_key": "records",
+      "cities": 4,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Clerk",
+      "via": "route:city_clerk (~records)"
+    },
+    {
+      "name_key": "code compliance",
+      "cities": 4,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Code Enforcement",
+      "via": "route:code_enforcement (~code compliance)"
+    },
+    {
+      "name_key": "community development administrative",
+      "cities": 4,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Community Development",
+      "via": "route:community_development (~community development)"
+    },
+    {
+      "name_key": "parks & recreation administrative",
+      "cities": 4,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~park)"
+    },
+    {
+      "name_key": "support services",
+      "cities": 4,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "General Services",
+      "via": "route:general_services (~support services)"
+    },
+    {
+      "name_key": "community & economic development",
+      "cities": 4,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Economic Development",
+      "via": "route:economic_development (~economic)"
+    },
+    {
+      "name_key": "public works maintenance",
+      "cities": 4,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Public Works",
+      "via": "route:public_works (~public works)"
+    },
+    {
+      "name_key": "community relations",
+      "cities": 4,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Communications",
+      "via": "route:communications (~community relations)"
+    },
+    {
+      "name_key": "city administrator",
+      "cities": 4,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Manager's Office",
+      "via": "route:city_manager (~city administrat)"
+    },
+    {
+      "name_key": "elected",
+      "cities": 4,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Elected Officials",
+      "via": "route:elected_officials (~elected)"
+    },
+    {
+      "name_key": "landscape maintenance",
+      "cities": 4,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~landscape)"
+    },
+    {
+      "name_key": "transit administration",
+      "cities": 4,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Transit",
+      "via": "route:transit (~transit)"
+    },
+    {
+      "name_key": "city manager administration",
+      "cities": 4,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Manager's Office",
+      "via": "route:city_manager (~city manager)"
+    },
+    {
+      "name_key": "planning & building",
+      "cities": 4,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Building & Safety",
+      "via": "route:building_safety (~building)"
+    },
+    {
+      "name_key": "graffiti",
+      "cities": 4,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Street Maintenance",
+      "via": "route:streets (~graffiti)"
+    },
+    {
+      "name_key": "water distribution",
+      "cities": 4,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Water Utility",
+      "via": "route:water (~water)"
+    },
+    {
+      "name_key": "recreation administration",
+      "cities": 4,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Recreation",
+      "via": "route:recreation (~recreation)"
+    },
+    {
+      "name_key": "technology services",
+      "cities": 4,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Information Technology",
+      "via": "route:information_technology (~technology)"
+    },
+    {
+      "name_key": "city clerk office",
+      "cities": 4,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Clerk",
+      "via": "route:city_clerk (~city clerk)"
+    },
+    {
+      "name_key": "public safety administration",
+      "cities": 4,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Public Safety",
+      "via": "route:public_safety (~public safety)"
+    },
+    {
+      "name_key": "public information",
+      "cities": 4,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Communications",
+      "via": "route:communications (~public information)"
+    },
+    {
+      "name_key": "mayor's office",
+      "cities": 4,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Elected Officials",
+      "via": "route:elected_officials (~mayor)"
+    },
+    {
+      "name_key": "planning department",
+      "cities": 4,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Planning",
+      "via": "route:planning (~planning)"
+    },
+    {
+      "name_key": "geographic information systems",
+      "cities": 4,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Information Technology",
+      "via": "route:information_technology (~information systems)"
+    },
+    {
+      "name_key": "community center",
+      "cities": 4,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Community Services",
+      "via": "route:community_services (~community center)"
+    },
+    {
+      "name_key": "human resources/risk management",
+      "cities": 4,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Human Resources",
+      "via": "route:human_resources (~human resource)"
+    },
+    {
+      "name_key": "parks & recreation administration",
+      "cities": 4,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~park)"
+    },
+    {
+      "name_key": "public health",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Public Health",
+      "via": "route:public_health (~public health)"
+    },
+    {
+      "name_key": "parks & recreation department",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~park)"
+    },
+    {
+      "name_key": "public works streets",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Street Maintenance",
+      "via": "route:streets (~street)"
+    },
+    {
+      "name_key": "public works fleet",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Fleet & Equipment",
+      "via": "route:fleet (~fleet)"
+    },
+    {
+      "name_key": "parks and recreation administrative",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~park)"
+    },
+    {
+      "name_key": "police support services",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~police)"
+    },
+    {
+      "name_key": "retiree",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Department",
+      "via": "route:general_dept (~retire)"
+    },
+    {
+      "name_key": "fleet management",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Fleet & Equipment",
+      "via": "route:fleet (~fleet)"
+    },
+    {
+      "name_key": "government buildings",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Facilities Maintenance",
+      "via": "route:facilities (~government buildings)"
+    },
+    {
+      "name_key": "marine safety",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Fire & EMS",
+      "via": "route:fire (~marine safety)"
+    },
+    {
+      "name_key": "personnel services",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Human Resources",
+      "via": "route:human_resources (~personnel)"
+    },
+    {
+      "name_key": "public works/engineering",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Engineering",
+      "via": "route:engineering (~engineering)"
+    },
+    {
+      "name_key": "parks and recreation administration",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~park)"
+    },
+    {
+      "name_key": "cultural arts",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Arts & Culture",
+      "via": "route:cultural_arts (~cultural)"
+    },
+    {
+      "name_key": "it",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Information Technology",
+      "via": "exact:information_technology"
+    },
+    {
+      "name_key": "crime prevention",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~crime)"
+    },
+    {
+      "name_key": "sports",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Recreation",
+      "via": "route:recreation (~sports)"
+    },
+    {
+      "name_key": "community dev administration",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Community Development",
+      "via": "route:community_development (~community dev)"
+    },
+    {
+      "name_key": "solid waste",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Solid Waste & Recycling",
+      "via": "route:solid_waste (~solid waste)"
+    },
+    {
+      "name_key": "investigative services",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~investigat)"
+    },
+    {
+      "name_key": "public works-administration",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Public Works",
+      "via": "route:public_works (~public works)"
+    },
+    {
+      "name_key": "parking",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Parking",
+      "via": "route:parking (~parking)"
+    },
+    {
+      "name_key": "community development/planning",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Planning",
+      "via": "route:planning (~planning)"
+    },
+    {
+      "name_key": "public works/administration",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Public Works",
+      "via": "route:public_works (~public works)"
+    },
+    {
+      "name_key": "emergency services",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Emergency Management",
+      "via": "route:emergency (~emergency)"
+    },
+    {
+      "name_key": "parks & rec",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~park)"
+    },
+    {
+      "name_key": "administrative svcs",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Administration",
+      "via": "route:administration (~administrative svcs)"
+    },
+    {
+      "name_key": "community development planning",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Planning",
+      "via": "route:planning (~planning)"
+    },
+    {
+      "name_key": "water maintenance",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Water Utility",
+      "via": "route:water (~water)"
+    },
+    {
+      "name_key": "water administration",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Water Utility",
+      "via": "route:water (~water)"
+    },
+    {
+      "name_key": "housing authority",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Housing",
+      "via": "route:housing (~housing)"
+    },
+    {
+      "name_key": "water utility",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Water Utility",
+      "via": "route:water (~water)"
+    },
+    {
+      "name_key": "redevelopment agency",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Redevelopment / Successor",
+      "via": "route:redevelopment (~redevelop)"
+    },
+    {
+      "name_key": "planning commissioner",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Planning",
+      "via": "route:planning (~planning)"
+    },
+    {
+      "name_key": "field services",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Public Works",
+      "via": "route:public_works (~field services)"
+    },
+    {
+      "name_key": "traffic",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Street Maintenance",
+      "via": "route:streets (~traffic)"
+    },
+    {
+      "name_key": "sewer maintenance",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Sewer & Wastewater",
+      "via": "route:sewer (~sewer)"
+    },
+    {
+      "name_key": "finance and administrative services",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Finance",
+      "via": "route:finance (~finance)"
+    },
+    {
+      "name_key": "successor agency",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Redevelopment / Successor",
+      "via": "route:redevelopment (~successor)"
+    },
+    {
+      "name_key": "public works - maintenance",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Public Works",
+      "via": "route:public_works (~public works)"
+    },
+    {
+      "name_key": "finance & administrative services",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Finance",
+      "via": "route:finance (~finance)"
+    },
+    {
+      "name_key": "cable tv",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Communications",
+      "via": "route:communications (~cable)"
+    },
+    {
+      "name_key": "legal",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Attorney",
+      "via": "route:city_attorney (~legal)"
+    },
+    {
+      "name_key": "community",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Community Services",
+      "via": "route:community_services (~community)"
+    },
+    {
+      "name_key": "public library",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Library",
+      "via": "route:library (~library)"
+    },
+    {
+      "name_key": "wastewater collection",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Sewer & Wastewater",
+      "via": "route:sewer (~wastewater)"
+    },
+    {
+      "name_key": "traffic engineering",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Street Maintenance",
+      "via": "route:streets (~traffic)"
+    },
+    {
+      "name_key": "executive office",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Manager's Office",
+      "via": "route:city_manager (~executive office)"
+    },
+    {
+      "name_key": "current planning",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Planning",
+      "via": "route:planning (~planning)"
+    },
+    {
+      "name_key": "fire training",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Fire & EMS",
+      "via": "route:fire (~fire)"
+    },
+    {
+      "name_key": "traffic signals",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Street Maintenance",
+      "via": "route:streets (~traffic)"
+    },
+    {
+      "name_key": "engineering administration",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Engineering",
+      "via": "route:engineering (~engineering)"
+    },
+    {
+      "name_key": "central services",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "General Services",
+      "via": "route:general_services (~central services)"
+    },
+    {
+      "name_key": "special events",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Community Services",
+      "via": "route:community_services (~special event)"
+    },
+    {
+      "name_key": "transportation planning",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Transit",
+      "via": "route:transit (~transportation)"
+    },
+    {
+      "name_key": "street",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Street Maintenance",
+      "via": "route:streets (~street)"
+    },
+    {
+      "name_key": "police dept",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~police)"
+    },
+    {
+      "name_key": "fire dept",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Fire & EMS",
+      "via": "route:fire (~fire)"
+    },
+    {
+      "name_key": "city manager office",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Manager's Office",
+      "via": "route:city_manager (~city manager)"
+    },
+    {
+      "name_key": "cdbg administration",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Community Development",
+      "via": "route:community_development (~cdbg)"
+    },
+    {
+      "name_key": "recycling",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Solid Waste & Recycling",
+      "via": "route:solid_waste (~recycl)"
+    },
+    {
+      "name_key": "transit operations",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Transit",
+      "via": "route:transit (~transit)"
+    },
+    {
+      "name_key": "water billing",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Water Utility",
+      "via": "route:water (~water)"
+    },
+    {
+      "name_key": "park operations",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~park)"
+    },
+    {
+      "name_key": "housing development",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Housing",
+      "via": "route:housing (~housing)"
+    },
+    {
+      "name_key": "records management",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Clerk",
+      "via": "route:city_clerk (~records management)"
+    },
+    {
+      "name_key": "youth sports",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Recreation",
+      "via": "route:recreation (~sports)"
+    },
+    {
+      "name_key": "water and power",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Water Utility",
+      "via": "route:water (~water)"
+    },
+    {
+      "name_key": "planning services",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Planning",
+      "via": "route:planning (~planning)"
+    },
+    {
+      "name_key": "retirement services",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Department",
+      "via": "route:general_dept (~retire)"
+    },
+    {
+      "name_key": "building & planning",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Building & Safety",
+      "via": "route:building_safety (~building)"
+    },
+    {
+      "name_key": "police safety",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~police)"
+    },
+    {
+      "name_key": "community programs",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Community Services",
+      "via": "route:community_services (~community program)"
+    },
+    {
+      "name_key": "human resource",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Human Resources",
+      "via": "route:human_resources (~human resource)"
+    },
+    {
+      "name_key": "transit administrative",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Transit",
+      "via": "route:transit (~transit)"
+    },
+    {
+      "name_key": "city managers office",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Manager's Office",
+      "via": "route:city_manager (~city manager)"
+    },
+    {
+      "name_key": "police reserves",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~police)"
+    },
+    {
+      "name_key": "police patrol",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~police)"
+    },
+    {
+      "name_key": "personnel/risk management",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Human Resources",
+      "via": "route:human_resources (~personnel)"
+    },
+    {
+      "name_key": "parks administration",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~park)"
+    },
+    {
+      "name_key": "communications administration",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Communications",
+      "via": "route:communications (~communication)"
+    },
+    {
+      "name_key": "building inspection",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Building & Safety",
+      "via": "route:building_safety (~building inspection)"
+    },
+    {
+      "name_key": "street lighting",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Street Maintenance",
+      "via": "route:streets (~street light)"
+    },
+    {
+      "name_key": "fleet services",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Fleet & Equipment",
+      "via": "route:fleet (~fleet)"
+    },
+    {
+      "name_key": "police operations",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~police)"
+    },
+    {
+      "name_key": "elected officials",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Elected Officials",
+      "via": "route:elected_officials (~elected)"
+    },
+    {
+      "name_key": "sustainability",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Sustainability & Environment",
+      "via": "route:sustainability (~sustainab)"
+    },
+    {
+      "name_key": "community development - planning",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Planning",
+      "via": "route:planning (~planning)"
+    },
+    {
+      "name_key": "public works - administration",
+      "cities": 3,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Public Works",
+      "via": "route:public_works (~public works)"
+    },
+    {
+      "name_key": "sheriff",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~sheriff)"
+    },
+    {
+      "name_key": "district attorney",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~district attorney)"
+    },
+    {
+      "name_key": "public defender",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~public defender)"
+    },
+    {
+      "name_key": "assessor",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Finance",
+      "via": "route:finance (~assessor)"
+    },
+    {
+      "name_key": "child support services",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Youth Services",
+      "via": "route:youth_services (~child)"
+    },
+    {
+      "name_key": "board of supervisors",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Council",
+      "via": "route:city_council (~board of supervisors)"
+    },
+    {
+      "name_key": "treasurer & tax collector",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Treasury",
+      "via": "route:treasury (~treasur)"
+    },
+    {
+      "name_key": "youth development",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Youth Services",
+      "via": "route:youth_services (~youth)"
+    },
+    {
+      "name_key": "parks & rec administrative",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~park)"
+    },
+    {
+      "name_key": "recreation & parks",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~park)"
+    },
+    {
+      "name_key": "council members",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Council",
+      "via": "route:city_council (~council member)"
+    },
+    {
+      "name_key": "child development",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Youth Services",
+      "via": "route:youth_services (~child)"
+    },
+    {
+      "name_key": "city manager administrative",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Manager's Office",
+      "via": "route:city_manager (~city manager)"
+    },
+    {
+      "name_key": "animal control",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Animal Services",
+      "via": "route:animal_services (~animal)"
+    },
+    {
+      "name_key": "police field services",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~police)"
+    },
+    {
+      "name_key": "police investigation",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~police)"
+    },
+    {
+      "name_key": "dispatch",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Public Safety",
+      "via": "route:public_safety (~dispatch)"
+    },
+    {
+      "name_key": "fire reserves",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Fire & EMS",
+      "via": "route:fire (~fire)"
+    },
+    {
+      "name_key": "water dept",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Water Utility",
+      "via": "route:water (~water)"
+    },
+    {
+      "name_key": "public works - administrative",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Public Works",
+      "via": "route:public_works (~public works)"
+    },
+    {
+      "name_key": "police - patrol",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~police)"
+    },
+    {
+      "name_key": "adult sports",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Recreation",
+      "via": "route:recreation (~sports)"
+    },
+    {
+      "name_key": "non departmental",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Department",
+      "via": "fallback:general_dept"
+    },
+    {
+      "name_key": "harbor department",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Harbor & Marine",
+      "via": "route:harbor (~harbor)"
+    },
+    {
+      "name_key": "public works/yard",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Public Works",
+      "via": "route:public_works (~public works)"
+    },
+    {
+      "name_key": "building division",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Building & Safety",
+      "via": "route:building_safety (~building division)"
+    },
+    {
+      "name_key": "community services recreation",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Recreation",
+      "via": "route:recreation (~recreation)"
+    },
+    {
+      "name_key": "emergency management",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Emergency Management",
+      "via": "route:emergency (~emergency)"
+    },
+    {
+      "name_key": "water conservation",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Water Utility",
+      "via": "route:water (~water)"
+    },
+    {
+      "name_key": "community services & parks",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~park)"
+    },
+    {
+      "name_key": "public works-admin",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Public Works",
+      "via": "route:public_works (~public works)"
+    },
+    {
+      "name_key": "retired",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Department",
+      "via": "route:general_dept (~retire)"
+    },
+    {
+      "name_key": "building safety",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Building & Safety",
+      "via": "route:building_safety (~building safety)"
+    },
+    {
+      "name_key": "zoning",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Planning",
+      "via": "route:planning (~zoning)"
+    },
+    {
+      "name_key": "arts commission",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Arts & Culture",
+      "via": "route:cultural_arts (~arts)"
+    },
+    {
+      "name_key": "pool",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Recreation",
+      "via": "route:recreation (~pool)"
+    },
+    {
+      "name_key": "fleet",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Fleet & Equipment",
+      "via": "route:fleet (~fleet)"
+    },
+    {
+      "name_key": "assistant city manager",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Manager's Office",
+      "via": "route:city_manager (~assistant city manager)"
+    },
+    {
+      "name_key": "accounting technician",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Accounting",
+      "via": "route:accounting (~accounting)"
+    },
+    {
+      "name_key": "management analyst",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Administration",
+      "via": "route:administration (~management analyst)"
+    },
+    {
+      "name_key": "maintenance worker",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Public Works",
+      "via": "route:public_works (~maintenance worker)"
+    },
+    {
+      "name_key": "reserve police officer",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~police)"
+    },
+    {
+      "name_key": "council member",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Council",
+      "via": "route:city_council (~council member)"
+    },
+    {
+      "name_key": "finance & technology",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Finance",
+      "via": "route:finance (~finance)"
+    },
+    {
+      "name_key": "public works/water",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Water Utility",
+      "via": "route:water (~water)"
+    },
+    {
+      "name_key": "police support",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~police)"
+    },
+    {
+      "name_key": "public works street",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Street Maintenance",
+      "via": "route:streets (~street)"
+    },
+    {
+      "name_key": "police jail",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~police)"
+    },
+    {
+      "name_key": "internal services",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "General Services",
+      "via": "route:general_services (~internal services)"
+    },
+    {
+      "name_key": "community services/recreation",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Recreation",
+      "via": "route:recreation (~recreation)"
+    },
+    {
+      "name_key": "parks & recreations",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~park)"
+    },
+    {
+      "name_key": "community development-administration",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Community Development",
+      "via": "route:community_development (~community development)"
+    },
+    {
+      "name_key": "recreation, parks & community services",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~park)"
+    },
+    {
+      "name_key": "comm development",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Community Development",
+      "via": "route:community_development (~comm development)"
+    },
+    {
+      "name_key": "investigation",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~investigat)"
+    },
+    {
+      "name_key": "paramedics",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Fire & EMS",
+      "via": "route:fire (~paramedic)"
+    },
+    {
+      "name_key": "recreation center",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Recreation",
+      "via": "route:recreation (~recreation)"
+    },
+    {
+      "name_key": "concrete maintenance",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Street Maintenance",
+      "via": "route:streets (~concrete)"
+    },
+    {
+      "name_key": "water production operations",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Water Utility",
+      "via": "route:water (~water)"
+    },
+    {
+      "name_key": "utility billing",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Public Utilities",
+      "via": "route:utilities (~utilit)"
+    },
+    {
+      "name_key": "community service officer",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Community Services",
+      "via": "route:community_services (~community service)"
+    },
+    {
+      "name_key": "tree maintenance",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~tree)"
+    },
+    {
+      "name_key": "city clerks",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Clerk",
+      "via": "route:city_clerk (~city clerk)"
+    },
+    {
+      "name_key": "parks and recreation commission",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~park)"
+    },
+    {
+      "name_key": "parks and recreations",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~park)"
+    },
+    {
+      "name_key": "residential sound insulation",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Department",
+      "via": "fallback:general_dept"
+    },
+    {
+      "name_key": "public works / administration",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Public Works",
+      "via": "route:public_works (~public works)"
+    },
+    {
+      "name_key": "mayor/council",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Council",
+      "via": "route:city_council (~council)"
+    },
+    {
+      "name_key": "mayor and city council",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Council",
+      "via": "route:city_council (~city council)"
+    },
+    {
+      "name_key": "urban forest",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~urban forest)"
+    },
+    {
+      "name_key": "training",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Human Resources",
+      "via": "route:human_resources (~training)"
+    },
+    {
+      "name_key": "neighborhood code compliance",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Code Enforcement",
+      "via": "route:code_enforcement (~code compliance)"
+    },
+    {
+      "name_key": "long range planning",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Planning",
+      "via": "route:planning (~planning)"
+    },
+    {
+      "name_key": "labor relations",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Human Resources",
+      "via": "route:human_resources (~labor relations)"
+    },
+    {
+      "name_key": "revenue services",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Revenue & Licensing",
+      "via": "route:revenue_collection (~revenue)"
+    },
+    {
+      "name_key": "fire investigation",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Fire & EMS",
+      "via": "route:fire (~fire)"
+    },
+    {
+      "name_key": "special operations",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Department",
+      "via": "fallback:general_dept"
+    },
+    {
+      "name_key": "marketing",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Communications",
+      "via": "route:communications (~marketing)"
+    },
+    {
+      "name_key": "governmental affairs",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Manager's Office",
+      "via": "route:city_manager (~governmental affairs)"
+    },
+    {
+      "name_key": "financial management",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Finance",
+      "via": "route:finance (~financial)"
+    },
+    {
+      "name_key": "airports",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Airport",
+      "via": "route:airport_dept (~airport)"
+    },
+    {
+      "name_key": "#n/a",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Department",
+      "via": "fallback:general_dept"
+    },
+    {
+      "name_key": "general accounting",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Accounting",
+      "via": "route:accounting (~accounting)"
+    },
+    {
+      "name_key": "community develop administration",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Community Development",
+      "via": "route:community_development (~community dev)"
+    },
+    {
+      "name_key": "building regulation",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Code Enforcement",
+      "via": "route:code_enforcement (~building regulation)"
+    },
+    {
+      "name_key": "deputy city clerk",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Clerk",
+      "via": "route:city_clerk (~city clerk)"
+    },
+    {
+      "name_key": "harbor",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Harbor & Marine",
+      "via": "route:harbor (~harbor)"
+    },
+    {
+      "name_key": "civil service",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Human Resources",
+      "via": "route:human_resources (~civil service)"
+    },
+    {
+      "name_key": "mis",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Information Technology",
+      "via": "route:information_technology (~mis)"
+    },
+    {
+      "name_key": "civic center maintenance",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Facilities Maintenance",
+      "via": "route:facilities (~civic center)"
+    },
+    {
+      "name_key": "finance operations",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Finance",
+      "via": "route:finance (~finance)"
+    },
+    {
+      "name_key": "community development-planning",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Planning",
+      "via": "route:planning (~planning)"
+    },
+    {
+      "name_key": "graffiti removal",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Street Maintenance",
+      "via": "route:streets (~graffiti)"
+    },
+    {
+      "name_key": "road maintenance",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Street Maintenance",
+      "via": "route:streets (~road)"
+    },
+    {
+      "name_key": "water production",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Water Utility",
+      "via": "route:water (~water)"
+    },
+    {
+      "name_key": "water customer service",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Water Utility",
+      "via": "route:water (~water)"
+    },
+    {
+      "name_key": "senior commission",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Senior Services",
+      "via": "route:senior_services (~senior)"
+    },
+    {
+      "name_key": "city clerk/treasurer",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Treasury",
+      "via": "route:treasury (~treasur)"
+    },
+    {
+      "name_key": "licensing",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Revenue & Licensing",
+      "via": "route:revenue_collection (~licensing)"
+    },
+    {
+      "name_key": "city controller",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Controller",
+      "via": "route:city_controller (~controller)"
+    },
+    {
+      "name_key": "special services",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "General Services",
+      "via": "route:general_services (~special services)"
+    },
+    {
+      "name_key": "traffic operations",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Street Maintenance",
+      "via": "route:streets (~traffic)"
+    },
+    {
+      "name_key": "internal audit",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Auditor",
+      "via": "route:city_auditor (~internal audit)"
+    },
+    {
+      "name_key": "chrp",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Department",
+      "via": "fallback:general_dept"
+    },
+    {
+      "name_key": "records bureau",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~records bureau)"
+    },
+    {
+      "name_key": "street cleaning",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Street Maintenance",
+      "via": "route:streets (~street)"
+    },
+    {
+      "name_key": "general engineering",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Engineering",
+      "via": "route:engineering (~engineering)"
+    },
+    {
+      "name_key": "housing rehabilitation",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Housing",
+      "via": "route:housing (~housing)"
+    },
+    {
+      "name_key": "payroll",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Accounting",
+      "via": "route:accounting (~payroll)"
+    },
+    {
+      "name_key": "employee services",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Human Resources",
+      "via": "route:human_resources (~employee)"
+    },
+    {
+      "name_key": "after school program",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Youth Services",
+      "via": "route:youth_services (~after school)"
+    },
+    {
+      "name_key": "community events",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Community Services",
+      "via": "route:community_services (~community event)"
+    },
+    {
+      "name_key": "homeless services",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Human Services",
+      "via": "route:human_services (~homeless)"
+    },
+    {
+      "name_key": "senior citizen programs",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Senior Services",
+      "via": "route:senior_services (~senior)"
+    },
+    {
+      "name_key": "n/a",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Department",
+      "via": "fallback:general_dept"
+    },
+    {
+      "name_key": "community develop",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Community Development",
+      "via": "route:community_development (~community dev)"
+    },
+    {
+      "name_key": "library department",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Library",
+      "via": "route:library (~library)"
+    },
+    {
+      "name_key": "information technology department",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Information Technology",
+      "via": "route:information_technology (~information technology)"
+    },
+    {
+      "name_key": "city council department",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Council",
+      "via": "route:city_council (~city council)"
+    },
+    {
+      "name_key": "department of water and power",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Water Utility",
+      "via": "route:water (~water)"
+    },
+    {
+      "name_key": "general services department",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "General Services",
+      "via": "route:general_services (~general services)"
+    },
+    {
+      "name_key": "personnel department",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Human Resources",
+      "via": "route:human_resources (~personnel)"
+    },
+    {
+      "name_key": "museum",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Arts & Culture",
+      "via": "route:cultural_arts (~museum)"
+    },
+    {
+      "name_key": "building regulations",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Code Enforcement",
+      "via": "route:code_enforcement (~building regulation)"
+    },
+    {
+      "name_key": "field operations",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Public Works",
+      "via": "route:public_works (~field operations)"
+    },
+    {
+      "name_key": "human resources & risk management",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Human Resources",
+      "via": "route:human_resources (~human resource)"
+    },
+    {
+      "name_key": "patrol services",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~patrol)"
+    },
+    {
+      "name_key": "office of economic development",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Economic Development",
+      "via": "route:economic_development (~economic)"
+    },
+    {
+      "name_key": "clerk",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Clerk",
+      "via": "route:city_clerk (~clerk)"
+    },
+    {
+      "name_key": "landscape maintenance district",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~landscape)"
+    },
+    {
+      "name_key": "fire administrative",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Fire & EMS",
+      "via": "route:fire (~fire)"
+    },
+    {
+      "name_key": "equipment",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Fleet & Equipment",
+      "via": "route:fleet (~equipment)"
+    },
+    {
+      "name_key": "controller",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Controller",
+      "via": "route:city_controller (~controller)"
+    },
+    {
+      "name_key": "city planning",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Planning",
+      "via": "route:planning (~planning)"
+    },
+    {
+      "name_key": "ethics commission",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Attorney",
+      "via": "route:city_attorney (~ethics)"
+    },
+    {
+      "name_key": "elected official",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Elected Officials",
+      "via": "route:elected_officials (~elected)"
+    },
+    {
+      "name_key": "police communications",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~police)"
+    },
+    {
+      "name_key": "planning division",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Planning",
+      "via": "route:planning (~planning)"
+    },
+    {
+      "name_key": "park",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~park)"
+    },
+    {
+      "name_key": "comm. development",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Community Development",
+      "via": "route:community_development (~comm. development)"
+    },
+    {
+      "name_key": "community resources",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Community Services",
+      "via": "route:community_services (~community resources)"
+    },
+    {
+      "name_key": "media",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Communications",
+      "via": "route:communications (~media)"
+    },
+    {
+      "name_key": "business licensing",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Revenue & Licensing",
+      "via": "route:revenue_collection (~business licens)"
+    },
+    {
+      "name_key": "retirees",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Department",
+      "via": "route:general_dept (~retire)"
+    },
+    {
+      "name_key": "water & power",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Water Utility",
+      "via": "route:water (~water)"
+    },
+    {
+      "name_key": "theatre",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Arts & Culture",
+      "via": "route:cultural_arts (~theat)"
+    },
+    {
+      "name_key": "detectives",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~detective)"
+    },
+    {
+      "name_key": "asset forfeiture",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~asset forfeiture)"
+    },
+    {
+      "name_key": "resource management",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "General Services",
+      "via": "route:general_services (~resource management)"
+    },
+    {
+      "name_key": "homeland security",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Emergency Management",
+      "via": "route:emergency (~homeland security)"
+    },
+    {
+      "name_key": "civil service commission",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Human Resources",
+      "via": "route:human_resources (~civil service)"
+    },
+    {
+      "name_key": "gymnasium",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Recreation",
+      "via": "route:recreation (~gymnasium)"
+    },
+    {
+      "name_key": "transportation department",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Transit",
+      "via": "route:transit (~transportation)"
+    },
+    {
+      "name_key": "office of the cio",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Information Technology",
+      "via": "route:information_technology (~office of the cio)"
+    },
+    {
+      "name_key": "fire dept.",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Fire & EMS",
+      "via": "route:fire (~fire)"
+    },
+    {
+      "name_key": "fire reserve",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Fire & EMS",
+      "via": "route:fire (~fire)"
+    },
+    {
+      "name_key": "office of the city attorney",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Attorney",
+      "via": "route:city_attorney (~city attorney)"
+    },
+    {
+      "name_key": "urban forestry",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~urban forest)"
+    },
+    {
+      "name_key": "administrative services administration",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Administration",
+      "via": "route:administration (~administrative services)"
+    },
+    {
+      "name_key": "vehicle maintenance",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Fleet & Equipment",
+      "via": "route:fleet (~vehicle maintenance)"
+    },
+    {
+      "name_key": "electric",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Electric Utility",
+      "via": "route:electric (~electric)"
+    },
+    {
+      "name_key": "public affairs",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Communications",
+      "via": "route:communications (~public affairs)"
+    },
+    {
+      "name_key": "city council member",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Council",
+      "via": "route:city_council (~city council)"
+    },
+    {
+      "name_key": "city manger",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Manager's Office",
+      "via": "route:city_manager (~city manger)"
+    },
+    {
+      "name_key": "parks, recreation and community services",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Parks",
+      "via": "route:parks (~park)"
+    },
+    {
+      "name_key": "innovation and technology",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Information Technology",
+      "via": "route:information_technology (~technology)"
+    },
+    {
+      "name_key": "cra",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Redevelopment / Successor",
+      "via": "exact:redevelopment"
+    },
+    {
+      "name_key": "city council office",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Council",
+      "via": "route:city_council (~city council)"
+    },
+    {
+      "name_key": "emergency medical services",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Fire & EMS",
+      "via": "route:fire (~emergency medical)"
+    },
+    {
+      "name_key": "enterprise business systems",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Information Technology",
+      "via": "route:information_technology (~enterprise business systems)"
+    },
+    {
+      "name_key": "city attorney office",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Attorney",
+      "via": "route:city_attorney (~city attorney)"
+    },
+    {
+      "name_key": "police records",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Police",
+      "via": "route:police (~police)"
+    },
+    {
+      "name_key": "instructional classes",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Recreation",
+      "via": "route:recreation (~instructional class)"
+    },
+    {
+      "name_key": "human resources and risk management",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Human Resources",
+      "via": "route:human_resources (~human resource)"
+    },
+    {
+      "name_key": "public work",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Public Works",
+      "via": "route:public_works (~public work)"
+    },
+    {
+      "name_key": "office of emergency services",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Emergency Management",
+      "via": "route:emergency (~emergency)"
+    },
+    {
+      "name_key": "planning administration",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Planning",
+      "via": "route:planning (~planning)"
+    },
+    {
+      "name_key": "public works garage",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Fleet & Equipment",
+      "via": "route:fleet (~garage)"
+    },
+    {
+      "name_key": "human",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Human Resources",
+      "via": "exact:human_resources"
+    },
+    {
+      "name_key": "public works - streets",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Street Maintenance",
+      "via": "route:streets (~street)"
+    },
+    {
+      "name_key": "economic development administration",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Economic Development",
+      "via": "route:economic_development (~economic)"
+    },
+    {
+      "name_key": "mobility",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Transit",
+      "via": "route:transit (~mobility)"
+    },
+    {
+      "name_key": "procurement",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Purchasing",
+      "via": "route:purchasing (~procurement)"
+    },
+    {
+      "name_key": "building services",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Building & Safety",
+      "via": "route:building_safety (~building services)"
+    },
+    {
+      "name_key": "city clerk administration",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Clerk",
+      "via": "route:city_clerk (~city clerk)"
+    },
+    {
+      "name_key": "cmo - economic development",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Economic Development",
+      "via": "route:economic_development (~economic)"
+    },
+    {
+      "name_key": "cmo - code enforcement",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Code Enforcement",
+      "via": "route:code_enforcement (~code enforcement)"
+    },
+    {
+      "name_key": "council district 5",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Council",
+      "via": "route:city_council (~council district)"
+    },
+    {
+      "name_key": "council district 1",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Council",
+      "via": "route:city_council (~council district)"
+    },
+    {
+      "name_key": "council district 2",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Council",
+      "via": "route:city_council (~council district)"
+    },
+    {
+      "name_key": "council district 4",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Council",
+      "via": "route:city_council (~council district)"
+    },
+    {
+      "name_key": "council district 8",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Council",
+      "via": "route:city_council (~council district)"
+    },
+    {
+      "name_key": "council district 6",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Council",
+      "via": "route:city_council (~council district)"
+    },
+    {
+      "name_key": "council district 7",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Council",
+      "via": "route:city_council (~council district)"
+    },
+    {
+      "name_key": "council district 3",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "City Council",
+      "via": "route:city_council (~council district)"
+    },
+    {
+      "name_key": "public safety center",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Public Safety",
+      "via": "route:public_safety (~public safety)"
+    },
+    {
+      "name_key": "energy management",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Sustainability & Environment",
+      "via": "route:sustainability (~energy management)"
+    },
+    {
+      "name_key": "administration & engineering",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Engineering",
+      "via": "route:engineering (~engineering)"
+    },
+    {
+      "name_key": "electrical engineering",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Electric Utility",
+      "via": "route:electric (~electric)"
+    },
+    {
+      "name_key": "housing and human services",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Human Services",
+      "via": "route:human_services (~human services)"
+    },
+    {
+      "name_key": "rent stabilization",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Housing",
+      "via": "route:housing (~rent stabilization)"
+    },
+    {
+      "name_key": "human resources & risk mgmt",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Human Resources",
+      "via": "route:human_resources (~human resource)"
+    },
+    {
+      "name_key": "cable television",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Communications",
+      "via": "route:communications (~cable)"
+    },
+    {
+      "name_key": "community development - community preservation",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Community Development",
+      "via": "route:community_development (~community development)"
+    },
+    {
+      "name_key": "community services - library",
+      "cities": 2,
+      "datasets": [
+        "salaries"
+      ],
+      "plain_name": "Library",
+      "via": "route:library (~library)"
+    }
+  ]
+}
