@@ -104,6 +104,27 @@ estimating cost.
 
 ---
 
+## Step 5 — Load the county's own budget (don't stop at cities)
+
+Onboarding the **cities** in a county does NOT give the **county government** a
+budget. A county entity with linked cities but no budget of its own is a
+"grouper": until Phase 56 it was invisible in `/treasury/cities` (so the
+breadcrumb county chip silently disappeared), and even once visible its page has
+no budget chart — only the Cities-in-County directory. Orange County shipped this
+way and needed a follow-up (Phase 57) to load the county budget.
+
+**Lesson — do this up front on the next county-onboarding milestone:** treat the
+county-government budget as part of onboarding, not an afterthought. For each
+county, load its operating + revenue budget from the county's published ACFR
+(**all-governmental-funds basis** — see the Phase 56 definitional note that SCO
+ByTheNumbers totals are all-funds, not General Fund) and/or adopted budget,
+attached to the county entity — the same way LA County (Phase 25) and the MA
+counties (Phase 41) were loaded. Document the basis + source. If you deliberately
+ship cities-only, record it as a known gap so the empty county page is expected,
+not a UAT surprise.
+
+---
+
 ## Locked conventions (do not regress)
 
 These three rules are enforced by the scripts and MUST be preserved by any future

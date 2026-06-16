@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Orange County + Reusable SoCal Pipeline
-status: complete
-last_updated: "2026-06-15T23:45:00.000Z"
-last_activity: 2026-06-15 -- Phase 56 complete (VER-01 + VER-02 verified, Chris UAT sign-off); milestone v2.2 complete
+status: ready
+last_updated: "2026-06-15T23:55:00.000Z"
+last_activity: 2026-06-15 -- Phase 56 complete (VER-01 + VER-02 verified, Chris UAT sign-off); Phase 57 scoped (OC county-government budget)
 progress:
-  total_phases: 5
+  total_phases: 6
   completed_phases: 5
   total_plans: 13
   completed_plans: 13
-  percent: 100
+  percent: 83
 ---
 
 # State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-14)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Milestone v2.2 complete — Phase 56 verified + signed off. Ready for next milestone.
+**Current focus:** Phase 57 — Orange County county-government budget (scoped, not yet planned). Phase 56 complete.
 
 ## Current Position
 
-Phase: 56 (orange-county-verification-uat) — COMPLETE (verified, Chris UAT sign-off)
-Plan: 3 of 3
-Status: Phase 56 verified — VER-01 + VER-02 complete; milestone v2.2 (Orange County + Reusable SoCal Pipeline) complete
-Last activity: 2026-06-15 -- Phase 56 closeout; in-phase nav fix shipped (ISSUE-56-A: OC grouper-county breadcrumb + clean county directory)
+Phase: 57 (orange-county-county-government-budget) — SCOPED (not started)
+Plan: 0 of TBD
+Status: Phase 56 complete (VER-01 + VER-02 verified, Chris UAT sign-off). Phase 57 scoped — next: /gsd:discuss-phase 57 then /gsd:plan-phase 57.
+Last activity: 2026-06-15 -- Phase 57 scoped (OC county-government budget); v2.2 now spans Phases 52-57
 
 ### Phase 50 outcomes (for Phase 51)
 

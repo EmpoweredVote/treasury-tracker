@@ -1081,7 +1081,7 @@ Milestone audit **PASSED 8/8** (HIST-01..04, NAV-01/02, CTX-01/02). Full detail 
 
 ---
 
-## ▶ v2.2 Orange County + Reusable SoCal Pipeline (Phases 52-56) — IN PROGRESS
+## ▶ v2.2 Orange County + Reusable SoCal Pipeline (Phases 52-57) — IN PROGRESS
 
 **Milestone goal:** Bring all 34 Orange County cities into the tracker from the CA State Controller's uniform open data, and turn the bulk loader into a documented one-command pipeline for every remaining Southern California county.
 
@@ -1174,6 +1174,27 @@ Success criteria:
 
 ---
 
+### Phase 57: Orange County County-Government Budget
+
+**Goal:** Load Orange County's county-government operating + revenue budget from a sourced published document and attach it to the existing OC county entity, so the OC county page shows real budget data (icicle/summary + per-capita) instead of a directory-only page.
+**Requirements:** OCB-01, OCB-02
+**Status:** Not started
+**Depends on:** Phase 54 (OC entity + 34-city linking), Phase 56 (grouper-county breadcrumb/visibility fix — already shipped)
+
+Scope notes:
+
+- Source = Orange County's published ACFR (all-governmental-funds basis) and/or adopted budget (~$8–9B). Document the basis in the load + a `57-VERIFICATION.md`, per the Phase 56 definitional finding (all-funds vs General Fund). Never fabricate; honor source-attribution + never-overwrite conventions (`docs/socal-county-onboarding.md`).
+- Mirror the county-budget load precedent used for LA County (Phase 25) and MA counties (Phase 41).
+- This makes the OC county page a full budget entity; the Phase 56 budget-less "directory-only" rendering becomes a fallback for counties that still lack a budget.
+
+Success criteria:
+
+1. OC county entity has operating + revenue budget rows loaded from a sourced published OC budget document, with the basis documented.
+2. The OC county page renders the county budget (icicle/summary) with working per-capita, and still lists the 34 cities; no empty/error state.
+3. A `verify-phase57.mjs` probe confirms county-budget coverage + durable source attribution (exit 0); all figures sourced.
+
+---
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -1233,9 +1254,10 @@ Success criteria:
 | 53. Orange County Operating + Revenue Load | v2.2 | 1/1 | Complete    | 2026-06-14 |
 | 54. Orange County Entity, Linking + Enrichment | v2.2 | 2/2 | Complete    | 2026-06-15 |
 | 55. Statewide City Salaries Integration | v2.2 | 3/3 | Complete    | 2026-06-15 |
-| 56. Orange County Verification + UAT | v2.2 | 3/3 | Complete   | 2026-06-16 |
+| 56. Orange County Verification + UAT | v2.2 | 3/3 | Complete   | 2026-06-15 |
+| 57. Orange County County-Government Budget | v2.2 | — | Not started | — |
 
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-06-14 — v2.2 Orange County + Reusable SoCal Pipeline started (Phases 52-56)*
+*Last updated: 2026-06-15 — Phase 56 complete (OC verification + UAT); Phase 57 scoped (OC county-government budget). v2.2 = Phases 52-57.*
