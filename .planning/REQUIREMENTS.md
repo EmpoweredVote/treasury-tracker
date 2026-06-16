@@ -32,9 +32,9 @@ Each maps to exactly one roadmap phase (58–62).
 
 ### Statewide Salaries
 
-- [ ] **SAL-04**: A statewide salary sweep loads CA Government Compensation employee compensation (2009–2024) for all non-OC CA cities via the reusable `loadCASalaries.js`, with source coverage confirmed first (spike gates the sweep).
-- [ ] **SAL-05**: A citizen can view employee compensation (salaries dataset) for the 88 LA County cities + the 12 named CA cities wherever the GCC source provides it.
-- [ ] **SAL-06**: A sample city's latest-year total compensation reconciles to a published figure at ~$0 delta (the v2.2 Irvine-style check), with coverage and any per-city gaps documented.
+- [x] **SAL-04**: A statewide salary sweep loads CA Government Compensation employee compensation (2009–2024) for all non-OC CA cities via the reusable `loadCASalaries.js`, with source coverage confirmed first (spike gates the sweep).
+- [x] **SAL-05**: A citizen can view employee compensation (salaries dataset) for the 88 LA County cities + the 12 named CA cities wherever the GCC source provides it.
+- [x] **SAL-06**: A sample city's latest-year total compensation reconciles to a published figure at ~$0 delta (the v2.2 Irvine-style check), with coverage and any per-city gaps documented.
 
 ### Enrichment + Linking Parity
 
@@ -84,9 +84,9 @@ Which phase covers each requirement. Filled during roadmap creation.
 | LAC-01 | Phase 58 | Complete |
 | HIST-02 | Phase 59 | Complete |
 | ENR-02 | Phase 59 | Complete |
-| SAL-04 | Phase 60 | Pending |
-| SAL-05 | Phase 60 | Pending |
-| SAL-06 | Phase 60 | Pending |
+| SAL-04 | Phase 60 | Complete |
+| SAL-05 | Phase 60 | Complete |
+| SAL-06 | Phase 60 | Complete |
 | ENR-01 | Phase 61 | Pending |
 | VER-03 | Phase 62 | Pending |
 | VER-04 | Phase 62 | Pending |
