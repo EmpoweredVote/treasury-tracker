@@ -68,6 +68,7 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - ✓ Federal YearSelector wiring — FY1976–FY2025 + the FY1976 Transition Quarter selectable; bands/strip/lens trees switch per period — v2.1, Phase 50
 - ✓ Source-chain durability (zero residue, audit FAIL 0) + sourced comparability notes (function/agency definition drift + the FY1976 Transition Quarter) rendered in-app with source chips; v2.1 UAT sign-off — v2.1, Phase 51
 - ✓ Statewide CA city-salaries integration (SAL-01/02/03): reusable city-parameterized loader `scripts/loadCASalaries.js` reading the CA State Controller GCC raw export (names-free Dept→Position Total Compensation tree, D-03 wages/benefits split); all 34 OC cities loaded for 2009–2024 (544 rows, 0 gaps); Irvine 2024 reconciles to published figure at $0 delta; conservative department-label normalization (ambiguous codes left as-reported, no fabrication) — v2.2, Phase 55
+- ✓ Orange County's own county-government operating + revenue budget (OCB-01/02): reusable `scripts/loadCountyBudget.js` (the runbook Step 5 tool, parameterized for any CA county) loaded 44 rows (22 op + 22 rev, FY2003–2024) onto the OC county entity from SCO ByTheNumbers county datasets (uctr-c2j8/emxv-k8xv, all-governmental-funds basis), per-year population (3.15M), durable `/d/<id>` source attribution; 34 OC city rows untouched (never-overwrite); FY2024 op total $6.42B exact match; OC county page renders icicle/summary + per-capita (no longer directory-only); county SourceChip code-complete but dormant pending an EV-Accounts API follow-up (data_source_info null for non-federal rows) — v2.2, Phase 57
 
 **Goal:** Bring all 34 Orange County cities into the tracker from the CA State Controller's uniform open data, and turn the bulk loader into a documented one-command pipeline for every remaining Southern California county.
 
@@ -176,4 +177,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-15 — Phase 55 complete: statewide reusable CA city-salaries loader built and all 34 Orange County cities loaded with salaries (2009–2024, 544 rows). Next: Phase 56 (Orange County Verification + UAT).*
+*Last updated: 2026-06-16 — Phase 57 complete: Orange County's own county-government operating + revenue budget loaded (44 rows, FY2003–2024) via the reusable `loadCountyBudget.js`; OC county page now shows real budget data + per-capita. UAT signed off (items 1-6); county SourceChip deferred to an EV-Accounts API follow-up. Phase 57 is the last phase of milestone v2.2.*
