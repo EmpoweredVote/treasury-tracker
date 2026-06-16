@@ -38,15 +38,15 @@ result: passed — Chris accepted the basis-variance explanation (Phase 56 findi
 
 ### 7. SourceChip (post EV-Accounts API change)
 expected: After the EV-Accounts backend update ships (constructing data_source_info from source_url/source_date/data_source when data_source_id is null), the OC county SourceChip renders with correct source name, fetched date, and durable /d/<id> link. Deferred until the follow-up ships.
-result: deferred — chip code-complete but dormant; blocked on EV-Accounts backend follow-up (tracked in 57-VERIFICATION.md)
+result: passed — EV-Accounts API fix deployed 2026-06-16 (commit 221a4d4). Production API now returns populated data_source_info for both OC county rows: operating → "CA State Controller - County Expenditures" / https://bythenumbers.sco.ca.gov/d/uctr-c2j8 / fetched 2026-06-15; revenue → "CA State Controller - County Revenues" / https://bythenumbers.sco.ca.gov/d/emxv-k8xv / fetched 2026-06-15. Shape matches the frontend chip (datasetUrl || url → durable /d/<id> page); chip now renders end-to-end.
 
 ## Summary
 
 total: 7
-passed: 6
+passed: 7
 issues: 0
 pending: 0
 skipped: 0
-blocked: 1
+blocked: 0
 
 ## Gaps
