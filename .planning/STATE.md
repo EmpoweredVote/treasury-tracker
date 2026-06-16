@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.2
-milestone_name: Orange County + Reusable SoCal Pipeline
-status: Awaiting next milestone
-last_updated: "2026-06-16T06:35:20.725Z"
-last_activity: 2026-06-16 — Milestone v2.2 completed and archived
+milestone: v2.3
+milestone_name: California Coverage Parity
+status: planning
+last_updated: "2026-06-16T07:47:45.640Z"
+last_activity: 2026-06-16
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 15
-  completed_plans: 15
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-16 after v2.2)
 
 ## Current Position
 
-Phase: Milestone v2.2 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-06-16 — Milestone v2.2 completed and archived
+Status: Defining requirements
+Last activity: 2026-06-16 — Milestone v2.3 started
 
 ### Phase 50 outcomes (for Phase 51)
 

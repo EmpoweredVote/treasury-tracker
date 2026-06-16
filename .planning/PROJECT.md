@@ -8,6 +8,22 @@ A public-facing financial transparency platform for governments and nonprofits �
 
 Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes — without needing a finance background.
 
+## Current Milestone: v2.3 California Coverage Parity
+
+**Goal:** Bring every already-loaded CA city and county up to the Orange County standard — FY2003 budget-history depth, statewide salaries (2009–2024), and standardized enrichment — by re-running the hardened v2.2 SoCal pipeline across LA County and the remaining CA entities. No new tooling: this is the pipeline proving it generalizes across already-covered counties.
+
+**Target features:**
+- Backfill operating + revenue history to FY2003 for the 88 LA County cities + unlinked/other-county CA cities (SCO ByTheNumbers via `bulkLoadStateController.js`), never overwriting richer custom-source cities (LA/SF/SD/etc.)
+- Backfill LA County's own county-government budget to FY2003 (`loadCountyBudget.js`), matching OC depth
+- Statewide salary sweep (2009–2024) for all non-OC CA cities (`loadCASalaries.js`), a sample reconciled to a published figure
+- Standardized, bleed-safe enrichment for all parity-loaded categories + complete county-linking for the 7 unlinked CA cities
+- ACFR reconciliation + source-chain durability + Chris UAT sign-off
+
+**Key context:**
+- **Pipeline reuse, not new build** — runs on the v2.2 tools + runbook (`docs/socal-county-onboarding.md`); never-overwrite guard protects the 12 named custom-source cities (they get salaries + enrichment only, not SCO history backfill)
+- **SoCal expansion (6 more counties) deferred to the next milestone (v2.4)** — Riverside, San Bernardino, San Diego, Ventura, Santa Barbara, Imperial (SOCAL-01..06, all staged; phase order TBD then)
+- **Data-driven gap baseline (DB, 2026-06-16):** OC = 34 cities FY2003–2024 + salaries (the standard); LA County = 88 cities FY2017+ only, 0 salaries; LA County gov budget FY2021–2025 (vs OC FY2003–2024); 7 unlinked + 4 other-county CA cities shallow; 0 CA cities carry salaries in the local DB (OC salary sweep lives in production — verify against production/ev-accounts at plan time, not local)
+
 ## Requirements
 
 ### Validated
@@ -76,11 +92,16 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 
 ### Active
 
-(None — v2.2 shipped 2026-06-16. Next milestone not yet defined; start with `/gsd:new-milestone`.)
+**v2.3 California Coverage Parity** (defined 2026-06-16) — see `.planning/REQUIREMENTS.md`:
+- [ ] **HIST-01/02**: FY2003 operating + revenue backfill for the 88 LA County cities + unlinked/other-county CA cities (SCO, never-overwrite, per-year pop, sourced)
+- [ ] **LAC-01**: LA County county-government budget backfilled to FY2003
+- [ ] **SAL-04/05/06**: statewide salary sweep 2009–2024 for all non-OC CA cities, sample reconciled
+- [ ] **ENR-01/02**: standardized enrichment for parity-loaded categories + link the 7 unlinked CA cities
+- [ ] **VER-03/04**: ACFR reconciliation + source-chain audit + Chris UAT
 
 ### Future (deferred milestone candidates)
 
-- [ ] Southern California expansion — Riverside, San Bernardino, San Diego, Ventura, Santa Barbara, Imperial counties (SOCAL-01..06) via the now-hardened SoCal pipeline (~95 more cities)
+- [ ] Southern California expansion (NEXT — v2.4) — Riverside, San Bernardino, San Diego, Ventura, Santa Barbara, Imperial counties (SOCAL-01..06) via the now-hardened SoCal pipeline (~95 more cities); all 6 staged, phase order TBD at v2.4 kickoff
 - [ ] Votes/amendments exploration hub (the eventual mission destination)
 - [ ] Backfill the always-sourced standard to city/state data (now proven federally)
 
@@ -173,4 +194,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-16 after v2.2 milestone — Orange County + Reusable SoCal Pipeline shipped (Phases 52-57, audit passed 16/16). All v2.2 requirements moved to Validated; Active cleared; SOCAL-01..06 expansion staged in Future. Next milestone not yet defined.*
+*Last updated: 2026-06-16 — v2.3 California Coverage Parity milestone defined. Goal: bring LA County + remaining CA entities up to the OC standard (FY2003 history, statewide salaries, enrichment) via the hardened v2.2 pipeline. SoCal expansion (SOCAL-01..06) deferred to v2.4. See REQUIREMENTS.md + ROADMAP.md (Phases 58–62).*
