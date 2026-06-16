@@ -2,33 +2,32 @@
 gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Orange County + Reusable SoCal Pipeline
-status: milestone_complete
-last_updated: 2026-06-16T03:16:19.119Z
-last_activity: 2026-06-16
+status: Awaiting next milestone
+last_updated: "2026-06-16T06:35:20.725Z"
+last_activity: 2026-06-16 — Milestone v2.2 completed and archived
 progress:
   total_phases: 6
   completed_phases: 6
   total_plans: 15
   completed_plans: 15
   percent: 100
-stopped_at: Milestone complete (Phase 57 was final phase)
 ---
 
 # State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-14)
+See: .planning/PROJECT.md (updated 2026-06-16 after v2.2)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Milestone complete
+**Current focus:** Planning next milestone — `/gsd:new-milestone`. Strongest candidate: Southern California expansion (SOCAL-01..06, ~95 cities across 6 counties) via the now-hardened one-command SoCal pipeline + runbook.
 
 ## Current Position
 
-Phase: 57
-Plan: Not started
-Status: Milestone complete
-Last activity: 2026-06-16
+Phase: Milestone v2.2 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-16 — Milestone v2.2 completed and archived
 
 ### Phase 50 outcomes (for Phase 51)
 
@@ -183,6 +182,17 @@ Carried forward from v1.7–v1.9 (see Known Tech Debt above). New in v2.0 planni
 | feature | Votes/amendments exploration hub | Future milestone — the eventual mission destination |
 | feature | Sourcing backfill to cities/states | After the standard is proven federally |
 | milestone | **Historical backfill — prior fiscal years (FY2024 ← back) at v2.0 detail** | RECOMMENDED NEXT (Chris asked 2026-06-12). Cheap parts already done: annual_summary already holds 64 years (FY1962+); explainers (name_key-keyed) + program origins (law-keyed, not year-keyed) are year-independent and need ZERO rework. Real work = iterate the OMB loader (Hist 3.2 outlays-by-function, 4.1/5.1 by-agency) across prior years + recompute per-year visual-vs-official disclosures + revenue-by-source per year + YearSelector wiring. Watch: function/agency definitions drift over decades (comparability notes); per-year actuals vs estimates. Same free sources + same loader pattern as 44. |
+
+### Acknowledged at v2.2 close (2026-06-16)
+
+Open-artifact audit at v2.2 close surfaced 4 items, all non-blocking and acknowledged (re-deferred). None are v2.2 blockers — all phases 52–57 have VERIFICATION files and the milestone audit PASSED 16/16:
+
+| Category | Item | Status |
+|----------|------|--------|
+| uat_gap | Phase 57 `57-HUMAN-UAT.md` | passed — 0 pending scenarios (flagged only because the file exists; UAT signed off) |
+| quick_task | 001-create-treasury-tracker-entries-for-ever | orphaned (file missing) — pre-v2.0 leftover, also acknowledged at v2.0 + v2.1 close |
+| quick_task | 002-add-longview-tx-revenue | orphaned (file missing) — pre-v2.0 Longview effort; see untracked scripts/_verify-longview-temp.mjs |
+| quick_task | 003-longview-operating-budget | orphaned (file missing) — pre-v2.0 Longview effort |
 
 ### Acknowledged at v2.0 close (2026-06-13)
 

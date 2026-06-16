@@ -67,30 +67,20 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - ✓ Federal history backfill FY1976–FY2024 — function/agency/revenue per year + per-year visual-vs-official disclosures, every row sourced (free OMB tables, $0) — v2.1, Phase 49
 - ✓ Federal YearSelector wiring — FY1976–FY2025 + the FY1976 Transition Quarter selectable; bands/strip/lens trees switch per period — v2.1, Phase 50
 - ✓ Source-chain durability (zero residue, audit FAIL 0) + sourced comparability notes (function/agency definition drift + the FY1976 Transition Quarter) rendered in-app with source chips; v2.1 UAT sign-off — v2.1, Phase 51
+- ✓ SoCal bulk pipeline hardened + generalized (PIPE-01..04): `bulkLoadStateController.js` county-parameterized for any CA county with durable `source_url`/`source_date`, feed-population backfill, and a never-overwrite guard; `seedCountyLinks.js` one-command county seed + city linking; `docs/socal-county-onboarding.md` runbook (load→seed→link→enrich→verify), proven to generalize via a zero-write Ventura County dry-run — v2.2, Phase 52
+- ✓ All 34 Orange County cities loaded (OC-01/02): operating + revenue FY2003–2024 from SCO ByTheNumbers; 32 net-new cities auto-created with per-year SCO populations; Anaheim & Santa Ana kept as-is (link-only) — v2.2, Phase 53
+- ✓ Orange County entity + linking + enrichment (OC-03/04/05): OC entity seeded, all 34 cities linked via `county_id` (US→California→Orange County→city breadcrumb + Cities-in-County panel), standardized category enrichment authored inline at $0, bleed-safe and consistent with the LA County baseline — v2.2, Phase 54
 - ✓ Statewide CA city-salaries integration (SAL-01/02/03): reusable city-parameterized loader `scripts/loadCASalaries.js` reading the CA State Controller GCC raw export (names-free Dept→Position Total Compensation tree, D-03 wages/benefits split); all 34 OC cities loaded for 2009–2024 (544 rows, 0 gaps); Irvine 2024 reconciles to published figure at $0 delta; conservative department-label normalization (ambiguous codes left as-reported, no fabrication) — v2.2, Phase 55
-- ✓ Orange County's own county-government operating + revenue budget (OCB-01/02): reusable `scripts/loadCountyBudget.js` (the runbook Step 5 tool, parameterized for any CA county) loaded 44 rows (22 op + 22 rev, FY2003–2024) onto the OC county entity from SCO ByTheNumbers county datasets (uctr-c2j8/emxv-k8xv, all-governmental-funds basis), per-year population (3.15M), durable `/d/<id>` source attribution; 34 OC city rows untouched (never-overwrite); FY2024 op total $6.42B exact match; OC county page renders icicle/summary + per-capita (no longer directory-only); county SourceChip code-complete but dormant pending an EV-Accounts API follow-up (data_source_info null for non-federal rows) — v2.2, Phase 57
-
-**Goal:** Bring all 34 Orange County cities into the tracker from the CA State Controller's uniform open data, and turn the bulk loader into a documented one-command pipeline for every remaining Southern California county.
-
-**Target features:**
-- Hardened, reusable SoCal county bulk pipeline (population backfill, sourced attribution, documented runbook) — a new county becomes one command
-- All 34 OC cities loaded: Operating + Revenue, FY2003–2024 (32 net-new cities; Anaheim & Santa Ana kept as-is, linked only)
-- Orange County entity + city linking (powers the breadcrumb chain + Cities-in-County panel)
-- Standardized category enrichment across all 34 cities (cost-estimated first; $5 approval threshold)
-- **Net-new:** statewide per-city salaries integration (CA Government Compensation, publicpay.ca.gov) — spike-first to de-risk, then load OC
-- Verification + UAT against published ACFRs
-
-**Carryover (low risk):** Operating + revenue reuse the exact ByTheNumbers path that built the LA County 88 — `bulkLoadStateController.js`, datasets `ju3w-4gxp` (expenditures) / `rrtv-rsj9` (revenues), county-parameterized, auto-creating city records. The only genuinely net-new build is statewide per-city salaries — isolated to its own phase and spiked before commitment. Depth caveat accepted: SCO data is category-level (same depth as the LA County 88), not transaction/line-item.
+- ✓ Orange County verification + UAT (VER-01/02): `verify-phase56.mjs` 7/7 PASS; OC totals reconciled against published ACFRs on a basis-matched all-funds basis (Laguna Woods to the dollar); a UAT-discovered breadcrumb defect root-caused + fixed in-phase (API + frontend), then Chris signed off all 5 navigation surfaces — v2.2, Phase 56
+- ✓ Orange County's own county-government operating + revenue budget (OCB-01/02): reusable `scripts/loadCountyBudget.js` (the runbook Step 5 tool, parameterized for any CA county) loaded 44 rows (22 op + 22 rev, FY2003–2024) onto the OC county entity from SCO ByTheNumbers county datasets (uctr-c2j8/emxv-k8xv, all-governmental-funds basis), per-year population (3.15M), durable `/d/<id>` source attribution; 34 OC city rows untouched (never-overwrite); FY2024 op total $6.42B exact match; OC county page renders icicle/summary + per-capita (no longer directory-only); county SourceChip live since the EV-Accounts `treasuryService.ts` deploy (2026-06-16) — v2.2, Phase 57
 
 ### Active
 
-- [ ] SoCal bulk pipeline hardening — reusable one-command county loader, population backfill, sourced attribution, runbook (v2.2, Phase 52)
-- [x] Orange County operating + revenue — 34 cities FY2003–2024 loaded from ByTheNumbers, 32 net-new cities w/ populations, Anaheim & Santa Ana custom data preserved (v2.2, Phase 53 ✓). County entity + linking + enrichment → Phase 54.
-- [ ] Statewide city-salaries integration — publicpay.ca.gov spike + loader + OC load (v2.2, Phase 54)
-- [ ] Orange County verification + UAT against ACFRs (v2.2, Phase 55)
+(None — v2.2 shipped 2026-06-16. Next milestone not yet defined; start with `/gsd:new-milestone`.)
 
 ### Future (deferred milestone candidates)
 
+- [ ] Southern California expansion — Riverside, San Bernardino, San Diego, Ventura, Santa Barbara, Imperial counties (SOCAL-01..06) via the now-hardened SoCal pipeline (~95 more cities)
 - [ ] Votes/amendments exploration hub (the eventual mission destination)
 - [ ] Backfill the always-sourced standard to city/state data (now proven federally)
 
@@ -109,8 +99,9 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - Donation platforms: GiveButter (primary, lowest fees), Patreon (recurring), Benevity (workplace giving)
 - GiveButter supports webhooks and custom return URLs after donation completion
 - The webhook fires before the redirect, so DB should be updated by the time user lands back
-- Currently covers: 14 TX cities (Dallas, Plano, McKinney, Frisco, Allen, Prosper, Celina, Richardson, Garland, Wylie, Sachse, Murphy, Princeton, Longview) + 12 CA cities (Los Angeles, San Francisco, San Diego, Sacramento, Oakland, San Jose, Long Beach, Bakersfield, Fresno, Riverside, Anaheim, Santa Ana) + LA County + 3 OR cities (Portland, Gresham, Troutdale) + 351 MA cities + Massachusetts (state)
-- county_id FK on municipalities; 88 LA County cities linked; county breadcrumb chip on city pages; CitiesInCountyPanel on county pages
+- Currently covers: 14 TX cities (Dallas, Plano, McKinney, Frisco, Allen, Prosper, Celina, Richardson, Garland, Wylie, Sachse, Murphy, Princeton, Longview) + 12 named CA cities (Los Angeles, San Francisco, San Diego, Sacramento, Oakland, San Jose, Long Beach, Bakersfield, Fresno, Riverside, Anaheim, Santa Ana) + all 34 Orange County cities (operating + revenue FY2003–2024, salaries 2009–2024) + LA County + Orange County (county-government budget FY2003–2024) + 3 OR cities (Portland, Gresham, Troutdale) + 351 MA cities + Massachusetts (state) + the US federal government
+- county_id FK on municipalities; 88 LA County cities + 34 Orange County cities linked; county breadcrumb chip on city pages; CitiesInCountyPanel on county pages
+- SoCal county pipeline is one command per county: `bulkLoadStateController.js --county` (operating + revenue, durable source attribution, never-overwrite, feed population) → `seedCountyLinks.js` (entity + linking) → enrich → verify; runbook at `docs/socal-county-onboarding.md`; `loadCASalaries.js` (statewide city salaries) + `loadCountyBudget.js` (county-government budget) reusable for any CA county
 - MA: 351 cities with FY2002–2025 General Fund data (24 years), per-capita, universal enrichment (14 categories), real MA state budget
 - **Federal:** United States entity (id `0098c405-65e1-426f-8e5f-0fcbe2a900c0`) live with FY2025 actuals (function + agency lenses), 64-yr OMB history, FY2026 FYTD strip, $39.2T debt; 27 sourced explainers + 15 program-origin records; always-sourced standard (source chips, official-record links). Backend in the separate **ev-accounts** repo (Render); data via `scripts/load*Federal*.js` + `loadProgramOrigins.js` using free APIs (Treasury Fiscal Data, OMB, MTS, Congress.gov/GovInfo via `DATA_GOV_API_KEY`)
 - Federal data sources bot-wall caveats: congress.gov/bioguide/gao 403 non-browser clients (browser-verify); govinfo SPA returns 200 for any path (verify via api.govinfo.gov); CBO blocks entirely (manual download)
@@ -143,9 +134,14 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 | MTS/OMB outlays canonical; USAspending obligations drill-only | $3.3T gap; mixing would corrupt headline figures | ✓ Good |
 | Explainers + origins authored/fetched, never from model memory | Always-sourced ground rule; inline authorship hit $0 API; origins need no LLM at all (pure structured fetch) | ✓ Good — $0 spend, fully auditable |
 | govinfo existence via API, congress.gov via real browser | govinfo SPA 200s any path; congress.gov 403s non-browser clients — status checks alone would give false PASS/FAIL | ✓ Good — audit caught both |
+| Never-overwrite guard in the SoCal pipeline | A county load must not clobber cities already loaded from a richer custom source (Anaheim, Santa Ana) | ✓ Good — link-only preserved their custom data |
+| County budgets on all-governmental-funds basis (SCO ByTheNumbers) | Uniform, sourced, comparable across counties; document the basis + ACFR variance rather than chase General-Fund-only | ✓ Good — FY2024 OC op $6.42B exact; LA precedent reused |
+| Per-year SCO populations for OC cities (not a single hardcoded vintage) | SCO county feed carries per-year estimated_population — more accurate denominators than the LA single-year hardcode | ✓ Good |
+| Names-free Dept→Position salaries tree from GCC | Compensation totals only (no individuals) honors the public-record-only safety line; curl w/ browser UA bypasses the Node fetch Cloudflare TLS block | ✓ Good — Irvine 2024 $0 delta, zero new deps |
 
 ## Shipped
 
+- ✅ **v2.2 Orange County + Reusable SoCal Pipeline** — 2026-06-16 — Phases 52-57 (hardened one-command SoCal county pipeline + runbook; all 34 OC cities operating + revenue FY2003–2024; OC entity + linking + enrichment; statewide city salaries 2009–2024; ACFR verification + UAT; OC county-government budget FY2003–2024; every figure sourced; milestone audit passed 16/16)
 - ✅ **v2.1 Federal History** — 2026-06-14 — Phases 49-51 (FY1976–FY2024 function/agency/revenue per year + per-year disclosures, federal YearSelector incl. the FY1976 Transition Quarter, sourced comparability notes + definition-drift, source-chain durability audit FAIL 0; $0 API spend; milestone audit passed 8/8)
 - ✅ **v2.0 Federal Treasury Tracker** — 2026-06-13 — Phases 43-48 (US federal entity, FY2025 both lenses, first-split bands + deficit strip, 27 sourced explainers, 15-program origins pilot, source-chain audit 61/61 + UAT)
 - ✅ **v1.9 MA County-City Linking** — 2026-06-11 — Phases 40-42 (14 MA counties seeded, 351 cities linked, 5 county budgets, county enrichment)
@@ -177,4 +173,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-16 — Phase 57 complete: Orange County's own county-government operating + revenue budget loaded (44 rows, FY2003–2024) via the reusable `loadCountyBudget.js`; OC county page now shows real budget data + per-capita. UAT signed off (items 1-6); county SourceChip deferred to an EV-Accounts API follow-up. Phase 57 is the last phase of milestone v2.2.*
+*Last updated: 2026-06-16 after v2.2 milestone — Orange County + Reusable SoCal Pipeline shipped (Phases 52-57, audit passed 16/16). All v2.2 requirements moved to Validated; Active cleared; SOCAL-01..06 expansion staged in Future. Next milestone not yet defined.*

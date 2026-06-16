@@ -147,6 +147,53 @@
 
 ---
 
+## Milestone: v2.2 — Orange County + Reusable SoCal Pipeline
+
+**Shipped:** 2026-06-16
+**Phases:** 6 (52-57) | **Plans:** 15 | **Timeline:** ~2 days (2026-06-14 → 2026-06-16)
+
+### What Was Built
+
+- SoCal bulk pipeline hardened + generalized: `bulkLoadStateController.js` county-parameterized with durable `source_url`/`source_date`, feed-population backfill, and a never-overwrite guard; `seedCountyLinks.js` one-command county seed + linking; `docs/socal-county-onboarding.md` runbook — proven to generalize via a zero-write Ventura County dry-run
+- All 34 Orange County cities loaded (operating + revenue FY2003–2024) from SCO ByTheNumbers; 32 net-new cities auto-created with per-year populations; Anaheim & Santa Ana kept as-is (link-only); OC entity seeded + linked + enriched at $0
+- Statewide CA city-salaries integration (net-new): reusable `loadCASalaries.js` builds a names-free Dept→Position Total Compensation tree from the GCC export; all 34 OC cities 2009–2024 (544 rows, 0 gaps); Irvine 2024 $0 delta vs published
+- OC county-government budget (44 rows FY2003–2024, all-governmental-funds basis, FY2024 $6.42B exact) via reusable `loadCountyBudget.js`; OC county page now renders icicle/summary + per-capita; ACFR verification + Chris UAT sign-off
+
+### What Worked
+
+- **The compounding-loader thesis held a third time**: OC reused the exact ByTheNumbers path that built the LA County 88 — the only genuinely net-new build was statewide salaries, which was isolated to its own phase. Big-in-data, small-in-invention, as forecast.
+- **Spike-first gated the only risky build**: SAL-01 confirmed publicpay.ca.gov/GCC coverage + an exact Irvine 2024 reconciliation ($0 delta) *before* committing to the loader (55-02). The gate authorized the build instead of discovering coverage gaps mid-phase.
+- **Generalizing one-offs into a runbook paid off immediately**: `loadCountyBudget.js` turned the LA County (Phase 25) one-offs into a parameterized Step-5 tool, and the whole load→seed→link→enrich→verify sequence is now a documented one-command-per-county pipeline — SOCAL-01..06 are now mechanical.
+- **Per-year SCO populations beat the single-vintage hardcode**: the SCO county feed carries per-year `estimated_population`, giving more accurate per-capita denominators than the LA single-year approach — a quiet data-quality upgrade with no extra work.
+- **UAT caught a real navigation defect**: Phase 56 surfaced a breadcrumb defect that was root-caused and fixed in-phase (API + frontend) before sign-off — the recurring "human UAT catches what automation misses" pattern again.
+
+### What Was Inefficient
+
+- **`milestone.complete` auto-accomplishments broke a third straight milestone** — this time emitting 5 empty `One-liner:` placeholders (several SUMMARY.md files had an unfilled one-liner field), again requiring a hand-rewritten MILESTONES entry. The extractor and the SUMMARY one-liner convention have now disagreed across v2.0 ("**Executed:**"), v2.1 ("Status:"), and v2.2 (empty placeholders). This is a standing tax, not an anomaly.
+- **Documentation-trail gaps surfaced at audit, not during execution**: Phase 52 shipped with no `VERIFICATION.md` (authored retroactively during the milestone audit), and PIPE-01..04 were left unchecked in REQUIREMENTS.md until the audit ticked them. The work was sound — the paper trail lagged. Per-phase verification discipline is still not fully habitual on data-pipeline phases.
+- **A cross-repo follow-up looked like deferred scope at close**: the OC county SourceChip was recorded as "dormant pending an EV-Accounts API follow-up" in PROJECT.md, but the EV-Accounts `data_source_info` fix had actually deployed (2026-06-16) and the chip was live — the treasury-tracker-side note just hadn't been updated. The cross-repo backend split keeps producing stale local notes (same class as v2.0's push side-effects).
+
+### Patterns Established
+
+- **Never-overwrite guard on bulk loaders**: a county/bulk load must refuse to clobber entities already loaded from a richer custom source (Anaheim, Santa Ana stayed link-only). Bulk loaders should detect existing non-pipeline sources and skip, not overwrite.
+- **Spike-gate before any net-new data source**: confirm coverage + an exact reconciliation against a published figure before building the loader. The SAL-01 gate is the template for de-risking unfamiliar sources.
+- **One-command-per-county runbook**: load→seed→link→enrich→verify, each step a parameterized reusable script, documented in `docs/socal-county-onboarding.md`. The unit of future expansion is now "run the runbook," not "write a pipeline."
+- **Names-free compensation aggregation**: salaries loaded as Dept→Position *totals* only (no individuals), honoring the public-record-only safety line; curl-with-browser-UA bypasses the Node-fetch Cloudflare TLS block with zero new deps.
+
+### Key Lessons
+
+1. **Each reusable pipeline shrinks the *next* milestone, and runbooks make it a checklist**: v2.2 spent its invention budget once (salaries + county-budget generalization) and turned the rest into documented commands — SOCAL-01..06 (~95 cities) are now scoped as runbook iterations, not engineering.
+2. **Spike-first is the cheapest insurance for net-new sources**: the SAL-01 coverage+reconciliation gate cost one plan and removed the milestone's only real unknown before committing build effort.
+3. **The doc trail is the part that lags — automate or check it per-phase**: missing VERIFICATION (Phase 52), unchecked requirements (PIPE-01..04), and a stale cross-repo note all surfaced at the audit/close, not during execution. The audit caught them, but per-phase verification + requirement-ticking would have made close a formality.
+4. **The `milestone.complete` accomplishments extractor is reliably broken (3/3)** — budget for hand-rewriting the MILESTONES entry every close until the extractor/one-liner-convention mismatch is fixed.
+
+### Cost Observations
+
+- **~$0 API spend** — OC enrichment was authored inline at $0 (no paid API), all budget/revenue/salary/county data from free SCO ByTheNumbers + GCC sources. Held the free-source ground rule and stayed far under the $5 gate.
+- No PDF vision runs (SCO is structured open data); verification via local `verify-phase*.mjs` DB probes + Supabase SQL (no API cost).
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -163,12 +210,15 @@
 | v1.7–v1.9 | 12 | ~30 | — | (not logged) CA state + deep icicles, MA all-cities, MA county linking |
 | v2.0 | 6 | 20 | ~1 day | Federal entity + always-sourced standard; $0 enrichment; domain-aware source audit |
 | v2.1 | 3 | 13 | ~2 days | Federal history backfill (year-independent design validated); inline execution for small phase; durable source URLs; $0 spend |
+| v2.2 | 6 | 15 | ~2 days | Reusable one-command SoCal county pipeline + runbook; spike-gated net-new salaries; never-overwrite guard; 34 OC cities + county budget; $0 spend |
 
 ### Top Lessons (Verified Across Milestones)
 
-1. **Generic loaders compress future milestones**: Every milestone that invested in a reusable loader (Socrata v1.1, XLSX v1.1, pdfplumber v1.5) made subsequent milestones faster. This compounds — v1.6 ran in 3 days because v1.5 proved the pdfplumber pattern, and v2.0's federal loaders set up a cheap historical backfill.
+1. **Generic loaders compress future milestones**: Every milestone that invested in a reusable loader (Socrata v1.1, XLSX v1.1, pdfplumber v1.5) made subsequent milestones faster. This compounds — v1.6 ran in 3 days because v1.5 proved the pdfplumber pattern, v2.0's federal loaders set up a cheap historical backfill, and v2.2 turned the LA County 88 path + LA county-budget one-offs into a documented one-command SoCal pipeline (SOCAL-01..06 now scoped as runbook iterations). The mature form of this lesson is a *runbook*, not just a loader.
 2. **Scope mismatches are correctness issues, not just cosmetic**: Bakersfield (v1.6) and LA revenue (v1.5) both had scope mismatches caught during verification. A "scope parity check" before enrichment is now standard. v2.0 extended this to visual-vs-official totals (the $521B/$1,895B disclosure).
 3. **Human UAT checkpoints catch real issues**: Every milestone has had at least one real issue surfaced during human verification that automated checks missed (LA revenue $44.6B in v1.5; Bakersfield operating/revenue ratio in v1.6; React #310 hooks crash in v2.0 Phase 45).
 4. **Planning docs lag at close — recurring tax (improving)**: v1.6 and v2.0 surfaced stale ROADMAP/PROJECT state at close. v2.1 updated ROADMAP plan-progress per-plan, making close lighter — the fix is "update tracking as each plan completes," and it works when actually done.
 5. **Reusable verification harnesses compound like loaders do**: the Phase 48 govinfo-API source-check dropped straight into v2.1's comparability verifier with no rework. Audit/verification tooling is as reusable as data loaders — invest in it once, reuse across milestones.
 6. **Match execution mode to phase shape**: v2.1 ran a small, linear, checkpoint-heavy phase inline (no subagents) for lower token cost; parallel worktree executors are for genuinely independent plans. One size does not fit all phases.
+7. **The `milestone.complete` accomplishments extractor is reliably broken (v2.0/v2.1/v2.2)**: it has emitted garbage (header lines, then empty placeholders) three closes running because it disagrees with the SUMMARY one-liner convention. Hand-rewriting the MILESTONES entry is now the expected close step until the extractor/convention mismatch is fixed.
+8. **The doc trail lags the build, and it's the audit that catches it**: missing VERIFICATION files, unchecked requirements, and stale cross-repo notes have surfaced at milestone close/audit rather than during execution (v2.0, v2.1, v2.2). `/gsd:audit-milestone` reliably closes these gaps — but per-phase verification + requirement-ticking would make close a formality instead of a reconciliation.

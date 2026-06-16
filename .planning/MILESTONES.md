@@ -1,5 +1,28 @@
 # Milestones — Treasury Tracker / Empowered Vote Financials
 
+## v2.2 Orange County + Reusable SoCal Pipeline (Shipped: 2026-06-16)
+
+**Phases completed:** 6 phases, 15 plans, 31 tasks
+
+**Delivered:** All 34 Orange County cities loaded onto the tracker (operating + revenue, FY2003–2024) from the CA State Controller's uniform open data, plus the OC county-government's own budget — and the bulk loader hardened into a documented, one-command pipeline any remaining SoCal county can reuse. Net-new: statewide per-city salaries from CA Government Compensation. Every figure carries a durable source row; all verified against published ACFRs with Chris UAT sign-off.
+
+**Key accomplishments:**
+
+- **SoCal bulk pipeline hardened + generalized (Phase 52)** — `bulkLoadStateController.js` loads any CA county with durable `source_url`/`source_date`, persists feed population, and refuses to overwrite cities loaded from another source; `seedCountyLinks.js` seeds + links any county in one command; `docs/socal-county-onboarding.md` documents the full load→seed→link→enrich→verify sequence, proven to generalize via a zero-write Ventura County dry-run.
+- **All 34 OC cities loaded (Phase 53)** — operating + revenue FY2003–2024 from ByTheNumbers; 32 net-new cities auto-created with per-year SCO populations (per-capita renders on first load); Anaheim & Santa Ana untouched.
+- **OC entity, linking + enrichment (Phase 54)** — Orange County entity seeded, all 34 cities linked via `county_id` (US → California → Orange County → city breadcrumb + Cities-in-County panel), standardized category enrichment authored inline at $0, bleed-safe and consistent with the LA County baseline.
+- **Statewide city-salaries integration (Phase 55, net-new)** — reusable `loadCASalaries.js` builds a names-free Department→Position Total Compensation tree from the CA State Controller GCC export; all 34 OC cities loaded 2009–2024 (544 rows, 0 gaps); Irvine 2024 reconciles to the published $190,426,283 at $0 delta.
+- **Verification + UAT (Phase 56)** — `verify-phase56.mjs` 7/7 PASS (exit 0); OC totals independently reconciled against published ACFRs on a basis-matched all-funds basis (Laguna Woods to the dollar); a UAT-discovered breadcrumb defect root-caused and fixed in-phase (API + frontend), then Chris signed off all 5 navigation surfaces.
+- **OC county-government budget (Phase 57)** — reusable `loadCountyBudget.js` (the runbook's Step 5 tool) loaded OC's operating + revenue FY2003–2024 (44 rows, ~$2.6B–$6.4B/yr) onto the county entity with per-year population and durable `/d/<id>` attribution; FY2024 op total $6.42B exact match; OC county page now renders icicle/summary + per-capita (no longer directory-only); `verify-phase57.mjs` exits 0.
+
+**Milestone audit:** PASSED — 16/16 requirements satisfied (PIPE-01..04, OC-01..05, SAL-01..03, VER-01/02, OCB-01/02), 6/6 phases verified, 0 broken flows, 0 cross-phase gaps. SOCAL-01..06 (6 more SoCal counties) explicitly deferred to a future milestone; the hardened pipeline generalizes to support them. See `milestones/v2.2-MILESTONE-AUDIT.md`.
+
+**Known deferred items at close:** 4 non-blocking items acknowledged (re-deferred) — Phase 57's `57-HUMAN-UAT.md` flagged only because the file exists (status `passed`, 0 pending scenarios; UAT signed off) + the 3 orphaned pre-v2.0 quick-tasks carried from the v2.0/v2.1 closes (missing files). See STATE.md Deferred Items.
+
+**Archive:** [v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) | [v2.2-REQUIREMENTS.md](milestones/v2.2-REQUIREMENTS.md) | [v2.2-MILESTONE-AUDIT.md](milestones/v2.2-MILESTONE-AUDIT.md)
+
+---
+
 ## v2.1 Federal History (Shipped: 2026-06-14)
 
 **Phases completed:** 3 phases, 13 plans
