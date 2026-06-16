@@ -83,11 +83,11 @@
 ### Phase 61: Enrichment Parity
 
 **Goal:** Every parity-loaded budget category carries standardized, bleed-safe, plain-language enrichment matching the OC/LA County baseline.
-**Depends on:** Phases 58 + 59 (categories must be loaded before they can be enriched)
+**Depends on:** Phases 58 + 59 + 60 (operating/revenue/salaries categories must be loaded before they can be enriched)
 **Requirements:** ENR-01
 **Success Criteria** (what must be TRUE):
 
-  1. All newly backfilled LA County / other-county / unlinked city categories have plain-language enrichment (names + descriptions), municipality-scoped (never universal)
+  1. All newly parity-loaded LA County / other-county / unlinked city categories — operating, revenue, AND salaries (Phase 60) — have plain-language enrichment (names + descriptions), authored hybrid: universal (`municipality_id IS NULL`) for generic SCO/department taxonomy names matching the OC/LA County baseline, city-scoped for anything city-specific. NO city-specific text is ever stored in a universal record.
   2. Enrichment is bleed-safe — no city's text appears on another city's categories (spot-checked across ≥3 cities)
   3. Enrichment is authored inline at ~$0 (no paid API spend beyond the documented gate)
 

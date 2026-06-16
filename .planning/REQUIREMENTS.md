@@ -38,7 +38,7 @@ Each maps to exactly one roadmap phase (58–62).
 
 ### Enrichment + Linking Parity
 
-- [ ] **ENR-01**: Every parity-loaded budget category (LA County cities backfill + other-county/unlinked cities) carries standardized, bleed-safe plain-language enrichment (municipality-scoped, never universal) consistent with the OC/LA County baseline, authored inline at ~$0.
+- [ ] **ENR-01**: Every parity-loaded budget category (LA County cities backfill + other-county/unlinked cities, across operating + revenue + Phase 60 salaries) carries standardized, bleed-safe plain-language enrichment consistent with the OC/LA County baseline, authored inline at ~$0. Hybrid scoping: universal (`municipality_id IS NULL`) for generic SCO/department taxonomy names, city-scoped for any city-specific content — no city-specific text is ever stored in a universal record.
 - [x] **ENR-02**: The 7 unlinked CA cities are linked to their counties via `county_id`, completing the breadcrumb chain (US → California → County → city) and the Cities-in-County panel for those cities.
 
 ### Verification
