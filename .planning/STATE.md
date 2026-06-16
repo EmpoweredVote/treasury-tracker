@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: California Coverage Parity
 status: executing
-last_updated: "2026-06-16T19:48:19.125Z"
-last_activity: 2026-06-16 -- Phase 60 planning complete
+last_updated: "2026-06-16T19:50:10.930Z"
+last_activity: 2026-06-16 -- Phase 60 execution started
 progress:
   total_phases: 62
   completed_phases: 2
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16 after v2.2)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 60 — statewide ca salaries sweep
+**Current focus:** Phase 60 — Statewide CA Salaries Sweep
 
 ## Current Position
 
-Phase: 60
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-16 -- Phase 60 planning complete
+Phase: 60 (Statewide CA Salaries Sweep) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 60
+Last activity: 2026-06-16 -- Phase 60 execution started
 
 ### v2.3 gap baseline (DB query, 2026-06-16)
 
