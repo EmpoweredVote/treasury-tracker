@@ -6,7 +6,7 @@ status: planning
 last_updated: "2026-06-16T07:47:45.640Z"
 last_activity: 2026-06-16
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,47 +20,37 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16 after v2.2)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Planning next milestone — `/gsd:new-milestone`. Strongest candidate: Southern California expansion (SOCAL-01..06, ~95 cities across 6 counties) via the now-hardened one-command SoCal pipeline + runbook.
+**Current focus:** v2.3 California Coverage Parity (Phases 58–62) — bring LA County + remaining CA entities up to the OC standard (FY2003 history, statewide salaries, enrichment) via the hardened v2.2 pipeline. Next step: `/gsd:plan-phase 58` (or `/gsd:discuss-phase 58`).
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Not started (roadmap complete, ready to plan Phase 58)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-16 — Milestone v2.3 started
+Status: Roadmap complete
+Last activity: 2026-06-16 — Milestone v2.3 roadmap created (5 phases, 10 requirements mapped)
 
-### Phase 50 outcomes (for Phase 51)
+### v2.3 gap baseline (DB query, 2026-06-16)
 
-- Backend EV-Accounts exposes `period_label` on `/cities` available_datasets + `/budgets` (master 83b87196, deployed to Render). Frontend models periods via `src/utils/period.ts` (parsePeriod/buildPeriodTokens); TQ token resolves to fiscal_year 1976 + period_label; loadBudgetData disambiguates by period_label.
-- `FederalLanding` is year-aware (selects annual_summary row by fiscal_year); TQ hides annual-summary bands (no TQ summary row); FYTD strip only on the current/default year.
-- **Phase 51 owes:** (1) systematic source-chain audit across every figure/year/source — Phase 50 fixed only the surfaced context-metric chips (→ human fiscaldata pages, DB + loadFederalMTS.js) and federal lens chips (→ registry url, App.tsx); deeper per-figure URLs unaudited. (2) Comparability/definition-drift notes + the FY1976 Transition Quarter explanation copy (the TQ currently renders with a neutral heading, no sourced explanation).
-
-### Per-capita denominators (Phase 50 fix, 2026-06-13)
-
-Per-person/per-taxpayer now use PER-YEAR denominators in federal_context_metrics: `population_fyN` (FY1976–2025, FRED POPTHM = Census/BEA resident pop incl. armed forces overseas, July) + `tax_returns_filed_fyN` (FY2005–2023 IRS SOI histab21b individual returns, + FY2025 carried). Loader: `scripts/loadFederalDenominators.js` + `extractIRSReturns.py`. Frontend: `federalDenominators` memo in App.tsx.
-
-- **Known gaps (by design, honest):** per-taxpayer disabled for pre-2005 + FY2024 (no clean free source — old IRS Data Books are PDF); per-capita disabled on the TQ. Frontend hides the toggle + resets to $ when a denominator is missing.
-- **Note:** FY2025 per-person shifted ~340.1M→342.1M (switched from Census Vintage resident to the consistent FRED POPTHM series for cross-year uniformity).
-- **Future (optional):** fill pre-2005/FY2024 per-taxpayer from `05in01an.xls` (SOI individual returns 1913–2005, needs `xlrd`) + a recent in01 vintage — ~1–2h, with a cross-series consistency caveat.
-
-### Phase 49 outcomes (for Phase 50/51)
-
-- Federal budgets now span FY1976–FY2025 (50 years) + TQ across operating/federal_agency/revenue, all sourced.
-- **TQ storage:** fiscal_year=1976 + `budgets.period_label='Transition Quarter (Jul–Sep 1976)'`, dataset_id `tq1976`. Phase 50 YearSelector MUST treat a non-null period_label row as a separate selectable period (orders right after FY1976). Unique index is now 4-col (…, period_label) NULLS NOT DISTINCT; RPC `treasury_sync_budget_tree` has optional 8th arg `p_period_label`.
-- **Agency lens for history is OMB Public Budget Database** (not MTS T5 — API only reaches FY2015); receipts history is **OMB Hist 2.1** (5 buckets, "Other" consolidates estate&gift/customs/misc). One-year source discontinuity FY2024→FY2025 (agency PBD→MTS, receipts Hist2.1→MTS T9) → Phase 51 comparability copy.
-- Loaders: `loadFederalFunctions.js --fy N|--tq`, `loadFederalAgencies.js --source omb --fy N|--tq`, `loadFederalReceipts.js --fy N|--tq`, orchestrated by `backfillFederalHistory.mjs` (idempotent).
+- **OC (the standard):** 34 cities op+rev FY2003–2024 + salaries (salaries live in production, NOT local DB).
+- **LA County:** 88 cities op+rev FY2017+ only (0 reach FY2003), 0 salaries → Phase 58 backfill + Phase 60 salaries.
+- **LA County gov budget:** FY2021–2025 present (vs OC FY2003–2024) → Phase 58 extends FY2003–2020.
+- **Unlinked CA cities:** 7 (1 has no budget at all); **other-county cities:** 4 (Alameda/Sac/SD), FY2012+ → Phase 59.
+- **Named custom-source cities (12):** LA/SF/SD/San Jose etc. — never-overwrite their budgets; salaries + enrichment only (Chris decision 2026-06-16).
+- ⚠️ **Salary verify-at-plan-time:** local Supabase shows salaries for only Bloomington IN (282K rows, 2015–2025); the v2.2 OC salary sweep is production-only. Phase 60 must confirm against the **production / ev-accounts** DB, not local.
 
 ## Phase Overview
 
 | Phase | Name | Depends on | Status |
 |-------|------|------------|--------|
-| 49 | Historical Federal Data Backfill (FY1976–FY2024) | Nothing new (reuses Phase 44 loaders + schema) | Complete |
-| 50 | Federal YearSelector Wiring | Phase 49 | Complete |
-| 51 | Comparability Notes + Source-Chain Verification + UAT | Phases 49–50 | Pending |
+| 58 | LA County Parity Backfill (88 cities + county gov budget → FY2003) | Nothing (reuses v2.2 tools) | Pending |
+| 59 | Remaining CA Cities History + Linking | Phase 58 | Pending |
+| 60 | Statewide CA Salaries Sweep (2009–2024, all non-OC CA cities) | Nothing (parallel to 58/59) | Pending |
+| 61 | Enrichment Parity | Phases 58 + 59 | Pending |
+| 62 | ACFR Verification + Source-Chain Audit + UAT | Phases 58–61 | Pending |
 
-**Critical path:** 49 → 50 → 51 (linear; data → navigation → context/verify).
-**Constraint:** $0 API spend — no AI/LLM enrichment calls; Claude loads free OMB historical tables directly (Hist 3.2 function, 4.1/5.1 agency, 2.x receipts). Browser User-Agent required for OMB xlsx; openpyxl parses cleanly.
-**Carryover (zero rework):** `federal_annual_summary` already holds 64 yrs; explainers (name-keyed) + program origins (law-keyed) are year-independent.
+**Critical path:** 58 → 59 → 61 → 62. Phase 60 (salaries) is independent and runs in parallel with 58/59.
+**Constraint:** Free sources only; enrichment inline at ~$0 (API cost gate $5 — estimate before any AI run). Every backfilled figure carries durable source attribution.
+**Pipeline reuse (zero new tooling):** `bulkLoadStateController.js --county` (history, never-overwrite guard), `loadCountyBudget.js` (county-gov budget), `loadCASalaries.js` (salaries), `seedCountyLinks.js` (linking), runbook `docs/socal-county-onboarding.md`.
 
 ## Accumulated Context
 
@@ -134,13 +124,13 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-16T02:24:05.281Z
-Stopped at: Completed 57-02-PLAN.md
+Last session: 2026-06-16 — v2.3 California Coverage Parity milestone defined + roadmapped
+Stopped at: Roadmap created (Phases 58–62), all artifacts committed
 Resume file: None
 
 ### Next Session
 
-Start the next milestone with `/gsd:new-milestone`. Recommended scope: historical backfill — prior fiscal years of federal function/agency detail at v2.0 quality (explainers + origins are year-independent and carry over; work is iterating the OMB loader across years + per-year disclosures + YearSelector wiring). See PROJECT.md "Current Milestone" + REQUIREMENTS archive Future Requirements.
+Plan the first v2.3 phase: `/gsd:plan-phase 58` (LA County Parity Backfill — 88 cities + county-gov budget to FY2003) or `/gsd:discuss-phase 58` to gather context first. Phase 60 (salaries) can run in parallel. See PROJECT.md "Current Milestone" + REQUIREMENTS.md + ROADMAP.md. ⚠️ Phase 60 must verify salary state against production/ev-accounts (local DB has only Bloomington IN).
 
 ## Performance Metrics
 
