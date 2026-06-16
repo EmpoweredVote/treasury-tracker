@@ -30,8 +30,8 @@ Requirements for this milestone. Each maps to exactly one roadmap phase (52–56
 
 ### Verification
 
-- [ ] **VER-01**: Orange County city budget totals are spot-checked against published ACFRs / adopted budgets and pass, with the checks documented.
-- [ ] **VER-02**: The breadcrumb chain and Cities-in-Orange-County panel are verified end-to-end in the live app, with Chris UAT sign-off.
+- [x] **VER-01**: Orange County city budget totals are spot-checked against published ACFRs / adopted budgets and pass, with the checks documented.
+- [x] **VER-02**: The breadcrumb chain and Cities-in-Orange-County panel are verified end-to-end in the live app, with Chris UAT sign-off.
 
 ## Future Requirements
 
@@ -76,8 +76,8 @@ Which phase covers each requirement. Filled during roadmap creation.
 | SAL-01 | Phase 55 | Complete |
 | SAL-02 | Phase 55 | Complete |
 | SAL-03 | Phase 55 | Complete |
-| VER-01 | Phase 56 | Pending |
-| VER-02 | Phase 56 | Pending |
+| VER-01 | Phase 56 | Complete |
+| VER-02 | Phase 56 | Complete |
 | SOCAL-01 | Future milestone | Deferred |
 | SOCAL-02 | Future milestone | Deferred |
 | SOCAL-03 | Future milestone | Deferred |

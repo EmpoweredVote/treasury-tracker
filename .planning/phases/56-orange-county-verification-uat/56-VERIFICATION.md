@@ -1,13 +1,13 @@
 ---
 phase: 56-orange-county-verification-uat
-verified: 2026-06-15T00:00:00Z
-status: in-progress
-score: pending — finalized in Plan 03 after Chris UAT sign-off
+verified: 2026-06-15T23:30:00Z
+status: passed
+score: 2/2 observable truths verified (VER-01, VER-02)
 overrides_applied: 0
 operator_live_app_approval:
-  approved: false
-  date:
-  note: "Pending — Chris signs off the D-03 live-app UAT checklist in Plan 03 (56-03)."
+  approved: true
+  date: 2026-06-15
+  note: "Chris approved all 5 D-03 live-app UAT surfaces after the in-phase breadcrumb/county-directory fix (ISSUE-56-A) was deployed and re-tested."
 human_verification:
   - test: "ACFR spot-check: 7 sampled OC cities pass within 1–2% of ACFR all-funds total (basis-matched)"
     expected: "All sampled cities delta within tolerance or documented as sourced definitional variance; no genuine load errors; definitional notes recorded"
@@ -21,7 +21,7 @@ human_verification:
 
 **Phase Goal:** Independently verify the loaded Orange County data is accurate (ACFR spot-check) and confirm the OC navigation experience end-to-end in the live app, with Chris UAT sign-off.
 **Verified:** 2026-06-15
-**Status:** in-progress (DB probe + ACFR reconciliation complete; live-app UAT sign-off pending in Plan 03)
+**Status:** passed (DB probe + ACFR reconciliation + live-app UAT sign-off all complete; one in-phase nav fix shipped — ISSUE-56-A)
 **Re-verification:** No — initial verification
 
 ## Goal Achievement
@@ -31,7 +31,7 @@ human_verification:
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
 | VER-01 | OC city budget totals spot-checked against published ACFRs / adopted budgets and pass | VERIFIED | DB probe `verify-phase56.mjs` exits 0 (7/7); ACFR reconciliation table below — 3 genuine PASS (incl. Laguna Woods exact match + Anaheim all-funds reconciliation), remainder PASS-pending sourced for UAT confirmation; no load errors found |
-| VER-02 | Breadcrumb + CitiesInCountyPanel verified live; Chris UAT sign-off | FAILED (BLOCKED) | Live UAT 2026-06-15: OC breadcrumb chip missing — see ISSUE-56-A. Fix pushed (`fix/treasury-cities-grouper-counties`); awaiting deploy + re-test |
+| VER-02 | Breadcrumb + CitiesInCountyPanel verified live; Chris UAT sign-off | VERIFIED | Live UAT 2026-06-15: initial breadcrumb failure (ISSUE-56-A) fixed in-phase + deployed; Chris re-tested and approved all 5 D-03 surfaces (operator sign-off in frontmatter) |
 
 ### Behavioral Spot-Checks
 
@@ -95,25 +95,23 @@ contract above). No figure is fabricated (ground rule: never display unsourced d
 - **Disposition (operator decision — Option B):** NOT a Phase 56 data load error (the OC budget data is correct) and NOT in this verification phase's D-04 fix scope (it is an API/feature gap). Two-part fix, both authored + validated:
   1. **API** (`EV-Accounts`, branch **`fix/treasury-cities-grouper-counties`**, pushed for PR): `getCities()`/`getCityById()` also return county entities referenced as a parent by ≥1 city's `county_id`, even with no budget. Verified against prod DB (all 5 CA counties resolve; OC budgets=0). Patch archived at `oc-breadcrumb-api-fix.patch`.
   2. **Frontend** (`treasury-tracker`, commit on `main`, pushed): budget-less county pages suppress the budget chrome (year selector, summary, dataset tabs) and render as a clean "Cities in Orange County" directory (`isCountyDirectoryOnly` in `App.tsx`). Inert until the API change ships. Operator chose this over leaving an empty budget box (Option C) or hiding the county entirely (Option A — would have dropped the Cities-in-OC panel, a Phase 54 deliverable + VER-02 criterion).
-- **Status:** VER-02 is **BLOCKED** pending the API PR merge + `ev-accounts-api` redeploy, then a re-run of the live UAT (breadcrumb chip + the 34-city directory + the rest of D-03). The frontend half is already deployed/inert.
+- **Status:** **RESOLVED (2026-06-15).** API fix merged to `EV-Accounts` `master` (commit `42f1050c`, rebased cleanly onto latest master) and `ev-accounts-api` redeployed — OC entity now served by `/treasury/cities`. Frontend fixes deployed to `treasury-tracker` (Netlify bundle `index-BQw1CXrs.js`): clean budget-less-county directory + a follow-up guard so the county page loads without the "No budget found" error screen. Chris re-tested and approved all 5 D-03 surfaces. VER-02 VERIFIED.
 
 ## UAT Sign-Off (D-03)
 
-*Filled in Plan 03 (56-03) after Chris's live-app review.*
-
 **Operator:** Chris Cantrell
-**Date:** _pending_
+**Date:** 2026-06-15
 **App URL:** https://treasurytracker.empowered.vote
 
 | # | Checklist Item | Result | Notes |
 |---|----------------|--------|-------|
-| 1 | City → county breadcrumb chain works (e.g., Irvine → Orange County → California) | **FAIL** | OC chip missing — `/treasury/cities` excluded the budget-less OC entity (ISSUE-56-A). Fix pushed; re-test after deploy. |
-| 2 | County page → CitiesInCountyPanel lists all 34 OC cities; "Available now" count = 34 | _pending_ | |
-| 3 | Salaries tab appears on covered cities (e.g., Irvine, Anaheim) and renders Dept→Position tree | _pending_ | |
-| 4 | Per-capita display ($/resident) works for OC cities | _pending_ | |
-| 5 | Anaheim + Santa Ana render correctly (operating + revenue present, salaries tab present) | _pending_ | |
+| 1 | City → county breadcrumb chain works (e.g., Irvine → Orange County → California) | PASS | Initially failed (ISSUE-56-A: OC entity excluded from `/treasury/cities`); fixed in-phase (API + frontend) and re-tested. Chip resolves and routes to the OC county directory. |
+| 2 | County page → CitiesInCountyPanel lists all 34 OC cities; "Available now" count = 34 | PASS | OC county page renders as a clean "Cities in Orange County" directory (budget chrome suppressed for the budget-less grouper county). |
+| 3 | Salaries tab appears on covered cities (e.g., Irvine, Anaheim) and renders Dept→Position tree | PASS | |
+| 4 | Per-capita display ($/resident) works for OC cities | PASS | |
+| 5 | Anaheim + Santa Ana render correctly (operating + revenue present, salaries tab present) | PASS | |
 
-**Sign-off:** _pending — recorded in Plan 03_
+**Sign-off:** Chris approved 2026-06-15 — all 5 D-03 surfaces confirmed in the live app after the ISSUE-56-A navigation fix was deployed.
 
 ## Human Verification Required
 
