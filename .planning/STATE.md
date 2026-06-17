@@ -41,7 +41,7 @@ Last activity: 2026-06-17 — Milestone v2.4 started
 
 | Phase | Name | Depends on | Status |
 |-------|------|------------|--------|
-| 63 | SoCal County Cities Load + Linking (6 counties, ~95 cities) | Nothing (hardened pipeline) | Not started |
+| 63 | SoCal County Cities Load + Linking (6 counties, ~95 cities) | Nothing (hardened pipeline) | Planned (6 plans) |
 | 64 | SoCal County-Government Budgets (6 SoCal + Alameda + Sacramento) | Nothing (parallel to 63) | Pending |
 | 65 | SoCal Salaries Sweep (new cities, FY2009–2024) | Phase 63 | Pending |
 | 66 | SoCal Enrichment Parity | Phases 63 + 65 | Pending |
@@ -129,7 +129,7 @@ Resume file: None
 
 ### Next Session
 
-v2.4 milestone defined (Phases 63–67). Begin with `/gsd:plan-phase 63` (SoCal County Cities Load + Linking). Confirm the 6 counties' city lists + SCO dataset IDs against the production DB at plan time; one plan per county, parallelizable.
+Phase 63 is planned (6 plans, 63-01..06, one per SoCal county). Execute with `/gsd-execute-phase 63`. Plans run serially on the main tree (scripts need `.env`, no worktrees) — each does dry-run → live op/rev load → seed/link → verify. Then Phase 64 (county-gov budgets).
 
 ## Performance Metrics
 

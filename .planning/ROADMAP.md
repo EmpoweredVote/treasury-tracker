@@ -48,7 +48,18 @@
   3. The never-overwrite guard demonstrably leaves any pre-existing custom-source city unchanged
   4. Per-capita renders for the backfilled years on a spot-checked sample across the 6 counties
 
-**Plan shape:** one plan per county (6 plans, parallelizable — each an independent `bulkLoadStateController.js --county` + `seedCountyLinks.js` run).
+**Plan shape:** one plan per county (6 plans). Data-independent but run serially on the main tree (scripts need the gitignored `.env`; no worktree isolation — same as Phase 62).
+
+**Plan Progress:**
+
+| Plan | County | Requirement | Status |
+|------|--------|-------------|--------|
+| 63-01 | Riverside | SOCAL-01 | Not started |
+| 63-02 | San Bernardino | SOCAL-02 | Not started |
+| 63-03 | San Diego | SOCAL-03 | Not started |
+| 63-04 | Ventura | SOCAL-04 | Not started |
+| 63-05 | Santa Barbara | SOCAL-05 | Not started |
+| 63-06 | Imperial | SOCAL-06 | Not started |
 
 ### Phase 64: SoCal County-Government Budgets
 
