@@ -33,7 +33,7 @@
 | 59 | Remaining CA Cities History + Linking | 4/4 | Complete    | 2026-06-16 |
 | 60 | Statewide CA Salaries Sweep | 3/3 | Complete    | 2026-06-16 |
 | 61 | ✅ Enrichment Parity (complete 2026-06-16) | Standardized enrichment for all parity-loaded categories | ENR-01 | 3/3 |
-| 62 | ACFR Verification + Source-Chain Audit + UAT | 1/3 | In Progress|  |
+| 62 | ACFR Verification + Source-Chain Audit + UAT | 2/3 | In Progress|  |
 
 ### Phase 58: LA County Parity Backfill
 
