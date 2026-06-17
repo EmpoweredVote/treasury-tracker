@@ -93,6 +93,14 @@
   3. A sample city's latest-year total compensation reconciles to the published GCC figure at ~$0 delta
   4. Per-city coverage and any gaps are documented; the salaries dataset is viewable in the live app for a spot-checked city
 
+**Plan shape:** 1 plan (65-01) — sweep all 6 SoCal counties' cities (95 total) via `sweepCASalaries.js --county` (additive, never-overwrite). Production DB only (local salary state is stale); dry-run coverage gate first; reconcile a sample via independent GCC re-aggregation (~$0 delta). Serial main-tree, $0.
+
+**Plan Progress:**
+
+| Plan | Scope | Requirement | Status |
+|------|-------|-------------|--------|
+| 65-01 | GCC salaries FY2009–2024 for the 95 SoCal cities (6 counties) | SAL-07 | Not started |
+
 ### Phase 66: SoCal Enrichment Parity
 
 **Goal:** Every parity-loaded SoCal budget category (operating, revenue, salaries) carries standardized, bleed-safe, plain-language enrichment matching the OC/LA County baseline.
