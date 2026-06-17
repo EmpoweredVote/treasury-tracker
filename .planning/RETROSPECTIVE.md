@@ -194,6 +194,52 @@
 
 ---
 
+## Milestone: v2.3 — California Coverage Parity
+
+**Shipped:** 2026-06-17
+**Phases:** 5 (58-62) | **Plans:** 15 | **Timeline:** ~1 day (2026-06-16 → 2026-06-17)
+
+### What Was Built
+
+- LA County parity backfill: 88 LA County cities + the LA County government entity backfilled to FY2003 (operating + revenue) from SCO ByTheNumbers — 86/88 cities reach FY2003 (Calabasas/Sierra Madre are genuine SCO source gaps), all SCO-sourced with per-year population, custom cities untouched
+- Remaining non-OC CA cities backfilled to FY2003 + the 7 unlinked cities linked via `county_id` (4 new linking-only county nodes, SF kept as a clean combined city-county node, budget-less Test artifact removed)
+- Statewide CA salaries sweep: CA Government Compensation FY2009–2024 for all 98 non-OC CA cities in 16 download-once passes (0 gaps, 0 failures, 2.5M source records), LA's curated payroll preserved by the never-overwrite guard; 3 sampled cities reconcile to the GCC export at $0 delta
+- Enrichment parity: 528 universal `category_enrichment` rows authored inline at $0 (op/rev 100%, salary depts shared by ≥2 cities), bleed-safe
+- A dedicated verification-only closeout phase (62): basis-matched ACFR reconciliation, full-cohort source-chain durability audit (0 NULL/fragile/residue across 25,568 rows), and a 24-item live-app UAT with Chris's sign-off — no data writes, $0
+
+### What Worked
+
+- **The compounding-loader thesis held a fourth time, now at scale**: v2.3 was almost entirely "run the v2.2 runbook against more counties." The LA County 88 + 98-city salaries sweep reused the exact `bulkLoadStateController.js`/`loadCASalaries.js`/`loadCountyBudget.js` paths with zero new tooling — the milestone shipped in ~1 day because the prior milestone turned the work into commands.
+- **The never-overwrite guard did its job silently**: LA's curated Socrata payroll and the 12 named custom-source cities' richer budgets were preserved automatically across a 98-city sweep — the guard built in v2.2 paid off exactly as designed at scale.
+- **Splitting verification into its own phase (62) was clean**: ACFR reconciliation + source-chain audit + UAT as a dedicated read-only closeout (no data writes, defects documented not fixed, D-08) kept the data phases moving fast and concentrated the proof-of-correctness in one auditable place.
+- **The source-chain audit scaled the Phase-58 sample to the full cohort**: extending the SCO-NULL=0 check across all 25,568 rows and adding the fragility classifier (which Phase 58 skipped) confirmed durability at depth — 0 NULL, 0 fragile, 0 residue.
+
+### What Was Inefficient
+
+- **The UAT salaries item false-failed three rounds in a row — all checklist-instrument defects, zero product bugs.** Round 1 picked Inglewood (a city with no salaries data at all); round 2 looked for a card literally named "Salaries" when the UI labels it **"Employees"**; round 3 had the year selector carried over to FY2003, outside the salaries range (FY2009–2024), so the year-gated card was correctly hidden. Each round cost a full human round-trip. The checklist was authored from the *plan's* vocabulary, not from the *actual rendered UI* (real card label + the year-state precondition).
+- **`milestone.complete` auto-accomplishments broke a fourth straight milestone** — same empty `One-liner:` placeholders (several SUMMARY.md one-liner fields unfilled, e.g. 61-01), again requiring a hand-rewritten MILESTONES entry. Now 4/4 closes.
+- **A direct-DB probe disagreed with the live API mid-UAT**: a `treasury.budgets` probe showed Inglewood with 0 rows while the production `ev-accounts-api` returned salaries for it — a reminder that the app's `available_datasets` comes from the API endpoint, which can differ from a raw table probe. Diagnosing the salaries "failure" required tracing the *actual* render data source, not just the DB.
+
+### Patterns Established
+
+- **Verification-only closeout phase**: end a data milestone with a dedicated read-only phase that independently reconciles against external sources (ACFRs), audits source-chain durability at full-cohort depth, and runs a guided human UAT — documenting (not fixing) any defect (D-08). Concentrates proof-of-correctness and keeps it auditable.
+- **Author UAT checklists against the rendered UI, not the plan's vocabulary**: name the exact on-screen label (the salaries dataset card is **"Employees"**, not "Salaries"), and state every precondition that gates visibility (e.g. "set the year to one within the dataset's range first"). A checklist written from plan terminology produces false-fails the human has to chase down.
+- **Trace the app's real data source when a render "fails"**: `available_datasets` (and thus which tabs/cards appear) comes from the `ev-accounts-api` endpoint, which can differ from a direct `treasury.budgets` probe — verify against the same source the app reads.
+
+### Key Lessons
+
+1. **A mature pipeline turns a milestone into a day of running commands**: v2.3's only real work was applying the v2.2 runbook at scale (88 + 98 cities) + a verification phase. The fourth confirmation that invention compounds — spend the invention budget once, then iterate.
+2. **UAT false-fails are usually instrument defects — author the checklist from the live UI**: three rounds of "salaries tab missing" were all the checklist (wrong city, wrong label, wrong year-state), never the product. Naming real UI labels + visibility preconditions up front would have made it one round.
+3. **Know which datastore the app actually reads**: the live app reads `available_datasets` from the API, not the raw table — a direct DB probe can mislead during UAT diagnosis. Match the probe to the render path.
+4. **The `milestone.complete` accomplishments extractor is reliably broken (4/4)** — budget for hand-rewriting the MILESTONES entry every close until the extractor/one-liner-convention mismatch is fixed.
+
+### Cost Observations
+
+- **~$0 API spend** — all budget/revenue/salary data from free SCO ByTheNumbers + GCC sources; enrichment authored inline at $0; ACFR PDFs fetched via free WebFetch; verification via read-only DB probes. Held the free-source ground rule, far under the $5 gate.
+- No AI generation runs this milestone; the verification phase was probes + PDF reads + a human checklist.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -211,14 +257,15 @@
 | v2.0 | 6 | 20 | ~1 day | Federal entity + always-sourced standard; $0 enrichment; domain-aware source audit |
 | v2.1 | 3 | 13 | ~2 days | Federal history backfill (year-independent design validated); inline execution for small phase; durable source URLs; $0 spend |
 | v2.2 | 6 | 15 | ~2 days | Reusable one-command SoCal county pipeline + runbook; spike-gated net-new salaries; never-overwrite guard; 34 OC cities + county budget; $0 spend |
+| v2.3 | 5 | 15 | ~1 day | Pipeline applied at scale (LA County 88 + 98-city salaries) with zero new tooling; dedicated verification-only closeout phase; $0 spend |
 
 ### Top Lessons (Verified Across Milestones)
 
 1. **Generic loaders compress future milestones**: Every milestone that invested in a reusable loader (Socrata v1.1, XLSX v1.1, pdfplumber v1.5) made subsequent milestones faster. This compounds — v1.6 ran in 3 days because v1.5 proved the pdfplumber pattern, v2.0's federal loaders set up a cheap historical backfill, and v2.2 turned the LA County 88 path + LA county-budget one-offs into a documented one-command SoCal pipeline (SOCAL-01..06 now scoped as runbook iterations). The mature form of this lesson is a *runbook*, not just a loader.
 2. **Scope mismatches are correctness issues, not just cosmetic**: Bakersfield (v1.6) and LA revenue (v1.5) both had scope mismatches caught during verification. A "scope parity check" before enrichment is now standard. v2.0 extended this to visual-vs-official totals (the $521B/$1,895B disclosure).
-3. **Human UAT checkpoints catch real issues**: Every milestone has had at least one real issue surfaced during human verification that automated checks missed (LA revenue $44.6B in v1.5; Bakersfield operating/revenue ratio in v1.6; React #310 hooks crash in v2.0 Phase 45).
+3. **Human UAT checkpoints catch real issues — but author the checklist from the live UI**: Every milestone has had at least one real issue surfaced during human verification that automated checks missed (LA revenue $44.6B in v1.5; Bakersfield operating/revenue ratio in v1.6; React #310 hooks crash in v2.0 Phase 45). v2.3 added the inverse caution: three rounds of UAT "failures" were all *checklist-instrument* defects (wrong city, wrong card label, wrong year-state), not product bugs — write checklists against the actual rendered labels + visibility preconditions, not the plan's vocabulary, or the human chases phantom failures.
 4. **Planning docs lag at close — recurring tax (improving)**: v1.6 and v2.0 surfaced stale ROADMAP/PROJECT state at close. v2.1 updated ROADMAP plan-progress per-plan, making close lighter — the fix is "update tracking as each plan completes," and it works when actually done.
 5. **Reusable verification harnesses compound like loaders do**: the Phase 48 govinfo-API source-check dropped straight into v2.1's comparability verifier with no rework. Audit/verification tooling is as reusable as data loaders — invest in it once, reuse across milestones.
 6. **Match execution mode to phase shape**: v2.1 ran a small, linear, checkpoint-heavy phase inline (no subagents) for lower token cost; parallel worktree executors are for genuinely independent plans. One size does not fit all phases.
-7. **The `milestone.complete` accomplishments extractor is reliably broken (v2.0/v2.1/v2.2)**: it has emitted garbage (header lines, then empty placeholders) three closes running because it disagrees with the SUMMARY one-liner convention. Hand-rewriting the MILESTONES entry is now the expected close step until the extractor/convention mismatch is fixed.
+7. **The `milestone.complete` accomplishments extractor is reliably broken (v2.0/v2.1/v2.2/v2.3)**: it has emitted garbage (header lines, then empty placeholders) four closes running because it disagrees with the SUMMARY one-liner convention. Hand-rewriting the MILESTONES entry is now the expected close step until the extractor/convention mismatch is fixed.
 8. **The doc trail lags the build, and it's the audit that catches it**: missing VERIFICATION files, unchecked requirements, and stale cross-repo notes have surfaced at milestone close/audit rather than during execution (v2.0, v2.1, v2.2). `/gsd:audit-milestone` reliably closes these gaps — but per-phase verification + requirement-ticking would make close a formality instead of a reconciliation.
