@@ -34,7 +34,7 @@
 | 64 | 2/2 | Complete   | 2026-06-17 |
 | 65 | 1/1 | Complete   | 2026-06-17 |
 | 66 | 1/1 | Complete   | 2026-06-17 |
-| 67 | SoCal Verification + Source-Chain Audit + UAT | VER-05, VER-06 | 63–66 |
+| 67 | 1/3 | In Progress|  |
 
 ### Phase 63: SoCal County Cities Load + Linking
 
