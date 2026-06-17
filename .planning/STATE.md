@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.4
 milestone_name: Southern California Expansion
 status: executing
-last_updated: "2026-06-17T20:47:38.323Z"
-last_activity: 2026-06-17 -- Phase 64 planning complete
+last_updated: "2026-06-17T21:06:54.100Z"
+last_activity: 2026-06-17
 progress:
   total_phases: 67
   completed_phases: 6
   total_plans: 23
-  completed_plans: 21
+  completed_plans: 22
   percent: 9
 ---
 
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16 after v2.2)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 63 — socal-county-cities-load-linking
+**Current focus:** Phase 64 — socal-county-government-budgets
 
 ## Current Position
 
-Phase: 63 — COMPLETE
-Plan: 5 of 6
+Phase: 64 (socal-county-government-budgets) — EXECUTING
+Plan: 2 of 2
 Status: Ready to execute
-Last activity: 2026-06-17 -- Phase 64 planning complete
+Last activity: 2026-06-17
 
 ### v2.4 SoCal expansion context
 

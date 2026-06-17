@@ -31,7 +31,7 @@
 | # | Phase | Requirements | Depends on |
 |---|-------|--------------|------------|
 | 63 | 6/6 | Complete   | 2026-06-17 |
-| 64 | SoCal County-Government Budgets | CGB-01 | none |
+| 64 | 1/2 | In Progress|  |
 | 65 | SoCal Salaries Sweep | SAL-07 | 63 |
 | 66 | SoCal Enrichment Parity | ENR-03 | 63 + 65 |
 | 67 | SoCal Verification + Source-Chain Audit + UAT | VER-05, VER-06 | 63–66 |
