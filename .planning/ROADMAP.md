@@ -33,7 +33,7 @@
 | 63 | 6/6 | Complete   | 2026-06-17 |
 | 64 | 2/2 | Complete   | 2026-06-17 |
 | 65 | 1/1 | Complete   | 2026-06-17 |
-| 66 | SoCal Enrichment Parity | ENR-03 | 63 + 65 |
+| 66 | 1/1 | Complete   | 2026-06-17 |
 | 67 | SoCal Verification + Source-Chain Audit + UAT | VER-05, VER-06 | 63–66 |
 
 ### Phase 63: SoCal County Cities Load + Linking
