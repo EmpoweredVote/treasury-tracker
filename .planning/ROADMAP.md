@@ -16,131 +16,22 @@
 - ✅ **v2.1 Federal History** — Phases 49-51 (shipped 2026-06-14)
 - ✅ **v2.2 Orange County + Reusable SoCal Pipeline** — Phases 52-57 (shipped 2026-06-16)
 - ✅ **v2.3 California Coverage Parity** — Phases 58-62 (shipped 2026-06-17)
-- ▶ **v2.4 Southern California Expansion** — Phases 63-67 (in progress)
+- ✅ **v2.4 Southern California Expansion** — Phases 63-67 (shipped 2026-06-17)
 
 ---
 
-## ▶ v2.4 Southern California Expansion (Phases 63–67) — ACTIVE
+<details>
+<summary>✅ v2.4 Southern California Expansion (Phases 63-67) — SHIPPED 2026-06-17</summary>
 
-**Milestone goal:** Extend Treasury Tracker to all 6 remaining Southern California counties' cities + their county-government budgets, via the hardened v2.2/v2.3 pipeline (no new tooling). Every figure durably sourced; salaries + enrichment to parity; independently verified with Chris UAT sign-off. The 6 counties: Riverside, San Bernardino, San Diego, Ventura, Santa Barbara, Imperial (~95 cities).
+Extended Treasury Tracker to all 6 remaining Southern California counties via the hardened v2.2/v2.3 pipeline (zero new data-loading tooling): 95 cities + 8 county governments (op/rev FY2003–2024), GCC salaries (FY2009–2024, $0-delta reconciled), enrichment to parity (bleed-safe, $0). Source chain audited durable + residue-free; Ventura County reconciled to its published ACFR; Chris UAT sign-off recorded. $0 spend. See [milestones/v2.4-ROADMAP.md](milestones/v2.4-ROADMAP.md).
 
-**Pipeline reuse (zero new tooling):** `bulkLoadStateController.js --county` (city history, never-overwrite guard, feed population) → `seedCountyLinks.js` (county seed + linking) → enrich → verify; `loadCountyBudget.js` (county-government budget); `loadCASalaries.js` (statewide GCC salaries); runbook `docs/socal-county-onboarding.md`.
+- [x] Phase 63: SoCal County Cities Load + Linking (6/6 plans) — completed 2026-06-17
+- [x] Phase 64: SoCal County-Government Budgets (2/2 plans) — completed 2026-06-17
+- [x] Phase 65: SoCal Salaries Sweep (1/1 plan) — completed 2026-06-17
+- [x] Phase 66: SoCal Enrichment Parity (1/1 plan) — completed 2026-06-17
+- [x] Phase 67: SoCal Verification + Source-Chain Audit + UAT (3/3 plans) — completed 2026-06-17
 
-**Critical path:** 63 → 65 → 66 → 67. Phase 64 (county-gov budgets) is independent and runs in parallel with 63.
-
-| # | Phase | Requirements | Depends on |
-|---|-------|--------------|------------|
-| 63 | 6/6 | Complete   | 2026-06-17 |
-| 64 | 2/2 | Complete   | 2026-06-17 |
-| 65 | 1/1 | Complete   | 2026-06-17 |
-| 66 | 1/1 | Complete   | 2026-06-17 |
-| 67 | 3/3 | Complete   | 2026-06-17 |
-
-### Phase 63: SoCal County Cities Load + Linking
-
-**Goal:** Citizens can view operating + revenue back to FY2003 for all 6 SoCal counties' cities (Riverside, San Bernardino, San Diego, Ventura, Santa Barbara, Imperial) from SCO ByTheNumbers — every figure sourced, per-year population for per-capita — and each city is linked to its county (breadcrumb + Cities-in-County panel), never overwriting any city already loaded from a richer custom source.
-**Depends on:** Nothing (reuses the hardened v2.2/v2.3 pipeline)
-**Requirements:** SOCAL-01, SOCAL-02, SOCAL-03, SOCAL-04, SOCAL-05, SOCAL-06
-**Success Criteria** (what must be TRUE):
-
-  1. Each of the 6 SoCal counties' cities shows operating + revenue reaching FY2003 where SCO provides it, every row carrying SCO ByTheNumbers source attribution and per-year population
-  2. Each new city is linked via `county_id` to its correct county; the breadcrumb chain (US → California → County → city) and Cities-in-County panel render in the live app
-  3. The never-overwrite guard demonstrably leaves any pre-existing custom-source city unchanged
-  4. Per-capita renders for the backfilled years on a spot-checked sample across the 6 counties
-
-**Plan shape:** one plan per county (6 plans). Data-independent but run serially on the main tree (scripts need the gitignored `.env`; no worktree isolation — same as Phase 62).
-
-**Plan Progress:**
-
-| Plan | County | Requirement | Status |
-|------|--------|-------------|--------|
-| 63-01 | Riverside | SOCAL-01 | Not started |
-| 63-02 | San Bernardino | SOCAL-02 | Not started |
-| 63-03 | San Diego | SOCAL-03 | Not started |
-| 63-04 | Ventura | SOCAL-04 | Not started |
-| 63-05 | Santa Barbara | SOCAL-05 | Not started |
-| 63-06 | Imperial | SOCAL-06 | Not started |
-
-### Phase 64: SoCal County-Government Budgets
-
-**Goal:** Each of the 6 SoCal county governments + the 2 directory-only counties already in the DB (Alameda, Sacramento) shows its own operating + revenue budget (FY2003–2024) — county pages render icicle/summary + per-capita instead of directory-only.
-**Depends on:** Nothing (independent of city loads; runs parallel to Phase 63)
-**Requirements:** CGB-01
-**Success Criteria** (what must be TRUE):
-
-  1. County-government operating + revenue spanning FY2003–2024 (all-governmental-funds basis, documented) loaded via `loadCountyBudget.js` for the 6 SoCal counties + Alameda + Sacramento
-  2. Every county-budget row carries durable `/d/<id>` source attribution and per-year population
-  3. Each county page renders icicle/summary + per-capita (no longer directory-only); city rows under each county are untouched (never-overwrite)
-
-**Plan shape:** 2 plans grouped by cohort (64-01 = 6 SoCal counties; 64-02 = Alameda + Sacramento), both → CGB-01. Data-independent but run serially on the main tree (loader needs the gitignored `.env`; no worktree — same as Phase 63). Canary FY2024 first (locks current population from feed), then per-FY backfill with retry loop (SCO API is flaky).
-
-**Plan Progress:**
-
-| Plan | Counties | Requirement | Status |
-|------|----------|-------------|--------|
-| 64-01 | Riverside, San Bernardino, San Diego, Ventura, Santa Barbara, Imperial | CGB-01 | Not started |
-| 64-02 | Alameda, Sacramento | CGB-01 | Not started |
-
-### Phase 65: SoCal Salaries Sweep
-
-**Goal:** All newly-loaded SoCal cities carry CA Government Compensation salary data (2009–2024), reconciled on a sample.
-**Depends on:** Phase 63 (cities must exist before salaries attach) — salary state confirmed against the production/ev-accounts DB first (local is stale)
-**Requirements:** SAL-07
-**Success Criteria** (what must be TRUE):
-
-  1. Source coverage for the target SoCal cities is confirmed against GCC before any sweep writes
-  2. Salaries 2009–2024 loaded for the new SoCal cities wherever GCC provides them, with a never-overwrite guard
-  3. A sample city's latest-year total compensation reconciles to the published GCC figure at ~$0 delta
-  4. Per-city coverage and any gaps are documented; the salaries dataset is viewable in the live app for a spot-checked city
-
-**Plan shape:** 1 plan (65-01) — sweep all 6 SoCal counties' cities (95 total) via `sweepCASalaries.js --county` (additive, never-overwrite). Production DB only (local salary state is stale); dry-run coverage gate first; reconcile a sample via independent GCC re-aggregation (~$0 delta). Serial main-tree, $0.
-
-**Plan Progress:**
-
-| Plan | Scope | Requirement | Status |
-|------|-------|-------------|--------|
-| 65-01 | GCC salaries FY2009–2024 for the 95 SoCal cities (6 counties) | SAL-07 | Not started |
-
-### Phase 66: SoCal Enrichment Parity
-
-**Goal:** Every parity-loaded SoCal budget category (operating, revenue, salaries) carries standardized, bleed-safe, plain-language enrichment matching the OC/LA County baseline.
-**Depends on:** Phases 63 + 65 (categories must be loaded before they can be enriched)
-**Requirements:** ENR-03
-**Success Criteria** (what must be TRUE):
-
-  1. All newly parity-loaded SoCal categories — operating, revenue, AND salaries — have plain-language enrichment (names + descriptions), authored hybrid: universal (`municipality_id IS NULL`) for generic SCO/department taxonomy names; city-scoped for anything city-specific (no city-specific text in a universal record)
-  2. Enrichment is bleed-safe — no city's text appears on another city's categories (spot-checked across ≥3 cities)
-  3. Enrichment is authored inline at ~$0 (no paid API spend beyond the documented gate)
-
-**Plan shape:** 1 plan (66-01). Residual-only — Phase 61 already authored 577 universal rows covering CA op/rev (100%) + ≥2-city salary depts; probe (2026-06-17) shows SoCal op/rev 0 uncovered, salaries ~27 uncovered shared by ≥2 cities + ~762 single-city tail. Author universal generic rows for the ≥2-city residual via the reused Phase 61 CONCEPTS resolver (bleed-safe, $0); defer the single-city tail. Serial main-tree (creates committed enrichment data/loader files).
-
-**Plan Progress:**
-
-| Plan | Scope | Requirement | Status |
-|------|-------|-------------|--------|
-| 66-01 | Author residual SoCal enrichment (≥2-city salary depts; op/rev already covered) | ENR-03 | Not started |
-
-### Phase 67: SoCal Verification + Source-Chain Audit + UAT
-
-**Goal:** The SoCal expansion is independently reconciled against published ACFRs, the source chain is durable, and Chris signs off in the live app.
-**Depends on:** Phases 63, 64, 65, 66 (all SoCal data + enrichment loaded)
-**Requirements:** VER-05, VER-06
-**Success Criteria** (what must be TRUE):
-
-  1. A representative sample of SoCal county governments + cities reconcile against published ACFRs / adopted budgets on a basis-matched comparison, documented (explainable tolerance, not penny-exact)
-  2. A source-chain audit passes — every backfilled SoCal budget/salary row carries durable human-page source attribution (no fragile/version-specific links), zero residue
-  3. The live app is verified end-to-end for the SoCal expansion: FY2003 history depth, salaries dataset, per-capita across backfilled years, enrichment, breadcrumbs + Cities-in-County panels
-  4. Chris UAT sign-off recorded
-
-**Plan shape:** 3 plans mirroring the Phase 62 closeout. Wave 1 (parallel, read-only, autonomous): 67-01 ACFR reconciliation (sample of SoCal county-govs + cities, basis-matched) + 67-02 full-cohort source-chain durability audit — both → VER-05. Wave 2: 67-03 live-app guided UAT + Chris sign-off at a **blocking checkpoint** → VER-06. Read-only (no writes/source changes), production DB, $0.
-
-**Plan Progress:**
-
-| Plan | Scope | Requirement | Status |
-|------|-------|-------------|--------|
-| 67-01 | ACFR reconciliation (basis-matched sample) | VER-05 | Not started |
-| 67-02 | Source-chain durability audit (full SoCal cohort) | VER-05 | Not started |
-| 67-03 | Live-app UAT + Chris sign-off (blocking) | VER-06 | Not started |
+</details>
 
 ---
 
