@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.3
-milestone_name: California Coverage Parity
-status: Awaiting next milestone
-last_updated: "2026-06-17T16:43:24.800Z"
-last_activity: 2026-06-17 — Milestone v2.3 completed and archived
+milestone: v2.4
+milestone_name: Southern California Expansion
+status: planning
+last_updated: "2026-06-17T17:04:25.808Z"
+last_activity: 2026-06-17
 progress:
-  total_phases: 62
-  completed_phases: 5
-  total_plans: 15
-  completed_plans: 15
-  percent: 8
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State
@@ -20,37 +20,36 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16 after v2.2)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Milestone complete
+**Current focus:** v2.4 Southern California Expansion — Phase 63 (SoCal county cities load + linking) next
 
 ## Current Position
 
-Phase: Milestone v2.3 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-06-17 — Milestone v2.3 completed and archived
+Status: Defining requirements
+Last activity: 2026-06-17 — Milestone v2.4 started
 
-### v2.3 gap baseline (DB query, 2026-06-16)
+### v2.4 SoCal expansion context
 
-- **OC (the standard):** 34 cities op+rev FY2003–2024 + salaries (salaries live in production, NOT local DB).
-- **LA County:** 88 cities op+rev FY2017+ only (0 reach FY2003), 0 salaries → Phase 58 backfill + Phase 60 salaries.
-- **LA County gov budget:** FY2021–2025 present (vs OC FY2003–2024) → Phase 58 extends FY2003–2020.
-- **Unlinked CA cities:** 7 (1 has no budget at all); **other-county cities:** 4 (Alameda/Sac/SD), FY2012+ → Phase 59.
-- **Named custom-source cities (12):** LA/SF/SD/San Jose etc. — never-overwrite their budgets; salaries + enrichment only (Chris decision 2026-06-16).
-- ⚠️ **Salary verify-at-plan-time:** local Supabase shows salaries for only Bloomington IN (282K rows, 2015–2025); the v2.2 OC salary sweep is production-only. Phase 60 must confirm against the **production / ev-accounts** DB, not local.
+- **6 new counties to load:** Riverside (~28 cities), San Bernardino (~24), San Diego (~18), Ventura (~10), Santa Barbara (~8), Imperial (~7) — ~95 cities total. Counts are estimates from the v2.3 archive; confirm against the production DB at plan time.
+- **County-gov budgets:** the 6 SoCal counties + the 2 directory-only counties already in the DB (Alameda, Sacramento) get their own op+rev FY2003–2024 via `loadCountyBudget.js` (Phase 64). San Diego County is in the SoCal set.
+- **Never-overwrite guard:** any SoCal city already loaded from a richer custom source (e.g. San Diego city) stays untouched — new cities get SCO data; existing custom cities get salaries + enrichment only.
+- ⚠️ **Salary verify-at-plan-time:** the GCC salary sweep is production-only; local Supabase is stale. Phase 65 must confirm coverage against the **production / ev-accounts** DB before any sweep writes.
+- **v2.3 follow-ups remain deferred** (FUP-01..03): Glendale/Burbank ACFR, Employees-card year-gating UX, salary dept-name canonicalization — not in v2.4 scope.
 
 ## Phase Overview
 
 | Phase | Name | Depends on | Status |
 |-------|------|------------|--------|
-| 58 | LA County Parity Backfill (88 cities + county gov budget → FY2003) | Nothing (reuses v2.2 tools) | Planned (4 plans) |
-| 59 | Remaining CA Cities History + Linking | Phase 58 | Pending |
-| 60 | Statewide CA Salaries Sweep (2009–2024, all non-OC CA cities) | Nothing (parallel to 58/59) | Pending |
-| 61 | Enrichment Parity | Phases 58 + 59 | Pending |
-| 62 | ACFR Verification + Source-Chain Audit + UAT | Phases 58–61 | Pending |
+| 63 | SoCal County Cities Load + Linking (6 counties, ~95 cities) | Nothing (hardened pipeline) | Not started |
+| 64 | SoCal County-Government Budgets (6 SoCal + Alameda + Sacramento) | Nothing (parallel to 63) | Pending |
+| 65 | SoCal Salaries Sweep (new cities, FY2009–2024) | Phase 63 | Pending |
+| 66 | SoCal Enrichment Parity | Phases 63 + 65 | Pending |
+| 67 | SoCal Verification + Source-Chain Audit + UAT | Phases 63–66 | Pending |
 
-**Critical path:** 58 → 59 → 61 → 62. Phase 60 (salaries) is independent and runs in parallel with 58/59.
-**Constraint:** Free sources only; enrichment inline at ~$0 (API cost gate $5 — estimate before any AI run). Every backfilled figure carries durable source attribution.
-**Pipeline reuse (zero new tooling):** `bulkLoadStateController.js --county` (history, never-overwrite guard), `loadCountyBudget.js` (county-gov budget), `loadCASalaries.js` (salaries), `seedCountyLinks.js` (linking), runbook `docs/socal-county-onboarding.md`.
+**Critical path:** 63 → 65 → 66 → 67. Phase 64 (county-gov budgets) is independent and runs in parallel with 63.
+**Constraint:** Free sources only; enrichment inline at ~$0 (API cost gate $5 — estimate before any AI run). Every loaded figure carries durable source attribution.
+**Pipeline reuse (zero new tooling):** `bulkLoadStateController.js --county` (history, never-overwrite guard), `seedCountyLinks.js` (linking), `loadCountyBudget.js` (county-gov budget), `loadCASalaries.js` (salaries), runbook `docs/socal-county-onboarding.md`.
 
 ## Accumulated Context
 
@@ -130,7 +129,7 @@ Resume file: None
 
 ### Next Session
 
-Phase 58 is complete. Begin Phase 59 (Remaining CA Cities History + Linking). Unlinked/other-county CA cities need FY2003+ history and county_id linking.
+v2.4 milestone defined (Phases 63–67). Begin with `/gsd:plan-phase 63` (SoCal County Cities Load + Linking). Confirm the 6 counties' city lists + SCO dataset IDs against the production DB at plan time; one plan per county, parallelizable.
 
 ## Performance Metrics
 

@@ -14,9 +14,21 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 
 **Coverage now:** US federal + CA/MA state budgets, 351 MA cities, all 34 OC cities + OC county-gov, all 88 LA County cities + LA County gov (FY2003 depth), 12 named CA cities, 14 TX cities, 3 OR cities — every figure durably sourced.
 
-## Next Milestone Goals (v2.4 — not yet planned)
+## Current Milestone: v2.4 Southern California Expansion
 
-**Southern California expansion** — extend coverage to 6 more SoCal counties (Riverside, San Bernardino, San Diego, Ventura, Santa Barbara, Imperial; SOCAL-01..06, ~95 more cities) via the now-proven one-command SoCal pipeline. Documented v2.3 follow-ups to fold in: Glendale + Burbank ACFR reconciliation (CDN blocked CLI fetch — manual browser download), the "Employees" salaries-card year-gating UX, and the 5,226 single-city salary department-name canonicalization long tail. Kick off with `/gsd:new-milestone`.
+**Goal:** Extend Treasury Tracker to all 6 remaining SoCal counties' cities + their county-government budgets, via the hardened v2.2/v2.3 pipeline (no new tooling) — every figure durably sourced, salaries + enrichment to parity, independently verified with Chris UAT sign-off.
+
+**Target features:**
+- Load the 6 SoCal counties' cities (Riverside, San Bernardino, San Diego, Ventura, Santa Barbara, Imperial; ~95 cities) — operating + revenue FY2003–2024 from SCO ByTheNumbers, per-year population, durable source rows, never-overwrite guard — and link each county node (breadcrumb + Cities-in-County)
+- County-government budgets (op+rev FY2003–2024) for the 6 SoCal counties + the 2 directory-only counties already in the DB (Alameda, Sacramento) via `loadCountyBudget.js`
+- Statewide CA GCC salaries FY2009–2024 for all new SoCal cities, a sample reconciled at ~$0 delta
+- Standardized, bleed-safe enrichment for all newly-loaded SoCal categories (op/rev + salaries)
+- ACFR reconciliation (sample) + full-cohort source-chain durability audit + live-app E2E + Chris UAT sign-off
+
+**Key context:**
+- **Pipeline reuse, not new build** — runs entirely on the v2.2/v2.3 tools + runbook (`docs/socal-county-onboarding.md`); each county is a one-command `bulkLoadStateController.js --county` → `seedCountyLinks.js` → enrich → verify; never-overwrite guard protects any city already loaded from a richer source
+- **v2.3 follow-ups remain deferred** (not in v2.4 scope): Glendale + Burbank ACFR reconciliation (CDN blocked CLI fetch), the "Employees" salaries-card year-gating UX, the 5,226 single-city salary department-name canonicalization long tail
+- City counts (~28/24/18/10/8/7 per county) are estimates from the v2.3 archive — confirmed against the production/ev-accounts DB at plan time (salaries state is production-only, not local)
 
 ## Requirements
 
@@ -91,7 +103,12 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 
 ### Active
 
-**No active milestone.** v2.3 shipped 2026-06-17; v2.4 (Southern California expansion) is not yet defined — start it with `/gsd:new-milestone`. Staged requirements live in the REQUIREMENTS archive Future section.
+**v2.4 Southern California Expansion** (defined 2026-06-17) — see `.planning/REQUIREMENTS.md`:
+- [ ] **SOCAL-01..06**: cities loaded + linked for Riverside, San Bernardino, San Diego, Ventura, Santa Barbara, Imperial counties (op+rev FY2003–2024, SCO-sourced, per-year pop, never-overwrite)
+- [ ] **CGB-01**: county-government budgets for the 6 SoCal counties + Alameda + Sacramento
+- [ ] **SAL-07**: statewide GCC salaries FY2009–2024 for all new SoCal cities, sample reconciled
+- [ ] **ENR-03**: standardized, bleed-safe enrichment for all newly-loaded SoCal categories
+- [ ] **VER-05/06**: ACFR reconciliation + source-chain audit + Chris UAT
 
 ### Future (deferred milestone candidates)
 
@@ -189,4 +206,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-17 — v2.3 California Coverage Parity milestone SHIPPED (Phases 58–62). LA County + all remaining non-OC CA entities brought to the OC standard (FY2003 history, statewide salaries 2009–2024, enrichment), verified end-to-end (ACFR reconciliation + source-chain audit + Chris UAT). Next: v2.4 Southern California expansion (SOCAL-01..06) — start with /gsd:new-milestone.*
+*Last updated: 2026-06-17 — v2.4 Southern California Expansion milestone STARTED (Phases 63–67). Goal: extend coverage to the 6 remaining SoCal counties' cities + county-government budgets (incl. Alameda + Sacramento), salaries + enrichment to parity, verified with Chris UAT — all via the hardened v2.2/v2.3 pipeline, $0 spend. v2.3 shipped 2026-06-17. See REQUIREMENTS.md + ROADMAP.md.*

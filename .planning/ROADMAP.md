@@ -16,6 +16,85 @@
 - ✅ **v2.1 Federal History** — Phases 49-51 (shipped 2026-06-14)
 - ✅ **v2.2 Orange County + Reusable SoCal Pipeline** — Phases 52-57 (shipped 2026-06-16)
 - ✅ **v2.3 California Coverage Parity** — Phases 58-62 (shipped 2026-06-17)
+- ▶ **v2.4 Southern California Expansion** — Phases 63-67 (in progress)
+
+---
+
+## ▶ v2.4 Southern California Expansion (Phases 63–67) — ACTIVE
+
+**Milestone goal:** Extend Treasury Tracker to all 6 remaining Southern California counties' cities + their county-government budgets, via the hardened v2.2/v2.3 pipeline (no new tooling). Every figure durably sourced; salaries + enrichment to parity; independently verified with Chris UAT sign-off. The 6 counties: Riverside, San Bernardino, San Diego, Ventura, Santa Barbara, Imperial (~95 cities).
+
+**Pipeline reuse (zero new tooling):** `bulkLoadStateController.js --county` (city history, never-overwrite guard, feed population) → `seedCountyLinks.js` (county seed + linking) → enrich → verify; `loadCountyBudget.js` (county-government budget); `loadCASalaries.js` (statewide GCC salaries); runbook `docs/socal-county-onboarding.md`.
+
+**Critical path:** 63 → 65 → 66 → 67. Phase 64 (county-gov budgets) is independent and runs in parallel with 63.
+
+| # | Phase | Requirements | Depends on |
+|---|-------|--------------|------------|
+| 63 | SoCal County Cities Load + Linking | SOCAL-01..06 | none (hardened pipeline) |
+| 64 | SoCal County-Government Budgets | CGB-01 | none |
+| 65 | SoCal Salaries Sweep | SAL-07 | 63 |
+| 66 | SoCal Enrichment Parity | ENR-03 | 63 + 65 |
+| 67 | SoCal Verification + Source-Chain Audit + UAT | VER-05, VER-06 | 63–66 |
+
+### Phase 63: SoCal County Cities Load + Linking
+
+**Goal:** Citizens can view operating + revenue back to FY2003 for all 6 SoCal counties' cities (Riverside, San Bernardino, San Diego, Ventura, Santa Barbara, Imperial) from SCO ByTheNumbers — every figure sourced, per-year population for per-capita — and each city is linked to its county (breadcrumb + Cities-in-County panel), never overwriting any city already loaded from a richer custom source.
+**Depends on:** Nothing (reuses the hardened v2.2/v2.3 pipeline)
+**Requirements:** SOCAL-01, SOCAL-02, SOCAL-03, SOCAL-04, SOCAL-05, SOCAL-06
+**Success Criteria** (what must be TRUE):
+
+  1. Each of the 6 SoCal counties' cities shows operating + revenue reaching FY2003 where SCO provides it, every row carrying SCO ByTheNumbers source attribution and per-year population
+  2. Each new city is linked via `county_id` to its correct county; the breadcrumb chain (US → California → County → city) and Cities-in-County panel render in the live app
+  3. The never-overwrite guard demonstrably leaves any pre-existing custom-source city unchanged
+  4. Per-capita renders for the backfilled years on a spot-checked sample across the 6 counties
+
+**Plan shape:** one plan per county (6 plans, parallelizable — each an independent `bulkLoadStateController.js --county` + `seedCountyLinks.js` run).
+
+### Phase 64: SoCal County-Government Budgets
+
+**Goal:** Each of the 6 SoCal county governments + the 2 directory-only counties already in the DB (Alameda, Sacramento) shows its own operating + revenue budget (FY2003–2024) — county pages render icicle/summary + per-capita instead of directory-only.
+**Depends on:** Nothing (independent of city loads; runs parallel to Phase 63)
+**Requirements:** CGB-01
+**Success Criteria** (what must be TRUE):
+
+  1. County-government operating + revenue spanning FY2003–2024 (all-governmental-funds basis, documented) loaded via `loadCountyBudget.js` for the 6 SoCal counties + Alameda + Sacramento
+  2. Every county-budget row carries durable `/d/<id>` source attribution and per-year population
+  3. Each county page renders icicle/summary + per-capita (no longer directory-only); city rows under each county are untouched (never-overwrite)
+
+### Phase 65: SoCal Salaries Sweep
+
+**Goal:** All newly-loaded SoCal cities carry CA Government Compensation salary data (2009–2024), reconciled on a sample.
+**Depends on:** Phase 63 (cities must exist before salaries attach) — salary state confirmed against the production/ev-accounts DB first (local is stale)
+**Requirements:** SAL-07
+**Success Criteria** (what must be TRUE):
+
+  1. Source coverage for the target SoCal cities is confirmed against GCC before any sweep writes
+  2. Salaries 2009–2024 loaded for the new SoCal cities wherever GCC provides them, with a never-overwrite guard
+  3. A sample city's latest-year total compensation reconciles to the published GCC figure at ~$0 delta
+  4. Per-city coverage and any gaps are documented; the salaries dataset is viewable in the live app for a spot-checked city
+
+### Phase 66: SoCal Enrichment Parity
+
+**Goal:** Every parity-loaded SoCal budget category (operating, revenue, salaries) carries standardized, bleed-safe, plain-language enrichment matching the OC/LA County baseline.
+**Depends on:** Phases 63 + 65 (categories must be loaded before they can be enriched)
+**Requirements:** ENR-03
+**Success Criteria** (what must be TRUE):
+
+  1. All newly parity-loaded SoCal categories — operating, revenue, AND salaries — have plain-language enrichment (names + descriptions), authored hybrid: universal (`municipality_id IS NULL`) for generic SCO/department taxonomy names; city-scoped for anything city-specific (no city-specific text in a universal record)
+  2. Enrichment is bleed-safe — no city's text appears on another city's categories (spot-checked across ≥3 cities)
+  3. Enrichment is authored inline at ~$0 (no paid API spend beyond the documented gate)
+
+### Phase 67: SoCal Verification + Source-Chain Audit + UAT
+
+**Goal:** The SoCal expansion is independently reconciled against published ACFRs, the source chain is durable, and Chris signs off in the live app.
+**Depends on:** Phases 63, 64, 65, 66 (all SoCal data + enrichment loaded)
+**Requirements:** VER-05, VER-06
+**Success Criteria** (what must be TRUE):
+
+  1. A representative sample of SoCal county governments + cities reconcile against published ACFRs / adopted budgets on a basis-matched comparison, documented (explainable tolerance, not penny-exact)
+  2. A source-chain audit passes — every backfilled SoCal budget/salary row carries durable human-page source attribution (no fragile/version-specific links), zero residue
+  3. The live app is verified end-to-end for the SoCal expansion: FY2003 history depth, salaries dataset, per-capita across backfilled years, enrichment, breadcrumbs + Cities-in-County panels
+  4. Chris UAT sign-off recorded
 
 ---
 
