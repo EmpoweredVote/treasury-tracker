@@ -34,7 +34,7 @@
 | 64 | 2/2 | Complete   | 2026-06-17 |
 | 65 | 1/1 | Complete   | 2026-06-17 |
 | 66 | 1/1 | Complete   | 2026-06-17 |
-| 67 | 2/3 | In Progress|  |
+| 67 | 3/3 | Complete   | 2026-06-17 |
 
 ### Phase 63: SoCal County Cities Load + Linking
 
