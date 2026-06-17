@@ -132,6 +132,16 @@
   3. The live app is verified end-to-end for the SoCal expansion: FY2003 history depth, salaries dataset, per-capita across backfilled years, enrichment, breadcrumbs + Cities-in-County panels
   4. Chris UAT sign-off recorded
 
+**Plan shape:** 3 plans mirroring the Phase 62 closeout. Wave 1 (parallel, read-only, autonomous): 67-01 ACFR reconciliation (sample of SoCal county-govs + cities, basis-matched) + 67-02 full-cohort source-chain durability audit — both → VER-05. Wave 2: 67-03 live-app guided UAT + Chris sign-off at a **blocking checkpoint** → VER-06. Read-only (no writes/source changes), production DB, $0.
+
+**Plan Progress:**
+
+| Plan | Scope | Requirement | Status |
+|------|-------|-------------|--------|
+| 67-01 | ACFR reconciliation (basis-matched sample) | VER-05 | Not started |
+| 67-02 | Source-chain durability audit (full SoCal cohort) | VER-05 | Not started |
+| 67-03 | Live-app UAT + Chris sign-off (blocking) | VER-06 | Not started |
+
 ---
 
 <details>
