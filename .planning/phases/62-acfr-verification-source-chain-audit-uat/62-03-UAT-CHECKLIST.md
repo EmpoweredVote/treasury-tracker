@@ -80,10 +80,12 @@ Navigate to **Irvine**, CA. *(Corrected from Inglewood — see note above.)*
 | # | Navigation step | Expected result |
 |---|-----------------|-----------------|
 | 20 | Click or search for **Irvine** (CA) | Irvine's page loads |
-| 21 | Look for a **Salaries** tab or card on the dataset selector | A "Salaries" tab or card appears in the dataset tabs/cards area (alongside Operating/Revenue if present) |
-| 22 | Click the **Salaries** tab | The salaries view loads; a Department list or tree is visible |
-| 23 | Expand or click a **department** in the salaries tree | A list of positions (job titles) and associated salary figures appears under that department |
-| 24 | Look at the **department names** shown in the salaries tree | Department names show plain-language labels (e.g. "Police Department", "Fire Department", "Public Works") — enrichment is rendering for salary departments; labels are not raw code strings |
+| 21 | Look at the dataset cards row. There should be **three** cards: **Money Out**, **Money In**, and **Employees** (the salaries dataset is labeled **"Employees"** with a people icon + "Employee compensation" subtitle — NOT the word "Salaries") | A third card labeled **Employees** appears next to Money Out / Money In |
+| 22 | Click the **Employees** card | The salaries (employee compensation) view loads; a Department list or tree is visible |
+| 23 | Expand or click a **department** in the Employees/salaries tree | A list of positions (job titles) and associated salary/compensation figures appears under that department |
+| 24 | Look at the **department names** shown in the tree | Department names show plain-language labels (e.g. "Police Department", "Fire Department", "Public Works") — enrichment is rendering for salary departments; labels are not raw code strings |
+
+> **UAT round-2 note (2026-06-17):** Round-1 looked for a card literally named "Salaries" and found none. Root cause confirmed by reading `src/components/datasets/DatasetTabs.tsx`: the salaries dataset card is labeled **"Employees"** (`SALARIES_CARD`, Users icon, description "Employee compensation"), gated on `availableDatasets.includes('salaries')`. The live production API (`ev-accounts-api.onrender.com/api/treasury/cities`) confirms Irvine carries salaries FY2009–2024, so the card renders. This is a checklist-wording correction, not a product defect.
 
 ---
 
