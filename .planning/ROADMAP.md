@@ -112,6 +112,14 @@
   2. Enrichment is bleed-safe — no city's text appears on another city's categories (spot-checked across ≥3 cities)
   3. Enrichment is authored inline at ~$0 (no paid API spend beyond the documented gate)
 
+**Plan shape:** 1 plan (66-01). Residual-only — Phase 61 already authored 577 universal rows covering CA op/rev (100%) + ≥2-city salary depts; probe (2026-06-17) shows SoCal op/rev 0 uncovered, salaries ~27 uncovered shared by ≥2 cities + ~762 single-city tail. Author universal generic rows for the ≥2-city residual via the reused Phase 61 CONCEPTS resolver (bleed-safe, $0); defer the single-city tail. Serial main-tree (creates committed enrichment data/loader files).
+
+**Plan Progress:**
+
+| Plan | Scope | Requirement | Status |
+|------|-------|-------------|--------|
+| 66-01 | Author residual SoCal enrichment (≥2-city salary depts; op/rev already covered) | ENR-03 | Not started |
+
 ### Phase 67: SoCal Verification + Source-Chain Audit + UAT
 
 **Goal:** The SoCal expansion is independently reconciled against published ACFRs, the source chain is durable, and Chris signs off in the live app.
@@ -646,8 +654,10 @@ Plans:
 
 #### Phase Summary
 
-- [x] **Phase 37: MA Loader Hardening** — Confirm GF Expenditures rdreport/tableID, add progress checkpointing, fix fiscal_years append (completed 2026-06-10)
-- [x] **Phase 38: MA City Budget Load** — Operating + revenue data for all 351 MA cities (FY2021–FY2025); city picker updated (completed 2026-06-10)
+- [x] **Phase 37: MA Loader Hardening** — Confirm GF Expenditures rdreport/tableID, add progress checkpointing, fix fiscal_years append
+ (completed 2026-06-10)
+- [x] **Phase 38: MA City Budget Load** — Operating + revenue data for all 351 MA cities (FY2021–FY2025); city picker updated
+ (completed 2026-06-10)
 - [ ] **Phase 39: MA Population, State Budget, and Enrichment** — Population per-capita, MA state budget upgrade, universal category enrichment
 
 ---
@@ -887,7 +897,8 @@ Plans:
 #### Phase Summary
 
 - [x] **Phase 40: MA County Seeding + City Linking** — Seed 5 county rows (Barnstable, Bristol, Dukes, Norfolk, Plymouth), load 2024 Census population for each, link all MA cities in those counties via county_id FK. Unblocks breadcrumb chip and CitiesInCountyPanel automatically.
-- [x] **Phase 41: MA County Budget Load** — Discover budget source format for each of the 5 active counties, download PDFs, extract and load operating budget data. Each county is independent; load in parallel where possible. (completed 2026-06-11)
+- [x] **Phase 41: MA County Budget Load** — Discover budget source format for each of the 5 active counties, download PDFs, extract and load operating budget data. Each county is independent; load in parallel where possible.
+ (completed 2026-06-11)
 - [x] **Phase 42: County Enrichment + Verification** — Enrich budget categories for all 5 counties (municipality_id-scoped, never universal). Human spot-check: county breadcrumbs on MA city pages, CitiesInCountyPanel on county pages, per-capita display, budget visualization.
 
 ### Phase 40: MA County Seeding + City Linking
@@ -1154,7 +1165,8 @@ Milestone audit **PASSED 8/8** (HIST-01..04, NAV-01/02, CTX-01/02). Full detail 
 
 - [x] **Phase 49: Historical Federal Data Backfill (FY1976–FY2024)** ✅ Complete 2026-06-13 — function (PBD), agency (rebuilt from PBD, not MTS), revenue (5 Hist 2.1 buckets) for every year + TQ; 150 budgets / 135,056 line items; per-year disclosures; every row sourced; $0 spend. TQ via period_label migration.
 - [x] **Phase 50: Federal YearSelector Wiring** ✅ Complete 2026-06-13 — citizen selects any backfilled year (incl. the Transition Quarter as a distinct period); function/agency/revenue + landing bands + deficit strip all update. Backend exposes period_label (EV-Accounts); deployed to prod. UAT approved.
-- [x] **Phase 51: Comparability Notes + Source-Chain Verification + UAT** — definition-drift + FY1976 TQ notes, every-figure-resolves audit across years, Chris sign-off. (completed 2026-06-14)
+- [x] **Phase 51: Comparability Notes + Source-Chain Verification + UAT** — definition-drift + FY1976 TQ notes, every-figure-resolves audit across years, Chris sign-off.
+ (completed 2026-06-14)
 
 ### Phase 49: Historical Federal Data Backfill (FY1976–FY2024)
 
