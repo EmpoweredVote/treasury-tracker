@@ -30,7 +30,7 @@
 
 | # | Phase | Requirements | Depends on |
 |---|-------|--------------|------------|
-| 63 | SoCal County Cities Load + Linking | SOCAL-01..06 | none (hardened pipeline) |
+| 63 | 1/6 | In Progress|  |
 | 64 | SoCal County-Government Budgets | CGB-01 | none |
 | 65 | SoCal Salaries Sweep | SAL-07 | 63 |
 | 66 | SoCal Enrichment Parity | ENR-03 | 63 + 65 |
