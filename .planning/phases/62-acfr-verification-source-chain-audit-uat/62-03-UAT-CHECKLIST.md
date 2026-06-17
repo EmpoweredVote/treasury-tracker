@@ -1,0 +1,109 @@
+# Phase 62 Plan 03 — UAT Checklist (Task 1 artifact)
+
+**Purpose:** Guided click-through checklist for Chris to walk against the live app at
+https://treasurytracker.empowered.vote. Chris drives the browser; the agent records results.
+This checklist exercises every VER-04 item across the required 4-entity spread (D-07).
+
+**VER-04 items covered:** FY2003 history depth | salaries dataset/tab | per-capita across backfilled years | enrichment (plain-language category names) | breadcrumb chain | Cities-in-County panel
+
+**Entity spread:**
+- Entity A — LA County city: **Glendale** (standard SCO city, FY2003 verified)
+- Entity B — LA County government: **Los Angeles County** (county entity, FY2003–2024)
+- Entity C — Phase-59 linked city (breadcrumb/Cities-in-County): **Oakland** (linked Alameda County) + **San Francisco** (combined city-county node, no county hop)
+- Entity D — Salaries-only city: **Inglewood** (Phase-60 GCC salaries city; exercise salaries tab independently of op/rev)
+
+**Before you start:** Open https://treasurytracker.empowered.vote in a browser you can use comfortably.
+Report each item by number: PASS / FAIL / PARTIAL (plus what you saw if not PASS).
+
+---
+
+## Section A — Glendale (LA County city, FY2003 depth + per-capita + enrichment)
+
+Navigate to Glendale, CA.
+
+| # | Navigation step | Expected result |
+|---|-----------------|-----------------|
+| 1 | Search for or click **Glendale** (CA) from the landing page | Glendale's budget page loads; operating or revenue data visible for at least one year |
+| 2 | Open the **year selector** (or history chart) and look for the earliest year available | FY2003 appears as the oldest available year (history reaches back to 2003) |
+| 3 | Select **FY2003** in the year selector | The page renders Glendale's FY2003 operating total (~$451.9M) without errors; no "no data" message |
+| 4 | With FY2003 selected, look for the **per-capita** figure | A per-capita dollar amount is displayed (expected ~$2,363/person); it is not blank or zero |
+| 5 | Select a recent year (e.g. **FY2024**) and check the per-capita figure | Per-capita renders for the recent year too; the value has increased vs FY2003 (population denominator working across multiple years) |
+| 6 | On Glendale's operating or revenue breakdown, look at the **category names** shown in the icicle/list | Categories show plain-language names (e.g. "General Government", "Public Safety", "Public Works", "Parks & Recreation") — not raw SCO code strings; enrichment is rendering |
+
+---
+
+## Section B — Los Angeles County (county government entity, FY2003–2024 + per-capita + Cities-in-County + breadcrumb)
+
+Navigate to the **Los Angeles County** entity (the county government, not a city).
+
+| # | Navigation step | Expected result |
+|---|-----------------|-----------------|
+| 7 | Click **Los Angeles County** (county entity) from a county page or search | The LA County government budget page loads; operating and revenue data visible |
+| 8 | Open the year selector / history chart | FY2003 is available as the earliest year; the range spans at least FY2003–FY2024 |
+| 9 | Select **FY2003** | The page renders LA County FY2003 operating total (~$13.7B) without errors |
+| 10 | Check the **per-capita** figure for FY2003 | A per-capita figure is shown (expected ~$1,365/person); not blank or zero |
+| 11 | Check the **per-capita** figure for a recent year (e.g. FY2024) | Per-capita has increased substantially vs FY2003 (expected ~$3,752/person for FY2024); renders without errors |
+| 12 | Look at the **breadcrumb** at the top of the page | Breadcrumb reads: **US → California → Los Angeles County** (exactly three levels; no city hop) |
+| 13 | Look for the **Cities in Los Angeles County** panel (a list of cities belonging to this county) | A panel lists LA County cities (e.g. Burbank, Glendale, Pasadena, Santa Monica, and others); panel is not empty |
+
+---
+
+## Section C — Oakland (Phase-59 linked city, breadcrumb + Cities-in-County) and San Francisco (no-county-hop)
+
+**Part C1 — Oakland (Alameda County link)**
+
+Navigate to **Oakland**, CA.
+
+| # | Navigation step | Expected result |
+|---|-----------------|-----------------|
+| 14 | Click or search for **Oakland** (CA) | Oakland's budget page loads |
+| 15 | Look at the **breadcrumb** at the top of the page | Breadcrumb reads: **US → California → Alameda County → Oakland** (four levels; county hop present) |
+| 16 | Click **Alameda County** in the breadcrumb | Alameda County page loads (or a county listing page); confirms the county link is live |
+| 17 | On the Alameda County page, look for the **Cities in Alameda County** panel | The panel lists cities including Oakland, Berkeley, and Fremont (cities linked to Alameda County); panel is not empty |
+
+**Part C2 — San Francisco (combined city-county node, no county hop)**
+
+Navigate to **San Francisco**, CA.
+
+| # | Navigation step | Expected result |
+|---|-----------------|-----------------|
+| 18 | Click or search for **San Francisco** (CA) | San Francisco's page loads |
+| 19 | Look at the **breadcrumb** at the top of the page | Breadcrumb reads: **US → California → San Francisco** (three levels; NO separate "County" hop — SF is a combined city-county node) |
+
+---
+
+## Section D — Inglewood (salaries-only city: Salaries tab + Department→Position tree + enrichment)
+
+Navigate to **Inglewood**, CA.
+
+| # | Navigation step | Expected result |
+|---|-----------------|-----------------|
+| 20 | Click or search for **Inglewood** (CA) | Inglewood's page loads |
+| 21 | Look for a **Salaries** tab or card on the dataset selector | A "Salaries" tab or card appears in the dataset tabs/cards area (alongside Operating/Revenue if present) |
+| 22 | Click the **Salaries** tab | The salaries view loads; a Department list or tree is visible |
+| 23 | Expand or click a **department** in the salaries tree | A list of positions (job titles) and associated salary figures appears under that department |
+| 24 | Look at the **department names** shown in the salaries tree | Department names show plain-language labels (e.g. "Police Department", "Fire Department", "Public Works") — enrichment is rendering for salary departments; labels are not raw code strings |
+
+---
+
+## Checklist summary (for reporting)
+
+When you finish, report back by item number:
+
+```
+1: PASS/FAIL/PARTIAL — [notes if not PASS]
+2: PASS/FAIL/PARTIAL — ...
+...
+24: PASS/FAIL/PARTIAL — ...
+```
+
+Then select your sign-off decision:
+- **signoff-all-pass** — all 24 items pass; VER-04 satisfied
+- **signoff-with-flags** — most pass; list the specific item numbers that failed or were partial
+- **fail-blocking** — a blocking defect prevents the parity work from being usable; describe item + what you saw
+
+---
+
+*Checklist authored: 2026-06-17*
+*Targets: https://treasurytracker.empowered.vote (NOT financials.empowered.vote)*
+*VER-04 items: FY2003 depth (items 2–3, 8–9) | per-capita (items 4–5, 10–11) | enrichment (items 6, 24) | breadcrumb (items 12, 15, 19) | Cities-in-County (items 13, 17) | salaries tab (items 21–23)*
