@@ -1,0 +1,1117 @@
+{
+  "generated_at": "2026-06-17T00:00:00.000Z",
+  "authored": 185,
+  "deferred_single_city": 3489,
+  "mapping": [
+    {
+      "name_key": "fleet maintenance",
+      "cities": 8,
+      "plain_name": "Fleet & Equipment",
+      "via": "route:fleet"
+    },
+    {
+      "name_key": "patrol",
+      "cities": 5,
+      "plain_name": "Police",
+      "via": "route:police"
+    },
+    {
+      "name_key": "administrative services department",
+      "cities": 5,
+      "plain_name": "Administration",
+      "via": "route:administration"
+    },
+    {
+      "name_key": "building/safety",
+      "cities": 4,
+      "plain_name": "Building & Safety",
+      "via": "route:building_safety"
+    },
+    {
+      "name_key": "development",
+      "cities": 4,
+      "plain_name": "Community Development",
+      "via": "exact:community_development"
+    },
+    {
+      "name_key": "engineering department",
+      "cities": 4,
+      "plain_name": "Engineering",
+      "via": "route:engineering"
+    },
+    {
+      "name_key": "building department",
+      "cities": 4,
+      "plain_name": "Building & Safety",
+      "via": "route:building_safety"
+    },
+    {
+      "name_key": "cemetery",
+      "cities": 4,
+      "plain_name": "General Services",
+      "via": "exact:general_services"
+    },
+    {
+      "name_key": "commissioner",
+      "cities": 4,
+      "plain_name": "Information Technology",
+      "via": "route:information_technology"
+    },
+    {
+      "name_key": "waste water",
+      "cities": 4,
+      "plain_name": "Water Utility",
+      "via": "route:water"
+    },
+    {
+      "name_key": "human resources manager",
+      "cities": 4,
+      "plain_name": "Human Resources",
+      "via": "route:human_resources"
+    },
+    {
+      "name_key": "human resources department",
+      "cities": 4,
+      "plain_name": "Human Resources",
+      "via": "route:human_resources"
+    },
+    {
+      "name_key": "community services department",
+      "cities": 3,
+      "plain_name": "Community Services",
+      "via": "route:community_services"
+    },
+    {
+      "name_key": "public works dept",
+      "cities": 3,
+      "plain_name": "Public Works",
+      "via": "route:public_works"
+    },
+    {
+      "name_key": "parks and community services",
+      "cities": 3,
+      "plain_name": "Parks",
+      "via": "route:parks"
+    },
+    {
+      "name_key": "building dept",
+      "cities": 3,
+      "plain_name": "Building & Safety",
+      "via": "route:building_safety"
+    },
+    {
+      "name_key": "waste water treatment plant",
+      "cities": 3,
+      "plain_name": "Water Utility",
+      "via": "route:water"
+    },
+    {
+      "name_key": "information tech",
+      "cities": 3,
+      "plain_name": "Information Technology",
+      "via": "exact:information_technology"
+    },
+    {
+      "name_key": "office of the city manager",
+      "cities": 3,
+      "plain_name": "City Manager's Office",
+      "via": "route:city_manager"
+    },
+    {
+      "name_key": "police officer",
+      "cities": 3,
+      "plain_name": "Police",
+      "via": "route:police"
+    },
+    {
+      "name_key": "police sergeant",
+      "cities": 3,
+      "plain_name": "Police",
+      "via": "route:police"
+    },
+    {
+      "name_key": "police chief",
+      "cities": 3,
+      "plain_name": "Police",
+      "via": "route:police"
+    },
+    {
+      "name_key": "engineer",
+      "cities": 3,
+      "plain_name": "Engineering",
+      "via": "exact:engineering"
+    },
+    {
+      "name_key": "finance director",
+      "cities": 3,
+      "plain_name": "Finance",
+      "via": "route:finance"
+    },
+    {
+      "name_key": "library administration",
+      "cities": 3,
+      "plain_name": "Library",
+      "via": "route:library"
+    },
+    {
+      "name_key": "rda administration",
+      "cities": 3,
+      "plain_name": "Administration",
+      "via": "route:administration"
+    },
+    {
+      "name_key": "street sweeping",
+      "cities": 3,
+      "plain_name": "Street Maintenance",
+      "via": "route:streets"
+    },
+    {
+      "name_key": "development services administrative",
+      "cities": 3,
+      "plain_name": "Community Development",
+      "via": "route:community_development"
+    },
+    {
+      "name_key": "public works-street maintenance",
+      "cities": 3,
+      "plain_name": "Street Maintenance",
+      "via": "route:streets"
+    },
+    {
+      "name_key": "community services-administration",
+      "cities": 3,
+      "plain_name": "Community Services",
+      "via": "route:community_services"
+    },
+    {
+      "name_key": "administrative services - finance",
+      "cities": 3,
+      "plain_name": "Finance",
+      "via": "route:finance"
+    },
+    {
+      "name_key": "community services-recreation",
+      "cities": 3,
+      "plain_name": "Recreation",
+      "via": "route:recreation"
+    },
+    {
+      "name_key": "wwtp",
+      "cities": 3,
+      "plain_name": "Sewer & Wastewater",
+      "via": "exact:sewer"
+    },
+    {
+      "name_key": "fire-administration",
+      "cities": 3,
+      "plain_name": "Fire & EMS",
+      "via": "route:fire"
+    },
+    {
+      "name_key": "housing services",
+      "cities": 3,
+      "plain_name": "Housing",
+      "via": "route:housing"
+    },
+    {
+      "name_key": "comm",
+      "cities": 3,
+      "plain_name": "City Department",
+      "via": "fallback:general_dept"
+    },
+    {
+      "name_key": "commission",
+      "cities": 2,
+      "plain_name": "Information Technology",
+      "via": "route:information_technology"
+    },
+    {
+      "name_key": "maintenance services",
+      "cities": 2,
+      "plain_name": "Facilities Maintenance",
+      "via": "route:facilities"
+    },
+    {
+      "name_key": "fiscal services",
+      "cities": 2,
+      "plain_name": "Finance",
+      "via": "exact:finance"
+    },
+    {
+      "name_key": "emergency operations services",
+      "cities": 2,
+      "plain_name": "Emergency Management",
+      "via": "route:emergency"
+    },
+    {
+      "name_key": "governing body",
+      "cities": 2,
+      "plain_name": "City Council",
+      "via": "exact:city_council"
+    },
+    {
+      "name_key": "community develop.",
+      "cities": 2,
+      "plain_name": "Community Development",
+      "via": "route:community_development"
+    },
+    {
+      "name_key": "planning commissioners",
+      "cities": 2,
+      "plain_name": "Planning",
+      "via": "route:planning"
+    },
+    {
+      "name_key": "tourism & marketing",
+      "cities": 2,
+      "plain_name": "Communications",
+      "via": "route:communications"
+    },
+    {
+      "name_key": "theater",
+      "cities": 2,
+      "plain_name": "Arts & Culture",
+      "via": "route:cultural_arts"
+    },
+    {
+      "name_key": "community recreation center",
+      "cities": 2,
+      "plain_name": "Recreation",
+      "via": "route:recreation"
+    },
+    {
+      "name_key": "administratin",
+      "cities": 2,
+      "plain_name": "Administration",
+      "via": "exact:administration"
+    },
+    {
+      "name_key": "fleet operations",
+      "cities": 2,
+      "plain_name": "Fleet & Equipment",
+      "via": "route:fleet"
+    },
+    {
+      "name_key": "police - animal control",
+      "cities": 2,
+      "plain_name": "Police",
+      "via": "route:police"
+    },
+    {
+      "name_key": "accounting specialist",
+      "cities": 2,
+      "plain_name": "Accounting",
+      "via": "route:accounting"
+    },
+    {
+      "name_key": "planning and building",
+      "cities": 2,
+      "plain_name": "Building & Safety",
+      "via": "route:building_safety"
+    },
+    {
+      "name_key": "police division",
+      "cities": 2,
+      "plain_name": "Police",
+      "via": "route:police"
+    },
+    {
+      "name_key": "city attorney's office",
+      "cities": 2,
+      "plain_name": "City Attorney",
+      "via": "route:city_attorney"
+    },
+    {
+      "name_key": "dwp",
+      "cities": 2,
+      "plain_name": "Public Utilities",
+      "via": "exact:utilities"
+    },
+    {
+      "name_key": "housing department",
+      "cities": 2,
+      "plain_name": "Housing",
+      "via": "route:housing"
+    },
+    {
+      "name_key": "utilities department",
+      "cities": 2,
+      "plain_name": "Public Utilities",
+      "via": "route:utilities"
+    },
+    {
+      "name_key": "police/support",
+      "cities": 2,
+      "plain_name": "Police",
+      "via": "route:police"
+    },
+    {
+      "name_key": "engineering/public works",
+      "cities": 2,
+      "plain_name": "Engineering",
+      "via": "route:engineering"
+    },
+    {
+      "name_key": "emergency operations",
+      "cities": 2,
+      "plain_name": "Emergency Management",
+      "via": "route:emergency"
+    },
+    {
+      "name_key": "ps administration",
+      "cities": 2,
+      "plain_name": "Administration",
+      "via": "route:administration"
+    },
+    {
+      "name_key": "rda housing",
+      "cities": 2,
+      "plain_name": "Housing",
+      "via": "route:housing"
+    },
+    {
+      "name_key": "quality of life",
+      "cities": 2,
+      "plain_name": "City Department",
+      "via": "fallback:general_dept"
+    },
+    {
+      "name_key": "fire department administration",
+      "cities": 2,
+      "plain_name": "Fire & EMS",
+      "via": "route:fire"
+    },
+    {
+      "name_key": "airport administration",
+      "cities": 2,
+      "plain_name": "Airport",
+      "via": "route:airport_dept"
+    },
+    {
+      "name_key": "teen center",
+      "cities": 2,
+      "plain_name": "Youth Services",
+      "via": "exact:youth_services"
+    },
+    {
+      "name_key": "city treasure",
+      "cities": 2,
+      "plain_name": "Treasury",
+      "via": "route:treasury"
+    },
+    {
+      "name_key": "city planner",
+      "cities": 2,
+      "plain_name": "Planning",
+      "via": "exact:planning"
+    },
+    {
+      "name_key": "police corporal",
+      "cities": 2,
+      "plain_name": "Police",
+      "via": "route:police"
+    },
+    {
+      "name_key": "police lieutenant",
+      "cities": 2,
+      "plain_name": "Police",
+      "via": "route:police"
+    },
+    {
+      "name_key": "police captain",
+      "cities": 2,
+      "plain_name": "Police",
+      "via": "route:police"
+    },
+    {
+      "name_key": "fire chief",
+      "cities": 2,
+      "plain_name": "Fire & EMS",
+      "via": "route:fire"
+    },
+    {
+      "name_key": "executive assistant",
+      "cities": 2,
+      "plain_name": "City Department",
+      "via": "fallback:general_dept"
+    },
+    {
+      "name_key": "administrative assistant",
+      "cities": 2,
+      "plain_name": "Administration",
+      "via": "route:administration"
+    },
+    {
+      "name_key": "fire inspector",
+      "cities": 2,
+      "plain_name": "Fire & EMS",
+      "via": "route:fire"
+    },
+    {
+      "name_key": "associate planner",
+      "cities": 2,
+      "plain_name": "Planning",
+      "via": "exact:planning"
+    },
+    {
+      "name_key": "recreation coordinator",
+      "cities": 2,
+      "plain_name": "Recreation",
+      "via": "route:recreation"
+    },
+    {
+      "name_key": "human resources analyst",
+      "cities": 2,
+      "plain_name": "Human Resources",
+      "via": "route:human_resources"
+    },
+    {
+      "name_key": "public works inspector",
+      "cities": 2,
+      "plain_name": "Public Works",
+      "via": "route:public_works"
+    },
+    {
+      "name_key": "assistant city clerk",
+      "cities": 2,
+      "plain_name": "City Clerk",
+      "via": "route:city_clerk"
+    },
+    {
+      "name_key": "director of finance",
+      "cities": 2,
+      "plain_name": "Finance",
+      "via": "route:finance"
+    },
+    {
+      "name_key": "office specialist",
+      "cities": 2,
+      "plain_name": "City Department",
+      "via": "fallback:general_dept"
+    },
+    {
+      "name_key": "public information officer",
+      "cities": 2,
+      "plain_name": "Communications",
+      "via": "route:communications"
+    },
+    {
+      "name_key": "deputy city manager",
+      "cities": 2,
+      "plain_name": "City Manager's Office",
+      "via": "route:city_manager"
+    },
+    {
+      "name_key": "info systems",
+      "cities": 2,
+      "plain_name": "Information Technology",
+      "via": "exact:information_technology"
+    },
+    {
+      "name_key": "planning and building services",
+      "cities": 2,
+      "plain_name": "Building & Safety",
+      "via": "route:building_safety"
+    },
+    {
+      "name_key": "facilities services",
+      "cities": 2,
+      "plain_name": "Facilities Maintenance",
+      "via": "route:facilities"
+    },
+    {
+      "name_key": "data processing",
+      "cities": 2,
+      "plain_name": "Information Technology",
+      "via": "exact:information_technology"
+    },
+    {
+      "name_key": "refuse",
+      "cities": 2,
+      "plain_name": "Solid Waste & Recycling",
+      "via": "route:solid_waste"
+    },
+    {
+      "name_key": "administrative services dept",
+      "cities": 2,
+      "plain_name": "Administration",
+      "via": "route:administration"
+    },
+    {
+      "name_key": "development services engineering",
+      "cities": 2,
+      "plain_name": "Engineering",
+      "via": "route:engineering"
+    },
+    {
+      "name_key": "development service",
+      "cities": 2,
+      "plain_name": "City Department",
+      "via": "fallback:general_dept"
+    },
+    {
+      "name_key": "interim city manager",
+      "cities": 2,
+      "plain_name": "City Manager's Office",
+      "via": "route:city_manager"
+    },
+    {
+      "name_key": "public information office",
+      "cities": 2,
+      "plain_name": "Communications",
+      "via": "route:communications"
+    },
+    {
+      "name_key": "code",
+      "cities": 2,
+      "plain_name": "Code Enforcement",
+      "via": "exact:code_enforcement"
+    },
+    {
+      "name_key": "hr",
+      "cities": 2,
+      "plain_name": "Human Resources",
+      "via": "exact:human_resources"
+    },
+    {
+      "name_key": "fire vehicle maintenance",
+      "cities": 2,
+      "plain_name": "Fire & EMS",
+      "via": "route:fire"
+    },
+    {
+      "name_key": "community development - building",
+      "cities": 2,
+      "plain_name": "Building & Safety",
+      "via": "route:building_safety"
+    },
+    {
+      "name_key": "code compliance officer",
+      "cities": 2,
+      "plain_name": "Code Enforcement",
+      "via": "route:code_enforcement"
+    },
+    {
+      "name_key": "community development-engineering",
+      "cities": 2,
+      "plain_name": "Engineering",
+      "via": "route:engineering"
+    },
+    {
+      "name_key": "fire prevention bureau",
+      "cities": 2,
+      "plain_name": "Fire & EMS",
+      "via": "route:fire"
+    },
+    {
+      "name_key": "it applications",
+      "cities": 2,
+      "plain_name": "Information Technology",
+      "via": "exact:information_technology"
+    },
+    {
+      "name_key": "storm drain maintenance",
+      "cities": 2,
+      "plain_name": "Facilities Maintenance",
+      "via": "route:facilities"
+    },
+    {
+      "name_key": "public works building maintenance",
+      "cities": 2,
+      "plain_name": "Facilities Maintenance",
+      "via": "route:facilities"
+    },
+    {
+      "name_key": "community centers",
+      "cities": 2,
+      "plain_name": "Community Services",
+      "via": "route:community_services"
+    },
+    {
+      "name_key": "redevelopment agency administration",
+      "cities": 2,
+      "plain_name": "Redevelopment / Successor",
+      "via": "route:redevelopment"
+    },
+    {
+      "name_key": "administration services",
+      "cities": 2,
+      "plain_name": "Administration",
+      "via": "route:administration"
+    },
+    {
+      "name_key": "library administrative",
+      "cities": 2,
+      "plain_name": "Library",
+      "via": "route:library"
+    },
+    {
+      "name_key": "com dev",
+      "cities": 2,
+      "plain_name": "Community Development",
+      "via": "exact:community_development"
+    },
+    {
+      "name_key": "info technology",
+      "cities": 2,
+      "plain_name": "Information Technology",
+      "via": "exact:information_technology"
+    },
+    {
+      "name_key": "parks & rec commission",
+      "cities": 2,
+      "plain_name": "Parks",
+      "via": "route:parks"
+    },
+    {
+      "name_key": "town clerk",
+      "cities": 2,
+      "plain_name": "City Clerk",
+      "via": "route:city_clerk"
+    },
+    {
+      "name_key": "town council",
+      "cities": 2,
+      "plain_name": "City Council",
+      "via": "route:city_council"
+    },
+    {
+      "name_key": "city managers",
+      "cities": 2,
+      "plain_name": "City Manager's Office",
+      "via": "route:city_manager"
+    },
+    {
+      "name_key": "utility services",
+      "cities": 2,
+      "plain_name": "Public Utilities",
+      "via": "route:utilities"
+    },
+    {
+      "name_key": "swimming pool",
+      "cities": 2,
+      "plain_name": "Recreation",
+      "via": "route:recreation"
+    },
+    {
+      "name_key": "animal shelter",
+      "cities": 2,
+      "plain_name": "Animal Services",
+      "via": "route:animal_services"
+    },
+    {
+      "name_key": "fire protection",
+      "cities": 2,
+      "plain_name": "Fire & EMS",
+      "via": "route:fire"
+    },
+    {
+      "name_key": "emergency medical",
+      "cities": 2,
+      "plain_name": "Fire & EMS",
+      "via": "route:fire"
+    },
+    {
+      "name_key": "public works - park maintenance",
+      "cities": 2,
+      "plain_name": "Parks",
+      "via": "route:parks"
+    },
+    {
+      "name_key": "fire - administration",
+      "cities": 2,
+      "plain_name": "Fire & EMS",
+      "via": "route:fire"
+    },
+    {
+      "name_key": "administrative services - purchasing",
+      "cities": 2,
+      "plain_name": "Purchasing",
+      "via": "route:purchasing"
+    },
+    {
+      "name_key": "child care",
+      "cities": 2,
+      "plain_name": "Youth Services",
+      "via": "route:youth_services"
+    },
+    {
+      "name_key": "fire emergency operations",
+      "cities": 2,
+      "plain_name": "Fire & EMS",
+      "via": "route:fire"
+    },
+    {
+      "name_key": "investigations",
+      "cities": 2,
+      "plain_name": "Police",
+      "via": "route:police"
+    },
+    {
+      "name_key": "personnel & training",
+      "cities": 2,
+      "plain_name": "Human Resources",
+      "via": "route:human_resources"
+    },
+    {
+      "name_key": "npdes",
+      "cities": 2,
+      "plain_name": "Sewer & Wastewater",
+      "via": "exact:sewer"
+    },
+    {
+      "name_key": "senior nutrition",
+      "cities": 2,
+      "plain_name": "Senior Services",
+      "via": "route:senior_services"
+    },
+    {
+      "name_key": "crossing guard",
+      "cities": 2,
+      "plain_name": "Public Safety",
+      "via": "route:public_safety"
+    },
+    {
+      "name_key": "public works-equipment maintenance",
+      "cities": 2,
+      "plain_name": "Fleet & Equipment",
+      "via": "route:fleet"
+    },
+    {
+      "name_key": "development services-planning",
+      "cities": 2,
+      "plain_name": "Planning",
+      "via": "route:planning"
+    },
+    {
+      "name_key": "public works-parks",
+      "cities": 2,
+      "plain_name": "Parks",
+      "via": "route:parks"
+    },
+    {
+      "name_key": "public works-building maintenance",
+      "cities": 2,
+      "plain_name": "Facilities Maintenance",
+      "via": "route:facilities"
+    },
+    {
+      "name_key": "community services-aquatics",
+      "cities": 2,
+      "plain_name": "Recreation",
+      "via": "route:recreation"
+    },
+    {
+      "name_key": "public works-park maintenance",
+      "cities": 2,
+      "plain_name": "Parks",
+      "via": "route:parks"
+    },
+    {
+      "name_key": "community services - recreation",
+      "cities": 2,
+      "plain_name": "Recreation",
+      "via": "route:recreation"
+    },
+    {
+      "name_key": "recreation/community services",
+      "cities": 2,
+      "plain_name": "Recreation",
+      "via": "route:recreation"
+    },
+    {
+      "name_key": "parks and landscape",
+      "cities": 2,
+      "plain_name": "Parks",
+      "via": "route:parks"
+    },
+    {
+      "name_key": "city manager - administration",
+      "cities": 2,
+      "plain_name": "City Manager's Office",
+      "via": "route:city_manager"
+    },
+    {
+      "name_key": "recreation part time",
+      "cities": 2,
+      "plain_name": "Recreation",
+      "via": "route:recreation"
+    },
+    {
+      "name_key": "human resources/risk mgmt.",
+      "cities": 2,
+      "plain_name": "Human Resources",
+      "via": "route:human_resources"
+    },
+    {
+      "name_key": "dev services administrative",
+      "cities": 2,
+      "plain_name": "Administration",
+      "via": "route:administration"
+    },
+    {
+      "name_key": "senior accountant",
+      "cities": 2,
+      "plain_name": "Senior Services",
+      "via": "route:senior_services"
+    },
+    {
+      "name_key": "public works-building maintena",
+      "cities": 2,
+      "plain_name": "Public Works",
+      "via": "route:public_works"
+    },
+    {
+      "name_key": "public works-fleet maintenance",
+      "cities": 2,
+      "plain_name": "Fleet & Equipment",
+      "via": "route:fleet"
+    },
+    {
+      "name_key": "fire-prevention",
+      "cities": 2,
+      "plain_name": "Fire & EMS",
+      "via": "route:fire"
+    },
+    {
+      "name_key": "community services-sports",
+      "cities": 2,
+      "plain_name": "Recreation",
+      "via": "route:recreation"
+    },
+    {
+      "name_key": "police-animal control",
+      "cities": 2,
+      "plain_name": "Police",
+      "via": "route:police"
+    },
+    {
+      "name_key": "benefits administration",
+      "cities": 2,
+      "plain_name": "Administration",
+      "via": "route:administration"
+    },
+    {
+      "name_key": "business office",
+      "cities": 2,
+      "plain_name": "Administration",
+      "via": "exact:administration"
+    },
+    {
+      "name_key": "development services - building",
+      "cities": 2,
+      "plain_name": "Building & Safety",
+      "via": "route:building_safety"
+    },
+    {
+      "name_key": "administrative services - human resources",
+      "cities": 2,
+      "plain_name": "Human Resources",
+      "via": "route:human_resources"
+    },
+    {
+      "name_key": "redevelopment & housing",
+      "cities": 2,
+      "plain_name": "Housing",
+      "via": "route:housing"
+    },
+    {
+      "name_key": "government affairs",
+      "cities": 2,
+      "plain_name": "Administration",
+      "via": "exact:administration"
+    },
+    {
+      "name_key": "public works facilities maintenance",
+      "cities": 2,
+      "plain_name": "Facilities Maintenance",
+      "via": "route:facilities"
+    },
+    {
+      "name_key": "public works fleet maintenance",
+      "cities": 2,
+      "plain_name": "Fleet & Equipment",
+      "via": "route:fleet"
+    },
+    {
+      "name_key": "finance - purchasing",
+      "cities": 2,
+      "plain_name": "Purchasing",
+      "via": "route:purchasing"
+    },
+    {
+      "name_key": "department of finance",
+      "cities": 2,
+      "plain_name": "Finance",
+      "via": "route:finance"
+    },
+    {
+      "name_key": "cultural affairs",
+      "cities": 2,
+      "plain_name": "Arts & Culture",
+      "via": "route:cultural_arts"
+    },
+    {
+      "name_key": "energy conservation",
+      "cities": 2,
+      "plain_name": "Sustainability & Environment",
+      "via": "route:sustainability"
+    },
+    {
+      "name_key": "recreation programs",
+      "cities": 2,
+      "plain_name": "Recreation",
+      "via": "route:recreation"
+    },
+    {
+      "name_key": "public works storm water",
+      "cities": 2,
+      "plain_name": "Water Utility",
+      "via": "route:water"
+    },
+    {
+      "name_key": "public works-operations",
+      "cities": 2,
+      "plain_name": "Public Works",
+      "via": "route:public_works"
+    },
+    {
+      "name_key": "fire-operations",
+      "cities": 2,
+      "plain_name": "Fire & EMS",
+      "via": "route:fire"
+    },
+    {
+      "name_key": "public works-facilities maintenance",
+      "cities": 2,
+      "plain_name": "Facilities Maintenance",
+      "via": "route:facilities"
+    },
+    {
+      "name_key": "public works-streets",
+      "cities": 2,
+      "plain_name": "Street Maintenance",
+      "via": "route:streets"
+    },
+    {
+      "name_key": "administrative svcs-human resources",
+      "cities": 2,
+      "plain_name": "Human Resources",
+      "via": "route:human_resources"
+    },
+    {
+      "name_key": "public works vehicle maintenance",
+      "cities": 2,
+      "plain_name": "Fleet & Equipment",
+      "via": "route:fleet"
+    },
+    {
+      "name_key": "comm dev - planning",
+      "cities": 2,
+      "plain_name": "Planning",
+      "via": "route:planning"
+    },
+    {
+      "name_key": "finance dept.",
+      "cities": 2,
+      "plain_name": "Finance",
+      "via": "route:finance"
+    },
+    {
+      "name_key": "planning dept.",
+      "cities": 2,
+      "plain_name": "Planning",
+      "via": "route:planning"
+    },
+    {
+      "name_key": "police dept.",
+      "cities": 2,
+      "plain_name": "Police",
+      "via": "route:police"
+    },
+    {
+      "name_key": "management",
+      "cities": 2,
+      "plain_name": "City Department",
+      "via": "fallback:general_dept"
+    },
+    {
+      "name_key": "wastewater operations",
+      "cities": 2,
+      "plain_name": "Sewer & Wastewater",
+      "via": "route:sewer"
+    },
+    {
+      "name_key": "parks and recreation department",
+      "cities": 2,
+      "plain_name": "Parks",
+      "via": "route:parks"
+    },
+    {
+      "name_key": "utility service",
+      "cities": 2,
+      "plain_name": "Public Utilities",
+      "via": "route:utilities"
+    },
+    {
+      "name_key": "city attorney department",
+      "cities": 2,
+      "plain_name": "City Attorney",
+      "via": "route:city_attorney"
+    },
+    {
+      "name_key": "police protection",
+      "cities": 2,
+      "plain_name": "Police",
+      "via": "route:police"
+    },
+    {
+      "name_key": "wastewater disposal",
+      "cities": 2,
+      "plain_name": "Sewer & Wastewater",
+      "via": "route:sewer"
+    },
+    {
+      "name_key": "police commander",
+      "cities": 2,
+      "plain_name": "Police",
+      "via": "route:police"
+    },
+    {
+      "name_key": "public safety dispatch",
+      "cities": 2,
+      "plain_name": "Public Safety",
+      "via": "route:public_safety"
+    },
+    {
+      "name_key": "animal regulation",
+      "cities": 2,
+      "plain_name": "Animal Services",
+      "via": "route:animal_services"
+    },
+    {
+      "name_key": "wastewater treatment plant",
+      "cities": 2,
+      "plain_name": "Sewer & Wastewater",
+      "via": "route:sewer"
+    },
+    {
+      "name_key": "cultural & community services",
+      "cities": 2,
+      "plain_name": "Arts & Culture",
+      "via": "route:cultural_arts"
+    },
+    {
+      "name_key": "community development dept",
+      "cities": 2,
+      "plain_name": "Community Development",
+      "via": "route:community_development"
+    },
+    {
+      "name_key": "building/fire",
+      "cities": 2,
+      "plain_name": "Fire & EMS",
+      "via": "route:fire"
+    }
+  ]
+}
