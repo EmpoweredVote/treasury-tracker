@@ -72,6 +72,15 @@
   2. Every county-budget row carries durable `/d/<id>` source attribution and per-year population
   3. Each county page renders icicle/summary + per-capita (no longer directory-only); city rows under each county are untouched (never-overwrite)
 
+**Plan shape:** 2 plans grouped by cohort (64-01 = 6 SoCal counties; 64-02 = Alameda + Sacramento), both → CGB-01. Data-independent but run serially on the main tree (loader needs the gitignored `.env`; no worktree — same as Phase 63). Canary FY2024 first (locks current population from feed), then per-FY backfill with retry loop (SCO API is flaky).
+
+**Plan Progress:**
+
+| Plan | Counties | Requirement | Status |
+|------|----------|-------------|--------|
+| 64-01 | Riverside, San Bernardino, San Diego, Ventura, Santa Barbara, Imperial | CGB-01 | Not started |
+| 64-02 | Alameda, Sacramento | CGB-01 | Not started |
+
 ### Phase 65: SoCal Salaries Sweep
 
 **Goal:** All newly-loaded SoCal cities carry CA Government Compensation salary data (2009–2024), reconciled on a sample.
