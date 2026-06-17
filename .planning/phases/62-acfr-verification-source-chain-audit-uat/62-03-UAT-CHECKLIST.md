@@ -10,7 +10,8 @@ This checklist exercises every VER-04 item across the required 4-entity spread (
 - Entity A — LA County city: **Glendale** (standard SCO city, FY2003 verified)
 - Entity B — LA County government: **Los Angeles County** (county entity, FY2003–2024)
 - Entity C — Phase-59 linked city (breadcrumb/Cities-in-County): **Oakland** (linked Alameda County) + **San Francisco** (combined city-county node, no county hop)
-- Entity D — Salaries-only city: **Inglewood** (Phase-60 GCC salaries city; exercise salaries tab independently of op/rev)
+- Entity D — Salaries city: **Irvine** (Phase-60 GCC salaries city, Orange County; salaries FY2009–2024; exercise the Salaries tab)
+  - *Note (2026-06-17): originally **Inglewood**, corrected after UAT round 1. A read-only DB probe found Inglewood has ZERO budget rows of any dataset — so the Salaries tab correctly did not appear (gating `availableDatasets.includes('salaries')` working as designed). Inglewood is not in the salaries cohort; Irvine is (op/rev/salaries = 22/22/16). This was a checklist city-pick defect, not a render bug.*
 
 **Before you start:** Open https://treasurytracker.empowered.vote in a browser you can use comfortably.
 Report each item by number: PASS / FAIL / PARTIAL (plus what you saw if not PASS).
@@ -72,13 +73,13 @@ Navigate to **San Francisco**, CA.
 
 ---
 
-## Section D — Inglewood (salaries-only city: Salaries tab + Department→Position tree + enrichment)
+## Section D — Irvine (Phase-60 salaries city: Salaries tab + Department→Position tree + enrichment)
 
-Navigate to **Inglewood**, CA.
+Navigate to **Irvine**, CA. *(Corrected from Inglewood — see note above.)*
 
 | # | Navigation step | Expected result |
 |---|-----------------|-----------------|
-| 20 | Click or search for **Inglewood** (CA) | Inglewood's page loads |
+| 20 | Click or search for **Irvine** (CA) | Irvine's page loads |
 | 21 | Look for a **Salaries** tab or card on the dataset selector | A "Salaries" tab or card appears in the dataset tabs/cards area (alongside Operating/Revenue if present) |
 | 22 | Click the **Salaries** tab | The salaries view loads; a Department list or tree is visible |
 | 23 | Expand or click a **department** in the salaries tree | A list of positions (job titles) and associated salary figures appears under that department |
