@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: California Coverage Parity
-status: executing
-last_updated: "2026-06-17T00:59:57.845Z"
+status: verifying
+last_updated: "2026-06-17T15:52:57.295Z"
 last_activity: 2026-06-17
 progress:
   total_phases: 62
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 15
-  completed_plans: 14
-  percent: 6
+  completed_plans: 15
+  percent: 8
 ---
 
 # State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-16 after v2.2)
 
 Phase: 62 (acfr-verification-source-chain-audit-uat) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-17
 
 ### v2.3 gap baseline (DB query, 2026-06-16)
@@ -124,8 +124,8 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-17T00:59:57.836Z
-Stopped at: Completed 62-01 ACFR reconciliation SUMMARY
+Last session: 2026-06-17T15:52:57.284Z
+Stopped at: Completed 62-03 UAT SUMMARY — v2.3 CA parity milestone verified (VER-03 + VER-04)
 Resume file: None
 
 ### Next Session
@@ -145,6 +145,7 @@ Phase 58 is complete. Begin Phase 59 (Remaining CA Cities History + Linking). Un
 | Phase 58 P58-01 | 90min | 5 tasks | 1 file (baseline.md) |
 | Phase 62 P62-01 | 50min | 3 tasks | 1 files |
 | Phase 62 P62-02 | 30min | 3 tasks | 1 files |
+| Phase 62 P62-03 | 45min | 3 tasks | 2 files |
 
 ## Decisions
 
@@ -174,6 +175,9 @@ Phase 58 is complete. Begin Phase 59 (Remaining CA Cities History + Linking). Un
 - [58-04]: Formal ACFR reconciliation, source-chain audit, and Chris UAT deferred to Phase 62 (D-09 honored)
 - [Phase ?]: FY2023 selected as ACFR reconciliation year; government-wide Statement of Activities is basis-matched comparator
 - [Phase ?]: Glendale + Burbank ACFRs inaccessible via free CLI (CDN blocks); FOLLOW-UP per D-08; SCO source-loop + Phase 60 /usr/bin/bash-delta corroboration documents presumptive PASS
+- [Phase ?]: signoff-all-pass: all 24 UAT checklist items PASS (Chris, 2026-06-17); VER-04 satisfied
+- [Phase ?]: Employees card is year-gated (App.tsx availableDatasetTypes); year=2003 hides salaries tab for FY2009-2024 cohort — correct behavior confirmed UAT
+- [Phase ?]: D-08 UX flag: show Employees card for any year salaries exist + prompt year switch (v2.4 candidate, not fixed in phase 62)
 
 ## Deferred Items
 

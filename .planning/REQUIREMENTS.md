@@ -44,7 +44,7 @@ Each maps to exactly one roadmap phase (58–62).
 ### Verification
 
 - [x] **VER-03**: Parity totals are spot-checked against published ACFRs / adopted budgets (LA County government + a representative sample of LA County cities) and pass on a basis-matched comparison, and the source-chain audit passes (durable human-page URLs, every backfilled row sourced) — all documented.
-- [ ] **VER-04**: The live app is verified end-to-end (FY2003 history depth, salaries dataset, per-capita across backfilled years, enrichment, breadcrumbs + Cities-in-County panels) with Chris UAT sign-off.
+- [x] **VER-04**: The live app is verified end-to-end (FY2003 history depth, salaries dataset, per-capita across backfilled years, enrichment, breadcrumbs + Cities-in-County panels) with Chris UAT sign-off.
 
 ## Future Requirements
 
@@ -89,7 +89,7 @@ Which phase covers each requirement. Filled during roadmap creation.
 | SAL-06 | Phase 60 | Complete |
 | ENR-01 | Phase 61 | Complete |
 | VER-03 | Phase 62 | Complete |
-| VER-04 | Phase 62 | Pending |
+| VER-04 | Phase 62 | Complete |
 | SOCAL-01..06 | v2.4 milestone | Deferred |
 
 **Coverage:**
