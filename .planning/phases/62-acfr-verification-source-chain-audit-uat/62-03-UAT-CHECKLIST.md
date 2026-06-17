@@ -80,12 +80,19 @@ Navigate to **Irvine**, CA. *(Corrected from Inglewood — see note above.)*
 | # | Navigation step | Expected result |
 |---|-----------------|-----------------|
 | 20 | Click or search for **Irvine** (CA) | Irvine's page loads |
+| 20a | **Set the year selector to a recent year (e.g. 2024).** Salaries data only exists FY2009–2024, so the Employees card is HIDDEN for older years like 2003. If the year carried over from a prior FY2003 test, change it to 2024 first. | Year is 2024 (or any 2009–2024) |
 | 21 | Look at the dataset cards row. There should be **three** cards: **Money Out**, **Money In**, and **Employees** (the salaries dataset is labeled **"Employees"** with a people icon + "Employee compensation" subtitle — NOT the word "Salaries") | A third card labeled **Employees** appears next to Money Out / Money In |
 | 22 | Click the **Employees** card | The salaries (employee compensation) view loads; a Department list or tree is visible |
 | 23 | Expand or click a **department** in the Employees/salaries tree | A list of positions (job titles) and associated salary/compensation figures appears under that department |
 | 24 | Look at the **department names** shown in the tree | Department names show plain-language labels (e.g. "Police Department", "Fire Department", "Public Works") — enrichment is rendering for salary departments; labels are not raw code strings |
 
-> **UAT round-2 note (2026-06-17):** Round-1 looked for a card literally named "Salaries" and found none. Root cause confirmed by reading `src/components/datasets/DatasetTabs.tsx`: the salaries dataset card is labeled **"Employees"** (`SALARIES_CARD`, Users icon, description "Employee compensation"), gated on `availableDatasets.includes('salaries')`. The live production API (`ev-accounts-api.onrender.com/api/treasury/cities`) confirms Irvine carries salaries FY2009–2024, so the card renders. This is a checklist-wording correction, not a product defect.
+> **UAT round-2/3 notes (2026-06-17):**
+> - *Round 1 (Inglewood):* checklist picked a non-salaries entity → corrected to Irvine.
+> - *Round 2 (Irvine, "no Salaries card"):* two root causes, both confirmed, neither a product defect:
+>   1. The salaries card is labeled **"Employees"** (`SALARIES_CARD` in `src/components/datasets/DatasetTabs.tsx`, Users icon, "Employee compensation"), not "Salaries".
+>   2. The Employees card is **year-gated**: `availableDatasetTypes` (App.tsx ~L172) filters `available_datasets` to the selected year. The round-2 screenshot showed `year=2003` (carried over from the Glendale FY2003 test); Irvine's salaries are FY2009–2024, so at 2003 only Money Out / Money In render — correct behavior. Selecting a 2009–2024 year reveals the Employees card.
+> - Live production API (`ev-accounts-api.onrender.com/api/treasury/cities`) confirms Irvine carries salaries FY2009–2024.
+> - **Candidate UX follow-up flag (not fixed here, D-08):** dataset cards appearing/disappearing as the user changes year can surprise users; consider showing the Employees card whenever salaries exist for *any* year and prompting a year switch.
 
 ---
 
