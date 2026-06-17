@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: California Coverage Parity
 status: executing
-last_updated: "2026-06-17T00:05:04.957Z"
-last_activity: 2026-06-17 -- Phase 62 planning complete
+last_updated: "2026-06-17T00:46:37.134Z"
+last_activity: 2026-06-17
 progress:
   total_phases: 62
   completed_phases: 4
   total_plans: 15
-  completed_plans: 12
+  completed_plans: 13
   percent: 6
 ---
 
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-16 after v2.2)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 61 — enrichment parity
+**Current focus:** Phase 62 — acfr-verification-source-chain-audit-uat
 
 ## Current Position
 
-Phase: 61
-Plan: Not started
+Phase: 62 (acfr-verification-source-chain-audit-uat) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-06-17 -- Phase 62 planning complete
+Last activity: 2026-06-17
 
 ### v2.3 gap baseline (DB query, 2026-06-16)
 
@@ -124,9 +124,9 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-16T18:51:00.054Z
-Stopped at: Phase 59 context gathered
-Resume file: .planning/phases/59-remaining-ca-cities-history-linking/59-CONTEXT.md
+Last session: 2026-06-17T00:46:37.125Z
+Stopped at: Completed 62-01 ACFR reconciliation SUMMARY
+Resume file: None
 
 ### Next Session
 
@@ -143,6 +143,7 @@ Phase 58 is complete. Begin Phase 59 (Remaining CA Cities History + Linking). Un
 | Phase 57 P57-01 | 75min | 5 tasks | 1 files |
 | Phase 57 P57-02 | 35min | 3 tasks | 4 files |
 | Phase 58 P58-01 | 90min | 5 tasks | 1 file (baseline.md) |
+| Phase 62 P62-01 | 50min | 3 tasks | 1 files |
 
 ## Decisions
 
@@ -170,6 +171,8 @@ Phase 58 is complete. Begin Phase 59 (Remaining CA Cities History + Linking). Un
 - [58-04]: 3 custom cities byte-for-byte unchanged: LA FY2024 op $19,974.3M (Socrata), LB GF FY2025-2026 intact, WeHo Demand Register 9 rows intact
 - [58-04]: Basis note gating confirmed by code inspection — cityBasisNotes map has exactly 2 keys (Long Beach|CA, West Hollywood|CA); all other entities return null (no render)
 - [58-04]: Formal ACFR reconciliation, source-chain audit, and Chris UAT deferred to Phase 62 (D-09 honored)
+- [Phase ?]: FY2023 selected as ACFR reconciliation year; government-wide Statement of Activities is basis-matched comparator
+- [Phase ?]: Glendale + Burbank ACFRs inaccessible via free CLI (CDN blocks); FOLLOW-UP per D-08; SCO source-loop + Phase 60 /usr/bin/bash-delta corroboration documents presumptive PASS
 
 ## Deferred Items
 
