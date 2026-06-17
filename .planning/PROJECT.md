@@ -8,21 +8,15 @@ A public-facing financial transparency platform for governments and nonprofits �
 
 Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes — without needing a finance background.
 
-## Current Milestone: v2.3 California Coverage Parity
+## Current State
 
-**Goal:** Bring every already-loaded CA city and county up to the Orange County standard — FY2003 budget-history depth, statewide salaries (2009–2024), and standardized enrichment — by re-running the hardened v2.2 SoCal pipeline across LA County and the remaining CA entities. No new tooling: this is the pipeline proving it generalizes across already-covered counties.
+**Shipped v2.3 California Coverage Parity (2026-06-17).** Every already-loaded non-OC California city and county is now at the Orange County standard — FY2003 operating + revenue history, statewide salaries (2009–2024), and standardized enrichment — achieved by re-running the hardened v2.2 SoCal pipeline with no new tooling. The 88 LA County cities + LA County government reach FY2003; 98 non-OC CA cities carry GCC salaries; the 12 named custom-source cities kept their richer budgets via the never-overwrite guard. Phase 62 independently verified the work end-to-end: basis-matched ACFR reconciliation, a full-cohort source-chain durability audit (0 NULL/fragile/residue across 25,568 rows), and a 24-item live-app UAT with Chris's sign-off.
 
-**Target features:**
-- Backfill operating + revenue history to FY2003 for the 88 LA County cities + unlinked/other-county CA cities (SCO ByTheNumbers via `bulkLoadStateController.js`), never overwriting richer custom-source cities (LA/SF/SD/etc.)
-- Backfill LA County's own county-government budget to FY2003 (`loadCountyBudget.js`), matching OC depth
-- Statewide salary sweep (2009–2024) for all non-OC CA cities (`loadCASalaries.js`), a sample reconciled to a published figure
-- Standardized, bleed-safe enrichment for all parity-loaded categories + complete county-linking for the 7 unlinked CA cities
-- ACFR reconciliation + source-chain durability + Chris UAT sign-off
+**Coverage now:** US federal + CA/MA state budgets, 351 MA cities, all 34 OC cities + OC county-gov, all 88 LA County cities + LA County gov (FY2003 depth), 12 named CA cities, 14 TX cities, 3 OR cities — every figure durably sourced.
 
-**Key context:**
-- **Pipeline reuse, not new build** — runs on the v2.2 tools + runbook (`docs/socal-county-onboarding.md`); never-overwrite guard protects the 12 named custom-source cities (they get salaries + enrichment only, not SCO history backfill)
-- **SoCal expansion (6 more counties) deferred to the next milestone (v2.4)** — Riverside, San Bernardino, San Diego, Ventura, Santa Barbara, Imperial (SOCAL-01..06, all staged; phase order TBD then)
-- **Data-driven gap baseline (DB, 2026-06-16):** OC = 34 cities FY2003–2024 + salaries (the standard); LA County = 88 cities FY2017+ only, 0 salaries; LA County gov budget FY2021–2025 (vs OC FY2003–2024); 7 unlinked + 4 other-county CA cities shallow; 0 CA cities carry salaries in the local DB (OC salary sweep lives in production — verify against production/ev-accounts at plan time, not local)
+## Next Milestone Goals (v2.4 — not yet planned)
+
+**Southern California expansion** — extend coverage to 6 more SoCal counties (Riverside, San Bernardino, San Diego, Ventura, Santa Barbara, Imperial; SOCAL-01..06, ~95 more cities) via the now-proven one-command SoCal pipeline. Documented v2.3 follow-ups to fold in: Glendale + Burbank ACFR reconciliation (CDN blocked CLI fetch — manual browser download), the "Employees" salaries-card year-gating UX, and the 5,226 single-city salary department-name canonicalization long tail. Kick off with `/gsd:new-milestone`.
 
 ## Requirements
 
@@ -89,15 +83,15 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - ✓ Statewide CA city-salaries integration (SAL-01/02/03): reusable city-parameterized loader `scripts/loadCASalaries.js` reading the CA State Controller GCC raw export (names-free Dept→Position Total Compensation tree, D-03 wages/benefits split); all 34 OC cities loaded for 2009–2024 (544 rows, 0 gaps); Irvine 2024 reconciles to published figure at $0 delta; conservative department-label normalization (ambiguous codes left as-reported, no fabrication) — v2.2, Phase 55
 - ✓ Orange County verification + UAT (VER-01/02): `verify-phase56.mjs` 7/7 PASS; OC totals reconciled against published ACFRs on a basis-matched all-funds basis (Laguna Woods to the dollar); a UAT-discovered breadcrumb defect root-caused + fixed in-phase (API + frontend), then Chris signed off all 5 navigation surfaces — v2.2, Phase 56
 - ✓ Orange County's own county-government operating + revenue budget (OCB-01/02): reusable `scripts/loadCountyBudget.js` (the runbook Step 5 tool, parameterized for any CA county) loaded 44 rows (22 op + 22 rev, FY2003–2024) onto the OC county entity from SCO ByTheNumbers county datasets (uctr-c2j8/emxv-k8xv, all-governmental-funds basis), per-year population (3.15M), durable `/d/<id>` source attribution; 34 OC city rows untouched (never-overwrite); FY2024 op total $6.42B exact match; OC county page renders icicle/summary + per-capita (no longer directory-only); county SourceChip live since the EV-Accounts `treasuryService.ts` deploy (2026-06-16) — v2.2, Phase 57
+- ✓ FY2003 operating + revenue backfill for the 88 LA County cities (86/88 reach FY2003; Calabasas/Sierra Madre are SCO source gaps) + LA County government, all SCO-sourced with per-year population, never overwriting the custom-source cities (HIST-01, LAC-01) — v2.3, Phase 58
+- ✓ Remaining non-OC CA cities backfilled to FY2003 + the 7 unlinked CA cities linked via `county_id` (4 new linking-only county nodes, SF as a clean combined city-county node, Test artifact removed) (HIST-02, ENR-02) — v2.3, Phase 59
+- ✓ Statewide CA salary sweep: CA Government Compensation FY2009–2024 loaded for all 98 non-OC CA cities (0 gaps, LA's curated payroll preserved by the guard); 3 sampled cities reconcile to the GCC export at $0 delta (SAL-04/05/06) — v2.3, Phase 60
+- ✓ Standardized, bleed-safe enrichment for all parity-loaded categories — 528 universal `category_enrichment` rows authored inline at $0 (op/rev 100%, salary depts shared ≥2 cities); 5,226 single-city salary dept-name long tail deferred to v2.4 (ENR-01) — v2.3, Phase 61
+- ✓ Parity verification: basis-matched ACFR reconciliation (3/5 entities fully reconciled, Glendale/Burbank CDN-access follow-ups), full-cohort source-chain audit (0 NULL/fragile/residue across 25,568 rows), 24-item live-app UAT — all PASS, Chris signed off (VER-03, VER-04) — v2.3, Phase 62
 
 ### Active
 
-**v2.3 California Coverage Parity** (defined 2026-06-16) — see `.planning/REQUIREMENTS.md`:
-- [ ] **HIST-01/02**: FY2003 operating + revenue backfill for the 88 LA County cities + unlinked/other-county CA cities (SCO, never-overwrite, per-year pop, sourced)
-- [ ] **LAC-01**: LA County county-government budget backfilled to FY2003
-- [ ] **SAL-04/05/06**: statewide salary sweep 2009–2024 for all non-OC CA cities, sample reconciled
-- [ ] **ENR-01/02**: standardized enrichment for parity-loaded categories + link the 7 unlinked CA cities
-- [ ] **VER-03/04**: ACFR reconciliation + source-chain audit + Chris UAT
+**No active milestone.** v2.3 shipped 2026-06-17; v2.4 (Southern California expansion) is not yet defined — start it with `/gsd:new-milestone`. Staged requirements live in the REQUIREMENTS archive Future section.
 
 ### Future (deferred milestone candidates)
 
@@ -120,7 +114,7 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 - Donation platforms: GiveButter (primary, lowest fees), Patreon (recurring), Benevity (workplace giving)
 - GiveButter supports webhooks and custom return URLs after donation completion
 - The webhook fires before the redirect, so DB should be updated by the time user lands back
-- Currently covers: 14 TX cities (Dallas, Plano, McKinney, Frisco, Allen, Prosper, Celina, Richardson, Garland, Wylie, Sachse, Murphy, Princeton, Longview) + 12 named CA cities (Los Angeles, San Francisco, San Diego, Sacramento, Oakland, San Jose, Long Beach, Bakersfield, Fresno, Riverside, Anaheim, Santa Ana) + all 34 Orange County cities (operating + revenue FY2003–2024, salaries 2009–2024) + LA County + Orange County (county-government budget FY2003–2024) + 3 OR cities (Portland, Gresham, Troutdale) + 351 MA cities + Massachusetts (state) + the US federal government
+- Currently covers: 14 TX cities (Dallas, Plano, McKinney, Frisco, Allen, Prosper, Celina, Richardson, Garland, Wylie, Sachse, Murphy, Princeton, Longview) + 12 named CA cities (Los Angeles, San Francisco, San Diego, Sacramento, Oakland, San Jose, Long Beach, Bakersfield, Fresno, Riverside, Anaheim, Santa Ana) + all 34 Orange County cities + all 88 LA County cities (operating + revenue FY2003–2024 where SCO provides it, statewide CA salaries FY2009–2024) + LA County + Orange County (county-government budget FY2003–2024) + 3 OR cities (Portland, Gresham, Troutdale) + 351 MA cities + Massachusetts (state) + the US federal government. As of v2.3, every non-OC CA city/county is at the OC parity standard.
 - county_id FK on municipalities; 88 LA County cities + 34 Orange County cities linked; county breadcrumb chip on city pages; CitiesInCountyPanel on county pages
 - SoCal county pipeline is one command per county: `bulkLoadStateController.js --county` (operating + revenue, durable source attribution, never-overwrite, feed population) → `seedCountyLinks.js` (entity + linking) → enrich → verify; runbook at `docs/socal-county-onboarding.md`; `loadCASalaries.js` (statewide city salaries) + `loadCountyBudget.js` (county-government budget) reusable for any CA county
 - MA: 351 cities with FY2002–2025 General Fund data (24 years), per-capita, universal enrichment (14 categories), real MA state budget
@@ -162,6 +156,7 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 
 ## Shipped
 
+- ✅ **v2.3 California Coverage Parity** — 2026-06-17 — Phases 58-62 (88 LA County cities + LA County gov backfilled to FY2003; remaining non-OC CA cities history + county-linking; statewide CA salaries FY2009–2024 for 98 cities; standardized enrichment; ACFR reconciliation + full-cohort source-chain audit + Chris UAT sign-off; every figure durably sourced, $0 spend)
 - ✅ **v2.2 Orange County + Reusable SoCal Pipeline** — 2026-06-16 — Phases 52-57 (hardened one-command SoCal county pipeline + runbook; all 34 OC cities operating + revenue FY2003–2024; OC entity + linking + enrichment; statewide city salaries 2009–2024; ACFR verification + UAT; OC county-government budget FY2003–2024; every figure sourced; milestone audit passed 16/16)
 - ✅ **v2.1 Federal History** — 2026-06-14 — Phases 49-51 (FY1976–FY2024 function/agency/revenue per year + per-year disclosures, federal YearSelector incl. the FY1976 Transition Quarter, sourced comparability notes + definition-drift, source-chain durability audit FAIL 0; $0 API spend; milestone audit passed 8/8)
 - ✅ **v2.0 Federal Treasury Tracker** — 2026-06-13 — Phases 43-48 (US federal entity, FY2025 both lenses, first-split bands + deficit strip, 27 sourced explainers, 15-program origins pilot, source-chain audit 61/61 + UAT)
@@ -194,4 +189,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-16 — v2.3 California Coverage Parity milestone defined. Goal: bring LA County + remaining CA entities up to the OC standard (FY2003 history, statewide salaries, enrichment) via the hardened v2.2 pipeline. SoCal expansion (SOCAL-01..06) deferred to v2.4. See REQUIREMENTS.md + ROADMAP.md (Phases 58–62).*
+*Last updated: 2026-06-17 — v2.3 California Coverage Parity milestone SHIPPED (Phases 58–62). LA County + all remaining non-OC CA entities brought to the OC standard (FY2003 history, statewide salaries 2009–2024, enrichment), verified end-to-end (ACFR reconciliation + source-chain audit + Chris UAT). Next: v2.4 Southern California expansion (SOCAL-01..06) — start with /gsd:new-milestone.*

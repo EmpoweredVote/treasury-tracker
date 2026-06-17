@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.3
 milestone_name: California Coverage Parity
-status: milestone_complete
-last_updated: 2026-06-17T15:57:24.502Z
-last_activity: 2026-06-17
+status: Awaiting next milestone
+last_updated: "2026-06-17T16:43:24.800Z"
+last_activity: 2026-06-17 — Milestone v2.3 completed and archived
 progress:
   total_phases: 62
   completed_phases: 5
   total_plans: 15
   completed_plans: 15
   percent: 8
-stopped_at: Milestone complete (Phase 62 was final phase)
 ---
 
 # State
@@ -25,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-16 after v2.2)
 
 ## Current Position
 
-Phase: 62
-Plan: Not started
-Status: Milestone complete
-Last activity: 2026-06-17
+Phase: Milestone v2.3 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-17 — Milestone v2.3 completed and archived
 
 ### v2.3 gap baseline (DB query, 2026-06-16)
 
@@ -201,6 +200,19 @@ Open-artifact audit at v2.2 close surfaced 4 items, all non-blocking and acknowl
 | quick_task | 001-create-treasury-tracker-entries-for-ever | orphaned (file missing) — pre-v2.0 leftover, also acknowledged at v2.0 + v2.1 close |
 | quick_task | 002-add-longview-tx-revenue | orphaned (file missing) — pre-v2.0 Longview effort; see untracked scripts/_verify-longview-temp.mjs |
 | quick_task | 003-longview-operating-budget | orphaned (file missing) — pre-v2.0 Longview effort |
+
+### Acknowledged at v2.3 close (2026-06-17)
+
+Open-artifact audit at v2.3 close surfaced 4 items, all non-blocking and acknowledged (re-deferred). None are v2.3 blockers — Phase 62 verified the milestone end-to-end (VER-03 + VER-04, 4/4):
+
+| Category | Item | Status |
+|----------|------|--------|
+| uat_gap | Phase 62 `62-03-UAT-CHECKLIST.md` | 0 pending scenarios (flagged only because the file exists; UAT signed off all-pass 2026-06-17) |
+| quick_task | 001-create-treasury-tracker-entries-for-ever | orphaned (file missing) — pre-v2.0 leftover, acknowledged at v2.0/v2.1/v2.2 closes |
+| quick_task | 002-add-longview-tx-revenue | orphaned (file missing) — pre-v2.0 Longview effort |
+| quick_task | 003-longview-operating-budget | orphaned (file missing) — pre-v2.0 Longview effort |
+
+**v2.4 follow-ups (from Phase 62, D-08 — documented, not fixed):** Glendale + Burbank ACFR reconciliation via manual browser download (CDN blocks CLI); the "Employees" salaries-card year-gating UX (show whenever salaries exist for any year + prompt year switch); the 5,226 single-city salary department-name canonicalization long tail (from Phase 61).
 
 ### Acknowledged at v2.0 close (2026-06-13)
 

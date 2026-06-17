@@ -1,5 +1,29 @@
 # Milestones — Treasury Tracker / Empowered Vote Financials
 
+## v2.3 California Coverage Parity (Shipped: 2026-06-17)
+
+**Phases completed:** 5 phases (58–62), 15 plans, 41 tasks
+
+**Delivered:** Every already-loaded non-OC California city and county brought up to the Orange County standard — FY2003 budget-history depth, statewide salaries (2009–2024), and standardized enrichment — by re-running the hardened v2.2 SoCal pipeline with no new tooling. The 12 named custom-source cities (LA, SF, etc.) kept their richer custom budgets untouched via a never-overwrite guard. Every backfilled figure carries a durable ByTheNumbers source row; reconciled against published ACFRs and signed off by Chris in the live app.
+
+**Key accomplishments:**
+
+- **LA County parity backfill (Phase 58)** — operating + revenue back to FY2003 for the 88 LA County cities (86/88 reach FY2003; 2 SCO source gaps) + the LA County government entity (44 op/rev rows FY2003–2024), all SCO-sourced with per-year population; 3 custom cities untouched; basis note renders for Long Beach + West Hollywood only.
+- **Remaining CA cities history + linking (Phase 59)** — layered SCO all-governmental-funds FY2003 history beneath 7 thin custom-source cities (custom rows preserved), created the 4 missing linking-only county nodes, linked the 5 county-bound cities, kept San Francisco as a clean single combined city-county node, and removed the budget-less Test artifact.
+- **Statewide CA salaries sweep (Phase 60)** — CA Government Compensation salaries FY2009–2024 loaded for all 98 non-OC CA cities in 16 download-once passes (0 gaps, 0 failures, 2.5M source records), Los Angeles's curated payroll preserved by the guard; 3 sampled cities reconcile to the official GCC export at $0 delta.
+- **Enrichment parity (Phase 61)** — 528 universal `category_enrichment` rows authored inline at $0 (op/rev 100% coverage, salary departments shared by ≥2 cities), bleed-safe; the 5,226 single-city salary department-name long tail deferred to v2.4.
+- **Verification + audit + UAT (Phase 62)** — ACFR reconciliation for 5 sample entities (3 fully reconciled with explained basis residuals; Glendale + Burbank documented as CDN-access follow-ups); full-cohort source-chain audit PASS (SCO-NULL `source_url`=0, 0 fragile URLs, 0 residue across 25,568 rows); 24-item live-app UAT across 4 CA entities — all PASS, Chris signed off (signoff-all-pass).
+
+**Milestone audit:** No separate `/gsd:audit-milestone` run — Phase 62 was a dedicated end-to-end verification phase that satisfied VER-03 + VER-04 (4/4 success criteria, see `62-VERIFICATION.md`), covering ACFR reconciliation, source-chain durability, and live-app UAT sign-off.
+
+**v2.4 follow-ups (documented, not fixed — verification-only phase, D-08):** Glendale + Burbank ACFR reconciliation via manual browser download (CDN blocks CLI fetch); the "Employees" salaries-card year-gating UX (card hidden for years outside the salaries range — consider showing whenever salaries exist for any year + prompting a year switch); the 5,226 single-city salary department-name canonicalization long tail.
+
+**Known deferred items at close:** 4 non-blocking items acknowledged (re-deferred) — Phase 62's `62-03-UAT-CHECKLIST.md` flagged only because the file exists (0 pending scenarios; UAT signed off all-pass) + the 3 orphaned pre-v2.0 quick-tasks carried since the v2.0/v2.1 closes (`001-create-treasury-tracker-entries`, `002-add-longview-tx-revenue`, `003-longview-operating-budget` — files missing, unrelated to CA parity). See STATE.md Deferred Items.
+
+**Archive:** [v2.3-ROADMAP.md](milestones/v2.3-ROADMAP.md) | [v2.3-REQUIREMENTS.md](milestones/v2.3-REQUIREMENTS.md)
+
+---
+
 ## v2.2 Orange County + Reusable SoCal Pipeline (Shipped: 2026-06-16)
 
 **Phases completed:** 6 phases, 15 plans, 31 tasks
