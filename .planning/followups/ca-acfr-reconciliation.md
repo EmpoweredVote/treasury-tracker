@@ -33,6 +33,11 @@
 
 | Entity | FY | ACFR total expenses | Δ vs SCO op | ACFR total revenues | Δ vs SCO rev | Basis explanation | Verdict |
 |--------|----|--------------------|-------------|--------------------|--------------|-------------------|---------|
-| _(pending document access — see paths above)_ | | | | | | | |
+| **Burbank** (city) | 2023 | $605.6M (gov-wide Stmt of Activities, Total = govt + business-type; MD&A Table 2, $605,597K) | SCO $623.6M → **+$18.0M / +3.0%** | $645.4M ($645,396K) | SCO $638.9M → **−$6.5M / −1.0%** | Burbank's gov-wide statement already folds internal-service funds (self-insurance, vehicle, IT, infrastructure) into governmental activities; SCO all-funds includes them gross → small +3.0% on expenses. Revenue essentially matches (−1.0%, rounding/transfer treatment). Both within tolerance. | **PASS** |
+| **Riverside County** | 2022 | $5,323.6M (gov-wide Changes in Net Position, Total expenses = govt + business-type; MD&A, $5,323,639K) | SCO $6,192.1M → **+$868.5M / +16.3%** | $5,768.1M ($5,768,086K) | SCO $6,177.9M → **+$409.8M / +7.1%** | Expected SCO>ACFR direction: gov-wide eliminates 9 internal-service funds (fleet, info svc, central mail, supply, HR, risk, temp-assistance, EDA facilities, flood-control equip) that SCO carries gross, and SCO modified-accrual books capital outlay as expenditure vs ACFR full-accrual depreciation. +16.3% is in line with the Pasadena precedent (+19.5%). Revenue +7.1% (inter-fund/ISF charges before elimination). | **PASS** |
+| _Glendale (city) FY2023_ | | _pending — downloaded files were Glendale **budget books**, not the ACFR; need the Annual Comprehensive Financial Report PDF_ | | | | | _pending doc_ |
+| _San Diego County FY2022 / Oxnard FY2022 / Chula Vista FY2022 / Riverside city ≤FY2022_ | | _pending — downloads in progress_ | | | | | _pending doc_ |
+
+**Running tally:** 2 of 7 reconciled (both PASS). Combined with the prior-phase PASSes (LA County, Santa Monica, Pasadena, Ventura County), **6 distinct CA entities now reconciled** on the basis-matched method — every one within documented tolerance, zero data anomalies.
 
 *Prior-phase precedent (all PASS, same method): LA County FY23 −5.0% op (full-accrual depreciation/pension); Santa Monica FY23 +10.0% op (ISF gross); Pasadena FY23 +19.5% op (large ISF portfolio + PWP inter-fund); Ventura County FY22 reconciled to ACFR fund statements within all-funds tolerance.*
