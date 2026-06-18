@@ -54,7 +54,7 @@
   3. `loadUtahTransparency.js` builds an operating + revenue category tree for one pilot city (e.g. Provo) in a dry-run with sane totals, durable Transparent Utah / CC BY 4.0 source attribution, and the never-overwrite guard — zero DB writes
   4. Category-tree depth is chosen to fit Utah's fund/cat/function shape (no reflexive deep icicle — ground rule 3)
 
-**Plan shape:** 2 plans. 68-01 = BQ access (gcloud auth, EV Workspace acct) + wire a **read-only BigQuery MCP** (Google official server leading candidate; read-only community server fallback) + entity-name reconnaissance + mapping doc (UTSRC-01); 68-02 = build `loadUtahTransparency.js` + pilot city dry-run (UTSRC-02). Serial main-tree (needs `.env` / gcloud auth), $0.
+**Plan shape:** 3 plans (access blocker split — BQ access is by-request from the State Auditor, discovered during setup). **Wave 1:** 68-01 = establish BQ access (email `alexnielson@utah.gov` → grant → verify), GATED on Utah's human grant (UTSRC-01 access); 68-02 = build `loadUtahTransparency.js` + offline unit-tested tree builder, buildable NOW with no access (UTSRC-02 build) — runs parallel to 68-01. **Wave 2:** 68-03 = wire the **read-only BigQuery MCP** (Google official server leading candidate; community read-only fallback) + entity-name reconnaissance/mapping + pilot dry-run, depends on 68-01 + 68-02 (UTSRC-01 mapping + UTSRC-02 proof). Serial main-tree (needs `.env` / gcloud auth), $0.
 
 ### Phase 69: Utah City Budgets Load
 

@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-17 after v2.4 close + v2.5 start)
 
 ## Current Position
 
-Phase: Not started (roadmap complete; ready to plan Phase 68)
-Plan: —
-Status: Milestone roadmapped — ready for `/gsd-discuss-phase 68` or `/gsd-plan-phase 68`
-Last activity: 2026-06-18 — Milestone v2.5 started, requirements + roadmap committed
+Phase: 68 — PLANNED (3 plans: 68-01 access [gated], 68-02 loader build [buildable now], 68-03 MCP+recon+dry-run)
+Plan: 0 of 3 executed
+Status: Phase 68 planned + discussed; ready for `/gsd-execute-phase 68` once the Utah access email is sent
+Last activity: 2026-06-18 — Phase 68 planned (RESEARCH + 3 PLAN files); BQ access blocker split out
 
 ### v2.5 Utah expansion context
 
@@ -44,7 +44,7 @@ Last activity: 2026-06-18 — Milestone v2.5 started, requirements + roadmap com
 
 | Phase | Name | Requirements | Depends on | Status |
 |-------|------|--------------|------------|--------|
-| 68 | Utah BigQuery Source Setup + Loader | UTSRC-01, UTSRC-02 | — | Not started |
+| 68 | Utah BigQuery Source Setup + Loader | UTSRC-01, UTSRC-02 | — | Planned (3 plans) |
 | 69 | Utah City Budgets Load | UCITY-01, UCITY-02 | 68 | Not started |
 | 70 | Utah County Budgets + Linking | UCO-01, UCO-02 | 68, 69 | Not started |
 | 71 | Utah City Salaries / Compensation | USAL-01 | 68, 69 | Not started |
