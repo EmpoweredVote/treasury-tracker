@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Utah Municipal Expansion
-status: planning
-last_updated: "2026-06-18T00:56:23.950Z"
-last_activity: 2026-06-18
+status: Milestone roadmapped — ready for `/gsd-discuss-phase 68` or `/gsd-plan-phase 68`
+last_updated: "2026-06-18T04:15:18.096Z"
+last_activity: 2026-06-18 — Milestone v2.5 started, requirements + roadmap committed
 progress:
-  total_phases: 6
+  total_phases: 73
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -125,9 +125,9 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-18 — v2.5 Utah Municipal Expansion milestone started
-Stopped at: v2.5 requirements + roadmap committed (Phases 68–73); v2.4 closed (MILESTONES.md + PROJECT.md)
-Resume file: None
+Last session: 2026-06-18T04:15:18.077Z
+Stopped at: Phase 68 context gathered
+Resume file: .planning/phases/68-utah-bigquery-source-setup-loader/68-CONTEXT.md
 
 ### Next Session
 
