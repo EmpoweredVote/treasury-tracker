@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.4
-milestone_name: Southern California Expansion
-status: completed
-stopped_at: Completed 62-03 UAT SUMMARY — v2.3 CA parity milestone verified (VER-03 + VER-04)
-last_updated: "2026-06-17T23:44:17.429Z"
-last_activity: 2026-06-17 -- Phase 67 marked complete
+milestone: v2.5
+milestone_name: Utah Municipal Expansion
+status: planning
+last_updated: "2026-06-18T00:56:23.950Z"
+last_activity: 2026-06-18
 progress:
-  total_phases: 47
-  completed_phases: 5
-  total_plans: 13
-  completed_plans: 13
-  percent: 11
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State
@@ -25,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-16 after v2.2)
 
 ## Current Position
 
-Phase: 67 — COMPLETE
-Plan: 1 of 3
-Status: Phase 67 complete
-Last activity: 2026-06-17 -- Phase 67 marked complete
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-06-18 — Milestone v2.5 started
 
 ### v2.4 SoCal expansion context
 

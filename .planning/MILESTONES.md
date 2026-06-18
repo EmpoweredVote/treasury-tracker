@@ -1,5 +1,25 @@
 # Milestones — Treasury Tracker / Empowered Vote Financials
 
+## v2.4 Southern California Expansion (Shipped: 2026-06-17)
+
+**Phases completed:** 5 phases (63–67)
+
+**Delivered:** The 6 remaining Southern California counties brought onto the tracker via the hardened v2.2/v2.3 pipeline with zero new data-loading tooling — completing California's major-population coverage. ~95 cities loaded + county-linked (operating + revenue FY2003–2024 from SCO ByTheNumbers, per-year population, never-overwrite guard); 8 county governments loaded with their own op/rev budgets (the 6 SoCal counties + Alameda + Sacramento, no longer directory-only); statewide GCC salaries swept for all 95 new cities (FY2009–2024); enrichment brought to parity inline at $0. Every figure carries a durable source row.
+
+**Key accomplishments:**
+
+- **SoCal county cities load + linking (Phase 63)** — Riverside, San Bernardino, San Diego, Ventura, Santa Barbara, Imperial counties' cities loaded operating + revenue FY2003–2024, auto-created with per-year SCO populations, linked via `county_id` (US→California→county→city breadcrumb + Cities-in-County panel); cities already loaded from a richer custom source (e.g. San Diego city) preserved by the never-overwrite guard (SOCAL-01..06).
+- **SoCal county-government budgets (Phase 64)** — `loadCountyBudget.js` loaded op/rev FY2003–2024 for the 6 SoCal counties plus the 2 previously directory-only counties (Alameda, Sacramento); all 8 county pages now render icicle/summary + per-capita (CGB-01).
+- **SoCal salaries sweep (Phase 65)** — CA Government Compensation FY2009–2024 loaded for all 95 new SoCal cities via `loadCASalaries.js`, sample reconciled to the source at $0 delta (SAL-07).
+- **SoCal enrichment parity (Phase 66)** — 185 universal bleed-safe `category_enrichment` rows authored inline at $0 (ENR-03); single-city salary department-name long tail re-deferred.
+- **Verification + audit + UAT (Phase 67)** — Ventura County reconciled to its published ACFR on a documented all-funds basis; full-cohort source-chain durability audit (5,968 budget rows — 0 fragile URLs, 0 residue); 20-item live-app UAT across 4 entities, all PASS, Chris signed off (VER-05, VER-06).
+
+**Known deferred items at close:** Broader per-entity independent ACFR cross-read for the SoCal sample (only Ventura fully reconciled; several ACFR PDFs were blocked/non-extractable) — VER-05 follow-up. Plus the carried v2.3 follow-ups FUP-01..03 (Glendale/Burbank ACFR, Employees-card year-gating UX, single-city salary department-name canonicalization long tail).
+
+**Archive:** [v2.4-ROADMAP.md](milestones/v2.4-ROADMAP.md) | [v2.4-REQUIREMENTS.md](milestones/v2.4-REQUIREMENTS.md)
+
+---
+
 ## v2.3 California Coverage Parity (Shipped: 2026-06-17)
 
 **Phases completed:** 5 phases (58–62), 15 plans, 41 tasks
