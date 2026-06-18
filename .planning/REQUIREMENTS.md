@@ -63,9 +63,9 @@
 
 | REQ-ID | Phase |
 |--------|-------|
-| UTSRC-01, UTSRC-02 | — |
-| UCITY-01, UCITY-02 | — |
-| UCO-01, UCO-02 | — |
-| USAL-01 | — |
-| UENR-01 | — |
-| UVER-01, UVER-02 | — |
+| UTSRC-01, UTSRC-02 | 68 — Utah BigQuery Source Setup + Loader |
+| UCITY-01, UCITY-02 | 69 — Utah City Budgets Load |
+| UCO-01, UCO-02 | 70 — Utah County Budgets + Linking |
+| USAL-01 | 71 — Utah City Salaries / Compensation |
+| UENR-01 | 72 — Utah Enrichment Parity |
+| UVER-01, UVER-02 | 73 — Utah Verification + Source-Chain Audit + UAT |

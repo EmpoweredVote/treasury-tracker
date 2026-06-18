@@ -17,6 +17,113 @@
 - ✅ **v2.2 Orange County + Reusable SoCal Pipeline** — Phases 52-57 (shipped 2026-06-16)
 - ✅ **v2.3 California Coverage Parity** — Phases 58-62 (shipped 2026-06-17)
 - ✅ **v2.4 Southern California Expansion** — Phases 63-67 (shipped 2026-06-17)
+- 🔜 **v2.5 Utah Municipal Expansion** — Phases 68-73 (in progress)
+
+---
+
+## ▶ v2.5 Utah Municipal Expansion (Phases 68–73) — ACTIVE
+
+**Milestone goal:** Bring 10 Utah cities + their 5 county governments onto Treasury Tracker at full California parity — operating + revenue budgets, employee compensation, category enrichment, and county linking — every figure durably sourced, verified with Chris's UAT sign-off, at ~$0 spend.
+
+**Data source (locked via recon — `.planning/research/UTAH-RECON.md`):** the Utah State Auditor's **Transparent Utah** public BigQuery dataset `ut-sao-transparency-prod.transaction.transaction`. One uniform table gives operating (`EX`), revenue (`RV`), and payroll (`PY`) for all 15 entities, FY2009→present. Free (BQ sandbox free tier, no card). Actuals / all-governmental-funds basis — consistent with our existing CA county loads. opendata.utah.gov Socrata (FY≤2019) is a zero-auth cross-check only; per-entity ACFRs are the reconciliation/fallback source.
+
+**Entities — cities (10):** Layton, Lehi, Ogden, Orem, Provo, Salt Lake City, Sandy, St. George, West Jordan, West Valley City. **Counties (5):** Salt Lake (SLC, West Valley, West Jordan, Sandy), Utah (Provo, Orem, Lehi), Davis (Layton), Weber (Ogden), Washington (St. George).
+
+**Pipeline:** new BigQuery loader (`loadUtahTransparency.js`, Phase 68) is the only new tooling; `seedCountyLinks.js` (county seed + linking), the inline-$0 enrichment authoring pattern, and the verification/source-chain-audit pattern are reused as-is.
+
+**Critical path:** 68 → 69 → {70 ∥ 71} → 72 → 73. Phases 70 (county budgets + linking) and 71 (salaries) both depend on 68 + 69 and run in parallel.
+
+| # | Phase | Requirements | Depends on | Status |
+|---|-------|--------------|------------|--------|
+| 68 | Utah BigQuery Source Setup + Loader | UTSRC-01, UTSRC-02 | — | Not started |
+| 69 | Utah City Budgets Load | UCITY-01, UCITY-02 | 68 | Not started |
+| 70 | Utah County Budgets + Linking | UCO-01, UCO-02 | 68, 69 | Not started |
+| 71 | Utah City Salaries / Compensation | USAL-01 | 68, 69 | Not started |
+| 72 | Utah Enrichment Parity | UENR-01 | 69, 70, 71 | Not started |
+| 73 | Utah Verification + Source-Chain Audit + UAT | UVER-01, UVER-02 | 69–72 | Not started |
+
+### Phase 68: Utah BigQuery Source Setup + Loader
+
+**Goal:** BigQuery access is established (BQ sandbox via Google auth, $0), each of the 15 target entities' exact `entity_name` is confirmed against the live transaction table with a recorded entity→municipality mapping, and a reusable BQ-based loader can query the table per entity / fiscal year / type and build clean fund→category budget trees with durable source attribution + a never-overwrite guard — proven on one pilot city in a zero-write dry-run.
+**Depends on:** Nothing (milestone foundation — new tooling, like v2.2 Phase 52 hardened the SoCal pipeline first)
+**Requirements:** UTSRC-01, UTSRC-02
+**Success Criteria** (what must be TRUE):
+
+  1. Authenticated, repeatable queries run against `ut-sao-transparency-prod.transaction.transaction` at $0 (BQ free tier)
+  2. All 15 entities' exact `entity_name` strings are confirmed present with their FY coverage, recorded in an entity-mapping doc (e.g. "Salt Lake City" vs any corporation suffix)
+  3. `loadUtahTransparency.js` builds an operating + revenue category tree for one pilot city (e.g. Provo) in a dry-run with sane totals, durable Transparent Utah / CC BY 4.0 source attribution, and the never-overwrite guard — zero DB writes
+  4. Category-tree depth is chosen to fit Utah's fund/cat/function shape (no reflexive deep icicle — ground rule 3)
+
+**Plan shape:** 2 plans. 68-01 = BQ access (gcloud auth) + entity-name reconnaissance + mapping doc (UTSRC-01); 68-02 = build `loadUtahTransparency.js` + pilot city dry-run (UTSRC-02). Serial main-tree (needs `.env` / gcloud auth), $0.
+
+### Phase 69: Utah City Budgets Load
+
+**Goal:** All 10 Utah cities show operating + revenue for every available fiscal year (all-funds basis) from Transparent Utah — every figure sourced, with population for per-capita.
+**Depends on:** Phase 68 (loader + entity mapping)
+**Requirements:** UCITY-01, UCITY-02
+**Success Criteria** (what must be TRUE):
+
+  1. Each of the 10 cities shows operating (`EX`) + revenue (`RV`) for all available FYs, every row carrying Transparent Utah source attribution
+  2. Per-capita renders for each city (Census-vintage population), labeled with its source year
+  3. The never-overwrite guard leaves any pre-existing custom-source city unchanged
+  4. Totals are spot-checked sane against a published reference for ≥2 cities (e.g. SLC, Provo)
+
+**Plan shape:** 1 plan (69-01) — load all 10 cities op+rev via `loadUtahTransparency.js`, canary one city first, then sweep. Serial main-tree, $0.
+
+### Phase 70: Utah County Budgets + Linking
+
+**Goal:** Each of the 5 Utah county governments shows its own operating + revenue budget, and all 10 cities are linked US→Utah→county→city (breadcrumb chip + Cities-in-County panel).
+**Depends on:** Phase 68 (loader) + Phase 69 (cities must exist before linking)
+**Requirements:** UCO-01, UCO-02
+**Success Criteria** (what must be TRUE):
+
+  1. The 5 county governments (Salt Lake, Utah, Davis, Weber, Washington) have operating + revenue loaded onto their own entities for available FYs, with durable source attribution + population; county pages render icicle/summary + per-capita (not directory-only)
+  2. The Utah state node exists as parent and the 5 county nodes are seeded
+  3. All 10 cities are linked via `county_id`; the breadcrumb chain and Cities-in-County panel render in the live app
+  4. City rows are untouched by the county load (never-overwrite)
+
+**Plan shape:** 2 plans. 70-01 = seed Utah + 5 county entities + link the 10 cities (UCO-02, reuse `seedCountyLinks.js`); 70-02 = load the 5 county-gov op+rev via `loadUtahTransparency.js` (UCO-01). Serial main-tree, $0. Runs in parallel with Phase 71.
+
+### Phase 71: Utah City Salaries / Compensation
+
+**Goal:** All 10 Utah cities carry names-free employee-compensation trees for available fiscal years, with a sample reconciled.
+**Depends on:** Phase 68 (loader) + Phase 69 (cities must exist before salaries attach)
+**Requirements:** USAL-01
+**Success Criteria** (what must be TRUE):
+
+  1. Compensation (`PY`) loaded for the 10 cities for available FYs as names-free Department/category total-compensation trees (public-record-only safety line — no individual names)
+  2. At least one city reconciles to the Transparent Utah Compensation Downloader / published figure at ~$0 delta
+  3. The salaries dataset is viewable in the live app for a spot-checked city; per-city coverage and any gaps are documented
+  4. A never-overwrite guard protects any pre-existing compensation data
+
+**Plan shape:** 1 plan (71-01) — sweep all 10 cities' `PY` data via the loader (extended for the payroll type). Serial main-tree, $0. Runs in parallel with Phase 70.
+
+### Phase 72: Utah Enrichment Parity
+
+**Goal:** Every newly-loaded Utah budget category (operating, revenue, salaries) carries standardized, bleed-safe, plain-language enrichment.
+**Depends on:** Phases 69 + 70 + 71 (categories must be loaded before they can be enriched)
+**Requirements:** UENR-01
+**Success Criteria** (what must be TRUE):
+
+  1. All newly-loaded Utah op/rev categories (100%) + salary departments shared by ≥2 cities have plain-language enrichment (names + descriptions), authored hybrid: universal (`municipality_id IS NULL`) for generic Utah taxonomy names, city-scoped for anything city-specific
+  2. Enrichment is bleed-safe — no entity's text appears on another's categories (spot-checked across ≥3 entities)
+  3. Enrichment is authored inline at ~$0 (no paid API spend beyond the documented $5 gate); the single-city salary-dept long tail is explicitly counted + deferred
+
+**Plan shape:** 1 plan (72-01). Reuse the Phase 61/66 enrichment authoring pattern, but author a **fresh Utah universal set** — Utah's fund/cat taxonomy differs from CA SCO, so existing CA universals won't cover Utah names. Serial main-tree.
+
+### Phase 73: Utah Verification + Source-Chain Audit + UAT
+
+**Goal:** The Utah expansion is independently reconciled against published ACFRs, the source chain is durable, and Chris signs off in the live app.
+**Depends on:** Phases 69, 70, 71, 72 (all Utah data + enrichment loaded)
+**Requirements:** UVER-01, UVER-02
+**Success Criteria** (what must be TRUE):
+
+  1. At least one sample entity (e.g. Salt Lake City or Provo) reconciles against its published ACFR on a basis-matched comparison, with documented (explainable, not penny-exact) variance
+  2. A source-chain audit passes — every newly-loaded Utah budget/salary row carries durable human-page source attribution (no fragile/version-specific links), zero residue
+  3. The live app is verified end-to-end: city + county operating/revenue, salaries, per-capita, enrichment, breadcrumbs + Cities-in-County panels, source chips
+  4. Chris UAT sign-off recorded
+
+**Plan shape:** 3 plans mirroring the Phase 67/62 closeout. Wave 1 (parallel, read-only): 73-01 ACFR reconciliation (basis-matched sample) + 73-02 full-cohort source-chain durability audit — both → UVER-01. Wave 2: 73-03 live-app guided UAT + Chris sign-off at a **blocking checkpoint** → UVER-02. Read-only, production DB, $0.
 
 ---
 
@@ -1198,4 +1305,4 @@ Hardened the bulk loader into a documented one-command SoCal county pipeline; lo
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-06-16 — v2.2 Orange County + Reusable SoCal Pipeline shipped (Phases 52-57); milestone archived to milestones/v2.2-ROADMAP.md. Awaiting next milestone.*
+*Last updated: 2026-06-17 — v2.4 Southern California Expansion shipped (Phases 63-67); v2.5 Utah Municipal Expansion roadmapped (Phases 68-73, ACTIVE). Next: `/gsd-discuss-phase 68`.*
