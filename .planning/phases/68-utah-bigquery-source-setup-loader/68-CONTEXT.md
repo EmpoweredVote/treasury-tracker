@@ -8,7 +8,7 @@
 
 Stand up the one piece of new tooling for the v2.5 Utah milestone: **BigQuery access** + a reusable **`loadUtahTransparency.js`** loader, proven on one pilot city via a **zero-write dry-run**. Phases 69–73 (city budgets, county budgets + linking, salaries, enrichment, verification) all reuse what this phase builds.
 
-**In scope:** establish authenticated BigQuery access to the Utah State Auditor's public table; confirm each of the 15 target entities' exact `entity_name` string + record an entity→municipality mapping (UTSRC-01); build the loader that queries per entity/FY/type, builds a function/purpose-first category tree, and writes operating + revenue with durable source attribution + never-overwrite guard; prove it on one pilot city dry-run (UTSRC-02).
+**In scope:** establish authenticated BigQuery access to the Utah State Auditor's public table; wire a **read-only BigQuery MCP server** into the Claude Code config for recon; confirm each of the 15 target entities' exact `entity_name` string + record an entity→municipality mapping (UTSRC-01); build the loader that queries per entity/FY/type, builds a function/purpose-first category tree, and writes operating + revenue with durable source attribution + never-overwrite guard; prove it on one pilot city dry-run (UTSRC-02).
 
 **Out of scope (later phases):** actually loading the 10 cities (69), county budgets + linking (70), salaries/`PY` loading (71), enrichment (72), verification/UAT (73). No production writes in this phase.
 </domain>
@@ -21,6 +21,11 @@ Stand up the one piece of new tooling for the v2.5 Utah milestone: **BigQuery ac
 - **D-02:** **Fallback** if the EV Workspace org restricts Cloud-project creation: fall back to a personal Google account sandbox (same flow). The planner should surface this as the first thing to verify, since it gates everything.
 - **D-03:** The Google Cloud SDK (`gcloud`/`bq`) is **NOT installed** on this machine and there is **no `@google-cloud/bigquery` Node dependency** — Phase 68 must install access tooling from scratch. Authentication is a one-time interactive `gcloud auth login` (run by Chris via the `! gcloud auth login` session pattern).
 - **D-04:** Loader stays **JavaScript** like every other loader in `scripts/`. Mechanism (Node `@google-cloud/bigquery` client via Application Default Credentials, vs. shelling `bq query --format=json` into the loader) is the planner's call — recommend the Node client for consistency with the existing JS loader ecosystem.
+
+### BigQuery MCP (recon tooling)
+- **D-12:** Add a **read-only BigQuery MCP server** to the Claude Code config as part of Phase 68 (Chris's request) so Claude can directly inspect `ut-sao-transparency-prod.transaction.transaction` during recon — confirm the 15 exact `entity_name` strings, eyeball the `function`/`cat`/`org` columns, sanity-check totals — instead of running throwaway query scripts.
+- **D-13:** **Leading candidate = Google's official BigQuery MCP server** (released 2026; enabled with the BigQuery API, OAuth 2.0 + IAM auth — pairs with the EV Workspace `gcloud` auth from D-01). Read-only community alternatives exist (e.g. `ergut/mcp-bigquery-server`, SELECT-only, dry-run-validated) as a fallback if the official server needs billing/IAM we can't grant on the sandbox. **Final server choice + exact config verified during Phase 68 execution**, after auth — the planner should treat the specific server as not-yet-locked.
+- **D-14:** **Read-only / recon-only.** The MCP must NOT be a write path. All production writes go through the JS loader → Supabase RPC (the MCP touches BigQuery only, which is read-only public data anyway). Config is **project-scoped** (`.mcp.json` in repo) so it travels with the project; credentials stay local (never commit a key).
 
 ### Category-Tree Shape
 - **D-05:** **Function/purpose-first**, consistent with BOTH the Federal tracker (function lens default — "what it's for") and the CA SCO loader (`category → subcategory → line`). Top level = functional/purpose categories (Public Safety, Public Works, Parks & Rec, General Government…), then a second level (sub-function/category), then line items. **2–3 levels max; NO reflexive deep icicle** (ground rule 3).
@@ -68,6 +73,10 @@ Stand up the one piece of new tooling for the v2.5 Utah milestone: **BigQuery ac
 ### External (Utah, public)
 - Transparent Utah Super User SQL reference: `old.transparent.utah.gov/superuser_scripts.php` — documents the BigQuery table + example queries.
 - Per-entity source page pattern: `transparent.utah.gov` entity-details (exact URL pattern to be confirmed by the researcher, keyed by `entity_id`).
+
+### BigQuery MCP (recon tooling — D-12/13/14)
+- Google official BigQuery MCP server: `docs.cloud.google.com/bigquery/docs/use-bigquery-mcp` and MCP reference `docs.cloud.google.com/bigquery/docs/reference/mcp` — leading candidate; OAuth 2.0 + IAM, enabled with the BigQuery API.
+- Read-only community fallback: `github.com/ergut/mcp-bigquery-server` (SELECT-only, dry-run-validated). Planner verifies the chosen server's current install/config during execution.
 </canonical_refs>
 
 <code_context>

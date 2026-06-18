@@ -14,7 +14,7 @@
 
 ### Source & Loader Tooling
 
-- [ ] **UTSRC-01**: BigQuery access is established for the project (BQ sandbox via Google auth, $0) and each of the 15 target entities' exact `entity_name` string is confirmed against the live transaction table (e.g. "Salt Lake City" vs a corporation suffix), with a recorded entity-name → Treasury-Tracker-municipality mapping.
+- [ ] **UTSRC-01**: BigQuery access is established for the project (BQ sandbox via Google auth, $0), a **read-only BigQuery MCP server** is wired into the Claude Code config for recon, and each of the 15 target entities' exact `entity_name` string is confirmed against the live transaction table (e.g. "Salt Lake City" vs a corporation suffix), with a recorded entity-name → Treasury-Tracker-municipality mapping.
 - [ ] **UTSRC-02**: A reusable BigQuery loader queries the transaction table per entity / fiscal year / type, builds clean fund→category budget trees (avoiding reflexive deep icicles — ground rule 3), and writes operating + revenue rows with durable source attribution (Transparent Utah / CC BY 4.0) and a never-overwrite guard for any entity already loaded from another source.
 
 ### City Budgets

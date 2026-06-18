@@ -49,12 +49,12 @@
 **Requirements:** UTSRC-01, UTSRC-02
 **Success Criteria** (what must be TRUE):
 
-  1. Authenticated, repeatable queries run against `ut-sao-transparency-prod.transaction.transaction` at $0 (BQ free tier)
+  1. Authenticated, repeatable queries run against `ut-sao-transparency-prod.transaction.transaction` at $0 (BQ free tier), with a **read-only BigQuery MCP** wired into the Claude Code config for recon (D-12/13/14)
   2. All 15 entities' exact `entity_name` strings are confirmed present with their FY coverage, recorded in an entity-mapping doc (e.g. "Salt Lake City" vs any corporation suffix)
   3. `loadUtahTransparency.js` builds an operating + revenue category tree for one pilot city (e.g. Provo) in a dry-run with sane totals, durable Transparent Utah / CC BY 4.0 source attribution, and the never-overwrite guard — zero DB writes
   4. Category-tree depth is chosen to fit Utah's fund/cat/function shape (no reflexive deep icicle — ground rule 3)
 
-**Plan shape:** 2 plans. 68-01 = BQ access (gcloud auth) + entity-name reconnaissance + mapping doc (UTSRC-01); 68-02 = build `loadUtahTransparency.js` + pilot city dry-run (UTSRC-02). Serial main-tree (needs `.env` / gcloud auth), $0.
+**Plan shape:** 2 plans. 68-01 = BQ access (gcloud auth, EV Workspace acct) + wire a **read-only BigQuery MCP** (Google official server leading candidate; read-only community server fallback) + entity-name reconnaissance + mapping doc (UTSRC-01); 68-02 = build `loadUtahTransparency.js` + pilot city dry-run (UTSRC-02). Serial main-tree (needs `.env` / gcloud auth), $0.
 
 ### Phase 69: Utah City Budgets Load
 
