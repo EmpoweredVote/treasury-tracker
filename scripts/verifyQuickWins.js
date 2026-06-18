@@ -57,13 +57,15 @@ async function reconcileCounty(scoName, dbName) {
   const delta = sco ? ((db - sco) / sco * 100) : 0;
   console.log(`  ${dbName} gov op FY2024: SCO sum=$${sco.toLocaleString()} | DB=$${db.toLocaleString()} | delta ${delta.toFixed(2)}%`);
 }
-async function reconcileCity(scoName, dbName) {
-  const sco = await scoTotal('ju3w-4gxp', `entity_name='${scoName}' AND fiscal_year='2024'`);
-  const { data: m } = await sb.from('municipalities').select('id').eq('name', dbName).eq('entity_type', 'city').maybeSingle();
-  const { data: b } = await sb.from('budgets').select('total_budget').eq('municipality_id', m.id).eq('fiscal_year', 2024).eq('dataset_type', 'operating').maybeSingle();
+async function reconcileCity(scoName, id) {
+  // SCO entity_name can collide across counties; scope the SCO sum by county too
+  // would require the county name — but the city op row in DB is keyed by id, so
+  // reconcile DB(id) against SCO(entity_name) and rely on unique Bay Area names.
+  const sco = await scoTotal('ju3w-4gxp', `entity_name='${scoName.replace(/'/g, "''")}' AND fiscal_year='2024'`);
+  const { data: b } = await sb.from('budgets').select('total_budget').eq('municipality_id', id).eq('fiscal_year', 2024).eq('dataset_type', 'operating').maybeSingle();
   const db = b?.total_budget || 0;
   const delta = sco ? ((db - sco) / sco * 100) : 0;
-  console.log(`  ${dbName} (city) op FY2024: SCO sum=$${sco.toLocaleString()} | DB=$${db.toLocaleString()} | delta ${delta.toFixed(2)}%`);
+  console.log(`  ${scoName} (city) op FY2024: SCO sum=$${sco.toLocaleString()} | DB=$${db.toLocaleString()} | delta ${delta.toFixed(2)}%`);
 }
 // Sample one SCO-sourced city per cohort county (largest by population that
 // carries a SCO FY2024 operating row — i.e. not a custom/excluded flagship).
@@ -73,9 +75,9 @@ for (const cn of COUNTIES) {
   let picked = null;
   for (const c of cities) {
     const { data: b } = await sb.from('budgets').select('total_budget,data_source').eq('municipality_id', c.id).eq('fiscal_year', 2024).eq('dataset_type', 'operating').maybeSingle();
-    if (b && /State Controller/.test(b.data_source || '')) { picked = c.name; break; }
+    if (b && /State Controller/.test(b.data_source || '')) { picked = c; break; }
   }
-  if (picked) await reconcileCity(picked, picked);
+  if (picked) await reconcileCity(picked.name, picked.id);
   else console.log(`  ${cn}: no SCO-sourced FY2024 city sample found`);
 }
 

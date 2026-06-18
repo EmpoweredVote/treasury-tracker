@@ -41,6 +41,10 @@ const QUICKWIN_EXACT = {
   'ambulance':     'fire',            // EMS, generically under fire/emergency services
   'corrections':   'public_safety',   // jail/detention — public-safety umbrella
   'shop':          'fleet',           // vehicle/equipment maintenance shop
+  'preschool':     'youth_services',  // early-childhood / education programs
+  'public art':    'cultural_arts',
+  'rent control':  'housing',         // rent stabilization / tenant programs
+  'dpw':           'public_works',    // Department of Public Works
 };
 const EXACT_OVERRIDE = { 'it': 'information_technology', 'cra': 'redevelopment', 'human': 'human_resources', ...SOCAL_EXACT, ...QUICKWIN_EXACT };
 
