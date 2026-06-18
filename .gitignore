@@ -77,3 +77,9 @@ scripts/output/
 
 # Planning recon data samples (large source xlsx/csv kept locally, not tracked)
 .planning/**/samples/
+
+# Temporary ACFR PDFs for reconciliation (not committed)
+_acfr-tmp/
+
+# Transient loader driver output (scratch; logs already ignored)
+scripts/*.failures.txt

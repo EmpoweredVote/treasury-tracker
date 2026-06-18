@@ -181,6 +181,7 @@ async function main() {
     options: {
       county: { type: 'string', short: 'c' },
       city:   { type: 'string' },
+      'exclude-city': { type: 'string', multiple: true },
       fy: { type: 'string', short: 'y', multiple: true },
       type: { type: 'string', short: 't' },
       'source-date': { type: 'string' },
@@ -192,6 +193,14 @@ async function main() {
 
   const county = values.county || 'Los Angeles';
   const cityFilter = values.city || null;
+  // Cities to exclude entirely from a county load (case-insensitive). Used to keep
+  // flagship custom-source cities (e.g. San Jose, Fresno, Bakersfield) from getting
+  // SCO history backfilled onto years their richer custom budget doesn't cover —
+  // which would create a misleading basis-mismatch trend. Those cities are still
+  // county-linked + salaried + enriched separately; the never-overwrite guard alone
+  // can't protect the empty years, so they're suppressed here. (Chris decision: the
+  // 12 named custom cities get salaries+enrichment only, no SCO backfill.)
+  const excludeSet = new Set((values['exclude-city'] || []).map(c => c.trim().toLowerCase()));
   const state = 'CA';
   const fiscalYears = values.fy ? values.fy.map(Number) : [2023];
   const types = values.type ? [values.type] : ['expenditures', 'revenues'];
@@ -203,6 +212,7 @@ async function main() {
   console.log(`\n🏛️  CA State Controller Bulk Loader (hardened)`);
   console.log(`   County: ${county}`);
   if (cityFilter) console.log(`   City filter: ${cityFilter}`);
+  if (excludeSet.size) console.log(`   Excluding (custom-source, no backfill): ${[...excludeSet].join(', ')}`);
   console.log(`   Fiscal Years: ${fiscalYears.join(', ')}`);
   console.log(`   Types: ${types.join(', ')}`);
   console.log(`   Source date: ${fetchDate}${values['source-date'] ? '' : ' (today)'}\n`);
@@ -244,6 +254,11 @@ async function main() {
       let citiesImported = 0, totalItems = 0, skippedCount = 0;
       const wouldImport = [];
       for (const [cityName, cityData] of byCity) {
+        if (excludeSet.has(cityName.trim().toLowerCase())) {
+          console.log(`  EXCLUDE ${cityName} (${state}) — flagship custom-source city, SCO backfill suppressed`);
+          skippedCount++;
+          continue;
+        }
         const existing = await findCityMunicipality(cityName, state);
         if (existing) {
           const conflict = await findConflictingBudget(existing.id, fy, ds.type, srcName);
