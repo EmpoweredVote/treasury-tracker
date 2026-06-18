@@ -53,7 +53,12 @@ function resolve(nameKey) {
   return { row: CONCEPTS.general_dept, via: 'fallback:general_dept' };
 }
 
-const COUNTIES = ['Santa Clara County', 'Fresno County', 'Kern County'];
+// Cohort counties: default = the original quick-win 3; override with
+//   --counties "Alameda County,Sacramento County"  (reusable for any cohort).
+const ci = process.argv.indexOf('--counties');
+const COUNTIES = ci !== -1 && process.argv[ci + 1]
+  ? process.argv[ci + 1].split(',').map(s => s.trim()).filter(Boolean)
+  : ['Santa Clara County', 'Fresno County', 'Kern County'];
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY, { db: { schema: 'treasury' } });
 
 // 1. Existing universal enrichment name_keys (paginate past the 1000-row cap).
@@ -124,7 +129,7 @@ for (const nameKey of worklist) {
     name_key: nameKey, municipality_id: null,
     plain_name: row.plain_name, short_description: row.short_description, description: row.description,
     tags: row.tags, source: 'ai', confidence: row.confidence,
-    evidence_summary: 'Inline-authored plain-language description of a standard municipal department/category, mapped from the department name to a generic civic-finance concept (quick-win counties: Santa Clara, Fresno, Kern). Generic and bleed-safe — not specific to any city.',
+    evidence_summary: `Inline-authored plain-language description of a standard municipal department/category, mapped from the department name to a generic civic-finance concept (CA cohort: ${COUNTIES.map(c => c.replace(/ County$/, '')).join(', ')}). Generic and bleed-safe — not specific to any city.`,
     generated_at: GENERATED_AT,
   });
   mappingLog.push({ name_key: nameKey, cities: keyCities.get(nameKey).size, plain_name: row.plain_name, via });
@@ -142,8 +147,13 @@ console.log('fallback-to-general_dept:', fallbacks.length, fallbacks.length ? '(
 console.log('$-leak rows (must be 0):', leaks.length);
 
 mkdirSync('data', { recursive: true });
-writeFileSync('data/quickwin-enrichment.expanded.json', JSON.stringify({ generated_at: GENERATED_AT, authored: rows.length, deferred_single_city: deferredSingleCity, mapping: mappingLog }, null, 2));
-console.log('Expanded mapping written to data/quickwin-enrichment.expanded.json');
+// Cohort-specific filename so successive cohorts don't clobber each other's record.
+const slug = (ci === -1)
+  ? 'quickwin'
+  : COUNTIES.map(c => c.replace(/ County$/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-')).join('_');
+const outFile = `data/enrichment-${slug}.expanded.json`;
+writeFileSync(outFile, JSON.stringify({ generated_at: GENERATED_AT, counties: COUNTIES, authored: rows.length, deferred_single_city: deferredSingleCity, mapping: mappingLog }, null, 2));
+console.log('Expanded mapping written to ' + outFile);
 
 if (leaks.length) { console.error('ABORT: $-figure leak detected'); process.exit(1); }
 if (!APPLY) { console.log('\n[dry-run] No DB writes. Re-run with --apply to upsert.'); process.exit(0); }

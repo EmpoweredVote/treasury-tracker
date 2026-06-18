@@ -4,7 +4,10 @@ import { createClient } from '@supabase/supabase-js';
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY, { db: { schema: 'treasury' } });
-const COUNTIES = ['Santa Clara County', 'Fresno County', 'Kern County'];
+const ci = process.argv.indexOf('--counties');
+const COUNTIES = ci !== -1 && process.argv[ci + 1]
+  ? process.argv[ci + 1].split(',').map(s => s.trim()).filter(Boolean)
+  : ['Santa Clara County', 'Fresno County', 'Kern County'];
 
 const HOST = 'https://bythenumbers.sco.ca.gov';
 async function scoTotal(dataset, where) {
@@ -62,10 +65,19 @@ async function reconcileCity(scoName, dbName) {
   const delta = sco ? ((db - sco) / sco * 100) : 0;
   console.log(`  ${dbName} (city) op FY2024: SCO sum=$${sco.toLocaleString()} | DB=$${db.toLocaleString()} | delta ${delta.toFixed(2)}%`);
 }
-await reconcileCounty('Santa Clara', 'Santa Clara County');
-await reconcileCounty('Kern', 'Kern County');
-await reconcileCity('Sunnyvale', 'Sunnyvale');
-await reconcileCity('Clovis', 'Clovis');
+// Sample one SCO-sourced city per cohort county (largest by population that
+// carries a SCO FY2024 operating row — i.e. not a custom/excluded flagship).
+for (const cn of COUNTIES) {
+  const { data: county } = await sb.from('municipalities').select('id').eq('name', cn).eq('entity_type', 'county').maybeSingle();
+  const { data: cities } = await sb.from('municipalities').select('id,name,population').eq('county_id', county.id).eq('entity_type', 'city').order('population', { ascending: false });
+  let picked = null;
+  for (const c of cities) {
+    const { data: b } = await sb.from('budgets').select('total_budget,data_source').eq('municipality_id', c.id).eq('fiscal_year', 2024).eq('dataset_type', 'operating').maybeSingle();
+    if (b && /State Controller/.test(b.data_source || '')) { picked = c.name; break; }
+  }
+  if (picked) await reconcileCity(picked, picked);
+  else console.log(`  ${cn}: no SCO-sourced FY2024 city sample found`);
+}
 
 // Source-chain audit on all collected new rows.
 console.log('\n=== SOURCE-CHAIN AUDIT ===');
@@ -79,7 +91,7 @@ console.log(`  distinct data_source labels: ${[...new Set(allRows.map(r => r.dat
 // Enrichment bleed-safety: the 37 new universal rows.
 console.log('\n=== ENRICHMENT BLEED-SAFETY (universal rows) ===');
 const { data: enr } = await sb.from('category_enrichment').select('name_key,municipality_id,plain_name,description').is('municipality_id', null).eq('generated_at', '2026-06-18T00:00:00.000Z');
-const cityNames = ['sunnyvale','clovis','arvin','fresno','kern','santa clara','bakersfield','san jose'];
+const cityNames = ['sunnyvale','clovis','arvin','fresno','kern','santa clara','bakersfield','san jose','oakland','berkeley','fremont','alameda','hayward','sacramento','elk grove','folsom','rancho cordova'];
 const leak = (enr || []).filter(e => /\$\s?\d/.test(`${e.plain_name} ${e.description}`) || cityNames.some(n => `${e.plain_name} ${e.description}`.toLowerCase().includes(n)));
 console.log(`  new universal rows: ${(enr || []).length} | municipality_id all NULL: ${(enr || []).every(e => e.municipality_id === null)}`);
 console.log(`  rows with $-figure or city-name leak: ${leak.length}`);
