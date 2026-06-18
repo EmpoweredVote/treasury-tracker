@@ -38,9 +38,32 @@
 | **Glendale** (city) | 2023 | $795.4M (gov-wide Change in Net Position, Total expenses; MD&A, $795,432K) | SCO $920.1M → **+$124.7M / +15.7%** | $855.3M ($855,342K) | SCO $967.9M → **+$112.6M / +13.2%** | Expected SCO>ACFR direction: gov-wide eliminates internal-service funds (fleet, IT, joint helicopter, building maintenance, employee benefits, insurance) that SCO carries gross, plus electric-utility inter-fund flows; modified-accrual capital outlay vs full-accrual depreciation. +15.7% in line with Pasadena (+19.5%) / Riverside County (+16.3%). | **PASS** |
 | **San Diego County** | 2022 | $5,341.0M (gov-wide Changes in Net Position, Total expenses, FY2022 audited prior-year column in the FY2023 ACFR; Table 2, $5,340,993K) | SCO $6,344.0M → **+$1,003.0M / +18.8%** | $6,027.2M ($6,027,232K) | SCO $6,389.2M → **+$362.0M / +6.0%** | Expected SCO>ACFR direction: gov-wide eliminates San Diego County's large internal-service funds (public works/communications equipment, purchasing, county-service-district start-up, public liability/employee benefits, fleet, facilities mgmt, IT) that SCO carries gross; modified-accrual capital outlay vs full-accrual depreciation. +18.8% in line with Pasadena (+19.5%) / Glendale (+15.7%) / Riverside County (+16.3%). Revenue +6.0% ≈ Riverside County (+7.1%). FY2022 prior-year column = final audited data; no FY2022-primary ACFR was published separately. | **PASS** |
 | **Chula Vista** (city) | 2022 | $363.0M (gov-wide Summary of Changes in Net Position, Total expenses; MD&A, $363,028,142) | SCO $393.0M → **+$30.0M / +8.3%** | $485.9M ($485,911,541) | SCO $448.6M → **−$37.3M / −7.7%** | Small ISF footprint (fleet, technology replacement, workers' comp) → expenses only modestly above gov-wide (+8.3%). Revenue runs the other way (ACFR higher): this developer-heavy city's full-accrual statement recognizes large capital grants & developer contributions ($58.8M) that SCO's modified-accrual aggregate classifies differently. Both deltas <10%, explainable. | **PASS** |
-| _Oxnard FY2022 / Riverside city ≤FY2022_ | | _pending — downloads in progress_ | | | | | _pending doc_ |
+| **Oxnard** (city) | 2022 | $418.9M (gov-wide Statement of Activities, Total expenses; MD&A, $418,871K) | SCO $468.4M → **+$49.5M / +11.8%** | $484.0M ($483,987K) | SCO $521.5M → **+$37.5M / +7.7%** | Expected SCO>ACFR direction: internal-service funds (liability/workers'-comp self-insurance, utility customer billing, IT, facilities/fleet) eliminated in gov-wide but gross in SCO; modified-accrual capital outlay vs full-accrual depreciation. Both deltas in tolerance. | **PASS** |
+| **Riverside** (city) | 2022 | $874.4M (gov-wide Statement of Activities, Total expenses; MD&A, $874,383K) | SCO $970.6M → **+$96.2M / +11.0%** | $1,052.0M ($1,051,974K) | SCO $1,058.2M → **+$6.2M / +0.6%** | FY2022 = the clean SCO all-funds year (FY2023+ loaded op is the custom General-Fund budget, a basis change — avoided). Expected SCO>ACFR on expenses (ISF gross: fleet, info services, central stores + large electric/water utility inter-fund flows; modified vs full accrual). Revenue near-exact (+0.6%). | **PASS** |
 
-**Running tally:** 5 of 7 reconciled (all PASS). **FUP-01 (Glendale + Burbank) is now CLOSED** — both reconciled, both PASS, the v2.3 access-blocked follow-up resolved. Combined with the prior-phase PASSes (LA County, Santa Monica, Pasadena, Ventura County), **9 distinct CA entities now reconciled** on the basis-matched method — every one within documented tolerance, zero data anomalies. Remaining: 2 SoCal-sample cities (Oxnard, Riverside city — VER-05 follow-up) pending document downloads. All 3 large SoCal county governments in the v2.4 sample (Riverside, San Diego, Ventura) are done.
+**Running tally:** 7 of 7 reconciled (ALL PASS). **FUP-01 (Glendale + Burbank) is CLOSED** and the **v2.4 VER-05 SoCal-sample follow-up is RESOLVED** (Riverside County, San Diego County, Oxnard, Chula Vista, Riverside city all reconciled, joining Ventura County from v2.4). — both reconciled, both PASS, the v2.3 access-blocked follow-up resolved. Combined with the prior-phase PASSes (LA County, Santa Monica, Pasadena, Ventura County), **11 distinct CA entities now reconciled** on the basis-matched method — every one within documented tolerance, **zero data anomalies**. The full worksheet is COMPLETE; both deferred follow-ups are resolved.
+
+## Final summary (complete 2026-06-18)
+
+**11 entities reconciled, 11 PASS, 0 anomalies.** The basis-matched method (SCO all-funds vs ACFR government-wide Statement of Activities / summed fund statements, explainable tolerance) held across every fund-structure shape:
+
+| Entity | FY | Δ expenses | Verdict |
+|--------|----|-----------|---------|
+| LA County (prior) | 2023 | −5.0% | PASS |
+| Santa Monica (prior) | 2023 | +10.0% | PASS |
+| Pasadena (prior) | 2023 | +19.5% | PASS |
+| Ventura County (prior) | 2022 | all-funds reconciled | PASS |
+| Glendale | 2023 | +15.7% | PASS |
+| Burbank | 2023 | +3.0% | PASS |
+| Riverside County | 2022 | +16.3% | PASS |
+| San Diego County | 2022 | +18.8% | PASS |
+| Chula Vista | 2022 | +8.3% | PASS |
+| Oxnard | 2022 | +11.8% | PASS |
+| Riverside (city) | 2022 | +11.0% | PASS |
+
+**Pattern (all explainable):** large internal-service-fund portfolios → SCO runs +11–20% above gov-wide (ISF gross vs eliminated); small ISF footprint → near parity (Burbank +3%); capital-heavy LA County → ACFR exceeds SCO (−5%, full-accrual depreciation). Revenue deltas mostly small; developer-heavy Chula Vista runs ACFR-higher on revenue (capital contributions). **The v2.3/v2.4 deferrals were confirmed to be document-access limitations (city/county CDN blocking of CLI fetches), never data problems** — once obtained via browser, every entity reconciled cleanly.
+
+**Resolved:** FUP-01 (Glendale + Burbank ACFR) CLOSED; v2.4 VER-05 broader SoCal-sample ACFR cross-read RESOLVED (all 6 sample entities — Riverside/San Diego/Ventura counties + Oxnard/Chula Vista/Riverside cities — reconciled).
 
 ### FUP-01 closure note
 Glendale and Burbank — the two v2.3 Phase-62 entities that could not be reconciled because their city-website CDNs (Akamai / Cloudflare) blocked CLI ACFR fetches — are now both reconciled to their FY2023 government-wide Statement of Activities and both PASS within the documented basis tolerance. The original deferral was confirmed to be an access limitation, not a data problem: once the ACFR PDFs were obtained via browser, both reconciled cleanly in the expected direction and magnitude. FUP-01 (Glendale/Burbank ACFR) can be marked resolved.
