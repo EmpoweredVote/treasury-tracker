@@ -18,10 +18,17 @@
  *   - linking never touches budget data (D-06): cities kept from other sources
  *     (Anaheim, Santa Ana, LA custom) still get attached to their county.
  *
+ * Membership source (D-70-02): when --cities "A,B,C" is passed, the explicit member
+ * list is used and the SCO Socrata fetch is bypassed entirely — required for states
+ * with no SCO ByTheNumbers dataset (e.g. Utah). When --cities is absent, the original
+ * CA SCO `county`-field derivation is used unchanged. Names in --cities must match the
+ * exact treasury.municipalities.name (e.g. Utah cities carry the "City" suffix).
+ *
  * Usage:
  *   SUPABASE_SERVICE_KEY=... node scripts/seedCountyLinks.js --county "Orange"
  *   SUPABASE_SERVICE_KEY=... node scripts/seedCountyLinks.js --county "Ventura" --dry-run
  *   SUPABASE_SERVICE_KEY=... node scripts/seedCountyLinks.js --county "Orange" --state CA --force
+ *   SUPABASE_SERVICE_KEY=... node scripts/seedCountyLinks.js --county "Salt Lake" --state UT --cities "Salt Lake City,Sandy City,West Jordan City,West Valley City"
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -60,6 +67,7 @@ async function main() {
     options: {
       county: { type: 'string', short: 'c' },
       state: { type: 'string', short: 's' },
+      cities: { type: 'string' },
       'dry-run': { type: 'boolean' },
       force: { type: 'boolean' },
     },
@@ -68,6 +76,7 @@ async function main() {
 
   const county = values.county;
   const state = (values.state || 'CA').toUpperCase();
+  const citiesArg = values.cities;
   const dryRun = values['dry-run'] ?? false;
   const force = values.force ?? false;
 
@@ -114,14 +123,22 @@ async function main() {
     console.log(`  Created county entity [${countyId}]`);
   }
 
-  // ── Step 2: Derive member city set from the SCO county field ─────────────────
-  console.log(`\nStep 2: Member cities from SCO county='${county}'`);
-  const cityNames = await fetchCountyCityNames(county);
+  // ── Step 2: Resolve member city set ──────────────────────────────────────────
+  // D-70-02: an explicit --cities list bypasses the SCO Socrata fetch (which is
+  // CA-only). When absent, derive membership from the SCO `county` field as before.
+  let cityNames;
+  if (citiesArg && citiesArg.trim()) {
+    cityNames = citiesArg.split(',').map(s => s.trim()).filter(Boolean);
+    console.log(`\nStep 2: Member cities from --cities flag (${cityNames.length}): ${cityNames.join(', ')}`);
+  } else {
+    console.log(`\nStep 2: Member cities from SCO county='${county}'`);
+    cityNames = await fetchCountyCityNames(county);
+    console.log(`  ${cityNames.length} entity names returned by SCO for this county.`);
+  }
   if (cityNames.length === 0) {
-    console.error(`  No cities found for county='${county}'. Check the county name matches the SCO 'county' field exactly.`);
+    console.error(`  No member cities resolved for county='${county}'. Pass --cities "A,B,C" or check the SCO 'county' field matches exactly.`);
     process.exit(1);
   }
-  console.log(`  ${cityNames.length} entity names returned by SCO for this county.`);
 
   // ── Step 3: Classify + link existing municipalities ──────────────────────────
   console.log(`\nStep 3: Link cities (county_id → ${countyId ?? '<new county>'})`);
