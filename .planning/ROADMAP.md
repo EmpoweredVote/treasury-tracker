@@ -69,10 +69,17 @@
   4. Totals are spot-checked sane against a published reference for ≥2 cities (e.g. SLC, Provo)
 
 **Plans:** 3 plans (3 waves)
-
 Plans:
+**Wave 1**
+
 - [ ] 69-01-PLAN.md — Refactor loader to the fund1→org1→cat1 tree (D-69-01) + SLC canary load FY2014–FY2025 + ACFR reconciliation
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 69-02-PLAN.md — Sweep the remaining 9 cities op+rev FY2014–FY2025 + Provo reconciliation + 10-city app spot-check
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 69-03-PLAN.md — Build loadUTPopulation.js + load single Census-vintage population for all 10 cities (per-capita, SC#2)
 
 **Wave structure:** Wave 1 = 69-01 (loader refactor must precede everything). Wave 2 = 69-02 (9-city sweep, after the proven canary). Wave 3 = 69-03 (population, after all 10 municipality rows exist). Serial main-tree, $0.
@@ -671,8 +678,10 @@ Plans:
 
 - [x] **Phase 37: MA Loader Hardening** — Confirm GF Expenditures rdreport/tableID, add progress checkpointing, fix fiscal_years append
  (completed 2026-06-10)
+
 - [x] **Phase 38: MA City Budget Load** — Operating + revenue data for all 351 MA cities (FY2021–FY2025); city picker updated
  (completed 2026-06-10)
+
 - [ ] **Phase 39: MA Population, State Budget, and Enrichment** — Population per-capita, MA state budget upgrade, universal category enrichment
 
 ---
@@ -914,6 +923,7 @@ Plans:
 - [x] **Phase 40: MA County Seeding + City Linking** — Seed 5 county rows (Barnstable, Bristol, Dukes, Norfolk, Plymouth), load 2024 Census population for each, link all MA cities in those counties via county_id FK. Unblocks breadcrumb chip and CitiesInCountyPanel automatically.
 - [x] **Phase 41: MA County Budget Load** — Discover budget source format for each of the 5 active counties, download PDFs, extract and load operating budget data. Each county is independent; load in parallel where possible.
  (completed 2026-06-11)
+
 - [x] **Phase 42: County Enrichment + Verification** — Enrich budget categories for all 5 counties (municipality_id-scoped, never universal). Human spot-check: county breadcrumbs on MA city pages, CitiesInCountyPanel on county pages, per-capita display, budget visualization.
 
 ### Phase 40: MA County Seeding + City Linking

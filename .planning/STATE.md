@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Utah Municipal Expansion
-status: Phase 68 planned + discussed; ready for `/gsd-execute-phase 68` once the Utah access email is sent
-last_updated: "2026-06-19T18:12:31.626Z"
-last_activity: 2026-06-18 — Phase 68 planned (RESEARCH + 3 PLAN files); BQ access blocker split out
+status: executing
+last_updated: "2026-06-19T18:26:08.640Z"
+last_activity: 2026-06-19 -- Phase 69 planning complete
 progress:
   total_phases: 73
   completed_phases: 1
-  total_plans: 3
+  total_plans: 6
   completed_plans: 3
   percent: 1
 ---
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-06-17 after v2.4 close + v2.5 start)
 
 Phase: 68 — PLANNED (3 plans: 68-01 access [gated], 68-02 loader build [buildable now], 68-03 MCP+recon+dry-run)
 Plan: 0 of 3 executed
-Status: Phase 68 planned + discussed; ready for `/gsd-execute-phase 68` once the Utah access email is sent
-Last activity: 2026-06-18 — Phase 68 planned (RESEARCH + 3 PLAN files); BQ access blocker split out
+Status: Ready to execute
+Last activity: 2026-06-19 -- Phase 69 planning complete
 
 ### v2.5 Utah expansion context
 
