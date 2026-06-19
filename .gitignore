@@ -41,6 +41,7 @@ docs/*
 # runbook + the confirmed 15-entity mapping that downstream Utah phases depend on.
 !docs/utah-bigquery-access.md
 !docs/utah-entity-mapping.md
+!docs/utah-salaries-coverage.md
 
 # Supabase temp files
 supabase/.temp/
