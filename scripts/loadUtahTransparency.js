@@ -191,14 +191,15 @@ async function fetchFromBigQuery(entityName, fiscalYear, type) {
 
 // ── DB helpers (mirror the analog) ───────────────────────────────────────────
 
-/** Read-only: find an existing Utah municipality by name + state (null if new). */
-async function findEntityMunicipality(name, state = 'UT') {
+/** Read-only: find an existing Utah municipality by name + state + entity_type (null if new). */
+async function findEntityMunicipality(name, state = 'UT', entityType = 'city') {
   const { data, error } = await supabase
     .schema('treasury')
     .from('municipalities')
     .select('id, name, population, population_year, county_id, entity_type')
     .eq('state', state)
     .eq('name', name)
+    .eq('entity_type', entityType)
     .limit(1);
   if (error) throw new Error(`Municipality lookup failed for ${name}: ${error.message}`);
   return (data && data[0]) || null;
@@ -220,9 +221,9 @@ async function findConflictingBudget(municipalityId, fiscalYear, datasetType, so
   return neverOverwriteDecision(existing.data_source, sourceName) === 'skip' ? existing : null;
 }
 
-async function importEntityData(municipalityName, state, rows, fiscalYear, datasetType, fetchDate) {
+async function importEntityData(municipalityName, state, rows, fiscalYear, datasetType, fetchDate, entityType = 'city') {
   const { data: municipalityId, error: munErr } = await supabase.rpc('treasury_ensure_municipality', {
-    p_name: municipalityName, p_state: state, p_entity_type: 'city', p_population: 0,
+    p_name: municipalityName, p_state: state, p_entity_type: entityType, p_population: 0,
   });
   if (munErr) { console.error(`    Municipality error: ${munErr.message}`); return null; }
 
@@ -249,6 +250,7 @@ async function main() {
   const { values } = parseArgs({
     options: {
       entity: { type: 'string' },
+      'entity-type': { type: 'string' },
       fy: { type: 'string', short: 'y', multiple: true },
       type: { type: 'string', short: 't' },
       'source-date': { type: 'string' },
@@ -259,6 +261,10 @@ async function main() {
 
   const entityName = values.entity;
   if (!entityName) { console.error('--entity "<exact BQ entity_name>" is required'); process.exit(1); }
+  const entityType = (values['entity-type'] || 'city').toLowerCase();
+  if (entityType !== 'city' && entityType !== 'county') {
+    console.error(`--entity-type must be 'city' or 'county' (got '${entityType}')`); process.exit(1);
+  }
   const state = 'UT';
   const fiscalYears = values.fy ? values.fy.map(Number) : [2022];
   const bqTypes = values.type ? [values.type] : ['EX', 'RV'];
@@ -266,7 +272,7 @@ async function main() {
   const fetchDate = values['source-date'] || new Date().toISOString().slice(0, 10);
 
   console.log(`\n🏔️  Utah Transparency Loader (Transparent Utah / BigQuery)`);
-  console.log(`   Entity: ${entityName}`);
+  console.log(`   Entity: ${entityName} (type: ${entityType})`);
   console.log(`   Fiscal Years: ${fiscalYears.join(', ')}`);
   console.log(`   Types: ${bqTypes.join(', ')} (${bqTypes.map(typeToDataset).join(', ')})`);
   console.log(`   Tree: fund1 → org1 → cat1 (all-funds)`);
@@ -293,7 +299,7 @@ async function main() {
       }
 
       const muniName = toDisplayName(entityName);
-      const existing = await findEntityMunicipality(muniName, state);
+      const existing = await findEntityMunicipality(muniName, state, entityType);
       if (existing) {
         const conflict = await findConflictingBudget(existing.id, fy, datasetType, DATA_SOURCE_NAME);
         if (conflict) {
@@ -301,7 +307,7 @@ async function main() {
           continue;
         }
       }
-      const result = await importEntityData(muniName, state, rows, fy, datasetType, fetchDate);
+      const result = await importEntityData(muniName, state, rows, fy, datasetType, fetchDate, entityType);
       if (result) console.log(`  ✅ imported (${result.rows_inserted ?? '?'} items)`);
     }
   }
