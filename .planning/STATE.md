@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Utah Municipal Expansion
 status: executing
-last_updated: "2026-06-19T18:26:08.640Z"
-last_activity: 2026-06-19 -- Phase 69 planning complete
+last_updated: "2026-06-19T18:29:32.650Z"
+last_activity: 2026-06-19 -- Phase 69 execution started
 progress:
   total_phases: 73
   completed_phases: 1
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-17 after v2.4 close + v2.5 start)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** v2.5 Utah Municipal Expansion — Phase 68 (Utah BigQuery Source Setup + Loader) up next.
+**Current focus:** Phase 69 — utah-city-budgets-load
 
 ## Current Position
 
-Phase: 68 — PLANNED (3 plans: 68-01 access [gated], 68-02 loader build [buildable now], 68-03 MCP+recon+dry-run)
-Plan: 0 of 3 executed
-Status: Ready to execute
-Last activity: 2026-06-19 -- Phase 69 planning complete
+Phase: 69 (utah-city-budgets-load) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 69
+Last activity: 2026-06-19 -- Phase 69 execution started
 
 ### v2.5 Utah expansion context
 

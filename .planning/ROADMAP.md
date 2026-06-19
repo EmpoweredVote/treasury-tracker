@@ -36,7 +36,7 @@
 | # | Phase | Requirements | Depends on | Status |
 |---|-------|--------------|------------|--------|
 | 68 | Utah BigQuery Source Setup + Loader | 3/3 | Complete   | 2026-06-19 |
-| 69 | Utah City Budgets Load | UCITY-01, UCITY-02 | 68 | Not started |
+| 69 | Utah City Budgets Load | 1/3 | In Progress|  |
 | 70 | Utah County Budgets + Linking | UCO-01, UCO-02 | 68, 69 | Not started |
 | 71 | Utah City Salaries / Compensation | USAL-01 | 68, 69 | Not started |
 | 72 | Utah Enrichment Parity | UENR-01 | 69, 70, 71 | Not started |
@@ -72,7 +72,7 @@
 Plans:
 **Wave 1**
 
-- [ ] 69-01-PLAN.md — Refactor loader to the fund1→org1→cat1 tree (D-69-01) + SLC canary load FY2014–FY2025 + ACFR reconciliation
+- [x] 69-01-PLAN.md — Refactor loader to the fund1→org1→cat1 tree (D-69-01) + SLC canary load FY2014–FY2025 + ACFR reconciliation
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
