@@ -36,7 +36,7 @@
 | # | Phase | Requirements | Depends on | Status |
 |---|-------|--------------|------------|--------|
 | 68 | Utah BigQuery Source Setup + Loader | 3/3 | Complete   | 2026-06-19 |
-| 69 | Utah City Budgets Load | 2/3 | In Progress|  |
+| 69 | Utah City Budgets Load | 3/3 | Complete   | 2026-06-19 |
 | 70 | Utah County Budgets + Linking | UCO-01, UCO-02 | 68, 69 | Not started |
 | 71 | Utah City Salaries / Compensation | USAL-01 | 68, 69 | Not started |
 | 72 | Utah Enrichment Parity | UENR-01 | 69, 70, 71 | Not started |
@@ -80,7 +80,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 69-03-PLAN.md — Build loadUTPopulation.js + load single Census-vintage population for all 10 cities (per-capita, SC#2)
+- [x] 69-03-PLAN.md — Build loadUTPopulation.js + load single Census-vintage population for all 10 cities (per-capita, SC#2)
 
 **Wave structure:** Wave 1 = 69-01 (loader refactor must precede everything). Wave 2 = 69-02 (9-city sweep, after the proven canary). Wave 3 = 69-03 (population, after all 10 municipality rows exist). Serial main-tree, $0.
 
