@@ -24,6 +24,8 @@ import {
   typeToDataset,
   neverOverwriteDecision,
   buildTree,
+  buildSalaryTree,
+  SALARY_QUERY,
   DATA_SOURCE_NAME,
 } from './loadUtahTransparency.js';
 
@@ -166,5 +168,163 @@ describe('buildTree — totals, structure, sorting, edge cases', () => {
     const names = byOrg.tree.map((n) => n.n).sort();
     assert.deepEqual(names, ['Fire', 'Police', 'Streets', 'Unknown']);
     assert.equal(byOrg.total, 4150); // total is column-independent
+  });
+});
+
+// ── PII-exclusion guard (D-71-01) ─────────────────────────────────────────────
+
+/** The full list of PII column names that MUST NOT appear in the PY query or emitted tree. */
+const PII_BLOCKLIST = [
+  'vendor_name', 'dba_name', 'vendor_code', 'title', 'hourly_rate',
+  'gender', 'account_number', 'contract_name', 'contract_number',
+  'description', 'ref_id',
+];
+
+describe('PII-exclusion guard (D-71-01) — SALARY_QUERY and buildSalaryTree emit no PII', () => {
+  it('SALARY_QUERY contains org1, cat1, SUM(amount), GROUP BY org1, cat1, and parameterized type', () => {
+    assert.ok(SALARY_QUERY.includes('org1'), 'query must reference org1');
+    assert.ok(SALARY_QUERY.includes('cat1'), 'query must reference cat1');
+    assert.ok(SALARY_QUERY.toLowerCase().includes('sum(amount)'), 'query must aggregate with SUM(amount)');
+    assert.ok(SALARY_QUERY.includes('GROUP BY org1, cat1'), 'query must GROUP BY org1, cat1');
+    assert.ok(SALARY_QUERY.includes('type = @type'), 'query must use parameterized @type (never literal)');
+  });
+
+  it('SALARY_QUERY does NOT contain fund1', () => {
+    assert.ok(!SALARY_QUERY.includes('fund1'), 'salary query must not reference fund1 (all-funds, D-71-03)');
+  });
+
+  for (const piiToken of PII_BLOCKLIST) {
+    it(`SALARY_QUERY does NOT contain PII token: ${piiToken}`, () => {
+      assert.ok(
+        !SALARY_QUERY.includes(piiToken),
+        `SALARY_QUERY must not reference PII column "${piiToken}" (D-71-01)`,
+      );
+    });
+  }
+
+  // Fixture rows that carry PII keys alongside the allowed columns — the tree must
+  // suppress all PII and emit ONLY { n: org1-value, a: ..., c: [{ n: cat1-value, a: ... }] }.
+  const PII_LADEN_FIXTURE = [
+    {
+      org1: 'Police - Patrol', cat1: 'Wages', amount: 65000,
+      vendor_name: 'John Doe', dba_name: 'JD LLC', vendor_code: 'V123',
+      title: 'Officer I', hourly_rate: 31.25, gender: 'M',
+      account_number: 'AC-001', contract_name: 'PD Contract',
+      contract_number: 'CN-007', description: 'Regular Pay',
+      ref_id: 'REF-42',
+    },
+    {
+      org1: 'Police - Patrol', cat1: 'Benefits', amount: 27000,
+      vendor_name: 'Jane Smith', title: 'Officer I', hourly_rate: 31.25,
+      gender: 'F', account_number: 'AC-002',
+    },
+    {
+      org1: 'Fire - Administration', cat1: 'Wages', amount: 120000,
+      vendor_name: 'Chief Burns', title: 'Fire Chief',
+    },
+  ];
+
+  it('buildSalaryTree tree JSON contains none of the PII blocklist tokens', () => {
+    const { tree } = buildSalaryTree(PII_LADEN_FIXTURE);
+    const json = JSON.stringify(tree);
+    for (const piiToken of PII_BLOCKLIST) {
+      assert.ok(
+        !json.includes(piiToken),
+        `Serialized salary tree must not contain PII token "${piiToken}" (D-71-01)`,
+      );
+    }
+  });
+
+  it('buildSalaryTree tree JSON does not contain any fixture PII values (names/codes/rates)', () => {
+    const { tree } = buildSalaryTree(PII_LADEN_FIXTURE);
+    const json = JSON.stringify(tree);
+    // Spot-check actual PII values from the fixture
+    assert.ok(!json.includes('John Doe'), 'must not contain individual name');
+    assert.ok(!json.includes('Jane Smith'), 'must not contain individual name');
+    assert.ok(!json.includes('Chief Burns'), 'must not contain individual name');
+    assert.ok(!json.includes('Officer I'), 'must not contain job title');
+    assert.ok(!json.includes('31.25'), 'must not contain hourly rate');
+    assert.ok(!json.includes('V123'), 'must not contain vendor code');
+    assert.ok(!json.includes('REF-42'), 'must not contain ref_id');
+  });
+});
+
+// ── buildSalaryTree shape (D-71-02) ──────────────────────────────────────────
+
+const SALARY_FIXTURE = [
+  // Dept A: 2 categories
+  { org1: 'Police - Patrol',      cat1: 'Wages',    amount: 65125717 },
+  { org1: 'Police - Patrol',      cat1: 'Benefits', amount: 27820236 },
+  // Dept B: 2 categories
+  { org1: 'Fire - Administration', cat1: 'Wages',    amount: 8000000 },
+  { org1: 'Fire - Administration', cat1: 'Benefits', amount: 3000000 },
+  // Zero-amount row — must be skipped
+  { org1: 'Police - Patrol',      cat1: 'Wages',    amount: 0 },
+];
+
+describe('buildSalaryTree shape (D-71-02) — 2-level Department→comp-category tree', () => {
+  const { tree, total } = buildSalaryTree(SALARY_FIXTURE);
+
+  it('grand total equals sum of all non-zero amounts', () => {
+    // 65125717 + 27820236 + 8000000 + 3000000 = 103945953
+    assert.equal(total, 65125717 + 27820236 + 8000000 + 3000000);
+  });
+
+  it('top-level nodes have {n, a, c} keys', () => {
+    for (const node of tree) {
+      assert.ok('n' in node, 'top node must have n');
+      assert.ok('a' in node, 'top node must have a');
+      assert.ok('c' in node, 'top node must have c');
+    }
+  });
+
+  it('children have {n, a} but NO i key (2-level — no 3rd item level)', () => {
+    for (const node of tree) {
+      for (const child of node.c) {
+        assert.ok('n' in child, 'child must have n');
+        assert.ok('a' in child, 'child must have a');
+        assert.ok(!('i' in child), 'child must NOT have i key (not 3-level)');
+      }
+    }
+  });
+
+  it('each department total equals the sum of its category children', () => {
+    for (const node of tree) {
+      const childSum = node.c.reduce((s, c) => s + c.a, 0);
+      assert.equal(node.a, childSum, `dept "${node.n}" total != sum of children`);
+    }
+  });
+
+  it('top-level nodes are sorted descending by amount', () => {
+    const amounts = tree.map((n) => n.a);
+    const sorted = [...amounts].sort((x, y) => y - x);
+    assert.deepEqual(amounts, sorted);
+  });
+
+  it('category children are sorted descending by amount', () => {
+    for (const node of tree) {
+      const amounts = node.c.map((c) => c.a);
+      const sorted = [...amounts].sort((x, y) => y - x);
+      assert.deepEqual(amounts, sorted, `children of "${node.n}" not sorted desc`);
+    }
+  });
+
+  it('zero-amount rows are skipped', () => {
+    // The zero row was for Police - Patrol / Wages — Wages total should be exactly 65125717, not 65125717+0
+    const police = tree.find((n) => n.n === 'Police - Patrol');
+    assert.ok(police, 'Police - Patrol node must exist');
+    const wages = police.c.find((c) => c.n === 'Wages');
+    assert.ok(wages, 'Wages child must exist');
+    assert.equal(wages.a, 65125717, 'Wages total must be exactly 65125717 (zero row skipped)');
+  });
+
+  it('category names match the Wages/Benefits shape from the Provo FY2024 probe', () => {
+    const police = tree.find((n) => n.n === 'Police - Patrol');
+    const catNames = police.c.map((c) => c.n).sort();
+    assert.deepEqual(catNames, ['Benefits', 'Wages']);
+  });
+
+  it('there are exactly 2 departments in the fixture', () => {
+    assert.equal(tree.length, 2);
   });
 });

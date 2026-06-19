@@ -83,6 +83,21 @@ export function toDisplayName(entityName) {
   return UT_DISPLAY_NAME[entityName] || entityName;
 }
 
+// ── Salary query (exported for PII-exclusion unit test — D-71-01) ─────────────
+
+/**
+ * The names-free PY aggregate query. Projects ONLY org1, cat1, SUM(amount) —
+ * no PII column (vendor_name, dba_name, vendor_code, title, hourly_rate, gender,
+ * account_number, contract_name, contract_number, description, ref_id) is ever
+ * projected, grouped, or referenced. All-funds (no fund1 filter). Parameterized
+ * @entity / @fy / @type (D-71-01, D-71-03).
+ */
+export const SALARY_QUERY =
+  `SELECT COALESCE(org1,'General') AS org1, COALESCE(cat1,'General') AS cat1, SUM(amount) AS amount ` +
+  `FROM \`${BQ_TABLE}\` ` +
+  `WHERE entity_name = @entity AND fiscal_year = @fy AND type = @type ` +
+  `GROUP BY org1, cat1`;
+
 // ── Pure helpers (exported for offline unit tests) ───────────────────────────
 
 /** Parse "$1,234" / "(123)" / numbers → Number. Mirrors the analog's amt(). */
@@ -157,18 +172,75 @@ export function buildTree(rows, opts = {}) {
   return { tree, total };
 }
 
+/**
+ * Build a 2-level Department→Wages/Benefits salary tree from PY BigQuery rows (D-71-02).
+ *   top  = row.org1 (full department string — NOT split on " - ")
+ *   leaf = row.cat1 (Wages / Benefits)
+ * Shape: [{ n: dept, a: deptTotal, c: [{ n: cat, a: catTotal }, ...] }]
+ * Children sorted desc, zero-amount rows skipped, totals summed bottom-up.
+ * NO `i` array, NO `m` metadata (aggregate only — D-71-01 names-free guarantee).
+ * Returns { tree, total }.
+ */
+export function buildSalaryTree(rows) {
+  const depts = new Map(); // dept → Map<cat, total>
+
+  for (const row of rows) {
+    const a = amt(row.amount);
+    if (a === 0) continue; // skip zero-value rows (negatives/offsets retained)
+    const dept = row.org1 || 'General';
+    const cat = row.cat1 || 'General';
+    if (!depts.has(dept)) depts.set(dept, new Map());
+    const catMap = depts.get(dept);
+    catMap.set(cat, (catMap.get(cat) || 0) + a);
+  }
+
+  let total = 0;
+  const tree = [];
+  for (const [deptName, catMap] of depts) {
+    let deptTotal = 0;
+    const children = [];
+    for (const [catName, catTotal] of catMap) {
+      deptTotal += catTotal;
+      children.push({ n: catName, a: catTotal });
+    }
+    children.sort((x, y) => y.a - x.a);
+    total += deptTotal;
+    tree.push({ n: deptName, a: deptTotal, c: children });
+  }
+  tree.sort((x, y) => y.a - x.a);
+  return { tree, total };
+}
+
 // ── BigQuery fetch (lazy import: module loads with no @google-cloud/bigquery / no ADC) ──
 
 let _bq;
 async function fetchFromBigQuery(entityName, fiscalYear, type) {
   const { BigQuery } = await import('@google-cloud/bigquery');
   if (!_bq) _bq = new BigQuery({ projectId: BQ_PROJECT });
-  // Transparent Utah is TRANSACTION-LEVEL (unlike CA's pre-aggregated Socrata feed),
-  // so we AGGREGATE in SQL — SUM(amount) GROUP BY (fund1, org1, cat1) — to return a
-  // summarized 3-level tree (one row per fund/dept/object triple) instead of millions
-  // of raw transactions. fund1 = fund (General Fund, Power, Water, Airport, Debt
-  // Service…), org1 = department, cat1 = expense object (D-69-01). function1 is ~70%
-  // NULL for cities (confirmed 68-03) so it is NOT used. fiscal_year is INT64 → Number.
+
+  if (type === 'PY') {
+    // PY (salaries) — names-free aggregate (D-71-01). Projects ONLY org1, cat1, SUM(amount);
+    // no fund1, no PII column. All-funds basis (no fund1 filter, D-71-03).
+    const [rows] = await _bq.query({
+      query: SALARY_QUERY,
+      params: { entity: entityName, fy: Number(fiscalYear), type: 'PY' },
+    });
+    return rows.map((r) => ({
+      org1: r.org1,
+      cat1: r.cat1,
+      amount: r.amount,
+      fiscal_year: fiscalYear,
+      type,
+    }));
+  }
+
+  // EX / RV — fund-first 3-level tree (D-69-01). Transparent Utah is TRANSACTION-LEVEL
+  // (unlike CA's pre-aggregated Socrata feed), so we AGGREGATE in SQL —
+  // SUM(amount) GROUP BY (fund1, org1, cat1) — to return a summarized 3-level tree
+  // (one row per fund/dept/object triple) instead of millions of raw transactions.
+  // fund1 = fund (General Fund, Power, Water, Airport, Debt Service…),
+  // org1 = department, cat1 = expense object (D-69-01). function1 is ~70% NULL for
+  // cities (confirmed 68-03) so it is NOT used. fiscal_year is INT64 → Number.
   const query =
     `SELECT COALESCE(fund1, 'Unknown') AS fund1, COALESCE(org1, 'General') AS org1, ` +
     `COALESCE(cat1, 'General') AS cat1, SUM(amount) AS amount ` +
@@ -227,7 +299,8 @@ async function importEntityData(municipalityName, state, rows, fiscalYear, datas
   });
   if (munErr) { console.error(`    Municipality error: ${munErr.message}`); return null; }
 
-  const { tree, total } = buildTree(rows, TREE_OPTS);
+  // Branch on dataset type: salaries → 2-level buildSalaryTree (D-71-02); EX/RV → 3-level buildTree (D-69-01).
+  const { tree, total } = datasetType === 'salaries' ? buildSalaryTree(rows) : buildTree(rows, TREE_OPTS);
 
   const { data: result, error } = await supabase.rpc('treasury_sync_city_budget', {
     p_municipality_id: municipalityId,
@@ -271,29 +344,39 @@ async function main() {
   const dryRun = values['dry-run'] ?? false;
   const fetchDate = values['source-date'] || new Date().toISOString().slice(0, 10);
 
+  const isPY = bqTypes.length === 1 && bqTypes[0] === 'PY';
   console.log(`\n🏔️  Utah Transparency Loader (Transparent Utah / BigQuery)`);
   console.log(`   Entity: ${entityName} (type: ${entityType})`);
   console.log(`   Fiscal Years: ${fiscalYears.join(', ')}`);
   console.log(`   Types: ${bqTypes.join(', ')} (${bqTypes.map(typeToDataset).join(', ')})`);
-  console.log(`   Tree: fund1 → org1 → cat1 (all-funds)`);
+  if (isPY) {
+    console.log(`   Tree: org1 → cat1 (Wages/Benefits, all-funds)`);
+  } else {
+    console.log(`   Tree: fund1 → org1 → cat1 (all-funds)`);
+  }
   console.log(`   Source date: ${fetchDate}${values['source-date'] ? '' : ' (today)'}\n`);
 
   for (const type of bqTypes) {
     const datasetType = typeToDataset(type);
     if (!datasetType) { console.error(`Unknown type: ${type}`); continue; }
-    if (type === 'PY') { console.warn('  PY (salaries) is out of scope for this loader (Phase 71) — skipping'); continue; }
+    // PY (salaries) is now fully supported — no skip.
 
     for (const fy of fiscalYears) {
       console.log(`\n📊 ${type}→${datasetType} FY ${fy} — ${entityName}`);
       const rows = await fetchFromBigQuery(entityName, fy, type);
       if (!rows.length) { console.log('  No data found'); continue; }
-      const { tree, total } = buildTree(rows, TREE_OPTS);
-      console.log(`  ${rows.length.toLocaleString()} rows → ${tree.length} funds, total $${total.toLocaleString()}`);
+      const { tree, total } = datasetType === 'salaries' ? buildSalaryTree(rows) : buildTree(rows, TREE_OPTS);
+      if (datasetType === 'salaries') {
+        console.log(`  ${rows.length.toLocaleString()} rows → ${tree.length} departments, total $${total.toLocaleString()}`);
+      } else {
+        console.log(`  ${rows.length.toLocaleString()} rows → ${tree.length} funds, total $${total.toLocaleString()}`);
+      }
 
       if (dryRun) {
         console.log('  (dry run — no writes)');
         for (const node of tree.slice(0, 12)) {
-          console.log(`    ${node.n}: $${node.a.toLocaleString()} (${node.c.length} depts)`);
+          const childLabel = datasetType === 'salaries' ? 'categories' : 'depts';
+          console.log(`    ${node.n}: $${node.a.toLocaleString()} (${node.c.length} ${childLabel})`);
         }
         continue;
       }
