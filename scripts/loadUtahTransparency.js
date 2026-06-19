@@ -49,14 +49,15 @@ const BQ_PROJECT = process.env.GCP_PROJECT_ID || 'empowered-vote-486302';
 /** The data_source label this loader writes (the collision key for never-overwrite). */
 export const DATA_SOURCE_NAME = 'Transparent Utah';
 /**
- * Per-entity source_url. PLACEHOLDER — the exact entity_id-keyed Transparent Utah
- * deep-link pattern is confirmed in 68-03 against the live site (D-08). Until then
- * this returns the durable portal page (never the BigQuery table / an API endpoint).
+ * Per-entity source_url. The live table has NO entity_id column (confirmed 68-03,
+ * 2026-06-19) — transparent.utah.gov keys its SPA by an internal id we cannot derive
+ * from the dataset, so we link to the durable public portal page (never the BigQuery
+ * table / an API endpoint). The portal's own entity picker reaches each entity's
+ * revenue+expense overview. Refining to a per-entity deep link is a future nicety.
  */
 const SOURCE_URL_BASE = 'https://transparent.utah.gov';
-export function entitySourceUrl(entityId) {
-  // TODO(68-03): replace with the confirmed per-entity URL once verified live.
-  return entityId ? `${SOURCE_URL_BASE}/#/${entityId}` : SOURCE_URL_BASE;
+export function entitySourceUrl() {
+  return SOURCE_URL_BASE;
 }
 
 // ── Pure helpers (exported for offline unit tests) ───────────────────────────
@@ -138,25 +139,32 @@ let _bq;
 async function fetchFromBigQuery(entityName, fiscalYear, type, sourceColumn) {
   const { BigQuery } = await import('@google-cloud/bigquery');
   if (!_bq) _bq = new BigQuery({ projectId: BQ_PROJECT });
-  const subCol = sourceColumn === 'function1' ? 'cat1' : 'org1';
-  // Project ONLY needed columns + filter by entity/FY/type to stay tiny (free tier).
+  // Transparent Utah is TRANSACTION-LEVEL (unlike CA's pre-aggregated Socrata feed),
+  // so we AGGREGATE in SQL — SUM(amount) GROUP BY (top, sub) — to return a summarized
+  // tree (one row per category pair) instead of millions of raw transactions.
+  // top = --source-column (default org1, the populated dept/purpose column; function1
+  // is ~70% NULL for cities, confirmed 68-03); sub = cat1 (expense object), or org1
+  // when the caller picks cat1 as the top. fiscal_year is INT64 → pass a Number.
+  const topCol = sourceColumn;
+  const subCol = sourceColumn === 'cat1' ? 'org1' : 'cat1';
   const query =
-    `SELECT entity_id, ${sourceColumn} AS topcol, ${subCol} AS subcol, org1, amount, fiscal_year, type ` +
+    `SELECT COALESCE(${topCol}, 'Unknown') AS topcol, COALESCE(${subCol}, 'General') AS subcol, ` +
+    `SUM(amount) AS amount ` +
     `FROM \`${BQ_TABLE}\` ` +
-    `WHERE entity_name = @entity AND fiscal_year = @fy AND type = @type`;
+    `WHERE entity_name = @entity AND fiscal_year = @fy AND type = @type ` +
+    `GROUP BY topcol, subcol`;
   const [rows] = await _bq.query({
     query,
-    params: { entity: entityName, fy: String(fiscalYear), type },
+    params: { entity: entityName, fy: Number(fiscalYear), type },
   });
-  // Normalize aliased columns back to the buildTree contract.
+  // Normalize aliased columns back to the buildTree contract (top→function1 key,
+  // sub→cat1 key; itemCol 'org1' is absent so buildTree uses the sub label as leaf).
   return rows.map((r) => ({
-    entity_id: r.entity_id,
-    function1: r.topcol, // alias carries whatever --source-column selected
+    function1: r.topcol,
     cat1: r.subcol,
-    org1: r.org1,
     amount: r.amount,
-    fiscal_year: r.fiscal_year,
-    type: r.type,
+    fiscal_year: fiscalYear,
+    type,
   }));
 }
 
@@ -198,7 +206,6 @@ async function importEntityData(municipalityName, state, rows, fiscalYear, datas
   if (munErr) { console.error(`    Municipality error: ${munErr.message}`); return null; }
 
   const { tree, total } = buildTree(rows, { topCol: 'function1', subCol: 'cat1', itemCol: 'org1' });
-  const entityId = rows.find((r) => r.entity_id)?.entity_id || null;
 
   const { data: result, error } = await supabase.rpc('treasury_sync_city_budget', {
     p_municipality_id: municipalityId,
@@ -208,7 +215,7 @@ async function importEntityData(municipalityName, state, rows, fiscalYear, datas
     p_tree: tree,
     p_row_count: rows.length,
     p_data_source_name: DATA_SOURCE_NAME,
-    p_source_url: entitySourceUrl(entityId),
+    p_source_url: entitySourceUrl(),
     p_source_date: fetchDate,
   });
   if (error) { console.error(`    RPC error: ${error.message}`); return null; }
@@ -235,7 +242,7 @@ async function main() {
   const state = 'UT';
   const fiscalYears = values.fy ? values.fy.map(Number) : [2022];
   const bqTypes = values.type ? [values.type] : ['EX', 'RV'];
-  const sourceColumn = values['source-column'] || 'function1';
+  const sourceColumn = values['source-column'] || 'org1';
   const dryRun = values['dry-run'] ?? false;
   const fetchDate = values['source-date'] || new Date().toISOString().slice(0, 10);
 
