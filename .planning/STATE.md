@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Utah Municipal Expansion
 status: executing
-last_updated: "2026-06-19T22:39:39.292Z"
-last_activity: 2026-06-19 -- Phase 71 planning complete
+last_updated: "2026-06-19T23:24:51.302Z"
+last_activity: 2026-06-19 -- Phase 71 execution started
 progress:
   total_phases: 73
   completed_phases: 3
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-17 after v2.4 close + v2.5 start)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 70 — utah-county-budgets-linking
+**Current focus:** Phase 71 — utah-city-salaries-compensation
 
 ## Current Position
 
-Phase: 70 (utah-county-budgets-linking) — EXECUTING
-Plan: 1 of 2
-Status: Ready to execute
-Last activity: 2026-06-19 -- Phase 71 planning complete
+Phase: 71 (utah-city-salaries-compensation) — EXECUTING
+Plan: 1 of 1
+Status: Executing Phase 71
+Last activity: 2026-06-19 -- Phase 71 execution started
 
 ### v2.5 Utah expansion context
 
