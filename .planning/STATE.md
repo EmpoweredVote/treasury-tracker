@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Utah Municipal Expansion
 status: Phase 68 planned + discussed; ready for `/gsd-execute-phase 68` once the Utah access email is sent
-last_updated: "2026-06-19T17:33:02.822Z"
+last_updated: "2026-06-19T18:04:59.014Z"
 last_activity: 2026-06-18 — Phase 68 planned (RESEARCH + 3 PLAN files); BQ access blocker split out
 progress:
   total_phases: 73
@@ -126,9 +126,9 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-19T17:33:02.813Z
-Stopped at: Phase 68: access verified, 15 entities mapped, loader fixed + pilot dry-run proven (Provo). MCP (68-03 Task 1) pending decision.
-Resume file: .planning/phases/68-utah-bigquery-source-setup-loader/68-03-SUMMARY.md
+Last session: 2026-06-19T18:04:59.004Z
+Stopped at: Phase 68 COMPLETE — Utah BQ access + loader proven (Provo dry-run). Carried follow-up: read-only BigQuery MCP (68-03 Task 1) DEFERRED per Chris 2026-06-19 (recon done via bq/Node; not blocking).
+Resume file: .planning/ROADMAP.md
 
 ### Next Session
 
