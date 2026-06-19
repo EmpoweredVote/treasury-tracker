@@ -1,0 +1,29 @@
+{
+  "generated_at": "2026-06-18T00:00:00.000Z",
+  "counties": [
+    "Yolo County",
+    "Sutter County",
+    "Yuba County",
+    "Colusa County",
+    "Glenn County",
+    "Butte County",
+    "Tehama County",
+    "Shasta County"
+  ],
+  "authored": 2,
+  "deferred_single_city": 390,
+  "mapping": [
+    {
+      "name_key": "police - administration",
+      "cities": 3,
+      "plain_name": "Police",
+      "via": "route:police"
+    },
+    {
+      "name_key": "lafco",
+      "cities": 2,
+      "plain_name": "City Department",
+      "via": "fallback:general_dept"
+    }
+  ]
+}
