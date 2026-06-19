@@ -1,7 +1,8 @@
 # Phase 68: Utah BigQuery Source Setup + Loader - Context
 
 **Gathered:** 2026-06-17
-**Status:** Ready for planning
+**Updated:** 2026-06-19 — BigQuery access GRANTED + verified live; FY-range corrected to FY2014 (was FY2009); 15 entity_name strings confirmed; tooling status refreshed.
+**Status:** Access unblocked — ready to execute
 
 <domain>
 ## Phase Boundary
@@ -19,10 +20,11 @@ Stand up the one piece of new tooling for the v2.5 Utah milestone: **BigQuery ac
 ### BigQuery Access
 - **D-01:** Authenticate with the **Empowered Vote Google Workspace account** (`chris@empowered.vote`), not a personal account — org-owned ownership of the Cloud project. Create a **free BigQuery sandbox project** under it ($0, no billing/credit card; 1 TB/month query free tier covers our tiny 15-entity queries).
 - **D-02:** **Fallback** if the EV Workspace org restricts Cloud-project creation: fall back to a personal Google account sandbox (same flow). The planner should surface this as the first thing to verify, since it gates everything.
-- **D-03:** The Google Cloud SDK (`gcloud`/`bq`) is **NOT installed** on this machine and there is **no `@google-cloud/bigquery` Node dependency** — Phase 68 must install access tooling from scratch. Authentication is a one-time interactive `gcloud auth login` (run by Chris via the `! gcloud auth login` session pattern).
+- **D-03 (UPDATED 2026-06-19):** The Google Cloud SDK **IS installed** at `C:\Users\Chris\AppData\Local\Google\Cloud SDK\google-cloud-sdk\bin` (NOT on the default PATH — prepend it in scripts/shells). `@google-cloud/bigquery@^7.9.0` **is declared in `package.json`** but was **missing from `node_modules`** → `npm install` restores it. Auth = **two** one-time interactive logins, both run by Chris in a REAL terminal (Claude's `!` can't launch a browser): `gcloud auth login` (CLI) **and** `gcloud auth application-default login` (ADC — the credential the Node loader actually uses).
 - **D-04:** Loader stays **JavaScript** like every other loader in `scripts/`. Mechanism (Node `@google-cloud/bigquery` client via Application Default Credentials, vs. shelling `bq query --format=json` into the loader) is the planner's call — recommend the Node client for consistency with the existing JS loader ecosystem.
 
-### ⚠ External Access Dependency (BLOCKER — discovered 2026-06-17 during setup)
+### ✅ External Access Dependency — RESOLVED 2026-06-19
+- **D-15-RESOLVED (2026-06-19):** Access **GRANTED** by Alex Nielson (Utah State Auditor) for `chris@empowered.vote`. Verified live via a Node `@google-cloud/bigquery` dry-run against `ut-sao-transparency-prod.transaction.transaction` — reads clean ($0, dry-run scanned 0 bytes). The D-15 `Access Denied` blocker is **cleared**. **Auth gotcha that cost us a few cycles:** the loader authenticates via **ADC** (`gcloud auth application-default login`), a SEPARATE credential from the `bq`/gcloud CLI (`gcloud auth login`); BOTH trip the `empowered.vote` Workspace **reauth/session-length policy** (`invalid_rapt`) when invoked non-interactively, so the ADC login MUST be completed in a real interactive terminal. See [[reference_utah_transparency_bigquery]]. The D-15..D-18 records below are kept as the historical blocker trail.
 - **D-15:** The Utah BigQuery table is **NOT openly public** — it is **access-by-request** from the State Auditor. Verified live: `chris@empowered.vote` (authed, project `empowered-vote-486302`, BigQuery API enabled) gets **Access Denied** (`bigquery.tables.get`/`tables.list`/query all denied) on `ut-sao-transparency-prod.transaction.transaction`. The recon's "publicly accessible" assumption was wrong.
 - **D-16:** **Access process** (`old.transparent.utah.gov/how_to_become_superuser.php`): (1) email **`alexnielson@utah.gov`** with EV's org/department + the Google account(s) to grant; (2) have a GCP project (done). Utah then grants the account(s) read access to the dataset. Test query once granted: `SELECT DISTINCT entity_name FROM \`ut-sao-transparency-prod.transaction.transaction\``.
 - **D-17:** **Account nuance** — the instructions say "valid **gmail** accounts." `chris@empowered.vote` is a Google **Workspace** account (works as an IAM principal, but is not `@gmail.com`). Request access for `chris@empowered.vote` first (keeps EV identity / D-01); if Utah's grant only accepts `@gmail.com`, fall back to a personal Gmail (D-02). List both in the email to be safe.
@@ -33,6 +35,12 @@ Stand up the one piece of new tooling for the v2.5 Utah milestone: **BigQuery ac
 - **D-12:** Add a **read-only BigQuery MCP server** to the Claude Code config as part of Phase 68 (Chris's request) so Claude can directly inspect `ut-sao-transparency-prod.transaction.transaction` during recon — confirm the 15 exact `entity_name` strings, eyeball the `function`/`cat`/`org` columns, sanity-check totals — instead of running throwaway query scripts.
 - **D-13:** **Leading candidate = Google's official BigQuery MCP server** (released 2026; enabled with the BigQuery API, OAuth 2.0 + IAM auth — pairs with the EV Workspace `gcloud` auth from D-01). Read-only community alternatives exist (e.g. `ergut/mcp-bigquery-server`, SELECT-only, dry-run-validated) as a fallback if the official server needs billing/IAM we can't grant on the sandbox. **Final server choice + exact config verified during Phase 68 execution**, after auth — the planner should treat the specific server as not-yet-locked.
 - **D-14:** **Read-only / recon-only.** The MCP must NOT be a write path. All production writes go through the JS loader → Supabase RPC (the MCP touches BigQuery only, which is read-only public data anyway). Config is **project-scoped** (`.mcp.json` in repo) so it travels with the project; credentials stay local (never commit a key).
+
+### Entity-Name Mapping (UTSRC-01 — CONFIRMED 2026-06-19)
+- **D-19:** All 15 exact `entity_name` strings are **confirmed against the live table**. Naming is uniform `<Name> City` / `<Name> County`; the `govt_lvl` column cleanly tags `City` vs `County`. **Match EXACTLY — never `LIKE`** (decoys: North/South Ogden City, North/South Salt Lake, Ogden Valley City, Davis School District, George Washington Academy, Washington Terrace City, etc.). The 15:
+  - **Cities** (`govt_lvl='City'`): `Layton City`, `Lehi City`, `Ogden City`, `Orem City`, `Provo City`, `Salt Lake City`, `Sandy City`, `St. George City`, `West Jordan City`, `West Valley City`.
+  - **Counties** (`govt_lvl='County'`): `Salt Lake County`, `Utah County`, `Davis County`, `Weber County`, `Washington County`.
+  - Full mapping + per-entity row counts also in [[reference_utah_transparency_bigquery]]. This satisfies the entity-name half of UTSRC-01.
 
 ### Category-Tree Shape
 - **D-05:** **Function/purpose-first**, consistent with BOTH the Federal tracker (function lens default — "what it's for") and the CA SCO loader (`category → subcategory → line`). Top level = functional/purpose categories (Public Safety, Public Works, Parks & Rec, General Government…), then a second level (sub-function/category), then line items. **2–3 levels max; NO reflexive deep icicle** (ground rule 3).
@@ -45,7 +53,7 @@ Stand up the one piece of new tooling for the v2.5 Utah milestone: **BigQuery ac
 
 ### Pilot City + FY Scope
 - **D-10:** **Pilot city = Claude's discretion** — pick whichever of the 10 has the cleanest, most complete Transparent Utah data for the zero-write dry-run (Salt Lake City = largest/headline; Provo = clean award-winning ACFR for easy reconciliation — both are reasonable).
-- **D-11:** **Load all available fiscal years (FY2009→present)** per entity — Transparent Utah data starts at FY2009. Matches the deep-history parity standard set in CA (FY2003→present). Document any sparse/incomplete early years rather than loading noise.
+- **D-11 (CORRECTED 2026-06-19 via live BQ probe):** **Load all available fiscal years (FY2014→present)** per entity. ⚠️ The recon's "data starts at FY2009" was **WRONG** — every one of the 15 target entities shows **min `fiscal_year` = 2014**, running through **FY2026** (current/near-complete). So Utah depth ≈ **FY2014–2025**, materially shallower than CA's FY2003. **Set ACFR-reconciliation years (Phase 73) and any "deep-history parity" success criteria to the FY2014 floor — NOT FY2009/FY2003.** Document any sparse early (FY2014) or partial latest (FY2026) years rather than loading noise.
 
 ### Carried Forward (from the CA pipeline — locked, not re-discussed)
 - **Never-overwrite guard:** pre-skip any `(municipality_id, fiscal_year, dataset_type)` row whose existing `data_source` differs from this run — never overwrite a richer custom-source load. `treasury_sync_city_budget` is NOT source-safe on its own; the guard lives in the loader.

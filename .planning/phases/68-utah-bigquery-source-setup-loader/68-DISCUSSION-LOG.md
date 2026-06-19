@@ -56,12 +56,12 @@
 | Salt Lake City | Flagship/largest; stronger stress test | |
 | Provo | Clean award-winning ACFR; easy reconciliation | |
 | You decide from the data | Pick cleanest/most-complete of the 10 | ✓ |
-| — FY scope: All available (FY2009→present) | Full depth; matches CA parity standard | ✓ |
+| — FY scope: All available (FY2014→present) | Full depth available for these entities | ✓ |
 | — FY scope: Recent ~10 years only | Lighter; trades away history | |
 | — FY scope: You decide from the data | Load clean years, document sparse ones | |
 
-**User's choice:** Pilot city = Claude's discretion (cleanest data); FY scope = all available (FY2009→present)
-**Notes:** Transparent Utah starts at FY2009. Document any sparse/incomplete early years rather than loading noise.
+**User's choice:** Pilot city = Claude's discretion (cleanest data); FY scope = all available (FY2014→present)
+**Notes:** CORRECTED 2026-06-19 via live BQ probe — the 15 target entities start at **FY2014** (not FY2009 as the recon assumed), running through FY2026. Load FY2014→present; document any sparse early/partial-latest years rather than loading noise.
 
 ---
 

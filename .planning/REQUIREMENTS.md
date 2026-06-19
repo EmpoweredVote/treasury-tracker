@@ -2,7 +2,7 @@
 
 *Defined 2026-06-17. Milestone goal: bring 10 Utah cities + their 5 county governments onto Treasury Tracker at full California parity — operating + revenue budgets, employee compensation, category enrichment, and county linking — every figure durably sourced, verified with Chris's UAT sign-off, at ~$0 spend.*
 
-**Data source (locked via recon, see `.planning/research/UTAH-RECON.md`):** Utah State Auditor's **Transparent Utah** public BigQuery dataset `ut-sao-transparency-prod.transaction.transaction` — `EX`/`RV`/`PY` transaction types give operating, revenue, and payroll for all 15 entities, FY2009→present, in one uniform table. Free (BQ sandbox free tier, no credit card). Actuals / all-governmental-funds basis, consistent with our existing CA county loads. opendata.utah.gov Socrata (FY≤2019) is a zero-auth cross-check only; per-entity ACFRs are the reconciliation/fallback source.
+**Data source (locked via recon, see `.planning/research/UTAH-RECON.md`):** Utah State Auditor's **Transparent Utah** public BigQuery dataset `ut-sao-transparency-prod.transaction.transaction` — `EX`/`RV`/`PY` transaction types give operating, revenue, and payroll for all 15 entities, **FY2014→present** (corrected 2026-06-19 via live probe — NOT FY2009 as first recon'd), in one uniform table. Free (BQ sandbox free tier, no credit card). Access GRANTED + verified live 2026-06-19. Actuals / all-governmental-funds basis, consistent with our existing CA county loads. opendata.utah.gov Socrata (FY≤2019) is a zero-auth cross-check only; per-entity ACFRs are the reconciliation/fallback source.
 
 **Target entities:**
 - **Cities (10):** Layton, Lehi, Ogden, Orem, Provo, Salt Lake City, Sandy, St. George, West Jordan, West Valley City
