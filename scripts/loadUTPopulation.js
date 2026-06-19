@@ -28,6 +28,16 @@ const CSV_URL = 'https://www2.census.gov/programs-surveys/popest/datasets/2020-2
 const CSV_PATH = path.join(tmpdir(), 'sub-est2024_49.csv');
 const POP_YEAR = 2024;
 
+// County mode (D-70-03): Census COUNTY totals file (co-est), SUMLEV 050, state
+// FIPS 49, vintage 2024 — same vintage as the cities so per-capita is comparable
+// across the hierarchy. Layout differs from the places file (verified live
+// 2026-06-19): SUMLEV@0, STATE@3, CTYNAME@6, POPESTIMATE2024@12.
+const COUNTY_CSV_URL = 'https://www2.census.gov/programs-surveys/popest/datasets/2020-2024/counties/totals/co-est2024-alldata.csv';
+const COUNTY_CSV_PATH = path.join(tmpdir(), 'co-est2024-alldata.csv');
+const EXPECTED_COUNTIES = [
+  'Salt Lake County', 'Utah County', 'Davis County', 'Weber County', 'Washington County',
+];
+
 // Census-normalized lookup keys (what normalizeCensusName yields from the CSV NAME).
 const EXPECTED_CITIES = [
   'Layton', 'Lehi', 'Ogden', 'Orem', 'Provo',
@@ -93,14 +103,86 @@ function downloadFile(url, dest) {
   });
 }
 
+/**
+ * County mode (D-70-03): set 2024 Census population for the 5 UT county entities.
+ * Mirrors the city flow but uses the co-est county file (SUMLEV 050, FIPS 49) and
+ * keys on CTYNAME, which already equals the treasury.municipalities.name for counties.
+ */
+async function runCounties(dryRun) {
+  if (!existsSync(COUNTY_CSV_PATH)) {
+    console.log(`Downloading Census county CSV from ${COUNTY_CSV_URL}...`);
+    await downloadFile(COUNTY_CSV_URL, COUNTY_CSV_PATH);
+    console.log('Downloaded.');
+  } else {
+    console.log('Using cached county CSV.');
+  }
+
+  const lines = readFileSync(COUNTY_CSV_PATH, 'utf8').split('\n');
+  const header = lines[0].replace(/\r$/, '').split(',');
+  // Abort on Census format drift (layout verified live 2026-06-19).
+  if (header[0] !== 'SUMLEV' || header[6] !== 'CTYNAME' || header[12] !== 'POPESTIMATE2024') {
+    console.error('Census county CSV format changed — expected SUMLEV@0, CTYNAME@6, POPESTIMATE2024@12');
+    console.error(`Got: col 0=${header[0]}, col 6=${header[6]}, col 12=${header[12]}`);
+    process.exit(1);
+  }
+
+  const countyMap = new Map();
+  for (const line of lines.slice(1)) {
+    if (!line.trim()) continue;
+    const cols = line.split(',');
+    if (cols[0] !== '050' || cols[3] !== '49') continue; // SUMLEV 050 county, state FIPS 49
+    const pop = parseInt(cols[12], 10);
+    if (!isNaN(pop)) countyMap.set(cols[6].trim(), pop);
+  }
+
+  const missing = EXPECTED_COUNTIES.filter(c => !countyMap.has(c));
+  if (missing.length > 0) {
+    console.error(`ERROR: Missing counties in CSV: ${missing.join(', ')}`);
+    process.exit(1);
+  }
+
+  console.log('\nCounty populations from Census 2024:');
+  for (const c of EXPECTED_COUNTIES) console.log(`  ${c}: ${countyMap.get(c).toLocaleString()}`);
+
+  if (dryRun) {
+    console.log('\nDRY RUN — no DB updates:');
+    for (const c of EXPECTED_COUNTIES) console.log(`  DRY: would UPDATE "${c}" (county) to population=${countyMap.get(c)}, population_year=${POP_YEAR}`);
+    process.exit(0);
+  }
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, { db: { schema: 'treasury' } });
+  let updated = 0, skipped = 0, failed = 0;
+  for (const name of EXPECTED_COUNTIES) {
+    const pop = countyMap.get(name);
+    if (!pop || pop <= 0) { // D-70-03 guard: never lower a real value to 0
+      console.error(`FAILED ${name}: refusing non-positive population (${pop})`); failed++; continue;
+    }
+    const { data: current } = await supabase.from('municipalities')
+      .select('population, population_year').eq('name', name).eq('state', 'UT').eq('entity_type', 'county').single();
+    if (current && current.population === pop && current.population_year === POP_YEAR) {
+      console.log(`SKIP ${name}: already set to ${pop} (${POP_YEAR})`); skipped++; continue;
+    }
+    const { data: rows, error } = await supabase.from('municipalities')
+      .update({ population: pop, population_year: POP_YEAR })
+      .eq('name', name).eq('state', 'UT').eq('entity_type', 'county').select('id');
+    if (error) { console.error(`FAILED ${name}: ${error.message}`); failed++; }
+    else if (!rows || rows.length === 0) { console.error(`FAILED ${name}: matched 0 rows — county may not be seeded (run seedCountyLinks first)`); failed++; }
+    else { console.log(`UPDATED ${name}: ${pop} (${POP_YEAR})`); updated++; }
+  }
+  console.log(`\nSummary: Updated: ${updated}, Skipped: ${skipped}, Failed: ${failed}`);
+  process.exit(failed > 0 ? 1 : 0);
+}
+
 async function main() {
-  const { values: flags } = parseArgs({ options: { 'dry-run': { type: 'boolean' } } });
+  const { values: flags } = parseArgs({ options: { 'dry-run': { type: 'boolean' }, counties: { type: 'boolean' } } });
   const dryRun = flags['dry-run'] || false;
 
   if (!SUPABASE_KEY) {
     console.error('ERROR: SUPABASE_SERVICE_KEY or SUPABASE_SERVICE_ROLE_KEY required');
     process.exit(1);
   }
+
+  if (flags.counties) { await runCounties(dryRun); return; }
 
   // Download CSV if not cached
   if (!existsSync(CSV_PATH)) {
