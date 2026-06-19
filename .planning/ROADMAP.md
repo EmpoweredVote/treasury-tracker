@@ -35,7 +35,7 @@
 
 | # | Phase | Requirements | Depends on | Status |
 |---|-------|--------------|------------|--------|
-| 68 | Utah BigQuery Source Setup + Loader | UTSRC-01, UTSRC-02 | — | Not started |
+| 68 | Utah BigQuery Source Setup + Loader | 3/3 | Complete   | 2026-06-19 |
 | 69 | Utah City Budgets Load | UCITY-01, UCITY-02 | 68 | Not started |
 | 70 | Utah County Budgets + Linking | UCO-01, UCO-02 | 68, 69 | Not started |
 | 71 | Utah City Salaries / Compensation | USAL-01 | 68, 69 | Not started |
