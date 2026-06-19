@@ -37,6 +37,10 @@ docs/*
 # …except the SoCal county-onboarding runbook (Phase 52: the source-of-record
 # procedure operators follow to add any CA county — a tracked deliverable)
 !docs/socal-county-onboarding.md
+# …and the v2.5 Utah source-of-record deliverables (Phase 68): the BigQuery access
+# runbook + the confirmed 15-entity mapping that downstream Utah phases depend on.
+!docs/utah-bigquery-access.md
+!docs/utah-entity-mapping.md
 
 # Supabase temp files
 supabase/.temp/
