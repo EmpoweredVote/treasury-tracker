@@ -59,6 +59,30 @@ export function entitySourceUrl() {
   return SOURCE_URL_BASE;
 }
 
+/**
+ * Utah's Transparent Utah entity_name carries a legal "City" suffix on every
+ * municipality (Provo City, Orem City, Ogden City…). Only Salt Lake City and
+ * West Valley City use "City" in their common/display name; the other 8 display
+ * without it. We query BigQuery by the raw entity_name (the source key) but
+ * store/look up the municipality row under its DISPLAY name, so the app shows
+ * "Provo", not "Provo City" (Phase 70 — matches the entity-mapping doc's intent).
+ * Counties + anything not in the map pass through unchanged.
+ */
+const UT_DISPLAY_NAME = {
+  'Layton City': 'Layton',
+  'Lehi City': 'Lehi',
+  'Ogden City': 'Ogden',
+  'Orem City': 'Orem',
+  'Provo City': 'Provo',
+  'Sandy City': 'Sandy',
+  'St. George City': 'St. George',
+  'West Jordan City': 'West Jordan',
+  // Salt Lake City and West Valley City intentionally keep their names.
+};
+export function toDisplayName(entityName) {
+  return UT_DISPLAY_NAME[entityName] || entityName;
+}
+
 // ── Pure helpers (exported for offline unit tests) ───────────────────────────
 
 /** Parse "$1,234" / "(123)" / numbers → Number. Mirrors the analog's amt(). */
@@ -268,7 +292,8 @@ async function main() {
         continue;
       }
 
-      const existing = await findEntityMunicipality(entityName, state);
+      const muniName = toDisplayName(entityName);
+      const existing = await findEntityMunicipality(muniName, state);
       if (existing) {
         const conflict = await findConflictingBudget(existing.id, fy, datasetType, DATA_SOURCE_NAME);
         if (conflict) {
@@ -276,7 +301,7 @@ async function main() {
           continue;
         }
       }
-      const result = await importEntityData(entityName, state, rows, fy, datasetType, fetchDate);
+      const result = await importEntityData(muniName, state, rows, fy, datasetType, fetchDate);
       if (result) console.log(`  ✅ imported (${result.rows_inserted ?? '?'} items)`);
     }
   }

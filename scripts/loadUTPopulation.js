@@ -34,21 +34,22 @@ const EXPECTED_CITIES = [
   'Salt Lake City', 'Sandy', 'St. George', 'West Jordan', 'West Valley City',
 ];
 
-// Census-normalized name → exact treasury.municipalities.name. The budget loader
-// (loadUtahTransparency.js) created each municipality from the FULL Transparent Utah
-// entity_name, so every UT city row carries the "City" suffix — verified live
-// 2026-06-19. (Plan 69-03's interface assumed the suffix was stripped for most
-// cities; that was wrong — corrected here so the UPDATE matches the real rows.)
+// Census-normalized name → exact treasury.municipalities.name. Phase 70 renamed the
+// 8 UT cities whose Transparent Utah entity_name carried a spurious "City" suffix to
+// their display names (Provo City→Provo, Orem City→Orem, …); only Salt Lake City and
+// West Valley City keep "City". The budget loader (loadUtahTransparency.js) maps the
+// raw entity_name→display name via toDisplayName, so these DB names now equal the
+// Census-normalized keys (effectively identity).
 const DB_NAME = {
-  Layton: 'Layton City',
-  Lehi: 'Lehi City',
-  Ogden: 'Ogden City',
-  Orem: 'Orem City',
-  Provo: 'Provo City',
+  Layton: 'Layton',
+  Lehi: 'Lehi',
+  Ogden: 'Ogden',
+  Orem: 'Orem',
+  Provo: 'Provo',
   'Salt Lake City': 'Salt Lake City',
-  Sandy: 'Sandy City',
-  'St. George': 'St. George City',
-  'West Jordan': 'West Jordan City',
+  Sandy: 'Sandy',
+  'St. George': 'St. George',
+  'West Jordan': 'West Jordan',
   'West Valley City': 'West Valley City',
 };
 
