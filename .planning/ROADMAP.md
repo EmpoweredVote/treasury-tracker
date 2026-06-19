@@ -36,7 +36,7 @@
 | # | Phase | Requirements | Depends on | Status |
 |---|-------|--------------|------------|--------|
 | 68 | Utah BigQuery Source Setup + Loader | 3/3 | Complete   | 2026-06-19 |
-| 69 | Utah City Budgets Load | 1/3 | In Progress|  |
+| 69 | Utah City Budgets Load | 2/3 | In Progress|  |
 | 70 | Utah County Budgets + Linking | UCO-01, UCO-02 | 68, 69 | Not started |
 | 71 | Utah City Salaries / Compensation | USAL-01 | 68, 69 | Not started |
 | 72 | Utah Enrichment Parity | UENR-01 | 69, 70, 71 | Not started |
@@ -76,7 +76,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 69-02-PLAN.md — Sweep the remaining 9 cities op+rev FY2014–FY2025 + Provo reconciliation + 10-city app spot-check
+- [x] 69-02-PLAN.md — Sweep the remaining 9 cities op+rev FY2014–FY2025 + Provo reconciliation + 10-city app spot-check
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
