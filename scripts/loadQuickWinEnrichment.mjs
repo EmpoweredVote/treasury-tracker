@@ -45,6 +45,10 @@ const QUICKWIN_EXACT = {
   'public art':    'cultural_arts',
   'rent control':  'housing',         // rent stabilization / tenant programs
   'dpw':           'public_works',    // Department of Public Works
+  'pub works':     'public_works',
+  'rec':           'recreation',
+  'adm':           'administration',
+  'construction':  'public_works',    // capital construction / projects
 };
 const EXACT_OVERRIDE = { 'it': 'information_technology', 'cra': 'redevelopment', 'human': 'human_resources', ...SOCAL_EXACT, ...QUICKWIN_EXACT };
 
