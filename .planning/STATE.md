@@ -1,56 +1,58 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.4
-milestone_name: Southern California Expansion
-status: completed
-stopped_at: Completed 62-03 UAT SUMMARY — v2.3 CA parity milestone verified (VER-03 + VER-04)
-last_updated: "2026-06-17T23:44:17.429Z"
-last_activity: 2026-06-17 -- Phase 67 marked complete
+milestone: v2.5
+milestone_name: Utah Municipal Expansion
+status: Milestone roadmapped — ready for `/gsd-discuss-phase 68` or `/gsd-plan-phase 68`
+last_updated: "2026-06-18T04:15:18.096Z"
+last_activity: 2026-06-18 — Milestone v2.5 started, requirements + roadmap committed
 progress:
-  total_phases: 47
-  completed_phases: 5
-  total_plans: 13
-  completed_plans: 13
-  percent: 11
+  total_phases: 73
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-16 after v2.2)
+See: .planning/PROJECT.md (updated 2026-06-17 after v2.4 close + v2.5 start)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 67 — socal-verification-source-chain-audit-uat
+**Current focus:** v2.5 Utah Municipal Expansion — Phase 68 (Utah BigQuery Source Setup + Loader) up next.
 
 ## Current Position
 
-Phase: 67 — COMPLETE
-Plan: 1 of 3
-Status: Phase 67 complete
-Last activity: 2026-06-17 -- Phase 67 marked complete
+Phase: 68 — PLANNED (3 plans: 68-01 access [gated], 68-02 loader build [buildable now], 68-03 MCP+recon+dry-run)
+Plan: 0 of 3 executed
+Status: Phase 68 planned + discussed; ready for `/gsd-execute-phase 68` once the Utah access email is sent
+Last activity: 2026-06-18 — Phase 68 planned (RESEARCH + 3 PLAN files); BQ access blocker split out
 
-### v2.4 SoCal expansion context
+### v2.5 Utah expansion context
 
-- **6 new counties to load:** Riverside (~28 cities), San Bernardino (~24), San Diego (~18), Ventura (~10), Santa Barbara (~8), Imperial (~7) — ~95 cities total. Counts are estimates from the v2.3 archive; confirm against the production DB at plan time.
-- **County-gov budgets:** the 6 SoCal counties + the 2 directory-only counties already in the DB (Alameda, Sacramento) get their own op+rev FY2003–2024 via `loadCountyBudget.js` (Phase 64). San Diego County is in the SoCal set.
-- **Never-overwrite guard:** any SoCal city already loaded from a richer custom source (e.g. San Diego city) stays untouched — new cities get SCO data; existing custom cities get salaries + enrichment only.
-- ⚠️ **Salary verify-at-plan-time:** the GCC salary sweep is production-only; local Supabase is stale. Phase 65 must confirm coverage against the **production / ev-accounts** DB before any sweep writes.
-- **v2.3 follow-ups remain deferred** (FUP-01..03): Glendale/Burbank ACFR, Employees-card year-gating UX, salary dept-name canonicalization — not in v2.4 scope.
+- **Data source LOCKED (recon `.planning/research/UTAH-RECON.md`):** Utah State Auditor's Transparent Utah public **BigQuery** table `ut-sao-transparency-prod.transaction.transaction`. One uniform table → operating (`EX`), revenue (`RV`), payroll (`PY`) for all 15 entities, FY2009→present. **Free** (BQ sandbox free tier, no credit card — Chris confirmed use 2026-06-17). Actuals / all-governmental-funds basis (matches existing CA county loads). Columns: `entity_name, entity_id, amount, fiscal_year, fund1-4, org1-10, cat1-7, program1-7, function1-7, description, vendor_name, title, account_number, type, govt_lvl`.
+- **10 cities:** Layton, Lehi, Ogden, Orem, Provo, Salt Lake City, Sandy, St. George, West Jordan, West Valley City.
+- **5 counties:** Salt Lake (SLC, West Valley, West Jordan, Sandy), Utah (Provo, Orem, Lehi), Davis (Layton), Weber (Ogden), Washington (St. George).
+- 🚧 **BLOCKER (found 2026-06-17): BQ access is by-request, not open.** `chris@empowered.vote` (authed, project `empowered-vote-486302`, BigQuery API on) gets **Access Denied** on `ut-sao-transparency-prod.transaction.transaction`. Process: email **`alexnielson@utah.gov`** with EV org + Google account(s) to grant (instructions: `old.transparent.utah.gov/how_to_become_superuser.php`). Human-in-the-loop, lead time unknown → **send the request email FIRST**; loader/MCP can be built schema-only meanwhile. Gmail-vs-Workspace + billing nuances captured in `68-CONTEXT.md` D-15..18. gcloud SDK installed; `gcloud init` + ADC login done.
+- ⚠️ **Confirm exact `entity_name` strings at Phase 68 plan time** — e.g. "Salt Lake City" vs a corporation suffix; record an entity→municipality mapping before any load (gated on the access grant above).
+- **New tooling = the BQ loader only** (`loadUtahTransparency.js`, Phase 68). `seedCountyLinks.js`, the inline-$0 enrichment authoring pattern, and the verification/source-chain-audit pattern are reused as-is. Socrata FY≤2019 mirror is a zero-auth cross-check only.
+- **Per-capita:** BQ has no population — use Census vintage like prior milestones.
+- **v2.4 follow-ups remain deferred:** broader SoCal ACFR cross-read; FUP-01..03 (Glendale/Burbank ACFR, Employees-card year-gating UX, salary dept-name canonicalization) — not in v2.5 scope.
 
 ## Phase Overview
 
-| Phase | Name | Depends on | Status |
-|-------|------|------------|--------|
-| 63 | SoCal County Cities Load + Linking (6 counties, ~95 cities) | Nothing (hardened pipeline) | Planned (6 plans) |
-| 64 | SoCal County-Government Budgets (6 SoCal + Alameda + Sacramento) | Nothing (parallel to 63) | Pending |
-| 65 | SoCal Salaries Sweep (new cities, FY2009–2024) | Phase 63 | Pending |
-| 66 | SoCal Enrichment Parity | Phases 63 + 65 | Pending |
-| 67 | SoCal Verification + Source-Chain Audit + UAT | Phases 63–66 | Pending |
+| Phase | Name | Requirements | Depends on | Status |
+|-------|------|--------------|------------|--------|
+| 68 | Utah BigQuery Source Setup + Loader | UTSRC-01, UTSRC-02 | — | Planned (3 plans) |
+| 69 | Utah City Budgets Load | UCITY-01, UCITY-02 | 68 | Not started |
+| 70 | Utah County Budgets + Linking | UCO-01, UCO-02 | 68, 69 | Not started |
+| 71 | Utah City Salaries / Compensation | USAL-01 | 68, 69 | Not started |
+| 72 | Utah Enrichment Parity | UENR-01 | 69, 70, 71 | Not started |
+| 73 | Utah Verification + Source-Chain Audit + UAT | UVER-01, UVER-02 | 69–72 | Not started |
 
-**Critical path:** 63 → 65 → 66 → 67. Phase 64 (county-gov budgets) is independent and runs in parallel with 63.
-**Constraint:** Free sources only; enrichment inline at ~$0 (API cost gate $5 — estimate before any AI run). Every loaded figure carries durable source attribution.
-**Pipeline reuse (zero new tooling):** `bulkLoadStateController.js --county` (history, never-overwrite guard), `seedCountyLinks.js` (linking), `loadCountyBudget.js` (county-gov budget), `loadCASalaries.js` (salaries), runbook `docs/socal-county-onboarding.md`.
+**Critical path:** 68 → 69 → {70 ∥ 71} → 72 → 73. Phases 70 (county budgets + linking) and 71 (salaries) both depend on 68 + 69 and run in parallel.
+**Constraint:** Free sources only; BQ sandbox at $0; enrichment inline at ~$0 (API cost gate $5 — estimate before any AI run). Every loaded figure carries durable Transparent Utah source attribution.
 
 ## Accumulated Context
 
@@ -124,13 +126,13 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-17T15:52:57.284Z
-Stopped at: Completed 62-03 UAT SUMMARY — v2.3 CA parity milestone verified (VER-03 + VER-04)
-Resume file: None
+Last session: 2026-06-18T04:15:18.077Z
+Stopped at: Phase 68 context gathered
+Resume file: .planning/phases/68-utah-bigquery-source-setup-loader/68-CONTEXT.md
 
 ### Next Session
 
-Phase 63 is planned (6 plans, 63-01..06, one per SoCal county). Execute with `/gsd-execute-phase 63`. Plans run serially on the main tree (scripts need `.env`, no worktrees) — each does dry-run → live op/rev load → seed/link → verify. Then Phase 64 (county-gov budgets).
+v2.5 is roadmapped (Phases 68–73, no plans yet). Start with `/gsd-discuss-phase 68` (recommended — Phase 68 has the one new-tooling decision: BQ access + loader design) or `/gsd-plan-phase 68` to plan directly. Phase 68 = stand up BQ sandbox auth + confirm the 15 entities' exact `entity_name` strings + build `loadUtahTransparency.js` and pilot a dry-run on one city. Serial main-tree (needs `.env` / gcloud auth), $0.
 
 ## Performance Metrics
 
@@ -228,4 +230,4 @@ Open-artifact audit at milestone close surfaced 5 stale/orphaned items, acknowle
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- `/gsd-discuss-phase 68` — gather context + design the BigQuery loader before planning (recommended), or `/gsd-plan-phase 68` to plan directly.

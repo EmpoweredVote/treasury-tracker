@@ -1,0 +1,31 @@
+{
+  "generated_at": "2026-06-18T00:00:00.000Z",
+  "counties": [
+    "Alameda County",
+    "Sacramento County"
+  ],
+  "authored": 4,
+  "note": "Universal (municipality_id=NULL) salary-dept enrichment rows authored inline ($0) via the Phase 61/66 concept resolver. Reconstructed from production (post-apply). Bleed-safe; no city-specific or $-bearing text.",
+  "rows": [
+    {
+      "name_key": "community engagement",
+      "plain_name": "Community Services",
+      "short_description": "Recreation, senior, and neighborhood programs."
+    },
+    {
+      "name_key": "mayor & council",
+      "plain_name": "City Council",
+      "short_description": "The elected legislative body of the city."
+    },
+    {
+      "name_key": "office of the city auditor",
+      "plain_name": "City Auditor",
+      "short_description": "Independent audits of city operations."
+    },
+    {
+      "name_key": "youth services",
+      "plain_name": "Youth Services",
+      "short_description": "Programs serving children and teens."
+    }
+  ]
+}

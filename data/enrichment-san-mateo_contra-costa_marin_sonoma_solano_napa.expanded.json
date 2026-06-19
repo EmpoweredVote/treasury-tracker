@@ -1,0 +1,249 @@
+{
+  "generated_at": "2026-06-18T00:00:00.000Z",
+  "counties": [
+    "San Mateo County",
+    "Contra Costa County",
+    "Marin County",
+    "Sonoma County",
+    "Solano County",
+    "Napa County"
+  ],
+  "authored": 39,
+  "deferred_single_city": 1311,
+  "mapping": [
+    {
+      "name_key": "marina",
+      "cities": 5,
+      "plain_name": "Harbor & Marine",
+      "via": "route:harbor"
+    },
+    {
+      "name_key": "public works/maintenance",
+      "cities": 3,
+      "plain_name": "Public Works",
+      "via": "route:public_works"
+    },
+    {
+      "name_key": "park and recreation",
+      "cities": 3,
+      "plain_name": "Parks",
+      "via": "route:parks"
+    },
+    {
+      "name_key": "ecd planning",
+      "cities": 2,
+      "plain_name": "Planning",
+      "via": "route:planning"
+    },
+    {
+      "name_key": "economic & community development",
+      "cities": 2,
+      "plain_name": "Economic Development",
+      "via": "route:economic_development"
+    },
+    {
+      "name_key": "management information systems",
+      "cities": 2,
+      "plain_name": "Information Technology",
+      "via": "route:information_technology"
+    },
+    {
+      "name_key": "preschool",
+      "cities": 2,
+      "plain_name": "Youth Services",
+      "via": "exact:youth_services"
+    },
+    {
+      "name_key": "communications/city clerk",
+      "cities": 2,
+      "plain_name": "City Clerk",
+      "via": "route:city_clerk"
+    },
+    {
+      "name_key": "wastewater treatment",
+      "cities": 2,
+      "plain_name": "Sewer & Wastewater",
+      "via": "route:sewer"
+    },
+    {
+      "name_key": "public art",
+      "cities": 2,
+      "plain_name": "Arts & Culture",
+      "via": "exact:cultural_arts"
+    },
+    {
+      "name_key": "parks & trails",
+      "cities": 2,
+      "plain_name": "Parks",
+      "via": "route:parks"
+    },
+    {
+      "name_key": "park & rec",
+      "cities": 2,
+      "plain_name": "Parks",
+      "via": "route:parks"
+    },
+    {
+      "name_key": "recreation - youth",
+      "cities": 2,
+      "plain_name": "Recreation",
+      "via": "route:recreation"
+    },
+    {
+      "name_key": "recreation-youth",
+      "cities": 2,
+      "plain_name": "Recreation",
+      "via": "route:recreation"
+    },
+    {
+      "name_key": "recreation-adult",
+      "cities": 2,
+      "plain_name": "Recreation",
+      "via": "route:recreation"
+    },
+    {
+      "name_key": "community development services",
+      "cities": 2,
+      "plain_name": "Community Development",
+      "via": "route:community_development"
+    },
+    {
+      "name_key": "public works & engineering",
+      "cities": 2,
+      "plain_name": "Engineering",
+      "via": "route:engineering"
+    },
+    {
+      "name_key": "public works electrical",
+      "cities": 2,
+      "plain_name": "Electric Utility",
+      "via": "route:electric"
+    },
+    {
+      "name_key": "police traffic",
+      "cities": 2,
+      "plain_name": "Police",
+      "via": "route:police"
+    },
+    {
+      "name_key": "finance accounting",
+      "cities": 2,
+      "plain_name": "Accounting",
+      "via": "route:accounting"
+    },
+    {
+      "name_key": "library technical services",
+      "cities": 2,
+      "plain_name": "Library",
+      "via": "route:library"
+    },
+    {
+      "name_key": "public works and engineering",
+      "cities": 2,
+      "plain_name": "Engineering",
+      "via": "route:engineering"
+    },
+    {
+      "name_key": "administrative service",
+      "cities": 2,
+      "plain_name": "Administration",
+      "via": "route:administration"
+    },
+    {
+      "name_key": "community dev administrative",
+      "cities": 2,
+      "plain_name": "Community Development",
+      "via": "route:community_development"
+    },
+    {
+      "name_key": "community development- building",
+      "cities": 2,
+      "plain_name": "Building & Safety",
+      "via": "route:building_safety"
+    },
+    {
+      "name_key": "planning dept",
+      "cities": 2,
+      "plain_name": "Planning",
+      "via": "route:planning"
+    },
+    {
+      "name_key": "cable",
+      "cities": 2,
+      "plain_name": "Communications",
+      "via": "route:communications"
+    },
+    {
+      "name_key": "senior ctr",
+      "cities": 2,
+      "plain_name": "Senior Services",
+      "via": "route:senior_services"
+    },
+    {
+      "name_key": "planning & community development",
+      "cities": 2,
+      "plain_name": "Planning",
+      "via": "route:planning"
+    },
+    {
+      "name_key": "rent control",
+      "cities": 2,
+      "plain_name": "Housing",
+      "via": "exact:housing"
+    },
+    {
+      "name_key": "housing & community services",
+      "cities": 2,
+      "plain_name": "Community Services",
+      "via": "route:community_services"
+    },
+    {
+      "name_key": "community development/building",
+      "cities": 2,
+      "plain_name": "Building & Safety",
+      "via": "route:building_safety"
+    },
+    {
+      "name_key": "cdd administration",
+      "cities": 2,
+      "plain_name": "Administration",
+      "via": "route:administration"
+    },
+    {
+      "name_key": "town treasurer",
+      "cities": 2,
+      "plain_name": "Treasury",
+      "via": "route:treasury"
+    },
+    {
+      "name_key": "childcare",
+      "cities": 2,
+      "plain_name": "Youth Services",
+      "via": "route:youth_services"
+    },
+    {
+      "name_key": "dpw",
+      "cities": 2,
+      "plain_name": "Public Works",
+      "via": "exact:public_works"
+    },
+    {
+      "name_key": "cdd planning",
+      "cities": 2,
+      "plain_name": "Planning",
+      "via": "route:planning"
+    },
+    {
+      "name_key": "cdd building",
+      "cities": 2,
+      "plain_name": "Building & Safety",
+      "via": "route:building_safety"
+    },
+    {
+      "name_key": "public works public works",
+      "cities": 2,
+      "plain_name": "Public Works",
+      "via": "route:public_works"
+    }
+  ]
+}

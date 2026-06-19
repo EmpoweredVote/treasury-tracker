@@ -1,0 +1,231 @@
+{
+  "generated_at": "2026-06-18T00:00:00.000Z",
+  "counties": [
+    "San Joaquin County",
+    "Stanislaus County",
+    "Merced County",
+    "Madera County",
+    "Kings County",
+    "Tulare County"
+  ],
+  "authored": 36,
+  "deferred_single_city": 1963,
+  "mapping": [
+    {
+      "name_key": "public works - water",
+      "cities": 3,
+      "plain_name": "Water Utility",
+      "via": "route:water"
+    },
+    {
+      "name_key": "parks and rec",
+      "cities": 3,
+      "plain_name": "Parks",
+      "via": "route:parks"
+    },
+    {
+      "name_key": "public works - street maintenance",
+      "cities": 3,
+      "plain_name": "Street Maintenance",
+      "via": "route:streets"
+    },
+    {
+      "name_key": "public works parks maintenance",
+      "cities": 2,
+      "plain_name": "Parks",
+      "via": "route:parks"
+    },
+    {
+      "name_key": "public works operations & maintenance",
+      "cities": 2,
+      "plain_name": "Public Works",
+      "via": "route:public_works"
+    },
+    {
+      "name_key": "hr. administration",
+      "cities": 2,
+      "plain_name": "Administration",
+      "via": "route:administration"
+    },
+    {
+      "name_key": "public works - sewer",
+      "cities": 2,
+      "plain_name": "Sewer & Wastewater",
+      "via": "route:sewer"
+    },
+    {
+      "name_key": "public works - facility maintenance",
+      "cities": 2,
+      "plain_name": "Facilities Maintenance",
+      "via": "route:facilities"
+    },
+    {
+      "name_key": "public works - parks",
+      "cities": 2,
+      "plain_name": "Parks",
+      "via": "route:parks"
+    },
+    {
+      "name_key": "public works - equipment",
+      "cities": 2,
+      "plain_name": "Fleet & Equipment",
+      "via": "route:fleet"
+    },
+    {
+      "name_key": "public works -",
+      "cities": 2,
+      "plain_name": "Public Works",
+      "via": "route:public_works"
+    },
+    {
+      "name_key": "public works-sewer",
+      "cities": 2,
+      "plain_name": "Sewer & Wastewater",
+      "via": "route:sewer"
+    },
+    {
+      "name_key": "public works-engineering",
+      "cities": 2,
+      "plain_name": "Engineering",
+      "via": "route:engineering"
+    },
+    {
+      "name_key": "pub works",
+      "cities": 2,
+      "plain_name": "Public Works",
+      "via": "exact:public_works"
+    },
+    {
+      "name_key": "rec",
+      "cities": 2,
+      "plain_name": "Recreation",
+      "via": "exact:recreation"
+    },
+    {
+      "name_key": "public works street trees",
+      "cities": 2,
+      "plain_name": "Street Maintenance",
+      "via": "route:streets"
+    },
+    {
+      "name_key": "director of public works",
+      "cities": 2,
+      "plain_name": "Public Works",
+      "via": "route:public_works"
+    },
+    {
+      "name_key": "parks supervisor",
+      "cities": 2,
+      "plain_name": "Parks",
+      "via": "route:parks"
+    },
+    {
+      "name_key": "firefighter",
+      "cities": 2,
+      "plain_name": "Fire & EMS",
+      "via": "route:fire"
+    },
+    {
+      "name_key": "adm",
+      "cities": 2,
+      "plain_name": "Administration",
+      "via": "exact:administration"
+    },
+    {
+      "name_key": "finance - accounting",
+      "cities": 2,
+      "plain_name": "Accounting",
+      "via": "route:accounting"
+    },
+    {
+      "name_key": "public works - street sweeping",
+      "cities": 2,
+      "plain_name": "Street Maintenance",
+      "via": "route:streets"
+    },
+    {
+      "name_key": "public works - fleet",
+      "cities": 2,
+      "plain_name": "Fleet & Equipment",
+      "via": "route:fleet"
+    },
+    {
+      "name_key": "police - operations",
+      "cities": 2,
+      "plain_name": "Police",
+      "via": "route:police"
+    },
+    {
+      "name_key": "police - communications",
+      "cities": 2,
+      "plain_name": "Police",
+      "via": "route:police"
+    },
+    {
+      "name_key": "public works - facilities maintenance",
+      "cities": 2,
+      "plain_name": "Facilities Maintenance",
+      "via": "route:facilities"
+    },
+    {
+      "name_key": "police - records",
+      "cities": 2,
+      "plain_name": "Police",
+      "via": "route:police"
+    },
+    {
+      "name_key": "finance-utility billing",
+      "cities": 2,
+      "plain_name": "Public Utilities",
+      "via": "route:utilities"
+    },
+    {
+      "name_key": "graffiti abatement",
+      "cities": 2,
+      "plain_name": "Street Maintenance",
+      "via": "route:streets"
+    },
+    {
+      "name_key": "sewer system",
+      "cities": 2,
+      "plain_name": "Sewer & Wastewater",
+      "via": "route:sewer"
+    },
+    {
+      "name_key": "construction",
+      "cities": 2,
+      "plain_name": "Public Works",
+      "via": "exact:public_works"
+    },
+    {
+      "name_key": "public works - refuse",
+      "cities": 2,
+      "plain_name": "Solid Waste & Recycling",
+      "via": "route:solid_waste"
+    },
+    {
+      "name_key": "parks & community services - parks",
+      "cities": 2,
+      "plain_name": "Parks",
+      "via": "route:parks"
+    },
+    {
+      "name_key": "parks & community services - administration",
+      "cities": 2,
+      "plain_name": "Parks",
+      "via": "route:parks"
+    },
+    {
+      "name_key": "public works-refuse",
+      "cities": 2,
+      "plain_name": "Solid Waste & Recycling",
+      "via": "route:solid_waste"
+    },
+    {
+      "name_key": "fire services",
+      "cities": 2,
+      "plain_name": "Fire & EMS",
+      "via": "route:fire"
+    }
+  ]
+}

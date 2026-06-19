@@ -20,11 +20,23 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 Brought every already-loaded non-OC California city and county to the Orange County standard (FY2003 history, statewide salaries, standardized enrichment) via the hardened v2.2 pipeline. Phase 62 verified end-to-end: ACFR reconciliation, source-chain audit (0 NULL/fragile/residue across 25,568 rows), 24-item UAT with Chris's sign-off. SoCal expansion deferred to v2.4.
 </details>
 
-## Next Milestone: v2.5 (TBD)
+## Current Milestone: v2.5 Utah Municipal Expansion
 
-**v2.4 is shipped.** No active milestone. Run `/gsd-new-milestone` to define v2.5 (questioning → research → requirements → roadmap).
+**Goal:** Bring 10 Utah cities + their 5 county governments onto Treasury Tracker at full California parity — operating + revenue budgets, employee compensation, category enrichment, and county linking — every figure durably sourced, verified with Chris's UAT sign-off, at ~$0 spend.
 
-**Carried-forward follow-ups (candidates for v2.5 or a backlog sweep):**
+**Target features:**
+- 10 Utah cities loaded (operating + revenue): Layton, Lehi, Ogden, Orem, Provo, Salt Lake City, Sandy, St. George, West Jordan, West Valley City
+- 5 Utah county governments loaded + city→county linking: Salt Lake (SLC, West Valley, West Jordan, Sandy), Utah (Provo, Orem, Lehi), Davis (Layton), Weber (Ogden), Washington (St. George)
+- Employee compensation/salaries for the 10 cities
+- Standardized, bleed-safe category enrichment for all new Utah categories
+- Verification: source-chain audit + ACFR reconciliation + live-app UAT
+
+**Key context:**
+- Data source TBD pending recon — the leading candidate is the **Utah Public Finance Website (transparent.utah.gov)**, the State Auditor's uniform statewide portal carrying revenues, expenditures, and employee compensation for every Utah local government. If it exposes a usable API/bulk export it becomes the Utah analog of CA's SCO ByTheNumbers (possibly cleaner — transaction-level + compensation in one source); otherwise fall back to per-city ACFR/budget PDFs like the early TX/OR work. Recon resolves this before the roadmap locks.
+- Free sources only; enrichment inline at ~$0 (API cost gate $5 — estimate before any AI run).
+- Continues phase numbering from v2.4 (last phase 67 → v2.5 starts at Phase 68).
+
+**Carried-forward follow-ups (candidates for a later milestone or backlog sweep):**
 - Broader per-entity independent ACFR cross-read for the SoCal sample (only Ventura County fully reconciled in v2.4; several ACFR PDFs were blocked/non-extractable) — VER-05 documented follow-up.
 - v2.3 follow-ups FUP-01..03: Glendale + Burbank ACFR reconciliation (CDN-blocked CLI fetch), the "Employees" salaries-card year-gating UX, the single-city salary department-name canonicalization long tail.
 - Single-city salary-department enrichment long tail (~3,489 names) deferred from v2.4 Phase 66.
@@ -99,15 +111,15 @@ Brought every already-loaded non-OC California city and county to the Orange Cou
 - ✓ Statewide CA salary sweep: CA Government Compensation FY2009–2024 loaded for all 98 non-OC CA cities (0 gaps, LA's curated payroll preserved by the guard); 3 sampled cities reconcile to the GCC export at $0 delta (SAL-04/05/06) — v2.3, Phase 60
 - ✓ Standardized, bleed-safe enrichment for all parity-loaded categories — 528 universal `category_enrichment` rows authored inline at $0 (op/rev 100%, salary depts shared ≥2 cities); 5,226 single-city salary dept-name long tail deferred to v2.4 (ENR-01) — v2.3, Phase 61
 - ✓ Parity verification: basis-matched ACFR reconciliation (3/5 entities fully reconciled, Glendale/Burbank CDN-access follow-ups), full-cohort source-chain audit (0 NULL/fragile/residue across 25,568 rows), 24-item live-app UAT — all PASS, Chris signed off (VER-03, VER-04) — v2.3, Phase 62
+- ✓ All 6 remaining SoCal counties' cities loaded + linked (~95 cities, op+rev FY2003–2024, SCO-sourced, per-year pop, never-overwrite): Riverside, San Bernardino, San Diego, Ventura, Santa Barbara, Imperial (SOCAL-01..06) — v2.4, Phase 63
+- ✓ County-government budgets for the 6 SoCal counties + Alameda + Sacramento (op+rev FY2003–2024, no longer directory-only) (CGB-01) — v2.4, Phase 64
+- ✓ Statewide GCC salaries FY2009–2024 for all 95 new SoCal cities, sample reconciled at $0 delta (SAL-07) — v2.4, Phase 65
+- ✓ Standardized, bleed-safe enrichment for all newly-loaded SoCal categories — 185 universal rows authored inline at $0 (ENR-03) — v2.4, Phase 66
+- ✓ SoCal verification: Ventura County ACFR reconciliation (all-funds basis), full-cohort source-chain audit (5,968 budget rows, 0 fragile URLs / 0 residue), 20-item live-app UAT — all PASS, Chris signed off (VER-05, VER-06) — v2.4, Phase 67
 
 ### Active
 
-**v2.4 Southern California Expansion** (defined 2026-06-17) — see `.planning/REQUIREMENTS.md`:
-- [ ] **SOCAL-01..06**: cities loaded + linked for Riverside, San Bernardino, San Diego, Ventura, Santa Barbara, Imperial counties (op+rev FY2003–2024, SCO-sourced, per-year pop, never-overwrite)
-- [ ] **CGB-01**: county-government budgets for the 6 SoCal counties + Alameda + Sacramento
-- [ ] **SAL-07**: statewide GCC salaries FY2009–2024 for all new SoCal cities, sample reconciled
-- [ ] **ENR-03**: standardized, bleed-safe enrichment for all newly-loaded SoCal categories
-- [ ] **VER-05/06**: ACFR reconciliation + source-chain audit + Chris UAT
+**v2.5 Utah Municipal Expansion** (defined 2026-06-17) — requirements being defined; see `.planning/REQUIREMENTS.md`.
 
 ### Future (deferred milestone candidates)
 
@@ -172,6 +184,7 @@ Brought every already-loaded non-OC California city and county to the Orange Cou
 
 ## Shipped
 
+- ✅ **v2.4 Southern California Expansion** — 2026-06-17 — Phases 63-67 (all 6 remaining SoCal counties: ~95 cities loaded + county-linked op/rev FY2003–2024, 8 county governments loaded incl. Alameda + Sacramento, statewide GCC salaries FY2009–2024 for all new cities, enrichment to parity inline at $0; Ventura ACFR reconciliation + full-cohort source-chain audit (5,968 rows, 0 fragile/0 residue) + 20-item Chris UAT sign-off; every figure durably sourced, $0 spend)
 - ✅ **v2.3 California Coverage Parity** — 2026-06-17 — Phases 58-62 (88 LA County cities + LA County gov backfilled to FY2003; remaining non-OC CA cities history + county-linking; statewide CA salaries FY2009–2024 for 98 cities; standardized enrichment; ACFR reconciliation + full-cohort source-chain audit + Chris UAT sign-off; every figure durably sourced, $0 spend)
 - ✅ **v2.2 Orange County + Reusable SoCal Pipeline** — 2026-06-16 — Phases 52-57 (hardened one-command SoCal county pipeline + runbook; all 34 OC cities operating + revenue FY2003–2024; OC entity + linking + enrichment; statewide city salaries 2009–2024; ACFR verification + UAT; OC county-government budget FY2003–2024; every figure sourced; milestone audit passed 16/16)
 - ✅ **v2.1 Federal History** — 2026-06-14 — Phases 49-51 (FY1976–FY2024 function/agency/revenue per year + per-year disclosures, federal YearSelector incl. the FY1976 Transition Quarter, sourced comparability notes + definition-drift, source-chain durability audit FAIL 0; $0 API spend; milestone audit passed 8/8)
@@ -205,4 +218,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-17 — v2.4 Southern California Expansion milestone STARTED (Phases 63–67). Goal: extend coverage to the 6 remaining SoCal counties' cities + county-government budgets (incl. Alameda + Sacramento), salaries + enrichment to parity, verified with Chris UAT — all via the hardened v2.2/v2.3 pipeline, $0 spend. v2.3 shipped 2026-06-17. See REQUIREMENTS.md + ROADMAP.md.*
+*Last updated: 2026-06-17 — v2.4 Southern California Expansion closed (shipped, Phases 63–67); v2.5 Utah Municipal Expansion milestone STARTED. Goal: 10 Utah cities + 5 county governments at full CA parity (op/rev budgets, compensation, enrichment, county linking), every figure sourced, verified with Chris UAT, ~$0 spend. Data source pending recon (transparent.utah.gov leading candidate). Requirements + roadmap forthcoming.*

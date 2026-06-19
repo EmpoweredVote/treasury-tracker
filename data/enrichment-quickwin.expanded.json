@@ -1,0 +1,197 @@
+{
+  "generated_at": "2026-06-18T00:00:00.000Z",
+  "counties": [
+    "Santa Clara County",
+    "Fresno County",
+    "Kern County"
+  ],
+  "authored": 37,
+  "note": "Universal (municipality_id=NULL) salary-dept enrichment rows authored inline ($0) via the Phase 61/66 concept resolver. Reconstructed from production (post-apply). Bleed-safe; no city-specific or $-bearing text.",
+  "rows": [
+    {
+      "name_key": "administrative services-finance",
+      "plain_name": "Finance",
+      "short_description": "Budgeting, accounting, and financial management."
+    },
+    {
+      "name_key": "ambulance",
+      "plain_name": "Fire & EMS",
+      "short_description": "Firefighting, rescue, and emergency medical response."
+    },
+    {
+      "name_key": "attorney",
+      "plain_name": "City Attorney",
+      "short_description": "Legal counsel and representation for the city."
+    },
+    {
+      "name_key": "building inspector",
+      "plain_name": "Building & Safety",
+      "short_description": "Building permits and construction inspection."
+    },
+    {
+      "name_key": "building official",
+      "plain_name": "Building & Safety",
+      "short_description": "Building permits and construction inspection."
+    },
+    {
+      "name_key": "building/code enforcement",
+      "plain_name": "Code Enforcement",
+      "short_description": "Enforces building, zoning, and property-maintenance codes."
+    },
+    {
+      "name_key": "city engineer",
+      "plain_name": "Engineering",
+      "short_description": "Designs and oversees public infrastructure projects."
+    },
+    {
+      "name_key": "comm dev planning",
+      "plain_name": "Planning",
+      "short_description": "Land-use planning and zoning."
+    },
+    {
+      "name_key": "communications services",
+      "plain_name": "Communications",
+      "short_description": "Public information and city communications."
+    },
+    {
+      "name_key": "community dev.",
+      "plain_name": "Community Development",
+      "short_description": "Planning, building, and neighborhood improvement."
+    },
+    {
+      "name_key": "community development building",
+      "plain_name": "Building & Safety",
+      "short_description": "Building permits and construction inspection."
+    },
+    {
+      "name_key": "community development-admin",
+      "plain_name": "Community Development",
+      "short_description": "Planning, building, and neighborhood improvement."
+    },
+    {
+      "name_key": "community services supervisor",
+      "plain_name": "Community Services",
+      "short_description": "Recreation, senior, and neighborhood programs."
+    },
+    {
+      "name_key": "corrections",
+      "plain_name": "Public Safety",
+      "short_description": "Combined police, fire, and emergency services."
+    },
+    {
+      "name_key": "employee benefits",
+      "plain_name": "Human Resources",
+      "short_description": "Hiring, benefits, and employee relations."
+    },
+    {
+      "name_key": "executive",
+      "plain_name": "City Manager's Office",
+      "short_description": "Day-to-day executive management of the city."
+    },
+    {
+      "name_key": "finance dept",
+      "plain_name": "Finance",
+      "short_description": "Budgeting, accounting, and financial management."
+    },
+    {
+      "name_key": "finance/accounting",
+      "plain_name": "Accounting",
+      "short_description": "Records and reports city financial transactions."
+    },
+    {
+      "name_key": "human resources director",
+      "plain_name": "Human Resources",
+      "short_description": "Hiring, benefits, and employee relations."
+    },
+    {
+      "name_key": "information services administrative",
+      "plain_name": "Information Technology",
+      "short_description": "Computers, networks, and city software systems."
+    },
+    {
+      "name_key": "information services department",
+      "plain_name": "Information Technology",
+      "short_description": "Computers, networks, and city software systems."
+    },
+    {
+      "name_key": "maintenance worker i",
+      "plain_name": "Public Works",
+      "short_description": "Builds and maintains streets, facilities, and infrastructure."
+    },
+    {
+      "name_key": "planning/building",
+      "plain_name": "Building & Safety",
+      "short_description": "Building permits and construction inspection."
+    },
+    {
+      "name_key": "planning/community development",
+      "plain_name": "Planning",
+      "short_description": "Land-use planning and zoning."
+    },
+    {
+      "name_key": "police department - administration",
+      "plain_name": "Police",
+      "short_description": "Police officers, patrol, and crime investigation."
+    },
+    {
+      "name_key": "police department - records",
+      "plain_name": "Police",
+      "short_description": "Police officers, patrol, and crime investigation."
+    },
+    {
+      "name_key": "police department officers",
+      "plain_name": "Police",
+      "short_description": "Police officers, patrol, and crime investigation."
+    },
+    {
+      "name_key": "public transit",
+      "plain_name": "Transit",
+      "short_description": "Public bus and transportation services."
+    },
+    {
+      "name_key": "public transportation",
+      "plain_name": "Transit",
+      "short_description": "Public bus and transportation services."
+    },
+    {
+      "name_key": "public works operations",
+      "plain_name": "Public Works",
+      "short_description": "Builds and maintains streets, facilities, and infrastructure."
+    },
+    {
+      "name_key": "public works-water",
+      "plain_name": "Water Utility",
+      "short_description": "Treats and delivers drinking water."
+    },
+    {
+      "name_key": "public works/streets",
+      "plain_name": "Street Maintenance",
+      "short_description": "Repairs and maintains roads and street infrastructure."
+    },
+    {
+      "name_key": "rda",
+      "plain_name": "Redevelopment / Successor",
+      "short_description": "Winding down former redevelopment obligations."
+    },
+    {
+      "name_key": "sewer operations",
+      "plain_name": "Sewer & Wastewater",
+      "short_description": "Collects and treats wastewater."
+    },
+    {
+      "name_key": "shop",
+      "plain_name": "Fleet & Equipment",
+      "short_description": "Maintains city vehicles and equipment."
+    },
+    {
+      "name_key": "utility worker i",
+      "plain_name": "Public Utilities",
+      "short_description": "City-run utility services."
+    },
+    {
+      "name_key": "wastewater department",
+      "plain_name": "Sewer & Wastewater",
+      "short_description": "Collects and treats wastewater."
+    }
+  ]
+}
