@@ -68,7 +68,14 @@
   3. The never-overwrite guard leaves any pre-existing custom-source city unchanged
   4. Totals are spot-checked sane against a published reference for ≥2 cities (e.g. SLC, Provo)
 
-**Plan shape:** 1 plan (69-01) — load all 10 cities op+rev via `loadUtahTransparency.js`, canary one city first, then sweep. Serial main-tree, $0.
+**Plans:** 3 plans (3 waves)
+
+Plans:
+- [ ] 69-01-PLAN.md — Refactor loader to the fund1→org1→cat1 tree (D-69-01) + SLC canary load FY2014–FY2025 + ACFR reconciliation
+- [ ] 69-02-PLAN.md — Sweep the remaining 9 cities op+rev FY2014–FY2025 + Provo reconciliation + 10-city app spot-check
+- [ ] 69-03-PLAN.md — Build loadUTPopulation.js + load single Census-vintage population for all 10 cities (per-capita, SC#2)
+
+**Wave structure:** Wave 1 = 69-01 (loader refactor must precede everything). Wave 2 = 69-02 (9-city sweep, after the proven canary). Wave 3 = 69-03 (population, after all 10 municipality rows exist). Serial main-tree, $0.
 
 ### Phase 70: Utah County Budgets + Linking
 
