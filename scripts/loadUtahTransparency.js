@@ -1,37 +1,34 @@
 #!/usr/bin/env node
 /**
- * Utah Transparency Loader (v2.5 Phase 68 — UTSRC-02)
+ * Utah Transparency Loader (v2.5 Phases 68–69 — UTSRC-02 / UCITY-01/02)
  *
  * Loads operating (EX) and revenue (RV) budgets for a single Utah entity from the
  * Utah State Auditor's "Transparent Utah" public BigQuery dataset and imports them
  * into Supabase. Mirrors scripts/bulkLoadStateController.js (the proven CA SCO
  * loader) almost exactly — the ONLY difference is the data-fetch layer: a
  * parameterized BigQuery query replaces the Socrata HTTP fetch. Everything else
- * (tree shape, treasury_sync_city_budget RPC, durable source attribution, the
- * never-overwrite guard, once-per-run source_date) is identical.
+ * (treasury_sync_city_budget RPC, durable source attribution, the never-overwrite
+ * guard, once-per-run source_date) is identical.
  *
  * Source: ut-sao-transparency-prod.transaction.transaction (CC BY 4.0).
- *   Columns: entity_name, entity_id, amount, fiscal_year, fund1-4, org1-10,
- *            cat1-7, program1-7, function1-7, type ('EX'|'RV'|'PY'), govt_lvl.
+ *   Columns: entity_name, amount, fiscal_year, fund1-4, org1-10, cat1-7,
+ *            program1-7, function1-7, type ('EX'|'RV'|'PY'), govt_lvl.
  *   type EX→operating, RV→revenue (PY→salaries deferred to Phase 71).
  *   Access is by-request from the State Auditor (see docs/utah-bigquery-access.md);
  *   queries run at $0 inside BigQuery's 1 TB/month free tier (column projection +
  *   entity/FY/type filters keep scanned bytes tiny).
  *
- * Tree shape (D-05/D-06): function/purpose-first, consistent with the Federal
- * function lens and the CA SCO category→subcategory→line tree. Top level =
- * --source-column (default function1; fallback cat1/org1 once 68-03 inspects the
- * live data); 2nd = cat1; items = org1. Compact JSON {n,a,c} parents / {n,a,i}
- * items — same as the analog. No reflexive deep icicle (ground rule 3).
+ * Tree shape (D-69-01): three levels — top = fund1 (the fund: General Fund, Power,
+ * Water, Airport, Debt Service…), 2nd = org1 (department), items = cat1 (expense
+ * object). fund1 is legible, citizen-meaningful, and naturally separates enterprise
+ * utilities from the governmental General Fund. function1 is ~70% NULL for cities
+ * (confirmed 68-03) so it is NOT used. Compact JSON {n,a,c} parents / {n,a,i} items —
+ * same as the analog. ≤3 levels (ground rule 3).
  *
- * Phase-68 status: BUILD ONLY. The live BigQuery query + pilot dry-run happen in
- * Phase 68 plan 68-03 (gated on the access grant). The pure logic below is
- * unit-tested offline in scripts/loadUtahTransparency.test.mjs.
- *
- * Usage (once access is granted — 68-03):
- *   node scripts/loadUtahTransparency.js --entity "PROVO CITY" --fy 2022 --dry-run
- *   node scripts/loadUtahTransparency.js --entity "PROVO CITY" --fy 2022 --fy 2023
- *   node scripts/loadUtahTransparency.js --entity "PROVO CITY" --fy 2022 --source-column cat1
+ * Usage:
+ *   node scripts/loadUtahTransparency.js --entity "Salt Lake City" --fy 2025 --dry-run
+ *   node scripts/loadUtahTransparency.js --entity "Salt Lake City" --fy 2024 --fy 2025
+ *   node scripts/loadUtahTransparency.js --entity "Provo City" --fy 2024 --type EX
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -46,6 +43,8 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 // ── Constants ───────────────────────────────────────────────────────────────
 const BQ_TABLE = 'ut-sao-transparency-prod.transaction.transaction';
 const BQ_PROJECT = process.env.GCP_PROJECT_ID || 'empowered-vote-486302';
+/** The fund-based tree shape (D-69-01): top=fund1, sub=org1, item=cat1. */
+const TREE_OPTS = { topCol: 'fund1', subCol: 'org1', itemCol: 'cat1' };
 /** The data_source label this loader writes (the collision key for never-overwrite). */
 export const DATA_SOURCE_NAME = 'Transparent Utah';
 /**
@@ -90,18 +89,19 @@ export function neverOverwriteDecision(existingDataSource, runSourceName = DATA_
 }
 
 /**
- * Build a function/purpose-first compact JSON tree from BigQuery rows.
- *   top  = row[topCol]  (default function1 — "what it's for")
- *   sub  = row[subCol]  (default cat1)
- *   item = row[itemCol] (default org1 — the line)
+ * Build a fund-first compact JSON tree from BigQuery rows (D-69-01).
+ *   top  = row[topCol]  (default fund1 — the fund)
+ *   sub  = row[subCol]  (default org1  — the department)
+ *   item = row[itemCol] (default cat1  — the expense object)
  * Shape: [{ n, a, c: [{ n, a, i: [{ d, a, aa }] }] }], children sorted desc,
  * zero-amount rows skipped, totals summed bottom-up (negatives/offsets retained).
+ * topCol/subCol/itemCol stay configurable so the same builder serves other lenses.
  * Returns { tree, total }.
  */
 export function buildTree(rows, opts = {}) {
-  const topCol = opts.topCol || 'function1';
-  const subCol = opts.subCol || 'cat1';
-  const itemCol = opts.itemCol || 'org1';
+  const topCol = opts.topCol || 'fund1';
+  const subCol = opts.subCol || 'org1';
+  const itemCol = opts.itemCol || 'cat1';
 
   const grouped = new Map();
   for (const row of rows) {
@@ -136,39 +136,36 @@ export function buildTree(rows, opts = {}) {
 // ── BigQuery fetch (lazy import: module loads with no @google-cloud/bigquery / no ADC) ──
 
 let _bq;
-async function fetchFromBigQuery(entityName, fiscalYear, type, sourceColumn) {
+async function fetchFromBigQuery(entityName, fiscalYear, type) {
   const { BigQuery } = await import('@google-cloud/bigquery');
   if (!_bq) _bq = new BigQuery({ projectId: BQ_PROJECT });
   // Transparent Utah is TRANSACTION-LEVEL (unlike CA's pre-aggregated Socrata feed),
-  // so we AGGREGATE in SQL — SUM(amount) GROUP BY (top, sub) — to return a summarized
-  // tree (one row per category pair) instead of millions of raw transactions.
-  // top = --source-column (default org1, the populated dept/purpose column; function1
-  // is ~70% NULL for cities, confirmed 68-03); sub = cat1 (expense object), or org1
-  // when the caller picks cat1 as the top. fiscal_year is INT64 → pass a Number.
-  const topCol = sourceColumn;
-  const subCol = sourceColumn === 'cat1' ? 'org1' : 'cat1';
+  // so we AGGREGATE in SQL — SUM(amount) GROUP BY (fund1, org1, cat1) — to return a
+  // summarized 3-level tree (one row per fund/dept/object triple) instead of millions
+  // of raw transactions. fund1 = fund (General Fund, Power, Water, Airport, Debt
+  // Service…), org1 = department, cat1 = expense object (D-69-01). function1 is ~70%
+  // NULL for cities (confirmed 68-03) so it is NOT used. fiscal_year is INT64 → Number.
   const query =
-    `SELECT COALESCE(${topCol}, 'Unknown') AS topcol, COALESCE(${subCol}, 'General') AS subcol, ` +
-    `SUM(amount) AS amount ` +
+    `SELECT COALESCE(fund1, 'Unknown') AS fund1, COALESCE(org1, 'General') AS org1, ` +
+    `COALESCE(cat1, 'General') AS cat1, SUM(amount) AS amount ` +
     `FROM \`${BQ_TABLE}\` ` +
     `WHERE entity_name = @entity AND fiscal_year = @fy AND type = @type ` +
-    `GROUP BY topcol, subcol`;
+    `GROUP BY fund1, org1, cat1`;
   const [rows] = await _bq.query({
     query,
     params: { entity: entityName, fy: Number(fiscalYear), type },
   });
-  // Normalize aliased columns back to the buildTree contract (top→function1 key,
-  // sub→cat1 key; itemCol 'org1' is absent so buildTree uses the sub label as leaf).
   return rows.map((r) => ({
-    function1: r.topcol,
-    cat1: r.subcol,
+    fund1: r.fund1,
+    org1: r.org1,
+    cat1: r.cat1,
     amount: r.amount,
     fiscal_year: fiscalYear,
     type,
   }));
 }
 
-// ── DB helpers (mirror the analog; exercised live only in 68-03) ─────────────
+// ── DB helpers (mirror the analog) ───────────────────────────────────────────
 
 /** Read-only: find an existing Utah municipality by name + state (null if new). */
 async function findEntityMunicipality(name, state = 'UT') {
@@ -199,13 +196,13 @@ async function findConflictingBudget(municipalityId, fiscalYear, datasetType, so
   return neverOverwriteDecision(existing.data_source, sourceName) === 'skip' ? existing : null;
 }
 
-async function importEntityData(municipalityName, state, rows, fiscalYear, datasetType, sourceColumn, fetchDate) {
+async function importEntityData(municipalityName, state, rows, fiscalYear, datasetType, fetchDate) {
   const { data: municipalityId, error: munErr } = await supabase.rpc('treasury_ensure_municipality', {
     p_name: municipalityName, p_state: state, p_entity_type: 'city', p_population: 0,
   });
   if (munErr) { console.error(`    Municipality error: ${munErr.message}`); return null; }
 
-  const { tree, total } = buildTree(rows, { topCol: 'function1', subCol: 'cat1', itemCol: 'org1' });
+  const { tree, total } = buildTree(rows, TREE_OPTS);
 
   const { data: result, error } = await supabase.rpc('treasury_sync_city_budget', {
     p_municipality_id: municipalityId,
@@ -231,7 +228,6 @@ async function main() {
       fy: { type: 'string', short: 'y', multiple: true },
       type: { type: 'string', short: 't' },
       'source-date': { type: 'string' },
-      'source-column': { type: 'string' },
       'dry-run': { type: 'boolean' },
     },
     strict: false,
@@ -242,7 +238,6 @@ async function main() {
   const state = 'UT';
   const fiscalYears = values.fy ? values.fy.map(Number) : [2022];
   const bqTypes = values.type ? [values.type] : ['EX', 'RV'];
-  const sourceColumn = values['source-column'] || 'org1';
   const dryRun = values['dry-run'] ?? false;
   const fetchDate = values['source-date'] || new Date().toISOString().slice(0, 10);
 
@@ -250,7 +245,7 @@ async function main() {
   console.log(`   Entity: ${entityName}`);
   console.log(`   Fiscal Years: ${fiscalYears.join(', ')}`);
   console.log(`   Types: ${bqTypes.join(', ')} (${bqTypes.map(typeToDataset).join(', ')})`);
-  console.log(`   Source column: ${sourceColumn}`);
+  console.log(`   Tree: fund1 → org1 → cat1 (all-funds)`);
   console.log(`   Source date: ${fetchDate}${values['source-date'] ? '' : ' (today)'}\n`);
 
   for (const type of bqTypes) {
@@ -260,15 +255,15 @@ async function main() {
 
     for (const fy of fiscalYears) {
       console.log(`\n📊 ${type}→${datasetType} FY ${fy} — ${entityName}`);
-      const rows = await fetchFromBigQuery(entityName, fy, type, sourceColumn);
+      const rows = await fetchFromBigQuery(entityName, fy, type);
       if (!rows.length) { console.log('  No data found'); continue; }
-      const { tree, total } = buildTree(rows, { topCol: 'function1', subCol: 'cat1', itemCol: 'org1' });
-      console.log(`  ${rows.length.toLocaleString()} rows → ${tree.length} top-level categories, total $${total.toLocaleString()}`);
+      const { tree, total } = buildTree(rows, TREE_OPTS);
+      console.log(`  ${rows.length.toLocaleString()} rows → ${tree.length} funds, total $${total.toLocaleString()}`);
 
       if (dryRun) {
         console.log('  (dry run — no writes)');
         for (const node of tree.slice(0, 12)) {
-          console.log(`    ${node.n}: $${node.a.toLocaleString()} (${node.c.length} subcats)`);
+          console.log(`    ${node.n}: $${node.a.toLocaleString()} (${node.c.length} depts)`);
         }
         continue;
       }
@@ -281,7 +276,7 @@ async function main() {
           continue;
         }
       }
-      const result = await importEntityData(entityName, state, rows, fy, datasetType, sourceColumn, fetchDate);
+      const result = await importEntityData(entityName, state, rows, fy, datasetType, fetchDate);
       if (result) console.log(`  ✅ imported (${result.rows_inserted ?? '?'} items)`);
     }
   }
