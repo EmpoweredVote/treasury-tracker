@@ -37,7 +37,7 @@
 |---|-------|--------------|------------|--------|
 | 68 | Utah BigQuery Source Setup + Loader | 3/3 | Complete   | 2026-06-19 |
 | 69 | Utah City Budgets Load | 3/3 | Complete   | 2026-06-19 |
-| 70 | Utah County Budgets + Linking | UCO-01, UCO-02 | 68, 69 | Not started |
+| 70 | Utah County Budgets + Linking | 2/2 | Complete   | 2026-06-19 |
 | 71 | Utah City Salaries / Compensation | USAL-01 | 68, 69 | Not started |
 | 72 | Utah Enrichment Parity | UENR-01 | 69, 70, 71 | Not started |
 | 73 | Utah Verification + Source-Chain Audit + UAT | UVER-01, UVER-02 | 69–72 | Not started |
