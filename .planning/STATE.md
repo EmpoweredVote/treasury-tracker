@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Utah Municipal Expansion
 status: Phase 68 planned + discussed; ready for `/gsd-execute-phase 68` once the Utah access email is sent
-last_updated: "2026-06-19T18:04:59.014Z"
+last_updated: "2026-06-19T18:12:31.626Z"
 last_activity: 2026-06-18 — Phase 68 planned (RESEARCH + 3 PLAN files); BQ access blocker split out
 progress:
   total_phases: 73
@@ -126,9 +126,9 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-19T18:04:59.004Z
-Stopped at: Phase 68 COMPLETE — Utah BQ access + loader proven (Provo dry-run). Carried follow-up: read-only BigQuery MCP (68-03 Task 1) DEFERRED per Chris 2026-06-19 (recon done via bq/Node; not blocking).
-Resume file: .planning/ROADMAP.md
+Last session: 2026-06-19T18:12:31.616Z
+Stopped at: Phase 69 context gathered (4 decisions locked: fund1->org1->cat1 tree, all-funds, single-vintage population, FY2014-2025 + SLC canary)
+Resume file: .planning/phases/69-utah-city-budgets-load/69-CONTEXT.md
 
 ### Next Session
 
