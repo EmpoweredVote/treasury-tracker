@@ -49,6 +49,14 @@ const QUICKWIN_EXACT = {
   'rec':           'recreation',
   'adm':           'administration',
   'construction':  'public_works',    // capital construction / projects
+  'capital projects':        'public_works',
+  'information technologies': 'information_technology',
+  'manager':                 'city_manager',
+  'city management':         'city_manager',
+  'board member':            'elected_officials',
+  'grants':                  'administration',  // grants administration
+  'snow removal':            'streets',         // street/road maintenance
+  'gis':                     'information_technology', // geographic information systems
 };
 const EXACT_OVERRIDE = { 'it': 'information_technology', 'cra': 'redevelopment', 'human': 'human_resources', ...SOCAL_EXACT, ...QUICKWIN_EXACT };
 
