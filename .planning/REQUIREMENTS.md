@@ -31,6 +31,10 @@
 
 - [ ] **USAL-01**: Employee compensation (payroll, `PY`) loaded for all 10 cities for available fiscal years as names-free Department/category total-compensation trees (honoring the public-record-only safety line), with at least one city reconciled to the Transparent Utah Compensation Downloader / published figure at ~$0 delta.
 
+### Cost / Architecture
+
+- [ ] **UETL-01**: Utah data is loaded into Supabase via a single-scan rollup ETL (one BigQuery query per refresh, run manually), never queried live per-(entity,FY,type). BigQuery is treated as a periodic source like every other state, keeping refresh cost ~$0-class. Remediates the 2026-06-19 full-table-scan cost incident; the per-entity live-query path is guardrailed off.
+
 ### Enrichment
 
 - [ ] **UENR-01**: Standardized, bleed-safe category enrichment authored inline at $0 for all newly-loaded Utah categories (operating + revenue 100%; salary departments shared by ≥2 cities), municipality-scoped so text cannot bleed across entities.
@@ -67,5 +71,6 @@
 | UCITY-01, UCITY-02 | 69 — Utah City Budgets Load |
 | UCO-01, UCO-02 | 70 — Utah County Budgets + Linking |
 | USAL-01 | 71 — Utah City Salaries / Compensation |
+| UETL-01 | 71.1 — Utah Single-Scan Rollup ETL (BigQuery cost fix) |
 | UENR-01 | 72 — Utah Enrichment Parity |
 | UVER-01, UVER-02 | 73 — Utah Verification + Source-Chain Audit + UAT |
