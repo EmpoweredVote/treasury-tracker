@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Utah Municipal Expansion
-status: executing
-last_updated: "2026-06-20T19:00:58.550Z"
-last_activity: 2026-06-20 -- Phase 73 planning complete
+status: milestone_complete
+last_updated: 2026-06-20T19:47:13.771Z
+last_activity: 2026-06-20 -- Phase 73 execution started
 progress:
   total_phases: 74
   completed_phases: 6
   total_plans: 14
-  completed_plans: 11
+  completed_plans: 14
   percent: 8
+stopped_at: Milestone complete (Phase 73 was final phase)
 ---
 
 # State
@@ -20,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-17 after v2.4 close + v2.5 start)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 72 — utah-enrichment-parity
+**Current focus:** Milestone complete
 
 ## Current Position
 
-Phase: 72 (utah-enrichment-parity) — EXECUTING
-Plan: 1 of 1
-Status: Ready to execute
-Last activity: 2026-06-20 -- Phase 73 planning complete
+Phase: 73
+Plan: Not started
+Status: Milestone complete
+Last activity: 2026-06-20
 
 ### v2.5 Utah expansion context
 

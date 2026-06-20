@@ -40,7 +40,7 @@
 | 70 | Utah County Budgets + Linking | 2/2 | Complete   | 2026-06-19 |
 | 71 | Utah City Salaries / Compensation | 1/1 | Complete   | 2026-06-19 |
 | 72 | Utah Enrichment Parity | 1/1 | Complete   | 2026-06-20 |
-| 73 | Utah Verification + Source-Chain Audit + UAT | UVER-01, UVER-02 | 69–72 | Not started |
+| 73 | Utah Verification + Source-Chain Audit + UAT | 3/3 | Complete    | 2026-06-20 |
 
 ### Phase 68: Utah BigQuery Source Setup + Loader
 

@@ -41,8 +41,8 @@
 
 ### Verification
 
-- [ ] **UVER-01**: Basis-matched ACFR reconciliation for at least one sample entity (e.g. Salt Lake City or Provo) with documented variance, plus a full-cohort source-chain audit (0 NULL/fragile/residue `source_url` across all newly-loaded Utah rows).
-- [ ] **UVER-02**: Live-app UAT across multiple Utah entities (city + county, Money In/Out, salaries, breadcrumb, per-capita, source chips), Chris sign-off.
+- [x] **UVER-01**: Basis-matched ACFR reconciliation for at least one sample entity (e.g. Salt Lake City or Provo) with documented variance, plus a full-cohort source-chain audit (0 NULL/fragile/residue `source_url` across all newly-loaded Utah rows).
+- [x] **UVER-02**: Live-app UAT across multiple Utah entities (city + county, Money In/Out, salaries, breadcrumb, per-capita, source chips), Chris sign-off.
 
 ---
 
