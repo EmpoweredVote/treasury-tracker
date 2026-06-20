@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Utah Municipal Expansion
 status: executing
-last_updated: "2026-06-20T18:09:16.916Z"
+last_updated: "2026-06-20T18:22:38.423Z"
 last_activity: 2026-06-20 -- Phase 72 execution started
 progress:
   total_phases: 74
@@ -130,9 +130,9 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-20T18:09:16.905Z
-Stopped at: Phase 72 executed + verified (UENR-01 live, bleed-safe, $0)
-Resume file: .planning/phases/72-utah-enrichment-parity/72-01-SUMMARY.md
+Last session: 2026-06-20T18:22:38.412Z
+Stopped at: Phase 73 context gathered
+Resume file: .planning/phases/73-utah-verification-source-chain-audit-uat/73-CONTEXT.md
 
 ### Next Session
 
