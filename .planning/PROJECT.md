@@ -26,11 +26,22 @@ All 6 remaining SoCal counties added via the hardened v2.2/v2.3 pipeline with ze
 Brought every already-loaded non-OC California city and county to the Orange County standard (FY2003 history, statewide salaries, standardized enrichment) via the hardened v2.2 pipeline. Phase 62 verified end-to-end: ACFR reconciliation, source-chain audit (0 NULL/fragile/residue across 25,568 rows), 24-item UAT with Chris's sign-off. SoCal expansion deferred to v2.4.
 </details>
 
-## Next Milestone
+## Current Milestone: v2.6 EV Financial Transparency Refresh
 
-**No active milestone.** v2.5 Utah Municipal Expansion shipped 2026-06-20. Start the next via `/gsd-new-milestone`.
+**Goal:** Bring Empowered Vote's own financials on the tracker fully up to date by idempotently combining every income + bank source, and add a donor-facing transparency view with an actual "where the money goes" graphic.
 
-**Recon'd candidate — v2.6 Ohio:** the Ohio Auditor of State's Summarized Annual Financial Reports (free XLSX 2016–2025, no auth), Utah-mold and verified icicle-grade (235 cities, revenue-by-source + expenditure-by-function + population + county). See auto-memory `reference_ohio_aos_financial_data`.
+**Target features:**
+- **Idempotent multi-source refresh** — GiveButter, Patreon, Benevity, Beneficial State Bank, and manual entries merged without double-counting (dedup by `external_id`; reconcile platform donations vs. net bank deposits). Builds on `scripts/loadEVFinances.js` + the existing webhook-row dedup.
+- **Donor-facing transparency view** — income vs. expenses, expense breakdown (reinforcing the all-volunteer / $0-staff-comp story), balance & runway, and fundraising goal / progress.
+- **"Where the money goes" graphic** — actual spend-so-far breakdown by category.
+
+**Key context / constraints:**
+- Ingestion is **idempotent CSV merge** (confirmed) — no new live-API integration this milestone. Beneficial State Bank exposes a transaction CSV export (Chris confirmed 2026-06-20).
+- **Reconciliation rule to design at plan time:** bank = authoritative for balance + expenses; donation platforms = income detail; a platform payout deposited in the bank must NOT be counted twice.
+- Free / low-cost only (unfunded nonprofit); $5 AI-spend gate — estimate before any AI run.
+- Live host: `treasurytracker.empowered.vote`.
+
+**Parked candidate — future Ohio milestone:** the Ohio Auditor of State's Summarized Annual Financial Reports (free XLSX 2016–2025, no auth), Utah-mold and verified icicle-grade (235 cities, revenue-by-source + expenditure-by-function + population + county). See auto-memory `reference_ohio_aos_financial_data`.
 
 **Carried-forward follow-ups (candidates for a later milestone or backlog sweep):**
 - **v2.5 (Phase 73):** 4 pre-existing non-P72 `$`-leak universal enrichment rows (bleed-safety cleanup); Salt Lake County FY2025 salaries (fills on next FY2025-complete rollup refresh).
@@ -117,7 +128,7 @@ Brought every already-loaded non-OC California city and county to the Orange Cou
 
 ### Active
 
-**No active milestone.** v2.5 Utah Municipal Expansion shipped 2026-06-20. Next milestone TBD via `/gsd-new-milestone` (recon'd candidate: v2.6 Ohio — see `reference_ohio_aos_financial_data` memory).
+**v2.6 EV Financial Transparency Refresh** (started 2026-06-20). Empowered Vote's own organizational financials — idempotent multi-source data refresh + a donor-facing transparency view + an actual "where the money goes" graphic. See `.planning/REQUIREMENTS.md` for scoped REQ-IDs.
 
 ### Future (deferred milestone candidates)
 
@@ -216,4 +227,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-20 — v2.5 Utah Municipal Expansion closed (shipped, Phases 68–73): 10 Utah cities + 5 county governments at full CA parity via a new Transparent Utah BigQuery loader, verified (Provo + Salt Lake County ACFR recon, source-chain + bleed audit, 22-item UAT, Chris all-pass), ~$0 spend. No active milestone — next TBD via /gsd-new-milestone (recon'd candidate: v2.6 Ohio).*
+*Last updated: 2026-06-20 — v2.6 EV Financial Transparency Refresh started. Empowered Vote's own organizational financials: idempotent multi-source refresh (GiveButter, Patreon, Benevity, Beneficial State Bank, manual — dedup'd, no double-count) + donor-facing transparency view (income/expenses, expense breakdown, balance & runway, goal/progress) + actual "where the money goes" graphic. Idempotent CSV merge; free/low-cost; $5 AI gate. (Ohio parked as a future geographic milestone.)*

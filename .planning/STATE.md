@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.5
-milestone_name: Utah Municipal Expansion
-status: Awaiting next milestone
-last_updated: "2026-06-20T22:14:40.756Z"
-last_activity: 2026-06-20 — Milestone v2.5 completed and archived
+milestone: v2.6
+milestone_name: EV Financial Transparency Refresh
+status: planning
+last_updated: "2026-06-20T22:45:31.637Z"
+last_activity: 2026-06-20
 progress:
-  total_phases: 74
-  completed_phases: 7
-  total_plans: 14
-  completed_plans: 14
-  percent: 9
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-17 after v2.4 close + v2.5 start)
 
 ## Current Position
 
-Phase: Milestone v2.5 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-06-20 — Milestone v2.5 completed and archived
+Status: Defining requirements
+Last activity: 2026-06-20 — Milestone v2.6 started
 
 ### v2.5 Utah expansion context
 
