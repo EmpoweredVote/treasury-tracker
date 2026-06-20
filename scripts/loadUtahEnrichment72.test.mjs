@@ -4,7 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { resolve, resolveFund, resolveDept } from './loadUtahEnrichment72.mjs';
-import { UTAH_FUND_CONCEPTS, UTAH_COUNTY_CONCEPTS, UTAH_FUND_ROUTES, UTAH_DEPT_EXTRA_ROUTES } from '../data/utahEnrichment72.mjs';
+import { UTAH_FUND_CONCEPTS, UTAH_COUNTY_CONCEPTS, UTAH_FUND_ROUTES, UTAH_FUND_TO_DEPT, UTAH_DEPT_EXTRA_ROUTES } from '../data/utahEnrichment72.mjs';
 import { CONCEPTS } from '../data/caParityEnrichment61.mjs';
 
 const UT_CITIES = ['layton', 'lehi', 'ogden', 'orem', 'provo', 'sandy', 'st. george', 'west jordan', 'west valley', 'salt lake'];
@@ -25,7 +25,7 @@ test('water vs water-reclamation/sewer fund ordering is correct', () => {
 });
 
 test('unknown fund key falls back to general_fund (always written)', () => {
-  const r = resolve('some unrecognized holding pool', 'fund');
+  const r = resolve('qqzz nonsense placeholder', 'fund');
   assert.equal(r.row, UTAH_FUND_CONCEPTS.general_fund);
   assert.equal(r.via, 'fallback:general_fund');
   assert.equal(r.defer, false);
@@ -77,4 +77,19 @@ test('no concept text contains a dollar figure or a Utah city name (bleed-safe)'
 test('every route conceptId exists in its library', () => {
   for (const [, id] of UTAH_FUND_ROUTES) assert.ok(UTAH_FUND_CONCEPTS[id], `missing fund concept ${id}`);
   for (const [, id] of UTAH_DEPT_EXTRA_ROUTES) assert.ok(UTAH_COUNTY_CONCEPTS[id], `missing county concept ${id}`);
+  for (const [, id] of UTAH_FUND_TO_DEPT) assert.ok(CONCEPTS[id], `missing CA concept for fund→dept route ${id}`);
+});
+
+test('service-type fund names reuse the shared CA concept library', () => {
+  assert.equal(resolve('electric fund', 'fund').row, CONCEPTS.electric);
+  assert.equal(resolve('garbage fund', 'fund').row, CONCEPTS.solid_waste);
+  assert.equal(resolve('golf courses fund', 'fund').row, CONCEPTS.recreation);
+  assert.equal(resolve('airport fund', 'fund').row, CONCEPTS.airport_dept);
+});
+
+test('bond / CIP / redevelopment project-area fund patterns route to umbrella concepts', () => {
+  assert.equal(resolve('go series 2022 bond fund', 'fund').row, UTAH_FUND_CONCEPTS.debt_service);
+  assert.equal(resolve('parks & recreation cip fund', 'fund').row, UTAH_FUND_CONCEPTS.capital_projects);
+  assert.equal(resolve('block 70 cra', 'fund').row, UTAH_FUND_CONCEPTS.redevelopment_agency);
+  assert.equal(resolve('eda 3 data center', 'fund').row, UTAH_FUND_CONCEPTS.economic_development_agency);
 });

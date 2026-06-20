@@ -29,7 +29,7 @@ import { createClient } from '@supabase/supabase-js';
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { CONCEPTS } from '../data/caParityEnrichment61.mjs';
 import { EXPLICIT_ROWS, ROUTE_RULES } from '../data/caParityEnrichment61_oprev.mjs';
-import { UTAH_FUND_CONCEPTS, UTAH_COUNTY_CONCEPTS, UTAH_FUND_ROUTES, UTAH_DEPT_EXTRA_ROUTES } from '../data/utahEnrichment72.mjs';
+import { UTAH_FUND_CONCEPTS, UTAH_COUNTY_CONCEPTS, UTAH_FUND_ROUTES, UTAH_FUND_TO_DEPT, UTAH_DEPT_EXTRA_ROUTES } from '../data/utahEnrichment72.mjs';
 
 for (const f of ['.env.local', '.env']) {
   try { for (const l of readFileSync(f, 'utf8').split('\n')) { const [k, ...v] = l.split('='); if (k && v.length && !process.env[k.trim()]) process.env[k.trim()] = v.join('=').trim(); } } catch {}
@@ -44,9 +44,24 @@ const SUPPLEMENTAL_DEPT_ROUTES = [['attorney', 'city_attorney']];
 
 const EVIDENCE = 'Inline-authored plain-language description mapped from a Utah budget category name to a generic civic-finance concept (Phase 72, Utah parity). Fund names map to a Utah governmental-fund concept; department names reuse the standardized municipal/county concept library. Generic and bleed-safe — not specific to any entity.';
 
-/** Resolve a FUND name_key (op/rev depth-0) to a Utah fund concept; general_fund fallback. */
-export function resolveFund(key) {
+/** Fund-only routing (fund families + reused CA service concepts). Returns {row,via} or null. */
+function resolveFundStrict(key) {
   for (const [needle, id] of UTAH_FUND_ROUTES) if (key.includes(needle)) return { row: UTAH_FUND_CONCEPTS[id], via: 'fund:' + id };
+  for (const [needle, id] of UTAH_FUND_TO_DEPT) if (key.includes(needle)) return { row: CONCEPTS[id], via: 'fund_dept:' + id };
+  return null;
+}
+
+/**
+ * Resolve a FUND name_key (op/rev depth-0):
+ *   1. fund families / reused service concepts (resolveFundStrict).
+ *   2. fall through to the department resolver (catches anything in CONCEPTS/ROUTE_RULES).
+ *   3. general_fund fallback (genuinely idiosyncratic project-area names).
+ */
+export function resolveFund(key) {
+  const f = resolveFundStrict(key);
+  if (f) return f;
+  const d = resolveDept(key);
+  if (d.via !== 'fallback:general_dept') return { row: d.row, via: 'fund_route:' + d.via };
   return { row: UTAH_FUND_CONCEPTS.general_fund, via: 'fallback:general_fund' };
 }
 
@@ -70,7 +85,14 @@ export function resolve(key, bucket) {
   if (bucket === 'fund') return { ...resolveFund(key), defer: false };
   if (bucket === 'composite') {
     const dept = key.split('|').pop().trim();
-    return { ...resolveDept(dept), defer: false };
+    const r = resolveDept(dept);
+    // The child node may itself be a fund-type label (e.g. "general fund", "capital projects",
+    // "tax increment"). Prefer a fund concept over the generic department fallback.
+    if (r.via === 'fallback:general_dept') {
+      const f = resolveFundStrict(dept);
+      if (f) return { ...f, defer: false };
+    }
+    return { ...r, defer: false };
   }
   // bucket === 'dept'
   const r = resolveDept(key);
