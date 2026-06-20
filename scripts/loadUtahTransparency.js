@@ -61,8 +61,11 @@ const MAX_BILLED_GIB = Number(process.env.LOADER_MAX_GIB) || 2;
 const MAX_BYTES_BILLED = String(MAX_BILLED_GIB * 2 ** 30);
 // ── Rollup ETL cap (Phase 71.1 — UETL-01) ─────────────────────────────────
 // The single rollup scan covers ~47 GiB; the cap is set to ~64 GiB to allow headroom.
-// LOADER_MAX_GIB still overrides (if the operator sets it explicitly, honour it).
-const ROLLUP_MAX_GIB = Number(process.env.LOADER_MAX_GIB) || 64;
+// Decoupled from LOADER_MAX_GIB (CR-01): the runbook tells operators to set
+// LOADER_MAX_GIB for a deliberate per-entity one-off, and that override must NOT
+// silently raise the rollup ceiling too. Override the rollup cap only via the
+// dedicated ROLLUP_LOADER_MAX_GIB env var.
+const ROLLUP_MAX_GIB = Number(process.env.ROLLUP_LOADER_MAX_GIB) || 64;
 const ROLLUP_MAX_BYTES_BILLED = String(ROLLUP_MAX_GIB * 2 ** 30);
 /** The fund-based tree shape (D-69-01): top=fund1, sub=org1, item=cat1. */
 const TREE_OPTS = { topCol: 'fund1', subCol: 'org1', itemCol: 'cat1' };
@@ -614,6 +617,16 @@ async function main() {
     if (!fitsUnderQuota) {
       console.error('ERROR: The rollup scan exceeds the 1 TiB/day quota. Do NOT raise the quota.');
       console.error('Wait for the quota to reset (next calendar day UTC) and try again.');
+      process.exit(1);
+    }
+
+    // WR-04: the 1 TiB/day quota ceiling is ~16x the rollup cap, so a scan that
+    // "fits the quota" can still exceed the cap. Gate the billed scan on the cap
+    // too — otherwise the real scan would be rejected by maximumBytesBilled after
+    // --confirm. Abort here with a clear message instead of letting the job fail.
+    if (gib > ROLLUP_MAX_GIB) {
+      console.error(`ERROR: Estimated scan ${gib.toFixed(2)} GiB exceeds the rollup cap (${ROLLUP_MAX_GIB} GiB).`);
+      console.error('Aborting before any billed scan. Investigate the scope; do NOT raise the cap to work around this.');
       process.exit(1);
     }
 

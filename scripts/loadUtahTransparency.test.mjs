@@ -18,6 +18,9 @@ process.env.SUPABASE_SERVICE_KEY =
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 
 import {
   amt,
@@ -583,5 +586,30 @@ describe('groupRollupRows shape (Phase 71.1)', () => {
     assert.equal(exGroup.datasetType, 'operating');
     assert.equal(rvGroup.datasetType, 'revenue');
     assert.equal(pyGroup.datasetType, 'salaries');
+  });
+});
+
+// ── Cost-safety cap independence (CR-01, Phase 71.1) ─────────────────────────
+// The per-entity cap (LOADER_MAX_GIB, default 2) and the rollup cap (default 64)
+// MUST read different env vars. The runbook tells operators to set LOADER_MAX_GIB
+// for a deliberate per-entity one-off; if the rollup cap shared that var, the
+// override would silently raise the rollup ceiling — reintroducing the exact
+// uncapped-scan footgun this phase exists to eliminate.
+describe('cost caps are independent env vars (CR-01)', () => {
+  const src = readFileSync(
+    join(dirname(fileURLToPath(import.meta.url)), 'loadUtahTransparency.js'),
+    'utf8',
+  );
+
+  it('per-entity cap reads LOADER_MAX_GIB and defaults to 2 GiB', () => {
+    assert.match(src, /MAX_BILLED_GIB\s*=\s*Number\(process\.env\.LOADER_MAX_GIB\)\s*\|\|\s*2/);
+  });
+
+  it('rollup cap reads a DIFFERENT env var (ROLLUP_LOADER_MAX_GIB) and defaults to 64 GiB', () => {
+    assert.match(src, /ROLLUP_MAX_GIB\s*=\s*Number\(process\.env\.ROLLUP_LOADER_MAX_GIB\)\s*\|\|\s*64/);
+  });
+
+  it('rollup cap is NOT coupled to LOADER_MAX_GIB (the per-entity override)', () => {
+    assert.doesNotMatch(src, /ROLLUP_MAX_GIB\s*=\s*Number\(process\.env\.LOADER_MAX_GIB\)/);
   });
 });
