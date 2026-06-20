@@ -112,6 +112,16 @@ Plans:
 
 **Plan shape:** 1 plan (71-01) — sweep all 10 cities' `PY` data via the loader (extended for the payroll type). Serial main-tree, $0. Runs in parallel with Phase 70.
 
+### Phase 71.1: Utah Single-Scan Rollup ETL (BigQuery cost fix) (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 71
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 71.1 to break down)
+
 ### Phase 72: Utah Enrichment Parity
 
 **Goal:** Every newly-loaded Utah budget category (operating, revenue, salaries) carries standardized, bleed-safe, plain-language enrichment.

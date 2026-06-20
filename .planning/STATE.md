@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Utah Municipal Expansion
-status: idle
-last_updated: "2026-06-19T23:59:00.000Z"
-last_activity: 2026-06-19 -- Phase 71 complete (USAL-01 — 10 UT cities' names-free salaries loaded)
+status: verifying
+last_updated: "2026-06-20T03:46:09.968Z"
+last_activity: 2026-06-19 -- Phase 71 complete; 120 names-free salaries rows loaded for 10 UT cities (FY2014–2025), Provo reconciled −$0.22
 progress:
-  total_phases: 73
+  total_phases: 74
   completed_phases: 4
   total_plans: 9
   completed_plans: 9
@@ -55,6 +55,10 @@ Last activity: 2026-06-19 -- Phase 71 complete; 120 names-free salaries rows loa
 **Constraint:** Free sources only; BQ sandbox at $0; enrichment inline at ~$0 (API cost gate $5 — estimate before any AI run). Every loaded figure carries durable Transparent Utah source attribution.
 
 ## Accumulated Context
+
+### Roadmap Evolution
+
+- Phase 71.1 inserted after Phase 71: Single-scan rollup ETL — replace per-(entity,FY,type) live BigQuery queries (full-table scans, ~$132/day) with one rollup scan into Supabase; manual refresh (URGENT)
 
 ### v2.0 Foundation Documents
 
