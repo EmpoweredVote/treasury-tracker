@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Utah Municipal Expansion
-status: executing
-last_updated: "2026-06-19T23:24:51.302Z"
-last_activity: 2026-06-19 -- Phase 71 execution started
+status: idle
+last_updated: "2026-06-19T23:59:00.000Z"
+last_activity: 2026-06-19 -- Phase 71 complete (USAL-01 — 10 UT cities' names-free salaries loaded)
 progress:
   total_phases: 73
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 9
-  completed_plans: 8
-  percent: 4
+  completed_plans: 9
+  percent: 5
 ---
 
 # State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-17 after v2.4 close + v2.5 start)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 71 — utah-city-salaries-compensation
+**Current focus:** Phase 71 complete — next: Phase 72 (Utah Enrichment Parity, UENR-01)
 
 ## Current Position
 
-Phase: 71 (utah-city-salaries-compensation) — EXECUTING
-Plan: 1 of 1
-Status: Executing Phase 71
-Last activity: 2026-06-19 -- Phase 71 execution started
+Phase: 71 (utah-city-salaries-compensation) — COMPLETE
+Plan: 1 of 1 complete
+Status: Phase 71 complete (USAL-01 achieved) — verification PASS (6/7 code-confirmed, SC#3 operator-approved at checkpoint)
+Last activity: 2026-06-19 -- Phase 71 complete; 120 names-free salaries rows loaded for 10 UT cities (FY2014–2025), Provo reconciled −$0.22
 
 ### v2.5 Utah expansion context
 
