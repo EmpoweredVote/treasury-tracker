@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Utah Municipal Expansion
 status: executing
-last_updated: "2026-06-20T18:22:38.423Z"
-last_activity: 2026-06-20 -- Phase 72 execution started
+last_updated: "2026-06-20T19:00:58.550Z"
+last_activity: 2026-06-20 -- Phase 73 planning complete
 progress:
   total_phases: 74
   completed_phases: 6
-  total_plans: 11
+  total_plans: 14
   completed_plans: 11
   percent: 8
 ---
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-06-17 after v2.4 close + v2.5 start)
 
 Phase: 72 (utah-enrichment-parity) — EXECUTING
 Plan: 1 of 1
-Status: Executing Phase 72
-Last activity: 2026-06-20 -- Phase 72 execution started
+Status: Ready to execute
+Last activity: 2026-06-20 -- Phase 73 planning complete
 
 ### v2.5 Utah expansion context
 
