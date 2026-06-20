@@ -1,5 +1,27 @@
 # Milestones — Treasury Tracker / Empowered Vote Financials
 
+## v2.5 Utah Municipal Expansion (Shipped: 2026-06-20)
+
+**Phases completed:** 7 phases (68–73, incl. inserted 71.1), 14 plans, 27 tasks
+
+**Delivered:** 10 Utah cities + their 5 county governments brought onto Treasury Tracker at full California parity — operating + revenue budgets (all-funds FY2014–2025), employee compensation, category enrichment, and city→county linking — every figure durably sourced to the Utah State Auditor's Transparent Utah dataset, verified against published ACFRs and signed off by Chris in the live app. New tooling = one BigQuery loader. ~$0 spend (after a same-day cost incident was caught and fixed).
+
+**Key accomplishments:**
+
+- **Utah BigQuery source + loader (Phase 68)** — established free BQ-sandbox access to the Transparent Utah table `ut-sao-transparency-prod.transaction.transaction`, mapped all 15 entity_name strings, and built `scripts/loadUtahTransparency.js` (mirrors `bulkLoadStateController.js` — same tree shape, RPC, never-overwrite guard; 23 offline unit tests) (UTSRC-01/02).
+- **City budgets (Phase 69)** — all 10 cities loaded operating + revenue FY2014–2025 (all-funds `fund1→org1→cat1` tree), Census-2024 per-capita; SLC + Provo reconciled (Provo penny-exact vs the independent baseline) (UCITY-01/02).
+- **County budgets + linking (Phase 70)** — 5 county governments (Salt Lake, Utah, Davis, Weber, Washington) loaded op/rev + linked their cities via `county_id`; recovered a phantom-county-row incident with an `--entity-type` fix; 8 cities renamed to display names (dropped "City" except SLC/WVC) (UCO-01/02).
+- **City salaries (Phase 71)** — names-free PY→salaries path; 10 cities loaded FY2014–2025 (120 rows), Provo reconciled at −$0.22 rounding delta, PII-exclusion guard test (USAL-01).
+- **Cost-fix rollup ETL (Phase 71.1)** — replaced the per-`(entity,FY,type)` live-query pattern (which ran ~21 TiB / ~$132 on 2026-06-19) with one cost-gated `--rollup` GROUP BY scan loading all 15 entities × FY2014–2025 × EX/RV/PY into Supabase for ~$0.29, idempotently (UETL-01).
+- **Enrichment parity (Phase 72)** — 3,536 standardized, bleed-safe universal `category_enrichment` rows authored inline at $0 (33 Utah fund concepts + county-gov set); fixed a NULLS-DISTINCT duplicate-insert incident with delete-then-insert (UENR-01).
+- **Verification + audit + UAT (Phase 73)** — Provo + **Salt Lake County** (first UT county-gov ACFR cross-read) reconciled within explainable all-funds tolerance; full-cohort source-chain + bleed audit CLEAN (op 180 + rev 180 + salaries 179: 0 NULL/fragile/residue, 0 PII across 179 salary trees, enrichment 4,476 universal / 0 dups / 0 city-name leaks); 22-item live-app UAT across 4 entities, all PASS, Chris signed off (UVER-01/02).
+
+**Known deferred items at close:** 5 acknowledged (see STATE.md Deferred Items — none are v2.5 blockers): Phase 73 UAT-checklist flag (false positive; UAT passed), Phase 71 verification `human_needed` flag (stale; covered by Phase 73 UAT), 3 unrelated Longview-TX quick tasks. **v2.5 follow-ups (Phase 73, documented not fixed):** 4 pre-existing non-P72 `$`-leak universal enrichment rows (bleed cleanup); Salt Lake County FY2025 salaries (fills on next FY2025-complete rollup refresh).
+
+**Archive:** [v2.5-ROADMAP.md](milestones/v2.5-ROADMAP.md) | [v2.5-REQUIREMENTS.md](milestones/v2.5-REQUIREMENTS.md)
+
+---
+
 ## v2.4 Southern California Expansion (Shipped: 2026-06-17)
 
 **Phases completed:** 5 phases (63–67)

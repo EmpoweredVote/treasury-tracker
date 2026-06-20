@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Utah Municipal Expansion
-status: milestone_complete
-last_updated: 2026-06-20T19:47:13.771Z
-last_activity: 2026-06-20 -- Phase 73 execution started
+status: Awaiting next milestone
+last_updated: "2026-06-20T22:14:40.756Z"
+last_activity: 2026-06-20 — Milestone v2.5 completed and archived
 progress:
   total_phases: 74
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 14
   completed_plans: 14
-  percent: 8
-stopped_at: Milestone complete (Phase 73 was final phase)
+  percent: 9
 ---
 
 # State
@@ -25,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-17 after v2.4 close + v2.5 start)
 
 ## Current Position
 
-Phase: 73
-Plan: Not started
-Status: Milestone complete
-Last activity: 2026-06-20
+Phase: Milestone v2.5 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-20 — Milestone v2.5 completed and archived
 
 ### v2.5 Utah expansion context
 
@@ -131,15 +130,15 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-20T18:22:38.412Z
-Stopped at: Phase 73 context gathered
-Resume file: .planning/phases/73-utah-verification-source-chain-audit-uat/73-CONTEXT.md
+Last session: 2026-06-20 — v2.5 Utah Municipal Expansion completed + archived
+Stopped at: Milestone v2.5 complete (Phase 73 was the final phase)
+Resume file: — (no active milestone)
 
 ### Next Session
 
-Run Task 3 after the BigQuery quota resets (next calendar day UTC):
-  node scripts/loadUtahTransparency.js --rollup --confirm
-Then verify idempotent Supabase reproduction and type "approved" to complete plan 71.1-01.
+v2.5 is shipped + archived (tag v2.5). No active milestone. Start the next one:
+  /gsd-new-milestone
+Recon'd candidate: v2.6 Ohio (Auditor of State Summarized Annual Financial Reports — free XLSX, see reference_ohio_aos_financial_data memory).
 
 ## Performance Metrics
 
@@ -199,6 +198,20 @@ Carried forward from v1.7–v1.9 (see Known Tech Debt above). New in v2.0 planni
 | feature | Sourcing backfill to cities/states | After the standard is proven federally |
 | milestone | **Historical backfill — prior fiscal years (FY2024 ← back) at v2.0 detail** | RECOMMENDED NEXT (Chris asked 2026-06-12). Cheap parts already done: annual_summary already holds 64 years (FY1962+); explainers (name_key-keyed) + program origins (law-keyed, not year-keyed) are year-independent and need ZERO rework. Real work = iterate the OMB loader (Hist 3.2 outlays-by-function, 4.1/5.1 by-agency) across prior years + recompute per-year visual-vs-official disclosures + revenue-by-source per year + YearSelector wiring. Watch: function/agency definitions drift over decades (comparability notes); per-year actuals vs estimates. Same free sources + same loader pattern as 44. |
 
+### Acknowledged at v2.5 close (2026-06-20)
+
+Open-artifact audit at v2.5 close surfaced 5 items, all non-blocking and acknowledged (deferred). None are v2.5 blockers — Phase 73 verified the whole milestone end-to-end (UVER-01 ACFR recon + source-chain audit, UVER-02 Chris UAT all-pass):
+
+| Category | Item | Status |
+|----------|------|--------|
+| uat_gap | Phase 73 `73-03-UAT-CHECKLIST.md` | 0 pending scenarios (flagged only because the file lacks status frontmatter; UAT signed off all-pass 2026-06-20, recorded in 73-03-SUMMARY + 73-VERIFICATION) |
+| verification_gap | Phase 71 `71-VERIFICATION.md` | `human_needed` — salaries human-UAT flag; functionally satisfied by Phase 73's all-pass UAT (which exercised salaries). Stale flag. |
+| quick_task | 001-create-treasury-tracker-entries-for-ever | orphaned (file missing) — pre-v2.0 leftover, acknowledged at every close since v2.0 |
+| quick_task | 002-add-longview-tx-revenue | orphaned (file missing) — pre-v2.0 Longview TX effort, unrelated to Utah |
+| quick_task | 003-longview-operating-budget | orphaned (file missing) — pre-v2.0 Longview TX effort, unrelated to Utah |
+
+**v2.5 follow-ups (from Phase 73, D-73-07/08 — documented, not fixed):** 4 pre-existing non-P72 `$`-leak universal enrichment rows (2026-03-28 origin: parking meter, harbor/port, sewer, solid waste enterprise fund) — bleed-safety cleanup; Salt Lake County FY2025 salaries (1 absent combo, fills on next FY2025-complete rollup refresh).
+
 ### Acknowledged at v2.2 close (2026-06-16)
 
 Open-artifact audit at v2.2 close surfaced 4 items, all non-blocking and acknowledged (re-deferred). None are v2.2 blockers — all phases 52–57 have VERIFICATION files and the milestone audit PASSED 16/16:
@@ -237,4 +250,4 @@ Open-artifact audit at milestone close surfaced 5 stale/orphaned items, acknowle
 
 ## Operator Next Steps
 
-- `/gsd-discuss-phase 68` — gather context + design the BigQuery loader before planning (recommended), or `/gsd-plan-phase 68` to plan directly.
+- Start the next milestone with /gsd-new-milestone

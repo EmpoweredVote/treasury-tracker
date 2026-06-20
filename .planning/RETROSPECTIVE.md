@@ -240,6 +240,46 @@
 
 ---
 
+## Milestone: v2.5 — Utah Municipal Expansion
+
+**Shipped:** 2026-06-20
+**Phases:** 7 (68–73, incl. inserted 71.1) | **Plans:** 14
+
+### What Was Built
+
+10 Utah cities + 5 county governments at full CA parity from the Utah State Auditor's Transparent Utah BigQuery dataset: op/rev (all-funds FY2014–2025), names-free compensation, 3,536 bleed-safe enrichment rows, city→county linking — all via one new loader (`loadUtahTransparency.js`). Verified end-to-end (ACFR recon on Provo + Salt Lake County, source-chain + bleed audit, 22-item UAT, Chris all-pass). ~$0.
+
+### What Worked
+
+- **First non-Socrata/non-PDF source integrated cleanly** by mirroring the proven `bulkLoadStateController.js` and swapping only the fetch layer — the loader's pure logic shipped behind 23 offline unit tests before any live query.
+- **One uniform source (BigQuery EX/RV/PY for all 15 entities)** collapsed what was 3+ source types in CA (SCO budgets + publicpay salaries) into a single durable bare-domain attribution — making the source-chain audit trivially clean (one `source_url` value, 0 fragile).
+- **The closeout (Phase 73) ran entirely inline** — no researcher/planner/executor/verifier subagents — at ~$0 Anthropic spend, mirroring the verified Phase 67/62 plan structure.
+
+### What Was Inefficient
+
+- **A live-BigQuery cost incident** (~21 TiB / ~$132 on 2026-06-19) from querying the unpartitioned table per-(entity,FY,type) forced an unplanned Phase 71.1 to build a single-scan rollup ETL into Supabase. Lesson now durable: never query the BQ table live; one rollup scan → Supabase, manual refresh.
+- **Two avoidable mid-load incidents:** phantom county rows (a hardcoded `entity_type:'city'` ignored `--entity-type`), and 172 duplicate enrichment rows (the universal-row unique index is NULLS-DISTINCT, so `ON CONFLICT` never matched). Both recovered, both now encoded as guards/patterns.
+- **Display-name churn:** cities were first loaded under legal entity_names ("Provo City"), then renamed mid-milestone — a naming decision better made at Phase 68 plan time.
+
+### Patterns Established
+
+- **BigQuery rollup ETL:** one server-side GROUP BY → group in memory → per-entity `importEntityData`, cost-gated (free dry-run preview + `--confirm` + GiB cap). Reusable for any large transaction-table source.
+- **Names-free aggregate path:** PY→salaries projects only `org1/cat1/SUM` with a test that asserts PII tokens are absent from both the query string and the serialized tree.
+- **Universal-enrichment writes use delete-then-insert**, never `upsert(onConflict)` — the index is NULLS-DISTINCT.
+
+### Key Lessons
+
+- **Probe an unfamiliar source's cost model before looping queries.** A partitioned-vs-unpartitioned assumption was the whole $132 incident.
+- **The Utah single-source shape is the cleanest parity target yet** — one durable domain, transaction-level, compensation included. A strong template for v2.6 Ohio (Auditor of State XLSX).
+
+### Cost Observations
+
+- **~$0 net** — all data free (BQ sandbox); enrichment authored inline at $0; ACFRs via free WebFetch; verification via read-only DB probes. The one cost blip (~$132 of BQ scan) was caught same-day and engineered out via the rollup ETL.
+- Commit mix this milestone: 65 docs, 15 feat, 6 fix, 2 chore, 1 refactor.
+- Phase 73 closeout authored + executed inline (no subagents) per the no-research-subagents cost guidance.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution

@@ -10,9 +10,15 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 
 ## Current State
 
-**Shipped v2.4 Southern California Expansion (2026-06-17).** All 6 remaining SoCal counties are now in the tracker, via the hardened v2.2/v2.3 pipeline with zero new data-loading tooling: 95 cities loaded + county-linked (op/rev FY2003–2024), 8 county governments loaded (the 6 SoCal counties + Alameda + Sacramento, no longer directory-only), GCC salaries swept for all 95 cities (FY2009–2024, reconciled to the source at $0 delta), and enrichment brought to parity (185 universal bleed-safe rows, inline at $0). Phase 67 verified the work: Ventura County reconciled to its published ACFR on a documented all-funds basis, a full-cohort source-chain durability audit (5,968 budget rows — 0 fragile URLs, 0 residue), and a 20-item live-app UAT with Chris's sign-off (all pass). $0 total spend.
+**Shipped v2.5 Utah Municipal Expansion (2026-06-20).** 10 Utah cities + their 5 county governments brought onto the tracker at full California parity via one new BigQuery loader against the Utah State Auditor's Transparent Utah dataset: all 15 entities loaded operating + revenue (all-funds FY2014–2025, `fund1→org1→cat1` tree), Census-2024 per-capita, city→county linking; employee compensation for the 10 cities (names-free); 3,536 bleed-safe universal enrichment rows inline at $0; every figure durably sourced to `transparent.utah.gov`. Phase 73 verified: Provo + Salt Lake County (first UT county-gov ACFR cross-read) reconciled within explainable all-funds tolerance, a full-cohort source-chain + bleed audit (539 budget/salary rows — 0 NULL/fragile/residue, 0 PII), and a 22-item live-app UAT with Chris's sign-off (all pass). ~$0 total spend (after a same-day BigQuery cost incident was caught and fixed with a single-scan rollup ETL).
 
-**Coverage now:** US federal + CA/MA state budgets, 351 MA cities, **all California cities across OC + LA + the 6 SoCal counties** (~95 new) + their county governments (FY2003 depth, statewide GCC salaries 2009–2024), 12 named CA cities, 14 TX cities, 3 OR cities — every figure durably sourced.
+**Coverage now:** US federal + CA/MA state budgets, 351 MA cities, all California cities across OC + LA + the 6 SoCal counties + their county governments, **10 Utah cities + 5 Utah county governments** (op/rev FY2014–2025, compensation, enrichment, county-linked), 12 named CA cities, 14 TX cities, 3 OR cities — every figure durably sourced.
+
+<details>
+<summary>Previous: v2.4 Southern California Expansion (shipped 2026-06-17)</summary>
+
+All 6 remaining SoCal counties added via the hardened v2.2/v2.3 pipeline with zero new data-loading tooling: 95 cities loaded + county-linked (op/rev FY2003–2024), 8 county governments, statewide GCC salaries (FY2009–2024, $0-delta reconciled), 185 universal bleed-safe enrichment rows. Phase 67 verified: Ventura County ACFR reconciliation, source-chain audit (5,968 rows, 0 fragile/residue), 20-item UAT with Chris's sign-off. $0 spend.
+</details>
 
 <details>
 <summary>Previous: v2.3 California Coverage Parity (shipped 2026-06-17)</summary>
@@ -20,26 +26,16 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 Brought every already-loaded non-OC California city and county to the Orange County standard (FY2003 history, statewide salaries, standardized enrichment) via the hardened v2.2 pipeline. Phase 62 verified end-to-end: ACFR reconciliation, source-chain audit (0 NULL/fragile/residue across 25,568 rows), 24-item UAT with Chris's sign-off. SoCal expansion deferred to v2.4.
 </details>
 
-## Current Milestone: v2.5 Utah Municipal Expansion
+## Next Milestone
 
-**Goal:** Bring 10 Utah cities + their 5 county governments onto Treasury Tracker at full California parity — operating + revenue budgets, employee compensation, category enrichment, and county linking — every figure durably sourced, verified with Chris's UAT sign-off, at ~$0 spend.
+**No active milestone.** v2.5 Utah Municipal Expansion shipped 2026-06-20. Start the next via `/gsd-new-milestone`.
 
-**Target features:**
-- 10 Utah cities loaded (operating + revenue): Layton, Lehi, Ogden, Orem, Provo, Salt Lake City, Sandy, St. George, West Jordan, West Valley City
-- 5 Utah county governments loaded + city→county linking: Salt Lake (SLC, West Valley, West Jordan, Sandy), Utah (Provo, Orem, Lehi), Davis (Layton), Weber (Ogden), Washington (St. George)
-- Employee compensation/salaries for the 10 cities
-- Standardized, bleed-safe category enrichment for all new Utah categories
-- Verification: source-chain audit + ACFR reconciliation + live-app UAT
-
-**Key context:**
-- Data source TBD pending recon — the leading candidate is the **Utah Public Finance Website (transparent.utah.gov)**, the State Auditor's uniform statewide portal carrying revenues, expenditures, and employee compensation for every Utah local government. If it exposes a usable API/bulk export it becomes the Utah analog of CA's SCO ByTheNumbers (possibly cleaner — transaction-level + compensation in one source); otherwise fall back to per-city ACFR/budget PDFs like the early TX/OR work. Recon resolves this before the roadmap locks.
-- Free sources only; enrichment inline at ~$0 (API cost gate $5 — estimate before any AI run).
-- Continues phase numbering from v2.4 (last phase 67 → v2.5 starts at Phase 68).
+**Recon'd candidate — v2.6 Ohio:** the Ohio Auditor of State's Summarized Annual Financial Reports (free XLSX 2016–2025, no auth), Utah-mold and verified icicle-grade (235 cities, revenue-by-source + expenditure-by-function + population + county). See auto-memory `reference_ohio_aos_financial_data`.
 
 **Carried-forward follow-ups (candidates for a later milestone or backlog sweep):**
-- Broader per-entity independent ACFR cross-read for the SoCal sample (only Ventura County fully reconciled in v2.4; several ACFR PDFs were blocked/non-extractable) — VER-05 documented follow-up.
-- v2.3 follow-ups FUP-01..03: Glendale + Burbank ACFR reconciliation (CDN-blocked CLI fetch), the "Employees" salaries-card year-gating UX, the single-city salary department-name canonicalization long tail.
-- Single-city salary-department enrichment long tail (~3,489 names) deferred from v2.4 Phase 66.
+- **v2.5 (Phase 73):** 4 pre-existing non-P72 `$`-leak universal enrichment rows (bleed-safety cleanup); Salt Lake County FY2025 salaries (fills on next FY2025-complete rollup refresh).
+- **v2.4:** broader per-entity independent ACFR cross-read for the SoCal sample (only Ventura fully reconciled; several ACFR PDFs blocked/non-extractable).
+- **v2.3 FUP-01..03:** Glendale + Burbank ACFR reconciliation (CDN-blocked CLI fetch), the "Employees" salaries-card year-gating UX, the single-city salary department-name canonicalization long tail (~3,489 names).
 
 ## Requirements
 
@@ -116,10 +112,12 @@ Brought every already-loaded non-OC California city and county to the Orange Cou
 - ✓ Statewide GCC salaries FY2009–2024 for all 95 new SoCal cities, sample reconciled at $0 delta (SAL-07) — v2.4, Phase 65
 - ✓ Standardized, bleed-safe enrichment for all newly-loaded SoCal categories — 185 universal rows authored inline at $0 (ENR-03) — v2.4, Phase 66
 - ✓ SoCal verification: Ventura County ACFR reconciliation (all-funds basis), full-cohort source-chain audit (5,968 budget rows, 0 fragile URLs / 0 residue), 20-item live-app UAT — all PASS, Chris signed off (VER-05, VER-06) — v2.4, Phase 67
+- ✓ 10 Utah cities + 5 county governments loaded at full CA parity — op/rev (all-funds FY2014–2025) via a new Transparent Utah BigQuery loader, Census-2024 per-capita, city→county linking, names-free compensation, 3,536 bleed-safe enrichment rows; cost-gated single-scan rollup ETL after a BigQuery cost incident (UTSRC/UCITY/UCO/USAL/UENR/UETL) — v2.5, Phases 68–72
+- ✓ Utah verification: Provo + Salt Lake County (first UT county-gov) ACFR reconciliation (all-funds basis), full-cohort source-chain + bleed audit (539 rows, 0 NULL/fragile/residue, 0 PII across 179 salary trees), 22-item live-app UAT — all PASS, Chris signed off (UVER-01, UVER-02) — v2.5, Phase 73
 
 ### Active
 
-**v2.5 Utah Municipal Expansion** (defined 2026-06-17) — requirements being defined; see `.planning/REQUIREMENTS.md`.
+**No active milestone.** v2.5 Utah Municipal Expansion shipped 2026-06-20. Next milestone TBD via `/gsd-new-milestone` (recon'd candidate: v2.6 Ohio — see `reference_ohio_aos_financial_data` memory).
 
 ### Future (deferred milestone candidates)
 
@@ -218,4 +216,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-17 — v2.4 Southern California Expansion closed (shipped, Phases 63–67); v2.5 Utah Municipal Expansion milestone STARTED. Goal: 10 Utah cities + 5 county governments at full CA parity (op/rev budgets, compensation, enrichment, county linking), every figure sourced, verified with Chris UAT, ~$0 spend. Data source pending recon (transparent.utah.gov leading candidate). Requirements + roadmap forthcoming.*
+*Last updated: 2026-06-20 — v2.5 Utah Municipal Expansion closed (shipped, Phases 68–73): 10 Utah cities + 5 county governments at full CA parity via a new Transparent Utah BigQuery loader, verified (Provo + Salt Lake County ACFR recon, source-chain + bleed audit, 22-item UAT, Chris all-pass), ~$0 spend. No active milestone — next TBD via /gsd-new-milestone (recon'd candidate: v2.6 Ohio).*
