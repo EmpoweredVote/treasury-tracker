@@ -163,23 +163,31 @@ async function main() {
   const deptKeys = await collectKeys(['salaries'], 0);                // DEPARTMENT worklist
 
   const rows = [];
+  const seenKeys = new Set(); // dedup: a name_key yields ONE universal row even if it appears in multiple buckets
   const mappingLog = [];
   const viaCounts = {};
   let deferredSingleCity = 0;
   const deferredKeys = [];
 
   function processBucket(keyMap, bucket) {
-    // Uncovered = not already a universal row. Idempotent upsert makes re-runs safe regardless.
-    const uncovered = [...keyMap.keys()].filter(k => !enrKeys.has(k));
-    for (const key of uncovered.sort((a, b) => keyMap.get(b).size - keyMap.get(a).size)) {
+    // Inherit existing universal rows (e.g. CA police/fire/finance) by skipping covered keys —
+    // EXCEPT county-concept keys, which must overwrite the stale city-oriented CA mapping
+    // (CA routes assessor→finance, sheriff→police; the county concept is accurate universally).
+    let considered = 0;
+    for (const key of [...keyMap.keys()].sort((a, b) => keyMap.get(b).size - keyMap.get(a).size)) {
       const { row, via, defer } = resolve(key, bucket);
+      const isCounty = via.startsWith('county:');
+      if (enrKeys.has(key) && !isCounty) continue; // already covered by an acceptable universal row
+      considered++;
       if (defer) { deferredSingleCity++; if (deferredKeys.length < 50) deferredKeys.push(key); continue; }
+      if (seenKeys.has(key)) continue; // already authored from an earlier bucket — one universal row per key
+      seenKeys.add(key);
       const vk = bucket + ':' + via.split(':')[0];
       viaCounts[vk] = (viaCounts[vk] || 0) + 1;
       rows.push(buildRow(key, row));
-      mappingLog.push({ name_key: key, bucket, cities: keyMap.get(key).size, plain_name: row.plain_name, via });
+      mappingLog.push({ name_key: key, bucket, cities: keyMap.get(key).size, plain_name: row.plain_name, via, overwrite: enrKeys.has(key) });
     }
-    return uncovered.length;
+    return considered;
   }
 
   const fundUncovered = processBucket(fundKeys, 'fund');
@@ -208,17 +216,30 @@ async function main() {
   console.log('Expanded mapping written to data/utah-enrichment-72.expanded.json');
 
   if (leaks.length) { console.error('ABORT: $-figure leak detected in authored text'); process.exit(1); }
-  if (!APPLY) { console.log('\n[dry-run] No DB writes. Re-run with --apply to upsert.'); process.exit(0); }
+  if (!APPLY) { console.log('\n[dry-run] No DB writes. Re-run with --apply to write.'); process.exit(0); }
 
+  // The unique index treats NULL municipality_id as DISTINCT, so ON CONFLICT cannot match an
+  // existing universal row — upserting would INSERT duplicates. Delete-then-insert is the only
+  // idempotent + overwrite-correct path: clear every universal row for the keys we author
+  // (removing stale CA mappings like assessor→Finance AND any prior run's rows), then insert fresh.
+  const keysToWrite = [...new Set(rows.map(r => r.name_key))];
+  let deleted = 0;
+  for (let i = 0; i < keysToWrite.length; i += 100) {
+    const chunk = keysToWrite.slice(i, i + 100);
+    const { error } = await supabase.from('category_enrichment').delete().is('municipality_id', null).in('name_key', chunk);
+    if (error) { console.error('delete error:', error.message); process.exit(1); }
+    deleted += chunk.length;
+    process.stdout.write(`\r  cleared ${deleted}/${keysToWrite.length} keys`);
+  }
   let written = 0;
   for (let i = 0; i < rows.length; i += 200) {
     const batch = rows.slice(i, i + 200);
-    const { error } = await supabase.from('category_enrichment').upsert(batch, { onConflict: 'name_key,municipality_id' });
-    if (error) { console.error('upsert error:', error.message); process.exit(1); }
+    const { error } = await supabase.from('category_enrichment').insert(batch);
+    if (error) { console.error('insert error:', error.message); process.exit(1); }
     written += batch.length;
-    process.stdout.write(`\r  upserted ${written}/${rows.length}`);
+    process.stdout.write(`\r  inserted ${written}/${rows.length}`);
   }
-  console.log(`\nDone. Upserted ${written} universal category_enrichment rows. Deferred single-city salary depts: ${deferredSingleCity}.`);
+  console.log(`\nDone. Wrote ${written} universal category_enrichment rows (delete-then-insert over ${keysToWrite.length} keys). Deferred single-city salary depts: ${deferredSingleCity}.`);
 }
 
 // Run only when executed as the entry script (so tests can import resolve* without hitting the DB).

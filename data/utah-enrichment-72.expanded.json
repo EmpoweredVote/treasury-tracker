@@ -1,0 +1,1383 @@
+{
+  "generated_at": "2026-06-20T00:00:00.000Z",
+  "authored": 165,
+  "deferred_single_city": 119,
+  "via_counts": {
+    "composite:county": 58,
+    "dept:county": 107
+  },
+  "deferred_sample": [
+    "elections",
+    "ogden city corporation",
+    "admin srvc - info systems",
+    "pd - special ops (cid)",
+    "p&r - rec center operations",
+    "pd - special ops (cop/set)",
+    "pw - pub. srvcs. (sanitation)",
+    "energy - energy adm.",
+    "pd - special ops (sro)",
+    "pw - pub. srvcs. (vehicle mgt)",
+    "pd - support srvc (admin)",
+    "energy - systems oper.",
+    "pd - special ops (admin)",
+    "pd - special ops (task force)",
+    "p&r - projects",
+    "pd - special ops (victims)",
+    "pw - pub. srvcs. (admin)",
+    "p&r - cemetery",
+    "admin srvc - admin",
+    "pd - support srvc (x-guards)",
+    "p&r - special programs",
+    "energy - customer oper.",
+    "pd - special ops (jcat)",
+    "pd - support srvc (qtr master)",
+    "energy - forestry",
+    "p&r - ballfield",
+    "pd - cid (units)",
+    "energy - systems operations",
+    "pd - op support (admin)",
+    "develop. svcs - inspections",
+    "com & nbrhd svcs - admin.",
+    "pd - cid (victims)",
+    "develop. svcs - current plng",
+    "com & nbrhd svcs - prkg enf",
+    "pd - op support (x-guards)",
+    "com & nbrhd svcs - prkg mgt",
+    "pd - op support (qtr master)",
+    "information management service",
+    "911 bureau",
+    "public lands",
+    "salary, wages, & benefits",
+    "cpd department",
+    "ced department",
+    "ced",
+    "com/gov rel. - adm.",
+    "p",
+    "pw - irrigation",
+    "admin",
+    "inspections",
+    "pw - cemetery"
+  ],
+  "mapping": [
+    {
+      "name_key": "general fund|justice court",
+      "bucket": "composite",
+      "cities": 7,
+      "plain_name": "Justice Court",
+      "via": "county:justice_court",
+      "overwrite": true
+    },
+    {
+      "name_key": "general fund|recorder",
+      "bucket": "composite",
+      "cities": 5,
+      "plain_name": "County Recorder",
+      "via": "county:recorder",
+      "overwrite": true
+    },
+    {
+      "name_key": "general fund|sheriff",
+      "bucket": "composite",
+      "cities": 3,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "general fund|commission",
+      "bucket": "composite",
+      "cities": 3,
+      "plain_name": "Commission / Council",
+      "via": "county:commission",
+      "overwrite": true
+    },
+    {
+      "name_key": "general fund|surveyor",
+      "bucket": "composite",
+      "cities": 3,
+      "plain_name": "County Surveyor",
+      "via": "county:surveyor",
+      "overwrite": true
+    },
+    {
+      "name_key": "general fund|clerk/auditor",
+      "bucket": "composite",
+      "cities": 3,
+      "plain_name": "County Clerk / Auditor",
+      "via": "county:clerk_auditor",
+      "overwrite": true
+    },
+    {
+      "name_key": "special revenue fund|assessor",
+      "bucket": "composite",
+      "cities": 2,
+      "plain_name": "County Assessor",
+      "via": "county:assessor",
+      "overwrite": true
+    },
+    {
+      "name_key": "special revenue fund|recorder",
+      "bucket": "composite",
+      "cities": 2,
+      "plain_name": "County Recorder",
+      "via": "county:recorder",
+      "overwrite": true
+    },
+    {
+      "name_key": "special revenue fund|auditor",
+      "bucket": "composite",
+      "cities": 2,
+      "plain_name": "County Clerk / Auditor",
+      "via": "county:clerk_auditor",
+      "overwrite": true
+    },
+    {
+      "name_key": "special revenue fund|surveyor",
+      "bucket": "composite",
+      "cities": 2,
+      "plain_name": "County Surveyor",
+      "via": "county:surveyor",
+      "overwrite": true
+    },
+    {
+      "name_key": "special revenue fund|sheriff",
+      "bucket": "composite",
+      "cities": 2,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "general fund|auditor",
+      "bucket": "composite",
+      "cities": 2,
+      "plain_name": "County Clerk / Auditor",
+      "via": "county:clerk_auditor",
+      "overwrite": true
+    },
+    {
+      "name_key": "general fund|assessor",
+      "bucket": "composite",
+      "cities": 2,
+      "plain_name": "County Assessor",
+      "via": "county:assessor",
+      "overwrite": true
+    },
+    {
+      "name_key": "special revenue fund - mctf fund|public safety - police and sheriff - vice control",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "capital projects fund - police impact fees fund|public safety - police and sheriff",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "justice court|justice court administration",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "Justice Court",
+      "via": "county:justice_court",
+      "overwrite": true
+    },
+    {
+      "name_key": "computer bank|computer bank - justice court",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "Justice Court",
+      "via": "county:justice_court",
+      "overwrite": true
+    },
+    {
+      "name_key": "special revenue fund - mctf fund|public safety - police and sheriff  - vice control",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "special revenue fund|justice courts",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "Justice Court",
+      "via": "county:justice_court",
+      "overwrite": true
+    },
+    {
+      "name_key": "the general fund|sheriff",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "the general fund|recorder",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "County Recorder",
+      "via": "county:recorder",
+      "overwrite": true
+    },
+    {
+      "name_key": "the general fund|surveyor",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "County Surveyor",
+      "via": "county:surveyor",
+      "overwrite": true
+    },
+    {
+      "name_key": "the general fund|auditor",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "County Clerk / Auditor",
+      "via": "county:clerk_auditor",
+      "overwrite": true
+    },
+    {
+      "name_key": "11. special revenue funds|county assessor",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "County Assessor",
+      "via": "county:assessor",
+      "overwrite": true
+    },
+    {
+      "name_key": "11. special revenue funds|county auditor",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "County Clerk / Auditor",
+      "via": "county:clerk_auditor",
+      "overwrite": true
+    },
+    {
+      "name_key": "11. special revenue funds|county recorder",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "County Recorder",
+      "via": "county:recorder",
+      "overwrite": true
+    },
+    {
+      "name_key": "11. special revenue funds|justice courts",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "Justice Court",
+      "via": "county:justice_court",
+      "overwrite": true
+    },
+    {
+      "name_key": "11. special revenue funds|county surveyor",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "County Surveyor",
+      "via": "county:surveyor",
+      "overwrite": true
+    },
+    {
+      "name_key": "11. special revenue funds|county sheriff",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "10. the general fund|county sheriff",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "10. the general fund|county recorder",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "County Recorder",
+      "via": "county:recorder",
+      "overwrite": true
+    },
+    {
+      "name_key": "10. the general fund|county surveyor",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "County Surveyor",
+      "via": "county:surveyor",
+      "overwrite": true
+    },
+    {
+      "name_key": "10. the general fund|county auditor",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "County Clerk / Auditor",
+      "via": "county:clerk_auditor",
+      "overwrite": true
+    },
+    {
+      "name_key": "21. enterprise funds|justice courts",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "Justice Court",
+      "via": "county:justice_court",
+      "overwrite": true
+    },
+    {
+      "name_key": "special revenue fund|commission",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "Commission / Council",
+      "via": "county:commission",
+      "overwrite": true
+    },
+    {
+      "name_key": "special revenue fund|children's justice center",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "Children's Justice Center",
+      "via": "county:childrens_justice_center",
+      "overwrite": true
+    },
+    {
+      "name_key": "special revenue fund|justice court",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "Justice Court",
+      "via": "county:justice_court",
+      "overwrite": true
+    },
+    {
+      "name_key": "internal service fund|sheriff",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "internal service fund|auditor",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "County Clerk / Auditor",
+      "via": "county:clerk_auditor",
+      "overwrite": true
+    },
+    {
+      "name_key": "10. the general fund|county assessor",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "County Assessor",
+      "via": "county:assessor",
+      "overwrite": true
+    },
+    {
+      "name_key": "internal service fund|commission",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "Commission / Council",
+      "via": "county:commission",
+      "overwrite": true
+    },
+    {
+      "name_key": "general fund|childrens justice center",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "Children's Justice Center",
+      "via": "county:childrens_justice_center",
+      "overwrite": true
+    },
+    {
+      "name_key": "municipal serv spec rev fund|sheriff",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "grant and endowment|sheriff misc grant expense",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "grant and endowment|sheriff",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "children justice center|children's justice center",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "Children's Justice Center",
+      "via": "county:childrens_justice_center",
+      "overwrite": true
+    },
+    {
+      "name_key": "assessing & collecting|assessor",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "County Assessor",
+      "via": "county:assessor",
+      "overwrite": true
+    },
+    {
+      "name_key": "general fund|children's justice center",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "Children's Justice Center",
+      "via": "county:childrens_justice_center",
+      "overwrite": true
+    },
+    {
+      "name_key": "urban service fund|justice court",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "Justice Court",
+      "via": "county:justice_court",
+      "overwrite": true
+    },
+    {
+      "name_key": "urban service fund|sheriff",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "general fund|city recorder",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "County Recorder",
+      "via": "county:recorder",
+      "overwrite": true
+    },
+    {
+      "name_key": "misc grants operating fund|justice court",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "Justice Court",
+      "via": "county:justice_court",
+      "overwrite": true
+    },
+    {
+      "name_key": "salt lake city donations fund|justice court",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "Justice Court",
+      "via": "county:justice_court",
+      "overwrite": true
+    },
+    {
+      "name_key": "1000 general fund|justice court",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "Justice Court",
+      "via": "county:justice_court",
+      "overwrite": true
+    },
+    {
+      "name_key": "special revenue funding our future|justice court",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "Justice Court",
+      "via": "county:justice_court",
+      "overwrite": true
+    },
+    {
+      "name_key": "misc grants - state grants|justice court",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "Justice Court",
+      "via": "county:justice_court",
+      "overwrite": true
+    },
+    {
+      "name_key": "7203 misc grants - state grants|justice court",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "Justice Court",
+      "via": "county:justice_court",
+      "overwrite": true
+    },
+    {
+      "name_key": "misc grants - other grants|justice court",
+      "bucket": "composite",
+      "cities": 1,
+      "plain_name": "Justice Court",
+      "via": "county:justice_court",
+      "overwrite": true
+    },
+    {
+      "name_key": "justice court",
+      "bucket": "dept",
+      "cities": 6,
+      "plain_name": "Justice Court",
+      "via": "county:justice_court",
+      "overwrite": true
+    },
+    {
+      "name_key": "assessor",
+      "bucket": "dept",
+      "cities": 5,
+      "plain_name": "County Assessor",
+      "via": "county:assessor",
+      "overwrite": true
+    },
+    {
+      "name_key": "recorder",
+      "bucket": "dept",
+      "cities": 5,
+      "plain_name": "County Recorder",
+      "via": "county:recorder",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff",
+      "bucket": "dept",
+      "cities": 4,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "commission",
+      "bucket": "dept",
+      "cities": 4,
+      "plain_name": "Commission / Council",
+      "via": "county:commission",
+      "overwrite": true
+    },
+    {
+      "name_key": "surveyor",
+      "bucket": "dept",
+      "cities": 4,
+      "plain_name": "County Surveyor",
+      "via": "county:surveyor",
+      "overwrite": true
+    },
+    {
+      "name_key": "clerk/auditor",
+      "bucket": "dept",
+      "cities": 3,
+      "plain_name": "County Clerk / Auditor",
+      "via": "county:clerk_auditor",
+      "overwrite": true
+    },
+    {
+      "name_key": "auditor",
+      "bucket": "dept",
+      "cities": 3,
+      "plain_name": "County Clerk / Auditor",
+      "via": "county:clerk_auditor",
+      "overwrite": true
+    },
+    {
+      "name_key": "children's justice center",
+      "bucket": "dept",
+      "cities": 3,
+      "plain_name": "Children's Justice Center",
+      "via": "county:childrens_justice_center",
+      "overwrite": true
+    },
+    {
+      "name_key": "justice courts",
+      "bucket": "dept",
+      "cities": 2,
+      "plain_name": "Justice Court",
+      "via": "county:justice_court",
+      "overwrite": true
+    },
+    {
+      "name_key": "admin srvc - justice court",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "Justice Court",
+      "via": "county:justice_court",
+      "overwrite": true
+    },
+    {
+      "name_key": "admin srvc - finance(recorder)",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Recorder",
+      "via": "county:recorder",
+      "overwrite": true
+    },
+    {
+      "name_key": "administrative services - justice court",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "Justice Court",
+      "via": "county:justice_court",
+      "overwrite": true
+    },
+    {
+      "name_key": "city recorder",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Recorder",
+      "via": "county:recorder",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - jail housing 100-42330",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - judicial 100-42130",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - patrol 100-42110",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - corrections support services 100-42320",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "assessor 290-41460",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Assessor",
+      "via": "county:assessor",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - jail booking 100-42300",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - jail housing",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - corrections/support services",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - patrol",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - judicial",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - patrol - contract cities 274-42111",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - jail programs 100-42350",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "recorder 290-41440",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Recorder",
+      "via": "county:recorder",
+      "overwrite": true
+    },
+    {
+      "name_key": "children's justice center 250-42250",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "Children's Justice Center",
+      "via": "county:childrens_justice_center",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - wildland fire - out of county 248-42201",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - admin support 100-42160",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "auditor - auditor 680-41410",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Clerk / Auditor",
+      "via": "county:clerk_auditor",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - emergency services 100-42140",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - investigations 100-42120",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - investigations - sa6 241-42120",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "commission 680-41110",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "Commission / Council",
+      "via": "county:commission",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - food services 620-42620",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "justice court 100-41220",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "Justice Court",
+      "via": "county:justice_court",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - special victims unit 100-42180",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - administration 100-42100",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - jail industries 100-42310",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - investigations - contract cities 274-42121",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - animal enforcement 100-42530",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "auditor - tax admin 290-41411",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Clerk / Auditor",
+      "via": "county:clerk_auditor",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - wildland fire - in county 100-42200",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - special victims unit - contract cities 274-42181",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - prisoner benefit operation 273-42730",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - animal enforcement - contract cities 274-42531",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - meals on wheels 620-42621",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - wildland fire - prevention 100-42202",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - jail booking",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - jail program/adm",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - detective",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - patrol - contract cities",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - wildland fire (out of county)",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "clerk/auditor - auditor",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Clerk / Auditor",
+      "via": "county:clerk_auditor",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - admin support",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - food services",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - emergency management",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - jail industries",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - administration",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - sex crimes",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "clerk/auditor - elections",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Clerk / Auditor",
+      "via": "county:clerk_auditor",
+      "overwrite": true
+    },
+    {
+      "name_key": "recorder - records management",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Recorder",
+      "via": "county:recorder",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - animal control",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "clerk/auditor - tax admin",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Clerk / Auditor",
+      "via": "county:clerk_auditor",
+      "overwrite": true
+    },
+    {
+      "name_key": "clerk/auditor - clerk",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Clerk / Auditor",
+      "via": "county:clerk_auditor",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - prisoner's benefit operation",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - animal enforcement - contract cities",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - investigations - contract cities",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - sex crimes investigations - contract cities",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - meals on wheels",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - corrections / support services",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - jail programs/adm",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - emergency mngmt",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - wildland fire (in county)",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "auditor - elections",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Clerk / Auditor",
+      "via": "county:clerk_auditor",
+      "overwrite": true
+    },
+    {
+      "name_key": "auditor - tax administration",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Clerk / Auditor",
+      "via": "county:clerk_auditor",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff corrections-jail housing",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff corrections-support services",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff enforcement-judicial",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff enforcement-patrol",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff corrections-jail booking",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff corrections-jail programs",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff enforcement-wildland fire",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff enforcement-patrol contract cities",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff enforcement-investigations",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "childrens justice center",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "Children's Justice Center",
+      "via": "county:childrens_justice_center",
+      "overwrite": true
+    },
+    {
+      "name_key": "ca-auditor",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Clerk / Auditor",
+      "via": "county:clerk_auditor",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff corrections-food services",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff enforcement-administrative support",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff enforcement-administration",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff enforcement-emergency management",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff enforcement-sex crimes investigations",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff corrections-jail industries",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff enforcement-animal enforcement",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "recorder-records management",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Recorder",
+      "via": "county:recorder",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff corrections-prisoners benefit operation",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff enforcement-animal enf contract cities",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff enforcement-sex crimes invest cont cities",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff enforcement-investigation contract cities",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff corrections-meals on wheels",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - judicial - ucp 248-42130",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "commission 100-41110",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "Commission / Council",
+      "via": "county:commission",
+      "overwrite": true
+    },
+    {
+      "name_key": "ca - auditor",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Clerk / Auditor",
+      "via": "county:clerk_auditor",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - support services 100-42130",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    },
+    {
+      "name_key": "ca - auditor 680-41410",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Clerk / Auditor",
+      "via": "county:clerk_auditor",
+      "overwrite": true
+    },
+    {
+      "name_key": "sheriff - wildland fire - out of county 272-42201",
+      "bucket": "dept",
+      "cities": 1,
+      "plain_name": "County Sheriff",
+      "via": "county:sheriff",
+      "overwrite": true
+    }
+  ]
+}
