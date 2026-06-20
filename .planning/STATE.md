@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v2.6
 milestone_name: EV Financial Transparency Refresh
-status: planning
-last_updated: "2026-06-20T22:45:31.637Z"
-last_activity: 2026-06-20
+status: Defining requirements
+last_updated: "2026-06-20T23:31:14.360Z"
+last_activity: 2026-06-20 — Milestone v2.6 started
 progress:
-  total_phases: 0
+  total_phases: 62
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -134,9 +134,9 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-20 — v2.5 Utah Municipal Expansion completed + archived
-Stopped at: Milestone v2.5 complete (Phase 73 was the final phase)
-Resume file: — (no active milestone)
+Last session: 2026-06-20T23:31:14.351Z
+Stopped at: Phase 74 context gathered
+Resume file: .planning/phases/74-donation-source-refresh-idempotent-income-merge/74-CONTEXT.md
 
 ### Next Session
 
