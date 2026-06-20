@@ -1,34 +1,42 @@
 #!/usr/bin/env node
 /**
- * Utah Transparency Loader (v2.5 Phases 68–69 — UTSRC-02 / UCITY-01/02)
+ * Utah Transparency Loader (v2.5 Phases 68–71.1 — UTSRC-02 / UCITY-01/02 / UETL-01)
  *
- * Loads operating (EX) and revenue (RV) budgets for a single Utah entity from the
- * Utah State Auditor's "Transparent Utah" public BigQuery dataset and imports them
- * into Supabase. Mirrors scripts/bulkLoadStateController.js (the proven CA SCO
- * loader) almost exactly — the ONLY difference is the data-fetch layer: a
- * parameterized BigQuery query replaces the Socrata HTTP fetch. Everything else
- * (treasury_sync_city_budget RPC, durable source attribution, the never-overwrite
- * guard, once-per-run source_date) is identical.
+ * Loads operating (EX), revenue (RV), and salaries (PY) budgets for Utah entities
+ * from the Utah State Auditor's "Transparent Utah" public BigQuery dataset and imports
+ * them into Supabase.
+ *
+ * TWO modes:
+ *
+ * 1. Per-entity mode (original, --entity required):
+ *    Loads a single entity × one or more FYs × one or more types. The cost guardrail
+ *    caps each query at 2 GiB (intentionally blocks raw-table scans after the
+ *    2026-06-19 cost incident — 622 queries, ~21 TiB, ~$132 in one day). Use only for
+ *    one-off probes or single-FY refreshes with LOADER_MAX_GIB set deliberately.
+ *
+ * 2. Rollup mode (--rollup, Phase 71.1 — UETL-01):
+ *    ONE BigQuery scan pulls all 15 mapped entities × FY2014–2025 × EX/RV/PY in a
+ *    single parameterized GROUP BY query (~47 GiB total, ~$0.29). Rows are grouped in
+ *    memory and written via the existing importEntityData RPC. BigQuery becomes a
+ *    periodic source refreshed manually — never queried live per entity.
+ *    --rollup (no --confirm) → free dry-run only: prints estimated GiB + $ + quota-fit
+ *    --rollup --confirm      → real scan (cap ~64 GiB) + idempotent upsert to Supabase
  *
  * Source: ut-sao-transparency-prod.transaction.transaction (CC BY 4.0).
  *   Columns: entity_name, amount, fiscal_year, fund1-4, org1-10, cat1-7,
  *            program1-7, function1-7, type ('EX'|'RV'|'PY'), govt_lvl.
- *   type EX→operating, RV→revenue (PY→salaries deferred to Phase 71).
  *   Access is by-request from the State Auditor (see docs/utah-bigquery-access.md);
- *   queries run at $0 inside BigQuery's 1 TB/month free tier (column projection +
- *   entity/FY/type filters keep scanned bytes tiny).
+ *   queries run at $0 inside BigQuery's 1 TB/month free tier.
  *
- * Tree shape (D-69-01): three levels — top = fund1 (the fund: General Fund, Power,
- * Water, Airport, Debt Service…), 2nd = org1 (department), items = cat1 (expense
- * object). fund1 is legible, citizen-meaningful, and naturally separates enterprise
- * utilities from the governmental General Fund. function1 is ~70% NULL for cities
- * (confirmed 68-03) so it is NOT used. Compact JSON {n,a,c} parents / {n,a,i} items —
- * same as the analog. ≤3 levels (ground rule 3).
+ * Tree shape (D-69-01): three levels — top = fund1, 2nd = org1, items = cat1.
+ * PY tree (D-71-02): two levels — top = org1 (dept), leaves = cat1 (Wages/Benefits).
  *
  * Usage:
  *   node scripts/loadUtahTransparency.js --entity "Salt Lake City" --fy 2025 --dry-run
  *   node scripts/loadUtahTransparency.js --entity "Salt Lake City" --fy 2024 --fy 2025
  *   node scripts/loadUtahTransparency.js --entity "Provo City" --fy 2024 --type EX
+ *   node scripts/loadUtahTransparency.js --rollup                (free dry-run preview)
+ *   node scripts/loadUtahTransparency.js --rollup --confirm      (real scan + Supabase write)
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -46,12 +54,16 @@ const BQ_PROJECT = process.env.GCP_PROJECT_ID || 'empowered-vote-486302';
 // ── BigQuery cost guardrail (added after the 2026-06-19 full-table-scan incident) ──
 // The source table is NOT partitioned/clustered, so every query scans the FULL ~35–47 GiB
 // of the referenced columns regardless of the WHERE filter. Per-(entity,FY,type) live
-// querying ran up ~21 TiB / ~$132 in one day. Until Phase 71.1 replaces this path with a
-// single rollup ETL, cap each query's billed bytes so a stray run FAILS FAST instead of
-// silently full-scanning. The 2 GiB default intentionally blocks the raw-table scans; set
-// LOADER_MAX_GIB (e.g. 64) only for a deliberate one-off or the 71.1 rollup scan.
+// querying ran up ~21 TiB / ~$132 in one day. The 2 GiB default intentionally blocks the
+// raw-table scans; set LOADER_MAX_GIB (e.g. 64) only for a deliberate one-off.
+// The --rollup path uses ROLLUP_MAX_BYTES_BILLED (~64 GiB) for its one intentional scan.
 const MAX_BILLED_GIB = Number(process.env.LOADER_MAX_GIB) || 2;
 const MAX_BYTES_BILLED = String(MAX_BILLED_GIB * 2 ** 30);
+// ── Rollup ETL cap (Phase 71.1 — UETL-01) ─────────────────────────────────
+// The single rollup scan covers ~47 GiB; the cap is set to ~64 GiB to allow headroom.
+// LOADER_MAX_GIB still overrides (if the operator sets it explicitly, honour it).
+const ROLLUP_MAX_GIB = Number(process.env.LOADER_MAX_GIB) || 64;
+const ROLLUP_MAX_BYTES_BILLED = String(ROLLUP_MAX_GIB * 2 ** 30);
 /** The fund-based tree shape (D-69-01): top=fund1, sub=org1, item=cat1. */
 const TREE_OPTS = { topCol: 'fund1', subCol: 'org1', itemCol: 'cat1' };
 /** The data_source label this loader writes (the collision key for never-overwrite). */
@@ -90,6 +102,148 @@ const UT_DISPLAY_NAME = {
 };
 export function toDisplayName(entityName) {
   return UT_DISPLAY_NAME[entityName] || entityName;
+}
+
+// ── Rollup ETL (Phase 71.1 — UETL-01) ────────────────────────────────────────
+
+/**
+ * The 15 exact entity_name values from docs/utah-entity-mapping.md.
+ * Match EXACTLY (never LIKE) — decoys exist (North/South Ogden City, Washington
+ * Terrace City, Davis School District, George Washington Academy, etc.).
+ * Exported so tests and main() share one source of truth.
+ *
+ * govt_lvl mapping (for treasury_ensure_municipality entity_type param):
+ *   Cities  → 'city'   (Layton City, Lehi City, Ogden City, Orem City, Provo City,
+ *                        Salt Lake City, Sandy City, St. George City,
+ *                        West Jordan City, West Valley City)
+ *   Counties → 'county' (Salt Lake County, Utah County, Davis County,
+ *                         Weber County, Washington County)
+ */
+export const ROLLUP_ENTITY_MAP = [
+  // Cities (govt_lvl='City')
+  { entityName: 'Layton City',        entityType: 'city' },
+  { entityName: 'Lehi City',          entityType: 'city' },
+  { entityName: 'Ogden City',         entityType: 'city' },
+  { entityName: 'Orem City',          entityType: 'city' },
+  { entityName: 'Provo City',         entityType: 'city' },
+  { entityName: 'Salt Lake City',     entityType: 'city' },
+  { entityName: 'Sandy City',         entityType: 'city' },
+  { entityName: 'St. George City',    entityType: 'city' },
+  { entityName: 'West Jordan City',   entityType: 'city' },
+  { entityName: 'West Valley City',   entityType: 'city' },
+  // Counties (govt_lvl='County')
+  { entityName: 'Salt Lake County',   entityType: 'county' },
+  { entityName: 'Utah County',        entityType: 'county' },
+  { entityName: 'Davis County',       entityType: 'county' },
+  { entityName: 'Weber County',       entityType: 'county' },
+  { entityName: 'Washington County',  entityType: 'county' },
+];
+
+/**
+ * The single rollup GROUP BY query (Phase 71.1 — UETL-01).
+ *
+ * ONE scan covers all 15 mapped entities × FY2014–2025 × EX/RV/PY.
+ * The source table is unpartitioned, so the WHERE does NOT prune bytes scanned
+ * (~47 GiB either way) — this is COST-NEUTRAL but keeps the in-memory result set
+ * small (only our entities' aggregated rows, not every Utah entity).
+ *
+ * Projects ONLY the 6 non-PII columns + SUM(amount):
+ *   entity_name, fiscal_year, type, fund1, org1, cat1.
+ * No PII column (vendor_name, dba_name, vendor_code, title, hourly_rate, gender,
+ * account_number, contract_name, contract_number, description, ref_id) is ever
+ * projected. Parameterized via @entities (UNNEST) — never string-interpolated.
+ *
+ * Exported for offline PII-exclusion test (D-71-01).
+ */
+export const ROLLUP_QUERY =
+  `SELECT entity_name, fiscal_year, type, ` +
+  `COALESCE(fund1,'Unknown') AS fund1, COALESCE(org1,'General') AS org1, ` +
+  `COALESCE(cat1,'General') AS cat1, SUM(amount) AS amount ` +
+  `FROM \`${BQ_TABLE}\` ` +
+  `WHERE entity_name IN UNNEST(@entities) ` +
+  `AND fiscal_year BETWEEN 2014 AND 2025 ` +
+  `AND type IN ('EX','RV','PY') ` +
+  `GROUP BY entity_name, fiscal_year, type, fund1, org1, cat1`;
+
+/**
+ * Group a flat array of rollup rows by (entity_name, fiscal_year, type) and
+ * build the correct tree for each group (D-71.1 grouping spec).
+ *
+ * PY groups: drop fund1, re-sum by (org1, cat1), then buildSalaryTree → 2-level
+ *   {n,a,c:[{n,a}]} (D-71-02). fund1 is not meaningful for salaries (all-funds).
+ * EX/RV groups: buildTree(rows, TREE_OPTS) → 3-level fund1→org1→cat1 (D-69-01).
+ *
+ * FY2026+ rows and non-mapped entities are filtered out defensively (the query
+ * WHERE should exclude them, but we guard again in memory).
+ *
+ * @param {Array<{entity_name:string, fiscal_year:number, type:string, fund1:string,
+ *                org1:string, cat1:string, amount:number}>} rows
+ * @returns {Array<{entityName:string, fiscalYear:number, type:string,
+ *                  datasetType:string, tree:Array, total:number,
+ *                  entityType:string}>}
+ */
+export function groupRollupRows(rows) {
+  // Build a lookup set of the 15 exact mapped entity names
+  const mappedEntityTypes = new Map(ROLLUP_ENTITY_MAP.map((e) => [e.entityName, e.entityType]));
+
+  // First pass: group rows by (entity_name, fiscal_year, type)
+  const groups = new Map();
+  for (const row of rows) {
+    // Defensive exclusions (query WHERE should already handle these)
+    if (!mappedEntityTypes.has(row.entity_name)) continue;
+    if (Number(row.fiscal_year) > 2025) continue;
+
+    const key = `${row.entity_name}|${row.fiscal_year}|${row.type}`;
+    if (!groups.has(key)) {
+      groups.set(key, {
+        entityName: row.entity_name,
+        fiscalYear: Number(row.fiscal_year),
+        type: row.type,
+        rows: [],
+      });
+    }
+    groups.get(key).rows.push(row);
+  }
+
+  // Second pass: build tree per group
+  const result = [];
+  for (const [, group] of groups) {
+    const datasetType = typeToDataset(group.type);
+    if (!datasetType) continue; // unknown type — skip
+
+    let tree, total;
+    if (group.type === 'PY') {
+      // PY: drop fund1, re-sum by (org1, cat1) across all funds, then 2-level tree
+      const collapsed = new Map(); // `${org1}|${cat1}` → running total
+      for (const row of group.rows) {
+        const a = amt(row.amount);
+        if (a === 0) continue;
+        const k = `${row.org1 || 'General'}|${row.cat1 || 'General'}`;
+        collapsed.set(k, (collapsed.get(k) || 0) + a);
+      }
+      const collapsedRows = [];
+      for (const [k, a] of collapsed) {
+        const [org1, cat1] = k.split('|');
+        collapsedRows.push({ org1, cat1, amount: a });
+      }
+      ({ tree, total } = buildSalaryTree(collapsedRows));
+    } else {
+      // EX / RV: 3-level fund1→org1→cat1 tree
+      ({ tree, total } = buildTree(group.rows, TREE_OPTS));
+    }
+
+    result.push({
+      entityName: group.entityName,
+      fiscalYear: group.fiscalYear,
+      type: group.type,
+      datasetType,
+      tree,
+      total,
+      entityType: mappedEntityTypes.get(group.entityName),
+    });
+  }
+
+  return result;
 }
 
 // ── Salary query (exported for PII-exclusion unit test — D-71-01) ─────────────
@@ -224,29 +378,67 @@ export function buildSalaryTree(rows) {
 
 let _bq;
 /**
+ * Lazily initialise the BigQuery client (avoids importing @google-cloud/bigquery
+ * at module load time — keeps offline unit tests working without ADC).
+ */
+async function initBQ() {
+  if (!_bq) {
+    const { BigQuery } = await import('@google-cloud/bigquery');
+    _bq = new BigQuery({ projectId: BQ_PROJECT });
+  }
+  return _bq;
+}
+
+/**
  * Run a BigQuery query with the cost guardrail applied (maximumBytesBilled). If the job
  * exceeds the cap, BigQuery fails it server-side WITHOUT scanning/billing — we translate
  * that into an actionable message pointing at the Phase 71.1 rollup ETL.
+ * @param {object} opts - Query options (query, params, etc.)
+ * @param {string} [maxBytesBilled] - Override the default per-entity 2 GiB cap.
  */
-async function runGuardedQuery(opts) {
+async function runGuardedQuery(opts, maxBytesBilled = MAX_BYTES_BILLED) {
+  const bq = await initBQ();
   try {
-    return await _bq.query({ ...opts, maximumBytesBilled: MAX_BYTES_BILLED });
+    return await bq.query({ ...opts, maximumBytesBilled: maxBytesBilled });
   } catch (err) {
     if (/bytes billed|maximum bytes/i.test(err && err.message)) {
+      const capGib = Number(maxBytesBilled) / 2 ** 30;
       throw new Error(
-        `BigQuery cost guard tripped: this query would bill more than ${MAX_BILLED_GIB} GiB. ` +
+        `BigQuery cost guard tripped: this query would bill more than ${capGib.toFixed(0)} GiB. ` +
         `The Utah source table is unpartitioned, so per-entity live queries full-scan it ` +
         `(~35–47 GiB each) — disabled by default after the 2026-06-19 cost incident. Use the ` +
-        `Phase 71.1 rollup ETL, or set LOADER_MAX_GIB=<n> for a deliberate one-off. ` +
+        `Phase 71.1 rollup ETL (--rollup --confirm), or set LOADER_MAX_GIB=<n> for a deliberate one-off. ` +
         `Original: ${err.message}`
       );
     }
     throw err;
   }
 }
+
+/**
+ * Run the rollup query as a BigQuery dry-run (dryRun: true).
+ * Dry-run jobs are FREE — they bill 0 bytes and are exempt from the
+ * QueryUsagePerDay quota. Returns { bytes, gib, estimatedUSD, fitsUnderQuota }.
+ *
+ * The quota check is against 1 TiB/day (= 2**40 bytes), matching the GCP
+ * project-level QueryUsagePerDay quota that intentionally caps bulk scans.
+ */
+async function rollupDryRun(entityNames) {
+  const bq = await initBQ();
+  const [job] = await bq.createQueryJob({
+    query: ROLLUP_QUERY,
+    params: { entities: entityNames },
+    types: { entities: ['STRING'] },
+    dryRun: true,
+  });
+  const bytes = Number(job.metadata.statistics.totalBytesProcessed);
+  const gib = bytes / 2 ** 30;
+  const estimatedUSD = (bytes / 2 ** 40) * 6.25;
+  const fitsUnderQuota = bytes <= 2 ** 40; // 1 TiB/day quota
+  return { bytes, gib, estimatedUSD, fitsUnderQuota };
+}
 async function fetchFromBigQuery(entityName, fiscalYear, type) {
-  const { BigQuery } = await import('@google-cloud/bigquery');
-  if (!_bq) _bq = new BigQuery({ projectId: BQ_PROJECT });
+  await initBQ();
 
   if (type === 'PY') {
     // PY (salaries) — names-free aggregate (D-71-01). Projects ONLY org1, cat1, SUM(amount);
@@ -352,37 +544,204 @@ async function importEntityData(municipalityName, state, rows, fiscalYear, datas
 async function main() {
   const { values } = parseArgs({
     options: {
-      entity: { type: 'string' },
-      'entity-type': { type: 'string' },
-      fy: { type: 'string', short: 'y', multiple: true },
-      type: { type: 'string', short: 't' },
-      'source-date': { type: 'string' },
-      'dry-run': { type: 'boolean' },
+      // Per-entity mode options
+      entity:         { type: 'string' },
+      'entity-type':  { type: 'string' },
+      fy:             { type: 'string', short: 'y', multiple: true },
+      type:           { type: 'string', short: 't' },
+      'dry-run':      { type: 'boolean' },
+      // Rollup mode options (Phase 71.1 — UETL-01)
+      rollup:         { type: 'boolean' },
+      confirm:        { type: 'boolean' },
+      // Shared
+      'source-date':  { type: 'string' },
     },
     strict: false,
   });
 
+  const isRollup = values.rollup ?? false;
+  const fetchDate = values['source-date'] || new Date().toISOString().slice(0, 10);
+  const state = 'UT';
+
+  // ── ROLLUP MODE (Phase 71.1 — UETL-01) ─────────────────────────────────────
+  if (isRollup) {
+    const isConfirm = values.confirm ?? false;
+    const entityNames = ROLLUP_ENTITY_MAP.map((e) => e.entityName);
+
+    console.log('\nUtah Transparency Loader — ROLLUP MODE (Phase 71.1 / UETL-01)');
+    console.log(`  Entities: ${entityNames.length} mapped entities (FY2014-2025 x EX/RV/PY)`);
+    console.log(`  Source date: ${fetchDate}${values['source-date'] ? '' : ' (today)'}`);
+    console.log(`  Rollup cap: ${ROLLUP_MAX_GIB} GiB`);
+    if (!isConfirm) {
+      console.log('  Mode: DRY-RUN PREVIEW (no --confirm — no writes, no billing)');
+    } else {
+      console.log('  Mode: LIVE CONFIRM (will scan BigQuery and write to Supabase)');
+    }
+    console.log('');
+
+    // Step 1: Always run the free dry-run first (bills 0 bytes, quota-exempt).
+    console.log('Running BigQuery dry-run (free, bills 0 bytes)...');
+    let dryRunResult;
+    try {
+      dryRunResult = await rollupDryRun(entityNames);
+    } catch (err) {
+      console.error(`Dry-run failed: ${err.message}`);
+      if (/quota/i.test(err.message)) {
+        console.error('Note: Dry-run jobs are normally quota-exempt. If this is a quota error,');
+        console.error('the project quota may be more restrictive than expected.');
+      }
+      process.exit(1);
+    }
+    const { gib, estimatedUSD, fitsUnderQuota } = dryRunResult;
+    console.log('');
+    console.log('--- ROLLUP COST PREVIEW ---');
+    console.log(`  Estimated bytes scanned: ${gib.toFixed(2)} GiB`);
+    console.log(`  Estimated cost:          $${estimatedUSD.toFixed(4)} (at $6.25/TiB)`);
+    console.log(`  1 TiB/day quota:         ${fitsUnderQuota ? 'FITS (under 1 TiB)' : 'EXCEEDS — quota reset required'}`);
+    console.log(`  Rollup cap:              ${ROLLUP_MAX_GIB} GiB (${gib <= ROLLUP_MAX_GIB ? 'OK' : 'WOULD TRIP CAP'})`);
+    console.log('---------------------------');
+    console.log('');
+
+    if (!isConfirm) {
+      console.log('No --confirm flag — preview only. Zero writes performed.');
+      console.log('');
+      console.log('When the 1 TiB/day quota has reset (next calendar day UTC), run:');
+      console.log('  node scripts/loadUtahTransparency.js --rollup --confirm');
+      console.log('');
+      return;
+    }
+
+    if (!fitsUnderQuota) {
+      console.error('ERROR: The rollup scan exceeds the 1 TiB/day quota. Do NOT raise the quota.');
+      console.error('Wait for the quota to reset (next calendar day UTC) and try again.');
+      process.exit(1);
+    }
+
+    // Step 2: Real scan via runGuardedQuery with the rollup cap.
+    console.log('Running real BigQuery scan (ROLLUP_MAX_BYTES_BILLED = ' + ROLLUP_MAX_GIB + ' GiB)...');
+    let allRows;
+    try {
+      const [rows] = await runGuardedQuery(
+        {
+          query: ROLLUP_QUERY,
+          params: { entities: entityNames },
+          types: { entities: ['STRING'] },
+        },
+        ROLLUP_MAX_BYTES_BILLED,
+      );
+      allRows = rows;
+    } catch (err) {
+      console.error(`BigQuery scan failed: ${err.message}`);
+      process.exit(1);
+    }
+    console.log(`Scan complete. ${allRows.length.toLocaleString()} aggregate rows returned.`);
+    console.log('');
+
+    // Step 3: Group rows and build trees in memory.
+    const groups = groupRollupRows(allRows);
+    console.log(`Grouped into ${groups.length} (entity, FY, type) combinations.`);
+    console.log('');
+
+    // Step 4: Per-group import via importEntityData.
+    let imported = 0;
+    let skipped = 0;
+    let errors = 0;
+    let coverageGaps = 0;
+
+    for (const group of groups) {
+      const displayName = toDisplayName(group.entityName);
+      const label = `${displayName} FY${group.fiscalYear} ${group.type}→${group.datasetType}`;
+
+      // Check for different-source conflict before writing
+      const existing = await findEntityMunicipality(displayName, state, group.entityType);
+      if (existing) {
+        const conflict = await findConflictingBudget(existing.id, group.fiscalYear, group.datasetType, DATA_SOURCE_NAME);
+        if (conflict) {
+          console.log(`  SKIP ${label} — existing ${conflict.data_source} data preserved (never-overwrite)`);
+          skipped++;
+          continue;
+        }
+      }
+
+      if (group.total === 0) {
+        console.log(`  COVERAGE GAP ${label} — zero total (no rows after grouping)`);
+        coverageGaps++;
+        continue;
+      }
+
+      // Pass pre-built tree + total directly via a rollup-aware call to importEntityData.
+      // importEntityData builds the tree internally, but for rollup we've already built it.
+      // Use the RPC directly to pass our pre-built tree.
+      const { data: municipalityId, error: munErr } = await supabase.rpc('treasury_ensure_municipality', {
+        p_name: displayName, p_state: state, p_entity_type: group.entityType, p_population: 0,
+      });
+      if (munErr) {
+        console.error(`  ERROR ${label} — municipality: ${munErr.message}`);
+        errors++;
+        continue;
+      }
+
+      const { data: result, error: rpcErr } = await supabase.rpc('treasury_sync_city_budget', {
+        p_municipality_id: municipalityId,
+        p_fiscal_year: group.fiscalYear,
+        p_dataset_type: group.datasetType,
+        p_total: group.total,
+        p_tree: group.tree,
+        p_row_count: allRows.filter(
+          (r) => r.entity_name === group.entityName &&
+                 Number(r.fiscal_year) === group.fiscalYear &&
+                 r.type === group.type
+        ).length,
+        p_data_source_name: DATA_SOURCE_NAME,
+        p_source_url: entitySourceUrl(),
+        p_source_date: fetchDate,
+      });
+      if (rpcErr) {
+        console.error(`  ERROR ${label} — RPC: ${rpcErr.message}`);
+        errors++;
+        continue;
+      }
+
+      console.log(`  OK ${label} — total $${group.total.toLocaleString()} (${result?.rows_inserted ?? '?'} items)`);
+      imported++;
+    }
+
+    console.log('');
+    console.log('--- ROLLUP COMPLETE ---');
+    console.log(`  Imported:      ${imported}`);
+    console.log(`  Skipped:       ${skipped} (different-source rows preserved — never-overwrite)`);
+    console.log(`  Coverage gaps: ${coverageGaps} (zero-total groups — prior rows left in place)`);
+    console.log(`  Errors:        ${errors}`);
+    console.log('----------------------');
+    console.log('');
+    console.log('Utah rollup import complete!');
+    console.log('');
+    return;
+  }
+
+  // ── PER-ENTITY MODE (original) ──────────────────────────────────────────────
   const entityName = values.entity;
-  if (!entityName) { console.error('--entity "<exact BQ entity_name>" is required'); process.exit(1); }
+  if (!entityName) {
+    console.error('--entity "<exact BQ entity_name>" is required (or use --rollup for the bulk ETL)');
+    process.exit(1);
+  }
   const entityType = (values['entity-type'] || 'city').toLowerCase();
   if (entityType !== 'city' && entityType !== 'county') {
     console.error(`--entity-type must be 'city' or 'county' (got '${entityType}')`); process.exit(1);
   }
-  const state = 'UT';
   const fiscalYears = values.fy ? values.fy.map(Number) : [2022];
   const bqTypes = values.type ? [values.type] : ['EX', 'RV'];
   const dryRun = values['dry-run'] ?? false;
-  const fetchDate = values['source-date'] || new Date().toISOString().slice(0, 10);
 
   const isPY = bqTypes.length === 1 && bqTypes[0] === 'PY';
-  console.log(`\n🏔️  Utah Transparency Loader (Transparent Utah / BigQuery)`);
+  console.log(`\nUtah Transparency Loader (Transparent Utah / BigQuery)`);
   console.log(`   Entity: ${entityName} (type: ${entityType})`);
   console.log(`   Fiscal Years: ${fiscalYears.join(', ')}`);
   console.log(`   Types: ${bqTypes.join(', ')} (${bqTypes.map(typeToDataset).join(', ')})`);
   if (isPY) {
-    console.log(`   Tree: org1 → cat1 (Wages/Benefits, all-funds)`);
+    console.log(`   Tree: org1 -> cat1 (Wages/Benefits, all-funds)`);
   } else {
-    console.log(`   Tree: fund1 → org1 → cat1 (all-funds)`);
+    console.log(`   Tree: fund1 -> org1 -> cat1 (all-funds)`);
   }
   console.log(`   Source date: ${fetchDate}${values['source-date'] ? '' : ' (today)'}\n`);
 
@@ -392,18 +751,18 @@ async function main() {
     // PY (salaries) is now fully supported — no skip.
 
     for (const fy of fiscalYears) {
-      console.log(`\n📊 ${type}→${datasetType} FY ${fy} — ${entityName}`);
+      console.log(`\n${type}->${datasetType} FY ${fy} -- ${entityName}`);
       const rows = await fetchFromBigQuery(entityName, fy, type);
       if (!rows.length) { console.log('  No data found'); continue; }
       const { tree, total } = datasetType === 'salaries' ? buildSalaryTree(rows) : buildTree(rows, TREE_OPTS);
       if (datasetType === 'salaries') {
-        console.log(`  ${rows.length.toLocaleString()} rows → ${tree.length} departments, total $${total.toLocaleString()}`);
+        console.log(`  ${rows.length.toLocaleString()} rows -> ${tree.length} departments, total $${total.toLocaleString()}`);
       } else {
-        console.log(`  ${rows.length.toLocaleString()} rows → ${tree.length} funds, total $${total.toLocaleString()}`);
+        console.log(`  ${rows.length.toLocaleString()} rows -> ${tree.length} funds, total $${total.toLocaleString()}`);
       }
 
       if (dryRun) {
-        console.log('  (dry run — no writes)');
+        console.log('  (dry run -- no writes)');
         for (const node of tree.slice(0, 12)) {
           const childLabel = datasetType === 'salaries' ? 'categories' : 'depts';
           console.log(`    ${node.n}: $${node.a.toLocaleString()} (${node.c.length} ${childLabel})`);
@@ -416,16 +775,16 @@ async function main() {
       if (existing) {
         const conflict = await findConflictingBudget(existing.id, fy, datasetType, DATA_SOURCE_NAME);
         if (conflict) {
-          console.log(`  SKIP — existing ${conflict.data_source} data preserved (never-overwrite)`);
+          console.log(`  SKIP -- existing ${conflict.data_source} data preserved (never-overwrite)`);
           continue;
         }
       }
       const result = await importEntityData(muniName, state, rows, fy, datasetType, fetchDate, entityType);
-      if (result) console.log(`  ✅ imported (${result.rows_inserted ?? '?'} items)`);
+      if (result) console.log(`  imported (${result.rows_inserted ?? '?'} items)`);
     }
   }
 
-  console.log('\n🎉 Utah import complete!\n');
+  console.log('\nUtah import complete!\n');
 }
 
 // Only run main() when invoked directly — importing for tests must not execute it.
