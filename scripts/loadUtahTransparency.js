@@ -43,6 +43,15 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 // ── Constants ───────────────────────────────────────────────────────────────
 const BQ_TABLE = 'ut-sao-transparency-prod.transaction.transaction';
 const BQ_PROJECT = process.env.GCP_PROJECT_ID || 'empowered-vote-486302';
+// ── BigQuery cost guardrail (added after the 2026-06-19 full-table-scan incident) ──
+// The source table is NOT partitioned/clustered, so every query scans the FULL ~35–47 GiB
+// of the referenced columns regardless of the WHERE filter. Per-(entity,FY,type) live
+// querying ran up ~21 TiB / ~$132 in one day. Until Phase 71.1 replaces this path with a
+// single rollup ETL, cap each query's billed bytes so a stray run FAILS FAST instead of
+// silently full-scanning. The 2 GiB default intentionally blocks the raw-table scans; set
+// LOADER_MAX_GIB (e.g. 64) only for a deliberate one-off or the 71.1 rollup scan.
+const MAX_BILLED_GIB = Number(process.env.LOADER_MAX_GIB) || 2;
+const MAX_BYTES_BILLED = String(MAX_BILLED_GIB * 2 ** 30);
 /** The fund-based tree shape (D-69-01): top=fund1, sub=org1, item=cat1. */
 const TREE_OPTS = { topCol: 'fund1', subCol: 'org1', itemCol: 'cat1' };
 /** The data_source label this loader writes (the collision key for never-overwrite). */
@@ -214,6 +223,27 @@ export function buildSalaryTree(rows) {
 // ── BigQuery fetch (lazy import: module loads with no @google-cloud/bigquery / no ADC) ──
 
 let _bq;
+/**
+ * Run a BigQuery query with the cost guardrail applied (maximumBytesBilled). If the job
+ * exceeds the cap, BigQuery fails it server-side WITHOUT scanning/billing — we translate
+ * that into an actionable message pointing at the Phase 71.1 rollup ETL.
+ */
+async function runGuardedQuery(opts) {
+  try {
+    return await _bq.query({ ...opts, maximumBytesBilled: MAX_BYTES_BILLED });
+  } catch (err) {
+    if (/bytes billed|maximum bytes/i.test(err && err.message)) {
+      throw new Error(
+        `BigQuery cost guard tripped: this query would bill more than ${MAX_BILLED_GIB} GiB. ` +
+        `The Utah source table is unpartitioned, so per-entity live queries full-scan it ` +
+        `(~35–47 GiB each) — disabled by default after the 2026-06-19 cost incident. Use the ` +
+        `Phase 71.1 rollup ETL, or set LOADER_MAX_GIB=<n> for a deliberate one-off. ` +
+        `Original: ${err.message}`
+      );
+    }
+    throw err;
+  }
+}
 async function fetchFromBigQuery(entityName, fiscalYear, type) {
   const { BigQuery } = await import('@google-cloud/bigquery');
   if (!_bq) _bq = new BigQuery({ projectId: BQ_PROJECT });
@@ -221,7 +251,7 @@ async function fetchFromBigQuery(entityName, fiscalYear, type) {
   if (type === 'PY') {
     // PY (salaries) — names-free aggregate (D-71-01). Projects ONLY org1, cat1, SUM(amount);
     // no fund1, no PII column. All-funds basis (no fund1 filter, D-71-03).
-    const [rows] = await _bq.query({
+    const [rows] = await runGuardedQuery({
       query: SALARY_QUERY,
       params: { entity: entityName, fy: Number(fiscalYear), type: 'PY' },
     });
@@ -247,7 +277,7 @@ async function fetchFromBigQuery(entityName, fiscalYear, type) {
     `FROM \`${BQ_TABLE}\` ` +
     `WHERE entity_name = @entity AND fiscal_year = @fy AND type = @type ` +
     `GROUP BY fund1, org1, cat1`;
-  const [rows] = await _bq.query({
+  const [rows] = await runGuardedQuery({
     query,
     params: { entity: entityName, fy: Number(fiscalYear), type },
   });
