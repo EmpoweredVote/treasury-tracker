@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Utah Municipal Expansion
-status: ready_to_plan
-last_updated: 2026-06-20T16:53:14.551Z
-last_activity: 2026-06-20 -- Phase 71.1 plan 01 Task 1+2 complete; stopped at Task 3 checkpoint (quota reset required)
+status: planning
+last_updated: "2026-06-20T17:16:22.317Z"
+last_activity: 2026-06-20
 progress:
   total_phases: 74
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 10
   completed_plans: 10
-  percent: 5
-stopped_at: Phase 71.1 complete (1/1) — ready to discuss Phase 72
+  percent: 7
 ---
 
 # State
@@ -131,9 +130,9 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-20T08:00:00.000Z
-Stopped at: Phase 71.1-01 Task 3 checkpoint (human-verify, blocking) — waiting for 1 TiB/day BigQuery quota to reset before running --rollup --confirm
-Resume file: .planning/phases/71.1-utah-single-scan-rollup-etl-bigquery-cost-fix/71.1-01-PLAN.md (Task 3)
+Last session: 2026-06-20T17:16:22.301Z
+Stopped at: Phase 72 context gathered
+Resume file: .planning/phases/72-utah-enrichment-parity/72-CONTEXT.md
 
 ### Next Session
 
