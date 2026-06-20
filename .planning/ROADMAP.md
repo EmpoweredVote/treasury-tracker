@@ -18,10 +18,84 @@
 - ✅ **v2.3 California Coverage Parity** — Phases 58-62 (shipped 2026-06-17)
 - ✅ **v2.4 Southern California Expansion** — Phases 63-67 (shipped 2026-06-17)
 - ✅ **v2.5 Utah Municipal Expansion** — Phases 68-73 (shipped 2026-06-20)
+- 🔨 **v2.6 EV Financial Transparency Refresh** — Phases 74-78 (in progress, started 2026-06-20)
 
 ---
 
 ## Phases
+
+## 🔨 v2.6 EV Financial Transparency Refresh (Phases 74-78) — IN PROGRESS
+
+**Milestone goal:** Bring Empowered Vote's own financials on the tracker fully up to date by idempotently combining every income + bank source, and add a donor-facing transparency view with an actual "where the money goes" graphic.
+
+**Constraints:** Idempotent CSV merge (no live-API integration this milestone); free / low-cost only (unfunded nonprofit, $5 AI gate); every displayed figure sourced; bank = authoritative for balance + expenses, platforms = income detail (never double-count a platform payout against its bank deposit). EV is all-volunteer ($0 staff comp).
+
+**Critical path:** 74 → 75 → 76 → 77 → 78 (linear; 77 extends the 76 frontend surface).
+
+### Phase 74: Donation Source Refresh (Idempotent Income Merge)
+
+**Goal:** EV's donation totals reflect the latest data from GiveButter, Patreon, and Benevity, with every income row deduplicated — re-running any loader never double-counts against the live webhook-written rows.
+**Depends on:** Nothing (builds on existing `scripts/loadEVFinances.js` + webhook dedup)
+**Requirements:** EVDATA-01, EVDATA-02, EVDATA-03
+**UI hint:** no
+
+Success criteria:
+1. Latest GiveButter export loads and merges with existing webhook rows; dedup by `external_id` leaves zero duplicate transactions.
+2. Patreon recurring-donation CSV loads into the income model; re-importing the same file adds zero new rows (idempotent).
+3. Benevity workplace-giving CSV loads into the income model; re-importing the same file adds zero new rows (idempotent).
+4. The app's EV "Money In" figures reflect the combined, deduplicated total across all three platforms.
+
+### Phase 75: Bank Truth + Reconciliation
+
+**Goal:** Beneficial State Bank becomes the authoritative source for EV's cash balance and expenses, and combined figures reconcile so a platform donation and its net bank deposit are counted exactly once; off-platform entries can be recorded.
+**Depends on:** Phase 74 (income model must exist before reconciling platform income against bank deposits)
+**Requirements:** EVDATA-04, EVDATA-05, EVDATA-06
+**UI hint:** no
+
+Success criteria:
+1. Beneficial State Bank transaction CSV loads with each row classified as a deposit (income) or debit (expense); the loaded balance matches the bank statement.
+2. Reconciliation rule prevents double-counting: a platform payout deposited in the bank is not added on top of the platform donations that produced it.
+3. Off-platform / manual entries (checks, grants, in-kind) can be recorded and appear in the combined totals.
+4. Re-running the bank loader is idempotent (no duplicate transactions).
+
+### Phase 76: Donor-Facing Transparency View
+
+**Goal:** A visitor to EV's page can understand the organization's finances at a glance — income vs. expenses, an expense breakdown that surfaces the all-volunteer story, current balance + runway, and progress toward the fundraising goal.
+**Depends on:** Phase 75 (needs the combined, reconciled income + expense + balance data)
+**Requirements:** EVVIEW-01, EVVIEW-02, EVVIEW-03, EVVIEW-04
+**UI hint:** yes
+
+Success criteria:
+1. The EV page shows income vs. expenses in plain language — where money came from (by source) and where it went.
+2. The EV page shows an expense breakdown by category that makes the all-volunteer / $0-staff-comp reality obvious.
+3. The EV page shows current funds on hand (balance) and runway at the current burn rate.
+4. The EV page shows the active fundraising goal and a progress indicator toward it.
+
+### Phase 77: "Where the Money Goes" Graphic
+
+**Goal:** A graphic shows donors how money actually spent so far this period breaks down by category, rendered in the tracker's existing visualization vocabulary.
+**Depends on:** Phase 76 (extends the transparency view's frontend surface + data plumbing)
+**Requirements:** EVVIZ-01
+**UI hint:** yes
+
+Success criteria:
+1. A graphic renders the actual spend-so-far breakdown by category for the current period.
+2. The graphic is consistent with the tracker's existing chart vocabulary (icicle/summary or equivalent) and reads clearly to a non-finance visitor.
+3. Every figure in the graphic is sourced and ties to the reconciled bank/expense data.
+
+### Phase 78: Reconciliation Audit + Live-App UAT
+
+**Goal:** The refreshed figures, transparency view, and graphic are verified — combined totals reconcile to the bank balance within an explained tolerance, every figure is sourced, and Chris signs off in the live app.
+**Depends on:** Phases 74–77
+**Requirements:** EVVER-01, EVVER-02
+**UI hint:** no
+
+Success criteria:
+1. Combined displayed figures reconcile to the Beneficial State Bank balance within a documented, explained tolerance.
+2. Every displayed figure carries a source (platform export, bank statement, or manual-entry record).
+3. A live-app UAT covering the refreshed figures, the transparency view, and the spend graphic passes with Chris's sign-off.
+
+---
 
 <details>
 <summary>✅ v1.0 GiveButter Real-Time Donation Feedback (Phases 1-4) — SHIPPED 2026-04-22</summary>

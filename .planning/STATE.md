@@ -20,7 +20,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-17 after v2.4 close + v2.5 start)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Milestone complete
+**Current focus:** v2.6 EV Financial Transparency Refresh — defining/planning phases (74–78)
 
 ## Current Position
 
@@ -29,30 +29,34 @@ Plan: —
 Status: Defining requirements
 Last activity: 2026-06-20 — Milestone v2.6 started
 
-### v2.5 Utah expansion context
+### v2.6 EV Financial Transparency Refresh context
 
-- **Data source LOCKED (recon `.planning/research/UTAH-RECON.md`):** Utah State Auditor's Transparent Utah public **BigQuery** table `ut-sao-transparency-prod.transaction.transaction`. One uniform table → operating (`EX`), revenue (`RV`), payroll (`PY`) for all 15 entities, FY2009→present. **Free** (BQ sandbox free tier, no credit card — Chris confirmed use 2026-06-17). Actuals / all-governmental-funds basis (matches existing CA county loads). Columns: `entity_name, entity_id, amount, fiscal_year, fund1-4, org1-10, cat1-7, program1-7, function1-7, description, vendor_name, title, account_number, type, govt_lvl`.
-- **10 cities:** Layton, Lehi, Ogden, Orem, Provo, Salt Lake City, Sandy, St. George, West Jordan, West Valley City.
-- **5 counties:** Salt Lake (SLC, West Valley, West Jordan, Sandy), Utah (Provo, Orem, Lehi), Davis (Layton), Weber (Ogden), Washington (St. George).
-- 🚧 **BLOCKER (found 2026-06-17): BQ access is by-request, not open.** `chris@empowered.vote` (authed, project `empowered-vote-486302`, BigQuery API on) gets **Access Denied** on `ut-sao-transparency-prod.transaction.transaction`. Process: email **`alexnielson@utah.gov`** with EV org + Google account(s) to grant (instructions: `old.transparent.utah.gov/how_to_become_superuser.php`). Human-in-the-loop, lead time unknown → **send the request email FIRST**; loader/MCP can be built schema-only meanwhile. Gmail-vs-Workspace + billing nuances captured in `68-CONTEXT.md` D-15..18. gcloud SDK installed; `gcloud init` + ADC login done.
-- ⚠️ **Confirm exact `entity_name` strings at Phase 68 plan time** — e.g. "Salt Lake City" vs a corporation suffix; record an entity→municipality mapping before any load (gated on the access grant above).
-- **New tooling = the BQ loader only** (`loadUtahTransparency.js`, Phase 68). `seedCountyLinks.js`, the inline-$0 enrichment authoring pattern, and the verification/source-chain-audit pattern are reused as-is. Socrata FY≤2019 mirror is a zero-auth cross-check only.
-- **Per-capita:** BQ has no population — use Census vintage like prior milestones.
-- **v2.4 follow-ups remain deferred:** broader SoCal ACFR cross-read; FUP-01..03 (Glendale/Burbank ACFR, Employees-card year-gating UX, salary dept-name canonicalization) — not in v2.5 scope.
+- **Scope:** Empowered Vote's OWN organizational financials (not geographic). Refresh donation/income figures by idempotently combining all sources, add a donor-facing transparency view, and add an actual "where the money goes" spend graphic.
+- **Sources (all idempotent CSV merge — no live API this milestone):**
+  - **GiveButter** — primary; already has live webhook → Supabase rows. Fresh export must dedup against webhook rows by `external_id`.
+  - **Patreon** — recurring donations, CSV export.
+  - **Benevity** — workplace/matching giving, export.
+  - **Beneficial State Bank** — transaction CSV export confirmed available (Chris, 2026-06-20). **Authoritative for cash balance + expenses.**
+  - **Manual / off-platform** — checks, grants, in-kind.
+- **🔑 Reconciliation rule (design at Phase 75 plan time):** bank = balance/expense truth; platforms = income detail. A platform payout deposited in the bank must NOT be counted twice on top of the platform donations that produced it (deposits arrive net of platform fees).
+- **EV is all-volunteer, $0 staff comp** — expense breakdown should make this obvious (reinforces the donor story).
+- **Inputs still needed from Chris:** the fundraising **goal figure** (EVVIEW-04); the current set of expense categories the bank debits should roll up into.
+- **Constraints:** free/low-cost only (unfunded nonprofit); $5 AI-spend gate — estimate before any AI run; every displayed figure sourced (platform export, bank statement, or manual-entry record). Live host `treasurytracker.empowered.vote`.
+- **Reuse:** `scripts/loadEVFinances.js` (CSV → Supabase), the existing webhook dedup (`external_id` + source columns), the nonprofit display mode / brand-tile system, and the verification/source-chain + UAT pattern from prior milestones.
+- **Parked:** Ohio geographic milestone (recon'd, `reference_ohio_aos_financial_data`) — a future candidate, not v2.6.
 
 ## Phase Overview
 
 | Phase | Name | Requirements | Depends on | Status |
 |-------|------|--------------|------------|--------|
-| 68 | Utah BigQuery Source Setup + Loader | UTSRC-01, UTSRC-02 | — | Planned (3 plans) |
-| 69 | Utah City Budgets Load | UCITY-01, UCITY-02 | 68 | Not started |
-| 70 | Utah County Budgets + Linking | UCO-01, UCO-02 | 68, 69 | Not started |
-| 71 | Utah City Salaries / Compensation | USAL-01 | 68, 69 | Not started |
-| 72 | Utah Enrichment Parity | UENR-01 | 69, 70, 71 | Not started |
-| 73 | Utah Verification + Source-Chain Audit + UAT | UVER-01, UVER-02 | 69–72 | Not started |
+| 74 | Donation Source Refresh (Idempotent Income Merge) | EVDATA-01, EVDATA-02, EVDATA-03 | — | Not started |
+| 75 | Bank Truth + Reconciliation | EVDATA-04, EVDATA-05, EVDATA-06 | 74 | Not started |
+| 76 | Donor-Facing Transparency View | EVVIEW-01..04 | 75 | Not started |
+| 77 | "Where the Money Goes" Graphic | EVVIZ-01 | 76 | Not started |
+| 78 | Reconciliation Audit + Live-App UAT | EVVER-01, EVVER-02 | 74–77 | Not started |
 
-**Critical path:** 68 → 69 → {70 ∥ 71} → 72 → 73. Phases 70 (county budgets + linking) and 71 (salaries) both depend on 68 + 69 and run in parallel.
-**Constraint:** Free sources only; BQ sandbox at $0; enrichment inline at ~$0 (API cost gate $5 — estimate before any AI run). Every loaded figure carries durable Transparent Utah source attribution.
+**Critical path:** 74 → 75 → 76 → 77 → 78 (linear; 77 extends the 76 frontend surface).
+**Constraint:** Idempotent CSV merge; free/low-cost only ($5 AI gate); every figure sourced; bank authoritative for balance + expenses, platforms for income detail (never double-count).
 
 ## Accumulated Context
 
