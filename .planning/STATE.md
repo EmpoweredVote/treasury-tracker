@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Utah Municipal Expansion
-status: verifying
-last_updated: "2026-06-20T06:00:41.078Z"
-last_activity: 2026-06-19 -- Phase 71 complete; 120 names-free salaries rows loaded for 10 UT cities (FY2014–2025), Provo reconciled −$0.22
+status: executing
+last_updated: "2026-06-20T08:00:00.000Z"
+last_activity: 2026-06-20 -- Phase 71.1 plan 01 Task 1+2 complete; stopped at Task 3 checkpoint (quota reset required)
 progress:
   total_phases: 74
   completed_phases: 4
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-17 after v2.4 close + v2.5 start)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 71 complete — next: Phase 72 (Utah Enrichment Parity, UENR-01)
+**Current focus:** Phase 71.1 — utah-single-scan-rollup-etl-bigquery-cost-fix
 
 ## Current Position
 
-Phase: 71 (utah-city-salaries-compensation) — COMPLETE
-Plan: 1 of 1 complete
-Status: Phase 71 complete (USAL-01 achieved) — verification PASS (6/7 code-confirmed, SC#3 operator-approved at checkpoint)
-Last activity: 2026-06-19 -- Phase 71 complete; 120 names-free salaries rows loaded for 10 UT cities (FY2014–2025), Provo reconciled −$0.22
+Phase: 71.1 (utah-single-scan-rollup-etl-bigquery-cost-fix) — EXECUTING
+Plan: 1 of 1
+Status: Executing Phase 71.1
+Last activity: 2026-06-20 -- Phase 71.1 execution started
 
 ### v2.5 Utah expansion context
 
@@ -130,13 +130,15 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-20T06:00:41.067Z
-Stopped at: Phase 71.1 planned (1 plan)
-Resume file: .planning/phases/71.1-utah-single-scan-rollup-etl-bigquery-cost-fix/71.1-01-PLAN.md
+Last session: 2026-06-20T08:00:00.000Z
+Stopped at: Phase 71.1-01 Task 3 checkpoint (human-verify, blocking) — waiting for 1 TiB/day BigQuery quota to reset before running --rollup --confirm
+Resume file: .planning/phases/71.1-utah-single-scan-rollup-etl-bigquery-cost-fix/71.1-01-PLAN.md (Task 3)
 
 ### Next Session
 
-v2.5 is roadmapped (Phases 68–73, no plans yet). Start with `/gsd-discuss-phase 68` (recommended — Phase 68 has the one new-tooling decision: BQ access + loader design) or `/gsd-plan-phase 68` to plan directly. Phase 68 = stand up BQ sandbox auth + confirm the 15 entities' exact `entity_name` strings + build `loadUtahTransparency.js` and pilot a dry-run on one city. Serial main-tree (needs `.env` / gcloud auth), $0.
+Run Task 3 after the BigQuery quota resets (next calendar day UTC):
+  node scripts/loadUtahTransparency.js --rollup --confirm
+Then verify idempotent Supabase reproduction and type "approved" to complete plan 71.1-01.
 
 ## Performance Metrics
 
