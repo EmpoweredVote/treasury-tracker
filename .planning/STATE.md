@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.5
 milestone_name: Utah Municipal Expansion
 status: verifying
-last_updated: "2026-06-20T04:22:30.050Z"
+last_updated: "2026-06-20T06:00:41.078Z"
 last_activity: 2026-06-19 -- Phase 71 complete; 120 names-free salaries rows loaded for 10 UT cities (FY2014–2025), Provo reconciled −$0.22
 progress:
   total_phases: 74
   completed_phases: 4
-  total_plans: 9
+  total_plans: 10
   completed_plans: 9
   percent: 5
 ---
@@ -130,9 +130,9 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-20T04:22:30.040Z
-Stopped at: Phase 71.1 context gathered
-Resume file: .planning/phases/71.1-utah-single-scan-rollup-etl-bigquery-cost-fix/71.1-CONTEXT.md
+Last session: 2026-06-20T06:00:41.067Z
+Stopped at: Phase 71.1 planned (1 plan)
+Resume file: .planning/phases/71.1-utah-single-scan-rollup-etl-bigquery-cost-fix/71.1-01-PLAN.md
 
 ### Next Session
 
