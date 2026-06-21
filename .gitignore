@@ -88,3 +88,6 @@ _acfr-tmp/
 
 # Transient loader driver output (scratch; logs already ignored)
 scripts/*.failures.txt
+
+# EV donation/bank source exports — contain donor PII; never commit (Phase 74/75)
+data/ev-sources/

@@ -3,15 +3,20 @@
  * Empowered Vote Finance Loader
  *
  * Reads an Empowered Vote transaction CSV (exported from Google Sheets or data/ev-finances.csv)
- * and imports it into the Treasury Tracker database as two datasets per fiscal year:
- *   - revenue:   income broken down by source (Patreon, Give Butter, Benevity, Interest)
+ * and imports the EXPENSE side into the Treasury Tracker database:
  *   - operating: expenses broken down by category and vendor
+ *
+ * NOTE (Phase 74, D-08): donation INCOME is no longer loaded here. It now comes from
+ * per-platform exports via scripts/loadEVDonations.js (data/ev-sources/), which is the
+ * single income writer. This loader writes the operating (expense) dataset only.
+ * (Phase 75 will own the expense/bank side; until then the sheet still drives expenses.)
  *
  * Usage:
  *   SUPABASE_SERVICE_KEY=... node scripts/loadEVFinances.js [path/to/csv]
  *   (defaults to data/ev-finances.csv)
  *
- * To update: export the Google Sheet as CSV, save to data/ev-finances.csv, re-run.
+ * To update expenses: export the Google Sheet as CSV, save to data/ev-finances.csv, re-run.
+ * To update donation income: run scripts/loadEVDonations.js (see docs/ev-donation-sources.md).
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -374,17 +379,14 @@ async function main() {
 
   for (const [yearStr, rows] of Object.entries(byYear).sort()) {
     const year = parseInt(yearStr);
-    const incomeRows  = rows.filter(r => r['Type (Income/Expense)'] === 'Income');
     const expenseRows = rows.filter(r => r['Type (Income/Expense)'] === 'Expense');
 
-    console.log(`\n📅 FY${year} — ${incomeRows.length} income, ${expenseRows.length} expense transactions`);
+    console.log(`\n📅 FY${year} — ${expenseRows.length} expense transactions (income now via loadEVDonations.js)`);
 
-    // Revenue dataset
-    const { categories: revCats, total: revTotal } = buildTree(incomeRows, classifyIncome);
-    await clearExistingBudget(municipalityId, year, 'revenue');
-    const revBudgetId = await createBudget(municipalityId, year, 'revenue', revTotal, ['Income Type', 'Source']);
-    await insertCategories(revBudgetId, revCats);
-    console.log(`   ✅ Revenue:   $${revTotal.toFixed(2)} | ${revCats.length} top-level categories`);
+    // Revenue dataset: REMOVED (Phase 74, D-08). Donation income is now loaded by
+    // scripts/loadEVDonations.js from per-platform exports in data/ev-sources/ —
+    // the platform exports are the income master, not this hand-entered sheet.
+    // This loader writes EXPENSES only.
 
     // Operating dataset
     const { categories: opCats, total: opTotal } = buildTree(expenseRows, classifyExpense);
@@ -394,8 +396,9 @@ async function main() {
     console.log(`   ✅ Operating: $${opTotal.toFixed(2)} | ${opCats.length} top-level categories`);
   }
 
-  console.log('\n✨ Done! Empowered Vote finances are live in the Treasury Tracker.');
-  console.log('\n📋 To update:');
+  console.log('\n✨ Done! Empowered Vote EXPENSES are live in the Treasury Tracker.');
+  console.log('   (Donation income loads separately via scripts/loadEVDonations.js — see docs/ev-donation-sources.md)');
+  console.log('\n📋 To update expenses:');
   console.log('   1. Export the Google Sheet → CSV');
   console.log('   2. Save it to data/ev-finances.csv');
   console.log('   3. Run: npm run load-ev-finances\n');
