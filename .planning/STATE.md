@@ -49,7 +49,7 @@ Last activity: 2026-06-20 — Milestone v2.6 started
 
 | Phase | Name | Requirements | Depends on | Status |
 |-------|------|--------------|------------|--------|
-| 74 | Donation Source Refresh (Idempotent Income Merge) | EVDATA-01, EVDATA-02, EVDATA-03 | — | Planned (2 plans) |
+| 74 | Donation Source Refresh (Idempotent Income Merge) | EVDATA-01, EVDATA-02, EVDATA-03 | — | Executed — awaiting Chris live-app UAT (74-02 Task 3) |
 | 75 | Bank Truth + Reconciliation | EVDATA-04, EVDATA-05, EVDATA-06 | 74 | Not started |
 | 76 | Donor-Facing Transparency View | EVVIEW-01..04 | 75 | Not started |
 | 77 | "Where the Money Goes" Graphic | EVVIZ-01 | 76 | Not started |
