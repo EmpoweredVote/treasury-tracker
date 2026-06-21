@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import type { BudgetData } from '../../types/budget';
+import type { BudgetData, OrgFinancialSummary } from '../../types/budget';
 import { useAnimatedCounter } from '../../hooks/useAnimatedCounter';
 
 interface PlainLanguageSummaryProps {
@@ -18,6 +18,9 @@ interface PlainLanguageSummaryProps {
   onCategoryClick?: (categoryName: string, dataset: 'operating' | 'revenue') => void;
   onYearClick?: () => void;
   allFundsRequirementsData?: BudgetData | null;
+  /** Reconciled nonprofit summary (Phase 76) — drives the gross→net fee story
+   *  and burn-pace line. Null for non-nonprofit entities. */
+  orgSummary?: OrgFinancialSummary | null;
 }
 
 /**
@@ -34,6 +37,7 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
   onCategoryClick,
   onYearClick,
   allFundsRequirementsData = null,
+  orgSummary = null,
 }) => {
   // ── Derive values needed by hooks (safe even when operatingData is null) ──
   const budgetedTotal = allFundsRequirementsData?.metadata.totalBudget
@@ -215,7 +219,7 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
                 ? <>{entity.name} {showActual ? 'paid' : 'budgets'}{' '}
                     <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(salariesTotal)}</strong> in staff compensation.
                   </>
-                : <>All work is done by unpaid volunteers — {isPastYear ? <>in {fiscalYear}, {entity.name} paid</> : <>so far in {fiscalYear}, {entity.name} has paid</>} <strong className="text-ev-gray-800 dark:text-ev-gray-100">$0</strong> in staff compensation.</>
+                : <>{isPastYear ? <>In {fiscalYear}, {entity.name} paid</> : <>So far in {fiscalYear}, {entity.name} has paid</>} <strong className="text-ev-gray-800 dark:text-ev-gray-100">$0</strong> in staff compensation.</>
               }
             </p>
           )}
@@ -267,7 +271,45 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
           )}
 
 
-          {revenueData && (
+          {/* Burn pace (Phase 76, D-05) — honest spend rate, NOT a runway countdown (D-06) */}
+          {isNonprofit && orgSummary && orgSummary.monthly_burn > 0 && topCategories[0] && (
+            <p>
+              {entity.name} currently spends about{' '}
+              <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(orgSummary.monthly_burn)}</strong>
+              {' '}per month, mostly on{' '}
+              <button
+                className="font-bold text-ev-gray-800 dark:text-ev-gray-100 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
+                onClick={() => onCategoryClick?.(topCategories[0].name, 'operating')}
+              >{toDisplayName(topCategories[0].name)}</button>.
+            </p>
+          )}
+
+          {/* Income gross→net fee story (Phase 76, D-07/D-08). Fees are a reduction
+              of income, never an expense (D-09/D-12). Replaces the generic income
+              sentence for EV; the per-source breakdown follows directly beneath. */}
+          {isNonprofit && orgSummary && (
+            <div>
+              <p>
+                Donors gave{' '}
+                <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(orgSummary.income_gross)}</strong>;
+                {' '}after{' '}
+                <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(orgSummary.income_fees)}</strong>
+                {' '}in platform fees,{' '}
+                <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(orgSummary.income_net)}</strong>
+                {' '}reached {entity.name}.
+              </p>
+              <ul className="mt-2 space-y-1 text-[14px] text-ev-gray-500 dark:text-ev-gray-400">
+                {orgSummary.income_by_source.filter(s => s.gross > 0).map(s => (
+                  <li key={s.source}>
+                    <span className="font-semibold text-ev-gray-700 dark:text-ev-gray-300">{s.source}</span>:{' '}
+                    {formatAmount(s.gross)} → {formatAmount(s.fee)} fee → {formatAmount(s.net)} net
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {revenueData && !(isNonprofit && orgSummary) && (
             <p>
               {isNonprofit
                 ? <>{entity.name} {showActual ? 'raised' : 'raises'}{' '}</>

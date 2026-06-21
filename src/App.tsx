@@ -3,6 +3,7 @@ import { FileText, Heart } from 'lucide-react'
 import { SiteHeader } from '@empoweredvote/ev-ui';
 import { AppHeader } from './components/AppHeader';
 import PlainLanguageSummary from './components/dashboard/PlainLanguageSummary';
+import OrgTransparencyPanel from './components/dashboard/OrgTransparencyPanel';
 import FederalLanding from './components/federal/FederalLanding';
 import LensToggle from './components/federal/LensToggle';
 import SourceChip from './components/federal/SourceChip';
@@ -13,7 +14,7 @@ import { cityBasisNotes } from './data/cityBasisNotes';
 import ScaleToggle, { type FederalScale } from './components/federal/ScaleToggle';
 import ProgramOrigins from './components/federal/ProgramOrigins';
 import BudgetSearch from './components/dashboard/BudgetSearch';
-import { loadBudgetData, loadFederalContext, loadLinkedTransactions, listMunicipalities, clearCache } from './data/dataLoader';
+import { loadBudgetData, loadFederalContext, loadOrgFinancialSummary, loadLinkedTransactions, listMunicipalities, clearCache } from './data/dataLoader';
 import EntitySwitcher from './components/EntitySwitcher';
 import AlphaLanding from './components/AlphaLanding';
 import type { LandingReason } from './components/AlphaLanding';
@@ -35,7 +36,7 @@ import CitiesInCountyPanel from './components/CitiesInCountyPanel';
 import CitiesInStatePanel from './components/CitiesInStatePanel';
 import StatesInFederalPanel from './components/StatesInFederalPanel';
 import { getHeroImage, getHeroBgPosition } from './utils/wikiImage';
-import type { BudgetCategory, BudgetData, FederalContext, LinkedTransactionSummary, Municipality } from './types/budget';
+import type { BudgetCategory, BudgetData, FederalContext, LinkedTransactionSummary, Municipality, OrgFinancialSummary } from './types/budget';
 
 interface BreadcrumbItem {
   label: string;
@@ -116,6 +117,9 @@ function App() {
   // Federal scale (VIZ-05): display-only transform — loaded data is never mutated.
   const [federalScale, setFederalScale] = useState<FederalScale>('dollars');
   const [federalContextData, setFederalContextData] = useState<FederalContext | null>(null);
+  // EV (nonprofit) reconciled financial summary — Phase 76. Null for non-nonprofit
+  // entities and on fetch failure (graceful hide, no fallback figures).
+  const [orgSummary, setOrgSummary] = useState<OrgFinancialSummary | null>(null);
 
   // App-level view state: resolving auth → landing or budget
   const [appView, setAppView] = useState<'resolving' | 'landing' | 'budget'>('resolving');
@@ -409,6 +413,15 @@ function App() {
     if (selectedEntity?.entity_type !== 'federal') return;
     loadFederalContext().then(setFederalContextData).catch(() => { /* per-taxpayer mode simply hides */ });
   }, [selectedEntity]);
+
+  // EV (nonprofit) reconciled financial summary — Phase 76. Fetch per entity+year;
+  // null for any non-nonprofit entity (never leaks across entities) and on failure.
+  useEffect(() => {
+    if (selectedEntity?.entity_type !== 'nonprofit') { setOrgSummary(null); return; }
+    loadOrgFinancialSummary(selectedEntity.id, parsePeriod(selectedYear).fiscalYear)
+      .then(setOrgSummary)
+      .catch(() => setOrgSummary(null));
+  }, [selectedEntity, selectedYear]);
 
   // Per-YEAR per-capita denominators (Phase 50 fix): population + returns vary by the
   // selected fiscal year (federal_context_metrics population_fyN / tax_returns_filed_fyN).
@@ -908,7 +921,10 @@ function App() {
                 </div>
               ) : (
                 /* Plain language summary — lead with the story */
-                <div className="mb-6">
+                <div className="mb-6 space-y-6">
+                  {selectedEntity?.entity_type === 'nonprofit' && orgSummary && (
+                    <OrgTransparencyPanel summary={orgSummary} orgName={selectedEntity.name} />
+                  )}
                   <PlainLanguageSummary
                     entity={selectedEntity}
                     operatingData={operatingBudgetData}
@@ -919,6 +935,7 @@ function App() {
                     onCategoryClick={handleSummaryCategoryClick}
                     onYearClick={() => yearSelectorRef.current?.open()}
                     allFundsRequirementsData={allFundsRequirementsData}
+                    orgSummary={selectedEntity?.entity_type === 'nonprofit' ? orgSummary : null}
                   />
                 </div>
               )}
