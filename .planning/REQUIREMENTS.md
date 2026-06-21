@@ -9,9 +9,9 @@ Requirements for milestone v2.6. Each maps to exactly one roadmap phase.
 
 ### Data Refresh & Reconciliation (EVDATA)
 
-- [ ] **EVDATA-01**: GiveButter donations refreshed from the latest export and merged idempotently with the live webhook-written rows (dedup by `external_id`) — totals reflect current data, no double-counting.
-- [ ] **EVDATA-02**: Patreon recurring-donation CSV loaded into the income model and deduplicated on re-import.
-- [ ] **EVDATA-03**: Benevity workplace-giving CSV loaded into the income model and deduplicated on re-import.
+- [x] **EVDATA-01**: GiveButter donations refreshed from the latest export and merged idempotently with the live webhook-written rows (dedup by `external_id`) — totals reflect current data, no double-counting. ✓ Phase 74
+- [x] **EVDATA-02**: Patreon recurring-donation CSV loaded into the income model and deduplicated on re-import. ✓ Phase 74
+- [x] **EVDATA-03**: Benevity workplace-giving CSV loaded into the income model and deduplicated on re-import. ✓ Phase 74
 - [ ] **EVDATA-04**: Beneficial State Bank transaction CSV loaded as the authoritative source for cash balance and expenses (deposits vs. debits classified).
 - [ ] **EVDATA-05**: Reconciliation ensures a platform donation and its corresponding net bank deposit are counted once (bank = balance/expense truth; platforms = income detail).
 - [ ] **EVDATA-06**: Off-platform / manual entries (checks, grants, in-kind) can be recorded and included in totals.
@@ -61,10 +61,10 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| EVDATA-01 | Phase 74 | Pending |
-| EVDATA-02 | Phase 74 | Pending |
-| EVDATA-03 | Phase 74 | Pending |
-| EVDATA-04 | Phase 75 | Pending |
+| EVDATA-01 | Phase 74 | Complete |
+| EVDATA-02 | Phase 74 | Complete |
+| EVDATA-03 | Phase 74 | Complete |
+| EVDATA-04 | Phase 75 | Expense half done (Phase 74 session); balance pending |
 | EVDATA-05 | Phase 75 | Pending |
 | EVDATA-06 | Phase 75 | Pending |
 | EVVIEW-01 | Phase 76 | Pending |

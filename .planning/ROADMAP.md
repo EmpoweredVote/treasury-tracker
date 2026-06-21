@@ -47,16 +47,19 @@ Success criteria:
 
 ### Phase 75: Bank Truth + Reconciliation
 
-**Goal:** Beneficial State Bank becomes the authoritative source for EV's cash balance and expenses, and combined figures reconcile so a platform donation and its net bank deposit are counted exactly once; off-platform entries can be recorded.
+**Goal:** Beneficial State Bank becomes the authoritative source for EV's cash balance and expenses, and combined figures reconcile so a platform donation and its net bank deposit are counted exactly once; off-platform entries can be recorded; platform fees are tracked (not lost).
 **Depends on:** Phase 74 (income model must exist before reconciling platform income against bank deposits)
 **Requirements:** EVDATA-04, EVDATA-05, EVDATA-06
 **UI hint:** no
 
+**Already done (pulled forward during Phase 74 session, 2026-06-20):** the bank EXPENSE side — `scripts/loadEVBank.js` loads every bank debit into the FY operating dataset (FY2026 = $1,745.65, source='bank'), idempotent + tested. EVDATA-04's expense half is satisfied; the balance half + EVDATA-05/06 remain.
+
 Success criteria:
-1. Beneficial State Bank transaction CSV loads with each row classified as a deposit (income) or debit (expense); the loaded balance matches the bank statement.
-2. Reconciliation rule prevents double-counting: a platform payout deposited in the bank is not added on top of the platform donations that produced it.
+1. ~~Bank CSV debits load as expenses~~ (DONE in Phase 74 session) — PLUS: cash **balance** + **runway** surfaced (latest balance $1,706.77 as of 2026-06-17 already parsed by the loader).
+2. Reconciliation rule prevents double-counting: a platform payout deposited in the bank is not added on top of the platform donations that produced it (gross donations vs. net deposits).
 3. Off-platform / manual entries (checks, grants, in-kind) can be recorded and appear in the combined totals.
-4. Re-running the bank loader is idempotent (no duplicate transactions).
+4. Re-running the bank loader is idempotent (no duplicate transactions). *(DONE)*
+5. **Platform fees are tracked and visible** (Chris, 2026-06-20) — the ~$125/FY netted platform fees (GiveButter/Patreon/Benevity), captured by `loadEVDonations.js` (D-09) but currently dropped from display, must be surfaced as part of the gross→net story ("donors gave $X → $Y fees → $Z reached EV").
 
 ### Phase 76: Donor-Facing Transparency View
 

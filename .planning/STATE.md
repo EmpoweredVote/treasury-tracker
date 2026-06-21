@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.6
 milestone_name: EV Financial Transparency Refresh
 status: Defining requirements
-last_updated: "2026-06-20T23:31:14.360Z"
+last_updated: "2026-06-21T03:11:26.031Z"
 last_activity: 2026-06-20 — Milestone v2.6 started
 progress:
   total_phases: 62
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 1
+  total_plans: 2
+  completed_plans: 2
+  percent: 2
 ---
 
 # State
@@ -49,7 +49,7 @@ Last activity: 2026-06-20 — Milestone v2.6 started
 
 | Phase | Name | Requirements | Depends on | Status |
 |-------|------|--------------|------------|--------|
-| 74 | Donation Source Refresh (Idempotent Income Merge) | EVDATA-01, EVDATA-02, EVDATA-03 | — | Executed — awaiting Chris live-app UAT (74-02 Task 3) |
+| 74 | Donation Source Refresh (Idempotent Income Merge) | EVDATA-01, EVDATA-02, EVDATA-03 | — | ✅ COMPLETE — verified, Chris UAT all-pass 2026-06-20 |
 | 75 | Bank Truth + Reconciliation | EVDATA-04, EVDATA-05, EVDATA-06 | 74 | Not started |
 | 76 | Donor-Facing Transparency View | EVVIEW-01..04 | 75 | Not started |
 | 77 | "Where the Money Goes" Graphic | EVVIZ-01 | 76 | Not started |
@@ -59,6 +59,13 @@ Last activity: 2026-06-20 — Milestone v2.6 started
 **Constraint:** Idempotent CSV merge; free/low-cost only ($5 AI gate); every figure sourced; bank authoritative for balance + expenses, platforms for income detail (never double-count).
 
 ## Accumulated Context
+
+### v2.6 Phase 74 close (2026-06-20)
+
+- **Phase 74 COMPLETE + verified.** FY2026 EV donation income refreshed from platform exports: GiveButter $703, Patreon $370, Benevity $1,475, Interest $0.51 = **$2,548.51** (was $1,256.51). Idempotent, dedup'd (export-baseline + webhook-delta), aggregate-only (no donor PII). `scripts/loadEVDonations.js` + tests; `loadEVFinances.js` writes expenses only now (D-08). Chris UAT all-pass.
+- **Benevity FY basis = disbursement date (cash basis)** — matches the bank. Fixed a cross-year double-count: 14 Dec-2025 gifts ($207.50) were in both FY2025 (old sheet) and FY2026; removed from FY2025 (→ $2,340.01).
+- **Phase 75 expense side PULLED FORWARD (Chris asked):** `scripts/loadEVBank.js` loads every Beneficial State Bank debit as the FY operating dataset. FY2026 operating $969.33 (stale sheet) → **$1,745.65** (bank truth): AI & Research $820.60 (Anthropic $680.60!), Infra & Hosting $473.43, Design $410.31, Domains $39.95, Bank Fees $1.36. Idempotent + tested, source='bank'. No transfers/payroll (all-volunteer).
+- **🔑 Phase 75 remaining:** cash balance ($1,706.77 @ 6/17) + runway; deposit↔donation reconciliation (gross donations vs. net deposits — don't double-count); manual/off-platform entries; **track + display platform fees** (~$125/FY, captured by loadEVDonations D-09 but currently dropped — Chris explicitly wants these visible, the cost-of-fundraising story).
 
 ### Roadmap Evolution
 
@@ -134,9 +141,9 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-20T23:31:14.351Z
-Stopped at: Phase 74 context gathered
-Resume file: .planning/phases/74-donation-source-refresh-idempotent-income-merge/74-CONTEXT.md
+Last session: 2026-06-21T03:11:26.017Z
+Stopped at: Phase 74 complete (verified, UAT all-pass); Phase 75 expense side pulled forward
+Resume file: .planning/ROADMAP.md
 
 ### Next Session
 
