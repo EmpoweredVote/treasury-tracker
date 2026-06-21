@@ -267,3 +267,58 @@ export interface ComparabilityContent {
   function_classification: ComparabilitySource;
   agency_reorganizations: AgencyReorganization[];
 }
+
+// ── Org financial summary (Phase 76) — /api/treasury/orgs/:id/financial-summary ──
+// One reconciled, always-sourced row per (org, fiscal year) for a nonprofit (EV).
+// Bank-authoritative balance/expenses + platform-authoritative income (gross→net).
+// Served by the ev-accounts API; goal_amount/goal_label are null until the manual
+// goal is set (Phase 76 D-01). Amounts in DOLLARS.
+
+export interface IncomeBySource {
+  source: string;
+  gross: number;
+  fee: number;
+  net: number;
+}
+
+export interface ReconBySource {
+  source: string;
+  platform_net: number;
+  bank_deposits: number;
+  variance: number;
+}
+
+export interface UnmatchedDeposit {
+  date: string;
+  amount: number;
+  description: string;
+}
+
+export interface OrgFinancialSummary {
+  municipality_id: string;
+  fiscal_year: number;
+  // cash truth (bank-authoritative)
+  balance: number;
+  balance_as_of: string;
+  // burn / runway — runway is stored but NOT displayed (D-06); burn pace is shown
+  monthly_burn: number;
+  burn_window_months: number;
+  runway_months: number | null;
+  // income gross→net (platform-authoritative)
+  income_gross: number;
+  income_fees: number;
+  income_net: number;
+  income_by_source: IncomeBySource[];
+  // reconciliation
+  recon_variance: number | null;
+  recon_explanation: string | null;
+  recon_by_source: ReconBySource[];
+  unmatched_deposits: UnmatchedDeposit[];
+  // fundraising goal (manual value, D-01); progress = income_net / goal_amount (D-02)
+  goal_amount: number | null;
+  goal_label: string | null;
+  // always-sourced standard
+  source_name: string;
+  source_url: string | null;
+  source_date: string;
+}

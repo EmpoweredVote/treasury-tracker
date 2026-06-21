@@ -5,7 +5,7 @@
  * API is the sole data source — no JSON file fallback, no hardcoded placeholder data (per D-06).
  */
 
-import type { BudgetData, BudgetCategory, FederalContext, LinkedTransactionSummary, Municipality, SearchResult } from '../types/budget';
+import type { BudgetData, BudgetCategory, FederalContext, LinkedTransactionSummary, Municipality, OrgFinancialSummary, SearchResult } from '../types/budget';
 
 // In dev: use /api which Vite proxies to the backend (avoids CORS).
 // In production: no proxy exists, so use the full API URL directly.
@@ -141,6 +141,7 @@ function transformAPIResponse(budget: any, categories: BudgetCategory[], city?: 
 export function clearCache() {
   cache.clear();
   txCache.clear();
+  orgSummaryCache.clear();
 }
 
 /**
@@ -199,4 +200,29 @@ export async function loadFederalContext(): Promise<FederalContext> {
   }
   federalContextCache = context;
   return context;
+}
+
+// ── Org financial summary (Phase 76) ──────────────────────────────────────────
+// Reconciled per-org financial summary for a nonprofit (EV). Always-sourced;
+// throws on failure — no fallback figures (D-06 + v2.0 rule 3). Cached per
+// (orgId, fiscalYear) for the session.
+
+const orgSummaryCache: Map<string, OrgFinancialSummary> = new Map();
+
+export async function loadOrgFinancialSummary(
+  orgId: string,
+  fiscalYear: number
+): Promise<OrgFinancialSummary> {
+  const cacheKey = `${orgId}:${fiscalYear}`;
+  if (orgSummaryCache.has(cacheKey)) return orgSummaryCache.get(cacheKey)!;
+
+  const response = await fetch(
+    `${API_BASE}/treasury/orgs/${orgId}/financial-summary?fiscal_year=${fiscalYear}`
+  );
+  if (!response.ok) {
+    throw new Error(`Org financial summary API returned ${response.status}`);
+  }
+  const summary: OrgFinancialSummary = await response.json();
+  orgSummaryCache.set(cacheKey, summary);
+  return summary;
 }
