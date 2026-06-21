@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v2.6
 milestone_name: EV Financial Transparency Refresh
 status: Defining requirements
-last_updated: "2026-06-21T03:11:26.031Z"
+last_updated: "2026-06-21T03:37:10.280Z"
 last_activity: 2026-06-20 — Milestone v2.6 started
 progress:
   total_phases: 62
@@ -141,9 +141,9 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-21T03:11:26.017Z
-Stopped at: Phase 74 complete (verified, UAT all-pass); Phase 75 expense side pulled forward
-Resume file: .planning/ROADMAP.md
+Last session: 2026-06-21T03:37:10.269Z
+Stopped at: Phase 75 context gathered
+Resume file: .planning/phases/75-bank-truth-reconciliation/75-CONTEXT.md
 
 ### Next Session
 
