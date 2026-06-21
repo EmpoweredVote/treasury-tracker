@@ -922,9 +922,6 @@ function App() {
               ) : (
                 /* Plain language summary — lead with the story */
                 <div className="mb-6 space-y-6">
-                  {selectedEntity?.entity_type === 'nonprofit' && orgSummary && (
-                    <OrgTransparencyPanel summary={orgSummary} orgName={selectedEntity.name} />
-                  )}
                   <PlainLanguageSummary
                     entity={selectedEntity}
                     operatingData={operatingBudgetData}
@@ -937,6 +934,10 @@ function App() {
                     allFundsRequirementsData={allFundsRequirementsData}
                     orgSummary={selectedEntity?.entity_type === 'nonprofit' ? orgSummary : null}
                   />
+                  {/* Funds on Hand + goal progress — placed below the narrative (Chris, 2026-06-21) */}
+                  {selectedEntity?.entity_type === 'nonprofit' && orgSummary && (
+                    <OrgTransparencyPanel summary={orgSummary} orgName={selectedEntity.name} />
+                  )}
                 </div>
               )}
 
