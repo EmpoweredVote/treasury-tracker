@@ -124,11 +124,13 @@ export function reconcile(income_by_source, deposits) {
 function findFile(dir, re) { const f = fs.readdirSync(dir).find(n => re.test(n)); return f ? path.join(dir, f) : null; }
 
 // ── Manual fundraising goal (D-01) ──────────────────────────────────────────────
-// Reads data/ev-sources/goal.json — an array of { fiscal_year, goal_amount, goal_label }.
-// Returns nulls (never throws) when the file is absent or has no entry for `fy`, so a
-// run with no active goal is valid and leaves the columns null.
-export function readGoal(dir, fy) {
-  const file = path.join(dir, 'goal.json');
+// Reads the committed, git-reviewable data/ev-goal.json — an array of
+// { fiscal_year, goal_amount, goal_label }. Kept OUTSIDE data/ev-sources/ (which is
+// gitignored for the sensitive bank/platform exports) because the goal is a public,
+// donor-facing figure. Returns nulls (never throws) when the file is absent or has no
+// entry for `fy`, so a run with no active goal is valid and leaves the columns null.
+export function readGoal(fy) {
+  const file = path.join(__dirname, '..', 'data', 'ev-goal.json');
   try {
     const entries = JSON.parse(fs.readFileSync(file, 'utf8'));
     const e = Array.isArray(entries) ? entries.find(g => Number(g.fiscal_year) === fy) : null;
@@ -175,7 +177,7 @@ export function computeSummary(dir, fy) {
   const income = buildIncome(bySource);
   const recon = reconcile(income.income_by_source, deposits);
   const burn = monthlyBurn(debits, bal && bal.iso, 3);
-  const goal = readGoal(dir, fy);
+  const goal = readGoal(fy);
 
   return {
     fiscal_year: fy,
