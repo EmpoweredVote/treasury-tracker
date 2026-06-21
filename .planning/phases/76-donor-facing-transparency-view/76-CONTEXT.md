@@ -13,7 +13,7 @@ Render Empowered Vote's already-reconciled finances (produced by Phase 75's `tre
 3. **Current funds on hand** (EVVIEW-03).
 4. **The active fundraising goal + progress toward it** (EVVIEW-04).
 
-This is the **frontend rendering layer** for data Phase 75 already computed and stored. It also necessarily includes the **cross-repo API exposure** of `org_financial_summary` through `ev-accounts-api` (the frontend reads all EV data via that API, not raw Postgres) — mechanical but required, with no data this phase shows otherwise.
+This is the **frontend rendering layer** for data Phase 75 already computed and stored. The **cross-repo API exposure** of `org_financial_summary` through `ev-accounts-api` (the frontend reads all EV data via that API, not raw Postgres) is **already DONE** — the EV-Accounts team built `GET /api/treasury/orgs/:id/financial-summary?fiscal_year=YYYY` on 2026-06-21, forward-safe for the goal columns (see Canonical References + Integration Points). So this phase is now **purely treasury-tracker frontend + the goal-columns migration**; no remaining cross-repo blocker.
 
 **Not in scope:**
 - The actual-spend **graphic** ("where the money goes" chart) — that is **Phase 77 (EVVIZ-01)**. Build the data plumbing + narrative here; do NOT build the chart.
@@ -50,7 +50,7 @@ This is the **frontend rendering layer** for data Phase 75 already computed and 
 ### Claude's Discretion (for the planner)
 - **Page layout / composition** (EVVIEW-* — Chris said "you decide"): how the new pieces (Funds on Hand tile, goal-progress indicator, fee story sentence+mini-list, expense breakdown) compose. **Recommendation:** extend the existing `QuickFactsRow` (add Funds on Hand tile) + `PlainLanguageSummary` (burn-pace line, fee sentence + per-source mini-list) in place, and add the goal-progress indicator as a slim new element above the cards — lowest risk, consistent with the existing surface, and Phase 77's graphic can join later. Avoid a heavyweight new "Transparency panel" container unless it proves cleaner against the live layout.
 - **Exact manual-goal input mechanism** (env var vs. small input file) — planner decides; keep it sourced/dated and idempotent like the rest of `reconcileEV.js`.
-- **`ev-accounts-api` endpoint shape** for `org_financial_summary` — planner/research decides; mirror the `/treasury/federal/context` precedent (Phase 45). This is cross-repo (separate `ev-accounts-api` repo).
+- ~~`ev-accounts-api` endpoint shape~~ — **RESOLVED, no longer discretion.** Endpoint is built + verified against prod by EV-Accounts (2026-06-21): `GET /api/treasury/orgs/:id/financial-summary?fiscal_year=YYYY`, `optionalAuth`, returns the full `OrgFinancialSummary` shape (all `org_financial_summary` columns), `fiscal_year` omitted → latest FY, 404 if none, 422 on bad UUID / fiscal_year. Goal columns served as `null` today via `SELECT *` + `?? null`, auto-served once our migration lands — **no EV-Accounts change needed after our migration.** Planner just wires `dataLoader.ts` to this contract.
 - **Burn-pace copy + which "top category" to name** — planner decides; default to the largest operating expense category.
 
 </decisions>
@@ -75,7 +75,15 @@ This is the **frontend rendering layer** for data Phase 75 already computed and 
 
 ### Data model / API facts
 - EV entity: `municipalities` row `name='Empowered Vote'`, `entity_type='nonprofit'`, `municipality_id = ee6f34f7-bd85-4387-8d71-4c2ed8cb8fdf`, slug `empowered-vote-ca`. App at **treasurytracker.empowered.vote** (auto-memory `feedback_app_url`).
-- Frontend reads EV via the production **ev-accounts-api** (`ev-accounts-api.onrender.com`), NOT raw `treasury.*` — the `org_financial_summary` (incl. new goal fields) MUST be exposed through that API for this phase. This is a **separate repo** (see Phase 34/45 notes — cross-repo work).
+- Frontend reads EV via the production **ev-accounts-api** (`ev-accounts-api.onrender.com`), NOT raw `treasury.*`.
+
+### ✅ API endpoint — BUILT (EV-Accounts, 2026-06-21)
+- **`GET /api/treasury/orgs/:id/financial-summary?fiscal_year=YYYY`** — serves the full `org_financial_summary` row for an org. EV id = `ee6f34f7-bd85-4387-8d71-4c2ed8cb8fdf`.
+- `optionalAuth` (public read). `:id` → 422 `INVALID_ID` on bad UUID; `fiscal_year` (int 1900–2100) → 422 `VALIDATION_ERROR`; omitted `fiscal_year` → latest FY (`ORDER BY fiscal_year DESC LIMIT 1`); 404 `NOT_FOUND` if no row.
+- Response = the `OrgFinancialSummary` interface (all columns incl. `income_by_source`, `recon_*`, `unmatched_deposits`, `runway_months`, and `goal_amount`/`goal_label`). jsonb passed straight through; numerics coerced.
+- **Forward-safe:** service uses `SELECT *` + maps `goal_amount`/`goal_label` with `?? null`. Today (pre-migration) they serve `null` with no error; after our Phase 76 goal-columns migration they serve automatically with **zero EV-Accounts change**.
+- EV-Accounts impl (their repo): route `backend/src/routes/treasury.ts` → `GET /orgs/:id/financial-summary`; service `backend/src/lib/treasuryService.ts` → `getOrgFinancialSummary(municipalityId, fiscalYear?)` + exported `OrgFinancialSummary` type.
+- Cross-repo handoff record: `C:\EV-Accounts\ACCOUNTS-TEAM-REQUEST-org-financial-summary-2026-06-20.md` (request + EV-Accounts "built" reply with the final contract).
 
 No external ADRs/specs — requirements + decisions fully captured above.
 
@@ -98,8 +106,8 @@ No external ADRs/specs — requirements + decisions fully captured above.
 - **Idempotent loaders** — the goal value flows through `reconcileEV.js`'s existing upsert-by-(municipality,FY); re-running changes nothing.
 
 ### Integration Points
-- **Cross-repo:** `ev-accounts-api` must gain a route returning `org_financial_summary` (incl. `goal_amount/goal_label`, `income_by_source`, `monthly_burn`, `balance`). Frontend `dataLoader.ts` gains the matching fetch + a TS type in `src/types/budget.ts`.
-- **DB migration:** add `goal_amount` + `goal_label` to `treasury.org_financial_summary` (D-01) — new migration file under `supabase/migrations/`.
+- **Cross-repo (DONE):** `ev-accounts-api` route is live (`GET /api/treasury/orgs/:id/financial-summary` — see API facts above). Frontend just adds the matching `getOrgFinancialSummary()` fetch in `dataLoader.ts` + a TS type in `src/types/budget.ts` mirroring the `OrgFinancialSummary` contract.
+- **DB migration (treasury-tracker owns):** add `goal_amount` + `goal_label` to `treasury.org_financial_summary` (D-01) — new migration file under `supabase/migrations/`. Once applied, the existing live endpoint serves them automatically (no EV-Accounts change).
 - **Phase 77 hand-off:** the expense-by-category breakdown data this phase surfaces is the same data Phase 77's graphic will visualize — keep the data access reusable, don't build the chart here.
 
 </code_context>
