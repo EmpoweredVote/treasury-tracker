@@ -1,22 +1,20 @@
 #!/usr/bin/env node
 /**
- * Empowered Vote Finance Loader
+ * Empowered Vote Finance Loader — RETIRED (Phase 75, D-08/D-09).
  *
- * Reads an Empowered Vote transaction CSV (exported from Google Sheets or data/ev-finances.csv)
- * and imports the EXPENSE side into the Treasury Tracker database:
- *   - operating: expenses broken down by category and vendor
+ * This loader no longer writes any budget dataset. `data/ev-finances.csv` is fully
+ * retired as a data source. EV financials now load from three current sources:
+ *   - EXPENSES (operating)      → scripts/loadEVBank.js          (Beneficial State Bank, source='bank')
+ *   - DONATION INCOME (revenue) → scripts/loadEVDonations.js     (platform exports, source='csv')
+ *   - MANUAL / off-platform     → scripts/loadEVDonations.js     (data/ev-sources/manual.csv, source='manual')
+ *   - RECONCILED SUMMARY        → scripts/reconcileEV.js         (treasury.org_financial_summary)
  *
- * NOTE (Phase 74, D-08): donation INCOME is no longer loaded here. It now comes from
- * per-platform exports via scripts/loadEVDonations.js (data/ev-sources/), which is the
- * single income writer. This loader writes the operating (expense) dataset only.
- * (Phase 75 will own the expense/bank side; until then the sheet still drives expenses.)
+ * Income was removed in Phase 74 (D-08); the operating/expense write is removed here in
+ * Phase 75 (D-09) because the bank is the authoritative expense source (loadEVBank.js).
+ * The CSV parsing / classification helpers are kept import-safe in case other tooling
+ * references them, but main() is a no-op that prints this retirement notice.
  *
- * Usage:
- *   SUPABASE_SERVICE_KEY=... node scripts/loadEVFinances.js [path/to/csv]
- *   (defaults to data/ev-finances.csv)
- *
- * To update expenses: export the Google Sheet as CSV, save to data/ev-finances.csv, re-run.
- * To update donation income: run scripts/loadEVDonations.js (see docs/ev-donation-sources.md).
+ * Usage: node scripts/loadEVFinances.js   (prints the retirement notice; writes nothing)
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -26,16 +24,11 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// Retired: no DB writes remain, so the service key is not required to run this script.
+// The client is created lazily (null without a key) so the helpers below stay import-safe.
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-if (!SUPABASE_KEY) {
-  console.error('Missing SUPABASE_SERVICE_KEY env var');
-  process.exit(1);
-}
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
-  db: { schema: 'treasury' },
-});
+const supabase = SUPABASE_KEY ? createClient(SUPABASE_URL, SUPABASE_KEY, { db: { schema: 'treasury' } }) : null;
 
 // ── Color palette ──────────────────────────────────────────────────────────────
 
@@ -337,71 +330,14 @@ async function insertCategories(budgetId, categories, parentId = null, depth = 0
 // ── Main ───────────────────────────────────────────────────────────────────────
 
 async function main() {
-  const csvPath = process.argv[2] || path.join(__dirname, '..', 'data', 'ev-finances.csv');
-  console.log('\n🗳️  Empowered Vote Finance Loader\n');
-  console.log(`📂 Reading: ${csvPath}`);
-
-  const content = fs.readFileSync(csvPath, 'utf-8');
-  const lines = content.split('\n').filter(l => l.trim());
-  const headers = parseCSVLine(lines[0]);
-
-  const allRows = [];
-  for (let i = 1; i < lines.length; i++) {
-    const fields = parseCSVLine(lines[i]);
-    const row = {};
-    headers.forEach((h, j) => { row[h] = (fields[j] || '').trim(); });
-
-    const type = row['Type (Income/Expense)'];
-    const cat  = row.Category;
-    const amt  = parseAmount(row.Amount);
-    const year = getYear(row.Date);
-
-    // Skip transfers, transfer errors, $0 entries, and rows without a valid type
-    if (cat === 'Transfer' || cat === 'Transfer Error') continue;
-    if (amt === 0) continue;
-    if (type !== 'Income' && type !== 'Expense') continue;
-    if (!year) continue;
-
-    row._year = year;
-    allRows.push(row);
-  }
-
-  console.log(`   ${allRows.length} valid transactions loaded (transfers and $0 entries skipped)\n`);
-
-  const municipalityId = await getMunicipalityId();
-
-  // Group by fiscal year
-  const byYear = {};
-  for (const row of allRows) {
-    if (!byYear[row._year]) byYear[row._year] = [];
-    byYear[row._year].push(row);
-  }
-
-  for (const [yearStr, rows] of Object.entries(byYear).sort()) {
-    const year = parseInt(yearStr);
-    const expenseRows = rows.filter(r => r['Type (Income/Expense)'] === 'Expense');
-
-    console.log(`\n📅 FY${year} — ${expenseRows.length} expense transactions (income now via loadEVDonations.js)`);
-
-    // Revenue dataset: REMOVED (Phase 74, D-08). Donation income is now loaded by
-    // scripts/loadEVDonations.js from per-platform exports in data/ev-sources/ —
-    // the platform exports are the income master, not this hand-entered sheet.
-    // This loader writes EXPENSES only.
-
-    // Operating dataset
-    const { categories: opCats, total: opTotal } = buildTree(expenseRows, classifyExpense);
-    await clearExistingBudget(municipalityId, year, 'operating');
-    const opBudgetId = await createBudget(municipalityId, year, 'operating', opTotal, ['Category', 'Vendor']);
-    await insertCategories(opBudgetId, opCats);
-    console.log(`   ✅ Operating: $${opTotal.toFixed(2)} | ${opCats.length} top-level categories`);
-  }
-
-  console.log('\n✨ Done! Empowered Vote EXPENSES are live in the Treasury Tracker.');
-  console.log('   (Donation income loads separately via scripts/loadEVDonations.js — see docs/ev-donation-sources.md)');
-  console.log('\n📋 To update expenses:');
-  console.log('   1. Export the Google Sheet → CSV');
-  console.log('   2. Save it to data/ev-finances.csv');
-  console.log('   3. Run: npm run load-ev-finances\n');
+  // RETIRED (Phase 75, D-09): this loader no longer writes any budget dataset.
+  console.log('\n🗳️  Empowered Vote Finance Loader — RETIRED (Phase 75)\n');
+  console.log('This script no longer writes to the database. EV financials now load from:');
+  console.log('  • Expenses (operating)      → scripts/loadEVBank.js      (Beneficial State Bank)');
+  console.log('  • Donation income (revenue) → scripts/loadEVDonations.js (platform exports)');
+  console.log('  • Manual / off-platform     → scripts/loadEVDonations.js (data/ev-sources/manual.csv)');
+  console.log('  • Reconciled summary        → scripts/reconcileEV.js     (treasury.org_financial_summary)');
+  console.log('\n`data/ev-finances.csv` is fully retired as a data source. No action taken.\n');
 }
 
 main().catch(err => { console.error('\n❌ Fatal:', err.message); process.exit(1); });

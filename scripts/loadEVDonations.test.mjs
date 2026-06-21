@@ -1,9 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import {
   money, isoYear, isoDate,
   parseGiveButter, parsePatreon, parseBenevity,
   giveButterDedup, buildDonationTree,
+  carryForwardManual, carryForwardInterest,
 } from './loadEVDonations.js';
 
 test('money parses $, commas, parens, negatives', () => {
@@ -115,4 +119,59 @@ test('buildDonationTree: zero-gross sources are dropped', () => {
   const donations = categories.find(c => c.name === 'Donations');
   assert.equal(donations.subcategories.length, 1);
   assert.equal(donations.subcategories[0].name, 'Patreon');
+});
+
+// ── Phase 75: manual.csv + bank-interest carry-forward + source tagging ───────
+
+test('buildDonationTree: source tag threads to lineItems; manual merges into Donations parent', () => {
+  const bySource = { 'Give Butter': { gross: 700, fee: 0 }, 'Patreon': { gross: 0, fee: 0 }, 'Benevity': { gross: 0, fee: 0 } };
+  const carry = [
+    { parent: 'Donations', name: 'Check — Acme Grant', amount: 500, tag: 'manual' },
+    { parent: 'Interest', name: 'Bank Interest', amount: 1.17, tag: 'bank' },
+  ];
+  const { categories } = buildDonationTree(bySource, carry);
+  const donations = categories.find(c => c.name === 'Donations');
+  // exactly ONE Donations parent (no duplicate); platform + manual merged
+  assert.equal(categories.filter(c => c.name === 'Donations').length, 1);
+  assert.equal(donations.amount, 1200);
+  const gb = donations.subcategories.find(s => s.name === 'Give Butter');
+  assert.equal(gb.lineItems[0].source, 'csv');         // platform → csv
+  const manual = donations.subcategories.find(s => s.name === 'Check — Acme Grant');
+  assert.equal(manual.lineItems[0].source, 'manual');  // manual → manual
+  const interest = categories.find(c => c.name === 'Interest');
+  assert.equal(interest.subcategories[0].lineItems[0].source, 'bank'); // interest → bank
+});
+
+test('carryForwardManual: parses manual.csv, FY-filters, tags manual (absent file → [])', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'evman-'));
+  assert.deepEqual(carryForwardManual(dir, 2026), []); // no file yet
+  fs.writeFileSync(path.join(dir, 'manual.csv'),
+    'date,source,amount,note\n' +
+    '03/15/2026,Check — Acme Grant,500,Q1 grant\n' +
+    '2026-04-01,Direct,25.50,cash gift\n' +
+    '06/01/2025,Old,99,prior FY\n');
+  const out = carryForwardManual(dir, 2026);
+  assert.equal(out.length, 2);
+  assert.ok(out.every(r => r.tag === 'manual' && r.parent === 'Donations'));
+  const grant = out.find(r => r.name === 'Check — Acme Grant');
+  assert.equal(grant.amount, 500);
+  fs.rmSync(dir, { recursive: true, force: true });
+});
+
+test('carryForwardInterest: sums Credit Interest deposits from the bank export, tags bank, ignores payouts', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'evint-'));
+  fs.writeFileSync(path.join(dir, 'beneficial_state_bank_export_test.csv'),
+    'Date,Description,Amount,Balance\n' +
+    '03/31/2026,Credit Interest,$0.21,$100\n' +
+    '04/30/2026,Credit Interest,$0.30,$200\n' +
+    '03/23/2026,External Deposit Givebutter,$810.00,$900\n' + // payout → ignored
+    '06/05/2026,RENDER.COM,-$98.00,$800\n' +                   // debit → ignored
+    '01/30/2025,Credit Interest,$0.04,$50\n');                 // prior FY → ignored
+  const out = carryForwardInterest(dir, 2026);
+  assert.equal(out.length, 1);
+  assert.equal(out[0].parent, 'Interest');
+  assert.equal(out[0].name, 'Bank Interest');
+  assert.equal(out[0].tag, 'bank');
+  assert.equal(out[0].amount, 0.51); // 0.21 + 0.30
+  fs.rmSync(dir, { recursive: true, force: true });
 });

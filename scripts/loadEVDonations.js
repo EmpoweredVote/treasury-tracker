@@ -20,6 +20,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { classifyDeposit, extractDeposits } from './lib/evBankDeposits.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -153,14 +154,23 @@ export function buildDonationTree(bySource, carryForward = []) {
   if (donationsTotal > 0) {
     parents.push({ parent: 'Donations', amount: donationsTotal, subs: donationSubs });
   }
-  // carry-forward parents (Interest, etc.), grouped by parent name
+  // carry-forward parents (Interest, manual/Direct, etc.), grouped by parent name.
+  // Each carry-forward record may carry a `tag` ('manual' | 'bank') that becomes the
+  // line item's source; platform subs (no tag) default to 'csv'.
   const cfByParent = {};
   for (const c of carryForward) {
     if (!(c.amount > 0)) continue;
-    (cfByParent[c.parent] = cfByParent[c.parent] || []).push({ name: c.name, amount: round2(c.amount) });
+    (cfByParent[c.parent] = cfByParent[c.parent] || []).push({ name: c.name, amount: round2(c.amount), tag: c.tag });
   }
   for (const [parent, subs] of Object.entries(cfByParent)) {
-    parents.push({ parent, amount: round2(subs.reduce((a, c) => a + c.amount, 0)), subs });
+    const existing = parents.find(p => p.parent === parent);
+    if (existing) {
+      // merge into the existing parent (e.g. manual Direct into the Donations parent) — avoids a duplicate parent node
+      existing.subs = existing.subs.concat(subs);
+      existing.amount = round2(existing.amount + subs.reduce((a, c) => a + c.amount, 0));
+    } else {
+      parents.push({ parent, amount: round2(subs.reduce((a, c) => a + c.amount, 0)), subs });
+    }
   }
 
   const total = round2(parents.reduce((a, p) => a + p.amount, 0));
@@ -181,9 +191,10 @@ export function buildDonationTree(bySource, carryForward = []) {
           color: COLORS[s.name] || COLORS[p.parent] || '#888888',
           linkKey: linkKey(s.name),
           lineItems: [{
-            description: `FY ${'%FY%'} ${s.name} donations (aggregate, gross)`,
+            description: s.tag ? `FY ${'%FY%'} ${s.name}` : `FY ${'%FY%'} ${s.name} donations (aggregate, gross)`,
             amount: s.amount,
             vendor: s.name,
+            source: s.tag || 'csv',
           }],
         })),
     }));
@@ -261,7 +272,7 @@ async function insertCategories(sb, budgetId, categories, fy, parentId = null, d
         category_id: catRow.id,
         description: (li.description || '').replace('%FY%', String(fy)),
         approved_amount: li.amount, actual_amount: li.amount,
-        vendor: li.vendor || null, source: 'csv',
+        vendor: li.vendor || null, source: li.source || 'csv',
       }));
       const { error: liErr } = await sb.from('budget_line_items').insert(items);
       if (liErr) throw new Error(`Insert line items: ${liErr.message}`);
@@ -299,7 +310,52 @@ async function reapplyWebhookDelta(sb, budgetId, deltaRows) {
 const gb_amount = c => Number(c.amount || 0);
 const donations_amount = c => Number(c.amount || 0);
 
-/** Carry forward non-platform income (Direct, Interest) for the FY from the legacy sheet. */
+/**
+ * Manual / off-platform income for the FY from data/ev-sources/manual.csv (D-06/D-08).
+ * Header: date,source,amount,note. date = M/D/YYYY or ISO; amount = plain decimal.
+ * Cash entries only (checks, grants, unmatched bank deposits) — in-kind deferred (D-10).
+ * Returns [{ parent:'Donations', name:<source label or 'Direct'>, amount, tag:'manual' }].
+ */
+export function carryForwardManual(dir, fy) {
+  const file = path.join(dir, 'manual.csv');
+  if (!fs.existsSync(file)) return [];
+  const rows = readCsvRows(file);
+  const out = {};
+  for (const r of rows) {
+    const date = r['date'] || r['Date'] || '';
+    let year = null;
+    const m = String(date).match(/^(\d{4})-\d{2}/);
+    if (m) year = parseInt(m[1], 10);
+    else { const p = String(date).split('/'); if (p.length === 3) year = parseInt(p[2].length === 2 ? '20' + p[2] : p[2], 10); }
+    if (year !== fy) continue;
+    const amt = Math.abs(money(r['amount'] ?? r['Amount']));
+    if (amt === 0) continue;
+    const name = (r['source'] || r['Source'] || 'Direct').trim() || 'Direct';
+    const k = name;
+    out[k] = out[k] || { parent: 'Donations', name, amount: 0, tag: 'manual' };
+    out[k].amount += amt;
+  }
+  return Object.values(out);
+}
+
+/**
+ * Bank interest for the FY from the Beneficial State Bank export's 'Credit Interest'
+ * deposits (D-06). Re-homes interest off the retired sheet onto the bank.
+ * Returns [{ parent:'Interest', name:'Bank Interest', amount, tag:'bank' }] (omitted if 0).
+ */
+export function carryForwardInterest(dir, fy) {
+  const f = fs.readdirSync(dir).find(n => /beneficial.*state.*bank.*\.csv$/i.test(n));
+  if (!f) return [];
+  const rows = readCsvRows(path.join(dir, f));
+  const deposits = extractDeposits(rows, fy);
+  let sum = 0;
+  for (const d of deposits) if (classifyDeposit(d.desc).kind === 'interest') sum += d.amount;
+  sum = round2(sum);
+  return sum > 0 ? [{ parent: 'Interest', name: 'Bank Interest', amount: sum, tag: 'bank' }] : [];
+}
+
+/** @deprecated Phase 75 (D-09): ev-finances.csv retired as an income source. Superseded by
+ *  carryForwardManual (manual.csv) + carryForwardInterest (bank). No longer called by main(). */
 export function carryForwardFromSheet(sheetPath, fy) {
   if (!fs.existsSync(sheetPath)) return [];
   const rows = readCsvRows(sheetPath);
@@ -360,14 +416,16 @@ async function main() {
     'Patreon':     { gross: pat.gross, fee: pat.fee },
     'Benevity':    { gross: ben.gross, fee: ben.fee },
   };
-  const carry = carryForwardFromSheet(path.join(__dirname, '..', 'data', 'ev-finances.csv'), fyArg);
+  // Non-platform income (D-06/D-09): manual.csv (off-platform cash) + bank Credit Interest.
+  // ev-finances.csv is retired — no longer read.
+  const carry = [...carryForwardManual(dir, fyArg), ...carryForwardInterest(dir, fyArg)];
   const { categories, total } = buildDonationTree(bySource, carry);
 
   console.log('Per-source GROSS (FY' + fyArg + '):');
   console.log(`  Give Butter $${gb.gross.toFixed(2)}  (fee $${gb.fee.toFixed(2)}, ${gb.count} txns, exportAsOf ${gb.asOf})`);
   console.log(`  Patreon     $${pat.gross.toFixed(2)}  (fee $${pat.fee.toFixed(2)}, ${pat.count} months)`);
   console.log(`  Benevity    $${ben.gross.toFixed(2)}  (fee $${ben.fee.toFixed(2)}, ${ben.count} disbursed rows)`);
-  console.log(`  Carry-forward (sheet): ${carry.map(c => c.parent + '/' + c.name + ' $' + c.amount.toFixed(2)).join(', ') || 'none'}`);
+  console.log(`  Carry-forward (manual.csv + bank interest): ${carry.map(c => c.parent + '/' + c.name + ' $' + c.amount.toFixed(2) + ' [' + c.tag + ']').join(', ') || 'none'}`);
   console.log(`  ── Revenue total: $${total.toFixed(2)}\n`);
   const totalFees = gb.fee + pat.fee + ben.fee;
   console.log(`Platform fees (gross→net story, D-09): $${totalFees.toFixed(2)} total\n`);
