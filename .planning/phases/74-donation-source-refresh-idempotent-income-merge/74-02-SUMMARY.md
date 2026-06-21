@@ -22,6 +22,22 @@ Platform fees captured (gross→net story, D-09): **$125.32** total.
 - **No donor PII:** each source leaf holds exactly one aggregate line item; no name/email stored. `data/ev-sources/` gitignored.
 - **Webhook compatibility:** the `Donations` → `Give Butter` category exists in the FY2026 revenue budget, so the live `givebutter-webhook` lookup still resolves; future donations (after exportAsOf) accrue as the live delta.
 
+## Cross-year double-count fix (Benevity, found during UAT)
+
+Chris flagged a possible prior-year overlap. Confirmed: FY2025 (loaded by the OLD sheet on a **donation-date** basis) booked 14 Dec-2025 Benevity gifts ($207.50) that the new loader also booked into FY2026 by **disbursement date** (received Jan 2026). Same money, two years.
+
+Fix (Chris-approved, cash-basis-consistent): removed those 14 Dec-2025 rows from FY2025 (they were *received* in 2026 → belong in FY2026). Done atomically via a DO block (delete rows + decrement Benevity / Donations / budget totals).
+
+| | Before | After |
+|---|---|---|
+| FY2025 Benevity | $522.50 | **$315.00** |
+| FY2025 revenue total | $2,547.51 | **$2,340.01** |
+| FY2026 Benevity | $1,475 | $1,475 (unchanged) |
+
+Verified: 0 `2025-12` Benevity rows remain in FY2025; the $207.50 lives in FY2026 only.
+
+**Seam to remember:** Benevity disburses on a lag, so a gift's donation-date and disbursement-date can fall in different fiscal years. Prior-year EV data loaded on the old donation-date basis can overlap with the new disbursement (cash) basis. The loader only dedups *within* a FY (webhook); cross-year basis-mix overlaps must be caught by year-boundary review (as here). A future prior-year re-pull on disbursement basis would self-correct this.
+
 ## Outstanding
 
 - **Task 3 (human-verify, blocking):** Chris confirms in the live app (treasurytracker.empowered.vote) that the EV Money In totals are refreshed by source and the live donation counter still works. Production reads via the ev-accounts API (allow for cache/deploy).
