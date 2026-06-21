@@ -123,6 +123,22 @@ export function reconcile(income_by_source, deposits) {
 // ── File discovery ────────────────────────────────────────────────────────────
 function findFile(dir, re) { const f = fs.readdirSync(dir).find(n => re.test(n)); return f ? path.join(dir, f) : null; }
 
+// ── Manual fundraising goal (D-01) ──────────────────────────────────────────────
+// Reads data/ev-sources/goal.json — an array of { fiscal_year, goal_amount, goal_label }.
+// Returns nulls (never throws) when the file is absent or has no entry for `fy`, so a
+// run with no active goal is valid and leaves the columns null.
+export function readGoal(dir, fy) {
+  const file = path.join(dir, 'goal.json');
+  try {
+    const entries = JSON.parse(fs.readFileSync(file, 'utf8'));
+    const e = Array.isArray(entries) ? entries.find(g => Number(g.fiscal_year) === fy) : null;
+    if (!e || e.goal_amount == null) return { goal_amount: null, goal_label: null };
+    return { goal_amount: round2(Number(e.goal_amount)), goal_label: e.goal_label ?? null };
+  } catch {
+    return { goal_amount: null, goal_label: null };
+  }
+}
+
 // ── DB layer (lazy) ───────────────────────────────────────────────────────────
 async function getSupabase() {
   const { createClient } = await import('@supabase/supabase-js');
@@ -159,6 +175,7 @@ export function computeSummary(dir, fy) {
   const income = buildIncome(bySource);
   const recon = reconcile(income.income_by_source, deposits);
   const burn = monthlyBurn(debits, bal && bal.iso, 3);
+  const goal = readGoal(dir, fy);
 
   return {
     fiscal_year: fy,
@@ -167,6 +184,7 @@ export function computeSummary(dir, fy) {
     monthly_burn: burn,
     burn_window_months: 3,
     runway_months: runway(round2(bal ? bal.balance : 0), burn),
+    ...goal,
     ...income,
     recon_variance: recon.recon_variance,
     recon_explanation: recon.recon_explanation,
@@ -178,7 +196,8 @@ export function computeSummary(dir, fy) {
 
 function printSummary(s) {
   console.log(`Balance: $${s.balance.toFixed(2)} (as of ${s.balance_as_of})`);
-  console.log(`Trailing ${s.burn_window_months}-complete-month burn: $${s.monthly_burn.toFixed(2)}/mo  →  runway: ${s.runway_months == null ? 'N/A' : s.runway_months + ' months'}`);
+  console.log(`Trailing ${s.burn_window_months}-complete-month burn: $${s.monthly_burn.toFixed(2)}/mo  →  runway: ${s.runway_months == null ? 'N/A' : s.runway_months + ' months'} (stored, not displayed — D-06)`);
+  console.log(`Goal: ${s.goal_amount == null ? 'none' : '$' + s.goal_amount.toFixed(2) + (s.goal_label ? ` (${s.goal_label})` : '')}`);
   console.log('\nIncome (gross → fee → net), per source:');
   for (const r of s.income_by_source) console.log(`  ${r.source.padEnd(12)} gross $${r.gross.toFixed(2)}  − fee $${r.fee.toFixed(2)}  = net $${r.net.toFixed(2)}`);
   console.log(`  ── totals: gross $${s.income_gross.toFixed(2)}  fees $${s.income_fees.toFixed(2)}  net $${s.income_net.toFixed(2)}`);
@@ -202,6 +221,7 @@ async function upsertSummary(sb, muniId, s) {
     income_by_source: s.income_by_source,
     recon_variance: s.recon_variance, recon_explanation: s.recon_explanation,
     recon_by_source: s.recon_by_source, unmatched_deposits: s.unmatched_deposits,
+    goal_amount: s.goal_amount, goal_label: s.goal_label,
     source_name: 'Beneficial State Bank + platform exports', source_url: null,
     source_date: s.balance_as_of, updated_at: new Date().toISOString(),
   };
