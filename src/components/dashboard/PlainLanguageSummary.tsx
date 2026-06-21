@@ -284,32 +284,7 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
             </p>
           )}
 
-          {/* Income gross→net fee story (Phase 76, D-07/D-08). Fees are a reduction
-              of income, never an expense (D-09/D-12). Replaces the generic income
-              sentence for EV; the per-source breakdown follows directly beneath. */}
-          {isNonprofit && orgSummary && (
-            <div>
-              <p>
-                Donors gave{' '}
-                <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(orgSummary.income_gross)}</strong>;
-                {' '}after{' '}
-                <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(orgSummary.income_fees)}</strong>
-                {' '}in platform fees,{' '}
-                <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(orgSummary.income_net)}</strong>
-                {' '}reached {entity.name}.
-              </p>
-              <ul className="mt-2 space-y-1 text-[14px] text-ev-gray-500 dark:text-ev-gray-400">
-                {orgSummary.income_by_source.filter(s => s.gross > 0).map(s => (
-                  <li key={s.source}>
-                    <span className="font-semibold text-ev-gray-700 dark:text-ev-gray-300">{s.source}</span>:{' '}
-                    {formatAmount(s.gross)} → {formatAmount(s.fee)} fee → {formatAmount(s.net)} net
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {revenueData && !(isNonprofit && orgSummary) && (
+          {revenueData && (
             <p>
               {isNonprofit
                 ? <>{entity.name} {showActual ? 'raised' : 'raises'}{' '}</>
@@ -344,6 +319,29 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
                   {populationYear ? ` (${populationYear} est.)` : ''}</>
               )}.
             </p>
+          )}
+
+          {/* Cost-of-fundraising detail (Phase 76, D-07/D-08) — flows from the live
+              "raised" figure above. Fees are a reduction of income, never an expense
+              (D-09/D-12). Reconciled gross→fee→net per source, as of last refresh. */}
+          {isNonprofit && orgSummary && orgSummary.income_fees > 0 && (
+            <div>
+              <p>
+                After{' '}
+                <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(orgSummary.income_fees)}</strong>
+                {' '}in platform fees,{' '}
+                <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(orgSummary.income_net)}</strong>
+                {' '}reached {entity.name}:
+              </p>
+              <ul className="mt-2 space-y-1 text-[14px] text-ev-gray-500 dark:text-ev-gray-400">
+                {orgSummary.income_by_source.filter(s => s.gross > 0).map(s => (
+                  <li key={s.source}>
+                    <span className="font-semibold text-ev-gray-700 dark:text-ev-gray-300">{s.source}</span>:{' '}
+                    {formatAmount(s.gross)} → {formatAmount(s.fee)} fee → {formatAmount(s.net)} net
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
 
           {dataSources.length > 0 && (

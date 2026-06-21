@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
-import { FileText, Heart } from 'lucide-react'
+import { FileText, Heart, Wallet } from 'lucide-react'
 import { SiteHeader } from '@empoweredvote/ev-ui';
 import { AppHeader } from './components/AppHeader';
 import PlainLanguageSummary from './components/dashboard/PlainLanguageSummary';
@@ -815,6 +815,29 @@ function App() {
                 years={availableYears}
                 onYearChange={setSelectedYear}
               />
+            )}
+            {/* Funds on Hand — static, dated bank balance (Phase 76). A quiet meta
+                chip, deliberately out of the donor-feedback flow: it does NOT move
+                on donation (bank payouts lag), so it must not read as a live number. */}
+            {selectedEntity?.entity_type === 'nonprofit' && orgSummary && (
+              <div
+                className="flex items-center gap-1.5 h-[42px] px-3 py-2 text-sm font-medium bg-white dark:bg-ev-gray-700 border border-[#E2EBEF] dark:border-ev-gray-600 rounded-lg text-ev-gray-600 dark:text-ev-gray-300 whitespace-nowrap"
+                title="Current bank balance (Beneficial State Bank). Updated when reconciled — not live; bank payouts lag platform donations."
+              >
+                <Wallet size={14} className="shrink-0 text-ev-gray-500" />
+                <span className="tabular-nums font-semibold text-ev-gray-800 dark:text-ev-gray-100">
+                  ${orgSummary.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+                <span className="text-ev-gray-400 dark:text-ev-gray-400">on hand</span>
+                {(() => {
+                  const dp = (orgSummary.balance_as_of || '').slice(0, 10);
+                  const [y, m, d] = dp.split('-').map(Number);
+                  const label = (y && m && d)
+                    ? new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                    : dp;
+                  return label ? <span className="text-ev-gray-400 text-[12px]">· as of {label}</span> : null;
+                })()}
+              </div>
             )}
             {selectedYear === '2025' && selectedEntity?.entity_type === 'nonprofit' && (
               <a
