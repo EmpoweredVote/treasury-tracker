@@ -19,8 +19,11 @@ const OrgTransparencyPanel: React.FC<OrgTransparencyPanelProps> = ({ summary, or
     `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   const asOf = (() => {
-    // balance_as_of is an ISO date (YYYY-MM-DD). Format readably without TZ drift.
-    const [y, m, d] = (summary.balance_as_of ?? '').split('-').map(Number);
+    // balance_as_of may be a plain date (YYYY-MM-DD) or a full ISO timestamp
+    // (YYYY-MM-DDT00:00:00.000Z) depending on the API. Take the date part only and
+    // build a local Date so there's no timezone drift. Fall back to the raw string.
+    const datePart = (summary.balance_as_of ?? '').slice(0, 10);
+    const [y, m, d] = datePart.split('-').map(Number);
     if (!y || !m || !d) return summary.balance_as_of ?? '';
     return new Date(y, m - 1, d).toLocaleDateString('en-US', {
       month: 'long', day: 'numeric', year: 'numeric',
