@@ -280,6 +280,47 @@
 
 ---
 
+## Milestone: v2.6 — EV Financial Transparency Refresh
+
+**Shipped:** 2026-06-22
+**Phases:** 4 (74–78; Phase 77 iceboxed) | **Plans:** 8
+
+### What Was Built
+
+Empowered Vote's own org financials, refreshed and made donor-facing. Income from GiveButter/Patreon/Benevity + bank interest + manual entries merged idempotently (no double-count); Beneficial State Bank made authoritative for balance ($1,706.77) + expenses ($1,745.65); platform income reconciled to net bank deposits within a stored, explained variance (−$132.39); platform fees tracked as an income reduction ($125.32). EV's page now shows a gross→net fee story, an honest neutral expense breakdown, funds-on-hand, a burn-pace line, and a data-driven goal scaffold. Phase 78 audited every figure against production and Chris signed off the live UAT. $0 spend.
+
+### What Worked
+
+- **The whole milestone ran inline** — no researcher/planner/executor/verifier subagents — at $0 Anthropic spend, continuing the verified Phase 73/67/62 closeout pattern.
+- **Reconciliation modeled as bank=truth / platforms=detail** kept a real double-count trap closed: payout deposits are matched-and-excluded, with the residual variance stored *and explained* rather than hidden.
+- **A pivot mid-discussion was handled cleanly** — Phase 77 was iceboxed during `/gsd-discuss-phase` (before any context/plan was committed), recorded across ROADMAP/REQUIREMENTS/STATE, and the milestone closed around it without leaving a dangling phase.
+- **Idempotent loaders paid off at close** — re-running `reconcileEV.js` to set then hide the goal changed only the goal columns; dry-run confirmed zero drift before the write.
+
+### What Was Inefficient
+
+- **STATE.md drifted badly** — it still read "Phase 75 executing" while git showed 76 verified. The wrap-up had to reconcile the docs against git truth before anything else. Phase transitions should keep STATE current.
+- **The milestone-complete CLI assumes SUMMARY.md** — this project writes VERIFICATION.md, so auto-extracted accomplishments came out as "Status:" stubs and had to be rewritten by hand from the verifications.
+- **Requirements/traceability were stale at close** (EVDATA-04/05/06 still "pending" though Phase 75 was verified) — fixed during the icebox bookkeeping, but should have been current.
+
+### Patterns Established
+
+- **Icebox-in-discuss:** a phase can be deferred during `/gsd-discuss-phase` before any artifact is written — record it in ROADMAP (collapsed/iceboxed), REQUIREMENTS (deferred marker + traceability), and STATE (Deferred Items), and rescope the dependent verification phase.
+- **Manual figure as a committed, idempotent data file:** `data/ev-goal.json` flows through `reconcileEV.js`'s upsert; null amount → tile hidden, value → tile shows. Sourced, reviewable, reversible.
+- **Inline reconciliation audit** against production Supabase (read-only `execute_sql`) as the EVVER-01 verification — no subagent, figures tied to bank truth + sourcing checked directly.
+
+### Key Lessons
+
+- **Keep STATE.md honest at every phase transition** — a stale state file turns "close the milestone" into "first re-derive what actually happened."
+- **Fees are income reduction, not expense, and runway can mislead** — donor-facing honesty sometimes means *not* showing a number (runway) and reframing another (gross→net). Framing decisions are real product decisions.
+- **Match chart vocabulary to data shape** — ~6 flat categories don't justify a tree chart; the icebox was the honest call, not a punt.
+
+### Cost Observations
+
+- **$0 net** — idempotent CSV merge, no new AI runs (the $5 AI gate never triggered); audit via read-only DB probes; UAT by Chris in the live app.
+- Closeout (icebox + audit + milestone archive) authored + executed inline, no subagents, per the no-research-subagents cost guidance.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -298,6 +339,7 @@
 | v2.1 | 3 | 13 | ~2 days | Federal history backfill (year-independent design validated); inline execution for small phase; durable source URLs; $0 spend |
 | v2.2 | 6 | 15 | ~2 days | Reusable one-command SoCal county pipeline + runbook; spike-gated net-new salaries; never-overwrite guard; 34 OC cities + county budget; $0 spend |
 | v2.3 | 5 | 15 | ~1 day | Pipeline applied at scale (LA County 88 + 98-city salaries) with zero new tooling; dedicated verification-only closeout phase; $0 spend |
+| v2.6 | 4 (77 iceboxed) | 8 | ~2 days | First org-financials (non-geographic) milestone; bank=truth/platforms=detail reconciliation; icebox-in-discuss pattern; inline reconciliation audit; $0 spend |
 
 ### Top Lessons (Verified Across Milestones)
 
