@@ -56,8 +56,8 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| VASRC-01 | Phase 79 | Pending |
-| VASRC-02 | Phase 79 | Pending |
+| VASRC-01 | Phase 79 | Planned (79-01) |
+| VASRC-02 | Phase 79 | Planned (79-02) |
 | VALOAD-01 | Phase 80 | Pending |
 | VALOAD-02 | Phase 80 | Pending |
 | VALOAD-03 | Phase 81 | Pending |

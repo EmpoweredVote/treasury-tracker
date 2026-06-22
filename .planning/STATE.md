@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-22 — v2.7 Virginia Local Government
 
 ## Current Position
 
-Phase: 79 (va-apa-source-loader) — Not started
-Plan: —
-Status: Roadmap created; ready to plan Phase 79
-Last activity: 2026-06-22 — Milestone v2.7 started; requirements + roadmap committed
+Phase: 79 (va-apa-source-loader) — Planned (2 plans)
+Plan: 79-01 (loader + parser + tests, wave 1) → 79-02 (Alexandria proof + FY-range manifest, wave 2)
+Status: Planned; ready to execute Phase 79
+Last activity: 2026-06-22 — Phase 79 planned (2 plans), inline
 
 ## Phase Overview — v2.7 Virginia Local Government Expansion
 
