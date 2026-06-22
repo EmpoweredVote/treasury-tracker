@@ -37,7 +37,7 @@ Audited against the production figures the app actually serves (`treasury.org_fi
 - **Bank balance is authoritative and independent** ($1,706.77 @ 2026-06-17) — taken directly from the Beneficial State Bank statement, not derived, so it cannot drift.
 - **Primary reconciliation (platform income ↔ bank deposits):** platform net (gross − fees) $2,422.68 vs. matched bank payout deposits $2,555.07 → **variance −$132.39**, stored with a full `recon_explanation`: payout timing (export FY window vs. bank deposit timing) + fee-estimation differences; matched payout deposits are excluded from income, never double-counted. Largest component is Give Butter (Δ −$133.89). **This is the documented, explained tolerance the criterion requires.** ✅
 - **Internal consistency checks (all tie):** per-source gross 703 + 370 + 1,475 = 2,548 = `income_gross` ✓; fees 26.89 + 60.82 + 37.61 = 125.32 = `income_fees` ✓; net 676.11 + 309.18 + 1,437.39 = 2,422.68 = `income_net` ✓.
-- **Secondary sub-dollar variance (note, not a blocker):** revenue dataset $2,549.17 vs. summary `income_gross` $2,548.00 + interest $0.51 ≈ $2,548.51 → Δ ≈ $0.66. Sub-dollar, attributable to bank interest accrual / rounding between the revenue budget rollup and the donation summary. Within tolerance.
+- **Secondary variance — RESOLVED (ties exactly):** revenue dataset $2,549.17 = donations gross $2,548.00 + **bank interest $1.17** (re-homed to revenue by `loadEVDonations`, 75-03). Confirmed via `reconcileEV --dry-run` 2026-06-22. No residual variance.
 
 ### Criterion 2 — Every displayed figure carries a source ✅ (with completeness note)
 
@@ -56,7 +56,7 @@ The audit confirms the data layer; EVVER-02 requires Chris to confirm it **rende
 
 ### Findings for Chris to decide before/at UAT
 
-1. **No fundraising goal is live.** `goal_amount` is null in both the DB and `data/ev-goal.json` (label is set: "Help Us Grow"). Per Phase 76 (D-01), the goal-progress bar (EVVIEW-04) **renders only once an amount is set**. → **Decision:** set a goal figure now (edit `data/ev-goal.json`, re-run `reconcileEV.js`), or accept shipping v2.6 with the goal bar hidden until a figure is chosen.
+1. **Fundraising goal — RESOLVED 2026-06-22.** Chris set the goal to **$5,000, label "Midterms Support"** (`data/ev-goal.json`); `reconcileEV.js` re-run (idempotent — only goal columns changed). DB confirms `goal_amount=5000`, net $2,422.68 = **48.5% to goal**. The progress bar (EVVIEW-04) now renders live via the org-financial-summary API.
 2. **Give Butter recon variance −$133.89** (flagged since Phase 75). Optional: refresh the Give Butter export and re-run `reconcileEV.js` (idempotent) to tighten the variance, or accept it as the explained tolerance above.
 3. Minor: backfill `source_date` on the operating/revenue budget rows (non-blocking).
 
@@ -68,7 +68,7 @@ The audit confirms the data layer; EVVER-02 requires Chris to confirm it **rende
 - [ ] **Total Expenses** shows **$1,745.65**, with the expense breakdown by category (the honest, neutral breakdown — D-10).
 - [ ] **$0 staff compensation** line reads as a plain, neutral fact — not celebrated (D-11/D-12).
 - [ ] **Burn-pace** line present (≈$344/mo), **no runway countdown** (D-05/D-06).
-- [ ] **Goal progress**: either renders against the goal you set, or is correctly hidden (no broken/empty element) if no goal is set.
+- [ ] **Goal progress**: renders **"Midterms Support"**, $2,422.68 of **$5,000.00**, bar at **48.5%** ("48% of the way there").
 - [ ] Every figure visibly traces to a source (bank statement / platform export).
 - [ ] Spend graphic is **absent** and nothing references it (Phase 77 iceboxed — expected).
 - [ ] **Chris sign-off:** _____________________  Date: __________
