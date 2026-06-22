@@ -89,6 +89,9 @@ scripts/output/
 # Temporary ACFR PDFs for reconciliation (not committed)
 _acfr-tmp/
 
+# Recon sample downloads (e.g. VA APA comparative-report XLSX) — not committed
+_va-recon/
+
 # Transient loader driver output (scratch; logs already ignored)
 scripts/*.failures.txt
 
