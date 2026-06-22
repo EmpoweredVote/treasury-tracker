@@ -18,10 +18,10 @@ Requirements for milestone v2.6. Each maps to exactly one roadmap phase.
 
 ### Donor-Facing Transparency View (EVVIEW)
 
-- [ ] **EVVIEW-01**: A visitor can see EV income vs. expenses in plain language — where money came from (by source) and where it went.
-- [ ] **EVVIEW-02**: A visitor can see an expense breakdown by category that makes the all-volunteer / $0-staff-comp reality obvious.
-- [ ] **EVVIEW-03**: A visitor can see current funds on hand (balance) and runway at the current burn rate.
-- [ ] **EVVIEW-04**: A visitor can see the active fundraising goal and progress toward it.
+- [x] **EVVIEW-01**: A visitor can see EV income vs. expenses in plain language — where money came from (by source) and where it went. *(Phase 76)*
+- [x] **EVVIEW-02**: A visitor can see an expense breakdown by category. *(Phase 76 — reframed: honest neutral breakdown; the all-volunteer / $0-staff status is stated as a plain fact, not celebrated. D-10/11/12)*
+- [x] **EVVIEW-03**: A visitor can see current funds on hand (balance). *(Phase 76 — reframed: balance + burn pace; runway display dropped per D-06, runway_months retained in DB)*
+- [x] **EVVIEW-04**: A visitor can see the active fundraising goal and progress toward it. *(Phase 76 — infra complete; progress bar shows once a goal amount is set in data/ev-goal.json)*
 
 ### "Where the Money Goes" Graphic (EVVIZ)
 
@@ -67,10 +67,10 @@ Which phases cover which requirements. Populated during roadmap creation.
 | EVDATA-04 | Phase 75 | Expense half done (Phase 74 session); balance pending |
 | EVDATA-05 | Phase 75 | Pending |
 | EVDATA-06 | Phase 75 | Pending |
-| EVVIEW-01 | Phase 76 | Pending |
-| EVVIEW-02 | Phase 76 | Pending |
-| EVVIEW-03 | Phase 76 | Pending |
-| EVVIEW-04 | Phase 76 | Pending |
+| EVVIEW-01 | Phase 76 | Complete |
+| EVVIEW-02 | Phase 76 | Complete |
+| EVVIEW-03 | Phase 76 | Complete |
+| EVVIEW-04 | Phase 76 | Complete |
 | EVVIZ-01 | Phase 77 | Pending |
 | EVVER-01 | Phase 78 | Pending |
 | EVVER-02 | Phase 78 | Pending |
