@@ -56,7 +56,7 @@ The audit confirms the data layer; EVVER-02 requires Chris to confirm it **rende
 
 ### Findings for Chris to decide before/at UAT
 
-1. **Fundraising goal — RESOLVED 2026-06-22.** Chris set the goal to **$5,000, label "Midterms Support"** (`data/ev-goal.json`); `reconcileEV.js` re-run (idempotent — only goal columns changed). DB confirms `goal_amount=5000`, net $2,422.68 = **48.5% to goal**. The progress bar (EVVIEW-04) now renders live via the org-financial-summary API.
+1. **Fundraising goal — HIDDEN for now (Chris, 2026-06-22).** Briefly set to $5,000 "Midterms Support", then Chris chose to hide the tile and return to it later. `data/ev-goal.json` keeps `goal_label="Midterms Support"` with `goal_amount=null`; `reconcileEV.js` re-run → DB `goal_amount=null` → the goal tile (EVVIEW-04 / OrgTransparencyPanel) renders nothing. Infra remains ready: to bring it back, set the amount in `ev-goal.json` and re-run `reconcileEV.js`.
 2. **Give Butter recon variance −$133.89** (flagged since Phase 75). Optional: refresh the Give Butter export and re-run `reconcileEV.js` (idempotent) to tighten the variance, or accept it as the explained tolerance above.
 3. Minor: backfill `source_date` on the operating/revenue budget rows (non-blocking).
 
@@ -68,7 +68,7 @@ The audit confirms the data layer; EVVER-02 requires Chris to confirm it **rende
 - [ ] **Total Expenses** shows **$1,745.65**, with the expense breakdown by category (the honest, neutral breakdown — D-10).
 - [ ] **$0 staff compensation** line reads as a plain, neutral fact — not celebrated (D-11/D-12).
 - [ ] **Burn-pace** line present (≈$344/mo), **no runway countdown** (D-05/D-06).
-- [ ] **Goal progress**: renders **"Midterms Support"**, $2,422.68 of **$5,000.00**, bar at **48.5%** ("48% of the way there").
+- [ ] **Goal tile**: correctly **hidden** (no goal set — Chris deferred it; no broken/empty element).
 - [ ] Every figure visibly traces to a source (bank statement / platform export).
 - [ ] Spend graphic is **absent** and nothing references it (Phase 77 iceboxed — expected).
 - [ ] **Chris sign-off:** _____________________  Date: __________
