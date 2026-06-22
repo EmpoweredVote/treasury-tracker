@@ -10,7 +10,14 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 
 ## Current State
 
+**Shipped v2.6 EV Financial Transparency Refresh (2026-06-22).** Empowered Vote's own organizational financials brought fully up to date and made donor-facing. Income from every platform (GiveButter, Patreon, Benevity) + bank interest + manual entries is merged idempotently with no double-counting; the Beneficial State Bank is the authoritative balance/expense truth ($1,706.77 balance, $1,745.65 FY2026 expenses); platform income reconciles to net bank deposits within a stored, explained variance (−$132.39, never double-counted) and platform fees are tracked as an income reduction ($125.32 — the cost-of-fundraising story). EV's page now renders a gross→net fee sentence + per-source mini-list, an honest neutral expense breakdown, a Funds-on-Hand chip, a burn-pace line (runway intentionally dropped), and a data-driven fundraising-goal scaffold (amount left unset for now). Phase 78 audited every figure against production and Chris signed off the live-app UAT. The actual "where the money goes" graphic (EVVIZ-01 / Phase 77) was deliberately iceboxed — flat 6-category data makes a dedicated tree-chart low-value, and the transparency view already shows the breakdown. $0 spend (idempotent CSV merge, no new AI runs).
+
+<details>
+<summary>Previous: v2.5 Utah Municipal Expansion (shipped 2026-06-20)</summary>
+
 **Shipped v2.5 Utah Municipal Expansion (2026-06-20).** 10 Utah cities + their 5 county governments brought onto the tracker at full California parity via one new BigQuery loader against the Utah State Auditor's Transparent Utah dataset: all 15 entities loaded operating + revenue (all-funds FY2014–2025, `fund1→org1→cat1` tree), Census-2024 per-capita, city→county linking; employee compensation for the 10 cities (names-free); 3,536 bleed-safe universal enrichment rows inline at $0; every figure durably sourced to `transparent.utah.gov`. Phase 73 verified: Provo + Salt Lake County (first UT county-gov ACFR cross-read) reconciled within explainable all-funds tolerance, a full-cohort source-chain + bleed audit (539 budget/salary rows — 0 NULL/fragile/residue, 0 PII), and a 22-item live-app UAT with Chris's sign-off (all pass). ~$0 total spend (after a same-day BigQuery cost incident was caught and fixed with a single-scan rollup ETL).
+
+</details>
 
 **Coverage now:** US federal + CA/MA state budgets, 351 MA cities, all California cities across OC + LA + the 6 SoCal counties + their county governments, **10 Utah cities + 5 Utah county governments** (op/rev FY2014–2025, compensation, enrichment, county-linked), 12 named CA cities, 14 TX cities, 3 OR cities — every figure durably sourced.
 
@@ -26,20 +33,9 @@ All 6 remaining SoCal counties added via the hardened v2.2/v2.3 pipeline with ze
 Brought every already-loaded non-OC California city and county to the Orange County standard (FY2003 history, statewide salaries, standardized enrichment) via the hardened v2.2 pipeline. Phase 62 verified end-to-end: ACFR reconciliation, source-chain audit (0 NULL/fragile/residue across 25,568 rows), 24-item UAT with Chris's sign-off. SoCal expansion deferred to v2.4.
 </details>
 
-## Current Milestone: v2.6 EV Financial Transparency Refresh
+## Next Milestone
 
-**Goal:** Bring Empowered Vote's own financials on the tracker fully up to date by idempotently combining every income + bank source, and add a donor-facing transparency view with an actual "where the money goes" graphic.
-
-**Target features:**
-- **Idempotent multi-source refresh** — GiveButter, Patreon, Benevity, Beneficial State Bank, and manual entries merged without double-counting (dedup by `external_id`; reconcile platform donations vs. net bank deposits). Builds on `scripts/loadEVFinances.js` + the existing webhook-row dedup.
-- **Donor-facing transparency view** — income vs. expenses, expense breakdown (reinforcing the all-volunteer / $0-staff-comp story), balance & runway, and fundraising goal / progress.
-- **"Where the money goes" graphic** — actual spend-so-far breakdown by category.
-
-**Key context / constraints:**
-- Ingestion is **idempotent CSV merge** (confirmed) — no new live-API integration this milestone. Beneficial State Bank exposes a transaction CSV export (Chris confirmed 2026-06-20).
-- **Reconciliation rule to design at plan time:** bank = authoritative for balance + expenses; donation platforms = income detail; a platform payout deposited in the bank must NOT be counted twice.
-- Free / low-cost only (unfunded nonprofit); $5 AI-spend gate — estimate before any AI run.
-- Live host: `treasurytracker.empowered.vote`.
+**Between milestones** (v2.6 shipped 2026-06-22). No active milestone — run `/gsd:new-milestone` to start the next one. Leading candidates below.
 
 **Parked candidate — future Ohio milestone:** the Ohio Auditor of State's Summarized Annual Financial Reports (free XLSX 2016–2025, no auth), Utah-mold and verified icicle-grade (235 cities, revenue-by-source + expenditure-by-function + population + county). See auto-memory `reference_ohio_aos_financial_data`.
 
@@ -125,10 +121,15 @@ Brought every already-loaded non-OC California city and county to the Orange Cou
 - ✓ SoCal verification: Ventura County ACFR reconciliation (all-funds basis), full-cohort source-chain audit (5,968 budget rows, 0 fragile URLs / 0 residue), 20-item live-app UAT — all PASS, Chris signed off (VER-05, VER-06) — v2.4, Phase 67
 - ✓ 10 Utah cities + 5 county governments loaded at full CA parity — op/rev (all-funds FY2014–2025) via a new Transparent Utah BigQuery loader, Census-2024 per-capita, city→county linking, names-free compensation, 3,536 bleed-safe enrichment rows; cost-gated single-scan rollup ETL after a BigQuery cost incident (UTSRC/UCITY/UCO/USAL/UENR/UETL) — v2.5, Phases 68–72
 - ✓ Utah verification: Provo + Salt Lake County (first UT county-gov) ACFR reconciliation (all-funds basis), full-cohort source-chain + bleed audit (539 rows, 0 NULL/fragile/residue, 0 PII across 179 salary trees), 22-item live-app UAT — all PASS, Chris signed off (UVER-01, UVER-02) — v2.5, Phase 73
+- ✓ EV income refreshed idempotently from GiveButter/Patreon/Benevity exports + webhook-delta dedup, aggregate-only/no PII (FY2026 $2,548.51); `loadEVDonations.js` + tests (EVDATA-01/02/03) — v2.6, Phase 74
+- ✓ Beneficial State Bank authoritative for balance ($1,706.77) + expenses ($1,745.65); platform income reconciled to net bank deposits with stored explained variance (−$132.39, no double-count); manual/off-platform path; platform fees tracked as income reduction ($125.32); `org_financial_summary` table; 24/24 tests (EVDATA-04/05/06) — v2.6, Phase 75
+- ✓ Donor-facing transparency view: gross→net fee sentence + per-source mini-list, honest neutral expense breakdown, Funds-on-Hand chip, burn-pace line (runway dropped), data-driven goal-progress scaffold; cross-repo org-financial-summary API wired; Chris live UAT pass (EVVIEW-01/02/03/04) — v2.6, Phase 76
+- ✓ Reconciliation audit + live-app UAT: FY2026 figures reconcile to the bank within the explained −$132.39 tolerance, every figure sourced, revenue ties to the penny ($2,548 + $1.17 interest); Chris signed off the live app (EVVER-01/02) — v2.6, Phase 78
+- 🧊 EV "where the money goes" graphic (EVVIZ-01) — deliberately iceboxed v2.6 (flat 6-category data → dedicated tree-chart low-value; transparency view already shows the breakdown); revisit in a future milestone — Phase 77
 
 ### Active
 
-**v2.6 EV Financial Transparency Refresh** (started 2026-06-20). Empowered Vote's own organizational financials — idempotent multi-source data refresh + a donor-facing transparency view + an actual "where the money goes" graphic. See `.planning/REQUIREMENTS.md` for scoped REQ-IDs.
+**(None — between milestones.** v2.6 EV Financial Transparency Refresh shipped 2026-06-22. Run `/gsd:new-milestone` to scope the next one; fresh REQUIREMENTS.md will be created then.)
 
 ### Future (deferred milestone candidates)
 
@@ -190,9 +191,17 @@ Brought every already-loaded non-OC California city and county to the Orange Cou
 | County budgets on all-governmental-funds basis (SCO ByTheNumbers) | Uniform, sourced, comparable across counties; document the basis + ACFR variance rather than chase General-Fund-only | ✓ Good — FY2024 OC op $6.42B exact; LA precedent reused |
 | Per-year SCO populations for OC cities (not a single hardcoded vintage) | SCO county feed carries per-year estimated_population — more accurate denominators than the LA single-year hardcode | ✓ Good |
 | Names-free Dept→Position salaries tree from GCC | Compensation totals only (no individuals) honors the public-record-only safety line; curl w/ browser UA bypasses the Node fetch Cloudflare TLS block | ✓ Good — Irvine 2024 $0 delta, zero new deps |
+| Bank = balance/expense truth, platforms = income detail (v2.6) | A platform payout deposited in the bank must not be double-counted on top of the donations that produced it; deposits arrive net of fees | ✓ Good — stored explained variance −$132.39, no double-count |
+| Platform fees modeled as income reduction, never an expense (v2.6) | Fees are cost-of-fundraising (gross→net story), not a bank debit; counting them as expense would break bank-authoritative expense truth | ✓ Good — $125.32 surfaced in the fee sentence |
+| Burn pace instead of a runway countdown (v2.6) | Runway implies EV "shuts down at $0," false for an all-volunteer org; a countdown misrepresents reality | ✓ Good — honest pace without a misleading deadline |
+| $0-staff line kept neutral, not celebrated (v2.6) | All-volunteer is a current stage, not an identity; paying contributors would be mission progress, not overhead | ✓ Good — honest framing, no badge |
+| Icebox the "where the money goes" graphic (EVVIZ-01) | EV's ~6 flat expense categories make the tree-chart vocabulary near-degenerate; the transparency view already shows the breakdown | — Deferred to a future milestone |
+| Fundraising goal as a manual, committed data file (v2.6) | `data/ev-goal.json` keeps the goal traveling with sourced figures via reconcileEV; live GiveButter pull deferred to EVAUTO | ✓ Good — amount left unset, infra ready |
 
 ## Shipped
 
+- ✅ **v2.6 EV Financial Transparency Refresh** — 2026-06-22 — Phases 74-78 (Phase 77 iceboxed) — EV's own org financials refreshed idempotently across GiveButter/Patreon/Benevity + bank + manual (no double-count); Beneficial State Bank authoritative for balance ($1,706.77) + expenses ($1,745.65); platform income reconciled to net deposits within explained −$132.39 tolerance; donor-facing transparency view (gross→net fee story, honest expense breakdown, funds-on-hand, burn pace, goal scaffold); Phase 78 audit + Chris live UAT sign-off; "where the money goes" graphic deliberately iceboxed; every figure sourced, $0 spend
+- ✅ **v2.5 Utah Municipal Expansion** — 2026-06-20 — Phases 68-73 (10 Utah cities + 5 county governments at full CA parity via one BigQuery loader; op/rev FY2014–2025, names-free compensation, 3,536 enrichment rows, city→county linking; Provo + Salt Lake County ACFR reconciliation + full-cohort audit + 22-item Chris UAT; cost-gated rollup ETL after a BigQuery cost incident; every figure sourced, ~$0 spend)
 - ✅ **v2.4 Southern California Expansion** — 2026-06-17 — Phases 63-67 (all 6 remaining SoCal counties: ~95 cities loaded + county-linked op/rev FY2003–2024, 8 county governments loaded incl. Alameda + Sacramento, statewide GCC salaries FY2009–2024 for all new cities, enrichment to parity inline at $0; Ventura ACFR reconciliation + full-cohort source-chain audit (5,968 rows, 0 fragile/0 residue) + 20-item Chris UAT sign-off; every figure durably sourced, $0 spend)
 - ✅ **v2.3 California Coverage Parity** — 2026-06-17 — Phases 58-62 (88 LA County cities + LA County gov backfilled to FY2003; remaining non-OC CA cities history + county-linking; statewide CA salaries FY2009–2024 for 98 cities; standardized enrichment; ACFR reconciliation + full-cohort source-chain audit + Chris UAT sign-off; every figure durably sourced, $0 spend)
 - ✅ **v2.2 Orange County + Reusable SoCal Pipeline** — 2026-06-16 — Phases 52-57 (hardened one-command SoCal county pipeline + runbook; all 34 OC cities operating + revenue FY2003–2024; OC entity + linking + enrichment; statewide city salaries 2009–2024; ACFR verification + UAT; OC county-government budget FY2003–2024; every figure sourced; milestone audit passed 16/16)
@@ -227,4 +236,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-20 — v2.6 EV Financial Transparency Refresh started. Empowered Vote's own organizational financials: idempotent multi-source refresh (GiveButter, Patreon, Benevity, Beneficial State Bank, manual — dedup'd, no double-count) + donor-facing transparency view (income/expenses, expense breakdown, balance & runway, goal/progress) + actual "where the money goes" graphic. Idempotent CSV merge; free/low-cost; $5 AI gate. (Ohio parked as a future geographic milestone.)*
+*Last updated: 2026-06-22 — v2.6 EV Financial Transparency Refresh SHIPPED. Empowered Vote's own organizational financials refreshed idempotently across GiveButter/Patreon/Benevity + bank + manual (no double-count); Beneficial State Bank authoritative for balance + expenses; platform income reconciled to net deposits within an explained tolerance; donor-facing transparency view (gross→net fee story, honest expense breakdown, funds-on-hand, burn pace, goal scaffold); Phase 78 audit + Chris live UAT sign-off; every figure sourced, $0 spend. The "where the money goes" graphic (EVVIZ-01 / Phase 77) deliberately iceboxed. Between milestones — next via `/gsd:new-milestone`. (Ohio parked as a future geographic milestone.)*

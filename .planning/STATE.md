@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v2.6
 milestone_name: EV Financial Transparency Refresh
-status: executing
-last_updated: "2026-06-22T00:10:27.789Z"
-last_activity: 2026-06-22 -- Phases 74-76 verified; Phase 77 iceboxed; wrapping up (Phase 78 audit/UAT + milestone close)
+status: Awaiting next milestone
+last_updated: "2026-06-22T19:06:35.880Z"
+last_activity: 2026-06-22 — Milestone v2.6 completed and archived
 progress:
   total_phases: 62
   completed_phases: 2
@@ -24,9 +24,21 @@ See: .planning/PROJECT.md (updated 2026-06-17 after v2.4 close + v2.5 start)
 
 ## Current Position
 
-Phase: 78 (reconciliation-audit-live-uat) — STARTING (wrap-up)
-Status: Phases 74, 75, 76 verified & shipped. Phase 77 ("Where the Money Goes" graphic / EVVIZ-01) ICEBOXED 2026-06-22 (Chris). Running Phase 78 audit (EVVER-01), then live-app UAT (EVVER-02), then closing v2.6.
-Last activity: 2026-06-22 -- Phase 77 iceboxed; milestone wrap-up started
+Phase: Milestone v2.6 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-22 — Milestone v2.6 completed and archived
+
+## Deferred Items
+
+Items acknowledged and deferred at v2.6 milestone close on 2026-06-22:
+
+| Category | Item | Status | Note |
+|----------|------|--------|------|
+| phase | 77-where-the-money-goes-graphic (EVVIZ-01) | iceboxed | Deliberate icebox — flat 6-category data makes a dedicated graphic low-value; revisit in a future milestone |
+| quick_task | 001-create-treasury-tracker-entries-for-ever | missing | Unrelated to v2.6 (city-data); stub with no recorded work |
+| quick_task | 002-add-longview-tx-revenue | missing | Unrelated to v2.6 (Longview TX city-data) |
+| quick_task | 003-longview-operating-budget | missing | Unrelated to v2.6 (Longview TX city-data) |
 
 ### v2.6 EV Financial Transparency Refresh context
 

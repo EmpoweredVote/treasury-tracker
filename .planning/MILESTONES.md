@@ -1,5 +1,25 @@
 # Milestones — Treasury Tracker / Empowered Vote Financials
 
+## v2.6 EV Financial Transparency Refresh (Shipped: 2026-06-22)
+
+**Phases completed:** 4 phases (74–78; Phase 77 iceboxed), 8 plans
+
+**Delivered:** Empowered Vote's own organizational financials brought fully up to date and made donor-facing — income from every platform (GiveButter, Patreon, Benevity) + bank interest + manual entries merged idempotently with no double-counting, the Beneficial State Bank established as authoritative balance/expense truth, a gross→net "cost of fundraising" story, an honest neutral expense breakdown, funds-on-hand + burn pace, and a fundraising-goal scaffold — every figure sourced and reconciled to the bank within an explained tolerance, signed off by Chris in the live app. The actual "where the money goes" graphic (EVVIZ-01) was deliberately iceboxed. $0 spend (CSV merge, no new AI runs).
+
+**Key accomplishments:**
+
+- **Donation source refresh (Phase 74)** — FY2026 income refreshed from platform exports (GiveButter $703 / Patreon $370 / Benevity $1,475 + $0.51 interest = $2,548.51, up from $1,256.51), merged idempotently and dedup'd (export baseline + webhook delta), aggregate-only with no donor PII; `scripts/loadEVDonations.js` + tests; fixed a Benevity cross-year double-count (EVDATA-01/02/03).
+- **Bank truth + reconciliation (Phase 75)** — Beneficial State Bank made authoritative for balance ($1,706.77) and expenses ($1,745.65: AI & Research, Infra & Hosting, Design, Domains, Bank Fees); platform income reconciled against net bank payout deposits with a stored explained variance (−$132.39, never double-counted); manual/off-platform path; platform fees tracked as an income reduction ($125.32, the cost-of-fundraising story); new `treasury.org_financial_summary` table; 24/24 tests (EVDATA-04/05/06).
+- **Donor-facing transparency view (Phase 76)** — rendered the reconciled figures on EV's page: gross→net fee sentence + per-source mini-list, honest neutral expense breakdown, a Funds-on-Hand header chip, a burn-pace line (runway intentionally dropped as misleading for an all-volunteer org), and a data-driven goal-progress scaffold; cross-repo `org-financial-summary` API wired into `dataLoader.ts`; Chris live UAT pass (EVVIEW-01/02/03/04).
+- **"Where the Money Goes" graphic (Phase 77) — ICEBOXED** — deferred deliberately: EV's ~6 flat expense categories make the existing tree-chart vocabulary near-degenerate, and the Phase 76 view already renders the breakdown by category; revisit in a future milestone (EVVIZ-01 deferred).
+- **Reconciliation audit + live-app UAT (Phase 78)** — audited FY2026 figures against production Supabase: bank balance authoritative, platform income reconciles within the explained −$132.39 tolerance, every displayed figure carries a source, and the revenue total ties to the penny ($2,548 donations + $1.17 bank interest = $2,549.17); Chris approved the live-app UAT (EVVER-01/02).
+
+**Known deferred items at close:** 4 acknowledged (see STATE.md Deferred Items — none are v2.6 blockers): Phase 77 / EVVIZ-01 graphic (deliberate icebox); 3 unrelated Longview-TX / city-data quick-task stubs. The fundraising **goal amount** is intentionally left unset (tile hidden; infra + the "Midterms Support" label are committed and ready to switch on).
+
+**Archive:** [v2.6-ROADMAP.md](milestones/v2.6-ROADMAP.md) | [v2.6-REQUIREMENTS.md](milestones/v2.6-REQUIREMENTS.md)
+
+---
+
 ## v2.5 Utah Municipal Expansion (Shipped: 2026-06-20)
 
 **Phases completed:** 7 phases (68–73, incl. inserted 71.1), 14 plans, 27 tasks
