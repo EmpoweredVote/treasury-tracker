@@ -1,0 +1,24 @@
+{
+  "_meta": {
+    "source": "Virginia APA Comparative Report",
+    "portal": "https://data.virginia.gov (CKAN)",
+    "ckan_api": "https://data.virginia.gov/api/3/action/package_search?q=comparative+report+revenues+expenditures",
+    "generated_for": "Phase 79 VASRC-02 (Treasury Tracker v2.7)",
+    "history_floor_fy": 2023,
+    "note": "Only these fiscal years are published as XLSX on the data.virginia.gov open-data portal. Pre-FY2023 reports are PDF-only on apa.virginia.gov (JS-gated, not machine-readable) and are OUT OF SCOPE per CONTEXT 79 D-03 (XLSX-only, no PDF backfill). For FY2024 the FINAL release is preferred over AMENDED. SCOPE FLAG: the v2.7 \"deep history FY2015+\" intent is NOT achievable from the XLSX source — only FY2023-2024 are XLSX-available on the portal."
+  },
+  "years": [
+    {
+      "fiscal_year": 2024,
+      "status": "final",
+      "datasetUrl": "https://data.virginia.gov/dataset/2024-final-comparative-report-of-local-government-revenues-and-expenditures",
+      "xlsxUrl": "https://data.virginia.gov/dataset/5545748d-4746-4437-9f2d-636410e206b5/resource/90a9af12-5771-41ec-8424-b93163ddf80d/download/fy2024-comparative-report.xlsx"
+    },
+    {
+      "fiscal_year": 2023,
+      "status": "published",
+      "datasetUrl": "https://data.virginia.gov/dataset/2023-comparative-report-of-local-government-revenues-and-expenditures",
+      "xlsxUrl": "https://data.virginia.gov/dataset/f3e4e41d-8f88-40ab-86a2-b677f99f7e28/resource/102f7b9e-4e65-467f-b38c-75edd78dbbe9/download/fy2023-comparative-report.xlsx"
+    }
+  ]
+}
