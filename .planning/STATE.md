@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.6
-milestone_name: EV Financial Transparency Refresh
-status: Awaiting next milestone
-last_updated: "2026-06-22T19:06:35.880Z"
-last_activity: 2026-06-22 — Milestone v2.6 completed and archived
+milestone: v2.7
+milestone_name: Virginia Local Government Expansion
+status: planning
+last_updated: "2026-06-22T23:13:09.176Z"
+last_activity: 2026-06-22
 progress:
-  total_phases: 62
-  completed_phases: 2
-  total_plans: 8
-  completed_plans: 5
-  percent: 3
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-17 after v2.4 close + v2.5 start)
 
 ## Current Position
 
-Phase: Milestone v2.6 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-06-22 — Milestone v2.6 completed and archived
+Status: Defining requirements
+Last activity: 2026-06-22 — Milestone v2.7 started
 
 ## Deferred Items
 
