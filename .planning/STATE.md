@@ -17,17 +17,29 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-17 after v2.4 close + v2.5 start)
+See: .planning/PROJECT.md (updated 2026-06-22 — v2.7 Virginia Local Government Expansion started)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 78 — reconciliation audit + live-app UAT (milestone wrap-up)
+**Current focus:** Phase 79 — VA APA source + loader (v2.7 kickoff)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 79 (va-apa-source-loader) — Not started
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-22 — Milestone v2.7 started
+Status: Roadmap created; ready to plan Phase 79
+Last activity: 2026-06-22 — Milestone v2.7 started; requirements + roadmap committed
+
+## Phase Overview — v2.7 Virginia Local Government Expansion
+
+| Phase | Name | Requirements | Depends on | Status |
+|-------|------|--------------|------------|--------|
+| 79 | VA APA Source + Loader | VASRC-01, VASRC-02 | — | Not started |
+| 80 | City + County Loads | VALOAD-01, VALOAD-02, VALOAD-04 | 79 | Not started |
+| 81 | Towns + VA Data Model & Linking | VALOAD-03, VALINK-01 | 80 | Not started |
+| 82 | Enrichment Parity | VAENR-01 | 80, 81 | Not started |
+| 83 | Verification + Source-Chain Audit + UAT | VAVER-01, VAVER-02 | 79–82 | Not started |
+
+**Critical path:** 79 → 80 → 81 → 82 → 83. One uniform free source (APA Comparative Report XLSX); general-government scope; no salaries (not in source); enterprise deferred; every figure sourced.
 
 ## Deferred Items
 

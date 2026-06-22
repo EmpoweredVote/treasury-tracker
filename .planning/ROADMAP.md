@@ -19,10 +19,82 @@
 - ✅ **v2.4 Southern California Expansion** — Phases 63-67 (shipped 2026-06-17)
 - ✅ **v2.5 Utah Municipal Expansion** — Phases 68-73 (shipped 2026-06-20)
 - ✅ **v2.6 EV Financial Transparency Refresh** — Phases 74-78 (shipped 2026-06-22; Phase 77 iceboxed)
+- 🔨 **v2.7 Virginia Local Government Expansion** — Phases 79-83 (in progress, started 2026-06-22)
 
 ---
 
 ## Phases
+
+## 🔨 v2.7 Virginia Local Government Expansion (Phases 79-83) — IN PROGRESS
+
+**Milestone goal:** Bring every Virginia locality (38 independent cities, 95 counties, ~41 towns) onto Treasury Tracker at parity from the single uniform APA Comparative Report XLSX — general-government revenue by source + expenditure by function→activity, per-capita, every figure sourced.
+
+**Constraints:** One uniform free source (APA Comparative Report XLSX on data.virginia.gov, CKAN API, no auth, $0); general-government scope (enterprise/Exhibit F deferred); no salaries (not in source); deep history (FY2015+ where XLSX published, floor documented); every figure durably sourced; reuse the budget-tree display + source-chain + UAT patterns. Source recon'd: auto-memory `reference_virginia_apa_comparative_report`.
+
+**Critical path:** 79 → 80 → 81 → 82 → 83 (linear; 82 also depends on 81 for town categories).
+
+### Phase 79: VA APA Source + Loader
+
+**Goal:** A reusable loader turns the VA APA Comparative Report XLSX into the tracker's budget tree for any locality, proven on a sample, with the available fiscal-year range determined.
+**Depends on:** Nothing (new milestone; reuses the budget-tree + RPC + never-overwrite patterns)
+**Requirements:** VASRC-01, VASRC-02
+**UI hint:** no
+
+Success criteria:
+1. The loader parses revenue (Exhibits B / B-1 / B-2) and expenditure (Exhibit C + C-1…C-8, function→activity 2-level tree) for a sample locality into the standard budget tree, every figure carrying `data.virginia.gov` source attribution.
+2. A dry-run on Alexandria FY2024 reproduces the report's totals (≈$864M expenditures / $874M local revenue) with zero writes.
+3. The available XLSX fiscal-year range is determined and the history floor documented (FY2024 final + FY2025 draft confirmed; older years verified or flagged PDF-only).
+4. Offline unit tests cover the parser — column mapping, the function→activity tree, and raw-$ vs. derived (per-capita/percent) column handling.
+
+### Phase 80: City + County Loads
+
+**Goal:** All 38 independent cities and 95 counties are loaded with general-government revenue + expenditure + per-capita across the available history, idempotently.
+**Depends on:** Phase 79 (loader)
+**Requirements:** VALOAD-01, VALOAD-02, VALOAD-04
+**UI hint:** no
+
+Success criteria:
+1. All 38 cities (incl. Alexandria + Falls Church) and 95 counties have operating (expenditure) + revenue datasets for each available FY, every row sourced.
+2. Per-capita renders from the report's population data (Exhibit H).
+3. Re-running the loader changes nothing (idempotent; never-overwrite guard preserves any richer pre-existing source).
+4. A spot-check locality's FY2024 totals match the published report.
+
+### Phase 81: Towns + Virginia Data Model & Linking
+
+**Goal:** All reporting towns are loaded and the VA navigation model is in place — Virginia state node, standalone cities, county nodes, and towns linked to their county.
+**Depends on:** Phase 80
+**Requirements:** VALOAD-03, VALINK-01
+**UI hint:** yes
+
+Success criteria:
+1. All ~41 reporting towns loaded with the same datasets/granularity, every row sourced.
+2. A Virginia state node exists; US → Virginia → locality navigation works.
+3. Independent cities render standalone (no parent county); counties render as their own nodes; towns show a county breadcrumb and appear in their county's localities panel.
+4. Loads remain idempotent.
+
+### Phase 82: Enrichment Parity
+
+**Goal:** The VA function/activity categories carry standardized, bleed-safe plain-language enrichment.
+**Depends on:** Phase 80 (categories must exist) + Phase 81 (town categories)
+**Requirements:** VAENR-01
+**UI hint:** no
+
+Success criteria:
+1. Universal `category_enrichment` rows authored for the VA function/activity vocabulary, inline at $0.
+2. No locality-name leaks / cross-entity bleed (audit clean).
+3. Enrichment renders in-app for a sample city, county, and town.
+
+### Phase 83: Verification + Source-Chain Audit + UAT
+
+**Goal:** The VA cohort is verified — sample ACFR reconciliation, a clean full-cohort source-chain audit, and a live-app UAT with Chris's sign-off.
+**Depends on:** Phases 79–82
+**Requirements:** VAVER-01, VAVER-02
+**UI hint:** no
+
+Success criteria:
+1. Alexandria + a sample county reconcile to their published ACFRs within a documented, explained tolerance.
+2. Full-cohort source-chain audit: every row durably sourced, 0 NULL / fragile / residue.
+3. A live-app UAT across a city, a county, and a town passes with Chris's sign-off.
 
 <details>
 <summary>✅ v2.6 EV Financial Transparency Refresh (Phases 74-78) — SHIPPED 2026-06-22 (Phase 77 iceboxed; full detail in milestones/v2.6-ROADMAP.md)</summary>
