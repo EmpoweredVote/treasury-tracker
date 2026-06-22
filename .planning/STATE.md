@@ -4,7 +4,7 @@ milestone: v2.6
 milestone_name: EV Financial Transparency Refresh
 status: executing
 last_updated: "2026-06-22T00:10:27.789Z"
-last_activity: 2026-06-21 -- Phase 75 execution started
+last_activity: 2026-06-22 -- Phases 74-76 verified; Phase 77 iceboxed; wrapping up (Phase 78 audit/UAT + milestone close)
 progress:
   total_phases: 62
   completed_phases: 2
@@ -20,18 +20,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-17 after v2.4 close + v2.5 start)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 75 — bank-truth-reconciliation
+**Current focus:** Phase 78 — reconciliation audit + live-app UAT (milestone wrap-up)
 
 ## Current Position
 
-Phase: 75 (bank-truth-reconciliation) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 75
-Last activity: 2026-06-21 -- Phase 75 execution started
+Phase: 78 (reconciliation-audit-live-uat) — STARTING (wrap-up)
+Status: Phases 74, 75, 76 verified & shipped. Phase 77 ("Where the Money Goes" graphic / EVVIZ-01) ICEBOXED 2026-06-22 (Chris). Running Phase 78 audit (EVVER-01), then live-app UAT (EVVER-02), then closing v2.6.
+Last activity: 2026-06-22 -- Phase 77 iceboxed; milestone wrap-up started
 
 ### v2.6 EV Financial Transparency Refresh context
 
-- **Scope:** Empowered Vote's OWN organizational financials (not geographic). Refresh donation/income figures by idempotently combining all sources, add a donor-facing transparency view, and add an actual "where the money goes" spend graphic.
+- **Scope:** Empowered Vote's OWN organizational financials (not geographic). Refresh donation/income figures by idempotently combining all sources, add a donor-facing transparency view, and add an actual "where the money goes" spend graphic. *(Graphic — Phase 77/EVVIZ-01 — ICEBOXED 2026-06-22; deferred to a future milestone.)*
 - **Sources (all idempotent CSV merge — no live API this milestone):**
   - **GiveButter** — primary; already has live webhook → Supabase rows. Fresh export must dedup against webhook rows by `external_id`.
   - **Patreon** — recurring donations, CSV export.
@@ -50,12 +49,12 @@ Last activity: 2026-06-21 -- Phase 75 execution started
 | Phase | Name | Requirements | Depends on | Status |
 |-------|------|--------------|------------|--------|
 | 74 | Donation Source Refresh (Idempotent Income Merge) | EVDATA-01, EVDATA-02, EVDATA-03 | — | ✅ COMPLETE — verified, Chris UAT all-pass 2026-06-20 |
-| 75 | Bank Truth + Reconciliation | EVDATA-04, EVDATA-05, EVDATA-06 | 74 | Not started |
-| 76 | Donor-Facing Transparency View | EVVIEW-01..04 | 75 | Not started |
-| 77 | "Where the Money Goes" Graphic | EVVIZ-01 | 76 | Not started |
-| 78 | Reconciliation Audit + Live-App UAT | EVVER-01, EVVER-02 | 74–77 | Not started |
+| 75 | Bank Truth + Reconciliation | EVDATA-04, EVDATA-05, EVDATA-06 | 74 | ✅ COMPLETE — verified 2026-06-21 |
+| 76 | Donor-Facing Transparency View | EVVIEW-01..04 | 75 | ✅ COMPLETE — verified, Chris live UAT 2026-06-21 |
+| 77 | "Where the Money Goes" Graphic | EVVIZ-01 | 76 | 🧊 ICEBOXED 2026-06-22 (deferred — see ROADMAP) |
+| 78 | Reconciliation Audit + Live-App UAT | EVVER-01, EVVER-02 | 74–76 | ▶ Starting (wrap-up) |
 
-**Critical path:** 74 → 75 → 76 → 77 → 78 (linear; 77 extends the 76 frontend surface).
+**Critical path:** 74 → 75 → 76 → 78 (77 iceboxed). Phase 78 verifies the refreshed figures + transparency view.
 **Constraint:** Idempotent CSV merge; free/low-cost only ($5 AI gate); every figure sourced; bank authoritative for balance + expenses, platforms for income detail (never double-count).
 
 ## Accumulated Context

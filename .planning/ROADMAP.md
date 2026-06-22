@@ -74,29 +74,26 @@ Success criteria:
 3. The EV page shows current funds on hand (balance) and runway at the current burn rate.
 4. The EV page shows the active fundraising goal and a progress indicator toward it.
 
-### Phase 77: "Where the Money Goes" Graphic
+### Phase 77: "Where the Money Goes" Graphic 🧊 ICEBOXED (2026-06-22)
 
-**Goal:** A graphic shows donors how money actually spent so far this period breaks down by category, rendered in the tracker's existing visualization vocabulary.
-**Depends on:** Phase 76 (extends the transparency view's frontend surface + data plumbing)
-**Requirements:** EVVIZ-01
-**UI hint:** yes
+**Status:** DEFERRED — iceboxed by Chris on 2026-06-22 during `/gsd-discuss-phase 77`, before any context/plan was committed. Not deleted; revisit in a future milestone.
+**Why deferred:** EV's expenses are ~6 *flat* categories with no hierarchy, so the existing tree-chart vocabulary (icicle/sunburst) is near-degenerate, and the Phase 76 transparency view already renders the expense breakdown by category (the auto-rendered operating-dataset chart + the PlainLanguageSummary top categories). The incremental donor value of a dedicated graphic didn't justify the work right now. The data plumbing it would have used already exists.
+**If revived:** the gray areas surfaced were graphic *form* (stacked `SpendingBreakdownBar` vs. `PerDollarBreakdown` "for every $10…" vs. reuse icicle), placement, donor framing, and interactivity. See DISCUSSION-LOG note in this milestone's close.
 
-Success criteria:
-1. A graphic renders the actual spend-so-far breakdown by category for the current period.
-2. The graphic is consistent with the tracker's existing chart vocabulary (icicle/summary or equivalent) and reads clearly to a non-finance visitor.
-3. Every figure in the graphic is sourced and ties to the reconciled bank/expense data.
+**Goal (original):** A graphic shows donors how money actually spent so far this period breaks down by category, rendered in the tracker's existing visualization vocabulary.
+**Requirements:** EVVIZ-01 (deferred with this phase)
 
 ### Phase 78: Reconciliation Audit + Live-App UAT
 
-**Goal:** The refreshed figures, transparency view, and graphic are verified — combined totals reconcile to the bank balance within an explained tolerance, every figure is sourced, and Chris signs off in the live app.
-**Depends on:** Phases 74–77
+**Goal:** The refreshed figures and transparency view are verified — combined totals reconcile to the bank balance within an explained tolerance, every figure is sourced, and Chris signs off in the live app. *(The spend graphic is excluded — Phase 77 iceboxed 2026-06-22.)*
+**Depends on:** Phases 74–76 *(was 74–77; Phase 77 iceboxed)*
 **Requirements:** EVVER-01, EVVER-02
 **UI hint:** no
 
 Success criteria:
 1. Combined displayed figures reconcile to the Beneficial State Bank balance within a documented, explained tolerance.
 2. Every displayed figure carries a source (platform export, bank statement, or manual-entry record).
-3. A live-app UAT covering the refreshed figures, the transparency view, and the spend graphic passes with Chris's sign-off.
+3. A live-app UAT covering the refreshed figures and the transparency view passes with Chris's sign-off. *(Spend graphic dropped — Phase 77 iceboxed.)*
 
 ---
 

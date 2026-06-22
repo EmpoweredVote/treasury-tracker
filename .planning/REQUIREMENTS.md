@@ -12,9 +12,9 @@ Requirements for milestone v2.6. Each maps to exactly one roadmap phase.
 - [x] **EVDATA-01**: GiveButter donations refreshed from the latest export and merged idempotently with the live webhook-written rows (dedup by `external_id`) — totals reflect current data, no double-counting. ✓ Phase 74
 - [x] **EVDATA-02**: Patreon recurring-donation CSV loaded into the income model and deduplicated on re-import. ✓ Phase 74
 - [x] **EVDATA-03**: Benevity workplace-giving CSV loaded into the income model and deduplicated on re-import. ✓ Phase 74
-- [ ] **EVDATA-04**: Beneficial State Bank transaction CSV loaded as the authoritative source for cash balance and expenses (deposits vs. debits classified).
-- [ ] **EVDATA-05**: Reconciliation ensures a platform donation and its corresponding net bank deposit are counted once (bank = balance/expense truth; platforms = income detail).
-- [ ] **EVDATA-06**: Off-platform / manual entries (checks, grants, in-kind) can be recorded and included in totals.
+- [x] **EVDATA-04**: Beneficial State Bank transaction CSV loaded as the authoritative source for cash balance and expenses (deposits vs. debits classified). ✓ Phase 75
+- [x] **EVDATA-05**: Reconciliation ensures a platform donation and its corresponding net bank deposit are counted once (bank = balance/expense truth; platforms = income detail). ✓ Phase 75
+- [x] **EVDATA-06**: Off-platform / manual entries (checks, grants, in-kind) can be recorded and included in totals. ✓ Phase 75
 
 ### Donor-Facing Transparency View (EVVIEW)
 
@@ -25,12 +25,12 @@ Requirements for milestone v2.6. Each maps to exactly one roadmap phase.
 
 ### "Where the Money Goes" Graphic (EVVIZ)
 
-- [ ] **EVVIZ-01**: A graphic shows how money actually spent so far this period breaks down by category, using the tracker's existing visualization vocabulary.
+- 🧊 **EVVIZ-01** *(DEFERRED 2026-06-22)*: A graphic shows how money actually spent so far this period breaks down by category, using the tracker's existing visualization vocabulary. **Iceboxed with Phase 77** — the Phase 76 transparency view already renders the expense breakdown by category, and EV's ~6 flat categories make a dedicated tree-chart graphic low-value for now. Revisit in a future milestone.
 
 ### Verification (EVVER)
 
 - [ ] **EVVER-01**: Combined figures reconcile to the Beneficial State Bank balance within an explained tolerance, and every displayed figure carries a source.
-- [ ] **EVVER-02**: Refreshed figures, transparency view, and graphic pass a live-app UAT with Chris's sign-off.
+- [ ] **EVVER-02**: Refreshed figures and the transparency view pass a live-app UAT with Chris's sign-off. *(Spend graphic dropped — Phase 77 iceboxed 2026-06-22.)*
 
 ## v2 Requirements
 
@@ -64,21 +64,22 @@ Which phases cover which requirements. Populated during roadmap creation.
 | EVDATA-01 | Phase 74 | Complete |
 | EVDATA-02 | Phase 74 | Complete |
 | EVDATA-03 | Phase 74 | Complete |
-| EVDATA-04 | Phase 75 | Expense half done (Phase 74 session); balance pending |
-| EVDATA-05 | Phase 75 | Pending |
-| EVDATA-06 | Phase 75 | Pending |
+| EVDATA-04 | Phase 75 | Complete |
+| EVDATA-05 | Phase 75 | Complete |
+| EVDATA-06 | Phase 75 | Complete |
 | EVVIEW-01 | Phase 76 | Complete |
 | EVVIEW-02 | Phase 76 | Complete |
 | EVVIEW-03 | Phase 76 | Complete |
 | EVVIEW-04 | Phase 76 | Complete |
-| EVVIZ-01 | Phase 77 | Pending |
+| EVVIZ-01 | Phase 77 | 🧊 Deferred (iceboxed 2026-06-22) |
 | EVVER-01 | Phase 78 | Pending |
 | EVVER-02 | Phase 78 | Pending |
 
 **Coverage:**
-- v1 requirements: 12 total
+- v1 requirements: 12 total (11 active after EVVIZ-01 deferred)
 - Mapped to phases: 12
 - Unmapped: 0 ✓
+- Deferred: EVVIZ-01 (Phase 77 iceboxed 2026-06-22 — revisit in a future milestone)
 
 ---
 *Requirements defined: 2026-06-20*
