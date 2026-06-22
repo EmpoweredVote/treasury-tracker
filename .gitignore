@@ -94,3 +94,9 @@ scripts/*.failures.txt
 
 # EV donation/bank source exports — contain donor PII; never commit (Phase 74/75)
 data/ev-sources/
+
+# Local UAT / debug screenshots — throwaway captures, not version-controlled
+screenshots/
+
+# Python bytecode cache
+**/__pycache__/
