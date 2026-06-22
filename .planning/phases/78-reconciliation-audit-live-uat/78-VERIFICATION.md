@@ -1,7 +1,8 @@
 ---
 phase: 78-reconciliation-audit-live-uat
-status: in_progress
+status: passed
 audit_done: 2026-06-22
+uat_signed_off: 2026-06-22 (Chris)
 method: inline goal-backward audit against production Supabase (no subagent — per feedback_no_research_subagents)
 requirements: [EVVER-01, EVVER-02]
 scope_note: Phase 77 ("Where the Money Goes" graphic / EVVIZ-01) ICEBOXED 2026-06-22 — graphic excluded from this verification.
@@ -71,12 +72,12 @@ The audit confirms the data layer; EVVER-02 requires Chris to confirm it **rende
 - [ ] **Goal tile**: correctly **hidden** (no goal set — Chris deferred it; no broken/empty element).
 - [ ] Every figure visibly traces to a source (bank statement / platform export).
 - [ ] Spend graphic is **absent** and nothing references it (Phase 77 iceboxed — expected).
-- [ ] **Chris sign-off:** _____________________  Date: __________
+- [x] **Chris sign-off:** APPROVED — Chris, 2026-06-22
 
 ---
 
 ## Verdict
 
-- **EVVER-01:** ✅ PASS (minor non-blocking notes: source_date backfill on budget rows; sub-dollar revenue/summary variance).
-- **EVVER-02:** ⏳ PENDING Chris's live-app sign-off.
-- **Phase 78:** IN PROGRESS — completes when EVVER-02 is signed off. v2.6 milestone close is blocked on this.
+- **EVVER-01:** ✅ PASS (minor non-blocking notes: source_date backfill on budget rows; recon variance is the explained tolerance).
+- **EVVER-02:** ✅ PASS — Chris approved the live-app UAT 2026-06-22.
+- **Phase 78:** ✅ PASSED. v2.6 EV Financial Transparency Refresh is complete (Phase 77 / EVVIZ-01 iceboxed, deferred to a future milestone).

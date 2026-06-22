@@ -29,8 +29,8 @@ Requirements for milestone v2.6. Each maps to exactly one roadmap phase.
 
 ### Verification (EVVER)
 
-- [ ] **EVVER-01**: Combined figures reconcile to the Beneficial State Bank balance within an explained tolerance, and every displayed figure carries a source.
-- [ ] **EVVER-02**: Refreshed figures and the transparency view pass a live-app UAT with Chris's sign-off. *(Spend graphic dropped — Phase 77 iceboxed 2026-06-22.)*
+- [x] **EVVER-01**: Combined figures reconcile to the Beneficial State Bank balance within an explained tolerance, and every displayed figure carries a source. ✓ Phase 78 (audit 2026-06-22)
+- [x] **EVVER-02**: Refreshed figures and the transparency view pass a live-app UAT with Chris's sign-off. ✓ Phase 78 (Chris approved 2026-06-22). *(Spend graphic dropped — Phase 77 iceboxed.)*
 
 ## v2 Requirements
 
@@ -72,8 +72,8 @@ Which phases cover which requirements. Populated during roadmap creation.
 | EVVIEW-03 | Phase 76 | Complete |
 | EVVIEW-04 | Phase 76 | Complete |
 | EVVIZ-01 | Phase 77 | 🧊 Deferred (iceboxed 2026-06-22) |
-| EVVER-01 | Phase 78 | Pending |
-| EVVER-02 | Phase 78 | Pending |
+| EVVER-01 | Phase 78 | Complete |
+| EVVER-02 | Phase 78 | Complete (Chris UAT 2026-06-22) |
 
 **Coverage:**
 - v1 requirements: 12 total (11 active after EVVIZ-01 deferred)
