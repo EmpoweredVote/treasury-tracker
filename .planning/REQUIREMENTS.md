@@ -56,8 +56,8 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| VASRC-01 | Phase 79 | Planned (79-01) |
-| VASRC-02 | Phase 79 | Planned (79-02) |
+| VASRC-01 | Phase 79 | Complete (verified 2026-06-22) |
+| VASRC-02 | Phase 79 | Complete — floor FY2023 (only FY2023-2024 XLSX; see scope flag) |
 | VALOAD-01 | Phase 80 | Pending |
 | VALOAD-02 | Phase 80 | Pending |
 | VALOAD-03 | Phase 81 | Pending |

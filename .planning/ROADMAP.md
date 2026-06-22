@@ -33,7 +33,9 @@
 
 **Critical path:** 79 → 80 → 81 → 82 → 83 (linear; 82 also depends on 81 for town categories).
 
-### Phase 79: VA APA Source + Loader
+### Phase 79: VA APA Source + Loader ✅ COMPLETE (2026-06-22)
+
+**Status:** PASSED (executed inline). Loader proven on Alexandria FY2024 ($863,578,347 exp / $874,230,660 rev, exact); `scripts/loadVAComparativeReport.js` + 7/7 tests + `scripts/vaApaDatasets.json` manifest. 🚩 **Scope flag:** only FY2023 + FY2024 are XLSX-available on data.virginia.gov (not FY2015+) — see 79-VERIFICATION.md; milestone history-depth decision needed before Phase 80.
 
 **Goal:** A reusable loader turns the VA APA Comparative Report XLSX into the tracker's budget tree for any locality, proven on a sample, with the available fiscal-year range determined.
 **Depends on:** Nothing (new milestone; reuses the budget-tree + RPC + never-overwrite patterns)
