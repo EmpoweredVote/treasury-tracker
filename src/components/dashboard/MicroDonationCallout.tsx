@@ -28,13 +28,6 @@ import type { BudgetCategory } from '../../types/budget';
 interface EvMicro {
   recurring_supporters: number;
   typical_monthly: number;
-  buckets: {
-    lt5: number;
-    b5to9: number;
-    b10to24: number;
-    b25to49: number;
-    gte50: number;
-  };
   as_of_fy: number;
 }
 
@@ -88,11 +81,17 @@ const MicroDonationCallout: React.FC<MicroDonationCalloutProps> = ({
 
       {hasAggregates && (
         <p className="mt-2 text-sm text-ev-gray-500 dark:text-ev-gray-400 leading-relaxed">
-          {supporterCount} {supporterCount === 1 ? 'person' : 'people'} give
+          {supporterCount} like-minded {supporterCount === 1 ? 'person' : 'people'} currently
+          keep these tools free
           {micro!.typical_monthly != null && micro!.typical_monthly > 0
-            ? ` — typically around $${micro!.typical_monthly}/month`
+            ? <> — a typical monthly gift is about ${micro!.typical_monthly}</>
             : ''}
           .
+          {micro!.as_of_fy ? (
+            <span className="block mt-0.5 text-xs text-ev-gray-400 dark:text-ev-gray-500">
+              Based on recurring giving in FY{micro!.as_of_fy}.
+            </span>
+          ) : null}
         </p>
       )}
 

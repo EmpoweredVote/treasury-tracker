@@ -172,7 +172,7 @@ export function patreonDistinctPatrons(rows, fy) {
   for (const r of fyRows) {
     const id = (r['Member user ID'] || '').trim();
     if (!id) continue;
-    if (!seen.has(id)) seen.set(id, parseFloat(r['Member charge amount']) || 0);
+    if (!seen.has(id)) seen.set(id, money(r['Member charge amount']));
   }
   return { count: seen.size, typicalAmounts: [...seen.values()] };
 }
@@ -457,11 +457,14 @@ export async function writeDonationsAggregate(sb, budgetId, aggregates) {
   if (fetchErr) throw new Error(`Fetch Donations category: ${fetchErr.message}`);
   if (!cat) return { wrote: false, reason: 'Donations category not found in budget' };
 
+  // Privacy: persist only the count + typical monthly + FY. Size-bucket counts are
+  // intentionally NOT persisted — for a ~8-person donor pool, a per-bucket distribution
+  // in the public API payload (combined with the public gross-by-source figures) is
+  // quasi-identifying. Buckets remain available in-memory for future use but never ship.
   const newDescription = JSON.stringify({
     _evMicro: {
       recurring_supporters: aggregates.recurring_supporters,
       typical_monthly:      aggregates.typical_monthly,
-      buckets:              aggregates.buckets,
       as_of_fy:             aggregates.as_of_fy,
     },
   });
