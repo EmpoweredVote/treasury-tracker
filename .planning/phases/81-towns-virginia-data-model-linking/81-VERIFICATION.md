@@ -1,8 +1,9 @@
 ---
 phase: 81-towns-virginia-data-model-linking
 verified: 2026-06-22T00:00:00Z
-status: human_needed
+status: passed
 score: 4/4 must-haves verified
+human_sign_off: "Chris approved 2026-06-23 — VA navigation, town breadcrumb/per-capita confirmed; WR-05 (legacy GF rows) accepted, deferred to Phase 83"
 overrides_applied: 0
 human_verification:
   - test: "Select Virginia from the picker and confirm navigation model in the live app"
