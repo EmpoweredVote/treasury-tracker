@@ -4,6 +4,7 @@ import { SiteHeader } from '@empoweredvote/ev-ui';
 import { AppHeader } from './components/AppHeader';
 import PlainLanguageSummary from './components/dashboard/PlainLanguageSummary';
 import OrgTransparencyPanel from './components/dashboard/OrgTransparencyPanel';
+import MicroDonationCallout from './components/dashboard/MicroDonationCallout';
 import FederalLanding from './components/federal/FederalLanding';
 import LensToggle from './components/federal/LensToggle';
 import SourceChip from './components/federal/SourceChip';
@@ -952,6 +953,30 @@ function App() {
                   {selectedEntity?.entity_type === 'nonprofit' && orgSummary && (
                     <OrgTransparencyPanel summary={orgSummary} orgName={selectedEntity.name} />
                   )}
+                  {/* Micro-donation callout (Phase 81.5-02): "how we stay free" — nonprofit only.
+                      Reads _evMicro aggregates from the Donations revenue category (persisted by
+                      loadEVDonations.js); no new fetch — uses already-loaded revenueData.
+                      Searches top-level categories for linkKey='donations' or name='Donations'. */}
+                  {selectedEntity?.entity_type === 'nonprofit' && revenueData && (() => {
+                    const allCats = revenueData.categories ?? [];
+                    // Search top-level first; fall back to flattened subcategories
+                    const findDonations = (cats: BudgetCategory[]): BudgetCategory | undefined =>
+                      cats.find(c =>
+                        c.linkKey === 'donations' ||
+                        c.name.toLowerCase() === 'donations'
+                      ) ??
+                      cats.flatMap(c => c.subcategories ?? []).find(c =>
+                        c.linkKey === 'donations' ||
+                        c.name.toLowerCase() === 'donations'
+                      );
+                    const donationsCat = findDonations(allCats);
+                    return (
+                      <MicroDonationCallout
+                        donationsCategory={donationsCat}
+                        onDonateClick={() => setDonateOpen(true)}
+                      />
+                    );
+                  })()}
                 </div>
               )}
 
