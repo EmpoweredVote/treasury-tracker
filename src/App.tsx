@@ -937,6 +937,10 @@ function App() {
               ) : (
                 /* Plain language summary — lead with the story */
                 <div className="mb-6 space-y-6">
+                  {/* Micro-donation mission tile (Phase 81.5) — EV nonprofit only.
+                      The new first tile, directly above the "How Empowered Vote uses its
+                      funds" narrative (PlainLanguageSummary). */}
+                  {selectedEntity?.entity_type === 'nonprofit' && <MicroDonationCallout />}
                   <PlainLanguageSummary
                     entity={selectedEntity}
                     operatingData={operatingBudgetData}
@@ -1076,12 +1080,6 @@ function App() {
                     />
                   );
                 })()}
-              {/* Micro-donation mission tile (Phase 81.5) — EV nonprofit only, overview only,
-                  and only on the spending ("uses its funds") view — NOT the revenue
-                  ("funds its budget") view. */}
-              {selectedEntity?.entity_type === 'nonprofit' && navigationPath.length === 0 && activeDataset === 'operating' && (
-                <MicroDonationCallout />
-              )}
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <h2 className="text-base font-bold text-[#1C1C1C] dark:text-ev-gray-100">

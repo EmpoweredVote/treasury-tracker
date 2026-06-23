@@ -16,7 +16,7 @@ import React from 'react';
  * GUARDRAIL: never frame EV as refusing larger/bridge gifts; keep "currently".
  */
 const MicroDonationCallout: React.FC = () => (
-  <div className="bg-white dark:bg-ev-gray-800 rounded-xl p-5 border border-ev-gray-200 dark:border-ev-gray-700 mb-6">
+  <div className="bg-white dark:bg-ev-gray-800 rounded-xl p-5 border border-ev-gray-200 dark:border-ev-gray-700">
     <p className="text-lg font-semibold text-ev-gray-800 dark:text-ev-gray-100 leading-relaxed">
       These tools are free for everyone and always will be. We are currently sustained by
       like-minded people — most of whom give a few dollars a month.
