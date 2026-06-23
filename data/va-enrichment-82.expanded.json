@@ -1,0 +1,373 @@
+{
+  "generated_at": "2026-06-23T00:00:00.000Z",
+  "authored": 73,
+  "missing": [],
+  "stale": [],
+  "rows": [
+    {
+      "name_key": "virginia general fund budget",
+      "plain_name": "Virginia General Fund (Spending)",
+      "confidence": "high"
+    },
+    {
+      "name_key": "education",
+      "plain_name": "Education",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public works",
+      "plain_name": "Public Works",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public safety",
+      "plain_name": "Public Safety",
+      "confidence": "high"
+    },
+    {
+      "name_key": "health and human services",
+      "plain_name": "Health & Human Services",
+      "confidence": "high"
+    },
+    {
+      "name_key": "general government administration",
+      "plain_name": "General Government",
+      "confidence": "high"
+    },
+    {
+      "name_key": "parks, recreation, and cultural",
+      "plain_name": "Parks, Recreation & Culture",
+      "confidence": "high"
+    },
+    {
+      "name_key": "judicial administration",
+      "plain_name": "Courts & Justice",
+      "confidence": "high"
+    },
+    {
+      "name_key": "community development",
+      "plain_name": "Community Development",
+      "confidence": "high"
+    },
+    {
+      "name_key": "non- departmental",
+      "plain_name": "Non-Departmental",
+      "confidence": "medium"
+    },
+    {
+      "name_key": "virginia general fund budget|education",
+      "plain_name": "State Education",
+      "confidence": "high"
+    },
+    {
+      "name_key": "virginia general fund budget|health and human services",
+      "plain_name": "State Health & Human Services",
+      "confidence": "high"
+    },
+    {
+      "name_key": "virginia general fund budget|general government",
+      "plain_name": "State General Government",
+      "confidence": "high"
+    },
+    {
+      "name_key": "virginia general fund budget|public safety and corrections",
+      "plain_name": "State Public Safety & Corrections",
+      "confidence": "high"
+    },
+    {
+      "name_key": "virginia general fund budget|natural resources and commerce",
+      "plain_name": "State Natural Resources & Commerce",
+      "confidence": "medium"
+    },
+    {
+      "name_key": "virginia general fund budget|other programs",
+      "plain_name": "Other State Programs",
+      "confidence": "medium"
+    },
+    {
+      "name_key": "public safety|fire and rescue services",
+      "plain_name": "Fire & Rescue",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public safety|law enforcement and traffic control",
+      "plain_name": "Law Enforcement",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public safety|correction and detention",
+      "plain_name": "Jails & Detention",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public safety|other protection",
+      "plain_name": "Other Protection",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public safety|inspections",
+      "plain_name": "Building Inspections",
+      "confidence": "high"
+    },
+    {
+      "name_key": "health and human services|income support benefits social services",
+      "plain_name": "Social Services & Benefits",
+      "confidence": "high"
+    },
+    {
+      "name_key": "health and human services|behavioral health and developmental services",
+      "plain_name": "Behavioral Health",
+      "confidence": "high"
+    },
+    {
+      "name_key": "health and human services|health",
+      "plain_name": "Public Health",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public works|maintenance of highways, streets, bridges, and sidewalks",
+      "plain_name": "Streets & Roads",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public works|sanitation and waste removal",
+      "plain_name": "Trash & Sanitation",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public works|maintenance of general buildings and grounds",
+      "plain_name": "Buildings & Grounds",
+      "confidence": "high"
+    },
+    {
+      "name_key": "general government administration|general and financial administration",
+      "plain_name": "General & Financial Administration",
+      "confidence": "high"
+    },
+    {
+      "name_key": "general government administration|board of elections",
+      "plain_name": "Elections",
+      "confidence": "high"
+    },
+    {
+      "name_key": "general government administration|legislative",
+      "plain_name": "Governing Body",
+      "confidence": "high"
+    },
+    {
+      "name_key": "parks, recreation, and cultural|parks and recreation",
+      "plain_name": "Parks & Recreation",
+      "confidence": "high"
+    },
+    {
+      "name_key": "parks, recreation, and cultural|cultural enrichment",
+      "plain_name": "Cultural Programs",
+      "confidence": "high"
+    },
+    {
+      "name_key": "parks, recreation, and cultural|public libraries",
+      "plain_name": "Public Libraries",
+      "confidence": "high"
+    },
+    {
+      "name_key": "community development|planning and community development",
+      "plain_name": "Planning & Development",
+      "confidence": "high"
+    },
+    {
+      "name_key": "community development|environmental management",
+      "plain_name": "Environmental Management",
+      "confidence": "high"
+    },
+    {
+      "name_key": "community development|cooperative extension program",
+      "plain_name": "Cooperative Extension",
+      "confidence": "high"
+    },
+    {
+      "name_key": "judicial administration|commonwealth's attorney",
+      "plain_name": "Prosecutor (Commonwealth's Attorney)",
+      "confidence": "high"
+    },
+    {
+      "name_key": "judicial administration|courts",
+      "plain_name": "Courts & Clerk",
+      "confidence": "high"
+    },
+    {
+      "name_key": "virginia general fund revenue",
+      "plain_name": "Virginia General Fund (Revenue)",
+      "confidence": "high"
+    },
+    {
+      "name_key": "charges for services",
+      "plain_name": "Service Charges",
+      "confidence": "high"
+    },
+    {
+      "name_key": "general property taxes",
+      "plain_name": "Property Taxes",
+      "confidence": "high"
+    },
+    {
+      "name_key": "other local taxes",
+      "plain_name": "Other Local Taxes",
+      "confidence": "high"
+    },
+    {
+      "name_key": "miscellaneous",
+      "plain_name": "Miscellaneous Revenue",
+      "confidence": "high"
+    },
+    {
+      "name_key": "revenue from use of money and property",
+      "plain_name": "Money & Property Income",
+      "confidence": "high"
+    },
+    {
+      "name_key": "fines and forfeitures",
+      "plain_name": "Fines & Forfeitures",
+      "confidence": "high"
+    },
+    {
+      "name_key": "permits, privilege fees, and regulatory licenses",
+      "plain_name": "Permits & Licenses",
+      "confidence": "high"
+    },
+    {
+      "name_key": "virginia general fund revenue|individual income tax",
+      "plain_name": "State Individual Income Tax",
+      "confidence": "high"
+    },
+    {
+      "name_key": "virginia general fund revenue|sales and use tax",
+      "plain_name": "State Sales Tax",
+      "confidence": "high"
+    },
+    {
+      "name_key": "virginia general fund revenue|other taxes and fees",
+      "plain_name": "Other State Taxes & Fees",
+      "confidence": "medium"
+    },
+    {
+      "name_key": "virginia general fund revenue|corporate income tax",
+      "plain_name": "State Corporate Income Tax",
+      "confidence": "high"
+    },
+    {
+      "name_key": "general property taxes|real property",
+      "plain_name": "Real Estate Tax",
+      "confidence": "high"
+    },
+    {
+      "name_key": "general property taxes|personal property - general",
+      "plain_name": "Personal Property Tax",
+      "confidence": "high"
+    },
+    {
+      "name_key": "general property taxes|machinery and tools",
+      "plain_name": "Machinery & Tools Tax",
+      "confidence": "high"
+    },
+    {
+      "name_key": "general property taxes|merchants' capital",
+      "plain_name": "Merchants' Capital Tax",
+      "confidence": "medium"
+    },
+    {
+      "name_key": "general property taxes|public service corporations",
+      "plain_name": "Utility Property Tax",
+      "confidence": "high"
+    },
+    {
+      "name_key": "general property taxes|penalties",
+      "plain_name": "Tax Penalties",
+      "confidence": "high"
+    },
+    {
+      "name_key": "general property taxes|interest",
+      "plain_name": "Tax Interest",
+      "confidence": "high"
+    },
+    {
+      "name_key": "general property taxes|personal property - mobile home",
+      "plain_name": "Mobile Home Tax",
+      "confidence": "high"
+    },
+    {
+      "name_key": "other local taxes|local sales and use taxes",
+      "plain_name": "Local Sales Tax",
+      "confidence": "high"
+    },
+    {
+      "name_key": "other local taxes|restaurant food taxes",
+      "plain_name": "Meals Tax",
+      "confidence": "high"
+    },
+    {
+      "name_key": "other local taxes|business license taxes",
+      "plain_name": "Business License Tax (BPOL)",
+      "confidence": "high"
+    },
+    {
+      "name_key": "other local taxes|consumer utility taxes",
+      "plain_name": "Utility Tax",
+      "confidence": "high"
+    },
+    {
+      "name_key": "other local taxes|hotel and motel room taxes",
+      "plain_name": "Lodging Tax",
+      "confidence": "high"
+    },
+    {
+      "name_key": "other local taxes|bank stock taxes",
+      "plain_name": "Bank Franchise Tax",
+      "confidence": "medium"
+    },
+    {
+      "name_key": "other local taxes|motor vehicle license taxes",
+      "plain_name": "Vehicle License Tax",
+      "confidence": "high"
+    },
+    {
+      "name_key": "other local taxes|recordation and will taxes",
+      "plain_name": "Recordation Tax",
+      "confidence": "high"
+    },
+    {
+      "name_key": "other local taxes|tobacco taxes",
+      "plain_name": "Tobacco Tax",
+      "confidence": "high"
+    },
+    {
+      "name_key": "other local taxes|franchise license taxes",
+      "plain_name": "Franchise Tax",
+      "confidence": "medium"
+    },
+    {
+      "name_key": "revenue from use of money and property|interest",
+      "plain_name": "Investment Interest",
+      "confidence": "high"
+    },
+    {
+      "name_key": "revenue from use of money and property|rental and sale of property",
+      "plain_name": "Rent & Property Sales",
+      "confidence": "high"
+    },
+    {
+      "name_key": "other local taxes|admission taxes",
+      "plain_name": "Admissions Tax",
+      "confidence": "medium"
+    },
+    {
+      "name_key": "other local taxes|other local taxes",
+      "plain_name": "Other Local Taxes",
+      "confidence": "medium"
+    },
+    {
+      "name_key": "other local taxes|coal, oil, and gas taxes",
+      "plain_name": "Coal, Oil & Gas Tax",
+      "confidence": "medium"
+    }
+  ]
+}
