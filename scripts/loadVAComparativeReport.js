@@ -302,24 +302,74 @@ function extractNodeColsOrLeaf(ws, headerRow, stopRe) {
   return out;
 }
 
-// ── Population (Exhibit H) ───────────────────────────────────────────────────────
+// ── Population (Exhibit H, with Exhibit A fallback for towns) ────────────────────
+/**
+ * Read population for a locality.
+ *
+ * Primary path: Exhibit H "Population Estimates July <YYYY>" (cities + counties).
+ * Fallback path: Exhibit A — used when Exhibit H returns null (towns have no Exhibit H section).
+ *   Exhibit A layout: header row identified by "No." in col 1; locality name in col 4
+ *   ("Locality / City of:"); population in col 2 ("Population (Note 1-B)").
+ *   Section-scoped by the same No.-reset pattern (§2 for towns, CONTEXT 81 D-03).
+ * Returns null (not throw) if the locality is absent from both exhibits.
+ */
 export function localityPopulation(workbook, localityName, sectionIndex) {
   const ws = workbook.getWorksheet('Exhibit H');
+  if (ws) {
+    const hdr = findHeaderRow(ws);
+    // Population is optional: some localities present in the expenditure/revenue exhibits are
+    // absent from Exhibit H (e.g. Covington/Alleghany, whose FY2024 school activity was unallocated
+    // per the report footnote). Missing population must not abort the load — fall through to Exhibit A.
+    let dataRow;
+    try {
+      dataRow = locateLocalityRow(ws, hdr, localityName, sectionIndex);
+    } catch {
+      dataRow = null;
+    }
+    if (dataRow) {
+      const popCol = headerCells(ws, hdr).find((h) => /population estimates july/i.test(h.label));
+      if (popCol) {
+        const v = cellNum(dataRow.getCell(popCol.col));
+        if (Number.isFinite(v)) return v;
+      }
+    }
+  }
+
+  // Exhibit A fallback — towns (and any locality absent from Exhibit H).
+  // Exhibit A: name in col 4, population in col 2, section-scoped by No.-reset in col 1.
+  return townPopulationFromExhibitA(workbook, localityName, sectionIndex);
+}
+
+/**
+ * Read population from Exhibit A for a locality in the given section.
+ * Exhibit A has a non-standard layout: col 1 = "No.", col 2 = population
+ * ("Population (Note 1-B)"), col 4 = locality name ("Locality / City of:").
+ * The section index (No.-reset) is the same §0/§1/§2 scheme as the other exhibits.
+ * Returns null if the locality is absent from Exhibit A or the sheet is missing.
+ */
+export function townPopulationFromExhibitA(workbook, localityName, sectionIndex) {
+  const ws = workbook.getWorksheet('Exhibit A');
   if (!ws) return null;
   const hdr = findHeaderRow(ws);
-  // Population is optional: some localities present in the expenditure/revenue exhibits are
-  // absent from Exhibit H (e.g. Covington/Alleghany, whose FY2024 school activity was unallocated
-  // per the report footnote). Missing population must not abort the load — return null.
-  let dataRow;
-  try {
-    dataRow = locateLocalityRow(ws, hdr, localityName, sectionIndex);
-  } catch {
-    return null;
+  const want = localityName.trim().toLowerCase();
+  let section = -1;
+  for (let r = hdr + 1; r <= ws.rowCount; r++) {
+    const row = ws.getRow(r);
+    const no = cellNum(row.getCell(1));
+    if (!Number.isFinite(no)) continue;       // header / footnote / Total — skip
+    if (no === 1) section += 1;               // No. reset → next section
+    if (section > sectionIndex) break;        // past target section
+    if (section !== sectionIndex) continue;
+    // Col 4 is the locality name in Exhibit A.
+    const name = cellText(row.getCell(4));
+    if (!name || /^total$|^grand total$/i.test(name)) continue;
+    if (name.toLowerCase() === want) {
+      // Col 2 is the population.
+      const v = cellNum(row.getCell(2));
+      return Number.isFinite(v) ? v : null;
+    }
   }
-  const popCol = headerCells(ws, hdr).find((h) => /population estimates july/i.test(h.label));
-  if (!popCol) return null;
-  const v = cellNum(dataRow.getCell(popCol.col));
-  return Number.isFinite(v) ? v : null;
+  return null;
 }
 
 // ── Supabase write path (mirrors loadUtahTransparency importEntityData) ──────────
