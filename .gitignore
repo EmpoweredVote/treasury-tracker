@@ -70,6 +70,10 @@ src/data/processedBudget.json
 # …and the VA town→county relationship map (Phase 81: inline-authored from U.S. Census
 # 2020 Geographic Relationship Files; the committed file IS the sourcing audit trail)
 !/data/vaTownCounties.json
+# …and the VA parity enrichment source-of-record (Phase 82: inline-authored,
+# git-reviewed explicit concept map + expanded audit trail; $0, no paid API)
+!/data/vaEnrichment82.mjs
+!/data/va-enrichment-82.expanded.json
 # …and the verbatim GAO function-definition snapshot it was authored from
 !docs/federal/
 docs/federal/*
