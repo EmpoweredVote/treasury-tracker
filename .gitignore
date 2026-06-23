@@ -67,6 +67,9 @@ src/data/processedBudget.json
 # …and the EV fundraising goal (Phase 76: manual, public donor-facing figure —
 # committed/reviewable, deliberately outside the gitignored data/ev-sources/ exports)
 !/data/ev-goal.json
+# …and the VA town→county relationship map (Phase 81: inline-authored from U.S. Census
+# 2020 Geographic Relationship Files; the committed file IS the sourcing audit trail)
+!/data/vaTownCounties.json
 # …and the verbatim GAO function-definition snapshot it was authored from
 !docs/federal/
 docs/federal/*
