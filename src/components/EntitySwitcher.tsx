@@ -9,6 +9,10 @@ interface EntitySwitcherProps {
   onEntityChange: (entity: Municipality) => void;
 }
 
+// Max locality buttons rendered in the dropdown at once. Keeps the dropdown DOM
+// small enough to stay responsive while typing; the filter narrows past it.
+const MAX_LOCALITY_RESULTS = 60;
+
 const ENTITY_TYPE_LABELS: Record<string, string> = {
   federal: 'Federal Government',
   state: 'State Governments',
@@ -79,7 +83,18 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
     // Pre-filter federal/state entities before building byState to prevent circular nesting
     const federalEntities = withData.filter(m => m.entity_type === 'federal');
     const stateEntities = withData.filter(m => m.entity_type === 'state');
-    const cityEntities = withData.filter(m => m.entity_type !== 'state' && m.entity_type !== 'federal');
+    const allCityEntities = withData
+      .filter(m => m.entity_type !== 'state' && m.entity_type !== 'federal')
+      // Stable order before capping so the cap is deterministic (by state, then name).
+      .sort((a, b) => a.state.localeCompare(b.state) || a.name.localeCompare(b.name));
+
+    // Cap the number of locality buttons rendered. The cohort now spans many
+    // states (hundreds of localities), and rendering every match on each
+    // keystroke makes the dropdown DOM huge — slow to diff and slow for any
+    // page instrumentation to process. Federal/state hubs are few and always
+    // shown; only the long locality tail is capped. Users narrow via the filter.
+    const hiddenCount = Math.max(0, allCityEntities.length - MAX_LOCALITY_RESULTS);
+    const cityEntities = allCityEntities.slice(0, MAX_LOCALITY_RESULTS);
 
     // Sort federal/state entities alphabetically
     federalEntities.sort((a, b) => a.name.localeCompare(b.name));
@@ -101,7 +116,7 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
       }
     }
 
-    return { byState, stateEntities, federalEntities };
+    return { byState, stateEntities, federalEntities, hiddenCount };
   }, [municipalities, filter]);
 
   const totalCount = useMemo(
@@ -252,6 +267,12 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
                 ))}
               </div>
             ))}
+
+            {grouped.hiddenCount > 0 && (
+              <div className="px-4 py-2.5 text-xs text-ev-gray-500 text-center border-t border-[#E2EBEF] dark:border-ev-gray-700">
+                {grouped.hiddenCount} more {grouped.hiddenCount === 1 ? 'jurisdiction' : 'jurisdictions'} — keep typing to narrow results
+              </div>
+            )}
           </div>
         </div>
       )}

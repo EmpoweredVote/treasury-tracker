@@ -35,6 +35,9 @@ function readUserAddress(): { state: string; addr: string } | null {
   } catch { return null; }
 }
 
+// Max city rows rendered in the search results list at once.
+const MAX_CITY_RESULTS = 50;
+
 // ── City search ──
 function CitySearch({
   municipalities,
@@ -45,14 +48,17 @@ function CitySearch({
 }) {
   const [query, setQuery] = useState('');
 
-  const results = useMemo(() => {
+  const { results, hiddenCount } = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return [];
-    return municipalities.filter(
+    if (!q) return { results: [] as Municipality[], hiddenCount: 0 };
+    const matches = municipalities.filter(
       m =>
         m.available_datasets.length > 0 &&
         (m.name.toLowerCase().includes(q) || m.state.toLowerCase().includes(q))
     );
+    // Cap rendered rows so a broad query (e.g. a single letter) doesn't render
+    // hundreds of result buttons and bog the page down on each keystroke.
+    return { results: matches.slice(0, MAX_CITY_RESULTS), hiddenCount: Math.max(0, matches.length - MAX_CITY_RESULTS) };
   }, [query, municipalities]);
 
   const noMatch = query.trim().length >= 2 && results.length === 0;
@@ -98,6 +104,11 @@ function CitySearch({
               </button>
             );
           })}
+          {hiddenCount > 0 && (
+            <p className="px-4 py-2.5 text-xs text-ev-gray-500 text-center">
+              {hiddenCount} more {hiddenCount === 1 ? 'match' : 'matches'} — keep typing to narrow results
+            </p>
+          )}
         </div>
       )}
 
