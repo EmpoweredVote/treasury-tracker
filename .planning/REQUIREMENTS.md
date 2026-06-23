@@ -18,7 +18,7 @@ Requirements for milestone v2.7. Each maps to exactly one roadmap phase. Source 
 
 - [x] **VALOAD-01**: All 38 Virginia independent cities are loaded with general-government revenue (by source) + expenditure (function→activity) and per-capita from the report's population data — every figure sourced. (Includes Alexandria and Falls Church.) *(Phase 80 — all cities with published data; 4 chronic-late-filer cities have no data in any XLSX year, documented in vaApaDatasets.json.)*
 - [x] **VALOAD-02**: All 95 Virginia counties are loaded with the same datasets and granularity. *(Phase 80 — all counties with published data; Lee + Warren absent from all XLSX years, documented.)*
-- [ ] **VALOAD-03**: All reporting Virginia towns (~41) are loaded with the same datasets and granularity.
+- [x] **VALOAD-03**: All reporting Virginia towns (~41) are loaded with the same datasets and granularity.
 - [x] **VALOAD-04**: Re-running any VA loader is idempotent — a never-overwrite guard prevents duplicate rows and never clobbers a locality already loaded from a richer source. *(Phase 80 — verified: re-run produced 0 duplicates.)*
 
 ### Data Model & Linking (VALINK)
@@ -62,7 +62,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | VASRC-02 | Phase 79 | Complete — floor FY2023 (only FY2023-2024 XLSX; see scope flag) |
 | VALOAD-01 | Phase 80 | Complete (verified 2026-06-22; 127/133 loaded, 6 late-filers documented) |
 | VALOAD-02 | Phase 80 | Complete (verified 2026-06-22) |
-| VALOAD-03 | Phase 81 | Pending |
+| VALOAD-03 | Phase 81 | Complete |
 | VALOAD-04 | Phase 80 | Complete (verified 2026-06-22; idempotent, 0 dups) |
 | VALINK-01 | Phase 81 | Pending |
 | VAENR-01 | Phase 82 | Pending |

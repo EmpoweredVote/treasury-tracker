@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.7
 milestone_name: Virginia Local Government Expansion
 status: executing
-last_updated: "2026-06-23T03:05:37.655Z"
-last_activity: 2026-06-23 -- Phase 81 planning complete
+last_updated: "2026-06-23T03:18:59.822Z"
+last_activity: 2026-06-23
 progress:
   total_phases: 67
   completed_phases: 1
   total_plans: 7
-  completed_plans: 2
+  completed_plans: 3
   percent: 1
 ---
 
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-22 — v2.7 Virginia Local Government Expansion started)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 80 — City + County Loads
+**Current focus:** Phase 81 — towns-virginia-data-model-linking
 
 ## Current Position
 
-Phase: 80 (City + County Loads) — EXECUTING
-Plan: 1 of 2
+Phase: 81 (towns-virginia-data-model-linking) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-06-23 -- Phase 81 planning complete
+Last activity: 2026-06-23
 
 ## Phase Overview — v2.7 Virginia Local Government Expansion
 
@@ -164,9 +164,9 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-22T23:29:51.812Z
-Stopped at: Phase 79 context gathered
-Resume file: .planning/phases/79-va-apa-source-loader/79-CONTEXT.md
+Last session: 2026-06-23T03:18:59.809Z
+Stopped at: Completed 81-01-PLAN.md (town load)
+Resume file: None
 
 ### Next Session
 
@@ -188,6 +188,7 @@ Recon'd candidate: v2.6 Ohio (Auditor of State Summarized Annual Financial Repor
 | Phase 62 P62-01 | 50min | 3 tasks | 1 files |
 | Phase 62 P62-02 | 30min | 3 tasks | 1 files |
 | Phase 62 P62-03 | 45min | 3 tasks | 2 files |
+| Phase 81-towns-virginia-data-model-linking P01 | 35 | 4 tasks | 3 files |
 
 ## Decisions
 
@@ -220,6 +221,9 @@ Recon'd candidate: v2.6 Ohio (Auditor of State Summarized Annual Financial Repor
 - [Phase ?]: signoff-all-pass: all 24 UAT checklist items PASS (Chris, 2026-06-17); VER-04 satisfied
 - [Phase ?]: Employees card is year-gated (App.tsx availableDatasetTypes); year=2003 hides salaries tab for FY2009-2024 cohort — correct behavior confirmed UAT
 - [Phase ?]: D-08 UX flag: show Employees card for any year salaries exist + prompt year switch (v2.4 candidate, not fixed in phase 62)
+- [Phase ?]: Towns stored with BARE display names — zero town/city collisions; 6 town/county overlaps (Bedford, Culpeper, Orange, Pulaski, Tazewell, Wise) safe because counties carry County suffix
+- [Phase ?]: Exhibit A town population fallback: col4=name col2=population section-scoped No.-reset; fires only when Exhibit H returns null; cities/counties unchanged
+- [Phase ?]: 3 towns absent from ALL published XLSX years (Big Stone Gap, Clifton Forge, Vinton) - documented source gaps, no phantom municipalities; future re-run picks them up idempotently
 
 ## Deferred Items
 
