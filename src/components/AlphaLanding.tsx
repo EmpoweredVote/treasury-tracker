@@ -38,6 +38,14 @@ function readUserAddress(): { state: string; addr: string } | null {
 // Max city rows rendered in the search results list at once.
 const MAX_CITY_RESULTS = 50;
 
+// The cohort spans 1,000+ municipalities. Rendering a card for every one freezes
+// the page (and the OS cursor) — the DOM is enormous and every card has hover
+// transitions. Cap the browse grids; the search box above is the way to find a
+// specific city. These caps are the primary defense against the landing-page
+// typing-freeze.
+const MAX_NEARBY_CARDS = 12;
+const MAX_OTHER_CARDS = 24;
+
 // ── City search ──
 function CitySearch({
   municipalities,
@@ -195,6 +203,23 @@ function CityGrid({
   }
   const otherStates = [...othersByState.keys()].sort();
 
+  // Cap the browse grids so we never render 1,000+ cards. "Near you" shows the
+  // closest dozen; "Other communities" shows a capped sample across states. The
+  // rest are reachable via the search box above (hint shown when truncated).
+  const nearbyShown = nearby.slice(0, MAX_NEARBY_CARDS);
+  const nearbyHidden = nearby.length - nearbyShown.length;
+
+  // Walk states in order, taking cards until we hit the overall cap.
+  const cappedOtherStates: { state: string; cities: Municipality[] }[] = [];
+  let otherBudget = MAX_OTHER_CARDS;
+  for (const state of otherStates) {
+    if (otherBudget <= 0) break;
+    const cities = othersByState.get(state)!.slice(0, otherBudget);
+    otherBudget -= cities.length;
+    cappedOtherStates.push({ state, cities });
+  }
+  const otherShownCount = cappedOtherStates.reduce((n, s) => n + s.cities.length, 0);
+  const otherHidden = others.length - otherShownCount;
 
   const renderCityButton = (city: Municipality) => {
     const years = [...new Set(city.available_datasets.map(d => d.fiscal_year))].sort((a, b) => b - a);
@@ -269,8 +294,13 @@ function CityGrid({
             )}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {nearby.map(renderCityButton)}
+            {nearbyShown.map(renderCityButton)}
           </div>
+          {nearbyHidden > 0 && (
+            <p className="text-xs text-ev-gray-500 mt-2 pl-1">
+              +{nearbyHidden} more near you — use the search above to find your city.
+            </p>
+          )}
         </div>
       )}
       {others.length > 0 && (
@@ -278,16 +308,21 @@ function CityGrid({
           {(nearby.length > 0 || preloadedCity) && (
             <p className="text-xs font-semibold uppercase tracking-wider text-ev-gray-500">Other communities</p>
           )}
-          {otherStates.map((state, i) => (
+          {cappedOtherStates.map(({ state, cities }, i) => (
             <div key={state} className={i > 0 ? "pt-4 border-t border-[#E2EBEF] dark:border-ev-gray-700" : ""}>
               <p className="text-xs font-semibold uppercase tracking-wider text-ev-gray-600 dark:text-ev-gray-400 mb-2">
                 {STATE_NAMES[state] || state}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {othersByState.get(state)!.map(renderCityButton)}
+                {cities.map(renderCityButton)}
               </div>
             </div>
           ))}
+          {otherHidden > 0 && (
+            <p className="text-xs text-ev-gray-500 pl-1">
+              +{otherHidden} more communities across {otherStates.length} states — use the search above to jump to any city.
+            </p>
+          )}
         </div>
       )}
     </div>
