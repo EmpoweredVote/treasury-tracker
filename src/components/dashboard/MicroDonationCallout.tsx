@@ -9,7 +9,9 @@ import type { BudgetCategory } from '../../types/budget';
  * (persisted by scripts/loadEVDonations.js in Phase 81.5-01):
  *   - category.items        = distinct active recurring-supporter count (item_count in DB)
  *   - category.description  = JSON string carrying { _evMicro: { recurring_supporters,
- *                             typical_monthly, buckets, as_of_fy } }
+ *                             typical_monthly, as_of_fy } }
+ *                             (size buckets are computed in the loader but intentionally
+ *                              NOT persisted — quasi-identifying for a small donor pool)
  *
  * LOCKED HEADLINE (use verbatim — Chris's words, 81.5-CONTEXT.md):
  *   "These tools are free for everyone, and always will be. We are currently sustained
