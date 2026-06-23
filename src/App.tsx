@@ -22,7 +22,6 @@ import { resolveToken, fetchUserSession, getLoginUrl, signOut } from './utils/au
 import { useTheme } from './hooks/useTheme';
 import DatasetTabs from './components/datasets/DatasetTabs';
 import DonateModal from './components/DonateModal';
-import DonateArrow from './components/DonateArrow';
 
 import YearSelector from './components/YearSelector';
 import type { YearSelectorHandle } from './components/YearSelector';
@@ -889,15 +888,6 @@ function App() {
       </div>
 
       {(jurisdictionParents.length > 0 || breadcrumbItems.length > 2) && <Breadcrumb items={breadcrumbItems} />}
-
-      {/* Donate arrow annotation — only on current-year nonprofit top-level view */}
-      <DonateArrow
-        visible={
-          selectedEntity?.entity_type === 'nonprofit' &&
-          selectedYear === String(new Date().getFullYear()) &&
-          navigationPath.length === 0
-        }
-      />
 
       {/* Main content area */}
       <div className="relative">
