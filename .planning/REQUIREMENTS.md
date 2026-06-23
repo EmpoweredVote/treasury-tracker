@@ -46,9 +46,9 @@ Deferred to a later milestone. Tracked but not in the v2.7 roadmap.
 
 Not part of v2.7 Virginia scope. Governed by auto-memory `project_ev_funding_philosophy` + `project_micro_donations_feature`. Hard rule: absolute financial honesty — no claim we can't reconcile to source exports; never frame EV as refusing larger/bridge support.
 
-- [ ] **EVMICRO-01**: The EV donation pipeline computes + persists **anonymized** per-FY aggregates — distinct active recurring-supporter count, typical/median monthly gift, and gift-size buckets — with **no donor PII ever stored**. Benevity counts as one supporter (Chris's matched recurring giving); GiveButter deduped by contact; Patreon distinct-patron count resolved.
-- [ ] **EVMICRO-02**: The EV nonprofit financials view renders the locked headline + a quiet recurring-supporter stat + a soft recurring-donate invite, shown only for the EV entity and degrading gracefully when aggregates are absent. No purity/anti-big-gift framing.
-- [ ] **EVMICRO-03**: Every displayed figure reconciles exactly to the source platform exports (honesty gate), verified before sign-off.
+- [x] **EVMICRO-01**: The EV donation pipeline computes + persists **anonymized** per-FY aggregates — distinct active recurring-supporter count, typical/median monthly gift, and gift-size buckets — with **no donor PII ever stored**. Benevity counts as one supporter (Chris's matched recurring giving); GiveButter deduped by contact; Patreon distinct-patron count resolved.
+- [x] **EVMICRO-02**: The EV nonprofit financials view renders the locked headline + a quiet recurring-supporter stat + a soft recurring-donate invite, shown only for the EV entity and degrading gracefully when aggregates are absent. No purity/anti-big-gift framing.
+- [x] **EVMICRO-03**: Every displayed figure reconciles exactly to the source platform exports (honesty gate), verified before sign-off.
 
 ## Out of Scope
 
@@ -76,6 +76,12 @@ Which phases cover which requirements. Populated during roadmap creation.
 | VAENR-01 | Phase 82 | Pending |
 | VAVER-01 | Phase 83 | Pending |
 | VAVER-02 | Phase 83 | Pending |
+| EVMICRO-01 | Phase 81.5 | Complete (2026-06-23) — inserted EV-financials |
+| EVMICRO-02 | Phase 81.5 | Complete (2026-06-23) — inserted EV-financials |
+| EVMICRO-03 | Phase 81.5 | Complete (2026-06-23) — inserted EV-financials |
+| VAENT-01 | — | Deferred (future milestone) |
+| VADEBT-01 | — | Deferred (future milestone) |
+| VACAP-01 | — | Deferred (future milestone) |
 
 **Coverage:**
 - v1 requirements: 10 total
