@@ -12,9 +12,9 @@ const CitiesInCountyPanel: React.FC<CitiesInCountyPanelProps> = ({
   municipalities,
   onCityClick,
 }) => {
-  // Intentionally excludes townships — add 'township' here if/when townships are linked to counties
+  // Includes cities and towns; excludes townships (add 'township' if/when townships are linked to counties)
   const cities = municipalities.filter(
-    m => m.county_id === county.id && m.entity_type === 'city'
+    m => m.county_id === county.id && (m.entity_type === 'city' || m.entity_type === 'town')
   );
 
   if (cities.length === 0) return null;
