@@ -5,6 +5,8 @@
 
 ## v1 Requirements
 
+**History scope (decided 2026-06-22 after Phase 79):** load **FY2023 + FY2024** — the only fiscal years the APA publishes as XLSX on data.virginia.gov. Pre-2023 is PDF-only (out of scope, D-03); deeper history deferred. VALOAD-01/02/03 cover all 174 localities across these 2 years.
+
 Requirements for milestone v2.7. Each maps to exactly one roadmap phase. Source is recon'd + verified icicle-grade — see auto-memory `reference_virginia_apa_comparative_report` (Virginia APA Comparative Report of Local Government Revenues and Expenditures; free CKAN XLSX on data.virginia.gov, no auth).
 
 ### Source & Loader (VASRC)

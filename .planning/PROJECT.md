@@ -39,7 +39,7 @@ Brought every already-loaded non-OC California city and county to the Orange Cou
 
 **Target features:**
 - **VA APA comparative-report XLSX loader** (the only new tooling) — parse Exhibit B/B-1/B-2 (revenue by source) + Exhibit C/C-1…C-8 (expenditure function→activity 2-level tree) per locality, with Exhibit H population for per-capita.
-- **All 174 localities loaded** (cities + counties + towns), deep history (FY2015+ where XLSX available), general-government fund scope.
+- **All 174 localities loaded** (cities + counties + towns), **FY2023–FY2024** (the only years the APA publishes as XLSX — confirmed Phase 79, 2026-06-22; deeper history deferred, pre-2023 is PDF-only), general-government fund scope.
 - **VA independent-city data model** — cities are standalone nodes; towns link to their county; counties are their own nodes.
 - **Standardized bleed-safe category enrichment** for the VA function/activity vocabulary.
 - **Verification** — ACFR reconciliation (Alexandria + a sample county) + full-cohort source-chain audit + Chris live-app UAT.

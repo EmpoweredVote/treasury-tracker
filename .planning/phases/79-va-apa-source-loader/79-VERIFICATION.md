@@ -34,10 +34,9 @@ requirements: [VASRC-01, VASRC-02]
 
 The v2.7 scope decision was **"deep history (FY2015+)"** — but the recon-confirmed reality is that **only FY2023 + FY2024 are published as XLSX** on data.virginia.gov. Pre-FY2023 reports are PDF-only on apa.virginia.gov (JS-gated, not machine-readable) and are out of scope per CONTEXT D-03 (XLSX-only, no PDF backfill).
 
-**Therefore v2.7, as scoped, can deliver only FY2023–FY2024 from the XLSX source** (all 174 localities, both years). This needs a milestone-scope decision before Phase 80:
-1. Accept 2-year XLSX coverage (FY2023–FY2024) — still all-174-localities at parity; OR
-2. Pursue PDF backfill for older years (slow path, currently deferred D-03) — would reopen scope; OR
-3. Investigate whether the APA publishes older years as Excel off-portal (the apa.virginia.gov reports page is JS-gated — would need a browser/manual check).
+**Therefore v2.7, as scoped, can deliver only FY2023–FY2024 from the XLSX source** (all 174 localities, both years).
+
+**✅ RESOLVED (Chris, 2026-06-22): accept FY2023–FY2024.** Load all 174 localities for the two XLSX-available years; deeper history deferred (pre-2023 PDF-only, out of scope D-03). Phase 80 scope = all 174 localities × FY2023–FY2024.
 
 Recorded here, in `scripts/vaApaDatasets.json` `_meta.note`, and surfaced to Chris at phase close.
 
