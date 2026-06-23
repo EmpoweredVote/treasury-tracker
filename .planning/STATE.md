@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.7
 milestone_name: Virginia Local Government Expansion
 status: executing
-last_updated: "2026-06-23T03:18:59.822Z"
+last_updated: "2026-06-23T03:30:14.610Z"
 last_activity: 2026-06-23
 progress:
   total_phases: 67
   completed_phases: 1
   total_plans: 7
-  completed_plans: 3
+  completed_plans: 4
   percent: 1
 ---
 
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-06-22 — v2.7 Virginia Local Government
 ## Current Position
 
 Phase: 81 (towns-virginia-data-model-linking) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-06-23
 
@@ -164,7 +164,7 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-23T03:18:59.809Z
+Last session: 2026-06-23T03:30:14.598Z
 Stopped at: Completed 81-01-PLAN.md (town load)
 Resume file: None
 
@@ -189,6 +189,7 @@ Recon'd candidate: v2.6 Ohio (Auditor of State Summarized Annual Financial Repor
 | Phase 62 P62-02 | 30min | 3 tasks | 1 files |
 | Phase 62 P62-03 | 45min | 3 tasks | 2 files |
 | Phase 81-towns-virginia-data-model-linking P01 | 35 | 4 tasks | 3 files |
+| Phase 81-towns-virginia-data-model-linking P02 | 30min | 2 tasks | 3 files |
 
 ## Decisions
 
@@ -224,6 +225,9 @@ Recon'd candidate: v2.6 Ohio (Auditor of State Summarized Annual Financial Repor
 - [Phase ?]: Towns stored with BARE display names — zero town/city collisions; 6 town/county overlaps (Bedford, Culpeper, Orange, Pulaski, Tazewell, Wise) safe because counties carry County suffix
 - [Phase ?]: Exhibit A town population fallback: col4=name col2=population section-scoped No.-reset; fires only when Exhibit H returns null; cities/counties unchanged
 - [Phase ?]: 3 towns absent from ALL published XLSX years (Big Stone Gap, Clifton Forge, Vinton) - documented source gaps, no phantom municipalities; future re-run picks them up idempotently
+- [81-02]: Virginia state node pre-existed with prior General Fund budget data (10 rows, source_url=null); seeder returns existing node idempotently; pre-existing data left untouched (different source, no never-overwrite conflict)
+- [81-02]: Warren County absent from Phase 80 load (93/95 counties); Front Royal skipped in seeder; vaTownCounties.json has correct entry for auto-link on future re-run
+- [81-02]: 33 VA towns linked to parent county via county_id; 4 skipped (3 towns not in DB, 1 county not in DB); idempotent re-run confirmed 0 writes
 
 ## Deferred Items
 

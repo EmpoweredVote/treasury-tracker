@@ -23,7 +23,7 @@ Requirements for milestone v2.7. Each maps to exactly one roadmap phase. Source 
 
 ### Data Model & Linking (VALINK)
 
-- [ ] **VALINK-01**: A Virginia state node exists; independent cities render as standalone entities (no parent county), counties render as their own entities, and towns link to their parent county (county breadcrumb + a localities-in-county panel) — the navigation reads US → Virginia → locality.
+- [x] **VALINK-01**: A Virginia state node exists; independent cities render as standalone entities (no parent county), counties render as their own entities, and towns link to their parent county (county breadcrumb + a localities-in-county panel) — the navigation reads US → Virginia → locality.
 
 ### Category Enrichment (VAENR)
 
@@ -64,7 +64,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | VALOAD-02 | Phase 80 | Complete (verified 2026-06-22) |
 | VALOAD-03 | Phase 81 | Complete |
 | VALOAD-04 | Phase 80 | Complete (verified 2026-06-22; idempotent, 0 dups) |
-| VALINK-01 | Phase 81 | Pending |
+| VALINK-01 | Phase 81 | Complete |
 | VAENR-01 | Phase 82 | Pending |
 | VAVER-01 | Phase 83 | Pending |
 | VAVER-02 | Phase 83 | Pending |
