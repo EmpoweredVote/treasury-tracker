@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.7
 milestone_name: Virginia Local Government Expansion
-status: ready_to_plan
-last_updated: 2026-06-23T05:36:47.068Z
+status: executing
+last_updated: "2026-06-23T07:08:57.817Z"
 last_activity: 2026-06-23
 progress:
-  total_phases: 67
+  total_phases: 68
   completed_phases: 2
-  total_plans: 7
-  completed_plans: 5
+  total_plans: 9
+  completed_plans: 6
   percent: 3
-stopped_at: Phase 81 complete (3/3) — ready to discuss Phase 82
 ---
 
 # State
@@ -21,14 +20,14 @@ stopped_at: Phase 81 complete (3/3) — ready to discuss Phase 82
 See: .planning/PROJECT.md (updated 2026-06-22 — v2.7 Virginia Local Government Expansion started)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 82 — enrichment parity
+**Current focus:** Phase 81.5 — ev-micro-donation-transparency
 
 ## Current Position
 
-Phase: 82
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-06-23
+Phase: 81.5 (ev-micro-donation-transparency) — EXECUTING
+Plan: 2 of 2
+Status: Executing Phase 81.5 — Plan 01 complete (data half), Plan 02 pending (frontend)
+Last activity: 2026-06-23 -- Phase 81.5 Plan 01 complete; 9 recurring supporters persisted
 
 ## Phase Overview — v2.7 Virginia Local Government Expansion
 
@@ -165,7 +164,7 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-23T03:40:21.851Z
+Last session: 2026-06-23T07:08:57.800Z
 Stopped at: Completed 81-01-PLAN.md (town load)
 Resume file: None
 
@@ -192,6 +191,7 @@ Recon'd candidate: v2.6 Ohio (Auditor of State Summarized Annual Financial Repor
 | Phase 81-towns-virginia-data-model-linking P01 | 35 | 4 tasks | 3 files |
 | Phase 81-towns-virginia-data-model-linking P02 | 30min | 2 tasks | 3 files |
 | Phase 81-towns-virginia-data-model-linking PP03 | 35min | 4 tasks | 5 files |
+| Phase 81.5 P01 | 40min | 3 tasks | 2 files |
 
 ## Decisions
 
@@ -230,6 +230,9 @@ Recon'd candidate: v2.6 Ohio (Auditor of State Summarized Annual Financial Repor
 - [81-02]: Virginia state node pre-existed with prior General Fund budget data (10 rows, source_url=null); seeder returns existing node idempotently; pre-existing data left untouched (different source, no never-overwrite conflict)
 - [81-02]: Warren County absent from Phase 80 load (93/95 counties); Front Royal skipped in seeder; vaTownCounties.json has correct entry for auto-link on future re-run
 - [81-02]: 33 VA towns linked to parent county via county_id; 4 skipped (3 towns not in DB, 1 county not in DB); idempotent re-run confirmed 0 writes
+- [81.5-01]: Benevity = exactly 1 recurring supporter (Chris Andrew's Cisco company-match, 61 rows, 1 donor) — hard rule with code comment; excluded from median
+- [81.5-01]: Lean carrier for micro-donation aggregates: item_count + description JSON (_evMicro namespace) on Donations category; no backend schema change, frontend parses in Plan 81.5-02
+- [81.5-01]: FY2026 reconciled: 9 supporters (3 GB + 5 Patreon + 1 Benevity), median $10/mo, persisted item_count=9
 
 ## Deferred Items
 
