@@ -16,8 +16,11 @@ import {
   buildExpenditureTree,
   buildRevenueTree,
   localityPopulation,
+  findLocalityRowInSection,
+  findHeaderRow,
   DATA_SOURCE_NAME,
 } from './loadVAComparativeReport.js';
+import { enumerateRoster } from './loadVAComparativeReportBatch.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SAMPLE = join(__dirname, '..', '_va-recon', 'fy2024-comparative-report.xlsx');
@@ -90,4 +93,58 @@ test('Falls Church parses cleanly (loader generalizes beyond row 1)', { skip: !H
   const rev = buildRevenueTree(w, 'Falls Church');
   assert.ok(exp.total > 0 && rev.total > 0, 'non-zero totals');
   assert.ok(allAmountsFinite(exp.tree) && allAmountsFinite(rev.tree), 'all amounts finite');
+});
+
+// ── Phase 80: roster segmentation + section-aware homonym safety ──────────────
+test('enumerateRoster segments Exhibit C into 38 cities / 95 counties / 37 towns', { skip: !HAVE_SAMPLE && 'recon sample absent' }, async () => {
+  const r = enumerateRoster(await workbook());
+  assert.equal(r.cities.length, 38, `cities ${r.cities.length}`);
+  assert.equal(r.counties.length, 95, `counties ${r.counties.length}`);
+  assert.equal(r.towns.length, 37, `towns ${r.towns.length}`);
+  assert.equal(r.cities[0], 'Alexandria');
+  // "Total"/"Grand Total" summary rows (numeric col-1) must NOT leak into the roster.
+  assert.ok(!r.cities.includes('Total') && !r.counties.includes('Total') && !r.towns.includes('Grand Total'));
+  // Homonyms appear in BOTH the cities and counties lists.
+  for (const h of ['Fairfax', 'Richmond', 'Franklin', 'Roanoke']) {
+    assert.ok(r.cities.includes(h) && r.counties.includes(h), `${h} in both city + county rosters`);
+  }
+});
+
+test('homonym safety: county totals differ from same-named city (section-scoped lookup)', { skip: !HAVE_SAMPLE && 'recon sample absent' }, async () => {
+  const w = await workbook();
+  for (const name of ['Fairfax', 'Richmond']) {
+    const city = buildExpenditureTree(w, name, 0).total;   // §0 = cities
+    const county = buildExpenditureTree(w, name, 1).total;  // §1 = counties
+    assert.ok(city > 0 && county > 0, `${name} both sections have data`);
+    assert.notEqual(city, county, `${name} county total must differ from city total`);
+  }
+  // Population is likewise section-distinct.
+  assert.notEqual(localityPopulation(w, 'Fairfax', 0), localityPopulation(w, 'Fairfax', 1));
+});
+
+test('section scoping: a town-only name resolves in §2 but not §0/§1', { skip: !HAVE_SAMPLE && 'recon sample absent' }, async () => {
+  const w = await workbook();
+  const ws = w.getWorksheet('Exhibit C');
+  const hdr = findHeaderRow(ws);
+  // "Abingdon" is the first town (§2) — present there, absent from cities (§0) and counties (§1).
+  assert.ok(findLocalityRowInSection(ws, hdr, 'Abingdon', 2), 'Abingdon found in towns section');
+  assert.throws(() => findLocalityRowInSection(ws, hdr, 'Abingdon', 0), /not found in section 0/);
+  assert.throws(() => findLocalityRowInSection(ws, hdr, 'Abingdon', 1), /not found in section 1/);
+});
+
+test('absent locality (chronic late-filer) yields total 0, never NaN', { skip: !HAVE_SAMPLE && 'recon sample absent' }, async () => {
+  const w = await workbook();
+  // Accomack County ships with zero data + an uncached total formula in FY2023+FY2024.
+  const exp = buildExpenditureTree(w, 'Accomack', 1);
+  const rev = buildRevenueTree(w, 'Accomack', 1);
+  assert.equal(exp.total, 0, 'absent expenditure total is 0');
+  assert.equal(rev.total, 0, 'absent revenue total is 0');
+  assert.ok(!Number.isNaN(exp.total) && !Number.isNaN(rev.total), 'never NaN');
+});
+
+test('backward-compat: section-less calls unchanged (Phase 79 global path)', { skip: !HAVE_SAMPLE && 'recon sample absent' }, async () => {
+  const w = await workbook();
+  assert.ok(Math.abs(buildExpenditureTree(w, 'Alexandria').total - 863578347) <= 1);
+  assert.ok(Math.abs(buildRevenueTree(w, 'Alexandria').total - 874230660) <= 1);
+  assert.equal(localityPopulation(w, 'Alexandria'), 158591);
 });

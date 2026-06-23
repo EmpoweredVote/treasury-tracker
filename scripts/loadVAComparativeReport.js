@@ -85,7 +85,7 @@ const isDerived = (label) =>
   !label || /per\s*capita|percent|^census$|^population$|memo only|sources of funds/i.test(label);
 
 /** First row whose column 1 reads "No." — the column-header row in every exhibit. */
-function findHeaderRow(ws) {
+export function findHeaderRow(ws) {
   for (let r = 1; r <= Math.min(ws.rowCount, 12); r++) {
     if (/^no\.?$/i.test(cellText(ws.getRow(r).getCell(1)))) return r;
   }
@@ -99,6 +99,45 @@ function findLocalityRow(ws, headerRow, name) {
     if (cellText(ws.getRow(r).getCell(2)).toLowerCase() === want) return ws.getRow(r);
   }
   throw new Error(`Locality "${name}" not found in sheet ${ws.name}`);
+}
+
+/**
+ * Section-scoped locality lookup (Phase 80 — homonym safety, CONTEXT 80 D-04).
+ *
+ * Every exhibit lists localities in three numbered sections in the same order:
+ *   section 0 = Cities, 1 = Counties, 2 = Towns.
+ * The "No." column (col 1) RESETS to 1 at the start of each section, so a new
+ * section begins exactly when a data row's No. is numeric 1. Rows whose col-1 is
+ * NON-numeric (section headers like "County of:", footnotes, "Total", "Grand Total")
+ * are skip-rows — they neither advance nor reset the section. This works uniformly
+ * across sheets that have no "Total" delimiter rows (e.g. Exhibit H), which is why we
+ * segment by No.-reset, not by "Total" rows.
+ *
+ * Required because Virginia has city/county homonyms (Fairfax, Franklin, Richmond,
+ * Roanoke): the global findLocalityRow returns the first top-down match (the §0 city),
+ * so a county lookup must be scoped to section 1.
+ */
+export function findLocalityRowInSection(ws, headerRow, name, sectionIndex) {
+  const want = name.trim().toLowerCase();
+  let section = -1;
+  for (let r = headerRow + 1; r <= ws.rowCount; r++) {
+    const row = ws.getRow(r);
+    const no = cellNum(row.getCell(1));
+    if (!Number.isFinite(no)) continue;        // header / footnote / Total — skip, no reset
+    if (no === 1) section += 1;                 // No. reset → next section
+    if (section > sectionIndex) break;          // walked past the target section
+    if (section !== sectionIndex) continue;
+    if (cellText(row.getCell(2)).toLowerCase() === want) return row;
+  }
+  throw new Error(`Locality "${name}" not found in section ${sectionIndex} of sheet ${ws.name}`);
+}
+
+/** Resolve a locality row: global first-match when sectionIndex is null/undefined (Phase 79
+ *  backward-compat), else scoped to the given section (Phase 80 homonym-safe). */
+function locateLocalityRow(ws, headerRow, name, sectionIndex) {
+  return sectionIndex == null
+    ? findLocalityRow(ws, headerRow, name)
+    : findLocalityRowInSection(ws, headerRow, name, sectionIndex);
 }
 
 /** Ordered list of {col, label} for non-empty header cells (col >= 3). */
@@ -142,11 +181,11 @@ function leftDetailCols(ws, headerRow, sourceCol) {
 }
 
 // ── Expenditure tree (Exhibit C + C1..C8) ───────────────────────────────────────
-export function buildExpenditureTree(workbook, localityName) {
+export function buildExpenditureTree(workbook, localityName, sectionIndex) {
   const ws = workbook.getWorksheet('Exhibit C');
   if (!ws) throw new Error('Exhibit C sheet missing');
   const hdr = findHeaderRow(ws);
-  const dataRow = findLocalityRow(ws, hdr, localityName);
+  const dataRow = locateLocalityRow(ws, hdr, localityName, sectionIndex);
 
   const funcs = extractNodeCols(ws, hdr, /total expenditures/i);
   const tree = [];
@@ -167,7 +206,7 @@ export function buildExpenditureTree(workbook, localityName) {
         const sub = workbook.getWorksheet(`Exhibit C${m[1]}`);
         if (sub) {
           const subHdr = findHeaderRow(sub);
-          const subRow = findLocalityRow(sub, subHdr, localityName);
+          const subRow = locateLocalityRow(sub, subHdr, localityName, sectionIndex);
           const acts = extractNodeCols(sub, subHdr, /^total$/i);
           const children = [];
           for (const act of acts) {
@@ -186,16 +225,20 @@ export function buildExpenditureTree(workbook, localityName) {
   tree.sort((x, y) => y.a - x.a);
 
   const totalCol = headerCells(ws, hdr).find((h) => /total expenditures/i.test(h.label));
-  const total = totalCol ? cellNum(dataRow.getCell(totalCol.col)) : tree.reduce((s, n) => s + n.a, 0);
+  // The "Total Expenditures" cell is a formula (= sum of the function columns). Some localities
+  // (chronic late-filers) ship with zero data and an UNCACHED total formula → cellNum returns NaN;
+  // fall back to summing the function nodes so an empty locality reports 0, not NaN (CONTEXT 80 D-04).
+  let total = totalCol ? cellNum(dataRow.getCell(totalCol.col)) : NaN;
+  if (!Number.isFinite(total)) total = tree.reduce((s, n) => s + n.a, 0);
   return { tree, total };
 }
 
 // ── Revenue tree (Exhibit B + B2) ───────────────────────────────────────────────
-export function buildRevenueTree(workbook, localityName) {
+export function buildRevenueTree(workbook, localityName, sectionIndex) {
   const ws = workbook.getWorksheet('Exhibit B');
   if (!ws) throw new Error('Exhibit B sheet missing');
   const hdr = findHeaderRow(ws);
-  const dataRow = findLocalityRow(ws, hdr, localityName);
+  const dataRow = locateLocalityRow(ws, hdr, localityName, sectionIndex);
   const groupRow = ws.getRow(hdr - 1); // row 5: merged group headers (e.g. "Revenue from Use of Money and Property")
 
   const sources = extractNodeCols(ws, hdr, /total local revenue/i);
@@ -212,7 +255,7 @@ export function buildRevenueTree(workbook, localityName) {
       const b2 = workbook.getWorksheet('Exhibit B2');
       if (b2) {
         const b2Hdr = findHeaderRow(b2);
-        const b2Row = findLocalityRow(b2, b2Hdr, localityName);
+        const b2Row = locateLocalityRow(b2, b2Hdr, localityName, sectionIndex);
         for (const col of extractNodeColsOrLeaf(b2, b2Hdr, /total revenues/i)) {
           const cv = cellNum(b2Row.getCell(col.col));
           if (Number.isFinite(cv) && cv !== 0) children.push({ n: col.label, a: cv });
@@ -242,7 +285,8 @@ export function buildRevenueTree(workbook, localityName) {
   tree.sort((x, y) => y.a - x.a);
 
   const totalCol = headerCells(ws, hdr).find((h) => /total local revenue/i.test(h.label));
-  const total = totalCol ? cellNum(dataRow.getCell(totalCol.col)) : tree.reduce((s, n) => s + n.a, 0);
+  let total = totalCol ? cellNum(dataRow.getCell(totalCol.col)) : NaN;
+  if (!Number.isFinite(total)) total = tree.reduce((s, n) => s + n.a, 0);
   return { tree, total };
 }
 
@@ -259,11 +303,19 @@ function extractNodeColsOrLeaf(ws, headerRow, stopRe) {
 }
 
 // ── Population (Exhibit H) ───────────────────────────────────────────────────────
-export function localityPopulation(workbook, localityName) {
+export function localityPopulation(workbook, localityName, sectionIndex) {
   const ws = workbook.getWorksheet('Exhibit H');
   if (!ws) return null;
   const hdr = findHeaderRow(ws);
-  const dataRow = findLocalityRow(ws, hdr, localityName);
+  // Population is optional: some localities present in the expenditure/revenue exhibits are
+  // absent from Exhibit H (e.g. Covington/Alleghany, whose FY2024 school activity was unallocated
+  // per the report footnote). Missing population must not abort the load — return null.
+  let dataRow;
+  try {
+    dataRow = locateLocalityRow(ws, hdr, localityName, sectionIndex);
+  } catch {
+    return null;
+  }
   const popCol = headerCells(ws, hdr).find((h) => /population estimates july/i.test(h.label));
   if (!popCol) return null;
   const v = cellNum(dataRow.getCell(popCol.col));
@@ -271,8 +323,11 @@ export function localityPopulation(workbook, localityName) {
 }
 
 // ── Supabase write path (mirrors loadUtahTransparency importEntityData) ──────────
+/** entity_type → report section index (Cities §0, Counties §1, Towns §2). */
+export const ENTITY_TYPE_SECTION = { city: 0, county: 1, town: 2 };
+
 let _supabase = null;
-async function getSupabase() {
+export async function getSupabase() {
   if (_supabase) return _supabase;
   const { createClient } = await import('@supabase/supabase-js');
   const url = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
@@ -283,7 +338,7 @@ async function getSupabase() {
 }
 
 /** Read-only never-overwrite guard: returns the conflicting row if a DIFFERENT source owns it. */
-async function findConflictingBudget(supabase, municipalityId, fiscalYear, datasetType) {
+export async function findConflictingBudget(supabase, municipalityId, fiscalYear, datasetType) {
   const { data, error } = await supabase
     .schema('treasury').from('budgets')
     .select('id, data_source')
@@ -295,7 +350,7 @@ async function findConflictingBudget(supabase, municipalityId, fiscalYear, datas
   return existing.data_source && existing.data_source !== DATA_SOURCE_NAME ? existing : null;
 }
 
-async function importDataset(supabase, municipalityId, fiscalYear, datasetType, tree, total, sourceUrl, sourceDate) {
+export async function importDataset(supabase, municipalityId, fiscalYear, datasetType, tree, total, sourceUrl, sourceDate) {
   const conflict = await findConflictingBudget(supabase, municipalityId, fiscalYear, datasetType);
   if (conflict) {
     console.log(`  SKIP ${datasetType} FY${fiscalYear} — existing ${conflict.data_source} data preserved (never-overwrite)`);
@@ -314,6 +369,60 @@ async function importDataset(supabase, municipalityId, fiscalYear, datasetType, 
   });
   if (error) { console.error(`  RPC error (${datasetType}): ${error.message}`); return null; }
   return data;
+}
+
+/**
+ * Build + write one locality's operating + revenue datasets (the unit the Phase 80 batch
+ * driver loops). Decouples the XLSX MATCH name (bare col-2 value) from the DB DISPLAY name
+ * (counties stored as "<name> County", CONTEXT 80 D-05). Reuses the never-overwrite guard
+ * + per-FY source stamping via importDataset.
+ *
+ * opts: { matchName, displayName, entityType='city', state='VA', fiscalYear, sourceUrl,
+ *         sourceDate, sectionIndex, dryRun }
+ * Returns a summary object (always), with per-dataset write/skip status when not dryRun.
+ */
+export async function importLocality(supabase, workbook, opts) {
+  const {
+    matchName,
+    displayName = matchName,
+    entityType = 'city',
+    state = 'VA',
+    fiscalYear,
+    sourceUrl = null,
+    sourceDate = new Date().toISOString().slice(0, 10),
+    dryRun = false,
+  } = opts;
+  const sectionIndex = opts.sectionIndex != null ? opts.sectionIndex : ENTITY_TYPE_SECTION[entityType];
+
+  const exp = buildExpenditureTree(workbook, matchName, sectionIndex);
+  const rev = buildRevenueTree(workbook, matchName, sectionIndex);
+  const population = localityPopulation(workbook, matchName, sectionIndex);
+
+  const summary = {
+    displayName, matchName, entityType, fiscalYear,
+    operatingTotal: exp.total, revenueTotal: rev.total, population,
+    expFunctions: exp.tree.length, revSources: rev.tree.length,
+  };
+
+  // Absent locality: the report lists the row but ships zero data (chronic late-filer whose
+  // audited financials hadn't reached the APA at publication). Do NOT write a $0 budget or
+  // create a phantom municipality — skip cleanly and let the caller record it (CONTEXT 80 D-04).
+  if (!(exp.total > 0) && !(rev.total > 0)) {
+    summary.absent = true;
+    return summary;
+  }
+
+  if (dryRun) return summary;
+
+  const { data: municipalityId, error: munErr } = await supabase.rpc('treasury_ensure_municipality', {
+    p_name: displayName, p_state: state, p_entity_type: entityType, p_population: population || 0,
+  });
+  if (munErr) throw new Error(`Municipality error (${displayName}): ${munErr.message}`);
+
+  summary.municipalityId = municipalityId;
+  summary.operating = await importDataset(supabase, municipalityId, fiscalYear, 'operating', exp.tree, exp.total, sourceUrl, sourceDate);
+  summary.revenue = await importDataset(supabase, municipalityId, fiscalYear, 'revenue', rev.tree, rev.total, sourceUrl, sourceDate);
+  return summary;
 }
 
 // ── CLI ──────────────────────────────────────────────────────────────────────
@@ -344,9 +453,10 @@ async function main() {
   const wb = new ExcelJS.Workbook();
   await wb.xlsx.readFile(values.file);
 
-  const exp = buildExpenditureTree(wb, values.locality);
-  const rev = buildRevenueTree(wb, values.locality);
-  const pop = localityPopulation(wb, values.locality);
+  const sectionIndex = ENTITY_TYPE_SECTION[entityType];
+  const exp = buildExpenditureTree(wb, values.locality, sectionIndex);
+  const rev = buildRevenueTree(wb, values.locality, sectionIndex);
+  const pop = localityPopulation(wb, values.locality, sectionIndex);
 
   const fmt = (n) => '$' + Math.round(n).toLocaleString('en-US');
   console.log(`\nVA APA Comparative Report — ${values.locality} (${state}) FY${fiscalYear}${values['dry-run'] ? '  [dry-run]' : ''}`);
@@ -360,13 +470,10 @@ async function main() {
   if (values['dry-run']) { console.log('\nDry-run — no writes.'); return; }
 
   const supabase = await getSupabase();
-  const { data: municipalityId, error: munErr } = await supabase.rpc('treasury_ensure_municipality', {
-    p_name: values.locality, p_state: state, p_entity_type: entityType, p_population: pop || 0,
+  await importLocality(supabase, wb, {
+    matchName: values.locality, displayName: values.locality, entityType, state,
+    fiscalYear, sourceUrl, sourceDate, sectionIndex,
   });
-  if (munErr) { console.error(`Municipality error: ${munErr.message}`); process.exit(1); }
-
-  await importDataset(supabase, municipalityId, fiscalYear, 'operating', exp.tree, exp.total, sourceUrl, sourceDate);
-  await importDataset(supabase, municipalityId, fiscalYear, 'revenue', rev.tree, rev.total, sourceUrl, sourceDate);
   console.log(`\n✅ ${values.locality} FY${fiscalYear} imported.`);
 }
 
