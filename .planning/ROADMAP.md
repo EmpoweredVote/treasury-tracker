@@ -74,6 +74,21 @@ Success criteria:
 3. Independent cities render standalone (no parent county); counties render as their own nodes; towns show a county breadcrumb and appear in their county's localities panel.
 4. Loads remain idempotent.
 
+### Phase 81.5: EV Micro-Donation Transparency ⎇ INSERTED (EV financials — not v2.7 scope; runs before Phase 82)
+
+**Context:** Out-of-milestone insert (a v2.6 EV-financials follow-on), explored + scoped with Chris 2026-06-23. Governed by auto-memory `project_ev_funding_philosophy` and `project_micro_donations_feature`. Not on the Virginia critical path; executes next, before Phase 82.
+
+**Goal:** The EV nonprofit financials view honestly shows that EV is *currently* sustained by recurring monthly micro-donations — a copy headline + a quiet recurring-supporter stat + a soft recurring-donate invite — backed by anonymized aggregates persisted at load time. Absolute financial honesty; never claims donor breadth we can't prove and never frames EV as refusing larger/bridge support.
+**Depends on:** v2.6 EV donation pipeline (`scripts/loadEVDonations.js`); rides existing budget-category API fields (lean, single-repo — no backend change)
+**Requirements:** EVMICRO-01, EVMICRO-02, EVMICRO-03
+**UI hint:** yes
+
+Success criteria:
+1. The donation pipeline computes + persists **anonymized** aggregates per FY (distinct active recurring-supporter count, typical/median monthly gift, size buckets) — **no donor PII ever stored**; Benevity counted as **one** supporter (Chris's matched recurring giving), GiveButter deduped by contact.
+2. Every displayed number reconciles exactly to the source platform exports (verifiably true), incl. the real Patreon distinct-patron count.
+3. The EV financials view renders the locked headline ("These tools are free for everyone, and always will be. We are currently sustained by like-minded people who give a few dollars a month.") + a quiet recurring stat + a soft "Join them" recurring-donate invite — no purity/anti-big-gift framing, no volunteer-as-funding-virtue spin.
+4. Shows only for the EV nonprofit entity; degrades gracefully when aggregates are absent.
+
 ### Phase 82: Enrichment Parity
 
 **Goal:** The VA function/activity categories carry standardized, bleed-safe plain-language enrichment.
