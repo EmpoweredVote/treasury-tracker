@@ -953,30 +953,6 @@ function App() {
                   {selectedEntity?.entity_type === 'nonprofit' && orgSummary && (
                     <OrgTransparencyPanel summary={orgSummary} orgName={selectedEntity.name} />
                   )}
-                  {/* Micro-donation callout (Phase 81.5-02): "how we stay free" — nonprofit only.
-                      Reads _evMicro aggregates from the Donations revenue category (persisted by
-                      loadEVDonations.js); no new fetch — uses already-loaded revenueData.
-                      Searches top-level categories for linkKey='donations' or name='Donations'. */}
-                  {selectedEntity?.entity_type === 'nonprofit' && revenueData && (() => {
-                    const allCats = revenueData.categories ?? [];
-                    // Search top-level first; fall back to flattened subcategories
-                    const findDonations = (cats: BudgetCategory[]): BudgetCategory | undefined =>
-                      cats.find(c =>
-                        c.linkKey === 'donations' ||
-                        c.name.toLowerCase() === 'donations'
-                      ) ??
-                      cats.flatMap(c => c.subcategories ?? []).find(c =>
-                        c.linkKey === 'donations' ||
-                        c.name.toLowerCase() === 'donations'
-                      );
-                    const donationsCat = findDonations(allCats);
-                    return (
-                      <MicroDonationCallout
-                        donationsCategory={donationsCat}
-                        onDonateClick={() => setDonateOpen(true)}
-                      />
-                    );
-                  })()}
                 </div>
               )}
 
@@ -1100,6 +1076,11 @@ function App() {
                     />
                   );
                 })()}
+              {/* Micro-donation mission tile (Phase 81.5) — EV nonprofit only, overview only.
+                  Placed directly above the "how Empowered Vote uses its funds" section. */}
+              {selectedEntity?.entity_type === 'nonprofit' && navigationPath.length === 0 && (
+                <MicroDonationCallout />
+              )}
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <h2 className="text-base font-bold text-[#1C1C1C] dark:text-ev-gray-100">
