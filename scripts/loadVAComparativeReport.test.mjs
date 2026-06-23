@@ -18,6 +18,7 @@ import {
   localityPopulation,
   findLocalityRowInSection,
   findHeaderRow,
+  townPopulationFromExhibitA,
   DATA_SOURCE_NAME,
 } from './loadVAComparativeReport.js';
 import { enumerateRoster } from './loadVAComparativeReportBatch.js';
@@ -147,4 +148,63 @@ test('backward-compat: section-less calls unchanged (Phase 79 global path)', { s
   assert.ok(Math.abs(buildExpenditureTree(w, 'Alexandria').total - 863578347) <= 1);
   assert.ok(Math.abs(buildRevenueTree(w, 'Alexandria').total - 874230660) <= 1);
   assert.equal(localityPopulation(w, 'Alexandria'), 158591);
+});
+
+// ── Phase 81: town segmentation, population fallback, bare-name safety ────────
+test('enumerateRoster towns: 37 towns including Abingdon + Wytheville, no Total/Grand Total', { skip: !HAVE_SAMPLE && 'recon sample absent' }, async () => {
+  const r = enumerateRoster(await workbook());
+  assert.equal(r.towns.length, 37, `towns ${r.towns.length}`);
+  assert.ok(r.towns.includes('Abingdon'), 'includes Abingdon');
+  assert.ok(r.towns.includes('Wytheville'), 'includes Wytheville');
+  assert.ok(!r.towns.includes('Total'), 'excludes "Total"');
+  assert.ok(!r.towns.includes('Grand Total'), 'excludes "Grand Total"');
+});
+
+test('town population fallback: Leesburg resolves from Exhibit A (finite > 0)', { skip: !HAVE_SAMPLE && 'recon sample absent' }, async () => {
+  const w = await workbook();
+  // Exhibit H has no town section — localityPopulation must fall back to Exhibit A.
+  const pop = localityPopulation(w, 'Leesburg', 2);
+  assert.ok(typeof pop === 'number' && Number.isFinite(pop) && pop > 0,
+    `Leesburg population from Exhibit A is finite > 0, got ${pop}`);
+  // Also verify directly via townPopulationFromExhibitA helper.
+  const popDirect = townPopulationFromExhibitA(w, 'Leesburg', 2);
+  assert.ok(typeof popDirect === 'number' && popDirect > 0,
+    `townPopulationFromExhibitA Leesburg finite > 0, got ${popDirect}`);
+});
+
+test('cities + counties still get Exhibit H population (unchanged path)', { skip: !HAVE_SAMPLE && 'recon sample absent' }, async () => {
+  const w = await workbook();
+  // Alexandria (city §0) — must match Exhibit H expected value.
+  assert.equal(localityPopulation(w, 'Alexandria', 0), 158591, 'Alexandria Exhibit H unchanged');
+  // Falls Church (city §0).
+  assert.equal(localityPopulation(w, 'Falls Church', 0), 15675, 'Falls Church Exhibit H unchanged');
+  // Fairfax County (§1) — should resolve from Exhibit H (non-null).
+  const fairfaxPop = localityPopulation(w, 'Fairfax', 1);
+  assert.ok(typeof fairfaxPop === 'number' && fairfaxPop > 0, `Fairfax County pop ${fairfaxPop}`);
+});
+
+test('absent-from-both town returns null without throwing', { skip: !HAVE_SAMPLE && 'recon sample absent' }, async () => {
+  const w = await workbook();
+  const pop = localityPopulation(w, 'NonExistentTownXYZ', 2);
+  assert.equal(pop, null, 'absent town returns null');
+  const popDirect = townPopulationFromExhibitA(w, 'NonExistentTownXYZ', 2);
+  assert.equal(popDirect, null, 'townPopulationFromExhibitA absent returns null');
+});
+
+test('bare-name safety: no town name equals any city name (zero collisions)', { skip: !HAVE_SAMPLE && 'recon sample absent' }, async () => {
+  const r = enumerateRoster(await workbook());
+  const citySet = new Set(r.cities.map((n) => n.toLowerCase()));
+  const collisions = r.towns.filter((t) => citySet.has(t.toLowerCase()));
+  assert.equal(collisions.length, 0, `town/city bare-name collisions: ${collisions.join(', ')}`);
+});
+
+test('town/county overlap: Orange resolves distinct trees at §2 vs "Orange County" at §1', { skip: !HAVE_SAMPLE && 'recon sample absent' }, async () => {
+  const w = await workbook();
+  // Town of Orange is §2 (bare name "Orange"); county is stored as "Orange County" (display name)
+  // but the XLSX match name is bare "Orange" in §1.
+  const townExp = buildExpenditureTree(w, 'Orange', 2);
+  const countyExp = buildExpenditureTree(w, 'Orange', 1);
+  assert.ok(townExp.total > 0, `town Orange has expenditure data`);
+  assert.ok(countyExp.total > 0, `Orange County has expenditure data`);
+  assert.notEqual(townExp.total, countyExp.total, 'town and county totals are distinct (section-scoped)');
 });
