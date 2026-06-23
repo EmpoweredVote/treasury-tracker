@@ -1076,9 +1076,10 @@ function App() {
                     />
                   );
                 })()}
-              {/* Micro-donation mission tile (Phase 81.5) — EV nonprofit only, overview only.
-                  Placed directly above the "how Empowered Vote uses its funds" section. */}
-              {selectedEntity?.entity_type === 'nonprofit' && navigationPath.length === 0 && (
+              {/* Micro-donation mission tile (Phase 81.5) — EV nonprofit only, overview only,
+                  and only on the spending ("uses its funds") view — NOT the revenue
+                  ("funds its budget") view. */}
+              {selectedEntity?.entity_type === 'nonprofit' && navigationPath.length === 0 && activeDataset === 'operating' && (
                 <MicroDonationCallout />
               )}
               <div className="flex items-center justify-between gap-4">
