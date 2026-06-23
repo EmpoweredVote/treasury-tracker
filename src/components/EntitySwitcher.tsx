@@ -66,8 +66,15 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
         )
       : municipalities;
 
-    // Defensive guard: exclude municipalities with no budget data loaded
-    const withData = filtered.filter(m => m.available_datasets && m.available_datasets.length > 0);
+    // Defensive guard: exclude municipalities with no budget data loaded.
+    // State/federal navigation hubs are always shown — they are hub nodes, not data leaves.
+    // Ordinary localities (city, county, town, etc.) still require at least one dataset.
+    const withData = filtered.filter(
+      m =>
+        (m.available_datasets && m.available_datasets.length > 0) ||
+        m.entity_type === 'state' ||
+        m.entity_type === 'federal'
+    );
 
     // Pre-filter federal/state entities before building byState to prevent circular nesting
     const federalEntities = withData.filter(m => m.entity_type === 'federal');
