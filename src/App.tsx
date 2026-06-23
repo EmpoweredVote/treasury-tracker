@@ -34,6 +34,7 @@ import LineItemsTable from './components/LineItemsTable';
 import LinkedTransactionsPanel from './components/LinkedTransactionsPanel';
 import CitiesInCountyPanel from './components/CitiesInCountyPanel';
 import CitiesInStatePanel from './components/CitiesInStatePanel';
+import CountiesInStatePanel from './components/CountiesInStatePanel';
 import StatesInFederalPanel from './components/StatesInFederalPanel';
 import { getHeroImage, getHeroBgPosition } from './utils/wikiImage';
 import type { BudgetCategory, BudgetData, FederalContext, LinkedTransactionSummary, Municipality, OrgFinancialSummary } from './types/budget';
@@ -1283,6 +1284,15 @@ function App() {
               county={selectedEntity}
               municipalities={municipalities}
               onCityClick={handleEntityChange}
+            />
+          )}
+
+          {/* Counties in State panel — rendered below budget on state pages (before cities) */}
+          {navigationPath.length === 0 && selectedEntity?.entity_type === 'state' && (
+            <CountiesInStatePanel
+              state={selectedEntity}
+              municipalities={municipalities}
+              onCountyClick={handleEntityChange}
             />
           )}
 
