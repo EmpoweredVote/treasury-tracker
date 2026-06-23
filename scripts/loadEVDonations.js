@@ -124,6 +124,125 @@ export function parseBenevity(rows, fy, basisColumn = 'Disbursement Date') {
   return { gross, fee, count };
 }
 
+// ── Micro-donation aggregate helpers (pure, Phase 81.5) ─────────────────────
+// These derive anonymized recurring-supporter statistics for the Donations
+// category display. NO PII (names / emails / addresses) in any return value.
+
+/**
+ * Count distinct active recurring GiveButter donors in the target FY.
+ * Deduplication key: Contact ID (preferred) falling back to Contact Email.
+ * Only rows that have a Plan ID (i.e., a recurring plan charge) are counted.
+ * Returns: { count, typicalAmounts }
+ *   typicalAmounts = one representative monthly amount per donor (most-recent charge in FY)
+ */
+export function giveButterRecurringDonors(rows, fy) {
+  const fy2026Rows = rows.filter(r =>
+    (r['Status Friendly'] || '') === 'Succeeded' &&
+    !(r['Refund Date (UTC)'] || '').trim() &&
+    isoYear(r['Transaction Date (UTC)']) === fy &&
+    (r['Plan ID'] || '').trim() !== ''
+  );
+  // Sort descending by date so the first occurrence per donor = most recent charge
+  fy2026Rows.sort((a, b) =>
+    (b['Transaction Date (UTC)'] || '').localeCompare(a['Transaction Date (UTC)'] || '')
+  );
+  const seen = new Map(); // dedup key → most-recent amount
+  for (const r of fy2026Rows) {
+    const key = (r['Contact ID'] || '').trim() || (r['Contact Email'] || '').trim();
+    if (!key) continue;
+    if (!seen.has(key)) seen.set(key, money(r['Amount']));
+  }
+  return { count: seen.size, typicalAmounts: [...seen.values()] };
+}
+
+/**
+ * Count distinct active Patreon patrons in the target FY.
+ * Deduplication key: Member user ID.
+ * Only Payment events are counted (not refunds / adjustments).
+ * Returns: { count, typicalAmounts }
+ *   typicalAmounts = most-recent Member charge amount per patron in FY
+ */
+export function patreonDistinctPatrons(rows, fy) {
+  const fyRows = rows.filter(r =>
+    isoYear(r['Date']) === fy &&
+    (r['Event type'] || '').trim() === 'Payment'
+  );
+  fyRows.sort((a, b) => (b['Date'] || '').localeCompare(a['Date'] || ''));
+  const seen = new Map(); // member user ID → most-recent charge amount
+  for (const r of fyRows) {
+    const id = (r['Member user ID'] || '').trim();
+    if (!id) continue;
+    if (!seen.has(id)) seen.set(id, parseFloat(r['Member charge amount']) || 0);
+  }
+  return { count: seen.size, typicalAmounts: [...seen.values()] };
+}
+
+/**
+ * Compute median value of a sorted numeric array (ascending).
+ * Returns 0 for empty arrays.
+ */
+export function median(values) {
+  if (!values.length) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0
+    ? (sorted[mid - 1] + sorted[mid]) / 2
+    : sorted[mid];
+}
+
+/**
+ * Assign a monthly gift amount to a size bucket.
+ * Buckets: lt5 (<$5), b5to9 ($5–9), b10to24 ($10–24), b25to49 ($25–49), gte50 ($50+)
+ */
+function sizeBucket(amount) {
+  if (amount < 5)  return 'lt5';
+  if (amount < 10) return 'b5to9';
+  if (amount < 25) return 'b10to24';
+  if (amount < 50) return 'b25to49';
+  return 'gte50';
+}
+
+/**
+ * Compute a compact anonymized recurring-supporter aggregate for the target FY.
+ *
+ * Rules:
+ *   - GiveButter: dedup by Contact ID / Contact Email; count donors with Plan ID.
+ *   - Patreon: dedup by Member user ID; count Payment events only.
+ *   - Benevity: EXACTLY 1 supporter regardless of row count.
+ *     (Chris Andrew's company-matched recurring giving — 61 disbursement rows,
+ *      one donor. Hard rule per Phase 81.5 CONTEXT.md auto-memory guardrail.)
+ *
+ * @param {object[]} gbRows   GiveButter transaction CSV rows
+ * @param {object[]} patRows  Patreon detailed-earnings CSV rows
+ * @param {number}   fy       Fiscal year (calendar year)
+ * @returns {{ recurring_supporters: number, typical_monthly: number, buckets: object, as_of_fy: number }}
+ *          No PII keys in the returned object.
+ */
+export function computeRecurringAggregates(gbRows, patRows, fy) {
+  const gb  = giveButterRecurringDonors(gbRows, fy);
+  const pat = patreonDistinctPatrons(patRows, fy);
+
+  // Benevity: exactly 1 supporter — this is Chris Andrew's company-matched
+  // recurring giving via Cisco Benevity. The export contains 61 disbursement
+  // rows but represents one real donor. Hard-coded per Phase 81.5 memory guardrail.
+  const benevityCount = 1;
+  const benevityTypical = 0; // excluded from median (company-match atypical of the micro-donation story)
+
+  const recurring_supporters = gb.count + pat.count + benevityCount;
+
+  // Typical monthly = median over per-supporter representative monthly amounts.
+  // GiveButter and Patreon donors contribute their most-recent charge in the FY.
+  // Benevity is excluded from the median (see above).
+  const allAmounts = [...gb.typicalAmounts, ...pat.typicalAmounts];
+  const typical_monthly = round2(median(allAmounts));
+
+  // Size buckets (counts only — no PII)
+  const buckets = { lt5: 0, b5to9: 0, b10to24: 0, b25to49: 0, gte50: 0 };
+  for (const a of allAmounts) buckets[sizeBucket(a)]++;
+
+  return { recurring_supporters, typical_monthly, buckets, as_of_fy: fy };
+}
+
 // ── GiveButter dedup (pure, D-04) ────────────────────────────────────────────
 /** Split webhook rows into superseded (<= exportAsOf, already in the export aggregate)
  *  and delta (> exportAsOf, the live tail to keep). */
@@ -311,6 +430,58 @@ const gb_amount = c => Number(c.amount || 0);
 const donations_amount = c => Number(c.amount || 0);
 
 /**
+ * Persist anonymized micro-donation aggregates on the Donations budget_category row.
+ *
+ * Carries data via two existing API-returned fields (no backend schema change):
+ *   - item_count       = recurring_supporters (semantic: "N recurring donors")
+ *   - description      = compact namespaced JSON carrier for the frontend
+ *
+ * Idempotency (never-overwrite discipline, per project memory
+ * project_sync_city_budget_not_source_safe): reads the current row first;
+ * skips the write if item_count and description are already identical.
+ *
+ * @param {object} sb          Supabase client
+ * @param {number} budgetId    The FY revenue budget id
+ * @param {object} aggregates  { recurring_supporters, typical_monthly, buckets, as_of_fy }
+ * @returns {{ wrote: boolean, reason: string }}
+ */
+export async function writeDonationsAggregate(sb, budgetId, aggregates) {
+  // Fetch the top-level Donations category for this budget
+  const { data: cat, error: fetchErr } = await sb
+    .from('budget_categories')
+    .select('id, item_count, description')
+    .eq('budget_id', budgetId)
+    .eq('name', 'Donations')
+    .is('parent_id', null)
+    .maybeSingle();
+  if (fetchErr) throw new Error(`Fetch Donations category: ${fetchErr.message}`);
+  if (!cat) return { wrote: false, reason: 'Donations category not found in budget' };
+
+  const newDescription = JSON.stringify({
+    _evMicro: {
+      recurring_supporters: aggregates.recurring_supporters,
+      typical_monthly:      aggregates.typical_monthly,
+      buckets:              aggregates.buckets,
+      as_of_fy:             aggregates.as_of_fy,
+    },
+  });
+
+  // Set-if-changed: skip write if already identical (idempotent re-run)
+  const unchanged =
+    cat.item_count === aggregates.recurring_supporters &&
+    cat.description === newDescription;
+  if (unchanged) return { wrote: false, reason: 'already up-to-date' };
+
+  const { error: updErr } = await sb
+    .from('budget_categories')
+    .update({ item_count: aggregates.recurring_supporters, description: newDescription })
+    .eq('id', cat.id);
+  if (updErr) throw new Error(`Update Donations category: ${updErr.message}`);
+
+  return { wrote: true, reason: `item_count=${aggregates.recurring_supporters}` };
+}
+
+/**
  * Manual / off-platform income for the FY from data/ev-sources/manual.csv (D-06/D-08).
  * Header: date,source,amount,note. date = M/D/YYYY or ISO; amount = plain decimal.
  * Cash entries only (checks, grants, unmatched bank deposits) — in-kind deferred (D-10).
@@ -393,23 +564,34 @@ async function main() {
   const args = process.argv.slice(2);
   const fyArg = args.includes('--fy') ? parseInt(args[args.indexOf('--fy') + 1], 10) : new Date().getFullYear();
   const dryRun = args.includes('--dry-run');
+  const verifyAggregates = args.includes('--verify-aggregates');
   const dir = args.includes('--source-dir') ? args[args.indexOf('--source-dir') + 1]
     : path.join(__dirname, '..', 'data', 'ev-sources');
 
-  console.log(`\n🗳️  EV Donation Loader — FY${fyArg}${dryRun ? ' (dry-run)' : ''}\n📂 ${dir}\n`);
+  console.log(`\n  EV Donation Loader -- FY${fyArg}${dryRun ? ' (dry-run)' : ''}${verifyAggregates ? ' (verify-aggregates)' : ''}\n  ${dir}\n`);
 
-  const gbFile = findFile(dir, /givebutter.*transactions.*\.csv$/i);
+  const gbFile  = findFile(dir, /givebutter.*transactions.*\.csv$/i);
   // monthly earnings file only — "analytics-earnings.csv" suffix excludes "...detailed-earnings.csv"
   const patFile = findFile(dir, /patreon.*analytics-earnings\.csv$/i);
+  // detailed earnings — used for distinct patron count (Phase 81.5)
+  const patDetailFile = findFile(dir, /patreon.*detailed-earnings\.csv$/i);
   const benFile = findFile(dir, /benevity.*disbursement.*\.csv$/i);
   if (!gbFile || !patFile || !benFile) {
     console.error('Missing export(s):', { gbFile, patFile, benFile });
     process.exit(1);
   }
 
-  const gb = parseGiveButter(readCsvRows(gbFile), fyArg);
-  const pat = parsePatreon(readCsvRows(patFile), fyArg);
-  const ben = parseBenevity(readCsvRows(benFile), fyArg, 'Disbursement Date');
+  const gbRows  = readCsvRows(gbFile);
+  const patRows = readCsvRows(patFile);
+  const benRows = readCsvRows(benFile);
+
+  const gb  = parseGiveButter(gbRows, fyArg);
+  const pat = parsePatreon(patRows, fyArg);
+  const ben = parseBenevity(benRows, fyArg, 'Disbursement Date');
+
+  // Recurring-supporter aggregates (Phase 81.5 — anonymized, no PII)
+  const patDetailRows = patDetailFile ? readCsvRows(patDetailFile) : [];
+  const aggregates = computeRecurringAggregates(gbRows, patDetailRows, fyArg);
 
   const bySource = {
     'Give Butter': { gross: gb.gross, fee: gb.fee },
@@ -426,18 +608,22 @@ async function main() {
   console.log(`  Patreon     $${pat.gross.toFixed(2)}  (fee $${pat.fee.toFixed(2)}, ${pat.count} months)`);
   console.log(`  Benevity    $${ben.gross.toFixed(2)}  (fee $${ben.fee.toFixed(2)}, ${ben.count} disbursed rows)`);
   console.log(`  Carry-forward (manual.csv + bank interest): ${carry.map(c => c.parent + '/' + c.name + ' $' + c.amount.toFixed(2) + ' [' + c.tag + ']').join(', ') || 'none'}`);
-  console.log(`  ── Revenue total: $${total.toFixed(2)}\n`);
+  console.log(`  -- Revenue total: $${total.toFixed(2)}\n`);
   const totalFees = gb.fee + pat.fee + ben.fee;
-  console.log(`Platform fees (gross→net story, D-09): $${totalFees.toFixed(2)} total\n`);
+  console.log(`Platform fees (gross->net story, D-09): $${totalFees.toFixed(2)} total\n`);
 
-  if (dryRun) { console.log('Dry-run — no writes.'); printTree(categories); return; }
+  console.log(`Recurring-supporter aggregates (FY${fyArg}):`);
+  console.log(`  ${aggregates.recurring_supporters} recurring supporters, typical $${aggregates.typical_monthly}/month`);
+  console.log(`  Buckets: ${JSON.stringify(aggregates.buckets)}\n`);
+
+  if (dryRun) { console.log('Dry-run -- no writes.'); printTree(categories); return; }
 
   const sb = await getSupabase();
   const muniId = await getMunicipalityId(sb);
   const existingBudgetId = await getRevenueBudget(sb, muniId, fyArg);
   const webhookRows = await fetchWebhookRows(sb, existingBudgetId);
   const { superseded, delta } = giveButterDedup(webhookRows, gb.asOf);
-  console.log(`Webhook rows in FY${fyArg}: ${webhookRows.length} (superseded ≤${gb.asOf}: ${superseded.length}, live delta >${gb.asOf}: ${delta.length})`);
+  console.log(`Webhook rows in FY${fyArg}: ${webhookRows.length} (superseded <=${gb.asOf}: ${superseded.length}, live delta >${gb.asOf}: ${delta.length})`);
 
   await deleteRevenueBudget(sb, existingBudgetId);
   const budgetId = await createBudget(sb, muniId, fyArg, total);
@@ -445,7 +631,41 @@ async function main() {
   const deltaSum = await reapplyWebhookDelta(sb, budgetId, delta);
   if (deltaSum) console.log(`Re-applied ${delta.length} post-export webhook donation(s): +$${deltaSum.toFixed(2)}`);
 
-  console.log(`\n✅ FY${fyArg} EV revenue loaded: $${(total + deltaSum).toFixed(2)} (baseline $${total.toFixed(2)} + webhook delta $${deltaSum.toFixed(2)})\n`);
+  // Write anonymized micro-donation aggregates onto the Donations category (Phase 81.5).
+  // Uses set-if-changed: no-op on re-run if already identical.
+  const aggResult = await writeDonationsAggregate(sb, budgetId, aggregates);
+  console.log(`Donations category aggregate: ${aggResult.wrote ? 'written' : 'skipped'} (${aggResult.reason})`);
+
+  console.log(`\n  FY${fyArg} EV revenue loaded: $${(total + deltaSum).toFixed(2)} (baseline $${total.toFixed(2)} + webhook delta $${deltaSum.toFixed(2)})`);
+  console.log(`  RECONCILE: ${aggregates.recurring_supporters} supporters, typical $${aggregates.typical_monthly}/month, FY${fyArg}\n`);
+
+  // --verify-aggregates: recompute from raw CSVs and assert they match what was just persisted
+  if (verifyAggregates) {
+    console.log('--- Aggregate verification (--verify-aggregates) ---');
+    const freshAgg = computeRecurringAggregates(gbRows, patDetailRows, fyArg);
+    const { data: catCheck } = await sb
+      .from('budget_categories')
+      .select('item_count, description')
+      .eq('budget_id', budgetId)
+      .eq('name', 'Donations')
+      .is('parent_id', null)
+      .maybeSingle();
+    const persistedDesc = catCheck ? JSON.parse(catCheck.description || '{}') : {};
+    const persistedMicro = persistedDesc._evMicro || {};
+    const ok =
+      catCheck?.item_count === freshAgg.recurring_supporters &&
+      persistedMicro.recurring_supporters === freshAgg.recurring_supporters &&
+      persistedMicro.typical_monthly === freshAgg.typical_monthly;
+    if (ok) {
+      console.log(`  PASS: persisted item_count=${catCheck.item_count}, typical_monthly=${persistedMicro.typical_monthly}`);
+      console.log(`  RECONCILED: ${freshAgg.recurring_supporters} supporters, typical $${freshAgg.typical_monthly}/month, FY${freshAgg.as_of_fy}`);
+    } else {
+      console.error(`  FAIL: mismatch between freshly-computed and persisted aggregates`);
+      console.error(`  Fresh:     supporters=${freshAgg.recurring_supporters}, typical=${freshAgg.typical_monthly}`);
+      console.error(`  Persisted: item_count=${catCheck?.item_count}, typical_monthly=${persistedMicro.typical_monthly}`);
+      process.exit(1);
+    }
+  }
 }
 
 function printTree(categories) {

@@ -8,6 +8,7 @@ import {
   parseGiveButter, parsePatreon, parseBenevity,
   giveButterDedup, buildDonationTree,
   carryForwardManual, carryForwardInterest,
+  giveButterRecurringDonors, patreonDistinctPatrons, median, computeRecurringAggregates,
 } from './loadEVDonations.js';
 
 test('money parses $, commas, parens, negatives', () => {
@@ -156,6 +157,158 @@ test('carryForwardManual: parses manual.csv, FY-filters, tags manual (absent fil
   const grant = out.find(r => r.name === 'Check — Acme Grant');
   assert.equal(grant.amount, 500);
   fs.rmSync(dir, { recursive: true, force: true });
+});
+
+// ── Phase 81.5: recurring-supporter aggregates ────────────────────────────────
+
+test('giveButterRecurringDonors: dedupes by Contact ID, counts only Plan ID rows for FY', () => {
+  const rows = [
+    // Contact A — 2 charges in FY2026 (one plan)
+    { 'Status Friendly': 'Succeeded', 'Refund Date (UTC)': '', 'Transaction Date (UTC)': '2026-06-01 10:00:00', 'Plan ID': 'P1', 'Frequency': 'monthly', 'Amount': '$10.00', 'Contact ID': 'A', 'Contact Email': 'a@test.com' },
+    { 'Status Friendly': 'Succeeded', 'Refund Date (UTC)': '', 'Transaction Date (UTC)': '2026-05-01 10:00:00', 'Plan ID': 'P1', 'Frequency': 'monthly', 'Amount': '$10.00', 'Contact ID': 'A', 'Contact Email': 'a@test.com' },
+    // Contact B — 1 recurring charge in FY2026
+    { 'Status Friendly': 'Succeeded', 'Refund Date (UTC)': '', 'Transaction Date (UTC)': '2026-04-01 10:00:00', 'Plan ID': 'P2', 'Frequency': 'monthly', 'Amount': '$50.00', 'Contact ID': 'B', 'Contact Email': 'b@test.com' },
+    // Contact C — one-time gift (no Plan ID) — should NOT count
+    { 'Status Friendly': 'Succeeded', 'Refund Date (UTC)': '', 'Transaction Date (UTC)': '2026-03-01 10:00:00', 'Plan ID': '',  'Frequency': 'one-time', 'Amount': '$25.00', 'Contact ID': 'C', 'Contact Email': 'c@test.com' },
+    // Contact A — prior FY — should NOT count
+    { 'Status Friendly': 'Succeeded', 'Refund Date (UTC)': '', 'Transaction Date (UTC)': '2025-12-01 10:00:00', 'Plan ID': 'P1', 'Frequency': 'monthly', 'Amount': '$10.00', 'Contact ID': 'A', 'Contact Email': 'a@test.com' },
+  ];
+  const { count, typicalAmounts } = giveButterRecurringDonors(rows, 2026);
+  assert.equal(count, 2, '2 distinct recurring donors');
+  assert.equal(typicalAmounts.length, 2);
+  // most recent for A is $10 (2026-06), most recent for B is $50 (2026-04)
+  assert.ok(typicalAmounts.includes(10));
+  assert.ok(typicalAmounts.includes(50));
+});
+
+test('giveButterRecurringDonors: fallback to Contact Email when Contact ID empty', () => {
+  const rows = [
+    { 'Status Friendly': 'Succeeded', 'Refund Date (UTC)': '', 'Transaction Date (UTC)': '2026-06-01 10:00:00', 'Plan ID': 'P1', 'Frequency': 'monthly', 'Amount': '$5.00', 'Contact ID': '', 'Contact Email': 'x@test.com' },
+    { 'Status Friendly': 'Succeeded', 'Refund Date (UTC)': '', 'Transaction Date (UTC)': '2026-05-01 10:00:00', 'Plan ID': 'P1', 'Frequency': 'monthly', 'Amount': '$5.00', 'Contact ID': '', 'Contact Email': 'x@test.com' },
+  ];
+  const { count } = giveButterRecurringDonors(rows, 2026);
+  assert.equal(count, 1, 'same email deduped to 1');
+});
+
+test('patreonDistinctPatrons: dedupes by Member user ID, counts only Payment events for FY', () => {
+  const rows = [
+    // Patron P1 — 2 payments in FY2026
+    { Date: '2026-06-01 08:00:00', 'Event type': 'Payment', 'Member user ID': 'P1', 'Member charge amount': '5.00' },
+    { Date: '2026-05-01 08:00:00', 'Event type': 'Payment', 'Member user ID': 'P1', 'Member charge amount': '5.00' },
+    // Patron P2 — 1 payment in FY2026
+    { Date: '2026-06-01 07:00:00', 'Event type': 'Payment', 'Member user ID': 'P2', 'Member charge amount': '50.00' },
+    // Non-payment event — should NOT count
+    { Date: '2026-05-01 07:00:00', 'Event type': 'Refund',  'Member user ID': 'P3', 'Member charge amount': '10.00' },
+    // Prior FY — should NOT count
+    { Date: '2025-12-01 08:00:00', 'Event type': 'Payment', 'Member user ID': 'P4', 'Member charge amount': '5.00' },
+  ];
+  const { count, typicalAmounts } = patreonDistinctPatrons(rows, 2026);
+  assert.equal(count, 2, '2 distinct patrons with Payment events in FY2026');
+  // most recent P1 = $5, most recent P2 = $50
+  assert.ok(typicalAmounts.includes(5));
+  assert.ok(typicalAmounts.includes(50));
+});
+
+test('median: returns correct middle value for odd-length array', () => {
+  assert.equal(median([1, 2, 3, 4, 5]), 3);
+  assert.equal(median([10, 5, 20]), 10);
+  assert.equal(median([]), 0);
+});
+
+test('median: averages two middle values for even-length array', () => {
+  assert.equal(median([1, 2, 3, 4]), 2.5);
+  assert.equal(median([10, 20]), 15);
+});
+
+test('computeRecurringAggregates: Benevity collapses to exactly 1', () => {
+  // Even with many GB rows and Patreon rows, Benevity = 1 (hard rule)
+  const gbRows = [
+    { 'Status Friendly': 'Succeeded', 'Refund Date (UTC)': '', 'Transaction Date (UTC)': '2026-06-01 10:00:00', 'Plan ID': 'P1', 'Amount': '$10.00', 'Contact ID': 'A', 'Contact Email': '' },
+  ];
+  const patRows = [
+    { Date: '2026-06-01 08:00:00', 'Event type': 'Payment', 'Member user ID': 'M1', 'Member charge amount': '5.00' },
+  ];
+  const result = computeRecurringAggregates(gbRows, patRows, 2026);
+  // 1 GB + 1 Patreon + 1 Benevity = 3
+  assert.equal(result.recurring_supporters, 3, 'Benevity always adds exactly 1');
+});
+
+test('computeRecurringAggregates: output contains zero PII keys', () => {
+  const gbRows = [
+    { 'Status Friendly': 'Succeeded', 'Refund Date (UTC)': '', 'Transaction Date (UTC)': '2026-05-01 10:00:00', 'Plan ID': 'P1', 'Amount': '$50.00', 'Contact ID': 'X1', 'Contact Email': 'no@pii.com' },
+  ];
+  const patRows = [
+    { Date: '2026-05-01 08:00:00', 'Event type': 'Payment', 'Member user ID': 'M1', 'Member charge amount': '10.00' },
+  ];
+  const result = computeRecurringAggregates(gbRows, patRows, 2026);
+  const piiKeys = ['name', 'email', 'address', 'first_name', 'last_name', 'phone', 'contact_id', 'member_id'];
+  const resultKeys = Object.keys(result).map(k => k.toLowerCase());
+  for (const pk of piiKeys) {
+    assert.ok(!resultKeys.includes(pk), `No PII key "${pk}" in output`);
+  }
+  assert.equal(typeof result.recurring_supporters, 'number');
+  assert.ok(Number.isFinite(result.typical_monthly), 'typical_monthly is a finite number');
+  assert.ok(typeof result.buckets === 'object', 'buckets is an object');
+  assert.equal(result.as_of_fy, 2026);
+});
+
+test('computeRecurringAggregates: typical_monthly is the median of GB+Patreon amounts (Benevity excluded)', () => {
+  const gbRows = [
+    // GB donor: $100 most recent
+    { 'Status Friendly': 'Succeeded', 'Refund Date (UTC)': '', 'Transaction Date (UTC)': '2026-06-01 10:00:00', 'Plan ID': 'P1', 'Amount': '$100.00', 'Contact ID': 'G1', 'Contact Email': '' },
+  ];
+  const patRows = [
+    // Patron 1: $5
+    { Date: '2026-06-01 08:00:00', 'Event type': 'Payment', 'Member user ID': 'M1', 'Member charge amount': '5.00' },
+    // Patron 2: $10
+    { Date: '2026-06-01 07:00:00', 'Event type': 'Payment', 'Member user ID': 'M2', 'Member charge amount': '10.00' },
+  ];
+  // amounts = [100, 5, 10] → sorted [5, 10, 100] → median = 10
+  const result = computeRecurringAggregates(gbRows, patRows, 2026);
+  assert.equal(result.typical_monthly, 10);
+});
+
+// Live-export reconciliation gate — reads the actual FY2026 CSV exports.
+// Numbers must match the production computation; if exports are re-exported
+// and the counts change, update this test AND the SUMMARY accordingly.
+const gbExportFile  = new URL('../data/ev-sources/givebutter_transactions-2026-06-21-1895409277.csv', import.meta.url).pathname.replace(/^\/([A-Z]:\/)/i, m => m.slice(1));
+const patDetailExportFile = new URL('../data/ev-sources/patreon_creator-analytics-detailed-earnings.csv', import.meta.url).pathname.replace(/^\/([A-Z]:\/)/i, m => m.slice(1));
+
+test('computeRecurringAggregates: FY2026 real export data — 9 supporters, median $10', () => {
+  const { readCsvRows } = { readCsvRows: (f) => {
+    const lines = fs.readFileSync(f, 'utf-8').split(/\r?\n/).filter(l => l.trim());
+    if (!lines.length) return [];
+    const parseCSVLine = (line) => {
+      const fields = []; let current = '', inQuotes = false;
+      for (const ch of line) {
+        if (ch === '"') inQuotes = !inQuotes;
+        else if (ch === ',' && !inQuotes) { fields.push(current.trim()); current = ''; }
+        else current += ch;
+      }
+      fields.push(current.trim());
+      return fields;
+    };
+    const headers = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g, '').trim());
+    return lines.slice(1).map(line => {
+      const fields = parseCSVLine(line);
+      const row = {};
+      headers.forEach((h, i) => { row[h] = (fields[i] || '').replace(/^"|"$/g, '').trim(); });
+      return row;
+    });
+  }};
+  const gbRows  = readCsvRows(gbExportFile);
+  const patRows = readCsvRows(patDetailExportFile);
+  const result  = computeRecurringAggregates(gbRows, patRows, 2026);
+  assert.equal(result.recurring_supporters, 9,  'FY2026: 3 GB + 5 Patreon + 1 Benevity = 9');
+  assert.equal(result.typical_monthly,      10, 'FY2026: median of [5,5,5,10,10,50,50,100] = 10');
+  assert.equal(result.as_of_fy, 2026);
+  // Buckets: GB $10=b10to24, GB $50=gte50, GB $100=gte50
+  //          Pat $5=b5to9, $5=b5to9, $5=b5to9, $10=b10to24, $50=gte50
+  assert.equal(result.buckets.b5to9,   3, '3 donors giving $5-9/mo');
+  assert.equal(result.buckets.b10to24, 2, '2 donors giving $10-24/mo');
+  assert.equal(result.buckets.gte50,   3, '3 donors giving $50+/mo');
+  assert.equal(result.buckets.lt5,     0);
+  assert.equal(result.buckets.b25to49, 0);
 });
 
 test('carryForwardInterest: sums Credit Interest deposits from the bank export, tags bank, ignores payouts', () => {
