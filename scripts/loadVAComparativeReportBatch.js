@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 /**
- * Virginia APA Comparative Report — BATCH driver (v2.7 Phase 80 — VALOAD-01/02/04)
+ * Virginia APA Comparative Report — BATCH driver (v2.7 Phase 80/81 — VALOAD-01/02/04/03)
  *
  * Iterates the Phase 79 single-locality loader (scripts/loadVAComparativeReport.js) over the
- * report's full roster: all 38 independent cities (§1) and 95 counties (§3) for a fiscal year,
- * writing operating + revenue + per-capita for each, idempotently and fully sourced.
+ * report's full roster: all 38 independent cities (§0), 95 counties (§1), and 37 towns (§2)
+ * for a fiscal year, writing operating + revenue + per-capita for each, idempotently and
+ * fully sourced.
  *
  * The loader and its parse/write path are already proven (Phase 79). This driver adds only:
  *   1. enumerateRoster()        — segment the report into cities / counties / towns by the
@@ -15,12 +16,16 @@
  *                                 stays the bare col-2 value; section-scoped lookup keeps
  *                                 homonym counties (Fairfax/Franklin/Richmond/Roanoke) from
  *                                 colliding with the same-named city (CONTEXT 80 D-04).
- *
- * Towns (§2) are out of scope this phase — Phase 81 (VALOAD-03 + the state node + linking).
+ *   3. the town branch (Phase 81) — towns stored bare / entity_type=town / sectionIndex=2.
+ *                                 Safe because there are zero town↔city bare-name collisions,
+ *                                 and the 6 town↔county overlaps (Bedford, Culpeper, Orange,
+ *                                 Pulaski, Tazewell, Wise) don't collide because counties carry
+ *                                 the "County" suffix (CONTEXT 81 D-02).
  *
  * Usage:
  *   node scripts/loadVAComparativeReportBatch.js --file _va-recon/fy2024-comparative-report.xlsx --fy 2024 --dry-run
  *   node scripts/loadVAComparativeReportBatch.js --file _va-recon/fy2024-comparative-report.xlsx --fy 2024 --entity-type county --limit 3 --dry-run
+ *   node scripts/loadVAComparativeReportBatch.js --file _va-recon/fy2024-comparative-report.xlsx --fy 2024 --entity-type town --dry-run
  *   node scripts/loadVAComparativeReportBatch.js --file _va-recon/fy2024-comparative-report.xlsx --fy 2024            # live (needs .env SUPABASE_SERVICE_KEY)
  */
 
@@ -97,7 +102,7 @@ export async function loadVAComparativeReportBatch(opts) {
   await wb.xlsx.readFile(file);
   const roster = enumerateRoster(wb);
 
-  // Build the work list: cities bare / §0; counties "<name> County" / §1.
+  // Build the work list: cities bare / §0; counties "<name> County" / §1; towns bare / §2.
   const work = [];
   if (entityTypes.includes('city')) {
     for (const name of roster.cities) {
@@ -109,10 +114,18 @@ export async function loadVAComparativeReportBatch(opts) {
       work.push({ matchName: name, displayName: `${name} County`, entityType: 'county', sectionIndex: 1 });
     }
   }
+  if (entityTypes.includes('town')) {
+    // Towns stored bare (no suffix) / entity_type='town' / sectionIndex=2 (CONTEXT 81 D-02).
+    // Zero town↔city bare-name collisions; 6 town↔county overlaps are safe because counties
+    // carry the "County" suffix (Bedford County ≠ Bedford, etc.).
+    for (const name of roster.towns) {
+      work.push({ matchName: name, displayName: name, entityType: 'town', sectionIndex: 2 });
+    }
+  }
   const workList = limit != null ? work.slice(0, limit) : work;
 
   console.log(`\nVA APA Comparative Report — BATCH FY${fiscalYear}${dryRun ? '  [dry-run]' : ''}`);
-  console.log(`  Roster: ${roster.cities.length} cities, ${roster.counties.length} counties, ${roster.towns.length} towns (towns out of scope — Phase 81)`);
+  console.log(`  Roster: ${roster.cities.length} cities, ${roster.counties.length} counties, ${roster.towns.length} towns`);
   console.log(`  Loading: ${workList.length} localities [${entityTypes.join(', ')}]${limit != null ? ` (limit ${limit})` : ''}`);
   console.log(`  Source: Virginia APA Comparative Report | url=${sourceUrl || '(none)'} | date=${sourceDate}\n`);
 
