@@ -5,12 +5,21 @@
     "ckan_api": "https://data.virginia.gov/api/3/action/package_search?q=comparative+report+revenues+expenditures",
     "generated_for": "Phase 79 VASRC-02 (Treasury Tracker v2.7)",
     "history_floor_fy": 2023,
-    "note": "Only these fiscal years are published as XLSX on the data.virginia.gov open-data portal. Pre-FY2023 reports are PDF-only on apa.virginia.gov (JS-gated, not machine-readable) and are OUT OF SCOPE per CONTEXT 79 D-03 (XLSX-only, no PDF backfill). For FY2024 the FINAL release is preferred over AMENDED. SCOPE FLAG: the v2.7 \"deep history FY2015+\" intent is NOT achievable from the XLSX source — only FY2023-2024 are XLSX-available on the portal."
+    "note": "Only these fiscal years are published as XLSX on the data.virginia.gov open-data portal. Pre-FY2023 reports are PDF-only on apa.virginia.gov (JS-gated, not machine-readable) and are OUT OF SCOPE per CONTEXT 79 D-03 (XLSX-only, no PDF backfill). FY2024: the AMENDED release is preferred over FINAL and is the loaded source — Phase 80 found the amended file fills in late-filer localities the final omitted (FY2024 coverage 110→124 of 133 cities+counties; final still listed below for reference). SCOPE FLAG: the v2.7 \"deep history FY2015+\" intent is NOT achievable from the XLSX source — only FY2023-2024 are XLSX-available on the portal. Phase 80 residual gap: 6 of 133 localities (cities Colonial Heights, Emporia, Hopewell, Norton; counties Lee, Warren) have NO data in FY2023, FY2024-final, or FY2024-amended (multi-year-overdue audits) — a future re-run picks them up idempotently when published."
   },
   "years": [
     {
       "fiscal_year": 2024,
-      "status": "final",
+      "status": "amended",
+      "loaded": true,
+      "datasetUrl": "https://data.virginia.gov/dataset/2024-amended-comparative-report-of-local-government-revenues-and-expenditures",
+      "xlsxUrl": "https://data.virginia.gov/dataset/da68d6ad-7101-47d7-8ae7-32b79d72e345/resource/742912c5-6a71-4d85-8820-1105128510b1/download/amended-fy2024-comparative-report.xlsx"
+    },
+    {
+      "fiscal_year": 2024,
+      "status": "final-superseded",
+      "loaded": false,
+      "note": "Superseded by the amended release above (omitted 14 late-filer localities). Kept for provenance.",
       "datasetUrl": "https://data.virginia.gov/dataset/2024-final-comparative-report-of-local-government-revenues-and-expenditures",
       "xlsxUrl": "https://data.virginia.gov/dataset/5545748d-4746-4437-9f2d-636410e206b5/resource/90a9af12-5771-41ec-8424-b93163ddf80d/download/fy2024-comparative-report.xlsx"
     },
