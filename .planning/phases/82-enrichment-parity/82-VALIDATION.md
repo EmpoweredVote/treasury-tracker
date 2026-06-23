@@ -1,9 +1,9 @@
 ---
 phase: 82
 slug: enrichment-parity
-status: draft
+status: passed
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-06-23
 ---
 
@@ -74,4 +74,4 @@ created: 2026-06-23
 - [ ] Feedback latency < 5s
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-06-23

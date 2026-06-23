@@ -15,11 +15,6 @@
       "confidence": "high"
     },
     {
-      "name_key": "public works",
-      "plain_name": "Public Works",
-      "confidence": "high"
-    },
-    {
       "name_key": "public safety",
       "plain_name": "Public Safety",
       "confidence": "high"
@@ -27,6 +22,11 @@
     {
       "name_key": "health and human services",
       "plain_name": "Health & Human Services",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public works",
+      "plain_name": "Public Works",
       "confidence": "high"
     },
     {
@@ -40,13 +40,13 @@
       "confidence": "high"
     },
     {
-      "name_key": "judicial administration",
-      "plain_name": "Courts & Justice",
+      "name_key": "community development",
+      "plain_name": "Community Development",
       "confidence": "high"
     },
     {
-      "name_key": "community development",
-      "plain_name": "Community Development",
+      "name_key": "judicial administration",
+      "plain_name": "Courts & Justice",
       "confidence": "high"
     },
     {

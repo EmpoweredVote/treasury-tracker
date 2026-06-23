@@ -27,7 +27,7 @@ Requirements for milestone v2.7. Each maps to exactly one roadmap phase. Source 
 
 ### Category Enrichment (VAENR)
 
-- [ ] **VAENR-01**: Standardized, bleed-safe category enrichment is authored for the VA function/activity vocabulary (universal rows, no locality-name leaks), inline at $0.
+- [x] **VAENR-01**: Standardized, bleed-safe category enrichment is authored for the VA function/activity vocabulary (universal rows, no locality-name leaks), inline at $0. ✅ Phase 82 (2026-06-23) — 73 universal rows, 0 leaks, $0, Chris UAT pass.
 
 ### Verification (VAVER)
 
@@ -73,7 +73,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | VALOAD-03 | Phase 81 | Complete |
 | VALOAD-04 | Phase 80 | Complete (verified 2026-06-22; idempotent, 0 dups) |
 | VALINK-01 | Phase 81 | Complete |
-| VAENR-01 | Phase 82 | Pending |
+| VAENR-01 | Phase 82 | Complete (2026-06-23) |
 | VAVER-01 | Phase 83 | Pending |
 | VAVER-02 | Phase 83 | Pending |
 | EVMICRO-01 | Phase 81.5 | Complete (2026-06-23) — inserted EV-financials |
