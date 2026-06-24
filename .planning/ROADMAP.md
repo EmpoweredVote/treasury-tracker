@@ -101,7 +101,7 @@ Success criteria:
 2. No locality-name leaks / cross-entity bleed (audit clean).
 3. Enrichment renders in-app for a sample city, county, and town.
 
-### Phase 83: Verification + Source-Chain Audit + UAT
+### Phase 83: Verification + Source-Chain Audit + UAT ✅ COMPLETE (2026-06-23)
 
 **Goal:** The VA cohort is verified — sample ACFR reconciliation, a clean full-cohort source-chain audit, and a live-app UAT with Chris's sign-off.
 **Depends on:** Phases 79–82

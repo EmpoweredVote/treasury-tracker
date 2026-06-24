@@ -31,8 +31,8 @@ Requirements for milestone v2.7. Each maps to exactly one roadmap phase. Source 
 
 ### Verification (VAVER)
 
-- [ ] **VAVER-01**: A sample city (Alexandria) and a sample county reconcile to their published ACFRs within a documented, explained tolerance, and a full-cohort source-chain audit shows every row durably sourced (0 NULL / fragile / residue).
-- [ ] **VAVER-02**: A live-app UAT across a sample of VA localities (a city, a county, a town) passes with Chris's sign-off.
+- [x] **VAVER-01**: A sample city (Alexandria) and a sample county reconcile to their published ACFRs within a documented, explained tolerance, and a full-cohort source-chain audit shows every row durably sourced (0 NULL / fragile / residue). ✅ Phase 83 (2026-06-23) — Alexandria + Fairfax County reconciled (~±5%, basis-explained); 618 rows 0 NULL/fragile/residue.
+- [x] **VAVER-02**: A live-app UAT across a sample of VA localities (a city, a county, a town) passes with Chris's sign-off. ✅ Phase 83 (2026-06-23) — Alexandria + Fairfax County + Herndon, Chris all-pass.
 
 ## Future Requirements
 
@@ -74,8 +74,8 @@ Which phases cover which requirements. Populated during roadmap creation.
 | VALOAD-04 | Phase 80 | Complete (verified 2026-06-22; idempotent, 0 dups) |
 | VALINK-01 | Phase 81 | Complete |
 | VAENR-01 | Phase 82 | Complete (2026-06-23) |
-| VAVER-01 | Phase 83 | Pending |
-| VAVER-02 | Phase 83 | Pending |
+| VAVER-01 | Phase 83 | Complete (2026-06-23) |
+| VAVER-02 | Phase 83 | Complete (2026-06-23) |
 | EVMICRO-01 | Phase 81.5 | Complete (2026-06-23) — inserted EV-financials |
 | EVMICRO-02 | Phase 81.5 | Complete (2026-06-23) — inserted EV-financials |
 | EVMICRO-03 | Phase 81.5 | Complete (2026-06-23) — inserted EV-financials |
