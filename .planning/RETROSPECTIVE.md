@@ -321,6 +321,44 @@ Empowered Vote's own org financials, refreshed and made donor-facing. Income fro
 
 ---
 
+## Milestone: v2.7 — Virginia Local Government Expansion
+
+**Shipped:** 2026-06-24
+**Phases:** 6 (79–83, incl. inserted out-of-scope EV Phase 81.5) | **Plans:** 10
+
+### What Was Built
+
+162 Virginia entities (independent cities + counties + towns) at parity from the single uniform APA Comparative Report XLSX — op/rev FY2023–2024, function→activity expenditure tree, revenue-by-source, per-capita, a VA state navigation node + town→county linking, 73 bleed-safe universal enrichment rows, and a full verification pass (ACFR reconciliation + source-chain audit + Chris UAT). One reusable loader; $0. Phase 81.5 also shipped an honest EV recurring-supporter micro-donation callout.
+
+### What Worked
+
+- **One source, one loader, every entity.** Because data.virginia.gov publishes all localities in one report, a single parser covered 162 entities — no per-locality scraping. The biggest force-multiplier of the milestone.
+- **Explicit-map enrichment beat the heuristic router for a fixed vocabulary.** VA's 73-key vocabulary is closed, so an explicit hand-authored map + a 100%-coverage abort gate was simpler, more accurate, and more auditable than Utah's router-with-fallback — and it surfaced a real cross-state bug (the shared `miscellaneous`→"Information Technology" universal, wrong for VA and MA).
+- **Whole milestone planned + executed inline, no subagents** — consistent $0 Anthropic spend, per the standing cost guidance.
+
+### What Was Inefficient
+
+- **ACFR PDFs don't parse via WebFetch.** The 5–11 MB ACFR PDFs returned binary garbage through WebFetch; the workaround was the smaller PAFRs (Popular Annual Financial Reports) read via the Read tool's `pages` param. Reconciliation cost more rendering than expected. Lesson recorded for the next geographic verification: go straight to the PAFR (or the saved-PDF Read path), skip WebFetch on big ACFRs.
+- **A residual source gap pre-existed.** The 10 VA state-node rows carried NULL source_url (loaded separately by processVA.js in Phase 81) — only caught at the Phase 83 audit. Per-phase source-chain assertions would have surfaced it at load time.
+
+### Patterns Established
+
+- **Verification phase may carry one scoped, sourced data fix.** Phase 73's strict read-only stance was relaxed (with explicit operator approval) to stamp the 10 state-node rows with their DPB source so SC#2 hit literal 0-NULL — a documented, bounded exception, not a license to refactor during verification.
+- **Reconcile to the basis the source actually uses.** VA APA "Total Local Revenue" excludes intergovernmental aid; matching it to the ACFR local-source line (not total revenue) is what made the reconciliation clean.
+
+### Key Lessons
+
+1. A fixed, closed category vocabulary calls for an explicit map + coverage gate, not a fuzzy router — and the coverage gate doubles as a regression detector.
+2. For published-financials reconciliation, prefer the PAFR over the ACFR PDF — it's readable and carries the government-wide + tax-source summary you need.
+3. Source-chain completeness should be asserted at load time, not discovered at milestone-close audit.
+
+### Cost Observations
+
+- **$0 net** — one reusable loader (no new AI), inline-authored enrichment, read-only audit probes, ACFR/PAFR via free WebFetch + PDF read, UAT by Chris. The $5 AI gate never triggered.
+- Entire milestone (plan + execute + close) authored inline, no subagents, per the no-research-subagents cost guidance.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -340,6 +378,7 @@ Empowered Vote's own org financials, refreshed and made donor-facing. Income fro
 | v2.2 | 6 | 15 | ~2 days | Reusable one-command SoCal county pipeline + runbook; spike-gated net-new salaries; never-overwrite guard; 34 OC cities + county budget; $0 spend |
 | v2.3 | 5 | 15 | ~1 day | Pipeline applied at scale (LA County 88 + 98-city salaries) with zero new tooling; dedicated verification-only closeout phase; $0 spend |
 | v2.6 | 4 (77 iceboxed) | 8 | ~2 days | First org-financials (non-geographic) milestone; bank=truth/platforms=detail reconciliation; icebox-in-discuss pattern; inline reconciliation audit; $0 spend |
+| v2.7 | 6 (incl. 81.5 insert) | 10 | ~2 days | 162 entities from one uniform source/loader; explicit-map enrichment + coverage gate (vs heuristic router); PAFR-over-ACFR reconciliation; one scoped sourced fix allowed in verification; $0 spend |
 
 ### Top Lessons (Verified Across Milestones)
 

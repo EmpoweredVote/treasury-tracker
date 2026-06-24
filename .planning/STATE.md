@@ -2,32 +2,32 @@
 gsd_state_version: 1.0
 milestone: v2.7
 milestone_name: Virginia Local Government Expansion
-status: executing
-last_updated: "2026-06-23T16:43:38.384Z"
-last_activity: 2026-06-23 -- Phase 82 execution started
+status: Awaiting next milestone
+last_updated: "2026-06-24T05:34:28.286Z"
+last_activity: 2026-06-24 — Milestone v2.7 completed and archived
 progress:
   total_phases: 68
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 10
-  completed_plans: 7
-  percent: 4
+  completed_plans: 11
+  percent: 6
 ---
 
 # State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-22 — v2.7 Virginia Local Government Expansion started)
+See: .planning/PROJECT.md (updated 2026-06-24 — v2.7 Virginia Local Government Expansion SHIPPED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 82 — enrichment-parity
+**Current focus:** Between milestones — v2.7 shipped + archived (tag v2.7); start the next via `/gsd-new-milestone`.
 
 ## Current Position
 
-Phase: 82 (enrichment-parity) — EXECUTING
-Plan: 1 of 1
-Status: Executing Phase 82
-Last activity: 2026-06-23 -- Phase 82 execution started
+Phase: Milestone v2.7 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-24 — Milestone v2.7 completed and archived
 
 ## Phase Overview — v2.7 Virginia Local Government Expansion
 
@@ -170,9 +170,9 @@ Resume file: None
 
 ### Next Session
 
-v2.5 is shipped + archived (tag v2.5). No active milestone. Start the next one:
+v2.7 Virginia is shipped + archived (tag v2.7). No active milestone. Start the next one:
   /gsd-new-milestone
-Recon'd candidate: v2.6 Ohio (Auditor of State Summarized Annual Financial Reports — free XLSX, see reference_ohio_aos_financial_data memory).
+Recon'd candidate: Ohio (Auditor of State Summarized Annual Financial Reports — free XLSX, see reference_ohio_aos_financial_data memory).
 
 ## Performance Metrics
 
@@ -259,6 +259,21 @@ Open-artifact audit at v2.5 close surfaced 5 items, all non-blocking and acknowl
 | quick_task | 003-longview-operating-budget | orphaned (file missing) — pre-v2.0 Longview TX effort, unrelated to Utah |
 
 **v2.5 follow-ups (from Phase 73, D-73-07/08 — documented, not fixed):** 4 pre-existing non-P72 `$`-leak universal enrichment rows (2026-03-28 origin: parking meter, harbor/port, sewer, solid waste enterprise fund) — bleed-safety cleanup; Salt Lake County FY2025 salaries (1 absent combo, fills on next FY2025-complete rollup refresh).
+
+### Acknowledged at v2.7 close (2026-06-23)
+
+Open-artifact audit at v2.7 close surfaced 6 items, all non-blocking and acknowledged (deferred). None are v2.7 blockers — Phase 83 verified the whole milestone end-to-end (VAVER-01 ACFR recon + source-chain audit, VAVER-02 Chris UAT all-pass); all VA requirements Complete:
+
+| Category | Item | Status |
+|----------|------|--------|
+| uat_gap | Phase 81 `81-HUMAN-UAT.md` | resolved — 0 open scenarios |
+| uat_gap | Phase 81.5 `81.5-HUMAN-UAT.md` | resolved — 0 open scenarios |
+| uat_gap | Phase 83 `83-03-UAT-CHECKLIST.md` | 0 open scenarios — flagged `unknown` only because the checklist lacks status frontmatter; Chris signed off all-pass 2026-06-23 (recorded in 83-03-SUMMARY + 83-VERIFICATION) |
+| quick_task | 001-create-treasury-tracker-entries-for-ever | orphaned (file missing) — pre-v2.0 leftover, acknowledged at every close since v2.0 |
+| quick_task | 002-add-longview-tx-revenue | orphaned (file missing) — pre-v2.0 Longview TX effort, unrelated to VA |
+| quick_task | 003-longview-operating-budget | orphaned (file missing) — pre-v2.0 Longview TX effort, unrelated to VA |
+
+**v2.7 follow-ups (from Phases 80/83 — documented, not fixed):** 6 localities absent in ALL published XLSX years (cities Colonial Heights/Emporia/Hopewell/Norton; counties Lee/Warren — multi-year-overdue audits) + Covington/Alleghany null population (FY2024 school-consolidation footnote) — picked up idempotently on a future re-run; 3 towns absent from all XLSX years (Big Stone Gap, Clifton Forge, Vinton).
 
 ### Acknowledged at v2.2 close (2026-06-16)
 

@@ -10,7 +10,14 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 
 ## Current State
 
-**Shipped v2.6 EV Financial Transparency Refresh (2026-06-22).** Empowered Vote's own organizational financials brought fully up to date and made donor-facing. Income from every platform (GiveButter, Patreon, Benevity) + bank interest + manual entries is merged idempotently with no double-counting; the Beneficial State Bank is the authoritative balance/expense truth ($1,706.77 balance, $1,745.65 FY2026 expenses); platform income reconciles to net bank deposits within a stored, explained variance (−$132.39, never double-counted) and platform fees are tracked as an income reduction ($125.32 — the cost-of-fundraising story). EV's page now renders a gross→net fee sentence + per-source mini-list, an honest neutral expense breakdown, a Funds-on-Hand chip, a burn-pace line (runway intentionally dropped), and a data-driven fundraising-goal scaffold (amount left unset for now). Phase 78 audited every figure against production and Chris signed off the live-app UAT. The actual "where the money goes" graphic (EVVIZ-01 / Phase 77) was deliberately iceboxed — flat 6-category data makes a dedicated tree-chart low-value, and the transparency view already shows the breakdown. $0 spend (idempotent CSV merge, no new AI runs).
+**Shipped v2.7 Virginia Local Government Expansion (2026-06-24).** Every reporting Virginia locality — independent cities, counties, and towns (162 entities, 618 budget rows) — brought onto Treasury Tracker at parity from the single uniform APA Comparative Report XLSX (data.virginia.gov, free, no auth): general-government revenue by source + expenditure by function→activity (2-level tree), per-capita, every figure sourced, across FY2023 + FY2024-amended. Independent cities render standalone, counties as their own nodes, towns linked to their parent county under a new Virginia state navigation node; standardized bleed-safe plain-language enrichment for the full VA vocabulary (73 universal rows, inline at $0). Phase 83 verified: Alexandria + Fairfax County reconciled to published FY2024 ACFRs within an explained ~±5% basis tolerance, a clean full-cohort source-chain audit (618 rows, 0 NULL/fragile/residue), and a live-app UAT across a city + county + town with Chris's sign-off. $0 spend (one reusable loader; inline-authored enrichment). The inserted out-of-scope Phase 81.5 also shipped an honest EV recurring-supporter micro-donation callout.
+
+<details>
+<summary>Previous: v2.6 EV Financial Transparency Refresh (shipped 2026-06-22)</summary>
+
+**Shipped v2.6 EV Financial Transparency Refresh (2026-06-22).** Empowered Vote's own organizational financials brought fully up to date and made donor-facing. Income from every platform (GiveButter, Patreon, Benevity) + bank interest + manual entries is merged idempotently with no double-counting; the Beneficial State Bank is the authoritative balance/expense truth ($1,706.77 balance, $1,745.65 FY2026 expenses); platform income reconciles to net bank deposits within a stored, explained variance (−$132.39, never double-counted) and platform fees are tracked as an income reduction ($125.32 — the cost-of-fundraising story). EV's page now renders a gross→net fee sentence + per-source mini-list, an honest neutral expense breakdown, a Funds-on-Hand chip, a burn-pace line (runway intentionally dropped), and a data-driven fundraising-goal scaffold (amount left unset for now). Phase 78 audited every figure against production and Chris signed off the live-app UAT. The actual "where the money goes" graphic (EVVIZ-01 / Phase 77) was deliberately iceboxed. $0 spend (idempotent CSV merge, no new AI runs).
+
+</details>
 
 <details>
 <summary>Previous: v2.5 Utah Municipal Expansion (shipped 2026-06-20)</summary>
@@ -19,7 +26,7 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 
 </details>
 
-**Coverage now:** US federal + CA/MA state budgets, 351 MA cities, all California cities across OC + LA + the 6 SoCal counties + their county governments, **10 Utah cities + 5 Utah county governments** (op/rev FY2014–2025, compensation, enrichment, county-linked), 12 named CA cities, 14 TX cities, 3 OR cities — every figure durably sourced.
+**Coverage now:** US federal + CA/MA state budgets, **162 Virginia entities** (independent cities + counties + towns, op/rev FY2023–2024, enrichment, county-linked, under a VA state node), 351 MA cities, all California cities across OC + LA + the 6 SoCal counties + their county governments, **10 Utah cities + 5 Utah county governments** (op/rev FY2014–2025, compensation, enrichment, county-linked), 12 named CA cities, 14 TX cities, 3 OR cities — every figure durably sourced.
 
 <details>
 <summary>Previous: v2.4 Southern California Expansion (shipped 2026-06-17)</summary>
@@ -33,27 +40,14 @@ All 6 remaining SoCal counties added via the hardened v2.2/v2.3 pipeline with ze
 Brought every already-loaded non-OC California city and county to the Orange County standard (FY2003 history, statewide salaries, standardized enrichment) via the hardened v2.2 pipeline. Phase 62 verified end-to-end: ACFR reconciliation, source-chain audit (0 NULL/fragile/residue across 25,568 rows), 24-item UAT with Chris's sign-off. SoCal expansion deferred to v2.4.
 </details>
 
-## Current Milestone: v2.7 Virginia Local Government Expansion
+## Next Milestone (between milestones — start via `/gsd-new-milestone`)
 
-**Goal:** Bring every Virginia locality — 38 independent cities, 95 counties, ~41 towns — onto Treasury Tracker at parity from the single uniform Auditor of Public Accounts (APA) Comparative Report XLSX: general-government revenue by source and expenditure by function→activity, per-capita, every figure sourced.
+v2.7 Virginia shipped 2026-06-24. No active milestone.
 
-**Target features:**
-- **VA APA comparative-report XLSX loader** (the only new tooling) — parse Exhibit B/B-1/B-2 (revenue by source) + Exhibit C/C-1…C-8 (expenditure function→activity 2-level tree) per locality, with Exhibit H population for per-capita.
-- **All 174 localities loaded** (cities + counties + towns), **FY2023–FY2024** (the only years the APA publishes as XLSX — confirmed Phase 79, 2026-06-22; deeper history deferred, pre-2023 is PDF-only), general-government fund scope.
-- **VA independent-city data model** — cities are standalone nodes; towns link to their county; counties are their own nodes.
-- **Standardized bleed-safe category enrichment** for the VA function/activity vocabulary.
-- **Verification** — ACFR reconciliation (Alexandria + a sample county) + full-cohort source-chain audit + Chris live-app UAT.
-
-**Key context / constraints:**
-- Source recon'd + verified icicle-grade (auto-memory `reference_virginia_apa_comparative_report`): free CKAN XLSX on `data.virginia.gov`, no auth, $0; CKAN API + direct file URLs recorded; both Alexandria + Falls Church confirmed present.
-- **No salaries/compensation in this source** (revenue/expenditure only) — no salaries phase, unlike CA/Utah.
-- **Enterprise funds (Exhibit F) deferred** to a future milestone; v2.7 is general-government only.
-- **History depth contingent on per-year XLSX availability** — older years may be PDF-only on apa.virginia.gov; the loader targets available XLSX years and documents the floor (FY2024 final + FY2025 draft confirmed live).
-- Free / low-cost only ($5 AI-spend gate); every displayed figure durably sourced; reuse the budget-tree display, source-chain + UAT patterns from prior geographic milestones.
-
-**Parked candidate — future Ohio milestone:** the Ohio Auditor of State's Summarized Annual Financial Reports (free XLSX 2016–2025, no auth), Utah-mold and verified icicle-grade (235 cities, revenue-by-source + expenditure-by-function + population + county). See auto-memory `reference_ohio_aos_financial_data`.
+**Parked candidate — Ohio milestone:** the Ohio Auditor of State's Summarized Annual Financial Reports (free XLSX 2016–2025, no auth), Utah-mold and verified icicle-grade (235 cities, revenue-by-source + expenditure-by-function + population + county). See auto-memory `reference_ohio_aos_financial_data`.
 
 **Carried-forward follow-ups (candidates for a later milestone or backlog sweep):**
+- **v2.7 (Phases 80/83):** 6 localities + 3 towns absent from all published VA XLSX years (multi-year-overdue audits) + Covington/Alleghany null population — picked up idempotently on a future re-run; enterprise funds (Exhibit F) deferred from VA scope.
 - **v2.5 (Phase 73):** 4 pre-existing non-P72 `$`-leak universal enrichment rows (bleed-safety cleanup); Salt Lake County FY2025 salaries (fills on next FY2025-complete rollup refresh).
 - **v2.4:** broader per-entity independent ACFR cross-read for the SoCal sample (only Ventura fully reconciled; several ACFR PDFs blocked/non-extractable).
 - **v2.3 FUP-01..03:** Glendale + Burbank ACFR reconciliation (CDN-blocked CLI fetch), the "Employees" salaries-card year-gating UX, the single-city salary department-name canonicalization long tail (~3,489 names).
@@ -140,14 +134,20 @@ Brought every already-loaded non-OC California city and county to the Orange Cou
 - ✓ Donor-facing transparency view: gross→net fee sentence + per-source mini-list, honest neutral expense breakdown, Funds-on-Hand chip, burn-pace line (runway dropped), data-driven goal-progress scaffold; cross-repo org-financial-summary API wired; Chris live UAT pass (EVVIEW-01/02/03/04) — v2.6, Phase 76
 - ✓ Reconciliation audit + live-app UAT: FY2026 figures reconcile to the bank within the explained −$132.39 tolerance, every figure sourced, revenue ties to the penny ($2,548 + $1.17 interest); Chris signed off the live app (EVVER-01/02) — v2.6, Phase 78
 - 🧊 EV "where the money goes" graphic (EVVIZ-01) — deliberately iceboxed v2.6 (flat 6-category data → dedicated tree-chart low-value; transparency view already shows the breakdown); revisit in a future milestone — Phase 77
+- ✓ VA APA comparative-report XLSX loader: function→activity expenditure tree (Exhibit C/C1–C8) + revenue-by-source (Exhibit B/B2) + Exhibit H population, every figure sourced to data.virginia.gov; 7/7 tests (VASRC-01/02) — v2.7, Phase 79
+- ✓ 127/133 VA cities + counties loaded (op/rev FY2023 + FY2024-amended), section-aware + homonym-safe + idempotent; 6 late-filers documented (VALOAD-01/02/04) — v2.7, Phase 80
+- ✓ All 37 VA towns loaded + VA data model: standalone independent cities, county nodes, towns linked to parent county under a new Virginia state node; sourced town→county map + idempotent seeder; frontend navigation (VALOAD-03, VALINK-01) — v2.7, Phase 81
+- ✓ EV micro-donation transparency callout (inserted, out-of-scope EV financials): honest recurring-supporter stat (9 supporters, median $10/mo, reconciled, zero PII) + locked headline + soft invite (EVMICRO-01/02/03) — v2.7, Phase 81.5
+- ✓ 73 standardized, bleed-safe, state-neutral universal VA enrichment rows authored inline at $0 (explicit map + 100% coverage gate, delete-then-insert); corrected the stale shared `miscellaneous`→"Information Technology" universal (VAENR-01) — v2.7, Phase 82
+- ✓ VA verification: Alexandria + Fairfax County ACFR reconciliation (~±5% explained basis tolerance), full-cohort source-chain audit (618 rows, 0 NULL/fragile/residue), live-app UAT (city + county + town) with Chris sign-off (VAVER-01/02) — v2.7, Phase 83
 
 ### Active
 
-**v2.7 Virginia Local Government Expansion** (started 2026-06-22). All 174 VA localities (cities + counties + towns) at parity from the APA Comparative Report XLSX — general-government revenue (by source) + expenditure (function→activity tree) + per-capita, deep history (FY2015+ where available), every figure sourced. No salaries (not in source); enterprise funds deferred. See `.planning/REQUIREMENTS.md` for scoped REQ-IDs.
+(Between milestones — start the next via `/gsd-new-milestone`.)
 
 ### Future (deferred milestone candidates)
 
-- [ ] Southern California expansion (NEXT — v2.4) — Riverside, San Bernardino, San Diego, Ventura, Santa Barbara, Imperial counties (SOCAL-01..06) via the now-hardened SoCal pipeline (~95 more cities); all 6 staged, phase order TBD at v2.4 kickoff
+- [ ] Ohio Auditor of State Summarized Annual Financial Reports (recon'd, icicle-grade; `reference_ohio_aos_financial_data`) — Utah-mold geographic expansion
 - [ ] Votes/amendments exploration hub (the eventual mission destination)
 - [ ] Backfill the always-sourced standard to city/state data (now proven federally)
 
@@ -211,9 +211,14 @@ Brought every already-loaded non-OC California city and county to the Orange Cou
 | $0-staff line kept neutral, not celebrated (v2.6) | All-volunteer is a current stage, not an identity; paying contributors would be mission progress, not overhead | ✓ Good — honest framing, no badge |
 | Icebox the "where the money goes" graphic (EVVIZ-01) | EV's ~6 flat expense categories make the tree-chart vocabulary near-degenerate; the transparency view already shows the breakdown | — Deferred to a future milestone |
 | Fundraising goal as a manual, committed data file (v2.6) | `data/ev-goal.json` keeps the goal traveling with sourced figures via reconcileEV; live GiveButter pull deferred to EVAUTO | ✓ Good — amount left unset, infra ready |
+| One uniform free source for all VA localities (APA Comparative Report XLSX) (v2.7) | data.virginia.gov publishes every locality in one report — no per-locality scraping; cities/counties/towns share the same parser | ✓ Good — 162 entities from one loader |
+| VA revenue = local sources only (intergovernmental Exhibit B-1 excluded) (v2.7) | Including state/federal aid would imply a false surplus vs the local-government expenditure total; APA "Total Local Revenue" is the honest comparator | ✓ Good — clean ACFR reconciliation basis |
+| Explicit hand-authored enrichment map + 100% coverage gate for VA (v2.7) | VA's vocabulary is fixed/tiny (73 keys) — an explicit map is more accurate than Utah's heuristic router; loader aborts on any unmapped live key (no silent fallback) | ✓ Good — 73/73 covered, bleed-safe |
+| Allow one sourced data fix in the VA verification phase (v2.7) | The 10 VA state-node rows had NULL source_url; stamping them with the DPB source (vs Phase 73's strict read-only) reached literal 0-NULL for SC#2 | ✓ Good — Chris-approved, single scoped write |
 
 ## Shipped
 
+- ✅ **v2.7 Virginia Local Government Expansion** — 2026-06-24 — Phases 79-83 (162 VA entities — independent cities + counties + towns — at parity from the single uniform APA Comparative Report XLSX: op/rev FY2023–2024, function→activity tree, per-capita, VA state node + town→county linking, 73 bleed-safe enrichment rows inline at $0; Alexandria + Fairfax County ACFR reconciliation + full-cohort source-chain audit (618 rows, 0 NULL/fragile/residue) + Chris live UAT; every figure sourced, $0 spend. Inserted out-of-scope Phase 81.5 shipped the EV recurring-supporter micro-donation callout.)
 - ✅ **v2.6 EV Financial Transparency Refresh** — 2026-06-22 — Phases 74-78 (Phase 77 iceboxed) — EV's own org financials refreshed idempotently across GiveButter/Patreon/Benevity + bank + manual (no double-count); Beneficial State Bank authoritative for balance ($1,706.77) + expenses ($1,745.65); platform income reconciled to net deposits within explained −$132.39 tolerance; donor-facing transparency view (gross→net fee story, honest expense breakdown, funds-on-hand, burn pace, goal scaffold); Phase 78 audit + Chris live UAT sign-off; "where the money goes" graphic deliberately iceboxed; every figure sourced, $0 spend
 - ✅ **v2.5 Utah Municipal Expansion** — 2026-06-20 — Phases 68-73 (10 Utah cities + 5 county governments at full CA parity via one BigQuery loader; op/rev FY2014–2025, names-free compensation, 3,536 enrichment rows, city→county linking; Provo + Salt Lake County ACFR reconciliation + full-cohort audit + 22-item Chris UAT; cost-gated rollup ETL after a BigQuery cost incident; every figure sourced, ~$0 spend)
 - ✅ **v2.4 Southern California Expansion** — 2026-06-17 — Phases 63-67 (all 6 remaining SoCal counties: ~95 cities loaded + county-linked op/rev FY2003–2024, 8 county governments loaded incl. Alameda + Sacramento, statewide GCC salaries FY2009–2024 for all new cities, enrichment to parity inline at $0; Ventura ACFR reconciliation + full-cohort source-chain audit (5,968 rows, 0 fragile/0 residue) + 20-item Chris UAT sign-off; every figure durably sourced, $0 spend)
@@ -250,11 +255,11 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-22 — v2.7 Virginia Local Government Expansion STARTED. All 174 VA localities (cities + counties + towns) at parity from the APA Comparative Report XLSX (general-government revenue-by-source + expenditure function→activity tree + per-capita, deep history where XLSX available); no salaries (not in source); enterprise funds deferred. Source recon'd: auto-memory `reference_virginia_apa_comparative_report`.*
+*Last updated: 2026-06-24 — v2.7 Virginia Local Government Expansion SHIPPED. 162 VA entities (independent cities + counties + towns) at parity from the single uniform APA Comparative Report XLSX (op/rev FY2023–2024, function→activity tree, per-capita), VA state node + town→county linking, 73 bleed-safe enrichment rows inline at $0; Alexandria + Fairfax County ACFR reconciliation + full-cohort source-chain audit (618 rows, 0 NULL/fragile/residue) + Chris live UAT; every figure sourced, $0 spend. Inserted out-of-scope Phase 81.5 shipped the EV recurring-supporter micro-donation callout. Between milestones — next via `/gsd-new-milestone`. (Ohio parked as a future geographic milestone.)*
 
 <details>
 <summary>Previous footer — v2.6 EV Financial Transparency Refresh SHIPPED (2026-06-22)</summary>
 
-*Last updated: 2026-06-22 — v2.6 EV Financial Transparency Refresh SHIPPED. Empowered Vote's own organizational financials refreshed idempotently across GiveButter/Patreon/Benevity + bank + manual (no double-count); Beneficial State Bank authoritative for balance + expenses; platform income reconciled to net deposits within an explained tolerance; donor-facing transparency view (gross→net fee story, honest expense breakdown, funds-on-hand, burn pace, goal scaffold); Phase 78 audit + Chris live UAT sign-off; every figure sourced, $0 spend. The "where the money goes" graphic (EVVIZ-01 / Phase 77) deliberately iceboxed. Between milestones — next via `/gsd:new-milestone`. (Ohio parked as a future geographic milestone.)*
+*Last updated: 2026-06-22 — v2.6 EV Financial Transparency Refresh SHIPPED. Empowered Vote's own organizational financials refreshed idempotently across GiveButter/Patreon/Benevity + bank + manual (no double-count); Beneficial State Bank authoritative for balance + expenses; platform income reconciled to net deposits within an explained tolerance; donor-facing transparency view; Phase 78 audit + Chris live UAT sign-off; every figure sourced, $0 spend. The "where the money goes" graphic (EVVIZ-01 / Phase 77) deliberately iceboxed.*
 
 </details>

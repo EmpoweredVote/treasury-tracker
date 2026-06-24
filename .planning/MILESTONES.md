@@ -1,5 +1,26 @@
 # Milestones — Treasury Tracker / Empowered Vote Financials
 
+## v2.7 Virginia Local Government Expansion (Shipped: 2026-06-24)
+
+**Phases completed:** 6 phases (79–83, incl. inserted out-of-scope EV Phase 81.5), 10 plans, 24 tasks
+
+**Delivered:** Every reporting Virginia locality brought onto Treasury Tracker at parity from the single uniform APA Comparative Report XLSX (data.virginia.gov, free, no auth) — general-government revenue by source + expenditure by function→activity (2-level tree), per-capita, every figure sourced. 162 entities / 618 budget rows across FY2023 + FY2024-amended; independent cities render standalone, counties as their own nodes, towns linked to their parent county under a new Virginia state navigation node; standardized bleed-safe plain-language enrichment for the full VA vocabulary; reconciled against published ACFRs and signed off by Chris in the live app. $0 spend (one reusable loader; inline-authored enrichment).
+
+**Key accomplishments:**
+
+- **VA APA source + loader (Phase 79)** — built `scripts/loadVAComparativeReport.js` (exceljs): function→activity expenditure tree (Exhibit C + C1–C8) + revenue-by-source (Exhibit B/B2) + per-FY population (Exhibit H), every figure attributed to data.virginia.gov; proven on Alexandria FY2024 ($863,578,347 exp / $874,230,660 rev, exact); 7/7 offline tests; available XLSX FY range determined (FY2023 + FY2024) (VASRC-01/02).
+- **City + county loads (Phase 80)** — section-aware + homonym-safe batch driver loaded 127 of 133 cities + counties (op + rev, FY2023 + FY2024-amended), every row sourced, idempotent; 6 multi-year late-filers documented as a residual source gap (VALOAD-01/02/04).
+- **Towns + VA data model & linking (Phase 81)** — all 37 reporting towns batch-loaded (Exhibit A population fallback); a sourced 37-entry town→county map (Census 2020) + idempotent seeder establishing the Virginia state node and linking 33 towns to their parent county; four surgical frontend edits make VA selectable with county/city/town navigation (VALOAD-03, VALINK-01).
+- **EV Micro-Donation Transparency (Phase 81.5 — inserted, out-of-milestone EV financials)** — honest recurring-supporter stat (9 supporters, median $10/mo, reconciled to FY2026 exports, zero PII) + a locked "free for everyone" headline + a soft recurring-donate invite on the EV nonprofit view; deployed (EVMICRO-01/02/03).
+- **Enrichment parity (Phase 82)** — 73 standardized, bleed-safe, state-neutral universal `category_enrichment` rows authored inline at $0 via an explicit map + 100% coverage gate (delete-then-insert, NULLS-DISTINCT-safe); corrected a stale shared `miscellaneous`→"Information Technology" universal that was wrong for VA and MA (VAENR-01).
+- **Verification + source-chain audit + UAT (Phase 83)** — Alexandria + Fairfax County reconciled to published FY2024 ACFRs within an explained ~±5% basis tolerance (Fairfax function taxonomy ties, Education $2,653.1M); full-cohort source-chain audit clean (618 rows: 0 NULL/fragile/residue after stamping 10 Virginia state-node rows with the DPB source) + enrichment re-confirmed clean; live-app UAT across a city + county + town signed off by Chris (VAVER-01/02).
+
+**Known deferred items at close:** 6 acknowledged (see STATE.md Deferred Items — none are v2.7 blockers): 3 UAT entries (resolved / signed-off), 3 unrelated pre-v2.0 Longview-TX quick-task stubs. **v2.7 follow-ups (documented, not fixed):** 6 localities + 3 towns absent from all published XLSX years (multi-year-overdue audits) + Covington/Alleghany null population — picked up idempotently on a future re-run.
+
+**Archive:** [v2.7-ROADMAP.md](milestones/v2.7-ROADMAP.md) | [v2.7-REQUIREMENTS.md](milestones/v2.7-REQUIREMENTS.md)
+
+---
+
 ## v2.6 EV Financial Transparency Refresh (Shipped: 2026-06-22)
 
 **Phases completed:** 4 phases (74–78; Phase 77 iceboxed), 8 plans
