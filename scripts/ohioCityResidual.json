@@ -1,0 +1,8 @@
+{
+  "_comment": "Ohio AOS Summarized Annual Financial Reports — FY2016-2025 cross-FY source-gap residual (CONTEXT D-03, OHCITY-02). Lists cities that appear in any FY's OI_Demographics roster but have NO financial row in any basis workbook (GAAP/CASH/MOD) across ALL FY2016-2025. These cities are NOT created as municipalities (no phantom rows). Computed by loadOhioAOSBatch across all 10 FY × 3 basis combinations on 2026-06-25.",
+  "computed": "2026-06-25",
+  "fy_range": "2016-2025",
+  "basis_checked": ["GAAP", "CASH", "MOD"],
+  "note": "Zero demographics-only residual cities found across all FY2016-2025 workbooks. Every city appearing in any OI_Demographics tab also has at least one financial row (GAAP, CASH, or MOD) in that FY's workbook. The union of GAAP+CASH+MOD financial-tab cities covers the full OI_Demographics roster for every available year.",
+  "cities": []
+}
