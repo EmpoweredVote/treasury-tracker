@@ -13,7 +13,7 @@ Requirements for the v2.8 milestone. Each maps to exactly one roadmap phase.
 
 ### Source + Loader (OHSRC)
 
-- [ ] **OHSRC-01**: Ohio AOS Summarized Annual Financial Reports XLSX loader built — column→tree mapping of the `SOREACIFB_TotalGov` tab (12 revenue sources → a revenue tree; ~18 expenditure functions → an expenditure tree), every figure attributed to ohioauditor.gov; proven on a known city (Columbus FY2024: Total Revenues ≈ $2.166B, Income Taxes ≈ $1.145B, Police ≈ $810M)
+- [x] **OHSRC-01**: Ohio AOS Summarized Annual Financial Reports XLSX loader built — column→tree mapping of the `SOREACIFB_TotalGov` tab (12 revenue sources → a revenue tree; ~18 expenditure functions → an expenditure tree), every figure attributed to ohioauditor.gov; proven on a known city (Columbus FY2024: Total Revenues ≈ $2.166B, Income Taxes ≈ $1.145B, Police ≈ $810M)
 - [ ] **OHSRC-02**: Loader resolves the all-cities **GAAP** workbook as primary and the **CASH/MOD**-basis workbooks as fallback for non-GAAP filers; idempotent with the never-overwrite guard (reuses the `treasury_sync_city_budget` RPC); available FY range (2016–2025) determined and recorded; offline unit tests pass
 
 ### City Loads (OHCITY)
@@ -63,7 +63,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| OHSRC-01 | Phase 84 | Pending |
+| OHSRC-01 | Phase 84 | Complete |
 | OHSRC-02 | Phase 84 | Pending |
 | OHCITY-01 | Phase 85 | Pending |
 | OHCITY-02 | Phase 85 | Pending |
