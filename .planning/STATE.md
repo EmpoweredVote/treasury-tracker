@@ -20,7 +20,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-24 — v2.7 Virginia Local Government Expansion SHIPPED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Between milestones — v2.7 shipped + archived (tag v2.7); start the next via `/gsd-new-milestone`.
+**Current focus:** v2.8 Ohio Local Government Expansion — requirements defined, roadmap created (Phases 84–88). Next: `/gsd-plan-phase 84`.
 
 ## Current Position
 
@@ -29,17 +29,17 @@ Plan: —
 Status: Defining requirements
 Last activity: 2026-06-25 — Milestone v2.8 started
 
-## Phase Overview — v2.7 Virginia Local Government Expansion
+## Phase Overview — v2.8 Ohio Local Government Expansion
 
 | Phase | Name | Requirements | Depends on | Status |
 |-------|------|--------------|------------|--------|
-| 79 | VA APA Source + Loader | VASRC-01, VASRC-02 | — | Not started |
-| 80 | City + County Loads | VALOAD-01, VALOAD-02, VALOAD-04 | 79 | Not started |
-| 81 | Towns + VA Data Model & Linking | VALOAD-03, VALINK-01 | 80 | Not started |
-| 82 | Enrichment Parity | VAENR-01 | 80, 81 | Not started |
-| 83 | Verification + Source-Chain Audit + UAT | VAVER-01, VAVER-02 | 79–82 | Not started |
+| 84 | Ohio AOS Source + Loader | OHSRC-01, OHSRC-02 | — | Not started |
+| 85 | City Loads | OHCITY-01, OHCITY-02 | 84 | Not started |
+| 86 | County Loads + Data Model & Linking | OHCO-01, OHLINK-01 | 85 | Not started |
+| 87 | Enrichment Parity | OHENR-01 | 85, 86 | Not started |
+| 88 | Verification + Source-Chain Audit + UAT | OHVER-01, OHVER-02 | 84–87 | Not started |
 
-**Critical path:** 79 → 80 → 81 → 82 → 83. One uniform free source (APA Comparative Report XLSX); general-government scope; no salaries (not in source); enterprise deferred; every figure sourced.
+**Critical path:** 84 → 85 → 86 → 87 → 88. One uniform free source (Ohio AOS Summarized Annual Financial Reports XLSX, ohioauditor.gov, no auth); general-government scope (`SOREACIFB_TotalGov`); GAAP primary + CASH/MOD fallback; no salaries (not in source); enterprise funds deferred; reuses the existing loader/RPC + never-overwrite guard; every figure sourced; $0 spend.
 
 ## Deferred Items
 

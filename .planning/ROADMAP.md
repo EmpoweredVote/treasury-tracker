@@ -20,10 +20,81 @@
 - ✅ **v2.5 Utah Municipal Expansion** — Phases 68-73 (shipped 2026-06-20)
 - ✅ **v2.6 EV Financial Transparency Refresh** — Phases 74-78 (shipped 2026-06-22; Phase 77 iceboxed)
 - ✅ **v2.7 Virginia Local Government Expansion** — Phases 79-83 (shipped 2026-06-24)
+- ◆ **v2.8 Ohio Local Government Expansion** — Phases 84-88 (active, started 2026-06-24)
 
 ---
 
 ## Phases
+
+### ◆ v2.8 Ohio Local Government Expansion (Phases 84-88) — ACTIVE
+
+**Milestone goal:** Bring Ohio cities + county governments onto Treasury Tracker at parity from the single uniform Ohio Auditor of State "Summarized Annual Financial Reports" XLSX (Hinkle System, free, no auth) — general-government revenue by source + expenditure by function, per-capita, every figure sourced to ohioauditor.gov.
+
+**Constraints:** One uniform free source (ohioauditor.gov, no auth, $0); general-government scope only (`SOREACIFB_TotalGov` governmental funds — enterprise funds deferred); GAAP primary + CASH/MOD fallback (mixed basis recorded per-city); no salaries (not in source); FY2016–2025 (the XLSX-available range); reuses the existing `treasury_sync_city_budget` RPC + never-overwrite guard; every figure durably sourced.
+
+**Critical path:** 84 → 85 → 86 → 87 → 88. (Virginia/Utah mold — one new fetch+column-map layer; the column→tree transform is flatter than CA/Utah's nested feeds.)
+
+#### Phase 84: Ohio AOS Source + Loader
+
+**Goal:** A reusable loader turns the Ohio AOS all-cities Summarized Financial Reports XLSX into sourced operating + revenue trees, proven against a known city's published figures.
+**Depends on:** Nothing (new fetch+column-map layer over the existing loader/RPC pattern)
+**Requirements:** OHSRC-01, OHSRC-02
+**UI hint:** no
+
+**Success criteria:**
+1. `SOREACIFB_TotalGov` columns map to a revenue tree (12 sources) + an expenditure tree (~18 functions), every node carrying source_name/url/date → ohioauditor.gov
+2. Columbus FY2024 parses to the recon'd figures (Total Revenues ≈ $2.166B, Income Taxes ≈ $1.145B, Police ≈ $810M)
+3. GAAP workbook resolves as primary, CASH/MOD as fallback; idempotent re-run writes 0 changes; offline unit tests pass
+4. Available FY range (2016–2025) determined and recorded
+
+#### Phase 85: City Loads
+
+**Goal:** Every Ohio city that files reporting data is live on the tracker with operating + revenue and per-capita, across all available years.
+**Depends on:** Phase 84
+**Requirements:** OHCITY-01, OHCITY-02
+**UI hint:** no
+
+**Success criteria:**
+1. ~235 GAAP cities loaded operating + revenue across the available FY range, every row sourced
+2. Per-capita renders from the `OI_Demographics` population
+3. Non-GAAP cities backfilled from CASH/MOD where GAAP is absent (basis recorded per-city)
+4. Cities absent from all workbooks documented as a source-gap residual (no phantom municipalities); load is idempotent
+
+#### Phase 86: County Loads + Data Model & Linking
+
+**Goal:** Ohio county governments are on the tracker and Ohio is navigable end-to-end — state node, county pages, and city→county links.
+**Depends on:** Phase 85
+**Requirements:** OHCO-01, OHLINK-01
+**UI hint:** yes (Ohio state node, breadcrumb, Cities-in-County panel)
+
+**Success criteria:**
+1. Ohio county governments loaded operating + revenue (all-counties workbook), per-capita, sourced
+2. New Ohio state navigation node; Ohio cities + counties selectable in the app
+3. City→county linking via the source `County` column (`county_id`); US → Ohio → county → city breadcrumb + Cities-in-County panel render
+
+#### Phase 87: Enrichment Parity
+
+**Goal:** Every Ohio budget category shows a standardized, bleed-safe plain-language description.
+**Depends on:** Phase 85, Phase 86
+**Requirements:** OHENR-01
+**UI hint:** no
+
+**Success criteria:**
+1. The full Ohio vocabulary (~30 keys: 12 revenue sources + ~18 expenditure functions) enriched via an explicit map at $0
+2. 100% coverage gate — loader aborts on any unmapped live key (no silent fallback)
+3. Bleed-safe + state-neutral (delete-then-insert, NULLS-DISTINCT-safe); no city-name or cross-state leakage
+
+#### Phase 88: Verification + Source-Chain Audit + UAT
+
+**Goal:** Ohio's figures are proven correct against published records and signed off live.
+**Depends on:** Phases 84–87
+**Requirements:** OHVER-01, OHVER-02
+**UI hint:** no
+
+**Success criteria:**
+1. Sample cities + a county reconciled to published ACFRs (using `SOA_Gov` full-accrual as a built-in cross-check + per-entity ACFR) within an explained basis tolerance
+2. Full-cohort source-chain audit clean (0 NULL/fragile/residue across all loaded rows)
+3. Live-app UAT across an Ohio city + an Ohio county government with Chris sign-off
 
 <details>
 <summary>✅ v2.7 Virginia Local Government Expansion (Phases 79-83) — SHIPPED 2026-06-24 (full detail in milestones/v2.7-ROADMAP.md)</summary>
