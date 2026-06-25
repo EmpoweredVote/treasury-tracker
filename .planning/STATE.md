@@ -3,8 +3,7 @@ gsd_state_version: 1.0
 milestone: v2.8
 milestone_name: Ohio Local Government Expansion
 status: completed
-stopped_at: Phase 84 context gathered
-last_updated: "2026-06-25T04:02:42.496Z"
+last_updated: "2026-06-25T04:40:24.619Z"
 last_activity: 2026-06-25 -- Phase 84 marked complete
 progress:
   total_phases: 32
@@ -21,7 +20,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-24 — v2.7 Virginia Local Government Expansion SHIPPED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 84 — ohio-aos-source-loader
+**Current focus:** Phase 85 — city-loads (planned: 85-01 batch tooling, 85-02 live FY2016-2025 load + verify)
 
 ## Current Position
 
