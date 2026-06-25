@@ -1,0 +1,9 @@
+{
+  "_note": "Ohio AOS county source-gap residual — counties that appear in OI_Demographics but have no financial row in any basis (GAAP/CASH/MOD) workbook across all FY2016-2025. These counties were NOT created as municipality rows to avoid phantom data (CONTEXT D-08). Consistent across all 10 fiscal years. Generated 2026-06-25 by plan 86-02.",
+  "counties": [
+    {
+      "name": "Allen County",
+      "reason": "Appears in OI_Demographics population tab of every FY2016-2025 GAAP county workbook but has no financial row (no Revenues/Expenditures total) in GAAP, CASH, or MOD workbooks across any fiscal year. Lima and Delphos (cities in Allen County) have county_id=NULL as a result."
+    }
+  ]
+}
