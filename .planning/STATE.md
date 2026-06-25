@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.8
 milestone_name: Ohio Local Government Expansion
-status: completed
-stopped_at: Completed 86-02-PLAN.md — OH county live load FY2016-2025 (87 counties, 1716 rows) + city→county linking (249/253 cities)
-last_updated: "2026-06-25T16:47:29.210Z"
-last_activity: 2026-06-25 -- Phase 86 marked complete
+status: verifying
+last_updated: "2026-06-25T18:06:05.744Z"
+last_activity: 2026-06-25
 progress:
-  total_phases: 32
-  completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
-  percent: 9
+  total_phases: 73
+  completed_phases: 2
+  total_plans: 9
+  completed_plans: 8
+  percent: 3
 ---
 
 # State
@@ -27,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-06-24 — v2.7 Virginia Local Government
 
 Phase: 86 — COMPLETE
 Plan: 3 of 3
-Status: Phase 86 complete
-Last activity: 2026-06-25 -- Phase 86 marked complete
+Status: Phase complete — ready for verification
+Last activity: 2026-06-25
 
 ## Phase Overview — v2.8 Ohio Local Government Expansion
 
@@ -165,8 +164,8 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-25T16:45:21.421Z
-Stopped at: Completed 86-02-PLAN.md — OH county live load FY2016-2025 (87 counties, 1716 rows) + city→county linking (249/253 cities)
+Last session: 2026-06-25T18:06:05.732Z
+Stopped at: Completed 86-04-PLAN.md — county layout fix (Allen County recovered, text labels, correct totals col 16/32) + 29 tests pass + dry-run 88 counties zero writes
 Resume file: None
 
 ### Next Session
@@ -201,6 +200,7 @@ Recon'd candidate: Ohio (Auditor of State Summarized Annual Financial Reports �
 | Phase 86 P86-01 | 7m | 3 tasks | 4 files |
 | Phase 86-county-loads-data-model-linking P86-02 | 95min | 4 tasks | 4 files |
 | Phase 86-county-loads-data-model-linking P03 | 25min | 3 tasks | 1 files |
+| Phase 86-county-loads-data-model-linking P04 | 45min | 3 tasks | 3 files |
 
 ## Decisions
 
@@ -250,6 +250,8 @@ Recon'd candidate: Ohio (Auditor of State Summarized Annual Financial Reports �
 - [Phase ?]: [86-02]: Allen County consistent source-gap residual FY2016-2025 — documented in ohioCountyResidual.json, not created as municipality
 - [Phase ?]: [86-02]: Ohio state node has pre-existing General Fund data (10 rows, different source) — preserved by never-overwrite guard per VA 81-02 precedent
 - [Phase ?]: [86-02]: 249/253 OH cities linked to county via workbook OI_Demographics County column; 4 link-residual (Delphos+Lima=Allen County not loaded, Germantown+Ironton=absent from workbook)
+- [86-04]: County GAAP layout is headerRow=6/expTotalCol=32 (not city's row-7/col-35); county CASH/MOD has entityCol=1 (not city CASH's 2); detectLayout gains entityType arg defaulting to 'city'
+- [86-04]: Allen County was in the workbook at row 7 (first data row) all along — dropped because city layout misread it as the header row; 64 GAAP counties now enumerated; Franklin County rev=$1,811,422,000 (col 16) / exp=$1,913,193,000 (col 32)
 
 ## Deferred Items
 
