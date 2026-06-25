@@ -1,0 +1,10 @@
+{
+  "_comment": "Authored, sourced city→county fallback for Ohio cities whose AOS OI_Demographics 'County' column is BLANK in every basis workbook (GAAP/CASH/MOD) across FY2016-2025. Used by scripts/linkOhioCitiesToCounties.js ONLY as a fallback when the workbook County is empty — the workbook County column remains the primary source (CONTEXT D-05). This mirrors the VA Phase 81 D-06 authored+sourced linking-metadata pattern (a county assignment is structural metadata, not a financial figure, but is still sourced). Each entry's county must exist as an OH entity_type='county' municipality.",
+  "_source": "U.S. Census Bureau, incorporated place → county relationship (place is wholly within / has its primary county seat in the named county). Cross-checked against the Ohio Secretary of State municipal directory.",
+  "_source_url": "https://www.census.gov/library/reference/code-lists/ansi.html",
+  "_retrieved": "2026-06-25",
+  "overrides": {
+    "Germantown": "Montgomery",
+    "Ironton": "Lawrence"
+  }
+}

@@ -35,6 +35,20 @@ import { cityCounty, getSupabase, detectLayout } from './loadOhioAOS.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const RECON_DIR = join(__dirname, '..', '_oh-recon');
 
+// ── Authored+sourced fallback for cities whose AOS County column is blank ─────
+// (CONTEXT D-05 stays source-first: this is consulted ONLY when the workbook
+//  County is empty in every basis workbook. VA Phase 81 D-06 precedent.)
+function loadCountyOverrides() {
+  try {
+    const raw = readFileSync(join(__dirname, 'ohioCityCountyOverrides.json'), 'utf8');
+    const obj = JSON.parse(raw).overrides || {};
+    // key by lowercase city name → bare county name
+    return new Map(Object.entries(obj).map(([k, v]) => [k.toLowerCase(), v]));
+  } catch {
+    return new Map();
+  }
+}
+
 // ── .env loader (mirrors seedMACountyLinks.js) ────────────────────────────────
 function loadEnv() {
   for (const f of ['.env.local', '.env']) {
@@ -156,6 +170,12 @@ async function main() {
   console.log(`  Total workbooks scanned: ${wbsLoaded}`);
   console.log(`  Total city→county entries: ${cityCountyMap.size}`);
 
+  // Authored fallback (only fills cities the workbooks left blank).
+  const countyOverrides = loadCountyOverrides();
+  if (countyOverrides.size > 0) {
+    console.log(`  Authored county overrides available: ${countyOverrides.size} (fallback only)`);
+  }
+
   // ── Step 2: Load OH cities from DB ─────────────────────────────────────────
   console.log('\nStep 2: Load OH city municipalities from DB...');
 
@@ -206,10 +226,17 @@ async function main() {
 
   for (const city of ohCities) {
     const cityLower = city.name.toLowerCase();
-    const bareCo = cityCountyMap.get(cityLower);
+    // Source-first: workbook County column. Fallback: authored+sourced override
+    // for cities the AOS demographics tab leaves blank in every basis.
+    let bareCo = cityCountyMap.get(cityLower);
+    let viaOverride = false;
+    if (!bareCo && countyOverrides.has(cityLower)) {
+      bareCo = countyOverrides.get(cityLower);
+      viaOverride = true;
+    }
 
     if (!bareCo) {
-      residual.push({ city: city.name, reason: 'No county entry found in workbook OI_Demographics' });
+      residual.push({ city: city.name, reason: 'No county entry found in workbook OI_Demographics (and no authored override)' });
       continue;
     }
 
@@ -227,7 +254,7 @@ async function main() {
       continue; // idempotent: already correct
     }
 
-    toLink.push({ city, countyMuniId: countyId, countyName: `${bareCo} County` });
+    toLink.push({ city, countyMuniId: countyId, countyName: `${bareCo} County`, viaOverride });
   }
 
   console.log(`  To link (new or changed): ${toLink.length}`);
@@ -236,8 +263,8 @@ async function main() {
 
   if (toLink.length > 0) {
     console.log('\n  Sample links:');
-    for (const { city, countyName } of toLink.slice(0, 5)) {
-      console.log(`    ${city.name} → ${countyName}`);
+    for (const { city, countyName, viaOverride } of toLink.slice(0, 5)) {
+      console.log(`    ${city.name} → ${countyName}${viaOverride ? ' (authored override)' : ''}`);
     }
     if (toLink.length > 5) console.log(`    ... (+${toLink.length - 5} more)`);
   }
