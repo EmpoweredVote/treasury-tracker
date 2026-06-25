@@ -1,6 +1,24 @@
 # Phase 86 — County Loads + Data Model & Linking — Verification
 
-**Verdict: PASS**
+> **⚠️ SUPERSEDED (2026-06-25, during Phase 87 recon): county half FAILS.**
+> The county GAAP/CASH/MOD workbooks use a DIFFERENT layout than the city workbooks
+> (header on row 6 not 7; expenditure total at col 32 not 35; county-specific revenue
+> vocabulary). `detectLayout` applied the city layout to counties, so: (1) all 66 counties
+> have NUMERIC garbage category labels (row 7 = first data row was read as the header),
+> (2) county OPERATING/expenditure totals are WRONG (read from col 35 "Inception Of Lease"
+> instead of col 32), (3) **Allen County was wrongly excluded** (its data row 7 was misread
+> as the header) — it is NOT a source gap; Ohio has all 88 counties. County REVENUE totals
+> happen to be right (total col 16 aligns). The original PASS below was based on county totals
+> taken from the executor's self-report rather than independently re-derived — a verification
+> gap. **OHCO-01 is NOT met for counties** until the gap-closure (plans 86-04/86-05) fixes the
+> county layout, reloads all 88 counties, and re-verifies labels + totals independently.
+> Cities (Phase 85) are unaffected (city workbook genuinely uses row 7; labels verified correct).
+> The OHLINK-01 finding below (Lima/Delphos unlinkable due to "absent Allen County") is also
+> void — Allen County will exist after the reload, so they will link normally.
+
+---
+
+**Verdict: PASS** *(original — superseded for the county half; see banner above)*
 **Method:** Goal-backward, verified by direct production DB read-back (mcp__supabase-local) + workbook re-inspection + code-trace — not solely from executor self-report.
 **Date:** 2026-06-25
 
