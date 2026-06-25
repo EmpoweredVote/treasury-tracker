@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.8
 milestone_name: Ohio Local Government Expansion
-status: verifying
-last_updated: "2026-06-25T18:50:20.094Z"
-last_activity: 2026-06-25
+status: completed
+stopped_at: "Completed 86-05-PLAN.md — gap closure: deleted 1716 broken county budgets, reloaded 88 counties FY2016-2025 with correct text labels+totals, re-linked 253/253 cities (Lima+Delphos→Allen County), corrected 86-VERIFICATION.md"
+last_updated: "2026-06-25T18:52:56.713Z"
+last_activity: 2026-06-25 -- Phase 87 marked complete
 progress:
-  total_phases: 73
+  total_phases: 32
   completed_phases: 4
   total_plans: 10
   completed_plans: 10
-  percent: 5
+  percent: 13
 ---
 
 # State
@@ -24,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-06-24 — v2.7 Virginia Local Government
 
 ## Current Position
 
-Phase: 87 (enrichment-parity) — EXECUTING
+Phase: 87 — COMPLETE
 Plan: 1 of 1
-Status: Phase complete — ready for verification
-Last activity: 2026-06-25
+Status: Phase 87 complete
+Last activity: 2026-06-25 -- Phase 87 marked complete
 
 ## Phase Overview — v2.8 Ohio Local Government Expansion
 
