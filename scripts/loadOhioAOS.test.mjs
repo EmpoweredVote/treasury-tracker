@@ -20,6 +20,7 @@ import {
   DATA_SOURCE_NAME,
   enumerateCities,
 } from './loadOhioAOS.js';
+import { loadOhioAOSBatch } from './loadOhioAOSBatch.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SAMPLE = join(__dirname, '..', '_oh-recon', 'City_2024_GAAP_Summarized.XLSX');
@@ -255,5 +256,53 @@ test(
     assert.ok(names.length > 0, 'CASH workbook roster must not be empty');
     assert.ok(names.includes('Kenton'),
       `"Kenton" must be in the CASH roster; got: ${JSON.stringify(names)}`);
+  }
+);
+
+// ── Phase 85 — batch dry-run tests ────────────────────────────────────────────
+
+const BOTH_SAMPLES = HAVE_SAMPLE && HAVE_CASH_SAMPLE;
+
+test(
+  'FY2024 dry-run batch: processed ≥200, Columbus=GAAP, ≥1 CASH assignment, zero failures, zero writes',
+  { skip: !BOTH_SAMPLES && 'recon samples absent (_oh-recon/City_2024_GAAP_Summarized.XLSX + _oh-recon/City_2024_CASH_Summarized.XLSX)' },
+  async () => {
+    const result = await loadOhioAOSBatch({
+      fy: 2024,
+      fileGaap: SAMPLE,
+      fileCash: CASH_SAMPLE,
+      dryRun: true,
+    });
+
+    // Processed count
+    assert.ok(result.processed >= 200,
+      `Expected ≥200 cities processed, got ${result.processed}`);
+
+    // GAAP dominates (≥200 GAAP assignments)
+    assert.ok(result.assigned.GAAP >= 200,
+      `Expected ≥200 GAAP-assigned cities, got ${result.assigned.GAAP}`);
+
+    // At least one CASH assignment (proves fallback path exercised)
+    assert.ok((result.assigned.CASH || 0) >= 1,
+      `Expected ≥1 CASH-assigned city (fallback path); got ${result.assigned.CASH}`);
+
+    // Columbus is GAAP (D-02 GAAP wins over CASH for cities in both)
+    const columbusResult = result.results.find((r) => r.cityName === 'Columbus');
+    assert.ok(columbusResult, 'Columbus must be in the results');
+    assert.equal(columbusResult.basis, 'GAAP',
+      `Columbus must be assigned GAAP; got ${columbusResult.basis}`);
+
+    // Zero failures (no parse errors)
+    assert.equal(result.failures.length, 0,
+      `Expected zero failures; got: ${JSON.stringify(result.failures)}`);
+
+    // Zero writes (dry-run): verify no municipality IDs were returned (only dryRun summaries)
+    const hasWrites = result.results.some((r) => r.municipalityId != null);
+    assert.equal(hasWrites, false,
+      'dry-run must not write to Supabase — no municipalityId should be present');
+
+    // Residual is defined (array, may be empty for FY2024)
+    assert.ok(Array.isArray(result.residual),
+      'result.residual must be an array');
   }
 );
