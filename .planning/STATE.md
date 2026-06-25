@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.8
 milestone_name: Ohio Local Government Expansion
-status: executing
-last_updated: "2026-06-25T04:58:55.935Z"
+status: verifying
+last_updated: "2026-06-25T06:45:32.987Z"
 last_activity: 2026-06-25
 progress:
   total_phases: 73
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
-  percent: 1
+  completed_plans: 4
+  percent: 3
 ---
 
 # State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-24 — v2.7 Virginia Local Government
 
 Phase: 85 (city-loads) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-25
 
 ## Phase Overview — v2.8 Ohio Local Government Expansion
@@ -164,8 +164,8 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-25T04:58:55.923Z
-Stopped at: Completed 85-01-PLAN.md — enumerateCities + batch driver built and proven via FY2024 dry-run (245 cities, zero writes)
+Last session: 2026-06-25T06:45:32.975Z
+Stopped at: Completed 85-02-PLAN.md — FY2016-2025 Ohio city live load (4,880 rows, 253 cities, 0 failures, idempotent, sourced)
 Resume file: None
 
 ### Next Session
@@ -196,6 +196,7 @@ Recon'd candidate: Ohio (Auditor of State Summarized Annual Financial Reports �
 | Phase 84 P01 | 35min | 3 tasks | 2 files |
 | Phase 84 P02 | 30min | 2 tasks | 1 files |
 | Phase 85 P01 | 40min | 3 tasks | 3 files |
+| Phase 85-city-loads P02 | 23min | 4 tasks | 1 files |
 
 ## Decisions
 
@@ -239,6 +240,8 @@ Recon'd candidate: Ohio (Auditor of State Summarized Annual Financial Reports �
 - [81.5-01]: FY2026 reconciled: 9 supporters (3 GB + 5 Patreon + 1 Benevity), median $10/mo, persisted item_count=9
 - [Phase ?]: [85-01]: enumerateCities uses revTotalCol OR expTotalCol (either finite) to skip blank/footer rows — handles rows where one total column may be zero
 - [Phase ?]: [85-01]: GAAP→CASH→MOD Map-based assignment: first basis whose workbook contains the city wins; FY2024 dry-run: 245 cities (235 GAAP + 7 CASH + 3 MOD), zero writes, zero failures (D-02)
+- [Phase ?]: [85-02]: Zero cross-FY residual across FY2016-2025 — every OI_Demographics city has financial rows; ohioCityResidual.json cities=[] is the durable no-phantom record
+- [Phase ?]: [85-02]: FY2025 workbook is preliminary (196 GAAP cities vs ~235-244 in prior years) — loaded as-is per audit completion timing; partial FY noted
 
 ## Deferred Items
 
