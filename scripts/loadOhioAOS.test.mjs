@@ -18,11 +18,14 @@ import {
   cityPopulation,
   cityCounty,
   DATA_SOURCE_NAME,
+  enumerateCities,
 } from './loadOhioAOS.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SAMPLE = join(__dirname, '..', '_oh-recon', 'City_2024_GAAP_Summarized.XLSX');
 const HAVE_SAMPLE = existsSync(SAMPLE);
+const CASH_SAMPLE = join(__dirname, '..', '_oh-recon', 'City_2024_CASH_Summarized.XLSX');
+const HAVE_CASH_SAMPLE = existsSync(CASH_SAMPLE);
 
 let wb = null;
 async function workbook() {
@@ -215,5 +218,42 @@ test(
       /not found/i,
       'buildRevenueTree should throw a "not found" error for unknown cities'
     );
+  }
+);
+
+// ── Phase 85 — enumerateCities tests ──────────────────────────────────────────
+
+test(
+  'enumerateCities on FY2024 GAAP workbook returns ≥200 names including Columbus (no empties or duplicates)',
+  { skip: !HAVE_SAMPLE && 'recon sample _oh-recon/City_2024_GAAP_Summarized.XLSX absent' },
+  async () => {
+    const w = await workbook();
+    const names = enumerateCities(w);
+    assert.ok(Array.isArray(names), 'enumerateCities must return an array');
+    assert.ok(names.length >= 200,
+      `Expected ≥200 city names, got ${names.length}`);
+    assert.ok(names.includes('Columbus'),
+      `"Columbus" must be in the roster; got: ${names.slice(0, 10).join(', ')}...`);
+    // No empty entries
+    const empties = names.filter((n) => !n || !n.trim());
+    assert.equal(empties.length, 0, `Found ${empties.length} empty names in roster`);
+    // No duplicates
+    const unique = new Set(names);
+    assert.equal(unique.size, names.length,
+      `Duplicate city names found: ${names.filter((n, i) => names.indexOf(n) !== i).join(', ')}`);
+  }
+);
+
+test(
+  'enumerateCities on FY2024 CASH workbook returns a non-empty array including Kenton',
+  { skip: !HAVE_CASH_SAMPLE && 'recon sample _oh-recon/City_2024_CASH_Summarized.XLSX absent' },
+  async () => {
+    const cashWb = new ExcelJS.Workbook();
+    await cashWb.xlsx.readFile(CASH_SAMPLE);
+    const names = enumerateCities(cashWb);
+    assert.ok(Array.isArray(names), 'enumerateCities must return an array');
+    assert.ok(names.length > 0, 'CASH workbook roster must not be empty');
+    assert.ok(names.includes('Kenton'),
+      `"Kenton" must be in the CASH roster; got: ${JSON.stringify(names)}`);
   }
 );

@@ -275,6 +275,40 @@ export function cityCounty(workbook, cityName) {
   return cellText(row.getCell(layout.demoCountyCol)) || '';
 }
 
+// ── City enumeration (Phase 85) ──────────────────────────────────────────────
+/**
+ * Enumerate all city names present in the financial tab of a workbook.
+ * Works for BOTH GAAP (SOREACIFB_TotalGov) and CASH/MOD (SORDACIFB_TotalGov) layouts —
+ * uses detectLayout() to get entityCol/dataStart/revTotalCol/expTotalCol; does NOT hardcode
+ * the tab name or offsets.
+ *
+ * A row is included only when:
+ *   1. entityCol has a non-empty cellText (the city name)
+ *   2. The row has a finite total in revTotalCol OR expTotalCol (skips blank rows + footers)
+ *
+ * Returns an array of bare city names (strip "City of " prefix) in sheet order.
+ * Mirrors VA enumerateRoster, minus sectioning.
+ */
+export function enumerateCities(workbook) {
+  const layout = detectLayout(workbook);
+  const ws = workbook.getWorksheet(layout.sheetName);
+  if (!ws) throw new Error(`Sheet ${layout.sheetName} not found`);
+  const names = [];
+  for (let r = layout.dataStart; r <= ws.rowCount; r++) {
+    const row = ws.getRow(r);
+    const raw = cellText(row.getCell(layout.entityCol));
+    if (!raw) continue;
+    // Require at least one finite total (revenue or expenditure) to skip footer/blank rows
+    const revTotal = cellNum(row.getCell(layout.revTotalCol));
+    const expTotal = cellNum(row.getCell(layout.expTotalCol));
+    if (!Number.isFinite(revTotal) && !Number.isFinite(expTotal)) continue;
+    // Bare name: strip "City of " prefix
+    const bare = raw.replace(/^city\s+of\s+/i, '').trim();
+    if (bare) names.push(bare);
+  }
+  return names;
+}
+
 // ── Manifest lookup (D-05) ────────────────────────────────────────────────────
 let _manifest = null;
 function _loadManifest() {
