@@ -99,6 +99,9 @@ _acfr-tmp/
 # Recon sample downloads (e.g. VA APA comparative-report XLSX) — not committed
 _va-recon/
 
+# Ohio AOS recon sample downloads — not committed
+_oh-recon/
+
 # Transient loader driver output (scratch; logs already ignored)
 scripts/*.failures.txt
 
