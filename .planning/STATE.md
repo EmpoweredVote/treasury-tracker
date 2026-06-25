@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.8
 milestone_name: Ohio Local Government Expansion
-status: completed
-last_updated: "2026-06-25T07:07:28.815Z"
-last_activity: 2026-06-25 -- Phase 85 marked complete
+status: executing
+last_updated: "2026-06-25T07:54:48.568Z"
+last_activity: 2026-06-25
 progress:
-  total_phases: 32
+  total_phases: 73
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
-  percent: 6
+  total_plans: 7
+  completed_plans: 5
+  percent: 3
 ---
 
 # State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-24 — v2.7 Virginia Local Government Expansion SHIPPED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 86 — county-loads-data-model-linking (planned: 86-01 county tooling, 86-02 live load + linking, 86-03 UI verify)
+**Current focus:** Phase 86 — county-loads-data-model-linking
 
 ## Current Position
 
-Phase: 85 — COMPLETE
-Plan: 2 of 2
-Status: Phase 85 complete
-Last activity: 2026-06-25 -- Phase 85 marked complete
+Phase: 86 (county-loads-data-model-linking) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-06-25
 
 ## Phase Overview — v2.8 Ohio Local Government Expansion
 
@@ -164,7 +164,7 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-25T06:45:32.975Z
+Last session: 2026-06-25T07:54:48.555Z
 Stopped at: Completed 85-02-PLAN.md — FY2016-2025 Ohio city live load (4,880 rows, 253 cities, 0 failures, idempotent, sourced)
 Resume file: None
 
@@ -197,6 +197,7 @@ Recon'd candidate: Ohio (Auditor of State Summarized Annual Financial Reports �
 | Phase 84 P02 | 30min | 2 tasks | 1 files |
 | Phase 85 P01 | 40min | 3 tasks | 3 files |
 | Phase 85-city-loads P02 | 23min | 4 tasks | 1 files |
+| Phase 86 P86-01 | 7m | 3 tasks | 4 files |
 
 ## Decisions
 
