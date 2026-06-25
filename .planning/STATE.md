@@ -24,16 +24,16 @@ See: .planning/PROJECT.md (updated 2026-06-24 — v2.7 Virginia Local Government
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-06-25 — Milestone v2.8 started
+Phase: 84 — Ohio AOS Source + Loader
+Plan: 84-01 + 84-02 planned (not started)
+Status: Planned — ready to execute
+Last activity: 2026-06-25 — Phase 84 planned (2 plans, inline per feedback_no_research_subagents)
 
 ## Phase Overview — v2.8 Ohio Local Government Expansion
 
 | Phase | Name | Requirements | Depends on | Status |
 |-------|------|--------------|------------|--------|
-| 84 | Ohio AOS Source + Loader | OHSRC-01, OHSRC-02 | — | Not started |
+| 84 | Ohio AOS Source + Loader | OHSRC-01, OHSRC-02 | — | Planned (84-01, 84-02) |
 | 85 | City Loads | OHCITY-01, OHCITY-02 | 84 | Not started |
 | 86 | County Loads + Data Model & Linking | OHCO-01, OHLINK-01 | 85 | Not started |
 | 87 | Enrichment Parity | OHENR-01 | 85, 86 | Not started |
