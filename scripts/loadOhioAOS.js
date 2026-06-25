@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Ohio Auditor of State Summarized Annual Financial Reports Loader (v2.8 Phase 84 — OHSRC-01)
+ * Ohio Auditor of State Summarized Annual Financial Reports Loader (v2.8 Phase 84 — OHSRC-01/02)
  *
  * Parses the Ohio AOS "Summarized Annual Financial Reports" (Hinkle System) all-cities XLSX
  * into the tracker's budget tree for a single city and writes it to Supabase via the
@@ -10,33 +10,46 @@
  * cellNum/cellText helpers, the getSupabase/findConflictingBudget/importDataset write path,
  * and the never-overwrite guard (treasury_sync_city_budget is NOT source-safe — see
  * auto-memory project_sync_city_budget_not_source_safe). Swaps VA's multi-exhibit layout
- * for Ohio's single flat wide table (SOREACIFB_TotalGov): one row per city, columns = categories.
+ * for Ohio's single flat wide table: one row per city, columns = categories.
+ *
+ * Supports both workbook formats (OHSRC-02):
+ *   GAAP:     SOREACIFB_TotalGov  — "Revenues" / "Expenditures" terminology
+ *   CASH/MOD: SORDACIFB_TotalGov  — "Receipts"  / "Disbursements" terminology
+ *             (smaller workbook, ~5-7 cities that file a non-GAAP basis)
  *
  * Trees (CONTEXT D-01/D-02/D-04/D-04b):
- *   - Revenue ('revenue'): flat 1-level tree of the 12 SOREACIFB revenue source columns
- *       INCLUDING Intergovernmental (D-01); total = "Total" (col 16).
- *   - Expenditure ('operating'): flat 1-level tree of the ~18 expenditure function columns
- *       INCLUDING Capital Outlay, Principal Retirement, Interest & Fiscal Charges,
- *       Bond Issuance Costs (D-02); total = "Total" (col 35).
+ *   - Revenue ('revenue'): flat 1-level tree of the SOREACIFB/SORDACIFB revenue source columns
+ *       INCLUDING Intergovernmental (D-01); total = "Total" column.
+ *   - Expenditure ('operating'): flat 1-level tree of the ~18 expenditure/disbursement function
+ *       columns INCLUDING Capital Outlay, Principal Retirement, Interest & Fiscal Charges,
+ *       Bond Issuance Costs (D-02); total = "Total" column.
  *   Both trees are FLAT (D-04): leaf nodes only, no sub-levels.
- *   EXCLUDED (D-04b): Other Financing Sources/Uses and fund-balance lines (cols 36+).
+ *   EXCLUDED (D-04b): Other Financing Sources/Uses and fund-balance lines.
  *
- * SOREACIFB_TotalGov sheet layout (FY2024 GAAP, recon'd):
+ * GAAP layout — SOREACIFB_TotalGov:
  *   Row 7 = column headers; data starts row 8.
- *   Col 1: Entity Name ("City of Columbus"), Col 2: County
+ *   Col 1: Entity Name, Col 2: County
  *   Cols 3-15: Revenue sources; Col 16: Total Revenues
  *   Cols 17-34: Expenditure functions; Col 35: Total Expenditures
  *   Cols 36+: Other Financing / Fund Balances — EXCLUDED
  *
+ * CASH/MOD layout — SORDACIFB_TotalGov:
+ *   Row 6 = column headers; data starts row 7.
+ *   Col 2: Entity Name, Col 4: County
+ *   Cols 5-17: Receipt sources; Col 18: Total Receipts
+ *   Cols 19-36: Disbursement functions; Col 37: Total Disbursements
+ *   Cols 38+: Other Financing / Fund Balances — EXCLUDED
+ *
  * OI_Demographics sheet layout:
- *   Row 4 = column headers; data starts row 5.
- *   Col 1: Entity Name, Col 2: County, Col 3: Population
+ *   GAAP:     Row 4 = headers; data row 5. Col 1: Entity, Col 2: County, Col 3: Pop
+ *   CASH/MOD: Row 3 = headers; data row 4. Col 2: Entity, Col 3: County, Col 4: Pop
  *
  * Source stamping (D-05): data_source='Ohio Auditor of State Summarized Annual Financial
  * Reports'; source_url = per-FY+basis direct file URL (--source-url); source_date = fetch date.
  *
  * Usage:
  *   node scripts/loadOhioAOS.js --file <xlsx> --city Columbus --fy 2024 --basis GAAP --dry-run
+ *   node scripts/loadOhioAOS.js --file <xlsx> --city Kenton --fy 2024 --basis CASH --dry-run
  *   node scripts/loadOhioAOS.js --file <xlsx> --city Columbus --fy 2024 --basis GAAP --source-url <url>
  */
 
@@ -46,19 +59,58 @@ import ExcelJS from 'exceljs';
 
 export const DATA_SOURCE_NAME = 'Ohio Auditor of State Summarized Annual Financial Reports';
 
-// ── Revenue column range (inclusive, 1-indexed) ─────────────────────────────
-// Cols 3-15 are revenue sources; Col 16 is Total Revenues.
+// ── Workbook layout profiles (GAAP vs CASH/MOD) ──────────────────────────────
+/**
+ * Detect which layout profile applies based on which sheet name exists.
+ * Returns a layout descriptor with all per-format constants.
+ *
+ * GAAP workbook uses SOREACIFB_TotalGov (accrual-basis terminology: Revenues/Expenditures).
+ * CASH/MOD workbooks use SORDACIFB_TotalGov (cash/modified-basis: Receipts/Disbursements).
+ * Both share the OI_Demographics tab for population/county, but with different offsets.
+ */
+export function detectLayout(workbook) {
+  if (workbook.getWorksheet('SOREACIFB_TotalGov')) {
+    // GAAP: row 7 = headers, data row 8, entity col 1, county col 2
+    return {
+      basis: 'GAAP',
+      sheetName: 'SOREACIFB_TotalGov',
+      headerRow: 7, dataStart: 8,
+      entityCol: 1, countyCol: 2,
+      revSourceCols: [3,4,5,6,7,8,9,10,11,12,13,14,15],
+      revTotalCol: 16,
+      expFuncCols:  [17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34],
+      expTotalCol: 35,
+      // OI_Demographics: row 4 = headers, data row 5, entity col 1
+      demoHeaderRow: 4, demoDataStart: 5,
+      demoEntityCol: 1, demoCountyCol: 2, demoPopCol: 3,
+    };
+  }
+  if (workbook.getWorksheet('SORDACIFB_TotalGov')) {
+    // CASH/MOD: row 6 = headers, data row 7, entity col 2, county col 4
+    // Receipts cols 5-17, Total col 18; Disbursements cols 19-36, Total col 37; cols 38+ excluded
+    return {
+      basis: 'CASH_OR_MOD',
+      sheetName: 'SORDACIFB_TotalGov',
+      headerRow: 6, dataStart: 7,
+      entityCol: 2, countyCol: 4,
+      revSourceCols: [5,6,7,8,9,10,11,12,13,14,15,16,17],
+      revTotalCol: 18,
+      expFuncCols:  [19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36],
+      expTotalCol: 37,
+      // OI_Demographics: row 3 = headers, data row 4, entity col 2
+      demoHeaderRow: 3, demoDataStart: 4,
+      demoEntityCol: 2, demoCountyCol: 3, demoPopCol: 4,
+    };
+  }
+  throw new Error('Unrecognised workbook: neither SOREACIFB_TotalGov nor SORDACIFB_TotalGov sheet found');
+}
+
+// ── Legacy GAAP column constants (kept for backward-compat with tests) ────────
 // HEADER ROW is row 7; data starts row 8.
 const REVENUE_SOURCE_COLS = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 const REVENUE_TOTAL_COL = 16;
-
-// ── Expenditure column range (inclusive, 1-indexed) ──────────────────────────
-// Cols 17-34 are expenditure functions; Col 35 is Total Expenditures.
-// Cols 36+ are Other Financing Sources/Uses and fund-balance lines — EXCLUDED (D-04b).
 const EXPENDITURE_FUNC_COLS = [17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34];
 const EXPENDITURE_TOTAL_COL = 35;
-
-// ── Sheet layout constants ───────────────────────────────────────────────────
 const SOREACIFB_HEADER_ROW = 7;
 const SOREACIFB_DATA_START  = 8;
 const OI_DEMO_HEADER_ROW    = 4;
@@ -95,11 +147,12 @@ export function cellText(cell) {
 
 // ── Column-header helpers ────────────────────────────────────────────────────
 /**
- * Read column headers from the SOREACIFB_TotalGov header row (row 7).
+ * Read column headers from the financial sheet's header row.
  * Returns a Map from col-index (1-based) to label string.
+ * Accepts a layout descriptor (from detectLayout) or defaults to GAAP row 7.
  */
-function readSoreacifbHeaders(ws) {
-  const hdr = ws.getRow(SOREACIFB_HEADER_ROW);
+function readSheetHeaders(ws, headerRow) {
+  const hdr = ws.getRow(headerRow);
   const map = new Map();
   for (let c = 1; c <= ws.columnCount; c++) {
     const label = cellText(hdr.getCell(c));
@@ -108,37 +161,44 @@ function readSoreacifbHeaders(ws) {
   return map;
 }
 
+/** @deprecated Use readSheetHeaders(ws, layout.headerRow) */
+function readSoreacifbHeaders(ws) {
+  return readSheetHeaders(ws, SOREACIFB_HEADER_ROW);
+}
+
 // ── City-row lookup ──────────────────────────────────────────────────────────
 /**
  * Find the data row in a sheet for the given city.
  * Entity names in the XLSX are "City of <Name>"; we match by bare city name.
+ * entityCol is 1-based (defaults to 1 for GAAP, 2 for CASH/MOD).
  * Throws if not found.
  */
-function findCityRow(ws, dataStart, cityName) {
+function findCityRow(ws, dataStart, cityName, entityCol = 1) {
   const want = cityName.trim().toLowerCase();
   for (let r = dataStart; r <= ws.rowCount; r++) {
-    const nameCell = cellText(ws.getRow(r).getCell(1));
+    const nameCell = cellText(ws.getRow(r).getCell(entityCol));
     // Strip "City of " prefix for comparison
     const bare = nameCell.replace(/^city\s+of\s+/i, '').trim().toLowerCase();
     if (bare === want || nameCell.toLowerCase() === want) return ws.getRow(r);
   }
-  throw new Error(`City "${cityName}" not found in sheet ${ws.name}`);
+  throw new Error(`City "${cityName}" not found in sheet ${ws.name} (col ${entityCol})`);
 }
 
 // ── Revenue tree ─────────────────────────────────────────────────────────────
 /**
- * Build the flat revenue tree for a city from SOREACIFB_TotalGov.
+ * Build the flat revenue tree for a city.
+ * Works on both GAAP (SOREACIFB_TotalGov) and CASH/MOD (SORDACIFB_TotalGov) workbooks.
  * Returns { tree, total } where tree is [{n, a}] with no children (D-04).
  * Includes Intergovernmental (D-01). Drops zero/blank sources.
  */
 export function buildRevenueTree(workbook, cityName) {
-  const ws = workbook.getWorksheet('SOREACIFB_TotalGov');
-  if (!ws) throw new Error('SOREACIFB_TotalGov sheet missing');
-  const headers = readSoreacifbHeaders(ws);
-  const dataRow = findCityRow(ws, SOREACIFB_DATA_START, cityName);
+  const layout = detectLayout(workbook);
+  const ws = workbook.getWorksheet(layout.sheetName);
+  const headers = readSheetHeaders(ws, layout.headerRow);
+  const dataRow = findCityRow(ws, layout.dataStart, cityName, layout.entityCol);
 
   const tree = [];
-  for (const col of REVENUE_SOURCE_COLS) {
+  for (const col of layout.revSourceCols) {
     const label = headers.get(col);
     if (!label) continue;
     const a = cellNum(dataRow.getCell(col));
@@ -147,27 +207,28 @@ export function buildRevenueTree(workbook, cityName) {
   }
   tree.sort((x, y) => y.a - x.a);
 
-  // Total from the Total Revenues column
-  let total = cellNum(dataRow.getCell(REVENUE_TOTAL_COL));
+  // Total from the Total column
+  let total = cellNum(dataRow.getCell(layout.revTotalCol));
   if (!Number.isFinite(total)) total = tree.reduce((s, n) => s + n.a, 0);
   return { tree, total };
 }
 
 // ── Expenditure tree ──────────────────────────────────────────────────────────
 /**
- * Build the flat expenditure tree for a city from SOREACIFB_TotalGov.
+ * Build the flat expenditure tree for a city.
+ * Works on both GAAP (SOREACIFB_TotalGov) and CASH/MOD (SORDACIFB_TotalGov) workbooks.
  * Returns { tree, total } where tree is [{n, a}] with no children (D-04).
  * Includes Capital Outlay, debt-service functions (D-02).
  * Excludes Other Financing Sources/Uses and fund-balance lines (D-04b).
  */
 export function buildExpenditureTree(workbook, cityName) {
-  const ws = workbook.getWorksheet('SOREACIFB_TotalGov');
-  if (!ws) throw new Error('SOREACIFB_TotalGov sheet missing');
-  const headers = readSoreacifbHeaders(ws);
-  const dataRow = findCityRow(ws, SOREACIFB_DATA_START, cityName);
+  const layout = detectLayout(workbook);
+  const ws = workbook.getWorksheet(layout.sheetName);
+  const headers = readSheetHeaders(ws, layout.headerRow);
+  const dataRow = findCityRow(ws, layout.dataStart, cityName, layout.entityCol);
 
   const tree = [];
-  for (const col of EXPENDITURE_FUNC_COLS) {
+  for (const col of layout.expFuncCols) {
     const label = headers.get(col);
     if (!label) continue;
     const a = cellNum(dataRow.getCell(col));
@@ -176,8 +237,8 @@ export function buildExpenditureTree(workbook, cityName) {
   }
   tree.sort((x, y) => y.a - x.a);
 
-  // Total from the Total Expenditures column
-  let total = cellNum(dataRow.getCell(EXPENDITURE_TOTAL_COL));
+  // Total from the Total column
+  let total = cellNum(dataRow.getCell(layout.expTotalCol));
   if (!Number.isFinite(total)) total = tree.reduce((s, n) => s + n.a, 0);
   return { tree, total };
 }
@@ -185,27 +246,31 @@ export function buildExpenditureTree(workbook, cityName) {
 // ── Population + County ───────────────────────────────────────────────────────
 /**
  * Population for a city from the OI_Demographics tab.
+ * Handles both GAAP and CASH/MOD layout offsets.
  * Returns null (not throw) if absent.
  */
 export function cityPopulation(workbook, cityName) {
+  const layout = detectLayout(workbook);
   const ws = workbook.getWorksheet('OI_Demographics');
   if (!ws) return null;
   let row;
-  try { row = findCityRow(ws, OI_DEMO_DATA_START, cityName); } catch { return null; }
-  const v = cellNum(row.getCell(3)); // Col 3 = Population
+  try { row = findCityRow(ws, layout.demoDataStart, cityName, layout.demoEntityCol); } catch { return null; }
+  const v = cellNum(row.getCell(layout.demoPopCol));
   return Number.isFinite(v) ? v : null;
 }
 
 /**
  * County for a city from the OI_Demographics tab.
+ * Handles both GAAP and CASH/MOD layout offsets.
  * Returns '' if absent.
  */
 export function cityCounty(workbook, cityName) {
+  const layout = detectLayout(workbook);
   const ws = workbook.getWorksheet('OI_Demographics');
   if (!ws) return '';
   let row;
-  try { row = findCityRow(ws, OI_DEMO_DATA_START, cityName); } catch { return ''; }
-  return cellText(row.getCell(2)) || ''; // Col 2 = County
+  try { row = findCityRow(ws, layout.demoDataStart, cityName, layout.demoEntityCol); } catch { return ''; }
+  return cellText(row.getCell(layout.demoCountyCol)) || '';
 }
 
 // ── Supabase write path (mirrors loadVAComparativeReport.js) ─────────────────
