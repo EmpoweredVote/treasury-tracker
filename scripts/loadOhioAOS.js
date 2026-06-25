@@ -310,28 +310,42 @@ export function enumerateCities(workbook) {
 }
 
 // ── Manifest lookup (D-05) ────────────────────────────────────────────────────
-let _manifest = null;
-function _loadManifest() {
-  if (_manifest) return _manifest;
+// Per-entityType cache: { city: <manifest|null>, county: <manifest|null> }
+// Separate caches prevent cross-contamination when loading both entity types in the same process.
+const _manifestCache = {};
+
+/**
+ * Load the manifest JSON for the given entityType.
+ * - 'city'   → scripts/ohioAosDatasets.json
+ * - 'county' → scripts/ohioAosCountyDatasets.json
+ * Caches per entityType so repeated calls are free.
+ */
+function _loadManifest(entityType = 'city') {
+  if (entityType in _manifestCache) return _manifestCache[entityType];
+  const filename = entityType === 'county' ? 'ohioAosCountyDatasets.json' : 'ohioAosDatasets.json';
   try {
     const dir = dirname(fileURLToPath(import.meta.url));
-    _manifest = JSON.parse(readFileSync(join(dir, 'ohioAosDatasets.json'), 'utf8'));
+    _manifestCache[entityType] = JSON.parse(readFileSync(join(dir, filename), 'utf8'));
   } catch {
-    _manifest = null;
+    _manifestCache[entityType] = null;
   }
-  return _manifest;
+  return _manifestCache[entityType];
 }
 
 /**
- * Resolve the source_url for a given (fiscalYear, basis) from scripts/ohioAosDatasets.json.
+ * Resolve the source_url for a given (fiscalYear, basis, entityType) from the appropriate manifest.
+ * - entityType='city'   → scripts/ohioAosDatasets.json   (default; keeps every Phase 85 call unchanged)
+ * - entityType='county' → scripts/ohioAosCountyDatasets.json
  * Returns the URL string, or null if no matching entry exists.
  * Satisfies CONTEXT D-05: per-FY+basis direct file URL as source_url.
  *
  * Phase 85 bulk loader uses this to stamp source_url on every row without hand-entering URLs:
  *   const url = resolveSourceUrl(fiscalYear, basis);
+ * Phase 86 county loader uses:
+ *   const url = resolveSourceUrl(fiscalYear, basis, 'county');
  */
-export function resolveSourceUrl(fiscalYear, basis) {
-  const m = _loadManifest();
+export function resolveSourceUrl(fiscalYear, basis, entityType = 'city') {
+  const m = _loadManifest(entityType);
   if (!m) return null;
   const entry = m.datasets.find(
     (d) => d.fiscal_year === Number(fiscalYear) && d.basis.toUpperCase() === String(basis).toUpperCase()
@@ -405,6 +419,10 @@ export async function importCity(supabase, workbook, opts) {
     sourceUrl = null,
     sourceDate = new Date().toISOString().slice(0, 10),
     dryRun = false,
+    // entityType defaults to 'city' to preserve all Phase 85 call behavior unchanged.
+    // Pass entityType:'county' for county loads (auto-memory project_utah_loader_entity_type_and_display_names:
+    // counties MUST write entity_type='county' or a phantom city row is created).
+    entityType = 'city',
   } = opts;
 
   const exp = buildExpenditureTree(workbook, cityName);
@@ -424,7 +442,7 @@ export async function importCity(supabase, workbook, opts) {
   const { data: municipalityId, error: munErr } = await supabase.rpc('treasury_ensure_municipality', {
     p_name: cityName,
     p_state: 'OH',
-    p_entity_type: 'city',
+    p_entity_type: entityType,
     p_population: population || 0,
   });
   if (munErr) throw new Error(`Municipality error (${cityName}): ${munErr.message}`);
