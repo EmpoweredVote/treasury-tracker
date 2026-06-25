@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.8
 milestone_name: Ohio Local Government Expansion
-status: completed
-last_updated: "2026-06-25T04:40:24.619Z"
-last_activity: 2026-06-25 -- Phase 84 marked complete
+status: executing
+last_updated: "2026-06-25T04:58:55.935Z"
+last_activity: 2026-06-25
 progress:
-  total_phases: 32
+  total_phases: 73
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
-  percent: 3
+  total_plans: 4
+  completed_plans: 3
+  percent: 1
 ---
 
 # State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-24 — v2.7 Virginia Local Government Expansion SHIPPED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 85 — city-loads (planned: 85-01 batch tooling, 85-02 live FY2016-2025 load + verify)
+**Current focus:** Phase 85 — city-loads
 
 ## Current Position
 
-Phase: 84 — COMPLETE
+Phase: 85 (city-loads) — EXECUTING
 Plan: 2 of 2
-Status: Phase 84 complete
-Last activity: 2026-06-25 -- Phase 84 marked complete
+Status: Ready to execute
+Last activity: 2026-06-25
 
 ## Phase Overview — v2.8 Ohio Local Government Expansion
 
@@ -164,8 +164,8 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-25T03:56:35.118Z
-Stopped at: Phase 84 context gathered
+Last session: 2026-06-25T04:58:55.923Z
+Stopped at: Completed 85-01-PLAN.md — enumerateCities + batch driver built and proven via FY2024 dry-run (245 cities, zero writes)
 Resume file: None
 
 ### Next Session
@@ -195,6 +195,7 @@ Recon'd candidate: Ohio (Auditor of State Summarized Annual Financial Reports �
 | Phase 81.5 P02 | 14min | 3 tasks | 2 files |
 | Phase 84 P01 | 35min | 3 tasks | 2 files |
 | Phase 84 P02 | 30min | 2 tasks | 1 files |
+| Phase 85 P01 | 40min | 3 tasks | 3 files |
 
 ## Decisions
 
@@ -236,6 +237,8 @@ Recon'd candidate: Ohio (Auditor of State Summarized Annual Financial Reports �
 - [81.5-01]: Benevity = exactly 1 recurring supporter (Chris Andrew's Cisco company-match, 61 rows, 1 donor) — hard rule with code comment; excluded from median
 - [81.5-01]: Lean carrier for micro-donation aggregates: item_count + description JSON (_evMicro namespace) on Donations category; no backend schema change, frontend parses in Plan 81.5-02
 - [81.5-01]: FY2026 reconciled: 9 supporters (3 GB + 5 Patreon + 1 Benevity), median $10/mo, persisted item_count=9
+- [Phase ?]: [85-01]: enumerateCities uses revTotalCol OR expTotalCol (either finite) to skip blank/footer rows — handles rows where one total column may be zero
+- [Phase ?]: [85-01]: GAAP→CASH→MOD Map-based assignment: first basis whose workbook contains the city wins; FY2024 dry-run: 245 cities (235 GAAP + 7 CASH + 3 MOD), zero writes, zero failures (D-02)
 
 ## Deferred Items
 

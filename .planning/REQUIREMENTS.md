@@ -18,8 +18,8 @@ Requirements for the v2.8 milestone. Each maps to exactly one roadmap phase.
 
 ### City Loads (OHCITY)
 
-- [ ] **OHCITY-01**: All GAAP-filing Ohio cities (~235) loaded operating + revenue across the available FY range, every row sourced, per-capita computed from the `OI_Demographics` tab population
-- [ ] **OHCITY-02**: Non-GAAP cities backfilled from the CASH/MOD workbooks where GAAP is absent (basis recorded per-city); any cities absent from all workbooks documented as a source-gap residual (no phantom municipalities)
+- [x] **OHCITY-01**: All GAAP-filing Ohio cities (~235) loaded operating + revenue across the available FY range, every row sourced, per-capita computed from the `OI_Demographics` tab population
+- [x] **OHCITY-02**: Non-GAAP cities backfilled from the CASH/MOD workbooks where GAAP is absent (basis recorded per-city); any cities absent from all workbooks documented as a source-gap residual (no phantom municipalities)
 
 ### County Loads + Data Model & Linking (OHCO / OHLINK)
 
@@ -65,8 +65,8 @@ Which phases cover which requirements. Populated during roadmap creation.
 |-------------|-------|--------|
 | OHSRC-01 | Phase 84 | Complete |
 | OHSRC-02 | Phase 84 | Complete |
-| OHCITY-01 | Phase 85 | Pending |
-| OHCITY-02 | Phase 85 | Pending |
+| OHCITY-01 | Phase 85 | Complete |
+| OHCITY-02 | Phase 85 | Complete |
 | OHCO-01 | Phase 86 | Pending |
 | OHLINK-01 | Phase 86 | Pending |
 | OHENR-01 | Phase 87 | Pending |
