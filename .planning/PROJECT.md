@@ -40,11 +40,18 @@ All 6 remaining SoCal counties added via the hardened v2.2/v2.3 pipeline with ze
 Brought every already-loaded non-OC California city and county to the Orange County standard (FY2003 history, statewide salaries, standardized enrichment) via the hardened v2.2 pipeline. Phase 62 verified end-to-end: ACFR reconciliation, source-chain audit (0 NULL/fragile/residue across 25,568 rows), 24-item UAT with Chris's sign-off. SoCal expansion deferred to v2.4.
 </details>
 
-## Next Milestone (between milestones — start via `/gsd-new-milestone`)
+## Current Milestone: v2.8 Ohio Local Government Expansion
 
-v2.7 Virginia shipped 2026-06-24. No active milestone.
+**Goal:** Bring Ohio cities + county governments onto Treasury Tracker at parity from the single uniform Ohio Auditor of State "Summarized Annual Financial Reports" XLSX (Hinkle System, free, no auth) — general-government revenue by source + expenditure by function, per-capita, every figure sourced to ohioauditor.gov.
 
-**Parked candidate — Ohio milestone:** the Ohio Auditor of State's Summarized Annual Financial Reports (free XLSX 2016–2025, no auth), Utah-mold and verified icicle-grade (235 cities, revenue-by-source + expenditure-by-function + population + county). See auto-memory `reference_ohio_aos_financial_data`.
+**Target features:**
+- New Ohio AOS XLSX loader: column→tree map of `SOREACIFB_TotalGov` (12 revenue sources, ~18 expenditure functions) — flatter than CA/Utah's nested feeds, so the transform is column→node mapping; reuses the `treasury_sync_city_budget` RPC + never-overwrite guard; idempotent
+- ~235 GAAP-filing cities loaded op/rev across the XLSX-available FY range (2016–2025), per-capita from the `OI_Demographics` tab population; non-GAAP filers backfilled from the CASH/MOD-basis workbooks (mixed basis recorded per-city)
+- Ohio county governments loaded (separate County workbook); city→county linking via the source `County` column; new Ohio state navigation node
+- Standardized, bleed-safe, state-neutral universal enrichment for the Ohio vocabulary, authored inline at $0 (explicit map + 100% coverage gate)
+- Verification: ACFR reconciliation (the workbook's `SOA_Gov` full-accrual Statement of Activities as a built-in cross-check + per-entity ACFR) + full-cohort source-chain audit + Chris live UAT
+
+**Key context:** Virginia/Utah mold — one new fetch+column-map layer over the existing loader/RPC pattern. No salaries (not in this source). Enterprise funds (Water/Sewer/Electric/Landfill tabs) deferred. General-government scope only. Phases continue from 84. $0 spend target. See auto-memory `reference_ohio_aos_financial_data`.
 
 **Carried-forward follow-ups (candidates for a later milestone or backlog sweep):**
 - **v2.7 (Phases 80/83):** 6 localities + 3 towns absent from all published VA XLSX years (multi-year-overdue audits) + Covington/Alleghany null population — picked up idempotently on a future re-run; enterprise funds (Exhibit F) deferred from VA scope.
@@ -143,11 +150,16 @@ v2.7 Virginia shipped 2026-06-24. No active milestone.
 
 ### Active
 
-(Between milestones — start the next via `/gsd-new-milestone`.)
+**v2.8 Ohio Local Government Expansion** (defining requirements → roadmap):
+
+- [ ] Ohio AOS Summarized Annual Financial Reports XLSX loader (column→tree map, GAAP + CASH/MOD fallback, sourced to ohioauditor.gov)
+- [ ] ~235 GAAP cities + non-GAAP fallback loaded op/rev with per-capita
+- [ ] Ohio county governments loaded; city→county linking; Ohio state node
+- [ ] Standardized bleed-safe universal enrichment for the Ohio vocabulary (inline, $0)
+- [ ] Verification — ACFR/SOA_Gov reconciliation + source-chain audit + Chris live UAT
 
 ### Future (deferred milestone candidates)
 
-- [ ] Ohio Auditor of State Summarized Annual Financial Reports (recon'd, icicle-grade; `reference_ohio_aos_financial_data`) — Utah-mold geographic expansion
 - [ ] Votes/amendments exploration hub (the eventual mission destination)
 - [ ] Backfill the always-sourced standard to city/state data (now proven federally)
 
@@ -255,7 +267,7 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-24 — v2.7 Virginia Local Government Expansion SHIPPED. 162 VA entities (independent cities + counties + towns) at parity from the single uniform APA Comparative Report XLSX (op/rev FY2023–2024, function→activity tree, per-capita), VA state node + town→county linking, 73 bleed-safe enrichment rows inline at $0; Alexandria + Fairfax County ACFR reconciliation + full-cohort source-chain audit (618 rows, 0 NULL/fragile/residue) + Chris live UAT; every figure sourced, $0 spend. Inserted out-of-scope Phase 81.5 shipped the EV recurring-supporter micro-donation callout. Between milestones — next via `/gsd-new-milestone`. (Ohio parked as a future geographic milestone.)*
+*Last updated: 2026-06-24 — v2.8 Ohio Local Government Expansion STARTED. Bringing Ohio cities + county governments onto the tracker at parity from the single uniform Ohio Auditor of State Summarized Annual Financial Reports XLSX (Hinkle System, free, no auth): general-government revenue-by-source + expenditure-by-function (column→tree, flatter than CA/Utah), per-capita from OI_Demographics, city→county linking + Ohio state node, GAAP + CASH/MOD-fallback coverage, standardized bleed-safe enrichment inline at $0; verified via SOA_Gov/ACFR reconciliation + source-chain audit + Chris UAT. No salaries / enterprise funds deferred. Phases continue from 84, $0 spend target. (v2.7 Virginia SHIPPED + archived 2026-06-24.)*
 
 <details>
 <summary>Previous footer — v2.6 EV Financial Transparency Refresh SHIPPED (2026-06-22)</summary>

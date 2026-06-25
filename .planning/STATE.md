@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.7
-milestone_name: Virginia Local Government Expansion
-status: Awaiting next milestone
-last_updated: "2026-06-24T05:34:28.286Z"
-last_activity: 2026-06-24 — Milestone v2.7 completed and archived
+milestone: v2.8
+milestone_name: Ohio Local Government Expansion
+status: planning
+last_updated: "2026-06-25T02:24:58.661Z"
+last_activity: 2026-06-25
 progress:
-  total_phases: 68
-  completed_phases: 4
-  total_plans: 10
-  completed_plans: 11
-  percent: 6
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-24 — v2.7 Virginia Local Government
 
 ## Current Position
 
-Phase: Milestone v2.7 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-06-24 — Milestone v2.7 completed and archived
+Status: Defining requirements
+Last activity: 2026-06-25 — Milestone v2.8 started
 
 ## Phase Overview — v2.7 Virginia Local Government Expansion
 
