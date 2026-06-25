@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.8
 milestone_name: Ohio Local Government Expansion
 status: verifying
-last_updated: "2026-06-25T18:06:05.744Z"
+last_updated: "2026-06-25T18:29:18.546Z"
 last_activity: 2026-06-25
 progress:
   total_phases: 73
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 9
-  completed_plans: 8
-  percent: 3
+  completed_plans: 9
+  percent: 4
 ---
 
 # State
@@ -164,8 +164,8 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-25T18:06:05.732Z
-Stopped at: Completed 86-04-PLAN.md — county layout fix (Allen County recovered, text labels, correct totals col 16/32) + 29 tests pass + dry-run 88 counties zero writes
+Last session: 2026-06-25T18:29:18.534Z
+Stopped at: Completed 86-05-PLAN.md — gap closure: deleted 1716 broken county budgets, reloaded 88 counties FY2016-2025 with correct text labels+totals, re-linked 253/253 cities (Lima+Delphos→Allen County), corrected 86-VERIFICATION.md
 Resume file: None
 
 ### Next Session
@@ -201,6 +201,7 @@ Recon'd candidate: Ohio (Auditor of State Summarized Annual Financial Reports �
 | Phase 86-county-loads-data-model-linking P86-02 | 95min | 4 tasks | 4 files |
 | Phase 86-county-loads-data-model-linking P03 | 25min | 3 tasks | 1 files |
 | Phase 86-county-loads-data-model-linking P04 | 45min | 3 tasks | 3 files |
+| Phase 86-county-loads-data-model-linking P05 | 90min | 4 tasks | 2 files |
 
 ## Decisions
 
