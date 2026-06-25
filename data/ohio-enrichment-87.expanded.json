@@ -1,0 +1,263 @@
+{
+  "generated_at": "2026-06-25T00:00:00.000Z",
+  "authored": 51,
+  "missing": [],
+  "stale": [],
+  "rows": [
+    {
+      "name_key": "other",
+      "plain_name": "Other",
+      "confidence": "high"
+    },
+    {
+      "name_key": "capital outlay",
+      "plain_name": "Capital Outlay",
+      "confidence": "high"
+    },
+    {
+      "name_key": "general government",
+      "plain_name": "General Government",
+      "confidence": "high"
+    },
+    {
+      "name_key": "leisure time activities",
+      "plain_name": "Leisure Time Activities",
+      "confidence": "high"
+    },
+    {
+      "name_key": "principal retirement",
+      "plain_name": "Principal Retirement",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public services",
+      "plain_name": "Public Services",
+      "confidence": "medium"
+    },
+    {
+      "name_key": "community and economic development",
+      "plain_name": "Community & Economic Development",
+      "confidence": "high"
+    },
+    {
+      "name_key": "interest and fiscal charges",
+      "plain_name": "Interest & Fiscal Charges",
+      "confidence": "high"
+    },
+    {
+      "name_key": "health",
+      "plain_name": "Health",
+      "confidence": "high"
+    },
+    {
+      "name_key": "police",
+      "plain_name": "Police",
+      "confidence": "high"
+    },
+    {
+      "name_key": "fire",
+      "plain_name": "Fire Protection",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public works",
+      "plain_name": "Public Works",
+      "confidence": "high"
+    },
+    {
+      "name_key": "transportation",
+      "plain_name": "Transportation",
+      "confidence": "high"
+    },
+    {
+      "name_key": "bond issuance costs",
+      "plain_name": "Bond Issuance Costs",
+      "confidence": "high"
+    },
+    {
+      "name_key": "basic utility service",
+      "plain_name": "Basic Utility Service",
+      "confidence": "high"
+    },
+    {
+      "name_key": "other expenditures",
+      "plain_name": "Other Expenditures",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental",
+      "plain_name": "Intergovernmental",
+      "confidence": "high"
+    },
+    {
+      "name_key": "security of persons and property police",
+      "plain_name": "Security of Persons & Property — Police",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public health",
+      "plain_name": "Public Health",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental expenditures",
+      "plain_name": "Intergovernmental Expenditures",
+      "confidence": "high"
+    },
+    {
+      "name_key": "human services",
+      "plain_name": "Human Services",
+      "confidence": "high"
+    },
+    {
+      "name_key": "general government legislative and executive",
+      "plain_name": "General Government — Legislative & Executive",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public safety",
+      "plain_name": "Public Safety",
+      "confidence": "high"
+    },
+    {
+      "name_key": "general government judicial",
+      "plain_name": "General Government — Judicial",
+      "confidence": "high"
+    },
+    {
+      "name_key": "conservation and recreation",
+      "plain_name": "Conservation & Recreation",
+      "confidence": "high"
+    },
+    {
+      "name_key": "debt service principal retirement",
+      "plain_name": "Debt Service — Principal Retirement",
+      "confidence": "high"
+    },
+    {
+      "name_key": "debt service interest and fiscal charges",
+      "plain_name": "Debt Service — Interest & Fiscal Charges",
+      "confidence": "high"
+    },
+    {
+      "name_key": "debt service other",
+      "plain_name": "Debt Service — Other",
+      "confidence": "medium"
+    },
+    {
+      "name_key": "security of persons and property",
+      "plain_name": "Security of Persons & Property",
+      "confidence": "high"
+    },
+    {
+      "name_key": "security of persons and property fire",
+      "plain_name": "Security of Persons & Property — Fire",
+      "confidence": "high"
+    },
+    {
+      "name_key": "security of persons and property other",
+      "plain_name": "Security of Persons & Property — Other",
+      "confidence": "medium"
+    },
+    {
+      "name_key": "other disbursements",
+      "plain_name": "Other Disbursements",
+      "confidence": "high"
+    },
+    {
+      "name_key": "debt service bond issuance costs",
+      "plain_name": "Debt Service — Bond Issuance Costs",
+      "confidence": "high"
+    },
+    {
+      "name_key": "legislative and executive",
+      "plain_name": "Legislative & Executive",
+      "confidence": "high"
+    },
+    {
+      "name_key": "judicial",
+      "plain_name": "Judicial",
+      "confidence": "high"
+    },
+    {
+      "name_key": "income taxes",
+      "plain_name": "Income Taxes",
+      "confidence": "high"
+    },
+    {
+      "name_key": "property taxes",
+      "plain_name": "Property Taxes",
+      "confidence": "high"
+    },
+    {
+      "name_key": "other revenues",
+      "plain_name": "Other Revenues",
+      "confidence": "high"
+    },
+    {
+      "name_key": "licenses and permits",
+      "plain_name": "Licenses & Permits",
+      "confidence": "high"
+    },
+    {
+      "name_key": "charges for services",
+      "plain_name": "Service Charges",
+      "confidence": "high"
+    },
+    {
+      "name_key": "interest",
+      "plain_name": "Interest Income",
+      "confidence": "high"
+    },
+    {
+      "name_key": "rentals",
+      "plain_name": "Rental Income",
+      "confidence": "high"
+    },
+    {
+      "name_key": "contributions and donations",
+      "plain_name": "Contributions & Donations",
+      "confidence": "high"
+    },
+    {
+      "name_key": "special assessments",
+      "plain_name": "Special Assessments",
+      "confidence": "high"
+    },
+    {
+      "name_key": "fines and forfeitures",
+      "plain_name": "Fines & Forfeitures",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental revenues",
+      "plain_name": "Intergovernmental Revenues",
+      "confidence": "high"
+    },
+    {
+      "name_key": "payment in lieu of taxes",
+      "plain_name": "Payment in Lieu of Taxes",
+      "confidence": "high"
+    },
+    {
+      "name_key": "other receipts",
+      "plain_name": "Other Receipts",
+      "confidence": "high"
+    },
+    {
+      "name_key": "sales taxes",
+      "plain_name": "Sales Taxes",
+      "confidence": "high"
+    },
+    {
+      "name_key": "revenue in lieu of taxes",
+      "plain_name": "Revenue in Lieu of Taxes",
+      "confidence": "high"
+    },
+    {
+      "name_key": "receipts in lieu of taxes",
+      "plain_name": "Receipts in Lieu of Taxes",
+      "confidence": "high"
+    }
+  ]
+}
