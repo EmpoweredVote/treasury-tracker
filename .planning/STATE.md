@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.8
 milestone_name: Ohio Local Government Expansion
-status: completed
-last_updated: "2026-06-25T18:35:13.199Z"
-last_activity: 2026-06-25 -- Phase 86 marked complete
+status: verifying
+last_updated: "2026-06-25T18:50:20.094Z"
+last_activity: 2026-06-25
 progress:
-  total_phases: 32
-  completed_phases: 3
-  total_plans: 9
-  completed_plans: 9
-  percent: 9
+  total_phases: 73
+  completed_phases: 4
+  total_plans: 10
+  completed_plans: 10
+  percent: 5
 ---
 
 # State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-24 — v2.7 Virginia Local Government Expansion SHIPPED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 87 — enrichment-parity (planned: 87-01 authored 52-key map + coverage-gated loader)
+**Current focus:** Phase 87 — enrichment-parity
 
 ## Current Position
 
-Phase: 86 — COMPLETE
-Plan: 3 of 3
-Status: Phase 86 complete
-Last activity: 2026-06-25 -- Phase 86 marked complete
+Phase: 87 (enrichment-parity) — EXECUTING
+Plan: 1 of 1
+Status: Phase complete — ready for verification
+Last activity: 2026-06-25
 
 ## Phase Overview — v2.8 Ohio Local Government Expansion
 
@@ -164,7 +164,7 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-25T18:29:18.534Z
+Last session: 2026-06-25T18:50:20.082Z
 Stopped at: Completed 86-05-PLAN.md — gap closure: deleted 1716 broken county budgets, reloaded 88 counties FY2016-2025 with correct text labels+totals, re-linked 253/253 cities (Lima+Delphos→Allen County), corrected 86-VERIFICATION.md
 Resume file: None
 
@@ -202,6 +202,7 @@ Recon'd candidate: Ohio (Auditor of State Summarized Annual Financial Reports �
 | Phase 86-county-loads-data-model-linking P03 | 25min | 3 tasks | 1 files |
 | Phase 86-county-loads-data-model-linking P04 | 45min | 3 tasks | 3 files |
 | Phase 86-county-loads-data-model-linking P05 | 90min | 4 tasks | 2 files |
+| Phase 87-enrichment-parity P87-01 | 11 minutes | 3 tasks | 5 files |
 
 ## Decisions
 

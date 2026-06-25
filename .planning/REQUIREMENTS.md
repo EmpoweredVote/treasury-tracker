@@ -28,7 +28,7 @@ Requirements for the v2.8 milestone. Each maps to exactly one roadmap phase.
 
 ### Enrichment (OHENR)
 
-- [ ] **OHENR-01**: Standardized, bleed-safe, state-neutral universal enrichment authored inline at $0 for the full Ohio vocabulary (~30 keys: 12 revenue sources + ~18 expenditure functions), via an explicit map + 100% coverage gate (delete-then-insert, NULLS-DISTINCT-safe); loader aborts on any unmapped live key (no silent fallback)
+- [x] **OHENR-01**: Standardized, bleed-safe, state-neutral universal enrichment authored inline at $0 for the full Ohio vocabulary (~30 keys: 12 revenue sources + ~18 expenditure functions), via an explicit map + 100% coverage gate (delete-then-insert, NULLS-DISTINCT-safe); loader aborts on any unmapped live key (no silent fallback)
 
 ### Verification (OHVER)
 
@@ -69,7 +69,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | OHCITY-02 | Phase 85 | Complete |
 | OHCO-01 | Phase 86 | Complete |
 | OHLINK-01 | Phase 86 | Complete |
-| OHENR-01 | Phase 87 | Pending |
+| OHENR-01 | Phase 87 | Complete |
 | OHVER-01 | Phase 88 | Pending |
 | OHVER-02 | Phase 88 | Pending |
 
