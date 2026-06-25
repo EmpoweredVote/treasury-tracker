@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.8
 milestone_name: Ohio Local Government Expansion
-status: verifying
-last_updated: "2026-06-25T16:45:21.432Z"
-last_activity: 2026-06-25
+status: completed
+stopped_at: Completed 86-02-PLAN.md — OH county live load FY2016-2025 (87 counties, 1716 rows) + city→county linking (249/253 cities)
+last_updated: "2026-06-25T16:47:29.210Z"
+last_activity: 2026-06-25 -- Phase 86 marked complete
 progress:
-  total_phases: 73
+  total_phases: 32
   completed_phases: 3
   total_plans: 7
   completed_plans: 7
-  percent: 4
+  percent: 9
 ---
 
 # State
@@ -24,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-06-24 — v2.7 Virginia Local Government
 
 ## Current Position
 
-Phase: 86 (county-loads-data-model-linking) — EXECUTING
+Phase: 86 — COMPLETE
 Plan: 3 of 3
-Status: Phase complete — ready for verification
-Last activity: 2026-06-25
+Status: Phase 86 complete
+Last activity: 2026-06-25 -- Phase 86 marked complete
 
 ## Phase Overview — v2.8 Ohio Local Government Expansion
 
