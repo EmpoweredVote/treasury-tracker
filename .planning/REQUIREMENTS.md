@@ -24,7 +24,7 @@ Requirements for the v2.8 milestone. Each maps to exactly one roadmap phase.
 ### County Loads + Data Model & Linking (OHCO / OHLINK)
 
 - [x] **OHCO-01**: Ohio county governments loaded operating + revenue from the all-counties workbook, per-capita, every figure sourced
-- [ ] **OHLINK-01**: New Ohio state navigation node + Ohio cities and counties selectable; city→county linking via the source `County` column (`county_id`), rendering the US → Ohio → county → city breadcrumb + Cities-in-County panel
+- [x] **OHLINK-01**: New Ohio state navigation node + Ohio cities and counties selectable; city→county linking via the source `County` column (`county_id`), rendering the US → Ohio → county → city breadcrumb + Cities-in-County panel
 
 ### Enrichment (OHENR)
 
@@ -68,7 +68,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | OHCITY-01 | Phase 85 | Complete |
 | OHCITY-02 | Phase 85 | Complete |
 | OHCO-01 | Phase 86 | Complete |
-| OHLINK-01 | Phase 86 | Pending |
+| OHLINK-01 | Phase 86 | Complete |
 | OHENR-01 | Phase 87 | Pending |
 | OHVER-01 | Phase 88 | Pending |
 | OHVER-02 | Phase 88 | Pending |

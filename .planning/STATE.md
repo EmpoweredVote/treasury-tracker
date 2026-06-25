@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.8
 milestone_name: Ohio Local Government Expansion
 status: executing
-last_updated: "2026-06-25T07:54:48.568Z"
+last_updated: "2026-06-25T15:44:04.024Z"
 last_activity: 2026-06-25
 progress:
   total_phases: 73
   completed_phases: 2
   total_plans: 7
-  completed_plans: 5
+  completed_plans: 6
   percent: 3
 ---
 
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-06-24 — v2.7 Virginia Local Government
 ## Current Position
 
 Phase: 86 (county-loads-data-model-linking) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-06-25
 
@@ -164,8 +164,8 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-25T07:54:48.555Z
-Stopped at: Completed 85-02-PLAN.md — FY2016-2025 Ohio city live load (4,880 rows, 253 cities, 0 failures, idempotent, sourced)
+Last session: 2026-06-25T15:44:04.012Z
+Stopped at: Completed 86-02-PLAN.md — OH county live load FY2016-2025 (87 counties, 1716 rows) + city→county linking (249/253 cities)
 Resume file: None
 
 ### Next Session
@@ -198,6 +198,7 @@ Recon'd candidate: Ohio (Auditor of State Summarized Annual Financial Reports �
 | Phase 85 P01 | 40min | 3 tasks | 3 files |
 | Phase 85-city-loads P02 | 23min | 4 tasks | 1 files |
 | Phase 86 P86-01 | 7m | 3 tasks | 4 files |
+| Phase 86-county-loads-data-model-linking P86-02 | 95min | 4 tasks | 4 files |
 
 ## Decisions
 
@@ -243,6 +244,10 @@ Recon'd candidate: Ohio (Auditor of State Summarized Annual Financial Reports �
 - [Phase ?]: [85-01]: GAAP→CASH→MOD Map-based assignment: first basis whose workbook contains the city wins; FY2024 dry-run: 245 cities (235 GAAP + 7 CASH + 3 MOD), zero writes, zero failures (D-02)
 - [Phase ?]: [85-02]: Zero cross-FY residual across FY2016-2025 — every OI_Demographics city has financial rows; ohioCityResidual.json cities=[] is the durable no-phantom record
 - [Phase ?]: [85-02]: FY2025 workbook is preliminary (196 GAAP cities vs ~235-244 in prior years) — loaded as-is per audit completion timing; partial FY noted
+- [Phase ?]: Rule 1 bug fix: CASH/MOD county workbooks omit County suffix; normalised in batch driver
+- [Phase ?]: [86-02]: Allen County consistent source-gap residual FY2016-2025 — documented in ohioCountyResidual.json, not created as municipality
+- [Phase ?]: [86-02]: Ohio state node has pre-existing General Fund data (10 rows, different source) — preserved by never-overwrite guard per VA 81-02 precedent
+- [Phase ?]: [86-02]: 249/253 OH cities linked to county via workbook OI_Demographics County column; 4 link-residual (Delphos+Lima=Allen County not loaded, Germantown+Ironton=absent from workbook)
 
 ## Deferred Items
 
