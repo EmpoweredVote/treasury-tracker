@@ -21,6 +21,7 @@ import {
   cityCounty,
   DATA_SOURCE_NAME,
   enumerateCities,
+  detectLayout,
 } from './loadOhioAOS.js';
 import { loadOhioAOSBatch } from './loadOhioAOSBatch.js';
 
@@ -31,6 +32,10 @@ const CASH_SAMPLE = join(__dirname, '..', '_oh-recon', 'City_2024_CASH_Summarize
 const HAVE_CASH_SAMPLE = existsSync(CASH_SAMPLE);
 const COUNTY_GAAP_SAMPLE = join(__dirname, '..', '_oh-recon', 'County_2024_GAAP_Summarized.XLSX');
 const HAVE_COUNTY_SAMPLE = existsSync(COUNTY_GAAP_SAMPLE);
+const COUNTY_CASH_SAMPLE = join(__dirname, '..', '_oh-recon', 'County_2024_CASH_Summarized.XLSX');
+const HAVE_COUNTY_CASH_SAMPLE = existsSync(COUNTY_CASH_SAMPLE);
+const COUNTY_MOD_SAMPLE = join(__dirname, '..', '_oh-recon', 'County_2024_MOD_Summarized.XLSX');
+const HAVE_COUNTY_MOD_SAMPLE = existsSync(COUNTY_MOD_SAMPLE);
 
 let wb = null;
 async function workbook() {
@@ -373,5 +378,183 @@ test(
     // Residual is defined (may be non-empty if some OI_Demographics-only counties exist)
     assert.ok(Array.isArray(result.residual),
       'result.residual must be an array');
+  }
+);
+
+// ── Phase 86-04 — county-layout regression tests ─────────────────────────────
+
+let countyGaapWb = null;
+async function countyWorkbook() {
+  if (countyGaapWb) return countyGaapWb;
+  countyGaapWb = new ExcelJS.Workbook();
+  await countyGaapWb.xlsx.readFile(COUNTY_GAAP_SAMPLE);
+  return countyGaapWb;
+}
+
+test(
+  'detectLayout(county GAAP wb, "county") returns headerRow=6, expTotalCol=32 (not city row 7 / col 35)',
+  { skip: !HAVE_COUNTY_SAMPLE && 'recon sample _oh-recon/County_2024_GAAP_Summarized.XLSX absent' },
+  async () => {
+    const wb = await countyWorkbook();
+    const layout = detectLayout(wb, 'county');
+    assert.equal(layout.headerRow, 6,
+      `County GAAP headerRow must be 6 (not 7); got ${layout.headerRow}`);
+    assert.equal(layout.dataStart, 7,
+      `County GAAP dataStart must be 7; got ${layout.dataStart}`);
+    assert.equal(layout.entityCol, 1,
+      `County GAAP entityCol must be 1; got ${layout.entityCol}`);
+    assert.equal(layout.revTotalCol, 16,
+      `County GAAP revTotalCol must be 16; got ${layout.revTotalCol}`);
+    assert.equal(layout.expTotalCol, 32,
+      `County GAAP expTotalCol must be 32 (not city's 35); got ${layout.expTotalCol}`);
+    // expFuncCols must stop at 31, not 34 (no Inception Of Lease / OFS columns)
+    assert.equal(layout.expFuncCols[layout.expFuncCols.length - 1], 31,
+      `County GAAP expFuncCols must end at col 31; got ${layout.expFuncCols[layout.expFuncCols.length - 1]}`);
+  }
+);
+
+test(
+  'detectLayout(county GAAP wb) with default city entityType still returns city layout',
+  { skip: !HAVE_COUNTY_SAMPLE && 'recon sample absent' },
+  async () => {
+    // This test guards against regression: the county workbook's SOREACIFB_TotalGov sheet
+    // must NOT activate county layout when entityType defaults to city.
+    // (In practice, city callers never pass county workbooks — this confirms the guard works.)
+    const wb = await countyWorkbook();
+    const layout = detectLayout(wb);  // default 'city'
+    assert.equal(layout.headerRow, 7,
+      `Default city layout must still use headerRow 7; got ${layout.headerRow}`);
+    assert.equal(layout.expTotalCol, 35,
+      `Default city layout must still use expTotalCol 35; got ${layout.expTotalCol}`);
+  }
+);
+
+test(
+  'enumerateCities(county GAAP wb, "county") includes "Allen County" (recovered) AND "Franklin County"',
+  { skip: !HAVE_COUNTY_SAMPLE && 'recon sample absent' },
+  async () => {
+    const wb = await countyWorkbook();
+    const names = enumerateCities(wb, 'county');
+    assert.ok(names.includes('Allen County'),
+      '"Allen County" must be in county roster — Allen County was previously dropped by city-layout misread');
+    assert.ok(names.includes('Franklin County'),
+      '"Franklin County" must be in county roster');
+    assert.ok(names.length >= 60,
+      `Expected ≥60 county names; got ${names.length}`);
+  }
+);
+
+test(
+  'buildRevenueTree(county GAAP, "Franklin County", "county"): text labels, no numeric nodes, total matches col 16',
+  { skip: !HAVE_COUNTY_SAMPLE && 'recon sample absent' },
+  async () => {
+    const wb = await countyWorkbook();
+    const { tree, total } = buildRevenueTree(wb, 'Franklin County', 'county');
+
+    // No numeric node names (the exact regression: city layout read header as data row 7)
+    const numericNodes = tree.filter((n) => /^-?[0-9]+(\.[0-9]+)?$/.test(n.n));
+    assert.equal(numericNodes.length, 0,
+      `County revenue tree must have no numeric node names (regression guard); numeric found: ${JSON.stringify(numericNodes.map((n) => n.n))}`);
+
+    // "Property Taxes" must be present as a labeled source
+    const propertyTaxes = tree.find((n) => /property\s*tax/i.test(n.n));
+    assert.ok(propertyTaxes,
+      '"Property Taxes" must be present as a labeled revenue source in county tree');
+
+    // All amounts are finite
+    const nonFinite = tree.filter((n) => !Number.isFinite(n.a));
+    assert.equal(nonFinite.length, 0,
+      `All county revenue amounts must be finite; non-finite: ${JSON.stringify(nonFinite)}`);
+
+    // Total is a finite number
+    assert.ok(typeof total === 'number' && Number.isFinite(total),
+      `Franklin County revenue total must be a finite number; got ${total}`);
+
+    // Total matches workbook col 16 = 1811422000 (verified 2026-06-25)
+    const FRANKLIN_REV_COL16 = 1811422000;
+    assert.equal(total, FRANKLIN_REV_COL16,
+      `Franklin County revenue total must equal workbook col 16 (${FRANKLIN_REV_COL16}); got ${total}`);
+  }
+);
+
+test(
+  'buildExpenditureTree(county GAAP, "Franklin County", "county"): text labels, total matches col 32, no OFS nodes',
+  { skip: !HAVE_COUNTY_SAMPLE && 'recon sample absent' },
+  async () => {
+    const wb = await countyWorkbook();
+    const { tree, total } = buildExpenditureTree(wb, 'Franklin County', 'county');
+
+    // No numeric node names
+    const numericNodes = tree.filter((n) => /^-?[0-9]+(\.[0-9]+)?$/.test(n.n));
+    assert.equal(numericNodes.length, 0,
+      `County expenditure tree must have no numeric node names; numeric found: ${JSON.stringify(numericNodes.map((n) => n.n))}`);
+
+    // No OFS / fund-balance / transfer nodes (D-04b — col 33+ excluded)
+    const forbidden = tree.filter((n) =>
+      /inception\s*of\s*lease|transfers?\s*in|excess\s*of\s*revenues|net\s*change|fund\s*balance|sale\s*of\s*capital/i.test(n.n)
+    );
+    assert.equal(forbidden.length, 0,
+      `OFS/fund-balance columns must be excluded (D-04b); found: ${JSON.stringify(forbidden.map((n) => n.n))}`);
+
+    // Total is finite
+    assert.ok(typeof total === 'number' && Number.isFinite(total),
+      `Franklin County expenditure total must be a finite number; got ${total}`);
+
+    // Total matches workbook col 32 = 1913193000 (verified 2026-06-25)
+    const FRANKLIN_EXP_COL32 = 1913193000;
+    assert.equal(total, FRANKLIN_EXP_COL32,
+      `Franklin County expenditure total must equal workbook col 32 (${FRANKLIN_EXP_COL32}); got ${total}`);
+  }
+);
+
+test(
+  'detectLayout(county CASH wb, "county") returns correct layout (entityCol=1, expTotalCol=32)',
+  { skip: !HAVE_COUNTY_CASH_SAMPLE && 'recon sample _oh-recon/County_2024_CASH_Summarized.XLSX absent' },
+  async () => {
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.readFile(COUNTY_CASH_SAMPLE);
+    const layout = detectLayout(wb, 'county');
+    assert.equal(layout.basis, 'CASH_OR_MOD', `County CASH basis must be CASH_OR_MOD; got ${layout.basis}`);
+    assert.equal(layout.entityCol, 1,
+      `County CASH entityCol must be 1 (not city CASH's 2); got ${layout.entityCol}`);
+    assert.equal(layout.expTotalCol, 32,
+      `County CASH expTotalCol must be 32 (not city CASH's 37); got ${layout.expTotalCol}`);
+    const names = enumerateCities(wb, 'county');
+    assert.ok(names.length > 0, 'County CASH workbook must have county names');
+    const numericNames = names.filter((n) => /^-?[0-9]+$/.test(n));
+    assert.equal(numericNames.length, 0,
+      `County CASH enumerated names must be text, not numeric; numeric: ${JSON.stringify(numericNames)}`);
+  }
+);
+
+test(
+  'detectLayout(county MOD wb, "county") returns correct layout (entityCol=1, expTotalCol=32)',
+  { skip: !HAVE_COUNTY_MOD_SAMPLE && 'recon sample _oh-recon/County_2024_MOD_Summarized.XLSX absent' },
+  async () => {
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.readFile(COUNTY_MOD_SAMPLE);
+    const layout = detectLayout(wb, 'county');
+    assert.equal(layout.basis, 'CASH_OR_MOD', `County MOD basis must be CASH_OR_MOD; got ${layout.basis}`);
+    assert.equal(layout.entityCol, 1,
+      `County MOD entityCol must be 1; got ${layout.entityCol}`);
+    assert.equal(layout.expTotalCol, 32,
+      `County MOD expTotalCol must be 32; got ${layout.expTotalCol}`);
+    const names = enumerateCities(wb, 'county');
+    assert.ok(names.length > 0, 'County MOD workbook must have county names');
+  }
+);
+
+test(
+  'City no-regression: Columbus expenditure total unchanged by county layout changes (city layout still uses col 35)',
+  { skip: !HAVE_SAMPLE && 'recon sample _oh-recon/City_2024_GAAP_Summarized.XLSX absent' },
+  async () => {
+    const { tree, total } = buildExpenditureTree(await workbook(), 'Columbus');  // default 'city'
+    // Recon-verified: $2,477,440,000
+    assert.ok(total > 2e9,
+      `Columbus expenditure total must be > $2B (city layout unchanged); got ${total}`);
+    // No numeric node names in city tree either
+    const numericNodes = tree.filter((n) => /^-?[0-9]+$/.test(n.n));
+    assert.equal(numericNodes.length, 0,
+      `City expenditure tree must have no numeric node names; numeric: ${JSON.stringify(numericNodes.map((n) => n.n))}`);
   }
 );
