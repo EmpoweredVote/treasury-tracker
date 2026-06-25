@@ -409,11 +409,20 @@ export async function importDataset(supabase, municipalityId, fiscalYear, datase
  * Build + write one city's operating (expenditure) + revenue datasets.
  * Mirrors importLocality from loadVAComparativeReport.js.
  *
- * opts: { cityName, fiscalYear, basis, sourceUrl, sourceDate, dryRun }
+ * opts: { cityName, municipalityName?, fiscalYear, basis, sourceUrl, sourceDate, dryRun }
+ *
+ * municipalityName (optional): canonical DB name when it differs from the workbook lookup name.
+ * Used for county loads where CASH/MOD workbooks use bare names (e.g. "Adams") but the
+ * canonical municipality name is "Adams County". cityName is used for workbook row lookups;
+ * municipalityName (if provided) is used for treasury_ensure_municipality p_name.
  */
 export async function importCity(supabase, workbook, opts) {
   const {
     cityName,
+    // municipalityName overrides the DB name when workbook uses a bare/different name.
+    // Phase 86 county loads: CASH/MOD workbooks omit " County" suffix; pass
+    // municipalityName:"Adams County" while cityName:"Adams" is used for workbook lookups.
+    municipalityName = null,
     fiscalYear,
     basis = 'GAAP',
     sourceUrl = null,
@@ -430,8 +439,11 @@ export async function importCity(supabase, workbook, opts) {
   const population = cityPopulation(workbook, cityName);
   const county = cityCounty(workbook, cityName);
 
+  // Canonical name used for DB writes. Falls back to cityName if not overridden.
+  const dbName = municipalityName || cityName;
+
   const summary = {
-    cityName, fiscalYear, basis,
+    cityName: dbName, fiscalYear, basis,
     operatingTotal: exp.total, revenueTotal: rev.total,
     population, county,
     expFunctions: exp.tree.length, revSources: rev.tree.length,
@@ -440,12 +452,12 @@ export async function importCity(supabase, workbook, opts) {
   if (dryRun) return summary;
 
   const { data: municipalityId, error: munErr } = await supabase.rpc('treasury_ensure_municipality', {
-    p_name: cityName,
+    p_name: dbName,
     p_state: 'OH',
     p_entity_type: entityType,
     p_population: population || 0,
   });
-  if (munErr) throw new Error(`Municipality error (${cityName}): ${munErr.message}`);
+  if (munErr) throw new Error(`Municipality error (${dbName}): ${munErr.message}`);
 
   summary.municipalityId = municipalityId;
   summary.operating = await importDataset(supabase, municipalityId, fiscalYear, 'operating', exp.tree, exp.total, sourceUrl, sourceDate);

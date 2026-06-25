@@ -189,17 +189,30 @@ export async function loadOhioAOSBatch(opts) {
   }
 
   // ── Step 2: Enumerate + assign basis (CONTEXT D-02: GAAP→CASH→MOD) ────────
-  // Build Map<cityName, { basis, workbook, sourceUrl }>
+  // Build Map<canonicalName, { basis, workbook, sourceUrl, workbookName }>
   // Seed from GAAP first; then CASH-only cities; then MOD-only cities.
-  const cityMap = new Map(); // cityName → { basis, workbook, sourceUrl }
+  //
+  // County name normalisation (Phase 86 D-04):
+  //   GAAP county workbooks use "<Name> County" throughout ("Adams County", "Franklin County").
+  //   CASH/MOD county workbooks OMIT the " County" suffix ("Adams", "Franklin").
+  //   We normalise to the canonical "<Name> County" form for all county loads so that:
+  //     (a) treasury_ensure_municipality always stores the canonical name, and
+  //     (b) the linkOhioCitiesToCounties pass can find parent counties by name.
+  //   The original workbook name is stored as workbookName so importCity can still look up
+  //   the correct row in the source XLSX file.
+  const cityMap = new Map(); // canonicalName → { basis, workbook, sourceUrl, workbookName }
 
   for (const basis of ['GAAP', 'CASH', 'MOD']) {
     if (!basisInfos[basis]) continue;
     const { workbook, sourceUrl } = basisInfos[basis];
     for (const name of enumerateCities(workbook)) {
-      if (!cityMap.has(name)) {
+      // Derive canonical name: for county loads, ensure "<Name> County" suffix.
+      const canonicalName = (entityType === 'county' && !name.endsWith(' County'))
+        ? `${name} County`
+        : name;
+      if (!cityMap.has(canonicalName)) {
         // First basis whose workbook contains this city wins (GAAP→CASH→MOD)
-        cityMap.set(name, { basis, workbook, sourceUrl });
+        cityMap.set(canonicalName, { basis, workbook, sourceUrl, workbookName: name });
       }
     }
   }
@@ -210,11 +223,15 @@ export async function loadOhioAOSBatch(opts) {
   }
 
   // ── Step 3: Residual — demographics-only cities (CONTEXT D-03) ─────────────
-  // Union all OI_Demographics rosters across opened workbooks; subtract financial-tab set
+  // Union all OI_Demographics rosters across opened workbooks; subtract financial-tab set.
+  // Apply the same county name normalisation so residual names match the canonical form.
   const demoSet = new Set();
   for (const { workbook } of Object.values(basisInfos)) {
     for (const name of enumerateDemographics(workbook)) {
-      demoSet.add(name);
+      const canonicalDemo = (entityType === 'county' && !name.endsWith(' County'))
+        ? `${name} County`
+        : name;
+      demoSet.add(canonicalDemo);
     }
   }
   const residual = [...demoSet].filter((name) => !cityMap.has(name)).sort();
@@ -227,7 +244,7 @@ export async function loadOhioAOSBatch(opts) {
   }
 
   // ── Step 4: Loop over assigned (city, basis) pairs ─────────────────────────
-  const allCities = [...cityMap.entries()]; // [cityName, { basis, workbook, sourceUrl }]
+  const allCities = [...cityMap.entries()]; // [canonicalName, { basis, workbook, sourceUrl, workbookName }]
   const workList = limit != null ? allCities.slice(0, limit) : allCities;
 
   const supabase = (dryRun || workList.length === 0) ? null : await getSupabase();
@@ -238,10 +255,14 @@ export async function loadOhioAOSBatch(opts) {
   const results = [];
   const failures = [];
 
-  for (const [cityName, { basis, workbook, sourceUrl }] of workList) {
+  for (const [canonicalName, { basis, workbook, sourceUrl, workbookName }] of workList) {
+    // cityName = name for workbook row lookups (may be bare "Adams" in CASH/MOD county workbooks)
+    // canonicalName = canonical DB name ("Adams County" for counties)
+    const cityName = workbookName || canonicalName;
     try {
       const s = await importCity(supabase, workbook, {
-        cityName,
+        cityName,                 // workbook lookup name
+        municipalityName: (cityName !== canonicalName) ? canonicalName : null, // DB name override (county normalisation)
         fiscalYear,
         basis,
         sourceUrl: resolveSourceUrl(fiscalYear, basis, entityType) || sourceUrl,
@@ -251,14 +272,14 @@ export async function loadOhioAOSBatch(opts) {
       });
       results.push(s);
       const status = dryRun ? 'dry-run' : 'loaded';
-      console.log(`  ✓ ${cityName.padEnd(22)} [${basis}]  op ${fmt(s.operatingTotal).padStart(16)}  rev ${fmt(s.revenueTotal).padStart(16)}  pop ${s.population ?? '—'}  [${status}]`);
+      console.log(`  ✓ ${canonicalName.padEnd(22)} [${basis}]  op ${fmt(s.operatingTotal).padStart(16)}  rev ${fmt(s.revenueTotal).padStart(16)}  pop ${s.population ?? '—'}  [${status}]`);
     } catch (e) {
-      failures.push({ cityName, basis, error: e.message });
-      console.error(`  ✗ ${cityName} [${basis}] — ERROR: ${e.message}`);
+      failures.push({ cityName: canonicalName, basis, error: e.message });
+      console.error(`  ✗ ${canonicalName} [${basis}] — ERROR: ${e.message}`);
       // Append to failures log for live runs (not dry-run)
       if (!dryRun) {
         try {
-          appendFileSync(FAILURES_LOG, `FY${fiscalYear} ${basis} ${cityName}: ${e.message}\n`);
+          appendFileSync(FAILURES_LOG, `FY${fiscalYear} ${basis} ${canonicalName}: ${e.message}\n`);
         } catch { /* best-effort */ }
       }
     }
