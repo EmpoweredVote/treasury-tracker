@@ -1,9 +1,11 @@
-// Offline unit tests for the Ohio AOS loader (Phase 84 — OHSRC-01).
+// Offline unit tests for the Ohio AOS loader (Phase 84 — OHSRC-01; Phase 86 — OHCO-01).
 // Run: node --test scripts/loadOhioAOS.test.mjs
 //
-// Asserts against the recon sample (_oh-recon/City_2024_GAAP_Summarized.XLSX). That file is
-// gitignored; when absent (fresh clone), the data-backed tests SKIP rather than fail, but the
-// pure-helper tests always run.
+// Asserts against the recon samples (gitignored — absent on fresh clone → tests SKIP):
+//   _oh-recon/City_2024_GAAP_Summarized.XLSX   (Phase 84/85 city tests)
+//   _oh-recon/City_2024_CASH_Summarized.XLSX   (Phase 85 CASH fallback test)
+//   _oh-recon/County_2024_GAAP_Summarized.XLSX (Phase 86 county tests)
+// Pure-helper tests always run regardless of sample availability.
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -27,6 +29,8 @@ const SAMPLE = join(__dirname, '..', '_oh-recon', 'City_2024_GAAP_Summarized.XLS
 const HAVE_SAMPLE = existsSync(SAMPLE);
 const CASH_SAMPLE = join(__dirname, '..', '_oh-recon', 'City_2024_CASH_Summarized.XLSX');
 const HAVE_CASH_SAMPLE = existsSync(CASH_SAMPLE);
+const COUNTY_GAAP_SAMPLE = join(__dirname, '..', '_oh-recon', 'County_2024_GAAP_Summarized.XLSX');
+const HAVE_COUNTY_SAMPLE = existsSync(COUNTY_GAAP_SAMPLE);
 
 let wb = null;
 async function workbook() {
@@ -302,6 +306,71 @@ test(
       'dry-run must not write to Supabase — no municipalityId should be present');
 
     // Residual is defined (array, may be empty for FY2024)
+    assert.ok(Array.isArray(result.residual),
+      'result.residual must be an array');
+  }
+);
+
+// ── Phase 86 — county enumeration + county dry-run tests ─────────────────────
+
+test(
+  'enumerateCities on FY2024 GAAP county workbook returns ≥60 names including "Ashland County"',
+  { skip: !HAVE_COUNTY_SAMPLE && 'recon sample _oh-recon/County_2024_GAAP_Summarized.XLSX absent' },
+  async () => {
+    const countyWb = new ExcelJS.Workbook();
+    await countyWb.xlsx.readFile(COUNTY_GAAP_SAMPLE);
+
+    const names = enumerateCities(countyWb);
+    assert.ok(Array.isArray(names), 'enumerateCities must return an array');
+    assert.ok(names.length >= 60,
+      `Expected ≥60 county names, got ${names.length}`);
+    assert.ok(names.includes('Ashland County'),
+      `"Ashland County" must be in the county roster; got: ${names.slice(0, 5).join(', ')}...`);
+
+    // No empty entries
+    const empties = names.filter((n) => !n || !n.trim());
+    assert.equal(empties.length, 0, `Found ${empties.length} empty county names in roster`);
+
+    // No duplicates
+    const unique = new Set(names);
+    assert.equal(unique.size, names.length,
+      `Duplicate county names found: ${names.filter((n, i) => names.indexOf(n) !== i).join(', ')}`);
+  }
+);
+
+test(
+  'FY2024 county dry-run batch: ≥60 processed, Ashland County present, zero failures, zero writes',
+  { skip: !HAVE_COUNTY_SAMPLE && 'recon sample _oh-recon/County_2024_GAAP_Summarized.XLSX absent' },
+  async () => {
+    const result = await loadOhioAOSBatch({
+      fy: 2024,
+      entityType: 'county',
+      fileGaap: COUNTY_GAAP_SAMPLE,
+      dryRun: true,
+    });
+
+    // Processed ≥60 (GAAP has 63 counties in FY2024)
+    assert.ok(result.processed >= 60,
+      `Expected ≥60 counties processed, got ${result.processed}`);
+
+    // GAAP counties assigned
+    assert.ok(result.assigned.GAAP >= 60,
+      `Expected ≥60 GAAP-assigned counties, got ${result.assigned.GAAP}`);
+
+    // Ashland County is present in results
+    const ashlandResult = result.results.find((r) => r.cityName === 'Ashland County');
+    assert.ok(ashlandResult, '"Ashland County" must be in the county dry-run results');
+
+    // Zero failures
+    assert.equal(result.failures.length, 0,
+      `Expected zero failures; got: ${JSON.stringify(result.failures)}`);
+
+    // Zero writes (dry-run): no municipalityId on any result
+    const hasWrites = result.results.some((r) => r.municipalityId != null);
+    assert.equal(hasWrites, false,
+      'dry-run must not write to Supabase — no municipalityId should be present');
+
+    // Residual is defined (may be non-empty if some OI_Demographics-only counties exist)
     assert.ok(Array.isArray(result.residual),
       'result.residual must be an array');
   }

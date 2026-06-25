@@ -76,12 +76,15 @@ function enumerateDemographics(workbook) {
 }
 
 /**
- * Acquire a workbook for a (fy, basis) combination.
+ * Acquire a workbook for a (fy, basis, entityType) combination.
  * If fileOverride is given, use it directly.
  * Else resolve the URL from the manifest and download to _oh-recon/ if absent.
  * Returns { workbook, sourceUrl } or null if the basis is unavailable.
+ *
+ * entityType='city'   → City_<FY>_<BASIS>_Summarized.XLSX,   city manifest
+ * entityType='county' → County_<FY>_<BASIS>_Summarized.XLSX, county manifest
  */
-async function acquireWorkbook(fy, basis, fileOverride) {
+async function acquireWorkbook(fy, basis, fileOverride, entityType = 'city') {
   if (fileOverride) {
     if (!existsSync(fileOverride)) {
       console.log(`  [${basis}] --file-${basis.toLowerCase()} path not found: ${fileOverride}`);
@@ -89,18 +92,20 @@ async function acquireWorkbook(fy, basis, fileOverride) {
     }
     const wb = new ExcelJS.Workbook();
     await wb.xlsx.readFile(fileOverride);
-    const url = resolveSourceUrl(fy, basis);
+    const url = resolveSourceUrl(fy, basis, entityType);
     return { workbook: wb, sourceUrl: url, file: fileOverride };
   }
 
-  // Resolve from manifest
-  const url = resolveSourceUrl(fy, basis);
+  // Resolve from manifest (city or county based on entityType)
+  const url = resolveSourceUrl(fy, basis, entityType);
   if (!url) {
-    console.log(`  [${basis}] No manifest URL for FY${fy} ${basis} — skipping`);
+    console.log(`  [${basis}] No manifest URL for FY${fy} ${basis} (${entityType}) — skipping`);
     return null;
   }
 
-  const filename = `City_${fy}_${basis}_Summarized.XLSX`;
+  // Filename prefix: City_ for cities, County_ for counties (matches AOS naming convention)
+  const prefix = entityType === 'county' ? 'County' : 'City';
+  const filename = `${prefix}_${fy}_${basis}_Summarized.XLSX`;
   const localPath = join(RECON_DIR, filename);
 
   if (!existsSync(localPath)) {
@@ -128,10 +133,11 @@ async function acquireWorkbook(fy, basis, fileOverride) {
 }
 
 /**
- * Load all Ohio cities for a given fiscal year (GAAP→CASH→MOD basis precedence).
+ * Load all Ohio cities (or counties) for a given fiscal year (GAAP→CASH→MOD basis precedence).
  *
  * opts: {
  *   fy: number,
+ *   entityType?: 'city' | 'county',  // default 'city' — selects manifest + filename prefix
  *   fileGaap?: string,  // --file-gaap override
  *   fileCash?: string,  // --file-cash override
  *   fileMod?: string,   // --file-mod override
@@ -152,6 +158,7 @@ async function acquireWorkbook(fy, basis, fileOverride) {
 export async function loadOhioAOSBatch(opts) {
   const {
     fy,
+    entityType = 'city',
     fileGaap = null,
     fileCash = null,
     fileMod = null,
@@ -163,12 +170,12 @@ export async function loadOhioAOSBatch(opts) {
   const fiscalYear = Number(fy);
 
   // ── Step 1: Acquire workbooks per basis ────────────────────────────────────
-  console.log(`\nOhio AOS Batch FY${fiscalYear}${dryRun ? '  [dry-run]' : ''}`);
+  console.log(`\nOhio AOS Batch FY${fiscalYear} [${entityType}]${dryRun ? '  [dry-run]' : ''}`);
   console.log('Acquiring workbooks:');
   const basisInfos = {}; // { GAAP: { workbook, sourceUrl }, CASH: ..., MOD: ... }
 
   for (const [basis, override] of [['GAAP', fileGaap], ['CASH', fileCash], ['MOD', fileMod]]) {
-    const info = await acquireWorkbook(fiscalYear, basis, override);
+    const info = await acquireWorkbook(fiscalYear, basis, override, entityType);
     if (info) {
       basisInfos[basis] = info;
       const names = enumerateCities(info.workbook);
@@ -237,9 +244,10 @@ export async function loadOhioAOSBatch(opts) {
         cityName,
         fiscalYear,
         basis,
-        sourceUrl: resolveSourceUrl(fiscalYear, basis) || sourceUrl,
+        sourceUrl: resolveSourceUrl(fiscalYear, basis, entityType) || sourceUrl,
         sourceDate,
         dryRun,
+        entityType,
       });
       results.push(s);
       const status = dryRun ? 'dry-run' : 'loaded';
@@ -286,23 +294,31 @@ export async function loadOhioAOSBatch(opts) {
 async function main() {
   const { values } = parseArgs({
     options: {
-      fy:           { type: 'string' },
-      'file-gaap':  { type: 'string' },
-      'file-cash':  { type: 'string' },
-      'file-mod':   { type: 'string' },
-      'source-date':{ type: 'string' },
-      limit:        { type: 'string' },
-      'dry-run':    { type: 'boolean' },
+      fy:            { type: 'string' },
+      'entity-type': { type: 'string' },  // 'city' (default) or 'county'
+      'file-gaap':   { type: 'string' },
+      'file-cash':   { type: 'string' },
+      'file-mod':    { type: 'string' },
+      'source-date': { type: 'string' },
+      limit:         { type: 'string' },
+      'dry-run':     { type: 'boolean' },
     },
   });
 
   if (!values.fy) {
-    console.error('Required: --fy <YYYY> [--file-gaap <p>] [--file-cash <p>] [--file-mod <p>] [--limit N] [--dry-run]');
+    console.error('Required: --fy <YYYY> [--entity-type city|county] [--file-gaap <p>] [--file-cash <p>] [--file-mod <p>] [--limit N] [--dry-run]');
+    process.exit(1);
+  }
+
+  const entityType = values['entity-type'] || 'city';
+  if (!['city', 'county'].includes(entityType)) {
+    console.error(`--entity-type must be 'city' or 'county', got: ${entityType}`);
     process.exit(1);
   }
 
   await loadOhioAOSBatch({
     fy: parseInt(values.fy, 10),
+    entityType,
     fileGaap: values['file-gaap'] || null,
     fileCash: values['file-cash'] || null,
     fileMod: values['file-mod'] || null,
