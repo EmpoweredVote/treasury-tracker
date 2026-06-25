@@ -55,6 +55,8 @@
 
 import { parseArgs } from 'node:util';
 import { fileURLToPath } from 'node:url';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import ExcelJS from 'exceljs';
 
 export const DATA_SOURCE_NAME = 'Ohio Auditor of State Summarized Annual Financial Reports';
@@ -273,6 +275,36 @@ export function cityCounty(workbook, cityName) {
   return cellText(row.getCell(layout.demoCountyCol)) || '';
 }
 
+// ── Manifest lookup (D-05) ────────────────────────────────────────────────────
+let _manifest = null;
+function _loadManifest() {
+  if (_manifest) return _manifest;
+  try {
+    const dir = dirname(fileURLToPath(import.meta.url));
+    _manifest = JSON.parse(readFileSync(join(dir, 'ohioAosDatasets.json'), 'utf8'));
+  } catch {
+    _manifest = null;
+  }
+  return _manifest;
+}
+
+/**
+ * Resolve the source_url for a given (fiscalYear, basis) from scripts/ohioAosDatasets.json.
+ * Returns the URL string, or null if no matching entry exists.
+ * Satisfies CONTEXT D-05: per-FY+basis direct file URL as source_url.
+ *
+ * Phase 85 bulk loader uses this to stamp source_url on every row without hand-entering URLs:
+ *   const url = resolveSourceUrl(fiscalYear, basis);
+ */
+export function resolveSourceUrl(fiscalYear, basis) {
+  const m = _loadManifest();
+  if (!m) return null;
+  const entry = m.datasets.find(
+    (d) => d.fiscal_year === Number(fiscalYear) && d.basis.toUpperCase() === String(basis).toUpperCase()
+  );
+  return entry ? entry.url : null;
+}
+
 // ── Supabase write path (mirrors loadVAComparativeReport.js) ─────────────────
 let _supabase = null;
 export async function getSupabase() {
@@ -391,7 +423,8 @@ async function main() {
 
   const fiscalYear = parseInt(values.fy, 10);
   const basis      = (values.basis || 'GAAP').toUpperCase();
-  const sourceUrl  = values['source-url'] || null;
+  // Auto-resolve source_url from the manifest (D-05); --source-url overrides if provided
+  const sourceUrl  = values['source-url'] || resolveSourceUrl(fiscalYear, basis) || null;
   const sourceDate = values['source-date'] || new Date().toISOString().slice(0, 10);
   const dryRun     = values['dry-run'] || false;
 
