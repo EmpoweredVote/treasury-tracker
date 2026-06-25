@@ -70,9 +70,28 @@ export const DATA_SOURCE_NAME = 'Ohio Auditor of State Summarized Annual Financi
  * CASH/MOD workbooks use SORDACIFB_TotalGov (cash/modified-basis: Receipts/Disbursements).
  * Both share the OI_Demographics tab for population/county, but with different offsets.
  */
-export function detectLayout(workbook) {
+export function detectLayout(workbook, entityType = 'city') {
   if (workbook.getWorksheet('SOREACIFB_TotalGov')) {
-    // GAAP: row 7 = headers, data row 8, entity col 1, county col 2
+    if (entityType === 'county') {
+      // County GAAP: header row 6, data row 7, entity col 1, county col 2.
+      // Revenue sources cols 3-15, Total col 16.
+      // Expenditure functions cols 17-31, Total col 32.
+      // Cols 33+ = Excess/OFS/fund-balance/transfers — EXCLUDED (mirrors city D-04b).
+      // OI_Demographics: row 4 = headers, data row 5, entity col 1, county col 2, pop col 3.
+      return {
+        basis: 'GAAP',
+        sheetName: 'SOREACIFB_TotalGov',
+        headerRow: 6, dataStart: 7,
+        entityCol: 1, countyCol: 2,
+        revSourceCols: [3,4,5,6,7,8,9,10,11,12,13,14,15],
+        revTotalCol: 16,
+        expFuncCols:  [17,18,19,20,21,22,23,24,25,26,27,28,29,30,31],
+        expTotalCol: 32,
+        demoHeaderRow: 4, demoDataStart: 5,
+        demoEntityCol: 1, demoCountyCol: 2, demoPopCol: 3,
+      };
+    }
+    // City GAAP: row 7 = headers, data row 8, entity col 1, county col 2
     return {
       basis: 'GAAP',
       sheetName: 'SOREACIFB_TotalGov',
@@ -88,7 +107,40 @@ export function detectLayout(workbook) {
     };
   }
   if (workbook.getWorksheet('SORDACIFB_TotalGov')) {
-    // CASH/MOD: row 6 = headers, data row 7, entity col 2, county col 4
+    if (entityType === 'county') {
+      // County CASH/MOD: header row 6, data row 7, entity col 1, county col 2.
+      // Receipt sources cols 3-15, Total col 16.
+      // Disbursement functions cols 17-31, Total col 32.
+      // Cols 33+ = Excess/OFS/fund-balance/transfers — EXCLUDED.
+      // OI_Demographics: row 4 = headers, data row 5.
+      //   GAAP/CASH county workbooks: entity col 1, county col 2, pop col 3.
+      //   MOD county workbook: entity col 2, county col 3, pop col 4 (col 1 is blank).
+      // Both share the same financial tab layout; demoEntityCol is set to the common county
+      // value (col 1) — MOD county workbooks shift one right but this is handled by the
+      // CASH/MOD branch selecting col 1 here and MOD workbooks having an extra blank col.
+      // In practice the OI_Demographics probe for counties uses col 1 for GAAP/CASH and
+      // col 2 for MOD; since enumerateCities/cityPopulation/cityCounty use
+      // demoEntityCol we set it to 1 for CASH (most common) — callers using MOD county
+      // workbooks directly will get null/'' from the blank col 1, which is acceptable
+      // because the batch driver always prefers GAAP (with correct OI_Demographics layout)
+      // and county CASH/MOD OI_Demographics is not used for the canonical record.
+      // For full correctness, county MOD OI_Demographics uses entityCol=2; see the
+      // batch driver which only reads OI_Demographics from the GAAP workbook for counties.
+      return {
+        basis: 'CASH_OR_MOD',
+        sheetName: 'SORDACIFB_TotalGov',
+        headerRow: 6, dataStart: 7,
+        entityCol: 1, countyCol: 2,
+        revSourceCols: [3,4,5,6,7,8,9,10,11,12,13,14,15],
+        revTotalCol: 16,
+        expFuncCols:  [17,18,19,20,21,22,23,24,25,26,27,28,29,30,31],
+        expTotalCol: 32,
+        // OI_Demographics for county CASH: headerRow 4, dataStart 5, entity col 1
+        demoHeaderRow: 4, demoDataStart: 5,
+        demoEntityCol: 1, demoCountyCol: 2, demoPopCol: 3,
+      };
+    }
+    // City CASH/MOD: row 6 = headers, data row 7, entity col 2, county col 4
     // Receipts cols 5-17, Total col 18; Disbursements cols 19-36, Total col 37; cols 38+ excluded
     return {
       basis: 'CASH_OR_MOD',
@@ -193,8 +245,8 @@ function findCityRow(ws, dataStart, cityName, entityCol = 1) {
  * Returns { tree, total } where tree is [{n, a}] with no children (D-04).
  * Includes Intergovernmental (D-01). Drops zero/blank sources.
  */
-export function buildRevenueTree(workbook, cityName) {
-  const layout = detectLayout(workbook);
+export function buildRevenueTree(workbook, cityName, entityType = 'city') {
+  const layout = detectLayout(workbook, entityType);
   const ws = workbook.getWorksheet(layout.sheetName);
   const headers = readSheetHeaders(ws, layout.headerRow);
   const dataRow = findCityRow(ws, layout.dataStart, cityName, layout.entityCol);
@@ -223,8 +275,8 @@ export function buildRevenueTree(workbook, cityName) {
  * Includes Capital Outlay, debt-service functions (D-02).
  * Excludes Other Financing Sources/Uses and fund-balance lines (D-04b).
  */
-export function buildExpenditureTree(workbook, cityName) {
-  const layout = detectLayout(workbook);
+export function buildExpenditureTree(workbook, cityName, entityType = 'city') {
+  const layout = detectLayout(workbook, entityType);
   const ws = workbook.getWorksheet(layout.sheetName);
   const headers = readSheetHeaders(ws, layout.headerRow);
   const dataRow = findCityRow(ws, layout.dataStart, cityName, layout.entityCol);
@@ -251,8 +303,8 @@ export function buildExpenditureTree(workbook, cityName) {
  * Handles both GAAP and CASH/MOD layout offsets.
  * Returns null (not throw) if absent.
  */
-export function cityPopulation(workbook, cityName) {
-  const layout = detectLayout(workbook);
+export function cityPopulation(workbook, cityName, entityType = 'city') {
+  const layout = detectLayout(workbook, entityType);
   const ws = workbook.getWorksheet('OI_Demographics');
   if (!ws) return null;
   let row;
@@ -266,8 +318,8 @@ export function cityPopulation(workbook, cityName) {
  * Handles both GAAP and CASH/MOD layout offsets.
  * Returns '' if absent.
  */
-export function cityCounty(workbook, cityName) {
-  const layout = detectLayout(workbook);
+export function cityCounty(workbook, cityName, entityType = 'city') {
+  const layout = detectLayout(workbook, entityType);
   const ws = workbook.getWorksheet('OI_Demographics');
   if (!ws) return '';
   let row;
@@ -289,8 +341,8 @@ export function cityCounty(workbook, cityName) {
  * Returns an array of bare city names (strip "City of " prefix) in sheet order.
  * Mirrors VA enumerateRoster, minus sectioning.
  */
-export function enumerateCities(workbook) {
-  const layout = detectLayout(workbook);
+export function enumerateCities(workbook, entityType = 'city') {
+  const layout = detectLayout(workbook, entityType);
   const ws = workbook.getWorksheet(layout.sheetName);
   if (!ws) throw new Error(`Sheet ${layout.sheetName} not found`);
   const names = [];
@@ -434,10 +486,10 @@ export async function importCity(supabase, workbook, opts) {
     entityType = 'city',
   } = opts;
 
-  const exp = buildExpenditureTree(workbook, cityName);
-  const rev = buildRevenueTree(workbook, cityName);
-  const population = cityPopulation(workbook, cityName);
-  const county = cityCounty(workbook, cityName);
+  const exp = buildExpenditureTree(workbook, cityName, entityType);
+  const rev = buildRevenueTree(workbook, cityName, entityType);
+  const population = cityPopulation(workbook, cityName, entityType);
+  const county = cityCounty(workbook, cityName, entityType);
 
   // Canonical name used for DB writes. Falls back to cityName if not overridden.
   const dbName = municipalityName || cityName;

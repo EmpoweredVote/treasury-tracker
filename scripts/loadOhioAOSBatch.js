@@ -57,8 +57,8 @@ const FAILURES_LOG = join(__dirname, 'load-ohio-cities.failures.txt');
  * These are cities with population/county data but may lack a financial row.
  * Used to compute the source-gap residual (CONTEXT D-03).
  */
-function enumerateDemographics(workbook) {
-  const layout = detectLayout(workbook);
+function enumerateDemographics(workbook, entityType = 'city') {
+  const layout = detectLayout(workbook, entityType);
   const ws = workbook.getWorksheet('OI_Demographics');
   if (!ws) return [];
   const names = [];
@@ -178,7 +178,7 @@ export async function loadOhioAOSBatch(opts) {
     const info = await acquireWorkbook(fiscalYear, basis, override, entityType);
     if (info) {
       basisInfos[basis] = info;
-      const names = enumerateCities(info.workbook);
+      const names = enumerateCities(info.workbook, entityType);
       console.log(`  [${basis}] ${names.length} cities in financial tab`);
     }
   }
@@ -205,7 +205,7 @@ export async function loadOhioAOSBatch(opts) {
   for (const basis of ['GAAP', 'CASH', 'MOD']) {
     if (!basisInfos[basis]) continue;
     const { workbook, sourceUrl } = basisInfos[basis];
-    for (const name of enumerateCities(workbook)) {
+    for (const name of enumerateCities(workbook, entityType)) {
       // Derive canonical name: for county loads, ensure "<Name> County" suffix.
       const canonicalName = (entityType === 'county' && !name.endsWith(' County'))
         ? `${name} County`
@@ -227,7 +227,7 @@ export async function loadOhioAOSBatch(opts) {
   // Apply the same county name normalisation so residual names match the canonical form.
   const demoSet = new Set();
   for (const { workbook } of Object.values(basisInfos)) {
-    for (const name of enumerateDemographics(workbook)) {
+    for (const name of enumerateDemographics(workbook, entityType)) {
       const canonicalDemo = (entityType === 'county' && !name.endsWith(' County'))
         ? `${name} County`
         : name;
