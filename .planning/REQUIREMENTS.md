@@ -32,7 +32,7 @@ Requirements for the v2.8 milestone. Each maps to exactly one roadmap phase.
 
 ### Verification (OHVER)
 
-- [ ] **OHVER-01**: Sample cities + a county government reconciled to published ACFRs — using the workbook's `SOA_Gov` full-accrual Statement of Activities as a built-in cross-check plus per-entity ACFR — within an explained basis tolerance; full-cohort source-chain audit clean (0 NULL/fragile/residue across all loaded rows)
+- [x] **OHVER-01**: Sample cities + a county government reconciled to published ACFRs — using the workbook's `SOA_Gov` full-accrual Statement of Activities as a built-in cross-check plus per-entity ACFR — within an explained basis tolerance; full-cohort source-chain audit clean (0 NULL/fragile/residue across all loaded rows)
 - [ ] **OHVER-02**: Live-app UAT across an Ohio city + an Ohio county government with Chris sign-off
 
 ## v2 Requirements
@@ -70,7 +70,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | OHCO-01 | Phase 86 | Complete |
 | OHLINK-01 | Phase 86 | Complete |
 | OHENR-01 | Phase 87 | Complete |
-| OHVER-01 | Phase 88 | Pending |
+| OHVER-01 | Phase 88 | Complete |
 | OHVER-02 | Phase 88 | Pending |
 
 **Coverage:**
