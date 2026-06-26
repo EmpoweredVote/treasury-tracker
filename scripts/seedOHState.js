@@ -213,13 +213,11 @@ async function main() {
     console.log(`  id=${row.id}  api_type=${row.api_type}  dataset_type=${row.dataset_type}\n`);
   }
 
-  // ── Step C: Verification via treasury_list_source_ids ────────────────────
-  console.log('Verifying via treasury_list_source_ids RPC...');
-  const { data: listing, error: listErr } = await supabase.rpc('treasury_list_source_ids');
-  if (listErr) {
-    console.error(`  ERROR: ${listErr.message}`);
-    process.exit(1);
-  }
+  // ── Step C: Verification via direct data_sources table query ─────────────
+  // Note: treasury_list_source_ids RPC has a 1000-row default page limit; with
+  // 1,900+ total sources, Ohio entries (starting with 'O') exceed the cutoff.
+  // Query the table directly for a reliable verification.
+  console.log('Verifying data_source rows...');
 
   const expectedNames = [
     'Ohio General Fund Operating Budget',
@@ -228,7 +226,20 @@ async function main() {
 
   let allFound = true;
   for (const name of expectedNames) {
-    const hit = (listing || []).find(r => r.name === name);
+    const { data: hit, error: hitErr } = await supabase
+      .schema('treasury')
+      .from('data_sources')
+      .select('id, api_type, dataset_type')
+      .eq('name', name)
+      .eq('municipality_id', ohStateId)
+      .maybeSingle();
+
+    if (hitErr) {
+      console.error(`  ERROR querying "${name}": ${hitErr.message}`);
+      allFound = false;
+      continue;
+    }
+
     if (hit) {
       console.log(`  OK: ${name} (api_type=${hit.api_type}, type=${hit.dataset_type})`);
     } else {
@@ -238,8 +249,51 @@ async function main() {
   }
 
   if (!allFound) {
-    console.error('\nERROR: expected source not found in treasury_list_source_ids');
+    console.error('\nERROR: expected Ohio data_source not found');
     process.exit(1);
+  }
+
+  // ── Step D: Stamp source_url + source_date on any NULL state-node budget rows ──
+  // processOH.js / processOHRevenue.js write budget rows via treasury_sync_budget_tree,
+  // which does not set source_url / source_date. This idempotent step backfills them.
+  // The source URLs match the base_url fields in DATA_SOURCE_TEMPLATES above.
+  console.log('\nStamping source_url + source_date on NULL state-node budget rows (idempotent)...');
+
+  const SOURCE_DATE = '2026-06-25'; // date these URLs were confirmed live
+
+  const BUDGET_SOURCE_MAP = [
+    {
+      data_source: 'Ohio General Fund Operating Budget',
+      source_url:  'https://www.lsc.ohio.gov/budget/',
+    },
+    {
+      data_source: 'Ohio General Fund Revenue',
+      source_url:  'https://www.lsc.ohio.gov/publications/historical-revenues-and-expenditures',
+    },
+  ];
+
+  let totalStamped = 0;
+  for (const { data_source, source_url } of BUDGET_SOURCE_MAP) {
+    const { data: stamped, error: stampErr } = await supabase
+      .schema('treasury')
+      .from('budgets')
+      .update({ source_url, source_date: SOURCE_DATE })
+      .eq('municipality_id', ohStateId)
+      .eq('data_source', data_source)
+      .is('source_url', null)
+      .select('id, fiscal_year');
+
+    if (stampErr) {
+      console.error(`  ERROR stamping "${data_source}": ${stampErr.message}`);
+      process.exit(1);
+    }
+    const n = stamped?.length ?? 0;
+    totalStamped += n;
+    console.log(`  ${data_source}: ${n} rows stamped`);
+  }
+
+  if (totalStamped === 0) {
+    console.log('  (all state-node budget rows already have source_url — idempotent, no changes)');
   }
 
   console.log('\nDone.');
