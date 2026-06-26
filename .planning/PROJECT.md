@@ -10,7 +10,14 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 
 ## Current State
 
+**Shipped v2.8 Ohio Local Government Expansion (2026-06-26).** Ohio cities + county governments brought onto Treasury Tracker at parity from the single uniform Ohio Auditor of State "Summarized Annual Financial Reports" XLSX (Hinkle System, ohioauditor.gov, free, no auth): **253 cities + 88 counties** loaded operating + revenue across FY2016–2025 (~6,616 budget rows), general-government revenue by source + expenditure by function, per-capita from `OI_Demographics`, every figure sourced. GAAP primary with CASH/MOD fallback (mixed basis per-entity); 253/253 cities linked to their parent county via the source `County` column under a new Ohio state navigation node; 51 state-neutral bleed-safe universal enrichment rows inline at $0. Phase 88 verified: Columbus + Franklin County reconciled (stored = the loaded `SOREACIFB` tab at $0 delta; `SOA_Gov` full-accrual cross-check deltas explained), a clean full-cohort source-chain audit (0 NULL/fragile/residue after two approved fixes), independent workbook re-derivation of 5 entities (0 mismatches), and a live-app UAT with Chris's sign-off. One accepted limitation: Ohio's flat AOS source yields no icicle drill-down (data correct; UX follow-up deferred). A mid-milestone county-workbook layout defect was caught by the independent re-derivation and fixed via gap-closure. $0 spend.
+
+<details>
+<summary>Previous: v2.7 Virginia Local Government Expansion (shipped 2026-06-24)</summary>
+
 **Shipped v2.7 Virginia Local Government Expansion (2026-06-24).** Every reporting Virginia locality — independent cities, counties, and towns (162 entities, 618 budget rows) — brought onto Treasury Tracker at parity from the single uniform APA Comparative Report XLSX (data.virginia.gov, free, no auth): general-government revenue by source + expenditure by function→activity (2-level tree), per-capita, every figure sourced, across FY2023 + FY2024-amended. Independent cities render standalone, counties as their own nodes, towns linked to their parent county under a new Virginia state navigation node; standardized bleed-safe plain-language enrichment for the full VA vocabulary (73 universal rows, inline at $0). Phase 83 verified: Alexandria + Fairfax County reconciled to published FY2024 ACFRs within an explained ~±5% basis tolerance, a clean full-cohort source-chain audit (618 rows, 0 NULL/fragile/residue), and a live-app UAT across a city + county + town with Chris's sign-off. $0 spend (one reusable loader; inline-authored enrichment). The inserted out-of-scope Phase 81.5 also shipped an honest EV recurring-supporter micro-donation callout.
+
+</details>
 
 <details>
 <summary>Previous: v2.6 EV Financial Transparency Refresh (shipped 2026-06-22)</summary>
@@ -26,7 +33,7 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 
 </details>
 
-**Coverage now:** US federal + CA/MA state budgets, **162 Virginia entities** (independent cities + counties + towns, op/rev FY2023–2024, enrichment, county-linked, under a VA state node), 351 MA cities, all California cities across OC + LA + the 6 SoCal counties + their county governments, **10 Utah cities + 5 Utah county governments** (op/rev FY2014–2025, compensation, enrichment, county-linked), 12 named CA cities, 14 TX cities, 3 OR cities — every figure durably sourced.
+**Coverage now:** US federal + CA/MA state budgets, **253 Ohio cities + 88 Ohio counties** (op/rev FY2016–2025, enrichment, county-linked, under an Ohio state node), **162 Virginia entities** (independent cities + counties + towns, op/rev FY2023–2024, enrichment, county-linked, under a VA state node), 351 MA cities, all California cities across OC + LA + the 6 SoCal counties + their county governments, **10 Utah cities + 5 Utah county governments** (op/rev FY2014–2025, compensation, enrichment, county-linked), 12 named CA cities, 14 TX cities, 3 OR cities — every figure durably sourced.
 
 <details>
 <summary>Previous: v2.4 Southern California Expansion (shipped 2026-06-17)</summary>
@@ -40,20 +47,12 @@ All 6 remaining SoCal counties added via the hardened v2.2/v2.3 pipeline with ze
 Brought every already-loaded non-OC California city and county to the Orange County standard (FY2003 history, statewide salaries, standardized enrichment) via the hardened v2.2 pipeline. Phase 62 verified end-to-end: ACFR reconciliation, source-chain audit (0 NULL/fragile/residue across 25,568 rows), 24-item UAT with Chris's sign-off. SoCal expansion deferred to v2.4.
 </details>
 
-## Current Milestone: v2.8 Ohio Local Government Expansion
+## Next Milestone: TBD
 
-**Goal:** Bring Ohio cities + county governments onto Treasury Tracker at parity from the single uniform Ohio Auditor of State "Summarized Annual Financial Reports" XLSX (Hinkle System, free, no auth) — general-government revenue by source + expenditure by function, per-capita, every figure sourced to ohioauditor.gov.
-
-**Target features:**
-- New Ohio AOS XLSX loader: column→tree map of `SOREACIFB_TotalGov` (12 revenue sources, ~18 expenditure functions) — flatter than CA/Utah's nested feeds, so the transform is column→node mapping; reuses the `treasury_sync_city_budget` RPC + never-overwrite guard; idempotent
-- ~235 GAAP-filing cities loaded op/rev across the XLSX-available FY range (2016–2025), per-capita from the `OI_Demographics` tab population; non-GAAP filers backfilled from the CASH/MOD-basis workbooks (mixed basis recorded per-city)
-- Ohio county governments loaded (separate County workbook); city→county linking via the source `County` column; new Ohio state navigation node
-- Standardized, bleed-safe, state-neutral universal enrichment for the Ohio vocabulary, authored inline at $0 (explicit map + 100% coverage gate)
-- Verification: ACFR reconciliation (the workbook's `SOA_Gov` full-accrual Statement of Activities as a built-in cross-check + per-entity ACFR) + full-cohort source-chain audit + Chris live UAT
-
-**Key context:** Virginia/Utah mold — one new fetch+column-map layer over the existing loader/RPC pattern. No salaries (not in this source). Enterprise funds (Water/Sewer/Electric/Landfill tabs) deferred. General-government scope only. Phases continue from 84. $0 spend target. See auto-memory `reference_ohio_aos_financial_data`.
+v2.8 Ohio shipped 2026-06-26. The next milestone is not yet defined — run `/gsd-new-milestone` to gather goals, research, requirements, and a roadmap. Candidate directions (from the backlog + carried-forward follow-ups below): broader Ohio entity coverage (townships/villages/libraries/schools — OHTWN-01) or enterprise funds (OHENT-01); another state expansion on the proven uniform-source + batch-driver mold; or a UI pass (incl. the deferred flat-source icicle leaf-click fix).
 
 **Carried-forward follow-ups (candidates for a later milestone or backlog sweep):**
+- **v2.8 (Phase 88):** flat AOS source → no icicle drill-down (deferred UX fix = surface enrichment on leaf click; see auto-memory `project_flat_source_icicle_limitation`); the 10 state-node General Fund rows' `source_url` points at `lsc.ohio.gov/budget/` (canonical, but a TLS cert-chain quirk — swap if it warns in-browser); the county "Charges For Services" duplicate-column display quirk (`total_budget` authoritative); v2 deferred OHTWN-01 (townships/villages/libraries/schools) + OHENT-01 (enterprise funds).
 - **v2.7 (Phases 80/83):** 6 localities + 3 towns absent from all published VA XLSX years (multi-year-overdue audits) + Covington/Alleghany null population — picked up idempotently on a future re-run; enterprise funds (Exhibit F) deferred from VA scope.
 - **v2.5 (Phase 73):** 4 pre-existing non-P72 `$`-leak universal enrichment rows (bleed-safety cleanup); Salt Lake County FY2025 salaries (fills on next FY2025-complete rollup refresh).
 - **v2.4:** broader per-entity independent ACFR cross-read for the SoCal sample (only Ventura fully reconciled; several ACFR PDFs blocked/non-extractable).
@@ -147,16 +146,11 @@ Brought every already-loaded non-OC California city and county to the Orange Cou
 - ✓ EV micro-donation transparency callout (inserted, out-of-scope EV financials): honest recurring-supporter stat (9 supporters, median $10/mo, reconciled, zero PII) + locked headline + soft invite (EVMICRO-01/02/03) — v2.7, Phase 81.5
 - ✓ 73 standardized, bleed-safe, state-neutral universal VA enrichment rows authored inline at $0 (explicit map + 100% coverage gate, delete-then-insert); corrected the stale shared `miscellaneous`→"Information Technology" universal (VAENR-01) — v2.7, Phase 82
 - ✓ VA verification: Alexandria + Fairfax County ACFR reconciliation (~±5% explained basis tolerance), full-cohort source-chain audit (618 rows, 0 NULL/fragile/residue), live-app UAT (city + county + town) with Chris sign-off (VAVER-01/02) — v2.7, Phase 83
-
-### Active
-
-**v2.8 Ohio Local Government Expansion** (defining requirements → roadmap):
-
-- [ ] Ohio AOS Summarized Annual Financial Reports XLSX loader (column→tree map, GAAP + CASH/MOD fallback, sourced to ohioauditor.gov)
-- [ ] ~235 GAAP cities + non-GAAP fallback loaded op/rev with per-capita
-- [ ] Ohio county governments loaded; city→county linking; Ohio state node
-- [ ] Standardized bleed-safe universal enrichment for the Ohio vocabulary (inline, $0)
-- [ ] Verification — ACFR/SOA_Gov reconciliation + source-chain audit + Chris live UAT
+- ✓ Ohio AOS Summarized Annual Financial Reports loader + batch driver (column→flat-tree map of `SOREACIFB`/`SORDACIFB`, GAAP→CASH→MOD per-entity fallback, entity-type-aware city+county, per-FY+basis manifests, never-overwrite guard) — sourced to ohioauditor.gov (OHSRC-01/02) — v2.8, Phase 84
+- ✓ 253 Ohio cities loaded op/rev FY2016–2025 (~4,880 rows), per-capita, CASH/MOD backfill, committed source-gap residual, idempotent (OHCITY-01/02) — v2.8, Phase 85
+- ✓ 88 Ohio counties loaded op/rev FY2016–2025; Ohio state node; 253/253 city→county links via the source County column; breadcrumb + Cities-in-County panel (OHCO-01, OHLINK-01) — v2.8, Phase 86 (incl. county-layout gap-closure)
+- ✓ 51 state-neutral bleed-safe universal Ohio enrichment rows inline at $0 (explicit map + 100% coverage gate + delete-then-insert NULLS-DISTINCT-safe) (OHENR-01) — v2.8, Phase 87
+- ✓ Ohio verification: Columbus + Franklin County ACFR/`SOA_Gov` recon (stored = loaded tab $0 delta), full-cohort 0-NULL source-chain audit + independent 5-entity re-derivation (0 mismatches), live-app UAT with Chris sign-off (OHVER-01/02) — v2.8, Phase 88
 
 ### Future (deferred milestone candidates)
 
