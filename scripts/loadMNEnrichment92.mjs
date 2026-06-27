@@ -154,6 +154,10 @@ export const GUARD_NAME_SKIP = new Set([
   'albertville',
   'albert',
   'elko',
+  // Geological/industrial terms that are also MN city names
+  'taconite',    // iron ore mineral — legitimately used in taconite credit/aid descriptions
+  'granite',     // rock type
+  'marble',      // rock type
   // Additional common MN city names that match generic vocabulary
   'alpha',
   'beta',

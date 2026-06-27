@@ -1,0 +1,687 @@
+{
+  "generated_at": "2026-06-27T00:00:00.000Z",
+  "authored": 136,
+  "missing": [],
+  "rows": [
+    {
+      "name_key": "airport",
+      "plain_name": "Airport",
+      "confidence": "high"
+    },
+    {
+      "name_key": "airport|capital",
+      "plain_name": "Capital Outlay",
+      "confidence": "high"
+    },
+    {
+      "name_key": "airport|current",
+      "plain_name": "Current Expenditures",
+      "confidence": "high"
+    },
+    {
+      "name_key": "all other revenue",
+      "plain_name": "All Other Revenue",
+      "confidence": "high"
+    },
+    {
+      "name_key": "cemetery",
+      "plain_name": "Cemetery",
+      "confidence": "high"
+    },
+    {
+      "name_key": "cemetery|capital",
+      "plain_name": "Capital Outlay",
+      "confidence": "high"
+    },
+    {
+      "name_key": "cemetery|current",
+      "plain_name": "Current Expenditures",
+      "confidence": "high"
+    },
+    {
+      "name_key": "charges for services",
+      "plain_name": "Charges for Services",
+      "confidence": "high"
+    },
+    {
+      "name_key": "charges for services|airport fees",
+      "plain_name": "Airport Fees",
+      "confidence": "high"
+    },
+    {
+      "name_key": "charges for services|all other service charges",
+      "plain_name": "All Other Service Charges",
+      "confidence": "high"
+    },
+    {
+      "name_key": "charges for services|cemetery fees",
+      "plain_name": "Cemetery Fees",
+      "confidence": "high"
+    },
+    {
+      "name_key": "charges for services|edahrasvccharge",
+      "plain_name": "EDA/HRA Service Charges",
+      "confidence": "high"
+    },
+    {
+      "name_key": "charges for services|general government fees",
+      "plain_name": "General Government Fees",
+      "confidence": "high"
+    },
+    {
+      "name_key": "charges for services|library fees",
+      "plain_name": "Library Fees",
+      "confidence": "high"
+    },
+    {
+      "name_key": "charges for services|other public safety fees",
+      "plain_name": "Other Public Safety Fees",
+      "confidence": "high"
+    },
+    {
+      "name_key": "charges for services|park and recreation fees",
+      "plain_name": "Park & Recreation Fees",
+      "confidence": "high"
+    },
+    {
+      "name_key": "charges for services|police and fire contracts",
+      "plain_name": "Police & Fire Contracts",
+      "confidence": "high"
+    },
+    {
+      "name_key": "charges for services|sanitation fees",
+      "plain_name": "Sanitation Fees",
+      "confidence": "high"
+    },
+    {
+      "name_key": "charges for services|street and highway fees",
+      "plain_name": "Street & Highway Fees",
+      "confidence": "high"
+    },
+    {
+      "name_key": "charges for services|transit fees",
+      "plain_name": "Transit Fees",
+      "confidence": "high"
+    },
+    {
+      "name_key": "conservation of natural resources",
+      "plain_name": "Conservation of Natural Resources",
+      "confidence": "high"
+    },
+    {
+      "name_key": "conservation of natural resources|capital",
+      "plain_name": "Capital Outlay",
+      "confidence": "high"
+    },
+    {
+      "name_key": "conservation of natural resources|current",
+      "plain_name": "Current Expenditures",
+      "confidence": "high"
+    },
+    {
+      "name_key": "debt service",
+      "plain_name": "Debt Service",
+      "confidence": "high"
+    },
+    {
+      "name_key": "debt service|bond principal payments",
+      "plain_name": "Bond Principal Payments",
+      "confidence": "high"
+    },
+    {
+      "name_key": "debt service|interest payments & fiscal charges",
+      "plain_name": "Interest & Fiscal Charges",
+      "confidence": "high"
+    },
+    {
+      "name_key": "debt service|other long-term debt principal payments",
+      "plain_name": "Other Long-term Debt Principal",
+      "confidence": "high"
+    },
+    {
+      "name_key": "economic development",
+      "plain_name": "Economic Development",
+      "confidence": "high"
+    },
+    {
+      "name_key": "economic development|capital",
+      "plain_name": "Capital Outlay",
+      "confidence": "high"
+    },
+    {
+      "name_key": "economic development|current",
+      "plain_name": "Current Expenditures",
+      "confidence": "high"
+    },
+    {
+      "name_key": "education",
+      "plain_name": "Education",
+      "confidence": "high"
+    },
+    {
+      "name_key": "fines and forfeits",
+      "plain_name": "Fines & Forfeits",
+      "confidence": "high"
+    },
+    {
+      "name_key": "fines and forfeits|adminfines",
+      "plain_name": "Administrative Fines",
+      "confidence": "high"
+    },
+    {
+      "name_key": "fines and forfeits|fines and forfeits",
+      "plain_name": "Fines & Forfeits",
+      "confidence": "high"
+    },
+    {
+      "name_key": "general government",
+      "plain_name": "General Government",
+      "confidence": "high"
+    },
+    {
+      "name_key": "general government|capital",
+      "plain_name": "Capital Outlay",
+      "confidence": "high"
+    },
+    {
+      "name_key": "general government|current",
+      "plain_name": "Current Expenditures",
+      "confidence": "high"
+    },
+    {
+      "name_key": "general government|current|administration and finance current expend",
+      "plain_name": "Administration & Finance",
+      "confidence": "high"
+    },
+    {
+      "name_key": "general government|current|all other general government current expend",
+      "plain_name": "All Other General Government",
+      "confidence": "high"
+    },
+    {
+      "name_key": "general government|current|governing board current expend",
+      "plain_name": "Governing Board",
+      "confidence": "high"
+    },
+    {
+      "name_key": "health",
+      "plain_name": "Health",
+      "confidence": "high"
+    },
+    {
+      "name_key": "health|capital",
+      "plain_name": "Capital Outlay",
+      "confidence": "high"
+    },
+    {
+      "name_key": "health|current",
+      "plain_name": "Current Expenditures",
+      "confidence": "high"
+    },
+    {
+      "name_key": "housing & urban redevelopment",
+      "plain_name": "Housing & Urban Redevelopment",
+      "confidence": "high"
+    },
+    {
+      "name_key": "housing & urban redevelopment|capital",
+      "plain_name": "Capital Outlay",
+      "confidence": "high"
+    },
+    {
+      "name_key": "housing & urban redevelopment|current",
+      "plain_name": "Current Expenditures",
+      "confidence": "high"
+    },
+    {
+      "name_key": "human services",
+      "plain_name": "Human Services",
+      "confidence": "high"
+    },
+    {
+      "name_key": "human services|all other human services current expenditures",
+      "plain_name": "All Other Human Services",
+      "confidence": "high"
+    },
+    {
+      "name_key": "human services|human service income maintenance",
+      "plain_name": "Human Services — Income Maintenance",
+      "confidence": "high"
+    },
+    {
+      "name_key": "human services|human services capital outlay",
+      "plain_name": "Human Services Capital Outlay",
+      "confidence": "high"
+    },
+    {
+      "name_key": "human services|human services social services",
+      "plain_name": "Human Services — Social Services",
+      "confidence": "high"
+    },
+    {
+      "name_key": "interest earnings",
+      "plain_name": "Interest Earnings",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental",
+      "plain_name": "Intergovernmental Revenue",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental|county/local grants",
+      "plain_name": "County & Local Grants",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental|county/local grants|all other county grants",
+      "plain_name": "All Other County Grants",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental|county/local grants|all other local grants",
+      "plain_name": "All Other Local Grants",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental|county/local grants|county highway grants",
+      "plain_name": "County Highway Grants",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental|county/local grants|local irrrb grants",
+      "plain_name": "Local IRRRB Grants",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental|federal grants",
+      "plain_name": "Federal Grants",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental|federal grants|all other federal grants",
+      "plain_name": "All Other Federal Grants",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental|federal grants|fedcoronavirusrelieffunds",
+      "plain_name": "Federal Coronavirus Relief Funds",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental|federal grants|federal cdbg grants",
+      "plain_name": "Federal CDBG Grants",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental|federal grants|federal education grants",
+      "plain_name": "Federal Education Grants",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental|federal grants|federal emergency management aid",
+      "plain_name": "Federal Emergency Management Aid",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental|federal grants|federal human services grants",
+      "plain_name": "Federal Human Services Grants",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental|federal grants|federal transportation grants",
+      "plain_name": "Federal Transportation Grants",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental|state grants",
+      "plain_name": "State Grants",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental|state grants|all other state grants",
+      "plain_name": "All Other State Grants",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental|state grants|state county program aid",
+      "plain_name": "State County Program Aid",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental|state grants|state disparity reduction aid",
+      "plain_name": "State Disparity Reduction Aid",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental|state grants|state education grants",
+      "plain_name": "State Education Grants",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental|state grants|state human service grants",
+      "plain_name": "State Human Service Grants",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental|state grants|state local government aid",
+      "plain_name": "State Local Government Aid",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental|state grants|state manufactured home homestead credit",
+      "plain_name": "State Manufactured Home Homestead Credit",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental|state grants|state market value credit ag",
+      "plain_name": "State Market Value Credit — Agricultural",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental|state grants|state market value credit real",
+      "plain_name": "State Market Value Credit — Real Property",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental|state grants|state pera aid",
+      "plain_name": "State PERA Aid",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental|state grants|state police aid",
+      "plain_name": "State Police Aid",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental|state grants|state taconite aids",
+      "plain_name": "State Taconite Aids",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental|state grants|state taconite homestead credit",
+      "plain_name": "State Taconite Homestead Credit",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental|state grants|state transportation grants",
+      "plain_name": "State Transportation Grants",
+      "confidence": "high"
+    },
+    {
+      "name_key": "intergovernmental|state grants|statetownaid",
+      "plain_name": "State Town Aid",
+      "confidence": "high"
+    },
+    {
+      "name_key": "library",
+      "plain_name": "Library",
+      "confidence": "high"
+    },
+    {
+      "name_key": "library|capital",
+      "plain_name": "Capital Outlay",
+      "confidence": "high"
+    },
+    {
+      "name_key": "library|current",
+      "plain_name": "Current Expenditures",
+      "confidence": "high"
+    },
+    {
+      "name_key": "licenses and permits",
+      "plain_name": "Licenses & Permits",
+      "confidence": "high"
+    },
+    {
+      "name_key": "other & unallocated",
+      "plain_name": "Other & Unallocated",
+      "confidence": "high"
+    },
+    {
+      "name_key": "other & unallocated|all other capital outlay",
+      "plain_name": "All Other Capital Outlay",
+      "confidence": "high"
+    },
+    {
+      "name_key": "other & unallocated|all other current expend",
+      "plain_name": "All Other Current Expenditures",
+      "confidence": "high"
+    },
+    {
+      "name_key": "other & unallocated|capital outlay for enterprise funds",
+      "plain_name": "Capital Outlay for Enterprise Funds",
+      "confidence": "high"
+    },
+    {
+      "name_key": "other & unallocated|unallocated insurance costs",
+      "plain_name": "Unallocated Insurance Costs",
+      "confidence": "high"
+    },
+    {
+      "name_key": "other & unallocated|unallocated pension costs",
+      "plain_name": "Unallocated Pension Costs",
+      "confidence": "high"
+    },
+    {
+      "name_key": "park & recreation",
+      "plain_name": "Parks & Recreation",
+      "confidence": "high"
+    },
+    {
+      "name_key": "park & recreation|capital",
+      "plain_name": "Capital Outlay",
+      "confidence": "high"
+    },
+    {
+      "name_key": "park & recreation|current",
+      "plain_name": "Current Expenditures",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public safety",
+      "plain_name": "Public Safety",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public safety|all other public safety",
+      "plain_name": "All Other Public Safety",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public safety|all other public safety|capital",
+      "plain_name": "Capital Outlay",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public safety|all other public safety|current",
+      "plain_name": "Current Expenditures",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public safety|ambulance",
+      "plain_name": "Ambulance Services",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public safety|ambulance|capital",
+      "plain_name": "Capital Outlay",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public safety|ambulance|current",
+      "plain_name": "Current Expenditures",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public safety|corrections",
+      "plain_name": "Corrections",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public safety|corrections|capital",
+      "plain_name": "Capital Outlay",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public safety|corrections|current",
+      "plain_name": "Current Expenditures",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public safety|fire",
+      "plain_name": "Fire Protection",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public safety|fire|capital",
+      "plain_name": "Capital Outlay",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public safety|fire|current",
+      "plain_name": "Current Expenditures",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public safety|police/sheriff",
+      "plain_name": "Police / Sheriff",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public safety|police/sheriff|capital",
+      "plain_name": "Capital Outlay",
+      "confidence": "high"
+    },
+    {
+      "name_key": "public safety|police/sheriff|current",
+      "plain_name": "Current Expenditures",
+      "confidence": "high"
+    },
+    {
+      "name_key": "sanitation",
+      "plain_name": "Sanitation",
+      "confidence": "high"
+    },
+    {
+      "name_key": "sanitation|all other sanitation current expend",
+      "plain_name": "All Other Sanitation",
+      "confidence": "high"
+    },
+    {
+      "name_key": "sanitation|refuse collection and disposal current expend",
+      "plain_name": "Refuse Collection & Disposal",
+      "confidence": "high"
+    },
+    {
+      "name_key": "sanitation|sanitation capital outlay",
+      "plain_name": "Sanitation Capital Outlay",
+      "confidence": "high"
+    },
+    {
+      "name_key": "special assessments",
+      "plain_name": "Special Assessments",
+      "confidence": "high"
+    },
+    {
+      "name_key": "streets & highways",
+      "plain_name": "Streets & Highways",
+      "confidence": "high"
+    },
+    {
+      "name_key": "streets & highways|all other street & highway capital outlay",
+      "plain_name": "All Other Street & Highway Capital",
+      "confidence": "high"
+    },
+    {
+      "name_key": "streets & highways|snow and ice removal",
+      "plain_name": "Snow & Ice Removal",
+      "confidence": "high"
+    },
+    {
+      "name_key": "streets & highways|street & highway administration",
+      "plain_name": "Street & Highway Administration",
+      "confidence": "high"
+    },
+    {
+      "name_key": "streets & highways|street & highway construction",
+      "plain_name": "Street & Highway Construction",
+      "confidence": "high"
+    },
+    {
+      "name_key": "streets & highways|street & highway engineering",
+      "plain_name": "Street & Highway Engineering",
+      "confidence": "high"
+    },
+    {
+      "name_key": "streets & highways|street & highway maintenance",
+      "plain_name": "Street & Highway Maintenance",
+      "confidence": "high"
+    },
+    {
+      "name_key": "streets & highways|street lighting",
+      "plain_name": "Street Lighting",
+      "confidence": "high"
+    },
+    {
+      "name_key": "taxes",
+      "plain_name": "Taxes",
+      "confidence": "high"
+    },
+    {
+      "name_key": "taxes|franchisefees",
+      "plain_name": "Franchise Fees",
+      "confidence": "high"
+    },
+    {
+      "name_key": "taxes|gamblingtax",
+      "plain_name": "Gambling Tax",
+      "confidence": "high"
+    },
+    {
+      "name_key": "taxes|graveltax",
+      "plain_name": "Gravel Tax",
+      "confidence": "high"
+    },
+    {
+      "name_key": "taxes|hotelmoteltax",
+      "plain_name": "Hotel/Motel Tax",
+      "confidence": "high"
+    },
+    {
+      "name_key": "taxes|propertytaxes",
+      "plain_name": "Property Taxes",
+      "confidence": "high"
+    },
+    {
+      "name_key": "taxes|salestax",
+      "plain_name": "Sales Tax",
+      "confidence": "high"
+    },
+    {
+      "name_key": "taxes|tax increments",
+      "plain_name": "Tax Increment Financing",
+      "confidence": "high"
+    },
+    {
+      "name_key": "taxes|wheelagetax",
+      "plain_name": "Wheelage Tax",
+      "confidence": "high"
+    },
+    {
+      "name_key": "transit",
+      "plain_name": "Transit",
+      "confidence": "high"
+    },
+    {
+      "name_key": "transit|capital",
+      "plain_name": "Capital Outlay",
+      "confidence": "high"
+    },
+    {
+      "name_key": "transit|current",
+      "plain_name": "Current Expenditures",
+      "confidence": "high"
+    }
+  ]
+}
