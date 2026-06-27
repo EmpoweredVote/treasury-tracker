@@ -21,8 +21,10 @@ import {
   entityCounty,
   entityBasis,
   resolveSourceUrl,
+  enumerateEntities,
   DATA_SOURCE_NAME,
 } from './loadMNOSA.js';
+import { loadMNOSABatch } from './loadMNOSABatch.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CITY_SAMPLE = join(__dirname, '..', '_mn-recon', 'cired_23_data.xlsx');
@@ -174,4 +176,31 @@ test('County files have no GAAPInd / no ParentEntityName — handled gracefully 
   assert.equal(entityBasis(wb, 'Aitkin', 'county'), null, 'no GAAPInd column → basis null');
   assert.equal(entityCounty(wb, 'Aitkin', 'county'), '', 'no ParentEntityName column → empty parent');
   assert.ok(Number.isFinite(entityPopulation(wb, 'Aitkin', 'county')), 'county population still read');
+});
+
+// ── Phase 90: roster enumeration + batch driver ──────────────────────────────
+test('enumerateEntities returns the full city roster (no empties/dups, incl. Minneapolis)', { skip: !HAVE_CITY }, async () => {
+  const wb = await cityWb();
+  const names = enumerateEntities(wb, 'city');
+  assert.ok(names.length >= 800, `expected >=800 cities, got ${names.length}`);
+  assert.ok(names.includes('Minneapolis'), 'roster includes Minneapolis');
+  assert.ok(names.includes('Saint Paul'), 'roster includes Saint Paul (source spelling)');
+  assert.equal(names.filter((n) => !n).length, 0, 'no empty entity names');
+  assert.equal(names.length, new Set(names).size, 'no duplicate entity names');
+});
+
+test('enumerateEntities is layout-agnostic — works on the county sheet too (D-08)', { skip: !HAVE_COUNTY }, async () => {
+  const wb = await countyWb();
+  const names = enumerateEntities(wb, 'county');
+  assert.ok(names.length > 0 && names.includes('Aitkin'), 'county roster includes Aitkin');
+});
+
+test('loadMNOSABatch FY2023 dry-run processes the full roster, zero writes, GAAP+Cash both present', { skip: !HAVE_CITY }, async () => {
+  const res = await loadMNOSABatch({ fy: 2023, file: CITY_SAMPLE, dryRun: true });
+  assert.ok(res.processed >= 800, `processed ${res.processed} cities`);
+  assert.equal(res.failures.length, 0, 'zero per-city failures');
+  assert.ok(res.basis.GAAP >= 1 && res.basis.Cash >= 1, 'per-row GAAPInd path exercised across the roster (both GAAP and Cash present)');
+  const mpls = res.results.find((r) => r.entityName === 'Minneapolis');
+  assert.ok(mpls && mpls.basis === 'GAAP', 'Minneapolis assigned GAAP');
+  assert.ok(Math.abs(mpls.revenueTotal - 1192133233) < 1, 'Minneapolis revenue matches the Phase 89 proof');
 });

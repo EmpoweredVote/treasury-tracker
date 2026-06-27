@@ -339,6 +339,40 @@ export function entityBasis(workbook, entityName, entityType = 'city') {
   return /cash/i.test(raw) ? 'Cash' : /gaap/i.test(raw) ? 'GAAP' : raw;
 }
 
+// ── Roster enumeration (Phase 90 — bulk load) ────────────────────────────────
+/**
+ * Enumerate every entity name present in the `Governmental Funds` sheet (roster helper).
+ * Includes a row only when the `Entity Name` is non-empty AND the row has a finite, non-zero
+ * `Total Revenues` OR `Total Expenditures` (skips blank rows and any footer/total rows).
+ * Label-driven (via the tree-map), so it works for BOTH the city and county layouts.
+ * Returns an array of names in sheet order (deduped by normalized key). Mirrors Ohio's
+ * enumerateCities, minus the layout/precedence machinery (MN has one sheet, header row 1).
+ */
+export function enumerateEntities(workbook, entityType = 'city') {
+  const tm = treeMap();
+  const ws = getSheet(workbook);
+  const headerMap = headerIndex(ws, tm.header_row || 1);
+  const nameCol = colOf(headerMap, tm.identity_labels.entity_name);
+  if (nameCol == null) throw new Error('No "Entity Name" column found');
+  const dataStart = tm.data_start_row || 2;
+  const names = [];
+  const seen = new Set();
+  for (let r = dataStart; r <= ws.rowCount; r++) {
+    const row = ws.getRow(r);
+    const name = cellText(row.getCell(nameCol));
+    if (!name) continue;
+    const rev = valOf(row, headerMap, tm.revenue.total_label);
+    const exp = valOf(row, headerMap, tm.expenditure.total_label);
+    const hasFinancials = (Number.isFinite(rev) && rev !== 0) || (Number.isFinite(exp) && exp !== 0);
+    if (!hasFinancials) continue;
+    const key = normalizeLabel(name);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    names.push(name);
+  }
+  return names;
+}
+
 // ── Manifest lookup (D-05) ───────────────────────────────────────────────────
 let _manifest = null;
 function loadManifest() {
