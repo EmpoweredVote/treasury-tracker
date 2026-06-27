@@ -47,9 +47,20 @@ All 6 remaining SoCal counties added via the hardened v2.2/v2.3 pipeline with ze
 Brought every already-loaded non-OC California city and county to the Orange County standard (FY2003 history, statewide salaries, standardized enrichment) via the hardened v2.2 pipeline. Phase 62 verified end-to-end: ACFR reconciliation, source-chain audit (0 NULL/fragile/residue across 25,568 rows), 24-item UAT with Chris's sign-off. SoCal expansion deferred to v2.4.
 </details>
 
-## Next Milestone: TBD
+## Current Milestone: v2.9 Minnesota Local Government Expansion
 
-v2.8 Ohio shipped 2026-06-26. The next milestone is not yet defined — run `/gsd-new-milestone` to gather goals, research, requirements, and a roadmap. Candidate directions (from the backlog + carried-forward follow-ups below): broader Ohio entity coverage (townships/villages/libraries/schools — OHTWN-01) or enterprise funds (OHENT-01); another state expansion on the proven uniform-source + batch-driver mold; or a UI pass (incl. the deferred flat-source icicle leaf-click fix).
+**Goal:** Bring every Minnesota city + county government onto Treasury Tracker at parity from the single uniform Minnesota Office of the State Auditor "City/County Finances Report" raw XLSX (free, no auth) — with the 5 ranked-choice-voting cities as the mission-aligned anchor — every figure durably sourced.
+
+**Target features:**
+- All ~853 MN cities + 87 counties loaded operating + revenue from the MN OSA raw XLSX (`cired_YY_data.xlsx` confirmed for cities; county file URL pinned in Phase 89 recon), free + no auth, XLSX-era FY range (~2015–latest available)
+- **Two-level icicle drill-down** — revenue-by-source tree (taxes / intergovernmental → federal+state grants / charges-for-services, each with sub-sources + subtotals) + expenditure-by-function tree (general government, public safety, streets, sanitation, parks, etc., each split current-expend vs capital-outlay). This source supports real drill-down, **resolving the flat-source icicle limitation that capped Ohio**.
+- Per-capita from the built-in `Population` column; GAAP/Cash basis via the source `GAAPInd` flag (per-entity, Ohio-style)
+- City→county linking from the source's built-in `ParentEntityName` column (no authored map needed), under a new Minnesota state navigation node; US→Minnesota→county→city breadcrumb + Cities-in-County panel
+- Standardized, bleed-safe, state-neutral universal enrichment for the MN vocabulary, inline at $0 (explicit map + 100% coverage gate, delete-then-insert)
+- The 5 RCV cities (Minneapolis, St. Paul, St. Louis Park, Bloomington, Minnetonka) reconciled + UAT'd as verification anchors — the data-coverage bridge toward the eventual votes/amendments hub (RCV kept as selection rationale + verification anchor; no new RCV UI this milestone)
+- Verification: ACFR reconciliation (an RCV city + its parent county) + full-cohort source-chain audit (0 NULL/fragile/residue) + independent workbook re-derivation + live-app UAT with Chris sign-off
+
+**Scope decisions (locked):** Full state (cities + counties); RCV = verification anchor only (no user-facing RCV indicator this milestone); FY depth = clean XLSX era (~2015–latest, exact range pinned in Phase 89). Deferred: townships/special districts, enterprise funds, and the source's bonus Employee/compensation data (Utah-style salaries — available follow-on). $0 spend target (one reusable loader + batch driver + inline enrichment), same mold as v2.5→v2.8.
 
 **Carried-forward follow-ups (candidates for a later milestone or backlog sweep):**
 - **v2.8 (Phase 88):** flat AOS source → no icicle drill-down (deferred UX fix = surface enrichment on leaf click; see auto-memory `project_flat_source_icicle_limitation`); the 10 state-node General Fund rows' `source_url` points at `lsc.ohio.gov/budget/` (canonical, but a TLS cert-chain quirk — swap if it warns in-browser); the county "Charges For Services" duplicate-column display quirk (`total_budget` authoritative); v2 deferred OHTWN-01 (townships/villages/libraries/schools) + OHENT-01 (enterprise funds).
@@ -261,11 +272,11 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-24 — v2.8 Ohio Local Government Expansion STARTED. Bringing Ohio cities + county governments onto the tracker at parity from the single uniform Ohio Auditor of State Summarized Annual Financial Reports XLSX (Hinkle System, free, no auth): general-government revenue-by-source + expenditure-by-function (column→tree, flatter than CA/Utah), per-capita from OI_Demographics, city→county linking + Ohio state node, GAAP + CASH/MOD-fallback coverage, standardized bleed-safe enrichment inline at $0; verified via SOA_Gov/ACFR reconciliation + source-chain audit + Chris UAT. No salaries / enterprise funds deferred. Phases continue from 84, $0 spend target. (v2.7 Virginia SHIPPED + archived 2026-06-24.)*
+*Last updated: 2026-06-27 — v2.9 Minnesota Local Government Expansion STARTED. Bringing every Minnesota city + county government onto the tracker at parity from the single uniform MN Office of the State Auditor "City/County Finances Report" raw XLSX (`cired_YY_data.xlsx`, free, no auth): two-level revenue-by-source + expenditure-by-function trees (real icicle drill-down — resolves the Ohio flat-source limitation), per-capita from the built-in Population column, GAAP/Cash basis via GAAPInd, city→county linking from the built-in ParentEntityName column + a new Minnesota state node, standardized bleed-safe enrichment inline at $0; the 5 ranked-choice-voting cities (Minneapolis, St. Paul, St. Louis Park, Bloomington, Minnetonka) are the mission-aligned verification anchors (RCV = selection rationale + anchor, no new UI). Verified via ACFR reconciliation + source-chain audit + independent re-derivation + Chris UAT. Townships/special districts, enterprise funds, and bonus Employee/compensation data deferred. Phases continue from 89, $0 spend target. (v2.8 Ohio SHIPPED + archived 2026-06-26.)*
 
 <details>
-<summary>Previous footer — v2.6 EV Financial Transparency Refresh SHIPPED (2026-06-22)</summary>
+<summary>Previous footer — v2.8 Ohio Local Government Expansion SHIPPED (2026-06-26)</summary>
 
-*Last updated: 2026-06-22 — v2.6 EV Financial Transparency Refresh SHIPPED. Empowered Vote's own organizational financials refreshed idempotently across GiveButter/Patreon/Benevity + bank + manual (no double-count); Beneficial State Bank authoritative for balance + expenses; platform income reconciled to net deposits within an explained tolerance; donor-facing transparency view; Phase 78 audit + Chris live UAT sign-off; every figure sourced, $0 spend. The "where the money goes" graphic (EVVIZ-01 / Phase 77) deliberately iceboxed.*
+*Last updated: 2026-06-24 — v2.8 Ohio Local Government Expansion STARTED. Bringing Ohio cities + county governments onto the tracker at parity from the single uniform Ohio Auditor of State Summarized Annual Financial Reports XLSX (Hinkle System, free, no auth): general-government revenue-by-source + expenditure-by-function (column→tree, flatter than CA/Utah), per-capita from OI_Demographics, city→county linking + Ohio state node, GAAP + CASH/MOD-fallback coverage, standardized bleed-safe enrichment inline at $0; verified via SOA_Gov/ACFR reconciliation + source-chain audit + Chris UAT. No salaries / enterprise funds deferred. Phases continue from 84, $0 spend target. (v2.7 Virginia SHIPPED + archived 2026-06-24.) — SHIPPED 2026-06-26.*
 
 </details>

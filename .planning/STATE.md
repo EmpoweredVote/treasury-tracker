@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.8
-milestone_name: Ohio Local Government Expansion
-status: completed
-stopped_at: Completed 88-02-PLAN.md — source-chain audit PASS + 2 approved fixes applied
-last_updated: "2026-06-26T22:45:58.641Z"
-last_activity: 2026-06-26 -- Phase 88 marked complete
+milestone: v2.9
+milestone_name: Minnesota Local Government Expansion
+status: planning
+last_updated: "2026-06-27T15:17:39.104Z"
+last_activity: 2026-06-27
 progress:
-  total_phases: 32
-  completed_phases: 5
-  total_plans: 13
-  completed_plans: 13
-  percent: 16
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State
@@ -25,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-24 — v2.7 Virginia Local Government
 
 ## Current Position
 
-Phase: 88 — COMPLETE
-Plan: 3 of 3
-Status: Phase 88 complete
-Last activity: 2026-06-26 -- Phase 88 marked complete
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-06-27 — Milestone v2.9 started
 
 ## Phase Overview — v2.8 Ohio Local Government Expansion
 
