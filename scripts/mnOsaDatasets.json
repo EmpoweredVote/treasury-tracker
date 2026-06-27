@@ -1,0 +1,31 @@
+{
+  "_comment": "Minnesota OSA City/County Finances Report — per-FY raw-data XLSX URL manifest. Slugs scraped verbatim from the OSA cities + counties landing pages on 2026-06-27 (the /media/<slug>/ segment is opaque and differs per file — never guessed). Every URL verified HTTP 200 (ranged GET). City actuals = cired_<YY>_data.xlsx, continuous XLSX FY2012–FY2023 (pre-2012 = .zip, out of scope). County actuals diverge: cored_<YY>_data.xlsx for FY2013–FY2017, then renamed county_<YY>_data.xlsx for FY2019–FY2021 (note county_21 is 'county_21_-data.xlsx'). County data LAGS cities — latest county = FY2021; FY2018/FY2022/FY2023 have no county data XLSX (reports only); FY2006–FY2011 county files are legacy .xls (NOT exceljs-readable, out of scope). Source of record for v2.9 — see auto-memory reference_minnesota_osa_finances_report.",
+  "source": "Minnesota Office of the State Auditor City/County Finances Report",
+  "source_landing_cities": "https://www.osa.state.mn.us/reports-data-analysis/local-government/cities/",
+  "source_landing_counties": "https://www.osa.state.mn.us/reports-data-analysis/local-government/counties/",
+  "scraped": "2026-06-27",
+  "city_floor": 2012,
+  "county_floor": 2013,
+  "city_latest": 2023,
+  "county_latest": 2021,
+  "notes": {
+    "pre_xlsx": "City FY2002–2003 = CSV, FY2004–2011 = ZIP; County FY2006–2011 = legacy .xls (binary, NOT exceljs-readable). All pre-XLSX history is out of scope for v2.9 (XLSX-era only).",
+    "county_naming_shift": "County file naming changed from cored_<YY>_data.xlsx (FY2013–2017) to county_<YY>_data.xlsx (FY2019–2021). county_21 url filename is 'county_21_-data.xlsx' (extra dash).",
+    "county_gaps": "No county data XLSX for FY2012, FY2018, FY2022, FY2023 (FY2022/2023 publish reports only). County coverage = FY2013–2017 + FY2019–2021.",
+    "county_layout_divergence": "County Governmental Funds sheet has NO GAAPInd and NO ParentEntityName columns, shifted column positions, extra WheelageTax/Current Expend 1/Total Capital Outaly1 columns, and label typos ('Conservation ofNatural') vs the city file. Loader uses label-normalized matching + tolerates absent identity columns. See 89-PROOF.md / SUMMARY for the full divergence table (D-08)."
+  },
+  "datasets": [
+    { "fiscal_year": 2012, "city_url": "https://www.osa.state.mn.us/media/findlgon/cired_12_data.xlsx", "county_url": null },
+    { "fiscal_year": 2013, "city_url": "https://www.osa.state.mn.us/media/pehamopj/cired_13_data.xlsx", "county_url": "https://www.osa.state.mn.us/media/4v5hcph3/cored_13_data.xlsx" },
+    { "fiscal_year": 2014, "city_url": "https://www.osa.state.mn.us/media/kbzdu2ep/cired_14_data.xlsx", "county_url": "https://www.osa.state.mn.us/media/o5rdrnwp/cored_14_data.xlsx" },
+    { "fiscal_year": 2015, "city_url": "https://www.osa.state.mn.us/media/114lwnbj/cired_15_data.xlsx", "county_url": "https://www.osa.state.mn.us/media/urudokx2/cored_15_data.xlsx" },
+    { "fiscal_year": 2016, "city_url": "https://www.osa.state.mn.us/media/igmlccij/cired_16_data.xlsx", "county_url": "https://www.osa.state.mn.us/media/r1vhfqsh/cored_16_data.xlsx" },
+    { "fiscal_year": 2017, "city_url": "https://www.osa.state.mn.us/media/pgyem5ao/cired_17_data.xlsx", "county_url": "https://www.osa.state.mn.us/media/11gfnigx/cored_17_data.xlsx" },
+    { "fiscal_year": 2018, "city_url": "https://www.osa.state.mn.us/media/t5riyrwh/cired_18_data.xlsx", "county_url": null },
+    { "fiscal_year": 2019, "city_url": "https://www.osa.state.mn.us/media/1w0jncbc/cired_19_data.xlsx", "county_url": "https://www.osa.state.mn.us/media/e23lhrsr/county_19_data.xlsx" },
+    { "fiscal_year": 2020, "city_url": "https://www.osa.state.mn.us/media/tivnvw2j/cired_20_data.xlsx", "county_url": "https://www.osa.state.mn.us/media/f02kiwas/county_20_data.xlsx" },
+    { "fiscal_year": 2021, "city_url": "https://www.osa.state.mn.us/media/nvghbnw1/cired_21_data.xlsx", "county_url": "https://www.osa.state.mn.us/media/dmeptngm/county_21_-data.xlsx" },
+    { "fiscal_year": 2022, "city_url": "https://www.osa.state.mn.us/media/eg3pcaz3/cired_22_data.xlsx", "county_url": null },
+    { "fiscal_year": 2023, "city_url": "https://www.osa.state.mn.us/media/x30lkoud/cired_23_data.xlsx", "county_url": null }
+  ]
+}

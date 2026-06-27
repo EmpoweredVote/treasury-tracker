@@ -117,3 +117,6 @@ screenshots/
 
 # Python bytecode cache
 **/__pycache__/
+
+# Minnesota OSA recon sample downloads — not committed
+_mn-recon/

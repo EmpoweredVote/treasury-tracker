@@ -1,0 +1,70 @@
+{
+  "_comment": "Label-based 3-level-where-natural hierarchy spec for the MN OSA Governmental Funds sheet, consumed by scripts/loadMNOSA.js (Phase 89, MNSRC-01/02). Labels are CANONICAL (from the city cired_23 header row). The loader matches by NORMALIZED label (lowercase, strip all non-alphanumeric) so city/county spacing+case variants tie (e.g. 'Conservation ofNatural' == 'Conservation of Natural'), plus the label_aliases below for genuine typo divergences. Subtotal_label nodes use the workbook's own roll-up column as the parent total (D-03, double-count-safe); groups without a subtotal_label sum their leaves. validation_only_totals are cross-cutting roll-ups VALIDATED against but NEVER placed as nodes. Core totals only — '& Other Sources/Uses' financing lines excluded (D-05). Identity/junk columns and any label not listed here are ignored.",
+  "source": "Minnesota Office of the State Auditor City/County Finances Report",
+  "sheet": "Governmental Funds",
+  "header_row": 1,
+  "data_start_row": 2,
+  "identity_labels": {
+    "entity_name": "Entity Name",
+    "parent_entity_name": "ParentEntityName",
+    "entity_type": "Entity Type",
+    "gaap_ind": "GAAPInd",
+    "population": "Population",
+    "financial_year": "FinancialYear"
+  },
+  "identity_notes": "County files have NO 'GAAPInd' and NO 'ParentEntityName' columns — the loader returns null/'' when a label is absent (do not throw). entity_basis is null for counties (no basis flag in the source).",
+  "label_aliases": {
+    "ecenomicdevelopmentcapitaloutlay": "economicdevelopmentcapitaloutlay"
+  },
+  "revenue": {
+    "total_label": "Total Revenues",
+    "exclude_total_label": "Total Revenues & Other Sources",
+    "groups": [
+      { "n": "Taxes", "leaves": ["PropertyTaxes", "Tax Increments", "FranchiseFees", "SalesTax", "HotelMotelTax", "GamblingTax", "GravelTax", "WheelageTax"] },
+      { "n": "Special Assessments", "leaves": ["Special Assessments"] },
+      { "n": "Licenses and Permits", "leaves": ["Licenses and Permits"] },
+      { "n": "Intergovernmental", "subtotal_label": "Total Intergovernmental Revenues", "children": [
+        { "n": "Federal Grants", "subtotal_label": "Total Federal Grants", "leaves": ["Federal CDBG Grants", "Federal Education Grants", "Federal Transportation Grants", "Federal Human Services Grants", "Federal Emergency Management Aid", "FedCoronavirusReliefFunds", "All Other Federal Grants"] },
+        { "n": "State Grants", "subtotal_label": "Total State Grants", "leaves": ["State Local Government Aid", "State Market Value Credit Real", "State Market Value Credit Ag", "State Taconite Homestead Credit", "StateTHC", "State Taconite Aids", "State County Program Aid", "State Manufactured Home Homestead Credit", "State Attached Machinery Aid", "State Disparity Reduction Aid", "State Transportation Grants", "State Human Service Grants", "State Criminal Justice Aid", "State PERA Aid", "State Highway Grants", "State Education Grants", "State Police Aid", "StateLPA", "StateHACA", "StateTownAid", "All Other State Grants"] },
+        { "n": "County/Local Grants", "leaves": ["County Highway Grants", "All Other County Grants", "Local IRRRB Grants", "All Other Local Grants"] }
+      ] },
+      { "n": "Charges for Services", "subtotal_label": "Total Charges for Services", "leaves": ["General Government Fees", "Police and Fire Contracts", "Other Public Safety Fees", "Street and Highway Fees", "Sanitation Fees", "Library Fees", "Park and Recreation Fees", "Airport Fees", "Transit Fees", "Cemetery Fees", "TnWaterCharge", "EdaHraSvcCharge", "All Other Service Charges"] },
+      { "n": "Fines and Forfeits", "leaves": ["Fines and Forfeits", "AdminFines"] },
+      { "n": "Interest Earnings", "leaves": ["Interest Earnings"] },
+      { "n": "All Other Revenue", "leaves": ["All Other Revenue"] }
+    ]
+  },
+  "expenditure": {
+    "total_label": "Total Expenditures",
+    "exclude_total_label": "Total Expenditures & Other Uses",
+    "validation_only_totals": ["Total Public Safety Capital Outlay", "Total Current Expenditures", "Total Capital Outlay", "Total Capital Outaly1", "Current Expend 1"],
+    "functions": [
+      { "n": "General Government", "children": [
+        { "n": "Current", "leaves": ["Governing Board Current Expend", "Administration and Finance Current Expend", "All Other General Government Current Expend"] },
+        { "n": "Capital", "leaves": ["General Government Capital Outlay"] }
+      ] },
+      { "n": "Public Safety", "children": [
+        { "n": "Police/Sheriff", "current_label": "Police/Sheriff Current Expend", "capital_label": "Police/Sheriff Capital Outlay" },
+        { "n": "Corrections", "current_label": "Corrections Current Expend", "capital_label": "Corrections Capital Outlay" },
+        { "n": "Ambulance", "current_label": "Ambulance Current Expend", "capital_label": "Ambulance Capital Outaly" },
+        { "n": "Fire", "current_label": "Fire Current Expend", "capital_label": "Fire Capital Outlay" },
+        { "n": "All Other Public Safety", "current_label": "All Other Public Safety Current Expend", "capital_label": "All Other Public Safety Capital Outlay" }
+      ] },
+      { "n": "Streets & Highways", "leaves": ["Street & Highway Administration", "Street & Highway Maintenance", "Snow and Ice Removal", "Street & Highway Engineering", "Street Lighting", "Street & Highway Construction", "All Other Street & Highway Capital Outlay"] },
+      { "n": "Sanitation", "leaves": ["Refuse Collection and Disposal Current Expend", "All Other Sanitation Current Expend", "Sanitation Capital Outlay"] },
+      { "n": "Human Services", "leaves": ["Human Service Income Maintenance", "Human Services Social Services", "All Other Human Services Current Expenditures", "Human Services Capital Outlay"] },
+      { "n": "Health", "current_label": "Health Current Expend", "capital_label": "Health Capital Outlay" },
+      { "n": "Library", "current_label": "Library current Expenditures", "capital_label": "Library Capital Outlay" },
+      { "n": "Park & Recreation", "current_label": "Park & Recreation Current Expend", "capital_label": "Park & Recreation Capital Outlay" },
+      { "n": "Housing & Urban Redevelopment", "current_label": "Housing & Urban Redevelopment Current Expend", "capital_label": "Housing & Urban Redevelopment Capital Outlay" },
+      { "n": "Economic Development", "current_label": "Economic Development Current Expenditures", "capital_label": "Economic Development Capital Outlay" },
+      { "n": "Conservation of Natural Resources", "current_label": "Conservation of Natural Resources Current Expend", "capital_label": "Conservation of Natural Resources Capital Outlay" },
+      { "n": "Airport", "current_label": "Airport Current Expend", "capital_label": "Airport CapitalOutlay" },
+      { "n": "Transit", "current_label": "Transit Current Expend", "capital_label": "Transit Capital Outlay" },
+      { "n": "Cemetery", "current_label": "Cemetery Current Expend", "capital_label": "Cemetery Capital Outlay" },
+      { "n": "Education", "current_label": "Education Current Expend", "capital_label": "Education Capital Outlay" },
+      { "n": "Other & Unallocated", "leaves": ["Unallocated Pension costs", "Unallocated Insurance Costs", "All Other Current Expend", "All Other Capital Outlay", "TnWaterCE", "TnWaterCO", "Capital Outlay for enterprise Funds"] },
+      { "n": "Debt Service", "leaves": ["Bond Principal Payments", "Other Long-term Debt Principal Payments", "Interest Payments & Fiscal Charges"] }
+    ]
+  }
+}
