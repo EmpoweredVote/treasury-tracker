@@ -6,7 +6,7 @@ status: planning
 last_updated: "2026-06-27T15:17:39.104Z"
 last_activity: 2026-06-27
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,10 +17,10 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-24 — v2.7 Virginia Local Government Expansion SHIPPED)
+See: .planning/PROJECT.md (updated 2026-06-27 — v2.9 Minnesota Local Government Expansion STARTED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 88 — verification-source-chain-audit-uat
+**Current focus:** Phase 89 — Minnesota OSA Source + Loader (next: `/gsd-discuss-phase 89` or `/gsd-plan-phase 89`)
 
 ## Current Position
 
@@ -29,17 +29,17 @@ Plan: —
 Status: Defining requirements
 Last activity: 2026-06-27 — Milestone v2.9 started
 
-## Phase Overview — v2.8 Ohio Local Government Expansion
+## Phase Overview — v2.9 Minnesota Local Government Expansion
 
 | Phase | Name | Requirements | Depends on | Status |
 |-------|------|--------------|------------|--------|
-| 84 | Ohio AOS Source + Loader | OHSRC-01, OHSRC-02 | — | Planned (84-01, 84-02) |
-| 85 | City Loads | OHCITY-01, OHCITY-02 | 84 | Not started |
-| 86 | County Loads + Data Model & Linking | OHCO-01, OHLINK-01 | 85 | Not started |
-| 87 | Enrichment Parity | OHENR-01 | 85, 86 | Not started |
-| 88 | Verification + Source-Chain Audit + UAT | OHVER-01, OHVER-02 | 84–87 | Not started |
+| 89 | MN OSA Source + Loader | MNSRC-01, MNSRC-02 | — | Not started |
+| 90 | City Loads | MNCITY-01, MNCITY-02 | 89 | Not started |
+| 91 | County Loads + Data Model & Linking | MNCO-01, MNLINK-01 | 90 | Not started |
+| 92 | Enrichment Parity | MNENR-01 | 90, 91 | Not started |
+| 93 | Verification + Source-Chain Audit + UAT | MNVER-01, MNVER-02 | 89–92 | Not started |
 
-**Critical path:** 84 → 85 → 86 → 87 → 88. One uniform free source (Ohio AOS Summarized Annual Financial Reports XLSX, ohioauditor.gov, no auth); general-government scope (`SOREACIFB_TotalGov`); GAAP primary + CASH/MOD fallback; no salaries (not in source); enterprise funds deferred; reuses the existing loader/RPC + never-overwrite guard; every figure sourced; $0 spend.
+**Critical path:** 89 → 90 → 91 → 92 → 93. One uniform free source (MN OSA City/County Finances Report raw XLSX, `cired_YY_data.xlsx`, osa.state.mn.us, no auth); general-government scope (`Governmental Funds` sheet — enterprise funds deferred); GAAP/Cash basis per-entity via `GAAPInd`; no salaries this milestone (`Employee Data` sheet deferred); XLSX-era FY range (~2015–latest, pinned in Phase 89); 2-level revenue + expenditure trees (real icicle drill-down — resolves the Ohio flat-source limitation); city→county linking from the built-in `ParentEntityName` column; RCV cities (Minneapolis, St. Paul, St. Louis Park, Bloomington, Minnetonka) = verification anchors; every figure sourced; $0 spend.
 
 ## Deferred Items
 
@@ -164,15 +164,16 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-26T06:50:09.877Z
-Stopped at: Completed 88-02-PLAN.md — source-chain audit PASS + 2 approved fixes applied
+Last session: 2026-06-27 — v2.9 Minnesota milestone initialized (PROJECT.md, REQUIREMENTS.md, ROADMAP.md written; phases 89-93)
+Stopped at: Milestone v2.9 roadmap approved + committed; ready to plan Phase 89
 Resume file: None
 
 ### Next Session
 
-v2.7 Virginia is shipped + archived (tag v2.7). No active milestone. Start the next one:
-  /gsd-new-milestone
-Recon'd candidate: Ohio (Auditor of State Summarized Annual Financial Reports — free XLSX, see reference_ohio_aos_financial_data memory).
+v2.8 Ohio is shipped + archived (tag v2.8). v2.9 Minnesota Local Government Expansion is the active milestone (phases 89-93, status: planning). Begin Phase 89:
+  /gsd-discuss-phase 89   (gather context + clarify approach)
+  /gsd-plan-phase 89      (skip discussion, plan directly)
+Source recon done: MN OSA City Finances Report XLSX confirmed icicle-grade (`cired_23_data.xlsx`, Governmental Funds sheet, 148 cols, 2-level rev + exp trees, built-in ParentEntityName/Population/GAAPInd). Phase 89 still needs: county file URL + county-layout verification, exact XLSX-era FY range.
 
 ## Performance Metrics
 
@@ -337,4 +338,4 @@ Open-artifact audit at milestone close surfaced 5 stale/orphaned items, acknowle
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Plan the first v2.9 phase: `/gsd-discuss-phase 89` (or `/gsd-plan-phase 89` to skip discussion)

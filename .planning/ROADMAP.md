@@ -21,10 +21,57 @@
 - ✅ **v2.6 EV Financial Transparency Refresh** — Phases 74-78 (shipped 2026-06-22; Phase 77 iceboxed)
 - ✅ **v2.7 Virginia Local Government Expansion** — Phases 79-83 (shipped 2026-06-24)
 - ✅ **v2.8 Ohio Local Government Expansion** — Phases 84-88 (shipped 2026-06-26)
+- ▶ **v2.9 Minnesota Local Government Expansion** — Phases 89-93 (in progress, started 2026-06-27)
 
 ---
 
 ## Phases
+
+### ▶ v2.9 Minnesota Local Government Expansion (Phases 89-93) — IN PROGRESS
+
+**Milestone goal:** Bring every Minnesota city + county government onto Treasury Tracker at parity from the single uniform Minnesota Office of the State Auditor "City/County Finances Report" raw XLSX (`cired_YY_data.xlsx`, free, no auth) — two-level revenue-by-source + expenditure-by-function trees (real icicle drill-down), per-capita, every figure sourced to osa.state.mn.us. The 5 ranked-choice-voting cities (Minneapolis, St. Paul, St. Louis Park, Bloomington, Minnetonka) are the mission-aligned verification anchors.
+
+**Constraints:** One uniform free source (osa.state.mn.us, no auth, $0); general-government scope (`Governmental Funds` sheet — enterprise funds deferred); GAAP/Cash basis per-entity via `GAAPInd`; no salaries this milestone (`Employee Data` sheet deferred); XLSX-era FY range (~2015–latest, exact range pinned in Phase 89); city→county linking from the built-in `ParentEntityName` column; RCV = selection rationale + verification anchor (no new RCV UI); every figure durably sourced.
+
+**Critical path:** 89 → 90 → 91 → 92 → 93 (same mold as v2.5→v2.8).
+
+#### Phase 89: MN OSA Source + Loader (MNSRC-01, MNSRC-02)
+**Goal:** A reusable loader turns the MN OSA `Governmental Funds` sheet into sourced operating (expenditure-by-function) + revenue (revenue-by-source) two-level trees, for both cities and counties, with per-entity basis, per-FY manifests, and idempotency.
+**Success criteria:**
+1. Loader builds a 2-level revenue-by-source tree + 2-level expenditure-by-function tree with correct subtotal nodes, proven on a sample RCV city FY2023 (ties to the row's `Total Revenues` / `Total Expenditures`).
+2. County file URL pinned; county layout independently verified (header row/columns/vocabulary — the Ohio county-layout lesson) and a county FY2023 sample ties to its row totals.
+3. GAAP/Cash basis derived per-entity from `GAAPInd`; XLSX-era per-FY manifest enumerates ~2015–latest available.
+4. Idempotent never-overwrite guard in place; offline unit tests pass.
+
+#### Phase 90: City Loads (MNCITY-01, MNCITY-02)
+**Goal:** Load all ~853 Minnesota cities operating + revenue across the FY range, sourced, per-capita, idempotent.
+**Success criteria:**
+1. All ~853 cities loaded operating + revenue across the XLSX-era FY range; every row carries source metadata.
+2. Per-capita renders from the built-in `Population` column.
+3. GAAP/Cash basis recorded per-entity; cross-FY source-gap residual documented (no phantom municipalities).
+4. Idempotent re-run writes 0 rows.
+
+#### Phase 91: County Loads + Data Model & Linking (MNCO-01, MNLINK-01)
+**Goal:** Load all 87 county governments and establish the Minnesota state node + source-driven city→county linking.
+**Success criteria:**
+1. All 87 county governments loaded operating + revenue, per-capita, sourced.
+2. Minnesota state node created; cities linked to parent county via the source `ParentEntityName` column (link residual, if any, documented).
+3. US→Minnesota→county→city breadcrumb + Cities-in-County panel render in the live app (existing frontend, no rebuild).
+
+#### Phase 92: Enrichment Parity (MNENR-01)
+**Goal:** Author state-neutral, bleed-safe universal enrichment for the full MN vocabulary at $0.
+**Success criteria:**
+1. Explicit enrichment map covers 100% of the live MN city+county category vocabulary (loader aborts on any unmapped key — no silent fallback).
+2. Written via delete-then-insert (NULLS-DISTINCT-safe); `$`-leak + locality-name bleed guards pass.
+3. $0 API spend (inline-authored).
+
+#### Phase 93: Verification + Source-Chain Audit + UAT (MNVER-01, MNVER-02)
+**Goal:** Reconcile, audit, re-derive, and get Chris's live sign-off.
+**Success criteria:**
+1. An RCV anchor city + its parent county reconciled to published ACFRs on a basis-matched comparator (deltas explained).
+2. Full-cohort source-chain audit clean (0 NULL/fragile/residue across all loaded rows); independent workbook re-derivation of ≥5 entities = 0 mismatches.
+3. Two-level icicle drill-down confirmed rendering (the flat-source limitation that capped Ohio is resolved).
+4. Live-app UAT across ≥1 RCV anchor city + a county + the Minnesota state node — Chris sign-off.
 
 <details>
 <summary>✅ v2.8 Ohio Local Government Expansion (Phases 84-88) — SHIPPED 2026-06-26 (full detail in milestones/v2.8-ROADMAP.md)</summary>
