@@ -78,6 +78,10 @@ src/data/processedBudget.json
 # git-reviewed explicit concept map + expanded audit trail; $0, no paid API)
 !/data/ohioEnrichment87.mjs
 !/data/ohio-enrichment-87.expanded.json
+# …and the MN parity enrichment source-of-record (Phase 92: inline-authored,
+# git-reviewed explicit last-segment concept map + expanded audit trail; $0, no paid API)
+!/data/mnEnrichment92.mjs
+!/data/mn-enrichment-92.expanded.json
 # …and the verbatim GAO function-definition snapshot it was authored from
 !docs/federal/
 docs/federal/*
