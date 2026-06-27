@@ -1,0 +1,47 @@
+{
+  "_comment": "MN counties cross-FY source-gap residual + city link-residual (MNCO-01/MNLINK-01, CONTEXT D-08). county_residual = counties enumerated with no Governmental Funds financial total (NOT created as municipalities) — ZERO found. link_residual = cities whose ParentEntityName cell is blank in EVERY city workbook (no phantom link; a sourced-data gap, not dropped data). union_distinct_counties uses normalized stems so cross-FY casing variants (e.g. Lake of the Woods) collapse to one = the 87 MN counties. Generated 2026-06-27.",
+  "source": "Minnesota Office of the State Auditor City/County Finances Report",
+  "generated": "2026-06-27",
+  "fy_range": "2013-2021 (county XLSX; gap 2018; FY2022-2023 unpublished)",
+  "union_distinct_counties": 87,
+  "per_fy_roster_size": {
+    "2013": 87,
+    "2014": 87,
+    "2015": 87,
+    "2016": 87,
+    "2017": 85,
+    "2019": 86,
+    "2020": 86,
+    "2021": 85
+  },
+  "notes": {
+    "casing_variants": "Lake of the Woods spelled 3 ways across FY2013-2021 in the source; consolidated to canonical \"Lake of the Woods County\" (scripts/mnCountyNameCanonical.json prevents recurrence)."
+  },
+  "county_residual": [],
+  "link_residual": [
+    {
+      "city": "Birchwood",
+      "reason": "blank ParentEntityName in every city workbook"
+    },
+    {
+      "city": "Boy River",
+      "reason": "blank ParentEntityName in every city workbook"
+    },
+    {
+      "city": "Fertile",
+      "reason": "blank ParentEntityName in every city workbook"
+    },
+    {
+      "city": "Gilbert",
+      "reason": "blank ParentEntityName in every city workbook"
+    },
+    {
+      "city": "Thomson",
+      "reason": "blank ParentEntityName in every city workbook"
+    },
+    {
+      "city": "Trosky",
+      "reason": "blank ParentEntityName in every city workbook"
+    }
+  ]
+}

@@ -120,3 +120,6 @@ screenshots/
 
 # Minnesota OSA recon sample downloads — not committed
 _mn-recon/
+
+# MN load failure logs (runtime, not tracked)
+scripts/load-mn-*.failures.txt

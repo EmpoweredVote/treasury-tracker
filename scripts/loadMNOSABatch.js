@@ -32,7 +32,7 @@
 import { parseArgs } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { existsSync, appendFileSync, mkdirSync } from 'node:fs';
+import { existsSync, appendFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import ExcelJS from 'exceljs';
 import {
@@ -40,11 +40,24 @@ import {
   importEntity,
   resolveSourceUrl,
   getSupabase,
+  normalizeLabel,
 } from './loadMNOSA.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const RECON_DIR = join(__dirname, '..', '_mn-recon');
 const FAILURES_LOG = join(__dirname, 'load-mn-cities.failures.txt');
+
+// Canonical county DB names (handles cross-FY spelling/casing variants — e.g. Lake of the Woods).
+let _canonCounty = null;
+function canonicalCountyName(bareName) {
+  if (_canonCounty === null) {
+    try { _canonCounty = JSON.parse(readFileSync(join(__dirname, 'mnCountyNameCanonical.json'), 'utf8')).byStem || {}; }
+    catch { _canonCounty = {}; }
+  }
+  const stem = normalizeLabel(bareName.replace(/\s+county$/i, ''));
+  if (_canonCounty[stem]) return _canonCounty[stem];
+  return bareName.endsWith(' County') ? bareName : `${bareName} County`;
+}
 
 /**
  * Acquire the city workbook for a fiscal year.
@@ -142,10 +155,9 @@ export async function loadMNOSABatch(opts) {
   const residual = [];
 
   for (const entityName of workList) {
-    // County canonical DB name: "<Name> County" (MN city/county name collision — D-02).
-    const municipalityName = (entityType === 'county' && !/ county$/i.test(entityName))
-      ? `${entityName} County`
-      : null;
+    // County canonical DB name: "<Name> County" (MN city/county name collision — D-02),
+    // mapped through the canonical-alias table to collapse cross-FY spelling variants.
+    const municipalityName = entityType === 'county' ? canonicalCountyName(entityName) : null;
     try {
       const s = await importEntity(supabase, workbook, {
         entityName,

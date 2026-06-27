@@ -1,0 +1,6 @@
+{
+  "_comment": "Canonical MN county DB names, keyed by normalized stem (lowercase, alphanumeric-only, trailing ' County' removed). The MN OSA county workbooks spell some counties inconsistently across fiscal years (e.g. 'Lake of the Woods' / 'Lake of The Woods' / 'Lake Of The Woods'), which would create duplicate municipality rows. loadMNOSABatch maps each county's workbook name through this table when computing the canonical '<Name> County' DB name, so every FY of a county collapses to one municipality. Add an entry ONLY when a real cross-year casing/spelling variant is observed (do NOT blanket title-case — MN has McLeod, Lac qui Parle, Le Sueur, etc. with intentional non-title casing). Phase 91 (MNCO-01).",
+  "byStem": {
+    "lakeofthewoods": "Lake of the Woods County"
+  }
+}
