@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v2.9
 milestone_name: Minnesota Local Government Expansion
-status: Defining requirements
-last_updated: "2026-06-27T17:54:46.335Z"
-last_activity: 2026-06-27 — Milestone v2.9 started
+status: executing
+last_updated: "2026-06-27T18:09:40.252Z"
+last_activity: 2026-06-27 -- Phase 89 execution started
 progress:
   total_phases: 78
   completed_phases: 0
-  total_plans: 0
+  total_plans: 4
   completed_plans: 0
   percent: 0
 ---
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-27 — v2.9 Minnesota Local Government Expansion STARTED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Phase 89 — Minnesota OSA Source + Loader (next: `/gsd-discuss-phase 89` or `/gsd-plan-phase 89`)
+**Current focus:** Phase 89 — mn-osa-source-loader-mnsrc-01-mnsrc-02
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-06-27 — Milestone v2.9 started
+Phase: 89 (mn-osa-source-loader-mnsrc-01-mnsrc-02) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 89
+Last activity: 2026-06-27 -- Phase 89 execution started
 
 ## Phase Overview — v2.9 Minnesota Local Government Expansion
 
