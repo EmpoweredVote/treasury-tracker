@@ -1,0 +1,22 @@
+{
+  "_comment": "MN cities cross-FY source-gap residual (MNCITY-02, CONTEXT D-03). A residual city is one enumerated in a FY roster but with NO Governmental Funds financial total (filed nothing) — it is NOT created as a municipality (no phantom rows). Across FY2012-2023, ZERO such cities were found: every enumerated city had a finite Total Revenues/Expenditures. The per-FY roster size varies (846-853) because not every MN city files every year (normal incorporation/dissolution + filing timing), not because of dropped data. Generated 2026-06-27.",
+  "source": "Minnesota Office of the State Auditor City/County Finances Report",
+  "generated": "2026-06-27",
+  "fy_range": "2012-2023",
+  "union_distinct_cities": 858,
+  "per_fy_roster_size": {
+    "2012": 851,
+    "2013": 853,
+    "2014": 852,
+    "2015": 852,
+    "2016": 850,
+    "2017": 846,
+    "2018": 848,
+    "2019": 851,
+    "2020": 849,
+    "2021": 852,
+    "2022": 852,
+    "2023": 851
+  },
+  "residual_cities": []
+}

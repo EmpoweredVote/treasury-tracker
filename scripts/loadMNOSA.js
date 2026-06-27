@@ -336,7 +336,12 @@ export function entityBasis(workbook, entityName, entityType = 'city') {
   if (c == null) return null;
   const raw = cellText(row.getCell(c));
   if (!raw) return null;
-  return /cash/i.test(raw) ? 'Cash' : /gaap/i.test(raw) ? 'GAAP' : raw;
+  if (/cash/i.test(raw)) return 'Cash';
+  if (/gaap/i.test(raw)) return 'GAAP';
+  // Numeric GAAPInd encoding (FY2016/2020/2021/2022): Excel boolean TRUE(-1 or 1)=GAAP, FALSE(0)=Cash.
+  if (raw === '-1' || raw === '1') return 'GAAP';
+  if (raw === '0') return 'Cash';
+  return null; // unrecognized / blank → unknown (no GAAPInd column years also return null above)
 }
 
 // ── Roster enumeration (Phase 90 — bulk load) ────────────────────────────────

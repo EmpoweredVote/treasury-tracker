@@ -1,0 +1,7751 @@
+{
+  "_comment": "Per-(city,FY) GAAP/Cash basis for MN cities, derived from the Governmental Funds GAAPInd column (MNCITY-02, CONTEXT D-02). No DB schema change — this committed file is the per-entity basis record. GAAPInd encodings vary by year: text GAAP/Cash (FY2018-2019,2023), numeric -1=GAAP/0=Cash (FY2016,2020-2022), and ABSENT (FY2012-2015,2017 -> basis unavailable). Generated 2026-06-27 by loadMNOSA entityBasis across the cired_<YY> workbooks.",
+  "source": "Minnesota Office of the State Auditor City/County Finances Report",
+  "generated": "2026-06-27",
+  "basis_unavailable_fys": [
+    2012,
+    2013,
+    2014,
+    2015,
+    2017
+  ],
+  "per_fy_distribution": {
+    "2012": {
+      "GAAP": 0,
+      "Cash": 0,
+      "unknown": 851,
+      "count": 851
+    },
+    "2013": {
+      "GAAP": 0,
+      "Cash": 0,
+      "unknown": 853,
+      "count": 853
+    },
+    "2014": {
+      "GAAP": 0,
+      "Cash": 0,
+      "unknown": 852,
+      "count": 852
+    },
+    "2015": {
+      "GAAP": 0,
+      "Cash": 0,
+      "unknown": 852,
+      "count": 852
+    },
+    "2016": {
+      "GAAP": 513,
+      "Cash": 337,
+      "unknown": 0,
+      "count": 850
+    },
+    "2017": {
+      "GAAP": 0,
+      "Cash": 0,
+      "unknown": 846,
+      "count": 846
+    },
+    "2018": {
+      "GAAP": 508,
+      "Cash": 340,
+      "unknown": 0,
+      "count": 848
+    },
+    "2019": {
+      "GAAP": 508,
+      "Cash": 343,
+      "unknown": 0,
+      "count": 851
+    },
+    "2020": {
+      "GAAP": 507,
+      "Cash": 342,
+      "unknown": 0,
+      "count": 849
+    },
+    "2021": {
+      "GAAP": 508,
+      "Cash": 344,
+      "unknown": 0,
+      "count": 852
+    },
+    "2022": {
+      "GAAP": 506,
+      "Cash": 346,
+      "unknown": 0,
+      "count": 852
+    },
+    "2023": {
+      "GAAP": 504,
+      "Cash": 347,
+      "unknown": 0,
+      "count": 851
+    }
+  },
+  "cities": {
+    "Ada": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Adams": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Adrian": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Afton": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Aitkin": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Akeley": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Albany": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Albert Lea": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Alberta": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Albertville": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Alden": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Aldrich": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Alexandria": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Alpha": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Altura": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Alvarado": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Amboy": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Andover": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Annandale": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Anoka": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Apple Valley": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Appleton": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Arco": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Arden Hills": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Argyle": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Arlington": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Ashby": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Askov": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Atwater": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Audubon": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Aurora": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Austin": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Avoca": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Avon": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Babbitt": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Backus": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Badger": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Bagley": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Balaton": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Barnesville": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Barnum": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Barrett": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Barry": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Battle Lake": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Baudette": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Baxter": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Bayport": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Beardsley": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Beaver Bay": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Beaver Creek": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Becker": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Bejou": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Belgrade": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Belle Plaine": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Bellechester": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Bellingham": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Beltrami": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Belview": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Bemidji": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Benson": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Bertha": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Bethel": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Big Falls": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Big Lake": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Bigelow": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Bigfork": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Bingham Lake": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Birchwood": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash"
+    },
+    "Bird Island": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Biscay": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Biwabik": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Blackduck": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Blaine": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Blomkest": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Blooming Prairie": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Bloomington": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Blue Earth": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Bluffton": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Bock": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Borup": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Bovey": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Bowlus": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Boyd": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Braham": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Brainerd": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Brandon": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Breckenridge": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Breezy Point": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Brewster": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Bricelyn": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Brook Park": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Brooklyn Center": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Brooklyn Park": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Brooks": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Brookston": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Brooten": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Browerville": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Browns Valley": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Brownsdale": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Brownsville": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Brownton": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Bruno": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Buckman": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Buffalo": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Buffalo Lake": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Buhl": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Burnsville": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Burtrum": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Butterfield": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Byron": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Caledonia": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Callaway": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Calumet": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Cambridge": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Campbell": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Canby": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Cannon Falls": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Canton": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Carlos": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Carlton": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Carver": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Cass Lake": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Cedar Mills": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Center City": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Centerville": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Ceylon": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Champlin": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Chandler": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Chanhassen": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Chaska": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Chatfield": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Chickamaw Beach": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Chisago City": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Chisholm": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Chokio": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Circle Pines": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Clara City": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Claremont": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Clarissa": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Clarkfield": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Clarks Grove": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Clear Lake": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Clearbrook": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Clearwater": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Clements": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Cleveland": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Climax": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Clinton": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Clitherall": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Clontarf": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Cloquet": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Coates": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Cobden": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Cohasset": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Cokato": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Cold Spring": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Coleraine": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Cologne": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Columbia Heights": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Columbus": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Comfrey": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Comstock": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Conger": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Cook": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Coon Rapids": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Corcoran": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Correll": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Cosmos": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Cottage Grove": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Cottonwood": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Courtland": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Cromwell": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Crookston": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Crosby": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Crosslake": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Crystal": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Currie": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Cuyuna": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Cyrus": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Dakota": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Dalton": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Danube": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Danvers": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Darfur": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Darwin": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Dassel": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Dawson": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Dayton": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "De Graff": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Deephaven": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Deer Creek": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Deer River": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Deerwood": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Delano": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Delavan": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Delhi": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Dellwood": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Denham": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Dennison": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Dent": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Detroit Lakes": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Dexter": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Dilworth": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Dodge Center": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Donaldson": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Donnelly": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Doran": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Dover": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Dovray": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Duluth": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Dumont": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Dundas": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Dundee": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Dunnell": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Eagan": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Eagle Bend": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Eagle Lake": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "East Bethel": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "East Grand Forks": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "East Gull Lake": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Easton": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Echo": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Eden Prairie": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Eden Valley": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Edgerton": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Edina": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Effie": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Eitzen": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Elba": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Elbow Lake": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Elgin": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Elizabeth": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Elk River": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Elko New Market": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Elkton": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Ellendale": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Ellsworth": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Elmdale": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Elmore": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Elrosa": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Ely": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Elysian": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Emily": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Emmons": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Erhard": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Erskine": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Evan": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Evansville": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Eveleth": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Excelsior": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Eyota": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Fairfax": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Fairmont": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Falcon Heights": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Faribault": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Farmington": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Farwell": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Federal Dam": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Felton": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Fergus Falls": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Fertile": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP"
+    },
+    "Fifty Lakes": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Finlayson": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Fisher": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Floodwood": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Florence": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Foley": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Forada": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Forest Lake": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Foreston": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Fort Ripley": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Fosston": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Fountain": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Foxhome": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Franklin": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Frazee": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Freeborn": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Freeport": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Fridley": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Frost": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Fulda": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Funkley": {
+      "2016": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Garfield": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Garrison": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Garvin": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Gary": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Gaylord": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Gem Lake": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Geneva": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Genola": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Georgetown": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Ghent": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Gibbon": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Gilbert": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP"
+    },
+    "Gilman": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Glencoe": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Glenville": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Glenwood": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Glyndon": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Golden Valley": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Gonvick": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Good Thunder": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Goodhue": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Goodridge": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Goodview": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Graceville": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Granada": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Grand Marais": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Grand Meadow": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Grand Rapids": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Granite Falls": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Grant": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Grasston": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Green Isle": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Greenbush": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Greenfield": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Greenwald": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Greenwood": {
+      "2016": "GAAP",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Grey Eagle": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Grove City": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Grygla": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Gully": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Hackensack": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Hadley": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Hallock": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Halma": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Halstad": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Ham Lake": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Hamburg": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Hammond": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Hampton": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Hancock": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Hanley Falls": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Hanover": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Hanska": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Harding": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Hardwick": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Harmony": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Harris": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Hartland": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Hastings": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Hatfield": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Hawley": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Hayfield": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Hayward": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Hazel Run": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Hector": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Heidelberg": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Henderson": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Hendricks": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Hendrum": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Henning": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Henriette": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Herman": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Hermantown": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Heron Lake": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Hewitt": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Hibbing": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Hill City": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Hillman": {
+      "2016": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Hills": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Hilltop": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Hinckley": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Hitterdal": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Hoffman": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Hokah": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Holdingford": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Holland": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Hollandale": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Holloway": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Holt": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Hopkins": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Houston": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Howard Lake": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Hoyt Lakes": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Hugo": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Humboldt": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Hutchinson": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Ihlen": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Independence": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "International Falls": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Inver Grove Heights": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Iona": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Iron Junction": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Ironton": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Isanti": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Isle": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "GAAP"
+    },
+    "Ivanhoe": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Jackson": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Janesville": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Jasper": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Jeffers": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Jenkins": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Johnson": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Jordan": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Kandiyohi": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Karlstad": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Kasota": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Kasson": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Keewatin": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Kelliher": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Kellogg": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Kennedy": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Kenneth": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Kensington": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Kent": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Kenyon": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Kerkhoven": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Kerrick": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Kettle River": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Kiester": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Kilkenny": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Kimball": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Kinbrae": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2023": "Cash"
+    },
+    "Kingston": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Kinney": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "La Crescent": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "La Prairie": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "La Salle": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Lafayette": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Lake Benton": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Lake Bronson": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Lake City": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Lake Crystal": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Lake Elmo": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Lake Henry": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Lake Lillian": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Lake Park": {
+      "2016": "Cash",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Lake Saint Croix Beach": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Lake Shore": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Lake Wilson": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Lakefield": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Lakeland": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Lakeland Shores": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Lakeville": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Lamberton": {
+      "2016": "GAAP",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Lancaster": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Landfall": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Lanesboro": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Laporte": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Lastrup": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Lauderdale": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Le Center": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Le Sueur": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Lengby": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Leonard": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Leonidas": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "LeRoy": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Lester Prairie": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Lewiston": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Lewisville": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Lexington": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Lilydale": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Lindstrom": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Lino Lakes": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Lismore": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Litchfield": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Little Canada": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Little Falls": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Littlefork": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Long Beach": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Long Lake": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Long Prairie": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Longville": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Lonsdale": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Loretto": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Louisburg": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Lowry": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Lucan": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Luverne": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Lyle": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Lynd": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Mabel": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Madelia": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Madison": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Madison Lake": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Magnolia": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Mahnomen": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Mahtomedi": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Manchester": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Manhattan Beach": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Mankato": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Mantorville": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Maple Grove": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Maple Lake": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Maple Plain": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Mapleton": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Mapleview": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Maplewood": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Marble": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Marietta": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Marine on Saint Croix": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Marshall": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Mayer": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Maynard": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Mazeppa": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "McGrath": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "McGregor": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "McIntosh": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "McKinley": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Meadowlands": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Medford": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Medicine Lake": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Medina": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Meire Grove": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Melrose": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Menahga": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Mendota": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Mendota Heights": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Mentor": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Middle River": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Miesville": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Milaca": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Milan": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Millerville": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Millville": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Milroy": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Miltona": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Minneapolis": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Minneiska": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Minneota": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Minnesota City": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "Cash"
+    },
+    "Minnesota Lake": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Minnetonka": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Minnetonka Beach": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Minnetrista": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Mizpah": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Montevideo": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Montgomery": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Monticello": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Montrose": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Moorhead": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Moose Lake": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Mora": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Morgan": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Morris": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Morristown": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Morton": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Motley": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Mound": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Mounds View": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Mountain Iron": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Mountain Lake": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Murdock": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Myrtle": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Nashua": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Nashwauk": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Nassau": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Nelson": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Nerstrand": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Nevis": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "New Auburn": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "New Brighton": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "New Germany": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "New Hope": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "New London": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "New Munich": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "New Prague": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "New Richland": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "New Trier": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "New Ulm": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "New York Mills": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Newfolden": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Newport": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Nicollet": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Nielsville": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Nimrod": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Nisswa": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Norcross": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "North Branch": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "North Mankato": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "North Oaks": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "North Saint Paul": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Northfield": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Northome": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Northrop": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Norwood Young America": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Nowthen": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Oak Grove": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Oak Park Heights": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Oakdale": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Odessa": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Odin": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Ogema": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Ogilvie": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Okabena": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Oklee": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Olivia": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Onamia": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Ormsby": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Orono": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Oronoco": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Orr": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Ortonville": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Osakis": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Oslo": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Osseo": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Ostrander": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Otsego": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Ottertail": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Owatonna": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Palisade": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Park Rapids": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Parkers Prairie": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Paynesville": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Pease": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Pelican Rapids": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Pemberton": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Pennock": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Pequot Lakes": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Perham": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Perley": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Peterson": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Pierz": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Pillager": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Pine City": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Pine Island": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Pine River": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Pine Springs": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Pipestone": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Plainview": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Plato": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Plummer": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Plymouth": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Porter": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Preston": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Princeton": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Prinsburg": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Prior Lake": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Proctor": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Quamba": {
+      "2016": "GAAP",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Racine": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Ramsey": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Randall": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Randolph": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Ranier": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Raymond": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Red Lake Falls": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Red Wing": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Redwood Falls": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Regal": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Remer": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Renville": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Revere": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Rice": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Rice Lake": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Richfield": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Richmond": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Richville": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Riverton": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Robbinsdale": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Rochester": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Rock Creek": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Rockford": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Rockville": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Rogers": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Rollingstone": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Roosevelt": {
+      "2016": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Roscoe": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Rose Creek": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Roseau": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Rosemount": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Roseville": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Rothsay": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Round Lake": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Royalton": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Rush City": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Rushford": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Rushford Village": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Rushmore": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Russell": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Ruthton": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Rutledge": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Sabin": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Sacred Heart": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Saint Anthony": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Saint Anthony [Stearns]": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Saint Augusta": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Saint Bonifacius": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Saint Charles": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Saint Clair": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Saint Cloud": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Saint Francis": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Saint Hilaire": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Saint James": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Saint Joseph": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Saint Leo": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Saint Louis Park": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Saint Martin": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Saint Mary's Point": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Saint Michael": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Saint Paul": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Saint Paul Park": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Saint Peter": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Saint Rosa": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Saint Stephen": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Saint Vincent": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Sanborn": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Sandstone": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Sargeant": {
+      "2016": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Sartell": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Sauk Centre": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Sauk Rapids": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Savage": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Scandia": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Scanlon": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Seaforth": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Sebeka": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Sedan": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Shafer": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Shakopee": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Shelly": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Sherburn": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Shevlin": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Shoreview": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Shorewood": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Silver Bay": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Silver Lake": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Skyline": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Slayton": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Sleepy Eye": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Sobieski": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Solway": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "South Haven": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "South Saint Paul": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Spicer": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Spring Grove": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Spring Hill": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Spring Lake Park": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Spring Park": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Spring Valley": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Springfield": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Squaw Lake": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Stacy": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Staples": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Starbuck": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Steen": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Stephen": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Stewart": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Stewartville": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Stillwater": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Stockton": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "Cash"
+    },
+    "Storden": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Strandquist": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Strathcona": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Sturgeon Lake": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Sunburg": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Sunfish Lake": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Swanville": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Taconite": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Tamarack": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Taopi": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Taunton": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Taylors Falls": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Tenstrike": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Thief River Falls": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Tintah": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Tonka Bay": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Tower": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Tracy": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Trail": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Trimont": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Trommald": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Trosky": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash"
+    },
+    "Truman": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Turtle River": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Twin Lakes": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Twin Valley": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Two Harbors": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Tyler": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Ulen": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Underwood": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Upsala": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Urbank": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Utica": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Vadnais Heights": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Vergas": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Vermillion": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Verndale": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Vernon Center": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Vesta": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Victoria": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Viking": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Villard": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Vining": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Virginia": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Wabasha": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Wabasso": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Waconia": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Wadena": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Wahkon": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Waite Park": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Waldorf": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Walker": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Walnut Grove": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Walters": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Waltham": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Wanamingo": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Wanda": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Warba": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Warren": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Warroad": {
+      "2016": "GAAP",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Waseca": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Watertown": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Waterville": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Watkins": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Watson": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Waubun": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Waverly": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Wayzata": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Welcome": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Wells": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Wendell": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "West Concord": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "West Saint Paul": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "West Union": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Westbrook": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Westport": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Whalan": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Wheaton": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "White Bear Lake": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Wilder": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Willernie": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Williams": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Willmar": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Willow River": {
+      "2016": "GAAP",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Wilmont": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Wilton": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Windom": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Winger": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Winnebago": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Winona": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Winsted": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Winthrop": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Winton": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Wolf Lake": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Wolverton": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Wood Lake": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Woodbury": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Woodland": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Woodstock": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Worthington": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Wrenshall": {
+      "2016": "GAAP",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Wright": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Wykoff": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Wyoming": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Zemple": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Zimmerman": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Zumbro Falls": {
+      "2016": "Cash",
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Zumbrota": {
+      "2016": "GAAP",
+      "2018": "GAAP",
+      "2019": "GAAP",
+      "2020": "GAAP",
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Bena": {
+      "2018": "Cash",
+      "2019": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Flensburg": {
+      "2018": "Cash",
+      "2019": "Cash",
+      "2020": "Cash",
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Birchwood Village": {
+      "2021": "Cash",
+      "2022": "Cash",
+      "2023": "Cash"
+    },
+    "Credit River": {
+      "2021": "GAAP",
+      "2022": "GAAP",
+      "2023": "GAAP"
+    },
+    "Empire": {
+      "2023": "GAAP"
+    }
+  }
+}
