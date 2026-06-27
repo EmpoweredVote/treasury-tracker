@@ -26,7 +26,7 @@ Requirements for this milestone. Each maps to exactly one roadmap phase.
 
 ### Enrichment Parity (MNENR)
 
-- [ ] **MNENR-01**: State-neutral, bleed-safe universal `category_enrichment` for the full Minnesota city+county vocabulary, authored inline at $0 via an explicit map + 100% coverage gate (delete-then-insert, NULLS-DISTINCT-safe; aborts on any unmapped live key — no silent fallback); `$`-leak + locality-name bleed guards.
+- [x] **MNENR-01**: State-neutral, bleed-safe universal `category_enrichment` for the full Minnesota city+county vocabulary, authored inline at $0 via an explicit map + 100% coverage gate (delete-then-insert, NULLS-DISTINCT-safe; aborts on any unmapped live key — no silent fallback); `$`-leak + locality-name bleed guards.
 
 ### Verification (MNVER)
 
@@ -61,7 +61,7 @@ Requirements for this milestone. Each maps to exactly one roadmap phase.
 | MNCITY-02 | Phase 90 | Pending |
 | MNCO-01 | Phase 91 | Pending |
 | MNLINK-01 | Phase 91 | Pending |
-| MNENR-01 | Phase 92 | Pending |
+| MNENR-01 | Phase 92 | Complete |
 | MNVER-01 | Phase 93 | Pending |
 | MNVER-02 | Phase 93 | Pending |
 
