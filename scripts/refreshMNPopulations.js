@@ -72,7 +72,9 @@ export async function refreshLatestPopulations({ entityType = 'city', dryRun = f
     .select('id,name,population').eq('state', 'MN').eq('entity_type', entityType)).data || [];
   let updated = 0, unchanged = 0, nomatch = 0;
   for (const m of munis) {
-    const rec = latest.get(normalizeLabel(m.name));
+    // County DB names are "<Name> County" but the workbook roster keys are bare ("Aitkin") — D-06.
+    const lookupName = entityType === 'county' ? m.name.replace(/\s+county$/i, '') : m.name;
+    const rec = latest.get(normalizeLabel(lookupName));
     if (!rec) { nomatch++; continue; }
     if (m.population === rec.pop) { unchanged++; continue; }
     if (!dryRun) {

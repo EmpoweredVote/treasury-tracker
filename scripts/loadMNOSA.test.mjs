@@ -204,3 +204,25 @@ test('loadMNOSABatch FY2023 dry-run processes the full roster, zero writes, GAAP
   assert.ok(mpls && mpls.basis === 'GAAP', 'Minneapolis assigned GAAP');
   assert.ok(Math.abs(mpls.revenueTotal - 1192133233) < 1, 'Minneapolis revenue matches the Phase 89 proof');
 });
+
+// ── Phase 91: county batch + municipalityName override ────────────────────────
+test('importEntity municipalityName overrides the DB display name (county canonical naming, D-02)', { skip: !HAVE_COUNTY }, async () => {
+  const wb = await countyWb();
+  // dry-run importEntity returns summary without touching Supabase
+  const { importEntity } = await import('./loadMNOSA.js');
+  const s = await importEntity(null, wb, { entityName: 'Aitkin', municipalityName: 'Aitkin County', fiscalYear: 2021, entityType: 'county', dryRun: true });
+  assert.equal(s.entityName, 'Aitkin County', 'summary display name uses the municipalityName override');
+  assert.ok(s.revenueTotal > 0 && s.operatingTotal > 0, 'tree totals still resolve via the bare workbook lookup name');
+  assert.equal(s.basis, null, 'county has no GAAPInd → basis null');
+});
+
+test('loadMNOSABatch --entity-type county dry-run: ~87 counties, "<Name> County" names, no GAAPInd, zero writes', { skip: !HAVE_COUNTY }, async () => {
+  const res = await loadMNOSABatch({ fy: 2021, entityType: 'county', file: COUNTY_SAMPLE, dryRun: true });
+  assert.equal(res.entityType, 'county');
+  assert.ok(res.processed >= 80, `processed ${res.processed} counties`);
+  assert.equal(res.failures.length, 0, 'zero per-county failures');
+  assert.equal(res.basis.GAAP + res.basis.Cash, 0, 'counties have no GAAPInd (all unknown)');
+  const aitkin = res.results.find((r) => r.entityName === 'Aitkin County');
+  assert.ok(aitkin, 'county DB name is "Aitkin County" (municipalityName applied)');
+  assert.ok(Math.abs(aitkin.revenueTotal - 36720288) < 1, 'Aitkin County revenue ties to the Phase 89 figure');
+});

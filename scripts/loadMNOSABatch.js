@@ -52,8 +52,8 @@ const FAILURES_LOG = join(__dirname, 'load-mn-cities.failures.txt');
  * download to _mn-recon/cired_<YY>_data.xlsx if absent. Returns { workbook, sourceUrl, file }
  * or null if unavailable.
  */
-async function acquireWorkbook(fy, fileOverride) {
-  const sourceUrl = resolveSourceUrl(fy, 'city');
+async function acquireWorkbook(fy, fileOverride, entityType = 'city') {
+  const sourceUrl = resolveSourceUrl(fy, entityType);
   if (fileOverride) {
     if (!existsSync(fileOverride)) {
       console.log(`  --file path not found: ${fileOverride}`);
@@ -64,11 +64,13 @@ async function acquireWorkbook(fy, fileOverride) {
     return { workbook: wb, sourceUrl, file: fileOverride };
   }
   if (!sourceUrl) {
-    console.log(`  No manifest city_url for FY${fy} — skipping`);
+    console.log(`  No manifest ${entityType}_url for FY${fy} — skipping`);
     return null;
   }
   const yy = String(fy).slice(-2);
-  const localPath = join(RECON_DIR, `cired_${yy}_data.xlsx`);
+  // Local cache filename (the manifest URL handles cored_/county_/dash differences — this is just a path).
+  const prefix = entityType === 'county' ? 'county' : 'cired';
+  const localPath = join(RECON_DIR, `${prefix}_${yy}_data.xlsx`);
   if (!existsSync(localPath)) {
     if (!existsSync(RECON_DIR)) mkdirSync(RECON_DIR, { recursive: true });
     console.log(`  Downloading ${sourceUrl} → ${localPath}`);
@@ -106,6 +108,7 @@ async function acquireWorkbook(fy, fileOverride) {
 export async function loadMNOSABatch(opts) {
   const {
     fy,
+    entityType = 'city',
     file = null,
     dryRun = false,
     limit = null,
@@ -113,24 +116,25 @@ export async function loadMNOSABatch(opts) {
   } = opts;
 
   const fiscalYear = Number(fy);
+  const noun = entityType === 'county' ? 'counties' : 'cities';
 
-  console.log(`\nMN OSA Batch FY${fiscalYear} [city]${dryRun ? '  [dry-run]' : ''}`);
+  console.log(`\nMN OSA Batch FY${fiscalYear} [${entityType}]${dryRun ? '  [dry-run]' : ''}`);
   console.log('Acquiring workbook:');
-  const info = await acquireWorkbook(fiscalYear, file);
+  const info = await acquireWorkbook(fiscalYear, file, entityType);
   if (!info) {
-    console.error(`No workbook available for FY${fiscalYear} — cannot proceed.`);
-    return { fy: fiscalYear, processed: 0, basis: { GAAP: 0, Cash: 0, other: 0 }, residual: [], failures: [], results: [] };
+    console.error(`No workbook available for FY${fiscalYear} ${entityType} — cannot proceed.`);
+    return { fy: fiscalYear, entityType, processed: 0, basis: { GAAP: 0, Cash: 0, other: 0 }, residual: [], failures: [], results: [] };
   }
   const { workbook, sourceUrl } = info;
 
-  const roster = enumerateEntities(workbook, 'city');
-  console.log(`  ${roster.length} cities in Governmental Funds sheet`);
+  const roster = enumerateEntities(workbook, entityType);
+  console.log(`  ${roster.length} ${noun} in Governmental Funds sheet`);
 
   const workList = limit != null ? roster.slice(0, limit) : roster;
   const supabase = (dryRun || workList.length === 0) ? null : await getSupabase();
   const fmt = (n) => (n == null || !Number.isFinite(n)) ? '—' : '$' + Math.round(n).toLocaleString('en-US');
 
-  console.log(`\nLoading ${workList.length} cities${limit != null ? ` (limit ${limit})` : ''}...\n`);
+  console.log(`\nLoading ${workList.length} ${noun}${limit != null ? ` (limit ${limit})` : ''}...\n`);
 
   const results = [];
   const failures = [];
@@ -138,24 +142,29 @@ export async function loadMNOSABatch(opts) {
   const residual = [];
 
   for (const entityName of workList) {
+    // County canonical DB name: "<Name> County" (MN city/county name collision — D-02).
+    const municipalityName = (entityType === 'county' && !/ county$/i.test(entityName))
+      ? `${entityName} County`
+      : null;
     try {
       const s = await importEntity(supabase, workbook, {
         entityName,
+        municipalityName,
         fiscalYear,
-        sourceUrl: resolveSourceUrl(fiscalYear, 'city') || sourceUrl,
+        sourceUrl: resolveSourceUrl(fiscalYear, entityType) || sourceUrl,
         sourceDate,
         dryRun,
-        entityType: 'city',
+        entityType,
       });
       results.push(s);
-      // Basis tally (per-row GAAPInd)
+      // Basis tally (per-row GAAPInd; counties have no GAAPInd → all 'other'/unknown)
       if (s.basis === 'GAAP') basis.GAAP += 1;
       else if (s.basis === 'Cash') basis.Cash += 1;
       else basis.other += 1;
       // Source-gap residual: filed nothing (both totals zero/blank) — never written.
       const noFin = (!Number.isFinite(s.revenueTotal) || s.revenueTotal === 0)
         && (!Number.isFinite(s.operatingTotal) || s.operatingTotal === 0);
-      if (noFin) residual.push({ name: entityName, reason: `no Governmental Funds financial total in FY${fiscalYear}` });
+      if (noFin) residual.push({ name: s.entityName, reason: `no Governmental Funds financial total in FY${fiscalYear}` });
     } catch (e) {
       failures.push({ entityName, error: e.message });
       console.error(`  ✗ ${entityName} — ERROR: ${e.message}`);
@@ -168,16 +177,17 @@ export async function loadMNOSABatch(opts) {
   const processed = workList.length;
 
   console.log(`\n--- FY${fiscalYear} Summary ---`);
-  console.log(`  Processed: ${processed} cities`);
-  console.log(`  Basis distribution: GAAP=${basis.GAAP}, Cash=${basis.Cash}${basis.other ? `, other=${basis.other}` : ''}`);
+  console.log(`  Processed: ${processed} ${noun}`);
+  console.log(`  Basis distribution: GAAP=${basis.GAAP}, Cash=${basis.Cash}${basis.other ? `, other/unknown=${basis.other}` : ''}`);
   console.log(`  Source-gap residual (filed nothing): ${residual.length}`);
   console.log(`  Failures: ${failures.length}`);
   if (dryRun) console.log(`  (dry-run — zero writes)`);
 
-  const mpls = results.find((r) => r.entityName === 'Minneapolis');
-  if (mpls) console.log(`  Minneapolis → basis=${mpls.basis}  rev ${fmt(mpls.revenueTotal)}  op ${fmt(mpls.operatingTotal)}  pop ${mpls.population ?? '—'}`);
+  const sampleName = entityType === 'county' ? 'Hennepin County' : 'Minneapolis';
+  const sample = results.find((r) => r.entityName === sampleName);
+  if (sample) console.log(`  ${sampleName} → basis=${sample.basis ?? 'n/a'}  rev ${fmt(sample.revenueTotal)}  op ${fmt(sample.operatingTotal)}  pop ${sample.population ?? '—'}`);
 
-  return { fy: fiscalYear, processed, basis, residual, failures, results };
+  return { fy: fiscalYear, entityType, processed, basis, residual, failures, results };
 }
 
 // ── CLI ──────────────────────────────────────────────────────────────────────
@@ -185,6 +195,7 @@ async function main() {
   const { values } = parseArgs({
     options: {
       fy:            { type: 'string' },
+      'entity-type': { type: 'string' },
       file:          { type: 'string' },
       'source-date': { type: 'string' },
       limit:         { type: 'string' },
@@ -193,12 +204,18 @@ async function main() {
   });
 
   if (!values.fy) {
-    console.error('Required: --fy <YYYY> [--file <path>] [--limit N] [--dry-run]');
+    console.error('Required: --fy <YYYY> [--entity-type city|county] [--file <path>] [--limit N] [--dry-run]');
+    process.exit(1);
+  }
+  const entityType = (values['entity-type'] || 'city').toLowerCase();
+  if (!['city', 'county'].includes(entityType)) {
+    console.error(`--entity-type must be 'city' or 'county', got: ${entityType}`);
     process.exit(1);
   }
 
   await loadMNOSABatch({
     fy: parseInt(values.fy, 10),
+    entityType,
     file: values.file || null,
     sourceDate: values['source-date'] || undefined,
     limit: values.limit != null ? parseInt(values.limit, 10) : null,
