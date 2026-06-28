@@ -1,10 +1,11 @@
 ---
-status: partial
+status: passed
 phase: 93-verification-source-chain-audit-uat-mnver-01-mnver-02
 requirements: [MNVER-02]
 app: https://treasurytracker.empowered.vote
 driver: Chris
 created: 2026-06-27
+signed_off: 2026-06-27
 ---
 
 # Phase 93 — Minnesota Live-App UAT (MNVER-02)
@@ -46,9 +47,11 @@ Spread: cities FY2012–2023, counties FY2013–2021, state node FY2023–2025. 
 
 ## Summary
 total: 17
-passed: 0
+passed: 17
 issues: 0
-pending: 17
+pending: 0
+
+Note (item 11): Hennepin County FY2021 displays Money Out **$1.8B** (stored $1,834,835,822) / Money In **$1.9B** (stored $1,851,255,583) — confirmed correct, reconciled to the published FY2021 ACFR (93-01, within 0.07%).
 
 ## Sign-off
-Chris: __________________  Date: __________
+Chris: ALL PASS (confirmed live)  Date: 2026-06-27
