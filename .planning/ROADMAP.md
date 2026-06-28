@@ -28,6 +28,39 @@
 
 ## Phases
 
+### ▶ v2.10 State General Fund Sourcing (Phases 94-97) — IN PLANNING
+
+**Milestone goal:** Replace the all-50-states unsourced "best guess" estimate state-node General Fund data with real, sourced **State ACFR GAAP actuals** (revenue-by-source + spending-by-function), and extend Minnesota's state history. Discovery (Phase 93): of 50 state GF nodes, 47 are unsourced estimates, OH + VA are estimates *falsely stamped* with a source_url, and only MN is real (FY2023–2025, the proven template).
+
+**Constraints:** Source = each state's published **ACFR**, GENERAL FUND column, **GAAP** basis (not budgetary/forecast); free + no auth; $0 spend; every figure durably sourced; MN loader (`scripts/processMN.js`) is the template.
+
+**Critical path:** 94 → 95 → 96 → 97.
+
+#### Phase 94: Extractor + Policy (SGFS-01)
+**Goal:** A reusable State-ACFR extractor + locked cross-cutting policy, proven on ≥1 state.
+**Success criteria:**
+1. pdfplumber coordinate-based extractor pulls the Governmental Funds GENERAL FUND column (GAAP) into sourced revenue-by-source + spending-by-function trees; sums verified to published totals; each figure stamped to that year's ACFR.
+2. Policy locked + documented: FY depth per state, negative-revenue-year icicle handling, older-ACFR format-drift, always-GAAP.
+3. Proven end-to-end on at least one state.
+
+#### Phase 95: MN History + OH/VA Re-do (SGFS-02, SGFS-03)
+**Goal:** Extend MN back + replace the two falsely-sourced state nodes with real actuals.
+**Success criteria:**
+1. MN state node extended to FY2021/2022 (+ deeper as feasible), sourced; FY2022 negative-revenue policy applied.
+2. OH + VA estimate state nodes replaced with real State-ACFR GAAP actuals; prior false source-stamps corrected.
+
+#### Phase 96: Remaining States (SGFS-04)
+**Goal:** Remediate the remaining ~46 state nodes.
+**Success criteria:**
+1. Each remaining state sourced from its ACFR + real actuals loaded (revenue + spending, stamped), or node removed if no clean free source (documented).
+2. No unsourced estimate state General Fund rows remain.
+
+#### Phase 97: Verification + UAT (SGFS-05)
+**Goal:** Prove the whole state-node cohort is real + sourced, and get Chris's sign-off.
+**Success criteria:**
+1. Cohort-wide source-chain audit: 0 unsourced / round-estimate state rows; sample states spot-reconciled.
+2. Live-app UAT — Chris sign-off.
+
 <details>
 <summary>✅ v2.9 Minnesota Local Government Expansion (Phases 89-93) — SHIPPED 2026-06-28 (full detail in milestones/v2.9-ROADMAP.md)</summary>
 

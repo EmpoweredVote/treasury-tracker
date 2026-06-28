@@ -47,22 +47,23 @@ All 6 remaining SoCal counties added via the hardened v2.2/v2.3 pipeline with ze
 Brought every already-loaded non-OC California city and county to the Orange County standard (FY2003 history, statewide salaries, standardized enrichment) via the hardened v2.2 pipeline. Phase 62 verified end-to-end: ACFR reconciliation, source-chain audit (0 NULL/fragile/residue across 25,568 rows), 24-item UAT with Chris's sign-off. SoCal expansion deferred to v2.4.
 </details>
 
-## Current Milestone: v2.9 Minnesota Local Government Expansion
+## Current Milestone: v2.10 State General Fund Sourcing
 
-**Goal:** Bring every Minnesota city + county government onto Treasury Tracker at parity from the single uniform Minnesota Office of the State Auditor "City/County Finances Report" raw XLSX (free, no auth) — with the 5 ranked-choice-voting cities as the mission-aligned anchor — every figure durably sourced.
+**Goal:** Replace the all-50-states unsourced "best guess" estimate state-node General Fund data with real, sourced **State ACFR GAAP actuals** (revenue-by-source + spending-by-function), and extend Minnesota's state history. Surfaced during v2.9: 50 state GF nodes were loaded from the all-50-states seed — 47 are unsourced round-number estimates, OH + VA are estimates *falsely stamped* with a source_url, and only MN is real (fixed FY2023–2025). Every state node must show real, sourced figures or none.
 
-**Target features:**
-- All ~853 MN cities + 87 counties loaded operating + revenue from the MN OSA raw XLSX (`cired_YY_data.xlsx` confirmed for cities; county file URL pinned in Phase 89 recon), free + no auth, XLSX-era FY range (~2015–latest available)
-- **Two-level icicle drill-down** — revenue-by-source tree (taxes / intergovernmental → federal+state grants / charges-for-services, each with sub-sources + subtotals) + expenditure-by-function tree (general government, public safety, streets, sanitation, parks, etc., each split current-expend vs capital-outlay). This source supports real drill-down, **resolving the flat-source icicle limitation that capped Ohio**.
-- Per-capita from the built-in `Population` column; GAAP/Cash basis via the source `GAAPInd` flag (per-entity, Ohio-style)
-- City→county linking from the source's built-in `ParentEntityName` column (no authored map needed), under a new Minnesota state navigation node; US→Minnesota→county→city breadcrumb + Cities-in-County panel
-- Standardized, bleed-safe, state-neutral universal enrichment for the MN vocabulary, inline at $0 (explicit map + 100% coverage gate, delete-then-insert)
-- The 5 RCV cities (Minneapolis, St. Paul, St. Louis Park, Bloomington, Minnetonka) reconciled + UAT'd as verification anchors — the data-coverage bridge toward the eventual votes/amendments hub (RCV kept as selection rationale + verification anchor; no new RCV UI this milestone)
-- Verification: ACFR reconciliation (an RCV city + its parent county) + full-cohort source-chain audit (0 NULL/fragile/residue) + independent workbook re-derivation + live-app UAT with Chris sign-off
+**Target features (requirements SGFS-01..05):**
+- **SGFS-01 — Extractor + locked policy:** a reusable State-ACFR extractor (generalize the MN loader; pdfplumber coordinate-based to survive PDF text-jumble) that pulls the Governmental Funds Statement of Revenues, Expenditures — GENERAL FUND column, GAAP basis — into 1-level revenue-by-source + spending-by-function trees, each figure stamped to that year's ACFR. Lock the cross-cutting rules once: FY depth per state, how to represent negative-revenue years (e.g. MN FY2022 investment losses) in an icicle, older-ACFR format-drift handling, GAAP-vs-budgetary basis (always GAAP).
+- **SGFS-02 — Minnesota history:** extend the MN state node back (FY2021/2022 + deeper as feasible) using the extractor. ACFR set on hand in `C:\tmp\Minn` (1997–2025).
+- **SGFS-03 — OH + VA re-do (priority):** replace OH's and VA's *falsely-sourced* estimate state nodes with real ACFR actuals — highest priority since they currently look legitimate in the live app.
+- **SGFS-04 — Remaining ~46 states:** batch-source each state's ACFR + load real actuals (or remove the node if no clean source).
+- **SGFS-05 — Verification + UAT:** cohort-wide source-chain audit (0 unsourced / round-estimate state rows) + Chris live-app sign-off.
 
-**Scope decisions (locked):** Full state (cities + counties); RCV = verification anchor only (no user-facing RCV indicator this milestone); FY depth = clean XLSX era (~2015–latest, exact range pinned in Phase 89). Deferred: townships/special districts, enterprise funds, and the source's bonus Employee/compensation data (Utah-style salaries — available follow-on). $0 spend target (one reusable loader + batch driver + inline enrichment), same mold as v2.5→v2.8.
+**Scope decisions (locked):** All 50 state GF nodes (discovery confirmed all but MN are estimate/false-source). Source = each state's published **ACFR**, **GAAP** General Fund column (the MN-proven, project-standard source class) — NOT budgetary or forecast figures. Free sources only, $0 spend, every figure durably sourced. MN loader (`scripts/processMN.js` / `processMNRevenue.js`) is the proven template.
+
+**Draft phases (continue from 93):** 94 Extractor + Policy (SGFS-01) → 95 MN history + OH/VA re-do (SGFS-02/03) → 96 Remaining states (SGFS-04) → 97 Verification + UAT (SGFS-05).
 
 **Carried-forward follow-ups (candidates for a later milestone or backlog sweep):**
+- **v2.9 (Phase 93):** MN state-node history FY2021/2022 + deeper deferred into THIS milestone (SGFS-02); MN salaries/enterprise/townships/pre-2015 deferred (MNSAL/MNENT/MNHIST/MNTWN-01).
 - **v2.8 (Phase 88):** flat AOS source → no icicle drill-down (deferred UX fix = surface enrichment on leaf click; see auto-memory `project_flat_source_icicle_limitation`); the 10 state-node General Fund rows' `source_url` points at `lsc.ohio.gov/budget/` (canonical, but a TLS cert-chain quirk — swap if it warns in-browser); the county "Charges For Services" duplicate-column display quirk (`total_budget` authoritative); v2 deferred OHTWN-01 (townships/villages/libraries/schools) + OHENT-01 (enterprise funds).
 - **v2.7 (Phases 80/83):** 6 localities + 3 towns absent from all published VA XLSX years (multi-year-overdue audits) + Covington/Alleghany null population — picked up idempotently on a future re-run; enterprise funds (Exhibit F) deferred from VA scope.
 - **v2.5 (Phase 73):** 4 pre-existing non-P72 `$`-leak universal enrichment rows (bleed-safety cleanup); Salt Lake County FY2025 salaries (fills on next FY2025-complete rollup refresh).

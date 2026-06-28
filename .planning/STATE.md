@@ -1,34 +1,45 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.9
-milestone_name: Minnesota Local Government Expansion
-status: milestone_complete
-last_updated: 2026-06-28T03:48:14.692Z
-last_activity: 2026-06-28 -- Phase 93 execution started
+milestone: v2.10
+milestone_name: State General Fund Sourcing
+status: planning
+last_updated: 2026-06-28T00:00:00.000Z
+last_activity: 2026-06-28 -- v2.9 Minnesota SHIPPED + tagged; v2.10 State General Fund Sourcing started
 progress:
-  total_phases: 78
-  completed_phases: 4
-  total_plans: 13
-  completed_plans: 13
-  percent: 5
-stopped_at: Milestone complete (Phase 93 was final phase)
+  total_phases: 4
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
+stopped_at: v2.10 milestone defined (PROJECT/REQUIREMENTS/ROADMAP written); next = /gsd-plan-phase 94
 ---
 
 # State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-27 — v2.9 Minnesota Local Government Expansion STARTED)
+See: .planning/PROJECT.md (updated 2026-06-28 — v2.10 State General Fund Sourcing STARTED; v2.9 Minnesota SHIPPED + archived + tagged)
 
-**Core value:** Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes.
-**Current focus:** Milestone complete
+**Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
+**Current focus:** v2.10 Phase 94 — State-ACFR extractor + cross-cutting policy (SGFS-01)
 
 ## Current Position
 
-Phase: 93
+Phase: 94 (extractor-policy) — NOT STARTED
 Plan: Not started
-Status: Milestone complete
-Last activity: 2026-06-28
+Status: v2.10 defined; ready to plan Phase 94
+Last activity: 2026-06-28 -- v2.9 shipped (tag v2.9); v2.10 stood up
+
+## Phase Overview — v2.10 State General Fund Sourcing
+
+| Phase | Name | Requirements | Depends on | Status |
+|-------|------|--------------|------------|--------|
+| 94 | Extractor + Policy | SGFS-01 | — | Not started |
+| 95 | MN History + OH/VA Re-do | SGFS-02, SGFS-03 | 94 | Not started |
+| 96 | Remaining States | SGFS-04 | 94, 95 | Not started |
+| 97 | Verification + UAT | SGFS-05 | 94–96 | Not started |
+
+**Discovery (Phase 93, 2026-06-27):** 50 state GF nodes (FY2022–2026, ~10 rows each); 47 unsourced round-number estimates (NULL source_url); OH + VA estimates falsely stamped with a source_url (highest-priority — look legitimate); MN real (State-ACFR GAAP actuals FY2023–2025 = the proven template). MN ACFR set 1997–2025 in `C:\tmp\Minn`. See [[project_state_node_unsourced_estimates]].
 
 ## Phase Overview — v2.9 Minnesota Local Government Expansion
 
