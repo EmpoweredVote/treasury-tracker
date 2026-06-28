@@ -59,7 +59,7 @@ Plans:
 - [x] 95-04-PLAN.md — Virginia ACFR GAAP operating+revenue FY2022–FY2025 (new loaders; per-section PDF)
 
 **Wave 2** *(blocked on 95-03 + 95-04)*
-- [ ] 95-05-PLAN.md — DELETE orphaned OH/VA FY2026 estimate rows + correct data_sources + cohort-clean verify
+- [x] 95-05-PLAN.md — DELETE orphaned OH/VA FY2026 estimate rows + correct data_sources + cohort-clean verify
 
 #### Phase 96: Remaining States (SGFS-04)
 **Goal:** Remediate the remaining ~46 state nodes.
