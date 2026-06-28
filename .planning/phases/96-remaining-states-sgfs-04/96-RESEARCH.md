@@ -555,7 +555,9 @@ ok = diff <= controlTotalGF * 0.005
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED during planning, 2026-06-28)
+
+> RESOLVED — Q1: skip FY2022, document in 96-07 load log. Q2: include GA FY2024 (96-06). Q3: 7-plan / 6-wave structure settled.
 
 1. **Include FY2022 from 2024 SER?**
    - What we know: 2024 SER has actual FY2022 + FY2023 data for all 50 states.
