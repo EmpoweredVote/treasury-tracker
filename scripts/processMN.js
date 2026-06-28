@@ -51,7 +51,7 @@ const SOURCES = {
   2009: { url: 'https://mn.gov/mmb/assets/2009_tcm1059-124962.pdf', date: '2009-06-30' },
   2008: { url: 'https://mn.gov/mmb/assets/2008_tcm1059-232154.pdf', date: '2008-06-30' },
 };
-const dataSource = (fy) => `State of Minnesota ACFR — General Fund (FY${fy} actual)`;
+const dataSource = (fy) => `State of Minnesota ACFR — General Fund (FY${fy} actual, GAAP basis)`;
 
 // General Fund expenditures by function — State of MN ACFR, GENERAL FUND column (in $).
 // Function-level totals only (the ACFR governmental-funds statement does not break functions into
