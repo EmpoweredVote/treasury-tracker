@@ -36,12 +36,13 @@
 
 **Critical path:** 94 → 95 → 96 → 97.
 
-#### Phase 94: Extractor + Policy (SGFS-01)
-**Goal:** A reusable State-ACFR extractor + locked cross-cutting policy, proven on ≥1 state.
+#### Phase 94: Extractor + Policy (SGFS-01) — ✅ COMPLETE (2026-06-28)
+**Goal:** A reusable state GF extractor + locked cross-cutting policy, proven on ≥1 state.
+**Outcome:** The spike (Chris checkpoint, 2026-06-27) changed the sourcing mechanism from per-state ACFR to a **hybrid: NASBO now, ACFR-upgrades later**, with **MN kept as the ACFR gold-standard outlier**. Census ASSGF disqualified (all-funds, not GF).
 **Success criteria:**
-1. pdfplumber coordinate-based extractor pulls the Governmental Funds GENERAL FUND column (GAAP) into sourced revenue-by-source + spending-by-function trees; sums verified to published totals; each figure stamped to that year's ACFR.
-2. Policy locked + documented: FY depth per state, negative-revenue-year icicle handling, older-ACFR format-drift, always-GAAP.
-3. Proven end-to-end on at least one state.
+1. ✅ Reusable loader (`scripts/loadStateGF.mjs`) pulls the NASBO SER **General Fund spending-by-function** (7 categories) into a sourced operating tree; sums cross-checked to NASBO Table 1 GF; each row source-stamped (0-NULL). Pure helpers offline-tested (10/10). *(Revenue-by-source: NASBO has none per-state → deferred to the ACFR upgrade; NASBO nodes are operating-only.)*
+2. ✅ Policy locked (`94-01-POLICY.md`): actuals-only FY depth, negative-category render rule (clamp area→0 + retain signed value + carry source total), mandatory per-node basis label, source-stamp contract, no-fabrication rule.
+3. ✅ Proven end-to-end on **Georgia FY2023** (was an unsourced estimate): loaded to production, total $29.266B + 6 functions tie NASBO within 0.03%, 0-NULL source, idempotent re-run.
 
 #### Phase 95: MN History + OH/VA Re-do (SGFS-02, SGFS-03)
 **Goal:** Extend MN back + replace the two falsely-sourced state nodes with real actuals.

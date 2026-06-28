@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.10
 milestone_name: State General Fund Sourcing
 status: executing
-last_updated: "2026-06-28T04:11:05.192Z"
-last_activity: 2026-06-28 -- Phase 94 planning complete
+last_updated: "2026-06-28T05:30:00.000Z"
+last_activity: 2026-06-28 -- Phase 94 complete (SGFS-01; NASBO loader proven on Georgia FY2023)
 progress:
   total_phases: 30
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 1
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 100
 ---
 
 # State
@@ -20,20 +20,26 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-28 — v2.10 State General Fund Sourcing STARTED; v2.9 Minnesota SHIPPED + archived + tagged)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** v2.10 Phase 94 — State-ACFR extractor + cross-cutting policy (SGFS-01)
+**Current focus:** v2.10 Phase 95 — MN history + OH/VA re-do (SGFS-02, SGFS-03). Sourcing mechanism + policy + loader now locked.
 
 ## Current Position
 
-Phase: 94 (extractor-policy) — NOT STARTED
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-06-28 -- Phase 94 planning complete
+Phase: 94 (extractor-policy) — ✅ COMPLETE
+Plan: 94-01 complete (SGFS-01)
+Status: Source LOCKED = hybrid NASBO-now / ACFR-later; MN kept as ACFR gold-standard. Policy locked (94-01-POLICY.md). NASBO loader (scripts/loadStateGF.mjs) built + offline-tested + proven on Georgia FY2023 (real, sourced, 0-NULL, idempotent). Next: Phase 95.
+Last activity: 2026-06-28 -- Phase 94 complete (SGFS-01; NASBO loader proven on Georgia FY2023)
+
+**Phase 94 decisions carried forward (binding on 95/96/97):**
+- NASBO nodes are OPERATING-only (spending-by-function, 7 categories); NASBO has no per-state revenue-by-source → revenue-by-source defers to the ACFR upgrade.
+- Mixed basis accepted ONLY with a mandatory per-node basis label (data_source carries "budgetary basis" vs "GAAP"); MN stays ACFR (not re-done under NASBO).
+- NASBO figures require visual read + dual checksum (row GF+Fed+Other+Bonds=Total; 7-function sum=Table 1 GF); text extraction misaligns. Phase 96's bulk parser must enforce these checksums.
+- Georgia FY2023 already loaded (proof). FY2022 (also actual in the 2024 SER) is trivially addable.
 
 ## Phase Overview — v2.10 State General Fund Sourcing
 
 | Phase | Name | Requirements | Depends on | Status |
 |-------|------|--------------|------------|--------|
-| 94 | Extractor + Policy | SGFS-01 | — | Not started |
+| 94 | Extractor + Policy | SGFS-01 | — | ✅ Complete |
 | 95 | MN History + OH/VA Re-do | SGFS-02, SGFS-03 | 94 | Not started |
 | 96 | Remaining States | SGFS-04 | 94, 95 | Not started |
 | 97 | Verification + UAT | SGFS-05 | 94–96 | Not started |
