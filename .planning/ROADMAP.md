@@ -44,11 +44,12 @@
 2. ✅ Policy locked (`94-01-POLICY.md`): actuals-only FY depth, negative-category render rule (clamp area→0 + retain signed value + carry source total), mandatory per-node basis label, source-stamp contract, no-fabrication rule.
 3. ✅ Proven end-to-end on **Georgia FY2023** (was an unsourced estimate): loaded to production, total $29.266B + 6 functions tie NASBO within 0.03%, 0-NULL source, idempotent re-run.
 
-#### Phase 95: MN History + OH/VA Re-do (SGFS-02, SGFS-03)
+#### Phase 95: MN History + OH/VA Re-do (SGFS-02, SGFS-03) — ✅ COMPLETE (2026-06-28)
 **Goal:** Extend MN back + replace the two falsely-sourced state nodes with real actuals.
+**Outcome:** MN extended to FY2008–FY2025 (36 rows op+rev); OH replaced + extended to FY2020–FY2025 (12 rows); VA replaced FY2022–FY2025 (8 rows); all sourced to their State ACFRs, GAAP-basis labels, 0-NULL; orphaned FY2026 estimate rows deleted. Extraction was `pdftotext -table` (render-to-image not needed); negative-revenue P2 applied to MN/OH/VA FY2022.
 **Success criteria:**
-1. MN state node extended to FY2021/2022 (+ deeper as feasible), sourced; FY2022 negative-revenue policy applied.
-2. OH + VA estimate state nodes replaced with real State-ACFR GAAP actuals; prior false source-stamps corrected.
+1. ✅ MN state node extended to FY2008–FY2022 (deeper than the FY2021/2022 floor), each year sourced; FY2022 negative-revenue policy (P2) applied (Investment Income −$350.5M rendered at 0, audited total preserved).
+2. ✅ OH + VA estimate state nodes replaced with real State-ACFR GAAP actuals (operating + revenue); prior false `lsc.ohio.gov` / `dpb.virginia.gov` stamps corrected; FY2026 estimate rows removed.
 
 **Plans:** 5 plans (2 waves)
 Plans:
