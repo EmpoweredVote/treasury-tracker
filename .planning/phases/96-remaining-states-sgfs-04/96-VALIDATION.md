@@ -38,7 +38,13 @@ created: 2026-06-28
 
 | Task ID | Plan | Wave | Requirement | Secure Behavior | Test Type | Automated Command | Status |
 |---------|------|------|-------------|-----------------|-----------|-------------------|--------|
-| {planner fills per batch} | | | SGFS-04 | actuals-only, sourced, 0-NULL, no displayed unsourced rows | checksum + DB probe | `node scripts/loadStateGF.mjs --state <ST> --fy <FY> --dry-run` | ⬜ pending |
+| 96-01-T1/T2 | 01 | 0 | SGFS-04 | 2025-SER provenance, FY-ends, 6-function taxonomy | unit | `node --test scripts/loadStateGF.test.mjs` | ⬜ pending |
+| 96-02-T1 | 02 | 0 | SGFS-04 | targeted DELETE of unsourced revenue + out-of-window operating; never sync_city_budget | smoke (dry-run) | `node scripts/cleanupStateEstimates.mjs --dry-run` | ⬜ pending |
+| 96-03-T1/T2 | 03 | 1 | SGFS-04 | Batch A (12 states) actuals-only, dual-checksum PASS | checksum | `node scripts/loadStateGF.mjs --state <ST> --dry-run` | ⬜ pending |
+| 96-04-T1/T2 | 04 | 2 | SGFS-04 | Batch B (12 states) + MI Sep-30 | checksum | `node scripts/loadStateGF.mjs --state <ST> --dry-run` | ⬜ pending |
+| 96-05-T1/T2 | 05 | 3 | SGFS-04 | Batch C (12 states) + NY Mar-31 | checksum | `node scripts/loadStateGF.mjs --state <ST> --dry-run` | ⬜ pending |
+| 96-06-T1/T2 | 06 | 4 | SGFS-04 | Batch D (10 states) + GA FY2024 + TX Aug-31; full 94-yr dry-run | checksum | `node scripts/loadStateGF.mjs --dry-run` | ⬜ pending |
+| 96-07-T1/T2 | 07 | 5 | SGFS-04 | live cleanup + load; 0-NULL, 0 revenue rows, FY-ends correct | DB probe | execute_sql probes on treasury.budgets | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
