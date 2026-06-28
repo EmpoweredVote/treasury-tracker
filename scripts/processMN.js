@@ -1,9 +1,15 @@
 #!/usr/bin/env node
 /**
- * Minnesota General Fund Operating Budget Loader — FY2022-2026
- * Source: MN Dept of Management and Budget (mn.gov/mmb)
- * MN fiscal year ends June 30. Biennial budget. E-12 education + HHS largest categories.
- * Confidence: estimated for all years.
+ * Minnesota General Fund Operating (Expenditure) Loader — FY2024 ACTUAL
+ * Source: State of Minnesota Annual Comprehensive Financial Report (ACFR), Governmental Funds
+ *   Statement of Revenues, Expenditures and Changes in Fund Balances, General Fund column,
+ *   Year Ended June 30, 2024 (in thousands). Published by MN Management & Budget (MMB).
+ *   URL: https://mn.gov/mmb/assets/2024 - Final ACFR with Cover 2024 - accessible_tcm1059-661432.pdf
+ * Replaces the prior FY2022-2026 round-number ESTIMATE placeholders (Phase 93 / 93-02 D-93-05,
+ * Chris-approved 2026-06-27) — those were unsourced and violated the "no unsourced data" rule.
+ * Only FY2024 (a closed year with published actuals) is loaded; FY2025/2026 (forecast) and
+ * FY2022/2023 (prior-year full ACFRs pending) are intentionally not loaded.
+ * Confidence: actual (audited GAAP figures).
  *
  * Usage:
  *   node scripts/processMN.js [--dry-run] [--fy YYYY]
@@ -24,144 +30,36 @@ const STATE_NAME = 'Minnesota'; const STATE_ABBR = 'MN'; const POPULATION = 5_70
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+const SOURCE_URL  = 'https://mn.gov/mmb/assets/2024%20-%20Final%20ACFR%20with%20Cover%202024%20-%20accessible_tcm1059-661432.pdf';
+const SOURCE_DATE = '2024-06-30'; // fiscal year end / as-of date of the audited statement
+const DATA_SOURCE = 'State of Minnesota ACFR — General Fund (FY2024 actual)';
+
+// General Fund expenditures by function — State of MN FY2024 ACFR, General Fund column (in $).
+// Function-level totals only (the ACFR governmental-funds statement does not break functions into
+// sub-line-items), so these are depth-0 leaves. Sums verified to the published Total Expenditures.
 const EXPENDITURES = {
-  2022: { total: 13_000_000_000, confidence: 'estimated', categories: [
-    { name: 'Education (E-12)', total: 5_500_000_000, lineItems: [
-      { name: 'K-12 Education (Foundation Formula)', amount: 4_200_000_000 },
-      { name: 'Higher Education (MnSCU + U of MN)', amount: 900_000_000 },
-      { name: 'Other Education Programs', amount: 400_000_000 },
-    ]},
-    { name: 'Health and Human Services', total: 4_000_000_000, lineItems: [
-      { name: 'Medicaid/Medical Assistance (state match)', amount: 3_000_000_000 },
-      { name: 'Child Protection and Family Services', amount: 600_000_000 },
-      { name: 'Mental Health and Substance Use', amount: 400_000_000 },
-    ]},
-    { name: 'General Government', total: 1_900_000_000, lineItems: [
-      { name: 'State Agency Operations', amount: 1_400_000_000 },
-      { name: 'Courts and Judiciary', amount: 500_000_000 },
-    ]},
-    { name: 'Agriculture and Natural Resources', total: 500_000_000, lineItems: [
-      { name: 'Dept of Natural Resources (DNR)', amount: 300_000_000 },
-      { name: 'Dept of Agriculture', amount: 200_000_000 },
-    ]},
-    { name: 'Corrections', total: 600_000_000, lineItems: [
-      { name: 'Dept of Corrections', amount: 600_000_000 },
-    ]},
-    { name: 'Debt Service', total: 500_000_000, lineItems: [
-      { name: 'State Bond Debt Service', amount: 500_000_000 },
-    ]},
-  ]},
-  2023: { total: 14_500_000_000, confidence: 'estimated', categories: [
-    { name: 'Education (E-12)', total: 6_000_000_000, lineItems: [
-      { name: 'K-12 Education (Foundation Formula)', amount: 4_600_000_000 },
-      { name: 'Higher Education (MnSCU + U of MN)', amount: 1_000_000_000 },
-      { name: 'Other Education Programs', amount: 400_000_000 },
-    ]},
-    { name: 'Health and Human Services', total: 4_500_000_000, lineItems: [
-      { name: 'Medicaid/Medical Assistance (state match)', amount: 3_400_000_000 },
-      { name: 'Child Protection and Family Services', amount: 700_000_000 },
-      { name: 'Mental Health and Substance Use', amount: 400_000_000 },
-    ]},
-    { name: 'General Government', total: 2_200_000_000, lineItems: [
-      { name: 'State Agency Operations', amount: 1_600_000_000 },
-      { name: 'Courts and Judiciary', amount: 600_000_000 },
-    ]},
-    { name: 'Agriculture and Natural Resources', total: 600_000_000, lineItems: [
-      { name: 'Dept of Natural Resources (DNR)', amount: 350_000_000 },
-      { name: 'Dept of Agriculture', amount: 250_000_000 },
-    ]},
-    { name: 'Corrections', total: 700_000_000, lineItems: [
-      { name: 'Dept of Corrections', amount: 700_000_000 },
-    ]},
-    { name: 'Debt Service', total: 500_000_000, lineItems: [
-      { name: 'State Bond Debt Service', amount: 500_000_000 },
-    ]},
-  ]},
-  2024: { total: 15_500_000_000, confidence: 'estimated', categories: [
-    { name: 'Education (E-12)', total: 6_500_000_000, lineItems: [
-      { name: 'K-12 Education (Foundation Formula)', amount: 5_000_000_000 },
-      { name: 'Higher Education (MnSCU + U of MN)', amount: 1_100_000_000 },
-      { name: 'Other Education Programs', amount: 400_000_000 },
-    ]},
-    { name: 'Health and Human Services', total: 4_800_000_000, lineItems: [
-      { name: 'Medicaid/Medical Assistance (state match)', amount: 3_600_000_000 },
-      { name: 'Child Protection and Family Services', amount: 800_000_000 },
-      { name: 'Mental Health and Substance Use', amount: 400_000_000 },
-    ]},
-    { name: 'General Government', total: 2_400_000_000, lineItems: [
-      { name: 'State Agency Operations', amount: 1_800_000_000 },
-      { name: 'Courts and Judiciary', amount: 600_000_000 },
-    ]},
-    { name: 'Agriculture and Natural Resources', total: 600_000_000, lineItems: [
-      { name: 'Dept of Natural Resources (DNR)', amount: 350_000_000 },
-      { name: 'Dept of Agriculture', amount: 250_000_000 },
-    ]},
-    { name: 'Corrections', total: 700_000_000, lineItems: [
-      { name: 'Dept of Corrections', amount: 700_000_000 },
-    ]},
-    { name: 'Debt Service', total: 500_000_000, lineItems: [
-      { name: 'State Bond Debt Service', amount: 500_000_000 },
-    ]},
-  ]},
-  2025: { total: 15_800_000_000, confidence: 'estimated', categories: [
-    { name: 'Education (E-12)', total: 6_700_000_000, lineItems: [
-      { name: 'K-12 Education (Foundation Formula)', amount: 5_100_000_000 },
-      { name: 'Higher Education (MnSCU + U of MN)', amount: 1_200_000_000 },
-      { name: 'Other Education Programs', amount: 400_000_000 },
-    ]},
-    { name: 'Health and Human Services', total: 5_000_000_000, lineItems: [
-      { name: 'Medicaid/Medical Assistance (state match)', amount: 3_800_000_000 },
-      { name: 'Child Protection and Family Services', amount: 800_000_000 },
-      { name: 'Mental Health and Substance Use', amount: 400_000_000 },
-    ]},
-    { name: 'General Government', total: 2_400_000_000, lineItems: [
-      { name: 'State Agency Operations', amount: 1_800_000_000 },
-      { name: 'Courts and Judiciary', amount: 600_000_000 },
-    ]},
-    { name: 'Agriculture and Natural Resources', total: 500_000_000, lineItems: [
-      { name: 'Dept of Natural Resources (DNR)', amount: 300_000_000 },
-      { name: 'Dept of Agriculture', amount: 200_000_000 },
-    ]},
-    { name: 'Corrections', total: 700_000_000, lineItems: [
-      { name: 'Dept of Corrections', amount: 700_000_000 },
-    ]},
-    { name: 'Debt Service', total: 500_000_000, lineItems: [
-      { name: 'State Bond Debt Service', amount: 500_000_000 },
-    ]},
-  ]},
-  2026: { total: 16_000_000_000, confidence: 'estimated', categories: [
-    { name: 'Education (E-12)', total: 6_800_000_000, lineItems: [
-      { name: 'K-12 Education (Foundation Formula)', amount: 5_200_000_000 },
-      { name: 'Higher Education (MnSCU + U of MN)', amount: 1_200_000_000 },
-      { name: 'Other Education Programs', amount: 400_000_000 },
-    ]},
-    { name: 'Health and Human Services', total: 5_100_000_000, lineItems: [
-      { name: 'Medicaid/Medical Assistance (state match)', amount: 3_900_000_000 },
-      { name: 'Child Protection and Family Services', amount: 800_000_000 },
-      { name: 'Mental Health and Substance Use', amount: 400_000_000 },
-    ]},
-    { name: 'General Government', total: 2_400_000_000, lineItems: [
-      { name: 'State Agency Operations', amount: 1_800_000_000 },
-      { name: 'Courts and Judiciary', amount: 600_000_000 },
-    ]},
-    { name: 'Agriculture and Natural Resources', total: 500_000_000, lineItems: [
-      { name: 'Dept of Natural Resources (DNR)', amount: 300_000_000 },
-      { name: 'Dept of Agriculture', amount: 200_000_000 },
-    ]},
-    { name: 'Corrections', total: 700_000_000, lineItems: [
-      { name: 'Dept of Corrections', amount: 700_000_000 },
-    ]},
-    { name: 'Debt Service', total: 500_000_000, lineItems: [
-      { name: 'State Bond Debt Service', amount: 500_000_000 },
-    ]},
+  2024: { total: 33_534_701_000, confidence: 'actual', categories: [
+    { name: 'General Education', total: 11_921_970_000, lineItems: [] },
+    { name: 'Health and Human Services', total: 11_739_746_000, lineItems: [] },
+    { name: 'Intergovernmental Aid', total: 2_752_507_000, lineItems: [] },
+    { name: 'General Government', total: 2_339_791_000, lineItems: [] },
+    { name: 'Economic and Workforce Development', total: 1_173_272_000, lineItems: [] },
+    { name: 'Higher Education', total: 1_146_680_000, lineItems: [] },
+    { name: 'Public Safety and Corrections', total: 1_048_915_000, lineItems: [] },
+    { name: 'Transportation', total: 638_509_000, lineItems: [] },
+    { name: 'Agricultural, Environmental and Energy Resources', total: 491_047_000, lineItems: [] },
+    { name: 'Capital Outlay', total: 184_522_000, lineItems: [] },
+    { name: 'Debt Service', total: 97_742_000, lineItems: [] },
   ]},
 };
 
 function validate(fy) {
   const { total, categories } = EXPENDITURES[fy]; let ok = true; let catSum = 0;
   for (const cat of categories) {
-    const itemSum = cat.lineItems.reduce((s, li) => s + li.amount, 0);
-    if (Math.abs(itemSum - cat.total) > 1_000_000) { console.error(`FY${fy} "${cat.name}": items ${itemSum} ≠ ${cat.total}`); ok = false; }
+    if (cat.lineItems.length) {
+      const itemSum = cat.lineItems.reduce((s, li) => s + li.amount, 0);
+      if (Math.abs(itemSum - cat.total) > 1_000_000) { console.error(`FY${fy} "${cat.name}": items ${itemSum} ≠ ${cat.total}`); ok = false; }
+    }
     catSum += cat.total;
   }
   if (Math.abs(catSum - total) > 10_000_000) { console.error(`FY${fy} sum ${catSum} ≠ total ${total}`); ok = false; }
@@ -177,8 +75,8 @@ function buildTree(fy) {
 async function main() {
   const { values: opts } = parseArgs({ options: { 'dry-run': { type: 'boolean', default: false }, fy: { type: 'string' } }, strict: false });
   const dryRun = opts['dry-run']; const targetFY = opts.fy ? parseInt(opts.fy, 10) : null;
-  const years = targetFY ? [targetFY] : [2022, 2023, 2024, 2025, 2026];
-  console.log(`${STATE_NAME} Operating Budget Loader${dryRun ? ' (dry-run)' : ''}\nFiscal years: ${years.join(', ')}\n`);
+  const years = targetFY ? [targetFY] : [2024];
+  console.log(`${STATE_NAME} GF Operating Loader (ACTUAL)${dryRun ? ' (dry-run)' : ''}\nFiscal years: ${years.join(', ')}\n`);
   if (!SUPABASE_KEY && !dryRun) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit(2); }
   const supabase = dryRun ? null : createClient(SUPABASE_URL, SUPABASE_KEY);
   let muniId;
@@ -189,7 +87,7 @@ async function main() {
   }
   let ds;
   if (!dryRun) {
-    const srcPayload = { name: `${STATE_NAME} General Fund Operating Budget`, api_type: 'html', dataset_type: 'operating', dataset_id: 'mn-gf-operating', base_url: 'https://www.mn.gov/mmb/', fiscal_years: [2022,2023,2024,2025,2026], municipality_id: muniId };
+    const srcPayload = { name: `${STATE_NAME} General Fund Operating Budget`, api_type: 'html', dataset_type: 'operating', dataset_id: 'mn-gf-operating', base_url: SOURCE_URL, fiscal_years: [2024], municipality_id: muniId };
     const { data: existing } = await supabase.schema('treasury').from('data_sources').select('id').eq('name', srcPayload.name).maybeSingle();
     if (existing?.id) { const { data } = await supabase.schema('treasury').from('data_sources').update(srcPayload).eq('id', existing.id).select().single(); ds = data; console.log(`data_source updated: ${ds.id}`); }
     else { const { data, error } = await supabase.schema('treasury').from('data_sources').insert(srcPayload).select().single(); if (error) { console.error('insert failed:', error.message); process.exit(2); } ds = data; console.log(`data_source created: ${ds.id}`); }
@@ -202,15 +100,22 @@ async function main() {
     console.log(`FY${fy} validation: PASS  (${EXPENDITURES[fy].confidence})`);
     const { jsonTree, total, rowCount } = buildTree(fy);
     const cats = jsonTree[0].c;
-    console.log(`\n${'Category'.padEnd(32)} ${'Amount ($)'.padStart(18)}`); console.log('─'.repeat(52));
-    for (const cat of cats) console.log(`  ${cat.n.padEnd(30)}${Math.round(cat.a).toLocaleString().padStart(18)}`);
-    console.log('─'.repeat(52)); console.log(`${'TOTAL BUDGET'.padEnd(32)}${Math.round(total).toLocaleString().padStart(18)}`);
+    console.log(`\n${'Category'.padEnd(46)} ${'Amount ($)'.padStart(18)}`); console.log('─'.repeat(66));
+    for (const cat of cats) console.log(`  ${cat.n.padEnd(44)}${Math.round(cat.a).toLocaleString().padStart(18)}`);
+    console.log('─'.repeat(66)); console.log(`${'TOTAL EXPENDITURES'.padEnd(46)}${Math.round(total).toLocaleString().padStart(18)}`);
     console.log(`Per-capita: $${Math.round(total/POPULATION).toLocaleString()}/person\n`);
     if (dryRun) { console.log(`(dry-run)\n`); continue; }
     const { data: r, error: rpcErr } = await supabase.rpc('treasury_sync_budget_tree', { p_data_source_id: ds.id, p_fiscal_year: fy, p_dataset_type: 'operating', p_total: total, p_tree: jsonTree, p_row_count: rowCount, p_triggered_by: 'bulk_load' });
     if (rpcErr) { console.error(`RPC error: ${rpcErr.message}`); process.exit(2); }
     if (r?.error) { console.error(`RPC error: ${r.error}`); process.exit(2); }
-    console.log(`Loaded ${r?.rows_inserted ?? rowCount} rows for FY${fy}\n`);
+    console.log(`Loaded ${r?.rows_inserted ?? rowCount} rows for FY${fy}`);
+    // Stamp the real source on the budget row (the RPC does not set source_url/source_date). Idempotent.
+    const { data: bud } = await supabase.schema('treasury').from('budgets').select('id').eq('municipality_id', muniId).eq('fiscal_year', fy).eq('dataset_type', 'operating').maybeSingle();
+    if (bud?.id) {
+      const { error: upErr } = await supabase.schema('treasury').from('budgets').update({ source_url: SOURCE_URL, source_date: SOURCE_DATE, data_source: DATA_SOURCE }).eq('id', bud.id);
+      if (upErr) { console.error(`source stamp failed: ${upErr.message}`); process.exit(2); }
+      console.log(`Stamped source on FY${fy} operating row\n`);
+    } else { console.error(`Could not find FY${fy} operating budget row to stamp source`); process.exit(2); }
     await supabase.schema('treasury').from('data_sources').update({ last_synced_at: new Date().toISOString() }).eq('id', ds.id);
   }
   console.log('Done.');

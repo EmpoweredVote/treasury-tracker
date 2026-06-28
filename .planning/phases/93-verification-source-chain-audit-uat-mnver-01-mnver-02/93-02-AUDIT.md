@@ -49,12 +49,19 @@ Stamping these rows with an `mn.gov/mmb` `source_url` would present unsourced es
 
 **Decision (Chris, 2026-06-27):** Replace the placeholders with **real MMB figures** (then stamp the real source).
 
-**Status:** In progress. The MMB Feb-2025 *forecast detail* (`feb25-fba-detail.pdf`) is a Nov-vs-Feb comparison table — its line items are forecast-change figures, not clean per-FY General Fund totals, so it is not a safe extraction source. The authoritative clean source for General Fund actuals (revenue-by-source + expenditure-by-function) is the **State of Minnesota ACFR** General Fund statement (the same gold-standard source class as the city/county ACFRs) — sourcing + FY scope confirmed with Chris before parsing (see checkpoint). This is a focused sourced mini-load; not yet applied.
+**Resolution (Chris, 2026-06-27): replaced placeholders with real State-ACFR actuals; FY2024 loaded, FY22/23 deferred.**
+- Source: **State of Minnesota FY2024 ACFR**, Governmental Funds Statement of Revenues, Expenditures and Changes in Fund Balances, General Fund column (year ended June 30, 2024). URL: `https://mn.gov/mmb/assets/2024 - Final ACFR with Cover 2024 - accessible_tcm1059-661432.pdf`. source_date 2024-06-30. Figures independently sum-verified to the published totals.
+- Loaders `scripts/processMN.js` (operating) + `scripts/processMNRevenue.js` (revenue) rewritten: FY2024 real actuals (depth-1 functions/sources under the GF root), `--fy 2024` default, post-RPC source-stamp (idempotent).
+- **Applied to production:** deleted the 8 FY2022/2023/2025/2026 placeholder rows (+48 categories); the FY2024 RPC replaced the FY2024 placeholder; source stamped.
+  - State node now: **FY2024 operating $33,534,701,000** (11 functions: General Education $11.92B, Health & Human Services $11.74B, Intergovernmental Aid $2.75B, …) + **FY2024 revenue $34,562,737,000** (12 sources: Individual Income $16.63B, Sales $7.59B, …).
+  - **Full MN cohort now 0-NULL source_url/source_date/data_source across ALL entity_types** (cities + counties + state).
+  - Idempotent: re-running both loaders leaves totals + source unchanged.
+- **FY2022 + FY2023 deferred** (Chris's choice): the full prior-year State ACFR PDFs were not fetchable via CLI; the MMB End-of-Session FBA (`eos23-fba-detail.pdf`, user-provided) is budgetary/forecast basis (not GAAP-actual) + FY2023 is an estimate, so it is NOT basis-compatible with the FY2024 ACFR figure and was not used. FY2022/FY2023 to be added from their full State ACFRs when available.
 
 ---
 
-## MNVER-01 Part B Verdict: **PASS for the v2.9 OSA city/county cohort** (the milestone scope); state-node real-figure replacement in progress (Task 4).
+## MNVER-01 Part B Verdict: **PASS** (v2.9 OSA city/county cohort + state-node honesty resolved).
 - City + county source chain: durable, complete (0-NULL), residue-free; 20 source URLs all manifest-managed + live.
 - Stored figures independently re-derived from the workbooks = exact for 5 entities incl. a CASH-basis city + 2 counties.
 - 2-level icicle drill-down confirmed cohort-wide.
-- State-node placeholder data flagged + being replaced with real sourced MMB figures.
+- State-node unsourced placeholders **replaced** with real FY2024 State-ACFR actuals (sourced); full cohort now 0-NULL. FY2022/FY2023 deferred to a future ACFR load.
