@@ -49,14 +49,15 @@ Stamping these rows with an `mn.gov/mmb` `source_url` would present unsourced es
 
 **Decision (Chris, 2026-06-27):** Replace the placeholders with **real MMB figures** (then stamp the real source).
 
-**Resolution (Chris, 2026-06-27): replaced placeholders with real State-ACFR actuals; FY2024 loaded, FY22/23 deferred.**
-- Source: **State of Minnesota FY2024 ACFR**, Governmental Funds Statement of Revenues, Expenditures and Changes in Fund Balances, General Fund column (year ended June 30, 2024). URL: `https://mn.gov/mmb/assets/2024 - Final ACFR with Cover 2024 - accessible_tcm1059-661432.pdf`. source_date 2024-06-30. Figures independently sum-verified to the published totals.
-- Loaders `scripts/processMN.js` (operating) + `scripts/processMNRevenue.js` (revenue) rewritten: FY2024 real actuals (depth-1 functions/sources under the GF root), `--fy 2024` default, post-RPC source-stamp (idempotent).
-- **Applied to production:** deleted the 8 FY2022/2023/2025/2026 placeholder rows (+48 categories); the FY2024 RPC replaced the FY2024 placeholder; source stamped.
-  - State node now: **FY2024 operating $33,534,701,000** (11 functions: General Education $11.92B, Health & Human Services $11.74B, Intergovernmental Aid $2.75B, …) + **FY2024 revenue $34,562,737,000** (12 sources: Individual Income $16.63B, Sales $7.59B, …).
+**Resolution (Chris, 2026-06-27): replaced placeholders with a real 3-year State-ACFR GAAP-actuals series (FY2023–FY2025).**
+- Source: **State of Minnesota ACFRs** (user-provided full set, 1997–2025), Governmental Funds Statement of Revenues, Expenditures and Changes in Fund Balances, **GENERAL FUND column, GAAP basis** (in thousands). Each year stamped to its own ACFR URL + source_date (fiscal year end). All figures independently sum-verified to the published Net Revenues / Total Expenditures.
+  - **Basis trap caught:** these ACFRs contain BOTH a GAAP governmental-funds statement and a separate budgetary-basis statement; FY2024 (already loaded) used GAAP, so all years use the **GAAP** GENERAL column for consistency (an early read mistakenly grabbed the budgetary figures for FY2021-23 — corrected).
+- Loaders `scripts/processMN.js` (operating) + `scripts/processMNRevenue.js` (revenue) rewritten: FY2023/2024/2025 GAAP actuals (depth-1 functions/sources under the GF root), per-FY `SOURCES` map, post-RPC per-FY source-stamp (idempotent).
+- **Applied to production:** deleted the 8 FY2022/2023/2025/2026 placeholder rows (+48 categories); RPC loaded real FY2023/2024/2025; each row stamped with its ACFR source.
+  - State node now (GENERAL FUND, GAAP): **FY2023** op $26,646,765,000 / rev $33,466,152,000; **FY2024** op $33,534,701,000 / rev $34,562,737,000; **FY2025** op $35,114,726,000 / rev $35,478,861,000. (11 spending functions + 12 revenue sources per year.)
   - **Full MN cohort now 0-NULL source_url/source_date/data_source across ALL entity_types** (cities + counties + state).
   - Idempotent: re-running both loaders leaves totals + source unchanged.
-- **FY2022 + FY2023 deferred** (Chris's choice): the full prior-year State ACFR PDFs were not fetchable via CLI; the MMB End-of-Session FBA (`eos23-fba-detail.pdf`, user-provided) is budgetary/forecast basis (not GAAP-actual) + FY2023 is an estimate, so it is NOT basis-compatible with the FY2024 ACFR figure and was not used. FY2022/FY2023 to be added from their full State ACFRs when available.
+- **FY2021 + FY2022 deferred:** same ACFRs are on hand, but their expenditure tables need page-image extraction (pdftotext column-jumble) and FY2022 has a negative Investment/Interest line (−$350M, market losses) that complicates the icicle. Can be added later. The user-provided EOS FBA (`eos23-fba-detail.pdf`) was NOT used — budgetary/forecast basis, not GAAP-actual.
 
 ---
 
