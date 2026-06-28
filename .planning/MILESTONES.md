@@ -1,5 +1,23 @@
 # Milestones — Treasury Tracker / Empowered Vote Financials
 
+## v2.9 Minnesota Local Government Expansion (Shipped: 2026-06-28)
+
+**Phases completed:** 5 phases (89–93), 13 plans
+
+**Delivered:** Every Minnesota city + county government brought onto Treasury Tracker at parity from the single uniform MN Office of the State Auditor "City/County Finances Report" raw XLSX (osa.state.mn.us, free, no auth) — two-level revenue-by-source + expenditure-by-function trees with real icicle drill-down (resolving the Ohio flat-source limitation), per-capita, every figure sourced. **858 cities (20,414 rows) + 87 counties (1,380 rows) + a Minnesota state node + 136 universal enrichment rows.** Cities linked to parent county via the built-in `ParentEntityName`; GAAP/Cash basis per-entity via `GAAPInd`; standardized bleed-safe enrichment inline at $0; reconciled against published ACFRs (Hennepin exact, Minneapolis explained), full-cohort source-chain audit clean, independent workbook re-derivation exact, Chris live UAT all-pass (2026-06-27). **Also caught + fixed:** the MN state node's unsourced "best guess" General Fund data was replaced with real State-of-MN ACFR GAAP actuals (FY2023–2025) — which surfaced a cohort-wide problem now chartered as v2.10.
+
+**Archive:** [v2.9-ROADMAP.md](milestones/v2.9-ROADMAP.md) | [v2.9-REQUIREMENTS.md](milestones/v2.9-REQUIREMENTS.md)
+
+**Deferred at close:** salaries (`Employee Data`), enterprise funds, pre-2015 history, townships (MNSAL/MNENT/MNHIST/MNTWN-01); MN state-node history FY2021/2022+ (→ v2.10).
+
+## v2.8 Ohio Local Government Expansion (Shipped: 2026-06-26)
+
+**Phases completed:** 5 phases (84–88)
+
+**Delivered:** Ohio cities + county governments brought onto Treasury Tracker at parity from the uniform Ohio Auditor of State Summarized Annual Financial Reports XLSX (ohioauditor.gov, free, no auth) — general-government revenue-by-source + expenditure-by-function, per-capita, every figure sourced. 253 cities (4,880 rows) + 88 counties (1,736 rows), linked + enriched + ACFR-reconciled, Chris UAT sign-off 2026-06-26. Accepted limitation: flat AOS source → no icicle drill-down.
+
+**Archive:** [v2.8-ROADMAP.md](milestones/v2.8-ROADMAP.md) | [v2.8-REQUIREMENTS.md](milestones/v2.8-REQUIREMENTS.md)
+
 ## v2.7 Virginia Local Government Expansion (Shipped: 2026-06-24)
 
 **Phases completed:** 6 phases (79–83, incl. inserted out-of-scope EV Phase 81.5), 10 plans, 24 tasks

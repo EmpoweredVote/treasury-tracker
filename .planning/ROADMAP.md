@@ -21,13 +21,17 @@
 - ✅ **v2.6 EV Financial Transparency Refresh** — Phases 74-78 (shipped 2026-06-22; Phase 77 iceboxed)
 - ✅ **v2.7 Virginia Local Government Expansion** — Phases 79-83 (shipped 2026-06-24)
 - ✅ **v2.8 Ohio Local Government Expansion** — Phases 84-88 (shipped 2026-06-26)
-- ▶ **v2.9 Minnesota Local Government Expansion** — Phases 89-93 (in progress, started 2026-06-27)
+- ✅ **v2.9 Minnesota Local Government Expansion** — Phases 89-93 (shipped 2026-06-28)
+- ▶ **v2.10 State General Fund Sourcing** — replace all-50-states estimate state-node data with State ACFR actuals (in planning, 2026-06-28)
 
 ---
 
 ## Phases
 
-### ▶ v2.9 Minnesota Local Government Expansion (Phases 89-93) — IN PROGRESS
+<details>
+<summary>✅ v2.9 Minnesota Local Government Expansion (Phases 89-93) — SHIPPED 2026-06-28 (full detail in milestones/v2.9-ROADMAP.md)</summary>
+
+### v2.9 Minnesota Local Government Expansion (Phases 89-93)
 
 **Milestone goal:** Bring every Minnesota city + county government onto Treasury Tracker at parity from the single uniform Minnesota Office of the State Auditor "City/County Finances Report" raw XLSX (`cired_YY_data.xlsx`, free, no auth) — two-level revenue-by-source + expenditure-by-function trees (real icicle drill-down), per-capita, every figure sourced to osa.state.mn.us. The 5 ranked-choice-voting cities (Minneapolis, St. Paul, St. Louis Park, Bloomington, Minnetonka) are the mission-aligned verification anchors.
 
@@ -72,6 +76,8 @@
 2. Full-cohort source-chain audit clean (0 NULL/fragile/residue across all loaded rows); independent workbook re-derivation of ≥5 entities = 0 mismatches.
 3. Two-level icicle drill-down confirmed rendering (the flat-source limitation that capped Ohio is resolved).
 4. Live-app UAT across ≥1 RCV anchor city + a county + the Minnesota state node — Chris sign-off.
+
+</details>
 
 <details>
 <summary>✅ v2.8 Ohio Local Government Expansion (Phases 84-88) — SHIPPED 2026-06-26 (full detail in milestones/v2.8-ROADMAP.md)</summary>
