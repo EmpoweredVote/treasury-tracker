@@ -1,0 +1,89 @@
+/**
+ * Offline unit tests for scripts/loadStateGF.mjs pure helpers.
+ * No DB / no network. Run: node --test scripts/loadStateGF.test.mjs
+ */
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import {
+  clampForRender, categoryLabel, buildCategoryLeaf, buildOperatingTree,
+  validateAgainstControl, dataSourceLabel, sourceDate, __STATES,
+} from './loadStateGF.mjs';
+
+test('clampForRender clamps negatives to 0, leaves non-negatives (P2)', () => {
+  assert.equal(clampForRender(-5_000), 0);
+  assert.equal(clampForRender(0), 0);
+  assert.equal(clampForRender(1_200_000_000), 1_200_000_000);
+});
+
+test('categoryLabel flags negatives with their true value, leaves positives clean (P2)', () => {
+  assert.equal(categoryLabel('Investment Earnings', -1_200_000_000), 'Investment Earnings (net −$1.20B — shown at 0)');
+  assert.equal(categoryLabel('Medicaid', 3_398_000_000), 'Medicaid');
+});
+
+test('buildCategoryLeaf: negative leaf renders at 0 area but keeps signed value in label (P2)', () => {
+  const leaf = buildCategoryLeaf({ name: 'Investment Earnings', total: -2_000_000_000 });
+  assert.equal(leaf.a, 0);
+  assert.match(leaf.n, /net −\$2\.00B/);
+  assert.deepEqual(leaf.i, []);
+});
+
+test('buildOperatingTree: root label, sorted desc, drops zeros, total = source control (P2/P3/P5)', () => {
+  const entry = {
+    controlTotalGF: 100_000_000_000,
+    categories: [
+      { name: 'Big', total: 60_000_000_000 },
+      { name: 'Small', total: 40_000_000_000 },
+      { name: 'Zero', total: 0 },
+    ],
+  };
+  const { jsonTree, total, rowCount } = buildOperatingTree('Georgia', entry);
+  assert.equal(jsonTree[0].n, 'Georgia General Fund Budget');
+  assert.equal(total, 100_000_000_000);                 // carries source control, not leaf sum
+  assert.equal(rowCount, 2);                            // zero dropped
+  assert.deepEqual(jsonTree[0].c.map(c => c.n), ['Big', 'Small']); // sorted desc
+});
+
+test('buildOperatingTree retains a negative category (shown at 0, not dropped) (P2)', () => {
+  const entry = {
+    controlTotalGF: 50_000_000_000,
+    categories: [
+      { name: 'Taxes', total: 51_000_000_000 },
+      { name: 'Investment Earnings', total: -1_000_000_000 },
+    ],
+  };
+  const { jsonTree, rowCount } = buildOperatingTree('Test', entry);
+  assert.equal(rowCount, 2);                            // negative retained
+  const neg = jsonTree[0].c.find(c => c.n.includes('Investment'));
+  assert.equal(neg.a, 0);
+  assert.match(neg.n, /net −/);
+});
+
+test('validateAgainstControl: GA real data ties within tolerance', () => {
+  const v = validateAgainstControl(__STATES.GA.operating[2023]);
+  assert.equal(v.ok, true);
+  assert.ok(v.diff / v.control < 0.005, `diff ${v.diff} should be <0.5% of ${v.control}`);
+});
+
+test('validateAgainstControl: a mismatched control fails the cross-check', () => {
+  const bad = { controlTotalGF: 10_000_000_000, categories: [{ name: 'A', total: 8_000_000_000 }] };
+  assert.equal(validateAgainstControl(bad).ok, false);
+});
+
+test('GA categories are all checksum-positive-or-zero and sum is correct', () => {
+  const cats = __STATES.GA.operating[2023].categories;
+  const sum = cats.reduce((s, c) => s + c.total, 0);
+  assert.equal(sum, 29_274_000_000);                    // documented 7-function sum
+  for (const c of cats) assert.ok(c.total >= 0, `${c.name} non-negative`);
+});
+
+test('dataSourceLabel carries the basis label + FY (P3)', () => {
+  const l = dataSourceLabel(2023);
+  assert.match(l, /budgetary basis/);
+  assert.match(l, /FY2023 actual/);
+  assert.match(l, /NASBO State Expenditure Report/);
+});
+
+test('sourceDate uses the state fiscal-year end (P4)', () => {
+  assert.equal(sourceDate('GA', 2023), '2023-06-30');
+  assert.equal(sourceDate('ZZ', 2023), '2023-06-30');   // default 06-30
+});
