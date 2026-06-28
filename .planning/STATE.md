@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.10
 milestone_name: State General Fund Sourcing
-status: planning
-last_updated: 2026-06-28T00:00:00.000Z
-last_activity: 2026-06-28 -- v2.9 Minnesota SHIPPED + tagged; v2.10 State General Fund Sourcing started
+status: executing
+last_updated: "2026-06-28T04:11:05.192Z"
+last_activity: 2026-06-28 -- Phase 94 planning complete
 progress:
-  total_phases: 4
+  total_phases: 30
   completed_phases: 0
-  total_plans: 0
+  total_plans: 1
   completed_plans: 0
   percent: 0
-stopped_at: v2.10 milestone defined (PROJECT/REQUIREMENTS/ROADMAP written); next = /gsd-plan-phase 94
 ---
 
 # State
@@ -27,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-06-28 — v2.10 State General Fund Sourc
 
 Phase: 94 (extractor-policy) — NOT STARTED
 Plan: Not started
-Status: v2.10 defined; ready to plan Phase 94
-Last activity: 2026-06-28 -- v2.9 shipped (tag v2.9); v2.10 stood up
+Status: Ready to execute
+Last activity: 2026-06-28 -- Phase 94 planning complete
 
 ## Phase Overview — v2.10 State General Fund Sourcing
 
