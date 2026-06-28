@@ -50,6 +50,17 @@
 1. MN state node extended to FY2021/2022 (+ deeper as feasible), sourced; FY2022 negative-revenue policy applied.
 2. OH + VA estimate state nodes replaced with real State-ACFR GAAP actuals; prior false source-stamps corrected.
 
+**Plans:** 5 plans (2 waves)
+Plans:
+**Wave 1** *(parallel — disjoint files)*
+- [ ] 95-01-PLAN.md — MN operating history FY2008–FY2022 (extend processMN.js), sourced + 0-NULL
+- [ ] 95-02-PLAN.md — MN revenue history FY2008–FY2022 (extend processMNRevenue.js), P2 negative-revenue for FY2022
+- [ ] 95-03-PLAN.md — Ohio ACFR GAAP operating+revenue FY2022–FY2025 (new loaders; manual PDF download checkpoint)
+- [ ] 95-04-PLAN.md — Virginia ACFR GAAP operating+revenue FY2022–FY2025 (new loaders; per-section PDF)
+
+**Wave 2** *(blocked on 95-03 + 95-04)*
+- [ ] 95-05-PLAN.md — DELETE orphaned OH/VA FY2026 estimate rows + correct data_sources + cohort-clean verify
+
 #### Phase 96: Remaining States (SGFS-04)
 **Goal:** Remediate the remaining ~46 state nodes.
 **Success criteria:**
