@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.10
 milestone_name: State General Fund Sourcing
-status: executing
-last_updated: "2026-06-28T05:30:00.000Z"
+status: "Source LOCKED = hybrid NASBO-now / ACFR-later; MN kept as ACFR gold-standard. Policy locked (94-01-POLICY.md). NASBO loader (scripts/loadStateGF.mjs) built + offline-tested + proven on Georgia FY2023 (real, sourced, 0-NULL, idempotent). Next: Phase 95."
+last_updated: "2026-06-28T06:32:35.164Z"
 last_activity: 2026-06-28 -- Phase 94 complete (SGFS-01; NASBO loader proven on Georgia FY2023)
 progress:
   total_phases: 30
   completed_phases: 1
   total_plans: 1
   completed_plans: 1
-  percent: 100
+  percent: 3
 ---
 
 # State
@@ -30,6 +30,7 @@ Status: Source LOCKED = hybrid NASBO-now / ACFR-later; MN kept as ACFR gold-stan
 Last activity: 2026-06-28 -- Phase 94 complete (SGFS-01; NASBO loader proven on Georgia FY2023)
 
 **Phase 94 decisions carried forward (binding on 95/96/97):**
+
 - NASBO nodes are OPERATING-only (spending-by-function, 7 categories); NASBO has no per-state revenue-by-source → revenue-by-source defers to the ACFR upgrade.
 - Mixed basis accepted ONLY with a mandatory per-node basis label (data_source carries "budgetary basis" vs "GAAP"); MN stays ACFR (not re-done under NASBO).
 - NASBO figures require visual read + dual checksum (row GF+Fed+Other+Bonds=Total; 7-function sum=Table 1 GF); text extraction misaligns. Phase 96's bulk parser must enforce these checksums.
@@ -181,9 +182,9 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-27T23:03:33.388Z
-Stopped at: Phase 89 context gathered
-Resume file: None
+Last session: 2026-06-28T06:32:35.150Z
+Stopped at: Phase 95 context gathered
+Resume file: .planning/phases/95-mn-history-oh-va-re-do-sgfs-02-sgfs-03/95-CONTEXT.md
 
 ### Next Session
 
