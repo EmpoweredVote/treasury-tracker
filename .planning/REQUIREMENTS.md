@@ -19,7 +19,7 @@
 
 ### Re-do Falsely-Sourced States (SGFS)
 
-- [ ] **SGFS-03**: Ohio + Virginia state nodes — the *falsely-sourced* estimate General Fund rows replaced with real State-ACFR GAAP actuals (highest priority: they currently look legitimate). The prior estimate-stamping (OH D-88-04, VA equivalent) corrected.
+- [x] **SGFS-03**: Ohio + Virginia state nodes — the *falsely-sourced* estimate General Fund rows replaced with real State-ACFR GAAP actuals (highest priority: they currently look legitimate). The prior estimate-stamping (OH D-88-04, VA equivalent) corrected.
 
 ### Remaining States (SGFS)
 
@@ -44,7 +44,7 @@
 |-------------|-------|--------|
 | SGFS-01 | Phase 94 | Pending |
 | SGFS-02 | Phase 95 | Pending |
-| SGFS-03 | Phase 95 | Pending |
+| SGFS-03 | Phase 95 | Complete |
 | SGFS-04 | Phase 96 | Pending |
 | SGFS-05 | Phase 97 | Pending |
 

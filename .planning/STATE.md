@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v2.10
 milestone_name: State General Fund Sourcing
-status: "Source LOCKED = hybrid NASBO-now / ACFR-later; MN kept as ACFR gold-standard. Policy locked (94-01-POLICY.md). NASBO loader (scripts/loadStateGF.mjs) built + offline-tested + proven on Georgia FY2023 (real, sourced, 0-NULL, idempotent). Next: Phase 95."
-last_updated: "2026-06-28T06:32:35.164Z"
-last_activity: 2026-06-28 -- Phase 94 complete (SGFS-01; NASBO loader proven on Georgia FY2023)
+status: executing
+last_updated: "2026-06-28T15:18:52.954Z"
+last_activity: 2026-06-28
 progress:
   total_phases: 30
   completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  total_plans: 6
+  completed_plans: 2
   percent: 3
 ---
 
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-28 — v2.10 State General Fund Sourcing STARTED; v2.9 Minnesota SHIPPED + archived + tagged)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** v2.10 Phase 95 — MN history + OH/VA re-do (SGFS-02, SGFS-03). Sourcing mechanism + policy + loader now locked.
+**Current focus:** Phase 95 — mn-history-oh-va-re-do-sgfs-02-sgfs-03
 
 ## Current Position
 
-Phase: 94 (extractor-policy) — ✅ COMPLETE
-Plan: 94-01 complete (SGFS-01)
-Status: Source LOCKED = hybrid NASBO-now / ACFR-later; MN kept as ACFR gold-standard. Policy locked (94-01-POLICY.md). NASBO loader (scripts/loadStateGF.mjs) built + offline-tested + proven on Georgia FY2023 (real, sourced, 0-NULL, idempotent). Next: Phase 95.
-Last activity: 2026-06-28 -- Phase 94 complete (SGFS-01; NASBO loader proven on Georgia FY2023)
+Phase: 95 (mn-history-oh-va-re-do-sgfs-02-sgfs-03) — EXECUTING
+Plan: 3 of 5
+Status: Ready to execute
+Last activity: 2026-06-28
 
 **Phase 94 decisions carried forward (binding on 95/96/97):**
 
@@ -182,9 +182,9 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-28T06:32:35.150Z
+Last session: 2026-06-28T15:18:26.162Z
 Stopped at: Phase 95 context gathered
-Resume file: .planning/phases/95-mn-history-oh-va-re-do-sgfs-02-sgfs-03/95-CONTEXT.md
+Resume file: None
 
 ### Next Session
 
@@ -225,6 +225,7 @@ Source recon done: MN OSA City Finances Report XLSX confirmed icicle-grade (`cir
 | Phase 88-verification-source-chain-audit-uat P01 | 40 | 2 tasks | 1 files |
 | Phase 88 P02 | 23 | 3 tasks | 2 files |
 | Phase 92-enrichment-parity-mnenr-01 P01 | 20min | 3 tasks | 5 files |
+| Phase 95 P03 | 45 | 2 tasks | 2 files |
 
 ## Decisions
 
@@ -278,6 +279,8 @@ Source recon done: MN OSA City Finances Report XLSX confirmed icicle-grade (`cir
 - [86-04]: Allen County was in the workbook at row 7 (first data row) all along — dropped because city layout misread it as the header row; 64 GAAP counties now enumerated; Franklin County rev=$1,811,422,000 (col 16) / exp=$1,913,193,000 (col 32)
 - [Phase ?]: LSC URLs used for OH state-node source stamp; seedOHState.js Step C changed to direct data_sources table query (RPC truncates at 1000 rows)
 - [Phase ?]: [88-02]: 4 OH population=0 entities fixed (Ironton+3 counties) from 2020 Census P.L. 94-171
+- [Phase ?]: pdftotext -table mode works cleanly for Ohio ACFR two-page spread; all 12 checksums 0 diff
+- [Phase ?]: FY2022 OH Investment Income -570453k net loss: P2 clamp applied in revenue loader; audited total 44323336k carried verbatim
 
 ## Deferred Items
 
