@@ -15,7 +15,7 @@
 
 ### Minnesota History (SGFS)
 
-- [ ] **SGFS-02**: Minnesota state node extended back from FY2023–2025 to FY2021/2022 (+ deeper as cleanly feasible), real GAAP actuals from the State ACFRs on hand (`C:\tmp\Minn`, 1997–2025), each year sourced; negative-revenue-year policy applied to FY2022.
+- [x] **SGFS-02**: Minnesota state node extended back from FY2023–2025 to FY2021/2022 (+ deeper as cleanly feasible), real GAAP actuals from the State ACFRs on hand (`C:\tmp\Minn`, 1997–2025), each year sourced; negative-revenue-year policy applied to FY2022.
 
 ### Re-do Falsely-Sourced States (SGFS)
 
@@ -43,7 +43,7 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | SGFS-01 | Phase 94 | Pending |
-| SGFS-02 | Phase 95 | Pending |
+| SGFS-02 | Phase 95 | Complete |
 | SGFS-03 | Phase 95 | Complete |
 | SGFS-04 | Phase 96 | Pending |
 | SGFS-05 | Phase 97 | Pending |

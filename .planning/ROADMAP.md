@@ -53,8 +53,8 @@
 **Plans:** 5 plans (2 waves)
 Plans:
 **Wave 1** *(parallel — disjoint files)*
-- [ ] 95-01-PLAN.md — MN operating history FY2008–FY2022 (extend processMN.js), sourced + 0-NULL
-- [ ] 95-02-PLAN.md — MN revenue history FY2008–FY2022 (extend processMNRevenue.js), P2 negative-revenue for FY2022
+- [x] 95-01-PLAN.md — MN operating history FY2008–FY2022 (extend processMN.js), sourced + 0-NULL
+- [x] 95-02-PLAN.md — MN revenue history FY2008–FY2022 (extend processMNRevenue.js), P2 negative-revenue for FY2022
 - [x] 95-03-PLAN.md — Ohio ACFR GAAP operating+revenue FY2022–FY2025 (new loaders; manual PDF download checkpoint)
 - [x] 95-04-PLAN.md — Virginia ACFR GAAP operating+revenue FY2022–FY2025 (new loaders; per-section PDF)
 
