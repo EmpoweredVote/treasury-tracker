@@ -53,8 +53,8 @@
 
 ## Result
 
-- Items passed: ___ / 21
-- Failures / notes: ________________________________________________
-- **Chris sign-off (SGFS-05 UAT):** ____________________  **Date:** __________
+- Items passed: **21 / 21** ✓
+- Failures / notes: none — all rows pass, including ⭐B2 (operating-only "Money In" disabled, not broken) and ⭐C4 (GA FY2023 $29.266B with Medicaid $3.39B after F-97-01, slices fill the parent cleanly)
+- **Chris sign-off (SGFS-05 UAT): APPROVED — Chris Cantrell**  **Date:** 2026-06-29
 
 *On a clean run this closes Phase 97 and the v2.10 State General Fund Sourcing milestone (→ /gsd-complete-milestone).*
