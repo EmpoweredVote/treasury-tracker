@@ -72,7 +72,7 @@ Plans:
 Plans:
 **Wave 0** *(loader infra + cleanup script — parallel, disjoint files; BLOCKING)*
 - [x] 96-01-PLAN.md — Loader infra: 2025 SER provenance + FY_END_MMDD (AL/MI/TX/NY) + 6-function taxonomy + Alabama checksum test
-- [ ] 96-02-PLAN.md — scripts/cleanupStateEstimates.mjs (NEW): dry-run-first targeted DELETE of cohort revenue + out-of-window operating estimate rows (D-96-03)
+- [x] 96-02-PLAN.md — scripts/cleanupStateEstimates.mjs (NEW): dry-run-first targeted DELETE of cohort revenue + out-of-window operating estimate rows (D-96-03)
 
 **Wave 1** *(data entry — sequential on loadStateGF.mjs)*
 - [ ] 96-03-PLAN.md — Batch A (AK AL AR AZ CA CO CT DE FL HI IA ID) FY2023+FY2024, dual-checksum dry-run
