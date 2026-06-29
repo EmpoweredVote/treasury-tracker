@@ -62,11 +62,12 @@ Plans:
 **Wave 2** *(blocked on 95-03 + 95-04)*
 - [x] 95-05-PLAN.md — DELETE orphaned OH/VA FY2026 estimate rows + correct data_sources + cohort-clean verify
 
-#### Phase 96: Remaining States (SGFS-04)
+#### Phase 96: Remaining States (SGFS-04) — ✅ COMPLETE (2026-06-28)
 **Goal:** Remediate the remaining 46 state nodes (all 50 minus MN, OH, VA, GA) by loading NASBO 2025 SER General Fund operating actuals (FY2023 + FY2024), and remove every displayed unsourced row. Revenue-by-source remains a documented deferral (NASBO has none per-state; future ACFR upgrade) per D-96-01/03.
+**Outcome:** 94 NASBO operating state-years loaded (46 cohort + GA, FY2023+FY2024), all dual-checksum-validated against NASBO Table 1 GF + cross-checked to the SER PDF, 0-NULL stamped, correct non-June-30 FY-ends (AL/MI Sep-30, TX Aug-31, NY Mar-31). 375 unsourced rows deleted (234 revenue + 141 out-of-window operating) across 47 states — GA folded in (Chris-approved) so no cohort state displays unsourced data. Extraction via `pdftotext -table` (no render-to-image). Revenue-by-source deferred (deleted, not replaced — honest, no unsourced display).
 **Success criteria:**
-1. Each of the 46 cohort states + GA carries real, sourced NASBO operating actuals (spending-by-function, FY2023 + FY2024), dual-checksum-validated, 0-NULL stamped; or documented unsourceable (none expected per D-96-04).
-2. No unsourced estimate state General Fund operating rows remain; the cohort's displayed unsourced revenue estimate rows are deleted (ground rule). Residual revenue-by-source deferral documented.
+1. ✅ Each of the 46 cohort states + GA carries real, sourced NASBO operating actuals (spending-by-function, FY2023 + FY2024), dual-checksum-validated, 0-NULL stamped. No state was unsourceable.
+2. ✅ No unsourced estimate state General Fund operating rows remain; the cohort's displayed unsourced revenue estimate rows deleted. Residual revenue-by-source deferral documented (96-07-LOAD-LOG.md).
 
 **Plans:** 7 plans (6 waves: Wave 0 → Wave 5)
 Plans:
@@ -87,7 +88,7 @@ Plans:
 - [x] 96-06-PLAN.md — Batch D (SC SD TN TX UT VT WA WI WV WY) + GA FY2024; TX Aug-31 FY-end; full 94-state-year dry-run
 
 **Wave 5** *(blocked on 96-02 + 96-03..06 — production write + verify)*
-- [ ] 96-07-PLAN.md — Run cleanup live + full-cohort live load + DB-probe verify (0-NULL, 0 revenue rows, FY-ends) + load log
+- [x] 96-07-PLAN.md — Run cleanup live + full-cohort live load + DB-probe verify (0-NULL, 0 revenue rows, FY-ends) + load log
 
 #### Phase 97: Verification + UAT (SGFS-05)
 **Goal:** Prove the whole state-node cohort is real + sourced, and get Chris's sign-off.
