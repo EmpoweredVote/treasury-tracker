@@ -82,6 +82,11 @@ Plans:
 1. The "Money In" card on CA/TX/NY/FL renders the real revenue-by-source view (no longer the disabled operating-only placeholder); states still on NASBO keep the honest disabled card.
 2. `?dataset=revenue` deep-links resolve correctly on upgraded and remaining operating-only nodes; normal in-app navigation is unaffected (no regression).
 
+**Plans:** 1 plan
+
+Plans:
+- [ ] 101-01-PLAN.md — REVUX-02 deep-link robustness fix (shared resolveEffectiveDataset helper + unit test, wired into mount path + handleEntityChange) + REVUX-01 verification (Money In auto-enabled by API-served revenue; build + dev-app smoke)
+
 #### Phase 102: Verification + Source-Chain Audit + UAT (VER-01, VER-02)
 **Goal:** Prove the upgrade is real, sourced, and residue-free across the whole cohort, then earn Chris's live sign-off.
 **Requirements:** VER-01, VER-02
