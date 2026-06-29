@@ -1,352 +1,191 @@
 #!/usr/bin/env node
 /**
- * California LAO General Fund Budget Loader
+ * California General Fund Operating (Expenditure) Loader — FY2020-FY2025 ACTUAL
+ * Source: State of California Annual Comprehensive Financial Report (ACFR), Governmental Funds
+ *   Statement of Revenues, Expenditures and Changes in Fund Balances, GENERAL column
+ *   (GAAP basis, in thousands). Published by the State Controller's Office (SCO).
+ *   Per-FY source URL below (`https://www.sco.ca.gov/Files-ARD/ACFR/acfr{NN}web.pdf`).
  *
- * Extracts department-level General Fund budget data from the LAO
- * Historical_Expenditures.xlsx via extractCA.py (openpyxl), builds a
- * 2-level DOF Agency -> Department tree, and loads via treasury_sync_budget_tree RPC.
+ * Phase 99 (ACFR-01). Replaces the NASBO operating rows on the CA state node in place
+ *   (same (muni,fy,'operating') RPC key). The CA state node id is fixed (D-01):
+ *   e1007bf5-bac9-4b1c-878e-f6834885f850.
  *
- * Amount scale: LAO Excel amounts are in THOUSANDS — multiplied by 1000 here.
- * GF totals: FY2026=$228.4B, FY2025=$233.6B, FY2024=$205.7B, FY2023=$195.2B, FY2022=$216.8B
+ * Control = printed General-column "Total expenditures". Each FY's transcribed
+ *   spend-by-function categories must tie to the printed Total within $10M or the loader
+ *   refuses to write (process.exit(2)).
  *
- * 3-level tree shape (Phase 35):
- *   [{ n: 'Health and Human Services', a: 87_139_490_000, c: [
- *       { n: 'Dept of Health Care Services', a: 50_000_000_000, c: [
- *           { n: 'Medi-Cal', a: 40_000_000_000,
- *             i: [{ d: 'Medi-Cal', a: 40_000_000_000, aa: null, f: null, e: null }] }
- *       ]},
- *       ...
- *   ]}, ...]
+ * Extraction: pdftotext -table on local PDF copies in _acfr-tmp/ca/ (NOT -layout).
+ *   All 6 years tie to 0 diff vs. the printed General-column Total expenditures.
+ *   Bookends (recon-confirmed): FY2020 Total revenues 155,923,876k; FY2025 221,591,201k.
+ *   CA has NO negative GF expenditure categories in this window.
  *
  * Usage:
- *   node scripts/processCA.js                    # load FY2022-2026
- *   node scripts/processCA.js --dry-run          # parse + sanity check, no DB writes
- *   node scripts/processCA.js --fy 2026          # load single year
- *   node scripts/processCA.js --dry-run --fy 2026
- *
- * Requires: Python 3 + openpyxl (pre-installed, confirmed in RESEARCH.md)
- * Requires: California municipality seeded via seedCAState.js (Plan 01)
- *
- * Security (T-33-07): script path hardcoded, no user input reaches shell command
- * Security (T-33-08): SUPABASE_SERVICE_KEY read via loadEnv(); never logged
- * Security (T-33-04/05/06): sanity band $150B-$300B; halt on scale mismatch
+ *   node scripts/processCA.js [--dry-run] [--fy YYYY]
  */
-
-import { execSync }                    from 'node:child_process';
-import { createClient }                from '@supabase/supabase-js';
-import { parseArgs }                   from 'node:util';
-import { existsSync, readFileSync }    from 'node:fs';
-import path                            from 'node:path';
-import { fileURLToPath }               from 'node:url';
-import { resolve, dirname }            from 'node:path';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ROOT      = path.resolve(__dirname, '..');
-
-// ── Env loading ───────────────────────────────────────────────────────────────
+import { createClient } from '@supabase/supabase-js';
+import { parseArgs }    from 'node:util';
+import { readFileSync } from 'node:fs';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+const __dirname = dirname(fileURLToPath(import.meta.url));
 function loadEnv() {
   for (const f of ['../.env.local', '../.env']) {
-    try {
-      const lines = readFileSync(resolve(__dirname, f), 'utf8').split('\n');
-      for (const line of lines) {
-        const [k, ...v] = line.split('=');
-        if (k && v.length && !process.env[k.trim()]) process.env[k.trim()] = v.join('=').trim();
-      }
-    } catch {}
+    try { const lines = readFileSync(resolve(__dirname, f), 'utf8').split('\n'); for (const line of lines) { const [k, ...v] = line.split('='); if (k && v.length && !process.env[k.trim()]) process.env[k.trim()] = v.join('=').trim(); } } catch {}
   }
 }
 loadEnv();
-
-// ── Supabase ──────────────────────────────────────────────────────────────────
-const SUPABASE_URL = process.env.SUPABASE_URL;
-if (!SUPABASE_URL) { console.error('Missing SUPABASE_URL'); process.exit(2); }
+const STATE_NAME = 'California'; const STATE_ABBR = 'CA'; const POPULATION = 39_538_223;
+const STATE_NODE_ID = 'e1007bf5-bac9-4b1c-878e-f6834885f850'; // D-01: upgrade this node in place
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-if (!SUPABASE_KEY) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit(2); }
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ── Sanity band (T-33-04/05/06) ───────────────────────────────────────────────
-// CA GF: FY2024-25=$233.6B, FY2025-26=$228.4B — allow $150B-$300B
-// If total < SANITY_MIN: amounts not multiplied by 1000 (scale error)
-// If total > SANITY_MAX: all-funds loaded instead of General Fund only
-const SANITY_MIN = 150_000_000_000;   // $150B
-const SANITY_MAX = 300_000_000_000;   // $300B
+// Per-FY source: each year's own published State of California ACFR (source_date = Jun 30 FYE).
+const SOURCES = {
+  2020: { url: 'https://www.sco.ca.gov/Files-ARD/ACFR/acfr20web.pdf', date: '2020-06-30' },
+  2021: { url: 'https://www.sco.ca.gov/Files-ARD/ACFR/acfr21web.pdf', date: '2021-06-30' },
+  2022: { url: 'https://www.sco.ca.gov/Files-ARD/ACFR/acfr22web.pdf', date: '2022-06-30' },
+  2023: { url: 'https://www.sco.ca.gov/Files-ARD/ACFR/acfr23web.pdf', date: '2023-06-30' },
+  2024: { url: 'https://www.sco.ca.gov/Files-ARD/ACFR/acfr24web.pdf', date: '2024-06-30' },
+  2025: { url: 'https://www.sco.ca.gov/Files-ARD/ACFR/acfr25web.pdf', date: '2025-06-30' },
+};
+const dataSource = (fy) => `California State ACFR — General Fund (FY${fy} actual, GAAP basis)`;
 
-// ── Level columns for N-level tree (D-02) ─────────────────────────────────────
-// Order determines tree depth: index 0 = root, last index = leaf.
-// Add a 4th entry here if a future data source has a 4th level — zero code changes needed.
-const LEVEL_COLS = ['dof_agency', 'department', 'function'];
+// General Fund expenditures by function — State of CA ACFR, GENERAL column (in $).
+// Function-level totals (depth-1 leaves under the GF root). Verbatim ACFR function names.
+// total = printed General-column "Total expenditures". All sums verified to 0 diff.
+const EXPENDITURES = {
+  2020: { total: 138_516_673_000, confidence: 'actual', categories: [
+    { name: 'General government',                               total: 10_607_916_000 },
+    { name: 'Education',                                        total: 67_094_461_000 },
+    { name: 'Health and human services',                       total: 39_469_965_000 },
+    { name: 'Natural resources and environmental protection',  total:  2_536_666_000 },
+    { name: 'Business, consumer services, and housing',        total:    741_404_000 },
+    { name: 'Transportation',                                  total:     30_874_000 },
+    { name: 'Corrections and rehabilitation',                  total: 12_776_235_000 },
+    { name: 'Capital outlay',                                  total:     24_082_000 },
+    { name: 'Bond and commercial paper retirement',            total:  2_548_681_000 },
+    { name: 'Interest and fiscal charges',                     total:  2_686_389_000 },
+  ]},
+  2021: { total: 146_375_674_000, confidence: 'actual', categories: [
+    { name: 'General government',                               total: 11_811_215_000 },
+    { name: 'Education',                                        total: 70_813_388_000 },
+    { name: 'Health and human services',                       total: 43_208_392_000 },
+    { name: 'Natural resources and environmental protection',  total:  2_600_638_000 },
+    { name: 'Business, consumer services, and housing',        total:    387_139_000 },
+    { name: 'Transportation',                                  total:    287_388_000 },
+    { name: 'Corrections and rehabilitation',                  total: 11_789_080_000 },
+    { name: 'Capital outlay',                                  total:    439_180_000 },
+    { name: 'Bond and commercial paper retirement',            total:  2_557_902_000 },
+    { name: 'Interest and fiscal charges',                     total:  2_481_352_000 },
+  ]},
+  2022: { total: 191_119_860_000, confidence: 'actual', categories: [
+    { name: 'General government',                               total: 25_791_674_000 },
+    { name: 'Education',                                        total: 91_985_006_000 },
+    { name: 'Health and human services',                       total: 48_077_423_000 },
+    { name: 'Natural resources and environmental protection',  total:  4_491_067_000 },
+    { name: 'Business, consumer services, and housing',        total:  2_422_394_000 },
+    { name: 'Transportation',                                  total:    292_816_000 },
+    { name: 'Corrections and rehabilitation',                  total: 12_671_069_000 },
+    { name: 'Capital outlay',                                  total:     67_975_000 },
+    { name: 'Bond, commercial paper, and lease principal retirement', total: 2_841_818_000 },
+    { name: 'Interest and fiscal charges',                     total:  2_478_618_000 },
+  ]},
+  2023: { total: 191_010_618_000, confidence: 'actual', categories: [
+    { name: 'General government',                               total: 13_557_086_000 },
+    { name: 'Education',                                        total: 86_822_520_000 },
+    { name: 'Health and human services',                       total: 61_477_274_000 },
+    { name: 'Natural resources and environmental protection',  total:  5_906_134_000 },
+    { name: 'Business, consumer services, and housing',        total:  1_722_649_000 },
+    { name: 'Transportation',                                  total:    656_436_000 },
+    { name: 'Corrections and rehabilitation',                  total: 14_903_847_000 },
+    { name: 'Capital outlay',                                  total:    165_706_000 },
+    { name: 'Bond, commercial paper, and lease principal retirement', total: 2_922_769_000 },
+    { name: 'Interest and fiscal charges',                     total:  2_876_197_000 },
+  ]},
+  2024: { total: 190_318_638_000, confidence: 'actual', categories: [
+    { name: 'General government',                               total: 10_385_441_000 },
+    { name: 'Education',                                        total: 86_391_760_000 },
+    { name: 'Health and human services',                       total: 64_139_315_000 },
+    { name: 'Natural resources and environmental protection',  total:  6_443_790_000 },
+    { name: 'Business, consumer services, and housing',        total:  1_088_342_000 },
+    { name: 'Transportation',                                  total:  1_036_187_000 },
+    { name: 'Corrections and rehabilitation',                  total: 14_527_777_000 },
+    { name: 'Capital outlay',                                  total:    254_506_000 },
+    { name: 'Bond, commercial paper, and lease principal retirement', total: 3_016_679_000 },
+    { name: 'Interest and fiscal charges',                     total:  3_034_841_000 },
+  ]},
+  2025: { total: 221_826_907_000, confidence: 'actual', categories: [
+    { name: 'General government',                               total:  8_926_889_000 },
+    { name: 'Education',                                        total: 101_426_636_000 },
+    { name: 'Health and human services',                       total: 78_939_314_000 },
+    { name: 'Natural resources and environmental protection',  total:  7_896_845_000 },
+    { name: 'Businesses, consumer services, and housing',      total:  2_086_799_000 },
+    { name: 'Transportation',                                  total:  2_754_638_000 },
+    { name: 'Corrections and rehabilitation',                  total: 13_650_161_000 },
+    { name: 'Capital outlay',                                  total:    185_760_000 },
+    { name: 'Bond, commercial paper, and lease principal retirement', total: 3_062_982_000 },
+    { name: 'Interest and fiscal charges',                     total:  2_896_883_000 },
+  ]},
+};
 
-// ── Resolve main repo root (worktree-safe) ────────────────────────────────────
-// In a git worktree, ROOT resolves to the worktree root, but gitignored files
-// like docs/California/Historical_Expenditures.xlsx live in the main working tree.
-// Fall back to the main repo root via git rev-parse --git-common-dir when needed.
-function resolveMainRoot() {
-  // Check if docs/California exists directly under ROOT (standalone checkout)
-  const candidate = path.join(ROOT, 'docs', 'California');
-  if (existsSync(candidate)) return ROOT;
-
-  // Worktree: resolve via git-common-dir to find main repo root
-  try {
-    const gitCommonDir = execSync('git rev-parse --git-common-dir', {
-      cwd: ROOT, encoding: 'utf8'
-    }).trim();
-    const mainRoot = path.dirname(path.resolve(ROOT, gitCommonDir));
-    const mainCandidate = path.join(mainRoot, 'docs', 'California');
-    if (existsSync(mainCandidate)) return mainRoot;
-  } catch (_) { /* not in git repo or no main worktree */ }
-
-  return ROOT;
+function validate(fy) {
+  const { total, categories } = EXPENDITURES[fy]; let ok = true; let catSum = 0;
+  for (const cat of categories) catSum += cat.total;
+  if (Math.abs(catSum - total) > 10_000_000) { console.error(`FY${fy} sum ${catSum} ≠ total ${total} (diff ${catSum - total})`); ok = false; }
+  return ok;
+}
+function buildTree(fy) {
+  const { total, categories } = EXPENDITURES[fy];
+  const children = categories.filter(c => c.total > 0).map(cat => ({ n: cat.name, a: cat.total, i: [] }));
+  children.sort((a, b) => b.a - a.a);
+  return { jsonTree: [{ n: 'California General Fund Budget', a: total, c: children }], total, rowCount: children.length };
 }
 
-// ── Run Python extractor, return parsed JSON rows ─────────────────────────────
-// Security (T-33-07): pyScript is a hardcoded path constant; no user input
-// reaches the shell command. maxBuffer 8MB cap.
-function extractExcel(fiscalYears, dryRun = false) {
-  const pyScript = path.join(ROOT, 'scripts', 'extractCA.py');
-  const pythonBin = process.platform === 'win32' ? 'python' : 'python3';
-  const fyArgs = fiscalYears.map(fy => `--fy ${fy}`).join(' ');
-  const dryFlag = dryRun ? ' --dry-run' : '';
-  const mainRoot = resolveMainRoot();
-
-  if (dryRun) {
-    // Dry-run: Python writes FY summaries to stderr; let them flow through so
-    // the operator can see them. No JSON to parse; return empty.
-    try {
-      execSync(`${pythonBin} "${pyScript}" ${fyArgs}${dryFlag}`, {
-        cwd: mainRoot,
-        maxBuffer: 8 * 1024 * 1024,
-        encoding: 'utf8',
-      });
-    } catch (err) {
-      console.error('Python extractor failed:');
-      if (err.stderr) console.error(err.stderr);
-      process.exit(3);
-    }
-    return [];
-  }
-
-  // Non-dry-run: capture stderr so Python errors are surfaced clearly on failure.
-  let raw;
-  try {
-    raw = execSync(`${pythonBin} "${pyScript}" ${fyArgs}${dryFlag}`, {
-      cwd: mainRoot,           // run from main repo root so XLSX_PATH resolves
-      maxBuffer: 8 * 1024 * 1024,
-      encoding: 'utf8',
-      stdio: ['pipe', 'pipe', 'pipe'],  // capture stderr for clean error surfacing
-    });
-  } catch (err) {
-    console.error('Python extractor failed:');
-    if (err.stderr) console.error(err.stderr);
-    if (err.stdout) console.error('stdout:', err.stdout);
-    process.exit(3);
-  }
-  return JSON.parse(raw);
-}
-
-// ── Build N-level tree (data-driven depth) ────────────────────────────────────
-// Replaces the former 2-level buildCATree. Depth is determined by levelCols length, not hardcoded.
-// D-02: N-level, data-driven — adding a 4th column requires zero code changes.
-// D-05: rows where the current level's column is empty/null collapse as line items
-//        at the nearest complete parent level (no synthetic "General" node invented).
-// A2 VERDICT: ACCEPTED — treasury_sync_budget_tree accepts mixed { n, a, c, i } nodes.
-// NOTE: LAO amounts are in THOUSANDS — multiply by 1000 for absolute dollars (Pitfall 1)
-
-/**
- * @param {Array<Object>} rows - flat rows from extractCA.py
- * @param {string[]} levelCols - ordered column names, e.g. ['dof_agency','department','function']
- * @returns {Array} N-level tree in treasury_sync_budget_tree shape
- */
-function buildNLevelTree(rows, levelCols) {
-  const amtDollars = r => (r.amount_thousands || 0) * 1000;  // CRITICAL: x1000
-
-  function recurse(rows, levelIdx) {
-    const col = levelCols[levelIdx];
-    const isLastLevel = levelIdx === levelCols.length - 1;
-
-    const grouped = new Map(); // key -> { sum, rows }
-    const collapseItems = []; // rows where this level's col is null/blank (D-05)
-
-    for (const row of rows) {
-      const key = (row[col] ?? '').toString().trim();
-      if (!key) {
-        if (levelIdx === 0) {
-          // Root-level: no parent to collapse to — log and skip (CR-01)
-          console.warn(`Skipping row with null ${col}: dept=${row.department}, amt=${amtDollars(row)}`);
-          continue;
-        }
-        // D-05 (A2 ACCEPTED): collapse to line item at current level's parent node.
-        // Use the parent-level column value as the line item label.
-        const label = row[levelCols[levelIdx - 1]] || 'Unknown';
-        collapseItems.push({ d: label, a: amtDollars(row), aa: null, f: null, e: null });
-        continue;
-      }
-      if (!grouped.has(key)) grouped.set(key, { sum: 0, rows: [] });
-      grouped.get(key).sum += amtDollars(row);
-      grouped.get(key).rows.push(row);
-    }
-
-    const nodes = [];
-    for (const [key, g] of grouped) {
-      if (isLastLevel) {
-        // Leaf level: each group key becomes a leaf node with line items
-        const items = g.rows.map(r => ({ d: key, a: amtDollars(r), aa: null, f: null, e: null }));
-        nodes.push({ n: key, a: g.sum, i: items });
-      } else {
-        // Internal level: recurse into children; collapseItems from deeper levels
-        // are handled via the mixed-node emit (A2 ACCEPTED).
-        const { nodes: children, collapseItems: deepCollapse } = recurse(g.rows, levelIdx + 1);
-        // CR-02: deepCollapse items were not accumulated into g.sum (continue skipped
-        // accumulation). Add their amounts so node.a equals the true total.
-        const collapseSum = deepCollapse.reduce((s, item) => s + item.a, 0);
-        const nodeTotal = g.sum + collapseSum;
-        if (children.length > 0 && deepCollapse.length > 0) {
-          // Mixed node: dept has both function children AND null-function collapsed items
-          nodes.push({ n: key, a: nodeTotal, c: children, i: deepCollapse });
-        } else if (children.length > 0) {
-          nodes.push({ n: key, a: nodeTotal, c: children });
-        } else {
-          // All rows at this group collapsed — emit as leaf with items
-          nodes.push({ n: key, a: nodeTotal, i: deepCollapse });
-        }
-      }
-    }
-
-    nodes.sort((a, b) => b.a - a.a);
-    return { nodes, collapseItems };
-  }
-
-  const { nodes } = recurse(rows, 0);
-  return nodes;
-}
-
-// ── Ensure California municipality exists; return its id ─────────────────────
-async function ensureMunicipality() {
-  const { data: existing } = await supabase.schema('treasury')
-    .from('municipalities')
-    .select('id, name')
-    .eq('name', 'California')
-    .eq('state', 'CA')
-    .maybeSingle();
-
-  if (existing?.id) {
-    console.log(`  Municipality: ${existing.name} (${existing.id})`);
-    return existing.id;
-  }
-
-  console.error('  California, CA municipality not found — run seedCAState.js first');
-  process.exit(2);
-}
-
-// ── Look up the single canonical data_source seeded by seedCAState.js ─────────
-async function getDataSource() {
-  const { data: sources, error } = await supabase.rpc('treasury_list_source_ids');
-  if (error) { console.error('Failed to list sources:', error.message); process.exit(1); }
-
-  const ds = (sources || []).find(s => s.name === 'California General Fund Operating Budget');
-  if (!ds) {
-    console.error('Data source "California General Fund Operating Budget" not found.');
-    console.error('Run seedCAState.js first.');
-    process.exit(1);
-  }
-  return ds;
-}
-
-// ── Load one fiscal year into DB ──────────────────────────────────────────────
-async function loadFiscalYear(ds, fiscalYear, tree, total, rowCount) {
-  const { data: rpc, error: rpcErr } = await supabase.rpc('treasury_sync_budget_tree', {
-    p_data_source_id: ds.id,
-    p_fiscal_year:    fiscalYear,
-    p_dataset_type:   'operating',
-    p_total:          total,
-    p_tree:           tree,
-    p_row_count:      rowCount,
-    p_triggered_by:   'bulk_load',
-  });
-
-  if (rpcErr)     { console.error('    RPC error:', rpcErr.message); return false; }
-  if (rpc?.error) { console.error('    RPC error (returned):', rpc.error); return false; }
-  console.log(`    Inserted: ${rpc?.rows_inserted ?? '?'} rows`);
-  return true;
-}
-
-// ── Main ───────────────────────────────────────────────────────────────────────
 async function main() {
-  const { values: opts } = parseArgs({
-    options: {
-      'dry-run': { type: 'boolean', default: false },
-      fy:        { type: 'string', multiple: true },
-    },
-    strict: false,
-  });
-
-  const dryRun = opts['dry-run'];
-  const fiscalYears = opts.fy
-    ? opts.fy.map(s => {
-        const n = Number(s);
-        if (!Number.isInteger(n) || n < 1900 || n > 2100) {
-          console.error(`Invalid --fy value: ${s}`);
-          process.exit(1);
-        }
-        return n;
-      })
-    : [2022, 2023, 2024, 2025, 2026];
-
-  console.log(`CA State Budget Loader${dryRun ? ' (dry-run)' : ''}`);
-  console.log(`Fiscal years: ${fiscalYears.join(', ')}`);
-
-  let ds = null;
+  const { values: opts } = parseArgs({ options: { 'dry-run': { type: 'boolean', default: false }, fy: { type: 'string' } }, strict: false });
+  const dryRun = opts['dry-run']; const targetFY = opts.fy ? parseInt(opts.fy, 10) : null;
+  const years = targetFY ? [targetFY] : [2020, 2021, 2022, 2023, 2024, 2025];
+  console.log(`${STATE_NAME} GF Operating Loader (ACTUAL — ACFR GAAP basis)${dryRun ? ' (dry-run)' : ''}\nFiscal years: ${years.join(', ')}\n`);
+  if (!SUPABASE_KEY && !dryRun) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit(2); }
+  const supabase = dryRun ? null : createClient(SUPABASE_URL, SUPABASE_KEY);
+  let muniId = STATE_NODE_ID;
   if (!dryRun) {
-    console.log('\nLooking up municipality and data_source...');
-    await ensureMunicipality(); // exits if not found; id not needed by RPC (WR-03)
-    ds = await getDataSource();
-    console.log(`  Data source: ${ds.name} (${ds.id})`);
+    const { data: muni, error } = await supabase.schema('treasury').from('municipalities').select('id,name').eq('id', STATE_NODE_ID).single();
+    if (error || !muni) { console.error(`${STATE_NAME} state node ${STATE_NODE_ID} not found`); process.exit(2); }
+    muniId = muni.id; console.log(`Municipality: ${muni.name} (${muniId})\n`);
   }
-
-  console.log('\nExtracting from Excel...');
-  const allRows = extractExcel(fiscalYears, dryRun);
-
-  if (dryRun) {
-    console.log('(dry-run: Python printed FY summaries above via stderr)');
-    console.log('\nDone (dry-run).');
-    return;
+  let ds;
+  if (!dryRun) {
+    const srcPayload = { name: 'California General Fund Operating Budget', api_type: 'pdf_download', dataset_type: 'operating', dataset_id: 'ca-acfr-gf-operating', base_url: 'https://www.sco.ca.gov/ard_state_acfr.html', fiscal_years: [2020,2021,2022,2023,2024,2025], municipality_id: muniId };
+    const { data: existing } = await supabase.schema('treasury').from('data_sources').select('id').eq('dataset_id', srcPayload.dataset_id).maybeSingle();
+    if (existing?.id) { const { data } = await supabase.schema('treasury').from('data_sources').update(srcPayload).eq('id', existing.id).select().single(); ds = data; console.log(`data_source updated: ${ds.id}`); }
+    else { const { data, error } = await supabase.schema('treasury').from('data_sources').insert(srcPayload).select().single(); if (error) { console.error('insert failed:', error.message); process.exit(2); } ds = data; console.log(`data_source created: ${ds.id}`); }
+    console.log('');
   }
-
-  // Group rows by fiscal year
-  const fyMap = new Map();
-  for (const row of allRows) {
-    if (!fyMap.has(row.fiscal_year)) fyMap.set(row.fiscal_year, []);
-    fyMap.get(row.fiscal_year).push(row);
+  for (const fy of years) {
+    if (!EXPENDITURES[fy] || !SOURCES[fy]) { console.warn(`No data/source for FY${fy}`); continue; }
+    console.log(`── FY${fy} ─────────────────────────────────────────────`);
+    if (!validate(fy)) { process.exit(2); }
+    console.log(`FY${fy} validation: PASS  (${EXPENDITURES[fy].confidence})`);
+    const { jsonTree, total, rowCount } = buildTree(fy);
+    const cats = jsonTree[0].c;
+    console.log(`\n${'Category'.padEnd(52)} ${'Amount ($)'.padStart(18)}`); console.log('─'.repeat(72));
+    for (const cat of cats) console.log(`  ${cat.n.slice(0,50).padEnd(50)}${Math.round(cat.a).toLocaleString().padStart(18)}`);
+    console.log('─'.repeat(72)); console.log(`${'TOTAL EXPENDITURES'.padEnd(52)}${Math.round(total).toLocaleString().padStart(18)}`);
+    console.log(`Per-capita: $${Math.round(total/POPULATION).toLocaleString()}/person\n`);
+    if (dryRun) { console.log(`(dry-run)\n`); continue; }
+    const { data: r, error: rpcErr } = await supabase.rpc('treasury_sync_budget_tree', { p_data_source_id: ds.id, p_fiscal_year: fy, p_dataset_type: 'operating', p_total: total, p_tree: jsonTree, p_row_count: rowCount, p_triggered_by: 'bulk_load' });
+    if (rpcErr) { console.error(`RPC error: ${rpcErr.message}`); process.exit(2); }
+    if (r?.error) { console.error(`RPC error: ${r.error}`); process.exit(2); }
+    console.log(`Loaded ${r?.rows_inserted ?? rowCount} rows for FY${fy}`);
+    const { data: bud } = await supabase.schema('treasury').from('budgets').select('id').eq('municipality_id', muniId).eq('fiscal_year', fy).eq('dataset_type', 'operating').maybeSingle();
+    if (bud?.id) {
+      const { error: upErr } = await supabase.schema('treasury').from('budgets').update({ source_url: SOURCES[fy].url, source_date: SOURCES[fy].date, data_source: dataSource(fy) }).eq('id', bud.id);
+      if (upErr) { console.error(`source stamp failed: ${upErr.message}`); process.exit(2); }
+      console.log(`Stamped source on FY${fy} operating row (GAAP basis)\n`);
+    } else { console.error(`Could not find FY${fy} operating budget row to stamp source`); process.exit(2); }
+    await supabase.schema('treasury').from('data_sources').update({ last_synced_at: new Date().toISOString() }).eq('id', ds.id);
   }
-
-  for (const fiscalYear of fiscalYears) {
-    const fyRows = fyMap.get(fiscalYear) || [];
-    if (!fyRows.length) {
-      console.warn(`\n  FY${fiscalYear}: no rows found — skipping`);
-      continue;
-    }
-
-    const tree = buildNLevelTree(fyRows, LEVEL_COLS);
-    const total = tree.reduce((sum, n) => sum + n.a, 0);
-    const agencyCount = tree.length;
-
-    console.log(`\n  FY${fiscalYear} GF Operating — $${total.toLocaleString()} total (${agencyCount} agencies)`);
-    for (const n of tree.slice(0, 5)) {
-      console.log(`    ${n.n}: $${n.a.toLocaleString()}`);
-    }
-    if (agencyCount > 5) console.log(`    … +${agencyCount - 5} more`);
-
-    // Sanity check (T-33-04/05/06)
-    if (total < SANITY_MIN || total > SANITY_MAX) {
-      console.error(`\n  SCALE MISMATCH: FY${fiscalYear} total $${total.toLocaleString()} outside [$${(SANITY_MIN/1e9).toFixed(0)}B, $${(SANITY_MAX/1e9).toFixed(0)}B].`);
-      console.error('  Likely cause: forgot to multiply LAO thousands by 1000 (check buildNLevelTree),');
-      console.error('  or wrong Fund filter (all-funds ~$495B would exceed $300B upper bound).');
-      process.exit(3);
-    }
-
-    await loadFiscalYear(ds, fiscalYear, tree, total, fyRows.length);
-  }
-
-  console.log('\nDone.');
+  console.log('Done.');
 }
-
-main().catch(e => { console.error('Fatal:', e); process.exit(2); });
+main().catch(e => { console.error('Fatal:', e.message); process.exit(2); });
