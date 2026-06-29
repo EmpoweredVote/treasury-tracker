@@ -53,6 +53,13 @@
 2. The ACFR rows replaced each state's NASBO operating rows (one basis per state-FY), idempotent re-run = 0 writes, never-overwriting unrelated data; un-upgraded NASBO states unchanged.
 3. Any negative-category year (e.g. investment income) renders via the P2 clamp (0 with signed magnitude in the label, parent total preserved).
 
+**Plans:** 3 plans
+
+Plans:
+- [ ] 99-01-PLAN.md — Build CA+TX ACFR loaders (operating+revenue) + stale-data_sources cleanup; dry-run tie-checked, no DB writes
+- [ ] 99-02-PLAN.md — Live CA load: ACFR revenue+operating FY2020-2025, replace NASBO, delete stale CA data_sources, idempotency + clamp
+- [ ] 99-03-PLAN.md — Live TX load: ACFR revenue+operating FY2015-2024 (-FY2016, GR-Fund relabel), replace NASBO, delete stale TX data_sources, idempotency + clamp
+
 #### Phase 100: New York + Florida ACFR Upgrade (ACFR-03, ACFR-04, ACFR-05)
 **Goal:** Apply the proven path to NY and FL — load GF revenue-by-source + GAAP spending-by-function from their ACFRs, as deep as cleanly available, replacing NASBO operating rows.
 **Requirements:** ACFR-03, ACFR-04, ACFR-05
