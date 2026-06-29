@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.10
 milestone_name: State General Fund Sourcing
 status: executing
-last_updated: "2026-06-29T00:12:28.659Z"
+last_updated: "2026-06-29T04:34:15.098Z"
 last_activity: 2026-06-29
 progress:
   total_phases: 30
   completed_phases: 2
   total_plans: 13
-  completed_plans: 8
+  completed_plans: 9
   percent: 7
 ---
 
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-06-28 — v2.10 State General Fund Sourc
 ## Current Position
 
 Phase: 96 (remaining-states-sgfs-04) — EXECUTING
-Plan: 3 of 7
+Plan: 4 of 7
 Status: Ready to execute
 Last activity: 2026-06-29
 
@@ -182,7 +182,7 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-29T00:12:28.647Z
+Last session: 2026-06-29T04:34:04.073Z
 Stopped at: Phase 95 Plan 05 complete — SGFS-03 closed; OH/VA FY2026 estimate rows deleted; all probes pass
 Resume file: None
 
@@ -227,6 +227,7 @@ Source recon done: MN OSA City Finances Report XLSX confirmed icicle-grade (`cir
 | Phase 92-enrichment-parity-mnenr-01 P01 | 20min | 3 tasks | 5 files |
 | Phase 95 P03 | 45 | 2 tasks | 2 files |
 | Phase 95 P05 | 5 | 2 tasks | 1 file |
+| Phase 96-remaining-states-sgfs-04 P03 | 45 | 2 tasks | 1 files |
 
 ## Decisions
 
@@ -284,6 +285,7 @@ Source recon done: MN OSA City Finances Report XLSX confirmed icicle-grade (`cir
 - [Phase ?]: FY2022 OH Investment Income -570453k net loss: P2 clamp applied in revenue loader; audited total 44323336k carried verbatim
 - [95-05]: Per-state keep-windows enforced: OH_KEEP=[2020..2025] (6 years), VA_KEEP=[2022..2025] (4 years) — a shared window would have wrongly deleted Ohio FY2020/FY2021 actuals
 - [95-05]: 4 OH/VA FY2026 estimate rows (lsc.ohio.gov + dpb.virginia.gov false-provenance) deleted; 4 data_sources rows corrected to ACFR landing pages; all 4 DB probes PASS; idempotent
+- [Phase ?]: CO Transportation GF = 1M not zero per NASBO Table 21
 
 ## Deferred Items
 
