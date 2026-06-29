@@ -359,6 +359,45 @@ Empowered Vote's own org financials, refreshed and made donor-facing. Income fro
 
 ---
 
+## Milestone: v2.10 — State General Fund Sourcing
+
+**Shipped:** 2026-06-29
+**Phases:** 4 (94–97) | **Plans:** 16
+
+### What Was Built
+
+All 50 state General Fund nodes converted from unsourced "best guess" estimates to real, sourced actuals on a hybrid model: MN/OH/VA on State ACFR GAAP (operating + revenue), the other 47 (46 cohort + Georgia) on NASBO 2025 SER operating. A reusable loader (`scripts/loadStateGF.mjs`) + a locked cross-cutting policy proven on Georgia FY2023; 375 unsourced estimate rows deleted; a full cohort source-chain audit + independent "Representative 7" reconciliation + Chris UAT sign-off. Entire milestone executed inline, $0.
+
+### What Worked
+
+- **A reframe-to-fit-the-source pivot at Phase 94 saved the milestone.** The original plan (per-state pdfplumber ACFR extraction × 47) was infeasible; the locked hybrid (NASBO now for breadth, per-state ACFR upgrades later) delivered all 50 nodes sourced without 47 bespoke extractors. Recon-before-committing paid off.
+- **Independent re-derivation caught what loader self-report hid.** Phase 97 re-read source docs rather than trusting stored values — and found F-97-01 (GA FY2023 Medicaid a stale 2024-SER value stamped to the 2025 SER, children $8M over parent). The Phase 86 lesson, applied and validated.
+- **`pdftotext -table` reads both NASBO SER multi-column tables and ACFR governmental-funds statements cleanly** — no render-to-image needed, the recurring fear that never materialized again.
+- **Whole milestone inline, no subagents** — $0 Anthropic spend, per standing cost guidance.
+
+### What Was Inefficient
+
+- **Fetch-at-runtime hit a TLS wall.** The OH archives host (`archives.obm.ohio.gov`) returns HTTP 000 to default curl; only `--insecure --tlsv1.2` works. Cost a couple of diagnostic cycles — now recorded in the loader notes + memory for future runs.
+- **A stale "byte-unchanged 2024 SER" comment masked an internal inconsistency.** GA FY2023's loader entry mixed a 2024-SER Medicaid value with a 2025-SER All-Other residual and a 2025-SER source stamp — the integrity probe (children vs parent) is what surfaced it, not the comment.
+
+### Patterns Established
+
+- **Children-vs-parent integrity probe as a cohort audit primitive.** Summing depth-1 against depth-0 across the whole cohort cleanly separated real defects (GA +$8M) from acceptable artifacts ($1M NASBO rounding) and honest design (negative-investment clamp). Reusable for any tree-shaped financial cohort.
+- **Negative values clamped to 0 with the magnitude in the label** — the icicle-honest way to show a negative GF investment-income year without a negative slice or a wrong parent total.
+
+### Key Lessons
+
+1. When the literal plan is infeasible, reframe to fit the source's reality (with operator sign-off) rather than forcing the original mechanism — and record the pivot so the requirement text vs. delivery gap is explicit.
+2. Verify by re-deriving from the source document, never from the stored value — that is the only check that catches transcription drift.
+3. A cohort-wide structural invariant (children = parent) is a cheaper, more reliable defect detector than spot-checking totals.
+
+### Cost Observations
+
+- **$0 net** — one reusable loader (hand-entered NASBO figures, no AI), read-only audit probes, ACFR/SER via local files + free fetch, UAT by Chris. The $5 AI gate never triggered.
+- Plan + execute + close all authored inline, no research/planner/executor subagents.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
