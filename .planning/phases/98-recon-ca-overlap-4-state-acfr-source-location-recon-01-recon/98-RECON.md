@@ -1,7 +1,7 @@
 # Phase 98 — RECON: CA Overlap + 4-State ACFR Source Location
 
 **Created:** 2026-06-29
-**Status:** In progress (98-01 CA section complete; 98-02/98-03 sections pending)
+**Status:** COMPLETE — 98-01 (CA recon + target), 98-02 (4 ACFRs located + bookend-extracted; detail in `98-ACFR-SOURCES.md`), 98-03 (loader-reuse + NASBO-replace plan) all done. Decision-ready handoff for Phases 99–100. One item awaits Chris: approve the CA upgrade target (+ note the TX scope change).
 **Requirements:** RECON-01 (CA node + target), RECON-02 (4 ACFRs located + extracted), + loader-reuse plan
 **Decision posture:** Recon documents + recommends; the CA upgrade-target decision is Chris's to approve before Phase 99 (CONTEXT D-04).
 
@@ -65,18 +65,48 @@ Concrete steps for Phase 99:
 
 ## ACFR Source Location (98-02) — RECON-02
 
-_Pending — see `98-ACFR-SOURCES.md` (per-state located statement, GENERAL FUND column, GAAP/thousands, durable URL, clean FY window, divergence-from-NASBO, gap log, access quirks). This section will summarize/link that doc._
+**Full detail: `98-ACFR-SOURCES.md`.** Summary:
+
+- All four ACFR Governmental-Funds *Statement of Revenues, Expenditures and Changes in Fund Balances* (GENERAL/GENERAL-REVENUE column, GAAP) located; durable per-year URL patterns recorded.
+- `pdftotext -table` (NOT `-layout`) extraction **tie-confirmed at both ends** of each state's window (CA FY2025 ties to the dollar; CA2020/TX2015/NY2015/FL2022 old-ends all extract clean GF columns).
+- **Access is clean** — all four download over plain `curl` (no CDN/TLS block; the city-ACFR blocking in `ca-acfr-reconciliation.md` does NOT apply to state ACFRs).
+- Confirmed clean windows: **CA FY2020–2025, TX FY2015–2024 (–FY2016), NY FY2015–2024 (millions), FL FY2022–2024.** Per-state independent, no NASBO floor.
+- **Per-FY in-between extraction deferred to Phase 99's load** (bookend decision, Chris 2026-06-29) — recon proved both ends + recorded the URL pattern; Phase 99 extracts the middle years as it loads.
 
 ---
 
 ## Loader-Reuse + NASBO-Replace Plan (98-03)
 
-_Pending — per-state mapping to the closest `process*Acfr.js` template + the NASBO-replace rule (delete NASBO state-FY operating rows → insert ACFR operating+revenue, one basis per state-FY, idempotent never-overwrite, un-upgraded states untouched) + the stale-data_source cleanup noted above._
+### One uniform template pair fits all four states
+All four target ACFRs use the **same** GAAP statement (Governmental Funds Stmt of Rev/Exp/Changes, GF column) — unlike the state-specific workbook layouts of OH/VA/MN. So the existing ACFR template pair generalizes directly:
+
+| Side | Template to copy | Why it fits |
+|------|------------------|-------------|
+| **Operating (spending-by-function)** | `scripts/processMN.js` | Parses the EXPENDITURES section of this exact statement, GF column, GAAP/thousands, deepest multi-FY `SOURCES{url,date}` map (FY2008–2025) — the right shape for CA/TX/NY's deep windows. |
+| **Revenue (revenue-by-source)** | `scripts/processOHRevenueAcfr.js` | Parses the REVENUES section of this exact statement, GF column, **with the P2 negative-investment-income clamp already built in** (needed — CA/NY have negative investment-income years). |
+
+**Recommended build for Phase 99–100:** copy the MN+OH-revenue pair to a `process{XX}.js` + `process{XX}RevenueAcfr.js` per state (or one parameterized pair), configured per state with: the per-year `SOURCES` map (URLs from `98-ACFR-SOURCES.md`), the GF-statement page-finder, the GF column index, the fund-column label, and a **units multiplier**.
+
+### Per-state config nuances (from 98-02)
+- **NY** — statement is **in millions**; loader must scale ×1,000. 6-column statement, "General" is column 1.
+- **TX** — fund column is **"General Revenue Fund"**, ~3× the NASBO GF magnitude (scope mismatch). Accept it as TX's GAAP GF-equivalent and relabel basis honestly; do NOT try to force it to NASBO's $50B scale.
+- **CA** — "General" column; deep window FY2020–2025; soft-404 caution (filter by Content-Type, not HTTP status).
+- **FL** — "General Fund" column; window FY2022–2024.
+
+### NASBO-replace rule (sets up RECON-03 in Phase 99)
+- **Operating:** the ACFR operating loader writes `dataset_type='operating'` keyed on `(municipality_id, fiscal_year, 'operating')` via `treasury_sync_budget_tree` — the **same key** the NASBO loader used, so the RPC **updates in place** → the NASBO FY row is *replaced* by the ACFR GAAP row (one basis per state-FY). Re-label `data_source` to the ACFR GAAP string + stamp `source_url`/`source_date` (per-year ACFR), mirroring `processMN.js`. Do **not** use `treasury_sync_city_budget` (not source-safe — `[[project_sync_city_budget_not_source_safe]]`).
+- **Revenue:** `dataset_type='revenue'` is **new** on these nodes (no NASBO revenue exists) → pure insert; enables the "Money In" view (Phase 101).
+- **No orphaned-NASBO-FY case:** every state's clean ACFR window fully covers the NASBO FY2023+FY2024 rows being replaced — so no FY loses coverage, the D-02 no-floor risk does **not** materialize for any of the four.
+- **Idempotent:** re-run updates the same (muni,fy,dataset) rows → 0 net new rows.
+- **Un-upgraded states untouched:** the per-state ACFR loaders only touch their own state node; `loadStateGF.mjs` (NASBO) stays the fallback for all other states.
+- **Stale-metadata cleanup:** delete each upgraded state's legacy non-NASBO `data_sources` rows (CA `ca-lao-gf-operating` + `ca-dof-gf-revenue`; and the analogous `xx-gf-operating` + `xx-gf-revenue` rows on TX/NY/FL) — they point at zero budgets rows and would mislead. Create fresh `xx-acfr-*` data_sources for the GAAP rows.
 
 ---
 
 ## Open Risks / Unknowns for 99–100
 
-_Pending (filled in 98-03)._ Seeded so far:
-- The stale-`data_sources` cleanup applies to **all four** upgrade targets (CA/TX/NY/FL each have a non-NASBO `xx-gf-operating` + `xx-gf-revenue` metadata row with no live budgets rows).
-- The pending CA upgrade-target decision (above) is Chris's to approve before Phase 99.
+1. **CA upgrade-target decision is Chris's to approve** before Phase 99 (recommendation: upgrade single node in place + delete stale metadata — see CA section).
+2. **TX General-Revenue-Fund scope (~3× NASBO).** Confirm the basis-relabel approach with Chris; the TX node total will jump from ~$50B → ~$161B on upgrade. Honest + correct, but a visible change.
+3. **Stale-`data_sources` cleanup applies to all four** targets, not just CA.
+4. **Deeper history is optional, not blocking:** CA<FY2020 and FL<FY2022 exist only behind archive pages (no clean predictable URL); NY can extend below FY2015; TX FY2016 needs an alternate file-id. The confirmed windows are the as-deep-as-clean baseline; Phase 99 may extend if cheap.
+5. **NY millions** scaling and **negative investment-income years** (P2 clamp) are the two extraction edge-cases the loaders must handle — both already covered by the OH-revenue template.
