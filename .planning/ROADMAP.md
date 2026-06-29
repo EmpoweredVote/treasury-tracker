@@ -23,10 +23,60 @@
 - ✅ **v2.8 Ohio Local Government Expansion** — Phases 84-88 (shipped 2026-06-26)
 - ✅ **v2.9 Minnesota Local Government Expansion** — Phases 89-93 (shipped 2026-06-28)
 - ✅ **v2.10 State General Fund Sourcing** — Phases 94-97 (shipped 2026-06-29)
+- 🔵 **v2.11 State ACFR Revenue-by-Source Upgrades (Pilot)** — Phases 98-102 (in progress)
 
 ---
 
 ## Phases
+
+### v2.11 State ACFR Revenue-by-Source Upgrades (Pilot) (Phases 98-102) — ACTIVE
+
+**Milestone goal:** Upgrade the four highest-traffic NASBO state General Fund nodes — **CA, TX, NY, FL** — from operating-only to full **State-ACFR GAAP** nodes: adding **revenue-by-source** and richer **spending-by-function**, as deep as each ACFR cleanly extracts, so the disabled "Money In" card becomes a real revenue view. Delivers the deferred "ACFR-later" half of the v2.10 hybrid; a follow-up milestone scales the upgrade to the rest of the NASBO long tail.
+
+**Constraints:** Free public ACFR PDFs only ($0 / $5 AI gate); ACFR **GAAP** basis (audited actuals, not budgetary/forecast) — the General Fund column of the Governmental Funds *Statement of Revenues, Expenditures and Changes in Fund Balances* (in thousands), read via `pdftotext -table`; every figure durably sourced + **basis-labelled**; P2 negative-category clamp; **idempotent never-overwrite** (ACFR replaces NASBO per state-FY; un-upgraded states stay on NASBO); **executed inline — no research/planner/executor subagents**. Reuse `scripts/processOHAcfr.js` / `processVAAcfr.js` / `processMN*.js` (rev-by-source + spend-by-function + P2 clamp + 0-NULL source stamp); `scripts/loadStateGF.mjs` stays the NASBO fallback. Some state archives have TLS-handshake quirks (e.g. `archives.obm.ohio.gov` needs `curl --insecure --tlsv1.2`).
+
+**Critical path:** 98 → 99 → 100 → 101 → 102. Phase 98 (recon) de-risks the CA v1.7 overlap + locates all 4 ACFRs before any load; Phase 99 proves the per-state ACFR upgrade path on CA+TX, which Phase 100 reuses for NY+FL.
+
+#### Phase 98: Recon — CA Overlap + 4-State ACFR Source Location (RECON-01, RECON-02)
+**Goal:** Before any load, resolve California's GF-node situation against the pre-existing v1.7 CA-state-budget entity, locate each of the four ACFR Governmental Funds statements (General Fund / GAAP), and determine the cleanly-extractable FY depth + durable source URL per state — so the upgrade targets the right node with no duplicate or conflicting California node.
+**Requirements:** RECON-01, RECON-02
+**Success criteria:**
+1. CA's GF-node vs v1.7 CA-state-budget entity is documented (which node renders today, what data it holds, whether to upgrade-in-place or reconcile) + MA v1.8 noted, with an explicit upgrade-target decision.
+2. For CA/TX/NY/FL, the published ACFR statement (GF column, GAAP, in thousands) is located, `pdftotext -table` extraction is confirmed on at least the latest FY of each, and the clean FY-depth + durable source URL is recorded per state (TLS quirks noted).
+3. The loader-reuse + NASBO-replace plan (which existing `process*Acfr.js` template fits each state's layout) is written down for Phases 99–100.
+
+#### Phase 99: California + Texas ACFR Upgrade (ACFR-01, ACFR-02, ACFR-05, RECON-03)
+**Goal:** Load CA and TX GF revenue-by-source + GAAP spending-by-function from their ACFRs, as deep as cleanly available, replacing their NASBO operating rows idempotently — proving the per-state upgrade path.
+**Requirements:** ACFR-01, ACFR-02, ACFR-05, RECON-03
+**Success criteria:**
+1. CA + TX state nodes show ACFR-sourced GF revenue-by-source + spending-by-function (GAAP basis-labelled), each FY tying to the ACFR's GF column totals.
+2. The ACFR rows replaced each state's NASBO operating rows (one basis per state-FY), idempotent re-run = 0 writes, never-overwriting unrelated data; un-upgraded NASBO states unchanged.
+3. Any negative-category year (e.g. investment income) renders via the P2 clamp (0 with signed magnitude in the label, parent total preserved).
+
+#### Phase 100: New York + Florida ACFR Upgrade (ACFR-03, ACFR-04, ACFR-05)
+**Goal:** Apply the proven path to NY and FL — load GF revenue-by-source + GAAP spending-by-function from their ACFRs, as deep as cleanly available, replacing NASBO operating rows.
+**Requirements:** ACFR-03, ACFR-04, ACFR-05
+**Success criteria:**
+1. NY + FL state nodes show ACFR-sourced GF revenue-by-source + spending-by-function (GAAP basis-labelled), each FY tying to the ACFR's GF column totals.
+2. NASBO operating rows replaced idempotently (never-overwrite), un-upgraded states unchanged.
+3. Negative-category years on NY/FL render via the P2 clamp.
+
+#### Phase 101: Revenue View + URL Robustness (REVUX-01, REVUX-02)
+**Goal:** Make the upgraded nodes' "Money In" card render the real revenue-by-source view and fix `?dataset=revenue` deep-link robustness.
+**Requirements:** REVUX-01, REVUX-02
+**Success criteria:**
+1. The "Money In" card on CA/TX/NY/FL renders the real revenue-by-source view (no longer the disabled operating-only placeholder); states still on NASBO keep the honest disabled card.
+2. `?dataset=revenue` deep-links resolve correctly on upgraded and remaining operating-only nodes; normal in-app navigation is unaffected (no regression).
+
+#### Phase 102: Verification + Source-Chain Audit + UAT (VER-01, VER-02)
+**Goal:** Prove the upgrade is real, sourced, and residue-free across the whole cohort, then earn Chris's live sign-off.
+**Requirements:** VER-01, VER-02
+**Success criteria:**
+1. Each upgraded state reconciled **independently from its own ACFR** (re-derived totals, not loader self-report) within an explained tolerance.
+2. Full 50-node cohort source-chain audit clean (0 NULL/fragile/residue/out-of-window/dup/orphan), every displayed row basis-labelled; un-upgraded NASBO states still pass.
+3. Live-app UAT across the 4 upgraded nodes (revenue-by-source + spending-by-function + basis label + source chip + Money In) with Chris sign-off.
+
+---
 
 <details>
 <summary>✅ v2.10 State General Fund Sourcing (Phases 94-97) — SHIPPED 2026-06-29 (full detail in milestones/v2.10-ROADMAP.md)</summary>

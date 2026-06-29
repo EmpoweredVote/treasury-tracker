@@ -64,23 +64,23 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| RECON-01 | TBD | Pending |
-| RECON-02 | TBD | Pending |
-| RECON-03 | TBD | Pending |
-| ACFR-01 | TBD | Pending |
-| ACFR-02 | TBD | Pending |
-| ACFR-03 | TBD | Pending |
-| ACFR-04 | TBD | Pending |
-| ACFR-05 | TBD | Pending |
-| REVUX-01 | TBD | Pending |
-| REVUX-02 | TBD | Pending |
-| VER-01 | TBD | Pending |
-| VER-02 | TBD | Pending |
+| RECON-01 | Phase 98 | Pending |
+| RECON-02 | Phase 98 | Pending |
+| RECON-03 | Phase 99 | Pending |
+| ACFR-01 | Phase 99 | Pending |
+| ACFR-02 | Phase 99 | Pending |
+| ACFR-03 | Phase 100 | Pending |
+| ACFR-04 | Phase 100 | Pending |
+| ACFR-05 | Phase 99, 100 | Pending |
+| REVUX-01 | Phase 101 | Pending |
+| REVUX-02 | Phase 101 | Pending |
+| VER-01 | Phase 102 | Pending |
+| VER-02 | Phase 102 | Pending |
 
 **Coverage:**
 - v1 requirements: 12 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 12 ⚠️
+- Mapped to phases: 12
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-06-29*

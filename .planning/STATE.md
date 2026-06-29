@@ -6,7 +6,7 @@ status: planning
 last_updated: "2026-06-29T15:47:46.945Z"
 last_activity: 2026-06-29
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,10 +17,10 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-28 — v2.10 State General Fund Sourcing STARTED; v2.9 Minnesota SHIPPED + archived + tagged)
+See: .planning/PROJECT.md (updated 2026-06-29 — v2.11 State ACFR Revenue-by-Source Upgrades STARTED; v2.10 State General Fund Sourcing SHIPPED + archived)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** Phase 97 — verification-uat-sgfs-05
+**Current focus:** Phase 98 — recon (CA overlap + 4-state ACFR source location)
 
 ## Current Position
 
@@ -29,28 +29,19 @@ Plan: —
 Status: Defining requirements
 Last activity: 2026-06-29 — Milestone v2.11 started
 
-## Phase Overview — v2.10 State General Fund Sourcing
+## Phase Overview — v2.11 State ACFR Revenue-by-Source Upgrades (Pilot)
 
 | Phase | Name | Requirements | Depends on | Status |
 |-------|------|--------------|------------|--------|
-| 94 | Extractor + Policy | SGFS-01 | — | ✅ Complete |
-| 95 | MN History + OH/VA Re-do | SGFS-02, SGFS-03 | 94 | Not started |
-| 96 | Remaining States | SGFS-04 | 94, 95 | Not started |
-| 97 | Verification + UAT | SGFS-05 | 94–96 | Not started |
+| 98 | Recon — CA Overlap + 4-State ACFR Source Location | RECON-01, RECON-02 | — | Not started |
+| 99 | California + Texas ACFR Upgrade | ACFR-01, ACFR-02, ACFR-05, RECON-03 | 98 | Not started |
+| 100 | New York + Florida ACFR Upgrade | ACFR-03, ACFR-04, ACFR-05 | 98, 99 | Not started |
+| 101 | Revenue View + URL Robustness | REVUX-01, REVUX-02 | 99, 100 | Not started |
+| 102 | Verification + Source-Chain Audit + UAT | VER-01, VER-02 | 98–101 | Not started |
 
-**Discovery (Phase 93, 2026-06-27):** 50 state GF nodes (FY2022–2026, ~10 rows each); 47 unsourced round-number estimates (NULL source_url); OH + VA estimates falsely stamped with a source_url (highest-priority — look legitimate); MN real (State-ACFR GAAP actuals FY2023–2025 = the proven template). MN ACFR set 1997–2025 in `C:\tmp\Minn`. See [[project_state_node_unsourced_estimates]].
+**Critical path:** 98 → 99 → 100 → 101 → 102. Upgrade the four highest-traffic NASBO state GF nodes (CA, TX, NY, FL) from operating-only to full **State-ACFR GAAP** (revenue-by-source + finer spending-by-function), as deep as each ACFR cleanly extracts. The "ACFR-later" half of the v2.10 hybrid; follow-up milestone scales to the rest. Constraints: free ACFR PDFs only ($0/$5 AI gate); ACFR GAAP (General Fund column of the Governmental Funds Statement of Rev/Exp/Changes, `pdftotext -table`); every figure durably sourced + basis-labelled; P2 negative-category clamp; idempotent never-overwrite (ACFR replaces NASBO per state-FY; un-upgraded states stay on NASBO); executed inline (no subagents). Reuse `scripts/processOHAcfr.js`/`processVAAcfr.js`/`processMN*.js`; `loadStateGF.mjs` stays the NASBO fallback. **Recon CA's v1.7 CA-state-budget overlap (and MA v1.8) FIRST** (Phase 98) — avoid a duplicate CA node. Closeout = independent ACFR re-derivation → cohort source-chain audit → Chris live UAT (Phase 88/93/97 mold). See [[project_state_node_unsourced_estimates]].
 
-## Phase Overview — v2.9 Minnesota Local Government Expansion
-
-| Phase | Name | Requirements | Depends on | Status |
-|-------|------|--------------|------------|--------|
-| 89 | MN OSA Source + Loader | MNSRC-01, MNSRC-02 | — | Not started |
-| 90 | City Loads | MNCITY-01, MNCITY-02 | 89 | Not started |
-| 91 | County Loads + Data Model & Linking | MNCO-01, MNLINK-01 | 90 | Not started |
-| 92 | Enrichment Parity | MNENR-01 | 90, 91 | Not started |
-| 93 | Verification + Source-Chain Audit + UAT | MNVER-01, MNVER-02 | 89–92 | Not started |
-
-**Critical path:** 89 → 90 → 91 → 92 → 93. One uniform free source (MN OSA City/County Finances Report raw XLSX, `cired_YY_data.xlsx`, osa.state.mn.us, no auth); general-government scope (`Governmental Funds` sheet — enterprise funds deferred); GAAP/Cash basis per-entity via `GAAPInd`; no salaries this milestone (`Employee Data` sheet deferred); XLSX-era FY range (~2015–latest, pinned in Phase 89); 2-level revenue + expenditure trees (real icicle drill-down — resolves the Ohio flat-source limitation); city→county linking from the built-in `ParentEntityName` column; RCV cities (Minneapolis, St. Paul, St. Louis Park, Bloomington, Minnetonka) = verification anchors; every figure sourced; $0 spend.
+**Carried v2.10 follow-up folded in:** the minor frontend `?dataset=revenue` URL-robustness fix on operating-only nodes (REVUX-02). NOT folded in (left in backlog): MN FY1997–2007 history (MNHIST-02), MN FY2008 $8.79M categorization gap (MNGAP-01).
 
 ## Deferred Items
 
