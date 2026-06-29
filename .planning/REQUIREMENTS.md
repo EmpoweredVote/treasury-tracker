@@ -9,8 +9,8 @@
 
 ### Recon & Data Integrity
 
-- [ ] **RECON-01**: Recon documents California's GF-node situation vs the pre-existing v1.7 CA-state-budget entity (and notes MA's v1.8 state budget), so the upgrade targets the right node with no duplicate or conflicting California state node.
-- [ ] **RECON-02**: For each of CA/TX/NY/FL, the published ACFR Governmental Funds *Statement of Revenues, Expenditures and Changes in Fund Balances* (GENERAL FUND column, GAAP basis) is located, the cleanly `pdftotext -table`-extractable FY depth is determined, and a durable source URL is recorded (TLS quirks noted where applicable).
+- [x] **RECON-01**: Recon documents California's GF-node situation vs the pre-existing v1.7 CA-state-budget entity (and notes MA's v1.8 state budget), so the upgrade targets the right node with no duplicate or conflicting California state node. *(Phase 98 — non-issue: 1 CA entity, NASBO-only; v1.7 data already gone; upgrade-in-place target approved by Chris 2026-06-29.)*
+- [x] **RECON-02**: For each of CA/TX/NY/FL, the published ACFR Governmental Funds *Statement of Revenues, Expenditures and Changes in Fund Balances* (GENERAL FUND column, GAAP basis) is located, the cleanly `pdftotext -table`-extractable FY depth is determined, and a durable source URL is recorded (TLS quirks noted where applicable). *(Phase 98 — all 4 located + bookend tie-confirmed; windows + URLs + gap log in 98-ACFR-SOURCES.md.)*
 - [ ] **RECON-03**: Each upgraded state's ACFR rows **replace** its NASBO operating rows (one basis per state-FY), idempotently and never-overwriting; un-upgraded NASBO states remain unchanged on `scripts/loadStateGF.mjs`.
 
 ### State ACFR Upgrades
@@ -64,8 +64,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| RECON-01 | Phase 98 | Pending |
-| RECON-02 | Phase 98 | Pending |
+| RECON-01 | Phase 98 | Done |
+| RECON-02 | Phase 98 | Done |
 | RECON-03 | Phase 99 | Pending |
 | ACFR-01 | Phase 99 | Pending |
 | ACFR-02 | Phase 99 | Pending |

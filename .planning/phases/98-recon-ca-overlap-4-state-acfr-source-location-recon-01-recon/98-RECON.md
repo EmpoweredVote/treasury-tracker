@@ -59,7 +59,7 @@ Concrete steps for Phase 99:
 
 **Runner-up (not recommended):** keep the stale LAO/DOF `data_sources` and only add ACFR rows — rejected because dangling metadata pointing at no data is exactly the kind of confusion this milestone removes.
 
-**Decision owner:** Chris approves (or picks the runner-up) before Phase 99 begins.
+**Decision owner:** Chris approves (or picks the runner-up) before Phase 99 begins. → **✅ APPROVED by Chris 2026-06-29** — upgrade the single CA state node in place; delete the 2 stale v1.7 `data_sources` (`ca-lao-gf-operating`, `ca-dof-gf-revenue`); create a fresh `ca-acfr-*` data_source; CA revenue source of record = the ACFR. TX ~3× General-Revenue-Fund scope change also acknowledged.
 
 ---
 
