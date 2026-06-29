@@ -27,7 +27,7 @@
 
 ### Verification (SGFS)
 
-- [ ] **SGFS-05**: Cohort-wide source-chain audit confirms 0 unsourced / round-number-estimate state General Fund rows (every state node either real+sourced or absent); spot-reconciliation of a sample of states; live-app UAT with Chris sign-off.
+- [x] **SGFS-05**: Cohort-wide source-chain audit confirms 0 unsourced / round-number-estimate state General Fund rows (every state node either real+sourced or absent); spot-reconciliation of a sample of states; live-app UAT with Chris sign-off.
 
 ## Out of Scope (v2.10)
 
@@ -46,7 +46,7 @@
 | SGFS-02 | Phase 95 | Complete |
 | SGFS-03 | Phase 95 | Complete |
 | SGFS-04 | Phase 96 | Complete |
-| SGFS-05 | Phase 97 | Pending |
+| SGFS-05 | Phase 97 | Complete |
 
 **Coverage:**
 - v1 requirements: 5 total

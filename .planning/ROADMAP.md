@@ -90,11 +90,12 @@ Plans:
 **Wave 5** *(blocked on 96-02 + 96-03..06 — production write + verify)*
 - [x] 96-07-PLAN.md — Run cleanup live + full-cohort live load + DB-probe verify (0-NULL, 0 revenue rows, FY-ends) + load log
 
-#### Phase 97: Verification + UAT (SGFS-05)
+#### Phase 97: Verification + UAT (SGFS-05) ✅ COMPLETE (2026-06-29)
 **Goal:** Prove the whole state-node cohort is real + sourced, and get Chris's sign-off.
 **Success criteria:**
-1. Cohort-wide source-chain audit: 0 unsourced / round-estimate state rows; sample states spot-reconciled.
-2. Live-app UAT — Chris sign-off.
+1. ✅ Cohort-wide source-chain audit: 0 unsourced / round-estimate state rows; sample states spot-reconciled (50 nodes clean; "Representative 7" re-derived from source; F-97-01 GA Medicaid fixed).
+2. ✅ Live-app UAT — Chris sign-off (21/21, 2026-06-29).
+- 97-01 spot-recon · 97-02 cohort audit + F-97-01 fix · 97-03 UAT sign-off. Closes the v2.10 milestone → /gsd-complete-milestone.
 
 <details>
 <summary>✅ v2.9 Minnesota Local Government Expansion (Phases 89-93) — SHIPPED 2026-06-28 (full detail in milestones/v2.9-ROADMAP.md)</summary>
