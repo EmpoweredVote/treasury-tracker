@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 /**
- * Stale State GF data_sources cleanup — CA + TX (Phase 99, D-04 / D-07 / RECON-03)
+ * Stale State GF data_sources cleanup — CA + TX (Phase 99) + NY + FL (Phase 100)
  * ──────────────────────────────────────────────────────────────────────────────
  * Deletes the legacy, non-NASBO, ZERO-budgets-row `data_sources` metadata rows that
- * the v1.7 CA loaders and the analogous TX rows left behind. They point at no budgets
- * rows and would mislead the upgraded (ACFR) cohort:
- *   CA: ca-lao-gf-operating, ca-dof-gf-revenue
- *   TX: tx-gf-operating,     tx-gf-revenue
+ * the v1.7 loaders left behind. They point at no budgets rows and would mislead the
+ * upgraded (ACFR) cohort:
+ *   CA: ca-lao-gf-operating, ca-dof-gf-revenue   (Phase 99, D-04)
+ *   TX: tx-gf-operating,     tx-gf-revenue        (Phase 99, D-07)
+ *   NY: ny-gf-operating,     ny-gf-revenue        (Phase 100, D-04)
+ *   FL: fl-gf-operating,     fl-gf-revenue        (Phase 100, D-07)
  *
  * SAFETY (T-99-03):
  *   - Before deleting EACH data_source, assert it backs ZERO budgets rows
@@ -47,14 +49,17 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SE
 const STALE_TARGETS = {
   CA: ['ca-lao-gf-operating', 'ca-dof-gf-revenue'],
   TX: ['tx-gf-operating', 'tx-gf-revenue'],
+  NY: ['ny-gf-operating', 'ny-gf-revenue'],
+  FL: ['fl-gf-operating', 'fl-gf-revenue'],
 };
 
-// Hard guard: refuse to ever operate on a NASBO data_source or a non-CA/TX dataset_id.
+// Hard guard: refuse to ever operate on a NASBO data_source or a dataset_id not in the
+// stale allow-list (which never contains a *-gf-operating-nasbo row or any other state).
 function assertSafeTarget(datasetId) {
   if (/nasbo/i.test(datasetId)) {
     console.error(`REFUSING: "${datasetId}" looks like a NASBO data_source — never delete.`); process.exit(2);
   }
-  const all = [...STALE_TARGETS.CA, ...STALE_TARGETS.TX];
+  const all = Object.values(STALE_TARGETS).flat();
   if (!all.includes(datasetId)) {
     console.error(`REFUSING: "${datasetId}" is not in the stale allow-list.`); process.exit(2);
   }
@@ -66,8 +71,8 @@ async function main() {
   const stateFilter = opts.state ? opts.state.toUpperCase() : null;
   const dryRun = !apply;
 
-  const states = stateFilter ? [stateFilter] : ['CA', 'TX'];
-  for (const s of states) if (!STALE_TARGETS[s]) { console.error(`Unknown state "${s}" — expected CA or TX.`); process.exit(2); }
+  const states = stateFilter ? [stateFilter] : ['CA', 'TX', 'NY', 'FL'];
+  for (const s of states) if (!STALE_TARGETS[s]) { console.error(`Unknown state "${s}" — expected CA, TX, NY or FL.`); process.exit(2); }
   const targets = states.flatMap(s => STALE_TARGETS[s].map(id => ({ state: s, datasetId: id })));
 
   console.log(`Stale State GF data_sources cleanup ${dryRun ? '(DRY-RUN — no deletes)' : '(APPLY — will delete)'}\n`);
