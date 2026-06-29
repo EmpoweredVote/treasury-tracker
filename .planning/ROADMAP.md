@@ -71,9 +71,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 100-01-PLAN.md — Build NY+FL ACFR loaders (operating+revenue) + extend stale-data_sources cleanup; dry-run tie-checked, no DB writes
-- [ ] 100-02-PLAN.md — Live NY load: ACFR revenue+operating FY2015-2024 (millions ×1,000,000), replace NASBO, delete stale NY data_sources, idempotency + clamp
-- [ ] 100-03-PLAN.md — Live FL load: ACFR revenue+operating FY2022-2024, replace NASBO, delete stale FL data_sources, idempotency + clamp
+- [x] 100-01-PLAN.md — Build NY+FL ACFR loaders (operating+revenue) + extend stale-data_sources cleanup; dry-run tie-checked, no DB writes
+- [x] 100-02-PLAN.md — Live NY load: ACFR revenue+operating FY2015-2024 (millions ×1,000,000), replace NASBO, delete stale NY data_sources, idempotency + clamp
+- [x] 100-03-PLAN.md — Live FL load: ACFR revenue+operating FY2022-2024, replace NASBO, delete stale FL data_sources, idempotency + clamp
 
 #### Phase 101: Revenue View + URL Robustness (REVUX-01, REVUX-02)
 **Goal:** Make the upgraded nodes' "Money In" card render the real revenue-by-source view and fix `?dataset=revenue` deep-link robustness.

@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v2.11
 milestone_name: State ACFR Revenue-by-Source Upgrades
-status: Defining requirements
-last_updated: "2026-06-29T18:33:17.259Z"
-last_activity: 2026-06-29 — Milestone v2.11 started
+status: Phase 100 complete — NY+FL ACFR loaded & verified; next Phase 101
+last_updated: "2026-06-29T19:30:00.000Z"
+last_activity: 2026-06-29 — Phase 100 executed inline (NY+FL ACFR GAAP loaded, NASBO replaced, stale data_sources cleaned, P2 clamp fired on FL FY2022); DB-verified
 progress:
   total_phases: 31
-  completed_phases: 0
-  total_plans: 6
-  completed_plans: 2
+  completed_phases: 3
+  total_plans: 9
+  completed_plans: 9
   percent: 0
 ---
 
@@ -20,22 +20,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-29 — v2.11 State ACFR Revenue-by-Source Upgrades STARTED; v2.10 State General Fund Sourcing SHIPPED + archived)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** Phase 98 — recon (CA overlap + 4-state ACFR source location)
+**Current focus:** Phase 101 — Revenue View + URL Robustness (the "Money In" card now has real revenue-by-source data on all 4 ACFR nodes)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-06-29 — Milestone v2.11 started
+Phase: 100 complete (NY + FL ACFR upgrade) — next is Phase 101
+Plan: 100-01 / 100-02 / 100-03 all complete + DB-verified
+Status: v2.11 4-state ACFR cohort load DONE (CA/TX/NY/FL all GAAP, 0 NASBO remnants); Phase 102 will do independent re-derivation + cohort audit + UAT
+Last activity: 2026-06-29 — Phase 100 executed inline; NY (FY2015-2024, millions) + FL (FY2022-2024) loaded, idempotent, P2 clamp fired on FL FY2022
 
 ## Phase Overview — v2.11 State ACFR Revenue-by-Source Upgrades (Pilot)
 
 | Phase | Name | Requirements | Depends on | Status |
 |-------|------|--------------|------------|--------|
-| 98 | Recon — CA Overlap + 4-State ACFR Source Location | RECON-01, RECON-02 | — | Not started |
-| 99 | California + Texas ACFR Upgrade | ACFR-01, ACFR-02, ACFR-05, RECON-03 | 98 | Not started |
-| 100 | New York + Florida ACFR Upgrade | ACFR-03, ACFR-04, ACFR-05 | 98, 99 | Not started |
+| 98 | Recon — CA Overlap + 4-State ACFR Source Location | RECON-01, RECON-02 | — | ✅ Complete |
+| 99 | California + Texas ACFR Upgrade | ACFR-01, ACFR-02, ACFR-05, RECON-03 | 98 | ✅ Complete |
+| 100 | New York + Florida ACFR Upgrade | ACFR-03, ACFR-04, ACFR-05 | 98, 99 | ✅ Complete |
 | 101 | Revenue View + URL Robustness | REVUX-01, REVUX-02 | 99, 100 | Not started |
 | 102 | Verification + Source-Chain Audit + UAT | VER-01, VER-02 | 98–101 | Not started |
 
