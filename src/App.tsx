@@ -26,7 +26,8 @@ import DonateModal from './components/DonateModal';
 
 import YearSelector from './components/YearSelector';
 import type { YearSelectorHandle } from './components/YearSelector';
-import { parsePeriod, buildPeriodTokens } from './utils/period';
+import { parsePeriod, buildPeriodTokens } from './utils/period'
+import { resolveEffectiveDataset } from './utils/resolveDataset';
 import Breadcrumb from './components/Breadcrumb';
 import BudgetVisualization from './components/BudgetVisualization';
 import CategoryList from './components/CategoryList';
@@ -213,16 +214,25 @@ function App() {
 
         const entityYears = [...new Set(entity.available_datasets.map(d => d.fiscal_year))].sort((a, b) => b - a);
         const operatingYears = [...new Set(entity.available_datasets.filter(d => d.dataset_type === 'operating').map(d => d.fiscal_year))].sort((a, b) => b - a);
-        if (yearParam && entityYears.includes(parseInt(yearParam))) {
-          setSelectedYear(yearParam);
-        } else if (operatingYears.length > 0) {
-          setSelectedYear(String(operatingYears[0]));
-        } else if (entityYears.length > 0) {
-          setSelectedYear(String(entityYears[0]));
-        }
-        if (datasetParam && ['operating', 'revenue', 'salaries'].includes(datasetParam)) {
-          setActiveDataset(datasetParam as DatasetType);
-        }
+        // Compute the resolved year as a local variable so we can validate
+        // ?dataset= against availability for that specific year (REVUX-02 fix).
+        const resolvedYear = (yearParam && entityYears.includes(parseInt(yearParam)))
+          ? yearParam
+          : operatingYears.length > 0
+            ? String(operatingYears[0])
+            : entityYears.length > 0
+              ? String(entityYears[0])
+              : '2025';
+        setSelectedYear(resolvedYear);
+        // Validate ?dataset= against the entity's actual availability for the
+        // resolved year — falls back to 'operating' for garbage params, missing
+        // datasets, or operating-only nodes (e.g. NASBO states). Both guards:
+        // (1) static allow-list [operating|revenue|salaries], (2) availability.
+        const resolvedYearTypes = entity.available_datasets
+          .filter(d => d.fiscal_year === parsePeriod(resolvedYear).fiscalYear)
+          .map(d => d.dataset_type)
+          .filter(t => t !== 'all_funds_requirements' && t !== 'federal_agency');
+        setActiveDataset(resolveEffectiveDataset(resolvedYearTypes, datasetParam));
         if (params.get('lens') === 'agency' && entity.entity_type === 'federal') {
           setFederalLens('agency');
         }
@@ -395,11 +405,14 @@ function App() {
         ? String(operatingYears[0])
         : (entityYears.length > 0 ? String(entityYears[0]) : selectedYear);
 
-    // Check if current dataset is available for new entity in effective year
+    // Check if current dataset is available for new entity in effective year.
+    // Uses the shared helper so both the mount path and handleEntityChange
+    // apply the same two-guard logic (static allow-list + availability).
     const entityDatasets = entity.available_datasets
       .filter(d => d.fiscal_year === parsePeriod(effectiveYear).fiscalYear)
-      .map(d => d.dataset_type);
-    const effectiveDataset = entityDatasets.includes(activeDataset) ? activeDataset : 'operating';
+      .map(d => d.dataset_type)
+      .filter(t => t !== 'all_funds_requirements' && t !== 'federal_agency');
+    const effectiveDataset = resolveEffectiveDataset(entityDatasets, activeDataset);
 
     setSelectedEntity(entity);
     setSelectedYear(effectiveYear);
