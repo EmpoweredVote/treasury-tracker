@@ -23,8 +23,8 @@
 
 ### Revenue View / UX
 
-- [ ] **REVUX-01**: The "Money In" card on each upgraded node renders the real revenue-by-source view (no longer the disabled operating-only placeholder).
-- [ ] **REVUX-02**: `?dataset=revenue` deep-links resolve correctly on upgraded (and remaining operating-only) state nodes — normal navigation unaffected.
+- [x] **REVUX-01**: The "Money In" card on each upgraded node renders the real revenue-by-source view (no longer the disabled operating-only placeholder).
+- [x] **REVUX-02**: `?dataset=revenue` deep-links resolve correctly on upgraded (and remaining operating-only) state nodes — normal navigation unaffected.
 
 ### Verification
 
@@ -72,8 +72,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ACFR-03 | Phase 100 | Pending |
 | ACFR-04 | Phase 100 | Pending |
 | ACFR-05 | Phase 99, 100 | Partial (CA/TX done) |
-| REVUX-01 | Phase 101 | Pending |
-| REVUX-02 | Phase 101 | Pending |
+| REVUX-01 | Phase 101 | Complete |
+| REVUX-02 | Phase 101 | Complete |
 | VER-01 | Phase 102 | Pending |
 | VER-02 | Phase 102 | Pending |
 

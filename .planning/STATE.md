@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.11
 milestone_name: State ACFR Revenue-by-Source Upgrades
-status: Phase 100 complete — NY+FL ACFR loaded & verified; next Phase 101
-last_updated: "2026-06-29T19:30:00.000Z"
-last_activity: 2026-06-29 — Phase 100 executed inline (NY+FL ACFR GAAP loaded, NASBO replaced, stale data_sources cleaned, P2 clamp fired on FL FY2022); DB-verified
+status: verifying
+last_updated: "2026-06-29T22:31:50.903Z"
+last_activity: 2026-06-29
 progress:
   total_phases: 31
-  completed_phases: 3
-  total_plans: 9
-  completed_plans: 9
-  percent: 0
+  completed_phases: 2
+  total_plans: 10
+  completed_plans: 6
+  percent: 6
 ---
 
 # State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-29 — v2.11 State ACFR Revenue-by-Source Upgrades STARTED; v2.10 State General Fund Sourcing SHIPPED + archived)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** Phase 101 — Revenue View + URL Robustness (the "Money In" card now has real revenue-by-source data on all 4 ACFR nodes)
+**Current focus:** Phase 101 — revenue-view-url-robustness-revux-01-revux-02
 
 ## Current Position
 
-Phase: 100 complete (NY + FL ACFR upgrade) — next is Phase 101
-Plan: 100-01 / 100-02 / 100-03 all complete + DB-verified
-Status: v2.11 4-state ACFR cohort load DONE (CA/TX/NY/FL all GAAP, 0 NASBO remnants); Phase 102 will do independent re-derivation + cohort audit + UAT
-Last activity: 2026-06-29 — Phase 100 executed inline; NY (FY2015-2024, millions) + FL (FY2022-2024) loaded, idempotent, P2 clamp fired on FL FY2022
+Phase: 101 (revenue-view-url-robustness-revux-01-revux-02) — EXECUTING
+Plan: 1 of 1
+Status: Phase complete — ready for verification
+Last activity: 2026-06-29
 
 ## Phase Overview — v2.11 State ACFR Revenue-by-Source Upgrades (Pilot)
 
@@ -166,9 +166,9 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-29T18:33:17.248Z
+Last session: 2026-06-29T22:31:50.892Z
 Stopped at: Phase 99 executed — CA+TX ACFR loaded live + DB-verified
-Resume file: .planning/phases/99-california-texas-acfr-upgrade-acfr-01-acfr-02-acfr-05-recon-/99-EXECUTION-SUMMARY.md
+Resume file: None
 
 ### Next Session
 
@@ -215,6 +215,7 @@ Source recon done: MN OSA City Finances Report XLSX confirmed icicle-grade (`cir
 | Phase 96-remaining-states-sgfs-04 P04 | 45 | 2 tasks | 1 files |
 | Phase 96 P05 | 25min | 2 tasks | 1 files |
 | Phase 96-remaining-states-sgfs-04 P06 | 9min | 2 tasks | 1 files |
+| Phase 101 P01 | 8min | 3 tasks | 2 files |
 
 ## Decisions
 
