@@ -1,3 +1,12 @@
+---
+status: passed
+phase: 97
+passed: 21
+total: 21
+signed_off_by: Chris Cantrell
+signed_off_date: 2026-06-29
+---
+
 # Phase 97 — Live-App UAT Checklist (SGFS-05 / D-97-02)
 
 **App:** https://treasurytracker.empowered.vote (no login needed — inform-tier/unauthenticated has full read access)
