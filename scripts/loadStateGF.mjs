@@ -823,6 +823,369 @@ const STATES = {
       },
     },
   },
+
+  // ── Batch C: NC ND NE NH NJ NM NV NY OK OR PA RI (2025 SER — 6-function taxonomy) ──
+
+  NC: {
+    name: 'North Carolina', abbr: 'NC', population: 10_439_388,
+    operating: {
+      2023: {
+        confidence: 'actual',
+        controlTotalGF: 26_775_000_000,  // Table 1 GF FY2023
+        categories: [
+          { name: 'Elementary & Secondary Education', total: 11_039_000_000 },
+          { name: 'Higher Education',                  total:  5_145_000_000 },
+          { name: 'Medicaid',                          total:  3_947_000_000 },
+          { name: 'Corrections',                       total:  2_002_000_000 },
+          { name: 'Transportation',                    total:              0 },
+          { name: 'All Other',                         total:  4_642_000_000 },
+        ],
+      },
+      2024: {
+        confidence: 'actual',
+        controlTotalGF: 29_216_000_000,  // Table 1 GF FY2024
+        categories: [
+          { name: 'Elementary & Secondary Education', total: 11_368_000_000 },
+          { name: 'Higher Education',                  total:  5_614_000_000 },
+          { name: 'Medicaid',                          total:  4_431_000_000 },
+          { name: 'Corrections',                       total:  2_099_000_000 },
+          { name: 'Transportation',                    total:              0 },
+          { name: 'All Other',                         total:  5_704_000_000 },
+        ],
+      },
+    },
+  },
+
+  ND: {
+    name: 'North Dakota', abbr: 'ND', population: 779_094,
+    operating: {
+      2023: {
+        confidence: 'actual',
+        controlTotalGF: 2_436_000_000,  // Table 1 GF FY2023
+        categories: [
+          { name: 'Elementary & Secondary Education', total:   724_000_000 },
+          { name: 'Higher Education',                  total:   383_000_000 },
+          { name: 'Medicaid',                          total:   467_000_000 },
+          { name: 'Corrections',                       total:   124_000_000 },
+          { name: 'Transportation',                    total:             0 },
+          { name: 'All Other',                         total:   738_000_000 },
+        ],
+      },
+      2024: {
+        confidence: 'actual',
+        controlTotalGF: 2_876_000_000,  // Table 1 GF FY2024
+        categories: [
+          { name: 'Elementary & Secondary Education', total:   914_000_000 },
+          { name: 'Higher Education',                  total:   448_000_000 },
+          { name: 'Medicaid',                          total:   534_000_000 },
+          { name: 'Corrections',                       total:   134_000_000 },
+          { name: 'Transportation',                    total:     2_000_000 },
+          { name: 'All Other',                         total:   844_000_000 },
+        ],
+      },
+    },
+  },
+
+  NE: {
+    name: 'Nebraska', abbr: 'NE', population: 1_961_504,
+    operating: {
+      2023: {
+        confidence: 'actual',
+        controlTotalGF: 5_154_000_000,  // Table 1 GF FY2023
+        categories: [
+          { name: 'Elementary & Secondary Education', total: 1_329_000_000 },
+          { name: 'Higher Education',                  total:   860_000_000 },
+          { name: 'Medicaid',                          total: 1_196_000_000 },
+          { name: 'Corrections',                       total:   484_000_000 },
+          { name: 'Transportation',                    total:             0 },
+          { name: 'All Other',                         total: 1_285_000_000 },
+        ],
+      },
+      2024: {
+        confidence: 'actual',
+        controlTotalGF: 5_314_000_000,  // Table 1 GF FY2024
+        categories: [
+          { name: 'Elementary & Secondary Education', total: 1_308_000_000 },
+          { name: 'Higher Education',                  total:   890_000_000 },
+          { name: 'Medicaid',                          total: 1_242_000_000 },
+          { name: 'Corrections',                       total:   510_000_000 },
+          { name: 'Transportation',                    total:             0 },
+          { name: 'All Other',                         total: 1_364_000_000 },
+        ],
+      },
+    },
+  },
+
+  NH: {
+    name: 'New Hampshire', abbr: 'NH', population: 1_377_529,
+    operating: {
+      2023: {
+        confidence: 'actual',
+        controlTotalGF: 2_136_000_000,  // Table 1 GF FY2023
+        categories: [
+          { name: 'Elementary & Secondary Education', total:    28_000_000 },
+          { name: 'Higher Education',                  total:   149_000_000 },
+          { name: 'Medicaid',                          total:   737_000_000 },
+          { name: 'Corrections',                       total:   162_000_000 },
+          { name: 'Transportation',                    total:    83_000_000 },
+          { name: 'All Other',                         total:   977_000_000 },
+        ],
+      },
+      2024: {
+        confidence: 'actual',
+        controlTotalGF: 1_981_000_000,  // Table 1 GF FY2024
+        categories: [
+          { name: 'Elementary & Secondary Education', total:    32_000_000 },
+          { name: 'Higher Education',                  total:   177_000_000 },
+          { name: 'Medicaid',                          total:   858_000_000 },
+          { name: 'Corrections',                       total:   168_000_000 },
+          { name: 'Transportation',                    total:    25_000_000 },
+          { name: 'All Other',                         total:   721_000_000 },
+        ],
+      },
+    },
+  },
+
+  NJ: {
+    name: 'New Jersey', abbr: 'NJ', population: 9_288_994,
+    operating: {
+      2023: {
+        confidence: 'actual',
+        controlTotalGF: 48_837_000_000,  // Table 1 GF FY2023
+        categories: [
+          { name: 'Elementary & Secondary Education', total: 18_820_000_000 },
+          { name: 'Higher Education',                  total:  3_303_000_000 },
+          { name: 'Medicaid',                          total:  5_248_000_000 },
+          { name: 'Corrections',                       total:  1_319_000_000 },
+          { name: 'Transportation',                    total:  1_864_000_000 },
+          { name: 'All Other',                         total: 18_283_000_000 },
+        ],
+      },
+      2024: {
+        confidence: 'actual',
+        controlTotalGF: 52_996_000_000,  // Table 1 GF FY2024
+        categories: [
+          { name: 'Elementary & Secondary Education', total: 19_892_000_000 },
+          { name: 'Higher Education',                  total:  3_684_000_000 },
+          { name: 'Medicaid',                          total:  6_468_000_000 },
+          { name: 'Corrections',                       total:  1_376_000_000 },
+          { name: 'Transportation',                    total:  1_959_000_000 },
+          { name: 'All Other',                         total: 19_617_000_000 },
+        ],
+      },
+    },
+  },
+
+  NM: {
+    name: 'New Mexico', abbr: 'NM', population: 2_117_522,
+    operating: {
+      2023: {
+        confidence: 'actual',
+        controlTotalGF: 8_682_000_000,  // Table 1 GF FY2023
+        categories: [
+          { name: 'Elementary & Secondary Education', total: 3_873_000_000 },
+          { name: 'Higher Education',                  total: 1_115_000_000 },
+          { name: 'Medicaid',                          total: 1_209_000_000 },
+          { name: 'Corrections',                       total:   393_000_000 },
+          { name: 'Transportation',                    total:   220_000_000 },
+          { name: 'All Other',                         total: 1_872_000_000 },
+        ],
+      },
+      2024: {
+        confidence: 'actual',
+        controlTotalGF: 9_975_000_000,  // Table 1 GF FY2024
+        categories: [
+          { name: 'Elementary & Secondary Education', total: 4_228_000_000 },
+          { name: 'Higher Education',                  total: 1_438_000_000 },
+          { name: 'Medicaid',                          total: 1_643_000_000 },
+          { name: 'Corrections',                       total:   401_000_000 },
+          { name: 'Transportation',                    total:   303_000_000 },
+          { name: 'All Other',                         total: 1_962_000_000 },
+        ],
+      },
+    },
+  },
+
+  NV: {
+    name: 'Nevada', abbr: 'NV', population: 3_104_614,
+    operating: {
+      2023: {
+        confidence: 'actual',
+        controlTotalGF: 4_742_000_000,  // Table 1 GF FY2023
+        categories: [
+          { name: 'Elementary & Secondary Education', total: 1_552_000_000 },
+          { name: 'Higher Education',                  total:   698_000_000 },
+          { name: 'Medicaid',                          total: 1_049_000_000 },
+          { name: 'Corrections',                       total:   321_000_000 },
+          { name: 'Transportation',                    total:             0 },
+          { name: 'All Other',                         total: 1_122_000_000 },
+        ],
+      },
+      2024: {
+        confidence: 'actual',
+        controlTotalGF: 5_273_000_000,  // Table 1 GF FY2024
+        categories: [
+          { name: 'Elementary & Secondary Education', total: 1_621_000_000 },
+          { name: 'Higher Education',                  total:   803_000_000 },
+          { name: 'Medicaid',                          total:   941_000_000 },
+          { name: 'Corrections',                       total:   330_000_000 },
+          { name: 'Transportation',                    total:     2_000_000 },
+          { name: 'All Other',                         total: 1_576_000_000 },
+        ],
+      },
+    },
+  },
+
+  NY: {
+    // FY end: Apr 1 → Mar 31 (verified: 2025 SER p.1). source_date resolves to FY-03-31 via FY_END_MMDD.
+    name: 'New York', abbr: 'NY', population: 20_201_249,
+    operating: {
+      2023: {
+        confidence: 'actual',
+        controlTotalGF: 84_474_000_000,  // Table 1 GF FY2023
+        categories: [
+          { name: 'Elementary & Secondary Education', total: 27_828_000_000 },
+          { name: 'Higher Education',                  total:  2_882_000_000 },
+          { name: 'Medicaid',                          total: 24_351_000_000 },
+          { name: 'Corrections',                       total:  2_685_000_000 },
+          { name: 'Transportation',                    total:    511_000_000 },
+          { name: 'All Other',                         total: 26_217_000_000 },
+        ],
+      },
+      2024: {
+        confidence: 'actual',
+        controlTotalGF: 91_070_000_000,  // Table 1 GF FY2024
+        categories: [
+          { name: 'Elementary & Secondary Education', total: 31_202_000_000 },
+          { name: 'Higher Education',                  total:  3_128_000_000 },
+          { name: 'Medicaid',                          total: 27_391_000_000 },
+          { name: 'Corrections',                       total:  2_689_000_000 },
+          { name: 'Transportation',                    total:    916_000_000 },
+          { name: 'All Other',                         total: 25_744_000_000 },
+        ],
+      },
+    },
+  },
+
+  OK: {
+    name: 'Oklahoma', abbr: 'OK', population: 3_959_353,
+    operating: {
+      2023: {
+        confidence: 'actual',
+        controlTotalGF: 7_752_000_000,  // Table 1 GF FY2023
+        categories: [
+          { name: 'Elementary & Secondary Education', total: 3_180_000_000 },
+          { name: 'Higher Education',                  total:   831_000_000 },
+          { name: 'Medicaid',                          total: 1_089_000_000 },
+          { name: 'Corrections',                       total:   500_000_000 },
+          { name: 'Transportation',                    total:             0 },
+          { name: 'All Other',                         total: 2_152_000_000 },
+        ],
+      },
+      2024: {
+        confidence: 'actual',
+        controlTotalGF: 9_139_000_000,  // Table 1 GF FY2024
+        categories: [
+          { name: 'Elementary & Secondary Education', total: 4_360_000_000 },
+          { name: 'Higher Education',                  total:   924_000_000 },
+          { name: 'Medicaid',                          total:   729_000_000 },
+          { name: 'Corrections',                       total:   557_000_000 },
+          { name: 'Transportation',                    total:             0 },
+          { name: 'All Other',                         total: 2_569_000_000 },
+        ],
+      },
+    },
+  },
+
+  OR: {
+    name: 'Oregon', abbr: 'OR', population: 4_237_256,
+    operating: {
+      2023: {
+        confidence: 'actual',
+        controlTotalGF: 13_586_000_000,  // Table 1 GF FY2023
+        categories: [
+          { name: 'Elementary & Secondary Education', total: 4_336_000_000 },
+          { name: 'Higher Education',                  total: 1_298_000_000 },
+          { name: 'Medicaid',                          total: 1_566_000_000 },
+          { name: 'Corrections',                       total:   670_000_000 },
+          { name: 'Transportation',                    total:    23_000_000 },
+          { name: 'All Other',                         total: 5_692_000_000 },
+        ],
+      },
+      2024: {
+        confidence: 'actual',
+        controlTotalGF: 16_100_000_000,  // Table 1 GF FY2024
+        categories: [
+          { name: 'Elementary & Secondary Education', total: 4_935_000_000 },
+          { name: 'Higher Education',                  total: 1_608_000_000 },
+          { name: 'Medicaid',                          total: 2_934_000_000 },
+          { name: 'Corrections',                       total: 1_312_000_000 },
+          { name: 'Transportation',                    total:    49_000_000 },
+          { name: 'All Other',                         total: 5_263_000_000 },
+        ],
+      },
+    },
+  },
+
+  PA: {
+    name: 'Pennsylvania', abbr: 'PA', population: 13_002_700,
+    operating: {
+      2023: {
+        confidence: 'actual',
+        controlTotalGF: 40_800_000_000,  // Table 1 GF FY2023
+        categories: [
+          { name: 'Elementary & Secondary Education', total: 15_042_000_000 },
+          { name: 'Higher Education',                  total:  2_007_000_000 },
+          { name: 'Medicaid',                          total: 11_566_000_000 },
+          { name: 'Corrections',                       total:  2_845_000_000 },
+          { name: 'Transportation',                    total:      3_000_000 },
+          { name: 'All Other',                         total:  9_337_000_000 },
+        ],
+      },
+      2024: {
+        confidence: 'actual',
+        controlTotalGF: 44_864_000_000,  // Table 1 GF FY2024
+        categories: [
+          { name: 'Elementary & Secondary Education', total: 15_886_000_000 },
+          { name: 'Higher Education',                  total:  2_056_000_000 },
+          { name: 'Medicaid',                          total: 13_378_000_000 },
+          { name: 'Corrections',                       total:  3_110_000_000 },
+          { name: 'Transportation',                    total:    164_000_000 },
+          { name: 'All Other',                         total: 10_270_000_000 },
+        ],
+      },
+    },
+  },
+
+  RI: {
+    name: 'Rhode Island', abbr: 'RI', population: 1_097_379,
+    operating: {
+      2023: {
+        confidence: 'actual',
+        controlTotalGF: 5_075_000_000,  // Table 1 GF FY2023
+        categories: [
+          { name: 'Elementary & Secondary Education', total: 1_437_000_000 },
+          { name: 'Higher Education',                  total:   264_000_000 },
+          { name: 'Medicaid',                          total: 1_189_000_000 },
+          { name: 'Corrections',                       total:   284_000_000 },
+          { name: 'Transportation',                    total:             0 },
+          { name: 'All Other',                         total: 1_901_000_000 },
+        ],
+      },
+      2024: {
+        confidence: 'actual',
+        controlTotalGF: 5_236_000_000,  // Table 1 GF FY2024
+        categories: [
+          { name: 'Elementary & Secondary Education', total: 1_494_000_000 },
+          { name: 'Higher Education',                  total:   310_000_000 },
+          { name: 'Medicaid',                          total: 1_161_000_000 },
+          { name: 'Corrections',                       total:   264_000_000 },
+          { name: 'Transportation',                    total:             0 },
+          { name: 'All Other',                         total: 2_007_000_000 },
+        ],
+      },
+    },
+  },
 };
 
 // ── Pure helpers (exported for offline unit tests; no DB / no network) ─────────────────
