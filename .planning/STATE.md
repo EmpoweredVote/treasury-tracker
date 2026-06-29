@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.10
 milestone_name: State General Fund Sourcing
-status: verifying
-last_updated: "2026-06-28T16:05:00.000Z"
-last_activity: 2026-06-28
+status: executing
+last_updated: "2026-06-29T00:04:40.037Z"
+last_activity: 2026-06-29
 progress:
   total_phases: 30
-  completed_phases: 1
-  total_plans: 6
-  completed_plans: 6
-  percent: 3
+  completed_phases: 2
+  total_plans: 13
+  completed_plans: 7
+  percent: 7
 ---
 
 # State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-28 — v2.10 State General Fund Sourcing STARTED; v2.9 Minnesota SHIPPED + archived + tagged)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** Phase 95 — mn-history-oh-va-re-do-sgfs-02-sgfs-03
+**Current focus:** Phase 96 — remaining-states-sgfs-04
 
 ## Current Position
 
-Phase: 95 (mn-history-oh-va-re-do-sgfs-02-sgfs-03) — COMPLETE
-Plan: 5 of 5 (ALL COMPLETE)
-Status: Phase 95 complete — all 5 plans executed; SGFS-02 + SGFS-03 satisfied
-Last activity: 2026-06-28
+Phase: 96 (remaining-states-sgfs-04) — EXECUTING
+Plan: 2 of 7
+Status: Ready to execute
+Last activity: 2026-06-29
 
 **Phase 94 decisions carried forward (binding on 95/96/97):**
 
@@ -182,7 +182,7 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-28T16:05:00.000Z
+Last session: 2026-06-29T00:04:40.025Z
 Stopped at: Phase 95 Plan 05 complete — SGFS-03 closed; OH/VA FY2026 estimate rows deleted; all probes pass
 Resume file: None
 

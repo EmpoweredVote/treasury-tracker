@@ -23,7 +23,7 @@
 
 ### Remaining States (SGFS)
 
-- [ ] **SGFS-04**: The remaining ~46 state nodes remediated — each state's ACFR sourced + real actuals loaded (revenue-by-source + spending-by-function, stamped), or the node removed if no clean free source exists (documented). No unsourced estimate state rows remain.
+- [x] **SGFS-04**: The remaining ~46 state nodes remediated — each state's ACFR sourced + real actuals loaded (revenue-by-source + spending-by-function, stamped), or the node removed if no clean free source exists (documented). No unsourced estimate state rows remain.
 
 ### Verification (SGFS)
 
@@ -45,7 +45,7 @@
 | SGFS-01 | Phase 94 | Pending |
 | SGFS-02 | Phase 95 | Complete |
 | SGFS-03 | Phase 95 | Complete |
-| SGFS-04 | Phase 96 | Pending |
+| SGFS-04 | Phase 96 | Complete |
 | SGFS-05 | Phase 97 | Pending |
 
 **Coverage:**
