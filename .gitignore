@@ -127,3 +127,9 @@ _mn-recon/
 
 # MN load failure logs (runtime, not tracked)
 scripts/load-mn-*.failures.txt
+
+# State-GF source-document PDFs kept in the repo root as local recon working copies
+# (e.g. state-2023-acfr.pdf = State of MN FY2023 ACFR; 2025_NASBO_State_Expenditure_Report_S.pdf).
+# The app links to the official PUBLIC source_url for every figure — never these local files;
+# these are offline re-derivation copies only (large binaries, not version-controlled).
+/*.pdf
