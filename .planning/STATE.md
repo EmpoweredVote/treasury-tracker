@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v2.11
 milestone_name: State ACFR Revenue-by-Source Upgrades
-status: planning
-last_updated: "2026-06-29T15:47:46.945Z"
-last_activity: 2026-06-29
+status: Defining requirements
+last_updated: "2026-06-29T16:10:17.547Z"
+last_activity: 2026-06-29 — Milestone v2.11 started
 progress:
-  total_phases: 5
+  total_phases: 31
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -166,9 +166,9 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-29T07:09:12.297Z
-Stopped at: Phase 97 context gathered
-Resume file: .planning/phases/97-verification-uat-sgfs-05/97-CONTEXT.md
+Last session: 2026-06-29T16:10:17.537Z
+Stopped at: Phase 98 context gathered
+Resume file: .planning/phases/98-recon-ca-overlap-4-state-acfr-source-location-recon-01-recon/98-CONTEXT.md
 
 ### Next Session
 
