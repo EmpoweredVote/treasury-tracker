@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.10
 milestone_name: State General Fund Sourcing
 status: executing
-last_updated: "2026-06-29T05:59:21.588Z"
+last_updated: "2026-06-29T07:09:12.308Z"
 last_activity: 2026-06-29
 progress:
   total_phases: 30
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 13
-  completed_plans: 12
-  percent: 7
+  completed_plans: 13
+  percent: 10
 ---
 
 # State
@@ -182,9 +182,9 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-29T05:59:21.565Z
-Stopped at: Phase 95 Plan 05 complete — SGFS-03 closed; OH/VA FY2026 estimate rows deleted; all probes pass
-Resume file: None
+Last session: 2026-06-29T07:09:12.297Z
+Stopped at: Phase 97 context gathered
+Resume file: .planning/phases/97-verification-uat-sgfs-05/97-CONTEXT.md
 
 ### Next Session
 
