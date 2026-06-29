@@ -11,7 +11,7 @@
 
 ### Extractor + Policy (SGFS)
 
-- [ ] **SGFS-01**: A reusable State-ACFR extractor (generalize the MN loader; pdfplumber coordinate-based so it survives PDF text-jumble + custom font encoding) turns a State ACFR's Governmental Funds GENERAL FUND column into sourced 1-level revenue-by-source + spending-by-function trees (sums verified to published Net Revenues / Total Expenditures), each figure stamped to that year's ACFR URL + source_date. **Locked cross-cutting policy** documented: FY depth per state, negative-revenue-year representation in an icicle (e.g. MN FY2022 investment losses), older-ACFR format-drift handling, always-GAAP (never budgetary/forecast). Proven on ≥1 state end-to-end.
+- [x] **SGFS-01**: A reusable State-ACFR extractor (generalize the MN loader; pdfplumber coordinate-based so it survives PDF text-jumble + custom font encoding) turns a State ACFR's Governmental Funds GENERAL FUND column into sourced 1-level revenue-by-source + spending-by-function trees (sums verified to published Net Revenues / Total Expenditures), each figure stamped to that year's ACFR URL + source_date. **Locked cross-cutting policy** documented: FY depth per state, negative-revenue-year representation in an icicle (e.g. MN FY2022 investment losses), older-ACFR format-drift handling, always-GAAP (never budgetary/forecast). Proven on ≥1 state end-to-end. *(Delivered via the Chris-locked hybrid pivot, Phase 94: reusable loader = `scripts/loadStateGF.mjs` (NASBO operating now, per-state ACFR upgrades later; MN kept as ACFR gold-standard); locked policy = `94-01-POLICY.md` P1–P6; proven end-to-end on Georgia FY2023. Revenue-by-source deferred to the ACFR upgrade per the hybrid lock.)*
 
 ### Minnesota History (SGFS)
 
@@ -42,7 +42,7 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SGFS-01 | Phase 94 | Pending |
+| SGFS-01 | Phase 94 | Complete |
 | SGFS-02 | Phase 95 | Complete |
 | SGFS-03 | Phase 95 | Complete |
 | SGFS-04 | Phase 96 | Complete |
