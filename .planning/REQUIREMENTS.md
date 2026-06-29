@@ -11,15 +11,15 @@
 
 - [x] **RECON-01**: Recon documents California's GF-node situation vs the pre-existing v1.7 CA-state-budget entity (and notes MA's v1.8 state budget), so the upgrade targets the right node with no duplicate or conflicting California state node. *(Phase 98 — non-issue: 1 CA entity, NASBO-only; v1.7 data already gone; upgrade-in-place target approved by Chris 2026-06-29.)*
 - [x] **RECON-02**: For each of CA/TX/NY/FL, the published ACFR Governmental Funds *Statement of Revenues, Expenditures and Changes in Fund Balances* (GENERAL FUND column, GAAP basis) is located, the cleanly `pdftotext -table`-extractable FY depth is determined, and a durable source URL is recorded (TLS quirks noted where applicable). *(Phase 98 — all 4 located + bookend tie-confirmed; windows + URLs + gap log in 98-ACFR-SOURCES.md.)*
-- [ ] **RECON-03**: Each upgraded state's ACFR rows **replace** its NASBO operating rows (one basis per state-FY), idempotently and never-overwriting; un-upgraded NASBO states remain unchanged on `scripts/loadStateGF.mjs`.
+- [x] **RECON-03**: Each upgraded state's ACFR rows **replace** its NASBO operating rows (one basis per state-FY), idempotently and never-overwriting; un-upgraded NASBO states remain unchanged on `scripts/loadStateGF.mjs`. *(Phase 99 — CA+TX: in-place replace via treasury_sync_budget_tree on the (muni,fy,'operating') key; idempotent re-run = 0 net-new; loaders state-scoped so other states untouched. Phase 100 applies the same to NY/FL.)*
 
 ### State ACFR Upgrades
 
-- [ ] **ACFR-01**: User can see **California's** GF revenue-by-source and GAAP spending-by-function on the CA state node (ACFR-sourced, GAAP basis-labelled), as deep as the ACFR cleanly extracts.
-- [ ] **ACFR-02**: User can see **Texas's** GF revenue-by-source and GAAP spending-by-function on the TX state node (ACFR-sourced, GAAP basis-labelled), as deep as the ACFR cleanly extracts.
+- [x] **ACFR-01**: User can see **California's** GF revenue-by-source and GAAP spending-by-function on the CA state node (ACFR-sourced, GAAP basis-labelled), as deep as the ACFR cleanly extracts. *(Phase 99 — CA FY2020–2025 loaded: 6 operating + 6 revenue, budget_categories populated, totals tie to ACFR GF column, GAAP-labelled, sco.ca.gov-sourced; stale v1.7 data_sources deleted.)*
+- [x] **ACFR-02**: User can see **Texas's** GF revenue-by-source and GAAP spending-by-function on the TX state node (ACFR-sourced, GAAP basis-labelled), as deep as the ACFR cleanly extracts. *(Phase 99 — TX FY2015–2024 loaded (incl. FY2016 via alt URL): 10 operating + 10 revenue, "General Revenue Fund" honestly labelled (~3× NASBO), totals tie, GAAP-sourced; stale data_sources deleted.)*
 - [ ] **ACFR-03**: User can see **New York's** GF revenue-by-source and GAAP spending-by-function on the NY state node (ACFR-sourced, GAAP basis-labelled), as deep as the ACFR cleanly extracts.
 - [ ] **ACFR-04**: User can see **Florida's** GF revenue-by-source and GAAP spending-by-function on the FL state node (ACFR-sourced, GAAP basis-labelled), as deep as the ACFR cleanly extracts.
-- [ ] **ACFR-05**: Negative GF investment-income (or any negative category) years on the upgraded states render honestly via the P2 clamp (clamped to 0 with the signed magnitude in the label, parent total preserved).
+- [~] **ACFR-05**: Negative GF investment-income (or any negative category) years on the upgraded states render honestly via the P2 clamp (clamped to 0 with the signed magnitude in the label, parent total preserved). *(Phase 99 — verified on CA+TX: TX revenue FY2022 investment income −$122,684K clamped to 0 with signed magnitude in label, control total preserved; CA had no negatives. NY/FL in Phase 100.)*
 
 ### Revenue View / UX
 
@@ -66,12 +66,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | RECON-01 | Phase 98 | Done |
 | RECON-02 | Phase 98 | Done |
-| RECON-03 | Phase 99 | Pending |
-| ACFR-01 | Phase 99 | Pending |
-| ACFR-02 | Phase 99 | Pending |
+| RECON-03 | Phase 99 | Done |
+| ACFR-01 | Phase 99 | Done |
+| ACFR-02 | Phase 99 | Done |
 | ACFR-03 | Phase 100 | Pending |
 | ACFR-04 | Phase 100 | Pending |
-| ACFR-05 | Phase 99, 100 | Pending |
+| ACFR-05 | Phase 99, 100 | Partial (CA/TX done) |
 | REVUX-01 | Phase 101 | Pending |
 | REVUX-02 | Phase 101 | Pending |
 | VER-01 | Phase 102 | Pending |
