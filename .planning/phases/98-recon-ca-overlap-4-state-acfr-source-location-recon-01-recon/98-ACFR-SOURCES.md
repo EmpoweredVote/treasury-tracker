@@ -33,14 +33,30 @@
 3. **`-table` is mandatory; `-layout` misaligns.** Confirmed on CA (`-layout` floated revenue values up one row; `-table` paired them correctly and the total tied). This is the D-07 cleanup lever — `-table` IS the clean read for these statements.
 4. **Access is clean.** All four downloaded over plain `curl` (HTTP 200, real PDFs, 300–382 pp, 10–21 MB). No `--insecure`/browser-fallback needed for the latest FY. (Older archived years still TBD in the backfill.)
 
-## Per-state clean FY window + gap log
+## Per-state clean FY window + gap log (bookend-confirmed)
 
-_Pending the full-window backfill (D-06)._ Latest FY confirmed clean for all four (above). Deep-history extraction (as-deep-as-clean, per-state independent, no NASBO floor — CONTEXT D-01/02/03) is the remaining bulk.
+**Approach (Chris, 2026-06-29):** bookend per state — tie-confirm the OLDEST + LATEST cleanly-available FY now (pins the window at both ends + proves older PDFs still `-table`-extract), record the per-year URL, and let **Phase 99 extract the in-between years as it loads**. Windows are per-state independent, no NASBO floor (CONTEXT D-01/02/03).
+
+| State | Confirmed clean window | # FYs | Old-end tie | Latest-end tie | Per-year URL |
+|-------|------------------------|-------|-------------|----------------|--------------|
+| **CA** | **FY2020 – FY2025** | 6 | FY2020 GF Total rev **$155,923,876K** ✅ | FY2025 **$221,591,201K** ✅ exact | `…/ACFR/acfr{NN}web.pdf`, NN=20…25 |
+| **TX** | **FY2015 – FY2024** | 10 (–FY2016) | FY2015 GR Fund Total rev **$95,574,830K** ✅ | FY2024 **$161,416,562K** ✅ | `…/comprehensive-annual-financial/{YYYY}/96-471.pdf` |
+| **NY** | **FY2015 – FY2024** | 10 | FY2015 GF personal income **$30,380M** ✅ (stmt clean) | FY2024 GF Total rev **$93,894M** ✅ | FY≥2022 `annual-comprehensive-financial-report-{YYYY}.pdf`; FY≤2021 `comprehensive-annual-financial-report-{YYYY}.pdf` |
+| **FL** | **FY2022 – FY2024** | 3 | FY2022 GF Total rev **$57,241,428K** ✅ | FY2024 **$59,810,603K** ✅ | `…/cafr/fye-{YYYY}-state-of-florida-annual-comprehensive-financial-report.pdf` |
+
+### Gap log (dropped / needs-cleanup FYs)
+
+| State | FY | Issue | Disposition (light cleanup — D-07) |
+|-------|----|-------|------------------------------------|
+| TX | 2016 | `96-471.pdf` → HTTP 404 (the `96-471` file-id wasn't used that year) | Phase 99: locate FY2016's alternate ACFR file-id on the same archive page; not a data problem |
+| CA | ≤2019 | `acfr{NN}web.pdf` / `cafr{NN}web.pdf` for FY≤2019 return an **11,561-byte HTML soft-404** (not a PDF) at the standard ARD path | Deeper CA history exists only behind the SCO ARD archive page (no clean predictable URL). FY2020–2025 is the clean window; going deeper is an optional Phase-99/follow-up extension, not blocking. |
+| FL | ≤2021 | `fye-{YYYY}-…` naming returns 404 for FY≤2021 (the durable naming starts FY2022) | Older FL ACFRs need the `myfloridacfo.com` FL-ACFR archive page (different per-year naming). FY2022–2024 is the clean window; deeper = optional Phase-99 extension. |
+| NY | ≤2014 | not probed (FY2015 is the bookend old-end) | NY almost certainly goes deeper (predictable `comprehensive-annual-financial-report-{YYYY}.pdf` naming); Phase 99 can extend below FY2015 if desired. |
+
+**Soft-404 caution for Phase 99:** the CA SCO server returns HTTP **200 with an HTML body** for missing files — filter downloads by `Content-Type: application/pdf` (or size > ~1 MB), never by HTTP status alone. (TX/FL return honest 404s.)
 
 ---
 
-## ⏸ CHECKPOINT — full-window backfill pacing (plan 98-02 is `autonomous: false`)
+## Status: 98-02 COMPLETE (bookend)
 
-The two scariest unknowns are now retired: **ACFR access works for all 4** and **`-table` extraction is clean + tie-confirmed**. CA's overlap question (98-01) also resolved to a non-issue. What remains in 98-02 is the **full-window pre-extract** (D-06): locate + download + `-table`-extract + tie-check **every cleanly-extractable prior FY** for all four states — potentially ~40–60 more PDF downloads (CA history alone runs to `acfr20web.pdf` and earlier `cafr##web.pdf`; TX to ~FY2015; NY/FL similar). This is mechanical but large.
-
-This is the right point to confirm depth/pacing with Chris before the marathon (see the assistant message).
+RECON-02 satisfied: all four ACFR Governmental-Funds GF statements located (correct statement, General/General-Revenue column, GAAP), durable per-year URL recorded, `-table` extraction tie-confirmed at **both** ends of each state's window, gap log written, access quirks noted. Per-FY in-between extraction is deferred to Phase 99's load (bookend decision). $0 spend (pdftotext only).
