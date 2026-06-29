@@ -81,7 +81,7 @@ Plans:
 - [x] 96-04-PLAN.md — Batch B (IL IN KS KY LA MA MD ME MI MO MS MT) FY2023+FY2024; MI Sep-30 FY-end
 
 **Wave 3**
-- [ ] 96-05-PLAN.md — Batch C (NC ND NE NH NJ NM NV NY OK OR PA RI) FY2023+FY2024; NY Mar-31 FY-end
+- [x] 96-05-PLAN.md — Batch C (NC ND NE NH NJ NM NV NY OK OR PA RI) FY2023+FY2024; NY Mar-31 FY-end
 
 **Wave 4**
 - [ ] 96-06-PLAN.md — Batch D (SC SD TN TX UT VT WA WI WV WY) + GA FY2024; TX Aug-31 FY-end; full 94-state-year dry-run
