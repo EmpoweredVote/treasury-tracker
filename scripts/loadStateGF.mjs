@@ -89,14 +89,17 @@ const STATES = {
           { name: 'Elementary & Secondary Education', total: 11_463_000_000 },
           { name: 'All Other',                         total:  6_611_000_000 },
           { name: 'Higher Education',                  total:  3_903_000_000 },
-          { name: 'Medicaid',                          total:  3_398_000_000 },
+          { name: 'Medicaid',                          total:  3_390_000_000 },
           { name: 'Transportation',                    total:  2_011_000_000 },
           { name: 'Corrections',                       total:  1_888_000_000 },
           { name: 'Public Assistance',                 total:          0       },
         ],
       },
       // GA FY2024 — from 2025 SER (6-function taxonomy; Public Assistance merged into All Other).
-      // GA FY2023 above (2024 SER, 7-function) is left byte-unchanged per D-96-02/RESEARCH §GA FY2024 extension.
+      // GA FY2023 above is sourced+stamped to the 2025 SER. Phase 97 fix F-97-01 (2026-06-29):
+      // Medicaid corrected 3,398 (stale 2024-SER value) → 3,390 (2025 SER, the stamped source) so the
+      // 7 categories sum to controlTotalGF 29,266 (was 29,274; +$8M children-over-parent). All Other
+      // (6,611) was already the 2025 residual.
       2024: {
         confidence: 'actual',
         controlTotalGF: 34_594_000_000,  // Table 1 GF FY2024
