@@ -84,7 +84,7 @@ Plans:
 - [x] 96-05-PLAN.md — Batch C (NC ND NE NH NJ NM NV NY OK OR PA RI) FY2023+FY2024; NY Mar-31 FY-end
 
 **Wave 4**
-- [ ] 96-06-PLAN.md — Batch D (SC SD TN TX UT VT WA WI WV WY) + GA FY2024; TX Aug-31 FY-end; full 94-state-year dry-run
+- [x] 96-06-PLAN.md — Batch D (SC SD TN TX UT VT WA WI WV WY) + GA FY2024; TX Aug-31 FY-end; full 94-state-year dry-run
 
 **Wave 5** *(blocked on 96-02 + 96-03..06 — production write + verify)*
 - [ ] 96-07-PLAN.md — Run cleanup live + full-cohort live load + DB-probe verify (0-NULL, 0 revenue rows, FY-ends) + load log
