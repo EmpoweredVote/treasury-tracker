@@ -21,11 +21,14 @@
  *   P4: NEVER treasury_sync_city_budget; NEVER write budgets.data_source_id.
  *   P6: Idempotent — second run finds 0 matching rows, deletes 0.
  *
- * Excluded from COHORT (already on real actuals — DO NOT TOUCH):
+ * Excluded from COHORT (already fully on real actuals — DO NOT TOUCH):
  *   MN — ACFR GAAP actuals FY2008–2025 (Phase 95)
  *   OH — ACFR GAAP actuals FY2020–2025 (Phase 95)
  *   VA — ACFR GAAP actuals FY2022–2025 (Phase 95)
- *   GA — NASBO FY2023 actual (Phase 94 pilot); FY2024 extension in Phase 96 Plan 06
+ * GA is now INCLUDED in COHORT (2026-06-28): Phase 94 loaded only GA operating FY2023 and
+ *   never cleaned GA's unsourced revenue + out-of-window operating estimates. Including GA
+ *   here removes those; the FY-IN-(2022,2025,2026) operating predicate keeps GA's real
+ *   FY2023 (Phase 94) + FY2024 (Phase 96 Plan 06 load).
  *
  * Safety gates:
  *   --dry-run   : print per-state summary of rows that WOULD be deleted; EXIT without writing
@@ -63,10 +66,13 @@ loadEnv();
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-// ── The 46-State Cohort ────────────────────────────────────────────────────────────────
+// ── The Cohort (46 states + Georgia = 47) ───────────────────────────────────────────────
 // These are the ONLY municipality_id values this script may touch.
-// MN / OH / VA / GA are EXCLUDED (they carry real sourced actuals).
-// Source: 96-RESEARCH.md §"The 46-State Cohort" (verified live API query 2026-06-28).
+// MN / OH / VA are EXCLUDED (full ACFR GAAP actuals, Phase 95 — do NOT touch).
+// GA is INCLUDED (added 2026-06-28, Chris-approved): Phase 94 loaded GA operating FY2023 only
+//   and left GA's unsourced revenue + out-of-window operating estimates displayed. The
+//   operating delete predicate (FY IN 2022/2025/2026) preserves GA's real FY2023 + FY2024.
+// Source: 96-RESEARCH.md §"The 46-State Cohort" (verified live API query 2026-06-28) + GA.
 const COHORT = [
   'b268c415-0058-4fea-8ba1-24f49fb434b4', // AK — Alaska
   'bc953061-98de-43ad-878a-c6564bf75dbc', // AL — Alabama
@@ -114,6 +120,7 @@ const COHORT = [
   '15fe5240-19d9-4fef-b785-d624b0a39a2a', // WI — Wisconsin
   'e21923d7-ad99-4711-b765-255b9807c059', // WV — West Virginia
   '4009951b-8a23-457e-9591-1597356dfe34', // WY — Wyoming
+  '6eb7dd4a-4dcf-4dcc-898f-45af9a3e20c3', // GA — Georgia (added 2026-06-28, Chris-approved: Phase 94 loaded GA operating FY2023 only and never cleaned GA's unsourced revenue + out-of-window operating estimates; the FY-IN-(2022,2025,2026) operating predicate preserves GA's real FY2023/FY2024)
 ];
 
 // Abbr map for readable output (keyed by municipality_id)
@@ -164,6 +171,7 @@ const COHORT_ABBR = {
   '15fe5240-19d9-4fef-b785-d624b0a39a2a': 'WI',
   'e21923d7-ad99-4711-b765-255b9807c059': 'WV',
   '4009951b-8a23-457e-9591-1597356dfe34': 'WY',
+  '6eb7dd4a-4dcf-4dcc-898f-45af9a3e20c3': 'GA',
 };
 
 // Out-of-window operating FY years to delete (not written by NASBO FY2023+FY2024 load)
