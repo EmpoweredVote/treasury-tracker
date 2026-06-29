@@ -7,11 +7,21 @@
  *   per-state ACFR upgrades for high-traffic states later.
  *
  * Basis: NASBO State Expenditure Report (SER) reports each state's GENERAL FUND
- *   spending across 7 functional categories by fund source (the "General Fund" column
+ *   spending across functional categories by fund source (the "General Fund" column
  *   of each program-area table). This is a *budgetary* General Fund — close to, but
  *   not identical to, ACFR GAAP General Fund (MN NASBO GF FY2023 $27.2B vs MN ACFR
  *   $26.6B ≈ 2%). Mixed basis is accepted ONLY because every node self-declares its
  *   basis + source (94-01-POLICY.md P3). data_source carries "budgetary basis".
+ *
+ * 2025 SER taxonomy (6-function — cohort entries use this structure):
+ *   Elementary & Secondary Education, Higher Education, Medicaid, Corrections,
+ *   Transportation, All Other.
+ *   NOTE: Starting with the 2025 SER, Public Assistance (TANF/cash assistance) was
+ *   folded into "All Other" and no longer appears as a standalone chapter (NASBO 2025
+ *   SER p.490). All Phase 96 cohort state entries use the 6-function structure; no
+ *   Public Assistance line. Checksums still close to Table 1 GF exactly (verified).
+ *   Georgia FY2023 (loaded from the 2024 SER) retains the original 7-function structure
+ *   with a standalone Public Assistance = $0 — do NOT modify that existing row.
  *
  * Scope of THIS loader: operating (spending-by-function) only. NASBO has NO per-state
  *   revenue-by-source table (revenue-by-source is national-aggregate only in the Fiscal
@@ -25,7 +35,7 @@
  *
  * Data provenance: every figure below is the GENERAL FUND column transcribed from the
  *   NASBO SER per-program-area tables, each value checksum-verified to its row Total, and
- *   the 7-function sum cross-checked to NASBO Table 1 (Total State Expenditures, GF column)
+ *   the function-sum cross-checked to NASBO Table 1 (Total State Expenditures, GF column)
  *   within rounding. No estimates.
  *
  * Usage:
@@ -51,14 +61,23 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SE
 // ── NASBO edition provenance (the resolving source_url + edition). source_date = the
 //    state's fiscal-year-end the actual figures represent (per 94-01-POLICY P4). ────────
 const NASBO_SER = {
-  url: 'https://higherlogicdownload.s3.amazonaws.com/NASBO/9d2d2db1-c943-4f1b-b750-0fca152d64c2/UploadedImages/SER%20Archive/2024_SER/2024_State_Expenditure_Report_S.pdf',
-  edition: '2024 State Expenditure Report (actual FY2022, FY2023)',
+  url: 'https://higherlogicdownload.s3.amazonaws.com/NASBO/9d2d2db1-c943-4f1b-b750-0fca152d64c2/UploadedImages/SER%20Archive/2025_SER/2025_NASBO_State_Expenditure_Report_S.pdf',
+  edition: '2025 State Expenditure Report (actual FY2023, FY2024)',
 };
-const FY_END_MMDD = { GA: '06-30' }; // state fiscal-year end (most states 06-30)
+const FY_END_MMDD = {
+  GA: '06-30',  // Jun 30 (existing)
+  AL: '09-30',  // Oct 1 → Sep 30 (verified: 2025 SER p.1)
+  MI: '09-30',  // Oct 1 → Sep 30 (verified: 2025 SER p.1)
+  TX: '08-31',  // Sep 1 → Aug 31 (verified: 2025 SER p.1)
+  NY: '03-31',  // Apr 1 → Mar 31 (verified: 2025 SER p.1)
+  // all others: '06-30' (June 30 default — see sourceDate() fallback)
+};
 
 // ── Source data: NASBO SER General Fund expenditures by function ($, ACTUAL years only).
 //    controlTotalGF = NASBO Table 1 (Total State Expenditures) General Fund column — the
-//    independent control the 7 functions must tie to (cross-check, P-honesty). ──────────
+//    independent control the function-sum must tie to (cross-check, P-honesty).
+//    2025 SER cohort entries use the 6-function taxonomy (no standalone Public Assistance).
+//    GA FY2023 (2024 SER) uses the original 7-function taxonomy — byte-unchanged. ──────
 const STATES = {
   GA: {
     name: 'Georgia', abbr: 'GA', population: 11_180_878,
