@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.10
 milestone_name: State General Fund Sourcing
-status: completed
-stopped_at: Phase 97 context gathered
-last_updated: "2026-06-29T15:09:35.910Z"
-last_activity: 2026-06-29 -- Phase 97 marked complete
+status: Awaiting next milestone
+last_updated: "2026-06-29T15:25:03.645Z"
+last_activity: 2026-06-29 — Milestone v2.10 completed and archived
 progress:
-  total_phases: 4
+  total_phases: 30
   completed_phases: 4
   total_plans: 16
   completed_plans: 16
-  percent: 100
+  percent: 13
 ---
 
 # State
@@ -25,17 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-28 — v2.10 State General Fund Sourc
 
 ## Current Position
 
-Phase: 97 — COMPLETE
-Plan: 1 of 3
-Status: Phase 97 complete
-Last activity: 2026-06-29 -- Phase 97 marked complete
-
-**Phase 94 decisions carried forward (binding on 95/96/97):**
-
-- NASBO nodes are OPERATING-only (spending-by-function, 7 categories); NASBO has no per-state revenue-by-source → revenue-by-source defers to the ACFR upgrade.
-- Mixed basis accepted ONLY with a mandatory per-node basis label (data_source carries "budgetary basis" vs "GAAP"); MN stays ACFR (not re-done under NASBO).
-- NASBO figures require visual read + dual checksum (row GF+Fed+Other+Bonds=Total; 7-function sum=Table 1 GF); text extraction misaligns. Phase 96's bulk parser must enforce these checksums.
-- Georgia FY2023 already loaded (proof). FY2022 (also actual in the 2024 SER) is trivially addable.
+Phase: Milestone v2.10 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-29 — Milestone v2.10 completed and archived
 
 ## Phase Overview — v2.10 State General Fund Sourcing
 
@@ -331,6 +323,20 @@ Open-artifact audit at v2.7 close surfaced 6 items, all non-blocking and acknowl
 
 **v2.7 follow-ups (from Phases 80/83 — documented, not fixed):** 6 localities absent in ALL published XLSX years (cities Colonial Heights/Emporia/Hopewell/Norton; counties Lee/Warren — multi-year-overdue audits) + Covington/Alleghany null population (FY2024 school-consolidation footnote) — picked up idempotently on a future re-run; 3 towns absent from all XLSX years (Big Stone Gap, Clifton Forge, Vinton).
 
+### Acknowledged at v2.10 close (2026-06-29)
+
+Open-artifact audit at v2.10 close surfaced 5 items, all non-blocking and acknowledged (deferred). None are v2.10 blockers — Phase 97 verified the whole milestone end-to-end (SGFS-05 cohort source-chain audit + "Representative 7" reconciliation + Chris UAT 21/21 all-pass); all 5 SGFS requirements Complete:
+
+| Category | Item | Status |
+|----------|------|--------|
+| uat_gap | Phase 93 `93-UAT-CHECKLIST.md` | passed — 0 open scenarios (v2.9, already shipped) |
+| uat_gap | Phase 97 `97-UAT-CHECKLIST.md` | passed — 0 open scenarios; status:passed frontmatter added at close (Chris signed off 21/21 2026-06-29) |
+| quick_task | 001-create-treasury-tracker-entries-for-ever | orphaned (file missing) — pre-v2.0 leftover, acknowledged at every close since v2.0 |
+| quick_task | 002-add-longview-tx-revenue | orphaned (file missing) — pre-v2.0 Longview TX effort, unrelated to v2.10 |
+| quick_task | 003-longview-operating-budget | orphaned (file missing) — pre-v2.0 Longview TX effort, unrelated to v2.10 |
+
+**v2.10 follow-ups (from Phase 97 — documented, not fixed):** cohort revenue-by-source (NASBO has none per-state → future per-state ACFR upgrades for high-traffic states, the OH/VA path); MN FY1997–2007 history + the MN FY2008 operating $8.79M categorization gap (0.055%, needs FY2008 ACFR re-extraction); minor frontend `?dataset=revenue` URL robustness on operating-only nodes (normal navigation unaffected).
+
 ### Acknowledged at v2.2 close (2026-06-16)
 
 Open-artifact audit at v2.2 close surfaced 4 items, all non-blocking and acknowledged (re-deferred). None are v2.2 blockers — all phases 52–57 have VERIFICATION files and the milestone audit PASSED 16/16:
@@ -369,4 +375,4 @@ Open-artifact audit at milestone close surfaced 5 stale/orphaned items, acknowle
 
 ## Operator Next Steps
 
-- Plan the first v2.9 phase: `/gsd-discuss-phase 89` (or `/gsd-plan-phase 89` to skip discussion)
+- Start the next milestone with /gsd-new-milestone

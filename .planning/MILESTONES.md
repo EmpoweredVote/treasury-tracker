@@ -1,5 +1,17 @@
 # Milestones — Treasury Tracker / Empowered Vote Financials
 
+## v2.10 State General Fund Sourcing (Shipped: 2026-06-29)
+
+**Phases completed:** 4 phases (94–97), 16 plans
+
+**Delivered:** Replaced the all-50-states unsourced "best guess" estimate state-node General Fund data with real, sourced actuals on the Chris-locked **hybrid** model: **MN/OH/VA** on State **ACFR GAAP** (operating + revenue), the other **47 states** (46 cohort + Georgia) on **NASBO 2025 SER** General Fund operating actuals (FY2023+FY2024). Every displayed figure is durably sourced + basis-labelled (GAAP vs budgetary); 375 unsourced estimate rows deleted (revenue-by-source deferred to future per-state ACFR upgrades — nothing unsourced displayed). Reusable loader `scripts/loadStateGF.mjs` + locked cross-cutting policy (`94-01-POLICY.md`) proven on Georgia FY2023; MN extended FY2008–2025; OH/VA falsely-sourced rows replaced. Phase 97 verified the whole 50-node cohort real+sourced+residue-free (0 unsourced/null/out-of-window/dup/orphan/garbage), reconciled the "Representative 7" independently from source documents, caught + fixed **F-97-01** (GA FY2023 Medicaid: stale 2024-SER value → 2025 SER, children now sum to parent), and earned **Chris's live UAT sign-off (21/21, 2026-06-29)**. Negative-investment-income years (MN/OH/VA FY2022) handled honestly (clamped to 0 with explanatory labels, parent totals preserved). Executed inline ($0 — no research/planner/executor subagents).
+
+**Archive:** [v2.10-ROADMAP.md](milestones/v2.10-ROADMAP.md) | [v2.10-REQUIREMENTS.md](milestones/v2.10-REQUIREMENTS.md)
+
+**Deferred at close (documented, not silent):** cohort revenue-by-source (NASBO has none per-state → future per-state ACFR upgrades); per-state ACFR operating upgrades for high-traffic states; MN FY1997–2007 history + the MN FY2008 operating $8.79M categorization gap (0.055%); minor `?dataset=revenue` URL robustness on operating-only nodes; 3 stale Longview TX quick-task dirs (unrelated, orphaned).
+
+---
+
 ## v2.9 Minnesota Local Government Expansion (Shipped: 2026-06-28)
 
 **Phases completed:** 5 phases (89–93), 13 plans
