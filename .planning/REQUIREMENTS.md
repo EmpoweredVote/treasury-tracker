@@ -14,13 +14,13 @@
 
 ### State ACFR Deepening (the 4 pilots)
 
-- [ ] **DEEP-01**: User can see deeper FY history on the four pilot nodes — CA/TX/NY/FL ACFR windows extended backward as deep as durable URLs allow (FL pre-FY2022, CA pre-FY2020, NY pre-FY2015, TX FY2016), each added FY tying to its ACFR GF column total, GAAP basis-labelled, idempotent never-overwrite.
+- [x] **DEEP-01**: User can see deeper FY history on the four pilot nodes — CA/TX/NY/FL ACFR windows extended backward as deep as durable URLs allow (FL pre-FY2022, CA pre-FY2020, NY pre-FY2015, TX FY2016), each added FY tying to its ACFR GF column total, GAAP basis-labelled, idempotent never-overwrite.
 
 ### State ACFR Upgrades (PA + IL)
 
 - [ ] **ACFR-06**: User can see **Pennsylvania's** GF revenue-by-source and GAAP spending-by-function on the PA state node (ACFR-sourced, GAAP basis-labelled, NASBO operating replaced idempotently), as deep as the ACFR cleanly extracts.
 - [ ] **ACFR-07**: User can see **Illinois's** GF revenue-by-source and GAAP spending-by-function on the IL state node (ACFR-sourced, GAAP basis-labelled, NASBO operating replaced idempotently), as deep as the ACFR cleanly extracts.
-- [ ] **ACFR-08**: Negative GF investment-income (or any negative category) years on the deepened pilots and on PA/IL render honestly via the P2 clamp (clamped to 0 with the signed magnitude in the label, parent total preserved).
+- [x] **ACFR-08**: Negative GF investment-income (or any negative category) years on the deepened pilots and on PA/IL render honestly via the P2 clamp (clamped to 0 with the signed magnitude in the label, parent total preserved).
 
 ### Verification
 
@@ -54,10 +54,10 @@ Deferred to a follow-up milestone. Tracked but not in this roadmap.
 |--------|-------|--------|
 | RECON-04 | Phase 103 | Complete |
 | RECON-05 | Phase 104, 105 | Complete |
-| DEEP-01 | Phase 104 | Pending |
+| DEEP-01 | Phase 104 | Complete |
 | ACFR-06 | Phase 105 | Pending |
 | ACFR-07 | Phase 105 | Pending |
-| ACFR-08 | Phase 104, 105 | Pending |
+| ACFR-08 | Phase 104, 105 | Complete |
 | VER-03 | Phase 106 | Pending |
 | VER-04 | Phase 106 | Pending |
 

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.12
 milestone_name: State ACFR Long Tail
 status: executing
-last_updated: "2026-06-30T15:29:10.758Z"
-last_activity: 2026-06-30 -- Phase 104 execution started
+last_updated: "2026-06-30T16:09:35.977Z"
+last_activity: 2026-06-30
 progress:
   total_phases: 30
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 7
-  completed_plans: 3
-  percent: 3
+  completed_plans: 7
+  percent: 7
 ---
 
 # State
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-06-29 — v2.11 State ACFR Revenue-by-So
 ## Current Position
 
 Phase: 104 (deepen-the-4-pilots-deep-01-recon-05-acfr-08) — EXECUTING
-Plan: 1 of 4
-Status: Executing Phase 104
-Last activity: 2026-06-30 -- Phase 104 execution started
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-06-30
 
 ## Phase Overview — v2.11 State ACFR Revenue-by-Source Upgrades (Pilot)
 
@@ -168,9 +168,9 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-30T15:27:29.707Z
+Last session: 2026-06-30T16:09:35.966Z
 Stopped at: Phase 104 planned (4 plans)
-Resume file: .planning/phases/104-deepen-the-4-pilots-deep-01-recon-05-acfr-08/104-01-PLAN.md
+Resume file: None
 
 ### Next Session
 
@@ -220,6 +220,7 @@ Source recon done: MN OSA City Finances Report XLSX confirmed icicle-grade (`cir
 | Phase 101 P01 | 8min | 3 tasks | 2 files |
 | Phase 102-verification-source-chain-audit-uat-ver-01-ver-02 P01 | 45min | 2 tasks | 1 files |
 | Phase 102 P02 | 30 | 3 tasks | 2 files |
+| Phase 104 P04 | 35min | 4 tasks | 1 files |
 
 ## Decisions
 
