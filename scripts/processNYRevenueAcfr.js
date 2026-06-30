@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * New York General Fund Revenue (by source) Loader — FY2015-FY2024 ACTUAL
+ * New York General Fund Revenue (by source) Loader — FY2003-FY2024 ACTUAL
  * Source: State of New York Annual Comprehensive Financial Report (ACFR), Governmental Funds
  *   Statement of Revenues, Expenditures and Changes in Fund Balances, GENERAL column
  *   (GAAP basis, Amounts in MILLIONS). Published by the Office of the State Comptroller (OSC).
@@ -22,7 +22,11 @@
  *   inside positive "Miscellaneous"), but the clamp is wired and fires if a year shows one.
  *
  * Extraction: pdftotext -table on local PDF copies in _acfr-tmp/ny/ (NOT -layout). The
- *   GENERAL column is the 1st numeric column. All 10 years tie to 0 diff vs. Total revenues.
+ *   GENERAL column is the 1st numeric column. All 22 years tie to 0 diff vs. Total revenues.
+ *
+ * Phase 104 deepening (DEEP-01/RECON-05/ACFR-08): added FY2003-FY2014 (12 years). All 12
+ *   added years tie to 0 diff. FY2003 bookend confirmed: Total revenues 29,250M = $29,250,000,000.
+ *   No negative revenue categories in any added year (FY2003-FY2014 all positive).
  *
  * Usage:
  *   node scripts/processNYRevenueAcfr.js [--dry-run] [--fy YYYY]
@@ -52,14 +56,108 @@ function nyUrl(fy) {
     : `${NY_BASE}/comprehensive-annual-financial-report-${fy}.pdf`;
 }
 const SOURCES = Object.fromEntries(
-  [2015,2016,2017,2018,2019,2020,2021,2022,2023,2024].map(fy => [fy, { url: nyUrl(fy), date: `${fy}-03-31` }])
+  [2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024].map(fy => [fy, { url: nyUrl(fy), date: `${fy}-03-31` }])
 );
 const dataSource = (fy) => `New York State ACFR — General Fund Revenue (FY${fy} actual, GAAP basis)`;
 
 // GF net revenues by source — NY ACFR, GENERAL column (raw MILLIONS; ×UNITS → dollars).
 // Verbatim ACFR source names (Taxes sub-lines prefixed). total = printed "Total revenues".
 // 0-diff verified. Zero-value lines (Public health/patient fees, Tobacco settlement) omitted.
+// FY2003-FY2014 added by Phase 104 deepening. FY2003 bookend: 29,250M = $29,250,000,000.
 const REVENUE = {
+  2003: { total: 29_250, confidence: 'actual', categories: [
+    { name: 'Taxes — Personal income',     total: 15_036 },
+    { name: 'Taxes — Consumption and use',  total:  6_874 },
+    { name: 'Taxes — Business',             total:  3_448 },
+    { name: 'Taxes — Other',                total:    743 },
+    { name: 'Miscellaneous',                total:  3_149 },
+  ]},
+  2004: { total: 32_489, confidence: 'actual', categories: [
+    { name: 'Taxes — Personal income',     total: 16_337 },
+    { name: 'Taxes — Consumption and use',  total:  7_869 },
+    { name: 'Taxes — Business',             total:  3_294 },
+    { name: 'Taxes — Other',                total:    691 },
+    { name: 'Federal grants',               total:    645 },
+    { name: 'Miscellaneous',                total:  3_653 },
+  ]},
+  2005: { total: 35_929, confidence: 'actual', categories: [
+    { name: 'Taxes — Personal income',     total: 18_429 },
+    { name: 'Taxes — Consumption and use',  total:  8_688 },
+    { name: 'Taxes — Business',             total:  3_972 },
+    { name: 'Taxes — Other',                total:  1_035 },
+    { name: 'Federal grants',               total:      2 },
+    { name: 'Miscellaneous',                total:  3_803 },
+  ]},
+  2006: { total: 41_091, confidence: 'actual', categories: [
+    { name: 'Taxes — Personal income',     total: 21_060 },
+    { name: 'Taxes — Consumption and use',  total:  8_454 },
+    { name: 'Taxes — Business',             total:  4_970 },
+    { name: 'Taxes — Other',                total:  1_028 },
+    { name: 'Miscellaneous',                total:  5_579 },
+  ]},
+  2007: { total: 44_259, confidence: 'actual', categories: [
+    { name: 'Taxes — Personal income',     total: 22_496 },
+    { name: 'Taxes — Consumption and use',  total:  8_131 },
+    { name: 'Taxes — Business',             total:  6_330 },
+    { name: 'Taxes — Other',                total:  1_011 },
+    { name: 'Federal grants',               total:     67 },
+    { name: 'Miscellaneous',                total:  6_224 },
+  ]},
+  2008: { total: 45_423, confidence: 'actual', categories: [
+    { name: 'Taxes — Personal income',     total: 23_948 },
+    { name: 'Taxes — Consumption and use',  total:  8_252 },
+    { name: 'Taxes — Business',             total:  5_950 },
+    { name: 'Taxes — Other',                total:  1_271 },
+    { name: 'Federal grants',               total:     52 },
+    { name: 'Miscellaneous',                total:  5_950 },
+  ]},
+  2009: { total: 40_228, confidence: 'actual', categories: [
+    { name: 'Taxes — Personal income',     total: 19_262 },
+    { name: 'Taxes — Consumption and use',  total:  8_183 },
+    { name: 'Taxes — Business',             total:  5_670 },
+    { name: 'Taxes — Other',                total:  1_088 },
+    { name: 'Federal grants',               total:     45 },
+    { name: 'Miscellaneous',                total:  5_980 },
+  ]},
+  2010: { total: 44_883, confidence: 'actual', categories: [
+    { name: 'Taxes — Personal income',     total: 22_330 },
+    { name: 'Taxes — Consumption and use',  total:  8_059 },
+    { name: 'Taxes — Business',             total:  5_490 },
+    { name: 'Taxes — Other',                total:    873 },
+    { name: 'Federal grants',               total:     71 },
+    { name: 'Miscellaneous',                total:  8_060 },
+  ]},
+  2011: { total: 47_069, confidence: 'actual', categories: [
+    { name: 'Taxes — Personal income',     total: 24_895 },
+    { name: 'Taxes — Consumption and use',  total:  8_578 },
+    { name: 'Taxes — Business',             total:  5_129 },
+    { name: 'Taxes — Other',                total:  1_268 },
+    { name: 'Federal grants',               total:     55 },
+    { name: 'Miscellaneous',                total:  7_144 },
+  ]},
+  2012: { total: 48_344, confidence: 'actual', categories: [
+    { name: 'Taxes — Personal income',     total: 25_024 },
+    { name: 'Taxes — Consumption and use',  total:  8_875 },
+    { name: 'Taxes — Business',             total:  5_644 },
+    { name: 'Taxes — Other',                total:  1_091 },
+    { name: 'Federal grants',               total:     60 },
+    { name: 'Miscellaneous',                total:  7_650 },
+  ]},
+  2013: { total: 50_798, confidence: 'actual', categories: [
+    { name: 'Taxes — Personal income',     total: 27_807 },
+    { name: 'Taxes — Consumption and use',  total:  8_795 },
+    { name: 'Taxes — Business',             total:  6_072 },
+    { name: 'Taxes — Other',                total:  1_021 },
+    { name: 'Federal grants',               total:     61 },
+    { name: 'Miscellaneous',                total:  7_042 },
+  ]},
+  2014: { total: 48_459, confidence: 'actual', categories: [
+    { name: 'Taxes — Personal income',     total: 26_811 },
+    { name: 'Taxes — Consumption and use',  total:  6_264 },
+    { name: 'Taxes — Business',             total:  6_200 },
+    { name: 'Taxes — Other',                total:  1_246 },
+    { name: 'Miscellaneous',                total:  7_938 },
+  ]},
   2015: { total: 55_139, confidence: 'actual', categories: [
     { name: 'Taxes — Personal income',     total: 30_380 },
     { name: 'Taxes — Consumption and use',  total:  6_362 },
@@ -159,7 +257,7 @@ function buildTree(fy) {
 async function main() {
   const { values: opts } = parseArgs({ options: { 'dry-run': { type: 'boolean', default: false }, fy: { type: 'string' } }, strict: false });
   const dryRun = opts['dry-run']; const targetFY = opts.fy ? parseInt(opts.fy, 10) : null;
-  const years = targetFY ? [targetFY] : [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024];
+  const years = targetFY ? [targetFY] : [2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024];
   console.log(`${STATE_NAME} GF Revenue Loader (ACTUAL — ACFR GAAP basis, MILLIONS×${UNITS.toLocaleString()})${dryRun ? ' (dry-run)' : ''}\nFiscal years: ${years.join(', ')}\n`);
   if (!SUPABASE_KEY && !dryRun) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit(2); }
   const supabase = dryRun ? null : createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -171,7 +269,7 @@ async function main() {
   }
   let ds;
   if (!dryRun) {
-    const srcPayload = { name: 'New York General Fund Revenue', api_type: 'pdf_download', dataset_type: 'revenue', dataset_id: 'ny-acfr-gf-revenue', base_url: 'https://www.osc.ny.gov/reports/finance', fiscal_years: [2015,2016,2017,2018,2019,2020,2021,2022,2023,2024], municipality_id: muniId };
+    const srcPayload = { name: 'New York General Fund Revenue', api_type: 'pdf_download', dataset_type: 'revenue', dataset_id: 'ny-acfr-gf-revenue', base_url: 'https://www.osc.ny.gov/reports/finance', fiscal_years: [2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024], municipality_id: muniId };
     const { data: existing } = await supabase.schema('treasury').from('data_sources').select('id').eq('dataset_id', srcPayload.dataset_id).maybeSingle();
     if (existing?.id) { const { data } = await supabase.schema('treasury').from('data_sources').update(srcPayload).eq('id', existing.id).select().single(); ds = data; console.log(`data_source updated: ${ds.id}`); }
     else { const { data, error } = await supabase.schema('treasury').from('data_sources').insert(srcPayload).select().single(); if (error) { console.error('insert failed:', error.message); process.exit(2); } ds = data; console.log(`data_source created: ${ds.id}`); }
