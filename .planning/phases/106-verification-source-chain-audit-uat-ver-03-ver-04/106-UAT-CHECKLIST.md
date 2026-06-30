@@ -2,7 +2,9 @@
 phase: 106-verification-source-chain-audit-uat-ver-03-ver-04
 plan: 03
 requirement: VER-04
-status: pending
+status: passed
+signed_off_by: Chris Cantrell
+signed_off_date: 2026-06-30
 production-confirmed: "2026-06-30 HTTP 200 at treasurytracker.empowered.vote"
 ---
 
@@ -291,14 +293,14 @@ INV-7). It must still render as operating-only with Money In disabled.
 
 | Anchor | State | FY | Type | RESULT |
 |--------|-------|----|------|--------|
-| 1 | PA | FY2025 | Recent FY — new ACFR node | |
-| 2 | PA | FY2016 | Deep floor — new ACFR node | |
-| 3 | IL | FY2025 | Recent FY — new ACFR node | |
-| 4 | IL | FY2022 | Negative-clamp year | |
-| 5 | NY | FY2003 | Deep floor — ×millions scaling | |
-| 6 | CA | FY2008 | Deep floor — Phase 104 deepening | |
-| 7 | FL | FY2021 | Negative-clamp year — Phase 104 deepening | |
-| 8 | GA | FY2024 | NASBO control — regression guard | |
+| 1 | PA | FY2025 | Recent FY — new ACFR node | PASS |
+| 2 | PA | FY2016 | Deep floor — new ACFR node | PASS |
+| 3 | IL | FY2025 | Recent FY — new ACFR node | PASS (data correct; a chart color/layout UX issue noted separately, fixed in deefa15) |
+| 4 | IL | FY2022 | Negative-clamp year | PASS |
+| 5 | NY | FY2003 | Deep floor — ×millions scaling | PASS |
+| 6 | CA | FY2008 | Deep floor — Phase 104 deepening | PASS |
+| 7 | FL | FY2021 | Negative-clamp year — Phase 104 deepening | PASS |
+| 8 | GA | FY2024 | NASBO control — regression guard | PASS |
 
 ---
 
@@ -306,13 +308,21 @@ INV-7). It must still render as operating-only with Money In disabled.
 
 After completing all 8 anchors:
 
-**Sign-off:** ___________________________
+**Sign-off:** Chris Cantrell
 
-**Date:** ___________________________
+**Date:** 2026-06-30
 
-**All-pass verdict:** [ YES — all 8 anchors PASS / NO — see failed anchors above ]
+**All-pass verdict:** YES — all 8 anchors PASS (data correct on every anchor; revenue-by-source, spending-by-function, basis labels, source chips, Money In, negative-clamp labels, NASBO control, and ×millions scaling all verified live).
 
-**VER-04 status:** [ SATISFIED / PENDING IN-PHASE FIX ]
+**VER-04 status:** SATISFIED
+
+**Note (not a data defect):** While exercising anchor 3 (IL), the reviewer flagged two pre-existing
+data-viz UX issues — adjacent top categories rendering near-identical colors, and a redundant single-root
+"…General Fund Budget · 100%" layer. These are presentation, not v2.12 data (every value verified correct).
+Fixed in commit `deefa15` (palette reorder + `hoistSingleRoot`); ships on the next frontend deploy. Per D-05,
+this was a UI improvement handled alongside, not a gating data defect. The malformed checklist deep-links
+(`?state=&fy=`) that redirected authenticated users were also corrected to the canonical `?entity=&year=`
+format (commit `e6e2a2c`).
 
 ---
 
