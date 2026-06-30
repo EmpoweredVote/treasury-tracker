@@ -16,9 +16,19 @@ requires:
 
 provides:
   - "50-node state cohort source-chain audit script (verify-phase102-cohort-audit.mjs) asserting 7 invariants, exit 0"
-  - "Full stale *-gf-* residue cohort deleted: 98 state data_sources removed (0-row guarded)"
+  - "Full stale *-gf-* residue cohort deleted: 98 + 47 = 145 state data_sources removed (0-row guarded)"
   - "cleanupStaleStateGFDataSources.mjs extended with --cohort mode for dynamic sweep"
-  - "All 7 invariants PASS across 200 state budget rows and 50 state nodes"
+  - "All 7 invariants PASS across 200 state budget rows and 50 state nodes (INV-2 un-scoped: genuine 0 residue, no nasbo exclusion)"
+
+# POST-EXECUTION CORRECTION (D-05, Chris-approved 2026-06-29):
+# The initial run KEPT the 47 *-gf-operating-nasbo metadata rows (treating them as "current
+# NASBO basis markers") and scoped them OUT of the INV-2 residue check — a divergence from D-05,
+# which named exactly those rows for deletion. Verified: all 200 state budget rows carry text-stamp
+# provenance (data_source/source_url/source_date) and 0 reference data_sources via FK, so the entire
+# state *-gf-* family (including nasbo) is decorative and the source chips render from the text stamp
+# (unaffected by these deletions). Per Chris's decision, the 47 *-gf-operating-nasbo rows were deleted
+# (guarded, 0 live refs) and INV-2's /nasbo/i exclusion was removed. The audit now proves genuine 0
+# residue across the full state *-gf-* family: 7/7 PASS, exit 0.
 
 affects:
   - 102-03-UAT
