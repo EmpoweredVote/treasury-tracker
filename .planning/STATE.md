@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.12
 milestone_name: State ACFR Long Tail
-status: completed
-stopped_at: Phase 104 planned (4 plans)
-last_updated: "2026-06-30T16:13:40.215Z"
-last_activity: 2026-06-30 -- Phase 104 marked complete
+status: executing
+last_updated: "2026-06-30T18:51:34.119Z"
+last_activity: 2026-06-30 -- Phase 105 planning complete
 progress:
-  total_phases: 4
+  total_phases: 30
   completed_phases: 2
-  total_plans: 7
+  total_plans: 10
   completed_plans: 7
-  percent: 50
+  percent: 7
 ---
 
 # State
@@ -27,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-06-29 — v2.11 State ACFR Revenue-by-So
 
 Phase: 104 — COMPLETE
 Plan: 2 of 4
-Status: Phase 104 complete
-Last activity: 2026-06-30 -- Phase 104 marked complete
+Status: Ready to execute
+Last activity: 2026-06-30 -- Phase 105 planning complete
 
 ## Phase Overview — v2.11 State ACFR Revenue-by-Source Upgrades (Pilot)
 

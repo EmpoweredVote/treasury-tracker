@@ -39,38 +39,55 @@
 **Critical path:** 103 → (104 ∥ 105) → 106. Phase 103 recon locates the deeper-history URLs + PA/IL sources before any load; 104 (deepen the 4 pilots) and 105 (PA+IL) are independent and can run in parallel after recon; 106 verifies + earns Chris's live sign-off (the Phase 98/102 mold).
 
 #### Phase 103: Recon — Deeper-History URLs + PA/IL ACFR Source Location (RECON-04, RECON-05)
+
 **Goal:** Before any load, locate the deeper-history ACFR URLs for each pilot below its current window AND locate the PA + IL ACFR Governmental Funds GF statements, so the deepening + new-state loads target the right years/columns with confirmed durable sources.
 **Requirements:** RECON-04, RECON-05
 **Success criteria:**
+
 1. For each pilot (CA/TX/NY/FL), the deeper-history ACFR URLs below its current window (FL pre-FY2022, CA pre-FY2020, NY pre-FY2015, TX FY2016) are probed; the cleanly `pdftotext -table`-extractable additional FY depth + durable per-year URLs are recorded, with a gap log for years that don't cleanly extract.
 2. PA + IL ACFR GF statements located (GENERAL FUND column, units, durable per-year URLs, extractable FY depth), bookend tie-confirmed via `pdftotext -table`.
 3. The loader-reuse + NASBO-replace plan is written per state (SOURCES-map extension for the 4 pilots; which loader/config shape fits PA + IL).
 
 #### Phase 104: Deepen the 4 Pilots (DEEP-01, RECON-05, ACFR-08)
+
 **Goal:** Extend the CA/TX/NY/FL ACFR windows backward as deep as durable URLs allow, reusing the existing loaders.
 **Requirements:** DEEP-01, RECON-05, ACFR-08
 **Success criteria:**
+
 1. Each pilot's window is extended backward (FL pre-FY2022, CA pre-FY2020, NY pre-FY2015, TX FY2016) with each added FY tying to its ACFR GF column total, GAAP basis-labelled.
 2. Idempotent never-overwrite — existing pilot rows, un-upgraded NASBO states, and PA/IL are untouched.
 3. Any negative-category year in the added years renders via the P2 clamp.
 
 #### Phase 105: PA + IL ACFR Upgrade (ACFR-06, ACFR-07, ACFR-08, RECON-05)
+
 **Goal:** Load PA + IL GF revenue-by-source + GAAP spending-by-function from their ACFRs, replacing their NASBO operating rows idempotently.
 **Requirements:** ACFR-06, ACFR-07, ACFR-08, RECON-05
 **Success criteria:**
+
 1. PA + IL state nodes show ACFR-sourced GF revenue-by-source + spending-by-function (GAAP basis-labelled), each FY tying to the ACFR GF column totals.
 2. NASBO operating rows replaced idempotently (never-overwrite); un-upgraded states unchanged; Money In auto-enables on PA/IL.
 3. Negative-category years render via the P2 clamp.
-**Plans:** 3 plans (wave 1: 105-01 PA loaders ∥ 105-02 IL loaders; wave 2: 105-03 live-load + verify)
-Plans:
+
+**Plans:** 3 plans (wave 1: 105-01 PA loaders ∥ 105-02 IL loaders; wave 2: 105-03 live-load + verify)Plans:
+**Wave 1**
+
 - [ ] 105-01-PLAN.md — Build PA ACFR loaders (processPAAcfr.js + processPARevenueAcfr.js), extract FY2016–FY2025, dry-run tie-verify
 - [ ] 105-02-PLAN.md — Build IL ACFR loaders (processILAcfr.js + processILRevenueAcfr.js, audited-only), extract FY2021–FY2025, dry-run tie-verify
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 105-03-PLAN.md — Live-load PA+IL (NASBO replaced in place), accept-relabel + P2 clamp + idempotency + Money-In + cohort-untouched DB verification
 
+**Cross-cutting constraints:**
+
+- validate() refuses to write (exit 2) on any FY whose category sum does not tie to the printed General Fund total
+
 #### Phase 106: Verification + Source-Chain Audit + UAT (VER-03, VER-04)
+
 **Goal:** Prove the deepened + new data is real, sourced, and residue-free across the whole cohort, then earn Chris's live sign-off.
 **Requirements:** VER-03, VER-04
 **Success criteria:**
+
 1. Each deepened pilot + PA + IL reconciled **independently from its own ACFR** (re-derived totals, not loader self-report) within an explained tolerance.
 2. Full 50-node cohort source-chain audit clean (0 NULL/fragile/residue/out-of-window/dup/orphan), every displayed row basis-labelled; un-upgraded NASBO states still pass.
 3. Live-app UAT across PA + IL + the deepened pilot windows (revenue-by-source + spending-by-function + basis label + source chip + Money In) with Chris sign-off.
@@ -118,38 +135,48 @@ Plans:
 **Critical path:** 89 → 90 → 91 → 92 → 93 (same mold as v2.5→v2.8).
 
 #### Phase 89: MN OSA Source + Loader (MNSRC-01, MNSRC-02)
+
 **Goal:** A reusable loader turns the MN OSA `Governmental Funds` sheet into sourced operating (expenditure-by-function) + revenue (revenue-by-source) two-level trees, for both cities and counties, with per-entity basis, per-FY manifests, and idempotency.
 **Success criteria:**
+
 1. Loader builds a 2-level revenue-by-source tree + 2-level expenditure-by-function tree with correct subtotal nodes, proven on a sample RCV city FY2023 (ties to the row's `Total Revenues` / `Total Expenditures`).
 2. County file URL pinned; county layout independently verified (header row/columns/vocabulary — the Ohio county-layout lesson) and a county FY2023 sample ties to its row totals.
 3. GAAP/Cash basis derived per-entity from `GAAPInd`; XLSX-era per-FY manifest enumerates ~2015–latest available.
 4. Idempotent never-overwrite guard in place; offline unit tests pass.
 
 #### Phase 90: City Loads (MNCITY-01, MNCITY-02)
+
 **Goal:** Load all ~853 Minnesota cities operating + revenue across the FY range, sourced, per-capita, idempotent.
 **Success criteria:**
+
 1. All ~853 cities loaded operating + revenue across the XLSX-era FY range; every row carries source metadata.
 2. Per-capita renders from the built-in `Population` column.
 3. GAAP/Cash basis recorded per-entity; cross-FY source-gap residual documented (no phantom municipalities).
 4. Idempotent re-run writes 0 rows.
 
 #### Phase 91: County Loads + Data Model & Linking (MNCO-01, MNLINK-01)
+
 **Goal:** Load all 87 county governments and establish the Minnesota state node + source-driven city→county linking.
 **Success criteria:**
+
 1. All 87 county governments loaded operating + revenue, per-capita, sourced.
 2. Minnesota state node created; cities linked to parent county via the source `ParentEntityName` column (link residual, if any, documented).
 3. US→Minnesota→county→city breadcrumb + Cities-in-County panel render in the live app (existing frontend, no rebuild).
 
 #### Phase 92: Enrichment Parity (MNENR-01)
+
 **Goal:** Author state-neutral, bleed-safe universal enrichment for the full MN vocabulary at $0.
 **Success criteria:**
+
 1. Explicit enrichment map covers 100% of the live MN city+county category vocabulary (loader aborts on any unmapped key — no silent fallback).
 2. Written via delete-then-insert (NULLS-DISTINCT-safe); `$`-leak + locality-name bleed guards pass.
 3. $0 API spend (inline-authored).
 
 #### Phase 93: Verification + Source-Chain Audit + UAT (MNVER-01, MNVER-02)
+
 **Goal:** Reconcile, audit, re-derive, and get Chris's live sign-off.
 **Success criteria:**
+
 1. An RCV anchor city + its parent county reconciled to published ACFRs on a basis-matched comparator (deltas explained).
 2. Full-cohort source-chain audit clean (0 NULL/fragile/residue across all loaded rows); independent workbook re-derivation of ≥5 entities = 0 mismatches.
 3. Two-level icicle drill-down confirmed rendering (the flat-source limitation that capped Ohio is resolved).
@@ -209,6 +236,7 @@ Plans:
 **UI hint:** no
 
 Success criteria:
+
 1. Latest GiveButter export loads and merges with existing webhook rows; dedup by `external_id` leaves zero duplicate transactions.
 2. Patreon recurring-donation CSV loads into the income model; re-importing the same file adds zero new rows (idempotent).
 3. Benevity workplace-giving CSV loads into the income model; re-importing the same file adds zero new rows (idempotent).
@@ -224,6 +252,7 @@ Success criteria:
 **Already done (pulled forward during Phase 74 session, 2026-06-20):** the bank EXPENSE side — `scripts/loadEVBank.js` loads every bank debit into the FY operating dataset (FY2026 = $1,745.65, source='bank'), idempotent + tested. EVDATA-04's expense half is satisfied; the balance half + EVDATA-05/06 remain.
 
 Success criteria:
+
 1. ~~Bank CSV debits load as expenses~~ (DONE in Phase 74 session) — PLUS: cash **balance** + **runway** surfaced (latest balance $1,706.77 as of 2026-06-17 already parsed by the loader).
 2. Reconciliation rule prevents double-counting: a platform payout deposited in the bank is not added on top of the platform donations that produced it (gross donations vs. net deposits).
 3. Off-platform / manual entries (checks, grants, in-kind) can be recorded and appear in the combined totals.
@@ -238,6 +267,7 @@ Success criteria:
 **UI hint:** yes
 
 Success criteria:
+
 1. The EV page shows income vs. expenses in plain language — where money came from (by source) and where it went.
 2. The EV page shows an expense breakdown by category that makes the all-volunteer / $0-staff-comp reality obvious.
 3. The EV page shows current funds on hand (balance) and runway at the current burn rate.
@@ -260,6 +290,7 @@ Success criteria:
 **UI hint:** no
 
 Success criteria:
+
 1. Combined displayed figures reconcile to the Beneficial State Bank balance within a documented, explained tolerance.
 2. Every displayed figure carries a source (platform export, bank statement, or manual-entry record).
 3. A live-app UAT covering the refreshed figures and the transparency view passes with Chris's sign-off. *(Spend graphic dropped — Phase 77 iceboxed.)*
