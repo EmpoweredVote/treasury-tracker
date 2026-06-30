@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.12
 milestone_name: State ACFR Long Tail
-status: ready_to_plan
-last_updated: 2026-06-30T07:12:12.751Z
-last_activity: 2026-06-30 -- Phase 103 execution started
+status: planning
+last_updated: "2026-06-30T15:11:57.411Z"
+last_activity: 2026-06-30
 progress:
   total_phases: 30
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
   completed_plans: 3
-  percent: 0
-stopped_at: Phase 103 complete (3/3) — ready to discuss Phase 104
+  percent: 3
 ---
 
 # State
@@ -169,9 +168,9 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-30T05:45:44.216Z
-Stopped at: Phase 103 context gathered
-Resume file: .planning/phases/103-recon-deeper-history-urls-pa-il-acfr-source-location-recon-0/103-CONTEXT.md
+Last session: 2026-06-30T15:11:57.394Z
+Stopped at: Phase 104 context gathered
+Resume file: .planning/phases/104-deepen-the-4-pilots-deep-01-recon-05-acfr-08/104-CONTEXT.md
 
 ### Next Session
 
