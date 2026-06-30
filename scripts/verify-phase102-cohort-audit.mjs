@@ -179,13 +179,20 @@ console.log('── INV-1: NULL-basis ──────────────
 }
 
 // ── INV-2: residue/fragile ────────────────────────────────────────────────────
-// All state-related *-gf-* data_sources rows with 0 referencing live budgets rows should be gone
-// Note: we report them here; deletion happens in the cleanup script (Task 2)
-// The residue check: after cleanup runs, this should be 0
-// We check for state-related *-gf-* sources NOT backed by city entities
+// State-related *-gf-* data_sources that are neither city entries nor NASBO metadata
+// should have 0 entries with 0 referencing live budgets rows after the cohort cleanup.
+//
+// Scope:
+//   - Excluded: city-level entries (anaheim-, fresno-, etc.) — not state data
+//   - Excluded: NASBO metadata sources (*-gf-operating-nasbo, *-gf-revenue-nasbo) — these
+//     are preserved as NASBO edition metadata; all budgets use text-stamp (data_source_id=null),
+//     so NASBO sources legitimately back 0 live rows without being "stale artifacts"
+//   - Targeted: non-NASBO, non-city state *-gf-* sources with 0 referencing rows = stale v1.7+
+//     artifacts (e.g. xx-gf-operating, xx-gf-revenue, xx-acfr-gf-operating, etc.)
+//
+// After cleanupStaleStateGFDataSources.mjs --cohort --apply, this count must be 0.
 console.log('── INV-2: residue/fragile ──────────────────────────────────────────────────');
 {
-  // Collect all *-gf-* data_sources (state-related, not city entries)
   const CITY_PREFIXES = ['anaheim-', 'fresno-', 'longbeach-', 'riverside-', 'sanjose-', 'santa-ana-'];
 
   const { data: gfSources, error: gfErr } = await sb.schema('treasury')
@@ -197,14 +204,15 @@ console.log('── INV-2: residue/fragile ────────────�
   if (gfErr) {
     fail('INV-2', 'residue/fragile: Could not load data_sources', gfErr.message);
   } else {
-    // Filter to state-related only
-    const stateGfSources = gfSources.filter(ds =>
-      !CITY_PREFIXES.some(prefix => ds.dataset_id.startsWith(prefix))
+    // Filter: state-related only, AND non-NASBO (NASBO entries are intentionally kept)
+    const staleTargets = gfSources.filter(ds =>
+      !CITY_PREFIXES.some(prefix => ds.dataset_id.startsWith(prefix)) &&
+      !/nasbo/i.test(ds.dataset_id)
     );
 
-    // For each, count referencing budgets rows
+    // For each non-NASBO state source, check 0 referencing rows = stale residue
     const residue = [];
-    for (const ds of stateGfSources) {
+    for (const ds of staleTargets) {
       const { count, error: cErr } = await sb.schema('treasury')
         .from('budgets')
         .select('id', { count: 'exact', head: true })
@@ -220,10 +228,11 @@ console.log('── INV-2: residue/fragile ────────────�
     }
 
     if (residue.length === 0) {
-      pass('INV-2', `residue/fragile: 0 state *-gf-* data_sources with 0 referencing live rows`);
+      pass('INV-2', `residue/fragile: 0 non-NASBO state *-gf-* data_sources with 0 referencing live rows`,
+        `(NASBO metadata sources excluded from residue check — they are intentionally kept)`);
     } else {
       fail('INV-2',
-        `residue/fragile: ${residue.length} state *-gf-* data_sources backing 0 live rows (stale residue)`,
+        `residue/fragile: ${residue.length} non-NASBO state *-gf-* data_sources backing 0 live rows (stale residue)`,
         `First 10: ${residue.slice(0, 10).join(', ')}${residue.length > 10 ? ` ... (+${residue.length - 10} more)` : ''}`
       );
     }
