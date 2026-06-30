@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.12
 milestone_name: State ACFR Long Tail
 status: planning
-last_updated: "2026-06-30T15:11:57.411Z"
+last_updated: "2026-06-30T15:27:29.720Z"
 last_activity: 2026-06-30
 progress:
   total_phases: 30
   completed_phases: 1
-  total_plans: 3
+  total_plans: 7
   completed_plans: 3
   percent: 3
 ---
@@ -168,9 +168,9 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-30T15:11:57.394Z
-Stopped at: Phase 104 context gathered
-Resume file: .planning/phases/104-deepen-the-4-pilots-deep-01-recon-05-acfr-08/104-CONTEXT.md
+Last session: 2026-06-30T15:27:29.707Z
+Stopped at: Phase 104 planned (4 plans)
+Resume file: .planning/phases/104-deepen-the-4-pilots-deep-01-recon-05-acfr-08/104-01-PLAN.md
 
 ### Next Session
 
