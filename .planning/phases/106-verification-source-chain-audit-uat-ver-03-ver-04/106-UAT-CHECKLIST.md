@@ -18,6 +18,8 @@ final check that what the DB says matches what the app shows.
 
 **Production confirmed live:** HTTP 200 at treasurytracker.empowered.vote (verified 2026-06-30 by executor).
 
+**Deep-link format (corrected 2026-06-30):** The app parses `?entity=<slug>&year=<fy>&dataset=<operating|revenue>` (slug = `lowercase-hyphenated-name` + `-` + `lowercase-state`, e.g. `illinois-il`). The earlier `?state=XX&fy=YYYY` links were NOT recognized by App.tsx — an unrecognized link falls through to auth-based routing, which silently navigates an *authenticated* user to their own home jurisdiction (the "teleported to Los Angeles" symptom) and shows a guest landing in incognito. Correct `entity=` links bypass auth routing (App.tsx:208) and work in both signed-in and incognito modes.
+
 **Precedent:** Phase 102 SC3 UAT (v2.11); same 5-point-per-anchor check pattern.
 
 **Instructions for Chris:**
@@ -49,7 +51,7 @@ final check that what the DB says matches what the app shows.
 
 **Node:** Pennsylvania (State)
 **FY:** 2025
-**Deep-link:** https://treasurytracker.empowered.vote/?state=PA&dataset=revenue&fy=2025
+**Deep-link:** https://treasurytracker.empowered.vote/?entity=pennsylvania-pa&year=2025&dataset=revenue
 
 **Expected values (from 106-REDERIVATION.md, exact tie confirmed):**
 - Revenue total: **$92,414,817,000**
@@ -78,7 +80,7 @@ final check that what the DB says matches what the app shows.
 
 **Node:** Pennsylvania (State)
 **FY:** 2016
-**Deep-link:** https://treasurytracker.empowered.vote/?state=PA&dataset=revenue&fy=2016
+**Deep-link:** https://treasurytracker.empowered.vote/?entity=pennsylvania-pa&year=2016&dataset=revenue
 
 **Expected values (from 106-REDERIVATION.md, exact tie confirmed):**
 - Revenue total: **$56,741,506,000**
@@ -106,7 +108,7 @@ final check that what the DB says matches what the app shows.
 
 **Node:** Illinois (State)
 **FY:** 2025
-**Deep-link:** https://treasurytracker.empowered.vote/?state=IL&dataset=revenue&fy=2025
+**Deep-link:** https://treasurytracker.empowered.vote/?entity=illinois-il&year=2025&dataset=revenue
 
 **Expected values (from 106-REDERIVATION.md, exact tie confirmed):**
 - Revenue total: **$78,342,927,000**
@@ -134,7 +136,7 @@ final check that what the DB says matches what the app shows.
 
 **Node:** Illinois (State)
 **FY:** 2022
-**Deep-link:** https://treasurytracker.empowered.vote/?state=IL&dataset=revenue&fy=2022
+**Deep-link:** https://treasurytracker.empowered.vote/?entity=illinois-il&year=2022&dataset=revenue
 
 **Expected values (from 106-REDERIVATION.md, exact tie confirmed):**
 - Revenue total: **$73,204,339,000** (this is the printed root total from the ACFR, which already
@@ -165,7 +167,7 @@ final check that what the DB says matches what the app shows.
 
 **Node:** New York (State)
 **FY:** 2003
-**Deep-link:** https://treasurytracker.empowered.vote/?state=NY&dataset=revenue&fy=2003
+**Deep-link:** https://treasurytracker.empowered.vote/?entity=new-york-ny&year=2003&dataset=revenue
 
 **Expected values (from 106-REDERIVATION.md, exact tie confirmed):**
 - Revenue total: **$29,250,000,000** (printed in the ACFR in millions: $29,250M × 1,000,000)
@@ -195,7 +197,7 @@ final check that what the DB says matches what the app shows.
 
 **Node:** California (State)
 **FY:** 2008
-**Deep-link:** https://treasurytracker.empowered.vote/?state=CA&dataset=revenue&fy=2008
+**Deep-link:** https://treasurytracker.empowered.vote/?entity=california-ca&year=2008&dataset=revenue
 
 **Expected values (from 106-REDERIVATION.md, exact tie confirmed):**
 - Revenue total: **$97,774,378,000** (printed in ACFR in thousands: $97,774,378K × 1,000)
@@ -224,7 +226,7 @@ final check that what the DB says matches what the app shows.
 
 **Node:** Florida (State)
 **FY:** 2021
-**Deep-link:** https://treasurytracker.empowered.vote/?state=FL&dataset=revenue&fy=2021
+**Deep-link:** https://treasurytracker.empowered.vote/?entity=florida-fl&year=2021&dataset=revenue
 
 **Expected values (from 106-REDERIVATION.md, exact tie confirmed):**
 - Revenue total: **$46,989,188,000** (printed in ACFR in thousands; this root total already nets
@@ -255,7 +257,8 @@ final check that what the DB says matches what the app shows.
 
 **Node:** Georgia (State)
 **FY:** 2024 (or 2023 — either works; both are NASBO operating-only)
-**Deep-link:** https://treasurytracker.empowered.vote/?state=GA&fy=2024
+**Deep-link:** https://treasurytracker.empowered.vote/?entity=georgia-ga&year=2024
+**Fallback-test deep-link (should gracefully degrade to operating):** https://treasurytracker.empowered.vote/?entity=georgia-ga&year=2024&dataset=revenue
 
 **Purpose:** Confirm that the PA/IL/CA/NY/FL upgrades did NOT disturb the un-upgraded NASBO
 states. GA is the canonical NASBO control used in Phase 106 Plan 02 (106-COHORT-AUDIT.md
