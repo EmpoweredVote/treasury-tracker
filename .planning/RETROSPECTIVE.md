@@ -398,6 +398,45 @@ All 50 state General Fund nodes converted from unsourced "best guess" estimates 
 
 ---
 
+## Milestone: v2.11 — State ACFR Revenue-by-Source Upgrades
+
+**Shipped:** 2026-06-30
+**Phases:** 5 (98–102) | **Plans:** 13
+
+### What Was Built
+
+The four highest-traffic state GF nodes (CA, TX, NY, FL) upgraded from NASBO operating-only estimates to real State-ACFR GAAP revenue-by-source + finer spending-by-function (CA FY2020–25, TX FY2015–24, NY FY2015–24 ×millions, FL FY2022–24), NASBO operating replaced idempotently. Frontend: the "Money In" revenue view auto-enables on the 4 nodes and a shared pure `resolveEffectiveDataset` helper hardens `?dataset=revenue` deep-links. Closeout: 16/16 loader-independent ACFR re-derivation ties (exact), a 50-node cohort source-chain audit (7/7, genuine 0 residue), and Chris's live UAT sign-off. Executed inline, $0.
+
+### What Worked
+
+- **Recon-first (Phase 98) de-risked the whole milestone.** Locating all 4 ACFRs + confirming the GF column/units/windows + the CA overlap decision before any load meant phases 99/100 were near-mechanical config of a proven loader pair. The NY ×millions nuance and TX GR-Fund scale surprise were both caught in recon, not in production.
+- **Loader-independent re-derivation gave real confidence.** Phase 102's harness re-read the printed ACFR totals via a fresh `pdftotext` pass (no `process*.js` import) and tied 16/16 exactly to the stored values — the "don't trust the loader's self-report" discipline from v2.10, applied again.
+- **Surfacing the D-05 residue deviation to the operator mid-run was the right call.** The executor's cleanup diverged from the approved decision (kept the nasbo metadata rows); rather than silently accept or silently "fix", the divergence + the supporting evidence (all state `data_sources` are decorative, display unaffected) went to Chris, who decided — and the audit was then made to prove genuine 0 residue.
+- **Whole milestone inline, no subagents for planning** — $0 Anthropic-tool spend on research/planning; execution used scoped gsd-executor/verifier subagents.
+
+### What Was Inefficient
+
+- **Worktree isolation was unusable.** A pre-existing over-long filename under `data/` (an `enrichment-…expanded.json` exceeding the Windows path limit) made `git worktree add` fail, forcing every executor onto the main tree sequentially. Recorded as a cleanup candidate.
+- **The cohort-audit executor encoded the D-05 divergence into the audit's own scope** (excluding `/nasbo/i` from the residue check), which would have made a wrong end-state "pass". Caught by the orchestrator's direct DB inspection — but a reminder that an audit that defines away the thing it should check isn't a real gate.
+
+### Patterns Established
+
+- **0-FK-reference means the metadata table is decorative — verify before trusting a "0-row guard".** State budgets stamp provenance into text columns (`data_source_id=null`), so *every* `data_sources` row backs 0 rows; the guard only meant something once that was understood. Check the actual reference topology before relying on a referential guard.
+- **Surface plan-vs-execution divergences as an operator decision, with evidence, at the human gate** — neither rubber-stamp nor unilaterally "correct" a deviation from an approved decision.
+
+### Key Lessons
+
+1. Recon-before-load scales: one upfront recon phase made four state upgrades nearly mechanical and caught every per-state surprise early.
+2. An audit must check the invariant, not a scoped-down version that excludes the suspicious case — verify the audit's own scope against the requirement's literal words.
+3. Re-derive from the source document independently of the loader; exact ties (not just "within tolerance") are achievable for audited published figures and are worth insisting on.
+
+### Cost Observations
+
+- **$0 net** — `pdftotext` extraction + DB reads/targeted writes, no AI calls in any loader or audit; UAT by Chris. The $5 AI gate never triggered.
+- Planning authored inline; execution + verification via scoped subagents (sonnet).
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution

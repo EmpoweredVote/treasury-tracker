@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.11
 milestone_name: State ACFR Revenue-by-Source Upgrades
-status: completed
-stopped_at: Phase 102 context gathered
-last_updated: "2026-06-30T02:41:05.803Z"
-last_activity: 2026-06-30 -- Phase 102 marked complete
+status: Awaiting next milestone
+last_updated: "2026-06-30T03:52:49.322Z"
+last_activity: 2026-06-30 — Milestone v2.11 completed and archived
 progress:
-  total_phases: 5
+  total_phases: 31
   completed_phases: 3
   total_plans: 13
   completed_plans: 9
-  percent: 60
+  percent: 10
 ---
 
 # State
@@ -25,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-29 — v2.11 State ACFR Revenue-by-So
 
 ## Current Position
 
-Phase: 102 — COMPLETE
-Plan: 3 of 3
-Status: Phase 102 complete
-Last activity: 2026-06-30 -- Phase 102 marked complete
+Phase: Milestone v2.11 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-30 — Milestone v2.11 completed and archived
 
 ## Phase Overview — v2.11 State ACFR Revenue-by-Source Upgrades (Pilot)
 
@@ -54,6 +53,8 @@ Items acknowledged and deferred at v2.6 milestone close on 2026-06-22:
 | quick_task | 001-create-treasury-tracker-entries-for-ever | missing | Unrelated to v2.6 (city-data); stub with no recorded work |
 | quick_task | 002-add-longview-tx-revenue | missing | Unrelated to v2.6 (Longview TX city-data) |
 | quick_task | 003-longview-operating-budget | missing | Unrelated to v2.6 (Longview TX city-data) |
+
+**Re-deferred at v2.11 milestone close (2026-06-29):** the same 3 Longview-TX quick-task stubs (001/002/003) resurfaced in the v2.11 pre-close audit — they remain unrelated to the State ACFR milestone and stay deferred (Chris-acknowledged). The Phase 101 verification gap from the same audit was *resolved* (closed by Phase 102 VER-02 UAT sign-off), not deferred.
 
 ### v2.6 EV Financial Transparency Refresh context
 

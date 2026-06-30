@@ -1,5 +1,23 @@
 # Milestones — Treasury Tracker / Empowered Vote Financials
 
+## v2.11 State ACFR Revenue-by-Source Upgrades (Shipped: 2026-06-30)
+
+**Phases completed:** 5 phases (98–102), 13 plans
+
+**Delivered:** Upgraded the four highest-traffic state nodes (CA, TX, NY, FL) from NASBO operating-only estimates to real **State-ACFR GAAP** General-Fund data — revenue-by-source + finer spending-by-function — basis-labelled, durably sourced, independently verified, then signed off live by Chris.
+
+**Key accomplishments:**
+
+- **Phase 98 (recon):** de-risked the CA v1.7 overlap and located all 4 state ACFRs (durable per-year URLs, GF column, units, windows, tie-confirmed bookends) before any load.
+- **Phase 99 (CA + TX):** loaded CA FY2020–25 + TX FY2015–24 GF revenue + spending from their ACFRs via `pdftotext -table`, replacing NASBO operating idempotently; proved the per-state upgrade path. TX GR-Fund ~3× scale accepted + relabelled honestly.
+- **Phase 100 (NY + FL):** reused the loader pair for NY FY2015–24 (×millions scaling) + FL FY2022–24; extended the stale-`data_sources` cleanup; P2 negative-category clamp fired on NY/FL.
+- **Phase 101 (frontend):** pure `resolveEffectiveDataset` helper + App.tsx hardening so the "Money In" revenue-by-source view auto-enables on the 4 nodes and `?dataset=revenue` deep-links validate against availability (fall back to operating on NASBO-only nodes), no regression.
+- **Phase 102 (verification + UAT):** loader-independent re-derivation of GF printed totals for the 8 newest+bookend ACFR statements — **16/16 exact ties** ($0 delta); 50-node cohort source-chain audit **7/7 invariants** with genuine **0 residue** (145 stale `*-gf-*` data_sources deleted, 0-row guarded; 46 NASBO states untouched); **Chris signed off the live-app UAT.**
+
+**Cost/safety:** free ACFR PDFs only, `$0`/no-AI extraction; ACFR replaces NASBO per state-FY idempotently; every displayed figure basis-labelled + sourced.
+
+---
+
 ## v2.10 State General Fund Sourcing (Shipped: 2026-06-29)
 
 **Phases completed:** 4 phases (94–97), 16 plans

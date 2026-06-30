@@ -1,8 +1,10 @@
 ---
 phase: 101-revenue-view-url-robustness-revux-01-revux-02
 verified: 2026-06-29T23:15:00Z
-status: human_needed
-score: 5/6 must-haves verified
+status: passed
+resolved: 2026-06-29
+resolution: "The 4 live-browser UAT items were deferred to Phase 102 by design and closed there. Phase 102 VER-02 confirmed them against the live production app (NY FY2024 Money In $93.894B revenue-by-source; FL FY2022 clamp labels; ?dataset=revenue deep-link + Colorado NASBO fallback) and Chris signed off 2026-06-29. See 102-03-SUMMARY.md / 102-VERIFICATION.md."
+score: 6/6 must-haves verified (5 automated in 101 + 1 live-UAT closed by Phase 102 sign-off)
 overrides_applied: 0
 human_verification:
   - test: "Open New York FY2024 in a live browser — confirm Money In card is enabled, click it, confirm revenue-by-source tree renders with ~$93.9B total (Taxes / Personal Income / Miscellaneous visible)"
@@ -23,7 +25,7 @@ human_verification:
 
 **Phase Goal:** Make the upgraded nodes' "Money In" card render the real revenue-by-source view and fix `?dataset=revenue` deep-link robustness.
 **Verified:** 2026-06-29T23:15:00Z
-**Status:** human_needed (automated gates all pass; 4 live-browser UAT items remain per plan)
+**Status:** passed — resolved 2026-06-29 (automated gates passed in 101; the 4 live-browser UAT items were closed by Phase 102 VER-02 with Chris sign-off)
 **Re-verification:** No — initial verification
 
 ---

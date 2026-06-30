@@ -10,7 +10,14 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 
 ## Current State
 
+**Shipped v2.11 State ACFR Revenue-by-Source Upgrades (2026-06-30).** Upgraded the four highest-traffic state General Fund nodes — **CA, TX, NY, FL** — from NASBO operating-only estimates to real **State-ACFR GAAP** data: **revenue-by-source** + finer **spending-by-function**, basis-labelled + durably sourced, replacing each state's NASBO operating rows idempotently (un-upgraded states stay on NASBO). Windows as deep as each ACFR cleanly extracts: CA FY2020–25, TX FY2015–24, NY FY2015–24 (×millions scaling), FL FY2022–24. The disabled "Money In" card now renders a real revenue-by-source view on the 4 nodes (auto-enabled by API-served `available_datasets`), and `?dataset=revenue` deep-links validate against availability via a shared `resolveEffectiveDataset` helper (fall back to operating on NASBO-only nodes). Phase 102 verified it end-to-end: **16/16 loader-independent ACFR re-derivation ties (exact, $0 delta)**, a **50-node cohort source-chain audit (7/7 invariants, genuine 0 residue — 145 stale `*-gf-*` data_sources deleted, 46 NASBO states untouched)**, and **Chris's live-app UAT sign-off**. TX's General-Revenue Fund (~3× the NASBO GF) is accepted + relabelled honestly; P2 negative-category clamp fires on CA/NY/FL. Executed inline, free PDFs only, $0 spend. Deeper history (esp. FL's 3-yr window) deferred to a "State ACFR Long Tail" follow-up.
+
+<details>
+<summary>Previous: v2.10 State General Fund Sourcing (shipped 2026-06-29)</summary>
+
 **Shipped v2.10 State General Fund Sourcing (2026-06-29).** Replaced the all-50-states unsourced "best guess" estimate state-node General Fund data with real, sourced actuals on a Chris-locked **hybrid** model: **MN/OH/VA** on State **ACFR GAAP** (operating + revenue), the other **47 states** (46 cohort + Georgia) on **NASBO 2025 SER** General Fund operating actuals (FY2023+FY2024). Every state-node figure is now durably sourced + basis-labelled (GAAP vs budgetary); 375 unsourced estimate rows deleted (revenue-by-source deferred to future per-state ACFR upgrades — nothing unsourced displayed). Reusable loader `scripts/loadStateGF.mjs` + locked cross-cutting policy proven on Georgia FY2023; MN extended FY2008–2025; OH/VA falsely-sourced rows replaced. Phase 97 verified the whole 50-node cohort real+sourced+residue-free, reconciled the "Representative 7" independently from source documents, caught + fixed F-97-01 (GA FY2023 Medicaid stale 2024-SER value → 2025 SER, children now sum to parent), and earned Chris's live UAT sign-off (21/21). Operating-only NASBO nodes render a disabled "Money In" card (no broken revenue view); negative-investment-income years handled honestly. Executed inline, $0 spend.
+
+</details>
 
 <details>
 <summary>Previous: v2.9 Minnesota Local Government Expansion (shipped 2026-06-28)</summary>
@@ -61,21 +68,12 @@ All 6 remaining SoCal counties added via the hardened v2.2/v2.3 pipeline with ze
 Brought every already-loaded non-OC California city and county to the Orange County standard (FY2003 history, statewide salaries, standardized enrichment) via the hardened v2.2 pipeline. Phase 62 verified end-to-end: ACFR reconciliation, source-chain audit (0 NULL/fragile/residue across 25,568 rows), 24-item UAT with Chris's sign-off. SoCal expansion deferred to v2.4.
 </details>
 
-## Current Milestone: v2.11 State ACFR Revenue-by-Source Upgrades (Pilot)
+## Next Milestone: (planning pending — `/gsd:new-milestone`)
 
-**Goal:** Upgrade the four highest-traffic NASBO state General Fund nodes — **CA, TX, NY, FL** — from operating-only to full **State-ACFR GAAP** nodes, adding **revenue-by-source** and richer **spending-by-function**, as deep as each ACFR cleanly extracts. This delivers the deferred "ACFR-later" half of the v2.10 hybrid (NASBO gave breadth; ACFR gives the "where the money comes from" side for the states people look at most). A follow-up milestone scales the upgrade to the rest of the NASBO long tail.
-
-**Target features:**
-- CA, TX, NY, FL upgraded to ACFR GAAP nodes (operating + revenue-by-source + finer functions); the disabled "Money In" card becomes a real revenue view
-- ACFR rows **replace** each state's NASBO operating rows (one basis per state-FY), idempotent never-overwrite; un-upgraded states stay on NASBO
-- FY history **as deep as each ACFR cleanly extracts** per state (MN-style depth, not a fixed 2-yr window)
-- Reuse the proven `processOHAcfr.js` / `processVAAcfr.js` / `processMN*.js` loaders (revenue-by-source + spending-by-function + P2 negative-investment clamp + 0-NULL source stamp); `scripts/loadStateGF.mjs` (NASBO) stays the fallback
-- **Recon CA's v1.7 CA-state-budget entity overlap first** (and note MA's v1.8 state budget) before loading — avoid a double/conflicting node
-- Frontend fix: `?dataset=revenue` URL robustness on (former) operating-only nodes
-
-**Key context:** Free sources only, **$0 / $5 AI gate**; GAAP (not budgetary), every figure durably sourced + **basis-labelled**; P2 negative-investment-income clamp; **executed inline — no research/planner/executor subagents**. Closeout = independent re-derivation from each ACFR → cohort source-chain audit → live UAT with Chris sign-off (the Phase 88/93/97 mold). Phases continue from 98. Per-state ACFR source = Governmental Funds *Statement of Revenues, Expenditures and Changes in Fund Balances*, GENERAL FUND column, GAAP basis, read via `pdftotext -table` (note: `archives.obm.ohio.gov`-class TLS quirks may need `curl --insecure --tlsv1.2`).
+v2.11 shipped 2026-06-30. The natural next milestone is the **State ACFR Long Tail** — scale the per-state ACFR revenue-by-source upgrade beyond the CA/TX/NY/FL pilot to the rest of the NASBO long tail, and deepen the pilot windows (esp. **FL's 3-year FY2022–24 window**, plus CA pre-FY2020, NY pre-FY2015, TX FY2016). Cheap to extend: the parameterized loaders just need older per-year URLs added to each `SOURCES` map + a re-run (incremental, not a rebuild). Other candidates: the deferred votes/amendments exploration hub; backfilling the always-sourced federal standard to city/state data.
 
 **Carried-forward follow-ups (candidates for a later milestone or backlog sweep):**
+- **v2.11 (Phase 102):** "State ACFR Long Tail" — deepen FL pre-FY2022 / CA pre-FY2020 / NY pre-FY2015 / TX FY2016 + scale ACFR revenue-by-source to the other 46 NASBO states. Flat-revenue-tree no-drill-down stays an accepted limitation (`project_flat_source_icicle_limitation`).
 - **v2.9 (Phase 93):** MN state-node history FY2021/2022 + deeper deferred into THIS milestone (SGFS-02); MN salaries/enterprise/townships/pre-2015 deferred (MNSAL/MNENT/MNHIST/MNTWN-01).
 - **v2.8 (Phase 88):** flat AOS source → no icicle drill-down (deferred UX fix = surface enrichment on leaf click; see auto-memory `project_flat_source_icicle_limitation`); the 10 state-node General Fund rows' `source_url` points at `lsc.ohio.gov/budget/` (canonical, but a TLS cert-chain quirk — swap if it warns in-browser); the county "Charges For Services" duplicate-column display quirk (`total_budget` authoritative); v2 deferred OHTWN-01 (townships/villages/libraries/schools) + OHENT-01 (enterprise funds).
 - **v2.7 (Phases 80/83):** 6 localities + 3 towns absent from all published VA XLSX years (multi-year-overdue audits) + Covington/Alleghany null population — picked up idempotently on a future re-run; enterprise funds (Exhibit F) deferred from VA scope.
@@ -181,8 +179,15 @@ Brought every already-loaded non-OC California city and county to the Orange Cou
 - ✓ MN state history extended FY2008–2025; OH + VA falsely-sourced state nodes replaced with real State-ACFR GAAP actuals (op+rev), FY2022 negative-investment P2 applied (SGFS-02/03) — v2.10, Phase 95
 - ✓ Remaining 46 states + Georgia loaded on NASBO 2025 SER GF operating actuals (94 state-years, dual-checksum-validated, 0-NULL, correct non-June FY-ends); 375 unsourced rows deleted (SGFS-04) — v2.10, Phase 96
 - ✓ Cohort-wide source-chain audit of all 50 state nodes (clean), "Representative 7" reconciled independently from source docs, F-97-01 fixed (GA Medicaid), Chris live UAT sign-off 21/21 (SGFS-05) — v2.10, Phase 97
+- ✓ Recon: CA v1.7 overlap resolved (upgrade-in-place, no duplicate node) + all 4 state ACFRs located with `pdftotext -table`-confirmed GF column/units/windows/durable URLs + loader-reuse plan (RECON-01/02/03) — v2.11, Phase 98
+- ✓ CA + TX upgraded to ACFR GAAP nodes: CA FY2020–25, TX FY2015–24 GF revenue-by-source + spending-by-function, NASBO operating replaced idempotently, P2 clamp; TX GR-Fund ~3× scale relabelled honestly (ACFR-01/02/05) — v2.11, Phase 99
+- ✓ NY + FL upgraded: NY FY2015–24 (×1,000,000 millions scaling), FL FY2022–24; stale-`data_sources` cleanup extended; P2 clamp fired (ACFR-03/04/05) — v2.11, Phase 100
+- ✓ "Money In" revenue-by-source view auto-enabled on CA/TX/NY/FL; shared pure `resolveEffectiveDataset` helper hardens `?dataset=revenue` deep-links (validate against availability, fall back to operating on NASBO-only nodes), no regression (REVUX-01/02) — v2.11, Phase 101
+- ✓ Verification: 16/16 loader-independent ACFR re-derivation exact ties; 50-node cohort source-chain audit 7/7 (genuine 0 residue, 145 stale `*-gf-*` data_sources deleted, 46 NASBO untouched); Chris live-app UAT sign-off (VER-01/02) — v2.11, Phase 102
 
 ### Future (deferred milestone candidates)
+
+- [ ] **State ACFR Long Tail** — deepen the CA/TX/NY/FL windows (esp. FL pre-FY2022) + scale ACFR revenue-by-source to the remaining NASBO states
 
 - [ ] Votes/amendments exploration hub (the eventual mission destination)
 - [ ] Backfill the always-sourced standard to city/state data (now proven federally)
@@ -256,9 +261,14 @@ Brought every already-loaded non-OC California city and county to the Orange Cou
 | NASBO nodes are operating-only; cohort revenue-by-source deferred, not faked (v2.10) | NASBO has no per-state revenue-by-source; deleting the unsourced revenue rows (vs fabricating) keeps the ground rule — nothing unsourced displayed | ✓ Good — operating-only nodes show a disabled "Money In" card |
 | Negative GF investment-income clamped to 0 with explanatory label (P2, v2.10) | A negative slice can't render in an icicle; clamping to 0 while keeping the signed magnitude in the label + the true parent total is honest | ✓ Good — MN/OH/VA FY2022 handled, parent totals preserved |
 | One Chris-approved in-phase fix in v2.10 verification (F-97-01) | GA FY2023 Medicaid was a stale 2024-SER value ($3,398M) stamped to the 2025 SER ($3,390M), so children exceeded parent by $8M; a single-cell corrected to match the stamped source | ✓ Good — children=parent, idempotent |
+| Upgrade the 4 state nodes in place (no duplicate entity) (v2.11) | CA had a v1.7 state-budget overlap risk; recon confirmed a single node per state, upgraded in place — avoids a double/conflicting California node | ✓ Good — recon de-risked before any load |
+| TX General-Revenue Fund accepted as the GAAP GF-equivalent + relabelled (v2.11) | TX's GR Fund is ~3× the NASBO GF ($161B vs $50B) because it's a broader consolidated operating fund; carving it down would be fabrication — relabel honestly instead | ✓ Good — node total jumps visibly but is correct + sourced |
+| Independent re-derivation must not trust the loader (v2.11) | VER-01 requires reconciliation "from the ACFR, not loader self-report"; a separate `pdftotext` harness re-reads each printed total fresh | ✓ Good — 16/16 exact ($0 delta) |
+| Delete the full stale `*-gf-*` data_sources family incl. nasbo metadata (D-05, v2.11) | State budgets use text-stamp provenance (`data_source_id=null`); every state `*-gf-*` data_sources row backs 0 rows and is decorative — source chips render from the text stamp, so deleting them is display-safe and gives genuine 0 residue | ✓ Good — 145 deleted, 0-row guarded, Chris-approved mid-run correction |
 
 ## Shipped
 
+- ✅ **v2.11 State ACFR Revenue-by-Source Upgrades** — 2026-06-30 — Phases 98-102 (CA/TX/NY/FL upgraded from NASBO operating-only to State-ACFR GAAP revenue-by-source + finer spending-by-function — CA FY2020–25, TX FY2015–24, NY FY2015–24 ×millions, FL FY2022–24 — replacing NASBO idempotently; "Money In" revenue view auto-enabled + `?dataset=revenue` deep-link hardened via shared `resolveEffectiveDataset`; 16/16 independent ACFR re-derivation exact ties + 50-node cohort audit 7/7 with genuine 0 residue (145 stale data_sources deleted) + Chris live UAT sign-off; TX GR-Fund ~3× relabelled honestly, P2 clamp on CA/NY/FL; executed inline, free PDFs, $0 spend; FL/long-tail deepening deferred)
 - ✅ **v2.10 State General Fund Sourcing** — 2026-06-29 — Phases 94-97 (all 50 state GF nodes on real sourced actuals: MN/OH/VA State-ACFR GAAP op+rev, the other 47 on NASBO 2025 SER operating; 375 unsourced estimate rows deleted; reusable loader + locked policy proven on Georgia; F-97-01 GA Medicaid fixed; cohort source-chain audit clean + "Representative 7" reconciled from source + Chris UAT 21/21; revenue-by-source deferred to future per-state ACFR upgrades; executed inline, $0 spend)
 - ✅ **v2.9 Minnesota Local Government Expansion** — 2026-06-28 — Phases 89-93 (858 MN cities + 87 counties at parity from the MN OSA City/County Finances XLSX: op/rev 2-level trees, per-capita, city→county linking, MN state node + enrichment; ACFR recon + source-chain audit + independent re-derivation + Chris UAT; surfaced the state-node sourcing problem chartered as v2.10; $0 spend)
 - ✅ **v2.8 Ohio Local Government Expansion** — 2026-06-26 — Phases 84-88 (253 Ohio cities + 88 counties from the Ohio AOS Summarized Annual Financial Reports XLSX: op/rev FY2016–2025, per-capita, county-linked under an Ohio state node, enrichment; Columbus + Franklin County recon + source-chain audit + Chris UAT; flat-source no-drill-down accepted; $0 spend)
@@ -299,7 +309,14 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
+*Last updated: 2026-06-30 — v2.11 State ACFR Revenue-by-Source Upgrades SHIPPED + archived (Phases 98-102). The four highest-traffic state GF nodes (CA, TX, NY, FL) upgraded from NASBO operating-only estimates to real State-ACFR GAAP revenue-by-source + finer spending-by-function (CA FY2020–25, TX FY2015–24, NY FY2015–24 ×millions, FL FY2022–24), NASBO operating replaced idempotently, un-upgraded states still on NASBO. "Money In" revenue view auto-enabled on the 4 nodes; `?dataset=revenue` deep-links hardened via a shared resolveEffectiveDataset helper. Verified: 16/16 loader-independent ACFR re-derivation exact ties; 50-node cohort source-chain audit 7/7 with genuine 0 residue (145 stale `*-gf-*` data_sources deleted, 46 NASBO states untouched); Chris live-app UAT sign-off. TX GR-Fund ~3× relabelled honestly; P2 clamp on CA/NY/FL. Executed inline, free PDFs only, $0 spend. Deeper history (esp. FL's 3-yr window) + scaling to the rest of the long tail deferred to a "State ACFR Long Tail" follow-up. Next: `/gsd:new-milestone`. (v2.10 State General Fund Sourcing SHIPPED + archived 2026-06-29.)*
+
+<details>
+<summary>Previous footer — v2.11 STARTED (2026-06-29)</summary>
+
 *Last updated: 2026-06-29 — v2.11 State ACFR Revenue-by-Source Upgrades (Pilot) STARTED. Upgrading the four highest-traffic NASBO state GF nodes (CA, TX, NY, FL) from operating-only to full State-ACFR GAAP nodes: adding revenue-by-source + finer spending-by-function, as deep as each ACFR cleanly extracts, the disabled "Money In" card becoming a real revenue view. Delivers the deferred "ACFR-later" half of the v2.10 hybrid; a follow-up milestone scales to the rest. Reuses the proven processOH/VA/MN-Acfr loaders (rev-by-source + spend-by-function + P2 clamp + 0-NULL source stamp + never-overwrite); NASBO stays the fallback for un-upgraded states. CA's v1.7 CA-state-budget overlap recon'd first. Plus the minor `?dataset=revenue` URL-robustness fix. Free sources only, $0/$5 AI gate, GAAP + basis-labelled, executed inline (no subagents), closeout = independent ACFR re-derivation → cohort source-chain audit → Chris live UAT (Phase 88/93/97 mold). Phases continue from 98. (v2.10 State General Fund Sourcing SHIPPED + archived 2026-06-29, Chris UAT 21/21.)*
+
+</details>
 
 <details>
 <summary>Previous footer — v2.9 Minnesota Local Government Expansion STARTED (2026-06-27)</summary>
