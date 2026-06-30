@@ -133,6 +133,9 @@ const EXPENDITURES = {
   ]},
 };
 
+// P2 clamp (ACFR-08): clamp negative rendered area to 0; preserve signed value in label.
+function clampForRender(amount) { return Math.max(amount, 0); }
+
 function validate(fy) {
   const { total, categories } = EXPENDITURES[fy]; let ok = true; let catSum = 0;
   for (const cat of categories) catSum += cat.total;
@@ -141,7 +144,11 @@ function validate(fy) {
 }
 function buildTree(fy) {
   const { total, categories } = EXPENDITURES[fy];
-  const children = categories.filter(c => c.total > 0).map(cat => ({ n: cat.name, a: cat.total * UNITS, i: [] }));
+  const children = categories.filter(c => c.total !== 0).map(cat => {
+    const rendered = clampForRender(cat.total);
+    const label = cat.total < 0 ? `${cat.name} (net loss — shown at 0)` : cat.name;
+    return { n: label, a: rendered * UNITS, i: [] };
+  });
   children.sort((a, b) => b.a - a.a);
   return { jsonTree: [{ n: 'Illinois General Fund Budget', a: total * UNITS, c: children }], total: total * UNITS, rowCount: children.length };
 }
