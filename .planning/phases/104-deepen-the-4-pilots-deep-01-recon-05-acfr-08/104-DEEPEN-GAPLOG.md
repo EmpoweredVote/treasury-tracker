@@ -2,12 +2,14 @@
 
 **Phase:** 104-deepen-the-4-pilots (DEEP-01, RECON-05, ACFR-08)
 **Created:** 2026-06-30
-**Status:** Plan 104-01 complete (NY FY2003-FY2014)
+**Status:** Wave 1 complete (NY FY2003-FY2014, CA FY2008-FY2019, FL FY2021) — dry-run verified
 
 This log records any FY that was skipped during the Phase 104 deepening because it failed to
 cleanly `pdftotext -table`-extract, returned a 404/bad HTTP, or did not tie exactly to the
 ACFR printed General-column total (D-02 skip+log / D-03 exact-tie-else-skip policy).
 Holes are allowed; a skipped FY is simply absent from SOURCES/years and listed here.
+
+**Wave 1 headline: 0 gaps across all three states — every added FY tied exactly (25/25 added FYs retained).**
 
 ---
 
@@ -46,12 +48,39 @@ All category names in the loaders are verbatim from the ACFR printed statement.
 
 ---
 
-## CA — TBD (Plan 104-02)
+## CA (California) — FY2008-FY2019 deepening (Plan 104-02)
 
-_Not yet started._
+**Disposition summary:** All 12 added years (FY2008–FY2019) successfully downloaded, extracted, and tie exactly. No gaps for CA. Zero soft-404s.
+
+| FY | PDF size | Rev total ($K) | Exp total ($K) | Rev tie | Exp tie | Notes |
+|----|----------|----------------|----------------|---------|---------|-------|
+| 2008 | 2,838,074 B | 97,774,378 | 98,975,042 | PASS | PASS | Recon bookend anchor — ties exactly |
+| 2009 | 1,054,100 B | 84,202,979 | 92,605,222 | PASS | PASS | |
+| 2010 | 1,134,257 B | 85,129,367 | 87,247,026 | PASS | PASS | |
+| 2011 | 1,180,372 B | 93,479,815 | 90,431,674 | PASS | PASS | |
+| 2012 | 6,178,966 B | 86,536,015 | 88,281,652 | PASS | PASS | Motor vehicle excise taxes line added (=0) |
+| 2013 | 3,446,583 B | 99,379,153 | 90,114,980 | PASS | PASS | |
+| 2014 | 3,254,174 B | 104,182,125 | 95,337,085 | PASS | PASS | |
+| 2015 | 3,069,920 B | 116,777,374 | 107,163,567 | PASS | PASS | |
+| 2016 | 2,733,925 B | 117,573,422 | 111,804,448 | PASS | PASS | Category names change to FY2020+ schema; Motor vehicle excise taxes = 113,000K |
+| 2017 | 7,809,518 B | 125,121,644 | 116,260,039 | PASS | PASS | Managed care organization enrollment tax added (=0) |
+| 2018 | 7,823,847 B | 135,625,020 | 124,239,316 | PASS | PASS | |
+| 2019 | 5,384,062 B | 140,503,627 | 129,113,153 | PASS | PASS | |
+
+**Result: 0 gaps — all 12 added CA years retained.** All 12 URLs responded with `Content-Type: application/pdf` and multi-MB payloads (no HTML/soft-404). Resolved via `https://www.sco.ca.gov/Files-ARD/CAFR/cafr{NN}web.pdf` (distinct from the existing `/Files-ARD/ACFR/` FY2020+ entries). Units = thousands. No negative categories in this window. FY2002-FY2007 not pursued (deferred per D-01).
 
 ---
 
-## FL — TBD (Plan 104-03)
+## FL (Florida) — FY2021 deepening (Plan 104-03)
 
-_Not yet started._
+**Disposition summary:** FY2021 successfully downloaded, extracted, and ties exactly. No gap.
+
+| FY | Rev total | Exp total | Rev tie | Exp tie | Notes |
+|----|-----------|-----------|---------|---------|-------|
+| 2021 | $46,989,188,000 | $37,277,963,000 | PASS | PASS | Recon bookend ✓. Negative "Investment earnings (losses)" −$398,287K → P2 clamp fires (rendered 0, "(net loss — shown at 0)", root total preserves net) — ACFR-08 |
+
+**Result: 0 gaps — FY2021 retained.** Resolved via the existing `fye-{YYYY}-state-of-florida-annual-comprehensive-financial-report.pdf` pattern. Units = thousands. FY≤2020 not durably sourceable at this path (deferred).
+
+---
+
+*Wave 1 (dry-run) complete 2026-06-30. Wave 2 (104-04) appends the live Load Disposition.*

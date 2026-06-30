@@ -1,25 +1,27 @@
 #!/usr/bin/env node
 /**
- * California General Fund Revenue (by source) Loader — FY2020-FY2025 ACTUAL
+ * California General Fund Revenue (by source) Loader — FY2008-FY2025 ACTUAL
  * Source: State of California Annual Comprehensive Financial Report (ACFR), Governmental Funds
  *   Statement of Revenues, Expenditures and Changes in Fund Balances, GENERAL column
  *   (GAAP basis, in thousands). Published by the State Controller's Office (SCO).
+ *   FY2008–FY2019: `https://www.sco.ca.gov/Files-ARD/CAFR/cafr{NN}web.pdf` (CAFR dir)
+ *   FY2020–FY2025: `https://www.sco.ca.gov/Files-ARD/ACFR/acfr{NN}web.pdf` (ACFR dir)
  *
- * Phase 99 (ACFR-01 + ACFR-05). Revenue is NEW on the CA state node (NASBO had no
- *   revenue-by-source) → pure insert keyed (muni,fy,'revenue'). CA state node id (D-01):
- *   e1007bf5-bac9-4b1c-878e-f6834885f850.
+ * Phase 99 (ACFR-01 + ACFR-05): original FY2020–FY2025 loads.
+ * Phase 104 (DEEP-01): backward extension to FY2008–FY2019 under /Files-ARD/CAFR/.
+ *   CA state node id (D-01): e1007bf5-bac9-4b1c-878e-f6834885f850.
  *
  * Control = printed General-column "Total revenues". Each FY's transcribed rev-by-source
  *   categories must tie to the printed Total within $10M or the loader refuses to write
- *   (process.exit(2)). Bookends (recon-confirmed): FY2020 155,923,876k; FY2025 221,591,201k.
+ *   (process.exit(2)). Bookends (recon-confirmed): FY2008 97,774,378k; FY2025 221,591,201k.
  *
- * P2 clamp (ACFR-05): any negative GF revenue category renders at 0 area with the true
- *   signed value preserved in the label; the root total carries the net (which already
- *   nets the negative). NOTE: CA has NO negative GF revenue categories in this window,
- *   but the clamp is wired and will trigger if a future year shows one.
+ * P2 clamp (ACFR-05/ACFR-08): any negative GF revenue category renders at 0 area with the
+ *   true signed value preserved in the label; the root total carries the net (which already
+ *   nets the negative). CA market-loss years (FY2009, FY2016) may carry negative investment
+ *   income lines — the clamp is wired and will fire.
  *
  * Extraction: pdftotext -table on local PDF copies in _acfr-tmp/ca/ (NOT -layout).
- *   All 6 years tie to 0 diff vs. the printed General-column Total revenues.
+ *   All retained years tie to 0 diff vs. the printed General-column Total revenues.
  *
  * Usage:
  *   node scripts/processCARevenueAcfr.js [--dry-run] [--fy YYYY]
@@ -41,7 +43,20 @@ const STATE_NODE_ID = 'e1007bf5-bac9-4b1c-878e-f6834885f850'; // D-01
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+// FY2008–FY2019 use the /Files-ARD/CAFR/ directory (cafr{NN}web.pdf); FY2020+ use /Files-ARD/ACFR/.
 const SOURCES = {
+  2008: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr08web.pdf', date: '2008-06-30' },
+  2009: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr09web.pdf', date: '2009-06-30' },
+  2010: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr10web.pdf', date: '2010-06-30' },
+  2011: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr11web.pdf', date: '2011-06-30' },
+  2012: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr12web.pdf', date: '2012-06-30' },
+  2013: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr13web.pdf', date: '2013-06-30' },
+  2014: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr14web.pdf', date: '2014-06-30' },
+  2015: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr15web.pdf', date: '2015-06-30' },
+  2016: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr16web.pdf', date: '2016-06-30' },
+  2017: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr17web.pdf', date: '2017-06-30' },
+  2018: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr18web.pdf', date: '2018-06-30' },
+  2019: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr19web.pdf', date: '2019-06-30' },
   2020: { url: 'https://www.sco.ca.gov/Files-ARD/ACFR/acfr20web.pdf', date: '2020-06-30' },
   2021: { url: 'https://www.sco.ca.gov/Files-ARD/ACFR/acfr21web.pdf', date: '2021-06-30' },
   2022: { url: 'https://www.sco.ca.gov/Files-ARD/ACFR/acfr22web.pdf', date: '2022-06-30' },
@@ -55,6 +70,197 @@ const dataSource = (fy) => `California State ACFR — General Fund Revenue (FY${
 // Verbatim ACFR revenue source names. total = printed General-column "Total revenues".
 // All sums verified to 0 diff. No negative categories in this window (clamp still wired).
 const REVENUE = {
+  2008: { total: 97_774_378_000, confidence: 'actual', categories: [
+    { name: 'Personal income taxes',     total: 54_214_285_000 },
+    { name: 'Sales and use taxes',       total: 26_598_820_000 },
+    { name: 'Corporation taxes',         total: 11_201_468_000 },
+    { name: 'Insurance taxes',           total:  2_190_870_000 },
+    { name: 'Other taxes',               total:    494_427_000 },
+    { name: 'Intergovernmental',         total:              0 },
+    { name: 'Licenses and permits',      total:        792_000 },
+    { name: 'Charges for services',      total:    190_992_000 },
+    { name: 'Fees',                      total:    796_517_000 },
+    { name: 'Penalties',                 total:     52_724_000 },
+    { name: 'Investment and interest',   total:    581_535_000 },
+    { name: 'Escheat',                   total:    282_287_000 },
+    { name: 'Other',                     total:  1_169_661_000 },
+  ]},
+  2009: { total: 84_202_979_000, confidence: 'actual', categories: [
+    { name: 'Personal income taxes',     total: 44_685_899_000 },
+    { name: 'Sales and use taxes',       total: 23_781_261_000 },
+    { name: 'Corporation taxes',         total: 10_738_140_000 },
+    { name: 'Insurance taxes',           total:  2_063_555_000 },
+    { name: 'Other taxes',               total:    485_966_000 },
+    { name: 'Intergovernmental',         total:              0 },
+    { name: 'Licenses and permits',      total:    224_071_000 },
+    { name: 'Charges for services',      total:    189_899_000 },
+    { name: 'Fees',                      total:    298_741_000 },
+    { name: 'Penalties',                 total:     85_358_000 },
+    { name: 'Investment and interest',   total:    556_511_000 },
+    { name: 'Escheat',                   total:    315_642_000 },
+    { name: 'Other',                     total:    777_936_000 },
+  ]},
+  2010: { total: 85_129_367_000, confidence: 'actual', categories: [
+    { name: 'Personal income taxes',     total: 43_086_228_000 },
+    { name: 'Sales and use taxes',       total: 26_881_420_000 },
+    { name: 'Corporation taxes',         total:  9_467_611_000 },
+    { name: 'Insurance taxes',           total:  1_998_425_000 },
+    { name: 'Other taxes',               total:    462_311_000 },
+    { name: 'Intergovernmental',         total:              0 },
+    { name: 'Licenses and permits',      total:  1_385_394_000 },
+    { name: 'Charges for services',      total:    243_320_000 },
+    { name: 'Fees',                      total:    638_819_000 },
+    { name: 'Penalties',                 total:     55_554_000 },
+    { name: 'Investment and interest',   total:     76_148_000 },
+    { name: 'Escheat',                   total:    149_996_000 },
+    { name: 'Other',                     total:    684_141_000 },
+  ]},
+  2011: { total: 93_479_815_000, confidence: 'actual', categories: [
+    { name: 'Personal income taxes',     total: 50_785_782_000 },
+    { name: 'Sales and use taxes',       total: 27_013_675_000 },
+    { name: 'Corporation taxes',         total:  9_433_416_000 },
+    { name: 'Insurance taxes',           total:  2_076_804_000 },
+    { name: 'Other taxes',               total:    566_241_000 },
+    { name: 'Intergovernmental',         total:              0 },
+    { name: 'Licenses and permits',      total:  1_335_511_000 },
+    { name: 'Charges for services',      total:    244_448_000 },
+    { name: 'Fees',                      total:    822_308_000 },
+    { name: 'Penalties',                 total:    165_567_000 },
+    { name: 'Investment and interest',   total:     38_928_000 },
+    { name: 'Escheat',                   total:    229_133_000 },
+    { name: 'Other',                     total:    768_002_000 },
+  ]},
+  2012: { total: 86_536_015_000, confidence: 'actual', categories: [
+    { name: 'Personal income taxes',     total: 53_597_172_000 },
+    { name: 'Sales and use taxes',       total: 18_618_281_000 },
+    { name: 'Corporation taxes',         total:  8_609_935_000 },
+    { name: 'Motor vehicle excise taxes',total:              0 },
+    { name: 'Insurance taxes',           total:  2_157_094_000 },
+    { name: 'Other taxes',               total:    539_119_000 },
+    { name: 'Intergovernmental',         total:              0 },
+    { name: 'Licenses and permits',      total:     78_198_000 },
+    { name: 'Charges for services',      total:    242_208_000 },
+    { name: 'Fees',                      total:    961_375_000 },
+    { name: 'Penalties',                 total:    270_664_000 },
+    { name: 'Investment and interest',   total:     33_092_000 },
+    { name: 'Escheat',                   total:    372_215_000 },
+    { name: 'Other',                     total:  1_056_662_000 },
+  ]},
+  2013: { total: 99_379_153_000, confidence: 'actual', categories: [
+    { name: 'Personal income taxes',     total: 66_220_132_000 },
+    { name: 'Sales and use taxes',       total: 20_429_772_000 },
+    { name: 'Corporation taxes',         total:  7_261_910_000 },
+    { name: 'Motor vehicle excise taxes',total:              0 },
+    { name: 'Insurance taxes',           total:  2_262_567_000 },
+    { name: 'Other taxes',               total:    691_790_000 },
+    { name: 'Intergovernmental',         total:              0 },
+    { name: 'Licenses and permits',      total:     15_063_000 },
+    { name: 'Charges for services',      total:    259_560_000 },
+    { name: 'Fees',                      total:    631_376_000 },
+    { name: 'Penalties',                 total:    151_782_000 },
+    { name: 'Investment and interest',   total:     29_624_000 },
+    { name: 'Escheat',                   total:    551_580_000 },
+    { name: 'Other',                     total:    873_997_000 },
+  ]},
+  2014: { total: 104_182_125_000, confidence: 'actual', categories: [
+    { name: 'Personal income taxes',     total: 67_584_256_000 },
+    { name: 'Sales and use taxes',       total: 22_287_696_000 },
+    { name: 'Corporation taxes',         total:  9_242_454_000 },
+    { name: 'Motor vehicle excise taxes',total:              0 },
+    { name: 'Insurance taxes',           total:  2_372_326_000 },
+    { name: 'Other taxes',               total:    720_206_000 },
+    { name: 'Intergovernmental',         total:              0 },
+    { name: 'Licenses and permits',      total:      9_278_000 },
+    { name: 'Charges for services',      total:    271_117_000 },
+    { name: 'Fees',                      total:     12_015_000 },
+    { name: 'Penalties',                 total:    226_493_000 },
+    { name: 'Investment and interest',   total:     22_578_000 },
+    { name: 'Escheat',                   total:    487_869_000 },
+    { name: 'Other',                     total:    945_837_000 },
+  ]},
+  2015: { total: 116_777_374_000, confidence: 'actual', categories: [
+    { name: 'Personal income taxes',     total: 76_879_115_000 },
+    { name: 'Sales and use taxes',       total: 23_639_933_000 },
+    { name: 'Corporation taxes',         total: 10_780_647_000 },
+    { name: 'Motor vehicle excise taxes',total:              0 },
+    { name: 'Insurance taxes',           total:  2_456_208_000 },
+    { name: 'Other taxes',               total:    690_901_000 },
+    { name: 'Intergovernmental',         total:              0 },
+    { name: 'Licenses and permits',      total:      8_025_000 },
+    { name: 'Charges for services',      total:    298_709_000 },
+    { name: 'Fees',                      total:    257_260_000 },
+    { name: 'Penalties',                 total:    590_604_000 },
+    { name: 'Investment and interest',   total:     25_412_000 },
+    { name: 'Escheat',                   total:    400_768_000 },
+    { name: 'Other',                     total:    749_792_000 },
+  ]},
+  2016: { total: 117_573_422_000, confidence: 'actual', categories: [
+    { name: 'Personal income taxes',     total: 78_510_777_000 },
+    { name: 'Sales and use taxes',       total: 24_837_111_000 },
+    { name: 'Corporation taxes',         total:  9_214_173_000 },
+    { name: 'Motor vehicle excise taxes',total:    113_000_000 },
+    { name: 'Insurance taxes',           total:  2_569_104_000 },
+    { name: 'Other taxes',               total:    599_375_000 },
+    { name: 'Intergovernmental',         total:              0 },
+    { name: 'Licenses and permits',      total:      6_929_000 },
+    { name: 'Charges for services',      total:    329_038_000 },
+    { name: 'Fees',                      total:    288_858_000 },
+    { name: 'Penalties',                 total:    273_936_000 },
+    { name: 'Investment and interest',   total:     42_819_000 },
+    { name: 'Escheat',                   total:    304_945_000 },
+    { name: 'Other',                     total:    483_357_000 },
+  ]},
+  2017: { total: 125_121_644_000, confidence: 'actual', categories: [
+    { name: 'Personal income taxes',     total: 84_253_851_000 },
+    { name: 'Sales and use taxes',       total: 24_921_347_000 },
+    { name: 'Corporation taxes',         total: 11_125_198_000 },
+    { name: 'Motor vehicle excise taxes',total:     80_033_000 },
+    { name: 'Insurance taxes',           total:  2_427_851_000 },
+    { name: 'Managed care organization enrollment tax', total: 0 },
+    { name: 'Other taxes',               total:    604_685_000 },
+    { name: 'Intergovernmental',         total:              0 },
+    { name: 'Licenses and permits',      total:      5_563_000 },
+    { name: 'Charges for services',      total:    298_997_000 },
+    { name: 'Fees',                      total:    242_054_000 },
+    { name: 'Penalties',                 total:    288_560_000 },
+    { name: 'Investment and interest',   total:    106_614_000 },
+    { name: 'Escheat',                   total:    325_638_000 },
+    { name: 'Other',                     total:    441_253_000 },
+  ]},
+  2018: { total: 135_625_020_000, confidence: 'actual', categories: [
+    { name: 'Personal income taxes',     total: 92_808_996_000 },
+    { name: 'Sales and use taxes',       total: 25_090_956_000 },
+    { name: 'Corporation taxes',         total: 12_597_928_000 },
+    { name: 'Motor vehicle excise taxes',total:    101_307_000 },
+    { name: 'Insurance taxes',           total:  2_563_904_000 },
+    { name: 'Managed care organization enrollment tax', total: 0 },
+    { name: 'Other taxes',               total:    614_421_000 },
+    { name: 'Intergovernmental',         total:              0 },
+    { name: 'Licenses and permits',      total:      6_193_000 },
+    { name: 'Charges for services',      total:    389_297_000 },
+    { name: 'Fees',                      total:     44_302_000 },
+    { name: 'Penalties',                 total:    248_828_000 },
+    { name: 'Investment and interest',   total:    264_675_000 },
+    { name: 'Escheat',                   total:    378_177_000 },
+    { name: 'Other',                     total:    516_036_000 },
+  ]},
+  2019: { total: 140_503_627_000, confidence: 'actual', categories: [
+    { name: 'Personal income taxes',     total: 95_026_913_000 },
+    { name: 'Sales and use taxes',       total: 25_701_417_000 },
+    { name: 'Corporation taxes',         total: 14_038_348_000 },
+    { name: 'Motor vehicle excise taxes',total:     95_590_000 },
+    { name: 'Insurance taxes',           total:  2_734_068_000 },
+    { name: 'Managed care organization enrollment tax', total: 0 },
+    { name: 'Other taxes',               total:    588_040_000 },
+    { name: 'Intergovernmental',         total:              0 },
+    { name: 'Licenses and permits',      total:      8_119_000 },
+    { name: 'Charges for services',      total:    380_347_000 },
+    { name: 'Fees',                      total:     17_205_000 },
+    { name: 'Penalties',                 total:    270_302_000 },
+    { name: 'Investment and interest',   total:    687_833_000 },
+    { name: 'Escheat',                   total:    447_399_000 },
+    { name: 'Other',                     total:    508_046_000 },
+  ]},
   2020: { total: 155_923_876_000, confidence: 'actual', categories: [
     { name: 'Personal income taxes',     total: 110_352_220_000 },
     { name: 'Sales and use taxes',       total:  25_461_893_000 },
@@ -177,7 +383,7 @@ function buildTree(fy) {
 async function main() {
   const { values: opts } = parseArgs({ options: { 'dry-run': { type: 'boolean', default: false }, fy: { type: 'string' } }, strict: false });
   const dryRun = opts['dry-run']; const targetFY = opts.fy ? parseInt(opts.fy, 10) : null;
-  const years = targetFY ? [targetFY] : [2020, 2021, 2022, 2023, 2024, 2025];
+  const years = targetFY ? [targetFY] : [2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
   console.log(`${STATE_NAME} GF Revenue Loader (ACTUAL — ACFR GAAP basis)${dryRun ? ' (dry-run)' : ''}\nFiscal years: ${years.join(', ')}\n`);
   if (!SUPABASE_KEY && !dryRun) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit(2); }
   const supabase = dryRun ? null : createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -189,7 +395,7 @@ async function main() {
   }
   let ds;
   if (!dryRun) {
-    const srcPayload = { name: 'California General Fund Revenue', api_type: 'pdf_download', dataset_type: 'revenue', dataset_id: 'ca-acfr-gf-revenue', base_url: 'https://www.sco.ca.gov/ard_state_acfr.html', fiscal_years: [2020,2021,2022,2023,2024,2025], municipality_id: muniId };
+    const srcPayload = { name: 'California General Fund Revenue', api_type: 'pdf_download', dataset_type: 'revenue', dataset_id: 'ca-acfr-gf-revenue', base_url: 'https://www.sco.ca.gov/ard_state_acfr.html', fiscal_years: [2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025], municipality_id: muniId };
     const { data: existing } = await supabase.schema('treasury').from('data_sources').select('id').eq('dataset_id', srcPayload.dataset_id).maybeSingle();
     if (existing?.id) { const { data } = await supabase.schema('treasury').from('data_sources').update(srcPayload).eq('id', existing.id).select().single(); ds = data; console.log(`data_source updated: ${ds.id}`); }
     else { const { data, error } = await supabase.schema('treasury').from('data_sources').insert(srcPayload).select().single(); if (error) { console.error('insert failed:', error.message); process.exit(2); } ds = data; console.log(`data_source created: ${ds.id}`); }
