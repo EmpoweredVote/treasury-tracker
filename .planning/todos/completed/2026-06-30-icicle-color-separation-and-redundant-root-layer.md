@@ -7,7 +7,15 @@ files:
   - src/components/BudgetIcicle.tsx
 origin_phase: 106
 requirements: []
+resolved: 2026-06-30
+resolved_by: "deefa15 fix(ui): distinct category colors + drop redundant single-root budget layer"
 ---
+
+> **RESOLVED 2026-06-30 (commit deefa15).** Reordered `DATA_VIZ_HUES` to interleave the color
+> wheel (cyan→red→yellow→purple→green) so adjacent top categories contrast, and added
+> `hoistSingleRoot()` in App.tsx (applied at the operating/revenue/active-budget setters) so a
+> single synthetic root's children render as the top level by default — each with its own color,
+> and the redundant 100% "click to start" layer is gone. Build passes. Ships on next deploy.
 
 ## Problem
 
