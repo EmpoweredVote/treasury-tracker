@@ -71,8 +71,8 @@
 **Plans:** 3 plans (wave 1: 105-01 PA loaders ∥ 105-02 IL loaders; wave 2: 105-03 live-load + verify)Plans:
 **Wave 1**
 
-- [ ] 105-01-PLAN.md — Build PA ACFR loaders (processPAAcfr.js + processPARevenueAcfr.js), extract FY2016–FY2025, dry-run tie-verify
-- [ ] 105-02-PLAN.md — Build IL ACFR loaders (processILAcfr.js + processILRevenueAcfr.js, audited-only), extract FY2021–FY2025, dry-run tie-verify
+- [x] 105-01-PLAN.md — Build PA ACFR loaders (processPAAcfr.js + processPARevenueAcfr.js), extract FY2016–FY2025, dry-run tie-verify
+- [x] 105-02-PLAN.md — Build IL ACFR loaders (processILAcfr.js + processILRevenueAcfr.js, audited-only), extract FY2021–FY2025, dry-run tie-verify
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
