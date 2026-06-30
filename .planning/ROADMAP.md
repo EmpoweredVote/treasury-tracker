@@ -92,7 +92,7 @@
 2. Full 50-node cohort source-chain audit clean (0 NULL/fragile/residue/out-of-window/dup/orphan), every displayed row basis-labelled; un-upgraded NASBO states still pass.
 3. Live-app UAT across PA + IL + the deepened pilot windows (revenue-by-source + spending-by-function + basis label + source chip + Money In) with Chris sign-off.
 
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 
 **Wave 1** *(both read-only + independent — run in parallel)*
 
@@ -101,7 +101,7 @@
 
 **Wave 2** *(blocked on Wave 1 passing)*
 
-- [ ] 106-03-PLAN.md — Live-app UAT checklist (8 D-04 anchors) + Chris human sign-off (autonomous: false) → 106-UAT-CHECKLIST.md
+- [x] 106-03-PLAN.md — Live-app UAT checklist (8 D-04 anchors) + Chris human sign-off (autonomous: false) → 106-UAT-CHECKLIST.md
 
 ---
 

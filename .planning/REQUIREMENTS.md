@@ -24,8 +24,8 @@
 
 ### Verification
 
-- [ ] **VER-03**: Each deepened pilot and each new state (PA, IL) is reconciled **independently from its own ACFR** (not loader self-report); the full 50-node cohort source-chain audit stays clean (0 NULL/fragile/residue/out-of-window/dup/orphan), every displayed row basis-labelled, un-upgraded NASBO states still pass.
-- [ ] **VER-04**: Live-app UAT across PA + IL + the deepened pilot windows (revenue-by-source + spending-by-function + basis label + source chip + Money In) with Chris sign-off.
+- [x] **VER-03**: Each deepened pilot and each new state (PA, IL) is reconciled **independently from its own ACFR** (not loader self-report); the full 50-node cohort source-chain audit stays clean (0 NULL/fragile/residue/out-of-window/dup/orphan), every displayed row basis-labelled, un-upgraded NASBO states still pass.
+- [x] **VER-04**: Live-app UAT across PA + IL + the deepened pilot windows (revenue-by-source + spending-by-function + basis label + source chip + Money In) with Chris sign-off.
 
 ## Future Requirements
 
@@ -58,8 +58,8 @@ Deferred to a follow-up milestone. Tracked but not in this roadmap.
 | ACFR-06 | Phase 105 | Complete |
 | ACFR-07 | Phase 105 | Complete |
 | ACFR-08 | Phase 104, 105 | Complete |
-| VER-03 | Phase 106 | Pending |
-| VER-04 | Phase 106 | Pending |
+| VER-03 | Phase 106 | Complete |
+| VER-04 | Phase 106 | Complete |
 
 **Coverage:**
 - v1 requirements: 8 total
