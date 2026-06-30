@@ -1,25 +1,27 @@
 #!/usr/bin/env node
 /**
- * California General Fund Revenue (by source) Loader — FY2020-FY2025 ACTUAL
+ * California General Fund Revenue (by source) Loader — FY2008-FY2025 ACTUAL
  * Source: State of California Annual Comprehensive Financial Report (ACFR), Governmental Funds
  *   Statement of Revenues, Expenditures and Changes in Fund Balances, GENERAL column
  *   (GAAP basis, in thousands). Published by the State Controller's Office (SCO).
+ *   FY2008–FY2019: `https://www.sco.ca.gov/Files-ARD/CAFR/cafr{NN}web.pdf` (CAFR dir)
+ *   FY2020–FY2025: `https://www.sco.ca.gov/Files-ARD/ACFR/acfr{NN}web.pdf` (ACFR dir)
  *
- * Phase 99 (ACFR-01 + ACFR-05). Revenue is NEW on the CA state node (NASBO had no
- *   revenue-by-source) → pure insert keyed (muni,fy,'revenue'). CA state node id (D-01):
- *   e1007bf5-bac9-4b1c-878e-f6834885f850.
+ * Phase 99 (ACFR-01 + ACFR-05): original FY2020–FY2025 loads.
+ * Phase 104 (DEEP-01): backward extension to FY2008–FY2019 under /Files-ARD/CAFR/.
+ *   CA state node id (D-01): e1007bf5-bac9-4b1c-878e-f6834885f850.
  *
  * Control = printed General-column "Total revenues". Each FY's transcribed rev-by-source
  *   categories must tie to the printed Total within $10M or the loader refuses to write
- *   (process.exit(2)). Bookends (recon-confirmed): FY2020 155,923,876k; FY2025 221,591,201k.
+ *   (process.exit(2)). Bookends (recon-confirmed): FY2008 97,774,378k; FY2025 221,591,201k.
  *
- * P2 clamp (ACFR-05): any negative GF revenue category renders at 0 area with the true
- *   signed value preserved in the label; the root total carries the net (which already
- *   nets the negative). NOTE: CA has NO negative GF revenue categories in this window,
- *   but the clamp is wired and will trigger if a future year shows one.
+ * P2 clamp (ACFR-05/ACFR-08): any negative GF revenue category renders at 0 area with the
+ *   true signed value preserved in the label; the root total carries the net (which already
+ *   nets the negative). CA market-loss years (FY2009, FY2016) may carry negative investment
+ *   income lines — the clamp is wired and will fire.
  *
  * Extraction: pdftotext -table on local PDF copies in _acfr-tmp/ca/ (NOT -layout).
- *   All 6 years tie to 0 diff vs. the printed General-column Total revenues.
+ *   All retained years tie to 0 diff vs. the printed General-column Total revenues.
  *
  * Usage:
  *   node scripts/processCARevenueAcfr.js [--dry-run] [--fy YYYY]
@@ -41,7 +43,20 @@ const STATE_NODE_ID = 'e1007bf5-bac9-4b1c-878e-f6834885f850'; // D-01
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+// FY2008–FY2019 use the /Files-ARD/CAFR/ directory (cafr{NN}web.pdf); FY2020+ use /Files-ARD/ACFR/.
 const SOURCES = {
+  2008: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr08web.pdf', date: '2008-06-30' },
+  2009: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr09web.pdf', date: '2009-06-30' },
+  2010: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr10web.pdf', date: '2010-06-30' },
+  2011: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr11web.pdf', date: '2011-06-30' },
+  2012: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr12web.pdf', date: '2012-06-30' },
+  2013: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr13web.pdf', date: '2013-06-30' },
+  2014: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr14web.pdf', date: '2014-06-30' },
+  2015: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr15web.pdf', date: '2015-06-30' },
+  2016: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr16web.pdf', date: '2016-06-30' },
+  2017: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr17web.pdf', date: '2017-06-30' },
+  2018: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr18web.pdf', date: '2018-06-30' },
+  2019: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr19web.pdf', date: '2019-06-30' },
   2020: { url: 'https://www.sco.ca.gov/Files-ARD/ACFR/acfr20web.pdf', date: '2020-06-30' },
   2021: { url: 'https://www.sco.ca.gov/Files-ARD/ACFR/acfr21web.pdf', date: '2021-06-30' },
   2022: { url: 'https://www.sco.ca.gov/Files-ARD/ACFR/acfr22web.pdf', date: '2022-06-30' },
@@ -177,7 +192,7 @@ function buildTree(fy) {
 async function main() {
   const { values: opts } = parseArgs({ options: { 'dry-run': { type: 'boolean', default: false }, fy: { type: 'string' } }, strict: false });
   const dryRun = opts['dry-run']; const targetFY = opts.fy ? parseInt(opts.fy, 10) : null;
-  const years = targetFY ? [targetFY] : [2020, 2021, 2022, 2023, 2024, 2025];
+  const years = targetFY ? [targetFY] : [2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
   console.log(`${STATE_NAME} GF Revenue Loader (ACTUAL — ACFR GAAP basis)${dryRun ? ' (dry-run)' : ''}\nFiscal years: ${years.join(', ')}\n`);
   if (!SUPABASE_KEY && !dryRun) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit(2); }
   const supabase = dryRun ? null : createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -189,7 +204,7 @@ async function main() {
   }
   let ds;
   if (!dryRun) {
-    const srcPayload = { name: 'California General Fund Revenue', api_type: 'pdf_download', dataset_type: 'revenue', dataset_id: 'ca-acfr-gf-revenue', base_url: 'https://www.sco.ca.gov/ard_state_acfr.html', fiscal_years: [2020,2021,2022,2023,2024,2025], municipality_id: muniId };
+    const srcPayload = { name: 'California General Fund Revenue', api_type: 'pdf_download', dataset_type: 'revenue', dataset_id: 'ca-acfr-gf-revenue', base_url: 'https://www.sco.ca.gov/ard_state_acfr.html', fiscal_years: [2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025], municipality_id: muniId };
     const { data: existing } = await supabase.schema('treasury').from('data_sources').select('id').eq('dataset_id', srcPayload.dataset_id).maybeSingle();
     if (existing?.id) { const { data } = await supabase.schema('treasury').from('data_sources').update(srcPayload).eq('id', existing.id).select().single(); ds = data; console.log(`data_source updated: ${ds.id}`); }
     else { const { data, error } = await supabase.schema('treasury').from('data_sources').insert(srcPayload).select().single(); if (error) { console.error('insert failed:', error.message); process.exit(2); } ds = data; console.log(`data_source created: ${ds.id}`); }
