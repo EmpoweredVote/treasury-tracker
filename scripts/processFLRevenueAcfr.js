@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Florida General Fund Revenue (by source) Loader — FY2022-FY2024 ACTUAL
+ * Florida General Fund Revenue (by source) Loader — FY2021-FY2024 ACTUAL
  * Source: State of Florida Annual Comprehensive Financial Report (ACFR), Governmental Funds
  *   Statement of Revenues, Expenditures and Changes in Fund Balances, GENERAL FUND column
  *   (GAAP basis, in thousands). Published by the Florida Dept. of Financial Services (DFS).
@@ -13,15 +13,17 @@
  *
  * Control = printed General-Fund-column "Total revenues". Each FY's transcribed rev-by-source
  *   categories must tie to the printed Total (thousands) or the loader refuses to write
- *   (process.exit(2)). Bookends (recon-confirmed): FY2022 57,241,428k; FY2024 59,810,603k.
+ *   (process.exit(2)). Bookends (recon-confirmed): FY2021 46,989,188k; FY2022 57,241,428k;
+ *   FY2024 59,810,603k.
  *
- * P2 clamp (ACFR-05): FL FY2022 has TWO negative GF revenue categories —
- *   "Investment earnings (losses)" −1,573,844k and "Other" −56,189k. Each renders at 0 area
- *   with the true signed value preserved in the label; the FY total carries the net (which
- *   already nets the negatives). This is the live clamp demonstration for Phase 100.
+ * P2 clamp (ACFR-05 / ACFR-08): FL FY2022 has TWO negative GF revenue categories —
+ *   "Investment earnings (losses)" −1,573,844k and "Other" −56,189k. FL FY2021 has ONE —
+ *   "Investment earnings (losses)" −398,287k. Each renders at 0 area with the true signed
+ *   value preserved in the label; the FY total carries the net (which already nets the
+ *   negatives). FY2021 is the Phase 104 clamp demonstration (ACFR-08).
  *
  * Extraction: pdftotext -table on local PDF copies in _acfr-tmp/fl/ (NOT -layout). The
- *   GENERAL FUND value is the 1st numeric token per row. All 3 years tie to 0 diff.
+ *   GENERAL FUND value is the 1st numeric token per row. All 4 years tie to 0 diff.
  *
  * Usage:
  *   node scripts/processFLRevenueAcfr.js [--dry-run] [--fy YYYY]
@@ -46,14 +48,24 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SE
 
 const FL_BASE = 'https://www.myfloridacfo.com/docs-sf/default-source/transparency-docs/cafr';
 const SOURCES = Object.fromEntries(
-  [2022, 2023, 2024].map(fy => [fy, { url: `${FL_BASE}/fye-${fy}-state-of-florida-annual-comprehensive-financial-report.pdf`, date: `${fy}-06-30` }])
+  [2021, 2022, 2023, 2024].map(fy => [fy, { url: `${FL_BASE}/fye-${fy}-state-of-florida-annual-comprehensive-financial-report.pdf`, date: `${fy}-06-30` }])
 );
 const dataSource = (fy) => `Florida State ACFR — General Fund Revenue (FY${fy} actual, GAAP basis)`;
 
 // GF net revenues by source — FL ACFR, GENERAL FUND column (raw thousands; ×UNITS → dollars).
 // Verbatim ACFR source names. total = printed General-Fund "Total revenues". 0-diff verified.
+// FY2021 has negative "Investment earnings (losses)" → P2 clamp fires (ACFR-08, Phase 104).
 // FY2022 has negative "Investment earnings (losses)" + "Other" → P2 clamp fires (ACFR-05).
 const REVENUE = {
+  2021: { total: 46_989_188, confidence: 'actual', categories: [
+    { name: 'Taxes',                                       total: 41_873_817 },
+    { name: 'Licenses and permits',                        total:    272_136 },
+    { name: 'Fees and charges',                            total:  1_629_633 },
+    { name: 'Grants and donations',                        total:  3_068_898 },
+    { name: 'Investment earnings (losses)',                total:   -398_287 },
+    { name: 'Fines, forfeits, settlements and judgments',  total:    526_221 },
+    { name: 'Other',                                       total:     16_770 },
+  ]},
   2022: { total: 57_241_428, confidence: 'actual', categories: [
     { name: 'Taxes',                                       total: 51_757_327 },
     { name: 'Licenses and permits',                        total:    450_317 },
@@ -106,7 +118,7 @@ function buildTree(fy) {
 async function main() {
   const { values: opts } = parseArgs({ options: { 'dry-run': { type: 'boolean', default: false }, fy: { type: 'string' } }, strict: false });
   const dryRun = opts['dry-run']; const targetFY = opts.fy ? parseInt(opts.fy, 10) : null;
-  const years = targetFY ? [targetFY] : [2022, 2023, 2024];
+  const years = targetFY ? [targetFY] : [2021, 2022, 2023, 2024];
   console.log(`${STATE_NAME} GF Revenue Loader (ACTUAL — ACFR GAAP basis, thousands×${UNITS.toLocaleString()})${dryRun ? ' (dry-run)' : ''}\nFiscal years: ${years.join(', ')}\n`);
   if (!SUPABASE_KEY && !dryRun) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit(2); }
   const supabase = dryRun ? null : createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -118,7 +130,7 @@ async function main() {
   }
   let ds;
   if (!dryRun) {
-    const srcPayload = { name: 'Florida General Fund Revenue', api_type: 'pdf_download', dataset_type: 'revenue', dataset_id: 'fl-acfr-gf-revenue', base_url: 'https://www.myfloridacfo.com/transparency', fiscal_years: [2022,2023,2024], municipality_id: muniId };
+    const srcPayload = { name: 'Florida General Fund Revenue', api_type: 'pdf_download', dataset_type: 'revenue', dataset_id: 'fl-acfr-gf-revenue', base_url: 'https://www.myfloridacfo.com/transparency', fiscal_years: [2021,2022,2023,2024], municipality_id: muniId };
     const { data: existing } = await supabase.schema('treasury').from('data_sources').select('id').eq('dataset_id', srcPayload.dataset_id).maybeSingle();
     if (existing?.id) { const { data } = await supabase.schema('treasury').from('data_sources').update(srcPayload).eq('id', existing.id).select().single(); ds = data; console.log(`data_source updated: ${ds.id}`); }
     else { const { data, error } = await supabase.schema('treasury').from('data_sources').insert(srcPayload).select().single(); if (error) { console.error('insert failed:', error.message); process.exit(2); } ds = data; console.log(`data_source created: ${ds.id}`); }

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Florida General Fund Operating (Expenditure) Loader — FY2022-FY2024 ACTUAL
+ * Florida General Fund Operating (Expenditure) Loader — FY2021-FY2024 ACTUAL
  * Source: State of Florida Annual Comprehensive Financial Report (ACFR), Governmental Funds
  *   Statement of Revenues, Expenditures and Changes in Fund Balances, GENERAL FUND column
  *   (GAAP basis, in thousands). Published by the Florida Dept. of Financial Services (DFS).
@@ -22,7 +22,7 @@
  *   row (the `-table` layout indents smaller numbers, but the per-FY sum ties exactly).
  *
  * Extraction: pdftotext -table on local PDF copies in _acfr-tmp/fl/ (NOT -layout).
- *   All 3 years tie to 0 diff vs. the printed General-Fund Total expenditures.
+ *   All 4 years tie to 0 diff vs. the printed General-Fund Total expenditures.
  *
  * Usage:
  *   node scripts/processFLAcfr.js [--dry-run] [--fy YYYY]
@@ -47,14 +47,25 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SE
 
 const FL_BASE = 'https://www.myfloridacfo.com/docs-sf/default-source/transparency-docs/cafr';
 const SOURCES = Object.fromEntries(
-  [2022, 2023, 2024].map(fy => [fy, { url: `${FL_BASE}/fye-${fy}-state-of-florida-annual-comprehensive-financial-report.pdf`, date: `${fy}-06-30` }])
+  [2021, 2022, 2023, 2024].map(fy => [fy, { url: `${FL_BASE}/fye-${fy}-state-of-florida-annual-comprehensive-financial-report.pdf`, date: `${fy}-06-30` }])
 );
 const dataSource = (fy) => `Florida State ACFR — General Fund (FY${fy} actual, GAAP basis)`;
 
 // GF expenditures by function — FL ACFR, GENERAL FUND column (raw thousands; ×UNITS → dollars).
 // Verbatim ACFR function names. total = printed General-Fund "Total expenditures" (thousands).
-// 0-diff verified. Zero-value lines omitted.
+// 0-diff verified. Zero-value lines (Transportation FY2021) omitted.
 const EXPENDITURES = {
+  2021: { total: 37_277_963, confidence: 'actual', categories: [
+    { name: 'General government',                  total:  4_241_011 },
+    { name: 'Education',                           total: 18_113_925 },
+    { name: 'Human services',                      total:  9_728_416 },
+    { name: 'Criminal justice and corrections',    total:  3_981_348 },
+    { name: 'Natural resources and environment',   total:    585_437 },
+    { name: 'Judicial branch',                     total:    479_173 },
+    { name: 'Capital outlay',                      total:    125_822 },
+    { name: 'Debt service — Principal retirement', total:     19_732 },
+    { name: 'Debt service — Interest and fiscal charges', total: 3_099 },
+  ]},
   2022: { total: 36_205_183, confidence: 'actual', categories: [
     { name: 'General government',                  total:  5_149_229 },
     { name: 'Education',                           total: 15_922_607 },
@@ -109,7 +120,7 @@ function buildTree(fy) {
 async function main() {
   const { values: opts } = parseArgs({ options: { 'dry-run': { type: 'boolean', default: false }, fy: { type: 'string' } }, strict: false });
   const dryRun = opts['dry-run']; const targetFY = opts.fy ? parseInt(opts.fy, 10) : null;
-  const years = targetFY ? [targetFY] : [2022, 2023, 2024];
+  const years = targetFY ? [targetFY] : [2021, 2022, 2023, 2024];
   console.log(`${STATE_NAME} GF Operating Loader (ACTUAL — ACFR GAAP basis, thousands×${UNITS.toLocaleString()})${dryRun ? ' (dry-run)' : ''}\nFiscal years: ${years.join(', ')}\n`);
   if (!SUPABASE_KEY && !dryRun) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit(2); }
   const supabase = dryRun ? null : createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -121,7 +132,7 @@ async function main() {
   }
   let ds;
   if (!dryRun) {
-    const srcPayload = { name: 'Florida General Fund Operating Budget', api_type: 'pdf_download', dataset_type: 'operating', dataset_id: 'fl-acfr-gf-operating', base_url: 'https://www.myfloridacfo.com/transparency', fiscal_years: [2022,2023,2024], municipality_id: muniId };
+    const srcPayload = { name: 'Florida General Fund Operating Budget', api_type: 'pdf_download', dataset_type: 'operating', dataset_id: 'fl-acfr-gf-operating', base_url: 'https://www.myfloridacfo.com/transparency', fiscal_years: [2021,2022,2023,2024], municipality_id: muniId };
     const { data: existing } = await supabase.schema('treasury').from('data_sources').select('id').eq('dataset_id', srcPayload.dataset_id).maybeSingle();
     if (existing?.id) { const { data } = await supabase.schema('treasury').from('data_sources').update(srcPayload).eq('id', existing.id).select().single(); ds = data; console.log(`data_source updated: ${ds.id}`); }
     else { const { data, error } = await supabase.schema('treasury').from('data_sources').insert(srcPayload).select().single(); if (error) { console.error('insert failed:', error.message); process.exit(2); } ds = data; console.log(`data_source created: ${ds.id}`); }
