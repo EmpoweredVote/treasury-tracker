@@ -24,10 +24,53 @@
 - ✅ **v2.9 Minnesota Local Government Expansion** — Phases 89-93 (shipped 2026-06-28)
 - ✅ **v2.10 State General Fund Sourcing** — Phases 94-97 (shipped 2026-06-29)
 - ✅ **v2.11 State ACFR Revenue-by-Source Upgrades (Pilot)** — Phases 98-102 (shipped 2026-06-30)
+- 🚧 **v2.12 State ACFR Long Tail** — Phases 103-106 (in progress)
 
 ---
 
 ## Phases
+
+### v2.12 State ACFR Long Tail (Phases 103-106) — ACTIVE
+
+**Milestone goal:** Extend the proven State-ACFR GAAP upgrade — deepen the four v2.11 pilot states' history (CA/TX/NY/FL) as far back as durable ACFR URLs allow, and bring **Pennsylvania + Illinois** (the two largest remaining NASBO states) onto full ACFR revenue-by-source + finer spending-by-function.
+
+**Constraints:** Free public ACFR PDFs only ($0 / $5 AI gate); ACFR **GAAP** basis (audited actuals) — the General Fund column of the Governmental Funds *Statement of Revenues, Expenditures and Changes in Fund Balances*, read via `pdftotext -table`; every figure durably sourced + **basis-labelled**; P2 negative-category clamp; **idempotent never-overwrite** (ACFR replaces NASBO per state-FY; un-upgraded states stay on NASBO; existing pilot rows undisturbed by deepening); **executed inline**. No frontend work — the v2.11 data-driven "Money In" view + `?dataset=revenue` deep-link auto-enable revenue once PA/IL load. Reuse the v2.11 `process{CA,TX,NY,FL}*.js` loaders (deepening = add older per-year URLs to each `SOURCES` map) + new PA/IL loaders on the same pattern; `scripts/loadStateGF.mjs` stays the NASBO fallback.
+
+**Critical path:** 103 → (104 ∥ 105) → 106. Phase 103 recon locates the deeper-history URLs + PA/IL sources before any load; 104 (deepen the 4 pilots) and 105 (PA+IL) are independent and can run in parallel after recon; 106 verifies + earns Chris's live sign-off (the Phase 98/102 mold).
+
+#### Phase 103: Recon — Deeper-History URLs + PA/IL ACFR Source Location (RECON-04, RECON-05)
+**Goal:** Before any load, locate the deeper-history ACFR URLs for each pilot below its current window AND locate the PA + IL ACFR Governmental Funds GF statements, so the deepening + new-state loads target the right years/columns with confirmed durable sources.
+**Requirements:** RECON-04, RECON-05
+**Success criteria:**
+1. For each pilot (CA/TX/NY/FL), the deeper-history ACFR URLs below its current window (FL pre-FY2022, CA pre-FY2020, NY pre-FY2015, TX FY2016) are probed; the cleanly `pdftotext -table`-extractable additional FY depth + durable per-year URLs are recorded, with a gap log for years that don't cleanly extract.
+2. PA + IL ACFR GF statements located (GENERAL FUND column, units, durable per-year URLs, extractable FY depth), bookend tie-confirmed via `pdftotext -table`.
+3. The loader-reuse + NASBO-replace plan is written per state (SOURCES-map extension for the 4 pilots; which loader/config shape fits PA + IL).
+
+#### Phase 104: Deepen the 4 Pilots (DEEP-01, RECON-05, ACFR-08)
+**Goal:** Extend the CA/TX/NY/FL ACFR windows backward as deep as durable URLs allow, reusing the existing loaders.
+**Requirements:** DEEP-01, RECON-05, ACFR-08
+**Success criteria:**
+1. Each pilot's window is extended backward (FL pre-FY2022, CA pre-FY2020, NY pre-FY2015, TX FY2016) with each added FY tying to its ACFR GF column total, GAAP basis-labelled.
+2. Idempotent never-overwrite — existing pilot rows, un-upgraded NASBO states, and PA/IL are untouched.
+3. Any negative-category year in the added years renders via the P2 clamp.
+
+#### Phase 105: PA + IL ACFR Upgrade (ACFR-06, ACFR-07, ACFR-08, RECON-05)
+**Goal:** Load PA + IL GF revenue-by-source + GAAP spending-by-function from their ACFRs, replacing their NASBO operating rows idempotently.
+**Requirements:** ACFR-06, ACFR-07, ACFR-08, RECON-05
+**Success criteria:**
+1. PA + IL state nodes show ACFR-sourced GF revenue-by-source + spending-by-function (GAAP basis-labelled), each FY tying to the ACFR GF column totals.
+2. NASBO operating rows replaced idempotently (never-overwrite); un-upgraded states unchanged; Money In auto-enables on PA/IL.
+3. Negative-category years render via the P2 clamp.
+
+#### Phase 106: Verification + Source-Chain Audit + UAT (VER-03, VER-04)
+**Goal:** Prove the deepened + new data is real, sourced, and residue-free across the whole cohort, then earn Chris's live sign-off.
+**Requirements:** VER-03, VER-04
+**Success criteria:**
+1. Each deepened pilot + PA + IL reconciled **independently from its own ACFR** (re-derived totals, not loader self-report) within an explained tolerance.
+2. Full 50-node cohort source-chain audit clean (0 NULL/fragile/residue/out-of-window/dup/orphan), every displayed row basis-labelled; un-upgraded NASBO states still pass.
+3. Live-app UAT across PA + IL + the deepened pilot windows (revenue-by-source + spending-by-function + basis label + source chip + Money In) with Chris sign-off.
+
+---
 
 <details>
 <summary>✅ v2.11 State ACFR Revenue-by-Source Upgrades (Phases 98-102) — SHIPPED 2026-06-30 (full detail in milestones/v2.11-ROADMAP.md)</summary>
