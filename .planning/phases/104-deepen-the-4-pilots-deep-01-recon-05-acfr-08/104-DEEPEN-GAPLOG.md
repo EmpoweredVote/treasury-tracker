@@ -83,4 +83,74 @@ All category names in the loaders are verbatim from the ACFR printed statement.
 
 ---
 
-*Wave 1 (dry-run) complete 2026-06-30. Wave 2 (104-04) appends the live Load Disposition.*
+*Wave 1 (dry-run) complete 2026-06-30. Wave 2 (104-04) live loads complete 2026-06-30.*
+
+---
+
+## Load Disposition — Wave 2 Live Loads (Plan 104-04, 2026-06-30)
+
+### NY — FY2003-FY2014
+
+| FY | Operating loaded | Revenue loaded | Skipped | Notes |
+|----|-----------------|----------------|---------|-------|
+| FY2003 | YES — $40,910,000,000 | YES — $29,250,000,000 | — | data_source: "New York State ACFR — General Fund (FY2003 actual, GAAP basis)" |
+| FY2004 | YES — $43,386,000,000 | YES — $32,489,000,000 | — | |
+| FY2005 | YES — $45,104,000,000 | YES — $35,929,000,000 | — | |
+| FY2006 | YES — $48,321,000,000 | YES — $41,091,000,000 | — | |
+| FY2007 | YES — $51,936,000,000 | YES — $44,259,000,000 | — | |
+| FY2008 | YES — $54,540,000,000 | YES — $45,423,000,000 | — | |
+| FY2009 | YES — $56,630,000,000 | YES — $40,228,000,000 | — | |
+| FY2010 | YES — $54,129,000,000 | YES — $44,883,000,000 | — | |
+| FY2011 | YES — $55,090,000,000 | YES — $47,069,000,000 | — | |
+| FY2012 | YES — $57,911,000,000 | YES — $48,344,000,000 | — | |
+| FY2013 | YES — $59,796,000,000 | YES — $50,798,000,000 | — | Newer category names (FY2013+ format) |
+| FY2014 | YES — $59,782,000,000 | YES — $48,459,000,000 | — | Newer category names (FY2013+ format) |
+
+**0 FYs skipped. 24 rows live (12 FYs × 2 dataset_types). validate() PASS on every run.**
+
+**Idempotency re-run (NY --fy 2003, second run):** Loader output "Loaded 0 rows" — RPC found no net change. Source stamp re-applied with identical values. PASS.
+
+### CA — FY2008-FY2019
+
+| FY | Operating loaded | Revenue loaded | Skipped | Notes |
+|----|-----------------|----------------|---------|-------|
+| FY2008 | YES — $98,975,042,000 | YES — $97,774,378,000 | — | data_source: "California State ACFR — General Fund (FY2008 actual, GAAP basis)" |
+| FY2009 | YES — $92,605,222,000 | YES — $84,202,979,000 | — | |
+| FY2010 | YES — $87,247,026,000 | YES — $85,129,367,000 | — | |
+| FY2011 | YES — $90,431,674,000 | YES — $93,479,815,000 | — | |
+| FY2012 | YES — $88,281,652,000 | YES — $86,536,015,000 | — | |
+| FY2013 | YES — $90,114,980,000 | YES — $99,379,153,000 | — | |
+| FY2014 | YES — $95,337,085,000 | YES — $104,182,125,000 | — | |
+| FY2015 | YES — $107,163,567,000 | YES — $116,777,374,000 | — | |
+| FY2016 | YES — $111,804,448,000 | YES — $117,573,422,000 | — | Category names shift to FY2020+ schema |
+| FY2017 | YES — $116,260,039,000 | YES — $125,121,644,000 | — | |
+| FY2018 | YES — $124,239,316,000 | YES — $135,625,020,000 | — | |
+| FY2019 | YES — $129,113,153,000 | YES — $140,503,627,000 | — | |
+
+**0 FYs skipped. 24 rows live (12 FYs × 2 dataset_types). validate() PASS on every run.**
+
+**Idempotency re-run (CA --fy 2008, second run):** Loader output "Loaded 0 rows" — RPC found no net change. Source stamp re-applied with identical values. PASS.
+
+### FL — FY2021
+
+| FY | Operating loaded | Revenue loaded | Skipped | Notes |
+|----|-----------------|----------------|---------|-------|
+| FY2021 | YES — $37,277,963,000 | YES — $46,989,188,000 | — | P2 clamp fires on "Investment earnings (losses)" −$398,287K → rendered 0 with "(net loss — shown at 0)" label; root total $46,989,188,000 preserves the net (ACFR-08 confirmed) |
+
+**0 FYs skipped. 2 rows live (1 FY × 2 dataset_types). validate() PASS.**
+
+**Idempotency re-run (FL --fy 2021, second run):** Loader output "Loaded 0 rows" — RPC found no net change. P2 clamp re-applied with identical values. PASS.
+
+### Summary
+
+| State | Added FYs loaded | Skipped | Idempotency | Existing pilot rows |
+|-------|-----------------|---------|-------------|---------------------|
+| NY | 12 (FY2003-FY2014), 24 DB rows | 0 | PASS (FY2003 second run → 0 net change) | FY2015-FY2024 unchanged |
+| CA | 12 (FY2008-FY2019), 24 DB rows | 0 | PASS (FY2008 second run → 0 net change) | FY2020-FY2025 unchanged |
+| FL | 1 (FY2021), 2 DB rows | 0 | PASS (FY2021 second run → 0 net change) | FY2022-FY2024 unchanged |
+
+**Total: 25 added FYs live, 50 new DB rows, 0 gaps, 0 skipped. All GAAP-basis labelled. All source_url non-null.**
+
+**Other states (spot-checked):** TX — ACFR rows FY2015-FY2024 untouched. PA — 2 NASBO rows (FY2023-24) untouched. IL — 2 NASBO rows (FY2023-24) untouched. MN — ACFR rows untouched.
+
+**DB query (2026-06-30):** 24 NY added rows + 24 CA added rows + 2 FL added rows = 50 rows all present with GAAP-basis data_source labels and non-null source_url/source_date. Zero null source_urls on any added row confirmed by explicit null-check query.
