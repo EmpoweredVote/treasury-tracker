@@ -61,6 +61,11 @@
 1. PA + IL state nodes show ACFR-sourced GF revenue-by-source + spending-by-function (GAAP basis-labelled), each FY tying to the ACFR GF column totals.
 2. NASBO operating rows replaced idempotently (never-overwrite); un-upgraded states unchanged; Money In auto-enables on PA/IL.
 3. Negative-category years render via the P2 clamp.
+**Plans:** 3 plans (wave 1: 105-01 PA loaders ∥ 105-02 IL loaders; wave 2: 105-03 live-load + verify)
+Plans:
+- [ ] 105-01-PLAN.md — Build PA ACFR loaders (processPAAcfr.js + processPARevenueAcfr.js), extract FY2016–FY2025, dry-run tie-verify
+- [ ] 105-02-PLAN.md — Build IL ACFR loaders (processILAcfr.js + processILRevenueAcfr.js, audited-only), extract FY2021–FY2025, dry-run tie-verify
+- [ ] 105-03-PLAN.md — Live-load PA+IL (NASBO replaced in place), accept-relabel + P2 clamp + idempotency + Money-In + cohort-untouched DB verification
 
 #### Phase 106: Verification + Source-Chain Audit + UAT (VER-03, VER-04)
 **Goal:** Prove the deepened + new data is real, sourced, and residue-free across the whole cohort, then earn Chris's live sign-off.
