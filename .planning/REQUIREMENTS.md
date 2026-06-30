@@ -29,7 +29,7 @@
 ### Verification
 
 - [x] **VER-01**: Each upgraded state is reconciled **independently from its own ACFR** (not loader self-report); the full 50-node cohort source-chain audit is clean (0 NULL/fragile/residue/out-of-window/dup/orphan), every displayed row basis-labelled.
-- [ ] **VER-02**: Live-app UAT across the 4 upgraded nodes (revenue-by-source + spending-by-function + basis label + source chip) with Chris sign-off.
+- [x] **VER-02**: Live-app UAT across the 4 upgraded nodes (revenue-by-source + spending-by-function + basis label + source chip) with Chris sign-off.
 
 ## Future Requirements
 
@@ -75,7 +75,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REVUX-01 | Phase 101 | Complete |
 | REVUX-02 | Phase 101 | Complete |
 | VER-01 | Phase 102 | Complete |
-| VER-02 | Phase 102 | Pending |
+| VER-02 | Phase 102 | Complete |
 
 **Coverage:**
 - v1 requirements: 12 total
