@@ -9,8 +9,8 @@
 
 ### Recon & Data Integrity
 
-- [ ] **RECON-04**: Recon locates (a) the deeper-history ACFR URLs for each pilot below its current window — FL pre-FY2022, CA pre-FY2020, NY pre-FY2015, TX FY2016 — and (b) the **PA** + **IL** ACFR Governmental Funds *Statement of Revenues, Expenditures and Changes in Fund Balances* (GENERAL FUND column, units, durable per-year URLs, cleanly `pdftotext -table`-extractable FY depth), each bookend tie-confirmed, with a per-state gap log for years that don't cleanly extract.
-- [ ] **RECON-05**: Each deepened/new state's ACFR rows **replace** its NASBO operating rows (one basis per state-FY) idempotently and never-overwriting; un-upgraded NASBO states remain unchanged on `scripts/loadStateGF.mjs`; the existing CA/TX/NY/FL ACFR rows are not disturbed by the deepening.
+- [x] **RECON-04**: Recon locates (a) the deeper-history ACFR URLs for each pilot below its current window — FL pre-FY2022, CA pre-FY2020, NY pre-FY2015, TX FY2016 — and (b) the **PA** + **IL** ACFR Governmental Funds *Statement of Revenues, Expenditures and Changes in Fund Balances* (GENERAL FUND column, units, durable per-year URLs, cleanly `pdftotext -table`-extractable FY depth), each bookend tie-confirmed, with a per-state gap log for years that don't cleanly extract.
+- [x] **RECON-05**: Each deepened/new state's ACFR rows **replace** its NASBO operating rows (one basis per state-FY) idempotently and never-overwriting; un-upgraded NASBO states remain unchanged on `scripts/loadStateGF.mjs`; the existing CA/TX/NY/FL ACFR rows are not disturbed by the deepening.
 
 ### State ACFR Deepening (the 4 pilots)
 
@@ -52,8 +52,8 @@ Deferred to a follow-up milestone. Tracked but not in this roadmap.
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| RECON-04 | Phase 103 | Pending |
-| RECON-05 | Phase 104, 105 | Pending |
+| RECON-04 | Phase 103 | Complete |
+| RECON-05 | Phase 104, 105 | Complete |
 | DEEP-01 | Phase 104 | Pending |
 | ACFR-06 | Phase 105 | Pending |
 | ACFR-07 | Phase 105 | Pending |
