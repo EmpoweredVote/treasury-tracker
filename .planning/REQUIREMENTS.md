@@ -28,7 +28,7 @@
 
 ### Verification
 
-- [ ] **VER-01**: Each upgraded state is reconciled **independently from its own ACFR** (not loader self-report); the full 50-node cohort source-chain audit is clean (0 NULL/fragile/residue/out-of-window/dup/orphan), every displayed row basis-labelled.
+- [x] **VER-01**: Each upgraded state is reconciled **independently from its own ACFR** (not loader self-report); the full 50-node cohort source-chain audit is clean (0 NULL/fragile/residue/out-of-window/dup/orphan), every displayed row basis-labelled.
 - [ ] **VER-02**: Live-app UAT across the 4 upgraded nodes (revenue-by-source + spending-by-function + basis label + source chip) with Chris sign-off.
 
 ## Future Requirements
@@ -74,7 +74,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ACFR-05 | Phase 99, 100 | Partial (CA/TX done) |
 | REVUX-01 | Phase 101 | Complete |
 | REVUX-02 | Phase 101 | Complete |
-| VER-01 | Phase 102 | Pending |
+| VER-01 | Phase 102 | Complete |
 | VER-02 | Phase 102 | Pending |
 
 **Coverage:**
