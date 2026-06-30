@@ -76,7 +76,7 @@
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 105-03-PLAN.md — Live-load PA+IL (NASBO replaced in place), accept-relabel + P2 clamp + idempotency + Money-In + cohort-untouched DB verification
+- [x] 105-03-PLAN.md — Live-load PA+IL (NASBO replaced in place), accept-relabel + P2 clamp + idempotency + Money-In + cohort-untouched DB verification
 
 **Cross-cutting constraints:**
 
