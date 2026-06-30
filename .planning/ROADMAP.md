@@ -92,6 +92,17 @@
 2. Full 50-node cohort source-chain audit clean (0 NULL/fragile/residue/out-of-window/dup/orphan), every displayed row basis-labelled; un-upgraded NASBO states still pass.
 3. Live-app UAT across PA + IL + the deepened pilot windows (revenue-by-source + spending-by-function + basis label + source chip + Money In) with Chris sign-off.
 
+**Plans:** 3 plans
+
+**Wave 1** *(both read-only + independent — run in parallel)*
+
+- [ ] 106-01-PLAN.md — Blind independent ACFR re-derivation of the risk-weighted sample (~18 ties: CA/NY/FL deepened bookends + middle, PA/IL bookends, FL FY2021 + IL FY2022 clamp years), exact-0 tolerance → 106-REDERIVATION.md
+- [ ] 106-02-PLAN.md — 50-node cohort source-chain audit (7 invariants) over the v2.12-augmented windows + idempotency re-run + D-06 hole-verdict reconciliation → 106-COHORT-AUDIT.md
+
+**Wave 2** *(blocked on Wave 1 passing)*
+
+- [ ] 106-03-PLAN.md — Live-app UAT checklist (8 D-04 anchors) + Chris human sign-off (autonomous: false) → 106-UAT-CHECKLIST.md
+
 ---
 
 <details>
