@@ -125,6 +125,10 @@ screenshots/
 # Minnesota OSA recon sample downloads — not committed
 _mn-recon/
 
+# State ACFR recon working copies (downloaded PDFs + extracted text) — local re-derivation only,
+# never committed; the app links the official public source_url for every figure (Phase 98/103).
+_acfr-work/
+
 # MN load failure logs (runtime, not tracked)
 scripts/load-mn-*.failures.txt
 
