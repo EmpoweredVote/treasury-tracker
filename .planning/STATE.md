@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.12
 milestone_name: State ACFR Long Tail
-status: executing
-last_updated: "2026-06-30T18:55:31.804Z"
+status: ready_to_plan
+last_updated: 2026-06-30T19:51:46.345Z
 last_activity: 2026-06-30 -- Phase 105 execution started
 progress:
   total_phases: 30
   completed_phases: 2
   total_plans: 10
-  completed_plans: 7
+  completed_plans: 10
   percent: 7
+stopped_at: Phase 105 complete (3/3) — ready to discuss Phase 106
 ---
 
 # State
@@ -20,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-29 — v2.11 State ACFR Revenue-by-Source Upgrades STARTED; v2.10 State General Fund Sourcing SHIPPED + archived)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** Phase 105 — pa-il-acfr-upgrade-acfr-06-acfr-07-acfr-08-recon-05
+**Current focus:** Phase 106 — verification + source chain audit + uat (ver 03, ver 04)
 
 ## Current Position
 
-Phase: 105 (pa-il-acfr-upgrade-acfr-06-acfr-07-acfr-08-recon-05) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 105
-Last activity: 2026-06-30 -- Phase 105 execution started
+Phase: 106
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-06-30
 
 ## Phase Overview — v2.11 State ACFR Revenue-by-Source Upgrades (Pilot)
 

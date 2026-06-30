@@ -68,7 +68,7 @@
 2. NASBO operating rows replaced idempotently (never-overwrite); un-upgraded states unchanged; Money In auto-enables on PA/IL.
 3. Negative-category years render via the P2 clamp.
 
-**Plans:** 3 plans (wave 1: 105-01 PA loaders ∥ 105-02 IL loaders; wave 2: 105-03 live-load + verify)Plans:
+**Plans:** 3/3 plans complete
 **Wave 1**
 
 - [x] 105-01-PLAN.md — Build PA ACFR loaders (processPAAcfr.js + processPARevenueAcfr.js), extract FY2016–FY2025, dry-run tie-verify
