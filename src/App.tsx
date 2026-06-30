@@ -52,6 +52,24 @@ function toSlug(m: Municipality): string {
   return `${m.name.toLowerCase().replace(/\s+/g, '-')}-${m.state.toLowerCase()}`;
 }
 
+// Some entities (notably state General Fund budgets) wrap every category under a
+// single synthetic root node ("<Entity> General Fund Budget"). At the top level
+// that root is a redundant 100% "click to start" layer, and because the icicle
+// colors a branch by its root index, it also collapses every child to one color.
+// Hoist the root's children to the top level so the real categories render by
+// default — each with its own color — and the duplicate layer disappears.
+// metadata.totalBudget is preserved (the children sum to the root total), so the
+// headline amount shown above the chart is unchanged. No-op for multi-root trees
+// (cities, federal, nonprofit) and for a single leaf root with no children.
+function hoistSingleRoot(data: BudgetData | null): BudgetData | null {
+  if (!data) return data;
+  const top = data.categories ?? [];
+  if (top.length === 1 && (top[0].subcategories?.length ?? 0) > 0) {
+    return { ...data, categories: top[0].subcategories! };
+  }
+  return data;
+}
+
 // Sync all three params to URL without page reload (D-10, D-11)
 // lens param only appears for the federal agency lens (Phase 45)
 function syncURL(entity: Municipality, year: string, dataset: string, lens?: string) {
@@ -333,8 +351,8 @@ function App() {
 
     Promise.all(promises)
       .then(([operating, revenue, salaries]) => {
-        setOperatingBudgetData(operating);
-        setRevenueData(revenue);
+        setOperatingBudgetData(hoistSingleRoot(operating));
+        setRevenueData(hoistSingleRoot(revenue));
         setSalariesData(salaries);
       })
       .catch(error => {
@@ -380,7 +398,7 @@ function App() {
     const { fiscalYear, periodLabel } = parsePeriod(selectedYear);
     loadBudgetData(fiscalYear, selectedEntity.name, selectedEntity.state, requestDataset, periodLabel)
       .then(data => {
-        setBudgetData(data);
+        setBudgetData(hoistSingleRoot(data));
         setLoading(false);
       })
       .catch(error => {
@@ -488,7 +506,7 @@ function App() {
 
       clearCache();
       loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'revenue', periodLabel)
-        .then(data => setRevenueData(data))
+        .then(data => setRevenueData(hoistSingleRoot(data)))
         .catch(err => console.error('Post-donation revenue refetch failed:', err));
     };
 

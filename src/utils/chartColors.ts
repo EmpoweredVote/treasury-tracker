@@ -6,9 +6,14 @@
  * never EV brand tokens (ev-coral, ev-muted-blue, ev-yellow).
  */
 
+// Ordered so consecutive indices land on contrasting parts of the color wheel.
+// The icicle/cards color top-level categories by position (0,1,2,…), so a
+// family-grouped order (teal→skyblue→ocean) made the largest adjacent categories
+// nearly indistinguishable. Interleaving cyan→red→yellow→purple→green keeps the
+// first ~5 categories (which dominate most budgets) clearly distinct.
 export const DATA_VIZ_HUES = [
-  'teal', 'skyblue', 'ocean', 'coral', 'terracotta',
-  'yellow', 'honey', 'sage', 'dusk', 'stone'
+  'teal', 'coral', 'yellow', 'dusk', 'sage',
+  'skyblue', 'terracotta', 'honey', 'ocean', 'stone'
 ] as const;
 
 export type DataVizShade = '100' | '300' | '400' | '500' | '700';
