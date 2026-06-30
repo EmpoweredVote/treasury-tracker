@@ -96,8 +96,8 @@
 
 **Wave 1** *(both read-only + independent — run in parallel)*
 
-- [ ] 106-01-PLAN.md — Blind independent ACFR re-derivation of the risk-weighted sample (~18 ties: CA/NY/FL deepened bookends + middle, PA/IL bookends, FL FY2021 + IL FY2022 clamp years), exact-0 tolerance → 106-REDERIVATION.md
-- [ ] 106-02-PLAN.md — 50-node cohort source-chain audit (7 invariants) over the v2.12-augmented windows + idempotency re-run + D-06 hole-verdict reconciliation → 106-COHORT-AUDIT.md
+- [x] 106-01-PLAN.md — Blind independent ACFR re-derivation of the risk-weighted sample (~18 ties: CA/NY/FL deepened bookends + middle, PA/IL bookends, FL FY2021 + IL FY2022 clamp years), exact-0 tolerance → 106-REDERIVATION.md
+- [x] 106-02-PLAN.md — 50-node cohort source-chain audit (7 invariants) over the v2.12-augmented windows + idempotency re-run + D-06 hole-verdict reconciliation → 106-COHORT-AUDIT.md
 
 **Wave 2** *(blocked on Wave 1 passing)*
 
