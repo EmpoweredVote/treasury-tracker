@@ -45,7 +45,7 @@ export function extractMAGeneralFund(txt) {
   // Find candidate REVENUES headers past the MD&A/TOC (line > 1500), with a General-Fund header above
   // and a Total revenues / EXPENDITURES / Total expenditures sequence below.
   for (let i = 1500; i < lines.length; i++) {
-    if (!/^\s*REVENUES\s*$/i.test(lines[i])) continue;
+    if (!/^\s*REVENUES:?\s*$/i.test(lines[i])) continue;
     // header region above must reference "General" and "Governmental Funds"
     const header = lines.slice(Math.max(0, i - 18), i).join(' ');
     if (!/General/.test(header) || !/Governmental Funds/i.test(header)) continue;
@@ -53,7 +53,7 @@ export function extractMAGeneralFund(txt) {
     let tRev = -1, expH = -1, tExp = -1;
     for (let j = i + 1; j < Math.min(lines.length, i + 400); j++) {
       if (tRev < 0 && /^\s*Total revenues/i.test(lines[j])) tRev = j;
-      else if (tRev > 0 && expH < 0 && /^\s*EXPENDITURES\s*$/i.test(lines[j])) expH = j;
+      else if (tRev > 0 && expH < 0 && /^\s*EXPENDITURES:?\s*$/i.test(lines[j])) expH = j;
       else if (expH > 0 && /^\s*Total expenditures/i.test(lines[j])) { tExp = j; break; }
     }
     if (tRev < 0 || expH < 0 || tExp < 0) continue;
