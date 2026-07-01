@@ -58,7 +58,7 @@ Success criteria:
 **Wave 1**
 
 - [x] 107-01-PLAN.md — Batch-1 ACFR source recon (NJ, MA, NC, GA, MD): locate GF statement, bookend-tie, four risk facts, scope-vs-NASBO, gap log
-- [ ] 107-02-PLAN.md — Batch-2 ACFR source recon (TN, CT, WI, WA, MI): locate GF statement, bookend-tie, four risk facts, scope-vs-NASBO, gap log
+- [x] 107-02-PLAN.md — Batch-2 ACFR source recon (TN, CT, WI, WA, MI): locate GF statement, bookend-tie, four risk facts, scope-vs-NASBO, gap log
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
