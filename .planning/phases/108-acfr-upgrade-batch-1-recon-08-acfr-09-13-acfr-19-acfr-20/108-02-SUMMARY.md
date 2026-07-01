@@ -38,3 +38,6 @@ NJ 12, CA 36 unchanged; GA still 2 NASBO (108-04 pending); 1 MA node. Phase 110 
 
 ## Deferred
 MA FY2001–2006 + FY2014 + FY2021 honest holes — future deepening pass.
+
+---
+**UPDATE:** parser generalization (GA 108-04) recovered MA FY2003 + FY2006 → **19 yrs loaded** (FY2003–2025), 6 holes (FY2001/2002/2004/2005/2014/2021). DB: 19 op + 19 rev, 0 NASBO.

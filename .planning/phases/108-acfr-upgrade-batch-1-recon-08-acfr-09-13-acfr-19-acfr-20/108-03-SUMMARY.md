@@ -32,3 +32,6 @@ NC --fy 2025 re-run → 0 change. 12 revenue rows → Money In on. Loaders resol
 
 ## Deferred
 NC FY2012–2013 honest holes (older format); NC pre-FY2012 exists back to FY1997 (`June_30_{YYYY}_CAFR.pdf`) — future deepening pass.
+
+---
+**UPDATE:** parser generalization (GA 108-04) recovered NC FY2012 + FY2013 → **14 yrs loaded** (FY2012–2025), **0 holes**. DB: 14 op + 14 rev, 0 NASBO.

@@ -24,3 +24,8 @@ Pre-load: 2 NASBO operating rows (FY2023 $26,775M, FY2024 $29,216M), no revenue.
 Recon's recent `ncacfr{YYYY}.pdf` URLs 404'd; real URLs enumerated from ncosc.gov archive (FY2012–2016 `June_30_{YYYY}_CAFR.pdf`; FY2017–2021 "Comprehensive Annual Financial Report" variants; FY2022–2025 "[NC] Annual Comprehensive Financial Report", FY2024 in `2024-12/`, FY2025 in `2025-12/`).
 
 ## Deferred: FY2012–2013 holes + pre-FY2012 (archive back to FY1997) — future deepening pass.
+
+---
+## UPDATE (post-GA parser generalization)
+The colon fix recovered **NC FY2012 + FY2013**. NC re-run live (idempotent): now **14 FYs loaded**
+(FY2012–2025), **0 holes** — the full clean window. DB confirms NC 14 op + 14 rev, 0 NASBO, FY2012–2025.

@@ -90,3 +90,9 @@ authoritative full audit.
 ## Deferred
 - MA FY2001–2006 + FY2014 + FY2021 (8 honest holes) — recoverable with per-year parser handling in a
   future deepening pass.
+
+---
+## UPDATE (post-GA parser generalization)
+The `Revenues:`/`Expenditures:` colon fix (from GA 108-04) recovered **MA FY2003 + FY2006**. MA re-run
+live (idempotent): now **19 FYs loaded** (FY2003, 2006–2013, 2015–2020, 2022–2025), **6 honest holes**
+(FY2001, 2002, 2004, 2005, 2014, 2021). DB confirms MA 19 op + 19 rev, 0 NASBO, FY2003–2025.
