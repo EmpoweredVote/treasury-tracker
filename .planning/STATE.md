@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.13
 milestone_name: State ACFR Long Tail — Tranche 2
 status: executing
-last_updated: "2026-07-01T22:19:17.801Z"
-last_activity: 2026-07-01 -- Phase 110 planning complete
+last_updated: "2026-07-01T22:20:27.769Z"
+last_activity: 2026-07-01 -- Phase 110 execution started
 progress:
   total_phases: 29
   completed_phases: 2
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-01 — v2.13 State ACFR Long Tail — Tranche 2 STARTED; v2.12 State ACFR Long Tail SHIPPED + archived)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** Phase 108 — acfr upgrade — batch 1 (recon 08, acfr 09..13, acfr 19, acfr 20)
+**Current focus:** Phase 110 — Verification + Source-Chain Audit + UAT (VER-05, VER-06)
 
 ## Current Position
 
-Phase: 108
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-07-01 -- Phase 110 planning complete
+Phase: 110 (Verification + Source-Chain Audit + UAT (VER-05, VER-06)) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 110
+Last activity: 2026-07-01 -- Phase 110 execution started
 
 ## Phase Overview — v2.13 State ACFR Long Tail — Tranche 2
 
