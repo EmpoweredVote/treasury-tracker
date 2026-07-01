@@ -111,7 +111,9 @@ export const extractGovFundGeneralColumn = extractMAGeneralFund;
  * the per-FY total-tie remains the gate either way.
  */
 function numTokensWithPos(line) {
-  const cleaned = line.replace(/\$/g, ' ');
+  // Strip "(Note NN)" cross-references (MI "Tax credits (Note 16)") — the bare number inside
+  // would otherwise be read as the row's first numeric column. Pad to preserve char positions.
+  const cleaned = line.replace(/\(Note\s+\d+\)/gi, (m) => ' '.repeat(m.length)).replace(/\$/g, ' ');
   const out = [];
   for (const m of cleaned.matchAll(/\(?[\d,]+\)?/g)) {
     const t = m[0];
@@ -131,8 +133,9 @@ export function extractGovFundGeneralColumnPositional(txt, opts = {}) {
   const lines = txt.split('\n');
   for (let i = startLine; i < lines.length; i++) {
     if (!/^\s*REVENUES:?\s*$/i.test(lines[i])) continue;
+    // Case-INSENSITIVE header match (MI prints "GENERAL FUND" / "GOVERNMENTAL FUNDS" all-caps).
     const header = lines.slice(Math.max(0, i - 18), i).join(' ');
-    if (!/General/.test(header) || !/Governmental Funds/i.test(header)) continue;
+    if (!/General/i.test(header) || !/Governmental Funds/i.test(header)) continue;
     let tRev = -1, expH = -1, tExp = -1;
     for (let j = i + 1; j < Math.min(lines.length, i + 400); j++) {
       if (tRev < 0 && /^\s*Total revenues/i.test(lines[j])) tRev = j;
