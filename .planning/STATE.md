@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.12
 milestone_name: State ACFR Long Tail
-status: milestone_complete
-last_updated: 2026-06-30T22:51:15.564Z
-last_activity: 2026-06-30 -- Phase 106 Plan 03 Task 1 complete; paused at checkpoint:human-verify (VER-04)
+status: Awaiting next milestone
+last_updated: "2026-07-01T00:05:39.254Z"
+last_activity: 2026-07-01 — Milestone v2.12 completed and archived
 progress:
   total_phases: 30
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 13
   completed_plans: 13
-  percent: 10
-stopped_at: Milestone complete (Phase 106 was final phase)
+  percent: 13
 ---
 
 # State
@@ -25,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-29 — v2.11 State ACFR Revenue-by-So
 
 ## Current Position
 
-Phase: 106
-Plan: Not started
-Status: Milestone complete
-Last activity: 2026-06-30
+Phase: Milestone v2.12 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-01 — Milestone v2.12 completed and archived
 
 ## Phase Overview — v2.11 State ACFR Revenue-by-Source Upgrades (Pilot)
 
@@ -292,6 +291,20 @@ Carried forward from v1.7–v1.9 (see Known Tech Debt above). New in v2.0 planni
 | feature | Votes/amendments exploration hub | Future milestone — the eventual mission destination |
 | feature | Sourcing backfill to cities/states | After the standard is proven federally |
 | milestone | **Historical backfill — prior fiscal years (FY2024 ← back) at v2.0 detail** | RECOMMENDED NEXT (Chris asked 2026-06-12). Cheap parts already done: annual_summary already holds 64 years (FY1962+); explainers (name_key-keyed) + program origins (law-keyed, not year-keyed) are year-independent and need ZERO rework. Real work = iterate the OMB loader (Hist 3.2 outlays-by-function, 4.1/5.1 by-agency) across prior years + recompute per-year visual-vs-official disclosures + revenue-by-source per year + YearSelector wiring. Watch: function/agency definitions drift over decades (comparability notes); per-year actuals vs estimates. Same free sources + same loader pattern as 44. |
+
+### Acknowledged at v2.12 close (2026-07-01)
+
+Open-artifact audit at v2.12 close surfaced 5 items, all non-blocking and acknowledged (deferred). None are v2.12 blockers — Phase 106 verified the whole milestone end-to-end (VER-03 independent re-derivation 24/24 exact + cohort audit 7/7; VER-04 Chris live-app UAT 8/8 all-pass); all 8 v2.12 requirements Complete:
+
+| Category | Item | Status |
+|----------|------|--------|
+| uat_gap | Phase 106 `106-UAT-CHECKLIST.md` | passed — 0 pending scenarios (Chris signed off 8/8 2026-06-30, status:passed frontmatter set) |
+| todo | `2026-06-30-authenticated-deeplink-redirect-to-home-jurisdiction.md` | deferred — signed-in users hit an unrecognized deep-link get sent to their home city; frontend-routing follow-up (canonical `?entity=` links fixed; deeper UX logged) |
+| quick_task | 001-create-treasury-tracker-entries-for-ever | orphaned (file missing) — pre-v2.0 leftover, acknowledged at every close since v2.0 |
+| quick_task | 002-add-longview-tx-revenue | orphaned (file missing) — pre-v2.0 Longview TX effort, unrelated to v2.12 |
+| quick_task | 003-longview-operating-budget | orphaned (file missing) — pre-v2.0 Longview TX effort, unrelated to v2.12 |
+
+**v2.12 follow-ups (documented, not fixed):** authenticated deep-link redirect UX smoothing (todo above); Phase-104 deepening holes (NY ≤FY2002, CA FY2002–2007, FL ≤FY2020) intentionally absent-by-design (recorded + honest in UI, verified PASS by D-06); 105 code-review non-blocking items WR-01/03/04/05 (clamp root-vs-child invariant, validate() tolerance, `strict:false` arg parsing, non-atomic `data_sources` upsert — the WR-05 pattern re-created 2 residue rows during 106 idempotency re-runs, cleaned in-phase); next-tranche NASBO→ACFR upgrades (ACFRX-01/02, future milestone).
 
 ### Acknowledged at v2.5 close (2026-06-20)
 

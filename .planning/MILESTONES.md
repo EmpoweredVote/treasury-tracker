@@ -1,5 +1,23 @@
 # Milestones — Treasury Tracker / Empowered Vote Financials
 
+## v2.12 State ACFR Long Tail (Shipped: 2026-07-01)
+
+**Phases completed:** 4 phases (103–106), 13 plans
+
+**Delivered:** Extended the proven State-ACFR GAAP upgrade in two directions — deepened the four v2.11 pilots' (CA/TX/NY/FL) ACFR history backward, and brought **Pennsylvania + Illinois** (the two largest remaining NASBO states) onto full ACFR GF revenue-by-source + finer spending-by-function — all independently re-derived, cohort-clean, basis-labelled, and signed off live by Chris. Free PDFs only, `$0`/no paid AI.
+
+**Key accomplishments:**
+
+- **Phase 103 (recon):** located durable deeper-history ACFR URLs for CA/NY/FL/TX and the **PA + IL** ACFR Governmental-Funds *Statement of Rev/Exp* (GF column, units, per-year URLs), each bookend tie-confirmed, with per-state gap logs — the input contract for the loads.
+- **Phase 104 (deepen 4 pilots):** extended **CA** (FY2008–2025, +12 yrs via `/Files-ARD/CAFR/cafr{NN}web.pdf`, FY2008 bookend $97,774,378,000), **NY** (FY2003–2014, +12 yrs, ×millions scaling), and **FL** (+FY2021); every added FY ties exactly to its GF column total; P2 clamp fires on FL FY2021's −$398,287K investment loss with root total preserved.
+- **Phase 105 (PA + IL — headline):** brought **Pennsylvania** (FY2016–2025) and **Illinois** (FY2021–2025) onto full State-ACFR GAAP revenue-by-source + spending-by-function; NASBO operating replaced in place idempotently (RECON-05); scope divergence accepted + relabelled honestly (PA ~2.0×, IL ~1.5× NASBO GF); P2 clamp on IL FY2022; "Money In" auto-enabled on both nodes.
+- **Phase 106 (verification + UAT):** **24/24 loader-independent blind ACFR re-derivations at exact $0 delta**; 50-node cohort source-chain audit **7/7 invariants** over 276 rows (all basis-labelled, 41 NASBO states untouched, idempotent, D-06 holes recorded + honest); **Chris live-app UAT sign-off (8/8 anchors)**.
+- **In-milestone UI fix (surfaced during UAT):** reordered the data-viz palette so adjacent categories contrast, and added `hoistSingleRoot` to drop the redundant single-root "…General Fund Budget · 100%" layer — deployed to production. Also corrected malformed UAT deep-links to the canonical `?entity=&year=` format.
+
+**Known deferred items at close: 5** (see STATE.md Deferred Items) — 3 pre-existing Longview-TX quick-tasks, 1 authenticated-deep-link-redirect follow-up todo, and the (passed) Phase 106 UAT artifact.
+
+---
+
 ## v2.11 State ACFR Revenue-by-Source Upgrades (Shipped: 2026-06-30)
 
 **Phases completed:** 5 phases (98–102), 13 plans
