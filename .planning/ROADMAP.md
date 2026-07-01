@@ -54,10 +54,14 @@ Success criteria:
 4. Written as a recon doc (the input contract for Phases 108/109) — no DB writes.
 
 **Plans:** 3 plans
+Plans:
+**Wave 1**
 
-Plans:
 - [ ] 107-01-PLAN.md — Batch-1 ACFR source recon (NJ, MA, NC, GA, MD): locate GF statement, bookend-tie, four risk facts, scope-vs-NASBO, gap log
 - [ ] 107-02-PLAN.md — Batch-2 ACFR source recon (TN, CT, WI, WA, MI): locate GF statement, bookend-tie, four risk facts, scope-vs-NASBO, gap log
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 107-03-PLAN.md — Overlap resolution (MA/GA/other, read-only DB probe) + roster lock + batch split lock + consolidated 107-RECON handoff
 
 #### Phase 108: ACFR Upgrade — Batch 1 (RECON-08, ACFR-09..13, ACFR-19, ACFR-20)
