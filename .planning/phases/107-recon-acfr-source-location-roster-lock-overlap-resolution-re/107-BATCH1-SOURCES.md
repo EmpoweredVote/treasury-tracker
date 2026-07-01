@@ -251,3 +251,17 @@ The P2 clamp policy (from loadStateGF.mjs) applies: any negative GF revenue line
 
 **Clean window:** FY2022–FY2025 (4 years; pre-FY2022 not accessible)
 **Recency floor:** GREENLIGHT (FY2022–FY2025 confirmed; FY2023 + FY2024 covered)
+
+---
+
+## Phase-108 Pre-Load Checklist (per D-10 overlap resolution requirements)
+
+These items are flagged here for the Phase-108 loader author. They are NOT handled in this recon plan — they are resolved in plan 107-03 (RECON-07, overlap resolution) before Phase-108 loads run.
+
+| State | Pre-load requirement | Risk if skipped |
+|-------|---------------------|-----------------|
+| **NJ** | None — no existing state-budget node overlap. Standard new ACFR loader. | N/A |
+| **MA** | In-place upgrade of the existing MA state node (v1.8 DLS overlap). The DLS node is city-level data, not a state-ACFR duplicate — no dual-node conflict. Verify MA state node has no ACFR rows before writing. | Double-write to state node if pre-existing ACFR rows exist |
+| **NC** | None — no existing state-budget node overlap. Standard new ACFR loader. | N/A |
+| **GA** | **Supersede F-97-01 Medicaid fix.** GA is the only non-cohort NASBO state; its FY2023 row has a Phase-97 Medicaid correction. The ACFR load replaces the same (muni, fy, 'operating') key — the F-97-01 fix is superseded by the GAAP actuals. Verify the F-97-01 fix is cleanly overwritten (no orphan) in the overlap resolution step. | Orphan Medicaid-corrected NASBO row competing with the ACFR row |
+| **MD** | **Apply P2 clamp for FY2022.** `Interest and other investment income = -$275,992K` in the GF revenue statement. Loader must clamp to 0 per P2 policy. Check all FY years for negative lines before writing. | Negative revenue displayed in UI (invalid for P2 clamp policy) |
