@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v2.13
 milestone_name: State ACFR Long Tail — Tranche 2
 status: executing
-last_updated: "2026-07-01T22:20:27.769Z"
+last_updated: "2026-07-01T22:46:08.454Z"
 last_activity: 2026-07-01 -- Phase 110 execution started
 progress:
   total_phases: 29
@@ -33,10 +33,10 @@ Last activity: 2026-07-01 -- Phase 110 execution started
 
 | Phase | Name | Requirements | Depends on | Status |
 |-------|------|--------------|------------|--------|
-| 107 | Recon — ACFR Source Location + Roster Lock + Overlap Resolution | RECON-06, RECON-07 | — | Not started |
-| 108 | ACFR Upgrade — Batch 1 (~5 states) | RECON-08, ACFR-09..13, ACFR-19, ACFR-20 | 107 | Not started |
-| 109 | ACFR Upgrade — Batch 2 (~5 states) | RECON-08, ACFR-14..18, ACFR-19, ACFR-20 | 107 | Not started |
-| 110 | Verification + Source-Chain Audit + UAT | VER-05, VER-06 | 108, 109 | Not started |
+| 107 | Recon — ACFR Source Location + Roster Lock + Overlap Resolution | RECON-06, RECON-07 | — | ✅ COMPLETE (verified) |
+| 108 | ACFR Upgrade — Batch 1 (~5 states) | RECON-08, ACFR-09..13, ACFR-19, ACFR-20 | 107 | ✅ COMPLETE (verified) |
+| 109 | ACFR Upgrade — Batch 2 (~5 states) | RECON-08, ACFR-14..18, ACFR-19, ACFR-20 | 107 | ✅ COMPLETE (verified) |
+| 110 | Verification + Source-Chain Audit + UAT | VER-05, VER-06 | 108, 109 | ✅ COMPLETE — verified, Chris UAT 11/11 all-pass 2026-07-01 |
 
 **Critical path:** 107 → (108 ∥ 109) → 110. Bring the next ~8–10 largest-GF NASBO states (candidate roster NJ/MA/NC/GA/MD/TN/CT/WI/WA/MI — recon locks the exact list) onto full **State-ACFR GAAP** revenue-by-source + finer spending-by-function, each as deep as durable ACFR URLs allow. Cohort 9 ACFR nodes → ~19. Constraints: free ACFR PDFs only ($0/$5 AI gate); ACFR GAAP (GENERAL FUND column of the Governmental Funds Statement of Rev/Exp/Changes, `pdftotext -table`); every figure durably sourced + basis-labelled; P2 negative-category clamp; idempotent never-overwrite (ACFR replaces NASBO per state-FY; the existing 9 ACFR nodes + un-upgraded NASBO states untouched); executed inline (no subagents). Reuse the v2.12 `process{PA,IL}{,Revenue}Acfr.js` loaders as the per-state template (clone + swap `SOURCES` map); `loadStateGF.mjs` stays the NASBO fallback. No frontend work — Money In + `?dataset=revenue` are data-driven → auto-enable once loaded. **Recon resolves the MA v1.8 DLS-budget overlap in place FIRST** (Phase 107) — avoid a duplicate MA node (Phase 98 CA-v1.7 precedent). Closeout = independent ACFR re-derivation → 50-node cohort source-chain audit → Chris live UAT (Phase 102/106 mold). See [[project_state_node_unsourced_estimates]].
 

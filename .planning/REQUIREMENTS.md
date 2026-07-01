@@ -32,8 +32,8 @@
 
 ### Verification
 
-- [ ] **VER-05**: Each upgraded state is reconciled **independently from its own ACFR** (loader-independent blind re-derivation of the printed GF totals, $0 delta — not loader self-report); the full 50-node cohort source-chain audit stays clean (0 NULL/fragile/residue/out-of-window/dup/orphan), every displayed row basis-labelled, un-upgraded NASBO states still pass.
-- [ ] **VER-06**: Live-app UAT across a representative sample of the upgraded states (revenue-by-source + spending-by-function + basis label + source chip + Money In auto-enabled) with Chris sign-off.
+- [x] **VER-05**: Each upgraded state is reconciled **independently from its own ACFR** (loader-independent blind re-derivation of the printed GF totals, $0 delta — not loader self-report); the full 50-node cohort source-chain audit stays clean (0 NULL/fragile/residue/out-of-window/dup/orphan), every displayed row basis-labelled, un-upgraded NASBO states still pass.
+- [x] **VER-06**: Live-app UAT across a representative sample of the upgraded states (revenue-by-source + spending-by-function + basis label + source chip + Money In auto-enabled) with Chris sign-off.
 
 ## Future Requirements
 
@@ -67,8 +67,8 @@ Deferred to a follow-up milestone. Tracked but not in this roadmap.
 | ACFR-14..18 | Phase 109 | Pending |
 | ACFR-19 | Phase 108, 109 | Pending |
 | ACFR-20 | Phase 108, 109 | Pending |
-| VER-05 | Phase 110 | Pending |
-| VER-06 | Phase 110 | Pending |
+| VER-05 | Phase 110 | Complete |
+| VER-06 | Phase 110 | Complete |
 
 **Coverage:**
 - v1 requirements: 18 total (RECON-06/07/08, ACFR-09..20, VER-05/06)
