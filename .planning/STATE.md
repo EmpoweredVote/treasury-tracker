@@ -6,7 +6,7 @@ status: planning
 last_updated: "2026-07-01T00:34:14.718Z"
 last_activity: 2026-07-01
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,31 +17,28 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-29 — v2.11 State ACFR Revenue-by-Source Upgrades STARTED; v2.10 State General Fund Sourcing SHIPPED + archived)
+See: .planning/PROJECT.md (updated 2026-07-01 — v2.13 State ACFR Long Tail — Tranche 2 STARTED; v2.12 State ACFR Long Tail SHIPPED + archived)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** Milestone complete
+**Current focus:** v2.13 planning — recon (Phase 107) locks the roster + ACFR source contract
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Not started (roadmap approved — ready to plan Phase 107)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-07-01 — Milestone v2.13 started
+Status: Ready to plan Phase 107 (Recon)
+Last activity: 2026-07-01 — Milestone v2.13 started; requirements + roadmap approved
 
-## Phase Overview — v2.11 State ACFR Revenue-by-Source Upgrades (Pilot)
+## Phase Overview — v2.13 State ACFR Long Tail — Tranche 2
 
 | Phase | Name | Requirements | Depends on | Status |
 |-------|------|--------------|------------|--------|
-| 98 | Recon — CA Overlap + 4-State ACFR Source Location | RECON-01, RECON-02 | — | ✅ Complete |
-| 99 | California + Texas ACFR Upgrade | ACFR-01, ACFR-02, ACFR-05, RECON-03 | 98 | ✅ Complete |
-| 100 | New York + Florida ACFR Upgrade | ACFR-03, ACFR-04, ACFR-05 | 98, 99 | ✅ Complete |
-| 101 | Revenue View + URL Robustness | REVUX-01, REVUX-02 | 99, 100 | Not started |
-| 102 | Verification + Source-Chain Audit + UAT | VER-01, VER-02 | 98–101 | Not started |
+| 107 | Recon — ACFR Source Location + Roster Lock + Overlap Resolution | RECON-06, RECON-07 | — | Not started |
+| 108 | ACFR Upgrade — Batch 1 (~5 states) | RECON-08, ACFR-09..13, ACFR-19, ACFR-20 | 107 | Not started |
+| 109 | ACFR Upgrade — Batch 2 (~5 states) | RECON-08, ACFR-14..18, ACFR-19, ACFR-20 | 107 | Not started |
+| 110 | Verification + Source-Chain Audit + UAT | VER-05, VER-06 | 108, 109 | Not started |
 
-**Critical path:** 98 → 99 → 100 → 101 → 102. Upgrade the four highest-traffic NASBO state GF nodes (CA, TX, NY, FL) from operating-only to full **State-ACFR GAAP** (revenue-by-source + finer spending-by-function), as deep as each ACFR cleanly extracts. The "ACFR-later" half of the v2.10 hybrid; follow-up milestone scales to the rest. Constraints: free ACFR PDFs only ($0/$5 AI gate); ACFR GAAP (General Fund column of the Governmental Funds Statement of Rev/Exp/Changes, `pdftotext -table`); every figure durably sourced + basis-labelled; P2 negative-category clamp; idempotent never-overwrite (ACFR replaces NASBO per state-FY; un-upgraded states stay on NASBO); executed inline (no subagents). Reuse `scripts/processOHAcfr.js`/`processVAAcfr.js`/`processMN*.js`; `loadStateGF.mjs` stays the NASBO fallback. **Recon CA's v1.7 CA-state-budget overlap (and MA v1.8) FIRST** (Phase 98) — avoid a duplicate CA node. Closeout = independent ACFR re-derivation → cohort source-chain audit → Chris live UAT (Phase 88/93/97 mold). See [[project_state_node_unsourced_estimates]].
-
-**Carried v2.10 follow-up folded in:** the minor frontend `?dataset=revenue` URL-robustness fix on operating-only nodes (REVUX-02). NOT folded in (left in backlog): MN FY1997–2007 history (MNHIST-02), MN FY2008 $8.79M categorization gap (MNGAP-01).
+**Critical path:** 107 → (108 ∥ 109) → 110. Bring the next ~8–10 largest-GF NASBO states (candidate roster NJ/MA/NC/GA/MD/TN/CT/WI/WA/MI — recon locks the exact list) onto full **State-ACFR GAAP** revenue-by-source + finer spending-by-function, each as deep as durable ACFR URLs allow. Cohort 9 ACFR nodes → ~19. Constraints: free ACFR PDFs only ($0/$5 AI gate); ACFR GAAP (GENERAL FUND column of the Governmental Funds Statement of Rev/Exp/Changes, `pdftotext -table`); every figure durably sourced + basis-labelled; P2 negative-category clamp; idempotent never-overwrite (ACFR replaces NASBO per state-FY; the existing 9 ACFR nodes + un-upgraded NASBO states untouched); executed inline (no subagents). Reuse the v2.12 `process{PA,IL}{,Revenue}Acfr.js` loaders as the per-state template (clone + swap `SOURCES` map); `loadStateGF.mjs` stays the NASBO fallback. No frontend work — Money In + `?dataset=revenue` are data-driven → auto-enable once loaded. **Recon resolves the MA v1.8 DLS-budget overlap in place FIRST** (Phase 107) — avoid a duplicate MA node (Phase 98 CA-v1.7 precedent). Closeout = independent ACFR re-derivation → 50-node cohort source-chain audit → Chris live UAT (Phase 102/106 mold). See [[project_state_node_unsourced_estimates]].
 
 ## Deferred Items
 

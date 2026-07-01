@@ -25,10 +25,76 @@
 - ✅ **v2.10 State General Fund Sourcing** — Phases 94-97 (shipped 2026-06-29)
 - ✅ **v2.11 State ACFR Revenue-by-Source Upgrades (Pilot)** — Phases 98-102 (shipped 2026-06-30)
 - ✅ **v2.12 State ACFR Long Tail** — Phases 103-106 (shipped 2026-07-01)
+- ▶ **v2.13 State ACFR Long Tail — Tranche 2** — Phases 107-110 (in progress)
 
 ---
 
 ## Phases
+
+### v2.13 State ACFR Long Tail — Tranche 2 (Phases 107-110) ▶ ACTIVE
+
+**Milestone goal:** Continue the proven State-ACFR GAAP upgrade (v2.11 CA/TX/NY/FL → v2.12 PA/IL) by bringing the **next ~8–10 largest-General-Fund NASBO states** onto full ACFR GF revenue-by-source + finer spending-by-function, each as deep as durable ACFR URLs allow. Candidate roster (largest GF first): **NJ, MA, NC, GA, MD, TN, CT, WI, WA, MI** — recon locks the exact list. NASBO operating replaced in place idempotently; un-upgraded states stay on NASBO. Cohort 9 ACFR nodes → ~19.
+
+**Constraints:** Free ACFR PDFs only ($0 / $5 AI gate); ACFR GAAP (GENERAL FUND column of the Governmental Funds *Statement of Rev/Exp/Changes*, `pdftotext -table`); every figure durably sourced + basis-labelled; P2 negative-category clamp; idempotent never-overwrite (ACFR replaces NASBO per state-FY; the existing 9 ACFR nodes + un-upgraded NASBO states untouched); executed inline (no subagents). Reuse the v2.12 `process{PA,IL}{,Revenue}Acfr.js` loaders as the per-state template (clone + swap `SOURCES` map). `scripts/loadStateGF.mjs` stays the NASBO fallback. **No frontend work** — the v2.11 data-driven "Money In" view + `?dataset=revenue` deep-link auto-enable revenue once each state's data lands.
+
+**Critical path:** 107 → (108 ∥ 109) → 110. Recon locks the roster + sources first; the two load batches split the tranche (~5 states each) and can proceed in parallel once recon is done; verification closes the milestone. Closeout follows the Phase 102/106 mold (independent blind re-derivation → cohort audit → Chris live UAT).
+
+#### Phase 107: Recon — ACFR Source Location + Roster Lock + Overlap Resolution (RECON-06, RECON-07)
+
+**Goal:** Lock the exact ~8–10-state roster and the durable per-year ACFR source contract for each, with all prior-load overlaps resolved before any write.
+**Depends on:** Nothing (builds on the v2.12 recon pattern)
+**Requirements:** RECON-06, RECON-07
+**UI hint:** no
+
+Success criteria:
+
+1. For each candidate state, the ACFR Governmental Funds *Statement of Rev/Exp/Changes* is located with its GENERAL FUND column, units, durable per-year URLs, and cleanly `pdftotext -table`-extractable FY depth identified; each window's bookend totals tie-confirmed; a per-state gap log records years that don't cleanly extract.
+2. The final ~8–10-state roster is locked (≤2 candidates substituted/deferred to ACFRX-02 if their ACFR won't cleanly extract), with each surviving state's window recorded.
+3. Prior-load overlaps resolved: **Massachusetts** (v1.8 DLS node) is flagged for in-place upgrade (no duplicate MA node — Phase 98 CA-v1.7 precedent); any other pre-existing custom-source state node identified.
+4. Written as a recon doc (the input contract for Phases 108/109) — no DB writes.
+
+#### Phase 108: ACFR Upgrade — Batch 1 (RECON-08, ACFR-09..13, ACFR-19, ACFR-20)
+
+**Goal:** The first ~5 roster states (e.g. NJ, MA, NC, GA, MD) render GF revenue-by-source + GAAP spending-by-function on their state nodes, ACFR-sourced, basis-labelled, NASBO operating replaced idempotently.
+**Depends on:** Phase 107 (locked roster + source contract)
+**Requirements:** RECON-08, ACFR-09, ACFR-10, ACFR-11, ACFR-12, ACFR-13, ACFR-19, ACFR-20
+**UI hint:** no
+
+Success criteria:
+
+1. Each batch-1 state loaded onto ACFR GAAP GF revenue-by-source + spending-by-function via a cloned `process{ST}{,Revenue}Acfr.js`, as deep as its ACFR cleanly extracts; each added FY ties to its ACFR GF column total.
+2. NASBO operating replaced in place idempotently + never-overwrite; the 9 existing ACFR nodes + un-upgraded NASBO states untouched; **MA upgraded in place** (no duplicate node — RECON-07).
+3. Scope divergence (broader consolidated GF fund) relabelled honestly (ACFR-19); negative-category years render via the P2 clamp (ACFR-20).
+4. Every displayed row basis-labelled + durably sourced; "Money In" auto-enables on each upgraded node.
+
+#### Phase 109: ACFR Upgrade — Batch 2 (RECON-08, ACFR-14..18, ACFR-19, ACFR-20)
+
+**Goal:** The remaining ~5 roster states (e.g. TN, CT, WI, WA, MI) render GF revenue-by-source + GAAP spending-by-function on their state nodes, same contract as Batch 1.
+**Depends on:** Phase 107 (locked roster + source contract) — parallelizable with Phase 108
+**Requirements:** RECON-08, ACFR-14, ACFR-15, ACFR-16, ACFR-17, ACFR-18, ACFR-19, ACFR-20
+**UI hint:** no
+
+Success criteria:
+
+1. Each batch-2 state loaded onto ACFR GAAP GF revenue-by-source + spending-by-function, as deep as its ACFR cleanly extracts; each added FY ties to its ACFR GF column total.
+2. NASBO operating replaced in place idempotently + never-overwrite; the existing ACFR nodes + un-upgraded NASBO states untouched.
+3. Scope divergence relabelled honestly (ACFR-19); negative-category years render via the P2 clamp (ACFR-20).
+4. Every displayed row basis-labelled + durably sourced; "Money In" auto-enables on each upgraded node.
+
+#### Phase 110: Verification + Source-Chain Audit + UAT (VER-05, VER-06)
+
+**Goal:** Every upgraded state is independently reconciled, the full cohort stays clean, and Chris signs off in the live app.
+**Depends on:** Phases 108, 109
+**Requirements:** VER-05, VER-06
+**UI hint:** no
+
+Success criteria:
+
+1. Loader-independent blind re-derivation of each upgraded state's printed GF totals (bookends + newest FY) from its own ACFR = exact $0 delta (not loader self-report).
+2. Full 50-node cohort source-chain audit clean (0 NULL/fragile/residue/out-of-window/dup/orphan), every displayed row basis-labelled; un-upgraded NASBO states still pass; idempotent re-run writes 0 rows.
+3. Live-app UAT across a representative sample of the upgraded states (revenue-by-source + spending-by-function + basis label + source chip + Money In auto-enabled) — Chris sign-off.
+
+---
 
 <details>
 <summary>✅ v2.12 State ACFR Long Tail (Phases 103-106) — SHIPPED 2026-07-01 (full detail in milestones/v2.12-ROADMAP.md)</summary>
