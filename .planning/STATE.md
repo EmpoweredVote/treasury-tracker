@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.13
 milestone_name: State ACFR Long Tail — Tranche 2
-status: executing
-last_updated: "2026-07-01T06:09:21.126Z"
+status: verifying
+last_updated: "2026-07-01T06:22:36.353Z"
 last_activity: 2026-07-01
 progress:
   total_phases: 30
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
-  percent: 0
+  completed_plans: 3
+  percent: 3
 ---
 
 # State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-07-01 — v2.13 State ACFR Long Tail —
 
 Phase: 107 (recon-acfr-source-location-roster-lock-overlap-resolution-re) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-01
 
 ## Phase Overview — v2.13 State ACFR Long Tail — Tranche 2
@@ -165,8 +165,8 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-07-01T06:09:21.109Z
-Stopped at: Completed 107-02-PLAN.md
+Last session: 2026-07-01T06:22:36.341Z
+Stopped at: Completed 107-03-PLAN.md
 Resume file: None
 
 ### Next Session
@@ -220,6 +220,7 @@ Source recon done: MN OSA City Finances Report XLSX confirmed icicle-grade (`cir
 | Phase 104 P04 | 35min | 4 tasks | 1 files |
 | Phase 107-recon P107-01 | 180 | 3 tasks | 1 files |
 | Phase 107-recon-acfr-source-location-roster-lock-overlap-resolution-re P107-02 | 120 | 3 tasks | 1 files |
+| Phase 107-recon-acfr-source-location-roster-lock-overlap-resolution-re P107-03 | 6min | 2 tasks | 1 files |
 
 ## Decisions
 
@@ -279,6 +280,7 @@ Source recon done: MN OSA City Finances Report XLSX confirmed icicle-grade (`cir
 - [95-05]: 4 OH/VA FY2026 estimate rows (lsc.ohio.gov + dpb.virginia.gov false-provenance) deleted; 4 data_sources rows corrected to ACFR landing pages; all 4 DB probes PASS; idempotent
 - [Phase ?]: CO Transportation GF = 1M not zero per NASBO Table 21
 - [Phase ?]: 102-02 cohort audit
+- [Phase ?]: 107-03: All 10 roster states IN (0 deferred); MA in-place upgrade (no stale data_sources); GA F-97-01 superseded cleanly; NJ=dollars not thousands; MI=September-30 FY-end custom loader
 
 ## Deferred Items
 

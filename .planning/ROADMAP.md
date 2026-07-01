@@ -62,7 +62,7 @@ Success criteria:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 107-03-PLAN.md — Overlap resolution (MA/GA/other, read-only DB probe) + roster lock + batch split lock + consolidated 107-RECON handoff
+- [x] 107-03-PLAN.md — Overlap resolution (MA/GA/other, read-only DB probe) + roster lock + batch split lock + consolidated 107-RECON handoff
 
 #### Phase 108: ACFR Upgrade — Batch 1 (RECON-08, ACFR-09..13, ACFR-19, ACFR-20)
 

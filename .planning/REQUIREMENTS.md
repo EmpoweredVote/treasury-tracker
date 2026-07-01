@@ -10,7 +10,7 @@
 ### Recon & Data Integrity
 
 - [x] **RECON-06**: Recon locates, for each candidate state, the ACFR Governmental Funds *Statement of Revenues, Expenditures and Changes in Fund Balances* (GENERAL FUND column, units, durable per-year URLs, cleanly `pdftotext -table`-extractable FY depth), tie-confirms each window's bookend totals, **locks the final ~8–10-state roster** (substituting ≤2 that won't extract), and writes a per-state gap log for years that don't cleanly extract.
-- [ ] **RECON-07**: Recon resolves prior-load overlaps before any write — in particular **Massachusetts**, which already has a v1.8 DLS state budget node: the ACFR upgrade replaces it **in place** (no duplicate/conflicting MA node), following the Phase 98 CA-v1.7 precedent. Any other state with a pre-existing custom-source node is identified and upgraded in place.
+- [x] **RECON-07**: Recon resolves prior-load overlaps before any write — in particular **Massachusetts**, which already has a v1.8 DLS state budget node: the ACFR upgrade replaces it **in place** (no duplicate/conflicting MA node), following the Phase 98 CA-v1.7 precedent. Any other state with a pre-existing custom-source node is identified and upgraded in place.
 - [ ] **RECON-08**: Each upgraded state's ACFR rows **replace** its NASBO operating rows (one basis per state-FY) idempotently and never-overwriting; un-upgraded NASBO states remain unchanged on `scripts/loadStateGF.mjs`; the existing 9 ACFR nodes (MN/OH/VA/CA/TX/NY/FL/PA/IL) are not disturbed.
 
 ### State ACFR Upgrades (the tranche)
@@ -61,7 +61,7 @@ Deferred to a follow-up milestone. Tracked but not in this roadmap.
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
 | RECON-06 | Phase 107 | Complete |
-| RECON-07 | Phase 107 | Pending |
+| RECON-07 | Phase 107 | Complete |
 | RECON-08 | Phase 108, 109 | Pending |
 | ACFR-09..13 | Phase 108 | Pending |
 | ACFR-14..18 | Phase 109 | Pending |
