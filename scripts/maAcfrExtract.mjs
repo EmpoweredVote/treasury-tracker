@@ -91,3 +91,9 @@ export function extractMAGeneralFund(txt) {
   }
   return { found: false, revenues: [], revTotal: null, expenditures: [], expTotal: null };
 }
+
+// Generic alias — the extractor is state-agnostic (any Governmental Funds Statement of
+// Rev/Exp/Changes whose GENERAL FUND is the 1st numeric column). Reused by North Carolina
+// (Phase 108-03) — NC is functional-level (23 rev sources / 13 exp functions) but shares the exact
+// Revenues/Total revenues/Expenditures/Total expenditures + "GOVERNMENTAL FUNDS"/"General" structure.
+export const extractGovFundGeneralColumn = extractMAGeneralFund;
