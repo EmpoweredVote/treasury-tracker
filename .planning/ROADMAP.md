@@ -78,7 +78,7 @@ Success criteria:
 3. Scope divergence (broader consolidated GF fund) relabelled honestly (ACFR-19); negative-category years render via the P2 clamp (ACFR-20).
 4. Every displayed row basis-labelled + durably sourced; "Money In" auto-enables on each upgraded node.
 
-#### Phase 109: ACFR Upgrade — Batch 2 (RECON-08, ACFR-14..18, ACFR-19, ACFR-20)
+#### ✅ Phase 109: ACFR Upgrade — Batch 2 (RECON-08, ACFR-14..18, ACFR-19, ACFR-20) — EXECUTED 2026-07-01 (TN 17yr, CT 23yr, WI 24yr, WA 6yr, MI 7yr = 77 state-FYs; 6 live P2 clamps; verification passed)
 
 **Goal:** The remaining ~5 roster states (e.g. TN, CT, WI, WA, MI) render GF revenue-by-source + GAAP spending-by-function on their state nodes, same contract as Batch 1.
 **Depends on:** Phase 107 (locked roster + source contract) — parallelizable with Phase 108
