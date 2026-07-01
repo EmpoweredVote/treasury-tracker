@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v2.13
 milestone_name: State ACFR Long Tail — Tranche 2
 status: planning
-last_updated: "2026-07-01T00:34:14.718Z"
-last_activity: 2026-07-01
+last_updated: "2026-07-01T03:27:30.683Z"
+last_activity: 2026-07-01 — Milestone v2.13 started; requirements + roadmap approved
 progress:
-  total_phases: 4
+  total_phases: 30
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -165,9 +165,9 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-06-30T20:24:48.457Z
-Stopped at: Phase 106 context gathered
-Resume file: .planning/phases/106-verification-source-chain-audit-uat-ver-03-ver-04/106-CONTEXT.md
+Last session: 2026-07-01T03:27:30.660Z
+Stopped at: Phase 107 context gathered
+Resume file: .planning/phases/107-recon-acfr-source-location-roster-lock-overlap-resolution-re/107-CONTEXT.md
 
 ### Next Session
 
