@@ -104,6 +104,9 @@ scripts/output/
 # Temporary ACFR PDFs for reconciliation (not committed)
 _acfr-tmp/
 
+# ACFR recon working directory — downloaded PDFs + extracted text (not committed; app links public source_url)
+_acfr-work/
+
 # Recon sample downloads (e.g. VA APA comparative-report XLSX) — not committed
 _va-recon/
 
