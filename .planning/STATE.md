@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.12
-milestone_name: State ACFR Long Tail
-status: Awaiting next milestone
-last_updated: "2026-07-01T00:05:39.254Z"
-last_activity: 2026-07-01 — Milestone v2.12 completed and archived
+milestone: v2.13
+milestone_name: State ACFR Long Tail — Tranche 2
+status: planning
+last_updated: "2026-07-01T00:34:14.718Z"
+last_activity: 2026-07-01
 progress:
-  total_phases: 30
-  completed_phases: 4
-  total_plans: 13
-  completed_plans: 13
-  percent: 13
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-29 — v2.11 State ACFR Revenue-by-So
 
 ## Current Position
 
-Phase: Milestone v2.12 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-07-01 — Milestone v2.12 completed and archived
+Status: Defining requirements
+Last activity: 2026-07-01 — Milestone v2.13 started
 
 ## Phase Overview — v2.11 State ACFR Revenue-by-Source Upgrades (Pilot)
 
