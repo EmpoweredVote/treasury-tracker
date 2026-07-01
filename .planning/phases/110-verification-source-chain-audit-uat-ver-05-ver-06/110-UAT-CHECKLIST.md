@@ -2,7 +2,9 @@
 phase: 110-verification-source-chain-audit-uat-ver-05-ver-06
 plan: 03
 requirement: VER-06
-status: pending
+status: passed
+signed_off_by: Chris Cantrell
+signed_off_date: 2026-07-01
 production-confirmed: "2026-07-01 HTTP 200 at treasurytracker.empowered.vote"
 ---
 
@@ -35,7 +37,7 @@ re-derivation (110-REDERIVATION.md), never from the loaders.
   (NJ is the tranche's only full-dollars source; a units slip would be ×1000 off).
 - Operating ≈ $59.6B ($59,603,886,014).
 
-**Result:** [ ] PASS / [ ] FAIL — Notes:
+**Result:** ✅ PASS (Chris, 2026-07-01)
 
 ## Anchor 2 — MA FY2025 + hole honesty
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=massachusetts-ma&year=2025&dataset=revenue
@@ -43,14 +45,14 @@ re-derivation (110-REDERIVATION.md), never from the loaders.
 - **Hole honesty:** the year selector offers FY2003, FY2006–2013, FY2015–2020, FY2022–2025 —
   **FY2014 and FY2021 (and FY2004/2005) must be absent**, not shown with interpolated values.
 
-**Result:** [ ] PASS / [ ] FAIL — Notes:
+**Result:** ✅ PASS (Chris, 2026-07-01)
 
 ## Anchor 3 — NC FY2012 (deep floor)
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=north-carolina-nc&year=2012&dataset=revenue
 - Standard checks 1–5 on the oldest NC year. Revenue ≈ $35.4B ($35,413,469,000);
   operating ≈ $36.5B ($36,460,325,000).
 
-**Result:** [ ] PASS / [ ] FAIL — Notes:
+**Result:** ✅ PASS (Chris, 2026-07-01)
 
 ## Anchor 4 — GA FY2023 (F-97-01 supersede)
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=georgia-ga&year=2023
@@ -58,7 +60,7 @@ re-derivation (110-REDERIVATION.md), never from the loaders.
   NOT the old $29.3B NASBO value. Basis label says GAAP.
 - Standard checks 1–5.
 
-**Result:** [ ] PASS / [ ] FAIL — Notes:
+**Result:** ✅ PASS (Chris, 2026-07-01)
 
 ## Anchor 5 — MD FY2022 (clamp year)
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=maryland-md&year=2022&dataset=revenue
@@ -67,7 +69,7 @@ re-derivation (110-REDERIVATION.md), never from the loaders.
   −$275,992K (i.e. the total is preserved, only the leaf is clamped).
 - Standard checks 1–5.
 
-**Result:** [ ] PASS / [ ] FAIL — Notes:
+**Result:** ✅ PASS (Chris, 2026-07-01)
 
 ## Anchor 6 — TN FY2025 (source chip live)
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=tennessee-tn&year=2025&dataset=revenue
@@ -75,14 +77,14 @@ re-derivation (110-REDERIVATION.md), never from the loaders.
 - **Source-chip navigation:** clicking the source link opens the tn.gov ACFR in the browser
   (tn.gov blocked CLI clients; normal browser navigation should work).
 
-**Result:** [ ] PASS / [ ] FAIL — Notes:
+**Result:** ✅ PASS (Chris, 2026-07-01)
 
 ## Anchor 7 — CT FY2002 (oldest FY in the whole cohort)
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=connecticut-ct&year=2002&dataset=revenue
 - Standard checks 1–5 on the pre-GASB-34-boundary edition. Revenue ≈ $11.7B ($11,745,453,000);
   operating ≈ $12.6B ($12,554,181,000).
 
-**Result:** [ ] PASS / [ ] FAIL — Notes:
+**Result:** ✅ PASS (Chris, 2026-07-01)
 
 ## Anchor 8 — WI FY2013 (clamp year)
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=wisconsin-wi&year=2013&dataset=revenue
@@ -90,7 +92,7 @@ re-derivation (110-REDERIVATION.md), never from the loaders.
   zero-rate-era loss); root total **$23,786,216,000** intact.
 - Standard checks 1–5.
 
-**Result:** [ ] PASS / [ ] FAIL — Notes:
+**Result:** ✅ PASS (Chris, 2026-07-01)
 
 ## Anchor 9 — WA FY2022 (the tranche's largest clamp)
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=washington-wa&year=2022&dataset=revenue
@@ -98,7 +100,7 @@ re-derivation (110-REDERIVATION.md), never from the loaders.
   −$216,940K adverse-bond-market loss); root total **$53,683,370,000** intact.
 - Standard checks 1–5.
 
-**Result:** [ ] PASS / [ ] FAIL — Notes:
+**Result:** ✅ PASS (Chris, 2026-07-01)
 
 ## Anchor 10 — MI FY2025 (3.5× relabel + Sep-30 FY-end)
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=michigan-mi&year=2025&dataset=revenue
@@ -107,7 +109,7 @@ re-derivation (110-REDERIVATION.md), never from the loaders.
 - **Sep-30 check:** the source chip / source date reads **2025-09-30** (Michigan's Oct–Sep fiscal
   year), not June 30.
 
-**Result:** [ ] PASS / [ ] FAIL — Notes:
+**Result:** ✅ PASS (Chris, 2026-07-01)
 
 ## Anchor 11 — NASBO control: Colorado (regression guard)
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=colorado-co&year=2024
@@ -117,7 +119,7 @@ re-derivation (110-REDERIVATION.md), never from the loaders.
 - Manually visiting `...?entity=colorado-co&year=2024&dataset=revenue` falls back gracefully
   (no crash, no empty-forever view).
 
-**Result:** [ ] PASS / [ ] FAIL — Notes:
+**Result:** ✅ PASS (Chris, 2026-07-01)
 
 ---
 
@@ -127,4 +129,4 @@ All 11 anchors PASS → sign and date below; any FAIL that is a data-correctness
 defect is fixed in-phase (source-safe never-overwrite path) and re-tested before sign-off;
 cosmetic items are logged, not gated.
 
-**Signed off by:** ____________  **Date:** ____________
+**Signed off by:** Chris Cantrell ("all pass") **Date:** 2026-07-01 — **11/11 anchors PASS, 0 defects, 0 cosmetic items logged.** VER-06 satisfied.
