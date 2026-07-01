@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.13
 milestone_name: State ACFR Long Tail — Tranche 2
 status: executing
-last_updated: "2026-07-01T20:03:14.473Z"
-last_activity: 2026-07-01 -- Phase 109 planning complete
+last_updated: "2026-07-01T22:19:17.801Z"
+last_activity: 2026-07-01 -- Phase 110 planning complete
 progress:
-  total_phases: 30
+  total_phases: 29
   completed_phases: 2
-  total_plans: 13
+  total_plans: 11
   completed_plans: 8
   percent: 7
 ---
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-07-01 — v2.13 State ACFR Long Tail —
 Phase: 108
 Plan: Not started
 Status: Ready to execute
-Last activity: 2026-07-01 -- Phase 109 planning complete
+Last activity: 2026-07-01 -- Phase 110 planning complete
 
 ## Phase Overview — v2.13 State ACFR Long Tail — Tranche 2
 
