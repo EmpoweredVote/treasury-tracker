@@ -437,6 +437,47 @@ The four highest-traffic state GF nodes (CA, TX, NY, FL) upgraded from NASBO ope
 
 ---
 
+## Milestone: v2.12 — State ACFR Long Tail
+
+**Shipped:** 2026-07-01
+**Phases:** 4 (103–106) | **Plans:** 13
+
+### What Was Built
+
+Extended the v2.11 State-ACFR path in two directions: **deepened** the four pilots' history (CA FY2008–2025 +12, NY FY2003–2014 +12 ×millions, FL +FY2021; TX already contiguous) and **added Pennsylvania (FY2016–2025) + Illinois (FY2021–2025)** — the two largest remaining NASBO states — onto full ACFR GF revenue-by-source + finer spending-by-function via four new loaders, NASBO replaced idempotently. Closeout: 24/24 loader-independent blind re-derivations at exact $0, a 50-node cohort source-chain audit (7/7 over 276 rows), and Chris's live UAT (8/8). A UAT-surfaced data-viz fix (distinct category colors + dropped the redundant single-root layer) shipped to production. Executed inline, $0.
+
+### What Worked
+
+- **Recon-first + reuse compounded again.** Phase 103 recon located every deeper-history URL + the PA/IL statements up front, so 104 (deepen) and 105 (PA/IL) were near-mechanical applications of the proven v2.11 loader pattern. Deepening = adding older `SOURCES` keys; new states = the same loader shape.
+- **Worktree isolation was restored and parallel waves actually ran in parallel** (unlike v2.11, blocked by an over-long path). Wave 1 of each phase ran two independent executors in git worktrees concurrently, merged back cleanly (disjoint files), with a per-wave post-merge gate.
+- **The exact-0 re-derivation discipline held at 5× scale.** 24/24 blind ties (vs v2.11's 16/16), with the harness importing zero loader code (D-02) and no tolerance band (D-03) — the CA SCO soft-404 guard prevented a false 0-tie.
+- **Verification caught a real latent gap.** Phase 106 found `processILAcfr.js` missing the ACFR-08 clamp (WR-02, also flagged by code review); fixed in-phase before sign-off (F-97-01 precedent). No negative IL expenditure data exists today, but the code path was wrong.
+
+### What Was Inefficient
+
+- **A data-only milestone still generated frontend work at the last gate.** The milestone was scoped "no frontend," but Chris's UAT immediately surfaced two pre-existing UX issues (adjacent-category color blending + a redundant single-root "…GF Budget · 100%" layer) that had been latent since state budgets adopted a single synthetic root. Real, but it landed at the very end and pulled a frontend change + deploy into a data milestone's tail.
+- **The UAT checklist shipped with malformed deep-links.** The executor invented `?state=XX&fy=YYYY`, which App.tsx doesn't parse — so authenticated users were silently redirected to their home city. The app's real URL contract (`?entity=<slug>&year=`) was one grep away and wasn't checked when authoring the checklist.
+- **The WR-05 non-atomic `data_sources` upsert actually bit.** It re-created 2 residue rows during the 106 idempotency re-runs (cleaned in-phase), confirming the deferred code-review finding is a live latent bug, not theoretical.
+
+### Patterns Established
+
+- **A single synthetic root node is an anti-pattern for the icicle.** It renders as a redundant 100% "click to start" layer AND collapses every child to one color (children inherit the root's color index). `hoistSingleRoot` — hoist a lone root's children to the top level — is the fix; applied at the data setters so icicle, cards, navigation, and search stay consistent.
+- **When authoring a UAT checklist, verify link/param formats against the app's actual URL parser**, not an assumed convention — a checklist that can't be navigated is worse than no checklist.
+- **UAT is worth running even on "no-frontend" milestones** — correct data can still render confusingly; the human gate caught what automated data verification never would.
+
+### Key Lessons
+
+1. "No frontend work" is a scope intention, not a guarantee — a live human UAT on real data reliably surfaces presentation debt. Budget a little tail capacity for it.
+2. Deferred code-review findings are latent bugs with a clock on them (WR-05 re-created residue mid-milestone) — the "defer cosmetic, fix data/source in-phase" split (D-05) held up, but the deferred pile should be swept periodically.
+3. Reused, recon-first pipelines scale sub-linearly in effort: 6 state-years of new/deepened ACFR data cost roughly what 4 did in v2.11, because the loader pattern and verification harness were already proven.
+
+### Cost Observations
+
+- **$0 net** — `pdftotext` + DB reads/targeted writes, no AI in any loader/audit; the one frontend fix was hand-authored. The $5 AI gate never triggered.
+- Planning inline (opus); execution + verification via scoped sonnet subagents; parallel worktree waves reduced wall-clock on the two build phases.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
