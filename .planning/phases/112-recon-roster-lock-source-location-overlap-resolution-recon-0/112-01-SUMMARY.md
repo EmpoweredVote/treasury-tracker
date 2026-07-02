@@ -120,3 +120,9 @@ None - no external service configuration required. This is a documentation-only 
 ---
 *Phase: 112-recon-roster-lock-source-location-overlap-resolution-recon-0*
 *Completed: 2026-07-02*
+
+## Self-Check: PASSED
+
+All created files confirmed present on disk; all 5 task/deviation commit hashes confirmed present in git history:
+- `112-RECON.md`, `112-BATCH1-SOURCES.md`, `112-01-SUMMARY.md` — FOUND
+- `f26c434`, `f89e30d`, `c77cac4`, `649e27d`, `3762cf8` — FOUND
