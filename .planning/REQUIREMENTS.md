@@ -69,17 +69,18 @@ Deferred to a follow-up milestone. Tracked but not in this roadmap.
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| LOAD-01 | — | Pending |
-| RECON-09 | — | Pending |
-| RECON-10 | — | Pending |
-| ACFR-21..30 | — | Pending |
-| ACFR-31 | — | Pending |
-| ACFR-32 | — | Pending |
-| DEEP-02 | — | Pending |
-| DEEP-03 | — | Pending |
-| DEEP-04 | — | Pending |
-| VER-07 | — | Pending |
-| VER-08 | — | Pending |
+| LOAD-01 | Phase 111 | Pending |
+| RECON-09 | Phase 112 | Pending |
+| RECON-10 | Phase 112 | Pending |
+| ACFR-21..25 | Phase 113 | Pending |
+| ACFR-26..30 | Phase 114 | Pending |
+| ACFR-31 | Phase 113, 114 | Pending |
+| ACFR-32 | Phase 113, 114 | Pending |
+| DEEP-02 | Phase 115 | Pending |
+| DEEP-03 | Phase 115 | Pending |
+| DEEP-04 | Phase 115 | Pending |
+| VER-07 | Phase 116 | Pending |
+| VER-08 | Phase 116 | Pending |
 
 ---
 *Requirements defined: 2026-07-02*

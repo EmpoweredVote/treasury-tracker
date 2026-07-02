@@ -17,28 +17,30 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-02 — v2.13 State ACFR Long Tail — Tranche 2 SHIPPED + archived; tag v2.13)
+See: .planning/PROJECT.md (updated 2026-07-02 — v2.14 State ACFR Long Tail — Tranche 3 + Deepening STARTED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** Planning next milestone (run `/gsd-new-milestone`; leading candidate: ACFRX-02 — the remaining ~31 NASBO states and/or the v2.13 recoverable-holes deepening pass)
+**Current focus:** v2.14 State ACFR Long Tail — Tranche 3 + Deepening (Phases 111–116)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 111 (Loader Debt — Atomic data_sources Upsert) — not started
 Plan: —
-Status: Defining requirements
-Last activity: 2026-07-02 — Milestone v2.14 started
+Status: Roadmap created — ready to plan Phase 111
+Last activity: 2026-07-02 — Milestone v2.14 started; requirements + roadmap created
 
-## Phase Overview — v2.13 State ACFR Long Tail — Tranche 2
+## Phase Overview — v2.14 State ACFR Long Tail — Tranche 3 + Deepening
 
 | Phase | Name | Requirements | Depends on | Status |
 |-------|------|--------------|------------|--------|
-| 107 | Recon — ACFR Source Location + Roster Lock + Overlap Resolution | RECON-06, RECON-07 | — | ✅ COMPLETE (verified) |
-| 108 | ACFR Upgrade — Batch 1 (~5 states) | RECON-08, ACFR-09..13, ACFR-19, ACFR-20 | 107 | ✅ COMPLETE (verified) |
-| 109 | ACFR Upgrade — Batch 2 (~5 states) | RECON-08, ACFR-14..18, ACFR-19, ACFR-20 | 107 | ✅ COMPLETE (verified) |
-| 110 | Verification + Source-Chain Audit + UAT | VER-05, VER-06 | 108, 109 | ✅ COMPLETE — verified, Chris UAT 11/11 all-pass 2026-07-01 |
+| 111 | Loader Debt — Atomic data_sources Upsert | LOAD-01 | — | ○ Not started |
+| 112 | Recon — Roster Lock + Source Location + Overlap Resolution | RECON-09, RECON-10 | 111 | ○ Not started |
+| 113 | ACFR Upgrade — Batch 1 (~5 states) | ACFR-21..25, ACFR-31, ACFR-32 | 112 | ○ Not started |
+| 114 | ACFR Upgrade — Batch 2 (~5 states) | ACFR-26..30, ACFR-31, ACFR-32 | 112 | ○ Not started |
+| 115 | Deepening — Recoverable Holes + Pre-GASB-34 Extractor | DEEP-02, DEEP-03, DEEP-04 | 111 | ○ Not started |
+| 116 | Verification + Source-Chain Audit + UAT | VER-07, VER-08 | 113, 114, 115 | ○ Not started |
 
-**Critical path:** 107 → (108 ∥ 109) → 110. Bring the next ~8–10 largest-GF NASBO states (candidate roster NJ/MA/NC/GA/MD/TN/CT/WI/WA/MI — recon locks the exact list) onto full **State-ACFR GAAP** revenue-by-source + finer spending-by-function, each as deep as durable ACFR URLs allow. Cohort 9 ACFR nodes → ~19. Constraints: free ACFR PDFs only ($0/$5 AI gate); ACFR GAAP (GENERAL FUND column of the Governmental Funds Statement of Rev/Exp/Changes, `pdftotext -table`); every figure durably sourced + basis-labelled; P2 negative-category clamp; idempotent never-overwrite (ACFR replaces NASBO per state-FY; the existing 9 ACFR nodes + un-upgraded NASBO states untouched); executed inline (no subagents). Reuse the v2.12 `process{PA,IL}{,Revenue}Acfr.js` loaders as the per-state template (clone + swap `SOURCES` map); `loadStateGF.mjs` stays the NASBO fallback. No frontend work — Money In + `?dataset=revenue` are data-driven → auto-enable once loaded. **Recon resolves the MA v1.8 DLS-budget overlap in place FIRST** (Phase 107) — avoid a duplicate MA node (Phase 98 CA-v1.7 precedent). Closeout = independent ACFR re-derivation → 50-node cohort source-chain audit → Chris live UAT (Phase 102/106 mold). See [[project_state_node_unsourced_estimates]].
+**Critical path:** 111 → 112 → (113 ∥ 114 ∥ 115) → 116. **WR-05 loader fix FIRST** (Phase 111) so every load this milestone runs residue-free. Then recon locks the ~10-state tranche-3 roster (candidates AZ/IN/CO/MO/KY/OR/SC/LA/OK/UT, ranked from NASBO 2025 SER — substitutions documented) and upgrades each NASBO→**State-ACFR GAAP** GF revenue-by-source + finer spending-by-function as deep as durable URLs allow. Deepening (Phase 115, parallel with the batches) recovers the v2.13 holes: MA FY2001/02/04/05/14/21, CT FY2006 (OCR), NJ pre-FY2020, CT/WI pre-GASB-34 via a new pre-GASB-34 extractor + honest basis label. Cohort 19 ACFR nodes → ~29. Constraints: free ACFR PDFs only ($0/$5 AI gate); GENERAL FUND column of the Governmental Funds Statement (`pdftotext -table`); every figure durably sourced + basis-labelled; P2 clamp; idempotent never-overwrite (existing 19 ACFR nodes + un-upgraded NASBO states untouched); executed inline (no subagents); clone the proven per-state loader template; `loadStateGF.mjs` stays the NASBO fallback. No frontend work — Money In + `?dataset=revenue` auto-enable. Closeout = independent blind re-derivation → 50-state cohort audit (0 residue, no manual re-clean — proves LOAD-01) → Chris live UAT (Phase 102/106/110 mold). See [[project_acfr_recon_structure_unreliable]] + [[project_state_node_unsourced_estimates]].
 
 ## Deferred Items
 
