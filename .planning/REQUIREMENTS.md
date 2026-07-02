@@ -9,7 +9,7 @@
 
 ### Loader Debt (first, before any loads)
 
-- [ ] **LOAD-01**: The `process*Acfr.js` loader template's `data_sources` write is atomic (or the vestigial write is removed), so a full loader run — including an idempotent re-run — leaves 0 residue rows; proven by a live re-run + audit probe **before** any tranche-3 load happens, and the fix is applied to (or inherited by) every loader used this milestone.
+- [x] **LOAD-01**: The `process*Acfr.js` loader template's `data_sources` write is atomic (or the vestigial write is removed), so a full loader run — including an idempotent re-run — leaves 0 residue rows; proven by a live re-run + audit probe **before** any tranche-3 load happens, and the fix is applied to (or inherited by) every loader used this milestone.
 
 ### Recon & Data Integrity
 
@@ -69,7 +69,7 @@ Deferred to a follow-up milestone. Tracked but not in this roadmap.
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| LOAD-01 | Phase 111 | Pending |
+| LOAD-01 | Phase 111 | Complete |
 | RECON-09 | Phase 112 | Pending |
 | RECON-10 | Phase 112 | Pending |
 | ACFR-21..25 | Phase 113 | Pending |

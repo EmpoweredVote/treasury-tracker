@@ -6,11 +6,11 @@ status: planning
 last_updated: "2026-07-02T15:17:35.681Z"
 last_activity: 2026-07-02
 progress:
-  total_phases: 0
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_phases: 6
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
+  percent: 17
 ---
 
 # State
@@ -24,16 +24,16 @@ See: .planning/PROJECT.md (updated 2026-07-02 — v2.14 State ACFR Long Tail —
 
 ## Current Position
 
-Phase: 111 (Loader Debt — Atomic data_sources Upsert) — planned
-Plan: 111-01 (single plan, 2 tasks)
-Status: Planned — ready to execute (/gsd-execute-phase 111)
-Last activity: 2026-07-02 — Phase 111 planned inline: root cause pinned (data_sources row is an unreferenceable RPC parameter vehicle — budgets.data_source_id FKs to source_registry; sync_logs cascade-deletes), fix = ephemeral create→use→delete lifecycle across 34 process*Acfr.js + loadStateGF.mjs, proof = NJ FY2025 re-run bracketed by the phase-110 residue probe
+Phase: 112 (Recon — Roster Lock + Source Location + Overlap Resolution) — not started
+Plan: —
+Status: Phase 111 COMPLETE (verified 3/3) — ready to plan Phase 112 (/gsd-plan-phase 112)
+Last activity: 2026-07-02 — Phase 111 executed inline + verified: WR-05 closed via ephemeral data_sources lifecycle (create→use→delete; budgets.data_source_id FKs to source_registry so persistent rows are unreferenceable by design) in all 34 process*Acfr.js + loadStateGF.mjs; live NJ FY2025 op+rev re-run proof — audit 10/10 exit 0 before AND after with ZERO manual re-clean, NJ data byte-identical
 
 ## Phase Overview — v2.14 State ACFR Long Tail — Tranche 3 + Deepening
 
 | Phase | Name | Requirements | Depends on | Status |
 |-------|------|--------------|------------|--------|
-| 111 | Loader Debt — Atomic data_sources Upsert | LOAD-01 | — | ◆ Planned |
+| 111 | Loader Debt — Atomic data_sources Upsert | LOAD-01 | — | ✅ COMPLETE — verified 3/3, 2026-07-02 |
 | 112 | Recon — Roster Lock + Source Location + Overlap Resolution | RECON-09, RECON-10 | 111 | ○ Not started |
 | 113 | ACFR Upgrade — Batch 1 (~5 states) | ACFR-21..25, ACFR-31, ACFR-32 | 112 | ○ Not started |
 | 114 | ACFR Upgrade — Batch 2 (~5 states) | ACFR-26..30, ACFR-31, ACFR-32 | 112 | ○ Not started |

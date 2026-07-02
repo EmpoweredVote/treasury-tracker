@@ -40,7 +40,7 @@
 
 **Critical path:** 111 → 112 → (113 ∥ 114 ∥ 115) → 116. Phase 115 (deepening) needs only 111 — it touches existing MA/CT/NJ/WI loaders and can run alongside the tranche batches.
 
-#### Phase 111: Loader Debt — Atomic data_sources Upsert (LOAD-01)
+#### ✅ Phase 111: Loader Debt — Atomic data_sources Upsert (LOAD-01) — COMPLETE 2026-07-02 (verified 3/3; ephemeral data_sources lifecycle in all 35 loaders; live NJ re-run proof, 0 residue no manual re-clean)
 
 **Goal:** The `process*Acfr.js` loader template's `data_sources` write is atomic (or the vestigial write is removed) so a full loader run — including an idempotent re-run — leaves 0 residue rows, and every loader used this milestone inherits the fix.
 **Depends on:** Nothing
