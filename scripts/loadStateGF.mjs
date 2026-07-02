@@ -1583,7 +1583,8 @@ async function loadStateFY(supabase, st, fy, dryRun) {
     .select('id,name').eq('name', st.name).eq('state', st.abbr).eq('entity_type', 'state').single();
   if (mErr || !muni) { console.error(`  ${st.name} state node not found`); process.exit(2); }
 
-  // Find-or-create the NASBO operating data_source for this state (idempotent, P6).
+  // Ephemeral RPC parameter vehicle (WR-05 / LOAD-01): budgets rows carry text-stamp provenance,
+  // so a persistent data_sources row is unreferenceable residue — create fresh here, delete at end of run.
   const srcName = `${st.name} General Fund Operating Budget`;
   const srcPayload = {
     name: srcName, api_type: 'nasbo-ser', dataset_type: 'operating',
@@ -1591,17 +1592,9 @@ async function loadStateFY(supabase, st, fy, dryRun) {
     base_url: 'https://www.nasbo.org/reports-data/state-expenditure-report',
     fiscal_years: Object.keys(st.operating).map(Number), municipality_id: muni.id,
   };
-  const { data: existingDs } = await supabase.schema('treasury').from('data_sources')
-    .select('id').eq('municipality_id', muni.id).eq('api_type', 'nasbo-ser').eq('dataset_type', 'operating').maybeSingle();
-  let ds;
-  if (existingDs?.id) {
-    const { data } = await supabase.schema('treasury').from('data_sources').update(srcPayload).eq('id', existingDs.id).select().single();
-    ds = data;
-  } else {
-    const { data, error } = await supabase.schema('treasury').from('data_sources').insert(srcPayload).select().single();
-    if (error) { console.error('  data_source insert failed:', error.message); process.exit(2); }
-    ds = data;
-  }
+  await supabase.schema('treasury').from('data_sources').delete().eq('dataset_id', srcPayload.dataset_id);
+  const { data: ds, error: dsErr } = await supabase.schema('treasury').from('data_sources').insert(srcPayload).select().single();
+  if (dsErr) { console.error('  data_source insert failed:', dsErr.message); process.exit(2); }
 
   // Build budget + depth-1 category tree (RPC keys on muni+fy+dataset_type → updates in place).
   const { data: r, error: rpcErr } = await supabase.rpc('treasury_sync_budget_tree', {
@@ -1624,7 +1617,7 @@ async function loadStateFY(supabase, st, fy, dryRun) {
   }).eq('id', bud.id);
   if (upErr) { console.error(`  source stamp failed: ${upErr.message}`); process.exit(2); }
   console.log(`  Stamped NASBO source (${NASBO_SER.edition}) on FY${fy} operating row\n`);
-  await supabase.schema('treasury').from('data_sources').update({ last_synced_at: new Date().toISOString() }).eq('id', ds.id);
+  await supabase.schema('treasury').from('data_sources').delete().eq('id', ds.id); // ephemeral cleanup — leaves 0 residue (WR-05 / LOAD-01)
   return true;
 }
 

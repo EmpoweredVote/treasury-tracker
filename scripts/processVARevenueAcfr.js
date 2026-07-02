@@ -127,9 +127,9 @@ async function main() {
   let ds;
   if (!dryRun) {
     const srcPayload = { name: `${STATE_NAME} General Fund Revenue`, api_type: 'pdf_download', dataset_type: 'revenue', dataset_id: 'va-gf-revenue', base_url: 'https://www.doa.virginia.gov/reports/ACFReport/', fiscal_years: [2022,2023,2024,2025], municipality_id: muniId };
-    const { data: existing } = await supabase.schema('treasury').from('data_sources').select('id').eq('name', srcPayload.name).maybeSingle();
-    if (existing?.id) { const { data } = await supabase.schema('treasury').from('data_sources').update(srcPayload).eq('id', existing.id).select().single(); ds = data; console.log(`data_source updated: ${ds.id}`); }
-    else { const { data, error } = await supabase.schema('treasury').from('data_sources').insert(srcPayload).select().single(); if (error) { console.error('insert failed:', error.message); process.exit(2); } ds = data; console.log(`data_source created: ${ds.id}`); }
+    // Ephemeral RPC parameter vehicle (WR-05 / LOAD-01): budgets rows carry text-stamp provenance, so a persistent data_sources row is unreferenceable residue — create fresh here, delete at end of run.
+    await supabase.schema('treasury').from('data_sources').delete().eq('dataset_id', srcPayload.dataset_id);
+    const { data: dsRow, error: dsErr } = await supabase.schema('treasury').from('data_sources').insert(srcPayload).select().single(); if (dsErr) { console.error('insert failed:', dsErr.message); process.exit(2); } ds = dsRow; console.log(`data_source created (ephemeral): ${ds.id}`);
     console.log('');
   }
   for (const fy of years) {
@@ -157,8 +157,8 @@ async function main() {
       if (upErr) { console.error(`source stamp failed: ${upErr.message}`); process.exit(2); }
       console.log(`Stamped source on FY${fy} revenue row (GAAP basis)\n`);
     } else { console.error(`Could not find FY${fy} revenue budget row to stamp source`); process.exit(2); }
-    await supabase.schema('treasury').from('data_sources').update({ last_synced_at: new Date().toISOString() }).eq('id', ds.id);
   }
+  if (!dryRun && ds) await supabase.schema('treasury').from('data_sources').delete().eq('id', ds.id); // ephemeral cleanup — leaves 0 residue (WR-05 / LOAD-01)
   console.log('Done.');
 }
 main().catch(e => { console.error('Fatal:', e.message); process.exit(2); });
