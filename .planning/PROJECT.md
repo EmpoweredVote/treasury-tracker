@@ -10,7 +10,14 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 
 ## Current State
 
+**v2.14 in progress — Phase 112 recon complete (2026-07-02).** Tranche-3 roster LOCKED from the NASBO 2025 SER re-ranking (0 transcription drift): Batch 1 / Phase 113 = **IN, AZ, OR, MO, CO** (ACFR-21..25); Batch 2 / Phase 114 = **SC, KY, UT, AL, LA** (ACFR-26..30). One D-01 substitution: **Oklahoma out** (actual rank 14/31, rank correction) → **Alabama in** (rank 9). All 11 reconned states bookend-tie-confirmed at exact $0 diffs with four risk facts pinned per state; recency floor green everywhere. Overlaps resolved on paper: UT state node probed clean NASBO-only (v2.5 municipal data untouched), all roster states clean, 19 existing ACFR nodes contractually undisturbed — zero DB writes (verified by live independent re-probe), $0 spend. Load-time flags: AZ FY2024 non-durable hosting, LA federal-passthrough GF, UT narrower-than-NASBO (Income Tax Fund), AL 0.24× ETF split, CO TABOR presentation variance. Verification 16/16. Next: Phases 113/114 loads (∥ 115 deepening).
+
+<details>
+<summary>Previous: v2.13 State ACFR Long Tail — Tranche 2 (shipped 2026-07-02)</summary>
+
 **Shipped v2.13 State ACFR Long Tail — Tranche 2 (2026-07-02).** Doubled the State-ACFR cohort: the next **10 largest-General-Fund NASBO states — NJ, MA, NC, GA, MD, TN, CT, WI, WA, MI —** brought onto full **State-ACFR GAAP** GF revenue-by-source + finer spending-by-function, each as deep as durable ACFR URLs allow (TN 17yr, CT 23yr, WI 24yr back to FY2002; NJ dollars-unit trap and MI Sep-30 FY-end handled per recon). Recon locked all 10 candidates with **0 substitutions**; MA upgraded **in place** over its v1.8 DLS node (no duplicate); GA's v2.10 F-97-01 Medicaid fix superseded cleanly by ACFR actuals. NASBO operating replaced idempotently; 6 live P2 clamps (plus MD FY2022's −$275,992K); scope divergence 1.14×–3.56× accepted + relabelled honestly. Cohort now **19 ACFR states (444 rows) + 31 NASBO = 506 state rows, 0 anomalies**. Phase 110 verified end-to-end: **49/49 loader-independent blind re-derivation checks at exact $0 delta**, 50-state cohort source-chain audit **10/10 invariants**, and **Chris live-app UAT 11/11 all-pass** (plus a 7/7 Phase-108 closure UAT incl. a live idempotency re-run). Free ACFR PDFs only, $0 spend, executed inline. The remaining ~31 NASBO states are ACFRX-02 (future tranche).
+
+</details>
 
 <details>
 <summary>Previous: v2.12 State ACFR Long Tail (shipped 2026-07-01)</summary>
