@@ -13,8 +13,8 @@
 
 ### Recon & Data Integrity
 
-- [ ] **RECON-09**: Recon ranks the remaining 31 NASBO states by GF size (NASBO 2025 SER), **locks the ~10-state tranche-3 roster** (candidates: AZ, IN, CO, MO, KY, OR, SC, LA, OK, UT — substitutions allowed for rank corrections or ACFRs that won't cleanly `pdftotext -table`-extract, deferring those to the final tranche), locates each locked state's ACFR Governmental Funds *Statement of Revenues, Expenditures and Changes in Fund Balances* (GENERAL FUND column, units, FY-end, durable per-year URLs, cleanly extractable FY depth), tie-confirms each window's bookend totals, and writes a per-state gap log for years that don't cleanly extract.
-- [ ] **RECON-10**: Recon resolves prior-load overlaps before any write — any locked state with a pre-existing custom-source node gets an **in-place upgrade** plan (the MA v1.8-DLS / CA v1.7 precedent; Utah's existing city/county data is municipal-level and unaffected, but the UT *state node's* provenance is checked) — and confirms each upgraded state's ACFR rows **replace** its NASBO operating rows (one basis per state-FY) idempotently and never-overwriting; un-upgraded NASBO states remain unchanged on `scripts/loadStateGF.mjs`; the existing 19 ACFR nodes are not disturbed.
+- [x] **RECON-09**: Recon ranks the remaining 31 NASBO states by GF size (NASBO 2025 SER), **locks the ~10-state tranche-3 roster** (candidates: AZ, IN, CO, MO, KY, OR, SC, LA, OK, UT — substitutions allowed for rank corrections or ACFRs that won't cleanly `pdftotext -table`-extract, deferring those to the final tranche), locates each locked state's ACFR Governmental Funds *Statement of Revenues, Expenditures and Changes in Fund Balances* (GENERAL FUND column, units, FY-end, durable per-year URLs, cleanly extractable FY depth), tie-confirms each window's bookend totals, and writes a per-state gap log for years that don't cleanly extract.
+- [x] **RECON-10**: Recon resolves prior-load overlaps before any write — any locked state with a pre-existing custom-source node gets an **in-place upgrade** plan (the MA v1.8-DLS / CA v1.7 precedent; Utah's existing city/county data is municipal-level and unaffected, but the UT *state node's* provenance is checked) — and confirms each upgraded state's ACFR rows **replace** its NASBO operating rows (one basis per state-FY) idempotently and never-overwriting; un-upgraded NASBO states remain unchanged on `scripts/loadStateGF.mjs`; the existing 19 ACFR nodes are not disturbed.
 
 ### State ACFR Upgrades (the tranche)
 
@@ -70,8 +70,8 @@ Deferred to a follow-up milestone. Tracked but not in this roadmap.
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
 | LOAD-01 | Phase 111 | Complete |
-| RECON-09 | Phase 112 | Pending |
-| RECON-10 | Phase 112 | Pending |
+| RECON-09 | Phase 112 | Complete |
+| RECON-10 | Phase 112 | Complete |
 | ACFR-21..25 | Phase 113 | Pending |
 | ACFR-26..30 | Phase 114 | Pending |
 | ACFR-31 | Phase 113, 114 | Pending |

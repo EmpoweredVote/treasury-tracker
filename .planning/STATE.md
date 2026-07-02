@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.14
 milestone_name: State ACFR Long Tail — Tranche 3 + Deepening
-status: executing
-last_updated: "2026-07-02T20:48:58.392Z"
-last_activity: 2026-07-02 -- Phase 112 execution started
+status: verifying
+last_updated: "2026-07-02T22:21:55.193Z"
+last_activity: 2026-07-02
 progress:
   total_phases: 31
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 0
-  percent: 0
+  completed_plans: 3
+  percent: 3
 ---
 
 # State
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-07-02 — v2.14 State ACFR Long Tail —
 ## Current Position
 
 Phase: 112 (recon-roster-lock-source-location-overlap-resolution-recon-0) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 112
-Last activity: 2026-07-02 -- Phase 112 execution started
+Plan: 3 of 3
+Status: Phase complete — ready for verification
+Last activity: 2026-07-02
 
 ## Phase Overview — v2.14 State ACFR Long Tail — Tranche 3 + Deepening
 
@@ -183,9 +183,9 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-07-02T20:09:25.363Z
-Stopped at: Phase 112 context gathered
-Resume file: .planning/phases/112-recon-roster-lock-source-location-overlap-resolution-recon-0/112-CONTEXT.md
+Last session: 2026-07-02T22:21:55.179Z
+Stopped at: Completed 112-03-PLAN.md — Phase 112 recon complete, ready for verification
+Resume file: None
 
 ### Next Session
 
@@ -238,6 +238,7 @@ Leading candidates: ACFRX-02 (remaining ~31 NASBO states → ACFR, and/or the v2
 | Phase 107-recon P107-01 | 180 | 3 tasks | 1 files |
 | Phase 107-recon-acfr-source-location-roster-lock-overlap-resolution-re P107-02 | 120 | 3 tasks | 1 files |
 | Phase 107-recon-acfr-source-location-roster-lock-overlap-resolution-re P107-03 | 6min | 2 tasks | 1 files |
+| Phase 112 P03 | 95min | 3 tasks | 1 files |
 
 ## Decisions
 
@@ -298,6 +299,9 @@ Leading candidates: ACFRX-02 (remaining ~31 NASBO states → ACFR, and/or the v2
 - [Phase ?]: CO Transportation GF = 1M not zero per NASBO Table 21
 - [Phase ?]: 102-02 cohort audit
 - [Phase ?]: 107-03: All 10 roster states IN (0 deferred); MA in-place upgrade (no stale data_sources); GA F-97-01 superseded cleanly; NJ=dollars not thousands; MI=September-30 FY-end custom loader
+- [Phase ?]: Rank-correction substitution: Oklahoma (weakest named ACFR candidate, actual NASBO rank 14/31) substituted for Alabama (rank 9, next-largest un-upgraded state) per D-01; one round only, OK carried to ACFRX-03 with recon preserved
+- [Phase ?]: All 10 locked-roster ACFR states + Alabama substitute confirmed clean NASBO-only nodes via read-only DB probe (zero data_sources residue) — no in-place-upgrade plan needed anywhere in tranche 3, simpler than Phase 107
+- [Phase ?]: Alabama's ACFR General Fund is ~0.24x its NASBO GF (narrowest divergence in the v2.14 tranche) due to its constitutional GF/Education-Trust-Fund dual-budget split; flagged as a Phase-114 load-time decision, not resolved in recon
 
 ## Deferred Items
 
