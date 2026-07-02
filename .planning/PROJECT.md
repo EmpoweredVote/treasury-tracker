@@ -10,7 +10,14 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 
 ## Current State
 
+**Shipped v2.13 State ACFR Long Tail — Tranche 2 (2026-07-02).** Doubled the State-ACFR cohort: the next **10 largest-General-Fund NASBO states — NJ, MA, NC, GA, MD, TN, CT, WI, WA, MI —** brought onto full **State-ACFR GAAP** GF revenue-by-source + finer spending-by-function, each as deep as durable ACFR URLs allow (TN 17yr, CT 23yr, WI 24yr back to FY2002; NJ dollars-unit trap and MI Sep-30 FY-end handled per recon). Recon locked all 10 candidates with **0 substitutions**; MA upgraded **in place** over its v1.8 DLS node (no duplicate); GA's v2.10 F-97-01 Medicaid fix superseded cleanly by ACFR actuals. NASBO operating replaced idempotently; 6 live P2 clamps (plus MD FY2022's −$275,992K); scope divergence 1.14×–3.56× accepted + relabelled honestly. Cohort now **19 ACFR states (444 rows) + 31 NASBO = 506 state rows, 0 anomalies**. Phase 110 verified end-to-end: **49/49 loader-independent blind re-derivation checks at exact $0 delta**, 50-state cohort source-chain audit **10/10 invariants**, and **Chris live-app UAT 11/11 all-pass** (plus a 7/7 Phase-108 closure UAT incl. a live idempotency re-run). Free ACFR PDFs only, $0 spend, executed inline. The remaining ~31 NASBO states are ACFRX-02 (future tranche).
+
+<details>
+<summary>Previous: v2.12 State ACFR Long Tail (shipped 2026-07-01)</summary>
+
 **Shipped v2.12 State ACFR Long Tail (2026-07-01).** Extended the proven State-ACFR GAAP upgrade in two directions. **Deepened** the four v2.11 pilots' history — **CA** FY2008–2025 (+12 yrs), **NY** FY2003–2024 (+12 yrs, ×millions), **FL** +FY2021 (TX already contiguous) — every added FY tying exactly to its ACFR GF column total. **Added Pennsylvania (FY2016–2025) + Illinois (FY2021–2025)** — the two largest remaining NASBO states — onto full ACFR GF **revenue-by-source** + finer **spending-by-function** via four new loaders (`processPA/IL{,Revenue}Acfr.js`), NASBO operating replaced in place idempotently, scope divergence accepted + relabelled honestly (PA ~2.0×, IL ~1.5× NASBO GF), P2 clamp on IL FY2022 / FL FY2021, "Money In" auto-enabled on both nodes. Phase 106 verified end-to-end: **24/24 loader-independent blind ACFR re-derivations at exact $0 delta**, a **50-node cohort source-chain audit (7/7 invariants over 276 rows, 41 NASBO states untouched, idempotent, Phase-104 deepening holes recorded + honest)**, and **Chris's live-app UAT sign-off (8/8 anchors)**. A UAT-surfaced data-viz improvement — distinct adjacent-category colors + dropping the redundant single-root "…General Fund Budget · 100%" layer (`hoistSingleRoot`) — shipped to production (Netlify). Free ACFR PDFs only, $0 / no paid AI, executed inline. Next long-tail tranche (more NASBO→ACFR states) is ACFRX-01/02, deferred.
+
+</details>
 
 <details>
 <summary>Previous: v2.11 State ACFR Revenue-by-Source Upgrades (shipped 2026-06-30)</summary>
@@ -75,20 +82,16 @@ All 6 remaining SoCal counties added via the hardened v2.2/v2.3 pipeline with ze
 Brought every already-loaded non-OC California city and county to the Orange County standard (FY2003 history, statewide salaries, standardized enrichment) via the hardened v2.2 pipeline. Phase 62 verified end-to-end: ACFR reconciliation, source-chain audit (0 NULL/fragile/residue across 25,568 rows), 24-item UAT with Chris's sign-off. SoCal expansion deferred to v2.4.
 </details>
 
-## Current Milestone: v2.13 State ACFR Long Tail — Tranche 2
+## Next Milestone Goals
 
-**Goal:** Continue the proven State-ACFR GAAP upgrade — bring the next ~8–10 largest-General-Fund NASBO states onto full ACFR revenue-by-source + finer spending-by-function, each as deep as durable ACFR URLs allow, replacing NASBO operating rows idempotently (un-upgraded states stay on NASBO). Takes the cohort from 9 ACFR nodes → ~19.
+**No active milestone — v2.13 shipped + archived 2026-07-02.** Run `/gsd-new-milestone` to charter the next one. Leading candidates:
 
-**Candidate roster (largest GF first — recon locks the exact list + windows):** New Jersey, Massachusetts, North Carolina, Georgia, Maryland, Tennessee, Connecticut, Wisconsin, Washington, Michigan. Recon may substitute ≤2 states whose ACFR won't cleanly extract, deferring them to the next tranche.
-
-**Target features:**
-- **Recon first** — locate durable per-year ACFR URLs, GF column, units, windows; tie-confirm bookends; lock the exact roster; resolve prior-load overlaps (esp. **Massachusetts** — a v1.8 DLS state budget already exists; upgrade in place, no duplicate MA node — the Phase 98 CA-v1.7 precedent)
-- **Load the tranche** — each state onto ACFR GAAP GF revenue-by-source + spending-by-function via a cloned `process{ST}{,Revenue}Acfr.js`, NASBO operating replaced in place idempotently, scope divergence relabelled honestly, P2 negative-category clamp
-- **Verify** — independent blind ACFR re-derivation ($0 delta) → 50-node cohort source-chain audit → live UAT with Chris sign-off
-
-**Key context:** No frontend work — the phase-101 "Money In" view + `?dataset=revenue` deep-link are data-driven, so each state auto-enables revenue once loaded. Free ACFR PDFs only ($0 / $5 AI gate); GAAP basis, durably sourced + basis-labelled; idempotent never-overwrite (ACFR replaces NASBO per state-FY; un-upgraded states stay on NASBO); P2 negative-category clamp; executed inline (no subagents). Reuse the v2.12 `process{PA,IL}{,Revenue}Acfr.js` loaders as the per-state template (clone + swap `SOURCES` map). `scripts/loadStateGF.mjs` stays the NASBO fallback. Phases continue from 107. Closeout = independent ACFR re-derivation → cohort source-chain audit → Chris live UAT (the Phase 102/106 mold).
+- **ACFRX-02 — State ACFR Long Tail, Tranche 3+:** upgrade the remaining ~31 NASBO states to ACFR GAAP (retiring NASBO to fallback-only), and/or a **deepening pass** on the recoverable v2.13 holes (MA FY2001/02/04/05/14/21, CT FY2006 OCR, NJ pre-FY2020, CT/WI pre-GASB-34 — needs a pre-GASB-34 extractor + basis label).
+- **Votes/amendments exploration hub** (the eventual mission destination) or **sourced-standard backfill** to city data (SRCSTD-01).
+- **WR-05 loader-debt fix:** make the `process*Acfr.js` data_sources upsert atomic (or remove the vestigial write) so cohort audits stop re-flagging residue rows.
 
 **Carried-forward follow-ups (candidates for a later milestone or backlog sweep):**
+- **v2.13 (Phases 108/110):** WR-05 data_sources residue (recurs every loader run); state-node hero banners default to Wikipedia's lead image = low-res state flag (cosmetic; fix paths in 108-UAT.md — `municipalities.hero_image_url` or CITY_WIKI_OVERRIDES); authenticated deep-link redirect UX (v2.12 todo, still open).
 - **v2.11 (Phase 102):** "State ACFR Long Tail" — deepen FL pre-FY2022 / CA pre-FY2020 / NY pre-FY2015 / TX FY2016 + scale ACFR revenue-by-source to the other 46 NASBO states. Flat-revenue-tree no-drill-down stays an accepted limitation (`project_flat_source_icicle_limitation`).
 - **v2.9 (Phase 93):** MN state-node history FY2021/2022 + deeper deferred into THIS milestone (SGFS-02); MN salaries/enterprise/townships/pre-2015 deferred (MNSAL/MNENT/MNHIST/MNTWN-01).
 - **v2.8 (Phase 88):** flat AOS source → no icicle drill-down (deferred UX fix = surface enrichment on leaf click; see auto-memory `project_flat_source_icicle_limitation`); the 10 state-node General Fund rows' `source_url` points at `lsc.ohio.gov/budget/` (canonical, but a TLS cert-chain quirk — swap if it warns in-browser); the county "Charges For Services" duplicate-column display quirk (`total_budget` authoritative); v2 deferred OHTWN-01 (townships/villages/libraries/schools) + OHENT-01 (enterprise funds).
@@ -200,6 +203,11 @@ Brought every already-loaded non-OC California city and county to the Orange Cou
 - ✓ NY + FL upgraded: NY FY2015–24 (×1,000,000 millions scaling), FL FY2022–24; stale-`data_sources` cleanup extended; P2 clamp fired (ACFR-03/04/05) — v2.11, Phase 100
 - ✓ "Money In" revenue-by-source view auto-enabled on CA/TX/NY/FL; shared pure `resolveEffectiveDataset` helper hardens `?dataset=revenue` deep-links (validate against availability, fall back to operating on NASBO-only nodes), no regression (REVUX-01/02) — v2.11, Phase 101
 - ✓ Verification: 16/16 loader-independent ACFR re-derivation exact ties; 50-node cohort source-chain audit 7/7 (genuine 0 residue, 145 stale `*-gf-*` data_sources deleted, 46 NASBO untouched); Chris live-app UAT sign-off (VER-01/02) — v2.11, Phase 102
+- ✓ Pilot-history deepening (CA FY2008–2025 +12yr, NY FY2003–2024 +12yr ×millions, FL +FY2021) + **PA FY2016–2025 & IL FY2021–2025** onto full ACFR GAAP rev+spend; 24/24 blind re-derivation exact + cohort 7/7 + Chris UAT 8/8; in-milestone data-viz fix (distinct colors + `hoistSingleRoot`) deployed (RECON-04/05, DEEP-01, ACFR-06/07/08, VER-03/04) — v2.12, Phases 103–106
+- ✓ Recon locked all 10 tranche-2 states (0 substitutions): GF statement + bookend ties + durable per-year URLs + gap logs; MA in-place-upgrade path, GA F-97-01 supersede, NJ dollars-unit + MI Sep-30 FY-end traps caught pre-load (RECON-06/07) — v2.13, Phase 107
+- ✓ **NJ, MA (in-place over v1.8 DLS), NC, GA, MD** upgraded NASBO→ACFR GAAP GF revenue-by-source + spending-by-function; MD FY2022 P2 clamp; retroactive verification 4/4 + dedicated UAT 7/7 incl. live idempotency re-run (RECON-08, ACFR-09..13, ACFR-19/20) — v2.13, Phase 108
+- ✓ **TN 17yr, CT 23yr, WI 24yr, WA 6yr, MI 7yr** (77 state-FYs) loaded with 6 live P2 clamps; scope divergence 1.14×–3.56× relabelled honestly; shared parser evolved additively (RECON-08, ACFR-14..18, ACFR-19/20) — v2.13, Phase 109
+- ✓ Verification: 49/49 loader-independent blind re-derivation checks at exact $0; 50-state cohort audit 10/10 invariants (506 rows, 31 NASBO untouched); Chris live-app UAT 11/11 all-pass (VER-05/06) — v2.13, Phase 110
 
 ### Future (deferred milestone candidates)
 
@@ -281,9 +289,16 @@ Brought every already-loaded non-OC California city and county to the Orange Cou
 | TX General-Revenue Fund accepted as the GAAP GF-equivalent + relabelled (v2.11) | TX's GR Fund is ~3× the NASBO GF ($161B vs $50B) because it's a broader consolidated operating fund; carving it down would be fabrication — relabel honestly instead | ✓ Good — node total jumps visibly but is correct + sourced |
 | Independent re-derivation must not trust the loader (v2.11) | VER-01 requires reconciliation "from the ACFR, not loader self-report"; a separate `pdftotext` harness re-reads each printed total fresh | ✓ Good — 16/16 exact ($0 delta) |
 | Delete the full stale `*-gf-*` data_sources family incl. nasbo metadata (D-05, v2.11) | State budgets use text-stamp provenance (`data_source_id=null`); every state `*-gf-*` data_sources row backs 0 rows and is decorative — source chips render from the text stamp, so deleting them is display-safe and gives genuine 0 residue | ✓ Good — 145 deleted, 0-row guarded, Chris-approved mid-run correction |
+| Full 10-state roster kept, 0 substitutions (v2.13) | Recon's per-state bookend-tie + risk-fact pass (units, FY-end, URL durability) proved every candidate extractable — no need to burn the ≤2-substitution allowance | ✓ Good — all 10 loaded; recon depth pays for itself |
+| Per-state unit/FY-end traps resolved at recon, not load time (v2.13) | NJ prints dollars (only state needing no ×1,000); MI's Sep-30 FY-end needs custom handling; catching these pre-load prevents silent magnitude errors | ✓ Good — 0 magnitude defects across 121+ state-FYs |
+| Scope divergence accepted + relabelled up to 3.56× (MI) (v2.13) | Same TX/PA/IL precedent: carving a broader consolidated GF down to NASBO's definition would be fabrication; honest relabel keeps totals correct + sourced | ✓ Good — 5 relabels verified in UAT incl. MI 3.5×, GA 2× |
+| Retroactive VERIFICATION.md accepted for Phase 108 (v2.13) | The evidence (LOADLOG DB assertions + Phase 110's independent re-derivation + live UAT) already existed on disk; re-executing the phase would add nothing | ✓ Good — audit gap closed in one day, 18/18; process lesson: run the verifier before phase close |
+| Recoverable history holes logged, not chased (v2.13) | MA/CT/NJ/WI older years need OCR or a pre-GASB-34 extractor — out of tranche scope; honest absence beats delaying 10 states for 6 files | ✓ Good — holes documented + encoded in cohort-audit INV-8 |
 
 ## Shipped
 
+- ✅ **v2.13 State ACFR Long Tail — Tranche 2** — 2026-07-02 — Phases 107-110 (10 states — NJ/MA/NC/GA/MD/TN/CT/WI/WA/MI — upgraded NASBO→State-ACFR GAAP GF revenue-by-source + spending-by-function, 0 substitutions; MA in-place over v1.8 DLS, GA F-97-01 superseded; cohort 9→19 ACFR states, 506 state rows, 0 anomalies; 49/49 blind re-derivation exact $0 + cohort audit 10/10 + Chris UAT 11/11 (+108-closure 7/7); free PDFs, $0 spend)
+- ✅ **v2.12 State ACFR Long Tail** — 2026-07-01 — Phases 103-106 (CA/NY/FL ACFR history deepened +25 state-FYs; PA FY2016–2025 + IL FY2021–2025 onto full ACFR GAAP rev+spend, NASBO replaced idempotently; 24/24 blind re-derivation exact + 50-node cohort audit 7/7 + Chris UAT 8/8; UAT-surfaced data-viz fix deployed; $0 spend)
 - ✅ **v2.11 State ACFR Revenue-by-Source Upgrades** — 2026-06-30 — Phases 98-102 (CA/TX/NY/FL upgraded from NASBO operating-only to State-ACFR GAAP revenue-by-source + finer spending-by-function — CA FY2020–25, TX FY2015–24, NY FY2015–24 ×millions, FL FY2022–24 — replacing NASBO idempotently; "Money In" revenue view auto-enabled + `?dataset=revenue` deep-link hardened via shared `resolveEffectiveDataset`; 16/16 independent ACFR re-derivation exact ties + 50-node cohort audit 7/7 with genuine 0 residue (145 stale data_sources deleted) + Chris live UAT sign-off; TX GR-Fund ~3× relabelled honestly, P2 clamp on CA/NY/FL; executed inline, free PDFs, $0 spend; FL/long-tail deepening deferred)
 - ✅ **v2.10 State General Fund Sourcing** — 2026-06-29 — Phases 94-97 (all 50 state GF nodes on real sourced actuals: MN/OH/VA State-ACFR GAAP op+rev, the other 47 on NASBO 2025 SER operating; 375 unsourced estimate rows deleted; reusable loader + locked policy proven on Georgia; F-97-01 GA Medicaid fixed; cohort source-chain audit clean + "Representative 7" reconciled from source + Chris UAT 21/21; revenue-by-source deferred to future per-state ACFR upgrades; executed inline, $0 spend)
 - ✅ **v2.9 Minnesota Local Government Expansion** — 2026-06-28 — Phases 89-93 (858 MN cities + 87 counties at parity from the MN OSA City/County Finances XLSX: op/rev 2-level trees, per-capita, city→county linking, MN state node + enrichment; ACFR recon + source-chain audit + independent re-derivation + Chris UAT; surfaced the state-node sourcing problem chartered as v2.10; $0 spend)
@@ -325,7 +340,14 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
+*Last updated: 2026-07-02 after v2.13 milestone — v2.13 State ACFR Long Tail — Tranche 2 SHIPPED + archived. All 10 candidate states (NJ, MA, NC, GA, MD, TN, CT, WI, WA, MI) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + spending-by-function, 0 substitutions; cohort 9 → 19 ACFR states (444 rows) + 31 NASBO = 506 state rows, 0 anomalies. Verified: 49/49 loader-independent blind re-derivation exact $0; cohort audit 10/10 invariants; Chris live UAT 11/11 all-pass (+ Phase-108 closure UAT 7/7 on 2026-07-02, closing the retroactive-verification audit gap — 18/18 requirements). Tech debt carried: WR-05 data_sources residue, recoverable history holes (MA/CT/NJ/WI older years), state-flag hero banners (cosmetic). No active milestone. Next: `/gsd-new-milestone` (leading candidate: ACFRX-02 tranche 3 / deepening pass).*
+
+<details>
+<summary>Previous footer — v2.13 STARTED (2026-07-01)</summary>
+
 *Last updated: 2026-07-01 — v2.13 State ACFR Long Tail — Tranche 2 STARTED. Continue the proven State-ACFR GAAP upgrade: bring the next ~8–10 largest-GF NASBO states (candidate roster NJ/MA/NC/GA/MD/TN/CT/WI/WA/MI — recon locks the exact list) onto full ACFR revenue-by-source + finer spending-by-function, each as deep as durable ACFR URLs allow, replacing NASBO operating idempotently (un-upgraded states stay on NASBO). Cohort 9 ACFR nodes → ~19. No frontend work (Money In + deep-link data-driven → auto-enable once loaded). Free PDFs only, $0/$5 AI gate, GAAP + basis-labelled, idempotent never-overwrite, executed inline; reuse the v2.12 process{PA,IL}*.js loaders as the per-state template. Recon must resolve the MA v1.8 DLS-budget overlap in place (Phase 98 CA-v1.7 precedent). Phases 107 (recon) → 108/109 (load two batches) → 110 (verify+UAT). Closeout = independent ACFR re-derivation → 50-node cohort audit → Chris live UAT. Next: `/gsd-plan-phase 107`. (v2.12 SHIPPED + archived 2026-07-01.)*
+
+</details>
 
 <details>
 <summary>Previous footer — v2.12 STARTED (2026-06-30)</summary>

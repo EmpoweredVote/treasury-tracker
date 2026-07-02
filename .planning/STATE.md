@@ -2,32 +2,32 @@
 gsd_state_version: 1.0
 milestone: v2.13
 milestone_name: State ACFR Long Tail — Tranche 2
-status: executing
-last_updated: "2026-07-01T22:46:08.454Z"
-last_activity: 2026-07-01 -- Phase 110 execution started
+status: Awaiting next milestone
+last_updated: "2026-07-02T14:42:36.075Z"
+last_activity: 2026-07-02 — Milestone v2.13 completed and archived
 progress:
   total_phases: 29
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 11
-  completed_plans: 8
-  percent: 7
+  completed_plans: 11
+  percent: 10
 ---
 
 # State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-01 — v2.13 State ACFR Long Tail — Tranche 2 STARTED; v2.12 State ACFR Long Tail SHIPPED + archived)
+See: .planning/PROJECT.md (updated 2026-07-02 — v2.13 State ACFR Long Tail — Tranche 2 SHIPPED + archived; tag v2.13)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** Phase 110 — Verification + Source-Chain Audit + UAT (VER-05, VER-06)
+**Current focus:** Planning next milestone (run `/gsd-new-milestone`; leading candidate: ACFRX-02 — the remaining ~31 NASBO states and/or the v2.13 recoverable-holes deepening pass)
 
 ## Current Position
 
-Phase: 110 (Verification + Source-Chain Audit + UAT (VER-05, VER-06)) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 110
-Last activity: 2026-07-01 -- Phase 110 execution started
+Phase: Milestone v2.13 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-02 — Milestone v2.13 completed and archived
 
 ## Phase Overview — v2.13 State ACFR Long Tail — Tranche 2
 
@@ -41,6 +41,22 @@ Last activity: 2026-07-01 -- Phase 110 execution started
 **Critical path:** 107 → (108 ∥ 109) → 110. Bring the next ~8–10 largest-GF NASBO states (candidate roster NJ/MA/NC/GA/MD/TN/CT/WI/WA/MI — recon locks the exact list) onto full **State-ACFR GAAP** revenue-by-source + finer spending-by-function, each as deep as durable ACFR URLs allow. Cohort 9 ACFR nodes → ~19. Constraints: free ACFR PDFs only ($0/$5 AI gate); ACFR GAAP (GENERAL FUND column of the Governmental Funds Statement of Rev/Exp/Changes, `pdftotext -table`); every figure durably sourced + basis-labelled; P2 negative-category clamp; idempotent never-overwrite (ACFR replaces NASBO per state-FY; the existing 9 ACFR nodes + un-upgraded NASBO states untouched); executed inline (no subagents). Reuse the v2.12 `process{PA,IL}{,Revenue}Acfr.js` loaders as the per-state template (clone + swap `SOURCES` map); `loadStateGF.mjs` stays the NASBO fallback. No frontend work — Money In + `?dataset=revenue` are data-driven → auto-enable once loaded. **Recon resolves the MA v1.8 DLS-budget overlap in place FIRST** (Phase 107) — avoid a duplicate MA node (Phase 98 CA-v1.7 precedent). Closeout = independent ACFR re-derivation → 50-node cohort source-chain audit → Chris live UAT (Phase 102/106 mold). See [[project_state_node_unsourced_estimates]].
 
 ## Deferred Items
+
+### Acknowledged at v2.13 close (2026-07-02)
+
+Open-artifact audit at v2.13 close surfaced 5 items, all non-blocking and acknowledged (deferred). None are v2.13 blockers — Phase 110 verified the whole milestone end-to-end (VER-05 49/49 independent re-derivation + 10/10 cohort audit; VER-06 Chris live UAT 11/11 all-pass) and the milestone audit closed at 18/18:
+
+| Category | Item | Status |
+|----------|------|--------|
+| uat_gap | Phase 110 `110-UAT-CHECKLIST.md` | passed — 0 pending scenarios (Chris signed off 11/11 2026-07-01; flagged only because the file exists) |
+| todo | `2026-06-30-authenticated-deeplink-redirect-to-home-jurisdiction.md` | deferred — frontend-routing follow-up carried from v2.12 |
+| quick_task | 001-create-treasury-tracker-entries-for-ever | orphaned (file missing) — pre-v2.0 leftover, acknowledged at every close since v2.0 |
+| quick_task | 002-add-longview-tx-revenue | orphaned (file missing) — pre-v2.0 Longview TX effort, unrelated to v2.13 |
+| quick_task | 003-longview-operating-budget | orphaned (file missing) — pre-v2.0 Longview TX effort, unrelated to v2.13 |
+
+**v2.13 follow-ups (documented, not fixed):** WR-05 loader data_sources residue (recurs on every `process*Acfr.js` run until the upsert is atomic; re-cleaned in 110-02 + after the 108-closure NJ re-run); recoverable history holes (MA FY2001/02/04/05/14/21, CT FY2006 OCR, NJ pre-FY2020, CT/WI pre-GASB-34 — need a pre-GASB-34 extractor + basis label); state-node hero banners default to Wikipedia's lead image = low-res state flag (cosmetic; fix paths diagnosed in 108-UAT.md Gaps).
+
+### Acknowledged at v2.6 close (2026-06-22)
 
 Items acknowledged and deferred at v2.6 milestone close on 2026-06-22:
 
@@ -165,16 +181,15 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-07-01T19:38:26.056Z
-Stopped at: Phase 109 context gathered
-Resume file: .planning/phases/109-acfr-upgrade-batch-2-recon-08-acfr-14-18-acfr-19-acfr-20/109-CONTEXT.md
+Last session: 2026-07-02 (milestone close)
+Stopped at: v2.13 completed, archived, and tagged
+Resume file: —
 
 ### Next Session
 
-v2.8 Ohio is shipped + archived (tag v2.8). v2.9 Minnesota Local Government Expansion is the active milestone (phases 89-93, status: planning). Begin Phase 89:
-  /gsd-discuss-phase 89   (gather context + clarify approach)
-  /gsd-plan-phase 89      (skip discussion, plan directly)
-Source recon done: MN OSA City Finances Report XLSX confirmed icicle-grade (`cired_23_data.xlsx`, Governmental Funds sheet, 148 cols, 2-level rev + exp trees, built-in ParentEntityName/Population/GAAPInd). Phase 89 still needs: county file URL + county-layout verification, exact XLSX-era FY range.
+v2.13 State ACFR Long Tail — Tranche 2 is shipped + archived (tag v2.13). No active milestone. Start the next one:
+  /gsd-new-milestone   (questioning → research → requirements → roadmap; phases continue from 111)
+Leading candidates: ACFRX-02 (remaining ~31 NASBO states → ACFR, and/or the v2.13 recoverable-holes deepening pass — MA/CT/NJ/WI older years, needs a pre-GASB-34 extractor); votes/amendments hub (VOTES-01); sourced-standard backfill to city data (SRCSTD-01); WR-05 atomic data_sources upsert fix.
 
 ## Performance Metrics
 

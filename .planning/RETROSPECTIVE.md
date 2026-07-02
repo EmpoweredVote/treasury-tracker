@@ -478,6 +478,47 @@ Extended the v2.11 State-ACFR path in two directions: **deepened** the four pilo
 
 ---
 
+## Milestone: v2.13 — State ACFR Long Tail — Tranche 2
+
+**Shipped:** 2026-07-02
+**Phases:** 4 (107–110) | **Plans:** 16
+
+### What Was Built
+
+Doubled the State-ACFR cohort in one tranche: the next **10 largest-GF NASBO states (NJ, MA, NC, GA, MD, TN, CT, WI, WA, MI)** onto full ACFR GAAP GF revenue-by-source + spending-by-function — 0 substitutions from the candidate roster. MA upgraded in place over its v1.8 DLS node; GA's F-97-01 fix superseded cleanly; Batch 2 alone added 77 state-FYs (TN 17yr, CT 23yr, WI 24yr). Cohort now 19 ACFR states (444 rows) + 31 NASBO = 506 state rows. Closeout: 49/49 loader-independent blind re-derivations at exact $0, cohort audit 10/10 invariants, Chris live UAT 11/11 (plus a 7/7 Phase-108 closure UAT). Executed inline, $0.
+
+### What Worked
+
+- **The recon → batch-load → verify mold is now industrial.** Third consecutive milestone on the same shape; recon's four-risk-facts pass (units, FY-end, URL durability, scope ratio) caught the NJ dollars-unit and MI Sep-30 traps before a single write — zero magnitude defects across 121+ state-FYs.
+- **Roster-with-substitution-allowance de-risked scoping.** The ≤2-substitution escape hatch meant recon could commit hard to 10 states without gambling the milestone; it turned out 0 were needed, but the option kept planning honest.
+- **The verification harness scaled 3× with no redesign.** 49 re-derivation targets (vs 24 in v2.12, 16 in v2.11) ran through the same zero-loader-import pattern; the cohort audit grew to 10 invariants (INV-8 window honesty, INV-10 supersede checks) without structural change.
+- **Retroactive verification closed the one audit gap in a day.** Phase 108's missing VERIFICATION.md was a process artifact, not a work gap — the evidence (LOADLOG DB assertions + Phase 110's independent re-derivation) already existed, so the audit's gaps_found → passed cycle cost one session including a fresh 7/7 UAT.
+
+### What Was Inefficient
+
+- **Phase 108 shipped without running the verifier** — the only reason the milestone audit came back `gaps_found`. Batch 1 and Batch 2 ran in parallel; 109 got its VERIFICATION.md, 108 didn't. A per-phase "verifier ran?" check at phase close would have made the milestone audit a formality.
+- **WR-05 bit again, live, during the closure UAT** — the NJ idempotency re-run re-created 1 unreferenced data_sources row on camera. Third milestone carrying this; the fix (atomic upsert or delete the vestigial write) is small and now well-specified.
+- **The SUMMARY one-liner convention drifted again** — 10 of 16 plan summaries extracted as "Requirements:" placeholders at close, forcing another hand-written MILESTONES entry (the known extractor/convention mismatch, now 5+ closes running).
+
+### Patterns Established
+
+- **Four-risk-facts recon per state** (units, FY-end, URL durability, scope-vs-NASBO ratio) as a mandatory pre-load gate — this is what makes 10-state batches safe.
+- **Trust recon totals, re-verify structure/URLs at load time** — several states' page structure or URL casing (MD's `ACFR`→`acfr`) changed between recon and load; the GF total-tie is the safety net.
+- **Dedicated closure UAT for retroactive verification** — don't just paper over a missing artifact; re-prove the phase live (108's 7/7 included a fresh idempotency re-run with DB assertion).
+
+### Key Lessons
+
+1. Run the phase verifier *at phase close*, not at milestone audit — parallel batches make it easy for one branch to skip the gate, and the audit is the wrong place to discover it.
+2. A locked roster + substitution allowance beats both "exactly these N states" (brittle) and "as many as fit" (unshippable) — recon converts the option into certainty before any write.
+3. Verification infrastructure now scales sub-linearly like the loaders do: 3× the re-derivation targets for roughly the same harness effort. The compounding-reuse lesson (#1, #5 in Top Lessons) holds for audit tooling at cohort scale.
+
+### Cost Observations
+
+- **$0 net** — `pdftotext -table` + DB reads/targeted writes throughout; no AI in any loader, harness, or audit. The $5 AI gate never triggered.
+- Executed inline (no research/roadmapper subagents per standing feedback); 3-day wall-clock for 10 states / 121+ state-FYs / 47 commits.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -498,6 +539,8 @@ Extended the v2.11 State-ACFR path in two directions: **deepened** the four pilo
 | v2.3 | 5 | 15 | ~1 day | Pipeline applied at scale (LA County 88 + 98-city salaries) with zero new tooling; dedicated verification-only closeout phase; $0 spend |
 | v2.6 | 4 (77 iceboxed) | 8 | ~2 days | First org-financials (non-geographic) milestone; bank=truth/platforms=detail reconciliation; icebox-in-discuss pattern; inline reconciliation audit; $0 spend |
 | v2.7 | 6 (incl. 81.5 insert) | 10 | ~2 days | 162 entities from one uniform source/loader; explicit-map enrichment + coverage gate (vs heuristic router); PAFR-over-ACFR reconciliation; one scoped sourced fix allowed in verification; $0 spend |
+| v2.12 | 4 | 13 | ~1 day | Worktree-parallel waves restored; 24/24 exact-0 blind re-derivation; hoistSingleRoot anti-pattern fix; UAT on "no-frontend" milestones; $0 spend |
+| v2.13 | 4 | 16 | 3 days | 10-state tranche (cohort 9→19 ACFR); four-risk-facts recon gate; verification harness scaled 3× unchanged; retroactive VERIFICATION closure pattern; $0 spend |
 
 ### Top Lessons (Verified Across Milestones)
 

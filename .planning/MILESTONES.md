@@ -1,5 +1,24 @@
 # Milestones — Treasury Tracker / Empowered Vote Financials
 
+## v2.13 State ACFR Long Tail — Tranche 2 (Shipped: 2026-07-02)
+
+**Phases completed:** 4 phases (107–110), 16 plans
+**Git range:** `70f6e67..81c56c4` — 47 commits, 134 files, +10,853 lines (2026-06-30 → 2026-07-02)
+
+**Delivered:** Doubled the State-ACFR cohort — brought the next **10 largest-General-Fund NASBO states (NJ, MA, NC, GA, MD, TN, CT, WI, WA, MI)** onto full ACFR GAAP GF revenue-by-source + spending-by-function, each as deep as durable ACFR URLs allow, NASBO operating replaced in place idempotently. Cohort now **19 ACFR states (444 rows) + 31 NASBO = 506 state rows, 0 anomalies**. Free PDFs only, $0 AI spend.
+
+**Key accomplishments:**
+
+- **Phase 107 (recon):** all 10 candidate states locked IN — 0 substitutions/deferrals; per-state GF statement located, bookend tie-confirmed, durable per-year URLs + gap logs written; the NJ dollars-unit trap, MI Sep-30 FY-end, MA in-place-upgrade path (v1.8 DLS node, no duplicate), and GA F-97-01 supersede all caught before any write.
+- **Phase 108 (Batch 1):** **NJ, MA (in-place), NC, GA (F-97-01 superseded cleanly at $59.9B), MD** upgraded NASBO→ACFR GAAP; MD FY2022 P2 clamp on −$275,992K investment loss with parent total intact; verified retroactively 4/4 success criteria + dedicated 7/7 UAT incl. live idempotency re-run ("Loaded 0 rows", DB-asserted 0 net change).
+- **Phase 109 (Batch 2):** **TN 17yr, CT 23yr, WI 24yr, WA 6yr, MI 7yr = 77 state-FYs** loaded with 6 live P2 clamps; scope divergence (1.14× CT to 3.56× MI) accepted + relabelled honestly; shared parser evolved additively (108-era extraction paths untouched).
+- **Phase 110 (verification):** **49/49 loader-independent blind re-derivation checks tie at exactly $0** (bookends + newest FY + clamp years, zero loader imports); 50-state cohort source-chain audit **10/10 invariants** clean; WR-05 residue re-cleaned (20 rows).
+- **Chris live-app UAT 11/11 all-pass (2026-07-01)** — revenue-by-source, spending-by-function, basis labels, source chips, Money In auto-enabled across the upgraded states; plus the 108-closure UAT 7/7 (2026-07-02).
+
+**Known deferred items at close: 5** (see STATE.md Deferred Items) — 3 pre-existing Longview-TX quick-task stubs, the v2.12 authenticated-deep-link-redirect todo, and the (passed) Phase 110 UAT artifact. Tech debt carried: WR-05 loader data_sources residue (recurs every loader run until upsert is atomic); recoverable history holes (MA FY2001/02/04/05/14/21, CT FY2006 OCR, NJ pre-2020, CT/WI pre-GASB-34); state-node hero banners default to Wikipedia flag images (cosmetic, fix paths diagnosed in 108-UAT.md).
+
+---
+
 ## v2.12 State ACFR Long Tail (Shipped: 2026-07-01)
 
 **Phases completed:** 4 phases (103–106), 13 plans
