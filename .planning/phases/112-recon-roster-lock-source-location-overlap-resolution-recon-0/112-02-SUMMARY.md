@@ -105,3 +105,12 @@ None - no external service configuration required.
 ---
 *Phase: 112-recon-roster-lock-source-location-overlap-resolution-recon-0*
 *Completed: 2026-07-02*
+
+## Self-Check: PASSED
+
+- FOUND: `.planning/phases/112-recon-roster-lock-source-location-overlap-resolution-recon-0/112-BATCH2-SOURCES.md`
+- FOUND: `.planning/phases/112-recon-roster-lock-source-location-overlap-resolution-recon-0/112-02-SUMMARY.md`
+- FOUND commit `3ef3aec` (Task 0: scaffold)
+- FOUND commit `ae7938a` (Task 1: OR+SC+LA)
+- FOUND commit `1c6f5e3` (Task 2: OK+UT, UT overlap flag)
+- FOUND commit `bf23697` (SUMMARY.md)
