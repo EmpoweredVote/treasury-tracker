@@ -24,16 +24,16 @@ See: .planning/PROJECT.md (updated 2026-07-02 — v2.14 State ACFR Long Tail —
 
 ## Current Position
 
-Phase: 111 (Loader Debt — Atomic data_sources Upsert) — not started
-Plan: —
-Status: Roadmap created — ready to plan Phase 111
-Last activity: 2026-07-02 — Milestone v2.14 started; requirements + roadmap created
+Phase: 111 (Loader Debt — Atomic data_sources Upsert) — planned
+Plan: 111-01 (single plan, 2 tasks)
+Status: Planned — ready to execute (/gsd-execute-phase 111)
+Last activity: 2026-07-02 — Phase 111 planned inline: root cause pinned (data_sources row is an unreferenceable RPC parameter vehicle — budgets.data_source_id FKs to source_registry; sync_logs cascade-deletes), fix = ephemeral create→use→delete lifecycle across 34 process*Acfr.js + loadStateGF.mjs, proof = NJ FY2025 re-run bracketed by the phase-110 residue probe
 
 ## Phase Overview — v2.14 State ACFR Long Tail — Tranche 3 + Deepening
 
 | Phase | Name | Requirements | Depends on | Status |
 |-------|------|--------------|------------|--------|
-| 111 | Loader Debt — Atomic data_sources Upsert | LOAD-01 | — | ○ Not started |
+| 111 | Loader Debt — Atomic data_sources Upsert | LOAD-01 | — | ◆ Planned |
 | 112 | Recon — Roster Lock + Source Location + Overlap Resolution | RECON-09, RECON-10 | 111 | ○ Not started |
 | 113 | ACFR Upgrade — Batch 1 (~5 states) | ACFR-21..25, ACFR-31, ACFR-32 | 112 | ○ Not started |
 | 114 | ACFR Upgrade — Batch 2 (~5 states) | ACFR-26..30, ACFR-31, ACFR-32 | 112 | ○ Not started |
