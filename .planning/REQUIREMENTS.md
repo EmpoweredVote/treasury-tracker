@@ -20,16 +20,18 @@
 
 *One requirement per candidate state — recon (RECON-09) may substitute. Each: "User can see {STATE}'s GF revenue-by-source and GAAP spending-by-function on the {STATE} state node, ACFR-sourced, GAAP basis-labelled, NASBO operating replaced idempotently, as deep as the ACFR cleanly extracts."*
 
-- [ ] **ACFR-21**: Arizona
-- [ ] **ACFR-22**: Indiana
-- [ ] **ACFR-23**: Colorado
+*State labels synced 2026-07-02 to the Phase 112 locked roster + corrected size ranking (112-RECON.md Section 4 traceability mapping — authoritative). OK exits to ACFRX-03; AL substituted in.*
+
+- [ ] **ACFR-21**: Indiana
+- [ ] **ACFR-22**: Arizona
+- [ ] **ACFR-23**: Oregon
 - [ ] **ACFR-24**: Missouri
-- [ ] **ACFR-25**: Kentucky
-- [ ] **ACFR-26**: Oregon
-- [ ] **ACFR-27**: South Carolina
-- [ ] **ACFR-28**: Louisiana
-- [ ] **ACFR-29**: Oklahoma
-- [ ] **ACFR-30**: Utah
+- [ ] **ACFR-25**: Colorado
+- [ ] **ACFR-26**: South Carolina
+- [ ] **ACFR-27**: Kentucky
+- [ ] **ACFR-28**: Utah
+- [ ] **ACFR-29**: Alabama (substituted for Oklahoma per 112-RECON rank correction; OK deferred to ACFRX-03)
+- [ ] **ACFR-30**: Louisiana
 - [ ] **ACFR-31**: Where a state's ACFR GF is a broader consolidated fund than the NASBO GF (the TX GR-Fund / PA / IL / MI precedent), the scope divergence is **relabelled honestly** rather than carved down — the node total may jump but stays correct + sourced + basis-labelled.
 - [ ] **ACFR-32**: Negative GF investment-income (or any negative category) years on any upgraded state render honestly via the **P2 clamp** (clamped to 0 with the signed magnitude in the label, parent total preserved).
 
