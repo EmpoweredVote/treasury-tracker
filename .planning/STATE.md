@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.14
 milestone_name: State ACFR Long Tail — Tranche 3 + Deepening
 status: executing
-last_updated: "2026-07-02T20:20:31.269Z"
-last_activity: 2026-07-02 -- Phase 112 planning complete
+last_updated: "2026-07-02T20:48:58.392Z"
+last_activity: 2026-07-02 -- Phase 112 execution started
 progress:
   total_phases: 31
   completed_phases: 0
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-02 — v2.14 State ACFR Long Tail — Tranche 3 + Deepening STARTED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** v2.14 State ACFR Long Tail — Tranche 3 + Deepening (Phases 111–116)
+**Current focus:** Phase 112 — recon-roster-lock-source-location-overlap-resolution-recon-0
 
 ## Current Position
 
-Phase: 112 (Recon — Roster Lock + Source Location + Overlap Resolution) — not started
-Plan: —
-Status: Ready to execute
-Last activity: 2026-07-02 -- Phase 112 planning complete
+Phase: 112 (recon-roster-lock-source-location-overlap-resolution-recon-0) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 112
+Last activity: 2026-07-02 -- Phase 112 execution started
 
 ## Phase Overview — v2.14 State ACFR Long Tail — Tranche 3 + Deepening
 
