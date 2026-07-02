@@ -17,11 +17,11 @@
 
 *One requirement per candidate state — recon (RECON-06) may substitute ≤2. Each: "User can see {STATE}'s GF revenue-by-source and GAAP spending-by-function on the {STATE} state node, ACFR-sourced, GAAP basis-labelled, NASBO operating replaced idempotently, as deep as the ACFR cleanly extracts."*
 
-- [ ] **ACFR-09**: New Jersey
-- [ ] **ACFR-10**: Massachusetts *(in-place upgrade of the v1.8 DLS node — RECON-07)*
-- [ ] **ACFR-11**: North Carolina
-- [ ] **ACFR-12**: Georgia *(currently the one non-cohort NASBO state; already carries a v2.10 F-97-01 Medicaid fix — verify the ACFR replace supersedes cleanly)*
-- [ ] **ACFR-13**: Maryland
+- [x] **ACFR-09**: New Jersey
+- [x] **ACFR-10**: Massachusetts *(in-place upgrade of the v1.8 DLS node — RECON-07)*
+- [x] **ACFR-11**: North Carolina
+- [x] **ACFR-12**: Georgia *(currently the one non-cohort NASBO state; already carries a v2.10 F-97-01 Medicaid fix — verify the ACFR replace supersedes cleanly)*
+- [x] **ACFR-13**: Maryland
 - [x] **ACFR-14**: Tennessee
 - [x] **ACFR-15**: Connecticut
 - [x] **ACFR-16**: Wisconsin
@@ -63,7 +63,7 @@ Deferred to a follow-up milestone. Tracked but not in this roadmap.
 | RECON-06 | Phase 107 | Complete |
 | RECON-07 | Phase 107 | Complete |
 | RECON-08 | Phase 108, 109 | Complete (109-VERIFICATION + 110 cohort audit) |
-| ACFR-09..13 | Phase 108 | Partial — work complete + independently verified by Phase 110; 108-VERIFICATION.md missing (v2.13 audit) |
+| ACFR-09..13 | Phase 108 | Complete (retroactive 108-VERIFICATION.md 4/4 passed + 108-UAT 7/7, 2026-07-02) |
 | ACFR-14..18 | Phase 109 | Complete |
 | ACFR-19 | Phase 108, 109 | Complete (109-VERIFICATION + 110 UAT batch-1 relabels) |
 | ACFR-20 | Phase 108, 109 | Complete (6 live clamps + MD FY2022 re-derived) |
