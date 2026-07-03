@@ -519,6 +519,47 @@ Doubled the State-ACFR cohort in one tranche: the next **10 largest-GF NASBO sta
 
 ---
 
+## Milestone: v2.14 — State ACFR Long Tail — Tranche 3 + Deepening
+
+**Shipped:** 2026-07-03
+**Phases:** 6 (111–116) | **Plans:** 20
+
+### What Was Built
+
+Three moves in one milestone. **(1)** Finally retired the WR-05 loader debt (LOAD-01) — an ephemeral `data_sources` lifecycle across all 35 `process*Acfr.js` loaders, so a full run incl. an idempotent re-run leaves 0 residue with no manual re-clean, proven end-to-end. **(2)** Grew the ACFR cohort 19 → 29: Batch 1 (IN/AZ/OR/MO/CO) + Batch 2 (SC/KY/UT/AL/LA) upgraded NASBO→full ACFR GAAP, most back to FY2002, with GF-alone scope decisions resolved honestly (UT ~0.83×, AL ~0.24×, LA ~1.90×). **(3)** Built a reusable pre-GASB-34 extractor (`pre34Extract.mjs`) and recovered the v2.13 history holes — CT to 38yr contiguous (FY1988–2025, FY2006 via free OCR), WI 26yr, NJ contiguous FY2002–2025, MA 2/6 recovered + 4 documented unrecoverable. Cohort now 29 ACFR + 21 NASBO = 901 rows. Closeout: 75/75 blind re-derivations at exact $0, 12-invariant cohort audit, Chris live UAT 11/11. Executed inline, $0.
+
+### What Worked
+
+- **The recurring debt finally got paid — and it was cheap.** WR-05 had been carried and hand-cleaned at every close since v2.11 (106: 10 rows, 110: 20 rows). Sequencing the fix *first* (Phase 111, before any load) meant all 14 states' loads this milestone were the first residue-free run in the series — the cohort audit's LOAD-01 invariant needed 0 manual re-clean for the first time ever.
+- **Python tooling (`extract_gf.py` + `gen_state.py`) generalized instead of forking per state.** Each new structural surprise (SC's single `Taxes:` header, KY's two-line wrapped labels, LA's non-uniform `-table` alignment + ALL-CAPS labels, AL's non-June FY-end) was absorbed as a config option or a generalized rule with zero regression on already-loaded states — the compounding-reuse pattern now holds for the extractor layer, not just the loaders.
+- **The rank-correction substitution worked exactly as designed.** Recon caught Oklahoma at actual rank 14/31 (not a top-10 GF state) and swapped in Alabama (rank 9), fully reconning the substitute before the roster locked — the substitution allowance earned its keep this time (0 needed in v2.13, 1 needed here).
+- **Deepening's "recover or document unrecoverable" clause kept it shippable.** MA's 4 dot-leader-corrupted years (FY2002/04/05, FY2021) were investigated hard, then honestly logged as unrecoverable rather than force-fit with an unsafe heuristic — the requirement's own escape clause prevented a single state's bad scans from blocking the milestone.
+
+### What Was Inefficient
+
+- **The MILESTONES entry auto-generation is now actively wrong, not just incomplete.** `gsd-sdk query milestone.complete` reported 4 phases / 14 plans / 39 tasks and dropped Phase 111 (the headline LOAD-01 fix) *and* all of Batch 1 (113) from the accomplishments — it silently missed two phase directories. Hand-rewriting the entry is now mandatory every close (6+ running). The extractor's phase-glob and one-liner conventions need a real fix or the automation should be retired.
+- **MA FY2002/04/05 burned real effort for zero rows.** An unsafe bounded-heuristic extractor was built and then abandoned as too risky — the right call, but the dot-leader corruption could have been triaged as unrecoverable earlier from a manual PDF look before writing extractor code.
+
+### Patterns Established
+
+- **Sequence the recurring-debt fix as Phase 1 of the milestone that will stress it** — LOAD-01 first meant every subsequent load *proved* the fix under real use, turning a chronic close-time chore into a verified invariant.
+- **Absorb per-state structural surprises as generalized config/rules in shared tooling, never as forks** — every v2.14 extractor change was additive and regression-tested against the full already-loaded set.
+- **Honest-unrecoverable is a first-class outcome for history recovery** — document the reason in the gap log and move on; don't gate a milestone on scans that resist safe automation.
+- **Pre-GASB-34 rows carry an era-correct label (CAFR, not ACFR)** — the audit's label-distinctness invariant (INV-6) accepts both, since pre-34 years honestly predate the ACFR terminology.
+
+### Key Lessons
+
+1. Pay recurring debt by sequencing its fix ahead of the work that exercises it — the fix then verifies itself for free, which is cheaper and more convincing than a standalone fix + separate proof.
+2. When a code-generation tool (`milestone.complete`) has been wrong or incomplete at 6 consecutive closes, stop trusting it silently — either fix the phase-glob/one-liner mismatch or drop the step and hand-author from the SUMMARY one-liners directly.
+3. Triage history-recovery candidates with a cheap manual look *before* writing an extractor — a 2-minute PDF inspection can classify "dot-leader corrupted → unrecoverable" and save an entire build-then-abandon cycle.
+
+### Cost Observations
+
+- **$0 net** — `pdftotext -table` / OCR (free tooling) / DB reads + targeted writes throughout; no AI in any loader, extractor, harness, or audit. The $5 AI gate never triggered.
+- Executed inline (no research/roadmapper subagents per standing feedback); 2-day wall-clock for 10 new states + 4 deepened states / 112 commits.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -541,6 +582,7 @@ Doubled the State-ACFR cohort in one tranche: the next **10 largest-GF NASBO sta
 | v2.7 | 6 (incl. 81.5 insert) | 10 | ~2 days | 162 entities from one uniform source/loader; explicit-map enrichment + coverage gate (vs heuristic router); PAFR-over-ACFR reconciliation; one scoped sourced fix allowed in verification; $0 spend |
 | v2.12 | 4 | 13 | ~1 day | Worktree-parallel waves restored; 24/24 exact-0 blind re-derivation; hoistSingleRoot anti-pattern fix; UAT on "no-frontend" milestones; $0 spend |
 | v2.13 | 4 | 16 | 3 days | 10-state tranche (cohort 9→19 ACFR); four-risk-facts recon gate; verification harness scaled 3× unchanged; retroactive VERIFICATION closure pattern; $0 spend |
+| v2.14 | 6 | 20 | 2 days | 10-state tranche (cohort 19→29 ACFR); WR-05 debt paid via fix-first sequencing (LOAD-01, 0 manual re-clean); pre-GASB-34 extractor (CT 38yr); Python extract_gf/gen_state generalized; honest-unrecoverable outcome; rank-correction sub used; $0 spend |
 
 ### Top Lessons (Verified Across Milestones)
 
@@ -550,5 +592,5 @@ Doubled the State-ACFR cohort in one tranche: the next **10 largest-GF NASBO sta
 4. **Planning docs lag at close — recurring tax (improving)**: v1.6 and v2.0 surfaced stale ROADMAP/PROJECT state at close. v2.1 updated ROADMAP plan-progress per-plan, making close lighter — the fix is "update tracking as each plan completes," and it works when actually done.
 5. **Reusable verification harnesses compound like loaders do**: the Phase 48 govinfo-API source-check dropped straight into v2.1's comparability verifier with no rework. Audit/verification tooling is as reusable as data loaders — invest in it once, reuse across milestones.
 6. **Match execution mode to phase shape**: v2.1 ran a small, linear, checkpoint-heavy phase inline (no subagents) for lower token cost; parallel worktree executors are for genuinely independent plans. One size does not fit all phases.
-7. **The `milestone.complete` accomplishments extractor is reliably broken (v2.0/v2.1/v2.2/v2.3)**: it has emitted garbage (header lines, then empty placeholders) four closes running because it disagrees with the SUMMARY one-liner convention. Hand-rewriting the MILESTONES entry is now the expected close step until the extractor/convention mismatch is fixed.
+7. **The `milestone.complete` accomplishments extractor is reliably broken (v2.0/v2.1/v2.2/v2.3 … v2.14)**: it has emitted garbage (header lines, then empty placeholders) at every close because it disagrees with the SUMMARY one-liner convention — and at v2.14 it got *worse*, silently missing two whole phase directories (111 + 113) so it under-reported 6 phases as 4 and dropped the headline LOAD-01 fix and all of Batch 1 from the accomplishments. Hand-rewriting the MILESTONES entry is now mandatory every close. Either fix the phase-glob + one-liner mismatch or retire the step and hand-author from the SUMMARY one-liners directly.
 8. **The doc trail lags the build, and it's the audit that catches it**: missing VERIFICATION files, unchecked requirements, and stale cross-repo notes have surfaced at milestone close/audit rather than during execution (v2.0, v2.1, v2.2). `/gsd:audit-milestone` reliably closes these gaps — but per-phase verification + requirement-ticking would make close a formality instead of a reconciliation.

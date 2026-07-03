@@ -2,33 +2,32 @@
 gsd_state_version: 1.0
 milestone: v2.14
 milestone_name: State ACFR Long Tail — Tranche 3 + Deepening
-status: milestone_complete
-last_updated: 2026-07-03T20:16:00.173Z
-last_activity: 2026-07-03
+status: Awaiting next milestone
+last_updated: "2026-07-03T21:18:52.193Z"
+last_activity: 2026-07-03 — Milestone v2.14 completed and archived
 progress:
   total_phases: 30
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 14
-  completed_plans: 20
-  percent: 10
-stopped_at: Milestone complete (Phase 116 was final phase)
+  completed_plans: 14
+  percent: 13
 ---
 
 # State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-02 — v2.14 State ACFR Long Tail — Tranche 3 + Deepening STARTED)
+See: .planning/PROJECT.md (updated 2026-07-03 — v2.14 State ACFR Long Tail — Tranche 3 + Deepening SHIPPED + archived)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** Milestone complete
+**Current focus:** No active milestone — run `/gsd-new-milestone` (phases continue from 117). Leading candidate: ACFRX-03 (final ~21 NASBO states → ACFR).
 
 ## Current Position
 
-Phase: 116
-Plan: Not started
-Status: Milestone complete
-Last activity: 2026-07-03
+Phase: Milestone v2.14 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-03 — Milestone v2.14 completed and archived
 
 ## Phase Overview — v2.14 State ACFR Long Tail — Tranche 3 + Deepening
 
@@ -44,6 +43,20 @@ Last activity: 2026-07-03
 **Critical path:** 111 → 112 → (113 ∥ 114 ∥ 115) → 116. **WR-05 loader fix FIRST** (Phase 111) so every load this milestone runs residue-free. Then recon locks the ~10-state tranche-3 roster (candidates AZ/IN/CO/MO/KY/OR/SC/LA/OK/UT, ranked from NASBO 2025 SER — substitutions documented) and upgrades each NASBO→**State-ACFR GAAP** GF revenue-by-source + finer spending-by-function as deep as durable URLs allow. Deepening (Phase 115, parallel with the batches) recovers the v2.13 holes: MA FY2001/02/04/05/14/21, CT FY2006 (OCR), NJ pre-FY2020, CT/WI pre-GASB-34 via a new pre-GASB-34 extractor + honest basis label. Cohort 19 ACFR nodes → ~29. Constraints: free ACFR PDFs only ($0/$5 AI gate); GENERAL FUND column of the Governmental Funds Statement (`pdftotext -table`); every figure durably sourced + basis-labelled; P2 clamp; idempotent never-overwrite (existing 19 ACFR nodes + un-upgraded NASBO states untouched); executed inline (no subagents); clone the proven per-state loader template; `loadStateGF.mjs` stays the NASBO fallback. No frontend work — Money In + `?dataset=revenue` auto-enable. Closeout = independent blind re-derivation → 50-state cohort audit (0 residue, no manual re-clean — proves LOAD-01) → Chris live UAT (Phase 102/106/110 mold). See [[project_acfr_recon_structure_unreliable]] + [[project_state_node_unsourced_estimates]].
 
 ## Deferred Items
+
+### Acknowledged at v2.14 close (2026-07-03)
+
+Open-artifact audit at v2.14 close surfaced 5 items, all non-blocking and acknowledged (deferred). None are v2.14 blockers — Phase 116 verified the whole milestone end-to-end (VER-07 75/75 blind re-derivation exact $0 + 12-invariant cohort audit; VER-08 Chris live UAT 11/11 all-pass) and the milestone audit closed PASSED 20/20:
+
+| Category | Item | Status |
+|----------|------|--------|
+| uat_gap | Phase 116 `116-UAT-CHECKLIST.md` | passed — 0 pending scenarios (Chris signed off 11/11 2026-07-03; flagged only because the file exists) |
+| todo | `2026-06-30-authenticated-deeplink-redirect-to-home-jurisdiction.md` | deferred — frontend-routing follow-up carried from v2.12 |
+| quick_task | 001-create-treasury-tracker-entries-for-ever | orphaned (file missing) — pre-v2.0 leftover, acknowledged at every close since v2.0 |
+| quick_task | 002-add-longview-tx-revenue | orphaned (file missing) — pre-v2.0 Longview TX effort, unrelated to v2.14 |
+| quick_task | 003-longview-operating-budget | orphaned (file missing) — pre-v2.0 Longview TX effort, unrelated to v2.14 |
+
+**v2.14 tech debt (documented, not fixed — all advisory, none affect figure correctness/tie-outs/sourcing; see milestones/v2.14-MILESTONE-AUDIT.md):** WR-04..07 loader error-path robustness (`process.exit(2)` inside `try` bypasses `finally` residue cleanup; swallowed select error; mid-run partial-load risk — fleet-wide, self-heals on next run's start-delete, **never manifested in any v2.14 run**); AL "Charges"→"Changes" category-label drift (`processALAcfr.js` FY2018+, unverified against source PDF, ties unaffected — worth a source spot-check); UT trailing-space category name (`processUTAcfr.js:111`, cosmetic); NJ phantom-comment referencing a non-existent `isolateNJStatement()` guard (guard logic lives only in the loadlog). **RESOLVED this milestone:** WR-05 data_sources residue → fixed by LOAD-01 (Phase 111), proven end-to-end. **Nyquist:** VALIDATION.md exists for 111/115/116 (all compliant); 112 is doc-only recon (N/A); 113/114 data loads are covered by Phase 116's 75/75 blind re-derivation (stronger than a formal harness) — optional `/gsd-validate-phase 113`/`114` if complete paperwork is wanted.
 
 ### Acknowledged at v2.13 close (2026-07-02)
 
@@ -190,9 +203,9 @@ Resume file: None
 
 ### Next Session
 
-v2.13 State ACFR Long Tail — Tranche 2 is shipped + archived (tag v2.13). No active milestone. Start the next one:
-  /gsd-new-milestone   (questioning → research → requirements → roadmap; phases continue from 111)
-Leading candidates: ACFRX-02 (remaining ~31 NASBO states → ACFR, and/or the v2.13 recoverable-holes deepening pass — MA/CT/NJ/WI older years, needs a pre-GASB-34 extractor); votes/amendments hub (VOTES-01); sourced-standard backfill to city data (SRCSTD-01); WR-05 atomic data_sources upsert fix.
+v2.14 State ACFR Long Tail — Tranche 3 + Deepening is shipped + archived (tag v2.14). Cohort now 29 ACFR + 21 NASBO = 901 rows, 0 anomalies; WR-05 loader debt retired (LOAD-01). No active milestone. Start the next one:
+  /gsd-new-milestone   (questioning → research → requirements → roadmap; phases continue from 117)
+Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to fallback-only — incl. OK, reconned + deferred out of v2.14); votes/amendments hub (VOTES-01); sourced-standard backfill to city data (SRCSTD-01); deeper history on the other ACFR nodes (CA/NY/FL/TX pre-window holes).
 
 ## Performance Metrics
 

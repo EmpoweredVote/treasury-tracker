@@ -1,5 +1,25 @@
 # Milestones — Treasury Tracker / Empowered Vote Financials
 
+## v2.14 State ACFR Long Tail — Tranche 3 + Deepening (Shipped: 2026-07-03)
+
+**Phases completed:** 6 phases (111–116), 20 plans
+**Git range:** `ad21f17..8159ab6` — 112 commits, 142 files, +20,813 lines (2026-07-02 → 2026-07-03)
+
+**Delivered:** Three moves, all landed. **(1)** Retired the WR-05 loader debt — the `process*Acfr.js` `data_sources` write became an ephemeral lifecycle across all 35 state loaders, so a full run (including an idempotent re-run) leaves **0 residue with no manual re-clean** — closing the residue class that required hand-deletion at every prior close (106: 10 rows, 110: 20 rows). **(2)** Grew the State-ACFR GAAP cohort **19 → 29 states** — Batch 1 (IN/AZ/OR/MO/CO) + Batch 2 (SC/KY/UT/AL/LA) upgraded NASBO→full ACFR GF revenue-by-source + finer spending-by-function, most back to FY2002 (24 years), every year tying its printed GF column total. **(3)** Recovered the v2.13 history holes via a new pre-GASB-34 extractor — CT to a 38-year contiguous series (FY1988–2025), WI to 26 years, NJ contiguous FY2002–2025, MA 2/6 holes recovered + 4 documented unrecoverable — all with honest pre-GASB-34 basis labels. Cohort now **29 ACFR + 21 NASBO = 901 state rows, 0 anomalies**. Free ACFR PDFs only, $0 AI spend, executed inline.
+
+**Key accomplishments:**
+
+- **Phase 111 (loader debt / LOAD-01):** All 35 state loaders now clean up their own `data_sources` rows (ephemeral lifecycle) — the WR-05 residue class that required manual deletion at every milestone close is closed, proven by a live NJ FY2025 re-run bracketed by the cohort-audit probe with **zero manual cleanup**.
+- **Phase 112 (recon / RECON-09/10):** Ranked the remaining 31 NASBO states by FY2024 GF size (0 transcription drift), located + bookend-tied the ACFR GF statement for all 10 candidates at exact $0 diffs, and locked the final tranche-3 roster (IN/AZ/OR/MO/CO ∥ SC/KY/UT/AL/LA) with one bounded rank-correction substitution (Oklahoma out → Alabama in); overlaps resolved on paper (UT state node probed clean, 19 existing ACFR nodes undisturbed), $0 DB writes.
+- **Phase 113 (Batch 1 / ACFR-21..25):** **IN (FY2002–2025, 24yr), AZ (FY2002–2024, 23yr), OR (FY2022–2025), MO (FY2012–2025, 14yr), CO (FY2023–2025)** live on full State-ACFR GAAP, every year tying $0; CO exercised the tranche's primary live P2 clamp (TABOR years); AZ FY2024 Drive-link durability caveat documented.
+- **Phase 114 (Batch 2 / ACFR-26..30):** **SC (24yr), KY (23yr, FY2023 honest hole), UT (FY2019–2025), AL (24yr), LA (24yr)** upgraded NASBO→ACFR GAAP, all tying $0; the three narrower/broader-than-NASBO scope divergences resolved honestly at load time as GF-alone decisions — UT (~0.83× income-tax earmark), AL (~0.24× constitutional dual-budget), LA (~1.90×, ~99% federal Intergovernmental Revenues).
+- **Phase 115 (deepening / DEEP-02/03/04):** Built a reusable pre-GASB-34 extractor (`pre34Extract.mjs`) — deepened **CT to a 38-year contiguous series (FY1988–2025)** and **WI to 26 years (FY2000–2025)** (CT FY2006 recovered via free OCR), extended **NJ to contiguous FY2002–2025**, and recovered **MA FY2001 + FY2014** (deepening MA to 21 years) with the other 4 MA holes rigorously documented as unrecoverable.
+- **Phase 116 (verification / VER-07/08):** **75/75 loader-independent blind re-derivation checks tie at exact $0** across all 14 states; new 12-invariant read-only cohort audit confirms the 29-ACFR/21-NASBO cohort (901 rows) fully sourced/windowed/deduplicated/basis-labelled (incl. a pre-GASB-34 label distinctness check) and proves **LOAD-01 end-to-end (0 manual re-clean, a series first)**; **Chris live-app UAT 11/11 all-pass (2026-07-03)**.
+
+**Known deferred items at close: 5** (see STATE.md Deferred Items) — 3 pre-existing Longview-TX quick-task stubs (orphaned, acknowledged at every close since v2.0), the v2.12 authenticated-deep-link-redirect todo, and the (passed) Phase 116 UAT artifact. Tech debt carried (all advisory, none affect correctness): WR-04..07 loader error-path robustness (never manifested — 0 residue everywhere this milestone); AL "Charges"→"Changes" category-label drift (FY2018+, unverified against source, ties unaffected); UT trailing-space category name; NJ phantom-comment referencing a non-existent guard function. See v2.14-MILESTONE-AUDIT.md.
+
+---
+
 ## v2.13 State ACFR Long Tail — Tranche 2 (Shipped: 2026-07-02)
 
 **Phases completed:** 4 phases (107–110), 16 plans
