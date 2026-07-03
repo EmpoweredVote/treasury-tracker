@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Connecticut General Fund Operating (Expenditure) Loader — FY2002-FY2025 ACTUAL (23 yrs; FY2006 hole)
+ * Connecticut General Fund Operating (Expenditure) Loader — FY1988-FY2025 ACTUAL (37 yrs; FY2006 hole)
  * Source: CT Annual Comprehensive Financial Report (ACFR/CAFR), Governmental Funds Statement of Revenues,
  *   Expenditures, and Changes in Fund Balances, GENERAL FUND column (GAAP, thousands). CT OSC.
  *
@@ -14,10 +14,16 @@
  *   blank-GF-cell years (FY2002–FY2004, FY2022–FY2023). Exact per-FY GF total-tie gate (D-04);
  *   non-tying years skipped+logged (D-05 honest hole).
  *
+ * PRE-GASB-34 DEEPENING (Phase 115-02, DEEP-02/DEEP-04): FY1988–FY2001 (14 yrs) use the DIFFERENT
+ *   "Combined Statement of Revenues, Expenditures, and Changes in Fund Balances — All Governmental
+ *   Fund Types" format (scripts/pre34Extract.mjs), carrying a DISTINCT basis label (pre-GASB-34
+ *   combined statement basis, not GAAP) — never mixed into the same series as a GAAP figure. All 14
+ *   years tie exactly ($0 diff) on both revenue and expenditure printed General Fund totals.
+ *
  * SOURCES = EXPLICIT per-year URLs enumerated from the `_reportsSource` JSON on osc.ct.gov/reports
- *   (FY2022 "revised" suffix; pre-FY2021 CAFR naming; FY2015-16 /20XXcafr/ paths). Never derived.
- * HONEST HOLES: FY2006 = scanned PDF (no text layer). FY1988–FY2001 = pre-GASB-34 "Combined
- *   Statement" format (different statement + basis) — self-limited per D-01, future deepening pass.
+ *   (FY2022 "revised" suffix; pre-FY2021 CAFR naming; FY2015-16 /20XXcafr/ paths; FY1988-FY2005
+ *   under /reports/oldcafrpdfs/). Never derived.
+ * HONEST HOLES: FY2006 = scanned PDF (no text layer) — see Phase 115-02 OCR recovery below.
  *
  * UNITS = 1_000. TX-TRAP (ACFR-19): CT ACFR GF ~1.14× NASBO (smallest tranche divergence —
  *   $2.8B Federal Grants and Aid inside GAAP GF). Accept-and-relabel honestly.
@@ -32,6 +38,7 @@ import { execFileSync } from 'node:child_process';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { extractGovFundGeneralColumn, extractGovFundGeneralColumnPositional } from './maAcfrExtract.mjs';
+import { extractPre34GeneralFund } from './pre34Extract.mjs';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 function loadEnv() {
   for (const f of ['../.env.local', '../.env']) {
@@ -46,8 +53,24 @@ const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.s
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
 // Exact per-year URLs from the osc.ct.gov/reports _reportsSource JSON (FY2006 omitted — scanned, no
-// text layer; FY1988–FY2001 omitted — pre-GASB-34 Combined-Statement format, honest holes per D-01).
+// text layer, see Phase 115-02 OCR recovery below). FY1988–FY2001 = pre-GASB-34 Combined-Statement
+// format, routed through pre34Extract.mjs below (Phase 115-02 deepening).
+const PRE34_LAST_FY = 2001; // years <= this use extractPre34GeneralFund, not the modern extractor
 const SRC = {
+  1988: 'https://osc.ct.gov/reports/oldcafrpdfs/CT_CAFR_FY1988.pdf',
+  1989: 'https://osc.ct.gov/reports/oldcafrpdfs/CT_CAFR_FY1989.pdf',
+  1990: 'https://osc.ct.gov/reports/oldcafrpdfs/CT_CAFR_FY1990.pdf',
+  1991: 'https://osc.ct.gov/reports/oldcafrpdfs/CT_CAFR_FY1991.pdf',
+  1992: 'https://osc.ct.gov/reports/oldcafrpdfs/CT_CAFR_FY1992.pdf',
+  1993: 'https://osc.ct.gov/reports/oldcafrpdfs/CT_CAFR_FY1993.pdf',
+  1994: 'https://osc.ct.gov/reports/oldcafrpdfs/CT_CAFR_FY1994.pdf',
+  1995: 'https://osc.ct.gov/reports/oldcafrpdfs/CT_CAFR_FY1995.pdf',
+  1996: 'https://osc.ct.gov/reports/oldcafrpdfs/CT_CAFR_FY1996.pdf',
+  1997: 'https://osc.ct.gov/reports/oldcafrpdfs/CT_CAFR_FY1997.pdf',
+  1998: 'https://osc.ct.gov/reports/oldcafrpdfs/CT_CAFR_FY1998.pdf',
+  1999: 'https://osc.ct.gov/reports/oldcafrpdfs/CT_CAFR_FY1999.pdf',
+  2000: 'https://osc.ct.gov/reports/oldcafrpdfs/CT_CAFR_FY2000.pdf',
+  2001: 'https://osc.ct.gov/reports/oldcafrpdfs/CT_CAFR_FY2001.pdf',
   2002: 'https://osc.ct.gov/reports/oldcafrpdfs/CT_CAFR_FY2002.pdf',
   2003: 'https://osc.ct.gov/reports/oldcafrpdfs/CT_CAFR_FY2003.pdf',
   2004: 'https://osc.ct.gov/reports/oldcafrpdfs/CT_CAFR_FY2004.pdf',
@@ -74,9 +97,14 @@ const SRC = {
 };
 const YEARS = Object.keys(SRC).map(Number).sort((a, b) => a - b);
 const urlFor = (fy) => SRC[fy];
-const dataSource = (fy) => `Connecticut State ACFR — General Fund (FY${fy} actual, GAAP basis)`;
+// Pre-34 years carry a DISTINCT honest basis label — never the GAAP label (DEEP-02 success criterion 1).
+const dataSource = (fy) => fy <= PRE34_LAST_FY
+  ? `Connecticut State CAFR — General Fund (FY${fy} actual, pre-GASB-34 combined statement basis)`
+  : `Connecticut State ACFR — General Fund (FY${fy} actual, GAAP basis)`;
 function clampForRender(a) { return Math.max(a, 0); }
-// Token-order first; positional fallback — gated per-dataset (exp tie here).
+// Token-order first; positional fallback — gated per-dataset (exp tie here). Pre-34 years route
+// through the dedicated Combined-Statement extractor (Phase 115-02) — different statement, different
+// title anchor, never mixed with the modern token-order/positional pair.
 function loadYear(fy) {
   const txtPath = `${WORK}/CT${fy}.txt`; const pdfPath = `${WORK}/CT${fy}.pdf`;
   if (!existsSync(txtPath)) {
@@ -88,6 +116,10 @@ function loadYear(fy) {
   }
   const txt = readFileSync(txtPath, 'utf8');
   const ties = (r) => r?.found && Math.abs(r.expenditures.reduce((a, c) => a + c.total, 0) - r.expTotal) <= TOL;
+  if (fy <= PRE34_LAST_FY) {
+    const pre34 = extractPre34GeneralFund(txt);
+    return ties(pre34) ? pre34 : null;
+  }
   const std = extractGovFundGeneralColumn(txt);
   if (ties(std)) return std;
   const pos = extractGovFundGeneralColumnPositional(txt);
@@ -107,10 +139,14 @@ function buildTree(fy, ex) {
   return { jsonTree: [{ n: 'Connecticut General Fund Budget', a: total * UNITS, c: children }], total: total * UNITS, rowCount: children.length };
 }
 async function main() {
-  const { values: opts } = parseArgs({ options: { 'dry-run': { type: 'boolean', default: false }, fy: { type: 'string' } }, strict: false });
-  const dryRun = opts['dry-run']; const targetFY = opts.fy ? parseInt(opts.fy, 10) : null;
+  // Phase 115-02 hardening (fix-while-touching, WR-05/WR-06 precedent): strict parsing +
+  // --fy value validation — a mistyped flag or year must fail loudly, never silently no-op.
+  const { values: opts } = parseArgs({ options: { 'dry-run': { type: 'boolean', default: false }, fy: { type: 'string' } }, strict: true, allowPositionals: false });
+  const dryRun = opts['dry-run'];
+  if (opts.fy !== undefined && (!/^[0-9]{4}$/.test(opts.fy) || !SRC[parseInt(opts.fy, 10)])) { console.error(`--fy ${opts.fy} is not a loadable fiscal year (available: ${YEARS.join(', ')})`); process.exit(2); }
+  const targetFY = opts.fy ? parseInt(opts.fy, 10) : null;
   const years = targetFY ? [targetFY] : YEARS;
-  console.log(`${STATE_NAME} GF Operating Loader (ACFR GAAP, parser, thousands×${UNITS})${dryRun ? ' (dry-run)' : ''}\n`);
+  console.log(`${STATE_NAME} GF Operating Loader (ACFR GAAP + pre-GASB-34, parser, thousands×${UNITS})${dryRun ? ' (dry-run)' : ''}\n`);
   if (!SUPABASE_KEY && !dryRun) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit(2); }
   const supabase = dryRun ? null : createClient(SUPABASE_URL, SUPABASE_KEY);
   let muniId, ds;
@@ -125,22 +161,27 @@ async function main() {
     console.log(`data_source: ${ds.id}\n`);
   }
   const loaded = [], holes = [];
-  for (const fy of years) {
-    const ex = loadYear(fy);
-    if (!ex) { console.log(`FY${fy}: SKIP (not parseable) — honest hole`); holes.push(fy); continue; }
-    const catSum = ex.expenditures.reduce((a, c) => a + c.total, 0); const diff = catSum - ex.expTotal;
-    if (Math.abs(diff) > TOL) { console.log(`FY${fy}: SKIP (exp sum ${catSum} ≠ ${ex.expTotal}, diff ${diff}) — honest hole`); holes.push(fy); continue; }
-    const { jsonTree, total, rowCount } = buildTree(fy, ex);
-    console.log(`FY${fy}: TIE (${rowCount} functions, diff ${diff})  Total Exp $${Math.round(total).toLocaleString()}`);
-    if (dryRun) continue;
-    const { data: r, error: rpcErr } = await supabase.rpc('treasury_sync_budget_tree', { p_data_source_id: ds.id, p_fiscal_year: fy, p_dataset_type: 'operating', p_total: total, p_tree: jsonTree, p_row_count: rowCount, p_triggered_by: 'bulk_load' });
-    if (rpcErr || r?.error) { console.error(`RPC error FY${fy}: ${rpcErr?.message || r.error}`); process.exit(2); }
-    const { data: bud } = await supabase.schema('treasury').from('budgets').select('id').eq('municipality_id', muniId).eq('fiscal_year', fy).eq('dataset_type', 'operating').maybeSingle();
-    if (!bud?.id) { console.error(`FY${fy}: no operating row to stamp`); process.exit(2); }
-    await supabase.schema('treasury').from('budgets').update({ source_url: urlFor(fy), source_date: `${fy}-06-30`, data_source: dataSource(fy) }).eq('id', bud.id);
-    loaded.push(fy);
+  try {
+    for (const fy of years) {
+      const ex = loadYear(fy);
+      if (!ex) { console.log(`FY${fy}: SKIP (not parseable) — honest hole`); holes.push(fy); continue; }
+      const catSum = ex.expenditures.reduce((a, c) => a + c.total, 0); const diff = catSum - ex.expTotal;
+      if (Math.abs(diff) > TOL) { console.log(`FY${fy}: SKIP (exp sum ${catSum} ≠ ${ex.expTotal}, diff ${diff}) — honest hole`); holes.push(fy); continue; }
+      const { jsonTree, total, rowCount } = buildTree(fy, ex);
+      console.log(`FY${fy}: TIE (${rowCount} functions, diff ${diff})  Total Exp $${Math.round(total).toLocaleString()}`);
+      if (dryRun) continue;
+      const { data: r, error: rpcErr } = await supabase.rpc('treasury_sync_budget_tree', { p_data_source_id: ds.id, p_fiscal_year: fy, p_dataset_type: 'operating', p_total: total, p_tree: jsonTree, p_row_count: rowCount, p_triggered_by: 'bulk_load' });
+      if (rpcErr || r?.error) { console.error(`RPC error FY${fy}: ${rpcErr?.message || r.error}`); process.exit(2); }
+      const { data: bud, error: selErr } = await supabase.schema('treasury').from('budgets').select('id').eq('municipality_id', muniId).eq('fiscal_year', fy).eq('dataset_type', 'operating').maybeSingle();
+      if (selErr) { console.error(`FY${fy}: stamp lookup failed: ${selErr.message}`); process.exit(2); } // WR-07: surface select errors — never misreport as a missing row
+      if (!bud?.id) { console.error(`FY${fy}: no operating row to stamp`); process.exit(2); }
+      await supabase.schema('treasury').from('budgets').update({ source_url: urlFor(fy), source_date: `${fy}-06-30`, data_source: dataSource(fy) }).eq('id', bud.id);
+      loaded.push(fy);
+    }
+  } finally {
+    // Ephemeral data_sources cleanup — runs on success AND on any mid-run failure (WR-04), leaves 0 residue (WR-05 / LOAD-01).
+    if (!dryRun && ds) await supabase.schema('treasury').from('data_sources').delete().eq('id', ds.id);
   }
-  if (!dryRun && ds) await supabase.schema('treasury').from('data_sources').delete().eq('id', ds.id); // ephemeral cleanup — leaves 0 residue (WR-05 / LOAD-01)
   console.log(`\n${dryRun ? '[dry-run] ' : ''}Loaded ${loaded.length}: ${loaded.join(', ') || 'none'}. Holes (${holes.length}): ${holes.join(', ') || 'none'}.\nDone.`);
 }
 main().catch(e => { console.error('Fatal:', e.message); process.exit(2); });
