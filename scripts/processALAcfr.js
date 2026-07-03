@@ -442,7 +442,8 @@ async function main() {
       if (rpcErr) throw new Error(`FY${fy} RPC error: ${rpcErr.message}`);
       if (r?.error) throw new Error(`FY${fy} RPC error: ${r.error}`);
       console.log(`Loaded ${r?.rows_inserted ?? rowCount} rows for FY${fy}`);
-      const { data: bud } = await supabase.schema('treasury').from('budgets').select('id').eq('municipality_id', muniId).eq('fiscal_year', fy).eq('dataset_type', 'operating').maybeSingle();
+      const { data: bud, error: selErr } = await supabase.schema('treasury').from('budgets').select('id').eq('municipality_id', muniId).eq('fiscal_year', fy).eq('dataset_type', 'operating').maybeSingle();
+      if (selErr) throw new Error(`FY${fy} stamp lookup failed: ${selErr.message}`); // WR-07: surface select errors — do not misreport as a missing row
       if (bud?.id) {
         const { error: upErr } = await supabase.schema('treasury').from('budgets').update({ source_url: SOURCES[fy].url, source_date: SOURCES[fy].date, data_source: dataSource(fy), fiscal_year_start_month: 10 }).eq('id', bud.id);
         if (upErr) throw new Error(`FY${fy} source stamp failed: ${upErr.message}`);
