@@ -45,7 +45,7 @@
  */
 import { createClient } from '@supabase/supabase-js';
 import { parseArgs }    from 'node:util';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, unlinkSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -142,8 +142,8 @@ function loadYear(fy) {
   const txtPath = `${WORK}/CT${fy}.txt`; const pdfPath = `${WORK}/CT${fy}.pdf`;
   if (!existsSync(txtPath)) {
     if (!existsSync(pdfPath)) {
-      try { execFileSync('curl', ['-sS','-L','--http1.1','--retry','2','--retry-delay','2','-A',UA,'--max-time','300','-o',pdfPath, urlFor(fy)]); } catch { return null; }
-      const b = readFileSync(pdfPath); if (b.slice(0,5).toString() !== '%PDF-' || b.length < 400000) return null;
+      try { execFileSync('curl', ['-sS','-L','--fail','--http1.1','--retry','2','--retry-delay','2','-A',UA,'--max-time','300','-o',pdfPath, urlFor(fy)]); } catch { if (existsSync(pdfPath)) unlinkSync(pdfPath); return null; } // WR-03 (115 review): --fail + delete partial artifact — a transient HTTP error must never poison the cache
+      const b = readFileSync(pdfPath); if (b.slice(0,5).toString() !== '%PDF-' || b.length < 400000) { unlinkSync(pdfPath); return null; } // WR-03: delete corrupt download so the next run re-fetches instead of reporting a fake honest hole
     }
     try { execFileSync('pdftotext', ['-table', pdfPath, txtPath]); } catch { return null; }
   }
