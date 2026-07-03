@@ -29,7 +29,7 @@
 - [x] **ACFR-25**: Colorado *(Phase 113 — FY2023–FY2025; TABOR clamped FY2024+FY2025)*
 - [x] **ACFR-26**: South Carolina
 - [x] **ACFR-27**: Kentucky
-- [ ] **ACFR-28**: Utah
+- [x] **ACFR-28**: Utah
 - [ ] **ACFR-29**: Alabama (substituted for Oklahoma per 112-RECON rank correction; OK deferred to ACFRX-03)
 - [ ] **ACFR-30**: Louisiana
 - [x] **ACFR-31**: Where a state's ACFR GF is a broader consolidated fund than the NASBO GF (the TX GR-Fund / PA / IL / MI precedent), the scope divergence is **relabelled honestly** rather than carved down — the node total may jump but stays correct + sourced + basis-labelled.
