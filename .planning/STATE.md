@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.14
 milestone_name: State ACFR Long Tail — Tranche 3 + Deepening
-status: executing
-last_updated: "2026-07-03T02:48:45.537Z"
+status: verifying
+last_updated: "2026-07-03T03:20:02.772Z"
 last_activity: 2026-07-03
 progress:
   total_phases: 30
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 8
-  completed_plans: 7
-  percent: 3
+  completed_plans: 8
+  percent: 7
 ---
 
 # State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-07-02 — v2.14 State ACFR Long Tail —
 
 Phase: 114 (acfr-upgrade-batch-2-5-states-acfr-26-30-acfr-31-32) — EXECUTING
 Plan: 5 of 5
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-03
 
 ## Phase Overview — v2.14 State ACFR Long Tail — Tranche 3 + Deepening
@@ -183,8 +183,8 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-07-03T02:48:45.526Z
-Stopped at: Completed 114-04-PLAN.md — Alabama ACFR loaded FY2002-FY2025, GF-alone scope decision resolved (ACFR-31), 0.24x tranche-narrowest divergence
+Last session: 2026-07-03T03:20:02.761Z
+Stopped at: Completed 114-05-PLAN.md — Louisiana ACFR loaded FY2002-FY2025, GF-alone federal-Intergovernmental composition documented (ACFR-31), phase 114 all 5 plans complete
 Resume file: None
 
 ### Next Session
@@ -243,6 +243,7 @@ Leading candidates: ACFRX-02 (remaining ~31 NASBO states → ACFR, and/or the v2
 | Phase 114-02 PP02 | 45min | 3 tasks | 3 files |
 | Phase 114 P03 | 20min | 3 tasks | 3 files |
 | Phase 114 P04 | 25min | 3 tasks | 3 files |
+| Phase 114 P05 | 70min | 3 tasks | 3 files |
 
 ## Decisions
 
@@ -315,6 +316,9 @@ Leading candidates: ACFRX-02 (remaining ~31 NASBO states → ACFR, and/or the v2
 - [Phase 114-03]: UT gen_state.py default_rev_name generalized to pluralize a label already ending in singular Tax (e.g. Sales and Use Tax -> Sales and Use Taxes) instead of appending a redundant taxes suffix -- reusable fix
 - [Phase 114]: AL GF-alone scope decision (ACFR-31): loaded printed General Fund column alone, not GF+Education Trust Fund composite -- 0.24x narrower than NASBO (tranche's narrowest), corroborated by GF+ETF ~1.04x NASBO (constitutional dual-budget driver)
 - [Phase 114]: gen_state.py generalized with fy_end + fiscal_year_start_month config options (MI Sep-30 precedent) for AL rather than a bespoke loader -- reusable for future non-June-30 states
+- [Phase 114]: LA GF-alone (ACFR-31): ~1.90x NASBO divergence driven by ~99% federal Intergovernmental Revenues in the GF; own-source state taxes booked entirely to the separate Bond Security & Redemption Fund column -- unique structural driver in the tranche
+- [Phase 114]: extract_gf.py generalized with a position-anchor/first-cell fallback for non-uniform pdftotext -table alignment (LA FY2003-2005) and a whitespace-tolerant statement-header regex (LA FY2016-2019) -- zero regression on 96 already-loaded SC/KY/UT/AL state-years
+- [Phase 114]: gen_state.py generalized with smart_title() ALL-CAPS source-label title-casing and a Current/Intergovernmental expenditure-subsection disambiguation rule -- both discovered by LA, reusable for future states
 
 ## Deferred Items
 
