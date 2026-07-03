@@ -294,6 +294,10 @@ const EXPENDITURES = {
     { name: 'Protection of Persons and Property',        total:      534_638 },
     { name: 'General Government',                        total:      210_478 },
     { name: 'Debt Service - Principal Retirement',       total:          137 },
+    // "Interest and Other Changes" (not "Charges") is VERIFIED as the label Alabama actually prints on the
+    // Governmental Funds Rev/Exp/Fund-Balances statement from FY2018 through FY2025 (checked in _acfr-work/al/
+    // AL2018–AL2025.txt: other statements in the same ACFRs still print "Charges", so this is AL's own caption
+    // typo copied forward, not an extraction defect). Transcribed faithfully — do not "correct" to "Charges".
     { name: 'Debt Service - Interest and Other Changes', total:          255 },
   ]},
   2019: { total: 1_657_112, confidence: 'actual', categories: [
