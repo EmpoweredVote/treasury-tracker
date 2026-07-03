@@ -64,7 +64,7 @@ Success criteria:
 2. For each locked state: the Governmental Funds Statement's GENERAL FUND column is located with units, FY-end, durable per-year URLs, and cleanly `pdftotext -table`-extractable depth; each window's bookend totals tie-confirmed; per-state gap log written.
 3. Unit / FY-end / scope traps (the NJ-dollars and MI-Sep-30 class) are identified per state **pre-load**, and any state with a pre-existing custom-source node has an in-place upgrade plan (the MA/CA precedent; the UT state node's provenance explicitly checked).
 
-#### Phase 113: ACFR Upgrade — Batch 1 (~5 states) (ACFR-21..25 + ACFR-31/32)
+#### ✅ Phase 113: ACFR Upgrade — Batch 1 (IN/AZ/OR/MO/CO) (ACFR-21..25 + ACFR-31/32) — COMPLETE 2026-07-02 (verified 14/14; 68 state-years live, all tie printed GF totals; NASBO replaced in place; 0 residue; TABOR + 9 other negative years P2-clamped; AZ FY2024 Drive-link caveat documented)
 
 **Goal:** The first ~5 roster states are upgraded NASBO→ACFR GAAP — GF revenue-by-source + finer spending-by-function, as deep as durable URLs allow, NASBO operating replaced idempotently.
 **Depends on:** Phase 112

@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.14
 milestone_name: State ACFR Long Tail — Tranche 3 + Deepening
 status: executing
-last_updated: "2026-07-02T23:49:45.584Z"
-last_activity: 2026-07-02 -- Phase 113 planning complete
+last_updated: "2026-07-03T00:48:17.007Z"
+last_activity: 2026-07-02 -- Phase 113 COMPLETE (verified 14/14) — 5 states live on ACFR GAAP
 progress:
   total_phases: 31
   completed_phases: 1
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-02 — v2.14 State ACFR Long Tail — Tranche 3 + Deepening STARTED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** Phase 113 — acfr upgrade — batch 1 (~5 states) (acfr 21..25 + acfr 31/32)
+**Current focus:** Phase 113 — ACFR Upgrade — Batch 1 (IN/AZ/OR/MO/CO)
 
 ## Current Position
 
-Phase: 113
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-07-02 -- Phase 113 planning complete
+Phase: 113 (ACFR Upgrade — Batch 1 (IN/AZ/OR/MO/CO)) — COMPLETE 2026-07-02
+Plan: 1 of 5
+Status: Phase 113 complete — next: Phase 114 (batch 2) ∥ Phase 115 (deepening)
+Last activity: 2026-07-02 -- Phase 113 COMPLETE (verified 14/14) — IN/AZ/OR/MO/CO live on ACFR GAAP, 68 state-years, 0 residue
 
 ## Phase Overview — v2.14 State ACFR Long Tail — Tranche 3 + Deepening
 
@@ -35,7 +35,7 @@ Last activity: 2026-07-02 -- Phase 113 planning complete
 |-------|------|--------------|------------|--------|
 | 111 | Loader Debt — Atomic data_sources Upsert | LOAD-01 | — | ✅ COMPLETE — verified 3/3, 2026-07-02 |
 | 112 | Recon — Roster Lock + Source Location + Overlap Resolution | RECON-09, RECON-10 | 111 | ○ Not started |
-| 113 | ACFR Upgrade — Batch 1 (~5 states) | ACFR-21..25, ACFR-31, ACFR-32 | 112 | ○ Not started |
+| 113 | ACFR Upgrade — Batch 1 (IN/AZ/OR/MO/CO) | ACFR-21..25, ACFR-31, ACFR-32 | 112 | ✅ Complete 2026-07-02 |
 | 114 | ACFR Upgrade — Batch 2 (~5 states) | ACFR-26..30, ACFR-31, ACFR-32 | 112 | ○ Not started |
 | 115 | Deepening — Recoverable Holes + Pre-GASB-34 Extractor | DEEP-02, DEEP-03, DEEP-04 | 111 | ○ Not started |
 | 116 | Verification + Source-Chain Audit + UAT | VER-07, VER-08 | 113, 114, 115 | ○ Not started |

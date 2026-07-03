@@ -22,11 +22,11 @@
 
 *State labels synced 2026-07-02 to the Phase 112 locked roster + corrected size ranking (112-RECON.md Section 4 traceability mapping — authoritative). OK exits to ACFRX-03; AL substituted in.*
 
-- [ ] **ACFR-21**: Indiana
-- [ ] **ACFR-22**: Arizona
-- [ ] **ACFR-23**: Oregon
-- [ ] **ACFR-24**: Missouri
-- [ ] **ACFR-25**: Colorado
+- [x] **ACFR-21**: Indiana *(Phase 113 — FY2002–FY2025, 24 years, all tie $0)*
+- [x] **ACFR-22**: Arizona *(Phase 113 — FY2002–FY2024, 23 years; FY2024 Drive-link caveat)*
+- [x] **ACFR-23**: Oregon *(Phase 113 — FY2022–FY2025, honest D-06 window)*
+- [x] **ACFR-24**: Missouri *(Phase 113 — FY2012–FY2025, 14 years, all tie $0)*
+- [x] **ACFR-25**: Colorado *(Phase 113 — FY2023–FY2025; TABOR clamped FY2024+FY2025)*
 - [ ] **ACFR-26**: South Carolina
 - [ ] **ACFR-27**: Kentucky
 - [ ] **ACFR-28**: Utah
@@ -74,10 +74,10 @@ Deferred to a follow-up milestone. Tracked but not in this roadmap.
 | LOAD-01 | Phase 111 | Complete |
 | RECON-09 | Phase 112 | Complete |
 | RECON-10 | Phase 112 | Complete |
-| ACFR-21..25 | Phase 113 | Pending |
+| ACFR-21..25 | Phase 113 | Complete (2026-07-02) |
 | ACFR-26..30 | Phase 114 | Pending |
-| ACFR-31 | Phase 113, 114 | Pending |
-| ACFR-32 | Phase 113, 114 | Pending |
+| ACFR-31 | Phase 113, 114 | Phase 113 done; 114 pending |
+| ACFR-32 | Phase 113, 114 | Phase 113 done; 114 pending |
 | DEEP-02 | Phase 115 | Pending |
 | DEEP-03 | Phase 115 | Pending |
 | DEEP-04 | Phase 115 | Pending |
