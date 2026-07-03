@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.14
 milestone_name: State ACFR Long Tail — Tranche 3 + Deepening
-status: executing
-last_updated: "2026-07-03T08:20:24.134Z"
+status: verifying
+last_updated: "2026-07-03T09:13:36.421Z"
 last_activity: 2026-07-03
 progress:
   total_phases: 30
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 11
-  completed_plans: 10
-  percent: 7
+  completed_plans: 11
+  percent: 10
 ---
 
 # State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-07-02 — v2.14 State ACFR Long Tail —
 
 Phase: 115 (deepening-recoverable-holes-pre-gasb-34-extractor-deep-02-de) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-07-03
 
 ## Phase Overview — v2.14 State ACFR Long Tail — Tranche 3 + Deepening
@@ -183,8 +183,8 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-07-03T08:20:24.118Z
-Stopped at: Completed 115-02-PLAN.md -- CT deepened FY1988-2025 (38yr, 0 holes) + FY2006 OCR, WI deepened FY2000-2025 (26yr, 0 holes)
+Last session: 2026-07-03T09:13:36.403Z
+Stopped at: Completed 115-03-PLAN.md -- MA hole recovery, FY2001+FY2014 recovered (19->21 years), FY2002/04/05/2021 documented honest holes
 Resume file: None
 
 ### Next Session
@@ -246,6 +246,7 @@ Leading candidates: ACFRX-02 (remaining ~31 NASBO states → ACFR, and/or the v2
 | Phase 114 P05 | 70min | 3 tasks | 3 files |
 | Phase 115 P01 | 32min | 3 tasks | 3 files |
 | Phase 115-deepening-recoverable-holes-pre-gasb-34-extractor P02 | 65min | 3 tasks | 6 files |
+| Phase 115 P03 | 50min | 3 tasks | 5 files |
 
 ## Decisions
 
@@ -324,6 +325,7 @@ Leading candidates: ACFRX-02 (remaining ~31 NASBO states → ACFR, and/or the v2
 - [Phase 115]: NJ has no pre-GASB-34 boundary -- FY2002 (its first ACFR year) is the archive's edge — NJ adopted GASB 34 in FY2002 itself, so all 18 candidate years FY2002-2019 use the modern statement format and all tie exactly
 - [Phase 115]: Kept NJ loaders' embedded-data architecture rather than converting to CT-style runtime parsing — Guarantees zero risk to already-loaded FY2020-2025 rows; newly-recovered years extracted once via the shared parser, verified tied, then embedded as static data
 - [Phase 115-02]: pre34Extract.mjs (position-anchored) ties all 14 CT pre-34 years exactly; WI 2000-2001 within TOL; CT FY2006 recovered via free OCR — Zero honest holes in CT/WI deepening; OCR cross-verified row-by-row against printed row totals
+- [Phase 115-03]: FY2001 recovered by widening pre34Extract.mjs lookahead window (superset, zero CT/WI regression); FY2002/04/05 dot-leader corruption left as honest hole after abandoning an unsafe bounded-heuristic extractor
 
 ## Deferred Items
 
