@@ -2,9 +2,9 @@
 phase: 116-verification-source-chain-audit-uat-ver-07-ver-08
 plan: 03
 requirement: VER-08
-status: pending
-signed_off_by:
-signed_off_date:
+status: passed
+signed_off_by: Chris Cantrell
+signed_off_date: 2026-07-03
 production-confirmed: "2026-07-03 HTTP 200 at treasurytracker.empowered.vote"
 ---
 
@@ -48,7 +48,7 @@ re-derivation (`116-REDERIVATION.md`), never from the loaders.
   Operating ≈ **$19.1B** ($19,123,203,000).
 - Basis label = State ACFR / GAAP basis.
 
-**Result:** [ ] PASS / [ ] FAIL — notes:
+**Result:** ✅ PASS (Chris, 2026-07-03)
 
 ## Anchor 2 — MO FY2022 (tranche-3 clamp year, largest in cohort)
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=missouri-mo&year=2022&dataset=revenue
@@ -59,7 +59,7 @@ re-derivation (`116-REDERIVATION.md`), never from the loaders.
   clamps to 0.
 - Standard checks 1–5.
 
-**Result:** [ ] PASS / [ ] FAIL — notes:
+**Result:** ✅ PASS (Chris, 2026-07-03)
 
 ## Anchor 3 — AZ FY2024 (Drive-link caveat, newest AZ year)
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=arizona-az&year=2024&dataset=revenue
@@ -72,7 +72,7 @@ re-derivation (`116-REDERIVATION.md`), never from the loaders.
 - **Honest-absence check:** the year selector on the AZ node does **NOT** offer FY2025 (not yet
   sourced at load time) — confirm FY2024 is the newest selectable year.
 
-**Result:** [ ] PASS / [ ] FAIL — notes:
+**Result:** ✅ PASS (Chris, 2026-07-03)
 
 ## Anchor 4 — KY honest-hole (FY2023)
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=kentucky-ky&year=2025&dataset=revenue
@@ -87,7 +87,7 @@ re-derivation (`116-REDERIVATION.md`), never from the loaders.
   this is the one documented exception in an otherwise all-ACFR-labelled KY node. Confirm the
   label is visibly different (NASBO) from KY's other (ACFR/GAAP) years.
 
-**Result:** [ ] PASS / [ ] FAIL — notes:
+**Result:** ✅ PASS (Chris, 2026-07-03)
 
 ## Anchor 5 — AL FY2025 (Sep-30 fiscal year-end)
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=alabama-al&year=2025&dataset=revenue
@@ -96,7 +96,7 @@ re-derivation (`116-REDERIVATION.md`), never from the loaders.
 - **Sep-30 check:** the source chip / source date reads **2025-09-30** (Alabama's Oct–Sep fiscal
   year), not June 30 or December 31.
 
-**Result:** [ ] PASS / [ ] FAIL — notes:
+**Result:** ✅ PASS (Chris, 2026-07-03)
 
 ## Anchor 6 — CT FY1988 (deepening, pre-GASB-34 archive floor)
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=connecticut-ct&year=1988&dataset=revenue
@@ -110,7 +110,7 @@ re-derivation (`116-REDERIVATION.md`), never from the loaders.
   a modern CT year in the same session (e.g. `?entity=connecticut-ct&year=2025&dataset=revenue`)
   and compare the two basis labels side by side.
 
-**Result:** [ ] PASS / [ ] FAIL — notes:
+**Result:** ✅ PASS (Chris, 2026-07-03)
 
 ## Anchor 7 — CT FY2006 (deepening, OCR-recovered hole fill)
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=connecticut-ct&year=2006&dataset=revenue
@@ -120,7 +120,7 @@ re-derivation (`116-REDERIVATION.md`), never from the loaders.
   independent re-render + OCR, but it is GASB-34-era — the basis label must read **GAAP basis**,
   NOT the pre-34 label (confirm it does not carry the pre-34 label used on Anchor 6).
 
-**Result:** [ ] PASS / [ ] FAIL — notes:
+**Result:** ✅ PASS (Chris, 2026-07-03)
 
 ## Anchor 8 — NJ FY2002 (deepening, full-dollars archive floor)
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=new-jersey-nj&year=2002&dataset=revenue
@@ -131,7 +131,7 @@ re-derivation (`116-REDERIVATION.md`), never from the loaders.
   in full dollars (not thousands); confirm the displayed figure is NOT ×1000 off (i.e. not
   showing ~$21.9T or ~$21.9M). Operating ≈ **$24.1B** ($24,075,099,379).
 
-**Result:** [ ] PASS / [ ] FAIL — notes:
+**Result:** ✅ PASS (Chris, 2026-07-03)
 
 ## Anchor 9 — MA FY2001 (deepening, pre-GASB-34) + MA hole honesty
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=massachusetts-ma&year=2001&dataset=revenue
@@ -146,7 +146,7 @@ re-derivation (`116-REDERIVATION.md`), never from the loaders.
   FY2021 are ABSENT** (no interpolated/fabricated values for any of these 4 documented holes);
   FY2001, FY2003, FY2006–2020, FY2022–2025 (i.e., everything else) should be present.
 
-**Result:** [ ] PASS / [ ] FAIL — notes:
+**Result:** ✅ PASS (Chris, 2026-07-03)
 
 ## Anchor 10 — WI FY2000 (deepening, pre-GASB-34 archive floor)
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=wisconsin-wi&year=2000&dataset=revenue
@@ -158,7 +158,7 @@ re-derivation (`116-REDERIVATION.md`), never from the loaders.
   Compare against a modern WI year in the same session (e.g.
   `?entity=wisconsin-wi&year=2025&dataset=revenue`, GAAP-labelled) to confirm the distinction.
 
-**Result:** [ ] PASS / [ ] FAIL — notes:
+**Result:** ✅ PASS (Chris, 2026-07-03)
 
 ## Anchor 11 — NASBO control: Alaska (regression guard)
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=alaska-ak&year=2024
@@ -169,7 +169,7 @@ re-derivation (`116-REDERIVATION.md`), never from the loaders.
 - Manually visiting `...?entity=alaska-ak&year=2024&dataset=revenue` falls back gracefully (no
   crash, no empty-forever view).
 
-**Result:** [ ] PASS / [ ] FAIL — notes:
+**Result:** ✅ PASS (Chris, 2026-07-03)
 
 ---
 
@@ -181,5 +181,5 @@ cosmetic items are logged, not gated. Data correctness itself (the totals, the b
 window bounds) was already proven independently in Plans 116-01/116-02 — this UAT is checking
 that the live app renders it honestly, not re-litigating the numbers.
 
-**Signed off by:** _(pending — Chris Cantrell to complete after live-app walkthrough)_
-**Date:** _(pending)_
+**Signed off by:** Chris Cantrell
+**Date:** 2026-07-03
