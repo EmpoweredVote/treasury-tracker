@@ -5,7 +5,7 @@
  *   Statement of Revenues, Expenditures, and Changes in Fund Balances, GENERAL FUND column
  *   (GAAP basis, in thousands).
  *
- * Phase 113. Replaces the NASBO operating rows on the KY state node in place (same (muni,fy,'operating') RPC key) for FY2023/FY2024; other FYs net-new.
+ * Phase 113. Replaces the NASBO operating row on the KY state node in place (same (muni,fy,'operating') RPC key) for FY2024 only; FY2023 NASBO row intentionally retained (see HONEST HOLE below); other FYs net-new.
  *   KY state node resolved by name + state + entity_type and asserted equal to EXPECTED_MUNI_ID.
  *
  * SCOPE NOTE (ACFR-31): KY ACFR GF ~1.09x NASBO GF ($15,456,606K FY2024 vs $14,188,000K

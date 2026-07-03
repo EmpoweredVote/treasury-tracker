@@ -5,7 +5,7 @@
  *   Statement of Revenues, Expenditures, and Changes in Fund Balances, GENERAL FUND column
  *   (GAAP basis, in thousands).
  *
- * Phase 113. Revenue is NEW on the KY state node → pure insert keyed (muni,fy,'revenue').
+ * Phase 113. Revenue is NEW on the KY state node → pure insert keyed (muni,fy,'revenue'); FY2023 intentionally absent (see HONEST HOLE below).
  *   KY state node resolved by name + state + entity_type and asserted equal to EXPECTED_MUNI_ID.
  *
  * SCOPE NOTE (ACFR-31): KY ACFR GF ~1.09x NASBO GF ($15,456,606K FY2024 vs $14,188,000K
