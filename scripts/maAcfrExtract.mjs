@@ -16,8 +16,20 @@
 // Parse a statement line into { label, nums:[] } where nums are the numeric columns (thousands).
 // Columns in -table output are separated by 2+ spaces; the label (with dotted leader) is col 0.
 // "$" is dropped; "--"/"-" → 0; "(1,234)" → -1234.
+//
+// FY2014 SCAN-QUIRK (115-03): isolated rows misprint the thousands separator as a period
+// instead of a comma (e.g. "470.116" for 470,116) — the same corruption class as CT1991/1992
+// (pre34Extract.mjs). Every figure in this statement is whole thousands (never a real
+// decimal), so any `\d{1,3}(\.\d{3})+` run is unambiguously a corrupted thousands-grouping —
+// normalize dots to commas before column-splitting, scoped to this narrow tokenizer.
+//
+// FY2014 also has a handful of rows where the embedded subset font maps the "1" glyph to a
+// literal "]" bracket at the START of a number (e.g. "],904" for "1,904"; "20],257" for
+// "201,257") — "]" never legitimately appears in this statement's data rows, so it is
+// unambiguously this corruption and is normalized to "1" before column-splitting.
 function parseRow(line) {
-  const cleaned = line.replace(/\$/g, ' ');
+  const cleaned = line.replace(/\$/g, ' ').replace(/\]/g, '1')
+    .replace(/\d{1,3}(?:\.\d{3})+/g, (m) => m.replace(/\./g, ','));
   const cols = cleaned.split(/\s{2,}/).map(s => s.trim()).filter(Boolean);
   if (!cols.length) return null;
   const nums = [];
@@ -50,11 +62,21 @@ export function extractMAGeneralFund(txt) {
     const header = lines.slice(Math.max(0, i - 18), i).join(' ');
     if (!/General/.test(header) || !/Governmental Funds/i.test(header)) continue;
     // find Total revenues, EXPENDITURES, Total expenditures below
+    //
+    // FY2014 GLYPH-CORRUPTION TOLERANCE (115-03): this year's PDF has isolated single-
+    // character font-glyph substitutions on section-anchor lines ("Total revenaes" for
+    // "Total revenues"; "EXPENDTTURES" for "EXPENDITURES" — the embedded subset font maps a
+    // handful of glyph codes to the wrong character on THESE specific lines, while individual
+    // department/category labels below are unaffected in ways that change their extracted
+    // values). The anchors below tolerate a single corrupted character in the distinguishing
+    // position (reven\w*s / EXPEND\w*TURES) while still requiring the rest of the word intact,
+    // so they cannot accidentally match unrelated text — verified against all 19 previously-
+    // tying years' identical totals (regression-gated).
     let tRev = -1, expH = -1, tExp = -1;
     for (let j = i + 1; j < Math.min(lines.length, i + 400); j++) {
-      if (tRev < 0 && /^\s*Total revenues/i.test(lines[j])) tRev = j;
-      else if (tRev > 0 && expH < 0 && /^\s*EXPENDITURES:?\s*$/i.test(lines[j])) expH = j;
-      else if (expH > 0 && /^\s*Total expenditures/i.test(lines[j])) { tExp = j; break; }
+      if (tRev < 0 && /^\s*Total\s+reven\w*s\b/i.test(lines[j])) tRev = j;
+      else if (tRev > 0 && expH < 0 && /^\s*EXPEND\w*TURES:?\s*$/i.test(lines[j])) expH = j;
+      else if (expH > 0 && /^\s*Total\s+e\wpenditures/i.test(lines[j])) { tExp = j; break; }
     }
     if (tRev < 0 || expH < 0 || tExp < 0) continue;
 
