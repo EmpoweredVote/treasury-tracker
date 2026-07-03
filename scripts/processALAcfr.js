@@ -405,6 +405,8 @@ async function main() {
   const dryRun = opts['dry-run']; const targetFY = opts.fy ? parseInt(opts.fy, 10) : null;
   const years = targetFY ? [targetFY] : [2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
   console.log(`${STATE_NAME} GF Operating Loader (ACTUAL — ACFR GAAP basis, thousands×${UNITS.toLocaleString()})${dryRun ? ' (dry-run)' : ''}\nFiscal years: ${years.join(', ')}\n`);
+  // WR-06: validate EVERY target year up front — a failing year must abort before ANY write, never mid-run.
+  for (const fy of years) { if (EXPENDITURES[fy] && !validate(fy)) { console.error(`FY${fy} failed validation — aborting before any write`); process.exit(2); } }
   if (!SUPABASE_KEY && !dryRun) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit(2); }
   const supabase = dryRun ? null : createClient(SUPABASE_URL, SUPABASE_KEY);
   let muniId;
@@ -426,7 +428,6 @@ async function main() {
     for (const fy of years) {
       if (!EXPENDITURES[fy] || !SOURCES[fy]) { console.warn(`No data/source for FY${fy}`); continue; }
       console.log(`── FY${fy} ─────────────────────────────────────────────`);
-      if (!validate(fy)) throw new Error(`FY${fy} validation failed`);
       console.log(`FY${fy} validation: PASS  (${EXPENDITURES[fy].confidence})`);
       const { jsonTree, total, rowCount } = buildTree(fy);
       const cats = jsonTree[0].c;
