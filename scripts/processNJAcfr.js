@@ -26,8 +26,10 @@
  *   prints the GAAP statement's bare title ("STATEMENT OF REVENUES, EXPENDITURES[,] AND CHANGES
  *   IN FUND BALANCES" — no "COMBINING"/"BUDGETARY COMPARISON" prefix) followed within a few
  *   lines by a bare "GOVERNMENTAL FUNDS" subtitle exactly ONCE, ahead of any other occurrence —
- *   isolateNJStatement() below anchors on that exact bare title+subtitle pair before handing a
- *   scoped snippet to the shared token-order/positional extractors, eliminating the false-match.
+ *   isolateNJStatement() (scripts/njAcfrExtract.mjs — committed per 115 review WR-05) anchors on
+ *   that exact bare title+subtitle pair before handing a scoped snippet to the shared token-order/
+ *   positional extractors, eliminating the false-match. Re-derive against _acfr-work/nj/ text with
+ *   `node scripts/njAcfrExtract.mjs` — all 24 FYs reproduce the embedded totals exactly ($0/$0).
  *   FY2002-FY2003 need the positional fallback (blank-GF-cell years — a "$"-glyph pdftotext
  *   artifact renders as a bare "--" ahead of every dollar figure, including in "populated"
  *   columns, so token order alone misassigns cells); FY2004-FY2025 tie on token order.
