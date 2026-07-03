@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.14
 milestone_name: State ACFR Long Tail — Tranche 3 + Deepening
-status: verifying
-last_updated: "2026-07-03T03:20:02.772Z"
+status: ready_to_plan
+last_updated: 2026-07-03T03:37:50.412Z
 last_activity: 2026-07-03
 progress:
   total_phases: 30
   completed_phases: 2
   total_plans: 8
-  completed_plans: 8
+  completed_plans: 14
   percent: 7
+stopped_at: Phase 114 complete (5/5) — ready to discuss Phase 115
 ---
 
 # State
@@ -20,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-02 — v2.14 State ACFR Long Tail — Tranche 3 + Deepening STARTED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** Phase 114 — acfr-upgrade-batch-2-5-states-acfr-26-30-acfr-31-32
+**Current focus:** Phase 115 — deepening — recoverable holes + pre gasb 34 extractor (deep 02, deep 03, deep 04)
 
 ## Current Position
 
-Phase: 114 (acfr-upgrade-batch-2-5-states-acfr-26-30-acfr-31-32) — EXECUTING
-Plan: 5 of 5
-Status: Phase complete — ready for verification
+Phase: 115
+Plan: Not started
+Status: Ready to plan
 Last activity: 2026-07-03
 
 ## Phase Overview — v2.14 State ACFR Long Tail — Tranche 3 + Deepening
