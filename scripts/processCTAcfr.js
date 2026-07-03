@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Connecticut General Fund Operating (Expenditure) Loader — FY1988-FY2025 ACTUAL (37 yrs; FY2006 hole)
+ * Connecticut General Fund Operating (Expenditure) Loader — FY1988-FY2025 ACTUAL (38 yrs, 0 holes)
  * Source: CT Annual Comprehensive Financial Report (ACFR/CAFR), Governmental Funds Statement of Revenues,
  *   Expenditures, and Changes in Fund Balances, GENERAL FUND column (GAAP, thousands). CT OSC.
  *
@@ -23,7 +23,19 @@
  * SOURCES = EXPLICIT per-year URLs enumerated from the `_reportsSource` JSON on osc.ct.gov/reports
  *   (FY2022 "revised" suffix; pre-FY2021 CAFR naming; FY2015-16 /20XXcafr/ paths; FY1988-FY2005
  *   under /reports/oldcafrpdfs/). Never derived.
- * HONEST HOLES: FY2006 = scanned PDF (no text layer) — see Phase 115-02 OCR recovery below.
+ *
+ * FY2006 OCR RECOVERY (Phase 115-02, DEEP-03): CT2006.pdf's Governmental Funds Statement of
+ *   Revenues, Expenditures and Changes in Fund Balances is a SCANNED page with no text layer
+ *   (`pdftotext -table` yields 164 bytes). Located at PDF page 40 of 164 (bracketed via CT2005's
+ *   page 39/158 and CT2007's page 41/165 — same ~0.247 position ratio), confirmed by title-text
+ *   OCR match. Transcribed via `pdftoppm -r 300 -png -f 40 -l 40` + tesseract 5.4 `--psm 6` (both
+ *   free local tools, $0). GENERAL FUND column ONLY, embedded below as static data (OCR output is
+ *   not stable enough to re-parse at runtime, unlike the text-layer years). Every single leaf row
+ *   was cross-checked against its OWN printed row total (Total Governmental Funds column = sum of
+ *   all 5 fund columns on that row) — all 21 revenue+expenditure rows tie their row arithmetic
+ *   exactly, in addition to both grand totals tying the General Fund column sums below ($0 diff
+ *   both). FY2006 is GASB-34-era (modern statement format) → carries the normal GAAP basis label,
+ *   NOT the pre-GASB-34 label.
  *
  * UNITS = 1_000. TX-TRAP (ACFR-19): CT ACFR GF ~1.14× NASBO (smallest tranche divergence —
  *   $2.8B Federal Grants and Aid inside GAAP GF). Accept-and-relabel honestly.
@@ -52,9 +64,31 @@ const WORK = resolve(__dirname, '../_acfr-work/ct');
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
-// Exact per-year URLs from the osc.ct.gov/reports _reportsSource JSON (FY2006 omitted — scanned, no
-// text layer, see Phase 115-02 OCR recovery below). FY1988–FY2001 = pre-GASB-34 Combined-Statement
-// format, routed through pre34Extract.mjs below (Phase 115-02 deepening).
+
+// FY2006 OCR-transcribed GENERAL FUND expenditures (Phase 115-02, DEEP-03) — see header comment
+// for provenance (page 40/164, pdftoppm 300dpi + tesseract 5.4 --psm 6, every row cross-tied
+// against its own printed row total). Embedded (not runtime-parsed) — OCR output is not stable
+// enough to re-parse on every run. Total Expenditures (GF column) = 13,924,122 (thousands).
+const CT2006_EXPENDITURES = [
+  { name: 'Legislative', total: 89_454 },
+  { name: 'General Government', total: 916_747 },
+  { name: 'Regulation and Protection', total: 324_225 },
+  { name: 'Conservation and Development', total: 123_531 },
+  { name: 'Health and Hospitals', total: 1_707_536 },
+  { name: 'Transportation', total: 1_874 },
+  { name: 'Human Services', total: 4_487_762 },
+  { name: 'Education, Libraries, and Museums', total: 2_668_013 },
+  { name: 'Corrections', total: 1_686_200 },
+  { name: 'Judicial', total: 618_311 },
+  { name: 'Debt service — Principal Retirement', total: 831_719 },
+  { name: 'Debt service — Interest and Fiscal Charges', total: 468_750 },
+];
+const CT2006_EXP_TOTAL = 13_924_122;
+
+// Exact per-year URLs from the osc.ct.gov/reports _reportsSource JSON. FY1988–FY2001 = pre-GASB-34
+// Combined-Statement format, routed through pre34Extract.mjs below (Phase 115-02 deepening).
+// FY2006 is OCR-embedded above (Phase 115-02 DEEP-03) — the URL below is still used for the
+// source_url stamp even though the loader never re-fetches/re-parses that PDF.
 const PRE34_LAST_FY = 2001; // years <= this use extractPre34GeneralFund, not the modern extractor
 const SRC = {
   1988: 'https://osc.ct.gov/reports/oldcafrpdfs/CT_CAFR_FY1988.pdf',
@@ -75,6 +109,7 @@ const SRC = {
   2003: 'https://osc.ct.gov/reports/oldcafrpdfs/CT_CAFR_FY2003.pdf',
   2004: 'https://osc.ct.gov/reports/oldcafrpdfs/CT_CAFR_FY2004.pdf',
   2005: 'https://osc.ct.gov/reports/oldcafrpdfs/CT_CAFR_FY2005.pdf',
+  2006: 'https://osc.ct.gov/2006cafr/cafr2006.pdf', // OCR-embedded (DEEP-03) — see CT2006_EXPENDITURES above
   2007: 'https://osc.ct.gov/2007cafr/CT2007_CAFR.pdf',
   2008: 'https://osc.ct.gov/2008cafr/cafr2008.pdf',
   2009: 'https://osc.ct.gov/2009cafr/CAFR09.pdf',
@@ -104,8 +139,10 @@ const dataSource = (fy) => fy <= PRE34_LAST_FY
 function clampForRender(a) { return Math.max(a, 0); }
 // Token-order first; positional fallback — gated per-dataset (exp tie here). Pre-34 years route
 // through the dedicated Combined-Statement extractor (Phase 115-02) — different statement, different
-// title anchor, never mixed with the modern token-order/positional pair.
+// title anchor, never mixed with the modern token-order/positional pair. FY2006 returns the
+// OCR-embedded object directly — no PDF text layer exists to parse.
 function loadYear(fy) {
+  if (fy === 2006) return { found: true, expenditures: CT2006_EXPENDITURES, expTotal: CT2006_EXP_TOTAL, revenues: [], revTotal: null };
   const txtPath = `${WORK}/CT${fy}.txt`; const pdfPath = `${WORK}/CT${fy}.pdf`;
   if (!existsSync(txtPath)) {
     if (!existsSync(pdfPath)) {
