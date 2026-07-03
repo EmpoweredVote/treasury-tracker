@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.14
 milestone_name: State ACFR Long Tail — Tranche 3 + Deepening
 status: executing
-last_updated: "2026-07-03T02:28:07.248Z"
+last_updated: "2026-07-03T02:48:45.537Z"
 last_activity: 2026-07-03
 progress:
   total_phases: 30
   completed_phases: 1
   total_plans: 8
-  completed_plans: 6
+  completed_plans: 7
   percent: 3
 ---
 
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-07-02 — v2.14 State ACFR Long Tail —
 ## Current Position
 
 Phase: 114 (acfr-upgrade-batch-2-5-states-acfr-26-30-acfr-31-32) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-07-03
 
@@ -183,8 +183,8 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-07-03T02:28:07.237Z
-Stopped at: Completed 114-03-PLAN.md — Utah ACFR loaded FY2019-FY2025, GF-alone scope decision resolved (ACFR-31)
+Last session: 2026-07-03T02:48:45.526Z
+Stopped at: Completed 114-04-PLAN.md — Alabama ACFR loaded FY2002-FY2025, GF-alone scope decision resolved (ACFR-31), 0.24x tranche-narrowest divergence
 Resume file: None
 
 ### Next Session
@@ -242,6 +242,7 @@ Leading candidates: ACFRX-02 (remaining ~31 NASBO states → ACFR, and/or the v2
 | Phase 114 P01 | 17min | 3 tasks | 3 files |
 | Phase 114-02 PP02 | 45min | 3 tasks | 3 files |
 | Phase 114 P03 | 20min | 3 tasks | 3 files |
+| Phase 114 P04 | 25min | 3 tasks | 3 files |
 
 ## Decisions
 
@@ -312,6 +313,8 @@ Leading candidates: ACFRX-02 (remaining ~31 NASBO states → ACFR, and/or the v2
 - [Phase ?]: KY's ~1.09x near-parity vs NASBO matches IN's mechanism: Federal reported through a separate major fund column, not consolidated into GF
 - [Phase 114-03]: UT GF-alone scope decision (ACFR-31): loaded the printed General Fund column alone, not a GF+Income Tax Fund composite -- the tranche's one narrower-than-NASBO state (~0.83x-0.91x), driven by the Amendment G constitutional income-tax earmark in a separate major fund
 - [Phase 114-03]: UT gen_state.py default_rev_name generalized to pluralize a label already ending in singular Tax (e.g. Sales and Use Tax -> Sales and Use Taxes) instead of appending a redundant taxes suffix -- reusable fix
+- [Phase 114]: AL GF-alone scope decision (ACFR-31): loaded printed General Fund column alone, not GF+Education Trust Fund composite -- 0.24x narrower than NASBO (tranche's narrowest), corroborated by GF+ETF ~1.04x NASBO (constitutional dual-budget driver)
+- [Phase 114]: gen_state.py generalized with fy_end + fiscal_year_start_month config options (MI Sep-30 precedent) for AL rather than a bespoke loader -- reusable for future non-June-30 states
 
 ## Deferred Items
 

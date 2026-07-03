@@ -30,7 +30,7 @@
 - [x] **ACFR-26**: South Carolina
 - [x] **ACFR-27**: Kentucky
 - [x] **ACFR-28**: Utah
-- [ ] **ACFR-29**: Alabama (substituted for Oklahoma per 112-RECON rank correction; OK deferred to ACFRX-03)
+- [x] **ACFR-29**: Alabama (substituted for Oklahoma per 112-RECON rank correction; OK deferred to ACFRX-03)
 - [ ] **ACFR-30**: Louisiana
 - [x] **ACFR-31**: Where a state's ACFR GF is a broader consolidated fund than the NASBO GF (the TX GR-Fund / PA / IL / MI precedent), the scope divergence is **relabelled honestly** rather than carved down — the node total may jump but stays correct + sourced + basis-labelled.
 - [x] **ACFR-32**: Negative GF investment-income (or any negative category) years on any upgraded state render honestly via the **P2 clamp** (clamped to 0 with the signed magnitude in the label, parent total preserved).
