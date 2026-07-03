@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.14
 milestone_name: State ACFR Long Tail — Tranche 3 + Deepening
-status: ready_to_plan
-last_updated: 2026-07-03T03:37:50.412Z
+status: executing
+last_updated: "2026-07-03T07:36:27.818Z"
 last_activity: 2026-07-03
 progress:
   total_phases: 30
   completed_phases: 2
-  total_plans: 8
-  completed_plans: 14
+  total_plans: 11
+  completed_plans: 9
   percent: 7
-stopped_at: Phase 114 complete (5/5) — ready to discuss Phase 115
 ---
 
 # State
@@ -21,13 +20,13 @@ stopped_at: Phase 114 complete (5/5) — ready to discuss Phase 115
 See: .planning/PROJECT.md (updated 2026-07-02 — v2.14 State ACFR Long Tail — Tranche 3 + Deepening STARTED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** Phase 115 — deepening — recoverable holes + pre gasb 34 extractor (deep 02, deep 03, deep 04)
+**Current focus:** Phase 115 — deepening-recoverable-holes-pre-gasb-34-extractor-deep-02-de
 
 ## Current Position
 
-Phase: 115
-Plan: 3 plans created (2 waves)
-Status: Planned — ready to execute
+Phase: 115 (deepening-recoverable-holes-pre-gasb-34-extractor-deep-02-de) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-07-03
 
 ## Phase Overview — v2.14 State ACFR Long Tail — Tranche 3 + Deepening
@@ -184,8 +183,8 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-07-03T03:20:02.761Z
-Stopped at: Completed 114-05-PLAN.md — Louisiana ACFR loaded FY2002-FY2025, GF-alone federal-Intergovernmental composition documented (ACFR-31), phase 114 all 5 plans complete
+Last session: 2026-07-03T07:36:27.805Z
+Stopped at: Completed 115-01-PLAN.md -- New Jersey deepened FY2002-2025 (18 new years, 0 honest holes)
 Resume file: None
 
 ### Next Session
@@ -245,6 +244,7 @@ Leading candidates: ACFRX-02 (remaining ~31 NASBO states → ACFR, and/or the v2
 | Phase 114 P03 | 20min | 3 tasks | 3 files |
 | Phase 114 P04 | 25min | 3 tasks | 3 files |
 | Phase 114 P05 | 70min | 3 tasks | 3 files |
+| Phase 115 P01 | 32min | 3 tasks | 3 files |
 
 ## Decisions
 
@@ -320,6 +320,8 @@ Leading candidates: ACFRX-02 (remaining ~31 NASBO states → ACFR, and/or the v2
 - [Phase 114]: LA GF-alone (ACFR-31): ~1.90x NASBO divergence driven by ~99% federal Intergovernmental Revenues in the GF; own-source state taxes booked entirely to the separate Bond Security & Redemption Fund column -- unique structural driver in the tranche
 - [Phase 114]: extract_gf.py generalized with a position-anchor/first-cell fallback for non-uniform pdftotext -table alignment (LA FY2003-2005) and a whitespace-tolerant statement-header regex (LA FY2016-2019) -- zero regression on 96 already-loaded SC/KY/UT/AL state-years
 - [Phase 114]: gen_state.py generalized with smart_title() ALL-CAPS source-label title-casing and a Current/Intergovernmental expenditure-subsection disambiguation rule -- both discovered by LA, reusable for future states
+- [Phase 115]: NJ has no pre-GASB-34 boundary -- FY2002 (its first ACFR year) is the archive's edge — NJ adopted GASB 34 in FY2002 itself, so all 18 candidate years FY2002-2019 use the modern statement format and all tie exactly
+- [Phase 115]: Kept NJ loaders' embedded-data architecture rather than converting to CT-style runtime parsing — Guarantees zero risk to already-loaded FY2020-2025 rows; newly-recovered years extracted once via the shared parser, verified tied, then embedded as static data
 
 ## Deferred Items
 
