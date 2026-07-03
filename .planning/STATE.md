@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v2.14
 milestone_name: State ACFR Long Tail — Tranche 3 + Deepening
 status: executing
-last_updated: "2026-07-03T00:48:17.007Z"
-last_activity: 2026-07-02 -- Phase 113 COMPLETE (verified 14/14) — 5 states live on ACFR GAAP
+last_updated: "2026-07-03T01:07:11.862Z"
+last_activity: 2026-07-03 -- Phase 114 planning complete
 progress:
-  total_phases: 31
+  total_phases: 30
   completed_phases: 1
   total_plans: 8
   completed_plans: 3
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-07-02 — v2.14 State ACFR Long Tail —
 
 Phase: 113 (ACFR Upgrade — Batch 1 (IN/AZ/OR/MO/CO)) — COMPLETE 2026-07-02
 Plan: 1 of 5
-Status: Phase 113 complete — next: Phase 114 (batch 2) ∥ Phase 115 (deepening)
-Last activity: 2026-07-02 -- Phase 113 COMPLETE (verified 14/14) — IN/AZ/OR/MO/CO live on ACFR GAAP, 68 state-years, 0 residue
+Status: Ready to execute
+Last activity: 2026-07-03 -- Phase 114 planning complete
 
 ## Phase Overview — v2.14 State ACFR Long Tail — Tranche 3 + Deepening
 
