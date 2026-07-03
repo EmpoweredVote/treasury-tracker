@@ -25,17 +25,21 @@
 //
 // FY2014 also has a handful of rows where the embedded subset font maps the "1" glyph to a
 // literal "]" bracket at the START of a number (e.g. "],904" for "1,904"; "20],257" for
-// "201,257") — "]" never legitimately appears in this statement's data rows, so it is
-// unambiguously this corruption and is normalized to "1" before column-splitting.
+// "201,257"). The "]"→"1" normalization is applied PER-TOKEN after column-splitting, and ONLY
+// when the token is otherwise a numeric candidate (digits/commas/brackets, optionally
+// parenthesized) — a legitimate "]" inside label text is never rewritten (115 review WR-04:
+// labels are not tie-gated, so a whole-line rewrite could silently ship a mangled label).
 function parseRow(line) {
-  const cleaned = line.replace(/\$/g, ' ').replace(/\]/g, '1')
+  const cleaned = line.replace(/\$/g, ' ')
     .replace(/\d{1,3}(?:\.\d{3})+/g, (m) => m.replace(/\./g, ','));
   const cols = cleaned.split(/\s{2,}/).map(s => s.trim()).filter(Boolean);
   if (!cols.length) return null;
   const nums = [];
   let firstNumIdx = -1;
   for (let i = 0; i < cols.length; i++) {
-    const t = cols[i].replace(/\.+$/, '').trim(); // strip trailing dotted leader
+    let t = cols[i].replace(/\.+$/, '').trim(); // strip trailing dotted leader
+    // FY2014 "]"→"1" glyph fix, scoped to numeric-candidate tokens only (WR-04).
+    if (t.includes(']') && /^\(?[\d,\]]+\)?$/.test(t)) t = t.replace(/\]/g, '1');
     if (/^-{1,2}$/.test(t)) { nums.push(0); if (firstNumIdx < 0) firstNumIdx = i; }
     else if (/^\(?[\d,]+\)?$/.test(t) && /\d/.test(t)) {
       const neg = /^\(.*\)$/.test(t);
