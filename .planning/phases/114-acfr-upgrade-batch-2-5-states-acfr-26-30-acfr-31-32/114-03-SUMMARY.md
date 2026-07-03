@@ -129,3 +129,7 @@ Utah is fully ACFR-sourced (operating + revenue, GAAP-labelled, NASBO replaced, 
 *Phase: 114-acfr-upgrade-batch-2-5-states-acfr-26-30-acfr-31-32*
 *Plan: 03*
 *Completed: 2026-07-02*
+
+## Self-Check: PASSED
+
+All created files verified present (scripts/processUTAcfr.js, scripts/processUTRevenueAcfr.js, 114-03-UT-LOADLOG.md, 114-03-SUMMARY.md); all referenced commits (116e108, 4fef6b9, f7ba322) verified present in git log.
