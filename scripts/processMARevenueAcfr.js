@@ -126,7 +126,8 @@ async function main() {
       const { data: bud, error: selErr } = await supabase.schema('treasury').from('budgets').select('id').eq('municipality_id', muniId).eq('fiscal_year', fy).eq('dataset_type', 'revenue').maybeSingle();
       if (selErr) throw new Error(`FY${fy} stamp lookup failed: ${selErr.message}`); // WR-07: surface select errors — never misreport as a missing row
       if (!bud?.id) throw new Error(`FY${fy}: no revenue row to stamp`);
-      await supabase.schema('treasury').from('budgets').update({ source_url: urlFor(fy), source_date: `${fy}-06-30`, data_source: dataSource(fy) }).eq('id', bud.id);
+      const { error: upErr } = await supabase.schema('treasury').from('budgets').update({ source_url: urlFor(fy), source_date: `${fy}-06-30`, data_source: dataSource(fy) }).eq('id', bud.id);
+      if (upErr) throw new Error(`FY${fy} source stamp failed: ${upErr.message}`); // WR-02 (115 review): a failed stamp must abort loudly — never count a year as loaded with stale provenance
       loaded.push(fy);
     }
   } finally {
