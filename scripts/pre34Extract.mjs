@@ -125,7 +125,12 @@ export function extractPre34GeneralFund(text) {
   for (let i = 0; i < lines.length; i++) {
     const titleWindow = lines.slice(i, i + 4).join(' ');
     if (!/Combined Statement of Revenues,?\s+Expenditures,?\s+and\s+Changes in Fund Balances/i.test(titleWindow)) continue;
-    const lookahead = lines.slice(i, i + 8).join(' ');
+    // MA (115-03) prints the "All Governmental Fund Types..." line BEFORE the title line
+    // (opposite order from CT/WI, where it follows) — widen the window to look both behind
+    // and ahead of the title. This is a strict superset of the original ahead-only window, so
+    // it cannot regress any CT/WI candidate that already matched (widening only adds text that
+    // could satisfy the check, never removes previously-matching text).
+    const lookahead = lines.slice(Math.max(0, i - 6), i + 8).join(' ');
     if (!/All Governmental Fund Types/i.test(lookahead)) continue;
 
     // Confirm this is the real statement page (not a Table-of-Contents entry or a

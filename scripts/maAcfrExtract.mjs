@@ -219,3 +219,16 @@ export function extractGovFundGeneralColumnPositional(txt, opts = {}) {
   }
   return { found: false, revenues: [], revTotal: null, expenditures: [], expTotal: null };
 }
+
+// NOTE (Phase 115-03): FY2002/2004/2005's pdftotext -table output has NO whitespace gap
+// between a row's label dot-leader and its first numeric column — the leader dots run
+// directly into the number, with periods interleaved between individual digits (e.g.
+// "6..0..,.0..4..5" for "60,045"; also reproduced under -layout, so it is baked into the PDF's
+// font metrics, not an extraction-mode artifact). A position-anchored variant tolerant of a
+// bounded inter-digit separator (`\d(?:[.,]{0,4}\d)*`) was attempted but abandoned: the
+// separator-run-length distribution for "corruption within one number" (2-7 chars observed)
+// overlaps too heavily with "genuine gap between two adjacent numbers/columns" (6-95 chars
+// observed) to draw a safe bound — any fixed threshold either merges adjacent fund columns
+// into one inflated figure or truncates a number at a stray wide gap. Since a wrong-but-
+// plausible dollar figure is worse than an honest hole, these three years are left unrecovered
+// (see 115-03-MA-LOADLOG.md for the full investigation and disposition).
