@@ -122,10 +122,10 @@ async function main() {
       console.log(`FY${fy}: TIE (${rowCount} sources, diff ${diff})  Total Rev $${Math.round(total).toLocaleString()}`);
       if (dryRun) continue;
       const { data: r, error: rpcErr } = await supabase.rpc('treasury_sync_budget_tree', { p_data_source_id: ds.id, p_fiscal_year: fy, p_dataset_type: 'revenue', p_total: total, p_tree: jsonTree, p_row_count: rowCount, p_triggered_by: 'bulk_load' });
-      if (rpcErr || r?.error) { console.error(`RPC error FY${fy}: ${rpcErr?.message || r.error}`); process.exit(2); }
+      if (rpcErr || r?.error) throw new Error(`FY${fy} RPC error: ${rpcErr?.message || r.error}`); // WR-01 (115 review): throw, never process.exit inside try — the finally cleanup must run
       const { data: bud, error: selErr } = await supabase.schema('treasury').from('budgets').select('id').eq('municipality_id', muniId).eq('fiscal_year', fy).eq('dataset_type', 'revenue').maybeSingle();
-      if (selErr) { console.error(`FY${fy}: stamp lookup failed: ${selErr.message}`); process.exit(2); } // WR-07: surface select errors — never misreport as a missing row
-      if (!bud?.id) { console.error(`FY${fy}: no revenue row to stamp`); process.exit(2); }
+      if (selErr) throw new Error(`FY${fy} stamp lookup failed: ${selErr.message}`); // WR-07: surface select errors — never misreport as a missing row
+      if (!bud?.id) throw new Error(`FY${fy}: no revenue row to stamp`);
       await supabase.schema('treasury').from('budgets').update({ source_url: urlFor(fy), source_date: `${fy}-06-30`, data_source: dataSource(fy) }).eq('id', bud.id);
       loaded.push(fy);
     }
