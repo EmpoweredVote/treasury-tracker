@@ -27,13 +27,13 @@
 - [x] **ACFR-23**: Oregon *(Phase 113 — FY2022–FY2025, honest D-06 window)*
 - [x] **ACFR-24**: Missouri *(Phase 113 — FY2012–FY2025, 14 years, all tie $0)*
 - [x] **ACFR-25**: Colorado *(Phase 113 — FY2023–FY2025; TABOR clamped FY2024+FY2025)*
-- [ ] **ACFR-26**: South Carolina
+- [x] **ACFR-26**: South Carolina
 - [ ] **ACFR-27**: Kentucky
 - [ ] **ACFR-28**: Utah
 - [ ] **ACFR-29**: Alabama (substituted for Oklahoma per 112-RECON rank correction; OK deferred to ACFRX-03)
 - [ ] **ACFR-30**: Louisiana
-- [ ] **ACFR-31**: Where a state's ACFR GF is a broader consolidated fund than the NASBO GF (the TX GR-Fund / PA / IL / MI precedent), the scope divergence is **relabelled honestly** rather than carved down — the node total may jump but stays correct + sourced + basis-labelled.
-- [ ] **ACFR-32**: Negative GF investment-income (or any negative category) years on any upgraded state render honestly via the **P2 clamp** (clamped to 0 with the signed magnitude in the label, parent total preserved).
+- [x] **ACFR-31**: Where a state's ACFR GF is a broader consolidated fund than the NASBO GF (the TX GR-Fund / PA / IL / MI precedent), the scope divergence is **relabelled honestly** rather than carved down — the node total may jump but stays correct + sourced + basis-labelled.
+- [x] **ACFR-32**: Negative GF investment-income (or any negative category) years on any upgraded state render honestly via the **P2 clamp** (clamped to 0 with the signed magnitude in the label, parent total preserved).
 
 ### Deepening (v2.13 recoverable holes)
 
