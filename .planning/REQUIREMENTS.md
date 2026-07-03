@@ -28,7 +28,7 @@
 - [x] **ACFR-24**: Missouri *(Phase 113 — FY2012–FY2025, 14 years, all tie $0)*
 - [x] **ACFR-25**: Colorado *(Phase 113 — FY2023–FY2025; TABOR clamped FY2024+FY2025)*
 - [x] **ACFR-26**: South Carolina
-- [ ] **ACFR-27**: Kentucky
+- [x] **ACFR-27**: Kentucky
 - [ ] **ACFR-28**: Utah
 - [ ] **ACFR-29**: Alabama (substituted for Oklahoma per 112-RECON rank correction; OK deferred to ACFRX-03)
 - [ ] **ACFR-30**: Louisiana

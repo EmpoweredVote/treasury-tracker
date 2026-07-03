@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.14
 milestone_name: State ACFR Long Tail — Tranche 3 + Deepening
 status: executing
-last_updated: "2026-07-03T01:35:32.117Z"
+last_updated: "2026-07-03T02:05:12.591Z"
 last_activity: 2026-07-03
 progress:
   total_phases: 30
   completed_phases: 1
   total_plans: 8
-  completed_plans: 4
+  completed_plans: 5
   percent: 3
 ---
 
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-07-02 — v2.14 State ACFR Long Tail —
 ## Current Position
 
 Phase: 114 (acfr-upgrade-batch-2-5-states-acfr-26-30-acfr-31-32) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-07-03
 
@@ -183,8 +183,8 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-07-03T01:35:32.104Z
-Stopped at: Completed 114-01-PLAN.md — South Carolina ACFR loaded FY2002-FY2025
+Last session: 2026-07-03T02:05:12.580Z
+Stopped at: Completed 114-02-PLAN.md — Kentucky ACFR loaded FY2002-2022+FY2024-2025 (FY2023 honest hole)
 Resume file: None
 
 ### Next Session
@@ -240,6 +240,7 @@ Leading candidates: ACFRX-02 (remaining ~31 NASBO states → ACFR, and/or the v2
 | Phase 107-recon-acfr-source-location-roster-lock-overlap-resolution-re P107-03 | 6min | 2 tasks | 1 files |
 | Phase 112 P03 | 95min | 3 tasks | 1 files |
 | Phase 114 P01 | 17min | 3 tasks | 3 files |
+| Phase 114-02 PP02 | 45min | 3 tasks | 3 files |
 
 ## Decisions
 
@@ -305,6 +306,9 @@ Leading candidates: ACFRX-02 (remaining ~31 NASBO states → ACFR, and/or the v2
 - [Phase ?]: Alabama's ACFR General Fund is ~0.24x its NASBO GF (narrowest divergence in the v2.14 tranche) due to its constitutional GF/Education-Trust-Fund dual-budget split; flagged as a Phase-114 load-time decision, not resolved in recon
 - [Phase 114-01]: SC's printed statement puts a single 'Taxes:' header ahead of ALL revenue lines (confirmed all 24 years) -- fixed via a new gen_state.py rev_boundary config option rather than hand-authoring category names
 - [Phase 114-01]: Loaded the full FY2002-FY2025 SC window (24 years) with zero honest holes -- every year tied exactly on first extraction pass
+- [Phase ?]: FY2023 KY ACFR PDF has no ToUnicode CMap on any embedded font (garbles the whole document) -- omitted as honest hole, distinct from FY2002's OCR-scan case where the numeric table still extracted cleanly
+- [Phase ?]: extract_gf.py pending-prefix accumulator fixes two-line wrapped category labels generically (KY discovered it, reusable for future states)
+- [Phase ?]: KY's ~1.09x near-parity vs NASBO matches IN's mechanism: Federal reported through a separate major fund column, not consolidated into GF
 
 ## Deferred Items
 
