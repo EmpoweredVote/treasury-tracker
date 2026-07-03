@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-07-02 — v2.14 State ACFR Long Tail —
 ## Current Position
 
 Phase: 115
-Plan: Not started
-Status: Ready to plan
+Plan: 3 plans created (2 waves)
+Status: Planned — ready to execute
 Last activity: 2026-07-03
 
 ## Phase Overview — v2.14 State ACFR Long Tail — Tranche 3 + Deepening
