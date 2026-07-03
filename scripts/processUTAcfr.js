@@ -108,7 +108,7 @@ const EXPENDITURES = {
     { name: 'Corrections',                                  total:      331_116 },
     { name: 'Public Safety',                                total:      299_167 },
     { name: 'Courts',                                       total:      161_204 },
-    { name: 'Health and Environmental Quality ',            total:    3_423_327 },
+    { name: 'Health and Environmental Quality',             total:    3_423_327 },
     { name: 'Higher Education State Administration',        total:      125_335 },
     { name: 'Higher Education Colleges and Universities',   total:    1_063_339 },
     { name: 'Employment and Family Services',               total:      769_126 },
