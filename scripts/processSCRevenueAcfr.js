@@ -491,32 +491,36 @@ async function main() {
     const { data: dsRow, error: dsErr } = await supabase.schema('treasury').from('data_sources').insert(srcPayload).select().single(); if (dsErr) { console.error('insert failed:', dsErr.message); process.exit(2); } ds = dsRow; console.log(`data_source created (ephemeral): ${ds.id}`);
     console.log('');
   }
-  for (const fy of years) {
-    if (!REVENUE[fy] || !SOURCES[fy]) { console.warn(`No data/source for FY${fy}`); continue; }
-    console.log(`── FY${fy} ─────────────────────────────────────────────`);
-    if (!validate(fy)) { process.exit(2); }
-    console.log(`FY${fy} validation: PASS  (${REVENUE[fy].confidence})`);
-    const { jsonTree, total, rowCount } = buildTree(fy);
-    const cats = jsonTree[0].c;
-    console.log(`\n${'Category'.padEnd(52)} ${'Amount ($)'.padStart(18)}`); console.log('─'.repeat(72));
-    for (const cat of cats) console.log(`  ${cat.n.slice(0,50).padEnd(50)}${Math.round(cat.a).toLocaleString().padStart(18)}`);
-    const neg = REVENUE[fy].categories.filter(c => c.total < 0);
-    for (const c of neg) console.log(`  [Note: ${c.name} true value: ${(c.total * UNITS).toLocaleString()} (clamped at render)]`);
-    console.log('─'.repeat(72)); console.log(`${'TOTAL REVENUES'.padEnd(52)}${Math.round(total).toLocaleString().padStart(18)}`);
-    console.log(`Per-capita: $${Math.round(total/POPULATION).toLocaleString()}/person\n`);
-    if (dryRun) { console.log(`(dry-run)\n`); continue; }
-    const { data: r, error: rpcErr } = await supabase.rpc('treasury_sync_budget_tree', { p_data_source_id: ds.id, p_fiscal_year: fy, p_dataset_type: 'revenue', p_total: total, p_tree: jsonTree, p_row_count: rowCount, p_triggered_by: 'bulk_load' });
-    if (rpcErr) { console.error(`RPC error: ${rpcErr.message}`); process.exit(2); }
-    if (r?.error) { console.error(`RPC error: ${r.error}`); process.exit(2); }
-    console.log(`Loaded ${r?.rows_inserted ?? rowCount} rows for FY${fy}`);
-    const { data: bud } = await supabase.schema('treasury').from('budgets').select('id').eq('municipality_id', muniId).eq('fiscal_year', fy).eq('dataset_type', 'revenue').maybeSingle();
-    if (bud?.id) {
-      const { error: upErr } = await supabase.schema('treasury').from('budgets').update({ source_url: SOURCES[fy].url, source_date: SOURCES[fy].date, data_source: dataSource(fy) }).eq('id', bud.id);
-      if (upErr) { console.error(`source stamp failed: ${upErr.message}`); process.exit(2); }
-      console.log(`Stamped source on FY${fy} revenue row (GAAP basis)\n`);
-    } else { console.error(`Could not find FY${fy} revenue budget row to stamp source`); process.exit(2); }
+  try {
+    for (const fy of years) {
+      if (!REVENUE[fy] || !SOURCES[fy]) { console.warn(`No data/source for FY${fy}`); continue; }
+      console.log(`── FY${fy} ─────────────────────────────────────────────`);
+      if (!validate(fy)) throw new Error(`FY${fy} validation failed`);
+      console.log(`FY${fy} validation: PASS  (${REVENUE[fy].confidence})`);
+      const { jsonTree, total, rowCount } = buildTree(fy);
+      const cats = jsonTree[0].c;
+      console.log(`\n${'Category'.padEnd(52)} ${'Amount ($)'.padStart(18)}`); console.log('─'.repeat(72));
+      for (const cat of cats) console.log(`  ${cat.n.slice(0,50).padEnd(50)}${Math.round(cat.a).toLocaleString().padStart(18)}`);
+      const neg = REVENUE[fy].categories.filter(c => c.total < 0);
+      for (const c of neg) console.log(`  [Note: ${c.name} true value: ${(c.total * UNITS).toLocaleString()} (clamped at render)]`);
+      console.log('─'.repeat(72)); console.log(`${'TOTAL REVENUES'.padEnd(52)}${Math.round(total).toLocaleString().padStart(18)}`);
+      console.log(`Per-capita: $${Math.round(total/POPULATION).toLocaleString()}/person\n`);
+      if (dryRun) { console.log(`(dry-run)\n`); continue; }
+      const { data: r, error: rpcErr } = await supabase.rpc('treasury_sync_budget_tree', { p_data_source_id: ds.id, p_fiscal_year: fy, p_dataset_type: 'revenue', p_total: total, p_tree: jsonTree, p_row_count: rowCount, p_triggered_by: 'bulk_load' });
+      if (rpcErr) throw new Error(`FY${fy} RPC error: ${rpcErr.message}`);
+      if (r?.error) throw new Error(`FY${fy} RPC error: ${r.error}`);
+      console.log(`Loaded ${r?.rows_inserted ?? rowCount} rows for FY${fy}`);
+      const { data: bud } = await supabase.schema('treasury').from('budgets').select('id').eq('municipality_id', muniId).eq('fiscal_year', fy).eq('dataset_type', 'revenue').maybeSingle();
+      if (bud?.id) {
+        const { error: upErr } = await supabase.schema('treasury').from('budgets').update({ source_url: SOURCES[fy].url, source_date: SOURCES[fy].date, data_source: dataSource(fy) }).eq('id', bud.id);
+        if (upErr) throw new Error(`FY${fy} source stamp failed: ${upErr.message}`);
+        console.log(`Stamped source on FY${fy} revenue row (GAAP basis)\n`);
+      } else { throw new Error(`Could not find FY${fy} revenue budget row to stamp source`); }
+    }
+  } finally {
+    // Ephemeral data_sources cleanup — runs on success AND on any mid-run failure (WR-04), leaves 0 residue (WR-05 / LOAD-01).
+    if (!dryRun && ds) await supabase.schema('treasury').from('data_sources').delete().eq('id', ds.id);
   }
-  if (!dryRun && ds) await supabase.schema('treasury').from('data_sources').delete().eq('id', ds.id); // ephemeral cleanup — leaves 0 residue (WR-05 / LOAD-01)
   console.log('Done.');
 }
 main().catch(e => { console.error('Fatal:', e.message); process.exit(2); });
