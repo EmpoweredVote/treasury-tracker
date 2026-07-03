@@ -37,9 +37,9 @@
 
 ### Deepening (v2.13 recoverable holes)
 
-- [ ] **DEEP-02**: A **pre-GASB-34 extractor** handles pre-FY2002 statement formats (pre-GASB-34 fund statements differ structurally from the modern Governmental Funds statement) with an honest per-row **basis label** distinguishing those years from GASB-34 GAAP years.
+- [x] **DEEP-02**: A **pre-GASB-34 extractor** handles pre-FY2002 statement formats (pre-GASB-34 fund statements differ structurally from the modern Governmental Funds statement) with an honest per-row **basis label** distinguishing those years from GASB-34 GAAP years.
 - [x] **DEEP-03**: Modern-era holes recovered — **MA FY2001/02/04/05/14/21, CT FY2006 (OCR path), NJ pre-FY2020** — each recovered year tying exactly to its printed GF total, or documented unrecoverable with the reason in the gap log.
-- [ ] **DEEP-04**: **CT/WI pre-GASB-34 years** loaded via the DEEP-02 extractor, as deep as durable URLs allow, each year tying to its printed totals and carrying the pre-GASB-34 basis label.
+- [x] **DEEP-04**: **CT/WI pre-GASB-34 years** loaded via the DEEP-02 extractor, as deep as durable URLs allow, each year tying to its printed totals and carrying the pre-GASB-34 basis label.
 
 ### Verification
 
@@ -78,9 +78,9 @@ Deferred to a follow-up milestone. Tracked but not in this roadmap.
 | ACFR-26..30 | Phase 114 | Pending |
 | ACFR-31 | Phase 113, 114 | Phase 113 done; 114 pending |
 | ACFR-32 | Phase 113, 114 | Phase 113 done; 114 pending |
-| DEEP-02 | Phase 115 | Pending |
+| DEEP-02 | Phase 115 | Complete |
 | DEEP-03 | Phase 115 | Complete |
-| DEEP-04 | Phase 115 | Pending |
+| DEEP-04 | Phase 115 | Complete |
 | VER-07 | Phase 116 | Pending |
 | VER-08 | Phase 116 | Pending |
 

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.14
 milestone_name: State ACFR Long Tail — Tranche 3 + Deepening
 status: executing
-last_updated: "2026-07-03T07:36:27.818Z"
+last_updated: "2026-07-03T08:20:24.134Z"
 last_activity: 2026-07-03
 progress:
   total_phases: 30
   completed_phases: 2
   total_plans: 11
-  completed_plans: 9
+  completed_plans: 10
   percent: 7
 ---
 
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-07-02 — v2.14 State ACFR Long Tail —
 ## Current Position
 
 Phase: 115 (deepening-recoverable-holes-pre-gasb-34-extractor-deep-02-de) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-07-03
 
@@ -183,8 +183,8 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-07-03T07:36:27.805Z
-Stopped at: Completed 115-01-PLAN.md -- New Jersey deepened FY2002-2025 (18 new years, 0 honest holes)
+Last session: 2026-07-03T08:20:24.118Z
+Stopped at: Completed 115-02-PLAN.md -- CT deepened FY1988-2025 (38yr, 0 holes) + FY2006 OCR, WI deepened FY2000-2025 (26yr, 0 holes)
 Resume file: None
 
 ### Next Session
@@ -245,6 +245,7 @@ Leading candidates: ACFRX-02 (remaining ~31 NASBO states → ACFR, and/or the v2
 | Phase 114 P04 | 25min | 3 tasks | 3 files |
 | Phase 114 P05 | 70min | 3 tasks | 3 files |
 | Phase 115 P01 | 32min | 3 tasks | 3 files |
+| Phase 115-deepening-recoverable-holes-pre-gasb-34-extractor P02 | 65min | 3 tasks | 6 files |
 
 ## Decisions
 
@@ -322,6 +323,7 @@ Leading candidates: ACFRX-02 (remaining ~31 NASBO states → ACFR, and/or the v2
 - [Phase 114]: gen_state.py generalized with smart_title() ALL-CAPS source-label title-casing and a Current/Intergovernmental expenditure-subsection disambiguation rule -- both discovered by LA, reusable for future states
 - [Phase 115]: NJ has no pre-GASB-34 boundary -- FY2002 (its first ACFR year) is the archive's edge — NJ adopted GASB 34 in FY2002 itself, so all 18 candidate years FY2002-2019 use the modern statement format and all tie exactly
 - [Phase 115]: Kept NJ loaders' embedded-data architecture rather than converting to CT-style runtime parsing — Guarantees zero risk to already-loaded FY2020-2025 rows; newly-recovered years extracted once via the shared parser, verified tied, then embedded as static data
+- [Phase 115-02]: pre34Extract.mjs (position-anchored) ties all 14 CT pre-34 years exactly; WI 2000-2001 within TOL; CT FY2006 recovered via free OCR — Zero honest holes in CT/WI deepening; OCR cross-verified row-by-row against printed row totals
 
 ## Deferred Items
 
