@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.14
 milestone_name: State ACFR Long Tail — Tranche 3 + Deepening
 status: executing
-last_updated: "2026-07-03T18:03:34.796Z"
+last_updated: "2026-07-03T18:44:34.263Z"
 last_activity: 2026-07-03
 progress:
   total_phases: 30
   completed_phases: 3
   total_plans: 14
-  completed_plans: 12
+  completed_plans: 13
   percent: 10
 ---
 
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-07-02 — v2.14 State ACFR Long Tail —
 ## Current Position
 
 Phase: 116 (verification-source-chain-audit-uat-ver-07-ver-08) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-07-03
 
@@ -183,8 +183,8 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-07-03T18:03:34.781Z
-Stopped at: Completed 116-01-PLAN.md -- loader-independent re-derivation, 75/75 exact ties, 0 deltas
+Last session: 2026-07-03T18:44:34.248Z
+Stopped at: Completed 116-02-PLAN.md -- 50-node cohort audit 12/12 PASS, LOAD-01 proven end-to-end (0 residue, no manual re-clean)
 Resume file: None
 
 ### Next Session
@@ -248,6 +248,7 @@ Leading candidates: ACFRX-02 (remaining ~31 NASBO states → ACFR, and/or the v2
 | Phase 115-deepening-recoverable-holes-pre-gasb-34-extractor P02 | 65min | 3 tasks | 6 files |
 | Phase 115 P03 | 50min | 3 tasks | 5 files |
 | Phase 116 P01 | 40min | 3 tasks | 2 files |
+| Phase 116-verification-source-chain-audit-uat-ver-07-ver-08 P02 | 25min | 3 tasks | 2 files |
 
 ## Decisions
 
@@ -328,6 +329,9 @@ Leading candidates: ACFRX-02 (remaining ~31 NASBO states → ACFR, and/or the v2
 - [Phase 115-02]: pre34Extract.mjs (position-anchored) ties all 14 CT pre-34 years exactly; WI 2000-2001 within TOL; CT FY2006 recovered via free OCR — Zero honest holes in CT/WI deepening; OCR cross-verified row-by-row against printed row totals
 - [Phase 115-03]: FY2001 recovered by widening pre34Extract.mjs lookahead window (superset, zero CT/WI regression); FY2002/04/05 dot-leader corruption left as honest hole after abandoning an unsafe bounded-heuristic extractor
 - [Phase 116]: MA FY2014 title-anchor bugfix + both pre-flagged rounding-note candidates (WI FY2001, MA FY2014) tied exact $0 — Harness whitespace-tolerant title regex fix; loadlog rounding notes were internal loader printed-vs-line-sum reconciliation, not printed-vs-stored discrepancies
+- [Phase 116-02]: INV-6 label regex accepts both ACFR and CAFR (case-insensitive) since pre-GASB-34 rows honestly carry the era-correct CAFR term
+- [Phase 116-02]: KY FY2023 modeled as a documented exception in INV-6 (allows 1 NASBO-labelled row) and INV-11 (operating includes FY2023, revenue excludes it)
+- [Phase 116-02]: LOAD-01 proven end-to-end: SC + CT FY2025 re-run via guarded treasury_sync_budget_tree = 0 net change, 0 data_sources residue with no manual re-clean
 
 ## Deferred Items
 

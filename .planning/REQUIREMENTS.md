@@ -43,7 +43,7 @@
 
 ### Verification
 
-- [ ] **VER-07**: Every newly loaded state-FY (tranche 3 + deepening) is reconciled **independently from its own ACFR** (loader-independent blind re-derivation of the printed GF totals, exact $0 delta — not loader self-report); the full 50-state cohort source-chain audit stays clean (0 NULL/fragile/residue/out-of-window/dup/orphan), every displayed row basis-labelled, un-upgraded NASBO states still pass — including **0 `data_sources` residue with no manual re-clean**, proving LOAD-01 end-to-end.
+- [x] **VER-07**: Every newly loaded state-FY (tranche 3 + deepening) is reconciled **independently from its own ACFR** (loader-independent blind re-derivation of the printed GF totals, exact $0 delta — not loader self-report); the full 50-state cohort source-chain audit stays clean (0 NULL/fragile/residue/out-of-window/dup/orphan), every displayed row basis-labelled, un-upgraded NASBO states still pass — including **0 `data_sources` residue with no manual re-clean**, proving LOAD-01 end-to-end.
 - [ ] **VER-08**: Live-app UAT across a representative sample of the upgraded states + deepened history years (revenue-by-source, spending-by-function, basis labels incl. pre-GASB-34, source chips, Money In auto-enabled, year selector reaching the deepened years) with Chris sign-off.
 
 ## Future Requirements
@@ -81,7 +81,7 @@ Deferred to a follow-up milestone. Tracked but not in this roadmap.
 | DEEP-02 | Phase 115 | Complete |
 | DEEP-03 | Phase 115 | Complete |
 | DEEP-04 | Phase 115 | Complete |
-| VER-07 | Phase 116 | Pending |
+| VER-07 | Phase 116 | Complete |
 | VER-08 | Phase 116 | Pending |
 
 ---
