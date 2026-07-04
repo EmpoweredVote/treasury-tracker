@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v2.15
 milestone_name: State ACFR Long Tail — Final Tail + NASBO Retirement
-status: planning
-last_updated: "2026-07-04T00:06:31.603Z"
-last_activity: 2026-07-04
+status: Defining requirements
+last_updated: "2026-07-04T00:40:57.213Z"
+last_activity: 2026-07-04 — Milestone v2.15 started
 progress:
-  total_phases: 0
+  total_phases: 34
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -199,9 +199,9 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-07-03T18:44:34.248Z
-Stopped at: Completed 116-02-PLAN.md -- 50-node cohort audit 12/12 PASS, LOAD-01 proven end-to-end (0 residue, no manual re-clean)
-Resume file: None
+Last session: 2026-07-04T00:40:56.906Z
+Stopped at: Phase 117 context gathered
+Resume file: .planning/phases/117-recon-source-location-roster-lock-overlap-scope-pre-flight-r/117-CONTEXT.md
 
 ### Next Session
 
