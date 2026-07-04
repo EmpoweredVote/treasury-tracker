@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.15
 milestone_name: State ACFR Long Tail — Final Tail + NASBO Retirement
-status: ready_to_plan
-last_updated: 2026-07-04T03:15:25.303Z
-last_activity: 2026-07-04 -- Phase 117 execution started
+status: executing
+last_updated: "2026-07-04T16:58:51.802Z"
+last_activity: 2026-07-04
 progress:
   total_phases: 34
-  completed_phases: 0
-  total_plans: 6
-  completed_plans: 6
-  percent: 0
-stopped_at: Phase 117 complete (6/6) — ready to discuss Phase 118
+  completed_phases: 2
+  total_plans: 16
+  completed_plans: 12
+  percent: 6
 ---
 
 # State
@@ -21,13 +20,13 @@ stopped_at: Phase 117 complete (6/6) — ready to discuss Phase 118
 See: .planning/PROJECT.md (updated 2026-07-03 — v2.15 State ACFR Long Tail — Final Tail + NASBO Retirement STARTED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** Phase 118 — acfr upgrade — batch 1 (ak / ar / de / hi / id) (acfr 33..37)
+**Current focus:** Phase 119 — acfr-upgrade-batch-2-ia-ks-me-ms-mt-acfr-38-42
 
 ## Current Position
 
-Phase: 118
-Plan: Not started
-Status: Ready to plan
+Phase: 119 (acfr-upgrade-batch-2-ia-ks-me-ms-mt-acfr-38-42) — EXECUTING
+Plan: 2 of 5
+Status: Ready to execute
 Last activity: 2026-07-04
 
 ## Phase Overview — v2.15 State ACFR Long Tail — Final Tail + NASBO Retirement
@@ -200,9 +199,9 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-07-04T00:40:56.906Z
-Stopped at: Phase 117 context gathered
-Resume file: .planning/phases/117-recon-source-location-roster-lock-overlap-scope-pre-flight-r/117-CONTEXT.md
+Last session: 2026-07-04T16:58:51.788Z
+Stopped at: Completed 119-01-PLAN.md (Iowa ACFR-38)
+Resume file: None
 
 ### Next Session
 
@@ -266,6 +265,7 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 | Phase 115 P03 | 50min | 3 tasks | 5 files |
 | Phase 116 P01 | 40min | 3 tasks | 2 files |
 | Phase 116-verification-source-chain-audit-uat-ver-07-ver-08 P02 | 25min | 3 tasks | 2 files |
+| Phase 119 P01 | 60min | 3 tasks | 3 files |
 
 ## Decisions
 
@@ -349,6 +349,9 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 - [Phase 116-02]: INV-6 label regex accepts both ACFR and CAFR (case-insensitive) since pre-GASB-34 rows honestly carry the era-correct CAFR term
 - [Phase 116-02]: KY FY2023 modeled as a documented exception in INV-6 (allows 1 NASBO-labelled row) and INV-11 (operating includes FY2023, revenue excludes it)
 - [Phase 116-02]: LOAD-01 proven end-to-end: SC + CT FY2025 re-run via guarded treasury_sync_budget_tree = 0 net change, 0 data_sources residue with no manual re-clean
+- [Phase ?]: Iowa revenue tree total resolves to NET REVENUES (gross minus Less revenue refunds contra), not gross
+- [Phase ?]: Iowa FY2008 omitted as honest hole -- RC4-encrypted PDF, zero-length text extraction on pdftotext and pypdf, no OCR/qpdf tooling available (KY FY2023 precedent)
+- [Phase ?]: gen_state.py default_exp_name() generalized with a Capital Outlay dual-subsection disambiguation rule (LA Intergovernmental precedent), reusable for future states
 
 ## Deferred Items
 
