@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.15
 milestone_name: State ACFR Long Tail — Final Tail + NASBO Retirement
 status: executing
-last_updated: "2026-07-04T16:58:51.802Z"
+last_updated: "2026-07-04T17:52:32.789Z"
 last_activity: 2026-07-04
 progress:
   total_phases: 34
   completed_phases: 2
   total_plans: 16
-  completed_plans: 12
+  completed_plans: 13
   percent: 6
 ---
 
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-07-03 — v2.15 State ACFR Long Tail —
 ## Current Position
 
 Phase: 119 (acfr-upgrade-batch-2-ia-ks-me-ms-mt-acfr-38-42) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-07-04
 
@@ -199,7 +199,7 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-07-04T16:58:51.788Z
+Last session: 2026-07-04T17:51:07.692Z
 Stopped at: Completed 119-01-PLAN.md (Iowa ACFR-38)
 Resume file: None
 
@@ -266,6 +266,7 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 | Phase 116 P01 | 40min | 3 tasks | 2 files |
 | Phase 116-verification-source-chain-audit-uat-ver-07-ver-08 P02 | 25min | 3 tasks | 2 files |
 | Phase 119 P01 | 60min | 3 tasks | 3 files |
+| Phase 119 P02 | 35min | 3 tasks | 2 files |
 
 ## Decisions
 
@@ -352,6 +353,7 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 - [Phase ?]: Iowa revenue tree total resolves to NET REVENUES (gross minus Less revenue refunds contra), not gross
 - [Phase ?]: Iowa FY2008 omitted as honest hole -- RC4-encrypted PDF, zero-length text extraction on pdftotext and pypdf, no OCR/qpdf tooling available (KY FY2023 precedent)
 - [Phase ?]: gen_state.py default_exp_name() generalized with a Capital Outlay dual-subsection disambiguation rule (LA Intergovernmental precedent), reusable for future states
+- [Phase 119]: KS: loaded full FY2019-2025 window, zero honest holes; extract_gf.py wide-layout position-anchor (CO/MO precedent) isolated the 8-column General column with no code changes
 
 ## Deferred Items
 
