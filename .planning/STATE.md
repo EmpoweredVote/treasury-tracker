@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.14
-milestone_name: State ACFR Long Tail — Tranche 3 + Deepening
-status: Awaiting next milestone
-last_updated: "2026-07-03T21:18:52.193Z"
-last_activity: 2026-07-03 — Milestone v2.14 completed and archived
+milestone: v2.15
+milestone_name: State ACFR Long Tail — Final Tail + NASBO Retirement
+status: planning
+last_updated: "2026-07-04T00:06:31.603Z"
+last_activity: 2026-07-04
 progress:
-  total_phases: 30
-  completed_phases: 4
-  total_plans: 14
-  completed_plans: 14
-  percent: 13
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-07-03 — v2.14 State ACFR Long Tail —
 
 ## Current Position
 
-Phase: Milestone v2.14 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-07-03 — Milestone v2.14 completed and archived
+Status: Defining requirements
+Last activity: 2026-07-04 — Milestone v2.15 started
 
 ## Phase Overview — v2.14 State ACFR Long Tail — Tranche 3 + Deepening
 

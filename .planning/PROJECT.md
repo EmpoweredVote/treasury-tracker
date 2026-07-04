@@ -96,16 +96,19 @@ All 6 remaining SoCal counties added via the hardened v2.2/v2.3 pipeline with ze
 Brought every already-loaded non-OC California city and county to the Orange County standard (FY2003 history, statewide salaries, standardized enrichment) via the hardened v2.2 pipeline. Phase 62 verified end-to-end: ACFR reconciliation, source-chain audit (0 NULL/fragile/residue across 25,568 rows), 24-item UAT with Chris's sign-off. SoCal expansion deferred to v2.4.
 </details>
 
-## Next Milestone (no active milestone — candidates)
+## Current Milestone: v2.15 State ACFR Long Tail — Final Tail + NASBO Retirement
 
-**v2.14 shipped 2026-07-03.** No milestone is active. Run `/gsd-new-milestone` (phases continue from 117). Leading candidates:
+**Goal:** Upgrade the last 21 NASBO states to full State-ACFR GAAP — bringing **all 50 states onto ACFR** — bundle the recorded deepening holes on the existing ACFR nodes, and formally retire NASBO to a fallback-only role.
 
-- **ACFRX-03 — Final NASBO long tail:** upgrade the *remaining ~21 NASBO states* to ACFR GAAP, retiring NASBO to a fallback-only role. After this, ~29 → ~50 states on ACFR. Same proven per-state loader template (`extract_gf.py` + `gen_state.py`), free PDFs only, $0. Includes OK (deferred out of v2.14 by rank correction, recon preserved).
-- **VOTES-01 — Votes/amendments exploration hub** (the eventual mission destination).
-- **SRCSTD-01 — Sourced-standard backfill** to city/state data (source chips, official-record links; proven federally).
-- **Deeper history on the other ACFR nodes** — CA pre-FY2020 / NY pre-FY2015 / FL pre-FY2022 / TX FY2016 remain recorded absences (deepening in v2.14 was scoped to the v2.13 MA/CT/NJ/WI recoverable holes only).
+**Target work:**
+- **Upgrade all 21 remaining NASBO states** → State-ACFR GAAP GF revenue-by-source + finer spending-by-function, each as deep as durable ACFR URLs allow: **AK, AR, DE, HI, ID, IA, KS, ME, MS, MT, NE, NV, NH, NM, ND, OK, RI, SD, VT, WV, WY** (OK's recon already done in v2.14 — recon preserved). These are the smallest-GF states; same proven per-state loader template (`extract_gf.py` + `gen_state.py`).
+- **Deepening on existing ACFR nodes** — recover the recorded pre-window holes: CA pre-FY2020, NY pre-FY2015, FL pre-FY2022, TX FY2016 (reuse `pre34Extract.mjs` where pre-GASB-34).
+- **Retire NASBO to fallback-only** — demote/relabel the `loadStateGF.mjs` NASBO path once all 50 are ACFR; document the 50/50-ACFR end state; existing 29 ACFR nodes untouched.
+- **Verification** — loader-independent blind re-derivation → 50-state cohort audit (0 residue, no manual re-clean, proving LOAD-01 holds cohort-wide) → Chris live UAT (Phase 102/106/110/116 mold).
 
-**Key context (standing):** Free ACFR PDFs only ($0 / $5 AI gate); every figure durably sourced + basis-labelled; P2 negative-category clamp; idempotent never-overwrite; executed inline (no subagents); clone the proven per-state loader template; no frontend work (Money In auto-enables). Flat-revenue-tree no-drill-down stays an accepted limitation (`project_flat_source_icicle_limitation`).
+**Key context (standing):** Free ACFR PDFs only ($0 / $5 AI gate); GENERAL FUND column of the Governmental Funds Statement via `pdftotext -table`; every figure durably sourced + basis-labelled (incl. honest pre-GASB-34 labels); P2 negative-category clamp; idempotent never-overwrite (29 existing ACFR nodes untouched); executed inline (no subagents); clone the proven per-state loader template; no frontend work (Money In + `?dataset=revenue` auto-enable). GF-alone scope divergences resolved + relabelled honestly at load time (UT/AL/LA precedent). Flat-revenue-tree no-drill-down stays an accepted limitation (`project_flat_source_icicle_limitation`). Phases continue from 117.
+
+**Previously-listed candidates deferred past v2.15:** VOTES-01 (votes/amendments exploration hub — the eventual mission destination); SRCSTD-01 (sourced-standard backfill to city/state data).
 
 **Carried-forward follow-ups (candidates for a later milestone or backlog sweep):**
 - **v2.14 tech debt (all advisory, none affect correctness — see v2.14-MILESTONE-AUDIT.md):** WR-04..07 loader error-path robustness (`process.exit(2)` inside `try` bypasses `finally` residue cleanup; never manifested — 0 residue everywhere this milestone); AL "Charges"→"Changes" category-label drift (FY2018+, unverified against source PDF, ties unaffected — worth a source spot-check); UT trailing-space category name (cosmetic); NJ phantom-comment referencing a non-existent `isolateNJStatement()` guard (guard logic lives only in the loadlog).
@@ -232,12 +235,16 @@ Brought every already-loaded non-OC California city and county to the Orange Cou
 - ✓ **Pre-GASB-34 extractor** (`pre34Extract.mjs`) + history-hole recovery: CT 38yr contiguous (FY1988–2025, FY2006 via free OCR), WI 26yr, NJ contiguous FY2002–2025, MA 2/6 recovered + 4 documented unrecoverable; honest pre-GASB-34 basis labels (DEEP-02/03/04) — v2.14, Phase 115
 - ✓ Verification: 75/75 loader-independent blind re-derivation at exact $0; 12-invariant cohort audit (901 rows, 29 ACFR + 21 NASBO); LOAD-01 proven end-to-end (0 manual re-clean); Chris live-app UAT 11/11 all-pass (VER-07/08) — v2.14, Phase 116
 
+### Active — v2.15 State ACFR Long Tail — Final Tail + NASBO Retirement
+
+- [ ] **ACFRX-03** — upgrade the final 21 NASBO states (AK/AR/DE/HI/ID/IA/KS/ME/MS/MT/NE/NV/NH/NM/ND/OK/RI/SD/VT/WV/WY) to State-ACFR GAAP GF revenue-by-source + spending-by-function → all 50 states on ACFR
+- [ ] **NASBORT-01** — formally retire NASBO to fallback-only once all 50 states are on ACFR
+- [ ] **DEEP-05** — deepen the existing ACFR nodes' recorded pre-window holes (CA pre-FY2020, NY pre-FY2015, FL pre-FY2022, TX FY2016)
+
 ### Future (deferred milestone candidates)
 
-- [ ] **State ACFR Long Tail — final tail (ACFRX-03)** — after the v2.14 tranche (cohort now 29 ACFR), upgrade the *remaining ~21 NASBO states* to ACFR GAAP, retiring NASBO to a fallback-only role (incl. OK, deferred out of v2.14 by rank correction with recon preserved)
-
-- [ ] Votes/amendments exploration hub (the eventual mission destination)
-- [ ] Backfill the always-sourced standard to city/state data (now proven federally)
+- [ ] Votes/amendments exploration hub (VOTES-01 — the eventual mission destination)
+- [ ] Backfill the always-sourced standard to city/state data (SRCSTD-01 — now proven federally)
 
 ### Out of Scope (federal)
 
@@ -363,7 +370,14 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
+*Last updated: 2026-07-03 — v2.15 State ACFR Long Tail — Final Tail + NASBO Retirement STARTED. Finish the long tail: upgrade the last **21 NASBO states** (AK/AR/DE/HI/ID/IA/KS/ME/MS/MT/NE/NV/NH/NM/ND/OK/RI/SD/VT/WV/WY — OK recon preserved from v2.14) to full State-ACFR GAAP GF revenue-by-source + finer spending-by-function → **all 50 states on ACFR**; bundle the recorded deepening holes on existing ACFR nodes (CA pre-FY2020, NY pre-FY2015, FL pre-FY2022, TX FY2016); and formally **retire NASBO to fallback-only**. Free ACFR PDFs only ($0/$5 AI gate), GAAP + basis-labelled (incl. honest pre-GASB-34 labels), P2 clamp, idempotent never-overwrite (29 existing ACFR nodes untouched), executed inline; clone the proven per-state loader template (`extract_gf.py` + `gen_state.py`) + reuse `pre34Extract.mjs`; no frontend work (Money In + `?dataset=revenue` auto-enable). Closeout = independent blind re-derivation → 50-state cohort audit (0 residue, no manual re-clean) → Chris live UAT. Phases continue from 117. (v2.14 SHIPPED + archived 2026-07-03.)*
+
+<details>
+<summary>Previous footer — v2.14 SHIPPED (2026-07-03)</summary>
+
 *Last updated: 2026-07-03 after v2.14 milestone — v2.14 State ACFR Long Tail — Tranche 3 + Deepening SHIPPED + archived. Three moves landed: (1) WR-05 loader debt retired (LOAD-01 — ephemeral data_sources lifecycle across all 35 loaders, 0 residue no manual re-clean, proven end-to-end); (2) cohort grew 19 → 29 ACFR states — Batch 1 (IN/AZ/OR/MO/CO) + Batch 2 (SC/KY/UT/AL/LA) upgraded NASBO→full ACFR GAAP GF revenue-by-source + finer spending-by-function, most back to FY2002, GF-alone scope decisions honest (UT/AL/LA); (3) history holes recovered via a new pre-GASB-34 extractor — CT 38yr contiguous (FY1988–2025, FY2006 OCR), WI 26yr, NJ contiguous FY2002–2025, MA 2/6 recovered + 4 documented unrecoverable. Cohort now 29 ACFR + 21 NASBO = 901 rows, 0 anomalies. Verified: 75/75 loader-independent blind re-derivation exact $0; 12-invariant cohort audit; Chris live UAT 11/11 all-pass; milestone audit PASSED 20/20. Free PDFs only, $0 AI spend, executed inline. No active milestone. Next: `/gsd-new-milestone` (leading candidate: ACFRX-03 — final ~21 NASBO states → ACFR).*
+
+</details>
 
 <details>
 <summary>Previous footer — v2.14 STARTED (2026-07-02)</summary>
