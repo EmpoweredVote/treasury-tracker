@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.15
 milestone_name: State ACFR Long Tail — Final Tail + NASBO Retirement
 status: executing
-last_updated: "2026-07-04T19:46:59.947Z"
+last_updated: "2026-07-04T21:46:40.775Z"
 last_activity: 2026-07-04
 progress:
   total_phases: 34
-  completed_phases: 2
-  total_plans: 16
-  completed_plans: 15
-  percent: 6
+  completed_phases: 3
+  total_plans: 21
+  completed_plans: 17
+  percent: 9
 ---
 
 # State
@@ -20,12 +20,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-03 — v2.15 State ACFR Long Tail — Final Tail + NASBO Retirement STARTED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** Phase 119 — acfr-upgrade-batch-2-ia-ks-me-ms-mt-acfr-38-42
+**Current focus:** Phase 120 — acfr-upgrade-batch-3-ne-nv-nh-nm-nd-acfr-43-47
 
 ## Current Position
 
-Phase: 119 (acfr-upgrade-batch-2-ia-ks-me-ms-mt-acfr-38-42) — EXECUTING
-Plan: 5 of 5
+Phase: 120 (acfr-upgrade-batch-3-ne-nv-nh-nm-nd-acfr-43-47) — EXECUTING
+Plan: 2 of 5
 Status: Ready to execute
 Last activity: 2026-07-04
 
@@ -199,8 +199,8 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-07-04T18:51:42.546Z
-Stopped at: Completed 119-03-PLAN.md (Maine ACFR-40)
+Last session: 2026-07-04T21:46:40.765Z
+Stopped at: Completed 120-01-PLAN.md (Nebraska ACFR-43)
 Resume file: None
 
 ### Next Session
@@ -268,6 +268,7 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 | Phase 119 P01 | 60min | 3 tasks | 3 files |
 | Phase 119 P02 | 35min | 3 tasks | 2 files |
 | Phase 119-acfr-upgrade-batch-2-ia-ks-me-ms-mt-acfr-38-42 PP03 | 55min | 3 tasks | 2 files |
+| Phase 120 P01 | 15min | 3 tasks | 1 files |
 
 ## Decisions
 
@@ -357,6 +358,8 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 - [Phase 119]: KS: loaded full FY2019-2025 window, zero honest holes; extract_gf.py wide-layout position-anchor (CO/MO precedent) isolated the 8-column General column with no code changes
 - [Phase ?]: [119-03]: ME window narrowed to FY2002-2025 (24yr, not the recon's aspirational FY2000-2025 26yr) -- FY2000/FY2001 are pre-GASB-34 COMBINED-statement years with no distinct General column; extract_gf.py correctly reported 'statement not found' rather than mis-transcribing
 - [Phase ?]: [119-03]: ME June-30 FY-end confirmed on all 26 downloaded covers (not just recon bookends) -- the pre-recon 'non-June to watch' flag is fully resolved with full-window evidence
+- [Phase 120-01]: NE ACFR GF ~1.19x NASBO GF (smallest divergence in Batch 3) accepted and relabelled honestly — NE General Fund is ~91% own-source (Income Tax + Sales/Use Tax); federal flows post to a separate Federal Fund column, not General
+- [Phase 120-01]: extract_gf.py generalized: U+FFFD treated as a DASH_TOKEN — Fixes a silent column-shift bug on PDFs (NE FY2024) that render blank GF cells as an invalid UTF-8 byte (0xAD soft hyphen) instead of ASCII dash
 
 ## Deferred Items
 
