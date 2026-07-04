@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.15
 milestone_name: State ACFR Long Tail — Final Tail + NASBO Retirement
 status: executing
-last_updated: "2026-07-04T22:52:47.116Z"
+last_updated: "2026-07-04T23:10:18.438Z"
 last_activity: 2026-07-04
 progress:
   total_phases: 34
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 21
-  completed_plans: 20
-  percent: 9
+  completed_plans: 21
+  percent: 12
 ---
 
 # State
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-07-03 — v2.15 State ACFR Long Tail —
 ## Current Position
 
 Phase: 120 (acfr-upgrade-batch-3-ne-nv-nh-nm-nd-acfr-43-47) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-07-04
 
@@ -199,8 +199,8 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-07-04T22:52:47.104Z
-Stopped at: Completed 120-04-PLAN.md (New Mexico ACFR-46)
+Last session: 2026-07-04T23:09:44.622Z
+Stopped at: Completed 120-05-PLAN.md (North Dakota ACFR-47, final plan of Batch 3)
 Resume file: None
 
 ### Next Session
@@ -271,6 +271,7 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 | Phase 120 P01 | 15min | 3 tasks | 1 files |
 | Phase 120 P03 | 45min | 3 tasks | 3 files |
 | Phase 120 P04 | 40min | 3 tasks | 3 files |
+| Phase 120 P05 | 15min | 3 tasks | 3 files |
 
 ## Decisions
 
@@ -368,6 +369,9 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 - [Phase ?]: NM FY2020/FY2021 left as an honest gap -- only DFA's own narrower single-agency 341 filings found for those years, not the statewide 341-A ACFR
 - [Phase ?]: NM FY2022 image-only statement page hand-transcribed from Phase 117's already-rendered PNGs, independently re-summed to $0 diff, confirming the recon's own hand-verification
 - [Phase ?]: NM FY2023 opaque filename discovered live via a Wayback CDX directory-listing crawl of the known 2024 upload folder -- reusable pattern for unlinked-landing-page opaque-slug states
+- [Phase 120-05]: ND ACFR GF ~1.57x NASBO (mildest divergence in Batch 3) accepted and relabelled honestly -- own-source Sales/Use + Oil/Gas/Coal taxes dominate GF; federal booked to separate Federal column
+- [Phase 120-05]: UNITS=1 dollars hard-set for ND (the ND units trap) -- both bookends dollar-exact confirmed
+- [Phase 120-05]: FY2021 -nd filename suffix exception special-cased in SOURCES map (2021-acfr-nd.pdf) rather than assumed derivable
 
 ## Deferred Items
 

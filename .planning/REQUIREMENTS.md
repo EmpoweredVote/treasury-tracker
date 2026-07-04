@@ -52,7 +52,7 @@ These apply to **every** ACFR-nn / DEEP-05 requirement below — an implementati
 - [x] **ACFR-44**: Nevada (NV) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
 - [x] **ACFR-45**: New Hampshire (NH) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
 - [x] **ACFR-46**: New Mexico (NM) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
-- [ ] **ACFR-47**: North Dakota (ND) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
+- [x] **ACFR-47**: North Dakota (ND) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
 
 ### ACFR Upgrades — Batch 4
 
@@ -110,7 +110,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | ACFR-44 | Phase 120 | Complete |
 | ACFR-45 | Phase 120 | Complete |
 | ACFR-46 | Phase 120 | Complete |
-| ACFR-47 | Phase 120 | Pending |
+| ACFR-47 | Phase 120 | Complete |
 | ACFR-48 | Phase 121 | Pending |
 | ACFR-49 | Phase 121 | Pending |
 | ACFR-50 | Phase 121 | Pending |
