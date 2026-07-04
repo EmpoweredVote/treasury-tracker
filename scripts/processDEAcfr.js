@@ -1,0 +1,411 @@
+#!/usr/bin/env node
+/**
+ * Delaware General Fund Operating (Expenditure) Loader — ACTUAL (ACFR GAAP basis)
+ * Source: State of Delaware Annual Comprehensive Financial Report (ACFR), Governmental Funds
+ *   Statement of Revenues, Expenditures, and Changes in Fund Balances, GENERAL FUND column
+ *   (GAAP basis, in thousands).
+ *
+ * Phase 113. Replaces the NASBO operating rows on the DE state node in place (same (muni,fy,'operating') RPC key) for FY2023/FY2024; other FYs net-new.
+ *   DE state node resolved by name + state + entity_type and asserted equal to EXPECTED_MUNI_ID.
+ *
+ * SCOPE NOTE (ACFR-35): DE ACFR GF ~1.20x NASBO GF (FY2025 $7,475,243K vs FY2024 NASBO
+ *   $6,232,000K) -- smallest divergence in Batch 1. Delaware reports Federal grants in their OWN
+ *   major-fund column (General | Federal | Local School Districts | Capital Projects | Total), so the
+ *   GENERAL column stays close to NASBO's own-source concept. Accepted-and-relabelled honestly.
+ *
+ * ACCESS (Referer WAF): accountingfiles.delaware.gov returns a 245-byte "Request Rejected" HTML
+ *   soft-404 at HTTP 200 without a Referer header. All PDFs fetched with
+ *   Referer: https://accounting.delaware.gov/...; %PDF-magic + size guards independently reject the
+ *   soft-404. Naming: {YYYY}acfr.pdf FY2021-2025, {YYYY}cafr.pdf FY2004-2020.
+ *
+ * HOLE: FY2005 (404 - not published in the archive). Durable window = FY2004 + FY2006-FY2025 (21 yr).
+ *
+ * NEGATIVE-LINE NOTE (ACFR-32): Interest and Other Investment Income positive at both bookends (FY2025 +$238,663K, FY2004 +$30,713K); every loaded year scanned - clamp is the render path if any interior year goes negative.
+ *
+ * UNITS = thousands: ×1,000 to store dollars. Control = printed GENERAL FUND column
+ *   "Total expenditures" (validate() tolerance 10 thousands; extraction: pdftotext -table
+ *   on local copies in _acfr-work/de/, tie-verified per year).
+ *
+ * Usage:
+ *   node scripts/processDEAcfr.js [--dry-run] [--fy YYYY]
+ */
+import { createClient } from '@supabase/supabase-js';
+import { parseArgs }    from 'node:util';
+import { readFileSync } from 'node:fs';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+const __dirname = dirname(fileURLToPath(import.meta.url));
+function loadEnv() {
+  for (const f of ['../.env.local', '../.env']) {
+    try { const lines = readFileSync(resolve(__dirname, f), 'utf8').split('\n'); for (const line of lines) { const [k, ...v] = line.split('='); if (k && v.length && !process.env[k.trim()]) process.env[k.trim()] = v.join('=').trim(); } } catch {}
+  }
+}
+loadEnv();
+const STATE_NAME = 'Delaware'; const STATE_ABBR = 'DE'; const POPULATION = 989_948;
+const EXPECTED_MUNI_ID = 'a7854fa3-8e68-4a0e-b92a-415bad6bccd2';
+const UNITS = 1_000; // DE ACFR is in thousands → ×1,000 to store dollars
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+// EXPLICIT per-year URLs (no derivable pattern).
+const SOURCES = {
+  2004: { url: 'https://accountingfiles.delaware.gov/docs/2004cafr.pdf', date: '2004-06-30' },
+  2006: { url: 'https://accountingfiles.delaware.gov/docs/2006cafr.pdf', date: '2006-06-30' },
+  2007: { url: 'https://accountingfiles.delaware.gov/docs/2007cafr.pdf', date: '2007-06-30' },
+  2008: { url: 'https://accountingfiles.delaware.gov/docs/2008cafr.pdf', date: '2008-06-30' },
+  2009: { url: 'https://accountingfiles.delaware.gov/docs/2009cafr.pdf', date: '2009-06-30' },
+  2010: { url: 'https://accountingfiles.delaware.gov/docs/2010cafr.pdf', date: '2010-06-30' },
+  2011: { url: 'https://accountingfiles.delaware.gov/docs/2011cafr.pdf', date: '2011-06-30' },
+  2012: { url: 'https://accountingfiles.delaware.gov/docs/2012cafr.pdf', date: '2012-06-30' },
+  2013: { url: 'https://accountingfiles.delaware.gov/docs/2013cafr.pdf', date: '2013-06-30' },
+  2014: { url: 'https://accountingfiles.delaware.gov/docs/2014cafr.pdf', date: '2014-06-30' },
+  2015: { url: 'https://accountingfiles.delaware.gov/docs/2015cafr.pdf', date: '2015-06-30' },
+  2016: { url: 'https://accountingfiles.delaware.gov/docs/2016cafr.pdf', date: '2016-06-30' },
+  2017: { url: 'https://accountingfiles.delaware.gov/docs/2017cafr.pdf', date: '2017-06-30' },
+  2018: { url: 'https://accountingfiles.delaware.gov/docs/2018cafr.pdf', date: '2018-06-30' },
+  2019: { url: 'https://accountingfiles.delaware.gov/docs/2019cafr.pdf', date: '2019-06-30' },
+  2020: { url: 'https://accountingfiles.delaware.gov/docs/2020cafr.pdf', date: '2020-06-30' },
+  2021: { url: 'https://accountingfiles.delaware.gov/docs/2021acfr.pdf', date: '2021-06-30' },
+  2022: { url: 'https://accountingfiles.delaware.gov/docs/2022acfr.pdf', date: '2022-06-30' },
+  2023: { url: 'https://accountingfiles.delaware.gov/docs/2023acfr.pdf', date: '2023-06-30' },
+  2024: { url: 'https://accountingfiles.delaware.gov/docs/2024acfr.pdf', date: '2024-06-30' },
+  2025: { url: 'https://accountingfiles.delaware.gov/docs/2025acfr.pdf', date: '2025-06-30' },
+};
+const dataSource = (fy) => `Delaware State ACFR — General Fund (FY${fy} actual, GAAP basis)`;
+
+// GF expenditures by function — DE ACFR, GENERAL FUND column (raw thousands; ×UNITS → dollars).
+// Extracted via pdftotext -table + tie-verified vs the printed GF total, every FY.
+const EXPENDITURES = {
+  2004: { total: 3_051_408, confidence: 'actual', categories: [
+    { name: 'General government',                          total:      406_179 },
+    { name: 'Health and children\'s services',             total:      847_665 },
+    { name: 'Judicial and public safety',                  total:      410_876 },
+    { name: 'Natural resources and environmental control', total:      131_469 },
+    { name: 'Labor',                                       total:       27_649 },
+    { name: 'Education',                                   total:    1_023_950 },
+    { name: 'General government',                          total:        1_952 },
+    { name: 'Education',                                   total:       67_900 },
+    { name: 'Debt service — Principal',                    total:       94_522 },
+    { name: 'Debt service — Interest and other charges',   total:       39_246 },
+  ]},
+  2006: { total: 3_739_864, confidence: 'actual', categories: [
+    { name: 'General government',                          total:      607_417 },
+    { name: 'Health and children\'s services',             total:      994_457 },
+    { name: 'Judicial and public safety',                  total:      507_576 },
+    { name: 'Natural resources and environmental control', total:      162_448 },
+    { name: 'Labor',                                       total:       30_377 },
+    { name: 'Education',                                   total:    1_207_545 },
+    { name: 'Education',                                   total:       67_226 },
+    { name: 'Debt service — Principal',                    total:      113_781 },
+    { name: 'Debt service — Interest and other charges',   total:       49_037 },
+  ]},
+  2007: { total: 3_985_529, confidence: 'actual', categories: [
+    { name: 'General government',                                  total:      650_946 },
+    { name: 'Health and children\'s services',                     total:    1_064_855 },
+    { name: 'Judicial and public safety',                          total:      543_753 },
+    { name: 'Natural resources and environmental control',         total:      179_428 },
+    { name: 'Labor',                                               total:       31_591 },
+    { name: 'Education',                                           total:    1_269_989 },
+    { name: 'Unrestricted payments to component unit - Education', total:       77_741 },
+    { name: 'Debt service — Principal',                            total:      116_617 },
+    { name: 'Debt service — Interest and other charges',           total:       50_609 },
+  ]},
+  2008: { total: 4_035_516, confidence: 'actual', categories: [
+    { name: 'General government',                                  total:      552_620 },
+    { name: 'Health and children\'s services',                     total:    1_136_021 },
+    { name: 'Judicial and public safety',                          total:      554_920 },
+    { name: 'Natural resources and environmental control',         total:      148_641 },
+    { name: 'Labor',                                               total:       31_826 },
+    { name: 'Education',                                           total:    1_315_113 },
+    { name: 'Unrestricted payments to component unit - Education', total:       87_052 },
+    { name: 'Debt service — Principal',                            total:      151_650 },
+    { name: 'Debt service — Interest and other charges',           total:       57_673 },
+  ]},
+  2009: { total: 3_936_401, confidence: 'actual', categories: [
+    { name: 'General government',                                  total:      559_483 },
+    { name: 'Health and children\'s services',                     total:    1_081_147 },
+    { name: 'Judicial and public safety',                          total:      537_917 },
+    { name: 'Natural resources and environmental control',         total:      128_111 },
+    { name: 'Labor',                                               total:       40_219 },
+    { name: 'Education',                                           total:    1_299_044 },
+    { name: 'Unrestricted payments to component unit - Education', total:       87_584 },
+    { name: 'Debt service — Principal',                            total:      142_069 },
+    { name: 'Debt service — Interest and other charges',           total:       60_827 },
+  ]},
+  2010: { total: 3_744_652, confidence: 'actual', categories: [
+    { name: 'General government',                                  total:      458_449 },
+    { name: 'Health and children\'s services',                     total:    1_025_328 },
+    { name: 'Judicial and public safety',                          total:      522_505 },
+    { name: 'Natural resources and environmental control',         total:      114_353 },
+    { name: 'Labor',                                               total:       33_407 },
+    { name: 'Education',                                           total:    1_241_254 },
+    { name: 'Unrestricted payments to component unit - Education', total:       92_156 },
+    { name: 'Debt service — Principal',                            total:      155_789 },
+    { name: 'Debt service — Interest and other charges',           total:       66_222 },
+    { name: 'Advance Refunding Escrow',                            total:       35_189 },
+  ]},
+  2011: { total: 3_963_426, confidence: 'actual', categories: [
+    { name: 'General government',                                  total:      533_048 },
+    { name: 'Health and children\'s services',                     total:    1_083_709 },
+    { name: 'Judicial and public safety',                          total:      550_939 },
+    { name: 'Natural resources and environmental control',         total:      130_693 },
+    { name: 'Labor',                                               total:       31_051 },
+    { name: 'Education',                                           total:    1_277_237 },
+    { name: 'Unrestricted payments to component unit - Education', total:       95_630 },
+    { name: 'Debt service — Principal',                            total:      140_750 },
+    { name: 'Debt service — Interest and other charges',           total:       65_725 },
+    { name: 'Advance Refunding Escrow',                            total:       54_644 },
+  ]},
+  2012: { total: 4_258_070, confidence: 'actual', categories: [
+    { name: 'General Government',                                  total:      598_208 },
+    { name: 'Health and Children\'s Services',                     total:    1_313_114 },
+    { name: 'Judicial and Public Safety',                          total:      562_523 },
+    { name: 'Natural Resources and Environmental Control',         total:      109_554 },
+    { name: 'Labor',                                               total:       31_997 },
+    { name: 'Education',                                           total:    1_325_997 },
+    { name: 'Unrestricted Payments to Component Unit - Education', total:      104_511 },
+    { name: 'Debt service — Principal',                            total:      139_325 },
+    { name: 'Debt service — Interest and Other Charges',           total:       72_293 },
+    { name: 'Costs of Issuance of Debt',                           total:          548 },
+  ]},
+  2013: { total: 4_354_137, confidence: 'actual', categories: [
+    { name: 'General Government',                                  total:      447_339 },
+    { name: 'Health and Children\'s Services',                     total:    1_325_368 },
+    { name: 'Judicial and Public Safety',                          total:      620_644 },
+    { name: 'Natural Resources and Environmental Control',         total:      137_122 },
+    { name: 'Labor',                                               total:       29_988 },
+    { name: 'Education',                                           total:    1_451_323 },
+    { name: 'Unrestricted Payments to Component Unit - Education', total:      109_003 },
+    { name: 'Debt service — Principal',                            total:      155_096 },
+    { name: 'Debt service — Interest and Other Charges',           total:       77_136 },
+    { name: 'Costs of Issuance of Debt',                           total:        1_118 },
+  ]},
+  2014: { total: 4_580_601, confidence: 'actual', categories: [
+    { name: 'General Government',                                  total:      596_890 },
+    { name: 'Health and Children\'s Services',                     total:    1_359_792 },
+    { name: 'Judicial and Public Safety',                          total:      635_306 },
+    { name: 'Natural Resources and Environmental Control',         total:      142_691 },
+    { name: 'Labor',                                               total:       31_802 },
+    { name: 'Education',                                           total:    1_462_537 },
+    { name: 'Unrestricted Payments to Component Unit - Education', total:      115_543 },
+    { name: 'Debt service — Principal',                            total:      157_372 },
+    { name: 'Debt service — Interest and Other Charges',           total:       77_693 },
+    { name: 'Costs of Issuance of Debt',                           total:          975 },
+  ]},
+  2015: { total: 4_688_506, confidence: 'actual', categories: [
+    { name: 'General Government',                                  total:      603_799 },
+    { name: 'Health and Children\'s Services',                     total:    1_406_997 },
+    { name: 'Judicial and Public Safety',                          total:      642_251 },
+    { name: 'Environmental Control',                               total:      137_219 },
+    { name: 'Labor',                                               total:       32_515 },
+    { name: 'Education',                                           total:    1_486_436 },
+    { name: 'Unrestricted Payments to Component Unit - Education', total:      128_305 },
+    { name: 'Debt service — Principal',                            total:      170_068 },
+    { name: 'Debt service — Interest and Other Charges',           total:       80_318 },
+    { name: 'Costs of Issuance of Debt',                           total:          598 },
+  ]},
+  2016: { total: 5_050_104, confidence: 'actual', categories: [
+    { name: 'General Government',                                  total:      858_891 },
+    { name: 'Health and Children\'s Services',                     total:    1_408_459 },
+    { name: 'Judicial and Public Safety',                          total:      639_648 },
+    { name: 'Natural Resources and Environmental Control',         total:      129_057 },
+    { name: 'Labor',                                               total:       35_034 },
+    { name: 'Education',                                           total:    1_577_104 },
+    { name: 'Unrestricted Payments to Component Unit - Education', total:      141_354 },
+    { name: 'Debt service — Principal',                            total:      172_771 },
+    { name: 'Debt service — Interest and Other Charges',           total:       86_905 },
+    { name: 'Costs of Issuance of Debt',                           total:          881 },
+  ]},
+  2017: { total: 5_253_057, confidence: 'actual', categories: [
+    { name: 'General Government',                                  total:      963_828 },
+    { name: 'Health and Children\'s Services',                     total:    1_467_189 },
+    { name: 'Judicial and Public Safety',                          total:      649_742 },
+    { name: 'Natural Resources and Environmental Control',         total:      135_337 },
+    { name: 'Labor',                                               total:       53_028 },
+    { name: 'Education',                                           total:    1_571_414 },
+    { name: 'Unrestricted Payments to Component Unit - Education', total:      152_696 },
+    { name: 'Debt service — Principal',                            total:      176_559 },
+    { name: 'Debt service — Interest and Other Charges',           total:       82_291 },
+    { name: 'Costs of Issuance of Debt',                           total:          973 },
+  ]},
+  2018: { total: 4_765_371, confidence: 'actual', categories: [
+    { name: 'General Government',                                  total:      507_773 },
+    { name: 'Health and Children\'s Services',                     total:    1_455_806 },
+    { name: 'Judicial and Public Safety',                          total:      670_329 },
+    { name: 'Natural Resources and Environmental Control',         total:      119_507 },
+    { name: 'Labor',                                               total:       31_353 },
+    { name: 'Education',                                           total:    1_555_213 },
+    { name: 'Unrestricted Payments to Component Unit - Education', total:      159_942 },
+    { name: 'Debt service — Principal',                            total:      181_417 },
+    { name: 'Debt service — Interest and Other Charges',           total:       83_267 },
+    { name: 'Costs of Issuance of Debt',                           total:          764 },
+  ]},
+  2019: { total: 5_157_148, confidence: 'actual', categories: [
+    { name: 'General Government',                                  total:      734_112 },
+    { name: 'Health and Children\'s Services',                     total:    1_444_764 },
+    { name: 'Judicial and Public Safety',                          total:      718_488 },
+    { name: 'Natural Resources and Environmental Control',         total:      151_310 },
+    { name: 'Labor',                                               total:       31_065 },
+    { name: 'Education',                                           total:    1_645_511 },
+    { name: 'Unrestricted Payments to Component Unit - Education', total:      168_034 },
+    { name: 'Debt service — Principal',                            total:      172_536 },
+    { name: 'Debt service — Interest and Other Charges',           total:       90_126 },
+    { name: 'Costs of Issuance of Debt',                           total:        1_202 },
+  ]},
+  2020: { total: 5_022_388, confidence: 'actual', categories: [
+    { name: 'General Government',                                  total:      542_270 },
+    { name: 'Health and Children\'s Services',                     total:    1_422_050 },
+    { name: 'Judicial and Public Safety',                          total:      747_263 },
+    { name: 'Natural Resources and Environmental Control',         total:      156_753 },
+    { name: 'Labor',                                               total:       30_481 },
+    { name: 'Education',                                           total:    1_690_744 },
+    { name: 'Unrestricted Payments to Component Unit - Education', total:      174_170 },
+    { name: 'Debt service — Principal',                            total:      168_908 },
+    { name: 'Debt service — Interest and Other Charges',           total:       88_015 },
+    { name: 'Costs of Issuance of Debt',                           total:        1_734 },
+  ]},
+  2021: { total: 5_976_943, confidence: 'actual', categories: [
+    { name: 'General Government',                                  total:    1_163_208 },
+    { name: 'Health and Children\'s Services',                     total:    1_495_672 },
+    { name: 'Judicial and Public Safety',                          total:      783_223 },
+    { name: 'Natural Resources and Environmental Control',         total:      156_613 },
+    { name: 'Labor',                                               total:       31_294 },
+    { name: 'Education',                                           total:    1_902_248 },
+    { name: 'Unrestricted Payments to Component Unit - Education', total:      184_097 },
+    { name: 'Debt service — Principal',                            total:      166_202 },
+    { name: 'Debt service — Interest and Other Charges',           total:       94_132 },
+    { name: 'Costs of Issuance of Debt',                           total:          254 },
+  ]},
+  2022: { total: 5_812_310, confidence: 'actual', categories: [
+    { name: 'General Government',                                  total:      520_995 },
+    { name: 'Health and Children\'s Services',                     total:    1_594_461 },
+    { name: 'Judicial and Public Safety',                          total:      850_925 },
+    { name: 'Natural Resources and Environmental Control',         total:      160_329 },
+    { name: 'Labor',                                               total:       32_718 },
+    { name: 'Education',                                           total:    2_100_555 },
+    { name: 'Unrestricted Payments to Component Unit - Education', total:      210_726 },
+    { name: 'Capital Outlay',                                      total:       33_707 },
+    { name: 'Debt service — Principal',                            total:      205_610 },
+    { name: 'Debt service — Interest and Other Charges',           total:      102_126 },
+    { name: 'Costs of Issuance of Debt',                           total:          158 },
+  ]},
+  2023: { total: 6_593_342, confidence: 'actual', categories: [
+    { name: 'General Government',                                  total:    1_182_248 },
+    { name: 'Health and Children\'s Services',                     total:    1_749_813 },
+    { name: 'Judicial and Public Safety',                          total:      812_351 },
+    { name: 'Natural Resources and Environmental Control',         total:      165_267 },
+    { name: 'Labor',                                               total:       32_989 },
+    { name: 'Education',                                           total:    1_984_115 },
+    { name: 'Unrestricted Payments to Component Unit - Education', total:      237_514 },
+    { name: 'Capital Outlay',                                      total:       96_542 },
+    { name: 'Debt service — Principal',                            total:      222_660 },
+    { name: 'Debt service — Interest and Other Charges',           total:      109_655 },
+    { name: 'Costs of Issuance of Debt',                           total:          188 },
+  ]},
+  2024: { total: 7_272_339, confidence: 'actual', categories: [
+    { name: 'General Government',                                  total:      637_105 },
+    { name: 'Health and Children\'s Services',                     total:    1_953_980 },
+    { name: 'Judicial and Public Safety',                          total:    1_052_738 },
+    { name: 'Natural Resources and Environmental Control',         total:      230_448 },
+    { name: 'Labor',                                               total:       20_277 },
+    { name: 'Education',                                           total:    2_714_857 },
+    { name: 'Unrestricted Payments to Component Unit - Education', total:      263_120 },
+    { name: 'Capital Outlay',                                      total:       41_585 },
+    { name: 'Debt service — Principal',                            total:      240_953 },
+    { name: 'Debt service — Interest and Other Charges',           total:      116_288 },
+    { name: 'Costs of Issuance of Debt',                           total:          988 },
+  ]},
+  2025: { total: 7_971_129, confidence: 'actual', categories: [
+    { name: 'General Government',                                  total:    1_405_180 },
+    { name: 'Health and Children\'s Services',                     total:    1_967_776 },
+    { name: 'Judicial and Public Safety',                          total:    1_049_744 },
+    { name: 'Natural Resources and Environmental Control',         total:      249_991 },
+    { name: 'Labor',                                               total:       48_968 },
+    { name: 'Education',                                           total:    2_573_176 },
+    { name: 'Unrestricted Payments to Component Unit - Education', total:      298_858 },
+    { name: 'Capital Outlay',                                      total:       16_054 },
+    { name: 'Debt service — Principal',                            total:      242_346 },
+    { name: 'Debt service — Interest and Other Charges',           total:      118_535 },
+    { name: 'Costs of Issuance of Debt',                           total:          501 },
+  ]},
+};
+
+// P2 clamp (ACFR-32): clamp negative rendered area to 0; preserve signed value in label.
+function clampForRender(amount) { return Math.max(amount, 0); }
+
+function validate(fy) {
+  const { total, categories } = EXPENDITURES[fy]; let ok = true; let catSum = 0;
+  for (const cat of categories) catSum += cat.total;
+  if (Math.abs(catSum - total) > 10) { console.error(`FY${fy} sum ${catSum} ≠ total ${total} (diff ${catSum - total}) [thousands]`); ok = false; }
+  return ok;
+}
+function buildTree(fy) {
+  const { total, categories } = EXPENDITURES[fy];
+  const children = categories.filter(c => c.total !== 0).map(cat => {
+    const rendered = clampForRender(cat.total);
+    const label = cat.total < 0 ? `${cat.name.trim()} (net refund/loss — shown at 0; actual ${(cat.total * UNITS).toLocaleString()})` : cat.name.trim(); // WR-01: trim so a stray-space transcription can never fork a category name across years
+    return { n: label, a: rendered * UNITS, i: [] };
+  });
+  children.sort((a, b) => b.a - a.a);
+  return { jsonTree: [{ n: 'Delaware General Fund Budget', a: total * UNITS, c: children }], total: total * UNITS, rowCount: children.length };
+}
+
+async function main() {
+  const { values: opts } = parseArgs({ options: { 'dry-run': { type: 'boolean', default: false }, fy: { type: 'string' } }, strict: true, allowPositionals: false }); // WR-05: mistyped flags must fail, never silently live-load
+  const dryRun = opts['dry-run']; const targetFY = opts.fy ? parseInt(opts.fy, 10) : null;
+  // WR-01 (re-review): reject --fy values that are not loadable years — an operator typo must exit non-zero, not print Done. as a silent no-op.
+  if (opts.fy !== undefined && (!/^[0-9]{4}$/.test(opts.fy) || !EXPENDITURES[targetFY])) { console.error(`--fy ${opts.fy} is not a loadable fiscal year (available: ${Object.keys(EXPENDITURES).join(', ')})`); process.exit(2); }
+  const years = targetFY ? [targetFY] : [2004, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
+  console.log(`${STATE_NAME} GF Operating Loader (ACTUAL — ACFR GAAP basis, thousands×${UNITS.toLocaleString()})${dryRun ? ' (dry-run)' : ''}\nFiscal years: ${years.join(', ')}\n`);
+  // WR-06: validate EVERY target year up front — a failing year must abort before ANY write, never mid-run.
+  for (const fy of years) { if (EXPENDITURES[fy] && !validate(fy)) { console.error(`FY${fy} failed validation — aborting before any write`); process.exit(2); } }
+  if (!SUPABASE_KEY && !dryRun) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit(2); }
+  const supabase = dryRun ? null : createClient(SUPABASE_URL, SUPABASE_KEY);
+  let muniId;
+  if (!dryRun) {
+    const { data: muni, error } = await supabase.schema('treasury').from('municipalities').select('id,name').eq('name', STATE_NAME).eq('state', STATE_ABBR).eq('entity_type', 'state').single();
+    if (error || !muni) { console.error(`${STATE_NAME} state node not found`); process.exit(2); }
+    if (muni.id !== EXPECTED_MUNI_ID) { console.error(`Resolved node ${muni.id} ≠ expected ${EXPECTED_MUNI_ID} — refusing to write`); process.exit(2); }
+    muniId = muni.id; console.log(`Municipality: ${muni.name} (${muniId})\n`);
+  }
+  let ds;
+  if (!dryRun) {
+    const srcPayload = { name: 'Delaware General Fund Operating Budget', api_type: 'pdf_download', dataset_type: 'operating', dataset_id: 'de-acfr-gf-operating', base_url: 'https://accounting.delaware.gov/reports-transparency/annual-comprehensive-financial-reports/', fiscal_years: [2004,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025], municipality_id: muniId };
+    // Ephemeral RPC parameter vehicle (WR-05 / LOAD-01): budgets rows carry text-stamp provenance, so a persistent data_sources row is unreferenceable residue — create fresh here, delete at end of run.
+    await supabase.schema('treasury').from('data_sources').delete().eq('dataset_id', srcPayload.dataset_id);
+    const { data: dsRow, error: dsErr } = await supabase.schema('treasury').from('data_sources').insert(srcPayload).select().single(); if (dsErr) { console.error('insert failed:', dsErr.message); process.exit(2); } ds = dsRow; console.log(`data_source created (ephemeral): ${ds.id}`);
+    console.log('');
+  }
+  try {
+    for (const fy of years) {
+      if (!EXPENDITURES[fy] || !SOURCES[fy]) { console.warn(`No data/source for FY${fy}`); continue; }
+      console.log(`── FY${fy} ─────────────────────────────────────────────`);
+      console.log(`FY${fy} validation: PASS  (${EXPENDITURES[fy].confidence})`);
+      const { jsonTree, total, rowCount } = buildTree(fy);
+      const cats = jsonTree[0].c;
+      console.log(`\n${'Category'.padEnd(52)} ${'Amount ($)'.padStart(18)}`); console.log('─'.repeat(72));
+      for (const cat of cats) console.log(`  ${cat.n.slice(0,50).padEnd(50)}${Math.round(cat.a).toLocaleString().padStart(18)}`);
+      const neg = EXPENDITURES[fy].categories.filter(c => c.total < 0);
+      for (const c of neg) console.log(`  [Note: ${c.name} true value: ${(c.total * UNITS).toLocaleString()} (clamped at render)]`);
+      console.log('─'.repeat(72)); console.log(`${'TOTAL EXPENDITURES'.padEnd(52)}${Math.round(total).toLocaleString().padStart(18)}`);
+      console.log(`Per-capita: $${Math.round(total/POPULATION).toLocaleString()}/person\n`);
+      if (dryRun) { console.log(`(dry-run)\n`); continue; }
+      const { data: r, error: rpcErr } = await supabase.rpc('treasury_sync_budget_tree', { p_data_source_id: ds.id, p_fiscal_year: fy, p_dataset_type: 'operating', p_total: total, p_tree: jsonTree, p_row_count: rowCount, p_triggered_by: 'bulk_load' });
+      if (rpcErr) throw new Error(`FY${fy} RPC error: ${rpcErr.message}`);
+      if (r?.error) throw new Error(`FY${fy} RPC error: ${r.error}`);
+      console.log(`Loaded ${r?.rows_inserted ?? rowCount} rows for FY${fy}`);
+      const { data: bud, error: selErr } = await supabase.schema('treasury').from('budgets').select('id').eq('municipality_id', muniId).eq('fiscal_year', fy).eq('dataset_type', 'operating').maybeSingle();
+      if (selErr) throw new Error(`FY${fy} stamp lookup failed: ${selErr.message}`); // WR-07: surface select errors — do not misreport as a missing row
+      if (bud?.id) {
+        const { error: upErr } = await supabase.schema('treasury').from('budgets').update({ source_url: SOURCES[fy].url, source_date: SOURCES[fy].date, data_source: dataSource(fy) }).eq('id', bud.id);
+        if (upErr) throw new Error(`FY${fy} source stamp failed: ${upErr.message}`);
+        console.log(`Stamped source on FY${fy} operating row (GAAP basis)\n`);
+      } else { throw new Error(`Could not find FY${fy} operating budget row to stamp source`); }
+    }
+  } finally {
+    // Ephemeral data_sources cleanup — runs on success AND on any mid-run failure (WR-04), leaves 0 residue (WR-05 / LOAD-01).
+    if (!dryRun && ds) await supabase.schema('treasury').from('data_sources').delete().eq('id', ds.id);
+  }
+  console.log('Done.');
+}
+main().catch(e => { console.error('Fatal:', e.message); process.exit(2); });
