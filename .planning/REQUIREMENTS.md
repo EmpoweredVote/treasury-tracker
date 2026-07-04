@@ -42,7 +42,7 @@ These apply to **every** ACFR-nn / DEEP-05 requirement below — an implementati
 
 - [x] **ACFR-38**: Iowa (IA) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
 - [x] **ACFR-39**: Kansas (KS) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
-- [ ] **ACFR-40**: Maine (ME) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
+- [x] **ACFR-40**: Maine (ME) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
 - [ ] **ACFR-41**: Mississippi (MS) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
 - [ ] **ACFR-42**: Montana (MT) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
 
@@ -103,7 +103,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | ACFR-37 | Phase 118 | Loaded (Ph124 verify) |
 | ACFR-38 | Phase 119 | Complete |
 | ACFR-39 | Phase 119 | Complete |
-| ACFR-40 | Phase 119 | Pending |
+| ACFR-40 | Phase 119 | Complete |
 | ACFR-41 | Phase 119 | Pending |
 | ACFR-42 | Phase 119 | Pending |
 | ACFR-43 | Phase 120 | Pending |
