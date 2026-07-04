@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.15
 milestone_name: State ACFR Long Tail — Final Tail + NASBO Retirement
-status: executing
-last_updated: "2026-07-04T01:13:52.727Z"
+status: ready_to_plan
+last_updated: 2026-07-04T03:15:25.303Z
 last_activity: 2026-07-04 -- Phase 117 execution started
 progress:
   total_phases: 34
   completed_phases: 0
   total_plans: 6
-  completed_plans: 0
+  completed_plans: 6
   percent: 0
+stopped_at: Phase 117 complete (6/6) — ready to discuss Phase 118
 ---
 
 # State
@@ -20,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-03 — v2.15 State ACFR Long Tail — Final Tail + NASBO Retirement STARTED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** Phase 117 — recon-source-location-roster-lock-overlap-scope-pre-flight-r
+**Current focus:** Phase 118 — acfr upgrade — batch 1 (ak / ar / de / hi / id) (acfr 33..37)
 
 ## Current Position
 
-Phase: 117 (recon-source-location-roster-lock-overlap-scope-pre-flight-r) — EXECUTING
-Plan: 1 of 6
-Status: Executing Phase 117
-Last activity: 2026-07-04 -- Phase 117 execution started
+Phase: 118
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-07-04
 
 ## Phase Overview — v2.15 State ACFR Long Tail — Final Tail + NASBO Retirement
 
