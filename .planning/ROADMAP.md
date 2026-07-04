@@ -27,10 +27,104 @@
 - ✅ **v2.12 State ACFR Long Tail** — Phases 103-106 (shipped 2026-07-01)
 - ✅ **v2.13 State ACFR Long Tail — Tranche 2** — Phases 107-110 (shipped 2026-07-02)
 - ✅ **v2.14 State ACFR Long Tail — Tranche 3 + Deepening** — Phases 111-116 (shipped 2026-07-03)
+- ▶ **v2.15 State ACFR Long Tail — Final Tail + NASBO Retirement** — Phases 117-124 (in progress)
 
 ---
 
 ## Phases
+
+### ▶ v2.15 State ACFR Long Tail — Final Tail + NASBO Retirement (Phases 117-124)
+
+**Milestone goal:** Finish the State-ACFR long tail — upgrade the **last 21 NASBO states** (AK/AR/DE/HI/ID/IA/KS/ME/MS/MT/NE/NV/NH/NM/ND/OK/RI/SD/VT/WV/WY) to full State-ACFR GAAP GF revenue-by-source + finer spending-by-function, bringing **all 50 states onto ACFR**; bundle the recorded deepening holes on the existing ACFR nodes (CA pre-FY2020, NY pre-FY2015, FL pre-FY2022, TX FY2016); and formally **retire NASBO to fallback-only**. Cohort 29 ACFR → 50 ACFR + 0 NASBO-served.
+
+**Standing constraints (every load/deepen phase):** Free ACFR PDFs only ($0 / $5 AI gate) · GENERAL FUND column via `pdftotext -table` (or `pre34Extract.mjs` for pre-GASB-34) · every figure durably sourced + basis-labelled (honest pre-GASB-34/CAFR-era labels) · every loaded year ties $0 to its printed GF total (honest holes documented) · GF-alone scope divergences resolved + relabelled honestly (UT/AL/LA precedent) · P2 negative-category clamp · idempotent never-overwrite (29 existing ACFR nodes + un-upgraded states untouched) · 0 `data_sources` residue, no manual re-clean (LOAD-01 cohort-wide) · executed inline, clone the proven per-state loader template (`extract_gf.py` + `gen_state.py`) · no frontend work (Money In + `?dataset=revenue` auto-enable).
+
+**Critical path:** `117 (recon) → [ 118 ∥ 119 ∥ 120 ∥ 121 ∥ 122 ] → 123 (retire) → 124 (verify + UAT)`. Recon locks every source first; the 4 load batches (proven-safe ~5 states/phase) + the deepening pass run in parallel after recon; NASBO retirement waits until all 21 loaded (all 50 on ACFR); verification closes with the standard blind-re-derivation → 50-state cohort audit → Chris live UAT mold.
+
+#### Phase 117: Recon — Source Location + Roster Lock + Overlap/Scope Pre-flight (RECON-11)
+
+**Goal:** Every source located and de-risked before any load.
+**Depends on:** — (v2.14 shipped)
+**Success criteria:**
+1. All 21 remaining NASBO states have their ACFR Governmental-Funds GF statement located with confirmed units, fiscal-year-end, and durable per-year source URLs.
+2. Every candidate's bookend years tie at exact $0 against the printed GF column total.
+3. Roster locked; any state-node overlap, GF-alone scope divergence, or non-June FY-end flagged pre-load with the load-time decision noted.
+4. Deeper-history ACFR URLs located + bookend-tied for the DEEP-05 targets (CA pre-FY2020, NY pre-FY2015, FL pre-FY2022, TX FY2016).
+5. Zero DB writes; $0 spend.
+
+#### Phase 118: ACFR Upgrade — Batch 1 (AK / AR / DE / HI / ID) (ACFR-33..37)
+
+**Goal:** First 5 smallest-GF states on full State-ACFR GAAP.
+**Depends on:** 117
+**Success criteria:**
+1. Each of AK/AR/DE/HI/ID renders real ACFR revenue-by-source + finer spending-by-function, as deep as durable URLs allow.
+2. Every loaded state-FY ties exactly ($0 delta) to its printed GF column total.
+3. NASBO operating replaced idempotently; never-overwrite guard holds; a re-run is a no-op.
+4. Basis label + durable source on every row; P2 clamp on any negative category; 0 `data_sources` residue with no manual re-clean.
+
+#### Phase 119: ACFR Upgrade — Batch 2 (IA / KS / ME / MS / MT) (ACFR-38..42)
+
+**Goal:** Next 5 states on full State-ACFR GAAP.
+**Depends on:** 117
+**Success criteria:**
+1. Each of IA/KS/ME/MS/MT renders real ACFR revenue-by-source + spending-by-function.
+2. Every loaded state-FY ties exactly ($0 delta) to its printed GF total.
+3. NASBO operating replaced idempotently; never-overwrite holds.
+4. Basis-labelled + sourced; P2 clamp where needed; 0 residue no manual re-clean.
+
+#### Phase 120: ACFR Upgrade — Batch 3 (NE / NV / NH / NM / ND) (ACFR-43..47)
+
+**Goal:** Next 5 states on full State-ACFR GAAP.
+**Depends on:** 117
+**Success criteria:**
+1. Each of NE/NV/NH/NM/ND renders real ACFR revenue-by-source + spending-by-function.
+2. Every loaded state-FY ties exactly ($0 delta) to its printed GF total.
+3. NASBO operating replaced idempotently; never-overwrite holds.
+4. Basis-labelled + sourced; P2 clamp where needed; 0 residue no manual re-clean.
+
+#### Phase 121: ACFR Upgrade — Batch 4 (OK / RI / SD / VT / WV / WY) (ACFR-48..53)
+
+**Goal:** Final 6 states on full State-ACFR GAAP — all 50 states now on ACFR.
+**Depends on:** 117
+**Success criteria:**
+1. Each of OK/RI/SD/VT/WV/WY renders real ACFR revenue-by-source + spending-by-function (OK reuses its v2.14-preserved recon).
+2. Every loaded state-FY ties exactly ($0 delta) to its printed GF total.
+3. NASBO operating replaced idempotently; never-overwrite holds.
+4. All 50 state nodes now sourced to ACFR; basis-labelled + sourced; 0 residue no manual re-clean.
+
+#### Phase 122: Deepening — Existing ACFR Node Pre-window Holes (DEEP-05)
+
+**Goal:** Recover the recorded pre-window history on the existing ACFR nodes.
+**Depends on:** 117
+**Success criteria:**
+1. CA extended pre-FY2020, NY pre-FY2015, FL pre-FY2022, TX FY2016 — as deep as durable URLs allow.
+2. Every added year ties exactly to its printed GF total; honest basis labels (pre-GASB-34 where applicable, via `pre34Extract.mjs`).
+3. Any remaining unrecoverable years documented honestly (not faked).
+4. Idempotent; existing rows untouched; 0 residue no manual re-clean.
+
+#### Phase 123: NASBO Retirement (NASBORT-01)
+
+**Goal:** Retire NASBO to fallback-only now that all 50 states are on ACFR.
+**Depends on:** 118, 119, 120, 121
+**Success criteria:**
+1. The `loadStateGF.mjs` NASBO path is demoted to fallback-only (relabelled / guarded) so it no longer serves any live node.
+2. No live state node still displays NASBO where ACFR now exists.
+3. The 50/50-ACFR end state is documented; the NASBO fallback path remains available but dormant.
+4. Idempotent; no data regression on any of the 50 ACFR nodes.
+
+#### Phase 124: Verification + Cohort Audit + UAT (VER-09, VER-10)
+
+**Goal:** Prove the whole 50-state cohort real, sourced, residue-free, and ACFR-complete.
+**Depends on:** 118, 119, 120, 121, 122, 123
+**Success criteria:**
+1. Loader-independent blind re-derivation of every newly-loaded + newly-deepened state-FY ties at exact $0.
+2. 50-state cohort source-chain audit: all rows sourced / windowed / deduplicated / basis-labelled; 0 `data_sources` residue with no manual re-clean (LOAD-01 cohort-wide); all 50 nodes confirmed on ACFR.
+3. Chris live-app UAT sign-off across a representative sample of newly-upgraded states + a deepened node.
+4. Confirmed: no node still shows NASBO where ACFR now exists.
+
+**Requirement coverage:** 26 v1 requirements · 26 mapped · 0 unmapped ✓ (see REQUIREMENTS.md Traceability)
+
+---
 
 <details>
 <summary>✅ v2.14 State ACFR Long Tail — Tranche 3 + Deepening (Phases 111-116) — SHIPPED 2026-07-03 (full detail in milestones/v2.14-ROADMAP.md)</summary>
