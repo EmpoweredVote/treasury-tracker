@@ -32,11 +32,11 @@ These apply to **every** ACFR-nn / DEEP-05 requirement below — an implementati
 
 ### ACFR Upgrades — Batch 1
 
-- [ ] **ACFR-33**: Alaska (AK) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function, as deep as durable URLs allow
-- [ ] **ACFR-34**: Arkansas (AR) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
-- [ ] **ACFR-35**: Delaware (DE) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
-- [ ] **ACFR-36**: Hawaii (HI) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
-- [ ] **ACFR-37**: Idaho (ID) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
+- [x] **ACFR-33**: Alaska (AK) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function, as deep as durable URLs allow
+- [x] **ACFR-34**: Arkansas (AR) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
+- [x] **ACFR-35**: Delaware (DE) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
+- [x] **ACFR-36**: Hawaii (HI) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
+- [x] **ACFR-37**: Idaho (ID) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
 
 ### ACFR Upgrades — Batch 2
 
@@ -96,11 +96,11 @@ Which phases cover which requirements. Populated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | RECON-11 | Phase 117 | Pending |
-| ACFR-33 | Phase 118 | Pending |
-| ACFR-34 | Phase 118 | Pending |
-| ACFR-35 | Phase 118 | Pending |
-| ACFR-36 | Phase 118 | Pending |
-| ACFR-37 | Phase 118 | Pending |
+| ACFR-33 | Phase 118 | Loaded (Ph124 verify) |
+| ACFR-34 | Phase 118 | Loaded (Ph124 verify) |
+| ACFR-35 | Phase 118 | Loaded (Ph124 verify) |
+| ACFR-36 | Phase 118 | Loaded (Ph124 verify) |
+| ACFR-37 | Phase 118 | Loaded (Ph124 verify) |
 | ACFR-38 | Phase 119 | Pending |
 | ACFR-39 | Phase 119 | Pending |
 | ACFR-40 | Phase 119 | Pending |
