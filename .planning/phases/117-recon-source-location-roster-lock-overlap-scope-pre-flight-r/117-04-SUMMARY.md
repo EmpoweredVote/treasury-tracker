@@ -117,3 +117,12 @@ None — this plan's threat model (T-117-01, T-117-02, T-117-04) was fully mitig
 ---
 *Phase: 117-recon-source-location-roster-lock-overlap-scope-pre-flight-r*
 *Completed: 2026-07-04*
+
+## Self-Check: PASSED
+
+- FOUND: `.planning/phases/117-recon-source-location-roster-lock-overlap-scope-pre-flight-r/117-BATCH4-SOURCES.md`
+- FOUND: `.planning/phases/117-recon-source-location-roster-lock-overlap-scope-pre-flight-r/117-04-SUMMARY.md`
+- FOUND commit: `c9c51b7` (Task 0)
+- FOUND commit: `0e44d29` (Task 1)
+- FOUND commit: `4c62586` (Task 2)
+- FOUND commit: `960346d` (SUMMARY)
