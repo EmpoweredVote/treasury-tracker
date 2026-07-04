@@ -2,15 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.15
 milestone_name: State ACFR Long Tail — Final Tail + NASBO Retirement
-status: executing
-last_updated: "2026-07-04T23:10:18.438Z"
-last_activity: 2026-07-04
+status: completed
+stopped_at: Completed 120-05-PLAN.md (North Dakota ACFR-47, final plan of Batch 3)
+last_updated: "2026-07-04T23:13:15.090Z"
+last_activity: 2026-07-04 -- Phase 120 marked complete
 progress:
-  total_phases: 34
+  total_phases: 8
   completed_phases: 4
   total_plans: 21
   completed_plans: 21
-  percent: 12
+  percent: 50
 ---
 
 # State
@@ -24,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-07-03 — v2.15 State ACFR Long Tail —
 
 ## Current Position
 
-Phase: 120 (acfr-upgrade-batch-3-ne-nv-nh-nm-nd-acfr-43-47) — EXECUTING
+Phase: 120 — COMPLETE
 Plan: 5 of 5
-Status: Ready to execute
-Last activity: 2026-07-04
+Status: Phase 120 complete
+Last activity: 2026-07-04 -- Phase 120 marked complete
 
 ## Phase Overview — v2.15 State ACFR Long Tail — Final Tail + NASBO Retirement
 
