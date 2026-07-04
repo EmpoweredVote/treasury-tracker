@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.15
 milestone_name: State ACFR Long Tail — Final Tail + NASBO Retirement
 status: executing
-last_updated: "2026-07-04T21:46:40.775Z"
+last_updated: "2026-07-04T22:27:41.134Z"
 last_activity: 2026-07-04
 progress:
   total_phases: 34
   completed_phases: 3
   total_plans: 21
-  completed_plans: 17
+  completed_plans: 19
   percent: 9
 ---
 
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-07-03 — v2.15 State ACFR Long Tail —
 ## Current Position
 
 Phase: 120 (acfr-upgrade-batch-3-ne-nv-nh-nm-nd-acfr-43-47) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-07-04
 
@@ -199,7 +199,7 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-07-04T21:46:40.765Z
+Last session: 2026-07-04T22:26:54.681Z
 Stopped at: Completed 120-01-PLAN.md (Nebraska ACFR-43)
 Resume file: None
 
@@ -269,6 +269,7 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 | Phase 119 P02 | 35min | 3 tasks | 2 files |
 | Phase 119-acfr-upgrade-batch-2-ia-ks-me-ms-mt-acfr-38-42 PP03 | 55min | 3 tasks | 2 files |
 | Phase 120 P01 | 15min | 3 tasks | 1 files |
+| Phase 120 P03 | 45min | 3 tasks | 3 files |
 
 ## Decisions
 
@@ -360,6 +361,8 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 - [Phase ?]: [119-03]: ME June-30 FY-end confirmed on all 26 downloaded covers (not just recon bookends) -- the pre-recon 'non-June to watch' flag is fully resolved with full-window evidence
 - [Phase 120-01]: NE ACFR GF ~1.19x NASBO GF (smallest divergence in Batch 3) accepted and relabelled honestly — NE General Fund is ~91% own-source (Income Tax + Sales/Use Tax); federal flows post to a separate Federal Fund column, not General
 - [Phase 120-01]: extract_gf.py generalized: U+FFFD treated as a DASH_TOKEN — Fixes a silent column-shift bug on PDFs (NE FY2024) that render blank GF cells as an invalid UTF-8 byte (0xAD soft hyphen) instead of ASCII dash
+- [Phase ?]: NH ACFR GF ~3.22x NASBO GF (widest divergence in Batch 3) accepted and relabelled honestly -- Federal Government (48%) + Special Taxes consolidated into GAAP General column
+- [Phase ?]: NH fetched via Wayback Machine mirror (CDX API timestamp resolution + if_ modifier URLs) rather than browser-download -- das.nh.gov/www.das.nh.gov Akamai-blocks all automated fetch, harder than tn.gov precedent
 
 ## Deferred Items
 
