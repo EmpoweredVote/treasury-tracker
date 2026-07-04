@@ -102,3 +102,13 @@ None - no external service configuration required.
 ---
 *Phase: 120-acfr-upgrade-batch-3-ne-nv-nh-nm-nd-acfr-43-47*
 *Completed: 2026-07-04*
+
+## Self-Check: PASSED
+
+- FOUND: scripts/processNDAcfr.js
+- FOUND: scripts/processNDRevenueAcfr.js
+- FOUND: .planning/phases/120-acfr-upgrade-batch-3-ne-nv-nh-nm-nd-acfr-43-47/120-05-ND-LOADLOG.md
+- FOUND: .planning/phases/120-acfr-upgrade-batch-3-ne-nv-nh-nm-nd-acfr-43-47/120-05-SUMMARY.md
+- FOUND: commit 2a884ea (feat 120-05 loaders)
+- FOUND: commit b58212b (docs 120-05 loadlog)
+- FOUND: commit b0b47b5 (docs 120-05 summary — this file's own commit, pre-existing check confirmed via git log at time of self-check)
