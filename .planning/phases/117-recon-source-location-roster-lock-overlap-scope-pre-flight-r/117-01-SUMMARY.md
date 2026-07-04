@@ -106,3 +106,12 @@ None — no external service configuration required. Documentation-only, $0 spen
 ---
 *Phase: 117-recon-source-location-roster-lock-overlap-scope-pre-flight-r*
 *Completed: 2026-07-04*
+
+## Self-Check: PASSED
+
+- FOUND: `.planning/phases/117-recon-source-location-roster-lock-overlap-scope-pre-flight-r/117-BATCH1-SOURCES.md`
+- FOUND: `.planning/phases/117-recon-source-location-roster-lock-overlap-scope-pre-flight-r/117-01-SUMMARY.md`
+- FOUND commit: `b1a5094` (Task 0)
+- FOUND commit: `7fd0026` (Task 1)
+- FOUND commit: `49ca9a6` (Task 2)
+- FOUND commit: `d95ad3a` (plan metadata)
