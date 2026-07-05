@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.15
 milestone_name: State ACFR Long Tail — Final Tail + NASBO Retirement
-status: completed
-stopped_at: Completed 121-06-PLAN.md (Wyoming ACFR-53, the FINAL state -- all 50 states now on ACFR)
-last_updated: "2026-07-05T16:51:02.531Z"
-last_activity: 2026-07-05 -- Phase 122 marked complete
+status: executing
+last_updated: "2026-07-05T18:53:46.964Z"
+last_activity: 2026-07-05 -- Phase 123 execution started
 progress:
-  total_phases: 8
+  total_phases: 34
   completed_phases: 6
-  total_plans: 30
+  total_plans: 31
   completed_plans: 30
-  percent: 75
+  percent: 18
 ---
 
 # State
@@ -21,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-03 — v2.15 State ACFR Long Tail — Final Tail + NASBO Retirement STARTED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** Phase 121 — acfr-upgrade-batch-4-ok-ri-sd-vt-wv-wy-acfr-48-53
+**Current focus:** Phase 123 — nasbo-retirement-nasbort-01
 
 ## Current Position
 
-Phase: 122 — COMPLETE
-Plan: 6 of 6
-Status: Phase 122 complete
-Last activity: 2026-07-05 -- Phase 122 marked complete
+Phase: 123 (nasbo-retirement-nasbort-01) — EXECUTING
+Plan: 1 of 1
+Status: Executing Phase 123
+Last activity: 2026-07-05 -- Phase 123 execution started
 
 ## Phase Overview — v2.15 State ACFR Long Tail — Final Tail + NASBO Retirement
 
