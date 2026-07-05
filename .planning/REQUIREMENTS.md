@@ -65,7 +65,7 @@ These apply to **every** ACFR-nn / DEEP-05 requirement below — an implementati
 
 ### Deepening (existing ACFR nodes)
 
-- [ ] **DEEP-05**: The recorded pre-window holes on existing ACFR nodes are recovered as deep as durable URLs allow — CA pre-FY2020, NY pre-FY2015, FL pre-FY2022, TX FY2016 — every added year tying exactly to its printed GF total, honest basis labels (reuse `pre34Extract.mjs` where pre-GASB-34), remaining unrecoverable years documented honestly
+- [x] **DEEP-05**: The recorded pre-window holes on existing ACFR nodes are recovered as deep as durable URLs allow — CA pre-FY2020, NY pre-FY2015, FL pre-FY2022, TX FY2016 — every added year tying exactly to its printed GF total, honest basis labels (reuse `pre34Extract.mjs` where pre-GASB-34), remaining unrecoverable years documented honestly *(Phase 122: CA +6→FY2002, FL +18→FY2003; NY/TX floors reconfirmed 0 recoverable; FL FY2000–02 repair-pending. Per-state VER-09/VER-10 audit deferred to Phase 124.)*
 
 ### NASBO Retirement
 
@@ -117,7 +117,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | ACFR-51 | Phase 121 | Complete |
 | ACFR-52 | Phase 121 | Complete |
 | ACFR-53 | Phase 121 | Complete |
-| DEEP-05 | Phase 122 | Pending |
+| DEEP-05 | Phase 122 | Complete |
 | NASBORT-01 | Phase 123 | Pending |
 | VER-09 | Phase 124 | Pending |
 | VER-10 | Phase 124 | Pending |
