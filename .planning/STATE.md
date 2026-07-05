@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.15
 milestone_name: State ACFR Long Tail — Final Tail + NASBO Retirement
 status: executing
-last_updated: "2026-07-05T20:14:10.247Z"
-last_activity: 2026-07-05 -- Phase 124 planning complete
+last_updated: "2026-07-05T21:49:20.541Z"
+last_activity: 2026-07-05
 progress:
   total_phases: 34
   completed_phases: 7
   total_plans: 34
-  completed_plans: 31
+  completed_plans: 32
   percent: 21
 ---
 
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-03 — v2.15 State ACFR Long Tail — Final Tail + NASBO Retirement STARTED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** Phase 123 — nasbo-retirement-nasbort-01
+**Current focus:** Phase 124 — verification-cohort-audit-uat-ver-09-ver-10
 
 ## Current Position
 
-Phase: 123 — COMPLETE
-Plan: 1 of 1
+Phase: 124 (verification-cohort-audit-uat-ver-09-ver-10) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-07-05 -- Phase 124 planning complete
+Last activity: 2026-07-05
 
 ## Phase Overview — v2.15 State ACFR Long Tail — Final Tail + NASBO Retirement
 
@@ -199,7 +199,7 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-07-05T09:13:02.832Z
+Last session: 2026-07-05T21:49:20.527Z
 Stopped at: Completed 121-06-PLAN.md (Wyoming ACFR-53, the FINAL state -- all 50 states now on ACFR)
 Resume file: None
 
@@ -277,6 +277,7 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 | Phase 121-acfr-upgrade-batch-4-ok-ri-sd-vt-wv-wy-acfr-48-53 P04 | 40min | 3 tasks | 3 files |
 | Phase 121-acfr-upgrade-batch-4-ok-ri-sd-vt-wv-wy-acfr-48-53 P121-05 | 25min | 3 tasks | 3 files |
 | Phase 121-acfr-upgrade-batch-4-ok-ri-sd-vt-wv-wy-acfr-48-53 P121-06 | 55min | 3 tasks | 4 files |
+| Phase 124 P01 | 60min | 2 tasks | 2 files |
 
 ## Decisions
 
@@ -390,6 +391,10 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 - [Phase 121-06]: WY's FY2020 URL is absent from the 117 recon's own SOURCES enumeration (jumps FY2019->FY2021) -- discovered live off sao.wyo.gov/publications/ during the load, no honest hole resulted
 - [Phase 121-06]: WY colon-less 'Taxes'/'Current'/'Debt Service' subsection headers (3rd instance of the VT precedent in this cohort) fixed via a dedicated wy_assemble.py post-process pass -- labels only, all 21 years re-verified tying identically before/after
 - [Phase 121-06]: MILESTONE: Wyoming (ACFR-53) was the final state -- all 50 US states now carry a State-ACFR-sourced General Fund (revenue-by-source + spending-by-function), completing Batches 1-4 (Phases 118-121) ahead of Phase 123 (NASBO Retirement) and Phase 124 (Verification+UAT)
+- [Phase ?]: [Phase 124-01]: ID FY2004's ~$22/$29 rounding delta is EXPLAINED (verbatim per the 118-05 loadlog's own documented mixed-unit whole-dollar/thousands normalization), not fixed -- pre-approved loader rounding artifact, not a transcription defect
+- [Phase ?]: [Phase 124-01]: IA's NET REVENUES tie is re-keyed directly from the printed NET REVENUES row rather than recomputed as GROSS minus refunds -- the printed statement already bakes in that arithmetic
+- [Phase ?]: [Phase 124-01]: OCR-independent checks (NM FY2022, OK FY2019, SD FY2007/FY2010) render+OCR the source PDF fresh every harness run rather than reusing prior PNG renders, to keep the independence claim auditable
+- [Phase ?]: [Phase 124-01]: VER-09a result -- 149/151 loader-independent re-derivation checks tie exact $0 across all 21 v2.15 final-tail states + the exhaustive 24-state-FY CA/FL deepening set; 2 explained (ID FY2004 rounding)
 
 ## Deferred Items
 

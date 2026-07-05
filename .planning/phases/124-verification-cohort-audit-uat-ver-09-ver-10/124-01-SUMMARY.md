@@ -122,3 +122,12 @@ None beyond the two auto-fixed extraction-logic bugs documented above. All PDF f
 *Phase: 124-verification-cohort-audit-uat-ver-09-ver-10*
 *Plan: 01*
 *Completed: 2026-07-05*
+
+## Self-Check: PASSED
+
+- FOUND: scripts/verify-phase124-rederive.mjs
+- FOUND: .planning/phases/124-verification-cohort-audit-uat-ver-09-ver-10/124-REDERIVATION.md
+- FOUND: .planning/phases/124-verification-cohort-audit-uat-ver-09-ver-10/124-01-SUMMARY.md
+- FOUND commit: b817b2a (Task 1 — harness)
+- FOUND commit: 91c23e2 (Task 2 — REDERIVATION.md)
+- FOUND commit: 9237c11 (SUMMARY.md)
