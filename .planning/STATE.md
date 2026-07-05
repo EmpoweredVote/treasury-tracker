@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.15
 milestone_name: State ACFR Long Tail — Final Tail + NASBO Retirement
 status: executing
-last_updated: "2026-07-05T06:56:23.801Z"
+last_updated: "2026-07-05T07:29:43.681Z"
 last_activity: 2026-07-05
 progress:
   total_phases: 34
   completed_phases: 4
   total_plans: 27
-  completed_plans: 24
+  completed_plans: 25
   percent: 12
 ---
 
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-07-03 — v2.15 State ACFR Long Tail —
 ## Current Position
 
 Phase: 121 (acfr-upgrade-batch-4-ok-ri-sd-vt-wv-wy-acfr-48-53) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 Status: Ready to execute
 Last activity: 2026-07-05
 
@@ -199,8 +199,8 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-07-05T06:56:23.787Z
-Stopped at: Completed 121-03-PLAN.md (South Dakota ACFR-50)
+Last session: 2026-07-05T07:29:43.666Z
+Stopped at: Completed 121-04-PLAN.md (Vermont ACFR-51)
 Resume file: None
 
 ### Next Session
@@ -274,6 +274,7 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 | Phase 120 P05 | 15min | 3 tasks | 3 files |
 | Phase 121 P01 | 30min | 3 tasks | 3 files |
 | Phase 121-acfr-upgrade-batch-4-ok-ri-sd-vt-wv-wy-acfr-48-53 P03 | 105min | 3 tasks | 3 files |
+| Phase 121-acfr-upgrade-batch-4-ok-ri-sd-vt-wv-wy-acfr-48-53 P04 | 40min | 3 tasks | 3 files |
 
 ## Decisions
 
@@ -380,6 +381,7 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 - [Phase 121-03]: extract_gf.py generalized to match singular 'Revenue:'/'Total Revenue' statement labels -- SD is the first cohort state with singular labels; safe superset, zero regression on the plural-labeled cohort
 - [Phase 121-03]: SD 9-year whole-document-scanned/unrenderable PDF hand-transcription (2003-2011 excl. 2002) generalizes the IA FY2008 single-year precedent to a systematic multi-year pattern
 - [Phase 121-03]: SD ACFR GF ~1.03x NASBO GF (smallest divergence in the entire v2.15 milestone) -- federal-passthrough revenue routes to non-GF fund columns, keeping GF near-parity
+- [Phase 121-04]: VT ACFR-51: UNITS=1 dollars hard-set; extract_gf.py split_row() generalized for zero/one-whitespace dot-leader defect (VT FY2024/2025), zero regression vs ND/SD/MT/NE; ~1.01x near-parity vs NASBO (smallest divergence in Batch 4); FY2023/FY2024 NASBO replaced in place
 
 ## Deferred Items
 
