@@ -45,6 +45,14 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SE
 
 // FY2008–FY2019 use the /Files-ARD/CAFR/ directory (cafr{NN}web.pdf); FY2020+ use /Files-ARD/ACFR/.
 const SOURCES = {
+  // Phase 122 (DEEP-05): backward extension FY2002–FY2007. FY2006–2007 = cafr{NN}.pdf (no "web");
+  // FY2002–2005 = {YYYY}_cafr{NN}.pdf (year-prefixed). FY2002 is the GASB-34 first year (modern layout, no pre-34 flag).
+  2002: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/2002_cafr02.pdf', date: '2002-06-30' },
+  2003: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/2003_cafr03.pdf', date: '2003-06-30' },
+  2004: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/2004_cafr04.pdf', date: '2004-06-30' },
+  2005: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/2005_cafr05.pdf', date: '2005-06-30' },
+  2006: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr06.pdf', date: '2006-06-30' },
+  2007: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr07.pdf', date: '2007-06-30' },
   2008: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr08web.pdf', date: '2008-06-30' },
   2009: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr09web.pdf', date: '2009-06-30' },
   2010: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr10web.pdf', date: '2010-06-30' },
@@ -70,6 +78,95 @@ const dataSource = (fy) => `California State ACFR — General Fund Revenue (FY${
 // Verbatim ACFR revenue source names. total = printed General-column "Total revenues".
 // All sums verified to 0 diff. No negative categories in this window (clamp still wired).
 const REVENUE = {
+  // Phase 122 (DEEP-05): FY2002–FY2007, GENERAL column Total revenues (full dollars = printed thousands ×1,000).
+  // Verbatim ACFR source names. All 6 years tie exactly ($0) to the printed General-column Total revenues.
+  // No negative GF revenue line in any of FY2002–FY2007 (investment income positive throughout) → P2 clamp does not fire these years.
+  2002: { total: 63_942_875_000, confidence: 'actual', categories: [
+    { name: 'Personal income taxes',      total: 32_874_734_000 },
+    { name: 'Sales and use taxes',        total: 21_348_052_000 },
+    { name: 'Corporation taxes',          total:  4_553_105_000 },
+    { name: 'Insurance taxes',            total:  1_599_064_000 },
+    { name: 'Other taxes',                total:  1_434_999_000 },
+    { name: 'Intergovernmental',          total:      4_177_000 },
+    { name: 'Licenses and permits',       total:     48_346_000 },
+    { name: 'Natural resources',          total:     15_363_000 },
+    { name: 'Charges for services',       total:    124_927_000 },
+    { name: 'Fees',                       total:    246_202_000 },
+    { name: 'Penalties',                  total:     39_002_000 },
+    { name: 'Investment and interest',    total:    768_452_000 },
+    { name: 'Other',                      total:    886_452_000 },
+  ]},
+  2003: { total: 66_133_497_000, confidence: 'actual', categories: [
+    { name: 'Personal income taxes',      total: 32_661_274_000 },
+    { name: 'Sales and use taxes',        total: 22_425_495_000 },
+    { name: 'Corporation taxes',          total:  6_861_200_000 },
+    { name: 'Insurance taxes',            total:  1_886_312_000 },
+    { name: 'Other taxes',                total:  1_180_387_000 },
+    { name: 'Intergovernmental',          total:      3_218_000 },
+    { name: 'Licenses and permits',       total:     47_360_000 },
+    { name: 'Charges for services',       total:    129_327_000 },
+    { name: 'Fees',                       total:     15_484_000 },
+    { name: 'Penalties',                  total:     60_808_000 },
+    { name: 'Investment and interest',    total:    359_527_000 },
+    { name: 'Other',                      total:    503_105_000 },
+  ]},
+  2004: { total: 74_692_896_000, confidence: 'actual', categories: [
+    { name: 'Personal income taxes',      total: 37_722_839_000 },
+    { name: 'Sales and use taxes',        total: 23_846_748_000 },
+    { name: 'Corporation taxes',          total:  8_379_316_000 },
+    { name: 'Insurance taxes',            total:  2_119_315_000 },
+    { name: 'Other taxes',                total:    822_336_000 },
+    { name: 'Intergovernmental',          total:      3_763_000 },
+    { name: 'Licenses and permits',       total:     49_097_000 },
+    { name: 'Charges for services',       total:    122_394_000 },
+    { name: 'Fees',                       total:     82_357_000 },
+    { name: 'Penalties',                  total:     25_724_000 },
+    { name: 'Investment and interest',    total:    139_700_000 },
+    { name: 'Escheat',                    total:    598_681_000 },
+    { name: 'Other',                      total:    780_626_000 },
+  ]},
+  2005: { total: 84_280_930_000, confidence: 'actual', categories: [
+    { name: 'Personal income taxes',      total: 42_424_929_000 },
+    { name: 'Sales and use taxes',        total: 25_782_760_000 },
+    { name: 'Corporation taxes',          total: 11_191_937_000 },
+    { name: 'Insurance taxes',            total:  2_231_060_000 },
+    { name: 'Other taxes',                total:    778_172_000 },
+    { name: 'Licenses and permits',       total:     42_328_000 },
+    { name: 'Charges for services',       total:    127_607_000 },
+    { name: 'Fees',                       total:    172_059_000 },
+    { name: 'Penalties',                  total:     54_673_000 },
+    { name: 'Investment and interest',    total:    241_824_000 },
+    { name: 'Escheat',                    total:    525_897_000 },
+    { name: 'Other',                      total:    707_684_000 },
+  ]},
+  2006: { total: 93_412_784_000, confidence: 'actual', categories: [
+    { name: 'Personal income taxes',      total: 49_903_435_000 },
+    { name: 'Sales and use taxes',        total: 27_613_417_000 },
+    { name: 'Corporation taxes',          total: 10_709_792_000 },
+    { name: 'Insurance taxes',            total:  2_212_916_000 },
+    { name: 'Other taxes',                total:    458_644_000 },
+    { name: 'Licenses and permits',       total:     47_286_000 },
+    { name: 'Charges for services',       total:    193_390_000 },
+    { name: 'Fees',                       total:    577_635_000 },
+    { name: 'Penalties',                  total:     65_399_000 },
+    { name: 'Investment and interest',    total:    458_406_000 },
+    { name: 'Escheat',                    total:    291_549_000 },
+    { name: 'Other',                      total:    880_915_000 },
+  ]},
+  2007: { total: 96_309_497_000, confidence: 'actual', categories: [
+    { name: 'Personal income taxes',      total: 52_350_764_000 },
+    { name: 'Sales and use taxes',        total: 27_402_715_000 },
+    { name: 'Corporation taxes',          total: 11_210_267_000 },
+    { name: 'Insurance taxes',            total:  2_165_567_000 },
+    { name: 'Other taxes',                total:    537_736_000 },
+    { name: 'Licenses and permits',       total:     17_331_000 },
+    { name: 'Charges for services',       total:    168_934_000 },
+    { name: 'Fees',                       total:    586_448_000 },
+    { name: 'Penalties',                  total:     50_169_000 },
+    { name: 'Investment and interest',    total:    561_766_000 },
+    { name: 'Escheat',                    total:    334_002_000 },
+    { name: 'Other',                      total:    923_798_000 },
+  ]},
   2008: { total: 97_774_378_000, confidence: 'actual', categories: [
     { name: 'Personal income taxes',     total: 54_214_285_000 },
     { name: 'Sales and use taxes',       total: 26_598_820_000 },
@@ -383,7 +480,7 @@ function buildTree(fy) {
 async function main() {
   const { values: opts } = parseArgs({ options: { 'dry-run': { type: 'boolean', default: false }, fy: { type: 'string' } }, strict: false });
   const dryRun = opts['dry-run']; const targetFY = opts.fy ? parseInt(opts.fy, 10) : null;
-  const years = targetFY ? [targetFY] : [2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
+  const years = targetFY ? [targetFY] : [2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
   console.log(`${STATE_NAME} GF Revenue Loader (ACTUAL — ACFR GAAP basis)${dryRun ? ' (dry-run)' : ''}\nFiscal years: ${years.join(', ')}\n`);
   if (!SUPABASE_KEY && !dryRun) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit(2); }
   const supabase = dryRun ? null : createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -395,7 +492,7 @@ async function main() {
   }
   let ds;
   if (!dryRun) {
-    const srcPayload = { name: 'California General Fund Revenue', api_type: 'pdf_download', dataset_type: 'revenue', dataset_id: 'ca-acfr-gf-revenue', base_url: 'https://www.sco.ca.gov/ard_state_acfr.html', fiscal_years: [2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025], municipality_id: muniId };
+    const srcPayload = { name: 'California General Fund Revenue', api_type: 'pdf_download', dataset_type: 'revenue', dataset_id: 'ca-acfr-gf-revenue', base_url: 'https://www.sco.ca.gov/ard_state_acfr.html', fiscal_years: [2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025], municipality_id: muniId };
     // Ephemeral RPC parameter vehicle (WR-05 / LOAD-01): budgets rows carry text-stamp provenance, so a persistent data_sources row is unreferenceable residue — create fresh here, delete at end of run.
     await supabase.schema('treasury').from('data_sources').delete().eq('dataset_id', srcPayload.dataset_id);
     const { data: dsRow, error: dsErr } = await supabase.schema('treasury').from('data_sources').insert(srcPayload).select().single(); if (dsErr) { console.error('insert failed:', dsErr.message); process.exit(2); } ds = dsRow; console.log(`data_source created (ephemeral): ${ds.id}`);

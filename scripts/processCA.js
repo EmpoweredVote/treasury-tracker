@@ -43,6 +43,14 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SE
 // Per-FY source: each year's own published State of California ACFR (source_date = Jun 30 FYE).
 // FY2008–FY2019 use the /Files-ARD/CAFR/ directory (cafr{NN}web.pdf); FY2020+ use /Files-ARD/ACFR/.
 const SOURCES = {
+  // Phase 122 (DEEP-05): backward extension FY2002–FY2007. FY2006–2007 = cafr{NN}.pdf (no "web");
+  // FY2002–2005 = {YYYY}_cafr{NN}.pdf (year-prefixed). FY2002 is the GASB-34 first year (modern layout, no pre-34 flag).
+  2002: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/2002_cafr02.pdf', date: '2002-06-30' },
+  2003: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/2003_cafr03.pdf', date: '2003-06-30' },
+  2004: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/2004_cafr04.pdf', date: '2004-06-30' },
+  2005: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/2005_cafr05.pdf', date: '2005-06-30' },
+  2006: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr06.pdf', date: '2006-06-30' },
+  2007: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr07.pdf', date: '2007-06-30' },
   2008: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr08web.pdf', date: '2008-06-30' },
   2009: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr09web.pdf', date: '2009-06-30' },
   2010: { url: 'https://www.sco.ca.gov/Files-ARD/CAFR/cafr10web.pdf', date: '2010-06-30' },
@@ -68,6 +76,87 @@ const dataSource = (fy) => `California State ACFR — General Fund (FY${fy} actu
 // Function-level totals (depth-1 leaves under the GF root). Verbatim ACFR function names.
 // total = printed General-column "Total expenditures". All sums verified to 0 diff.
 const EXPENDITURES = {
+  // Phase 122 (DEEP-05): FY2002–FY2007, GENERAL column Total expenditures (full dollars = printed thousands ×1,000).
+  // Verbatim older CA function names (Resources / Correctional programs / Tax relief / Business and transportation etc.).
+  // All 6 years tie exactly ($0) to the printed General-column Total expenditures via extract_gf.py.
+  2002: { total: 73_900_709_000, confidence: 'actual', categories: [
+    { name: 'General government',            total:  2_472_796_000 },
+    { name: 'Education',                     total: 36_962_138_000 },
+    { name: 'Health and human services',     total: 21_457_530_000 },
+    { name: 'Resources',                     total:  1_654_369_000 },
+    { name: 'State and consumer services',   total:    586_310_000 },
+    { name: 'Business and transportation',   total:     91_711_000 },
+    { name: 'Correctional programs',         total:  5_195_339_000 },
+    { name: 'Tax relief',                    total:  2_790_125_000 },
+    { name: 'Capital outlay',                total:    274_955_000 },
+    { name: 'Principal retirement',          total:  1_158_380_000 },
+    { name: 'Interest and fiscal charges',   total:  1_257_056_000 },
+  ]},
+  2003: { total: 76_571_568_000, confidence: 'actual', categories: [
+    { name: 'General government',            total:  2_409_661_000 },
+    { name: 'Education',                     total: 37_644_568_000 },
+    { name: 'Health and human services',     total: 22_827_502_000 },
+    { name: 'Resources',                     total:  1_023_964_000 },
+    { name: 'State and consumer services',   total:    459_975_000 },
+    { name: 'Business and transportation',   total:     64_658_000 },
+    { name: 'Correctional programs',         total:  5_715_949_000 },
+    { name: 'Tax relief',                    total:  3_897_106_000 },
+    { name: 'Capital outlay',                total:    515_996_000 },
+    { name: 'Principal retirement',          total:    491_168_000 },
+    { name: 'Interest and fiscal charges',   total:  1_521_021_000 },
+  ]},
+  2004: { total: 73_714_298_000, confidence: 'actual', categories: [
+    { name: 'General government',                  total:  2_033_317_000 },
+    { name: 'Education',                           total: 36_349_973_000 },
+    { name: 'Health and human services',           total: 23_555_792_000 },
+    { name: 'Resources',                           total:    947_332_000 },
+    { name: 'State and consumer services',         total:    460_431_000 },
+    { name: 'Business and transportation',         total:      8_918_000 },
+    { name: 'Correctional programs',               total:  5_230_381_000 },
+    { name: 'Tax relief',                          total:  2_983_818_000 },
+    { name: 'Capital outlay',                      total:     85_390_000 },
+    { name: 'Bond and commercial paper retirement', total:   450_749_000 },
+    { name: 'Interest and fiscal charges',         total:  1_608_197_000 },
+  ]},
+  2005: { total: 80_367_868_000, confidence: 'actual', categories: [
+    { name: 'General government',                  total:  2_259_495_000 },
+    { name: 'Education',                           total: 40_876_513_000 },
+    { name: 'Health and human services',           total: 24_810_689_000 },
+    { name: 'Resources',                           total:    858_262_000 },
+    { name: 'State and consumer services',         total:    493_037_000 },
+    { name: 'Business and transportation',         total:     12_428_000 },
+    { name: 'Correctional programs',               total:  6_622_819_000 },
+    { name: 'Tax relief',                          total:    949_428_000 },
+    { name: 'Capital outlay',                      total:    414_738_000 },
+    { name: 'Bond and commercial paper retirement', total: 1_346_146_000 },
+    { name: 'Interest and fiscal charges',         total:  1_724_313_000 },
+  ]},
+  2006: { total: 89_196_958_000, confidence: 'actual', categories: [
+    { name: 'General government',                  total:  2_427_166_000 },
+    { name: 'Education',                           total: 46_649_106_000 },
+    { name: 'Health and human services',           total: 26_157_469_000 },
+    { name: 'Resources',                           total:  1_002_126_000 },
+    { name: 'State and consumer services',         total:    484_488_000 },
+    { name: 'Business and transportation',         total:    245_711_000 },
+    { name: 'Correctional programs',               total:  7_528_417_000 },
+    { name: 'Tax relief',                          total:    810_236_000 },
+    { name: 'Capital outlay',                      total:    748_037_000 },
+    { name: 'Bond and commercial paper retirement', total: 1_380_372_000 },
+    { name: 'Interest and fiscal charges',         total:  1_763_830_000 },
+  ]},
+  2007: { total: 96_186_583_000, confidence: 'actual', categories: [
+    { name: 'General government',                  total:  2_608_056_000 },
+    { name: 'Education',                           total: 49_343_928_000 },
+    { name: 'Health and human services',           total: 28_945_062_000 },
+    { name: 'Resources',                           total:  1_455_477_000 },
+    { name: 'State and consumer services',         total:    538_343_000 },
+    { name: 'Business and transportation',         total:     13_624_000 },
+    { name: 'Correctional programs',               total:  8_811_099_000 },
+    { name: 'Tax relief',                          total:    958_004_000 },
+    { name: 'Capital outlay',                      total:    178_936_000 },
+    { name: 'Bond and commercial paper retirement', total: 1_416_946_000 },
+    { name: 'Interest and fiscal charges',         total:  1_917_108_000 },
+  ]},
   2008: { total: 98_975_042_000, confidence: 'actual', categories: [
     { name: 'General government',                               total:  2_238_325_000 },
     { name: 'Education',                                        total: 51_091_244_000 },
@@ -303,7 +392,7 @@ function buildTree(fy) {
 async function main() {
   const { values: opts } = parseArgs({ options: { 'dry-run': { type: 'boolean', default: false }, fy: { type: 'string' } }, strict: false });
   const dryRun = opts['dry-run']; const targetFY = opts.fy ? parseInt(opts.fy, 10) : null;
-  const years = targetFY ? [targetFY] : [2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
+  const years = targetFY ? [targetFY] : [2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
   console.log(`${STATE_NAME} GF Operating Loader (ACTUAL — ACFR GAAP basis)${dryRun ? ' (dry-run)' : ''}\nFiscal years: ${years.join(', ')}\n`);
   if (!SUPABASE_KEY && !dryRun) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit(2); }
   const supabase = dryRun ? null : createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -315,7 +404,7 @@ async function main() {
   }
   let ds;
   if (!dryRun) {
-    const srcPayload = { name: 'California General Fund Operating Budget', api_type: 'pdf_download', dataset_type: 'operating', dataset_id: 'ca-acfr-gf-operating', base_url: 'https://www.sco.ca.gov/ard_state_acfr.html', fiscal_years: [2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025], municipality_id: muniId };
+    const srcPayload = { name: 'California General Fund Operating Budget', api_type: 'pdf_download', dataset_type: 'operating', dataset_id: 'ca-acfr-gf-operating', base_url: 'https://www.sco.ca.gov/ard_state_acfr.html', fiscal_years: [2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025], municipality_id: muniId };
     const { data: existing } = await supabase.schema('treasury').from('data_sources').select('id').eq('dataset_id', srcPayload.dataset_id).maybeSingle();
     if (existing?.id) { const { data } = await supabase.schema('treasury').from('data_sources').update(srcPayload).eq('id', existing.id).select().single(); ds = data; console.log(`data_source updated: ${ds.id}`); }
     else { const { data, error } = await supabase.schema('treasury').from('data_sources').insert(srcPayload).select().single(); if (error) { console.error('insert failed:', error.message); process.exit(2); } ds = data; console.log(`data_source created: ${ds.id}`); }
