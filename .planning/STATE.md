@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.15
 milestone_name: State ACFR Long Tail — Final Tail + NASBO Retirement
 status: executing
-last_updated: "2026-07-04T23:42:41.274Z"
-last_activity: 2026-07-04 -- Phase 121 execution started
+last_updated: "2026-07-05T00:19:11.456Z"
+last_activity: 2026-07-05
 progress:
   total_phases: 34
   completed_phases: 4
   total_plans: 27
-  completed_plans: 21
+  completed_plans: 22
   percent: 12
 ---
 
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-07-03 — v2.15 State ACFR Long Tail —
 ## Current Position
 
 Phase: 121 (acfr-upgrade-batch-4-ok-ri-sd-vt-wv-wy-acfr-48-53) — EXECUTING
-Plan: 1 of 6
-Status: Executing Phase 121
-Last activity: 2026-07-04 -- Phase 121 execution started
+Plan: 2 of 6
+Status: Ready to execute
+Last activity: 2026-07-05
 
 ## Phase Overview — v2.15 State ACFR Long Tail — Final Tail + NASBO Retirement
 
@@ -199,7 +199,7 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-07-04T23:09:44.622Z
+Last session: 2026-07-05T00:12:30.409Z
 Stopped at: Completed 120-05-PLAN.md (North Dakota ACFR-47, final plan of Batch 3)
 Resume file: None
 
@@ -272,6 +272,7 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 | Phase 120 P03 | 45min | 3 tasks | 3 files |
 | Phase 120 P04 | 40min | 3 tasks | 3 files |
 | Phase 120 P05 | 15min | 3 tasks | 3 files |
+| Phase 121 P01 | 30min | 3 tasks | 3 files |
 
 ## Decisions
 
@@ -372,6 +373,9 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 - [Phase 120-05]: ND ACFR GF ~1.57x NASBO (mildest divergence in Batch 3) accepted and relabelled honestly -- own-source Sales/Use + Oil/Gas/Coal taxes dominate GF; federal booked to separate Federal column
 - [Phase 120-05]: UNITS=1 dollars hard-set for ND (the ND units trap) -- both bookends dollar-exact confirmed
 - [Phase 120-05]: FY2021 -nd filename suffix exception special-cased in SOURCES map (2021-acfr-nd.pdf) rather than assumed derivable
+- [Phase 121-01]: extract_gf.py flat() fix generalizes letter-spaced total-row label detection (OK FY2013 discovered it), zero regression across cohort
+- [Phase 121-01]: OK FY2019 hand-transcribed from rendered PNG (image-embedded statement table, no text layer), re-summed to $0 diff, NM FY2022 precedent
+- [Phase 121-01]: OK ACFR GF ~3.35x NASBO GF (widest in Batch 4) accepted and relabelled honestly -- Federal Grants consolidated into GENERAL column
 
 ## Deferred Items
 
