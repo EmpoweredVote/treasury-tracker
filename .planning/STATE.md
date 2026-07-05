@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.15
 milestone_name: State ACFR Long Tail — Final Tail + NASBO Retirement
 status: executing
-last_updated: "2026-07-05T00:19:11.456Z"
+last_updated: "2026-07-05T06:56:23.801Z"
 last_activity: 2026-07-05
 progress:
   total_phases: 34
   completed_phases: 4
   total_plans: 27
-  completed_plans: 22
+  completed_plans: 24
   percent: 12
 ---
 
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-07-03 — v2.15 State ACFR Long Tail —
 ## Current Position
 
 Phase: 121 (acfr-upgrade-batch-4-ok-ri-sd-vt-wv-wy-acfr-48-53) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 Status: Ready to execute
 Last activity: 2026-07-05
 
@@ -199,8 +199,8 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-07-05T00:12:30.409Z
-Stopped at: Completed 120-05-PLAN.md (North Dakota ACFR-47, final plan of Batch 3)
+Last session: 2026-07-05T06:56:23.787Z
+Stopped at: Completed 121-03-PLAN.md (South Dakota ACFR-50)
 Resume file: None
 
 ### Next Session
@@ -273,6 +273,7 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 | Phase 120 P04 | 40min | 3 tasks | 3 files |
 | Phase 120 P05 | 15min | 3 tasks | 3 files |
 | Phase 121 P01 | 30min | 3 tasks | 3 files |
+| Phase 121-acfr-upgrade-batch-4-ok-ri-sd-vt-wv-wy-acfr-48-53 P03 | 105min | 3 tasks | 3 files |
 
 ## Decisions
 
@@ -376,6 +377,9 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 - [Phase 121-01]: extract_gf.py flat() fix generalizes letter-spaced total-row label detection (OK FY2013 discovered it), zero regression across cohort
 - [Phase 121-01]: OK FY2019 hand-transcribed from rendered PNG (image-embedded statement table, no text layer), re-summed to $0 diff, NM FY2022 precedent
 - [Phase 121-01]: OK ACFR GF ~3.35x NASBO GF (widest in Batch 4) accepted and relabelled honestly -- Federal Grants consolidated into GENERAL column
+- [Phase 121-03]: extract_gf.py generalized to match singular 'Revenue:'/'Total Revenue' statement labels -- SD is the first cohort state with singular labels; safe superset, zero regression on the plural-labeled cohort
+- [Phase 121-03]: SD 9-year whole-document-scanned/unrenderable PDF hand-transcription (2003-2011 excl. 2002) generalizes the IA FY2008 single-year precedent to a systematic multi-year pattern
+- [Phase 121-03]: SD ACFR GF ~1.03x NASBO GF (smallest divergence in the entire v2.15 milestone) -- federal-passthrough revenue routes to non-GF fund columns, keeping GF near-parity
 
 ## Deferred Items
 

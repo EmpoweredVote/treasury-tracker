@@ -125,3 +125,7 @@ South Dakota (ACFR-50) is complete and hands cleanly to Phase 124 (independent r
 ---
 *Phase: 121-acfr-upgrade-batch-4-ok-ri-sd-vt-wv-wy-acfr-48-53*
 *Completed: 2026-07-05*
+
+## Self-Check: PASSED
+
+All created files verified present; both task commits (`8645181`, `d93b9af`) confirmed in git log.

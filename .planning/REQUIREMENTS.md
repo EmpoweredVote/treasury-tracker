@@ -58,7 +58,7 @@ These apply to **every** ACFR-nn / DEEP-05 requirement below — an implementati
 
 - [x] **ACFR-48**: Oklahoma (OK) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function (recon preserved from v2.14)
 - [x] **ACFR-49**: Rhode Island (RI) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
-- [ ] **ACFR-50**: South Dakota (SD) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
+- [x] **ACFR-50**: South Dakota (SD) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
 - [ ] **ACFR-51**: Vermont (VT) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
 - [ ] **ACFR-52**: West Virginia (WV) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
 - [ ] **ACFR-53**: Wyoming (WY) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
@@ -113,7 +113,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | ACFR-47 | Phase 120 | Complete |
 | ACFR-48 | Phase 121 | Complete |
 | ACFR-49 | Phase 121 | Complete |
-| ACFR-50 | Phase 121 | Pending |
+| ACFR-50 | Phase 121 | Complete |
 | ACFR-51 | Phase 121 | Pending |
 | ACFR-52 | Phase 121 | Pending |
 | ACFR-53 | Phase 121 | Pending |
