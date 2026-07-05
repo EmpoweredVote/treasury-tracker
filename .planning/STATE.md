@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.15
 milestone_name: State ACFR Long Tail — Final Tail + NASBO Retirement
 status: executing
-last_updated: "2026-07-05T08:05:44.373Z"
+last_updated: "2026-07-05T09:13:02.846Z"
 last_activity: 2026-07-05
 progress:
   total_phases: 34
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 27
-  completed_plans: 26
-  percent: 12
+  completed_plans: 27
+  percent: 15
 ---
 
 # State
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-07-03 — v2.15 State ACFR Long Tail —
 ## Current Position
 
 Phase: 121 (acfr-upgrade-batch-4-ok-ri-sd-vt-wv-wy-acfr-48-53) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 Status: Ready to execute
 Last activity: 2026-07-05
 
@@ -199,8 +199,8 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-07-05T08:05:44.359Z
-Stopped at: Completed 121-05-PLAN.md (West Virginia ACFR-52)
+Last session: 2026-07-05T09:13:02.832Z
+Stopped at: Completed 121-06-PLAN.md (Wyoming ACFR-53, the FINAL state -- all 50 states now on ACFR)
 Resume file: None
 
 ### Next Session
@@ -276,6 +276,7 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 | Phase 121-acfr-upgrade-batch-4-ok-ri-sd-vt-wv-wy-acfr-48-53 P03 | 105min | 3 tasks | 3 files |
 | Phase 121-acfr-upgrade-batch-4-ok-ri-sd-vt-wv-wy-acfr-48-53 P04 | 40min | 3 tasks | 3 files |
 | Phase 121-acfr-upgrade-batch-4-ok-ri-sd-vt-wv-wy-acfr-48-53 P121-05 | 25min | 3 tasks | 3 files |
+| Phase 121-acfr-upgrade-batch-4-ok-ri-sd-vt-wv-wy-acfr-48-53 P121-06 | 55min | 3 tasks | 4 files |
 
 ## Decisions
 
@@ -385,6 +386,10 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 - [Phase 121-04]: VT ACFR-51: UNITS=1 dollars hard-set; extract_gf.py split_row() generalized for zero/one-whitespace dot-leader defect (VT FY2024/2025), zero regression vs ND/SD/MT/NE; ~1.01x near-parity vs NASBO (smallest divergence in Batch 4); FY2023/FY2024 NASBO replaced in place
 - [Phase ?]: WV: rev_boundary='Intergovernmental' clears the single 'Taxes:' header (SC/MS/MT precedent); zero hand-patches, all 6 FY2020-2025 years tied exactly on first pass
 - [Phase ?]: WV ACFR GF ~3.52x NASBO GF (2nd-largest in Batch 4) accepted and relabelled honestly -- Intergovernmental federal-passthrough ~47% of GF plus nearly all state taxes consolidated into General
+- [Phase 121-06]: WY ACFR GF ~2.43x NASBO GF driven by an unusual DUAL mechanism -- Investment Income (largest single GF revenue line, $1.41B FY2025, Permanent Mineral Trust Fund earnings) PLUS Federal ($1.11B) both consolidated into the General column, distinct from every other Batch-4 state's single-driver divergence
+- [Phase 121-06]: WY's FY2020 URL is absent from the 117 recon's own SOURCES enumeration (jumps FY2019->FY2021) -- discovered live off sao.wyo.gov/publications/ during the load, no honest hole resulted
+- [Phase 121-06]: WY colon-less 'Taxes'/'Current'/'Debt Service' subsection headers (3rd instance of the VT precedent in this cohort) fixed via a dedicated wy_assemble.py post-process pass -- labels only, all 21 years re-verified tying identically before/after
+- [Phase 121-06]: MILESTONE: Wyoming (ACFR-53) was the final state -- all 50 US states now carry a State-ACFR-sourced General Fund (revenue-by-source + spending-by-function), completing Batches 1-4 (Phases 118-121) ahead of Phase 123 (NASBO Retirement) and Phase 124 (Verification+UAT)
 
 ## Deferred Items
 
