@@ -6,7 +6,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   clampForRender, categoryLabel, buildCategoryLeaf, buildOperatingTree,
-  validateAgainstControl, dataSourceLabel, sourceDate, __STATES,
+  validateAgainstControl, dataSourceLabel, sourceDate, isAcfrOccupied, __STATES,
 } from './loadStateGF.mjs';
 
 test('clampForRender clamps negatives to 0, leaves non-negatives (P2)', () => {
@@ -72,7 +72,7 @@ test('validateAgainstControl: a mismatched control fails the cross-check', () =>
 test('GA categories are all checksum-positive-or-zero and sum is correct', () => {
   const cats = __STATES.GA.operating[2023].categories;
   const sum = cats.reduce((s, c) => s + c.total, 0);
-  assert.equal(sum, 29_274_000_000);                    // documented 7-function sum
+  assert.equal(sum, 29_266_000_000);                    // 7-function sum after F-97-01 (Medicaid 3,398→3,390); ties controlTotalGF
   for (const c of cats) assert.ok(c.total >= 0, `${c.name} non-negative`);
 });
 
@@ -86,6 +86,17 @@ test('dataSourceLabel carries the basis label + FY (P3)', () => {
 test('sourceDate uses the state fiscal-year end (P4)', () => {
   assert.equal(sourceDate('GA', 2023), '2023-06-30');
   assert.equal(sourceDate('ZZ', 2023), '2023-06-30');   // default 06-30
+});
+
+test('isAcfrOccupied never-overwrite-ACFR guard: absent → false, NASBO-self → false, ACFR/other → true (NASBORT-01)', () => {
+  // Absent node → NASBO fallback may fill it.
+  assert.equal(isAcfrOccupied(null), false);
+  assert.equal(isAcfrOccupied(''), false);
+  // Node is itself NASBO → allow idempotent refresh of the two remaining fallback nodes.
+  assert.equal(isAcfrOccupied('NASBO State Expenditure Report — General Fund (FY2024 actual, budgetary basis)'), false);
+  // ACFR source occupies the node → protect it, never overwrite.
+  assert.equal(isAcfrOccupied('Nevada State ACFR — General Fund (FY2023 actual, GAAP basis)'), true);
+  assert.equal(isAcfrOccupied('Kentucky State ACFR — General Fund (FY2024 actual, GAAP basis)'), true);
 });
 
 // ── Alabama cohort-state tests (6-function 2025 SER taxonomy) ─────────────────────────
