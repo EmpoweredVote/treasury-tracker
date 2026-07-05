@@ -1,10 +1,18 @@
 #!/usr/bin/env node
 /**
- * State General Fund Loader — NASBO source (operating / spending-by-function)
+ * State General Fund Loader — NASBO source (operating / spending-by-function)  [FALLBACK-ONLY]
  * ──────────────────────────────────────────────────────────────────────────
+ * ⚠ FALLBACK-ONLY (retired 2026-07-05, NASBORT-01). All 50 states are now on State-ACFR GAAP
+ *   General-Fund data (Phases 118–121 loaded the last 21; 122 deepened CA/FL). This NASBO loader
+ *   is DEMOTED to a dormant fallback — kept, NOT deleted (REQUIREMENTS non-goal). A behavioral
+ *   never-overwrite-ACFR guard (`isAcfrOccupied`) makes it skip any state-FY already served by a
+ *   non-NASBO/ACFR source, so an unfiltered re-run is a safe no-op. It writes ONLY where the node
+ *   is absent or itself NASBO — currently the two honest ACFR-gap fallbacks (NV FY2024, KY FY2023).
+ *   See docs/state-acfr-5050.md for the 50/50-ACFR end state.
+ *
  * Phase 94 (SGFS-01). Source decision LOCKED by Chris 2026-06-27 (94-01-SPIKE.md):
  *   Hybrid — NASBO now (49 states), Minnesota kept as the ACFR gold-standard outlier,
- *   per-state ACFR upgrades for high-traffic states later.
+ *   per-state ACFR upgrades for high-traffic states later. (Now complete: all 50 on ACFR.)
  *
  * Basis: NASBO State Expenditure Report (SER) reports each state's GENERAL FUND
  *   spending across functional categories by fund source (the "General Fund" column
@@ -1553,6 +1561,20 @@ export function dataSourceLabel(fy) {
   return `NASBO State Expenditure Report — General Fund (FY${fy} actual, budgetary basis)`;
 }
 
+/**
+ * NASBORT-01 never-overwrite-ACFR guard (pure, unit-tested; no DB).
+ * Decides whether the existing operating node is occupied by a source this
+ * FALLBACK-ONLY loader must NOT overwrite. Returns:
+ *   - false when `existingDataSource` is null/empty (node absent → NASBO may fill it),
+ *   - false when it matches /NASBO/i (node is itself NASBO → allow idempotent refresh),
+ *   - true otherwise (a non-NASBO/ACFR source occupies the node → protect it, skip).
+ */
+export function isAcfrOccupied(existingDataSource) {
+  if (!existingDataSource) return false;      // absent node → NASBO fallback may fill
+  if (/NASBO/i.test(existingDataSource)) return false; // own fallback → idempotent refresh OK
+  return true;                                // ACFR/other source present → protect, never overwrite
+}
+
 /** P4: source_date = the state's fiscal-year end the figures represent. */
 export function sourceDate(abbr, fy) {
   const mmdd = FY_END_MMDD[abbr] || '06-30';
@@ -1582,6 +1604,17 @@ async function loadStateFY(supabase, st, fy, dryRun) {
   const { data: muni, error: mErr } = await supabase.schema('treasury').from('municipalities')
     .select('id,name').eq('name', st.name).eq('state', st.abbr).eq('entity_type', 'state').single();
   if (mErr || !muni) { console.error(`  ${st.name} state node not found`); process.exit(2); }
+
+  // NASBORT-01 never-overwrite-ACFR guard: this loader is FALLBACK-ONLY. Read the existing
+  // operating row's data_source BEFORE any write; if a non-NASBO (ACFR/other) source already
+  // occupies the node, skip entirely — no data_sources insert, no RPC → 0 residue on skips.
+  const { data: existing } = await supabase.schema('treasury').from('budgets')
+    .select('data_source').eq('municipality_id', muni.id).eq('fiscal_year', fy)
+    .eq('dataset_type', 'operating').maybeSingle();
+  if (isAcfrOccupied(existing?.data_source)) {
+    console.log(`  SKIP ${st.abbr} FY${fy}: ACFR node present — NASBO retired to fallback-only`);
+    return false;
+  }
 
   // Ephemeral RPC parameter vehicle (WR-05 / LOAD-01): budgets rows carry text-stamp provenance,
   // so a persistent data_sources row is unreferenceable residue — create fresh here, delete at end of run.
@@ -1626,7 +1659,7 @@ async function main() {
   const dryRun = opts['dry-run'];
   const stateFilter = opts.state ? opts.state.toUpperCase() : null;
   const fyFilter = opts.fy ? parseInt(opts.fy, 10) : null;
-  console.log(`State GF Loader — NASBO (operating)${dryRun ? ' (dry-run)' : ''}\n`);
+  console.log(`State GF Loader — NASBO (operating) [FALLBACK-ONLY]${dryRun ? ' (dry-run)' : ''}\n`);
   if (!SUPABASE_KEY && !dryRun) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit(2); }
   const supabase = dryRun ? null : createClient(SUPABASE_URL, SUPABASE_KEY);
 
