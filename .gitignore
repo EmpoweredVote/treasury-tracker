@@ -42,6 +42,9 @@ docs/*
 !docs/utah-bigquery-access.md
 !docs/utah-entity-mapping.md
 !docs/utah-salaries-coverage.md
+# …and the 50/50-ACFR end-state record (Phase 123, NASBORT-01): the durable source-of-record
+# for the all-50-states-on-ACFR milestone + the two accepted NASBO fallback nodes.
+!docs/state-acfr-5050.md
 
 # Supabase temp files
 supabase/.temp/

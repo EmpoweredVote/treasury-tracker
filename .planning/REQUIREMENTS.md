@@ -43,8 +43,8 @@ These apply to **every** ACFR-nn / DEEP-05 requirement below — an implementati
 - [x] **ACFR-38**: Iowa (IA) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
 - [x] **ACFR-39**: Kansas (KS) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
 - [x] **ACFR-40**: Maine (ME) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
-- [ ] **ACFR-41**: Mississippi (MS) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
-- [ ] **ACFR-42**: Montana (MT) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
+- [x] **ACFR-41**: Mississippi (MS) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
+- [x] **ACFR-42**: Montana (MT) upgraded NASBO→State-ACFR GAAP GF revenue-by-source + finer spending-by-function
 
 ### ACFR Upgrades — Batch 3
 
@@ -69,7 +69,7 @@ These apply to **every** ACFR-nn / DEEP-05 requirement below — an implementati
 
 ### NASBO Retirement
 
-- [ ] **NASBORT-01**: With all 50 states on ACFR, the `loadStateGF.mjs` NASBO path is demoted to fallback-only (relabelled / guarded so it no longer serves any live node), and the 50/50-ACFR end state is documented; no live state node still displays NASBO where ACFR now exists
+- [x] **NASBORT-01**: With all 50 states on ACFR, the `loadStateGF.mjs` NASBO path is demoted to fallback-only (relabelled / guarded so it no longer serves any live node), and the 50/50-ACFR end state is documented; no live state node still displays NASBO where ACFR now exists
 
 ### Verification
 
@@ -104,8 +104,8 @@ Which phases cover which requirements. Populated during roadmap creation.
 | ACFR-38 | Phase 119 | Complete |
 | ACFR-39 | Phase 119 | Complete |
 | ACFR-40 | Phase 119 | Complete |
-| ACFR-41 | Phase 119 | Pending |
-| ACFR-42 | Phase 119 | Pending |
+| ACFR-41 | Phase 119 | Complete |
+| ACFR-42 | Phase 119 | Complete |
 | ACFR-43 | Phase 120 | Complete |
 | ACFR-44 | Phase 120 | Complete |
 | ACFR-45 | Phase 120 | Complete |
@@ -118,7 +118,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | ACFR-52 | Phase 121 | Complete |
 | ACFR-53 | Phase 121 | Complete |
 | DEEP-05 | Phase 122 | Complete |
-| NASBORT-01 | Phase 123 | Pending |
+| NASBORT-01 | Phase 123 | Complete |
 | VER-09 | Phase 124 | Pending |
 | VER-10 | Phase 124 | Pending |
 
