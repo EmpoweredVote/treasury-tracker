@@ -120,7 +120,7 @@ Which phases cover which requirements. Populated during roadmap creation.
 | DEEP-05 | Phase 122 | Complete |
 | NASBORT-01 | Phase 123 | Complete |
 | VER-09 | Phase 124 | Complete |
-| VER-10 | Phase 124 | Pending (Plan 03) |
+| VER-10 | Phase 124 | Complete |
 
 **Coverage:**
 - v1 requirements: 26 total
