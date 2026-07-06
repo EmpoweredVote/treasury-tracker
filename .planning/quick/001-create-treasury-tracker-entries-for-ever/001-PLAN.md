@@ -1,6 +1,7 @@
 ---
 phase: quick-001
 plan: 001
+status: complete
 type: execute
 wave: 1
 depends_on: []

@@ -1,6 +1,7 @@
 ---
 phase: 002-add-longview-tx-revenue
 plan: 01
+status: complete
 type: execute
 wave: 1
 depends_on: []

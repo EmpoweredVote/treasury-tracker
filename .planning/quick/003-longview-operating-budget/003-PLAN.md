@@ -1,6 +1,7 @@
 ---
 phase: quick-003
 plan: 003
+status: complete
 type: execute
 wave: 1
 depends_on: [002-add-longview-tx-revenue]

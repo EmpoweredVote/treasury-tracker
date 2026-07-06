@@ -1,5 +1,25 @@
 # Milestones — Treasury Tracker / Empowered Vote Financials
 
+## v2.15 State ACFR Long Tail — Final Tail + NASBO Retirement (Shipped: 2026-07-06)
+
+**Phases completed:** 8 phases (117–124), 34 plans
+**Git range:** `067e338..655b77d` — 127 commits, 246 files, +34,346 / −10,739 lines (2026-07-03 → 2026-07-06)
+
+**Delivered:** The State-ACFR arc is complete — **all 50 states now carry State-ACFR GAAP General-Fund data** (revenue-by-source + finer spending-by-function). The last 21 NASBO states (AK/AR/DE/HI/ID/IA/KS/ME/MS/MT/NE/NV/NH/NM/ND/OK/RI/SD/VT/WV/WY) were upgraded NASBO→ACFR across four parallel load batches (Phases 118–121), every loaded state-FY tying $0 to its printed GF total — including scanned/raster-image years (NM FY2022, OK FY2019, SD) hand-transcribed via independent OCR. Existing nodes deepened (**CA +6→FY2002** at the GASB-34 boundary, **FL +18→FY2003–2020**; NY/TX floors reconfirmed). **NASBO retired to fallback-only** (guarded via `isAcfrOccupied`) — no live node shows NASBO where ACFR exists; only two honest fallback rows remain (NV FY2024, KY FY2023 — genuine ACFR gaps). Free ACFR PDFs only, $0 AI spend, executed inline.
+
+**Key accomplishments:**
+
+- **Phases 118–121 (ACFR-33..53):** All 21 remaining NASBO states upgraded to full State-ACFR GAAP — cohort 29 → **50/50 ACFR states**. Every state-FY ties $0 to its printed GF column total; scanned/raster years OCR'd independently and tied exact; scope divergences (AR single-fund, etc.) relabelled honestly.
+- **Phase 117 (RECON-11):** All 21 states located, bookend-tied at $0, roster locked with load-time flags — **zero STAY-NASBO exceptions**, so the NASBO-served list came out empty and every state landed on ACFR (verified 7/7, $0 DB writes).
+- **Phase 122 (DEEP-05):** Existing ACFR nodes deepened — CA back to FY2002 (GASB-34 boundary), FL to FY2003–2020; NY/TX floors reconfirmed 0 recoverable; FL FY2000–02 documented repair-pending.
+- **Phase 123 (NASBORT-01):** NASBO path demoted to guarded fallback-only; 50/50-ACFR end state documented; no data regression on any of the 50 ACFR nodes.
+- **Phase 124 (VER-09, VER-10):** Verified end-to-end — **149/151 loader-independent blind re-derivations at exact $0** (2 explained rounding), a **14/14-invariant 50-node / 1,560-row cohort audit** (50/50-ACFR, NASBORT-01, LOAD-01 clean, 0 residue no manual re-clean), and **Chris live-app UAT 12/12 all-pass**.
+- **Also shipped this cycle (outside the milestone):** a search-first landing page (removed the "Available communities" browse grid) and hero banners re-sourced from the shared Empowered Vote asset bucket with attribution.
+
+**Known deferred items at close:** 1 (todo `2026-06-30-authenticated-deeplink-redirect-to-home-jurisdiction`, frontend-routing — see STATE.md Deferred Items). The three Longview-TX / Collin-County quick tasks flagged by the close audit are verified-complete (audit filename-detection quirk, not real gaps).
+
+---
+
 ## v2.14 State ACFR Long Tail — Tranche 3 + Deepening (Shipped: 2026-07-03)
 
 **Phases completed:** 6 phases (111–116), 20 plans

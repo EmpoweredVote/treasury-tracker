@@ -1,6 +1,7 @@
 ---
 phase: quick-001
 plan: 001
+status: complete
 subsystem: database/seed
 tags: [municipalities, collin-county, texas, seeder, supabase]
 requires: []
