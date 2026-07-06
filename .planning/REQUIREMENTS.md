@@ -74,7 +74,7 @@ These apply to **every** ACFR-nn / DEEP-05 requirement below — an implementati
 ### Verification
 
 - [x] **VER-09**: Loader-independent blind re-derivation of every newly-loaded and newly-deepened state-FY ties at exact $0; a 50-state cohort source-chain audit confirms all rows sourced / windowed / deduplicated / basis-labelled with 0 `data_sources` residue and no manual re-clean (LOAD-01 holds cohort-wide); all 50 nodes confirmed on ACFR *(Plan 01 — blind re-derivation — DONE, 149/151 exact + 2 explained, see 124-REDERIVATION.md. Plan 02 — 50-state cohort audit — DONE, 14/14 invariants PASS incl. NASBORT-01 + 50/50-ACFR, see 124-COHORT-AUDIT.md.)*
-- [ ] **VER-10**: Chris live-app UAT sign-off across a representative sample of the newly-upgraded ACFR states + a deepened node, confirming real sourced revenue-by-source + spending-by-function render correctly and no node still shows NASBO where ACFR now exists
+- [x] **VER-10**: Chris live-app UAT sign-off across a representative sample of the newly-upgraded ACFR states + a deepened node, confirming real sourced revenue-by-source + spending-by-function render correctly and no node still shows NASBO where ACFR now exists
 
 ## Out of Scope
 
