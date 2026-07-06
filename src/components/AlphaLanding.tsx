@@ -18,7 +18,7 @@ interface AlphaLandingProps {
 }
 
 const STEPS = [
-  { n: '01', heading: 'Choose Your City', body: 'Browse our Alpha communities or search for yours.', active: true },
+  { n: '01', heading: 'Choose Your City', body: 'Search for your city or town to get started.', active: true },
   { n: '02', heading: 'Explore the Budget', body: 'Interactive charts break revenue and spending into digestible slices.' },
   { n: '03', heading: 'Trace the Money', body: 'Drill down to individual payments and see exactly who was paid.' },
 ];
@@ -37,14 +37,6 @@ function readUserAddress(): { state: string; addr: string } | null {
 
 // Max city rows rendered in the search results list at once.
 const MAX_CITY_RESULTS = 50;
-
-// The cohort spans 1,000+ municipalities. Rendering a card for every one freezes
-// the page (and the OS cursor) — the DOM is enormous and every card has hover
-// transitions. Cap the browse grids; the search box above is the way to find a
-// specific city. These caps are the primary defense against the landing-page
-// typing-freeze.
-const MAX_NEARBY_CARDS = 12;
-const MAX_OTHER_CARDS = 24;
 
 // ── City search ──
 function CitySearch({
@@ -134,201 +126,6 @@ function CitySearch({
   );
 }
 
-const STATE_NAMES: Record<string, string> = {
-  IN: 'Indiana',
-  CA: 'California',
-  TX: 'Texas',
-  OR: 'Oregon',
-  US: 'Federal',
-};
-
-// Simplified U.S. flag swatch — used as the Federal tile's "logo". Inline SVG
-// (not an emoji flag — those don't render on Windows). 7 red stripes over a
-// white field, navy canton with a 3×3 star cluster reading as stars at tile size.
-function USFlagIcon({ className = '' }: { className?: string }) {
-  const stripeH = 10 / 13;
-  return (
-    <svg viewBox="0 0 19 10" className={className} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-      <rect width="19" height="10" fill="#fff" />
-      {Array.from({ length: 7 }, (_, i) => (
-        <rect key={`r${i}`} x="0" y={i * 2 * stripeH} width="19" height={stripeH} fill="#B22234" />
-      ))}
-      <rect x="0" y="0" width="7.6" height={stripeH * 7} fill="#3C3B6E" />
-      {Array.from({ length: 9 }, (_, i) => (
-        <circle key={`s${i}`} cx={1.4 + (i % 3) * 2.4} cy={0.9 + Math.floor(i / 3) * 1.6} r="0.45" fill="#fff" />
-      ))}
-    </svg>
-  );
-}
-
-
-// ── City cards ──
-function CityGrid({
-  municipalities,
-  onNavigateToCity,
-  preloadedCity,
-}: {
-  municipalities: Municipality[];
-  onNavigateToCity: (city: Municipality) => void;
-  preloadedCity?: Municipality | null;
-}) {
-  const available = municipalities.filter(m => m.available_datasets.length > 0);
-
-  if (available.length === 0) {
-    return (
-      <div className="bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl p-6 text-center text-sm text-ev-gray-500">
-        Loading communities…
-      </div>
-    );
-  }
-
-  const userAddress = readUserAddress();
-  // The federal tracker is pinned to the very top — pull it out of the regular grouping
-  const federal = available.find(m => m.entity_type === 'federal') ?? null;
-  // Exclude state + federal entities from "Near you" — they aren't a local city
-  const nearby = userAddress ? available.filter(m => m.entity_type !== 'state' && m.entity_type !== 'federal' && m.state === userAddress.state && m.id !== preloadedCity?.id) : [];
-  const others = available.filter(m => m.entity_type !== 'federal' && m.id !== preloadedCity?.id && (!userAddress || m.state !== userAddress.state));
-
-  const othersByState = new Map<string, Municipality[]>();
-  for (const m of others) {
-    if (!othersByState.has(m.state)) othersByState.set(m.state, []);
-    othersByState.get(m.state)!.push(m);
-  }
-  // Within each state section, pin state entities to the top
-  for (const [state, list] of othersByState) {
-    othersByState.set(state, [
-      ...list.filter(m => m.entity_type === 'state'),
-      ...list.filter(m => m.entity_type !== 'state'),
-    ]);
-  }
-  const otherStates = [...othersByState.keys()].sort();
-
-  // Cap the browse grids so we never render 1,000+ cards. "Near you" shows the
-  // closest dozen; "Other communities" shows a capped sample across states. The
-  // rest are reachable via the search box above (hint shown when truncated).
-  const nearbyShown = nearby.slice(0, MAX_NEARBY_CARDS);
-  const nearbyHidden = nearby.length - nearbyShown.length;
-
-  // Walk states in order, taking cards until we hit the overall cap.
-  const cappedOtherStates: { state: string; cities: Municipality[] }[] = [];
-  let otherBudget = MAX_OTHER_CARDS;
-  for (const state of otherStates) {
-    if (otherBudget <= 0) break;
-    const cities = othersByState.get(state)!.slice(0, otherBudget);
-    otherBudget -= cities.length;
-    cappedOtherStates.push({ state, cities });
-  }
-  const otherShownCount = cappedOtherStates.reduce((n, s) => n + s.cities.length, 0);
-  const otherHidden = others.length - otherShownCount;
-
-  const renderCityButton = (city: Municipality) => {
-    const years = [...new Set(city.available_datasets.map(d => d.fiscal_year))].sort((a, b) => b - a);
-    const isPilot = city.name === 'Bloomington' && city.state === 'IN';
-    const isState = city.entity_type === 'state';
-    const isFederal = city.entity_type === 'federal';
-    return (
-      <button
-        key={city.id}
-        onClick={() => onNavigateToCity(city)}
-        className={`flex items-center gap-3 border rounded-xl p-4 text-left hover:shadow-sm transition-all duration-200 group ${
-          isFederal
-            ? 'bg-gradient-to-br from-[#EEF3FB] to-white dark:from-[#0e1a30] dark:to-ev-gray-800 border-[#C7D6EC] dark:border-[#2a3a55] hover:border-[#3C3B6E] dark:hover:border-ev-skyblue-500'
-            : 'bg-white dark:bg-ev-gray-800 border-[#E2EBEF] dark:border-ev-gray-700 hover:border-[#005366] dark:hover:border-ev-muted-blue'
-        }`}
-      >
-        {isFederal ? (
-          <div className="w-9 h-9 rounded-lg overflow-hidden border border-[#C7D6EC] dark:border-[#2a3a55] shrink-0">
-            <USFlagIcon className="w-full h-full" />
-          </div>
-        ) : (
-          <div className="w-9 h-9 rounded-lg bg-[#EAF4F7] dark:bg-ev-teal-950 flex items-center justify-center shrink-0 group-hover:bg-[#005366] transition-colors duration-200">
-            <Building2 size={16} className="text-[#005366] group-hover:text-white transition-colors duration-200" />
-          </div>
-        )}
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-[#1C1C1C] dark:text-ev-gray-100 truncate">
-            {isState || isFederal ? city.name : `${city.name}, ${city.state}`}
-            {isFederal && (
-              <span className="ml-2 text-xs font-normal text-[#3C3B6E] dark:text-ev-skyblue-400 bg-[#EEF3FB] dark:bg-[#1a2540] px-1.5 py-0.5 rounded">
-                Federal Budget
-              </span>
-            )}
-            {isState && (
-              <span className="ml-2 text-xs font-normal text-[#005366] bg-[#EAF4F7] px-1.5 py-0.5 rounded">
-                State Budget
-              </span>
-            )}
-            {isPilot && (
-              <span className="ml-2 text-xs font-normal text-[#005366] bg-[#EAF4F7] px-1.5 py-0.5 rounded">
-                Pilot
-              </span>
-            )}
-          </p>
-          <p className="text-xs text-ev-gray-500 mt-0.5">
-            {years.length} fiscal year{years.length !== 1 ? 's' : ''} · {years[0]} most recent
-          </p>
-        </div>
-        <ArrowRight size={14} className={`text-ev-gray-400 shrink-0 transition-colors duration-200 ${isFederal ? 'group-hover:text-[#3C3B6E] dark:group-hover:text-ev-skyblue-500' : 'group-hover:text-[#005366]'}`} />
-      </button>
-    );
-  };
-
-  return (
-    <div className="space-y-6">
-      {federal && (
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-ev-gray-500 mb-2">
-            Federal Government
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {renderCityButton(federal)}
-          </div>
-        </div>
-      )}
-      {nearby.length > 0 && (
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-ev-gray-500 mb-2">
-            Near you
-            {userAddress?.addr && (
-              <span className="ml-2 normal-case font-normal tracking-normal text-ev-gray-400">· {userAddress.addr}</span>
-            )}
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {nearbyShown.map(renderCityButton)}
-          </div>
-          {nearbyHidden > 0 && (
-            <p className="text-xs text-ev-gray-500 mt-2 pl-1">
-              +{nearbyHidden} more near you — use the search above to find your city.
-            </p>
-          )}
-        </div>
-      )}
-      {others.length > 0 && (
-        <div className="space-y-5">
-          {(nearby.length > 0 || preloadedCity) && (
-            <p className="text-xs font-semibold uppercase tracking-wider text-ev-gray-500">Other communities</p>
-          )}
-          {cappedOtherStates.map(({ state, cities }, i) => (
-            <div key={state} className={i > 0 ? "pt-4 border-t border-[#E2EBEF] dark:border-ev-gray-700" : ""}>
-              <p className="text-xs font-semibold uppercase tracking-wider text-ev-gray-600 dark:text-ev-gray-400 mb-2">
-                {STATE_NAMES[state] || state}
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {cities.map(renderCityButton)}
-              </div>
-            </div>
-          ))}
-          {otherHidden > 0 && (
-            <p className="text-xs text-ev-gray-500 pl-1">
-              +{otherHidden} more communities across {otherStates.length} states — use the search above to jump to any city.
-            </p>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ── Main component ──
 export default function AlphaLanding({ reason, municipalities, onNavigateToCity, profileMenu }: AlphaLandingProps) {
   const cityPickerRef = useRef<HTMLDivElement>(null);
@@ -402,7 +199,7 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
                     onClick={() => cityPickerRef.current?.scrollIntoView({ behavior: 'smooth' })}
                     className="inline-flex items-center gap-1 text-sm text-ev-gray-400 dark:text-ev-gray-400 hover:text-ev-gray-900 dark:hover:text-white transition-colors px-2"
                   >
-                    Browse all cities
+                    Search other cities
                   </button>
                 </div>
               ) : (
@@ -492,39 +289,11 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
 
         {/* ── Guest ── */}
         {reason.type === 'guest' && (
-          <>
-            <div className="bg-[#EAF4F7] dark:bg-ev-teal-950/50 border border-[#B3D9E3] dark:border-ev-teal-800 rounded-xl p-5">
-              <p className="text-sm font-semibold text-[#005366] dark:text-ev-muted-blue">
-                Treasury Tracker is currently serving a limited number of Alpha communities.
-              </p>
-              <p className="text-sm text-ev-gray-500 mt-1">
-                Search below to see if your city is available, or browse our current communities.
-              </p>
-            </div>
-
-            <div>
-              <h2 className="text-base font-bold text-[#1C1C1C] dark:text-ev-gray-100 mb-3">Available communities</h2>
-              <CityGrid municipalities={municipalities} onNavigateToCity={onNavigateToCity} preloadedCity={preloadedCity} />
-            </div>
-
-            <div>
-              <h2 className="text-base font-bold text-[#1C1C1C] dark:text-ev-gray-100 mb-3">Find your city</h2>
-              <CitySearch municipalities={municipalities} onNavigateToCity={onNavigateToCity} />
-            </div>
-
-            <div className="flex items-center gap-3 py-4 border-t border-[#E2EBEF] dark:border-ev-gray-700">
-              <p className="text-sm text-ev-gray-500 flex-1">
-                Have an Empowered account? Sign in and Treasury Tracker will route you to your city automatically.
-              </p>
-              <a
-                href={getLoginUrl()}
-                className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 border border-[#005366] dark:border-ev-muted-blue text-[#005366] dark:text-ev-muted-blue text-sm font-medium rounded-lg hover:bg-[#EAF4F7] dark:hover:bg-ev-teal-950 transition-colors duration-200"
-              >
-                Sign In
-                <ArrowRight size={13} />
-              </a>
-            </div>
-          </>
+          <div className="bg-[#EAF4F7] dark:bg-ev-teal-950/50 border border-[#B3D9E3] dark:border-ev-teal-800 rounded-xl p-5">
+            <p className="text-sm font-semibold text-[#005366] dark:text-ev-muted-blue">
+              Treasury Tracker is currently serving a limited number of Alpha communities.
+            </p>
+          </div>
         )}
 
         {/* ── Connected, no address ── */}
@@ -550,11 +319,6 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
               <h2 className="text-base font-bold text-[#1C1C1C] dark:text-ev-gray-100 mb-3">Or search for a city</h2>
               <CitySearch municipalities={municipalities} onNavigateToCity={onNavigateToCity} />
             </div>
-
-            <div>
-              <h2 className="text-base font-bold text-[#1C1C1C] dark:text-ev-gray-100 mb-3">Available communities</h2>
-              <CityGrid municipalities={municipalities} onNavigateToCity={onNavigateToCity} preloadedCity={preloadedCity} />
-            </div>
           </>
         )}
 
@@ -571,8 +335,8 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
             </div>
 
             <div>
-              <h2 className="text-base font-bold text-[#1C1C1C] dark:text-ev-gray-100 mb-3">Available communities</h2>
-              <CityGrid municipalities={municipalities} onNavigateToCity={onNavigateToCity} preloadedCity={null} />
+              <h2 className="text-base font-bold text-[#1C1C1C] dark:text-ev-gray-100 mb-3">Find another city</h2>
+              <CitySearch municipalities={municipalities} onNavigateToCity={onNavigateToCity} />
             </div>
           </>
         )}
