@@ -1,16 +1,35 @@
 /**
- * Fetch a representative image for a municipality from Wikipedia.
+ * Resolve a hero banner image for a municipality.
  *
- * Uses the Wikipedia REST API /page/summary endpoint which returns
- * an "originalimage" or "thumbnail" for most municipality articles.
+ * Priority:
+ *   1. entity.hero_image_url — an explicit per-entity override from the DB.
+ *   2. The org's shared, licensed banner bucket (Supabase Storage) — the
+ *      authoritative, QA'd, Wikimedia-sourced image library shared across
+ *      Empowered Vote apps. All 50 states, the federal band, and a curated
+ *      (growing) set of cities are covered. See docs/shared-banner-assets.md
+ *      in the `essentials` repo; catalog source of truth is that repo's
+ *      src/lib/buildingImages.js. We gate on a known-covered list rather than
+ *      probing (a CSS background-image can't onerror-fallback), so uncovered
+ *      places never point at a 404.
+ *   3. Fallback: a live Wikipedia REST lookup, for places not yet in the
+ *      bucket. Slower/unlicensed — retained only so coverage never regresses.
+ *   4. null — the caller renders a neutral gradient.
  *
- * Results are cached in-memory so each entity is fetched at most once
- * per session.
+ * Results are cached in-memory so each entity is resolved at most once per
+ * session.
  */
 
 import type { Municipality } from '../types/budget';
 
-const cache = new Map<string, string | null>();
+/** A resolved hero banner + the attribution credit to display, if any. */
+export interface HeroImage {
+  url: string;
+  /** Human credit line to surface (e.g. "Wikimedia Commons"), or null when
+   *  the source is a DB override of unknown provenance. */
+  credit: string | null;
+}
+
+const cache = new Map<string, HeroImage | null>();
 
 /** State abbreviation → full name for Wikipedia article titles */
 export const STATE_NAMES: Record<string, string> = {
@@ -91,7 +110,7 @@ function buildSearchTitles(entity: Municipality): string[] {
       // State entities: use just the state name (e.g. "Indiana")
       titles.push(entity.name);
       titles.push(`${entity.name} (state)`);
-      return titles; // return early � state fallback to stateFull would duplicate
+      return titles; // return early � state fallback to stateFull would duplicate
     default:
       // city, town, school_district, library, etc.
       titles.push(`${entity.name}, ${stateFull}`);
@@ -126,31 +145,93 @@ async function fetchWikiImage(title: string): Promise<string | null> {
   }
 }
 
-/**
- * Get a hero image URL for a municipality. Tries multiple Wikipedia
- * article title variants and caches the result.
- */
-export async function getHeroImage(entity: Municipality): Promise<string | null> {
-  // Return from DB if set
-  if (entity.hero_image_url) return entity.hero_image_url;
+// ── Shared banner bucket (Empowered Vote org assets) ──
 
-  // Non-geographic entities have no Wikipedia article — use gradient fallback
+/** Public, unauthenticated Supabase Storage base for the shared banner library.
+ *  Lives in the same Supabase project this app already uses. */
+const BANNER_BASE =
+  'https://kxsdzaojfaibhuzmclfq.storage.supabase.co/storage/v1/object/public/politician_photos';
+
+/** All bucket banners are sourced from Wikimedia Commons under a free license
+ *  (CC BY / CC BY-SA / CC0 / Public Domain). CC BY / CC BY-SA require visible
+ *  attribution. Per-image title/author/license is available as a JSON export
+ *  from the essentials registry — wire that in to upgrade this generic credit
+ *  to per-image attribution. */
+const WIKIMEDIA_CREDIT = 'Wikimedia Commons';
+
+const toSlug = (name: string) => name.toLowerCase().trim().replace(/\s+/g, '-');
+
+/**
+ * Cities with a curated banner at `cities/<slug>.jpg`, keyed "slug|STATE".
+ * State-scoped so a shared slug (e.g. Glendale CA vs Glendale AZ) can't collide
+ * onto the wrong city's image. Snapshot of the essentials CURATED_LOCAL catalog
+ * as of 2026-07-05; the catalog only grows and never repurposes a slug, so a
+ * stale snapshot under-covers (falls back to Wikipedia) but never mis-serves.
+ * Legacy la_county/<geoid> entries (LA, Pomona, Torrance, Carson) are omitted
+ * pending their migration to cities/ — they fall through to the Wikipedia path.
+ */
+const CURATED_CITY_BANNERS = new Set<string>([
+  'bloomington|IN',
+  'beaverton|OR', 'hillsboro|OR', 'tigard|OR', 'tualatin|OR', 'forest-grove|OR', 'sherwood|OR', 'cornelius|OR',
+  'long-beach|CA', 'glendale|CA', 'pasadena|CA', 'west-covina|CA', 'downey|CA', 'burbank|CA', 'norwalk|CA',
+]);
+
+/** Build a shared-bucket banner URL for entities we know are covered, else null. */
+function bucketBannerUrl(entity: Municipality): string | null {
+  switch (entity.entity_type) {
+    case 'federal':
+      return `${BANNER_BASE}/national/us-capitol-banner-v2.jpg`;
+    case 'state': {
+      const abbr = entity.state.toUpperCase();
+      // All 50 states are covered at states/<ABBR>.jpg.
+      return STATE_NAMES[abbr] ? `${BANNER_BASE}/states/${abbr}.jpg` : null;
+    }
+    case 'nonprofit':
+      return null;
+    default: {
+      const slug = toSlug(entity.name);
+      return CURATED_CITY_BANNERS.has(`${slug}|${entity.state.toUpperCase()}`)
+        ? `${BANNER_BASE}/cities/${slug}.jpg`
+        : null;
+    }
+  }
+}
+
+/**
+ * Resolve a hero banner for a municipality: DB override → shared bucket →
+ * Wikipedia fallback → null. Caches the result per session.
+ */
+export async function getHeroImage(entity: Municipality): Promise<HeroImage | null> {
+  // 1. Explicit per-entity override from the DB always wins.
+  if (entity.hero_image_url) return { url: entity.hero_image_url, credit: null };
+
+  // 2. Non-geographic entities have no place banner — gradient fallback.
   if (entity.entity_type === 'nonprofit') return null;
 
   const cacheKey = `${entity.name}|${entity.state}|${entity.entity_type}`;
-  if (cache.has(cacheKey)) return cache.get(cacheKey) ?? null;
+  const cached = cache.get(cacheKey);
+  if (cached !== undefined) return cached;
 
+  // 3. Prefer the org's curated, licensed shared-bucket banner.
+  const bucketUrl = bucketBannerUrl(entity);
+  if (bucketUrl) {
+    const hero: HeroImage = { url: bucketUrl, credit: WIKIMEDIA_CREDIT };
+    cache.set(cacheKey, hero);
+    return hero;
+  }
+
+  // 4. Fallback: live Wikipedia lookup for places not yet in the bucket.
   const titles = buildSearchTitles(entity);
-
   for (const title of titles) {
     const url = await fetchWikiImage(title);
     if (url) {
-      cache.set(cacheKey, url);
-      return url;
+      const hero: HeroImage = { url, credit: WIKIMEDIA_CREDIT };
+      cache.set(cacheKey, hero);
+      return hero;
     }
   }
 
-  // No image found — cache null to avoid retrying
+  // No image found — cache null to avoid retrying.
   cache.set(cacheKey, null);
   return null;
 }

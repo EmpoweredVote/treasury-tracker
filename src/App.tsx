@@ -37,7 +37,7 @@ import CitiesInCountyPanel from './components/CitiesInCountyPanel';
 import CitiesInStatePanel from './components/CitiesInStatePanel';
 import CountiesInStatePanel from './components/CountiesInStatePanel';
 import StatesInFederalPanel from './components/StatesInFederalPanel';
-import { getHeroImage, getHeroBgPosition } from './utils/wikiImage';
+import { getHeroImage, getHeroBgPosition, type HeroImage } from './utils/wikiImage';
 import type { BudgetCategory, BudgetData, FederalContext, LinkedTransactionSummary, Municipality, OrgFinancialSummary } from './types/budget';
 
 interface BreadcrumbItem {
@@ -161,14 +161,14 @@ function App() {
   const [budgetLoadError, setBudgetLoadError] = useState(false);
   const [navigationPath, setNavigationPath] = useState<BudgetCategory[]>([]);
   const [linkedTransactions, setLinkedTransactions] = useState<LinkedTransactionSummary | null>(null);
-  const [heroImageUrl, setHeroImageUrl] = useState<string | null>(null);
+  const [heroImage, setHeroImage] = useState<HeroImage | null>(null);
   const [donateOpen, setDonateOpen] = useState(false);
 
-  // Fetch hero image from Wikipedia when entity changes
+  // Resolve the hero banner (shared bucket → Wikipedia fallback) when entity changes
   useEffect(() => {
     if (!selectedEntity) return;
-    setHeroImageUrl(null); // clear while loading
-    getHeroImage(selectedEntity).then(url => setHeroImageUrl(url));
+    setHeroImage(null); // clear while loading
+    getHeroImage(selectedEntity).then(setHeroImage);
   }, [selectedEntity]);
 
   // Update page title when entity changes
@@ -801,13 +801,13 @@ function App() {
 
       {/* Hero banner */}
       <div
-        className={`relative h-48 bg-cover bg-center ${!heroImageUrl ? 'bg-gradient-to-r from-[#005366] to-[#007A8C]' : ''}`}
-        style={heroImageUrl ? {
-          backgroundImage: `url('${heroImageUrl}')`,
+        className={`relative h-48 bg-cover bg-center ${!heroImage ? 'bg-gradient-to-r from-[#005366] to-[#007A8C]' : ''}`}
+        style={heroImage ? {
+          backgroundImage: `url('${heroImage.url}')`,
           ...(getHeroBgPosition(selectedEntity) ? { backgroundPosition: getHeroBgPosition(selectedEntity)! } : {}),
         } : undefined}
       >
-        <div className={`absolute inset-0 ${heroImageUrl ? 'bg-gradient-to-r from-black/60 to-black/30' : ''}`} />
+        <div className={`absolute inset-0 ${heroImage ? 'bg-gradient-to-r from-black/60 to-black/30' : ''}`} />
         <div className="relative h-full max-w-[1400px] mx-auto px-6 flex flex-col justify-end pb-6">
           <h1 className="text-white text-3xl font-bold drop-shadow-lg">
             {selectedEntity.name} Finances
@@ -816,6 +816,14 @@ function App() {
             Explore how public funds are allocated and spent.
           </p>
         </div>
+        {heroImage?.credit && (
+          <span
+            className="absolute bottom-1 right-2 text-[10px] leading-none text-white/55"
+            title="Banner imagery from Wikimedia Commons, under a free license (CC BY / CC BY-SA / CC0 / Public Domain)."
+          >
+            Image: {heroImage.credit}
+          </span>
+        )}
       </div>
 
       {/* FY notice — shown when selected entity has no FY2026 data yet */}
