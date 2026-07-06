@@ -2,9 +2,9 @@
 phase: 124-verification-cohort-audit-uat-ver-09-ver-10
 plan: 03
 requirement: VER-10
-status: pending
-signed_off_by:
-signed_off_date:
+status: signed-off
+signed_off_by: "Chris Cantrell"
+signed_off_date: "2026-07-05"
 production-confirmed: "2026-07-05 HTTP 200 at treasurytracker.empowered.vote"
 ---
 
@@ -44,7 +44,7 @@ the loaders.
   floor — previously CA started at FY2020) and Money In is enabled across the full FY2002–2025
   window, not just the newer years.
 
-**Result:** ☐ PASS ☐ FAIL — Notes:
+**Result:** ✅ PASS (Chris, 2026-07-05) — Notes: rendered as expected.
 
 ## Anchor 2 — FL FY2003 (deepening floor)
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=florida-fl&year=2003&dataset=revenue
@@ -56,7 +56,7 @@ the loaders.
 - **Hole honesty:** FY2000–2002 must be honestly **absent** from the year selector (damaged-xref
   repair-pending source, no interpolation) — not shown with a fabricated/interpolated value.
 
-**Result:** ☐ PASS ☐ FAIL — Notes:
+**Result:** ✅ PASS (Chris, 2026-07-05) — Notes: rendered as expected.
 
 ## Anchor 3 — ID FY2004 (mixed-unit year)
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=idaho-id&year=2004&dataset=revenue
@@ -66,7 +66,7 @@ the loaders.
   renders at the SAME order of magnitude as neighboring years (e.g. FY2025 ≈ $6.66B), with
   **no visible 1000× skew** either up or down. Operating ≈ $1.67B ($1,670,288,000).
 
-**Result:** ☐ PASS ☐ FAIL — Notes:
+**Result:** ✅ PASS (Chris, 2026-07-05) — Notes: rendered as expected.
 
 ## Anchor 4 — NV FY2019 (dollar-unit state, UNITS=1)
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=nevada-nv&year=2019&dataset=revenue
@@ -80,7 +80,7 @@ the loaders.
 https://treasurytracker.empowered.vote/?entity=north-dakota-nd&year=2025&dataset=revenue —
 revenue ≈ $4.51B ($4,510,201,793), also UNITS=1 full dollars, no ×1000 skew.
 
-**Result:** ☐ PASS ☐ FAIL — Notes:
+**Result:** ✅ PASS (Chris, 2026-07-05) — Notes: rendered as expected.
 
 ## Anchor 5 — NM FY2022 (hand-transcribed from raster image, P2 clamp)
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=new-mexico-nm&year=2022&dataset=revenue
@@ -93,7 +93,7 @@ revenue ≈ $4.51B ($4,510,201,793), also UNITS=1 full dollars, no ×1000 skew.
   total ($26.16B) stays intact (i.e. it already nets the negative, only the leaf line is clamped
   to 0 for display).
 
-**Result:** ☐ PASS ☐ FAIL — Notes:
+**Result:** ✅ PASS (Chris, 2026-07-05) — Notes: rendered as expected.
 
 ## Anchor 6 — OK FY2019 (hand-transcribed from embedded JPEG)
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=oklahoma-ok&year=2019&dataset=revenue
@@ -103,7 +103,7 @@ revenue ≈ $4.51B ($4,510,201,793), also UNITS=1 full dollars, no ×1000 skew.
   layer — independently re-rendered + re-OCR'd, tied exact $0.)
 - By-source rows render correctly; source chip shows url + date.
 
-**Result:** ☐ PASS ☐ FAIL — Notes:
+**Result:** ✅ PASS (Chris, 2026-07-05) — Notes: rendered as expected.
 
 ## Anchor 7 — SD FY2007 (whole-document-scanned, hand-transcribed)
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=south-dakota-sd&year=2007&dataset=revenue
@@ -115,7 +115,7 @@ revenue ≈ $4.51B ($4,510,201,793), also UNITS=1 full dollars, no ×1000 skew.
   smallest divergence in the whole v2.15 tail), i.e. no dramatic unexplained jump vs. prior
   NASBO figures for SD.
 
-**Result:** ☐ PASS ☐ FAIL — Notes:
+**Result:** ✅ PASS (Chris, 2026-07-05) — Notes: rendered as expected.
 
 ## Anchor 8 — AR FY2024 (single-fund state, widest divergence)
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=arkansas-ar&year=2024&dataset=revenue
@@ -129,7 +129,7 @@ revenue ≈ $4.51B ($4,510,201,793), also UNITS=1 full dollars, no ×1000 skew.
   vs. the old NASBO scope). The note must NOT be hidden or absent — a citizen should be able to
   see why AR's number looks different from other states.
 
-**Result:** ☐ PASS ☐ FAIL — Notes:
+**Result:** ✅ PASS (Chris, 2026-07-05) — Notes: rendered as expected.
 
 ## Anchor 9 — NV FY2024 (NASBO FALLBACK #1 — honest disclosure)
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=nevada-nv&year=2024
@@ -144,7 +144,7 @@ revenue ≈ $4.51B ($4,510,201,793), also UNITS=1 full dollars, no ×1000 skew.
   for FY2024 (NV's ACFR revenue series ends at FY2023) — absent, not a fabricated/interpolated
   value. FY2023 (both op + rev) should still show full ACFR GAAP as normal.
 
-**Result:** ☐ PASS ☐ FAIL — Notes:
+**Result:** ✅ PASS (Chris, 2026-07-05) — Notes: rendered as expected.
 
 ## Anchor 10 — KY FY2023 (NASBO FALLBACK #2 — one-year island)
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=kentucky-ky&year=2023
@@ -157,7 +157,7 @@ revenue ≈ $4.51B ($4,510,201,793), also UNITS=1 full dollars, no ×1000 skew.
 - **Revenue-absence check:** switching to `?dataset=revenue` for FY2023 shows **no revenue data**
   for FY2023 — honestly absent, no interpolation across the gap.
 
-**Result:** ☐ PASS ☐ FAIL — Notes:
+**Result:** ✅ PASS (Chris, 2026-07-05) — Notes: rendered as expected.
 
 ## Anchor 11 — ME FY2002 (FY-end semantics anchor)
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=maine-me&year=2002&dataset=revenue
@@ -174,7 +174,7 @@ https://treasurytracker.empowered.vote/?entity=michigan-mi&year=2025&dataset=rev
 the source chip / source date reads **2025-09-30** (Michigan's Oct–Sep fiscal year), not
 June 30 — the non-standard FY-end is disclosed, not mislabelled.
 
-**Result:** ☐ PASS ☐ FAIL — Notes:
+**Result:** ✅ PASS (Chris, 2026-07-05) — Notes: rendered as expected.
 
 ## Anchor 12 — WY FY2025 (REGRESSION GUARD — 50/50 completion node)
 **Deep-link:** https://treasurytracker.empowered.vote/?entity=wyoming-wy&year=2025&dataset=revenue
@@ -187,7 +187,7 @@ June 30 — the non-standard FY-end is disclosed, not mislabelled.
   word "NASBO" anywhere on the node (label, source chip, tooltip, or basis note). If any NASBO
   text appears here, the NASBO-retirement guard (Phase 123, NASBORT-01) has regressed.
 
-**Result:** ☐ PASS ☐ FAIL — Notes:
+**Result:** ✅ PASS (Chris, 2026-07-05) — Notes: rendered as expected.
 
 ---
 
@@ -198,5 +198,5 @@ source-chain defect must be fixed in-phase (via the source-safe never-overwrite
 `treasury_sync_budget_tree` RPC — never `treasury_sync_city_budget`) and re-confirmed before
 sign-off; cosmetic/code-quality items are logged, not gated.
 
-**Signed off by:** _______________ **Date:** _______________ — **___/12 anchors PASS, ___
-defects fixed in-phase, ___ cosmetic items logged.** VER-10 satisfied.
+**Signed off by:** Chris Cantrell ("all pass") **Date:** 2026-07-05 — **12/12 anchors PASS, 0
+defects fixed in-phase, 0 cosmetic items logged.** VER-10 satisfied.
