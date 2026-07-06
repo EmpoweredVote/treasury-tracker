@@ -287,15 +287,6 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
           </div>
         )}
 
-        {/* ── Guest ── */}
-        {reason.type === 'guest' && (
-          <div className="bg-[#EAF4F7] dark:bg-ev-teal-950/50 border border-[#B3D9E3] dark:border-ev-teal-800 rounded-xl p-5">
-            <p className="text-sm font-semibold text-[#005366] dark:text-ev-muted-blue">
-              Treasury Tracker is currently serving a limited number of Alpha communities.
-            </p>
-          </div>
-        )}
-
         {/* ── Connected, no address ── */}
         {reason.type === 'no_location' && (
           <>
@@ -340,23 +331,6 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
             </div>
           </>
         )}
-
-        {/* What you can do */}
-        <div>
-          <h2 className="text-base font-bold text-[#1C1C1C] dark:text-ev-gray-100 mb-4">What you can do</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {[
-              { heading: 'Visualize spending', body: 'Interactive charts break the budget into digestible slices you can drill into.' },
-              { heading: 'Trace transactions', body: 'Drill down to the individual payment level — see exactly who was paid and when.' },
-              { heading: 'Compare years', body: 'See how budgets and actual spending have changed year over year.' },
-            ].map(item => (
-              <div key={item.heading} className="bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl p-5">
-                <p className="text-sm font-semibold text-[#1C1C1C] dark:text-ev-gray-100 mb-1">{item.heading}</p>
-                <p className="text-sm text-ev-gray-500 leading-relaxed">{item.body}</p>
-              </div>
-            ))}
-          </div>
-        </div>
 
       </div>
     </div>
