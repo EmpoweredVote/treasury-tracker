@@ -28,10 +28,53 @@
 - ✅ **v2.13 State ACFR Long Tail — Tranche 2** — Phases 107-110 (shipped 2026-07-02)
 - ✅ **v2.14 State ACFR Long Tail — Tranche 3 + Deepening** — Phases 111-116 (shipped 2026-07-03)
 - ✅ **v2.15 State ACFR Long Tail — Final Tail + NASBO Retirement** — Phases 117-124 (shipped 2026-07-06) — all 50 states on ACFR
+- ▶ **v2.16 Tethered Icons & Smart Banner** — Phases 125-127 (started 2026-07-07)
 
 ---
 
 ## Phases
+
+### ▶ v2.16 Tethered Icons & Smart Banner (Phases 125-127) — ACTIVE
+
+**Milestone goal:** Add a context-sensitive, cross-product "tethered feature-icon" row to Treasury Tracker's hero banner — the reciprocal of Essentials' Phase 187. The banner's *current entity* (city / county / state / federal) deep-links into other Empowered Vote products, starting with the Essentials yellow magnifying glass (bottom-right), rendered **only when Essentials actually covers that location**. A generic product registry reserves fixed, non-rendering slots for Compass and Read & Rank. "Smart Banner" = the context-sensitive tether logic only (no banner-image changes). Frontend-only on the TT side; visually cohesive with Essentials' chip/tooltip treatment (light + dark aware). Free only, no AI spend.
+
+**Requirement coverage:** 11 requirements · 11 mapped · 0 unmapped ✓
+
+| # | Phase | Goal | Requirements | Depends on |
+|---|-------|------|--------------|------------|
+| 125 | Essentials Coverage Contract | Publish Essentials' coverage catalog as a public resource and consume it in TT — fetch at runtime, match the current entity to its GEOID(s), degrade gracefully | COV-01, COV-02, COV-03 | — |
+| 126 | Tethered Feature-Icon Row | Build the generic product registry + the bottom-right circular-chip icon row on TT's hero banner, with accessible tooltips, theme-aware icons, and the live Essentials deep-link | ICON-01, ICON-02, ICON-03, ICON-04, TETH-01, TETH-02 | 125 |
+| 127 | Context-Sensitivity + Live UAT | Wire the coverage gate end-to-end so icons appear only where a real per-location link exists, and verify across covered/uncovered city, county, state, and federal in the live app | TETH-03, VER-01 | 125, 126 |
+
+**Critical path:** 125 → 126 → 127.
+
+#### Phase 125: Essentials Coverage Contract
+**Goal:** Establish and consume the reciprocal coverage contract — Essentials publishes its coverage catalog as a public, fetchable resource (endpoint or hosted JSON), and TT fetches + matches it, mirroring how Essentials calls TT's `/treasury/cities`.
+**Requirements:** COV-01, COV-02, COV-03
+**Success criteria:**
+1. Essentials serves its coverage catalog (states/counties/cities with Census GEOID + state + label + `hasContext`) at a public, unauthenticated URL — verified with a live fetch.
+2. TT fetches the catalog once per session and caches it; a slow, failed, or empty fetch never blocks or breaks the banner render (graceful degradation, no thrown error).
+3. Given a TT entity, TT resolves it to an Essentials coverage record by name + state (city/county) or state abbrev (state), using loose matching (St./Saint, punctuation), returning the GEOID(s) or null.
+4. A known covered place (e.g. Bloomington IN, Long Beach CA) resolves to the correct GEOID; a known-uncovered place resolves to null.
+
+#### Phase 126: Tethered Feature-Icon Row
+**Goal:** Build the tethered feature-icon row on TT's hero banner — a generic product registry driving a bottom-right row of circular semi-transparent chips, visually cohesive with Essentials' `SectionBanner`, with the Essentials icon wired live and Compass/Read & Rank reserved.
+**Requirements:** ICON-01, ICON-02, ICON-03, ICON-04, TETH-01, TETH-02
+**Success criteria:**
+1. TT's hero banner shows a bottom-right row of circular semi-transparent chips (cohesive with Essentials' chip treatment) that never obscures the title or the Wikimedia credit.
+2. The Essentials icon deep-links the banner's current entity into Essentials (city/county → `browse_government_list`; state → `browse_state_officials`), opening in a new tab.
+3. Each icon has a tooltip on hover AND keyboard focus plus an `aria-label`, and picks the correct light/dark SVG variant for the active TT theme.
+4. The row is driven by a fixed-order registry `[essentials, compass, readrank]`; Compass/Read & Rank are reserved non-rendering slots; only entries with a real per-location link render (no dead/greyed icons).
+
+#### Phase 127: Context-Sensitivity + Live UAT
+**Goal:** Prove the tether is context-sensitive end-to-end and verify it in the live app.
+**Requirements:** TETH-03, VER-01
+**Success criteria:**
+1. A city/county with no Essentials coverage shows no Essentials icon; the federal entity shows no Essentials icon; a covered state/city shows the icon linking to the correct Essentials location.
+2. Live-app verification across a covered city, a covered state, an uncovered city, and the federal entity — each renders the correct icon-or-absence and opens the correct Essentials location when present.
+3. Chris live-app UAT sign-off.
+
+---
 
 <details>
 <summary>✅ v2.15 State ACFR Long Tail — Final Tail + NASBO Retirement (Phases 117-124) — SHIPPED 2026-07-06 (full detail in milestones/v2.15-ROADMAP.md)</summary>

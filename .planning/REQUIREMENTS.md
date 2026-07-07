@@ -64,18 +64,18 @@
 
 ## Traceability
 
-*(Filled by the roadmap — each requirement maps to exactly one phase.)*
+Each requirement maps to exactly one phase (11/11 mapped).
 
 | Requirement | Phase |
 |-------------|-------|
-| COV-01 | — |
-| COV-02 | — |
-| COV-03 | — |
-| ICON-01 | — |
-| ICON-02 | — |
-| ICON-03 | — |
-| ICON-04 | — |
-| TETH-01 | — |
-| TETH-02 | — |
-| TETH-03 | — |
-| VER-01 | — |
+| COV-01 | 125 — Essentials Coverage Contract |
+| COV-02 | 125 — Essentials Coverage Contract |
+| COV-03 | 125 — Essentials Coverage Contract |
+| ICON-01 | 126 — Tethered Feature-Icon Row |
+| ICON-02 | 126 — Tethered Feature-Icon Row |
+| ICON-03 | 126 — Tethered Feature-Icon Row |
+| ICON-04 | 126 — Tethered Feature-Icon Row |
+| TETH-01 | 126 — Tethered Feature-Icon Row |
+| TETH-02 | 126 — Tethered Feature-Icon Row |
+| TETH-03 | 127 — Context-Sensitivity + Live UAT |
+| VER-01 | 127 — Context-Sensitivity + Live UAT |
