@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.16
 milestone_name: Tethered Icons & Smart Banner
 status: Defining requirements
-last_updated: "2026-07-07T22:20:25.394Z"
+last_updated: "2026-07-07T22:48:21.578Z"
 last_activity: 2026-07-07 — Milestone v2.16 started
 progress:
   total_phases: 29
   completed_phases: 0
-  total_plans: 0
+  total_plans: 1
   completed_plans: 0
   percent: 0
 ---
@@ -208,9 +208,9 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-07-07T22:20:25.382Z
-Stopped at: Phase 125 context gathered
-Resume file: .planning/phases/125-essentials-coverage-contract/125-CONTEXT.md
+Last session: 2026-07-07T22:48:21.568Z
+Stopped at: Phase 125 planned (TT-side, 1 plan)
+Resume file: .planning/phases/125-essentials-coverage-contract/125-PLAN.md
 
 ### Next Session
 
