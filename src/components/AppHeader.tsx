@@ -18,14 +18,14 @@ interface AppHeaderProps {
 export function AppHeader({ style, showBackButton, onBack, ...props }: AppHeaderProps) {
   const { isDark } = useTheme();
   const logoSrc = isDark
-    ? `${import.meta.env.BASE_URL}EV-Dark-Logo.png`
-    : `${import.meta.env.BASE_URL}EV-Light-Logo.png`;
+    ? `${import.meta.env.BASE_URL}treasury-tracker-logo-dark.svg`
+    : `${import.meta.env.BASE_URL}treasury-tracker-logo-light.svg`;
 
   return (
     <div style={{ position: 'sticky', top: 0, zIndex: 50, width: '100%' }}>
       <Header
         logoSrc={logoSrc}
-        logoAlt="Empowered Vote"
+        logoAlt="Treasury Tracker"
         {...props}
         style={{ ...(style ?? {}), position: 'static', zIndex: 'auto' }}
       />

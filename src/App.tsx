@@ -705,7 +705,7 @@ function App() {
   if (appView === 'resolving') {
     return (
       <div className="min-h-screen bg-[#F7F7F8] dark:bg-ev-gray-950 font-manrope">
-        <SiteHeader logoSrc={`${import.meta.env.BASE_URL}${isDark ? 'EV-Dark-Logo.png' : 'EV-Light-Logo.png'}`} style={darkHeaderStyle} />
+        <SiteHeader logoSrc={`${import.meta.env.BASE_URL}${isDark ? 'treasury-tracker-logo-dark.svg' : 'treasury-tracker-logo-light.svg'}`} style={darkHeaderStyle} />
         <div className="flex items-center justify-center py-16">
           <div role="status" aria-live="polite" aria-label="Loading" className="flex flex-col items-center gap-4">
             <div className="w-8 h-8 rounded-full border-4 border-[#E2EBEF] dark:border-ev-gray-700 border-t-ev-muted-blue animate-spin" />
@@ -732,7 +732,7 @@ function App() {
   if (!selectedEntity) {
     return (
       <div className="min-h-screen bg-[#F7F7F8] dark:bg-ev-gray-950 font-manrope">
-        <SiteHeader logoSrc={`${import.meta.env.BASE_URL}${isDark ? 'EV-Dark-Logo.png' : 'EV-Light-Logo.png'}`} style={darkHeaderStyle} />
+        <SiteHeader logoSrc={`${import.meta.env.BASE_URL}${isDark ? 'treasury-tracker-logo-dark.svg' : 'treasury-tracker-logo-light.svg'}`} style={darkHeaderStyle} />
         <div className="flex items-center justify-center py-16">
           <div role="status" aria-live="polite" aria-label="Loading budget data" className="flex flex-col items-center gap-4">
             <div className="w-8 h-8 rounded-full border-4 border-[#E2EBEF] dark:border-ev-gray-700 border-t-ev-muted-blue animate-spin" />
@@ -747,7 +747,7 @@ function App() {
   if (!loading && !budgetData && budgetLoadError) {
     return (
       <div className="min-h-screen bg-[#F7F7F8] dark:bg-ev-gray-950 font-manrope">
-        <SiteHeader logoSrc={`${import.meta.env.BASE_URL}${isDark ? 'EV-Dark-Logo.png' : 'EV-Light-Logo.png'}`} style={darkHeaderStyle} />
+        <SiteHeader logoSrc={`${import.meta.env.BASE_URL}${isDark ? 'treasury-tracker-logo-dark.svg' : 'treasury-tracker-logo-light.svg'}`} style={darkHeaderStyle} />
         <div className="max-w-[1400px] mx-auto px-6 py-16 flex justify-center">
           <div className="bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl p-8 text-center max-w-md w-full">
             <h2 className="text-base font-bold text-[#1C1C1C] dark:text-ev-gray-100 mb-2">
