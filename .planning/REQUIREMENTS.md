@@ -21,9 +21,10 @@
 
 ### Coverage Contract (COV)
 
-- [ ] **COV-01** — Essentials publishes its coverage catalog (`COVERAGE_STATES` / `COVERAGE_COUNTIES` / `COVERAGE_BROWSE_STATES` from `src/lib/coverage.js`, each area carrying its Census GEOID(s), state abbrev, label, and `hasContext` flag) as a **public, unauthenticated, fetchable resource** — an API endpoint or a hosted `coverage.json` — reciprocal to TT's `/treasury/cities`. *(Cross-repo: `essentials`.)*
-- [ ] **COV-02** — TT fetches the Essentials coverage catalog at runtime (once per session, cached), and never blocks or breaks banner render on a slow/failed/empty fetch — a fetch failure degrades to no tether icon, exactly like TT's existing hero-image graceful fallback.
-- [ ] **COV-03** — TT resolves the current entity to an Essentials coverage record by **name + state** (city/county tier) or by **state abbrev** (state tier), reusing Essentials' `normalizePlace`-style loose matching so "St."/"Saint" and punctuation differences don't cause false misses; a match yields the GEOID(s) needed to build the deep-link.
+- [ ] **COV-01** — Essentials publishes its coverage catalog (`COVERAGE_STATES` / `COVERAGE_COUNTIES` / `COVERAGE_BROWSE_STATES` from `src/lib/coverage.js`, each area carrying its Census GEOID(s), state abbrev, label, and `hasContext` flag) as a **public, unauthenticated, fetchable resource** — a **build-time-generated static `coverage.json`** in the Essentials static site's `public/` (generator reads `coverage.js` as the single source of truth), served at the Essentials origin with a **CORS header** allowing TT's origin — reciprocal to TT's `/treasury/cities`. *(Cross-repo: `essentials`.)*
+- [ ] **COV-02** — TT fetches the Essentials coverage catalog at runtime (once per session, cached in-memory, mirroring `wikiImage.ts`), and never blocks or breaks banner render on a slow/failed/empty fetch — a fetch failure degrades to no tether icon (async icon pop-in), exactly like TT's existing hero-image graceful fallback.
+- [ ] **COV-03** — TT resolves the current entity to an Essentials coverage record by **name + state** (city/county tier), by **state abbrev** (state tier), or by **entity_type** (federal tier), reusing Essentials' `normalizePlace`-style loose matching (plus stripping trailing `County` / `, ST`) so "St."/"Saint" and punctuation differences don't cause false misses; matching is **tier-aligned** and returns null on a wrong/absent state; a match yields the GEOID(s) / abbrev / federal target needed to build the deep-link.
+- [ ] **COV-04** — Essentials gains a **national-officials browse route** (e.g. `/results?browse_federal_officials=1`) surfacing federal-tier officials (President/VP, U.S. Senate, U.S. House, Cabinet, Federal Judiciary, Independent Agencies — data already classified in `src/lib/classify.js`), and the published catalog carries a **federal record** targeting it, so TT's federal "United States" entity resolves to a real Essentials deep-link. *(Cross-repo: `essentials`; folded into Phase 125 alongside COV-01. Reverses the original "no federal target" assumption.)*
 
 ### Tethered Icon Row (ICON)
 
@@ -34,13 +35,13 @@
 
 ### Cross-Product Tethering (TETH)
 
-- [ ] **TETH-01** — the Essentials icon deep-links the **banner's current entity** into Essentials — city/county → `/results?browse_government_list=<geoid>&browse_state=<abbr>&browse_label=<label>`; state → `/results?browse_state_officials=<abbr>&browse_label=<label>` — and never the user's own saved/broker location.
+- [ ] **TETH-01** — the Essentials icon deep-links the **banner's current entity** into Essentials — city/county → `/results?browse_government_list=<geoid>&browse_state=<abbr>&browse_label=<label>`; state → `/results?browse_state_officials=<abbr>&browse_label=<label>`; federal → `/results?browse_federal_officials=1&browse_label=United States` (per COV-04) — and never the user's own saved/broker location.
 - [ ] **TETH-02** — the icon row is driven by a **generic product registry** with a fixed reserved order `[essentials, compass, readrank]`; each product declares a per-location resolver returning a link-or-null. Only Essentials is a live entry; Compass and Read & Rank are reserved (documented) non-rendering slots that plug in with zero layout change once each has a per-location contract.
-- [ ] **TETH-03** — context-sensitivity holds end-to-end: a city/county with no Essentials coverage shows **no** Essentials icon; the federal ("United States") entity shows no Essentials icon (Essentials has no federal browse target today); a covered state/city shows the icon linking to the correct Essentials browse.
+- [ ] **TETH-03** — context-sensitivity holds end-to-end: a city/county with no Essentials coverage shows **no** Essentials icon; the federal ("United States") entity **shows** the Essentials icon linking to Essentials' national-officials browse (per COV-04); a covered state/city shows the icon linking to the correct Essentials browse.
 
 ### Verification (VER)
 
-- [ ] **VER-01** — verify the tether end-to-end in the live app: a covered city, a covered county (if any TT county overlaps Essentials coverage), a covered state, an *uncovered* city, and the federal entity each render the correct icon-or-absence and, when present, the icon opens the correct Essentials location. Chris live-app UAT sign-off.
+- [ ] **VER-01** — verify the tether end-to-end in the live app: a covered city, a covered county (if any TT county overlaps Essentials coverage), a covered state, an *uncovered* city, and the federal entity (now expected to show the icon → national-officials browse, per COV-04) each render the correct icon-or-absence and, when present, the icon opens the correct Essentials location. Chris live-app UAT sign-off.
 
 ---
 
@@ -57,20 +58,21 @@
 - **TT-side banner-image changes** — "Smart Banner" is the tether logic only; imagery stays as-is (see BANR-FUT-02).
 - **TT DB / schema changes** — the feature is frontend-only; coverage lives on the Essentials side.
 - **A stats/population slot on the TT banner** — reserved conceptually (top-right, per Essentials' D-07) but not built (see BANR-FUT-01).
-- **Reverse-direction changes to Essentials' own banner** — Essentials' Phase 187 already ships; this milestone touches Essentials only to publish its coverage catalog (COV-01).
+- **Reverse-direction changes to Essentials' own banner** — Essentials' Phase 187 already ships; this milestone touches Essentials only to publish its coverage catalog (COV-01) and add the national-officials browse route (COV-04).
 - **Paid APIs / AI spend** — none required.
 
 ---
 
 ## Traceability
 
-Each requirement maps to exactly one phase (11/11 mapped).
+Each requirement maps to exactly one phase (12/12 mapped).
 
 | Requirement | Phase |
 |-------------|-------|
 | COV-01 | 125 — Essentials Coverage Contract |
 | COV-02 | 125 — Essentials Coverage Contract |
 | COV-03 | 125 — Essentials Coverage Contract |
+| COV-04 | 125 — Essentials Coverage Contract |
 | ICON-01 | 126 — Tethered Feature-Icon Row |
 | ICON-02 | 126 — Tethered Feature-Icon Row |
 | ICON-03 | 126 — Tethered Feature-Icon Row |
