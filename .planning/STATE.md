@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.15
-milestone_name: State ACFR Long Tail — Final Tail + NASBO Retirement
-status: completed
-stopped_at: Completed 124-03-PLAN.md (VER-10 UAT — Chris signed off 12/12 all-pass)
-last_updated: "2026-07-06T06:49:49.326Z"
-last_activity: 2026-07-06 -- Phase 124 marked complete
+milestone: v2.16
+milestone_name: Tethered Icons & Smart Banner
+status: planning
+last_updated: "2026-07-07T21:47:04.194Z"
+last_activity: 2026-07-07
 progress:
-  total_phases: 8
-  completed_phases: 8
-  total_plans: 34
-  completed_plans: 34
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State
@@ -25,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-07-03 — v2.15 State ACFR Long Tail —
 
 ## Current Position
 
-Phase: 124 — COMPLETE
-Plan: 3 of 3
-Status: Phase 124 complete
-Last activity: 2026-07-06 -- Phase 124 marked complete
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-07-07 — Milestone v2.16 started
 
 ## Phase Overview — v2.15 State ACFR Long Tail — Final Tail + NASBO Retirement
 

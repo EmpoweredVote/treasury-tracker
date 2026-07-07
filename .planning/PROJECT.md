@@ -10,7 +10,14 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 
 ## Current State
 
+**v2.16 Tethered Icons & Smart Banner — STARTED 2026-07-07.** Adding a context-sensitive, cross-product "tethered feature-icon" row to the TT hero banner — the reciprocal of Essentials' Phase 187 tethered-icon row. The banner's current entity (city/county/state/federal) deep-links into other Empowered Vote products, starting with the Essentials yellow magnifying glass (bottom-right circular chip), rendered **only when Essentials actually covers that location**. A generic product registry reserves fixed slots for Compass and Read & Rank (non-rendering until each gains a per-location contract). Coverage is gated by a **live** fetch of Essentials' coverage catalog (a small cross-repo prerequisite: Essentials must publish its `coverage.js` catalog as a public resource, reciprocal to TT's `/treasury/cities`), matched to the TT entity by name + state → GEOID. "Smart Banner" = the context-sensitive tether logic only; no banner-image changes this cycle. Frontend-only on the TT side, visually cohesive with Essentials' chip/tooltip treatment (light+dark aware). Free only, no AI spend. Phases continue from 125.
+
+<details>
+<summary>Previous: v2.15 State ACFR Long Tail — Final Tail + NASBO Retirement — SHIPPED 2026-07-06</summary>
+
 **v2.15 State ACFR Long Tail — Final Tail + NASBO Retirement — SHIPPED 2026-07-06.** The State-ACFR arc is complete: **all 50 states now carry State-ACFR GAAP General-Fund data** (revenue-by-source + finer spending-by-function). The last 21 NASBO states (AK/AR/DE/HI/ID/IA/KS/ME/MS/MT/NE/NV/NH/NM/ND/OK/RI/SD/VT/WV/WY) were upgraded NASBO→ACFR across four parallel load batches (Phases 118–121), every loaded state-FY tying $0 to its printed GF total — including scanned/raster-image years (NM FY2022, OK FY2019, SD) hand-transcribed via independent OCR. Existing ACFR nodes deepened (Phase 122: **CA +6→FY2002** at the GASB-34 boundary, **FL +18→FY2003–2020**; NY/TX floors reconfirmed; FL FY2000–02 repair-pending). **NASBO retired to fallback-only** (Phase 123, guarded via `isAcfrOccupied`) — no live node shows NASBO where ACFR exists; only two honest NASBO fallback rows remain (NV FY2024, KY FY2023 — genuine ACFR gaps). Verified end-to-end (Phase 124): **149/151 loader-independent blind re-derivations at exact $0** (2 explained rounding), a **14/14-invariant 50-node / 1,560-row cohort audit** (50/50-ACFR, NASBORT-01, LOAD-01 clean, 0 residue no manual re-clean), and **Chris live-app UAT 12/12 all-pass**. Also shipped this cycle (outside the milestone): a search-first landing page (removed the "Available communities" browse grid) and hero banners re-sourced from the shared org asset bucket. Free ACFR PDFs only, $0 AI spend, executed inline. **No active milestone — next candidates: VOTES-01 (votes/amendments hub); SRCSTD-01 (sourced-standard backfill to city/state data). Run `/gsd-new-milestone`.**
+
+</details>
 
 <details>
 <summary>Previous: v2.15 recon snapshot (Phase 117, 2026-07-04)</summary>
@@ -110,12 +117,25 @@ All 6 remaining SoCal counties added via the hardened v2.2/v2.3 pipeline with ze
 Brought every already-loaded non-OC California city and county to the Orange County standard (FY2003 history, statewide salaries, standardized enrichment) via the hardened v2.2 pipeline. Phase 62 verified end-to-end: ACFR reconciliation, source-chain audit (0 NULL/fragile/residue across 25,568 rows), 24-item UAT with Chris's sign-off. SoCal expansion deferred to v2.4.
 </details>
 
-## Current Milestone: None — v2.15 shipped 2026-07-06
+## Current Milestone: v2.16 Tethered Icons & Smart Banner
 
-**No active milestone.** v2.15 completed the State-ACFR arc (all 50 states on ACFR GAAP; NASBO retired to fallback-only). Next candidates: **VOTES-01** (votes/amendments exploration hub — the mission destination) and **SRCSTD-01** (sourced-standard backfill to city/state data). Run `/gsd-new-milestone` to scope the next cycle.
+**Goal:** Add a context-sensitive, cross-product "tethered feature-icon" row to Treasury Tracker's hero banner — the reciprocal of Essentials' Phase 187 — that deep-links the banner's current entity into other Empowered Vote products, starting with the Essentials yellow magnifying glass (bottom-right), rendered only when Essentials actually covers that location.
+
+**Target features:**
+- **Tethered feature-icon row** on TT's hero banner (`App.tsx` hero `div`), bottom-right, as **circular semi-transparent chips**, visually cohesive with Essentials' `SectionBanner` treatment — accessible **hover + keyboard-focus tooltip**, `aria-label`, never obscuring the title, no dead/greyed/placeholder icons.
+- **Generic product registry** with a fixed reserved order `[essentials, compass, readrank]` — each product declares a per-location resolver returning a link-or-null. **Only Essentials is wired live** this milestone; Compass and Read & Rank are reserved **non-rendering** slots that plug in with zero layout change once they gain a per-location contract.
+- **Live Essentials coverage gate** — fetch Essentials' coverage catalog at runtime and match the current TT entity by **name + state** to obtain its Census GEOID(s); no coverage → no icon. Reciprocal to Essentials calling TT's `/treasury/cities`.
+- **Essentials deep-link contract:** city/county → `/results?browse_government_list=<geoid>&browse_state=<abbr>&browse_label=<label>`; state → `/results?browse_state_officials=<abbr>&browse_label=<label>`; federal → no Essentials target today (no icon rendered).
+- **Cross-repo prerequisite:** publish the Essentials `coverage.js` catalog (`COVERAGE_STATES` / `COVERAGE_COUNTIES` / `COVERAGE_BROWSE_STATES`, each with GEOID + state + `hasContext`) as a public, fetchable resource (a public endpoint or hosted `coverage.json`) — the reciprocal of TT's `/treasury/cities`.
+
+**Key context (standing):**
+- **"Smart Banner" = the context-sensitive tether logic only** — no banner-image changes this milestone (per-image attribution / low-res state-flag fixes stay deferred).
+- **Frontend-only on the TT side** — no TT DB/schema changes. TT's banner today is a plain `div` (`App.tsx`), not a `SectionBanner`; the icon row must fit `h-48`, bottom-right, clear of the bottom-left title and the top-right Wikimedia credit.
+- **Visual cohesion with Essentials chips:** ~36px circular chip, `rgba(13,17,23,0.55)` bg + `blur(2px)`, ~20px icon, 8px gap, `@floating-ui` tooltip on hover+focus. Icons sourced from `C:\ev-landing\ev-landing-main\icons\` (`essentials-symbol-{light,dark}.svg`, `compass-symbol-*`, `readrank-symbol-*`), copied into TT `public/`.
+- **EV constraints:** free only, $5 AI gate (no AI needed here); TT stays light+dark (unlike Essentials' dark-only banner) — pick the icon light/dark variant per active theme.
 
 <details>
-<summary>Shipped v2.15 scope (Phases 117–124)</summary>
+<summary>Shipped v2.15 scope (Phases 117–124) — State-ACFR arc complete (all 50 states on ACFR GAAP; NASBO retired to fallback-only)</summary>
 
 **Goal:** Upgrade the last 21 NASBO states to full State-ACFR GAAP — bringing **all 50 states onto ACFR** — bundle the recorded deepening holes on the existing ACFR nodes, and formally retire NASBO to a fallback-only role.
 
@@ -254,14 +274,22 @@ Brought every already-loaded non-OC California city and county to the Orange Cou
 - ✓ **Pre-GASB-34 extractor** (`pre34Extract.mjs`) + history-hole recovery: CT 38yr contiguous (FY1988–2025, FY2006 via free OCR), WI 26yr, NJ contiguous FY2002–2025, MA 2/6 recovered + 4 documented unrecoverable; honest pre-GASB-34 basis labels (DEEP-02/03/04) — v2.14, Phase 115
 - ✓ Verification: 75/75 loader-independent blind re-derivation at exact $0; 12-invariant cohort audit (901 rows, 29 ACFR + 21 NASBO); LOAD-01 proven end-to-end (0 manual re-clean); Chris live-app UAT 11/11 all-pass (VER-07/08) — v2.14, Phase 116
 
-### Active — v2.15 State ACFR Long Tail — Final Tail + NASBO Retirement
+### Active — v2.16 Tethered Icons & Smart Banner
 
-- [ ] **ACFRX-03** — upgrade the final 21 NASBO states (AK/AR/DE/HI/ID/IA/KS/ME/MS/MT/NE/NV/NH/NM/ND/OK/RI/SD/VT/WV/WY) to State-ACFR GAAP GF revenue-by-source + spending-by-function → all 50 states on ACFR
-- [ ] **NASBORT-01** — formally retire NASBO to fallback-only once all 50 states are on ACFR
-- [ ] **DEEP-05** — deepen the existing ACFR nodes' recorded pre-window holes (CA pre-FY2020, NY pre-FY2015, FL pre-FY2022, TX FY2016)
+- [ ] **COV-01** — Essentials publishes its coverage catalog as a public, fetchable resource (endpoint or hosted JSON), reciprocal to TT's `/treasury/cities` (cross-repo, `essentials`)
+- [ ] **COV-02** — TT fetches the Essentials coverage catalog at runtime and matches the current entity by name + state to its GEOID(s), degrading gracefully to no-icon on any fetch/match failure
+- [ ] **ICON-01** — TT renders a tethered feature-icon row on the hero banner (bottom-right, circular semi-transparent chips), visually cohesive with Essentials' `SectionBanner`, never obscuring the title
+- [ ] **ICON-02** — each icon has an accessible tooltip on hover AND keyboard focus plus an `aria-label`; icons pick the light/dark variant per active theme
+- [ ] **ICON-03** — icons render only when a real per-location link exists for that product (no dead/greyed/placeholder icons); the row left-aligns whatever is live
+- [ ] **TETH-01** — the Essentials icon deep-links the banner's current entity into Essentials (city/county → `browse_government_list`; state → `browse_state_officials`), never the user's own saved location
+- [ ] **TETH-02** — a generic product registry with fixed reserved order `[essentials, compass, readrank]`; Compass/Read & Rank reserved as non-rendering slots that plug in with zero layout change
+- [ ] **TETH-03** — the Essentials icon appears only when Essentials covers the current entity; a covered-less city/county/federal shows no Essentials icon
 
 ### Future (deferred milestone candidates)
 
+- [ ] Wire Compass / Read & Rank tether icons once each exposes a per-location deep-link contract (reserved slots ship this milestone)
+- [ ] Reciprocal population/stats slot on the TT banner (Essentials Phase 188 analog)
+- [ ] Banner-imagery improvements — per-image Wikimedia attribution, fix low-res state-flag banners (deferred out of "Smart Banner" scope)
 - [ ] Votes/amendments exploration hub (VOTES-01 — the eventual mission destination)
 - [ ] Backfill the always-sourced standard to city/state data (SRCSTD-01 — now proven federally)
 
@@ -389,7 +417,14 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
+*Last updated: 2026-07-07 — v2.16 Tethered Icons & Smart Banner STARTED. Add a context-sensitive, cross-product tethered feature-icon row to the TT hero banner — the reciprocal of Essentials' Phase 187. The banner's current entity deep-links into other EV products, starting with the Essentials yellow magnifying glass (bottom-right circular chip), rendered only when Essentials covers that location. Generic product registry reserves fixed slots for Compass + Read & Rank (non-rendering until each has a per-location contract). Live coverage gate: fetch Essentials' published coverage catalog (cross-repo prerequisite — reciprocal to TT's `/treasury/cities`), match by name + state → GEOID. "Smart Banner" = the context-sensitive tether logic only (no banner-image changes). Frontend-only on the TT side, visually cohesive with Essentials' chip/tooltip (light+dark aware). Free only, no AI spend. Phases continue from 125. (v2.15 SHIPPED + archived 2026-07-06.)*
+
+<details>
+<summary>Previous footer — v2.15 STARTED (2026-07-03)</summary>
+
 *Last updated: 2026-07-03 — v2.15 State ACFR Long Tail — Final Tail + NASBO Retirement STARTED. Finish the long tail: upgrade the last **21 NASBO states** (AK/AR/DE/HI/ID/IA/KS/ME/MS/MT/NE/NV/NH/NM/ND/OK/RI/SD/VT/WV/WY — OK recon preserved from v2.14) to full State-ACFR GAAP GF revenue-by-source + finer spending-by-function → **all 50 states on ACFR**; bundle the recorded deepening holes on existing ACFR nodes (CA pre-FY2020, NY pre-FY2015, FL pre-FY2022, TX FY2016); and formally **retire NASBO to fallback-only**. Free ACFR PDFs only ($0/$5 AI gate), GAAP + basis-labelled (incl. honest pre-GASB-34 labels), P2 clamp, idempotent never-overwrite (29 existing ACFR nodes untouched), executed inline; clone the proven per-state loader template (`extract_gf.py` + `gen_state.py`) + reuse `pre34Extract.mjs`; no frontend work (Money In + `?dataset=revenue` auto-enable). Closeout = independent blind re-derivation → 50-state cohort audit (0 residue, no manual re-clean) → Chris live UAT. Phases continue from 117. (v2.14 SHIPPED + archived 2026-07-03.)*
+
+</details>
 
 <details>
 <summary>Previous footer — v2.14 SHIPPED (2026-07-03)</summary>
