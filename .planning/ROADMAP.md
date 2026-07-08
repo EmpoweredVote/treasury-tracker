@@ -43,7 +43,7 @@
 | # | Phase | Goal | Requirements | Depends on |
 |---|-------|------|--------------|------------|
 | 125 | Essentials Coverage Contract | Publish Essentials' coverage catalog as a generated static `coverage.json` + add a national-officials browse route (federal target), and consume it in TT — fetch at runtime, match the current entity to its GEOID(s)/target, degrade gracefully | COV-01, COV-02, COV-03, COV-04 | — |
-| 126 | Tethered Feature-Icon Row | Build the generic product registry + the bottom-right circular-chip icon row on TT's hero banner, with accessible tooltips, theme-aware icons, and the live Essentials deep-link | ICON-01, ICON-02, ICON-03, ICON-04, TETH-01, TETH-02 | 125 |
+| 126 | Tethered Feature-Icon Row | 1/1 | Complete   | 2026-07-08 |
 | 127 | Context-Sensitivity + Live UAT | Wire the coverage gate end-to-end so icons appear only where a real per-location link exists, and verify across covered/uncovered city, county, state, and federal in the live app | TETH-03, VER-01 | 125, 126 |
 
 **Critical path:** 125 → 126 → 127.

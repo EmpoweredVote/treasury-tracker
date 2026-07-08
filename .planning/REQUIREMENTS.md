@@ -28,15 +28,15 @@
 
 ### Tethered Icon Row (ICON)
 
-- [ ] **ICON-01** — TT renders a tethered feature-icon row on the hero banner, positioned **bottom-right**, as circular semi-transparent chips visually cohesive with Essentials' `SectionBanner` chip treatment, and it **never obscures the banner title** (bottom-left) or the Wikimedia credit (currently bottom-right — reconcile placement).
-- [ ] **ICON-02** — each icon exposes an accessible tooltip naming the product (e.g. "Essentials") that appears on **both hover and keyboard focus**, plus an `aria-label` on the link; the icon is a real external `<a target="_blank" rel="noopener noreferrer">`.
-- [ ] **ICON-03** — an icon renders **only** when a real per-location link exists for that product; there are no dead, greyed, or placeholder icons, and the row left-aligns whatever is live (no gaps).
-- [ ] **ICON-04** — each icon picks the correct light/dark SVG variant for the active TT theme, and the chip keeps the icon legible over any banner art in both themes.
+- [x] **ICON-01** — TT renders a tethered feature-icon row on the hero banner, positioned **bottom-right**, as circular semi-transparent chips visually cohesive with Essentials' `SectionBanner` chip treatment, and it **never obscures the banner title** (bottom-left) or the Wikimedia credit (currently bottom-right — reconcile placement).
+- [x] **ICON-02** — each icon exposes an accessible tooltip naming the product (e.g. "Essentials") that appears on **both hover and keyboard focus**, plus an `aria-label` on the link; the icon is a real external `<a target="_blank" rel="noopener noreferrer">`.
+- [x] **ICON-03** — an icon renders **only** when a real per-location link exists for that product; there are no dead, greyed, or placeholder icons, and the row left-aligns whatever is live (no gaps).
+- [x] **ICON-04** — each icon picks the correct light/dark SVG variant for the active TT theme, and the chip keeps the icon legible over any banner art in both themes.
 
 ### Cross-Product Tethering (TETH)
 
-- [ ] **TETH-01** — the Essentials icon deep-links the **banner's current entity** into Essentials — city/county → `/results?browse_government_list=<geoid>&browse_state=<abbr>&browse_label=<label>`; state → `/results?browse_state_officials=<abbr>&browse_label=<label>`; federal → `/results?browse_federal_officials=1&browse_label=United States` (per COV-04) — and never the user's own saved/broker location.
-- [ ] **TETH-02** — the icon row is driven by a **generic product registry** with a fixed reserved order `[essentials, compass, readrank]`; each product declares a per-location resolver returning a link-or-null. Only Essentials is a live entry; Compass and Read & Rank are reserved (documented) non-rendering slots that plug in with zero layout change once each has a per-location contract.
+- [x] **TETH-01** — the Essentials icon deep-links the **banner's current entity** into Essentials — city/county → `/results?browse_government_list=<geoid>&browse_state=<abbr>&browse_label=<label>`; state → `/results?browse_state_officials=<abbr>&browse_label=<label>`; federal → `/results?browse_federal_officials=1&browse_label=United States` (per COV-04) — and never the user's own saved/broker location.
+- [x] **TETH-02** — the icon row is driven by a **generic product registry** with a fixed reserved order `[essentials, compass, readrank]`; each product declares a per-location resolver returning a link-or-null. Only Essentials is a live entry; Compass and Read & Rank are reserved (documented) non-rendering slots that plug in with zero layout change once each has a per-location contract.
 - [ ] **TETH-03** — context-sensitivity holds end-to-end: a city/county with no Essentials coverage shows **no** Essentials icon; the federal ("United States") entity **shows** the Essentials icon linking to Essentials' national-officials browse (per COV-04); a covered state/city shows the icon linking to the correct Essentials browse.
 
 ### Verification (VER)

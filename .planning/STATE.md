@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.16
 milestone_name: Tethered Icons & Smart Banner
-status: completed
-last_updated: "2026-07-08T07:17:14.513Z"
-last_activity: 2026-07-08 -- Phase 125 executed (essentialsCoverage.ts loader/matcher, vitest suite, App.tsx seam, cross-repo deferrals resolved)
+status: verifying
+last_updated: "2026-07-08T07:39:10.341Z"
+last_activity: 2026-07-08
 progress:
   total_phases: 29
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
-  percent: 3
+  completed_phases: 2
+  total_plans: 2
+  completed_plans: 2
+  percent: 7
 ---
 
 # State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-07 — v2.16 Tethered Icons & Smart Banner STARTED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** Phase 126 — tethered-feature-icon-row (planned, ready to execute)
+**Current focus:** Phase 126 — tethered-feature-icon-row
 
 ## Current Position
 
-Phase: 125 (essentials-coverage-contract) — ✅ COMPLETE
+Phase: 126 (tethered-feature-icon-row) — EXECUTING
 Plan: 1 of 1
-Status: phase-complete
-Last activity: 2026-07-08 -- Phase 125 executed (essentialsCoverage.ts loader/matcher, vitest suite, App.tsx seam, cross-repo deferrals resolved)
+Status: Phase complete — ready for verification
+Last activity: 2026-07-08
 
 ## Phase Overview — v2.16 Tethered Icons & Smart Banner
 
@@ -208,7 +208,7 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-07-08T06:48:00.636Z
+Last session: 2026-07-08T07:35:07.617Z
 Stopped at: Completed 125-125-PLAN.md
 Resume file: None
 
@@ -290,6 +290,7 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 | Phase 124 P02 | 65min | 2 tasks | 2 files |
 | Phase 124 P03 | 20min | 2 tasks | 1 files |
 | Phase 125 P125 | 25min | 4 tasks | 9 files |
+| Phase 126 P126 | 16min | 5 tasks | 12 files |
 
 ## Decisions
 
@@ -414,6 +415,10 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 - [Phase 125]: Federal target string used verbatim as confirmed byte-for-byte by essentials repo (browse_federal_officials=1&browse_label=United+States)
 - [Phase 125]: strip() (trailing County / , ST) + normalizePlace() applied identically to entity name and catalog label -- state equality alone disambiguates Washington County OR vs UT
 - [Phase 125]: Cross-repo deferral note upgraded from pending to RESOLVED after a live smoke test proved both Essentials-side deliverables (coverage.json+CORS, federal browse route) are already live on production
+- [Phase 126]: Registry mirrors Essentials fixed order [essentials, compass, readrank]; only essentials live, compass/readrank always resolve null (reserved, no placeholder icons)
+- [Phase 126]: Icon chips always use the -light SVG symbol on a semi-transparent navy chip in both TT themes, no theme branching on the symbol
+- [Phase 126]: A covered city/county with no geoid resolves to null (no icon) this phase; flagged for Phase 127 UAT to revisit a label-only fallback
+- [Phase 126]: Suppressed a react-hooks/refs (eslint-plugin-react-hooks v7 compiler rule) false positive on @floating-ui/react's refs.setFloating with a scoped eslint-disable-line
 
 ## Deferred Items
 
