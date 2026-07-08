@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
+    "smoke:essentials": "node scripts/essentials-live-smoke.mjs",
     "process-budget": "node scripts/processBudget.js",
     "process-revenue": "node scripts/processRevenue.js",
     "process-salaries": "node scripts/processSalaries.js",
