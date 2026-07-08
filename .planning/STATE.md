@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v2.16
 milestone_name: Tethered Icons & Smart Banner
 status: verifying
-last_updated: "2026-07-08T07:39:10.341Z"
+last_updated: "2026-07-08T07:51:44.515Z"
 last_activity: 2026-07-08
 progress:
   total_phases: 29
