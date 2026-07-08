@@ -1,0 +1,21 @@
+{
+  "generatedAt": "2026-07-07T00:00:00.000Z",
+  "cities": [
+    { "label": "Long Beach", "geoids": ["0643000"], "state": "CA", "hasContext": true },
+    { "label": "Bloomington", "geoids": [], "state": "IN", "hasContext": true }
+  ],
+  "counties": [
+    { "label": "Los Angeles County", "geoids": ["06037"], "state": "CA", "hasContext": true },
+    { "label": "St. Mary's County", "geoids": ["24037"], "state": "MD" },
+    { "label": "Washington County, OR", "geoids": ["41067"], "state": "OR", "hasContext": true },
+    { "label": "Washington County", "geoids": ["49053"], "state": "UT" }
+  ],
+  "states": [
+    { "label": "California", "abbrev": "CA" },
+    { "label": "Texas", "abbrev": "TX" }
+  ],
+  "federal": {
+    "label": "United States",
+    "target": "/results?browse_federal_officials=1&browse_label=United+States"
+  }
+}
