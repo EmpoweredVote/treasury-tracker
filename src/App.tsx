@@ -39,6 +39,8 @@ import CountiesInStatePanel from './components/CountiesInStatePanel';
 import StatesInFederalPanel from './components/StatesInFederalPanel';
 import { getHeroImage, getHeroBgPosition, type HeroImage } from './utils/wikiImage';
 import { useEssentialsCoverage } from './utils/essentialsCoverage';
+import { resolveFeatureIcons } from './utils/featureIcons';
+import { FeatureIconRow } from './components/FeatureIconRow';
 import type { BudgetCategory, BudgetData, FederalContext, LinkedTransactionSummary, Municipality, OrgFinancialSummary } from './types/budget';
 
 interface BreadcrumbItem {
@@ -175,6 +177,7 @@ function App() {
   // Resolve Essentials coverage for the current entity — an invisible seam for
   // Phase 126's tethered feature-icon row (data-essentials-coverage below).
   const essentialsCoverage = useEssentialsCoverage(selectedEntity);
+  const featureIcons = resolveFeatureIcons(essentialsCoverage);
 
   // Update page title when entity changes
   useEffect(() => {
@@ -822,6 +825,11 @@ function App() {
             Explore how public funds are allocated and spent.
           </p>
         </div>
+        {featureIcons.length > 0 && (
+          <div className="absolute bottom-6 right-2 z-10">
+            <FeatureIconRow icons={featureIcons} />
+          </div>
+        )}
         {heroImage?.credit && (
           <span
             className="absolute bottom-1 right-2 text-[10px] leading-none text-white/55"
