@@ -16,9 +16,9 @@
  * come from a remote catalog TT does not control. Every href in this module is
  * built with the `URL` + `URLSearchParams` API only — never by concatenating a
  * catalog value into a string. The federal `target` is only accepted when it
- * resolves to a same-origin path (starts with `/`); a hostile absolute target
- * (e.g. `https://evil.example/x`) yields `null`. No `dangerouslySetInnerHTML`
- * anywhere in this module.
+ * resolves to the ESSENTIALS_URL origin; a hostile absolute target
+ * (`https://evil.example/x`) OR protocol-relative target (`//evil.example/x`)
+ * yields `null`. No `dangerouslySetInnerHTML` anywhere in this module.
  *
  * Kept PURE (no React, no fetch) so it is unit-testable in isolation.
  */
@@ -65,8 +65,17 @@ export function buildEssentialsHref(record: CoverageRecord): string | null {
   }
 
   if (record.tier === 'federal') {
-    if (!record.target || !record.target.startsWith('/')) return null;
-    return new URL(record.target, ESSENTIALS_URL).toString();
+    // Same-origin guard (T-126-01): the target must be a root-relative path
+    // (`/…`) that resolves to the ESSENTIALS_URL origin. Reject an absent
+    // target, a protocol-relative target (`//host/…` — `startsWith('/')` is
+    // true but `new URL` sends it to a different origin), an absolute URL, or
+    // anything else that escapes the Essentials origin.
+    if (!record.target || !record.target.startsWith('/') || record.target.startsWith('//')) {
+      return null;
+    }
+    const resolved = new URL(record.target, ESSENTIALS_URL);
+    if (resolved.origin !== new URL(ESSENTIALS_URL).origin) return null;
+    return resolved.toString();
   }
 
   return null;

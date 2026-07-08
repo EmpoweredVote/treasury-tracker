@@ -61,11 +61,22 @@ describe('buildEssentialsHref + resolveFeatureIcons — per-tier deep-links (TET
     expect(resolveFeatureIcons(null)).toEqual([]);
   });
 
-  it('rejects a hostile absolute federal target (same-origin-path guard, T-126-01)', () => {
+  it('rejects a hostile absolute federal target (same-origin guard, T-126-01)', () => {
     const hostileRecord: CoverageRecord = {
       tier: 'federal',
       label: 'United States',
       target: 'https://evil.example/x',
+    };
+    expect(buildEssentialsHref(hostileRecord)).toBeNull();
+  });
+
+  it('rejects a protocol-relative federal target that escapes the origin (T-126-01)', () => {
+    const hostileRecord: CoverageRecord = {
+      tier: 'federal',
+      label: 'United States',
+      // `//evil.example/x` passes a naive startsWith('/') check but new URL()
+      // resolves it to https://evil.example/x — must still be rejected.
+      target: '//evil.example/x',
     };
     expect(buildEssentialsHref(hostileRecord)).toBeNull();
   });
