@@ -560,6 +560,48 @@ Three moves in one milestone. **(1)** Finally retired the WR-05 loader debt (LOA
 
 ---
 
+## Milestone: v2.16 — Tethered Icons & Smart Banner
+
+**Shipped:** 2026-07-08
+**Phases:** 3 (125-127) | **Plans:** 4 | **Timeline:** 2 days (2026-07-07 → 2026-07-08)
+
+### What Was Built
+
+- A context-sensitive cross-product tether-icon row on the TT hero banner (reciprocal of Essentials' Phase 187): live coverage contract (`essentialsCoverage.ts`), pure product registry + gate (`featureIcons.ts`), `@floating-ui` navy chip row (`FeatureIconRow.tsx`).
+- Icon-iff-real-link across every tier; federal "United States" SHOWS the icon (headline reversal); uncovered (Fresno CA) + geoid-less-covered (Bloomington IN) correctly show none.
+- An offline-safe live-fetch smoke script (`npm run smoke:essentials`) and a headless live-catalog UAT harness; Chris VER-01 sign-off, 0 defects.
+
+### What Worked
+
+- **Pure resolver / thin component split** (Phase 125 `essentialsCoverage.ts` → Phase 126 `featureIcons.ts` → `FeatureIconRow.tsx`) made the gate fully unit-testable; 22/22 fixture vitest proved the logic before any live check.
+- **Headless verification against live data** — running the real resolver modules against the live `coverage.json` + real DB entity records proved 7/7 matrix rows deterministically, reserving Chris's manual UAT for only the genuinely browser-only dimensions (visual, console, degrade UX).
+- **Grounding the plan against live/DB reality caught a falsified assumption** — the CONTEXT.md uncovered-city candidate (Plano TX) turned out to be covered; probing the live catalog + DB during planning replaced it with a verified case (Fresno CA) before it reached UAT.
+- **Cross-repo contract already live** — the Essentials producer (coverage.json + CORS + federal route) shipped ahead of TT's consumer, so the tether could be smoke-tested against production immediately.
+
+### What Was Inefficient
+
+- **CONTEXT.md carried an unverified negative-case candidate** (Plano TX). A one-line live-catalog check at discuss time would have caught it before planning.
+- **A `process.exit(0)` in the smoke script tripped a Windows libuv/undici teardown assertion** (bogus exit 127) — cost a debug cycle; the fix (`process.exitCode` + natural drain) is now the pattern for any Node network script here.
+
+### Patterns Established
+
+- **Verify UAT matrices headless first, human second**: execute the real code against live+real data to pre-fill everything deterministic, then hand only the browser-only checks to the human signer.
+- **Windows Node network scripts: set `process.exitCode`, never `process.exit()`** — avoids the undici keep-alive teardown race.
+- **Live smoke script decoupled from `npm test`/`build`** keeps the offline suite deterministic while still giving a one-command producer-contract check.
+
+### Key Lessons
+
+1. **Ground every concrete UAT anchor against live data at plan time** — a plausible-looking negative case (Plano) can be wrong; a 30-second catalog/DB probe de-risks the whole phase.
+2. **A verify-and-fix capstone needs no VALIDATION.md** — the UAT checklist + smoke script + existing vitest suite are the validation strategy for a phase with no new runtime surface.
+3. **Federal-shows-icon was the milestone's headline** — surfacing the one behavioral reversal prominently in the UAT made the human sign-off crisp.
+
+### Cost Observations
+
+- **$0** — no AI in any phase (loader, gate, verification all deterministic); the $5 gate never triggered.
+- Executed **inline, no subagents** (per standing feedback); Phase 127 done interactively with Chris for the live sign-off.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -583,6 +625,7 @@ Three moves in one milestone. **(1)** Finally retired the WR-05 loader debt (LOA
 | v2.12 | 4 | 13 | ~1 day | Worktree-parallel waves restored; 24/24 exact-0 blind re-derivation; hoistSingleRoot anti-pattern fix; UAT on "no-frontend" milestones; $0 spend |
 | v2.13 | 4 | 16 | 3 days | 10-state tranche (cohort 9→19 ACFR); four-risk-facts recon gate; verification harness scaled 3× unchanged; retroactive VERIFICATION closure pattern; $0 spend |
 | v2.14 | 6 | 20 | 2 days | 10-state tranche (cohort 19→29 ACFR); WR-05 debt paid via fix-first sequencing (LOAD-01, 0 manual re-clean); pre-GASB-34 extractor (CT 38yr); Python extract_gf/gen_state generalized; honest-unrecoverable outcome; rank-correction sub used; $0 spend |
+| v2.16 | 3 | 4 | 2 days | Cross-product tether-icon row (reciprocal of Essentials Ph187); pure-resolver/thin-component split; headless-first UAT (real code × live catalog × real DB, 7/7) then human sign-off; live-data grounding caught a falsified negative case (Plano→Fresno); federal-shows-icon reversal; $0 spend |
 
 ### Top Lessons (Verified Across Milestones)
 

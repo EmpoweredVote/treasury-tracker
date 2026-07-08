@@ -10,7 +10,7 @@ Any citizen can open treasurytracker.empowered.vote and immediately understand w
 
 ## Current State
 
-**v2.16 Tethered Icons & Smart Banner — STARTED 2026-07-07.** Adding a context-sensitive, cross-product "tethered feature-icon" row to the TT hero banner — the reciprocal of Essentials' Phase 187 tethered-icon row. The banner's current entity (city/county/state/federal) deep-links into other Empowered Vote products, starting with the Essentials yellow magnifying glass (bottom-right circular chip), rendered **only when Essentials actually covers that location**. A generic product registry reserves fixed slots for Compass and Read & Rank (non-rendering until each gains a per-location contract). Coverage is gated by a **live** fetch of Essentials' coverage catalog (a small cross-repo prerequisite: Essentials must publish its `coverage.js` catalog as a public resource, reciprocal to TT's `/treasury/cities`), matched to the TT entity by name + state → GEOID. "Smart Banner" = the context-sensitive tether logic only; no banner-image changes this cycle. Frontend-only on the TT side, visually cohesive with Essentials' chip/tooltip treatment (light+dark aware). Free only, no AI spend. Phases continue from 125.
+**v2.16 Tethered Icons & Smart Banner — SHIPPED 2026-07-08.** TT's hero banner now carries a context-sensitive, cross-product "tethered feature-icon" row — the reciprocal of Essentials' Phase 187. The banner's current entity (city/county/state/federal) deep-links into Essentials via a bottom-right navy chip with an accessible `@floating-ui` tooltip, rendered **only when a real per-location Essentials link exists** (icon-iff-covered). Phase 125 built the live coverage contract (`essentialsCoverage.ts` — fetch-once/cache/never-throw loader + tier-aligned, state-scoped matcher against Essentials' published `coverage.json`, CORS `*`); Phase 126 built the visible gate (`featureIcons.ts` pure product registry `[essentials, compass, readrank]` — essentials live, Compass/Read&Rank reserved non-rendering — + `buildEssentialsHref` URL/URLSearchParams-only with a same-origin guard, + `FeatureIconRow.tsx`); Phase 127 proved it context-sensitive end-to-end and passed Chris's live-app UAT. The **federal "United States" entity SHOWS the icon** (a headline reversal of the original "no federal target"), linking to Essentials' new national-officials browse route. Uncovered cities (e.g. Fresno CA) and covered-but-geoid-less places (Bloomington IN) correctly show no icon. Verified: fixture-backed vitest (22/22) + a live-catalog headless matrix (7/7, real resolver × live `coverage.json` × real DB entities) + an offline-safe live-fetch smoke script (`npm run smoke:essentials`) + Chris's VER-01 sign-off — 0 defects. Frontend-only, free, $0 AI spend, executed inline. **No active milestone — next candidates: VOTES-01 (votes/amendments hub); SRCSTD-01 (sourced-standard backfill to city/state data). Run `/gsd-new-milestone`.**
 
 <details>
 <summary>Previous: v2.15 State ACFR Long Tail — Final Tail + NASBO Retirement — SHIPPED 2026-07-06</summary>
@@ -117,7 +117,12 @@ All 6 remaining SoCal counties added via the hardened v2.2/v2.3 pipeline with ze
 Brought every already-loaded non-OC California city and county to the Orange County standard (FY2003 history, statewide salaries, standardized enrichment) via the hardened v2.2 pipeline. Phase 62 verified end-to-end: ACFR reconciliation, source-chain audit (0 NULL/fragile/residue across 25,568 rows), 24-item UAT with Chris's sign-off. SoCal expansion deferred to v2.4.
 </details>
 
-## Current Milestone: v2.16 Tethered Icons & Smart Banner
+## Milestones — Shipped Scope
+
+_No active milestone. v2.16 shipped 2026-07-08. Next candidates: VOTES-01 (votes/amendments hub); SRCSTD-01 (sourced-standard backfill to city/state data). Run `/gsd-new-milestone`._
+
+<details>
+<summary>Shipped v2.16 scope (Phases 125–127) — Tethered Icons & Smart Banner</summary>
 
 **Goal:** Add a context-sensitive, cross-product "tethered feature-icon" row to Treasury Tracker's hero banner — the reciprocal of Essentials' Phase 187 — that deep-links the banner's current entity into other Empowered Vote products, starting with the Essentials yellow magnifying glass (bottom-right), rendered only when Essentials actually covers that location.
 
@@ -133,6 +138,8 @@ Brought every already-loaded non-OC California city and county to the Orange Cou
 - **Frontend-only on the TT side** — no TT DB/schema changes. TT's banner today is a plain `div` (`App.tsx`), not a `SectionBanner`; the icon row must fit `h-48`, bottom-right, clear of the bottom-left title and the top-right Wikimedia credit.
 - **Visual cohesion with Essentials chips:** ~36px circular chip, `rgba(13,17,23,0.55)` bg + `blur(2px)`, ~20px icon, 8px gap, `@floating-ui` tooltip on hover+focus. Icons sourced from `C:\ev-landing\ev-landing-main\icons\` (`essentials-symbol-{light,dark}.svg`, `compass-symbol-*`, `readrank-symbol-*`), copied into TT `public/`.
 - **EV constraints:** free only, $5 AI gate (no AI needed here); TT stays light+dark (unlike Essentials' dark-only banner) — pick the icon light/dark variant per active theme.
+
+</details>
 
 <details>
 <summary>Shipped v2.15 scope (Phases 117–124) — State-ACFR arc complete (all 50 states on ACFR GAAP; NASBO retired to fallback-only)</summary>
@@ -273,17 +280,13 @@ Brought every already-loaded non-OC California city and county to the Orange Cou
 - ✓ **Batch 2 — SC/KY/UT/AL/LA** upgraded NASBO→full ACFR GAAP; GF-alone scope decisions resolved honestly (UT ~0.83×, AL ~0.24× dual-budget, LA ~1.90× ~99% federal-passthrough); KY FY2023 honest hole (ACFR-26..30, 31/32) — v2.14, Phase 114
 - ✓ **Pre-GASB-34 extractor** (`pre34Extract.mjs`) + history-hole recovery: CT 38yr contiguous (FY1988–2025, FY2006 via free OCR), WI 26yr, NJ contiguous FY2002–2025, MA 2/6 recovered + 4 documented unrecoverable; honest pre-GASB-34 basis labels (DEEP-02/03/04) — v2.14, Phase 115
 - ✓ Verification: 75/75 loader-independent blind re-derivation at exact $0; 12-invariant cohort audit (901 rows, 29 ACFR + 21 NASBO); LOAD-01 proven end-to-end (0 manual re-clean); Chris live-app UAT 11/11 all-pass (VER-07/08) — v2.14, Phase 116
+- ✓ Essentials coverage contract: `essentialsCoverage.ts` fetch-once/cache/never-throw loader + tier-aligned, state-scoped, loose matcher against Essentials' published `coverage.json` (CORS `*`) + national-officials federal browse route; `data-essentials-coverage` seam; 14-assertion vitest (COV-01/02/03/04) — v2.16, Phase 125
+- ✓ Tethered feature-icon row: pure product registry `[essentials, compass, readrank]` (essentials live, Compass/Read&Rank reserved non-rendering) + `buildEssentialsHref` (URL/URLSearchParams-only, same-origin guard, geoid-less→null) + `@floating-ui` navy chip/tooltip bottom-right above the credit, always `-light` symbol both themes (ICON-01/02/03/04, TETH-01/02) — v2.16, Phase 126
+- ✓ Context-sensitivity + live UAT: icon-iff-real-link proven end-to-end (covered city/county/state + federal SHOW correct destination; uncovered Fresno CA + geoid-less Bloomington IN show none); 7/7 headless matrix (real resolver × live catalog × real DB entities) + `npm run smoke:essentials` + Chris VER-01 sign-off, 0 defects (TETH-03, VER-01) — v2.16, Phase 127
 
-### Active — v2.16 Tethered Icons & Smart Banner
+### Active — none
 
-- [ ] **COV-01** — Essentials publishes its coverage catalog as a public, fetchable resource (endpoint or hosted JSON), reciprocal to TT's `/treasury/cities` (cross-repo, `essentials`)
-- [ ] **COV-02** — TT fetches the Essentials coverage catalog at runtime and matches the current entity by name + state to its GEOID(s), degrading gracefully to no-icon on any fetch/match failure
-- [ ] **ICON-01** — TT renders a tethered feature-icon row on the hero banner (bottom-right, circular semi-transparent chips), visually cohesive with Essentials' `SectionBanner`, never obscuring the title
-- [ ] **ICON-02** — each icon has an accessible tooltip on hover AND keyboard focus plus an `aria-label`; icons pick the light/dark variant per active theme
-- [ ] **ICON-03** — icons render only when a real per-location link exists for that product (no dead/greyed/placeholder icons); the row left-aligns whatever is live
-- [ ] **TETH-01** — the Essentials icon deep-links the banner's current entity into Essentials (city/county → `browse_government_list`; state → `browse_state_officials`), never the user's own saved location
-- [ ] **TETH-02** — a generic product registry with fixed reserved order `[essentials, compass, readrank]`; Compass/Read & Rank reserved as non-rendering slots that plug in with zero layout change
-- [ ] **TETH-03** — the Essentials icon appears only when Essentials covers the current entity; a covered-less city/county/federal shows no Essentials icon
+_v2.16 shipped 2026-07-08. No active milestone. Next candidates in "Future" below; run `/gsd-new-milestone` to charter the next one._
 
 ### Future (deferred milestone candidates)
 
@@ -371,8 +374,16 @@ Brought every already-loaded non-OC California city and county to the Orange Cou
 | Scope divergence accepted + relabelled up to 3.56× (MI) (v2.13) | Same TX/PA/IL precedent: carving a broader consolidated GF down to NASBO's definition would be fabrication; honest relabel keeps totals correct + sourced | ✓ Good — 5 relabels verified in UAT incl. MI 3.5×, GA 2× |
 | Retroactive VERIFICATION.md accepted for Phase 108 (v2.13) | The evidence (LOADLOG DB assertions + Phase 110's independent re-derivation + live UAT) already existed on disk; re-executing the phase would add nothing | ✓ Good — audit gap closed in one day, 18/18; process lesson: run the verifier before phase close |
 | Recoverable history holes logged, not chased (v2.13) | MA/CT/NJ/WI older years need OCR or a pre-GASB-34 extractor — out of tranche scope; honest absence beats delaying 10 states for 6 files | ✓ Good — holes documented + encoded in cohort-audit INV-8 |
+| Icon rendered only when a real per-location link exists — geoid-less-covered shows no icon (v2.16, D-127-01) | A covered place with no Census GEOID (Bloomington IN) has no valid city deep-link; a broken/coarse link is worse than no icon; no label-only fallback added | ✓ Good — honest gate, distinct from uncovered; UAT-confirmed correct |
+| Federal entity SHOWS the Essentials icon (v2.16, headline reversal) | Chris chose to add Essentials' national-officials browse route this milestone, giving "United States" a real target — reverses the original "no federal icon" assumption | ✓ Good — live-verified, the milestone's headline behavior |
+| Every tether href via URL/URLSearchParams + same-origin guard on the untrusted catalog target (v2.16, T-126-01) | The coverage catalog is remote data TT doesn't control; string-concatenated hrefs or an unguarded federal target could escape the Essentials origin | ✓ Good — hostile-absolute + protocol-relative both return null, vitest-proven |
+| UAT verified headless against live data, not just fixtures (v2.16) | Running the real resolver modules against the live `coverage.json` + real DB entity records proves icon-or-absence + exact hrefs deterministically — stronger than fixtures, catches producer drift | ✓ Good — 7/7 exact; also caught the falsified Plano-uncovered candidate (→ Fresno CA) |
 
 ## Shipped
+
+- ✅ **v2.16 Tethered Icons & Smart Banner** — 2026-07-08 — Phases 125-127 (context-sensitive cross-product tether-icon row on the TT hero banner, reciprocal of Essentials' Phase 187: live coverage contract `essentialsCoverage.ts` + pure product registry/gate `featureIcons.ts` + `@floating-ui` chip row, icon-iff-real-link; federal SHOWS the icon (headline reversal); Fresno CA uncovered + Bloomington IN geoid-less correctly show none; verified 22/22 vitest + 7/7 live-catalog headless matrix + `smoke:essentials` + Chris VER-01 sign-off, 0 defects; frontend-only, $0 spend)
+- ✅ **v2.15 State ACFR Long Tail — Final Tail + NASBO Retirement** — 2026-07-06 — Phases 117-124 (last 21 NASBO states upgraded to State-ACFR GAAP → all 50 states on ACFR; existing nodes deepened CA→FY2002 / FL→FY2003; NASBO retired to guarded fallback-only; 149/151 blind re-derivation exact $0 + 14/14 cohort invariants over 1,560 rows + Chris UAT 12/12; free PDFs, $0 spend)
+- ✅ **v2.14 State ACFR Long Tail — Tranche 3 + Deepening** — 2026-07-03 — Phases 111-116 (WR-05 loader debt retired via LOAD-01; cohort 19→29 ACFR states; pre-GASB-34 extractor recovered CT/WI/NJ/MA history holes; 75/75 blind re-derivation exact $0 + 12-invariant cohort audit + Chris UAT 11/11; milestone audit 20/20; $0 spend)
 
 - ✅ **v2.13 State ACFR Long Tail — Tranche 2** — 2026-07-02 — Phases 107-110 (10 states — NJ/MA/NC/GA/MD/TN/CT/WI/WA/MI — upgraded NASBO→State-ACFR GAAP GF revenue-by-source + spending-by-function, 0 substitutions; MA in-place over v1.8 DLS, GA F-97-01 superseded; cohort 9→19 ACFR states, 506 state rows, 0 anomalies; 49/49 blind re-derivation exact $0 + cohort audit 10/10 + Chris UAT 11/11 (+108-closure 7/7); free PDFs, $0 spend)
 - ✅ **v2.12 State ACFR Long Tail** — 2026-07-01 — Phases 103-106 (CA/NY/FL ACFR history deepened +25 state-FYs; PA FY2016–2025 + IL FY2021–2025 onto full ACFR GAAP rev+spend, NASBO replaced idempotently; 24/24 blind re-derivation exact + 50-node cohort audit 7/7 + Chris UAT 8/8; UAT-surfaced data-viz fix deployed; $0 spend)
@@ -417,7 +428,7 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-07 — v2.16 Tethered Icons & Smart Banner STARTED. Add a context-sensitive, cross-product tethered feature-icon row to the TT hero banner — the reciprocal of Essentials' Phase 187. The banner's current entity deep-links into other EV products, starting with the Essentials yellow magnifying glass (bottom-right circular chip), rendered only when Essentials covers that location. Generic product registry reserves fixed slots for Compass + Read & Rank (non-rendering until each has a per-location contract). Live coverage gate: fetch Essentials' published coverage catalog (cross-repo prerequisite — reciprocal to TT's `/treasury/cities`), match by name + state → GEOID. "Smart Banner" = the context-sensitive tether logic only (no banner-image changes). Frontend-only on the TT side, visually cohesive with Essentials' chip/tooltip (light+dark aware). Free only, no AI spend. Phases continue from 125. (v2.15 SHIPPED + archived 2026-07-06.)*
+*Last updated: 2026-07-08 after v2.16 milestone — v2.16 Tethered Icons & Smart Banner SHIPPED + archived. TT's hero banner now carries a context-sensitive cross-product tether-icon row (reciprocal of Essentials' Phase 187): Phase 125 the live coverage contract (`essentialsCoverage.ts`, fetch-once/cache/never-throw + tier-aligned state-scoped matcher against Essentials' `coverage.json` w/ CORS `*` + national-officials federal route), Phase 126 the visible gate (`featureIcons.ts` registry + `buildEssentialsHref` URL/URLSearchParams-only same-origin guard + `@floating-ui` navy chip row), Phase 127 the end-to-end context-sensitivity proof + Chris live UAT. Icon-iff-real-link: covered city/county/state + federal SHOW the correct Essentials destination (federal SHOWING is the headline reversal); uncovered Fresno CA + geoid-less Bloomington IN correctly show none. Verified 22/22 vitest + 7/7 live-catalog headless matrix (real resolver × live catalog × real DB entities) + `npm run smoke:essentials` + Chris VER-01 sign-off, 0 defects. Frontend-only, free, $0 AI spend, executed inline. No active milestone. Next: `/gsd-new-milestone` (candidates: VOTES-01 votes/amendments hub; SRCSTD-01 sourced-standard city/state backfill). (v2.15 SHIPPED + archived 2026-07-06.)*
 
 <details>
 <summary>Previous footer — v2.15 STARTED (2026-07-03)</summary>

@@ -1,5 +1,17 @@
 # Milestones — Treasury Tracker / Empowered Vote Financials
 
+## v2.16 Tethered Icons & Smart Banner (Shipped: 2026-07-08)
+
+**Phases completed:** 3 phases, 4 plans, 9 tasks
+
+**Key accomplishments:**
+
+- Fetch-once/cache/never-throw Essentials coverage loader + tier-aligned, state-scoped, loose-matching resolver (`essentialsCoverage.ts`), proven by a 14-assertion fixture-backed vitest suite and wired into `App.tsx` as a real `data-essentials-coverage` DOM seam for Phase 126.
+- Bottom-right hero-banner icon row deep-linking the current entity into Essentials via a fixed-order product registry (essentials live, compass/readrank reserved), built with @floating-ui/react tooltips and URL/URLSearchParams-only href construction.
+- Proved the Essentials tether is context-sensitive end-to-end (icon iff a real per-location link exists) and passed Chris's live-app UAT across every entity tier — the v2.16 capstone, zero defects.
+
+---
+
 ## v2.15 State ACFR Long Tail — Final Tail + NASBO Retirement (Shipped: 2026-07-06)
 
 **Phases completed:** 8 phases (117–124), 34 plans

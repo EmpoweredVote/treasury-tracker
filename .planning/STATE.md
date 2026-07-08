@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v2.16
 milestone_name: Tethered Icons & Smart Banner
-status: verifying
-last_updated: "2026-07-08T20:01:54.547Z"
-last_activity: 2026-07-08
+status: Awaiting next milestone
+last_updated: "2026-07-08T21:55:24.560Z"
+last_activity: 2026-07-08 — Milestone v2.16 completed and archived
 progress:
   total_phases: 29
   completed_phases: 2
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
   percent: 7
 ---
 
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-07-07 — v2.16 Tethered Icons & Smart B
 
 ## Current Position
 
-Phase: 126 (tethered-feature-icon-row) — EXECUTING
-Plan: 1 of 1
-Status: Phase complete — ready for verification
-Last activity: 2026-07-08
+Phase: Milestone v2.16 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-08 — Milestone v2.16 completed and archived
 
 ## Phase Overview — v2.16 Tethered Icons & Smart Banner
 
