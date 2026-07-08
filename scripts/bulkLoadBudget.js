@@ -113,6 +113,22 @@ async function syncBudgetSource(ds, fiscalYear, opts = {}) {
   console.log(`  built tree: ${kept} kept, ${droppedZero} zero-amount rows dropped, total $${Math.round(total).toLocaleString()}`);
   console.log(`  top-level categories: ${jsonTree.length}`);
 
+  // Zero-total guard: refuse to persist an all-zero budget. A $0 computed total
+  // (or every row dropped as zero) almost always means a column_mapping mistake —
+  // typically `approved_amount_column` pointing at an empty/non-existent column, as
+  // happened with LA City revenue (Socrata vvm4-a2zu had no actual-amount column and
+  // silently wrote ~1,500 zeroed fund rows). Fail LOUD here, BEFORE the destructive
+  // delete below, so a misconfigured sync can neither wipe good data nor persist zeros.
+  if (total <= 0 || kept === 0) {
+    console.error(
+      `  ✗ ABORT: ${ds.name} FY${fiscalYear} computed total is $0 ` +
+      `(kept=${kept}, droppedZero=${droppedZero}). Refusing to write an all-zero budget — ` +
+      `check column_mapping.approved_amount_column (and actual_amount_column) for this source. ` +
+      `No rows were deleted or written.`,
+    );
+    return { rows_fetched: allRows.length, rows_inserted: 0, status: 'zero_total_abort' };
+  }
+
   if (opts.dryRun) {
     console.log('  (dry run — skipping RPC call)');
     const deptCol = cm.department_column || null;
