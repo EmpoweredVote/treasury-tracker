@@ -124,6 +124,12 @@ Phase 126 (Tethered Feature-Icon Row) can now:
 
 No blockers. The one open item (pre-existing lint failures) is unrelated to this plan and is documented for separate cleanup.
 
+## Self-Check: PASSED
+
+All 8 created/modified files verified present on disk; all 5 commit hashes
+(`4e4ccc9`, `c4b00b3`, `82902b3`, `d1d1372`, `1a5044c`) verified present in
+`git log`.
+
 ---
 *Phase: 125-essentials-coverage-contract*
 *Completed: 2026-07-08*
