@@ -38,6 +38,7 @@ import CitiesInStatePanel from './components/CitiesInStatePanel';
 import CountiesInStatePanel from './components/CountiesInStatePanel';
 import StatesInFederalPanel from './components/StatesInFederalPanel';
 import { getHeroImage, getHeroBgPosition, type HeroImage } from './utils/wikiImage';
+import { useEssentialsCoverage } from './utils/essentialsCoverage';
 import type { BudgetCategory, BudgetData, FederalContext, LinkedTransactionSummary, Municipality, OrgFinancialSummary } from './types/budget';
 
 interface BreadcrumbItem {
@@ -170,6 +171,10 @@ function App() {
     setHeroImage(null); // clear while loading
     getHeroImage(selectedEntity).then(setHeroImage);
   }, [selectedEntity]);
+
+  // Resolve Essentials coverage for the current entity — an invisible seam for
+  // Phase 126's tethered feature-icon row (data-essentials-coverage below).
+  const essentialsCoverage = useEssentialsCoverage(selectedEntity);
 
   // Update page title when entity changes
   useEffect(() => {
@@ -806,6 +811,7 @@ function App() {
           backgroundImage: `url('${heroImage.url}')`,
           ...(getHeroBgPosition(selectedEntity) ? { backgroundPosition: getHeroBgPosition(selectedEntity)! } : {}),
         } : undefined}
+        data-essentials-coverage={essentialsCoverage ? 'covered' : 'none'}
       >
         <div className={`absolute inset-0 ${heroImage ? 'bg-gradient-to-r from-black/60 to-black/30' : ''}`} />
         <div className="relative h-full max-w-[1400px] mx-auto px-6 flex flex-col justify-end pb-6">
