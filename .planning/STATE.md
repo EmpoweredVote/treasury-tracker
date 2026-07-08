@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v2.16
 milestone_name: Tethered Icons & Smart Banner
 status: completed
-last_updated: "2026-07-08T07:01:43.375Z"
+last_updated: "2026-07-08T07:17:14.513Z"
 last_activity: 2026-07-08 -- Phase 125 executed (essentialsCoverage.ts loader/matcher, vitest suite, App.tsx seam, cross-repo deferrals resolved)
 progress:
   total_phases: 29
@@ -20,7 +20,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-07 — v2.16 Tethered Icons & Smart Banner STARTED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** Phase 125 — essentials-coverage-contract
+**Current focus:** Phase 126 — tethered-feature-icon-row (planned, ready to execute)
 
 ## Current Position
 
