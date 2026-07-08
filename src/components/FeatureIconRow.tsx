@@ -71,7 +71,10 @@ export function FeatureIconChip({ icon }: { icon: FeatureIcon }) {
       {isOpen && (
         <FloatingPortal>
           <div
-            ref={refs.setFloating}
+            // @floating-ui/react's refs.setFloating is a stable ref-callback
+            // *setter*, not a mutable `.current` read; the compiler-based
+            // react-hooks/refs rule false-positives on it (disabled below).
+            ref={refs.setFloating} // eslint-disable-line react-hooks/refs
             style={{
               ...floatingStyles,
               zIndex: 70,
