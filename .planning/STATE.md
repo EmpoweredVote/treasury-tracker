@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.16
 milestone_name: Tethered Icons & Smart Banner
-status: Defining requirements
-last_updated: "2026-07-07T22:48:21.578Z"
-last_activity: 2026-07-07 — Milestone v2.16 started
+status: verifying
+last_updated: "2026-07-08T06:48:00.648Z"
+last_activity: 2026-07-08
 progress:
   total_phases: 29
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 1
-  completed_plans: 0
-  percent: 0
+  completed_plans: 1
+  percent: 3
 ---
 
 # State
@@ -20,20 +20,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-07 — v2.16 Tethered Icons & Smart Banner STARTED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** Phase 125 — Essentials Coverage Contract (defining plans next)
+**Current focus:** Phase 125 — essentials-coverage-contract
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-07-07 — Milestone v2.16 started
+Phase: 125 (essentials-coverage-contract) — ✅ COMPLETE
+Plan: 1 of 1
+Status: Phase 125 complete. Next: Phase 126 (Tethered Feature-Icon Row)
+Last activity: 2026-07-08 -- Phase 125 executed (essentialsCoverage.ts loader/matcher, vitest suite, App.tsx seam, cross-repo deferrals resolved)
 
 ## Phase Overview — v2.16 Tethered Icons & Smart Banner
 
 | Phase | Name | Requirements | Depends on | Status |
 |-------|------|--------------|------------|--------|
-| 125 | Essentials Coverage Contract | COV-01, COV-02, COV-03 | — | ○ Not started |
+| 125 | Essentials Coverage Contract | COV-01, COV-02, COV-03, COV-04 | — | ✅ COMPLETE — TT-side (COV-02/03/04); COV-01 producer-side confirmed live 2026-07-08 |
 | 126 | Tethered Feature-Icon Row | ICON-01..04, TETH-01, TETH-02 | 125 | ○ Not started |
 | 127 | Context-Sensitivity + Live UAT | TETH-03, VER-01 | 125, 126 | ○ Not started |
 
@@ -208,9 +208,9 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-07-07T22:48:21.568Z
-Stopped at: Phase 125 planned (TT-side, 1 plan)
-Resume file: .planning/phases/125-essentials-coverage-contract/125-PLAN.md
+Last session: 2026-07-08T06:48:00.636Z
+Stopped at: Completed 125-125-PLAN.md
+Resume file: None
 
 ### Next Session
 
@@ -289,6 +289,7 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 | Phase 124 P01 | 60min | 2 tasks | 2 files |
 | Phase 124 P02 | 65min | 2 tasks | 2 files |
 | Phase 124 P03 | 20min | 2 tasks | 1 files |
+| Phase 125 P125 | 25min | 4 tasks | 9 files |
 
 ## Decisions
 
@@ -410,6 +411,9 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 - [Phase 124-02]: INV-2 allowlists the one documented CA persistent data_sources registry row (ca-acfr-gf-operating) per 122-03-DEEP05-CLOSEOUT.md rather than flagging it as WR-05 residue
 - [Phase 124-02]: loadStateGF.mjs --dry-run cannot exercise the isAcfrOccupied guard (returns before the DB read) — verified the guard instead by applying it directly against live data, confirming 0 intended writes to any of the 50 ACFR nodes
 - [Phase 124-03]: VER-10 live-app UAT — Chris signed off 12/12 anchors PASS (2026-07-05), 0 defects fixed in-phase; closes the v2.15 human capstone (all 50 states on ACFR)
+- [Phase 125]: Federal target string used verbatim as confirmed byte-for-byte by essentials repo (browse_federal_officials=1&browse_label=United+States)
+- [Phase 125]: strip() (trailing County / , ST) + normalizePlace() applied identically to entity name and catalog label -- state equality alone disambiguates Washington County OR vs UT
+- [Phase 125]: Cross-repo deferral note upgraded from pending to RESOLVED after a live smoke test proved both Essentials-side deliverables (coverage.json+CORS, federal browse route) are already live on production
 
 ## Deferred Items
 
