@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v2.16
 milestone_name: Tethered Icons & Smart Banner
-status: verifying
-last_updated: "2026-07-08T06:48:00.648Z"
-last_activity: 2026-07-08
+status: completed
+last_updated: "2026-07-08T07:01:43.375Z"
+last_activity: 2026-07-08 -- Phase 125 executed (essentialsCoverage.ts loader/matcher, vitest suite, App.tsx seam, cross-repo deferrals resolved)
 progress:
   total_phases: 29
   completed_phases: 1
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-07-07 — v2.16 Tethered Icons & Smart B
 
 Phase: 125 (essentials-coverage-contract) — ✅ COMPLETE
 Plan: 1 of 1
-Status: Phase 125 complete. Next: Phase 126 (Tethered Feature-Icon Row)
+Status: phase-complete
 Last activity: 2026-07-08 -- Phase 125 executed (essentialsCoverage.ts loader/matcher, vitest suite, App.tsx seam, cross-repo deferrals resolved)
 
 ## Phase Overview — v2.16 Tethered Icons & Smart Banner
