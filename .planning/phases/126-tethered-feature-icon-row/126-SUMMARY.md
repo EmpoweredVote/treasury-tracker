@@ -121,3 +121,9 @@ None - no external service configuration required. `@floating-ui/react` is a pla
 ---
 *Phase: 126-tethered-feature-icon-row*
 *Completed: 2026-07-08*
+
+## Self-Check: PASSED
+
+All created files verified present on disk; all task commit hashes
+(1769cc6, fc6bbb5, de7ad4d, e2f115e, 41f38a8, 3ea5e41, d88a655) verified
+present in `git log --oneline --all`.
