@@ -17,7 +17,7 @@ requirements: [COV-02, COV-03, COV-04]
 must_haves:
   - "A new src/utils/essentialsCoverage.ts fetches the Essentials coverage.json once per session, caches it in-memory, and returns null (never throws) on slow/failed/empty/non-OK responses (COV-02)"
   - "matchEntityToCoverage resolves a TT Municipality tier-aligned: city→city records, county→county records, state→by abbrev, federal→the federal record; returns null on wrong/absent state (COV-03)"
-  - "Loose matching reuses Essentials normalizePlace semantics (lowercase, drop punctuation, St./Saint) plus strips trailing 'County' and ', ST'; St. Mary's County, Washington County OR, and Los Angeles County all resolve (COV-03)"
+  - "Loose matching reuses Essentials normalizePlace semantics (lowercase, drop punctuation, St./Saint) plus strips trailing 'County' and ', ST'; St. Mary's County and Los Angeles County resolve, and BOTH county-label forms Essentials emits — 'Washington County, OR' (suffixed) and 'Washington County' UT (bare) — resolve to their own state's record, never each other (COV-03)"
   - "A known covered place (Bloomington IN, Long Beach CA) resolves to its GEOID(s); a known-uncovered place resolves to null; the federal entity resolves to the federal record's target (COV-04)"
   - "Verification exists and passes: vitest suite over a committed fixture proves the above; tsc build and eslint pass"
   - "App.tsx consumes the resolver on entity change and exposes a real data-essentials-coverage seam on the hero banner (covered|none) for Phase 126 — no icon rendered yet, no dead/unused code"
@@ -105,13 +105,14 @@ Add a minimal vitest harness (TT currently has no test runner) and a fixture-bac
 1. `npm install -D vitest` (and `jsdom` only if the hook test needs it — prefer testing the PURE functions to avoid a DOM dep).
 2. Create `vitest.config.ts` with `test.environment: 'node'` and `test.include: ['src/**/*.test.ts']`.
 3. Add `"test": "vitest run"` to package.json `scripts`.
-4. Create `src/utils/__fixtures__/coverage.sample.json` — a small catalog in the agreed shape containing: cities Long Beach CA (geoid 0643000) + Bloomington IN (no geoid / address-only → still a covered record with hasContext); counties "Los Angeles County" CA (06037), "St. Mary's County" MD (24037), "Washington County, OR" (41067); states California/CA + Texas/TX; federal { label:"United States", target:"/results?browse_federal_officials=1&browse_label=United States" }.
+4. Create `src/utils/__fixtures__/coverage.sample.json` — a small catalog in the agreed shape containing: cities Long Beach CA (geoid 0643000) + Bloomington IN (no geoid / address-only, `geoids: []` → still a covered record with hasContext); counties "Los Angeles County" CA (06037), "St. Mary's County" MD (24037), "Washington County, OR" (41067, state-suffixed label), AND "Washington County" UT (49053, bare label) — the two county-label forms Essentials confirmed both exist in source; states California/CA + Texas/TX; federal { label:"United States", target:"/results?browse_federal_officials=1&browse_label=United States" }.
 5. Create `src/utils/essentialsCoverage.test.ts` importing `matchEntityToCoverage` + `normalizePlace` + the fixture, asserting (COV-03/04):
    - Long Beach CA (city) → geoids `['0643000']`
    - Bloomington IN (city) → covered record (non-null), hasContext true
    - Los Angeles County CA (county, entity name "Los Angeles County") → geoids `['06037']`
    - "St. Mary's County" MD vs fixture "St. Mary's County" → match (punctuation loose)
-   - Washington County OR (name "Washington County", state OR) → matches "Washington County, OR" (state-suffix strip)
+   - Washington County OR (name "Washington County", state OR) → matches "Washington County, OR" → geoids `['41067']` (state-suffix strip)
+   - Washington County UT (name "Washington County", state UT) → matches the bare "Washington County" → geoids `['49053']`, NOT the OR record (state-scoped disambiguation across the two identical names / two label forms)
    - a Salem UT city (not in fixture) → null (no wrong-state Salem match)
    - state entity {name:'California',state:'CA',entity_type:'state'} → `{tier:'state', stateAbbrev:'CA'}`
    - federal {name:'United States',state:'US',entity_type:'federal'} → record with the browse_federal_officials target
@@ -128,6 +129,7 @@ Add a minimal vitest harness (TT currently has no test runner) and a fixture-bac
 - `vitest.config.ts` exists; package.json `scripts.test` is `vitest run`
 - `src/utils/__fixtures__/coverage.sample.json` exists and contains a `federal` object with a `browse_federal_officials` target
 - The suite includes an assertion that a rejected/`!ok` fetch resolves to `null` (COV-02) and that the federal entity resolves to a non-null target (COV-04)
+- The suite asserts both county-label forms resolve to the correct state's GEOID: Washington County OR → `["41067"]` and Washington County UT → `["49053"]` (state-scoped, no cross-state collision)
 </acceptance_criteria>
 </task>
 
