@@ -37,11 +37,11 @@
 
 - [x] **TETH-01** — the Essentials icon deep-links the **banner's current entity** into Essentials — city/county → `/results?browse_government_list=<geoid>&browse_state=<abbr>&browse_label=<label>`; state → `/results?browse_state_officials=<abbr>&browse_label=<label>`; federal → `/results?browse_federal_officials=1&browse_label=United States` (per COV-04) — and never the user's own saved/broker location.
 - [x] **TETH-02** — the icon row is driven by a **generic product registry** with a fixed reserved order `[essentials, compass, readrank]`; each product declares a per-location resolver returning a link-or-null. Only Essentials is a live entry; Compass and Read & Rank are reserved (documented) non-rendering slots that plug in with zero layout change once each has a per-location contract.
-- [ ] **TETH-03** — context-sensitivity holds end-to-end: a city/county with no Essentials coverage shows **no** Essentials icon; the federal ("United States") entity **shows** the Essentials icon linking to Essentials' national-officials browse (per COV-04); a covered state/city shows the icon linking to the correct Essentials browse.
+- [x] **TETH-03** — context-sensitivity holds end-to-end: a city/county with no Essentials coverage shows **no** Essentials icon; the federal ("United States") entity **shows** the Essentials icon linking to Essentials' national-officials browse (per COV-04); a covered state/city shows the icon linking to the correct Essentials browse.
 
 ### Verification (VER)
 
-- [ ] **VER-01** — verify the tether end-to-end in the live app: a covered city, a covered county (if any TT county overlaps Essentials coverage), a covered state, an *uncovered* city, and the federal entity (now expected to show the icon → national-officials browse, per COV-04) each render the correct icon-or-absence and, when present, the icon opens the correct Essentials location. Chris live-app UAT sign-off.
+- [x] **VER-01** — verify the tether end-to-end in the live app: a covered city, a covered county (if any TT county overlaps Essentials coverage), a covered state, an *uncovered* city, and the federal entity (now expected to show the icon → national-officials browse, per COV-04) each render the correct icon-or-absence and, when present, the icon opens the correct Essentials location. Chris live-app UAT sign-off.
 
 ---
 
