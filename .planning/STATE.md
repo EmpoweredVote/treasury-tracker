@@ -41,6 +41,18 @@ Last activity: 2026-07-08
 
 ## Deferred Items
 
+### Acknowledged at v2.16 close (2026-07-08)
+
+Open-artifact audit at v2.16 close surfaced 5 items, all non-blocking (Chris chose Acknowledge & proceed). None are v2.16 (Tethered Icons) work — Phase 127 verified the whole milestone end-to-end (TETH-03 7/7 headless matrix against live catalog + real DB entities; VER-01 Chris live-app sign-off 2026-07-08, 0 defects):
+
+| Category | Item | Status |
+|----------|------|--------|
+| uat_gap | Phase 127 `127-UAT.md` | passed — 0 open scenarios (Chris signed off 2026-07-08; audit flags it only because the file exists and its custom format isn't parsed) |
+| todo | `2026-06-30-authenticated-deeplink-redirect-to-home-jurisdiction.md` | **deferred** — frontend-routing follow-up carried from v2.12; the only genuinely-open item |
+| quick_task | 001-create-treasury-tracker-entries-for-ever | **complete, not orphaned** — Collin County TX seeder (live in DB); "missing" is the SUMMARY-filename detection quirk (per v2.15 correction) |
+| quick_task | 002-add-longview-tx-revenue | **complete, not orphaned** — Longview TX FY2026 revenue loaded (live in DB) |
+| quick_task | 003-longview-operating-budget | **complete, not orphaned** — Longview TX FY2026 operating budget loaded (live in DB) |
+
 ### Acknowledged at v2.15 close (2026-07-06)
 
 Open-artifact audit at v2.15 close surfaced 5 items, all non-blocking. None are v2.15 blockers — Phase 124 verified the whole milestone end-to-end (VER-09 149/151 blind re-derivation exact $0 + 14/14 cohort audit incl. NASBORT-01 + 50/50-ACFR; VER-10 Chris live UAT 12/12 all-pass):
