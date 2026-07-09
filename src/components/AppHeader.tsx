@@ -24,7 +24,7 @@ export function AppHeader({ style, showBackButton, onBack, ...props }: AppHeader
   return (
     <div style={{ position: 'sticky', top: 0, zIndex: 50, width: '100%' }}>
       <Header
-        logoSrc={`${import.meta.env.BASE_URL}EVLogo.svg`}
+        logoSrc={`${import.meta.env.BASE_URL}${isDark ? 'EVLogo-dark.svg' : 'EVLogo.svg'}`}
         logoAlt="Empowered Vote"
         logoHref="https://empowered.vote"
         centerLogoSrc={featureLogo}
