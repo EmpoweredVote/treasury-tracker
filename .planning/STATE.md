@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.17
 milestone_name: Tucson, AZ City Onboarding
 status: executing
-last_updated: "2026-07-10T15:30:57.567Z"
-last_activity: 2026-07-10 -- Phase 129 planning complete
+last_updated: "2026-07-10T16:44:22.945Z"
+last_activity: 2026-07-10
 progress:
   total_phases: 29
   completed_phases: 1
   total_plans: 5
-  completed_plans: 2
+  completed_plans: 3
   percent: 3
 ---
 
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-10 — v2.17 Tucson, AZ City Onboarding STARTED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** Phase 129 — data model + load + enrichment
+**Current focus:** Phase 129 — data-model-load-enrichment
 
 ## Current Position
 
-Phase: 129
-Plan: Not started
+Phase: 129 (data-model-load-enrichment) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-07-10 -- Phase 129 planning complete
+Last activity: 2026-07-10
 
 ## Phase Overview — v2.17 Tucson, AZ City Onboarding
 
@@ -220,9 +220,9 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-07-08T20:01:54.534Z
-Stopped at: Phase 127 context gathered
-Resume file: .planning/phases/127-context-sensitivity-live-uat/127-CONTEXT.md
+Last session: 2026-07-10T16:44:22.933Z
+Stopped at: Completed 129-01-PLAN.md (Tucson city + Pima County data model seeded)
+Resume file: None
 
 ### Next Session
 
@@ -303,6 +303,7 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 | Phase 124 P03 | 20min | 2 tasks | 1 files |
 | Phase 125 P125 | 25min | 4 tasks | 9 files |
 | Phase 126 P126 | 16min | 5 tasks | 12 files |
+| Phase 129-data-model-load-enrichment P01 | 35min | 2 tasks | 1 files |
 
 ## Decisions
 
@@ -431,6 +432,7 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 - [Phase 126]: Icon chips always use the -light SVG symbol on a semi-transparent navy chip in both TT themes, no theme branching on the symbol
 - [Phase 126]: A covered city/county with no geoid resolves to null (no icon) this phase; flagged for Phase 127 UAT to revisit a label-only fallback
 - [Phase 126]: Suppressed a react-hooks/refs (eslint-plugin-react-hooks v7 compiler rule) false positive on @floating-ui/react's refs.setFloating with a scoped eslint-disable-line
+- [Phase 129-01]: Pinned real Census Vintage 2024 populations (Tucson 554013, Pima County 1080149) via live curl to www2.census.gov CSVs, not the ~542k/~1.06M planning-doc placeholders
 
 ## Deferred Items
 
