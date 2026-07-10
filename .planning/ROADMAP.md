@@ -29,10 +29,54 @@
 - ✅ **v2.14 State ACFR Long Tail — Tranche 3 + Deepening** — Phases 111-116 (shipped 2026-07-03)
 - ✅ **v2.15 State ACFR Long Tail — Final Tail + NASBO Retirement** — Phases 117-124 (shipped 2026-07-06) — all 50 states on ACFR
 - ✅ **v2.16 Tethered Icons & Smart Banner** — Phases 125-127 (shipped 2026-07-08)
+- 🔨 **v2.17 Tucson, AZ City Onboarding** — Phases 128-130 (started 2026-07-10)
 
 ---
 
 ## Phases
+
+### v2.17 Tucson, AZ City Onboarding (Phases 128-130) — ACTIVE
+
+**Milestone goal:** Bring the City of Tucson, AZ onto Treasury Tracker at city parity — General Fund revenue-by-source + expenditure-by-function from the City ACFR (GAAP), per-capita, enriched, every figure durably sourced — under a new **Pima County** navigation node beneath the existing Arizona state node, with the v2.16 Essentials tether icon verified on Tucson's banner. Clone the proven one-off city pipeline (`seedGreshamOregon.js` → `extractTucson.py` → `processTucson.js`). Free ACFR PDFs only, $0 / $5 AI gate, **General Fund** basis, source-safe never-overwrite, executed inline. FY2024 ACFR layout probe = best-case (`pdftotext -table`, GF rev $773.5M / exp $648.7M both tie $0). Scoping + probe: `.planning/TUCSON-SCOPING.md`.
+
+**Requirement coverage:** 9 requirements (TUC-01..09) · 9 mapped · 0 unmapped ✓
+
+| # | Phase | Goal | Requirements | Depends on |
+|---|-------|------|--------------|------------|
+| 128 | Recon + Extractor | Enumerate + tie the published Tucson ACFR years, lock the clean-extract window, build the GF rev/exp extractor | TUC-01, TUC-02 | — |
+| 129 | Data Model + Load + Enrichment | Seed Tucson + a Pima County node, link them, load GF operating + revenue for the window, enrich to 100% | TUC-03, TUC-04, TUC-05, TUC-06 | 128 |
+| 130 | Verification + Live UAT | Independent re-derivation + source-chain audit + Chris live UAT + Essentials-tether confirmation | TUC-07, TUC-08, TUC-09 | 128, 129 |
+
+**Critical path:** 128 → 129 → 130.
+
+#### Phase 128: Recon + Extractor
+**Goal:** Locate and validate the Tucson ACFR source end-to-end before any load — enumerate the published years, pin durable URLs, prove clean `pdftotext -table` extraction of the General Fund column, and build the extractor.
+**Requirements:** TUC-01, TUC-02
+**Success criteria:**
+1. Every published Tucson ACFR year is listed with a durable per-year PDF URL, and each year's Governmental-Funds Statement GF column bookend-ties to its printed *Total revenues* and *Total expenditures* at exactly $0 (or is documented as an honest non-extractable hole).
+2. The clean-extract window (deepest contiguous set of tying years) is locked and recorded.
+3. `extractTucson.py --mode operating|revenue` dry-runs each windowed FY, and each GF tree (revenue-by-source; 2-level expenditure-by-function) sums to the printed GF total at $0.
+4. The wrapped "Community enrichment and development" label and `$`/blank non-GF cells are handled with no mis-parsed rows.
+
+#### Phase 129: Data Model + Load + Enrichment
+**Goal:** Stand up the navigation nodes and load Tucson's General Fund with full parity, then enrich.
+**Requirements:** TUC-03, TUC-04, TUC-05, TUC-06
+**Success criteria:**
+1. Tucson (city) and Pima County (navigation node) appear under Arizona; the US → Arizona → Pima County → Tucson breadcrumb and the Cities-in-County panel render.
+2. Tucson GF operating (expenditure-by-function) + revenue (revenue-by-source) are loaded for the full locked window; 2-level icicle drill-down works.
+3. The "Money In" revenue view auto-enables and per-capita ($/resident) renders using 2024 population; every loaded row carries a durable `source_url` + `source_date`; a re-run is idempotent (0 net change).
+4. 100% of loaded Tucson categories have bleed-safe enrichment (no cross-entity bleed).
+
+#### Phase 130: Verification + Live UAT
+**Goal:** Prove every displayed figure is real and sourced, and confirm the whole experience live.
+**Requirements:** TUC-07, TUC-08, TUC-09
+**Success criteria:**
+1. Each loaded FY's GF revenue + expenditure totals are independently re-derived from the source ACFR at $0 delta (loader-independent).
+2. Full source-chain audit is clean — every Tucson + Pima County row durably sourced, 0 NULL/fragile/residue.
+3. Chris signs off the live-app UAT across Tucson + Pima County + Arizona (icicle, Money In/Out, per-capita, source chips, navigation).
+4. The Essentials tether icon is confirmed on Tucson's banner (v2.16 mechanism), or its absence is documented as a cross-repo Essentials coverage gap.
+
+---
 
 <details>
 <summary>✅ v2.16 Tethered Icons & Smart Banner (Phases 125-127) — SHIPPED 2026-07-08 (full detail in milestones/v2.16-ROADMAP.md)</summary>

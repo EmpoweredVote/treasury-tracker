@@ -8,6 +8,18 @@ A public-facing financial transparency platform for governments and nonprofits �
 
 Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes — without needing a finance background.
 
+## Current Milestone: v2.17 Tucson, AZ City Onboarding
+
+**Goal:** Bring the City of Tucson, AZ onto Treasury Tracker at city parity — General Fund revenue-by-source + expenditure-by-function from the City ACFR (GAAP), per-capita, enriched, every figure durably sourced — under a new **Pima County** navigation node beneath the existing Arizona state node, with the v2.16 Essentials tether icon verified on Tucson's banner.
+
+**Target features:**
+- Tucson General Fund loaded from its own ACFR (GAAP actuals) — revenue-by-source (10 sources) + a 2-level expenditure-by-function tree (Current→functions, Capital, Debt service→components), as deep as the published ACFRs cleanly extract & tie.
+- A **Pima County** navigation node under Arizona with Tucson linked via `county_id` (US→Arizona→Pima County→Tucson breadcrumb + Cities-in-County panel).
+- Per-capita ($/resident) using 2024 population (~542,000); "Money In" revenue view auto-enabled; bleed-safe category enrichment at 100% coverage.
+- Essentials **tethered-icon** confirmed on Tucson's hero banner (v2.16 mechanism — renders iff Essentials covers Tucson/Pima; a coverage gap is a cross-repo note, not TT code).
+
+**Key context (standing):** Free ACFR PDFs only ($0 / $5 AI gate); **General Fund** basis (not all-funds); `pdftotext -table` reads the GF column of the Governmental-Funds Statement cleanly (FY2024 probe: GF rev $773.5M / exp $648.7M, both tie $0); source-safe `treasury_sync_budget_tree` never-overwrite; every figure durably sourced (`source_url` + `source_date`); clone the proven one-off city pipeline (`seedGreshamOregon.js` → `extractTucson.py` → `processTucson.js`); executed inline (no subagents), closeout = loader-independent re-derivation → source-chain audit → Chris live UAT. Scoping brief + layout probe: `.planning/TUCSON-SCOPING.md`. **Deferred:** Pima County's own budget (navigation node only this milestone), all-funds view, Tucson salaries, OpenGov adopted-budget layer, other AZ cities.
+
 ## Current State
 
 **v2.16 Tethered Icons & Smart Banner — SHIPPED 2026-07-08.** TT's hero banner now carries a context-sensitive, cross-product "tethered feature-icon" row — the reciprocal of Essentials' Phase 187. The banner's current entity (city/county/state/federal) deep-links into Essentials via a bottom-right navy chip with an accessible `@floating-ui` tooltip, rendered **only when a real per-location Essentials link exists** (icon-iff-covered). Phase 125 built the live coverage contract (`essentialsCoverage.ts` — fetch-once/cache/never-throw loader + tier-aligned, state-scoped matcher against Essentials' published `coverage.json`, CORS `*`); Phase 126 built the visible gate (`featureIcons.ts` pure product registry `[essentials, compass, readrank]` — essentials live, Compass/Read&Rank reserved non-rendering — + `buildEssentialsHref` URL/URLSearchParams-only with a same-origin guard, + `FeatureIconRow.tsx`); Phase 127 proved it context-sensitive end-to-end and passed Chris's live-app UAT. The **federal "United States" entity SHOWS the icon** (a headline reversal of the original "no federal target"), linking to Essentials' new national-officials browse route. Uncovered cities (e.g. Fresno CA) and covered-but-geoid-less places (Bloomington IN) correctly show no icon. Verified: fixture-backed vitest (22/22) + a live-catalog headless matrix (7/7, real resolver × live `coverage.json` × real DB entities) + an offline-safe live-fetch smoke script (`npm run smoke:essentials`) + Chris's VER-01 sign-off — 0 defects. Frontend-only, free, $0 AI spend, executed inline. **No active milestone — next candidates: VOTES-01 (votes/amendments hub); SRCSTD-01 (sourced-standard backfill to city/state data). Run `/gsd-new-milestone`.**
@@ -119,7 +131,7 @@ Brought every already-loaded non-OC California city and county to the Orange Cou
 
 ## Milestones — Shipped Scope
 
-_No active milestone. v2.16 shipped 2026-07-08. Next candidates: VOTES-01 (votes/amendments hub); SRCSTD-01 (sourced-standard backfill to city/state data). Run `/gsd-new-milestone`._
+_**Active: v2.17 Tucson, AZ City Onboarding** (started 2026-07-10, Phases 128–130). See Current Milestone above + `.planning/REQUIREMENTS.md` / `.planning/ROADMAP.md`. v2.16 shipped 2026-07-08. Deferred candidates: VOTES-01 (votes/amendments hub); SRCSTD-01 (sourced-standard backfill to city/state data)._
 
 <details>
 <summary>Shipped v2.16 scope (Phases 125–127) — Tethered Icons & Smart Banner</summary>
@@ -428,7 +440,14 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
+*Last updated: 2026-07-10 — **v2.17 Tucson, AZ City Onboarding STARTED** (Phases 128–130, continues from 127). Bringing the City of Tucson, AZ onto the tracker at city parity from its own ACFR (GAAP): General Fund revenue-by-source (10 sources) + a 2-level expenditure-by-function tree, as deep as the published ACFRs cleanly extract & tie, under a new **Pima County** navigation node beneath Arizona (US→Arizona→Pima County→Tucson, Cities-in-County panel). Per-capita (~542k pop 2024), "Money In" auto-enabled, bleed-safe enrichment, every figure durably sourced; the v2.16 Essentials tether icon verified on Tucson's banner. FY2024 ACFR layout probe = best-case (`pdftotext -table`, GF rev $773.5M / exp $648.7M both tie $0). Free PDFs only, $0/$5 AI gate, GF basis, source-safe never-overwrite, cloned one-off-city pipeline, executed inline; closeout = independent re-derivation → source-chain audit → Chris live UAT. Scoping + probe in `.planning/TUCSON-SCOPING.md`. Deferred: Pima County's own budget, all-funds view, Tucson salaries, OpenGov adopted-budget layer, other AZ cities. (v2.16 Tethered Icons & Smart Banner SHIPPED + archived 2026-07-08.)*
+
+<details>
+<summary>Previous footer — v2.16 SHIPPED (2026-07-08)</summary>
+
 *Last updated: 2026-07-08 after v2.16 milestone — v2.16 Tethered Icons & Smart Banner SHIPPED + archived. TT's hero banner now carries a context-sensitive cross-product tether-icon row (reciprocal of Essentials' Phase 187): Phase 125 the live coverage contract (`essentialsCoverage.ts`, fetch-once/cache/never-throw + tier-aligned state-scoped matcher against Essentials' `coverage.json` w/ CORS `*` + national-officials federal route), Phase 126 the visible gate (`featureIcons.ts` registry + `buildEssentialsHref` URL/URLSearchParams-only same-origin guard + `@floating-ui` navy chip row), Phase 127 the end-to-end context-sensitivity proof + Chris live UAT. Icon-iff-real-link: covered city/county/state + federal SHOW the correct Essentials destination (federal SHOWING is the headline reversal); uncovered Fresno CA + geoid-less Bloomington IN correctly show none. Verified 22/22 vitest + 7/7 live-catalog headless matrix (real resolver × live catalog × real DB entities) + `npm run smoke:essentials` + Chris VER-01 sign-off, 0 defects. Frontend-only, free, $0 AI spend, executed inline. No active milestone. Next: `/gsd-new-milestone` (candidates: VOTES-01 votes/amendments hub; SRCSTD-01 sourced-standard city/state backfill). (v2.15 SHIPPED + archived 2026-07-06.)*
+
+</details>
 
 <details>
 <summary>Previous footer — v2.15 STARTED (2026-07-03)</summary>

@@ -1,0 +1,71 @@
+# Requirements — v2.17 Tucson, AZ City Onboarding
+
+**Milestone:** v2.17 (Phases 128–130, continues from 127)
+**Started:** 2026-07-10
+**Goal:** Bring the City of Tucson, AZ onto Treasury Tracker at city parity — General Fund revenue-by-source + expenditure-by-function from the City ACFR (GAAP), per-capita, enriched, every figure durably sourced — under a new Pima County navigation node beneath the existing Arizona state node, with the v2.16 Essentials tether icon verified on Tucson's banner.
+
+**Scoping brief + FY2024 ACFR layout probe:** `.planning/TUCSON-SCOPING.md`
+
+**Locked decisions (2026-07-10):**
+- **Basis = General Fund** (not all governmental funds).
+- **History depth = as deep as the published ACFRs cleanly extract & tie** (per-year probe in recon).
+- **Linking = seed a Pima County navigation node** (US → Arizona → Pima County → Tucson).
+
+---
+
+## v2.17 Requirements
+
+### Source & Extractor
+
+- [ ] **TUC-01**: Recon — enumerate every published Tucson ACFR year on the city archive, pin a durable per-year PDF URL for each, and confirm the Governmental-Funds *Statement of Revenues, Expenditures and Changes in Fund Balances* extracts via `pdftotext -table` with the **General Fund** column bookend-tying to its printed *Total revenues* and *Total expenditures* at exactly $0. Lock the clean-extract window (deepest contiguous set of tying years).
+- [ ] **TUC-02**: `extractTucson.py` (`--mode operating|revenue`) builds the GF **revenue-by-source** tree (10 sources) and the 2-level **expenditure-by-function** tree (Current → {Public safety & justice, Community enrichment & development, Support services, General government, Elected & official}; Capital outlay; Capital projects; Debt service → {Principal, Interest, Fiscal agent fees}), handling the wrapped "Community enrichment and development" label and `$`/blank cells; each windowed FY dry-run sums to its printed GF total at $0.
+
+### Data Model & Load
+
+- [ ] **TUC-03**: Tucson municipality seeded via `seedTucsonArizona.js` (name=Tucson, state=AZ, entity_type=city, population ~542,000 / 2024), idempotent (select-by-name → insert/update; data_source rows owned by the processor).
+- [ ] **TUC-04**: Pima County navigation node seeded (state=AZ, entity_type=county, population) under the existing Arizona node, and Tucson linked via `county_id` — US → Arizona → Pima County → Tucson breadcrumb + Cities-in-County panel render. (Pima County's own government budget is out of scope — navigation node only.)
+- [ ] **TUC-05**: Tucson GF **operating** (expenditure-by-function) + **revenue** (revenue-by-source) loaded for the full locked window via `processTucson.js` through the source-safe `treasury_sync_budget_tree` RPC (never-overwrite); every row carries a durable `source_url` + `source_date`; per-capita ($/resident) renders; the "Money In" revenue view auto-enables; a re-run is idempotent (0 net change).
+
+### Enrichment
+
+- [ ] **TUC-06**: Bleed-safe category enrichment covering **100%** of Tucson's loaded GF categories (universal where the label is shareable, city-scoped otherwise), authored inline at $0, delete-then-insert / NULLS-DISTINCT-safe, no cross-entity bleed.
+
+### Verification
+
+- [ ] **TUC-07**: Loader-independent blind re-derivation of each loaded FY's GF revenue + expenditure totals directly from the source ACFR ($0-delta target); full source-chain audit — every Tucson + Pima County row durably sourced, 0 NULL/fragile/residue.
+- [ ] **TUC-08**: Chris live-app UAT — icicle drill-down (2-level), Money In/Out, per-capita, source chips, and breadcrumb + Cities-in-County navigation across Tucson + Pima County + Arizona — signed off.
+- [ ] **TUC-09**: The v2.16 Essentials **tethered icon** is confirmed on Tucson's hero banner — it renders iff Essentials' published `coverage.json` covers Tucson/Pima County (name + state → GEOID). If Essentials does not yet cover Tucson, this is documented as a **cross-repo Essentials coverage gap** (no TT code change; the v2.16 mechanism is already generic).
+
+---
+
+## Future Requirements (deferred)
+
+- **PIMA-BUDGET-01**: Load Pima County's own government budget from its ACFR (upgrade the navigation node to a full county entity).
+- **TUC-ALLFUNDS-01**: Add the all-governmental-funds (Total Governmental Funds) view as a selectable basis alongside General Fund.
+- **TUC-SAL-01**: Tucson employee compensation (no AZ statewide comp source like CA GCC — needs a Tucson-specific source).
+- **TUC-OPENGOV-01**: Layer the OpenGov adopted-budget book for forward-year (adopted vs actual) context.
+- **AZ-CITIES-01**: Additional Arizona cities (Phoenix, Mesa, Chandler, …) — future expansion; Pima County node + AZ state node already in place.
+
+## Out of Scope (this milestone)
+
+- **Pima County government budget** — the county exists only as a navigation/linking node this milestone (v2.3 "linking-only county node" precedent); its own ACFR budget is deferred (PIMA-BUDGET-01).
+- **All-funds basis** — General Fund was the locked decision; all-funds deferred (TUC-ALLFUNDS-01).
+- **Salaries / compensation** — no free statewide AZ comp dataset; deferred (TUC-SAL-01).
+- **AZ Auditor General AELR / openbooks.az.gov** — not icicle-grade / opt-in transaction-level; the City ACFR is the source of record.
+- **Frontend/UI changes for the tether** — v2.16 already ships the generic mechanism; TUC-09 is verification only.
+
+---
+
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| TUC-01 | 128 | ○ Not started |
+| TUC-02 | 128 | ○ Not started |
+| TUC-03 | 129 | ○ Not started |
+| TUC-04 | 129 | ○ Not started |
+| TUC-05 | 129 | ○ Not started |
+| TUC-06 | 129 | ○ Not started |
+| TUC-07 | 130 | ○ Not started |
+| TUC-08 | 130 | ○ Not started |
+| TUC-09 | 130 | ○ Not started |

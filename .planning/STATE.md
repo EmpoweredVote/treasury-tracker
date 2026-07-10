@@ -1,43 +1,43 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.16
-milestone_name: Tethered Icons & Smart Banner
-status: Awaiting next milestone
-last_updated: "2026-07-08T21:55:24.560Z"
-last_activity: 2026-07-08 — Milestone v2.16 completed and archived
+milestone: v2.17
+milestone_name: Tucson, AZ City Onboarding
+status: planning
+last_updated: "2026-07-10T08:03:13.205Z"
+last_activity: 2026-07-10
 progress:
-  total_phases: 29
-  completed_phases: 2
-  total_plans: 4
-  completed_plans: 3
-  percent: 7
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-07 — v2.16 Tethered Icons & Smart Banner STARTED)
+See: .planning/PROJECT.md (updated 2026-07-10 — v2.17 Tucson, AZ City Onboarding STARTED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** Phase 126 — tethered-feature-icon-row
+**Current focus:** Phase 128 — Recon + Extractor (Tucson ACFR)
 
 ## Current Position
 
-Phase: Milestone v2.16 complete
+Phase: Not started (ready to plan Phase 128)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-07-08 — Milestone v2.16 completed and archived
+Status: Milestone v2.17 defined — roadmap approved, ready for `/gsd-discuss-phase 128` or `/gsd-plan-phase 128`
+Last activity: 2026-07-10 — Milestone v2.17 Tucson, AZ City Onboarding started
 
-## Phase Overview — v2.16 Tethered Icons & Smart Banner
+## Phase Overview — v2.17 Tucson, AZ City Onboarding
 
 | Phase | Name | Requirements | Depends on | Status |
 |-------|------|--------------|------------|--------|
-| 125 | Essentials Coverage Contract | COV-01, COV-02, COV-03, COV-04 | — | ✅ COMPLETE — TT-side (COV-02/03/04); COV-01 producer-side confirmed live 2026-07-08 |
-| 126 | Tethered Feature-Icon Row | ICON-01..04, TETH-01, TETH-02 | 125 | ○ Not started |
-| 127 | Context-Sensitivity + Live UAT | TETH-03, VER-01 | 125, 126 | ○ Not started |
+| 128 | Recon + Extractor | TUC-01, TUC-02 | — | ○ Not started |
+| 129 | Data Model + Load + Enrichment | TUC-03, TUC-04, TUC-05, TUC-06 | 128 | ○ Not started |
+| 130 | Verification + Live UAT | TUC-07, TUC-08, TUC-09 | 128, 129 | ○ Not started |
 
-**Critical path:** 125 → 126 → 127. This milestone is the **reciprocal of Essentials' Phase 187** tethered-icon row. Phase 125 establishes the coverage contract on both sides: Essentials publishes its `coverage.js` catalog (`COVERAGE_STATES`/`COVERAGE_COUNTIES`/`COVERAGE_BROWSE_STATES`, each area carrying Census GEOID + state + `hasContext`) as a public fetchable resource (COV-01, cross-repo `essentials`), and TT fetches it at runtime + matches the current entity by name+state → GEOID with graceful degradation (COV-02/03). Phase 126 builds the TT-side tethered-icon row on the hero banner (`App.tsx`): a generic product registry (fixed order `[essentials, compass, readrank]`, only Essentials live) driving a bottom-right row of circular semi-transparent chips visually cohesive with Essentials' `SectionBanner` — accessible hover+focus tooltip, `aria-label`, theme-aware light/dark icon variant, no dead/greyed icons — each deep-linking the banner's current entity into Essentials (`/results?browse_government_list=<geoid>&browse_state=<abbr>` for city/county; `browse_state_officials=<abbr>` for state). Phase 127 proves context-sensitivity end-to-end (uncovered city / federal → no icon) and does Chris live-app UAT. Constraints: **"Smart Banner" = tether logic only** (no banner-image changes — imagery deferred); frontend-only on the TT side (no DB/schema changes); TT is light+dark (Essentials' banner is dark-only); free only, no AI spend. Icons from `C:\ev-landing\ev-landing-main\icons\` copied into TT `public/`. Reuse patterns: Essentials' `featureIcons.js` registry, `treasury.js` matcher, `coverage.js` catalog, `SectionBanner.jsx` chip/tooltip (`@floating-ui`); TT's `wikiImage.ts` graceful-fetch + `CURATED_CITY_BANNERS` name+state matching precedent. See [[reference_shared_banner_bucket]].
+**Critical path:** 128 → 129 → 130. A single-city onboarding on the proven one-off pipeline (`seedGreshamOregon.js` → `extractTucson.py` → `processTucson.js`). Phase 128 enumerates the published Tucson ACFR years, pins durable per-year URLs, proves clean `pdftotext -table` extraction of the **General Fund** column (bookend-tie $0 to printed Total revenues/expenditures), locks the deepest contiguous clean window, and builds the extractor (GF revenue-by-source + 2-level expenditure-by-function). Phase 129 seeds Tucson (city, pop ~542k/2024) + a **Pima County** navigation node under Arizona, links them (US→Arizona→Pima County→Tucson + Cities-in-County panel), loads GF operating + revenue for the window via source-safe `treasury_sync_budget_tree` (never-overwrite, durable `source_url`+`source_date`, per-capita, Money In auto-enable), and enriches to 100% bleed-safe coverage. Phase 130 = loader-independent blind re-derivation ($0 delta) → source-chain audit (0 residue) → Chris live UAT → confirm the v2.16 Essentials tether icon on Tucson's banner (TUC-09; cross-repo coverage gap documented if absent). **Constraints:** free ACFR PDFs only ($0 / $5 AI gate); **General Fund** basis (all-funds deferred); source-safe never-overwrite; every figure durably sourced; executed inline (no subagents). FY2024 probe = best-case (GF rev $773.5M / exp $648.7M both tie $0). **Deferred:** Pima County's own budget (navigation node only), all-funds view, Tucson salaries, OpenGov adopted-budget layer, other AZ cities. Scoping + probe: `.planning/TUCSON-SCOPING.md`.
 
 ## Deferred Items
 
