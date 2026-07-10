@@ -44,7 +44,7 @@
 | # | Phase | Goal | Requirements | Depends on |
 |---|-------|------|--------------|------------|
 | 128 | Recon + Extractor | 2/2 | Complete    | 2026-07-10 |
-| 129 | Data Model + Load + Enrichment | 2/3 | In Progress|  |
+| 129 | Data Model + Load + Enrichment | 3/3 | Complete   | 2026-07-10 |
 | 130 | Verification + Live UAT | Independent re-derivation + source-chain audit + Chris live UAT + Essentials-tether confirmation | TUC-07, TUC-08, TUC-09 | 128, 129 |
 
 **Critical path:** 128 → 129 → 130.

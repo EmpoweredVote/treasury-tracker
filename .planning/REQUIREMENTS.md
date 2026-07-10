@@ -28,7 +28,7 @@
 
 ### Enrichment
 
-- [ ] **TUC-06**: Bleed-safe category enrichment covering **100%** of Tucson's loaded GF categories (universal where the label is shareable, city-scoped otherwise), authored inline at $0, delete-then-insert / NULLS-DISTINCT-safe, no cross-entity bleed.
+- [x] **TUC-06**: Bleed-safe category enrichment covering **100%** of Tucson's loaded GF categories (universal where the label is shareable, city-scoped otherwise), authored inline at $0, delete-then-insert / NULLS-DISTINCT-safe, no cross-entity bleed.
 
 ### Verification
 
