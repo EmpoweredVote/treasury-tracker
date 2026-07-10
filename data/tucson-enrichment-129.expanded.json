@@ -1,45 +1,9 @@
 {
-  "generated_at": "2026-07-10T17:23:14.232Z",
+  "generated_at": "2026-07-10T17:25:24.825Z",
   "live_keys": 15,
   "covered": 15,
-  "authored": 7,
+  "authored": 0,
   "missing": [],
   "stale": [],
-  "rows": [
-    {
-      "name_key": "contributions from outside miscellaneous",
-      "scope": "tucson",
-      "plain_name": "Outside Contributions & Miscellaneous"
-    },
-    {
-      "name_key": "contributions from outside sources",
-      "scope": "universal",
-      "plain_name": "Outside Contributions"
-    },
-    {
-      "name_key": "current",
-      "scope": "universal",
-      "plain_name": "Current Operations"
-    },
-    {
-      "name_key": "developer fees - - use of money and property",
-      "scope": "tucson",
-      "plain_name": "Developer Fees & Property Income"
-    },
-    {
-      "name_key": "federal grants and contributions",
-      "scope": "universal",
-      "plain_name": "Federal Grants"
-    },
-    {
-      "name_key": "other agencies",
-      "scope": "universal",
-      "plain_name": "Other Government Agencies"
-    },
-    {
-      "name_key": "use of money and property",
-      "scope": "universal",
-      "plain_name": "Investment & Property Income"
-    }
-  ]
+  "rows": []
 }
