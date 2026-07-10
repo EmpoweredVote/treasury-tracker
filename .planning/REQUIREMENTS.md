@@ -24,7 +24,7 @@
 
 - [x] **TUC-03**: Tucson municipality seeded via `seedTucsonArizona.js` (name=Tucson, state=AZ, entity_type=city, population ~542,000 / 2024), idempotent (select-by-name → insert/update; data_source rows owned by the processor).
 - [x] **TUC-04**: Pima County navigation node seeded (state=AZ, entity_type=county, population) under the existing Arizona node, and Tucson linked via `county_id` — US → Arizona → Pima County → Tucson breadcrumb + Cities-in-County panel render. (Pima County's own government budget is out of scope — navigation node only.)
-- [ ] **TUC-05**: Tucson GF **operating** (expenditure-by-function) + **revenue** (revenue-by-source) loaded for the full locked window via `processTucson.js` through the source-safe `treasury_sync_budget_tree` RPC (never-overwrite); every row carries a durable `source_url` + `source_date`; per-capita ($/resident) renders; the "Money In" revenue view auto-enables; a re-run is idempotent (0 net change).
+- [x] **TUC-05**: Tucson GF **operating** (expenditure-by-function) + **revenue** (revenue-by-source) loaded for the full locked window via `processTucson.js` through the source-safe `treasury_sync_budget_tree` RPC (never-overwrite); every row carries a durable `source_url` + `source_date`; per-capita ($/resident) renders; the "Money In" revenue view auto-enables; a re-run is idempotent (0 net change).
 
 ### Enrichment
 

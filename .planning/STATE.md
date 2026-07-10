@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.17
 milestone_name: Tucson, AZ City Onboarding
 status: executing
-last_updated: "2026-07-10T16:44:22.945Z"
+last_updated: "2026-07-10T17:11:24.211Z"
 last_activity: 2026-07-10
 progress:
   total_phases: 29
   completed_phases: 1
   total_plans: 5
-  completed_plans: 3
+  completed_plans: 4
   percent: 3
 ---
 
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-07-10 — v2.17 Tucson, AZ City Onboardi
 ## Current Position
 
 Phase: 129 (data-model-load-enrichment) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-07-10
 
@@ -220,8 +220,8 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-07-10T16:44:22.933Z
-Stopped at: Completed 129-01-PLAN.md (Tucson city + Pima County data model seeded)
+Last session: 2026-07-10T17:11:24.201Z
+Stopped at: Completed 129-02-PLAN.md (Tucson GF operating + revenue loaded, 20/20 verified)
 Resume file: None
 
 ### Next Session
@@ -304,6 +304,7 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 | Phase 125 P125 | 25min | 4 tasks | 9 files |
 | Phase 126 P126 | 16min | 5 tasks | 12 files |
 | Phase 129-data-model-load-enrichment P01 | 35min | 2 tasks | 1 files |
+| Phase 129 P02 | 45min | 3 tasks | 1 files |
 
 ## Decisions
 
@@ -433,6 +434,8 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 - [Phase 126]: A covered city/county with no geoid resolves to null (no icon) this phase; flagged for Phase 127 UAT to revisit a label-only fallback
 - [Phase 126]: Suppressed a react-hooks/refs (eslint-plugin-react-hooks v7 compiler rule) false positive on @floating-ui/react's refs.setFloating with a scoped eslint-disable-line
 - [Phase 129-01]: Pinned real Census Vintage 2024 populations (Tucson 554013, Pima County 1080149) via live curl to www2.census.gov CSVs, not the ~542k/~1.06M planning-doc placeholders
+- [Phase 129]: [129-02] toBudgetTree() i[]-multi-item recipe (not further c[] nesting) confirmed against 4 loaders + live _treasury_insert_tree contract as the correct 2-level RPC-write pattern — Matches processPortland.js/loadFederalAgencies.js precedent; plan's D-08 wording followed literally
+- [Phase 129]: [129-02] Live load complete: 20/20 Tucson budgets rows (10 FY x operating+revenue), independent re-derivation ties 128-RECON.md printed totals at exact $0, idempotent (0 net change on re-run), 0 data_sources residue — processTucson.js via treasury_sync_budget_tree; py -3 used instead of python (env quirk)
 
 ## Deferred Items
 
