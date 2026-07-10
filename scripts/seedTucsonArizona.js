@@ -232,11 +232,14 @@ async function main() {
   const mc = muniCheck[0];
   console.log(`  OK: Tucson, AZ municipality (id=${mc.id}, population=${mc.population}, population_year=${mc.population_year}, county_id=${mc.county_id})`);
 
+  let verifyOk = true;
   if (mc.population !== TUCSON.population) {
     console.error(`  WARNING: expected population ${TUCSON.population}, got ${mc.population}`);
+    verifyOk = false;
   }
   if (mc.county_id !== pimaId) {
     console.error(`  WARNING: expected county_id=${pimaId}, got ${mc.county_id} (link outcome was "${linkOutcome}")`);
+    verifyOk = false;
   }
 
   const { data: pimaCheck, error: pimaCheckErr } = await supabase
@@ -254,6 +257,12 @@ async function main() {
   console.log(`  OK: Pima County, AZ (id=${pc.id}, population=${pc.population}, population_year=${pc.population_year})`);
   if (pc.population !== PIMA_POPULATION_2024) {
     console.error(`  WARNING: expected population ${PIMA_POPULATION_2024}, got ${pc.population}`);
+    verifyOk = false;
+  }
+
+  if (!verifyOk) {
+    console.error('\nFAILED: one or more postcondition checks did not match — see WARNING lines above.');
+    process.exit(1);
   }
 
   console.log('\nDone.');
