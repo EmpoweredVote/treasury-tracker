@@ -75,3 +75,37 @@ GF revenue rises monotonically FY2015→FY2024 ($468M → $773M) — a sanity si
 *PDFs stored in `docs/Tucson/` (gitignored via `docs/*`; downloaded on `main`, not a worktree — worktrees are unsafe for gitignored data per the v2.15 loader notes).*
 
 **Exact extraction command (per year):** `pdftotext -table "docs/Tucson/cot-<FY>-acfr.pdf" -` → locate the primary statement page → GF = column 0.
+
+---
+
+## Dry-run tie results — `extractTucson.py` (Plan 128-02, 2026-07-10)
+
+`extractTucson.py --mode {revenue,operating}` run across the entire locked window.
+Every FY × mode ties at exactly $0 (`computed_total == printed_total`). Exit is
+non-zero on any mis-tie (verified by fault injection: dropping a GF row yields
+`tie_delta = -405,003,757` and exit code 1).
+
+| FY | revenue computed==printed | Δ | operating computed==printed | Δ | rev−exp = printed Excess |
+|----|--------------------------:|:-:|----------------------------:|:-:|-------------------------:|
+| 2024 | $773,493,270 | 0 | $648,657,363 | 0 | $124,835,907 ✓ |
+| 2023 | $723,626,260 | 0 | $636,406,169 | 0 | $87,220,091 |
+| 2022 | $649,808,046 | 0 | $548,167,229 | 0 | $101,640,817 |
+| 2021 | $593,601,098 | 0 | $492,891,842 | 0 | $100,709,256 |
+| 2020 | $558,372,140 | 0 | $470,241,319 | 0 | $88,130,821 |
+| 2019 | $552,193,362 | 0 | $492,258,428 | 0 | $59,934,934 |
+| 2018 | $539,336,322 | 0 | $487,299,396 | 0 | $52,036,926 |
+| 2017 | $500,835,212 | 0 | $427,806,734 | 0 | $73,028,478 |
+| 2016 | $493,460,305 | 0 | $430,230,002 | 0 | $63,230,303 |
+| 2015 | $468,385,932 | 0 | $422,167,515 | 0 | $46,218,417 |
+
+**Result: all 10 windowed years extract clean and tie $0 in both modes. No year demoted to a hole; the FY2015–FY2024 window stands.**
+
+### Era-driven label variance (handled, honest)
+The extractor is **label-driven** — it reads each year's printed vocabulary rather than hardcoding FY2024's. Confirmed variants inside the window:
+- **Parent header punctuation:** `Current:` / `Debt service:` (FY2023–24) vs `Current -` / `Debt service -` (FY2015–22) — both detected.
+- **Case:** `Elected and official` (recent) vs `Elected and Official` (older).
+- **Function rename:** later years' `General government` appears as `Non-Departmental` in FY2015.
+- **Debt-service components differ:** FY2015 adds `Debt Issuance Costs`; FY2020 omits `Fiscal agent fees`.
+- **Wrapped label** `Community enrichment and` / `development` only wraps in the single-page era (FY2023–24); older years print it on one line.
+
+Phase 129 loads whatever each year printed (honest per-year vocabulary); `category_enrichment` will be authored against the union of these labels.
