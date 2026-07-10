@@ -4,9 +4,9 @@
  * + revenue (revenue-by-source), FY2015-FY2024, ACTUAL (ACFR GAAP basis).
  *
  * Phase 129-02 (TUC-05). Consumes `scripts/extractTucson.py` (Phase 128) and
- * loads through the source-safe `treasury_sync_budget_tree` RPC — NEVER
- * `treasury_sync_city_budget` (that RPC overwrites existing (muni,fy,dataset)
- * rows and keeps stale labels; see auto-memory
+ * loads exclusively through the source-safe `treasury_sync_budget_tree` RPC
+ * -- never the sibling non-source-safe city-budget sync RPC, which overwrites
+ * existing (muni,fy,dataset) rows and keeps stale labels (see auto-memory
  * project_sync_city_budget_not_source_safe).
  *
  * Source: City of Tucson Annual Comprehensive Financial Report (ACFR), GAAP
