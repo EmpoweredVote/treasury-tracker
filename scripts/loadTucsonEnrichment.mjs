@@ -118,6 +118,10 @@ async function main() {
   const d0 = await collectKeys(0);
   const d1 = await collectKeys(1);
   const liveKeys = [...new Set([...d0, ...d1])].sort();
+  if (!liveKeys.length) {
+    console.error(`ABORT: 0 live budget_categories keys found for ${bids.length} Tucson budgets — check depth/query assumptions.`);
+    process.exit(1);
+  }
 
   // 5. Existing coverage (universal OR Tucson-scoped) for the live keys.
   const { data: existing, error: eErr } = await supabase.from('category_enrichment').select('name_key,municipality_id').in('name_key', liveKeys).or(`municipality_id.eq.${tucsonId},municipality_id.is.null`);
