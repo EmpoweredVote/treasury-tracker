@@ -305,60 +305,63 @@ async function processMode(supabase, muniId, dryRun, mode, targetFY, pdfsByFY) {
   let ds = null;
   if (!dryRun) ds = await createEphemeralDataSource(supabase, muniId, datasetType);
 
-  for (const fy of years) {
-    const pdfPath = pdfsByFY.get(fy);
-    console.log(`\n── FY${fy} ${mode} ${'─'.repeat(40)}`);
-    if (!pdfPath) {
-      console.error(`  No PDF found for FY${fy} in docs/Tucson/ — aborting`);
-      process.exit(2);
+  // CR-01: the ephemeral data_sources row created above must be deleted no
+  // matter how this loop ends -- including a per-FY abort. Every internal
+  // hard-fail below THROWS instead of calling process.exit() directly, so
+  // this finally block always runs; main()'s top-level `.catch(...)` supplies
+  // the non-zero process exit code once cleanup has completed.
+  try {
+    for (const fy of years) {
+      const pdfPath = pdfsByFY.get(fy);
+      console.log(`\n── FY${fy} ${mode} ${'─'.repeat(40)}`);
+      if (!pdfPath) {
+        throw new Error(`No PDF found for FY${fy} in docs/Tucson/ — aborting`);
+      }
+
+      let extracted;
+      try {
+        extracted = extractPDF(pdfPath, mode);
+      } catch (e) {
+        // fail loud -- never load partial/mis-parsed data (T-129-02b)
+        throw new Error(`Extract failed: ${e.message}`);
+      }
+
+      if (extracted.tie_delta !== 0) {
+        // extractTucson.py already exits non-zero on a tie failure -- this
+        // branch guards against any future change that stops doing that.
+        throw new Error(`TIE FAILURE FY${fy} (${mode}): delta ${extracted.tie_delta} — aborting`);
+      }
+
+      const { tree, total, rowCount } = toBudgetTree(extracted.tree, mode);
+
+      if (total !== extracted.computed_total) {
+        throw new Error(`Mapped-tree total $${total.toLocaleString()} != extractor computed_total ` +
+          `$${extracted.computed_total.toLocaleString()} — aborting`);
+      }
+      if (total > SANITY_MAX) {
+        throw new Error(`SANITY FAIL FY${fy}: total $${total.toLocaleString()} exceeds $2B ceiling — aborting`);
+      }
+
+      console.log(`  Total: $${total.toLocaleString()}  (${tree.length} categories, ${rowCount} line items)`);
+      console.log(`  Per-capita: $${(total / POPULATION).toFixed(2)}/resident`);
+      for (const n of tree) {
+        const suffix = n.i.length > 1 ? ` (${n.i.length} items: ${n.i.map(i => i.d).join(', ')})` : '';
+        console.log(`    ${n.n}: $${n.a.toLocaleString()}${suffix}`);
+      }
+
+      if (dryRun) {
+        console.log(`  [dry-run] fiscal_year=${fy} dataset_type=${datasetType} row_count=${rowCount} total=$${total.toLocaleString()}`);
+        continue;
+      }
+
+      const ok = await loadFiscalYear(supabase, muniId, ds.id, fy, datasetType, tree, total, rowCount);
+      if (!ok) { throw new Error(`FY${fy} (${mode}) load failed — aborting`); }
     }
-
-    let extracted;
-    try {
-      extracted = extractPDF(pdfPath, mode);
-    } catch (e) {
-      console.error(`  Extract failed: ${e.message}`);
-      process.exit(2); // fail loud -- never load partial/mis-parsed data (T-129-02b)
+  } finally {
+    if (!dryRun && ds) {
+      await deleteEphemeralDataSource(supabase, ds.id);
+      console.log(`\ndata_source ${ds.id} deleted (ephemeral cleanup — 0 residue, WR-05/LOAD-01)`);
     }
-
-    if (extracted.tie_delta !== 0) {
-      // extractTucson.py already exits non-zero on a tie failure -- this
-      // branch guards against any future change that stops doing that.
-      console.error(`  TIE FAILURE FY${fy} (${mode}): delta ${extracted.tie_delta} — aborting`);
-      process.exit(2);
-    }
-
-    const { tree, total, rowCount } = toBudgetTree(extracted.tree, mode);
-
-    if (total !== extracted.computed_total) {
-      console.error(`  Mapped-tree total $${total.toLocaleString()} != extractor computed_total ` +
-        `$${extracted.computed_total.toLocaleString()} — aborting`);
-      process.exit(2);
-    }
-    if (total > SANITY_MAX) {
-      console.error(`  SANITY FAIL FY${fy}: total $${total.toLocaleString()} exceeds $2B ceiling — aborting`);
-      process.exit(2);
-    }
-
-    console.log(`  Total: $${total.toLocaleString()}  (${tree.length} categories, ${rowCount} line items)`);
-    console.log(`  Per-capita: $${(total / POPULATION).toFixed(2)}/resident`);
-    for (const n of tree) {
-      const suffix = n.i.length > 1 ? ` (${n.i.length} items: ${n.i.map(i => i.d).join(', ')})` : '';
-      console.log(`    ${n.n}: $${n.a.toLocaleString()}${suffix}`);
-    }
-
-    if (dryRun) {
-      console.log(`  [dry-run] fiscal_year=${fy} dataset_type=${datasetType} row_count=${rowCount} total=$${total.toLocaleString()}`);
-      continue;
-    }
-
-    const ok = await loadFiscalYear(supabase, muniId, ds.id, fy, datasetType, tree, total, rowCount);
-    if (!ok) { console.error(`  FY${fy} (${mode}) load failed — aborting`); process.exit(2); }
-  }
-
-  if (!dryRun && ds) {
-    await deleteEphemeralDataSource(supabase, ds.id);
-    console.log(`\ndata_source ${ds.id} deleted (ephemeral cleanup — 0 residue, WR-05/LOAD-01)`);
   }
 }
 
