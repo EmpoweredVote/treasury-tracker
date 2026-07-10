@@ -17,8 +17,8 @@
 
 ### Source & Extractor
 
-- [ ] **TUC-01**: Recon — enumerate every published Tucson ACFR year on the city archive, pin a durable per-year PDF URL for each, and confirm the Governmental-Funds *Statement of Revenues, Expenditures and Changes in Fund Balances* extracts via `pdftotext -table` with the **General Fund** column bookend-tying to its printed *Total revenues* and *Total expenditures* at exactly $0. Lock the clean-extract window (deepest contiguous set of tying years).
-- [ ] **TUC-02**: `extractTucson.py` (`--mode operating|revenue`) builds the GF **revenue-by-source** tree (10 sources) and the 2-level **expenditure-by-function** tree (Current → {Public safety & justice, Community enrichment & development, Support services, General government, Elected & official}; Capital outlay; Capital projects; Debt service → {Principal, Interest, Fiscal agent fees}), handling the wrapped "Community enrichment and development" label and `$`/blank cells; each windowed FY dry-run sums to its printed GF total at $0.
+- [x] **TUC-01**: Recon — enumerate every published Tucson ACFR year on the city archive, pin a durable per-year PDF URL for each, and confirm the Governmental-Funds *Statement of Revenues, Expenditures and Changes in Fund Balances* extracts via `pdftotext -table` with the **General Fund** column bookend-tying to its printed *Total revenues* and *Total expenditures* at exactly $0. Lock the clean-extract window (deepest contiguous set of tying years).
+- [x] **TUC-02**: `extractTucson.py` (`--mode operating|revenue`) builds the GF **revenue-by-source** tree (10 sources) and the 2-level **expenditure-by-function** tree (Current → {Public safety & justice, Community enrichment & development, Support services, General government, Elected & official}; Capital outlay; Capital projects; Debt service → {Principal, Interest, Fiscal agent fees}), handling the wrapped "Community enrichment and development" label and `$`/blank cells; each windowed FY dry-run sums to its printed GF total at $0.
 
 ### Data Model & Load
 

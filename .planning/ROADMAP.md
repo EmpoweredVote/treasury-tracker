@@ -43,7 +43,7 @@
 
 | # | Phase | Goal | Requirements | Depends on |
 |---|-------|------|--------------|------------|
-| 128 | Recon + Extractor | Enumerate + tie the published Tucson ACFR years, lock the clean-extract window, build the GF rev/exp extractor | TUC-01, TUC-02 | — |
+| 128 | Recon + Extractor | 2/2 | Complete    | 2026-07-10 |
 | 129 | Data Model + Load + Enrichment | Seed Tucson + a Pima County node, link them, load GF operating + revenue for the window, enrich to 100% | TUC-03, TUC-04, TUC-05, TUC-06 | 128 |
 | 130 | Verification + Live UAT | Independent re-derivation + source-chain audit + Chris live UAT + Essentials-tether confirmation | TUC-07, TUC-08, TUC-09 | 128, 129 |
 
