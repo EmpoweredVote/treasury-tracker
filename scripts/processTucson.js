@@ -257,9 +257,14 @@ async function deleteEphemeralDataSource(supabase, dsId) {
 
 // ── Load one fiscal year, then source-stamp the resulting budgets row ────────
 async function loadFiscalYear(supabase, muniId, dsId, fy, datasetType, tree, total, rowCount) {
-  // Pre-load delete for idempotency (per data_source_id + fiscal_year).
+  // Pre-load delete for idempotency (defense-in-depth ahead of the RPC's own
+  // upsert). Keyed on (municipality_id, fiscal_year, dataset_type) -- the
+  // columns that actually identify the target row. NOTE: budgets.data_source_id
+  // FKs treasury.source_registry, not treasury.data_sources, and
+  // treasury_sync_budget_tree never sets it (always NULL), so a dsId-keyed
+  // delete could never match a row (WR-01).
   const { error: delErr } = await supabase.schema('treasury').from('budgets')
-    .delete().eq('data_source_id', dsId).eq('fiscal_year', fy).eq('dataset_type', datasetType);
+    .delete().eq('municipality_id', muniId).eq('fiscal_year', fy).eq('dataset_type', datasetType);
   if (delErr) { console.error('    Pre-load delete failed:', delErr.message); return false; }
 
   const { data: rpc, error: rpcErr } = await supabase.rpc('treasury_sync_budget_tree', {
