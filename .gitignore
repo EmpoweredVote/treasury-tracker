@@ -85,6 +85,10 @@ src/data/processedBudget.json
 # git-reviewed explicit last-segment concept map + expanded audit trail; $0, no paid API)
 !/data/mnEnrichment92.mjs
 !/data/mn-enrichment-92.expanded.json
+# …and the Tucson parity enrichment source-of-record (Phase 129 Plan 03: inline-authored,
+# git-reviewed mixed universal + Tucson-scoped concept map + expanded audit trail; $0, no paid API)
+!/data/tucsonEnrichment129.mjs
+!/data/tucson-enrichment-129.expanded.json
 # …and the verbatim GAO function-definition snapshot it was authored from
 !docs/federal/
 docs/federal/*
