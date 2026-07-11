@@ -1,5 +1,24 @@
 # Milestones — Treasury Tracker / Empowered Vote Financials
 
+## v2.17 Tucson, AZ City Onboarding (Shipped: 2026-07-11)
+
+**Phases completed:** 3 phases (128-130), 8 plans. Requirements TUC-01..09 all complete.
+
+**Delivered:** The City of Tucson, AZ onboarded at city parity — General Fund revenue-by-source + 2-level expenditure-by-function from its own ACFR (GAAP), FY2015-FY2024, per-capita, enriched, every figure durably sourced — under a new Pima County navigation node beneath Arizona, with the v2.16 Essentials tether confirmed live. Free ACFR PDFs only, $0 AI spend, executed inline (no subagents).
+
+**Key accomplishments:**
+
+- **Recon + extractor (Phase 128):** Enumerated + pinned durable per-FY tucsonaz.gov URLs for the FY2015-FY2024 clean-extract window; built `scripts/extractTucson.py` (`--mode operating|revenue`, stdlib-only, positional GF-column isolation via `pdftotext -table`, fail-loud `tie_delta` gate) — 20/20 dry-runs sum to the printed GF total at exactly $0.
+- **Data model + load (Phase 129):** Idempotent seeder creates Tucson (AZ, pop 554,013) + Pima County nav node (pop 1,080,149) linked via `county_id`, both pinned to live Census Vintage-2024 estimates; `scripts/processTucson.js` loads 20 `budgets` rows via the source-safe `treasury_sync_budget_tree` RPC — all durably sourced, 0 `data_sources` residue, idempotent.
+- **Enrichment (Phase 129):** `loadTucsonEnrichment.mjs` derives the worklist live from `budget_categories` — 15/15 keys covered (generic universal + Tucson-scoped), delete-then-insert NULLS-DISTINCT-safe, 0 `$`/locality bleed.
+- **Verification (Phase 130, TUC-07):** A from-scratch, loader-independent re-derivation harness re-extracts every displayed figure directly from the 10 PDFs and ties the live DB — all 20 FY×mode roll-ups + every category subtotal + every leaf at exactly $0; source-chain audit clean (20/20 correct-per-FY reachable URLs, 0 residue, no stale labels, Census-pinned population).
+- **Tether (Phase 130, TUC-09):** Live `coverage.json` probe pre-determined both Tucson (GEOID 0477000) + Pima County (04019) as COVERED; icon confirmed live on both banners — no cross-repo gap.
+- **Live UAT (Phase 130, TUC-08):** Chris signed off 15/15 scenarios at treasurytracker.empowered.vote (icicle 2-level drill, Money In/Out, per-capita, source chips, breadcrumb + Cities-in-County, AZ regression, year switcher/era labels, FY21/22 merged-label quirk, FY2025-absence empty state).
+
+**Known deferred items at close:** 5 pre-existing/benign open artifacts acknowledged (see STATE.md Deferred Items) — 3 stale v1.x-era quick-tasks, 1 frontend-routing todo, and the 130 UAT checklist (passed). None are v2.17 work.
+
+---
+
 ## v2.16 Tethered Icons & Smart Banner (Shipped: 2026-07-08)
 
 **Phases completed:** 3 phases, 4 plans, 9 tasks

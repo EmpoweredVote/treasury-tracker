@@ -602,6 +602,38 @@ Three moves in one milestone. **(1)** Finally retired the WR-05 loader debt (LOA
 
 ---
 
+## Milestone: v2.17 — Tucson, AZ City Onboarding
+
+**Shipped:** 2026-07-11
+**Phases:** 3 (128–130) | **Plans:** 8
+
+### What Was Built
+The City of Tucson, AZ onboarded at city parity from its own ACFR (GAAP): GF revenue-by-source + a 2-level expenditure-by-function tree, FY2015–FY2024, per-capita, bleed-safe enriched, every figure durably sourced — under a new Pima County navigation node beneath Arizona. A one-off city load on the proven `seed → extract → process` pipeline, not a statewide batch.
+
+### What Worked
+- **The proven one-off-city pipeline cloned cleanly** — `seedGreshamOregon.js` → `extractTucson.py` → `processTucson.js` (source-safe RPC) needed no structural invention; recon (128) → load (129) → verify (130) each landed first-try.
+- **`pdftotext -table` positional GF-column isolation** handled 10 years of cross-era ACFR label drift (Non-Departmental↔General government, wrapped labels, `$`/blank cells) with a fail-loud tie gate — 20/20 dry-runs $0.
+- **Determine-then-confirm for the tether (TUC-09)** — pre-computing the expected COVERED verdict from the live `coverage.json` turned the UAT tether check into a confirmation and guarded against a silent match/fetch bug.
+- **D-05 was already fixed** — the Phase-129 review-fix cycle (CR-01/WR-01) had landed the loader hardening, so Phase 130 verified rather than re-applied (caught at planning time, avoided a no-op re-edit).
+
+### What Was Inefficient
+- The `130-CONTEXT.md` framed D-05 as unfixed work; the fixes had already shipped in 129's review-fix. A quick git/log cross-check at planning time reconciled it, but the stale framing could have driven a redundant edit.
+- The REQUIREMENTS.md traceability table was stale for TUC-01..06 (still "○ Not started" though 128/129 passed) — corrected at close; a per-phase-close traceability flip would prevent the drift.
+
+### Patterns Established
+- **Loader-independent re-derivation in a *different language*** (from-scratch JS parser vs. the Python loader extractor) as the blind-verification path — reproduces every figure from PDF bytes without testing the loader against itself.
+- **Node fetch-then-clean-exit**: set `process.exitCode` + drain with an unref'd safety force-exit, never abrupt `process.exit()` while an undici keep-alive socket is closing (Windows libuv `UV_HANDLE_CLOSING` assertion).
+
+### Key Lessons
+- When a verification-phase CONTEXT references prior-phase debt, verify the debt still exists before planning a fix — review-fix cycles can silently close it.
+- Value-multiset + total + subtotal comparison (non-zero) makes a cosmetic label quirk (FY2021/22 merged labels) non-blocking while still catching any real dollar delta at exact-$0.
+
+### Cost Observations
+- **$0 AI spend** — recon, extraction, load, enrichment, and verification all deterministic; the $5 gate never triggered.
+- Executed **inline, no subagents** (standing feedback); Phase 130's UAT done interactively with Chris for the live sign-off.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution

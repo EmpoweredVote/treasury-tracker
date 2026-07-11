@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.17
 milestone_name: Tucson, AZ City Onboarding
-status: executing
-last_updated: "2026-07-10T18:25:25.615Z"
-last_activity: 2026-07-10 -- Phase 130 planning complete
+status: Awaiting next milestone
+last_updated: "2026-07-11T15:55:19.169Z"
+last_activity: 2026-07-11 — Milestone v2.17 completed and archived
 progress:
   total_phases: 29
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 8
-  completed_plans: 5
-  percent: 7
+  completed_plans: 8
+  percent: 10
 ---
 
 # State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-07-10 — v2.17 Tucson, AZ City Onboardi
 
 ## Current Position
 
-Phase: 130
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-07-10 -- Phase 130 planning complete
+Phase: Milestone v2.17 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-11 — Milestone v2.17 completed and archived
 
 ## Phase Overview — v2.17 Tucson, AZ City Onboarding
 
@@ -40,6 +40,18 @@ Last activity: 2026-07-10 -- Phase 130 planning complete
 **Critical path:** 128 → 129 → 130. A single-city onboarding on the proven one-off pipeline (`seedGreshamOregon.js` → `extractTucson.py` → `processTucson.js`). Phase 128 enumerates the published Tucson ACFR years, pins durable per-year URLs, proves clean `pdftotext -table` extraction of the **General Fund** column (bookend-tie $0 to printed Total revenues/expenditures), locks the deepest contiguous clean window, and builds the extractor (GF revenue-by-source + 2-level expenditure-by-function). Phase 129 seeds Tucson (city, pop ~542k/2024) + a **Pima County** navigation node under Arizona, links them (US→Arizona→Pima County→Tucson + Cities-in-County panel), loads GF operating + revenue for the window via source-safe `treasury_sync_budget_tree` (never-overwrite, durable `source_url`+`source_date`, per-capita, Money In auto-enable), and enriches to 100% bleed-safe coverage. Phase 130 = loader-independent blind re-derivation ($0 delta) → source-chain audit (0 residue) → Chris live UAT → confirm the v2.16 Essentials tether icon on Tucson's banner (TUC-09; cross-repo coverage gap documented if absent). **Constraints:** free ACFR PDFs only ($0 / $5 AI gate); **General Fund** basis (all-funds deferred); source-safe never-overwrite; every figure durably sourced; executed inline (no subagents). FY2024 probe = best-case (GF rev $773.5M / exp $648.7M both tie $0). **Deferred:** Pima County's own budget (navigation node only), all-funds view, Tucson salaries, OpenGov adopted-budget layer, other AZ cities. Scoping + probe: `.planning/TUCSON-SCOPING.md`.
 
 ## Deferred Items
+
+### Acknowledged at v2.17 close (2026-07-11)
+
+Open-artifact audit at v2.17 close surfaced 5 items, all non-blocking (Chris chose Acknowledge & proceed). None are v2.17 (Tucson onboarding) work — Phase 130 verified the whole milestone end-to-end (TUC-07 loader-independent re-derivation 20/20 FY×mode + every leaf $0 + clean source-chain audit; TUC-08 Chris live UAT 15/15; TUC-09 tether confirmed COVERED on both banners):
+
+| Category | Item | Status |
+|----------|------|--------|
+| uat_gap | Phase 130 `130-UAT-CHECKLIST.md` | passed — 0 open scenarios (Chris signed off 2026-07-11; audit flags it only because the file exists) |
+| todo | `2026-06-30-authenticated-deeplink-redirect-to-home-jurisdiction.md` | **deferred** — frontend-routing follow-up carried from v2.12/v2.16; still the only genuinely-open item |
+| quick_task | 001-create-treasury-tracker-entries-for-ever | **complete, not orphaned** — Collin County TX seeder (live in DB); "missing" is the SUMMARY-filename detection quirk |
+| quick_task | 002-add-longview-tx-revenue | **complete, not orphaned** — Longview TX FY2026 revenue loaded (live in DB) |
+| quick_task | 003-longview-operating-budget | **complete, not orphaned** — Longview TX FY2026 operating budget loaded (live in DB) |
 
 ### Acknowledged at v2.16 close (2026-07-08)
 

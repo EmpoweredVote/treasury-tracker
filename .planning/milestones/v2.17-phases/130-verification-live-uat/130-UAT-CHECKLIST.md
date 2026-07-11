@@ -5,7 +5,7 @@ kind: live-app UAT checklist
 app_url: https://treasurytracker.empowered.vote
 run_by: Chris
 run_date: 2026-07-11
-status: passed   # awaiting-signoff | passed | failed
+status: passed
 pass_count: 15
 total_scenarios: 15
 signoff: "Chris — all 15 pass (2026-07-11)"
