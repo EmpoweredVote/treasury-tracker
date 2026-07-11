@@ -32,9 +32,9 @@
 
 ### Verification
 
-- [ ] **TUC-07**: Loader-independent blind re-derivation of each loaded FY's GF revenue + expenditure totals directly from the source ACFR ($0-delta target); full source-chain audit — every Tucson + Pima County row durably sourced, 0 NULL/fragile/residue.
-- [ ] **TUC-08**: Chris live-app UAT — icicle drill-down (2-level), Money In/Out, per-capita, source chips, and breadcrumb + Cities-in-County navigation across Tucson + Pima County + Arizona — signed off.
-- [ ] **TUC-09**: The v2.16 Essentials **tethered icon** is confirmed on Tucson's hero banner — it renders iff Essentials' published `coverage.json` covers Tucson/Pima County (name + state → GEOID). If Essentials does not yet cover Tucson, this is documented as a **cross-repo Essentials coverage gap** (no TT code change; the v2.16 mechanism is already generic).
+- [x] **TUC-07**: Loader-independent blind re-derivation of each loaded FY's GF revenue + expenditure totals directly from the source ACFR ($0-delta target); full source-chain audit — every Tucson + Pima County row durably sourced, 0 NULL/fragile/residue. _(Verified 2026-07-11: 20/20 FY×mode + every leaf tie $0; audit a–e clean. See 130-REDERIVATION.md.)_
+- [x] **TUC-08**: Chris live-app UAT — icicle drill-down (2-level), Money In/Out, per-capita, source chips, and breadcrumb + Cities-in-County navigation across Tucson + Pima County + Arizona — signed off. _(Verified 2026-07-11: 15/15 UAT scenarios PASS. See 130-UAT-CHECKLIST.md.)_
+- [x] **TUC-09**: The v2.16 Essentials **tethered icon** is confirmed on Tucson's hero banner — it renders iff Essentials' published `coverage.json` covers Tucson/Pima County (name + state → GEOID). If Essentials does not yet cover Tucson, this is documented as a **cross-repo Essentials coverage gap** (no TT code change; the v2.16 mechanism is already generic). _(Verified 2026-07-11: both Tucson (GEOID 0477000) + Pima County (04019) COVERED; icon confirmed live on both banners. See 130-TETHER-VERDICT.md.)_
 
 ---
 
@@ -60,12 +60,12 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TUC-01 | 128 | ○ Not started |
-| TUC-02 | 128 | ○ Not started |
-| TUC-03 | 129 | ○ Not started |
-| TUC-04 | 129 | ○ Not started |
-| TUC-05 | 129 | ○ Not started |
-| TUC-06 | 129 | ○ Not started |
-| TUC-07 | 130 | ○ Not started |
-| TUC-08 | 130 | ○ Not started |
-| TUC-09 | 130 | ○ Not started |
+| TUC-01 | 128 | ✅ Complete |
+| TUC-02 | 128 | ✅ Complete |
+| TUC-03 | 129 | ✅ Complete |
+| TUC-04 | 129 | ✅ Complete |
+| TUC-05 | 129 | ✅ Complete |
+| TUC-06 | 129 | ✅ Complete |
+| TUC-07 | 130 | ✅ Complete |
+| TUC-08 | 130 | ✅ Complete |
+| TUC-09 | 130 | ✅ Complete |
