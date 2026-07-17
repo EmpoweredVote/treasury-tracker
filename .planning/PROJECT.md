@@ -8,20 +8,30 @@ A public-facing financial transparency platform for governments and nonprofits �
 
 Any citizen can open treasurytracker.empowered.vote and immediately understand where money comes from and where it goes — without needing a finance background.
 
-## Current Milestone: none active
+## Current Milestone: v2.18 Pima County Municipalities — TT Budget Parity
 
-**v2.17 Tucson, AZ City Onboarding shipped 2026-07-11.** No milestone is active. Start the next one with `/gsd-new-milestone`.
+**Goal:** Bring Oro Valley, Marana, Sahuarita, and South Tucson onto Treasury Tracker at city parity — General Fund revenue-by-source + expenditure-by-function from each Town/City ACFR (GAAP), per-capita, enriched, every figure durably sourced — all under the **existing Pima County navigation node** (already live from v2.17), matching the Essentials v22.0 "Tucson & Arizona" deep-seeds for these same municipalities so the cross-product tether resolves both ways.
+
+**Target features:**
+- Recon + extractor readiness for all four (durable per-year ACFR URLs, `pdftotext -table` GF-column $0 bookend-tie, locked clean-extract window per city)
+- Resolve South Tucson source availability (~5,600 pop) — full City ACFR vs AZ Auditor General AFR; may require a source exception or defer
+- Seed each municipality + link to Pima County node; source-safe load of GF operating + revenue per city (never-overwrite, per-capita, Money In auto-enables)
+- Bleed-safe 100% category enrichment per city
+- Blind re-derivation + source-chain audit + Chris live UAT; Essentials tether confirmed on each new banner
+
+**Started:** 2026-07-16. Reuses the proven v2.17 Tucson playbook (`seedTucsonArizona.js` → `extractTucson.py` → `processTucson.js`, source-safe `treasury_sync_budget_tree`).
 
 **Standing context (carries across milestones):** Free public sources only ($0 / $5 AI gate — Empowered Vote is an unfunded nonprofit); every figure durably sourced (`source_url` + `source_date`); source-safe `treasury_sync_budget_tree` never-overwrite; executed inline (no subagents per token/machine-strain policy); milestone closeout = loader-independent re-derivation → source-chain audit → Chris live UAT.
 
-**Next-milestone candidates:**
+**Deferred candidates (after v2.18):**
+- **PIMA-BUDGET-01** — Pima County's own government budget (upgrade its nav node to a full entity).
 - **SRCSTD-01** — sourced-standard backfill to city/state data (brief: `.planning/SRCSTD-01-SCOPING.md`).
 - **VOTES-01** — votes/amendments hub.
 - **TUC-SAL-01** — Tucson employee compensation (needs a Tucson-specific comp source; deferred from v2.17).
 
 ## Current State
 
-**v2.17 Tucson, AZ City Onboarding — SHIPPED 2026-07-11.** The City of Tucson, AZ is onboarded at city parity — General Fund revenue-by-source (Money In) + a 2-level expenditure-by-function tree (Current→5 functions, Capital outlay, Capital projects, Debt service→Principal/Interest/Fiscal agent fees) from its own ACFR (GAAP actuals), FY2015–FY2024, per-capita (pop 554,013), bleed-safe enriched, every figure durably sourced — all beneath a new **Pima County** navigation node under Arizona (US→Arizona→Pima County→Tucson breadcrumb + Cities-in-County panel; Pima's own budget deferred, nav-only). Built on the proven one-off city pipeline (`seedTucsonArizona.js` → `extractTucson.py` → `processTucson.js`, source-safe RPC). Phase 128 recon + extractor (20/20 dry-runs tie $0); Phase 129 loaded 20 `budgets` rows (all tie $0, 0 `data_sources` residue, idempotent) + 15/15 bleed-safe enrichment; Phase 130 verified — a from-scratch, loader-independent re-derivation ties **all 20 FY×mode roll-ups + every category subtotal + every leaf at exactly $0**, source-chain audit clean (20/20 correct-per-FY reachable URLs, 0 residue, no stale labels, Census-pinned population), the v2.16 Essentials tether pre-determined + confirmed **COVERED** on both the Tucson (GEOID 0477000) and Pima County (04019) banners, and **Chris live-app UAT 15/15 all-pass**. Free ACFR PDFs only, $0 AI spend, executed inline. **No active milestone — next candidates: SRCSTD-01 (sourced-standard city/state backfill); VOTES-01 (votes/amendments hub); TUC-SAL-01 (Tucson salaries). Run `/gsd-new-milestone`.**
+**v2.17 Tucson, AZ City Onboarding — SHIPPED 2026-07-11.** The City of Tucson, AZ is onboarded at city parity — General Fund revenue-by-source (Money In) + a 2-level expenditure-by-function tree (Current→5 functions, Capital outlay, Capital projects, Debt service→Principal/Interest/Fiscal agent fees) from its own ACFR (GAAP actuals), FY2015–FY2024, per-capita (pop 554,013), bleed-safe enriched, every figure durably sourced — all beneath a new **Pima County** navigation node under Arizona (US→Arizona→Pima County→Tucson breadcrumb + Cities-in-County panel; Pima's own budget deferred, nav-only). Built on the proven one-off city pipeline (`seedTucsonArizona.js` → `extractTucson.py` → `processTucson.js`, source-safe RPC). Phase 128 recon + extractor (20/20 dry-runs tie $0); Phase 129 loaded 20 `budgets` rows (all tie $0, 0 `data_sources` residue, idempotent) + 15/15 bleed-safe enrichment; Phase 130 verified — a from-scratch, loader-independent re-derivation ties **all 20 FY×mode roll-ups + every category subtotal + every leaf at exactly $0**, source-chain audit clean (20/20 correct-per-FY reachable URLs, 0 residue, no stale labels, Census-pinned population), the v2.16 Essentials tether pre-determined + confirmed **COVERED** on both the Tucson (GEOID 0477000) and Pima County (04019) banners, and **Chris live-app UAT 15/15 all-pass**. Free ACFR PDFs only, $0 AI spend, executed inline. **v2.18 Pima County Municipalities — TT Budget Parity is now ACTIVE (Phases 131–133): Oro Valley, Marana, Sahuarita, South Tucson → TT parity under the existing Pima County node, matching the Essentials v22.0 deep-seeds.**
 
 <details>
 <summary>Previous: v2.16 Tethered Icons & Smart Banner — SHIPPED 2026-07-08</summary>

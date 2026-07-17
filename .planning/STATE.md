@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.17
-milestone_name: Tucson, AZ City Onboarding
-status: Awaiting next milestone
-last_updated: "2026-07-11T15:55:19.169Z"
-last_activity: 2026-07-11 — Milestone v2.17 completed and archived
+milestone: v2.18
+milestone_name: Pima County Municipalities — TT Budget Parity
+status: planning
+last_updated: "2026-07-17T01:17:02.341Z"
+last_activity: 2026-07-17
 progress:
-  total_phases: 29
-  completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
-  percent: 10
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-07-10 — v2.17 Tucson, AZ City Onboardi
 
 ## Current Position
 
-Phase: Milestone v2.17 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-07-11 — Milestone v2.17 completed and archived
+Status: Defining requirements
+Last activity: 2026-07-17 — Milestone v2.18 started
 
 ## Phase Overview — v2.17 Tucson, AZ City Onboarding
 
