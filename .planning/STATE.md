@@ -24,17 +24,17 @@ See: .planning/PROJECT.md (updated 2026-07-16 — v2.18 Pima County Municipaliti
 
 ## Current Position
 
-Phase: 132 — Data Model + Load + Enrichment (PLANNED)
-Plan: 132-01 (seed+link), 132-02 (source-safe load), 132-03 (enrichment) authored
-Status: Planned — ready to execute. 131 complete (44/44 ties $0, extractAcfrGF.py built). 132 loads 44 budgets rows for 4 munis under existing Pima node.
-Last activity: 2026-07-17 — Phase 132 planned (3 plans)
+Phase: 132 — Data Model + Load + Enrichment (COMPLETE)
+Plan: 132-01 ✅ (4 munis seeded+linked), 132-02 ✅ (44 rows loaded), 132-03 ✅ (100% enrichment)
+Status: Executed — 4 munis under existing Pima node; 44 budgets rows loaded (all $0 independent re-derivation); 0 data_sources residue; idempotent; 100% bleed-safe enrichment (42/42). Tucson untouched. Ready for Phase 133 (verification + live UAT).
+Last activity: 2026-07-17 — Phase 132 executed (seed + load + enrich)
 
 ## Phase Overview — v2.18 Pima County Municipalities — TT Budget Parity
 
 | Phase | Name | Requirements | Depends on | Status |
 |-------|------|--------------|------------|--------|
 | 131 | Recon + Extractors | PIMA-01, PIMA-02, PIMA-03 | — | ✅ Executed (44/44 ties $0) |
-| 132 | Data Model + Load + Enrichment | PIMA-04, PIMA-05, PIMA-06 | 131 | ◐ Planned (3 plans) |
+| 132 | Data Model + Load + Enrichment | PIMA-04, PIMA-05, PIMA-06 | 131 | ✅ Executed (44 rows, $0 re-derive, 100% enrich) |
 | 133 | Verification + Live UAT | PIMA-07, PIMA-08, PIMA-09 | 131, 132 | ○ Not started |
 
 **Critical path:** 131 → 132 → 133. A 4-municipality onboarding (Oro Valley, Marana, Sahuarita, South Tucson) on the proven Tucson pipeline (`seedTucsonArizona.js` → `extractTucson.py` → `processTucson.js`), all linked under the **existing Pima County node** (no new county node). Phase 131 enumerates each municipality's published ACFR years, pins durable per-year URLs, proves clean `pdftotext -table` extraction of the **General Fund** column (bookend-tie $0), locks each clean window, **resolves South Tucson's source (ACFR vs AZ Auditor General AFR) with an explicit verdict**, and builds/extends the extractor. Phase 132 seeds each municipality + links to Pima County (breadcrumb + Cities-in-County panel alongside Tucson), loads GF operating + revenue via source-safe `treasury_sync_budget_tree` (never-overwrite, durable `source_url`+`source_date`, per-capita, Money In auto-enable), and enriches to 100% bleed-safe coverage. Phase 133 = loader-independent blind re-derivation ($0 delta) → source-chain audit (0 residue) → Chris live UAT → confirm the v2.16 Essentials tether icon on each new banner (PIMA-09; cross-repo coverage gap documented if absent). **Constraints:** free ACFR PDFs only ($0 / $5 AI gate); **General Fund** basis (all-funds deferred); source-safe never-overwrite; every figure durably sourced; executed inline (no subagents). **Recon-gated:** South Tucson (~5,600 pop) may need a source exception or defer. **Deferred:** Pima County's own budget (nav node only), all-funds view, salaries, Maricopa/other AZ cities.

@@ -180,24 +180,20 @@ def _section(lines, start_pat, end_pat):
             yield l
 
 def build_revenue(lines, col_anchors, printed):
-    """Flat GF revenue-by-source tree. Buffers label-only lines so a wrapped
-    label rejoins its number. Skips intermediate subtotal rows."""
+    """Flat GF revenue-by-source tree. A row's leaf is the label of the line
+    that carries the GF value; a line with no GF value is a $0-GF line item and
+    is skipped (NOT buffered into the next row's label — these municipalities'
+    statements have no genuine multi-line-wrapped labels, and buffering caused
+    cross-row label bleed, e.g. OV 'Development impact fees Special assessments
+    Intergovernmental'). Intermediate subtotal rows are skipped."""
     children = []
-    pending = ''
     for l in _section(lines, r'^Revenues\b', r'^Total\s+revenues\b'):
         if not l.strip():
             continue
         gv = gf_value(l, col_anchors)
-        lbl = label_of(l)
         if gv is None:
-            # Buffer ONLY pure label continuations (no numbers, no dash/$ cells).
-            # A dash-cell row is a real $0-GF line item — skip it, don't bleed
-            # its label into the next valued row.
-            if lbl and not nums_with_pos(l) and not has_blank_cells(l):
-                pending = (pending + ' ' + lbl).strip()   # wrapped label
             continue
-        full = norm_label((pending + ' ' + lbl).strip()) if pending else lbl
-        pending = ''
+        full = label_of(l)
         if full and not is_subtotal(full):
             children.append({'n': full, 'a': gv})
     total = sum(c['a'] for c in children)
@@ -211,7 +207,6 @@ def build_operating(lines, col_anchors, printed):
     from the statement, not a hardcoded function list."""
     root_children = []
     parent = None          # current parent node (dict) or None for root leaves
-    pending = ''
     for l in _section(lines, r'^Expenditures\b', r'^Total\s+expenditures\b'):
         st = l.strip()
         if not st:
@@ -222,17 +217,11 @@ def build_operating(lines, col_anchors, printed):
         if is_section_header(st, has_num):
             parent = {'n': lbl or st.rstrip(':-').strip(), 'a': 0, 'c': []}
             root_children.append(parent)
-            pending = ''
             continue
         gv = gf_value(l, col_anchors)
         if gv is None:
-            # Buffer ONLY pure label continuations; a dash-cell row is a real
-            # $0-GF line item — skip it, don't bleed its label forward.
-            if lbl and not has_num and not has_blank_cells(l):
-                pending = (pending + ' ' + lbl).strip()   # wrapped label
-            continue
-        full = norm_label((pending + ' ' + lbl).strip()) if pending else lbl
-        pending = ''
+            continue   # $0-GF line item (or a blank row) — skip, never buffer
+        full = label_of(l)
         if not full or is_subtotal(full):
             continue
         node = {'n': full, 'a': gv}
