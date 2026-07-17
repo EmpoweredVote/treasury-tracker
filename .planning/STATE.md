@@ -24,16 +24,16 @@ See: .planning/PROJECT.md (updated 2026-07-16 — v2.18 Pima County Municipaliti
 
 ## Current Position
 
-Phase: 131 — Recon + Extractors
-Plan: 131-01, 131-02 authored (ready to execute)
-Status: Planned
-Last activity: 2026-07-16 — Phase 131 planned (2 plans)
+Phase: 131 — Recon + Extractors (COMPLETE)
+Plan: 131-01 ✅, 131-02 ✅
+Status: Executed — all 4 municipalities loadable; 44/44 (city×FY×mode) tie $0; scripts/extractAcfrGF.py built; South Tucson verdict = load-from-ACFR (FY2019–2022). Ready for Phase 132 (seed + load + enrich).
+Last activity: 2026-07-16 — Phase 131 executed (recon + generalized extractor)
 
 ## Phase Overview — v2.18 Pima County Municipalities — TT Budget Parity
 
 | Phase | Name | Requirements | Depends on | Status |
 |-------|------|--------------|------------|--------|
-| 131 | Recon + Extractors | PIMA-01, PIMA-02, PIMA-03 | — | ◐ Planned (2 plans) |
+| 131 | Recon + Extractors | PIMA-01, PIMA-02, PIMA-03 | — | ✅ Executed (44/44 ties $0) |
 | 132 | Data Model + Load + Enrichment | PIMA-04, PIMA-05, PIMA-06 | 131 | ○ Not started |
 | 133 | Verification + Live UAT | PIMA-07, PIMA-08, PIMA-09 | 131, 132 | ○ Not started |
 
