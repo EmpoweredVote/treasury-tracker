@@ -12,8 +12,16 @@ findings:
   warning: 1
   info: 2
   total: 5
-status: issues_found
+status: resolved
+resolved: 2026-07-17T00:00:00Z
+resolution: "CR-01, CR-02, WR-01 all fixed 2026-07-17 (commit follows). Audit + tether re-run green after fixes (audit exit 0, tether exit 0). IN-01/IN-02 left as-is (low-risk; CR-02 resolved the one place IN-02 turned harmful)."
 ---
+
+> **Resolution (2026-07-17):** The two Critical and one Warning findings were fixed inline in the verification harnesses and both scripts re-run clean:
+> - **CR-01 (fixed)** — `reachable()` now re-applies the `pdf-or->=400KB` content bar (plus a 206-partial allowance) on the ranged-GET fallback, so a soft-404/login-wall 200/206 is no longer treated as reachable. Verified: Sahuarita's real PDFs still pass on content-type; South Tucson's `404`/`text/html` now correctly routes to Wayback corroboration rather than passing on status alone.
+> - **CR-02 (fixed)** — the D-04(c) residue query now destructures `error` and throws on it (and uses `?? 0`), so a failed query surfaces as a failure instead of coalescing to a false "0 residue / PASS".
+> - **WR-01 (fixed)** — the ported `matchEntityToCoverage` now gates city-tier matching on the real `CITY_TIER_TYPES` allow-list and returns `null` for other tiers, matching production, so a future copy-forward to a state/federal phase stays correct.
+> - **IN-01 / IN-02 (not changed)** — low-risk; the one place IN-02 turned harmful was CR-02, which is now fixed.
 
 # Phase 133: Code Review Report
 

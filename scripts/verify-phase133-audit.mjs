@@ -139,13 +139,18 @@ async function reachable(url, waf403Expected) {
     ct = res.headers.get('content-type') || '';
     len = parseInt(res.headers.get('content-length') || '0', 10);
     if (res.status === 403 && waf403Expected) return { ok: true, status: res.status, ct, len, expected403: true };
-    if (!(res.ok || res.status === 206) && waf403Expected) {
-      // documented-WAF host returned neither 200 nor 403 today (observed: South
+    // Re-apply the same reachability bar the HEAD path enforces (200 + pdf-or->=400KB),
+    // so a soft-404/login-wall page that answers the GET with a 200/206 but no PDF body
+    // is NOT silently treated as reachable. A 206 on a Range request means the origin
+    // served real partial bytes, so it counts as content-OK on its own.
+    const contentOk = ct.includes('pdf') || len >= 400_000 || res.status === 206;
+    if (!(res.ok && contentOk) && waf403Expected) {
+      // documented-WAF host returned neither a valid PDF nor a 403 today (observed: South
       // Tucson serves a soft-404 to bots) — corroborate via Wayback before failing.
       const snap = await waybackCorroborated(url);
       if (snap) return { ok: true, status: res.status, ct, len, expected403: true, waybackCorroborated: true };
     }
-    return { ok: res.ok || res.status === 206, status: res.status, ct, len, expected403: false };
+    return { ok: res.ok && contentOk, status: res.status, ct, len, expected403: false };
   } catch (e) {
     return { ok: false, status: 'ERR', ct: e.message, len: 0, expected403: false };
   }
@@ -216,9 +221,12 @@ async function main() {
   let residueTotal = 0;
   const residueDetail = [];
   for (const dirKey of Object.keys(CITIES)) {
-    const { count } = await sb.from('data_sources').select('*', { count: 'exact', head: true }).ilike('dataset_id', `${CITIES[dirKey].slug}-acfr%`);
-    residueTotal += count || 0;
-    residueDetail.push(`${dirKey}:${count || 0}`);
+    const { count, error } = await sb.from('data_sources').select('*', { count: 'exact', head: true }).ilike('dataset_id', `${CITIES[dirKey].slug}-acfr%`);
+    // A swallowed query error must NOT coalesce to 0 and read as PASS — the whole point
+    // of this assertion is to prove the ephemeral-lifecycle invariant against the live DB.
+    if (error) throw new Error(`D-04(c) data_sources residue check failed for ${dirKey}: ${error.message}`);
+    residueTotal += count ?? 0;
+    residueDetail.push(`${dirKey}:${count ?? 0}`);
   }
   record('D-04(c) 0 orphan data_sources residue (dataset_id ILIKE <slug>-acfr%) across all four cities',
     residueTotal === 0, `residue total=${residueTotal} (${residueDetail.join(' ')})`);
