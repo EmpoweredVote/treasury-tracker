@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.18
 milestone_name: Pima County Municipalities — TT Budget Parity
 status: executing
-last_updated: "2026-07-17T16:04:32.743Z"
-last_activity: 2026-07-17 -- Phase 133 planning complete
+last_updated: "2026-07-17T17:48:33.695Z"
+last_activity: 2026-07-17
 progress:
   total_phases: 29
   completed_phases: 2
   total_plans: 8
-  completed_plans: 5
+  completed_plans: 6
   percent: 7
 ---
 
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-16 — v2.18 Pima County Municipalities STARTED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** Phase 131 — recon + extractors (defining requirements complete; ready to plan)
+**Current focus:** Phase 133 — verification-live-uat
 
 ## Current Position
 
-Phase: 132 — Data Model + Load + Enrichment (COMPLETE)
-Plan: 132-01 ✅ (4 munis seeded+linked), 132-02 ✅ (44 rows loaded), 132-03 ✅ (100% enrichment)
+Phase: 133 (verification-live-uat) — EXECUTING
+Plan: 2 of 3
 Status: Ready to execute
-Last activity: 2026-07-17 -- Phase 133 planning complete
+Last activity: 2026-07-17
 
 ## Phase Overview — v2.18 Pima County Municipalities — TT Budget Parity
 
@@ -232,9 +232,9 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-07-10T18:16:16.314Z
-Stopped at: Phase 130 context gathered
-Resume file: .planning/phases/130-verification-live-uat/130-CONTEXT.md
+Last session: 2026-07-17T17:48:33.684Z
+Stopped at: Completed 133-01-PLAN.md
+Resume file: None
 
 ### Next Session
 
@@ -318,6 +318,7 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 | Phase 129-data-model-load-enrichment P01 | 35min | 2 tasks | 1 files |
 | Phase 129 P02 | 45min | 3 tasks | 1 files |
 | Phase 129 PP03 | 30min | 2 tasks | 3 files |
+| Phase 133-verification-live-uat P133-01 | 55min | 5 tasks | 3 files |
 
 ## Decisions
 
@@ -450,6 +451,8 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 - [Phase 129]: [129-02] toBudgetTree() i[]-multi-item recipe (not further c[] nesting) confirmed against 4 loaders + live _treasury_insert_tree contract as the correct 2-level RPC-write pattern — Matches processPortland.js/loadFederalAgencies.js precedent; plan's D-08 wording followed literally
 - [Phase 129]: [129-02] Live load complete: 20/20 Tucson budgets rows (10 FY x operating+revenue), independent re-derivation ties 128-RECON.md printed totals at exact $0, idempotent (0 net change on re-run), 0 data_sources residue — processTucson.js via treasury_sync_budget_tree; py -3 used instead of python (env quirk)
 - [Phase ?]: 129-03: Tucson operating tree's drill-down leaves live in budget_line_items (i[] recipe), not depth-1 budget_categories; enrichment worklist derives from the 15 depth-0 keys (true 100% of what is enrichable) -- no schema change
+- [Phase 133-01]: Generalized OV label-quirk disposition to a value-based pairing (not hardcoded strings) so it catches both the pdftotext glyph-split rendering and a source-PDF typo without weakening the harness's independence claim
+- [Phase 133-01]: D-04 reachability check broadened to accept Wayback-CDX-corroborated historical 200/application-pdf snapshots for documented WAF-blocked origins that return a non-403 anti-bot response (South Tucson returned a soft-404)
 
 ## Deferred Items
 

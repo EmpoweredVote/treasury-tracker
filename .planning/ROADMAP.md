@@ -46,7 +46,7 @@
 |---|-------|------|--------------|------------|
 | 131 | Recon + Extractors | Locate + validate each ACFR source, resolve South Tucson, prove clean GF extraction | PIMA-01, PIMA-02, PIMA-03 | — |
 | 132 | Data Model + Load + Enrichment | Seed + link each municipality, source-safe GF load, bleed-safe enrichment | PIMA-04, PIMA-05, PIMA-06 | 131 |
-| 133 | Verification + Live UAT | Blind re-derivation + source-chain audit + Chris live UAT + Essentials-tether confirmation | PIMA-07, PIMA-08, PIMA-09 | 131, 132 |
+| 133 | Verification + Live UAT | 1/3 | In Progress|  |
 
 **Critical path:** 131 → 132 → 133.
 
