@@ -30,10 +30,52 @@
 - ✅ **v2.15 State ACFR Long Tail — Final Tail + NASBO Retirement** — Phases 117-124 (shipped 2026-07-06) — all 50 states on ACFR
 - ✅ **v2.16 Tethered Icons & Smart Banner** — Phases 125-127 (shipped 2026-07-08)
 - ✅ **v2.17 Tucson, AZ City Onboarding** — Phases 128-130 (shipped 2026-07-11)
+- 🚧 **v2.18 Pima County Municipalities — TT Budget Parity** — Phases 131-133 (started 2026-07-16)
 
 ---
 
 ## Phases
+
+### v2.18 Pima County Municipalities — TT Budget Parity (Phases 131-133)
+
+**Milestone goal:** Bring **Oro Valley**, **Marana**, **Sahuarita**, and **South Tucson**, AZ onto Treasury Tracker at city parity — General Fund revenue-by-source (Money In) + expenditure-by-function from each municipality's own ACFR (GAAP), per-capita, bleed-safe enriched, every figure durably sourced — all beneath the **existing Pima County navigation node** (live since v2.17), matching the Essentials v22.0 "Tucson & Arizona" deep-seeds (Phases 195–198) for these same municipalities so the v2.16/v2.17 cross-product tether resolves both ways. Reuse the proven Tucson playbook (`seedTucsonArizona.js` → `extractTucson.py` → `processTucson.js`, source-safe `treasury_sync_budget_tree`). Free ACFR PDFs only, $0 / $5 AI gate, **General Fund** basis, never-overwrite, executed inline. **South Tucson (~5,600 pop) is recon-gated** — may need a source exception or defer if it publishes no full ACFR.
+
+**Requirement coverage:** 9 requirements (PIMA-01..09) · 9 mapped · 0 unmapped ✓
+
+| # | Phase | Goal | Requirements | Depends on |
+|---|-------|------|--------------|------------|
+| 131 | Recon + Extractors | Locate + validate each ACFR source, resolve South Tucson, prove clean GF extraction | PIMA-01, PIMA-02, PIMA-03 | — |
+| 132 | Data Model + Load + Enrichment | Seed + link each municipality, source-safe GF load, bleed-safe enrichment | PIMA-04, PIMA-05, PIMA-06 | 131 |
+| 133 | Verification + Live UAT | Blind re-derivation + source-chain audit + Chris live UAT + Essentials-tether confirmation | PIMA-07, PIMA-08, PIMA-09 | 131, 132 |
+
+**Critical path:** 131 → 132 → 133.
+
+#### Phase 131: Recon + Extractors
+**Goal:** Locate and validate every municipality's ACFR source end-to-end before any load — enumerate published years, pin durable URLs, prove clean `pdftotext -table` extraction of the General Fund column, resolve South Tucson's source, and build/extend the extractor.
+**Requirements:** PIMA-01, PIMA-02, PIMA-03
+**Success criteria:**
+1. For each of Oro Valley, Marana, and Sahuarita, every published ACFR year is listed with a durable per-year PDF URL, and each year's Governmental-Funds Statement GF column bookend-ties to its printed *Total revenues* and *Total expenditures* at exactly $0 (or is documented as an honest non-extractable hole); each city's clean-extract window is locked.
+2. South Tucson's source is resolved with an explicit written verdict (load-from-ACFR / documented source exception / defer) — no silent scope reduction.
+3. The extractor dry-runs each in-scope FY per city, and each GF tree (revenue-by-source; expenditure-by-function) sums to the printed GF total at exactly $0.
+4. Wrapped labels and `$`/blank non-GF cells are handled with no mis-parsed rows.
+
+#### Phase 132: Data Model + Load + Enrichment
+**Goal:** Seed each in-scope municipality under the existing Pima County node, load its General Fund at full parity via the source-safe RPC, then enrich bleed-safe.
+**Requirements:** PIMA-04, PIMA-05, PIMA-06
+**Success criteria:**
+1. Each in-scope municipality appears under US → Arizona → Pima County; the breadcrumb and Cities-in-County panel render it alongside Tucson.
+2. Each municipality's GF operating (expenditure-by-function) + revenue (revenue-by-source) is loaded for its full locked window; icicle drill-down works.
+3. The "Money In" revenue view auto-enables and per-capita ($/resident) renders; every loaded row carries a durable `source_url` + `source_date`; a re-run is idempotent (0 net change, 0 `data_sources` residue).
+4. Enrichment covers 100% of each municipality's loaded GF categories, delete-then-insert / NULLS-DISTINCT-safe, with no cross-entity bleed.
+
+#### Phase 133: Verification + Live UAT
+**Goal:** Prove every loaded figure is real, sourced, and correctly navigable, and confirm the cross-product tether.
+**Requirements:** PIMA-07, PIMA-08, PIMA-09
+**Success criteria:**
+1. A from-scratch, loader-independent re-derivation ties each loaded FY×mode roll-up (and every category subtotal/leaf) to the source ACFR at exactly $0 for every in-scope municipality.
+2. The source-chain audit is clean — every new municipality row durably sourced, 0 NULL/fragile/residue, no stale labels, Census-pinned population.
+3. Chris live-app UAT (icicle drill, Money In/Out, per-capita, source chips, breadcrumb + Cities-in-County navigation across all Pima municipalities) is signed off.
+4. The v2.16 Essentials tether icon is confirmed on each in-scope municipality's banner (or its absence documented as a cross-repo coverage gap).
 
 <details>
 <summary>✅ v2.17 Tucson, AZ City Onboarding (Phases 128-130) — SHIPPED 2026-07-11 (full detail in milestones/v2.17-ROADMAP.md)</summary>
