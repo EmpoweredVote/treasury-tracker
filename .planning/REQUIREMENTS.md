@@ -34,7 +34,7 @@
 ### Verification
 
 - [x] **PIMA-07**: Loader-independent blind re-derivation of each loaded FY's GF revenue + expenditure totals directly from the source ACFR ($0-delta target) for every in-scope municipality; full source-chain audit — every new municipality row durably sourced, 0 NULL/fragile/residue, no stale labels, Census-pinned population.
-- [ ] **PIMA-08**: Chris live-app UAT — icicle drill-down, Money In/Out, per-capita, source chips, and breadcrumb + Cities-in-County navigation across all in-scope Pima municipalities alongside Tucson — signed off.
+- [x] **PIMA-08**: Chris live-app UAT — icicle drill-down, Money In/Out, per-capita, source chips, and breadcrumb + Cities-in-County navigation across all in-scope Pima municipalities alongside Tucson — signed off.
 - [x] **PIMA-09**: The v2.16 Essentials **tethered icon** is confirmed on each in-scope municipality's hero banner — it renders iff Essentials' published `coverage.json` covers that municipality (name + state → GEOID). Any not-yet-covered municipality is documented as a **cross-repo Essentials coverage gap** (no TT code change; the v2.16 mechanism is already generic).
 
 ---
@@ -67,6 +67,6 @@
 | PIMA-04 | 132 | ⬚ Pending |
 | PIMA-05 | 132 | ⬚ Pending |
 | PIMA-06 | 132 | ⬚ Pending |
-| PIMA-07 | 133 | ⬚ Pending |
-| PIMA-08 | 133 | ⬚ Pending |
-| PIMA-09 | 133 | ⬚ Pending |
+| PIMA-07 | 133 | ✅ Complete |
+| PIMA-08 | 133 | ✅ Complete |
+| PIMA-09 | 133 | ✅ Complete |
