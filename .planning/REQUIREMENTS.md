@@ -1,0 +1,72 @@
+# Requirements — v2.18 Pima County Municipalities — TT Budget Parity
+
+**Milestone:** v2.18 (Phases 131–133, continues from 130)
+**Started:** 2026-07-16
+**Goal:** Bring the towns of **Oro Valley**, **Marana**, **Sahuarita**, and the city of **South Tucson**, AZ onto Treasury Tracker at city parity — General Fund revenue-by-source (Money In) + expenditure-by-function from each municipality's own ACFR (GAAP actuals), per-capita, bleed-safe enriched, every figure durably sourced — all beneath the **existing Pima County navigation node** (live since v2.17), matching the Essentials v22.0 "Tucson & Arizona" deep-seeds (Phases 195–198) for these same municipalities so the v2.16/v2.17 cross-product tether resolves both ways.
+
+**Reuses the proven v2.17 Tucson playbook:** recon → `pdftotext -table` on each ACFR's Governmental-Funds *Statement of Revenues, Expenditures and Changes in Fund Balances* (General Fund column, $0 bookend-tie) → seed municipality + link to Pima County node → source-safe `treasury_sync_budget_tree` (never-overwrite) load → bleed-safe enrichment → loader-independent blind re-derivation + source-chain audit + Chris live UAT. Free ACFR PDFs only, $0 AI spend, executed inline.
+
+**Locked decisions (2026-07-16):**
+- **Basis = General Fund** (matches Tucson; not all governmental funds).
+- **Linking = under the existing Pima County node** (US → Arizona → Pima County → {Tucson, Oro Valley, Marana, Sahuarita, South Tucson}). No new county node.
+- **History depth = as deep as each published ACFR cleanly extracts & ties** (per-year probe in recon).
+- **South Tucson is recon-gated** — carried in scope, but if it publishes no full ACFR (only an AZ Auditor General AFR, which v2.17 ruled not icicle-grade) it may be reduced-scope or deferred by explicit recon verdict (PIMA-02).
+
+---
+
+## v2.18 Requirements
+
+### Source & Extractor
+
+- [ ] **PIMA-01**: Recon each of the four municipalities — enumerate every published ACFR year on the town/city archive, pin a durable per-year PDF URL for each, confirm the Governmental-Funds *Statement of Revenues, Expenditures and Changes in Fund Balances* extracts via `pdftotext -table` with the **General Fund** column bookend-tying to its printed *Total revenues* and *Total expenditures* at exactly $0, and lock each city's clean-extract window (deepest contiguous tying set).
+- [ ] **PIMA-02**: Resolve **South Tucson** source availability — determine whether it publishes a full City ACFR with an extractable GF statement, or only an AZ Auditor General AFR. Record an explicit verdict: (a) load from ACFR like the others, (b) accept a documented source exception, or (c) defer South Tucson to a future requirement. No silent scope reduction.
+- [ ] **PIMA-03**: Extractor builds each municipality's GF **revenue-by-source** tree and **expenditure-by-function** tree (label depth per each ACFR's own statement; 2-level where the source supports it), handling wrapped labels and `$`/blank cells; each windowed FY dry-run sums to its printed GF total at exactly $0.
+
+### Data Model & Load
+
+- [ ] **PIMA-04**: Each in-scope municipality seeded (name, state=AZ, `entity_type` = city/town as published, population from Census/ACFR SI), idempotent (select-by-name → insert/update; `data_source` rows owned by the processor), and linked to the **existing Pima County node** via `county_id` — US → Arizona → Pima County → {city} breadcrumb + Cities-in-County panel render (Tucson + the new municipalities listed together).
+- [ ] **PIMA-05**: Each in-scope municipality's GF **operating** (expenditure-by-function) + **revenue** (revenue-by-source) loaded for its full locked window via the source-safe `treasury_sync_budget_tree` RPC (never-overwrite); every row carries a durable `source_url` + `source_date`; per-capita ($/resident) renders; the "Money In" revenue view auto-enables; a re-run is idempotent (0 net change, 0 `data_sources` residue).
+
+### Enrichment
+
+- [ ] **PIMA-06**: Bleed-safe category enrichment covering **100%** of each in-scope municipality's loaded GF categories (universal where the label is shareable, city-scoped otherwise), authored inline at $0, delete-then-insert / NULLS-DISTINCT-safe, with **no cross-entity bleed** (verified against Tucson and each other).
+
+### Verification
+
+- [ ] **PIMA-07**: Loader-independent blind re-derivation of each loaded FY's GF revenue + expenditure totals directly from the source ACFR ($0-delta target) for every in-scope municipality; full source-chain audit — every new municipality row durably sourced, 0 NULL/fragile/residue, no stale labels, Census-pinned population.
+- [ ] **PIMA-08**: Chris live-app UAT — icicle drill-down, Money In/Out, per-capita, source chips, and breadcrumb + Cities-in-County navigation across all in-scope Pima municipalities alongside Tucson — signed off.
+- [ ] **PIMA-09**: The v2.16 Essentials **tethered icon** is confirmed on each in-scope municipality's hero banner — it renders iff Essentials' published `coverage.json` covers that municipality (name + state → GEOID). Any not-yet-covered municipality is documented as a **cross-repo Essentials coverage gap** (no TT code change; the v2.16 mechanism is already generic).
+
+---
+
+## Future Requirements (deferred)
+
+- **PIMA-BUDGET-01**: Load Pima County's own government budget from its ACFR (upgrade the navigation node to a full county entity). _(Carried from v2.17.)_
+- **AZ-CITIES-01**: Additional Arizona cities beyond Pima County (Phoenix, Mesa, Chandler, … — Maricopa metro) — future expansion; would need a Maricopa County nav node. _(Carried from v2.17.)_
+- **TUC-SAL-01 / *-SAL**: Employee compensation for the Pima municipalities — no free statewide AZ comp dataset (same blocker as Tucson).
+- ***-ALLFUNDS**: All-governmental-funds basis as a selectable alternative to General Fund.
+- **South Tucson (conditional)**: If PIMA-02 verdict is "defer," South Tucson's ACFR budget load moves here.
+
+## Out of Scope (this milestone)
+
+- **Pima County government budget** — the county remains a navigation/linking node only; its own ACFR budget is deferred (PIMA-BUDGET-01).
+- **All-funds basis** — General Fund is the locked decision, matching Tucson.
+- **Salaries / compensation** — no free statewide AZ comp dataset.
+- **Non-city AZ groundwork** — the Essentials-side Pima County Board of Supervisors, AZ Legislature, and TIGER geofences (Essentials Phases 190–193) are civic/representation data, not TT budget data; out of scope here.
+- **New county navigation node** — the Pima County node already exists; no Maricopa/other county node this milestone.
+
+---
+
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| PIMA-01 | 131 | ⬚ Pending |
+| PIMA-02 | 131 | ⬚ Pending |
+| PIMA-03 | 131 | ⬚ Pending |
+| PIMA-04 | 132 | ⬚ Pending |
+| PIMA-05 | 132 | ⬚ Pending |
+| PIMA-06 | 132 | ⬚ Pending |
+| PIMA-07 | 133 | ⬚ Pending |
+| PIMA-08 | 133 | ⬚ Pending |
+| PIMA-09 | 133 | ⬚ Pending |
