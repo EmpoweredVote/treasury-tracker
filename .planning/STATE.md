@@ -24,16 +24,16 @@ See: .planning/PROJECT.md (updated 2026-07-16 — v2.18 Pima County Municipaliti
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-07-17 — Milestone v2.18 started
+Phase: 131 — Recon + Extractors
+Plan: 131-01, 131-02 authored (ready to execute)
+Status: Planned
+Last activity: 2026-07-16 — Phase 131 planned (2 plans)
 
 ## Phase Overview — v2.18 Pima County Municipalities — TT Budget Parity
 
 | Phase | Name | Requirements | Depends on | Status |
 |-------|------|--------------|------------|--------|
-| 131 | Recon + Extractors | PIMA-01, PIMA-02, PIMA-03 | — | ○ Not started |
+| 131 | Recon + Extractors | PIMA-01, PIMA-02, PIMA-03 | — | ◐ Planned (2 plans) |
 | 132 | Data Model + Load + Enrichment | PIMA-04, PIMA-05, PIMA-06 | 131 | ○ Not started |
 | 133 | Verification + Live UAT | PIMA-07, PIMA-08, PIMA-09 | 131, 132 | ○ Not started |
 
