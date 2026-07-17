@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v2.18
 milestone_name: Pima County Municipalities — TT Budget Parity
 status: executing
-last_updated: "2026-07-17T17:48:33.695Z"
+last_updated: "2026-07-17T17:59:22.663Z"
 last_activity: 2026-07-17
 progress:
   total_phases: 29
   completed_phases: 2
   total_plans: 8
-  completed_plans: 6
+  completed_plans: 7
   percent: 7
 ---
 
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-07-16 — v2.18 Pima County Municipaliti
 ## Current Position
 
 Phase: 133 (verification-live-uat) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-07-17
 
@@ -232,8 +232,8 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-07-17T17:48:33.684Z
-Stopped at: Completed 133-01-PLAN.md
+Last session: 2026-07-17T17:59:22.650Z
+Stopped at: Completed 133-02-PLAN.md
 Resume file: None
 
 ### Next Session
@@ -319,6 +319,7 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 | Phase 129 P02 | 45min | 3 tasks | 1 files |
 | Phase 129 PP03 | 30min | 2 tasks | 3 files |
 | Phase 133-verification-live-uat P133-01 | 55min | 5 tasks | 3 files |
+| Phase 133-verification-live-uat PP133-02 | 5min | 2 tasks | 2 files |
 
 ## Decisions
 
@@ -453,6 +454,7 @@ Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to
 - [Phase ?]: 129-03: Tucson operating tree's drill-down leaves live in budget_line_items (i[] recipe), not depth-1 budget_categories; enrichment worklist derives from the 15 depth-0 keys (true 100% of what is enrichable) -- no schema change
 - [Phase 133-01]: Generalized OV label-quirk disposition to a value-based pairing (not hardcoded strings) so it catches both the pdftotext glyph-split rendering and a source-PDF typo without weakening the harness's independence claim
 - [Phase 133-01]: D-04 reachability check broadened to accept Wayback-CDX-corroborated historical 200/application-pdf snapshots for documented WAF-blocked origins that return a non-403 anti-bot response (South Tucson returned a soft-404)
+- [Phase 133-verification-live-uat]: PIMA-09 tether verdict: all 4 new Pima munis (Oro Valley, Marana, Sahuarita, South Tucson) COVERED on live Essentials coverage.json — Essentials v22.0 deep-seeds already publish city records for all four with correct Census GEOIDs; no cross-repo gap, no TT code change needed
 
 ## Deferred Items
 
