@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.18
 milestone_name: Pima County Municipalities — TT Budget Parity
-status: milestone_complete
-last_updated: 2026-07-17T19:45:16.173Z
-last_activity: 2026-07-17
+status: Awaiting next milestone
+last_updated: "2026-07-17T21:01:04.030Z"
+last_activity: 2026-07-17 — Milestone v2.18 completed and archived
 progress:
   total_phases: 29
   completed_phases: 3
   total_plans: 8
   completed_plans: 8
   percent: 10
-stopped_at: Milestone complete (Phase 133 was final phase)
 ---
 
 # State
@@ -25,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-07-16 — v2.18 Pima County Municipaliti
 
 ## Current Position
 
-Phase: 133
-Plan: Not started
-Status: Milestone complete
-Last activity: 2026-07-17
+Phase: Milestone v2.18 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-07-17 — Milestone v2.18 completed and archived
 
 ## Phase Overview — v2.18 Pima County Municipalities — TT Budget Parity
 
@@ -41,6 +40,19 @@ Last activity: 2026-07-17
 **Critical path:** 131 → 132 → 133. A 4-municipality onboarding (Oro Valley, Marana, Sahuarita, South Tucson) on the proven Tucson pipeline (`seedTucsonArizona.js` → `extractTucson.py` → `processTucson.js`), all linked under the **existing Pima County node** (no new county node). Phase 131 enumerates each municipality's published ACFR years, pins durable per-year URLs, proves clean `pdftotext -table` extraction of the **General Fund** column (bookend-tie $0), locks each clean window, **resolves South Tucson's source (ACFR vs AZ Auditor General AFR) with an explicit verdict**, and builds/extends the extractor. Phase 132 seeds each municipality + links to Pima County (breadcrumb + Cities-in-County panel alongside Tucson), loads GF operating + revenue via source-safe `treasury_sync_budget_tree` (never-overwrite, durable `source_url`+`source_date`, per-capita, Money In auto-enable), and enriches to 100% bleed-safe coverage. Phase 133 = loader-independent blind re-derivation ($0 delta) → source-chain audit (0 residue) → Chris live UAT → confirm the v2.16 Essentials tether icon on each new banner (PIMA-09; cross-repo coverage gap documented if absent). **Constraints:** free ACFR PDFs only ($0 / $5 AI gate); **General Fund** basis (all-funds deferred); source-safe never-overwrite; every figure durably sourced; executed inline (no subagents). **Recon-gated:** South Tucson (~5,600 pop) may need a source exception or defer. **Deferred:** Pima County's own budget (nav node only), all-funds view, salaries, Maricopa/other AZ cities.
 
 ## Deferred Items
+
+### Acknowledged at v2.18 close (2026-07-17)
+
+Open-artifact audit at v2.18 close surfaced 6 items, all non-blocking (Chris chose Proceed & defer). None are v2.18 (Pima municipalities) work — Phase 133 verified the whole milestone end-to-end (PIMA-07 loader-independent blind re-derivation 44/44 FY×mode + every category + every leaf $0 + source-chain audit a–e clean; PIMA-08 Chris live UAT 34/34; PIMA-09 tether confirmed COVERED on all four banners). Code-review findings CR-01/CR-02/WR-01 in the verify harnesses were fixed (commit e9bd430):
+
+| Category | Item | Status |
+|----------|------|--------|
+| uat_gap | Phase 133 `133-UAT-CHECKLIST.md` | passed — 0 open scenarios (Chris signed off 2026-07-17; audit flags it only because the file exists) |
+| context_question | Phase 131 `131-CONTEXT.md` | **resolved** — recon/scoping questions answered during Phase 131 execution (South Tucson verdict = load-from-ACFR FY2019–2022, FY2019–2024 window); artifact flagged only because the file exists |
+| todo | `2026-06-30-authenticated-deeplink-redirect-to-home-jurisdiction.md` | **deferred** — frontend-routing follow-up carried from v2.12/v2.16/v2.17; still the only genuinely-open item |
+| quick_task | 001-create-treasury-tracker-entries-for-ever | **complete, not orphaned** — Collin County TX seeder (live in DB); "missing" is the SUMMARY-filename detection quirk |
+| quick_task | 002-add-longview-tx-revenue | **complete, not orphaned** — Longview TX FY2026 revenue loaded (live in DB) |
+| quick_task | 003-longview-operating-budget | **complete, not orphaned** — Longview TX FY2026 operating budget loaded (live in DB) |
 
 ### Acknowledged at v2.17 close (2026-07-11)
 

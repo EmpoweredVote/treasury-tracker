@@ -1,5 +1,22 @@
 # Milestones — Treasury Tracker / Empowered Vote Financials
 
+## v2.18 Pima County Municipalities — TT Budget Parity (Shipped: 2026-07-17)
+
+**Phases completed:** 3 phases, 8 plans, 10 tasks
+
+**Key accomplishments:**
+
+- Outcome: complete. All four municipalities located and confirmed loadable.
+- Outcome: complete. All 44 in-scope (city × FY × mode) tie $0; Tucson regression ties $0.
+- Outcome: complete.
+- Outcome: complete. 44 budgets rows loaded, all independently re-derive to the 131-RECON totals at $0.
+- Outcome: complete. 100% coverage (42/42 live keys), 0 uncovered.
+- Loader-independent JS re-derivation (own `pdftotext -table` pass, no `extractAcfrGF.py` import) ties all 44 FY×mode roll-ups + every category + every leaf at exactly $0 against live production for Oro Valley/Marana/Sahuarita/South Tucson; full D-04 source-chain audit clean (a-e); Phase-132 loader invariants confirmed with a 0-net-change idempotent smoke-run.
+- Live-fetched Essentials coverage.json and confirmed all 4 new Pima municipalities (Oro Valley, Marana, Sahuarita, South Tucson) already resolve to COVERED city records with correct Census GEOIDs — zero cross-repo gaps, no TT code change.
+- Chris signed off 34/34 live-app UAT scenarios (all four Pima munis' icicles, per-capita, source chips, breadcrumbs, and Essentials tether icons) — closing v2.18 with PIMA-07/08/09 all verified.
+
+---
+
 ## v2.17 Tucson, AZ City Onboarding (Shipped: 2026-07-11)
 
 **Phases completed:** 3 phases (128-130), 8 plans. Requirements TUC-01..09 all complete.
