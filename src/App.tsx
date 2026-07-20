@@ -19,6 +19,7 @@ import EntitySwitcher from './components/EntitySwitcher';
 import AlphaLanding from './components/AlphaLanding';
 import type { LandingReason } from './components/AlphaLanding';
 import { resolveToken, fetchUserSession, getLoginUrl, signOut } from './utils/auth';
+import { identify } from '@empoweredvote/analytics';
 import { useTheme } from './hooks/useTheme';
 import DatasetTabs from './components/datasets/DatasetTabs';
 import DonateModal from './components/DonateModal';
@@ -290,6 +291,12 @@ function App() {
       }
 
       setIsAuthenticated(true);
+
+      // Stitch this person across every EV app via the Connected Account UUID
+      // (see @empoweredvote/analytics identity model).
+      if (session.accountId) {
+        identify(session.accountId);
+      }
 
       // Inform tier — full access, manual city search (same as guest)
       if (session.tier === 'inform') {
