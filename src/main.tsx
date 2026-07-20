@@ -1,28 +1,30 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { PostHogProvider } from 'posthog-js/react'
-import posthog from 'posthog-js'
+import { init, getClient } from '@empoweredvote/analytics'
+import { AppErrorBoundary } from '@empoweredvote/analytics/react'
 import './index.css'
 import App from './App.tsx'
 
-posthog.init('phc_kpUWTjEcRRwSn7zdNstbDVYqAMQvEFZ5EgrWFeaAh5mu', {
-  api_host: 'https://us.i.posthog.com',
-  defaults: '2026-01-30',
-  person_profiles: 'identified_only',
-  capture_pageview: true,
-  // Session replay (rrweb) serializes DOM mutations on the main thread. On
-  // search inputs that re-render large lists (the jurisdiction picker now spans
-  // the full multi-state cohort), that work pegs the main thread on every
-  // keystroke — felt as typing-freeze + mouse stutter. Event/pageview capture
-  // stays on; only the heavy recorder is disabled. (Same fix applies to other
-  // EV apps sharing this init, e.g. Essentials.)
-  disable_session_recording: true,
+// Shared analytics: app + environment auto-stamped, key env-gated (unset locally
+// = no-op), exception capture + noise filter built in. See @empoweredvote/analytics.
+// NOTE: the deployed env MUST set VITE_POSTHOG_KEY, else analytics is a no-op.
+//
+// Treasury captures pageviews automatically and leaves session replay OFF (the
+// package default): rrweb serializes DOM mutations on the main thread and pegged
+// it on the jurisdiction picker's large re-rendering lists.
+init({
+  app: 'treasury',
+  key: import.meta.env.VITE_POSTHOG_KEY,
+  capturePageview: true,
 })
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <PostHogProvider client={posthog}>
-      <App />
+    <PostHogProvider client={getClient()}>
+      <AppErrorBoundary>
+        <App />
+      </AppErrorBoundary>
     </PostHogProvider>
   </StrictMode>,
 )
