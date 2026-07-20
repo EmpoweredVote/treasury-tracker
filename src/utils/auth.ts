@@ -9,6 +9,8 @@
  * See: EV-Accounts/docs/INTEGRATION-GUIDE-v2.md §3.3
  */
 
+import { reset } from '@empoweredvote/analytics';
+
 const TOKEN_KEY = 'ev_token';
 
 const AUTH_BASE = import.meta.env.PROD && import.meta.env.VITE_API_URL
@@ -16,6 +18,8 @@ const AUTH_BASE = import.meta.env.PROD && import.meta.env.VITE_API_URL
   : '/api';
 
 export interface UserSession {
+  /** Connected Account UUID — used to stitch this person across every EV app. */
+  accountId: string | null;
   tier: 'inform' | 'connected' | 'empowered';
   jurisdiction: {
     city: string | null;
@@ -97,6 +101,7 @@ export async function fetchUserSession(token: string): Promise<UserSession | nul
     }
     const data = await res.json();
     return {
+      accountId: data.id ?? null,
       tier: data.tier,
       jurisdiction: data.jurisdiction
         ? { city: data.jurisdiction.city ?? null, state: data.jurisdiction.state ?? null }
@@ -120,5 +125,7 @@ export function getLoginUrl(): string {
  */
 export function signOut(): void {
   localStorage.removeItem(TOKEN_KEY);
+  // Drop the PostHog identity so a shared device doesn't blend two people.
+  reset();
   window.location.href = '/';
 }
