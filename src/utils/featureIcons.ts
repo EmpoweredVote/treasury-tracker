@@ -25,6 +25,8 @@
 
 import type { CoverageRecord } from './essentialsCoverage';
 import { ESSENTIALS_URL } from './essentialsCoverage';
+import type { TriviaRecord } from './triviaCoverage';
+import { TRIVIA_URL } from './triviaCoverage';
 
 /** A single resolved, renderable feature-icon chip. */
 export interface FeatureIcon {
@@ -148,4 +150,42 @@ export function resolveFeatureIcons(record: CoverageRecord | null): FeatureIcon[
     if (icon) icons.push(icon);
   }
   return icons;
+}
+
+/**
+ * Build the CTC (Civic Trivia Championship) deep-link for a resolved trivia
+ * coverage record, or `null` when the record has no slug. T-126-01: `slug` is
+ * untrusted remote data — the href is built with `URL`/`URLSearchParams` only,
+ * never by string-concatenating the slug.
+ */
+export function buildTriviaHref(record: TriviaRecord): string | null {
+  if (!record.slug) return null;
+  const url = new URL('/', TRIVIA_URL);
+  url.searchParams.set('collection', record.slug);
+  return url.toString();
+}
+
+/**
+ * Resolve the CTC feature-icon chip for the current entity's trivia coverage
+ * record, or `null` when there is no matching collection. Composed AFTER
+ * `resolveFeatureIcons()`'s Essentials chip in App.tsx (fixed display order:
+ * essentials, then trivia) — kept separate because CTC coverage comes from a
+ * different source (`triviaCoverage`) than the Essentials `CoverageRecord`.
+ *
+ * Uses the `-dark` symbol — the bright, dark-background brand variant — so the
+ * trophy stays legible on the navy chip. This is the inverse suffix from the
+ * other products (which render `-light`), because the CTC brand kit's `-dark`
+ * file is the light-artwork-for-dark-background one. See
+ * public/trivia-symbol-{light,dark}.svg.
+ */
+export function resolveTriviaIcon(record: TriviaRecord | null): FeatureIcon | null {
+  if (!record) return null;
+  const href = buildTriviaHref(record);
+  if (!href) return null;
+  return {
+    key: 'trivia',
+    href,
+    label: 'Civic Trivia Championship',
+    iconSrc: '/trivia-symbol-dark.svg',
+  };
 }

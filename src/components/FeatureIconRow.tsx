@@ -65,7 +65,9 @@ export function FeatureIconChip({ icon }: { icon: FeatureIcon }) {
         }}
         {...getReferenceProps()}
       >
-        <img src={icon.iconSrc} alt="" aria-hidden="true" className="w-5 h-5" />
+        {/* object-contain keeps non-square glyphs (e.g. the tall CTC trophy)
+            from being distorted while a square symbol still fills the box. */}
+        <img src={icon.iconSrc} alt="" aria-hidden="true" className="w-5 h-5 object-contain" />
       </a>
 
       {isOpen && (
