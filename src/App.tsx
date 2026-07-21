@@ -19,7 +19,7 @@ import EntitySwitcher from './components/EntitySwitcher';
 import AlphaLanding from './components/AlphaLanding';
 import type { LandingReason } from './components/AlphaLanding';
 import { resolveToken, fetchUserSession, getLoginUrl, signOut } from './utils/auth';
-import { identify } from '@empoweredvote/analytics';
+import { identify, track } from '@empoweredvote/analytics';
 import { useTheme } from './hooks/useTheme';
 import DatasetTabs from './components/datasets/DatasetTabs';
 import DonateModal from './components/DonateModal';
@@ -452,6 +452,7 @@ function App() {
     setFederalLens('function'); // lens/scale are per-visit; reset when leaving/entering entities
     setFederalScale('dollars');
     syncURL(entity, effectiveYear, effectiveDataset);
+    track('treasury_entity_selected', { entity: entity.name, level: entity.entity_type });
   }, [selectedYear, activeDataset]);
 
   // Federal context for scale denominators (cached fetch; FederalLanding shares it)
@@ -553,6 +554,7 @@ function App() {
     const hasLines = category.lineItems && category.lineItems.length > 0;
     if (!hasSubs && !hasLines) return;
     setNavigationPath([...navigationPath, category]);
+    track('treasury_category_drilled', { category: category.name, depth: navigationPath.length + 1 });
   }, [navigationPath]);
 
   const handleSummaryCategoryClick = useCallback((categoryName: string, dataset: 'operating' | 'revenue') => {
@@ -789,6 +791,13 @@ function App() {
                         currentCategory.lineItems.length > 0 &&
                         (!currentCategory.subcategories || currentCategory.subcategories.length === 0);
 
+  // Fire treasury_line_item_viewed when a leaf category's line items become visible.
+  useEffect(() => {
+    if (showLineItems && currentCategory) {
+      track('treasury_line_item_viewed', { category: currentCategory.name, label: currentCategory.name });
+    }
+  }, [showLineItems, currentCategory]);
+
   const currentCategories = navigationPath.length === 0
     ? (displayData?.categories ?? [])
     : navigationPath[navigationPath.length - 1].subcategories || [];
@@ -936,7 +945,7 @@ function App() {
               selectedYear === String(new Date().getFullYear()) && (
               <button
                 data-donate-btn=""
-                onClick={() => setDonateOpen(true)}
+                onClick={() => { track('treasury_donate_clicked'); setDonateOpen(true); }}
                 className="flex items-center gap-1.5 h-[42px] px-4 py-2 text-sm font-semibold bg-green-600 hover:bg-green-700 active:bg-green-800 text-white rounded-lg transition-colors duration-200 whitespace-nowrap ml-auto"
               >
                 <Heart size={14} className="shrink-0" fill="currentColor" />

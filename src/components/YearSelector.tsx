@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { track } from '@empoweredvote/analytics';
 import { parsePeriod } from '../utils/period';
 
 interface YearSelectorProps {
@@ -68,6 +69,7 @@ const YearSelector = forwardRef<YearSelectorHandle, YearSelectorProps>(({ select
                   : 'text-[#1C1C1C] dark:text-ev-gray-200'
               }`}
               onClick={() => {
+                track('treasury_year_changed', { year });
                 onYearChange(year);
                 setIsOpen(false);
               }}

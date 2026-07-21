@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { track } from '@empoweredvote/analytics';
 import BudgetIcicle from './BudgetIcicle';
 import BudgetSunburst from './BudgetSunburst';
 import type { BudgetCategory } from '../types/budget';
@@ -22,6 +23,11 @@ const BudgetVisualization: React.FC<BudgetVisualizationProps> = ({
 }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('icicle');
 
+  const handleViewChange = (view: ViewMode) => {
+    setViewMode(view);
+    track('treasury_visualization_changed', { view });
+  };
+
   return (
     <div className="w-full">
       {/* View toggle */}
@@ -32,7 +38,7 @@ const BudgetVisualization: React.FC<BudgetVisualizationProps> = ({
               ? 'bg-ev-muted-blue border-ev-muted-blue text-white'
               : 'bg-white dark:bg-ev-gray-800 border-[#E2EBEF] dark:border-ev-gray-700 text-ev-gray-500 hover:border-ev-muted-blue hover:text-ev-muted-blue'
           }`}
-          onClick={() => setViewMode('icicle')}
+          onClick={() => handleViewChange('icicle')}
           aria-pressed={viewMode === 'icicle'}
           title="Bar chart view"
         >
@@ -49,7 +55,7 @@ const BudgetVisualization: React.FC<BudgetVisualizationProps> = ({
               ? 'bg-ev-muted-blue border-ev-muted-blue text-white'
               : 'bg-white dark:bg-ev-gray-800 border-[#E2EBEF] dark:border-ev-gray-700 text-ev-gray-500 hover:border-ev-muted-blue hover:text-ev-muted-blue'
           }`}
-          onClick={() => setViewMode('sunburst')}
+          onClick={() => handleViewChange('sunburst')}
           aria-pressed={viewMode === 'sunburst'}
           title="Sunburst view"
         >
