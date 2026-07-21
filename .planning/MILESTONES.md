@@ -1,5 +1,13 @@
 # Milestones — Treasury Tracker / Empowered Vote Financials
 
+## v2.19 Banner Info-Row + CTC Tether (In progress — started 2026-07-21)
+
+**Phases:** 1 phase (134). **Status:** implemented + deployed; verification / live UAT pending.
+
+**Delivered so far:** Adopted Essentials' `SectionBanner` info-row on the TT hero banner — a left-anchored POPULATION stat with deep-link feature chips to its right (Essentials + a new Civic Trivia Championship chip gated per location via a new `triviaCoverage` seam mirroring `essentialsCoverage.ts`). Real CTC brand trophy asset staged (`trivia-symbol-{light,dark}.svg`). Committed (8985d8d / 11c80d0 / 4b052fd) and deployed (live bundle index-CNkPhEAJ.js). Verification + live UAT pending.
+
+---
+
 ## v2.18 Pima County Municipalities — TT Budget Parity (Shipped: 2026-07-17)
 
 **Phases completed:** 3 phases, 8 plans, 10 tasks

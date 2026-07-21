@@ -147,3 +147,6 @@ scripts/load-mn-*.failures.txt
 # The app links to the official PUBLIC source_url for every figure — never these local files;
 # these are offline re-derivation copies only (large binaries, not version-controlled).
 /*.pdf
+
+# local .planning restore-point tarballs (not tracked)
+.planning-backups/

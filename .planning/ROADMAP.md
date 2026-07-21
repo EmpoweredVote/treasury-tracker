@@ -31,10 +31,32 @@
 - ✅ **v2.16 Tethered Icons & Smart Banner** — Phases 125-127 (shipped 2026-07-08)
 - ✅ **v2.17 Tucson, AZ City Onboarding** — Phases 128-130 (shipped 2026-07-11)
 - ✅ **v2.18 Pima County Municipalities — TT Budget Parity** — Phases 131-133 (shipped 2026-07-17)
+- ▶ **v2.19 Banner Info-Row + CTC Tether** — Phase 134 (in progress — implemented, verification pending)
 
 ---
 
 ## Phases
+
+### v2.19 Banner Info-Row + CTC Tether (Phase 134) — ACTIVE
+
+**Milestone goal:** Adopt Essentials' `SectionBanner` info-row format on the TT hero banner — a left-anchored **population** stat with the deep-link feature chips to its right (Essentials, then a new **Civic Trivia Championship (CTC)** chip gated per location). Reciprocal of Essentials Ph187–189; extends v2.16 tethered icons. Frontend-only; no data load, no DB change.
+
+**Requirement coverage:** 2 requirements (BANNER-01, CTC-01) · 2 mapped · 0 unmapped ✓
+
+| # | Phase | Goal | Requirements | Depends on |
+|---|-------|------|--------------|------------|
+| 134 | Banner Info-Row + CTC Tether | Population scrim + Essentials/CTC chip row; triviaCoverage seam | BANNER-01, CTC-01 | — |
+
+**Critical path:** 134 (single phase).
+
+#### Phase 134: Banner Info-Row + CTC Tether
+**Goal:** Restructure the hero banner into the Essentials info-row (population stat + feature chips, top-left above the title) and add a CTC chip resolved from a new `triviaCoverage` seam (mirror of `essentialsCoverage.ts`).
+**Requirements:** BANNER-01, CTC-01
+**Success criteria:**
+1. Hero banner shows a left-anchored POPULATION scrim with Essentials + CTC chips to its right; title stays bottom-left; population hidden for nonprofits / when 0.
+2. CTC chip renders only where a matching CTC collection exists (per-location gating), deep-linking to `ctc.empowered.vote/?collection=<slug>`; degrades cleanly when the catalog is unavailable.
+3. `tsc -b` clean; unit tests green (triviaCoverage matcher); real CTC brand trophy asset used on the navy chip.
+**Status:** ✅ Implemented + deployed (commits 8985d8d / 11c80d0 / 4b052fd, live bundle index-CNkPhEAJ.js); verification + live UAT pending.
 
 <details>
 <summary>✅ v2.18 Pima County Municipalities — TT Budget Parity (Phases 131-133) — SHIPPED 2026-07-17 (full detail in milestones/v2.18-ROADMAP.md)</summary>
