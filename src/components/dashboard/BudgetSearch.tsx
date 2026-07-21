@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Search, X, ExternalLink, ChevronRight, Lightbulb } from 'lucide-react';
+import { track } from '@empoweredvote/analytics';
 import type { SearchResult } from '../../types/budget';
 import { searchBudget } from '../../data/dataLoader';
 
@@ -65,6 +66,7 @@ const BudgetSearch: React.FC<BudgetSearchProps> = ({
       const data = await searchBudget(q.trim(), cityId, fiscalYear, 20);
       setResults(data);
       setLoading(false);
+      track('treasury_search', { query_length: q.trim().length, has_results: data.length > 0 });
     },
     [cityId, fiscalYear]
   );
