@@ -1,10 +1,21 @@
 # Milestones — Treasury Tracker / Empowered Vote Financials
 
-## v2.19 Banner Info-Row + CTC Tether (In progress — started 2026-07-21)
+## v2.19 Banner Info-Row + CTC Tether (Shipped: 2026-07-21)
 
-**Phases:** 1 phase (134). **Status:** implemented + deployed; verification / live UAT pending.
+**Phases completed:** 1 phase (134), 1 plan. Requirements BANNER-01, CTC-01 complete.
 
-**Delivered so far:** Adopted Essentials' `SectionBanner` info-row on the TT hero banner — a left-anchored POPULATION stat with deep-link feature chips to its right (Essentials + a new Civic Trivia Championship chip gated per location via a new `triviaCoverage` seam mirroring `essentialsCoverage.ts`). Real CTC brand trophy asset staged (`trivia-symbol-{light,dark}.svg`). Committed (8985d8d / 11c80d0 / 4b052fd) and deployed (live bundle index-CNkPhEAJ.js). Verification + live UAT pending.
+**Delivered:** Adopted Essentials' `SectionBanner` info-row on the TT hero banner — a left-anchored POPULATION stat with deep-link feature chips to its right (Essentials + a new **Civic Trivia Championship (CTC)** chip gated per location), replacing the old bottom-right icon cluster. Reciprocal of Essentials Ph187–189; extends v2.16 tethered icons. Frontend-only ($0, no data load). Real CTC brand trophy staged. Deployed (bundle index-CNkPhEAJ.js).
+
+**Key accomplishments:**
+
+- New `triviaCoverage.ts` seam (mirror of `essentialsCoverage.ts`): fetch-once/cache/never-throw CTC collections + tier-aligned matcher (city slug `<name>-<state>`, state by `localeName`, federal by tier), `useTriviaCoverage` hook; 12 unit tests.
+- `resolveTriviaIcon` + `buildTriviaHref` (URLSearchParams-only, T-126-01 safe) wired into the fixed-order chip row after the Essentials chip; real CTC brand trophy (`trivia-symbol-{light,dark}.svg`), navy chip uses the bright `-dark` variant.
+- Hero banner restructured into the Essentials info-row layout in `App.tsx`: POPULATION scrim (federal denominator for federal, else entity population; hidden for nonprofits/0) + feature chips top-left above the bottom-left title.
+- Verified: `tsc` clean + 35/35 tests + production build; Chris live UAT 6/6, 0 issues (layout, CTC gating + deep-links, population omit, federal/state tiers, dark mode).
+
+**Known deferred at close:** 1 — the `authenticated-deeplink-redirect-to-home-jurisdiction` frontend-routing todo (carried since v2.12; not v2.19 work). Follow-up: expose a public CTC collections catalog if the accounts-api proxy is auth-gated (so anonymous visitors also see the CTC chip).
+
+**Archive:** [v2.19-ROADMAP.md](milestones/v2.19-ROADMAP.md)
 
 ---
 
