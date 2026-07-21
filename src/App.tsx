@@ -549,6 +549,18 @@ function App() {
       });
   }, [navigationPath, activeDataset, budgetData]);
 
+  // Fire treasury_line_item_viewed when a leaf category's line items become visible.
+  // Must stay above the early returns below so the hook count is stable (React #310).
+  useEffect(() => {
+    const cat = navigationPath.length > 0 ? navigationPath[navigationPath.length - 1] : null;
+    const isLeafWithLines = !!cat &&
+                            !!cat.lineItems && cat.lineItems.length > 0 &&
+                            (!cat.subcategories || cat.subcategories.length === 0);
+    if (isLeafWithLines && cat) {
+      track('treasury_line_item_viewed', { category: cat.name, label: cat.name });
+    }
+  }, [navigationPath]);
+
   const handleCategoryClick = useCallback((category: BudgetCategory) => {
     const hasSubs = category.subcategories && category.subcategories.length > 0;
     const hasLines = category.lineItems && category.lineItems.length > 0;
@@ -790,13 +802,6 @@ function App() {
                         currentCategory.lineItems &&
                         currentCategory.lineItems.length > 0 &&
                         (!currentCategory.subcategories || currentCategory.subcategories.length === 0);
-
-  // Fire treasury_line_item_viewed when a leaf category's line items become visible.
-  useEffect(() => {
-    if (showLineItems && currentCategory) {
-      track('treasury_line_item_viewed', { category: currentCategory.name, label: currentCategory.name });
-    }
-  }, [showLineItems, currentCategory]);
 
   const currentCategories = navigationPath.length === 0
     ? (displayData?.categories ?? [])
