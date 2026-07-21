@@ -41,6 +41,7 @@ declare module '@empoweredvote/ev-ui' {
     style?: CSSProperties;
     secondaryAction?: ReactNode;
     profileMenu?: ProfileMenu;
+    darkMode?: boolean;
   }
 
   export function Header(props: HeaderProps): JSX.Element;
