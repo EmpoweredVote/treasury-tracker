@@ -39,7 +39,8 @@ import CountiesInStatePanel from './components/CountiesInStatePanel';
 import StatesInFederalPanel from './components/StatesInFederalPanel';
 import { getHeroImage, getHeroBgPosition, type HeroImage } from './utils/wikiImage';
 import { useEssentialsCoverage } from './utils/essentialsCoverage';
-import { resolveFeatureIcons } from './utils/featureIcons';
+import { useTriviaCoverage } from './utils/triviaCoverage';
+import { resolveFeatureIcons, resolveTriviaIcon } from './utils/featureIcons';
 import { FeatureIconRow } from './components/FeatureIconRow';
 import type { BudgetCategory, BudgetData, FederalContext, LinkedTransactionSummary, Municipality, OrgFinancialSummary } from './types/budget';
 
@@ -174,10 +175,16 @@ function App() {
     getHeroImage(selectedEntity).then(setHeroImage);
   }, [selectedEntity]);
 
-  // Resolve Essentials coverage for the current entity — an invisible seam for
-  // Phase 126's tethered feature-icon row (data-essentials-coverage below).
+  // Resolve Essentials + CTC coverage for the current entity — the tethered
+  // feature-icon row (Phase 126 / 134). data-essentials-coverage below.
   const essentialsCoverage = useEssentialsCoverage(selectedEntity);
-  const featureIcons = resolveFeatureIcons(essentialsCoverage);
+  const triviaCoverage = useTriviaCoverage(selectedEntity);
+  // Fixed display order: Essentials chip first, then CTC.
+  const triviaIcon = resolveTriviaIcon(triviaCoverage);
+  const featureIcons = [
+    ...resolveFeatureIcons(essentialsCoverage),
+    ...(triviaIcon ? [triviaIcon] : []),
+  ];
 
   // Update page title when entity changes
   useEffect(() => {
@@ -825,6 +832,16 @@ function App() {
     hasActualData ? (c.actualAmount ?? c.amount) !== 0 : c.amount !== 0
   );
 
+  // Hero info-row population (Phase 134): federal uses the sourced denominator;
+  // every other tier uses the entity's own population. Hidden for nonprofits
+  // (no meaningful per-resident figure) and when the figure is unknown/0.
+  const bannerPopulation =
+    selectedEntity.entity_type === 'federal'
+      ? (federalDenominators?.population ?? 0)
+      : (selectedEntity.population ?? 0);
+  const showBannerStat =
+    bannerPopulation > 0 && selectedEntity.entity_type !== 'nonprofit';
+
   return (
     <div className="min-h-screen bg-[#F7F7F8] dark:bg-ev-gray-950 font-manrope">
       <AppHeader
@@ -848,19 +865,38 @@ function App() {
         data-essentials-coverage={essentialsCoverage ? 'covered' : 'none'}
       >
         <div className={`absolute inset-0 ${heroImage ? 'bg-gradient-to-r from-black/60 to-black/30' : ''}`} />
-        <div className="relative h-full max-w-[1400px] mx-auto px-6 flex flex-col justify-end pb-6">
-          <h1 className="text-white text-3xl font-bold drop-shadow-lg">
-            {selectedEntity.name} Finances
-          </h1>
-          <p className="text-white/80 text-sm mt-1">
-            Explore how public funds are allocated and spent.
-          </p>
-        </div>
-        {featureIcons.length > 0 && (
-          <div className="absolute bottom-6 right-2 z-10">
-            <FeatureIconRow icons={featureIcons} />
+        <div className="relative h-full max-w-[1400px] mx-auto">
+          {/* Info row (Phase 134): population stat + tethered feature chips,
+              anchored top-left above the title — the Essentials SectionBanner
+              format. Renders only when there is a stat or an icon to show. */}
+          {(showBannerStat || featureIcons.length > 0) && (
+            <div className="absolute top-4 left-6 flex items-center gap-2 z-10">
+              {showBannerStat && (
+                <div
+                  className="flex flex-col items-start gap-0.5 rounded-[10px] px-3 py-1"
+                  style={{ background: 'rgba(13,17,23,0.55)', backdropFilter: 'blur(2px)' }}
+                >
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-white/70 leading-none">
+                    Population
+                  </span>
+                  <span className="text-sm font-bold text-white tabular-nums leading-tight">
+                    {bannerPopulation.toLocaleString()}
+                  </span>
+                </div>
+              )}
+              {featureIcons.length > 0 && <FeatureIconRow icons={featureIcons} />}
+            </div>
+          )}
+          {/* Title — bottom-left */}
+          <div className="absolute bottom-6 left-6 right-6">
+            <h1 className="text-white text-3xl font-bold drop-shadow-lg">
+              {selectedEntity.name} Finances
+            </h1>
+            <p className="text-white/80 text-sm mt-1">
+              Explore how public funds are allocated and spent.
+            </p>
           </div>
-        )}
+        </div>
         {heroImage?.credit && (
           <span
             className="absolute bottom-1 right-2 text-[10px] leading-none text-white/55"
