@@ -549,10 +549,22 @@ function App() {
       });
   }, [navigationPath, activeDataset, budgetData]);
 
-  // Fire treasury_line_item_viewed when a leaf category's line items become visible.
-  // Must stay above the early returns below so the hook count is stable (React #310).
+  // Drive the treasury_category_drilled + treasury_line_item_viewed funnel events
+  // off navigationPath changes, so every drill path is covered — the icicle/sunburst
+  // chart (onPathClick), the CategoryList (onCategoryClick), and the dataset summary.
+  // category_drilled fires only when the path DEEPENS (a forward drill), not on
+  // breadcrumb/back navigation. Must stay above the early returns below so the hook
+  // count is stable across renders (React #310).
+  const prevNavDepthRef = useRef(0);
   useEffect(() => {
-    const cat = navigationPath.length > 0 ? navigationPath[navigationPath.length - 1] : null;
+    const depth = navigationPath.length;
+    const cat = depth > 0 ? navigationPath[depth - 1] : null;
+
+    if (depth > prevNavDepthRef.current && cat) {
+      track('treasury_category_drilled', { category: cat.name, depth });
+    }
+    prevNavDepthRef.current = depth;
+
     const isLeafWithLines = !!cat &&
                             !!cat.lineItems && cat.lineItems.length > 0 &&
                             (!cat.subcategories || cat.subcategories.length === 0);
@@ -566,7 +578,6 @@ function App() {
     const hasLines = category.lineItems && category.lineItems.length > 0;
     if (!hasSubs && !hasLines) return;
     setNavigationPath([...navigationPath, category]);
-    track('treasury_category_drilled', { category: category.name, depth: navigationPath.length + 1 });
   }, [navigationPath]);
 
   const handleSummaryCategoryClick = useCallback((categoryName: string, dataset: 'operating' | 'revenue') => {
