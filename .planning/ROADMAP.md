@@ -31,7 +31,7 @@
 - ✅ **v2.16 Tethered Icons & Smart Banner** — Phases 125-127 (shipped 2026-07-08)
 - ✅ **v2.17 Tucson, AZ City Onboarding** — Phases 128-130 (shipped 2026-07-11)
 - ✅ **v2.18 Pima County Municipalities — TT Budget Parity** — Phases 131-133 (shipped 2026-07-17)
-- ▶ **v2.19 Banner Info-Row + CTC Tether** — Phase 134 (in progress — implemented, verification pending)
+- ✅ **v2.19 Banner Info-Row + CTC Tether** — Phase 134 (complete 2026-07-21; archive pending)
 
 ---
 
@@ -56,7 +56,7 @@
 1. Hero banner shows a left-anchored POPULATION scrim with Essentials + CTC chips to its right; title stays bottom-left; population hidden for nonprofits / when 0.
 2. CTC chip renders only where a matching CTC collection exists (per-location gating), deep-linking to `ctc.empowered.vote/?collection=<slug>`; degrades cleanly when the catalog is unavailable.
 3. `tsc -b` clean; unit tests green (triviaCoverage matcher); real CTC brand trophy asset used on the navy chip.
-**Status:** ✅ Implemented + deployed (commits 8985d8d / 11c80d0 / 4b052fd, live bundle index-CNkPhEAJ.js); verification + live UAT pending.
+**Status:** ✅ COMPLETE — verified (build/tests + Chris live UAT 6/6, 0 issues, 2026-07-21); deployed (commits 8985d8d / 11c80d0 / 4b052fd, bundle index-CNkPhEAJ.js).
 
 <details>
 <summary>✅ v2.18 Pima County Municipalities — TT Budget Parity (Phases 131-133) — SHIPPED 2026-07-17 (full detail in milestones/v2.18-ROADMAP.md)</summary>
