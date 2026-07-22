@@ -3,7 +3,6 @@ import { Header } from '@empoweredvote/ev-ui';
 import { ThemeToggle } from './ThemeToggle';
 import { useTheme } from '../hooks/useTheme';
 import type { NavItem, CTAButton, ProfileMenu } from '@empoweredvote/ev-ui';
-import { Home } from 'lucide-react';
 
 interface AppHeaderProps {
   navItems?: NavItem[];
@@ -11,11 +10,9 @@ interface AppHeaderProps {
   profileMenu?: ProfileMenu;
   style?: CSSProperties;
   onNavigate?: (href: string) => void;
-  showBackButton?: boolean;
-  onBack?: () => void;
 }
 
-export function AppHeader({ style, showBackButton, onBack, ...props }: AppHeaderProps) {
+export function AppHeader({ style, ...props }: AppHeaderProps) {
   const { isDark } = useTheme();
   const featureLogo = isDark
     ? `${import.meta.env.BASE_URL}treasury-tracker-logo-dark.svg`
@@ -34,9 +31,8 @@ export function AppHeader({ style, showBackButton, onBack, ...props }: AppHeader
         {...props}
         style={{ ...(style ?? {}), position: 'static', zIndex: 'auto' }}
       />
-      {/* Overlay the ThemeToggle (and optional Home button) to the left of the profile
-          button. right: max(72px, …) keeps the group aligned with the profile button
-          at any viewport width. Home button sits immediately left of ThemeToggle. */}
+      {/* Overlay the ThemeToggle to the left of the profile button. right: max(72px, …)
+          keeps it aligned with the profile button at any viewport width. */}
       <div
         style={{
           position: 'absolute',
@@ -50,17 +46,6 @@ export function AppHeader({ style, showBackButton, onBack, ...props }: AppHeader
           pointerEvents: 'none',
         }}
       >
-        {showBackButton && (
-          <button
-            onClick={onBack}
-            title="Home"
-            aria-label="Back to Treasury Tracker home"
-            className="w-8 h-8 flex items-center justify-center rounded-full text-gray-500 dark:text-ev-gray-400 hover:text-gray-900 dark:hover:text-ev-gray-100 hover:bg-gray-100 dark:hover:bg-ev-gray-700 transition-colors"
-            style={{ pointerEvents: 'auto', color: isDark ? '#9CA3AF' : undefined }}
-          >
-            <Home size={16} aria-hidden="true" />
-          </button>
-        )}
         <div style={{ pointerEvents: 'auto' }}>
           <ThemeToggle />
         </div>

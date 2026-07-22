@@ -22,16 +22,16 @@ const formatCurrency = (amount: number, exact = false): string => {
 
 const BASE_CARDS = [
   {
-    id: 'operating' as const,
-    label: 'Money Out',
-    icon: TrendingDown,
-    description: 'How funds are spent',
-  },
-  {
     id: 'revenue' as const,
     label: 'Money In',
     icon: DollarSign,
     description: 'Where funds come from',
+  },
+  {
+    id: 'operating' as const,
+    label: 'Money Out',
+    icon: TrendingDown,
+    description: 'How funds are spent',
   },
 ];
 
@@ -96,40 +96,69 @@ export default function DatasetTabs({
         const isDisabled = !available.includes(id);
         const total = getTotal(id);
 
+        // Orange treatment: the Employees (salaries) card glows orange when active,
+        // and — while Employees is selected — the Money Out (operating) card that
+        // sits right beside it fills the employee-compensation share in orange.
+        const isSalariesActive = isActive && id === 'salaries';
+        const accentText = isSalariesActive
+          ? 'text-[#C2410C] dark:text-[#FB923C]'
+          : 'text-ev-muted-blue';
+        const salariesSelected = activeDataset === 'salaries';
+        const showEmpFill =
+          id === 'operating' &&
+          salariesSelected &&
+          operatingTotal != null &&
+          salariesTotal != null &&
+          operatingTotal > 0;
+        const empPct = showEmpFill ? Math.min(100, (salariesTotal! / operatingTotal!) * 100) : 0;
+
         return (
           <button
             key={id}
             onClick={() => !isDisabled && onDatasetChange(id)}
             disabled={isDisabled}
             {...(isNonprofit && id === 'revenue' ? { 'data-donate-target': '' } : {})}
-            className={`relative text-left p-4 rounded-xl border-2 transition-all duration-200 cursor-pointer font-manrope focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ev-muted-blue focus-visible:ring-offset-2
+            style={isSalariesActive ? { boxShadow: '0 0 0 2px #EA580C, 0 0 18px 3px rgba(234, 88, 12, 0.35)' } : undefined}
+            className={`relative overflow-hidden text-left p-4 rounded-xl border-2 transition-all duration-200 cursor-pointer font-manrope focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ev-muted-blue focus-visible:ring-offset-2
               ${isActive
-                ? 'border-ev-muted-blue bg-white dark:bg-ev-gray-800 shadow-sm'
+                ? `${isSalariesActive ? 'border-[#EA580C] dark:border-[#FB923C]' : 'border-ev-muted-blue shadow-sm'} bg-white dark:bg-ev-gray-800`
                 : 'border-ev-gray-200 dark:border-ev-gray-700 bg-ev-gray-50 dark:bg-ev-gray-900 hover:bg-white dark:hover:bg-ev-gray-800 hover:border-ev-gray-300 dark:hover:border-ev-gray-600'
               }
               ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}
             `}
           >
-            <div className="flex items-center gap-2 mb-1">
-              <Icon size={16} className={isActive ? 'text-ev-muted-blue' : 'text-ev-gray-400'} />
-              <span className={`text-sm font-semibold ${isActive ? 'text-ev-muted-blue' : 'text-ev-gray-500 dark:text-ev-gray-400'}`}>
-                {label}
-              </span>
-            </div>
-            {total != null && (
+            {showEmpFill && (
               <div
-                className={`text-2xl font-bold inline-block rounded-sm px-0.5 ${isActive ? 'text-ev-gray-900 dark:text-ev-gray-100' : 'text-ev-gray-600 dark:text-ev-gray-300'}`}
-                style={id === 'revenue' ? {
-                  transition: 'box-shadow 700ms ease-out',
-                  boxShadow: revenueGlowing
-                    ? '0 0 0 2px #22c55e, 0 0 16px 4px rgba(34, 197, 94, 0.4)'
-                    : 'none',
-                } : undefined}
-              >
-                {id === 'revenue' ? formatCurrency(animatedRevenue, isNonprofit) : formatCurrency(total, isNonprofit)}
-              </div>
+                aria-hidden
+                className="absolute inset-y-0 right-0 pointer-events-none"
+                style={{
+                  width: `${empPct}%`,
+                  background: 'linear-gradient(to left, rgba(234, 88, 12, 0.30), rgba(234, 88, 12, 0.06))',
+                }}
+              />
             )}
-            <div className="text-xs text-ev-gray-400 dark:text-ev-gray-500 mt-1">{description}</div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-2 mb-1">
+                <Icon size={16} className={isActive ? accentText : 'text-ev-gray-400'} />
+                <span className={`text-sm font-semibold ${isActive ? accentText : 'text-ev-gray-500 dark:text-ev-gray-400'}`}>
+                  {label}
+                </span>
+              </div>
+              {total != null && (
+                <div
+                  className={`text-2xl font-bold inline-block rounded-sm px-0.5 ${isActive ? 'text-ev-gray-900 dark:text-ev-gray-100' : 'text-ev-gray-600 dark:text-ev-gray-300'}`}
+                  style={id === 'revenue' ? {
+                    transition: 'box-shadow 700ms ease-out',
+                    boxShadow: revenueGlowing
+                      ? '0 0 0 2px #22c55e, 0 0 16px 4px rgba(34, 197, 94, 0.4)'
+                      : 'none',
+                  } : undefined}
+                >
+                  {id === 'revenue' ? formatCurrency(animatedRevenue, isNonprofit) : formatCurrency(total, isNonprofit)}
+                </div>
+              )}
+              <div className="text-xs text-ev-gray-400 dark:text-ev-gray-500 mt-1">{description}</div>
+            </div>
           </button>
         );
       })}
