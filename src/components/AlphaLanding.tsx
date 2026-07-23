@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef } from 'react';
 import { AppHeader } from './AppHeader';
+import { SiteFooter } from '@empoweredvote/ev-ui';
 import { MapPin, ArrowRight, Building2, Search, X } from 'lucide-react';
 import type { Municipality } from '../types/budget';
 import { getLoginUrl } from '../utils/auth';
@@ -333,6 +334,7 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
         )}
 
       </div>
+      <SiteFooter darkMode={isDark} />
     </div>
   );
 }

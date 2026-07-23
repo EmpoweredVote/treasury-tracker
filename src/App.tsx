@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { FileText, Heart, Wallet } from 'lucide-react'
 import { AppHeader } from './components/AppHeader';
+import { SiteFooter } from '@empoweredvote/ev-ui';
 import PlainLanguageSummary from './components/dashboard/PlainLanguageSummary';
 import OrgTransparencyPanel from './components/dashboard/OrgTransparencyPanel';
 import MicroDonationCallout from './components/dashboard/MicroDonationCallout';
@@ -1385,6 +1386,8 @@ function App() {
           )}
         </div>
       </div>
+
+      <SiteFooter darkMode={isDark} />
 
       <DonateModal open={donateOpen} onClose={() => setDonateOpen(false)} />
     </div>

@@ -54,6 +54,25 @@ declare module '@empoweredvote/ev-ui' {
 
   export function SiteHeader(props: SiteHeaderProps): JSX.Element;
 
+  export interface SiteFooterLink {
+    label: string;
+    href: string;
+    external?: boolean;
+  }
+
+  export interface SiteFooterProps {
+    darkMode?: boolean;
+    brandLabel?: string;
+    year?: number;
+    links?: SiteFooterLink[];
+    newsletter?: boolean;
+    endpoint?: string;
+    className?: string;
+    style?: CSSProperties;
+  }
+
+  export function SiteFooter(props?: SiteFooterProps): JSX.Element;
+
   export const defaultNavItems: NavItem[];
   export const defaultCtaButton: CTAButton;
 
