@@ -40,8 +40,28 @@ from lib.acfrGF import CityConfig, run_cli   # noqa: E402
 
 CONFIG = CityConfig(
     city='Bend, OR',
-    parents=('current', 'debt service'),
+    # 'current operating' is the FY2013-and-earlier spelling of the 'Current'
+    # parent header. Without it that line is read as a wrapped label and glued
+    # onto the next row ("Current operating General government"), flattening the
+    # tree while the total still ties.
+    parents=('current', 'current operating', 'debt service'),
     root_leaves=('capital ',),
+    # Bend's own statements are internally off by $1 in these two city-years:
+    # the printed total exceeds the sum of the printed components. Verified by
+    # reading the rows off the page — see the CityConfig docstring for why this
+    # is an exact registry rather than a tolerance.
+    source_rounding={
+        (2010, 'revenue'):   -1,   # components 33,770,749 vs printed 33,770,750
+        (2013, 'operating'): -1,   # components 20,123,136 vs printed 20,123,137
+        (2014, 'revenue'):    1,   # components 36,849,625 vs printed 36,849,624
+        (2014, 'operating'): -1,   # components 21,374,060 vs printed 21,374,061
+    },
+    # Bend's FY2014 PDF letter-spaces its glyphs, so `-table` splits words inside
+    # labels. Every adjacent year of the same statement prints these normally.
+    label_fixes={
+        'Public w ays and facilities': 'Public ways and facilities',
+        'Urban renew al': 'Urban renewal',
+    },
 )
 
 if __name__ == '__main__':

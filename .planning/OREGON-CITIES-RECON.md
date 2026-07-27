@@ -10,14 +10,14 @@ GAAP basis, operating + revenue, every row ties $0, 0 `data_sources` residue:
 | City | FY window | Years | Rows | Revenue sources | Expenditure functions |
 |---|---|---:|---:|---:|---:|
 | Sherwood | FY2014–FY2025 (no FY2019) | 11 | 22 | 7 | 5 |
-| Bend | FY2016–FY2025 | 10 | 20 | 8–9 | 2–3 |
+| Bend | **FY2006–FY2025** (gaps FY2007, FY2015) | **18** | **36** | 8–9 | 2–4 |
 | Beaverton | FY2020–FY2025 | 6 | 12 | 11–13 | 3 |
 | Hillsboro | FY2021–FY2025 | 5 | 10 | 9 | 5 + capital group |
 | Tualatin | FY2021–FY2025 | 5 | 10 | 9 | 4 |
 | Tigard | FY2022–FY2025 | 4 | 8 | 8–9 | 3 (flat, no drill-down) |
 | Cornelius | FY2022–FY2025 | 4 | 8 | 8 | 3 |
 
-**90 rows, every one ties $0, all source-stamped, 0 `data_sources` residue.**
+**106 rows, every one ties $0, all source-stamped, 0 `data_sources` residue.**
 **All seven cities are on the same basis — ACFR GAAP actuals, General Fund.**
 
 ### Archive depth — never trust the curated page
@@ -334,8 +334,11 @@ The three decisions this brief opened were resolved as:
    Portland, Troutdale and Gresham are city-wide *adopted budget*, carry an extra
    `all_funds_requirements` dataset_type, and run to future fiscal years. Two
    different things sit side by side in the same UI. A data-model call.
-2. **Deeper history is available and unclaimed** — Bend FY2005–FY2014, Sherwood
-   pre-FY2014 (if any). Both are straightforward; only scope stopped them.
+2. ~~Deeper history unclaimed~~ — **DONE.** Bend extended to FY2006–FY2025
+   (18 years, 36 rows). Sherwood confirmed complete: server-side media search
+   finds no pre-FY2014 ACFR under any naming convention. Bend's two gaps are
+   genuine: FY2015 was never published, and FY2005/FY2007 are pure scans with no
+   text layer on any page.
 3. **`extractGresham.py` is only tie-gated for `operating`.** Revenue and
    requirements modes have no printed total that ties to what they return, so a
    comparable mis-parse there would not be caught automatically.
