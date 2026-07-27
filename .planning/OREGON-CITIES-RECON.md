@@ -1,9 +1,49 @@
 # Oregon Cities — Source Recon (Bend + 6 Washington County cities)
 
-**Date:** 2026-07-26
+**Date:** 2026-07-26 (recon) · updated 2026-07-27 (Bend, Sherwood, Tualatin loaded)
 **Scope:** Bend, Beaverton, Cornelius, Hillsboro, Sherwood, Tigard, Tualatin
-**Status:** Recon only — no data loaded. Municipality rows seeded
-(`scripts/seedWashingtonCountyOregonCities.js`), zero `data_source` rows.
+
+**Status:** all 7 municipality rows seeded
+(`scripts/seedWashingtonCountyOregonCities.js`). **3 of 7 LOADED** — GF actuals,
+GAAP basis, operating + revenue, every row ties $0, 0 `data_sources` residue:
+
+| City | FY window | budgets rows | Tooling |
+|---|---|---|---|
+| Bend | FY2022–FY2025 | 8 | `extractBend.py` + `processBend.js` |
+| Sherwood | FY2021–FY2025 | 10 | `extractSherwood.py` + `processSherwood.js` |
+| Tualatin | FY2021–FY2025 | 10 | `extractTualatin.py` + `processTualatin.js` |
+
+Remaining: Beaverton, Cornelius, Hillsboro, Tigard (seeded, no data).
+
+> **Follow-up — extractor consolidation.** There are now three ~90% identical
+> per-city extractors. That matches the repo's existing convention (21 standalone
+> `extract*.py`), and the differences are real (see the divergence table below),
+> but a shared `lib/acfrGF.py` with a per-city config would be a worthwhile
+> cleanup before city four.
+
+### Why three extractors, not one
+
+| | Bend | Sherwood | Tualatin |
+|---|---|---|---|
+| Section headers | Mixed case | **UPPERCASE** | **UPPERCASE** |
+| Title wraps onto a line starting `EXPENDITURES` | no | **yes** | **yes** |
+| `Capital outlay` nesting | root peer | **child of `Noncurrent`** | root peer |
+| Expenditure parents | Current, Debt service | Current, Noncurrent | Current, Debt service |
+
+Two traps, both of which produce a **$0 tie while being wrong**:
+
+1. **Wrapped title.** Sherwood/Tualatin wrap the statement title so a line begins
+   `EXPENDITURES AND CHANGES IN FUND BALANCES`. A prefix match on `^Expenditures`
+   starts the expenditure section at the *title* and swallows the whole revenue
+   block. Section headers must match the WHOLE line.
+2. **Capital-outlay nesting.** `pdftotext -table` flattens indentation, so
+   Sherwood's child-of-Noncurrent and Tualatin's root-peer placement look
+   identical in the parsed text. Running Sherwood's parser over Tualatin still
+   ties at $0 but silently mis-nests Capital outlay under Current and inflates
+   the Current subtotal. **Resolve nesting with `pdftotext -layout`, which
+   preserves leading whitespace.**
+
+Standing lesson: **a $0 tie proves arithmetic, never labels or structure.**
 
 ---
 
@@ -81,8 +121,8 @@ than trusting either total.
 | City | ACFR published | Verified downloadable | Budget cycle | Notes |
 |---|---|---|---|---|
 | **Bend** | Yes | **Yes — extracted** | Biennial | Best-characterised; see below |
-| **Sherwood** | Yes, FY2021–FY2025 | **Yes — extracted** | Annual | Clean `wp-content` URLs, no WAF |
-| **Tualatin** | Yes (33 yrs GFOA) | Host serves PDFs (PAFR pulled) | Annual | ACFR index page 403/404; PDFs fine once URL known |
+| **Sherwood** | Yes, FY2021–FY2025 | **LOADED** | Annual | Clean `wp-content` URLs, no WAF |
+| **Tualatin** | Yes, FY2021–FY2025 | **LOADED** | Annual | Live index is `/internal-services-departments/finance/financial-reports/`; the `/finance/annual-comprehensive-financial-report` URLs in search results are dead (404) |
 | **Hillsboro** | Yes (GFOA since FY1995-96) | **No — WAF 403** | Biennial from BY2023-25 | Needs Playwright |
 | **Tigard** | Yes, incl. FY2025 | **No — WAF 403** | Annual | Needs Playwright |
 | **Beaverton** | Yes | Not yet — JS-rendered CivicPlus | Annual (FY 2024-2025) | Doc links need rendering |
