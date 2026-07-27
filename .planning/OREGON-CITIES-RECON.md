@@ -7,28 +7,35 @@
 (`scripts/seedWashingtonCountyOregonCities.js`). **3 of 7 LOADED** — GF actuals,
 GAAP basis, operating + revenue, every row ties $0, 0 `data_sources` residue:
 
-| City | FY window | budgets rows | Tooling |
-|---|---|---|---|
-| Bend | FY2022–FY2025 | 8 | `extractBend.py` + `processBend.js` |
-| Sherwood | FY2021–FY2025 | 10 | `extractSherwood.py` + `processSherwood.js` |
-| Tualatin | FY2021–FY2025 | 10 | `extractTualatin.py` + `processTualatin.js` |
+| City | FY window | budgets rows | Revenue sources | Expenditure functions |
+|---|---|---:|---:|---:|
+| Bend | FY2022–FY2025 | 8 | 9 | 2 |
+| Sherwood | FY2021–FY2025 | 10 | 7 | 5 |
+| Tualatin | FY2021–FY2025 | 10 | 9 | 4 |
+| Beaverton | FY2021–FY2025 | 10 | 12–13 | 3 |
 
-Remaining: Beaverton, Cornelius, Hillsboro, Tigard (seeded, no data).
+All four run on **`scripts/lib/acfrGF.py`** with a thin per-city
+`extract<City>.py` wrapper + `process<City>.js` loader. Consolidated from three
+standalone extractors (1,031 lines → 546); a new city is now ~50 lines.
+All 28 pre-refactor extractor outputs are byte-identical post-refactor.
 
-> **Follow-up — extractor consolidation.** There are now three ~90% identical
-> per-city extractors. That matches the repo's existing convention (21 standalone
-> `extract*.py`), and the differences are real (see the divergence table below),
-> but a shared `lib/acfrGF.py` with a per-city config would be a worthwhile
-> cleanup before city four.
+Remaining: Cornelius, Hillsboro, Tigard (seeded, no data).
 
-### Why three extractors, not one
+> **Unrelated pre-existing gap.** Portland (15 rows), Troutdale (24) and Gresham
+> (12) have **no `source_url` / `source_date`** — 51 OR rows total. Those predate
+> this work; all 38 rows loaded here are fully stamped. Worth a backfill.
 
-| | Bend | Sherwood | Tualatin |
-|---|---|---|---|
-| Section headers | Mixed case | **UPPERCASE** | **UPPERCASE** |
-| Title wraps onto a line starting `EXPENDITURES` | no | **yes** | **yes** |
-| `Capital outlay` nesting | root peer | **child of `Noncurrent`** | root peer |
-| Expenditure parents | Current, Debt service | Current, Noncurrent | Current, Debt service |
+### Per-city divergence — what `CityConfig` has to carry
+
+| | Bend | Sherwood | Tualatin | Beaverton |
+|---|---|---|---|---|
+| Section headers | Mixed case | **UPPERCASE** | **UPPERCASE** | Mixed case |
+| Title wraps onto a line starting `EXPENDITURES` | no | **yes** | **yes** | no |
+| `Capital outlay` nesting | root peer | **child of `Noncurrent`** | root peer | root peer |
+| Expenditure parents | Current, Debt service | Current, **Noncurrent** | Current, Debt service | Current, Debt service |
+
+Case handling and whole-line section matching are now uniform in the shared
+module, so `CityConfig` carries only `parents` and `capital_at_root`.
 
 Two traps, both of which produce a **$0 tie while being wrong**:
 
@@ -75,9 +82,24 @@ a bare UA string is *not* enough. The full browser header set gets a 200:
 ```
 
 `Sec-Fetch-*` + `Upgrade-Insecure-Requests` are the ones that matter — referer
-spoofing alone fails. Hillsboro and Tigard still 403 with the full set and will
-likely need the cached Playwright Chromium (see
-`project_local_ui_verify_workflow`).
+spoofing alone fails. Hillsboro and Tigard still 403 with the full set.
+
+**Headless-render fallback (works, used for Beaverton).** The `playwright` npm
+package is NOT resolvable from this repo, but the Playwright-managed Chromium is
+cached and can be driven directly — no package needed:
+
+```
+CH="$HOME/AppData/Local/ms-playwright/chromium-1228/chrome-win64/chrome.exe"
+"$CH" --headless --disable-gpu --no-sandbox --virtual-time-budget=20000 \
+      --dump-dom "<url>" > rendered.html
+```
+
+Beaverton runs CivicPlus Evolve and injects document links client-side, so a
+plain fetch returns a page with **zero** document links — not a 403, just silently
+empty. Rendering exposes them. Its PDFs live on two hosts by vintage
+(`content.civicplus.com/api/assets/...` FY2021–24, `beavertonoregon.gov/asset/...`
+FY2025) and the FY2024 URL needs `?scope=all`, so URLs are pinned literally.
+This is the same lever to try on Hillsboro and Tigard.
 
 ## Obstacle 2 — Biennial budgets (design decision needed)
 
@@ -125,7 +147,7 @@ than trusting either total.
 | **Tualatin** | Yes, FY2021–FY2025 | **LOADED** | Annual | Live index is `/internal-services-departments/finance/financial-reports/`; the `/finance/annual-comprehensive-financial-report` URLs in search results are dead (404) |
 | **Hillsboro** | Yes (GFOA since FY1995-96) | **No — WAF 403** | Biennial from BY2023-25 | Needs Playwright |
 | **Tigard** | Yes, incl. FY2025 | **No — WAF 403** | Annual | Needs Playwright |
-| **Beaverton** | Yes | Not yet — JS-rendered CivicPlus | Annual (FY 2024-2025) | Doc links need rendering |
+| **Beaverton** | Yes, FY2021–FY2025 | **LOADED** | Annual | CivicPlus Evolve — doc links injected client-side; recovered via headless Chromium (see below) |
 | **Cornelius** | **Not on city site** | Budgets only | Annual | **Weakest link** — see below |
 
 All seven use a **June 30 fiscal year end** (Oregon standard).
