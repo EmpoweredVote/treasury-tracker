@@ -9,7 +9,7 @@ GAAP basis, operating + revenue, every row ties $0, 0 `data_sources` residue:
 
 | City | FY window | budgets rows | Revenue sources | Expenditure functions |
 |---|---|---:|---:|---:|
-| Bend | FY2022–FY2025 | 8 | 9 | 2 |
+| Bend | **FY2016–FY2025** | **20** | 8–9 | 2–3 |
 | Sherwood | FY2021–FY2025 | 10 | 7 | 5 |
 | Tualatin | FY2021–FY2025 | 10 | 9 | 4 |
 | Beaverton | FY2021–FY2025 | 10 | 12–13 | 3 |
@@ -184,9 +184,24 @@ All seven use a **June 30 fiscal year end** (Oregon standard).
   are separate funds** — a GF-only load will look lopsided and understate the
   city. Worth deciding whether Bend should load GF-only or GF + major special
   revenue funds.
-- Archive gap: the finance page links **only FY2024-25**. Older ACFRs exist at
-  `bendoregon.gov/wp-content/uploads/2025/12/` (FY2022-23, FY2021-22, FY2015-16,
-  FY2006 confirmed via search) but are unlinked. History depth needs a URL hunt.
+- **Archive: RESOLVED — use the WordPress REST API.** The finance page links only
+  the current year, which made the archive look far thinner than it is; the first
+  pass loaded just FY2022–FY2025 because those were the only URLs a web search
+  surfaced. Bend runs WordPress, and its media endpoint lists everything:
+
+  ```
+  /wp-json/wp/v2/media?search=<term>&per_page=100&_fields=source_url,title
+  ```
+
+  searched for `acfr`, `cafr`, `financial-report`, `annual`. That exposed annual
+  financial reports back to **FY2005**. Now loaded FY2016–FY2025 (10 contiguous
+  years, all tie $0). The window starts at FY2016 because Bend published **no
+  2014-2015 annual report** — searching the media library for "2014-2015" returns
+  SDC/BURA/CDBG documents but no ACFR. FY2005–FY2014 are available and
+  spot-checked extractable; extending is a scope decision, not a blocker.
+
+  **Try `/wp-json/wp/v2/media` first on any WordPress city site** — it beats
+  guessing URLs and beats scraping a curated page that only links the latest doc.
 
 **Confirmed working URLs**
 

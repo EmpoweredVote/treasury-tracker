@@ -131,10 +131,24 @@ const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.s
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // ── Fixed facts ────────────────────────────────────────────────────────────────
-// Contiguous window. Bend's finance page links only FY2025; FY2022-FY2024 URLs
-// are live but unlinked. An FY2016 CAFR also exists but is non-contiguous
-// (5-year gap) and is deliberately excluded.
-const FYS = [2022, 2023, 2024, 2025];
+// Contiguous FY2016-FY2025 window.
+//
+// Bend's finance page links ONLY the current year, which made the archive look
+// far thinner than it is — an initial pass loaded just FY2022-FY2025 because
+// those were the only other URLs a web search surfaced. Bend runs WordPress, and
+// its REST media endpoint exposes the whole library:
+//
+//   /wp-json/wp/v2/media?search=<term>&per_page=100&_fields=source_url,title
+//
+// searched for "acfr", "cafr", "financial-report" and "annual". That lists
+// annual financial reports back to FY2005.
+//
+// The window starts at FY2016 because Bend published NO 2014-2015 annual
+// financial report — confirmed by searching the media library for "2014-2015",
+// which returns SDC/BURA/CDBG documents but no ACFR. FY2005-FY2014 are available
+// and spot-checked as extractable; extending further is a scope decision, not a
+// technical blocker.
+const FYS = [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
 const POPULATION = 106926; // Census PEP vintage 2024, matches the seeder
 const SANITY_MAX = 2_000_000_000;
 
@@ -147,6 +161,12 @@ const URLS = {
   2024: 'https://bendoregon.gov/wp-content/uploads/2025/12/2023-2024-Annual-Financial-Report-with-Links.pdf',
   2023: 'https://bendoregon.gov/wp-content/uploads/2025/12/CityofBend-ACFR-FY2022-2023-for-Web_Updated.pdf',
   2022: 'https://bendoregon.gov/wp-content/uploads/2025/12/CityofBend-ACFR-FY2021-2022.pdf',
+  2021: 'https://bendoregon.gov/wp-content/uploads/2025/12/CityOfBendOregonFY20202021.pdf',
+  2020: 'https://bendoregon.gov/wp-content/uploads/2025/12/CityOfBendOregonFY20192020.pdf',
+  2019: 'https://bendoregon.gov/wp-content/uploads/2025/12/City-Of-Bend-Oregon-FY2018-2019-CAFR-FINAL-ORIGINAL.pdf',
+  2018: 'https://bendoregon.gov/wp-content/uploads/2025/12/FY17-18-CAFR-COB-FINAL.pdf',
+  2017: 'https://bendoregon.gov/wp-content/uploads/2025/12/City-of-Bend-CAFR-2016-2017.pdf',
+  2016: 'https://bendoregon.gov/wp-content/uploads/2025/12/20152016CAFR.pdf',
 };
 
 // ── Run the Python extractor, return parsed JSON (or throw) ───────────────────
