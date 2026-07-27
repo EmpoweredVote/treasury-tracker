@@ -113,19 +113,42 @@ const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.s
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // ── Fixed facts ────────────────────────────────────────────────────────────────
-// Contiguous FY window; all source URLs verified HTTP 200 application/pdf.
-const FYS = [2021, 2022, 2023, 2024, 2025];
+// FY2014-FY2025 with ONE deliberate hole at FY2019.
+//
+// Sherwood's financial-reports page links only FY2021-FY2025, which made the
+// archive look 5 years deep. Its WordPress media endpoint
+// (/wp-json/wp/v2/media?search=acfr) lists ACFRs back to FY2014 under a uniform
+// filename pattern.
+//
+// FY2019 IS DELIBERATELY EXCLUDED: that year's PDF is a scan/OCR, not digital
+// text. Its statement reads "Shenruood, Oregon", renders thousands separators as
+// periods ("2.525.017"), and corrupts digits inside amounts ("2J69,082",
+// "6ee'750", "2,310,e10"). The extractor's tie gate rejects it (revenue delta
+// -14,558,532). The amounts are not recoverable without guessing, so the year is
+// left out rather than loaded wrong. FY2014-FY2018 and FY2020 are all digital
+// text, tie at $0, and carry the same five Current functions as later years.
+const FYS = [2014, 2015, 2016, 2017, 2018, 2020, 2021, 2022, 2023, 2024, 2025];
 const POPULATION = 20441; // Census PEP vintage 2024, matches the seeder
 const SANITY_MAX = 2_000_000_000;
 
 // Durable per-FY source PDF URLs, stamped onto every loaded budgets row
 // (verified 2026-07-27).
+// FY2021-FY2025 keep the opaque-id URLs the original load extracted from (still
+// live); FY2014-FY2020 use the uniform media-library pattern. Both point at the
+// same documents — the URLs differ only because the site stores two copies, and
+// each row is stamped with the URL its figures actually came from.
 const URLS = {
   2025: 'https://www.sherwoodoregon.gov/wp-content/uploads/2026/01/FY25-City-of-Sherwood-ACFR-Final-1.pdf',
   2024: 'https://www.sherwoodoregon.gov/wp-content/uploads/2025/09/FY24-City-of-Sherwood-Audit.pdf',
   2023: 'https://www.sherwoodoregon.gov/wp-content/uploads/2025/02/66976.pdf',
   2022: 'https://www.sherwoodoregon.gov/wp-content/uploads/2025/02/40881.pdf',
   2021: 'https://www.sherwoodoregon.gov/wp-content/uploads/2025/02/40886.pdf',
+  2020: 'https://www.sherwoodoregon.gov/wp-content/uploads/2025/03/2020_city_of_sherwood_annual_comprehensive_financial_report_acfr_.pdf',
+  2018: 'https://www.sherwoodoregon.gov/wp-content/uploads/2025/03/2018_city_of_sherwood_annual_comprehensive_financial_report_acfr_.pdf',
+  2017: 'https://www.sherwoodoregon.gov/wp-content/uploads/2025/03/2017_city_of_sherwood_annual_comprehensive_financial_report_acfr_.pdf',
+  2016: 'https://www.sherwoodoregon.gov/wp-content/uploads/2025/03/2016_city_of_sherwood_annual_comprehensive_financial_report_acfr_.pdf',
+  2015: 'https://www.sherwoodoregon.gov/wp-content/uploads/2025/03/2015_city_of_sherwood_annual_comprehensive_financial_report_acfr_.pdf',
+  2014: 'https://www.sherwoodoregon.gov/wp-content/uploads/2025/03/2014_city_of_sherwood_annual_comprehensive_financial_report_acfr_.pdf',
 };
 
 // ── Run the Python extractor, return parsed JSON (or throw) ───────────────────

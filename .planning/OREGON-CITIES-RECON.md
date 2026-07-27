@@ -7,14 +7,49 @@
 (`scripts/seedWashingtonCountyOregonCities.js`). **6 of 7 LOADED** — GF actuals,
 GAAP basis, operating + revenue, every row ties $0, 0 `data_sources` residue:
 
-| City | FY window | budgets rows | Revenue sources | Expenditure functions |
-|---|---|---:|---:|---:|
-| Bend | **FY2016–FY2025** | **20** | 8–9 | 2–3 |
-| Sherwood | FY2021–FY2025 | 10 | 7 | 5 |
-| Tualatin | FY2021–FY2025 | 10 | 9 | 4 |
-| Beaverton | FY2021–FY2025 | 10 | 12–13 | 3 |
-| Hillsboro | FY2021–FY2025 | 10 | 9 | 5 + capital group |
-| Tigard | FY2022–FY2025 | 8 | 8–9 | 3 (flat, no drill-down) |
+| City | FY window | Years | Rows | Revenue sources | Expenditure functions |
+|---|---|---:|---:|---:|---:|
+| Sherwood | FY2014–FY2025 (no FY2019) | 11 | 22 | 7 | 5 |
+| Bend | FY2016–FY2025 | 10 | 20 | 8–9 | 2–3 |
+| Beaverton | FY2020–FY2025 | 6 | 12 | 11–13 | 3 |
+| Hillsboro | FY2021–FY2025 | 5 | 10 | 9 | 5 + capital group |
+| Tualatin | FY2021–FY2025 | 5 | 10 | 9 | 4 |
+| Tigard | FY2022–FY2025 | 4 | 8 | 8–9 | 3 (flat, no drill-down) |
+
+**82 rows, every one ties $0, all source-stamped, 0 `data_sources` residue.**
+
+### Archive depth — never trust the curated page
+
+Every city's finance page links far less than the city actually publishes. The
+first pass took those pages at face value and under-loaded five of six cities.
+What actually works, by platform:
+
+| City | Platform | Lever | Result |
+|---|---|---|---|
+| Bend | WordPress | `/wp-json/wp/v2/media?search=…` | page linked 1 yr → **archive back to FY2005** |
+| Sherwood | WordPress | same | page linked 5 yrs → **FY2014 onward** |
+| Tualatin | WordPress | same, plus full 1,475-URL paged sweep | **genuinely only FY2021–25** — no gap |
+| Beaverton | CivicPlus Evolve | probe `/<year>-financial-audit`; **compare response sizes** | FY2015–19 return HTTP 200 with an identical 135,378-byte soft-404 body; only FY2020+ are real → **+FY2020** |
+| Hillsboro | Granicus-style CMS | rendered page enumeration | only 5 years linked; older docs would need brute-forcing opaque ids — **not pursued** |
+| Tigard | Granicus + Laserfiche | `publicrecords.tigard-or.gov` Browse.aspx | **year folders back to 1985** — see below |
+
+Two traps worth remembering: a **soft-404 that returns HTTP 200** (Beaverton — only
+the byte size distinguishes it), and **`wp-json` search terms mattering** (searching
+only "acfr" misses files named "…CAFR…" or "Annual Financial Report").
+
+**Tigard's Laserfiche archive is the big untapped one.** `Browse.aspx?startid=730563`
+lists per-year folders from 1985; the current load covers only FY2022–FY2025.
+Extending needs folder-by-folder navigation and per-document Laserfiche fetches —
+a real chunk of work, and anything before FY2003 predates GASB-34 so the statement
+shape differs. Deferred, not blocked.
+
+**Sherwood FY2019 is deliberately excluded.** That year's PDF is a scan/OCR, not
+digital text: the statement reads "Shenruood, Oregon", renders thousands separators
+as periods (`2.525.017`), and corrupts digits inside amounts (`2J69,082`, `6ee'750`,
+`2,310,e10`). The tie gate rejected it (revenue delta −14,558,532). The figures are
+not recoverable without guessing, so the year is left out rather than loaded wrong —
+the one hole in an otherwise contiguous FY2014–FY2025 run. Bend has a similar
+genuine source gap at FY2015 (no 2014-2015 report was ever published).
 
 All six run on **`scripts/lib/acfrGF.py`** with a thin per-city
 `extract<City>.py` wrapper + `process<City>.js` loader. Consolidated from three

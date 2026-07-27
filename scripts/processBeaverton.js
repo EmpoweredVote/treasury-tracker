@@ -122,7 +122,11 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SE
 
 // ── Fixed facts ────────────────────────────────────────────────────────────────
 // Contiguous FY window; all source URLs verified HTTP 200 application/pdf.
-const FYS = [2021, 2022, 2023, 2024, 2025];
+// FY2020 was missed on the first pass: Beaverton's finance page shows year
+// links, and /2015-..-/2019-financial-audit all return HTTP 200 with an
+// identical 135,378-byte soft-404 body, so only /2020-.. onward are real pages.
+// Size-comparing the responses is what distinguished them.
+const FYS = [2020, 2021, 2022, 2023, 2024, 2025];
 const POPULATION = 98302; // Census PEP vintage 2024, matches the seeder
 const SANITY_MAX = 2_000_000_000;
 
@@ -134,6 +138,7 @@ const URLS = {
   2023: 'https://content.civicplus.com/api/assets/fa28d4ff-2745-4890-943a-b02c8e304759',
   2022: 'https://content.civicplus.com/api/assets/cda9f742-499c-49fe-ac42-cdefc7de2ce1',
   2021: 'https://content.civicplus.com/api/assets/89b11463-7504-431c-b54a-99d824fcb62c',
+  2020: 'https://content.civicplus.com/api/assets/40ca368a-4287-4821-a313-9a2425688b39',
 };
 
 // ── Run the Python extractor, return parsed JSON (or throw) ───────────────────
