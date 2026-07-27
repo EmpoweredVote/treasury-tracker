@@ -79,8 +79,13 @@ const PDF_URLS = {
 // ── Run Python extractor, return parsed JSON ──────────────────────────────────
 function extractPDF(pdfPath, mode = 'operating') {
   const pyScript = path.join(ROOT, 'scripts', 'extractTroutdale.py');
-  const pythonBin = process.platform === 'win32' ? 'python' : 'python3';
-  const args = [pyScript, pdfPath];
+  // ENVIRONMENT NOTE: on Windows `python` resolves to the non-functional
+  // Microsoft Store app-execution-alias stub (exit 9009), so this loader could
+  // not run at all. `py -3` is the working launcher -- same workaround as
+  // processTucson.js / processBend.js.
+  const isWin = process.platform === 'win32';
+  const pythonBin = isWin ? 'py' : 'python3';
+  const args = isWin ? ['-3', pyScript, pdfPath] : [pyScript, pdfPath];
   if (mode === 'revenue') args.push('--mode', 'revenue');
   if (mode === 'requirements') args.push('--mode', 'requirements');
   const result = spawnSync(pythonBin, args, {
@@ -217,7 +222,50 @@ async function upsertDataSource(muniId, fiscalYear, datasetType) {
 }
 
 // ── Load one fiscal year into DB ──────────────────────────────────────────────
+// Abort an overwrite that would materially change an existing total.
+//
+// WHY: extractGresham.py currently drops the LEADING DIGIT of every 8-digit
+// amount in Gresham's FY2023 PDF (e.g. Police $45,708,476 -> $5,708,476),
+// understating that year's operating total by exactly $210,000,000. The figures
+// already in the database are the correct ones. Nothing surfaced this, because
+// the loaders happily overwrite a good row with a bad one and report success.
+//
+// These loaders had also been unrunnable on Windows for some time (they invoked
+// the Microsoft Store `python` stub), so the regression sat dormant. Now that
+// they run again, an unguarded re-run would silently corrupt good data.
+//
+// Any drift beyond TOTAL_DRIFT_TOLERANCE aborts that fiscal year unless
+// --allow-total-change is passed. Legitimate restatements do happen; they should
+// be an explicit decision, not a side effect.
+const TOTAL_DRIFT_TOLERANCE = 0.001; // 0.1%
+const ALLOW_TOTAL_CHANGE = process.argv.includes('--allow-total-change');
+
+async function assertNoSilentTotalChange(muniId, fiscalYear, datasetType, newTotal) {
+  const { data: existing, error } = await supabase.schema('treasury').from('budgets')
+    .select('total_budget').eq('municipality_id', muniId).eq('fiscal_year', fiscalYear)
+    .eq('dataset_type', datasetType).maybeSingle();
+  if (error || !existing) return true;               // nothing to protect
+  const prev = Number(existing.total_budget);
+  if (!prev) return true;
+  const drift = Math.abs(newTotal - prev) / prev;
+  if (drift <= TOTAL_DRIFT_TOLERANCE) return true;
+  const pct = (drift * 100).toFixed(2);
+  if (ALLOW_TOTAL_CHANGE) {
+    console.warn(`    WARNING: FY${fiscalYear} ${datasetType} total changes ` +
+      `$${prev.toLocaleString()} -> $${newTotal.toLocaleString()} (${pct}%) ` +
+      `-- proceeding because --allow-total-change was passed`);
+    return true;
+  }
+  console.error(`    ABORT FY${fiscalYear} ${datasetType}: extracted total ` +
+    `$${newTotal.toLocaleString()} differs from the stored ` +
+    `$${prev.toLocaleString()} by ${pct}%.`);
+  console.error(`           Refusing to overwrite. Investigate the extractor first; ` +
+    `re-run with --allow-total-change only if the new figure is genuinely correct.`);
+  return false;
+}
+
 async function loadFiscalYear(muniId, fiscalYear, datasetType, tree, total, rowCount) {
+  if (!(await assertNoSilentTotalChange(muniId, fiscalYear, datasetType, total))) return false;
   const ds = await upsertDataSource(muniId, fiscalYear, datasetType);
   if (!ds?.id) { console.error('    data_source upsert failed'); return false; }
   console.log(`    data_source: ${ds.id}`);
@@ -244,6 +292,31 @@ async function loadFiscalYear(muniId, fiscalYear, datasetType, tree, total, rowC
   if (rpc?.error)     { console.error('    RPC error (returned):', rpc.error); return false; }
 
   console.log(`    Inserted: ${rpc?.rows_inserted ?? '?'} rows`);
+
+  // ── Durable provenance stamp ────────────────────────────────────────────────
+  // This loader pinned its per-FY source URLs in PDF_URLS but historically never
+  // persisted them, leaving every row it wrote with source_url IS NULL --
+  // 51 Oregon rows across this loader and its two siblings, repaired by
+  // scripts/backfillOregonBudgetProvenance.mjs. Stamp on the way out so the gap
+  // cannot reopen. source_date is the FISCAL-YEAR END (the period the row
+  // describes), never an invented publication or adoption date.
+  const stampUrl = PDF_URLS[fiscalYear];
+  if (!stampUrl) {
+    console.error(`    WARNING: no PDF_URLS entry for FY${fiscalYear} -- row left unsourced`);
+  } else {
+    const { data: bud, error: budErr } = await supabase.schema('treasury').from('budgets')
+      .select('id').eq('municipality_id', muniId).eq('fiscal_year', fiscalYear)
+      .eq('dataset_type', datasetType).maybeSingle();
+    if (budErr || !bud?.id) {
+      console.error('    Could not find budget row to stamp source:', budErr?.message ?? '(no row)');
+    } else {
+      const { error: stampErr } = await supabase.schema('treasury').from('budgets')
+        .update({ source_url: stampUrl, source_date: `${fiscalYear}-06-30` })
+        .eq('id', bud.id);
+      if (stampErr) console.error('    Source stamp failed:', stampErr.message);
+      else console.log(`    Stamped source_url + source_date=${fiscalYear}-06-30`);
+    }
+  }
   return true;
 }
 
