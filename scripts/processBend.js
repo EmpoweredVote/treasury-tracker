@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
  * Bend, OR Budget Loader — General Fund operating (expenditure-by-function)
- * + revenue (revenue-by-source), FY2022-FY2025, ACTUAL (ACFR GAAP basis).
+ * + revenue (revenue-by-source), FY2006-FY2025 (gaps FY2007, FY2015), ACTUAL
+ * (ACFR GAAP basis).
  *
  * Consumes `scripts/extractBend.py` and loads exclusively through the
  * source-safe `treasury_sync_budget_tree` RPC -- never the sibling
@@ -131,7 +132,7 @@ const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.s
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // ── Fixed facts ────────────────────────────────────────────────────────────────
-// Contiguous FY2016-FY2025 window.
+// FY2006-FY2025 window (18 years; FY2007 and FY2015 are genuine gaps).
 //
 // Bend's finance page links ONLY the current year, which made the archive look
 // far thinner than it is — an initial pass loaded just FY2022-FY2025 because
@@ -143,12 +144,15 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SE
 // searched for "acfr", "cafr", "financial-report" and "annual". That lists
 // annual financial reports back to FY2005.
 //
-// The window starts at FY2016 because Bend published NO 2014-2015 annual
-// financial report — confirmed by searching the media library for "2014-2015",
-// which returns SDC/BURA/CDBG documents but no ACFR. FY2005-FY2014 are available
-// and spot-checked as extractable; extending further is a scope decision, not a
-// technical blocker.
-const FYS = [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
+// TWO GAPS, both genuine and documented:
+//   FY2015 — Bend published NO 2014-2015 annual financial report. Searching the
+//            media library for "2014-2015" returns SDC/BURA/CDBG documents only.
+//   FY2007 — the FY2006-07 PDF is a pure scan: all 192 pages have no text layer
+//            at all. FY2005 is the same (177/177 pages empty), which is why the
+//            window starts at FY2006 rather than FY2005.
+// Everything else back to FY2006 extracts and ties.
+const FYS = [2006, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+             2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
 const POPULATION = 106926; // Census PEP vintage 2024, matches the seeder
 const SANITY_MAX = 2_000_000_000;
 
@@ -167,6 +171,14 @@ const URLS = {
   2018: 'https://bendoregon.gov/wp-content/uploads/2025/12/FY17-18-CAFR-COB-FINAL.pdf',
   2017: 'https://bendoregon.gov/wp-content/uploads/2025/12/City-of-Bend-CAFR-2016-2017.pdf',
   2016: 'https://bendoregon.gov/wp-content/uploads/2025/12/20152016CAFR.pdf',
+  2014: 'https://bendoregon.gov/wp-content/uploads/2025/12/2013-2014-CAFR.pdf',
+  2013: 'https://bendoregon.gov/wp-content/uploads/2025/12/CAFR-12_13-as-of-121613-Final-with-dividers-tabs.pdf',
+  2012: 'https://bendoregon.gov/wp-content/uploads/2025/12/FY-2011-12-City-of-Bend-CAFR-122112.pdf',
+  2011: 'https://bendoregon.gov/wp-content/uploads/2025/12/City-of-Bend-FY10-11-CAFR-12-20-11.pdf',
+  2010: 'https://bendoregon.gov/wp-content/uploads/2025/12/FY2009_10_City_of_Bend_Oregon_CAFR.pdf',
+  2009: 'https://bendoregon.gov/wp-content/uploads/2025/12/FY2008_09_City_of_Bend_CAFR.pdf',
+  2008: 'https://bendoregon.gov/wp-content/uploads/2025/12/City_of_Bend_07_08_CAFR_for_Web.pdf',
+  2006: 'https://bendoregon.gov/wp-content/uploads/2025/12/FY-2006-CAFR-for-web.pdf',
 };
 
 // ── Run the Python extractor, return parsed JSON (or throw) ───────────────────
@@ -336,7 +348,12 @@ async function processMode(supabase, muniId, dryRun, mode, targetFY, pdfsByFY) {
         throw new Error(`FY mismatch: ${path.basename(pdfPath)} reports fiscal_year ` +
           `${extracted.fiscal_year}, expected ${fy} — aborting`);
       }
-      if (extracted.tie_delta !== 0) {
+      // A non-zero delta is fatal UNLESS it exactly matches a source-rounding
+      // case pre-registered in extractBend.py (a handful of Bend statements whose
+      // printed total disagrees with the sum of their own printed components by
+      // $1). The extractor only sets source_rounding_accepted on an exact match,
+      // so this cannot widen into a general tolerance.
+      if (extracted.tie_delta !== 0 && extracted.source_rounding_accepted !== extracted.tie_delta) {
         throw new Error(`TIE FAILURE FY${fy} (${mode}): delta ${extracted.tie_delta} — aborting`);
       }
 
