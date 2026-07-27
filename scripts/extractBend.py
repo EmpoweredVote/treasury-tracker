@@ -12,7 +12,7 @@ statement titles, capital-outlay nesting).
 Bend specifics
 --------------
 * Expenditure parents: `Current` and `Debt service`.
-* `capital_at_root=True` — Bend prints Capital outlay as a root-level peer of
+* `root_leaves=('capital ',)` — Bend prints Capital outlay as a root-level peer of
   Current and Debt service, after the Debt service block.
 * Bend uses dash placeholders for $0 General Fund cells (Assessments, System
   development charges, Loan repayments, Permanent maintenance fees on the
@@ -41,7 +41,7 @@ from lib.acfrGF import CityConfig, run_cli   # noqa: E402
 CONFIG = CityConfig(
     city='Bend, OR',
     parents=('current', 'debt service'),
-    capital_at_root=True,
+    root_leaves=('capital ',),
 )
 
 if __name__ == '__main__':

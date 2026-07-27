@@ -38,13 +38,11 @@ WRONG. A tie proves arithmetic — never labels, never structure.
    revenue block — a ~3x inflated operating total. Section headers must
    therefore match the WHOLE line (`_SEC_*` below).
 
-3. **Capital-outlay nesting** (`CityConfig.capital_at_root`). Some cities file
-   Capital outlay as a root-level PEER of Current and Debt service (the GASB
-   convention); others nest it under a Noncurrent parent. `pdftotext -table`
-   FLATTENS indentation, so the two are indistinguishable in the parsed text —
-   and picking wrong still ties, it just mis-nests the node and inflates the
-   sibling parent's subtotal. Resolve this per city with `pdftotext -layout`,
-   which preserves leading whitespace, e.g.:
+3. **Expenditure nesting** (`CityConfig.parents` / `root_leaves`). Cities group
+   spending differently, and `pdftotext -table` FLATTENS indentation, so the
+   groupings are indistinguishable in the parsed text. Picking wrong still ties
+   — it just mis-nests a node and inflates a sibling parent's subtotal. Resolve
+   per city with `pdftotext -layout`, which preserves leading whitespace:
 
        Tualatin                        Sherwood
          Current:            (2 sp)      Current:            (2 sp)
@@ -53,7 +51,17 @@ WRONG. A tie proves arithmetic — never labels, never structure.
          Debt service:       (2 sp)        Capital Outlay    (5 sp)
            Principal         (4 sp)        Debt Service ...  (5 sp)
 
-   -> Tualatin `capital_at_root=True`, Sherwood `capital_at_root=False`.
+   -> Tualatin `root_leaves=('capital ',)`; Sherwood nests it, `root_leaves=()`.
+
+   Hillsboro INVERTS the usual arrangement, which is why this is a list of
+   labels and not a `capital_at_root` boolean:
+
+       Hillsboro
+         Current:            (1 sp)
+           General government (2 sp)
+         Debt service  12,500 (1 sp)   <- a VALUED LEAF at root, not a parent
+         Capital outlay:      (1 sp)   <- a PARENT with its own children
+           General government (2 sp)
 
 All text matching is case-insensitive: some cities set the whole statement in
 uppercase ("TOTAL REVENUES"). Case-sensitive matching fails CLOSED there
@@ -71,19 +79,34 @@ import argparse
 class CityConfig:
     """Per-city structural facts that cannot be inferred from `-table` output.
 
-    parents         lowercase labels that introduce a group of child rows in the
-                    expenditure section (e.g. ('current', 'debt service')).
-                    Matched against whole label-only lines, colon stripped.
-    capital_at_root when True, a row whose label starts with "capital " is
-                    emitted as a ROOT-LEVEL leaf and closes the open parent.
-                    When False it stays a child of the current parent.
-                    Determine this with `pdftotext -layout` — see module docstring.
+    parents      lowercase labels that introduce a group of child rows in the
+                 expenditure section (e.g. ('current', 'debt service')).
+                 Matched against whole LABEL-ONLY lines, colon stripped.
+    root_leaves  lowercase label PREFIXES for rows that carry a value but belong
+                 at the ROOT of the tree, as peers of the parents rather than
+                 children of whichever parent happens to be open. Such a row is
+                 emitted at root level and closes the open parent.
+
+    The same label can be a parent in one city and a root leaf in another —
+    these are genuinely different documents, not different readings of one:
+
+        Bend / Tualatin / Beaverton   parents=('current','debt service')
+                                      root_leaves=('capital ',)
+        Sherwood                      parents=('current','noncurrent','debt service')
+                                      root_leaves=()            # capital nests under Noncurrent
+        Hillsboro                     parents=('current','capital outlay')
+                                      root_leaves=('debt service',)
+                                      # INVERTED: 'Capital outlay:' is a parent with
+                                      # children, 'Debt service' is a valued root leaf
+
+    Always determine both with `pdftotext -layout`, which preserves the leading
+    whitespace `-table` flattens. Guessing produces a $0 tie with a wrong tree.
     """
 
-    def __init__(self, city, parents, capital_at_root):
+    def __init__(self, city, parents, root_leaves=()):
         self.city = city
         self.parents = tuple(p.lower() for p in parents)
-        self.capital_at_root = capital_at_root
+        self.root_leaves = tuple(r.lower() for r in root_leaves)
 
 
 # ── Money parsing ─────────────────────────────────────────────────────────────
@@ -141,8 +164,11 @@ def dash_zero_label(line):
 
 
 # ── Statement page location ──────────────────────────────────────────────────
+# "Balances?" — Tigard titles its statement "CHANGES IN FUND BALANCE" (singular)
+# while every other city so far uses the plural. Requiring the plural silently
+# fails detection ("primary GF statement not found") rather than mis-parsing.
 _TITLE = re.compile(
-    r'Statement\s+of\s+Revenues\s*,?\s*Expenditures\s*,?\s+and\s+Changes\s+in\s+Fund\s+Balances',
+    r'Statement\s+of\s+Revenues\s*,?\s*Expenditures\s*,?\s+and\s+Changes\s+in\s+Fund\s+Balances?',
     re.I)
 # A combining / subfund / budgetary page must never be mistaken for the primary
 # statement. Budgetary pages in particular are budget-basis (and, for biennial
@@ -310,7 +336,7 @@ def build_operating(lines, col_anchors, cfg):
             continue
 
         node = {'n': full, 'a': val}
-        if cfg.capital_at_root and full.lower().startswith('capital '):
+        if any(full.lower().startswith(pfx) for pfx in cfg.root_leaves):
             root_children.append(node)   # root-level peer; closes the parent
             parent = None
         elif parent is not None:

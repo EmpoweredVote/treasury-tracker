@@ -16,7 +16,7 @@ Sherwood specifics
   handled by the shared module's case-insensitive, whole-line section matching.
 * Expenditure parents: `Current` and `Noncurrent` (plus `Debt service`,
   included defensively in case an earlier ACFR splits it out as its own parent).
-* `capital_at_root=False` — Sherwood files Capital Outlay as a CHILD of
+* `root_leaves=()` — Sherwood files Capital Outlay as a CHILD of
   Noncurrent, alongside Debt Service - Principal/Interest. Verified against
   `pdftotext -layout`, which preserves the indentation `-table` flattens:
 
@@ -45,7 +45,7 @@ from lib.acfrGF import CityConfig, run_cli   # noqa: E402
 CONFIG = CityConfig(
     city='Sherwood, OR',
     parents=('current', 'noncurrent', 'debt service'),
-    capital_at_root=False,
+    root_leaves=(),
 )
 
 if __name__ == '__main__':

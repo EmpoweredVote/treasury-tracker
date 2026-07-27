@@ -1,10 +1,10 @@
 # Oregon Cities — Source Recon (Bend + 6 Washington County cities)
 
-**Date:** 2026-07-26 (recon) · updated 2026-07-27 (Bend, Sherwood, Tualatin loaded)
+**Date:** 2026-07-26 (recon) · updated 2026-07-27 (6 of 7 cities loaded)
 **Scope:** Bend, Beaverton, Cornelius, Hillsboro, Sherwood, Tigard, Tualatin
 
 **Status:** all 7 municipality rows seeded
-(`scripts/seedWashingtonCountyOregonCities.js`). **3 of 7 LOADED** — GF actuals,
+(`scripts/seedWashingtonCountyOregonCities.js`). **6 of 7 LOADED** — GF actuals,
 GAAP basis, operating + revenue, every row ties $0, 0 `data_sources` residue:
 
 | City | FY window | budgets rows | Revenue sources | Expenditure functions |
@@ -13,42 +13,47 @@ GAAP basis, operating + revenue, every row ties $0, 0 `data_sources` residue:
 | Sherwood | FY2021–FY2025 | 10 | 7 | 5 |
 | Tualatin | FY2021–FY2025 | 10 | 9 | 4 |
 | Beaverton | FY2021–FY2025 | 10 | 12–13 | 3 |
+| Hillsboro | FY2021–FY2025 | 10 | 9 | 5 + capital group |
+| Tigard | FY2022–FY2025 | 8 | 8–9 | 3 (flat, no drill-down) |
 
-All four run on **`scripts/lib/acfrGF.py`** with a thin per-city
+All six run on **`scripts/lib/acfrGF.py`** with a thin per-city
 `extract<City>.py` wrapper + `process<City>.js` loader. Consolidated from three
 standalone extractors (1,031 lines → 546); a new city is now ~50 lines.
-All 28 pre-refactor extractor outputs are byte-identical post-refactor.
+Both refactors were protected by a golden diff — every pre-change extractor
+output (28, then 38) is byte-identical afterwards.
 
-Remaining: Cornelius, Hillsboro, Tigard (seeded, no data).
+Remaining: **Cornelius only** (seeded, no data — publishes no ACFR).
 
-> **Unrelated pre-existing gap.** Portland (15 rows), Troutdale (24) and Gresham
-> (12) have **no `source_url` / `source_date`** — 51 OR rows total. Those predate
-> this work; all 38 rows loaded here are fully stamped. Worth a backfill.
+**Provenance backfill DONE.** Portland (15), Troutdale (24) and Gresham (12)
+carried no `source_url`/`source_date`: their loaders pinned per-FY URLs in an
+in-script `PDF_URLS` map but never persisted them.
+`scripts/backfillOregonBudgetProvenance.mjs` stamped all 51 (URLs verified live
+first; amounts untouched), and all three loaders now stamp on the way out.
+**All 115 Oregon rows now have provenance.**
 
 ### Per-city divergence — what `CityConfig` has to carry
 
-| | Bend | Sherwood | Tualatin | Beaverton |
-|---|---|---|---|---|
-| Section headers | Mixed case | **UPPERCASE** | **UPPERCASE** | Mixed case |
-| Title wraps onto a line starting `EXPENDITURES` | no | **yes** | **yes** | no |
-| `Capital outlay` nesting | root peer | **child of `Noncurrent`** | root peer | root peer |
-| Expenditure parents | Current, Debt service | Current, **Noncurrent** | Current, Debt service | Current, Debt service |
+| | Bend | Sherwood | Tualatin | Beaverton | Hillsboro | Tigard |
+|---|---|---|---|---|---|---|
+| Section headers | Mixed | **UPPER** | **UPPER** | Mixed | Mixed | Mixed |
+| Title wraps onto a line starting `EXPENDITURES` | no | **yes** | **yes** | no | no | no |
+| Title says "Fund Balance**s**" | yes | yes | yes | yes | yes | **no — singular** |
+| `parents` | Current, Debt service | Current, **Noncurrent**, Debt service | Current, Debt service | Current, Debt service | Current, **Capital outlay** | **() — flat** |
+| `root_leaves` | `capital ` | — | `capital ` | `capital ` | **`debt service`** | — |
 
-Case handling and whole-line section matching are now uniform in the shared
-module, so `CityConfig` carries only `parents` and `capital_at_root`.
+Case handling, whole-line section matching and the singular/plural title are all
+uniform in the shared module, so `CityConfig` carries only `parents` and
+`root_leaves`.
 
-Two traps, both of which produce a **$0 tie while being wrong**:
+**Hillsboro inverts the usual layout** — `Debt service` is a valued LEAF at root
+while `Capital outlay:` is a PARENT with children. This is why `root_leaves` is a
+label list and not the `capital_at_root` boolean it started as. **Tigard is flat**
+— no grouping at all, so its operating tree is one level deep and the icicle has
+no drill-down (same accepted limitation as the flat-source states).
 
-1. **Wrapped title.** Sherwood/Tualatin wrap the statement title so a line begins
-   `EXPENDITURES AND CHANGES IN FUND BALANCES`. A prefix match on `^Expenditures`
-   starts the expenditure section at the *title* and swallows the whole revenue
-   block. Section headers must match the WHOLE line.
-2. **Capital-outlay nesting.** `pdftotext -table` flattens indentation, so
-   Sherwood's child-of-Noncurrent and Tualatin's root-peer placement look
-   identical in the parsed text. Running Sherwood's parser over Tualatin still
-   ties at $0 but silently mis-nests Capital outlay under Current and inflates
-   the Current subtotal. **Resolve nesting with `pdftotext -layout`, which
-   preserves leading whitespace.**
+Both mis-configurations **tie at $0 while producing a wrong tree**. Every
+`CityConfig` must be derived from `pdftotext -layout` indentation, never from a
+passing tie.
 
 Standing lesson: **a $0 tie proves arithmetic, never labels or structure.**
 
@@ -82,7 +87,8 @@ a bare UA string is *not* enough. The full browser header set gets a 200:
 ```
 
 `Sec-Fetch-*` + `Upgrade-Insecure-Requests` are the ones that matter — referer
-spoofing alone fails. Hillsboro and Tigard still 403 with the full set.
+spoofing alone fails. **Hillsboro and Tigard 403 no matter what curl sends**, for
+GET and HEAD alike — that is TLS/JA3 fingerprinting, which headers cannot defeat.
 
 **Headless-render fallback (works, used for Beaverton).** The `playwright` npm
 package is NOT resolvable from this repo, but the Playwright-managed Chromium is
@@ -99,7 +105,17 @@ plain fetch returns a page with **zero** document links — not a 403, just sile
 empty. Rendering exposes them. Its PDFs live on two hosts by vintage
 (`content.civicplus.com/api/assets/...` FY2021–24, `beavertonoregon.gov/asset/...`
 FY2025) and the FY2024 URL needs `?scope=all`, so URLs are pinned literally.
-This is the same lever to try on Hillsboro and Tigard.
+Legacy `--headless` is itself blocked on some sites (it advertises
+"HeadlessChrome"); use `--headless=new` with an explicit `--user-agent` and
+`--disable-blink-features=AutomationControlled`.
+
+**For DOWNLOADS behind a TLS-fingerprinting WAF, rendering is not enough** —
+the PDF request itself must come from the browser. `scripts/fetchViaBrowser.mjs`
+drives the cached Chromium over the DevTools Protocol (Node's built-in
+WebSocket, no npm package), navigates to a page on the target origin to clear
+the WAF, then runs a same-origin `fetch()` inside that page and returns the
+bytes as base64. It refuses to write anything not starting with `%PDF`. This is
+what unblocked Hillsboro and Tigard.
 
 ## Obstacle 2 — Biennial budgets (design decision needed)
 
@@ -145,8 +161,8 @@ than trusting either total.
 | **Bend** | Yes | **Yes — extracted** | Biennial | Best-characterised; see below |
 | **Sherwood** | Yes, FY2021–FY2025 | **LOADED** | Annual | Clean `wp-content` URLs, no WAF |
 | **Tualatin** | Yes, FY2021–FY2025 | **LOADED** | Annual | Live index is `/internal-services-departments/finance/financial-reports/`; the `/finance/annual-comprehensive-financial-report` URLs in search results are dead (404) |
-| **Hillsboro** | Yes (GFOA since FY1995-96) | **No — WAF 403** | Biennial from BY2023-25 | Needs Playwright |
-| **Tigard** | Yes, incl. FY2025 | **No — WAF 403** | Annual | Needs Playwright |
+| **Hillsboro** | Yes, FY2021–FY2025 | **LOADED** | Biennial from BY2023-25 | WAF 403s curl entirely (TLS fingerprinting) — fetched via scripts/fetchViaBrowser.mjs |
+| **Tigard** | Yes, FY2022–FY2025 | **LOADED** | Annual | Same WAF; document links carry no FY, only opaque ids — FY confirmed from each document |
 | **Beaverton** | Yes, FY2021–FY2025 | **LOADED** | Annual | CivicPlus Evolve — doc links injected client-side; recovered via headless Chromium (see below) |
 | **Cornelius** | **Not on city site** | Budgets only | Annual | **Weakest link** — see below |
 

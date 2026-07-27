@@ -14,7 +14,7 @@ Beaverton specifics
 * Expenditure parents: `Current` and `Debt service`. There is no Noncurrent
   grouping (verified: adding 'noncurrent' to the parent set produces
   byte-identical output for all 10 city-years).
-* `capital_at_root=True` — Capital Outlay is a root-level PEER of Current and
+* `root_leaves=('capital ',)` — Capital Outlay is a root-level PEER of Current and
   Debt service. Verified against `pdftotext -layout`, which preserves the
   indentation `-table` flattens:
 
@@ -57,7 +57,7 @@ from lib.acfrGF import CityConfig, run_cli   # noqa: E402
 CONFIG = CityConfig(
     city='Beaverton, OR',
     parents=('current', 'debt service'),
-    capital_at_root=True,
+    root_leaves=('capital ',),
 )
 
 if __name__ == '__main__':
