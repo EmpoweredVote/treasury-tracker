@@ -44,6 +44,38 @@ def parse_money(s):
     except ValueError:
         return 0
 
+
+def adopted_from_tokens(num_tokens):
+    """Adopted amount = the LAST numeric column, rejoining an OCR-split number.
+
+    Gresham's FY2022-23 PDF splits the leading digit(s) of the final column into
+    a separate token:
+
+        Police 36,616,711 37,003,641 43,243,361 45,708,476 45,708,476 4 5,708,476
+                                                                      ^^^ ^^^^^^^^^
+
+    so the last two tokens are ['4', '5,708,476'] and must be rejoined to
+    45,708,476. Detected by: the second-to-last token is a bare 1-3 digit
+    fragment (no comma), and the last token begins with 1-3 digits followed
+    immediately by a comma — i.e. it is itself a truncated N,NNN,NNN number.
+
+    HISTORY: extract_budget() previously tested the last token with `^\\d{3,}`,
+    which can never match a token starting "1," — so the rejoin never fired and
+    every 8-digit FY2023 amount silently lost its leading digit (Police
+    $45,708,476 -> $5,708,476), understating that year's operating total by
+    exactly $210,000,000. extract_revenue() and extract_requirements() already
+    used the correct `^\\d{1,3},` test; this helper is now the single shared
+    implementation so the three modes cannot drift apart again.
+    """
+    if not num_tokens:
+        return 0
+    raw = num_tokens[-1]
+    if (len(num_tokens) >= 2
+            and re.match(r'^\d{1,3}$', num_tokens[-2])
+            and re.match(r'^\d{1,3},', num_tokens[-1])):
+        raw = num_tokens[-2] + num_tokens[-1]
+    return parse_money(raw)
+
 # ── Parse fiscal year from column header line ─────────────────────────────────
 def parse_fy_from_header(header_line):
     """
@@ -76,6 +108,7 @@ def extract_budget(pdf_path):
     Amounts are in full dollars (no multiply-by-1000).
     """
     results = []
+    printed_operating_total = None
     with pdfplumber.open(pdf_path) as pdf:
         for page_num, page in enumerate(pdf.pages, 1):
             text = page.extract_text() or ''
@@ -132,19 +165,14 @@ def extract_budget(pdf_path):
                 dept = ' '.join(name_tokens)
                 # Normalize OCR name artifacts (older PDFs have spaces mid-word)
                 dept_normalized = re.sub(r'\s+', ' ', dept).strip()
+                # Capture the printed 'Operating Total' BEFORE skipping it — it is
+                # the correctness oracle for this mode (see the tie check below).
+                if dept_normalized == 'Operating Total':
+                    printed_operating_total = adopted_from_tokens(num_tokens)
                 if dept_normalized in SKIP_ROWS:
                     continue
                 # Adopted amount = last column (column 6 = Council Adopted).
-                # OCR may split e.g. '61,494,586' into tokens ['6', '1,494,586'].
-                # Detect this: if the second-to-last token is a short pure-digit fragment
-                # (1-3 digits, no comma), concatenate it with the last token.
-                adopted_raw = num_tokens[-1]
-                if (len(num_tokens) >= 2
-                        and re.match(r'^\d{1,3}$', num_tokens[-2])
-                        and re.match(r'^\d{3,}', num_tokens[-1])
-                        and ',' in num_tokens[-1]):
-                    adopted_raw = num_tokens[-2] + num_tokens[-1]
-                adopted = parse_money(adopted_raw)
+                adopted = adopted_from_tokens(num_tokens)
                 if adopted <= 0:
                     print(f'  [skipped] Zero/negative amount: {dept_normalized}', file=sys.stderr)
                     continue
@@ -162,6 +190,35 @@ def extract_budget(pdf_path):
     if none_fy:
         print(f'  WARNING: {len(none_fy)} rows have None fiscal_year — check PDF header',
               file=sys.stderr)
+
+    # ── Correctness oracle: departments must sum to the printed Operating Total ──
+    # The All Funds page prints its own 'Operating Total' row, which is exactly the
+    # sum of the department rows this function returns. Checking against it turns a
+    # silent mis-parse into a hard failure. Without this gate the FY2023
+    # leading-digit truncation produced a plausible-looking $59,306,991 that the
+    # loader accepted and reported as success.
+    #
+    # Exits non-zero on mismatch; processGresham.js treats a non-zero exit as a
+    # thrown error and aborts, so bad figures can never reach the database.
+    #
+    # NOTE: only `operating` has an exact oracle. 'Total Resources' includes
+    # Beginning Balance (which extract_revenue excludes) and 'Non-Operating Total'
+    # does not equal the six whitelisted categories in extract_requirements, so
+    # neither of those modes has a printed row that ties to what it returns.
+    if results:
+        if printed_operating_total is None:
+            print('  WARNING: no printed "Operating Total" row found — sum unverified',
+                  file=sys.stderr)
+        else:
+            computed = sum(r['adopted_amount'] for r in results)
+            delta = computed - printed_operating_total
+            if delta != 0:
+                print(f'  TIE FAILURE (operating): departments sum to {computed:,} but the '
+                      f'page prints Operating Total {printed_operating_total:,} '
+                      f'(delta {delta:,})', file=sys.stderr)
+                for r in results:
+                    print(f"    {r['department']}: {r['adopted_amount']:,}", file=sys.stderr)
+                sys.exit(1)
 
     return results
 
@@ -254,12 +311,7 @@ def extract_revenue(pdf_path):
                 # '35,569,000' into ['3', '5,569,000'].  Detect this: second-to-last
                 # is a short pure-digit fragment (1-3 digits) and last token starts
                 # with 1-3 digits immediately followed by a comma (N,NNN,NNN pattern).
-                adopted_raw = num_tokens[-1]
-                if (len(num_tokens) >= 2
-                        and re.match(r'^\d{1,3}$', num_tokens[-2])
-                        and re.match(r'^\d{1,3},', num_tokens[-1])):
-                    adopted_raw = num_tokens[-2] + num_tokens[-1]
-                adopted = parse_money(adopted_raw)
+                adopted = adopted_from_tokens(num_tokens)
                 if adopted <= 0:
                     continue
                 category = NORMALIZE.get(category, category)
@@ -370,12 +422,7 @@ def extract_requirements(pdf_path):
                 # OCR may split e.g. '20,175,800' into ['2', '0,175,800'].
                 # Detect: second-to-last is short pure-digit fragment (1-3 digits) and
                 # last token starts with 1-3 digits followed by a comma (N,NNN,NNN pattern).
-                adopted_raw = num_tokens[-1]
-                if (len(num_tokens) >= 2
-                        and re.match(r'^\d{1,3}$', num_tokens[-2])
-                        and re.match(r'^\d{1,3},', num_tokens[-1])):
-                    adopted_raw = num_tokens[-2] + num_tokens[-1]
-                adopted = parse_money(adopted_raw)
+                adopted = adopted_from_tokens(num_tokens)
                 if adopted <= 0:
                     continue
                 results.append({
