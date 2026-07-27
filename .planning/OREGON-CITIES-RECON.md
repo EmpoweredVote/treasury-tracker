@@ -4,7 +4,7 @@
 **Scope:** Bend, Beaverton, Cornelius, Hillsboro, Sherwood, Tigard, Tualatin
 
 **Status:** all 7 municipality rows seeded
-(`scripts/seedWashingtonCountyOregonCities.js`). **6 of 7 LOADED** — GF actuals,
+(`scripts/seedWashingtonCountyOregonCities.js`). **ALL 7 LOADED** — GF actuals,
 GAAP basis, operating + revenue, every row ties $0, 0 `data_sources` residue:
 
 | City | FY window | Years | Rows | Revenue sources | Expenditure functions |
@@ -15,8 +15,10 @@ GAAP basis, operating + revenue, every row ties $0, 0 `data_sources` residue:
 | Hillsboro | FY2021–FY2025 | 5 | 10 | 9 | 5 + capital group |
 | Tualatin | FY2021–FY2025 | 5 | 10 | 9 | 4 |
 | Tigard | FY2022–FY2025 | 4 | 8 | 8–9 | 3 (flat, no drill-down) |
+| Cornelius | FY2022–FY2025 | 4 | 8 | 8 | 3 |
 
-**82 rows, every one ties $0, all source-stamped, 0 `data_sources` residue.**
+**90 rows, every one ties $0, all source-stamped, 0 `data_sources` residue.**
+**All seven cities are on the same basis — ACFR GAAP actuals, General Fund.**
 
 ### Archive depth — never trust the curated page
 
@@ -85,7 +87,7 @@ standalone extractors (1,031 lines → 546); a new city is now ~50 lines.
 Both refactors were protected by a golden diff — every pre-change extractor
 output (28, then 38) is byte-identical afterwards.
 
-Remaining: **Cornelius only** (seeded, no data — publishes no ACFR).
+Remaining: **none.**
 
 **Provenance backfill DONE.** Portland (15), Troutdale (24) and Gresham (12)
 carried no `source_url`/`source_date`: their loaders pinned per-FY URLs in an
@@ -227,7 +229,7 @@ than trusting either total.
 | **Hillsboro** | Yes, FY2021–FY2025 | **LOADED** | Biennial from BY2023-25 | WAF 403s curl entirely (TLS fingerprinting) — fetched via scripts/fetchViaBrowser.mjs |
 | **Tigard** | Yes, FY2022–FY2025 | **LOADED** | Annual | Same WAF; document links carry no FY, only opaque ids — FY confirmed from each document |
 | **Beaverton** | Yes, FY2021–FY2025 | **LOADED** | Annual | CivicPlus Evolve — doc links injected client-side; recovered via headless Chromium (see below) |
-| **Cornelius** | **Not on city site** | Budgets only | Annual | **Weakest link** — see below |
+| **Cornelius** | Yes, FY2022–FY2025 | **LOADED** | Annual | ACFRs are on `/258/Financial-Reporting`, NOT the budgeting page — see below |
 
 All seven use a **June 30 fiscal year end** (Oregon standard).
 
@@ -274,14 +276,22 @@ https://bendoregon.gov/wp-content/uploads/2025/12/2025-27-Adopted-Budget-City-of
 https://www.sherwoodoregon.gov/wp-content/uploads/2026/01/FY25-City-of-Sherwood-ACFR-Final-1.pdf (3.2 MB, 200)
 ```
 
-### Cornelius — weakest link
+### Cornelius — the recon miss, now corrected
 
-The budgeting page carries **adopted budgets FY2021-22 → FY2026-27 and
-Budget-in-Brief summaries only — no ACFR or audited financial statements.**
-Oregon municipal audit law (ORS 297.405–297.555) still requires an audit, so one
-exists; it is just not on the city site. Options: pull it from the SOS registry,
-or load Cornelius on a **budget basis** and flag the basis difference. Do not
-silently mix a budget-basis city into a GAAP-actuals cohort.
+Cornelius was recorded here as publishing **no ACFR**, on the strength of its
+`/257/Budgeting` page, which carries only adopted budgets and Budget-in-Brief
+summaries. **That was wrong.** Audited reports live on a SEPARATE
+`/258/Financial-Reporting` page, reachable only from the Finance landing page
+(`/256/Finance`) — and both pages render their document lists client-side, so a
+plain HTTP fetch of either returns no document links at all.
+
+FY2022–FY2025 ACFRs are published there and are now loaded on the same ACFR GAAP
+actuals basis as every other city, so **no budget-basis compromise was needed**
+and the whole seven-city set is on one basis.
+
+**Lesson:** on a CivicPlus site, enumerate the department landing page's section
+links from a RENDERED DOM before concluding a city publishes nothing. A single
+section page is not the department.
 
 ### Oregon SOS Municipal Audit Program — investigated, not usable
 
@@ -291,7 +301,7 @@ silently mix a budget-basis city into a GAAP-actuals cohort.
 **Two blockers:** it sits behind an **F5/Shape TSPD JavaScript challenge** (plain
 HTTP gets an obfuscated JS interstitial, no form), and it returns **the same
 audit PDFs** the cities publish — no structured data, no API, no CSV. It is
-useful as a *discovery* fallback for Cornelius, not as a loader source.
+It was never needed — every city turned out to publish its own ACFRs.
 
 ### Washington County LB-1 forms — uniform but shallow
 
@@ -302,20 +312,30 @@ jurisdiction, e.g.
 This is genuinely uniform across all six Washington County cities and would
 sidestep six different WAFs. But LB-1 is a **one-page statutory summary** —
 fund-level totals and tax levies, no revenue-by-source or program detail. Not
-icicle-grade. Viable as a **cross-check on totals**, or as a stopgap for
-Cornelius; not a substitute for the ACFRs.
+icicle-grade. Viable as a **cross-check on totals**; never needed as a source.
 
 ---
 
-## Suggested sequencing
+## Outcome
 
-1. **Bend first** — fully verified, and it forces the biennial-budget decision
-   that Hillsboro will hit again.
-2. **Sherwood + Tualatin** — no WAF obstacle, annual budgets, clean ACFRs.
-3. **Beaverton + Tigard + Hillsboro** — need Playwright fetching; Hillsboro also
-   biennial.
-4. **Cornelius last** — basis question unresolved.
+All seven cities loaded on one basis — **ACFR GAAP actuals, General Fund, 90 rows,
+every row ties $0, all source-stamped, 0 `data_sources` residue.**
 
-Open decisions before planning: (a) per-FY actuals only, or also biennium
-budget rows? (b) GF-only, or GF + major special revenue funds for cities where
-Fire/Streets sit outside the GF? (c) how to treat Cornelius's missing ACFR.
+The three decisions this brief opened were resolved as:
+- **(a) per-FY actuals only.** Bend and Hillsboro budget biennially and their
+  budget columns cannot be split per fiscal year without fabricating a number.
+- **(b) GF-only**, per instruction. Bend understates most: its Fire/EMS, Streets
+  and SDC funds sit outside the General Fund, leaving GF spend ~87% public safety.
+- **(c) Cornelius needed no compromise** — it publishes ACFRs after all.
+
+### Still open (deliberately, not blocked)
+
+1. **Oregon mixes two bases.** These seven cities are GF GAAP *actuals*;
+   Portland, Troutdale and Gresham are city-wide *adopted budget*, carry an extra
+   `all_funds_requirements` dataset_type, and run to future fiscal years. Two
+   different things sit side by side in the same UI. A data-model call.
+2. **Deeper history is available and unclaimed** — Bend FY2005–FY2014, Sherwood
+   pre-FY2014 (if any). Both are straightforward; only scope stopped them.
+3. **`extractGresham.py` is only tie-gated for `operating`.** Revenue and
+   requirements modes have no printed total that ties to what they return, so a
+   comparable mis-parse there would not be caught automatically.
