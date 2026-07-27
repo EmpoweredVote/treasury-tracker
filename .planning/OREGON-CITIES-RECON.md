@@ -31,17 +31,45 @@ What actually works, by platform:
 | Tualatin | WordPress | same, plus full 1,475-URL paged sweep | **genuinely only FY2021–25** — no gap |
 | Beaverton | CivicPlus Evolve | probe `/<year>-financial-audit`; **compare response sizes** | FY2015–19 return HTTP 200 with an identical 135,378-byte soft-404 body; only FY2020+ are real → **+FY2020** |
 | Hillsboro | Granicus-style CMS | rendered page enumeration | only 5 years linked; older docs would need brute-forcing opaque ids — **not pursued** |
-| Tigard | Granicus + Laserfiche | `publicrecords.tigard-or.gov` Browse.aspx | **year folders back to 1985** — see below |
+| Tigard | Granicus + Laserfiche | `publicrecords.tigard-or.gov` Browse.aspx | year folders to 1985, but **all scanned images** — no extractable years, see below |
 
 Two traps worth remembering: a **soft-404 that returns HTTP 200** (Beaverton — only
 the byte size distinguishes it), and **`wp-json` search terms mattering** (searching
 only "acfr" misses files named "…CAFR…" or "Annual Financial Report").
 
-**Tigard's Laserfiche archive is the big untapped one.** `Browse.aspx?startid=730563`
-lists per-year folders from 1985; the current load covers only FY2022–FY2025.
-Extending needs folder-by-folder navigation and per-document Laserfiche fetches —
-a real chunk of work, and anything before FY2003 predates GASB-34 so the statement
-shape differs. Deferred, not blocked.
+### Tigard's Laserfiche archive — INVESTIGATED, NOT USABLE
+
+`publicrecords.tigard-or.gov` holds 39 per-year ACFR folders, **1985–2023**. It
+looked like the biggest remaining win. It is not usable, and the reason is worth
+recording so nobody repeats the dig.
+
+**Every year from 1985 through 2021 is a SCANNED IMAGE with no electronic file.**
+Only the FY2023 document has one — and FY2022–FY2025 are already loaded from the
+city website as digital-text PDFs. So the archive adds **zero** extractable years.
+
+How that was established:
+- The host refuses `curl` outright (connection refused); everything must go
+  through Chromium/CDP.
+- Folder rows lazy-load — `&page=N` is ignored. The listing has to be **scrolled**
+  to get past the first 18 of 39 entries. Folder ids are non-sequential
+  (2019=882547, 2020=1036052, 2021=1036049), so they cannot be guessed.
+- Download endpoint for an electronic document: **`/Public/0/edoc/<docId>/<any>.pdf`**,
+  fetched same-origin from a page on that host. Returns `%PDF` for FY2023
+  (docId 1136476) and an HTML stub for every earlier year — i.e. no edoc exists.
+- The viewer is a page-image viewer offering "View plain text", so Laserfiche does
+  hold OCR text, but no plain-text endpoint is exposed
+  (`DocumentText.aspx`, `GetText.aspx`, `TileData.aspx?text=1` all fail).
+
+**Why we stop there rather than OCR it:** Sherwood FY2019 is the precedent — an
+OCR'd ACFR in this same set renders "Shenruood, Oregon", turns thousands separators
+into periods, and corrupts digits *inside* amounts (`2J69,082`, `6ee'750`). Those
+figures cannot be recovered without guessing, and guessing at dollar amounts on a
+public-finance site is the exact failure this project guards against. Tigard stays
+at FY2022–FY2025.
+
+Scanned-document doc ids, if this is ever revisited: 2012=576686, 2013=658119,
+2014=678878, 2015=745890, 2016=798815, 2017=835038, 2018=881910, 2019=984973,
+2020=1036051, 2021=1036046, 2003=300341.
 
 **Sherwood FY2019 is deliberately excluded.** That year's PDF is a scan/OCR, not
 digital text: the statement reads "Shenruood, Oregon", renders thousands separators
