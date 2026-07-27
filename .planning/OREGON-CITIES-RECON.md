@@ -339,6 +339,24 @@ The three decisions this brief opened were resolved as:
    finds no pre-FY2014 ACFR under any naming convention. Bend's two gaps are
    genuine: FY2015 was never published, and FY2005/FY2007 are pure scans with no
    text layer on any page.
-3. **`extractGresham.py` is only tie-gated for `operating`.** Revenue and
-   requirements modes have no printed total that ties to what they return, so a
-   comparable mis-parse there would not be caught automatically.
+3. ~~`extractGresham.py` is only tie-gated for `operating`~~ — **DONE, and the
+   missing gates were hiding a real error.** The claim that revenue and
+   requirements had no printed total to tie against was wrong; the arithmetic was
+   never attempted. Revenue ties to `Total Resources` − `Beginning Balance`
+   (Beginning Balance is the only Resources row that mode excludes, so the
+   subtraction is exact) and requirements ties to `Non-Operating Total`. All three
+   modes now share one `assert_tie()`.
+
+   Turning the requirements gate on immediately failed FY2023: that PDF prints the
+   row as `Interfund Transfers` where FY2024+ print `Transfers`, only the short
+   form was whitelisted, and so $83,157,453 was dropped — FY2023 had loaded
+   $379,166,971 against a printed $462,324,424. Fixed by normalizing the label
+   (same pattern as the revenue `NORMALIZE` map) and reloaded with
+   `--allow-total-change`; the other 11 FY×mode totals were already correct and
+   did not move.
+
+   One `SOURCE_ROUNDING` entry was needed: FY2026 revenue is off $1,040,000
+   because that page's own `Total Resources` cell ($896,226,615) contradicts both
+   its eleven Resources rows and its `Total Requirements` ($897,266,615), which
+   agree with each other. Exact-delta registry, not a tolerance — same convention
+   as `CityConfig.source_rounding` in `scripts/lib/acfrGF.py`.

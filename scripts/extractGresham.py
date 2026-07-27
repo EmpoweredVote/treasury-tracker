@@ -2,13 +2,20 @@
 """
 Gresham Budget PDF Extractor
 
-Extracts department-level operating budget from the 'Resources and Requirements
+Extracts department-level operating budget, Resources (revenue) categories, or
+non-operating Requirements categories from the 'Resources and Requirements
 - All Funds' page using pdfplumber text-line parsing (NOT extract_tables).
 
 Amounts are in full dollars (no thousands multiplication).
 
+Every mode is gated by an exact tie against a total the page prints itself —
+see assert_tie() and ORACLES below. A mode that cannot tie exits non-zero, and
+processGresham.js treats that as a thrown error, so mis-parsed figures cannot
+reach the database.
+
 Usage:
   python scripts/extractGresham.py "docs/Gresham/fy2025-26.pdf"
+  python scripts/extractGresham.py "docs/Gresham/fy2025-26.pdf" --mode revenue
 """
 
 import sys
@@ -75,6 +82,90 @@ def adopted_from_tokens(num_tokens):
             and re.match(r'^\d{1,3},', num_tokens[-1])):
         raw = num_tokens[-2] + num_tokens[-1]
     return parse_money(raw)
+
+
+# ── Correctness oracles ───────────────────────────────────────────────────────
+# Every mode returns a set of rows whose sum equals a total the All Funds page
+# prints itself. Checking against that printed figure turns a silent mis-parse
+# into a hard failure — without it, the FY2023 leading-digit truncation produced
+# a plausible-looking $59,306,991 operating total that the loader accepted and
+# reported as success.
+#
+#   operating     departments                 == 'Operating Total'
+#   revenue       Resources categories        == 'Total Resources' - 'Beginning Balance'
+#                                                (revenue excludes Beginning Balance,
+#                                                 which is prior-year carry-forward,
+#                                                 not revenue)
+#   requirements  non-operating categories    == 'Non-Operating Total'
+#
+# HISTORY: this file previously asserted that only `operating` had an exact
+# oracle, on the grounds that 'Total Resources' includes Beginning Balance and
+# that 'Non-Operating Total' did not equal the six whitelisted requirements
+# categories. The first is true but trivially correctable by subtraction; the
+# second was simply wrong — it did not tie only because the whitelist was
+# MISSING a category. FY2023 prints that row as 'Interfund Transfers' where
+# FY2024+ print 'Transfers', so $83,157,453 of FY2023 non-operating spending was
+# dropped on the floor and the stored total sat at $379,166,971 against a printed
+# $462,324,424. Two of three modes were unguarded because of a note that talked
+# itself out of checking; the arithmetic was never actually attempted.
+
+# {(mode, fiscal_year): exact_delta} for city-years where the SOURCE's own
+# printed total disagrees with the sum of its own printed components.
+#
+# Deliberately NOT a tolerance. A blanket "allow small deltas" rule would let a
+# genuine mis-parse through; an exact-delta registry cannot. Same convention as
+# CityConfig.source_rounding in scripts/lib/acfrGF.py.
+#
+# FY2026 revenue: the page prints Total Resources $896,226,615, but its eleven
+# Resources rows (including Beginning Balance) add up to $897,266,615 — and so
+# does the same page's Total Requirements, which is built from an entirely
+# separate set of rows (Operating Total $330,652,078 + Non-Operating Total
+# $566,614,537). Two independent aggregates agree on $897,266,615; the printed
+# Total Resources cell is the outlier, so the $1,040,000 sits in that one cell.
+# Verified by adding the printed rows by hand. The emitted total is always the
+# COMPONENT SUM, never the printed total, so loaded rows still tie internally.
+SOURCE_ROUNDING = {
+    ('revenue', 2026): 1_040_000,
+}
+
+
+def assert_tie(mode, rows, printed, oracle_label):
+    """Exit non-zero unless `rows` sum exactly to the page's own `printed` total.
+
+    `printed` is None when the oracle row was not found on the page — that is a
+    loud warning rather than a failure, because a missing total row means the
+    check could not run, not that the rows are wrong.
+
+    A delta registered in SOURCE_ROUNDING for this (mode, fiscal_year) is
+    accepted if and only if it matches EXACTLY; anything else — including the
+    same year drifting to a different delta — still fails.
+    """
+    if not rows:
+        return
+    fiscal_year = rows[0]['fiscal_year']
+    if printed is None:
+        print(f'  WARNING ({mode} FY{fiscal_year}): no printed "{oracle_label}" row found '
+              f'— sum unverified', file=sys.stderr)
+        return
+
+    computed = sum(r['adopted_amount'] for r in rows)
+    delta = computed - printed
+    if delta == 0:
+        return
+
+    accepted = SOURCE_ROUNDING.get((mode, fiscal_year))
+    if accepted is not None and accepted == delta:
+        print(f'  NOTE ({mode} FY{fiscal_year}): rows sum to {computed:,} but the page prints '
+              f'{oracle_label} {printed:,}, a difference of {delta:+,} — accepted as a '
+              f'registered source discrepancy. Using the component sum.', file=sys.stderr)
+        return
+
+    print(f'  TIE FAILURE ({mode} FY{fiscal_year}): rows sum to {computed:,} but the page '
+          f'prints {oracle_label} {printed:,} (delta {delta:,})', file=sys.stderr)
+    for r in rows:
+        print(f"    {r.get('department') or r.get('category')}: {r['adopted_amount']:,}",
+              file=sys.stderr)
+    sys.exit(1)
 
 # ── Parse fiscal year from column header line ─────────────────────────────────
 def parse_fy_from_header(header_line):
@@ -191,34 +282,8 @@ def extract_budget(pdf_path):
         print(f'  WARNING: {len(none_fy)} rows have None fiscal_year — check PDF header',
               file=sys.stderr)
 
-    # ── Correctness oracle: departments must sum to the printed Operating Total ──
-    # The All Funds page prints its own 'Operating Total' row, which is exactly the
-    # sum of the department rows this function returns. Checking against it turns a
-    # silent mis-parse into a hard failure. Without this gate the FY2023
-    # leading-digit truncation produced a plausible-looking $59,306,991 that the
-    # loader accepted and reported as success.
-    #
-    # Exits non-zero on mismatch; processGresham.js treats a non-zero exit as a
-    # thrown error and aborts, so bad figures can never reach the database.
-    #
-    # NOTE: only `operating` has an exact oracle. 'Total Resources' includes
-    # Beginning Balance (which extract_revenue excludes) and 'Non-Operating Total'
-    # does not equal the six whitelisted categories in extract_requirements, so
-    # neither of those modes has a printed row that ties to what it returns.
-    if results:
-        if printed_operating_total is None:
-            print('  WARNING: no printed "Operating Total" row found — sum unverified',
-                  file=sys.stderr)
-        else:
-            computed = sum(r['adopted_amount'] for r in results)
-            delta = computed - printed_operating_total
-            if delta != 0:
-                print(f'  TIE FAILURE (operating): departments sum to {computed:,} but the '
-                      f'page prints Operating Total {printed_operating_total:,} '
-                      f'(delta {delta:,})', file=sys.stderr)
-                for r in results:
-                    print(f"    {r['department']}: {r['adopted_amount']:,}", file=sys.stderr)
-                sys.exit(1)
+    # Departments must sum to the printed 'Operating Total' (see assert_tie).
+    assert_tie('operating', results, printed_operating_total, 'Operating Total')
 
     return results
 
@@ -244,6 +309,8 @@ def extract_revenue(pdf_path):
     }
 
     results = []
+    printed_total_resources   = None
+    printed_beginning_balance = None
     with pdfplumber.open(pdf_path) as pdf:
         for page_num, page in enumerate(pdf.pages, 1):
             text = page.extract_text() or ''
@@ -304,6 +371,12 @@ def extract_revenue(pdf_path):
                 if not name_tokens or len(num_tokens) < 6:
                     continue
                 category = re.sub(r'\s+', ' ', ' '.join(name_tokens)).strip()
+                # Capture the two skipped sum/carry-forward rows BEFORE discarding
+                # them — their difference is this mode's oracle (see assert_tie).
+                if category == 'Total Resources':
+                    printed_total_resources = adopted_from_tokens(num_tokens)
+                elif category == 'Beginning Balance':
+                    printed_beginning_balance = adopted_from_tokens(num_tokens)
                 if category in REVENUE_SKIP:
                     continue
                 # Adopted amount = last column.
@@ -330,6 +403,15 @@ def extract_revenue(pdf_path):
         print(f'  WARNING: {len(none_fy)} rows have None fiscal_year — check PDF header',
               file=sys.stderr)
 
+    # Revenue categories must sum to 'Total Resources' less 'Beginning Balance'.
+    # Beginning Balance is prior-year carry-forward, not revenue, so it is the only
+    # Resources row this mode excludes — which makes the subtraction exact rather
+    # than an approximation. Both rows are required to form the oracle; if either
+    # is missing, pass None so assert_tie warns instead of comparing to a bad figure.
+    oracle = (None if printed_total_resources is None or printed_beginning_balance is None
+              else printed_total_resources - printed_beginning_balance)
+    assert_tie('revenue', results, oracle, 'Total Resources - Beginning Balance')
+
     return results
 
 
@@ -340,6 +422,21 @@ def extract_revenue(pdf_path):
 REQUIREMENTS_CATEGORIES = {
     'Capital Improvement', 'Debt Service', 'Transfers', 'Contingency',
     'Other Requirements', 'Unappropriated',
+}
+
+# Canonicalize FY2023's spelling to the FY2024+ one, exactly as extract_revenue's
+# NORMALIZE does for 'Internal Service Charges' -> 'Internal Svc Chrg'. Applied
+# BEFORE the whitelist test, so REQUIREMENTS_CATEGORIES stays canonical.
+#
+# FY2023 prints this row as 'Interfund Transfers' (matching the Resources-side
+# label, same amount: $83,157,453); FY2024, FY2025 and FY2026 all print
+# 'Transfers'. Because only the short form was whitelisted, the row was silently
+# dropped from FY2023 and that year loaded $379,166,971 against a printed
+# Non-Operating Total of $462,324,424. Normalizing to 'Transfers' also keeps the
+# category comparable year-over-year in the UI instead of splitting one line item
+# across two labels.
+REQUIREMENTS_NORMALIZE = {
+    'Interfund Transfers': 'Transfers',
 }
 
 def extract_requirements(pdf_path):
@@ -358,6 +455,7 @@ def extract_requirements(pdf_path):
     Amounts are in full dollars (no multiply-by-1000).
     """
     results = []
+    printed_non_operating_total = None
     with pdfplumber.open(pdf_path) as pdf:
         for page_num, page in enumerate(pdf.pages, 1):
             text = page.extract_text() or ''
@@ -415,6 +513,11 @@ def extract_requirements(pdf_path):
                 if not name_tokens or len(num_tokens) < 6:
                     continue
                 category = re.sub(r'\s+', ' ', ' '.join(name_tokens)).strip()
+                # Capture the printed sum row BEFORE the whitelist discards it — it
+                # is this mode's oracle (see assert_tie).
+                if category == 'Non-Operating Total':
+                    printed_non_operating_total = adopted_from_tokens(num_tokens)
+                category = REQUIREMENTS_NORMALIZE.get(category, category)
                 # Whitelist: skip department rows and sum rows automatically
                 if category not in REQUIREMENTS_CATEGORIES:
                     continue
@@ -439,6 +542,11 @@ def extract_requirements(pdf_path):
     if none_fy:
         print(f'  WARNING: {len(none_fy)} rows have None fiscal_year — check PDF header',
               file=sys.stderr)
+
+    # The whitelisted categories are exactly the non-operating block, so they must
+    # sum to the printed 'Non-Operating Total'. This is what catches a year that
+    # renames one of them (the FY2023 'Interfund Transfers' case above).
+    assert_tie('requirements', results, printed_non_operating_total, 'Non-Operating Total')
 
     return results
 
