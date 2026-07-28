@@ -32,13 +32,13 @@
 - ✅ **v2.17 Tucson, AZ City Onboarding** — Phases 128-130 (shipped 2026-07-11)
 - ✅ **v2.18 Pima County Municipalities — TT Budget Parity** — Phases 131-133 (shipped 2026-07-17)
 - ✅ **v2.19 Banner Info-Row + CTC Tether** — Phase 134 (shipped 2026-07-21)
-- 🔄 **v2.20 Madison, WI + Dane County Onboarding** — Phases 135-137 (started 2026-07-27)
+- ✅ **v2.20 Madison, WI + Dane County Onboarding** — Phases 135-137 (shipped 2026-07-28) — archived: `milestones/v2.20-*`
 
 ---
 
 ## Phases
 
-### 🔄 v2.20 Madison, WI + Dane County Onboarding (Phases 135–137) — ACTIVE, started 2026-07-27
+### ✅ v2.20 Madison, WI + Dane County Onboarding (Phases 135–137) — SHIPPED 2026-07-28 · archived to `milestones/v2.20-*`
 
 **Milestone goal:** Bring the **City of Madison, WI** and **Dane County, WI** onto Treasury Tracker at parity — revenue-by-source (Money In) + expenditure-by-function for **CY2020–CY2024**, per-capita, bleed-safe enriched, every figure durably sourced — beneath a new **Dane County** navigation node under the existing Wisconsin state node.
 
@@ -1637,4 +1637,4 @@ Hardened the bulk loader into a documented one-command SoCal county pipeline; lo
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-07-27 — **v2.20 Madison, WI + Dane County Onboarding STARTED** (Phases 135-137; Madison + Dane County from the WI DOR CMREB statewide workbook, CY2020-2024, ~20 budget rows; statewide fan-out deferred to WI-CITIES-01). Supersedes the prior "no active milestone" state (v2.19 / Phase 134 shipped 2026-07-21). Remaining candidates: VOTES-01, SRCSTD-01. (Note: the Progress table below is a deprecated artifact last maintained at v2.2 / Phase 57 — the Milestones list at top + milestones/ archives are authoritative for v2.3+.)*
+*Last updated: 2026-07-28 — **v2.20 Madison, WI + Dane County Onboarding SHIPPED** (Phases 135-137, archived to `milestones/v2.20-*`; 20 budget rows re-derived at $0, TT's first deliberately unaudited source, labelled as such). **NO active milestone** — next candidates: VOTES-01, SRCSTD-01 (sharpened by this milestone: TT has no per-row audit grade, so an "audited only" view is impossible today), WI-CITIES-01 (statewide fan-out, ~2,600 rows; wants ACFR spot-checks across size bands first). (Note: the Progress table below is a deprecated artifact last maintained at v2.2 / Phase 57 — the Milestones list at top + milestones/ archives are authoritative for v2.3+.)*
