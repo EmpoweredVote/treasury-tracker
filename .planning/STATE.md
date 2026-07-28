@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v2.20
 milestone_name: Madison, WI + Dane County Onboarding
-status: Milestone created — Phase 135 not yet planned
-stopped_at: v2.20 created from .planning/MADISON-WI-SCOPING.md (MAD-01..09 written; no phase planned yet)
+status: Phase 135 complete — ready for Phase 136 (seed + load)
+stopped_at: Phase 135 complete (MAD-01 verdict = CMREB labelled unaudited; loadWICMREB.js + 14 tests; no DB writes yet)
 last_updated: "2026-07-27T00:00:00.000Z"
 last_activity: 2026-07-27
-last_activity_desc: Milestone v2.20 created (Phases 135-137); source recon verified (86,472 tie checks, 0 failures)
+last_activity_desc: Phase 135 executed — MAD-01/02/03 complete, 10/10 entity-years tie, 1921/1921 statewide sweep
 progress:
   total_phases: 3
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 0
   completed_plans: 0
-  percent: 0
+  percent: 33
 ---
 
 # State
@@ -26,16 +26,16 @@ See: .planning/PROJECT.md (updated 2026-07-16 — v2.18 Pima County Municipaliti
 
 ## Current Position
 
-Phase: 135 — Recon + Loader (not yet planned)
+Phase: 136 — Seed + Load + Enrichment (not yet started)
 Plan: —
-Status: Milestone created; ready for `/gsd-plan-phase 135`
-Last activity: 2026-07-27 — Milestone v2.20 created (Phases 135-137) from `.planning/MADISON-WI-SCOPING.md`
+Status: Phase 135 complete; ready for Phase 136
+Last activity: 2026-07-27 — Phase 135 executed (see .planning/phases/135-recon-loader/135-SUMMARY.md)
 
 ## Phase Overview — v2.20 Madison, WI + Dane County Onboarding
 
 | Phase | Name | Requirements | Depends on | Status |
 |-------|------|--------------|------------|--------|
-| 135 | Recon + Loader | MAD-01, MAD-02, MAD-03 | — | ○ Not started |
+| 135 | Recon + Loader | MAD-01, MAD-02, MAD-03 | — | ✅ Executed (10/10 tie; 14/14 tests) |
 | 136 | Seed + Load + Enrichment | MAD-04, MAD-05, MAD-06, MAD-07 | 135 | ○ Not started |
 | 137 | Verification + Live UAT | MAD-08, MAD-09 | 135, 136 | ○ Not started |
 
