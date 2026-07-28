@@ -1,18 +1,18 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.19
-milestone_name: Banner Info-Row + CTC Tether
-status: Awaiting next milestone
-stopped_at: Completed 133-03-PLAN.md (v2.18 milestone verification closed — PIMA-07/08/09 all pass)
-last_updated: "2026-07-21T23:42:12.188Z"
-last_activity: 2026-07-21
-last_activity_desc: Milestone v2.19 completed and archived
+milestone: v2.20
+milestone_name: Madison, WI + Dane County Onboarding
+status: Milestone created — Phase 135 not yet planned
+stopped_at: v2.20 created from .planning/MADISON-WI-SCOPING.md (MAD-01..09 written; no phase planned yet)
+last_updated: "2026-07-27T00:00:00.000Z"
+last_activity: 2026-07-27
+last_activity_desc: Milestone v2.20 created (Phases 135-137); source recon verified (86,472 tie checks, 0 failures)
 progress:
-  total_phases: 1
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
-  percent: 100
+  total_phases: 3
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # State
@@ -22,24 +22,37 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-16 — v2.18 Pima County Municipalities STARTED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** Milestone complete
+**Current focus:** v2.20 — Madison, WI + Dane County onboarding from the WI DOR CMREB statewide workbook
 
 ## Current Position
 
-Phase: Milestone v2.19 complete
+Phase: 135 — Recon + Loader (not yet planned)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-07-21 — Milestone v2.19 completed and archived
+Status: Milestone created; ready for `/gsd-plan-phase 135`
+Last activity: 2026-07-27 — Milestone v2.20 created (Phases 135-137) from `.planning/MADISON-WI-SCOPING.md`
 
-## Phase Overview — v2.18 Pima County Municipalities — TT Budget Parity
+## Phase Overview — v2.20 Madison, WI + Dane County Onboarding
+
+| Phase | Name | Requirements | Depends on | Status |
+|-------|------|--------------|------------|--------|
+| 135 | Recon + Loader | MAD-01, MAD-02, MAD-03 | — | ○ Not started |
+| 136 | Seed + Load + Enrichment | MAD-04, MAD-05, MAD-06, MAD-07 | 135 | ○ Not started |
+| 137 | Verification + Live UAT | MAD-08, MAD-09 | 135, 136 | ○ Not started |
+
+**Critical path:** 135 → 136 → 137. Madison + Dane County onto TT from the **WI DOR CMREB statewide workbook** (`CMREB<YYYY>.xlsx`, free/no-auth, all 1,921 WI municipalities + 72 counties, CY2020–CY2024) — a bulk source in the Ohio-AOS mold, so this clones `loadOhioAOS.js` and needs **no PDF extractor**. A 2026-07-27 probe verified an exact built-in tie gate: nine printed-subtotal identities re-derived against components across **9,608 rows × 5 years = 86,472 checks, 0 failures**. Phase 135 reconciles Madison's CMREB figures against the city's own FY2024 ACFR, settles the basis verdict (§4 of the scoping brief) with written evidence, and builds `loadWICMREB.js` with the nine-identity gate + generic `--entity-type city|county` / per-muni selection so the deferred statewide fan-out is a flag flip. Phase 136 seeds Madison + **Dane County as a full entity** (not nav-only like Pima — the `Counties` sheet carries its own data), loads 20 rows via source-safe `treasury_sync_budget_tree`, labels provenance honestly as **unaudited self-reported MFR data** (MAD-06), and enriches to 100% bleed-safe. Phase 137 = blind re-derivation of all 20 rows from the workbook → source-chain audit → tether check → Chris UAT. **Constraints:** free XLSX only ($0 / $5 AI gate); **all-governmental-funds** basis as the source defines it (not GF-only); calendar-year FY; source-safe never-overwrite; executed inline (no subagents). **Watch:** this is the first **unaudited** city in TT — labelling is a requirement, not a nicety; collision risk with existing `Madison, MN` / `Madison County, OH` / `Madison County, VA` rows. **Deferred:** statewide fan-out (WI-CITIES-01), villages/towns (WI-TOWNS-01), Madison ACFR deepening to FY2015 (MAD-ACFR-01), pre-2020 history, salaries.
+
+<details>
+<summary>Previous milestone — v2.18 Pima County Municipalities (shipped 2026-07-17)</summary>
 
 | Phase | Name | Requirements | Depends on | Status |
 |-------|------|--------------|------------|--------|
 | 131 | Recon + Extractors | PIMA-01, PIMA-02, PIMA-03 | — | ✅ Executed (44/44 ties $0) |
 | 132 | Data Model + Load + Enrichment | PIMA-04, PIMA-05, PIMA-06 | 131 | ✅ Executed (44 rows, $0 re-derive, 100% enrich) |
-| 133 | Verification + Live UAT | PIMA-07, PIMA-08, PIMA-09 | 131, 132 | ○ Not started |
+| 133 | Verification + Live UAT | PIMA-07, PIMA-08, PIMA-09 | 131, 132 | ✅ Executed (Chris UAT 34/34) |
 
 **Critical path:** 131 → 132 → 133. A 4-municipality onboarding (Oro Valley, Marana, Sahuarita, South Tucson) on the proven Tucson pipeline (`seedTucsonArizona.js` → `extractTucson.py` → `processTucson.js`), all linked under the **existing Pima County node** (no new county node). Phase 131 enumerates each municipality's published ACFR years, pins durable per-year URLs, proves clean `pdftotext -table` extraction of the **General Fund** column (bookend-tie $0), locks each clean window, **resolves South Tucson's source (ACFR vs AZ Auditor General AFR) with an explicit verdict**, and builds/extends the extractor. Phase 132 seeds each municipality + links to Pima County (breadcrumb + Cities-in-County panel alongside Tucson), loads GF operating + revenue via source-safe `treasury_sync_budget_tree` (never-overwrite, durable `source_url`+`source_date`, per-capita, Money In auto-enable), and enriches to 100% bleed-safe coverage. Phase 133 = loader-independent blind re-derivation ($0 delta) → source-chain audit (0 residue) → Chris live UAT → confirm the v2.16 Essentials tether icon on each new banner (PIMA-09; cross-repo coverage gap documented if absent). **Constraints:** free ACFR PDFs only ($0 / $5 AI gate); **General Fund** basis (all-funds deferred); source-safe never-overwrite; every figure durably sourced; executed inline (no subagents). **Recon-gated:** South Tucson (~5,600 pop) may need a source exception or defer. **Deferred:** Pima County's own budget (nav node only), all-funds view, salaries, Maricopa/other AZ cities.
+
+</details>
 
 ## Deferred Items
 

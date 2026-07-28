@@ -32,10 +32,31 @@
 - ✅ **v2.17 Tucson, AZ City Onboarding** — Phases 128-130 (shipped 2026-07-11)
 - ✅ **v2.18 Pima County Municipalities — TT Budget Parity** — Phases 131-133 (shipped 2026-07-17)
 - ✅ **v2.19 Banner Info-Row + CTC Tether** — Phase 134 (shipped 2026-07-21)
+- 🔄 **v2.20 Madison, WI + Dane County Onboarding** — Phases 135-137 (started 2026-07-27)
 
 ---
 
 ## Phases
+
+### 🔄 v2.20 Madison, WI + Dane County Onboarding (Phases 135–137) — ACTIVE, started 2026-07-27
+
+**Milestone goal:** Bring the **City of Madison, WI** and **Dane County, WI** onto Treasury Tracker at parity — revenue-by-source (Money In) + expenditure-by-function for **CY2020–CY2024**, per-capita, bleed-safe enriched, every figure durably sourced — beneath a new **Dane County** navigation node under the existing Wisconsin state node.
+
+**Source is a statewide bulk XLSX, not a per-city PDF.** WI DOR *County and Municipal Revenues and Expenditures* (Bulletin 124, `CMREB<YYYY>.xlsx`, free/no-auth) covers all 190 cities, 417 villages, 1,242 towns and 72 counties. A 2026-07-27 probe re-derived nine printed-subtotal identities against their components across **9,608 rows × 5 years = 86,472 checks, zero failures** — an exact tie gate available from day one. Clones the `loadOhioAOS.js` playbook (flat rev/exp trees, D-04b exclusion of Other Financing Sources/Uses); **no PDF extractor needed**. Recon + verified column map: `.planning/MADISON-WI-SCOPING.md`. Requirements: `.planning/REQUIREMENTS.md` (MAD-01..09).
+
+**Locked decisions:** Madison + Dane **only** (statewide fan-out deferred to `WI-CITIES-01`, loader written so it is a flag flip) · Dane County is a **full entity with its own budget rows**, not nav-only like Pima · basis = **all governmental funds** as the source defines them, not GF-only · **calendar-year** FY · provenance is **unaudited self-reported MFR data** and must be labelled as such — the first non-audited city in TT.
+
+| Phase | Name | Requirements | Depends on | Status |
+|-------|------|--------------|------------|--------|
+| 135 | Recon + Loader | MAD-01, MAD-02, MAD-03 | — | ○ Not started |
+| 136 | Seed + Load + Enrichment | MAD-04, MAD-05, MAD-06, MAD-07 | 135 | ○ Not started |
+| 137 | Verification + Live UAT | MAD-08, MAD-09 | 135, 136 | ○ Not started |
+
+- [ ] Phase 135: Recon + Loader — reconcile Madison CMREB vs its own FY2024 ACFR and settle the basis verdict; build `loadWICMREB.js` with the nine-identity gate; $0-tie dry-runs
+- [ ] Phase 136: Seed + Load + Enrichment — seed Madison + Dane County, load 20 rows (2 entities × 5 years × 2 datasets), honest unaudited provenance labelling, 100% bleed-safe enrichment
+- [ ] Phase 137: Verification + Live UAT — blind re-derivation of all 20 rows from the workbook, source-chain audit, tether check, Chris UAT
+
+---
 
 <details>
 <summary>✅ v2.19 Banner Info-Row + CTC Tether (Phase 134) — SHIPPED 2026-07-21 (full detail in milestones/v2.19-ROADMAP.md)</summary>
@@ -1616,4 +1637,4 @@ Hardened the bulk loader into a documented one-command SoCal county pipeline; lo
 ---
 
 *Roadmap created: 2026-04-21*
-*Last updated: 2026-07-17 — v2.18 Pima County Municipalities — TT Budget Parity shipped (Phases 131-133; Oro Valley/Marana/Sahuarita/South Tucson at city parity under the existing Pima County node, 44 budgets rows). No active milestone. Next: `/gsd-new-milestone` (candidates: VOTES-01, SRCSTD-01). (Note: the Progress table below is a deprecated artifact last maintained at v2.2 / Phase 57 — the Milestones list at top + milestones/ archives are authoritative for v2.3+.)*
+*Last updated: 2026-07-27 — **v2.20 Madison, WI + Dane County Onboarding STARTED** (Phases 135-137; Madison + Dane County from the WI DOR CMREB statewide workbook, CY2020-2024, ~20 budget rows; statewide fan-out deferred to WI-CITIES-01). Supersedes the prior "no active milestone" state (v2.19 / Phase 134 shipped 2026-07-21). Remaining candidates: VOTES-01, SRCSTD-01. (Note: the Progress table below is a deprecated artifact last maintained at v2.2 / Phase 57 — the Milestones list at top + milestones/ archives are authoritative for v2.3+.)*
