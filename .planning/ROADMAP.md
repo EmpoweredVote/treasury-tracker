@@ -49,11 +49,11 @@
 | Phase | Name | Requirements | Depends on | Status |
 |-------|------|--------------|------------|--------|
 | 135 | Recon + Loader | MAD-01, MAD-02, MAD-03 | — | ✅ Executed (10/10 entity-years tie; 1921/1921 sweep; 14/14 tests) |
-| 136 | Seed + Load + Enrichment | MAD-04, MAD-05, MAD-06, MAD-07 | 135 | ○ Not started |
+| 136 | Seed + Load + Enrichment | MAD-04, MAD-05, MAD-06, MAD-07 | 135 | ✅ Executed (20 rows, 300 cats, 0 unsourced, 27 enrichment, 100% coverage) |
 | 137 | Verification + Live UAT | MAD-08, MAD-09 | 135, 136 | ○ Not started |
 
 - [x] Phase 135: Recon + Loader — reconcile Madison CMREB vs its own FY2024 ACFR and settle the basis verdict; build `loadWICMREB.js` with the nine-identity gate; $0-tie dry-runs
-- [ ] Phase 136: Seed + Load + Enrichment — seed Madison + Dane County, load 20 rows (2 entities × 5 years × 2 datasets), honest unaudited provenance labelling, 100% bleed-safe enrichment
+- [x] Phase 136: Seed + Load + Enrichment — seed Madison + Dane County, load 20 rows (2 entities × 5 years × 2 datasets), honest unaudited provenance labelling, 100% bleed-safe enrichment
 - [ ] Phase 137: Verification + Live UAT — blind re-derivation of all 20 rows from the workbook, source-chain audit, tether check, Chris UAT
 
 ---

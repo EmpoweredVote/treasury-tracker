@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v2.20
 milestone_name: Madison, WI + Dane County Onboarding
-status: Phase 135 complete — ready for Phase 136 (seed + load)
-stopped_at: Phase 135 complete (MAD-01 verdict = CMREB labelled unaudited; loadWICMREB.js + 14 tests; no DB writes yet)
+status: Phase 136 complete — ready for Phase 137 (verification + UAT)
+stopped_at: Phase 136 complete (Madison + Dane County LIVE: 20 budget rows, 300 categories, 27 enrichment rows, 0 unsourced)
 last_updated: "2026-07-27T00:00:00.000Z"
 last_activity: 2026-07-27
-last_activity_desc: Phase 135 executed — MAD-01/02/03 complete, 10/10 entity-years tie, 1921/1921 statewide sweep
+last_activity_desc: Phase 136 executed — MAD-04..07 complete, Madison + Dane County live and enriched
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 0
   completed_plans: 0
-  percent: 33
+  percent: 67
 ---
 
 # State
@@ -26,17 +26,17 @@ See: .planning/PROJECT.md (updated 2026-07-16 — v2.18 Pima County Municipaliti
 
 ## Current Position
 
-Phase: 136 — Seed + Load + Enrichment (not yet started)
+Phase: 137 — Verification + Live UAT (not yet started)
 Plan: —
-Status: Phase 135 complete; ready for Phase 136
-Last activity: 2026-07-27 — Phase 135 executed (see .planning/phases/135-recon-loader/135-SUMMARY.md)
+Status: Phase 136 complete; ready for Phase 137
+Last activity: 2026-07-27 — Phase 136 executed (see .planning/phases/136-seed-load-enrichment/136-SUMMARY.md)
 
 ## Phase Overview — v2.20 Madison, WI + Dane County Onboarding
 
 | Phase | Name | Requirements | Depends on | Status |
 |-------|------|--------------|------------|--------|
 | 135 | Recon + Loader | MAD-01, MAD-02, MAD-03 | — | ✅ Executed (10/10 tie; 14/14 tests) |
-| 136 | Seed + Load + Enrichment | MAD-04, MAD-05, MAD-06, MAD-07 | 135 | ○ Not started |
+| 136 | Seed + Load + Enrichment | MAD-04, MAD-05, MAD-06, MAD-07 | 135 | ✅ Executed (20 rows live, 100% enriched) |
 | 137 | Verification + Live UAT | MAD-08, MAD-09 | 135, 136 | ○ Not started |
 
 **Critical path:** 135 → 136 → 137. Madison + Dane County onto TT from the **WI DOR CMREB statewide workbook** (`CMREB<YYYY>.xlsx`, free/no-auth, all 1,921 WI municipalities + 72 counties, CY2020–CY2024) — a bulk source in the Ohio-AOS mold, so this clones `loadOhioAOS.js` and needs **no PDF extractor**. A 2026-07-27 probe verified an exact built-in tie gate: nine printed-subtotal identities re-derived against components across **9,608 rows × 5 years = 86,472 checks, 0 failures**. Phase 135 reconciles Madison's CMREB figures against the city's own FY2024 ACFR, settles the basis verdict (§4 of the scoping brief) with written evidence, and builds `loadWICMREB.js` with the nine-identity gate + generic `--entity-type city|county` / per-muni selection so the deferred statewide fan-out is a flag flip. Phase 136 seeds Madison + **Dane County as a full entity** (not nav-only like Pima — the `Counties` sheet carries its own data), loads 20 rows via source-safe `treasury_sync_budget_tree`, labels provenance honestly as **unaudited self-reported MFR data** (MAD-06), and enriches to 100% bleed-safe. Phase 137 = blind re-derivation of all 20 rows from the workbook → source-chain audit → tether check → Chris UAT. **Constraints:** free XLSX only ($0 / $5 AI gate); **all-governmental-funds** basis as the source defines it (not GF-only); calendar-year FY; source-safe never-overwrite; executed inline (no subagents). **Watch:** this is the first **unaudited** city in TT — labelling is a requirement, not a nicety; collision risk with existing `Madison, MN` / `Madison County, OH` / `Madison County, VA` rows. **Deferred:** statewide fan-out (WI-CITIES-01), villages/towns (WI-TOWNS-01), Madison ACFR deepening to FY2015 (MAD-ACFR-01), pre-2020 history, salaries.
