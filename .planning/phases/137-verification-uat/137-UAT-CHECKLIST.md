@@ -35,9 +35,9 @@ Per-capita divisors: Madison **291,037**, Dane **599,930**.
 
 15. Essentials + CTC tether icons present on Madison's banner? **Yes → tick. No → not a TT bug**; record as a cross-repo coverage gap (Madison, WI absent from the Essentials known-list), no TT code change.
 
-## Decision to make during this pass
+## Also confirm (fix applied 2026-07-28)
 
-16. **The source chip reads "· fetched 2024-12-31", which is false** — that is the period end; the file was fetched 2026-07-27. Affects **1,801 rows / 67 entities** app-wide, not just WI (Bend FY2006 claims "fetched 2006-06-30"). Proposed one-word fix in `SourceChip.tsx`: `· fetched {date}` → `· as of {date}`, plus the aria-label. **Apply now, defer to its own phase, or leave?**
+16. Source chips now read **"· as of 2024-12-31"**, not "· fetched". They previously claimed a retrieval date that was often impossible (Bend FY2006 said "fetched 2006-06-30") — **1,801 rows / 67 entities** app-wide. Spot-check one **federal** page too, since the same chip is used there.
 
 ---
 

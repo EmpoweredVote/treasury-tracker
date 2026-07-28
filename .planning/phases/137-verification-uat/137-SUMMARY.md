@@ -87,9 +87,9 @@ That asymmetry is worth stating plainly because it will recur across Wisconsin: 
 
 ---
 
-## Finding — the source chip claims a fetch date it cannot have
+## Finding — the source chip claimed a fetch date it cannot have — FIXED 2026-07-28
 
-**Not caused by this milestone; surfaced by its audit. Flagged, not fixed.**
+**Not caused by this milestone; surfaced by its audit. Flagged as a Chris decision, then fixed on request.**
 
 MAD-06 deliberately sets `source_date` to *the period described*, never the fetch date. The API maps that field to `data_source_info.fetchedAt`, and `SourceChip.tsx:28` renders it as:
 
@@ -99,9 +99,17 @@ The CY2024 workbook was fetched on 2026-07-27 and did not exist on 2024-12-31. T
 
 **Blast radius: 1,801 budget rows across 67 entities** have `source_date` on or before their own fiscal-year end — including Bend FY2006, whose chip claims it was "fetched 2006-06-30", the last day of the year the ACFR reports on. Wisconsin's 20 rows are a small part of it.
 
-For a project whose core value is that every displayed figure is real and sourced, a false provenance claim in the provenance UI is the wrong defect to carry. The minimal honest fix is one word — the value *is* a source date, so `· fetched {date}` → `· as of {date}` (plus the aria-label) is truthful for every source, federal included.
+For a project whose core value is that every displayed figure is real and sourced, a false provenance claim in the provenance UI is the wrong defect to carry.
 
-Not applied here: it changes visible copy across the whole app including the federal surface, and Phase 136's precedent is to flag pre-existing defects and let Chris call it. **Recommend deciding at MAD-09 UAT.**
+**Applied** (Chris's call, 2026-07-28) — the value *is* a source date, so:
+
+- `SourceChip.tsx` — `· fetched {date}` → **`· as of {date}`**, and the same correction in the `aria-label`, so screen readers get the truthful string too.
+- Both doc comments rewritten. The old one — *"ISO date or timestamp of when the data was fetched from the source"* — is how the bug got written in the first place; the replacement states the field is a period-end/publication date and cites the Bend FY2006 case, so the next reader can't repeat it.
+- `types/budget.ts` — noted that the API's `fetchedAt` field name is historical and carries `budgets.source_date`.
+
+Truthful for every source, federal included: nothing else in `src/` rendered "fetched". No data change — the stored dates were always right, only the word describing them was wrong. `tsc --noEmit` clean, 35/35 tests pass. (`npm run lint` is a known-broken gate in this repo and was not used.)
+
+**Left alone deliberately:** the prop is still named `fetchDate` and the API field is still `fetchedAt`. Renaming them is a ~10-call-site mechanical change plus an API-repo change, and it is the trap that produced this bug — worth doing, but as its own follow-up rather than widening a diff that lands right before UAT.
 
 ## Also noted (no action)
 

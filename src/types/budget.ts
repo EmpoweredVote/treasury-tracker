@@ -168,7 +168,9 @@ export interface BudgetData {
       displayName: string;
       url: string;
       datasetUrl?: string | null;  // exact dataset URL (federal source chips)
-      fetchedAt?: string | null;   // last sync timestamp
+      // API field name is historical: this is `budgets.source_date` — the date the
+      // figures are AS OF (period end / publication), not a retrieval timestamp.
+      fetchedAt?: string | null;
     } | null;
     datasetType?: string;
     // For salaries
