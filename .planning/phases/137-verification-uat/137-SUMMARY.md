@@ -1,7 +1,7 @@
 # Phase 137 — Verification + Live UAT: SUMMARY
 
-**Date:** 2026-07-28 · **Requirements:** MAD-08 ✅ · MAD-09 ⏸ OPEN (awaiting Chris)
-**DB writes:** none — this phase only reads and checks.
+**Date:** 2026-07-28 · **Requirements:** MAD-08 ✅ · MAD-09 ✅ (Chris, 14/16 on sight; the two exceptions resolved below)
+**DB writes:** none — this phase only reads and checks. One code change shipped: the source-chip copy fix.
 
 ## MAD-08 — blind re-derivation + source-chain audit ✅
 
@@ -118,15 +118,49 @@ Truthful for every source, federal included: nothing else in `src/` rendered "fe
 
 ---
 
-## MAD-09 — OPEN
+## MAD-09 — Chris UAT ✅ (2026-07-28)
 
-Requires Chris in the live app. Checklist ready: [`137-UAT-CHECKLIST.md`](137-UAT-CHECKLIST.md).
+**14 of 16 items passed on sight.** Two exceptions, both resolved below; neither is a data defect.
+
+### Item 15 — Essentials tether absent on Madison: confirmed cross-repo coverage gap, no TT change
+
+MAD-09 anticipated this outcome and permits it, provided the absence is *documented* rather than shrugged at. It is, and the cause is unambiguous — Essentials' own published catalog:
+
+```
+GET https://essentials.empowered.vote/coverage.json   (generatedAt 2026-07-28T05:16Z)
+  cities:   144  →  WI entries: 0
+  counties:  19  →  WI entries: 0
+  states:    50  →  WI: {"label":"Wisconsin","abbrev":"WI"}
+```
+
+Wisconsin exists in Essentials only as a **state**. There is no Madison, WI or Dane County, WI record, so there is nothing for TT to deep-link to and `essentialsCoverage.ts` correctly resolves `null`. **TT behaved exactly as designed** — the v2.16 contract says a missing catalog entry degrades to no icon so the hero banner always paints, and that is what happened.
+
+The fix belongs in the **Essentials** repo (`C:/transparent motivations/essentials`), not here: Madison, WI and Dane County, WI need coverage records before the reciprocal icon can appear. Logged as a follow-up. **No TT code change — per the requirement, this ticks.**
+
+### Item 16 — the corrected chip was not yet live
+
+Chris was reading production, where the chip still said "fetched": the fix was committed to `plan/v2.20-madison-wi`, and that branch was **nine commits ahead of `main` and never deployed**. Verified against the deployed bundle rather than assumed:
+
+```
+/assets/index-uaxYDfoY.js →  `· fetched ${l}`   (old string still shipping)
+```
+
+Shipped by merging the milestone branch to `main`; Netlify builds `main` and serves `dist`. Rebuild verified before pushing: **0 occurrences of `· fetched`, 2 of `· as of`**, aria-label reads `, as of ${l}`.
+
+> **Build note, not a defect.** `npm run build` failed locally on `SiteFooter is not exported by @empoweredvote/ev-ui` — a stale local `node_modules` pinned at **0.9.8** against a `^0.10.0` requirement. `package-lock.json` already resolves 0.10.0, so CI was never affected; `npm install` fixed it and the build passed. The resulting lock diff was pure `peer`-flag churn and was discarded rather than committed.
+
+## Follow-ups leaving this phase
+
+| # | item | where |
+|---|---|---|
+| 1 | **Madison, WI + Dane County, WI missing from Essentials coverage** — blocks the reciprocal tether icon | Essentials repo, not TT |
+| 2 | `fetchDate` prop / `fetchedAt` API field still named for a retrieval time they never carried — the trap that produced the chip defect | TT + EV-Accounts API |
+| 3 | **CMREB expenditure includes debt principal retired with borrowed money** in a refunding year (Dane CY2023: $180M debt service against $431M of excluded Other Financing Sources). Not a bug — GAAP governmental funds does the same — but it makes year-over-year reading misleading, and it will recur statewide | `WI-CITIES-01` |
+| 4 | Ohio county `OI_Demographics` column offsets still unverified (carried from Phase 136) | `loadOhioAOS.js` |
 
 ## Handoff
 
-MAD-08 signed. On MAD-09 sign-off: tick both requirements, close Phase 137, then the v2.20 milestone close (archive to `milestones/v2.20-*`, reset `REQUIREMENTS.md`, push + tag `v2.20`).
-
-Open decision carried into UAT: the `· fetched` → `· as of` chip fix.
+**Both requirements signed. Phase 137 complete, and with it v2.20** — Madison, WI and Dane County, WI are live, fully re-derived, honestly labelled as unaudited, and navigable under Dane County.
 
 ## Artifacts
 

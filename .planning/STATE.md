@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v2.20
 milestone_name: Madison, WI + Dane County Onboarding
-status: Phase 137 in progress — MAD-08 signed, MAD-09 (live UAT) awaiting Chris
-stopped_at: MAD-08 complete (20/20 rows Δ$0 blind re-derivation + clean source-chain audit); blocked on MAD-09 UAT
+status: v2.20 COMPLETE — all 3 phases executed, MAD-01..09 signed
+stopped_at: Phase 137 closed; Madison WI + Dane County live and verified
 last_updated: "2026-07-28T00:00:00.000Z"
 last_activity: 2026-07-28
-last_activity_desc: Phase 137 — MAD-08 verified and signed; UAT checklist written; one pre-existing app-wide source-chip defect flagged for a decision
+last_activity_desc: Phase 137 closed — MAD-08 (20/20 rows Δ$0) + MAD-09 (Chris UAT) signed; source-chip "fetched"→"as of" fix shipped
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 0
   completed_plans: 0
-  percent: 84
+  percent: 100
 ---
 
 # State
@@ -26,12 +26,14 @@ See: .planning/PROJECT.md (updated 2026-07-16 — v2.18 Pima County Municipaliti
 
 ## Current Position
 
-Phase: 137 — Verification + Live UAT (in progress)
+Phase: 137 — Verification + Live UAT ✅ **v2.20 COMPLETE**
 Plan: —
-Status: **MAD-08 ✅ signed** — 20/20 rows and every category re-derived at Δ$0 on an independent Python/openpyxl path; 5/5 source URLs live and byte-identical to what was loaded; source-chain audit clean (0 residue, 0 stale labels, 100% enrichment, scoped-over-universal enrichment confirmed through the production API). **MAD-09 ⏸ BLOCKED on Chris's live UAT** — checklist ready at `.planning/phases/137-verification-uat/137-UAT-CHECKLIST.md` (16 items, incl. the tether check).
-Last activity: 2026-07-28 — Phase 137 MAD-08 (see .planning/phases/137-verification-uat/137-SUMMARY.md)
+Status: **MAD-08 ✅** — 20/20 rows and every category re-derived at Δ$0 on an independent Python/openpyxl path (`scripts/rederiveWICMREB.py`); 5/5 source URLs live and byte-identical to what was loaded; audit clean (0 residue, 0 stale labels, 100% enrichment, scoped-over-universal confirmed through the production API). **MAD-09 ✅** — Chris signed 14/16 on sight; the two exceptions resolved (see below).
+Last activity: 2026-07-28 — Phase 137 closed (see .planning/phases/137-verification-uat/137-SUMMARY.md)
 
-**Fixed 2026-07-28 (Chris's call):** the source chip rendered `source_date` as "· fetched {date}", false wherever `source_date` is a period end — **1,801 rows across 67 entities** app-wide (Madison WI said "fetched 2024-12-31"; Bend FY2006 said "fetched 2006-06-30"). Pre-existing, not caused by v2.20. Now reads **"· as of {date}"** in both the visible chip and the aria-label, with the misleading doc comments rewritten. No data change; `tsc` clean, 35/35 tests pass. Follow-up left open: the prop is still `fetchDate` and the API field still `fetchedAt` — the naming that produced the bug.
+**UAT item 15 — Essentials tether absent on Madison = documented cross-repo gap, no TT change.** Essentials' published `coverage.json` (2026-07-28) carries **0 WI cities and 0 WI counties**; Wisconsin appears only as a state. TT correctly resolves `null` and paints no icon, exactly as the v2.16 contract specifies. Fix belongs in the Essentials repo. The requirement explicitly permits this outcome when documented — ticked.
+
+**UAT item 16 — source chip fixed and shipped.** It rendered `source_date` as "· fetched {date}", false wherever `source_date` is a period end — **1,801 rows across 67 entities** app-wide (Madison WI said "fetched 2024-12-31"; Bend FY2006 said "fetched 2006-06-30"). Pre-existing, not caused by v2.20. Now **"· as of {date}"** in the chip and the aria-label, misleading doc comments rewritten. Chris was reading production, where it was still wrong because the whole v2.20 branch was unmerged — shipped by merging to `main`. Follow-up: the prop is still `fetchDate` and the API field still `fetchedAt`, the naming that produced the bug.
 
 ## Phase Overview — v2.20 Madison, WI + Dane County Onboarding
 
