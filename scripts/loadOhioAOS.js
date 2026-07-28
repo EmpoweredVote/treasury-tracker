@@ -299,9 +299,30 @@ export function buildExpenditureTree(workbook, cityName, entityType = 'city') {
 
 // ── Population + County ───────────────────────────────────────────────────────
 /**
+ * Ohio's largest county is Franklin (~1.36M) and its largest city is Columbus
+ * (~915k). A "population" above this cannot be one, and in practice means a money
+ * column was read instead.
+ */
+export const MAX_PLAUSIBLE_POPULATION = 1_500_000;
+
+/**
  * Population for a city from the OI_Demographics tab.
  * Handles both GAAP and CASH/MOD layout offsets.
  * Returns null (not throw) if absent.
+ *
+ * IMPLAUSIBLE VALUES ARE REJECTED, not written. 18 of the 88 Ohio county rows had
+ * been loaded with a money figure in `population` — Ottawa County 106,432,166,
+ * Madison County 100,151,375 — because the OI_Demographics column offsets used
+ * here do not line up on the county workbooks (auto-memory
+ * project_ohio_aos_county_vs_city_layout: county workbooks use a different header
+ * row/cols/vocab than cities). Nothing surfaced it, so the bad figures sat in
+ * production driving per-capita numbers until they were noticed by eye during
+ * v2.20. Returning null keeps the caller's "no population" path — a missing
+ * population is recoverable, a wrong one silently misinforms.
+ *
+ * Repaired by scripts/fixOhioCountyPopulations.mjs (Census Vintage 2024). The
+ * underlying county column offsets are still unverified — see the follow-up note
+ * in .planning/followups/.
  */
 export function cityPopulation(workbook, cityName, entityType = 'city') {
   const layout = detectLayout(workbook, entityType);
@@ -310,7 +331,14 @@ export function cityPopulation(workbook, cityName, entityType = 'city') {
   let row;
   try { row = findCityRow(ws, layout.demoDataStart, cityName, layout.demoEntityCol); } catch { return null; }
   const v = cellNum(row.getCell(layout.demoPopCol));
-  return Number.isFinite(v) ? v : null;
+  if (!Number.isFinite(v)) return null;
+  if (v < 0 || v > MAX_PLAUSIBLE_POPULATION) {
+    console.warn(`  WARNING: implausible population ${v.toLocaleString()} for ${entityType} ` +
+      `"${cityName}" (OI_Demographics col ${layout.demoPopCol}) — refusing it. The column ` +
+      `offsets are likely wrong for this workbook layout; population left unset.`);
+    return null;
+  }
+  return v;
 }
 
 /**

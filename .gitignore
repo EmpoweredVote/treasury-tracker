@@ -150,3 +150,6 @@ scripts/load-mn-*.failures.txt
 
 # local .planning restore-point tarballs (not tracked)
 .planning-backups/
+
+# Phase 137 (v2.20) WI re-derivation working dir — source workbooks + scratch scripts
+_wi-recon/

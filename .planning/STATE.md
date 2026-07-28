@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.19
-milestone_name: Banner Info-Row + CTC Tether
-status: Awaiting next milestone
-stopped_at: Completed 133-03-PLAN.md (v2.18 milestone verification closed — PIMA-07/08/09 all pass)
-last_updated: "2026-07-21T23:42:12.188Z"
-last_activity: 2026-07-21
-last_activity_desc: Milestone v2.19 completed and archived
+milestone: v2.20
+milestone_name: Madison, WI + Dane County Onboarding
+status: v2.20 COMPLETE — all 3 phases executed, MAD-01..09 signed
+stopped_at: Phase 137 closed; Madison WI + Dane County live and verified
+last_updated: "2026-07-28T00:00:00.000Z"
+last_activity: 2026-07-28
+last_activity_desc: Phase 137 closed — MAD-08 (20/20 rows Δ$0) + MAD-09 (Chris UAT) signed; source-chip "fetched"→"as of" fix shipped
 progress:
-  total_phases: 1
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  total_phases: 3
+  completed_phases: 3
+  total_plans: 0
+  completed_plans: 0
   percent: 100
 ---
 
@@ -22,24 +22,41 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-16 — v2.18 Pima County Municipalities STARTED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** Milestone complete
+**Current focus:** v2.20 — Madison, WI + Dane County onboarding from the WI DOR CMREB statewide workbook
 
 ## Current Position
 
-Phase: Milestone v2.19 complete
+Phase: 137 — Verification + Live UAT ✅ **v2.20 COMPLETE**
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-07-21 — Milestone v2.19 completed and archived
+Status: **MAD-08 ✅** — 20/20 rows and every category re-derived at Δ$0 on an independent Python/openpyxl path (`scripts/rederiveWICMREB.py`); 5/5 source URLs live and byte-identical to what was loaded; audit clean (0 residue, 0 stale labels, 100% enrichment, scoped-over-universal confirmed through the production API). **MAD-09 ✅** — Chris signed 14/16 on sight; the two exceptions resolved (see below).
+Last activity: 2026-07-28 — Phase 137 closed (see .planning/phases/137-verification-uat/137-SUMMARY.md)
 
-## Phase Overview — v2.18 Pima County Municipalities — TT Budget Parity
+**UAT item 15 — Essentials tether absent on Madison = documented cross-repo gap, no TT change.** Essentials' published `coverage.json` (2026-07-28) carries **0 WI cities and 0 WI counties**; Wisconsin appears only as a state. TT correctly resolves `null` and paints no icon, exactly as the v2.16 contract specifies. Fix belongs in the Essentials repo. The requirement explicitly permits this outcome when documented — ticked.
+
+**UAT item 16 — source chip fixed and shipped.** It rendered `source_date` as "· fetched {date}", false wherever `source_date` is a period end — **1,801 rows across 67 entities** app-wide (Madison WI said "fetched 2024-12-31"; Bend FY2006 said "fetched 2006-06-30"). Pre-existing, not caused by v2.20. Now **"· as of {date}"** in the chip and the aria-label, misleading doc comments rewritten. Chris was reading production, where it was still wrong because the whole v2.20 branch was unmerged — shipped by merging to `main`. Follow-up: the prop is still `fetchDate` and the API field still `fetchedAt`, the naming that produced the bug.
+
+## Phase Overview — v2.20 Madison, WI + Dane County Onboarding
+
+| Phase | Name | Requirements | Depends on | Status |
+|-------|------|--------------|------------|--------|
+| 135 | Recon + Loader | MAD-01, MAD-02, MAD-03 | — | ✅ Executed (10/10 tie; 14/14 tests) |
+| 136 | Seed + Load + Enrichment | MAD-04, MAD-05, MAD-06, MAD-07 | 135 | ✅ Executed (20 rows live, 100% enriched) |
+| 137 | Verification + Live UAT | MAD-08, MAD-09 | 135, 136 | ○ Not started |
+
+**Critical path:** 135 → 136 → 137. Madison + Dane County onto TT from the **WI DOR CMREB statewide workbook** (`CMREB<YYYY>.xlsx`, free/no-auth, all 1,921 WI municipalities + 72 counties, CY2020–CY2024) — a bulk source in the Ohio-AOS mold, so this clones `loadOhioAOS.js` and needs **no PDF extractor**. A 2026-07-27 probe verified an exact built-in tie gate: nine printed-subtotal identities re-derived against components across **9,608 rows × 5 years = 86,472 checks, 0 failures**. Phase 135 reconciles Madison's CMREB figures against the city's own FY2024 ACFR, settles the basis verdict (§4 of the scoping brief) with written evidence, and builds `loadWICMREB.js` with the nine-identity gate + generic `--entity-type city|county` / per-muni selection so the deferred statewide fan-out is a flag flip. Phase 136 seeds Madison + **Dane County as a full entity** (not nav-only like Pima — the `Counties` sheet carries its own data), loads 20 rows via source-safe `treasury_sync_budget_tree`, labels provenance honestly as **unaudited self-reported MFR data** (MAD-06), and enriches to 100% bleed-safe. Phase 137 = blind re-derivation of all 20 rows from the workbook → source-chain audit → tether check → Chris UAT. **Constraints:** free XLSX only ($0 / $5 AI gate); **all-governmental-funds** basis as the source defines it (not GF-only); calendar-year FY; source-safe never-overwrite; executed inline (no subagents). **Watch:** this is the first **unaudited** city in TT — labelling is a requirement, not a nicety; collision risk with existing `Madison, MN` / `Madison County, OH` / `Madison County, VA` rows. **Deferred:** statewide fan-out (WI-CITIES-01), villages/towns (WI-TOWNS-01), Madison ACFR deepening to FY2015 (MAD-ACFR-01), pre-2020 history, salaries.
+
+<details>
+<summary>Previous milestone — v2.18 Pima County Municipalities (shipped 2026-07-17)</summary>
 
 | Phase | Name | Requirements | Depends on | Status |
 |-------|------|--------------|------------|--------|
 | 131 | Recon + Extractors | PIMA-01, PIMA-02, PIMA-03 | — | ✅ Executed (44/44 ties $0) |
 | 132 | Data Model + Load + Enrichment | PIMA-04, PIMA-05, PIMA-06 | 131 | ✅ Executed (44 rows, $0 re-derive, 100% enrich) |
-| 133 | Verification + Live UAT | PIMA-07, PIMA-08, PIMA-09 | 131, 132 | ○ Not started |
+| 133 | Verification + Live UAT | PIMA-07, PIMA-08, PIMA-09 | 131, 132 | ✅ Executed (Chris UAT 34/34) |
 
 **Critical path:** 131 → 132 → 133. A 4-municipality onboarding (Oro Valley, Marana, Sahuarita, South Tucson) on the proven Tucson pipeline (`seedTucsonArizona.js` → `extractTucson.py` → `processTucson.js`), all linked under the **existing Pima County node** (no new county node). Phase 131 enumerates each municipality's published ACFR years, pins durable per-year URLs, proves clean `pdftotext -table` extraction of the **General Fund** column (bookend-tie $0), locks each clean window, **resolves South Tucson's source (ACFR vs AZ Auditor General AFR) with an explicit verdict**, and builds/extends the extractor. Phase 132 seeds each municipality + links to Pima County (breadcrumb + Cities-in-County panel alongside Tucson), loads GF operating + revenue via source-safe `treasury_sync_budget_tree` (never-overwrite, durable `source_url`+`source_date`, per-capita, Money In auto-enable), and enriches to 100% bleed-safe coverage. Phase 133 = loader-independent blind re-derivation ($0 delta) → source-chain audit (0 residue) → Chris live UAT → confirm the v2.16 Essentials tether icon on each new banner (PIMA-09; cross-repo coverage gap documented if absent). **Constraints:** free ACFR PDFs only ($0 / $5 AI gate); **General Fund** basis (all-funds deferred); source-safe never-overwrite; every figure durably sourced; executed inline (no subagents). **Recon-gated:** South Tucson (~5,600 pop) may need a source exception or defer. **Deferred:** Pima County's own budget (nav node only), all-funds view, salaries, Maricopa/other AZ cities.
+
+</details>
 
 ## Deferred Items
 
