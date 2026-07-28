@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v2.20
 milestone_name: Madison, WI + Dane County Onboarding
-status: Phase 136 complete — ready for Phase 137 (verification + UAT)
-stopped_at: Phase 136 complete (Madison + Dane County LIVE: 20 budget rows, 300 categories, 27 enrichment rows, 0 unsourced)
-last_updated: "2026-07-27T00:00:00.000Z"
-last_activity: 2026-07-27
-last_activity_desc: Phase 136 executed — MAD-04..07 complete, Madison + Dane County live and enriched
+status: Phase 137 in progress — MAD-08 signed, MAD-09 (live UAT) awaiting Chris
+stopped_at: MAD-08 complete (20/20 rows Δ$0 blind re-derivation + clean source-chain audit); blocked on MAD-09 UAT
+last_updated: "2026-07-28T00:00:00.000Z"
+last_activity: 2026-07-28
+last_activity_desc: Phase 137 — MAD-08 verified and signed; UAT checklist written; one pre-existing app-wide source-chip defect flagged for a decision
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 0
   completed_plans: 0
-  percent: 67
+  percent: 84
 ---
 
 # State
@@ -26,10 +26,12 @@ See: .planning/PROJECT.md (updated 2026-07-16 — v2.18 Pima County Municipaliti
 
 ## Current Position
 
-Phase: 137 — Verification + Live UAT (not yet started)
+Phase: 137 — Verification + Live UAT (in progress)
 Plan: —
-Status: Phase 136 complete; ready for Phase 137
-Last activity: 2026-07-27 — Phase 136 executed (see .planning/phases/136-seed-load-enrichment/136-SUMMARY.md)
+Status: **MAD-08 ✅ signed** — 20/20 rows and every category re-derived at Δ$0 on an independent Python/openpyxl path; 5/5 source URLs live and byte-identical to what was loaded; source-chain audit clean (0 residue, 0 stale labels, 100% enrichment, scoped-over-universal enrichment confirmed through the production API). **MAD-09 ⏸ BLOCKED on Chris's live UAT** — checklist ready at `.planning/phases/137-verification-uat/137-UAT-CHECKLIST.md` (16 items, incl. the tether check).
+Last activity: 2026-07-28 — Phase 137 MAD-08 (see .planning/phases/137-verification-uat/137-SUMMARY.md)
+
+**Open decision for UAT:** the source chip renders `source_date` as "· fetched {date}", which is false wherever `source_date` is a period end — **1,801 rows across 67 entities** app-wide (Madison WI claims "fetched 2024-12-31"; Bend FY2006 claims "fetched 2006-06-30"). Pre-existing, not caused by v2.20. One-word fix available in `src/components/federal/SourceChip.tsx` (`fetched` → `as of`, plus the aria-label); deliberately not applied because it changes visible copy app-wide including the federal surface. Chris's call.
 
 ## Phase Overview — v2.20 Madison, WI + Dane County Onboarding
 

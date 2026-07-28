@@ -1,0 +1,126 @@
+# Phase 137 — Verification + Live UAT: SUMMARY
+
+**Date:** 2026-07-28 · **Requirements:** MAD-08 ✅ · MAD-09 ⏸ OPEN (awaiting Chris)
+**DB writes:** none — this phase only reads and checks.
+
+## MAD-08 — blind re-derivation + source-chain audit ✅
+
+### Independence of the re-derivation
+
+Phase 136's handoff was explicit: re-derive from the XLSX **independently of `loadWICMREB.js`**, because reusing its parsing would only prove self-consistency. `scripts/rederiveWICMREB.py` does that:
+
+| axis | loader (Phase 135/136) | this re-derivation |
+|---|---|---|
+| language | Node | Python 3.14 |
+| XLSX reader | ExcelJS | openpyxl |
+| column grouping | loader's registry | rebuilt here, then asserted against the workbook's own printed subtotals |
+| comparison target | — | production over PostgREST |
+
+Nothing is hand-transcribed on either side.
+
+### Source bytes
+
+All five workbooks re-fetched from the pinned per-year URLs: **HTTP 200 on 5/5**, and every file **sha256-identical** to the copies Phase 136 loaded. The URLs are durable and the bytes are the bytes that were loaded.
+
+```
+17417cb9…982e  CMREB2020.xlsx     14d79ce7…00ed  CMREB2023.xlsx
+f1b0d4ff…8f86  CMREB2021.xlsx     bad4cf53…7b13  CMREB2024.xlsx
+095e3e73…ad0f  CMREB2022.xlsx
+```
+
+### Result — 20/20 at exactly $0
+
+Every row, every category, both entities, all five years:
+
+| entity | rows | totals | every category | population |
+|---|---|---|---|---|
+| Madison, WI | 10 | Δ$0 | Δ$0 (16 rev / 16 exp) | 291,037 = workbook |
+| Dane County, WI | 10 | Δ$0 | Δ$0 (14 rev / 14 exp) | 599,930 = workbook |
+
+The nine printed-subtotal identities were re-proved on all ten entity-years, and — separately — the leaf set actually loaded was proved to sum to the printed `Subtotal-General Revenues` / `Sub-total Expenditure`. Categories with a zero amount are correctly absent from the DB rather than stored as $0 rows (Madison drops 2 expenditure leaves, Dane 2 revenue + 4 expenditure); the comparison checks set membership both ways, so an extra or missing category would have failed.
+
+Reproduce from the repo root (exit 0 only if every delta is exactly $0):
+
+```
+mkdir -p _wi-recon && cd _wi-recon
+for y in 2020 2021 2022 2023 2024; do curl -O "https://www.revenue.wi.gov/SLFReportscotvc/CMREB$y.xlsx"; done
+cd .. && PYTHONIOENCODING=utf-8 py -3 scripts/rederiveWICMREB.py
+```
+
+Needs Python + `openpyxl`, and reads `.env` for the PostgREST credentials. The workbooks are untracked (`_wi-recon/` is gitignored); the script is tracked, because the verification has to be re-runnable by someone who isn't me.
+
+### Source-chain audit — clean
+
+| check | result |
+|---|---|
+| rows / categories / line items | 20 / 300 / 0 |
+| `data_source` label | the unaudited-MFR string on **20/20**, no variants |
+| `source_url` | present on 20/20, **per-year** (CY2021 row → `CMREB2021.xlsx`), all live |
+| `source_date` | = 12-31 of the fiscal year on 20/20 |
+| `fiscal_year_start_month` | 1 on 20/20 |
+| `period_label` | NULL on 20/20 (deliberate — MAD-06) |
+| `data_source_id` | NULL on 20/20 — matches every recently-onboarded entity (Tucson, Bend, Gresham, the Pima four) under the WR-05 ephemeral lifecycle; durable provenance rides on `source_url` |
+| residue | 0 leftover `data_sources` rows for WI |
+| duplicates | 0 — rows = distinct (FY, dataset) for every Madison-named entity |
+| stale labels | 0 — one distinct `data_source` per entity |
+| categories | 0 blank names, 0 null/non-positive amounts, 0 null percentages, all depth 0, no orphan parents |
+| enrichment coverage | 61/61 (entity × link_key) resolve — 100% |
+| bleed | 0 universal rows naming a WI jurisdiction (2 regex hits are `virginia general fund …` keys, where the key itself is jurisdiction-bound — correct) |
+
+### Verified through production, not just the database
+
+The live API (`api.empowered.vote`) serves both entities correctly:
+
+- Madison CY2024 → operating **$758,792,098**, revenue **$649,501,230**; Dane CY2024 → **$782,417,277** / **$664,674,994**. The unaudited label and the per-year XLSX URL are both present in `data_source_info`.
+- **Scoped enrichment wins over universal.** Madison's largest line, `Conservation and Development` ($125.7M), resolves to **"Housing & Economic Development" (source=`official`)** — *not* the universal AI row's "Sustainability & Environment". This was the highest-risk item in Phase 136's work; it is now confirmed end-to-end in production rather than inferred from the table.
+- All three WI entities appear in `/treasury/cities` with `Madison.county_id → Dane County`, so the breadcrumb and Cities-in-County data are in place. Visual confirmation is MAD-09.
+- Money In needs no flag: `resolveEffectiveDataset` derives availability from the rows themselves, and revenue rows exist for all five years.
+
+### Two source-side spikes — explained, not defects
+
+Madison CY2023→CY2024 expenditure **+32%**, and Dane County CY2022→CY2023 **+33.4%** then −8.1%. Both are explained by columns the loader deliberately excludes:
+
+- **Madison** — `Other Transportation` +$89.1M and `Conservation and Development` +$51.3M. CMREB distributes capital outlay across activity lines (135-RECON), so a capital-heavy year lands inside the function totals. CY2024 is also the year MAD-01 reconciled to the City's audited ACFR at 1.36%, so the high year is the *audit-checked* one.
+- **Dane County** — `Debt Service – Principal` $48.6M → **$180.1M** → $58.7M. In the same year `Other Financing Sources` jumps $140.6M → **$430.9M** while GO debt rises only $511M → $681M: a **refunding**. The refunding proceeds are correctly excluded from revenue, but the principal retired with them stays inside the expenditure total.
+
+That asymmetry is worth stating plainly because it will recur across Wisconsin: **in a refunding year, CMREB's expenditure total includes debt principal paid off with borrowed money.** It is not a loader bug — GAAP governmental-funds reporting does the same thing — but a reader comparing Dane 2023 to Dane 2024 is not comparing like with like. Candidate follow-up for the fan-out.
+
+---
+
+## Finding — the source chip claims a fetch date it cannot have
+
+**Not caused by this milestone; surfaced by its audit. Flagged, not fixed.**
+
+MAD-06 deliberately sets `source_date` to *the period described*, never the fetch date. The API maps that field to `data_source_info.fetchedAt`, and `SourceChip.tsx:28` renders it as:
+
+> Wisconsin DOR County and Municipal Revenues and Expenditures (unaudited MFR) **· fetched 2024-12-31** ↗
+
+The CY2024 workbook was fetched on 2026-07-27 and did not exist on 2024-12-31. The same string is in the `aria-label`, so screen readers get it too.
+
+**Blast radius: 1,801 budget rows across 67 entities** have `source_date` on or before their own fiscal-year end — including Bend FY2006, whose chip claims it was "fetched 2006-06-30", the last day of the year the ACFR reports on. Wisconsin's 20 rows are a small part of it.
+
+For a project whose core value is that every displayed figure is real and sourced, a false provenance claim in the provenance UI is the wrong defect to carry. The minimal honest fix is one word — the value *is* a source date, so `· fetched {date}` → `· as of {date}` (plus the aria-label) is truthful for every source, federal included.
+
+Not applied here: it changes visible copy across the whole app including the federal surface, and Phase 136's precedent is to flag pre-existing defects and let Chris call it. **Recommend deciding at MAD-09 UAT.**
+
+## Also noted (no action)
+
+- `hero_image_url` is NULL for **all 2,476** municipalities — the column is unused project-wide; banners come from the shared bucket + Wikipedia fallback. Not a WI gap.
+- `budgets.updated_at` / `created_at` are NULL project-wide — not maintained. Out of scope.
+
+---
+
+## MAD-09 — OPEN
+
+Requires Chris in the live app. Checklist ready: [`137-UAT-CHECKLIST.md`](137-UAT-CHECKLIST.md).
+
+## Handoff
+
+MAD-08 signed. On MAD-09 sign-off: tick both requirements, close Phase 137, then the v2.20 milestone close (archive to `milestones/v2.20-*`, reset `REQUIREMENTS.md`, push + tag `v2.20`).
+
+Open decision carried into UAT: the `· fetched` → `· as of` chip fix.
+
+## Artifacts
+
+- `scripts/rederiveWICMREB.py` — the independent re-derivation (tracked; workbooks are not)
+- `.planning/phases/137-verification-uat/137-UAT-CHECKLIST.md`

@@ -37,7 +37,7 @@
 
 ### Verification
 
-- [ ] **MAD-08**: Loader-independent **blind re-derivation** of every loaded row's revenue + expenditure total straight from the source workbook ($0-delta target, 20 rows), plus a full source-chain audit — every new row durably sourced, 0 NULL/fragile/residue, no stale labels, population pinned to the workbook's stated figure.
+- [x] **MAD-08**: Loader-independent **blind re-derivation** of every loaded row's revenue + expenditure total straight from the source workbook ($0-delta target, 20 rows), plus a full source-chain audit — every new row durably sourced, 0 NULL/fragile/residue, no stale labels, population pinned to the workbook's stated figure. *(Done 2026-07-28: 20/20 rows AND every category at Δ$0 via Python/openpyxl — a different language and XLSX reader from the loader; 5/5 source URLs live and sha256-identical to the loaded bytes; audit clean. Surfaced one pre-existing app-wide defect — the source chip renders `source_date` as "fetched", false on 1,801 rows / 67 entities — flagged for a decision at UAT, not fixed. See `phases/137-verification-uat/137-SUMMARY.md`.)*
 - [ ] **MAD-09**: Chris live-app UAT — icicle categories, Money In/Out, per-capita, source chips (including the unaudited labelling from MAD-06), and breadcrumb + Cities-in-County navigation for Madison under Dane County — signed off. The v2.16/v2.19 Essentials + CTC tether chips are confirmed on Madison's banner, or their absence documented as a cross-repo coverage gap (no TT code change).
 
 ---
