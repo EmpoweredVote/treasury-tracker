@@ -42,7 +42,7 @@ This is a free, exact tie gate of exactly the kind `extractGresham.py` had to ha
 | Role | Cols | Notes |
 |------|------|-------|
 | Identity | 0–5 | CountyCode, MuniCode, MuniTypeCode, CountyName, **Municipality**, **Population** |
-| Revenue leaves | 6,7,8,9 · 11 · 12,13,14,15,16 · 18,19,20,21 · 22,23 | 15 leaves: 4 tax · Special Assessments · 5 intergovernmental · 4 direct-charge · Interest + Other |
+| Revenue leaves | 6,7,8,9 · 11 · 12,13,14,15,16 · 18,19,20,21 · 22,23 | **16 leaves**: 4 tax · Special Assessments · 5 intergovernmental · 4 direct-charge · Interest + Other |
 | Revenue subtotals (do **not** load as leaves) | 10, 17, 24, 25 | Total Taxes · Total Inter Government · Total Miscellaneous · **Subtotal-General Revenues** ← revenue tree total |
 | Excluded | 26, 27 | Other Financing Sources (debt proceeds, inter-fund transfers, refunding, asset sales) + its grand total |
 | Expenditure leaves | 28–43 · 45,46 | 16 functions + 2 debt-service lines |
