@@ -316,6 +316,105 @@ export function readEntity(ws, cols, row, fiscalYear) {
   };
 }
 
+// ── Database (Phase 136 / MAD-05, MAD-06) ─────────────────────────────────────
+let _supabase = null;
+export async function getSupabase() {
+  if (_supabase) return _supabase;
+  const { createClient } = await import('@supabase/supabase-js');
+  const url = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
+  const key = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!key) {
+    console.error('Missing SUPABASE_SERVICE_KEY (set it in .env). Use --dry-run for a no-write parse.');
+    process.exit(1);
+  }
+  _supabase = createClient(url, key);
+  return _supabase;
+}
+
+/**
+ * Resolve an already-seeded municipality. Deliberately does NOT create one:
+ * seedWisconsinMadison.js owns municipality creation, because a row created here
+ * would miss the county link and could land with the wrong entity_type. Qualified
+ * by name + state + entity_type — the database already holds "Madison" (MN),
+ * "Madison County" (OH) and "Madison County" (VA), so a bare name match is wrong.
+ */
+export async function resolveMunicipality(supabase, name, entityType) {
+  const { data, error } = await supabase
+    .schema('treasury').from('municipalities')
+    .select('id, name, state, entity_type, population')
+    .eq('state', 'WI').eq('entity_type', entityType).ilike('name', name).maybeSingle();
+  if (error) throw new Error(`Municipality lookup failed for ${name} (${entityType}): ${error.message}`);
+  if (!data) {
+    throw new Error(`"${name}, WI" (${entityType}) is not seeded. ` +
+      `Run scripts/seedWisconsinMadison.js first — this loader never creates municipalities.`);
+  }
+  return data;
+}
+
+/**
+ * Never-overwrite pre-skip guard. treasury_sync_city_budget itself is NOT
+ * source-safe (auto-memory project_sync_city_budget_not_source_safe: it
+ * overwrites an existing (muni, fy, dataset) row and keeps the stale
+ * data_source label), so the refusal has to happen here, before the call.
+ */
+export async function findConflictingBudget(supabase, municipalityId, fiscalYear, datasetType) {
+  const { data, error } = await supabase
+    .schema('treasury').from('budgets')
+    .select('id, data_source')
+    .eq('municipality_id', municipalityId).eq('fiscal_year', fiscalYear)
+    .eq('dataset_type', datasetType).limit(1);
+  if (error) throw new Error(`Budget lookup failed: ${error.message}`);
+  const existing = data && data[0];
+  if (!existing) return null;
+  return existing.data_source && existing.data_source !== DATA_SOURCE_NAME ? existing : null;
+}
+
+export async function importDataset(supabase, municipalityId, fiscalYear, datasetType,
+                                    tree, total, sourceUrl, sourceDate) {
+  const conflict = await findConflictingBudget(supabase, municipalityId, fiscalYear, datasetType);
+  if (conflict) {
+    console.log(`    SKIP ${datasetType} CY${fiscalYear} — existing "${conflict.data_source}" ` +
+      `data preserved (never-overwrite)`);
+    return { skipped: true };
+  }
+  const { error } = await supabase.rpc('treasury_sync_city_budget', {
+    p_municipality_id:  municipalityId,
+    p_fiscal_year:      fiscalYear,
+    p_dataset_type:     datasetType,
+    p_total:            total,
+    p_tree:             tree,
+    p_row_count:        tree.length,
+    p_data_source_name: DATA_SOURCE_NAME,
+    p_source_url:       sourceUrl,
+    p_source_date:      sourceDate,
+  });
+  if (error) throw new Error(`RPC error (${datasetType} CY${fiscalYear}): ${error.message}`);
+
+  // MAD-06: Wisconsin municipalities run on a CALENDAR year, so the fiscal year
+  // starts in January. The RPC does not take this, and the column's dominant
+  // value across the table is 7 (Jul-Jun), which would be wrong here and would
+  // mislabel every period. Set it explicitly rather than inheriting a default.
+  const { error: fyErr } = await supabase
+    .schema('treasury').from('budgets')
+    .update({ fiscal_year_start_month: 1 })
+    .eq('municipality_id', municipalityId).eq('fiscal_year', fiscalYear)
+    .eq('dataset_type', datasetType);
+  if (fyErr) throw new Error(`Calendar-year stamp failed (${datasetType} CY${fiscalYear}): ${fyErr.message}`);
+
+  return { skipped: false };
+}
+
+/** Write one entity-year: revenue + operating. */
+export async function importEntityYear(supabase, entity, entityType, sourceDate) {
+  const muni = await resolveMunicipality(supabase, entity.municipality, entityType);
+  const sourceUrl = sourceUrlForYear(entity.fiscalYear);
+  const rev = await importDataset(supabase, muni.id, entity.fiscalYear, 'revenue',
+    entity.revenue.tree, entity.revenue.total, sourceUrl, sourceDate);
+  const exp = await importDataset(supabase, muni.id, entity.fiscalYear, 'operating',
+    entity.expenditure.tree, entity.expenditure.total, sourceUrl, sourceDate);
+  return { municipalityId: muni.id, revenue: rev, operating: exp };
+}
+
 // ── CLI ───────────────────────────────────────────────────────────────────────
 async function main() {
   const { values: opts } = parseArgs({
@@ -325,6 +424,7 @@ async function main() {
       municipality:    { type: 'string' },
       county:          { type: 'string' },
       'entity-type':   { type: 'string', default: 'city' },
+      'db-name':       { type: 'string' },
       all:             { type: 'boolean', default: false },
       'dry-run':       { type: 'boolean', default: false },
       quiet:           { type: 'boolean', default: false },
@@ -362,36 +462,65 @@ async function main() {
   console.log(`Source: ${sourceUrlForYear(fiscalYear)}`);
   console.log(`Basis:  all governmental funds · calendar year · UNAUDITED self-reported MFR\n`);
 
-  let ok = 0;
+  // Parse and validate EVERY row before writing anything. A tie failure anywhere
+  // aborts the whole run, so a partially-loaded set cannot result from a source
+  // that turned out to be mis-shaped.
+  const parsed = [];
   const failures = [];
   for (const row of rows) {
-    let e;
     try {
-      e = readEntity(ws, cols, row, fiscalYear);
+      parsed.push(readEntity(ws, cols, row, fiscalYear));
     } catch (err) {
       failures.push(err.message);
       console.error(`  FAIL ${err.message}`);
-      continue;
     }
-    ok++;
+  }
+
+  for (const e of parsed) {
     if (opts.quiet) continue;
     console.log(`  ${e.municipality} (${e.county} County) pop ${e.population.toLocaleString()}`);
     console.log(`    revenue     $${e.revenue.total.toLocaleString()} across ${e.revenue.tree.length} sources`);
     console.log(`    expenditure $${e.expenditure.total.toLocaleString()} across ${e.expenditure.tree.length} functions`);
-    if (rows.length === 1) {
+    if (parsed.length === 1) {
       for (const n of e.revenue.tree) console.log(`      [rev] ${n.n}: $${n.a.toLocaleString()}`);
       for (const n of e.expenditure.tree) console.log(`      [exp] ${n.n}: $${n.a.toLocaleString()}`);
     }
   }
 
-  console.log(`\n${ok}/${rows.length} entities tie all 9 identities and sum to their emitted totals.`);
+  console.log(`\n${parsed.length}/${rows.length} entities tie all 9 identities and sum to their emitted totals.`);
   if (failures.length) {
-    console.error(`${failures.length} FAILED — nothing should be loaded until these are understood.`);
+    console.error(`${failures.length} FAILED — refusing to load anything until these are understood.`);
     process.exit(1);
   }
-  if (!opts['dry-run']) {
-    console.log('\nDB write path lands in Phase 136 (MAD-04/MAD-05); use --dry-run for now.');
+
+  if (opts['dry-run']) {
+    console.log('[dry-run] no writes performed.');
+    return;
   }
+
+  // source_date is the period the row describes, not today: these are calendar-year
+  // figures, so the year end. Same convention as processGresham.js.
+  const sourceDate = `${fiscalYear}-12-31`;
+  const supabase = await getSupabase();
+  console.log(`\nLoading (source_date=${sourceDate}, data_source="${DATA_SOURCE_NAME}"):`);
+  let wrote = 0, skipped = 0;
+  for (const e of parsed) {
+    // The workbook prints bare county names ("DANE") where the canonical DB name
+    // is "Dane County" — same situation as the Ohio CASH/MOD county loads.
+    const dbName = opts['db-name']
+      ?? (entityType === 'county' ? `${titleCase(e.municipality)} County` : titleCase(e.municipality));
+    console.log(`  ${dbName}:`);
+    const res = await importEntityYear(supabase, { ...e, municipality: dbName }, entityType, sourceDate);
+    for (const k of ['revenue', 'operating']) {
+      if (res[k].skipped) skipped++; else wrote++;
+    }
+  }
+  console.log(`\nDone. ${wrote} dataset(s) written, ${skipped} skipped by the never-overwrite guard.`);
+}
+
+/** "MADISON" -> "Madison"; "DE FOREST" -> "De Forest". Workbook names are upper-case. */
+export function titleCase(s) {
+  return s.toLowerCase().replace(/(^|[\s'-])([a-z])/g, (_, sep, ch) => sep + ch.toUpperCase());
 }
 
 const isMain = process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, '/').split('/').pop());
