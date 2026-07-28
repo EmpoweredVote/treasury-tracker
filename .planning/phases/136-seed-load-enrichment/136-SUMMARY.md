@@ -68,10 +68,26 @@ Wisconsin-specific statutory detail is kept out of universal text, and a guard f
 | duplicate universal rows (repo-wide) | **0** |
 | bleed check | Madison MN + Madison County OH/VA carry `Ambulance` and `Parks and Recreation` and correctly keep the pre-existing universal rows — the WI overrides do not reach them |
 
-## Observations for later (not fixed here)
+## Two pre-existing bugs found here — FIXED 2026-07-27 at Chris's request
 
-- The other Madisons still resolve `ambulance` to the "Fire & EMS" universal text, which conflates two functions. Pre-existing, untouched, and out of scope — but a genuine enrichment-quality bug worth a future sweep.
-- `Madison County, OH` carries a **population of 100,151,375** (~100M). Plainly a bad load, unrelated to this milestone. Flagged, not touched.
+Both were flagged as out-of-scope observations, then fixed on request. Each turned out to be a *class* of bug, not the single row noticed:
+
+**1. Implausible Ohio county populations — 18 of 88, not 1.** `Madison County, OH` at 100,151,375 was the one spotted; a sweep found 17 more (Ottawa 106,432,166; Highland 80,576,108; …), all with `population_year IS NULL`. These are money figures in the population column, consistent with `project_ohio_aos_county_vs_city_layout` — the `OI_Demographics` offsets `loadOhioAOS.js` uses do not line up on county workbooks.
+
+Fixed by `scripts/fixOhioCountyPopulations.mjs`: only implausible rows touched, values read directly out of the Census Vintage 2024 county file (no hand transcription), stamped `population_year=2024`. Madison County OH is now **45,531**. The other 70 counties were **left alone** — plausible but a mixed older vintage (Delaware 194,000, Ross 77,000 are suspiciously round); restating them would silently shift per-capita figures across Ohio, which is a separate decision.
+
+`loadOhioAOS.js` now rejects any population above `MAX_PLAUSIBLE_POPULATION` (1.5M — Ohio's largest county is Franklin at ~1.36M) and warns, so a re-run cannot reintroduce it. A missing population is recoverable; a wrong one silently misinforms.
+
+**2. Universal `ambulance` enrichment was fire-department text.** `plain_name` "Fire & EMS", description "…fire suppression, rescue, fire prevention/inspection… Staffed by firefighters" — copied from the `fire` entry. **321 entities** across CA/MN/WI carry an `ambulance` category and **315 also carry a separate `fire` category**, so for ~98% of consumers the node described the wrong function, duplicating its neighbour.
+
+Fixed by `scripts/fixAmbulanceEnrichment.mjs`: universal row replaced with ambulance/EMS-specific state-neutral text, `source='manual'` (hand-authored — labelling it `ai` would misstate its origin) and no invented citation. The Phase 136 Dane County override was **retired**, since it existed only to route around the broken universal row; keeping it would have stopped Wisconsin receiving future improvements to the shared text. `SCOPED_OVERRIDES` in `loadWIEnrichment136.mjs` had `ambulance` removed so the two scripts cannot fight over the same row.
+
+Verified: 0 implausible OH populations, 18 stamped 2024, 1 universal `ambulance` row reading "Ambulance & EMS", 0 ambulance rows mentioning firefighters, WI's 20 budget rows unchanged, MAD-07 coverage still 100%, and all three scripts idempotent.
+
+## Still open (not fixed)
+
+- The OH county `OI_Demographics` column offsets remain unverified — the guard prevents bad writes but the root cause needs the county workbook to confirm. Follow-up.
+- A broader enrichment-quality audit is warranted; the `ambulance` case was found by eye, not by a check. Copy-paste of a *neighbouring* concept's text is invisible to duplicate-detection since the strings differ.
 
 ## Handoff to Phase 137
 

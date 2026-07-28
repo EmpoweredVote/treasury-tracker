@@ -106,8 +106,13 @@ export const UNIVERSAL = {
 // ── Entity-scoped overrides: the universal row is wrong for this source ───────
 export const SCOPED_OVERRIDES = {
   'conservation and development': { plain_name: 'Housing & Economic Development', short_description: 'Public housing, urban and economic development, and forestry.', description: 'Spending on public housing, urban redevelopment, economic development and forestry, plus other conservation and development activity. Despite the name this line is mainly about housing and development rather than environmental programmes, and it includes capital projects — which can make it one of the largest spending lines in a year with major redevelopment underway.', tags: ['spending', 'housing', 'economic-development', 'forestry'] },
-  'ambulance': { plain_name: 'Ambulance & EMS', short_description: 'Ambulance and emergency medical services.', description: 'Operating cost and equipment for ambulance and emergency medical response. Reported separately from fire protection in this source, so a government that runs EMS through its fire department may show little or nothing here.', tags: ['spending', 'public-safety', 'ems', 'ambulance'] },
   'parks and recreation': { plain_name: 'Parks & Recreation', short_description: 'Parks and zoos, plus recreation programmes and facilities.', description: 'Parks, open space and zoos together with the recreation side — programmes such as swimming lessons and youth sport, community events and holiday decorations, and facilities including pools, ice arenas and sports fields.', tags: ['spending', 'parks', 'recreation', 'community'] },
+  // 'ambulance' WAS overridden here, because the universal row carried
+  // fire-department text ("Fire & EMS", "Staffed by firefighters"). That universal
+  // row has since been repaired for everyone by
+  // scripts/fixAmbulanceEnrichment.mjs, which also retired this override. Do NOT
+  // reinstate it: a scoped copy would stop Wisconsin receiving future improvements
+  // to the shared text, and the two scripts would fight over the same row.
 };
 
 // ── Guards ────────────────────────────────────────────────────────────────────
