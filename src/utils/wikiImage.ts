@@ -156,8 +156,9 @@ const BANNER_BASE =
  *  CC BY-SA require naming the author, which this generic string does not do, so
  *  reaching it is a gap rather than a normal outcome.
  *
- *  City, state and federal banners all carry real attribution now. The one
- *  deliberate exception is Rhode Island — see STATE_BANNER_CREDITS. */
+ *  Nothing reaches it today: every city banner, all 50 state banners and the
+ *  federal banner carry a named author. It stays as the safe default for a banner
+ *  added without one — a vague credit beats a wrong one. */
 const WIKIMEDIA_CREDIT = 'Wikimedia Commons';
 
 /** Attribution for the federal banner.
@@ -176,11 +177,15 @@ export const FEDERAL_CREDIT = 'DiscoA340, CC BY-SA 4.0, leveled and cropped, via
  * cropped to the panoramic frame; that is inherent to the format and not called out
  * per-image.
  *
- * RHODE ISLAND IS DELIBERATELY ABSENT. Its registry line records the author as
- * "(Providence_RI_skyline)", which is the Commons *filename*, not a person. Printing
- * that as an author would be a false attribution, so RI falls back to the generic
- * credit until someone reads the real author off the Commons file page. A wrong name
- * is worse than a vague one.
+ * RHODE ISLAND was resolved against Commons on 2026-07-28 rather than transcribed:
+ * its registry line had the Commons *filename* where the author belongs. Two files
+ * differ by one comma —
+ *   "Providence RI skyline.jpg"   Quintin Soloviev, CC BY 4.0     (aerial, winter)
+ *   "Providence, RI skyline.jpg"  boliyou,          CC BY-SA 2.0  (river level, summer)
+ * — so a plausible guess had even odds of crediting the wrong photographer. The
+ * bucket image was matched to the file: mean abs difference per channel 6.63 against
+ * boliyou (crop + recompression) versus 45.38 against Soloviev. The registry's title
+ * and licence pointed at boliyou too; only the author field was wrong.
  */
 export const STATE_BANNER_CREDITS: Record<string, string> = {
   AK: 'Paxson Woelber, CC BY 2.0, via Wikimedia Commons',
@@ -221,7 +226,7 @@ export const STATE_BANNER_CREDITS: Record<string, string> = {
   OK: 'Soonerfever, public domain, via Wikimedia Commons',
   OR: "Oregon's Mt. Hood Territory, public domain, via Wikimedia Commons",
   PA: 'Cbaile19, CC0, via Wikimedia Commons',
-  // RI — see the note above. Intentionally omitted.
+  RI: 'boliyou, CC BY-SA 2.0, via Wikimedia Commons',
   SC: 'bbatsell, CC BY-SA 2.5, via Wikimedia Commons',
   SD: 'Nick Amoscato, CC BY 2.0, via Wikimedia Commons',
   TN: 'Kaldari, public domain, via Wikimedia Commons',

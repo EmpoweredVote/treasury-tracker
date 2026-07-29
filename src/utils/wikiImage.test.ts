@@ -55,12 +55,12 @@ describe('curated banner registry — every banner is attributed', () => {
 });
 
 describe('state + federal banner attribution', () => {
-  /** RI's registry line records a filename where the author should be, so it is
-   *  deliberately uncredited rather than falsely credited. Subset, not equality —
-   *  reading the real author off Commons should not have to touch this test. */
-  const KNOWN_UNCREDITED = new Set(['RI']);
+  /** Empty since RI was resolved against Commons on 2026-07-28. Kept as the
+   *  mechanism for a future banner whose author genuinely cannot be established —
+   *  a subset check, so adding one does not mean rewriting the assertions. */
+  const KNOWN_UNCREDITED = new Set<string>([]);
 
-  it('credits every state banner except the documented exception', () => {
+  it('credits every state banner', () => {
     const missing = Object.keys(STATE_NAMES).filter((a) => !STATE_BANNER_CREDITS[a]);
     expect(missing.filter((a) => !KNOWN_UNCREDITED.has(a))).toEqual([]);
   });
@@ -94,10 +94,21 @@ describe('state + federal banner attribution', () => {
     expect(hero?.credit).toBe('Daniel Schwen, CC BY-SA 4.0, brightened, via Wikimedia Commons');
   });
 
-  it('falls back to the generic credit for Rhode Island rather than inventing one', async () => {
+  it('credits Rhode Island to boliyou, not the same-but-for-a-comma Soloviev file', async () => {
+    // "Providence, RI skyline.jpg" (boliyou, CC BY-SA 2.0) is the bucket image;
+    // "Providence RI skyline.jpg" (Quintin Soloviev, CC BY 4.0) is a different photo.
+    // Verified by image comparison, not by name similarity — see STATE_BANNER_CREDITS.
     const hero = await getHeroImage(entity('Rhode Island', 'RI', 'state'));
     expect(hero?.url).toBe(`${BUCKET}/states/RI.jpg`);
-    expect(hero?.credit).toBe('Wikimedia Commons');
+    expect(hero?.credit).toBe('boliyou, CC BY-SA 2.0, via Wikimedia Commons');
+    expect(hero?.credit).not.toContain('Soloviev');
+  });
+
+  it('leaves no banner on the generic credit', async () => {
+    for (const abbr of Object.keys(STATE_NAMES)) {
+      const hero = await getHeroImage(entity(STATE_NAMES[abbr], abbr, 'state'));
+      expect(hero?.credit, abbr).not.toBe('Wikimedia Commons');
+    }
   });
 
   it('credits the federal banner and discloses the edit', async () => {
