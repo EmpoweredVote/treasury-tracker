@@ -152,11 +152,14 @@ async function fetchWikiImage(title: string): Promise<string | null> {
 const BANNER_BASE =
   'https://kxsdzaojfaibhuzmclfq.storage.supabase.co/storage/v1/object/public/politician_photos';
 
-/** All bucket banners are sourced from Wikimedia Commons under a free license
- *  (CC BY / CC BY-SA / CC0 / Public Domain). CC BY / CC BY-SA require visible
- *  attribution. Per-image title/author/license is available as a JSON export
- *  from the essentials registry — wire that in to upgrade this generic credit
- *  to per-image attribution. */
+/** Fallback credit for bucket banners with no per-image entry. All bucket banners
+ *  are sourced from Wikimedia Commons under a free license (CC BY / CC BY-SA /
+ *  CC0 / Public Domain); CC BY and CC BY-SA require naming the author, which this
+ *  generic string does not do.
+ *
+ *  Every curated CITY banner now carries real attribution — see
+ *  CURATED_CITY_CREDITS. This remains in use for the 50 state banners and the
+ *  federal banner, whose credits have not been transcribed yet. */
 const WIKIMEDIA_CREDIT = 'Wikimedia Commons';
 
 const toSlug = (name: string) => name.toLowerCase().trim().replace(/\s+/g, '-');
@@ -170,7 +173,7 @@ const toSlug = (name: string) => name.toLowerCase().trim().replace(/\s+/g, '-');
  * Legacy la_county/<geoid> entries (LA, Pomona, Torrance, Carson) are omitted
  * pending their migration to cities/ — they fall through to the Wikipedia path.
  */
-const CURATED_CITY_BANNERS = new Set<string>([
+export const CURATED_CITY_BANNERS = new Set<string>([
   'bloomington|IN',
   'beaverton|OR', 'hillsboro|OR', 'tigard|OR', 'tualatin|OR', 'forest-grove|OR', 'sherwood|OR', 'cornelius|OR',
   'long-beach|CA', 'glendale|CA', 'pasadena|CA', 'west-covina|CA', 'downey|CA', 'burbank|CA', 'norwalk|CA',
@@ -193,22 +196,50 @@ const CURATED_CITY_BANNERS = new Set<string>([
  * re-crops to a v3, the slug URL would silently diverge from what they publish.
  * Point at the filename essentials designates as canonical instead.
  */
-const CURATED_CITY_FILES: Record<string, string> = {
+export const CURATED_CITY_FILES: Record<string, string> = {
   'bend|OR': 'bend-v2.jpg',
 };
 
 /**
- * Per-image attribution, keyed "slug|STATE", for bucket banners whose author and
- * licence are known. CC BY / CC BY-SA require naming the author — the generic
- * WIKIMEDIA_CREDIT does not, so an entry here is a licence obligation, not a nicety.
+ * Per-image attribution, keyed "slug|STATE". CC BY / CC BY-SA require naming the
+ * author; the generic WIKIMEDIA_CREDIT does not, so an entry here is a licence
+ * obligation, not a nicety. Every curated city banner is covered.
  *
- * Only populated where the essentials banner registry records the credit. Anything
- * absent falls back to WIKIMEDIA_CREDIT, which is the pre-existing behaviour for the
- * other curated banners and remains an open gap (see WIKIMEDIA_CREDIT above).
+ * Transcribed 2026-07-28 from the essentials banner registry (`src/lib/
+ * buildingImages.js`), which is the operator-certified record of what was uploaded
+ * to the shared bucket — one credit per asset, verbatim author and licence. These
+ * were NOT re-verified against the Commons file pages; the registry is the source
+ * of truth for what is actually in the bucket, and second-guessing it from memory
+ * would be how a wrong author gets published.
+ *
+ * CC0 / public-domain entries are listed too. Attribution is not required for those,
+ * but naming the author is accurate and free — and a blank entry would read as
+ * "unknown" rather than "no obligation".
+ *
+ * Anything absent still falls back to WIKIMEDIA_CREDIT. State (50) and federal
+ * banners remain on the generic string — a separate, larger registry.
  */
-const CURATED_CITY_CREDITS: Record<string, string> = {
-  'madison|WI': 'John Benson, CC BY 2.5, via Wikimedia Commons',
+export const CURATED_CITY_CREDITS: Record<string, string> = {
+  'bloomington|IN': 'Yahala, CC BY-SA 3.0, via Wikimedia Commons',
+
+  'beaverton|OR': 'M.O. Stevens, CC BY 3.0, via Wikimedia Commons',
   'bend|OR': 'Spencer Dahl, CC BY-SA 3.0, via Wikimedia Commons',
+  'cornelius|OR': 'M.O. Stevens, CC BY-SA 3.0, via Wikimedia Commons',
+  'forest-grove|OR': 'Visitor7, CC BY-SA 3.0, via Wikimedia Commons',
+  'hillsboro|OR': 'Steve Morgan, CC BY-SA 4.0, via Wikimedia Commons',
+  'sherwood|OR': 'dreid1987, CC BY 3.0, via Wikimedia Commons',
+  'tigard|OR': 'M.O. Stevens (Aboutmovies), public domain, via Wikimedia Commons',
+  'tualatin|OR': 'M.O. Stevens (Aboutmovies), CC BY-SA 3.0, via Wikimedia Commons',
+
+  'burbank|CA': 'Natecation, CC BY-SA 4.0, via Wikimedia Commons',
+  'downey|CA': 'Northwalker, CC0, via Wikimedia Commons',
+  'glendale|CA': 'KeeganProbably, CC BY 4.0, via Wikimedia Commons',
+  'long-beach|CA': 'Christophe.Finot, CC BY-SA 2.5, via Wikimedia Commons',
+  'norwalk|CA': 'Northwalker, CC0, via Wikimedia Commons',
+  'pasadena|CA': 'RBerteig, CC BY 2.0, via Wikimedia Commons',
+  'west-covina|CA': 'ASDFGH, CC BY-SA 4.0, via Wikimedia Commons',
+
+  'madison|WI': 'John Benson, CC BY 2.5, via Wikimedia Commons',
 };
 
 /** Build a shared-bucket banner for entities we know are covered, else null.
