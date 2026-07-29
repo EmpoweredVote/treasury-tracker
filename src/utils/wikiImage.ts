@@ -177,7 +177,25 @@ const CURATED_CITY_BANNERS = new Set<string>([
   // Added 2026-07-27 by essentials (`buildingImages.js`) — WI's first city banner.
   // Madison was falling through to the Wikipedia path while a curated asset sat unused.
   'madison|WI',
+  // Bend's asset is versioned — see CURATED_CITY_FILES.
+  'bend|OR',
 ]);
+
+/**
+ * Filename overrides for banners that are NOT at `cities/<slug>.jpg`, keyed
+ * "slug|STATE". Essentials versions a filename when it re-crops an image, because
+ * overwriting in place left a stale copy on the edge cache — the plain URL kept
+ * serving the old file while a cache-busted request returned the new one.
+ *
+ * `cities/bend.jpg` happens to serve the current bytes again today (verified
+ * 2026-07-28: plain and cache-busted requests both sha256 b2d7b7d3…, identical to
+ * bend-v2.jpg). That is the CDN catching up, not a guarantee — and if essentials
+ * re-crops to a v3, the slug URL would silently diverge from what they publish.
+ * Point at the filename essentials designates as canonical instead.
+ */
+const CURATED_CITY_FILES: Record<string, string> = {
+  'bend|OR': 'bend-v2.jpg',
+};
 
 /**
  * Per-image attribution, keyed "slug|STATE", for bucket banners whose author and
@@ -190,6 +208,7 @@ const CURATED_CITY_BANNERS = new Set<string>([
  */
 const CURATED_CITY_CREDITS: Record<string, string> = {
   'madison|WI': 'John Benson, CC BY 2.5, via Wikimedia Commons',
+  'bend|OR': 'Spencer Dahl, CC BY-SA 3.0, via Wikimedia Commons',
 };
 
 /** Build a shared-bucket banner for entities we know are covered, else null.
@@ -212,9 +231,12 @@ function bucketBanner(entity: Municipality): HeroImage | null {
     default: {
       const slug = toSlug(entity.name);
       const key = `${slug}|${entity.state.toUpperCase()}`;
-      return CURATED_CITY_BANNERS.has(key)
-        ? { url: `${BANNER_BASE}/cities/${slug}.jpg`, credit: CURATED_CITY_CREDITS[key] ?? WIKIMEDIA_CREDIT }
-        : null;
+      if (!CURATED_CITY_BANNERS.has(key)) return null;
+      const file = CURATED_CITY_FILES[key] ?? `${slug}.jpg`;
+      return {
+        url: `${BANNER_BASE}/cities/${file}`,
+        credit: CURATED_CITY_CREDITS[key] ?? WIKIMEDIA_CREDIT,
+      };
     }
   }
 }
