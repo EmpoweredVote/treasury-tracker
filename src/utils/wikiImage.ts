@@ -174,24 +174,46 @@ const CURATED_CITY_BANNERS = new Set<string>([
   'bloomington|IN',
   'beaverton|OR', 'hillsboro|OR', 'tigard|OR', 'tualatin|OR', 'forest-grove|OR', 'sherwood|OR', 'cornelius|OR',
   'long-beach|CA', 'glendale|CA', 'pasadena|CA', 'west-covina|CA', 'downey|CA', 'burbank|CA', 'norwalk|CA',
+  // Added 2026-07-27 by essentials (`buildingImages.js`) — WI's first city banner.
+  // Madison was falling through to the Wikipedia path while a curated asset sat unused.
+  'madison|WI',
 ]);
 
-/** Build a shared-bucket banner URL for entities we know are covered, else null. */
-function bucketBannerUrl(entity: Municipality): string | null {
+/**
+ * Per-image attribution, keyed "slug|STATE", for bucket banners whose author and
+ * licence are known. CC BY / CC BY-SA require naming the author — the generic
+ * WIKIMEDIA_CREDIT does not, so an entry here is a licence obligation, not a nicety.
+ *
+ * Only populated where the essentials banner registry records the credit. Anything
+ * absent falls back to WIKIMEDIA_CREDIT, which is the pre-existing behaviour for the
+ * other curated banners and remains an open gap (see WIKIMEDIA_CREDIT above).
+ */
+const CURATED_CITY_CREDITS: Record<string, string> = {
+  'madison|WI': 'John Benson, CC BY 2.5, via Wikimedia Commons',
+};
+
+/** Build a shared-bucket banner for entities we know are covered, else null.
+ *  Returns the credit alongside the URL so per-image attribution can override the
+ *  generic one — the two must be chosen together or a banner can be shown under the
+ *  wrong author. */
+function bucketBanner(entity: Municipality): HeroImage | null {
   switch (entity.entity_type) {
     case 'federal':
-      return `${BANNER_BASE}/national/us-capitol-banner-v2.jpg`;
+      return { url: `${BANNER_BASE}/national/us-capitol-banner-v2.jpg`, credit: WIKIMEDIA_CREDIT };
     case 'state': {
       const abbr = entity.state.toUpperCase();
       // All 50 states are covered at states/<ABBR>.jpg.
-      return STATE_NAMES[abbr] ? `${BANNER_BASE}/states/${abbr}.jpg` : null;
+      return STATE_NAMES[abbr]
+        ? { url: `${BANNER_BASE}/states/${abbr}.jpg`, credit: WIKIMEDIA_CREDIT }
+        : null;
     }
     case 'nonprofit':
       return null;
     default: {
       const slug = toSlug(entity.name);
-      return CURATED_CITY_BANNERS.has(`${slug}|${entity.state.toUpperCase()}`)
-        ? `${BANNER_BASE}/cities/${slug}.jpg`
+      const key = `${slug}|${entity.state.toUpperCase()}`;
+      return CURATED_CITY_BANNERS.has(key)
+        ? { url: `${BANNER_BASE}/cities/${slug}.jpg`, credit: CURATED_CITY_CREDITS[key] ?? WIKIMEDIA_CREDIT }
         : null;
     }
   }
@@ -213,11 +235,10 @@ export async function getHeroImage(entity: Municipality): Promise<HeroImage | nu
   if (cached !== undefined) return cached;
 
   // 3. Prefer the org's curated, licensed shared-bucket banner.
-  const bucketUrl = bucketBannerUrl(entity);
-  if (bucketUrl) {
-    const hero: HeroImage = { url: bucketUrl, credit: WIKIMEDIA_CREDIT };
-    cache.set(cacheKey, hero);
-    return hero;
+  const bucketHero = bucketBanner(entity);
+  if (bucketHero) {
+    cache.set(cacheKey, bucketHero);
+    return bucketHero;
   }
 
   // 4. Fallback: live Wikipedia lookup for places not yet in the bucket.
