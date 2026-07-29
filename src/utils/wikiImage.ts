@@ -152,15 +152,88 @@ async function fetchWikiImage(title: string): Promise<string | null> {
 const BANNER_BASE =
   'https://kxsdzaojfaibhuzmclfq.storage.supabase.co/storage/v1/object/public/politician_photos';
 
-/** Fallback credit for bucket banners with no per-image entry. All bucket banners
- *  are sourced from Wikimedia Commons under a free license (CC BY / CC BY-SA /
- *  CC0 / Public Domain); CC BY and CC BY-SA require naming the author, which this
- *  generic string does not do.
+/** Last-resort credit for a bucket banner with no per-image entry. CC BY and
+ *  CC BY-SA require naming the author, which this generic string does not do, so
+ *  reaching it is a gap rather than a normal outcome.
  *
- *  Every curated CITY banner now carries real attribution — see
- *  CURATED_CITY_CREDITS. This remains in use for the 50 state banners and the
- *  federal banner, whose credits have not been transcribed yet. */
+ *  City, state and federal banners all carry real attribution now. The one
+ *  deliberate exception is Rhode Island — see STATE_BANNER_CREDITS. */
 const WIKIMEDIA_CREDIT = 'Wikimedia Commons';
+
+/** Attribution for the federal banner.
+ *  Registry: "Panorama at the Capitol Reflecting Pool (September 2023) 02". The
+ *  operator levelled it 0.6° and cropped to 1700x540, so the modification is
+ *  disclosed — CC BY-SA asks that adaptations be indicated. */
+export const FEDERAL_CREDIT = 'DiscoA340, CC BY-SA 4.0, leveled and cropped, via Wikimedia Commons';
+
+/**
+ * Per-state attribution for `states/<ABBR>.jpg`, transcribed 2026-07-28 from the
+ * essentials banner registry (`src/lib/buildingImages.js`), same provenance rule as
+ * CURATED_CITY_CREDITS: verbatim author and licence, never reconstructed.
+ *
+ * Five entries the registry marks as brightness-lifted (CT, IL, KY, VA, WA) say so
+ * — CC BY / CC BY-SA ask that modifications be indicated. Every banner is also
+ * cropped to the panoramic frame; that is inherent to the format and not called out
+ * per-image.
+ *
+ * RHODE ISLAND IS DELIBERATELY ABSENT. Its registry line records the author as
+ * "(Providence_RI_skyline)", which is the Commons *filename*, not a person. Printing
+ * that as an author would be a false attribution, so RI falls back to the generic
+ * credit until someone reads the real author off the Commons file page. A wrong name
+ * is worse than a vague one.
+ */
+export const STATE_BANNER_CREDITS: Record<string, string> = {
+  AK: 'Paxson Woelber, CC BY 2.0, via Wikimedia Commons',
+  AL: 'WeaponizingArchitecture, CC BY-SA 4.0, via Wikimedia Commons',
+  AR: 'Daniel Schwen, CC BY-SA 4.0, via Wikimedia Commons',
+  AZ: 'DPPed, CC BY-SA 3.0, via Wikimedia Commons',
+  CA: 'Brocken Inaglory, CC BY-SA 4.0, via Wikimedia Commons',
+  CO: 'Quintin Soloviev, CC BY 4.0, via Wikimedia Commons',
+  CT: 'KyleConstable, CC BY-SA 4.0, brightened, via Wikimedia Commons',
+  DE: 'Tim Kiser, CC BY-SA 2.5, via Wikimedia Commons',
+  FL: 'Euthman, CC BY 4.0, via Wikimedia Commons',
+  GA: 'Marc Merlin, CC BY-SA 4.0, via Wikimedia Commons',
+  HI: 'Cristo Vlahos, CC BY-SA 3.0, via Wikimedia Commons',
+  IA: 'Tony Webster, CC BY 2.0, via Wikimedia Commons',
+  ID: 'Tamanoeconomico, CC BY-SA 4.0, via Wikimedia Commons',
+  IL: 'King of Hearts, CC BY-SA 3.0, brightened, via Wikimedia Commons',
+  IN: 'Momoneymoproblemz, CC BY-SA 4.0, via Wikimedia Commons',
+  KS: 'Quintin Soloviev, CC BY 4.0, via Wikimedia Commons',
+  KY: 'Anindya Chakraborty, CC BY-SA 3.0, brightened, via Wikimedia Commons',
+  LA: 'Michael Maples (USACE), public domain, via Wikimedia Commons',
+  MA: 'King of Hearts, CC BY-SA 4.0, via Wikimedia Commons',
+  MD: 'Quintin Soloviev, CC BY 4.0, via Wikimedia Commons',
+  ME: 'Kristen Wheatley, CC BY 2.0, via Wikimedia Commons',
+  MI: 'TheWxResearcher, CC0, via Wikimedia Commons',
+  MN: 'w_lemay, CC BY-SA 2.0, via Wikimedia Commons',
+  MO: 'Buphoff, CC BY-SA 3.0, via Wikimedia Commons',
+  MS: 'chmeredith, CC BY 2.0, via Wikimedia Commons',
+  MT: 'TerryDOtt, CC BY 2.0, via Wikimedia Commons',
+  NC: 'Bruce Emmerling, CC BY-SA 4.0, via Wikimedia Commons',
+  ND: 'Acroterion, CC BY-SA 4.0, via Wikimedia Commons',
+  NE: 'SounderBruce, CC BY-SA 4.0, via Wikimedia Commons',
+  NH: 'YubYub41, CC BY-SA 3.0, via Wikimedia Commons',
+  NJ: 'King of Hearts, CC BY-SA 4.0, via Wikimedia Commons',
+  NM: 'Daniel Schwen, CC BY-SA 4.0, via Wikimedia Commons',
+  NV: 'Paul Harrison, CC BY-SA 4.0, via Wikimedia Commons',
+  NY: 'King of Hearts, CC BY-SA 4.0, via Wikimedia Commons',
+  OH: 'Ynsalh, CC BY-SA 4.0, via Wikimedia Commons',
+  OK: 'Soonerfever, public domain, via Wikimedia Commons',
+  OR: "Oregon's Mt. Hood Territory, public domain, via Wikimedia Commons",
+  PA: 'Cbaile19, CC0, via Wikimedia Commons',
+  // RI — see the note above. Intentionally omitted.
+  SC: 'bbatsell, CC BY-SA 2.5, via Wikimedia Commons',
+  SD: 'Nick Amoscato, CC BY 2.0, via Wikimedia Commons',
+  TN: 'Kaldari, public domain, via Wikimedia Commons',
+  TX: 'Sk5893, CC BY-SA 4.0, via Wikimedia Commons',
+  UT: 'Invictus323, CC BY 4.0, via Wikimedia Commons',
+  VA: 'Don.s.okeefe, CC BY-SA 3.0, brightened, via Wikimedia Commons',
+  VT: 'chensiyuan, CC BY-SA 4.0, via Wikimedia Commons',
+  WA: 'Daniel Schwen, CC BY-SA 4.0, brightened, via Wikimedia Commons',
+  WI: 'Dori, CC BY-SA 3.0 US, via Wikimedia Commons',
+  WV: 'Gabor Eszes (UED77), CC BY-SA 3.0, via Wikimedia Commons',
+  WY: 'GrandTetonNPS, public domain, via Wikimedia Commons',
+};
 
 const toSlug = (name: string) => name.toLowerCase().trim().replace(/\s+/g, '-');
 
@@ -249,12 +322,15 @@ export const CURATED_CITY_CREDITS: Record<string, string> = {
 function bucketBanner(entity: Municipality): HeroImage | null {
   switch (entity.entity_type) {
     case 'federal':
-      return { url: `${BANNER_BASE}/national/us-capitol-banner-v2.jpg`, credit: WIKIMEDIA_CREDIT };
+      return { url: `${BANNER_BASE}/national/us-capitol-banner-v2.jpg`, credit: FEDERAL_CREDIT };
     case 'state': {
       const abbr = entity.state.toUpperCase();
       // All 50 states are covered at states/<ABBR>.jpg.
       return STATE_NAMES[abbr]
-        ? { url: `${BANNER_BASE}/states/${abbr}.jpg`, credit: WIKIMEDIA_CREDIT }
+        ? {
+            url: `${BANNER_BASE}/states/${abbr}.jpg`,
+            credit: STATE_BANNER_CREDITS[abbr] ?? WIKIMEDIA_CREDIT,
+          }
         : null;
     }
     case 'nonprofit':

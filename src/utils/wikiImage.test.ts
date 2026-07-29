@@ -18,6 +18,9 @@ import {
   CURATED_CITY_BANNERS,
   CURATED_CITY_CREDITS,
   CURATED_CITY_FILES,
+  STATE_BANNER_CREDITS,
+  STATE_NAMES,
+  FEDERAL_CREDIT,
 } from './wikiImage';
 
 const BUCKET = 'https://kxsdzaojfaibhuzmclfq.storage.supabase.co/storage/v1/object/public/politician_photos';
@@ -51,6 +54,61 @@ describe('curated banner registry — every banner is attributed', () => {
   });
 });
 
+describe('state + federal banner attribution', () => {
+  /** RI's registry line records a filename where the author should be, so it is
+   *  deliberately uncredited rather than falsely credited. Subset, not equality —
+   *  reading the real author off Commons should not have to touch this test. */
+  const KNOWN_UNCREDITED = new Set(['RI']);
+
+  it('credits every state banner except the documented exception', () => {
+    const missing = Object.keys(STATE_NAMES).filter((a) => !STATE_BANNER_CREDITS[a]);
+    expect(missing.filter((a) => !KNOWN_UNCREDITED.has(a))).toEqual([]);
+  });
+
+  it('covers all 50 states between credited and knowingly-uncredited', () => {
+    expect(Object.keys(STATE_NAMES)).toHaveLength(50);
+    expect(Object.keys(STATE_BANNER_CREDITS).length + KNOWN_UNCREDITED.size).toBe(50);
+  });
+
+  it('has no credit for a state that does not exist', () => {
+    expect(Object.keys(STATE_BANNER_CREDITS).filter((a) => !STATE_NAMES[a])).toEqual([]);
+  });
+
+  it('never prints a Commons filename as an author', () => {
+    for (const [abbr, credit] of Object.entries(STATE_BANNER_CREDITS)) {
+      // The RI failure mode: the whole author field is a parenthesised filename.
+      // Not an underscore check — `w_lemay` (MN) is a real Commons username.
+      expect(credit, abbr).not.toMatch(/^\(/);
+      expect(credit, abbr).toMatch(/via Wikimedia Commons$/);
+    }
+  });
+
+  it('serves Wisconsin credited to its author', async () => {
+    const hero = await getHeroImage(entity('Wisconsin', 'WI', 'state'));
+    expect(hero?.url).toBe(`${BUCKET}/states/WI.jpg`);
+    expect(hero?.credit).toBe('Dori, CC BY-SA 3.0 US, via Wikimedia Commons');
+  });
+
+  it('discloses the brightness lift where the registry records one', async () => {
+    const hero = await getHeroImage(entity('Washington', 'WA', 'state'));
+    expect(hero?.credit).toBe('Daniel Schwen, CC BY-SA 4.0, brightened, via Wikimedia Commons');
+  });
+
+  it('falls back to the generic credit for Rhode Island rather than inventing one', async () => {
+    const hero = await getHeroImage(entity('Rhode Island', 'RI', 'state'));
+    expect(hero?.url).toBe(`${BUCKET}/states/RI.jpg`);
+    expect(hero?.credit).toBe('Wikimedia Commons');
+  });
+
+  it('credits the federal banner and discloses the edit', async () => {
+    const hero = await getHeroImage(entity('United States', 'US', 'federal'));
+    expect(hero?.url).toBe(`${BUCKET}/national/us-capitol-banner-v2.jpg`);
+    expect(hero?.credit).toBe(FEDERAL_CREDIT);
+    expect(hero?.credit).toContain('DiscoA340');
+    expect(hero?.credit).toContain('leveled and cropped');
+  });
+});
+
 describe('getHeroImage — bucket resolution', () => {
   it('serves Madison WI from the bucket, credited to its author', async () => {
     const hero = await getHeroImage(entity('Madison', 'WI'));
@@ -77,11 +135,7 @@ describe('getHeroImage — bucket resolution', () => {
     expect(CURATED_CITY_BANNERS.has('glendale|AZ')).toBe(false);
   });
 
-  it('falls back to the generic credit for state banners', async () => {
-    const hero = await getHeroImage(entity('Wisconsin', 'WI', 'state'));
-    expect(hero?.url).toBe(`${BUCKET}/states/WI.jpg`);
-    expect(hero?.credit).toBe('Wikimedia Commons');
-  });
+  // State + federal credits are asserted in their own block above.
 
   it('returns null for a nonprofit rather than a place banner', async () => {
     expect(await getHeroImage(entity('Empowered Vote', 'CA', 'nonprofit'))).toBeNull();
