@@ -260,6 +260,10 @@ export const CURATED_CITY_BANNERS = new Set<string>([
   'madison|WI',
   // Bend's asset is versioned — see CURATED_CITY_FILES.
   'bend|OR',
+  // First COUNTY in this set (2026-07-29). The bucket keeps county banners under
+  // cities/ and essentials keys it 'dane county', so the hyphenated slug this
+  // builder produces already matches — no filename override needed.
+  'dane-county|WI',
 ]);
 
 /**
@@ -317,6 +321,7 @@ export const CURATED_CITY_CREDITS: Record<string, string> = {
   'pasadena|CA': 'RBerteig, CC BY 2.0, via Wikimedia Commons',
   'west-covina|CA': 'ASDFGH, CC BY-SA 4.0, via Wikimedia Commons',
 
+  'dane-county|WI': 'Corey Coyle, CC BY 3.0, via Wikimedia Commons',
   'madison|WI': 'John Benson, CC BY 2.5, via Wikimedia Commons',
 };
 

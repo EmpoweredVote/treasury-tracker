@@ -134,6 +134,12 @@ describe('getHeroImage — bucket resolution', () => {
     expect(hero?.credit).toBe('Spencer Dahl, CC BY-SA 3.0, via Wikimedia Commons');
   });
 
+  it('resolves a county, not just cities — county banners live under cities/ too', async () => {
+    const hero = await getHeroImage(entity('Dane County', 'WI', 'county'));
+    expect(hero?.url).toBe(`${BUCKET}/cities/dane-county.jpg`);
+    expect(hero?.credit).toBe('Corey Coyle, CC BY 3.0, via Wikimedia Commons');
+  });
+
   it('slugifies multi-word names', async () => {
     const hero = await getHeroImage(entity('Long Beach', 'CA'));
     expect(hero?.url).toBe(`${BUCKET}/cities/long-beach.jpg`);
