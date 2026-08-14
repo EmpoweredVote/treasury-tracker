@@ -218,8 +218,30 @@ class CityConfig:
                  off the statement. Defaults to ('June', 30). Seattle and King
                  County close on December 31.
 
-                 Without this the year falls back to a regex over the FILE PATH,
-                 which silently mislabels a row whenever a filename is wrong.
+                 The year is read from the located STATEMENT PAGE's own "for
+                 the year ended <fy_end>, <YYYY>" caption FIRST -- that page is
+                 authoritative for the period of the numbers being extracted.
+                 Only if the statement page does not state its own period does
+                 parse_fy fall back to a whole-document scan, and only after
+                 that to a regex over the FILE PATH (which silently mislabels
+                 a row whenever a filename is wrong).
+
+                 The whole-document fallback exists for a page that turns out
+                 not to state its period, but is NOT safe to prefer: it can
+                 latch onto a true but unrelated mention of a different year
+                 elsewhere in the document -- a GFOA award paragraph, a
+                 comparative reference -- before it ever reaches the
+                 statement page's own caption. Observed live: King County's
+                 FY2024 and FY2025 ACFRs both render the transmittal letter's
+                 own correct self-reference as "...year ended December31,
+                 2024" (pdftotext drops the space), which the fiscal-year
+                 regex could not match; the whole-document scan then reached
+                 a GFOA-award paragraph reading "...for the fiscal year ended
+                 December 31, 2023" -- true of the PRIOR year's report, not
+                 this one -- and returned 2023 for a document that is FY2024.
+                 Fixed by (a) checking the statement page first and (b)
+                 widening the month/day gap in the regex to `\\s*` so the
+                 dropped-space form matches too.
     """
 
     def __init__(self, city, parents, root_leaves=(), source_rounding=None,
@@ -368,10 +390,18 @@ _EXCLUDE = ('combining', 'reconciliation', 'budgetary', 'budget and actual',
 
 def _fy_re(fy_end):
     """Regex matching 'for the [fiscal] year ended <month> <day>, <year>' for
-    the given (month_name, day) fiscal-year end."""
+    the given (month_name, day) fiscal-year end.
+
+    The gap between the month name and the day is `\\s*` (zero or more), not
+    `\\s+` (one or more). King County's FY2024/FY2025 ACFRs render the
+    transmittal letter's own correct self-reference as "...year ended
+    December31, 2024." -- `pdftotext` drops the space entirely. Requiring at
+    least one space made that correct, in-period mention invisible to the
+    regex, which is what let `parse_fy`'s whole-document fallback (see below)
+    latch onto a later, correctly-spaced but WRONG-year mention instead."""
     month, day = fy_end
     return re.compile(
-        r'(?:for\s+the\s+)?(?:fiscal\s+)?year\s+ended\s+%s\s+%d,\s*(\d{4})' % (month, day), re.I)
+        r'(?:for\s+the\s+)?(?:fiscal\s+)?year\s+ended\s+%s\s*%d,\s*(\d{4})' % (month, day), re.I)
 
 def table_pages(pdf_path):
     out = subprocess.run(
@@ -411,8 +441,35 @@ def find_statement_page(pages, statement_anchor=None):
     cands.sort()
     return cands[0]
 
-def parse_fy(pages, pdf_path, fy_end=('June', 30)):
+def parse_fy(pages, pdf_path, fy_end=('June', 30), statement_page=None):
+    """The fiscal year a document reports for, in priority order:
+
+    1. `statement_page`'s own "for the year ended <fy_end>, <YYYY>" caption,
+       when given. This is the authoritative period for the numbers actually
+       being extracted -- every statement page inspected so far states its
+       own period on the page -- and it MUST be tried before anything else,
+       because a whole-document scan can land on prose that is true but
+       describes a DIFFERENT year. King County's ACFRs contain a GFOA-award
+       paragraph reading "...for the fiscal year ended December 31, 2023"
+       inside the FY2024 report (the award being described was for the prior
+       year's report); before this fix, that paragraph -- appearing earlier
+       in the whole-document scan than the correctly-spaced statement page
+       text -- won because the statement page's OWN self-reference used the
+       dropped-space form `_fy_re` could not yet match. Observed live on
+       King County FY2024 (parsed as 2023) and FY2025 (parsed as 2024).
+    2. Failing that (a statement page that does not state its own period, or
+       no `statement_page` given), the first match anywhere in the document.
+       Kept as a fallback, but genuinely last-resort now that the statement
+       page is checked first -- carries the same "could match an unrelated
+       year" risk described above.
+    3. Failing that, a regex over the FILE PATH -- silently mislabels a row
+       whenever the filename year is wrong, so this is truly last-ditch.
+    """
     pat = _fy_re(fy_end)
+    if statement_page is not None:
+        m = pat.search(statement_page)
+        if m:
+            return int(m.group(1))
     for pg in pages:
         m = pat.search(pg)
         if m:
@@ -855,7 +912,7 @@ def extract(pdf_path, mode, cfg):
     if pg is None:
         print('  ERROR: primary GF statement not found in %s' % pdf_path, file=sys.stderr)
         sys.exit(3)
-    fy = parse_fy(pages, pdf_path, cfg.fy_end)
+    fy = parse_fy(pages, pdf_path, cfg.fy_end, statement_page=pg)
     lines = pg.split('\n')
     rev_line = next((l for l in lines if l.strip().lower().startswith('total revenues')), None)
     exp_line = next((l for l in lines if l.strip().lower().startswith('total expenditures')), None)

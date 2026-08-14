@@ -311,6 +311,48 @@ class TestPageAndHeaders(unittest.TestCase):
         page = 'For the Fiscal Year Ended June 30, 2025'
         self.assertEqual(parse_fy([page], 'x.pdf', ('June', 30)), 2025)
 
+    # Fix round 1 (King County FY2024/FY2025): pdftotext rendered the
+    # transmittal letter's own correct self-reference as "...year ended
+    # December31, 2024." with no space before the day. The un-widened regex
+    # required at least one space and so never matched it, which is what let
+    # the whole-document scan reach a later, correctly-spaced but WRONG-year
+    # GFOA-award mention instead. Confirmed live on the real 2024/2025 PDFs.
+    def test_dropped_space_before_the_day_still_parses(self):
+        page = 'for the fiscal year ended December31, 2024.'
+        self.assertEqual(parse_fy([page], 'x.pdf', ('December', 31)), 2024)
+
+    def test_dropped_space_also_tolerated_for_the_june_default(self):
+        page = 'For the Fiscal Year Ended June30, 2025'
+        self.assertEqual(parse_fy([page], 'x.pdf', ('June', 30)), 2025)
+
+    # Fix round 1: the STATEMENT PAGE's own caption must win over anything
+    # else in the document, because a whole-document scan can be correct
+    # about a year that isn't the one being extracted. This reproduces the
+    # King County FY2024 shape: page 0 (an earlier page, e.g. the GFOA-award
+    # paragraph) truthfully states the PRIOR year, 2023; the statement page
+    # truthfully states the CURRENT year, 2024. Before this fix, `parse_fy`
+    # had no way to prefer the statement page and returned 2023.
+    def test_statement_page_year_wins_over_an_earlier_pages_different_year(self):
+        earlier_page_wrong_year = (
+            'Reporting to King County for its annual comprehensive financial '
+            'report for the fiscal year ended December 31, 2023.')
+        statement_page_right_year = (
+            'STATEMENT OF REVENUES, EXPENDITURES AND CHANGES IN FUND BALANCES\n'
+            'FOR THE YEAR ENDED DECEMBER 31, 2024')
+        self.assertEqual(
+            parse_fy([earlier_page_wrong_year, statement_page_right_year],
+                     'kingcounty-2024-acfr.pdf', ('December', 31),
+                     statement_page=statement_page_right_year),
+            2024)
+
+    def test_statement_page_absent_falls_back_to_whole_document_scan(self):
+        # Non-regression: when no statement_page is passed (or it states no
+        # period of its own), the old whole-document-scan behavior is
+        # unchanged -- this is what the 8 already-loaded June-30 cities and
+        # Seattle relied on before this fix, and the golden baseline pins it.
+        page = 'For the Fiscal Year Ended June 30, 2025'
+        self.assertEqual(parse_fy([page], 'x.pdf', ('June', 30), statement_page=None), 2025)
+
 
 # Fix round 1: the original prefix-mode guard only rejected a title wrap that
 # happened to land the "changes in fund" phrase on the SAME line as the
