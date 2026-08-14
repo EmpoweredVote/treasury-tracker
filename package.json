@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
+    "test:acfr": "py -3 scripts/lib/acfrGF.selftest.py",
     "smoke:essentials": "node scripts/essentials-live-smoke.mjs",
     "process-budget": "node scripts/processBudget.js",
     "process-revenue": "node scripts/processRevenue.js",
