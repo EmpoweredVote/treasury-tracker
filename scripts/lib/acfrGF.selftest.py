@@ -353,5 +353,79 @@ class TestSectionHeaderPrefixGuard(unittest.TestCase):
         self.assertTrue(_is_section_header('EXPENDITURES', 'expenditures', 'prefix'))
 
 
+# Fix round 2: round 1's guard was still an ENUMERATED set of substring
+# checks tuned to the two wraps quoted at the time, and a wrap one word
+# earlier or later evaded all three of them simultaneously -- the remainder
+# contains a real word (not punctuation-only), is not comma-led, and
+# 'changesinfund'/'fundbalance' is not yet contiguous because the wrap
+# severs the phrase before "IN FUND" joins up:
+#   _is_section_header('EXPENDITURES AND CHANGES', 'expenditures', 'prefix')     -> was True, must be False
+#   _is_section_header('EXPENDITURES AND CHANGES IN', 'expenditures', 'prefix')  -> was True, must be False
+#   _is_section_header('EXPENDITURES AND CHANGE', 'expenditures', 'prefix')      -> was True, must be False
+# Chasing this with more substrings does not converge. Fix round 2 replaces
+# the enumeration with a STRUCTURAL rule: a genuine table caption is
+# separated from the section word by a COLUMN GAP (2+ spaces), the same
+# signal `_SLOT` relies on elsewhere in this module; a wrapped title is
+# single-spaced prose no matter where it is cut. See `_is_section_header`'s
+# docstring for the full reasoning.
+#
+# SEA2024_REV_HEADER (used below) is a byte-for-byte transcription of the
+# real REVENUES header line on Seattle FY2024 ACFR p56 -- read directly from
+# `pdftotext -table` output against the actual PDF (confirmed against the
+# live document as part of this fix round), not retyped from memory, so this
+# test cannot silently drift from what the real document contains.
+class TestSectionHeaderPrefixGuardRound2(unittest.TestCase):
+    def test_wrap_one_word_earlier_is_rejected(self):
+        self.assertFalse(_is_section_header('EXPENDITURES AND CHANGES', 'expenditures', 'prefix'))
+
+    def test_wrap_two_words_earlier_is_rejected(self):
+        self.assertFalse(_is_section_header('EXPENDITURES AND CHANGES IN', 'expenditures', 'prefix'))
+
+    def test_wrap_at_a_different_word_entirely_is_rejected(self):
+        self.assertFalse(_is_section_header('EXPENDITURES AND CHANGE', 'expenditures', 'prefix'))
+
+    def test_wrap_one_word_later_is_still_rejected(self):
+        # Not a new bypass (round 1's 'changesinfund' substring already
+        # caught this one) -- kept here as the boundary neighbour of the
+        # three genuine bypasses above, so the whole family is visible in
+        # one place.
+        self.assertFalse(_is_section_header(
+            'EXPENDITURES AND CHANGES IN FUND', 'expenditures', 'prefix'))
+
+    def test_other_financing_sources_caption_fragment_is_rejected(self):
+        self.assertFalse(_is_section_header(
+            'REVENUES AND OTHER FINANCING SOURCES', 'revenues', 'prefix'))
+
+    def test_other_financing_uses_caption_fragment_is_rejected(self):
+        self.assertFalse(_is_section_header(
+            'EXPENDITURES AND OTHER FINANCING USES', 'expenditures', 'prefix'))
+
+    def test_real_seattle_revenue_header_read_from_the_pdf_is_accepted(self):
+        self.assertTrue(_is_section_header(SEA2024_REV_HEADER.strip(), 'revenues', 'prefix'))
+
+    def test_bare_revenues_accepts(self):
+        self.assertTrue(_is_section_header('REVENUES', 'revenues', 'prefix'))
+
+    def test_bare_expenditures_accepts(self):
+        self.assertTrue(_is_section_header('EXPENDITURES', 'expenditures', 'prefix'))
+
+    def test_trailing_colon_variant_accepts(self):
+        self.assertTrue(_is_section_header('REVENUES:', 'revenues', 'prefix'))
+
+    def test_trailing_dollar_sign_variant_accepts(self):
+        self.assertTrue(_is_section_header('EXPENDITURES $', 'expenditures', 'prefix'))
+
+    def test_trailing_colon_and_dollar_sign_variant_accepts(self):
+        self.assertTrue(_is_section_header('EXPENDITURES:  $', 'expenditures', 'prefix'))
+
+    def test_single_space_prose_remainder_rejects_generically(self):
+        # Not one of the two named title wraps and not on any enumerated
+        # list -- a made-up caption-shaped sentence that happens to be
+        # single-spaced prose. Proves the rule is structural (spacing), not
+        # a list of known title forms.
+        self.assertFalse(_is_section_header(
+            'REVENUES OF THE GENERAL FUND', 'revenues', 'prefix'))
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

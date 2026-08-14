@@ -193,26 +193,27 @@ class CityConfig:
                  statements need because the `REVENUES` line also carries the
                  fund column headers.
 
-                 'prefix' is safe ONLY where no line begins with the section
-                 word for another reason. Before enabling it, check it against
-                 the ACTUAL wrapped-title line of EVERY vintage you intend to
-                 run it over -- not just the one wrap already seen. A title
-                 wrapping at a different point can leave a bare section word on
-                 its own line with no adjacent "changes in fund balance(s)"
-                 phrase for `_is_section_header`'s phrase-based guard to see,
-                 and a prefix match there is trap 2: it opens the expenditure
-                 section at the title and inflates the operating total roughly
-                 3x. `_is_section_header` also rejects a handful of
-                 punctuation-only / title-word remainders (see its docstring),
-                 but that is hardening for the wraps already known, not a
-                 substitute for checking each new vintage.
+                 'prefix' is guarded by a STRUCTURAL rule, not a list of known
+                 title wraps (see `_is_section_header`'s docstring for the
+                 full reasoning): what follows the section word is accepted
+                 only if it is nothing (or just a trailing ':'/'$'), or if it
+                 is separated from the section word by a genuine COLUMN GAP
+                 (2+ spaces) -- because `pdftotext -table` renders a real
+                 table caption that way, while a wrapped statement title is
+                 single-spaced prose no matter which word the wrap happens to
+                 land after. This is what makes 'prefix' safe against a wrap
+                 point nobody has enumerated yet, not just the ones already
+                 seen -- still, before enabling it for a new city, check it
+                 against that city's actual wrapped-title line, since the
+                 rule is general but not proven against documents nobody has
+                 looked at.
 
-                 Known limit: this is one shared mode for BOTH the revenue and
-                 expenditure headers. A caption like "REVENUES AND OTHER
-                 FINANCING SOURCES" or "EXPENDITURES AND OTHER FINANCING USES"
-                 would also be accepted in 'prefix' mode -- not seen in any
-                 document tested so far, but not distinguishable from a genuine
-                 column-caption remainder by the current guard.
+                 This structural rule also means 'prefix' correctly rejects a
+                 caption-shaped title fragment like "REVENUES AND OTHER
+                 FINANCING SOURCES" or "EXPENDITURES AND OTHER FINANCING
+                 USES" -- both are single-spaced prose after the section word,
+                 not column-gap-separated, so the same rule that rejects a
+                 wrapped title rejects these too.
     fy_end       (month_name, day) of the fiscal-year end, used to read the year
                  off the statement. Defaults to ('June', 30). Seattle and King
                  County close on December 31.
@@ -498,69 +499,82 @@ _SEC_EXPENDITURES = 'expenditures'
 _END_REVENUES     = r'^Total\s+revenues\b'
 _END_EXPENDITURES = r'^Total\s+expenditures\b'
 
-# Fix round 1 (Task 6): the original prefix-mode guard only rejected a title
-# wrap that happened to land "changes in fund" on the SAME physical line as
-# the section word. A wrap at any OTHER point leaves a bare section word --
-# e.g. a line that is just "EXPENDITURES," or "REVENUES, EXPENDITURES, AND"
-# -- which `startswith(want)` accepts with no phrase to catch it. Confirmed:
-#   _is_section_header('EXPENDITURES,', 'expenditures', 'prefix')           -> was True, must be False
-#   _is_section_header('REVENUES, EXPENDITURES, AND', 'revenues', 'prefix') -> was True, must be False
-# This never fired on any Seattle document inspected -- their title lines
-# begin "B-4 STATEMENT OF REVENUES..." so the section word is never bare --
-# and had it fired, the swallowed revenue block would have inflated the
-# total and FAILED THE TIE loudly rather than shipped silently. Hardened
-# anyway ahead of Task 7 sweeping 17 Seattle documents, of which only 5 have
-# been inspected: relying on a loud failure is worse than not failing.
+# Fix round 1 (Task 6) rejected a title wrap only when it landed "changes in
+# fund" on the SAME physical line as the section word, or left the section
+# word followed by a comma or by connective-only punctuation ("EXPENDITURES,",
+# "REVENUES, EXPENDITURES, AND"). Fix round 2: that was still an ENUMERATED
+# set of known wraps, and a wrap one word earlier or later slipped through it
+# undetected, because the remainder contains a real word (not punctuation-only)
+# and no phrase is contiguous yet:
+#   _is_section_header('EXPENDITURES AND CHANGES', 'expenditures', 'prefix')     -> was True, must be False
+#   _is_section_header('EXPENDITURES AND CHANGES IN', 'expenditures', 'prefix')  -> was True, must be False
+#   _is_section_header('EXPENDITURES AND CHANGE', 'expenditures', 'prefix')      -> was True, must be False
+# Chasing this with more substrings does not converge -- the next unnamed wrap
+# point slips through the next enumeration just as easily.
 #
-# A genuine column-caption remainder ("REVENUES  General Fund  Transportation
-# ...") reads as ordinary words once the section word is stripped off the
-# front. A title CONTINUATION reads differently: it is either (1) comma-led
-# -- the title's own internal commas ("REVENUES, EXPENDITURES, AND CHANGES...")
-# put a comma immediately after the section word when the wrap falls there --
-# or (2) nothing but punctuation and conjunctions ("AND", "OR") with no real
-# caption word in it at all. Both are rejected; a genuine caption remainder,
-# which always begins with a real word (a fund name, "General", a year), is
-# not.
-_TITLE_CONTINUATION_ONLY = re.compile(r'^(?:and|or|[,;:.\-–—])*$')
+# Fix round 2 replaces the enumeration with a STRUCTURAL rule, the same
+# insight `_SLOT` already relies on for telling a column boundary from a
+# prose hyphen: `pdftotext -table` separates a genuine table caption from a
+# row/section label by a COLUMN GAP -- two or more spaces -- because that gap
+# is real horizontal space on the page. A wrapped statement title, by
+# contrast, is ordinary PROSE, and prose is single-spaced no matter which
+# word the wrap happens to land after: "...AND CHANGES", "...AND CHANGES IN",
+# "...AND CHANGE" are all still single-spaced English, not a caption. So: what
+# follows the section word is accepted only if there is nothing there (or
+# just a trailing ':'/'$'), or if it is separated from the section word by a
+# genuine 2+-space column gap. A single space before a real word is always
+# prose and is rejected -- unconditionally, not because that particular wrap
+# was named -- which is what makes the rule hold for a wrap at ANY point,
+# named or not. It also means a caption-shaped title fragment like "REVENUES
+# AND OTHER FINANCING SOURCES" is correctly rejected: that remainder is
+# single-spaced prose too, not column-gap-separated.
+_REST_IS_ONLY_TRAILING_PUNCTUATION = re.compile(r'^[\s:$]*$')
+_COLUMN_GAP = re.compile(r'^\s{2,}')
 
 def _is_section_header(line, want, mode='exact'):
     """True when `line` is the section header `want`, ignoring internal
     letter-spacing, a trailing colon and a stray currency symbol.
 
     'exact' (the default) requires the collapsed line to equal `want` exactly.
-    'prefix' allows trailing text after `want` -- needed where the header line
+
+    'prefix' allows trailing text after `want`, needed where the header line
     also carries fund column headers (Seattle FY2024-era 'REVENUES  General
-    Fund  Transportation ...'). 'prefix' is guarded against trap 2 several
-    ways, since a wrapped statement title can leave the section word bare or
-    followed by only more title text, not just "...changesinfundbalances" on
-    the same line:
-      * the whole line contains 'statement', 'changesinfund', or 'fundbalance'
-        (the last catches Tigard's already-documented SINGULAR "changes in
-        fund balance", and any wrap that separates "changes in" from "fund
-        balance(s)" but leaves the latter on this line);
-      * the remainder after `want` starts with a comma (a wrap that falls
-        mid-title, e.g. "EXPENDITURES," or "REVENUES, EXPENDITURES, AND");
-      * the remainder is nothing but punctuation and/or "and"/"or" (a wrap
-        that leaves only title connective tissue after the section word).
-    A bare section word (empty remainder) and a section word followed by a
-    genuine caption ("General Fund Transportation...") are both accepted --
-    that boundary is the entire point of the hardening; see the self-test's
-    `TestSectionHeaderPrefixGuard` for the boundary cases."""
+    Fund  Transportation ...'). The remainder after `want` is accepted only
+    when:
+      (1) there is nothing there but whitespace and an optional trailing
+          ':' or '$' -- specifically NOT a comma, which marks a title phrase
+          cut mid-wrap ("EXPENDITURES,"); or
+      (2) it is separated from `want` by a genuine COLUMN GAP of 2+ spaces,
+          matching how `pdftotext -table` actually renders a fund-column
+          caption.
+    Anything else -- in particular a SINGLE space before a real word -- is
+    prose, therefore a title continuation, and is rejected regardless of
+    which word the wrap happens to land after. This is the structural
+    replacement for an earlier, enumerated set of known-wrap substring
+    checks that a differently-placed wrap could evade (see the comment
+    above this function).
+
+    Kept as a cheap belt-and-braces layer, not the primary discriminator: the
+    whole collapsed line is also rejected outright if it contains
+    'statement', 'changesinfund', or 'fundbalance' (singular included --
+    Tigard titles its statement "CHANGES IN FUND BALANCE"), in case some
+    future wrap ever lands that whole phrase after a genuine column gap."""
     s = re.sub(r'\s+', '', line).strip().rstrip('$').rstrip(':').lower()
-    if mode == 'prefix':
-        if 'changesinfund' in s or 'statement' in s or 'fundbalance' in s:
-            return False
-        if not s.startswith(want):
-            return False
-        rest = s[len(want):]
-        if not rest:
-            return True
-        if rest[0] == ',':
-            return False
-        if _TITLE_CONTINUATION_ONLY.match(rest):
-            return False
+    if mode != 'prefix':
+        return s == want
+
+    if 'changesinfund' in s or 'statement' in s or 'fundbalance' in s:
+        return False
+
+    low = line.strip().lower()
+    if not low.startswith(want):
+        return False
+    rest = low[len(want):]
+    if not rest:
         return True
-    return s == want
+    if _REST_IS_ONLY_TRAILING_PUNCTUATION.match(rest):
+        return True
+    return bool(_COLUMN_GAP.match(rest))
 
 def _section(lines, start_word, end_pat, mode='exact'):
     """Yield raw lines strictly between the start and end header lines."""
