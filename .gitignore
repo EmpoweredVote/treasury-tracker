@@ -89,6 +89,9 @@ src/data/processedBudget.json
 # git-reviewed mixed universal + Tucson-scoped concept map + expanded audit trail; $0, no paid API)
 !/data/tucsonEnrichment129.mjs
 !/data/tucson-enrichment-129.expanded.json
+# …and the Seattle + King County enrichment source-of-record (Task 12, Seattle/King County
+# onboarding: inline-authored, git-reviewed, both entities fully municipality-scoped; $0, no paid API)
+!/data/seattleEnrichment.mjs
 # …and the verbatim GAO function-definition snapshot it was authored from
 !docs/federal/
 docs/federal/*
