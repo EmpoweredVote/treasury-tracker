@@ -427,5 +427,69 @@ class TestSectionHeaderPrefixGuardRound2(unittest.TestCase):
             'REVENUES OF THE GENERAL FUND', 'revenues', 'prefix'))
 
 
+# Fix round 3: round 2's column-gap premise -- that `pdftotext -table` only
+# ever puts a 2+-space gap where there is a real table column -- is FALSE.
+# `SEA2009_PAGE` above, transcribed from the real Seattle FY2009 output,
+# already contains a 2+-space gap INSIDE THE TITLE:
+#   'B-4                                STATEMENT OF REVENUES, EXPENDITURES, AND                 CHANGES'
+# ("AND" and "CHANGES" are separated by seventeen spaces.) So a double space
+# defeated round 2's guard on exactly the kind of wrap it was built to catch:
+#   _is_section_header('EXPENDITURES  AND CHANGES', 'expenditures', 'prefix')          -> was True, must be False
+#   _is_section_header('REVENUES  AND OTHER FINANCING SOURCES', 'revenues', 'prefix')  -> was True, must be False
+#   _is_section_header('EXPENDITURES  OF THE GENERAL FUND', 'expenditures', 'prefix')  -> was True, must be False
+# Round 3 adds a second, independent discriminator: after the column-gap
+# check passes, also reject when the remainder's first word is a CONNECTIVE
+# ("and", "of", "in", ...) rather than a caption noun. This is layered
+# defence, not a proof -- see the comment above `_is_section_header` for
+# what happens if some future document ever evades every layer (the tie
+# gate fails loudly rather than shipping a silently wrong total).
+class TestSectionHeaderPrefixGuardRound3(unittest.TestCase):
+    def test_double_space_before_and_changes_is_rejected(self):
+        self.assertFalse(_is_section_header('EXPENDITURES  AND CHANGES', 'expenditures', 'prefix'))
+
+    def test_triple_space_before_and_change_is_rejected(self):
+        self.assertFalse(_is_section_header('EXPENDITURES   AND CHANGE', 'expenditures', 'prefix'))
+
+    def test_double_space_before_and_other_financing_sources_is_rejected(self):
+        self.assertFalse(_is_section_header(
+            'REVENUES  AND OTHER FINANCING SOURCES', 'revenues', 'prefix'))
+
+    def test_double_space_before_of_the_general_fund_is_rejected(self):
+        self.assertFalse(_is_section_header(
+            'EXPENDITURES  OF THE GENERAL FUND', 'expenditures', 'prefix'))
+
+    def test_double_space_before_changes_in_fund_balances_is_rejected(self):
+        self.assertFalse(_is_section_header(
+            'EXPENDITURES  CHANGES IN FUND BALANCES', 'expenditures', 'prefix'))
+
+    def test_double_space_before_in_fund_balances_is_rejected(self):
+        self.assertFalse(_is_section_header(
+            'EXPENDITURES  IN FUND BALANCES', 'expenditures', 'prefix'))
+
+    def test_generic_double_space_connective_not_on_any_named_list_is_rejected(self):
+        # Not one of the coordinator's named phrases -- a made-up
+        # double-spaced connective sentence, proving the rule is about
+        # connectives generically rather than a list of known captions.
+        self.assertFalse(_is_section_header(
+            'REVENUES  FOR THE YEAR ENDED', 'revenues', 'prefix'))
+
+    def test_real_seattle_revenue_header_still_accepted_after_round_3(self):
+        # Read from the PDF, not retyped (SEA2024_REV_HEADER above is a
+        # byte-for-byte transcription of the real pdftotext -table output).
+        self.assertTrue(_is_section_header(SEA2024_REV_HEADER.strip(), 'revenues', 'prefix'))
+
+    def test_bare_revenues_still_accepted_after_round_3(self):
+        self.assertTrue(_is_section_header('REVENUES', 'revenues', 'prefix'))
+
+    def test_bare_expenditures_still_accepted_after_round_3(self):
+        self.assertTrue(_is_section_header('EXPENDITURES', 'expenditures', 'prefix'))
+
+    def test_trailing_colon_variant_still_accepted_after_round_3(self):
+        self.assertTrue(_is_section_header('REVENUES:', 'revenues', 'prefix'))
+
+    def test_trailing_dollar_sign_variant_still_accepted_after_round_3(self):
+        self.assertTrue(_is_section_header('EXPENDITURES $', 'expenditures', 'prefix'))
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

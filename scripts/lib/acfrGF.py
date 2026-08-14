@@ -504,32 +504,51 @@ _END_EXPENDITURES = r'^Total\s+expenditures\b'
 # word followed by a comma or by connective-only punctuation ("EXPENDITURES,",
 # "REVENUES, EXPENDITURES, AND"). Fix round 2: that was still an ENUMERATED
 # set of known wraps, and a wrap one word earlier or later slipped through it
-# undetected, because the remainder contains a real word (not punctuation-only)
-# and no phrase is contiguous yet:
+# undetected:
 #   _is_section_header('EXPENDITURES AND CHANGES', 'expenditures', 'prefix')     -> was True, must be False
 #   _is_section_header('EXPENDITURES AND CHANGES IN', 'expenditures', 'prefix')  -> was True, must be False
 #   _is_section_header('EXPENDITURES AND CHANGE', 'expenditures', 'prefix')      -> was True, must be False
-# Chasing this with more substrings does not converge -- the next unnamed wrap
-# point slips through the next enumeration just as easily.
 #
-# Fix round 2 replaces the enumeration with a STRUCTURAL rule, the same
-# insight `_SLOT` already relies on for telling a column boundary from a
-# prose hyphen: `pdftotext -table` separates a genuine table caption from a
-# row/section label by a COLUMN GAP -- two or more spaces -- because that gap
-# is real horizontal space on the page. A wrapped statement title, by
-# contrast, is ordinary PROSE, and prose is single-spaced no matter which
-# word the wrap happens to land after: "...AND CHANGES", "...AND CHANGES IN",
-# "...AND CHANGE" are all still single-spaced English, not a caption. So: what
-# follows the section word is accepted only if there is nothing there (or
-# just a trailing ':'/'$'), or if it is separated from the section word by a
-# genuine 2+-space column gap. A single space before a real word is always
-# prose and is rejected -- unconditionally, not because that particular wrap
-# was named -- which is what makes the rule hold for a wrap at ANY point,
-# named or not. It also means a caption-shaped title fragment like "REVENUES
-# AND OTHER FINANCING SOURCES" is correctly rejected: that remainder is
-# single-spaced prose too, not column-gap-separated.
+# Round 2 replaced the enumeration with a premise that turned out to be
+# false: that `pdftotext -table` only ever puts a 2+-space COLUMN GAP where
+# there is a real table column, and prose is always single-spaced. It is
+# not. `SEA2009_PAGE` in acfrGF.selftest.py -- transcribed from the real
+# Seattle FY2009 output -- contains, INSIDE THE TITLE:
+#   'B-4                                STATEMENT OF REVENUES, EXPENDITURES, AND                 CHANGES'
+# where "AND" and "CHANGES" are separated by seventeen spaces. `pdftotext
+# -table` produces column-width gaps within justified title text too, so gap
+# width ALONE cannot discriminate a caption from a title continuation:
+#   _is_section_header('EXPENDITURES  AND CHANGES', 'expenditures', 'prefix')          -> was True, must be False
+#   _is_section_header('REVENUES  AND OTHER FINANCING SOURCES', 'revenues', 'prefix')  -> was True, must be False
+#   _is_section_header('EXPENDITURES  OF THE GENERAL FUND', 'expenditures', 'prefix')  -> was True, must be False
+#
+# Fix round 3 adds a SECOND, independent discriminator on top of the column
+# gap: a title continuation resumes with a CONNECTIVE word ("and", "of",
+# "in", ...); a genuine column caption starts with a caption noun (a fund
+# name, "General", a year). `_CONNECTIVE_WORDS` is checked against the first
+# word of the remainder, after the gap check, so a column-gap-separated
+# remainder is still rejected if that first word is connective tissue rather
+# than a caption.
+#
+# HONESTY ABOUT WHAT THIS IS: layered defence, not a correctness proof. The
+# connective list is a small CLOSED set; a genuine column caption that
+# happened to begin with one of those words would be wrongly rejected. No
+# such caption exists in any document this module has been run against --
+# every real caption seen so far begins with a caption noun ("General
+# Fund", "Transportation", "Governmental", a year) -- but a future document
+# could in principle contain one. The saving grace, and the reason this is
+# defence-in-depth rather than a proof: if some future document ever DOES
+# evade every layer below, the expenditure section opens at the title,
+# swallows the revenue block, and the resulting ~3x-inflated total FAILS THE
+# TIE GATE LOUDLY in `extract()` -- it aborts that fiscal year's extraction
+# rather than silently shipping wrong figures. That failure mode is what
+# makes an imperfect heuristic here an acceptable trade, not a hidden risk.
+_CONNECTIVE_WORDS = frozenset((
+    'and', 'or', 'of', 'in', 'for', 'the', 'to', 'with', 'changes', 'change',
+))
 _REST_IS_ONLY_TRAILING_PUNCTUATION = re.compile(r'^[\s:$]*$')
 _COLUMN_GAP = re.compile(r'^\s{2,}')
+_FIRST_WORD = re.compile(r'\s*([a-z]+)')
 
 def _is_section_header(line, want, mode='exact'):
     """True when `line` is the section header `want`, ignoring internal
@@ -539,42 +558,54 @@ def _is_section_header(line, want, mode='exact'):
 
     'prefix' allows trailing text after `want`, needed where the header line
     also carries fund column headers (Seattle FY2024-era 'REVENUES  General
-    Fund  Transportation ...'). The remainder after `want` is accepted only
-    when:
-      (1) there is nothing there but whitespace and an optional trailing
-          ':' or '$' -- specifically NOT a comma, which marks a title phrase
-          cut mid-wrap ("EXPENDITURES,"); or
-      (2) it is separated from `want` by a genuine COLUMN GAP of 2+ spaces,
-          matching how `pdftotext -table` actually renders a fund-column
-          caption.
-    Anything else -- in particular a SINGLE space before a real word -- is
-    prose, therefore a title continuation, and is rejected regardless of
-    which word the wrap happens to land after. This is the structural
-    replacement for an earlier, enumerated set of known-wrap substring
-    checks that a differently-placed wrap could evade (see the comment
-    above this function).
+    Fund  Transportation ...'). The remainder after `want` is run through
+    layered checks, in this order, each independently motivated (see the
+    comment above this function for the two rounds of bypasses that produced
+    this list):
 
-    Kept as a cheap belt-and-braces layer, not the primary discriminator: the
-    whole collapsed line is also rejected outright if it contains
-    'statement', 'changesinfund', or 'fundbalance' (singular included --
-    Tigard titles its statement "CHANGES IN FUND BALANCE"), in case some
-    future wrap ever lands that whole phrase after a genuine column gap."""
+      1. Reject if the remainder is comma-led ("EXPENDITURES," /
+         "REVENUES, EXPENDITURES, AND") -- a comma there marks a title
+         phrase cut mid-wrap.
+      2. Reject on the substring belt-and-braces: the whole collapsed line
+         contains 'changesinfund', 'fundbalance' (singular included --
+         Tigard titles its statement "CHANGES IN FUND BALANCE"), or
+         'statement'.
+      3. Accept if nothing meaningful follows -- only whitespace and an
+         optional trailing ':' or '$'.
+      4. Reject if there is no genuine COLUMN GAP (2+ spaces) before the
+         remainder -- a single space before a real word is prose.
+      5. Reject if the remainder's FIRST WORD is a CONNECTIVE from the
+         small closed set in `_CONNECTIVE_WORDS` -- a title continuation
+         resumes with a connective ("...AND CHANGES", "...OF THE GENERAL
+         FUND"), while a genuine column caption starts with a caption noun
+         (a fund name, "General", a year).
+      6. Otherwise accept: a column-gap-separated remainder that does not
+         open with a connective is a genuine caption.
+
+    This is layered defence, not a correctness proof -- see the comment
+    above this function for what happens if it is ever wrong (the tie gate
+    catches it loudly)."""
     s = re.sub(r'\s+', '', line).strip().rstrip('$').rstrip(':').lower()
     if mode != 'prefix':
         return s == want
-
-    if 'changesinfund' in s or 'statement' in s or 'fundbalance' in s:
-        return False
 
     low = line.strip().lower()
     if not low.startswith(want):
         return False
     rest = low[len(want):]
-    if not rest:
-        return True
+
+    if rest.startswith(','):
+        return False
+    if 'changesinfund' in s or 'statement' in s or 'fundbalance' in s:
+        return False
     if _REST_IS_ONLY_TRAILING_PUNCTUATION.match(rest):
         return True
-    return bool(_COLUMN_GAP.match(rest))
+    if not _COLUMN_GAP.match(rest):
+        return False
+    first_word = _FIRST_WORD.match(rest)
+    if first_word and first_word.group(1) in _CONNECTIVE_WORDS:
+        return False
+    return True
 
 def _section(lines, start_word, end_pat, mode='exact'):
     """Yield raw lines strictly between the start and end header lines."""
