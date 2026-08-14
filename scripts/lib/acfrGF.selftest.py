@@ -563,5 +563,58 @@ class TestSectionHeaderPrefixGuardRound4(unittest.TestCase):
         self.assertTrue(_is_section_header('EXPENDITURES $', 'expenditures', 'prefix'))
 
 
+# Fix round 5: the WORD branch of layer 5 still failed open for a non-ASCII
+# alphabetic lead. `lead.isalpha()` is True for any Unicode letter, but
+# `_LEADING_WORD` matches ASCII [a-z]+ only, so an accented letter or a
+# ligature made the match None and `not (None and ...)` evaluated to an
+# unconditional accept that never ran the connective test -- the same
+# fail-open shape round 4 eliminated, narrowed to non-ASCII letters. Assert
+# on booleans rather than echoing the strings, since a Windows console in a
+# non-UTF-8 codepage can raise UnicodeEncodeError trying to print the
+# ligature on a test failure -- the inputs themselves stay non-ASCII on
+# purpose, per the coordinator's instruction not to weaken them to make
+# printing convenient.
+class TestSectionHeaderPrefixGuardRound5(unittest.TestCase):
+    def test_accented_letter_lead_is_rejected(self):
+        self.assertFalse(_is_section_header(
+            'EXPENDITURES  ÉTAT AND CHANGES', 'expenditures', 'prefix'))
+
+    def test_grave_accented_letter_lead_is_rejected(self):
+        self.assertFalse(_is_section_header(
+            'EXPENDITURES  ÀND CHANGES', 'expenditures', 'prefix'))
+
+    def test_ligature_lead_is_rejected(self):
+        # U+FB01 LATIN SMALL LIGATURE FI
+        self.assertFalse(_is_section_header(
+            'EXPENDITURES  ﬁNANCIAL CHANGES', 'expenditures', 'prefix'))
+
+    def test_ampersand_lead_still_rejects(self):
+        self.assertFalse(_is_section_header(
+            'EXPENDITURES  & CHANGES', 'expenditures', 'prefix'))
+
+    def test_asterisk_lead_still_rejects(self):
+        self.assertFalse(_is_section_header(
+            'EXPENDITURES  * NOTE', 'expenditures', 'prefix'))
+
+    def test_memorandum_only_parenthetical_still_rejects(self):
+        self.assertFalse(_is_section_header(
+            'EXPENDITURES  (MEMORANDUM ONLY)', 'expenditures', 'prefix'))
+
+    def test_year_caption_with_two_comparative_years_still_accepts(self):
+        self.assertTrue(_is_section_header(
+            'REVENUES   2024   2023', 'revenues', 'prefix'))
+
+    def test_digit_led_non_year_remainder_still_accepts(self):
+        self.assertTrue(_is_section_header(
+            'REVENUES   101   Special Revenue', 'revenues', 'prefix'))
+
+    def test_general_fund_caption_still_accepts(self):
+        self.assertTrue(_is_section_header(
+            'REVENUES   General Fund', 'revenues', 'prefix'))
+
+    def test_bare_expenditures_still_accepts(self):
+        self.assertTrue(_is_section_header('EXPENDITURES', 'expenditures', 'prefix'))
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

@@ -566,6 +566,20 @@ _END_EXPENDITURES = r'^Total\s+expenditures\b'
 #     unrecognised leading token is treated as "cannot prove this is a
 #     caption," not as license to accept it.
 #
+# Fix round 5: the WORD branch above still failed open for a non-ASCII
+# alphabetic lead. `lead.isalpha()` is True for any Unicode letter, but
+# `_LEADING_WORD` only matches ASCII [a-z]+, so an accented letter or a
+# ligature made the match None, and `not (None and ...)` evaluated to an
+# unconditional ACCEPT that never ran the connective test -- the same
+# fail-open shape round 4 eliminated, narrowed to non-ASCII letters:
+#   _is_section_header('EXPENDITURES  ÉTAT AND CHANGES', 'expenditures', 'prefix')  -> was True, must be False
+# Judged low-severity (no instance in any real fixture; a diacritic-mangled
+# connective is speculative) but fixed anyway, in two lines, alongside a
+# docstring correction: "fails closed" previously described the top-level
+# three-way dispatch accurately but did NOT hold inside the word branch,
+# which had this silent accept. An inaccurate reassurance that a hole
+# cannot exist is worse than the (low-severity) hole itself.
+#
 # HONESTY ABOUT WHAT THIS IS: layered defence, not a correctness proof. The
 # connective list is a small CLOSED set; a genuine column caption that
 # happened to begin with one of those words would be wrongly rejected. No
@@ -615,27 +629,48 @@ def _is_section_header(line, want, mode='exact'):
          optional trailing ':' or '$'.
       4. Reject if there is no genuine COLUMN GAP (2+ spaces) before the
          remainder -- a single space before a real word is prose.
-      5. Classify the remainder's first non-space TOKEN and reach an
-         explicit verdict -- this layer FAILS CLOSED, it does not fall
-         through to acceptance for a token it cannot classify:
-           - a WORD is rejected if it is a CONNECTIVE from the small closed
-             set in `_CONNECTIVE_WORDS` ("...AND CHANGES", "...OF THE
-             GENERAL FUND" are title continuations), accepted otherwise (a
-             genuine caption starts with a caption noun -- a fund name,
-             "General", a year);
-           - a DIGIT is always accepted (comparative-statement year
-             captions, "REVENUES   2024   2023", are a real header shape;
-             there is no further "is this plausibly a year" check -- see
-             the comment above this function for why);
-           - a recognised SUBTITLE separator (dash, parenthesis, or
-             quotation mark) is rejected -- a subtitle is introduced this
-             way, never a column caption;
-           - anything else unrecognised is rejected.
+      5. Classify the remainder's first non-space character and dispatch on
+         it. The top-level dispatch FAILS CLOSED -- a lead character that is
+         none of the three recognised kinds below is rejected, not
+         accepted:
+           - WORD (an alphabetic lead): a leading ASCII word is extracted
+             and rejected if it is a CONNECTIVE from the small closed set in
+             `_CONNECTIVE_WORDS` ("...AND CHANGES", "...OF THE GENERAL
+             FUND" are title continuations), accepted otherwise. If no
+             ASCII word can be extracted at all (a non-ASCII alphabetic
+             lead -- an accented letter, a ligature), this branch also
+             REJECTS, so the connective test always actually runs before
+             this branch can return True. The connective set itself remains
+             a small CLOSED list: a genuine caption beginning with a word
+             outside that list is accepted, and a hypothetical caption that
+             began WITH one of those ten words would be wrongly rejected.
+             That is a disclosed, deliberate residual, not a bug -- no such
+             caption has been seen in any document this module has
+             processed;
+           - DIGIT: accepted unconditionally and deliberately. Year and
+             fund-number captions ("REVENUES   2024   2023",
+             "REVENUES   101   Special Revenue") are legitimate real header
+             shapes, and there is no further "is this plausibly a year"
+             check -- narrowing it that far buys no real safety and risks
+             rejecting a genuine caption over a guess about its shape;
+           - a recognised SUBTITLE separator (dash, en/em dash, parenthesis,
+             or a straight/curly quotation mark) is rejected -- a subtitle
+             is introduced exactly this way
+             ("...AND CHANGES IN FUND BALANCES - BUDGET AND ACTUAL"), never
+             a column caption.
       6. Otherwise accept.
 
-    This is layered defence, not a correctness proof -- see the comment
-    above this function for what happens if it is ever wrong (the tie gate
-    catches it loudly)."""
+    What this guard is NOT: a correctness proof. Two things bound the actual
+    exposure of its known, disclosed gaps (the connective closed-list residual
+    above, and any wrap shape nobody has enumerated yet): `find_statement_page`'s
+    `_EXCLUDE` list already keeps a budgetary/budget-and-actual PAGE from ever
+    being selected as the primary statement, so that whole class never reaches
+    this function at all (see layer 2's note); and if some future document
+    ever DOES evade every layer here, the wrongly-opened section swallows the
+    other section's block and the resulting inflated total FAILS THE TIE GATE
+    LOUDLY in `extract()` -- it aborts that fiscal year's extraction rather
+    than silently shipping wrong figures. Those two properties are why an
+    imperfect heuristic here is an acceptable trade, not a hidden risk."""
     s = re.sub(r'\s+', '', line).strip().rstrip('$').rstrip(':').lower()
     if mode != 'prefix':
         return s == want
@@ -657,8 +692,18 @@ def _is_section_header(line, want, mode='exact'):
     content = rest.lstrip()
     lead = content[0]
     if lead.isalpha():
+        # Fix round 5: `_LEADING_WORD` is ASCII [a-z]+ only, but `lead.isalpha()`
+        # is True for any Unicode letter. A non-ASCII alphabetic lead (an
+        # accented letter, a ligature) used to leave `word` as None, and
+        # `not (None and ...)` evaluated to an unconditional ACCEPT that never
+        # ran the connective test -- the same fail-open shape round 4 closed,
+        # narrowed to non-ASCII letters. No word identified now means REJECT,
+        # not accept: the connective test must actually run before this
+        # branch can return True.
         word = _LEADING_WORD.match(content)
-        return not (word and word.group(1) in _CONNECTIVE_WORDS)
+        if not word:
+            return False
+        return word.group(1) not in _CONNECTIVE_WORDS
     if lead.isdigit():
         return True
     if lead in _SUBTITLE_LEAD_CHARS:
