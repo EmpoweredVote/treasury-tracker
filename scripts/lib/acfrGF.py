@@ -530,6 +530,42 @@ _END_EXPENDITURES = r'^Total\s+expenditures\b'
 # remainder is still rejected if that first word is connective tissue rather
 # than a caption.
 #
+# Fix round 4: round 3's connective check only fired when the remainder's
+# first non-space TOKEN parsed as lowercase letters. When it did not --
+# punctuation or a digit came first -- the match returned None, the
+# connective check was silently SKIPPED, and control fell through to an
+# unconditional ACCEPT. A guard layer that cannot reach a verdict must not
+# silently grant one:
+#   _is_section_header('EXPENDITURES   - BUDGET AND ACTUAL', 'expenditures', 'prefix')         -> was True, must be False
+#   _is_section_header('EXPENDITURES  (BUDGETARY BASIS) AND CHANGES', 'expenditures', 'prefix') -> was True, must be False
+#   _is_section_header('EXPENDITURES  "BUDGETARY BASIS" SCHEDULE', 'expenditures', 'prefix')    -> was True, must be False
+# (Every one of these is ALREADY blocked one layer up: `find_statement_page`'s
+# `_EXCLUDE` tuple contains 'budgetary' and 'budget and actual', so a
+# budget-vs-actual page is never selected as the primary statement and never
+# reaches `_is_section_header` at all. The fail-open above was a genuine
+# design flaw worth closing on its own merits, not a live data risk in any
+# document this module has actually processed.)
+#
+# The fix distinguishes what kind of token follows the column gap, and
+# reaches an explicit verdict for each kind instead of falling through:
+#   * a WORD -> the existing `_CONNECTIVE_WORDS` check (round 3, unchanged);
+#   * a DIGIT -> accept unconditionally. Comparative statements legitimately
+#     caption columns with bare years ("REVENUES   2024   2023"); rejecting
+#     any non-word lead would silently empty the revenue side on exactly
+#     that real header shape, which is worse than the bug this guard exists
+#     to fix. A digit lead is accepted whether or not it looks like a
+#     plausible year -- there is no separate "is this really a year" check,
+#     because narrowing it that far buys no safety (a bare number is not
+#     English prose either way) and risks rejecting a real caption over a
+#     guess about its shape;
+#   * a recognised SUBTITLE separator (-, en dash, em dash, "(", '"', "'", or
+#     a left curly quote) -> reject. A subtitle is introduced exactly this
+#     way ("...AND CHANGES IN FUND BALANCES - BUDGET AND ACTUAL"), never a
+#     column caption, which is always a bare word or a year;
+#   * anything else unrecognised -> reject. This layer now FAILS CLOSED: an
+#     unrecognised leading token is treated as "cannot prove this is a
+#     caption," not as license to accept it.
+#
 # HONESTY ABOUT WHAT THIS IS: layered defence, not a correctness proof. The
 # connective list is a small CLOSED set; a genuine column caption that
 # happened to begin with one of those words would be wrongly rejected. No
@@ -546,9 +582,10 @@ _END_EXPENDITURES = r'^Total\s+expenditures\b'
 _CONNECTIVE_WORDS = frozenset((
     'and', 'or', 'of', 'in', 'for', 'the', 'to', 'with', 'changes', 'change',
 ))
+_SUBTITLE_LEAD_CHARS = frozenset(('-', '–', '—', '(', '"', "'", '‘', '“'))
 _REST_IS_ONLY_TRAILING_PUNCTUATION = re.compile(r'^[\s:$]*$')
 _COLUMN_GAP = re.compile(r'^\s{2,}')
-_FIRST_WORD = re.compile(r'\s*([a-z]+)')
+_LEADING_WORD = re.compile(r'^([a-z]+)')
 
 def _is_section_header(line, want, mode='exact'):
     """True when `line` is the section header `want`, ignoring internal
@@ -560,8 +597,8 @@ def _is_section_header(line, want, mode='exact'):
     also carries fund column headers (Seattle FY2024-era 'REVENUES  General
     Fund  Transportation ...'). The remainder after `want` is run through
     layered checks, in this order, each independently motivated (see the
-    comment above this function for the two rounds of bypasses that produced
-    this list):
+    comment above this function for the bypass rounds that produced this
+    list):
 
       1. Reject if the remainder is comma-led ("EXPENDITURES," /
          "REVENUES, EXPENDITURES, AND") -- a comma there marks a title
@@ -569,18 +606,32 @@ def _is_section_header(line, want, mode='exact'):
       2. Reject on the substring belt-and-braces: the whole collapsed line
          contains 'changesinfund', 'fundbalance' (singular included --
          Tigard titles its statement "CHANGES IN FUND BALANCE"), or
-         'statement'.
+         'statement'. (Note: `find_statement_page`'s `_EXCLUDE` list already
+         keeps budgetary/budget-and-actual PAGES from ever reaching this far
+         -- this layer and the ones below are about title wraps on the
+         PRIMARY statement page, not a second line of defence against a
+         different page being selected.)
       3. Accept if nothing meaningful follows -- only whitespace and an
          optional trailing ':' or '$'.
       4. Reject if there is no genuine COLUMN GAP (2+ spaces) before the
          remainder -- a single space before a real word is prose.
-      5. Reject if the remainder's FIRST WORD is a CONNECTIVE from the
-         small closed set in `_CONNECTIVE_WORDS` -- a title continuation
-         resumes with a connective ("...AND CHANGES", "...OF THE GENERAL
-         FUND"), while a genuine column caption starts with a caption noun
-         (a fund name, "General", a year).
-      6. Otherwise accept: a column-gap-separated remainder that does not
-         open with a connective is a genuine caption.
+      5. Classify the remainder's first non-space TOKEN and reach an
+         explicit verdict -- this layer FAILS CLOSED, it does not fall
+         through to acceptance for a token it cannot classify:
+           - a WORD is rejected if it is a CONNECTIVE from the small closed
+             set in `_CONNECTIVE_WORDS` ("...AND CHANGES", "...OF THE
+             GENERAL FUND" are title continuations), accepted otherwise (a
+             genuine caption starts with a caption noun -- a fund name,
+             "General", a year);
+           - a DIGIT is always accepted (comparative-statement year
+             captions, "REVENUES   2024   2023", are a real header shape;
+             there is no further "is this plausibly a year" check -- see
+             the comment above this function for why);
+           - a recognised SUBTITLE separator (dash, parenthesis, or
+             quotation mark) is rejected -- a subtitle is introduced this
+             way, never a column caption;
+           - anything else unrecognised is rejected.
+      6. Otherwise accept.
 
     This is layered defence, not a correctness proof -- see the comment
     above this function for what happens if it is ever wrong (the tie gate
@@ -602,10 +653,17 @@ def _is_section_header(line, want, mode='exact'):
         return True
     if not _COLUMN_GAP.match(rest):
         return False
-    first_word = _FIRST_WORD.match(rest)
-    if first_word and first_word.group(1) in _CONNECTIVE_WORDS:
+
+    content = rest.lstrip()
+    lead = content[0]
+    if lead.isalpha():
+        word = _LEADING_WORD.match(content)
+        return not (word and word.group(1) in _CONNECTIVE_WORDS)
+    if lead.isdigit():
+        return True
+    if lead in _SUBTITLE_LEAD_CHARS:
         return False
-    return True
+    return False
 
 def _section(lines, start_word, end_pat, mode='exact'):
     """Yield raw lines strictly between the start and end header lines."""

@@ -491,5 +491,77 @@ class TestSectionHeaderPrefixGuardRound3(unittest.TestCase):
         self.assertTrue(_is_section_header('EXPENDITURES $', 'expenditures', 'prefix'))
 
 
+# Fix round 4: round 3's connective check (layer 5) only fired when the
+# remainder's first non-space TOKEN parsed as lowercase letters. When
+# punctuation or a digit came first, the match returned None, the check was
+# silently skipped, and control fell through to an unconditional ACCEPT --
+# a guard layer that cannot reach a verdict must not silently grant one:
+#   _is_section_header('EXPENDITURES   - BUDGET AND ACTUAL', 'expenditures', 'prefix')         -> was True, must be False
+#   _is_section_header('EXPENDITURES  (BUDGETARY BASIS) AND CHANGES', 'expenditures', 'prefix') -> was True, must be False
+#   _is_section_header('EXPENDITURES  "BUDGETARY BASIS" SCHEDULE', 'expenditures', 'prefix')    -> was True, must be False
+# (Every one of these is also independently blocked by `find_statement_page`'s
+# `_EXCLUDE` list, which already keeps a budgetary/budget-and-actual PAGE
+# from ever being selected as the primary statement -- so this was a design
+# flaw worth closing on its own merits, not a live data risk.)
+#
+# The fix must NOT fail closed on every non-word lead: a DIGIT lead is a
+# real, legitimate column-caption shape ("REVENUES   2024   2023" in a
+# comparative statement) and must stay accepted. Only a recognised SUBTITLE
+# separator (dash, parenthesis, quotation mark) or anything else
+# unclassifiable is rejected.
+class TestSectionHeaderPrefixGuardRound4(unittest.TestCase):
+    def test_dash_led_subtitle_is_rejected(self):
+        self.assertFalse(_is_section_header(
+            'EXPENDITURES   - BUDGET AND ACTUAL', 'expenditures', 'prefix'))
+
+    def test_dash_led_subtitle_is_rejected_on_revenues_too(self):
+        self.assertFalse(_is_section_header(
+            'REVENUES  - BUDGET AND ACTUAL', 'revenues', 'prefix'))
+
+    def test_en_dash_led_subtitle_is_rejected(self):
+        self.assertFalse(_is_section_header(
+            'EXPENDITURES  – BUDGET AND ACTUAL', 'expenditures', 'prefix'))
+
+    def test_parenthesis_led_subtitle_is_rejected(self):
+        self.assertFalse(_is_section_header(
+            'EXPENDITURES  (BUDGETARY BASIS) AND CHANGES', 'expenditures', 'prefix'))
+
+    def test_quotation_mark_led_subtitle_is_rejected(self):
+        self.assertFalse(_is_section_header(
+            'EXPENDITURES  "BUDGETARY BASIS" SCHEDULE', 'expenditures', 'prefix'))
+
+    def test_year_caption_with_two_comparative_years_is_accepted(self):
+        # The non-regression that protects a real header shape: a
+        # comparative statement legitimately captions columns with bare
+        # years. Rejecting any non-word lead would silently empty the
+        # revenue side on exactly this shape -- worse than the bug.
+        self.assertTrue(_is_section_header(
+            'REVENUES   2024   2023', 'revenues', 'prefix'))
+
+    def test_digit_led_remainder_that_is_not_a_year_is_still_accepted(self):
+        # A digit lead is accepted unconditionally -- there is no separate
+        # "is this plausibly a year" check, so a digit-led remainder that
+        # is clearly not a calendar year (e.g. a fund number) is accepted
+        # the same way a real year caption is.
+        self.assertTrue(_is_section_header(
+            'REVENUES   101   Special Revenue', 'revenues', 'prefix'))
+
+    def test_real_seattle_revenue_header_still_accepted_after_round_4(self):
+        # Read from the PDF, not retyped.
+        self.assertTrue(_is_section_header(SEA2024_REV_HEADER.strip(), 'revenues', 'prefix'))
+
+    def test_bare_revenues_still_accepted_after_round_4(self):
+        self.assertTrue(_is_section_header('REVENUES', 'revenues', 'prefix'))
+
+    def test_bare_expenditures_still_accepted_after_round_4(self):
+        self.assertTrue(_is_section_header('EXPENDITURES', 'expenditures', 'prefix'))
+
+    def test_trailing_colon_variant_still_accepted_after_round_4(self):
+        self.assertTrue(_is_section_header('REVENUES:', 'revenues', 'prefix'))
+
+    def test_trailing_dollar_sign_variant_still_accepted_after_round_4(self):
+        self.assertTrue(_is_section_header('EXPENDITURES $', 'expenditures', 'prefix'))
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)
