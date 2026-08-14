@@ -6,7 +6,8 @@ they run with no PDF, no pdftotext and no network. Run: py -3 scripts/lib/acfrGF
 """
 import pathlib, sys, unittest
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
-from lib.acfrGF import CityConfig, column_value, classify, build_revenue, anchors, slots
+from lib.acfrGF import (CityConfig, column_value, classify, build_revenue,
+                         build_operating, anchors, slots, dash_zero_label)
 
 # Transcribed from King County FY2020-era GF statement (values thousands-scale
 # in the real document; kept as bare ints here since these tests exercise
@@ -48,6 +49,94 @@ class TestRevenueParents(unittest.TestCase):
         flat, ftotal, _ = build_revenue(KC_REV_LINES, anchors(KC_ANCHOR), self._cfg())
         nested, ntotal, _ = build_revenue(KC_REV_LINES, anchors(KC_ANCHOR), self._cfg(('taxes',)))
         self.assertEqual(ftotal, ntotal)
+
+
+# Fix round 1 / Critical 1: a group whose every genuine member is $0 (dash
+# rows) never touches `parent['c']`, since $0 rows are recorded in zero_rows
+# and dropped before reaching the child-append step. A close guard gated on
+# `parent['c']` truthiness would therefore never fire, and the first
+# unrelated row after the group ('Licenses and permits') would be silently
+# swallowed into 'Taxes' instead of closing it and landing at root.
+ALL_ZERO_TAXES_LINES = [
+    'REVENUES',
+    'Taxes:',
+    'Property taxes                                   --       --       --',
+    'Retail sales and use taxes                        --       --       --',
+    'Licenses and permits                              6,915    -        -',
+    'Total revenues                                    6,915    -        -',
+]
+ALL_ZERO_TAXES_ANCHOR = 'Total revenues                                    6,915    -        -'
+
+class TestRevenueParentsAllZeroMembers(unittest.TestCase):
+    def _cfg(self):
+        return CityConfig(city='X', parents=('current',), column_strategy='ordinal',
+                          revenue_parents=('taxes',), revenue_group_members=('taxes',))
+
+    def test_licenses_and_permits_lands_at_root_when_taxes_group_is_all_zero(self):
+        tree, total, zero_rows = build_revenue(
+            ALL_ZERO_TAXES_LINES, anchors(ALL_ZERO_TAXES_ANCHOR), self._cfg())
+        names = [c['n'] for c in tree['c']]
+        self.assertEqual(names, ['Licenses and permits'])
+        self.assertEqual(total, 6915)
+
+    def test_taxes_is_dropped_as_childless_when_every_member_is_zero(self):
+        tree, _, _ = build_revenue(
+            ALL_ZERO_TAXES_LINES, anchors(ALL_ZERO_TAXES_ANCHOR), self._cfg())
+        self.assertNotIn('Taxes', [c['n'] for c in tree['c']])
+
+    def test_all_zero_dashed_members_are_recorded_in_zero_rows(self):
+        _, _, zero_rows = build_revenue(
+            ALL_ZERO_TAXES_LINES, anchors(ALL_ZERO_TAXES_ANCHOR), self._cfg())
+        self.assertIn('Property taxes', zero_rows)
+        self.assertIn('Retail sales and use taxes', zero_rows)
+
+
+# Fix round 1 / Critical 2: `_DASH_ROW`'s dashes group only ever matched ONE
+# dash character per repetition, so it recognised King County's single '-'
+# placeholder but not Seattle's '--'. When it fails to match, `classify`
+# falls through to the wrapped-label branch and the row's label gets glued
+# onto the NEXT real row instead of being recorded as a genuine $0 row.
+class TestDashZeroLabelMultiDash(unittest.TestCase):
+    def test_single_dash_placeholders_are_recognised(self):
+        self.assertEqual(
+            dash_zero_label('Property taxes    -     -     -'), 'Property taxes')
+
+    def test_double_dash_placeholders_are_recognised(self):
+        self.assertEqual(
+            dash_zero_label('Property taxes    --    --    --'), 'Property taxes')
+
+    def test_en_dash_and_em_dash_runs_are_recognised(self):
+        self.assertEqual(
+            dash_zero_label('Property taxes    ––   ——'), 'Property taxes')
+
+
+# Fix round 1 / Critical 2, reproduced through the full expenditure-tree path
+# (not just dash_zero_label directly): a Seattle-style '--' all-dash row
+# inside an open expenditure group must be classified as data-zero and must
+# NOT glue its label onto the following real row.
+EXP_LINES_WITH_DOUBLE_DASH_ROW = [
+    'EXPENDITURES',
+    'Capital Outlay:',
+    'Judicial                                          53,392',
+    'Public Safety                                     898',
+    'Physical Environment                              --      --      --',
+    'Transportation                                    6,880',
+    'Total expenditures                                61,170',
+]
+
+class TestDoubleDashRowDoesNotGlue(unittest.TestCase):
+    def test_double_dash_row_is_data_zero_and_does_not_glue_onto_next_label(self):
+        cfg = CityConfig(city='X', parents=('current', 'capital outlay'),
+                          column_strategy='ordinal')
+        anchor = 'Total expenditures                                61,170'
+        tree, _, zero_rows = build_operating(
+            EXP_LINES_WITH_DOUBLE_DASH_ROW, anchors(anchor), cfg)
+        capital_outlay = next(c for c in tree['c'] if c['n'] == 'Capital Outlay')
+        names = [c['n'] for c in capital_outlay['c']]
+        self.assertEqual(names, ['Judicial', 'Public Safety', 'Transportation'])
+        transportation = next(c for c in capital_outlay['c'] if c['n'] == 'Transportation')
+        self.assertEqual(transportation['a'], 6880)
+        self.assertIn('Physical Environment', zero_rows)
 
 # Transcribed from City of Seattle FY2024 ACFR p56 (amounts in thousands).
 SEA_TOTAL_REV = '     Total Revenues                                                         2,272,762     392,312         946,644        3,611,718'

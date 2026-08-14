@@ -276,11 +276,23 @@ def label_of_slots(line):
     m = _SLOT.search(line)
     return norm_label(line[:m.start()] if m else line)
 
-_DASH_ROW = re.compile(r'^(?P<label>.*?[^\s\-–—])(?P<dashes>(?:\s+[-–—])+)\s*$')
+_DASH_ROW = re.compile(r'^(?P<label>.*?[^\s\-–—])(?P<dashes>(?:\s+[-–—]+)+)\s*$')
 
 def dash_zero_label(line):
     """Label if `line` is a label followed ONLY by dash placeholders, else None.
-    Only meaningful for lines carrying no money tokens (trap 1)."""
+    Only meaningful for lines carrying no money tokens (trap 1).
+
+    Fix round 1 / Critical 2: each dash-placeholder REPETITION must allow one
+    OR MORE dash characters ([-–—]+, not [-–—]), mirroring the widening already
+    applied to norm_label's trailing-dash strip above. King County writes a
+    lone '-' per empty cell; Seattle writes '--'. The un-widened version only
+    ever matched single dashes, so a Seattle all-'--'-row (no money tokens at
+    all) fell through to the wrapped-label branch in `classify` and got glued
+    onto the label of the NEXT real row instead of being recorded as a $0 row
+    in zero_rows. Confirmed live on Seattle FY2024 p56 Capital Outlay:
+    'Physical Environment' and 'Health and Human Services' are genuine $0
+    rows that were vanishing into 'Physical Environment Transportation' and
+    'Health and Human Services Culture and Recreation'."""
     m = _DASH_ROW.match(line.rstrip())
     if not m:
         return None
@@ -453,6 +465,15 @@ def build_revenue(lines, col_anchors, cfg):
     $0 sources are recorded in zero_rows and dropped."""
     root_children, zero_rows = [], []
     parent = None
+    # Fix round 1 / Critical 1: whether a data row (zero-valued OR not) has
+    # been seen since `parent` last opened. The close guard below gates on
+    # THIS, not on `parent['c']` truthiness. A $0 group member never reaches
+    # `parent['c']` (it's recorded in zero_rows and dropped instead), so if
+    # every genuine member of a group is $0, `parent['c']` stays empty
+    # forever and a `parent['c']`-truthiness guard would never fire -- the
+    # first unrelated, non-member row would then be silently swallowed into
+    # the (visually empty) group instead of closing it.
+    parent_seen = False
     pending = ''
     for l in _section(lines, _SEC_REVENUES, _END_REVENUES):
         kind, lbl, val = classify(l, col_anchors, cfg)
@@ -460,6 +481,7 @@ def build_revenue(lines, col_anchors, cfg):
 
         if kind == 'wrapped' and low in cfg.revenue_parents:
             parent = {'n': lbl, 'a': 0, 'c': []}
+            parent_seen = False
             root_children.append(parent)
             pending = ''
             continue
@@ -473,14 +495,21 @@ def build_revenue(lines, col_anchors, cfg):
         pending = ''
         if not full:
             continue
+
+        # Close an open revenue group once a row is no longer one of its
+        # members. Checked BEFORE the val==0 branch below and gated on
+        # `parent_seen`, not on `parent['c']`, so a group whose members are
+        # all $0 (dropped, never added as children) still closes correctly
+        # on the first later row that isn't a member.
+        if parent is not None and parent_seen and not any(
+                low.endswith(sfx) for sfx in cfg.revenue_group_members):
+            parent = None
+        if parent is not None:
+            parent_seen = True
+
         if val == 0:
             zero_rows.append(full)
             continue
-
-        # Close an open revenue group once a row is no longer one of its members.
-        if parent is not None and parent['c'] and not any(
-                low.endswith(sfx) for sfx in cfg.revenue_group_members):
-            parent = None
 
         node = {'n': full, 'a': val}
         if parent is not None:
