@@ -312,5 +312,46 @@ class TestPageAndHeaders(unittest.TestCase):
         self.assertEqual(parse_fy([page], 'x.pdf', ('June', 30)), 2025)
 
 
+# Fix round 1: the original prefix-mode guard only rejected a title wrap that
+# happened to land the "changes in fund" phrase on the SAME line as the
+# section word. A wrap at a different point leaves the section word bare or
+# followed only by more title punctuation, which the phrase-only guard could
+# not see. This never fired on any Seattle document inspected -- their title
+# lines all begin "B-4 STATEMENT OF REVENUES..." so the section word is never
+# bare -- and a real misfire would inflate the total and fail the tie loudly
+# rather than ship silently. Hardened anyway ahead of Task 7's sweep of 17
+# Seattle documents, of which only 5 have been inspected so far.
+#
+# Tests 1/2/3 are wraps that must be REJECTED; tests 4/5 are the real Seattle
+# captions that must still be ACCEPTED. The boundary between them is the
+# entire content of this round.
+class TestSectionHeaderPrefixGuard(unittest.TestCase):
+    def test_comma_led_remainder_is_a_title_continuation_not_a_caption(self):
+        self.assertFalse(_is_section_header('EXPENDITURES,', 'expenditures', 'prefix'))
+
+    def test_multi_word_comma_led_remainder_is_also_a_title_continuation(self):
+        self.assertFalse(_is_section_header(
+            'REVENUES, EXPENDITURES, AND', 'revenues', 'prefix'))
+
+    def test_singular_fund_balance_wrap_fragment_is_rejected(self):
+        # Tigard's statement titles "CHANGES IN FUND BALANCE" in the SINGULAR
+        # (already documented above `_TITLE`); a wrap that puts the section
+        # word next to the singular form, without ever spelling out
+        # "changes in fund" on this same line, must still be caught.
+        self.assertFalse(_is_section_header(
+            'EXPENDITURES AND FUND BALANCE', 'expenditures', 'prefix'))
+
+    def test_real_seattle_revenue_header_with_column_captions_is_still_accepted(self):
+        # The non-regression that matters: if this is rejected, Seattle
+        # FY2024/25 revenue goes back to an empty tree.
+        header = 'REVENUES                                                 General Fund             Transportation  Governmental      2024'
+        self.assertTrue(_is_section_header(header.strip(), 'revenues', 'prefix'))
+
+    def test_bare_section_word_still_opens_the_section(self):
+        # Seattle FY2024 prints its expenditure header as bare "EXPENDITURES"
+        # with no trailing caption at all.
+        self.assertTrue(_is_section_header('EXPENDITURES', 'expenditures', 'prefix'))
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

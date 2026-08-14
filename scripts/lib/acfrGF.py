@@ -194,9 +194,25 @@ class CityConfig:
                  fund column headers.
 
                  'prefix' is safe ONLY where no line begins with the section
-                 word for another reason. Verify against the wrapped statement
-                 title before enabling it -- a prefix match there is trap 2 and
-                 inflates the operating total roughly 3x.
+                 word for another reason. Before enabling it, check it against
+                 the ACTUAL wrapped-title line of EVERY vintage you intend to
+                 run it over -- not just the one wrap already seen. A title
+                 wrapping at a different point can leave a bare section word on
+                 its own line with no adjacent "changes in fund balance(s)"
+                 phrase for `_is_section_header`'s phrase-based guard to see,
+                 and a prefix match there is trap 2: it opens the expenditure
+                 section at the title and inflates the operating total roughly
+                 3x. `_is_section_header` also rejects a handful of
+                 punctuation-only / title-word remainders (see its docstring),
+                 but that is hardening for the wraps already known, not a
+                 substitute for checking each new vintage.
+
+                 Known limit: this is one shared mode for BOTH the revenue and
+                 expenditure headers. A caption like "REVENUES AND OTHER
+                 FINANCING SOURCES" or "EXPENDITURES AND OTHER FINANCING USES"
+                 would also be accepted in 'prefix' mode -- not seen in any
+                 document tested so far, but not distinguishable from a genuine
+                 column-caption remainder by the current guard.
     fy_end       (month_name, day) of the fiscal-year end, used to read the year
                  off the statement. Defaults to ('June', 30). Seattle and King
                  County close on December 31.
@@ -482,6 +498,31 @@ _SEC_EXPENDITURES = 'expenditures'
 _END_REVENUES     = r'^Total\s+revenues\b'
 _END_EXPENDITURES = r'^Total\s+expenditures\b'
 
+# Fix round 1 (Task 6): the original prefix-mode guard only rejected a title
+# wrap that happened to land "changes in fund" on the SAME physical line as
+# the section word. A wrap at any OTHER point leaves a bare section word --
+# e.g. a line that is just "EXPENDITURES," or "REVENUES, EXPENDITURES, AND"
+# -- which `startswith(want)` accepts with no phrase to catch it. Confirmed:
+#   _is_section_header('EXPENDITURES,', 'expenditures', 'prefix')           -> was True, must be False
+#   _is_section_header('REVENUES, EXPENDITURES, AND', 'revenues', 'prefix') -> was True, must be False
+# This never fired on any Seattle document inspected -- their title lines
+# begin "B-4 STATEMENT OF REVENUES..." so the section word is never bare --
+# and had it fired, the swallowed revenue block would have inflated the
+# total and FAILED THE TIE loudly rather than shipped silently. Hardened
+# anyway ahead of Task 7 sweeping 17 Seattle documents, of which only 5 have
+# been inspected: relying on a loud failure is worse than not failing.
+#
+# A genuine column-caption remainder ("REVENUES  General Fund  Transportation
+# ...") reads as ordinary words once the section word is stripped off the
+# front. A title CONTINUATION reads differently: it is either (1) comma-led
+# -- the title's own internal commas ("REVENUES, EXPENDITURES, AND CHANGES...")
+# put a comma immediately after the section word when the wrap falls there --
+# or (2) nothing but punctuation and conjunctions ("AND", "OR") with no real
+# caption word in it at all. Both are rejected; a genuine caption remainder,
+# which always begins with a real word (a fund name, "General", a year), is
+# not.
+_TITLE_CONTINUATION_ONLY = re.compile(r'^(?:and|or|[,;:.\-–—])*$')
+
 def _is_section_header(line, want, mode='exact'):
     """True when `line` is the section header `want`, ignoring internal
     letter-spacing, a trailing colon and a stray currency symbol.
@@ -489,15 +530,36 @@ def _is_section_header(line, want, mode='exact'):
     'exact' (the default) requires the collapsed line to equal `want` exactly.
     'prefix' allows trailing text after `want` -- needed where the header line
     also carries fund column headers (Seattle FY2024-era 'REVENUES  General
-    Fund  Transportation ...'). 'prefix' is guarded against trap 2: a wrapped
-    statement title collapses to "...changesinfundbalances" and must NEVER be
-    accepted as an EXPENDITURES header, or a prefix match there would open the
-    expenditure section at the title and swallow the entire revenue block."""
+    Fund  Transportation ...'). 'prefix' is guarded against trap 2 several
+    ways, since a wrapped statement title can leave the section word bare or
+    followed by only more title text, not just "...changesinfundbalances" on
+    the same line:
+      * the whole line contains 'statement', 'changesinfund', or 'fundbalance'
+        (the last catches Tigard's already-documented SINGULAR "changes in
+        fund balance", and any wrap that separates "changes in" from "fund
+        balance(s)" but leaves the latter on this line);
+      * the remainder after `want` starts with a comma (a wrap that falls
+        mid-title, e.g. "EXPENDITURES," or "REVENUES, EXPENDITURES, AND");
+      * the remainder is nothing but punctuation and/or "and"/"or" (a wrap
+        that leaves only title connective tissue after the section word).
+    A bare section word (empty remainder) and a section word followed by a
+    genuine caption ("General Fund Transportation...") are both accepted --
+    that boundary is the entire point of the hardening; see the self-test's
+    `TestSectionHeaderPrefixGuard` for the boundary cases."""
     s = re.sub(r'\s+', '', line).strip().rstrip('$').rstrip(':').lower()
     if mode == 'prefix':
-        if 'changesinfund' in s:
+        if 'changesinfund' in s or 'statement' in s or 'fundbalance' in s:
             return False
-        return s.startswith(want)
+        if not s.startswith(want):
+            return False
+        rest = s[len(want):]
+        if not rest:
+            return True
+        if rest[0] == ',':
+            return False
+        if _TITLE_CONTINUATION_ONLY.match(rest):
+            return False
+        return True
     return s == want
 
 def _section(lines, start_word, end_pat, mode='exact'):
