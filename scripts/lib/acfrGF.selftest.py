@@ -59,5 +59,41 @@ class TestUnits(unittest.TestCase):
         leaf = next(c for c in tree['c'] if c['n'] == 'Property Taxes')
         self.assertEqual(leaf['a'], 379_415_000)
 
+# Transcribed from King County FY2018 ACFR p43. `4,034` and `8,075` are the two
+# General Fund values that render nearer column 1's anchor than column 0's --
+# the positional reader drops them and the FY is short by exactly 12,109.
+KC_TOTAL_REV = 'TOTAL REVENUES                                   863,031                                 297,708            1,135,158        2,295,897'
+KC_BUSINESS  = 'Business and other taxes                                                       4,034                 17     18,190           22,241'
+KC_RETAIL    = 'Retail sales and use taxes                       144,422                                             --     99,735           244,157'
+KC_PHYSICAL  = 'Physical environment                                                           --                    --     21,278           21,278'
+
+class TestOrdinalColumns(unittest.TestCase):
+    def test_positional_reader_drops_the_ragged_value(self):
+        cfg = CityConfig(city='X', parents=('current',))
+        self.assertNotEqual(column_value(KC_BUSINESS, anchors(KC_TOTAL_REV), cfg), 4034)
+
+    def test_ordinal_reader_recovers_the_ragged_value(self):
+        cfg = CityConfig(city='X', parents=('current',), column_strategy='ordinal')
+        self.assertEqual(column_value(KC_BUSINESS, anchors(KC_TOTAL_REV), cfg), 4034)
+
+    def test_ordinal_counts_a_dash_as_an_occupied_column(self):
+        # GF is present (144,422); the dash marks the BLANK second column. If
+        # dashes were skipped, 99,735 would slide left and GF would be wrong.
+        cfg = CityConfig(city='X', parents=('current',), column_strategy='ordinal')
+        self.assertEqual(column_value(KC_RETAIL, anchors(KC_TOTAL_REV), cfg), 144422)
+
+    def test_ordinal_reads_a_leading_dash_as_zero(self):
+        cfg = CityConfig(city='X', parents=('current',), column_strategy='ordinal')
+        self.assertEqual(column_value(KC_PHYSICAL, anchors(KC_TOTAL_REV), cfg), 0)
+
+    def test_ordinal_composes_with_units(self):
+        cfg = CityConfig(city='X', parents=('current',), column_strategy='ordinal', units=1000)
+        self.assertEqual(column_value(KC_BUSINESS, anchors(KC_TOTAL_REV), cfg), 4_034_000)
+
+    def test_hyphenated_label_is_not_read_as_a_column(self):
+        cfg = CityConfig(city='X', parents=('current',), column_strategy='ordinal')
+        self.assertEqual(column_value('Non-departmental                    12,500    3,000', anchors(KC_TOTAL_REV), cfg), 12500)
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

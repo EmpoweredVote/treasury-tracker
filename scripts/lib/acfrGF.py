@@ -155,18 +155,21 @@ class CityConfig:
     """
 
     def __init__(self, city, parents, root_leaves=(), source_rounding=None,
-                 label_fixes=None, units=1):
+                 label_fixes=None, units=1, column_strategy='positional'):
         if not isinstance(units, int) or isinstance(units, bool):
             raise TypeError(
                 'CityConfig.units must be an int, got %r (%s). A float would '
                 'silently turn every extracted amount into a float and change '
                 'the emitted JSON shape.' % (units, type(units).__name__))
+        if column_strategy not in ('positional', 'ordinal'):
+            raise ValueError('column_strategy must be "positional" or "ordinal", got %r' % column_strategy)
         self.city = city
         self.parents = tuple(p.lower() for p in parents)
         self.root_leaves = tuple(r.lower() for r in root_leaves)
         self.source_rounding = dict(source_rounding or {})
         self.label_fixes = dict(label_fixes or {})
         self.units = units
+        self.column_strategy = column_strategy
 
 
 # ── Money parsing ─────────────────────────────────────────────────────────────
@@ -193,6 +196,29 @@ def nums_with_pos(line):
     return out
 
 
+# A COLUMN SLOT is either a money token or a standalone dash-run standing in for
+# a $0/blank cell. Counting dashes as slots is what makes ordinal reading exact:
+# it keeps every later column in its true position instead of sliding it left.
+# The lookarounds require surrounding whitespace, so a hyphen inside a label
+# ("Non-departmental") is never mistaken for a column.
+_SLOT = re.compile(r'\((?:\d[\d,]*)\)|\$?\s*\d[\d,]*|(?<=\s)[-–—]{1,3}(?=\s|$)')
+
+def slots(line):
+    """Every column slot on `line`, left to right. A dash-run yields 0."""
+    out = []
+    for m in _SLOT.finditer(line):
+        t = m.group().replace('$', '').replace(' ', '').strip()
+        if not t:
+            continue
+        if re.fullmatch(r'[-–—]{1,3}', t):
+            out.append(0)
+            continue
+        v = parse_money(t)
+        if v is not None:
+            out.append(v)
+    return out
+
+
 # ── Labels ────────────────────────────────────────────────────────────────────
 def norm_label(raw):
     """Whitespace-normalize, then drop trailing dash placeholders belonging to
@@ -200,7 +226,7 @@ def norm_label(raw):
     -> "System development charges"). Only TRAILING runs are removed, so
     "Debt Service - Principal" and "Non-departmental" survive intact."""
     s = re.sub(r'\s+', ' ', raw).strip()
-    s = re.sub(r'(?:\s+[-–—])+$', '', s)
+    s = re.sub(r'(?:\s+[-–—]+)+$', '', s)
     return s.strip().rstrip(':').strip()
 
 def label_of(line):
@@ -208,6 +234,11 @@ def label_of(line):
     m = _MONEY.search(line)
     raw = line[:m.start()] if m else line
     return norm_label(raw)
+
+def label_of_slots(line):
+    """Row label for ordinal mode: text before the first COLUMN SLOT."""
+    m = _SLOT.search(line)
+    return norm_label(line[:m.start()] if m else line)
 
 _DASH_ROW = re.compile(r'^(?P<label>.*?[^\s\-–—])(?P<dashes>(?:\s+[-–—])+)\s*$')
 
@@ -296,8 +327,22 @@ def gf_value(line, col_anchors):
 
 
 def column_value(line, col_anchors, cfg):
-    """The General Fund cell of `line`, scaled to dollars, or None if absent."""
-    v = gf_value(line, col_anchors)
+    """The General Fund cell of `line`, scaled to dollars, or None if absent.
+
+    'positional' assigns each number to its nearest column anchor. It is the
+    default and what the eight already-loaded cities were parsed with.
+
+    'ordinal' ignores x-positions entirely and takes the FIRST column slot,
+    counting dash-runs as occupied columns. Required where `-table` renders a
+    value nearer the next column's anchor -- King County FY2018/FY2019 and
+    Seattle FY2009, where the positional reader silently drops GF cells and the
+    tie fails by exactly the dropped rows.
+    """
+    if cfg.column_strategy == 'ordinal':
+        s = slots(line)
+        v = s[0] if s else None
+    else:
+        v = gf_value(line, col_anchors)
     return None if v is None else v * cfg.units
 
 
@@ -319,7 +364,7 @@ def classify(line, col_anchors, cfg):
         return ('wrapped', lbl, None) if lbl else ('skip', '', None)
 
     gv = column_value(line, col_anchors, cfg)
-    lbl = label_of(line)
+    lbl = label_of_slots(line) if cfg.column_strategy == 'ordinal' else label_of(line)
     if gv is None:
         return ('data', lbl, 0) if lbl else ('skip', '', None)
     return 'data', lbl, gv
