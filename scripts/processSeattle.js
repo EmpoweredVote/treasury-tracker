@@ -25,7 +25,7 @@
  * 3. Amounts are already scaled to dollars by extractSeattle.py
  *    (CityConfig.units=1000) -- this loader does NOT multiply again.
  * 4. Tree mapping: Seattle's REVENUE tree exercises BOTH shapes the
- *    extractor can emit -- a `Taxes` parent with five children (2024-era)
+ *    extractor can emit -- a `Taxes` parent with five children (from FY2021)
  *    plus flat siblings, in the SAME tree. Bend's revenue tree was always
  *    flat, so Bend's loader special-cased "revenue = always a single-item
  *    leaf" per root child. That special case is WRONG for Seattle and is
@@ -59,7 +59,7 @@
  *
  * Tree mapping: the extractor emits a nested {n,a,c:[...]} tree; this loader
  * maps it to the RPC's {n,a,i:[{d,a,aa,f,e}]} shape:
- *   - a root child WITH a nested `.c` array (e.g. Taxes 2024+, Current,
+ *   - a root child WITH a nested `.c` array (e.g. Taxes from FY2021, Current,
  *     Debt service) -> i[] = its children (the icicle drill-down leaves).
  *   - a root child with NO `.c` (e.g. flat revenue sources, Capital outlay)
  *     -> single-item leaf.
@@ -195,7 +195,7 @@ function extractPDF(pdfPath, mode) {
 // ── Map the extractor tree to the RPC's {n,a,i:[...]} shape ──────────────────
 // Unified across both modes (unlike Bend, which special-cased revenue as
 // always-flat): Seattle's revenue tree has BOTH a grouped root child (Taxes,
-// 2024+) and flat siblings, exactly the shape Bend only ever saw on the
+// from FY2021) and flat siblings, exactly the shape Bend only ever saw on the
 // operating side. A root child WITH a nested, non-empty `.c` array maps to
 // {n, a, i:[...children]}; a root child with NO `.c` maps to a single-item
 // leaf.

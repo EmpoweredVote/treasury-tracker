@@ -14,8 +14,8 @@ Seattle specifics
            statement B-4 in every vintage checked (2009/2015/2019/2024/2025).
     2015   four fund columns PLUS two comparative-year columns. The General
            column is leftmost, so slot 0 stays correct and no comparative
-           rejection is needed. `Taxes` is a FLAT leaf in this era.
-    2024+  `Taxes` becomes a PARENT with five children, and the REVENUES line
+           rejection is needed. `Taxes` is a FLAT leaf through FY2020.
+    2021+  `Taxes` becomes a PARENT with five children, and the REVENUES line
            also carries the fund column headers -> section_header_mode='prefix'.
 * column_strategy='ordinal' because the FY2009 statement renders GF values
   nearer the next column's anchor -- the positional reader would assign them
