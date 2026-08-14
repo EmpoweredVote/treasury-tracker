@@ -20,7 +20,12 @@
  *   statement page   Python anchors on a schedule id (`B-4`). This scores every
  *                    page on structure instead: the title, both `Total` rows, a
  *                    General-Fund column caption, and an exclusion list — then
- *                    takes the first surviving page.
+ *                    takes the first surviving page. "First" is measured, not
+ *                    assumed to be harmless: the filter leaves EXACTLY ONE
+ *                    candidate on all 25 documents (`candidates=` is printed per
+ *                    combination), so tie-breaking never decides anything. If a
+ *                    future document produces two, the count in the output says
+ *                    so rather than the harness quietly preferring one.
  *   section bounds   Python scans FORWARD from a section header guarded by a
  *                    five-layer prefix test. This finds the `Total ...` row
  *                    first and scans BACKWARD to the nearest header, which makes
@@ -28,12 +33,22 @@
  *                    FUND BALANCES" title unmatchable by construction: the title
  *                    contains BOTH section words, so it is rejected by the
  *                    other-word test whichever section is being sought.
- *   GF column        Python uses an ORDINAL strategy (count column slots left to
- *                    right, dash runs included). This is POSITIONAL: column
- *                    anchors are the right edges of the money on the section's
- *                    own fully-populated `Total` row, and every cell is assigned
- *                    to its nearest anchor (a Voronoi cell). A row is a GF row
- *                    only if a cell lands in anchor 0's region.
+ *   GF column        NOT an axis of independence — SAY SO PLAINLY. This harness
+ *                    started positional (column bands from the section's own
+ *                    Total row, cell assigned by centre) and the DOCUMENTS
+ *                    REFUTED IT: King County FY2018-FY2020 came up short by
+ *                    exactly 12,109 on FY2018 revenue, because `pdftotext -table`
+ *                    renders some General Fund values up to 30 columns right of
+ *                    their own column while preserving cell ORDER. The printed
+ *                    Total adjudicated and selected the ORDINAL reading — the
+ *                    same strategy the Python uses. So this is a SHARED
+ *                    assumption, not an unlike implementation, and the header
+ *                    must not pretend otherwise. Both readings are still
+ *                    computed and every row where they differ is reported (they
+ *                    never yield two different non-null values on this corpus —
+ *                    positional simply finds nothing). What actually protects
+ *                    this axis is the PRINTED-vs-SUMMED reconciliation inside
+ *                    the PDF, which is independent of the DB entirely.
  *   units            Python takes `units: 1000` from a config dict. This READS
  *                    "(In Thousands)" off the page and refuses to proceed if the
  *                    page does not say so, so the scale is evidence, not a
@@ -82,6 +97,11 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SE
 if (!SUPABASE_URL) { console.error('Missing SUPABASE_URL — refusing to guess a production URL.'); process.exit(2); }
 if (!SUPABASE_KEY) { console.error('Missing SUPABASE_SERVICE_KEY / SUPABASE_SERVICE_ROLE_KEY.'); process.exit(2); }
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY, { db: { schema: 'treasury' } });
+
+/** Total budgets rows this load is expected to have produced (Seattle 34 + King
+ *  County 16). Cross-checked against the declared windows below, so the two can
+ *  never silently disagree. */
+const EXPECTED_TOTAL_ROWS = 50;
 
 // ── what is expected to be loaded ────────────────────────────────────────────
 // Entity ids are asserted, not trusted: they are looked up by name/state/type
@@ -204,6 +224,30 @@ function unitsOf(pageText, label) {
   throw new Error(`${label}: statement page does not declare its units — refusing to assume a scale`);
 }
 
+/**
+ * Assert the statement page belongs to the fiscal year it is being attributed to.
+ *
+ * Without this the harness binds document to fiscal year purely by FILENAME
+ * (`seattle-<fy>-acfr.pdf`), so a consistently mis-named local file would tie at
+ * $0 against a DB loaded from the same mis-named file — both sides wrong in the
+ * same direction. The statement page states its own period, so it can simply be
+ * asked. Accepts either the period sentence ("For the Year Ended December 31,
+ * 2024" — King County prints it uppercase and Seattle mixed case) or, for
+ * vintages that put the year only in a column caption, a bare year caption.
+ */
+function assertPageYear(pageText, fy, label) {
+  const flat = pageText.replace(/\s+/g, ' ');
+  const period = flat.match(/year\s+ended\s+december\s*3\s*1\s*,?\s*(\d{4})/i);
+  if (period) {
+    if (Number(period[1]) !== fy) {
+      throw new Error(`${label}: statement page states "year ended December 31, ${period[1]}" but this document is being read as FY${fy}`);
+    }
+    return `period sentence "${period[0].trim()}"`;
+  }
+  if (new RegExp(`(^|\\s)${fy}(\\s|$)`).test(flat)) return `bare ${fy} caption (no period sentence on the page)`;
+  throw new Error(`${label}: statement page carries no evidence it is FY${fy} — refusing to trust the filename alone`);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Own column model: BANDS derived from the section's own Total row, which is
 // the one row where every fund column is populated.
@@ -241,8 +285,18 @@ const centre = (t) => (t.start + t.end) / 2;
  *
  * Returns { label, cell } where cell is null when the row carries no cell at
  * all (a group header or a wrapped label fragment), or { value } when it does —
- * a dash placeholder yielding 0, and a blank General Fund cell on an otherwise
- * populated row also yielding 0.
+ * a dash placeholder yielding 0.
+ *
+ * ⚠ Stated precisely, because an earlier version of this comment claimed a
+ * branch that does not exist: under the ordinal reading a General Fund cell
+ * that is genuinely BLANK — no value and no dash placeholder — is NOT read as
+ * zero. The first cell on the row is taken, which in that case belongs to the
+ * next fund column. That row shape does not occur in this corpus (the only
+ * short row across all 50 combinations is an unlabelled all-dash line in
+ * Seattle FY2019 operating, which is skipped for having no label), and if it
+ * did the borrowed value would inflate the section sum and break the
+ * PRINTED-vs-SUMMED reconciliation loudly. It is a disclosed limit, not a
+ * handled case.
  */
 function splitRow(line, bands) {
   const cells = tokensOf(line).filter((t) => centre(t) >= bands[0].left);
@@ -265,7 +319,7 @@ function splitRow(line, bands) {
   const diverged = (positional ? positional.start : null) !== ordinal.start;
   return {
     label,
-    cell: { value: ordinal.value, blank: false, diverged, positionalValue: positional ? positional.value : null },
+    cell: { value: ordinal.value, diverged, positionalValue: positional ? positional.value : null },
   };
 }
 
@@ -401,6 +455,7 @@ function rederive(entity, fy, mode) {
   const pdfPath = path.join(entity.dir, entity.pdf(fy));
   const pages = pagesOf(pdfPath);
   const page = findStatementPage(pages, label);
+  const yearEvidence = assertPageYear(page.text, fy, label);
   const units = unitsOf(page.text, label);
   const scale = (v) => v * units;                 // the ONLY place units are applied
   const lines = page.text.split('\n');
@@ -427,6 +482,7 @@ function rederive(entity, fy, mode) {
 
   return {
     label, pdfPath, pageIndex: page.index, pageNumber: page.index + 1, units,
+    yearEvidence, candidates: page.allCandidates.length,
     roots, divergences,
     computedTotal: roots.reduce((s, r) => s + r.amount, 0),
     printedTotal: scale(printedCell.value),
@@ -570,6 +626,7 @@ async function main() {
           delta: problems.length ? 'MISMATCH' : 0,
           page: ind.pageNumber, units: ind.units,
           subtotals: ind.roots.length, leaves: ind.leaves.length,
+          candidates: ind.candidates, yearEvidence: ind.yearEvidence,
         });
         if (problems.length) {
           blockers++;
@@ -594,6 +651,19 @@ async function main() {
       `${r.ent.padEnd(12)} | ${r.fy} | ${r.mode.padEnd(9)} | ${String(r.page ?? '—').padStart(4)} | ` +
       `${String(r.units ? 'x' + r.units : '—').padStart(5)} | ${String(r.pdf).padStart(12)} | ${String(r.db).padStart(12)} | ` +
       `${String(r.subtotals ?? '—').padStart(3)} | ${String(r.leaves ?? '—').padStart(4)} | ${r.delta}`);
+  }
+
+  // ── provenance of each parsed page ─────────────────────────────────────────
+  {
+    const done = rows.filter((r) => r.candidates !== undefined);
+    const ambiguous = done.filter((r) => r.candidates !== 1);
+    const byPeriod = done.filter((r) => /period sentence/.test(r.yearEvidence || '')).length;
+    console.log(`\nStatement pages: ${done.length} located, ${done.length - ambiguous.length} with exactly ONE surviving candidate` +
+      `${ambiguous.length ? `, ${ambiguous.length} AMBIGUOUS (tie-break decided the page — inspect these)` : ' (tie-breaking never decided anything)'}`);
+    for (const r of ambiguous) console.log(`  AMBIGUOUS: ${r.ent} FY${r.fy} ${r.mode} — ${r.candidates} candidate pages`);
+    console.log(`Fiscal year confirmed from the page itself on ${done.length}/${done.length}: ` +
+      `${byPeriod} by its own "year ended December 31, <FY>" sentence, ${done.length - byPeriod} by a bare year caption. ` +
+      'No document is trusted on its filename alone.');
   }
 
   // ── where the two column readings disagreed ────────────────────────────────
@@ -631,14 +701,35 @@ async function main() {
       (ind.droppedRoots.length ? ` (${ind.droppedRoots.join(', ')})` : ''));
   }
 
-  console.log(`\nCombinations checked: ${combos}`);
+  // COVERAGE ASSERTION. Without this, `blockers === 0` is satisfied VACUOUSLY:
+  // narrowing ENTITIES[].fys to iterate faster and forgetting to restore it
+  // yields "Combinations checked: 0 / Blockers: 0 / RESULT: PASS" — a green
+  // harness that verified nothing, wearing a banner that claims all 50. The
+  // expected count is derived from the same window the entities declare, so it
+  // cannot drift from them, and it is asserted against the DB row count too.
+  const expectedCombos = ENTITIES.reduce((s, e) => s + e.fys.length * 2, 0);
+  if (expectedCombos !== EXPECTED_TOTAL_ROWS) {
+    console.error(`  BLOCKER: the declared windows cover ${expectedCombos} combinations but ${EXPECTED_TOTAL_ROWS} rows are expected to be loaded`);
+    blockers++;
+  }
+  if (combos !== expectedCombos) {
+    console.error(`  BLOCKER: checked ${combos} combinations, expected ${expectedCombos} — this run did NOT cover the loaded window`);
+    blockers++;
+  }
+
+  console.log(`\nCombinations checked: ${combos} (expected ${expectedCombos})`);
   console.log(`Blockers: ${blockers}`);
   console.log(blockers === 0
-    ? 'RESULT: PASS — every grand total, subtotal and leaf ties at exactly $0 against an independent read of the source PDFs.'
+    ? `RESULT: PASS — all ${combos} FY x mode combinations tie at exactly $0 on every grand total, subtotal and leaf, against an independent read of the source PDFs.`
     : 'RESULT: FAIL — see blockers above.');
   return blockers === 0 ? 0 : 1;
 }
 
+// Set exitCode and let the loop drain rather than calling process.exit(): the
+// Supabase client uses undici under the hood, so an abrupt exit can race a
+// keep-alive socket into a Windows libuv UV_HANDLE_CLOSING assert. The unref'd
+// timer is a backstop if an idle socket holds the process open.
 main()
   .then((code) => { process.exitCode = code; })
-  .catch((e) => { console.error('Fatal:', e); process.exitCode = 2; });
+  .catch((e) => { console.error('Fatal:', e); process.exitCode = 2; })
+  .finally(() => { setTimeout(() => process.exit(process.exitCode ?? 0), 2000).unref(); });

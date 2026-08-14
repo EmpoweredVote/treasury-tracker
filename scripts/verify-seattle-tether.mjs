@@ -45,6 +45,24 @@ function isValidCatalogShape(body) {
   if ('states' in body && body.states !== undefined && !Array.isArray(body.states)) return false;
   return true;
 }
+
+/**
+ * The app's shape check above is deliberately PERMISSIVE — it ships in a UI that
+ * degrades to "no icon" and must never throw, so `{"error":"internal"}` passes
+ * it and simply matches nothing.
+ *
+ * That is wrong for a VERIFICATION harness. A body carrying no tier arrays at
+ * all is an unusable catalog, and reporting it as "NOT COVERED" would state a
+ * definitive verdict — one this script's own output tells the reader to record
+ * as a cross-repo Essentials note and NOT fix on the TT side. An Essentials
+ * regression would then be filed as a documented coverage gap while the icon
+ * silently vanished in production. So a catalog that cannot answer the question
+ * is FETCH FAILED (inconclusive), not NOT COVERED.
+ */
+function isUsableCatalog(body) {
+  return Array.isArray(body.cities) && body.cities.length > 0
+    && Array.isArray(body.counties) && body.counties.length > 0;
+}
 const CITY_TIER_TYPES = new Set(['city', 'town', 'township', 'municipality']);
 function matchEntityToCoverage(entity, catalog) {
   if (!catalog) return null;
@@ -74,6 +92,14 @@ async function fetchCatalog() {
       let body;
       try { body = await res.json(); } catch (e) { return { status: 'fetch_failed', reason: `bad JSON: ${e.message}`, catalog: null }; }
       if (!isValidCatalogShape(body)) return { status: 'fetch_failed', reason: 'catalog failed shape check', catalog: null };
+      if (!isUsableCatalog(body)) {
+        return {
+          status: 'fetch_failed',
+          reason: `catalog carries no usable tier arrays (cities=${Array.isArray(body.cities) ? body.cities.length : 'absent'}, ` +
+            `counties=${Array.isArray(body.counties) ? body.counties.length : 'absent'}) — INCONCLUSIVE, not a coverage gap`,
+          catalog: null,
+        };
+      }
       return { status: 'fetched_ok', reason: `HTTP ${res.status}`, catalog: body };
     } finally { clearTimeout(timer); }
   } catch (e) {
@@ -121,8 +147,15 @@ async function main() {
   console.log('\n--- verdict summary (machine-readable) ---');
   console.log(JSON.stringify({ fetch: status, entities: out }, null, 2));
 
-  // Exit 0 for a definitive verdict either way — a documented coverage gap is a
-  // finding, not a failure. Exit 3 only when the fetch itself was inconclusive.
+  // Exit 0 for a definitive verdict EITHER WAY — a documented coverage gap is a
+  // finding, not a failure, per the plan ("a gap is a cross-repo Essentials
+  // note, not a TT change"). Exit 3 only when the catalog could not answer.
+  //
+  // ⚠ READ THE VERDICT, NOT THE EXIT CODE. Exit 0 here means "the catalog
+  // answered", NOT "both entities are covered". Do not cite this script's exit
+  // status as evidence of coverage; cite the COVERED/NOT COVERED lines above.
+  // Asserting coverage would be wrong: it would turn a legitimate, expected
+  // Essentials gap into a red build on the TT side.
   return status === 'fetched_ok' ? 0 : 3;
 }
 

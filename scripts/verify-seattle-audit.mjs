@@ -4,9 +4,15 @@
  * for the Seattle + King County load. Six checks, all of which must pass.
  *
  *   (a) every loaded row has a non-null, correct-per-FY source_url that resolves
- *       200 application/pdf — and whose byte length matches the local PDF the
- *       independent re-derivation actually read, which is what closes the loop
- *       between "the figures are right" and "they came from the cited document";
+ *       200 application/pdf — and whose served CONTENT LENGTH matches the local
+ *       PDF the independent re-derivation actually read, which is what closes
+ *       the loop between "the figures are right" and "they came from the cited
+ *       document". ⚠ This is a LENGTH comparison, not a hash: nothing is
+ *       downloaded in full (a 1-byte ranged GET reports the total). It would not
+ *       detect a same-size substitution at the same URL. Say "length-matching",
+ *       never "byte-matching" — a harness that overstates its own strength is
+ *       the exact failure this suite exists to catch. A missing length FAILS
+ *       rather than degrading to a note;
  *   (b) source_date is exactly <FY>-12-31 on every row (both entities have a
  *       December 31 fiscal year end);
  *   (c) zero residue in treasury.data_sources matching seattle-% or kingcounty-%
@@ -65,10 +71,22 @@ const KING_COUNTY_ID = '5d47592a-61d2-47ae-84ad-e869f1dd6208';
 const NEW_HAMPSHIRE_ID = 'c54f6dbd-3f2a-453e-b0b9-259e377aef67';
 const NEW_HAMPSHIRE_ARCHIVE_ROWS = 16; // pre-existing, FY2017-FY2024, not ours
 
+// Windows are declared ONCE and the expected row count is derived from them, so
+// extending a window cannot leave a stale hardcoded total behind in the other
+// harness. Both datasets (operating + revenue) are loaded for every year.
+const DATASETS = ['operating', 'revenue'];
 const ENTITIES = [
-  { key: 'Seattle', id: SEATTLE_ID, dir: path.join(ROOT, 'docs', 'Seattle'), pdf: (fy) => `seattle-${fy}-acfr.pdf`, expectRows: 34 },
-  { key: 'King County', id: KING_COUNTY_ID, dir: path.join(ROOT, 'docs', 'KingCounty'), pdf: (fy) => `kingcounty-${fy}-acfr.pdf`, expectRows: 16 },
-];
+  {
+    key: 'Seattle', id: SEATTLE_ID, dir: path.join(ROOT, 'docs', 'Seattle'),
+    pdf: (fy) => `seattle-${fy}-acfr.pdf`,
+    fys: Array.from({ length: 17 }, (_, i) => 2009 + i), // FY2009..FY2025
+  },
+  {
+    key: 'King County', id: KING_COUNTY_ID, dir: path.join(ROOT, 'docs', 'KingCounty'),
+    pdf: (fy) => `kingcounty-${fy}-acfr.pdf`,
+    fys: Array.from({ length: 8 }, (_, i) => 2018 + i), // FY2018..FY2025
+  },
+].map((e) => ({ ...e, expectRows: e.fys.length * DATASETS.length }));
 
 // ── per-host headers (see HEADER TRAP above) ────────────────────────────────
 const CHROME_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
@@ -140,6 +158,15 @@ async function main() {
       const rows = byEntity[e.key];
       if (rows.length !== e.expectRows) fail.push(`${e.key}: ${rows.length} rows, expected ${e.expectRows}`);
 
+      // Assert the exact (fiscal_year, dataset_type) inventory, not just the
+      // count. A count alone would not notice a row carrying an unexpected
+      // dataset_type, or a year outside the declared window, written by some
+      // other loader.
+      const want = new Set(e.fys.flatMap((fy) => DATASETS.map((d) => `${fy}|${d}`)));
+      const got = new Set(rows.map((r) => `${r.fiscal_year}|${r.dataset_type}`));
+      for (const k of want) if (!got.has(k)) fail.push(`${e.key}: expected row ${k.replace('|', ' ')} is MISSING`);
+      for (const k of got) if (!want.has(k)) fail.push(`${e.key}: UNEXPECTED row ${k.replace('|', ' ')} — outside the declared window`);
+
       const byFy = new Map();
       for (const r of rows) {
         if (!r.source_url) { fail.push(`${e.key} FY${r.fiscal_year} ${r.dataset_type}: source_url is NULL`); continue; }
@@ -168,8 +195,14 @@ async function main() {
         if (!okStatus) fail.push(`${e.key} FY${fy}: ${url} → ${probe.status ?? 'network error'}${probe.error ? ` (${probe.error})` : ''}`);
         else if (!okType) fail.push(`${e.key} FY${fy}: content-type is "${probe.type}", not application/pdf — ${url}`);
         if (localSize === null) fail.push(`${e.key} FY${fy}: local PDF missing at ${local}`);
-        else if (probe.length === null) notes.push(`${e.key} FY${fy}: server reported no length; byte-identity not checked`);
-        else if (probe.length !== localSize) {
+        else if (probe.length === null) {
+          // FAIL-CLOSED, deliberately. The served length is the ONLY mechanism
+          // binding a DB row's source_url to the local PDF the re-derivation
+          // parsed, so "the server didn't tell us" must not read as "verified".
+          // All 25 hosts do return a length today, so this costs nothing now and
+          // refuses to silently downgrade if a CDN changes behaviour later.
+          fail.push(`${e.key} FY${fy}: server reported no content length, so the cited url CANNOT be tied to the parsed local copy — ${url}`);
+        } else if (probe.length !== localSize) {
           fail.push(`${e.key} FY${fy}: served ${probe.length} bytes but the re-derivation read a ${localSize}-byte local copy — the cited url is NOT the document that was parsed`);
         }
         const size = probe.length === null ? '(no length)' : `${probe.length} B`;
@@ -178,7 +211,7 @@ async function main() {
       }
     }
     for (const n of notes) console.log(`      note: ${n}`);
-    record('a', 'every row has a non-null, correct-per-FY source_url resolving 200 application/pdf, byte-matching the parsed local copy', fail.length === 0, fail);
+    record('a', 'every row has a non-null, correct-per-FY source_url resolving 200 application/pdf, whose served LENGTH matches the parsed local copy', fail.length === 0, fail);
   }
 
   // ── (b) source_date = <FY>-12-31 ──────────────────────────────────────────
@@ -212,9 +245,24 @@ async function main() {
     const DASHRUN = /--/;
     let scanned = 0;
     for (const e of ENTITIES) {
-      const { data: budgets } = await sb.from('budgets').select('id,fiscal_year,dataset_type').eq('municipality_id', e.id);
-      const { data: cats } = await sb.from('budget_categories').select('id,budget_id,name').in('budget_id', budgets.map((b) => b.id));
-      const { data: items } = await sb.from('budget_line_items').select('category_id,description').in('category_id', cats.map((c) => c.id));
+      // Errors are checked and row counts are asserted against an exact count.
+      // PostgREST caps an unbounded select at 1000 rows by default, so a widened
+      // FY window would otherwise SILENTLY UNDER-SCAN and report a clean (d).
+      const q = async (table, select, col, ids) => {
+        const { data, error } = await sb.from(table).select(select).in(col, ids);
+        if (error) throw new Error(`${table} query failed in check (d): ${error.message}`);
+        const { count, error: cErr } = await sb.from(table).select('*', { count: 'exact', head: true }).in(col, ids);
+        if (cErr) throw new Error(`${table} count failed in check (d): ${cErr.message}`);
+        if (data.length !== count) {
+          fail.push(`${e.key}: ${table} returned ${data.length} of ${count} rows (result-size cap) — check (d) would have under-scanned`);
+        }
+        return data;
+      };
+      const { data: budgets, error: bErr } = await sb.from('budgets')
+        .select('id,fiscal_year,dataset_type').eq('municipality_id', e.id);
+      if (bErr) throw new Error(`budgets query failed in check (d): ${bErr.message}`);
+      const cats = await q('budget_categories', 'id,budget_id,name', 'budget_id', budgets.map((b) => b.id));
+      const items = await q('budget_line_items', 'category_id,description', 'category_id', cats.map((c) => c.id));
       const bmeta = new Map(budgets.map((b) => [b.id, `FY${b.fiscal_year} ${b.dataset_type}`]));
       const cmeta = new Map(cats.map((c) => [c.id, `${bmeta.get(c.budget_id)} / ${c.name}`]));
       for (const c of cats) {
@@ -273,11 +321,22 @@ async function main() {
     const { count: appWide } = await sb.from('budgets').select('*', { count: 'exact', head: true })
       .like('source_url', '%web.archive.org%');
 
+    // The app-wide count is ASSERTED, not merely printed. Asserting King County
+    // == 2 and New Hampshire == 16 in isolation would still pass if a THIRD
+    // entity started citing an archive. Pinning the total to exactly those two
+    // populations is what actually states the invariant this load claims:
+    // it added exactly two archive-cited rows and disturbed no others.
+    const expectedAppWide = NEW_HAMPSHIRE_ARCHIVE_ROWS + 2;
+    if (appWide !== expectedAppWide) {
+      fail.push(`application-wide archive-cited rows = ${appWide}, expected ${expectedAppWide} ` +
+        `(New Hampshire ${NEW_HAMPSHIRE_ARCHIVE_ROWS} + King County 2) — a third entity now cites an archive, or a baseline moved`);
+    }
+
     console.log(`\n  (f) King County archive-cited rows: ${kcArchive.length} (${kcArchive.map((r) => `FY${r.fiscal_year} ${r.dataset_type}`).join(', ')})`);
     console.log(`  (f) Seattle archive-cited rows:     ${seaArchive.length}`);
     console.log(`  (f) New Hampshire (pre-existing):   ${nh.length} — expected ${NEW_HAMPSHIRE_ARCHIVE_ROWS}, untouched by this load`);
-    console.log(`  (f) application-wide total:         ${appWide} — this is NOT expected to be 2; the original`);
-    console.log('      "exactly two rows in the entire budgets table" wording was false and is superseded.');
+    console.log(`  (f) application-wide total:         ${appWide} — asserted == ${expectedAppWide}. This is NOT expected to be 2;`);
+    console.log('      the original "exactly two rows in the entire budgets table" wording was false and is superseded.');
     record('f', 'exactly two KING COUNTY rows cite web.archive.org, both FY2018, with New Hampshire\'s 16 pre-existing rows untouched', fail.length === 0, fail);
   }
 

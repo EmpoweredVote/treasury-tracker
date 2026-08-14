@@ -22,13 +22,19 @@ leaf-for-leaf and subtotal-for-subtotal against the live production database.
 Every mechanism was built differently on purpose, so that a shared blind spot would have to
 survive two unlike implementations:
 
-| Concern | Python loader | This harness |
-|---|---|---|
-| Statement page | anchors on the schedule id `B-4` | structural scoring: title + both `Total` rows + a General-Fund column caption + a page-type exclusion list; first survivor wins |
-| Section bounds | scans **forward** from a header guarded by a five-layer prefix test | finds the `Total …` row and scans **backward** to the nearest header, which makes the document title unmatchable by construction (it contains *both* section words) |
-| Units | reads `units: 1000` from a config dict | reads `(In Thousands)` off the page and refuses to run if the page does not declare a scale; multiplier applied in exactly one function, to leaf values only |
-| Grouping | explicit `parents` / `root_leaves` / `revenue_group_members` name lists | derived from the statements: GASB's character classification (Current / Debt Service / Capital Outlay) on the expenditure side, and "a revenue line whose label ends in *taxes* joins the open Taxes group" on the revenue side |
-| Column isolation | ordinal | ordinal, **after** a positional attempt was refuted by the documents themselves — see §5 |
+| Concern | Python loader | This harness | Independent? |
+|---|---|---|---|
+| Statement page | anchors on the schedule id `B-4` | structural scoring: title + both `Total` rows + a General-Fund column caption + a page-type exclusion list | **yes** — and the filter leaves *exactly one* candidate on all 50 combinations, so "first survivor wins" never decides anything. The count is printed per run. |
+| Section bounds | scans **forward** from a header guarded by a five-layer prefix test | finds the `Total …` row and scans **backward** to the nearest header, which makes the document title unmatchable by construction (it contains *both* section words) | **yes** |
+| Units | reads `units: 1000` from a config dict | reads `(In Thousands)` off the page and refuses to run if the page does not declare a scale; multiplier applied in exactly one function, to leaf values only | **yes** |
+| Grouping | explicit `parents` / `root_leaves` / `revenue_group_members` name lists | derived from the statements: GASB's character classification on the expenditure side, and "a revenue line whose label ends in *taxes* joins the open Taxes group" on the revenue side | **yes** — and it infers per-entity shape the Python has to be *told* (Seattle's `Capital Outlay` is a parent, King County's is a root leaf) |
+| Fiscal year | reads the statement page's own period statement | reads the statement page's own period statement | **no — shared.** All 50 pages confirm their year from their own "year ended December 31, `<FY>`" sentence. Filenames are never trusted. |
+| Column isolation | ordinal | **ordinal — the same strategy.** A positional attempt was tried first and *refuted by the documents* (§5). | **no — shared.** What protects this axis is the printed-vs-summed reconciliation, which is internal to the PDF. |
+
+The last two rows are stated plainly because an earlier draft of this document and of the
+harness header claimed the column strategy was an axis of independence. **It is not**, and a
+verification artifact that overstates its own strength is precisely the failure this suite exists
+to catch.
 
 Tolerance is exact `$0` on every figure — grand total, every subtotal, every leaf, matched by
 label as well as by value. There is no dispositioned quirk and no approximate mode.
@@ -126,12 +132,20 @@ All six pass. `node scripts/verify-seattle-audit.mjs` → exit 0.
 **(a) PASS — every row has a non-null, correct-per-FY `source_url` that resolves 200
 `application/pdf`.** All 50 rows carry a URL; the two datasets of a given FY share one URL;
 no two fiscal years share a URL; every URL carries its own fiscal year. All 25 documents
-answered `200 application/pdf`.
+answered `200 application/pdf`. The check also asserts the exact
+`(fiscal_year, dataset_type)` inventory, not merely the row count, so a row with an unexpected
+dataset type or a year outside the declared window would be caught.
 
 This check was strengthened beyond the plan's wording: for each of the 25 URLs the harness also
-compares the **served byte length** against the local PDF the re-derivation actually parsed.
+compares the **served content length** against the local PDF the re-derivation actually parsed.
 All 25 match exactly. That closes the loop between "the figures are right" and "they came from
 the document we cite" — without it, (a) would only prove that *some* PDF lives at that URL.
+
+⚠ **This is a length comparison, not a hash.** Nothing is downloaded in full (a 1-byte ranged
+GET reports the total), so it would not detect a same-size substitution at the same URL. Say
+*length-matching*, never *byte-matching*. If a server omits `Content-Length` the check **fails
+closed** rather than degrading to a note — "the server didn't tell us" must never read as
+"verified".
 
 ⚠ Header trap, carried forward from Task 2: `web.archive.org` answers **HTTP 498** to the
 desktop-Chrome `User-Agent` that `seattle.gov` and `cdn.kingcounty.gov` **require**. The audit
@@ -166,9 +180,11 @@ archive on 0 rows.
 > is therefore **18**, not 2, and the harness prints that number explicitly so a future reader
 > cannot mistake it for a regression. The plan was corrected in commit `5621b5c`.
 >
-> The audit additionally asserts the New Hampshire baseline is **still 16** — the more useful
-> invariant, and the one actually worth having: *this load added exactly two archive-cited rows
-> and disturbed no others.*
+> The audit additionally asserts the New Hampshire baseline is **still 16**, *and* asserts the
+> application-wide total equals exactly `16 + 2 = 18`. The last of those is what actually states
+> the invariant: King County == 2 and New Hampshire == 16 would both still hold if some *third*
+> entity started citing an archive. Pinning the total closes that: *this load added exactly two
+> archive-cited rows and disturbed no others.*
 
 ---
 
@@ -192,9 +208,19 @@ state 53 + place 63000, King County `53033` is state 53 + county 033 — the sam
 controller pulled from the live Census files when confirming populations of 780,995 and
 2,340,211.
 
-The harness sets `process.exitCode` and lets the event loop drain rather than calling
+All three harnesses set `process.exitCode` and let the event loop drain rather than calling
 `process.exit()`; an abrupt exit races undici's keep-alive socket into a Windows libuv
 `UV_HANDLE_CLOSING` assertion.
+
+⚠ **Read the tether verdict, not its exit code.** Exit 0 here means "the catalog answered", not
+"both entities are covered". Asserting coverage would be wrong — it would turn a legitimate,
+expected Essentials gap into a red build on the Treasury Tracker side, which the plan explicitly
+says not to do. What the harness *does* now enforce is the distinction it exists to make: a body
+that carries no usable tier arrays (an Essentials error page, an empty payload) is reported as
+**FETCH FAILED / inconclusive, exit 3**, never as a definitive "NOT COVERED". The app's own
+shape check is deliberately permissive because it degrades to "no icon" and must never throw;
+that leniency is wrong for a verification harness, which would otherwise file an Essentials
+regression as a documented coverage gap while the icon silently vanished in production.
 
 ---
 
@@ -253,7 +279,49 @@ was supplied from general knowledge; each is quoted from the relevant ACFR.
 
 ---
 
-## 7. Known limits of this verification
+## 7. Review, and proof that the harness bites
+
+A harness that cannot fail is worse than no harness, because it manufactures confidence. Two
+independent reviews were run over the three scripts: one for spec compliance and code quality,
+one adversarial, whose only brief was to find ways the harness could report PASS while the data
+was wrong.
+
+The adversarial pass injected **18 semantic mutations** and found four genuine gaps, all now
+closed. The table below records the mutations that matter, re-run against the fixed harnesses:
+
+| Injected defect | Harness | Caught? |
+|---|---|---|
+| Units multiplier 1000 → 1 | rederive | **caught** — 8 blockers, exit 1 |
+| A real non-zero leaf silently zeroed, then pruned | rederive | **caught** by `PRINTED vs SUMMED`, *before* the DB is consulted |
+| Two leaf values swapped inside one root (sum preserved, total still ties) | rederive | **caught** at leaf level, exit 1 |
+| Pruning disabled (zero leaves kept) | rederive | **caught** — the set of dropped rows is itself asserted |
+| A leaf label altered | rederive | **caught** — `LEAF ONLY IN PDF` / `LEAF ONLY IN DB` |
+| `Taxes` header treated as a wrap fragment | rederive | **caught** — reproduces the exact `"Taxes Property Taxes"` gluing trap |
+| Label key truncated to force a collision | rederive | **caught** — duplicate-key guard fires on both sides |
+| Wrong entity UUID | rederive | **caught** |
+| Missing PDF / exception mid-run | rederive | **caught** — exit 1 / exit 2, no PASS banner |
+| **Empty FY window (verify nothing, claim everything)** | rederive | **was MISSED → now caught**, exit 1 |
+| **FY2023 PDF read as FY2024** | rederive | **was MISSED → now caught** — "statement page states *year ended December 31, 2023* but this document is being read as FY2024" |
+| Served length ≠ local file | audit | **caught** |
+| **Server omits `Content-Length`** | audit | **was a silent PASS → now fails closed** |
+| Anchor constant, NH baseline, or expected row count corrupted | audit | **caught** |
+| **A third entity starts citing an archive** | audit | **was MISSED → now caught** by the app-wide assertion |
+| **Essentials serves `{"error":"internal"}`** | tether | **was a false "NOT COVERED" at exit 0 → now FETCH FAILED at exit 3** |
+
+Two mutations were *legitimately* missed as equivalent mutants and are recorded as such: taking
+the last rather than the first candidate statement page (there is only ever one), and loosening
+the tax-membership rule from `/taxes$/` to `/tax/` (no revenue label outside the tax group
+contains "tax" in this corpus).
+
+**An independent corroboration the harness does not itself use.** On statements whose final
+column is "Total governmental funds", each row's per-fund cells must sum to that column. The
+adversarial reviewer checked this invariant separately and it holds **exactly, with zero
+exceptions**, on Seattle FY2020–FY2025 and King County FY2018–FY2020 — which includes *all four*
+King County years carrying the ordinal/positional divergences. That is row-level confirmation,
+from a direction neither implementation relies on, that the first cell really is the General
+Fund precisely where the two column readings disagree.
+
+## 8. Known limits of this verification
 
 Stated rather than hidden:
 
@@ -273,4 +341,21 @@ Stated rather than hidden:
 - **The grouping rules are read off these statements, not universal.** "A revenue line ending in
   *taxes* joins the open Taxes group" holds for both entities across all 25 documents, and a
   wrong grouping would fail loudly against the DB's labels — but it is not a general rule for
-  other issuers.
+  other issuers. It also has slack: `/tax/` would behave identically on this corpus, so the rule
+  is not uniquely pinned by the data.
+- **The column strategy is shared, not independent** (§1, §5). Both implementations read the
+  General Fund ordinally. The protection on that axis is the printed-vs-summed reconciliation
+  inside each PDF, not implementation diversity.
+- **"(In Thousands)" is taken at face value.** Both the harness and the loader read the scale
+  off the page caption, and check (e)'s two constants were themselves derived under that
+  assumption — so (e) is a *regression pin against later drift*, not an independent proof of
+  scale. It cannot detect a document that mislabels its own units. The outside-the-tie oracle
+  that does address this is human plausibility, plus Seattle's own FY2024 MD&A narrative, which
+  states a General Fund "deficiency of revenues of $117.8 million" against the extracted
+  `2,272,762 − 2,390,575 = −117,813` thousand.
+- **A genuinely blank General Fund cell is not handled.** Under the ordinal reading, a row whose
+  GF cell is empty with no dash placeholder would borrow the next fund's value. No such row
+  exists in this corpus, and one would inflate the section sum and break the printed-vs-summed
+  reconciliation loudly — but it is a disclosed limit, not a handled case.
+- **Nothing here verifies the category enrichment text** loaded in `aa2d8e4`. These three
+  harnesses cover `budgets`, `budget_categories` and `budget_line_items` only.
