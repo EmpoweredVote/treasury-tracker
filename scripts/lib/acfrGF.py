@@ -133,15 +133,26 @@ class CityConfig:
                  legitimate multi-word labels. Every entry here is a specific
                  string observed in a specific document and checked against how
                  the same line reads in neighbouring years.
+    units        multiplier applied to every extracted amount. Seattle and King
+                 County print "(IN THOUSANDS)", so both use units=1000; every
+                 other city prints whole dollars and uses the default 1.
+
+                 THIS CANNOT BE VALIDATED BY THE TIE GATE. tie_delta compares a
+                 computed sum against a printed total read through the SAME
+                 multiplier, so it is 0 whether or not the scaling is right.
+                 A wrong `units` ships a silently 1000x-wrong row. It is checked
+                 instead by acfrGF.selftest.py and by the loader's per-capita
+                 plausibility guard.
     """
 
     def __init__(self, city, parents, root_leaves=(), source_rounding=None,
-                 label_fixes=None):
+                 label_fixes=None, units=1):
         self.city = city
         self.parents = tuple(p.lower() for p in parents)
         self.root_leaves = tuple(r.lower() for r in root_leaves)
         self.source_rounding = dict(source_rounding or {})
         self.label_fixes = dict(label_fixes or {})
+        self.units = units
 
 
 # ── Money parsing ─────────────────────────────────────────────────────────────
@@ -270,8 +281,14 @@ def gf_value(line, col_anchors):
     return best
 
 
+def column_value(line, col_anchors, cfg):
+    """The General Fund cell of `line`, scaled to dollars, or None if absent."""
+    v = gf_value(line, col_anchors)
+    return None if v is None else v * cfg.units
+
+
 # ── Row classification ───────────────────────────────────────────────────────
-def classify(line, col_anchors):
+def classify(line, col_anchors, cfg):
     """('data'|'wrapped'|'skip', label, value).
 
     A row whose GF cell is blank but which HAS numbers in other columns is
@@ -287,7 +304,7 @@ def classify(line, col_anchors):
         lbl = label_of(line)
         return ('wrapped', lbl, None) if lbl else ('skip', '', None)
 
-    gv = gf_value(line, col_anchors)
+    gv = column_value(line, col_anchors, cfg)
     lbl = label_of(line)
     if gv is None:
         return ('data', lbl, 0) if lbl else ('skip', '', None)
@@ -341,7 +358,7 @@ def build_revenue(lines, col_anchors, cfg):
     children, zero_rows = [], []
     pending = ''
     for l in _section(lines, _SEC_REVENUES, _END_REVENUES):
-        kind, lbl, val = classify(l, col_anchors)
+        kind, lbl, val = classify(l, col_anchors, cfg)
         if kind == 'skip':
             continue
         if kind == 'wrapped':
@@ -369,7 +386,7 @@ def build_operating(lines, col_anchors, cfg):
     for l in _section(lines, _SEC_EXPENDITURES, _END_EXPENDITURES):
         if not l.strip():
             continue
-        kind, lbl, val = classify(l, col_anchors)
+        kind, lbl, val = classify(l, col_anchors, cfg)
         low = (lbl or '').lower()
 
         if kind == 'wrapped' and low in cfg.parents:
@@ -432,10 +449,10 @@ def extract(pdf_path, mode, cfg):
 
     if mode == 'revenue':
         tree, computed, zero_rows = build_revenue(lines, col_anchors, cfg)
-        printed = gf_value(rev_line, col_anchors)
+        printed = column_value(rev_line, col_anchors, cfg)
     else:
         tree, computed, zero_rows = build_operating(lines, col_anchors, cfg)
-        printed = gf_value(exp_line, col_anchors)
+        printed = column_value(exp_line, col_anchors, cfg)
 
     tie_delta = computed - (printed or 0)
     # A registered source-rounding case must match its expected delta EXACTLY.
