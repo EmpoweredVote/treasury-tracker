@@ -50,7 +50,7 @@ import { pathToFileURL } from 'node:url';
 
 const DRY_RUN = process.argv.includes('--dry-run');
 
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
+const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // ── Entity payloads ─────────────────────────────────────────────────────────
@@ -232,7 +232,22 @@ export async function getKingCountyId(supabase) {
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────
+/**
+ * NOT ATOMIC: the Seattle upsert and the King County create/populate below
+ * are two independent steps against the DB, not one transaction. A failure
+ * between them (e.g. the treasury_ensure_municipality RPC call fails) can
+ * leave Seattle inserted with no King County row and no county_id link yet.
+ *
+ * This is an ACCEPTED RISK, not a defect: every step here is idempotent
+ * (upsertMunicipality/ensureKingCounty diff-before-write, and
+ * linkSeattleToKingCounty's NULL-or-same guard makes relinking safe), so the
+ * remedy for a mid-run failure is simply to re-run this script. A re-run
+ * will skip whatever already landed and complete only what's missing.
+ */
 async function main() {
+  if (!SUPABASE_URL) {
+    throw new Error('Missing SUPABASE_URL env var');
+  }
   if (!SUPABASE_KEY) {
     throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_SERVICE_KEY) env var');
   }
