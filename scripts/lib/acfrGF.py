@@ -122,6 +122,15 @@ class CityConfig:
                  The emitted tree total is always the COMPONENT SUM, never the
                  printed total, so the loaded row still ties against its own line
                  items.
+
+                 Deltas are in the SCALED (post-`units`) domain: tie_delta is
+                 computed from column_value's already-multiplied output, so for a
+                 units=1000 entity a genuine $1 printed-vs-component disagreement
+                 must be registered here as 1000, not 1. The exact-match check
+                 still fails loud on a wrong constant (it will not silently accept
+                 the unscaled 1), but getting the denomination wrong wastes the
+                 one registered exception this module allows for a confirmed,
+                 document-level rounding artifact.
     label_fixes  {exact_observed_label: corrected_label} for transcription
                  artifacts. Some PDFs letter-space their glyphs, so `-table`
                  splits words: Bend's FY2014 statement emits "Public w ays and
@@ -147,6 +156,11 @@ class CityConfig:
 
     def __init__(self, city, parents, root_leaves=(), source_rounding=None,
                  label_fixes=None, units=1):
+        if not isinstance(units, int) or isinstance(units, bool):
+            raise TypeError(
+                'CityConfig.units must be an int, got %r (%s). A float would '
+                'silently turn every extracted amount into a float and change '
+                'the emitted JSON shape.' % (units, type(units).__name__))
         self.city = city
         self.parents = tuple(p.lower() for p in parents)
         self.root_leaves = tuple(r.lower() for r in root_leaves)
