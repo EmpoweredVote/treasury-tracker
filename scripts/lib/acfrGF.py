@@ -199,9 +199,18 @@ def nums_with_pos(line):
 # A COLUMN SLOT is either a money token or a standalone dash-run standing in for
 # a $0/blank cell. Counting dashes as slots is what makes ordinal reading exact:
 # it keeps every later column in its true position instead of sliding it left.
-# The lookarounds require surrounding whitespace, so a hyphen inside a label
-# ("Non-departmental") is never mistaken for a column.
-_SLOT = re.compile(r'\((?:\d[\d,]*)\)|\$?\s*\d[\d,]*|(?<=\s)[-–—]{1,3}(?=\s|$)')
+#
+# A dash-run is a slot only when it is flanked by COLUMN spacing -- two or more
+# spaces, or the start/end of the line -- on BOTH sides. `-table` separates a
+# blank-cell placeholder from its neighbours by column gaps that wide; a prose
+# hyphen ("Debt Service - Principal", "Transfers In - General Fund") sits
+# between single spaces and is deliberately NOT matched here, so it is never
+# mistaken for a column and the label survives intact. An unspaced hyphen
+# inside a word ("Non-departmental", "Low-Income Housing") was never a
+# candidate either way. The run length is unbounded: capping it would make a
+# run of four or more dashes silently vanish instead of counting as one slot
+# -- the exact "columns slide left" failure this feature exists to prevent.
+_SLOT = re.compile(r'\((?:\d[\d,]*)\)|\$?\s*\d[\d,]*|(?:(?<=^)|(?<=\s\s))[-–—]+(?=\s\s|$)')
 
 def slots(line):
     """Every column slot on `line`, left to right. A dash-run yields 0."""
@@ -210,7 +219,7 @@ def slots(line):
         t = m.group().replace('$', '').replace(' ', '').strip()
         if not t:
             continue
-        if re.fullmatch(r'[-–—]{1,3}', t):
+        if re.fullmatch(r'[-–—]+', t):
             out.append(0)
             continue
         v = parse_money(t)

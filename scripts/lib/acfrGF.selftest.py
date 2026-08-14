@@ -6,7 +6,7 @@ they run with no PDF, no pdftotext and no network. Run: py -3 scripts/lib/acfrGF
 """
 import pathlib, sys, unittest
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
-from lib.acfrGF import CityConfig, column_value, classify, build_revenue, anchors
+from lib.acfrGF import CityConfig, column_value, classify, build_revenue, anchors, slots
 
 # Transcribed from City of Seattle FY2024 ACFR p56 (amounts in thousands).
 SEA_TOTAL_REV = '     Total Revenues                                                         2,272,762     392,312         946,644        3,611,718'
@@ -93,6 +93,48 @@ class TestOrdinalColumns(unittest.TestCase):
     def test_hyphenated_label_is_not_read_as_a_column(self):
         cfg = CityConfig(city='X', parents=('current',), column_strategy='ordinal')
         self.assertEqual(column_value('Non-departmental                    12,500    3,000', anchors(KC_TOTAL_REV), cfg), 12500)
+
+
+# Fix round 1: `_SLOT` was treating a PROSE hyphen (single space on each side,
+# as in "Debt Service - Principal" -- the very example norm_label's own
+# docstring cites as a label that must survive intact) as a column slot. That
+# read a fake leading $0 column and truncated the label at the hyphen. The fix
+# requires COLUMN spacing (2+ spaces, or line start/end) on both sides of a
+# dash-run before it counts as a slot; a single-spaced hyphen is prose and is
+# left entirely alone, same as an unspaced one.
+class TestProseHyphenNotAColumn(unittest.TestCase):
+    def test_prose_hyphen_with_dash_service_label_is_not_a_column(self):
+        cfg = CityConfig(city='X', parents=('current',), column_strategy='ordinal')
+        line = 'Debt Service - Principal          12,500     3,000'
+        self.assertEqual(column_value(line, anchors(KC_TOTAL_REV), cfg), 12500)
+        kind, lbl, val = classify(line, anchors(KC_TOTAL_REV), cfg)
+        self.assertEqual(lbl, 'Debt Service - Principal')
+        self.assertEqual(val, 12500)
+
+    def test_prose_hyphen_with_transfers_label_is_not_a_column(self):
+        cfg = CityConfig(city='X', parents=('current',), column_strategy='ordinal')
+        line = 'Transfers In - General Fund   4,200   100'
+        self.assertEqual(column_value(line, anchors(KC_TOTAL_REV), cfg), 4200)
+        kind, lbl, val = classify(line, anchors(KC_TOTAL_REV), cfg)
+        self.assertEqual(lbl, 'Transfers In - General Fund')
+        self.assertEqual(val, 4200)
+
+    def test_dash_placeholder_still_counts_as_slot_after_prose_hyphen_fix(self):
+        # Non-regression: the King County fixtures that proved dash-as-slot
+        # counting in the first place must still tie the same way.
+        cfg = CityConfig(city='X', parents=('current',), column_strategy='ordinal')
+        self.assertEqual(column_value(KC_RETAIL, anchors(KC_TOTAL_REV), cfg), 144422)
+        self.assertEqual(column_value(KC_PHYSICAL, anchors(KC_TOTAL_REV), cfg), 0)
+
+    def test_four_or_more_dash_run_counts_as_exactly_one_slot(self):
+        line = 'Some label          ----                 12,500'
+        self.assertEqual(slots(line), [0, 12500])
+
+    def test_low_income_housing_hyphen_is_not_read_as_a_column(self):
+        cfg = CityConfig(city='X', parents=('current',), column_strategy='ordinal')
+        self.assertEqual(
+            column_value('Low-Income Housing                    61,498    3,000', anchors(KC_TOTAL_REV), cfg),
+            61498)
 
 
 if __name__ == '__main__':
