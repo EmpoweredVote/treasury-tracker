@@ -3,9 +3,11 @@
  * Golden-diff harness for scripts/lib/acfrGF.py.
  *
  * Runs every per-city extractor across every PDF and both modes, and records
- * the exact stdout. Capture BEFORE changing the shared library, compare AFTER.
- * A byte-identical compare is the only evidence that a shared-library change
- * did not silently alter an already-loaded city.
+ * the exact stdout AND stderr (diagnostics like the source-rounding NOTE are
+ * printed to stderr while still exiting 0, so stderr must be covered too).
+ * Capture BEFORE changing the shared library, compare AFTER. A byte-identical
+ * compare is the only evidence that a shared-library change did not silently
+ * alter an already-loaded city.
  */
 import { readdirSync, existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
@@ -33,7 +35,7 @@ function runAll() {
       for (const mode of MODES) {
         const r = spawnSync('py', ['-3', c.script, path.join(c.docs, pdf), '--mode', mode],
                             { encoding: 'utf8' });
-        out[`${c.name}/${pdf}/${mode}`] = { status: r.status, stdout: r.stdout ?? '' };
+        out[`${c.name}/${pdf}/${mode}`] = { status: r.status, stdout: r.stdout ?? '', stderr: r.stderr ?? '' };
       }
     }
   }
@@ -42,8 +44,14 @@ function runAll() {
 
 const [cmd, dir] = process.argv.slice(2);
 if (!cmd || !dir) { console.error('usage: goldenExtractors.mjs <capture|compare> <dir>'); process.exit(2); }
-const { out, skipped } = runAll();
 const file = path.join(dir, 'golden.json');
+
+if (cmd === 'compare' && !existsSync(file)) {
+  console.error(`ERROR: no baseline at ${file} — run 'capture' first.`);
+  process.exit(2);
+}
+
+const { out, skipped } = runAll();
 
 if (cmd === 'capture') {
   mkdirSync(dir, { recursive: true });
