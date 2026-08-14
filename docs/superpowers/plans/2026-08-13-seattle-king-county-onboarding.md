@@ -1465,7 +1465,9 @@ It must assert all of:
 - (c) **0** residue in `data_sources` matching `seattle-%` or `kingcounty-%`;
 - (d) no label anywhere contains `--`, or begins with a glued parent name such as `Taxes `;
 - (e) **the units landed** — assert FY2024 Seattle operating is exactly `2390575000` and King County operating exactly `1137458000`, read from the DB. This is the check the tie gate structurally cannot perform;
-- (f) **exactly two rows in the entire `budgets` table cite `web.archive.org`**, both King County FY2018. More means the exception spread; fewer means FY2018 did not load.
+- (f) **exactly two rows FOR KING COUNTY cite `web.archive.org`**, both FY2018. More means the exception spread within this load; fewer means FY2018 did not load.
+
+  ⚠️ **Corrected 2026-08-14.** This check originally read "exactly two rows in the entire `budgets` table", on the spec's claim that no existing row cited an archive. That claim was **false** and the check would have failed. **New Hampshire (state) already has 16 archive-cited rows, FY2017–FY2024**, predating this work entirely — verified in the live database. So the assertion must be scoped to King County's `municipality_id`. Do NOT assert an application-wide count of 2. Optionally also assert that the pre-existing New Hampshire rows are unchanged, which is the more useful invariant: this load added exactly 2 archive-cited rows and touched no others.
 
 - [ ] **Step 4: Run it**
 

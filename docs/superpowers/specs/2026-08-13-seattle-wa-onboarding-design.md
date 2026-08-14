@@ -79,10 +79,19 @@ Fetch with the `id_` suffix (raw bytes); cite the human-facing form without it.
 Verified 275 pages, 670,846 characters of real digital text, statement on p43,
 **both modes tie $0** — revenue `863,031`, expenditure `767,457 + 5 + 2,635 = 770,097`.
 
-This is a **new provenance class for TT**: no existing row cites an archive. The
-decision to accept it was explicit — the figure is audited and ties, and the snapshot
-resolves today, where the issuer's own URL does not. TT has no field for provenance
-class (that is `SRCSTD-01`'s job), so this is recorded here rather than in the schema.
+The decision to accept an archive citation was explicit — the figure is audited and
+ties, and the snapshot resolves today, where the issuer's own URL does not. TT has no
+field for provenance class (that is `SRCSTD-01`'s job), so this is recorded here rather
+than in the schema.
+
+⚠️ **Corrected 2026-08-14.** This section originally called an archive citation "a new
+provenance class for TT: no existing row cites an archive." **That was wrong.** A live
+check during the King County load found that **New Hampshire (state) already carries 16
+archive-cited rows, FY2017–FY2024**, predating this work. So citing `web.archive.org` is
+an *existing* precedent in this database, not a novelty — which makes King County FY2018
+less exceptional than this document originally claimed, not more. Anything downstream
+that assumed a single archive-cited entity (notably the verification task's row-count
+assertion) must be scoped per entity rather than application-wide.
 
 #### The pre-2019 dig — do not repeat it
 
