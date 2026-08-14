@@ -11,13 +11,40 @@
 import { mkdirSync, writeFileSync, existsSync, statSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
-const HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36',
+const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
+
+// The issuer hosts (seattle.gov, cdn.kingcounty.gov) and the Wayback Machine
+// (web.archive.org) need OPPOSITE header treatment, so a single shared
+// constant cannot serve both -- BUT the discriminator is the desktop-Chrome
+// `User-Agent` STRING ITSELF, not the Sec-Fetch-* trio. Isolated against the
+// identical King County FY2018 URL (each combo run standalone, no other
+// variable changed):
+//   - Sec-Fetch-Mode + Sec-Fetch-Dest + Upgrade-Insecure-Requests, paired
+//     with a generic UA ("Mozilla/5.0" or none) -> HTTP 200.
+//   - The full Chrome desktop UA string above, with NO Sec-Fetch-* headers
+//     at all -> HTTP 498.
+//   - The full ISSUER_HEADERS set (UA + Sec-Fetch trio together) -> HTTP 498.
+// i.e. web.archive.org's bot-mitigation blocks on the Chrome-shaped UA
+// string, not on Sec-Fetch-*; seattle.gov / cdn.kingcounty.gov require the
+// Sec-Fetch-* trio (independently verified working) but do not care which UA
+// accompanies it. Do not "simplify" this back into one HEADERS constant, and
+// don't reintroduce a Chrome-style UA on the archive.org path.
+const ISSUER_HEADERS = {
+  'User-Agent': UA,
   'Accept': 'text/html,application/xhtml+xml,application/pdf,*/*',
   'Sec-Fetch-Mode': 'navigate',
   'Sec-Fetch-Dest': 'document',
   'Upgrade-Insecure-Requests': '1',
 };
+const ARCHIVE_HEADERS = {};
+
+// Chosen by the request URL's own hostname (not by which table it came from)
+// so any future archive-hosted URL in either SEATTLE_URLS or
+// KING_COUNTY_URLS automatically gets the right treatment.
+function headersFor(url) {
+  const { hostname } = new URL(url);
+  return hostname.endsWith('archive.org') ? ARCHIVE_HEADERS : ISSUER_HEADERS;
+}
 
 const S = 'https://www.seattle.gov/documents/Departments/CityFinance/FinancialServices/CAFR';
 export const SEATTLE_URLS = {
@@ -50,8 +77,12 @@ export const KING_COUNTY_URLS = {
 };
 
 async function fetchOne(url, dest) {
+  // NOTE: this short-circuit does NOT re-run the %PDF magic-number check or
+  // the power-of-two truncation check below on an already-present file — a
+  // file placed at `dest` by any means other than this script's own gated
+  // write path (e.g. copied in manually) is trusted silently.
   if (existsSync(dest) && statSync(dest).size > 100_000) return 'cached';
-  const res = await fetch(url, { headers: HEADERS, redirect: 'follow' });
+  const res = await fetch(url, { headers: headersFor(url), redirect: 'follow' });
   if (!res.ok) return `HTTP ${res.status}`;
   const buf = Buffer.from(await res.arrayBuffer());
   // Both hosts answer a miss with a ~1,245-byte HTML page, not a 404 body only,
