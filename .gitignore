@@ -157,3 +157,4 @@ _wi-recon/
 # Downloaded production bundles used for deploy verification — never source
 app*.html
 app*.js
+.golden-baseline/
