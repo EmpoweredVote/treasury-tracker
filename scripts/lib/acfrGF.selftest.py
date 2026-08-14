@@ -7,7 +7,8 @@ they run with no PDF, no pdftotext and no network. Run: py -3 scripts/lib/acfrGF
 import pathlib, sys, unittest
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from lib.acfrGF import (CityConfig, column_value, classify, build_revenue,
-                         build_operating, anchors, slots, dash_zero_label)
+                         build_operating, anchors, slots, dash_zero_label,
+                         find_statement_page, parse_fy, _is_section_header)
 
 # Transcribed from King County FY2020-era GF statement (values thousands-scale
 # in the real document; kept as bare ints here since these tests exercise
@@ -265,6 +266,50 @@ class TestProseHyphenNotAColumn(unittest.TestCase):
         self.assertEqual(
             column_value('Low-Income Housing                    61,498    3,000', anchors(KC_TOTAL_REV), cfg),
             61498)
+
+
+# Seattle FY2009 p68 -- "Page 1 of 2" is printed BETWEEN "AND CHANGES" and
+# "IN FUND BALANCES", so the title regex cannot span the wrap.
+SEA2009_PAGE = '\n'.join([
+    'The City                 of  Seattle', '',
+    'B-4                                STATEMENT OF REVENUES, EXPENDITURES, AND                 CHANGES', '',
+    'Page 1 of 2                                           IN FUND BALANCES', '',
+    '                                                      GOVERNMENTAL FUNDS', '',
+    '                                          For the Year Ended December 31, 2009', '',
+    '                                                            General         Transportation', '',
+    'REVENUES', 'Taxes                          756,909    63,321',
+    'Total Revenues                 942,408    167,604',
+    'EXPENDITURES', 'General Government             100,000    5,000',
+    'Total Expenditures             737,604    277,816',
+])
+# Seattle FY2024 p56 -- the REVENUES line also carries the fund column headers.
+SEA2024_REV_HEADER = '     REVENUES                                                 General Fund             Transportation  Governmental      2024'
+
+class TestPageAndHeaders(unittest.TestCase):
+    def test_title_regex_alone_cannot_find_the_2009_page(self):
+        self.assertEqual(find_statement_page([SEA2009_PAGE], None)[0], None)
+
+    def test_schedule_id_anchor_finds_the_2009_page(self):
+        self.assertEqual(find_statement_page([SEA2009_PAGE], r'^\s*B-4\b')[0], 0)
+
+    def test_exact_header_mode_rejects_a_header_carrying_column_titles(self):
+        self.assertFalse(_is_section_header(SEA2024_REV_HEADER.strip(), 'revenues', 'exact'))
+
+    def test_prefix_header_mode_accepts_it(self):
+        self.assertTrue(_is_section_header(SEA2024_REV_HEADER.strip(), 'revenues', 'prefix'))
+
+    def test_prefix_mode_still_rejects_the_wrapped_statement_title(self):
+        # Trap 2: a prefix match on the wrapped title would open the expenditure
+        # section at the TITLE and swallow the entire revenue block.
+        self.assertFalse(_is_section_header(
+            'EXPENDITURES, AND CHANGES IN FUND BALANCES', 'expenditures', 'prefix'))
+
+    def test_december_fiscal_year_end_is_read_from_the_document(self):
+        self.assertEqual(parse_fy([SEA2009_PAGE], 'no-year-in-this-path.pdf', ('December', 31)), 2009)
+
+    def test_june_remains_the_default(self):
+        page = 'For the Fiscal Year Ended June 30, 2025'
+        self.assertEqual(parse_fy([page], 'x.pdf', ('June', 30)), 2025)
 
 
 if __name__ == '__main__':

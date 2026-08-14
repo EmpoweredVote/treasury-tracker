@@ -176,11 +176,40 @@ class CityConfig:
                  closes the group after its FIRST child; omitting the close
                  entirely swallows every later source into the group. Both
                  still tie $0 -- only the shape is wrong.
+    statement_anchor
+                 optional regex identifying the statement page by its SCHEDULE
+                 ID rather than its title (Seattle tags every vintage `B-4`).
+                 Used in ADDITION to the title match, not instead of it.
+
+                 Needed because Seattle's FY2009-era statement prints
+                 "Page 1 of 2" between "...AND CHANGES" and "IN FUND BALANCES",
+                 so no title regex can span the wrap. Page 2 of 2 carries the
+                 same `B-4`, but `find_statement_page` returns the EARLIEST
+                 qualifying page and the General Fund column plus both `Total`
+                 rows are wholly on page 1, so page 1 always wins.
+    section_header_mode
+                 'exact' (default) requires the section header to be the WHOLE
+                 line. 'prefix' allows trailing text, which Seattle's 2024-era
+                 statements need because the `REVENUES` line also carries the
+                 fund column headers.
+
+                 'prefix' is safe ONLY where no line begins with the section
+                 word for another reason. Verify against the wrapped statement
+                 title before enabling it -- a prefix match there is trap 2 and
+                 inflates the operating total roughly 3x.
+    fy_end       (month_name, day) of the fiscal-year end, used to read the year
+                 off the statement. Defaults to ('June', 30). Seattle and King
+                 County close on December 31.
+
+                 Without this the year falls back to a regex over the FILE PATH,
+                 which silently mislabels a row whenever a filename is wrong.
     """
 
     def __init__(self, city, parents, root_leaves=(), source_rounding=None,
                  label_fixes=None, units=1, column_strategy='positional',
-                 revenue_parents=(), revenue_group_members=()):
+                 revenue_parents=(), revenue_group_members=(),
+                 statement_anchor=None, section_header_mode='exact',
+                 fy_end=('June', 30)):
         if not isinstance(units, int) or isinstance(units, bool):
             raise TypeError(
                 'CityConfig.units must be an int, got %r (%s). A float would '
@@ -188,6 +217,8 @@ class CityConfig:
                 'the emitted JSON shape.' % (units, type(units).__name__))
         if column_strategy not in ('positional', 'ordinal'):
             raise ValueError('column_strategy must be "positional" or "ordinal", got %r' % column_strategy)
+        if section_header_mode not in ('exact', 'prefix'):
+            raise ValueError('section_header_mode must be "exact" or "prefix", got %r' % section_header_mode)
         self.city = city
         self.parents = tuple(p.lower() for p in parents)
         self.root_leaves = tuple(r.lower() for r in root_leaves)
@@ -197,6 +228,9 @@ class CityConfig:
         self.column_strategy = column_strategy
         self.revenue_parents = tuple(p.lower() for p in revenue_parents)
         self.revenue_group_members = tuple(m.lower() for m in revenue_group_members)
+        self.statement_anchor = statement_anchor
+        self.section_header_mode = section_header_mode
+        self.fy_end = fy_end
 
 
 # ── Money parsing ─────────────────────────────────────────────────────────────
@@ -314,7 +348,13 @@ _TITLE = re.compile(
 # cities, biennium-basis) and cannot be split per fiscal year.
 _EXCLUDE = ('combining', 'reconciliation', 'budgetary', 'budget and actual',
             'proprietary', 'fiduciary', 'net position')
-_FY = re.compile(r'(?:for\s+the\s+)?(?:fiscal\s+)?year\s+ended\s+June\s+30,\s*(\d{4})', re.I)
+
+def _fy_re(fy_end):
+    """Regex matching 'for the [fiscal] year ended <month> <day>, <year>' for
+    the given (month_name, day) fiscal-year end."""
+    month, day = fy_end
+    return re.compile(
+        r'(?:for\s+the\s+)?(?:fiscal\s+)?year\s+ended\s+%s\s+%d,\s*(\d{4})' % (month, day), re.I)
 
 def table_pages(pdf_path):
     out = subprocess.run(
@@ -326,14 +366,21 @@ def table_pages(pdf_path):
         sys.exit(2)
     return out.stdout.split('\f')
 
-def find_statement_page(pages):
+def find_statement_page(pages, statement_anchor=None):
     """(page_index, page_text) for the primary governmental-funds statement —
     the earliest qualifying page, since basic statements precede supplementary
-    schedules. (None, None) if not found."""
+    schedules. (None, None) if not found.
+
+    `statement_anchor`, when given, is an additional regex (matched against a
+    SCHEDULE ID such as Seattle's `B-4`) that can identify the page even where
+    the title itself is wrapped across an interrupting "Page X of Y" line and
+    so cannot be matched by `_TITLE`. It is used IN ADDITION to the title
+    match, never instead of it."""
+    anchor = re.compile(statement_anchor, re.I | re.M) if statement_anchor else None
     cands = []
     for i, pg in enumerate(pages):
         low = pg.lower()
-        if not _TITLE.search(pg):
+        if not (_TITLE.search(pg) or (anchor and anchor.search(pg))):
             continue
         if 'total revenues' not in low or 'total expenditures' not in low:
             continue
@@ -347,9 +394,10 @@ def find_statement_page(pages):
     cands.sort()
     return cands[0]
 
-def parse_fy(pages, pdf_path):
+def parse_fy(pages, pdf_path, fy_end=('June', 30)):
+    pat = _fy_re(fy_end)
     for pg in pages:
-        m = _FY.search(pg)
+        m = pat.search(pg)
         if m:
             return int(m.group(1))
     m = re.search(r'(20\d{2})', pdf_path)
@@ -434,18 +482,30 @@ _SEC_EXPENDITURES = 'expenditures'
 _END_REVENUES     = r'^Total\s+revenues\b'
 _END_EXPENDITURES = r'^Total\s+expenditures\b'
 
-def _is_section_header(line, want):
-    """True when `line` is exactly the section header `want`, ignoring internal
-    letter-spacing, a trailing colon and a stray currency symbol."""
+def _is_section_header(line, want, mode='exact'):
+    """True when `line` is the section header `want`, ignoring internal
+    letter-spacing, a trailing colon and a stray currency symbol.
+
+    'exact' (the default) requires the collapsed line to equal `want` exactly.
+    'prefix' allows trailing text after `want` -- needed where the header line
+    also carries fund column headers (Seattle FY2024-era 'REVENUES  General
+    Fund  Transportation ...'). 'prefix' is guarded against trap 2: a wrapped
+    statement title collapses to "...changesinfundbalances" and must NEVER be
+    accepted as an EXPENDITURES header, or a prefix match there would open the
+    expenditure section at the title and swallow the entire revenue block."""
     s = re.sub(r'\s+', '', line).strip().rstrip('$').rstrip(':').lower()
+    if mode == 'prefix':
+        if 'changesinfund' in s:
+            return False
+        return s.startswith(want)
     return s == want
 
-def _section(lines, start_word, end_pat):
+def _section(lines, start_word, end_pat, mode='exact'):
     """Yield raw lines strictly between the start and end header lines."""
     on = False
     for l in lines:
         st = l.strip()
-        if not on and _is_section_header(st, start_word):
+        if not on and _is_section_header(st, start_word, mode):
             on = True
             continue
         if on and re.match(end_pat, st, re.I):
@@ -475,7 +535,7 @@ def build_revenue(lines, col_anchors, cfg):
     # the (visually empty) group instead of closing it.
     parent_seen = False
     pending = ''
-    for l in _section(lines, _SEC_REVENUES, _END_REVENUES):
+    for l in _section(lines, _SEC_REVENUES, _END_REVENUES, cfg.section_header_mode):
         kind, lbl, val = classify(l, col_anchors, cfg)
         low = (lbl or '').lower()
 
@@ -533,7 +593,7 @@ def build_operating(lines, col_anchors, cfg):
     root_children, zero_rows = [], []
     parent = None
     pending = ''
-    for l in _section(lines, _SEC_EXPENDITURES, _END_EXPENDITURES):
+    for l in _section(lines, _SEC_EXPENDITURES, _END_EXPENDITURES, cfg.section_header_mode):
         if not l.strip():
             continue
         kind, lbl, val = classify(l, col_anchors, cfg)
@@ -581,11 +641,11 @@ def build_operating(lines, col_anchors, cfg):
 # ── Orchestration ────────────────────────────────────────────────────────────
 def extract(pdf_path, mode, cfg):
     pages = table_pages(pdf_path)
-    pi, pg = find_statement_page(pages)
+    pi, pg = find_statement_page(pages, cfg.statement_anchor)
     if pg is None:
         print('  ERROR: primary GF statement not found in %s' % pdf_path, file=sys.stderr)
         sys.exit(3)
-    fy = parse_fy(pages, pdf_path)
+    fy = parse_fy(pages, pdf_path, cfg.fy_end)
     lines = pg.split('\n')
     rev_line = next((l for l in lines if l.strip().lower().startswith('total revenues')), None)
     exp_line = next((l for l in lines if l.strip().lower().startswith('total expenditures')), None)
