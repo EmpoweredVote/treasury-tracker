@@ -8,6 +8,47 @@ import pathlib, sys, unittest
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from lib.acfrGF import CityConfig, column_value, classify, build_revenue, anchors, slots
 
+# Transcribed from King County FY2020-era GF statement (values thousands-scale
+# in the real document; kept as bare ints here since these tests exercise
+# revenue_parents/revenue_group_members, not units).
+KC_REV_LINES = [
+    'REVENUES',
+    'Taxes:',
+    'Property taxes                                   417,446    3,871    -',
+    'Retail sales and use taxes                       196,647    -        4,569',
+    'Licenses and permits                             6,915      -        -',
+    'Total revenues                                   621,008    3,871    4,569',
+]
+KC_ANCHOR = 'Total revenues                                   621,008    3,871    4,569'
+
+class TestRevenueParents(unittest.TestCase):
+    def _cfg(self, parents=()):
+        # revenue_group_members is what CLOSES the group: 'Retail sales and use
+        # taxes' ends in 'taxes' so it stays inside, 'Licenses and permits' does
+        # not so it closes the group and lands at root. Passing parents without
+        # group members would close the group after its FIRST child.
+        return CityConfig(city='X', parents=('current',), column_strategy='ordinal',
+                          revenue_parents=parents,
+                          revenue_group_members=('taxes',) if parents else ())
+
+    def test_without_config_the_parent_label_is_glued_onto_its_child(self):
+        tree, _, _ = build_revenue(KC_REV_LINES, anchors(KC_ANCHOR), self._cfg())
+        self.assertEqual(tree['c'][0]['n'], 'Taxes Property taxes')
+
+    def test_with_config_taxes_becomes_a_parent_node(self):
+        tree, total, _ = build_revenue(KC_REV_LINES, anchors(KC_ANCHOR), self._cfg(('taxes',)))
+        names = [c['n'] for c in tree['c']]
+        self.assertEqual(names, ['Taxes', 'Licenses and permits'])
+        taxes = tree['c'][0]
+        self.assertEqual([c['n'] for c in taxes['c']], ['Property taxes', 'Retail sales and use taxes'])
+        self.assertEqual(taxes['a'], 417446 + 196647)
+        self.assertEqual(total, 417446 + 196647 + 6915)
+
+    def test_parent_total_still_equals_the_flat_sum(self):
+        flat, ftotal, _ = build_revenue(KC_REV_LINES, anchors(KC_ANCHOR), self._cfg())
+        nested, ntotal, _ = build_revenue(KC_REV_LINES, anchors(KC_ANCHOR), self._cfg(('taxes',)))
+        self.assertEqual(ftotal, ntotal)
+
 # Transcribed from City of Seattle FY2024 ACFR p56 (amounts in thousands).
 SEA_TOTAL_REV = '     Total Revenues                                                         2,272,762     392,312         946,644        3,611,718'
 SEA_PROPERTY  = '     Property Taxes                                        $                379,415    $  110,500      $  395,000     $  884,915'

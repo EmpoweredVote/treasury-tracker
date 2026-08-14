@@ -152,10 +152,35 @@ class CityConfig:
                  A wrong `units` ships a silently 1000x-wrong row. It is checked
                  instead by acfrGF.selftest.py and by the loader's per-capita
                  plausibility guard.
+    revenue_parents
+                 lowercase labels that introduce a group in the REVENUE section
+                 (e.g. ('taxes',)). Separate from `parents`, which governs the
+                 expenditure section only -- an entity can group one side and
+                 not the other, and Seattle does exactly that: `Taxes` is a flat
+                 leaf in its 2015-era statements and a parent with five children
+                 from 2024.
+
+                 Leaving this empty where the source DOES group is the quiet
+                 failure: the parent row is read as a wrapped label and prefixed
+                 onto its first child ("Taxes Property taxes"). Amounts are
+                 unaffected, so tie_delta stays 0 and only the labels are wrong.
+    revenue_group_members
+                 lowercase label SUFFIXES that remain inside an open revenue
+                 group. Both entities name every member of the tax group so it
+                 ends in "taxes" ("Property taxes", "Retail sales and use
+                 taxes"), while the first ungrouped source does not
+                 ("Licenses and permits") -- so ('taxes',) closes the group in
+                 exactly the right place.
+
+                 Required whenever revenue_parents is set. Leaving it empty
+                 closes the group after its FIRST child; omitting the close
+                 entirely swallows every later source into the group. Both
+                 still tie $0 -- only the shape is wrong.
     """
 
     def __init__(self, city, parents, root_leaves=(), source_rounding=None,
-                 label_fixes=None, units=1, column_strategy='positional'):
+                 label_fixes=None, units=1, column_strategy='positional',
+                 revenue_parents=(), revenue_group_members=()):
         if not isinstance(units, int) or isinstance(units, bool):
             raise TypeError(
                 'CityConfig.units must be an int, got %r (%s). A float would '
@@ -170,6 +195,8 @@ class CityConfig:
         self.label_fixes = dict(label_fixes or {})
         self.units = units
         self.column_strategy = column_strategy
+        self.revenue_parents = tuple(p.lower() for p in revenue_parents)
+        self.revenue_group_members = tuple(m.lower() for m in revenue_group_members)
 
 
 # ── Money parsing ─────────────────────────────────────────────────────────────
@@ -422,16 +449,26 @@ def _fix_label(label, cfg):
 
 
 def build_revenue(lines, col_anchors, cfg):
-    """Flat GF revenue-by-source tree. $0 sources are recorded and dropped."""
-    children, zero_rows = [], []
+    """GF revenue-by-source tree. Flat unless cfg.revenue_parents groups it.
+    $0 sources are recorded in zero_rows and dropped."""
+    root_children, zero_rows = [], []
+    parent = None
     pending = ''
     for l in _section(lines, _SEC_REVENUES, _END_REVENUES):
         kind, lbl, val = classify(l, col_anchors, cfg)
+        low = (lbl or '').lower()
+
+        if kind == 'wrapped' and low in cfg.revenue_parents:
+            parent = {'n': lbl, 'a': 0, 'c': []}
+            root_children.append(parent)
+            pending = ''
+            continue
         if kind == 'skip':
             continue
         if kind == 'wrapped':
             pending = norm_label('%s %s' % (pending, lbl))
             continue
+
         full = _fix_label(norm_label('%s %s' % (pending, lbl)) if pending else lbl, cfg)
         pending = ''
         if not full:
@@ -439,9 +476,25 @@ def build_revenue(lines, col_anchors, cfg):
         if val == 0:
             zero_rows.append(full)
             continue
-        children.append({'n': full, 'a': val})
-    total = sum(c['a'] for c in children)
-    return {'n': 'General Fund Revenue by Source', 'a': total, 'c': children}, total, zero_rows
+
+        # Close an open revenue group once a row is no longer one of its members.
+        if parent is not None and parent['c'] and not any(
+                low.endswith(sfx) for sfx in cfg.revenue_group_members):
+            parent = None
+
+        node = {'n': full, 'a': val}
+        if parent is not None:
+            parent['c'].append(node)
+        else:
+            root_children.append(node)
+
+    for n in root_children:
+        if 'c' in n:
+            n['a'] = sum(ch['a'] for ch in n['c'])
+    root_children = [n for n in root_children if n.get('c') or 'c' not in n]
+
+    total = sum(n['a'] for n in root_children)
+    return {'n': 'General Fund Revenue by Source', 'a': total, 'c': root_children}, total, zero_rows
 
 
 def build_operating(lines, col_anchors, cfg):
