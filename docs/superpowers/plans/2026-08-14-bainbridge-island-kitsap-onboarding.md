@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Load 84 sourced General Fund rows (Bainbridge Island FY2004–FY2025 less FY2006, Kitsap County FY2004–FY2024, `operating` + `revenue`) into Treasury Tracker from WA SAO bound financial statements, with every row tying at $0 and citing an audit-attested source.
+**Goal:** Load 78 sourced General Fund rows (Bainbridge Island FY2004–FY2025 less FY2006 = 21 yrs; Kitsap County FY2004–FY2024 less FY2017–FY2019 = 18 yrs; `operating` + `revenue`) into Treasury Tracker from WA SAO bound financial statements, with every row tying at $0 and citing an audit-attested source.
 
 **Architecture:** A new MCAG-generic SAO client (`scripts/lib/waSao.mjs`) fetches PDFs from `portal.sao.wa.gov` for both entities. Two thin `CityConfig` wrappers over the existing `scripts/lib/acfrGF.py` extract the GF column. A new shared loader core (`scripts/lib/waSaoLoad.mjs`) drives two thin per-entity loaders. Three independent harnesses verify the result. **v2.21's shipped files (`processSeattle.js`, `processKingCounty.js`, `extractSeattle.py`, `extractKingCounty.py`, `fetchSeattleKingCounty.mjs`) are NOT modified** — the new shared loader is a new file, so there is no regression risk to Seattle or King County.
 
@@ -15,7 +15,7 @@
 - **Fund scope: General Fund only.** Both datasets, both entities. No other fund.
 - **Datasets: `operating` and `revenue`.** Exactly these two `dataset_type` values.
 - **Bainbridge FY window: 2004, 2005, 2007, 2008, 2009, 2010–2025.** FY2006 is excluded (image-only scan). FY2009 is conditional on Task 6.
-- **Kitsap FY window: 2004–2024 inclusive.** No FY2025 (not yet audited).
+- **Kitsap FY window: 2004–2024 inclusive, LESS FY2017, FY2018 and FY2019.** Those three carry labels but no digits in the PDF text layer (24 / 114 / 193 extractable comma-grouped numbers versus ~2,556 and ~2,828 in the neighbouring years) — nothing to decode, only OCR could recover them, and OCR is out of scope by standing ruling. No FY2025 (not yet audited). **18 years, 36 rows.**
 - **Tie gate is $0.** Never widen a tolerance. A confirmed printed-total-vs-components disagreement is registered in `CityConfig.source_rounding` as an EXACT delta for that `(fiscal_year, mode)`, or it is a bug.
 - **Write via `treasury_sync_budget_tree` only.** Never `treasury_sync_city_budget` — it overwrites existing `(muni, fy, dataset)` rows and keeps a stale `data_source` label.
 - **`data_sources` rows are ephemeral** — created per dataset_type, deleted in a `finally` block. Never left behind.
@@ -1068,7 +1068,7 @@ If the visual check fails, drop FY2009 regardless of the tie.
 - [ ] **Step 5: Record the outcome**
 
 Update `docs/superpowers/specs/2026-08-14-bainbridge-island-kitsap-onboarding-design.md`:
-- If recovered: change the row count from "84 rows, or 82" to "84 rows" and note the decode is visually confirmed.
+- If recovered: change the row count from "78 rows, or 76" to "78 rows" and note the decode is visually confirmed.
 - If dropped: change to "82 rows", and add FY2009 to the "Known limitations" section with its reason.
 
 Also remove FY2009 from `BAINBRIDGE_ARNS` in `scripts/fetchBainbridgeKitsap.mjs` if dropped.
@@ -1174,7 +1174,7 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 
 **Interfaces:**
 - Consumes: `loadEntity` from `scripts/lib/waSaoLoad.mjs`; `BAINBRIDGE_ARNS` / `KITSAP_ARNS` from `scripts/fetchBainbridgeKitsap.mjs`; `reportFileUrl` from `scripts/lib/waSao.mjs`.
-- Produces: 84 (or 82) rows in `treasury.budgets`.
+- Produces: 78 (or 76 if FY2009 does not recover) rows in `treasury.budgets`.
 
 - [ ] **Step 1: Write the two thin loaders**
 
@@ -1283,7 +1283,7 @@ Expected: four groups of 21 (or Bainbridge 20 if FY2009 dropped); the `data_sour
 git add scripts/processBainbridge.js scripts/processKitsap.js scripts/extractBainbridge.py scripts/extractKitsap.py
 git commit -m "feat: load Bainbridge Island + Kitsap County GF rows
 
-84 rows across FY2004-FY2025 / FY2004-FY2024. Every residue adjudicated
+78 rows across FY2004-FY2025 / FY2004-FY2024. Every residue adjudicated
 against the rendered statement page and registered as an exact
 source_rounding delta or fixed as an extraction bug -- no widened
 tolerance anywhere.
@@ -1309,6 +1309,15 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 Run: `cat scripts/verify-seattle-rederive.mjs`
 
 - [ ] **Step 2: Write the harness**
+
+**ADDED 2026-08-14 after Task 5 — page identity is now a mandatory check, not an implied one.** Task 5 established that **the $0 tie cannot detect wrong-page selection.** With Kitsap's `statement_anchor` disabled, 10 of its 13 singular-titled years silently selected a *different fund's* schedule and **9 of them tied at $0** — FY2005 landed on County Roads Budget-and-Actual ($29,279,443), FY2013 on the REET schedule ($354,295), FY2010 both mis-paged and mis-parsed its fiscal year. Worse, the library's `_EXCLUDE` list does *not* actually reject Budget-and-Actual pages: its literal `'budget and actual'` fails to match because `pdftotext` inserts extra whitespace, so those pages are live candidates in FY2005–2014 and FY2021. The only thing protecting every year is that the true statement happens to sort earliest.
+
+So this harness must assert page identity independently, for every row:
+- The selected page's own caption identifies it as the **governmental funds** statement of revenues/expenditures — not Budget-and-Actual, not a single-fund schedule.
+- The column read is the **General Fund** column.
+- The per-capita result falls in a plausible band for the entity. Kitsap's real years run ≈$315–$443/resident; every silent wrong-page hit above lands far outside that.
+
+A row that ties at $0 but fails page identity is a **failure**, and it is the exact defect class this harness exists to catch.
 
 It must, for every loaded `(entity, fy, dataset_type)` row:
 
@@ -1378,6 +1387,7 @@ Read `scripts/verify-seattle-audit.mjs` for the established shape.
 - **(c) Provenance** — every row has a non-null `source_url` that matches `reportFileUrl(ARN)` for that year, a `source_date`, and a `data_source` label. Record and re-verify each PDF's sha256.
 - **(d) Units** — per-capita for every row is inside `[100, 10000]`. Print the actual value per entity so a drift is visible, not just a pass.
 - **(e) Label integrity** — no leaf label contains another known label as a prefix (the dash-zero grafting signature), and no label is empty or purely numeric.
+- **(h) Page identity — ADDED after Task 5.** Every row's stored `statement_page` must resolve to a governmental-funds statement page whose General Fund column is what was read. See the Task 9 note for why: 9 wrong-page selections tied at $0 during Task 5, and the library's Budget-and-Actual exclusion silently fails to match. This check must not be satisfied by re-running the extractor and comparing to itself.
 - **(f) Hierarchy** — `Bainbridge Island.county_id` → `Kitsap County`; exactly two WA rows exist with these names; neither has a duplicate of a different `entity_type`.
 - **(g) Enrichment scoping** — every enrichment row written by this milestone has a non-NULL `municipality_id`.
 

@@ -28,7 +28,7 @@ onboarding, not an edit.
 | Source | **WA SAO bound financial statements** (GAAP), free / no auth, one host for both entities | See "Source selection". |
 | Early-year effort | Clean years, plus a **bounded** FY2009 font-map recovery | User elected "recover what's cheap": no OCR of the FY2006 scan, no pre-GASB-34 work. |
 
-Expected volume: Bainbridge 21 × 2 = 42 rows, Kitsap 21 × 2 = 42 rows, **84 rows**
+Expected volume: Bainbridge 21 × 2 = 42 rows, Kitsap **18** × 2 = **36** rows, **78 rows**
 — or 82 if the FY2009 recovery does not tie. Final window is whatever the tie gate
 accepts; excluded years are documented, never coerced.
 
@@ -47,7 +47,7 @@ based on King County, whose modern SAO "Annual Comprehensive Financial Report" i
 
 This is the more useful and more general fact, and it is what makes a single-source
 pipeline possible. Every row in this milestone will cite a document that is literally
-the State Auditor's report, which is audit-attested provenance on all 84 rows.
+the State Auditor's report, which is audit-attested provenance on all 78 rows.
 
 **Rejected: the city's own DocumentCenter** (`bainbridgewa.gov`). It links only
 FY2023–FY2024, and the FY2021 ACFR URL surfaced by search returns HTTP 404 with an
@@ -325,7 +325,7 @@ phantom city row is created (the Utah lesson).
 
 Three re-runnable harnesses, each exiting 0, following the v2.21 pattern.
 
-**`scripts/verify-bainbridge-rederive.mjs`** — blind re-derivation of all 84 rows to
+**`scripts/verify-bainbridge-rederive.mjs`** — blind re-derivation of all 78 rows to
 $0, **importing none of the extractor code**. Leaf *and* subtotal, so a compensating
 pair of errors cannot pass.
 
@@ -371,6 +371,14 @@ reader to discover.
 
 **FY2006 Bainbridge is absent** because the only available document is a scan. Stated,
 not silently skipped.
+
+**Kitsap FY2017, FY2018 and FY2019 are absent.** Their statement pages carry
+labels but **no digits at all** in the PDF text layer — 24 / 114 / 193 extractable
+comma-grouped numbers per document, against ~2,556 in FY2016 and ~2,828 in FY2020.
+The labels are recoverable (a +29 letter shift: `7RWDOUHYHQXHV` is `Total revenues`)
+but the amounts simply are not present, so there is nothing to decode; only OCR could
+recover them, and OCR is out of scope by standing ruling — the same call already made
+for the Bainbridge FY2006 scan. Stated, not silently skipped.
 
 **Kitsap stops at FY2024** because FY2025 is not yet audited. It should be added when
 SAO releases it.
