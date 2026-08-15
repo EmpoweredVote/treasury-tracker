@@ -1302,7 +1302,9 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 - Consumes: the loaded rows; the source PDFs; the kitsap.gov independent copies.
 - Produces: exit 0 when every loaded row re-derives to $0 from an independently written reader.
 
-**The hard constraint: this file must NOT import `scripts/lib/acfrGF.py`, `extractBainbridge.py`, `extractKitsap.py`, or `scripts/lib/waSaoLoad.mjs`.** It reads the PDFs with its own logic. A harness that shares the extractor's code proves only that the extractor is self-consistent. Read `scripts/verify-seattle-rederive.mjs` for the established shape.
+**Coverage is 76 rows** — Bainbridge Island 20 years (FY2004, 2005, 2007, 2008, 2010–2025) × 2, Kitsap County 18 years (FY2004–2016, 2020–2024) × 2. **17 of those rows carry a registered `source_rounding` acceptance** rather than a raw $0 tie; the harness must re-derive them against their COMPONENT SUM (which is what was loaded), not against the statement's printed total, and must assert the registered delta matches exactly.
+
+**The hard constraint: this file must NOT import `scripts/lib/acfrGF.py`, `extractBainbridge.py`, `extractBainbridgeEarly.py`, `extractKitsap.py`, or `scripts/lib/waSaoLoad.mjs`.** It reads the PDFs with its own logic. A harness that shares the extractor's code proves only that the extractor is self-consistent. Read `scripts/verify-seattle-rederive.mjs` for the established shape.
 
 - [ ] **Step 1: Read the reference harness**
 
@@ -1329,7 +1331,9 @@ It must, for every loaded `(entity, fy, dataset_type)` row:
 
 - [ ] **Step 3: Add the independent-document cross-check**
 
-For Kitsap FY2018–FY2024, additionally download the **kitsap.gov** copy and re-derive from it:
+For Kitsap **FY2020–FY2024**, additionally download the **kitsap.gov** copy and re-derive from it.
+
+**The window is FY2020–FY2024, not FY2018–FY2024.** Kitsap FY2017, FY2018 and FY2019 were dropped in Task 5 — their statement pages carry labels but no digits in the text layer — so there are no loaded rows for those years to cross-check, and fetching them would only re-confirm they are unreadable. FY2019 and earlier on kitsap.gov are also sectioned rather than single PDFs, which is a different fetch shape again.
 
 ```
 https://www.kitsap.gov/auditor/Documents/financial/2024_Kitsap_County_Annual%20Comprehensive_Financial_Report.pdf
@@ -1337,8 +1341,6 @@ https://www.kitsap.gov/auditor/Documents/financial/2023_Kitsap_County_Annual_Com
 https://www.kitsap.gov/auditor/Documents/financial/2022_Kitsap_County_ACFR.pdf
 https://www.kitsap.gov/auditor/Documents/financial/2021_Kitsap_County_ACFR_with_Bookmarks.pdf
 https://www.kitsap.gov/auditor/Documents/financial/2020_Kitsap_County_ACFR_with_Bookmarks.pdf
-https://www.kitsap.gov/auditor/Documents/financial/2019_Kitsap_County_CAFR_with_Bookmarks.pdf
-https://www.kitsap.gov/auditor/Documents/financial/2018_Kitsap_County_CAFR_with_Bookmarks.pdf
 ```
 
 These are physically different documents on a different host containing the same statements — a genuinely independent oracle, which v2.21 did not have. **A disagreement between the SAO copy and the kitsap.gov copy is a finding, not a rounding.** Report it and stop; do not pick whichever agrees with the loaded row.
@@ -1360,7 +1362,7 @@ Imports none of the extractor code. Reads the GF column under both
 centre-in-band and ordinal strategies and requires agreement, which is
 the issuer-dependent column-alignment trap found in v2.21.
 
-Kitsap FY2018-FY2024 additionally re-derive from the kitsap.gov copies
+Kitsap FY2020-FY2024 additionally re-derive from the kitsap.gov copies
 -- physically different documents on a different host. A disagreement
 between the two is reported as a finding, not reconciled away.
 
@@ -1376,14 +1378,15 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 
 **Interfaces:**
 - Consumes: the loaded rows; `classifyReport` and `reportFileUrl` from `scripts/lib/waSao.mjs`; the ARN manifests.
-- Produces: exit 0 when checks (a)–(g) all pass.
+- Produces: exit 0 when checks (a)–(h) all pass. **There are EIGHT checks** — (h) page identity was added after Task 5; it is listed below out of alphabetical order, do not miss it.
 
 Read `scripts/verify-seattle-audit.mjs` for the established shape.
 
-- [ ] **Step 1: Write the seven checks**
+- [ ] **Step 1: Write the eight checks**
 
 - **(a) Year coverage** — the set of loaded fiscal years equals the manifest exactly, per entity per dataset. A missing year fails; it does not warn.
-- **(b) Tie integrity** — every row's stored `total` equals the sum of its line items. Any registered `source_rounding` entry is listed by name with its exact delta, so an exception is visible in the output rather than implied by its absence.
+  Expected exactly: **Bainbridge Island** FY2004, 2005, 2007, 2008, 2010–2025 (20 years — FY2006 and FY2009 excluded). **Kitsap County** FY2004–2016, FY2020–2024 (18 years — FY2017–FY2019 excluded, FY2025 unaudited). **76 rows total.** The check must assert the exclusions too: a row appearing for an excluded year is as much a failure as a missing one.
+- **(b) Tie integrity** — every row's stored `total` equals the sum of its line items. **17 rows carry a registered `source_rounding` acceptance**; each must be listed by name with its exact delta, so an exception is visible in the output rather than implied by its absence. The loaded total is always the COMPONENT SUM, never the statement's printed total, so every row must still tie against its own line items regardless.
 - **(c) Provenance** — every row has a non-null `source_url` that matches `reportFileUrl(ARN)` for that year, a `source_date`, and a `data_source` label. Record and re-verify each PDF's sha256.
 - **(d) Units** — per-capita for every row is inside `[100, 10000]`. Print the actual value per entity so a drift is visible, not just a pass.
 - **(e) Label integrity** — no leaf label contains another known label as a prefix (the dash-zero grafting signature), and no label is empty or purely numeric.
@@ -1398,7 +1401,7 @@ Any check that counts sources, archives or provenance classes must filter on `mu
 - [ ] **Step 3: Run it**
 
 Run: `node scripts/verify-bainbridge-audit.mjs`
-Expected: exit 0, seven checks reported PASS with their evidence.
+Expected: exit 0, eight checks reported PASS with their evidence.
 
 - [ ] **Step 4: Commit**
 
