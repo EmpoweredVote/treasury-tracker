@@ -1,19 +1,33 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.20
-milestone_name: Madison, WI + Dane County Onboarding
-status: v2.20 COMPLETE — all 3 phases executed, MAD-01..09 signed
-stopped_at: Phase 137 closed; Madison WI + Dane County live and verified
-last_updated: "2026-07-28T00:00:00.000Z"
-last_activity: 2026-07-28
-last_activity_desc: Phase 137 closed — MAD-08 (20/20 rows Δ$0) + MAD-09 (Chris UAT) signed; source-chip "fetched"→"as of" fix shipped
+milestone: v2.22
+milestone_name: Bainbridge Island, WA + Kitsap County Onboarding
+status: v2.22 SHIPPED — 12/12 tasks, Chris UAT passed, merged + pushed to main
+stopped_at: Milestone closed; 72 rows live in production. No active milestone.
+last_updated: "2026-08-15T00:00:00.000Z"
+last_activity: 2026-08-15
+last_activity_desc: "v2.22 merged to main (a5ac920) + pushed (496e28e); 72 WA SAO rows live, 3 harnesses green, Chris UAT passed"
 progress:
-  total_phases: 3
-  completed_phases: 3
+  total_phases: 12
+  completed_phases: 12
   total_plans: 0
   completed_plans: 0
   percent: 100
 ---
+
+> ⚠ **THE `progress.total_phases: 12` ABOVE COUNTS TASKS, NOT GSD PHASES.**
+> v2.22 ran on a `docs/superpowers/` plan, not on `/gsd-plan-phase`. **There are no
+> `.planning/phases/` directories for it** and there never will be — do not go looking for
+> `138-*`. The artifact of record is
+> `docs/superpowers/plans/2026-08-14-bainbridge-island-kitsap-onboarding.md` (12 tasks) and
+> its spec sibling in `docs/superpowers/specs/`. `docs/*` is gitignored; both are tracked by
+> **force-add** (`git add -f`), the established convention in this repo.
+>
+> ⚠ **`.planning/` ALSO MISSED v2.21 ENTIRELY.** The `v2.21` tag (Seattle, WA + King County,
+> shipped 2026-08-14) exists in git but appears in neither `ROADMAP.md` nor `MILESTONES.md`,
+> because that milestone ran the same way. So the roadmap's last GSD-tracked milestone is
+> **v2.20**, and two shipped milestones sit outside it. Anything reading only `.planning/`
+> will understate what is live by two milestones and ~122 rows.
 
 # State
 
@@ -22,26 +36,62 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-16 — v2.18 Pima County Municipalities STARTED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** v2.20 — Madison, WI + Dane County onboarding from the WI DOR CMREB statewide workbook
+**Current focus:** none — v2.22 shipped 2026-08-15. Next milestone not yet chosen.
 
 ## Current Position
 
-Phase: 137 — Verification + Live UAT ✅ **v2.20 COMPLETE**
-Plan: —
-Status: **MAD-08 ✅** — 20/20 rows and every category re-derived at Δ$0 on an independent Python/openpyxl path (`scripts/rederiveWICMREB.py`); 5/5 source URLs live and byte-identical to what was loaded; audit clean (0 residue, 0 stale labels, 100% enrichment, scoped-over-universal confirmed through the production API). **MAD-09 ✅** — Chris signed 14/16 on sight; the two exceptions resolved (see below).
-Last activity: 2026-07-28 — Phase 137 closed (see .planning/phases/137-verification-uat/137-SUMMARY.md)
+Milestone: **v2.22 Bainbridge Island, WA + Kitsap County — ✅ SHIPPED 2026-08-15**
+Task: 12 of 12 complete (superpowers plan, not GSD phases — see the banner above)
+Status: **72 General Fund rows live in production.** Merged `--no-ff` as `a5ac920` and pushed to `main` at `496e28e`. Chris UAT passed.
+Last activity: 2026-08-15 — merged, pushed, and a latent Windows test bug fixed on top (see below)
+
+**Coverage — 72 rows, not the 84 originally scoped.** Bainbridge Island FY2004, 2005, 2007, 2008, FY2012–2025 (18 years) and Kitsap County FY2004–2016, FY2020–2024 (18 years), operating + revenue for each. Six years are deliberately unloaded, **all for source-document reasons and none for a parser reason**: Bainbridge FY2006 (image-only scan), FY2009 (ciphered digits — the bounded contiguous-offset decode found no map that tied, so it was dropped as designed rather than escalated), FY2010 (labels decode, money digits absent from the text stream) and FY2011 (CCITT stencil scans); Kitsap FY2017–FY2019 (labels present, digits absent) and FY2025 (not yet audited). In FY2010/FY2011 the only readable General Fund detail is a **budget-basis** schedule, which must never be published under a GAAP label.
+
+**Provenance.** Both entities come from ONE host, `portal.sao.wa.gov` (MCAG 0461 / 0132), so every row cites a State Auditor filing = audit-attested. ⚠ **Report-type names are INVERTED** for FY2014+: the type called *Annual Comprehensive Financial Report* is a 4–5pp opinion letter, while *Financial and Federal* / *Financial* carries the statements. Select by CONTENT (page count ≥ 40 + statement anchor), never by type name.
+
+**All 33 printed-total residues were adjudicated individually** by rendering each page (`pdftoppm -r 160`) and reading the General column off the image — never off the text layer, never by widening tolerance. Each is a registered EXACT delta; the loaded value is always the component sum, so every row still ties at $0 against its own line items.
+
+**🔑 A NEW DEFECT CLASS, found and fixed in production.** Bainbridge FY2013 revenue had shipped a category *and* line item named `_______…_______ Interest and Investment Revenue` — 49 underscores from a horizontal rule the PDF draws in its left margin, which `pdftotext -table` flattens onto the front of that row. **The figure was correct and the row tied at $0**, so the loader, the tie gate and the blind re-derivation all passed it. This is the dash-zero lesson in another costume: **a label defect is invisible to any arithmetic gate.** Fixed narrowly in `scripts/lib/acfrGF.py` (`_recover_label_past_leading_rule`); scanning **168 PDFs** across every entity using that shared library found the pattern in **WA SAO filings only** — zero hits in Seattle, King County, Tucson/Pima or any Oregon city. Audit check (e) now asserts the label *surface* directly so the class cannot recur silently.
+
+**⚠ A LATENT WINDOWS BUG SURFACED AT THE MERGE — always re-run `npm test` after a checkout.** `scripts/lib/waSao.mjs` carried a `#!/usr/bin/env node` shebang. Git's `core.autocrlf` rewrites files to CRLF on checkout, and **Vite's shebang strip matches `#!.*\n`, where JS regex `.` does not match `\r`** — so the shebang survived, the parser hit a leading `#`, and all 15 tests in `tests/waSao.test.mjs` vanished behind a bare `SyntaxError: Invalid or unexpected token` **naming no file and no line**. `node --check` and `esbuild` both accept the file; only the Vite path was affected, and that asymmetry is the diagnostic. Not caused by the merge — the branch was green only because those files still had LF. Fixed by removing the shebang (it is a pure library) and guarded by a test asserting no `scripts/lib/*.mjs` starts with `#!` (mutation-tested).
+
+**Two documented gaps, neither a TT defect.** Essentials' `coverage.json` (2026-08-15) carries exactly one WA city and one WA county — Seattle and King County — so neither new entity paints a tether icon; same outcome as v2.20 Madison and permitted by PIMA-09. And no shared-bucket banner asset exists for either entity (every plausible slug returns `NoSuchKey`), so both use the Wikipedia fallback, which resolves. ⚠ **OPEN, pre-existing:** `cities/seattle.jpg` and `cities/king-county.jpg` DO exist in the bucket but are absent from `CURATED_CITY_BANNERS` in `src/utils/wikiImage.ts`, so v2.21's own entities fall through to Wikipedia while curated licensed assets sit unused. Fixing it needs each credit transcribed from Essentials' `buildingImages.js` — **never infer a credit from a filename** (RI's comma-twin).
+
+## Task Overview — v2.22 Bainbridge Island, WA + Kitsap County Onboarding
+
+| # | Task | Outcome |
+|---|------|---------|
+| 1 | WA SAO client | ✅ `scripts/lib/waSao.mjs` + content guard (`classifyReport`) |
+| 2 | Fetch 42 source PDFs | ✅ ARN manifests pinned in `fetchBainbridgeKitsap.mjs` |
+| 3 | Seed both municipalities | ✅ WA OFM Apr-1-2025 populations (BI 25,530 / Kitsap 288,900) |
+| 4 | Bainbridge extractor | ✅ two eras — `extractBainbridge.py` + `extractBainbridgeEarly.py` |
+| 5 | Kitsap extractor | ✅ `extractKitsap.py`; established that a $0 tie CANNOT detect wrong-page selection |
+| 6 | FY2009 font recovery | ✅ closed as a **documented drop** — no candidate map tied |
+| 7 | Shared loader core | ✅ `scripts/lib/waSaoLoad.mjs`; per-capita band re-derived to `[100, 10000]` |
+| 8 | Load + adjudicate residues | ✅ 72 rows; all 33 residues adjudicated individually |
+| 9 | Blind re-derivation harness | ✅ 72/72 at exactly $0, 0 blockers; ambiguous page identity is FATAL |
+| 10 | Audit harness | ✅ 8 checks (a,b,c,d,e,h,f,g); (h) mutation-tested |
+| 11 | Enrichment | ✅ 38 rows, 100% coverage, all municipality-scoped |
+| 12 | Tether + presentation | ✅ both NOT COVERED (documented); banners left on default |
+
+**Verification at close (all green on `main`, post-merge):** `npm test` 6 files / **93 tests** · `npm run test:acfr` **125** · blind re-derivation **72/72 at $0, 0 blockers** · source-chain audit **8/8** · tether definitive.
+
+**Two claims to state carefully.** The independent-document cross-check (kitsap.gov copies) covers **10 of the 72 rows**, never all 72 — the other 62 are verified against one document each. And **there is no `budgets.statement_page` column**: the extractors emit it but `treasury_sync_budget_tree` has nowhere to put it, so audit check (h) re-resolves the statement page from the PDF's own printed identity rather than asserting a field that would pass vacuously forever.
+
+<details>
+<summary>Previous milestone — v2.20 Madison, WI + Dane County (shipped 2026-07-28) — the last GSD-phased milestone</summary>
 
 **UAT item 15 — Essentials tether absent on Madison = documented cross-repo gap, no TT change.** Essentials' published `coverage.json` (2026-07-28) carries **0 WI cities and 0 WI counties**; Wisconsin appears only as a state. TT correctly resolves `null` and paints no icon, exactly as the v2.16 contract specifies. Fix belongs in the Essentials repo. The requirement explicitly permits this outcome when documented — ticked.
 
-**UAT item 16 — source chip fixed and shipped.** It rendered `source_date` as "· fetched {date}", false wherever `source_date` is a period end — **1,801 rows across 67 entities** app-wide (Madison WI said "fetched 2024-12-31"; Bend FY2006 said "fetched 2006-06-30"). Pre-existing, not caused by v2.20. Now **"· as of {date}"** in the chip and the aria-label, misleading doc comments rewritten. Chris was reading production, where it was still wrong because the whole v2.20 branch was unmerged — shipped by merging to `main`. Follow-up: the prop is still `fetchDate` and the API field still `fetchedAt`, the naming that produced the bug.
+**UAT item 16 — source chip fixed and shipped.** It rendered `source_date` as "· fetched {date}", false wherever `source_date` is a period end — **1,801 rows across 67 entities** app-wide (Madison WI said "fetched 2024-12-31"; Bend FY2006 said "fetched 2006-06-30"). Pre-existing, not caused by v2.20. Now **"· as of {date}"** in the chip and the aria-label, misleading doc comments rewritten. Chris was reading production, where it was still wrong because the whole v2.20 branch was unmerged — shipped by merging to `main`. **That lesson recurred in v2.22 and drove the decision to merge immediately after UAT.** Follow-up: the prop is still `fetchDate` and the API field still `fetchedAt`, the naming that produced the bug.
 
-## Phase Overview — v2.20 Madison, WI + Dane County Onboarding
+### Phase Overview — v2.20 Madison, WI + Dane County Onboarding
 
 | Phase | Name | Requirements | Depends on | Status |
 |-------|------|--------------|------------|--------|
 | 135 | Recon + Loader | MAD-01, MAD-02, MAD-03 | — | ✅ Executed (10/10 tie; 14/14 tests) |
 | 136 | Seed + Load + Enrichment | MAD-04, MAD-05, MAD-06, MAD-07 | 135 | ✅ Executed (20 rows live, 100% enriched) |
-| 137 | Verification + Live UAT | MAD-08, MAD-09 | 135, 136 | ○ Not started |
+| 137 | Verification + Live UAT | MAD-08, MAD-09 | 135, 136 | ✅ Executed (20/20 rows Δ$0; Chris UAT signed 2026-07-28) |
 
 **Critical path:** 135 → 136 → 137. Madison + Dane County onto TT from the **WI DOR CMREB statewide workbook** (`CMREB<YYYY>.xlsx`, free/no-auth, all 1,921 WI municipalities + 72 counties, CY2020–CY2024) — a bulk source in the Ohio-AOS mold, so this clones `loadOhioAOS.js` and needs **no PDF extractor**. A 2026-07-27 probe verified an exact built-in tie gate: nine printed-subtotal identities re-derived against components across **9,608 rows × 5 years = 86,472 checks, 0 failures**. Phase 135 reconciles Madison's CMREB figures against the city's own FY2024 ACFR, settles the basis verdict (§4 of the scoping brief) with written evidence, and builds `loadWICMREB.js` with the nine-identity gate + generic `--entity-type city|county` / per-muni selection so the deferred statewide fan-out is a flag flip. Phase 136 seeds Madison + **Dane County as a full entity** (not nav-only like Pima — the `Counties` sheet carries its own data), loads 20 rows via source-safe `treasury_sync_budget_tree`, labels provenance honestly as **unaudited self-reported MFR data** (MAD-06), and enriches to 100% bleed-safe. Phase 137 = blind re-derivation of all 20 rows from the workbook → source-chain audit → tether check → Chris UAT. **Constraints:** free XLSX only ($0 / $5 AI gate); **all-governmental-funds** basis as the source defines it (not GF-only); calendar-year FY; source-safe never-overwrite; executed inline (no subagents). **Watch:** this is the first **unaudited** city in TT — labelling is a requirement, not a nicety; collision risk with existing `Madison, MN` / `Madison County, OH` / `Madison County, VA` rows. **Deferred:** statewide fan-out (WI-CITIES-01), villages/towns (WI-TOWNS-01), Madison ACFR deepening to FY2015 (MAD-ACFR-01), pre-2020 history, salaries.
 
@@ -58,7 +108,21 @@ Last activity: 2026-07-28 — Phase 137 closed (see .planning/phases/137-verific
 
 </details>
 
+</details>
+
 ## Deferred Items
+
+### Carried at v2.22 close (2026-08-15)
+
+None of these block anything; all were surfaced during v2.22 and deliberately not fixed inside it.
+
+| Category | Item | Status |
+|----------|------|--------|
+| cross-repo | Essentials `coverage.json` carries no Bainbridge Island / Kitsap County record | **documented gap, not a TT change** — TT correctly paints no tether icon. Belongs to the Essentials repo, same as v2.20's WI gap |
+| presentation | `cities/seattle.jpg` + `cities/king-county.jpg` exist in the shared bucket but are absent from `CURATED_CITY_BANNERS` | **open** — v2.21's entities fall through to Wikipedia while licensed assets sit unused. Needs each credit TRANSCRIBED from Essentials' `buildingImages.js`; never infer from a filename |
+| planning-debt | `.planning/ROADMAP.md` + `MILESTONES.md` have no v2.21 or v2.22 entry | **open** — both milestones ran on superpowers plans. STATE.md now records v2.22; the roadmap still ends at v2.20 |
+| naming | SourceChip prop is still `fetchDate`, API field still `fetchedAt` | **deferred from v2.20** — the naming that produced the "fetched" vs "as of" bug |
+| todo | `2026-06-30-authenticated-deeplink-redirect-to-home-jurisdiction.md` | **deferred** — frontend-routing follow-up carried since v2.12 |
 
 ### Acknowledged at v2.19 close (2026-07-21)
 
@@ -274,15 +338,23 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-07-17T19:35:20.347Z
-Stopped at: Completed 133-03-PLAN.md (v2.18 milestone verification closed — PIMA-07/08/09 all pass)
+Last session: 2026-08-15
+Stopped at: v2.22 closed — Tasks 1–12 done, Chris UAT passed, merged (`a5ac920`) + pushed to `main` (`496e28e`). Working tree clean, `main` up to date with origin.
 Resume file: None
 
 ### Next Session
 
-v2.14 State ACFR Long Tail — Tranche 3 + Deepening is shipped + archived (tag v2.14). Cohort now 29 ACFR + 21 NASBO = 901 rows, 0 anomalies; WR-05 loader debt retired (LOAD-01). No active milestone. Start the next one:
-  /gsd-new-milestone   (questioning → research → requirements → roadmap; phases continue from 117)
-Leading candidates: ACFRX-03 (final ~21 NASBO states → ACFR, retiring NASBO to fallback-only — incl. OK, reconned + deferred out of v2.14); votes/amendments hub (VOTES-01); sourced-standard backfill to city data (SRCSTD-01); deeper history on the other ACFR nodes (CA/NY/FL/TX pre-window holes).
+**No active milestone.** v2.22 Bainbridge Island + Kitsap County shipped 2026-08-15: 72 WA SAO General Fund rows live, 3 harnesses green, Chris UAT passed. v2.21 (Seattle + King County, 50 rows) shipped 2026-08-14 and is tagged.
+
+⚠ **Do not trust `/gsd-progress` on its own here.** `ROADMAP.md` still ends at v2.20 and knows nothing about v2.21 or v2.22, because both ran on `docs/superpowers/` plans rather than GSD phases. Read this file, then the plan docs under `docs/superpowers/plans/`.
+
+Two candidates were left explicitly open at v2.22 close:
+  * **WA-CITIES-01** — the WA SAO pipeline now generalises. `scripts/lib/waSao.mjs` + `waSaoLoad.mjs` are MCAG-generic, so another WA city or county is a descriptor plus an extractor config. This is the cheapest next expansion in the repo.
+  * **BANNER-01** — wire the existing `cities/seattle.jpg` + `cities/king-county.jpg` bucket assets into `CURATED_CITY_BANNERS`, transcribing credits from Essentials' `buildingImages.js`.
+
+Longer-standing candidates, unchanged: votes/amendments hub (VOTES-01); sourced-standard backfill to city data (SRCSTD-01, brief at `.planning/SRCSTD-01-SCOPING.md`); deeper history on the ACFR state nodes (CA/NY/FL/TX pre-window holes).
+
+To start the next one: `/gsd-new-milestone`. If it is another single-source onboarding, consider running it the way v2.21 and v2.22 ran — a superpowers spec + plan — but then **record the result here at close**, which is the step both of those skipped.
 
 ## Performance Metrics
 
