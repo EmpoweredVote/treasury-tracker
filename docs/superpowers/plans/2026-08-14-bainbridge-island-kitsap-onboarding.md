@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Load 76 sourced General Fund rows (Bainbridge Island FY2004–FY2025 less FY2006 and FY2009 = 20 yrs; Kitsap County FY2004–FY2024 less FY2017–FY2019 = 18 yrs; `operating` + `revenue`) into Treasury Tracker from WA SAO bound financial statements, with every row tying at $0 and citing an audit-attested source.
+**Goal:** Load 72 sourced General Fund rows (Bainbridge Island FY2004–FY2025 less FY2006, FY2009, FY2010 and FY2011 = 18 yrs; Kitsap County FY2004–FY2024 less FY2017–FY2019 = 18 yrs; `operating` + `revenue`) into Treasury Tracker from WA SAO bound financial statements, with every row tying at $0 and citing an audit-attested source.
 
 **Architecture:** A new MCAG-generic SAO client (`scripts/lib/waSao.mjs`) fetches PDFs from `portal.sao.wa.gov` for both entities. Two thin `CityConfig` wrappers over the existing `scripts/lib/acfrGF.py` extract the GF column. A new shared loader core (`scripts/lib/waSaoLoad.mjs`) drives two thin per-entity loaders. Three independent harnesses verify the result. **v2.21's shipped files (`processSeattle.js`, `processKingCounty.js`, `extractSeattle.py`, `extractKingCounty.py`, `fetchSeattleKingCounty.mjs`) are NOT modified** — the new shared loader is a new file, so there is no regression risk to Seattle or King County.
 
@@ -14,7 +14,7 @@
 
 - **Fund scope: General Fund only.** Both datasets, both entities. No other fund.
 - **Datasets: `operating` and `revenue`.** Exactly these two `dataset_type` values.
-- **Bainbridge FY window: 2004, 2005, 2007, 2008, 2010–2025 — 20 years, 40 rows.** FY2006 excluded (image-only scan). **FY2009 excluded** — Task 6 attempted a bounded decode of its ciphered statement digits; none of the six candidate maps tied, so it was dropped.
+- **Bainbridge FY window: 2004, 2005, 2007, 2008, 2012–2025 — 18 years, 36 rows.** FY2006 excluded (image-only scan). **FY2010 excluded** (GAAP statement font-ciphered, money digits absent from the text stream) and **FY2011 excluded** (statement pages are CCITT stencil scans). In both, the only readable revenue+expenditure pages are BUDGET-BASIS schedules — publishing those under a GAAP label would silently mix bases. **FY2009 excluded** — Task 6 attempted a bounded decode of its ciphered statement digits; none of the six candidate maps tied, so it was dropped.
 - **Kitsap FY window: 2004–2024 inclusive, LESS FY2017, FY2018 and FY2019.** Those three carry labels but no digits in the PDF text layer (24 / 114 / 193 extractable comma-grouped numbers versus ~2,556 and ~2,828 in the neighbouring years) — nothing to decode, only OCR could recover them, and OCR is out of scope by standing ruling. No FY2025 (not yet audited). **18 years, 36 rows.**
 - **Tie gate is $0.** Never widen a tolerance. A confirmed printed-total-vs-components disagreement is registered in `CityConfig.source_rounding` as an EXACT delta for that `(fiscal_year, mode)`, or it is a bug.
 - **Write via `treasury_sync_budget_tree` only.** Never `treasury_sync_city_budget` — it overwrites existing `(muni, fy, dataset)` rows and keeps a stale `data_source` label.
@@ -1302,7 +1302,7 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 - Consumes: the loaded rows; the source PDFs; the kitsap.gov independent copies.
 - Produces: exit 0 when every loaded row re-derives to $0 from an independently written reader.
 
-**Coverage is 76 rows** — Bainbridge Island 20 years (FY2004, 2005, 2007, 2008, 2010–2025) × 2, Kitsap County 18 years (FY2004–2016, 2020–2024) × 2. **17 of those rows carry a registered `source_rounding` acceptance** rather than a raw $0 tie; the harness must re-derive them against their COMPONENT SUM (which is what was loaded), not against the statement's printed total, and must assert the registered delta matches exactly.
+**Coverage is 72 rows** — Bainbridge Island 18 years (FY2004, 2005, 2007, 2008, 2012–2025) × 2, Kitsap County 18 years (FY2004–2016, 2020–2024) × 2. **33 of those rows carry a registered `source_rounding` acceptance** rather than a raw $0 tie; the harness must re-derive them against their COMPONENT SUM (which is what was loaded), not against the statement's printed total, and must assert the registered delta matches exactly.
 
 **The hard constraint: this file must NOT import `scripts/lib/acfrGF.py`, `extractBainbridge.py`, `extractBainbridgeEarly.py`, `extractKitsap.py`, or `scripts/lib/waSaoLoad.mjs`.** It reads the PDFs with its own logic. A harness that shares the extractor's code proves only that the extractor is self-consistent. Read `scripts/verify-seattle-rederive.mjs` for the established shape.
 
@@ -1385,8 +1385,8 @@ Read `scripts/verify-seattle-audit.mjs` for the established shape.
 - [ ] **Step 1: Write the eight checks**
 
 - **(a) Year coverage** — the set of loaded fiscal years equals the manifest exactly, per entity per dataset. A missing year fails; it does not warn.
-  Expected exactly: **Bainbridge Island** FY2004, 2005, 2007, 2008, 2010–2025 (20 years — FY2006 and FY2009 excluded). **Kitsap County** FY2004–2016, FY2020–2024 (18 years — FY2017–FY2019 excluded, FY2025 unaudited). **76 rows total.** The check must assert the exclusions too: a row appearing for an excluded year is as much a failure as a missing one.
-- **(b) Tie integrity** — every row's stored `total` equals the sum of its line items. **17 rows carry a registered `source_rounding` acceptance**; each must be listed by name with its exact delta, so an exception is visible in the output rather than implied by its absence. The loaded total is always the COMPONENT SUM, never the statement's printed total, so every row must still tie against its own line items regardless.
+  Expected exactly: **Bainbridge Island** FY2004, 2005, 2007, 2008, 2012–2025 (18 years — FY2006, FY2009, FY2010 and FY2011 excluded). **Kitsap County** FY2004–2016, FY2020–2024 (18 years — FY2017–FY2019 excluded, FY2025 unaudited). **72 rows total.** The check must assert the exclusions too: a row appearing for an excluded year is as much a failure as a missing one.
+- **(b) Tie integrity** — every row's stored `total` equals the sum of its line items. **33 rows carry a registered `source_rounding` acceptance** (20 Bainbridge, 13 Kitsap); each must be listed by name with its exact delta, so an exception is visible in the output rather than implied by its absence. The loaded total is always the COMPONENT SUM, never the statement's printed total, so every row must still tie against its own line items regardless.
 - **(c) Provenance** — every row has a non-null `source_url` that matches `reportFileUrl(ARN)` for that year, a `source_date`, and a `data_source` label. Record and re-verify each PDF's sha256.
 - **(d) Units** — per-capita for every row is inside `[100, 10000]`. Print the actual value per entity so a drift is visible, not just a pass.
 - **(e) Label integrity** — no leaf label contains another known label as a prefix (the dash-zero grafting signature), and no label is empty or purely numeric.

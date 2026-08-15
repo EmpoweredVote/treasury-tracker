@@ -404,6 +404,17 @@ the visual-confirmation gate. Per the bounded, no-iterate-indefinitely mandate f
 this task, FY2009 is dropped rather than pursued further (e.g. per-embedded-font
 glyph analysis or OCR, both out of scope). Stated, not silently skipped.
 
+**Bainbridge FY2010 and FY2011 are absent** — discovered at load, in Task 8.
+FY2010's GAAP governmental-funds statement (p28) is font-ciphered and its money
+columns are empty in the text stream; FY2011's statement pages (pp25–26) are CCITT
+stencil scans carrying only the SAO footer. **Both filings DO contain a readable
+revenue-and-expenditure page — a Budgetary Comparison Schedule (FY2010 p68,
+FY2011 p71).** Those are budget-basis, single-fund schedules. Loading them would have
+reached the planned row count while silently mixing budgetary-basis figures into a
+GAAP series, under a source label reading "General Fund, Revenue by Source" — a
+provenance falsehood, not a rounding call. They were refused. Bainbridge therefore
+covers 18 years, and the milestone ships **72 rows**, not 76.
+
 **Kitsap FY2017, FY2018 and FY2019 are absent.** Their statement pages carry
 labels but **no digits at all** in the PDF text layer — 24 / 114 / 193 extractable
 comma-grouped numbers per document, against ~2,556 in FY2016 and ~2,828 in FY2020.
