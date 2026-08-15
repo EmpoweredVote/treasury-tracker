@@ -513,7 +513,7 @@ from treasury.municipalities m
 left join treasury.municipalities c on c.id = m.county_id
 where m.state = 'WA' order by m.name;
 ```
-Expected: 4 rows. `Bainbridge Island` shows `county = Kitsap County`; `Kitsap County` shows `county = null`.
+Expected: **5 rows** — the two new ones plus the pre-existing Seattle, King County and Washington state node, all of which also match `state='WA'`. `Bainbridge Island` shows `county = Kitsap County`; `Kitsap County` shows `county = null`.
 
 - [ ] **Step 5: Commit**
 
@@ -1119,7 +1119,9 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 
 **Read `scripts/processSeattle.js` in full before writing this.** It is the proven reference for `loadEnv`, `resolvePdfDir`, `discoverPdfsByFY`, `extractPDF`, `toBudgetTree`, the ephemeral `data_sources` lifecycle, the pre-load delete, the `treasury_sync_budget_tree` call and the source stamp. Port those, parameterised by the descriptor above.
 
-**The per-capita band must be re-derived, not copied.** `processSeattle.js` uses `[500, 25000]`, which is correct for Seattle's ≈$3,065/resident. **That band would reject Kitsap**, whose GF runs ≈$465/resident ($128.2M over ≈275,600). Use `[100, 10000]` for both new entities: Bainbridge lands at ≈$832 and Kitsap at ≈$465, both comfortably inside, while a missing ×1000 lands at ≈$0.8/≈$0.5 and a spurious one at ≈$832,000/≈$465,000 — both still caught by three orders of magnitude.
+**The per-capita band must be re-derived, not copied.** `processSeattle.js` uses `[500, 25000]`, which is correct for Seattle's ≈$3,065/resident. **That band would reject Kitsap.** Confirmed against the WA OFM April 1, 2025 figures loaded in Task 3 (Kitsap 288,900; Bainbridge Island 25,530): Kitsap FY2024 GF operating is $128,230,878 / 288,900 = **$443.9/resident**, below Seattle's lower bound of 500, so a copied band fails a correct load. Bainbridge FY2025 GF operating is $20,801,297 / 25,530 = **$814.8/resident**.
+
+Use `[100, 10000]` for both entities. Both actuals sit comfortably inside, while a missing ×1000 lands at ≈$0.81 / ≈$0.44 and a spurious one at ≈$814,800 / ≈$443,900 — still caught by three orders of magnitude in either direction.
 
 - [ ] **Step 1: Read the reference implementation**
 
