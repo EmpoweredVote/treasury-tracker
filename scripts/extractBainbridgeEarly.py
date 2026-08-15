@@ -117,7 +117,29 @@ CONFIG = CityConfig(
         "Washington State Auditor's Office General government": 'General government',
         "Washington State Auditor's Office Judicial": 'Judicial',
     },
-    source_rounding={},   # Task 8 adjudicates every residue against the rendered page
+    # Task 8: every entry below was adjudicated by RENDERING the statement page
+    # (pdftoppm -r 160) and reading the General column off the image, not off
+    # the text layer. In each case the extractor's component list matched the
+    # page line for line and the page's own printed total disagreed with the sum
+    # of the page's own printed components. Exact deltas only -- never a
+    # tolerance; a year that drifts to a different delta still fails the gate.
+    source_rounding={
+        # FY2004 op: PDF p19 (doc page 16). General column components
+        # 2,951,684 + 567,639 + 2,732,525 + 414,591 + 75 + 283,403 + 897,572
+        # + 485,708 + 118,898 + 55,275 + 629,708 = 9,137,078, but the page
+        # prints Total Expenditures 9,137,079. (The same page's revenue
+        # components sum exactly to its printed 12,636,832, so the page is not
+        # systematically mis-read.)
+        (2004, 'operating'): -1,
+        # FY2007 rev: PDF p24 (doc page 21). Components 5,962,203 + 6,604,859
+        # + 194,378 + 321,414 + 1,888,377 + 1,126,035 + 43,221 + 206,007 =
+        # 16,346,494, page prints Total Operating Revenues 16,346,493.
+        (2007, 'revenue'): 1,
+        # FY2008 rev: PDF p19 (doc page 16). Components 6,140,693 + 6,881,675
+        # + 196,437 + 440,159 + 823,240 + 1,113,379 + 62,891 + 59,323 =
+        # 15,717,797, page prints Total Operating Revenues 15,717,799.
+        (2008, 'revenue'): -2,
+    },
 )
 
 if __name__ == '__main__':

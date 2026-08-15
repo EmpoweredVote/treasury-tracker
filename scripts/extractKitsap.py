@@ -108,7 +108,71 @@ CONFIG = CityConfig(
     # above for the confirmed live failure this fixes (FY2013 silently
     # landing on the wrong page's $354,295 instead of the true $75,935,769).
     statement_anchor=r'Statement\s+of\s+Revenue\s*,\s*Expenditures\s*,?\s+and\s+Changes\s+in\s+Fund\s+Balances?',
-    source_rounding={},   # Task 7 registers any confirmed printed-total artifacts
+    # Task 8: 13 of Kitsap's 36 loadable FY x mode combinations carry a
+    # printed-total artifact. Nine were adjudicated here by RENDERING the
+    # statement page (pdftoppm -r 160) and reading the General Fund column off
+    # the image; four (FY2009 rev, FY2013 op, FY2015 op, FY2020 op) were
+    # hand-confirmed against the rendered page by an independent reviewer, who
+    # ALSO reproduced all 13 with a separately-written naive reader sharing no
+    # code with acfrGF.py. In every case the extractor's component list matched
+    # the page line for line -- labels, values and dash-zeros -- and the
+    # disagreement was between the page's own components and the page's own
+    # printed total. Exact deltas only, never a tolerance.
+    source_rounding={
+        # FY2009 rev, PDF p36: the nine printed GF components sum to
+        # 79,202,745; the page prints Total revenues 79,202,743.
+        (2009, 'revenue'): 2,
+        # FY2010 rev, PDF p36 (doc page 33): 29,604,956 + 19,874,563
+        # + 5,683,768 + 193,043 + 10,082,163 + 10,118,140 + 2,117,394
+        # + 1,226,160 + 1,701,166 = 80,601,353; page prints 80,601,355. The
+        # same page's expenditure components sum exactly to its printed
+        # 77,220,433.
+        (2010, 'revenue'): -2,
+        # FY2012 op, PDF p33 (doc page 30): 23,076,401 + 12,977,349
+        # + 34,890,745 + 32,807 + 3,848,360 + 42,863 = 74,868,525; page prints
+        # Total expenditures 74,868,526. Transportation, Health & Human
+        # Services, Economic Environment, Principal and Interest and other
+        # charges are all dashes in the GF column.
+        (2012, 'operating'): -1,
+        # FY2012 rev, PDF p33: 30,653,810 + 20,162,176 + 5,761,810 + 167,908
+        # + 9,559,076 + 8,619,518 + 2,426,747 + 820,068 + 992,086 =
+        # 79,163,199; page prints 79,163,200.
+        (2012, 'revenue'): -1,
+        # FY2013 op, PDF p40: components sum to 75,935,770; page prints
+        # 75,935,769.
+        (2013, 'operating'): 1,
+        # FY2015 op, PDF p37: components sum to 84,809,389; page prints
+        # 84,809,390.
+        (2015, 'operating'): -1,
+        # FY2016 op, PDF p44 ("Page 44"): 26,183,555 + 15,383,485 + 40,554,291
+        # + 1,824 + 4,616,699 + 10,608 + 177,096 = 86,927,558; page prints
+        # 86,927,557.
+        (2016, 'operating'): 1,
+        # FY2016 rev, PDF p44: 33,599,049 + 26,111,251 + 5,116,403 + 162,968
+        # + 10,504,020 + 9,240,361 + 1,931,886 + 1,191,789 + 1,132,492 =
+        # 88,990,219; page prints 88,990,218.
+        (2016, 'revenue'): 1,
+        # FY2020 op, PDF p36: components sum to 101,074,407; page prints
+        # 101,074,409.
+        (2020, 'operating'): -2,
+        # FY2021 op, PDF p50 ("Page 50"): 26,999,688 + 16,671,887 + 49,474,779
+        # + 2,051,973 + 3,976,901 + 33 + 277,212 = 99,452,473; page prints
+        # 99,452,474.
+        (2021, 'operating'): -1,
+        # FY2021 rev, PDF p50: 37,414,975 + 40,142,363 + 5,155,019 + 141,834
+        # + 12,942,365 + 8,967,853 + 1,466,856 + 977,763 + 1,440,282 =
+        # 108,649,310; page prints 108,649,311.
+        (2021, 'revenue'): -1,
+        # FY2023 rev, PDF p45 ("Page 45"): 38,169,439 + 43,072,739 + 2,789,972
+        # + 146,415 + 12,694,604 + 8,554,385 + 1,302,237 + 12,340,287
+        # + 1,733,099 = 120,803,177; page prints 120,803,178. The same page's
+        # expenditure components sum exactly to its printed 116,447,797.
+        (2023, 'revenue'): -1,
+        # FY2024 rev, PDF p39 ("Page 39"): 39,113,858 + 44,690,283 + 2,627,819
+        # + 128,555 + 12,946,657 + 8,272,777 + 1,559,156 + 15,443,410
+        # + 798,609 = 125,581,124; page prints 125,581,123.
+        (2024, 'revenue'): 1,
+    },
 )
 
 if __name__ == '__main__':

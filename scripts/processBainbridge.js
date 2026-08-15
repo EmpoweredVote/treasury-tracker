@@ -8,20 +8,38 @@
  * per-capita band, source_url validation, ephemeral data_sources lifecycle)
  * lives in that shared core. This file is descriptor + argv only.
  *
- * FISCAL-YEAR WINDOW (20 years, deliberately not `Object.keys(BAINBRIDGE_ARNS)`)
+ * FISCAL-YEAR WINDOW (18 years, deliberately not `Object.keys(BAINBRIDGE_ARNS)`)
  * ------------------------------------------------------------------------------
- * FY2004, 2005, 2007, 2008 and FY2010-FY2025. Two years are absent from the
- * WA SAO set entirely and are documented upstream:
- *   * FY2006 -- the only filing (ARN 73415) is an image-only scan.
+ * FY2004, 2005, 2007, 2008 and FY2012-FY2025. FOUR fiscal years in the
+ * FY2004-FY2025 span cannot be loaded, all four for source-document reasons
+ * and none for a parser reason:
+ *   * FY2006 -- the only filing (ARN 73415) is an image-only scan. No ARN in
+ *     BAINBRIDGE_ARNS.
  *   * FY2009 -- statement pages are digit-bearing but ciphered (broken
  *     embedded font, no usable ToUnicode CMap); Task 6's bounded
- *     contiguous-offset decode found no substitution map that tied.
- * Neither year has an ARN in BAINBRIDGE_ARNS, so FISCAL_YEARS and the ARN
- * lookup agree by construction -- important because requireSourceUrl() in
- * waSaoLoad.mjs HARD THROWS on a falsy URL (the generic SAO fallback was
- * deliberately removed), so an FY listed here without an ARN would abort the
- * run rather than publish an unsourced row. The assertion below makes that
- * agreement explicit instead of implicit.
+ *     contiguous-offset decode found no substitution map that tied. No ARN in
+ *     BAINBRIDGE_ARNS.
+ *   * FY2010 (ARN 1006518) -- FOUND IN TASK 8. The governmental-funds
+ *     statement is PDF page 57 and its text layer is rendered through a broken
+ *     embedded font with a constant +29 byte shift ("&,7<2)%$,1%5,'*(,6/$1'"
+ *     decodes to "CITY OF BAINBRIDGE ISLAND"). The LABELS decode; the MONEY
+ *     DOES NOT -- a byte scan of the page finds zero control or high
+ *     characters, so the digits are absent from the stream entirely rather
+ *     than mis-mapped. Same defect class as Kitsap FY2017-2019. plain /
+ *     -table / -layout / -raw all behave identically. The only readable GF
+ *     detail in that filing is the budget-basis Budgetary Comparison Schedule
+ *     on page 128, which must NOT be published under a GAAP label.
+ *   * FY2011 (ARN 1008424) -- FOUND IN TASK 8. The two governmental-funds
+ *     statement pages (25-26) carry ONLY the SAO page footer in their text
+ *     layer; `pdfimages -list` shows the statement bodies are CCITT stencil
+ *     SCANS. Same class as FY2006. No pdftotext flag recovers image content.
+ * FY2010 and FY2011 keep their ARNs in BAINBRIDGE_ARNS (the files were fetched
+ * and passed the fetch-time content guard, which cannot see a per-page font
+ * defect) but are excluded here. That is fine: the ARN manifest only has to
+ * answer for years actually loaded, and the assertion below proves it does --
+ * important because requireSourceUrl() in waSaoLoad.mjs HARD THROWS on a falsy
+ * URL (the generic SAO fallback was deliberately removed), so an FY listed here
+ * without an ARN would abort the run rather than publish an unsourced row.
  *
  * TWO EXTRACTORS, NOT ONE
  * ------------------------
@@ -45,7 +63,7 @@ const fyArg = argv.indexOf('--fy');
 
 const FISCAL_YEARS = [
   2004, 2005, 2007, 2008,
-  2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019,
+  2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019,
   2020, 2021, 2022, 2023, 2024, 2025,
 ];
 
