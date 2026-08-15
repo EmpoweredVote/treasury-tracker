@@ -964,11 +964,18 @@ import argparse
 import re
 import subprocess
 import sys
-from itertools import permutations
 
 # Observed on the FY2009 statement pages. The document renders digits 0-9 as
-# this run of punctuation/symbol glyphs; the ORDER is the hypothesis under
-# test, and every ordering consistent with the observed alphabet is tried.
+# punctuation drawn from this contiguous ASCII run (0x21-0x2F).
+#
+# DO NOT brute-force all orderings: permutations(15, 10) is 10.9 BILLION
+# candidates and will never finish. The tractable hypothesis is that the
+# font's glyph order is CONTIGUOUS -- digits 0-9 occupy ten consecutive
+# code points at some offset -- which leaves only six candidate maps. A
+# broken ToUnicode CMap almost always preserves glyph ORDER; it is the
+# base offset that is lost. If no contiguous offset ties, this script
+# reports failure and FY2009 is dropped rather than escalating to a
+# search that cannot terminate.
 CIPHER_ALPHABET = "!\"#$%&'()*+,-./"
 
 
@@ -1018,22 +1025,26 @@ def main():
               'FY2009 cannot be recovered by decoding. DROP IT.', file=sys.stderr)
         return 2
 
-    symbols = [c for c in CIPHER_ALPHABET if c in raw]
-    if len(symbols) < 10:
-        print(f'Only {len(symbols)} candidate glyphs present ({"".join(symbols)}); '
+    present = [c for c in CIPHER_ALPHABET if c in raw]
+    if len(present) < 10:
+        print(f'Only {len(present)} candidate glyphs present ({"".join(present)}); '
               'not a 10-digit substitution. DROP FY2009.', file=sys.stderr)
         return 2
 
-    for perm in permutations(symbols, 10):
-        mapping = {ch: str(i) for i, ch in enumerate(perm)}
+    # Six contiguous windows of ten over a fifteen-glyph run.
+    for start in range(len(CIPHER_ALPHABET) - 9):
+        window = CIPHER_ALPHABET[start:start + 10]
+        mapping = {ch: str(i) for i, ch in enumerate(window)}
         decoded = decode(raw, mapping)
         vals = first_column_values(statement_lines(decoded))
+        print(f'  offset {start} (glyphs {window!r}): '
+              f'{len(vals)} numeric rows, ties={ties(vals)}', file=sys.stderr)
         if ties(vals):
-            print('CANDIDATE MAP TIES:', mapping)
+            print('CANDIDATE MAP TIES at offset %d:' % start, mapping)
             print(decoded)
             return 0
 
-    print('No candidate substitution produced a self-consistent tie. '
+    print('No contiguous-offset substitution produced a self-consistent tie. '
           'DROP FY2009 and ship 82 rows.', file=sys.stderr)
     return 2
 
