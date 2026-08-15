@@ -9,7 +9,8 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from lib.acfrGF import (CityConfig, column_value, classify, build_revenue,
                          build_operating, anchors, slots, dash_zero_label,
                          find_statement_page, parse_fy, _is_section_header,
-                         _recover_label_past_leading_page_number)
+                         _recover_label_past_leading_page_number,
+                         target_cell_is_dash_zero)
 # The SHIPPED Bainbridge configs themselves, not copies of them -- see
 # TestShippedBainbridgeConfigsAreWholeDollars at the bottom of this file for
 # why the real objects have to be under test rather than a local fixture.
@@ -1035,6 +1036,171 @@ class TestKitsapShape(unittest.TestCase):
         self.assertIn('Health & Human Services', zero_rows)
         for l in zero_rows:
             self.assertNotRegex(l, r'Transportation\s+Health')
+
+
+# ── Trap 6: a `parents`-matched heading carrying a stray dash-zero ───────────
+# Transcribed VERBATIM from Kitsap County's real FY2013 governmental-funds
+# statement (`pdftotext -table docs/KitsapCounty/kitsap-2013-acfr.pdf`, PDF
+# page 40, printed "Page 37"), General Fund column. Only the OTHER funds'
+# columns are elided where they run past the line width; every General Fund
+# cell, dash-zero and label is exactly as the document renders it.
+#
+# `Debt service` here carries a lone `-` in the General Fund column. True page
+# geometry (`pdftotext -lineprinter`, which preserves the physical indent
+# `-table` flattens) shows it at the ROOT indent, alongside `Current:` and
+# `Capital outlay`, with `Principal` and `Interest and other charges` indented
+# beneath it -- so it is a SECTION HEADING, not a valued $0 leaf. Before the
+# Trap 6 fix, `classify` reported it as ('data', 'Debt service', 0),
+# `build_operating` dropped it into `zero_rows`, the group never opened, and
+# `Interest and other charges` ($416) fell to the still-open `Current` parent.
+# MONEY WAS NEVER AFFECTED -- the $416 was counted exactly once and the tie
+# stayed at its registered +1 -- which is exactly why no arithmetic gate could
+# catch it.
+KITSAP_FY2013_EXP_LINES = [
+    'EXPENDITURES:',
+    'Current:',
+    'General government                               22,756,891                                        -                    -',
+    'Judicial Services                                13,600,541                                        -                    -',
+    'Public safety                                    35,289,005                                        -                    -',
+    'Physical Environment                                                           22,603              -                    -',
+    'Transportation                                                                 -           25,142,020                   -',
+    'Health & Human Services                                                        -                   -                    -',
+    'Economic Environment                                                           -                   -                    -',
+    'Culture & recreation                             4,136,703                                         -                    -',
+    'Debt service                                                                   -',
+    'Principal                                                                      -           47,253               41,667',
+    'Interest and other charges                                                     416         2,126                77,032',
+    'Capital outlay                                                                 129,611     5,126,910                    -',
+    'Total expenditures                               75,935,769                                30,318,309           118,699',
+]
+KITSAP_FY2013_EXP_ANCHOR = KITSAP_FY2013_EXP_LINES[-1]
+
+# The SAME statement with one character changed: `Debt service`'s General Fund
+# dash replaced by a real printed value. This is the shape Hillsboro's
+# statement genuinely prints (`Debt service  12,500` as a VALUED ROOT LEAF --
+# see acfrGF.py's CityConfig docstring), and it MUST keep its pre-fix
+# behaviour: a `parents`-matched label carrying real money is a leaf, never a
+# heading. Nothing else on the line is altered.
+KITSAP_FY2013_EXP_LINES_VALUED_HEADING = [
+    ('Debt service                                                                   12,500'
+     if l.startswith('Debt service') else l)
+    for l in KITSAP_FY2013_EXP_LINES
+]
+
+
+class TestParentLabelledDashZeroHeading(unittest.TestCase):
+    """Both branches of the Trap 6 rule, over the real FY2013 statement.
+
+    The rule is deliberately two-sided and BOTH sides are asserted here:
+    a `parents`-matched line whose target cell is a DASH placeholder opens
+    the group; a `parents`-matched line carrying a REAL value does not.
+    """
+
+    def test_dash_zero_heading_opens_its_group_and_adopts_its_children(self):
+        tree, total, zero_rows = build_operating(
+            KITSAP_FY2013_EXP_LINES, anchors(KITSAP_FY2013_EXP_ANCHOR), _kitsap_cfg())
+        roots = {c['n']: c for c in tree['c']}
+        self.assertIn('Debt service', roots)
+        self.assertEqual([c['n'] for c in roots['Debt service']['c']],
+                         ['Interest and other charges'])
+        self.assertEqual(roots['Debt service']['a'], 416)
+        # ...and it is no longer recorded as a dropped $0 row.
+        self.assertNotIn('Debt service', zero_rows)
+
+    def test_the_child_no_longer_hangs_off_the_preceding_current_parent(self):
+        # The defect itself: `Interest and other charges` mis-parented onto
+        # `Current`, inflating that subtotal by exactly $416.
+        tree, _, _ = build_operating(
+            KITSAP_FY2013_EXP_LINES, anchors(KITSAP_FY2013_EXP_ANCHOR), _kitsap_cfg())
+        current = next(c for c in tree['c'] if c['n'] == 'Current')
+        self.assertNotIn('Interest and other charges', [c['n'] for c in current['c']])
+        self.assertEqual(current['a'], 22756891 + 13600541 + 35289005 + 22603 + 4136703)
+
+    def test_money_is_unchanged_the_fix_moves_shape_only(self):
+        # The $416 appears exactly once, and the component sum still equals the
+        # loaded FY2013 operating total. This fix must never move money.
+        _, total, _ = build_operating(
+            KITSAP_FY2013_EXP_LINES, anchors(KITSAP_FY2013_EXP_ANCHOR), _kitsap_cfg())
+        self.assertEqual(total, 75_935_770)
+
+    def test_a_parent_labelled_line_with_a_real_value_is_still_a_leaf(self):
+        # THE OTHER BRANCH. `Debt service  12,500` matches a configured
+        # `parents` entry but carries real money, so it must keep its pre-fix
+        # behaviour: a valued leaf (here, of the open `Current` parent), NOT a
+        # heading. This is what leaves Hillsboro's valued `Debt service` root
+        # leaf -- and every other shipped entity -- unmoved.
+        tree, _, _ = build_operating(
+            KITSAP_FY2013_EXP_LINES_VALUED_HEADING,
+            anchors(KITSAP_FY2013_EXP_ANCHOR), _kitsap_cfg())
+        self.assertNotIn('Debt service', [c['n'] for c in tree['c']])
+        current = next(c for c in tree['c'] if c['n'] == 'Current')
+        debt = next(c for c in current['c'] if c['n'] == 'Debt service')
+        self.assertEqual(debt['a'], 12500)
+        self.assertNotIn('c', debt)
+
+    def test_a_dash_zero_row_that_is_not_a_configured_parent_still_drops(self):
+        # The third boundary: Transportation, Health & Human Services,
+        # Economic Environment and Principal are all dash-zero in the General
+        # Fund column and none is a configured parent, so all four must still
+        # be recorded in `zero_rows` and dropped from the tree exactly as
+        # before.
+        tree, _, zero_rows = build_operating(
+            KITSAP_FY2013_EXP_LINES, anchors(KITSAP_FY2013_EXP_ANCHOR), _kitsap_cfg())
+        for lbl in ('Transportation', 'Health & Human Services',
+                    'Economic Environment', 'Principal'):
+            self.assertIn(lbl, zero_rows)
+        flat = []
+
+        def walk(n):
+            flat.append(n['n'])
+            for c in n.get('c', []):
+                walk(c)
+        walk(tree)
+        self.assertNotIn('Transportation', flat)
+        self.assertNotIn('Principal', flat)
+
+
+class TestTargetCellIsDashZeroPredicate(unittest.TestCase):
+    """`target_cell_is_dash_zero` in isolation -- the discriminator the rule
+    rests on. A bare `val == 0` test cannot do this job: a printed literal
+    `0` is a VALUE, not an empty cell, and must not be mistaken for one."""
+
+    def _cfg(self, strategy='ordinal'):
+        return _kitsap_cfg(column_strategy=strategy)
+
+    def test_label_followed_only_by_a_dash_is_a_dash_zero(self):
+        line = 'Debt service                                                                   -'
+        self.assertTrue(target_cell_is_dash_zero(line, anchors(KITSAP_FY2013_EXP_ANCHOR), self._cfg()))
+
+    def test_a_real_value_is_not_a_dash_zero(self):
+        line = 'Debt service                                                                   12,500'
+        self.assertFalse(target_cell_is_dash_zero(line, anchors(KITSAP_FY2013_EXP_ANCHOR), self._cfg()))
+
+    def test_a_printed_literal_zero_is_not_a_dash_zero(self):
+        # A printed `0` reaches `classify` as ('data', label, 0) exactly like a
+        # dash does. It is a VALUE the issuer chose to print, so it must not
+        # open a group.
+        line = 'Debt service                                                                   0            -            -'
+        self.assertFalse(target_cell_is_dash_zero(line, anchors(KITSAP_FY2013_EXP_ANCHOR), self._cfg()))
+
+    def test_a_dash_in_the_target_column_with_money_in_later_columns_is_a_dash_zero(self):
+        # Kitsap's real Transportation row: dash in the General Fund column,
+        # $25,142,020 in County Roads. The target cell is still empty.
+        line = 'Transportation                                                                 -           25,142,020                   -'
+        self.assertTrue(target_cell_is_dash_zero(line, anchors(KITSAP_FY2013_EXP_ANCHOR), self._cfg()))
+
+    def test_positional_reader_sees_the_same_dash_zero(self):
+        # The predicate must answer the same question under either column
+        # strategy, since the dash placeholder is what makes an empty cell
+        # visible to both readers.
+        line = 'Debt service                                                                   -'
+        self.assertTrue(target_cell_is_dash_zero(
+            line, anchors(KITSAP_FY2013_EXP_ANCHOR), self._cfg('positional')))
+
+    def test_positional_reader_rejects_a_real_value(self):
+        line = 'Debt service                                     12,500                                    -            -'
+        self.assertFalse(target_cell_is_dash_zero(
+            line, anchors(KITSAP_FY2013_EXP_ANCHOR), self._cfg('positional')))
 
 
 class TestKitsapStatementAnchorGuardsAgainstTheWrongPage(unittest.TestCase):

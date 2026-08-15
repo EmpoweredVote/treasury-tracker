@@ -380,6 +380,7 @@ def label_of_slots(line):
     return norm_label(line[:m.start()] if m else line)
 
 _DASH_ROW = re.compile(r'^(?P<label>.*?[^\s\-–—])(?P<dashes>(?:\s+[-–—]+)+)\s*$')
+_DASH_ONLY = re.compile(r'^[-–—]+$')
 
 def dash_zero_label(line):
     """Label if `line` is a label followed ONLY by dash placeholders, else None.
@@ -616,6 +617,65 @@ def column_value(line, col_anchors, cfg):
     else:
         v = gf_value(line, col_anchors)
     return None if v is None else v * cfg.units
+
+
+def target_cell_is_dash_zero(line, col_anchors, cfg):
+    """True when `line`'s TARGET (General Fund) cell is an explicit DASH
+    PLACEHOLDER -- an empty cell the issuer wrote as `-` -- rather than a
+    printed number.
+
+    Trap 6 -- a SECTION HEADING carrying a stray dash-zero in the target
+    column. `classify` reports both shapes below identically, as
+    ('data', label, 0):
+
+        Debt service                        -            <- heading, dash-zero
+        Debt service                       12,500        <- valued root leaf
+
+    They are NOT the same row. `build_operating` needs to tell them apart to
+    decide whether a `parents`-matched label opens a group or is a leaf, and
+    a bare `val == 0` test cannot: a genuine printed `0` in the target column
+    also arrives as ('data', label, 0), and a real printed zero is a VALUE,
+    not an empty cell. This predicate answers only the narrow question "is
+    the target cell a dash placeholder", leaving that decision to the caller.
+
+    CONFIRMED LIVE (Kitsap County FY2011, FY2012 and FY2013): the
+    governmental-funds statement's `Debt service` heading line -- which
+    `pdftotext -lineprinter` shows at the ROOT indent, alongside `Current:`
+    and `Capital outlay`, with `Principal` and `Interest and other charges`
+    indented under it -- carries a lone `-` in the General Fund column.
+    Without this distinction the heading was read as a valued $0 leaf, was
+    dropped into `zero_rows`, never opened its group, and FY2013's
+    `Interest and other charges` ($416) fell to whatever parent was still
+    open (`Current`). 17 of Kitsap's 18 loaded years file it correctly;
+    FY2011/FY2012 escaped mis-attribution only because their debt-service
+    children happen to be $0 too. MONEY IS UNAFFECTED either way -- the $416
+    is counted exactly once and the tie stays $0 -- so this is a tree-SHAPE
+    defect that no arithmetic gate can catch.
+
+    Both column strategies are handled, because the dash placeholder is what
+    makes an empty cell VISIBLE and either reader can meet one:
+      * no money tokens anywhere on the line -> the row is a label followed
+        only by dashes, so the target cell is a dash by construction (this
+        is the shape all three confirmed Kitsap years take);
+      * 'ordinal' -> the FIRST column slot must itself be a dash-run;
+      * 'positional' -> no money token may resolve to column 0 (else the
+        cell holds a number), and some dash-run must resolve to column 0.
+    """
+    line = _recover_label_past_leading_page_number(line)
+    if not nums_with_pos(line):
+        return dash_zero_label(line) is not None
+    if cfg.column_strategy == 'ordinal':
+        m = _SLOT.search(line)
+        return bool(m) and _DASH_ONLY.match(m.group().strip()) is not None
+    if not col_anchors or gf_value(line, col_anchors) is not None:
+        return False
+    for m in _SLOT.finditer(line):
+        if not _DASH_ONLY.match(m.group().strip()):
+            continue
+        col = min(range(len(col_anchors)), key=lambda k: abs(m.end() - col_anchors[k]))
+        if col == 0:
+            return True
+    return False
 
 
 # ── Row classification ───────────────────────────────────────────────────────
@@ -1024,6 +1084,31 @@ def build_operating(lines, col_anchors, cfg):
         low = (lbl or '').lower()
 
         if kind == 'wrapped' and low in cfg.parents:
+            parent = {'n': lbl, 'a': 0, 'c': []}
+            root_children.append(parent)
+            pending = ''
+            continue
+        # Trap 6 -- a `parents`-matched SECTION HEADING carrying a stray
+        # dash-zero in the General Fund column. Such a line reaches
+        # `classify` as ('data', label, 0), indistinguishable by value alone
+        # from a valued $0 leaf, so without this branch the heading is
+        # dropped into `zero_rows`, its group never opens, and every child
+        # under it falls to whichever parent is still open. Confirmed live on
+        # Kitsap County FY2011/FY2012/FY2013 -- see
+        # `target_cell_is_dash_zero`'s docstring for the page geometry that
+        # settles it and for why the tie gate cannot catch it.
+        #
+        # DELIBERATELY NARROW, and both halves of the condition matter:
+        #   * the label must match a CONFIGURED `parents` entry, so a
+        #     dash-zero row that is not a configured heading (Kitsap's
+        #     Transportation, Health & Human Services, Economic Environment,
+        #     Principal ...) still goes to `zero_rows` exactly as before;
+        #   * the target cell must be an explicit DASH placeholder, so a
+        #     `parents`-matched label carrying a REAL value stays a leaf --
+        #     which is what keeps Hillsboro's valued `Debt service` root leaf
+        #     and every other shipped entity unmoved.
+        if (kind == 'data' and val == 0 and low in cfg.parents
+                and target_cell_is_dash_zero(l, col_anchors, cfg)):
             parent = {'n': lbl, 'a': 0, 'c': []}
             root_children.append(parent)
             pending = ''
