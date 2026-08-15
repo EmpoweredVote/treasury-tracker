@@ -24,23 +24,39 @@
  *
  * loadEntity() instead processes BOTH dataset types (operating + revenue)
  * for the requested FY window in a single call and returns an aggregate
- * `{ loaded, failed }` count. A per-FY failure is caught LOCALLY, logged
- * loudly, and counted as `failed` -- it does NOT abort the remaining years.
- * This is a considered choice, not a relaxation of the safety guards: this
- * module is expected to carry batches of 18-20 years per entity across THREE
- * extractors (extractBainbridge.py / extractBainbridgeEarly.py /
- * extractKitsap.py), several of which are already known to be excluded for
- * real, entity-specific document defects (FY2006 Bainbridge is an
- * image-only scan; FY2009 Bainbridge is font-corrupted; Kitsap FY2017-2019
- * share a different font defect). A single bad year should not sink an
- * otherwise-clean 34-36 row load. Every individual guard ported from the
- * reference (FY-vs-filename cross-check, tie_delta==0 gate, mapped-total ==
- * computed_total, sanity ceiling, per-capita plausibility band) still THROWS
- * internally and still prevents that one row from ever reaching the RPC --
- * only the *loop-level* control flow differs. Systemic setup failures (no
- * PDFs discovered at all, municipality not found, missing Supabase key in a
- * live run) are NOT per-FY-recoverable and still throw all the way out of
- * loadEntity(), same as the reference.
+ * `{ loaded, failed }` count. A per-FY failure is caught LOCALLY inside the
+ * loop, logged loudly, and counted as `failed` -- it does NOT abort the
+ * remaining years, so one bad year in an 18-20 year batch does not prevent
+ * every other year from loading and does not prevent a complete diagnostic
+ * list from being produced in one run.
+ *
+ * BUT: under this descriptor's own design every FY in `fiscalYears` is
+ * expected to succeed -- known-bad years (Bainbridge FY2006/FY2009, Kitsap
+ * FY2017-2019) are excluded from `fiscalYears` upstream by the caller and
+ * never enter the loop. So `failed > 0` is ALWAYS a real error, never an
+ * expected outcome, and a caller that only checks "did the promise resolve"
+ * must not be able to mistake a partial, silently-incomplete load for a
+ * clean one. loadEntity() therefore THROWS after both dataset types finish
+ * if `failed > 0`, UNLESS the descriptor explicitly opts in with
+ * `allowPartial: true`. The per-FY catch buys diagnostics; this final gate
+ * is what makes that catch safe rather than a silent-data-loss trap (a
+ * per-FY failure in loadFiscalYear happens AFTER that FY's previously
+ * published row has already been deleted by the pre-load delete, so
+ * swallowing the failure would leave the row silently GONE with nothing
+ * republished in its place).
+ *
+ * Every individual guard ported from the reference (FY-vs-filename
+ * cross-check, tie_delta==0 gate, mapped-total == computed_total, sanity
+ * ceiling, per-capita plausibility band, and the source_url validation added
+ * in this round) still THROWS internally and still prevents that one row
+ * from ever reaching the RPC -- only the *loop-level* control flow differs
+ * from the reference, and the final aggregate throw restores the
+ * reference's "an operator cannot miss this" guarantee at the loadEntity()
+ * level instead of the per-FY level. Systemic setup failures (no PDFs
+ * discovered at all, municipality not found, missing Supabase key in a live
+ * run, an invalid sourceUrlFor for an ephemeral data_source's base_url) are
+ * NOT per-FY-recoverable and still throw immediately, same as the
+ * reference.
  *
  * The ephemeral `data_sources` create/delete (WR-05/LOAD-01) stays in a
  * try/finally per dataset_type exactly as in the reference, and internal
@@ -102,6 +118,13 @@ const ROOT      = path.resolve(__dirname, '..', '..'); // scripts/lib -> scripts
  * @property {boolean} dryRun           - No DB writes; still runs extraction + all guards.
  * @property {number|null} targetFY     - Restrict to a single FY, or null for the whole
  *                                         fiscalYears window.
+ * @property {boolean} [allowPartial]   - Default false/absent. loadEntity() THROWS if
+ *                                         any FY/dataset failed unless this is exactly
+ *                                         `true` -- see the module header. Not set by
+ *                                         either real entity's descriptor; exists only
+ *                                         so a caller can deliberately opt into an
+ *                                         incomplete-load result instead of an aborted
+ *                                         run (e.g. exploratory / partial reruns).
  */
 
 // ── .env loader (ported verbatim from processSeattle.js) ────────────────────
@@ -245,6 +268,21 @@ export function checkPerCapita(total, population, band, fy, datasetType) {
   return perCapita;
 }
 
+// ── Resolve + validate a per-FY source URL, or throw ────────────────────────
+// C-1/I-1 fix: `descriptor.sourceUrlFor(fy)` returning a falsy value must
+// never silently result in a published row with no source_url (or an
+// ephemeral data_source with a fabricated base_url) -- this app's
+// always-sourced invariant is the whole point. Every call site resolves the
+// URL through here BEFORE touching any row, so a bad descriptor can never
+// cause a delete-then-publish-with-no-source sequence.
+export function requireSourceUrl(sourceUrlFor, fy, context) {
+  const url = sourceUrlFor(fy);
+  if (!url) {
+    throw new Error(`${context}: sourceUrlFor(${fy}) returned a falsy value -- refusing to write a row with no source_url`);
+  }
+  return url;
+}
+
 // ── Resolve the entity's municipality_id; refuse to write if not found ──────
 // Looks the entity up by name + state='WA' rather than a hard-coded id
 // (task-7-brief.md Step 2.5). Warns -- does not fail -- if the DB population
@@ -271,10 +309,20 @@ async function ensureMunicipality(treasuryClient, entityName, population) {
 async function createEphemeralDataSource(treasuryClient, muniId, datasetType, descriptor) {
   const datasetId = `${descriptor.datasetIdPrefix}-${datasetType}`;
   const kind = datasetType === 'revenue' ? 'Revenue' : 'Operating';
-  let baseUrl = 'https://sao.wa.gov';
+  // I-1 fix: no silent fallback to a generic SAO origin. If the descriptor's
+  // sourceUrlFor can't produce a valid URL even for its own first fiscal
+  // year, that is a descriptor misconfiguration -- a systemic setup failure,
+  // not a per-FY content issue -- and this throws all the way out of
+  // loadEntity() rather than publishing an ephemeral data_source with a
+  // fabricated base_url.
+  const firstFy = descriptor.fiscalYears[0];
+  const sampleUrl = requireSourceUrl(descriptor.sourceUrlFor, firstFy, `createEphemeralDataSource base_url (${datasetType})`);
+  let baseUrl;
   try {
-    baseUrl = new URL(descriptor.sourceUrlFor(descriptor.fiscalYears[0])).origin;
-  } catch { /* fall back to the generic SAO origin above */ }
+    baseUrl = new URL(sampleUrl).origin;
+  } catch (e) {
+    throw new Error(`createEphemeralDataSource base_url (${datasetType}): sourceUrlFor(${firstFy}) returned an invalid URL "${sampleUrl}": ${e.message}`);
+  }
   const payload = {
     name: `${descriptor.entityName} General Fund ${kind} Budget`,
     api_type: 'pdf_download',
@@ -298,6 +346,20 @@ async function deleteEphemeralDataSource(treasuryClient, dsId) {
 
 // ── Load one fiscal year, then source-stamp the resulting budgets row ────────
 async function loadFiscalYear(treasuryClient, publicClient, muniId, dsId, fy, datasetType, tree, total, rowCount, descriptor) {
+  // C-1/I-1 fix: resolve + validate the source URL BEFORE touching any row.
+  // Doing this ahead of the pre-load delete means a bad sourceUrlFor(fy) can
+  // never cause the previously-published row to be deleted and then left
+  // unstamped (or restamped with a NULL source_url, which PostgREST would
+  // otherwise accept silently -- JSON.stringify simply drops an `undefined`
+  // key, leaving the column NULL while this function still logged success).
+  let sourceUrl;
+  try {
+    sourceUrl = requireSourceUrl(descriptor.sourceUrlFor, fy, `FY${fy} (${datasetType})`);
+  } catch (e) {
+    console.error('    Source URL resolution failed:', e.message);
+    return false;
+  }
+
   // Pre-load delete keyed on the columns that actually identify the target
   // row. NOTE: budgets.data_source_id FKs treasury.source_registry (not
   // treasury.data_sources) and treasury_sync_budget_tree never sets it, so a
@@ -326,7 +388,7 @@ async function loadFiscalYear(treasuryClient, publicClient, muniId, dsId, fy, da
     return false;
   }
   const { error: stampErr } = await treasuryClient.from('budgets').update({
-    source_url:  descriptor.sourceUrlFor(fy),
+    source_url:  sourceUrl,
     source_date: `${fy}-12-31`,
     data_source: dataSourceLabel(descriptor.entityName, fy, datasetType),
   }).eq('id', bud.id);
@@ -344,6 +406,7 @@ async function loadFiscalYear(treasuryClient, publicClient, muniId, dsId, fy, da
 async function processDatasetType(treasuryClient, publicClient, muniId, dryRun, datasetType, years, pdfsByFY, descriptor) {
   const { entityName, extractorFor, sanityMax, perCapitaBand, population } = descriptor;
   let loaded = 0, failed = 0;
+  const failedYears = [];
 
   let ds = null;
   if (!dryRun) ds = await createEphemeralDataSource(treasuryClient, muniId, datasetType, descriptor);
@@ -414,6 +477,7 @@ async function processDatasetType(treasuryClient, publicClient, muniId, dryRun, 
       } catch (e) {
         console.error(`  FAILED FY${fy} ${datasetType}: ${e.message}`);
         failed++;
+        failedYears.push(`FY${fy} ${datasetType}`);
       }
     }
   } finally {
@@ -423,13 +487,19 @@ async function processDatasetType(treasuryClient, publicClient, muniId, dryRun, 
     }
   }
 
-  return { loaded, failed };
+  return { loaded, failed, failedYears };
 }
 
 // ── Public entry point ────────────────────────────────────────────────────────
 /**
  * Load one WA SAO entity's General Fund operating + revenue budgets across
  * its full fiscal-year window (or a single --fy).
+ *
+ * Rejects (throws) if any FY/dataset_type failed, UNLESS
+ * `descriptor.allowPartial === true` -- see the module header for why a
+ * per-FY catch alone would be unsafe on the write path. Resolves normally
+ * with `{ loaded, failed: 0 }` on a fully clean run, or with `{ loaded,
+ * failed }` (failed > 0) only when `allowPartial` was explicitly set.
  *
  * @param {EntityDescriptor} descriptor
  * @returns {Promise<{ loaded: number, failed: number }>}
@@ -469,12 +539,34 @@ export async function loadEntity(descriptor) {
   const years = targetFY ? [targetFY] : fiscalYears;
 
   let loaded = 0, failed = 0;
+  const failedYears = [];
   for (const datasetType of ['operating', 'revenue']) {
     const result = await processDatasetType(treasuryClient, publicClient, muniId, dryRun, datasetType, years, pdfsByFY, descriptor);
     loaded += result.loaded;
     failed += result.failed;
+    failedYears.push(...result.failedYears);
   }
 
   console.log(`\n${entityName} done. loaded=${loaded} failed=${failed}`);
+
+  // C-1 fix: under this descriptor's own design, every FY in `fiscalYears`
+  // is expected to succeed -- known-bad years (Bainbridge FY2006/FY2009,
+  // Kitsap FY2017-2019) are excluded from the descriptor's fiscalYears
+  // upstream and never enter this loop. So `failed > 0` is ALWAYS a real
+  // error, never an expected outcome. Per-FY catching (see processDatasetType)
+  // exists only to keep a bad year from sinking an otherwise-clean batch and
+  // to produce a complete diagnostic list in one run -- it must NOT let the
+  // caller mistake a partial, silently-incomplete load for a clean one.
+  // loadEntity therefore rejects by default whenever any year failed. The
+  // only way to get `{ loaded, failed }` back with failed > 0 is to opt in
+  // explicitly via descriptor.allowPartial === true.
+  if (failed > 0 && descriptor.allowPartial !== true) {
+    throw new Error(
+      `${entityName}: ${failed} fiscal-year/dataset load(s) failed and ` +
+      `descriptor.allowPartial was not set -- refusing to resolve normally on ` +
+      `a partial load. Failed: ${failedYears.join(', ')}. Pass ` +
+      `descriptor.allowPartial = true to opt into a partial-load result.`);
+  }
+
   return { loaded, failed };
 }
