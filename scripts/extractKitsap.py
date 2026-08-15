@@ -118,9 +118,15 @@ CONFIG = CityConfig(
     # the page line for line -- labels, values and dash-zeros -- and the
     # disagreement was between the page's own components and the page's own
     # printed total. Exact deltas only, never a tolerance.
+    # (Task 8 review, M-3 closed: those four entries originally recorded only
+    # the page and the two totals, unlike the other 29 which list every
+    # component. Component lists were back-filled below by rendering each
+    # cited page directly and reading the General Fund column; all four cited
+    # pages were confirmed correct, none needed correction.)
     source_rounding={
-        # FY2009 rev, PDF p36: the nine printed GF components sum to
-        # 79,202,745; the page prints Total revenues 79,202,743.
+        # FY2009 rev, PDF p36 ("...33"): 28,107,343 + 20,597,058 + 4,627,501
+        # + 205,203 + 9,837,637 + 9,824,133 + 2,419,026 + 1,749,057
+        # + 1,835,787 = 79,202,745; page prints Total revenues 79,202,743.
         (2009, 'revenue'): 2,
         # FY2010 rev, PDF p36 (doc page 33): 29,604,956 + 19,874,563
         # + 5,683,768 + 193,043 + 10,082,163 + 10,118,140 + 2,117,394
@@ -138,11 +144,16 @@ CONFIG = CityConfig(
         # + 9,559,076 + 8,619,518 + 2,426,747 + 820,068 + 992,086 =
         # 79,163,199; page prints 79,163,200.
         (2012, 'revenue'): -1,
-        # FY2013 op, PDF p40: components sum to 75,935,770; page prints
-        # 75,935,769.
+        # FY2013 op, PDF p40 ("Page 37"): 22,756,891 + 13,600,541 + 35,289,005
+        # + 22,603 + (Transportation dash) + (Health & Human Services dash)
+        # + (Economic Environment dash) + 4,136,703 + (Principal dash) + 416
+        # + 129,611 = 75,935,770; page prints Total expenditures 75,935,769.
         (2013, 'operating'): 1,
-        # FY2015 op, PDF p37: components sum to 84,809,389; page prints
-        # 84,809,390.
+        # FY2015 op, PDF p37 ("Page 37"): 24,559,307 + 14,737,334 + 40,663,921
+        # + (Physical Environment dash) + (Transportation dash)
+        # + (Health & Human Services dash) + (Economic Environment dash)
+        # + 4,611,975 + (Principal dash) + 1,512 + 235,340 = 84,809,389; page
+        # prints Total expenditures 84,809,390.
         (2015, 'operating'): -1,
         # FY2016 op, PDF p44 ("Page 44"): 26,183,555 + 15,383,485 + 40,554,291
         # + 1,824 + 4,616,699 + 10,608 + 177,096 = 86,927,558; page prints
@@ -152,8 +163,10 @@ CONFIG = CityConfig(
         # + 10,504,020 + 9,240,361 + 1,931,886 + 1,191,789 + 1,132,492 =
         # 88,990,219; page prints 88,990,218.
         (2016, 'revenue'): 1,
-        # FY2020 op, PDF p36: components sum to 101,074,407; page prints
-        # 101,074,409.
+        # FY2020 op, PDF p36 ("Page 36"): 27,356,478 + 17,150,060 + 49,747,355
+        # + 2,148,640 + (Transportation dash) + (Health & Human Services dash)
+        # + (Economic Environment dash) + 4,056,506 + 3,376 + 561 + 611,431 =
+        # 101,074,407; page prints Total Expenditures 101,074,409.
         (2020, 'operating'): -2,
         # FY2021 op, PDF p50 ("Page 50"): 26,999,688 + 16,671,887 + 49,474,779
         # + 2,051,973 + 3,976,901 + 33 + 277,212 = 99,452,473; page prints

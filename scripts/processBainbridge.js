@@ -20,7 +20,7 @@
  *     contiguous-offset decode found no substitution map that tied. No ARN in
  *     BAINBRIDGE_ARNS.
  *   * FY2010 (ARN 1006518) -- FOUND IN TASK 8. The governmental-funds
- *     statement is PDF page 57 and its text layer is rendered through a broken
+ *     statement is PDF page 28 and its text layer is rendered through a broken
  *     embedded font with a constant +29 byte shift ("&,7<2)%$,1%5,'*(,6/$1'"
  *     decodes to "CITY OF BAINBRIDGE ISLAND"). The LABELS decode; the MONEY
  *     DOES NOT -- a byte scan of the page finds zero control or high
@@ -28,7 +28,12 @@
  *     than mis-mapped. Same defect class as Kitsap FY2017-2019. plain /
  *     -table / -layout / -raw all behave identically. The only readable GF
  *     detail in that filing is the budget-basis Budgetary Comparison Schedule
- *     on page 128, which must NOT be published under a GAAP label.
+ *     -- General Fund on page 68 (Streets follows at page 69), which must NOT
+ *     be published under a GAAP label.
+ *     (Task 8 review, closed: this bullet originally miscited PDF page 57 and
+ *     page 128 -- page 57 is a clean-text Revenue Obligation Debt note and the
+ *     filing has only 72 pages total. Verified directly against the PDF; the
+ *     substance of the finding is unchanged.)
  *   * FY2011 (ARN 1008424) -- FOUND IN TASK 8. The two governmental-funds
  *     statement pages (25-26) carry ONLY the SAO page footer in their text
  *     layer; `pdfimages -list` shows the statement bodies are CCITT stencil
@@ -45,7 +50,7 @@
  * ------------------------
  * FY2004/2005/2007/2008 print a genuinely different expenditure tree (no
  * `Current` parent; `Debt service:` is itself a parent) and need
- * extractBainbridgeEarly.py. FY2010+ uses extractBainbridge.py. CityConfig is
+ * extractBainbridgeEarly.py. FY2012+ uses extractBainbridge.py. CityConfig is
  * one tree shape per config, not an era-aware switch, so the era split is
  * expressed here via makeExtractorSelector().
  *
@@ -92,7 +97,7 @@ const { loaded, failed } = await loadEntity({
   population: 25_530,
   // Seattle's [500, 25000] does NOT transfer. Bainbridge GF runs roughly
   // $700-1,600/resident across the window; [100, 10000] is wide enough for
-  // the whole 20-year window while still catching a 1000x units error in
+  // the whole 18-year window while still catching a 1000x units error in
   // either direction (units=1 here, not Seattle/King County's 1000).
   perCapitaBand: [100, 10_000],
   datasetIdPrefix: 'bainbridge-sao-gf',

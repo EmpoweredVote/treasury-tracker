@@ -12,7 +12,7 @@ for SOURCE-DOCUMENT reasons, none for a parser reason:
   * FY2009 -- statement pages are digit-bearing but ciphered (broken embedded
     font, no usable ToUnicode CMap); the bounded contiguous-offset decode
     attempted in Task 6 found no substitution map that tied. No ARN.
-  * FY2010 -- found in Task 8. The governmental-funds statement (PDF page 57)
+  * FY2010 -- found in Task 8. The governmental-funds statement (PDF page 28)
     decodes through a constant +29 byte shift: "&,7<2)%$,1%5,'*(,6/$1'" is
     "CITY OF BAINBRIDGE ISLAND". The labels recover; the MONEY DOES NOT (a
     byte scan finds zero control/high characters, so the digits are absent
@@ -31,7 +31,7 @@ Source is the WA State Auditor's bound financial statements, not a
 self-published ACFR: SAO binds full statements for every filer except large
 GAAP filers that publish their own (Seattle, King County).
 
-Bainbridge specifics (FY2010-FY2025)
+Bainbridge specifics (FY2012-FY2025)
 -------------------------------------
 * AMOUNTS ARE WHOLE DOLLARS -> units=1 (the default). Opposite of Seattle and
   King County, which print "(IN THOUSANDS)". The tie gate is unit-invariant and
@@ -51,12 +51,24 @@ Bainbridge specifics (FY2010-FY2025)
 
   CORRECTION (Task 8): an earlier revision of this docstring claimed "FY2010
   alone in this era renders the caption as `Total REVENUES` (different case)".
-  That observation was made against **page 128 of the FY2010 filing, the
-  BUDGETARY COMPARISON SCHEDULE** -- a budget-basis page that `_EXCLUDE`
-  deliberately rejects -- not against the GAAP governmental-funds statement,
-  whose text layer in that filing is unreadable (see FY2010 above). The claim
-  is removed rather than corrected in place because it implied FY2010 was a
-  working year, which it never was.
+  That observation was made against **page 68 of the FY2010 filing, the
+  BUDGETARY COMPARISON SCHEDULE -- General Fund** (the Streets fund's own
+  Budgetary Comparison Schedule immediately follows at page 69) -- a
+  budget-basis page that `_EXCLUDE` deliberately rejects -- not against the
+  GAAP governmental-funds statement, whose text layer in that filing is
+  unreadable (see FY2010 above). The claim is removed rather than corrected
+  in place because it implied FY2010 was a working year, which it never was.
+
+  CORRECTION (Task 8 review, closed): the page numbers in the paragraph above
+  and in the FY2010 bullet were originally miscited as "PDF page 57" (GAAP
+  statement) and "page 128" (Budgetary Comparison Schedule). Page 57 of that
+  filing is in fact a clean-text Revenue Obligation Debt note, and the filing
+  has only 72 pages total, so page 128 does not exist. Verified directly
+  against docs/BainbridgeIsland/bainbridge-2010-acfr.pdf: the ciphered GAAP
+  statement (the +29 shift decodes its footer "25") is PDF page 28, and the
+  Budgetary Comparison Schedule -- General Fund is PDF page 68 (Streets is
+  page 69). The substance of both findings is unchanged; only the page
+  numbers were wrong.
 
 Usage:
   py -3 scripts/extractBainbridge.py "docs/BainbridgeIsland/bainbridge-2025-acfr.pdf" --mode revenue
@@ -76,7 +88,7 @@ CONFIG = CityConfig(
     column_strategy='ordinal',
     units=1,
     fy_end=('December', 31),
-    # Task 8: 13 of this era's 16 loadable FY x mode combinations carry a
+    # Task 8: 17 of this era's 28 loadable FY x mode combinations carry a
     # printed-total artifact. EVERY entry below was adjudicated by RENDERING
     # the statement page (pdftoppm -r 160) and reading the General column off
     # the image, not off the text layer. In every case the extractor's
