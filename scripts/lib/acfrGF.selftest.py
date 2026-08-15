@@ -4,11 +4,21 @@
 Pure-function tests over synthetic lines transcribed from the real PDFs, so
 they run with no PDF, no pdftotext and no network. Run: py -3 scripts/lib/acfrGF.selftest.py
 """
-import pathlib, sys, unittest
+import pathlib, re, sys, unittest
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from lib.acfrGF import (CityConfig, column_value, classify, build_revenue,
                          build_operating, anchors, slots, dash_zero_label,
-                         find_statement_page, parse_fy, _is_section_header)
+                         find_statement_page, parse_fy, _is_section_header,
+                         _recover_label_past_leading_page_number,
+                         target_cell_is_dash_zero)
+# The SHIPPED Bainbridge configs themselves, not copies of them -- see
+# TestShippedBainbridgeConfigsAreWholeDollars at the bottom of this file for
+# why the real objects have to be under test rather than a local fixture.
+# Both modules define CONFIG at import time and only call run_cli under
+# `if __name__ == '__main__'`, so importing them here runs no extraction.
+import extractBainbridge          # noqa: E402
+import extractBainbridgeEarly     # noqa: E402
+import extractKitsap              # noqa: E402
 
 # Transcribed from King County FY2020-era GF statement (values thousands-scale
 # in the real document; kept as bare ints here since these tests exercise
@@ -656,6 +666,588 @@ class TestSectionHeaderPrefixGuardRound5(unittest.TestCase):
 
     def test_bare_expenditures_still_accepts(self):
         self.assertTrue(_is_section_header('EXPENDITURES', 'expenditures', 'prefix'))
+
+
+# ── Bainbridge Island shape ──────────────────────────────────────────────────
+# Transcribed from the FY2025 SAO-bound statement (whole dollars, GF leftmost).
+# Bainbridge does NOT group its revenue side -- there is no `Taxes:` parent --
+# which is why BI_CFG leaves revenue_parents empty while Seattle/King County
+# set it. Setting it here would look for a group that does not exist.
+BI_REV_LINES = [
+    'REVENUES',
+    'Property Taxes                    8,612,126    -            -        (64)        8,612,062',
+    'Sales, Business, and Excise Taxes 12,532,083   786,774      -        5,109,974   18,428,831',
+    'Licenses and Permits              669,376       37,063      -        -           706,439',
+    'Total Revenues                    24,379,173   1,298,666    208,542  6,340,722   32,227,102',
+]
+BI_REV_ANCHOR = BI_REV_LINES[-1]
+
+BI_EXP_LINES = [
+    'EXPENDITURES',
+    'Current',
+    'General Government                7,996,984    577,779      -        -           8,574,762',
+    'Transportation                    -            3,344,813    -        -           3,344,813',
+    'Debt Service - Principal          30,508       -            -        668,665     699,173',
+    'Capital Outlay                    133,497      -            4,809,336 -          4,942,833',
+    'Total Expenditures                20,801,297   4,090,263    4,809,336 1,996,401  31,697,296',
+]
+BI_EXP_ANCHOR = BI_EXP_LINES[-1]
+
+
+def _bi_cfg(**kw):
+    base = dict(city='Bainbridge Island, WA',
+                parents=('current',),
+                root_leaves=('debt service', 'capital outlay'),
+                column_strategy='ordinal', units=1, fy_end=('December', 31))
+    base.update(kw)
+    return CityConfig(**base)
+
+
+class TestBainbridgeShape(unittest.TestCase):
+    def test_revenue_side_is_flat_with_no_tax_parent(self):
+        tree, total, _ = build_revenue(BI_REV_LINES, anchors(BI_REV_ANCHOR), _bi_cfg())
+        self.assertEqual([c['n'] for c in tree['c']],
+                         ['Property Taxes', 'Sales, Business, and Excise Taxes',
+                          'Licenses and Permits'])
+        self.assertEqual(total, 8612126 + 12532083 + 669376)
+
+    def test_capital_outlay_and_debt_service_are_root_leaves_not_children_of_current(self):
+        tree, _, _ = build_operating(BI_EXP_LINES, anchors(BI_EXP_ANCHOR), _bi_cfg())
+        roots = [c['n'] for c in tree['c']]
+        self.assertIn('Current', roots)
+        self.assertIn('Capital Outlay', roots)
+        self.assertIn('Debt Service - Principal', roots)
+
+    def test_dash_zero_transportation_keeps_its_own_label(self):
+        # The Bend trap: a dash-zero can graft its label onto the NEXT row while
+        # tie_delta stays $0, so the tie can never detect it. Assert the label.
+        #
+        # NOTE: this assertion was NOT taken verbatim from the task brief.
+        # The brief's original draft read the label off `current.get('i', [])`
+        # -- a key `build_operating` never emits (no node in this library
+        # carries an 'i' array; see acfrGF.py). A $0 GF row is recorded in
+        # `zero_rows` and dropped from the tree entirely (documented in
+        # build_operating's docstring and exercised by the existing
+        # TestDoubleDashRowDoesNotGlue case above), so the brief's assertion
+        # could never pass against the library's actual, correct, already-
+        # documented behaviour. Rewritten to assert against `zero_rows`
+        # instead, matching that existing pattern -- same intent (the label
+        # survives on its own, not glued onto the next row) via the real API.
+        _, _, zero_rows = build_operating(BI_EXP_LINES, anchors(BI_EXP_ANCHOR), _bi_cfg())
+        self.assertIn('Transportation', zero_rows)
+        self.assertNotIn('Transportation Debt Service - Principal', zero_rows)
+
+
+# ── Bainbridge Island EARLY-ERA shape (FY2004-2008) ──────────────────────────
+# Transcribed from the FY2004 governmental-funds statement (whole dollars, GF
+# leftmost, "Total Operating Revenues" instead of FY2010+'s "Total Revenues").
+# Unlike FY2010+ (TestBainbridgeShape above), there is no `Current` parent --
+# the function rows sit flat at root -- and `Debt service:` is itself a
+# PARENT (the Hillsboro-style inversion CityConfig's docstring documents),
+# introducing `Principal` and `Interest` as its children rather than as flat
+# root leaves. This is why scripts/extractBainbridgeEarly.py exists as a
+# separate CityConfig instead of widening scripts/extractBainbridge.py's
+# parents/root_leaves to cover both eras at once -- CityConfig is one tree
+# shape per config; the two eras are genuinely different documents.
+BI_EARLY_REV_LINES = [
+    'REVENUES',
+    'Property taxes                    5,376,784    -            -            409,709     5,786,494',
+    'Other taxes                       4,970,906    284,089      2,097,434    55,420      7,407,850',
+    'Fees and fines                    177,812      -            -            -           177,812',
+    'Total Operating Revenues          10,524,502   284,089      2,097,434    465,129     13,371,154',
+]
+BI_EARLY_REV_ANCHOR = BI_EARLY_REV_LINES[-1]
+
+BI_EARLY_EXP_LINES = [
+    'EXPENDITURES',
+    'General government                 2,951,684    243,450      -            376         3,195,510',
+    'Judicial                            567,639      -            -            -           567,639',
+    'Debt service:',
+    'Principal                           118,898      -            -            1,039,855   1,158,753',
+    'Interest                            55,275       -            -            972,068     1,027,343',
+    'Capital outlay                      629,708      207,381      -            180,000     1,017,089',
+    'Total Expenditures                  4,322,784    450,839      -            1,192,299   5,965,922',
+]
+BI_EARLY_EXP_ANCHOR = BI_EARLY_EXP_LINES[-1]
+
+
+def _bi_early_cfg(**kw):
+    base = dict(city='Bainbridge Island, WA',
+                parents=('debt service',),
+                root_leaves=('capital outlay',),
+                column_strategy='ordinal', units=1, fy_end=('December', 31),
+                revenue_total_labels=('total revenues', 'total operating revenues'))
+    base.update(kw)
+    return CityConfig(**base)
+
+
+class TestBainbridgeEarlyShape(unittest.TestCase):
+    def test_revenue_section_closes_at_total_operating_revenues_not_total_revenues(self):
+        # The section-end regex must recognise "Total Operating Revenues" via
+        # revenue_total_labels; if it only matched the default "Total
+        # Revenues" (FY2010+), the revenue section would never close and
+        # would run away into EXPENDITURES -- the exact failure observed live
+        # on FY2004 before _end_revenues_pattern was added (fix round 1).
+        tree, total, _ = build_revenue(BI_EARLY_REV_LINES, anchors(BI_EARLY_REV_ANCHOR), _bi_early_cfg())
+        self.assertEqual([c['n'] for c in tree['c']],
+                         ['Property taxes', 'Other taxes', 'Fees and fines'])
+        self.assertEqual(total, 5376784 + 4970906 + 177812)
+
+    def test_debt_service_is_a_parent_with_principal_and_interest_as_children(self):
+        tree, _, _ = build_operating(BI_EARLY_EXP_LINES, anchors(BI_EARLY_EXP_ANCHOR), _bi_early_cfg())
+        roots = [c['n'] for c in tree['c']]
+        self.assertIn('Debt service', roots)
+        self.assertNotIn('Principal', roots)   # must NOT be a root leaf here
+        self.assertIn('Capital outlay', roots)
+        debt_service = next(c for c in tree['c'] if c['n'] == 'Debt service')
+        self.assertEqual([c['n'] for c in debt_service['c']], ['Principal', 'Interest'])
+        self.assertEqual(debt_service['a'], 118898 + 55275)
+
+    def test_general_government_and_judicial_stay_flat_at_root_no_current_parent(self):
+        # FY2004-2008 print no `Current` header at all -- the function rows
+        # are peers of `Debt service` and `Capital outlay`, not children of a
+        # group that does not exist in this era's document.
+        tree, _, _ = build_operating(BI_EARLY_EXP_LINES, anchors(BI_EARLY_EXP_ANCHOR), _bi_early_cfg())
+        roots = [c['n'] for c in tree['c']]
+        self.assertIn('General government', roots)
+        self.assertIn('Judicial', roots)
+        self.assertNotIn('Current', roots)
+
+
+class TestShippedBainbridgeConfigsAreWholeDollars(unittest.TestCase):
+    # Bainbridge's SAO-bound statements print WHOLE DOLLARS; Seattle and King
+    # County print "(IN THOUSANDS)". Getting that wrong publishes figures that
+    # are off by 1000x -- and NOTHING else in this repo can catch it:
+    #
+    #   * The tie gate is unit-invariant. computed and printed are BOTH scaled
+    #     by cfg.units, so tie_delta reads $0 at units=1 and at units=1000
+    #     alike. A wrong multiplier ships silently past a green tie.
+    #   * TestUnits above pins the library MECHANICS (that cfg.units is applied
+    #     exactly once, at the right layers) using its own local fixtures. It
+    #     says nothing about which value the shipped city configs choose.
+    #
+    # So these assertions must run against the real, shipped CONFIG objects.
+    # A version of this test that rebuilds an equivalent CityConfig locally
+    # would pass forever no matter what the shipped files said -- which is
+    # exactly the hole this class was written to close.
+    def test_modern_era_config_units_is_one(self):
+        self.assertEqual(extractBainbridge.CONFIG.units, 1)
+
+    def test_early_era_config_units_is_one(self):
+        self.assertEqual(extractBainbridgeEarly.CONFIG.units, 1)
+
+    def test_kitsap_config_units_is_one(self):
+        # I-2 (Task 5 fix round 1): the selftest's own _kitsap_cfg() helper
+        # (see TestKitsapShape below) rebuilds an equivalent CityConfig
+        # locally with units=1 and asserts against THAT -- which proves
+        # nothing about what extractKitsap.py actually ships. That is
+        # precisely the hole this class exists to close (see the class
+        # docstring above): assert against the real, shipped CONFIG object.
+        self.assertEqual(extractKitsap.CONFIG.units, 1)
+
+
+# ── Trap 5 (fix round 3): footer page-number recovery + loud failure ────────
+# Transcribed from the FY2004 governmental-funds statement's real
+# Transportation row (see task-4-report.md fix round 2 for how this was
+# diagnosed): a page-footer PAGE NUMBER ('16') landed at the very start of
+# the rendered line, ahead of the real label, and was silently dropped --
+# taking its true GF value (75) with it -- before this fix existed.
+FOOTER_DIGIT_TRANSPORTATION_LINE = (
+    '16                                 Transportation                     '
+    '75           1,785,388    -            -        -           1,785,463'
+)
+_FOOTER_ANCHOR = anchors('Total Expenditures  75  1,785,388  -  -  -  1,785,463')
+
+
+def _footer_digit_cfg():
+    return CityConfig(city='X', parents=('debt service',),
+                       root_leaves=('capital outlay',),
+                       column_strategy='ordinal', units=1)
+
+
+class TestLeadingPageNumberRecovery(unittest.TestCase):
+    def test_footer_digit_row_recovers_its_label_and_true_value(self):
+        kind, lbl, val = classify(FOOTER_DIGIT_TRANSPORTATION_LINE, _FOOTER_ANCHOR, _footer_digit_cfg())
+        self.assertEqual(kind, 'data')
+        self.assertEqual(lbl, 'Transportation')
+        self.assertEqual(val, 75)
+
+    def test_recovery_works_end_to_end_through_build_operating(self):
+        # Same row, exercised through the full tree builder (in the style of
+        # TestBainbridgeShape above), not just classify() directly.
+        exp_lines = [
+            'EXPENDITURES',
+            'General government                 2,951,684    243,450      -            376         3,195,510',
+            FOOTER_DIGIT_TRANSPORTATION_LINE,
+            'Capital outlay                      629,708      207,381      -            180,000     1,017,089',
+            'Total Expenditures                  3,656,467    450,831      75           180,376     6,073,310',
+        ]
+        tree, total, zero_rows = build_operating(exp_lines, _FOOTER_ANCHOR, _footer_digit_cfg())
+        roots = {c['n']: c['a'] for c in tree['c']}
+        self.assertIn('Transportation', roots)
+        self.assertEqual(roots['Transportation'], 75)
+        self.assertEqual(zero_rows, [])   # not dropped, so not in zero_rows either
+
+    def test_legitimate_label_starting_with_digits_and_a_single_space_is_untouched(self):
+        # "911 Dispatch" must NOT be mistaken for a page-number prefix: the
+        # digit and the following word are separated by a single space, not
+        # a genuine 2+-space column gap. Confirmed unmodified by the
+        # recovery step itself (see acfrGF.py's Trap 5 comment for the
+        # separate, pre-existing, disclosed residual this does NOT fix: a
+        # digit-led label reaching classify() would still raise there, not
+        # here -- verified absent from every currently-shipped entity's real
+        # GF statement page).
+        line = '911 Dispatch                       50,000       -        -        -           50,000'
+        self.assertEqual(_recover_label_past_leading_page_number(line), line)
+
+    def test_compound_label_with_no_gap_at_all_is_untouched(self):
+        # "4Culture" (a real King County program name, confirmed present in
+        # King County's FY2024 ACFR as a debt-schedule caption -- never on
+        # the GF statement page itself) has no gap whatsoever between the
+        # digit and the letter, so it can never match _LEADING_PAGE_NUMBER
+        # either.
+        line = '4Culture                           50,000       -        -        -           50,000'
+        self.assertEqual(_recover_label_past_leading_page_number(line), line)
+
+
+class TestValuesWithNoLabelRaisesLoudly(unittest.TestCase):
+    def test_a_row_with_a_real_gf_value_and_no_recoverable_label_raises(self):
+        # The actual defect this round exists to fix: silently dropping a
+        # row that carries a real value is worse than failing loudly. This
+        # line has no leading page-number pattern to recover (no digit run
+        # at all before the numbers) -- it is simply unlabeled, which must
+        # now be impossible to pass through silently.
+        line = '                                    50,000       -        -        -           50,000'
+        anchor = anchors('Total Expenditures  50,000  -  -  -  50,000')
+        with self.assertRaises(ValueError):
+            classify(line, anchor, _footer_digit_cfg())
+
+
+class TestBlankLinesAndRulesStillSkipQuietly(unittest.TestCase):
+    # CRITICAL boundary from fix round 3: a genuinely blank line, a
+    # rule/underline row, or a spacer with NO values at all must continue to
+    # be skipped quietly -- the loud failure above applies ONLY when a row
+    # carries a real value and still has no usable label. These three cases
+    # never reach that branch at all (they have no money tokens whatsoever),
+    # so they must never raise.
+    def test_an_empty_line_is_still_skipped_quietly(self):
+        kind, lbl, val = classify('', [], _footer_digit_cfg())
+        self.assertEqual(kind, 'skip')
+
+    def test_a_pure_whitespace_line_is_still_skipped_quietly(self):
+        kind, lbl, val = classify('              ', [], _footer_digit_cfg())
+        self.assertEqual(kind, 'skip')
+
+    def test_an_underline_rule_row_with_no_values_never_raises(self):
+        kind, lbl, val = classify('___________________________________', [], _footer_digit_cfg())
+        self.assertIn(kind, ('wrapped', 'skip'))
+
+    def test_a_wrapped_label_continuation_with_no_numbers_never_raises(self):
+        # A genuine multi-line label wrap (no money tokens at all on this
+        # physical line) must still be classified 'wrapped', not raise.
+        kind, lbl, val = classify('Culture and Recreation', [], _footer_digit_cfg())
+        self.assertEqual(kind, 'wrapped')
+        self.assertEqual(lbl, 'Culture and Recreation')
+
+
+# ── Kitsap County shape ──────────────────────────────────────────────────────
+# Transcribed from the FY2024 SAO-bound statement. County vocabulary uses
+# ampersands and differs from every TT city -- the Ohio-AOS county-vs-city
+# lesson holding again for ACFRs.
+KITSAP_REV_LINES = [
+    'Revenues',
+    'Property Taxes                 39,113,858   -            -            -',
+    'Retail Sales & Use Taxes       44,690,283   -            -            -',
+    'Other Taxes                    2,627,819    8,697,831    -            -',
+    'Fines & Forfeits               1,559,156    -            -            -',
+    'Total Revenues                 125,581,123  9,569,454    20,869,258   6,398,908',
+]
+KITSAP_REV_ANCHOR = KITSAP_REV_LINES[-1]
+
+KITSAP_EXP_LINES = [
+    'Expenditures',
+    'Current',
+    'General Government             31,292,474   -            3,984,263    -',
+    'Transportation                 -            -            -            -',
+    'Health & Human Services        -            -            3,952,076    1,095,960',
+    'Debt Service',
+    'Principal                      442,709      -            -            -',
+    'Interest & Other Charges       35,340       550          -            -',
+    'Capital Outlay                 330,568      -            12,932,919   -',
+    'Total Expenditures             128,230,878  550          20,869,258   1,095,960',
+]
+KITSAP_EXP_ANCHOR = KITSAP_EXP_LINES[-1]
+
+
+def _kitsap_cfg(**kw):
+    base = dict(city='Kitsap County, WA',
+                parents=('current', 'debt service'),
+                root_leaves=('capital outlay',),
+                column_strategy='ordinal', units=1, fy_end=('December', 31))
+    base.update(kw)
+    return CityConfig(**base)
+
+
+class TestKitsapShape(unittest.TestCase):
+    def test_ampersand_labels_survive_intact(self):
+        tree, _, _ = build_revenue(KITSAP_REV_LINES, anchors(KITSAP_REV_ANCHOR), _kitsap_cfg())
+        names = [c['n'] for c in tree['c']]
+        self.assertIn('Retail Sales & Use Taxes', names)
+        self.assertIn('Fines & Forfeits', names)
+
+    def test_revenue_side_is_flat_despite_taxes_suffixed_labels(self):
+        # Three labels end in "Taxes" but there is no `Taxes:` parent row, so
+        # revenue_parents must stay EMPTY. King County prints the parent and
+        # Kitsap does not -- these are different documents, not two readings.
+        tree, total, _ = build_revenue(KITSAP_REV_LINES, anchors(KITSAP_REV_ANCHOR), _kitsap_cfg())
+        self.assertEqual(len(tree['c']), 4)
+        self.assertNotIn('Taxes', [c['n'] for c in tree['c']])
+        self.assertEqual(total, 39113858 + 44690283 + 2627819 + 1559156)
+
+    def test_debt_service_is_a_parent_and_capital_outlay_is_a_root_leaf(self):
+        tree, _, _ = build_operating(KITSAP_EXP_LINES, anchors(KITSAP_EXP_ANCHOR), _kitsap_cfg())
+        roots = [c['n'] for c in tree['c']]
+        self.assertIn('Debt Service', roots)
+        self.assertIn('Capital Outlay', roots)
+        debt = next(c for c in tree['c'] if c['n'] == 'Debt Service')
+        child_names = [i['n'] for i in debt.get('i', [])] + [c['n'] for c in debt.get('c', [])]
+        self.assertIn('Principal', child_names)
+        self.assertIn('Interest & Other Charges', child_names)
+
+    def test_consecutive_dash_zeros_do_not_merge_labels(self):
+        # Transportation, Health & Human Services and Economic Environment are
+        # all dash-zero in the GF column. Consecutive dash-zeros are the worst
+        # case for label grafting and tie_delta stays $0 throughout.
+        #
+        # NOTE: this assertion was NOT taken verbatim from the task brief.
+        # The brief's original draft read the label off `current.get('i', [])`
+        # -- a key `build_operating` never emits (no node in this library
+        # carries an 'i' array; see acfrGF.py, and see
+        # TestBainbridgeShape.test_dash_zero_transportation_keeps_its_own_label
+        # above for the identical, already-resolved precedent from Task 4). A
+        # $0 GF row is recorded in `zero_rows` and dropped from the tree
+        # entirely, so the brief's assertion could never pass against the
+        # library's actual, correct, already-documented behaviour. Rewritten
+        # to assert against `zero_rows` instead -- same intent (each
+        # dash-zero row keeps its own label; none glued onto its neighbour)
+        # via the real API.
+        _, _, zero_rows = build_operating(KITSAP_EXP_LINES, anchors(KITSAP_EXP_ANCHOR), _kitsap_cfg())
+        self.assertIn('Transportation', zero_rows)
+        self.assertIn('Health & Human Services', zero_rows)
+        for l in zero_rows:
+            self.assertNotRegex(l, r'Transportation\s+Health')
+
+
+# ── Trap 6: a `parents`-matched heading carrying a stray dash-zero ───────────
+# Transcribed VERBATIM from Kitsap County's real FY2013 governmental-funds
+# statement (`pdftotext -table docs/KitsapCounty/kitsap-2013-acfr.pdf`, PDF
+# page 40, printed "Page 37"), General Fund column. Only the OTHER funds'
+# columns are elided where they run past the line width; every General Fund
+# cell, dash-zero and label is exactly as the document renders it.
+#
+# `Debt service` here carries a lone `-` in the General Fund column. True page
+# geometry (`pdftotext -lineprinter`, which preserves the physical indent
+# `-table` flattens) shows it at the ROOT indent, alongside `Current:` and
+# `Capital outlay`, with `Principal` and `Interest and other charges` indented
+# beneath it -- so it is a SECTION HEADING, not a valued $0 leaf. Before the
+# Trap 6 fix, `classify` reported it as ('data', 'Debt service', 0),
+# `build_operating` dropped it into `zero_rows`, the group never opened, and
+# `Interest and other charges` ($416) fell to the still-open `Current` parent.
+# MONEY WAS NEVER AFFECTED -- the $416 was counted exactly once and the tie
+# stayed at its registered +1 -- which is exactly why no arithmetic gate could
+# catch it.
+KITSAP_FY2013_EXP_LINES = [
+    'EXPENDITURES:',
+    'Current:',
+    'General government                               22,756,891                                        -                    -',
+    'Judicial Services                                13,600,541                                        -                    -',
+    'Public safety                                    35,289,005                                        -                    -',
+    'Physical Environment                                                           22,603              -                    -',
+    'Transportation                                                                 -           25,142,020                   -',
+    'Health & Human Services                                                        -                   -                    -',
+    'Economic Environment                                                           -                   -                    -',
+    'Culture & recreation                             4,136,703                                         -                    -',
+    'Debt service                                                                   -',
+    'Principal                                                                      -           47,253               41,667',
+    'Interest and other charges                                                     416         2,126                77,032',
+    'Capital outlay                                                                 129,611     5,126,910                    -',
+    'Total expenditures                               75,935,769                                30,318,309           118,699',
+]
+KITSAP_FY2013_EXP_ANCHOR = KITSAP_FY2013_EXP_LINES[-1]
+
+# The SAME statement with one character changed: `Debt service`'s General Fund
+# dash replaced by a real printed value. This is the shape Hillsboro's
+# statement genuinely prints (`Debt service  12,500` as a VALUED ROOT LEAF --
+# see acfrGF.py's CityConfig docstring), and it MUST keep its pre-fix
+# behaviour: a `parents`-matched label carrying real money is a leaf, never a
+# heading. Nothing else on the line is altered.
+KITSAP_FY2013_EXP_LINES_VALUED_HEADING = [
+    ('Debt service                                                                   12,500'
+     if l.startswith('Debt service') else l)
+    for l in KITSAP_FY2013_EXP_LINES
+]
+
+
+class TestParentLabelledDashZeroHeading(unittest.TestCase):
+    """Both branches of the Trap 6 rule, over the real FY2013 statement.
+
+    The rule is deliberately two-sided and BOTH sides are asserted here:
+    a `parents`-matched line whose target cell is a DASH placeholder opens
+    the group; a `parents`-matched line carrying a REAL value does not.
+    """
+
+    def test_dash_zero_heading_opens_its_group_and_adopts_its_children(self):
+        tree, total, zero_rows = build_operating(
+            KITSAP_FY2013_EXP_LINES, anchors(KITSAP_FY2013_EXP_ANCHOR), _kitsap_cfg())
+        roots = {c['n']: c for c in tree['c']}
+        self.assertIn('Debt service', roots)
+        self.assertEqual([c['n'] for c in roots['Debt service']['c']],
+                         ['Interest and other charges'])
+        self.assertEqual(roots['Debt service']['a'], 416)
+        # ...and it is no longer recorded as a dropped $0 row.
+        self.assertNotIn('Debt service', zero_rows)
+
+    def test_the_child_no_longer_hangs_off_the_preceding_current_parent(self):
+        # The defect itself: `Interest and other charges` mis-parented onto
+        # `Current`, inflating that subtotal by exactly $416.
+        tree, _, _ = build_operating(
+            KITSAP_FY2013_EXP_LINES, anchors(KITSAP_FY2013_EXP_ANCHOR), _kitsap_cfg())
+        current = next(c for c in tree['c'] if c['n'] == 'Current')
+        self.assertNotIn('Interest and other charges', [c['n'] for c in current['c']])
+        self.assertEqual(current['a'], 22756891 + 13600541 + 35289005 + 22603 + 4136703)
+
+    def test_money_is_unchanged_the_fix_moves_shape_only(self):
+        # The $416 appears exactly once, and the component sum still equals the
+        # loaded FY2013 operating total. This fix must never move money.
+        _, total, _ = build_operating(
+            KITSAP_FY2013_EXP_LINES, anchors(KITSAP_FY2013_EXP_ANCHOR), _kitsap_cfg())
+        self.assertEqual(total, 75_935_770)
+
+    def test_a_parent_labelled_line_with_a_real_value_is_still_a_leaf(self):
+        # THE OTHER BRANCH. `Debt service  12,500` matches a configured
+        # `parents` entry but carries real money, so it must keep its pre-fix
+        # behaviour: a valued leaf (here, of the open `Current` parent), NOT a
+        # heading. This is what leaves Hillsboro's valued `Debt service` root
+        # leaf -- and every other shipped entity -- unmoved.
+        tree, _, _ = build_operating(
+            KITSAP_FY2013_EXP_LINES_VALUED_HEADING,
+            anchors(KITSAP_FY2013_EXP_ANCHOR), _kitsap_cfg())
+        self.assertNotIn('Debt service', [c['n'] for c in tree['c']])
+        current = next(c for c in tree['c'] if c['n'] == 'Current')
+        debt = next(c for c in current['c'] if c['n'] == 'Debt service')
+        self.assertEqual(debt['a'], 12500)
+        self.assertNotIn('c', debt)
+
+    def test_a_dash_zero_row_that_is_not_a_configured_parent_still_drops(self):
+        # The third boundary: Transportation, Health & Human Services,
+        # Economic Environment and Principal are all dash-zero in the General
+        # Fund column and none is a configured parent, so all four must still
+        # be recorded in `zero_rows` and dropped from the tree exactly as
+        # before.
+        tree, _, zero_rows = build_operating(
+            KITSAP_FY2013_EXP_LINES, anchors(KITSAP_FY2013_EXP_ANCHOR), _kitsap_cfg())
+        for lbl in ('Transportation', 'Health & Human Services',
+                    'Economic Environment', 'Principal'):
+            self.assertIn(lbl, zero_rows)
+        flat = []
+
+        def walk(n):
+            flat.append(n['n'])
+            for c in n.get('c', []):
+                walk(c)
+        walk(tree)
+        self.assertNotIn('Transportation', flat)
+        self.assertNotIn('Principal', flat)
+
+
+class TestTargetCellIsDashZeroPredicate(unittest.TestCase):
+    """`target_cell_is_dash_zero` in isolation -- the discriminator the rule
+    rests on. A bare `val == 0` test cannot do this job: a printed literal
+    `0` is a VALUE, not an empty cell, and must not be mistaken for one."""
+
+    def _cfg(self, strategy='ordinal'):
+        return _kitsap_cfg(column_strategy=strategy)
+
+    def test_label_followed_only_by_a_dash_is_a_dash_zero(self):
+        line = 'Debt service                                                                   -'
+        self.assertTrue(target_cell_is_dash_zero(line, anchors(KITSAP_FY2013_EXP_ANCHOR), self._cfg()))
+
+    def test_a_real_value_is_not_a_dash_zero(self):
+        line = 'Debt service                                                                   12,500'
+        self.assertFalse(target_cell_is_dash_zero(line, anchors(KITSAP_FY2013_EXP_ANCHOR), self._cfg()))
+
+    def test_a_printed_literal_zero_is_not_a_dash_zero(self):
+        # A printed `0` reaches `classify` as ('data', label, 0) exactly like a
+        # dash does. It is a VALUE the issuer chose to print, so it must not
+        # open a group.
+        line = 'Debt service                                                                   0            -            -'
+        self.assertFalse(target_cell_is_dash_zero(line, anchors(KITSAP_FY2013_EXP_ANCHOR), self._cfg()))
+
+    def test_a_dash_in_the_target_column_with_money_in_later_columns_is_a_dash_zero(self):
+        # Kitsap's real Transportation row: dash in the General Fund column,
+        # $25,142,020 in County Roads. The target cell is still empty.
+        line = 'Transportation                                                                 -           25,142,020                   -'
+        self.assertTrue(target_cell_is_dash_zero(line, anchors(KITSAP_FY2013_EXP_ANCHOR), self._cfg()))
+
+    def test_positional_reader_sees_the_same_dash_zero(self):
+        # The predicate must answer the same question under either column
+        # strategy, since the dash placeholder is what makes an empty cell
+        # visible to both readers.
+        line = 'Debt service                                                                   -'
+        self.assertTrue(target_cell_is_dash_zero(
+            line, anchors(KITSAP_FY2013_EXP_ANCHOR), self._cfg('positional')))
+
+    def test_positional_reader_rejects_a_real_value(self):
+        line = 'Debt service                                     12,500                                    -            -'
+        self.assertFalse(target_cell_is_dash_zero(
+            line, anchors(KITSAP_FY2013_EXP_ANCHOR), self._cfg('positional')))
+
+
+class TestKitsapStatementAnchorGuardsAgainstTheWrongPage(unittest.TestCase):
+    # I-1 (Task 5 fix round 1): before this class existed, deleting
+    # `statement_anchor` from extractKitsap.py's shipped CONFIG left the
+    # suite at 110/110 green while ten of Kitsap's 21 years silently select
+    # ANOTHER FUND'S schedule as the General Fund's primary statement (nine
+    # of those ten still tie at $0 against that wrong page's own, smaller
+    # totals -- a $0 tie proves arithmetic, never which page was read). No
+    # executable test previously referenced `extractKitsap.CONFIG` at all;
+    # only prose in the module docstring described the trap, and prose does
+    # not fail a build. These assertions run against the REAL, shipped
+    # CONFIG object (see TestShippedBainbridgeConfigsAreWholeDollars's
+    # docstring above for why a locally-rebuilt equivalent would prove
+    # nothing) so that removing or misconfiguring the anchor fails loudly
+    # here, with no PDF required.
+    def test_anchor_is_configured(self):
+        self.assertIsNotNone(extractKitsap.CONFIG.statement_anchor)
+
+    def test_anchor_matches_the_real_fy2013_singular_revenue_caption(self):
+        # Transcribed verbatim from the real FY2013 statement page (see
+        # task-5-report.md): FY2004-2016 title their combined
+        # governmental-funds statement "Statement of REVENUE, Expenditures,
+        # and Changes in Fund Balances" -- singular "Revenue" -- which the
+        # shared library's `_TITLE` regex (hard-coded plural "Revenues")
+        # does not match. Without `statement_anchor` picking this caption up
+        # as an ADDITIONAL match, this page is invisible to
+        # `find_statement_page` and FY2013 falls through to the wrong page.
+        caption = 'Statement of Revenue, Expenditures, and       Changes in Fund Balances'
+        pattern = re.compile(extractKitsap.CONFIG.statement_anchor, re.I | re.M)
+        self.assertIsNotNone(pattern.search(caption))
+
+    def test_anchor_does_not_match_a_plural_budget_and_actual_schedule(self):
+        # Every individual-fund Budget-and-Actual schedule in the same
+        # documents (General Fund's own, County Roads, Real Estate Excise
+        # Tax, Mental Health...) prints the PLURAL "Revenues,". The anchor
+        # is strictly singular so it can never turn one of THOSE pages into
+        # a false positive -- confirmed live for FY2005-2014 and FY2021,
+        # where a Budget-and-Actual page is a live `find_statement_page`
+        # candidate alongside the true statement (see extractKitsap.py's
+        # module docstring: the real invariant protecting every year is
+        # that the true statement sorts EARLIEST, not that this class of
+        # page is excluded).
+        caption = ('Statement of Revenues, Expenditures, and Changes in Fund '
+                   'Balances - Budget and   Actual')
+        pattern = re.compile(extractKitsap.CONFIG.statement_anchor, re.I | re.M)
+        self.assertIsNone(pattern.search(caption))
 
 
 if __name__ == '__main__':

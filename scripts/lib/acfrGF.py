@@ -187,6 +187,35 @@ class CityConfig:
                  same `B-4`, but `find_statement_page` returns the EARLIEST
                  qualifying page and the General Fund column plus both `Total`
                  rows are wholly on page 1, so page 1 always wins.
+    revenue_total_labels
+                 lowercase candidate strings for the printed revenue-subtotal
+                 row, tried in order, matched case-insensitively. Defaults to
+                 `('total revenues',)`, which reproduces every shipped city's
+                 behaviour byte-for-byte -- this default is what every city
+                 before Bainbridge was implicitly hard-coded to.
+
+                 Bainbridge Island's FY2004, FY2005, FY2007 and FY2008
+                 governmental-funds statements print `Total Operating
+                 Revenues` instead of `Total Revenues` (FY2010 alone renders
+                 it as `Total REVENUES`, still covered by the default's
+                 case-insensitive match; FY2011 onward reverts to `Total
+                 Revenues`). Bainbridge sets
+                 `revenue_total_labels=('total revenues', 'total operating
+                 revenues')` to cover both eras from one config.
+
+                 Used in the two places that used to hard-code `'total
+                 revenues'`: the page-qualifying gate in
+                 `find_statement_page` and the `rev_line` selection in
+                 `extract()`. The EXPENDITURE side is deliberately NOT
+                 configurable this way -- `'total expenditures'` stays a
+                 literal in both places. This asymmetry is what keeps a
+                 proprietary-funds statement (business-type activities, which
+                 prints `Total Operating Revenues` next to `Total Operating
+                 EXPENSES`, never `Total Expenditures`) from ever qualifying:
+                 `find_statement_page` requires BOTH a revenue-total match
+                 AND the literal `'total expenditures'` to be present on the
+                 same page, so widening only the revenue side cannot turn a
+                 proprietary page into a false positive.
     section_header_mode
                  'exact' (default) requires the section header to be the WHOLE
                  line. 'prefix' allows trailing text, which Seattle's 2024-era
@@ -248,7 +277,7 @@ class CityConfig:
                  label_fixes=None, units=1, column_strategy='positional',
                  revenue_parents=(), revenue_group_members=(),
                  statement_anchor=None, section_header_mode='exact',
-                 fy_end=('June', 30)):
+                 fy_end=('June', 30), revenue_total_labels=('total revenues',)):
         if not isinstance(units, int) or isinstance(units, bool):
             raise TypeError(
                 'CityConfig.units must be an int, got %r (%s). A float would '
@@ -270,6 +299,7 @@ class CityConfig:
         self.statement_anchor = statement_anchor
         self.section_header_mode = section_header_mode
         self.fy_end = fy_end
+        self.revenue_total_labels = tuple(lbl.lower() for lbl in revenue_total_labels)
 
 
 # ── Money parsing ─────────────────────────────────────────────────────────────
@@ -350,6 +380,7 @@ def label_of_slots(line):
     return norm_label(line[:m.start()] if m else line)
 
 _DASH_ROW = re.compile(r'^(?P<label>.*?[^\s\-–—])(?P<dashes>(?:\s+[-–—]+)+)\s*$')
+_DASH_ONLY = re.compile(r'^[-–—]+$')
 
 def dash_zero_label(line):
     """Label if `line` is a label followed ONLY by dash placeholders, else None.
@@ -373,6 +404,112 @@ def dash_zero_label(line):
     if not label or not m.group('dashes').strip():
         return None
     return norm_label(label)
+
+
+# A page-footer PAGE NUMBER can land at the very start of a data row's
+# rendered line, ahead of its real label -- `pdftotext -table` interleaves
+# physically separate footer text onto the same output line whenever it
+# shares a y-coordinate band with a table row. Confirmed live on Bainbridge
+# Island's FY2004 ('16 ... Transportation ... 75 ...'), FY2005 ('16 ...
+# Transportation ... 7,270 ...'), FY2007 ('21 ... Economic environment ...
+# 2,323,355 ...') and FY2008 ('16 ... Health and human services ...
+# 452,200 ...'). Before this fix, the bare page number was read as the row's
+# first money token / column slot, `label_of`/`label_of_slots` returned
+# everything strictly BEFORE it -- empty, since the page number sits at
+# position 0 -- and the row was silently dropped, taking its true value with
+# it and leaving no trace in `zero_rows`.
+#
+# Recognised ONLY when a bare digit run at the very start of the line is
+# separated from what follows by a genuine COLUMN GAP (2+ spaces -- the same
+# discriminator `_is_section_header`'s 'prefix' mode already uses to tell a
+# real column caption from prose) and that next thing is a letter. This is
+# deliberately narrow, NOT a general "strip leading digits" rule: a
+# legitimate label that itself starts with digits ("911 Dispatch",
+# "4Culture") is separated from what follows by a single space or no space
+# at all, never a 2+-space column gap, so `_LEADING_PAGE_NUMBER` does not
+# match it and it is left completely untouched.
+#
+# DISCLOSED RESIDUAL: this function is not the only place a digit-led label
+# can go wrong. `_MONEY`/`_SLOT` match a bare digit run as a "money token"
+# regardless of what immediately follows it, so a label like "4Culture" or
+# "911 Dispatch" was ALREADY ambiguous to `label_of`/`label_of_slots` before
+# this fix existed -- that pre-existing ambiguity is untouched by this
+# function (confirmed: it does not modify either example). What CHANGED with
+# this round's Trap 5 fix in `classify()` is that a row shaped like that,
+# if it ever reached the primary GF statement page, would now RAISE instead
+# of silently vanishing (a real, confirmed King County FY2024 caption reads
+# "2016A LTGO Bond 4Culture Building" -- but on a debt schedule, never the
+# governmental-funds statement page `find_statement_page` selects). Verified
+# by running every already-shipped entity using this library against every
+# ACFR on disk (162 combinations across Beaverton, Bend, Cornelius,
+# Hillsboro, Sherwood, Tigard, Tualatin, Seattle and King County, both
+# modes): zero raised. Not fixed further here -- fixing the deeper
+# tokenizer ambiguity was judged a larger, separately-scoped change than
+# this round approved; if a future document's GF statement page ever does
+# contain such a label, `classify` will raise loudly naming the offending
+# line rather than silently dropping it, which is the safe failure mode
+# either way.
+_LEADING_PAGE_NUMBER = re.compile(r'^(\d{1,4})(\s{2,})(?=[A-Za-z])')
+
+def _recover_label_past_leading_page_number(line):
+    """If `line` begins with a bare page-number token followed by a genuine
+    column gap and then a letter, blank out just that token (replace it with
+    spaces of the SAME LENGTH) so the real label and values behind it parse
+    normally. Returns `line` completely unchanged otherwise.
+
+    The digit run is REPLACED with spaces rather than deleted so every later
+    character keeps its exact original absolute position -- required for
+    `column_strategy='positional'`, which anchors values by x-coordinate read
+    from a DIFFERENT line (the totals row) and would silently misalign if
+    this line's length changed."""
+    m = _LEADING_PAGE_NUMBER.match(line)
+    if not m:
+        return line
+    digits = m.group(1)
+    return (' ' * len(digits)) + line[len(digits):]
+
+
+# A RENDERED HORIZONTAL RULE that lands in the text layer to the LEFT of a row's
+# label, which `label_of` then swallows as part of the label.
+#
+# Confirmed live on Bainbridge Island FY2013 revenue (PDF page 32): the
+# "Interest and Investment Revenue" row renders as
+#
+#     _________________________________________________  Interest and Investment    Revenue    46,648 ...
+#
+# and shipped to the database as a category AND line item literally named
+# "_________________________________________________ Interest and Investment
+# Revenue". The FIGURE was never wrong -- 46,648 is the correct General Fund
+# value and the row tied at $0 -- which is exactly why nothing caught it: this
+# is the same class as the dash-zero trap, a LABEL corruption that leaves
+# tie_delta at 0 and therefore passes every arithmetic gate. It reached
+# production display.
+#
+# Deliberately narrow, matching `_LEADING_PAGE_NUMBER`'s shape and reasoning:
+# THREE or more underscores in the line's LEFT MARGIN (leading whitespace only
+# before them), separated from what follows by a genuine 2+-space COLUMN GAP,
+# followed by a letter. No legitimate financial-statement label begins that way;
+# a label containing an underscore ("Fund_Balance") has neither a margin-anchored
+# run nor a column gap after it, so it is untouched.
+#
+# Leading whitespace is ALLOWED before the run (unlike `_LEADING_PAGE_NUMBER`,
+# whose token starts at column 0) because `pdftotext -table` indents every row
+# of these statements by the page's left margin -- the rule is drawn inside that
+# margin, not at column 0.
+_LEADING_RULE = re.compile(r'^(\s*)(_{3,})(\s{2,})(?=[A-Za-z])')
+
+
+def _recover_label_past_leading_rule(line):
+    """Blank out a rendered rule glued to the left of a row's label, with spaces
+    of the SAME LENGTH so every later character keeps its exact original
+    absolute position (required by `column_strategy='positional'`, which anchors
+    values by x-coordinate read from a different line). Returns `line`
+    completely unchanged otherwise."""
+    m = _LEADING_RULE.match(line)
+    if not m:
+        return line
+    start, rule = m.start(2), m.group(2)
+    return line[:start] + (' ' * len(rule)) + line[start + len(rule):]
 
 
 # ── Statement page location ──────────────────────────────────────────────────
@@ -413,7 +550,7 @@ def table_pages(pdf_path):
         sys.exit(2)
     return out.stdout.split('\f')
 
-def find_statement_page(pages, statement_anchor=None):
+def find_statement_page(pages, statement_anchor=None, revenue_total_labels=('total revenues',)):
     """(page_index, page_text) for the primary governmental-funds statement —
     the earliest qualifying page, since basic statements precede supplementary
     schedules. (None, None) if not found.
@@ -422,14 +559,23 @@ def find_statement_page(pages, statement_anchor=None):
     SCHEDULE ID such as Seattle's `B-4`) that can identify the page even where
     the title itself is wrapped across an interrupting "Page X of Y" line and
     so cannot be matched by `_TITLE`. It is used IN ADDITION to the title
-    match, never instead of it."""
+    match, never instead of it.
+
+    `revenue_total_labels` (see `CityConfig`) widens which printed revenue
+    subtotal counts as qualifying evidence for this page. `'total
+    expenditures'` stays a hard-coded literal on the other side of this same
+    check on purpose: a proprietary-funds statement prints `Total Operating
+    Revenues` next to `Total Operating EXPENSES`, never `Total Expenditures`,
+    so requiring the literal keeps that page from ever qualifying even when
+    `revenue_total_labels` is widened to include `'total operating
+    revenues'`."""
     anchor = re.compile(statement_anchor, re.I | re.M) if statement_anchor else None
     cands = []
     for i, pg in enumerate(pages):
         low = pg.lower()
         if not (_TITLE.search(pg) or (anchor and anchor.search(pg))):
             continue
-        if 'total revenues' not in low or 'total expenditures' not in low:
+        if not any(lbl in low for lbl in revenue_total_labels) or 'total expenditures' not in low:
             continue
         if 'general' not in low or 'fund' not in low:
             continue
@@ -516,15 +662,99 @@ def column_value(line, col_anchors, cfg):
     return None if v is None else v * cfg.units
 
 
+def target_cell_is_dash_zero(line, col_anchors, cfg):
+    """True when `line`'s TARGET (General Fund) cell is an explicit DASH
+    PLACEHOLDER -- an empty cell the issuer wrote as `-` -- rather than a
+    printed number.
+
+    Trap 6 -- a SECTION HEADING carrying a stray dash-zero in the target
+    column. `classify` reports both shapes below identically, as
+    ('data', label, 0):
+
+        Debt service                        -            <- heading, dash-zero
+        Debt service                       12,500        <- valued root leaf
+
+    They are NOT the same row. `build_operating` needs to tell them apart to
+    decide whether a `parents`-matched label opens a group or is a leaf, and
+    a bare `val == 0` test cannot: a genuine printed `0` in the target column
+    also arrives as ('data', label, 0), and a real printed zero is a VALUE,
+    not an empty cell. This predicate answers only the narrow question "is
+    the target cell a dash placeholder", leaving that decision to the caller.
+
+    CONFIRMED LIVE (Kitsap County FY2011, FY2012 and FY2013): the
+    governmental-funds statement's `Debt service` heading line -- which
+    `pdftotext -lineprinter` shows at the ROOT indent, alongside `Current:`
+    and `Capital outlay`, with `Principal` and `Interest and other charges`
+    indented under it -- carries a lone `-` in the General Fund column.
+    Without this distinction the heading was read as a valued $0 leaf, was
+    dropped into `zero_rows`, never opened its group, and FY2013's
+    `Interest and other charges` ($416) fell to whatever parent was still
+    open (`Current`). 17 of Kitsap's 18 loaded years file it correctly;
+    FY2011/FY2012 escaped mis-attribution only because their debt-service
+    children happen to be $0 too. MONEY IS UNAFFECTED either way -- the $416
+    is counted exactly once and the tie stays $0 -- so this is a tree-SHAPE
+    defect that no arithmetic gate can catch.
+
+    Both column strategies are handled, because the dash placeholder is what
+    makes an empty cell VISIBLE and either reader can meet one:
+      * no money tokens anywhere on the line -> the row is a label followed
+        only by dashes, so the target cell is a dash by construction (this
+        is the shape all three confirmed Kitsap years take);
+      * 'ordinal' -> the FIRST column slot must itself be a dash-run;
+      * 'positional' -> no money token may resolve to column 0 (else the
+        cell holds a number), and some dash-run must resolve to column 0.
+    """
+    line = _recover_label_past_leading_page_number(line)
+    line = _recover_label_past_leading_rule(line)
+    if not nums_with_pos(line):
+        return dash_zero_label(line) is not None
+    if cfg.column_strategy == 'ordinal':
+        m = _SLOT.search(line)
+        return bool(m) and _DASH_ONLY.match(m.group().strip()) is not None
+    if not col_anchors or gf_value(line, col_anchors) is not None:
+        return False
+    for m in _SLOT.finditer(line):
+        if not _DASH_ONLY.match(m.group().strip()):
+            continue
+        col = min(range(len(col_anchors)), key=lambda k: abs(m.end() - col_anchors[k]))
+        if col == 0:
+            return True
+    return False
+
+
 # ── Row classification ───────────────────────────────────────────────────────
 def classify(line, col_anchors, cfg):
     """('data'|'wrapped'|'skip', label, value).
 
     A row whose GF cell is blank but which HAS numbers in other columns is
     'data' with value 0 — the source genuinely reports $0 for the General Fund
-    (trap 1)."""
+    (trap 1).
+
+    A genuinely blank line, a rule/underline row, or any other line with NO
+    money tokens at all is still skipped quietly, exactly as before --
+    see the `not nums_with_pos(line)` branch below, which this fix does not
+    touch. That is a DIFFERENT case from the one below it.
+
+    Trap 5 -- silently dropping a row that HAS a real General Fund value.
+    Before a row's value/label are read, a leading page-footer PAGE NUMBER is
+    stripped if present (`_recover_label_past_leading_page_number`), which
+    fixes the known cause (see that function's docstring). But if a row
+    STILL carries a real GF value (`gv is not None`, i.e. `column_value`
+    successfully read one) and STILL resolves to no usable label after that
+    repair, this now RAISES instead of silently discarding the row -- a
+    row with a real value is never allowed to vanish without a trace again.
+    This is deliberately narrower than "any row with numbers but no label":
+    the `gv is None` case just below it (numbers exist elsewhere on the row,
+    but the General Fund cell itself is genuinely blank) is UNCHANGED and
+    still returns 'skip' when unlabeled, because that shape is the
+    ordinary, already-safe "other funds have money, GF does not" case ten
+    shipped entities already rely on -- widening the loud-failure to cover
+    it too would risk crashing entities that currently extract correctly."""
     if not line.strip():
         return 'skip', '', None
+
+    line = _recover_label_past_leading_page_number(line)
+    line = _recover_label_past_leading_rule(line)
 
     if not nums_with_pos(line):
         dz = dash_zero_label(line)
@@ -537,6 +767,11 @@ def classify(line, col_anchors, cfg):
     lbl = label_of_slots(line) if cfg.column_strategy == 'ordinal' else label_of(line)
     if gv is None:
         return ('data', lbl, 0) if lbl else ('skip', '', None)
+    if not lbl:
+        raise ValueError(
+            'acfrGF.classify: row has a General Fund value (%r) but no usable '
+            'label (even after checking for a leading page-number token) -- '
+            'refusing to silently drop it. Offending line: %r' % (gv, line))
     return 'data', lbl, gv
 
 
@@ -553,8 +788,34 @@ def classify(line, col_anchors, cfg):
 # "expenditures".
 _SEC_REVENUES     = 'revenues'
 _SEC_EXPENDITURES = 'expenditures'
-_END_REVENUES     = r'^Total\s+revenues\b'
 _END_EXPENDITURES = r'^Total\s+expenditures\b'
+
+def _end_revenues_pattern(revenue_total_labels):
+    """Build the revenue SECTION-END regex from `CityConfig.revenue_total_labels`.
+
+    Before `revenue_total_labels` existed, this was the single hard-coded
+    literal `r'^Total\\s+revenues\\b'`. Discovered live while unblocking
+    Bainbridge's FY2004/2005/2007/2008 (which print `Total Operating
+    Revenues`, not `Total Revenues`): fixing only the page-qualifying gate in
+    `find_statement_page` and the `rev_line` lookup in `extract()` was NOT
+    enough on its own. `build_revenue`'s own section reader still stopped
+    only at the old literal, so the revenue section never closed at `Total
+    Operating Revenues` and ran away, swallowing EXPENDITURES, OTHER
+    FINANCING SOURCES/USES and every row after it into one inflated "revenue"
+    tree (observed live: FY2004 computed $44,401,783 against a printed
+    $12,636,832 -- the whole rest of the page). This was the THIRD hard-coded
+    `'total revenues'` spot, not the two originally identified, and needed
+    the same treatment for the fix to actually work end-to-end rather than
+    only relocating the correct page.
+
+    Each label becomes `^word1\\s+word2...\\b` (whitespace-tolerant the same
+    way the original literal was, and still matched case-insensitively by
+    `_section`), joined as alternatives. With the default
+    `('total revenues',)` this produces the exact same pattern as the old
+    literal, so every city that does not set `revenue_total_labels` is
+    unaffected."""
+    alts = [r'\s+'.join(re.escape(w) for w in lbl.split()) for lbl in revenue_total_labels]
+    return r'^(?:%s)\b' % '|'.join(alts)
 
 # Fix round 1 (Task 6) rejected a title wrap only when it landed "changes in
 # fund" on the SAME physical line as the section word, or left the section
@@ -802,7 +1063,8 @@ def build_revenue(lines, col_anchors, cfg):
     # the (visually empty) group instead of closing it.
     parent_seen = False
     pending = ''
-    for l in _section(lines, _SEC_REVENUES, _END_REVENUES, cfg.section_header_mode):
+    end_revenues = _end_revenues_pattern(cfg.revenue_total_labels)
+    for l in _section(lines, _SEC_REVENUES, end_revenues, cfg.section_header_mode):
         kind, lbl, val = classify(l, col_anchors, cfg)
         low = (lbl or '').lower()
 
@@ -871,6 +1133,31 @@ def build_operating(lines, col_anchors, cfg):
             root_children.append(parent)
             pending = ''
             continue
+        # Trap 6 -- a `parents`-matched SECTION HEADING carrying a stray
+        # dash-zero in the General Fund column. Such a line reaches
+        # `classify` as ('data', label, 0), indistinguishable by value alone
+        # from a valued $0 leaf, so without this branch the heading is
+        # dropped into `zero_rows`, its group never opens, and every child
+        # under it falls to whichever parent is still open. Confirmed live on
+        # Kitsap County FY2011/FY2012/FY2013 -- see
+        # `target_cell_is_dash_zero`'s docstring for the page geometry that
+        # settles it and for why the tie gate cannot catch it.
+        #
+        # DELIBERATELY NARROW, and both halves of the condition matter:
+        #   * the label must match a CONFIGURED `parents` entry, so a
+        #     dash-zero row that is not a configured heading (Kitsap's
+        #     Transportation, Health & Human Services, Economic Environment,
+        #     Principal ...) still goes to `zero_rows` exactly as before;
+        #   * the target cell must be an explicit DASH placeholder, so a
+        #     `parents`-matched label carrying a REAL value stays a leaf --
+        #     which is what keeps Hillsboro's valued `Debt service` root leaf
+        #     and every other shipped entity unmoved.
+        if (kind == 'data' and val == 0 and low in cfg.parents
+                and target_cell_is_dash_zero(l, col_anchors, cfg)):
+            parent = {'n': lbl, 'a': 0, 'c': []}
+            root_children.append(parent)
+            pending = ''
+            continue
         if kind == 'skip':
             continue
         if kind == 'wrapped':
@@ -908,13 +1195,15 @@ def build_operating(lines, col_anchors, cfg):
 # ── Orchestration ────────────────────────────────────────────────────────────
 def extract(pdf_path, mode, cfg):
     pages = table_pages(pdf_path)
-    pi, pg = find_statement_page(pages, cfg.statement_anchor)
+    pi, pg = find_statement_page(pages, cfg.statement_anchor, cfg.revenue_total_labels)
     if pg is None:
         print('  ERROR: primary GF statement not found in %s' % pdf_path, file=sys.stderr)
         sys.exit(3)
     fy = parse_fy(pages, pdf_path, cfg.fy_end, statement_page=pg)
     lines = pg.split('\n')
-    rev_line = next((l for l in lines if l.strip().lower().startswith('total revenues')), None)
+    rev_line = next((l for l in lines
+                      if any(l.strip().lower().startswith(lbl) for lbl in cfg.revenue_total_labels)),
+                     None)
     exp_line = next((l for l in lines if l.strip().lower().startswith('total expenditures')), None)
     if not rev_line or not exp_line:
         print('  ERROR: Total revenues/expenditures rows not found', file=sys.stderr)
