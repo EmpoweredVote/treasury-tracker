@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Load 78 sourced General Fund rows (Bainbridge Island FY2004–FY2025 less FY2006 = 21 yrs; Kitsap County FY2004–FY2024 less FY2017–FY2019 = 18 yrs; `operating` + `revenue`) into Treasury Tracker from WA SAO bound financial statements, with every row tying at $0 and citing an audit-attested source.
+**Goal:** Load 76 sourced General Fund rows (Bainbridge Island FY2004–FY2025 less FY2006 and FY2009 = 20 yrs; Kitsap County FY2004–FY2024 less FY2017–FY2019 = 18 yrs; `operating` + `revenue`) into Treasury Tracker from WA SAO bound financial statements, with every row tying at $0 and citing an audit-attested source.
 
 **Architecture:** A new MCAG-generic SAO client (`scripts/lib/waSao.mjs`) fetches PDFs from `portal.sao.wa.gov` for both entities. Two thin `CityConfig` wrappers over the existing `scripts/lib/acfrGF.py` extract the GF column. A new shared loader core (`scripts/lib/waSaoLoad.mjs`) drives two thin per-entity loaders. Three independent harnesses verify the result. **v2.21's shipped files (`processSeattle.js`, `processKingCounty.js`, `extractSeattle.py`, `extractKingCounty.py`, `fetchSeattleKingCounty.mjs`) are NOT modified** — the new shared loader is a new file, so there is no regression risk to Seattle or King County.
 
@@ -14,7 +14,7 @@
 
 - **Fund scope: General Fund only.** Both datasets, both entities. No other fund.
 - **Datasets: `operating` and `revenue`.** Exactly these two `dataset_type` values.
-- **Bainbridge FY window: 2004, 2005, 2007, 2008, 2009, 2010–2025.** FY2006 is excluded (image-only scan). FY2009 is conditional on Task 6.
+- **Bainbridge FY window: 2004, 2005, 2007, 2008, 2010–2025 — 20 years, 40 rows.** FY2006 excluded (image-only scan). **FY2009 excluded** — Task 6 attempted a bounded decode of its ciphered statement digits; none of the six candidate maps tied, so it was dropped.
 - **Kitsap FY window: 2004–2024 inclusive, LESS FY2017, FY2018 and FY2019.** Those three carry labels but no digits in the PDF text layer (24 / 114 / 193 extractable comma-grouped numbers versus ~2,556 and ~2,828 in the neighbouring years) — nothing to decode, only OCR could recover them, and OCR is out of scope by standing ruling. No FY2025 (not yet audited). **18 years, 36 rows.**
 - **Tie gate is $0.** Never widen a tolerance. A confirmed printed-total-vs-components disagreement is registered in `CityConfig.source_rounding` as an EXACT delta for that `(fiscal_year, mode)`, or it is a bug.
 - **Write via `treasury_sync_budget_tree` only.** Never `treasury_sync_city_budget` — it overwrites existing `(muni, fy, dataset)` rows and keeps a stale `data_source` label.
