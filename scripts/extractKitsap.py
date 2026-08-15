@@ -43,21 +43,35 @@ Kitsap specifics
   `statement_anchor` (an ADDITIONAL regex ORed with `_TITLE`, per its
   existing contract -- see Seattle's B-4 schedule-ID use in acfrGF.py) covers
   this without touching the shared library: it matches the singular form
-  specifically, so it can never accidentally qualify a Budget-and-Actual page
-  (which is excluded anyway by `find_statement_page`'s `_EXCLUDE` list) or a
-  plural-titled page from a different fund.
-  CONFIRMED LIVE FAILURE MODE without this: FY2013's primary combined
-  statement (page 39, GF total revenues $79,748,524 / total expenditures
-  $75,935,769) was never found because `_TITLE` doesn't match the singular
-  title; `find_statement_page` fell through to the next page that happened to
-  satisfy every OTHER check -- the Real Estate Excise Tax Fund's own
-  Budget-and-Actual schedule (GF column total $354,295) -- because that
-  page's title fragment "- Budget and                   Actual" has enough
-  extra whitespace between "and" and "Actual" that the literal substring
-  check in `_EXCLUDE` ('budget and actual') no longer matches it. The result
-  still TIED at $0 (against the wrong page's own, much smaller, totals) --
-  a wrong-page selection, not a parsing defect, and exactly why a $0 tie
-  alone proves arithmetic, never which page was read.
+  specifically, so it can never itself turn a PLURAL-titled page (any
+  Budget-and-Actual schedule, or a different fund's) into a false positive.
+  CONFIRMED LIVE FAILURE MODE without this anchor, enumerated across all 21
+  years (not a single spot check): 10 of the 13 singular-titled years
+  (FY2004-2016) silently select the WRONG page as the primary GF statement,
+  and 9 of those 10 still TIE AT $0 against that wrong page's own, smaller
+  totals -- only FY2004/2015/2016 fail loudly instead. Examples: FY2005 picks
+  the County Roads Budget-and-Actual schedule ($29,279,443); FY2008 picks
+  page 33 ($38,874,052); FY2013 picks the Real Estate Excise Tax Fund's own
+  Budget-and-Actual schedule ($354,295 vs the true $75,935,769); FY2014 picks
+  page 43 ($304,600); FY2010 both mis-selects the page AND mis-parses the
+  fiscal year as 2009. Every one of these wrong pages ties at $0 against its
+  OWN totals -- a clean demonstration that a $0 tie proves arithmetic, never
+  which page was read.
+  BE PRECISE ABOUT WHAT ACTUALLY PROTECTS THIS: it is NOT that
+  `find_statement_page`'s `_EXCLUDE` list keeps a Budget-and-Actual page from
+  ever qualifying as a candidate. `_EXCLUDE` checks the LITERAL substring
+  `'budget and actual'`, and `pdftotext -table` routinely inserts extra
+  whitespace inside that phrase ("- Budget and                   Actual"),
+  which defeats the literal match. Budget-and-Actual pages ARE live
+  candidates in FY2005-2014 and, confirmed, in FY2021 too (pages 54/55/56
+  qualify there alongside the true statement at page 49). The only thing
+  protecting every year is that `find_statement_page` returns the EARLIEST
+  qualifying candidate, and the true combined statement sorts earlier than
+  every Budget-and-Actual schedule in every year inspected. That is the real,
+  thinner invariant -- and exactly what a future change in document ordering
+  (SAO reordering the basic statements after the individual-fund schedules,
+  for instance) would silently break. A maintainer relying on the `_EXCLUDE`
+  list for protection would not know to check for that.
 * FY2017, FY2018 and FY2019 have a SOURCE-DOCUMENT FONT DEFECT, not a parser
   bug: `pdftotext` (any of plain / -table / -layout / -raw) decodes large
   portions of these three PDFs -- including the basic financial statements

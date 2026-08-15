@@ -4,7 +4,7 @@
 Pure-function tests over synthetic lines transcribed from the real PDFs, so
 they run with no PDF, no pdftotext and no network. Run: py -3 scripts/lib/acfrGF.selftest.py
 """
-import pathlib, sys, unittest
+import pathlib, re, sys, unittest
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from lib.acfrGF import (CityConfig, column_value, classify, build_revenue,
                          build_operating, anchors, slots, dash_zero_label,
@@ -17,6 +17,7 @@ from lib.acfrGF import (CityConfig, column_value, classify, build_revenue,
 # `if __name__ == '__main__'`, so importing them here runs no extraction.
 import extractBainbridge          # noqa: E402
 import extractBainbridgeEarly     # noqa: E402
+import extractKitsap              # noqa: E402
 
 # Transcribed from King County FY2020-era GF statement (values thousands-scale
 # in the real document; kept as bare ints here since these tests exercise
@@ -834,6 +835,15 @@ class TestShippedBainbridgeConfigsAreWholeDollars(unittest.TestCase):
     def test_early_era_config_units_is_one(self):
         self.assertEqual(extractBainbridgeEarly.CONFIG.units, 1)
 
+    def test_kitsap_config_units_is_one(self):
+        # I-2 (Task 5 fix round 1): the selftest's own _kitsap_cfg() helper
+        # (see TestKitsapShape below) rebuilds an equivalent CityConfig
+        # locally with units=1 and asserts against THAT -- which proves
+        # nothing about what extractKitsap.py actually ships. That is
+        # precisely the hole this class exists to close (see the class
+        # docstring above): assert against the real, shipped CONFIG object.
+        self.assertEqual(extractKitsap.CONFIG.units, 1)
+
 
 # ── Trap 5 (fix round 3): footer page-number recovery + loud failure ────────
 # Transcribed from the FY2004 governmental-funds statement's real
@@ -1025,6 +1035,53 @@ class TestKitsapShape(unittest.TestCase):
         self.assertIn('Health & Human Services', zero_rows)
         for l in zero_rows:
             self.assertNotRegex(l, r'Transportation\s+Health')
+
+
+class TestKitsapStatementAnchorGuardsAgainstTheWrongPage(unittest.TestCase):
+    # I-1 (Task 5 fix round 1): before this class existed, deleting
+    # `statement_anchor` from extractKitsap.py's shipped CONFIG left the
+    # suite at 110/110 green while ten of Kitsap's 21 years silently select
+    # ANOTHER FUND'S schedule as the General Fund's primary statement (nine
+    # of those ten still tie at $0 against that wrong page's own, smaller
+    # totals -- a $0 tie proves arithmetic, never which page was read). No
+    # executable test previously referenced `extractKitsap.CONFIG` at all;
+    # only prose in the module docstring described the trap, and prose does
+    # not fail a build. These assertions run against the REAL, shipped
+    # CONFIG object (see TestShippedBainbridgeConfigsAreWholeDollars's
+    # docstring above for why a locally-rebuilt equivalent would prove
+    # nothing) so that removing or misconfiguring the anchor fails loudly
+    # here, with no PDF required.
+    def test_anchor_is_configured(self):
+        self.assertIsNotNone(extractKitsap.CONFIG.statement_anchor)
+
+    def test_anchor_matches_the_real_fy2013_singular_revenue_caption(self):
+        # Transcribed verbatim from the real FY2013 statement page (see
+        # task-5-report.md): FY2004-2016 title their combined
+        # governmental-funds statement "Statement of REVENUE, Expenditures,
+        # and Changes in Fund Balances" -- singular "Revenue" -- which the
+        # shared library's `_TITLE` regex (hard-coded plural "Revenues")
+        # does not match. Without `statement_anchor` picking this caption up
+        # as an ADDITIONAL match, this page is invisible to
+        # `find_statement_page` and FY2013 falls through to the wrong page.
+        caption = 'Statement of Revenue, Expenditures, and       Changes in Fund Balances'
+        pattern = re.compile(extractKitsap.CONFIG.statement_anchor, re.I | re.M)
+        self.assertIsNotNone(pattern.search(caption))
+
+    def test_anchor_does_not_match_a_plural_budget_and_actual_schedule(self):
+        # Every individual-fund Budget-and-Actual schedule in the same
+        # documents (General Fund's own, County Roads, Real Estate Excise
+        # Tax, Mental Health...) prints the PLURAL "Revenues,". The anchor
+        # is strictly singular so it can never turn one of THOSE pages into
+        # a false positive -- confirmed live for FY2005-2014 and FY2021,
+        # where a Budget-and-Actual page is a live `find_statement_page`
+        # candidate alongside the true statement (see extractKitsap.py's
+        # module docstring: the real invariant protecting every year is
+        # that the true statement sorts EARLIEST, not that this class of
+        # page is excluded).
+        caption = ('Statement of Revenues, Expenditures, and Changes in Fund '
+                   'Balances - Budget and   Actual')
+        pattern = re.compile(extractKitsap.CONFIG.statement_anchor, re.I | re.M)
+        self.assertIsNone(pattern.search(caption))
 
 
 if __name__ == '__main__':
