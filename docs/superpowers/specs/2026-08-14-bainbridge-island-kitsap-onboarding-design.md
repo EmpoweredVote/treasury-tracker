@@ -189,9 +189,38 @@ government. Encodes the API contract above once, with a self-test. Records for e
 downloaded file: ARN, audit period, `AuditTypeName`, URL, page count, sha256.
 
 **`scripts/extractWASao.py`** — per-entity config layered over the existing
-`scripts/lib/acfrGF.py`. **No fork of the shared library.** Per-entity config covers
+`scripts/lib/acfrGF.py`. **No fork of the shared library** — but see the amendment
+immediately below. Per-entity config covers
 the fund-column layout (Bainbridge single-page / Kitsap two-page), the tree shape,
 and the label vocabulary.
+
+**AMENDMENT — 2026-08-14, during Task 4, by Chris's ruling.** "No fork" stands, but
+one *additive, defaulted* parameter is authorised on `acfrGF.py`, because four
+Bainbridge years cannot be read without it.
+
+FY2004, FY2005, FY2007 and FY2008 print **`Total Operating Revenues`** as the revenue
+subtotal on the governmental-funds statement, while FY2010+ print `Total REVENUES` /
+`Total Revenues`. The library hard-codes `startswith('total revenues')` in two places
+— `acfrGF.py:432` inside `find_statement_page`, and `:917` selecting `rev_line` —
+with no config override. (The `Total Revenues` strings found elsewhere in those same
+documents belong to the MD&A summary table on a different page, printed in thousands.
+They are not the statement, and matching them would load the wrong numbers.)
+
+The authorised change is a `CityConfig` parameter `revenue_total_labels`, defaulting
+to `('total revenues',)` so all ten shipped entities keep byte-identical behaviour.
+Bainbridge sets `('total revenues', 'total operating revenues')`. **The expenditure
+side stays hard-coded.** The existing page-level guard — which requires BOTH a
+revenue total AND `total expenditures` on the same page — is what keeps the
+proprietary-funds statement (`Total Operating Revenues` + `Total Operating
+EXPENSES`) from matching.
+
+Because ten shipped entities depend on this library, the change ships only with:
+the full `npm run test:acfr` suite passing, plus re-run Seattle and King County
+extractions demonstrating their totals and ties are unchanged.
+
+The declined alternative was dropping those four years, which would have cut
+Bainbridge from 21 years to 17 and the milestone from 84 rows to 76 — and would have
+left Bainbridge tied with Seattle rather than TT's deepest-history city.
 
 **`scripts/loadBainbridgeKitsap.mjs`** — writes via `treasury_sync_budget_tree`
 **only**. Never `treasury_sync_city_budget`, which overwrites existing
