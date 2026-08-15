@@ -29,8 +29,18 @@ onboarding, not an edit.
 | Early-year effort | Clean years, plus a **bounded** FY2009 font-map recovery | User elected "recover what's cheap": no OCR of the FY2006 scan, no pre-GASB-34 work. |
 
 Expected volume: Bainbridge 21 × 2 = 42 rows, Kitsap **18** × 2 = **36** rows, **78 rows**
-— or 82 if the FY2009 recovery does not tie. Final window is whatever the tie gate
-accepts; excluded years are documented, never coerced.
+— or 76 if the FY2009 recovery does not tie (Bainbridge 20 × 2 = 40 + Kitsap 36).
+Final window is whatever the tie gate accepts; excluded years are documented, never
+coerced.
+
+**Task 6 outcome: FY2009 recovery attempted and DROPPED.** The bounded six-window
+contiguous-substitution decoder (`scripts/decodeSaoFont2009.py`) found the statement
+pages genuinely digit-bearing (54 comma-grouped cipher tokens present, e.g.
+`,$+%($&&'` — this is content, not the Kitsap FY2017–2019 image-page case), but none
+of the six candidate windows produced a self-consistent tie, and the two
+highest-yield candidates decoded to structurally malformed numbers (stray un-mapped
+cipher characters left inside supposedly-decoded figures). No candidate reached the
+visual-confirmation gate. **The milestone ships 76 rows.**
 
 ## Source selection
 
@@ -47,7 +57,7 @@ based on King County, whose modern SAO "Annual Comprehensive Financial Report" i
 
 This is the more useful and more general fact, and it is what makes a single-source
 pipeline possible. Every row in this milestone will cite a document that is literally
-the State Auditor's report, which is audit-attested provenance on all 78 rows.
+the State Auditor's report, which is audit-attested provenance on all 76 rows.
 
 **Rejected: the city's own DocumentCenter** (`bainbridgewa.gov`). It links only
 FY2023–FY2024, and the FY2021 ACFR URL surfaced by search returns HTTP 404 with an
@@ -101,7 +111,7 @@ Every year FY2004–FY2025 has a statements-bearing report. Probe results:
 | 2006 | 73415 | 52 | 36,698 | **0** | **SCAN — excluded** |
 | 2007 | 1000370 | 57 | 253,030 | 11 | OK |
 | 2008 | 1002863 | 54 | 278,219 | 14 | OK |
-| 2009 | 1004976 | 50 | 218,436 | **5** | **Font-corrupted — recovery attempt** |
+| 2009 | 1004976 | 50 | 218,436 | **5** | **Font-corrupted — recovery attempted, DROPPED (Task 6)** |
 | 2010 | 1006518 | 72 | 252,474 | 8 | OK |
 | 2011 | 1008424 | 76 | 256,889 | 9 | OK |
 | 2012 | 1010907 | 62 | 233,610 | 11 | OK |
@@ -129,7 +139,11 @@ labels: an image-only scan. Excluded, per the Sherwood FY2019 precedent.
 
 **FY2009** has intact narrative text but its *statement pages* carry a broken font
 encoding with no usable ToUnicode CMap — digits render as punctuation
-(`,$+%($&&'`). The garbling is a monoalphabetic substitution, so it is decodable.
+(`,$+%($&&'`). Task 6 confirmed the corruption is a genuine substitution (54
+comma-grouped cipher tokens present on the statement pages, not an image and not the
+Kitsap FY2017–2019 all-labels-no-digits case), attempted the bounded six-window
+contiguous-offset decode, and found no window ties — see "Known limitations".
+FY2009 is **dropped**.
 
 FY2025 statement, verified by hand from `pdftotext -layout -table`: whole dollars,
 no thousands marker, single page, GF is the first money column, flat structure with
@@ -305,9 +319,10 @@ swallowing a dollar is how a real extraction bug hides.
 
 **FY2009 recovery is bounded and self-validating.** Build the substitution map from
 the corrupted glyphs; the decoded statement must tie at **$0 against its own printed
-totals** to be accepted. If it does not tie, FY2009 drops and the milestone ships 82
+totals** to be accepted. If it does not tie, FY2009 drops and the milestone ships 76
 rows. The tie gate validates the decoder, so there is no path to talking ourselves
-into a bad recovery.
+into a bad recovery. **Outcome (Task 6): dropped** — none of the six bounded
+contiguous-offset candidates tied; see "Known limitations".
 
 **Structural-break check.** Twenty-two years will contain real discontinuities —
 GASB 54 rolled eleven funds into Kitsap's General Fund, and Bainbridge's fund lineup
@@ -326,7 +341,7 @@ phantom city row is created (the Utah lesson).
 
 Three re-runnable harnesses, each exiting 0, following the v2.21 pattern.
 
-**`scripts/verify-bainbridge-rederive.mjs`** — blind re-derivation of all 78 rows to
+**`scripts/verify-bainbridge-rederive.mjs`** — blind re-derivation of all 76 rows to
 $0, **importing none of the extractor code**. Leaf *and* subtotal, so a compensating
 pair of errors cannot pass.
 
@@ -372,6 +387,22 @@ reader to discover.
 
 **FY2006 Bainbridge is absent** because the only available document is a scan. Stated,
 not silently skipped.
+
+**FY2009 Bainbridge is absent.** Its statement pages carry a broken embedded font
+with no usable ToUnicode CMap — digits render as punctuation (`,$+%($&&'`), and
+the pages carry 54 comma-grouped cipher tokens, confirming real content is present
+(unlike the Kitsap FY2017–2019 case below, where the digits are simply not in the
+text layer at all). Task 6 attempted the bounded, self-validating recovery specified
+for exactly this situation: build a monoalphabetic substitution map assuming the
+font's glyph order is preserved and only the base offset over the contiguous
+`!"#$%&'()*+,-./` run is lost, which yields six candidate windows (not the 10.9
+billion permutations of an unconstrained search). None of the six windows produced a
+decoded statement whose line items tied to their own printed total; the two
+highest-yield candidates additionally decoded to structurally malformed figures
+(stray un-mapped cipher characters left inside the "numbers"). No candidate reached
+the visual-confirmation gate. Per the bounded, no-iterate-indefinitely mandate for
+this task, FY2009 is dropped rather than pursued further (e.g. per-embedded-font
+glyph analysis or OCR, both out of scope). Stated, not silently skipped.
 
 **Kitsap FY2017, FY2018 and FY2019 are absent.** Their statement pages carry
 labels but **no digits at all** in the PDF text layer — 24 / 114 / 193 extractable

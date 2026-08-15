@@ -18,8 +18,13 @@ import { pathToFileURL } from 'node:url';
 import { fetchReportPdf, classifyReport } from './lib/waSao.mjs';
 
 // MCAG 0461 -- City of Bainbridge Island. FY2006 (ARN 73415) excluded: scan.
+// FY2009 (ARN 1004976) is deliberately excluded: its statement pages carry a
+// broken embedded font with no usable ToUnicode CMap (digits render as
+// punctuation). Task 6 attempted the bounded, self-validating substitution-map
+// recovery (scripts/decodeSaoFont2009.py) and it did not tie -- see "Known
+// limitations" in docs/superpowers/specs/2026-08-14-bainbridge-island-kitsap-onboarding-design.md.
 export const BAINBRIDGE_ARNS = {
-  2004: 69788,   2005: 72209,   2007: 1000370, 2008: 1002863, 2009: 1004976,
+  2004: 69788,   2005: 72209,   2007: 1000370, 2008: 1002863,
   2010: 1006518, 2011: 1008424, 2012: 1010907, 2013: 1012614, 2014: 1014609,
   2015: 1017006, 2016: 1019388, 2017: 1021673, 2018: 1024177, 2019: 1026890,
   2020: 1029122, 2021: 1030857, 2022: 1032975, 2023: 1035299, 2024: 1037954,
