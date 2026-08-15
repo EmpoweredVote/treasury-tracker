@@ -939,5 +939,93 @@ class TestBlankLinesAndRulesStillSkipQuietly(unittest.TestCase):
         self.assertEqual(lbl, 'Culture and Recreation')
 
 
+# ── Kitsap County shape ──────────────────────────────────────────────────────
+# Transcribed from the FY2024 SAO-bound statement. County vocabulary uses
+# ampersands and differs from every TT city -- the Ohio-AOS county-vs-city
+# lesson holding again for ACFRs.
+KITSAP_REV_LINES = [
+    'Revenues',
+    'Property Taxes                 39,113,858   -            -            -',
+    'Retail Sales & Use Taxes       44,690,283   -            -            -',
+    'Other Taxes                    2,627,819    8,697,831    -            -',
+    'Fines & Forfeits               1,559,156    -            -            -',
+    'Total Revenues                 125,581,123  9,569,454    20,869,258   6,398,908',
+]
+KITSAP_REV_ANCHOR = KITSAP_REV_LINES[-1]
+
+KITSAP_EXP_LINES = [
+    'Expenditures',
+    'Current',
+    'General Government             31,292,474   -            3,984,263    -',
+    'Transportation                 -            -            -            -',
+    'Health & Human Services        -            -            3,952,076    1,095,960',
+    'Debt Service',
+    'Principal                      442,709      -            -            -',
+    'Interest & Other Charges       35,340       550          -            -',
+    'Capital Outlay                 330,568      -            12,932,919   -',
+    'Total Expenditures             128,230,878  550          20,869,258   1,095,960',
+]
+KITSAP_EXP_ANCHOR = KITSAP_EXP_LINES[-1]
+
+
+def _kitsap_cfg(**kw):
+    base = dict(city='Kitsap County, WA',
+                parents=('current', 'debt service'),
+                root_leaves=('capital outlay',),
+                column_strategy='ordinal', units=1, fy_end=('December', 31))
+    base.update(kw)
+    return CityConfig(**base)
+
+
+class TestKitsapShape(unittest.TestCase):
+    def test_ampersand_labels_survive_intact(self):
+        tree, _, _ = build_revenue(KITSAP_REV_LINES, anchors(KITSAP_REV_ANCHOR), _kitsap_cfg())
+        names = [c['n'] for c in tree['c']]
+        self.assertIn('Retail Sales & Use Taxes', names)
+        self.assertIn('Fines & Forfeits', names)
+
+    def test_revenue_side_is_flat_despite_taxes_suffixed_labels(self):
+        # Three labels end in "Taxes" but there is no `Taxes:` parent row, so
+        # revenue_parents must stay EMPTY. King County prints the parent and
+        # Kitsap does not -- these are different documents, not two readings.
+        tree, total, _ = build_revenue(KITSAP_REV_LINES, anchors(KITSAP_REV_ANCHOR), _kitsap_cfg())
+        self.assertEqual(len(tree['c']), 4)
+        self.assertNotIn('Taxes', [c['n'] for c in tree['c']])
+        self.assertEqual(total, 39113858 + 44690283 + 2627819 + 1559156)
+
+    def test_debt_service_is_a_parent_and_capital_outlay_is_a_root_leaf(self):
+        tree, _, _ = build_operating(KITSAP_EXP_LINES, anchors(KITSAP_EXP_ANCHOR), _kitsap_cfg())
+        roots = [c['n'] for c in tree['c']]
+        self.assertIn('Debt Service', roots)
+        self.assertIn('Capital Outlay', roots)
+        debt = next(c for c in tree['c'] if c['n'] == 'Debt Service')
+        child_names = [i['n'] for i in debt.get('i', [])] + [c['n'] for c in debt.get('c', [])]
+        self.assertIn('Principal', child_names)
+        self.assertIn('Interest & Other Charges', child_names)
+
+    def test_consecutive_dash_zeros_do_not_merge_labels(self):
+        # Transportation, Health & Human Services and Economic Environment are
+        # all dash-zero in the GF column. Consecutive dash-zeros are the worst
+        # case for label grafting and tie_delta stays $0 throughout.
+        #
+        # NOTE: this assertion was NOT taken verbatim from the task brief.
+        # The brief's original draft read the label off `current.get('i', [])`
+        # -- a key `build_operating` never emits (no node in this library
+        # carries an 'i' array; see acfrGF.py, and see
+        # TestBainbridgeShape.test_dash_zero_transportation_keeps_its_own_label
+        # above for the identical, already-resolved precedent from Task 4). A
+        # $0 GF row is recorded in `zero_rows` and dropped from the tree
+        # entirely, so the brief's assertion could never pass against the
+        # library's actual, correct, already-documented behaviour. Rewritten
+        # to assert against `zero_rows` instead -- same intent (each
+        # dash-zero row keeps its own label; none glued onto its neighbour)
+        # via the real API.
+        _, _, zero_rows = build_operating(KITSAP_EXP_LINES, anchors(KITSAP_EXP_ANCHOR), _kitsap_cfg())
+        self.assertIn('Transportation', zero_rows)
+        self.assertIn('Health & Human Services', zero_rows)
+        for l in zero_rows:
+            self.assertNotRegex(l, r'Transportation\s+Health')
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)
