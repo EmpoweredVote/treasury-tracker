@@ -35,12 +35,14 @@ These were settled during brainstorming and are not open at plan time.
 | Decision | Choice | Why |
 |---|---|---|
 | **Entities** | Tacoma, Spokane, Vancouver, Bellevue, Kent, Everett | Largest WA cities not already loaded; maximises residents reached per unit of work |
-| **FY window** | **FY2015–FY2025** | Modern SAO filings are the most uniform, so one config per city is likely and unreadable-year diagnosis should be rare. v2.22's cost was concentrated in *old* years — Bainbridge needed a second extractor for FY2004–2008 and four separate years proved unreadable, which is diagnosis work yielding zero rows. Multiplying that by six would dominate the milestone |
+| **FY window** | **As far back as each city goes *easily*** — a per-city floor, not a fixed year | Maximises history where the source gives it up cheaply, without paying v2.22's old-year cost. That cost was real and concentrated: Bainbridge needed a second extractor for FY2004–2008 and four separate years proved unreadable — diagnosis work yielding zero rows. "Easily" is defined mechanically in the next row so it is not a judgement call mid-flight |
+| **"Easily" means** | Walk back from FY2025. The window ends at the first year that needs **anything beyond a value change in that city's existing config** — an era-split/second config, a font or OCR recovery, or a different source. An **isolated** unreadable year inside the window is documented and skipped, and the walk continues; **two consecutive** unreadable years end it | Mechanical and testable, so recon does not have to litigate "was that easy?" per city. It also encodes v2.22's hardest-won negative result: the FY2009 font decode was bounded, self-validating, and still failed — that is the class of work this rule refuses |
 | **Counties** | **Nav-only nodes** for Pierce, Spokane, Clark, Snohomish | Matches the v2.17/v2.18 Pima precedent (still nav-only today). Keeps the milestone on cities. County finances are a clean, cheap follow-up |
 | **Unusable city** | **Substitute the next-largest** | Preserves the population-reach goal. Precedent: v2.14 substituted Oklahoma for Alabama by rank when a source did not hold up. Requires one extra recon pass |
 | **"Next-largest" means** | The largest WA city that is **not already in TT** and **not already in this roster**, by WA OFM population | Named explicitly so substitution is mechanical, not a judgement call mid-flight. Spokane Valley (MCAG 2781) is a real candidate here and must not be confused with Spokane — see §3 |
 | **Basis** | General Fund only | Consistent with Seattle, King County, Bainbridge and Kitsap |
-| **Sequencing** | **Tacoma pilot gates the five-city batch** | See §6 |
+| **Sequencing** | **Tacoma first as a shape-finder, then the five-city batch — no mid-milestone gate** | Chris's call, 2026-08-15: do not stop and re-scope partway. Tacoma still runs first because what it teaches makes the other five cheaper, but its findings are *reported and applied*, not used as a checkpoint. See §6 |
+| **Re-scope** | **Once, together, at the end of the milestone** | Decisions about what this changes for the rest of Washington are made with the whole batch's evidence in hand rather than from one city |
 
 **Assumed by precedent, not re-litigated:** WA OFM April-1 estimates for population ·
 municipality-scoped enrichment (never NULL) · source-safe `treasury_sync_budget_tree` only ·
@@ -89,11 +91,20 @@ One host for all six: **`portal.sao.wa.gov` ReportSearch**. The SAO binds the fu
 statements for every local government except large self-publishing GAAP filers, so each row
 carries audit-attested provenance.
 
-⚠ **The report-type names are INVERTED for FY2014+**, and the whole FY2015–FY2025 window sits
-inside that range. The type literally called *Annual Comprehensive Financial Report* is a
-4–5 page auditor's opinion letter; *Financial and Federal* / *Financial* carries the bound
-statements. **Select by CONTENT** — `classifyReport()` requires page count ≥ 40 plus a located
-governmental-funds statement anchor — **never by type name.**
+⚠ **The report-type names are INVERTED for FY2014+.** The type literally called *Annual
+Comprehensive Financial Report* is a 4–5 page auditor's opinion letter; *Financial and
+Federal* / *Financial* carries the bound statements. **Select by CONTENT** —
+`classifyReport()` requires page count ≥ 40 plus a located governmental-funds statement
+anchor — **never by type name.**
+
+⚠ **The open floor crosses the FY2014 boundary, and the inversion is only known to hold above
+it.** The original fixed window sat entirely in the FY2014+ range; a per-city floor that walks
+back does not. What the type names mean *below* FY2014 was never established — v2.22 read
+FY2004–2013 filings for two entities but selected by content throughout, so the question never
+had to be answered. Selecting by content remains correct either way and needs no change; the
+point is that **nothing in this milestone may start trusting a type name because "it's the
+older format"**. Recon should record what the names actually do below FY2014, as a finding for
+the next WA milestone rather than as something to rely on here.
 
 ⚠ **Some of these cities may be self-publishing GAAP filers.** Seattle publishes its own ACFR
 and v2.21 sourced it from the city, not the SAO. Tacoma, Spokane and Vancouver are large
@@ -144,11 +155,11 @@ number the pilot measures.
 
 ---
 
-## 6. Phase A — the Tacoma pilot (gate)
+## 6. Phase A — Tacoma first (shape-finder, not a gate)
 
 Tacoma alone, end to end: resolve MCAG 0610 against the roster · enumerate and pin per-FY
-ARNs across FY2015–FY2025 · fetch through the content guard · build the extractor config ·
-seed Tacoma + Pierce County (nav-only) · load 22 rows via `treasury_sync_budget_tree` ·
+ARNs walking back from FY2025 until §2's floor rule stops · fetch through the content guard · build the extractor config ·
+seed Tacoma + Pierce County (nav-only) · load its rows via `treasury_sync_budget_tree` ·
 adjudicate every residue individually · run all three harnesses.
 
 **The pilot must answer four questions before the batch starts:**
@@ -158,26 +169,26 @@ adjudicate every residue individually · run all three harnesses.
 2. **What does a third WA city's tree shape actually cost?** Both prior entities needed their
    own config; Bainbridge needed two. This converts a projected per-city cost into a measured
    one.
-3. **Does FY2015–FY2025 hold as a single-config window**, or does a shape change inside it
-   force an era split?
+3. **How far back does one config actually reach?** Tacoma sets the first real datapoint for §2's floor rule, and tells us whether these cities behave like Bainbridge (shape change around FY2009–2012) or hold steady deeper.
 4. **Registry or per-file?** (§5.)
 
-**Gate:** if the pilot shows the per-city cost is materially higher than assumed — an era
-split inside the window, or the SAO not holding statements — **stop and re-scope with Chris**
-rather than starting five more cities on a broken estimate. This is the milestone's one
-deliberate checkpoint.
+**Not a gate.** Tacoma runs first because what it teaches makes the other five cheaper, not
+because the milestone pauses for approval afterwards. Its answers are written down and
+applied to the batch, and the milestone continues. The single re-scope happens at the end,
+with all six cities' evidence in hand (§9).
 
-⚠ **Two different failure triggers, deliberately not the same rule.** Do not collapse them:
+⚠ **Because there is no mid-milestone checkpoint, every failure needs a mechanical response
+decided here.** Otherwise "keep going" quietly becomes "take on unplanned work". Three cases,
+three rules, no judgement calls in flight:
 
-- **One city is unusable** → apply the locked decision: drop it with a written verdict and
-  **substitute the next-largest**, mechanically, without stopping. This is a per-city outcome
-  and is expected to be survivable.
-- **The pilot invalidates the milestone's cost model** → **stop and ask.** This is a systemic
-  outcome: it means the remaining five are not the work we scoped. Substituting a city cannot
-  fix a wrong shape estimate, so the substitution rule must not be applied here.
+| What recon finds | Response |
+|---|---|
+| A city's SAO filings are **opinion letters only** (a self-publishing GAAP filer) | Treat as **unusable → substitute the next-largest.** Do NOT silently pivot that city to its own ACFR: that is a different fetcher and a different extractor shape — v2.21-scale work per city — and taking it on unasked is exactly the scope creep the no-gate decision must not license. **Exception:** if the city's own ACFR needs nothing beyond a value change in the existing config, it is "easy" by §2's rule and may be loaded from there. Record which path was taken and why |
+| A city is **unreadable** (image scans, ciphered fonts) at every year | **Substitute the next-largest**, with a written verdict |
+| A city needs an **era split** to go deeper | Not a failure at all — the window simply **ends there** for that city, per §2's floor rule |
 
-In Phase B the same distinction holds: an individual city failing is a substitution; a second
-city revealing that the pilot's shape does not generalise is a stop-and-ask.
+The effect is that no single finding can stop the milestone or expand it. A city either loads
+cheaply, loads shallowly, or is replaced.
 
 ---
 
@@ -187,10 +198,13 @@ Spokane, Vancouver, Bellevue, Kent, Everett, on the shape the pilot proved. Per 
 ARNs → fetch → config → seed (+ nav-only county where new) → load → adjudicate residues.
 Bellevue and Kent link to the **existing** King County node rather than creating one.
 
-**Expected scale:** 6 cities × 11 years × 2 datasets = **132 rows**, minus any year or city
-the source refuses. That number is a projection, not a promise — v2.22 scoped 84 rows and
-shipped 72, every drop a source-document refusal. The spec commits to *documenting every
-refusal*, not to a row count.
+**Expected scale: deliberately not a fixed number.** With a per-city floor (§2) the row count
+is an output of recon, not an input to it. Two reference points rather than a target: a
+FY2015-floor batch would be 6 × 11 × 2 = 132 rows, and Bainbridge reached 18 usable years, so
+a deeper floor could push well past that. v2.22 scoped 84 rows and shipped 72, every drop a
+source-document refusal. **This spec commits to documenting every refusal and every floor, not
+to a row count** — and no city's window may be extended by doing work §2 calls not-easy just
+to make a number look better.
 
 ---
 
@@ -217,7 +231,24 @@ this repo and has never exited 0.
 
 ---
 
-## 9. Traps carried forward
+## 9. Phase D — closing re-scope
+
+The milestone's only decision checkpoint, and it sits at the END rather than partway (Chris's
+call, 2026-08-15). Nothing here blocks the work; it exists so the batch's evidence is used
+rather than filed.
+
+Bring to it, per city: where the floor actually landed and what stopped it · which cities
+substituted and why · the true per-city cost, measured · whether the config registry beat the
+per-file convention (§5) · what the type names do below FY2014 (§4) · every source-document
+refusal, written down.
+
+Decide from that: whether the rest of Washington is worth a follow-on milestone and at what
+batch size · whether county finances (deferred to nav-only here) are as cheap as they look ·
+whether the floor rule wants tightening or loosening next time.
+
+---
+
+## 10. Traps carried forward
 
 Each of these has already cost real time once.
 
@@ -238,12 +269,12 @@ Each of these has already cost real time once.
 
 ---
 
-## 10. Out of scope
+## 11. Out of scope
 
 Deferred deliberately, each a candidate for its own milestone:
 
 - **County finances** for Pierce, Spokane, Clark, Snohomish (nav-only here).
-- **Pre-FY2015 history** for any of the six.
+- **History below each city's floor** — any year needing an era split, a font recovery or OCR is deferred by §2's rule, not attempted.
 - **The rest of Washington** — 280-odd cities and 39 counties remain.
 - **All-funds view** and **salaries**.
 - **BANNER-01** — no shared-bucket banner asset will exist for these cities, so all six use the
@@ -254,7 +285,7 @@ Deferred deliberately, each a candidate for its own milestone:
 
 ---
 
-## 11. Resolved at recon, not here
+## 12. Resolved at recon, not here
 
 Deliberately unresolved, each with a named authority and a defined resolution — not TBDs:
 
@@ -265,4 +296,4 @@ Deliberately unresolved, each with a named authority and a defined resolution �
 | Populations | WA OFM April 1 estimates | Read from the authority and recorded with the table read; never a third-party estimate |
 | Per-capita band per city | Derived from the loaded spread | Re-derived per city, never copied |
 | `source_rounding` residues | Rendering each page and reading the General column off the image | Registered as exact deltas, never a tolerance |
-| Whether FY2015–FY2025 needs an era split | Tacoma pilot | Gate in §6 |
+| Where each city's floor lands | Recon, per city | §2's mechanical rule; reported per city, never a judgement call |
