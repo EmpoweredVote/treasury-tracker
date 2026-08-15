@@ -1,6 +1,16 @@
-#!/usr/bin/env node
 /**
  * WA State Auditor ReportSearch client, generic over MCAG.
+ *
+ * NO SHEBANG, deliberately. This is a pure library -- it exports only and is
+ * never executed directly. A `#!/usr/bin/env node` line here broke `npm test`
+ * on any Windows checkout: git's core.autocrlf rewrites the file to CRLF, and
+ * Vite's shebang strip matches `#!.*\n`, where `.` excludes `\r`. The shebang
+ * therefore survived the transform and the file reached the parser starting
+ * with `#`, failing the whole suite with a bare "SyntaxError: Invalid or
+ * unexpected token" naming no line. The sibling `waSaoLoad.mjs` has no shebang
+ * and never failed, which is what isolated it. Do not add one back; put
+ * shebangs on entry-point scripts (`scripts/*.mjs` with a main guard), not on
+ * anything a test imports.
  *
  * Endpoint facts, each established by probing and each load-bearing:
  *  - SearchReports reads `pageNumber`, NOT `page`.

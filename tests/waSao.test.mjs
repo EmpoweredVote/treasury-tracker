@@ -1,4 +1,7 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
+import { readdirSync, readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   decodeMsDate, searchReportsUrl, entityLookupUrl, reportFileUrl, classifyReport,
   fetchReportPdf,
@@ -106,5 +109,31 @@ describe('fetchReportPdf', () => {
     });
     const buf = await fetchReportPdf(1234567);
     expect(buf.subarray(0, 4).toString()).toBe('%PDF');
+  });
+});
+
+/**
+ * REGRESSION GUARD for a whole-suite outage, not a style preference.
+ *
+ * `scripts/lib/waSao.mjs` shipped with a `#!/usr/bin/env node` line. On a
+ * Windows checkout git's core.autocrlf rewrites the file to CRLF, and Vite's
+ * shebang strip matches `#!.*\n` -- `.` does not match `\r`, so the shebang
+ * survived, the parser saw a leading `#`, and EVERY test in this file
+ * disappeared behind a bare "SyntaxError: Invalid or unexpected token" that
+ * named no file position. It cost a real debugging session to localise, and it
+ * would have hit any fresh clone on Windows.
+ *
+ * The rule this asserts is narrow and true: a module under `scripts/lib/` is a
+ * library, imported and never executed, so it has no business carrying a
+ * shebang. Entry-point scripts (`scripts/*.mjs` with a main guard) are not
+ * covered here and may keep theirs.
+ */
+describe('scripts/lib modules are importable libraries', () => {
+  it('no scripts/lib module starts with a shebang (breaks Vite transform on CRLF)', () => {
+    const libDir = path.join(fileURLToPath(new URL('..', import.meta.url)), 'scripts', 'lib');
+    const offenders = readdirSync(libDir)
+      .filter((f) => f.endsWith('.mjs'))
+      .filter((f) => readFileSync(path.join(libDir, f), 'utf8').startsWith('#!'));
+    expect(offenders).toEqual([]);
   });
 });
