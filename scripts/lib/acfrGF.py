@@ -405,6 +405,69 @@ def dash_zero_label(line):
     return norm_label(label)
 
 
+# A page-footer PAGE NUMBER can land at the very start of a data row's
+# rendered line, ahead of its real label -- `pdftotext -table` interleaves
+# physically separate footer text onto the same output line whenever it
+# shares a y-coordinate band with a table row. Confirmed live on Bainbridge
+# Island's FY2004 ('16 ... Transportation ... 75 ...'), FY2005 ('16 ...
+# Transportation ... 7,270 ...'), FY2007 ('21 ... Economic environment ...
+# 2,323,355 ...') and FY2008 ('16 ... Health and human services ...
+# 452,200 ...'). Before this fix, the bare page number was read as the row's
+# first money token / column slot, `label_of`/`label_of_slots` returned
+# everything strictly BEFORE it -- empty, since the page number sits at
+# position 0 -- and the row was silently dropped, taking its true value with
+# it and leaving no trace in `zero_rows`.
+#
+# Recognised ONLY when a bare digit run at the very start of the line is
+# separated from what follows by a genuine COLUMN GAP (2+ spaces -- the same
+# discriminator `_is_section_header`'s 'prefix' mode already uses to tell a
+# real column caption from prose) and that next thing is a letter. This is
+# deliberately narrow, NOT a general "strip leading digits" rule: a
+# legitimate label that itself starts with digits ("911 Dispatch",
+# "4Culture") is separated from what follows by a single space or no space
+# at all, never a 2+-space column gap, so `_LEADING_PAGE_NUMBER` does not
+# match it and it is left completely untouched.
+#
+# DISCLOSED RESIDUAL: this function is not the only place a digit-led label
+# can go wrong. `_MONEY`/`_SLOT` match a bare digit run as a "money token"
+# regardless of what immediately follows it, so a label like "4Culture" or
+# "911 Dispatch" was ALREADY ambiguous to `label_of`/`label_of_slots` before
+# this fix existed -- that pre-existing ambiguity is untouched by this
+# function (confirmed: it does not modify either example). What CHANGED with
+# this round's Trap 5 fix in `classify()` is that a row shaped like that,
+# if it ever reached the primary GF statement page, would now RAISE instead
+# of silently vanishing (a real, confirmed King County FY2024 caption reads
+# "2016A LTGO Bond 4Culture Building" -- but on a debt schedule, never the
+# governmental-funds statement page `find_statement_page` selects). Verified
+# by running every already-shipped entity using this library against every
+# ACFR on disk (162 combinations across Beaverton, Bend, Cornelius,
+# Hillsboro, Sherwood, Tigard, Tualatin, Seattle and King County, both
+# modes): zero raised. Not fixed further here -- fixing the deeper
+# tokenizer ambiguity was judged a larger, separately-scoped change than
+# this round approved; if a future document's GF statement page ever does
+# contain such a label, `classify` will raise loudly naming the offending
+# line rather than silently dropping it, which is the safe failure mode
+# either way.
+_LEADING_PAGE_NUMBER = re.compile(r'^(\d{1,4})(\s{2,})(?=[A-Za-z])')
+
+def _recover_label_past_leading_page_number(line):
+    """If `line` begins with a bare page-number token followed by a genuine
+    column gap and then a letter, blank out just that token (replace it with
+    spaces of the SAME LENGTH) so the real label and values behind it parse
+    normally. Returns `line` completely unchanged otherwise.
+
+    The digit run is REPLACED with spaces rather than deleted so every later
+    character keeps its exact original absolute position -- required for
+    `column_strategy='positional'`, which anchors values by x-coordinate read
+    from a DIFFERENT line (the totals row) and would silently misalign if
+    this line's length changed."""
+    m = _LEADING_PAGE_NUMBER.match(line)
+    if not m:
+        return line
+    digits = m.group(1)
+    return (' ' * len(digits)) + line[len(digits):]
+
+
 # ── Statement page location ──────────────────────────────────────────────────
 # "Balances?" — Tigard titles its statement "CHANGES IN FUND BALANCE" (singular)
 # while every other city so far uses the plural. Requiring the plural silently
@@ -561,9 +624,32 @@ def classify(line, col_anchors, cfg):
 
     A row whose GF cell is blank but which HAS numbers in other columns is
     'data' with value 0 — the source genuinely reports $0 for the General Fund
-    (trap 1)."""
+    (trap 1).
+
+    A genuinely blank line, a rule/underline row, or any other line with NO
+    money tokens at all is still skipped quietly, exactly as before --
+    see the `not nums_with_pos(line)` branch below, which this fix does not
+    touch. That is a DIFFERENT case from the one below it.
+
+    Trap 5 -- silently dropping a row that HAS a real General Fund value.
+    Before a row's value/label are read, a leading page-footer PAGE NUMBER is
+    stripped if present (`_recover_label_past_leading_page_number`), which
+    fixes the known cause (see that function's docstring). But if a row
+    STILL carries a real GF value (`gv is not None`, i.e. `column_value`
+    successfully read one) and STILL resolves to no usable label after that
+    repair, this now RAISES instead of silently discarding the row -- a
+    row with a real value is never allowed to vanish without a trace again.
+    This is deliberately narrower than "any row with numbers but no label":
+    the `gv is None` case just below it (numbers exist elsewhere on the row,
+    but the General Fund cell itself is genuinely blank) is UNCHANGED and
+    still returns 'skip' when unlabeled, because that shape is the
+    ordinary, already-safe "other funds have money, GF does not" case ten
+    shipped entities already rely on -- widening the loud-failure to cover
+    it too would risk crashing entities that currently extract correctly."""
     if not line.strip():
         return 'skip', '', None
+
+    line = _recover_label_past_leading_page_number(line)
 
     if not nums_with_pos(line):
         dz = dash_zero_label(line)
@@ -576,6 +662,11 @@ def classify(line, col_anchors, cfg):
     lbl = label_of_slots(line) if cfg.column_strategy == 'ordinal' else label_of(line)
     if gv is None:
         return ('data', lbl, 0) if lbl else ('skip', '', None)
+    if not lbl:
+        raise ValueError(
+            'acfrGF.classify: row has a General Fund value (%r) but no usable '
+            'label (even after checking for a leading page-number token) -- '
+            'refusing to silently drop it. Offending line: %r' % (gv, line))
     return 'data', lbl, gv
 
 

@@ -8,7 +8,8 @@ import pathlib, sys, unittest
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from lib.acfrGF import (CityConfig, column_value, classify, build_revenue,
                          build_operating, anchors, slots, dash_zero_label,
-                         find_statement_page, parse_fy, _is_section_header)
+                         find_statement_page, parse_fy, _is_section_header,
+                         _recover_label_past_leading_page_number)
 
 # Transcribed from King County FY2020-era GF statement (values thousands-scale
 # in the real document; kept as bare ints here since these tests exercise
@@ -809,6 +810,110 @@ class TestBainbridgeEarlyShape(unittest.TestCase):
         _, total, _ = build_revenue(BI_REV_LINES, anchors(BI_REV_ANCHOR), _bi_cfg())
         self.assertEqual(total, 21813585)
         self.assertGreater(total, 1_000_000)
+
+
+# ── Trap 5 (fix round 3): footer page-number recovery + loud failure ────────
+# Transcribed from the FY2004 governmental-funds statement's real
+# Transportation row (see task-4-report.md fix round 2 for how this was
+# diagnosed): a page-footer PAGE NUMBER ('16') landed at the very start of
+# the rendered line, ahead of the real label, and was silently dropped --
+# taking its true GF value (75) with it -- before this fix existed.
+FOOTER_DIGIT_TRANSPORTATION_LINE = (
+    '16                                 Transportation                     '
+    '75           1,785,388    -            -        -           1,785,463'
+)
+_FOOTER_ANCHOR = anchors('Total Expenditures  75  1,785,388  -  -  -  1,785,463')
+
+
+def _footer_digit_cfg():
+    return CityConfig(city='X', parents=('debt service',),
+                       root_leaves=('capital outlay',),
+                       column_strategy='ordinal', units=1)
+
+
+class TestLeadingPageNumberRecovery(unittest.TestCase):
+    def test_footer_digit_row_recovers_its_label_and_true_value(self):
+        kind, lbl, val = classify(FOOTER_DIGIT_TRANSPORTATION_LINE, _FOOTER_ANCHOR, _footer_digit_cfg())
+        self.assertEqual(kind, 'data')
+        self.assertEqual(lbl, 'Transportation')
+        self.assertEqual(val, 75)
+
+    def test_recovery_works_end_to_end_through_build_operating(self):
+        # Same row, exercised through the full tree builder (in the style of
+        # TestBainbridgeShape above), not just classify() directly.
+        exp_lines = [
+            'EXPENDITURES',
+            'General government                 2,951,684    243,450      -            376         3,195,510',
+            FOOTER_DIGIT_TRANSPORTATION_LINE,
+            'Capital outlay                      629,708      207,381      -            180,000     1,017,089',
+            'Total Expenditures                  3,656,467    450,831      75           180,376     6,073,310',
+        ]
+        tree, total, zero_rows = build_operating(exp_lines, _FOOTER_ANCHOR, _footer_digit_cfg())
+        roots = {c['n']: c['a'] for c in tree['c']}
+        self.assertIn('Transportation', roots)
+        self.assertEqual(roots['Transportation'], 75)
+        self.assertEqual(zero_rows, [])   # not dropped, so not in zero_rows either
+
+    def test_legitimate_label_starting_with_digits_and_a_single_space_is_untouched(self):
+        # "911 Dispatch" must NOT be mistaken for a page-number prefix: the
+        # digit and the following word are separated by a single space, not
+        # a genuine 2+-space column gap. Confirmed unmodified by the
+        # recovery step itself (see acfrGF.py's Trap 5 comment for the
+        # separate, pre-existing, disclosed residual this does NOT fix: a
+        # digit-led label reaching classify() would still raise there, not
+        # here -- verified absent from every currently-shipped entity's real
+        # GF statement page).
+        line = '911 Dispatch                       50,000       -        -        -           50,000'
+        self.assertEqual(_recover_label_past_leading_page_number(line), line)
+
+    def test_compound_label_with_no_gap_at_all_is_untouched(self):
+        # "4Culture" (a real King County program name, confirmed present in
+        # King County's FY2024 ACFR as a debt-schedule caption -- never on
+        # the GF statement page itself) has no gap whatsoever between the
+        # digit and the letter, so it can never match _LEADING_PAGE_NUMBER
+        # either.
+        line = '4Culture                           50,000       -        -        -           50,000'
+        self.assertEqual(_recover_label_past_leading_page_number(line), line)
+
+
+class TestValuesWithNoLabelRaisesLoudly(unittest.TestCase):
+    def test_a_row_with_a_real_gf_value_and_no_recoverable_label_raises(self):
+        # The actual defect this round exists to fix: silently dropping a
+        # row that carries a real value is worse than failing loudly. This
+        # line has no leading page-number pattern to recover (no digit run
+        # at all before the numbers) -- it is simply unlabeled, which must
+        # now be impossible to pass through silently.
+        line = '                                    50,000       -        -        -           50,000'
+        anchor = anchors('Total Expenditures  50,000  -  -  -  50,000')
+        with self.assertRaises(ValueError):
+            classify(line, anchor, _footer_digit_cfg())
+
+
+class TestBlankLinesAndRulesStillSkipQuietly(unittest.TestCase):
+    # CRITICAL boundary from fix round 3: a genuinely blank line, a
+    # rule/underline row, or a spacer with NO values at all must continue to
+    # be skipped quietly -- the loud failure above applies ONLY when a row
+    # carries a real value and still has no usable label. These three cases
+    # never reach that branch at all (they have no money tokens whatsoever),
+    # so they must never raise.
+    def test_an_empty_line_is_still_skipped_quietly(self):
+        kind, lbl, val = classify('', [], _footer_digit_cfg())
+        self.assertEqual(kind, 'skip')
+
+    def test_a_pure_whitespace_line_is_still_skipped_quietly(self):
+        kind, lbl, val = classify('              ', [], _footer_digit_cfg())
+        self.assertEqual(kind, 'skip')
+
+    def test_an_underline_rule_row_with_no_values_never_raises(self):
+        kind, lbl, val = classify('___________________________________', [], _footer_digit_cfg())
+        self.assertIn(kind, ('wrapped', 'skip'))
+
+    def test_a_wrapped_label_continuation_with_no_numbers_never_raises(self):
+        # A genuine multi-line label wrap (no money tokens at all on this
+        # physical line) must still be classified 'wrapped', not raise.
+        kind, lbl, val = classify('Culture and Recreation', [], _footer_digit_cfg())
+        self.assertEqual(kind, 'wrapped')
+        self.assertEqual(lbl, 'Culture and Recreation')
 
 
 if __name__ == '__main__':
