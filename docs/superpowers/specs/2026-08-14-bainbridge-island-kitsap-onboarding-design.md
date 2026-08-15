@@ -222,6 +222,42 @@ The declined alternative was dropping those four years, which would have cut
 Bainbridge from 21 years to 17 and the milestone from 84 rows to 76 — and would have
 left Bainbridge tied with Seattle rather than TT's deepest-history city.
 
+**SECOND AMENDMENT — 2026-08-14, also during Task 4, by Chris's ruling.** A second
+and larger library change was authorised, and unlike the first it is **neither
+additive nor defaulted** — it changes `classify()`, the row-classification path all
+ten shipped entities run through.
+
+The defect: `pdftotext -table` places a bare page-footer page number in the label
+column of exactly one data row per early Bainbridge year, the label resolves to
+empty, and `acfrGF.py` **silently dropped the row**. Each missing row accounted for
+its year's tie failure to the dollar — FY2004 `Transportation` 75, FY2005
+`Transportation` 7,270, FY2007 `Economic environment` 2,323,355, FY2008
+`Health and human services` 452,200. No `CityConfig` mechanism could reach it:
+`label_fixes`, `parents` and `root_leaves` all require a label to already exist.
+
+**This never shipped wrong data.** A dropped row breaks the tie, which is how it was
+found — the $0 gate did its job. It was a robustness gap, not a correctness failure
+in any shipped entity.
+
+The authorised fix has two halves: (a) recover the label past a bare page-number
+token, narrowly enough not to corrupt a legitimate label such as `911 Dispatch` or
+`4Culture`; and (b) make a row that carries **values but no usable label** fail
+loudly rather than vanish, while a genuinely blank, spacer or rule row with **no
+values** still skips quietly. That boundary is the highest-consequence line in the
+milestone: drawn one way it resurrects the silent drop, drawn the other it crashes a
+shipped entity on a blank row.
+
+Evidence required and delivered: the full selftest suite (105 tests), Seattle and
+King County unchanged, and a sweep of every library-backed extractor against every
+ACFR on disk — 162 combinations across nine entities, zero uncaught exceptions.
+Independently at review, all 79 statement pages those nine entities select were
+scanned for the new recovery pattern: one line matches, in Seattle FY2025, and an
+A/B run with the recovery disabled produced byte-identical output.
+
+Declined alternatives: dropping the operating dataset for those four years (which
+would have shown Money In with no Money Out — a reader would reasonably misread that
+as the city having spent nothing), or dropping the four years entirely.
+
 **`scripts/loadBainbridgeKitsap.mjs`** — writes via `treasury_sync_budget_tree`
 **only**. Never `treasury_sync_city_budget`, which overwrites existing
 `(muni, fy, dataset)` rows and keeps a stale `data_source` label. `data_sources`
