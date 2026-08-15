@@ -1,6 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import {
   decodeMsDate, searchReportsUrl, entityLookupUrl, reportFileUrl, classifyReport,
+  fetchReportPdf,
 } from '../scripts/lib/waSao.mjs';
 
 describe('decodeMsDate', () => {
@@ -74,5 +75,36 @@ describe('classifyReport', () => {
     const r = classifyReport(80,
       'Reconciliation of the Statement of Revenues, Expenditures and Changes in Fund Balance');
     expect(r.ok).toBe(false);
+  });
+});
+
+describe('fetchReportPdf', () => {
+  const realFetch = globalThis.fetch;
+  afterEach(() => { globalThis.fetch = realFetch; });
+
+  // A WAF/redirect miss can answer 200 with an HTML page instead of a PDF.
+  // The magic-number check must catch that even though the status is ok.
+  it('throws when the server answers HTTP 200 with an HTML body', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      arrayBuffer: async () => Buffer.from('<html><body>Not found</body></html>'),
+    });
+    await expect(fetchReportPdf(1234567)).rejects.toThrow(/not a PDF/i);
+  });
+
+  it('throws on a non-200 response', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({ ok: false, status: 404 });
+    await expect(fetchReportPdf(1234567)).rejects.toThrow(/HTTP 404/);
+  });
+
+  it('resolves with the buffer when the body is a real PDF', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      arrayBuffer: async () => Buffer.from('%PDF-1.4 fake but valid magic bytes'),
+    });
+    const buf = await fetchReportPdf(1234567);
+    expect(buf.subarray(0, 4).toString()).toBe('%PDF');
   });
 });
