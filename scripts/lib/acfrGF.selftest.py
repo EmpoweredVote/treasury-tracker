@@ -658,5 +658,78 @@ class TestSectionHeaderPrefixGuardRound5(unittest.TestCase):
         self.assertTrue(_is_section_header('EXPENDITURES', 'expenditures', 'prefix'))
 
 
+# ── Bainbridge Island shape ──────────────────────────────────────────────────
+# Transcribed from the FY2025 SAO-bound statement (whole dollars, GF leftmost).
+# Bainbridge does NOT group its revenue side -- there is no `Taxes:` parent --
+# which is why BI_CFG leaves revenue_parents empty while Seattle/King County
+# set it. Setting it here would look for a group that does not exist.
+BI_REV_LINES = [
+    'REVENUES',
+    'Property Taxes                    8,612,126    -            -        (64)        8,612,062',
+    'Sales, Business, and Excise Taxes 12,532,083   786,774      -        5,109,974   18,428,831',
+    'Licenses and Permits              669,376       37,063      -        -           706,439',
+    'Total Revenues                    24,379,173   1,298,666    208,542  6,340,722   32,227,102',
+]
+BI_REV_ANCHOR = BI_REV_LINES[-1]
+
+BI_EXP_LINES = [
+    'EXPENDITURES',
+    'Current',
+    'General Government                7,996,984    577,779      -        -           8,574,762',
+    'Transportation                    -            3,344,813    -        -           3,344,813',
+    'Debt Service - Principal          30,508       -            -        668,665     699,173',
+    'Capital Outlay                    133,497      -            4,809,336 -          4,942,833',
+    'Total Expenditures                20,801,297   4,090,263    4,809,336 1,996,401  31,697,296',
+]
+BI_EXP_ANCHOR = BI_EXP_LINES[-1]
+
+
+def _bi_cfg(**kw):
+    base = dict(city='Bainbridge Island, WA',
+                parents=('current',),
+                root_leaves=('debt service', 'capital outlay'),
+                column_strategy='ordinal', units=1, fy_end=('December', 31))
+    base.update(kw)
+    return CityConfig(**base)
+
+
+class TestBainbridgeShape(unittest.TestCase):
+    def test_revenue_side_is_flat_with_no_tax_parent(self):
+        tree, total, _ = build_revenue(BI_REV_LINES, anchors(BI_REV_ANCHOR), _bi_cfg())
+        self.assertEqual([c['n'] for c in tree['c']],
+                         ['Property Taxes', 'Sales, Business, and Excise Taxes',
+                          'Licenses and Permits'])
+        self.assertEqual(total, 8612126 + 12532083 + 669376)
+
+    def test_capital_outlay_and_debt_service_are_root_leaves_not_children_of_current(self):
+        tree, _, _ = build_operating(BI_EXP_LINES, anchors(BI_EXP_ANCHOR), _bi_cfg())
+        roots = [c['n'] for c in tree['c']]
+        self.assertIn('Current', roots)
+        self.assertIn('Capital Outlay', roots)
+        self.assertIn('Debt Service - Principal', roots)
+
+    def test_dash_zero_transportation_keeps_its_own_label(self):
+        # The Bend trap: a dash-zero can graft its label onto the NEXT row while
+        # tie_delta stays $0, so the tie can never detect it. Assert the label.
+        #
+        # NOTE: the brief's original draft of this test read the label off
+        # `current.get('i', [])` -- a key `build_operating` never emits (no
+        # node in this library carries an 'i' array; see acfrGF.py). A $0 GF
+        # row is recorded in `zero_rows` and dropped from the tree entirely
+        # (documented in build_operating's docstring and exercised by the
+        # existing TestDoubleDashRowDoesNotGlue case above), so the correct
+        # assertion is against `zero_rows`, matching that existing pattern.
+        _, _, zero_rows = build_operating(BI_EXP_LINES, anchors(BI_EXP_ANCHOR), _bi_cfg())
+        self.assertIn('Transportation', zero_rows)
+        self.assertNotIn('Transportation Debt Service - Principal', zero_rows)
+
+    def test_units_are_whole_dollars_not_thousands(self):
+        # Bainbridge prints whole dollars, unlike Seattle/King County. The tie is
+        # unit-invariant and cannot catch a wrong multiplier, so assert it here.
+        _, total, _ = build_revenue(BI_REV_LINES, anchors(BI_REV_ANCHOR), _bi_cfg())
+        self.assertEqual(total, 21813585)
+        self.assertGreater(total, 1_000_000)
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)
