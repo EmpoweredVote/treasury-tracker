@@ -116,7 +116,47 @@
  *   4. MAGNITUDE — the re-derived total per resident falls inside a plausible
  *      band. Every silent wrong-page hit above lands far outside it
  *      (FY2005's County Roads = $101/resident, FY2013's REET = $1/resident).
+ *   5. UNAMBIGUITY — EXACTLY ONE page survives the filters above.
  * A row that ties perfectly and fails any of these is a FAILURE.
+ *
+ * ── AMBIGUITY IS FATAL, NOT A WARNING — DO NOT DOWNGRADE THIS ───────────────
+ * Assertion 5 is a BLOCKER, and that is deliberate. `findStatementPage` still
+ * returns `cands[0]` when several pages survive, so one bad document produces a
+ * full diagnostic instead of aborting the run — but `main()` counts every
+ * ambiguous row as a blocker and the process exits non-zero.
+ *
+ * The reason is narrow and specific. Taking `cands[0]` IS the "the true
+ * statement sorts earliest" assumption — the exact thin invariant Task 5
+ * identified as the only thing protecting Kitsap in the shared library, and the
+ * thing a future SAO reordering (basic statements after the individual-fund
+ * schedules) would silently break. This harness's whole claim is that it does
+ * NOT rely on that. If ambiguity were merely printed, a regressed document
+ * would put the harness back on page ordering while it still exited 0 and still
+ * printed a header saying it never does that — and the wrong-page failure mode
+ * is the one this milestone proved TIES AT $0 AND LOOKS PERFECT (9 of 10 silent
+ * wrong-page hits tied). A green run would then be evidence of nothing.
+ *
+ * It is currently 72/72 unambiguous, so this gate never fires on good data.
+ * Kitsap's statement spans two pages and page 2 carries the identical title,
+ * the identical "Governmental Funds" scope line and BOTH Total rows, so all 18
+ * Kitsap years have two survivors before the last two filters run. MEASURED,
+ * by disabling each filter in turn and re-running the whole corpus:
+ *
+ *   both filters on            0 ambiguous rows          exit 0
+ *   CONTINUATION_RE off        0 ambiguous rows          exit 0
+ *   GF_CAPTION_RE off          4 (FY2004 + FY2015 x2)    exit 1
+ *   both off                   36 (all 18 Kitsap x2)     exit 1
+ *
+ * So `GF_CAPTION_RE` alone resolves all 18 years and `CONTINUATION_RE` alone
+ * resolves 16 — FY2004 and FY2015 print no "Page 2 of N" on their second page.
+ * `GF_CAPTION_RE` is therefore the load-bearing one on today's corpus;
+ * `CONTINUATION_RE` is redundant here and is kept as the cheaper, more explicit
+ * test that a future document is most likely to trip first. Do not read the
+ * second row of that table as licence to delete it.
+ *
+ * The correct response to this gate firing is to TIGHTEN THE CANDIDATE FILTERS
+ * until the document identifies its own statement page — never to relax the
+ * gate, and never to add a tie-break rule.
  *
  * ── TOLERANCE ───────────────────────────────────────────────────────────────
  * Exact $0 on every grand total, subtotal and leaf, matched by label.
@@ -375,6 +415,12 @@ function findStatementPage(pages, label) {
     throw new Error(`${label}: no governmental-funds statement page survived page identity` +
       (rejected.length ? ` (rejected: ${rejected.slice(0, 6).join('; ')})` : ''));
   }
+  // `cands[0]` is returned so the rest of the run can still produce a full
+  // diagnostic instead of aborting on the first ambiguous document — but a
+  // count > 1 is made a BLOCKER in main(), never a warning. See the
+  // "AMBIGUITY IS FATAL" note in the file header for why that is not
+  // negotiable: taking cands[0] IS the page-ordering assumption this harness
+  // claims never to rely on, and the wrong-page failure mode ties at $0.
   return { index: cands[0], text: pages[cands[0]], allCandidates: cands };
 }
 
@@ -997,10 +1043,17 @@ async function main() {
     console.log(`  • fiscal year confirmed from the page's own period sentence: ${done.length}/${done.length} (no document trusted on its filename)`);
     console.log(`  • per-capita magnitude inside the entity's plausible band: ${done.length}/${done.length}`);
     console.log(`  • exactly ONE surviving candidate page: ${done.length - ambiguous.length}/${done.length}` +
-      (ambiguous.length ? ` — ${ambiguous.length} AMBIGUOUS` : ' (tie-breaking never decided anything)'));
+      (ambiguous.length ? ` — ${ambiguous.length} AMBIGUOUS (BLOCKER, see below)` : ' (tie-breaking never decided anything)'));
+    // AMBIGUITY IS FATAL, NOT A WARNING. See the file header. Printing these
+    // and still exiting 0 would leave the harness silently falling back to
+    // "the true statement sorts earliest" — the one assumption it claims not
+    // to make, and the one whose failure mode ties at $0 and looks perfect.
     for (const r of ambiguous) {
-      console.log(`      AMBIGUOUS: ${r.ent} FY${r.fy} ${r.mode} — candidate pages ${r.ind.allCandidates.join(', ')}; page ${r.page} used`);
+      console.error(`  BLOCKER PAGE IDENTITY (ambiguous): ${r.ent} FY${r.fy} ${r.mode} — ${r.candidates} candidate pages survived ` +
+        `(${r.ind.allCandidates.join(', ')}); page ${r.page} was used, chosen by DOCUMENT ORDER. ` +
+        `This harness does not accept a page chosen by sort order — tighten the candidate filters instead.`);
     }
+    blockers += ambiguous.length;
     const sample = done.find((r) => r.ent === 'Kitsap County' && r.fy === 2013 && r.mode === 'operating') || done[0];
     if (sample) {
       console.log(`  sample — ${sample.ent} FY${sample.fy} ${sample.mode}: p.${sample.page}, GF band ` +
