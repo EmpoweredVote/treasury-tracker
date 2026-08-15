@@ -6,7 +6,12 @@ COVERS FY2004, FY2005, FY2007 and FY2008 ONLY. For FY2010-FY2025 use
 scripts/extractBainbridge.py instead -- that era's expenditure tree is
 genuinely differently shaped (see below) and CityConfig is one tree shape
 per config, not an era-aware switch. FY2006 has no usable filing (image-only
-scan, excluded upstream). FY2009 is font-corrupted (a separate, later task).
+scan, excluded upstream). FY2009 is font-corrupted and DROPPED: its
+statement pages are digit-bearing but ciphered (a broken embedded font with
+no usable ToUnicode CMap), and the bounded contiguous-offset decode
+attempted in Task 6 found no substitution map that tied. See "Known
+limitations" in
+docs/superpowers/specs/2026-08-14-bainbridge-island-kitsap-onboarding-design.md.
 
 Thin wrapper over scripts/lib/acfrGF.py.
 

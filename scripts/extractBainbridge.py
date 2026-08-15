@@ -5,8 +5,12 @@ City of Bainbridge Island, WA — General Fund extractor (GAAP actuals).
 COVERS FY2010-FY2025. For FY2004, FY2005, FY2007 and FY2008 (an era with a
 genuinely different expenditure tree shape), use
 scripts/extractBainbridgeEarly.py instead. FY2006 has no usable filing
-(image-only scan, excluded upstream). FY2009 is font-corrupted (a separate,
-later task).
+(image-only scan, excluded upstream). FY2009 is font-corrupted and DROPPED:
+its statement pages are digit-bearing but ciphered (a broken embedded font
+with no usable ToUnicode CMap), and the bounded contiguous-offset decode
+attempted in Task 6 found no substitution map that tied. See "Known
+limitations" in
+docs/superpowers/specs/2026-08-14-bainbridge-island-kitsap-onboarding-design.md.
 
 Thin wrapper over scripts/lib/acfrGF.py.
 

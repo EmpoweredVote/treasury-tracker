@@ -22,16 +22,16 @@ onboarding, not an edit.
 | Decision | Choice | Rationale |
 |---|---|---|
 | Fund scope | **General Fund only** | Matches every existing TT city. One comparable basis across the app. |
-| Bainbridge window | **FY2004–FY2025**, less FY2006 (21 years) | Full statements-bearing SAO archive. Deepest city in TT — Seattle has 17. |
+| Bainbridge window | **FY2004–FY2025**, less FY2006 and FY2009 (20 years) | Full statements-bearing SAO archive, less the FY2006 scan and the FY2009 font-recovery attempt (Task 6, dropped — see Known limitations). Deepest city in TT — Seattle has 17. |
 | Kitsap County | **Node + its own finances**, FY2004–FY2024 less FY2017–FY2019 (**18 years**) | User elected real county finances, not a nav-only node (the Pima/Dane precedent). FY2025 is not yet audited; FY2017–FY2019 have no digits in the PDF text layer (see Known limitations). |
 | Datasets | `operating` + `revenue` | Standard TT pair. |
 | Source | **WA SAO bound financial statements** (GAAP), free / no auth, one host for both entities | See "Source selection". |
 | Early-year effort | Clean years, plus a **bounded** FY2009 font-map recovery | User elected "recover what's cheap": no OCR of the FY2006 scan, no pre-GASB-34 work. |
 
-Expected volume: Bainbridge 21 × 2 = 42 rows, Kitsap **18** × 2 = **36** rows, **78 rows**
-— or 76 if the FY2009 recovery does not tie (Bainbridge 20 × 2 = 40 + Kitsap 36).
-Final window is whatever the tie gate accepts; excluded years are documented, never
-coerced.
+Expected volume, before the FY2009 recovery attempt was resolved (historical): Bainbridge
+21 × 2 = 42 rows, Kitsap **18** × 2 = **36** rows, **78 rows** — or 76 if the FY2009
+recovery did not tie. Final window is whatever the tie gate accepts; excluded years
+are documented, never coerced.
 
 **Task 6 outcome: FY2009 recovery attempted and DROPPED.** The bounded six-window
 contiguous-substitution decoder (`scripts/decodeSaoFont2009.py`) found the statement
