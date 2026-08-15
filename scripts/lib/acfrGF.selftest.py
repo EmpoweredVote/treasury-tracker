@@ -10,6 +10,13 @@ from lib.acfrGF import (CityConfig, column_value, classify, build_revenue,
                          build_operating, anchors, slots, dash_zero_label,
                          find_statement_page, parse_fy, _is_section_header,
                          _recover_label_past_leading_page_number)
+# The SHIPPED Bainbridge configs themselves, not copies of them -- see
+# TestShippedBainbridgeConfigsAreWholeDollars at the bottom of this file for
+# why the real objects have to be under test rather than a local fixture.
+# Both modules define CONFIG at import time and only call run_cli under
+# `if __name__ == '__main__'`, so importing them here runs no extraction.
+import extractBainbridge          # noqa: E402
+import extractBainbridgeEarly     # noqa: E402
 
 # Transcribed from King County FY2020-era GF statement (values thousands-scale
 # in the real document; kept as bare ints here since these tests exercise
@@ -804,12 +811,28 @@ class TestBainbridgeEarlyShape(unittest.TestCase):
         self.assertIn('Judicial', roots)
         self.assertNotIn('Current', roots)
 
-    def test_units_are_whole_dollars_not_thousands(self):
-        # Bainbridge prints whole dollars, unlike Seattle/King County. The tie is
-        # unit-invariant and cannot catch a wrong multiplier, so assert it here.
-        _, total, _ = build_revenue(BI_REV_LINES, anchors(BI_REV_ANCHOR), _bi_cfg())
-        self.assertEqual(total, 21813585)
-        self.assertGreater(total, 1_000_000)
+
+class TestShippedBainbridgeConfigsAreWholeDollars(unittest.TestCase):
+    # Bainbridge's SAO-bound statements print WHOLE DOLLARS; Seattle and King
+    # County print "(IN THOUSANDS)". Getting that wrong publishes figures that
+    # are off by 1000x -- and NOTHING else in this repo can catch it:
+    #
+    #   * The tie gate is unit-invariant. computed and printed are BOTH scaled
+    #     by cfg.units, so tie_delta reads $0 at units=1 and at units=1000
+    #     alike. A wrong multiplier ships silently past a green tie.
+    #   * TestUnits above pins the library MECHANICS (that cfg.units is applied
+    #     exactly once, at the right layers) using its own local fixtures. It
+    #     says nothing about which value the shipped city configs choose.
+    #
+    # So these assertions must run against the real, shipped CONFIG objects.
+    # A version of this test that rebuilds an equivalent CityConfig locally
+    # would pass forever no matter what the shipped files said -- which is
+    # exactly the hole this class was written to close.
+    def test_modern_era_config_units_is_one(self):
+        self.assertEqual(extractBainbridge.CONFIG.units, 1)
+
+    def test_early_era_config_units_is_one(self):
+        self.assertEqual(extractBainbridgeEarly.CONFIG.units, 1)
 
 
 # ── Trap 5 (fix round 3): footer page-number recovery + loud failure ────────
