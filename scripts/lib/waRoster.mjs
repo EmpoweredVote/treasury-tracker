@@ -74,13 +74,21 @@ export const WA_ENTITIES = [
     pdfDir: 'docs/Tacoma', pdfPrefix: 'tacoma', datasetIdPrefix: 'tacoma-sao-gf',
     population: 228_400, populationNote: 'WA OFM April 1, 2025 — Filter=4 city row, line 295 (2026 est: 231,000)',
     perCapitaBand: null, sanityMax: 5_000_000_000,
-    // Content-guard window: all 22 "Financial and Federal" filings FY2003-FY2024
-    // pass classifyReport (79-188pp, statements present). FY2025 is excluded --
-    // its only filings are a 5pp opinion letter and Contracted CPA reports; the
-    // financial audit is not yet released. The EXTRACTION floor may be
-    // shallower and is settled by the extractor task, not here.
-    fiscalYears: [2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013,
-                  2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+    // MEASURED window: 19 years. All 22 "Financial and Federal" filings
+    // FY2003-FY2024 pass the content guard, and ONE extractor config ties at
+    // exactly $0 on 19 of them, spanning all three of Tacoma's statement eras.
+    //
+    // Excluded, each an isolated year so the walk continues past it:
+    //   FY2025 -- source timing. Its only City of Tacoma filings are a 5pp
+    //             opinion letter (ARN 1040162) and Contracted CPA reports; the
+    //             financial audit is not yet released. Re-check later.
+    //   FY2011, FY2018, FY2021 -- source-document defect. The statement pages
+    //             carry no usable text layer; FY2018 shows the constant +29
+    //             byte shift plainly. Same cipher class v2.22 failed to decode
+    //             on Bainbridge FY2010 and Kitsap FY2017-2019, so no recovery
+    //             is attempted. See scripts/extractTacoma.py.
+    fiscalYears: [2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013,
+                  2014, 2015, 2016, 2017, 2019, 2020, 2022, 2023, 2024],
     roundingFiles: ['extractTacoma.py'], navOnly: false,
   },
   {

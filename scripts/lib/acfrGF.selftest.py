@@ -19,6 +19,7 @@ from lib.acfrGF import (CityConfig, column_value, classify, build_revenue,
 import extractBainbridge          # noqa: E402
 import extractBainbridgeEarly     # noqa: E402
 import extractKitsap              # noqa: E402
+import extractTacoma              # noqa: E402
 
 # Transcribed from King County FY2020-era GF statement (values thousands-scale
 # in the real document; kept as bare ints here since these tests exercise
@@ -844,6 +845,47 @@ class TestShippedBainbridgeConfigsAreWholeDollars(unittest.TestCase):
         # precisely the hole this class exists to close (see the class
         # docstring above): assert against the real, shipped CONFIG object.
         self.assertEqual(extractKitsap.CONFIG.units, 1)
+
+
+class TestShippedTacomaConfig(unittest.TestCase):
+    # Tacoma is the first WA SAO city in this repo that prints IN THOUSANDS,
+    # so it is the one entity where copying a Bainbridge/Kitsap config would
+    # publish figures 1000x too small behind a green tie. Asserted against the
+    # real shipped CONFIG for the reason in the class above: a locally rebuilt
+    # equivalent would pass forever regardless of what the file says.
+    def test_tacoma_config_units_is_thousands(self):
+        self.assertEqual(extractTacoma.CONFIG.units, 1000)
+
+    def test_tacoma_column_strategy_is_positional(self):
+        # NOT 'ordinal', and this is load-bearing rather than stylistic.
+        # FY2023's Transportation row has a BLANK General Fund cell -- not a
+        # dash, nothing -- so it prints three numbers where every other row
+        # prints four. The ordinal reader counts back from the right end and
+        # silently shifts a column, reading the Trans Capital figure (4,330)
+        # as the General Fund figure: 268,401 computed vs 264,071 printed.
+        # The positional reader anchors columns from the fully-populated
+        # totals row and correctly sees the cell as absent.
+        self.assertEqual(extractTacoma.CONFIG.column_strategy, 'positional')
+
+    def test_tacoma_fy_end_is_december_31(self):
+        self.assertEqual(extractTacoma.CONFIG.fy_end, ('December', 31))
+
+    def test_tacoma_tax_group_members_are_bare_nouns_not_taxes_suffix(self):
+        # Tacoma's tax children are `Property` / `Retail Sales & Use` /
+        # `Business` / `Excise` -- bare nouns. Seattle's are "... taxes", so
+        # Seattle's ('taxes',) suffix would close Tacoma's group immediately
+        # and strand all four children at root. Both spellings still tie $0;
+        # only the shape would be wrong, which is why this is asserted.
+        self.assertEqual(extractTacoma.CONFIG.revenue_parents, ('taxes',))
+        self.assertIn('property', extractTacoma.CONFIG.revenue_group_members)
+        self.assertIn('excise', extractTacoma.CONFIG.revenue_group_members)
+        self.assertNotEqual(extractTacoma.CONFIG.revenue_group_members, ('taxes',))
+
+    def test_tacoma_root_leaves_cover_both_era_spellings(self):
+        # Era A prints `Capital Outlay`; Era B prints `Capital expenditures`.
+        # One config spans both only because both spellings are listed.
+        self.assertIn('capital outlay', extractTacoma.CONFIG.root_leaves)
+        self.assertIn('capital expenditures', extractTacoma.CONFIG.root_leaves)
 
 
 # ── Trap 5 (fix round 3): footer page-number recovery + loud failure ────────
