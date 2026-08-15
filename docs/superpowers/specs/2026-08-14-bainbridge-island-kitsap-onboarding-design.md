@@ -23,7 +23,7 @@ onboarding, not an edit.
 |---|---|---|
 | Fund scope | **General Fund only** | Matches every existing TT city. One comparable basis across the app. |
 | Bainbridge window | **FY2004–FY2025**, less FY2006 (21 years) | Full statements-bearing SAO archive. Deepest city in TT — Seattle has 17. |
-| Kitsap County | **Node + its own finances**, FY2004–FY2024 (21 years) | User elected real county finances, not a nav-only node (the Pima/Dane precedent). FY2025 is not yet audited. |
+| Kitsap County | **Node + its own finances**, FY2004–FY2024 less FY2017–FY2019 (**18 years**) | User elected real county finances, not a nav-only node (the Pima/Dane precedent). FY2025 is not yet audited; FY2017–FY2019 have no digits in the PDF text layer (see Known limitations). |
 | Datasets | `operating` + `revenue` | Standard TT pair. |
 | Source | **WA SAO bound financial statements** (GAAP), free / no auth, one host for both entities | See "Source selection". |
 | Early-year effort | Clean years, plus a **bounded** FY2009 font-map recovery | User elected "recover what's cheap": no OCR of the FY2006 scan, no pre-GASB-34 work. |
@@ -219,7 +219,8 @@ the full `npm run test:acfr` suite passing, plus re-run Seattle and King County
 extractions demonstrating their totals and ties are unchanged.
 
 The declined alternative was dropping those four years, which would have cut
-Bainbridge from 21 years to 17 and the milestone from 84 rows to 76 — and would have
+Bainbridge from 21 years to 17 and the milestone from 84 rows to 76 (the totals as they
+stood before Kitsap FY2017–FY2019 were later dropped) — and would have
 left Bainbridge tied with Seattle rather than TT's deepest-history city.
 
 **SECOND AMENDMENT — 2026-08-14, also during Task 4, by Chris's ruling.** A second
