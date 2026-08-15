@@ -569,6 +569,16 @@ async function main() {
           const t = String(a.text ?? '').trim();
           if (!t) { fail.push(`${label}: EMPTY label at ${a.where}`); continue; }
           if (/^[\d.,$()\s-]+$/.test(t)) fail.push(`${label}: purely numeric label "${t}" at ${a.where}`);
+          // PAGE-FURNITURE welded onto a label. Found live, not theorised:
+          // Bainbridge FY2013 revenue shipped a category AND line item named
+          // "______…___ Interest and Investment Revenue" — a rendered rule from
+          // the PDF's left margin. The figure was correct and the row tied at
+          // $0, so every arithmetic gate passed it through to production
+          // display. This is the dash-zero lesson in another costume: a label
+          // defect is invisible to a tie. Assert the label surface directly.
+          if (/_{3,}/.test(t)) fail.push(`${label}: label carries a rendered rule (3+ underscores) — "${t}" at ${a.where}`);
+          if (/Washington State Auditor/i.test(t)) fail.push(`${label}: label carries the SAO page-footer credit — "${t}" at ${a.where}`);
+          if (/^[^A-Za-z(]/.test(t)) fail.push(`${label}: label starts with page furniture, not a letter — "${t}" at ${a.where}`);
         }
         // Dash-zero grafting welds one row's label onto the next. Its signature
         // is a leaf label that has ANOTHER label of the same row as a strict

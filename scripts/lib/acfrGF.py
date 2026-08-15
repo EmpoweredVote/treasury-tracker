@@ -469,6 +469,49 @@ def _recover_label_past_leading_page_number(line):
     return (' ' * len(digits)) + line[len(digits):]
 
 
+# A RENDERED HORIZONTAL RULE that lands in the text layer to the LEFT of a row's
+# label, which `label_of` then swallows as part of the label.
+#
+# Confirmed live on Bainbridge Island FY2013 revenue (PDF page 32): the
+# "Interest and Investment Revenue" row renders as
+#
+#     _________________________________________________  Interest and Investment    Revenue    46,648 ...
+#
+# and shipped to the database as a category AND line item literally named
+# "_________________________________________________ Interest and Investment
+# Revenue". The FIGURE was never wrong -- 46,648 is the correct General Fund
+# value and the row tied at $0 -- which is exactly why nothing caught it: this
+# is the same class as the dash-zero trap, a LABEL corruption that leaves
+# tie_delta at 0 and therefore passes every arithmetic gate. It reached
+# production display.
+#
+# Deliberately narrow, matching `_LEADING_PAGE_NUMBER`'s shape and reasoning:
+# THREE or more underscores in the line's LEFT MARGIN (leading whitespace only
+# before them), separated from what follows by a genuine 2+-space COLUMN GAP,
+# followed by a letter. No legitimate financial-statement label begins that way;
+# a label containing an underscore ("Fund_Balance") has neither a margin-anchored
+# run nor a column gap after it, so it is untouched.
+#
+# Leading whitespace is ALLOWED before the run (unlike `_LEADING_PAGE_NUMBER`,
+# whose token starts at column 0) because `pdftotext -table` indents every row
+# of these statements by the page's left margin -- the rule is drawn inside that
+# margin, not at column 0.
+_LEADING_RULE = re.compile(r'^(\s*)(_{3,})(\s{2,})(?=[A-Za-z])')
+
+
+def _recover_label_past_leading_rule(line):
+    """Blank out a rendered rule glued to the left of a row's label, with spaces
+    of the SAME LENGTH so every later character keeps its exact original
+    absolute position (required by `column_strategy='positional'`, which anchors
+    values by x-coordinate read from a different line). Returns `line`
+    completely unchanged otherwise."""
+    m = _LEADING_RULE.match(line)
+    if not m:
+        return line
+    start, rule = m.start(2), m.group(2)
+    return line[:start] + (' ' * len(rule)) + line[start + len(rule):]
+
+
 # ── Statement page location ──────────────────────────────────────────────────
 # "Balances?" — Tigard titles its statement "CHANGES IN FUND BALANCE" (singular)
 # while every other city so far uses the plural. Requiring the plural silently
@@ -662,6 +705,7 @@ def target_cell_is_dash_zero(line, col_anchors, cfg):
         cell holds a number), and some dash-run must resolve to column 0.
     """
     line = _recover_label_past_leading_page_number(line)
+    line = _recover_label_past_leading_rule(line)
     if not nums_with_pos(line):
         return dash_zero_label(line) is not None
     if cfg.column_strategy == 'ordinal':
@@ -710,6 +754,7 @@ def classify(line, col_anchors, cfg):
         return 'skip', '', None
 
     line = _recover_label_past_leading_page_number(line)
+    line = _recover_label_past_leading_rule(line)
 
     if not nums_with_pos(line):
         dz = dash_zero_label(line)

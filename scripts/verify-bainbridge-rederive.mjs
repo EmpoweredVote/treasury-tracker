@@ -462,17 +462,27 @@ function unitsOf(pageText) {
 const normLabel = (s) => s.replace(/\s+/g, ' ').trim().replace(/[:$\s]+$/, '').trim();
 
 /**
- * Label = the row text left of the chosen cell, minus two page decorations the
+ * Label = the row text left of the chosen cell, minus THREE page decorations the
  * SAO's own binding glues onto data rows:
  *   • a leading page-footer PAGE NUMBER — a bare 1-4 digit run followed by a
  *     genuine 2+ space gap and then a letter. "911 Dispatch" and "4Culture"
  *     have no such gap and are untouched.
+ *   • a RENDERED HORIZONTAL RULE drawn in the left margin, three or more
+ *     underscores followed by a genuine 2+ space gap and then a letter.
+ *     Confirmed on Bainbridge FY2013 revenue, where the "Interest and
+ *     Investment Revenue" row carries a 49-underscore rule and shipped to the
+ *     database under that name. The FIGURE was always right and the row tied at
+ *     $0 — this is a LABEL corruption of the dash-zero class, invisible to every
+ *     arithmetic gate, which is why it survived to production. A label that
+ *     merely CONTAINS an underscore ("Fund_Balance") has no margin-anchored run
+ *     and no column gap after it, so it is untouched.
  *   • the page-footer credit line "Washington State Auditor's Office", which
  *     `-table` flattens onto the front of whichever data row shares its
  *     physical output row.
  */
 function cleanLabel(text) {
   let s = text.replace(/^\s*\d{1,4}(?=\s{2,}\S)/, ' ');
+  s = s.replace(/^\s*_{3,}(?=\s{2,}[A-Za-z])/, ' ');
   s = normLabel(s);
   return s.replace(/^Washington State Auditor'?s Office\s*/i, '').trim();
 }
