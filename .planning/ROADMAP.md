@@ -33,6 +33,10 @@
 - ✅ **v2.18 Pima County Municipalities — TT Budget Parity** — Phases 131-133 (shipped 2026-07-17)
 - ✅ **v2.19 Banner Info-Row + CTC Tether** — Phase 134 (shipped 2026-07-21)
 - ✅ **v2.20 Madison, WI + Dane County Onboarding** — Phases 135-137 (shipped 2026-07-28) — archived: `milestones/v2.20-*`
+- ✅ **v2.21 Seattle, WA + King County Onboarding** — no GSD phases (shipped 2026-08-14, tag `v2.21`) — 50 rows; plan: `docs/superpowers/plans/2026-08-13-seattle-king-county-onboarding.md`
+- ✅ **v2.22 Bainbridge Island, WA + Kitsap County Onboarding** — no GSD phases (shipped 2026-08-15) — 72 rows; plan: `docs/superpowers/plans/2026-08-14-bainbridge-island-kitsap-onboarding.md`
+
+v2.21 and v2.22 ran on `docs/superpowers/` specs + plans rather than `/gsd-plan-phase`, so they have no `.planning/phases/` directories and no `milestones/vX.Y-*` archives. Their unit of work is a numbered task in a plan document, not a phase. **GSD phase numbering therefore stops at 137 (v2.20); a future GSD-phased milestone continues from 138.** Full write-ups for both are in `MILESTONES.md` — deliberately not duplicated here, because the detailed phase tables in this file are machine-parsed and a task table breaks that parse.
 
 ---
 

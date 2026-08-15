@@ -1,5 +1,70 @@
 # Milestones — Treasury Tracker / Empowered Vote Financials
 
+> ⚠ **v2.21 and v2.22 have no GSD phases.** Both ran on `docs/superpowers/` specs + plans
+> rather than `/gsd-plan-phase`, so their unit of work is a numbered **task**, not a phase,
+> and there are no `.planning/phases/` directories or `milestones/vX.Y-*` archives for them.
+> Phase numbering stops at **137** (v2.20); a future GSD-phased milestone continues from 138.
+> Both entries were written on 2026-08-15, after the fact.
+>
+> ⚠ **v2.20 is missing from this file too** — a pre-existing gap, not created here. It *was*
+> a GSD-phased milestone (135–137) and it *is* in `ROADMAP.md` and archived to
+> `milestones/v2.20-*`; it simply never got a write-up here at its close. A pointer stub sits
+> in sequence below so the ordering does not read as "v2.20 never happened", but it is a
+> pointer, not a summary — the archive is the record.
+
+## v2.22 Bainbridge Island, WA + Kitsap County Onboarding (Shipped: 2026-08-15)
+
+**Tasks completed:** 12 of 12 (no GSD phases — plan: `docs/superpowers/plans/2026-08-14-bainbridge-island-kitsap-onboarding.md`)
+
+**Delivered:** The City of Bainbridge Island, WA and Kitsap County, WA onboarded on General Fund GAAP actuals — **72 budget rows** (18 fiscal years each × operating + revenue) and **38 municipality-scoped enrichment rows** — beneath a new Kitsap County node under Washington. Both entities come from ONE source, the WA State Auditor's ReportSearch (MCAG 0461 / 0132), which publishes the *bound audited statements*, so every row carries audit-attested provenance. Free PDFs, $0 spend, executed inline (no subagents). Merged `a5ac920`, pushed `496e28e`; Chris UAT passed.
+
+**Key accomplishments:**
+
+- **Source client + content guard:** `scripts/lib/waSao.mjs` selects reports by CONTENT (page count ≥ 40 + located statement anchor), because **the report-type names are INVERTED for FY2014+** — the type called *Annual Comprehensive Financial Report* is a 4–5pp opinion letter while *Financial and Federal* / *Financial* carries the statements. This corrects v2.21's over-general claim that the SAO does not publish statements: it binds them for everyone except large self-publishing GAAP filers.
+- **Two extractors for Bainbridge, one for Kitsap:** FY2004–2008 print a genuinely different expenditure tree (no `Current` parent) from FY2012+, so the era split is expressed in the loader rather than bent into one config. Both entities print **whole dollars** — the opposite of v2.21's thousands — and the tie is unit-invariant, so per-capita is the guard.
+- **Six years deliberately unloaded, every one a source-document refusal and none a parser failure:** Bainbridge FY2006 (image-only scan), FY2009 (ciphered digits — a bounded contiguous-offset decode was attempted and no candidate map tied, so it was dropped as designed rather than escalated to an unbounded search), FY2010 (labels decode, money digits absent from the stream), FY2011 (CCITT stencil scans); Kitsap FY2017–FY2019 (font defect), FY2025 (not yet audited). In FY2010/FY2011 the only readable GF detail is a **budget-basis** schedule, which must not be published under a GAAP label.
+- **All 33 printed-total residues adjudicated individually** by rendering each page (`pdftoppm -r 160`) and reading the General column off the image — never off the text layer, never by widening tolerance. Each is a registered EXACT delta; the loaded value is always the component sum, so every row still ties at $0 against its own line items.
+- **Blind re-derivation, 72/72 at exactly $0, 0 blockers**, on a path importing nothing from the extractors. **Ambiguous statement-page identity is FATAL, not a warning:** Task 5 established that a $0 tie cannot detect wrong-page selection — with Kitsap's anchor disabled, 10 of 13 singular-titled years silently selected a different fund's schedule and **9 of them tied at $0**. Kitsap FY2020–FY2024 additionally agree with a physically different copy on `kitsap.gov`; **that cross-check covers 10 of the 72 rows, not all 72.**
+- **Eight-check source-chain audit** (coverage incl. exclusions, tie integrity with all 33 acceptances named, provenance with 36 pinned sha256 digests, per-capita units, label integrity, page identity, hierarchy, enrichment scoping). Check (h) does **not** read a stored `statement_page` — there is no such column, so asserting it would pass vacuously forever; it re-resolves the page from the PDF's own printed identity instead, and was **mutation-tested** to prove it can fail.
+- **🔑 Found and fixed a new defect class in production:** Bainbridge FY2013 revenue had shipped a category *and* line item named `______…______ Interest and Investment Revenue` — a horizontal rule the PDF draws in its left margin, flattened onto the row by `pdftotext -table`. The figure was correct and the row tied at $0, so every arithmetic gate passed it. **A label defect is invisible to a tie**, exactly like the dash-zero trap. Fixed narrowly in `scripts/lib/acfrGF.py`; a scan of **168 PDFs** across every entity using that shared library found the pattern in WA SAO filings only. Audit check (e) now asserts the label surface directly.
+- **Fixed a latent Windows bug that silently deleted 15 tests:** `scripts/lib/waSao.mjs` carried a shebang; git's `core.autocrlf` rewrites to CRLF on checkout and Vite's shebang strip matches `#!.*\n`, where JS regex `.` does not match `\r` — so the shebang survived and the whole suite failed on a bare `SyntaxError` naming no file. `node --check` and `esbuild` both accept the file; only the Vite path broke. Guarded by a mutation-tested rule that no `scripts/lib/*.mjs` starts with `#!`.
+- **Verification at close:** `npm test` 6 files / 93 tests · `npm run test:acfr` 125 · re-derivation 72/72 · audit 8/8 · tether definitive.
+
+**Known deferred at close:** Essentials' `coverage.json` carries no Bainbridge/Kitsap record, so neither entity paints a tether icon — a **documented cross-repo gap, not a TT change**, same as v2.20's WI gap and permitted by PIMA-09. No shared-bucket banner asset exists for either entity (every plausible slug returns `NoSuchKey`), so both use the Wikipedia fallback, which resolves. Separately open: `cities/seattle.jpg` + `cities/king-county.jpg` **do** exist in the bucket but are absent from `CURATED_CITY_BANNERS`, so v2.21's own entities fall through to Wikipedia while licensed assets sit unused (fixing it needs credits transcribed from Essentials' `buildingImages.js` — never inferred from a filename). Also deferred: rest-of-WA fan-out (`WA-CITIES-01`), OCR recovery of the six dropped years, all-funds view, salaries.
+
+**Archive:** none — no `milestones/v2.22-*` directory (not a GSD-phased milestone).
+
+---
+
+## v2.21 Seattle, WA + King County Onboarding (Shipped: 2026-08-14, tag `v2.21`)
+
+**Tasks completed:** no GSD phases (plan: `docs/superpowers/plans/2026-08-13-seattle-king-county-onboarding.md`, `SEATTLE-REDERIVATION.md`)
+
+**Delivered:** Seattle FY2009–FY2025 and King County FY2018–FY2025 live on General Fund ACFR GAAP actuals — **50 budget rows** across operating and revenue, **24 municipality-scoped enrichment rows**, and a `US → Washington → King County → Seattle` nav path. **No year was excluded** — the plan refused to assume the 18 never-extraction-tested years would pass, and all of them did.
+
+**Key accomplishments:**
+
+- **Two traps drove the design.** Both ACFRs print amounts **IN THOUSANDS** while every prior TT city prints whole dollars, and the internal tie is **unit-invariant** — it reads $0 whether or not the multiplier is applied, so the tie gate structurally cannot catch a missing one. And `pdftotext -table` alignment differs by issuer: **Seattle left-aligns its money columns, King County right-aligns them**, so neither edge of a number is a stable column key. King County FY2018–FY2020 additionally needs an ordinal read, where the positional one comes up short by exactly 12,109 on FY2018 revenue.
+- **Verification:** all 50 FY×mode combinations re-derived to exactly $0, leaf-for-leaf and subtotal-for-subtotal, on a path importing none of `extractSeattle.py`, `extractKingCounty.py` or `lib/acfrGF.py` — its own `pdftotext` pass, page finder, section bounds and grouping rules, with units read off the page rather than configured. Every figure is three numbers agreeing: the database, the harness sum, and the statement's own printed total. Plus a six-check source-chain audit and an Essentials tether check; both entities are covered.
+- **The harnesses were reviewed adversarially:** 18 injected mutations, 14 caught, and the 4 genuine gaps closed and re-verified by re-injection — a vacuous PASS over zero combinations, PDFs bound to fiscal year by filename alone, a source check that degraded to a note instead of failing closed, and a tether that reported a malformed catalog as a definitive coverage gap. Three overclaims were corrected in the same pass, including a header that advertised the column strategy as independent when it is shared with the loader.
+- **Corrects a false premise carried since scoping.** King County FY2018 is cited to the Internet Archive because the issuer's own URL is gone, but this was **NOT a new provenance class**: New Hampshire already carried 16 archive-cited rows (FY2017–FY2024), so the application-wide count is **18, not 2** — and the audit check written on that claim would have failed as originally specified.
+
+**Known deferred at close:** General Fund only — Seattle's City Light, Seattle Public Utilities and Transportation fund, and King County's Metro Transit and wastewater treatment all sit outside it. Surfaced in the enrichment copy rather than left for a reader to find.
+
+**Archive:** none — no `milestones/v2.21-*` directory (not a GSD-phased milestone).
+
+---
+
+## v2.20 Madison, WI + Dane County Onboarding (Shipped: 2026-07-28)
+
+**POINTER STUB, not a summary.** This milestone shipped with GSD phases 135–137 (MAD-01..09) but was never written up here at its close. It is recorded in `ROADMAP.md` and archived in full — read the archive rather than treating this entry as the record.
+
+**In one line:** Madison, WI + Dane County onto TT from the WI DOR CMREB statewide workbook — 20 rows, all-governmental-funds basis, calendar-year FY, TT's first deliberately **unaudited** (self-reported MFR) source and labelled as such; 20/20 re-derived at Δ$0; Chris UAT signed 2026-07-28. Also shipped the app-wide source-chip fix `· fetched` → `· as of`, which was false on 1,801 rows across 67 entities.
+
+**Archive:** [v2.20-ROADMAP.md](milestones/v2.20-ROADMAP.md)
+
+---
+
 ## v2.19 Banner Info-Row + CTC Tether (Shipped: 2026-07-21)
 
 **Phases completed:** 1 phase (134), 1 plan. Requirements BANNER-01, CTC-01 complete.
