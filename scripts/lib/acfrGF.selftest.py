@@ -712,13 +712,17 @@ class TestBainbridgeShape(unittest.TestCase):
         # The Bend trap: a dash-zero can graft its label onto the NEXT row while
         # tie_delta stays $0, so the tie can never detect it. Assert the label.
         #
-        # NOTE: the brief's original draft of this test read the label off
-        # `current.get('i', [])` -- a key `build_operating` never emits (no
-        # node in this library carries an 'i' array; see acfrGF.py). A $0 GF
-        # row is recorded in `zero_rows` and dropped from the tree entirely
-        # (documented in build_operating's docstring and exercised by the
-        # existing TestDoubleDashRowDoesNotGlue case above), so the correct
-        # assertion is against `zero_rows`, matching that existing pattern.
+        # NOTE: this assertion was NOT taken verbatim from the task brief.
+        # The brief's original draft read the label off `current.get('i', [])`
+        # -- a key `build_operating` never emits (no node in this library
+        # carries an 'i' array; see acfrGF.py). A $0 GF row is recorded in
+        # `zero_rows` and dropped from the tree entirely (documented in
+        # build_operating's docstring and exercised by the existing
+        # TestDoubleDashRowDoesNotGlue case above), so the brief's assertion
+        # could never pass against the library's actual, correct, already-
+        # documented behaviour. Rewritten to assert against `zero_rows`
+        # instead, matching that existing pattern -- same intent (the label
+        # survives on its own, not glued onto the next row) via the real API.
         _, _, zero_rows = build_operating(BI_EXP_LINES, anchors(BI_EXP_ANCHOR), _bi_cfg())
         self.assertIn('Transportation', zero_rows)
         self.assertNotIn('Transportation Debt Service - Principal', zero_rows)

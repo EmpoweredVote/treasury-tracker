@@ -187,6 +187,35 @@ class CityConfig:
                  same `B-4`, but `find_statement_page` returns the EARLIEST
                  qualifying page and the General Fund column plus both `Total`
                  rows are wholly on page 1, so page 1 always wins.
+    revenue_total_labels
+                 lowercase candidate strings for the printed revenue-subtotal
+                 row, tried in order, matched case-insensitively. Defaults to
+                 `('total revenues',)`, which reproduces every shipped city's
+                 behaviour byte-for-byte -- this default is what every city
+                 before Bainbridge was implicitly hard-coded to.
+
+                 Bainbridge Island's FY2004, FY2005, FY2007 and FY2008
+                 governmental-funds statements print `Total Operating
+                 Revenues` instead of `Total Revenues` (FY2010 alone renders
+                 it as `Total REVENUES`, still covered by the default's
+                 case-insensitive match; FY2011 onward reverts to `Total
+                 Revenues`). Bainbridge sets
+                 `revenue_total_labels=('total revenues', 'total operating
+                 revenues')` to cover both eras from one config.
+
+                 Used in the two places that used to hard-code `'total
+                 revenues'`: the page-qualifying gate in
+                 `find_statement_page` and the `rev_line` selection in
+                 `extract()`. The EXPENDITURE side is deliberately NOT
+                 configurable this way -- `'total expenditures'` stays a
+                 literal in both places. This asymmetry is what keeps a
+                 proprietary-funds statement (business-type activities, which
+                 prints `Total Operating Revenues` next to `Total Operating
+                 EXPENSES`, never `Total Expenditures`) from ever qualifying:
+                 `find_statement_page` requires BOTH a revenue-total match
+                 AND the literal `'total expenditures'` to be present on the
+                 same page, so widening only the revenue side cannot turn a
+                 proprietary page into a false positive.
     section_header_mode
                  'exact' (default) requires the section header to be the WHOLE
                  line. 'prefix' allows trailing text, which Seattle's 2024-era
@@ -248,7 +277,7 @@ class CityConfig:
                  label_fixes=None, units=1, column_strategy='positional',
                  revenue_parents=(), revenue_group_members=(),
                  statement_anchor=None, section_header_mode='exact',
-                 fy_end=('June', 30)):
+                 fy_end=('June', 30), revenue_total_labels=('total revenues',)):
         if not isinstance(units, int) or isinstance(units, bool):
             raise TypeError(
                 'CityConfig.units must be an int, got %r (%s). A float would '
@@ -270,6 +299,7 @@ class CityConfig:
         self.statement_anchor = statement_anchor
         self.section_header_mode = section_header_mode
         self.fy_end = fy_end
+        self.revenue_total_labels = tuple(lbl.lower() for lbl in revenue_total_labels)
 
 
 # ── Money parsing ─────────────────────────────────────────────────────────────
@@ -413,7 +443,7 @@ def table_pages(pdf_path):
         sys.exit(2)
     return out.stdout.split('\f')
 
-def find_statement_page(pages, statement_anchor=None):
+def find_statement_page(pages, statement_anchor=None, revenue_total_labels=('total revenues',)):
     """(page_index, page_text) for the primary governmental-funds statement —
     the earliest qualifying page, since basic statements precede supplementary
     schedules. (None, None) if not found.
@@ -422,14 +452,23 @@ def find_statement_page(pages, statement_anchor=None):
     SCHEDULE ID such as Seattle's `B-4`) that can identify the page even where
     the title itself is wrapped across an interrupting "Page X of Y" line and
     so cannot be matched by `_TITLE`. It is used IN ADDITION to the title
-    match, never instead of it."""
+    match, never instead of it.
+
+    `revenue_total_labels` (see `CityConfig`) widens which printed revenue
+    subtotal counts as qualifying evidence for this page. `'total
+    expenditures'` stays a hard-coded literal on the other side of this same
+    check on purpose: a proprietary-funds statement prints `Total Operating
+    Revenues` next to `Total Operating EXPENSES`, never `Total Expenditures`,
+    so requiring the literal keeps that page from ever qualifying even when
+    `revenue_total_labels` is widened to include `'total operating
+    revenues'`."""
     anchor = re.compile(statement_anchor, re.I | re.M) if statement_anchor else None
     cands = []
     for i, pg in enumerate(pages):
         low = pg.lower()
         if not (_TITLE.search(pg) or (anchor and anchor.search(pg))):
             continue
-        if 'total revenues' not in low or 'total expenditures' not in low:
+        if not any(lbl in low for lbl in revenue_total_labels) or 'total expenditures' not in low:
             continue
         if 'general' not in low or 'fund' not in low:
             continue
@@ -553,8 +592,34 @@ def classify(line, col_anchors, cfg):
 # "expenditures".
 _SEC_REVENUES     = 'revenues'
 _SEC_EXPENDITURES = 'expenditures'
-_END_REVENUES     = r'^Total\s+revenues\b'
 _END_EXPENDITURES = r'^Total\s+expenditures\b'
+
+def _end_revenues_pattern(revenue_total_labels):
+    """Build the revenue SECTION-END regex from `CityConfig.revenue_total_labels`.
+
+    Before `revenue_total_labels` existed, this was the single hard-coded
+    literal `r'^Total\\s+revenues\\b'`. Discovered live while unblocking
+    Bainbridge's FY2004/2005/2007/2008 (which print `Total Operating
+    Revenues`, not `Total Revenues`): fixing only the page-qualifying gate in
+    `find_statement_page` and the `rev_line` lookup in `extract()` was NOT
+    enough on its own. `build_revenue`'s own section reader still stopped
+    only at the old literal, so the revenue section never closed at `Total
+    Operating Revenues` and ran away, swallowing EXPENDITURES, OTHER
+    FINANCING SOURCES/USES and every row after it into one inflated "revenue"
+    tree (observed live: FY2004 computed $44,401,783 against a printed
+    $12,636,832 -- the whole rest of the page). This was the THIRD hard-coded
+    `'total revenues'` spot, not the two originally identified, and needed
+    the same treatment for the fix to actually work end-to-end rather than
+    only relocating the correct page.
+
+    Each label becomes `^word1\\s+word2...\\b` (whitespace-tolerant the same
+    way the original literal was, and still matched case-insensitively by
+    `_section`), joined as alternatives. With the default
+    `('total revenues',)` this produces the exact same pattern as the old
+    literal, so every city that does not set `revenue_total_labels` is
+    unaffected."""
+    alts = [r'\s+'.join(re.escape(w) for w in lbl.split()) for lbl in revenue_total_labels]
+    return r'^(?:%s)\b' % '|'.join(alts)
 
 # Fix round 1 (Task 6) rejected a title wrap only when it landed "changes in
 # fund" on the SAME physical line as the section word, or left the section
@@ -802,7 +867,8 @@ def build_revenue(lines, col_anchors, cfg):
     # the (visually empty) group instead of closing it.
     parent_seen = False
     pending = ''
-    for l in _section(lines, _SEC_REVENUES, _END_REVENUES, cfg.section_header_mode):
+    end_revenues = _end_revenues_pattern(cfg.revenue_total_labels)
+    for l in _section(lines, _SEC_REVENUES, end_revenues, cfg.section_header_mode):
         kind, lbl, val = classify(l, col_anchors, cfg)
         low = (lbl or '').lower()
 
@@ -908,13 +974,15 @@ def build_operating(lines, col_anchors, cfg):
 # ── Orchestration ────────────────────────────────────────────────────────────
 def extract(pdf_path, mode, cfg):
     pages = table_pages(pdf_path)
-    pi, pg = find_statement_page(pages, cfg.statement_anchor)
+    pi, pg = find_statement_page(pages, cfg.statement_anchor, cfg.revenue_total_labels)
     if pg is None:
         print('  ERROR: primary GF statement not found in %s' % pdf_path, file=sys.stderr)
         sys.exit(3)
     fy = parse_fy(pages, pdf_path, cfg.fy_end, statement_page=pg)
     lines = pg.split('\n')
-    rev_line = next((l for l in lines if l.strip().lower().startswith('total revenues')), None)
+    rev_line = next((l for l in lines
+                      if any(l.strip().lower().startswith(lbl) for lbl in cfg.revenue_total_labels)),
+                     None)
     exp_line = next((l for l in lines if l.strip().lower().startswith('total expenditures')), None)
     if not rev_line or not exp_line:
         print('  ERROR: Total revenues/expenditures rows not found', file=sys.stderr)

@@ -24,6 +24,12 @@ Bainbridge specifics
   years -- handled by the library, asserted by the selftest.
 * FY2006 has no usable filing (image-only scan) and is excluded upstream in
   scripts/fetchBainbridgeKitsap.mjs.
+* FY2004, FY2005, FY2007 and FY2008 print the revenue subtotal as `Total
+  Operating Revenues` instead of `Total Revenues` (FY2010 alone renders it as
+  `Total REVENUES`, already covered by the default's case-insensitive match).
+  `revenue_total_labels` covers both eras from one config -- see
+  `CityConfig`'s docstring in scripts/lib/acfrGF.py for why widening only the
+  revenue side cannot accidentally match a proprietary-funds statement.
 
 Usage:
   py -3 scripts/extractBainbridge.py "docs/BainbridgeIsland/bainbridge-2025-acfr.pdf" --mode revenue
@@ -43,6 +49,7 @@ CONFIG = CityConfig(
     column_strategy='ordinal',
     units=1,
     fy_end=('December', 31),
+    revenue_total_labels=('total revenues', 'total operating revenues'),
     source_rounding={},   # Task 7 registers any confirmed printed-total artifacts
 )
 
