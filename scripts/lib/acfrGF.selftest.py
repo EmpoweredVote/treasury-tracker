@@ -727,6 +727,82 @@ class TestBainbridgeShape(unittest.TestCase):
         self.assertIn('Transportation', zero_rows)
         self.assertNotIn('Transportation Debt Service - Principal', zero_rows)
 
+
+# ── Bainbridge Island EARLY-ERA shape (FY2004-2008) ──────────────────────────
+# Transcribed from the FY2004 governmental-funds statement (whole dollars, GF
+# leftmost, "Total Operating Revenues" instead of FY2010+'s "Total Revenues").
+# Unlike FY2010+ (TestBainbridgeShape above), there is no `Current` parent --
+# the function rows sit flat at root -- and `Debt service:` is itself a
+# PARENT (the Hillsboro-style inversion CityConfig's docstring documents),
+# introducing `Principal` and `Interest` as its children rather than as flat
+# root leaves. This is why scripts/extractBainbridgeEarly.py exists as a
+# separate CityConfig instead of widening scripts/extractBainbridge.py's
+# parents/root_leaves to cover both eras at once -- CityConfig is one tree
+# shape per config; the two eras are genuinely different documents.
+BI_EARLY_REV_LINES = [
+    'REVENUES',
+    'Property taxes                    5,376,784    -            -            409,709     5,786,494',
+    'Other taxes                       4,970,906    284,089      2,097,434    55,420      7,407,850',
+    'Fees and fines                    177,812      -            -            -           177,812',
+    'Total Operating Revenues          10,524,502   284,089      2,097,434    465,129     13,371,154',
+]
+BI_EARLY_REV_ANCHOR = BI_EARLY_REV_LINES[-1]
+
+BI_EARLY_EXP_LINES = [
+    'EXPENDITURES',
+    'General government                 2,951,684    243,450      -            376         3,195,510',
+    'Judicial                            567,639      -            -            -           567,639',
+    'Debt service:',
+    'Principal                           118,898      -            -            1,039,855   1,158,753',
+    'Interest                            55,275       -            -            972,068     1,027,343',
+    'Capital outlay                      629,708      207,381      -            180,000     1,017,089',
+    'Total Expenditures                  4,322,784    450,839      -            1,192,299   5,965,922',
+]
+BI_EARLY_EXP_ANCHOR = BI_EARLY_EXP_LINES[-1]
+
+
+def _bi_early_cfg(**kw):
+    base = dict(city='Bainbridge Island, WA',
+                parents=('debt service',),
+                root_leaves=('capital outlay',),
+                column_strategy='ordinal', units=1, fy_end=('December', 31),
+                revenue_total_labels=('total revenues', 'total operating revenues'))
+    base.update(kw)
+    return CityConfig(**base)
+
+
+class TestBainbridgeEarlyShape(unittest.TestCase):
+    def test_revenue_section_closes_at_total_operating_revenues_not_total_revenues(self):
+        # The section-end regex must recognise "Total Operating Revenues" via
+        # revenue_total_labels; if it only matched the default "Total
+        # Revenues" (FY2010+), the revenue section would never close and
+        # would run away into EXPENDITURES -- the exact failure observed live
+        # on FY2004 before _end_revenues_pattern was added (fix round 1).
+        tree, total, _ = build_revenue(BI_EARLY_REV_LINES, anchors(BI_EARLY_REV_ANCHOR), _bi_early_cfg())
+        self.assertEqual([c['n'] for c in tree['c']],
+                         ['Property taxes', 'Other taxes', 'Fees and fines'])
+        self.assertEqual(total, 5376784 + 4970906 + 177812)
+
+    def test_debt_service_is_a_parent_with_principal_and_interest_as_children(self):
+        tree, _, _ = build_operating(BI_EARLY_EXP_LINES, anchors(BI_EARLY_EXP_ANCHOR), _bi_early_cfg())
+        roots = [c['n'] for c in tree['c']]
+        self.assertIn('Debt service', roots)
+        self.assertNotIn('Principal', roots)   # must NOT be a root leaf here
+        self.assertIn('Capital outlay', roots)
+        debt_service = next(c for c in tree['c'] if c['n'] == 'Debt service')
+        self.assertEqual([c['n'] for c in debt_service['c']], ['Principal', 'Interest'])
+        self.assertEqual(debt_service['a'], 118898 + 55275)
+
+    def test_general_government_and_judicial_stay_flat_at_root_no_current_parent(self):
+        # FY2004-2008 print no `Current` header at all -- the function rows
+        # are peers of `Debt service` and `Capital outlay`, not children of a
+        # group that does not exist in this era's document.
+        tree, _, _ = build_operating(BI_EARLY_EXP_LINES, anchors(BI_EARLY_EXP_ANCHOR), _bi_early_cfg())
+        roots = [c['n'] for c in tree['c']]
+        self.assertIn('General government', roots)
+        self.assertIn('Judicial', roots)
+        self.assertNotIn('Current', roots)
+
     def test_units_are_whole_dollars_not_thousands(self):
         # Bainbridge prints whole dollars, unlike Seattle/King County. The tie is
         # unit-invariant and cannot catch a wrong multiplier, so assert it here.

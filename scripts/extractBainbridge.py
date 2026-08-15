@@ -2,15 +2,20 @@
 """
 City of Bainbridge Island, WA — General Fund extractor (GAAP actuals).
 
+COVERS FY2010-FY2025. For FY2004, FY2005, FY2007 and FY2008 (an era with a
+genuinely different expenditure tree shape), use
+scripts/extractBainbridgeEarly.py instead. FY2006 has no usable filing
+(image-only scan, excluded upstream). FY2009 is font-corrupted (a separate,
+later task).
+
 Thin wrapper over scripts/lib/acfrGF.py.
 
 Source is the WA State Auditor's bound financial statements, not a
 self-published ACFR: SAO binds full statements for every filer except large
-GAAP filers that publish their own (Seattle, King County). Every year
-FY2004-FY2025 is available from one host under one URL pattern.
+GAAP filers that publish their own (Seattle, King County).
 
-Bainbridge specifics
---------------------
+Bainbridge specifics (FY2010-FY2025)
+-------------------------------------
 * AMOUNTS ARE WHOLE DOLLARS -> units=1 (the default). Opposite of Seattle and
   King County, which print "(IN THOUSANDS)". The tie gate is unit-invariant and
   reads $0 either way, so this is checked by the selftest and by the loader's
@@ -22,14 +27,12 @@ Bainbridge specifics
   `Debt Service - Interest` and `Capital Outlay` are VALUED ROOT LEAVES.
 * `Transportation` is a dash-zero in the GF column in FY2025 and neighbouring
   years -- handled by the library, asserted by the selftest.
-* FY2006 has no usable filing (image-only scan) and is excluded upstream in
-  scripts/fetchBainbridgeKitsap.mjs.
-* FY2004, FY2005, FY2007 and FY2008 print the revenue subtotal as `Total
-  Operating Revenues` instead of `Total Revenues` (FY2010 alone renders it as
-  `Total REVENUES`, already covered by the default's case-insensitive match).
-  `revenue_total_labels` covers both eras from one config -- see
-  `CityConfig`'s docstring in scripts/lib/acfrGF.py for why widening only the
-  revenue side cannot accidentally match a proprietary-funds statement.
+* revenue_total_labels is left at its default (`('total revenues',)`).
+  FY2010 alone in this era renders the caption as `Total REVENUES`
+  (different case), already covered by the default's case-insensitive
+  match, so no override is needed here -- unlike the early era, which needs
+  `'total operating revenues'` added and therefore has its own config in
+  scripts/extractBainbridgeEarly.py.
 
 Usage:
   py -3 scripts/extractBainbridge.py "docs/BainbridgeIsland/bainbridge-2025-acfr.pdf" --mode revenue
@@ -49,8 +52,7 @@ CONFIG = CityConfig(
     column_strategy='ordinal',
     units=1,
     fy_end=('December', 31),
-    revenue_total_labels=('total revenues', 'total operating revenues'),
-    source_rounding={},   # Task 7 registers any confirmed printed-total artifacts
+    source_rounding={},   # Task 7/8 registers any confirmed printed-total artifacts
 )
 
 if __name__ == '__main__':
