@@ -458,3 +458,281 @@ describe('table: the operating side keeps its GASB character rule', () => {
     expect(roots[0].children.map((c) => c.label)).toEqual(['General Government', 'Public Safety']);
   });
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// A ROW CARRYING NO MONEY AT ALL IS ONE OF THREE THINGS, AND KENT PRINTS ALL
+// THREE.
+// ═══════════════════════════════════════════════════════════════════════════
+// Both builders used to treat every valueless row that did not end in a colon
+// as the first line of a WRAPPED LABEL and carry it onto the next valued row.
+// That is one of the three shapes. The other two are a GROUP HEADING the issuer
+// printed WITHOUT a colon, and a DATA ROW the issuer printed EMPTY IN EVERY
+// COLUMN. Kent prints all three, and reading the wrong one welds two labels
+// together -- a label defect a $0 tie is blind to by construction, which is
+// exactly how ten of them reached production (`Lodging Other`,
+// `Issuance costs Capital outlay`, ...).
+//
+// The discriminator is `pdftotext -layout` indentation, STRUCTURE ONLY, and it
+// is read off the page's OWN colon headings rather than configured: a colon is
+// a printed declaration, so the depth pair (heading, its children) that the
+// page's colon headings establish is what a colon-LESS heading must also match.
+//
+//   Kent FY2016 p.47   `Intergovernmental revenue`  depth 0, next row depth 1
+//                      -> the same pair `Taxes:`/`Property` prints  -> HEADING
+//   Kent FY2022 p.50   `Unrealized net gain/(loss)` depth 1, next row depth 3
+//                      -> 3 is no level on this page                -> WRAP
+//   Kent FY2011 p.36   `Lodging`                    depth 1, next row depth 1
+//                      -> a peer, not a parent, not a fragment      -> EMPTY
+describe('table: a valueless row is a heading, a wrapped fragment, or an empty data row', () => {
+  // ── Kent FY2011 p.36 revenue, transcribed at the emitted offsets. ─────────
+  // `Real estate excise tax` prints only in Capital Improvement (blank in the
+  // General Fund column) and `Lodging` prints in NO column at all. Both are
+  // real line items; neither is a fragment of `Other`.
+  const FY2011 = {
+    ncols: 4,
+    total: 'TOTAL REVENUES                                                            68,543,360       6,122,639        2,397,011       2,007,170',
+    body: [
+      'Taxes:',
+      'Property                                                    $             19,367,630   $                 $               $',
+      'Sales and use                                                             15,826,344       3,784,084',
+      'Utility                                                                   15,544,305',
+      'Real estate excise tax                                                                     2,235,174',
+      'Lodging',
+      'Other                                                                     1,130,391',
+      'Licenses and permits:',
+      'Building permits                                                          952,486',
+      'Other licenses and permits                                                1,296,535',
+      'Intergovernmental revenue                                                 7,518,359                                         1,036,051',
+      'Charges for services:',
+      'Park and recreation fees                                                  1,131,651',
+      'Other fees and charges                                                    2,286,029                                         46',
+      'Fines and forfeitures                                                     1,543,311',
+      'Miscellaneous revenue:',
+      'Special assessments                                                                                         1,819,694       465,992',
+      'Interest income                                                           71,472           3,381            577,317         44,640',
+      'Unrealized net gain/(loss) in fair  value  of  investments                          1',
+      'Contributions and Donations                                               735,503',
+      'Other miscellaneous revenue                                               1,139,343        100,000                          460,441',
+    ],
+    // From `pdftotext -layout` on the same page: colon headings and root leaves
+    // at depth 0, their children at depth 1.
+    indents: new Map([
+      ['revenues', 0], ['taxes', 0], ['property', 1], ['salesanduse', 1], ['utility', 1],
+      ['realestateexcisetax', 1], ['lodging', 1], ['other', 1],
+      ['licensesandpermits', 0], ['buildingpermits', 1], ['otherlicensesandpermits', 1],
+      ['intergovernmentalrevenue', 0], ['chargesforservices', 0],
+      ['parkandrecreationfees', 1], ['otherfeesandcharges', 1],
+      ['finesandforfeitures', 0], ['miscellaneousrevenue', 0], ['specialassessments', 1],
+      ['interestincome', 1], ['unrealizednetgainlossinfairvalueofinvestments', 1],
+      ['contributionsanddonations', 1], ['othermiscellaneousrevenue', 1], ['totalrevenues', 0],
+    ]),
+  };
+
+  it('reads an all-columns-empty row as a row of its own, not as a label fragment', () => {
+    // THE PRODUCTION DEFECT. `Lodging` welded onto the next row and Kent
+    // FY2011 shipped a Taxes line item called "Lodging Other" carrying
+    // `Other`'s $1,130,391. The figure was right, the tie was $0, and the name
+    // was fiction.
+    const read = makeRowReader(FY2011.body, FY2011.total, FY2011.ncols, 'fixture');
+    const roots = buildRevenue(FY2011.body, read, (v) => v, [], FY2011.indents);
+    const taxes = roots.find((r) => r.label === 'Taxes');
+    expect(taxes.children.map((c) => c.label)).toEqual(['Property', 'Sales and use', 'Utility', 'Other']);
+    expect(taxes.children.at(-1).value).toBe(1_130_391);
+  });
+
+  it('still closes the group on a valued root leaf at heading depth', () => {
+    const read = makeRowReader(FY2011.body, FY2011.total, FY2011.ncols, 'fixture');
+    const roots = buildRevenue(FY2011.body, read, (v) => v, [], FY2011.indents);
+    expect(roots.map((r) => r.label)).toEqual([
+      'Taxes', 'Licenses and permits', 'Intergovernmental revenue',
+      'Charges for services', 'Fines and forfeitures', 'Miscellaneous revenue',
+    ]);
+    // Every dollar the page prints in its General Fund column, and no other.
+    const sum = roots.flatMap((r) => r.children).reduce((s, c) => s + c.value, 0);
+    expect(sum).toBe(68_543_360);
+  });
+
+  // ── Kent FY2016 p.47 revenue: the colon-less heading. ────────────────────
+  const FY2016 = {
+    ncols: 4,
+    total: 'TOTAL REVENUES                                                              95,753,339       13,943,352        2,150,390       506,817',
+    body: [
+      'Licenses and permits:',
+      'Building permits                                                            2,892,483                 -                 -                 -',
+      'Other licenses and permits                                                  3,377,042                 -                 -                 -',
+      'Intergovernmental revenue',
+      'Federal grants                                                              158,283                   -                 -                 -',
+      'State grants                                                                6,033                     -                 -                 -',
+      'State shared revenues                                                       7,551,034                 -                 -                 -',
+      'Other governments                                                           356,993                   -                 -      506,817',
+      'Charges for services:',
+      'Park and recreation fees                                                    1,536,362                 -                 -                 -',
+    ],
+    indents: new Map([
+      ['licensesandpermits', 0], ['buildingpermits', 1], ['otherlicensesandpermits', 1],
+      ['intergovernmentalrevenue', 0], ['federalgrants', 1], ['stategrants', 1],
+      ['statesharedrevenues', 1], ['othergovernments', 1],
+      ['chargesforservices', 0], ['parkandrecreationfees', 1], ['totalrevenues', 0],
+    ]),
+  };
+
+  it('opens a group on a heading the issuer printed WITHOUT a colon', () => {
+    // Kent prints `Intergovernmental revenue:` with a colon FY2004-FY2015 and
+    // drops the colon FY2016 onward while keeping the same four children and
+    // the same indentation. Carried forward as a fragment it welded onto
+    // `Federal grants` AND left the previous group open, so all four
+    // intergovernmental lines would have landed under Licenses and permits.
+    const read = makeRowReader(FY2016.body, FY2016.total, FY2016.ncols, 'fixture');
+    const roots = buildRevenue(FY2016.body, read, (v) => v, [], FY2016.indents);
+    expect(roots.map((r) => r.label)).toEqual([
+      'Licenses and permits', 'Intergovernmental revenue', 'Charges for services',
+    ]);
+    expect(roots[1].children.map((c) => c.label)).toEqual([
+      'Federal grants', 'State grants', 'State shared revenues', 'Other governments',
+    ]);
+    expect(roots[1].children.reduce((s, c) => s + c.value, 0)).toBe(8_072_343);
+  });
+
+  // ── Kent FY2022 p.50 revenue: the genuine wrap. ──────────────────────────
+  const FY2022 = {
+    ncols: 6,
+    total: 'TOTAL REVENUES                           129,757,740                        24,371,961       720,252         3,366,933         35,486,947       193,703,833',
+    body: [
+      'Miscellaneous revenue:',
+      'Interest income                          1,230,801                          416,309          160,674         (893,176)         729,546          1,644,154',
+      'Unrealized net gain/(loss)',
+      'in fair value of investments             (3,288,682)                        (886,645)                 -      59,953            (2,229,275)      (6,344,649)',
+      'Rent/Leases income                       829,860                                     -                -               -        80,852           910,712',
+    ],
+    // `in fair value of investments` sits at depth 3 -- a depth no other row on
+    // the page uses. NOTE what is absent: `-layout` wraps the label too, so the
+    // COMPOSITE name has no entry at all. A wrapped row therefore has to nest by
+    // the depth of the line that opened it (1), which is the transcribed truth
+    // and not a convenience.
+    indents: new Map([
+      ['miscellaneousrevenue', 0], ['interestincome', 1],
+      ['unrealizednetgainloss', 1], ['infairvalueofinvestments', 3],
+      ['rentleasesincome', 1], ['totalrevenues', 0],
+    ]),
+  };
+
+  it('welds a genuinely wrapped label onto the row that carries its figure', () => {
+    // The opposite error to `Lodging Other`: here the two output lines ARE one
+    // line item, and reading them apart would publish a leaf called "in fair
+    // value of investments" and lose the name of what it measures.
+    const read = makeRowReader(FY2022.body, FY2022.total, FY2022.ncols, 'fixture');
+    const roots = buildRevenue(FY2022.body, read, (v) => v, [], FY2022.indents);
+    expect(roots.map((r) => r.label)).toEqual(['Miscellaneous revenue']);
+    expect(roots[0].children.map((c) => c.label)).toEqual([
+      'Interest income', 'Unrealized net gain/(loss) in fair value of investments', 'Rent/Leases income',
+    ]);
+    expect(roots[0].children[1].value).toBe(-3_288_682);
+  });
+
+  // ── Kent FY2005 p.31 operating: an empty row above a root leaf. ──────────
+  const FY2005OP = {
+    ncols: 4,
+    total: 'TOTAL EXPENDITURES                                 67,200,101      26,047             5,027,006       22,962,767',
+    body: [
+      'Current:',
+      'General government                                 5,227,256       20,000',
+      'Judicial                                           1,872,295',
+      'Public safety                                      40,385,910',
+      'Community development                               4,045,313      6,047',
+      'Public works                                       4,270,925',
+      'Leisure services                                   7,315,819',
+      'Health and human services                          3,888,910',
+      'Debt service:',
+      'Principal                                                                             3,911,886',
+      'Interest                                                                              1,115,120',
+      'Issuance costs',
+      'Capital outlay                                     193,673                                            22,962,767',
+    ],
+    indents: new Map([
+      ['expenditures', 0], ['current', 0], ['generalgovernment', 1], ['judicial', 1],
+      ['publicsafety', 1], ['communitydevelopment', 1], ['publicworks', 1],
+      ['leisureservices', 1], ['healthandhumanservices', 1],
+      ['debtservice', 0], ['principal', 1], ['interest', 1], ['issuancecosts', 1],
+      ['capitaloutlay', 0], ['totalexpenditures', 0],
+    ]),
+    // The revenue section of the same page, which is where the column bands are
+    // corroborated from -- this section has no complete data row of its own.
+    corroborate: [
+      'Interest income                                    575,909         120,921            1,511,868       504,739',
+      'TOTAL REVENUES                                     67,395,835      11,244,013         5,085,487       13,154,048',
+    ],
+  };
+
+  it('keeps Capital outlay a root peer when an empty row precedes it', () => {
+    // THE PRODUCTION DEFECT, operating side. `Issuance costs` welded onto
+    // `Capital outlay`, so FY2005 shipped a leaf named "Issuance costs Capital
+    // outlay" -- and because the composite no longer STARTS with a GASB
+    // character word it also stopped being a root peer and was filed inside
+    // Debt service, putting $193,673 of capital spending in the debt subtotal.
+    const read = makeRowReader(FY2005OP.body, FY2005OP.total, FY2005OP.ncols, 'fixture', FY2005OP.corroborate);
+    const roots = buildOperating(FY2005OP.body, read, (v) => v, [], FY2005OP.indents);
+    expect(roots.map((r) => r.label)).toEqual(['Current', 'Debt service', 'Capital outlay']);
+    expect(roots.at(-1).children).toEqual([{ label: 'Capital outlay', value: 193_673 }]);
+    // Debt service prints nothing in the General Fund column this year.
+    expect(roots[1].children).toEqual([]);
+  });
+
+  it('refuses to classify a valueless row whose depth the rendering does not give', () => {
+    // An ambiguous label is DROPPED from the indent map by design, so a nesting
+    // can never be decided by a name that appears at two depths. The reader
+    // must then refuse the row rather than fall back to welding it.
+    const indents = new Map(FY2011.indents);
+    indents.delete('lodging');
+    const read = makeRowReader(FY2011.body, FY2011.total, FY2011.ncols, 'fixture');
+    expect(() => buildRevenue(FY2011.body, read, (v) => v, [], indents))
+      .toThrow(/Lodging/);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// A SECTION MADE ENTIRELY OF INCOMPLETE ROWS
+// ═══════════════════════════════════════════════════════════════════════════
+// The bands that locate an empty cell must first reproduce the ordinal reading
+// on a COMPLETE row, or they are only being checked against the Total row they
+// were derived from. Kent FY2004-FY2011 print operating sections in which EVERY
+// row is short, so that corroboration cannot come from inside the section --
+// and refusing the year outright would discard eight readable years over a
+// property of the section rather than of the page.
+//
+// `-table` reflows the WHOLE PAGE onto one grid, so the column geometry is a
+// property of the page: the other section of the same statement is corroborating
+// evidence of exactly the kind required. It is consulted ONLY when the section
+// itself supplies none, so every page that could already corroborate locally is
+// read bit-identically to before.
+describe('table: bands may be corroborated from the other section of the same page', () => {
+  const ncols = 4;
+  const total = 'TOTAL EXPENDITURES                                                        65,027,406       2,829,792        2,407,453       1,205,184';
+  const body = [
+    'General government                                                        5,908,708        36,716',
+    'Judicial                                                                  2,639,800',
+    'Capital outlay                                                            139,804                                           1,205,184',
+  ];
+  const revenue = [
+    'Interest income                                                           71,472           3,381            577,317         44,640',
+    'TOTAL REVENUES                                                            68,543,360       6,122,639        2,397,011       2,007,170',
+  ];
+
+  it('refuses the section when nothing corroborates the bands', () => {
+    expect(() => makeRowReader(body, total, ncols, 'fixture'))
+      .toThrow(/no COMPLETE data row/);
+  });
+
+  it('reads the section once the page\'s other section corroborates them', () => {
+    const read = makeRowReader(body, total, ncols, 'fixture', revenue);
+    expect(read(body[0]).value).toBe(5_908_708);
+    expect(read(body[2]).value).toBe(139_804);
+  });
+
+  it('still refuses when the corroborating row CONTRADICTS the ordinal reading', () => {
+    // A page whose columns are not one grid must fail loudly rather than
+    // borrow geometry from a section that disproves it.
+    const scattered = ['Scattered                40        60          100         160'];
+    expect(() => makeRowReader(body, total, ncols, 'fixture', scattered))
+      .toThrow(/CONTRADICT/);
+  });
+});

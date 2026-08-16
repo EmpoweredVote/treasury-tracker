@@ -438,39 +438,56 @@ function linePrinterPage(pdfPath, pageNo) {
 }
 
 /**
- * Leading-whitespace depth per label, from `pdftotext -layout` on one page.
+ * The x of every label on one page, from `pdftotext -lineprinter` — the same
+ * TRUE PAGE GEOMETRY the second column reading uses.
  *
- * STRUCTURE ONLY. See buildRevenue for why this renderer's column pairing is
- * not trusted on this corpus while its indentation is. Consulted lazily — a
- * page with no colon-terminated revenue heading never renders at all.
+ * STRUCTURE ONLY. It decides nesting and nothing else: never a value, never a
+ * column. A label that appears at two different x positions on one page is
+ * DROPPED rather than resolved to either, so an ambiguous name can never
+ * silently settle a nesting — the builders throw on it instead.
  *
- * A label that appears at two different depths on one page is DROPPED rather
- * than resolved to either, so an ambiguous name can never silently decide a
- * nesting: buildRevenue then throws on it instead.
+ * ── WHY NOT `-layout`, WHICH ALSO PRESERVES INDENTATION ─────────────────────
+ * Because it does not always preserve it. `-layout` reflows, and on Kent FY2006
+ * p.28 it emits EVERY label at column 0 — headings, their children and the root
+ * leaves alike — so it cannot say whether `Fines and forfeitures` is a child of
+ * the open `Charges for services:` group or a peer of it. That is the same
+ * "nesting evidence exists in only one era" trap Spokane set, except here it is
+ * the RENDERER flattening a page the document indents: `-lineprinter` on the
+ * very same page puts every heading and root leaf at x=27 and every group child
+ * at x=30.
+ *
+ * `-lineprinter` cannot flatten it, because it is not reflowing anything — it
+ * emits one output column per physical position. It is also already rendered,
+ * calibrated and trusted by this harness for the geometric column reading, so
+ * this removes a renderer rather than adding one, and the two structural claims
+ * the harness makes now rest on the same evidence instead of two disagreeing
+ * approximations.
+ *
+ * Labels arrive with the spaces stripped ("FireDistrict#37Contract"), which is
+ * exactly what `labelKey` normalises away.
  */
-const layoutCache = new Map();
-function layoutIndents(pdfPath, pageNo) {
+const indentCache = new Map();
+function printedIndents(pdfPath, pageNo, label) {
   const k = `${pdfPath}|${pageNo}`;
-  if (layoutCache.has(k)) return layoutCache.get(k);
-  const txt = execFileSync('pdftotext',
-    ['-layout', '-f', String(pageNo), '-l', String(pageNo), pdfPath, '-'],
-    { maxBuffer: 64 * 1024 * 1024, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+  if (indentCache.has(k)) return indentCache.get(k);
+  const lines = linePrinterPage(pdfPath, pageNo).split('\n');
+  assertLinePrinterCalibration(lines, label);
   const seen = new Map();
   const ambiguous = new Set();
-  for (const line of txt.split('\n')) {
+  for (const line of lines) {
     if (!line.trim()) continue;
-    const indent = line.length - line.trimStart().length;
-    // Everything from the start of the line to the first money-ish token is the
-    // label; `-layout` may put the figures elsewhere entirely, which is fine
-    // because only the depth is wanted.
-    const toks = tokensOf(line);
-    const key = labelKey(cleanLabel(toks.length ? line.slice(0, toks[0].start) : line));
+    // The label's x is the start of its FIRST non-money glyph group, past any
+    // decoration in the page margin (the SAO stamps a page number there).
+    const groups = stripLeftMarginDecoration(lpGroups(line));
+    const first = groups.find((g) => !DASH_ONLY.test(g.text) && !(LP_MONEY_RE.test(g.text) && /\d/.test(g.text)));
+    if (!first) continue;
+    const key = labelKey(lpSplit(line).label);
     if (!key) continue;
-    if (seen.has(key) && seen.get(key) !== indent) ambiguous.add(key);
-    else if (!seen.has(key)) seen.set(key, indent);
+    if (seen.has(key) && seen.get(key) !== first.start) ambiguous.add(key);
+    else if (!seen.has(key)) seen.set(key, first.start);
   }
   for (const key of ambiguous) seen.delete(key);
-  layoutCache.set(k, seen);
+  indentCache.set(k, seen);
   return seen;
 }
 
@@ -824,30 +841,69 @@ const inBand = (toks, band) => toks.filter((t) => (t.start + t.end) / 2 >= band.
  * a full set of cells, so this path never runs for them and their readings are
  * bit-identical to before.
  */
-export function makeRowReader(body, totalLine, ncols, label) {
+/**
+ * Every section whose bands had to be corroborated from the OTHER section of
+ * the page. Reported in the summary rather than kept quiet: it is a weaker
+ * evidence path than the default one, and a silent weakening reads as "nothing
+ * unusual happened here" when something did.
+ */
+export const corroboratedElsewhere = [];
+
+export function makeRowReader(body, totalLine, ncols, label, pageRows = []) {
   const incomplete = body.filter((l) => l.trim() && readRowOrdinal(l, ncols).kind === 'incomplete');
   if (!incomplete.length) return (line) => readRowOrdinal(line, ncols);
 
   const bands = tableBands(totalLine, ncols, label);
-  let corroborating = 0;
-  for (const line of body) {
-    if (!line.trim()) continue;
-    const r = readRowOrdinal(line, ncols);
-    if (r.kind !== 'cell') continue;
-    const picked = inBand(tokensOf(line), bands[0]);
-    if (picked.length !== 1 || picked[0].value !== r.value || picked[0].start !== r.at) {
-      throw new Error(`${label}: this section contains ${incomplete.length} row(s) with an empty cell, which the ` +
-        `ordinal rule cannot resolve, but the Total row's column bands CONTRADICT the ordinal reading on ` +
-        `"${r.label}" (ordinal ${r.value} at column ${r.at}; band ${bands[0].left.toFixed(1)}..` +
-        `${bands[0].right.toFixed(1)} picks ${picked.length} cell(s)${picked.length === 1 ? ` = ${picked[0].value}` : ''}). ` +
-        `Refusing to locate the empty cell by geometry this page has just disproved.`);
+  // Count the COMPLETE rows in one pool that reproduce the ordinal answer under
+  // the bands, and throw on the first that contradicts it.
+  const corroborate = (pool, where) => {
+    let n = 0;
+    for (const line of pool) {
+      if (!line.trim()) continue;
+      const r = readRowOrdinal(line, ncols);
+      if (r.kind !== 'cell') continue;
+      const picked = inBand(tokensOf(line), bands[0]);
+      if (picked.length !== 1 || picked[0].value !== r.value || picked[0].start !== r.at) {
+        throw new Error(`${label}: this section contains ${incomplete.length} row(s) with an empty cell, which the ` +
+          `ordinal rule cannot resolve, but the Total row's column bands CONTRADICT the ordinal reading on ` +
+          `${where} row "${r.label}" (ordinal ${r.value} at column ${r.at}; band ${bands[0].left.toFixed(1)}..` +
+          `${bands[0].right.toFixed(1)} picks ${picked.length} cell(s)${picked.length === 1 ? ` = ${picked[0].value}` : ''}). ` +
+          `Refusing to locate the empty cell by geometry this page has just disproved.`);
+      }
+      n++;
     }
-    corroborating++;
+    return n;
+  };
+
+  // The section's OWN complete rows are the strongest evidence, so they are
+  // tried first and alone decide every page that has any -- which is every page
+  // in this corpus outside Kent, so those readings are unchanged.
+  //
+  // ── WHEN A SECTION HAS NO COMPLETE ROW OF ITS OWN ──────────────────────────
+  // Kent FY2004-FY2011 print operating sections in which EVERY row is short:
+  // the city reports each function in one fund only, so no row exposes all four
+  // columns. Refusing those years would discard eight readable years over a
+  // property of the SECTION rather than of the page -- and the bands are a
+  // property of the page, because `-table` reflows the whole page onto ONE grid.
+  // The other section of the same statement is therefore evidence of exactly
+  // the kind required: same grid, same column stops, and it is checked by the
+  // identical rule. It is weaker only in locality, which is why it is consulted
+  // second and never instead.
+  let corroborating = corroborate(body, 'this section\'s');
+  let from = 'this section';
+  if (!corroborating && pageRows.length) {
+    corroborating = corroborate(pageRows, 'the same page\'s other-section');
+    from = 'the other section of the same page';
   }
   if (!corroborating) {
     throw new Error(`${label}: this section contains ${incomplete.length} row(s) with an empty cell, but no COMPLETE ` +
-      `data row exists to corroborate the Total row's column bands against the ordinal reading. Refusing to ` +
+      `data row exists to corroborate the Total row's column bands against the ordinal reading` +
+      `${pageRows.length ? ', in this section OR in the other section of the same page' : ''}. Refusing to ` +
       `resolve an empty cell from bands validated only against the row they were derived from.`);
+  }
+  if (from !== 'this section') {
+    corroboratedElsewhere.push(`${label}: column bands corroborated from ${from} (${corroborating} complete row(s)) — ` +
+      `this section has none of its own`);
   }
 
   return (line) => {
@@ -1166,11 +1222,91 @@ export function sectionOf(lines, mode, label) {
 const CHARACTER_EXACT = /^(current|debt\s+service|capital\s+outlays?|capital\s+expenditures)$/i;
 const CHARACTER_START = /^(current|debt\s+service|capital\s+outlays?|capital\s+expenditures)\b/i;
 
-export function buildOperating(body, readRow, scale, rawRows) {
+// ═══════════════════════════════════════════════════════════════════════════
+// A ROW CARRYING NO MONEY AT ALL IS ONE OF THREE THINGS.
+// ═══════════════════════════════════════════════════════════════════════════
+// Both builders used to treat every valueless row that did not end in a colon
+// as the first line of a WRAPPED LABEL, carried forward onto the next valued
+// row. That is one of the three shapes this corpus prints, and Kent prints all
+// three on the same statement:
+//
+//   HEADING   a group heading the issuer printed WITHOUT a colon. Kent writes
+//             `Intergovernmental revenue:` FY2004-FY2015 and drops the colon
+//             FY2016 onward while keeping the same four children at the same
+//             depth (p.47 FY2016).
+//   WRAP      a genuine two-line label whose figures sit on the second line:
+//             `Unrealized net gain/(loss)` / `in fair value of investments`
+//             (p.50 FY2022).
+//   EMPTY     a data row the issuer printed empty in EVERY column. Kent's
+//             `Lodging` tax line and its `Issuance costs` debt line are real
+//             line items that simply carry nothing that year (p.36 FY2011,
+//             p.31 FY2005).
+//
+// Reading EMPTY as WRAP welds two labels into one, which is how Kent shipped a
+// Taxes line item called "Lodging Other" carrying `Other`'s $1,130,391 and a
+// Debt service leaf called "Issuance costs Capital outlay" carrying $193,673 of
+// capital spending. The figures were right and every row tied at $0 -- the same
+// blindness the dash-zero and margin-rule defects exploited. Reading HEADING as
+// WRAP is worse still: it welds the name AND leaves the previous group open, so
+// four intergovernmental lines land under Licenses and permits.
+//
+// ── THE DISCRIMINATOR, AND WHY IT IS EVIDENCE RATHER THAN CONFIGURATION ─────
+// `pdftotext -layout` indentation, STRUCTURE ONLY, on the same terms buildRevenue
+// already uses it. What makes it decidable is that the page states its own
+// nesting geometry: a COLON is a printed declaration of headinghood, so the
+// (heading depth -> child depth) pairs the page's colon headings establish are
+// the levels that page uses. Then, for a valueless row at depth dV whose next
+// row sits at depth dN:
+//
+//   dV is a heading depth and dN its child depth   -> HEADING
+//   dN is DEEPER than dV and is no level at all    -> WRAP (dN cannot be a row
+//                                                    of its own)
+//   otherwise                                      -> EMPTY
+//
+// Kent FY2016 `Intergovernmental revenue` is 0 -> 1, exactly what `Taxes:` prints.
+// Kent FY2022 `Unrealized net gain/(loss)` is 1 -> 3, and 3 is a depth no row on
+// that page uses. Kent FY2011 `Lodging` is 1 -> 1, a peer of `Other`, and
+// FY2005 `Issuance costs` is 1 -> 0, above a root leaf. No entity fact is
+// consulted for any of it.
+function indentLevels(body, indents) {
+  const heads = new Set();
+  const children = new Set();
+  for (let i = 0; i < body.length; i++) {
+    if (!body[i].trim() || !body[i].trim().endsWith(':')) continue;
+    const dh = indents.get(labelKey(headerLabel(body[i])));
+    if (dh === undefined) continue;
+    const next = body.slice(i + 1).find((l) => l.trim());
+    if (!next) continue;
+    const dc = indents.get(labelKey(headerLabel(next)));
+    if (dc === undefined || dc <= dh) continue;
+    heads.add(dh);
+    children.add(dc);
+  }
+  return { heads, children, levels: new Set([...heads, ...children]) };
+}
+
+/** 'heading' | 'wrap' | 'empty' for a valueless row, from the page's own geometry. */
+function classifyValueless(rowLabel, nextLine, indents, levels, line) {
+  const dV = indents.get(labelKey(rowLabel));
+  if (dV === undefined) {
+    throw new Error(`"${rowLabel}" carries no money in any column and has no indentation in the -layout ` +
+      `rendering, so this reader cannot tell whether it is a group heading the issuer printed without a ` +
+      `colon, the first line of a wrapped label, or a line item printed empty in every column ` +
+      `(row: "${line.trim().slice(0, 90)}")`);
+  }
+  const dN = nextLine === undefined ? undefined : indents.get(labelKey(headerLabel(nextLine)));
+  if (levels.heads.has(dV) && dN !== undefined && levels.children.has(dN)) return 'heading';
+  if (dN !== undefined && dN > dV && !levels.levels.has(dN)) return 'wrap';
+  return 'empty';
+}
+
+export function buildOperating(body, readRow, scale, rawRows, indents = new Map()) {
   const roots = [];
   let open = null;
   let pending = '';
-  for (const line of body) {
+  const levels = indentLevels(body, indents);
+  for (let i = 0; i < body.length; i++) {
+    const line = body[i];
     if (!line.trim()) continue;
     const r = readRow(line);
     // The issuer printed this row's General Fund column EMPTY. It has no
@@ -1189,7 +1325,22 @@ export function buildOperating(body, readRow, scale, rawRows) {
       continue;
     }
     if (r.kind === 'header') {
-      if (r.label) pending = normLabel(`${pending} ${r.label}`);
+      if (!r.label) continue;
+      // A valueless row that is NOT a character word is one of the three shapes
+      // above. `Issuance costs` (Kent FY2005/FY2009 p.31/p.32) is the EMPTY one,
+      // and reading it as a fragment welded it onto `Capital outlay` -- which
+      // then no longer STARTED with a character word, so $193,673 of capital
+      // spending was filed inside Debt service.
+      const kind = classifyValueless(r.label, body.slice(i + 1).find((l) => l.trim()), indents, levels, line);
+      if (kind === 'heading') {
+        open = { label: r.label, children: [] };
+        roots.push(open);
+        pending = '';
+      } else if (kind === 'wrap') {
+        pending = normLabel(`${pending} ${r.label}`);
+      } else {
+        pending = '';   // a line item the issuer printed empty in every column
+      }
       continue;
     }
     rawRows.push({ label: r.label, value: r.value });
@@ -1253,7 +1404,13 @@ export function buildRevenue(body, readRow, scale, rawRows, indents) {
     }
     return indents.get(k);
   };
-  for (const line of body) {
+  // The depth of the row that OPENED a wrapped label, carried with `pending`.
+  // `-layout` wraps the label too, so the composite name has no entry of its own
+  // in the indent map and the depth that decides its nesting is its FIRST line's.
+  let pendingIndent;
+  const levels = indentLevels(body, indents);
+  for (let i = 0; i < body.length; i++) {
+    const line = body[i];
     if (!line.trim()) continue;
     const r = readRow(line);
     if (r.kind === 'blank') { pending = ''; continue; }
@@ -1265,14 +1422,38 @@ export function buildRevenue(body, readRow, scale, rawRows, indents) {
         pending = '';
         continue;
       }
-      pending = normLabel(`${pending} ${r.label}`);
+      // No colon. See classifyValueless: the issuer also prints colon-LESS
+      // headings (`Intergovernmental revenue`, FY2016 onward) and rows that are
+      // empty in every column (`Lodging`), and welding either onto the next row
+      // corrupts a published label while every arithmetic gate stays green.
+      const kind = classifyValueless(r.label, body.slice(i + 1).find((l) => l.trim()), indents, levels, line);
+      if (kind === 'heading') {
+        open = { label: r.label, indent: indents.get(labelKey(r.label)), children: [] };
+        roots.push(open);
+        pending = '';
+      } else if (kind === 'wrap') {
+        if (!pending) pendingIndent = indents.get(labelKey(r.label));
+        pending = normLabel(`${pending} ${r.label}`);
+      } else {
+        pending = '';
+      }
       continue;
     }
     rawRows.push({ label: r.label, value: r.value });
+    const wrapped = Boolean(pending);
     const full = pending ? normLabel(`${pending} ${r.label}`) : r.label;
     pending = '';
     if (!full) throw new Error(`row with a General Fund value but no label: "${line.trim().slice(0, 90)}"`);
-    if (open && indentOf(full, line) > open.indent) {
+    // A WRAPPED row nests by the depth of the line that OPENED the label, not by
+    // this line's own. `-layout` wraps the label as well, and it indents the
+    // continuation DEEPER than any real level -- Kent FY2022 prints
+    // `Unrealized net gain/(loss)` at depth 1 and `in fair value of investments`
+    // at depth 3 -- so the continuation's own depth would say "child of a child"
+    // and the composite name appears at neither depth. That deeper continuation
+    // is what classifyValueless recognised the wrap BY, so the depth it was
+    // recognised at is the depth to nest with.
+    const depth = wrapped ? pendingIndent : undefined;
+    if (open && (depth !== undefined ? depth : indentOf(full, line)) > open.indent) {
       open.children.push({ label: full, value: scale(r.value) });
       continue;
     }
@@ -1308,20 +1489,31 @@ function rederive(pdfPath, fy, mode, label, band, population) {
   const lines = page.text.split('\n');
   const { body, totalLine, ncols } = sectionOf(lines, mode, label);
 
-  const readRow = makeRowReader(body, totalLine, ncols, label);
+  // The OTHER section of the same statement, used for two things and nothing
+  // else: corroborating this section's column bands when it has no complete row
+  // of its own (see makeRowReader), and nothing at all if this section can
+  // corroborate them locally. Bellevue FY2015/FY2016 omit the `Expenditures:`
+  // heading entirely, so a section that cannot be bounded simply supplies no
+  // rows rather than failing the year.
+  let pageRows = [];
+  try {
+    const other = sectionOf(lines, mode === 'revenue' ? 'operating' : 'revenue', label);
+    pageRows = [...other.body, other.totalLine];
+  } catch { /* the other section is not bounded on this page; no corroboration from it */ }
+
+  const readRow = makeRowReader(body, totalLine, ncols, label, pageRows);
 
   const rawRows = [];
-  let built;
-  if (mode === 'revenue') {
-    // `-layout` is rendered only when this page actually prints a colon
-    // heading on the revenue side — Tacoma FY2019-FY2024 do, nothing else in
-    // the corpus does.
-    const hasGroupHeading = body.some((l) => l.trim().endsWith(':') && readRow(l).kind === 'header');
-    built = buildRevenue(body, readRow, scale, rawRows,
-      hasGroupHeading ? layoutIndents(pdfPath, page.index + 1) : new Map());
-  } else {
-    built = buildOperating(body, readRow, scale, rawRows);
-  }
+  // `-layout` is rendered only when this section actually contains a row that
+  // carries NO money in any column — a colon heading, a colon-less heading, a
+  // wrapped label fragment or a line item printed empty. Those are precisely the
+  // rows whose meaning the indentation decides, and a section without one is
+  // read without ever invoking the renderer.
+  const hasValueless = body.some((l) => l.trim() && readRowOrdinal(l, ncols).kind === 'header' && headerLabel(l));
+  const indents = hasValueless ? printedIndents(pdfPath, page.index + 1, label) : new Map();
+  const built = mode === 'revenue'
+    ? buildRevenue(body, readRow, scale, rawRows, indents)
+    : buildOperating(body, readRow, scale, rawRows, indents);
   const { roots, droppedLeaves, droppedRoots } = prune(built);
 
   const totalRow = readRowOrdinal(totalLine, ncols);
@@ -1661,6 +1853,17 @@ async function main() {
       console.log(`  ${d.label}:`);
       for (const r of d.rows) console.log(`      ${r}`);
     }
+  }
+
+  // ── the weaker corroboration path, declared ───────────────────────────────
+  console.log(`\nCOLUMN BANDS — where the corroboration came from:`);
+  if (!corroboratedElsewhere.length) {
+    console.log('  every section that needed bands corroborated them against its OWN complete rows.');
+  } else {
+    console.log(`  ${corroboratedElsewhere.length} section(s) had NO complete data row of their own and were`);
+    console.log('  corroborated from the other section of the same page instead — same `-table` grid, checked by');
+    console.log('  the identical rule, but weaker in locality. Listed so the weakening is never silent:');
+    for (const m of corroboratedElsewhere) console.log(`      • ${m}`);
   }
 
   // ── registered-delta adjudication ─────────────────────────────────────────
