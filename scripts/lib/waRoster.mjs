@@ -63,10 +63,21 @@ export const WA_ENTITIES = [
   // though nav-only nodes never fetch, so a future county-finances milestone
   // starts from fact. The lookup returns decoys for every one of these
   // (cemetery districts, development corporations) -- see selectExactCity.
-  { name: 'Pierce County',    mcag: '0152', entityType: 'county', countyName: null, navOnly: true },
-  { name: 'Spokane County',   mcag: '0166', entityType: 'county', countyName: null, navOnly: true },
-  { name: 'Clark County',     mcag: '0103', entityType: 'county', countyName: null, navOnly: true },
-  { name: 'Snohomish County', mcag: '0162', entityType: 'county', countyName: null, navOnly: true },
+  //
+  // Populations ARE carried even though these nodes hold no budget rows: the
+  // hero banner's info-row renders a POPULATION stat, and Pima (v2.17) set the
+  // precedent of a nav-only node carrying one. Same OFM file and column as the
+  // cities, Filter=1 county rows. Cross-check that the column is the right one:
+  // this file gives Kitsap County 288,900 at line 183, matching the figure
+  // v2.22 loaded independently.
+  { name: 'Pierce County',    mcag: '0152', entityType: 'county', countyName: null, navOnly: true,
+    population: 959_900, populationNote: 'WA OFM April 1, 2025 — Filter=1 county row, line 271 (2026 est: 967,000)' },
+  { name: 'Spokane County',   mcag: '0166', entityType: 'county', countyName: null, navOnly: true,
+    population: 566_000, populationNote: 'WA OFM April 1, 2025 — Filter=1 county row, line 346 (2026 est: 570,600)' },
+  { name: 'Clark County',     mcag: '0103', entityType: 'county', countyName: null, navOnly: true,
+    population: 542_400, populationNote: 'WA OFM April 1, 2025 — Filter=1 county row, line 41 (2026 est: 550,000)' },
+  { name: 'Snohomish County', mcag: '0162', entityType: 'county', countyName: null, navOnly: true,
+    population: 873_800, populationNote: 'WA OFM April 1, 2025 — Filter=1 county row, line 322 (2026 est: 879,700)' },
 
   // ── WA-CITIES-01 ──────────────────────────────────────────────────────────
   {

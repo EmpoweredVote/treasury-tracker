@@ -56,10 +56,13 @@ describe('WA roster shape', () => {
     expect(new Set(pfx).size).toBe(pfx.length);
   });
 
-  it('gives every non-nav-only entity a population and a cited source', () => {
+  it('gives EVERY entity a population and a cited source, nav-only included', () => {
+    // Nav-only county nodes carry a population too: the hero banner's info-row
+    // renders a POPULATION stat, and Pima (v2.17) set that precedent. A node
+    // with a NULL population renders a blank stat rather than no stat.
     for (const e of WA_ENTITIES) {
-      if (e.navOnly) continue;
       expect(Number.isInteger(e.population), `${e.name} population`).toBe(true);
+      expect(e.population, `${e.name} population > 0`).toBeGreaterThan(0);
       expect(e.populationNote, `${e.name} populationNote`).toMatch(/WA OFM/);
     }
   });
@@ -67,8 +70,27 @@ describe('WA roster shape', () => {
   it('keeps the whole cohort on one denominator year so per-capita is comparable', () => {
     expect(POPULATION_YEAR).toBe(2025);
     for (const e of WA_ENTITIES) {
-      if (e.navOnly) continue;
-      expect(e.populationNote).toContain('April 1, 2025');
+      expect(e.populationNote, `${e.name}`).toContain('April 1, 2025');
+    }
+  });
+
+  it('cites a line number for every population so the figure is traceable', () => {
+    // "Read it from the authority and record the exact table" is the rule that
+    // keeps a third-party estimate from creeping in. A note without a line
+    // number cannot be re-checked.
+    for (const e of WA_ENTITIES) {
+      expect(e.populationNote, `${e.name}`).toMatch(/line \d+/);
+    }
+  });
+
+  it('gives each city a smaller population than its parent county', () => {
+    // A cheap sanity check on the OFM read: picking the Filter=4 city row for
+    // a county, or vice versa, is an easy mistake and this catches it.
+    const byName = new Map(WA_ENTITIES.map((e) => [e.name, e]));
+    for (const c of cityEntities()) {
+      const parent = byName.get(c.countyName);
+      if (!parent || !parent.population) continue;   // King County is not in this roster
+      expect(c.population, `${c.name} vs ${c.countyName}`).toBeLessThan(parent.population);
     }
   });
 
