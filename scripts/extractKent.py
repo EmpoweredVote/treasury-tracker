@@ -105,7 +105,12 @@ CONFIG = CityConfig(
         'property', 'sales and use', 'utility', 'occupation', 'excise tax',
         'lodging', 'other',
         'permits',
-        'district #', 'grants', 'shared revenue', 'shared revenues', 'revenues',
+        # `contract`, NOT `district #`. The row is `Fire District # 37 Contract`
+        # and label_of used to truncate it at the `37`, so the old suffix matched
+        # the TRUNCATION. With the full name read, the suffix has to match the
+        # name's actual end or the Intergovernmental group closes on its own first
+        # child.
+        'contract', 'grants', 'shared revenue', 'shared revenues', 'revenues',
         'governments',
         'fees', 'charges',
         'assessments', 'income', 'investments', 'donations',
@@ -114,9 +119,28 @@ CONFIG = CityConfig(
     column_strategy='positional',
     units=1,
     fy_end=('December', 31),
+    # Rows Kent prints with NOTHING in any column -- real line items carrying no
+    # money that year, not the first line of a wrapped label. See
+    # CityConfig.empty_rows: welding these forward shipped `Lodging Other`,
+    # `Real estate excise tax Lodging Other`, `Contributions and Donations Other
+    # miscellaneous revenue` and `Issuance costs Capital outlay` across six years.
+    #
+    # `real estate excise tax` is valueless in FY2004 ONLY; the entry is inert in
+    # the fifteen years where the row carries a figure.
+    #
+    # Kent DOES have one genuine wrapped label -- FY2022's `Unrealized net
+    # gain/(loss)` / `in fair value of investments` -- which is why the default
+    # weld is left in place rather than inverted, here or in the library.
+    empty_rows=(
+        'lodging',
+        'real estate excise tax',
+        'contributions and donations',
+        'issuance costs',
+    ),
     label_fixes={
-        # FY2004-FY2008. The key is the COLLAPSED label as label_of() emits it.
-        "Washington State Auditor's Office Fire District #": 'Fire District #',
+        # FY2004-FY2008. The key is the COLLAPSED label as label_of() emits it,
+        # which since the label_of truncation fix carries the full row name.
+        "Washington State Auditor's Office Fire District # 37 Contract": 'Fire District # 37 Contract',
     },
     source_rounding={},   # the load task registers any confirmed printed-total artifacts
 )
