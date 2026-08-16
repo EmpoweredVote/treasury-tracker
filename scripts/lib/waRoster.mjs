@@ -19,6 +19,26 @@
  * `fiscalYears: null` means "not yet reconned". `perCapitaBand: null` means
  * "not yet derived from the loaded spread". Nothing may load an entity with
  * either still null -- the loaders assert this.
+ *
+ * ── THREE FIELDS THAT EXIST ONLY FOR THE AUDIT HARNESS ──────────────────────
+ * `manifestSpan`, `excludedYears` and `expectedResidues` are not used by the
+ * loaders. They are here rather than in verify-wa-audit.mjs because they are
+ * FACTS ABOUT AN ENTITY, and the audit's whole job is to assert them:
+ *
+ *   manifestSpan      [first, last] fiscal year the entity's ARN manifest
+ *                     covers. Every year in the span is either loaded or
+ *                     declared excluded; anything else is a silent hole and
+ *                     the audit fails on it.
+ *   excludedYears     FY -> the reason it is not loaded. The audit asserts each
+ *                     one has ZERO rows. Every exclusion is a deliberate
+ *                     refusal to publish, so a row quietly appearing for one
+ *                     would mean a figure nobody adjudicated got shipped.
+ *   expectedResidues  how many source_rounding cases the entity's extractor is
+ *                     expected to register. A REAL number in every case,
+ *                     including zero: Tacoma prints in thousands, so its
+ *                     components are already rounded to the thousand and sum
+ *                     exactly. Asserting the zero means a residue appearing
+ *                     there later is a finding rather than a shrug.
  */
 
 /**
@@ -47,6 +67,12 @@ export const WA_ENTITIES = [
     perCapitaBand: [100, 10_000], verifyPerCapitaBand: [200, 700], sanityMax: 2_000_000_000,
     fiscalYears: [2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016,
                   2020, 2021, 2022, 2023, 2024],
+    manifestSpan: [2004, 2025],
+    excludedYears: {
+      2017: 'font defect, digits absent', 2018: 'font defect, digits absent',
+      2019: 'font defect, digits absent', 2025: 'not yet audited — no filing exists',
+    },
+    expectedResidues: 13,
     roundingFiles: ['extractKitsap.py'], navOnly: false,
   },
   {
@@ -57,6 +83,12 @@ export const WA_ENTITIES = [
     perCapitaBand: [100, 10_000], verifyPerCapitaBand: [250, 1400], sanityMax: 500_000_000,
     fiscalYears: [2004, 2005, 2007, 2008,
                   2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025],
+    manifestSpan: [2004, 2025],
+    excludedYears: {
+      2006: 'image-only scan', 2009: 'ciphered digits, bounded decode failed',
+      2010: 'ciphered GAAP statement, money digits absent', 2011: 'CCITT stencil scan',
+    },
+    expectedResidues: 20,
     roundingFiles: ['extractBainbridgeEarly.py', 'extractBainbridge.py'], navOnly: false,
   },
 
@@ -126,6 +158,18 @@ export const WA_ENTITIES = [
     //             is attempted. See scripts/extractTacoma.py.
     fiscalYears: [2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2012, 2013,
                   2014, 2015, 2016, 2017, 2019, 2020, 2022, 2023, 2024],
+    manifestSpan: [2003, 2025],
+    excludedYears: {
+      2011: 'no usable text layer on the statement pages',
+      2018: 'no usable text layer — constant +29 byte shift, same cipher class as Bainbridge FY2010',
+      2021: 'no usable text layer on the statement pages',
+      2025: 'source timing — only a 5pp opinion letter (ARN 1040162) has been released',
+    },
+    // ZERO is the measured value, not a placeholder. Tacoma prints IN
+    // THOUSANDS, so every component is already rounded to the thousand and the
+    // components sum exactly; the sub-dollar artifacts that produce residues on
+    // the whole-dollar issuers cannot arise.
+    expectedResidues: 0,
     roundingFiles: ['extractTacoma.py'], navOnly: false,
   },
   {

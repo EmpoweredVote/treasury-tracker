@@ -270,6 +270,7 @@ const ALL_ENTITIES = verifiableEntities().map((e) => ({
   pdf: (fy) => `${e.pdfPrefix}-${fy}-acfr.pdf`,
   fys: e.fiscalYears,
   roundingFiles: e.roundingFiles,
+  expectedResidues: e.expectedResidues,
 }));
 
 if (ONLY && !ALL_ENTITIES.some((e) => e.key === ONLY)) {
@@ -1390,9 +1391,13 @@ async function main() {
   // "not yet filled in": it prints IN THOUSANDS, so its components are already
   // rounded to the thousand and sum exactly. Asserting the zero is the point --
   // it means a residue appearing there later is a finding, not a shrug.
-  const EXPECTED_REGISTERED = { 'Bainbridge Island': 20, 'Kitsap County': 13, Tacoma: 0 };
-  const expectedRegistered = ENTITIES.reduce((s, e) => s + (EXPECTED_REGISTERED[e.key] ?? -1), 0);
-  const unknownEntities = ENTITIES.filter((e) => EXPECTED_REGISTERED[e.key] === undefined).map((e) => e.key);
+  //
+  // The counts live in the ROSTER, not here, because verify-wa-audit.mjs
+  // asserts the same numbers in its check (b). Two harnesses each carrying
+  // their own copy of the same fact is exactly the drift the roster exists to
+  // prevent.
+  const expectedRegistered = ENTITIES.reduce((s, e) => s + (e.expectedResidues ?? -1), 0);
+  const unknownEntities = ENTITIES.filter((e) => e.expectedResidues === undefined).map((e) => e.key);
   if (unknownEntities.length) {
     console.error(`  BLOCKER: no expected source_rounding count declared for ${unknownEntities.join(', ')} — ` +
       `add one rather than letting an unasserted registry through`);

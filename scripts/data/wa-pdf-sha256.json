@@ -1,4 +1,76 @@
 {
+  "Kitsap County|2004": {
+    "sha256": "8dab3e03ec7b78c48e6b126876be05c76cb4b99023759ea2d9e62e0573e7b8a4",
+    "bytes": 773645
+  },
+  "Kitsap County|2005": {
+    "sha256": "431353bf13cfeeb4c0b4e0331d45a447f3e32d18034c12182757723d03d2c906",
+    "bytes": 762364
+  },
+  "Kitsap County|2006": {
+    "sha256": "4956d798546b6e160e399b3cc8da8dba205bb71544fd734eac0f3d252c5ea98e",
+    "bytes": 2152876
+  },
+  "Kitsap County|2007": {
+    "sha256": "aa547359c04a5763487093e6bbc3a5b094fad08a7848a6ac87165d81fa814e91",
+    "bytes": 1402157
+  },
+  "Kitsap County|2008": {
+    "sha256": "e40e5053af638fd04bc5185ffcd6854dca60a16ccdcdd59842f4135e2758f43f",
+    "bytes": 958852
+  },
+  "Kitsap County|2009": {
+    "sha256": "54c4d692b1c92656187439c07f89adbe38bc95562974675ef78668702a9e7e0e",
+    "bytes": 1068148
+  },
+  "Kitsap County|2010": {
+    "sha256": "9366d167d58ad4a0ee6547d2ac273b808b47c25c0c11ff22f1271b8878b9eaac",
+    "bytes": 927938
+  },
+  "Kitsap County|2011": {
+    "sha256": "bd5cf5cb9a4198ad6d13d8c535d11fc8d8976fe15d5450774226cf9a7d27a759",
+    "bytes": 1747143
+  },
+  "Kitsap County|2012": {
+    "sha256": "0c48c7e0b5cd2f6c4929d663a14e11563d28aae3695b3bcc8af4a3bda2e7d0e8",
+    "bytes": 2242359
+  },
+  "Kitsap County|2013": {
+    "sha256": "de95086c5678d48419a6ae2a33ba8fe4ea4adc0594668983412ead850104acb3",
+    "bytes": 1829897
+  },
+  "Kitsap County|2014": {
+    "sha256": "86011ece21dfdd05cc437fd3063bc6b7a27ca7c5c56fd10db90da631a244e141",
+    "bytes": 1476636
+  },
+  "Kitsap County|2015": {
+    "sha256": "8e9f67d8252cc2984904cccf3274285151b391d4a636f1769f6cefdd9f145c75",
+    "bytes": 3363955
+  },
+  "Kitsap County|2016": {
+    "sha256": "f700cd6238c88b149db1485b24f07c184f5bb470aaccf47a22cc73128c2732de",
+    "bytes": 22119716
+  },
+  "Kitsap County|2020": {
+    "sha256": "6565b416f5fcf3f8c82cdb30540ce4716dcfd9be43136a83d17a8e57899c0a4e",
+    "bytes": 2032224
+  },
+  "Kitsap County|2021": {
+    "sha256": "9a96188a016b114d3596b0ce8374b3da546ae7a531111381a4889cc208324c1c",
+    "bytes": 2583717
+  },
+  "Kitsap County|2022": {
+    "sha256": "d2c0d45926eec9fdd329f2931d659138cad0fb24c45e0418cee62da403f2ff9a",
+    "bytes": 2387325
+  },
+  "Kitsap County|2023": {
+    "sha256": "41c13f4d6f2c2cca55501e1c473d0e503aff6fdba071dd516df60212c21b6139",
+    "bytes": 2357731
+  },
+  "Kitsap County|2024": {
+    "sha256": "7afa3e89488b608bf4b14ae6841d60168d3b7fd515c29c963ccde473aa0cb18a",
+    "bytes": 2204945
+  },
   "Bainbridge Island|2004": {
     "sha256": "1a74c0bc30e94b6b16fcc9eda01b2cfcf177288626e5de183e079b43305fb587",
     "bytes": 709806
@@ -71,76 +143,80 @@
     "sha256": "e7a8fd1cb4b153ceaa54dc1d401946c099bd06455b2d732357e2e74c1b787caa",
     "bytes": 1326830
   },
-  "Kitsap County|2004": {
-    "sha256": "8dab3e03ec7b78c48e6b126876be05c76cb4b99023759ea2d9e62e0573e7b8a4",
-    "bytes": 773645
+  "Tacoma|2003": {
+    "sha256": "e9faa3c91e4de48db9add33edb79b362dc94564945c1417efa9f279d0641f384",
+    "bytes": 895415
   },
-  "Kitsap County|2005": {
-    "sha256": "431353bf13cfeeb4c0b4e0331d45a447f3e32d18034c12182757723d03d2c906",
-    "bytes": 762364
+  "Tacoma|2004": {
+    "sha256": "883aaae3cbf37e8f21d893d29e580a4021ede1b18e8a7de276ac1f9d8613a8ff",
+    "bytes": 863940
   },
-  "Kitsap County|2006": {
-    "sha256": "4956d798546b6e160e399b3cc8da8dba205bb71544fd734eac0f3d252c5ea98e",
-    "bytes": 2152876
+  "Tacoma|2005": {
+    "sha256": "3cbc3362412676a0a16591b09f5e5590f1b687bf6e2752f839b1b875f556c052",
+    "bytes": 918247
   },
-  "Kitsap County|2007": {
-    "sha256": "aa547359c04a5763487093e6bbc3a5b094fad08a7848a6ac87165d81fa814e91",
-    "bytes": 1402157
+  "Tacoma|2006": {
+    "sha256": "1fa041ffae83405dc3236d5cf3a8813aaf4119799da8489f6dec6833ed55c065",
+    "bytes": 833160
   },
-  "Kitsap County|2008": {
-    "sha256": "e40e5053af638fd04bc5185ffcd6854dca60a16ccdcdd59842f4135e2758f43f",
-    "bytes": 958852
+  "Tacoma|2007": {
+    "sha256": "bfdf73bec1de3fc0e4c415c0750a38f6c9c9f4de4f26c47eaee44c77133242c9",
+    "bytes": 791418
   },
-  "Kitsap County|2009": {
-    "sha256": "54c4d692b1c92656187439c07f89adbe38bc95562974675ef78668702a9e7e0e",
-    "bytes": 1068148
+  "Tacoma|2008": {
+    "sha256": "dce1c61c277d6792f8309b6d5db99df4c72bf053b18dcc790c940e91bbf3c0fc",
+    "bytes": 1132931
   },
-  "Kitsap County|2010": {
-    "sha256": "9366d167d58ad4a0ee6547d2ac273b808b47c25c0c11ff22f1271b8878b9eaac",
-    "bytes": 927938
+  "Tacoma|2009": {
+    "sha256": "e2b0ee4e4c9612e2585297da76439e4477a5efa0faa3b52f113d889ee1f84f74",
+    "bytes": 2129848
   },
-  "Kitsap County|2011": {
-    "sha256": "bd5cf5cb9a4198ad6d13d8c535d11fc8d8976fe15d5450774226cf9a7d27a759",
-    "bytes": 1747143
+  "Tacoma|2010": {
+    "sha256": "221e9211ff89cfc70077f4109666b24be1ee6ad16119c776b337c41b017db95b",
+    "bytes": 1822623
   },
-  "Kitsap County|2012": {
-    "sha256": "0c48c7e0b5cd2f6c4929d663a14e11563d28aae3695b3bcc8af4a3bda2e7d0e8",
-    "bytes": 2242359
+  "Tacoma|2012": {
+    "sha256": "f766128bce0832006e6ad05470e432078859709e689e17ac1c7e2ec7445b6e15",
+    "bytes": 1331841
   },
-  "Kitsap County|2013": {
-    "sha256": "de95086c5678d48419a6ae2a33ba8fe4ea4adc0594668983412ead850104acb3",
-    "bytes": 1829897
+  "Tacoma|2013": {
+    "sha256": "726c9a284fe1d843a0b0867d535d5859db2f492ecf849d6dc32150ce986c7e74",
+    "bytes": 2552561
   },
-  "Kitsap County|2014": {
-    "sha256": "86011ece21dfdd05cc437fd3063bc6b7a27ca7c5c56fd10db90da631a244e141",
-    "bytes": 1476636
+  "Tacoma|2014": {
+    "sha256": "cf4288e4683484cfe67d751cfbf9006748298b1bad541578e98ea544722c8769",
+    "bytes": 3910158
   },
-  "Kitsap County|2015": {
-    "sha256": "8e9f67d8252cc2984904cccf3274285151b391d4a636f1769f6cefdd9f145c75",
-    "bytes": 3363955
+  "Tacoma|2015": {
+    "sha256": "52ce4a840c8ae8df4386148f8c525183e1c4d4ea5191800c4182168465c49063",
+    "bytes": 6974295
   },
-  "Kitsap County|2016": {
-    "sha256": "f700cd6238c88b149db1485b24f07c184f5bb470aaccf47a22cc73128c2732de",
-    "bytes": 22119716
+  "Tacoma|2016": {
+    "sha256": "7f5a7890da8cae6257de0b4e0e43c4a4dcc069711c62ec09afe79867fbc6ec7b",
+    "bytes": 2633012
   },
-  "Kitsap County|2020": {
-    "sha256": "6565b416f5fcf3f8c82cdb30540ce4716dcfd9be43136a83d17a8e57899c0a4e",
-    "bytes": 2032224
+  "Tacoma|2017": {
+    "sha256": "49fcf97fba2b02238f8bf9d5f7d17c80bc19ad4af06947b120dbbe47562c7243",
+    "bytes": 2637465
   },
-  "Kitsap County|2021": {
-    "sha256": "9a96188a016b114d3596b0ce8374b3da546ae7a531111381a4889cc208324c1c",
-    "bytes": 2583717
+  "Tacoma|2019": {
+    "sha256": "dce9fe0773afb49128b2245a4da52bb51b2f3d70c13539ed146326f03e56a096",
+    "bytes": 3843106
   },
-  "Kitsap County|2022": {
-    "sha256": "d2c0d45926eec9fdd329f2931d659138cad0fb24c45e0418cee62da403f2ff9a",
-    "bytes": 2387325
+  "Tacoma|2020": {
+    "sha256": "01e4e642ecd3bb2e2468d8357cde353f616d011d39543068ca87a95cb6bcd532",
+    "bytes": 3478426
   },
-  "Kitsap County|2023": {
-    "sha256": "41c13f4d6f2c2cca55501e1c473d0e503aff6fdba071dd516df60212c21b6139",
-    "bytes": 2357731
+  "Tacoma|2022": {
+    "sha256": "cba35fa2f5c8a090446983d41cd41ee913061efb7a57b6f6fe566f82a62a6233",
+    "bytes": 5665594
   },
-  "Kitsap County|2024": {
-    "sha256": "7afa3e89488b608bf4b14ae6841d60168d3b7fd515c29c963ccde473aa0cb18a",
-    "bytes": 2204945
+  "Tacoma|2023": {
+    "sha256": "c8936b605e491e3b8ab12f171a024600d29dc2425e8487ccf066b2977738bab2",
+    "bytes": 13100739
+  },
+  "Tacoma|2024": {
+    "sha256": "983a91ee54eff929162a5c76f908e61384ca9b75f72c011b49347a368ceec6c2",
+    "bytes": 6632803
   }
 }
