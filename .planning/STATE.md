@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.22
-milestone_name: Bainbridge Island, WA + Kitsap County Onboarding
-status: v2.22 SHIPPED — 12/12 tasks, Chris UAT passed, merged + pushed to main
-stopped_at: Milestone closed; 72 rows live in production. No active milestone.
-last_updated: "2026-08-15T00:00:00.000Z"
-last_activity: 2026-08-15
-last_activity_desc: "v2.22 merged to main (a5ac920) + pushed (496e28e); 72 WA SAO rows live, 3 harnesses green, Chris UAT passed"
+milestone: v2.23
+milestone_name: WA-CITIES-01 — Six Largest WA Cities
+status: v2.23 14/14 tasks complete — AWAITING CHRIS UAT before tag; merged + pushed to main untagged
+stopped_at: Task 14 Step 2 — UAT handoff presented to Chris. Steps 4 (re-scope) and 5 (tag) blocked on his sign-off.
+last_updated: "2026-08-16T00:00:00.000Z"
+last_activity: 2026-08-16
+last_activity_desc: "v2.23 Tasks 1-14 complete; 214 new rows (WA cohort 286); merged to main bb59682 untagged; rederive 286/286, audit 8/8, tether definitive; 203 vitest + 166 selftests"
 progress:
-  total_phases: 12
-  completed_phases: 12
+  total_phases: 14
+  completed_phases: 14
   total_plans: 0
   completed_plans: 0
   percent: 100
@@ -36,13 +36,19 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-16 — v2.18 Pima County Municipalities STARTED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** none — v2.22 shipped 2026-08-15. Next milestone not yet chosen.
+**Current focus:** **v2.23 WA-CITIES-01 — 14/14 tasks done, awaiting Chris UAT before tag.**
 
 ## Current Position
 
-Milestone: **v2.22 Bainbridge Island, WA + Kitsap County — ✅ SHIPPED 2026-08-15**
-Task: 12 of 12 complete (superpowers plan, not GSD phases — see the banner above)
-Status: **72 General Fund rows live in production.** Merged `--no-ff` as `a5ac920` and pushed to `main` at `496e28e`. Chris UAT passed.
+Milestone: **v2.23 WA-CITIES-01 — Six Largest WA Cities — 🔄 14/14 TASKS, AWAITING UAT**
+Task: 14 of 14 complete (superpowers plan, not GSD phases — see the banner above)
+Status: **214 new General Fund rows live in production; the WA cohort is 286 rows.** Merged `--no-ff` to `main` as `bb59682` and pushed — **deliberately NOT tagged.** Task 14 Step 2 (UAT handoff) is presented; Steps 4 (Phase D re-scope) and 5 (tag) are blocked on Chris's sign-off.
+
+Tacoma 38 rows · Spokane 40 · Vancouver 38 · Bellevue 24 · Kent 36 · Everett 38, plus four nav-only county nodes (Pierce, Spokane, Clark, Snohomish); Bellevue and Kent sit under the **existing** King County node.
+
+Verification at close: re-derivation **286/286** at exactly $0 with 0 blockers · audit **8/8** across 286 rows · tether definitive (all 12 WA entities NOT COVERED, the documented cross-repo Essentials gap) · **203** vitest · **166** acfrGF selftests · check (h) and all four new enrichment guards mutation-tested.
+
+⚠ **Two production data defects were found and repaired during this milestone, both invisible to every arithmetic gate:** ten corrupted labels on Kent (including one that filed $193,673 of capital spending inside a debt-service subtotal) and two letter-spaced labels on Bellevue. Both are written up in `docs/superpowers/plans/WA-CITIES-01-CLOSEOUT.md`. The Kent case carries the milestone's most transferable lesson: **when a harness reader disagrees with a document, do not conclude the loaded data is fine because the reader is provably wrong** — the extractor usually shares the defect, since both were written from the same misreading.
 Last activity: 2026-08-15 — merged, pushed, and a latent Windows test bug fixed on top (see below)
 
 **Coverage — 72 rows, not the 84 originally scoped.** Bainbridge Island FY2004, 2005, 2007, 2008, FY2012–2025 (18 years) and Kitsap County FY2004–2016, FY2020–2024 (18 years), operating + revenue for each. Six years are deliberately unloaded, **all for source-document reasons and none for a parser reason**: Bainbridge FY2006 (image-only scan), FY2009 (ciphered digits — the bounded contiguous-offset decode found no map that tied, so it was dropped as designed rather than escalated), FY2010 (labels decode, money digits absent from the text stream) and FY2011 (CCITT stencil scans); Kitsap FY2017–FY2019 (labels present, digits absent) and FY2025 (not yet audited). In FY2010/FY2011 the only readable General Fund detail is a **budget-basis** schedule, which must never be published under a GAAP label.
@@ -56,6 +62,27 @@ Last activity: 2026-08-15 — merged, pushed, and a latent Windows test bug fixe
 **⚠ A LATENT WINDOWS BUG SURFACED AT THE MERGE — always re-run `npm test` after a checkout.** `scripts/lib/waSao.mjs` carried a `#!/usr/bin/env node` shebang. Git's `core.autocrlf` rewrites files to CRLF on checkout, and **Vite's shebang strip matches `#!.*\n`, where JS regex `.` does not match `\r`** — so the shebang survived, the parser hit a leading `#`, and all 15 tests in `tests/waSao.test.mjs` vanished behind a bare `SyntaxError: Invalid or unexpected token` **naming no file and no line**. `node --check` and `esbuild` both accept the file; only the Vite path was affected, and that asymmetry is the diagnostic. Not caused by the merge — the branch was green only because those files still had LF. Fixed by removing the shebang (it is a pure library) and guarded by a test asserting no `scripts/lib/*.mjs` starts with `#!` (mutation-tested).
 
 **Two documented gaps, neither a TT defect.** Essentials' `coverage.json` (2026-08-15) carries exactly one WA city and one WA county — Seattle and King County — so neither new entity paints a tether icon; same outcome as v2.20 Madison and permitted by PIMA-09. And no shared-bucket banner asset exists for either entity (every plausible slug returns `NoSuchKey`), so both use the Wikipedia fallback, which resolves. ⚠ **OPEN, pre-existing:** `cities/seattle.jpg` and `cities/king-county.jpg` DO exist in the bucket but are absent from `CURATED_CITY_BANNERS` in `src/utils/wikiImage.ts`, so v2.21's own entities fall through to Wikipedia while curated licensed assets sit unused. Fixing it needs each credit transcribed from Essentials' `buildingImages.js` — **never infer a credit from a filename** (RI's comma-twin).
+
+## Task Overview — v2.23 WA-CITIES-01 — Six Largest WA Cities
+
+| # | Task | Outcome |
+|---|------|---------|
+| 1 | WA entity roster + MCAG decoy guard | ✅ `scripts/lib/waRoster.mjs`; all 10 MCAGs resolved live — the plan's four guessed county MCAGs were **all wrong** |
+| 2 | Tacoma recon | ✅ 22 filings, statements confirmed — the self-publishing-GAAP risk did NOT materialise |
+| 3 | Tacoma extractor | ✅ 19 years on ONE config; exposed 4 reader-defect classes |
+| 4 | Seed cities + 4 nav-only counties | ✅ King County REUSED from v2.21, never recreated |
+| 5 | Load Tacoma + adjudicate residues | ✅ 38 rows, zero residues (prints in thousands) |
+| 6 | Generalise the 3 harnesses to the roster | ✅ `verify-bainbridge-*` → `verify-wa-*`; 4 real bugs found by the port |
+| 7 | Spokane | ✅ 40 rows; found `-table` form feeds are NOT page breaks |
+| 8 | Vancouver | ✅ 38 rows, 2 adjudicated $1 residues; "General Obligation" is not a GF column |
+| 9 | Bellevue | ✅ 24 rows, 11 residues; inverted tree (capital outlay is a PARENT) |
+| 10 | Kent | ✅ 36 rows; **10 corrupted production labels found + repaired**; approved floor deviation |
+| 11 | Everett | ✅ 38 rows; the plainest issuer of the six; 2 more reader classes |
+| 12 | Enrichment, all six cities | ✅ 93 rows, live-derived coverage; **found 2 letter-spaced Bellevue labels** |
+| 13 | Full verification | ✅ 286/286 · 8/8 · tether definitive; (h) + 4 new guards mutation-tested |
+| 14 | Closeout + planning files | ✅ closeout written, `.planning/` updated — **UAT + re-scope + tag pending Chris** |
+
+⚠ **The one thing NOT done: Chris's UAT sign-off** (Task 14 Step 2) and the Phase D re-scope conversation (Step 4). The branch is merged to `main` untagged; the tag is Step 5 and waits on sign-off.
 
 ## Task Overview — v2.22 Bainbridge Island, WA + Kitsap County Onboarding
 
@@ -111,6 +138,18 @@ Last activity: 2026-08-15 — merged, pushed, and a latent Windows test bug fixe
 </details>
 
 ## Deferred Items
+
+### Carried at v2.23 close (2026-08-16)
+
+| Category | Item | Status |
+|----------|------|--------|
+| **sign-off** | Chris UAT + Phase D re-scope + the `v2.23` tag | **OPEN — the only thing blocking close.** Task 14 Steps 2, 4, 5 |
+| source-guard | `classifyReport` passes a document whose **table of contents** names the statement even when the statement pages are unreadable | **open** — Everett FY2005/FY2010 both passed the fetch guard and were caught only by the page-identity probe. Tighten in the next WA milestone |
+| tech-debt | `scripts/lib/acfrGF.py` still splits pages naively on form feeds | **open, harmless today** — its `statement_page` is never persisted, but it disagrees with audit check (h). `-table` form feeds are NOT page breaks |
+| tech-debt | `verify-wa-audit.mjs` deliberately DUPLICATES the page-identity regexes rather than importing them | **accepted** — but it has already cost one round of divergence. Fix such a regex in BOTH files |
+| cross-repo | Essentials `coverage.json` carries no record for any of the 12 WA entities | **documented gap, not a TT change** — TT correctly paints no tether icon |
+| data | 19 source-document refusals across the six cities; no OCR recovery attempted | **deliberate** — every one is a defect in the filing, itemised in the closeout |
+| decision | Config registry vs per-file extractors (spec §5) | **DECIDED: keep per-file.** The registry wins on the spec's stated criterion (zero per-city code, by AST parse) but the criterion measured the wrong cost — see closeout §6 |
 
 ### Carried at v2.22 close (2026-08-15)
 
@@ -338,19 +377,24 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-08-15
-Stopped at: v2.22 closed — Tasks 1–12 done, Chris UAT passed, merged (`a5ac920`) + pushed to `main` (`496e28e`). Working tree clean, `main` up to date with origin.
-Resume file: None
+Last session: 2026-08-16
+Stopped at: **v2.23 Tasks 1–14 done; Task 14 Step 2 (UAT handoff) presented to Chris.** Merged to `main` as `bb59682` and pushed, deliberately UNTAGGED. Steps 4 (Phase D re-scope) and 5 (tag) blocked on sign-off. Working tree clean.
+Resume file: `docs/superpowers/plans/WA-CITIES-01-CLOSEOUT.md`
 
 ### Next Session
 
-**No active milestone.** v2.22 Bainbridge Island + Kitsap County shipped 2026-08-15: 72 WA SAO General Fund rows live, 3 harnesses green, Chris UAT passed. v2.21 (Seattle + King County, 50 rows) shipped 2026-08-14 and is tagged.
+**RESUME AT: Chris's UAT verdict on v2.23.** The UAT checklist is Task 14 Step 2 of `docs/superpowers/plans/2026-08-15-wa-cities-01.md`; the evidence to bring to the re-scope is `docs/superpowers/plans/WA-CITIES-01-CLOSEOUT.md`. If UAT passes: tag `v2.23` and hold the Phase D conversation. If it fails: fix on `feat/wa-cities-01`, re-run all three harnesses, re-merge.
 
-⚠ **Do not trust `/gsd-progress` on its own here.** `ROADMAP.md` still ends at v2.20 and knows nothing about v2.21 or v2.22, because both ran on `docs/superpowers/` plans rather than GSD phases. Read this file, then the plan docs under `docs/superpowers/plans/`.
+The three Phase D questions, with the closeout's recommendations already derived from evidence:
+  * **Rest of WA worth a follow-on?** Yes, at **four to six cities** — but budget one to three NEW reader-defect classes per city. The cost curve did NOT flatten: Everett, city six, still produced two.
+  * **Are county finances as cheap as they look?** Cheap, not free. Kitsap loaded 36 rows on this pipeline, but its `-table` rendering put the GF column in two disjoint zones — the reason `column_strategy` exists. Budget a county like a city.
+  * **Floor rule tighter or looser?** **Looser — to what Kent actually did.** Continue past a consecutive gap when the years below parse on the unchanged config; stop only when continuing needs new work. That is already the rule's stated purpose; the mechanical form was stricter than the intent.
 
-Two candidates were left explicitly open at v2.22 close:
-  * **WA-CITIES-01** — the WA SAO pipeline now generalises. `scripts/lib/waSao.mjs` + `waSaoLoad.mjs` are MCAG-generic, so another WA city or county is a descriptor plus an extractor config. This is the cheapest next expansion in the repo.
-  * **BANNER-01** — wire the existing `cities/seattle.jpg` + `cities/king-county.jpg` bucket assets into `CURATED_CITY_BANNERS`, transcribing credits from Essentials' `buildingImages.js`.
+⚠ **Do not trust `/gsd-progress` on its own here.** `ROADMAP.md`'s phase tables end at v2.20 and know nothing about v2.21–v2.23, because all three ran on `docs/superpowers/` plans rather than GSD phases. Read this file, then the plan docs under `docs/superpowers/plans/`. (v2.23 DID update the roadmap milestone LIST and `MILESTONES.md` — the step v2.21 and v2.22 both skipped.)
+
+Two candidates were left explicitly open at v2.22 close, one now closed:
+  * ~~**WA-CITIES-01**~~ — ✅ **done as v2.23** (2026-08-16). Six cities, 214 rows.
+  * **BANNER-01** — still open. Wire the existing `cities/seattle.jpg` + `cities/king-county.jpg` bucket assets into `CURATED_CITY_BANNERS`, transcribing credits from Essentials' `buildingImages.js`. **Now larger than it was:** none of the twelve WA entities has a curated banner, so all fall through to Wikipedia.
 
 Longer-standing candidates, unchanged: votes/amendments hub (VOTES-01); sourced-standard backfill to city data (SRCSTD-01, brief at `.planning/SRCSTD-01-SCOPING.md`); deeper history on the ACFR state nodes (CA/NY/FL/TX pre-window holes).
 
