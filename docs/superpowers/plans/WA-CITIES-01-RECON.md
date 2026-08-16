@@ -721,4 +721,84 @@ parent.
 revenue). Loader band `[220, 2000]`; harness band `[350, 1150]`. Kent prints
 WHOLE DOLLARS.
 
-## Everett (MCAG 0664) — not yet reconned
+## Everett (MCAG 0664)
+
+MCAG resolved live against `GetEntities` and asserted against the pinned roster.
+Nine entities share the "Everett" name prefix — Community College, Housing
+Authority, Industrial Development Corporation, Public Facilities District, Public
+Schools, an inactive Transportation Benefit District, Port of Everett and the
+Port's IDC — so `selectExactCity` is doing real work here.
+
+61 of the MCAG's 68 reports are the city's own. The report-level decoy worth
+naming is the Bellevue trap again: **"Everett, City of GASB 68 Examination
+Report"** carries the name INVERTED, so a prefix filter on "City of Everett"
+excludes it while a "contains Everett" filter would not. Also present: an
+"Agreed Upon Procedures — National Transit Database" report and five statewide
+performance audits that merely mention the city.
+
+**FY2004–FY2024 carries exactly ONE "Financial and Federal" filing per year with
+no gaps** — the cleanest manifest of the six cities.
+
+| FY | Why it is not loaded |
+|----|----------------------|
+| 2005 | **No usable text layer.** Statement pages carry ONLY the SAO page furniture — 153 characters of rule line, credit and page number, no labels and no digits — while narrative and notes pages read normally. Same class as Spokane FY2012 and Vancouver FY2004. |
+| 2010 | Same defect as FY2005, and **not consecutive with it**. |
+| 2025 | **Source timing.** The only filing is ARN 1040273, typed "Annual Comprehensive Financial Report" — which on this issuer is the 5-page opinion letter. Confirmed by CONTENT; the type name is inverted here and must never be trusted. |
+
+FY2006–FY2009 read cleanly BETWEEN the two defects, so the floor rule's
+two-consecutive test is **not** triggered and no deviation is claimed. Contrast
+Kent, whose FY2019+FY2020 gap needed explicit approval.
+
+⚠ `classifyReport` PASSED both excluded years, because the **table of contents**
+contains the string "Statement of Revenues, Expenditures". The fetch-time guard
+cannot distinguish a document whose statements are readable from one that merely
+lists them; the probe is what catches it.
+
+### The probe, run before any config was written
+
+| Evidence | Finding |
+|---|---|
+| page identity | 19/19 readable years, **exactly one candidate page each** — the first city here with no wrong-page ambiguity at all |
+| units | whole dollars every year; no "(in thousands)" caption |
+| incomplete rows | **zero**, every year, both sections → ordinal is safe; Kent's no-complete-row shape cannot arise |
+| valueless rows, revenue | **zero** every year → flat revenue side, no colon heading, no wrapped label |
+| operating shape | identical across 21 filings: `Current:` over its functions, `Capital outlay` a **valued root peer**, `Debt service:` over Principal/Interest |
+| labels | 23 distinct across the span, none letter-spaced, none carrying page furniture, none containing a digit |
+
+Read off the printed indentation (`pdftotext -lineprinter`): headings and the
+capital line at x=52, children at x=57 in FY2004; x=62/66 in FY2024. **No era
+split** — one config for 19 years.
+
+So `revenue_parents`, `revenue_group_members`, `empty_rows`, `label_fixes` and
+`statement_anchor` are all empty, each for a measured reason rather than by
+default.
+
+### Two reader gaps Everett found, both in the geometric reading
+
+1. **A FOOTNOTE MARKER RIDING ON A VALUE.** FY2021 p.37 and FY2022 p.35 print
+   `(52,270) *` in the Emergency Medical Services column, footnoted "* Negative
+   revenue is due to changes in fair value". The marker lands inside
+   `LP_MAX_CHAR_GAP` of the closing bracket, so proximity grouping welded it on,
+   `(52,270)*` stopped matching the money pattern, and the amount was read as
+   LABEL TEXT (`Otherrevenues(52,270)*`). Exactly the shape of the `$` weld this
+   renderer already guards against.
+
+2. **AN UNLABELLED ALL-DASH ROW IS DECORATION.** FY2015 p.37 prints the Capital
+   outlay row's dash placeholders half a line BELOW its figures, and strict
+   physical geometry therefore puts them on an output row of their own: no label,
+   two dashes, one inside the General Fund band. That phantom entered the
+   geometric sequence as a $0 row and shifted every row after it, so `Principal`
+   was compared against `` and `Interest` against `Principal` — a row-count
+   disagreement on a page whose every figure was correct. A row with a REAL
+   figure and no label is deliberately still kept loud.
+
+### Measured spread and bands
+
+38 combinations, all tying at $0 with zero residues: **$487.91/resident** (FY2004
+revenue) to **$1,398.72** (FY2024 operating). Loader band `[250, 2800]`; harness
+band `[400, 1700]`. Everett prints WHOLE DOLLARS.
+
+⚠ **Kent's `[220, 2000]` would have REJECTED FY2024 outright.** Kent is Everett's
+nearest neighbour in this cohort by size and by units, which makes this the
+clearest case in the milestone for re-deriving a band per entity rather than
+inheriting one.
