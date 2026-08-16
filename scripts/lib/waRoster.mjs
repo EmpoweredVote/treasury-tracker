@@ -84,7 +84,20 @@ export const WA_ENTITIES = [
     name: 'Tacoma', mcag: '0610', entityType: 'city', countyName: 'Pierce County',
     pdfDir: 'docs/Tacoma', pdfPrefix: 'tacoma', datasetIdPrefix: 'tacoma-sao-gf',
     population: 228_400, populationNote: 'WA OFM April 1, 2025 — Filter=4 city row, line 295 (2026 est: 231,000)',
-    perCapitaBand: null, sanityMax: 5_000_000_000,
+    // DERIVED from the observed spread, never copied. Across all 38 loaded
+    // combinations Tacoma runs $588.40/resident (FY2004 revenue) to
+    // $1,345.21 (FY2024 revenue). The band keeps roughly half the minimum
+    // below and twice the maximum above, which passes every real year while
+    // still rejecting a 1000x units error in either direction: units=1 would
+    // read ~$0.59 and units=1_000_000 would read ~$588,000.
+    //
+    // This is the ONLY guard that fires on a wrong `units`. The tie gate is
+    // unit-invariant -- it reads $0 whether or not the multiplier was applied
+    // -- and Tacoma is the first WA SAO city here that prints IN THOUSANDS,
+    // so a config copied from Bainbridge or Kitsap would land 1000x low with
+    // a green tie. Kitsap's own [100, 10_000] would NOT have caught it.
+    perCapitaBand: [300, 3_000],
+    sanityMax: 5_000_000_000,
     // MEASURED window: 19 years. All 22 "Financial and Federal" filings
     // FY2003-FY2024 pass the content guard, and ONE extractor config ties at
     // exactly $0 on 19 of them, spanning all three of Tacoma's statement eras.
