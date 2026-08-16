@@ -1,5 +1,21 @@
-#!/usr/bin/env node
 /**
+ * NO SHEBANG, deliberately -- and this file is the reason the rule had to widen.
+ *
+ * v2.22 established that a `#!` line breaks the Vite transform on a Windows
+ * checkout: git stores the file CRLF, Vite's shebang strip matches `#!.*\n`, and
+ * JS regex `.` does not match `\r`, so the leftover `\r` makes the module
+ * unparseable. That guard was scoped to `scripts/lib/` and explicitly EXEMPTED
+ * entry-point scripts, on the reasoning that nothing imports them.
+ *
+ * Task 13's tests import this file's pure guard functions, which made the
+ * exemption wrong: the shebang survived the merge to `main`, `tests/
+ * waEnrichmentGuards.test.mjs` failed with a bare `SyntaxError` naming no file,
+ * and 14 tests vanished from a suite that still reported "passed". The branch was
+ * green; `main` was not -- exactly the shape v2.22 hit.
+ *
+ * The real invariant is not the directory. It is: NO .mjs FILE THAT A TEST IMPORTS
+ * MAY START WITH `#!`. tests/waSao.test.mjs now derives and enforces that.
+ *
  * Task 12 -- WA-CITIES-01 category enrichment loader for Tacoma, Spokane,
  * Vancouver, Bellevue, Kent and Everett (inline-authored, $0; NO paid API path).
  *

@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { readdirSync, readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -123,17 +123,45 @@ describe('fetchReportPdf', () => {
  * named no file position. It cost a real debugging session to localise, and it
  * would have hit any fresh clone on Windows.
  *
- * The rule this asserts is narrow and true: a module under `scripts/lib/` is a
- * library, imported and never executed, so it has no business carrying a
- * shebang. Entry-point scripts (`scripts/*.mjs` with a main guard) are not
- * covered here and may keep theirs.
+ * ⚠ THE ORIGINAL SCOPE WAS TOO NARROW, AND IT LET THE SAME BUG THROUGH AGAIN.
+ * This guard covered `scripts/lib/` only, and explicitly exempted entry-point
+ * scripts "with a main guard" on the reasoning that nothing imports them. Task 13
+ * then imported `scripts/loadWaCitiesEnrichment.mjs` for its pure guard functions,
+ * its shebang survived the merge to `main`, and 14 tests vanished from a suite that
+ * still reported "passed" -- the branch green, `main` not, exactly as before.
+ *
+ * The directory was only ever a proxy. The real invariant is: NO .mjs FILE THAT A
+ * TEST IMPORTS MAY START WITH `#!`. That is derived below from the test files'
+ * own import statements rather than hard-coded, so it cannot rot the way an
+ * allowlist would, and it extends automatically to a file the moment a test
+ * starts importing it.
  */
-describe('scripts/lib modules are importable libraries', () => {
-  it('no scripts/lib module starts with a shebang (breaks Vite transform on CRLF)', () => {
-    const libDir = path.join(fileURLToPath(new URL('..', import.meta.url)), 'scripts', 'lib');
+describe('no module a test imports starts with a shebang', () => {
+  const root = fileURLToPath(new URL('..', import.meta.url));
+
+  it('scripts/lib modules never carry one (they are libraries, never executed)', () => {
+    const libDir = path.join(root, 'scripts', 'lib');
     const offenders = readdirSync(libDir)
       .filter((f) => f.endsWith('.mjs'))
       .filter((f) => readFileSync(path.join(libDir, f), 'utf8').startsWith('#!'));
+    expect(offenders).toEqual([]);
+  });
+
+  it('nor does any module imported by a test, wherever it lives', () => {
+    const testDir = path.join(root, 'tests');
+    const imported = new Set();
+    for (const f of readdirSync(testDir).filter((x) => /\.(test\.)?mjs$/.test(x))) {
+      const src = readFileSync(path.join(testDir, f), 'utf8');
+      for (const m of src.matchAll(/from\s+'(\.\.?\/[^']+)'/g)) {
+        const resolved = path.resolve(testDir, m[1]);
+        if (resolved.endsWith('.mjs')) imported.add(resolved);
+      }
+    }
+    // The set must be non-empty, or this test passes vacuously.
+    expect(imported.size).toBeGreaterThan(0);
+    const offenders = [...imported]
+      .filter((p) => existsSync(p) && readFileSync(p, 'utf8').startsWith('#!'))
+      .map((p) => path.relative(root, p).replace(/\\/g, '/'));
     expect(offenders).toEqual([]);
   });
 });
