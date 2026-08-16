@@ -293,7 +293,12 @@ const CONTINUATION_RE = /\bpage\s*([2-9]|\d\d+)\s*of\s*\d/i;
 // negative dropped FY2003-FY2005 entirely. `\bgovernment\b` cannot match inside
 // "governmental" (no word boundary before the "al"), so this still rejects
 // "General Government" exactly as before.
-const GF_CAPTION_RE = /\bgeneral\b(?!\s+government\b)/i;
+//
+// `obligation` was added for Vancouver FY2021, whose statement spans two pages:
+// page 46 carries the identical title and scope line, no General Fund column at
+// all, and qualified purely on the word "General" in "General Obligation Debt".
+// Kept in step with verify-wa-rederive.mjs.
+const GF_CAPTION_RE = /\bgeneral\b(?!\s+(?:government|obligation)\b)/i;
 
 function captionBlockEnd(lines) {
   const trimmed = lines.map((l) => l.trim());

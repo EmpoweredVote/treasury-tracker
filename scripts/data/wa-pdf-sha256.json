@@ -298,5 +298,81 @@
   "Spokane|2024": {
     "sha256": "b12dd6e2a48a989d965830ce334a9c50c00f9ab3a3080dcf14f175369d81211e",
     "bytes": 6339059
+  },
+  "Vancouver|2005": {
+    "sha256": "b6f666cd6593c4761e09bb52d7c09ee14597f940a3900a0828d0ac535d530a0a",
+    "bytes": 844963
+  },
+  "Vancouver|2006": {
+    "sha256": "8b2377b7638119baf8703aed0fa7f470a828811c4c5e622de1b24b0a1d83c176",
+    "bytes": 958806
+  },
+  "Vancouver|2007": {
+    "sha256": "a0f2b303d529f00dae65828a6b93a7d0eebedf68e80b3027692ea03fd0ec3460",
+    "bytes": 721929
+  },
+  "Vancouver|2008": {
+    "sha256": "b94b4e65165a722cfd3464f0af16e0966ecc75e93621f4c897be129b9cb601b0",
+    "bytes": 1231305
+  },
+  "Vancouver|2009": {
+    "sha256": "cd075f3fb839793ab27a13729a7f3d77c951525a68721a49f1256fb81cc9a950",
+    "bytes": 1473757
+  },
+  "Vancouver|2010": {
+    "sha256": "e66de0c7a6b8148ea6bf441f495e1e618470ed5a0a2a0b32d80412718eca7c9c",
+    "bytes": 1854615
+  },
+  "Vancouver|2011": {
+    "sha256": "297e71cfceccdd4b78484b56e99711a062b68118569c07683861d9aad9be65a2",
+    "bytes": 1173264
+  },
+  "Vancouver|2012": {
+    "sha256": "8bdce90c1f4b735dda330b1e32399eec6c3a3beb72abe48cd4617440101b5e2f",
+    "bytes": 1285969
+  },
+  "Vancouver|2013": {
+    "sha256": "dc2db874e9f360489c15dca2bd513db65958c1cb4ace62e64c96450ac8f03fc9",
+    "bytes": 1351272
+  },
+  "Vancouver|2014": {
+    "sha256": "14e7bc7ed3c7d7754a22592a31a2f047066ee58274e0eca22f2fbbc06e7e1ab2",
+    "bytes": 1681839
+  },
+  "Vancouver|2015": {
+    "sha256": "59c3c342d3f129205fa1f30ba903968d89bc34d096856b282d13bd42d25d787a",
+    "bytes": 3253381
+  },
+  "Vancouver|2016": {
+    "sha256": "f9e8e4b7edd5b89e4e94e1e759140eee6febcee925e5ad48a7617d4f0b5da253",
+    "bytes": 10106286
+  },
+  "Vancouver|2017": {
+    "sha256": "1ba13606e13e1e07489b815ca1a236c81f232485d34718b85dbe57a8b0610277",
+    "bytes": 3264160
+  },
+  "Vancouver|2018": {
+    "sha256": "e4bb3adf8a982333871e866aa888219195941e8c39ce6ba1f45e5c2bfafd1750",
+    "bytes": 2496128
+  },
+  "Vancouver|2019": {
+    "sha256": "de0ef0ccf1c1f1c141389bf6a5dad5560e22d72cb02211bf1add428cf4d2c727",
+    "bytes": 2909503
+  },
+  "Vancouver|2020": {
+    "sha256": "20ea9dfc48b8598c3cdc4d393fbeaf5ca7567bec4764ff4ceb91cf80bf28d9a2",
+    "bytes": 2296954
+  },
+  "Vancouver|2021": {
+    "sha256": "75aa77f93688fe141a74afc58f2c59d652ed65af34187230a5be1a26588298e8",
+    "bytes": 2186764
+  },
+  "Vancouver|2022": {
+    "sha256": "a7825d42cbd53caec60142b7e379e736a49ddf18a287b7d44a0a9551c9c602e0",
+    "bytes": 2767353
+  },
+  "Vancouver|2023": {
+    "sha256": "df7417bb4f29f7b9dfb6c981266a107b98cc795387c6b1d0bbd0c93d42a217a3",
+    "bytes": 4244664
   }
 }

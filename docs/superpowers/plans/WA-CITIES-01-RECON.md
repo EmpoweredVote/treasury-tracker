@@ -328,7 +328,129 @@ Copying Tacoma's `[300, 3000]` would have passed every Spokane year — which is
 exactly why the band is re-derived rather than inherited. A band that passes by
 accident guards nothing.
 
-## Vancouver (MCAG 0247) — not yet reconned
+## Vancouver (MCAG 0247)
+
+**Verdict: LOADABLE. 19 years on one extractor config; two adjudicated $1
+residues, both in FY2008.**
+
+### Content-guard window: FY2004–FY2024, all 21 years pass
+
+Every year is the "Financial and Federal" report titled exactly *City of
+Vancouver*:
+
+| FY | ARN | Pages | Size |  | FY | ARN | Pages | Size |
+|---|---|---|---|---|---|---|---|---|
+| 2024 | 1038527 | 142 | 1.8 MB | | 2013 | 1012264 | 86 | 1.4 MB |
+| 2023 | 1035588 | 129 | 4.2 MB | | 2012 | 1010510 | 86 | 1.3 MB |
+| 2022 | 1033340 | 125 | 2.8 MB | | 2011 | 1008186 | 82 | 1.2 MB |
+| 2021 | 1031732 | 127 | 2.2 MB | | 2010 | 1006111 | 77 | 1.9 MB |
+| 2020 | 1028998 | 101 | 2.3 MB | | 2009 | 1004022 | 78 | 1.5 MB |
+| 2019 | 1027245 | 115 | 2.9 MB | | 2008 | 1001962 | 85 | 1.2 MB |
+| 2018 | 1024608 | 115 | 2.5 MB | | 2007 | 75387 | 76 | 0.7 MB |
+| 2017 | 1021894 | 110 | 3.3 MB | | 2006 | 73293 | 78 | 1.0 MB |
+| 2016 | 1019604 | 100 | 10.1 MB | | 2005 | 71348 | 73 | 0.8 MB |
+| 2015 | 1017115 | 102 | 3.3 MB | | 2004 | 69265 | 69 | 3.9 MB |
+| 2014 | 1014700 | 88 | 1.7 MB | | | | | |
+
+### Extraction window: 19 years — FY2005 to FY2023
+
+Both exclusions sit at the **ends** of the span, so no year inside the window is
+skipped.
+
+| FY | Reason |
+|---|---|
+| 2004 | **Image-only scan.** Every statement page returns nothing but the SAO page furniture ("Washington State Auditor's Office / 19"); only the table of contents and front matter carry text. Same class as Spokane FY2012 and Bainbridge FY2006. |
+| 2024 | **The worst text layer in this milestone.** Three defects coexist — see below. The money digits are absent from the statement. |
+| 2025 | **Source timing.** The SAO holds *no* City of Vancouver filing for FY2025 at all — not even the Contracted CPA report Tacoma and Spokane have. |
+| pre-2004 | No filings returned by SearchReports for MCAG 0247. |
+
+### ⚠ FY2024: three text-layer defects in one document
+
+Worth describing because it is **not** the familiar +29 shift alone:
+
+1. **A glyph map that drops characters outright.** `f`, `w`, `x`, `j`, `z` and
+   the fi/fl/ff ligatures vanish: "rom operations", "Foreitures", "hich",
+   "cityide", "proects", "groth", "Ependitures", "nancial statements".
+2. **The +29 byte shift** on other runs: `34!4%-%.4/&2%6%.5%3` is
+   "STATEMENTOFREVENUES".
+3. **The money digits are absent.** On the governmental-funds statement the
+   General Fund's Property taxes row renders as `$ ,,` — the thousands
+   separators survive and every digit is gone.
+
+v2.22 established that a bounded, self-validating decode of this cipher class
+does not recover money digits (Bainbridge FY2010, Kitsap FY2017–FY2019), and
+here there is nothing to decode: the digits were never emitted. FY2023 extracts
+cleanly, so FY2024 is documented and skipped.
+
+### The report-level decoy layer
+
+62 of the MCAG's 68 reports are titled *City of Vancouver*. The other six
+include a **"Vancouver City Examination Report GASB 68"** — a pension-liability
+examination, not the city's own statements — and five statewide performance
+audits that merely mention Vancouver ("Use of Impact Fees in Federal Way,
+Olympia, Maple Valley, Redmond and Vancouver"). The title filter excludes all
+six.
+
+### ⚠ FY2021 spans TWO pages, and page 2 nearly qualified
+
+FY2021's governmental-funds statement runs across p.45 and p.46. Page 46
+carries the **identical** title and `GOVERNMENTAL FUNDS` scope line and its own
+REVENUES / Total rows, but has **no General Fund column at all** — its columns
+are American Rescue Plan Act / General Obligation Debt / Non-Major Governmental
+/ Total.
+
+It qualified as a statement page purely on the word "General" inside **"General
+Obligation Debt"**, which made the page AMBIGUOUS — and ambiguity is a blocker
+in `verify-wa-rederive.mjs` precisely because resolving it by document order is
+the assumption that harness refuses to make. Both harnesses' `GF_CAPTION_RE`
+now excludes `obligation` alongside the existing `government`:
+a General Obligation *debt* fund is no more a General Fund column than the
+General Government expenditure function is. The exclusion is per-occurrence, so
+a caption carrying both a real General Fund column and a General Obligation one
+still matches on the first.
+
+Unlike Kitsap, whose page 2 declares itself "Page 2 of 2", Vancouver's page 46
+declares nothing.
+
+### TWO ADJUDICATED $1 RESIDUES, both FY2008
+
+FY2008 p.28 (bound page 25) prints a total **one dollar below** the sum of its
+own printed components on **both** sides of the statement. Adjudicated by
+rendering the page at 200 dpi and re-adding every component off the image, not
+off the text layer:
+
+| Side | Components sum | Page prints | Registered delta |
+|---|---|---|---|
+| Expenditures | 86,087,540 | 86,087,539 | `(2008, 'operating'): 1` |
+| Revenues | 124,656,107 | 124,656,106 | `(2008, 'revenue'): 1` |
+
+The loaded value is the component sum in both cases, so each row still ties at
+$0 against its own line items. Full component lists are in
+`scripts/extractVancouver.py`.
+
+### Notes for the extractor task — what Vancouver actually needed
+
+- **Whole dollars** (`units=1`), like Spokane, unlike Tacoma.
+- **The tree shape is printed.** Vancouver keeps its indentation in *both*
+  eras, so the capital-line question answers itself: FY2005 p.23 puts `Current`
+  and `Debt service` at x=43 with functions at x=48 and **`Capital projects` at
+  x=43**; FY2023 p.33 does the same at x=47/51 with **`Capital outlay` at
+  x=47**. A root peer either way. Spokane needed its oldest era to settle the
+  same question; Vancouver never lost the evidence.
+- **Two spellings, one prefix.** `Capital projects` (FY2005–FY2014) →
+  `Capital outlay` (FY2015–FY2023), covered by `root_leaves=('capital ',)`.
+- `Current` and `Debt service` print **without colons** in every year; the
+  library matches parents colon-stripped.
+- **Every row is fully populated** — dashes where a fund has no activity — so
+  none of the blank-cell traps Tacoma and Spokane sprang arise here.
+- FY2021 is the one drift document (127 pages → 138 `-table` chunks), handled
+  by the page-exact `tablePages` added in Task 7.
+
+### Measured spread and bands
+
+38 combinations: **$348.74/resident** (FY2005 operating) to **$1,163.89**
+(FY2023 revenue). Loader band `[175, 2500]`; harness band `[275, 1400]`.
+
 ## Bellevue (MCAG 0374) — not yet reconned
 ## Kent (MCAG 0401) — not yet reconned
 ## Everett (MCAG 0664) — not yet reconned

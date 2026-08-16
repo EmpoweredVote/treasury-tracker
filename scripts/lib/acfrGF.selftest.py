@@ -21,6 +21,7 @@ import extractBainbridgeEarly     # noqa: E402
 import extractKitsap              # noqa: E402
 import extractTacoma              # noqa: E402
 import extractSpokane             # noqa: E402
+import extractVancouver           # noqa: E402
 
 # Transcribed from King County FY2020-era GF statement (values thousands-scale
 # in the real document; kept as bare ints here since these tests exercise
@@ -942,6 +943,13 @@ class TestShippedSpokaneConfig(unittest.TestCase):
             any('capital outlays'.startswith(p) for p in extractSpokane.CONFIG.root_leaves),
             'no root_leaves prefix matches the plural "capital outlays"')
 
+    def test_spokane_label_fix_key_is_the_collapsed_label(self):
+        # `_fix_label` is handed what `label_of()` emits, which has already
+        # collapsed runs of spaces. Keying on the wide spacing the raw `-table`
+        # line shows silently never matches, and the corrupted label ships.
+        for k in (extractSpokane.CONFIG.label_fixes or {}):
+            self.assertNotIn('  ', k, 'label_fixes key carries uncollapsed whitespace')
+
     def test_spokane_label_fix_repairs_the_welded_sao_credit(self):
         # FY2007 alone welds the rotated page-footer credit onto a real label:
         # `-table` renders the Physical environment row with "Washington State
@@ -955,6 +963,44 @@ class TestShippedSpokaneConfig(unittest.TestCase):
         for k, v in fixes.items():
             if 'Auditor' in k:
                 self.assertNotIn('Auditor', v)
+
+
+class TestShippedVancouverConfig(unittest.TestCase):
+    """Vancouver, MCAG 0247. Asserted against the real shipped CONFIG."""
+
+    def test_vancouver_units_is_whole_dollars(self):
+        # No "(in thousands)" caption in any loaded year; FY2023 prints Total
+        # revenues as 238,714,756. Tacoma, in the same milestone, is units=1000
+        # and the tie gate cannot tell the two apart.
+        self.assertEqual(extractVancouver.CONFIG.units, 1)
+
+    def test_vancouver_fy_end_is_december_31(self):
+        self.assertEqual(extractVancouver.CONFIG.fy_end, ('December', 31))
+
+    def test_vancouver_revenue_side_is_flat(self):
+        # Vancouver names its tax sources as sibling leaves (Property taxes /
+        # Sales and use taxes / Other taxes, later Business & Occupation and
+        # Excise). There is no `Taxes:` parent to open.
+        self.assertEqual(extractVancouver.CONFIG.revenue_parents, ())
+        self.assertEqual(extractVancouver.CONFIG.revenue_group_members, ())
+
+    def test_vancouver_capital_line_is_a_ROOT_LEAF(self):
+        # Read off the indentation, which Vancouver still prints in BOTH eras:
+        # FY2005 p.23 puts `Current` and `Debt service` at x=43 with their
+        # functions at x=48 and `Capital projects` at x=43; FY2023 p.33 does the
+        # same at x=47/51 with `Capital outlay`. A root peer either way.
+        self.assertIn('current', extractVancouver.CONFIG.parents)
+        self.assertIn('debt service', extractVancouver.CONFIG.parents)
+        self.assertTrue(extractVancouver.CONFIG.root_leaves)
+
+    def test_vancouver_root_leaf_prefix_covers_BOTH_capital_spellings(self):
+        # FY2005-FY2014 print `Capital projects`; FY2015 onward print `Capital
+        # outlay`. root_leaves are PREFIXES, so one entry must cover both --
+        # naming only one spelling would nest half the corpus under Current.
+        for spelling in ('capital projects', 'capital outlay'):
+            self.assertTrue(
+                any(spelling.startswith(p) for p in extractVancouver.CONFIG.root_leaves),
+                'no root_leaves prefix matches %r' % spelling)
 
 
 # ── Trap 5 (fix round 3): footer page-number recovery + loud failure ────────

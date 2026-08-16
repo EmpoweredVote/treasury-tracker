@@ -217,8 +217,35 @@ export const WA_ENTITIES = [
     name: 'Vancouver', mcag: '0247', entityType: 'city', countyName: 'Clark County',
     pdfDir: 'docs/Vancouver', pdfPrefix: 'vancouver', datasetIdPrefix: 'vancouver-sao-gf',
     population: 205_100, populationNote: 'WA OFM April 1, 2025 — Filter=4 city row, line 48 (2026 est: 207,000)',
-    perCapitaBand: null, sanityMax: 5_000_000_000,
-    fiscalYears: null, roundingFiles: ['extractVancouver.py'], navOnly: false,
+    // DERIVED from the observed spread. Across all 38 loaded combinations
+    // Vancouver runs $348.74/resident (FY2005 operating) to $1,163.89 (FY2023
+    // revenue). Half the minimum below and roughly twice the maximum above:
+    // wide enough for every real year, tight enough that units=1000 (~$349,000)
+    // cannot pass.
+    perCapitaBand: [175, 2_500],
+    // TIGHTER than the loader band: the loader rejects a units catastrophe,
+    // the harness rejects a WRONG PAGE. Measured spread $349-$1,164.
+    verifyPerCapitaBand: [275, 1_400],
+    expectId: '136eabfe-c898-435b-86cb-ca68af59256e',
+    sanityMax: 5_000_000_000,
+    // MEASURED window: 19 years. All 21 "Financial and Federal" filings
+    // FY2004-FY2024 pass the content guard, and ONE extractor config ties at
+    // $0 on 19 of them -- the two exclusions are both at the ENDS of the span,
+    // so no year inside the window is skipped.
+    fiscalYears: [2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014,
+                  2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023],
+    manifestSpan: [2004, 2025],
+    excludedYears: {
+      2004: 'image-only scan — every statement page returns only the SAO page furniture',
+      2024: 'text-layer defect — glyphs dropped (f/w/x/j/z and the fi/fl/ff ligatures), +29 shift on other runs, and the money DIGITS are absent from the statement ("$ ,,")',
+      2025: 'source timing — the SAO holds no City of Vancouver filing for FY2025 at all',
+    },
+    // TWO, both FY2008, both adjudicated off the rendered page image: each side
+    // of that statement prints a total one dollar BELOW the sum of its own
+    // printed components. See scripts/extractVancouver.py for the component
+    // lists that were re-added by hand.
+    expectedResidues: 2,
+    roundingFiles: ['extractVancouver.py'], navOnly: false,
   },
   {
     name: 'Bellevue', mcag: '0374', entityType: 'city', countyName: 'King County',

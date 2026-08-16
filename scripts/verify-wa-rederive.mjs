@@ -542,7 +542,21 @@ const CONTINUATION_RE = /\bpage\s*([2-9]|\d\d+)\s*of\s*\d/i;
 // `\bgovernment\b` cannot match inside "governmental" (no word boundary before
 // the "al"), so this still rejects "General Government" exactly as before while
 // accepting a caption whose NEIGHBOURING column happens to be Governmental.
-const GF_CAPTION_RE = /\bgeneral\b(?!\s+government\b)/i;
+//
+// `obligation` was added for Vancouver FY2021, whose governmental-funds
+// statement spans TWO pages. Page 46 carries the identical title and scope line
+// but its columns are American Rescue Plan Act / General Obligation Debt /
+// Non-Major / Total -- no General Fund at all. It qualified purely on the word
+// "General" in "General Obligation", which made the statement page AMBIGUOUS;
+// and ambiguity is a blocker here precisely because resolving it by document
+// order is the assumption this harness refuses to make. A General Obligation
+// DEBT fund is no more a General Fund column than the General Government
+// expenditure function is.
+//
+// The exclusion is per-occurrence, not per-page: a caption carrying both a real
+// General Fund column and a General Obligation one still matches on the first.
+const GF_CAPTION_RE = /\bgeneral\b(?!\s+(?:government|obligation)\b)/i;
+export { GF_CAPTION_RE };
 
 /** The caption block: everything down to and including the first section
  *  header line. Column captions live here, and so does every page-type word. */

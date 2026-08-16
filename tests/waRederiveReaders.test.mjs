@@ -16,8 +16,42 @@ import { describe, it, expect } from 'vitest';
 import {
   lpSplit, lpModalGlyphGap, assertLinePrinterCalibration, LP_MAX_CHAR_GAP,
   readRowOrdinal, makeRowReader, buildRevenue, buildOperating, pageExactChunks,
-  assertPageYear,
+  assertPageYear, GF_CAPTION_RE,
 } from '../scripts/verify-wa-rederive.mjs';
+
+describe('page identity: "General" must name a FUND, not a debt or a function', () => {
+  it('accepts a real General Fund column caption', () => {
+    expect(GF_CAPTION_RE.test('Consolidated General Fund Consolidated Fire Fund')).toBe(true);
+  });
+
+  it('rejects a page whose only "General" is the expenditure function', () => {
+    expect(GF_CAPTION_RE.test('General Government Public Safety')).toBe(false);
+  });
+
+  it('rejects a page whose only "General" is a General Obligation debt fund', () => {
+    // Vancouver FY2021 splits its governmental-funds statement across two
+    // pages. Page 46 carries the identical title and scope line but its
+    // columns are American Rescue Plan Act / General Obligation Debt /
+    // Non-Major / Total -- no General Fund at all. It qualified purely on the
+    // word "General" in "General Obligation", making the statement page
+    // AMBIGUOUS, which this harness treats as a blocker rather than resolving
+    // by document order.
+    expect(GF_CAPTION_RE.test('American Rescue Plan Act General Obligation Debt Non-Major Governmental Funds')).toBe(false);
+  });
+
+  it('still accepts a page where a General Fund caption sits beside a General Obligation column', () => {
+    // The exclusion is per-occurrence, not per-page: only a caption in which
+    // EVERY "General" is followed by an excluded word is rejected.
+    expect(GF_CAPTION_RE.test('General Fund General Obligation Debt Total')).toBe(true);
+  });
+
+  it('still accepts Tacoma\'s flattened "General Governmental" caption', () => {
+    // FY2003 flattens to "(0010) General Governmental Governmental Fund Funds
+    // Funds" because the neighbouring column is Other Governmental. The
+    // lookahead must not match inside "governmental".
+    expect(GF_CAPTION_RE.test('(0010) General Governmental Governmental Fund Funds Funds')).toBe(true);
+  });
+});
 
 describe('page identity: the period sentence survives a mis-mapped glyph', () => {
   it('reads a normally rendered period sentence', () => {

@@ -80,7 +80,27 @@ export const SPOKANE_ARNS = {
   2019: 1027407, 2020: 1029500, 2021: 1031211, 2022: 1033337, 2023: 1035593,
   2024: 1038150,
 };
-export const VANCOUVER_ARNS = {};
+/**
+ * Vancouver, MCAG 0247. Every ARN below is the "Financial and Federal" report
+ * titled exactly "City of Vancouver" for that audit period.
+ *
+ * The title filter earns its keep here: 0247 also carries a "Vancouver City
+ * Examination Report GASB 68" -- a pension-liability examination, not the
+ * city's own statements -- plus five statewide performance audits that merely
+ * mention Vancouver ("Use of Impact Fees in Federal Way, Olympia, Maple Valley,
+ * Redmond and Vancouver"). 62 of the MCAG's 68 reports are the city's own.
+ *
+ * FY2025 is absent because the SAO holds NO City of Vancouver filing for it at
+ * all -- not even the Contracted CPA report Tacoma and Spokane have. Source
+ * timing, not a defect.
+ */
+export const VANCOUVER_ARNS = {
+  2004: 69265,   2005: 71348,   2006: 73293,   2007: 75387,   2008: 1001962,
+  2009: 1004022, 2010: 1006111, 2011: 1008186, 2012: 1010510, 2013: 1012264,
+  2014: 1014700, 2015: 1017115, 2016: 1019604, 2017: 1021894, 2018: 1024608,
+  2019: 1027245, 2020: 1028998, 2021: 1031732, 2022: 1033340, 2023: 1035588,
+  2024: 1038527,
+};
 export const BELLEVUE_ARNS = {};
 export const KENT_ARNS = {};
 export const EVERETT_ARNS = {};
