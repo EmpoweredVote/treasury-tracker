@@ -699,9 +699,17 @@ async function main() {
     const fail = [];
     let scanned = 0;
     for (const e of ENTITIES) {
+      // Every label this entity publishes, across every year, for the
+      // letter-spacing check below: a garbled label's correctly-spelled twin is
+      // in a DIFFERENT fiscal year, so a per-row scope cannot see the pair.
+      const entityLabels = new Set();
       for (const r of byEntity[e.key]) {
         const label = `${e.key} FY${r.fiscal_year} ${r.dataset_type}`;
         const { cats, items } = await treeOf(r.id, label);
+        for (const t of [...cats.map((c) => c.name), ...items.map((it) => it.description)]) {
+          const s = String(t ?? '').replace(/\s+/g, ' ').trim();
+          if (s) entityLabels.add(s);
+        }
         const byCat = new Map(cats.map((c) => [c.id, c.name]));
         const all = [
           ...cats.map((c) => ({ text: c.name, where: `category "${c.name}"` })),
@@ -758,9 +766,43 @@ async function main() {
           }
         }
       }
+
+      // ── A LETTER-SPACED LABEL, caught by its own correctly-spelled twin ────
+      // Bellevue FY2015 and FY2016 published `Premi ums /contri buti ons` and
+      // `Tra ns porta ti on`, because their text layer letter-spaces those two
+      // names. Every arithmetic gate passed them — the figures are right and the
+      // rows tie at $0 — and the RE-DERIVATION agreed with them too, because both
+      // sides of that comparison read the same defective text layer. Only a check
+      // on the label SURFACE can see this, which is why it lives here and not
+      // there. It is the check that found both.
+      //
+      // The signature is precise: two labels of the SAME ENTITY whose letters are
+      // identical once whitespace is removed, but which still differ once case is
+      // folded. That is whitespace in a DIFFERENT PLACE, which no issuer does on
+      // purpose.
+      //
+      // ENTITY-WIDE, not per row, because the correctly-spelled twin is in
+      // another fiscal year — a per-row scope is blind to the pair by
+      // construction.
+      //
+      // ⚠ DELIBERATELY NOT FLAGGED: a pure CASE difference. `Capital outlay` in
+      // one era and `Capital Outlay` in another is the issuer restyling its own
+      // statement, and every WA entity does it — 23 such families across this
+      // corpus, all benign. That is exactly why the case fold comes BEFORE the
+      // comparison and not after.
+      const squash = (t) => t.toLowerCase().replace(/\s+/g, '');
+      const labels = [...entityLabels];
+      for (let i = 0; i < labels.length; i++) {
+        for (let j = i + 1; j < labels.length; j++) {
+          if (squash(labels[i]) !== squash(labels[j])) continue;
+          if (labels[i].toLowerCase() === labels[j].toLowerCase()) continue;
+          fail.push(`${e.key}: "${labels[i]}" and "${labels[j]}" are the same name with the whitespace ` +
+            `in a different place — a letter-spaced text layer published as printed`);
+        }
+      }
     }
     console.log(`\n  (e) labels scanned: ${scanned}`);
-    record('e', 'no label is empty or purely numeric, and no label carries a sibling label as a prefix (dash-zero grafting)', fail.length === 0, fail);
+    record('e', 'no label is empty, purely numeric, letter-spaced against its own twin, or carrying a sibling label as a prefix (dash-zero grafting)', fail.length === 0, fail);
   }
 
   // ── (h) page identity — resolved from the document, not from a stored field ─

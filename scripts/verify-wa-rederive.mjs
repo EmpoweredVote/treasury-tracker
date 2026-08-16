@@ -1648,7 +1648,38 @@ async function dbTree(muniId, fy, mode) {
 // ═══════════════════════════════════════════════════════════════════════════
 // Comparison — exact, ordered, label-aware
 // ═══════════════════════════════════════════════════════════════════════════
-const key = (s) => normLabel(String(s)).toLowerCase();
+/**
+ * The key labels are compared on: case-folded and blind to WHERE the spaces are.
+ *
+ * ── WHY WHITESPACE PLACEMENT IS IGNORED ─────────────────────────────────────
+ * Bellevue FY2015 and FY2016 letter-space two labels in their text layer:
+ * "Premi ums /contri buti ons" and "Tra ns porta ti on". The extractor repairs
+ * those with a `label_fixes` entry, checked against how the same lines read in
+ * every neighbouring year. This reader deliberately does NOT repair them -- its
+ * job is to report what the document says -- so an exact comparison would report
+ * the REPAIR as a defect and there would be no way to ship a correct label.
+ *
+ * ── AND WHY THAT DOES NOT WEAKEN THE CHECK ──────────────────────────────────
+ * Squashing whitespace cannot hide any label defect this milestone found, because
+ * every one of them changes the LETTERS:
+ *
+ *     Lodging Other                    vs Other                        -> differs
+ *     Issuance costs Capital outlay    vs Capital outlay                -> differs
+ *     Fire District #                  vs Fire District # 37 Contract   -> differs
+ *     Capital outlay                   vs Capital outlays               -> differs
+ *
+ * It is also what the harness ALREADY does on its other label comparison:
+ * `labelKey` strips whitespace entirely, because `-lineprinter` emits characters
+ * exploded and the two renderers can never agree on spacing. This makes the two
+ * comparisons consistent rather than introducing a new tolerance.
+ *
+ * The audit checks the label SURFACE directly for this shape instead -- see
+ * verify-wa-audit.mjs check (e), which is what found both Bellevue labels. It has
+ * to live there rather than here: both sides of THIS comparison read the same
+ * defective text layer, so a re-derivation can never see it.
+ */
+export const labelCompareKey = (s) => normLabel(String(s)).toLowerCase().replace(/\s+/g, '');
+const key = labelCompareKey;
 
 function compare(ind, db, registeredDelta) {
   const problems = [...ind.identityProblems];

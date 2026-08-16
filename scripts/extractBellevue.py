@@ -129,6 +129,32 @@ CONFIG = CityConfig(
     column_strategy='ordinal',
     units=1000,
     fy_end=('December', 31),
+    # FY2015 AND FY2016 LETTER-SPACE TWO LABELS IN THE TEXT LAYER, and both were
+    # published as printed before this entry existed:
+    #
+    #     Premi ums /contri buti ons   ->  Premiums/contributions
+    #     Tra ns porta ti on           ->  Transportation
+    #
+    # The same defect class as Bend's FY2014 "Public w ays and facilities". These
+    # are the ONLY two labels affected, and only in these two filings -- which are
+    # also the two years where this issuer omits the `Expenditures:` header
+    # entirely, so FY2015/FY2016 are typographically odd in more than one way.
+    #
+    # Confirmed by reading the SAME LINES in the neighbouring years, which print
+    # both names normally, and the figures are untouched: the FY2015 premiums row
+    # is 8 and the FY2016 row is 17 (thousands) in both renderings. Every
+    # arithmetic gate passed these rows, and the re-derivation harness agreed with
+    # them, because BOTH sides were reading the same defective text layer -- which
+    # is why the audit now carries a check on the label SURFACE for this shape
+    # (see verify-wa-audit.mjs check (e)).
+    #
+    # EXACT match only, keyed on the collapsed label `label_of_slots` emits. No
+    # de-spacing heuristic: a rule that rejoined single spaces would happily
+    # corrupt "Fines and forfeitures".
+    label_fixes={
+        'Premi ums /contri buti ons': 'Premiums/contributions',
+        'Tra ns porta ti on': 'Transportation',
+    },
     # ELEVEN registered cases, more than any other entity in this repo, and the
     # reason is structural rather than sloppy: Bellevue prints IN THOUSANDS, so
     # each component is independently rounded to the nearest thousand and their
