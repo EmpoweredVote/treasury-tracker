@@ -494,5 +494,81 @@
   "Kent|2024": {
     "sha256": "f0f8c62575360c2d96e8bf88ac4f367ce9ed067a2dc47334a5988ec5172b5c10",
     "bytes": 13785548
+  },
+  "Everett|2004": {
+    "sha256": "094b188f8d2fbdd414aaddf2271cd60dd334696eddde2bf97a3c63042d5f15c7",
+    "bytes": 995957
+  },
+  "Everett|2006": {
+    "sha256": "d617293d1bcd78607ca54f08db8818b25e0ac3cf361297c2ffc7ad52eb164620",
+    "bytes": 973018
+  },
+  "Everett|2007": {
+    "sha256": "9ea18f5cd98dd5b01f6b9d03e076dff69f2908db5817ebaf251e6e119368cb93",
+    "bytes": 794834
+  },
+  "Everett|2008": {
+    "sha256": "53440d924757113b02f54af06e9742fcdf77be4c53d83325fa8dafa8e5e3f976",
+    "bytes": 1279658
+  },
+  "Everett|2009": {
+    "sha256": "322d046cbbf1acd1e567287f81f7f87c1b7a7e31f7b2960c4f2b707b37fbcf5f",
+    "bytes": 1261636
+  },
+  "Everett|2011": {
+    "sha256": "0ac2fb299c3e287835326282729c3b20907c0cdc9c5b6535a0cb405d3b9bd9e2",
+    "bytes": 989504
+  },
+  "Everett|2012": {
+    "sha256": "b88618ecfbd253a2aa6604174e1aad791668287d27eef23b38a76f72d4f43eb9",
+    "bytes": 2113757
+  },
+  "Everett|2013": {
+    "sha256": "f0d11979429c9e3b985660f73244459494097265434391d57b177ed96e3b63b0",
+    "bytes": 1864113
+  },
+  "Everett|2014": {
+    "sha256": "119493757dda62f27384a504d7ccdac5782304a1465625fa2c2246623b9f0c08",
+    "bytes": 3549687
+  },
+  "Everett|2015": {
+    "sha256": "ccfea6557b3617230a23807435e76b6d8846395676332c0cebe6dacfbd88a8b8",
+    "bytes": 3867285
+  },
+  "Everett|2016": {
+    "sha256": "f35c3fe3fad605031973dd5e1e0190a6fd7115c866c4c225734466c0b067a8a4",
+    "bytes": 2695809
+  },
+  "Everett|2017": {
+    "sha256": "676e74bc233eba868d9ccbd5ef84dd3798262b77c8bd86987ba11c7cc267e730",
+    "bytes": 2288581
+  },
+  "Everett|2018": {
+    "sha256": "f599f456c8e9ca5a39e1d9a82c69b60f6eff40e87c449e40849b01ab555fdcfc",
+    "bytes": 2271381
+  },
+  "Everett|2019": {
+    "sha256": "60cfb3020c5db9446c9932053a7fba413eaa2fce5f685ab60494803fba343270",
+    "bytes": 2578519
+  },
+  "Everett|2020": {
+    "sha256": "187c9a79fa292ed901e26ed77496c0301c0a8dcfc6c504db1d2d74e58c15d08e",
+    "bytes": 3022931
+  },
+  "Everett|2021": {
+    "sha256": "852cf476bb0d7a98311275f4c8ae09a684cf91bd4f0f2d0e798589d19b6466bf",
+    "bytes": 4176957
+  },
+  "Everett|2022": {
+    "sha256": "6d969af0ff25fba2fba9f2439e6b8f20db65a01eec2ef1730fc14715b230a2e8",
+    "bytes": 2491851
+  },
+  "Everett|2023": {
+    "sha256": "96f8d5b21a48cd0275a743d196fe022ddbd133df82b81538d79140aa9d5a4b37",
+    "bytes": 2900545
+  },
+  "Everett|2024": {
+    "sha256": "1be5398cfe8d6ad6757308a1a122b6f78772655b781996bbf96af401ae4f4061",
+    "bytes": 2736041
   }
 }

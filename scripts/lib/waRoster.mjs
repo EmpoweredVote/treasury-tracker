@@ -334,8 +334,46 @@ export const WA_ENTITIES = [
     name: 'Everett', mcag: '0664', entityType: 'city', countyName: 'Snohomish County',
     pdfDir: 'docs/Everett', pdfPrefix: 'everett', datasetIdPrefix: 'everett-sao-gf',
     population: 114_700, populationNote: 'WA OFM April 1, 2025 — Filter=4 city row, line 330 (2026 est: 114,900)',
-    perCapitaBand: null, sanityMax: 5_000_000_000,
-    fiscalYears: null, roundingFiles: ['extractEverett.py'], navOnly: false,
+    // DERIVED from the observed spread across all 38 loaded combinations:
+    // $487.91/resident (FY2004 revenue) to $1,398.72 (FY2024 operating). Half the
+    // minimum below and roughly twice the maximum above -- wide enough for every
+    // real year, tight enough that a 1000x units error cannot pass, since
+    // units=1000 would read ~$487,900.
+    //
+    // Everett prints WHOLE DOLLARS, like Spokane, Vancouver and Kent. Copying
+    // Kent's [220, 2000] would have REJECTED FY2024 outright, which is the
+    // clearest possible argument for re-deriving a band per entity rather than
+    // inheriting one from a neighbour in the same milestone.
+    perCapitaBand: [250, 2_800],
+    // TIGHTER than the loader band, deliberately: the loader's job is to reject a
+    // units catastrophe, the harness's is to reject a WRONG PAGE, whose
+    // per-capita lands far outside the real spread but often inside a generous
+    // units band. Measured spread is $488-$1,399, so this brackets it closely.
+    verifyPerCapitaBand: [400, 1_700],
+    expectId: '0c880895-5771-4cbc-85c9-ad6a8bf98627',
+    sanityMax: 5_000_000_000,
+    // MEASURED window: 19 years on ONE config, every one of the 38 combinations
+    // tying at exactly $0 with no residues. The statement shape does not change
+    // once across the span -- flat revenue side, `Current:` over its functions,
+    // `Capital outlay` a valued root peer, `Debt service:` over Principal and
+    // Interest -- so there is no era split.
+    //
+    // The two document defects are NOT consecutive (FY2006-FY2009 read cleanly
+    // between them), so the floor rule is not triggered and no deviation is
+    // claimed here. Contrast Kent, whose FY2019+FY2020 gap needed one.
+    fiscalYears: [2004, 2006, 2007, 2008, 2009, 2011, 2012, 2013, 2014, 2015,
+                  2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+    manifestSpan: [2004, 2025],
+    excludedYears: {
+      2005: 'no usable text layer — the statement pages carry ONLY the SAO page furniture (rule line, credit, page number: 153 characters, no labels and no digits) while the narrative and notes pages read normally',
+      2010: 'no usable text layer — same defect as FY2005, and not consecutive with it',
+      2025: 'source timing — the SAO\'s only FY2025 City of Everett filing is ARN 1040273, a 5-page opinion letter typed "Annual Comprehensive Financial Report"',
+    },
+    // ZERO is the measured value, not a placeholder. Everett prints whole
+    // dollars, so it could plausibly carry the sub-dollar artifacts Bainbridge
+    // and Kitsap do -- it carries none: all 38 combinations tie at a bare $0.
+    expectedResidues: 0,
+    roundingFiles: ['extractEverett.py'], navOnly: false,
   },
 ];
 

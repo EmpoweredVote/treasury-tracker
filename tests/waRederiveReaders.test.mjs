@@ -16,7 +16,7 @@ import { describe, it, expect } from 'vitest';
 import {
   lpSplit, lpModalGlyphGap, assertLinePrinterCalibration, LP_MAX_CHAR_GAP,
   readRowOrdinal, makeRowReader, buildRevenue, buildOperating, pageExactChunks,
-  assertPageYear, GF_CAPTION_RE, sectionOf,
+  assertPageYear, GF_CAPTION_RE, sectionOf, lpRowIsDecoration,
 } from '../scripts/verify-wa-rederive.mjs';
 
 describe('page identity: "General" must name a FUND, not a debt or a function', () => {
@@ -189,6 +189,62 @@ describe('lineprinter: a $ belonging to the NEXT column must not weld onto this 
     // "$61,037" rendered tight, as the first row of a section usually is.
     const { cells } = lpSplit('   P r o p e r t y                $ 6 1 , 0 3 7');
     expect(cells.map((c) => c.value)).toEqual([61037]);
+  });
+
+  it('reads a value carrying a FOOTNOTE MARKER as money, not as label text', () => {
+    // Everett FY2021 p.37 and FY2022 p.35 print `(52,270) *` in the Emergency
+    // Medical Services column, with "* Negative revenue is due to changes in
+    // fair value" at the foot of the page. The marker sits inside
+    // LP_MAX_CHAR_GAP of the closing bracket, so proximity grouping welds it on,
+    // "(52,270)*" stops matching the money pattern, and the amount lands in the
+    // LABEL -- which read "Otherrevenues(52,270)*" against the ordinal reading's
+    // "Other revenues". Same shape as the $ weld above: a neighbouring glyph
+    // silently redefining a cell as text.
+    const row = at([[60, 'O t h e r   r e v e n u e s'], [190, '1 , 5 4 7 , 3 0 9'],
+      [240, '( 5 2 , 2 7 0 )'], [256, '*'], [294, '5 6 1 , 4 0 3']]);
+    const { cells, label } = lpSplit(row);
+    expect(cells.map((c) => c.value)).toEqual([1547309, -52270, 561403]);
+    expect(label.toLowerCase().replace(/[^a-z0-9]/g, '')).toBe('otherrevenues');
+  });
+
+  it('does not turn a bare marker into a zero cell', () => {
+    // The marker only ever rides ON a value. Alone it is punctuation.
+    const { cells } = lpSplit(at([[60, 'N o t e'], [190, '*']]));
+    expect(cells).toEqual([]);
+  });
+});
+
+describe('lineprinter: an unlabelled all-dash row is decoration, not a row', () => {
+  // Everett FY2015 p.37 prints the Capital outlay row's dash placeholders half a
+  // line BELOW its figures, so strict physical geometry puts them on an output
+  // row of their own: no label, two dash placeholders, one of them inside the
+  // General Fund band. That phantom entered the geometric sequence as a $0 row
+  // and shifted every row after it, so `Principal` was compared against `` and
+  // `Interest` against `Principal` -- a row-count disagreement on a page whose
+  // every figure was right.
+  //
+  // A row with NO LABEL and NOTHING BUT DASHES states no fact: a dash is the
+  // issuer's way of writing "no amount", and there is no line item to attach it
+  // to. Note what is deliberately NOT skipped -- a row with a REAL figure and no
+  // label. That shape must stay loud (the ordinal side raises on it), because it
+  // is how a real amount goes missing.
+  it('skips a row with no label whose every cell is a dash', () => {
+    expect(lpRowIsDecoration(lpSplit('                    -              -'))).toBe(true);
+  });
+
+  it('keeps an unlabelled row that carries a REAL figure', () => {
+    expect(lpRowIsDecoration(lpSplit('              4 , 2 5 9 , 0 7 4        -'))).toBe(false);
+  });
+
+  it('keeps a LABELLED row whose cells are all dashes', () => {
+    // Kitsap prints a dash on its `Debt service` heading; Everett prints rows
+    // that are genuinely $0 in every column. Both are real rows.
+    expect(lpRowIsDecoration(lpSplit('  P r i n c i p a l              -         -'))).toBe(false);
+  });
+
+  it('keeps a row with neither label nor cells out of it entirely', () => {
+    // Nothing to decide; lpSection already skips these before asking.
+    expect(lpRowIsDecoration(lpSplit('        '))).toBe(false);
   });
 });
 

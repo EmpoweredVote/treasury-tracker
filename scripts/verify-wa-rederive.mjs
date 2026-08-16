@@ -1057,20 +1057,70 @@ function stripLeftMarginDecoration(groups) {
   return groups.slice(cut);
 }
 
+/**
+ * A FOOTNOTE MARKER RIDING ON A VALUE.
+ *
+ * Everett FY2021 p.37 and FY2022 p.35 print `(52,270) *` in the Emergency
+ * Medical Services column, footnoted "* Negative revenue is due to changes in
+ * fair value". The marker lands inside LP_MAX_CHAR_GAP of the closing bracket, so
+ * proximity grouping welds it on, "(52,270)*" stops matching the money pattern,
+ * and the amount is read as LABEL TEXT -- the geometric label came back as
+ * "Otherrevenues(52,270)*" against the ordinal reading's "Other revenues".
+ *
+ * Exactly the shape of the `$` weld this renderer already guards against: a
+ * neighbouring glyph silently redefining a cell as text. The marker is stripped
+ * for the money TEST only, and the group's extent is trimmed with it so the
+ * cell's centre stays the number's centre rather than drifting toward the next
+ * band.
+ */
+const LP_FOOTNOTE_MARKER_RE = /[*†‡]+$/;
+
 export function lpSplit(line) {
   const gs = lpGroups(line);
   const cells = [];
   const labelParts = [];
   for (const g of stripLeftMarginDecoration(gs)) {
     if (DASH_ONLY.test(g.text)) { cells.push({ value: 0, start: g.start, end: g.end, raw: g.text }); continue; }
-    if (LP_MONEY_RE.test(g.text) && /\d/.test(g.text)) {
-      const neg = g.text.startsWith('(');
-      const digits = g.text.replace(/[($),]/g, '');
-      if (/^\d+$/.test(digits)) { cells.push({ value: neg ? -Number(digits) : Number(digits), start: g.start, end: g.end, raw: g.text }); continue; }
+    const bare = g.text.replace(LP_FOOTNOTE_MARKER_RE, '');
+    if (LP_MONEY_RE.test(bare) && /\d/.test(bare)) {
+      const neg = bare.startsWith('(');
+      const digits = bare.replace(/[($),]/g, '');
+      if (/^\d+$/.test(digits)) {
+        cells.push({
+          value: neg ? -Number(digits) : Number(digits),
+          start: g.start, end: g.end - (g.text.length - bare.length), raw: bare,
+        });
+        continue;
+      }
     }
     labelParts.push(g.text);
   }
   return { cells, label: labelParts.join('') };
+}
+
+/**
+ * A row with NO LABEL and NOTHING BUT DASH PLACEHOLDERS is page decoration.
+ *
+ * Everett FY2015 p.37 prints the Capital outlay row's dashes half a line BELOW
+ * its figures, and strict physical geometry -- which is the whole point of this
+ * renderer -- therefore puts them on an output row of their own: no label, two
+ * dashes, one of them inside the General Fund band. That phantom entered the
+ * geometric sequence as a $0 row and shifted every row after it, so `Principal`
+ * was compared against `` and `Interest` against `Principal`. A row-count
+ * disagreement on a page whose every figure was correct.
+ *
+ * A dash is how this issuer writes "no amount", so an unlabelled row of nothing
+ * but dashes states no fact and there is no line item to attach it to.
+ *
+ * ⚠ WHAT THIS DELIBERATELY DOES NOT SKIP: a row with a REAL figure and no label.
+ * That shape must stay loud -- the ordinal reader RAISES on it (see
+ * `makeRowReader`'s trap-5 note) -- because it is exactly how a real amount goes
+ * missing without a trace.
+ */
+export function lpRowIsDecoration(split) {
+  if (split.label.trim()) return false;
+  if (!split.cells.length) return false;
+  return split.cells.every((c) => DASH_ONLY.test(c.raw));
 }
 
 /** Bands bounded by the midpoints of the gaps between the Total row's cells;
@@ -1120,6 +1170,7 @@ function lpSection(pdfPath, pageNo, mode, label) {
   for (let i = headIdx + 1; i < totalIdx; i++) {
     const s = split[i];
     if (!s.label && !s.cells.length) continue;
+    if (lpRowIsDecoration(s)) continue;   // dashes rendered off their own row's baseline
     const p = pick(s.cells);
     if (p.length > 1) throw new Error(`${label}: -lineprinter row "${s.label}" has ${p.length} cells inside the General Fund band`);
     if (!p.length) continue;               // heading or a row with no GF cell
