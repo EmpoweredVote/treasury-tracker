@@ -60,12 +60,38 @@ Two entries are deliberately narrower than they look like they should be:
 
 FY2004-FY2008 WELD THE SAO PAGE-FOOTER CREDIT ONTO A LABEL
 ------------------------------------------------------------
-`-table` renders the `Fire District #` row with "Washington State Auditor's
-Office" glued to the front of it, exactly as it does on Spokane FY2007. The
-figure is correct and the row ties at $0, so no arithmetic gate sees it.
+`-table` renders the `Fire District # 37 Contract` row with "Washington State
+Auditor's Office" glued to the front of it, exactly as it does on Spokane FY2007.
+The figure is correct and the row ties at $0, so no arithmetic gate sees it.
 Repaired with an EXACT `label_fixes` entry, keyed on the WHITESPACE-COLLAPSED
 label that `label_of()` emits -- keying on the raw `-table` spacing silently
 never matches.
+
+FOUR LABEL DEFECTS SHIPPED HERE ONCE, AND WHAT FOUND THEM
+----------------------------------------------------------
+The first load of this city published ten rows whose FIGURES were right, whose
+ties were $0, and whose NAMES were fiction. They are worth listing because none
+of them was a Kent quirk:
+
+  * `Lodging Other`, `Real estate excise tax Lodging Other`, `Contributions and
+    Donations Other miscellaneous revenue` -- rows Kent prints EMPTY IN EVERY
+    COLUMN were read as the first line of a wrapped label and welded onto the
+    next row. Fixed by declaring them in `empty_rows`; see that field's docs in
+    lib/acfrGF.py for why the library default is deliberately left alone.
+  * `Issuance costs Capital outlay` -- the same weld, but the composite no longer
+    STARTED with a `root_leaves` entry, so it also moved $193,673 of capital
+    spending into the Debt service subtotal. A label defect that becomes a
+    structural one.
+  * `Fire District #` -- `label_of` cut the name at its own `37`.
+  * FY2024's four intergovernmental children stood at ROOT, because p.41 prints a
+    lone dash in the General Fund column on the `Intergovernmental revenue`
+    heading row and `build_revenue` had no dash-zero-heading branch.
+
+Every one passed the $0 tie gate, the per-capita band, the sanity ceiling and the
+audit's label-integrity check. What caught them was verify-wa-rederive.mjs going
+back to the PDF and reading the printed indentation out of `pdftotext
+-lineprinter` -- which needs no per-city fact at all, and is why the declarations
+in this file are safe to make.
 
 THREE YEARS ARE EXCLUDED, AND ONE DEVIATION FROM THE FLOOR RULE IS RECORDED
 ----------------------------------------------------------------------------

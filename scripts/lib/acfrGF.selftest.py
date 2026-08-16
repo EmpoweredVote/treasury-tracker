@@ -10,7 +10,7 @@ from lib.acfrGF import (CityConfig, column_value, classify, build_revenue,
                          build_operating, anchors, slots, dash_zero_label,
                          find_statement_page, parse_fy, _is_section_header,
                          _recover_label_past_leading_page_number,
-                         target_cell_is_dash_zero)
+                         target_cell_is_dash_zero, label_of)
 # The SHIPPED Bainbridge configs themselves, not copies of them -- see
 # TestShippedBainbridgeConfigsAreWholeDollars at the bottom of this file for
 # why the real objects have to be under test rather than a local fixture.
@@ -1497,6 +1497,152 @@ class TestKitsapStatementAnchorGuardsAgainstTheWrongPage(unittest.TestCase):
                    'Balances - Budget and   Actual')
         pattern = re.compile(extractKitsap.CONFIG.statement_anchor, re.I | re.M)
         self.assertIsNone(pattern.search(caption))
+
+
+class TestNumberInsideALabelDoesNotEndIt(unittest.TestCase):
+    # Kent FY2004-FY2010 print an intergovernmental line called `Fire District #
+    # 37 Contract`. `label_of` cut every label at its first money token, and `37`
+    # is one, so SIX published years carried a line item named `Fire District #`.
+    # The figure and the tie were untouched, which is exactly why it survived to
+    # production -- a truncated NAME is invisible to arithmetic.
+    LINE = 'Fire District # 37 Contract                        3,207,614'
+    ANCHOR = 'Total revenues                                     61,740,799   1   2'
+
+    def test_the_full_name_is_read(self):
+        self.assertEqual(label_of(self.LINE), 'Fire District # 37 Contract')
+
+    def test_a_column_value_still_ends_the_label(self):
+        self.assertEqual(label_of('Property taxes      417,446    3,871    -'), 'Property taxes')
+
+    def test_a_trailing_number_in_a_name_is_still_cut(self):
+        # Honest limit, recorded rather than hidden: with nothing after it, a
+        # number at the END of a name is indistinguishable from a column value
+        # and is treated as one. No row in this corpus has that shape; if one
+        # appears, the rederive harness will disagree on the label.
+        self.assertEqual(label_of('Fire District # 37      1,000'), 'Fire District #')
+
+    def test_kent_group_members_match_the_untruncated_name(self):
+        # The old `district #` suffix matched the TRUNCATION. If it is not
+        # updated with label_of, the Intergovernmental group closes on its own
+        # first child and the four members surface at root.
+        low = 'fire district # 37 contract'
+        self.assertTrue(any(low.endswith(s) for s in extractKent.CONFIG.revenue_group_members))
+
+
+class TestEmptyRowsAreNotWrappedLabels(unittest.TestCase):
+    # Kent's `Lodging` tax line carries NOTHING in any column -- no figure and no
+    # dash -- so it reached the wrapped-label branch and welded onto the next row,
+    # publishing a Taxes line item called `Lodging Other` that held `Other`'s
+    # $1,130,391. Transcribed from Kent FY2011 p.36.
+    LINES = [
+        'REVENUES',
+        'Taxes:',
+        'Property                                 19,367,630   1   2',
+        'Real estate excise tax                                2,235,174',
+        'Lodging',
+        'Other                                    1,130,391',
+        'Total revenues                           68,543,360   1   2',
+    ]
+    ANCHOR = 'Total revenues                           68,543,360   1   2'
+
+    def _cfg(self, empty_rows=()):
+        return CityConfig(city='T', parents=(), root_leaves=(),
+                          revenue_parents=('taxes',),
+                          revenue_group_members=('property', 'excise tax', 'lodging', 'other'),
+                          empty_rows=empty_rows)
+
+    def test_undeclared_it_still_welds(self):
+        # The default is deliberately unchanged: Bend, Seattle and Beaverton all
+        # have GENUINE two-line labels that depend on it.
+        tree, _, _ = build_revenue(self.LINES, anchors(self.ANCHOR), self._cfg())
+        leaves = [c['n'] for c in tree['c'][0]['c']]
+        self.assertIn('Lodging Other', leaves)
+
+    def test_declared_it_becomes_a_zero_row_and_the_next_label_survives(self):
+        cfg = self._cfg(empty_rows=('lodging',))
+        tree, _, zero_rows = build_revenue(self.LINES, anchors(self.ANCHOR), cfg)
+        leaves = [c['n'] for c in tree['c'][0]['c']]
+        self.assertEqual(leaves, ['Property', 'Other'])
+        self.assertIn('Lodging', zero_rows)
+
+    def test_a_declared_label_is_inert_in_a_year_that_carries_a_figure(self):
+        # `real estate excise tax` is valueless in Kent FY2004 only. Declaring it
+        # must not touch the fifteen years where the row has a General Fund
+        # figure -- here it has one in another column and none in the GF column,
+        # which is a $0 data row either way.
+        cfg = self._cfg(empty_rows=('real estate excise tax',))
+        _, _, zero_rows = build_revenue(self.LINES, anchors(self.ANCHOR), cfg)
+        self.assertIn('Real estate excise tax', zero_rows)
+
+    def test_operating_side_keeps_a_root_leaf_a_root_leaf(self):
+        # Kent FY2005 p.31: `Issuance costs` is empty in every column and
+        # `Capital outlay` follows it as a valued ROOT peer. Welded, the
+        # composite stopped matching root_leaves and $193,673 of capital
+        # spending was filed inside Debt service.
+        lines = [
+            'EXPENDITURES',
+            'Current:',
+            'General government                       5,227,256    20,000',
+            'Debt service:',
+            'Principal                                             3,911,886',
+            'Issuance costs',
+            'Capital outlay                           193,673      22,962,767',
+            'Total expenditures                       67,200,101   26,047',
+        ]
+        anch = anchors('Total expenditures                       67,200,101   26,047')
+        cfg = CityConfig(city='T', parents=('current', 'debt service'),
+                         root_leaves=('capital outlay',), empty_rows=('issuance costs',))
+        tree, _, _ = build_operating(lines, anch, cfg)
+        self.assertEqual([n['n'] for n in tree['c']], ['Current', 'Capital outlay'])
+        self.assertEqual(tree['c'][1]['a'], 193_673)
+
+
+class TestRevenueDashZeroHeading(unittest.TestCase):
+    # Trap 6 on the REVENUE side. Kent FY2024 p.41 prints a lone `-` in the
+    # General Fund column on the `Intergovernmental revenue` HEADING row, so it
+    # arrived as a $0 data row: the group never opened and, the heading not being
+    # one of its own group members, it CLOSED the previous group too. Federal
+    # grants, State grants, State shared revenues and Other governments then
+    # stood as four ROOT categories against the four children every neighbouring
+    # year prints -- same dollars, same $0 tie, wrong shape.
+    LINES = [
+        'REVENUES',
+        'Licenses and permits:',
+        'Building permits                         4,198,098    1   2',
+        'Intergovernmental revenue                         -',
+        'Federal grants                           3,679,878    1   2',
+        'State grants                             76,388       1   2',
+        'Total revenues                           130,475,114  1   2',
+    ]
+    ANCHOR = 'Total revenues                           130,475,114  1   2'
+    CFG = CityConfig(city='T', parents=(),
+                     revenue_parents=('licenses and permits', 'intergovernmental revenue'),
+                     revenue_group_members=('permits', 'grants'))
+
+    def test_the_dash_zero_heading_opens_its_group(self):
+        tree, _, _ = build_revenue(self.LINES, anchors(self.ANCHOR), self.CFG)
+        self.assertEqual([n['n'] for n in tree['c']],
+                         ['Licenses and permits', 'Intergovernmental revenue'])
+        self.assertEqual([c['n'] for c in tree['c'][1]['c']], ['Federal grants', 'State grants'])
+
+    def test_a_valued_row_whose_name_matches_a_parent_stays_a_leaf(self):
+        # Both halves of the gate matter. A `revenue_parents`-matched label
+        # carrying a REAL figure is a valued root leaf, not a heading.
+        lines = [
+            'REVENUES',
+            'Intergovernmental revenue                7,518,359    1   2',
+            'Total revenues                           68,543,360   1   2',
+        ]
+        anch = anchors('Total revenues                           68,543,360   1   2')
+        tree, _, _ = build_revenue(lines, anch, self.CFG)
+        self.assertEqual([n['n'] for n in tree['c']], ['Intergovernmental revenue'])
+        self.assertEqual(tree['c'][0]['a'], 7_518_359)
+
+    def test_kent_declares_the_four_empty_rows_it_prints(self):
+        # The shipped CONFIG itself, so deleting an entry fails here.
+        for lbl in ('lodging', 'real estate excise tax', 'contributions and donations',
+                    'issuance costs'):
+            self.assertIn(lbl, extractKent.CONFIG.empty_rows)
 
 
 if __name__ == '__main__':
