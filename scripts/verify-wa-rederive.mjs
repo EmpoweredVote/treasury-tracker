@@ -1,6 +1,13 @@
-#!/usr/bin/env node
 /**
- * verify-bainbridge-rederive.mjs — Task 9: loader-independent blind
+ * NO SHEBANG, deliberately. This file is always invoked as
+ * `node scripts/verify-wa-rederive.mjs`, so the `#!` line was decorative --
+ * and on a Windows checkout it is worse than decorative: git stores the file
+ * CRLF, Vite's shebang strip matches `#!.*\n` where `.` does not match `\r`,
+ * and the leftover `\r` makes the module unparseable. That is the same defect
+ * `tests/waSao.test.mjs` guards for `scripts/lib/`, and it applies here now
+ * that `tests/waRederiveReaders.test.mjs` imports the readers directly.
+ *
+ * verify-wa-rederive.mjs — loader-independent blind
  * re-derivation of every Bainbridge Island and Kitsap County General Fund
  * figure Treasury Tracker publishes, taken straight from the source WA SAO
  * PDFs and diffed leaf-for-leaf, subtotal-for-subtotal and total-for-total
@@ -187,85 +194,95 @@
 
 import { execFileSync } from 'node:child_process';
 import { createClient } from '@supabase/supabase-js';
+import { verifiableEntities } from './lib/waRoster.mjs';
 import { readFileSync, writeFileSync, existsSync, mkdirSync, statSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 
 // ── env ──────────────────────────────────────────────────────────────────────
-for (const f of ['.env.local', '.env']) {
-  try {
-    for (const line of readFileSync(path.join(ROOT, f), 'utf8').split('\n')) {
-      const [k, ...v] = line.split('=');
-      if (k && v.length && !process.env[k.trim()]) process.env[k.trim()] = v.join('=').trim();
-    }
-  } catch { /* absent — ignore */ }
+// Connecting is DEFERRED to the entry point rather than done on import. The
+// readers below are pure functions over pdftotext output, and tests/
+// waRederiveReaders.test.mjs pins each of them against transcribed fixtures of
+// the exact page shapes that once defeated them. That test can only import this
+// file if importing it neither demands credentials nor opens a socket.
+let SUPABASE_URL = null;
+let sb = null;
+function connect() {
+  for (const f of ['.env.local', '.env']) {
+    try {
+      for (const line of readFileSync(path.join(ROOT, f), 'utf8').split('\n')) {
+        const [k, ...v] = line.split('=');
+        if (k && v.length && !process.env[k.trim()]) process.env[k.trim()] = v.join('=').trim();
+      }
+    } catch { /* absent — ignore */ }
+  }
+  SUPABASE_URL = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!SUPABASE_URL) { console.error('Missing SUPABASE_URL — refusing to guess a production URL.'); process.exit(2); }
+  if (!key) { console.error('Missing SUPABASE_SERVICE_KEY / SUPABASE_SERVICE_ROLE_KEY.'); process.exit(2); }
+  sb = createClient(SUPABASE_URL, key, { db: { schema: 'treasury' } });
 }
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-if (!SUPABASE_URL) { console.error('Missing SUPABASE_URL — refusing to guess a production URL.'); process.exit(2); }
-if (!SUPABASE_KEY) { console.error('Missing SUPABASE_SERVICE_KEY / SUPABASE_SERVICE_ROLE_KEY.'); process.exit(2); }
-const sb = createClient(SUPABASE_URL, SUPABASE_KEY, { db: { schema: 'treasury' } });
 
 const OFFLINE = process.argv.includes('--offline');
 
-/** Rows Task 8 loaded (36 Bainbridge + 36 Kitsap). Cross-checked against the
- *  declared windows below AND against the live row count, so a narrowed window
- *  can never produce a vacuously green run. */
-const EXPECTED_TOTAL_ROWS = 72;
+// --only <Name> restricts the run to one entity, so a single city can be
+// re-checked during a batch without re-reading the whole corpus. It NARROWS
+// the expected row count to match, so a filtered run can never look like a
+// full one.
+const onlyArg = process.argv.indexOf('--only');
+const ONLY = onlyArg === -1 ? null : process.argv[onlyArg + 1];
 
 // ── what is expected to be loaded ────────────────────────────────────────────
-// Bainbridge excludes FY2006 (image-only scan), FY2009 (ciphered digits),
-// FY2010 (ciphered GAAP statement, money digits absent) and FY2011 (CCITT
-// stencil scan). Kitsap excludes FY2017-FY2019 (labels present, digits absent
-// from the text layer) and FY2025 (not yet audited).
-const BAINBRIDGE_FYS = [2004, 2005, 2007, 2008,
-  2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
-const KITSAP_FYS = [2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016,
-  2020, 2021, 2022, 2023, 2024];
-
-// PER-CAPITA BANDS — DERIVED HERE, AND DELIBERATELY WIDER THAN THE TASK BRIEF.
+// The entity list comes from scripts/lib/waRoster.mjs, the single source of
+// truth shared with the seeder, every loader and the other two harnesses.
+// This file previously carried its own hardcoded copy; with eight WA entities
+// that duplication is how a window drifts between the loader and its check.
 //
-// The brief quotes "Kitsap's real years run ~$315-$443/resident, Bainbridge's
-// ~$700-$900". Those figures do not describe the corpus that was actually
-// loaded: Task 8's own plausibility SQL records Kitsap spanning $257.75-$443.86
-// and Bainbridge spanning $357.90-$1,078.44 across the two dataset types. Taken
-// literally the brief's bands would fail correctly-loaded rows, so the bands
-// below are set from the real spread with headroom — while still rejecting
-// every documented silent wrong-page hit by a wide margin:
+// Windows and exclusions live in the roster with their evidence. Summary:
+//   Bainbridge  FY2004-2025 less FY2006 (image scan), FY2009 (ciphered digits),
+//               FY2010 (ciphered, money digits absent), FY2011 (CCITT scans)
+//   Kitsap      FY2004-2024 less FY2017-2019 (digits absent), FY2025 (unaudited)
+//   Tacoma      FY2003-2024 less FY2011/2018/2021 (no usable text layer),
+//               FY2025 (only an opinion letter released)
+//
+// PER-CAPITA BANDS ARE THE ROSTER'S `verifyPerCapitaBand`, NOT its
+// `perCapitaBand`. The loader's band is deliberately generous -- its job is to
+// reject a 1000x units catastrophe. This harness needs a TIGHTER band because
+// its job is different: catching a WRONG PAGE, whose per-capita lands far
+// outside the entity's real spread while often sitting comfortably inside a
+// units band. Every documented silent wrong-page hit from v2.22 is rejected by
+// a wide margin:
 //   Kitsap FY2005 County Roads Budget-and-Actual  $29,279,443 -> $101/resident
-//   Kitsap FY2008 page 33                        $38,874,052 -> $135/resident
-//   Kitsap FY2013 REET Budget-and-Actual            $354,295 -> $1.23/resident
-//   Kitsap FY2014 page 43                           $304,600 -> $1.05/resident
-// The largest of those is $135, well below the $200 floor.
-const ENTITIES = [
-  {
-    key: 'Bainbridge Island',
-    lookup: { name: 'Bainbridge Island', state: 'WA', entity_type: 'city' },
-    expectId: '9e7b49a3-8a8c-48b8-897f-28d4bb161fb5',
-    population: 25530,
-    perCapitaBand: [250, 1400],
-    dir: path.join(ROOT, 'docs', 'BainbridgeIsland'),
-    pdf: (fy) => `bainbridge-${fy}-acfr.pdf`,
-    fys: BAINBRIDGE_FYS,
-    // source_rounding lives in TWO files for this entity (early era vs modern
-    // era). They are merged and asserted disjoint — see loadRegisteredDeltas.
-    roundingFiles: ['extractBainbridgeEarly.py', 'extractBainbridge.py'],
-  },
-  {
-    key: 'Kitsap County',
-    lookup: { name: 'Kitsap County', state: 'WA', entity_type: 'county' },
-    expectId: 'c35da2c6-c8e6-4f50-85d8-60b02890d3e4',
-    population: 288900,
-    perCapitaBand: [200, 700],
-    dir: path.join(ROOT, 'docs', 'KitsapCounty'),
-    pdf: (fy) => `kitsap-${fy}-acfr.pdf`,
-    fys: KITSAP_FYS,
-    roundingFiles: ['extractKitsap.py'],
-  },
-];
+//   Kitsap FY2008 page 33                         $38,874,052 -> $135/resident
+//   Kitsap FY2013 REET Budget-and-Actual             $354,295 -> $1.23/resident
+//   Kitsap FY2014 page 43                            $304,600 -> $1.05/resident
+// The largest is $135, well below Kitsap's $200 floor.
+const ALL_ENTITIES = verifiableEntities().map((e) => ({
+  key: e.name,
+  lookup: { name: e.name, state: 'WA', entity_type: e.entityType },
+  expectId: e.expectId,
+  population: e.population,
+  perCapitaBand: e.verifyPerCapitaBand,
+  dir: path.join(ROOT, ...e.pdfDir.split('/')),
+  pdf: (fy) => `${e.pdfPrefix}-${fy}-acfr.pdf`,
+  fys: e.fiscalYears,
+  roundingFiles: e.roundingFiles,
+  expectedResidues: e.expectedResidues,
+}));
+
+if (ONLY && !ALL_ENTITIES.some((e) => e.key === ONLY)) {
+  console.error(`--only "${ONLY}" matches no verifiable entity. Known: ${ALL_ENTITIES.map((e) => e.key).join(', ')}`);
+  process.exit(2);
+}
+const ENTITIES = ONLY ? ALL_ENTITIES.filter((e) => e.key === ONLY) : ALL_ENTITIES;
+
+/** Derived from the declared windows, never hardcoded: a narrowed window can
+ *  then never produce a vacuously green run, and adding a city cannot leave a
+ *  stale total behind. Cross-checked against the live row count in main(). */
+const EXPECTED_TOTAL_ROWS = ENTITIES.reduce((s, e) => s + e.fys.length * 2, 0);
 
 // The independent second copy. Different host, physically different documents.
 const KITSAP_GOV_URLS = {
@@ -292,7 +309,15 @@ function loadRegisteredDeltas(files) {
   for (const f of files) {
     const src = readFileSync(path.join(ROOT, 'scripts', f), 'utf8');
     const body = src.split('\n').filter((l) => !/^\s*#/.test(l)).join('\n');
-    const m = body.match(/source_rounding\s*=\s*\{([\s\S]*?)\n\s*\}/);
+    // Matches a multi-line dict OR a single-line empty one (`source_rounding={},`).
+    // AN EMPTY REGISTRY IS LEGITIMATE and must not be conflated with a missing
+    // one. Tacoma registers zero residues because it prints IN THOUSANDS: its
+    // components are already rounded to the thousand and sum exactly, so the
+    // sub-dollar artifacts that produce residues cannot arise. The guard that
+    // matters is still enforced -- a file with no `source_rounding` key at all
+    // throws, because that means the harness is reading the wrong file or the
+    // registry was deleted out from under it.
+    const m = body.match(/source_rounding\s*=\s*\{([\s\S]*?)\}/);
     if (!m) throw new Error(`${f}: no source_rounding dict found — refusing to verify without the registrations`);
     const re = /\(\s*(\d{4})\s*,\s*'(operating|revenue)'\s*\)\s*:\s*(-?\d+)/g;
     let e;
@@ -309,26 +334,168 @@ function loadRegisteredDeltas(files) {
 // ═══════════════════════════════════════════════════════════════════════════
 // PDF text — own pdftotext passes
 // ═══════════════════════════════════════════════════════════════════════════
+/** Physical page count, from the PDF itself rather than from any text pass. */
+function pdfPageCount(pdfPath) {
+  const out = execFileSync('pdfinfo', [pdfPath],
+    { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+  const m = /^Pages:\s+(\d+)/m.exec(out);
+  if (!m) throw new Error(`pdfinfo gave no page count for ${pdfPath}`);
+  return Number(m[1]);
+}
+
+/**
+ * ⚠ A FORM FEED IN `-table` OUTPUT IS NOT ALWAYS A PAGE BREAK.
+ *
+ * This used to be `pdftotext -table <pdf> -` split on `\f`, with the array
+ * index taken as the page number. That index is passed straight to
+ * `pdftotext -lineprinter -f N -l N` for the geometric reading, so it has to be
+ * a REAL page number, and on this corpus it silently stopped being one:
+ *
+ *   Spokane FY2019   176 physical pages, 455 form-feed chunks. Its
+ *                    governmental-funds statement is chunk 63 and PDF page 37 —
+ *                    a 26-page error, and PDF page 63 is an investment-policy
+ *                    table in the notes.
+ *   Spokane FY2018/FY2020/FY2022 drift the same way (276, 256 and 260 chunks
+ *                    against 174, 186 and 192 pages).
+ *
+ * Poppler emits at least one form feed per page and sometimes emits extra ones
+ * WITHIN a page, so the chunk count can only ever exceed the page count — which
+ * makes the discrepancy self-detecting. When the counts agree, no page emitted
+ * an extra feed and the cheap whole-document split is exact. When they do not,
+ * the mapping is unrecoverable from that output and the pages are re-extracted
+ * ONE AT A TIME, where `-f N -l N` makes the page number true by construction.
+ *
+ * The slow path costs one `pdftotext` per page and fires on 4 of the 85
+ * documents in this corpus. Guessing instead would have pointed the geometric
+ * reading at an unrelated page — loudly, since the two readings would disagree,
+ * but the failure would have read as a defect in Spokane's data rather than in
+ * this function.
+ */
+/**
+ * The whole-document split, IF it is page-exact — otherwise null, meaning the
+ * caller must re-extract page by page. Pure, so the decision itself is pinned by
+ * tests/waRederiveReaders.test.mjs rather than only by the gitignored corpus.
+ */
+export function pageExactChunks(text, pageCount) {
+  const chunks = text.split('\f');
+  // The final page's own form feed leaves one empty chunk behind it.
+  if (chunks.length && !chunks[chunks.length - 1].trim()) chunks.pop();
+  return chunks.length === pageCount ? chunks : null;
+}
+
+// tablePages / findStatementPage / printedIndents / unitsOf are EXPORTED for the
+// per-city recon probe, which reads a new city's statements with these same
+// readers BEFORE any extractor config is written. That is not a weakening of the
+// independence rule in the file header: the rule is that this harness shares
+// nothing with the EXTRACTORS or the shared Python library, and nothing here
+// reaches into either. Reading a document with the strict reader before
+// configuring the lenient one is the point of the probe.
 const tableCache = new Map();
-function tablePages(pdfPath) {
+export function tablePages(pdfPath) {
   if (tableCache.has(pdfPath)) return tableCache.get(pdfPath);
   if (!existsSync(pdfPath)) throw new Error(`PDF not on disk: ${pdfPath}`);
+  const count = pdfPageCount(pdfPath);
   const txt = execFileSync('pdftotext', ['-table', pdfPath, '-'],
     { maxBuffer: 512 * 1024 * 1024, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
-  const pages = txt.split('\f');
+  const pages = pageExactChunks(txt, count)
+    ?? Array.from({ length: count }, (_, i) => execFileSync('pdftotext',
+      ['-table', '-f', String(i + 1), '-l', String(i + 1), pdfPath, '-'],
+      { maxBuffer: 64 * 1024 * 1024, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
   tableCache.set(pdfPath, pages);
   return pages;
 }
+
+/**
+ * ⚠ `-fixed` IS LOAD-BEARING. Without it this reader silently loses whole years.
+ *
+ * `pdftotext -lineprinter` does NOT emit a fixed, document-independent grid: if
+ * no pitch is given it GUESSES one per document from the glyph metrics it finds.
+ * Across the 64 statement pages in this corpus that guess lands on ~1.55pt for
+ * 62 of them -- a modal gap of 2-3 output columns between adjacent characters
+ * inside a word, which is exactly what LP_MAX_CHAR_GAP = 5 was calibrated
+ * against. On two documents it lands somewhere else entirely:
+ *
+ *   Tacoma FY2012 p.38   2124 columns wide, modal intra-word gap 17
+ *   Tacoma FY2023 p.48    997 columns wide, modal intra-word gap  8
+ *
+ * At those pitches proximity grouping never reassembles a word, so no label
+ * ever matched and both years died on "-lineprinter found no Total revenues
+ * row" -- four of this harness's blockers, from a renderer setting rather than
+ * from anything in the data.
+ *
+ * Pinning the pitch makes the geometry a property of the PAGE instead of a
+ * property of poppler's guess about the document. 1.55pt is the value the
+ * corpus itself already renders at, so the 62 well-behaved pages are unchanged
+ * and the two outliers join them (measured: all 64 land on a modal gap of 2-3).
+ * `assertLinePrinterCalibration` then refuses any page that still renders
+ * outside the calibration, so a future city that breaks this fails LOUDLY
+ * instead of quietly returning fewer rows.
+ */
+const LP_FIXED_PITCH_PT = '1.55';
 
 const lpCache = new Map();
 function linePrinterPage(pdfPath, pageNo) {
   const k = `${pdfPath}|${pageNo}`;
   if (lpCache.has(k)) return lpCache.get(k);
   const txt = execFileSync('pdftotext',
-    ['-lineprinter', '-f', String(pageNo), '-l', String(pageNo), pdfPath, '-'],
+    ['-lineprinter', '-fixed', LP_FIXED_PITCH_PT, '-f', String(pageNo), '-l', String(pageNo), pdfPath, '-'],
     { maxBuffer: 64 * 1024 * 1024, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
   lpCache.set(k, txt);
   return txt;
+}
+
+/**
+ * The x of every label on one page, from `pdftotext -lineprinter` — the same
+ * TRUE PAGE GEOMETRY the second column reading uses.
+ *
+ * STRUCTURE ONLY. It decides nesting and nothing else: never a value, never a
+ * column. A label that appears at two different x positions on one page is
+ * DROPPED rather than resolved to either, so an ambiguous name can never
+ * silently settle a nesting — the builders throw on it instead.
+ *
+ * ── WHY NOT `-layout`, WHICH ALSO PRESERVES INDENTATION ─────────────────────
+ * Because it does not always preserve it. `-layout` reflows, and on Kent FY2006
+ * p.28 it emits EVERY label at column 0 — headings, their children and the root
+ * leaves alike — so it cannot say whether `Fines and forfeitures` is a child of
+ * the open `Charges for services:` group or a peer of it. That is the same
+ * "nesting evidence exists in only one era" trap Spokane set, except here it is
+ * the RENDERER flattening a page the document indents: `-lineprinter` on the
+ * very same page puts every heading and root leaf at x=27 and every group child
+ * at x=30.
+ *
+ * `-lineprinter` cannot flatten it, because it is not reflowing anything — it
+ * emits one output column per physical position. It is also already rendered,
+ * calibrated and trusted by this harness for the geometric column reading, so
+ * this removes a renderer rather than adding one, and the two structural claims
+ * the harness makes now rest on the same evidence instead of two disagreeing
+ * approximations.
+ *
+ * Labels arrive with the spaces stripped ("FireDistrict#37Contract"), which is
+ * exactly what `labelKey` normalises away.
+ */
+const indentCache = new Map();
+export function printedIndents(pdfPath, pageNo, label) {
+  const k = `${pdfPath}|${pageNo}`;
+  if (indentCache.has(k)) return indentCache.get(k);
+  const lines = linePrinterPage(pdfPath, pageNo).split('\n');
+  assertLinePrinterCalibration(lines, label);
+  const seen = new Map();
+  const ambiguous = new Set();
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    // The label's x is the start of its FIRST non-money glyph group, past any
+    // decoration in the page margin (the SAO stamps a page number there).
+    const groups = stripLeftMarginDecoration(lpGroups(line));
+    const first = groups.find((g) => !DASH_ONLY.test(g.text) && !(LP_MONEY_RE.test(g.text) && /\d/.test(g.text)));
+    if (!first) continue;
+    const key = labelKey(lpSplit(line).label);
+    if (!key) continue;
+    if (seen.has(key) && seen.get(key) !== first.start) ambiguous.add(key);
+    else if (!seen.has(key)) seen.set(key, first.start);
+  }
+  for (const key of ambiguous) seen.delete(key);
+  indentCache.set(k, seen);
+  return seen;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -361,7 +528,12 @@ function tokensOf(line) {
 // Kitsap FY2004-FY2016 print "Statement of REVENUE, Expenditures..." (singular).
 const TITLE_RE = /statement\s+of\s+revenues?\s*,?\s*(and\s+)?expenditures/i;
 const CHANGES_RE = /changes?\s+in\s+fund\s+balances?/i;
-const GOVFUNDS_RE = /governmental\s+funds/i;
+// `govern?mental` tolerates a SOURCE-DOCUMENT TYPO, not a parser convenience:
+// Tacoma's FY2007 statement caption reads "Govermental Funds", missing the 'n'.
+// Rejecting that page would have silently dropped a year that is otherwise
+// perfectly readable, and "the scope line is misspelled" is not a reason to
+// refuse a filing. The optional 'n' cannot match anything else meaningful.
+const GOVFUNDS_RE = /govern?mental\s+funds/i;
 const TOTAL_REV_RE = /^total\s+(operating\s+)?revenues?\b/i;
 const TOTAL_EXP_RE = /^total\s+expenditures\b/i;
 const REV_HEAD_RE = /^revenues?\b/i;
@@ -382,7 +554,33 @@ const EXCLUDE_RE = /\b(combining|budget|budgetary|proprietary|fiduciary|internal
 // the exact thin invariant Task 5 warned about. Page 2 declares itself, and it
 // carries no General Fund column caption. Both are checked.
 const CONTINUATION_RE = /\bpage\s*([2-9]|\d\d+)\s*of\s*\d/i;
-const GF_CAPTION_RE = /\bgeneral\b(?!\s+govern)/i;
+// The lookahead is `government\b`, NOT the shorter `govern`, and the difference
+// is load-bearing. Its purpose is to stop the expenditure function "General
+// Government" from being mistaken for a General Fund column caption. The
+// original `(?!\s+govern)` also rejected "General Governmental" -- and Tacoma's
+// FY2003 caption is exactly that, because its General Fund column header sits
+// next to an "Other Governmental" one and flattens to
+// "(0010) General Governmental Governmental Fund Funds Funds".
+// That false negative dropped FY2003-FY2005 entirely.
+//
+// `\bgovernment\b` cannot match inside "governmental" (no word boundary before
+// the "al"), so this still rejects "General Government" exactly as before while
+// accepting a caption whose NEIGHBOURING column happens to be Governmental.
+//
+// `obligation` was added for Vancouver FY2021, whose governmental-funds
+// statement spans TWO pages. Page 46 carries the identical title and scope line
+// but its columns are American Rescue Plan Act / General Obligation Debt /
+// Non-Major / Total -- no General Fund at all. It qualified purely on the word
+// "General" in "General Obligation", which made the statement page AMBIGUOUS;
+// and ambiguity is a blocker here precisely because resolving it by document
+// order is the assumption this harness refuses to make. A General Obligation
+// DEBT fund is no more a General Fund column than the General Government
+// expenditure function is.
+//
+// The exclusion is per-occurrence, not per-page: a caption carrying both a real
+// General Fund column and a General Obligation one still matches on the first.
+const GF_CAPTION_RE = /\bgeneral\b(?!\s+(?:government|obligation)\b)/i;
+export { GF_CAPTION_RE };
 
 /** The caption block: everything down to and including the first section
  *  header line. Column captions live here, and so does every page-type word. */
@@ -392,7 +590,7 @@ function captionBlockEnd(lines) {
   return i > 0 ? i + 1 : Math.min(lines.length, 25);
 }
 
-function findStatementPage(pages, label) {
+export function findStatementPage(pages, label) {
   const cands = [];
   const rejected = [];
   pages.forEach((pg, i) => {
@@ -429,14 +627,35 @@ function findStatementPage(pages, label) {
  *  mis-named local file would tie at $0 against a DB loaded from the same
  *  mis-named file. Kitsap's text layer collapses spaces
  *  ("FortheYearEndedDecember31,2024"), so the gaps are all optional. */
-function assertPageYear(pageText, fy, label) {
+/**
+ * The anchor is `ended december 31, <year>`, and the word "year" is
+ * deliberately NOT required.
+ *
+ * Spokane FY2018 and FY2022 render their period sentence as "For the Fiscal
+ * <ear Ended December 31, 2018" — a mis-mapped glyph has eaten the Y. The
+ * YEAR itself is intact and unambiguous, and refusing those pages over one
+ * corrupt letter of scaffolding would have dropped two otherwise perfect
+ * years. The same call was already made for Tacoma's "Govermental Funds" and
+ * "expresssed": a misspelling in the source is not a reason to refuse a
+ * filing.
+ *
+ * What the assertion actually needs is the page stating a PERIOD ENDING on the
+ * fiscal-year end date, and "ended december 31, YYYY" is that statement whole.
+ * Dropping the word costs nothing this check was relying on; keeping "end..."
+ * is what stops an arbitrary date elsewhere on the page from qualifying.
+ *
+ * `end(ed|ing)` covers Bellevue FY2008-FY2012, which caption their statements
+ * "For the Twelve Months ENDING December 31, 2008". The period is stated
+ * exactly as definitively as "Year Ended"; only the participle differs.
+ */
+export function assertPageYear(pageText, fy, label) {
   const flat = pageText.replace(/\s+/g, ' ');
-  const period = flat.match(/year\s*ended\s*december\s*3\s*1\s*,?\s*(\d{4})/i);
+  const period = flat.match(/end(?:ed|ing)\s*december\s*3\s*1\s*,?\s*(\d{4})/i);
   if (period) {
     if (Number(period[1]) !== fy) throw new Error(`${label}: page states "${period[0].trim()}" but the file is being read as FY${fy}`);
     return `period sentence "${period[0].trim()}"`;
   }
-  const p2 = flat.replace(/\s+/g, '').match(/YearEndedDecember31,?(\d{4})/i);
+  const p2 = flat.replace(/\s+/g, '').match(/End(?:ed|ing)December31,?(\d{4})/i);
   if (p2) {
     if (Number(p2[1]) !== fy) throw new Error(`${label}: page states year ended December 31, ${p2[1]} but the file is being read as FY${fy}`);
     return `period sentence (space-collapsed) "${p2[0]}"`;
@@ -447,10 +666,31 @@ function assertPageYear(pageText, fy, label) {
 // ═══════════════════════════════════════════════════════════════════════════
 // Own units detection — read off the page, never configured.
 // ═══════════════════════════════════════════════════════════════════════════
-function unitsOf(pageText) {
+/**
+ * ⚠ THE MOST DANGEROUS FUNCTION IN THIS FILE TO GET WRONG.
+ *
+ * The tie gate is unit-invariant, so a missed multiplier does not fail
+ * arithmetic anywhere -- it just makes every figure 1000x wrong. Only the
+ * per-capita band catches it, and only if the band is tight enough.
+ *
+ * The original pair of patterns matched Bainbridge/Kitsap ("whole dollars", so
+ * neither fires) and Seattle/King County ("(in thousands)"). Tacoma writes
+ * "(amounts expressed in thousands)", which matched NEITHER, so this returned 1
+ * and the harness read Tacoma's statements as whole dollars -- 1000x below the
+ * database it was checking. It would have reported a disagreement rather than
+ * passing wrongly, but the disagreement would have looked like a load defect
+ * instead of a units-detection gap.
+ *
+ * The broadened alternative is a bare `in thousands`, deliberately: every
+ * phrasing of that caption means the same thing, and no statement says it
+ * without meaning it. It also absorbs Tacoma FY2003's genuine typo,
+ * "(amounts expresssed in thousands)" with three s's, because the typo is in
+ * the word this pattern does not depend on.
+ */
+export function unitsOf(pageText) {
   const flat = pageText.replace(/\s+/g, ' ');
-  if (/\(\s*in\s+millions\s*\)/i.test(flat)) return 1_000_000;
-  if (/\(\s*in\s+thousands\s*\)|amounts\s+in\s+thousands/i.test(flat)) return 1_000;
+  if (/\bin\s+millions\b/i.test(flat)) return 1_000_000;
+  if (/\bin\s+thousands\b/i.test(flat)) return 1_000;
   return 1;   // whole dollars — cross-checked by the per-capita band, which is NOT unit-invariant
 }
 
@@ -497,11 +737,197 @@ function headerLabel(line) {
   return cleanLabel(s);
 }
 
-function readRowOrdinal(line, ncols) {
-  const toks = tokensOf(line);
-  if (toks.length < ncols) return { kind: 'header', label: headerLabel(line) };
-  const tok = toks[toks.length - ncols];
-  return { kind: 'cell', value: tok.value, label: cleanLabel(line.slice(0, tok.start)), at: tok.start };
+/**
+ * Three outcomes, not two. The third is the fix for a defect that cost a
+ * $51,203-thousand line item.
+ *
+ *   cell        the row exposes every column; the Nth from the right is ours.
+ *   header      the row carries NO money at all — a section heading, a group
+ *               heading, or a wrapped label fragment.
+ *   incomplete  the row carries money but FEWER cells than the Total row does,
+ *               because the issuer printed one of the columns EMPTY. Not a
+ *               dash: nothing.
+ *
+ * Conflating `incomplete` with `header` is what dropped Tacoma FY2019's
+ * `Business` row (51,203 thousand, blank in the Trans Capital column) and left
+ * its label to weld onto the next row as "Business Excise".
+ *
+ * The ordinal rule PROVABLY cannot resolve an incomplete row, and it is worth
+ * being precise about why, because the temptation is to count from the left
+ * instead. This corpus contains the blank in both places: FY2019's `Business`
+ * is missing a MIDDLE column and its General Fund figure is leftmost, while
+ * FY2023's `Transportation` is missing the GENERAL FUND column itself and its
+ * leftmost number (4,330) belongs to Trans Capital. Counting from either end
+ * gets one of them wrong, and arithmetic cannot break the tie either: a blank
+ * contributes zero, so every placement of the blank reproduces the row's own
+ * total identically. Locating a blank needs geometry. `makeRowReader` supplies
+ * it, from bands validated against this very rule on the same page.
+ */
+/**
+ * A leading page-footer PAGE NUMBER is page furniture, not a cell.
+ *
+ * `cleanLabel` has always known this shape — a bare 1-4 digit run at the very
+ * start of the line, then a genuine 2+ space gap — but only removed it from the
+ * LABEL. The tokenizer still counted it as money, which was harmless while the
+ * ordinal rule counted back from the RIGHT end and simply never reached it.
+ *
+ * It stopped being harmless once a row with fewer cells than the Total row
+ * became a resolvable `incomplete` rather than a heading. Spokane FY2007 p.44
+ * stamps `41` at column 0 of the `Debt service:` HEADING row: one "money"
+ * token, no real cells, so the row read as a data row with a blank General Fund
+ * cell, was skipped, and the group never opened — `Interest` then surfaced at
+ * root against the database's `Debt service / Interest`.
+ *
+ * Dropping the token instead of the characters keeps every other index intact,
+ * and cannot change which cell the ordinal rule picks: it removes exactly one
+ * token from the LEFT of a count taken from the RIGHT.
+ */
+function dropLeadingPageNumber(line, toks) {
+  const t = toks[0];
+  if (!t || t.kind !== 'money') return toks;
+  if (line.slice(0, t.start).trim() !== '') return toks;   // something real precedes it
+  if (!/^\d{1,4}$/.test(t.raw.trim())) return toks;        // "911 Dispatch" has no gap; "1,234" is not this
+  if (!/^\s{2,}\S/.test(line.slice(t.end))) return toks;   // must be followed by a column gap
+  return toks.slice(1);
+}
+
+export function readRowOrdinal(line, ncols) {
+  const toks = dropLeadingPageNumber(line, tokensOf(line));
+  if (toks.length >= ncols) {
+    const tok = toks[toks.length - ncols];
+    return { kind: 'cell', value: tok.value, label: cleanLabel(line.slice(0, tok.start)), at: tok.start };
+  }
+  // A row of nothing but dash placeholders is a heading that the renderer put a
+  // zero on -- Kitsap FY2011-FY2013 print `-` in the General Fund column on
+  // their `Debt service` heading line. Only a row carrying a REAL figure is a
+  // data row with a missing cell.
+  if (toks.some((t) => t.kind === 'money')) return { kind: 'incomplete', label: headerLabel(line), toks };
+  return { kind: 'header', label: headerLabel(line) };
+}
+
+/**
+ * Column bands on the `-table` rendering, by the same midpoint rule the
+ * geometric reading uses on `-lineprinter`: each band runs from the midpoint of
+ * the gap before its cell to the midpoint of the gap after it.
+ */
+function tableBands(totalLine, ncols, label) {
+  const t = tokensOf(totalLine);
+  if (t.length !== ncols) {
+    throw new Error(`${label}: the Total row exposes ${t.length} cells but ncols is ${ncols}`);
+  }
+  return t.map((c, k) => ({
+    left: k === 0 ? t[0].start - (t[1].start - t[0].start) / 2 : (t[k - 1].end + t[k].start) / 2,
+    right: k === t.length - 1 ? Infinity : (t[k].end + t[k + 1].start) / 2,
+  }));
+}
+
+const inBand = (toks, band) => toks.filter((t) => (t.start + t.end) / 2 >= band.left && (t.start + t.end) / 2 < band.right);
+
+/**
+ * Returns the row reader for one section: ordinal everywhere it applies, and a
+ * band lookup for the rows where it provably cannot.
+ *
+ * ── WHY THE BANDS ARE EARNED, NOT ASSUMED ───────────────────────────────────
+ * A coordinate rule on `-table` output is NOT generally safe on this corpus,
+ * and this harness's own header says so: Kitsap FY2004-FY2016 render the
+ * General Fund column in two disjoint horizontal zones separated by a wider
+ * corridor than the gap to the next fund's column, so no band, cluster or
+ * whitespace rule can separate them there.
+ *
+ * So the bands are not trusted on faith. Before any incomplete row is resolved
+ * with them, they must reproduce the ORDINAL answer -- label and value -- on
+ * EVERY COMPLETE row of the same section, and on at least one complete row
+ * besides the Total row the bands were derived from (otherwise the check is
+ * circular). That is a property established from the page in hand, not a claim
+ * about the issuer. On a page where bands cannot work, the check fails and the
+ * row is refused rather than guessed at.
+ *
+ * The bands are computed ONLY when the section actually contains an incomplete
+ * row. Measured across all 64 statement pages in this corpus, that is Tacoma
+ * FY2019 and FY2023 and nothing else: every Bainbridge and Kitsap row exposes
+ * a full set of cells, so this path never runs for them and their readings are
+ * bit-identical to before.
+ */
+/**
+ * Every section whose bands had to be corroborated from the OTHER section of
+ * the page. Reported in the summary rather than kept quiet: it is a weaker
+ * evidence path than the default one, and a silent weakening reads as "nothing
+ * unusual happened here" when something did.
+ */
+export const corroboratedElsewhere = [];
+
+export function makeRowReader(body, totalLine, ncols, label, pageRows = []) {
+  const incomplete = body.filter((l) => l.trim() && readRowOrdinal(l, ncols).kind === 'incomplete');
+  if (!incomplete.length) return (line) => readRowOrdinal(line, ncols);
+
+  const bands = tableBands(totalLine, ncols, label);
+  // Count the COMPLETE rows in one pool that reproduce the ordinal answer under
+  // the bands, and throw on the first that contradicts it.
+  const corroborate = (pool, where) => {
+    let n = 0;
+    for (const line of pool) {
+      if (!line.trim()) continue;
+      const r = readRowOrdinal(line, ncols);
+      if (r.kind !== 'cell') continue;
+      const picked = inBand(tokensOf(line), bands[0]);
+      if (picked.length !== 1 || picked[0].value !== r.value || picked[0].start !== r.at) {
+        throw new Error(`${label}: this section contains ${incomplete.length} row(s) with an empty cell, which the ` +
+          `ordinal rule cannot resolve, but the Total row's column bands CONTRADICT the ordinal reading on ` +
+          `${where} row "${r.label}" (ordinal ${r.value} at column ${r.at}; band ${bands[0].left.toFixed(1)}..` +
+          `${bands[0].right.toFixed(1)} picks ${picked.length} cell(s)${picked.length === 1 ? ` = ${picked[0].value}` : ''}). ` +
+          `Refusing to locate the empty cell by geometry this page has just disproved.`);
+      }
+      n++;
+    }
+    return n;
+  };
+
+  // The section's OWN complete rows are the strongest evidence, so they are
+  // tried first and alone decide every page that has any -- which is every page
+  // in this corpus outside Kent, so those readings are unchanged.
+  //
+  // ── WHEN A SECTION HAS NO COMPLETE ROW OF ITS OWN ──────────────────────────
+  // Kent FY2004-FY2011 print operating sections in which EVERY row is short:
+  // the city reports each function in one fund only, so no row exposes all four
+  // columns. Refusing those years would discard eight readable years over a
+  // property of the SECTION rather than of the page -- and the bands are a
+  // property of the page, because `-table` reflows the whole page onto ONE grid.
+  // The other section of the same statement is therefore evidence of exactly
+  // the kind required: same grid, same column stops, and it is checked by the
+  // identical rule. It is weaker only in locality, which is why it is consulted
+  // second and never instead.
+  let corroborating = corroborate(body, 'this section\'s');
+  let from = 'this section';
+  if (!corroborating && pageRows.length) {
+    corroborating = corroborate(pageRows, 'the same page\'s other-section');
+    from = 'the other section of the same page';
+  }
+  if (!corroborating) {
+    throw new Error(`${label}: this section contains ${incomplete.length} row(s) with an empty cell, but no COMPLETE ` +
+      `data row exists to corroborate the Total row's column bands against the ordinal reading` +
+      `${pageRows.length ? ', in this section OR in the other section of the same page' : ''}. Refusing to ` +
+      `resolve an empty cell from bands validated only against the row they were derived from.`);
+  }
+  if (from !== 'this section') {
+    corroboratedElsewhere.push(`${label}: column bands corroborated from ${from} (${corroborating} complete row(s)) — ` +
+      `this section has none of its own`);
+  }
+
+  return (line) => {
+    const r = readRowOrdinal(line, ncols);
+    if (r.kind !== 'incomplete') return r;
+    const picked = inBand(r.toks, bands[0]);
+    if (picked.length > 1) {
+      throw new Error(`${label}: row "${r.label}" puts ${picked.length} cells inside the General Fund band`);
+    }
+    // No cell in the band means the issuer printed the GENERAL FUND column
+    // empty on this row. That is a real reading, not a failure: the row has no
+    // General Fund figure. It must NOT become a wrapped label fragment, or its
+    // name welds onto the next row.
+    if (!picked.length) return { kind: 'blank', label: r.label };
+    const tok = picked[0];
+    return { kind: 'cell', value: tok.value, label: cleanLabel(line.slice(0, tok.start)), at: tok.start };
+  };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -510,18 +936,73 @@ function readRowOrdinal(line, ncols) {
 // physical position, so a token's x-range is the real x-range on the page.
 // Characters arrive exploded, so they are re-assembled by proximity first.
 // ═══════════════════════════════════════════════════════════════════════════
-const LP_MAX_CHAR_GAP = 5;   // widest gap inside one rendered word/number in this corpus
+export const LP_MAX_CHAR_GAP = 5;   // widest gap inside one rendered word/number in this corpus
 
+/**
+ * A `$` ALWAYS STARTS A NEW GROUP, and that single clause is the difference
+ * between reading Tacoma FY2010 and losing its largest revenue line.
+ *
+ * In an accounting statement the currency symbol is a LEFT-HAND PREFIX: it
+ * introduces the amount to its right and never trails the amount to its left.
+ * Proximity grouping does not know that. On Tacoma FY2010 p.29 the NEXT
+ * column's "$" sits five output columns past the last digit of the General Fund
+ * figure -- inside LP_MAX_CHAR_GAP -- so it welded on, "169,326$" stopped
+ * matching the money pattern, and the $169m Taxes row was left with no cell in
+ * the General Fund band and skipped. The ordinal reading kept the row, so the
+ * two readings disagreed on the row COUNT and the real value never appeared on
+ * either side of the diff.
+ *
+ * Making the symbol a group boundary fixes that by construction rather than by
+ * widening or narrowing a threshold: "$61,037" rendered tight still groups as
+ * one money token, because the `$` merely begins the group it leads.
+ */
 function lpGroups(line) {
   const g = [];
   let cur = null;
   for (let i = 0; i < line.length; i++) {
     const ch = line[i];
     if (ch === ' ' || ch === '\t' || ch === '\r' || ch === '\f') continue;
-    if (cur && i - cur.last <= LP_MAX_CHAR_GAP) { cur.text += ch; cur.last = i; }
+    if (cur && ch !== '$' && i - cur.last <= LP_MAX_CHAR_GAP) { cur.text += ch; cur.last = i; }
     else { cur = { text: ch, start: i, last: i }; g.push(cur); }
   }
   return g.map((x) => ({ text: x.text, start: x.start, end: x.last + 1 }));
+}
+
+/** The most common gap between adjacent glyphs on a page, i.e. the pitch the
+ *  renderer actually used, measured in output columns. Intra-word pairs vastly
+ *  outnumber word boundaries on a page of text, so the mode is the intra-word
+ *  gap. */
+export function lpModalGlyphGap(lines) {
+  const hist = new Map();
+  for (const line of lines) {
+    let prev = -1;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === ' ' || ch === '\t' || ch === '\r' || ch === '\f') continue;
+      if (prev >= 0) { const gap = i - prev; hist.set(gap, (hist.get(gap) || 0) + 1); }
+      prev = i;
+    }
+  }
+  let mode = 0, best = 0;
+  for (const [gap, n] of hist) if (n > best) { best = n; mode = gap; }
+  return mode;
+}
+
+/**
+ * Refuse a page whose rendering falls outside the calibration LP_MAX_CHAR_GAP
+ * was set from. If the TYPICAL gap between two characters of the same word
+ * reaches the threshold that is supposed to separate words, grouping is at or
+ * past the point of failure — and its failure mode is silent, because an
+ * unreassembled label simply never matches and its row disappears.
+ */
+export function assertLinePrinterCalibration(lines, label) {
+  const mode = lpModalGlyphGap(lines);
+  if (mode >= LP_MAX_CHAR_GAP) {
+    throw new Error(`${label}: -lineprinter rendered this page at a modal intra-word glyph gap of ` +
+      `${mode} columns, at or beyond the ${LP_MAX_CHAR_GAP}-column word-grouping threshold — the pitch ` +
+      `is outside this reader's calibration and words would not reassemble. Refusing to read it.`);
+  }
+  return mode;
 }
 
 const LP_MONEY_RE = /^\(?\$?[\d][\d,]*\)?$/;
@@ -535,31 +1016,111 @@ const LP_MONEY_RE = /^\(?\$?[\d][\d,]*\)?$/;
  * a rule-line underscore. Those fragments would otherwise glue onto the front
  * of the row's real label ("h" + "General government", "W_" + "Judicial",
  * "S" + "REVENUES"), which breaks both the label comparison and the section
- * header match. Only LEADING groups of at most two non-digit characters are
- * removed — every real label word in this corpus is longer than that, and a
- * money cell can never match, so no value and no real label word can be lost.
+ * header match.
+ *
+ * ── THE FRAGMENT MUST BE IN THE MARGIN, NOT MERELY SHORT ────────────────────
+ * "a leading group of at most two characters" is not by itself evidence of
+ * decoration, and treating it as such corrupts real labels: on Tacoma FY2022
+ * p.52 the capital M of "Miscellaneous" is a wide enough glyph that its advance
+ * exceeds the word-grouping gap, so it renders as its own group and was
+ * stripped — the row shipped into the comparison as "iscellaneous". That is a
+ * LABEL corruption with the figure intact, the one class of defect the tie gate
+ * is structurally blind to.
+ *
+ * What actually distinguishes the stamp is WHERE it is: it is printed in the
+ * page MARGIN, a whole gutter away from the text block, whereas a split first
+ * letter is one letter-advance away from the rest of its own word. Measured
+ * across every statement page in this corpus at the pinned pitch, the two
+ * populations do not come close to overlapping:
+ *
+ *   decoration -> label     23, 34, 39, 40, 45, 66-85, 183, 349 columns
+ *   split first letter       5-6 columns
+ *
+ * The gutter width is NOT constant — it is 34-45 columns on Bainbridge FY2007
+ * p.24 and 72-85 on FY2013 p.32, because the pages are not the same size — so
+ * the test is set from the gap that a letter advance can never reach rather
+ * than from any one page's margin.
+ *
+ * A whole leading RUN is stripped when the run AS A WHOLE clears the gutter,
+ * which is why the loop keeps the LAST qualifying index instead of stopping at
+ * the first: the observed "W" + "_" + label case has only 5 columns between its
+ * two decorations and 34 after them, and both must go.
  */
 const MARGIN_FRAGMENT_RE = /^[A-Za-z'_.,]{1,2}$/;
+const LP_MARGIN_GUTTER_COLUMNS = 3 * LP_MAX_CHAR_GAP;
 function stripLeftMarginDecoration(groups) {
-  let i = 0;
-  while (i < groups.length - 1 && MARGIN_FRAGMENT_RE.test(groups[i].text)) i++;
-  return groups.slice(i);
+  let cut = 0;
+  for (let i = 0; i < groups.length - 1; i++) {
+    if (!MARGIN_FRAGMENT_RE.test(groups[i].text)) break;
+    if (groups[i + 1].start - groups[i].end > LP_MARGIN_GUTTER_COLUMNS) cut = i + 1;
+  }
+  return groups.slice(cut);
 }
 
-function lpSplit(line) {
+/**
+ * A FOOTNOTE MARKER RIDING ON A VALUE.
+ *
+ * Everett FY2021 p.37 and FY2022 p.35 print `(52,270) *` in the Emergency
+ * Medical Services column, footnoted "* Negative revenue is due to changes in
+ * fair value". The marker lands inside LP_MAX_CHAR_GAP of the closing bracket, so
+ * proximity grouping welds it on, "(52,270)*" stops matching the money pattern,
+ * and the amount is read as LABEL TEXT -- the geometric label came back as
+ * "Otherrevenues(52,270)*" against the ordinal reading's "Other revenues".
+ *
+ * Exactly the shape of the `$` weld this renderer already guards against: a
+ * neighbouring glyph silently redefining a cell as text. The marker is stripped
+ * for the money TEST only, and the group's extent is trimmed with it so the
+ * cell's centre stays the number's centre rather than drifting toward the next
+ * band.
+ */
+const LP_FOOTNOTE_MARKER_RE = /[*†‡]+$/;
+
+export function lpSplit(line) {
   const gs = lpGroups(line);
   const cells = [];
   const labelParts = [];
   for (const g of stripLeftMarginDecoration(gs)) {
     if (DASH_ONLY.test(g.text)) { cells.push({ value: 0, start: g.start, end: g.end, raw: g.text }); continue; }
-    if (LP_MONEY_RE.test(g.text) && /\d/.test(g.text)) {
-      const neg = g.text.startsWith('(');
-      const digits = g.text.replace(/[($),]/g, '');
-      if (/^\d+$/.test(digits)) { cells.push({ value: neg ? -Number(digits) : Number(digits), start: g.start, end: g.end, raw: g.text }); continue; }
+    const bare = g.text.replace(LP_FOOTNOTE_MARKER_RE, '');
+    if (LP_MONEY_RE.test(bare) && /\d/.test(bare)) {
+      const neg = bare.startsWith('(');
+      const digits = bare.replace(/[($),]/g, '');
+      if (/^\d+$/.test(digits)) {
+        cells.push({
+          value: neg ? -Number(digits) : Number(digits),
+          start: g.start, end: g.end - (g.text.length - bare.length), raw: bare,
+        });
+        continue;
+      }
     }
     labelParts.push(g.text);
   }
   return { cells, label: labelParts.join('') };
+}
+
+/**
+ * A row with NO LABEL and NOTHING BUT DASH PLACEHOLDERS is page decoration.
+ *
+ * Everett FY2015 p.37 prints the Capital outlay row's dashes half a line BELOW
+ * its figures, and strict physical geometry -- which is the whole point of this
+ * renderer -- therefore puts them on an output row of their own: no label, two
+ * dashes, one of them inside the General Fund band. That phantom entered the
+ * geometric sequence as a $0 row and shifted every row after it, so `Principal`
+ * was compared against `` and `Interest` against `Principal`. A row-count
+ * disagreement on a page whose every figure was correct.
+ *
+ * A dash is how this issuer writes "no amount", so an unlabelled row of nothing
+ * but dashes states no fact and there is no line item to attach it to.
+ *
+ * ⚠ WHAT THIS DELIBERATELY DOES NOT SKIP: a row with a REAL figure and no label.
+ * That shape must stay loud -- the ordinal reader RAISES on it (see
+ * `makeRowReader`'s trap-5 note) -- because it is exactly how a real amount goes
+ * missing without a trace.
+ */
+export function lpRowIsDecoration(split) {
+  if (split.label.trim()) return false;
+  if (!split.cells.length) return false;
+  return split.cells.every((c) => DASH_ONLY.test(c.raw));
 }
 
 /** Bands bounded by the midpoints of the gaps between the Total row's cells;
@@ -586,6 +1147,7 @@ const labelKey = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '')
  */
 function lpSection(pdfPath, pageNo, mode, label) {
   const lines = linePrinterPage(pdfPath, pageNo).split('\n');
+  assertLinePrinterCalibration(lines, label);
   const split = lines.map(lpSplit);
   const isTotal = (k) => mode === 'revenue' ? /^total(operating)?revenues?$/.test(k) : /^totalexpenditures$/.test(k);
   const isHead = (k) => mode === 'revenue' ? /^revenues?$/.test(k) : /^expenditures$/.test(k);
@@ -608,6 +1170,7 @@ function lpSection(pdfPath, pageNo, mode, label) {
   for (let i = headIdx + 1; i < totalIdx; i++) {
     const s = split[i];
     if (!s.label && !s.cells.length) continue;
+    if (lpRowIsDecoration(s)) continue;   // dashes rendered off their own row's baseline
     const p = pick(s.cells);
     if (p.length > 1) throw new Error(`${label}: -lineprinter row "${s.label}" has ${p.length} cells inside the General Fund band`);
     if (!p.length) continue;               // heading or a row with no GF cell
@@ -649,7 +1212,7 @@ function lpSection(pdfPath, pageNo, mode, label) {
 // so requiring the header not to contain the other section word makes the
 // title unmatchable by construction.
 // ═══════════════════════════════════════════════════════════════════════════
-function sectionOf(lines, mode, label) {
+export function sectionOf(lines, mode, label) {
   const totalRe = mode === 'revenue' ? TOTAL_REV_RE : TOTAL_EXP_RE;
   const headRe = mode === 'revenue' ? REV_HEAD_RE : EXP_HEAD_RE;
   const otherWord = mode === 'revenue' ? /expenditures/i : /revenues?\b/i;
@@ -669,6 +1232,23 @@ function sectionOf(lines, mode, label) {
     headIdx = i;
     break;
   }
+  // SOME ISSUERS OMIT THE HEADING ENTIRELY. Bellevue FY2015 and FY2016 run
+  // straight from `Total revenues` into `Current:` with no `Expenditures:` row
+  // at all, and the backward scan then failed the whole year -- both sides --
+  // over a heading the document does not have.
+  //
+  // The expenditure section is bounded below by its own Total row and above by
+  // the END OF THE REVENUE SECTION, which the page states unambiguously with
+  // its `Total revenues` row. That boundary is read off the document rather
+  // than assumed, and it is only consulted when the heading is genuinely
+  // absent, so a page that prints one is unaffected. Any `Expenditures:` row
+  // that IS present simply falls inside the body, where a valueless row is a
+  // heading already.
+  if (headIdx < 0 && mode === 'operating') {
+    for (let i = totalIdx - 1; i >= 0; i--) {
+      if (TOTAL_REV_RE.test(lines[i].trim())) { headIdx = i; break; }
+    }
+  }
   if (headIdx < 0) throw new Error(`${label}: found the Total row but no ${mode} section header above it`);
   return { body: lines.slice(headIdx + 1, totalIdx), totalLine: lines[totalIdx], ncols };
 }
@@ -676,16 +1256,121 @@ function sectionOf(lines, mode, label) {
 // ═══════════════════════════════════════════════════════════════════════════
 // Own tree builder — ONE rule, GASB's character classification.
 // ═══════════════════════════════════════════════════════════════════════════
-const CHARACTER_EXACT = /^(current|debt\s+service|capital\s+outlay)$/i;
-const CHARACTER_START = /^(current|debt\s+service|capital\s+outlay)\b/i;
+// `capital expenditures` is Tacoma's Era-B (FY2012-FY2017) spelling of the same
+// root-level line every other entity calls `capital outlay`. Without it the
+// reader left the `Debt service:` group open and nested Capital expenditures
+// inside it -- amounts identical, structure wrong, which is exactly the class
+// of defect a $0 tie cannot see.
+//
+// Settled from `pdftotext -layout`, which preserves the indentation `-table`
+// flattens (FY2015 p.34): `Current:` and `Debt service:` both sit at 3 spaces
+// with their children at 6, and `Capital expenditures` sits at 3 -- a root peer,
+// not a child. The extractor already had it right via root_leaves; this brings
+// the independent reader into agreement with the document rather than with the
+// extractor.
+//
+// `outlays?` covers Spokane, which prints `Capital outlay` FY2004-FY2011 and
+// `Capital outlays` FY2013-FY2024. Without the optional s the plural half of
+// that corpus matched neither pattern and nested inside the open `Current:`
+// group -- inflating the Current subtotal by the capital line while the row
+// still tied at $0, since the same dollars are present under either shape.
+// Spokane's FY2004 statement, the only era that still prints indentation, puts
+// `Capital outlay` at the parent level with the Current functions indented
+// beneath it.
+const CHARACTER_EXACT = /^(current|debt\s+service|capital\s+outlays?|capital\s+expenditures)$/i;
+const CHARACTER_START = /^(current|debt\s+service|capital\s+outlays?|capital\s+expenditures)\b/i;
 
-function buildOperating(body, ncols, scale, rawRows) {
+// ═══════════════════════════════════════════════════════════════════════════
+// A ROW CARRYING NO MONEY AT ALL IS ONE OF THREE THINGS.
+// ═══════════════════════════════════════════════════════════════════════════
+// Both builders used to treat every valueless row that did not end in a colon
+// as the first line of a WRAPPED LABEL, carried forward onto the next valued
+// row. That is one of the three shapes this corpus prints, and Kent prints all
+// three on the same statement:
+//
+//   HEADING   a group heading the issuer printed WITHOUT a colon. Kent writes
+//             `Intergovernmental revenue:` FY2004-FY2015 and drops the colon
+//             FY2016 onward while keeping the same four children at the same
+//             depth (p.47 FY2016).
+//   WRAP      a genuine two-line label whose figures sit on the second line:
+//             `Unrealized net gain/(loss)` / `in fair value of investments`
+//             (p.50 FY2022).
+//   EMPTY     a data row the issuer printed empty in EVERY column. Kent's
+//             `Lodging` tax line and its `Issuance costs` debt line are real
+//             line items that simply carry nothing that year (p.36 FY2011,
+//             p.31 FY2005).
+//
+// Reading EMPTY as WRAP welds two labels into one, which is how Kent shipped a
+// Taxes line item called "Lodging Other" carrying `Other`'s $1,130,391 and a
+// Debt service leaf called "Issuance costs Capital outlay" carrying $193,673 of
+// capital spending. The figures were right and every row tied at $0 -- the same
+// blindness the dash-zero and margin-rule defects exploited. Reading HEADING as
+// WRAP is worse still: it welds the name AND leaves the previous group open, so
+// four intergovernmental lines land under Licenses and permits.
+//
+// ── THE DISCRIMINATOR, AND WHY IT IS EVIDENCE RATHER THAN CONFIGURATION ─────
+// `pdftotext -layout` indentation, STRUCTURE ONLY, on the same terms buildRevenue
+// already uses it. What makes it decidable is that the page states its own
+// nesting geometry: a COLON is a printed declaration of headinghood, so the
+// (heading depth -> child depth) pairs the page's colon headings establish are
+// the levels that page uses. Then, for a valueless row at depth dV whose next
+// row sits at depth dN:
+//
+//   dV is a heading depth and dN its child depth   -> HEADING
+//   dN is DEEPER than dV and is no level at all    -> WRAP (dN cannot be a row
+//                                                    of its own)
+//   otherwise                                      -> EMPTY
+//
+// Kent FY2016 `Intergovernmental revenue` is 0 -> 1, exactly what `Taxes:` prints.
+// Kent FY2022 `Unrealized net gain/(loss)` is 1 -> 3, and 3 is a depth no row on
+// that page uses. Kent FY2011 `Lodging` is 1 -> 1, a peer of `Other`, and
+// FY2005 `Issuance costs` is 1 -> 0, above a root leaf. No entity fact is
+// consulted for any of it.
+function indentLevels(body, indents) {
+  const heads = new Set();
+  const children = new Set();
+  for (let i = 0; i < body.length; i++) {
+    if (!body[i].trim() || !body[i].trim().endsWith(':')) continue;
+    const dh = indents.get(labelKey(headerLabel(body[i])));
+    if (dh === undefined) continue;
+    const next = body.slice(i + 1).find((l) => l.trim());
+    if (!next) continue;
+    const dc = indents.get(labelKey(headerLabel(next)));
+    if (dc === undefined || dc <= dh) continue;
+    heads.add(dh);
+    children.add(dc);
+  }
+  return { heads, children, levels: new Set([...heads, ...children]) };
+}
+
+/** 'heading' | 'wrap' | 'empty' for a valueless row, from the page's own geometry. */
+function classifyValueless(rowLabel, nextLine, indents, levels, line) {
+  const dV = indents.get(labelKey(rowLabel));
+  if (dV === undefined) {
+    throw new Error(`"${rowLabel}" carries no money in any column and has no indentation in the -layout ` +
+      `rendering, so this reader cannot tell whether it is a group heading the issuer printed without a ` +
+      `colon, the first line of a wrapped label, or a line item printed empty in every column ` +
+      `(row: "${line.trim().slice(0, 90)}")`);
+  }
+  const dN = nextLine === undefined ? undefined : indents.get(labelKey(headerLabel(nextLine)));
+  if (levels.heads.has(dV) && dN !== undefined && levels.children.has(dN)) return 'heading';
+  if (dN !== undefined && dN > dV && !levels.levels.has(dN)) return 'wrap';
+  return 'empty';
+}
+
+export function buildOperating(body, readRow, scale, rawRows, indents = new Map()) {
   const roots = [];
   let open = null;
   let pending = '';
-  for (const line of body) {
+  const levels = indentLevels(body, indents);
+  for (let i = 0; i < body.length; i++) {
+    const line = body[i];
     if (!line.trim()) continue;
-    const r = readRowOrdinal(line, ncols);
+    const r = readRow(line);
+    // The issuer printed this row's General Fund column EMPTY. It has no
+    // figure, and its label belongs to it -- carrying the label forward would
+    // weld it onto the next row's name.
+    if (r.kind === 'blank') { pending = ''; continue; }
     // A row whose label is EXACTLY a character word is a HEADING, whether or
     // not the renderer put a stray dash on it. (Kitsap FY2013 prints a dash in
     // the General Fund column on its "Debt service" heading row.) A heading
@@ -698,7 +1383,22 @@ function buildOperating(body, ncols, scale, rawRows) {
       continue;
     }
     if (r.kind === 'header') {
-      if (r.label) pending = normLabel(`${pending} ${r.label}`);
+      if (!r.label) continue;
+      // A valueless row that is NOT a character word is one of the three shapes
+      // above. `Issuance costs` (Kent FY2005/FY2009 p.31/p.32) is the EMPTY one,
+      // and reading it as a fragment welded it onto `Capital outlay` -- which
+      // then no longer STARTED with a character word, so $193,673 of capital
+      // spending was filed inside Debt service.
+      const kind = classifyValueless(r.label, body.slice(i + 1).find((l) => l.trim()), indents, levels, line);
+      if (kind === 'heading') {
+        open = { label: r.label, children: [] };
+        roots.push(open);
+        pending = '';
+      } else if (kind === 'wrap') {
+        pending = normLabel(`${pending} ${r.label}`);
+      } else {
+        pending = '';   // a line item the issuer printed empty in every column
+      }
       continue;
     }
     rawRows.push({ label: r.label, value: r.value });
@@ -717,21 +1417,105 @@ function buildOperating(body, ncols, scale, rawRows) {
   return roots;
 }
 
-/** Both issuers print a FLAT revenue side — no `Taxes:` parent row. Every
- *  valued row is its own root; a row with no cell is a wrapped label fragment
- *  carried onto the next valued row. If either issuer ever prints a revenue
- *  group header, the label comparison against the DB fails loudly. */
-function buildRevenue(body, ncols, scale, rawRows) {
+/**
+ * The revenue side is FLAT for Bainbridge, Kitsap and Tacoma's two older eras:
+ * every valued row is its own root, and a row with no cell is a wrapped label
+ * fragment carried onto the next valued row.
+ *
+ * Tacoma FY2019-FY2024 is not flat. It prints
+ *
+ *     Taxes:
+ *       Property / Retail Sales & Use / Business / Excise
+ *     Licenses and Permits
+ *
+ * and `-table` FLATTENS that indentation, so the heading arrived here looking
+ * exactly like a wrapped label fragment and welded onto the next row as
+ * "Taxes Property". Four tax leaves then stood at root against the database's
+ * single `Taxes` parent — every figure correct, the shape wrong, which is the
+ * class of defect a $0 tie is blind to by construction.
+ *
+ * The rule is read off the document, not configured: a revenue row that carries
+ * NO value and ends in a COLON is a group heading. It opens a group, and the
+ * group closes at the first row printed at the heading's own indentation or
+ * shallower. `Taxes` in Tacoma's Eras B and C carries a value and no colon, so
+ * it stays an ordinary leaf and nothing nests.
+ *
+ * ── WHERE THE INDENTATION COMES FROM, AND WHAT IT IS ALLOWED TO DECIDE ──────
+ * `pdftotext -layout`, which preserves the leading whitespace `-table` drops.
+ * It is consulted ONLY when a colon heading is actually present, and it decides
+ * STRUCTURE ONLY — never a value, never a column. That restriction is not
+ * fussiness: on this issuer `-layout` emits labels and figures on DIFFERENT
+ * output lines, so its column pairing is genuinely untrustworthy while its
+ * indentation is exactly what the statement prints. A heading whose children
+ * cannot be placed from it throws rather than guessing.
+ */
+export function buildRevenue(body, readRow, scale, rawRows, indents) {
   const roots = [];
   let pending = '';
-  for (const line of body) {
+  let open = null;          // { label, indent, children }
+  const indentOf = (label, line) => {
+    const k = labelKey(label);
+    if (!indents.has(k)) {
+      throw new Error(`the revenue group "${open.label}" is open but "${label}" has no indentation in the ` +
+        `-layout rendering, so this reader cannot tell whether it is inside the group or a peer of it ` +
+        `(row: "${line.trim().slice(0, 90)}")`);
+    }
+    return indents.get(k);
+  };
+  // The depth of the row that OPENED a wrapped label, carried with `pending`.
+  // `-layout` wraps the label too, so the composite name has no entry of its own
+  // in the indent map and the depth that decides its nesting is its FIRST line's.
+  let pendingIndent;
+  const levels = indentLevels(body, indents);
+  for (let i = 0; i < body.length; i++) {
+    const line = body[i];
     if (!line.trim()) continue;
-    const r = readRowOrdinal(line, ncols);
-    if (r.kind === 'header') { if (r.label) pending = normLabel(`${pending} ${r.label}`); continue; }
+    const r = readRow(line);
+    if (r.kind === 'blank') { pending = ''; continue; }
+    if (r.kind === 'header') {
+      if (!r.label) continue;
+      if (line.trim().endsWith(':') && indents.has(labelKey(r.label))) {
+        open = { label: r.label, indent: indents.get(labelKey(r.label)), children: [] };
+        roots.push(open);
+        pending = '';
+        continue;
+      }
+      // No colon. See classifyValueless: the issuer also prints colon-LESS
+      // headings (`Intergovernmental revenue`, FY2016 onward) and rows that are
+      // empty in every column (`Lodging`), and welding either onto the next row
+      // corrupts a published label while every arithmetic gate stays green.
+      const kind = classifyValueless(r.label, body.slice(i + 1).find((l) => l.trim()), indents, levels, line);
+      if (kind === 'heading') {
+        open = { label: r.label, indent: indents.get(labelKey(r.label)), children: [] };
+        roots.push(open);
+        pending = '';
+      } else if (kind === 'wrap') {
+        if (!pending) pendingIndent = indents.get(labelKey(r.label));
+        pending = normLabel(`${pending} ${r.label}`);
+      } else {
+        pending = '';
+      }
+      continue;
+    }
     rawRows.push({ label: r.label, value: r.value });
+    const wrapped = Boolean(pending);
     const full = pending ? normLabel(`${pending} ${r.label}`) : r.label;
     pending = '';
     if (!full) throw new Error(`row with a General Fund value but no label: "${line.trim().slice(0, 90)}"`);
+    // A WRAPPED row nests by the depth of the line that OPENED the label, not by
+    // this line's own. `-layout` wraps the label as well, and it indents the
+    // continuation DEEPER than any real level -- Kent FY2022 prints
+    // `Unrealized net gain/(loss)` at depth 1 and `in fair value of investments`
+    // at depth 3 -- so the continuation's own depth would say "child of a child"
+    // and the composite name appears at neither depth. That deeper continuation
+    // is what classifyValueless recognised the wrap BY, so the depth it was
+    // recognised at is the depth to nest with.
+    const depth = wrapped ? pendingIndent : undefined;
+    if (open && (depth !== undefined ? depth : indentOf(full, line)) > open.indent) {
+      open.children.push({ label: full, value: scale(r.value) });
+      continue;
+    }
+    open = null;
     roots.push({ label: full, children: [{ label: full, value: scale(r.value) }] });
   }
   return roots;
@@ -763,10 +1547,31 @@ function rederive(pdfPath, fy, mode, label, band, population) {
   const lines = page.text.split('\n');
   const { body, totalLine, ncols } = sectionOf(lines, mode, label);
 
+  // The OTHER section of the same statement, used for two things and nothing
+  // else: corroborating this section's column bands when it has no complete row
+  // of its own (see makeRowReader), and nothing at all if this section can
+  // corroborate them locally. Bellevue FY2015/FY2016 omit the `Expenditures:`
+  // heading entirely, so a section that cannot be bounded simply supplies no
+  // rows rather than failing the year.
+  let pageRows = [];
+  try {
+    const other = sectionOf(lines, mode === 'revenue' ? 'operating' : 'revenue', label);
+    pageRows = [...other.body, other.totalLine];
+  } catch { /* the other section is not bounded on this page; no corroboration from it */ }
+
+  const readRow = makeRowReader(body, totalLine, ncols, label, pageRows);
+
   const rawRows = [];
+  // `-layout` is rendered only when this section actually contains a row that
+  // carries NO money in any column — a colon heading, a colon-less heading, a
+  // wrapped label fragment or a line item printed empty. Those are precisely the
+  // rows whose meaning the indentation decides, and a section without one is
+  // read without ever invoking the renderer.
+  const hasValueless = body.some((l) => l.trim() && readRowOrdinal(l, ncols).kind === 'header' && headerLabel(l));
+  const indents = hasValueless ? printedIndents(pdfPath, page.index + 1, label) : new Map();
   const built = mode === 'revenue'
-    ? buildRevenue(body, ncols, scale, rawRows)
-    : buildOperating(body, ncols, scale, rawRows);
+    ? buildRevenue(body, readRow, scale, rawRows, indents)
+    : buildOperating(body, readRow, scale, rawRows, indents);
   const { roots, droppedLeaves, droppedRoots } = prune(built);
 
   const totalRow = readRowOrdinal(totalLine, ncols);
@@ -950,10 +1755,10 @@ function crossCompare(sao, gov) {
 
 // ═══════════════════════════════════════════════════════════════════════════
 async function main() {
-  console.log('=== Bainbridge Island + Kitsap County independent re-derivation (loader-independent) ===');
+  console.log('=== WA SAO independent re-derivation (loader-independent) ===');
   console.log(`DB: ${SUPABASE_URL}  (READ-ONLY — this harness never writes)`);
   console.log('Extractor imports: NONE. Own `pdftotext -table` + `pdftotext -lineprinter` passes and own JS parser.');
-  console.log('acfrGF.py / extractBainbridge*.py / extractKitsap.py / waSaoLoad.mjs are NOT imported, required or executed.\n');
+  console.log('acfrGF.py / every extract*.py / waSaoLoad.mjs are NOT imported, required or executed.\n');
 
   let blockers = 0;
   let combos = 0;
@@ -968,9 +1773,31 @@ async function main() {
     console.log(`${ent.key}: ${r.deltas.size} registered source_rounding case(s) parsed as TEXT from ${ent.roundingFiles.join(' + ')} (no import, no exec)`);
   }
   const totalRegistered = [...registered.values()].reduce((s, r) => s + r.deltas.size, 0);
-  console.log(`Registered source_rounding cases across both entities: ${totalRegistered} (expected 33)\n`);
-  if (totalRegistered !== 33) {
-    console.error(`  BLOCKER: expected 33 registered source_rounding cases, parsed ${totalRegistered}`);
+  // Per-entity expected counts, so a filtered (--only) run checks the right
+  // number instead of the whole-corpus total. This was hardcoded at 33 --
+  // Bainbridge's 20 plus Kitsap's 13 -- which made every single-entity run a
+  // guaranteed BLOCKER, and would have silently become wrong the moment any
+  // entity's registry changed.
+  //
+  // Tacoma's expected count is ZERO, and that is a real value rather than a
+  // "not yet filled in": it prints IN THOUSANDS, so its components are already
+  // rounded to the thousand and sum exactly. Asserting the zero is the point --
+  // it means a residue appearing there later is a finding, not a shrug.
+  //
+  // The counts live in the ROSTER, not here, because verify-wa-audit.mjs
+  // asserts the same numbers in its check (b). Two harnesses each carrying
+  // their own copy of the same fact is exactly the drift the roster exists to
+  // prevent.
+  const expectedRegistered = ENTITIES.reduce((s, e) => s + (e.expectedResidues ?? -1), 0);
+  const unknownEntities = ENTITIES.filter((e) => e.expectedResidues === undefined).map((e) => e.key);
+  if (unknownEntities.length) {
+    console.error(`  BLOCKER: no expected source_rounding count declared for ${unknownEntities.join(', ')} — ` +
+      `add one rather than letting an unasserted registry through`);
+    blockers += unknownEntities.length;
+  }
+  console.log(`Registered source_rounding cases across the checked entities: ${totalRegistered} (expected ${expectedRegistered})\n`);
+  if (totalRegistered !== expectedRegistered) {
+    console.error(`  BLOCKER: expected ${expectedRegistered} registered source_rounding cases, parsed ${totalRegistered}`);
     blockers++;
   }
 
@@ -1086,6 +1913,17 @@ async function main() {
     }
   }
 
+  // ── the weaker corroboration path, declared ───────────────────────────────
+  console.log(`\nCOLUMN BANDS — where the corroboration came from:`);
+  if (!corroboratedElsewhere.length) {
+    console.log('  every section that needed bands corroborated them against its OWN complete rows.');
+  } else {
+    console.log(`  ${corroboratedElsewhere.length} section(s) had NO complete data row of their own and were`);
+    console.log('  corroborated from the other section of the same page instead — same `-table` grid, checked by');
+    console.log('  the identical rule, but weaker in locality. Listed so the weakening is never silent:');
+    for (const m of corroboratedElsewhere) console.log(`      • ${m}`);
+  }
+
   // ── registered-delta adjudication ─────────────────────────────────────────
   {
     const done = rows.filter((r) => r.ind);
@@ -1103,11 +1941,22 @@ async function main() {
   }
 
   // ── independent-document cross-check ──────────────────────────────────────
+  // Kitsap-specific: kitsap.gov publishes a physically different copy of the
+  // same statements. SKIPPED when Kitsap is not in this run, because the check
+  // compares against SAO-side re-derivations that a filtered run never
+  // computed. Without this guard `--only "Bainbridge Island"` reported ten
+  // blockers that were purely an artifact of the filter -- Bainbridge itself
+  // was 36/36 clean underneath them.
   const XCHECK_FYS = [2020, 2021, 2022, 2023, 2024];
-  console.log('\nINDEPENDENT-DOCUMENT CROSS-CHECK — kitsap.gov copies (physically different documents');
-  console.log('on a different host, carrying the same statements):');
+  const xcheckApplies = ENTITIES.some((e) => e.key === 'Kitsap County');
   let xcheckYears = 0;
   const xcheckRows = [];
+  if (!xcheckApplies) {
+    console.log('\nINDEPENDENT-DOCUMENT CROSS-CHECK — SKIPPED: Kitsap County is not in this run');
+    console.log('  (--only filter). No entity other than Kitsap has a second published copy.');
+  } else {
+  console.log('\nINDEPENDENT-DOCUMENT CROSS-CHECK — kitsap.gov copies (physically different documents');
+  console.log('on a different host, carrying the same statements):');
   for (const fy of XCHECK_FYS) {
     let dest, cached;
     try {
@@ -1124,7 +1973,11 @@ async function main() {
       if (!sao || !sao.ind) { console.error(`  BLOCKER ${label}: no SAO-side re-derivation to compare against`); blockers++; ok = false; continue; }
       let gov;
       try {
-        gov = rederive(dest, fy, mode, label, ENTITIES[1].perCapitaBand, ENTITIES[1].population);
+        // Look Kitsap up by NAME. This was ENTITIES[1], a positional reference that
+        // silently pointed at a different entity the moment the list came from a
+        // roster that can be reordered or filtered with --only.
+        const kc = ALL_ENTITIES.find((e) => e.key === 'Kitsap County');
+        gov = rederive(dest, fy, mode, label, kc.perCapitaBand, kc.population);
       } catch (e) {
         console.error(`  BLOCKER ${label}: re-derivation failed — ${e.message}`);
         blockers++; ok = false; continue;
@@ -1143,8 +1996,8 @@ async function main() {
     console.log(`  FY${fy}: ${path.basename(dest)} (${cached ? 'cached' : 'downloaded'}) — ${ok ? 'AGREES with the WA SAO copy on every leaf, subtotal and total' : 'DISAGREEMENT, see above'}`);
   }
   console.log(`\n  YEARS THAT RECEIVED THE INDEPENDENT-DOCUMENT CROSS-CHECK: ${xcheckYears} (Kitsap FY2020-FY2024)`);
-  console.log(`  = ${xcheckYears * 2} of the 72 loaded rows. The other ${72 - xcheckYears * 2} rows are verified against ONE document each,`);
-  console.log('  so "72 rows verified" must NOT be read as "72 rows independently sourced".');
+  console.log(`  = ${xcheckYears * 2} of the ${EXPECTED_TOTAL_ROWS} checked rows. The other ${EXPECTED_TOTAL_ROWS - xcheckYears * 2} are verified against ONE document each,`);
+  console.log(`  so "${EXPECTED_TOTAL_ROWS} rows verified" must NOT be read as "${EXPECTED_TOTAL_ROWS} rows independently sourced".`);
   console.log('  Out of scope, stated rather than silently skipped:');
   console.log('   • Kitsap FY2017-FY2019 — dropped years, no loaded rows to cross-check.');
   console.log('   • Kitsap FY2004-FY2016 — kitsap.gov hosts these SECTIONED, not as single PDFs.');
@@ -1153,6 +2006,7 @@ async function main() {
   for (const x of xcheckRows) {
     console.log(`    FY${x.fy} ${x.mode.padEnd(9)} p.${String(x.page).padStart(3)}  sao=${String(x.sao).padStart(12)}  kitsap.gov=${String(x.gov).padStart(12)}  ${x.ok ? 'MATCH' : 'DISAGREE'}`);
   }
+  }   // end of the Kitsap-only cross-check block
 
   // ── coverage assertion (a green run must not be vacuous) ───────────────────
   const expectedCombos = ENTITIES.reduce((s, e) => s + e.fys.length * 2, 0);
@@ -1170,10 +2024,10 @@ async function main() {
       .in('municipality_id', ENTITIES.map((e) => e.expectId));
     if (error) { console.error(`  BLOCKER: budgets row count query failed: ${error.message}`); blockers++; }
     else if (count !== EXPECTED_TOTAL_ROWS) {
-      console.error(`  BLOCKER: treasury.budgets holds ${count} rows for these two entities, expected ${EXPECTED_TOTAL_ROWS} — a row exists that this harness never checked`);
+      console.error(`  BLOCKER: treasury.budgets holds ${count} rows for the checked entities, expected ${EXPECTED_TOTAL_ROWS} — a row exists that this harness never checked`);
       blockers++;
     } else {
-      console.log(`\nDB row count for the two entities: ${count} — exactly the ${combos} combinations checked. No unchecked row exists.`);
+      console.log(`\nDB row count for the checked entities: ${count} — exactly the ${combos} combinations checked. No unchecked row exists.`);
     }
   }
 
@@ -1194,7 +2048,13 @@ async function main() {
 // Set exitCode and let the loop drain rather than calling process.exit(): the
 // Supabase client uses undici, so an abrupt exit can race a keep-alive socket
 // into a Windows libuv UV_HANDLE_CLOSING assert.
-main()
-  .then((code) => { process.exitCode = code; })
-  .catch((e) => { console.error('Fatal:', e); process.exitCode = 2; })
-  .finally(() => { setTimeout(() => process.exit(process.exitCode ?? 0), 2000).unref(); });
+//
+// Guarded on being the entry point so the reader unit tests can import this
+// file. Importing it must not run the corpus, read credentials or open a socket.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  connect();
+  main()
+    .then((code) => { process.exitCode = code; })
+    .catch((e) => { console.error('Fatal:', e); process.exitCode = 2; })
+    .finally(() => { setTimeout(() => process.exit(process.exitCode ?? 0), 2000).unref(); });
+}

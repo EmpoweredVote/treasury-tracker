@@ -10,7 +10,7 @@ from lib.acfrGF import (CityConfig, column_value, classify, build_revenue,
                          build_operating, anchors, slots, dash_zero_label,
                          find_statement_page, parse_fy, _is_section_header,
                          _recover_label_past_leading_page_number,
-                         target_cell_is_dash_zero)
+                         target_cell_is_dash_zero, label_of)
 # The SHIPPED Bainbridge configs themselves, not copies of them -- see
 # TestShippedBainbridgeConfigsAreWholeDollars at the bottom of this file for
 # why the real objects have to be under test rather than a local fixture.
@@ -19,6 +19,11 @@ from lib.acfrGF import (CityConfig, column_value, classify, build_revenue,
 import extractBainbridge          # noqa: E402
 import extractBainbridgeEarly     # noqa: E402
 import extractKitsap              # noqa: E402
+import extractTacoma              # noqa: E402
+import extractSpokane             # noqa: E402
+import extractVancouver           # noqa: E402
+import extractBellevue            # noqa: E402
+import extractKent                # noqa: E402
 
 # Transcribed from King County FY2020-era GF statement (values thousands-scale
 # in the real document; kept as bare ints here since these tests exercise
@@ -846,6 +851,250 @@ class TestShippedBainbridgeConfigsAreWholeDollars(unittest.TestCase):
         self.assertEqual(extractKitsap.CONFIG.units, 1)
 
 
+class TestShippedTacomaConfig(unittest.TestCase):
+    # Tacoma is the first WA SAO city in this repo that prints IN THOUSANDS,
+    # so it is the one entity where copying a Bainbridge/Kitsap config would
+    # publish figures 1000x too small behind a green tie. Asserted against the
+    # real shipped CONFIG for the reason in the class above: a locally rebuilt
+    # equivalent would pass forever regardless of what the file says.
+    def test_tacoma_config_units_is_thousands(self):
+        self.assertEqual(extractTacoma.CONFIG.units, 1000)
+
+    def test_tacoma_column_strategy_is_positional(self):
+        # NOT 'ordinal', and this is load-bearing rather than stylistic.
+        # FY2023's Transportation row has a BLANK General Fund cell -- not a
+        # dash, nothing -- so it prints three numbers where every other row
+        # prints four. The ordinal reader counts back from the right end and
+        # silently shifts a column, reading the Trans Capital figure (4,330)
+        # as the General Fund figure: 268,401 computed vs 264,071 printed.
+        # The positional reader anchors columns from the fully-populated
+        # totals row and correctly sees the cell as absent.
+        self.assertEqual(extractTacoma.CONFIG.column_strategy, 'positional')
+
+    def test_tacoma_fy_end_is_december_31(self):
+        self.assertEqual(extractTacoma.CONFIG.fy_end, ('December', 31))
+
+    def test_tacoma_tax_group_members_are_bare_nouns_not_taxes_suffix(self):
+        # Tacoma's tax children are `Property` / `Retail Sales & Use` /
+        # `Business` / `Excise` -- bare nouns. Seattle's are "... taxes", so
+        # Seattle's ('taxes',) suffix would close Tacoma's group immediately
+        # and strand all four children at root. Both spellings still tie $0;
+        # only the shape would be wrong, which is why this is asserted.
+        self.assertEqual(extractTacoma.CONFIG.revenue_parents, ('taxes',))
+        self.assertIn('property', extractTacoma.CONFIG.revenue_group_members)
+        self.assertIn('excise', extractTacoma.CONFIG.revenue_group_members)
+        self.assertNotEqual(extractTacoma.CONFIG.revenue_group_members, ('taxes',))
+
+    def test_tacoma_root_leaves_cover_both_era_spellings(self):
+        # Era A prints `Capital Outlay`; Era B prints `Capital expenditures`.
+        # One config spans both only because both spellings are listed.
+        self.assertIn('capital outlay', extractTacoma.CONFIG.root_leaves)
+        self.assertIn('capital expenditures', extractTacoma.CONFIG.root_leaves)
+
+
+class TestShippedSpokaneConfig(unittest.TestCase):
+    """Spokane, MCAG 0724. Asserted against the real shipped CONFIG for the
+    reason the two classes above give: a locally rebuilt equivalent would pass
+    forever regardless of what the file actually says."""
+
+    def test_spokane_units_is_whole_dollars(self):
+        # Read off the page: no "(in thousands)" caption anywhere on the
+        # statement, and FY2024 prints Taxes as 216,713,093. Tacoma, the
+        # neighbouring config in this milestone, is units=1000 -- and the tie
+        # gate cannot tell the two apart, so this is asserted rather than
+        # trusted.
+        self.assertEqual(extractSpokane.CONFIG.units, 1)
+
+    def test_spokane_column_strategy_is_positional(self):
+        # FY2005 prints two expenditure rows with a BLANK cell (Physical
+        # environment and Mental and physical health carry four numbers where
+        # every sibling carries five) and FY2007 prints one. The ordinal
+        # reader counts back from the right end, so a missing cell silently
+        # shifts a column.
+        self.assertEqual(extractSpokane.CONFIG.column_strategy, 'positional')
+
+    def test_spokane_fy_end_is_december_31(self):
+        self.assertEqual(extractSpokane.CONFIG.fy_end, ('December', 31))
+
+    def test_spokane_revenue_side_is_flat(self):
+        # Spokane prints Taxes as a VALUED LEAF in all 20 loaded years -- there
+        # is no `Taxes:` parent the way Tacoma FY2019+ and Seattle FY2024 have.
+        # Setting revenue_parents here would open a group on a row that carries
+        # a value, so this asserts the empty tuple rather than leaving it
+        # unexamined.
+        self.assertEqual(extractSpokane.CONFIG.revenue_parents, ())
+        self.assertEqual(extractSpokane.CONFIG.revenue_group_members, ())
+
+    def test_spokane_capital_outlay_is_a_ROOT_LEAF_not_a_current_child(self):
+        # Settled from the FY2004 statement, which is the only era that still
+        # PRINTS the indentation: `Current:` and `Debt service:` sit at x=39
+        # with their children at x=41, and `Capital outlay` sits at x=39 -- a
+        # root peer. FY2015 onward flattens every label to the same x, so the
+        # later eras cannot answer this on their own and inherit the reading
+        # from the era that can.
+        self.assertIn('capital outlay', extractSpokane.CONFIG.root_leaves)
+        self.assertIn('current', extractSpokane.CONFIG.parents)
+        self.assertIn('debt service', extractSpokane.CONFIG.parents)
+
+    def test_spokane_root_leaf_prefix_covers_the_plural_spelling(self):
+        # FY2004-FY2011 print `Capital outlay`; FY2013 onward print `Capital
+        # outlays`. root_leaves are PREFIXES, so the singular entry covers
+        # both -- asserted because an exact-match reading of this field would
+        # silently nest half the corpus under Current:.
+        self.assertTrue(
+            any('capital outlays'.startswith(p) for p in extractSpokane.CONFIG.root_leaves),
+            'no root_leaves prefix matches the plural "capital outlays"')
+
+    def test_spokane_label_fix_key_is_the_collapsed_label(self):
+        # `_fix_label` is handed what `label_of()` emits, which has already
+        # collapsed runs of spaces. Keying on the wide spacing the raw `-table`
+        # line shows silently never matches, and the corrupted label ships.
+        for k in (extractSpokane.CONFIG.label_fixes or {}):
+            self.assertNotIn('  ', k, 'label_fixes key carries uncollapsed whitespace')
+
+    def test_spokane_label_fix_repairs_the_welded_sao_credit(self):
+        # FY2007 alone welds the rotated page-footer credit onto a real label:
+        # `-table` renders the Physical environment row with "Washington State
+        # Auditor's Office" glued to the front of it. The FIGURE is correct and
+        # the row ties at $0, so no arithmetic gate sees this -- it is a label
+        # corruption of the same class as v2.22's welded margin rule.
+        fixes = extractSpokane.CONFIG.label_fixes or {}
+        self.assertTrue(
+            any('Auditor' in k for k in fixes),
+            'no label_fixes entry repairs the welded SAO page-footer credit')
+        for k, v in fixes.items():
+            if 'Auditor' in k:
+                self.assertNotIn('Auditor', v)
+
+
+class TestShippedVancouverConfig(unittest.TestCase):
+    """Vancouver, MCAG 0247. Asserted against the real shipped CONFIG."""
+
+    def test_vancouver_units_is_whole_dollars(self):
+        # No "(in thousands)" caption in any loaded year; FY2023 prints Total
+        # revenues as 238,714,756. Tacoma, in the same milestone, is units=1000
+        # and the tie gate cannot tell the two apart.
+        self.assertEqual(extractVancouver.CONFIG.units, 1)
+
+    def test_vancouver_fy_end_is_december_31(self):
+        self.assertEqual(extractVancouver.CONFIG.fy_end, ('December', 31))
+
+    def test_vancouver_revenue_side_is_flat(self):
+        # Vancouver names its tax sources as sibling leaves (Property taxes /
+        # Sales and use taxes / Other taxes, later Business & Occupation and
+        # Excise). There is no `Taxes:` parent to open.
+        self.assertEqual(extractVancouver.CONFIG.revenue_parents, ())
+        self.assertEqual(extractVancouver.CONFIG.revenue_group_members, ())
+
+    def test_vancouver_capital_line_is_a_ROOT_LEAF(self):
+        # Read off the indentation, which Vancouver still prints in BOTH eras:
+        # FY2005 p.23 puts `Current` and `Debt service` at x=43 with their
+        # functions at x=48 and `Capital projects` at x=43; FY2023 p.33 does the
+        # same at x=47/51 with `Capital outlay`. A root peer either way.
+        self.assertIn('current', extractVancouver.CONFIG.parents)
+        self.assertIn('debt service', extractVancouver.CONFIG.parents)
+        self.assertTrue(extractVancouver.CONFIG.root_leaves)
+
+    def test_vancouver_root_leaf_prefix_covers_BOTH_capital_spellings(self):
+        # FY2005-FY2014 print `Capital projects`; FY2015 onward print `Capital
+        # outlay`. root_leaves are PREFIXES, so one entry must cover both --
+        # naming only one spelling would nest half the corpus under Current.
+        for spelling in ('capital projects', 'capital outlay'):
+            self.assertTrue(
+                any(spelling.startswith(p) for p in extractVancouver.CONFIG.root_leaves),
+                'no root_leaves prefix matches %r' % spelling)
+
+
+class TestShippedBellevueConfig(unittest.TestCase):
+    """Bellevue, MCAG 0374. Asserted against the real shipped CONFIG."""
+
+    def test_bellevue_units_is_thousands(self):
+        # The statement is captioned "(in thousands)" and FY2023 prints Taxes &
+        # special assessments as 210,259. Bellevue and Tacoma are the two
+        # thousands-denominated cities in this milestone; Spokane and Vancouver
+        # print whole dollars, and the tie gate cannot tell any of them apart.
+        self.assertEqual(extractBellevue.CONFIG.units, 1000)
+
+    def test_bellevue_fy_end_is_december_31(self):
+        self.assertEqual(extractBellevue.CONFIG.fy_end, ('December', 31))
+
+    def test_bellevue_capital_outlay_IS_A_PARENT_not_a_root_leaf(self):
+        # ⚠ BELLEVUE INVERTS THE SHAPE EVERY OTHER WA ENTITY USES. `Capital
+        # outlay:` is a PARENT with its own function children (General
+        # government, Public safety, Physical environment, Transportation,
+        # Economic environment, Culture & recreation) -- it is NOT the valued
+        # root leaf it is in Tacoma, Spokane and Vancouver. Listing it in
+        # root_leaves here would read the first capital child as the whole
+        # capital line and strand the rest, and the row would still tie at $0
+        # because the same dollars are present either way.
+        self.assertIn('capital outlay', extractBellevue.CONFIG.parents)
+        self.assertNotIn('capital outlay', extractBellevue.CONFIG.root_leaves)
+
+    def test_bellevue_has_three_parents_and_no_root_leaves(self):
+        # All three GASB characters are printed as colon-terminated headings
+        # with children beneath them, so nothing sits at root carrying a value.
+        for p in ('current', 'debt service', 'capital outlay'):
+            self.assertIn(p, extractBellevue.CONFIG.parents)
+        self.assertEqual(extractBellevue.CONFIG.root_leaves, ())
+
+    def test_bellevue_revenue_side_is_flat(self):
+        self.assertEqual(extractBellevue.CONFIG.revenue_parents, ())
+        self.assertEqual(extractBellevue.CONFIG.revenue_group_members, ())
+
+    def test_kent_units_is_whole_dollars(self):
+        self.assertEqual(extractKent.CONFIG.units, 1)
+
+    def test_kent_groups_five_revenue_parents(self):
+        # The richest revenue tree in the WA cohort. Read off the FY2024
+        # indentation: parents at x=51, children at x=53.
+        for p in ('taxes', 'licenses and permits', 'intergovernmental revenue',
+                  'charges for services', 'miscellaneous revenue'):
+            self.assertIn(p, extractKent.CONFIG.revenue_parents)
+
+    def test_kent_group_members_do_not_swallow_fines_and_forfeitures(self):
+        # `Fines and forfeitures` is the ONE ungrouped source (x=51, same as the
+        # parents). It has to CLOSE the Charges for services group, so no member
+        # suffix may match it -- otherwise it nests, with the same dollars and a
+        # $0 tie.
+        self.assertFalse(
+            any('fines and forfeitures'.endswith(s)
+                for s in extractKent.CONFIG.revenue_group_members))
+
+    def test_kent_member_suffixes_never_match_singular_intergovernmental_revenue(self):
+        # FY2012 prints `Intergovernmental revenue` as a VALUED LEAF rather than
+        # a parent. A bare `revenue` suffix would keep it inside the still-open
+        # Licenses and permits group instead of closing it, so the config uses
+        # `miscellaneous revenue` and the plural `revenues` instead.
+        self.assertFalse(
+            any('intergovernmental revenue'.endswith(s)
+                for s in extractKent.CONFIG.revenue_group_members))
+
+    def test_kent_column_strategy_is_positional(self):
+        # Kent's statements are full of blank cells: FY2004 revenue rows carry
+        # one to four numbers against a four-column totals row, FY2006/FY2008
+        # the same against seven. Ordinal would shift a column on every one.
+        self.assertEqual(extractKent.CONFIG.column_strategy, 'positional')
+
+    def test_kent_label_fix_repairs_the_welded_sao_credit(self):
+        fixes = extractKent.CONFIG.label_fixes or {}
+        self.assertTrue(any('Auditor' in k for k in fixes))
+        for k, v in fixes.items():
+            self.assertNotIn('  ', k)          # collapsed, as label_of() emits
+            if 'Auditor' in k:
+                self.assertNotIn('Auditor', v)
+
+
+class TestShippedBellevueConfigContinued(unittest.TestCase):
+    def test_bellevue_column_strategy_is_ORDINAL_not_the_default(self):
+        # FY2008 and FY2009 render the General Fund column in disjoint
+        # horizontal zones under `-table`, so no x-range anchored on the totals
+        # row encloses them: the positional reader found an empty band and
+        # computed a General Fund total of ZERO against a printed 143,577.
+        # Ordinal is safe here only because no Bellevue row is ever short --
+        # every data row exposes exactly as many cells as its totals row.
+        self.assertEqual(extractBellevue.CONFIG.column_strategy, 'ordinal')
+
+
 # ── Trap 5 (fix round 3): footer page-number recovery + loud failure ────────
 # Transcribed from the FY2004 governmental-funds statement's real
 # Transportation row (see task-4-report.md fix round 2 for how this was
@@ -1248,6 +1497,152 @@ class TestKitsapStatementAnchorGuardsAgainstTheWrongPage(unittest.TestCase):
                    'Balances - Budget and   Actual')
         pattern = re.compile(extractKitsap.CONFIG.statement_anchor, re.I | re.M)
         self.assertIsNone(pattern.search(caption))
+
+
+class TestNumberInsideALabelDoesNotEndIt(unittest.TestCase):
+    # Kent FY2004-FY2010 print an intergovernmental line called `Fire District #
+    # 37 Contract`. `label_of` cut every label at its first money token, and `37`
+    # is one, so SIX published years carried a line item named `Fire District #`.
+    # The figure and the tie were untouched, which is exactly why it survived to
+    # production -- a truncated NAME is invisible to arithmetic.
+    LINE = 'Fire District # 37 Contract                        3,207,614'
+    ANCHOR = 'Total revenues                                     61,740,799   1   2'
+
+    def test_the_full_name_is_read(self):
+        self.assertEqual(label_of(self.LINE), 'Fire District # 37 Contract')
+
+    def test_a_column_value_still_ends_the_label(self):
+        self.assertEqual(label_of('Property taxes      417,446    3,871    -'), 'Property taxes')
+
+    def test_a_trailing_number_in_a_name_is_still_cut(self):
+        # Honest limit, recorded rather than hidden: with nothing after it, a
+        # number at the END of a name is indistinguishable from a column value
+        # and is treated as one. No row in this corpus has that shape; if one
+        # appears, the rederive harness will disagree on the label.
+        self.assertEqual(label_of('Fire District # 37      1,000'), 'Fire District #')
+
+    def test_kent_group_members_match_the_untruncated_name(self):
+        # The old `district #` suffix matched the TRUNCATION. If it is not
+        # updated with label_of, the Intergovernmental group closes on its own
+        # first child and the four members surface at root.
+        low = 'fire district # 37 contract'
+        self.assertTrue(any(low.endswith(s) for s in extractKent.CONFIG.revenue_group_members))
+
+
+class TestEmptyRowsAreNotWrappedLabels(unittest.TestCase):
+    # Kent's `Lodging` tax line carries NOTHING in any column -- no figure and no
+    # dash -- so it reached the wrapped-label branch and welded onto the next row,
+    # publishing a Taxes line item called `Lodging Other` that held `Other`'s
+    # $1,130,391. Transcribed from Kent FY2011 p.36.
+    LINES = [
+        'REVENUES',
+        'Taxes:',
+        'Property                                 19,367,630   1   2',
+        'Real estate excise tax                                2,235,174',
+        'Lodging',
+        'Other                                    1,130,391',
+        'Total revenues                           68,543,360   1   2',
+    ]
+    ANCHOR = 'Total revenues                           68,543,360   1   2'
+
+    def _cfg(self, empty_rows=()):
+        return CityConfig(city='T', parents=(), root_leaves=(),
+                          revenue_parents=('taxes',),
+                          revenue_group_members=('property', 'excise tax', 'lodging', 'other'),
+                          empty_rows=empty_rows)
+
+    def test_undeclared_it_still_welds(self):
+        # The default is deliberately unchanged: Bend, Seattle and Beaverton all
+        # have GENUINE two-line labels that depend on it.
+        tree, _, _ = build_revenue(self.LINES, anchors(self.ANCHOR), self._cfg())
+        leaves = [c['n'] for c in tree['c'][0]['c']]
+        self.assertIn('Lodging Other', leaves)
+
+    def test_declared_it_becomes_a_zero_row_and_the_next_label_survives(self):
+        cfg = self._cfg(empty_rows=('lodging',))
+        tree, _, zero_rows = build_revenue(self.LINES, anchors(self.ANCHOR), cfg)
+        leaves = [c['n'] for c in tree['c'][0]['c']]
+        self.assertEqual(leaves, ['Property', 'Other'])
+        self.assertIn('Lodging', zero_rows)
+
+    def test_a_declared_label_is_inert_in_a_year_that_carries_a_figure(self):
+        # `real estate excise tax` is valueless in Kent FY2004 only. Declaring it
+        # must not touch the fifteen years where the row has a General Fund
+        # figure -- here it has one in another column and none in the GF column,
+        # which is a $0 data row either way.
+        cfg = self._cfg(empty_rows=('real estate excise tax',))
+        _, _, zero_rows = build_revenue(self.LINES, anchors(self.ANCHOR), cfg)
+        self.assertIn('Real estate excise tax', zero_rows)
+
+    def test_operating_side_keeps_a_root_leaf_a_root_leaf(self):
+        # Kent FY2005 p.31: `Issuance costs` is empty in every column and
+        # `Capital outlay` follows it as a valued ROOT peer. Welded, the
+        # composite stopped matching root_leaves and $193,673 of capital
+        # spending was filed inside Debt service.
+        lines = [
+            'EXPENDITURES',
+            'Current:',
+            'General government                       5,227,256    20,000',
+            'Debt service:',
+            'Principal                                             3,911,886',
+            'Issuance costs',
+            'Capital outlay                           193,673      22,962,767',
+            'Total expenditures                       67,200,101   26,047',
+        ]
+        anch = anchors('Total expenditures                       67,200,101   26,047')
+        cfg = CityConfig(city='T', parents=('current', 'debt service'),
+                         root_leaves=('capital outlay',), empty_rows=('issuance costs',))
+        tree, _, _ = build_operating(lines, anch, cfg)
+        self.assertEqual([n['n'] for n in tree['c']], ['Current', 'Capital outlay'])
+        self.assertEqual(tree['c'][1]['a'], 193_673)
+
+
+class TestRevenueDashZeroHeading(unittest.TestCase):
+    # Trap 6 on the REVENUE side. Kent FY2024 p.41 prints a lone `-` in the
+    # General Fund column on the `Intergovernmental revenue` HEADING row, so it
+    # arrived as a $0 data row: the group never opened and, the heading not being
+    # one of its own group members, it CLOSED the previous group too. Federal
+    # grants, State grants, State shared revenues and Other governments then
+    # stood as four ROOT categories against the four children every neighbouring
+    # year prints -- same dollars, same $0 tie, wrong shape.
+    LINES = [
+        'REVENUES',
+        'Licenses and permits:',
+        'Building permits                         4,198,098    1   2',
+        'Intergovernmental revenue                         -',
+        'Federal grants                           3,679,878    1   2',
+        'State grants                             76,388       1   2',
+        'Total revenues                           130,475,114  1   2',
+    ]
+    ANCHOR = 'Total revenues                           130,475,114  1   2'
+    CFG = CityConfig(city='T', parents=(),
+                     revenue_parents=('licenses and permits', 'intergovernmental revenue'),
+                     revenue_group_members=('permits', 'grants'))
+
+    def test_the_dash_zero_heading_opens_its_group(self):
+        tree, _, _ = build_revenue(self.LINES, anchors(self.ANCHOR), self.CFG)
+        self.assertEqual([n['n'] for n in tree['c']],
+                         ['Licenses and permits', 'Intergovernmental revenue'])
+        self.assertEqual([c['n'] for c in tree['c'][1]['c']], ['Federal grants', 'State grants'])
+
+    def test_a_valued_row_whose_name_matches_a_parent_stays_a_leaf(self):
+        # Both halves of the gate matter. A `revenue_parents`-matched label
+        # carrying a REAL figure is a valued root leaf, not a heading.
+        lines = [
+            'REVENUES',
+            'Intergovernmental revenue                7,518,359    1   2',
+            'Total revenues                           68,543,360   1   2',
+        ]
+        anch = anchors('Total revenues                           68,543,360   1   2')
+        tree, _, _ = build_revenue(lines, anch, self.CFG)
+        self.assertEqual([n['n'] for n in tree['c']], ['Intergovernmental revenue'])
+        self.assertEqual(tree['c'][0]['a'], 7_518_359)
+
+    def test_kent_declares_the_four_empty_rows_it_prints(self):
+        # The shipped CONFIG itself, so deleting an entry fails here.
+        for lbl in ('lodging', 'real estate excise tax', 'contributions and donations',
+                    'issuance costs'):
+            self.assertIn(lbl, extractKent.CONFIG.empty_rows)
 
 
 if __name__ == '__main__':

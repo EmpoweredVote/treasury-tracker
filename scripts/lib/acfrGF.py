@@ -142,6 +142,40 @@ class CityConfig:
                  legitimate multi-word labels. Every entry here is a specific
                  string observed in a specific document and checked against how
                  the same line reads in neighbouring years.
+    empty_rows   labels that, WHEN THE ROW CARRIES NO MONEY AND NO DASH IN ANY
+                 COLUMN, are a LINE ITEM THE ISSUER PRINTED EMPTY — not the first
+                 line of a wrapped label.
+
+                 A row with no money token is one of three things: a group
+                 heading (handled by `parents` / `revenue_parents`), the first
+                 line of a two-line label, or a line item that simply carries
+                 nothing that year. The default is the wrapped-label reading, and
+                 that default is RIGHT for most of this corpus -- Bend's
+                 `Community and economic` / `development`, Seattle's `Program
+                 Income, Interest, and Miscellaneous`, Beaverton's `Interest on
+                 investments` are all genuine two-line labels.
+
+                 Kent is the counter-example, and it cost ten published labels.
+                 Its `Lodging` tax line, its `Issuance costs` debt line and (in
+                 FY2004) its `Real estate excise tax` line are real line items
+                 with nothing in any column, and welding them forward shipped
+                 `Lodging Other`, `Real estate excise tax Lodging Other`,
+                 `Contributions and Donations Other miscellaneous revenue` and
+                 `Issuance costs Capital outlay`. The last of those was worse than
+                 a name: the composite no longer STARTED with a `root_leaves`
+                 entry, so $193,673 of capital spending was filed inside Debt
+                 service. Every one of them tied at $0.
+
+                 A label listed here only takes effect on a year where the row is
+                 ACTUALLY valueless, so `real estate excise tax` can be declared
+                 without affecting the fifteen years in which it carries a figure.
+
+                 Note this is a DECLARATION, not a derivation: the shapes are told
+                 apart from the document itself, independently, by
+                 verify-wa-rederive.mjs, which reads the printed indentation out of
+                 `pdftotext -lineprinter` and needs no per-city fact at all. That
+                 harness is what caught all ten, and it is what will catch a wrong
+                 entry here.
     units        multiplier applied to every extracted amount. Seattle and King
                  County print "(IN THOUSANDS)", so both use units=1000; every
                  other city prints whole dollars and uses the default 1.
@@ -277,7 +311,8 @@ class CityConfig:
                  label_fixes=None, units=1, column_strategy='positional',
                  revenue_parents=(), revenue_group_members=(),
                  statement_anchor=None, section_header_mode='exact',
-                 fy_end=('June', 30), revenue_total_labels=('total revenues',)):
+                 fy_end=('June', 30), revenue_total_labels=('total revenues',),
+                 empty_rows=()):
         if not isinstance(units, int) or isinstance(units, bool):
             raise TypeError(
                 'CityConfig.units must be an int, got %r (%s). A float would '
@@ -300,6 +335,7 @@ class CityConfig:
         self.section_header_mode = section_header_mode
         self.fy_end = fy_end
         self.revenue_total_labels = tuple(lbl.lower() for lbl in revenue_total_labels)
+        self.empty_rows = tuple(r.lower() for r in empty_rows)
 
 
 # ── Money parsing ─────────────────────────────────────────────────────────────
@@ -369,9 +405,28 @@ def norm_label(raw):
     return s.strip().rstrip(':').strip()
 
 def label_of(line):
-    """Row label = text before the first money token."""
-    m = _MONEY.search(line)
-    raw = line[:m.start()] if m else line
+    """Row label = text before the first money token that ENDS the label.
+
+    A NUMBER CAN BE PART OF A NAME, and cutting at the first money token alone
+    got that wrong: Kent FY2004-FY2010 print an intergovernmental line called
+    `Fire District # 37 Contract`, whose `37` matches _MONEY, so six published
+    years carried a line item named `Fire District #` -- a truncation no
+    arithmetic gate can see, since the figure and the tie are untouched.
+
+    A number inside a name is followed by more of the name; a column value is
+    followed only by other columns' figures, dashes and dollar signs. So the
+    label ends at the first money token after which no WORD remains.
+
+    This is narrower than it looks: measured across all eighteen entities that
+    use this module, the only rows it moves are Kent's six `Fire District #`
+    rows. `label_of_slots` (the ordinal path) cuts at a COLUMN SLOT rather than a
+    money token and is untouched, so no ordinal city is affected either.
+    """
+    raw = line
+    for m in _MONEY.finditer(line):
+        if not re.search(r'[A-Za-z]{2,}', line[m.end():]):
+            raw = line[:m.start()]
+            break
     return norm_label(raw)
 
 def label_of_slots(line):
@@ -1074,9 +1129,37 @@ def build_revenue(lines, col_anchors, cfg):
             root_children.append(parent)
             pending = ''
             continue
+        # Trap 6, on the REVENUE side. `build_operating` has had this branch since
+        # Kitsap FY2011-FY2013; this section did not, and Kent FY2024 is the same
+        # shape: p.41 prints a lone `-` in the General Fund column on the
+        # `Intergovernmental revenue` HEADING row, so it arrives as ('data',
+        # label, 0) rather than 'wrapped', the group never opens, and -- because
+        # the heading is not one of its own `revenue_group_members` -- it also
+        # CLOSED the previous group. Federal grants, State grants, State shared
+        # revenues and Other governments then stood as four ROOT categories
+        # against the four children every neighbouring year prints. Same dollars,
+        # same $0 tie, wrong shape.
+        #
+        # Gated exactly as the operating one is: the label must match a configured
+        # `revenue_parents` entry AND the General Fund cell must be an explicit
+        # dash placeholder, so a valued row whose name happens to match a parent
+        # stays a leaf.
+        if (kind == 'data' and val == 0 and low in cfg.revenue_parents
+                and target_cell_is_dash_zero(l, col_anchors, cfg)):
+            parent = {'n': lbl, 'a': 0, 'c': []}
+            parent_seen = False
+            root_children.append(parent)
+            pending = ''
+            continue
         if kind == 'skip':
             continue
         if kind == 'wrapped':
+            # A declared line item printed empty in every column -- not a label
+            # fragment. See CityConfig.empty_rows for what welding these cost.
+            if low in cfg.empty_rows:
+                zero_rows.append(lbl)
+                pending = ''
+                continue
             pending = norm_label('%s %s' % (pending, lbl))
             continue
 
@@ -1161,6 +1244,15 @@ def build_operating(lines, col_anchors, cfg):
         if kind == 'skip':
             continue
         if kind == 'wrapped':
+            # A declared line item printed empty in every column. Kent FY2005 and
+            # FY2009 print `Issuance costs` under `Debt service:` with nothing in
+            # any column; welded forward it became `Issuance costs Capital outlay`,
+            # which no longer matched `root_leaves` and so moved $193,673 of
+            # capital spending into the debt-service subtotal.
+            if low in cfg.empty_rows:
+                zero_rows.append(lbl)
+                pending = ''
+                continue
             pending = norm_label('%s %s' % (pending, lbl))
             continue
 

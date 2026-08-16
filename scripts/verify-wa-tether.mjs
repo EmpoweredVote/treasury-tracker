@@ -1,9 +1,14 @@
 #!/usr/bin/env node
 /**
- * verify-bainbridge-tether.mjs — Task 12: pre-determine the Essentials
- * tethered-icon verdict for Bainbridge Island and Kitsap County by fetching the
- * LIVE coverage catalog and running the same deterministic matcher the app
- * ships.
+ * verify-wa-tether.mjs — pre-determine the Essentials tethered-icon verdict for
+ * every WA SAO entity Treasury Tracker has seeded, by fetching the LIVE
+ * coverage catalog and running the same deterministic matcher the app ships.
+ *
+ * The entity list comes from scripts/lib/waRoster.mjs — every entity carrying
+ * an `expectId`, i.e. every one that exists in the database and therefore has a
+ * banner that could paint an icon. That includes the NAV-ONLY county nodes:
+ * they hold no budget rows, but they do have pages, and whether their banner
+ * paints a tether icon is exactly as much a question as it is for a city.
  *
  * "Determine-then-confirm": this computes what the banner icon SHOULD do
  * (covered → GEOID(s), or absent) so the live UAT is a confirmation rather than
@@ -46,6 +51,8 @@
  *
  * Read-only, off-repo fetch only. No DB. No AI. $0 spend.
  */
+
+import { WA_ENTITIES } from './lib/waRoster.mjs';
 
 const ESSENTIALS_URL = process.env.VITE_ESSENTIALS_URL || process.env.ESSENTIALS_URL || 'https://essentials.empowered.vote';
 
@@ -126,8 +133,17 @@ async function fetchCatalog() {
   }
 }
 
+// Every roster entity that exists in the database. `expectId` is the pinned
+// municipalities.id, so its presence is the same "is this seeded?" test the
+// other two harnesses use — a city still awaiting its recon has none and is
+// silently out of scope rather than reported as an uncovered place that does
+// not yet exist.
+const ENTITIES = WA_ENTITIES
+  .filter((e) => e.expectId)
+  .map((e) => ({ key: e.name, entity: { name: e.name, state: 'WA', entity_type: e.entityType } }));
+
 async function main() {
-  console.log('=== Bainbridge Island + Kitsap County Essentials tether pre-determination ===');
+  console.log(`=== WA SAO entities — Essentials tether pre-determination (${ENTITIES.length} entities) ===`);
   console.log(`Essentials origin: ${ESSENTIALS_URL}/coverage.json\n`);
 
   const { status, reason, catalog } = await fetchCatalog();
@@ -142,14 +158,9 @@ async function main() {
     console.log(`  WA counties in catalog: ${waCounties.length ? waCounties.join(', ') : '(none)'}`);
   }
 
-  const entities = [
-    { key: 'Bainbridge Island', entity: { name: 'Bainbridge Island', state: 'WA', entity_type: 'city' } },
-    { key: 'Kitsap County', entity: { name: 'Kitsap County', state: 'WA', entity_type: 'county' } },
-  ];
-
   console.log('');
   const out = [];
-  for (const { key, entity } of entities) {
+  for (const { key, entity } of ENTITIES) {
     const record = status === 'fetched_ok' ? matchEntityToCoverage(entity, catalog) : null;
     const outcome = status !== 'fetched_ok' ? 'fetch_failed' : record ? 'covered' : 'not_covered';
     out.push({ entity: key, outcome, geoids: record?.geoids ?? null });

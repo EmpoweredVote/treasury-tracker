@@ -1,9 +1,15 @@
 #!/usr/bin/env node
 /**
- * verify-bainbridge-audit.mjs — Task 10: source-chain and integrity audit for
- * the Bainbridge Island + Kitsap County load. EIGHT checks, all of which must
- * pass. (h) is listed out of alphabetical order because it was added after
- * Task 5; it is not optional and it is not last in importance.
+ * verify-wa-audit.mjs — source-chain and integrity audit for every loaded WA
+ * SAO entity. EIGHT checks, all of which must pass. (h) is listed out of
+ * alphabetical order because it was added late; it is not optional and it is
+ * not last in importance.
+ *
+ * The entity list, each entity's window, its exclusions, its per-capita band
+ * and its expected rounding-residue count all come from
+ * scripts/lib/waRoster.mjs — the same source the seeder, the loaders and the
+ * other two harnesses read. This file used to carry its own copy of all of it,
+ * which is how an audit ends up asserting a window the loader no longer uses.
  *
  *   (a) YEAR COVERAGE   — the loaded (fiscal_year, dataset_type) inventory equals
  *                         the declared window EXACTLY, per entity. A missing year
@@ -15,17 +21,23 @@
  *                         published a figure nobody adjudicated.
  *   (b) TIE INTEGRITY   — every row's stored total equals the sum of its own
  *                         categories, and every category with children equals the
- *                         sum of those children. The 33 registered
- *                         `source_rounding` acceptances are LISTED BY NAME with
- *                         their exact deltas, so an exception is visible in the
- *                         output rather than implied by its absence.
+ *                         sum of those children. Every registered
+ *                         `source_rounding` acceptance is LISTED BY NAME with
+ *                         its exact delta, so an exception is visible in the
+ *                         output rather than implied by its absence, and the
+ *                         COUNT is asserted per entity against the roster's
+ *                         `expectedResidues`.
  *   (c) PROVENANCE      — every row's source_url is exactly reportFileUrl(ARN)
  *                         for its own fiscal year, source_date is <FY>-12-31,
  *                         data_source is the exact dataSourceLabel() string, and
  *                         each local PDF's sha256 matches a committed manifest.
- *   (d) UNITS           — per-capita is inside [100, 10000] for every row, with
- *                         the actual value PRINTED per row so drift is visible
- *                         rather than merely absent.
+ *   (d) UNITS           — per-capita is inside the entity's OWN re-derived band
+ *                         for every row, with the actual value PRINTED per row
+ *                         so drift is visible rather than merely absent. The
+ *                         band is per entity because the corpus is mixed:
+ *                         Bainbridge and Kitsap print whole dollars, Tacoma
+ *                         prints in thousands, and one band wide enough for
+ *                         both catches neither.
  *   (e) LABEL INTEGRITY — no leaf label is empty or purely numeric, and no leaf
  *                         label has another label of its own row as a prefix
  *                         (the dash-zero grafting signature).
@@ -33,11 +45,12 @@
  *                         page is re-resolved from the PDF's own printed identity
  *                         and its General Fund column total is read directly off
  *                         the page, then matched to the DB. See below.
- *   (f) HIERARCHY       — Bainbridge Island.county_id -> Kitsap County; exactly
- *                         two WA rows carry these names; no duplicate of a
- *                         different entity_type exists.
- *   (g) ENRICHMENT      — every enrichment row for these two entities carries a
- *                         non-NULL municipality_id.
+ *   (f) HIERARCHY       — every entity's county_id resolves to the parent county
+ *                         the roster declares; exactly one WA row carries each
+ *                         audited name; no duplicate of a different entity_type
+ *                         exists.
+ *   (g) ENRICHMENT      — every enrichment row for the audited entities carries
+ *                         a non-NULL municipality_id.
  *
  * ── WHY (h) DOES NOT READ A STORED PAGE NUMBER ──────────────────────────────
  * Task 10 specifies (h) against "the row's stored statement_page". THERE IS NO
@@ -58,11 +71,19 @@
  * except the ARN manifest and the label formatter, both of which are DATA.
  *
  * The page-identity regexes are the same set Task 9 arrived at, and are
- * duplicated here deliberately rather than imported: `verify-bainbridge-
- * rederive.mjs` is an executable harness with a top-level `main()`, and an
- * audit that could only run by executing another harness would be the coupling
- * this suite exists to avoid. If the SAO's page shape ever changes, BOTH files
- * must be updated — that is a cost, and it is the cheaper of the two.
+ * duplicated here deliberately rather than imported: an audit that shared the
+ * re-derivation harness's page-identity code would prove only that the two
+ * agree with each other, which is the coupling this suite exists to avoid. If
+ * the SAO's page shape ever changes, BOTH files must be updated — that is a
+ * cost, and it is the cheaper of the two.
+ *
+ * That cost is real and has now been paid twice. The three Tacoma corrections
+ * (the `Govermental Funds` typo, the `General Governmental` caption, and
+ * `amounts expressed in thousands`) had to be made in both files
+ * independently, and this one carried the uncorrected versions for a commit.
+ * Spokane then repeated it: `assertPageYear` and `tablePages` both needed the
+ * same repair here that they needed there. Anything touched in one file's
+ * page-identity block should be checked against the other in the same change.
  *
  * Ambiguity is fatal here for exactly the reason it is fatal in Task 9: nine of
  * ten silent wrong-page selections tied at $0 during Task 5, so "the true
@@ -79,9 +100,10 @@
  * checks pass.
  *
  * Usage:
- *   node scripts/verify-bainbridge-audit.mjs
- *   node scripts/verify-bainbridge-audit.mjs --offline   (skip the URL probes)
- *   node scripts/verify-bainbridge-audit.mjs --record-sha (write the manifest)
+ *   node scripts/verify-wa-audit.mjs
+ *   node scripts/verify-wa-audit.mjs --only Tacoma
+ *   node scripts/verify-wa-audit.mjs --offline     (skip the URL probes)
+ *   node scripts/verify-wa-audit.mjs --record-sha  (write the manifest)
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -93,7 +115,9 @@ import { fileURLToPath } from 'node:url';
 
 import { reportFileUrl, SAO_HEADERS } from './lib/waSao.mjs';
 import { dataSourceLabel } from './lib/waSaoLoad.mjs';
+import { verifiableEntities } from './lib/waRoster.mjs';
 import { BAINBRIDGE_ARNS, KITSAP_ARNS } from './fetchBainbridgeKitsap.mjs';
+import { ARNS_BY_CITY } from './fetchWaCities.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -117,49 +141,53 @@ const OFFLINE = process.argv.includes('--offline');
 const RECORD_SHA = process.argv.includes('--record-sha');
 
 const DATASETS = ['operating', 'revenue'];
-const SHA_MANIFEST = path.join(ROOT, 'scripts', 'data', 'bainbridge-kitsap-pdf-sha256.json');
+const SHA_MANIFEST = path.join(ROOT, 'scripts', 'data', 'wa-pdf-sha256.json');
 
-// The full span each entity's ARN manifest covers. Any year in this span that
-// is not in `fys` MUST have zero rows — that is what makes (a) assert the
-// exclusions rather than merely count the inclusions.
-const BAINBRIDGE_FYS = [2004, 2005, 2007, 2008,
-  2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
-const KITSAP_FYS = [2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016,
-  2020, 2021, 2022, 2023, 2024];
+// --only <Name> restricts the run to one entity so a city can be audited during
+// a batch without re-reading the whole corpus. It narrows every expected count
+// with it, so a filtered run can never be mistaken for a full one.
+const onlyArg = process.argv.indexOf('--only');
+const ONLY = onlyArg === -1 ? null : process.argv[onlyArg + 1];
 
-const ENTITIES = [
-  {
-    key: 'Bainbridge Island',
-    id: '9e7b49a3-8a8c-48b8-897f-28d4bb161fb5',
-    entityType: 'city',
-    population: 25_530,
-    dir: path.join(ROOT, 'docs', 'BainbridgeIsland'),
-    pdf: (fy) => `bainbridge-${fy}-acfr.pdf`,
-    fys: BAINBRIDGE_FYS,
-    span: [2004, 2025],
-    excluded: { 2006: 'image-only scan', 2009: 'ciphered digits, bounded decode failed',
-                2010: 'ciphered GAAP statement, money digits absent', 2011: 'CCITT stencil scan' },
-    arns: BAINBRIDGE_ARNS,
-    roundingFiles: ['extractBainbridgeEarly.py', 'extractBainbridge.py'],
-  },
-  {
-    key: 'Kitsap County',
-    id: 'c35da2c6-c8e6-4f50-85d8-60b02890d3e4',
-    entityType: 'county',
-    population: 288_900,
-    dir: path.join(ROOT, 'docs', 'KitsapCounty'),
-    pdf: (fy) => `kitsap-${fy}-acfr.pdf`,
-    fys: KITSAP_FYS,
-    span: [2004, 2025],
-    excluded: { 2017: 'font defect, digits absent', 2018: 'font defect, digits absent',
-                2019: 'font defect, digits absent', 2025: 'not yet audited — no filing exists' },
-    arns: KITSAP_ARNS,
-    roundingFiles: ['extractKitsap.py'],
-  },
-].map((e) => ({ ...e, expectRows: e.fys.length * DATASETS.length }));
+// ARN manifests live with the fetcher that pinned them, and there are two:
+// v2.22's Bainbridge/Kitsap fetcher and WA-CITIES-01's. Merged by entity name
+// here so the audit takes an entity's ARNs from the roster key rather than from
+// knowing which milestone onboarded it.
+const ARNS_BY_ENTITY = {
+  'Bainbridge Island': BAINBRIDGE_ARNS,
+  'Kitsap County': KITSAP_ARNS,
+  ...ARNS_BY_CITY,
+};
+
+// The entity list comes from scripts/lib/waRoster.mjs — the same source the
+// seeder, every loader and the other two harnesses read. This file previously
+// carried its own copy of each entity's window, exclusions, population and id;
+// with eight WA entities that duplication is precisely how an audit comes to
+// assert a window the loader no longer uses.
+const ALL_ENTITIES = verifiableEntities().map((e) => ({
+  key: e.name,
+  id: e.expectId,
+  entityType: e.entityType,
+  countyName: e.countyName,
+  population: e.population,
+  perCapitaBand: e.perCapitaBand,
+  dir: path.join(ROOT, ...e.pdfDir.split('/')),
+  pdf: (fy) => `${e.pdfPrefix}-${fy}-acfr.pdf`,
+  fys: e.fiscalYears,
+  span: e.manifestSpan,
+  excluded: e.excludedYears,
+  expectedResidues: e.expectedResidues,
+  arns: ARNS_BY_ENTITY[e.name] ?? {},
+  roundingFiles: e.roundingFiles,
+})).map((e) => ({ ...e, expectRows: e.fys.length * DATASETS.length }));
+
+if (ONLY && !ALL_ENTITIES.some((e) => e.key === ONLY)) {
+  console.error(`--only "${ONLY}" matches no verifiable entity. Known: ${ALL_ENTITIES.map((e) => e.key).join(', ')}`);
+  process.exit(2);
+}
+const ENTITIES = ONLY ? ALL_ENTITIES.filter((e) => e.key === ONLY) : ALL_ENTITIES;
 
 const EXPECTED_TOTAL_ROWS = ENTITIES.reduce((s, e) => s + e.expectRows, 0);
-const PER_CAPITA_BAND = [100, 10_000];
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Registered source_rounding deltas, read as DATA out of the extractor files.
@@ -173,7 +201,14 @@ function loadRegisteredDeltas(files) {
   for (const f of files) {
     const src = readFileSync(path.join(ROOT, 'scripts', f), 'utf8');
     const body = src.split('\n').filter((l) => !/^\s*#/.test(l)).join('\n');
-    const m = body.match(/source_rounding\s*=\s*\{([\s\S]*?)\n\s*\}/);
+    // Matches a multi-line dict OR a single-line empty one (`source_rounding={},`).
+    // AN EMPTY REGISTRY IS LEGITIMATE and must not be conflated with a missing
+    // one: Tacoma registers zero residues because it prints IN THOUSANDS, so its
+    // components are already rounded to the thousand and sum exactly. The guard
+    // that actually matters is still enforced — a file with no `source_rounding`
+    // key at all throws, because that means the wrong file is being read or the
+    // registry was deleted out from under the audit.
+    const m = body.match(/source_rounding\s*=\s*\{([\s\S]*?)\}/);
     if (!m) throw new Error(`${f}: no source_rounding dict found — refusing to audit without the registrations`);
     const re = /\(\s*(\d{4})\s*,\s*'(operating|revenue)'\s*\)\s*:\s*(-?\d+)/g;
     let e;
@@ -191,26 +226,79 @@ function loadRegisteredDeltas(files) {
 // Own pdftotext pass + own page-identity filter. See the header for why this
 // is duplicated from Task 9 rather than imported.
 // ═══════════════════════════════════════════════════════════════════════════
+/** Physical page count, from the PDF itself rather than from any text pass. */
+function pdfPageCount(pdfPath) {
+  const out = execFileSync('pdfinfo', [pdfPath],
+    { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+  const m = /^Pages:\s+(\d+)/m.exec(out);
+  if (!m) throw new Error(`pdfinfo gave no page count for ${pdfPath}`);
+  return Number(m[1]);
+}
+
+/**
+ * ⚠ A FORM FEED IN `-table` OUTPUT IS NOT ALWAYS A PAGE BREAK. Poppler emits at
+ * least one per page and sometimes extra ones WITHIN a page, so a chunk index is
+ * not a page number: Spokane FY2019 splits a 176-page PDF into 455 chunks, and
+ * its statement is chunk 63 but PDF page 37.
+ *
+ * (h) reports that number to the reader as the page its figure came from, so it
+ * has to be true even though nothing downstream computes on it. The count
+ * discrepancy is self-detecting because extra feeds can only ever ADD chunks;
+ * when the counts agree the cheap whole-document split is exact, and when they
+ * do not the pages are re-extracted one at a time, where `-f N -l N` makes the
+ * number true by construction.
+ *
+ * Kept in step with the identical function in verify-wa-rederive.mjs, where the
+ * same number is passed to `pdftotext -lineprinter -f N` and a wrong one reads
+ * an unrelated page. See this file's header on why the duplication is deliberate.
+ */
 const tableCache = new Map();
 function tablePages(pdfPath) {
   if (tableCache.has(pdfPath)) return tableCache.get(pdfPath);
   if (!existsSync(pdfPath)) throw new Error(`PDF not on disk: ${pdfPath}`);
+  const count = pdfPageCount(pdfPath);
   const txt = execFileSync('pdftotext', ['-table', pdfPath, '-'],
     { maxBuffer: 512 * 1024 * 1024, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
-  const pages = txt.split('\f');
+  const chunks = txt.split('\f');
+  if (chunks.length && !chunks[chunks.length - 1].trim()) chunks.pop();
+  const pages = chunks.length === count
+    ? chunks
+    : Array.from({ length: count }, (_, i) => execFileSync('pdftotext',
+      ['-table', '-f', String(i + 1), '-l', String(i + 1), pdfPath, '-'],
+      { maxBuffer: 64 * 1024 * 1024, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
   tableCache.set(pdfPath, pages);
   return pages;
 }
 
 const TITLE_RE = /statement\s+of\s+revenues?\s*,?\s*(and\s+)?expenditures/i;
 const CHANGES_RE = /changes?\s+in\s+fund\s+balances?/i;
-const GOVFUNDS_RE = /governmental\s+funds/i;
+// `govern?mental` tolerates a SOURCE-DOCUMENT TYPO, not a parser convenience:
+// Tacoma's FY2007 statement caption reads "Govermental Funds", missing the 'n'.
+// Rejecting that page would silently drop a year that is otherwise perfectly
+// readable, and "the scope line is misspelled" is not a reason to refuse a
+// filing. The optional 'n' cannot match anything else meaningful.
+const GOVFUNDS_RE = /govern?mental\s+funds/i;
 const TOTAL_REV_RE = /^total\s+(operating\s+)?revenues?\b/i;
 const TOTAL_EXP_RE = /^total\s+expenditures\b/i;
 const REV_HEAD_RE = /^revenues?\b/i;
 const EXCLUDE_RE = /\b(combining|budget|budgetary|proprietary|fiduciary|internal\s+service|agency\s+funds|net\s+position|reconciliation|cash\s+flows)\b/i;
 const CONTINUATION_RE = /\bpage\s*([2-9]|\d\d+)\s*of\s*\d/i;
-const GF_CAPTION_RE = /\bgeneral\b(?!\s+govern)/i;
+// The lookahead is `government\b`, NOT the shorter `govern`, and the difference
+// is load-bearing. Its purpose is to stop the expenditure function "General
+// Government" from being mistaken for a General Fund column caption. The
+// original `(?!\s+govern)` also rejected "General Governmental" -- and Tacoma's
+// FY2003 caption is exactly that, because its General Fund column header sits
+// next to an "Other Governmental" one and flattens to
+// "(0010) General Governmental Governmental Fund Funds Funds". That false
+// negative dropped FY2003-FY2005 entirely. `\bgovernment\b` cannot match inside
+// "governmental" (no word boundary before the "al"), so this still rejects
+// "General Government" exactly as before.
+//
+// `obligation` was added for Vancouver FY2021, whose statement spans two pages:
+// page 46 carries the identical title and scope line, no General Fund column at
+// all, and qualified purely on the word "General" in "General Obligation Debt".
+// Kept in step with verify-wa-rederive.mjs.
+const GF_CAPTION_RE = /\bgeneral\b(?!\s+(?:government|obligation)\b)/i;
 
 function captionBlockEnd(lines) {
   const trimmed = lines.map((l) => l.trim());
@@ -246,15 +334,25 @@ function findStatementPage(pages, label) {
 
 /** The page must say which year it is. Without this, document<->FY binding is
  *  by FILENAME alone. Kitsap's text layer collapses spaces, hence the second
- *  pattern. */
+ *  pattern.
+ *
+ *  The anchor is `ended december 31, <year>` and the word "year" is
+ *  deliberately not required: Spokane FY2018 and FY2022 render the sentence as
+ *  "For the Fiscal <ear Ended December 31, 2018", a mis-mapped glyph having
+ *  eaten the Y. The year itself is intact, and refusing those pages over one
+ *  corrupt letter of scaffolding would drop two otherwise perfect years.
+ *  Keeping "end..." is what stops an arbitrary date elsewhere on the page from
+ *  qualifying. `end(ed|ing)` additionally covers Bellevue FY2008-FY2012, which
+ *  caption their statements "For the Twelve Months ENDING December 31, 2008".
+ *  Kept in step with verify-wa-rederive.mjs. */
 function assertPageYear(pageText, fy, label) {
   const flat = pageText.replace(/\s+/g, ' ');
-  const period = flat.match(/year\s*ended\s*december\s*3\s*1\s*,?\s*(\d{4})/i);
+  const period = flat.match(/end(?:ed|ing)\s*december\s*3\s*1\s*,?\s*(\d{4})/i);
   if (period) {
     if (Number(period[1]) !== fy) throw new Error(`${label}: page states "${period[0].trim()}" but the file is being read as FY${fy}`);
     return;
   }
-  const p2 = flat.replace(/\s+/g, '').match(/YearEndedDecember31,?(\d{4})/i);
+  const p2 = flat.replace(/\s+/g, '').match(/End(?:ed|ing)December31,?(\d{4})/i);
   if (p2) {
     if (Number(p2[1]) !== fy) throw new Error(`${label}: page states year ended December 31, ${p2[1]} but the file is being read as FY${fy}`);
     return;
@@ -262,13 +360,25 @@ function assertPageYear(pageText, fy, label) {
   throw new Error(`${label}: page carries no evidence it is FY${fy} — refusing to trust the filename alone`);
 }
 
-/** Bainbridge and Kitsap print WHOLE DOLLARS. A page captioned "(in thousands)"
- *  would be a different statement, not a scaling problem — units are read off
- *  the page and asserted, never configured. */
+/**
+ * ⚠ THE MOST DANGEROUS FUNCTION IN THIS FILE TO GET WRONG, for the same reason
+ * it is in verify-wa-rederive.mjs: the tie gate is unit-invariant, so a missed
+ * multiplier fails no arithmetic anywhere — it just makes every figure 1000x
+ * wrong. Units are read off the page and never configured.
+ *
+ * The original pair of patterns matched Bainbridge and Kitsap (whole dollars,
+ * so neither fires) and Seattle/King County ("(in thousands)"). Tacoma writes
+ * "(amounts expressed in thousands)", which matched NEITHER, so this returned 1
+ * on a page printing thousands. The broadened alternative is a bare
+ * `in thousands`, deliberately: every phrasing of that caption means the same
+ * thing, and no statement says it without meaning it. It also absorbs Tacoma
+ * FY2003's genuine typo, "(amounts expresssed in thousands)" with three s's,
+ * because the typo is in the word this pattern does not depend on.
+ */
 function unitsOf(pageText) {
   const flat = pageText.replace(/\s+/g, ' ');
-  if (/\(\s*in\s+millions\s*\)/i.test(flat)) return 1_000_000;
-  if (/\(\s*in\s+thousands\s*\)|amounts\s+in\s+thousands/i.test(flat)) return 1_000;
+  if (/\bin\s+millions\b/i.test(flat)) return 1_000_000;
+  if (/\bin\s+thousands\b/i.test(flat)) return 1_000;
   return 1;
 }
 
@@ -370,7 +480,7 @@ async function probeUrl(url) {
 }
 
 async function main() {
-  console.log('=== Bainbridge Island + Kitsap County source-chain audit (Task 10) ===');
+  console.log(`=== WA SAO source-chain audit — ${ENTITIES.map((e) => e.key).join(', ')}${ONLY ? ' (--only)' : ''} ===`);
   console.log(`DB: ${SUPABASE_URL}`);
   console.log(`Expected rows: ${EXPECTED_TOTAL_ROWS} (${ENTITIES.map((e) => `${e.key} ${e.expectRows}`).join(', ')})\n`);
 
@@ -457,9 +567,21 @@ async function main() {
       ` (${ENTITIES.map((e) => `${e.key} ${rounding[e.key].deltas.size}`).join(', ')})`);
     for (const n of named) console.log(`        • ${n}`);
     console.log('      NOTE: the LOADED total is always the component sum, never the page\'s printed');
-    console.log('      total, so all 72 rows tie internally at $0 regardless of these acceptances.');
-    if (named.length !== 33) fail.push(`expected 33 registered source_rounding acceptances, found ${named.length}`);
-    record('b', 'every row ties to its own categories and every parent category ties to its own line items; all 33 rounding acceptances named with exact deltas', fail.length === 0, fail);
+    console.log(`      total, so all ${EXPECTED_TOTAL_ROWS} rows tie internally at $0 regardless of these acceptances.`);
+    // Expected counts come from the roster, per entity, so a --only run asserts
+    // the right number rather than the whole-corpus total. Tacoma's expected
+    // count is a real ZERO, not an unfilled field: it prints in thousands, so
+    // its components are already rounded to the thousand and sum exactly.
+    const expectedResidues = ENTITIES.reduce((s, e) => s + (e.expectedResidues ?? -1), 0);
+    for (const e of ENTITIES) {
+      if (e.expectedResidues === undefined) {
+        fail.push(`${e.key}: no expectedResidues declared in the roster — add one rather than letting an unasserted registry through`);
+      }
+    }
+    if (named.length !== expectedResidues) {
+      fail.push(`expected ${expectedResidues} registered source_rounding acceptances, found ${named.length}`);
+    }
+    record('b', `every row ties to its own categories and every parent category ties to its own line items; all ${expectedResidues} rounding acceptances named with exact deltas`, fail.length === 0, fail);
   }
 
   // ── (c) provenance: url == reportFileUrl(ARN), date, label, sha256 ────────
@@ -489,13 +611,28 @@ async function main() {
     }
 
     if (RECORD_SHA) {
-      writeFileSync(SHA_MANIFEST, `${JSON.stringify(shaNow, null, 2)}\n`);
-      console.log(`\n  (c) --record-sha: wrote ${Object.keys(shaNow).length} digests to ${path.relative(ROOT, SHA_MANIFEST)}`);
+      // Refused under --only: the manifest is whole-corpus, and rewriting it
+      // from a single-entity run would silently DELETE every other entity's
+      // pinned digest — turning the one artifact that pins document identity
+      // into whatever the last filtered run happened to read.
+      if (ONLY) {
+        fail.push('--record-sha refused with --only: the manifest covers the whole corpus and a filtered ' +
+          'rewrite would drop every other entity\'s pinned digest. Re-run --record-sha without --only.');
+      } else {
+        writeFileSync(SHA_MANIFEST, `${JSON.stringify(shaNow, null, 2)}\n`);
+        console.log(`\n  (c) --record-sha: wrote ${Object.keys(shaNow).length} digests to ${path.relative(ROOT, SHA_MANIFEST)}`);
+      }
     } else if (!existsSync(SHA_MANIFEST)) {
       fail.push(`sha256 manifest missing at ${path.relative(ROOT, SHA_MANIFEST)} — run once with --record-sha, review the diff, and commit it`);
     } else {
       const pinned = JSON.parse(readFileSync(SHA_MANIFEST, 'utf8'));
-      for (const k of Object.keys(pinned)) if (!(k in shaNow)) fail.push(`sha256 manifest pins ${k} but no such local PDF was read`);
+      // "the manifest pins something this run did not read" is only a finding
+      // for the entities this run actually covers. Under --only every other
+      // entity's pins are legitimately untouched.
+      const inScope = (k) => ENTITIES.some((e) => k.startsWith(`${e.key}|`));
+      for (const k of Object.keys(pinned)) {
+        if (inScope(k) && !(k in shaNow)) fail.push(`sha256 manifest pins ${k} but no such local PDF was read`);
+      }
       for (const [k, v] of Object.entries(shaNow)) {
         if (!(k in pinned)) { fail.push(`${k}: no pinned sha256 — the manifest and the loaded window disagree`); continue; }
         if (pinned[k].sha256 !== v.sha256) {
@@ -531,10 +668,15 @@ async function main() {
   }
 
   // ── (d) units — per-capita, printed per row ───────────────────────────────
+  // The band is PER ENTITY, from the roster. It was one shared [100, 10000]
+  // constant while the corpus was two whole-dollar entities with similar fund
+  // structures; that stops being defensible the moment the corpus is mixed.
+  // Tacoma's band is [300, 3000] because Tacoma prints in thousands, and a
+  // band wide enough for every entity is a band that catches nobody.
   {
     const fail = [];
-    const [lo, hi] = PER_CAPITA_BAND;
     for (const e of ENTITIES) {
+      const [lo, hi] = e.perCapitaBand;
       const vals = [];
       for (const r of byEntity[e.key]) {
         const pc = Number(r.total_budget) / e.population;
@@ -544,11 +686,12 @@ async function main() {
         }
       }
       vals.sort((a, b) => a.pc - b.pc);
-      console.log(`\n  (d) ${e.key} (pop ${e.population.toLocaleString()}): $${vals[0].pc.toFixed(2)}/resident ` +
+      console.log(`\n  (d) ${e.key} (pop ${e.population.toLocaleString()}, band [${lo}, ${hi}]): ` +
+        `$${vals[0].pc.toFixed(2)}/resident ` +
         `(FY${vals[0].fy} ${vals[0].ds}) .. $${vals[vals.length - 1].pc.toFixed(2)} (FY${vals[vals.length - 1].fy} ${vals[vals.length - 1].ds})`);
       for (const v of vals) console.log(`        FY${v.fy} ${v.ds.padEnd(9)} $${v.pc.toFixed(2)}/resident`);
     }
-    record('d', `per-capita is inside [${lo}, ${hi}] on every row, with the actual value printed`, fail.length === 0, fail);
+    record('d', 'per-capita is inside each entity\'s own re-derived band on every row, with the actual value printed', fail.length === 0, fail);
   }
 
   // ── (e) label integrity ──────────────────────────────────────────────────
@@ -580,15 +723,37 @@ async function main() {
           if (/Washington State Auditor/i.test(t)) fail.push(`${label}: label carries the SAO page-footer credit — "${t}" at ${a.where}`);
           if (/^[^A-Za-z(]/.test(t)) fail.push(`${label}: label starts with page furniture, not a letter — "${t}" at ${a.where}`);
         }
-        // Dash-zero grafting welds one row's label onto the next. Its signature
-        // is a leaf label that has ANOTHER label of the same row as a strict
-        // prefix — "Public Safety" and "Public Safety Culture and Recreation".
-        const texts = all.map((a) => String(a.text ?? '').replace(/\s+/g, ' ').trim()).filter(Boolean);
-        for (const a of texts) {
-          for (const b of texts) {
-            if (a === b || b.length <= a.length) continue;
-            if (b.toLowerCase().startsWith(`${a.toLowerCase()} `)) {
-              fail.push(`${label}: "${b}" has the sibling label "${a}" as a prefix — dash-zero grafting signature`);
+        // Dash-zero grafting welds one row's label onto the NEXT ROW'S, so its
+        // signature is a label that has a TRUE SIBLING's label as a strict
+        // prefix — "Public Safety" and "Public Safety Culture and Recreation",
+        // both functions under the same `Current` parent (Bainbridge).
+        //
+        // ⚠ SIBLING MEANS INSIDE ONE CATEGORY, and the scope is the whole check.
+        // Compared across the whole row this fired 45 times on Kent and caught
+        // nothing: Kent's `Taxes` group has a child named literally `Other`,
+        // and every `Other licenses and permits` / `Other fees and charges` /
+        // `Other governments` / `Other miscellaneous revenue` in the other five
+        // categories then looked like a graft of it. They are not siblings and
+        // no weld could have produced them — grafting welds ADJACENT rows, which
+        // by construction share a parent.
+        //
+        // ⚠ AND NOTE WHAT THIS CHECK DOES NOT COVER. It sees only the database,
+        // so it cannot detect a weld whose prefix was a row the issuer printed
+        // EMPTY: `Lodging Other` and `Issuance costs Capital outlay` were shipped
+        // by Kent with no `Lodging` or `Issuance costs` row anywhere in the tree
+        // to compare against, and this check passed them. Only a reader that goes
+        // back to the document can find those, which is verify-wa-rederive.mjs's
+        // job — do not read a green (e) as "no welded labels".
+        for (const c of cats) {
+          const pool = [c.name, ...items.filter((it) => it.category_id === c.id).map((it) => it.description)]
+            .map((t) => String(t ?? '').replace(/\s+/g, ' ').trim()).filter(Boolean);
+          for (const a of pool) {
+            for (const b of pool) {
+              if (a === b || b.length <= a.length) continue;
+              if (b.toLowerCase().startsWith(`${a.toLowerCase()} `)) {
+                fail.push(`${label}: "${b}" has the sibling label "${a}" as a prefix inside category ` +
+                  `"${c.name}" — dash-zero grafting signature`);
+              }
             }
           }
         }
@@ -606,6 +771,13 @@ async function main() {
     console.log('      property it stood for — the DB figure is the General Fund column of a page');
     console.log('      that identifies itself as the governmental-funds statement for that FY.');
     for (const e of ENTITIES) {
+      // Units are read off each page. They are not configured, and they are not
+      // assumed constant across the corpus either — Bainbridge and Kitsap print
+      // whole dollars while Tacoma prints in thousands. What IS asserted is that
+      // one entity's own pages agree with each other: a single page declaring a
+      // different scale from its siblings is a wrong page or a changed basis,
+      // and the tie gate cannot see either.
+      const unitsSeen = new Map();
       for (const fy of e.fys) {
         const file = path.join(e.dir, e.pdf(fy));
         let pages;
@@ -618,9 +790,8 @@ async function main() {
             const ind = findStatementPage(pages, label);
             assertPageYear(ind.text, fy, label);
             const units = unitsOf(ind.text);
-            if (units !== 1) {
-              fail.push(`${label}: page declares units of ${units}, but this corpus prints whole dollars — wrong page or wrong basis`);
-            }
+            if (!unitsSeen.has(units)) unitsSeen.set(units, []);
+            unitsSeen.get(units).push(label);
             if (ind.allCandidates.length !== 1) {
               // Fatal for the same reason as in Task 9: taking the first candidate
               // IS "the true statement sorts earliest", and 9 of 10 silent
@@ -634,19 +805,35 @@ async function main() {
             const delta = rounding[e.key].deltas.get(`${fy}|${ds}`) ?? 0;
             const expectPrinted = Number(row.total_budget) - delta;   // delta = computed - printed
             const gf = gfTotalOnPage(ind.text, ds, label);
-            if (gf.value !== expectPrinted) {
-              fail.push(`${label}: page ${ind.index + 1} General Fund total prints ${gf.value}, but the DB holds ` +
+            // Scaled by the units the PAGE declares. The DB always holds whole
+            // dollars, so an entity printing in thousands compares 1000x low
+            // without this — and the comparison is the only place a units
+            // mistake surfaces at all, the tie being unit-invariant.
+            const printed = gf.value * units;
+            if (printed !== expectPrinted) {
+              fail.push(`${label}: page ${ind.index + 1} General Fund total prints ${gf.value}` +
+                `${units === 1 ? '' : ` x${units} = ${printed}`}, but the DB holds ` +
                 `${row.total_budget}${delta ? ` (registered delta ${delta}, so the page should print ${expectPrinted})` : ''}. ` +
                 `Row read: ${JSON.stringify(gf.row)} → cells [${gf.cells.join(', ')}]`);
             }
             if (ds === 'operating') {
               console.log(`  (h) ${e.key.padEnd(18)} FY${fy}  p.${String(ind.index + 1).padStart(3)}  ` +
-                `GF exp ${String(gf.value).padStart(11)}  ${ind.allCandidates.length === 1 ? 'single candidate' : `${ind.allCandidates.length} CANDIDATES`}`);
+                `GF exp ${String(printed).padStart(11)}  x${String(units).padStart(4)}  ` +
+                `${ind.allCandidates.length === 1 ? 'single candidate' : `${ind.allCandidates.length} CANDIDATES`}`);
             }
           } catch (err) {
             fail.push(`${label}: ${err.message}`);
           }
         }
+      }
+      if (unitsSeen.size > 1) {
+        fail.push(`${e.key}: its own statement pages declare ${unitsSeen.size} different scales ` +
+          `(${[...unitsSeen].map(([u, ls]) => `x${u} on ${ls.length} page(s), e.g. ${ls[0]}`).join('; ')}) — ` +
+          `a page disagreeing with its siblings about scale is a wrong page or a changed basis`);
+      } else if (unitsSeen.size === 1) {
+        const [u] = [...unitsSeen.keys()];
+        console.log(`  (h) ${e.key.padEnd(18)} every page declares the SAME scale: x${u} ` +
+          `(${u === 1 ? 'whole dollars' : 'in thousands'}), read off the pages, never configured`);
       }
     }
     console.log(`  (h) rows whose statement page was resolved unambiguously: ${unambiguous}/${checked}`);
@@ -656,9 +843,32 @@ async function main() {
   // ── (f) hierarchy ────────────────────────────────────────────────────────
   {
     const fail = [];
+    // Parent counties are fetched alongside the audited entities even though
+    // they are not audited themselves: Tacoma's parent is Pierce County, a
+    // NAV-ONLY node with no budget rows, so it is not in ENTITIES and the link
+    // could not be checked without naming it here.
+    const wantNames = [...new Set([
+      ...ENTITIES.map((e) => e.key),
+      ...ENTITIES.map((e) => e.countyName).filter(Boolean),
+    ])];
+    // ⚠ SCOPED TO WA, and that is a correction rather than a tidy-up. This
+    // query used to select on NAME ALONE, so the "exactly one row carries this
+    // name" assertion was app-wide -- and Treasury Tracker already holds a
+    // Bellevue, OHIO. Loading Bellevue, WA therefore made (f) report a
+    // duplicate that is not one, and then compared the OHIO row's county_id
+    // against King County. Kent is the next name in this cohort with the same
+    // exposure.
+    //
+    // This is v2.21's scoping lesson in a third costume: an app-wide count
+    // asserted about one entity's data was wrong there (New Hampshire's
+    // archive-cited rows) and is wrong here. What the check is actually for is
+    // the Utah phantom-row defect -- a second row of the SAME name with a
+    // different entity_type, created by a load run without --entity-type -- and
+    // that duplicate would always be in the same state.
     const { data: munis, error } = await sb.from('municipalities')
       .select('id,name,state,entity_type,county_id,population')
-      .in('name', ENTITIES.map((e) => e.key));
+      .eq('state', 'WA')
+      .in('name', wantNames);
     if (error) throw new Error(`municipalities query failed: ${error.message}`);
 
     for (const e of ENTITIES) {
@@ -674,14 +884,26 @@ async function main() {
       if (m.entity_type !== e.entityType) fail.push(`${e.key}: entity_type is ${m.entity_type}, expected ${e.entityType}`);
       if (Number(m.population) !== e.population) fail.push(`${e.key}: population ${m.population} != the WA OFM figure ${e.population} used for the per-capita band`);
     }
-    const bi = munis.find((m) => m.name === 'Bainbridge Island');
-    const kc = munis.find((m) => m.name === 'Kitsap County');
-    if (bi && kc) {
-      if (bi.county_id !== kc.id) fail.push(`Bainbridge Island.county_id is ${bi.county_id || '(null)'}, expected Kitsap County ${kc.id}`);
-      if (kc.county_id !== null) fail.push(`Kitsap County.county_id is ${kc.county_id}, expected null (a county has no parent county)`);
-      console.log(`\n  (f) Bainbridge Island (${bi.entity_type}, pop ${bi.population}) → Kitsap County (${kc.entity_type}, pop ${kc.population})`);
+    console.log('');
+    for (const e of ENTITIES) {
+      const m = munis.find((x) => x.name === e.key);
+      if (!m) continue;   // already reported above
+      if (!e.countyName) {
+        if (m.county_id !== null) fail.push(`${e.key}.county_id is ${m.county_id}, expected null (a county has no parent county)`);
+        console.log(`  (f) ${e.key} (${m.entity_type}, pop ${m.population}) → no parent county, as declared`);
+        continue;
+      }
+      const parent = munis.find((x) => x.name === e.countyName && x.state === 'WA');
+      if (!parent) {
+        fail.push(`${e.key}: its declared parent "${e.countyName}" has no WA municipalities row`);
+        continue;
+      }
+      if (m.county_id !== parent.id) {
+        fail.push(`${e.key}.county_id is ${m.county_id || '(null)'}, expected ${e.countyName} ${parent.id}`);
+      }
+      console.log(`  (f) ${e.key} (${m.entity_type}, pop ${m.population}) → ${parent.name} (${parent.entity_type}, pop ${parent.population})`);
     }
-    record('f', 'exactly two WA rows carry these names, Bainbridge Island.county_id resolves to Kitsap County, and both populations are the WA OFM figures', fail.length === 0, fail);
+    record('f', 'exactly one WA row carries each audited name, every entity\'s county_id resolves to its declared parent county, and every population is the WA OFM figure', fail.length === 0, fail);
   }
 
   // ── (g) enrichment scoping ───────────────────────────────────────────────
@@ -694,15 +916,15 @@ async function main() {
     for (const row of data) {
       if (!row.municipality_id) fail.push(`enrichment row ${row.id} (${row.name_key}) has a NULL municipality_id — it would bleed into every other entity`);
     }
-    console.log(`\n  (g) enrichment rows scoped to these two entities: ${data.length}`);
+    console.log(`\n  (g) enrichment rows scoped to the ${ENTITIES.length} audited entities: ${data.length}`);
     if (data.length === 0) {
       // Say this loudly. A vacuous pass that reads like a verified one is the
       // failure mode this suite exists to prevent.
-      console.log('      ⚠ ZERO enrichment rows exist for either entity — Task 11 has not run yet.');
+      console.log(`      ⚠ ZERO enrichment rows exist for ${ENTITIES.length === 1 ? 'this entity' : 'any of these entities'} — the enrichment task has not run yet.`);
       console.log('      (g) therefore passes VACUOUSLY. It is not evidence that enrichment is correct;');
-      console.log('      it is only evidence that nothing unscoped has been written. RE-RUN AFTER TASK 11.');
+      console.log('      it is only evidence that nothing unscoped has been written. RE-RUN AFTER ENRICHMENT.');
     }
-    record('g', 'every enrichment row for these two entities carries a non-NULL municipality_id', fail.length === 0, fail);
+    record('g', 'every enrichment row for the audited entities carries a non-NULL municipality_id', fail.length === 0, fail);
   }
 
   // ── verdict ──────────────────────────────────────────────────────────────

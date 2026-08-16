@@ -1,0 +1,574 @@
+{
+  "Kitsap County|2004": {
+    "sha256": "8dab3e03ec7b78c48e6b126876be05c76cb4b99023759ea2d9e62e0573e7b8a4",
+    "bytes": 773645
+  },
+  "Kitsap County|2005": {
+    "sha256": "431353bf13cfeeb4c0b4e0331d45a447f3e32d18034c12182757723d03d2c906",
+    "bytes": 762364
+  },
+  "Kitsap County|2006": {
+    "sha256": "4956d798546b6e160e399b3cc8da8dba205bb71544fd734eac0f3d252c5ea98e",
+    "bytes": 2152876
+  },
+  "Kitsap County|2007": {
+    "sha256": "aa547359c04a5763487093e6bbc3a5b094fad08a7848a6ac87165d81fa814e91",
+    "bytes": 1402157
+  },
+  "Kitsap County|2008": {
+    "sha256": "e40e5053af638fd04bc5185ffcd6854dca60a16ccdcdd59842f4135e2758f43f",
+    "bytes": 958852
+  },
+  "Kitsap County|2009": {
+    "sha256": "54c4d692b1c92656187439c07f89adbe38bc95562974675ef78668702a9e7e0e",
+    "bytes": 1068148
+  },
+  "Kitsap County|2010": {
+    "sha256": "9366d167d58ad4a0ee6547d2ac273b808b47c25c0c11ff22f1271b8878b9eaac",
+    "bytes": 927938
+  },
+  "Kitsap County|2011": {
+    "sha256": "bd5cf5cb9a4198ad6d13d8c535d11fc8d8976fe15d5450774226cf9a7d27a759",
+    "bytes": 1747143
+  },
+  "Kitsap County|2012": {
+    "sha256": "0c48c7e0b5cd2f6c4929d663a14e11563d28aae3695b3bcc8af4a3bda2e7d0e8",
+    "bytes": 2242359
+  },
+  "Kitsap County|2013": {
+    "sha256": "de95086c5678d48419a6ae2a33ba8fe4ea4adc0594668983412ead850104acb3",
+    "bytes": 1829897
+  },
+  "Kitsap County|2014": {
+    "sha256": "86011ece21dfdd05cc437fd3063bc6b7a27ca7c5c56fd10db90da631a244e141",
+    "bytes": 1476636
+  },
+  "Kitsap County|2015": {
+    "sha256": "8e9f67d8252cc2984904cccf3274285151b391d4a636f1769f6cefdd9f145c75",
+    "bytes": 3363955
+  },
+  "Kitsap County|2016": {
+    "sha256": "f700cd6238c88b149db1485b24f07c184f5bb470aaccf47a22cc73128c2732de",
+    "bytes": 22119716
+  },
+  "Kitsap County|2020": {
+    "sha256": "6565b416f5fcf3f8c82cdb30540ce4716dcfd9be43136a83d17a8e57899c0a4e",
+    "bytes": 2032224
+  },
+  "Kitsap County|2021": {
+    "sha256": "9a96188a016b114d3596b0ce8374b3da546ae7a531111381a4889cc208324c1c",
+    "bytes": 2583717
+  },
+  "Kitsap County|2022": {
+    "sha256": "d2c0d45926eec9fdd329f2931d659138cad0fb24c45e0418cee62da403f2ff9a",
+    "bytes": 2387325
+  },
+  "Kitsap County|2023": {
+    "sha256": "41c13f4d6f2c2cca55501e1c473d0e503aff6fdba071dd516df60212c21b6139",
+    "bytes": 2357731
+  },
+  "Kitsap County|2024": {
+    "sha256": "7afa3e89488b608bf4b14ae6841d60168d3b7fd515c29c963ccde473aa0cb18a",
+    "bytes": 2204945
+  },
+  "Bainbridge Island|2004": {
+    "sha256": "1a74c0bc30e94b6b16fcc9eda01b2cfcf177288626e5de183e079b43305fb587",
+    "bytes": 709806
+  },
+  "Bainbridge Island|2005": {
+    "sha256": "74cfd1d26f0b3c944dfafdfde868992310798b05c2cd9de8d39e5a7719aa65e1",
+    "bytes": 721066
+  },
+  "Bainbridge Island|2007": {
+    "sha256": "fbaadd19be4731f43a0f9e02017b2572f2d61a9eceb50071b9fece9630094255",
+    "bytes": 562808
+  },
+  "Bainbridge Island|2008": {
+    "sha256": "1e220e78407b8c59aefb77dd86d2938bba5fbdc04235a6a768b18face25be2a6",
+    "bytes": 1058621
+  },
+  "Bainbridge Island|2012": {
+    "sha256": "7cb39baadc173bebdb714bd8c40b67187e6f712cfbcad299d8d237d50dffba67",
+    "bytes": 2354959
+  },
+  "Bainbridge Island|2013": {
+    "sha256": "7898dfece1ba8d37e325b8753c9d839429be0dcc1f492e2b347548aec504f914",
+    "bytes": 1669164
+  },
+  "Bainbridge Island|2014": {
+    "sha256": "45474880cf98fe8420e068bb97072c4d2765ee9614d2e69dadae8ef20bc2a844",
+    "bytes": 4169491
+  },
+  "Bainbridge Island|2015": {
+    "sha256": "1f12c5317c5793e77f61c5cf651c3b197c3def4dc225fe904b728f88c7c961ee",
+    "bytes": 4145049
+  },
+  "Bainbridge Island|2016": {
+    "sha256": "ef55cc3fbf5d4e9b52ff012e2ea51dae5ffe5f7002c858d33571052efaf05881",
+    "bytes": 13019195
+  },
+  "Bainbridge Island|2017": {
+    "sha256": "ed94010bf303b0f91f2e187631c0f5e7d75408c6fb8fdd45948c09e56cf01397",
+    "bytes": 8458474
+  },
+  "Bainbridge Island|2018": {
+    "sha256": "c7528bd7a65cc0e657ca4a50a4b3561e4451ebeed2f743fae43ee9110645b18d",
+    "bytes": 2047759
+  },
+  "Bainbridge Island|2019": {
+    "sha256": "de9dd7c5873db4508156a38920fc5598b86a3e0f6c8dbe527e24447c513a179b",
+    "bytes": 1986602
+  },
+  "Bainbridge Island|2020": {
+    "sha256": "499aa1984b84d992b8abeea7105c904441236903139d58a28ab8aaf8005497ae",
+    "bytes": 1981576
+  },
+  "Bainbridge Island|2021": {
+    "sha256": "01cb0670125c31baae57b2bff8997be37dde20a2d410d3bee2fc7be87c781824",
+    "bytes": 1642637
+  },
+  "Bainbridge Island|2022": {
+    "sha256": "25be65d4abbf468365234445307da0b7fb8ebcfcc09311c099b04150293d0c49",
+    "bytes": 4505829
+  },
+  "Bainbridge Island|2023": {
+    "sha256": "5fd1c5d64d3823463f08a8427df7644ca81ab0306f4ef828e4e5b896207e60cd",
+    "bytes": 1539337
+  },
+  "Bainbridge Island|2024": {
+    "sha256": "4546a719b4ae15c331484614b0d30a8b92bda6f8574ebe9d4d67b5a11fd306d6",
+    "bytes": 2976990
+  },
+  "Bainbridge Island|2025": {
+    "sha256": "e7a8fd1cb4b153ceaa54dc1d401946c099bd06455b2d732357e2e74c1b787caa",
+    "bytes": 1326830
+  },
+  "Tacoma|2003": {
+    "sha256": "e9faa3c91e4de48db9add33edb79b362dc94564945c1417efa9f279d0641f384",
+    "bytes": 895415
+  },
+  "Tacoma|2004": {
+    "sha256": "883aaae3cbf37e8f21d893d29e580a4021ede1b18e8a7de276ac1f9d8613a8ff",
+    "bytes": 863940
+  },
+  "Tacoma|2005": {
+    "sha256": "3cbc3362412676a0a16591b09f5e5590f1b687bf6e2752f839b1b875f556c052",
+    "bytes": 918247
+  },
+  "Tacoma|2006": {
+    "sha256": "1fa041ffae83405dc3236d5cf3a8813aaf4119799da8489f6dec6833ed55c065",
+    "bytes": 833160
+  },
+  "Tacoma|2007": {
+    "sha256": "bfdf73bec1de3fc0e4c415c0750a38f6c9c9f4de4f26c47eaee44c77133242c9",
+    "bytes": 791418
+  },
+  "Tacoma|2008": {
+    "sha256": "dce1c61c277d6792f8309b6d5db99df4c72bf053b18dcc790c940e91bbf3c0fc",
+    "bytes": 1132931
+  },
+  "Tacoma|2009": {
+    "sha256": "e2b0ee4e4c9612e2585297da76439e4477a5efa0faa3b52f113d889ee1f84f74",
+    "bytes": 2129848
+  },
+  "Tacoma|2010": {
+    "sha256": "221e9211ff89cfc70077f4109666b24be1ee6ad16119c776b337c41b017db95b",
+    "bytes": 1822623
+  },
+  "Tacoma|2012": {
+    "sha256": "f766128bce0832006e6ad05470e432078859709e689e17ac1c7e2ec7445b6e15",
+    "bytes": 1331841
+  },
+  "Tacoma|2013": {
+    "sha256": "726c9a284fe1d843a0b0867d535d5859db2f492ecf849d6dc32150ce986c7e74",
+    "bytes": 2552561
+  },
+  "Tacoma|2014": {
+    "sha256": "cf4288e4683484cfe67d751cfbf9006748298b1bad541578e98ea544722c8769",
+    "bytes": 3910158
+  },
+  "Tacoma|2015": {
+    "sha256": "52ce4a840c8ae8df4386148f8c525183e1c4d4ea5191800c4182168465c49063",
+    "bytes": 6974295
+  },
+  "Tacoma|2016": {
+    "sha256": "7f5a7890da8cae6257de0b4e0e43c4a4dcc069711c62ec09afe79867fbc6ec7b",
+    "bytes": 2633012
+  },
+  "Tacoma|2017": {
+    "sha256": "49fcf97fba2b02238f8bf9d5f7d17c80bc19ad4af06947b120dbbe47562c7243",
+    "bytes": 2637465
+  },
+  "Tacoma|2019": {
+    "sha256": "dce9fe0773afb49128b2245a4da52bb51b2f3d70c13539ed146326f03e56a096",
+    "bytes": 3843106
+  },
+  "Tacoma|2020": {
+    "sha256": "01e4e642ecd3bb2e2468d8357cde353f616d011d39543068ca87a95cb6bcd532",
+    "bytes": 3478426
+  },
+  "Tacoma|2022": {
+    "sha256": "cba35fa2f5c8a090446983d41cd41ee913061efb7a57b6f6fe566f82a62a6233",
+    "bytes": 5665594
+  },
+  "Tacoma|2023": {
+    "sha256": "c8936b605e491e3b8ab12f171a024600d29dc2425e8487ccf066b2977738bab2",
+    "bytes": 13100739
+  },
+  "Tacoma|2024": {
+    "sha256": "983a91ee54eff929162a5c76f908e61384ca9b75f72c011b49347a368ceec6c2",
+    "bytes": 6632803
+  },
+  "Spokane|2004": {
+    "sha256": "87ea75d57e8891bf541d88cd89e32f644f347ad1fe42b1e446de8e8671312c21",
+    "bytes": 978907
+  },
+  "Spokane|2005": {
+    "sha256": "08d9c2ae692f767c2f1a287d524e2ed3d1c86d7a21ab915a017329ed6fc1faab",
+    "bytes": 1012983
+  },
+  "Spokane|2006": {
+    "sha256": "6f780b103d183570f1cc031eadd4c5cebdb679ac5b444dae334e292bd5caeb75",
+    "bytes": 3354376
+  },
+  "Spokane|2007": {
+    "sha256": "397145c15106efc7093e6f5d6bb89f061487beac5c1f86f030de05a36faf009a",
+    "bytes": 3459018
+  },
+  "Spokane|2008": {
+    "sha256": "011949a87c423659b3669ce3f6baa8a3367fe1893387cdc684a37917f1720b9f",
+    "bytes": 9630551
+  },
+  "Spokane|2009": {
+    "sha256": "a14e35befc90698ad4c7284c64513460db2f38f1bdbea497b60a05ba8840dec8",
+    "bytes": 13959460
+  },
+  "Spokane|2010": {
+    "sha256": "e7d3d52ad5e559d9c9ee0e230c05f02d30698636061b4165f9ef517fd55a893b",
+    "bytes": 1546027
+  },
+  "Spokane|2011": {
+    "sha256": "8786e1f5093c624f7d2ac23043491ddfbdd282218cb8e4b8d41e9d08e1cd7d62",
+    "bytes": 1687389
+  },
+  "Spokane|2013": {
+    "sha256": "1722dbfcf242d798caec0ddeb0a219a5cb9a3de181fa53ea557ac134b70cff06",
+    "bytes": 2478787
+  },
+  "Spokane|2014": {
+    "sha256": "17921f4c8d687a4cdf1db4911919cd463b83427218b64159f42a99f875322afa",
+    "bytes": 7329195
+  },
+  "Spokane|2015": {
+    "sha256": "87d2c56b6430573a8a5898ff38054913b6699473d548eb75d12e08eabe0ad968",
+    "bytes": 6743827
+  },
+  "Spokane|2016": {
+    "sha256": "0b8b4bea1877edec99e8bf5e909f0c65958273702597da43de40d6d67c817f7e",
+    "bytes": 31902659
+  },
+  "Spokane|2017": {
+    "sha256": "c107ddb9a5af872bb00d0d0c455d5a33c531baf4476718c7b938f46847bc1dea",
+    "bytes": 4835909
+  },
+  "Spokane|2018": {
+    "sha256": "48c2cabfdb49416ca4478c4e8fefb384a0c399275079a304e72139b9329b23de",
+    "bytes": 3588261
+  },
+  "Spokane|2019": {
+    "sha256": "4ac5bc5be79bdcf98a9c00930d591e0e232ec7db9d8144645a6fa0bb024a93ba",
+    "bytes": 3606530
+  },
+  "Spokane|2020": {
+    "sha256": "b2c2a387c560df0fa0d4a27dfc2a15fa972dd52fbbe3c694febf64ad029021d7",
+    "bytes": 3898069
+  },
+  "Spokane|2021": {
+    "sha256": "a8845373add38b87d19ad03e2794bdab19294e8491de6f68067015d682e65a60",
+    "bytes": 4292071
+  },
+  "Spokane|2022": {
+    "sha256": "c75b90ed45fdf17a3718df8cb5648a0031d1986958f81f9e8071748aa4d295bf",
+    "bytes": 4773965
+  },
+  "Spokane|2023": {
+    "sha256": "fd76e76493f0c9b4a8e15b416a4dd18db3c36974391681bd8d21747ddd6616bf",
+    "bytes": 4283563
+  },
+  "Spokane|2024": {
+    "sha256": "b12dd6e2a48a989d965830ce334a9c50c00f9ab3a3080dcf14f175369d81211e",
+    "bytes": 6339059
+  },
+  "Vancouver|2005": {
+    "sha256": "b6f666cd6593c4761e09bb52d7c09ee14597f940a3900a0828d0ac535d530a0a",
+    "bytes": 844963
+  },
+  "Vancouver|2006": {
+    "sha256": "8b2377b7638119baf8703aed0fa7f470a828811c4c5e622de1b24b0a1d83c176",
+    "bytes": 958806
+  },
+  "Vancouver|2007": {
+    "sha256": "a0f2b303d529f00dae65828a6b93a7d0eebedf68e80b3027692ea03fd0ec3460",
+    "bytes": 721929
+  },
+  "Vancouver|2008": {
+    "sha256": "b94b4e65165a722cfd3464f0af16e0966ecc75e93621f4c897be129b9cb601b0",
+    "bytes": 1231305
+  },
+  "Vancouver|2009": {
+    "sha256": "cd075f3fb839793ab27a13729a7f3d77c951525a68721a49f1256fb81cc9a950",
+    "bytes": 1473757
+  },
+  "Vancouver|2010": {
+    "sha256": "e66de0c7a6b8148ea6bf441f495e1e618470ed5a0a2a0b32d80412718eca7c9c",
+    "bytes": 1854615
+  },
+  "Vancouver|2011": {
+    "sha256": "297e71cfceccdd4b78484b56e99711a062b68118569c07683861d9aad9be65a2",
+    "bytes": 1173264
+  },
+  "Vancouver|2012": {
+    "sha256": "8bdce90c1f4b735dda330b1e32399eec6c3a3beb72abe48cd4617440101b5e2f",
+    "bytes": 1285969
+  },
+  "Vancouver|2013": {
+    "sha256": "dc2db874e9f360489c15dca2bd513db65958c1cb4ace62e64c96450ac8f03fc9",
+    "bytes": 1351272
+  },
+  "Vancouver|2014": {
+    "sha256": "14e7bc7ed3c7d7754a22592a31a2f047066ee58274e0eca22f2fbbc06e7e1ab2",
+    "bytes": 1681839
+  },
+  "Vancouver|2015": {
+    "sha256": "59c3c342d3f129205fa1f30ba903968d89bc34d096856b282d13bd42d25d787a",
+    "bytes": 3253381
+  },
+  "Vancouver|2016": {
+    "sha256": "f9e8e4b7edd5b89e4e94e1e759140eee6febcee925e5ad48a7617d4f0b5da253",
+    "bytes": 10106286
+  },
+  "Vancouver|2017": {
+    "sha256": "1ba13606e13e1e07489b815ca1a236c81f232485d34718b85dbe57a8b0610277",
+    "bytes": 3264160
+  },
+  "Vancouver|2018": {
+    "sha256": "e4bb3adf8a982333871e866aa888219195941e8c39ce6ba1f45e5c2bfafd1750",
+    "bytes": 2496128
+  },
+  "Vancouver|2019": {
+    "sha256": "de0ef0ccf1c1f1c141389bf6a5dad5560e22d72cb02211bf1add428cf4d2c727",
+    "bytes": 2909503
+  },
+  "Vancouver|2020": {
+    "sha256": "20ea9dfc48b8598c3cdc4d393fbeaf5ca7567bec4764ff4ceb91cf80bf28d9a2",
+    "bytes": 2296954
+  },
+  "Vancouver|2021": {
+    "sha256": "75aa77f93688fe141a74afc58f2c59d652ed65af34187230a5be1a26588298e8",
+    "bytes": 2186764
+  },
+  "Vancouver|2022": {
+    "sha256": "a7825d42cbd53caec60142b7e379e736a49ddf18a287b7d44a0a9551c9c602e0",
+    "bytes": 2767353
+  },
+  "Vancouver|2023": {
+    "sha256": "df7417bb4f29f7b9dfb6c981266a107b98cc795387c6b1d0bbd0c93d42a217a3",
+    "bytes": 4244664
+  },
+  "Bellevue|2008": {
+    "sha256": "558237dd55737b1d6386b0fcf455ebbdc5d07cb5005c9d6bd8c43f3434d5a979",
+    "bytes": 1681099
+  },
+  "Bellevue|2009": {
+    "sha256": "436aaa79dfc68a44fc686900026e7e0fe2cc9e76063795020b434d99977ed8e7",
+    "bytes": 1496210
+  },
+  "Bellevue|2010": {
+    "sha256": "dc10c7c1eb5182146dce23dc67e717e01dd8ddc2305e1a31515f1a1775162005",
+    "bytes": 2007251
+  },
+  "Bellevue|2012": {
+    "sha256": "7682e5b743466ae66ff2d2c40a2295570ae2f163f00295c4407050ac65dd3638",
+    "bytes": 1536241
+  },
+  "Bellevue|2013": {
+    "sha256": "652b41138e23076e11f94528b54bedaafc5f7baaa679c853887f531d4ec937c3",
+    "bytes": 1785033
+  },
+  "Bellevue|2015": {
+    "sha256": "c83621c0b97e821ee9763a3331c7276db782e3fa791fa2532364e8f5e3d2ef86",
+    "bytes": 4584508
+  },
+  "Bellevue|2016": {
+    "sha256": "96522579919304ef89399f92d738bae20ebf427063490301f8b6a4d98a948672",
+    "bytes": 16103397
+  },
+  "Bellevue|2018": {
+    "sha256": "6a137bc031b7f863325d7718a62b5ef30368e1dab91a778df170ba4ae2a445a1",
+    "bytes": 2273028
+  },
+  "Bellevue|2020": {
+    "sha256": "a8e1b32d45f61492f13d2574448cc543afa095336232e709a4ca53b0688fed30",
+    "bytes": 2747687
+  },
+  "Bellevue|2021": {
+    "sha256": "c2b17877736f306c3ea380c9a0f56d0ba855170ee7a953f522b9dd5029d53265",
+    "bytes": 2857616
+  },
+  "Bellevue|2022": {
+    "sha256": "4a50290a5b87e8455f3c529881bf0b1b229fcf6e76d08532b487679cd35d72a2",
+    "bytes": 2487908
+  },
+  "Bellevue|2023": {
+    "sha256": "8d887212e936f50582e7624e79280c5639e236fcba3e62981ebe10995c646036",
+    "bytes": 2418437
+  },
+  "Kent|2004": {
+    "sha256": "fde0d3a6ea642851d21275936e9c5dc8a2be13eb523214f55de301409185477b",
+    "bytes": 843969
+  },
+  "Kent|2005": {
+    "sha256": "3f058d6bdd68e85065f4b7243b2631e1360397d6d542a55090310c5119ea61b4",
+    "bytes": 1078950
+  },
+  "Kent|2006": {
+    "sha256": "b745974d14c1bd140767c19080174bfb054d8d81d755d4922d22024d82781e75",
+    "bytes": 885640
+  },
+  "Kent|2007": {
+    "sha256": "961b016a2b3e3421f8208d1d192e8debea8aba839a1189db22f90c55cc0d2878",
+    "bytes": 896434
+  },
+  "Kent|2008": {
+    "sha256": "062f007e72a2d4349d651dffeb004ce023ad64a7c6705982ebb7495e787fdb1c",
+    "bytes": 1200852
+  },
+  "Kent|2009": {
+    "sha256": "99977731269343e2c4b03010db58f17e7dd0d24b27878234eea2902004deeb9e",
+    "bytes": 1575421
+  },
+  "Kent|2010": {
+    "sha256": "a02d6b62c5ce410a51b9b21be9e799e7f6435ae1125a1d6951b293a5ae6bc2e1",
+    "bytes": 1185072
+  },
+  "Kent|2011": {
+    "sha256": "ed2422f31d0aa2bf42bf6dbd511e7cd43cb53c6e0a7332f760229daf55ea0544",
+    "bytes": 659591
+  },
+  "Kent|2012": {
+    "sha256": "abbe8cad4454ab74969ad99d3310f888e28d540c75f15c67ab6c4998fecfdfef",
+    "bytes": 1175954
+  },
+  "Kent|2013": {
+    "sha256": "1a54f87f67b8a0ef03ac541fa55d81df5d66e4663ecc22d6d3334fc60f58b23d",
+    "bytes": 3189616
+  },
+  "Kent|2014": {
+    "sha256": "87ccab57788d12a2f45400c1edf09ce36cb09d2460ee504bdfaa957cd097b256",
+    "bytes": 1476645
+  },
+  "Kent|2015": {
+    "sha256": "dc1d7dd2dbb75ed8fb2a762b4d86ba6488e3d59c0c361c90e19c85adc2ad96f5",
+    "bytes": 4080238
+  },
+  "Kent|2016": {
+    "sha256": "c271195179aec20e9d968cb2782a8c948655b2d65249c4a5b48b2dcc7e678eac",
+    "bytes": 2731041
+  },
+  "Kent|2017": {
+    "sha256": "1aa39e0acc9246ed09245559c092ef75d450c3aa58ca415ddeea33a6853f6310",
+    "bytes": 2131835
+  },
+  "Kent|2018": {
+    "sha256": "c9475b210a58a651a53bae8d0c28c9827b68d4c7d8d8c38068a884b3875fb3cc",
+    "bytes": 2401004
+  },
+  "Kent|2021": {
+    "sha256": "4d74d594b868129fb80bf7902fd2b52fd648b106c9c4dfe73e39e4c7f2977589",
+    "bytes": 2941130
+  },
+  "Kent|2022": {
+    "sha256": "a009f02a5f91f71810356bd5f22c50538bfecedcc5842a165a5b256d549ad905",
+    "bytes": 3099436
+  },
+  "Kent|2024": {
+    "sha256": "f0f8c62575360c2d96e8bf88ac4f367ce9ed067a2dc47334a5988ec5172b5c10",
+    "bytes": 13785548
+  },
+  "Everett|2004": {
+    "sha256": "094b188f8d2fbdd414aaddf2271cd60dd334696eddde2bf97a3c63042d5f15c7",
+    "bytes": 995957
+  },
+  "Everett|2006": {
+    "sha256": "d617293d1bcd78607ca54f08db8818b25e0ac3cf361297c2ffc7ad52eb164620",
+    "bytes": 973018
+  },
+  "Everett|2007": {
+    "sha256": "9ea18f5cd98dd5b01f6b9d03e076dff69f2908db5817ebaf251e6e119368cb93",
+    "bytes": 794834
+  },
+  "Everett|2008": {
+    "sha256": "53440d924757113b02f54af06e9742fcdf77be4c53d83325fa8dafa8e5e3f976",
+    "bytes": 1279658
+  },
+  "Everett|2009": {
+    "sha256": "322d046cbbf1acd1e567287f81f7f87c1b7a7e31f7b2960c4f2b707b37fbcf5f",
+    "bytes": 1261636
+  },
+  "Everett|2011": {
+    "sha256": "0ac2fb299c3e287835326282729c3b20907c0cdc9c5b6535a0cb405d3b9bd9e2",
+    "bytes": 989504
+  },
+  "Everett|2012": {
+    "sha256": "b88618ecfbd253a2aa6604174e1aad791668287d27eef23b38a76f72d4f43eb9",
+    "bytes": 2113757
+  },
+  "Everett|2013": {
+    "sha256": "f0d11979429c9e3b985660f73244459494097265434391d57b177ed96e3b63b0",
+    "bytes": 1864113
+  },
+  "Everett|2014": {
+    "sha256": "119493757dda62f27384a504d7ccdac5782304a1465625fa2c2246623b9f0c08",
+    "bytes": 3549687
+  },
+  "Everett|2015": {
+    "sha256": "ccfea6557b3617230a23807435e76b6d8846395676332c0cebe6dacfbd88a8b8",
+    "bytes": 3867285
+  },
+  "Everett|2016": {
+    "sha256": "f35c3fe3fad605031973dd5e1e0190a6fd7115c866c4c225734466c0b067a8a4",
+    "bytes": 2695809
+  },
+  "Everett|2017": {
+    "sha256": "676e74bc233eba868d9ccbd5ef84dd3798262b77c8bd86987ba11c7cc267e730",
+    "bytes": 2288581
+  },
+  "Everett|2018": {
+    "sha256": "f599f456c8e9ca5a39e1d9a82c69b60f6eff40e87c449e40849b01ab555fdcfc",
+    "bytes": 2271381
+  },
+  "Everett|2019": {
+    "sha256": "60cfb3020c5db9446c9932053a7fba413eaa2fce5f685ab60494803fba343270",
+    "bytes": 2578519
+  },
+  "Everett|2020": {
+    "sha256": "187c9a79fa292ed901e26ed77496c0301c0a8dcfc6c504db1d2d74e58c15d08e",
+    "bytes": 3022931
+  },
+  "Everett|2021": {
+    "sha256": "852cf476bb0d7a98311275f4c8ae09a684cf91bd4f0f2d0e798589d19b6466bf",
+    "bytes": 4176957
+  },
+  "Everett|2022": {
+    "sha256": "6d969af0ff25fba2fba9f2439e6b8f20db65a01eec2ef1730fc14715b230a2e8",
+    "bytes": 2491851
+  },
+  "Everett|2023": {
+    "sha256": "96f8d5b21a48cd0275a743d196fe022ddbd133df82b81538d79140aa9d5a4b37",
+    "bytes": 2900545
+  },
+  "Everett|2024": {
+    "sha256": "1be5398cfe8d6ad6757308a1a122b6f78772655b781996bbf96af401ae4f4061",
+    "bytes": 2736041
+  }
+}
