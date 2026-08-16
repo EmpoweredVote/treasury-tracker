@@ -651,41 +651,69 @@ $0 tie.
 FY2004 revenue rows carry one to four numbers against a four-column totals row,
 FY2006/FY2008 the same against seven.
 
-FY2004–FY2008 weld the SAO page-footer credit onto the `Fire District #` label,
-repaired with an exact `label_fixes` entry as on Spokane FY2007.
+FY2004–FY2008 weld the SAO page-footer credit onto the `Fire District # 37
+Contract` label, repaired with an exact `label_fixes` entry as on Spokane FY2007.
 
-### Harness gaps — the reason Task 10 is incomplete
+### Task 10 closed — and the three "harness gaps" were not only harness gaps
 
-All three are defects in the harnesses' own readers. **None is a disagreement
-with the loaded data.** 15 of Kent's 36 rows already re-derive clean; the other
-21 block.
+The three open items were logged as defects in the harnesses' own readers, with
+the note that **none was a disagreement with the loaded data.** That was wrong,
+and the way it was wrong is the lesson: two of the three were reader defects
+*whose fix immediately exposed a matching defect in the extractor*. Once the
+harness could read Kent, it disagreed with production on **ten rows** — every one
+with the correct figure, every one tying at $0.
 
-1. **Revenue-group indentation lookup uses the wrap-accumulated label.**
-   `buildRevenue` calls `indentOf(full, …)` where `full` includes carried-over
-   `pending` text, so it looks up `"Real estate excise tax Lodging Other"` or
-   `"Intergovernmental revenue Federal grants"` in a `-layout` map keyed by the
-   row's own label. Affects the revenue side of ~13 years. Likely small: look up
-   `r.label`, not `full`.
+| Published | The document |
+|---|---|
+| `Real estate excise tax Lodging Other` (FY2004) | `Other` |
+| `Lodging Other` (FY2005/07/09/10/11) | `Other` |
+| `Contributions and Donations Other miscellaneous revenue` (FY2007/09/10) | `Other miscellaneous revenue` |
+| `Fire District #` (FY2004–FY2010) | `Fire District # 37 Contract` |
+| Debt service / `Issuance costs Capital outlay` (FY2005) | Capital outlay / `Capital outlay` |
+| Federal/State grants, State shared revenues, Other governments as four ROOT categories (FY2024) | the four children of Intergovernmental revenue |
 
-2. **No complete data row exists to corroborate the column bands.** Kent's
-   operating sections are made ENTIRELY of incomplete rows, so the Task 6 safety
-   check — bands must reproduce the ordinal reading on a complete row before
-   being trusted — can never be satisfied. Affects the operating side of ~8
-   years. Needs a design decision: the natural answer is to corroborate against
-   the **revenue** section's complete rows on the same page, since both sections
-   share the page's column geometry, but that changes the trust argument and
-   deserves its own tests.
+**Gap 1 was mis-diagnosed, and the proposed one-line fix would have been wrong.**
+The suggestion was to look up `r.label` instead of `full`. `full` is correct: a
+wrapped label appears in the indent map as one name, and Kent FY2022 has a genuine
+wrap (`Unrealized net gain/(loss)` / `in fair value of investments`) that the
+"fix" would have broken. The real cause was that **a row carrying no money in any
+column is one of THREE things**, not one — a colon-less group heading
+(`Intergovernmental revenue`, FY2016+), a wrapped label, or **a line item the
+issuer printed empty in every column** (`Lodging`, `Issuance costs`). They are
+told apart from the page's own printed nesting geometry, established from its
+colon headings.
 
-3. **Audit check (e) false-positives on legitimate `Other …` labels.** Kent's
-   `Taxes:` group has a child named literally **`Other`**, and the same statement
-   carries `Other licenses and permits`, `Other fees and charges`,
-   `Other governments` and `Other miscellaneous revenue`. The dash-zero grafting
-   heuristic flags any leaf whose label has another label as a strict prefix, so
-   it fires on all of them — 45 findings, every one spurious.
+Two further reader defects surfaced behind it, both classes:
 
-   Refining it is not trivial: the obvious tightening (require the remainder to
-   be a sibling label too) still fires here, because `Licenses and permits` IS a
-   category name in the same tree.
+* **`-layout` cannot be trusted to preserve indentation.** Kent FY2006 p.28 emits
+  every label at column 0 — heading, child and root leaf alike — so it cannot say
+  whether `Fines and forfeitures` is inside the open group or a peer of it. The
+  same page under `-lineprinter` puts every heading at x=27 and every child at
+  x=30. Nesting evidence now comes from true page geometry, which removes a
+  renderer instead of adding one.
+* **A number can be part of a label.** Both the harness's indent map and the
+  library's `label_of` cut at the first money token, so `Fire District # 37
+  Contract` became `Fire District #`.
+
+**Gap 2 went the way the note predicted.** A section made entirely of incomplete
+rows now corroborates its column bands against the **other section of the same
+page** — `-table` reflows the whole page onto one grid, so the geometry is a
+property of the page. The section's own rows are still tried first and alone
+decide every page that has any, so no previously-passing page changed, and each
+use of the weaker path is printed in the harness summary rather than kept quiet.
+Seven Kent operating sections use it.
+
+**Gap 3 was a genuine false-positive, fixed by scoping to real siblings.** Dash-zero
+grafting welds ADJACENT rows, and adjacent rows share a parent, so the comparison
+pool is one category — its name plus its own line items. That kills all 45 findings
+and still catches the Bainbridge case the check was built for. Recorded alongside
+it: **(e) cannot see a weld whose prefix was a row printed EMPTY**, because there
+is no sibling left in the database to compare against. It passed all ten of the
+defects above. Only the document-side reader finds those.
+
+Result: Kent 36/36 re-derived at $0 (was 15/36), whole corpus 248/248, audit 8/8,
+tether pre-determined. No figure changed anywhere — every defect was a name or a
+parent.
 
 ### Measured spread and bands
 
