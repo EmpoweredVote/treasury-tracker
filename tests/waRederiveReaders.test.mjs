@@ -16,8 +16,42 @@ import { describe, it, expect } from 'vitest';
 import {
   lpSplit, lpModalGlyphGap, assertLinePrinterCalibration, LP_MAX_CHAR_GAP,
   readRowOrdinal, makeRowReader, buildRevenue, buildOperating, pageExactChunks,
-  assertPageYear, GF_CAPTION_RE, sectionOf, lpRowIsDecoration,
+  assertPageYear, GF_CAPTION_RE, sectionOf, lpRowIsDecoration, labelCompareKey,
 } from '../scripts/verify-wa-rederive.mjs';
+
+describe('the DB label comparison is blind to WHERE the spaces are, and nothing else', () => {
+  // Bellevue FY2015/FY2016 letter-space two labels in the text layer
+  // ("Premi ums /contri buti ons", "Tra ns porta ti on"). The extractor repairs
+  // those with `label_fixes`; this reader deliberately does NOT, because it must
+  // report what the document says. The comparison therefore has to tolerate a
+  // whitespace-placement difference or the repair would read as a defect.
+  //
+  // What it must NOT tolerate is anything else. Every label defect this milestone
+  // actually found survives the squash: a weld, a truncation and a wrong name all
+  // change the letters, not just the spaces.
+  it('accepts a letter-spaced rendering of the same name', () => {
+    expect(labelCompareKey('Premi ums /contri buti ons')).toBe(labelCompareKey('Premiums/contributions'));
+    expect(labelCompareKey('Tra ns porta ti on')).toBe(labelCompareKey('Transportation'));
+  });
+
+  it('still rejects a WELDED label', () => {
+    expect(labelCompareKey('Lodging Other')).not.toBe(labelCompareKey('Other'));
+    expect(labelCompareKey('Issuance costs Capital outlay')).not.toBe(labelCompareKey('Capital outlay'));
+  });
+
+  it('still rejects a TRUNCATED label', () => {
+    expect(labelCompareKey('Fire District #')).not.toBe(labelCompareKey('Fire District # 37 Contract'));
+  });
+
+  it('still rejects a different name that merely looks similar', () => {
+    expect(labelCompareKey('Other licenses and permits')).not.toBe(labelCompareKey('Other'));
+    expect(labelCompareKey('Capital outlay')).not.toBe(labelCompareKey('Capital outlays'));
+  });
+
+  it('is case-insensitive, as it already was', () => {
+    expect(labelCompareKey('Capital Outlay')).toBe(labelCompareKey('Capital outlay'));
+  });
+});
 
 describe('page identity: "General" must name a FUND, not a debt or a function', () => {
   it('accepts a real General Fund column caption', () => {
