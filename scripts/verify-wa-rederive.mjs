@@ -1,6 +1,13 @@
-#!/usr/bin/env node
 /**
- * verify-bainbridge-rederive.mjs — Task 9: loader-independent blind
+ * NO SHEBANG, deliberately. This file is always invoked as
+ * `node scripts/verify-wa-rederive.mjs`, so the `#!` line was decorative --
+ * and on a Windows checkout it is worse than decorative: git stores the file
+ * CRLF, Vite's shebang strip matches `#!.*\n` where `.` does not match `\r`,
+ * and the leftover `\r` makes the module unparseable. That is the same defect
+ * `tests/waSao.test.mjs` guards for `scripts/lib/`, and it applies here now
+ * that `tests/waRederiveReaders.test.mjs` imports the readers directly.
+ *
+ * verify-wa-rederive.mjs — loader-independent blind
  * re-derivation of every Bainbridge Island and Kitsap County General Fund
  * figure Treasury Tracker publishes, taken straight from the source WA SAO
  * PDFs and diffed leaf-for-leaf, subtotal-for-subtotal and total-for-total
@@ -190,25 +197,34 @@ import { createClient } from '@supabase/supabase-js';
 import { verifiableEntities } from './lib/waRoster.mjs';
 import { readFileSync, writeFileSync, existsSync, mkdirSync, statSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 
 // ── env ──────────────────────────────────────────────────────────────────────
-for (const f of ['.env.local', '.env']) {
-  try {
-    for (const line of readFileSync(path.join(ROOT, f), 'utf8').split('\n')) {
-      const [k, ...v] = line.split('=');
-      if (k && v.length && !process.env[k.trim()]) process.env[k.trim()] = v.join('=').trim();
-    }
-  } catch { /* absent — ignore */ }
+// Connecting is DEFERRED to the entry point rather than done on import. The
+// readers below are pure functions over pdftotext output, and tests/
+// waRederiveReaders.test.mjs pins each of them against transcribed fixtures of
+// the exact page shapes that once defeated them. That test can only import this
+// file if importing it neither demands credentials nor opens a socket.
+let SUPABASE_URL = null;
+let sb = null;
+function connect() {
+  for (const f of ['.env.local', '.env']) {
+    try {
+      for (const line of readFileSync(path.join(ROOT, f), 'utf8').split('\n')) {
+        const [k, ...v] = line.split('=');
+        if (k && v.length && !process.env[k.trim()]) process.env[k.trim()] = v.join('=').trim();
+      }
+    } catch { /* absent — ignore */ }
+  }
+  SUPABASE_URL = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!SUPABASE_URL) { console.error('Missing SUPABASE_URL — refusing to guess a production URL.'); process.exit(2); }
+  if (!key) { console.error('Missing SUPABASE_SERVICE_KEY / SUPABASE_SERVICE_ROLE_KEY.'); process.exit(2); }
+  sb = createClient(SUPABASE_URL, key, { db: { schema: 'treasury' } });
 }
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-if (!SUPABASE_URL) { console.error('Missing SUPABASE_URL — refusing to guess a production URL.'); process.exit(2); }
-if (!SUPABASE_KEY) { console.error('Missing SUPABASE_SERVICE_KEY / SUPABASE_SERVICE_ROLE_KEY.'); process.exit(2); }
-const sb = createClient(SUPABASE_URL, SUPABASE_KEY, { db: { schema: 'treasury' } });
 
 const OFFLINE = process.argv.includes('--offline');
 
@@ -328,15 +344,80 @@ function tablePages(pdfPath) {
   return pages;
 }
 
+/**
+ * ⚠ `-fixed` IS LOAD-BEARING. Without it this reader silently loses whole years.
+ *
+ * `pdftotext -lineprinter` does NOT emit a fixed, document-independent grid: if
+ * no pitch is given it GUESSES one per document from the glyph metrics it finds.
+ * Across the 64 statement pages in this corpus that guess lands on ~1.55pt for
+ * 62 of them -- a modal gap of 2-3 output columns between adjacent characters
+ * inside a word, which is exactly what LP_MAX_CHAR_GAP = 5 was calibrated
+ * against. On two documents it lands somewhere else entirely:
+ *
+ *   Tacoma FY2012 p.38   2124 columns wide, modal intra-word gap 17
+ *   Tacoma FY2023 p.48    997 columns wide, modal intra-word gap  8
+ *
+ * At those pitches proximity grouping never reassembles a word, so no label
+ * ever matched and both years died on "-lineprinter found no Total revenues
+ * row" -- four of this harness's blockers, from a renderer setting rather than
+ * from anything in the data.
+ *
+ * Pinning the pitch makes the geometry a property of the PAGE instead of a
+ * property of poppler's guess about the document. 1.55pt is the value the
+ * corpus itself already renders at, so the 62 well-behaved pages are unchanged
+ * and the two outliers join them (measured: all 64 land on a modal gap of 2-3).
+ * `assertLinePrinterCalibration` then refuses any page that still renders
+ * outside the calibration, so a future city that breaks this fails LOUDLY
+ * instead of quietly returning fewer rows.
+ */
+const LP_FIXED_PITCH_PT = '1.55';
+
 const lpCache = new Map();
 function linePrinterPage(pdfPath, pageNo) {
   const k = `${pdfPath}|${pageNo}`;
   if (lpCache.has(k)) return lpCache.get(k);
   const txt = execFileSync('pdftotext',
-    ['-lineprinter', '-f', String(pageNo), '-l', String(pageNo), pdfPath, '-'],
+    ['-lineprinter', '-fixed', LP_FIXED_PITCH_PT, '-f', String(pageNo), '-l', String(pageNo), pdfPath, '-'],
     { maxBuffer: 64 * 1024 * 1024, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
   lpCache.set(k, txt);
   return txt;
+}
+
+/**
+ * Leading-whitespace depth per label, from `pdftotext -layout` on one page.
+ *
+ * STRUCTURE ONLY. See buildRevenue for why this renderer's column pairing is
+ * not trusted on this corpus while its indentation is. Consulted lazily — a
+ * page with no colon-terminated revenue heading never renders at all.
+ *
+ * A label that appears at two different depths on one page is DROPPED rather
+ * than resolved to either, so an ambiguous name can never silently decide a
+ * nesting: buildRevenue then throws on it instead.
+ */
+const layoutCache = new Map();
+function layoutIndents(pdfPath, pageNo) {
+  const k = `${pdfPath}|${pageNo}`;
+  if (layoutCache.has(k)) return layoutCache.get(k);
+  const txt = execFileSync('pdftotext',
+    ['-layout', '-f', String(pageNo), '-l', String(pageNo), pdfPath, '-'],
+    { maxBuffer: 64 * 1024 * 1024, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+  const seen = new Map();
+  const ambiguous = new Set();
+  for (const line of txt.split('\n')) {
+    if (!line.trim()) continue;
+    const indent = line.length - line.trimStart().length;
+    // Everything from the start of the line to the first money-ish token is the
+    // label; `-layout` may put the figures elsewhere entirely, which is fine
+    // because only the depth is wanted.
+    const toks = tokensOf(line);
+    const key = labelKey(cleanLabel(toks.length ? line.slice(0, toks[0].start) : line));
+    if (!key) continue;
+    if (seen.has(key) && seen.get(key) !== indent) ambiguous.add(key);
+    else if (!seen.has(key)) seen.set(key, indent);
+  }
+  for (const key of ambiguous) seen.delete(key);
+  layoutCache.set(k, seen);
+  return seen;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -543,11 +624,130 @@ function headerLabel(line) {
   return cleanLabel(s);
 }
 
-function readRowOrdinal(line, ncols) {
+/**
+ * Three outcomes, not two. The third is the fix for a defect that cost a
+ * $51,203-thousand line item.
+ *
+ *   cell        the row exposes every column; the Nth from the right is ours.
+ *   header      the row carries NO money at all — a section heading, a group
+ *               heading, or a wrapped label fragment.
+ *   incomplete  the row carries money but FEWER cells than the Total row does,
+ *               because the issuer printed one of the columns EMPTY. Not a
+ *               dash: nothing.
+ *
+ * Conflating `incomplete` with `header` is what dropped Tacoma FY2019's
+ * `Business` row (51,203 thousand, blank in the Trans Capital column) and left
+ * its label to weld onto the next row as "Business Excise".
+ *
+ * The ordinal rule PROVABLY cannot resolve an incomplete row, and it is worth
+ * being precise about why, because the temptation is to count from the left
+ * instead. This corpus contains the blank in both places: FY2019's `Business`
+ * is missing a MIDDLE column and its General Fund figure is leftmost, while
+ * FY2023's `Transportation` is missing the GENERAL FUND column itself and its
+ * leftmost number (4,330) belongs to Trans Capital. Counting from either end
+ * gets one of them wrong, and arithmetic cannot break the tie either: a blank
+ * contributes zero, so every placement of the blank reproduces the row's own
+ * total identically. Locating a blank needs geometry. `makeRowReader` supplies
+ * it, from bands validated against this very rule on the same page.
+ */
+export function readRowOrdinal(line, ncols) {
   const toks = tokensOf(line);
-  if (toks.length < ncols) return { kind: 'header', label: headerLabel(line) };
-  const tok = toks[toks.length - ncols];
-  return { kind: 'cell', value: tok.value, label: cleanLabel(line.slice(0, tok.start)), at: tok.start };
+  if (toks.length >= ncols) {
+    const tok = toks[toks.length - ncols];
+    return { kind: 'cell', value: tok.value, label: cleanLabel(line.slice(0, tok.start)), at: tok.start };
+  }
+  // A row of nothing but dash placeholders is a heading that the renderer put a
+  // zero on -- Kitsap FY2011-FY2013 print `-` in the General Fund column on
+  // their `Debt service` heading line. Only a row carrying a REAL figure is a
+  // data row with a missing cell.
+  if (toks.some((t) => t.kind === 'money')) return { kind: 'incomplete', label: headerLabel(line), toks };
+  return { kind: 'header', label: headerLabel(line) };
+}
+
+/**
+ * Column bands on the `-table` rendering, by the same midpoint rule the
+ * geometric reading uses on `-lineprinter`: each band runs from the midpoint of
+ * the gap before its cell to the midpoint of the gap after it.
+ */
+function tableBands(totalLine, ncols, label) {
+  const t = tokensOf(totalLine);
+  if (t.length !== ncols) {
+    throw new Error(`${label}: the Total row exposes ${t.length} cells but ncols is ${ncols}`);
+  }
+  return t.map((c, k) => ({
+    left: k === 0 ? t[0].start - (t[1].start - t[0].start) / 2 : (t[k - 1].end + t[k].start) / 2,
+    right: k === t.length - 1 ? Infinity : (t[k].end + t[k + 1].start) / 2,
+  }));
+}
+
+const inBand = (toks, band) => toks.filter((t) => (t.start + t.end) / 2 >= band.left && (t.start + t.end) / 2 < band.right);
+
+/**
+ * Returns the row reader for one section: ordinal everywhere it applies, and a
+ * band lookup for the rows where it provably cannot.
+ *
+ * ── WHY THE BANDS ARE EARNED, NOT ASSUMED ───────────────────────────────────
+ * A coordinate rule on `-table` output is NOT generally safe on this corpus,
+ * and this harness's own header says so: Kitsap FY2004-FY2016 render the
+ * General Fund column in two disjoint horizontal zones separated by a wider
+ * corridor than the gap to the next fund's column, so no band, cluster or
+ * whitespace rule can separate them there.
+ *
+ * So the bands are not trusted on faith. Before any incomplete row is resolved
+ * with them, they must reproduce the ORDINAL answer -- label and value -- on
+ * EVERY COMPLETE row of the same section, and on at least one complete row
+ * besides the Total row the bands were derived from (otherwise the check is
+ * circular). That is a property established from the page in hand, not a claim
+ * about the issuer. On a page where bands cannot work, the check fails and the
+ * row is refused rather than guessed at.
+ *
+ * The bands are computed ONLY when the section actually contains an incomplete
+ * row. Measured across all 64 statement pages in this corpus, that is Tacoma
+ * FY2019 and FY2023 and nothing else: every Bainbridge and Kitsap row exposes
+ * a full set of cells, so this path never runs for them and their readings are
+ * bit-identical to before.
+ */
+export function makeRowReader(body, totalLine, ncols, label) {
+  const incomplete = body.filter((l) => l.trim() && readRowOrdinal(l, ncols).kind === 'incomplete');
+  if (!incomplete.length) return (line) => readRowOrdinal(line, ncols);
+
+  const bands = tableBands(totalLine, ncols, label);
+  let corroborating = 0;
+  for (const line of body) {
+    if (!line.trim()) continue;
+    const r = readRowOrdinal(line, ncols);
+    if (r.kind !== 'cell') continue;
+    const picked = inBand(tokensOf(line), bands[0]);
+    if (picked.length !== 1 || picked[0].value !== r.value || picked[0].start !== r.at) {
+      throw new Error(`${label}: this section contains ${incomplete.length} row(s) with an empty cell, which the ` +
+        `ordinal rule cannot resolve, but the Total row's column bands CONTRADICT the ordinal reading on ` +
+        `"${r.label}" (ordinal ${r.value} at column ${r.at}; band ${bands[0].left.toFixed(1)}..` +
+        `${bands[0].right.toFixed(1)} picks ${picked.length} cell(s)${picked.length === 1 ? ` = ${picked[0].value}` : ''}). ` +
+        `Refusing to locate the empty cell by geometry this page has just disproved.`);
+    }
+    corroborating++;
+  }
+  if (!corroborating) {
+    throw new Error(`${label}: this section contains ${incomplete.length} row(s) with an empty cell, but no COMPLETE ` +
+      `data row exists to corroborate the Total row's column bands against the ordinal reading. Refusing to ` +
+      `resolve an empty cell from bands validated only against the row they were derived from.`);
+  }
+
+  return (line) => {
+    const r = readRowOrdinal(line, ncols);
+    if (r.kind !== 'incomplete') return r;
+    const picked = inBand(r.toks, bands[0]);
+    if (picked.length > 1) {
+      throw new Error(`${label}: row "${r.label}" puts ${picked.length} cells inside the General Fund band`);
+    }
+    // No cell in the band means the issuer printed the GENERAL FUND column
+    // empty on this row. That is a real reading, not a failure: the row has no
+    // General Fund figure. It must NOT become a wrapped label fragment, or its
+    // name welds onto the next row.
+    if (!picked.length) return { kind: 'blank', label: r.label };
+    const tok = picked[0];
+    return { kind: 'cell', value: tok.value, label: cleanLabel(line.slice(0, tok.start)), at: tok.start };
+  };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -556,18 +756,73 @@ function readRowOrdinal(line, ncols) {
 // physical position, so a token's x-range is the real x-range on the page.
 // Characters arrive exploded, so they are re-assembled by proximity first.
 // ═══════════════════════════════════════════════════════════════════════════
-const LP_MAX_CHAR_GAP = 5;   // widest gap inside one rendered word/number in this corpus
+export const LP_MAX_CHAR_GAP = 5;   // widest gap inside one rendered word/number in this corpus
 
+/**
+ * A `$` ALWAYS STARTS A NEW GROUP, and that single clause is the difference
+ * between reading Tacoma FY2010 and losing its largest revenue line.
+ *
+ * In an accounting statement the currency symbol is a LEFT-HAND PREFIX: it
+ * introduces the amount to its right and never trails the amount to its left.
+ * Proximity grouping does not know that. On Tacoma FY2010 p.29 the NEXT
+ * column's "$" sits five output columns past the last digit of the General Fund
+ * figure -- inside LP_MAX_CHAR_GAP -- so it welded on, "169,326$" stopped
+ * matching the money pattern, and the $169m Taxes row was left with no cell in
+ * the General Fund band and skipped. The ordinal reading kept the row, so the
+ * two readings disagreed on the row COUNT and the real value never appeared on
+ * either side of the diff.
+ *
+ * Making the symbol a group boundary fixes that by construction rather than by
+ * widening or narrowing a threshold: "$61,037" rendered tight still groups as
+ * one money token, because the `$` merely begins the group it leads.
+ */
 function lpGroups(line) {
   const g = [];
   let cur = null;
   for (let i = 0; i < line.length; i++) {
     const ch = line[i];
     if (ch === ' ' || ch === '\t' || ch === '\r' || ch === '\f') continue;
-    if (cur && i - cur.last <= LP_MAX_CHAR_GAP) { cur.text += ch; cur.last = i; }
+    if (cur && ch !== '$' && i - cur.last <= LP_MAX_CHAR_GAP) { cur.text += ch; cur.last = i; }
     else { cur = { text: ch, start: i, last: i }; g.push(cur); }
   }
   return g.map((x) => ({ text: x.text, start: x.start, end: x.last + 1 }));
+}
+
+/** The most common gap between adjacent glyphs on a page, i.e. the pitch the
+ *  renderer actually used, measured in output columns. Intra-word pairs vastly
+ *  outnumber word boundaries on a page of text, so the mode is the intra-word
+ *  gap. */
+export function lpModalGlyphGap(lines) {
+  const hist = new Map();
+  for (const line of lines) {
+    let prev = -1;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === ' ' || ch === '\t' || ch === '\r' || ch === '\f') continue;
+      if (prev >= 0) { const gap = i - prev; hist.set(gap, (hist.get(gap) || 0) + 1); }
+      prev = i;
+    }
+  }
+  let mode = 0, best = 0;
+  for (const [gap, n] of hist) if (n > best) { best = n; mode = gap; }
+  return mode;
+}
+
+/**
+ * Refuse a page whose rendering falls outside the calibration LP_MAX_CHAR_GAP
+ * was set from. If the TYPICAL gap between two characters of the same word
+ * reaches the threshold that is supposed to separate words, grouping is at or
+ * past the point of failure — and its failure mode is silent, because an
+ * unreassembled label simply never matches and its row disappears.
+ */
+export function assertLinePrinterCalibration(lines, label) {
+  const mode = lpModalGlyphGap(lines);
+  if (mode >= LP_MAX_CHAR_GAP) {
+    throw new Error(`${label}: -lineprinter rendered this page at a modal intra-word glyph gap of ` +
+      `${mode} columns, at or beyond the ${LP_MAX_CHAR_GAP}-column word-grouping threshold — the pitch ` +
+      `is outside this reader's calibration and words would not reassemble. Refusing to read it.`);
+  }
+  return mode;
 }
 
 const LP_MONEY_RE = /^\(?\$?[\d][\d,]*\)?$/;
@@ -581,18 +836,48 @@ const LP_MONEY_RE = /^\(?\$?[\d][\d,]*\)?$/;
  * a rule-line underscore. Those fragments would otherwise glue onto the front
  * of the row's real label ("h" + "General government", "W_" + "Judicial",
  * "S" + "REVENUES"), which breaks both the label comparison and the section
- * header match. Only LEADING groups of at most two non-digit characters are
- * removed — every real label word in this corpus is longer than that, and a
- * money cell can never match, so no value and no real label word can be lost.
+ * header match.
+ *
+ * ── THE FRAGMENT MUST BE IN THE MARGIN, NOT MERELY SHORT ────────────────────
+ * "a leading group of at most two characters" is not by itself evidence of
+ * decoration, and treating it as such corrupts real labels: on Tacoma FY2022
+ * p.52 the capital M of "Miscellaneous" is a wide enough glyph that its advance
+ * exceeds the word-grouping gap, so it renders as its own group and was
+ * stripped — the row shipped into the comparison as "iscellaneous". That is a
+ * LABEL corruption with the figure intact, the one class of defect the tie gate
+ * is structurally blind to.
+ *
+ * What actually distinguishes the stamp is WHERE it is: it is printed in the
+ * page MARGIN, a whole gutter away from the text block, whereas a split first
+ * letter is one letter-advance away from the rest of its own word. Measured
+ * across every statement page in this corpus at the pinned pitch, the two
+ * populations do not come close to overlapping:
+ *
+ *   decoration -> label     23, 34, 39, 40, 45, 66-85, 183, 349 columns
+ *   split first letter       5-6 columns
+ *
+ * The gutter width is NOT constant — it is 34-45 columns on Bainbridge FY2007
+ * p.24 and 72-85 on FY2013 p.32, because the pages are not the same size — so
+ * the test is set from the gap that a letter advance can never reach rather
+ * than from any one page's margin.
+ *
+ * A whole leading RUN is stripped when the run AS A WHOLE clears the gutter,
+ * which is why the loop keeps the LAST qualifying index instead of stopping at
+ * the first: the observed "W" + "_" + label case has only 5 columns between its
+ * two decorations and 34 after them, and both must go.
  */
 const MARGIN_FRAGMENT_RE = /^[A-Za-z'_.,]{1,2}$/;
+const LP_MARGIN_GUTTER_COLUMNS = 3 * LP_MAX_CHAR_GAP;
 function stripLeftMarginDecoration(groups) {
-  let i = 0;
-  while (i < groups.length - 1 && MARGIN_FRAGMENT_RE.test(groups[i].text)) i++;
-  return groups.slice(i);
+  let cut = 0;
+  for (let i = 0; i < groups.length - 1; i++) {
+    if (!MARGIN_FRAGMENT_RE.test(groups[i].text)) break;
+    if (groups[i + 1].start - groups[i].end > LP_MARGIN_GUTTER_COLUMNS) cut = i + 1;
+  }
+  return groups.slice(cut);
 }
 
-function lpSplit(line) {
+export function lpSplit(line) {
   const gs = lpGroups(line);
   const cells = [];
   const labelParts = [];
@@ -632,6 +917,7 @@ const labelKey = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '')
  */
 function lpSection(pdfPath, pageNo, mode, label) {
   const lines = linePrinterPage(pdfPath, pageNo).split('\n');
+  assertLinePrinterCalibration(lines, label);
   const split = lines.map(lpSplit);
   const isTotal = (k) => mode === 'revenue' ? /^total(operating)?revenues?$/.test(k) : /^totalexpenditures$/.test(k);
   const isHead = (k) => mode === 'revenue' ? /^revenues?$/.test(k) : /^expenditures$/.test(k);
@@ -737,13 +1023,17 @@ function sectionOf(lines, mode, label) {
 const CHARACTER_EXACT = /^(current|debt\s+service|capital\s+outlay|capital\s+expenditures)$/i;
 const CHARACTER_START = /^(current|debt\s+service|capital\s+outlay|capital\s+expenditures)\b/i;
 
-function buildOperating(body, ncols, scale, rawRows) {
+export function buildOperating(body, readRow, scale, rawRows) {
   const roots = [];
   let open = null;
   let pending = '';
   for (const line of body) {
     if (!line.trim()) continue;
-    const r = readRowOrdinal(line, ncols);
+    const r = readRow(line);
+    // The issuer printed this row's General Fund column EMPTY. It has no
+    // figure, and its label belongs to it -- carrying the label forward would
+    // weld it onto the next row's name.
+    if (r.kind === 'blank') { pending = ''; continue; }
     // A row whose label is EXACTLY a character word is a HEADING, whether or
     // not the renderer put a stray dash on it. (Kitsap FY2013 prints a dash in
     // the General Fund column on its "Debt service" heading row.) A heading
@@ -775,21 +1065,75 @@ function buildOperating(body, ncols, scale, rawRows) {
   return roots;
 }
 
-/** Both issuers print a FLAT revenue side — no `Taxes:` parent row. Every
- *  valued row is its own root; a row with no cell is a wrapped label fragment
- *  carried onto the next valued row. If either issuer ever prints a revenue
- *  group header, the label comparison against the DB fails loudly. */
-function buildRevenue(body, ncols, scale, rawRows) {
+/**
+ * The revenue side is FLAT for Bainbridge, Kitsap and Tacoma's two older eras:
+ * every valued row is its own root, and a row with no cell is a wrapped label
+ * fragment carried onto the next valued row.
+ *
+ * Tacoma FY2019-FY2024 is not flat. It prints
+ *
+ *     Taxes:
+ *       Property / Retail Sales & Use / Business / Excise
+ *     Licenses and Permits
+ *
+ * and `-table` FLATTENS that indentation, so the heading arrived here looking
+ * exactly like a wrapped label fragment and welded onto the next row as
+ * "Taxes Property". Four tax leaves then stood at root against the database's
+ * single `Taxes` parent — every figure correct, the shape wrong, which is the
+ * class of defect a $0 tie is blind to by construction.
+ *
+ * The rule is read off the document, not configured: a revenue row that carries
+ * NO value and ends in a COLON is a group heading. It opens a group, and the
+ * group closes at the first row printed at the heading's own indentation or
+ * shallower. `Taxes` in Tacoma's Eras B and C carries a value and no colon, so
+ * it stays an ordinary leaf and nothing nests.
+ *
+ * ── WHERE THE INDENTATION COMES FROM, AND WHAT IT IS ALLOWED TO DECIDE ──────
+ * `pdftotext -layout`, which preserves the leading whitespace `-table` drops.
+ * It is consulted ONLY when a colon heading is actually present, and it decides
+ * STRUCTURE ONLY — never a value, never a column. That restriction is not
+ * fussiness: on this issuer `-layout` emits labels and figures on DIFFERENT
+ * output lines, so its column pairing is genuinely untrustworthy while its
+ * indentation is exactly what the statement prints. A heading whose children
+ * cannot be placed from it throws rather than guessing.
+ */
+export function buildRevenue(body, readRow, scale, rawRows, indents) {
   const roots = [];
   let pending = '';
+  let open = null;          // { label, indent, children }
+  const indentOf = (label, line) => {
+    const k = labelKey(label);
+    if (!indents.has(k)) {
+      throw new Error(`the revenue group "${open.label}" is open but "${label}" has no indentation in the ` +
+        `-layout rendering, so this reader cannot tell whether it is inside the group or a peer of it ` +
+        `(row: "${line.trim().slice(0, 90)}")`);
+    }
+    return indents.get(k);
+  };
   for (const line of body) {
     if (!line.trim()) continue;
-    const r = readRowOrdinal(line, ncols);
-    if (r.kind === 'header') { if (r.label) pending = normLabel(`${pending} ${r.label}`); continue; }
+    const r = readRow(line);
+    if (r.kind === 'blank') { pending = ''; continue; }
+    if (r.kind === 'header') {
+      if (!r.label) continue;
+      if (line.trim().endsWith(':') && indents.has(labelKey(r.label))) {
+        open = { label: r.label, indent: indents.get(labelKey(r.label)), children: [] };
+        roots.push(open);
+        pending = '';
+        continue;
+      }
+      pending = normLabel(`${pending} ${r.label}`);
+      continue;
+    }
     rawRows.push({ label: r.label, value: r.value });
     const full = pending ? normLabel(`${pending} ${r.label}`) : r.label;
     pending = '';
     if (!full) throw new Error(`row with a General Fund value but no label: "${line.trim().slice(0, 90)}"`);
+    if (open && indentOf(full, line) > open.indent) {
+      open.children.push({ label: full, value: scale(r.value) });
+      continue;
+    }
+    open = null;
     roots.push({ label: full, children: [{ label: full, value: scale(r.value) }] });
   }
   return roots;
@@ -821,10 +1165,20 @@ function rederive(pdfPath, fy, mode, label, band, population) {
   const lines = page.text.split('\n');
   const { body, totalLine, ncols } = sectionOf(lines, mode, label);
 
+  const readRow = makeRowReader(body, totalLine, ncols, label);
+
   const rawRows = [];
-  const built = mode === 'revenue'
-    ? buildRevenue(body, ncols, scale, rawRows)
-    : buildOperating(body, ncols, scale, rawRows);
+  let built;
+  if (mode === 'revenue') {
+    // `-layout` is rendered only when this page actually prints a colon
+    // heading on the revenue side — Tacoma FY2019-FY2024 do, nothing else in
+    // the corpus does.
+    const hasGroupHeading = body.some((l) => l.trim().endsWith(':') && readRow(l).kind === 'header');
+    built = buildRevenue(body, readRow, scale, rawRows,
+      hasGroupHeading ? layoutIndents(pdfPath, page.index + 1) : new Map());
+  } else {
+    built = buildOperating(body, readRow, scale, rawRows);
+  }
   const { roots, droppedLeaves, droppedRoots } = prune(built);
 
   const totalRow = readRowOrdinal(totalLine, ncols);
@@ -1286,7 +1640,13 @@ async function main() {
 // Set exitCode and let the loop drain rather than calling process.exit(): the
 // Supabase client uses undici, so an abrupt exit can race a keep-alive socket
 // into a Windows libuv UV_HANDLE_CLOSING assert.
-main()
-  .then((code) => { process.exitCode = code; })
-  .catch((e) => { console.error('Fatal:', e); process.exitCode = 2; })
-  .finally(() => { setTimeout(() => process.exit(process.exitCode ?? 0), 2000).unref(); });
+//
+// Guarded on being the entry point so the reader unit tests can import this
+// file. Importing it must not run the corpus, read credentials or open a socket.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  connect();
+  main()
+    .then((code) => { process.exitCode = code; })
+    .catch((e) => { console.error('Fatal:', e); process.exitCode = 2; })
+    .finally(() => { setTimeout(() => process.exit(process.exitCode ?? 0), 2000).unref(); });
+}
