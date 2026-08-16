@@ -20,7 +20,7 @@ import EntitySwitcher from './components/EntitySwitcher';
 import AlphaLanding from './components/AlphaLanding';
 import type { LandingReason } from './components/AlphaLanding';
 import { resolveToken, fetchUserSession, getLoginUrl, signOut } from './utils/auth';
-import { identify, track } from '@empoweredvote/analytics';
+import { identify, pageview, track } from '@empoweredvote/analytics';
 import { useTheme } from './hooks/useTheme';
 import DatasetTabs from './components/datasets/DatasetTabs';
 import DonateModal from './components/DonateModal';
@@ -29,6 +29,7 @@ import YearSelector from './components/YearSelector';
 import type { YearSelectorHandle } from './components/YearSelector';
 import { parsePeriod, buildPeriodTokens } from './utils/period'
 import { resolveEffectiveDataset } from './utils/resolveDataset';
+import { resolveUrlSync } from './utils/spaUrl';
 import Breadcrumb from './components/Breadcrumb';
 import BudgetVisualization from './components/BudgetVisualization';
 import CategoryList from './components/CategoryList';
@@ -77,10 +78,29 @@ function hoistSingleRoot(data: BudgetData | null): BudgetData | null {
 
 // Sync all three params to URL without page reload (D-10, D-11)
 // lens param only appears for the federal agency lens (Phase 45)
+//
+// ...and capture a $pageview when the view actually changes, because a
+// pushState is invisible to PostHog. `capturePageview: true` in main.tsx fires
+// once on load and never again, so before this the app reported every visitor
+// against the bare host: two distinct $current_url values across 90 days, and
+// no way to answer "how many people reached a budget?" — which is the
+// denominator a published engagement number needed and did not have.
+//
+// The `changed` guard does the real work. syncURL is called from three places
+// and more than once per logical navigation (selecting an entity sets state,
+// which re-runs the year/dataset/lens effect below), and on a deep link the
+// app resolves the entity out of a URL PostHog has already counted. Pushing
+// and capturing unconditionally would inflate the very figure this fixes.
+// See utils/spaUrl.ts for what counts as a change and why it compares parsed
+// params rather than raw strings.
 function syncURL(entity: Municipality, year: string, dataset: string, lens?: string) {
-  const params = new URLSearchParams({ entity: toSlug(entity), year, dataset });
-  if (lens === 'agency') params.set('lens', 'agency');
-  window.history.pushState({}, '', `?${params.toString()}`);
+  const { search, changed } = resolveUrlSync(
+    { entity: toSlug(entity), year, dataset, lens },
+    window.location.search
+  );
+  if (!changed) return;
+  window.history.pushState({}, '', search);
+  pageview();
 }
 
 // Get display text for each dataset
