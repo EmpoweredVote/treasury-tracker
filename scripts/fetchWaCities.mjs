@@ -142,7 +142,35 @@ export const KENT_ARNS = {
   2019: 1027549, 2020: 1030248, 2021: 1031658, 2022: 1034231, 2023: 1035663,
   2024: 1038659,
 };
-export const EVERETT_ARNS = {};
+/**
+ * Everett, MCAG 0664. Every ARN below is the "Financial and Federal" report
+ * titled exactly "City of Everett" for that audit period. Enumerated live
+ * 2026-08-16: 61 of the MCAG's 68 reports are the city's own, and the span
+ * FY2004-FY2024 carries exactly ONE "Financial and Federal" filing per year with
+ * no gaps -- the cleanest manifest of the six cities.
+ *
+ * The report-level decoys are the same two shapes seen elsewhere in this
+ * milestone, and one of them is the Bellevue trap: "Everett, City of GASB 68
+ * Examination Report" is a pension-liability examination with the name INVERTED,
+ * so a prefix filter on "City of Everett" excludes it while a "contains Everett"
+ * filter would not. Also present: "Everett, City of - Agreed Upon Procedures -
+ * National Transit Database" and five statewide performance audits that merely
+ * mention the city.
+ *
+ * ⚠ THE TYPE-NAME INVERSION HOLDS HERE TOO -- and note there is no "Financial"
+ * report for FY2025. Its only City of Everett filing is ARN 1040273, whose type
+ * is literally "Annual Comprehensive Financial Report", which on this issuer is
+ * the 5-6pp opinion letter rather than the bound statements. Confirmed by
+ * CONTENT, not by the type name: classifyReport rejects it. FY2025 is therefore
+ * a source-timing gap, exactly as on Bellevue, Kent and Vancouver.
+ */
+export const EVERETT_ARNS = {
+  2004: 69132,   2005: 71222,   2006: 73026,   2007: 75484,   2008: 1001838,
+  2009: 1004276, 2010: 1006420, 2011: 1008474, 2012: 1010534, 2013: 1012275,
+  2014: 1014655, 2015: 1017561, 2016: 1019909, 2017: 1022176, 2018: 1024467,
+  2019: 1027465, 2020: 1029881, 2021: 1031136, 2022: 1033265, 2023: 1035614,
+  2024: 1038217,
+};
 
 export const ARNS_BY_CITY = {
   Tacoma: TACOMA_ARNS,

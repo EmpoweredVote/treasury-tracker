@@ -383,8 +383,15 @@ export function pageExactChunks(text, pageCount) {
   return chunks.length === pageCount ? chunks : null;
 }
 
+// tablePages / findStatementPage / printedIndents / unitsOf are EXPORTED for the
+// per-city recon probe, which reads a new city's statements with these same
+// readers BEFORE any extractor config is written. That is not a weakening of the
+// independence rule in the file header: the rule is that this harness shares
+// nothing with the EXTRACTORS or the shared Python library, and nothing here
+// reaches into either. Reading a document with the strict reader before
+// configuring the lenient one is the point of the probe.
 const tableCache = new Map();
-function tablePages(pdfPath) {
+export function tablePages(pdfPath) {
   if (tableCache.has(pdfPath)) return tableCache.get(pdfPath);
   if (!existsSync(pdfPath)) throw new Error(`PDF not on disk: ${pdfPath}`);
   const count = pdfPageCount(pdfPath);
@@ -467,7 +474,7 @@ function linePrinterPage(pdfPath, pageNo) {
  * exactly what `labelKey` normalises away.
  */
 const indentCache = new Map();
-function printedIndents(pdfPath, pageNo, label) {
+export function printedIndents(pdfPath, pageNo, label) {
   const k = `${pdfPath}|${pageNo}`;
   if (indentCache.has(k)) return indentCache.get(k);
   const lines = linePrinterPage(pdfPath, pageNo).split('\n');
@@ -583,7 +590,7 @@ function captionBlockEnd(lines) {
   return i > 0 ? i + 1 : Math.min(lines.length, 25);
 }
 
-function findStatementPage(pages, label) {
+export function findStatementPage(pages, label) {
   const cands = [];
   const rejected = [];
   pages.forEach((pg, i) => {
@@ -680,7 +687,7 @@ export function assertPageYear(pageText, fy, label) {
  * "(amounts expresssed in thousands)" with three s's, because the typo is in
  * the word this pattern does not depend on.
  */
-function unitsOf(pageText) {
+export function unitsOf(pageText) {
   const flat = pageText.replace(/\s+/g, ' ');
   if (/\bin\s+millions\b/i.test(flat)) return 1_000_000;
   if (/\bin\s+thousands\b/i.test(flat)) return 1_000;
