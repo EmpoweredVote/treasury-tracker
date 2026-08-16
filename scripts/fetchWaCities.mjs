@@ -101,7 +101,26 @@ export const VANCOUVER_ARNS = {
   2019: 1027245, 2020: 1028998, 2021: 1031732, 2022: 1033340, 2023: 1035588,
   2024: 1038527,
 };
-export const BELLEVUE_ARNS = {};
+/**
+ * Bellevue, MCAG 0374. Every ARN below is the "Financial and Federal" report
+ * titled exactly "City of Bellevue" for that audit period.
+ *
+ * 60 of the MCAG's 66 reports are the city's own. The decoy worth naming is
+ * "Bellevue, City of  GASB 68 Examination Report" -- a pension-liability
+ * examination, the same shape as Vancouver's. Note it is titled with the name
+ * INVERTED ("Bellevue, City of"), so a filter written as a prefix match on
+ * "City of Bellevue" excludes it, but one written as "contains Bellevue" would
+ * not.
+ *
+ * FY2025 is absent: the SAO holds no City of Bellevue filing for it.
+ */
+export const BELLEVUE_ARNS = {
+  2004: 69416,   2005: 71428,   2006: 73322,   2007: 75257,   2008: 1001996,
+  2009: 1004202, 2010: 1006367, 2011: 1008458, 2012: 1010437, 2013: 1012573,
+  2014: 1014811, 2015: 1017570, 2016: 1019883, 2017: 1022165, 2018: 1024627,
+  2019: 1027492, 2020: 1029204, 2021: 1031244, 2022: 1033368, 2023: 1035619,
+  2024: 1038210,
+};
 export const KENT_ARNS = {};
 export const EVERETT_ARNS = {};
 

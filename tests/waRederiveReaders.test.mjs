@@ -16,7 +16,7 @@ import { describe, it, expect } from 'vitest';
 import {
   lpSplit, lpModalGlyphGap, assertLinePrinterCalibration, LP_MAX_CHAR_GAP,
   readRowOrdinal, makeRowReader, buildRevenue, buildOperating, pageExactChunks,
-  assertPageYear, GF_CAPTION_RE,
+  assertPageYear, GF_CAPTION_RE, sectionOf,
 } from '../scripts/verify-wa-rederive.mjs';
 
 describe('page identity: "General" must name a FUND, not a debt or a function', () => {
@@ -77,6 +77,55 @@ describe('page identity: the period sentence survives a mis-mapped glyph', () =>
   it('still refuses a page that states no period at all', () => {
     expect(() => assertPageYear('Schedule of Investments', 2018, 'fixture'))
       .toThrow(/no evidence/i);
+  });
+
+  it('reads "Twelve Months ENDING" as well as "Year ENDED"', () => {
+    // Bellevue FY2008-FY2012 caption their statements "For the Twelve Months
+    // Ending December 31, 2008" rather than "For the Year Ended...". The period
+    // is stated exactly as definitively; only the participle differs.
+    expect(assertPageYear('For the Twelve Months Ending December 31, 2008', 2008, 'fixture'))
+      .toMatch(/2008/);
+  });
+
+  it('catches a wrong year in the "Ending" form too', () => {
+    expect(() => assertPageYear('For the Twelve Months Ending December 31, 2007', 2008, 'fixture'))
+      .toThrow(/2007/);
+  });
+});
+
+describe('table: a section whose header row the issuer omitted', () => {
+  // Bellevue FY2015 and FY2016 print NO `Expenditures:` heading at all -- the
+  // statement runs straight from `Total revenues` into `Current:`. Scanning
+  // backward for the section's own header found nothing and the whole year
+  // failed, on both sides, over a heading the document simply does not have.
+  const LINES = [
+    'Revenues :',
+    'Taxes and special assessments   140,733   -   48,590   11,034   200,357',
+    'Other                           144       78  2        485      709',
+    'Total revenues                  195,316   18,987   71,131   17,389   302,824',
+    'Current:',
+    'General government              22,195    3    457      8,776    31,432',
+    'Culture and recreation          34,887    -    5,387    193      40,466',
+    'Total expenditures              185,915   20,695   102,458  38,820   347,888',
+  ];
+
+  it('falls back to the revenue total row and reads the section anyway', () => {
+    const s = sectionOf(LINES, 'operating', 'fixture');
+    expect(s.ncols).toBe(5);
+    expect(s.body.map((l) => l.trim().split(/\s{2,}/)[0])).toEqual([
+      'Current:', 'General government', 'Culture and recreation',
+    ]);
+  });
+
+  it('still prefers a real Expenditures header when the issuer prints one', () => {
+    const withHeader = [...LINES.slice(0, 4), 'Expenditures:', ...LINES.slice(4)];
+    const s = sectionOf(withHeader, 'operating', 'fixture');
+    expect(s.body[0].trim()).toBe('Current:');
+  });
+
+  it('throws when neither a header nor a revenue total row exists', () => {
+    expect(() => sectionOf(LINES.filter((l) => !/Total revenues|Revenues :/.test(l)), 'operating', 'fixture'))
+      .toThrow(/no operating section header/i);
   });
 });
 

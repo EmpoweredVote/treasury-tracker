@@ -341,16 +341,18 @@ function findStatementPage(pages, label) {
  *  "For the Fiscal <ear Ended December 31, 2018", a mis-mapped glyph having
  *  eaten the Y. The year itself is intact, and refusing those pages over one
  *  corrupt letter of scaffolding would drop two otherwise perfect years.
- *  Keeping "ended" is what stops an arbitrary date elsewhere on the page from
- *  qualifying. Kept in step with verify-wa-rederive.mjs. */
+ *  Keeping "end..." is what stops an arbitrary date elsewhere on the page from
+ *  qualifying. `end(ed|ing)` additionally covers Bellevue FY2008-FY2012, which
+ *  caption their statements "For the Twelve Months ENDING December 31, 2008".
+ *  Kept in step with verify-wa-rederive.mjs. */
 function assertPageYear(pageText, fy, label) {
   const flat = pageText.replace(/\s+/g, ' ');
-  const period = flat.match(/ended\s*december\s*3\s*1\s*,?\s*(\d{4})/i);
+  const period = flat.match(/end(?:ed|ing)\s*december\s*3\s*1\s*,?\s*(\d{4})/i);
   if (period) {
     if (Number(period[1]) !== fy) throw new Error(`${label}: page states "${period[0].trim()}" but the file is being read as FY${fy}`);
     return;
   }
-  const p2 = flat.replace(/\s+/g, '').match(/EndedDecember31,?(\d{4})/i);
+  const p2 = flat.replace(/\s+/g, '').match(/End(?:ed|ing)December31,?(\d{4})/i);
   if (p2) {
     if (Number(p2[1]) !== fy) throw new Error(`${label}: page states year ended December 31, ${p2[1]} but the file is being read as FY${fy}`);
     return;
@@ -827,8 +829,23 @@ async function main() {
       ...ENTITIES.map((e) => e.key),
       ...ENTITIES.map((e) => e.countyName).filter(Boolean),
     ])];
+    // ⚠ SCOPED TO WA, and that is a correction rather than a tidy-up. This
+    // query used to select on NAME ALONE, so the "exactly one row carries this
+    // name" assertion was app-wide -- and Treasury Tracker already holds a
+    // Bellevue, OHIO. Loading Bellevue, WA therefore made (f) report a
+    // duplicate that is not one, and then compared the OHIO row's county_id
+    // against King County. Kent is the next name in this cohort with the same
+    // exposure.
+    //
+    // This is v2.21's scoping lesson in a third costume: an app-wide count
+    // asserted about one entity's data was wrong there (New Hampshire's
+    // archive-cited rows) and is wrong here. What the check is actually for is
+    // the Utah phantom-row defect -- a second row of the SAME name with a
+    // different entity_type, created by a load run without --entity-type -- and
+    // that duplicate would always be in the same state.
     const { data: munis, error } = await sb.from('municipalities')
       .select('id,name,state,entity_type,county_id,population')
+      .eq('state', 'WA')
       .in('name', wantNames);
     if (error) throw new Error(`municipalities query failed: ${error.message}`);
 

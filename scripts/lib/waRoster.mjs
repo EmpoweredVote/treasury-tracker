@@ -251,8 +251,48 @@ export const WA_ENTITIES = [
     name: 'Bellevue', mcag: '0374', entityType: 'city', countyName: 'King County',
     pdfDir: 'docs/Bellevue', pdfPrefix: 'bellevue', datasetIdPrefix: 'bellevue-sao-gf',
     population: 158_000, populationNote: 'WA OFM April 1, 2025 — Filter=4 city row, line 146 (2026 est: 158,300)',
-    perCapitaBand: null, sanityMax: 5_000_000_000,
-    fiscalYears: null, roundingFiles: ['extractBellevue.py'], navOnly: false,
+    // DERIVED from the observed spread. Across all 24 loaded combinations
+    // Bellevue runs $904.11/resident (FY2009 revenue) to $2,011.32 (FY2023
+    // revenue) -- the RICHEST per resident of the WA cohort, which is why the
+    // band sits well above Spokane's and Vancouver's and why copying either of
+    // theirs would have rejected a correct load outright.
+    //
+    // Bellevue prints IN THOUSANDS like Tacoma. units=1 would read ~$0.90 and
+    // units=1_000_000 ~$904,000; both are far outside.
+    perCapitaBand: [400, 4_500],
+    // TIGHTER than the loader band: the loader rejects a units catastrophe, the
+    // harness rejects a WRONG PAGE. Measured spread $904-$2,011.
+    verifyPerCapitaBand: [700, 2_400],
+    expectId: '59884fc5-ecc8-4fbc-9092-600360eba765',
+    sanityMax: 5_000_000_000,
+    // MEASURED window: 12 years, the SHORTEST in this milestone, and every gap
+    // is a source-document defect rather than a config limit. All 21 filings
+    // pass the fetch-time content guard; nine of them have no readable
+    // statement. FY2004-FY2007 are four CONSECUTIVE image-only scans, which is
+    // what ends the window at FY2008 under the floor rule; FY2011/2014/2017/
+    // 2019/2024 are each ISOLATED, so the walk continues past them.
+    fiscalYears: [2008, 2009, 2010, 2012, 2013, 2015, 2016, 2018, 2020, 2021, 2022, 2023],
+    // The span covers the WHOLE ARN manifest, not just the loadable part, so
+    // the audit asserts that the four scan years hold zero rows as well.
+    manifestSpan: [2004, 2025],
+    excludedYears: {
+      2004: 'image-only scan — no statement page carries any text (first of four consecutive, which is what ends the window)',
+      2005: 'image-only scan — no statement page carries any text',
+      2006: 'image-only scan — no statement page carries any text',
+      2007: 'image-only scan — no statement page carries any text',
+      2011: 'no usable text layer — statement pages carry no digits',
+      2014: 'text layer both collapses spaces AND injects them inside words and numbers ("$1 5,205"), so the digits are present but unparseable without a de-spacing heuristic the library refuses',
+      2017: 'no usable text layer — statement pages carry no digits',
+      2019: 'no usable text layer — statement pages carry no digits',
+      2024: 'no usable text layer — text renders as consonant soup ("ZtZ", "&Zz") with no numerals at all',
+      2025: 'source timing — the SAO holds no City of Bellevue filing for FY2025',
+    },
+    // ELEVEN, the most of any entity here, and structural: Bellevue prints in
+    // thousands, so each component is independently rounded and their sum need
+    // not equal the separately-rounded printed total. All eleven adjudicated
+    // off the rendered page images — see scripts/extractBellevue.py.
+    expectedResidues: 11,
+    roundingFiles: ['extractBellevue.py'], navOnly: false,
   },
   {
     name: 'Kent', mcag: '0401', entityType: 'city', countyName: 'King County',

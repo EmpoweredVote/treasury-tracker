@@ -617,17 +617,21 @@ function findStatementPage(pages, label) {
  *
  * What the assertion actually needs is the page stating a PERIOD ENDING on the
  * fiscal-year end date, and "ended december 31, YYYY" is that statement whole.
- * Dropping the word costs nothing this check was relying on; keeping "ended"
+ * Dropping the word costs nothing this check was relying on; keeping "end..."
  * is what stops an arbitrary date elsewhere on the page from qualifying.
+ *
+ * `end(ed|ing)` covers Bellevue FY2008-FY2012, which caption their statements
+ * "For the Twelve Months ENDING December 31, 2008". The period is stated
+ * exactly as definitively as "Year Ended"; only the participle differs.
  */
 export function assertPageYear(pageText, fy, label) {
   const flat = pageText.replace(/\s+/g, ' ');
-  const period = flat.match(/ended\s*december\s*3\s*1\s*,?\s*(\d{4})/i);
+  const period = flat.match(/end(?:ed|ing)\s*december\s*3\s*1\s*,?\s*(\d{4})/i);
   if (period) {
     if (Number(period[1]) !== fy) throw new Error(`${label}: page states "${period[0].trim()}" but the file is being read as FY${fy}`);
     return `period sentence "${period[0].trim()}"`;
   }
-  const p2 = flat.replace(/\s+/g, '').match(/EndedDecember31,?(\d{4})/i);
+  const p2 = flat.replace(/\s+/g, '').match(/End(?:ed|ing)December31,?(\d{4})/i);
   if (p2) {
     if (Number(p2[1]) !== fy) throw new Error(`${label}: page states year ended December 31, ${p2[1]} but the file is being read as FY${fy}`);
     return `period sentence (space-collapsed) "${p2[0]}"`;
@@ -1094,7 +1098,7 @@ function lpSection(pdfPath, pageNo, mode, label) {
 // so requiring the header not to contain the other section word makes the
 // title unmatchable by construction.
 // ═══════════════════════════════════════════════════════════════════════════
-function sectionOf(lines, mode, label) {
+export function sectionOf(lines, mode, label) {
   const totalRe = mode === 'revenue' ? TOTAL_REV_RE : TOTAL_EXP_RE;
   const headRe = mode === 'revenue' ? REV_HEAD_RE : EXP_HEAD_RE;
   const otherWord = mode === 'revenue' ? /expenditures/i : /revenues?\b/i;
@@ -1113,6 +1117,23 @@ function sectionOf(lines, mode, label) {
     if (readRowOrdinal(lines[i], ncols).kind === 'cell') continue;   // a wrapped label, not a header
     headIdx = i;
     break;
+  }
+  // SOME ISSUERS OMIT THE HEADING ENTIRELY. Bellevue FY2015 and FY2016 run
+  // straight from `Total revenues` into `Current:` with no `Expenditures:` row
+  // at all, and the backward scan then failed the whole year -- both sides --
+  // over a heading the document does not have.
+  //
+  // The expenditure section is bounded below by its own Total row and above by
+  // the END OF THE REVENUE SECTION, which the page states unambiguously with
+  // its `Total revenues` row. That boundary is read off the document rather
+  // than assumed, and it is only consulted when the heading is genuinely
+  // absent, so a page that prints one is unaffected. Any `Expenditures:` row
+  // that IS present simply falls inside the body, where a valueless row is a
+  // heading already.
+  if (headIdx < 0 && mode === 'operating') {
+    for (let i = totalIdx - 1; i >= 0; i--) {
+      if (TOTAL_REV_RE.test(lines[i].trim())) { headIdx = i; break; }
+    }
   }
   if (headIdx < 0) throw new Error(`${label}: found the Total row but no ${mode} section header above it`);
   return { body: lines.slice(headIdx + 1, totalIdx), totalLine: lines[totalIdx], ncols };

@@ -22,6 +22,7 @@ import extractKitsap              # noqa: E402
 import extractTacoma              # noqa: E402
 import extractSpokane             # noqa: E402
 import extractVancouver           # noqa: E402
+import extractBellevue            # noqa: E402
 
 # Transcribed from King County FY2020-era GF statement (values thousands-scale
 # in the real document; kept as bare ints here since these tests exercise
@@ -1001,6 +1002,52 @@ class TestShippedVancouverConfig(unittest.TestCase):
             self.assertTrue(
                 any(spelling.startswith(p) for p in extractVancouver.CONFIG.root_leaves),
                 'no root_leaves prefix matches %r' % spelling)
+
+
+class TestShippedBellevueConfig(unittest.TestCase):
+    """Bellevue, MCAG 0374. Asserted against the real shipped CONFIG."""
+
+    def test_bellevue_units_is_thousands(self):
+        # The statement is captioned "(in thousands)" and FY2023 prints Taxes &
+        # special assessments as 210,259. Bellevue and Tacoma are the two
+        # thousands-denominated cities in this milestone; Spokane and Vancouver
+        # print whole dollars, and the tie gate cannot tell any of them apart.
+        self.assertEqual(extractBellevue.CONFIG.units, 1000)
+
+    def test_bellevue_fy_end_is_december_31(self):
+        self.assertEqual(extractBellevue.CONFIG.fy_end, ('December', 31))
+
+    def test_bellevue_capital_outlay_IS_A_PARENT_not_a_root_leaf(self):
+        # ⚠ BELLEVUE INVERTS THE SHAPE EVERY OTHER WA ENTITY USES. `Capital
+        # outlay:` is a PARENT with its own function children (General
+        # government, Public safety, Physical environment, Transportation,
+        # Economic environment, Culture & recreation) -- it is NOT the valued
+        # root leaf it is in Tacoma, Spokane and Vancouver. Listing it in
+        # root_leaves here would read the first capital child as the whole
+        # capital line and strand the rest, and the row would still tie at $0
+        # because the same dollars are present either way.
+        self.assertIn('capital outlay', extractBellevue.CONFIG.parents)
+        self.assertNotIn('capital outlay', extractBellevue.CONFIG.root_leaves)
+
+    def test_bellevue_has_three_parents_and_no_root_leaves(self):
+        # All three GASB characters are printed as colon-terminated headings
+        # with children beneath them, so nothing sits at root carrying a value.
+        for p in ('current', 'debt service', 'capital outlay'):
+            self.assertIn(p, extractBellevue.CONFIG.parents)
+        self.assertEqual(extractBellevue.CONFIG.root_leaves, ())
+
+    def test_bellevue_revenue_side_is_flat(self):
+        self.assertEqual(extractBellevue.CONFIG.revenue_parents, ())
+        self.assertEqual(extractBellevue.CONFIG.revenue_group_members, ())
+
+    def test_bellevue_column_strategy_is_ORDINAL_not_the_default(self):
+        # FY2008 and FY2009 render the General Fund column in disjoint
+        # horizontal zones under `-table`, so no x-range anchored on the totals
+        # row encloses them: the positional reader found an empty band and
+        # computed a General Fund total of ZERO against a printed 143,577.
+        # Ordinal is safe here only because no Bellevue row is ever short --
+        # every data row exposes exactly as many cells as its totals row.
+        self.assertEqual(extractBellevue.CONFIG.column_strategy, 'ordinal')
 
 
 # ── Trap 5 (fix round 3): footer page-number recovery + loud failure ────────

@@ -374,5 +374,53 @@
   "Vancouver|2023": {
     "sha256": "df7417bb4f29f7b9dfb6c981266a107b98cc795387c6b1d0bbd0c93d42a217a3",
     "bytes": 4244664
+  },
+  "Bellevue|2008": {
+    "sha256": "558237dd55737b1d6386b0fcf455ebbdc5d07cb5005c9d6bd8c43f3434d5a979",
+    "bytes": 1681099
+  },
+  "Bellevue|2009": {
+    "sha256": "436aaa79dfc68a44fc686900026e7e0fe2cc9e76063795020b434d99977ed8e7",
+    "bytes": 1496210
+  },
+  "Bellevue|2010": {
+    "sha256": "dc10c7c1eb5182146dce23dc67e717e01dd8ddc2305e1a31515f1a1775162005",
+    "bytes": 2007251
+  },
+  "Bellevue|2012": {
+    "sha256": "7682e5b743466ae66ff2d2c40a2295570ae2f163f00295c4407050ac65dd3638",
+    "bytes": 1536241
+  },
+  "Bellevue|2013": {
+    "sha256": "652b41138e23076e11f94528b54bedaafc5f7baaa679c853887f531d4ec937c3",
+    "bytes": 1785033
+  },
+  "Bellevue|2015": {
+    "sha256": "c83621c0b97e821ee9763a3331c7276db782e3fa791fa2532364e8f5e3d2ef86",
+    "bytes": 4584508
+  },
+  "Bellevue|2016": {
+    "sha256": "96522579919304ef89399f92d738bae20ebf427063490301f8b6a4d98a948672",
+    "bytes": 16103397
+  },
+  "Bellevue|2018": {
+    "sha256": "6a137bc031b7f863325d7718a62b5ef30368e1dab91a778df170ba4ae2a445a1",
+    "bytes": 2273028
+  },
+  "Bellevue|2020": {
+    "sha256": "a8e1b32d45f61492f13d2574448cc543afa095336232e709a4ca53b0688fed30",
+    "bytes": 2747687
+  },
+  "Bellevue|2021": {
+    "sha256": "c2b17877736f306c3ea380c9a0f56d0ba855170ee7a953f522b9dd5029d53265",
+    "bytes": 2857616
+  },
+  "Bellevue|2022": {
+    "sha256": "4a50290a5b87e8455f3c529881bf0b1b229fcf6e76d08532b487679cd35d72a2",
+    "bytes": 2487908
+  },
+  "Bellevue|2023": {
+    "sha256": "8d887212e936f50582e7624e79280c5639e236fcba3e62981ebe10995c646036",
+    "bytes": 2418437
   }
 }

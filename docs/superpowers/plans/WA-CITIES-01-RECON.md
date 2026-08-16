@@ -451,6 +451,129 @@ $0 against its own line items. Full component lists are in
 38 combinations: **$348.74/resident** (FY2005 operating) to **$1,163.89**
 (FY2023 revenue). Loader band `[175, 2500]`; harness band `[275, 1400]`.
 
-## Bellevue (MCAG 0374) — not yet reconned
+## Bellevue (MCAG 0374)
+
+**Verdict: LOADABLE, but the WORST DOCUMENT SET in this milestone. 12 of 21
+filings are readable; eleven $1 residues; and the tree shape is inverted.**
+
+### Content-guard window: FY2004–FY2024, all 21 years pass
+
+Every year is the "Financial and Federal" report titled exactly *City of
+Bellevue*. **All 21 pass `classifyReport()` and only 12 have a readable
+statement** — the widest gap between the fetch guard and the extraction window
+seen so far, and a reminder that the content guard proves a statement exists,
+not that it parses.
+
+The report-level decoy is `Bellevue, City of  GASB 68 Examination Report` — a
+pension-liability examination. Note the name is **inverted**, so a prefix filter
+on "City of Bellevue" excludes it but a "contains Bellevue" filter would not.
+
+### Extraction window: 12 years — FY2008–FY2023 less FY2011, FY2014, FY2017, FY2019
+
+| FY | Reason |
+|---|---|
+| 2004–2007 | **Image-only scans.** No statement page carries any text; the only money-bearing page in each document is the Schedule of Expenditures of Federal Awards. **Four CONSECUTIVE unreadable years — this is what ends the window at FY2008** under the floor rule. |
+| 2011, 2017, 2019, 2024 | **No usable text layer** — statement pages carry no digits. FY2024 is the plainest: its text renders as consonant soup (`ZtZ`, `'Zt^Z`, `&Zz`) with no numerals at all. Each is ISOLATED, so the walk continues. |
+| 2014 | **A DIFFERENT DEFECT, and the digits ARE present.** The text layer both collapses spaces and INJECTS them inside words *and numbers*: `Ca s h&equi tyi npool edi nves tments`, and critically `$1 5,205` — one cell rendered as two numbers. Recovering it needs a de-spacing heuristic, which `acfrGF.py` explicitly refuses to have because rejoining single spaces would corrupt legitimate multi-word labels. `label_fixes` cannot help: the damage is in the MONEY, not the labels. Isolated, so skipped. |
+| 2025 | **Source timing** — the SAO holds no City of Bellevue filing. |
+
+### ⚠ THE TREE SHAPE IS INVERTED
+
+Tacoma, Spokane and Vancouver all print `Capital outlay` as a valued **root
+leaf** beside `Current:` and `Debt service:`. Bellevue prints it as a **PARENT
+with its own function children**:
+
+```
+Expenditures:
+  Current:          General government / Public safety / Physical environment /
+                    Transportation / Economic environment / Health & human
+                    services / Culture & recreation
+  Debt service:     Principal / Interest & fiscal charges
+  Capital outlay:   General government / Public safety / Physical environment /
+                    Transportation / Economic environment / Culture & recreation
+```
+
+So all three GASB characters are parents and `root_leaves=()`. This is the
+Hillsboro arrangement the library's `CityConfig` docstring warns about. Reading
+it the other way still ties at $0 — it would take the first capital child as the
+whole capital line and strand the remaining five.
+
+Note the **same function name appears under two different parents**. The tree
+keys leaves by parent-and-label, so they stay distinct; a reader keying on the
+label alone would silently collapse them.
+
+### ⚠ `column_strategy='ordinal'`, not the library default
+
+FY2008 and FY2009 render the General Fund column in **disjoint horizontal
+zones** under `-table` — the Taxes figure at one x, Licenses far to its right,
+Intergovernmental elsewhere again, while the neighbouring LEOFF I Reserve column
+stays put. No x-range anchored on the totals row encloses them, so the
+positional reader found an empty band and computed a General Fund total of
+**ZERO** against a printed 143,577. Same `-table` pathology v2.22 documented on
+Kitsap FY2004–FY2016.
+
+Ordinal is safe here only because **no Bellevue row is ever short**: every data
+row in all twelve loaded years exposes exactly as many cells as its totals row.
+
+### ELEVEN ADJUDICATED $1 RESIDUES — and why a thousands issuer produces them
+
+Bellevue registers more source-rounding cases than any other entity in this
+repo. Six of the twelve loaded years land a dollar off on one side or both.
+
+This **retires an assumption Tacoma's config made explicit**: that a
+thousands-denominated issuer "cannot" produce residues because its components
+are already rounded to the thousand. Tacoma's zero was an empirical fact about
+Tacoma, not a law about the denomination. Rounding each component independently
+to the nearest thousand is *exactly* where a one-unit disagreement with the
+separately-rounded printed total arises.
+
+Every one was adjudicated by rendering the page at 200 dpi and re-adding the
+General Fund column off the image:
+
+| FY | Side | Components | Page prints | Delta |
+|---|---|---|---|---|
+| 2008 | exp | 143,576 | 143,577 | −1000 |
+| 2008 | rev | 147,336 | 147,335 | +1000 |
+| 2009 | exp | 149,604 | 149,605 | −1000 |
+| 2009 | rev | 142,850 | 142,849 | +1000 |
+| 2012 | exp | 160,950 | 160,949 | +1000 |
+| 2012 | rev | 165,115 | 165,114 | +1000 |
+| 2013 | rev | 171,887 | 171,886 | +1000 |
+| 2015 | exp | 185,914 | 185,915 | −1000 |
+| 2015 | rev | 195,315 | 195,316 | −1000 |
+| 2016 | exp | 181,767 | 181,768 | −1000 |
+| 2016 | rev | 192,706 | 192,705 | +1000 |
+
+Deltas are in the SCALED domain (`units=1000`), so a one-dollar-in-thousands
+disagreement registers as 1000. FY2013's expenditure side ties exactly, which is
+why only its revenue side is registered.
+
+### Three harness fixes Bellevue forced
+
+1. **"Twelve Months ENDING".** FY2008–FY2012 caption their statements *"For the
+   Twelve Months Ending December 31, 2008"*, not *"Year Ended"*. `assertPageYear`
+   now anchors on `end(ed|ing) december 31, <year>`.
+2. **A section whose header the issuer omitted.** FY2015 and FY2016 print no
+   `Expenditures:` row at all — the statement runs straight from `Total
+   revenues` into `Current:`. `sectionOf` now falls back to the revenue Total
+   row, which is the document's own statement of where the revenue section ends.
+   Only consulted when the heading is genuinely absent.
+3. **⚠ THE AUDIT'S HIERARCHY CHECK WAS APP-WIDE BY NAME.** Treasury Tracker
+   already holds a **Bellevue, OHIO**. Check (f) selected municipalities on NAME
+   ALONE, so it reported a duplicate that is not one and then compared the *Ohio*
+   row's `county_id` against King County. Now scoped to `state='WA'`.
+
+   This is v2.21's scoping lesson in a third costume. What (f) is actually for is
+   the Utah phantom-row defect — a second row of the same name with a different
+   `entity_type` — and that duplicate is always in the same state. **Kent is the
+   next name in this cohort with the same exposure.**
+
+### Measured spread and bands
+
+24 combinations: **$904.11/resident** (FY2009 revenue) to **$2,011.32** (FY2023
+revenue) — the richest per resident in the WA cohort. Loader band `[400, 4500]`;
+harness band `[700, 2400]`. Copying Spokane's or Vancouver's band would have
+rejected a correct load outright.
+
 ## Kent (MCAG 0401) — not yet reconned
 ## Everett (MCAG 0664) — not yet reconned
