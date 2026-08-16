@@ -121,7 +121,27 @@ export const BELLEVUE_ARNS = {
   2019: 1027492, 2020: 1029204, 2021: 1031244, 2022: 1033368, 2023: 1035619,
   2024: 1038210,
 };
-export const KENT_ARNS = {};
+/**
+ * Kent, MCAG 0401. Every ARN below is the "Financial and Federal" report titled
+ * exactly "City of Kent" for that audit period.
+ *
+ * 58 of the MCAG's 62 reports are the city's own; the other four are statewide
+ * performance audits that merely mention Kent. The decoys that matter for this
+ * city are at the ENTITY level rather than the report level -- `GetEntities`
+ * matches on a name prefix, so "Kent" also returns City of Kent Economic
+ * Development Corporation (Inactive, MCAG 0662) and City of Kent Special Events
+ * Center Public Facilities District (MCAG 3003). Guarded by selectExactCity()
+ * and assertMcag() in scripts/lib/waRoster.mjs.
+ *
+ * FY2025 is absent: the SAO holds no City of Kent filing for it.
+ */
+export const KENT_ARNS = {
+  2004: 69451,   2005: 71429,   2006: 73343,   2007: 75294,   2008: 1002192,
+  2009: 1004362, 2010: 1006406, 2011: 1008422, 2012: 1010592, 2013: 1012755,
+  2014: 1015289, 2015: 1017347, 2016: 1019956, 2017: 1022269, 2018: 1024613,
+  2019: 1027549, 2020: 1030248, 2021: 1031658, 2022: 1034231, 2023: 1035663,
+  2024: 1038659,
+};
 export const EVERETT_ARNS = {};
 
 export const ARNS_BY_CITY = {

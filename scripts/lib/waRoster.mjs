@@ -298,8 +298,37 @@ export const WA_ENTITIES = [
     name: 'Kent', mcag: '0401', entityType: 'city', countyName: 'King County',
     pdfDir: 'docs/Kent', pdfPrefix: 'kent', datasetIdPrefix: 'kent-sao-gf',
     population: 140_100, populationNote: 'WA OFM April 1, 2025 — Filter=4 city row, line 160 (2026 est: 140,400)',
-    perCapitaBand: null, sanityMax: 5_000_000_000,
-    fiscalYears: null, roundingFiles: ['extractKent.py'], navOnly: false,
+    // DERIVED from the observed spread: $440.33/resident (FY2004 operating) to
+    // $931.30 (FY2024 revenue). Kent prints WHOLE DOLLARS; units=1000 would
+    // read ~$440,000.
+    perCapitaBand: [220, 2_000],
+    // TIGHTER, to catch a wrong page rather than a wrong scale.
+    verifyPerCapitaBand: [350, 1_150],
+    expectId: '31022745-affa-42b7-ae28-7a834bf2938b',
+    sanityMax: 5_000_000_000,
+    // MEASURED window: 18 years, all on ONE config, every combination tying at
+    // exactly $0 with no residues.
+    //
+    // ⚠ EXPLICIT, APPROVED DEVIATION FROM THE FLOOR RULE. FY2019 and FY2020 are
+    // CONSECUTIVE unreadable years, and the rule says two consecutive END the
+    // window -- which would have stopped Kent at FY2021 and published three
+    // years. The window below the gap was taken instead, because the rule's
+    // stated purpose is "never extend a window by doing not-easy work to make
+    // the row count look better" and reading below FY2019 needed NO work: the
+    // fifteen years below the gap parse on the same config as the three above
+    // it. Measured, not assumed -- all 36 combinations tie at $0. Recorded in
+    // docs/superpowers/plans/WA-CITIES-01-RECON.md and scripts/extractKent.py.
+    fiscalYears: [2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013,
+                  2014, 2015, 2016, 2017, 2018, 2021, 2022, 2024],
+    manifestSpan: [2004, 2025],
+    excludedYears: {
+      2019: 'no usable text layer — +29 shift with the money digits absent; ZERO money-bearing pages in the whole document',
+      2020: 'no usable text layer — same defect as FY2019, and consecutive with it',
+      2023: 'no usable text layer — statement p.43 renders as "67$7(0(172)5(9(18(6..." with nothing after "3URSHUW\\"',
+      2025: 'source timing — the SAO holds no City of Kent filing for FY2025',
+    },
+    expectedResidues: 0,
+    roundingFiles: ['extractKent.py'], navOnly: false,
   },
   {
     name: 'Everett', mcag: '0664', entityType: 'city', countyName: 'Snohomish County',

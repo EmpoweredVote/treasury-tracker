@@ -422,5 +422,77 @@
   "Bellevue|2023": {
     "sha256": "8d887212e936f50582e7624e79280c5639e236fcba3e62981ebe10995c646036",
     "bytes": 2418437
+  },
+  "Kent|2004": {
+    "sha256": "fde0d3a6ea642851d21275936e9c5dc8a2be13eb523214f55de301409185477b",
+    "bytes": 843969
+  },
+  "Kent|2005": {
+    "sha256": "3f058d6bdd68e85065f4b7243b2631e1360397d6d542a55090310c5119ea61b4",
+    "bytes": 1078950
+  },
+  "Kent|2006": {
+    "sha256": "b745974d14c1bd140767c19080174bfb054d8d81d755d4922d22024d82781e75",
+    "bytes": 885640
+  },
+  "Kent|2007": {
+    "sha256": "961b016a2b3e3421f8208d1d192e8debea8aba839a1189db22f90c55cc0d2878",
+    "bytes": 896434
+  },
+  "Kent|2008": {
+    "sha256": "062f007e72a2d4349d651dffeb004ce023ad64a7c6705982ebb7495e787fdb1c",
+    "bytes": 1200852
+  },
+  "Kent|2009": {
+    "sha256": "99977731269343e2c4b03010db58f17e7dd0d24b27878234eea2902004deeb9e",
+    "bytes": 1575421
+  },
+  "Kent|2010": {
+    "sha256": "a02d6b62c5ce410a51b9b21be9e799e7f6435ae1125a1d6951b293a5ae6bc2e1",
+    "bytes": 1185072
+  },
+  "Kent|2011": {
+    "sha256": "ed2422f31d0aa2bf42bf6dbd511e7cd43cb53c6e0a7332f760229daf55ea0544",
+    "bytes": 659591
+  },
+  "Kent|2012": {
+    "sha256": "abbe8cad4454ab74969ad99d3310f888e28d540c75f15c67ab6c4998fecfdfef",
+    "bytes": 1175954
+  },
+  "Kent|2013": {
+    "sha256": "1a54f87f67b8a0ef03ac541fa55d81df5d66e4663ecc22d6d3334fc60f58b23d",
+    "bytes": 3189616
+  },
+  "Kent|2014": {
+    "sha256": "87ccab57788d12a2f45400c1edf09ce36cb09d2460ee504bdfaa957cd097b256",
+    "bytes": 1476645
+  },
+  "Kent|2015": {
+    "sha256": "dc1d7dd2dbb75ed8fb2a762b4d86ba6488e3d59c0c361c90e19c85adc2ad96f5",
+    "bytes": 4080238
+  },
+  "Kent|2016": {
+    "sha256": "c271195179aec20e9d968cb2782a8c948655b2d65249c4a5b48b2dcc7e678eac",
+    "bytes": 2731041
+  },
+  "Kent|2017": {
+    "sha256": "1aa39e0acc9246ed09245559c092ef75d450c3aa58ca415ddeea33a6853f6310",
+    "bytes": 2131835
+  },
+  "Kent|2018": {
+    "sha256": "c9475b210a58a651a53bae8d0c28c9827b68d4c7d8d8c38068a884b3875fb3cc",
+    "bytes": 2401004
+  },
+  "Kent|2021": {
+    "sha256": "4d74d594b868129fb80bf7902fd2b52fd648b106c9c4dfe73e39e4c7f2977589",
+    "bytes": 2941130
+  },
+  "Kent|2022": {
+    "sha256": "a009f02a5f91f71810356bd5f22c50538bfecedcc5842a165a5b256d549ad905",
+    "bytes": 3099436
+  },
+  "Kent|2024": {
+    "sha256": "f0f8c62575360c2d96e8bf88ac4f367ce9ed067a2dc47334a5988ec5172b5c10",
+    "bytes": 13785548
   }
 }

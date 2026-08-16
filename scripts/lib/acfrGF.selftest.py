@@ -23,6 +23,7 @@ import extractTacoma              # noqa: E402
 import extractSpokane             # noqa: E402
 import extractVancouver           # noqa: E402
 import extractBellevue            # noqa: E402
+import extractKent                # noqa: E402
 
 # Transcribed from King County FY2020-era GF statement (values thousands-scale
 # in the real document; kept as bare ints here since these tests exercise
@@ -1040,6 +1041,50 @@ class TestShippedBellevueConfig(unittest.TestCase):
         self.assertEqual(extractBellevue.CONFIG.revenue_parents, ())
         self.assertEqual(extractBellevue.CONFIG.revenue_group_members, ())
 
+    def test_kent_units_is_whole_dollars(self):
+        self.assertEqual(extractKent.CONFIG.units, 1)
+
+    def test_kent_groups_five_revenue_parents(self):
+        # The richest revenue tree in the WA cohort. Read off the FY2024
+        # indentation: parents at x=51, children at x=53.
+        for p in ('taxes', 'licenses and permits', 'intergovernmental revenue',
+                  'charges for services', 'miscellaneous revenue'):
+            self.assertIn(p, extractKent.CONFIG.revenue_parents)
+
+    def test_kent_group_members_do_not_swallow_fines_and_forfeitures(self):
+        # `Fines and forfeitures` is the ONE ungrouped source (x=51, same as the
+        # parents). It has to CLOSE the Charges for services group, so no member
+        # suffix may match it -- otherwise it nests, with the same dollars and a
+        # $0 tie.
+        self.assertFalse(
+            any('fines and forfeitures'.endswith(s)
+                for s in extractKent.CONFIG.revenue_group_members))
+
+    def test_kent_member_suffixes_never_match_singular_intergovernmental_revenue(self):
+        # FY2012 prints `Intergovernmental revenue` as a VALUED LEAF rather than
+        # a parent. A bare `revenue` suffix would keep it inside the still-open
+        # Licenses and permits group instead of closing it, so the config uses
+        # `miscellaneous revenue` and the plural `revenues` instead.
+        self.assertFalse(
+            any('intergovernmental revenue'.endswith(s)
+                for s in extractKent.CONFIG.revenue_group_members))
+
+    def test_kent_column_strategy_is_positional(self):
+        # Kent's statements are full of blank cells: FY2004 revenue rows carry
+        # one to four numbers against a four-column totals row, FY2006/FY2008
+        # the same against seven. Ordinal would shift a column on every one.
+        self.assertEqual(extractKent.CONFIG.column_strategy, 'positional')
+
+    def test_kent_label_fix_repairs_the_welded_sao_credit(self):
+        fixes = extractKent.CONFIG.label_fixes or {}
+        self.assertTrue(any('Auditor' in k for k in fixes))
+        for k, v in fixes.items():
+            self.assertNotIn('  ', k)          # collapsed, as label_of() emits
+            if 'Auditor' in k:
+                self.assertNotIn('Auditor', v)
+
+
+class TestShippedBellevueConfigContinued(unittest.TestCase):
     def test_bellevue_column_strategy_is_ORDINAL_not_the_default(self):
         # FY2008 and FY2009 render the General Fund column in disjoint
         # horizontal zones under `-table`, so no x-range anchored on the totals

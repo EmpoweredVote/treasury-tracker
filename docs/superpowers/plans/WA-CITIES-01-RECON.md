@@ -575,5 +575,122 @@ revenue) — the richest per resident in the WA cohort. Loader band `[400, 4500]
 harness band `[700, 2400]`. Copying Spokane's or Vancouver's band would have
 rejected a correct load outright.
 
-## Kent (MCAG 0401) — not yet reconned
+## Kent (MCAG 0401)
+
+> **⚠ STATUS: LOADED BUT NOT INDEPENDENTLY VERIFIED.** 36 rows are live and pass
+> every loader gate, but `verify-wa-rederive.mjs` cannot yet read 21 of them and
+> `verify-wa-audit.mjs` check (e) false-positives on all of them. **Three harness
+> gaps are open — see "Harness gaps" below.** No disagreement between the loaded
+> data and the source PDFs has been found. Task 10 is INCOMPLETE.
+
+**Verdict: LOADABLE. 18 years on one config, every combination tying at exactly
+$0, zero residues.**
+
+### Content-guard window: FY2004–FY2024, all 21 filings pass
+
+Every year is the "Financial and Federal" report titled exactly *City of Kent*.
+58 of the MCAG's 62 reports are the city's own; the rest are statewide
+performance audits. Kent's decoys are at the ENTITY level rather than the report
+level — `GetEntities` also returns City of Kent Economic Development Corporation
+*(Inactive)* (0662) and City of Kent Special Events Center Public Facilities
+District (3003).
+
+### Extraction window: 18 years — FY2004–FY2024 less FY2019, FY2020, FY2023
+
+| FY | Reason |
+|---|---|
+| 2019, 2020 | **No usable text layer**, and CONSECUTIVE. Both are the +29 shift with the money digits absent; FY2019 has **zero** money-bearing pages in the entire document. |
+| 2023 | **No usable text layer.** Statement p.43 renders as `67$7(0(172)5(9(18(6...` with nothing after `3URSHUW\`. Isolated. |
+| 2025 | **Source timing** — the SAO holds no City of Kent filing. |
+
+### ⚠ APPROVED DEVIATION FROM THE FLOOR RULE
+
+FY2019 and FY2020 are **consecutive** unreadable years, and the Global
+Constraints say two consecutive years **end the window** — which would have
+stopped Kent at FY2021 and published **three years / six rows**.
+
+**The window below the gap was taken instead**, as an explicit deviation
+approved by Chris on 2026-08-16 before any extractor work was done.
+
+The reason: the rule's own stated purpose is *"never extend a window by doing
+not-easy work to make the row count look better"*, and reading below FY2019
+required **no work at all** — no era split, no second config, no font recovery,
+no different source. The fifteen years below the gap parse on the **same config**
+as the three above it, which is the test the rule actually cares about. The gap
+is a property of two documents, not a boundary in the statements.
+
+**This was measured, not assumed**: all 36 combinations tie at exactly $0 on one
+config, with zero source-rounding residues.
+
+### The richest revenue tree in the cohort — five parents
+
+Read off the FY2024 indentation (parents at x=51, children at x=53):
+
+```
+REVENUES
+  Taxes:                      Property / Sales and use / Utility /
+                              Business & occupation / Real estate excise tax /
+                              Lodging / Other
+  Licenses and permits:       Building permits / Other licenses and permits
+  Intergovernmental revenue:  Federal grants / State grants /
+                              State shared revenues / Other governments
+  Charges for services:       Park and recreation fees / Other fees and charges
+  Fines and forfeitures       <- the ONE ungrouped source, back at x=51
+  Miscellaneous revenue:      Special assessments / Interest income /
+                              Rent/Leases income / Contributions and donations /
+                              Other miscellaneous revenue
+```
+
+Two `revenue_group_members` entries are deliberately narrower than they look:
+`miscellaneous revenue` rather than a bare `revenue`, because **FY2012 prints
+`Intergovernmental revenue` as a VALUED LEAF** and a bare `revenue` suffix would
+have kept it inside the still-open Licenses group — same dollars, wrong shape,
+$0 tie.
+
+`column_strategy='positional'`: Kent's statements are full of blank cells —
+FY2004 revenue rows carry one to four numbers against a four-column totals row,
+FY2006/FY2008 the same against seven.
+
+FY2004–FY2008 weld the SAO page-footer credit onto the `Fire District #` label,
+repaired with an exact `label_fixes` entry as on Spokane FY2007.
+
+### Harness gaps — the reason Task 10 is incomplete
+
+All three are defects in the harnesses' own readers. **None is a disagreement
+with the loaded data.** 15 of Kent's 36 rows already re-derive clean; the other
+21 block.
+
+1. **Revenue-group indentation lookup uses the wrap-accumulated label.**
+   `buildRevenue` calls `indentOf(full, …)` where `full` includes carried-over
+   `pending` text, so it looks up `"Real estate excise tax Lodging Other"` or
+   `"Intergovernmental revenue Federal grants"` in a `-layout` map keyed by the
+   row's own label. Affects the revenue side of ~13 years. Likely small: look up
+   `r.label`, not `full`.
+
+2. **No complete data row exists to corroborate the column bands.** Kent's
+   operating sections are made ENTIRELY of incomplete rows, so the Task 6 safety
+   check — bands must reproduce the ordinal reading on a complete row before
+   being trusted — can never be satisfied. Affects the operating side of ~8
+   years. Needs a design decision: the natural answer is to corroborate against
+   the **revenue** section's complete rows on the same page, since both sections
+   share the page's column geometry, but that changes the trust argument and
+   deserves its own tests.
+
+3. **Audit check (e) false-positives on legitimate `Other …` labels.** Kent's
+   `Taxes:` group has a child named literally **`Other`**, and the same statement
+   carries `Other licenses and permits`, `Other fees and charges`,
+   `Other governments` and `Other miscellaneous revenue`. The dash-zero grafting
+   heuristic flags any leaf whose label has another label as a strict prefix, so
+   it fires on all of them — 45 findings, every one spurious.
+
+   Refining it is not trivial: the obvious tightening (require the remainder to
+   be a sibling label too) still fires here, because `Licenses and permits` IS a
+   category name in the same tree.
+
+### Measured spread and bands
+
+36 combinations: **$440.33/resident** (FY2004 operating) to **$931.30** (FY2024
+revenue). Loader band `[220, 2000]`; harness band `[350, 1150]`. Kent prints
+WHOLE DOLLARS.
+
 ## Everett (MCAG 0664) — not yet reconned
