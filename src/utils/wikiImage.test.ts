@@ -90,8 +90,20 @@ describe('state + federal banner attribution', () => {
   });
 
   it('discloses the brightness lift where the registry records one', async () => {
+    const hero = await getHeroImage(entity('Virginia', 'VA', 'state'));
+    expect(hero?.credit).toBe('Don.s.okeefe, CC BY-SA 3.0, brightened, via Wikimedia Commons');
+  });
+
+  it('credits Washington to the Hurricane Ridge photographer, not the Kerry Park one', async () => {
+    // The state banner was RE-SHOT on 2026-08-14: states/WA.jpg was Daniel Schwen's
+    // Kerry Park Seattle skyline, and that exact frame moved DOWN to cities/seattle.jpg
+    // so the state and its largest city would not share one subject. Crediting WA to
+    // Schwen now names the photographer of a different photo — one that is still in
+    // the bucket, one tier below, which is why the stale credit looks plausible.
     const hero = await getHeroImage(entity('Washington', 'WA', 'state'));
-    expect(hero?.credit).toBe('Daniel Schwen, CC BY-SA 4.0, brightened, via Wikimedia Commons');
+    expect(hero?.url).toBe(`${BUCKET}/states/WA.jpg`);
+    expect(hero?.credit).toBe('Iamsridhar, CC BY-SA 3.0, via Wikimedia Commons');
+    expect(hero?.credit).not.toContain('Daniel Schwen');
   });
 
   it('credits Rhode Island to boliyou, not the same-but-for-a-comma Soloviev file', async () => {
@@ -132,6 +144,34 @@ describe('getHeroImage — bucket resolution', () => {
     expect(hero?.url).toBe(`${BUCKET}/cities/bend-v2.jpg`);
     expect(hero?.url).not.toContain('/bend.jpg');
     expect(hero?.credit).toBe('Spencer Dahl, CC BY-SA 3.0, via Wikimedia Commons');
+  });
+
+  it('serves Seattle WA from the bucket, credited to its author', async () => {
+    const hero = await getHeroImage(entity('Seattle', 'WA'));
+    expect(hero?.url).toBe(`${BUCKET}/cities/seattle.jpg`);
+    expect(hero?.credit).toBe('Daniel Schwen, CC BY-SA 4.0, brightened, via Wikimedia Commons');
+  });
+
+  it('serves King County WA its own banner, not Seattle’s', async () => {
+    // Snoqualmie Falls on purpose: the county must not read as the city sitting
+    // inside it. Same failure shape as Dane County vs Madison.
+    const hero = await getHeroImage(entity('King County', 'WA', 'county'));
+    expect(hero?.url).toBe(`${BUCKET}/cities/king-county.jpg`);
+    expect(hero?.url).not.toContain('seattle');
+    expect(hero?.credit).toBe('Kpsudeep, CC BY-SA 4.0, brightened, via Wikimedia Commons');
+  });
+
+  it('leaves the ten uncovered WA entities on the fallback path, not a 404 URL', () => {
+    // BANNER-01 probed the bucket on 2026-08-16: only seattle and king-county exist.
+    // Inventing a slug for the rest would point a CSS background-image at a 400,
+    // and a background-image cannot onerror-fallback.
+    for (const slug of [
+      'bainbridge-island', 'kitsap-county', 'tacoma', 'spokane', 'vancouver',
+      'bellevue', 'kent', 'everett', 'pierce-county', 'spokane-county',
+      'clark-county', 'snohomish-county',
+    ]) {
+      expect(CURATED_CITY_BANNERS.has(`${slug}|WA`), slug).toBe(false);
+    }
   });
 
   it('resolves a county, not just cities — county banners live under cities/ too', async () => {

@@ -234,7 +234,14 @@ export const STATE_BANNER_CREDITS: Record<string, string> = {
   UT: 'Invictus323, CC BY 4.0, via Wikimedia Commons',
   VA: 'Don.s.okeefe, CC BY-SA 3.0, brightened, via Wikimedia Commons',
   VT: 'chensiyuan, CC BY-SA 4.0, via Wikimedia Commons',
-  WA: 'Daniel Schwen, CC BY-SA 4.0, brightened, via Wikimedia Commons',
+  // Re-transcribed 2026-08-16: this line was STALE and published the wrong author.
+  // Essentials re-shot the state banner on 2026-08-14 ("Hurricane Ridge, Olympic
+  // National Park | Iamsridhar | CC BY-SA 3.0") because states/WA.jpg had been a
+  // photograph of Seattle, so the state and its largest city shared one subject.
+  // Daniel Schwen's Kerry Park frame moved DOWN to cities/seattle.jpg, where it is
+  // still credited to him — which is why the stale line looked plausible: the
+  // author was right, for the other tier. No [brightened] tag on the new line.
+  WA: 'Iamsridhar, CC BY-SA 3.0, via Wikimedia Commons',
   WI: 'Dori, CC BY-SA 3.0 US, via Wikimedia Commons',
   WV: 'Gabor Eszes (UED77), CC BY-SA 3.0, via Wikimedia Commons',
   WY: 'GrandTetonNPS, public domain, via Wikimedia Commons',
@@ -264,6 +271,18 @@ export const CURATED_CITY_BANNERS = new Set<string>([
   // cities/ and essentials keys it 'dane county', so the hyphenated slug this
   // builder produces already matches — no filename override needed.
   'dane-county|WI',
+  // Washington, added 2026-08-16 (BANNER-01). Both assets have sat in the bucket
+  // since v2.21 while TT fell through to Wikipedia — which served King County a
+  // photo of the SEATTLE courthouse, the exact city-for-county substitution the
+  // curated pair exists to prevent.
+  //
+  // These two are the WHOLE WA cohort. The bucket was HEAD-probed for all twelve
+  // WA entities plus the `-v2` variants: bainbridge-island, kitsap-county, tacoma,
+  // spokane, vancouver, bellevue, kent, everett, pierce-county, spokane-county,
+  // clark-county and snohomish-county all return NoSuchKey. Those need essentials
+  // to upload assets; do not add a slug here ahead of one.
+  'seattle|WA',
+  'king-county|WA',
 ]);
 
 /**
@@ -323,6 +342,13 @@ export const CURATED_CITY_CREDITS: Record<string, string> = {
 
   'dane-county|WI': 'Corey Coyle, CC BY 3.0, via Wikimedia Commons',
   'madison|WI': 'John Benson, CC BY 2.5, via Wikimedia Commons',
+
+  // Transcribed 2026-08-16 from the "Washington: Seattle + King County" block.
+  // Seattle's credit is Daniel Schwen because cities/seattle.jpg IS the pre-
+  // 2026-08-14 states/WA.jpg, byte for byte — see STATE_BANNER_CREDITS.WA, which
+  // now names a different photographer for the same key.
+  'seattle|WA': 'Daniel Schwen, CC BY-SA 4.0, brightened, via Wikimedia Commons',
+  'king-county|WA': 'Kpsudeep, CC BY-SA 4.0, brightened, via Wikimedia Commons',
 };
 
 /** Build a shared-bucket banner for entities we know are covered, else null.
