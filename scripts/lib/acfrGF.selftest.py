@@ -20,6 +20,7 @@ import extractBainbridge          # noqa: E402
 import extractBainbridgeEarly     # noqa: E402
 import extractKitsap              # noqa: E402
 import extractTacoma              # noqa: E402
+import extractSpokane             # noqa: E402
 
 # Transcribed from King County FY2020-era GF statement (values thousands-scale
 # in the real document; kept as bare ints here since these tests exercise
@@ -886,6 +887,74 @@ class TestShippedTacomaConfig(unittest.TestCase):
         # One config spans both only because both spellings are listed.
         self.assertIn('capital outlay', extractTacoma.CONFIG.root_leaves)
         self.assertIn('capital expenditures', extractTacoma.CONFIG.root_leaves)
+
+
+class TestShippedSpokaneConfig(unittest.TestCase):
+    """Spokane, MCAG 0724. Asserted against the real shipped CONFIG for the
+    reason the two classes above give: a locally rebuilt equivalent would pass
+    forever regardless of what the file actually says."""
+
+    def test_spokane_units_is_whole_dollars(self):
+        # Read off the page: no "(in thousands)" caption anywhere on the
+        # statement, and FY2024 prints Taxes as 216,713,093. Tacoma, the
+        # neighbouring config in this milestone, is units=1000 -- and the tie
+        # gate cannot tell the two apart, so this is asserted rather than
+        # trusted.
+        self.assertEqual(extractSpokane.CONFIG.units, 1)
+
+    def test_spokane_column_strategy_is_positional(self):
+        # FY2005 prints two expenditure rows with a BLANK cell (Physical
+        # environment and Mental and physical health carry four numbers where
+        # every sibling carries five) and FY2007 prints one. The ordinal
+        # reader counts back from the right end, so a missing cell silently
+        # shifts a column.
+        self.assertEqual(extractSpokane.CONFIG.column_strategy, 'positional')
+
+    def test_spokane_fy_end_is_december_31(self):
+        self.assertEqual(extractSpokane.CONFIG.fy_end, ('December', 31))
+
+    def test_spokane_revenue_side_is_flat(self):
+        # Spokane prints Taxes as a VALUED LEAF in all 20 loaded years -- there
+        # is no `Taxes:` parent the way Tacoma FY2019+ and Seattle FY2024 have.
+        # Setting revenue_parents here would open a group on a row that carries
+        # a value, so this asserts the empty tuple rather than leaving it
+        # unexamined.
+        self.assertEqual(extractSpokane.CONFIG.revenue_parents, ())
+        self.assertEqual(extractSpokane.CONFIG.revenue_group_members, ())
+
+    def test_spokane_capital_outlay_is_a_ROOT_LEAF_not_a_current_child(self):
+        # Settled from the FY2004 statement, which is the only era that still
+        # PRINTS the indentation: `Current:` and `Debt service:` sit at x=39
+        # with their children at x=41, and `Capital outlay` sits at x=39 -- a
+        # root peer. FY2015 onward flattens every label to the same x, so the
+        # later eras cannot answer this on their own and inherit the reading
+        # from the era that can.
+        self.assertIn('capital outlay', extractSpokane.CONFIG.root_leaves)
+        self.assertIn('current', extractSpokane.CONFIG.parents)
+        self.assertIn('debt service', extractSpokane.CONFIG.parents)
+
+    def test_spokane_root_leaf_prefix_covers_the_plural_spelling(self):
+        # FY2004-FY2011 print `Capital outlay`; FY2013 onward print `Capital
+        # outlays`. root_leaves are PREFIXES, so the singular entry covers
+        # both -- asserted because an exact-match reading of this field would
+        # silently nest half the corpus under Current:.
+        self.assertTrue(
+            any('capital outlays'.startswith(p) for p in extractSpokane.CONFIG.root_leaves),
+            'no root_leaves prefix matches the plural "capital outlays"')
+
+    def test_spokane_label_fix_repairs_the_welded_sao_credit(self):
+        # FY2007 alone welds the rotated page-footer credit onto a real label:
+        # `-table` renders the Physical environment row with "Washington State
+        # Auditor's Office" glued to the front of it. The FIGURE is correct and
+        # the row ties at $0, so no arithmetic gate sees this -- it is a label
+        # corruption of the same class as v2.22's welded margin rule.
+        fixes = extractSpokane.CONFIG.label_fixes or {}
+        self.assertTrue(
+            any('Auditor' in k for k in fixes),
+            'no label_fixes entry repairs the welded SAO page-footer credit')
+        for k, v in fixes.items():
+            if 'Auditor' in k:
+                self.assertNotIn('Auditor', v)
 
 
 # ── Trap 5 (fix round 3): footer page-number recovery + loud failure ────────

@@ -171,7 +171,163 @@ came out at 18 of 22 years across two configs.
 
 ---
 
-## Spokane (MCAG 0724) — not yet reconned
+## Spokane (MCAG 0724)
+
+**Verdict: LOADABLE. 20 years on one extractor config, all tying at exactly $0.**
+
+### Content-guard window: FY2004–FY2024, all 21 years pass
+
+Every year is the "Financial and Federal" report titled exactly *City of
+Spokane*, fetched and passed through `classifyReport()`:
+
+| FY | ARN | Pages | Size |
+|---|---|---|---|
+| 2024 | 1038150 | 212 | 6.3 MB |
+| 2023 | 1035593 | 199 | 4.3 MB |
+| 2022 | 1033337 | 192 | 4.8 MB |
+| 2021 | 1031211 | 186 | 4.3 MB |
+| 2020 | 1029500 | 186 | 3.9 MB |
+| 2019 | 1027407 | 176 | 3.6 MB |
+| 2018 | 1024654 | 174 | 3.6 MB |
+| 2017 | 1022245 | 187 | 4.8 MB |
+| 2016 | 1019601 | 175 | 31.9 MB |
+| 2015 | 1017591 | 160 | 6.7 MB |
+| 2014 | 1015900 | 153 | 7.3 MB |
+| 2013 | 1012701 | 188 | 2.5 MB |
+| 2012 | 1010571 | 158 | 6.7 MB |
+| 2011 | 1008352 | 105 | 1.7 MB |
+| 2010 | 1006365 | 106 | 1.5 MB |
+| 2009 | 1004307 | 114 | 14.0 MB |
+| 2008 | 1002267 | 115 | 9.6 MB |
+| 2007 | 75383 | 115 | 3.5 MB |
+| 2006 | 73792 | 110 | 3.4 MB |
+| 2005 | 71922 | 108 | 1.0 MB |
+| 2004 | 69912 | 91 | 1.0 MB |
+
+No failures at all, so the floor rule's stopping conditions never fired. The
+span is bounded by what the SAO publishes: `SearchReports` returns nothing for
+MCAG 0724 below FY2004.
+
+### Extraction window: 20 years — FY2012 excluded
+
+| FY | Reason |
+|---|---|
+| 2012 | **Source-document defect.** The statement pages carry no text layer at all: `pdftotext` returns only the SAO page furniture ("Washington State Auditor's Office  Page 55") for every page in the statement range. The report passes the fetch-time content guard only because the auditor's opinion letter, which IS text-bearing, names the statements in prose. FY2011 and FY2013 both extract cleanly, so this is an ISOLATED year and the walk continues. |
+| 2025 | **Source timing, not a defect.** The only FY2025 City of Spokane filing is a Contracted CPA report (ARN 1039996). The financial audit is not yet released. |
+| pre-2004 | No filings returned by SearchReports for MCAG 0724. |
+
+All 20 remaining years tie at exactly **$0 on ONE config**, with **zero**
+source-rounding residues.
+
+### The report-level decoy layer is milder here than on Tacoma
+
+MCAG 0724 returns 81 reports, of which 72 are titled *City of Spokane*. The
+other 9 are statewide performance audits that merely mention the city
+("Open Public Records Practices at 30 Government Entities", "Allocating
+Overhead Costs"). **There is no separately reporting pension system on this
+MCAG**, so nothing here could parse cleanly as the wrong government's money the
+way Tacoma's Employees' Retirement System could. The title filter is applied
+anyway.
+
+### The type-name inversion holds for this issuer too
+
+Classified at both ends of the span. Every *Annual Comprehensive Financial
+Report*-named filing is an opinion letter:
+
+| FY | ARN | Type name | Pages | Verdict |
+|---|---|---|---|---|
+| 2024 | 1038168 | Annual Comprehensive Financial Report | 5 | opinion letter |
+| 2015 | 1017609 | Annual Comprehensive Financial Report | 3 | opinion letter |
+| 2008 | 1002268 | Annual Comprehensive Financial Report | 2 | opinion letter |
+| 2006 | 73819 | Annual Comprehensive Financial Report | 2 | opinion letter |
+
+Two data points to Tacoma's; the inversion now holds on both cities across
+FY2006–FY2024. Selection remains by CONTENT regardless.
+
+### ⚠ A wrong-page trap that would tie at $0
+
+Spokane publishes a supplementary **Schedule of General Fund Accounts** that
+breaks the General Fund into sub-accounts (Code Enforcement, Library, Housing
+Trust, EMS) with an Eliminations column and a **Total column that EQUALS the
+basic statement's General Fund column**. It carries the same "Statement of
+Revenues, Expenditures, and Changes in Fund Balances" title and its own Total
+Revenues / Total Expenditures rows, so it parses cleanly and would tie at $0.
+
+`find_statement_page` avoids it only by taking the EARLIEST qualifying page
+(FY2024: basic statement p.48, schedule p.200) — the thin invariant this repo
+has been burned by before. What actually rules it out is that its caption does
+not say **"Governmental Funds"**, and `verify-wa-rederive.mjs` asserts that
+independently on all 40 rows: 40/40 land on exactly one candidate page.
+
+### ⚠ `pdftotext -table` form feeds are NOT page breaks — found here
+
+The single most consequential finding of this task, and it is a **tooling**
+finding rather than a Spokane one.
+
+`pdftotext -table <pdf> -` emits at least one form feed per page and sometimes
+extra ones *within* a page. Four Spokane documents drift badly:
+
+| FY | PDF pages | `-table` chunks | Statement chunk | Statement REAL page |
+|---|---|---|---|---|
+| 2018 | 174 | 276 | 40 | 40 |
+| 2019 | 176 | **455** | 63 | **37** |
+| 2020 | 186 | 256 | 40 | 40 |
+| 2022 | 192 | 260 | 35 | 35 |
+
+Both harnesses had been treating the chunk index as a page number. In
+`verify-wa-rederive.mjs` that number is passed to
+`pdftotext -lineprinter -f N -l N` for the geometric reading, so FY2019 would
+have been read against PDF page 63 — an investment-policy table in the notes —
+instead of page 37.
+
+Fixed in both harnesses: the chunk count is compared against `pdfinfo`'s page
+count, and when they disagree the pages are re-extracted one at a time, where
+`-f N -l N` makes the number true by construction. Extra feeds can only ever
+ADD chunks, so the discrepancy is self-detecting.
+
+**`scripts/lib/acfrGF.py` is NOT fixed and does not need to be.** It splits on
+`\f` the same way, so its emitted `statement_page` is a chunk index (FY2019
+reports 63). That number is never persisted — there is no `budgets.statement_page`
+column — and `parse_fy` uses the page TEXT rather than its number, so no money
+is affected. Recorded here so the next reader is not surprised by a
+disagreement between the extractor's JSON and the audit's `(h)` line.
+
+### Notes for the extractor task — what Spokane actually needed
+
+- **Whole dollars** (`units=1`), the OPPOSITE of Tacoma in the same milestone.
+  No "(in thousands)" caption in any year.
+- **`column_strategy='positional'`.** FY2005 prints two expenditure rows with a
+  blank cell and FY2007 one. Same trap Tacoma FY2023 sprang; Spokane sprang it
+  first, in FY2005.
+- **`Capital outlay` is a ROOT PEER**, and only FY2004 says so. FY2015 onward
+  print every label at the same x with no indentation at all, so those eras
+  cannot answer the nesting question on their own. FY2004 still indents:
+  `Current:` and `Debt service:` at x=39 with children at x=41, and
+  `Capital outlay` at x=39. Guessing the other way still ties at $0.
+- Two spelling drifts one config absorbs: `Capital outlay`/`Capital outlays`
+  (root_leaves are prefixes) and `Current:`/`Current` (the library matches
+  parents colon-stripped). Neither is an era split.
+- **FY2007 carries both SAO page-furniture artifacts on one page**: the footer
+  page number `41` at column 0 of the `Debt service:` heading (the library
+  recovers it) and the rotated "Washington State Auditor's Office" credit welded
+  onto the `Physical environment` label (repaired with an exact `label_fixes`
+  entry, keyed on the WHITESPACE-COLLAPSED label that `label_of()` emits).
+- **FY2018 and FY2022 render their period sentence as "For the Fiscal `<ear`
+  Ended December 31, 20XX"** — a mis-mapped glyph ate the Y. Both harnesses'
+  `assertPageYear` now anchors on `ended december 31, <year>` without requiring
+  the word "year".
+- `-layout` is unusable for column pairing here exactly as on Tacoma: it emits
+  labels and values on different output lines.
+
+### Measured spread and bands
+
+40 combinations: **$384.88/resident** (FY2005 operating) to **$1,144.95**
+(FY2024 revenue). Loader band `[200, 2500]`; harness band `[300, 1400]`.
+
+Copying Tacoma's `[300, 3000]` would have passed every Spokane year — which is
+exactly why the band is re-derived rather than inherited. A band that passes by
+accident guards nothing.
+
 ## Vancouver (MCAG 0247) — not yet reconned
 ## Bellevue (MCAG 0374) — not yet reconned
 ## Kent (MCAG 0401) — not yet reconned

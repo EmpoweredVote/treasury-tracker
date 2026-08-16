@@ -77,10 +77,13 @@
  * the SAO's page shape ever changes, BOTH files must be updated — that is a
  * cost, and it is the cheaper of the two.
  *
- * That cost is real and has already been paid once: the three Tacoma
- * corrections (the `Govermental Funds` typo, the `General Governmental`
- * caption, and `amounts expressed in thousands`) had to be made in both files
+ * That cost is real and has now been paid twice. The three Tacoma corrections
+ * (the `Govermental Funds` typo, the `General Governmental` caption, and
+ * `amounts expressed in thousands`) had to be made in both files
  * independently, and this one carried the uncorrected versions for a commit.
+ * Spokane then repeated it: `assertPageYear` and `tablePages` both needed the
+ * same repair here that they needed there. Anything touched in one file's
+ * page-identity block should be checked against the other in the same change.
  *
  * Ambiguity is fatal here for exactly the reason it is fatal in Task 9: nine of
  * ten silent wrong-page selections tied at $0 during Task 5, so "the true
@@ -223,13 +226,46 @@ function loadRegisteredDeltas(files) {
 // Own pdftotext pass + own page-identity filter. See the header for why this
 // is duplicated from Task 9 rather than imported.
 // ═══════════════════════════════════════════════════════════════════════════
+/** Physical page count, from the PDF itself rather than from any text pass. */
+function pdfPageCount(pdfPath) {
+  const out = execFileSync('pdfinfo', [pdfPath],
+    { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+  const m = /^Pages:\s+(\d+)/m.exec(out);
+  if (!m) throw new Error(`pdfinfo gave no page count for ${pdfPath}`);
+  return Number(m[1]);
+}
+
+/**
+ * ⚠ A FORM FEED IN `-table` OUTPUT IS NOT ALWAYS A PAGE BREAK. Poppler emits at
+ * least one per page and sometimes extra ones WITHIN a page, so a chunk index is
+ * not a page number: Spokane FY2019 splits a 176-page PDF into 455 chunks, and
+ * its statement is chunk 63 but PDF page 37.
+ *
+ * (h) reports that number to the reader as the page its figure came from, so it
+ * has to be true even though nothing downstream computes on it. The count
+ * discrepancy is self-detecting because extra feeds can only ever ADD chunks;
+ * when the counts agree the cheap whole-document split is exact, and when they
+ * do not the pages are re-extracted one at a time, where `-f N -l N` makes the
+ * number true by construction.
+ *
+ * Kept in step with the identical function in verify-wa-rederive.mjs, where the
+ * same number is passed to `pdftotext -lineprinter -f N` and a wrong one reads
+ * an unrelated page. See this file's header on why the duplication is deliberate.
+ */
 const tableCache = new Map();
 function tablePages(pdfPath) {
   if (tableCache.has(pdfPath)) return tableCache.get(pdfPath);
   if (!existsSync(pdfPath)) throw new Error(`PDF not on disk: ${pdfPath}`);
+  const count = pdfPageCount(pdfPath);
   const txt = execFileSync('pdftotext', ['-table', pdfPath, '-'],
     { maxBuffer: 512 * 1024 * 1024, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
-  const pages = txt.split('\f');
+  const chunks = txt.split('\f');
+  if (chunks.length && !chunks[chunks.length - 1].trim()) chunks.pop();
+  const pages = chunks.length === count
+    ? chunks
+    : Array.from({ length: count }, (_, i) => execFileSync('pdftotext',
+      ['-table', '-f', String(i + 1), '-l', String(i + 1), pdfPath, '-'],
+      { maxBuffer: 64 * 1024 * 1024, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
   tableCache.set(pdfPath, pages);
   return pages;
 }
@@ -293,15 +329,23 @@ function findStatementPage(pages, label) {
 
 /** The page must say which year it is. Without this, document<->FY binding is
  *  by FILENAME alone. Kitsap's text layer collapses spaces, hence the second
- *  pattern. */
+ *  pattern.
+ *
+ *  The anchor is `ended december 31, <year>` and the word "year" is
+ *  deliberately not required: Spokane FY2018 and FY2022 render the sentence as
+ *  "For the Fiscal <ear Ended December 31, 2018", a mis-mapped glyph having
+ *  eaten the Y. The year itself is intact, and refusing those pages over one
+ *  corrupt letter of scaffolding would drop two otherwise perfect years.
+ *  Keeping "ended" is what stops an arbitrary date elsewhere on the page from
+ *  qualifying. Kept in step with verify-wa-rederive.mjs. */
 function assertPageYear(pageText, fy, label) {
   const flat = pageText.replace(/\s+/g, ' ');
-  const period = flat.match(/year\s*ended\s*december\s*3\s*1\s*,?\s*(\d{4})/i);
+  const period = flat.match(/ended\s*december\s*3\s*1\s*,?\s*(\d{4})/i);
   if (period) {
     if (Number(period[1]) !== fy) throw new Error(`${label}: page states "${period[0].trim()}" but the file is being read as FY${fy}`);
     return;
   }
-  const p2 = flat.replace(/\s+/g, '').match(/YearEndedDecember31,?(\d{4})/i);
+  const p2 = flat.replace(/\s+/g, '').match(/EndedDecember31,?(\d{4})/i);
   if (p2) {
     if (Number(p2[1]) !== fy) throw new Error(`${label}: page states year ended December 31, ${p2[1]} but the file is being read as FY${fy}`);
     return;

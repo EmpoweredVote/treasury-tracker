@@ -57,8 +57,29 @@ export const TACOMA_ARNS = {
   2023: 1036023, 2024: 1038208,
 };
 
-// Filled by each city's recon task, in the same shape as TACOMA_ARNS.
-export const SPOKANE_ARNS = {};
+/**
+ * Spokane, MCAG 0724. Every ARN below is the "Financial and Federal" report
+ * titled exactly "City of Spokane" for that audit period.
+ *
+ * The report-level decoy layer is MILDER here than on Tacoma: MCAG 0724 returns
+ * 81 reports of which 72 are titled "City of Spokane" and the other 9 are
+ * statewide performance audits that merely mention the city ("Open Public
+ * Records Practices at 30 Government Entities", "Allocating Overhead Costs").
+ * There is no separately reporting pension system on this MCAG, so nothing
+ * here could parse cleanly as the wrong government's money the way Tacoma's
+ * Employees' Retirement System could. The title filter is still applied.
+ *
+ * FY2025 is absent for the same reason as Tacoma's: the only FY2025 City of
+ * Spokane filing is a Contracted CPA report (1039996). The financial audit is
+ * not yet released -- source timing, not a defect.
+ */
+export const SPOKANE_ARNS = {
+  2004: 69912,   2005: 71922,   2006: 73792,   2007: 75383,   2008: 1002267,
+  2009: 1004307, 2010: 1006365, 2011: 1008352, 2012: 1010571, 2013: 1012701,
+  2014: 1015900, 2015: 1017591, 2016: 1019601, 2017: 1022245, 2018: 1024654,
+  2019: 1027407, 2020: 1029500, 2021: 1031211, 2022: 1033337, 2023: 1035593,
+  2024: 1038150,
+};
 export const VANCOUVER_ARNS = {};
 export const BELLEVUE_ARNS = {};
 export const KENT_ARNS = {};

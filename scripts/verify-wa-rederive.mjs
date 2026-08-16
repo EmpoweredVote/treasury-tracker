@@ -334,13 +334,66 @@ function loadRegisteredDeltas(files) {
 // ═══════════════════════════════════════════════════════════════════════════
 // PDF text — own pdftotext passes
 // ═══════════════════════════════════════════════════════════════════════════
+/** Physical page count, from the PDF itself rather than from any text pass. */
+function pdfPageCount(pdfPath) {
+  const out = execFileSync('pdfinfo', [pdfPath],
+    { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+  const m = /^Pages:\s+(\d+)/m.exec(out);
+  if (!m) throw new Error(`pdfinfo gave no page count for ${pdfPath}`);
+  return Number(m[1]);
+}
+
+/**
+ * ⚠ A FORM FEED IN `-table` OUTPUT IS NOT ALWAYS A PAGE BREAK.
+ *
+ * This used to be `pdftotext -table <pdf> -` split on `\f`, with the array
+ * index taken as the page number. That index is passed straight to
+ * `pdftotext -lineprinter -f N -l N` for the geometric reading, so it has to be
+ * a REAL page number, and on this corpus it silently stopped being one:
+ *
+ *   Spokane FY2019   176 physical pages, 455 form-feed chunks. Its
+ *                    governmental-funds statement is chunk 63 and PDF page 37 —
+ *                    a 26-page error, and PDF page 63 is an investment-policy
+ *                    table in the notes.
+ *   Spokane FY2018/FY2020/FY2022 drift the same way (276, 256 and 260 chunks
+ *                    against 174, 186 and 192 pages).
+ *
+ * Poppler emits at least one form feed per page and sometimes emits extra ones
+ * WITHIN a page, so the chunk count can only ever exceed the page count — which
+ * makes the discrepancy self-detecting. When the counts agree, no page emitted
+ * an extra feed and the cheap whole-document split is exact. When they do not,
+ * the mapping is unrecoverable from that output and the pages are re-extracted
+ * ONE AT A TIME, where `-f N -l N` makes the page number true by construction.
+ *
+ * The slow path costs one `pdftotext` per page and fires on 4 of the 85
+ * documents in this corpus. Guessing instead would have pointed the geometric
+ * reading at an unrelated page — loudly, since the two readings would disagree,
+ * but the failure would have read as a defect in Spokane's data rather than in
+ * this function.
+ */
+/**
+ * The whole-document split, IF it is page-exact — otherwise null, meaning the
+ * caller must re-extract page by page. Pure, so the decision itself is pinned by
+ * tests/waRederiveReaders.test.mjs rather than only by the gitignored corpus.
+ */
+export function pageExactChunks(text, pageCount) {
+  const chunks = text.split('\f');
+  // The final page's own form feed leaves one empty chunk behind it.
+  if (chunks.length && !chunks[chunks.length - 1].trim()) chunks.pop();
+  return chunks.length === pageCount ? chunks : null;
+}
+
 const tableCache = new Map();
 function tablePages(pdfPath) {
   if (tableCache.has(pdfPath)) return tableCache.get(pdfPath);
   if (!existsSync(pdfPath)) throw new Error(`PDF not on disk: ${pdfPath}`);
+  const count = pdfPageCount(pdfPath);
   const txt = execFileSync('pdftotext', ['-table', pdfPath, '-'],
     { maxBuffer: 512 * 1024 * 1024, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
-  const pages = txt.split('\f');
+  const pages = pageExactChunks(txt, count)
+    ?? Array.from({ length: count }, (_, i) => execFileSync('pdftotext',
+      ['-table', '-f', String(i + 1), '-l', String(i + 1), pdfPath, '-'],
+      { maxBuffer: 64 * 1024 * 1024, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }));
   tableCache.set(pdfPath, pages);
   return pages;
 }
@@ -536,14 +589,31 @@ function findStatementPage(pages, label) {
  *  mis-named local file would tie at $0 against a DB loaded from the same
  *  mis-named file. Kitsap's text layer collapses spaces
  *  ("FortheYearEndedDecember31,2024"), so the gaps are all optional. */
-function assertPageYear(pageText, fy, label) {
+/**
+ * The anchor is `ended december 31, <year>`, and the word "year" is
+ * deliberately NOT required.
+ *
+ * Spokane FY2018 and FY2022 render their period sentence as "For the Fiscal
+ * <ear Ended December 31, 2018" — a mis-mapped glyph has eaten the Y. The
+ * YEAR itself is intact and unambiguous, and refusing those pages over one
+ * corrupt letter of scaffolding would have dropped two otherwise perfect
+ * years. The same call was already made for Tacoma's "Govermental Funds" and
+ * "expresssed": a misspelling in the source is not a reason to refuse a
+ * filing.
+ *
+ * What the assertion actually needs is the page stating a PERIOD ENDING on the
+ * fiscal-year end date, and "ended december 31, YYYY" is that statement whole.
+ * Dropping the word costs nothing this check was relying on; keeping "ended"
+ * is what stops an arbitrary date elsewhere on the page from qualifying.
+ */
+export function assertPageYear(pageText, fy, label) {
   const flat = pageText.replace(/\s+/g, ' ');
-  const period = flat.match(/year\s*ended\s*december\s*3\s*1\s*,?\s*(\d{4})/i);
+  const period = flat.match(/ended\s*december\s*3\s*1\s*,?\s*(\d{4})/i);
   if (period) {
     if (Number(period[1]) !== fy) throw new Error(`${label}: page states "${period[0].trim()}" but the file is being read as FY${fy}`);
     return `period sentence "${period[0].trim()}"`;
   }
-  const p2 = flat.replace(/\s+/g, '').match(/YearEndedDecember31,?(\d{4})/i);
+  const p2 = flat.replace(/\s+/g, '').match(/EndedDecember31,?(\d{4})/i);
   if (p2) {
     if (Number(p2[1]) !== fy) throw new Error(`${label}: page states year ended December 31, ${p2[1]} but the file is being read as FY${fy}`);
     return `period sentence (space-collapsed) "${p2[0]}"`;
@@ -651,8 +721,36 @@ function headerLabel(line) {
  * total identically. Locating a blank needs geometry. `makeRowReader` supplies
  * it, from bands validated against this very rule on the same page.
  */
+/**
+ * A leading page-footer PAGE NUMBER is page furniture, not a cell.
+ *
+ * `cleanLabel` has always known this shape — a bare 1-4 digit run at the very
+ * start of the line, then a genuine 2+ space gap — but only removed it from the
+ * LABEL. The tokenizer still counted it as money, which was harmless while the
+ * ordinal rule counted back from the RIGHT end and simply never reached it.
+ *
+ * It stopped being harmless once a row with fewer cells than the Total row
+ * became a resolvable `incomplete` rather than a heading. Spokane FY2007 p.44
+ * stamps `41` at column 0 of the `Debt service:` HEADING row: one "money"
+ * token, no real cells, so the row read as a data row with a blank General Fund
+ * cell, was skipped, and the group never opened — `Interest` then surfaced at
+ * root against the database's `Debt service / Interest`.
+ *
+ * Dropping the token instead of the characters keeps every other index intact,
+ * and cannot change which cell the ordinal rule picks: it removes exactly one
+ * token from the LEFT of a count taken from the RIGHT.
+ */
+function dropLeadingPageNumber(line, toks) {
+  const t = toks[0];
+  if (!t || t.kind !== 'money') return toks;
+  if (line.slice(0, t.start).trim() !== '') return toks;   // something real precedes it
+  if (!/^\d{1,4}$/.test(t.raw.trim())) return toks;        // "911 Dispatch" has no gap; "1,234" is not this
+  if (!/^\s{2,}\S/.test(line.slice(t.end))) return toks;   // must be followed by a column gap
+  return toks.slice(1);
+}
+
 export function readRowOrdinal(line, ncols) {
-  const toks = tokensOf(line);
+  const toks = dropLeadingPageNumber(line, tokensOf(line));
   if (toks.length >= ncols) {
     const tok = toks[toks.length - ncols];
     return { kind: 'cell', value: tok.value, label: cleanLabel(line.slice(0, tok.start)), at: tok.start };
@@ -1021,8 +1119,17 @@ function sectionOf(lines, mode, label) {
 // not a child. The extractor already had it right via root_leaves; this brings
 // the independent reader into agreement with the document rather than with the
 // extractor.
-const CHARACTER_EXACT = /^(current|debt\s+service|capital\s+outlay|capital\s+expenditures)$/i;
-const CHARACTER_START = /^(current|debt\s+service|capital\s+outlay|capital\s+expenditures)\b/i;
+//
+// `outlays?` covers Spokane, which prints `Capital outlay` FY2004-FY2011 and
+// `Capital outlays` FY2013-FY2024. Without the optional s the plural half of
+// that corpus matched neither pattern and nested inside the open `Current:`
+// group -- inflating the Current subtotal by the capital line while the row
+// still tied at $0, since the same dollars are present under either shape.
+// Spokane's FY2004 statement, the only era that still prints indentation, puts
+// `Capital outlay` at the parent level with the Current functions indented
+// beneath it.
+const CHARACTER_EXACT = /^(current|debt\s+service|capital\s+outlays?|capital\s+expenditures)$/i;
+const CHARACTER_START = /^(current|debt\s+service|capital\s+outlays?|capital\s+expenditures)\b/i;
 
 export function buildOperating(body, readRow, scale, rawRows) {
   const roots = [];

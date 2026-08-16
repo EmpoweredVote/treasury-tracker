@@ -176,8 +176,42 @@ export const WA_ENTITIES = [
     name: 'Spokane', mcag: '0724', entityType: 'city', countyName: 'Spokane County',
     pdfDir: 'docs/Spokane', pdfPrefix: 'spokane', datasetIdPrefix: 'spokane-sao-gf',
     population: 234_700, populationNote: 'WA OFM April 1, 2025 — Filter=4 city row, line 359 (2026 est: 235,900)',
-    perCapitaBand: null, sanityMax: 5_000_000_000,
-    fiscalYears: null, roundingFiles: ['extractSpokane.py'], navOnly: false,
+    // DERIVED from the observed spread, never copied. Across all 40 loaded
+    // combinations Spokane runs $384.88/resident (FY2005 operating) to
+    // $1,144.95 (FY2024 revenue). Half the minimum below and roughly twice the
+    // maximum above: wide enough for every real year, tight enough that a
+    // 1000x units error cannot pass -- units=1000 would read ~$385,000.
+    //
+    // Spokane prints WHOLE DOLLARS and Tacoma, its neighbour in this
+    // milestone, prints IN THOUSANDS. Copying Tacoma's [300, 3000] here would
+    // still have passed every Spokane year, which is exactly why the band has
+    // to be re-derived rather than inherited: a band that passes by accident
+    // guards nothing.
+    perCapitaBand: [200, 2_500],
+    // TIGHTER than the loader band, deliberately: the loader's job is to
+    // reject a units catastrophe, the harness's is to reject a WRONG PAGE.
+    // Spokane needs that especially -- it publishes a `Schedule of General
+    // Fund Accounts` whose Total column EQUALS this statement's General Fund
+    // column, so a wrong-page hit there would tie at $0 and land at a
+    // plausible per-capita. Measured spread is $385-$1,145.
+    verifyPerCapitaBand: [300, 1_400],
+    expectId: '7877e1e6-1c77-4c71-af90-425cf84610a4',
+    sanityMax: 5_000_000_000,
+    // MEASURED window: 20 years. All 21 "Financial and Federal" filings
+    // FY2004-FY2024 pass the content guard, and ONE extractor config ties at
+    // exactly $0 on 20 of them -- every year except FY2012.
+    fiscalYears: [2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2013, 2014,
+                  2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024],
+    manifestSpan: [2004, 2025],
+    excludedYears: {
+      2012: 'no usable text layer — every statement page returns only the SAO page furniture',
+      2025: 'source timing — the only FY2025 filing is a Contracted CPA report (ARN 1039996)',
+    },
+    // ZERO is the measured value. Spokane prints whole dollars, so unlike the
+    // whole-dollar v2.22 entities it could plausibly carry sub-dollar
+    // artifacts -- it carries none: all 40 combinations tie at a bare $0.
+    expectedResidues: 0,
+    roundingFiles: ['extractSpokane.py'], navOnly: false,
   },
   {
     name: 'Vancouver', mcag: '0247', entityType: 'city', countyName: 'Clark County',

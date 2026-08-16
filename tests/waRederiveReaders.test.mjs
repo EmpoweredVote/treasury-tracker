@@ -15,8 +15,61 @@
 import { describe, it, expect } from 'vitest';
 import {
   lpSplit, lpModalGlyphGap, assertLinePrinterCalibration, LP_MAX_CHAR_GAP,
-  readRowOrdinal, makeRowReader, buildRevenue, buildOperating,
+  readRowOrdinal, makeRowReader, buildRevenue, buildOperating, pageExactChunks,
+  assertPageYear,
 } from '../scripts/verify-wa-rederive.mjs';
+
+describe('page identity: the period sentence survives a mis-mapped glyph', () => {
+  it('reads a normally rendered period sentence', () => {
+    expect(assertPageYear('For the Fiscal Year Ended December 31, 2024', 2024, 'fixture'))
+      .toMatch(/2024/);
+  });
+
+  it('reads one whose "Year" lost its Y to a bad glyph map', () => {
+    // Spokane FY2018 and FY2022 render it "For the Fiscal <ear Ended December
+    // 31, 2018". The YEAR itself is intact and unambiguous; only one letter of
+    // the scaffolding word is corrupt. Refusing the page over that would drop
+    // two otherwise perfect years, the same call as Tacoma's "Govermental
+    // Funds".
+    expect(assertPageYear('For the Fiscal <ear Ended December 31, 2018', 2018, 'fixture'))
+      .toMatch(/2018/);
+  });
+
+  it('still refuses a page whose stated year is not the one being read', () => {
+    expect(() => assertPageYear('For the Fiscal <ear Ended December 31, 2017', 2018, 'fixture'))
+      .toThrow(/2017/);
+  });
+
+  it('still refuses a page that states no period at all', () => {
+    expect(() => assertPageYear('Schedule of Investments', 2018, 'fixture'))
+      .toThrow(/no evidence/i);
+  });
+});
+
+describe('a form feed in -table output is not always a page break', () => {
+  // Spokane FY2019 splits a 176-page PDF into 455 form-feed chunks: poppler
+  // emits at least one per page and sometimes extra ones WITHIN a page. Its
+  // governmental-funds statement is chunk 63 but PDF page 37, and that index is
+  // handed to `pdftotext -lineprinter -f N`, which would have read an unrelated
+  // investment-policy table in the notes.
+  it('accepts the cheap split when the chunk count matches the page count', () => {
+    expect(pageExactChunks('a\fb\fc', 3)).toEqual(['a', 'b', 'c']);
+  });
+
+  it('drops the empty chunk the final page\'s own form feed leaves behind', () => {
+    expect(pageExactChunks('a\fb\fc\f', 3)).toEqual(['a', 'b', 'c']);
+  });
+
+  it('refuses the split when a page emitted an extra form feed', () => {
+    // Extra feeds can only ever ADD chunks, which is what makes the
+    // discrepancy self-detecting rather than silent.
+    expect(pageExactChunks('a\fb1\fb2\fc\f', 3)).toBeNull();
+  });
+
+  it('refuses the split when chunks are MISSING too, rather than padding', () => {
+    expect(pageExactChunks('a\fb\f', 3)).toBeNull();
+  });
+});
 
 // ═══════════════════════════════════════════════════════════════════════════
 // READING 2 — `pdftotext -lineprinter`
@@ -247,7 +300,66 @@ describe('table: a colon-terminated revenue heading opens a group', () => {
   });
 });
 
+describe('table: a leading page-footer page number is furniture, not a cell', () => {
+  // Spokane FY2007 p.44 puts the SAO page-footer page number `41` at column 0
+  // of the `Debt service:` HEADING row. The heading carries no money of its
+  // own, so with the page number counted as a cell the row looked like a data
+  // row with all but one cell missing — and, this section having genuinely
+  // incomplete rows elsewhere, it resolved to "no General Fund cell" and was
+  // dropped. The group never opened and `Interest` surfaced at root against
+  // the database's `Debt service / Interest`.
+  const ncols = 7;
+  const total = 'Total expenditures        108,531,791   1  2  3  4  5  6';
+  const body = [
+    '41                                 Debt service:',
+    'Principal                          2,000          1  2  3  4  5  6',
+    'Interest                           2,731          1  2  3  4  5  6',
+  ];
+
+  it('reads the page-numbered heading as a heading', () => {
+    expect(readRowOrdinal(body[0], ncols).kind).toBe('header');
+    expect(readRowOrdinal(body[0], ncols).label).toBe('Debt service');
+  });
+
+  it('still ignores the page number when picking a data row\'s cell', () => {
+    // Bainbridge FY2004/2005/2007/2008 prepend a page number to DATA rows.
+    // Counting back from the right end already shrugged those off; dropping
+    // the furniture must not change which cell is chosen.
+    const row = '16   Transportation   75   1,785,388   -   -   -   1,785,463';
+    const r = readRowOrdinal(row, 6);
+    expect(r.kind).toBe('cell');
+    expect(r.value).toBe(75);
+    expect(r.label).toBe('Transportation');
+  });
+
+  it('opens the group so Interest lands under Debt service', () => {
+    const read = makeRowReader(body, total, ncols, 'fixture');
+    const roots = buildOperating(body, read, (v) => v, []);
+    expect(roots.map((r) => r.label)).toEqual(['Debt service']);
+    expect(roots[0].children.map((c) => c.label)).toEqual(['Principal', 'Interest']);
+  });
+});
+
 describe('table: the operating side keeps its GASB character rule', () => {
+  it('treats the PLURAL Capital outlays as a root peer, not a Current child', () => {
+    // Spokane prints `Capital outlay` FY2004-FY2011 and `Capital outlays`
+    // FY2013-FY2024. The character rule knew only the singular, so half the
+    // corpus nested the capital line inside Current: — inflating that subtotal
+    // by the capital amount while the row still tied at $0, because the same
+    // dollars are present either way. FY2004, the only era that still prints
+    // indentation, puts `Capital outlay` at the parent level.
+    const ncols = 3;
+    const total = 'Total Expenditures        134,757,595   1   2';
+    const body = [
+      'Current:',
+      'General government        50,000,000   1   2',
+      'Capital outlays           2,216,660    1   2',
+    ];
+    const read = makeRowReader(body, total, ncols, 'fixture');
+    const roots = buildOperating(body, read, (v) => v, []);
+    expect(roots.map((r) => r.label)).toEqual(['Current', 'Capital outlays']);
+  });
+
   it('nests functions under Current: and keeps Capital Outlay at root', () => {
     const ncols = 4;
     const total = 'Total Expenditures                                   264,071              17,306      151,943       433,320';

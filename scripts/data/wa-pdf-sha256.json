@@ -218,5 +218,85 @@
   "Tacoma|2024": {
     "sha256": "983a91ee54eff929162a5c76f908e61384ca9b75f72c011b49347a368ceec6c2",
     "bytes": 6632803
+  },
+  "Spokane|2004": {
+    "sha256": "87ea75d57e8891bf541d88cd89e32f644f347ad1fe42b1e446de8e8671312c21",
+    "bytes": 978907
+  },
+  "Spokane|2005": {
+    "sha256": "08d9c2ae692f767c2f1a287d524e2ed3d1c86d7a21ab915a017329ed6fc1faab",
+    "bytes": 1012983
+  },
+  "Spokane|2006": {
+    "sha256": "6f780b103d183570f1cc031eadd4c5cebdb679ac5b444dae334e292bd5caeb75",
+    "bytes": 3354376
+  },
+  "Spokane|2007": {
+    "sha256": "397145c15106efc7093e6f5d6bb89f061487beac5c1f86f030de05a36faf009a",
+    "bytes": 3459018
+  },
+  "Spokane|2008": {
+    "sha256": "011949a87c423659b3669ce3f6baa8a3367fe1893387cdc684a37917f1720b9f",
+    "bytes": 9630551
+  },
+  "Spokane|2009": {
+    "sha256": "a14e35befc90698ad4c7284c64513460db2f38f1bdbea497b60a05ba8840dec8",
+    "bytes": 13959460
+  },
+  "Spokane|2010": {
+    "sha256": "e7d3d52ad5e559d9c9ee0e230c05f02d30698636061b4165f9ef517fd55a893b",
+    "bytes": 1546027
+  },
+  "Spokane|2011": {
+    "sha256": "8786e1f5093c624f7d2ac23043491ddfbdd282218cb8e4b8d41e9d08e1cd7d62",
+    "bytes": 1687389
+  },
+  "Spokane|2013": {
+    "sha256": "1722dbfcf242d798caec0ddeb0a219a5cb9a3de181fa53ea557ac134b70cff06",
+    "bytes": 2478787
+  },
+  "Spokane|2014": {
+    "sha256": "17921f4c8d687a4cdf1db4911919cd463b83427218b64159f42a99f875322afa",
+    "bytes": 7329195
+  },
+  "Spokane|2015": {
+    "sha256": "87d2c56b6430573a8a5898ff38054913b6699473d548eb75d12e08eabe0ad968",
+    "bytes": 6743827
+  },
+  "Spokane|2016": {
+    "sha256": "0b8b4bea1877edec99e8bf5e909f0c65958273702597da43de40d6d67c817f7e",
+    "bytes": 31902659
+  },
+  "Spokane|2017": {
+    "sha256": "c107ddb9a5af872bb00d0d0c455d5a33c531baf4476718c7b938f46847bc1dea",
+    "bytes": 4835909
+  },
+  "Spokane|2018": {
+    "sha256": "48c2cabfdb49416ca4478c4e8fefb384a0c399275079a304e72139b9329b23de",
+    "bytes": 3588261
+  },
+  "Spokane|2019": {
+    "sha256": "4ac5bc5be79bdcf98a9c00930d591e0e232ec7db9d8144645a6fa0bb024a93ba",
+    "bytes": 3606530
+  },
+  "Spokane|2020": {
+    "sha256": "b2c2a387c560df0fa0d4a27dfc2a15fa972dd52fbbe3c694febf64ad029021d7",
+    "bytes": 3898069
+  },
+  "Spokane|2021": {
+    "sha256": "a8845373add38b87d19ad03e2794bdab19294e8491de6f68067015d682e65a60",
+    "bytes": 4292071
+  },
+  "Spokane|2022": {
+    "sha256": "c75b90ed45fdf17a3718df8cb5648a0031d1986958f81f9e8071748aa4d295bf",
+    "bytes": 4773965
+  },
+  "Spokane|2023": {
+    "sha256": "fd76e76493f0c9b4a8e15b416a4dd18db3c36974391681bd8d21747ddd6616bf",
+    "bytes": 4283563
+  },
+  "Spokane|2024": {
+    "sha256": "b12dd6e2a48a989d965830ce334a9c50c00f9ab3a3080dcf14f175369d81211e",
+    "bytes": 6339059
   }
 }
