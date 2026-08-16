@@ -723,15 +723,37 @@ async function main() {
           if (/Washington State Auditor/i.test(t)) fail.push(`${label}: label carries the SAO page-footer credit — "${t}" at ${a.where}`);
           if (/^[^A-Za-z(]/.test(t)) fail.push(`${label}: label starts with page furniture, not a letter — "${t}" at ${a.where}`);
         }
-        // Dash-zero grafting welds one row's label onto the next. Its signature
-        // is a leaf label that has ANOTHER label of the same row as a strict
-        // prefix — "Public Safety" and "Public Safety Culture and Recreation".
-        const texts = all.map((a) => String(a.text ?? '').replace(/\s+/g, ' ').trim()).filter(Boolean);
-        for (const a of texts) {
-          for (const b of texts) {
-            if (a === b || b.length <= a.length) continue;
-            if (b.toLowerCase().startsWith(`${a.toLowerCase()} `)) {
-              fail.push(`${label}: "${b}" has the sibling label "${a}" as a prefix — dash-zero grafting signature`);
+        // Dash-zero grafting welds one row's label onto the NEXT ROW'S, so its
+        // signature is a label that has a TRUE SIBLING's label as a strict
+        // prefix — "Public Safety" and "Public Safety Culture and Recreation",
+        // both functions under the same `Current` parent (Bainbridge).
+        //
+        // ⚠ SIBLING MEANS INSIDE ONE CATEGORY, and the scope is the whole check.
+        // Compared across the whole row this fired 45 times on Kent and caught
+        // nothing: Kent's `Taxes` group has a child named literally `Other`,
+        // and every `Other licenses and permits` / `Other fees and charges` /
+        // `Other governments` / `Other miscellaneous revenue` in the other five
+        // categories then looked like a graft of it. They are not siblings and
+        // no weld could have produced them — grafting welds ADJACENT rows, which
+        // by construction share a parent.
+        //
+        // ⚠ AND NOTE WHAT THIS CHECK DOES NOT COVER. It sees only the database,
+        // so it cannot detect a weld whose prefix was a row the issuer printed
+        // EMPTY: `Lodging Other` and `Issuance costs Capital outlay` were shipped
+        // by Kent with no `Lodging` or `Issuance costs` row anywhere in the tree
+        // to compare against, and this check passed them. Only a reader that goes
+        // back to the document can find those, which is verify-wa-rederive.mjs's
+        // job — do not read a green (e) as "no welded labels".
+        for (const c of cats) {
+          const pool = [c.name, ...items.filter((it) => it.category_id === c.id).map((it) => it.description)]
+            .map((t) => String(t ?? '').replace(/\s+/g, ' ').trim()).filter(Boolean);
+          for (const a of pool) {
+            for (const b of pool) {
+              if (a === b || b.length <= a.length) continue;
+              if (b.toLowerCase().startsWith(`${a.toLowerCase()} `)) {
+                fail.push(`${label}: "${b}" has the sibling label "${a}" as a prefix inside category ` +
+                  `"${c.name}" — dash-zero grafting signature`);
+              }
             }
           }
         }
