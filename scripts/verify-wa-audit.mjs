@@ -117,7 +117,7 @@ const OFFLINE = process.argv.includes('--offline');
 const RECORD_SHA = process.argv.includes('--record-sha');
 
 const DATASETS = ['operating', 'revenue'];
-const SHA_MANIFEST = path.join(ROOT, 'scripts', 'data', 'bainbridge-kitsap-pdf-sha256.json');
+const SHA_MANIFEST = path.join(ROOT, 'scripts', 'data', 'wa-pdf-sha256.json');
 
 // The full span each entity's ARN manifest covers. Any year in this span that
 // is not in `fys` MUST have zero rows — that is what makes (a) assert the

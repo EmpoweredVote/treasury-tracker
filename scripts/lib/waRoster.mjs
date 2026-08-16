@@ -43,7 +43,8 @@ export const WA_ENTITIES = [
     name: 'Kitsap County', mcag: '0132', entityType: 'county', countyName: null,
     pdfDir: 'docs/KitsapCounty', pdfPrefix: 'kitsap', datasetIdPrefix: 'kitsap-sao-gf',
     population: 288_900, populationNote: 'WA OFM April 1, 2025 — Filter=1 county row, line 183',
-    perCapitaBand: [100, 10_000], sanityMax: 2_000_000_000,
+    expectId: 'c35da2c6-c8e6-4f50-85d8-60b02890d3e4',
+    perCapitaBand: [100, 10_000], verifyPerCapitaBand: [200, 700], sanityMax: 2_000_000_000,
     fiscalYears: [2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016,
                   2020, 2021, 2022, 2023, 2024],
     roundingFiles: ['extractKitsap.py'], navOnly: false,
@@ -52,7 +53,8 @@ export const WA_ENTITIES = [
     name: 'Bainbridge Island', mcag: '0461', entityType: 'city', countyName: 'Kitsap County',
     pdfDir: 'docs/BainbridgeIsland', pdfPrefix: 'bainbridge', datasetIdPrefix: 'bainbridge-sao-gf',
     population: 25_530, populationNote: 'WA OFM April 1, 2025 — Filter=4 city row, line 186',
-    perCapitaBand: [100, 10_000], sanityMax: 500_000_000,
+    expectId: '9e7b49a3-8a8c-48b8-897f-28d4bb161fb5',
+    perCapitaBand: [100, 10_000], verifyPerCapitaBand: [250, 1400], sanityMax: 500_000_000,
     fiscalYears: [2004, 2005, 2007, 2008,
                   2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025],
     roundingFiles: ['extractBainbridgeEarly.py', 'extractBainbridge.py'], navOnly: false,
@@ -71,12 +73,16 @@ export const WA_ENTITIES = [
   // this file gives Kitsap County 288,900 at line 183, matching the figure
   // v2.22 loaded independently.
   { name: 'Pierce County',    mcag: '0152', entityType: 'county', countyName: null, navOnly: true,
+    expectId: 'cfb055a0-e380-479c-83a4-23c4de421f99',
     population: 959_900, populationNote: 'WA OFM April 1, 2025 — Filter=1 county row, line 271 (2026 est: 967,000)' },
   { name: 'Spokane County',   mcag: '0166', entityType: 'county', countyName: null, navOnly: true,
+    expectId: '9ca34d93-cb22-477b-8aa1-ec2c207960e0',
     population: 566_000, populationNote: 'WA OFM April 1, 2025 — Filter=1 county row, line 346 (2026 est: 570,600)' },
   { name: 'Clark County',     mcag: '0103', entityType: 'county', countyName: null, navOnly: true,
+    expectId: '5a041c97-8477-4835-8342-c3c6fd46d9fe',
     population: 542_400, populationNote: 'WA OFM April 1, 2025 — Filter=1 county row, line 41 (2026 est: 550,000)' },
   { name: 'Snohomish County', mcag: '0162', entityType: 'county', countyName: null, navOnly: true,
+    expectId: 'ee9ad970-fd12-48ca-977e-2ab0e4f1f0a4',
     population: 873_800, populationNote: 'WA OFM April 1, 2025 — Filter=1 county row, line 322 (2026 est: 879,700)' },
 
   // ── WA-CITIES-01 ──────────────────────────────────────────────────────────
@@ -97,6 +103,13 @@ export const WA_ENTITIES = [
     // so a config copied from Bainbridge or Kitsap would land 1000x low with
     // a green tie. Kitsap's own [100, 10_000] would NOT have caught it.
     perCapitaBand: [300, 3_000],
+    // The harness band is TIGHTER than the loader band above, deliberately.
+    // The loader's job is to reject a units catastrophe; the harness's job is
+    // to reject a WRONG PAGE, whose per-capita lands far outside the real
+    // spread but often inside a generous units band. Measured spread is
+    // $588-$1,345, so this brackets it closely.
+    verifyPerCapitaBand: [500, 1_500],
+    expectId: 'c8f93566-29fa-48df-878c-07b48655a290',
     sanityMax: 5_000_000_000,
     // MEASURED window: 19 years. All 22 "Financial and Federal" filings
     // FY2003-FY2024 pass the content guard, and ONE extractor config ties at
@@ -164,6 +177,15 @@ export const countyEntities = () => WA_ENTITIES.filter((e) => e.entityType === '
 /** Entities ready to load: reconned window, population and band all present. */
 export function loadableEntities() {
   return WA_ENTITIES.filter((e) => !e.navOnly && e.fiscalYears && e.population && e.perCapitaBand);
+}
+
+/**
+ * Entities the verification harnesses cover: loaded, with a pinned id and a
+ * tight verify band. Nav-only county nodes are excluded -- they hold no budget
+ * rows, so there is nothing to re-derive.
+ */
+export function verifiableEntities() {
+  return WA_ENTITIES.filter((e) => !e.navOnly && e.fiscalYears && e.expectId && e.verifyPerCapitaBand);
 }
 
 /**

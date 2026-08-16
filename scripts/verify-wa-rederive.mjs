@@ -187,6 +187,7 @@
 
 import { execFileSync } from 'node:child_process';
 import { createClient } from '@supabase/supabase-js';
+import { verifiableEntities } from './lib/waRoster.mjs';
 import { readFileSync, writeFileSync, existsSync, mkdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -211,61 +212,60 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY, { db: { schema: 'treasury' }
 
 const OFFLINE = process.argv.includes('--offline');
 
-/** Rows Task 8 loaded (36 Bainbridge + 36 Kitsap). Cross-checked against the
- *  declared windows below AND against the live row count, so a narrowed window
- *  can never produce a vacuously green run. */
-const EXPECTED_TOTAL_ROWS = 72;
+// --only <Name> restricts the run to one entity, so a single city can be
+// re-checked during a batch without re-reading the whole corpus. It NARROWS
+// the expected row count to match, so a filtered run can never look like a
+// full one.
+const onlyArg = process.argv.indexOf('--only');
+const ONLY = onlyArg === -1 ? null : process.argv[onlyArg + 1];
 
 // ── what is expected to be loaded ────────────────────────────────────────────
-// Bainbridge excludes FY2006 (image-only scan), FY2009 (ciphered digits),
-// FY2010 (ciphered GAAP statement, money digits absent) and FY2011 (CCITT
-// stencil scan). Kitsap excludes FY2017-FY2019 (labels present, digits absent
-// from the text layer) and FY2025 (not yet audited).
-const BAINBRIDGE_FYS = [2004, 2005, 2007, 2008,
-  2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
-const KITSAP_FYS = [2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016,
-  2020, 2021, 2022, 2023, 2024];
-
-// PER-CAPITA BANDS — DERIVED HERE, AND DELIBERATELY WIDER THAN THE TASK BRIEF.
+// The entity list comes from scripts/lib/waRoster.mjs, the single source of
+// truth shared with the seeder, every loader and the other two harnesses.
+// This file previously carried its own hardcoded copy; with eight WA entities
+// that duplication is how a window drifts between the loader and its check.
 //
-// The brief quotes "Kitsap's real years run ~$315-$443/resident, Bainbridge's
-// ~$700-$900". Those figures do not describe the corpus that was actually
-// loaded: Task 8's own plausibility SQL records Kitsap spanning $257.75-$443.86
-// and Bainbridge spanning $357.90-$1,078.44 across the two dataset types. Taken
-// literally the brief's bands would fail correctly-loaded rows, so the bands
-// below are set from the real spread with headroom — while still rejecting
-// every documented silent wrong-page hit by a wide margin:
+// Windows and exclusions live in the roster with their evidence. Summary:
+//   Bainbridge  FY2004-2025 less FY2006 (image scan), FY2009 (ciphered digits),
+//               FY2010 (ciphered, money digits absent), FY2011 (CCITT scans)
+//   Kitsap      FY2004-2024 less FY2017-2019 (digits absent), FY2025 (unaudited)
+//   Tacoma      FY2003-2024 less FY2011/2018/2021 (no usable text layer),
+//               FY2025 (only an opinion letter released)
+//
+// PER-CAPITA BANDS ARE THE ROSTER'S `verifyPerCapitaBand`, NOT its
+// `perCapitaBand`. The loader's band is deliberately generous -- its job is to
+// reject a 1000x units catastrophe. This harness needs a TIGHTER band because
+// its job is different: catching a WRONG PAGE, whose per-capita lands far
+// outside the entity's real spread while often sitting comfortably inside a
+// units band. Every documented silent wrong-page hit from v2.22 is rejected by
+// a wide margin:
 //   Kitsap FY2005 County Roads Budget-and-Actual  $29,279,443 -> $101/resident
-//   Kitsap FY2008 page 33                        $38,874,052 -> $135/resident
-//   Kitsap FY2013 REET Budget-and-Actual            $354,295 -> $1.23/resident
-//   Kitsap FY2014 page 43                           $304,600 -> $1.05/resident
-// The largest of those is $135, well below the $200 floor.
-const ENTITIES = [
-  {
-    key: 'Bainbridge Island',
-    lookup: { name: 'Bainbridge Island', state: 'WA', entity_type: 'city' },
-    expectId: '9e7b49a3-8a8c-48b8-897f-28d4bb161fb5',
-    population: 25530,
-    perCapitaBand: [250, 1400],
-    dir: path.join(ROOT, 'docs', 'BainbridgeIsland'),
-    pdf: (fy) => `bainbridge-${fy}-acfr.pdf`,
-    fys: BAINBRIDGE_FYS,
-    // source_rounding lives in TWO files for this entity (early era vs modern
-    // era). They are merged and asserted disjoint — see loadRegisteredDeltas.
-    roundingFiles: ['extractBainbridgeEarly.py', 'extractBainbridge.py'],
-  },
-  {
-    key: 'Kitsap County',
-    lookup: { name: 'Kitsap County', state: 'WA', entity_type: 'county' },
-    expectId: 'c35da2c6-c8e6-4f50-85d8-60b02890d3e4',
-    population: 288900,
-    perCapitaBand: [200, 700],
-    dir: path.join(ROOT, 'docs', 'KitsapCounty'),
-    pdf: (fy) => `kitsap-${fy}-acfr.pdf`,
-    fys: KITSAP_FYS,
-    roundingFiles: ['extractKitsap.py'],
-  },
-];
+//   Kitsap FY2008 page 33                         $38,874,052 -> $135/resident
+//   Kitsap FY2013 REET Budget-and-Actual             $354,295 -> $1.23/resident
+//   Kitsap FY2014 page 43                            $304,600 -> $1.05/resident
+// The largest is $135, well below Kitsap's $200 floor.
+const ALL_ENTITIES = verifiableEntities().map((e) => ({
+  key: e.name,
+  lookup: { name: e.name, state: 'WA', entity_type: e.entityType },
+  expectId: e.expectId,
+  population: e.population,
+  perCapitaBand: e.verifyPerCapitaBand,
+  dir: path.join(ROOT, ...e.pdfDir.split('/')),
+  pdf: (fy) => `${e.pdfPrefix}-${fy}-acfr.pdf`,
+  fys: e.fiscalYears,
+  roundingFiles: e.roundingFiles,
+}));
+
+if (ONLY && !ALL_ENTITIES.some((e) => e.key === ONLY)) {
+  console.error(`--only "${ONLY}" matches no verifiable entity. Known: ${ALL_ENTITIES.map((e) => e.key).join(', ')}`);
+  process.exit(2);
+}
+const ENTITIES = ONLY ? ALL_ENTITIES.filter((e) => e.key === ONLY) : ALL_ENTITIES;
+
+/** Derived from the declared windows, never hardcoded: a narrowed window can
+ *  then never produce a vacuously green run, and adding a city cannot leave a
+ *  stale total behind. Cross-checked against the live row count in main(). */
+const EXPECTED_TOTAL_ROWS = ENTITIES.reduce((s, e) => s + e.fys.length * 2, 0);
 
 // The independent second copy. Different host, physically different documents.
 const KITSAP_GOV_URLS = {
@@ -292,7 +292,15 @@ function loadRegisteredDeltas(files) {
   for (const f of files) {
     const src = readFileSync(path.join(ROOT, 'scripts', f), 'utf8');
     const body = src.split('\n').filter((l) => !/^\s*#/.test(l)).join('\n');
-    const m = body.match(/source_rounding\s*=\s*\{([\s\S]*?)\n\s*\}/);
+    // Matches a multi-line dict OR a single-line empty one (`source_rounding={},`).
+    // AN EMPTY REGISTRY IS LEGITIMATE and must not be conflated with a missing
+    // one. Tacoma registers zero residues because it prints IN THOUSANDS: its
+    // components are already rounded to the thousand and sum exactly, so the
+    // sub-dollar artifacts that produce residues cannot arise. The guard that
+    // matters is still enforced -- a file with no `source_rounding` key at all
+    // throws, because that means the harness is reading the wrong file or the
+    // registry was deleted out from under it.
+    const m = body.match(/source_rounding\s*=\s*\{([\s\S]*?)\}/);
     if (!m) throw new Error(`${f}: no source_rounding dict found — refusing to verify without the registrations`);
     const re = /\(\s*(\d{4})\s*,\s*'(operating|revenue)'\s*\)\s*:\s*(-?\d+)/g;
     let e;
@@ -361,7 +369,12 @@ function tokensOf(line) {
 // Kitsap FY2004-FY2016 print "Statement of REVENUE, Expenditures..." (singular).
 const TITLE_RE = /statement\s+of\s+revenues?\s*,?\s*(and\s+)?expenditures/i;
 const CHANGES_RE = /changes?\s+in\s+fund\s+balances?/i;
-const GOVFUNDS_RE = /governmental\s+funds/i;
+// `govern?mental` tolerates a SOURCE-DOCUMENT TYPO, not a parser convenience:
+// Tacoma's FY2007 statement caption reads "Govermental Funds", missing the 'n'.
+// Rejecting that page would have silently dropped a year that is otherwise
+// perfectly readable, and "the scope line is misspelled" is not a reason to
+// refuse a filing. The optional 'n' cannot match anything else meaningful.
+const GOVFUNDS_RE = /govern?mental\s+funds/i;
 const TOTAL_REV_RE = /^total\s+(operating\s+)?revenues?\b/i;
 const TOTAL_EXP_RE = /^total\s+expenditures\b/i;
 const REV_HEAD_RE = /^revenues?\b/i;
@@ -382,7 +395,19 @@ const EXCLUDE_RE = /\b(combining|budget|budgetary|proprietary|fiduciary|internal
 // the exact thin invariant Task 5 warned about. Page 2 declares itself, and it
 // carries no General Fund column caption. Both are checked.
 const CONTINUATION_RE = /\bpage\s*([2-9]|\d\d+)\s*of\s*\d/i;
-const GF_CAPTION_RE = /\bgeneral\b(?!\s+govern)/i;
+// The lookahead is `government\b`, NOT the shorter `govern`, and the difference
+// is load-bearing. Its purpose is to stop the expenditure function "General
+// Government" from being mistaken for a General Fund column caption. The
+// original `(?!\s+govern)` also rejected "General Governmental" -- and Tacoma's
+// FY2003 caption is exactly that, because its General Fund column header sits
+// next to an "Other Governmental" one and flattens to
+// "(0010) General Governmental Governmental Fund Funds Funds".
+// That false negative dropped FY2003-FY2005 entirely.
+//
+// `\bgovernment\b` cannot match inside "governmental" (no word boundary before
+// the "al"), so this still rejects "General Government" exactly as before while
+// accepting a caption whose NEIGHBOURING column happens to be Governmental.
+const GF_CAPTION_RE = /\bgeneral\b(?!\s+government\b)/i;
 
 /** The caption block: everything down to and including the first section
  *  header line. Column captions live here, and so does every page-type word. */
@@ -447,10 +472,31 @@ function assertPageYear(pageText, fy, label) {
 // ═══════════════════════════════════════════════════════════════════════════
 // Own units detection — read off the page, never configured.
 // ═══════════════════════════════════════════════════════════════════════════
+/**
+ * ⚠ THE MOST DANGEROUS FUNCTION IN THIS FILE TO GET WRONG.
+ *
+ * The tie gate is unit-invariant, so a missed multiplier does not fail
+ * arithmetic anywhere -- it just makes every figure 1000x wrong. Only the
+ * per-capita band catches it, and only if the band is tight enough.
+ *
+ * The original pair of patterns matched Bainbridge/Kitsap ("whole dollars", so
+ * neither fires) and Seattle/King County ("(in thousands)"). Tacoma writes
+ * "(amounts expressed in thousands)", which matched NEITHER, so this returned 1
+ * and the harness read Tacoma's statements as whole dollars -- 1000x below the
+ * database it was checking. It would have reported a disagreement rather than
+ * passing wrongly, but the disagreement would have looked like a load defect
+ * instead of a units-detection gap.
+ *
+ * The broadened alternative is a bare `in thousands`, deliberately: every
+ * phrasing of that caption means the same thing, and no statement says it
+ * without meaning it. It also absorbs Tacoma FY2003's genuine typo,
+ * "(amounts expresssed in thousands)" with three s's, because the typo is in
+ * the word this pattern does not depend on.
+ */
 function unitsOf(pageText) {
   const flat = pageText.replace(/\s+/g, ' ');
-  if (/\(\s*in\s+millions\s*\)/i.test(flat)) return 1_000_000;
-  if (/\(\s*in\s+thousands\s*\)|amounts\s+in\s+thousands/i.test(flat)) return 1_000;
+  if (/\bin\s+millions\b/i.test(flat)) return 1_000_000;
+  if (/\bin\s+thousands\b/i.test(flat)) return 1_000;
   return 1;   // whole dollars — cross-checked by the per-capita band, which is NOT unit-invariant
 }
 
@@ -676,8 +722,20 @@ function sectionOf(lines, mode, label) {
 // ═══════════════════════════════════════════════════════════════════════════
 // Own tree builder — ONE rule, GASB's character classification.
 // ═══════════════════════════════════════════════════════════════════════════
-const CHARACTER_EXACT = /^(current|debt\s+service|capital\s+outlay)$/i;
-const CHARACTER_START = /^(current|debt\s+service|capital\s+outlay)\b/i;
+// `capital expenditures` is Tacoma's Era-B (FY2012-FY2017) spelling of the same
+// root-level line every other entity calls `capital outlay`. Without it the
+// reader left the `Debt service:` group open and nested Capital expenditures
+// inside it -- amounts identical, structure wrong, which is exactly the class
+// of defect a $0 tie cannot see.
+//
+// Settled from `pdftotext -layout`, which preserves the indentation `-table`
+// flattens (FY2015 p.34): `Current:` and `Debt service:` both sit at 3 spaces
+// with their children at 6, and `Capital expenditures` sits at 3 -- a root peer,
+// not a child. The extractor already had it right via root_leaves; this brings
+// the independent reader into agreement with the document rather than with the
+// extractor.
+const CHARACTER_EXACT = /^(current|debt\s+service|capital\s+outlay|capital\s+expenditures)$/i;
+const CHARACTER_START = /^(current|debt\s+service|capital\s+outlay|capital\s+expenditures)\b/i;
 
 function buildOperating(body, ncols, scale, rawRows) {
   const roots = [];
@@ -950,10 +1008,10 @@ function crossCompare(sao, gov) {
 
 // ═══════════════════════════════════════════════════════════════════════════
 async function main() {
-  console.log('=== Bainbridge Island + Kitsap County independent re-derivation (loader-independent) ===');
+  console.log('=== WA SAO independent re-derivation (loader-independent) ===');
   console.log(`DB: ${SUPABASE_URL}  (READ-ONLY — this harness never writes)`);
   console.log('Extractor imports: NONE. Own `pdftotext -table` + `pdftotext -lineprinter` passes and own JS parser.');
-  console.log('acfrGF.py / extractBainbridge*.py / extractKitsap.py / waSaoLoad.mjs are NOT imported, required or executed.\n');
+  console.log('acfrGF.py / every extract*.py / waSaoLoad.mjs are NOT imported, required or executed.\n');
 
   let blockers = 0;
   let combos = 0;
@@ -968,9 +1026,27 @@ async function main() {
     console.log(`${ent.key}: ${r.deltas.size} registered source_rounding case(s) parsed as TEXT from ${ent.roundingFiles.join(' + ')} (no import, no exec)`);
   }
   const totalRegistered = [...registered.values()].reduce((s, r) => s + r.deltas.size, 0);
-  console.log(`Registered source_rounding cases across both entities: ${totalRegistered} (expected 33)\n`);
-  if (totalRegistered !== 33) {
-    console.error(`  BLOCKER: expected 33 registered source_rounding cases, parsed ${totalRegistered}`);
+  // Per-entity expected counts, so a filtered (--only) run checks the right
+  // number instead of the whole-corpus total. This was hardcoded at 33 --
+  // Bainbridge's 20 plus Kitsap's 13 -- which made every single-entity run a
+  // guaranteed BLOCKER, and would have silently become wrong the moment any
+  // entity's registry changed.
+  //
+  // Tacoma's expected count is ZERO, and that is a real value rather than a
+  // "not yet filled in": it prints IN THOUSANDS, so its components are already
+  // rounded to the thousand and sum exactly. Asserting the zero is the point --
+  // it means a residue appearing there later is a finding, not a shrug.
+  const EXPECTED_REGISTERED = { 'Bainbridge Island': 20, 'Kitsap County': 13, Tacoma: 0 };
+  const expectedRegistered = ENTITIES.reduce((s, e) => s + (EXPECTED_REGISTERED[e.key] ?? -1), 0);
+  const unknownEntities = ENTITIES.filter((e) => EXPECTED_REGISTERED[e.key] === undefined).map((e) => e.key);
+  if (unknownEntities.length) {
+    console.error(`  BLOCKER: no expected source_rounding count declared for ${unknownEntities.join(', ')} — ` +
+      `add one rather than letting an unasserted registry through`);
+    blockers += unknownEntities.length;
+  }
+  console.log(`Registered source_rounding cases across the checked entities: ${totalRegistered} (expected ${expectedRegistered})\n`);
+  if (totalRegistered !== expectedRegistered) {
+    console.error(`  BLOCKER: expected ${expectedRegistered} registered source_rounding cases, parsed ${totalRegistered}`);
     blockers++;
   }
 
@@ -1103,11 +1179,22 @@ async function main() {
   }
 
   // ── independent-document cross-check ──────────────────────────────────────
+  // Kitsap-specific: kitsap.gov publishes a physically different copy of the
+  // same statements. SKIPPED when Kitsap is not in this run, because the check
+  // compares against SAO-side re-derivations that a filtered run never
+  // computed. Without this guard `--only "Bainbridge Island"` reported ten
+  // blockers that were purely an artifact of the filter -- Bainbridge itself
+  // was 36/36 clean underneath them.
   const XCHECK_FYS = [2020, 2021, 2022, 2023, 2024];
-  console.log('\nINDEPENDENT-DOCUMENT CROSS-CHECK — kitsap.gov copies (physically different documents');
-  console.log('on a different host, carrying the same statements):');
+  const xcheckApplies = ENTITIES.some((e) => e.key === 'Kitsap County');
   let xcheckYears = 0;
   const xcheckRows = [];
+  if (!xcheckApplies) {
+    console.log('\nINDEPENDENT-DOCUMENT CROSS-CHECK — SKIPPED: Kitsap County is not in this run');
+    console.log('  (--only filter). No entity other than Kitsap has a second published copy.');
+  } else {
+  console.log('\nINDEPENDENT-DOCUMENT CROSS-CHECK — kitsap.gov copies (physically different documents');
+  console.log('on a different host, carrying the same statements):');
   for (const fy of XCHECK_FYS) {
     let dest, cached;
     try {
@@ -1124,7 +1211,11 @@ async function main() {
       if (!sao || !sao.ind) { console.error(`  BLOCKER ${label}: no SAO-side re-derivation to compare against`); blockers++; ok = false; continue; }
       let gov;
       try {
-        gov = rederive(dest, fy, mode, label, ENTITIES[1].perCapitaBand, ENTITIES[1].population);
+        // Look Kitsap up by NAME. This was ENTITIES[1], a positional reference that
+        // silently pointed at a different entity the moment the list came from a
+        // roster that can be reordered or filtered with --only.
+        const kc = ALL_ENTITIES.find((e) => e.key === 'Kitsap County');
+        gov = rederive(dest, fy, mode, label, kc.perCapitaBand, kc.population);
       } catch (e) {
         console.error(`  BLOCKER ${label}: re-derivation failed — ${e.message}`);
         blockers++; ok = false; continue;
@@ -1143,8 +1234,8 @@ async function main() {
     console.log(`  FY${fy}: ${path.basename(dest)} (${cached ? 'cached' : 'downloaded'}) — ${ok ? 'AGREES with the WA SAO copy on every leaf, subtotal and total' : 'DISAGREEMENT, see above'}`);
   }
   console.log(`\n  YEARS THAT RECEIVED THE INDEPENDENT-DOCUMENT CROSS-CHECK: ${xcheckYears} (Kitsap FY2020-FY2024)`);
-  console.log(`  = ${xcheckYears * 2} of the 72 loaded rows. The other ${72 - xcheckYears * 2} rows are verified against ONE document each,`);
-  console.log('  so "72 rows verified" must NOT be read as "72 rows independently sourced".');
+  console.log(`  = ${xcheckYears * 2} of the ${EXPECTED_TOTAL_ROWS} checked rows. The other ${EXPECTED_TOTAL_ROWS - xcheckYears * 2} are verified against ONE document each,`);
+  console.log(`  so "${EXPECTED_TOTAL_ROWS} rows verified" must NOT be read as "${EXPECTED_TOTAL_ROWS} rows independently sourced".`);
   console.log('  Out of scope, stated rather than silently skipped:');
   console.log('   • Kitsap FY2017-FY2019 — dropped years, no loaded rows to cross-check.');
   console.log('   • Kitsap FY2004-FY2016 — kitsap.gov hosts these SECTIONED, not as single PDFs.');
@@ -1153,6 +1244,7 @@ async function main() {
   for (const x of xcheckRows) {
     console.log(`    FY${x.fy} ${x.mode.padEnd(9)} p.${String(x.page).padStart(3)}  sao=${String(x.sao).padStart(12)}  kitsap.gov=${String(x.gov).padStart(12)}  ${x.ok ? 'MATCH' : 'DISAGREE'}`);
   }
+  }   // end of the Kitsap-only cross-check block
 
   // ── coverage assertion (a green run must not be vacuous) ───────────────────
   const expectedCombos = ENTITIES.reduce((s, e) => s + e.fys.length * 2, 0);
@@ -1170,10 +1262,10 @@ async function main() {
       .in('municipality_id', ENTITIES.map((e) => e.expectId));
     if (error) { console.error(`  BLOCKER: budgets row count query failed: ${error.message}`); blockers++; }
     else if (count !== EXPECTED_TOTAL_ROWS) {
-      console.error(`  BLOCKER: treasury.budgets holds ${count} rows for these two entities, expected ${EXPECTED_TOTAL_ROWS} — a row exists that this harness never checked`);
+      console.error(`  BLOCKER: treasury.budgets holds ${count} rows for the checked entities, expected ${EXPECTED_TOTAL_ROWS} — a row exists that this harness never checked`);
       blockers++;
     } else {
-      console.log(`\nDB row count for the two entities: ${count} — exactly the ${combos} combinations checked. No unchecked row exists.`);
+      console.log(`\nDB row count for the checked entities: ${count} — exactly the ${combos} combinations checked. No unchecked row exists.`);
     }
   }
 
