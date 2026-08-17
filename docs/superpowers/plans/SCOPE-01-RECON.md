@@ -118,12 +118,26 @@ The first three self-describe as General Fund. Self-description is a hint, not e
 still owes one reconciliation, and it can cover all three at once only if the reconciliation
 actually tests all three.
 
-**The fourth is a genuine gap in the milestone's value set.** Special Revenue Funds are a
+**The fourth was a genuine gap in the milestone's value set.** Special Revenue Funds are a
 governmental fund *type* that is by definition **not** the General Fund, **not** the total of
 governmental funds, and **not** all funds. None of `general_fund` / `total_governmental` /
-`all_funds` describes these 1,560 rows across 336 towns. `unknown` would be structurally honest
-but semantically false: we know exactly what this source covers — there is simply no value for
-it. **Raised for decision before Task 3 writes the CHECK constraint.**
+`all_funds` described these 1,560 rows across 336 towns. `unknown` would have been structurally
+honest but semantically false: we know exactly what this source covers — there was simply no
+value for it.
+
+> **DECISION — Chris, 2026-08-17: add a fifth value, `special_revenue`.**
+> The CHECK constraint becomes
+> `('general_fund','total_governmental','all_funds','special_revenue','unknown')`.
+> Rationale: we know what these rows cover, so recording it is the honest answer, and widening
+> the constraint now is free where doing it after 79,927 rows are stamped costs a migration plus
+> a reclassification pass. Leaving it `unknown` would also have made the family permanently
+> unresolvable — no future reconciliation could move it, because there would be no value to move
+> it to.
+>
+> **`special_revenue` is held out of cross-entity comparison exactly as `unknown` is** (Task 10
+> Step 4 covers both). It is a fund slice, not a city total, so it must never sit on a per-capita
+> axis beside one. This makes the exclusion rule *two* values, not one — Task 10 must not be
+> written as `!== 'unknown'`.
 
 ### 1.5 ACFR per-document rows
 
@@ -184,12 +198,45 @@ figures that are not fund totals at all:
 | `all_funds_requirements` | 17 | 3 |
 | **`salary`** (sic — a second spelling, 1 string) | **6** | 1 |
 
-**7,892 rows are compensation data** — 7,682 of them the publicpay source in §1.3. A total-payroll
-figure does have a fund composition in principle, but nothing in this milestone reconciles one,
-and these rows are not what the seam detector or the per-capita comparisons operate on. The
-default `'unknown'` handles them correctly with no special-casing, and this document recommends
-leaving them there. Flagged so that the ~7,900 `unknown` rows in Task 5's tally are read as a
-deliberate outcome and not as a coverage miss.
+**7,892 rows are compensation data** — 7,682 of them the publicpay source in §1.3.
+
+> **CHRIS, 2026-08-17:** *"Are we able to document public pay? Many of our Treasury Tracker
+> cities showcase public pay as a portion of Outgoing spend."*
+
+That reframes the question, because a payroll figure shown **as a share of a spending total** is a
+cross-scope comparison whether or not we label it one. Two findings:
+
+**1. The denominator is already the right scope for almost every city.** Of the 482 entities with
+publicpay rows, **479 draw their `operating` rows from `CA State Controller - Expenditures`** —
+the same all-funds source the Modesto reconciliation covers. So "payroll as a share of Outgoing"
+is all-funds payroll over an all-funds total: consistent, and the reading is sound.
+
+The exceptions are the cities that also carry a General-Fund-only budget document — **Fresno**
+(`Fresno General Fund Operating Budget FY2020/21`), **Bakersfield**, **Fremont**, **Sacramento**,
+**San Francisco**, **LA City**. For those city-years the share is all-funds payroll over a
+GF-only total, which **overstates payroll's share of spending**. Several are already on the
+CA-CITIES-01 seam list, so this is the same defect surfacing through a second surface rather than
+a new one. Recorded here as input to SCOPE-02.
+
+**2. Yes, it can be documented — structurally, not by a dollar tie.** `scripts/loadCASalaries.js`
+pulls `gcc.sco.ca.gov/RawExport/{YEAR}_City.zip` and aggregates **every** row for the employer
+across all departments and positions. An exact tie against an ACFR is not realistically
+available: CA ACFRs rarely publish total wages for all funds by object, and the nearest audited
+figure — the pension note's *covered payroll* — is definitionally narrower, so it would tie
+approximately at best.
+
+**The reconciliation that does work is a structural one.** If the Modesto publicpay export
+contains enterprise departments (Water, Sewer, Utilities), that is direct positive evidence the
+dataset spans enterprise funds and therefore **cannot** be `general_fund`. Combined with GCC's
+published all-employees reporting requirement, that establishes `all_funds`. It is real evidence
+about the population rather than an inference from the source's title — and per project memory
+enterprise/ISF is ~50% of Modesto, so the departments will be there or their absence is itself
+the finding.
+
+**Recommendation for Task 4:** attempt that structural reconciliation and record the department
+list as the evidence. If enterprise departments are absent, publicpay stays `unknown` and the
+absence is written up. Either way the ~7,900 compensation rows in Task 5's tally are a deliberate
+outcome, not a coverage miss.
 
 Also noted for whoever owns data hygiene: **`salary` (6 rows) is a typo of `salaries`** and
 `all_funds_requirements` is a `dataset_type` encoding a fund scope. Neither is SCOPE-01's to fix.
@@ -202,8 +249,11 @@ evidence exists; two need a decision first.
 | Entries | Blocked on |
 |---|---|
 | 1–4 CA SCO financial | Modesto FY2024 — **evidence already exists**, carry it forward from CA-CITIES-01 |
-| 5 publicpay | Its own reconciliation, or stays `unknown` (recommended) |
+| 5 publicpay | The **structural** reconciliation in §1.7 — enterprise departments in the Modesto export |
 | 6–9, 14–17 | One reconciliation each, per Task 4's five-step method |
 | 10–12 MA GF | One reconciliation that actually tests all three shapes |
-| **13 MA Schedule A SRF** | **A value-set decision — no legal value exists today** |
+| 13 MA Schedule A SRF | Unblocked — `special_revenue`, per the decision in §1.4. Still owes its reconciliation |
 | 18–19 | Nothing. They stay `unknown` by design. |
+
+Texas (§1.5) needs its own entry keyed on `General Revenue Fund`; it must not be absorbed into
+entry 15.
