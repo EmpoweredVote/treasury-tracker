@@ -36,7 +36,7 @@ Anaheim and Santa Ana are the 2nd and 4th largest seams in the database.
 | Rows classified | **53,404 (66.8%)** from **8 evidenced registry entries** |
 | Rows honestly `unknown` | **26,523 (33.2%)** across 1,066 entities and 2,084 source strings |
 | Figures changed | **ZERO** — proven by digest, before and after |
-| API | merged to EV-Accounts `master` (`112d4320`); **not yet pushed or deployed** |
+| API | **LIVE in production** — merged (`112d4320`), pushed, deployed; live payload matches the DB exactly |
 | UI | scope label + explainer, copy approved 2026-08-17 |
 
 ### The bucket tally
@@ -175,8 +175,17 @@ identical to the pre-classification baseline.
 ## Open items before this can be called done
 
 - [ ] **Chris's UAT sign-off.** Not tagged until then.
-- [ ] **Push EV-Accounts `master`** (currently `ahead 3`, local only) so the API deploys. Until it
-      does, production returns no `fund_scope` and every label reads "scope not established" —
-      which is honest, but not the intended end state.
+- [x] ~~Push EV-Accounts `master` so the API deploys.~~ **DONE — and it is LIVE in production,
+      verified end-to-end 2026-08-17.** No push was actually needed: the merge had already reached
+      `origin/master` (another session committed on top of it and pushed), and Render had deployed.
+      Confirmed against the live API:
+      - `GET /api/treasury/budgets/:id` returns `fund_scope`
+      - `GET /api/treasury/cities` carries **79,927** `fund_scope` values — exactly one per row in
+        the table
+      - and the live distribution matches the database **exactly**: `total_governmental` 28,410 ·
+        `unknown` 26,523 · `all_funds` 23,260 · `general_fund` 1,734.
+
+      So the UI now renders real scopes rather than a uniform "scope not established", and UAT sees
+      the intended end state.
 - [ ] `.planning/STATE.md`, `ROADMAP.md`, `MILESTONES.md` on sign-off. **v2.21 and v2.23 both
       shipped without reaching `.planning/`; do not repeat that.**
