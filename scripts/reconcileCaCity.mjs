@@ -64,8 +64,15 @@ function extractAcfr(city, fy, dataset) {
     encoding: 'utf8',
     maxBuffer: 1 << 26,
   });
-  const tree = JSON.parse(out);
-  return flatten(tree);
+  // The extractor emits an ENVELOPE ({fiscal_year, mode, statement_page, tree,
+  // tie_delta}), not a bare tree. Reconcile the tree, and refuse the row outright
+  // if the extractor's own tie is non-zero -- a row that does not tie against its
+  // own line items has no business being compared to anything.
+  const env = JSON.parse(out);
+  if (env.tie_delta !== 0) {
+    throw new Error(`${city.name} FY${fy} ${dataset}: extractor tie_delta ${env.tie_delta}, refusing`);
+  }
+  return flatten(env.tree);
 }
 
 /** Collapse an extractor's nested {n,a,c:[…]} tree into the shape reconcile() wants. */
@@ -95,13 +102,21 @@ async function readSco(db, municipalityId, fy, dataset) {
   const row = (budgets ?? []).find((b) => /State Controller/i.test(b.data_source ?? ''));
   if (!row) return null;
 
-  const { data: cats } = await db
+  // ROOT categories only, for a like-for-like comparison: the ACFR tree's own
+  // top level is its root children (Current / Capital outlay / Debt service),
+  // so matching those against SCO's roots is what surfaces a taxonomy
+  // difference. SCO stores a 2-level tree -- Modesto FY2024 operating is 11
+  // roots plus 21 children -- so selecting every category would compare 3 ACFR
+  // roots against 32 mixed-depth SCO rows and report a difference that is an
+  // artifact of the query, not of the documents.
+  const { data: allCats } = await db
     .schema('treasury')
     .from('budget_categories')
-    .select('id, name, amount')
+    .select('id, name, amount, parent_id')
     .eq('budget_id', row.id);
 
-  const ids = (cats ?? []).map((c) => c.id);
+  const cats = (allCats ?? []).filter((c) => c.parent_id === null);
+  const ids = (allCats ?? []).map((c) => c.id);
   let lineItemCount = 0;
   if (ids.length) {
     const { count } = await db

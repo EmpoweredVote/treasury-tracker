@@ -32,9 +32,79 @@ signed. It must never be resolved by widening the threshold.
 
 ---
 
+## 🛑 STOP — the calibration measured something that invalidates the premise (2026-08-16)
+
+**Task 6 ran and produced a result. The result is that this milestone cannot proceed as
+specified.** No calibration was set, no threshold was chosen, nothing was loaded.
+
+### What the measurement showed
+
+All 21 overlapping Modesto city-years diverge by **54% to 73%, always negative, always the same
+direction** (ACFR below SCO). A structural, one-directional gap that large is not a rounding
+artifact or a taxonomy quirk — it is the two sources describing **different things**.
+
+### The cause, reconciled exactly
+
+SCO's Modesto FY2024 operating tree contains, at root level: `Water Enterprise Fund`
+$88,972,551 · `Sewer Enterprise Fund` $53,616,219 · `Solid Waste Enterprise Fund` $14,505,806 ·
+`Airport Enterprise Fund` $1,741,222 · `Other Enterprise Fund` $15,451,900 · `Internal Service
+Fund` $122,113,248. **Every one of those sits outside the General Fund.**
+
+| Component | FY2024 |
+|---|---|
+| ACFR **General Fund** (what this milestone extracts) | $191,311,703 |
+| ACFR **Total Governmental** (all governmental funds) | $291,641,122 |
+| SCO enterprise + internal service funds | $296,400,946 |
+| Total governmental + enterprise + ISF | **$588,042,068** |
+| **SCO's reported total** | **$588,042,068** |
+
+It reconciles **to the dollar**. `treasury.budgets` for a CA city on SCO is **citywide, all
+funds**. The ACFR row this milestone would load is **General Fund only**.
+
+**Neither source is wrong.** There is no defect in the SCO data, none in the extraction, and
+nothing for a threshold to separate. The spec's central assumption — two reporters describing
+the same quantity, where disagreement is signal — is simply false for this pairing.
+
+### Why superseding would be actively harmful
+
+Replacing SCO with ACFR would restate Modesto FY2024 from $588.0M to $191.3M: a **67% drop
+presented as history**, with nothing on screen to say the scope changed. That is precisely the
+failure this project exists to prevent.
+
+### ⚠ AND IT IS ALREADY HAPPENING IN PRODUCTION
+
+The 14 CA cities with their own document source were checked at the seam where SCO hands over.
+**Seven carry a large unexplained scope break, live today:**
+
+| City | Last SCO year | SCO (citywide) | First own-source year | Own source (GF) | Apparent change |
+|---|---|---|---|---|---|
+| Long Beach | FY2024 | $3,015,653,000 | FY2025 | $755,369,580 | **−75.0%** |
+| Anaheim | FY2024 | $1,640,316,917 | FY2025 | $490,937,159 | **−70.1%** |
+| Riverside | FY2022 | $970,600,686 | FY2023 | $325,943,262 | **−66.4%** |
+| Santa Ana | FY2022 | $1,075,738,007 | FY2023 | $403,596,760 | **−62.5%** |
+| Oakland | FY2023 | $2,054,323,000 | FY2024 | $834,121,344 | **−59.4%** |
+| Fresno | FY2019 | $874,256,879 | FY2020 | $485,101,400 | **−44.5%** |
+| Bakersfield | FY2024 | $725,671,879 | FY2025 | $412,196,800 | **−43.2%** |
+
+Los Angeles (−4.8%), San Francisco (+0.7%) and San Diego (+0.8%) are clean — their own-source
+loads are citywide, so no scope change occurs.
+
+A reader looking at Long Beach today sees spending fall by three quarters in one year. It did
+not. **This is a live data-integrity defect affecting seven cities, and it is arguably more
+urgent than the milestone that found it.**
+
+### What this does NOT invalidate
+
+Tasks 1–5 stand on their own and need no rework: the roster, the reconciliation engine (which
+did its job — it refused to pass 42 divergent years), the completeness harness, the Modesto
+source recon, and the extractor (46/46 rows tying at $0, verified against rendered images).
+The engine and the extractor are reusable under any of the paths below.
+
+---
+
 ## Calibration status
 
-**UNCALIBRATED.** `scripts/data/caCalibration.mjs` ships with sentinel thresholds
+**UNCALIBRATED, and deliberately not set — see the stop notice above.** `scripts/data/caCalibration.mjs` ships with sentinel thresholds
 (`tieAbs: 0`, `tiePct: 0`, empty `structural`), so every divergent year lands UNEXPLAINED and
 nothing can load. Task 6 replaces these with values measured from Modesto.
 
