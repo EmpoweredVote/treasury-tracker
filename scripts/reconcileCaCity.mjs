@@ -29,6 +29,7 @@ import { createClient } from '@supabase/supabase-js';
 
 import { cityByName } from './lib/caRoster.mjs';
 import { reconcile } from './lib/caRecon.mjs';
+import { resolvePython } from './lib/pythonBin.mjs';
 import { CA_CALIBRATION } from './data/caCalibration.mjs';
 
 const RECON_PATH = 'scripts/data/ca-recon.json';
@@ -57,7 +58,12 @@ function extractAcfr(city, fy, dataset) {
   const pdf = path.join(city.docDir, `${city.pdfPrefix}-fy${fy}.pdf`);
   if (!existsSync(pdf)) return null; // outside the window; not an error
 
-  const out = execFileSync('python', [script, pdf, '--mode', dataset], { encoding: 'utf8' });
+  // resolvePython(), never the bare name: `python` on PATH here is a Microsoft
+  // Store alias stub that does not run Python. See scripts/lib/pythonBin.mjs.
+  const out = execFileSync(resolvePython(), [script, pdf, '--mode', dataset], {
+    encoding: 'utf8',
+    maxBuffer: 1 << 26,
+  });
   const tree = JSON.parse(out);
   return flatten(tree);
 }
