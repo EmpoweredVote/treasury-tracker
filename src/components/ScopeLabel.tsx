@@ -18,20 +18,26 @@ import {
  * honest state and is styled as information, not as a warning.
  */
 
-const TONE: Record<FundScope, string> = {
-  general_fund:
-    'bg-ev-blue-50 text-ev-blue-700 border-ev-blue-200 '
-    + 'dark:bg-ev-blue-900/30 dark:text-ev-blue-200 dark:border-ev-blue-800',
-  total_governmental:
-    'bg-ev-blue-50 text-ev-blue-700 border-ev-blue-200 '
-    + 'dark:bg-ev-blue-900/30 dark:text-ev-blue-200 dark:border-ev-blue-800',
-  all_funds:
-    'bg-ev-blue-50 text-ev-blue-700 border-ev-blue-200 '
-    + 'dark:bg-ev-blue-900/30 dark:text-ev-blue-200 dark:border-ev-blue-800',
+// ⚠ Only tokens defined in src/index.css exist here: ev-teal, ev-skyblue,
+// ev-yellow, ev-gray — there is NO ev-blue scale, and the gray steps are
+// three-digit (ev-gray-050, not ev-gray-50). Tailwind drops an unknown color
+// class silently, so a typo here does not fail the build or any test; it just
+// renders an uncoloured chip and the border falls back to currentColor, which
+// makes the UNVERIFIED chip the softest one on the page — the exact inversion
+// of what this component is for. Verified against the running app by reading
+// getComputedStyle off the rendered chip, which is the only check that catches it.
+const VERIFIED_TONE =
+  'bg-ev-skyblue-050 text-ev-skyblue-800 border-ev-skyblue-200 '
+  + 'dark:bg-ev-skyblue-900/30 dark:text-ev-skyblue-200 dark:border-ev-skyblue-800';
+
+export const TONE: Record<FundScope, string> = {
+  general_fund: VERIFIED_TONE,
+  total_governmental: VERIFIED_TONE,
+  all_funds: VERIFIED_TONE,
   // Neutral grey, NOT red/amber: an unverified scope is a gap in our checking,
   // not a defect in the figure or a fault of the publisher.
   unknown:
-    'bg-ev-gray-50 text-ev-gray-600 border-ev-gray-200 '
+    'bg-ev-gray-050 text-ev-gray-600 border-ev-gray-200 '
     + 'dark:bg-ev-gray-800 dark:text-ev-gray-300 dark:border-ev-gray-700',
 };
 
