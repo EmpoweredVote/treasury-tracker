@@ -1,7 +1,7 @@
 # SCOPE-01 closeout
 
-**Branch:** `feat/scope-01` · **Date:** 2026-08-17 · **Status:** built and verified, awaiting UAT
-sign-off. **Not tagged** — the v2.23 precedent is that nothing gets tagged before Chris signs off.
+**Branch:** `feat/scope-01` · **Date:** 2026-08-17 · **Status:** ✅ **SHIPPED as v2.24.** UAT passed,
+PR #15 merged, `.planning/` updated, tagged `v2.24`.
 
 ---
 
@@ -174,7 +174,22 @@ identical to the pre-classification baseline.
 
 ## Open items before this can be called done
 
-- [ ] **Chris's UAT sign-off.** Not tagged until then.
+- [x] ~~**Chris's UAT sign-off.**~~ **DONE 2026-08-17.** All four scope values verified against the
+      running app on the live API, plus the Anaheim FY2024→FY2025 seam by changing one year.
+
+      ⚠ **UAT found one defect, fixed in `e5806be`: the scope chips had no colour coding at all.**
+      `ScopeLabel` styled its three verified scopes against an `ev-blue` scale this project has
+      never had, and its unverified chip with `bg-ev-gray-50` where the token is `ev-gray-050`.
+      All six classes were dropped — `bg-*` fell to transparent and `border-*` to `currentColor`,
+      so the VERIFIED chips rendered a dark border and no tint while "scope not established" came
+      out the **softest chip on the page**. Exactly inverted.
+
+      Nothing caught it: `vite build` clean, `tsc` clean, **298 tests green**. Tailwind discards an
+      unknown colour class silently and jsdom does not run Tailwind, so no rendering test could
+      see it either — only reading `getComputedStyle` off the running app does. Fixed to
+      `ev-skyblue` (Chris's call) and guarded by `ScopeLabel.tokens.test.ts`, which parses the
+      token list out of `index.css` and is mutation-tested to fail on the original bug.
+      Suite is now **304 passed, 17 files**.
 - [x] ~~Push EV-Accounts `master` so the API deploys.~~ **DONE — and it is LIVE in production,
       verified end-to-end 2026-08-17.** No push was actually needed: the merge had already reached
       `origin/master` (another session committed on top of it and pushed), and Render had deployed.
@@ -187,5 +202,10 @@ identical to the pre-classification baseline.
 
       So the UI now renders real scopes rather than a uniform "scope not established", and UAT sees
       the intended end state.
-- [ ] `.planning/STATE.md`, `ROADMAP.md`, `MILESTONES.md` on sign-off. **v2.21 and v2.23 both
-      shipped without reaching `.planning/`; do not repeat that.**
+- [x] ~~`.planning/STATE.md`, `ROADMAP.md`, `MILESTONES.md` on sign-off.~~ **DONE 2026-08-17**,
+      all three, as **v2.24**.
+
+      And the warning was justified: **v2.23's own entries still read "awaiting Chris UAT before
+      tag" when the `v2.23` tag had existed at `40aa706` since 2026-08-16.** v2.21 never reached
+      `.planning/` at all and v2.22 was never tagged. All three corrected here. **Tagging and
+      updating `.planning/` are one step, not two.**
