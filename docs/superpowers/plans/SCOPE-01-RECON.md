@@ -452,3 +452,77 @@ root categories sum to $1,401,372,428 exactly.
 
 Incidental data-hygiene note, not SCOPE-01's to fix: the SCO county loader produces
 `Hospital Enterprise Fund Fund` with a duplicated suffix.
+
+### 4.3 `ca-sco-county-rev` → `all_funds` — the one classification without a dollar tie
+
+**Flagged as the weakest entry in the registry.** Everything else here ties to the dollar or to
+within $6. This one does not, so the argument is set out in full and a test asserts it remains
+the only such entry.
+
+* **Source string:** `CA State Controller - County Revenues` (exact, anchored)
+* **Rows claimed:** 1,188 across 54 CA counties, FY2003–FY2024
+* **Probe and document:** the same County of Stanislaus FY2024 ACFR p.23 as §4.2
+
+| Component | FY2024 |
+|---|---|
+| ACFR General Fund revenue | $470,677,648 |
+| ACFR **Total Governmental** revenue | $1,201,293,821 |
+| SCO enterprise + ISF revenue | $218,811,429 |
+| Governmental + enterprise + ISF | $1,420,105,250 |
+| **SCO's reported total** | **$1,427,912,802** |
+| **Residue** | **$7,807,552 — 0.547%** |
+
+#### Why this is still `all_funds` and not `unknown`
+
+**1. It is decisive between the candidates, not merely close to one.**
+
+| Candidate | Value | Off by |
+|---|---|---|
+| **all_funds** | $1,420,105,250 | **0.547%** |
+| total_governmental | $1,201,293,821 | 15.87% |
+| general_fund | $470,677,648 | 67.04% |
+
+The nearest rival is 29× further away. There is no reading of this data on which the SCO county
+revenue row is a General Fund figure.
+
+**2. The residue is a taxonomy difference, decomposed to the line — not an absent fund.**
+
+| Line | SCO | ACFR | Delta |
+|---|---|---|---|
+| Intergovernmental | $729,460,059 | $720,600,178 | +8,859,881 |
+| Special Benefit Assessments | $4,364,511 | — | +4,364,511 |
+| Taxes | $246,278,242 | $244,944,676 | +1,333,566 |
+| Fines, forfeitures, penalties | $7,753,437 | $7,420,968 | +332,469 |
+| Revenue from use of money/property | $45,146,817 | $45,041,461 | +105,356 |
+| Licenses, permits, franchises | $10,208,324 | $10,226,246 | −17,922 |
+| Miscellaneous | $16,954,710 | $20,121,243 | −3,166,533 |
+| Charges for services | $148,935,273 | $152,939,049 | −4,003,776 |
+| **Net** | | | **+7,807,552** |
+
+**The signs are mixed — five SCO-higher, three SCO-lower.** A missing fund subtracts in one
+direction only and lands in one place; this is money being sorted into different buckets by two
+reporting schedules. The single largest item, Special Benefit Assessments at $4.36M (56% of the
+residue), has **no counterpart line in the ACFR at all** — the ACFR folds it elsewhere, so the
+SCO schedule simply has a category the ACFR does not.
+
+**3. Structural evidence, independent of the arithmetic entirely.** The stored SCO county revenue
+row carries `Internal Service Fund` $153,803,323, `Hospital Enterprise Fund` $40,685,163,
+`Solid Waste Enterprise Fund` $18,055,105 and `Other Enterprise Fund` $6,267,838 as **root-level
+categories**. $218.8M of enterprise and internal service revenue is *inside the row we are
+classifying*. A General Fund figure cannot contain enterprise funds. This alone rules out
+`general_fund` and `total_governmental` without reference to any total.
+
+**4. Leaving it `unknown` would manufacture the defect this milestone exists to remove.** Its
+expenditure twin (§4.2) is `all_funds` on a $6 tie. Classifying one side of the same report and
+not the other would drop county revenue out of every comparison surface while county spending
+stayed in — an asymmetry with no basis in the data.
+
+#### What would overturn this
+
+A second county probe whose residue is **concentrated in a single fund-shaped line** rather than
+spread across taxonomies, or whose sign pattern is one-directional. That would suggest a fund is
+genuinely absent from the SCO county revenue figure and this entry should be withdrawn to
+`unknown`. **A second probe is the natural first task if SCOPE-02 wants to harden this.**
+
+**Verdict: `all_funds`, on structural evidence plus an explained 0.547% residue.** Recorded as the
+registry's weakest link rather than presented as equivalent to the dollar ties.

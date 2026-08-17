@@ -87,6 +87,33 @@ export const FUND_SCOPE_REGISTRY = [
     },
   },
 
+  {
+    id: 'ca-sco-county-rev',
+    match: /^CA State Controller - County Revenues$/,
+    scope: SCOPE.ALL_FUNDS,
+    // ⚠ The ONLY entry in this registry that does not rest on a dollar tie. It
+    // rests on structural evidence plus a 0.55% residue decomposed to the line.
+    // See RECON §4.3 for the full argument and how to overturn it.
+    evidence: {
+      document: 'County of Stanislaus FY2024 ACFR, governmental-funds Statement of Revenues, '
+              + 'Expenditures and Changes in Fund Balances, p.23 '
+              + '(docs/StanislausCounty/stanislaus-county-fy2024.pdf)',
+      figures: 'ACFR Total Governmental revenue $1,201,293,821 + SCO enterprise & ISF revenue '
+             + '$218,811,429 = $1,420,105,250 vs SCO\'s reported total $1,427,912,802 — a '
+             + '$7,807,552 residue, 0.547%. NOT a dollar tie, but decisive between candidates: '
+             + 'all_funds off by 0.547%, total_governmental by 15.87%, general_fund by 67.04%. '
+             + 'The residue decomposes across seven revenue taxonomies with MIXED signs (5 SCO-'
+             + 'higher, 3 SCO-lower) — the signature of reclassification between two schedules, '
+             + 'not of an absent fund: Intergovernmental +8,859,881, Special Benefit Assessments '
+             + '+4,364,511 (no ACFR counterpart line), Taxes +1,333,566, Fines +332,469, Use of '
+             + 'money +105,356, Licenses -17,922, Miscellaneous -3,166,533, Charges -4,003,776. '
+             + 'Structural evidence, independent of the arithmetic: the stored SCO row carries '
+             + 'Internal Service $153,803,323, Hospital Enterprise $40,685,163, Solid Waste '
+             + 'Enterprise $18,055,105 and Other Enterprise $6,267,838 as ROOT categories — '
+             + '$218.8M of funds that cannot appear in a General Fund figure.',
+    },
+  },
+
   // ── NOT YET EVIDENCED ─────────────────────────────────────────────────────
   // Deliberately absent, each for a stated reason. RECON §1.8 tracks what each
   // one owes. The three siblings of the entry above are worth naming here because

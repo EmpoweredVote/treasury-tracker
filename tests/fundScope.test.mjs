@@ -199,13 +199,18 @@ describe('the shipped registry', () => {
       .toEqual({ scope: SCOPE.ALL_FUNDS, entryId: 'ca-sco-city-rev' });   // §4.1
     expect(classify('CA State Controller - County Expenditures', FUND_SCOPE_REGISTRY))
       .toEqual({ scope: SCOPE.ALL_FUNDS, entryId: 'ca-sco-county-exp' }); // §4.2
+    expect(classify('CA State Controller - County Revenues', FUND_SCOPE_REGISTRY))
+      .toEqual({ scope: SCOPE.ALL_FUNDS, entryId: 'ca-sco-county-rev' }); // §4.3
   });
 
-  it('leaves CA SCO County Revenues UNKNOWN', () => {
-    // The Stanislaus probe tied the county EXPENDITURE side to $6. The revenue
-    // side of the same document is still being adjudicated -- RECON §4.3.
-    expect(classify('CA State Controller - County Revenues', FUND_SCOPE_REGISTRY))
-      .toEqual({ scope: SCOPE.UNKNOWN, entryId: null });
+  it('records that ca-sco-county-rev is the one entry without a dollar tie', () => {
+    // Not a behavioural assertion -- a tripwire. If a future reader wonders which
+    // classifications are weakest, this is the list, and it should stay at one.
+    // RECON §4.3 states what would overturn it.
+    const noDollarTie = FUND_SCOPE_REGISTRY
+      .filter((e) => /NOT a dollar tie/.test(e.evidence?.figures ?? ''))
+      .map((e) => e.id);
+    expect(noDollarTie).toEqual(['ca-sco-county-rev']);
   });
 
   it('leaves every other measured family UNKNOWN until Task 4', () => {
