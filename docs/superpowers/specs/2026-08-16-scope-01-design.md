@@ -145,7 +145,28 @@ Sources to classify, with what is known today:
 **Anything not positively established stays `unknown`.** That is the milestone working correctly,
 not falling short.
 
-### 4.3 Comparison exclusion
+### 4.3 Showing the scope, and the explainer
+
+**Every row shows its scope, not only the unknown ones.** An earlier draft marked only
+`unknown`, which would have left a classified General Fund figure and a classified All Funds
+figure looking identical on screen — the app would know the difference and the reader still
+would not. That is most of the original defect, surviving the fix.
+
+So each figure carries a short scope label — General Fund · Total Governmental · All Funds ·
+scope not established — sitting with the source, and the label opens **a plain-language
+explainer of what the levels mean**. Chris, at review: the marker alone is not enough; the app
+has to teach the distinction, because this is the moment a citizen learns it exists.
+
+The explainer's job in THIS milestone is the vocabulary — what each level contains, why a city
+has more than one true total, and why two honest figures for the same city can differ by half.
+The deeper material — money moving between a city and its enterprises, and why that transfer is
+worth watching — belongs with SCOPE-03, where the modes sit side by side and the movement can
+actually be shown rather than described.
+
+Copy is drafted in this milestone and reviewed by Chris before it ships. It is public-facing,
+and it is the first thing many readers will ever have read about fund accounting.
+
+### 4.3.1 Comparison exclusion
 
 An `unknown`-scope row is displayed with its figure and source, marked as scope-not-established,
 and held out of any surface that ranks or compares entities against each other (browse grids,
@@ -154,6 +175,40 @@ real and sourced; what is missing is the basis for setting it beside another cit
 
 Rows of *known but different* scope must also not be silently compared. Comparison surfaces
 operate within one scope.
+
+### 4.4 ⚠ The double-count guard — a risk this milestone CREATES
+
+Raised by Chris at review, and it is the sharpest objection to the §4.1 index change.
+
+**Today double-counting is structurally impossible.** The unique index is
+`(municipality_id, fiscal_year, dataset_type, period_label)` with `period_label` NULL on all
+79,927 rows, so exactly one row exists per city-year-dataset. Any query, however careless, gets
+one figure.
+
+**Adding `fund_scope` to that index removes the protection.** Modesto FY2024 could legitimately
+hold a $191,311,703 General Fund row *and* a $588,042,068 All Funds row. A read path that does not
+filter by scope returns both, and anything that sums them produces $779,353,771 — a number
+describing nothing, arrived at by counting the general fund twice.
+
+This is not hypothetical after SCOPE-02, which exists precisely to create second-scope rows.
+
+**Therefore, shipped in this milestone, before any multi-scope row can exist:**
+
+1. **Every read path filters to exactly one scope.** No query returns mixed-scope rows for one
+   entity without asking for them. A default scope is chosen per entity — the broadest scope
+   that entity has — so existing behaviour is preserved for the single-scope rows that are all
+   there is today.
+2. **A summation guard.** Any aggregate over multiple rows asserts that its inputs share one
+   `fund_scope`, and throws rather than returning a total spanning scopes. Loud, not silent:
+   a wrong total that looks plausible is the failure mode this whole milestone exists to end.
+3. **A duplicate-detection harness** reporting any (municipality, fiscal_year, dataset_type)
+   holding more than one scope. Expected count after SCOPE-01: **zero.** It exists to be correct
+   *now* so that it is trustworthy when SCOPE-02 deliberately starts adding second-scope rows —
+   a guard first exercised on the data it is meant to police is a guard nobody has tested.
+
+**Sequencing note.** The index change (§4.1) and these three guards ship together, in that order,
+in the same milestone. Widening the uniqueness key without them would leave a window in which
+double-counting is possible and nothing would notice.
 
 ---
 
@@ -168,8 +223,18 @@ operate within one scope.
 4. **Comparison isolation** — no comparison surface returns rows of mixed or unknown scope.
    Mutation-tested: introduce a mixed pair and confirm the guard catches it.
 5. **Seam detector** — a harness that flags any entity whose series changes scope between
-   consecutive years. It must find exactly the seven known CA cities on first run; finding more is
-   a result, finding fewer means it is broken.
+   consecutive years. Looks along ONE entity's timeline for a false trend; it is not, and must not
+   be mistaken for, a duplicate-row check (see 6). It must find exactly the seven known CA cities
+   on first run; finding more is a result, finding fewer means it is broken.
+6. **Double-count guard** (§4.4) — three parts, each verified separately:
+   a. no read path returns mixed-scope rows for one entity unasked;
+   b. the summation guard throws on inputs spanning scopes — **mutation-tested** by handing it a
+      deliberately mixed pair and confirming it refuses rather than totalling;
+   c. the duplicate-detection harness reports zero (municipality, fiscal_year, dataset_type)
+      holding more than one scope, which is the correct answer for this milestone and the
+      baseline SCOPE-02 will move off deliberately.
+7. **Scope is visible** — every displayed figure carries a scope label, and the explainer resolves
+   from it. Asserted rather than eyeballed: a figure rendered without a scope label fails.
 
 ---
 
@@ -204,12 +269,32 @@ data, and it is a strong forcing function for SCOPE-02 — but it should not sur
 
 ---
 
-## 8. Open questions for review
+## 8. Review outcome — 2026-08-16
 
-1. **Marking language.** What should a scope-unknown row actually say to a reader? "Fund scope not
-   established" is accurate and cold. This is public-facing copy and worth your wording.
-2. **Should state-level rows participate at all?** All 50 states are General Fund by construction.
-   Classifying them is cheap and consistent, but they never mix with municipal rows in a
-   comparison, so it may be ceremony.
-3. **Seam detector as a permanent gate?** It could run in CI forever, so a future loader cannot
-   reintroduce a scope break. That is stricter than any existing gate in this repo.
+Reviewed by Chris. Two of his responses changed the design rather than confirming it.
+
+1. **Shrinking comparison surfaces (§7) — acknowledged.** Ships as designed.
+
+2. **Marking language → became an EXPLAINER, and widened §4.3.** Chris: "we need an explainer
+   that teaches the differences between the different modes." A cold marker was not enough. This
+   surfaced a real gap: the draft marked only `unknown` rows, so two classified rows of different
+   scope would still have looked identical to a reader — most of the original defect surviving the
+   fix. **Every row now shows its scope, and the label opens a plain-language explainer.**
+
+3. **Seam detector → I was asked whether it prevents "doubling up", and it does not.** It looks
+   along one entity's timeline for a scope change between consecutive years; it cannot see
+   duplicate rows for a single year. The question exposed a hole: **this milestone's index change
+   creates a double-counting risk that does not exist today**, because widening the uniqueness key
+   permits two scopes for one city-year where exactly one row is possible now. §4.4 was written in
+   response — a read-path scope filter, a summation guard that throws rather than totalling across
+   scopes, and a duplicate-detection harness that must read zero here so it is trustworthy when
+   SCOPE-02 starts adding second-scope rows on purpose.
+
+**Still open, and deliberately not decided here:**
+
+- **Should state-level rows be classified?** All 50 are General Fund by construction and never
+  share a comparison with municipal rows, so it may be ceremony. Cheap either way; the plan can
+  settle it.
+- **Seam detector as a permanent CI gate?** Chris did not rule on this. Recommendation: yes,
+  after the first clean run — it is the only thing that stops a future loader silently
+  reintroducing a scope break, which is exactly how the seven happened.
