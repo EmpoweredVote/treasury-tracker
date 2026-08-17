@@ -248,7 +248,9 @@ evidence exists; two need a decision first.
 
 | Entries | Blocked on |
 |---|---|
-| 1–4 CA SCO financial | Modesto FY2024 — **evidence already exists**, carry it forward from CA-CITIES-01 |
+| **2 `ca-sco-city-exp`** | **DONE** — Modesto FY2024, carried forward from CA-CITIES-01. See §2.1 |
+| 1 `ca-sco-city-rev` | Its own reconciliation. **The Modesto tie is expenditure-side only** — §2.1 |
+| 3–4 CA SCO county | Their own reconciliation against a COUNTY. Modesto is a city; the SCO Counties Annual Report is a different report — §2.1 |
 | 5 publicpay | The **structural** reconciliation in §1.7 — enterprise departments in the Modesto export |
 | 6–9, 14–17 | One reconciliation each, per Task 4's five-step method |
 | 10–12 MA GF | One reconciliation that actually tests all three shapes |
@@ -257,3 +259,50 @@ evidence exists; two need a decision first.
 
 Texas (§1.5) needs its own entry keyed on `General Revenue Fund`; it must not be absorbed into
 entry 15.
+
+---
+
+## Task 2 — the matcher, and the first entry
+
+`scripts/lib/fundScope.mjs` + `scripts/data/fundScopeRegistry.mjs`, 19 tests in
+`tests/fundScope.test.mjs`.
+
+### 2.1 `ca-sco-city-exp` → `all_funds`
+
+**The one entry the registry ships with.** Carried forward from CA-CITIES-01 Task 6, which
+measured it while trying to do something else and found this instead.
+
+* **Source string:** `CA State Controller - Expenditures` (exact, anchored)
+* **Rows claimed:** 10,438 across 479 entities, FY2003–FY2024
+* **Independent document:** City of Modesto FY2024 ACFR
+* **Reconciliation:**
+
+| Component | FY2024 |
+|---|---|
+| ACFR General Fund | $191,311,703 |
+| ACFR Total Governmental | $291,641,122 |
+| SCO enterprise + internal service funds | $296,400,946 |
+| Governmental + enterprise + ISF | **$588,042,068** |
+| **SCO's reported total** | **$588,042,068** |
+
+Ties **to the dollar**, so the SCO expenditure figure is citywide all funds. Corroborated
+structurally: SCO's Modesto FY2024 tree carries `Water Enterprise Fund`, `Sewer Enterprise Fund`,
+`Solid Waste Enterprise Fund`, `Airport Enterprise Fund`, `Other Enterprise Fund` and
+`Internal Service Fund` at root level — every one outside the General Fund. Full working:
+`CA-CITIES-01-RECON.md`.
+
+### 2.2 Why its three sibling SCO strings got no entry
+
+The plan says one reconciliation per source and no batching. The Modesto tie is **an expenditure
+reconciliation against a city**, so it evidences exactly one of the four financial SCO strings.
+Extending it to the other three would be classification by momentum — the same mistake as §1.3,
+one level finer.
+
+| String | Rows | Why not yet |
+|---|---|---|
+| `CA State Controller - Revenues` | 10,446 | Revenue side of a different statement. Overwhelmingly likely to be all funds too, and that is **precisely why it needs its own tie** — a confident guess is still a guess. Modesto FY2024 revenues vs the ACFR is the obvious probe. |
+| `CA State Controller - County Revenues` | 1,188 | SCO **Counties** Annual Report — a different report with its own fund structure. Needs a county probe. |
+| `CA State Controller - County Expenditures` | 1,188 | As above. |
+
+So 22,260 of the 30,942 "CA State Controller" rows stay `unknown` after Task 2. That is the
+evidence rule doing its job, not a gap.
