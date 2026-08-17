@@ -1173,3 +1173,173 @@ Load VA **Exhibit B1** (intergovernmental aid) so these rows become a whole-reve
 scope-classify them properly and restore `dataset_type = 'revenue'`. Until then VA localities show
 spending with no Money In view, which is honest — better than a revenue figure missing up to 40%
 of the revenue.
+
+---
+
+## Task 6 — the seam detector
+
+`scripts/verify-scope-seams.mjs`, logic in `scripts/lib/scopeVerify.mjs` (pure, unit-tested).
+
+### 6.1 The load-bearing design decision
+
+**A change into or out of `unknown` IS a seam.** Every one of the seven known CA cities transitions
+`all_funds` → `unknown` — the State Controller's citywide series handing over to the city's own
+General-Fund document. A detector that only compared two *known* scopes would report **ZERO and
+look clean.** `unknown` is not a scope, it is the absence of one, and the cliff a reader sees on the
+chart is just as real either way.
+
+Two further decisions, both tested:
+
+* **Consecutive means consecutive in the data, not `fiscal_year + 1`.** FY2009 is missing from
+  several CA series and FY2002 from some state series; a gap must not hide a seam. The gap width is
+  reported so a wide one can be judged on its own merits.
+* **`period_label` is part of the series key.** Otherwise the federal FY1976 Transition Quarter row
+  sitting between two annual rows would invent two seams that do not exist.
+
+### 6.2 The acceptance test — all seven found
+
+Per Chris: *"the seam detector in Task 6 must find those seven cities. If it finds fewer, the
+detector is broken, not the data."* So the seven are **asserted in the script**, which exits 1 on a
+short count and prints the likely cause. They are not a report to eyeball.
+
+| City | Seam | Expected | Measured | Drift | Transition |
+|---|---|---|---|---|---|
+| Long Beach | FY2024→2025 | −75.0% | −75.0% | 0.05pt | `all_funds` → `unknown` |
+| Anaheim | FY2024→2025 | −70.1% | −70.1% | 0.03pt | `all_funds` → `unknown` |
+| Riverside | FY2022→2023 | −66.4% | −66.4% | 0.02pt | `all_funds` → `unknown` |
+| Santa Ana | FY2022→2023 | −62.5% | −62.5% | 0.02pt | `all_funds` → `unknown` |
+| Oakland | FY2023→2024 | −59.4% | −59.4% | 0.00pt | `all_funds` → `unknown` |
+| Fresno | FY2019→2020 | −44.5% | −44.5% | 0.01pt | `all_funds` → `unknown` |
+| Bakersfield | FY2024→2025 | −43.2% | −43.2% | 0.00pt | `all_funds` → `unknown` |
+
+**✅ 7/7, every drift ≤ 0.05 percentage points** against figures measured independently by
+CA-CITIES-01. The detector agrees with a prior measurement it had no access to.
+
+### 6.3 It found 19 more — SCOPE-02's work queue
+
+**26 seams across 15 entities.** By transition: 17 `all_funds`→`unknown`, 7 `unknown`→`general_fund`,
+2 `general_fund`→`unknown`. **Zero between two known scopes**, which matters — every seam in the
+table today is "classification incomplete", not "two established scopes in conflict". Some will
+become known→known as the tail gets classified.
+
+The new findings, none of which were on anyone's list:
+
+| Entity | Seam | Change | Transition | Reading |
+|---|---|---|---|---|
+| **Nevada** (state) | FY2023→2024 op | **−57.5%** ($12.41bn → $5.27bn) | `general_fund` → `unknown` | **The largest unexamined seam found, and it is a STATE node.** The state-ACFR series hands over to something unclassified. |
+| **Long Beach** | FY2024→2025 **rev** | **−77.5%** | `all_funds` → `unknown` | *Larger than its −75.0% operating seam.* The plan's seven were expenditure-side only; the revenue side has its own, sometimes worse. |
+| Anaheim | FY2024→2025 rev | −63.7% | `all_funds` → `unknown` | ditto |
+| Bakersfield | FY2024→2025 rev | −52.7% | `all_funds` → `unknown` | ditto |
+| Santa Ana | FY2022→2023 rev | −46.7% | `all_funds` → `unknown` | ditto |
+| **Kentucky** (state) | FY2022→2023 then →2024 | +19.9% then −6.5% | `general_fund`→`unknown`→`general_fund` | A one-year **notch**: FY2023 comes from an unclassified source in the middle of a classified series. A different defect shape from a handover. |
+| CT / WI / MA (states) | FY2001→2002 (MA gap 2) | ±2–7% | `unknown` → `general_fund` | **Benign and expected** — the pre-GASB-34 `State CAFR` boundary (§1.5). Same General Fund concept, different basis. Confirms the FY2002 boundary in project memory. |
+| Los Angeles | FY2020→2021 | −4.8% | `all_funds` → `unknown` | Matches the plan's note that LA's seam was only −4.8%. |
+| **San Diego** | FY2024→2025 rev | **+16.6%** | `all_funds` → `unknown` | A scope change that goes **UP**. |
+| San Francisco / San Diego | FY2024→2025 | +0.7% / +0.8% | `all_funds` → `unknown` | Near-zero change across a scope change. |
+
+**The last three are the most interesting result in this section.** A scope change with a *positive*
+or near-zero step means the city's own-source figure is probably also all-funds-ish — so these are
+**classification gaps, not real cliffs**. The seam list therefore separates into two kinds, and
+SCOPE-02 should treat them differently: large negative steps are genuine scope breaks needing
+remediation, while small or positive steps are sources awaiting an entry. Confusing the two would
+send someone "fixing" San Francisco's 0.7%.
+
+---
+
+## Task 7 — the duplicate detector
+
+`scripts/verify-scope-duplicates.mjs`.
+
+**Live table: ZERO** city-years hold more than one `fund_scope`, as expected while the unique index
+is unwidened. Exactly what the plan predicted, and on its own an unfalsifiable result — hence the
+mutation test.
+
+**Grouping deliberately EXCLUDES `period_label`.** The only real multi-row city-years in the table
+today are the three federal FY1976 Transition Quarter pairs; adding `period_label` to the key would
+split them into single-scope buckets and make the TQ double-count hazard invisible **by
+construction**. A test asserts this so nobody "fixes" the grouping by adding it.
+
+### 7.1 Mutation-tested two ways
+
+**(a) In memory, against a real group** (`--mutation-test`, zero write risk):
+
+```
+  flipped ONE row in memory: United States, FY1976 federal_agency
+    period_label = (null)
+    fund_scope   unknown → all_funds
+
+  detector output with the mutation present: 1 group(s)
+  United States, US   FY1976 federal_agency   2 rows, scopes [all_funds, unknown]
+      unknown    period=Transition Quarter (Jul–Sep 1976)  $106,769,689,000
+      all_funds  period=(null)                             $418,517,827,000
+
+  ✅ the detector reported exactly the mutated city-year, and nothing else.
+```
+
+**(b) In the database, in a rolled-back transaction** — the plan's literal instruction. A `DO` block
+flipped one FY1976 row to `all_funds`, ran the grouping query, and raised to roll back:
+
+```
+MUTATION TEST: detector found 1 duplicate city-year(s) ->
+  [muni=0098c405-65e1-426f-8e5f-0fcbe2a900c0 fy=1976 ds=operating scopes=2] ; ROLLED BACK
+```
+
+Post-test verification: `duplicates_now = 0`, `rollback_leftovers = 0`, victim row back to
+`unknown`. So both the JS detector and the SQL grouping demonstrably fire, and nothing persisted.
+
+---
+
+## Task 8 — coverage, registry integrity, and the no-figure-moved proof
+
+`scripts/verify-fund-scope.mjs`, baselines committed in `scripts/data/scopeBaseline.json`.
+
+### 8.1 ⚠ The harness design flaw this task found in itself
+
+The Task 3 baseline (§3.3) was keyed on
+`(municipality_id, fiscal_year, dataset_type, period_label, total_budget)` — and `dataset_type` is a
+**mutable label**. Relabelling the VA APA revenue rows (§5.4) moved that digest while every figure
+stayed identical. **A digest keyed on a mutable label conflates "a figure moved" with "a label
+changed", and a harness that cries wolf gets ignored.** So the harness now carries two:
+
+| Digest | Keyed on | Status |
+|---|---|---|
+| **`figures`** | `(id, total_budget)` — `id` is the primary key | **THE INVARIANT.** Immune to any relabelling. Must never move while this milestone runs; a move is a bug, not a baseline to update. |
+| `composite` | the original Task 3 key | **A change detector.** May move when a committed migration explains it. |
+
+Both are proven to behave, in `tests/scopeVerify.test.mjs`: `figureDigest` moves when a figure
+changes, is unchanged by a `dataset_type` relabel and by a `period_label` change, and distinguishes
+a null `total_budget` from zero; `compositeDigest` does move on a relabel, which is its job.
+
+### 8.2 Results
+
+```
+── registry ──
+  ✅ 8 entries, every non-unknown one evidenced
+  ✅ no entry claims a scope without a document AND figures
+
+── coverage (79,927 rows) ──
+  ✅ every row has a fund_scope (NOT NULL, asserted anyway)
+  ✅ every value is one of: general_fund, total_governmental, all_funds, unknown
+
+── bucket tally (unknown is a RESULT, never hidden) ──
+  total_governmental    28410 rows   35.5%   1286 entities      2 sources
+  unknown               26523 rows   33.2%   1066 entities   2084 sources
+  all_funds             23260 rows   29.1%    533 entities      4 sources
+  general_fund           1734 rows    2.2%     54 entities   1734 sources
+  → 26,523 rows (33.2%) are honestly unclassified.
+
+── digests ──
+  ✅ row count unchanged at 79,927
+  ✅ FIGURE digest unchanged — no figure moved  (2d6b948fff272b22…)
+  ✅ composite digest unchanged (84c75e1c9c164c01…)
+
+✅ all checks passed
+```
+
+Note the JS-computed digests differ in value from the SQL-computed ones in §3.3/§5.4 — different
+canonical serialisations of the same rows (numeric text formatting and sort collation). Each is
+internally consistent, and having both gives an independent cross-check rather than a single point
+of trust. The JS pair is what the harness enforces from here.
+
+`--write-baseline` exists but carries a warning in both the code and the JSON: rewriting a baseline
+to silence this harness is the single action that would defeat the whole task.

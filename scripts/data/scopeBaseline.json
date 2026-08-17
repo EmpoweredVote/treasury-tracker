@@ -1,0 +1,7 @@
+{
+  "_warning": "Do NOT edit or regenerate to make the harness pass. `figures` must never change; `composite` changes only when a migration explains it.",
+  "rows": 79927,
+  "figures": "2d6b948fff272b2292a0c049816054a71a9d1eb7d3bea2303517bf53c536946c",
+  "composite": "84c75e1c9c164c01e0c0d2c140825c298cb3fa2c63ca0c0a0f6cdba3ff68ef8b",
+  "composite_history": []
+}
