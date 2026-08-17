@@ -1035,3 +1035,81 @@ plus a locality ACFR, neither of which was fetched this pass.
 **Verdict: both VA datasets stay `unknown`**, with the revenue exclusion recorded as a
 completeness defect rather than a scope one. At 608 rows (0.8% of the table) this is a
 proportionate place to stop; the finding is worth more than the classification would be.
+
+---
+
+## Task 5 — classified, and the partition proved clean
+
+`scripts/classifyFundScope.mjs`. Ran `--dry-run`, checked the gate, then wrote.
+
+### 5.1 The partition gate
+
+The script asserts, **before writing anything**, that every registry pattern claims exactly the row
+count Task 1 measured (§1.2), that claimed + unknown equals the table total, and that no string is
+claimed by two entries. Result:
+
+```
+registry: 8 entries, all evidenced ✅
+read 3824 distinct data_source strings over 79,927 rows
+
+  ✅ mn-osa               total_governmental    21794 rows (expected 21794)     1 strings
+  ✅ ca-sco-city-rev      all_funds             10446 rows (expected 10446)     1 strings
+  ✅ ca-sco-city-exp      all_funds             10438 rows (expected 10438)     1 strings
+  ✅ oh-aos               total_governmental     6616 rows (expected 6616)      1 strings
+  ✅ state-acfr-gf        general_fund           1448 rows (expected 1448)   1448 strings
+  ✅ ca-sco-county-exp    all_funds              1188 rows (expected 1188)      1 strings
+  ✅ ca-sco-county-rev    all_funds              1188 rows (expected 1188)      1 strings
+  ✅ wa-sao               general_fund            286 rows (expected 286)     286 strings
+     unknown                                    26523 rows                  2084 strings
+  claimed 53,404 + unknown 26,523 = 79,927 / 79,927
+
+✅ partition gate: every entry claims exactly what Task 1 measured,
+   nothing double-claimed, nothing lost
+```
+
+Every entry landed on its expected count exactly — no over-matching, no pattern too narrow. The
+gate refuses to write on any mismatch; `--force` exists only for a deliberate registry change and
+prints what it overrides. The expected counts live in `EXPECTED_ROWS` in the script with a comment
+forbidding the obvious cheat of editing a number to make the gate pass.
+
+**Overlap check:** zero strings matched more than one entry. `classify()` takes the first match, so
+an overlap would not double-count — but it would mean one entry silently shadowing another, and
+there are none.
+
+### 5.2 The bucket tally — a headline result of the milestone
+
+Verified independently in SQL after the write, not taken from the script's own prediction:
+
+| `fund_scope` | Rows | % of table | Entities | Distinct sources |
+|---|---|---|---|---|
+| `total_governmental` | 28,410 | 35.5% | 1,286 | 2 |
+| **`unknown`** | **26,523** | **33.2%** | **1,066** | **2,084** |
+| `all_funds` | 23,260 | 29.1% | 533 | 4 |
+| `general_fund` | 1,734 | 2.2% | 54 | 1,734 |
+
+**53,404 rows classified (66.8%) from 8 evidenced entries. 26,523 rows (33.2%) remain honestly
+`unknown` across 1,066 entities and 2,084 distinct source strings.**
+
+The shape of that table is itself the finding: **six strings carry 51,670 rows** (the two
+state-collected forms plus the four CA SCO strings), while 2,084 strings carry the unclassified
+26,523. Coverage is cheap at the head and expensive in the tail, which is why the tail is where
+`unknown` is the right answer rather than a target to grind down.
+
+Note also how little sits at `general_fund` — 2.2%, 54 entities. That is not the end state: MA DLS
+alone is 16,816 rows almost certainly `general_fund`, blocked on a second probe (§4.4). The tally
+will look materially different once MA lands, and the UAT headline should say so rather than
+present 2.2% as a conclusion.
+
+### 5.3 No figure moved
+
+Re-ran the Task 3 baseline (§3.3) after classification:
+
+| Check | Result |
+|---|---|
+| `budgets` sha256 over (municipality_id, fiscal_year, dataset_type, period_label, total_budget) | `dd0e38c3…cce9eb` — **identical** ✅ |
+| `sum(total_budget)` | 428,747,469,605,648.9717892247930625 — identical ✅ |
+| `budget_categories` rows / `sum(amount)` | 2,996,331 / identical ✅ |
+| `budget_line_items` rows / `sum(approved_amount)` / `sum(actual_amount)` | 2,316,190 / identical / identical ✅ |
+
+One column written, nothing else touched. The classifier is idempotent and `--reset` returns every
+row to `unknown`, so the whole of Task 5 is reversible.
