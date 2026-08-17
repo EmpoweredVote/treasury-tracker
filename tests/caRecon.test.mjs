@@ -13,6 +13,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { reconcile, BUCKET } from '../scripts/lib/caRecon.mjs';
+import { auditReconCompleteness } from '../scripts/verify-ca-recon.mjs';
 
 const cal = {
   tieAbs: 1000,
@@ -113,6 +114,60 @@ describe('reconcile — the depth flag is orthogonal to the bucket', () => {
     const acfr = tree(100, [['A', 50], ['B', 50]], 40);
     const sco = tree(100, [['A', 50], ['B', 50]], 39);
     expect(reconcile(acfr, sco, cal).depthFlag).toBe(false);
+  });
+});
+
+describe('recon completeness harness', () => {
+  /**
+   * This is the check that can fail quietly. Every arithmetic gate in this repo
+   * verifies the rows that ARE there; none of them can see a city-year that was
+   * never examined, because an unexamined year is indistinguishable from one
+   * that passed. So completeness is asserted directly.
+   */
+  const overlaps = [
+    { city: 'Modesto', fy: 2024, dataset: 'operating' },
+    { city: 'Modesto', fy: 2024, dataset: 'revenue' },
+  ];
+
+  it('passes when every overlapping city-year is bucketed', () => {
+    const recon = overlaps.map((o) => ({ ...o, bucket: 'TIE', loadable: true }));
+    expect(auditReconCompleteness(overlaps, recon, []).ok).toBe(true);
+  });
+
+  it('fails when an overlapping city-year is silently absent', () => {
+    const recon = [{ ...overlaps[0], bucket: 'TIE', loadable: true }];
+    const r = auditReconCompleteness(overlaps, recon, []);
+    expect(r.ok).toBe(false);
+    expect(r.missing).toEqual([{ city: 'Modesto', fy: 2024, dataset: 'revenue' }]);
+  });
+
+  it('fails when an UNEXPLAINED year was loaded anyway', () => {
+    const recon = overlaps.map((o) => ({ ...o, bucket: 'UNEXPLAINED', loadable: false }));
+    const loaded = [{ city: 'Modesto', fy: 2024, dataset: 'operating' }];
+    const r = auditReconCompleteness(overlaps, recon, loaded);
+    expect(r.ok).toBe(false);
+    expect(r.wronglyLoaded).toHaveLength(1);
+  });
+
+  it('fails when a loaded year has no recon entry at all', () => {
+    // The bypass case: something wrote a row without ever reconciling it.
+    const r = auditReconCompleteness(overlaps, [], [{ city: 'Modesto', fy: 2024, dataset: 'operating' }]);
+    expect(r.ok).toBe(false);
+    expect(r.wronglyLoaded).toHaveLength(1);
+    expect(r.missing).toHaveLength(2);
+  });
+
+  it('tallies buckets so a run can be read at a glance', () => {
+    const recon = [
+      { ...overlaps[0], bucket: 'TIE', loadable: true },
+      { ...overlaps[1], bucket: 'UNEXPLAINED', loadable: false },
+    ];
+    expect(auditReconCompleteness(overlaps, recon, []).counts).toEqual({
+      TIE: 1,
+      EXPLAINED: 0,
+      UNEXPLAINED: 1,
+      depthFlagged: 0,
+    });
   });
 });
 
