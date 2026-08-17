@@ -306,3 +306,64 @@ one level finer.
 
 So 22,260 of the 30,942 "CA State Controller" rows stay `unknown` after Task 2. That is the
 evidence rule doing its job, not a gap.
+
+---
+
+## Task 3 — the column, and the pre-classification baseline
+
+Migration `supabase/migrations/20260817000000_scope_01_add_fund_scope_to_budgets.sql`,
+applied 2026-08-17 via `mcp__supabase-local__apply_migration`.
+
+### 3.1 Verification
+
+| Check | Expected | Observed |
+|---|---|---|
+| Bucket tally after the ALTER | one row, `unknown`, 79,927 | ✅ `unknown` 79,927 |
+| Unique index unchanged | `(municipality_id, fiscal_year, dataset_type, period_label) NULLS NOT DISTINCT`, **without** `fund_scope` | ✅ byte-identical to the pre-migration definition |
+| EV-Accounts API still serves | rows returned | ✅ `/api/treasury/cities` 200 (6.0 MB); `/api/treasury/budgets/:id` 200 |
+| `fund_scope` visible to the API | **no** — explicit column lists | ✅ absent from the `/budgets/:id` payload |
+
+That last line is the Task 9 premise confirmed by measurement rather than assumed: the column is
+inert to EV-Accounts until that repo edits its SELECTs, so there is no deployment ordering to
+coordinate.
+
+### 3.2 The CHECK constraint was mutation-tested, not just declared
+
+A `DO` block attempted both directions against a real row and rolled everything back by raising:
+
+* `fund_scope = 'enterprise'` → **rejected** with `check_violation`;
+* `fund_scope = 'special_revenue'` → **accepted**, confirming the fifth value is live;
+* post-test tally re-read as `unknown` 79,927, so nothing persisted.
+
+A constraint whose rejecting branch has never fired is a constraint nobody has tested.
+
+### 3.3 Baseline digest — the no-figure-moved proof (Task 8 Step 1)
+
+Captured **before** the ALTER and re-read **after** it. Task 8 Step 2 compares against these
+after classification.
+
+```sql
+select encode(sha256(convert_to(string_agg(
+    municipality_id::text||'|'||fiscal_year||'|'||dataset_type||'|'||
+    coalesce(period_label,'~')||'|'||coalesce(total_budget::text,'~'),
+    E'\n' order by municipality_id, fiscal_year, dataset_type, coalesce(period_label,'~')
+),'UTF8')),'hex') from treasury.budgets;
+```
+
+| Quantity | Value |
+|---|---|
+| **budgets digest** | `dd0e38c3929962b327d422248bdae674d7d4f7fa0897dc5349bf2aaab2cce9eb` |
+| budgets rows | 79,927 |
+| `sum(total_budget)` | 428,747,469,605,648.9717892247930625 |
+| `budget_categories` rows | 2,996,331 |
+| `sum(categories.amount)` | 1,075,508,399,196,974.2350521496230479146743508120132 |
+| `sum(categories.actual_amount)` | 127,677,364,661.84000676594967362632455676794 |
+| `budget_line_items` rows | 2,316,190 |
+| `sum(line_items.approved_amount)` | 6,514,021,616,896.127803851694196372522501469174039 |
+| `sum(line_items.actual_amount)` | 390,470,591,587,787.130002875594196372522501469174039 |
+
+**The digest is identical before and after the migration**, so adding the column moved nothing.
+
+Incidental confirmation that the Task 2 evidence matches the stored data: Modesto FY2024
+`operating` holds `total_budget = 588042068` with `data_source = 'CA State Controller -
+Expenditures'` — the same $588,042,068 the ACFR reconciliation lands on.
