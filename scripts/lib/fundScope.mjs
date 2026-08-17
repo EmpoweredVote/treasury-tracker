@@ -33,20 +33,22 @@
  * on `treasury.budgets`. A value here that the constraint does not know is a
  * write that fails in production, so a test asserts the two sets are equal.
  *
- * `special_revenue` exists for MA DLS Schedule A — 1,560 rows across 336 towns of
- * Special Revenue Funds, a governmental fund TYPE that is neither the General
- * Fund, nor the total of governmental funds, nor all funds (RECON §1.4).
+ * ── A `special_revenue` value existed briefly and was removed ────────────────
+ * It was added for `X — MA DLS Schedule A — Special Revenue Funds`, on the
+ * strength of that source string. The string is wrong: docs/MA/ holds only
+ * GenFundExpenditures/GenFundRevenues extracts, and those 1,560 rows equal
+ * `Total Expenditures` in the General Fund file exactly. No row was ever
+ * special_revenue. Dropped 2026-08-17 (RECON §4.4).
  *
- * ⚠ `special_revenue` is a fund SLICE, not a whole-entity total. Like `unknown`
- * it must stay out of every cross-entity comparison — a filter written as
- * `scope !== 'unknown'` would put a slice on a per-capita axis beside a city's
- * whole budget.
+ * The lesson is the one this module exists to enforce, so it is recorded rather
+ * than quietly erased: a scope was inferred from a `data_source` label, which is
+ * precisely what `classify()` refuses to let a registry entry do. Read a loader's
+ * actual input before believing what its source string calls itself.
  */
 export const SCOPE = Object.freeze({
   GENERAL_FUND: 'general_fund',
   TOTAL_GOVERNMENTAL: 'total_governmental',
   ALL_FUNDS: 'all_funds',
-  SPECIAL_REVENUE: 'special_revenue',
   UNKNOWN: 'unknown',
 });
 
@@ -54,13 +56,14 @@ export const SCOPE = Object.freeze({
 export const SCOPE_VALUES = Object.freeze(Object.values(SCOPE));
 
 /**
- * Scopes that must never appear in a cross-entity comparison — an unclassified
- * figure and a fund slice are both incomparable, for different reasons.
+ * Scopes that must never appear in a cross-entity comparison.
  *
- * Exported so the read path and the UI share ONE definition of "not comparable"
- * rather than each re-deriving it and one of them forgetting a value.
+ * Currently just `unknown`. Kept as a LIST behind `isComparableScope()` rather
+ * than collapsed to `scope !== 'unknown'` at each call site, because the set has
+ * already changed once this milestone and SCOPE-02 introduces genuine fund slices
+ * (a category-level `fund_type`). One definition, one place to extend.
  */
-export const NON_COMPARABLE_SCOPES = Object.freeze([SCOPE.UNKNOWN, SCOPE.SPECIAL_REVENUE]);
+export const NON_COMPARABLE_SCOPES = Object.freeze([SCOPE.UNKNOWN]);
 
 /** True when a scope may be compared across entities. */
 export function isComparableScope(scope) {

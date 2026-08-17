@@ -645,3 +645,22 @@ scripted fetches (the same WAF that blocked Arlington), so their ACFRs need anot
 
 16,816 rows — 21% of the database — turn on this. It is the largest single block of `unknown` and
 the most valuable remaining reconciliation.
+
+#### Resolution — `special_revenue` dropped
+
+**DECISION — Chris, 2026-08-17: drop the value.** Migration
+`supabase/migrations/20260817000100_scope_01_drop_special_revenue_value.sql`.
+
+* Verified zero rows held it (`unknown` 79,927) **before** narrowing the constraint, so the
+  migration could not fail on existing data.
+* Re-verified afterwards that `special_revenue` is now rejected with `check_violation`, by the
+  same rolled-back `DO` block used in §3.2.
+* `SCOPE` in `scripts/lib/fundScope.mjs` is back to four values, and a test asserts
+  `SCOPE.SPECIAL_REVENUE` is `undefined` — a re-add has to be deliberate and has to arrive with a
+  source that genuinely needs it.
+* `NON_COMPARABLE_SCOPES` is now `['unknown']` but stays a **list** behind `isComparableScope()`
+  rather than collapsing to an inline `!== 'unknown'`. The set has changed once already this
+  milestone, and SCOPE-02's category-level `fund_type` brings genuine fund slices.
+
+The MA rows themselves are unaffected: they were `unknown` throughout and remain so pending the
+second probe.

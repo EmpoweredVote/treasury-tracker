@@ -100,13 +100,18 @@ describe('SCOPE', () => {
     // Drift between this enum and the constraint is a write that fails in
     // production, so the two are asserted equal rather than assumed so.
     expect([...SCOPE_VALUES].sort()).toEqual(
-      ['all_funds', 'general_fund', 'special_revenue', 'total_governmental', 'unknown'],
+      ['all_funds', 'general_fund', 'total_governmental', 'unknown'],
     );
     expect(Object.values(SCOPE).sort()).toEqual([...SCOPE_VALUES].sort());
   });
 
-  it('includes special_revenue, which MA DLS Schedule A needs', () => {
-    expect(SCOPE.SPECIAL_REVENUE).toBe('special_revenue');
+  it('no longer carries special_revenue', () => {
+    // Added for the MA "Schedule A — Special Revenue Funds" label, then dropped
+    // when that label turned out to describe General Fund data -- RECON §4.4.
+    // Asserted rather than merely deleted, so a re-add has to be deliberate and
+    // has to come with a source that genuinely needs it.
+    expect(SCOPE.SPECIAL_REVENUE).toBeUndefined();
+    expect(SCOPE_VALUES).not.toContain('special_revenue');
   });
 });
 
@@ -159,13 +164,9 @@ describe('validateRegistry', () => {
 });
 
 describe('comparability', () => {
-  it('treats unknown AND special_revenue as non-comparable', () => {
-    // Two values, not one. A filter written as `scope !== 'unknown'` would put
-    // 1,560 Special Revenue Fund slices on a per-capita axis beside whole-city
-    // totals -- RECON §1.4.
-    expect([...NON_COMPARABLE_SCOPES].sort()).toEqual(['special_revenue', 'unknown']);
+  it('treats unknown as non-comparable', () => {
+    expect([...NON_COMPARABLE_SCOPES]).toEqual(['unknown']);
     expect(isComparableScope(SCOPE.UNKNOWN)).toBe(false);
-    expect(isComparableScope(SCOPE.SPECIAL_REVENUE)).toBe(false);
   });
 
   it('treats the three whole-entity totals as comparable', () => {
