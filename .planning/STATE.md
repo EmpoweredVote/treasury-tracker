@@ -1,21 +1,21 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.23
-milestone_name: WA-CITIES-01 — Six Largest WA Cities
-status: v2.23 14/14 tasks complete — AWAITING CHRIS UAT before tag; merged + pushed to main untagged
-stopped_at: Task 14 Step 2 — UAT handoff presented to Chris. Steps 4 (re-scope) and 5 (tag) blocked on his sign-off.
-last_updated: "2026-08-16T00:00:00.000Z"
-last_activity: 2026-08-16
-last_activity_desc: "v2.23 Tasks 1-14 complete; 214 new rows (WA cohort 286); merged to main bb59682 untagged; rederive 286/286, audit 8/8, tether definitive; 203 vitest + 166 selftests"
+milestone: v2.24
+milestone_name: SCOPE-01 — Fund Scope on Every Row
+status: v2.24 SHIPPED — UAT passed, PR #15 merged, tagged v2.24
+stopped_at: Milestone closed. SCOPE-02 is next and is scoped but not planned.
+last_updated: "2026-08-17T00:00:00.000Z"
+last_activity: 2026-08-17
+last_activity_desc: "v2.24 SCOPE-01 shipped: fund_scope on all 79,927 rows — 53,404 classified from 8 evidenced sources, 26,523 (33.2%) honestly unknown, ZERO figures moved; 26 seams found; 304 vitest; UAT found + fixed the dead ev-blue chip classes"
 progress:
-  total_phases: 14
-  completed_phases: 14
+  total_phases: 11
+  completed_phases: 11
   total_plans: 0
   completed_plans: 0
   percent: 100
 ---
 
-> ⚠ **THE `progress.total_phases: 12` ABOVE COUNTS TASKS, NOT GSD PHASES.**
+> ⚠ **THE `progress.total_phases` ABOVE COUNTS TASKS, NOT GSD PHASES.**
 > v2.22 ran on a `docs/superpowers/` plan, not on `/gsd-plan-phase`. **There are no
 > `.planning/phases/` directories for it** and there never will be — do not go looking for
 > `138-*`. The artifact of record is
@@ -23,11 +23,12 @@ progress:
 > its spec sibling in `docs/superpowers/specs/`. `docs/*` is gitignored; both are tracked by
 > **force-add** (`git add -f`), the established convention in this repo.
 >
-> ⚠ **`.planning/` ALSO MISSED v2.21 ENTIRELY.** The `v2.21` tag (Seattle, WA + King County,
-> shipped 2026-08-14) exists in git but appears in neither `ROADMAP.md` nor `MILESTONES.md`,
-> because that milestone ran the same way. So the roadmap's last GSD-tracked milestone is
-> **v2.20**, and two shipped milestones sit outside it. Anything reading only `.planning/`
-> will understate what is live by two milestones and ~122 rows.
+> ⚠ **`.planning/` MISSED v2.21 AND v2.22 ENTIRELY, AND CARRIED v2.23 STALE FOR A DAY.**
+> The `v2.21` tag exists in git but the milestone appears in neither `ROADMAP.md` nor
+> `MILESTONES.md`; v2.22 was never tagged at all; and v2.23's entries still read "awaiting
+> Chris UAT before tag" on 2026-08-17, by which time the tag had existed at `40aa706` since
+> 2026-08-16. All corrected at the v2.24 close. **Tagging and updating `.planning/` are one
+> step, not two** — this has now failed three milestones running.
 
 # State
 
@@ -36,13 +37,55 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-16 — v2.18 Pima County Municipalities STARTED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** **v2.23 WA-CITIES-01 — 14/14 tasks done, awaiting Chris UAT before tag.**
+**Current focus:** **v2.24 SCOPE-01 SHIPPED. SCOPE-02 (CA remediation + `reporting_entity`) is next — scoped, not planned.**
 
 ## Current Position
 
-Milestone: **v2.23 WA-CITIES-01 — Six Largest WA Cities — 🔄 14/14 TASKS, AWAITING UAT**
-Task: 14 of 14 complete (superpowers plan, not GSD phases — see the banner above)
-Status: **214 new General Fund rows live in production; the WA cohort is 286 rows.** Merged `--no-ff` to `main` as `bb59682` and pushed — **deliberately NOT tagged.** Task 14 Step 2 (UAT handoff) is presented; Steps 4 (Phase D re-scope) and 5 (tag) are blocked on Chris's sign-off.
+Milestone: **v2.24 SCOPE-01 — Fund Scope on Every Row — ✅ SHIPPED 2026-08-17, tag `v2.24`**
+Task: 11 of 11 complete (superpowers plan, not GSD phases — see the banner above)
+Status: **`fund_scope` is live on all 79,927 rows and the API serves it in production.** UAT passed; PR #15 merged from `feat/scope-01`; tagged.
+
+**53,404 rows (66.8%) classified from 8 evidenced registry entries. 26,523 (33.2%), across 1,066 entities and 2,084 source strings, are honestly `unknown`** — and that is the milestone's headline result, not a shortfall. Before SCOPE-01 every one of those rows was displayed as though its scope were known and comparable.
+
+| `fund_scope` | Rows | % | Entities | Sources |
+|---|---|---|---|---|
+| `total_governmental` | 28,410 | 35.5% | 1,286 | 2 |
+| **`unknown`** | **26,523** | **33.2%** | **1,066** | **2,084** |
+| `all_funds` | 23,260 | 29.1% | 533 | 4 |
+| `general_fund` | 1,734 | 2.2% | 54 | 1,734 |
+
+⚠ **`general_fund` at 2.2% is provisional, not an end state.** MA DLS alone is 16,816 rows almost certainly General Fund, blocked on one document. If MA lands, `general_fund` goes to ~23% and `unknown` drops to ~12%.
+
+**ZERO figures moved** — the id-keyed `sha256(id | total_budget)` digest is unchanged, as are row count, `sum(total_budget)`, category sums and line-item sums.
+
+⚠ **The seam this milestone was built to expose is worse than the seven CA cities we knew about.** 26 seams across 15 entities, including **Anaheim −70.1%** and **Santa Ana −62.5%** — the 2nd and 4th largest in the database, both with **no disclosure anywhere in the app** — and **Nevada −57.5%**, a state node. **Every seam today involves `unknown`; zero are between two established scopes**, so the queue is "classification incomplete", not "two known scopes in conflict".
+
+⚠ **The queue splits in two and conflating them wastes effort.** Large negative steps are genuine scope breaks. Small or positive steps — San Diego revenue **+16.6%**, SF +0.7% — mean the city's own-source figure is probably all-funds too; those are sources awaiting a registry entry, not cliffs. Nobody should be sent to "fix" San Francisco's 0.7%.
+
+Last activity: 2026-08-17 — UAT passed, one defect found and fixed (`e5806be`), PR #15 merged, tagged.
+
+## Task Overview — v2.24 SCOPE-01 — Fund Scope on Every Row
+
+| # | Task | Outcome |
+|---|------|---------|
+| 1 | Source family enumeration | ✅ 3,824 strings partitioned, zero unclaimed/double-claimed; **corrected the plan in three places** — MA is the 3rd-largest bloc (16,816 rows) filed under "Other", and "CA State Controller" is two unrelated sources |
+| 2 | The matcher + first entry | ✅ `scripts/lib/fundScope.mjs` + registry; **an unevidenced entry cannot classify** |
+| 3 | The column + baseline | ✅ migration applied; CHECK **mutation-tested in both directions**; digest identical before/after |
+| 4 | Per-source reconciliation | ✅ 8 entries evidenced, 6 tying to the dollar. **MA, MN OSA and VA each produced a finding instead of a classification** |
+| 5 | Classify | ✅ partition gate passed on every expected count exactly; 53,404 classified, no figure moved |
+| 6 | Seam detector | ✅ 7/7 required (drift ≤ 0.05pt), **26 found**; a change into or out of `unknown` IS a seam |
+| 7 | Duplicate detector | ✅ zero live — **mutation-tested two ways** because zero is otherwise unfalsifiable |
+| 8 | Coverage + no-figure-moved proof | ✅ **two digests**, after the harness found the flaw in its own baseline |
+| 9 | API (EV-Accounts) | ✅ **eight sites, not the plan's six**; merged `112d4320`, live in production |
+| 10 | Scope label + explainer + guard | ✅ copy approved; **Step 4 shipped as a guard, not a filter — the surfaces it named do not exist** |
+| 11 | Closeout + planning files | ✅ UAT passed, PR #15 merged, `.planning/` updated, tagged |
+
+⚠ **UAT found a defect nothing else could catch.** The scope chips had **no colour coding at all**: `ScopeLabel` styled its three verified scopes against an `ev-blue` scale this project has never had, and its unverified chip with `bg-ev-gray-50` where the token is `ev-gray-050`. All six classes were dropped — `bg-*` fell to transparent and `border-*` to `currentColor`, so the VERIFIED chips got a dark border and no tint while "scope not established" came out the **softest chip on the page**. Exactly inverted, and `vite build`, `tsc` and **298 tests** were all green: Tailwind discards an unknown colour class silently, and jsdom does not run Tailwind, so no rendering test can see it. **Only reading `getComputedStyle` off the running app catches this class of bug.** Fixed to `ev-skyblue` and guarded by `ScopeLabel.tokens.test.ts`, which parses the token list out of `index.css` and is mutation-tested.
+
+<details>
+<summary>Previous milestone — v2.23 WA-CITIES-01 — Six Largest WA Cities (shipped 2026-08-16, tag `v2.23`)</summary>
+
+**214 new General Fund rows live in production; the WA cohort is 286 rows.** Merged `--no-ff` to `main` as `bb59682`, tagged `v2.23` at `40aa706`.
 
 Tacoma 38 rows · Spokane 40 · Vancouver 38 · Bellevue 24 · Kent 36 · Everett 38, plus four nav-only county nodes (Pierce, Spokane, Clark, Snohomish); Bellevue and Kent sit under the **existing** King County node.
 
@@ -137,13 +180,34 @@ Last activity: 2026-08-15 — merged, pushed, and a latent Windows test bug fixe
 
 </details>
 
+</details>
+
 ## Deferred Items
+
+### Carried at v2.24 close (2026-08-17)
+
+Everything below is SCOPE-02's inheritance unless marked otherwise. Full working in
+`docs/superpowers/plans/SCOPE-01-RECON.md`.
+
+| Category | Item | Status |
+|----------|------|--------|
+| **data** | **MA DLS — 16,816 rows, 21% of the database, the largest single block of `unknown`** | **OPEN, and the most valuable remaining reconciliation.** Expenditures point clearly at `general_fund` (2.59% from the ACFR vs 20.35% from Total Governmental), but the DLS revenue report's `Transfers` column is an **all-governmental-funds** figure (+1.69% vs all-funds transfers, +414% vs GF), making its published total a hybrid. Needs one ACFR from a town that runs **its own schools** — Amherst is a regional-school-district town and a poor witness; Newton, Somerville and Arlington all return HTTP 403 to scripted fetches |
+| **schema** | **`reporting_entity`** (`primary_government` / `incl_component_units` / `unknown`) | **OPEN — Chris's decision, SCOPE-02.** State-collected forms consolidate HRA/EDA/TIF component units city ACFRs present separately. **The comparison filter must then check BOTH columns**, which is why `isComparableScope()` is a list-based predicate and not an inline `!== 'unknown'`. Affects MN OSA, Ohio AOS, VA APA, MN counties ≈ 29,000 rows |
+| **data** | The 26-seam queue | **OPEN — SCOPE-02's work queue.** Split it in two first: large negative steps are real breaks, small/positive ones are sources awaiting an entry |
+| **disclosure** | Anaheim, Santa Ana and Los Angeles have no `cityBasisNotes` entry | **OPEN.** Anaheim and Santa Ana are the 2nd and 4th largest seams in the database. **Better than authoring three notes: derive the disclosure from `fund_scope` and retire the curated map**, which drifts silently because nothing measures its completeness |
+| **data** | VA **Exhibit B1** — load intergovernmental aid | **OPEN.** VA revenue is Exhibit B *"Total **Local** Revenue"* and runs 59.6%–102.3% of expenditures depending on aid dependence. The 304 rows are hidden as `dataset_type = 'revenue_local_only'`; restore `revenue` once B1 lands. **Incomplete, not unclassified** — no `fund_scope` value can express a horizontal slice |
+| **evidence** | A second CA county probe to harden `ca-sco-county-rev` | **OPEN.** The registry's only entry without a dollar tie. A test asserts it stays the only one. What would overturn it: a residue concentrated in a fund-shaped line, or one-directional in sign |
+| **evidence** | CA publicpay structural reconciliation (7,682 rows) | **OPEN, low urgency.** 479 of 482 cities pair it against the all-funds SCO total, so "payroll as a share of spending" reads correctly today. The exceptions carry a GF-only budget document, which **overstates** payroll's share |
+| ⛔ **cost** | Transparent Utah (539 rows) | **OPEN — and must NEVER be reconciled by querying BigQuery.** Unpartitioned; every query full-scans; ~$132 surprise bill on 2026-06-19. The rows are already in Supabase — use a free SLC/Provo ACFR PDF |
+| schema | SCOPE-01 deliberately did NOT widen the unique index | **by design** — nothing creates a second-scope row until SCOPE-02, so widening early opens a double-count hazard for no benefit. SCOPE-02 owns it, with the read-path/summation guards |
+| data-hygiene | `dataset_type = 'salary'` (6 rows) is a typo of `salaries`; `all_funds_requirements` is a `dataset_type` encoding a fund scope | **open, not SCOPE-01's to fix** |
+| tech-debt | `DatasetTabs.tsx:149` carries the same dead `bg-ev-gray-50` class the UAT defect was made of | **open, cosmetic, pre-existing** |
 
 ### Carried at v2.23 close (2026-08-16)
 
 | Category | Item | Status |
 |----------|------|--------|
-| **sign-off** | Chris UAT + Phase D re-scope + the `v2.23` tag | **OPEN — the only thing blocking close.** Task 14 Steps 2, 4, 5 |
+| ~~**sign-off**~~ | ~~Chris UAT + Phase D re-scope + the `v2.23` tag~~ | ✅ **CLOSED** — tagged `v2.23` at `40aa706` on 2026-08-16. The Phase D re-scope conversation was overtaken by SCOPE-01 |
 | source-guard | `classifyReport` passes a document whose **table of contents** names the statement even when the statement pages are unreadable | **open** — Everett FY2005/FY2010 both passed the fetch guard and were caught only by the page-identity probe. Tighten in the next WA milestone |
 | tech-debt | `scripts/lib/acfrGF.py` still splits pages naively on form feeds | **open, harmless today** — its `statement_page` is never persisted, but it disagrees with audit check (h). `-table` form feeds are NOT page breaks |
 | tech-debt | `verify-wa-audit.mjs` deliberately DUPLICATES the page-identity regexes rather than importing them | **accepted** — but it has already cost one round of divergence. Fix such a regex in BOTH files |
@@ -377,28 +441,38 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-08-16
-Stopped at: **v2.23 Tasks 1–14 done; Task 14 Step 2 (UAT handoff) presented to Chris.** Merged to `main` as `bb59682` and pushed, deliberately UNTAGGED. Steps 4 (Phase D re-scope) and 5 (tag) blocked on sign-off. Working tree clean.
-Resume file: `docs/superpowers/plans/WA-CITIES-01-CLOSEOUT.md`
+Last session: 2026-08-17
+Stopped at: **v2.24 SCOPE-01 CLOSED.** UAT passed, one defect found and fixed (`e5806be`), PR #15 merged from `feat/scope-01`, `.planning/` updated, tagged `v2.24`. Working tree clean.
+Resume file: `docs/superpowers/plans/SCOPE-01-CLOSEOUT.md`
 
 ### Next Session
 
-**RESUME AT: Chris's UAT verdict on v2.23.** The UAT checklist is Task 14 Step 2 of `docs/superpowers/plans/2026-08-15-wa-cities-01.md`; the evidence to bring to the re-scope is `docs/superpowers/plans/WA-CITIES-01-CLOSEOUT.md`. If UAT passes: tag `v2.23` and hold the Phase D conversation. If it fails: fix on `feat/wa-cities-01`, re-run all three harnesses, re-merge.
+**RESUME AT: SCOPE-02.** It is scoped but not planned. Read, in this order:
 
-The three Phase D questions, with the closeout's recommendations already derived from evidence:
-  * **Rest of WA worth a follow-on?** Yes, at **four to six cities** — but budget one to three NEW reader-defect classes per city. The cost curve did NOT flatten: Everett, city six, still produced two.
-  * **Are county finances as cheap as they look?** Cheap, not free. Kitsap loaded 36 rows on this pipeline, but its `-table` rendering put the GF column in two disjoint zones — the reason `column_strategy` exists. Budget a county like a city.
-  * **Floor rule tighter or looser?** **Looser — to what Kent actually did.** Continue past a consecutive gap when the years below parse on the unchanged config; stop only when continuing needs new work. That is already the rule's stated purpose; the mechanical form was stricter than the intent.
+1. `docs/superpowers/plans/SCOPE-01-CLOSEOUT.md` — status and the open-items list
+2. `docs/superpowers/plans/SCOPE-01-RECON.md` — evidence for every classification, **including the ones that came out `unknown` and why**
 
-⚠ **Do not trust `/gsd-progress` on its own here.** `ROADMAP.md`'s phase tables end at v2.20 and know nothing about v2.21–v2.23, because all three ran on `docs/superpowers/` plans rather than GSD phases. Read this file, then the plan docs under `docs/superpowers/plans/`. (v2.23 DID update the roadmap milestone LIST and `MILESTONES.md` — the step v2.21 and v2.22 both skipped.)
+**SCOPE-02's own scope**, per the three-milestone split Chris approved 2026-08-16: CA remediation (derive Total Governmental for SCO cities, marked as derived; close the seven seams; supply General Fund via the CA-CITIES-01 extractors), the **`reporting_entity` column**, the index widening, and the read-path/summation guards. **SCOPE-03** is the GF ⇄ Total Governmental ⇄ All Funds toggle and making the enterprise slice visible.
 
-Two candidates were left explicitly open at v2.22 close, one now closed:
-  * ~~**WA-CITIES-01**~~ — ✅ **done as v2.23** (2026-08-16). Six cities, 214 rows.
-  * **BANNER-01** — still open. Wire the existing `cities/seattle.jpg` + `cities/king-county.jpg` bucket assets into `CURATED_CITY_BANNERS`, transcribing credits from Essentials' `buildingImages.js`. **Now larger than it was:** none of the twelve WA entities has a curated banner, so all fall through to Wikipedia.
+**Chris's framing, which is the point of the whole arc:** the transfer between an enterprise fund and the general fund is where money gets quietly reclassified, and a tool that only ever shows one total cannot show that movement. Enterprise/ISF is **59% of Long Beach, 52% of Anaheim, 50% of Modesto** — under a GF-only view, more than half the city is invisible.
 
-Longer-standing candidates, unchanged: votes/amendments hub (VOTES-01); sourced-standard backfill to city data (SRCSTD-01, brief at `.planning/SRCSTD-01-SCOPING.md`); deeper history on the ACFR state nodes (CA/NY/FL/TX pre-window holes).
+The highest-value single task available is **not** in SCOPE-02's stated scope: **one MA ACFR from a town that runs its own schools** unblocks 16,816 rows, 21% of the database, and would move `general_fund` from 2.2% to ~23%.
 
-To start the next one: `/gsd-new-milestone`. If it is another single-source onboarding, consider running it the way v2.21 and v2.22 ran — a superpowers spec + plan — but then **record the result here at close**, which is the step both of those skipped.
+⚠ **Do not trust `/gsd-progress` on its own here.** `ROADMAP.md`'s phase tables end at v2.20 and know nothing about v2.21–v2.24, because all four ran on `docs/superpowers/` plans rather than GSD phases. Read this file, then the plan docs under `docs/superpowers/plans/`.
+
+⚠ **Four traps this milestone paid for. Do not rediscover them:**
+  * **The MA label trap.** A `data_source` string is not evidence. `X — MA DLS Schedule A — Special Revenue Funds` is General Fund expenditure data with a wrong label, and a CHECK value was added on that false premise before anyone opened `docs/MA/`. **Read the loader's actual input files.**
+  * **`^CA State Controller` is two unrelated sources.** 7,682 of its 30,942 rows are publicpay compensation data the Modesto reconciliation never covered. Anchor patterns per string; do not rest it on the hyphen/em-dash tell.
+  * **Two digests, always.** `sha256(id | total_budget)` is the figure invariant and must never move. The composite one includes `dataset_type` and legitimately moves on a relabel. One digest alone conflates "a figure moved" with "a label changed".
+  * **There is exactly one working lever for hiding rows:** relabel `dataset_type` to something outside `src/App.tsx`'s allow-list. A `display_suppressed` column cannot work — EV-Accounts uses explicit column lists and `available_datasets` carries no source info.
+
+⚠ **And one from UAT:** a Tailwind class naming an undefined token is dropped **silently** — build, `tsc` and the whole suite stay green. There is no `ev-blue` scale in this project and the gray steps are three-digit (`ev-gray-050`). `getComputedStyle` off the running app is the only check that sees it; `ScopeLabel.tokens.test.ts` is the cheap CI guard, worth copying for any other colour map.
+
+Other candidates, unchanged:
+  * **BANNER-01** — partly done (Seattle + King County wired 2026-08-16); the other 10 WA entities have no bucket assets. Transcribe credits from Essentials' `buildingImages.js`, **never infer them**.
+  * Votes/amendments hub (VOTES-01); sourced-standard backfill to city data (SRCSTD-01, brief at `.planning/SRCSTD-01-SCOPING.md`); deeper history on the ACFR state nodes (CA/NY/FL/TX pre-window holes).
+
+To start the next one: `/gsd-new-milestone`. If it runs as a superpowers spec + plan again, **tag and update `.planning/` in the same step** — that has now drifted on three milestones running.
 
 ## Performance Metrics
 
