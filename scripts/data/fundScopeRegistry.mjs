@@ -139,6 +139,34 @@ export const FUND_SCOPE_REGISTRY = [
     },
   },
 
+  {
+    id: 'wa-sao',
+    match: /^WA State Auditor — /,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'TWO WA entities, each its Statement of Revenues, Expenditures and Changes in Fund '
+              + 'Balance — Governmental Funds: City of Spokane FY2019 '
+              + '(docs/Spokane/spokane-2019-acfr.pdf) and City of Tacoma FY2019 '
+              + '(docs/Tacoma/tacoma-2019-acfr.pdf). NOTE: these filings ARE the source the '
+              + 'loader read from portal.sao.wa.gov, so the reconciliation is not against a '
+              + 'second reporter — it establishes WHICH COLUMN of the statement the stored figure '
+              + 'is, which is the question that decides scope. Same method as state-acfr-gf.',
+      figures: 'SPOKANE FY2019 (whole dollars, FY ends Dec 31) — printed General Fund column: '
+             + 'Total Revenues 225,490,050 and Total Expenditures 181,995,259, matching the stored '
+             + 'figures EXACTLY. Total Governmental columns are 339,439,583 and 342,378,490, so '
+             + 'the stored figure is 66.4% / 53.2% of total governmental; the columns sum exactly '
+             + '(225,490,050 + 5,966,857 + 107,982,676 = 339,439,583). Independently corroborated '
+             + 'by the same document\'s budgetary comparison schedule, whose ACTUAL column reads '
+             + 'the same two figures. '
+             + 'TACOMA FY2019 (thousands) — printed "General Fund #0010" column: Total Revenues '
+             + '210,733 and Total Expenditures 227,841, matching the stored $210,733,000 and '
+             + '$227,841,000 EXACTLY. Total Governmental Funds columns are 341,682 and 376,377, '
+             + 'so 61.7% / 60.5%; columns sum exactly. The two probes print in DIFFERENT units '
+             + '(dollars vs thousands), so the tie also confirms the loader normalised units '
+             + 'per document rather than assuming one scale.',
+    },
+  },
+
   // ── NOT YET EVIDENCED ─────────────────────────────────────────────────────
   // Deliberately absent, each for a stated reason. RECON §1.8 tracks what each
   // one owes. The three siblings of the entry above are worth naming here because

@@ -719,3 +719,64 @@ Three near-miss strings sit one word away and are **not** claimed, each asserted
 
 **Verdict: `general_fund`, tied to the dollar on two independent states, both sides.** The
 strongest-evidenced entry in the registry after the Modesto pair.
+
+### 4.6 `wa-sao` → `general_fund`
+
+* **Match pattern:** `^WA State Auditor — `
+* **Rows claimed:** **286**, exactly the count Task 1 recorded, across **8 entities** — Spokane,
+  Everett, Tacoma, Vancouver, Kitsap County, Kent, Bainbridge Island, Bellevue. All 286 strings end
+  in `(General Fund, Expenditure by Function)` or `(General Fund, Revenue by Source)`; zero are any
+  other shape.
+
+#### ⚠ A note on what "independent document" means here
+
+`scripts/lib/waSao.mjs` fetches these filings from `portal.sao.wa.gov/ReportSearch`, and the PDFs
+in `docs/Spokane/` and `docs/Tacoma/` **are those filings**. There is no second reporter of the
+same quantity — in Washington the SAO annual financial report *is* the city's ACFR. So this
+reconciliation is not "two publishers agree"; it is **independent of the loader**, and the question
+it answers is *which column of the statement the stored figure equals*. That is the question which
+decides scope, and it is the same method §4.5 used for the state ACFRs.
+
+Where the CA SCO ties in §2.1/§4.1 were genuinely cross-reporter, these are column-identification
+ties. Both are valid evidence; they are different in kind and are labelled so rather than blurred.
+
+#### Spokane FY2019 — whole dollars, fiscal year ending December 31
+
+`docs/Spokane/spokane-2019-acfr.pdf`, *Statement of Revenues, Expenditures, and Changes in Fund
+Balance — Governmental Funds*. Columns: **General Fund** | Library Capital | 2018 UTGO Bond |
+Other Governmental | Total.
+
+| | Printed General Fund | Stored | Total Governmental | GF as % of total gov |
+|---|---|---|---|---|
+| Total Revenues | 225,490,050 | $225,490,050 | 339,439,583 | 66.4% |
+| Total Expenditures | 181,995,259 | $181,995,259 | 342,378,490 | 53.2% |
+
+**Both sides tie exactly.** The columns sum exactly
+(225,490,050 + 5,966,857 + 107,982,676 = 339,439,583; 181,995,259 + 3,075,260 + 157,307,971 =
+342,378,490), so the Total Governmental figures are confirmed rather than assumed. **Independently
+corroborated a second way inside the same document**: the budgetary comparison schedule's ACTUAL
+column reads the same two figures against original and final budget columns.
+
+#### Tacoma FY2019 — thousands
+
+`docs/Tacoma/tacoma-2019-acfr.pdf`, same statement. Columns: **General Fund #0010** |
+Trans & Engineering Fund #1060 | Other Governmental Funds | **Total Governmental Funds**.
+
+| | Printed GF #0010 (000s) | Stored | Total Governmental (000s) | GF as % of total gov |
+|---|---|---|---|---|
+| Total Revenues | 210,733 | $210,733,000 | 341,682 | 61.7% |
+| Total Expenditures | 227,841 | $227,841,000 | 376,377 | 60.5% |
+
+**Both sides tie exactly**, and the columns sum exactly.
+
+#### Why two probes, and why these two
+
+The two documents print in **different units** — Spokane in whole dollars, Tacoma in thousands.
+A tie on both therefore also confirms the loader normalised units per document rather than
+assuming a single scale, which is the defect class recorded in
+`project_seattle_king_county_scoping` ("amounts IN THOUSANDS, tie is unit-invariant" — a tie gate
+alone cannot catch a wrong unit, because it compares a computed sum against a printed total read
+through the same multiplier). Spokane also runs a calendar fiscal year, unlike the June-30 entities
+probed elsewhere in this document.
+
+**Verdict: `general_fund`, tied exactly on two entities, both sides, in two different units.**

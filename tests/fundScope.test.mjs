@@ -206,6 +206,10 @@ describe('the shipped registry', () => {
       .toEqual({ scope: SCOPE.GENERAL_FUND, entryId: 'state-acfr-gf' }); // §4.5
     expect(classify('Connecticut State ACFR — General Fund Revenue (FY2024 actual, GAAP basis)', FUND_SCOPE_REGISTRY))
       .toEqual({ scope: SCOPE.GENERAL_FUND, entryId: 'state-acfr-gf' }); // §4.5
+    expect(classify('WA State Auditor — Spokane Annual Financial Report FY2019 (General Fund, Revenue by Source)', FUND_SCOPE_REGISTRY))
+      .toEqual({ scope: SCOPE.GENERAL_FUND, entryId: 'wa-sao' });        // §4.6
+    expect(classify('WA State Auditor — Kitsap County Annual Financial Report FY2011 (General Fund, Expenditure by Function)', FUND_SCOPE_REGISTRY))
+      .toEqual({ scope: SCOPE.GENERAL_FUND, entryId: 'wa-sao' });        // §4.6
   });
 
   it('does not let state-acfr-gf claim the Texas or CAFR variants', () => {
@@ -244,7 +248,6 @@ describe('the shipped registry', () => {
       'Acton — MA General Fund Revenues',
       'Adams — MA DLS General Fund Revenue by Source',
       'Acushnet — MA DLS Schedule A — Special Revenue Funds',
-      'WA State Auditor — Spokane Annual Report',
       'Wisconsin State CAFR — General Fund Revenue (FY2000 actual, pre-GASB-34 combined statement basis)',
       'City of Tucson ACFR — General Fund Expenditure by Function (FY2018 actual, GAAP basis)',
       'Texas State ACFR — General Revenue Fund (FY2015 actual, GAAP basis)',
