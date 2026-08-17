@@ -210,6 +210,19 @@ describe('the shipped registry', () => {
       .toEqual({ scope: SCOPE.GENERAL_FUND, entryId: 'wa-sao' });        // §4.6
     expect(classify('WA State Auditor — Kitsap County Annual Financial Report FY2011 (General Fund, Expenditure by Function)', FUND_SCOPE_REGISTRY))
       .toEqual({ scope: SCOPE.GENERAL_FUND, entryId: 'wa-sao' });        // §4.6
+    expect(classify('Minnesota Office of the State Auditor City/County Finances Report', FUND_SCOPE_REGISTRY))
+      .toEqual({ scope: SCOPE.TOTAL_GOVERNMENTAL, entryId: 'mn-osa' });  // §4.7
+  });
+
+  it('has exactly one total_governmental entry, and it carries the entity caveat', () => {
+    // MN OSA is the first source at the Total Governmental level, and the only
+    // one whose evidence records a reporting-entity residue rather than a tie.
+    // SCOPE-02's `reporting_entity` column is what resolves it (RECON §4.7); if a
+    // second total_governmental source appears before then, this forces a look at
+    // whether it has the same caveat.
+    const totGov = FUND_SCOPE_REGISTRY.filter((e) => e.scope === SCOPE.TOTAL_GOVERNMENTAL);
+    expect(totGov.map((e) => e.id)).toEqual(['mn-osa']);
+    expect(totGov[0].evidence.figures).toMatch(/reporting-entity not fund-type/);
   });
 
   it('does not let state-acfr-gf claim the Texas or CAFR variants', () => {
@@ -240,7 +253,6 @@ describe('the shipped registry', () => {
     // later cannot quietly start claiming a family that owes evidence.
     for (const s of [
       'CA State Controller — Government Compensation in California (publicpay.ca.gov)',
-      'Minnesota Office of the State Auditor City/County Finances Report',
       'Ohio Auditor of State Summarized Annual Financial Reports',
       'Virginia APA Comparative Report',
       'Transparent Utah',

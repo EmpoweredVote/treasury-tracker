@@ -167,6 +167,44 @@ export const FUND_SCOPE_REGISTRY = [
     },
   },
 
+  {
+    id: 'mn-osa',
+    match: /^Minnesota Office of the State Auditor/,
+    scope: SCOPE.TOTAL_GOVERNMENTAL,
+    // ⚠ The first total_governmental entry, and it comes with a KNOWN
+    // reporting-entity caveat: MN OSA consolidates HRA/EDA/TIF component units
+    // that city ACFRs present outside the primary government. The fund types are
+    // exact; the entity boundary is wider. SCOPE-02 owns the `reporting_entity`
+    // column that models this (Chris's decision, 2026-08-17). See RECON §4.7.
+    evidence: {
+      document: 'City of Bloomington, MN FY2022 audited ACFR governmental-funds statement '
+              + '(docs/BloomingtonMN/bloomington-mn-fy2022-acfr.pdf), cross-read against the free '
+              + 'source workbook docs/MN/cired_22_data.xlsx (the exact source_url stored on the '
+              + 'rows). Bloomington FY2022 is GAAPInd=-1, i.e. GAAP basis per '
+              + 'scripts/mnCityBasis.json, so a GAAP ACFR is the right comparator.',
+      figures: 'PROVENANCE: stored revenue $148,267,637 = workbook col 74 "Total Revenues" and '
+             + 'stored operating $155,969,565 = col 144 "Total Expenditures", exactly; the loader '
+             + 'correctly avoids col 81 "& Other Sources" (211,077,612) and col 149 "& Other Uses" '
+             + '(189,352,385). '
+             + 'SCOPE, established STRUCTURALLY rather than by a tie: (1) enterprise funds are '
+             + 'EXCLUDED — they sit on a separate Enterprise Funds sheet, 7 Bloomington '
+             + 'enterprises totalling $55,331,114 operating revenue with Water and Sewer alone at '
+             + '$33,011,125, none of which appears in the $148M (the governmental revenue tree has '
+             + 'no water/sewer line and Total Charges for Services is only $7,189,968), so this is '
+             + 'NOT all_funds; (2) it far exceeds the General Fund — $30,579,352 total capital '
+             + 'outlay, $17,844,362 street construction, $16,887,344 tax increments, $12,153,560 '
+             + 'HRA, $13,839,313 EDA — so it is NOT general_fund. Therefore all governmental '
+             + 'funds. '
+             + 'KNOWN RESIDUE, reporting-entity not fund-type: vs the ACFR, MN OSA is +21.7% on '
+             + 'revenue ($121,826,437) and +16.6% on expenditures ($133,719,576), because OSA '
+             + 'consolidates HRA/EDA/TIF component units the ACFR presents separately '
+             + '(Bloomington HRA+EDA expenditures $29,375,216 vs a $22,249,989 gap). Systematic: '
+             + 'of 852 cities, 514 (60.3%) carry at least one of those lines; statewide TIF is '
+             + '2.91% of revenues and HRA+EDA 7.04% of expenditures, though ~17-22% for TIF-heavy '
+             + 'Bloomington. SCOPE-02 models this as `reporting_entity`.',
+    },
+  },
+
   // ── NOT YET EVIDENCED ─────────────────────────────────────────────────────
   // Deliberately absent, each for a stated reason. RECON §1.8 tracks what each
   // one owes. The three siblings of the entry above are worth naming here because

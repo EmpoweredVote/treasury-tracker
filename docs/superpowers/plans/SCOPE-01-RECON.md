@@ -884,3 +884,42 @@ The options, for Chris:
 **Held at `unknown` pending that decision.** Distinct from §4.4 (MA), where the *fund composition
 itself* was ambiguous — a hybrid of GF revenue lines and all-governmental transfers. Here the fund
 composition is unambiguous; only the entity set is wider.
+
+#### Resolution — classify now, model the entity axis in SCOPE-02
+
+**DECISION — Chris, 2026-08-17: option (c).** Stamp `total_governmental` now, and make the
+reporting-entity boundary an explicit SCOPE-02 deliverable rather than a buried caveat.
+
+`mn-osa` → `total_governmental`, 21,794 rows across 945 entities. Justified on the axis
+`fund_scope` actually asks about — which funds — where the answer is established structurally and
+is not in doubt. The entity-boundary residue is recorded in full in the entry's own `evidence`
+string, so anyone reading the registry sees it without opening this document.
+
+**This sets the rule for every state-collected reporting form.** Ohio AOS (6,616 rows), VA APA
+(608) and MN counties get the same treatment when they are probed: classify on fund type, record
+the entity boundary. ~29,000 rows total.
+
+##### ⇒ SCOPE-02 REQUIREMENT (new, arising here)
+
+Add a **`reporting_entity`** column on `treasury.budgets`, distinct from `fund_scope`:
+
+```sql
+reporting_entity in ('primary_government', 'incl_component_units', 'unknown')
+```
+
+| Source | `fund_scope` | `reporting_entity` |
+|---|---|---|
+| MN OSA | `total_governmental` | `incl_component_units` |
+| Ohio AOS / VA APA (expected) | TBD by probe | `incl_component_units` |
+| City/state ACFR extracts | `general_fund` | `primary_government` |
+| CA SCO | `all_funds` | TBD |
+
+**The comparison filter must then check BOTH columns**, not `fund_scope` alone — two figures are
+only comparable when their fund scope *and* their reporting entity agree. `isComparableScope()` in
+`scripts/lib/fundScope.mjs` is deliberately a list-based predicate rather than an inline
+`!== 'unknown'` precisely so this second dimension can be threaded through one place.
+
+Without it, an MN OSA city ranks ~7% high against an ACFR-sourced city on a per-capita axis, and
+~20% high if it is TIF-heavy. That is a smaller error than the 50–75% General-Fund-vs-all-funds
+seam SCOPE-01 exists to fix, but it is the same *kind* of error, and it is now measured rather
+than suspected.
