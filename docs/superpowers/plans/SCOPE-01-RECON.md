@@ -406,3 +406,49 @@ reading the wrong column and getting lucky:
 
 **Verdict: `all_funds`.** Same shape and the same direction as the expenditure tie in §2.1,
 established separately rather than inherited from it.
+
+### 4.2 `ca-sco-county-exp` → `all_funds`
+
+* **Source string:** `CA State Controller - County Expenditures` (exact, anchored)
+* **Rows claimed:** 1,188 across 54 CA counties, FY2003–FY2024
+* **Probe:** County of Stanislaus FY2024 — chosen because it is Modesto's own county, so a
+  structural difference between the SCO Cities and Counties reports shows up against a document
+  from the same region and the same fiscal calendar.
+* **Independent document:** `docs/StanislausCounty/stanislaus-county-fy2024.pdf` p.23, fetched
+  from `stancounty.com/auditor/pdf/cafr2024.pdf`. ⚠ This PDF is an OCR'd scan (Acrobat Paper
+  Capture); the statement tables read cleanly under `pdftotext -table`, and every column total
+  was re-derived from its own components rather than trusted, precisely because it is OCR.
+
+| Component | FY2024 |
+|---|---|
+| ACFR General Fund expenditures | $391,233,183 |
+| ACFR **Total Governmental** expenditures | $1,194,047,359 |
+| SCO enterprise + ISF | $207,325,063 |
+| Governmental + enterprise + ISF | **$1,401,372,422** |
+| **SCO's reported total** | **$1,401,372,428** |
+
+**A $6 difference on $1.4 billion — 0.0000%.** Treated as a tie. $6 is far below any plausible
+scope effect and is consistent with a single OCR digit or a rounding artifact in one component.
+
+**The county report has the same structure as the cities report.** SCO's Stanislaus row carries
+`Internal Service Fund`, `Hospital Enterprise Fund Fund`, `Solid Waste Enterprise Fund` and
+`Other Enterprise Fund` as root-level categories — $207,325,063 of funds that cannot appear in a
+General Fund figure. This was checked before the document was fetched, and it is what made
+Stanislaus worth fetching.
+
+**Candidate scopes ranked**, so the tie is shown to be unambiguous rather than merely close:
+
+| Candidate | Value | Off by |
+|---|---|---|
+| **all_funds** | $1,401,372,422 | **0.0000%** |
+| total_governmental | $1,194,047,359 | 14.79% |
+| general_fund | $391,233,183 | 72.08% |
+
+Verified internally: the ACFR's six governmental columns sum to $1,194,047,359
+(391,233,183 + 0 + 182,156,933 + 317,132,663 + 1,648,627 + 301,875,953), and the SCO row's ten
+root categories sum to $1,401,372,428 exactly.
+
+**Verdict: `all_funds`.**
+
+Incidental data-hygiene note, not SCOPE-01's to fix: the SCO county loader produces
+`Hospital Enterprise Fund Fund` with a duplicated suffix.

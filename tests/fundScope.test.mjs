@@ -197,19 +197,15 @@ describe('the shipped registry', () => {
       .toEqual({ scope: SCOPE.ALL_FUNDS, entryId: 'ca-sco-city-exp' });   // §2.1
     expect(classify('CA State Controller - Revenues', FUND_SCOPE_REGISTRY))
       .toEqual({ scope: SCOPE.ALL_FUNDS, entryId: 'ca-sco-city-rev' });   // §4.1
+    expect(classify('CA State Controller - County Expenditures', FUND_SCOPE_REGISTRY))
+      .toEqual({ scope: SCOPE.ALL_FUNDS, entryId: 'ca-sco-county-exp' }); // §4.2
   });
 
-  it('leaves the CA SCO COUNTY strings UNKNOWN', () => {
-    // Both Modesto ties are city-side. The SCO *Counties* Annual Report is a
-    // different report with its own fund structure, so neither says anything
-    // about these 2,376 rows -- RECON §2.2. When they earn a county probe, this
-    // test is what has to be deliberately updated.
-    for (const s of [
-      'CA State Controller - County Revenues',
-      'CA State Controller - County Expenditures',
-    ]) {
-      expect(classify(s, FUND_SCOPE_REGISTRY)).toEqual({ scope: SCOPE.UNKNOWN, entryId: null });
-    }
+  it('leaves CA SCO County Revenues UNKNOWN', () => {
+    // The Stanislaus probe tied the county EXPENDITURE side to $6. The revenue
+    // side of the same document is still being adjudicated -- RECON §4.3.
+    expect(classify('CA State Controller - County Revenues', FUND_SCOPE_REGISTRY))
+      .toEqual({ scope: SCOPE.UNKNOWN, entryId: null });
   });
 
   it('leaves every other measured family UNKNOWN until Task 4', () => {

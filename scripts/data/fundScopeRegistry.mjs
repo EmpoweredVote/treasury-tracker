@@ -68,6 +68,25 @@ export const FUND_SCOPE_REGISTRY = [
     },
   },
 
+  {
+    id: 'ca-sco-county-exp',
+    match: /^CA State Controller - County Expenditures$/,
+    scope: SCOPE.ALL_FUNDS,
+    evidence: {
+      document: 'County of Stanislaus FY2024 ACFR, governmental-funds Statement of Revenues, '
+              + 'Expenditures and Changes in Fund Balances, p.23 '
+              + '(docs/StanislausCounty/stanislaus-county-fy2024.pdf)',
+      figures: 'ACFR Total Governmental expenditures $1,194,047,359 + SCO enterprise & ISF '
+             + '$207,325,063 (Internal Service 150,843,496 + Hospital 34,690,202 + Solid Waste '
+             + '14,472,400 + Other 7,318,965) = $1,401,372,422 vs SCO\'s reported total '
+             + '$1,401,372,428 — a $6 difference on $1.4bn (0.0000%). ACFR General Fund '
+             + 'expenditures alone are $391,233,183, 72.1% below the SCO figure. Candidate '
+             + 'scopes: all_funds off by 0.0000%, total_governmental by 14.79%, general_fund by '
+             + '72.08%. The ACFR\'s six governmental columns sum internally to 1,194,047,359, '
+             + 'confirming the Total Governmental column was read correctly.',
+    },
+  },
+
   // ── NOT YET EVIDENCED ─────────────────────────────────────────────────────
   // Deliberately absent, each for a stated reason. RECON §1.8 tracks what each
   // one owes. The three siblings of the entry above are worth naming here because
