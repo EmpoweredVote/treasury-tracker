@@ -1113,3 +1113,63 @@ Re-ran the Task 3 baseline (§3.3) after classification:
 
 One column written, nothing else touched. The classifier is idempotent and `--reset` returns every
 row to `unknown`, so the whole of Task 5 is reversible.
+
+### 5.4 VA APA revenue rows hidden
+
+**DECISION — Chris, 2026-08-17: hide them.** Migration
+`supabase/migrations/20260817000200_hide_va_apa_revenue_rows.sql`.
+
+**Mechanism: `dataset_type` relabelled `revenue` → `revenue_local_only`** on the 304 rows, which is
+simultaneously the hide and a truer label. Not a delete, and not a suppression column.
+
+Why not the alternatives:
+
+| Option | Why not |
+|---|---|
+| Delete the rows | Loses 304 budget rows and 7,440 category rows for a problem that is fixable by loading one more exhibit. |
+| A `display_suppressed` column | **Would not have worked.** EV-Accounts serves treasury reads with explicit column lists, so a new column is invisible to the app; and `/treasury/cities` builds `available_datasets` from `(fiscal_year, dataset_type, period_label)` with no source information, so the frontend could not filter on source and would have kept offering a "Money In" tab that then failed to load. |
+
+Why the relabel is safe and sufficient:
+
+* `src/App.tsx` matches dataset types by explicit **allow-list** — `hasRevenue = entityDatasets.some(d => d.dataset_type === 'revenue')`, and likewise for `operating` / `salaries` / `all_funds_requirements`. An unrecognised type is simply never offered, so the tab disappears and nothing errors.
+* `dataset_type` has **no CHECK constraint** (verified against `pg_constraint` — only `fund_scope` has one), and no row already held the new value, so the unique index `(municipality_id, fiscal_year, dataset_type, period_label)` cannot collide.
+* Every figure and all 7,440 category rows are preserved.
+* Reversible with one statement, recorded at the bottom of the migration file.
+
+Verified after applying:
+
+| Check | Result |
+|---|---|
+| Rows now `revenue_local_only` | **304** ✅ |
+| Rows still `revenue` under this source | **0** ✅ |
+| VA `operating` rows untouched | 304 ✅ |
+| Category rows intact | 7,440 ✅ |
+| **id-keyed figure digest** `sha256(id\|total_budget)` | `3bc12db8…82a2` — **unchanged** ✅ |
+| Table rows / `sum(total_budget)` | 79,927 / 428,747,469,605,648.97… unchanged ✅ |
+| Task 5 partition gate re-run | still passes: claimed 53,404 + unknown 26,523 ✅ |
+
+#### ⚠ The Task 8 full digest changed, deliberately
+
+The §3.3 digest is keyed on `(municipality_id, fiscal_year, dataset_type, period_label,
+total_budget)`, and `dataset_type` is part of that key. Relabelling therefore moved it:
+
+| | Digest |
+|---|---|
+| pre-relabel (§3.3 baseline) | `dd0e38c3929962b327d422248bdae674d7d4f7fa0897dc5349bf2aaab2cce9eb` |
+| **post-relabel — Task 8 compares against THIS** | `dad8f366c28a794d60ee54d6c3aad50c1777a4fa80955772ab59408efbcc26a9` |
+
+**No figure moved**, which is what the id-keyed digest proves independently of any relabel. The
+milestone's "changes no figure" invariant holds; only a type label changed, by decision. Task 8
+must cite this migration rather than report a failure.
+
+**Lesson for the harness:** a digest keyed on a mutable label conflates "a figure moved" with "a
+label changed". `scripts/verify-fund-scope.mjs` should carry **both** digests — the id-keyed one as
+the figure invariant, and the composite one as a change-detector that is allowed to move when a
+migration says so.
+
+#### Still outstanding: the real fix
+
+Load VA **Exhibit B1** (intergovernmental aid) so these rows become a whole-revenue figure, then
+scope-classify them properly and restore `dataset_type = 'revenue'`. Until then VA localities show
+spending with no Money In view, which is honest — better than a revenue figure missing up to 40%
+of the revenue.

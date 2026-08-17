@@ -1,0 +1,67 @@
+-- SCOPE-01 follow-up: hide the VA APA revenue rows from the app.
+--
+-- Applied 2026-08-17 via mcp__supabase-local__execute_sql (DML, not DDL).
+-- Chris's decision after RECON §4.9.
+--
+-- WHY
+--
+-- The 304 VA APA `revenue` rows are Exhibit B "Total LOCAL Revenue" and
+-- deliberately EXCLUDE intergovernmental aid (Exhibit B1) -- see the header of
+-- scripts/loadVAComparativeReport.js. They are therefore not a whole-revenue
+-- figure: measured against the stored expenditures they run from 59.6% (Newport
+-- News) and 60.0% (Richmond) up to 102.3% (Loudoun) and 101.2% (Alexandria).
+-- Presenting that as "Money In" understates revenue by up to ~40% for the
+-- localities most dependent on state education aid, and no fund_scope label can
+-- fix it -- it is incomplete, not unclassified.
+--
+-- WHY A RELABEL RATHER THAN A DELETE
+--
+-- Deleting would have lost 304 rows and 7,440 category rows. A `display_suppressed`
+-- column would have been invisible to the app, because EV-Accounts serves treasury
+-- reads with explicit column lists (see the plan's Global Constraints) and
+-- /treasury/cities builds `available_datasets` from (fiscal_year, dataset_type,
+-- period_label) with no source information -- so the frontend could not have
+-- filtered on source, and would have kept offering a "Money In" tab that then
+-- failed to load.
+--
+-- Renaming dataset_type is both the hide AND a truer label:
+--   * src/App.tsx matches dataset types by explicit ALLOW-LIST
+--     (`some(d => d.dataset_type === 'revenue')`), so an unrecognised type is
+--     never offered and nothing breaks;
+--   * `revenue_local_only` is what the data actually is;
+--   * every figure and all 7,440 categories are preserved;
+--   * dataset_type has no CHECK constraint (verified against pg_constraint), and
+--     no row already held this value, so the unique index cannot collide;
+--   * it is reversible with the single statement at the bottom of this file.
+--
+-- VERIFIED AFTER APPLYING
+--   304 rows now 'revenue_local_only'; 0 left as 'revenue'
+--   304 VA 'operating' rows untouched
+--   7,440 category rows intact
+--   id-keyed figure digest sha256(id|total_budget) UNCHANGED at
+--     3bc12db8bb7dd04c1602befd68d78020e39d333df75705f6f94d3c1a939d82a2
+--   79,927 rows, sum(total_budget) 428,747,469,605,648.9717892247930625 unchanged
+--   Task 5's partition gate still passes (claimed 53,404 + unknown 26,523)
+--
+-- ⚠ THE TASK 8 FULL DIGEST CHANGED, DELIBERATELY. The Task 3 digest is keyed on
+-- (municipality_id, fiscal_year, dataset_type, period_label, total_budget) and
+-- dataset_type is part of that key, so it moved from
+--   dd0e38c3929962b327d422248bdae674d7d4f7fa0897dc5349bf2aaab2cce9eb  (pre-relabel)
+-- to
+--   dad8f366c28a794d60ee54d6c3aad50c1777a4fa80955772ab59408efbcc26a9  (post-relabel)
+-- No FIGURE moved -- that is what the id-keyed digest above proves. Task 8 should
+-- compare against the new value and cite this migration for the reason.
+--
+-- THE REAL FIX, still outstanding: load VA Exhibit B1 (intergovernmental aid) so
+-- these rows become a whole-revenue figure, then reclassify and restore the type.
+
+update treasury.budgets
+   set dataset_type = 'revenue_local_only'
+ where data_source = 'Virginia APA Comparative Report'
+   and dataset_type = 'revenue';
+
+-- ── TO REVERSE ───────────────────────────────────────────────────────────────
+-- update treasury.budgets
+--    set dataset_type = 'revenue'
+--  where data_source = 'Virginia APA Comparative Report'
+--    and dataset_type = 'revenue_local_only';
