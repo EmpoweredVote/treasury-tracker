@@ -780,3 +780,107 @@ through the same multiplier). Spokane also runs a calendar fiscal year, unlike t
 probed elsewhere in this document.
 
 **Verdict: `general_fund`, tied exactly on two entities, both sides, in two different units.**
+
+### 4.7 🛑 MN OSA — the fund types are knowable, the REPORTING ENTITY is wider. A model question.
+
+**21,794 rows / 945 entities — the largest single family.** No entry written yet; this is a finding
+plus a question the milestone's value set cannot answer on its own.
+
+* **Probe:** City of Bloomington, MN, FY2022 (`GAAPInd = -1` = GAAP basis, per
+  `scripts/mnCityBasis.json`, so a GAAP ACFR is the right comparator).
+* **Independent document:** `docs/BloomingtonMN/bloomington-mn-fy2022-acfr.pdf`, the city's own
+  audited ACFR, governmental-funds statement (free download from bloomingtonmn.gov).
+* **Source workbook, downloaded free:** `docs/MN/cired_22_data.xlsx` (the exact `source_url`
+  already recorded on the stored rows).
+
+#### The stored figures are faithful to the source
+
+Read directly from the workbook, Bloomington row 78 of the `Governmental Funds` sheet:
+
+| Stored | Column | Value |
+|---|---|---|
+| `revenue` $148,267,637 | col 74 `Total Revenues` | 148,267,637 ✅ |
+| `operating` $155,969,565 | col 144 `Total Expenditures` | 155,969,565 ✅ |
+
+Exactly what `scripts/loadMNOSA.js` documents (and it correctly avoids col 81
+`Total Revenues & Other Sources` = 211,077,612 and col 149 `Total Expenditures & Other Uses` =
+189,352,385). **No mislabelling here** — unlike MA §4.4, the loader and the source agree.
+
+#### But the figures do NOT tie to the city's own ACFR
+
+Bloomington FY2022 ACFR governmental-funds statement (columns verified to sum exactly:
+83,191,676 + 886,499 + 8,339,226 + 8,165,634 + 12,269,297 + 8,974,105 = 121,826,437):
+
+| Candidate | Value | MN OSA off by |
+|---|---|---|
+| ACFR **General Fund** revenue | $83,191,676 | **+78.2%** |
+| ACFR **Total Governmental** revenue | $121,826,437 | **+21.7%** |
+| ACFR Total Governmental + OSA enterprise ($55,331,114) | $177,157,551 | −16.3% |
+| ACFR **General Fund** expenditures | $83,672,911 | +86.4% |
+| ACFR **Total Governmental** expenditures | $133,719,576 | **+16.6%** |
+
+MN OSA sits **between** total governmental and all funds — above one, below the other. On the
+arithmetic alone, nothing matches.
+
+#### What the gap actually is — reporting entity, not fund type
+
+Two things are established structurally, independent of any total:
+
+**1. Enterprise funds are EXCLUDED.** They live on a separate `Enterprise Funds` sheet — for
+Bloomington, 7 enterprises with $55,331,114 of operating revenue (Water and Sewer $33,011,125,
+Solid Waste $9,452,134, Storm Water $7,191,477, Recreation Facilities $3,960,132, Police
+Contractual $1,141,589, Assisted Rental $335,388, Property Management $239,269). None of it
+appears in the $148,267,637: the governmental revenue tree has no water/sewer line and
+`Total Charges for Services` is only $7,189,968. `Transfers From Enterprise Funds` ($832,334)
+appears only in the *& Other Sources* total, not in `Total Revenues`. **So this is not `all_funds`.**
+
+**2. It is far more than the General Fund.** The row carries `Total Capital Outaly1` $30,579,352,
+`Street & Highway Construction` $17,844,362, `Tax Increments` $16,887,344, `Housing & Urban
+Redevelopment` $12,153,560, `Economic Development` $13,839,313 + $3,382,343 capital.
+**So this is not `general_fund`.**
+
+**3. The gap is the city's HRA / EDA / TIF activity.** Those are component units which Bloomington's
+ACFR presents outside the primary government's governmental funds, and which MN OSA consolidates
+into the city. Bloomington's HRA+EDA expenditures alone are $29,375,216 against an expenditure gap
+of $22,249,989.
+
+**And it is systematic, not a Bloomington quirk** — measured across all 852 cities in the workbook:
+
+| | Cities | Share |
+|---|---|---|
+| nonzero `Tax Increments` | 324 | 38.0% |
+| nonzero `Housing & Urban Redevelopment` | 273 | 32.0% |
+| nonzero `Economic Development` | 452 | 53.1% |
+| **nonzero any of the three** | **514** | **60.3%** |
+
+Statewide: TIF is 2.91% of `Total Revenues` ($200,823,303 of $6,912,397,832) and HRA+EDA is 7.04%
+of `Total Expenditures` ($545,100,069 of $7,742,506,146). **The magnitude varies enormously by
+city** — ~7% statewide but ~17–22% for Bloomington, which is TIF-heavy. So a second probe will not
+produce a tie either; the divergence is structural and city-specific in size.
+
+#### The model question this raises
+
+`fund_scope` asks *which funds does this total cover?* For MN OSA the answer is clear and
+defensible: **all governmental funds, excluding enterprise** — i.e. `total_governmental`.
+
+But MN OSA's **reporting entity** is wider than a city ACFR's primary government. That is a
+**fourth dimension** the milestone does not model — not which *funds*, but which *entities*. And it
+bites precisely where SCOPE-01 is meant to help: an MN OSA `total_governmental` figure compared
+against an ACFR-derived `total_governmental` figure carries a systematic upward bias, ~7% on
+average and ~20% for TIF-heavy cities.
+
+**This is not MN-specific.** Every state-collected reporting form is likely to consolidate the same
+way, which puts the same question on Ohio AOS (6,616 rows), VA APA (608) and MN counties. Deciding
+it once, here, sets the rule for ~29,000 rows.
+
+The options, for Chris:
+
+| | Effect |
+|---|---|
+| **(a) Classify `total_governmental`, record the caveat** | 21,794 rows become comparable. Honest about fund types, silent in the data about a ~7–20% entity-boundary bias. Same shape as §4.3's county-revenue call, but with a much larger residue. |
+| **(b) Leave `unknown`** | Strictly faithful to "no tie, no classification". Keeps the largest family out of every comparison surface, and discards a fund-type fact we have positively established. |
+| **(c) Classify, and add a `reporting_entity` column in SCOPE-02** | Models the real distinction rather than forcing it into `fund_scope`. Most correct, most work, and SCOPE-02 already owns the category-level `fund_type` column so it is the natural home. |
+
+**Held at `unknown` pending that decision.** Distinct from §4.4 (MA), where the *fund composition
+itself* was ambiguous — a hybrid of GF revenue lines and all-governmental transfers. Here the fund
+composition is unambiguous; only the entity set is wider.
