@@ -205,6 +205,39 @@ export const FUND_SCOPE_REGISTRY = [
     },
   },
 
+  {
+    id: 'oh-aos',
+    match: /^Ohio Auditor of State/,
+    scope: SCOPE.TOTAL_GOVERNMENTAL,
+    evidence: {
+      document: 'The source workbook itself, downloaded free: '
+              + 'docs/OhioAOS/City_2024_GAAP_Summarized.XLSX (the exact source_url stored on the '
+              + 'rows). This is the STRONGEST discriminator available anywhere in this registry — '
+              + 'the same publisher prints the General Fund and the Total Governmental Funds '
+              + 'columns as SEPARATE TABS of one file, so which one TT loaded is a fact, not an '
+              + 'inference. Corroborates the loader header and the locked v2.8 scope decision '
+              + '("general-government only, enterprise funds deferred to OHENT-01").',
+      figures: 'The two tabs self-describe in their own row-2 banners: SOREACIFB_General = '
+             + '"Summary of Unaudited Data from the Statement of Revenues, Expenditures and '
+             + 'Changes in Fund Balances - Governmental Funds - General Fund"; SOREACIFB_TotalGov '
+             + '= "... - Governmental Funds - Total Governmental Funds". '
+             + 'CITY OF COLUMBUS FY2024 (row 57 of both tabs): General Fund revenue $1,429,123,000 '
+             + 'and expenditures $1,168,730,000; Total Governmental revenue $2,166,549,000 and '
+             + 'expenditures $2,477,440,000. The stored figures are $2,166,549,000 and '
+             + '$2,477,440,000 — i.e. TotalGov col 16 and col 35 EXACTLY, and 51.6% / 112.0% above '
+             + 'the General Fund figures. '
+             + 'Enterprise is EXCLUDED: it lives in separate SOREACINP_* tabs — Columbus Water '
+             + '$268,151,000 + Sewer $361,624,000 + Electric $93,535,000 + Landfill $0 = '
+             + '$723,310,000, none of it inside the $2,166,549,000. So not all_funds. '
+             + 'NOTE the workbook says "Unaudited Data" — Ohio AOS is unaudited Hinkle-system '
+             + 'actuals, which is a data-quality caveat, not a scope one. '
+             + 'REPORTING ENTITY: expected primary_government, because each tab restates the '
+             + 'entity\'s OWN governmental-funds statement rather than re-aggregating from a state '
+             + 'chart of accounts the way MN OSA does — but UNCONFIRMED, as columbus.gov returned '
+             + 'HTTP 403 to a scripted ACFR fetch. SCOPE-02 to settle it.',
+    },
+  },
+
   // ── NOT YET EVIDENCED ─────────────────────────────────────────────────────
   // Deliberately absent, each for a stated reason. RECON §1.8 tracks what each
   // one owes. The three siblings of the entry above are worth naming here because

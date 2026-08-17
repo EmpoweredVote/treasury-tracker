@@ -923,3 +923,115 @@ Without it, an MN OSA city ranks ~7% high against an ACFR-sourced city on a per-
 ~20% high if it is TIF-heavy. That is a smaller error than the 50–75% General-Fund-vs-all-funds
 seam SCOPE-01 exists to fix, but it is the same *kind* of error, and it is now measured rather
 than suspected.
+
+### 4.8 `oh-aos` → `total_governmental` — the strongest evidence in the registry
+
+* **Match pattern:** `^Ohio Auditor of State`
+* **Rows claimed:** **6,616** across **341 entities**, one distinct string — exactly Task 1's count.
+* **Document:** the source workbook itself, `docs/OhioAOS/City_2024_GAAP_Summarized.XLSX`,
+  downloaded free from the exact `source_url` stored on the rows.
+
+**Why this is the strongest discriminator anywhere in this document:** the same publisher prints
+the General Fund and the Total Governmental Funds figures as **separate tabs of one file**. Which
+one TT loaded is therefore a *fact*, not an inference from a label or a residue. Each tab
+self-describes in its own row-2 banner:
+
+| Tab | Banner |
+|---|---|
+| `SOREACIFB_General` | "Summary of Unaudited Data from the Statement of Revenues, Expenditures and Changes in Fund Balances - Governmental Funds - **General Fund**" |
+| `SOREACIFB_TotalGov` | "… - Governmental Funds - **Total Governmental Funds**" |
+
+**City of Columbus FY2024** (row 57 of both tabs):
+
+| | General Fund | **Total Governmental** | Stored |
+|---|---|---|---|
+| Revenue | $1,429,123,000 | **$2,166,549,000** | $2,166,549,000 ✅ |
+| Expenditures | $1,168,730,000 | **$2,477,440,000** | $2,477,440,000 ✅ |
+
+The stored figures are TotalGov col 16 and col 35 exactly — and 51.6% / 112.0% above the General
+Fund figures, so there is no chance of confusing the two.
+
+**Enterprise is excluded**, in separate `SOREACINP_*` tabs: Columbus Water $268,151,000 + Sewer
+$361,624,000 + Electric $93,535,000 + Landfill $0 = **$723,310,000**, none of it inside the
+$2,166,549,000. So not `all_funds`. This matches the locked v2.8 scope decision recorded in
+`reference_ohio_aos_financial_data` ("general-government only … enterprise funds deferred to
+OHENT-01").
+
+**Two caveats recorded on the entry itself:**
+
+1. The banner says **"Unaudited Data"** — Ohio AOS is unaudited Hinkle-system actuals. That is a
+   data-quality caveat, not a scope one, and it does not affect this classification.
+2. **Reporting entity: expected `primary_government`, UNCONFIRMED.** Each tab restates the
+   entity's *own* governmental-funds statement, rather than re-aggregating from a state chart of
+   accounts the way MN OSA does (§4.7), so Ohio is expected NOT to carry MN's component-unit
+   inflation. It could not be confirmed: `columbus.gov` returned HTTP 403 to a scripted ACFR
+   fetch. SCOPE-02 settles it when it adds `reporting_entity`.
+
+**Verdict: `total_governmental`.**
+
+---
+
+### 4.9 🛑 VA APA — the revenue rows are not a fund-scope quantity at all
+
+**608 rows / 161 entities. Both datasets stay `unknown`**, and the revenue side raises a defect
+that no `fund_scope` value can express or fix.
+
+#### The finding: VA revenue EXCLUDES intergovernmental aid, by design
+
+`scripts/loadVAComparativeReport.js` states it outright — the revenue total is Exhibit B
+**"Total *Local* Revenue"**, and:
+
+> *"(Intergovernmental aid — Exhibit B1 — is intentionally excluded this phase: it is not local
+> revenue, the report headlines 'Total Local Revenue', and including it would imply a false surplus
+> vs. the expenditure side. Revisit for an all-sources view.)"*
+
+So this is a **deliberate, documented** loader decision, not a bug. But its consequence is that the
+stored VA `revenue` rows are a **revenue-source subset** — a horizontal slice — where `fund_scope`
+describes a **vertical** one. No value in `('general_fund','total_governmental','all_funds')` is
+true of "local revenue only", and `unknown` is the only honest option.
+
+#### The measurement, which shows how large the effect is
+
+Stored revenue as a share of stored expenditures, FY2024, largest localities first:
+
+| Locality | Revenue | Expenditures | Revenue as % of expenditures |
+|---|---|---|---|
+| Fairfax County | $5,646,769,177 | $6,674,467,930 | 84.6% |
+| **Loudoun County** | $2,736,875,183 | $2,674,301,639 | **102.3%** |
+| Prince William County | $1,759,650,000 | $2,502,694,000 | 70.3% |
+| Virginia Beach | $1,524,028,455 | $2,081,891,529 | 73.2% |
+| Arlington County | $1,524,817,469 | $1,616,194,792 | 94.3% |
+| **Richmond** | $964,019,504 | $1,606,950,956 | **60.0%** |
+| Chesterfield County | $1,022,922,894 | $1,576,399,339 | 64.9% |
+| Henrico County | $1,012,932,091 | $1,481,898,187 | 68.4% |
+| **Newport News** | $606,584,138 | $1,017,452,620 | **59.6%** |
+| Alexandria | $874,230,660 | $863,578,347 | 101.2% |
+
+**The 59.6%–102.3% spread is the signature of the missing aid**, not noise: locally-funded
+jurisdictions with large tax bases (Loudoun 102.3%, Alexandria 101.2%, Arlington 94.3%) approach
+break-even, while aid-dependent ones (Newport News 59.6%, Richmond 60.0%) sit ~40% short. In
+Virginia the gap is dominated by state education aid.
+
+#### Why this matters beyond scope labelling
+
+The loader's stated rationale — that including aid "would imply a false surplus" — inverts in
+practice: **excluding it manufactures an apparent 40% deficit** for the localities most dependent
+on aid. And unlike a scope mismatch, a label cannot fix this. The VA "Money In" view is showing an
+incomplete revenue picture, and closing it requires *loading Exhibit B1*, which is a data fix.
+
+⇒ **Follow-up for SCOPE-02 or its own milestone: load VA Exhibit B1 (intergovernmental aid) so the
+VA revenue rows become a whole-revenue figure.** Until then the VA revenue rows should arguably be
+held out of comparison for a reason *other* than unknown scope — they are incomplete, not
+unclassified. Recorded here so the distinction is not lost.
+
+#### The expenditure side is also unresolved
+
+Exhibit C "Total Expenditures" carries **Education** as one of its nine functions, which in
+Virginia means the locality's school division — a component unit that VA ACFRs present outside the
+primary government's governmental funds. So VA APA expenditures likely have *both* an unresolved
+fund scope and MN-style component-unit consolidation (§4.7). Settling it needs the APA workbook
+plus a locality ACFR, neither of which was fetched this pass.
+
+**Verdict: both VA datasets stay `unknown`**, with the revenue exclusion recorded as a
+completeness defect rather than a scope one. At 608 rows (0.8% of the table) this is a
+proportionate place to stop; the finding is worth more than the classification would be.

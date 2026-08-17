@@ -212,17 +212,20 @@ describe('the shipped registry', () => {
       .toEqual({ scope: SCOPE.GENERAL_FUND, entryId: 'wa-sao' });        // §4.6
     expect(classify('Minnesota Office of the State Auditor City/County Finances Report', FUND_SCOPE_REGISTRY))
       .toEqual({ scope: SCOPE.TOTAL_GOVERNMENTAL, entryId: 'mn-osa' });  // §4.7
+    expect(classify('Ohio Auditor of State Summarized Annual Financial Reports', FUND_SCOPE_REGISTRY))
+      .toEqual({ scope: SCOPE.TOTAL_GOVERNMENTAL, entryId: 'oh-aos' });  // §4.8
   });
 
-  it('has exactly one total_governmental entry, and it carries the entity caveat', () => {
-    // MN OSA is the first source at the Total Governmental level, and the only
-    // one whose evidence records a reporting-entity residue rather than a tie.
-    // SCOPE-02's `reporting_entity` column is what resolves it (RECON §4.7); if a
-    // second total_governmental source appears before then, this forces a look at
-    // whether it has the same caveat.
+  it('every total_governmental entry states its reporting entity', () => {
+    // The dimension fund_scope cannot express (RECON §4.7). SCOPE-02 adds a
+    // `reporting_entity` column; until then, each entry at this level must say
+    // where it stands, so the SCOPE-02 migration has its inputs already written
+    // down rather than needing every source re-probed.
     const totGov = FUND_SCOPE_REGISTRY.filter((e) => e.scope === SCOPE.TOTAL_GOVERNMENTAL);
-    expect(totGov.map((e) => e.id)).toEqual(['mn-osa']);
-    expect(totGov[0].evidence.figures).toMatch(/reporting-entity not fund-type/);
+    expect(totGov.map((e) => e.id).sort()).toEqual(['mn-osa', 'oh-aos']);
+    for (const e of totGov) {
+      expect(e.evidence.figures, e.id).toMatch(/REPORTING ENTITY|reporting-entity/);
+    }
   });
 
   it('does not let state-acfr-gf claim the Texas or CAFR variants', () => {
@@ -253,7 +256,6 @@ describe('the shipped registry', () => {
     // later cannot quietly start claiming a family that owes evidence.
     for (const s of [
       'CA State Controller — Government Compensation in California (publicpay.ca.gov)',
-      'Ohio Auditor of State Summarized Annual Financial Reports',
       'Virginia APA Comparative Report',
       'Transparent Utah',
       'Leyden — MA General Fund Expenditures',
