@@ -51,6 +51,23 @@ export const FUND_SCOPE_REGISTRY = [
     },
   },
 
+  {
+    id: 'ca-sco-city-rev',
+    match: /^CA State Controller - Revenues$/,
+    scope: SCOPE.ALL_FUNDS,
+    evidence: {
+      document: 'City of Modesto FY2024 ACFR, governmental-funds Statement of Revenues, '
+              + 'Expenditures and Changes in Fund Balances (docs/Modesto/modesto-fy2024.pdf p.81)',
+      figures: 'ACFR Total Governmental revenue $322,089,879 + SCO enterprise & ISF revenue '
+             + '$321,804,947 (Internal Service 117,449,007 + Water 92,984,900 + Sewer 74,992,280 '
+             + '+ Solid Waste 17,525,194 + Other 16,688,643 + Airport 2,164,923) = $643,894,826, '
+             + 'equal to SCO\'s reported total $643,894,826 — ties to the dollar. ACFR General '
+             + 'Fund revenue alone is $225,256,710, so the SCO figure is NOT General Fund. The '
+             + 'PDF\'s five governmental columns sum internally to 322,089,879, confirming the '
+             + 'Total Governmental column was read correctly.',
+    },
+  },
+
   // ── NOT YET EVIDENCED ─────────────────────────────────────────────────────
   // Deliberately absent, each for a stated reason. RECON §1.8 tracks what each
   // one owes. The three siblings of the entry above are worth naming here because

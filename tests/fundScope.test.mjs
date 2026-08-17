@@ -189,17 +189,22 @@ describe('the shipped registry', () => {
     });
   });
 
-  it('classifies the one reconciled source', () => {
+  it('classifies each reconciled source', () => {
+    // One assertion per evidenced entry. Each pairs with a numbered section of
+    // SCOPE-01-RECON.md; adding one here without adding one there is the thing
+    // the evidence rule exists to make impossible.
     expect(classify('CA State Controller - Expenditures', FUND_SCOPE_REGISTRY))
-      .toEqual({ scope: SCOPE.ALL_FUNDS, entryId: 'ca-sco-city-exp' });
+      .toEqual({ scope: SCOPE.ALL_FUNDS, entryId: 'ca-sco-city-exp' });   // §2.1
+    expect(classify('CA State Controller - Revenues', FUND_SCOPE_REGISTRY))
+      .toEqual({ scope: SCOPE.ALL_FUNDS, entryId: 'ca-sco-city-rev' });   // §4.1
   });
 
-  it('leaves the Modesto tie\'s three SCO siblings UNKNOWN', () => {
-    // The Modesto reconciliation is expenditure-side and city-side. Extending it
-    // to these would be classification by momentum -- RECON §2.2. When each earns
-    // its own tie in Task 4, this test is what has to be deliberately updated.
+  it('leaves the CA SCO COUNTY strings UNKNOWN', () => {
+    // Both Modesto ties are city-side. The SCO *Counties* Annual Report is a
+    // different report with its own fund structure, so neither says anything
+    // about these 2,376 rows -- RECON §2.2. When they earn a county probe, this
+    // test is what has to be deliberately updated.
     for (const s of [
-      'CA State Controller - Revenues',
       'CA State Controller - County Revenues',
       'CA State Controller - County Expenditures',
     ]) {

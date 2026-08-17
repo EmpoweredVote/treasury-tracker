@@ -367,3 +367,42 @@ select encode(sha256(convert_to(string_agg(
 Incidental confirmation that the Task 2 evidence matches the stored data: Modesto FY2024
 `operating` holds `total_budget = 588042068` with `data_source = 'CA State Controller -
 Expenditures'` — the same $588,042,068 the ACFR reconciliation lands on.
+
+---
+
+## Task 4 — per-source reconciliation
+
+One reconciliation per source, against an independent document, committed one at a time.
+Sources that come out `unknown` are recorded here too — a mismatch is a finding, not a failure.
+
+### 4.1 `ca-sco-city-rev` → `all_funds`
+
+* **Source string:** `CA State Controller - Revenues` (exact, anchored)
+* **Rows claimed:** 10,446 across 479 entities, FY2003–FY2024
+* **Probe:** City of Modesto FY2024
+* **Independent document:** `docs/Modesto/modesto-fy2024.pdf` p.81, governmental-funds Statement
+  of Revenues, Expenditures and Changes in Fund Balances. Read with `pdftotext -table`
+  (`-layout` misaligns this document — see the header of `scripts/extractModesto.py`).
+
+| Component | FY2024 |
+|---|---|
+| ACFR General Fund revenue | $225,256,710 |
+| ACFR **Total Governmental** revenue | $322,089,879 |
+| SCO enterprise + ISF revenue | $321,804,947 |
+| Governmental + enterprise + ISF | **$643,894,826** |
+| **SCO's reported total** | **$643,894,826** |
+
+**Ties to the dollar.** The SCO enterprise + ISF figure is the sum of the six root-level fund
+categories stored against the SCO revenue row: Internal Service $117,449,007 + Water $92,984,900
++ Sewer $74,992,280 + Solid Waste $17,525,194 + Other $16,688,643 + Airport $2,164,923.
+
+**Two independent confirmations that the right column was read**, since a tie can be produced by
+reading the wrong column and getting lucky:
+
+1. The statement's five governmental columns sum internally to the same $322,089,879
+   (225,256,710 + 26,243,630 + 10,520,886 + 32,689,325 + 27,379,328).
+2. ACFR General Fund revenue alone is $225,256,710 — 35% of the SCO figure — so the SCO revenue
+   row is definitively **not** General Fund.
+
+**Verdict: `all_funds`.** Same shape and the same direction as the expenditure tie in §2.1,
+established separately rather than inherited from it.
