@@ -2,6 +2,8 @@
  * Budget Data Types
  */
 
+import type { FundScope } from '../data/fundScopeVocabulary';
+
 export interface SearchResult {
   categoryId: string;
   budgetId: string;
@@ -151,6 +153,10 @@ export interface Municipality {
     fiscal_year: number;
     dataset_type: 'operating' | 'revenue' | 'salaries' | 'all_funds_requirements' | 'federal_agency';
     period_label?: string | null; // non-null only for sub-annual periods (FY1976 Transition Quarter)
+    // SCOPE-01: which funds the row's total covers. OPTIONAL because the API only
+    // began returning it in 2026-08 -- absent must be read as 'unknown', never guessed.
+    // Normalise through normalizeScope() in src/data/fundScopeVocabulary.ts.
+    fund_scope?: FundScope | null;
   }>;
 }
 
@@ -173,6 +179,9 @@ export interface BudgetData {
       fetchedAt?: string | null;
     } | null;
     datasetType?: string;
+    // SCOPE-01: which funds totalBudget covers. Optional for the same reason as
+    // available_datasets.fund_scope above; absent means 'unknown'.
+    fundScope?: FundScope | null;
     // For salaries
     totalCompensation?: number;
     totalEmployees?: number;

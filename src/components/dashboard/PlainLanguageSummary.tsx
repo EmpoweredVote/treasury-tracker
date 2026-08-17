@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import ScopeLabel from '../ScopeLabel';
 import type { BudgetData, OrgFinancialSummary } from '../../types/budget';
 import { useAnimatedCounter } from '../../hooks/useAnimatedCounter';
 
@@ -362,6 +363,28 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
                 </span>
               ))}
             </p>
+          )}
+
+          {/* SCOPE-01 Task 10: which funds each figure covers, beside the source that
+              published it. Rendered for `unknown` too -- omitting the label when we have
+              not verified the scope would leave exactly the silent ambiguity this exists
+              to remove. Copy lives in src/data/fundScopeVocabulary.ts. */}
+          {(operatingData || revenueData) && (
+            <span className="mt-3 flex flex-wrap items-start gap-x-4 gap-y-2">
+              {operatingData && (
+                <ScopeLabel
+                  scope={operatingData.metadata.fundScope}
+                  datasetLabel={revenueData ? 'Money out' : undefined}
+                />
+              )}
+              {revenueData && (
+                <ScopeLabel
+                  scope={revenueData.metadata.fundScope}
+                  datasetLabel={operatingData ? 'Money in' : undefined}
+                  withExplainer={!operatingData}
+                />
+              )}
+            </span>
           )}
         </div>
 

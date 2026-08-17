@@ -5,6 +5,7 @@
  * API is the sole data source — no JSON file fallback, no hardcoded placeholder data (per D-06).
  */
 
+import { normalizeScope } from './fundScopeVocabulary';
 import type { BudgetData, BudgetCategory, FederalContext, LinkedTransactionSummary, Municipality, OrgFinancialSummary, SearchResult } from '../types/budget';
 
 // In dev: use /api which Vite proxies to the backend (avoids CORS).
@@ -129,7 +130,11 @@ function transformAPIResponse(budget: any, categories: BudgetCategory[], city?: 
       hierarchy: budget.hierarchy || [],
       dataSource: budget.data_source || budget.dataSource || 'API',
       dataSourceInfo: budget.data_source_info || budget.dataSourceInfo || null,
-      datasetType: budget.dataset_type || budget.datasetType
+      datasetType: budget.dataset_type || budget.datasetType,
+      // SCOPE-01: normalise here so every consumer sees a legal value. An absent
+      // field becomes 'unknown' rather than undefined, which is the honest reading
+      // of "the API has not told us" and survives the pre-deploy window.
+      fundScope: normalizeScope(budget.fund_scope)
     },
     categories: categories
   };

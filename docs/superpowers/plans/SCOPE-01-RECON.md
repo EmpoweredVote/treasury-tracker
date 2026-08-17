@@ -1343,3 +1343,99 @@ of trust. The JS pair is what the harness enforces from here.
 
 `--write-baseline` exists but carries a warning in both the code and the JSON: rewriting a baseline
 to silence this harness is the single action that would defeat the whole task.
+
+---
+
+## Task 10 — scope label, explainer, and the comparison guard
+
+**Copy is drafted and awaiting Chris's review (Step 3). Everything else is built.**
+
+### 10.1 🛑 There is no cross-entity comparison surface to filter
+
+Task 10 Step 4 says to *"hold `unknown`-scope rows out of cross-entity comparison surfaces — browse
+grids, per-capita rankings"*, and the spec warned UAT would see grids **"visibly shrink … by up to
+several hundred cities."**
+
+**Neither exists.** Measured across `src/`:
+
+| Surface | What it actually shows |
+|---|---|
+| `CitiesInStatePanel`, `CitiesInCountyPanel`, `CountiesInStatePanel`, `StatesInFederalPanel` | Entity **names + links**, sorted `localeCompare`. No figures, no currency formatting, no totals. |
+| `AlphaLanding` | No figures. |
+| Per-capita | Computed only **within one entity's own page** — `PlainLanguageSummary` (`total / population`), `QuickFactsRow`, and the federal `perPerson` scale. Never across entities. |
+
+A repo-wide search for per-capita arithmetic returns five hits, all single-entity. There is no
+ranking, no leaderboard, no grid of totals.
+
+**So the UAT expectation is void: nothing will shrink, because nothing currently compares.** That is
+worth stating plainly rather than letting someone hunt for a regression that cannot happen. It also
+means the honest headline changes — SCOPE-01's visible effect is *labels appearing*, not rankings
+thinning.
+
+**Step 4 is therefore implemented as a GUARD, not a filter.** `isComparableScope()` and
+`NON_COMPARABLE_SCOPES` are exported from `src/data/fundScopeVocabulary.ts` with tests pinning the
+failure direction: absent, null and unrecognised values all return `false`, so a comparison surface
+built later **cannot** slip an unlabelled figure onto a shared axis just because the field was
+missing. That is the whole value available today, and it is the part that would otherwise be got
+wrong.
+
+### 10.2 🛑 `cityBasisNotes` already discloses this by hand — and it has three holes
+
+`src/data/cityBasisNotes.ts` is a **curated** map of basis-change disclosures, rendered through
+`ComparabilityNote` + `SourceChip`, authored for cities whose series mixes bases. Nine entries:
+Long Beach, West Hollywood, San Francisco, Oakland, Fresno, Riverside, Bakersfield, San Diego,
+Berkeley.
+
+Cross-referenced against the 26 seams the Task 6 detector found:
+
+| Seam city | In `cityBasisNotes`? | Operating seam |
+|---|---|---|
+| Long Beach | ✅ | −75.0% |
+| Riverside | ✅ | −66.4% |
+| Oakland | ✅ | −59.4% |
+| Fresno | ✅ | −44.5% |
+| Bakersfield | ✅ | −43.2% |
+| San Diego | ✅ | +0.8% |
+| San Francisco | ✅ | +0.7% |
+| **Anaheim** | ❌ **NO NOTE** | **−70.1%** |
+| **Santa Ana** | ❌ **NO NOTE** | **−62.5%** |
+| **Los Angeles** | ❌ **NO NOTE** | −4.8% |
+
+**Anaheim and Santa Ana are the 2nd and 4th largest seams in the entire database and carry no
+disclosure at all.** Nevada (−57.5%, a state) and Kentucky are also undisclosed — the map is
+CA-cities-only by construction.
+
+This is the argument for SCOPE-01 in one table: a hand-curated disclosure list drifts out of date
+silently, because nothing measures whether it is complete. The seam detector does measure it.
+**Follow-up for SCOPE-02: either author the three missing notes, or derive the disclosure from
+`fund_scope` and retire the curation.** Deriving is better — it cannot fall behind.
+
+### 10.3 What was built
+
+| File | Role |
+|---|---|
+| `src/data/fundScopeVocabulary.ts` | **New.** The single reviewable home for all reader-facing scope wording, plus `normalizeScope()` / `isComparableScope()`. No copy is authored in JSX. |
+| `src/components/ScopeLabel.tsx` | **New.** The chip + expandable explainer, beside the source attribution. |
+| `src/data/fundScopeVocabulary.test.ts` | **New.** 13 tests: value set matches the CHECK constraint, every value has copy, absent→`unknown`, the comparison guard's failure direction, and two copy-tone assertions. |
+| `src/types/budget.ts` | `fundScope` on `BudgetData.metadata`, `fund_scope` on `available_datasets` — both **optional**. |
+| `src/data/dataLoader.ts` | Normalises at the boundary so every consumer sees a legal value. |
+| `src/components/dashboard/PlainLanguageSummary.tsx` | Renders the label(s), tagged "Money out" / "Money in" when both are present. |
+
+**Three deliberate choices:**
+
+1. **`unknown` renders a label rather than hiding.** Omitting it would leave precisely the silent
+   ambiguity this milestone exists to remove. It reads "Scope not established" in **neutral grey,
+   never red or amber** — an unverified scope is a gap in *our* checking, not a defect in the figure
+   or a fault of the publisher. A test asserts the copy contains no blaming language.
+2. **An absent field becomes `unknown`, never a guess.** The API only started returning
+   `fund_scope` in 2026-08 and **production does not return it yet** (verified: the field is absent
+   from a live `/budgets/:id` payload right now). So `undefined` is a real production state, and the
+   UI already handles it correctly — it says "scope not established", which is true.
+3. **All copy in one file.** Task 10 Step 3 makes Chris the reviewer; copy scattered through JSX
+   cannot be reviewed in one pass.
+
+### 10.4 Not done
+
+* **Step 3, Chris's copy review — the gate.** Nothing ships until that happens.
+* The label currently renders on the city dashboard's summary panel. Whether it should also sit on
+  the icicle/sunburst headers is a design call worth making once the copy is settled.
