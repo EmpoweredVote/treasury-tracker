@@ -14,7 +14,17 @@ this field.
 have no migration to run and no data to load** — the database is shared and TT owns the column. What
 is needed is for it to appear in your `SELECT` lists, your types, and `available_datasets`.
 
-**Six code edits, one new test.** All line numbers below were read from
+> ## ✅ IMPLEMENTED 2026-08-17 — EV-Accounts branch `feat/scope-01-fund-scope-api`, commit `ca1de8a4`
+>
+> These changes have been **made and committed** rather than left as instructions. What remains is
+> review + a run against a live DB + merge. See §7 for exactly what was and was not verified.
+>
+> **Correction to this document: it is EIGHT sites, not six.** Writing it from the SELECT lists
+> missed `TreasuryDataset` (line 112) and `CityRow.available_datasets` (line 222), plus the
+> `available_datasets` mapper inside `mapCity` (line 333). All eight are listed in §2 and all eight
+> are in the commit.
+
+**Eight code edits, one new test.** All line numbers below were read from
 `backend/src/lib/treasuryService.ts` on 2026-08-17 (file is 1,445 lines). ⚠ The SCOPE-01 plan cited
 older numbers (420/458/489/509/767/789/842/970); they had drifted by ~10 lines, so trust the
 anchors quoted here over any number.
@@ -54,7 +64,27 @@ double-count hazard for no benefit.
 
 ---
 
-## 2. The six edits
+## 2. The eight edits
+
+### 2.0 `interface TreasuryDataset` — line 112 (⚠ missed in this doc's original count)
+
+The `available_datasets` entry type. Add `fund_scope: string;` — this is what §2.5 populates.
+
+### 2.0b `CityRow.available_datasets` — line 222 (⚠ also missed)
+
+The raw row shape behind it: widen the inline
+`Array<{ fiscal_year; dataset_type; period_label }>` to carry `fund_scope: string`.
+
+### 2.0c the `available_datasets` mapper in `mapCity()` — line 333 (⚠ also missed)
+
+```ts
+available_datasets: (row.available_datasets ?? []).map((d) => ({
+  fiscal_year: Number(d.fiscal_year),
+  dataset_type: d.dataset_type,
+  period_label: d.period_label ?? null,
+  fund_scope: d.fund_scope,        // ← ADD
+})),
+```
 
 ### 2.1 `interface BudgetRow` — line 225
 
@@ -227,3 +257,34 @@ Ship whenever suits. TT Task 10 starts when it lands.
 
 **Questions:** the evidence for every classification, including the sources that came out `unknown`
 and why, is in `docs/superpowers/plans/SCOPE-01-RECON.md` on `feat/scope-01`.
+
+---
+
+## 7. What was verified, and what was not
+
+Implemented on EV-Accounts branch `feat/scope-01-fund-scope-api`, commit `ca1de8a4`
+(2 files, +49/−3).
+
+**Verified:**
+
+| Check | Result |
+|---|---|
+| `tsc --noEmit` | clean |
+| Backend suite (`cd backend && npm test`) | **1,011 passed / 9 skipped, 84 files** — no regressions |
+| Modified `available_datasets` `json_build_object` run against the live DB | ✅ returns `fund_scope` per entry. Modesto comes back `all_funds` for operating/revenue and `unknown` for salaries **in one payload** — which is exactly why scope belongs at dataset level |
+| Modified `BudgetRow` SELECT (with its LATERAL joins) run against the live DB | ✅ Modesto FY2024 operating → `fund_scope: 'all_funds'`, `total_budget: 588042068` |
+
+**NOT verified — needs one run against a live DB before merge:**
+
+* The new integration test is **collected but skipped** locally. The suite gates on `hasLiveDb` and
+  no `DATABASE_URL` was available. It parses and registers (the file went from 3 tests to 4); it has
+  not executed. Run it with a real `DATABASE_URL` before merging.
+
+**Pre-existing, unrelated, not fixed:** the **root** `vitest.config.ts` cannot resolve
+`vitest/config` because there is no root `node_modules`, so
+`vitest run tests/integration/…` from the repo root fails. Confirmed by stashing: it fails
+identically on unmodified `master`. The backend config picks those files up as
+`../tests/integration/…` and works fine, which is how the suite above was run.
+
+**Left alone deliberately:** the repo had ~20 untracked `backend/.tmp-*` files and directories
+before this work. None were touched, added or removed.
