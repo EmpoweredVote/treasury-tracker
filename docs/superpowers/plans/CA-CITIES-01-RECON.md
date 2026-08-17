@@ -100,9 +100,68 @@ Chosen to calibrate because it has the richest existing SCO tree in the cohort
 (**FY2024: 32 categories / 83 line items operating, 39 / 83 revenue**), which is the strongest
 available test of whether superseding costs depth.
 
-- **Source recon (Task 4):** not started.
-- **Window:** not set.
-- **Buckets:** none.
+**Source recon (Task 4): COMPLETE 2026-08-16. Series is usable.**
+
+Modesto publishes **31 years, FY1994-95 through FY2024-25**, through a CivicPlus ArchiveCenter
+at `https://www.modestogov.com/ArchiveCenter/ViewFile/Item/<id>`. Item ids are pinned in
+`scripts/fetchCaCities.mjs`. **A plain GET works — no `Sec-Fetch-*` WAF workaround needed**;
+that was an Oregon-cities requirement and does not apply here.
+
+Fiscal year is bound from each document's own period sentence ("Year Ended June 30, 2025"),
+never from the archive title, which uses the span form ("FY 2024-25").
+
+#### ⚠ The window is FY2002–FY2025, 23 years. Four exclusions, none of them a parser problem
+
+| Years | Finding | Disposition |
+|---|---|---|
+| FY1995–1999 | **Image-only scans** — ~1 char/page (e.g. FY1995: 155 chars across 155 pages) | Excluded. No OCR recovery; that class of work returned zero rows in v2.22 |
+| FY2000–2001 | **Pre-GASB-34 format** — "Combined Statement of Revenues, Expenditures and Changes in Fund Balances – All Governmental Fund Types", not the modern governmental-funds statement | **Deferred, not refused.** Needs a second extractor config. See the open question below |
+| FY2009 | **Image-only scan** — 236 chars across 148 pages, cover page only, despite neighbours on both sides being clean | Excluded. Isolated, so the walk continues either side |
+| — | FY2002–2008, FY2010–2025 all locate a clean two-page statement with a `General` column and whole-dollar amounts | **23 loadable years** |
+
+#### ⚠ THE SPEC WAS WRONG: this DOES buy recency and pre-2003 history
+
+The spec states "ACFR actuals top out at FY2024, the same year SCO already reaches" and that
+this is explicitly not a recency milestone. **That is false for Modesto.** Its ACFR series
+reaches **FY2025**, a year beyond SCO's ceiling, and **FY2002**, a year below SCO's FY2003 floor.
+
+Both fall outside the overlap and so have nothing to reconcile against — they are recorded
+`NO-SCO-ROW` and load on that basis. Concretely, of the 23 loadable years:
+
+- **21 overlap** SCO (FY2003–2008, FY2010–2024) → the reconciliation set
+- **2 do not** (FY2002, FY2025) → new data, no second reporter to compare
+
+Whether the other four cities also publish an FY2025 should be checked at their recon, and the
+spec's claim amended once the cohort is known rather than from this one city.
+
+#### ⚠ Decoy statement pages — three distinct kinds, all observed
+
+Selecting the statement by title alone picks a wrong page in three different ways here:
+
+1. **Table of contents** (every year) — lists the statement title.
+2. **Statistical section**, "Changes in Fund Balances of Governmental Funds – Last Ten Fiscal
+   Years" (every year) — a ten-year summary, not the statement.
+3. **⚠ Management's Discussion & Analysis** — FY2008 p24 reprints the exact heading
+   "Statement of Revenues, Expenditures, and Changes in Fund Balances / Governmental Funds"
+   over a **summarized Major/Non-major table**. This is the dangerous one: it is not obviously
+   a decoy, and its aggregated figures would load as plausible-looking wrong numbers. The real
+   statement is p36–37.
+4. **Combining statements for NONMAJOR funds** (FY2015 p114/p116) — right title, wrong scope.
+
+Statement pages resolved by content, per year: FY2002 p28 · FY2003 p36 · FY2004 p32 · FY2005 p36
+· FY2006 p34 · FY2007 p34 · FY2008 **p36** · FY2010 p34 · FY2011 p38 · FY2012 p38 · FY2013 p42 ·
+FY2014 p42 · FY2015 p44 · FY2016 p46 · FY2017 p42 · FY2018 p42 · FY2019 p46 · FY2020 p50 ·
+FY2021 p56 · FY2022 p60 · FY2023 p64 · FY2024 p81 · FY2025 p93. Each spans two pages.
+
+#### Open question for Chris — FY2000 and FY2001
+
+They are readable, they sit below SCO's floor so they would be pure new history, and they need a
+**second extractor config** for the pre-GASB-34 layout. The spec says "max available depth", but
+WA-CITIES-01's hard-won rule was that an era-split is exactly the work that ends a window. Two
+years of new history against a second config is a judgement call, not a mechanical one — flagged
+rather than decided.
+
+- **Buckets:** none yet — reconciliation runs at Task 6, after the extractor exists.
 
 ### Stockton
 

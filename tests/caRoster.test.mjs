@@ -43,9 +43,30 @@ describe('CA roster integrity', () => {
   });
 
   it('treats a city with no reconciled years as not yet loadable', () => {
-    // fys is filled by each city's recon task; until then nothing is loadable,
-    // so a loader that runs early has nothing to write rather than something wrong.
-    expect(loadableCities()).toEqual([]);
+    // fys is filled by each city's recon task, so this set grows as the milestone
+    // proceeds. Asserted as an invariant rather than a snapshot: a city is
+    // loadable exactly when its recon gave it years, so a loader run against an
+    // un-recon'd city has nothing to write rather than something wrong.
+    const withYears = CA_CITIES.filter((c) => c.fys.length > 0).map((c) => c.name);
+    expect(loadableCities().map((c) => c.name)).toEqual(withYears);
+    for (const c of CA_CITIES) {
+      if (c.fys.length === 0) expect(loadableCities()).not.toContain(c);
+    }
+  });
+
+  it('gives Modesto the window its source recon established', () => {
+    // Task 4, 2026-08-16: 23 years. FY1995-99 and FY2009 are image-only scans,
+    // FY2000-01 are pre-GASB-34 and deferred. FY2002 sits below SCO's floor and
+    // FY2025 above its ceiling, so both load with nothing to reconcile against.
+    const modesto = cityByName('Modesto');
+    expect(modesto.fys).toHaveLength(23);
+    expect(modesto.fys).not.toContain(2009);
+    expect(modesto.fys).not.toContain(2001);
+    expect(modesto.fys.at(0)).toBe(2002);
+    expect(modesto.fys.at(-1)).toBe(2025);
+    // The two years with no SCO counterpart.
+    const [lo, hi] = modesto.scoWindow;
+    expect(modesto.fys.filter((fy) => fy < lo || fy > hi)).toEqual([2002, 2025]);
   });
 
   it('resolves a city by name and returns undefined for a stranger', () => {

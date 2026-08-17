@@ -91,7 +91,25 @@ export const CA_CITIES = [
     perCapitaBand: null,
     docDir: 'docs/Modesto',
     pdfPrefix: 'modesto',
-    fys: [],
+    // Source recon 2026-08-16 (Task 4). Modesto publishes 31 years, FY1995–FY2025,
+    // through a CivicPlus ArchiveCenter. Four exclusions, all for source-document
+    // reasons and none for a parser reason:
+    //   FY1995–1999  image-only scans (~1 char/page). No OCR recovery — that class
+    //                of work returned zero rows in v2.22.
+    //   FY2000–2001  PRE-GASB-34 format: "Combined Statement … All Governmental
+    //                Fund Types", not the modern governmental-funds statement.
+    //                A second extractor config, deferred not refused — see the
+    //                recon document.
+    //   FY2009       image-only scan (236 chars / 148 pages, cover page only).
+    //                Isolated, so the walk continues either side of it.
+    // Leaves 23 loadable years. NOTE the two that fall OUTSIDE the SCO window and
+    // so have nothing to reconcile against: FY2002 (below SCO's FY2003 floor) and
+    // FY2025 (above its FY2024 ceiling).
+    fys: [
+      2002, 2003, 2004, 2005, 2006, 2007, 2008,
+      2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017,
+      2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025,
+    ],
     scoWindow: [2003, 2024],
   },
   {
