@@ -526,3 +526,122 @@ genuinely absent from the SCO county revenue figure and this entry should be wit
 
 **Verdict: `all_funds`, on structural evidence plus an explained 0.547% residue.** Recorded as the
 registry's weakest link rather than presented as equivalent to the dollar ties.
+
+### 4.4 🛑 MA — the "Schedule A — Special Revenue Funds" label is WRONG, and it invalidates §1.4
+
+**This section retracts the premise on which the fifth CHECK value was approved.** No MA registry
+entry is written yet; what follows is a finding.
+
+#### The finding
+
+`X — MA DLS Schedule A — Special Revenue Funds` (1,560 rows, 336 towns) does **not** contain
+Special Revenue Funds. It contains **General Fund expenditures**. Four independent confirmations:
+
+**1. There is no Special Revenue Funds source file.** `docs/MA/` holds exactly two report
+families, both covering FY2002–FY2025 continuously:
+
+```
+GenFundExpenditures2002.xlsx … GenFundExpenditures2025.xlsx   (24 files)
+GenFundRevenues2002.xlsx     … GenFundRevenues2025.xlsx       (24 files)
+```
+
+Every one of the 16,816 MA rows came from one of those two **General Fund** reports. The document
+the label names was never loaded.
+
+**2. The figures are byte-identical to the General Fund expenditure file.**
+`GenFundExpenditures2023.xlsx`, whose columns are `DOR Code | Municipality | Fiscal Year | General
+Government | Public Safety | Education | Public Works | Human Services | Culture and Recreation |
+Fixed Costs | Intergov Assessments | Other Expenditures | Debt Service | Total Expenditures`:
+
+| Town | `Total Expenditures` in the GF file | Stored under the "Special Revenue Funds" label |
+|---|---|---|
+| Arlington | $191,585,207 | $191,585,207 |
+| Amherst | $82,129,575 | $82,129,575 |
+| Newton | $482,585,813 | $482,585,813 |
+| Somerville | $294,455,806 | $294,455,806 |
+
+The revenue side matches `GenFundRevenues2023.xlsx` `Total Revenues` just as exactly (Arlington
+$203,016,856, Amherst $104,580,158, Newton $500,766,364, Somerville $327,899,203).
+
+**3. The stored category tree is the General Fund expenditure taxonomy.** Arlington's FY2023
+"Special Revenue Funds" row carries Education, Fixed Costs, Debt Service, Public Safety, Public
+Works, General Government, Culture and Recreation, Intergov Assessments, Human Services — the
+same nine categories as its own FY2019 and FY2020 rows labelled `MA General Fund Expenditures`.
+No revolving funds, no grants, no CPA.
+
+**4. The series is continuous across the label change, and the label split is arbitrary.**
+Arlington operating: FY2020 $166.8M (GF label) → FY2021 $170.6M → FY2023 $191.6M → FY2025 $214.3M
+(SRF label). Smooth. A genuine switch to special-revenue-only reporting would collapse the series.
+And the two labels are applied to *the same fiscal years* across different towns:
+
+| FY | Towns labelled `MA General Fund Expenditures` | Towns labelled `Schedule A — Special Revenue Funds` |
+|---|---|---|
+| 2021 | 45 | 306 |
+| 2022 | 28 | 323 |
+| 2023 | 30 | 321 |
+| 2024 | 26 | 325 |
+| 2025 | 51 | 300 |
+
+No data model assigns special-revenue-fund reporting to a fluctuating 26–51 towns a year. It is a
+loader labelling artifact — the source string was named after the DLS *form* (Schedule A is the
+form containing the General Fund section **and** other sections) with a section name appended that
+does not describe what was extracted.
+
+#### Consequence: `special_revenue` has no user
+
+§1.4 reported these 1,560 rows as Special Revenue Funds and that finding is **withdrawn**. It was
+derived from the source label — precisely the "self-description is a hint, not evidence" trap this
+plan warns about, applied by this document to itself. The fifth CHECK value was approved on that
+basis and currently classifies nothing.
+
+The column and constraint are harmless as they stand (the value is simply unused), so nothing has
+been reverted unilaterally. **Chris's call.**
+
+#### The scope probe itself — Amherst FY2023, and it is not clean
+
+Independent document: `docs/Amherst/amherst-fy2023.pdf` (Town of Amherst audited FY2023 financial
+statements, governmental-funds statement p.19), fetched from amherstmarec.org.
+
+| Comparison | Value | DLS off by |
+|---|---|---|
+| **DLS `GenFundExpenditures` total** | **$82,129,575** | |
+| vs ACFR **General Fund** expenditures | $84,315,185 | **−2.59%** |
+| vs ACFR Total Governmental expenditures | $103,111,657 | −20.35% |
+| **DLS `GenFundRevenues` total** | **$104,580,158** | |
+| vs ACFR General Fund revenues | $91,848,420 | +13.86% |
+| vs ACFR Total Governmental revenues | $110,746,169 | −5.57% |
+| DLS total **excluding** its Transfers column ($87,237,531) vs ACFR GF revenues | $91,848,420 | −5.02% |
+| …vs ACFR Total Governmental revenues | $110,746,169 | −21.23% |
+
+**Expenditures point clearly at `general_fund`** — 2.59% away, with Total Governmental 20.35%
+away. The residual is consistent with MA's statutory/UMAS basis differing from GAAP, which is
+expected and well documented.
+
+**Revenues do not resolve.** The DLS revenue report carries a `Transfers` column, and that column
+is **not a General Fund figure**:
+
+| | Value | DLS Transfers off by |
+|---|---|---|
+| DLS `Transfers` | $17,342,627 | |
+| ACFR **General Fund** transfers in | $3,373,920 | **+414.02%** |
+| ACFR **all governmental funds** transfers in | $17,053,625 | **+1.69%** |
+
+So DLS's published revenue total is a **hybrid** — General-Fund-shaped revenue lines plus an
+all-governmental-funds transfers figure. As published it sits 5.57% from Total Governmental and
+13.86% from General Fund; stripped of transfers it sits 5.02% from General Fund and 21.23% from
+Total Governmental.
+
+#### Verdict: MA stays `unknown` pending a second probe
+
+Expenditures are probably `general_fund`, and revenues are probably `general_fund` plus a
+contaminating transfers column. But "probably" on **one town** is not what this milestone accepts,
+and Amherst is a poor sole witness — it belongs to a regional school district, which distorts
+intergovernmental and transfer flows relative to a town that runs its own schools.
+
+**What the second probe needs:** a town that operates its own school department, so the
+intergovernmental and transfer lines are ordinary. Newton or Somerville would serve; both were
+already confirmed against the DLS files above, and both municipal sites returned HTTP 403 to
+scripted fetches (the same WAF that blocked Arlington), so their ACFRs need another route.
+
+16,816 rows — 21% of the database — turn on this. It is the largest single block of `unknown` and
+the most valuable remaining reconciliation.
