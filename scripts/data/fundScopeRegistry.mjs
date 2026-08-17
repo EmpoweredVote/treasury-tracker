@@ -114,6 +114,31 @@ export const FUND_SCOPE_REGISTRY = [
     },
   },
 
+  {
+    id: 'state-acfr-gf',
+    match: / State ACFR — General Fund/,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'TWO independent state ACFRs, both the governmental-funds Statement of Revenues, '
+              + 'Expenditures and Changes in Fund Balances: State of Utah FY2024 '
+              + '(docs/Utah/utah-state-fy2024-acfr.pdf p.43) and State of Connecticut FY2024 '
+              + '(docs/Connecticut/ct-state-fy2024-acfr.pdf p.36). Both expressed in thousands.',
+      figures: 'UTAH FY2024 — printed General Fund column: Total Revenues 11,209,884 and Total '
+             + 'Expenditures 12,493,247 (thousands), matching the stored $11,209,884,000 and '
+             + '$12,493,247,000 EXACTLY. Its Total Governmental columns are 23,669,654 and '
+             + '22,596,317, so the stored figure is 47.4% / 55.3% of total governmental. '
+             + 'CONNECTICUT FY2024 — printed General column: Total Revenues 25,084,660 and Total '
+             + 'Expenditures 23,588,666 (thousands), matching the stored $25,084,660,000 and '
+             + '$23,588,666,000 EXACTLY. Its Total Governmental columns are 38,395,042 and '
+             + '39,662,421, so the stored figure is 65.3% / 59.5% of total governmental. '
+             + 'In both documents the General Fund is the FIRST numeric column. Utah was chosen '
+             + 'deliberately as the cohort\'s flagged-complication state — its income-tax revenue '
+             + 'is constitutionally earmarked into a separate major fund (Income Tax, 8,095,776) '
+             + 'that the printed General Fund column excludes — and Connecticut as an ordinary '
+             + 'one, so the mold is confirmed on both the hard and the easy case.',
+    },
+  },
+
   // ── NOT YET EVIDENCED ─────────────────────────────────────────────────────
   // Deliberately absent, each for a stated reason. RECON §1.8 tracks what each
   // one owes. The three siblings of the entry above are worth naming here because

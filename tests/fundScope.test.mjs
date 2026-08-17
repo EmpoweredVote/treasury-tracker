@@ -202,6 +202,23 @@ describe('the shipped registry', () => {
       .toEqual({ scope: SCOPE.ALL_FUNDS, entryId: 'ca-sco-county-exp' }); // §4.2
     expect(classify('CA State Controller - County Revenues', FUND_SCOPE_REGISTRY))
       .toEqual({ scope: SCOPE.ALL_FUNDS, entryId: 'ca-sco-county-rev' }); // §4.3
+    expect(classify('Utah State ACFR — General Fund (FY2020 actual, GAAP basis)', FUND_SCOPE_REGISTRY))
+      .toEqual({ scope: SCOPE.GENERAL_FUND, entryId: 'state-acfr-gf' }); // §4.5
+    expect(classify('Connecticut State ACFR — General Fund Revenue (FY2024 actual, GAAP basis)', FUND_SCOPE_REGISTRY))
+      .toEqual({ scope: SCOPE.GENERAL_FUND, entryId: 'state-acfr-gf' }); // §4.5
+  });
+
+  it('does not let state-acfr-gf claim the Texas or CAFR variants', () => {
+    // Texas calls its principal operating fund the General REVENUE Fund, and the
+    // pre-GASB-34 rows are a different statement on a different basis. Both are
+    // one word away from the state pattern and neither is evidenced -- RECON §1.5.
+    expect(classify('Texas State ACFR — General Revenue Fund (FY2015 actual, GAAP basis)', FUND_SCOPE_REGISTRY))
+      .toEqual({ scope: SCOPE.UNKNOWN, entryId: null });
+    expect(classify('Wisconsin State CAFR — General Fund Revenue (FY2000 actual, pre-GASB-34 combined statement basis)', FUND_SCOPE_REGISTRY))
+      .toEqual({ scope: SCOPE.UNKNOWN, entryId: null });
+    // ...and it must not reach down to city/county ACFRs either.
+    expect(classify('City of Tucson ACFR — General Fund Expenditure by Function (FY2018 actual, GAAP basis)', FUND_SCOPE_REGISTRY))
+      .toEqual({ scope: SCOPE.UNKNOWN, entryId: null });
   });
 
   it('records that ca-sco-county-rev is the one entry without a dollar tie', () => {
@@ -228,7 +245,6 @@ describe('the shipped registry', () => {
       'Adams — MA DLS General Fund Revenue by Source',
       'Acushnet — MA DLS Schedule A — Special Revenue Funds',
       'WA State Auditor — Spokane Annual Report',
-      'Utah State ACFR — General Fund (FY2020 actual, GAAP basis)',
       'Wisconsin State CAFR — General Fund Revenue (FY2000 actual, pre-GASB-34 combined statement basis)',
       'City of Tucson ACFR — General Fund Expenditure by Function (FY2018 actual, GAAP basis)',
       'Texas State ACFR — General Revenue Fund (FY2015 actual, GAAP basis)',
