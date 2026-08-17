@@ -45,6 +45,9 @@ Settled during brainstorming 2026-08-16. Not open at plan time.
 | **Divergence policy** | **Unexplained divergence blocks that year's load and goes to recon** | Chris's call, verbatim: "when they're off, that should be a flag to be better explored more than anything else." The flag is the deliverable |
 | **Sequencing** | **Modesto first as the calibration city, then the other four** | The threshold must be measured before it can gate anything. See §4 |
 | **County nodes** | **None needed** | All five counties already exist as nodes: Orange, San Joaquin, Los Angeles, Stanislaus, San Diego |
+| **Depth trade-off** | **Deferred to calibration evidence, not pre-decided** | Chris, 2026-08-16. If ACFR proves materially coarser than SCO across the cohort, the call is made once, for the cohort, with §4.2's measurements in hand. See §4.4 |
+| **Substitution** | **San Bernardino → Huntington Beach → Glendale**, by population | Chris, 2026-08-16, with the standing note that **the rest of the SCO-only cities are expected to follow eventually** — this cohort is the first slice of a longer CA build-out, not a one-off |
+| **Per-capita** | **Set `population_year` during the load; gate per-capita display on it being present** | Chris, 2026-08-16. Where a properly-yeared population cannot be sourced for a year, per-capita is **off** for that year rather than inheriting a band — the WA-CITIES-01 rule |
 
 **Assumed by precedent, not re-litigated:** General Fund basis only · municipality-scoped
 enrichment, never NULL · source-safe tree sync only, never `treasury_sync_city_budget` ·
@@ -218,12 +221,17 @@ is a real defect in how TT represents its own data. Candidate follow-up: `SRCSTD
 
 ---
 
-## 8. Open questions for review
+## 8. Review outcome — all three questions resolved 2026-08-16
 
-1. **Depth trade-off (§4.4)** — if ACFR proves materially coarser than SCO across the cohort,
-   is superseding still right? The spec defers this to calibration evidence rather than
-   pre-deciding it; confirm that deferral is what you want.
-2. **Substitution list (§5)** — San Bernardino → Huntington Beach → Glendale, by population.
-   Confirm before recon, since substituting changes the roster.
-3. **Per-capita (§3)** — set `population_year` during the load, or leave per-capita off for
-   these five until a properly-yeared population source is loaded?
+Reviewed and approved by Chris. Nothing here is open at plan time; each answer is recorded in
+the §2 decision table.
+
+1. **Depth trade-off (§4.4)** — *deferred to calibration evidence*, as proposed. Do not
+   pre-decide whether a coarser ACFR still supersedes; decide it once for the cohort from
+   Modesto's measurements.
+2. **Substitution list (§5)** — *confirmed* as San Bernardino → Huntington Beach → Glendale,
+   with the standing note that the remaining SCO-only CA cities are expected to follow in later
+   milestones. This cohort is the first slice, not the whole intent.
+3. **Per-capita (§3)** — *set `population_year` during the load and gate per-capita on it.*
+   Per-capita is suppressed for any year lacking a properly-yeared population rather than
+   inheriting a neighbouring year's band.
