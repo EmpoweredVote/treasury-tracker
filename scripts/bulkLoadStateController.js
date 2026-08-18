@@ -26,6 +26,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { parseArgs } from 'node:util';
+import { classifySyncResult } from './lib/rpcResult.mjs';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -231,6 +232,12 @@ async function main() {
   console.log(`   Types: ${types.join(', ')}`);
   console.log(`   Source date: ${fetchDate}${values['source-date'] ? '' : ' (today)'}\n`);
 
+  // Every write the RPC refused, across every dataset and fiscal year. Collected
+  // rather than thrown so one bad city does not abandon the rest of the run, and
+  // reported in full at the end with a non-zero exit — the whole point is that
+  // these must not pass silently again.
+  const failures = [];
+
   for (const dsType of types) {
     const ds = DATASETS[dsType];
     if (!ds) { console.error(`Unknown type: ${dsType}`); continue; }
@@ -292,14 +299,37 @@ async function main() {
 
       for (const [cityName, cityData] of wouldImport) {
         const result = await importCityData(cityName, state, cityData.population, cityData.rows, fy, ds.type, ds, fetchDate);
-        if (result && result.rows_inserted) {
-          totalItems += result.rows_inserted;
-          citiesImported++;
-          process.stdout.write(`\r  Imported ${citiesImported}/${wouldImport.length} cities (${totalItems.toLocaleString()} items)...`);
+        // ⚠ The RPC reports failure INSIDE a successful call — see
+        // scripts/lib/rpcResult.mjs. The old `if (result && result.rows_inserted)`
+        // silently treated a REFUSED write as "nothing to do".
+        const outcome = classifySyncResult(result);
+        if (!outcome.ok) {
+          failures.push({ city: cityName, fy, dataset: ds.type, kind: outcome.kind, message: outcome.message });
+          process.stdout.write('\r');
+          console.error(`  ✗ ${cityName} FY${fy} ${ds.type}: ${outcome.message}`);
+          continue;
         }
+        totalItems += outcome.rowsInserted;
+        citiesImported++;
+        process.stdout.write(`\r  Imported ${citiesImported}/${wouldImport.length} cities (${totalItems.toLocaleString()} items)...`);
       }
       console.log(`\n  ✅ ${citiesImported} cities imported, ${totalItems.toLocaleString()} items; ${skippedCount} skipped (other-source data preserved)`);
     }
+  }
+
+  if (failures.length > 0) {
+    console.error(`\n❌ ${failures.length} write(s) were REFUSED and nothing was loaded for them:\n`);
+    for (const f of failures) {
+      console.error(`   ${f.city} FY${f.fy} ${f.dataset}  [${f.kind}]`);
+      console.error(`      ${f.message}`);
+    }
+    console.error('\n   These are NOT skips. A skip preserves existing data on purpose and is');
+    console.error('   counted separately above; these are writes the database declined. An');
+    console.error('   `ambiguous target` means the city-year now holds more than one row for');
+    console.error('   that (fund_scope, basis) and the RPC refuses to guess which to update —');
+    console.error('   resolve the duplicate, do not re-run and hope.');
+    console.error('\n   Exiting non-zero so this cannot be mistaken for a clean run.\n');
+    process.exit(1);
   }
 
   console.log('\n🎉 State Controller import complete!\n');
