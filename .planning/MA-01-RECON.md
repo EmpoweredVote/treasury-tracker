@@ -324,9 +324,15 @@ Both axes are now evidenced, so all **16,816** rows are classifiable as
    boundary (FY2016 and FY2024 sit on opposite sides), so each dataset is safe to
    classify as a unit. The same applies to revenue's own FY2002–2020 /
    FY2021–2025 split.
-3. **Correct the 1,560 mislabelled `Special Revenue Funds` labels.** Production
-   write; label only, so `figures_frozen` must NOT move. Needs its own go-ahead
-   (SCOPE-02 Ruling 3 pattern).
+3. ~~Correct the 1,560 mislabelled `Special Revenue Funds` labels.~~ **DONE
+   2026-08-18** — migration `20260818000300`, 1,560 rows relabelled to
+   `<Town> — MA General Fund Expenditures`, 0 remaining. `figures_frozen`
+   unchanged at `3bc12db8…82a2`, total rows unchanged at 79,939, all four
+   harnesses exit 0, and the partition gate now reads **ma-dls-gf-exp
+   8,403/8,403**. The ids are committed at `scripts/data/ma01RelabelledIds.json`
+   because the reversal cannot key on the label: 180 rows in FY2021–2025 already
+   carried the correct label before the write, so a year-scoped revert would
+   corrupt rows this migration never touched.
 4. ~~Second-town confirmation~~ — **DONE (§4b, Lexington).** It found a real
    over-claim: the expenditure precision was Natick-specific. A third town would
    further characterise the expenditure spread, but the scope conclusion no
