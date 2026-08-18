@@ -5,7 +5,8 @@
  * API is the sole data source — no JSON file fallback, no hardcoded placeholder data (per D-06).
  */
 
-import { normalizeScope } from './fundScopeVocabulary';
+import { normalizeScope, normalizeReportingEntity } from './fundScopeVocabulary';
+import { chooseDisplaySeries, normalizeBasis, type SeriesKey } from './budgetSeries';
 import type { BudgetData, BudgetCategory, FederalContext, LinkedTransactionSummary, Municipality, OrgFinancialSummary, SearchResult } from '../types/budget';
 
 // In dev: use /api which Vite proxies to the backend (avoids CORS).
@@ -57,15 +58,17 @@ export async function loadBudgetData(
 
   const apiData = await response.json();
   const budgets = Array.isArray(apiData) ? apiData : [apiData];
-  // Disambiguate by period_label: a normal year wants the null-label row; the
-  // Transition Quarter wants its labeled row. Fall back to dataset-only match so
-  // annual years still resolve if the API hasn't deployed period_label yet.
-  const budget =
-    budgets.find((b: any) => b.dataset_type === dataset && (b.period_label ?? null) === (periodLabel ?? null)) ??
-    budgets.find((b: any) => b.dataset_type === dataset) ??
-    budgets[0];
+  // SCOPE-02: choose the one series to display for this city/dataset, then pick
+  // the row belonging to it. Disambiguates by period_label along the way: a
+  // normal year wants the null-label row; the Transition Quarter wants its
+  // labeled row.
+  const series = chooseDisplaySeries(city.available_datasets ?? [], dataset);
+  const budget = pickBudgetForSeries(budgets, dataset, periodLabel ?? null, series);
   if (!budget?.id) {
-    throw new Error(`No budget found for ${municipalityName} ${year} (${dataset})`);
+    throw new Error(
+      `No budget found for ${municipalityName} ${year} (${dataset})`
+      + (series ? ` in the displayed series ${series.fundScope}/${series.basis}` : ''),
+    );
   }
 
   // Step 3: Get categories for the budget (returns nested tree with lineItems)
@@ -115,6 +118,40 @@ export async function loadLinkedTransactions(
 }
 
 /**
+ * Pick the budget row belonging to the chosen series.
+ *
+ * ⚠ Replaces `budgets.find(b => b.dataset_type === dataset)`. Once a city-year
+ * can hold two rows differing only by fund_scope/basis, that returned whichever
+ * row Postgres happened to order first — Long Beach FY2024 would have displayed
+ * $2.4B or $2.3B non-deterministically.
+ *
+ * Returning `undefined` when the chosen series has no row for this year is
+ * correct and load-bearing: the caller renders a GAP. Substituting another
+ * series' figure is exactly the defect this milestone removes.
+ */
+export function pickBudgetForSeries(
+  budgets: any[],
+  dataset: string,
+  periodLabel: string | null,
+  series: SeriesKey | null,
+): any | undefined {
+  const sameSlot = budgets.filter(
+    (b: any) => b.dataset_type === dataset && (b.period_label ?? null) === (periodLabel ?? null),
+  );
+
+  if (!series) {
+    // No series chosen (e.g. the API has not deployed the new columns yet):
+    // preserve the previous behaviour rather than failing closed.
+    return sameSlot[0] ?? budgets.find((b: any) => b.dataset_type === dataset);
+  }
+
+  return sameSlot.find(
+    (b: any) => normalizeScope(b.fund_scope) === series.fundScope
+             && normalizeBasis(b.basis) === series.basis,
+  );
+}
+
+/**
  * Transform API response to BudgetData format.
  * City object is passed separately since ev-accounts budgets don't embed municipality.
  */
@@ -134,7 +171,9 @@ function transformAPIResponse(budget: any, categories: BudgetCategory[], city?: 
       // SCOPE-01: normalise here so every consumer sees a legal value. An absent
       // field becomes 'unknown' rather than undefined, which is the honest reading
       // of "the API has not told us" and survives the pre-deploy window.
-      fundScope: normalizeScope(budget.fund_scope)
+      fundScope: normalizeScope(budget.fund_scope),
+      basis: normalizeBasis(budget.basis),
+      reportingEntity: normalizeReportingEntity(budget.reporting_entity)
     },
     categories: categories
   };
