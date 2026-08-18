@@ -145,3 +145,117 @@ export const FUND_SCOPE_EXPLAINER = {
 export function scopeLabel(scope: FundScope | null | undefined): string {
   return FUND_SCOPE_COPY[normalizeScope(scope)].label;
 }
+
+/**
+ * Basis vocabulary (SCOPE-02 Task 7).
+ *
+ * A closed-year actual and an adopted budget are not the same kind of number
+ * even when they carry the same fund scope and the same reporting entity: one
+ * is what was spent, the other is what was planned to be spent. Comparing them
+ * across entities produced the −75% cliff on Long Beach's chart that opened
+ * SCOPE-02 -- an all-funds ACTUAL compared against a General Fund ADOPTED
+ * budget. `Basis` and `normalizeBasis` live here, in the same file as
+ * `FundScope` and `normalizeScope`, rather than in `budgetSeries.ts` where a
+ * later task first introduces basis-aware series logic, because this file is
+ * SCOPE-01's single reviewable home for all reader-facing scope vocabulary and
+ * a `budgetSeries.ts` that itself needs `normalizeScope` from here would create
+ * an import cycle between the two.
+ */
+export type Basis = 'actual' | 'adopted' | 'unknown';
+
+export const BASIS_VALUES: readonly Basis[] = ['actual', 'adopted', 'unknown'] as const;
+
+/**
+ * ⚠ An ABSENT field must become `unknown`, not a guess -- the same rule
+ * normalizeScope() follows. The API only began returning `basis` in 2026-08, so
+ * `undefined` is a real production state and the honest reading of "missing" is
+ * "we have not established whether this is an actual or a budget".
+ */
+export function normalizeBasis(raw: unknown): Basis {
+  return typeof raw === 'string' && (BASIS_VALUES as readonly string[]).includes(raw)
+    ? (raw as Basis)
+    : 'unknown';
+}
+
+/**
+ * Basis copy (SCOPE-02 Task 13).
+ *
+ * ⚠ PUBLIC-FACING COPY, reviewed in one file (same rule as FUND_SCOPE_COPY).
+ *
+ * The distinction a reader needs is "what a government PLANNED to spend" versus
+ * "what it actually spent once the year closed" -- not the accounting-basis
+ * lecture (cash vs. modified accrual, encumbrances, and so on). An adopted
+ * budget is not a lesser or less-trustworthy figure; it answers a different
+ * question than an actual does, and drawing the two as consecutive points on
+ * one line is what produced the -75% Long Beach cliff that opened SCOPE-02.
+ */
+export const BASIS_COPY: Record<Basis, { label: string; short: string }> = {
+  actual: {
+    label: 'Actuals',
+    short: 'What was actually spent or received, reported after the year closed.',
+  },
+  adopted: {
+    label: 'Adopted budget',
+    short: 'The spending plan approved before the year began, not what was finally spent.',
+  },
+  unknown: {
+    label: 'Basis not established',
+    short: 'We have not verified whether this is a closed-year actual or a budget.',
+  },
+};
+
+/**
+ * Reporting-entity vocabulary (SCOPE-02 Task 7).
+ *
+ * A government's own operations ("primary government") versus its primary
+ * government plus legally separate but financially linked entities it must
+ * still report on ("component units", e.g. a housing authority or a school
+ * building corporation) are two different reporting boundaries for the same
+ * place. Absent or unrecognised becomes `unknown`, never a guess.
+ */
+export type ReportingEntity = 'primary_government' | 'incl_component_units' | 'unknown';
+
+const REPORTING_ENTITY_VALUES: readonly ReportingEntity[] =
+  ['primary_government', 'incl_component_units', 'unknown'] as const;
+
+/** Absent or unrecognised becomes `unknown`, never a guess. */
+export function normalizeReportingEntity(raw: unknown): ReportingEntity {
+  return typeof raw === 'string' && (REPORTING_ENTITY_VALUES as readonly string[]).includes(raw)
+    ? (raw as ReportingEntity)
+    : 'unknown';
+}
+
+export interface ComparableFigure {
+  fundScope?: FundScope | null;
+  basis?: Basis | null;
+  reportingEntity?: ReportingEntity | null;
+}
+
+/**
+ * Two figures may sit on a shared axis only when all THREE dimensions agree and
+ * none is `unknown`.
+ *
+ * ⚠ Stricter than SCOPE-01's `isComparableScope()`, deliberately. SCOPE-01
+ * measured MN OSA running ~7% high statewide and ~17-22% for TIF-heavy cities
+ * against an ACFR-derived total_governmental purely from the reporting-entity
+ * boundary; comparing across it is the same class of error as the fund-scope
+ * seam, at a smaller magnitude. There is still no cross-entity comparison
+ * surface in the app (SCOPE-01-RECON §10.1), so this lands as a guard rather
+ * than a visible reduction.
+ */
+export function areComparable(a: ComparableFigure, b: ComparableFigure): boolean {
+  const norm = (f: ComparableFigure) => ({
+    fundScope: normalizeScope(f.fundScope),
+    basis: normalizeBasis(f.basis),
+    reportingEntity: normalizeReportingEntity(f.reportingEntity),
+  });
+  const x = norm(a);
+  const y = norm(b);
+
+  if (x.fundScope === 'unknown' || x.basis === 'unknown' || x.reportingEntity === 'unknown') return false;
+  if (y.fundScope === 'unknown' || y.basis === 'unknown' || y.reportingEntity === 'unknown') return false;
+
+  return x.fundScope === y.fundScope
+    && x.basis === y.basis
+    && x.reportingEntity === y.reportingEntity;
+}

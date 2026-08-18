@@ -157,6 +157,8 @@ export interface Municipality {
     // began returning it in 2026-08 -- absent must be read as 'unknown', never guessed.
     // Normalise through normalizeScope() in src/data/fundScopeVocabulary.ts.
     fund_scope?: FundScope | null;
+    basis?: string | null;
+    reporting_entity?: string | null;
   }>;
 }
 
@@ -182,6 +184,8 @@ export interface BudgetData {
     // SCOPE-01: which funds totalBudget covers. Optional for the same reason as
     // available_datasets.fund_scope above; absent means 'unknown'.
     fundScope?: FundScope | null;
+    basis?: import('../data/budgetSeries').Basis | null;
+    reportingEntity?: import('../data/fundScopeVocabulary').ReportingEntity | null;
     // For salaries
     totalCompensation?: number;
     totalEmployees?: number;

@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Info } from 'lucide-react';
 import {
   FUND_SCOPE_COPY, FUND_SCOPE_EXPLAINER, normalizeScope, isComparableScope,
-  type FundScope,
+  BASIS_COPY, normalizeBasis,
+  type FundScope, type Basis,
 } from '../data/fundScopeVocabulary';
 
 /**
@@ -43,6 +44,8 @@ export const TONE: Record<FundScope, string> = {
 
 interface ScopeLabelProps {
   scope: FundScope | null | undefined;
+  /** SCOPE-02: shown as a second chip. Absent renders nothing rather than guessing. */
+  basis?: Basis | null;
   /** Optional dataset name, so a page showing two figures says which is which. */
   datasetLabel?: string;
   /** Render the shared explainer inline when expanded. Default true. */
@@ -51,7 +54,7 @@ interface ScopeLabelProps {
 }
 
 export default function ScopeLabel({
-  scope, datasetLabel, withExplainer = true, className = '',
+  scope, basis, datasetLabel, withExplainer = true, className = '',
 }: ScopeLabelProps) {
   const [open, setOpen] = useState(false);
   const resolved = normalizeScope(scope);
@@ -74,6 +77,15 @@ export default function ScopeLabel({
           {copy.label}
           <Info className="h-3 w-3 opacity-60" aria-hidden="true" />
         </button>
+        {basis != null && (
+          <span
+            title={BASIS_COPY[normalizeBasis(basis)].short}
+            className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px]
+                        font-medium ${TONE[normalizeBasis(basis) === 'unknown' ? 'unknown' : 'general_fund']}`}
+          >
+            {BASIS_COPY[normalizeBasis(basis)].label}
+          </span>
+        )}
         {!isComparableScope(resolved) && (
           <span className="text-[11px] italic text-ev-gray-400 dark:text-ev-gray-500">
             not compared across places
