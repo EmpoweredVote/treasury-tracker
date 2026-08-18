@@ -1,0 +1,120 @@
+-- MA-01: correct a FALSE data_source label on 1,560 rows.
+--
+-- Applied 2026-08-18 via mcp__supabase-local__execute_sql (DML, not DDL).
+-- Evidence of record: .planning/MA-01-RECON.md §2, §4a.
+--
+-- WHY
+--
+-- 1,560 rows across 336 municipalities, FY2021-2025, are labelled
+--   "<Town> — MA DLS Schedule A — Special Revenue Funds"
+-- A Special Revenue Fund is a DIFFERENT GOVERNMENTAL FUND TYPE from the General
+-- Fund. The label is not imprecise, it is wrong, and it takes over the operating
+-- series at FY2021 for almost every municipality in Massachusetts.
+--
+-- PROVEN WRONG TWICE, INDEPENDENTLY
+--
+-- 1. By magnitude. Special revenue funds run a small fraction of a general fund,
+--    so a handover between the two would collapse the series. Measured across
+--    every municipality present in both years, the FY2020->FY2021 operating
+--    ratio has median 1.021, mean 1.025, 345 of 350 within +/-25%, and ZERO
+--    below 0.5. The series does not collapse; it continues.
+--
+-- 2. By byte identity to the source file, which is decisive. The DLS source
+--    workbooks are committed in this repo at docs/MA/, and every MA row
+--    FY2020-2025 was compared back to its workbook cell: operating 2,095 of
+--    2,095 EXACT. These 1,560 rows carry figures identical to
+--    docs/MA/GenFundExpenditures{YYYY}.xlsx -- the GENERAL FUND expenditure
+--    workbook, whose ten columns are General Government, Public Safety,
+--    Education, Public Works, Human Services, Culture and Recreation, Fixed
+--    Costs, Intergov Assessments, Other Expenditures and Debt Service.
+--
+-- HOW THE WRONG LABEL GOT THERE
+--
+-- Two loaders. scripts/loadMaGFExcel.js reads the workbooks and stamps
+-- "MA General Fund Expenditures". scripts/scrapeMaDLS.js scrapes the DLS Gateway
+-- and names rows after the GATEWAY REPORT it was pointed at, one of which is the
+-- special-revenue report. The FY2021-2025 rows took the scraper's label and the
+-- loader's figures. Nothing was mis-loaded; only the provenance string is wrong.
+--
+-- WHY THIS MUST PRECEDE CLASSIFICATION
+--
+-- scripts/classifyFundScope.mjs classifies per SOURCE STRING, never per row:
+-- "the unit of work is a data_source string". Classifying first would require a
+-- registry entry whose pattern matches "Special Revenue Funds" and assigns it
+-- general_fund -- writing a statement this file disproves into the audit trail
+-- of record, where a later reader could not tell a decision from a defect. So
+-- scripts/data/fundScopeRegistry.mjs deliberately has NO pattern for the false
+-- label, and its partition gate expects 8,403 rows for ma-dls-gf-exp against the
+-- 6,843 present today. The gate FAILS until this migration runs. That is the
+-- ordering, enforced rather than remembered.
+--
+-- WHY THIS TARGET STRING
+--
+-- Both sets of operating rows come from the SAME workbook family, so they are
+-- one source and should carry one label. Relabelling to the existing, accurate
+-- "MA General Fund Expenditures" collapses them into a single registry entry and
+-- a single partition-gate count (6,843 + 1,560 = 8,403) rather than leaving an
+-- entry that documents a mistake.
+--
+-- NOT RELABELLED: the 1,750 rows reading "MA DLS General Fund Revenue by Source".
+-- That label came from the same scraper but it is TRUE -- the workbook really is
+-- General Fund revenue broken out by source -- so it keeps its own entry.
+--
+-- SAFETY
+--
+-- Touches ONE column on rows selected by an anchored regex. Verified before
+-- applying:
+--   * 336 distinct strings / 1,560 rows end in "Special Revenue Funds", and ALL
+--     336 match the MA DLS shape -- nothing else in the table ends that way, so
+--     the pattern cannot over-reach;
+--   * 0 collisions: no (municipality, fiscal_year, dataset_type) already holds
+--     BOTH labels, so no town-year ends up with the target label twice;
+--   * every affected row is dataset_type 'operating', fund_scope 'unknown',
+--     basis 'unknown', FY2021-2025;
+--   * post-relabel count is exactly 8,403, the number the registry expects.
+--
+-- The unique index is (municipality_id, fiscal_year, dataset_type, period_label,
+-- fund_scope, basis) and does NOT include data_source, so this cannot collide.
+-- No figure is touched: treasury.budgets.total_budget is not in the SET clause,
+-- so scripts/data/scopeBaseline.json figures_frozen (3bc12db8...82a2) MUST be
+-- unchanged afterwards. If it moves, something other than this ran.
+--
+-- The regex is used in place of a literal so no em-dash (U+2014) has to survive
+-- transport into the SQL session; '.+' spans it.
+
+UPDATE treasury.budgets
+   SET data_source = regexp_replace(
+         data_source,
+         'MA DLS Schedule A .+ Special Revenue Funds$',
+         'MA General Fund Expenditures')
+ WHERE data_source ~ 'MA DLS Schedule A .+ Special Revenue Funds$';
+
+-- VERIFIED AFTER APPLYING
+--   1,560 rows updated; 0 rows still matching the false label
+--   "MA General Fund Expenditures" rows: 6,843 -> 8,403 (351 municipalities)
+--   total rows unchanged at 79,939
+--   figures_frozen unchanged at 3bc12db8bb7dd04c1602befd68d78020e39d333df75705f6f94d3c1a939d82a2
+--   all four scope harnesses exit 0
+--   classifyFundScope.mjs --dry-run partition gate: ma-dls-gf-exp 8403/8403
+--
+-- REVERSAL -- ID-SCOPED, and it has to be.
+--
+-- After this migration the two sets are indistinguishable by label, so the
+-- reversal cannot key on the label. A year-scoped reversal ("FY2021-2025
+-- operating") is WRONG and was rejected: 180 rows in exactly that window ALREADY
+-- carried the correct label before this ran (FY2021 45, FY2022 28, FY2023 30,
+-- FY2024 26, FY2025 51 -- small towns the scraper never covered), so a
+-- year-scoped revert would corrupt 180 rows that this migration never touched.
+--
+-- The 1,560 ids are therefore captured and committed BEFORE the write, at
+-- scripts/data/ma01RelabelledIds.json -- the same "record exactly what you
+-- touched" pattern SCOPE-02 Ruling 5 used for its 12 backfilled ids.
+--
+--   UPDATE treasury.budgets
+--      SET data_source = regexp_replace(
+--            data_source, 'MA General Fund Expenditures$',
+--            'MA DLS Schedule A ' || U&'\2014' || ' Special Revenue Funds')
+--    WHERE id = ANY( <the 1,560 ids in scripts/data/ma01RelabelledIds.json> );
+--
+-- Verified at capture: 1,560 ids, all distinct, all dataset_type 'operating',
+-- all FY2021-2025 -- exactly the set the WHERE clause below selects.
