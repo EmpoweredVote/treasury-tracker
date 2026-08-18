@@ -32,6 +32,11 @@ export async function fetchScopeRows(supabase) {
     const { data, error } = await supabase
       .schema('treasury').from('municipalities')
       .select('id, name, state, entity_type')
+      // ⚠ ORDER BY THE PRIMARY KEY, ALWAYS, WHEN PAGING. See fetchScopeRows'
+      // note below: this loop had NO ordering at all, which makes LIMIT/OFFSET
+      // paging formally undefined. A municipality missed at a page boundary
+      // silently becomes name '(unknown)' in every seam report.
+      .order('id')
       .range(from, from + 999);
     if (error) throw new Error(`fetch municipalities: ${error.message}`);
     if (!data?.length) break;
@@ -51,7 +56,27 @@ export async function fetchScopeRows(supabase) {
       // invariant. Every consumer already does Number(r.total_budget) before doing
       // math with it, so returning a string here changes nothing downstream.
       .select('id, municipality_id, fiscal_year, dataset_type, period_label, fund_scope, basis, reporting_entity, total_budget::text, data_source')
-      .order('municipality_id').order('fiscal_year')
+      // ⚠ `.order('id')` IS LOAD-BEARING, NOT COSMETIC.
+      //
+      // This read `.order('municipality_id').order('fiscal_year')`, which is NOT
+      // A TOTAL ORDER: 79,840 of 79,939 rows tie on that key (every city-year has
+      // at least an operating and a revenue row). LIMIT/OFFSET paging over a
+      // non-total order is undefined — Postgres may break ties differently
+      // between the query for page N and the query for page N+1, so a row can be
+      // returned TWICE and another skipped entirely.
+      //
+      // The failure is silent and self-concealing: a duplicate and a miss cancel,
+      // so `rows.length` stays exactly right while the row SET is wrong. It cost
+      // an investigation on 2026-08-18, when verify-fund-scope.mjs reported
+      // "FIGURE DIGEST MOVED" on an unchanged database — the tally was off by
+      // exactly one in two buckets, the frozen row count was unchanged at 79,927,
+      // and six re-runs plus a registry-vs-stored drift check (0 mismatches) all
+      // came back clean. A moved figure digest is the loudest alarm this project
+      // has, and it fired on a paging artefact.
+      //
+      // Sorting by the primary key last makes the order total, so paging is
+      // deterministic by construction. Every paged read in this file does it.
+      .order('municipality_id').order('fiscal_year').order('id')
       .range(from, from + 999);
     if (error) throw new Error(`fetch budgets: ${error.message}`);
     if (!data?.length) break;
