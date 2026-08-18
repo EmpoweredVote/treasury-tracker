@@ -238,6 +238,129 @@ export const FUND_SCOPE_REGISTRY = [
     },
   },
 
+  // ── MASSACHUSETTS DLS ───────────────────────────────────────────────────────
+  // Three entries, one evidence base: docs/superpowers/plans/MA-01-RECON.md.
+  //
+  // ⚠ THE SOURCE FILES ARE IN THIS REPO. docs/MA/GenFund{Expenditures,Revenues}
+  // {YYYY}.xlsx, FY2002-2025, loaded by scripts/loadMaGFExcel.js with an explicit
+  // totalCol. The scope question was answered by READING THE COLUMNS, not by
+  // inferring from an ACFR — and every loaded row FY2020-2025 was compared back
+  // to its workbook cell (operating 2,095/2,095 exact, revenue 2,096/2,106).
+  //
+  // ⚠ THE TWO DLS PRODUCTS ARE NOT SYMMETRIC. GenFundRevenues folds
+  // "Other Financing Sources" and "Transfers" INTO its total; GenFundExpenditures
+  // has no transfers column at all. So MA revenue includes transfers IN while MA
+  // expenditure excludes transfers OUT, and the difference between them is NOT a
+  // surplus for any of the 351 municipalities. That is a presentation hazard, not
+  // a scope one — both products are General Fund products either way.
+  //
+  // ⚠ PRECISION IS TOWN-DEPENDENT, and the evidence below says so rather than
+  // quoting the best case. UMAS is applied with local judgement: Lexington's
+  // budgetary reconciliation carries Enterprise Fund indirect cost transfers, BAN
+  // transfers and an OPEB contribution transfer that Natick's does not. The
+  // expenditure tie is exact on Natick and ~0.34% on Lexington; the revenue tie
+  // holds at 0.017%-0.10% on both. Revenue is the more robust of the two.
+
+  {
+    id: 'ma-dls-gf-exp',
+    match: / — MA General Fund Expenditures$/,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'Two independent towns, both of which run their own K-12 school department '
+              + '(the schools line is where UMAS and GAAP diverge most, so a regional-district '
+              + 'town would not exercise it): Town of Natick FY2016/FY2024 Basic Financial '
+              + 'Statements (natickma.gov/DocumentCenter/View/{5113,21443}) and Town of Lexington '
+              + 'FY2023-25 Audited Financial Statements '
+              + '(lexingtonma.gov/DocumentCenter/View/{13089,16407,17397}). Source workbooks '
+              + 'docs/MA/GenFundExpenditures{YYYY}.xlsx.',
+      figures: 'The workbook has TEN expenditure category columns (General Government, Public '
+             + 'Safety, Education, Public Works, Human Services, Culture and Recreation, Fixed '
+             + 'Costs, Intergov Assessments, Other Expenditures, Debt Service) and NO transfers '
+             + 'column, summing to Total Expenditures. '
+             + 'NATICK FY2024, read from the labelled schedule "SCHEDULE OF REVENUES, '
+             + 'EXPENDITURES AND CHANGES IN FUND BALANCE - BUDGET AND ACTUAL (NON-GAAP BUDGETARY '
+             + 'BASIS)": TOTAL EXPENDITURES Original 196,075,913 | Final 197,642,755 | ACTUAL '
+             + '185,379,535 | Encumbrances 10,922,891 | Variance 1,340,329. DLS total 185,379,533 '
+             + '— $2 apart. FY2016 is $1 apart. So DLS follows the ACTUAL column, EXCLUDING '
+             + 'encumbrances and continuing appropriations. 18 of 19 audited years land within '
+             + '0.33% (FY2018 is a scanned PDF with no text layer and was not verified). '
+             + 'LEXINGTON FY2024, read from its named "Budgetary Basis" reconciliation line: '
+             + 'budgetary expenditures 272,537,067 less its stated encumbrances 8,616,082 = '
+             + '263,920,985 vs DLS 264,827,741 — 0.34%. FY2023 is also 0.34%; FY2025 INVERTS '
+             + '(DLS exceeds the ACFR budgetary total, which excluding encumbrances cannot '
+             + 'produce). Natick\'s $2 is therefore the BEST CASE, not the rule. '
+             + 'The scope conclusion does not rest on that precision: at every tie the General '
+             + 'Fund is the only candidate, and the figure reconciles to the ACFR\'s GENERAL FUND '
+             + 'budgetary statement on two independent towns. '
+             + 'The largest bridging item to GAAP is MTRS on-behalf payments (Natick FY2021 '
+             + '$25,099,907, Lexington FY2024 $24,376,703) — the Commonwealth paying the town\'s '
+             + 'teacher pensions, which GAAP books as both a revenue and an expenditure and the '
+             + 'budgetary basis excludes. '
+             + '⚠ COVERS THE FY2021-2025 ROWS PREVIOUSLY LABELLED "MA DLS Schedule A — Special '
+             + 'Revenue Funds". That label was FALSE and is corrected to this one: those 1,560 '
+             + 'rows carry figures byte-identical to GenFundExpenditures{YYYY}.xlsx, the GENERAL '
+             + 'FUND workbook. The label came from scripts/scrapeMaDLS.js taking the DLS Gateway '
+             + 'report name; the figures came from the Excel loader.',
+    },
+  },
+
+  {
+    id: 'ma-dls-gf-rev',
+    match: / — MA General Fund Revenues$/,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'Same two towns and same source family as ma-dls-gf-exp; source workbooks '
+              + 'docs/MA/GenFundRevenues{YYYY}.xlsx. MA-01-RECON.md §4, §4b.',
+      figures: 'The workbook has ELEVEN revenue columns summing to Total Revenues, and TWO of '
+             + 'them are NOT revenue: "Other Financing Sources" and "Transfers". It is the '
+             + 'REVENUE-PROPER subtotal (total less those two) that corresponds to the ACFR\'s '
+             + 'General Fund budgetary-basis actual Total Revenues. '
+             + 'NATICK FY2021: Taxes 132,457,936 + Service Charges 2,919,915 + Licenses and '
+             + 'Permits 2,268,209 + Federal 100,000 + State 14,524,987 + Other Governments 42,831 '
+             + '+ Special Assessments 2,131 + Fines 38,610 + Miscellaneous 1,654,311 = '
+             + '154,008,930; then + Other Financing Sources 355,000 + Transfers 6,019,182 = '
+             + '160,383,112, the stored figure. ACFR budgetary actual Total Revenues 154,137,719 '
+             + '— 0.084%. FY2022 reads 162,201,959 against revenue-proper 162,243,865, 0.026%, '
+             + 'both from the named "Budgetary Basis as Reported" line. '
+             + 'LEXINGTON FY2023/24/25: revenue-proper 271,198,447 / 288,444,793 / 301,218,597 vs '
+             + 'ACFR budgetary revenues 271,245,502 / 288,174,636 / 301,053,298 — 0.017% / 0.094% '
+             + '/ 0.055%. CONTROL: the RAW DLS total misses by 1.280% and 1.327% in FY2023-24, so '
+             + 'the decomposition is doing real work and is not a fitted result. '
+             + 'Across 18 readable Natick years, revenue-proper lands within 0.5% in 18/18 '
+             + '(median 0.102%) where the raw total manages 12/18 (median 0.383%) and in FY2012, '
+             + 'FY2017 and FY2019 has NO number anywhere in the ACFR within 1%. '
+             + '⚠ CALIBRATION: each ACFR holds 560-1,140 distinct numbers above $1M with only '
+             + '~2-4 within 1% of any target, so a lone close number proves nothing. Two '
+             + 'proximity matches during this recon were coincidences — one landed on an '
+             + 'expenditure subtotal, one on a Total OPEB Liability. Every figure quoted here was '
+             + 'read from a labelled line.',
+    },
+  },
+
+  {
+    id: 'ma-dls-gf-rev-by-source',
+    match: / — MA DLS General Fund Revenue by Source$/,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'Identical source and reconciliation to ma-dls-gf-rev — the same '
+              + 'docs/MA/GenFundRevenues{YYYY}.xlsx workbooks, differing only in the label a '
+              + 'later load vintage stamped. Kept as its own entry rather than relabelled '
+              + 'because, unlike the Special Revenue Funds string, THIS LABEL IS TRUE: the '
+              + 'workbook really is General Fund revenue broken out by source. MA-01-RECON.md '
+              + '§4, §4b.',
+      figures: 'Covers FY2021-2025, the years the Lexington confirmation is drawn from, so the '
+             + 'ties quoted in ma-dls-gf-rev (0.017% / 0.094% / 0.055%) are ties against THIS '
+             + 'entry\'s rows specifically. Verified byte-exact against the workbooks for '
+             + 'FY2020-2025: 2,096 of 2,106 rows match their workbook cell to the cent. '
+             + '⚠ The 10 that do not are rows where the WORKBOOK HOLDS 0 and the database holds '
+             + 'a figure — FY2024 Holyoke $205,834,091 and Hudson $107,521,743, plus 8 in FY2025. '
+             + 'Those towns had not filed when the workbook was captured, so those particular '
+             + 'figures came from the portal scrape and are NOT covered by this reconciliation. '
+             + 'They are classified with the rest because the SOURCE is the same DLS General Fund '
+             + 'product; the caveat is recorded here so it is not lost.',
+    },
+  },
+
   // ── NOT YET EVIDENCED ─────────────────────────────────────────────────────
   // Deliberately absent, each for a stated reason. RECON §1.8 tracks what each
   // one owes. The three siblings of the entry above are worth naming here because
@@ -252,9 +375,9 @@ export const FUND_SCOPE_REGISTRY = [
   //     different report with its own fund structure. Modesto is a city, so the
   //     tie says nothing about either. Needs a county probe.
   //
-  // Everything else — MN OSA (21,794), MA DLS's four sub-families (16,816),
-  // Ohio AOS (6,616), publicpay (7,682), VA APA, Transparent Utah, WA SAO, the
+  // Everything else — publicpay (7,682), VA APA, Transparent Utah, the
   // state/local ACFR families, Texas's "General Revenue Fund" — is Task 4.
+  // (MN OSA, Ohio AOS and MA DLS have since been evidenced and are entries above.)
 ];
 
 export default FUND_SCOPE_REGISTRY;
