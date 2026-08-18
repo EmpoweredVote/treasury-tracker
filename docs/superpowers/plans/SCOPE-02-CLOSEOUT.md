@@ -124,7 +124,7 @@ Every constraint added was mutation-tested: both CHECK constraints in the reject
 | Gate | Result |
 |---|---|
 | `npm run build` | ✅ clean |
-| `npm test` | ✅ **370 passed, 23 files** |
+| `npm test` | ✅ **370 passed, 22 files** |
 | Frozen figure invariant | ✅ `3bc12db8…82a2`, unchanged from v2.24 |
 | Adopted rows after backfill | ✅ 249 pre-existing rows unchanged on all four axes |
 | Backfill coverage | ✅ 12 rows, **0 measured gaps** |

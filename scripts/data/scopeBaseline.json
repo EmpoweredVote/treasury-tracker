@@ -1,11 +1,18 @@
 {
-  "_warning": "Do NOT edit or regenerate to make the harness pass. `figures` must never change; `composite` changes only when a migration explains it.",
-  "rows": 79927,
-  "figures": "2d6b948fff272b2292a0c049816054a71a9d1eb7d3bea2303517bf53c536946c",
-  "composite": "84c75e1c9c164c01e0c0d2c140825c298cb3fa2c63ca0c0a0f6cdba3ff68ef8b",
-  "composite_history": [],
+  "_warning": "Do NOT edit or regenerate to make the harness pass. `figures_frozen` must never change and is NOT written by --write-baseline; `composite_frozen` changes only when a migration explains it.",
   "frozen_row_count": 79927,
   "figures_frozen": "3bc12db8bb7dd04c1602befd68d78020e39d333df75705f6f94d3c1a939d82a2",
+  "composite_frozen": "e2c72925e26e3161a18ad77adad97abe18cb5c75913c772a5d70249db466d26f",
+  "composite_frozen_history": [],
   "excluded_ids_file": "scripts/data/scope02CreatedIds.json",
-  "_frozen_note": "SCOPE-02: the id set frozen at v2.24. The invariant is computed over current rows MINUS the ids in scripts/data/scope02CreatedIds.json (the 12 rows the SCOPE-02 backfill created), which is what excluded_ids_file points to. created_at is NOT usable to identify the frozen set directly -- 79,899 of 79,927 rows have it NULL -- and committing all 79,927 ids would be a ~3MB permanent repo artifact, so the invariant is computed as an exclusion instead of an inclusion list."
+  "_frozen_note": "SCOPE-02: the id set frozen at v2.24. Both digests are computed over current rows MINUS the ids in scripts/data/scope02CreatedIds.json (the 12 rows the SCOPE-02 backfill created), which is what excluded_ids_file points to. created_at is NOT usable to identify the frozen set directly -- 79,899 of 79,927 rows have it NULL -- and committing all 79,927 ids would be a ~3MB permanent repo artifact, so the invariant is computed as an exclusion instead of an inclusion list.",
+  "_superseded_at_v2_25": {
+    "_note": "The SCOPE-01 whole-table baselines. Retired, not invalidated: they were computed over every row (79,927 at v2.24), so SCOPE-02's 12 legitimate inserts moved them and verify-fund-scope.mjs reported FIGURE DIGEST MOVED on every run. Kept here as the v2.24 audit record.",
+    "_proof_no_figure_ever_moved": "Measured before the harness was changed. Re-running SCOPE-01's exact digest over the CURRENT table minus the 12 created ids, using SCOPE-01's own bare-numeric select, reproduces BOTH values below byte-for-byte. The row set was the only thing wrong.",
+    "_why_the_frozen_digests_differ_numerically": "figures_frozen and composite_frozen are computed from the shared fetch in scripts/lib/scopeDb.mjs, which selects total_budget::text. SCOPE-01's private fetch selected it as a bare numeric, and PostgREST's JSON encoding drops `numeric` scale (420993316.00 -> 420993316) on 12 rows and loses precision outright on 1 (316736239.26999999985 -> 316736239.27). Same figures, different string representation, therefore a different sha256. This is a representation change with the content proven identical -- NOT a figure moving.",
+    "rows": 79927,
+    "figures": "2d6b948fff272b2292a0c049816054a71a9d1eb7d3bea2303517bf53c536946c",
+    "composite": "84c75e1c9c164c01e0c0d2c140825c298cb3fa2c63ca0c0a0f6cdba3ff68ef8b",
+    "composite_history": []
+  }
 }
