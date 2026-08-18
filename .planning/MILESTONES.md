@@ -1,6 +1,6 @@
 # Milestones — Treasury Tracker / Empowered Vote Financials
 
-> ⚠ **v2.21 through v2.24 have no GSD phases.** All ran on `docs/superpowers/` specs + plans
+> ⚠ **v2.21 through v2.25 have no GSD phases.** All ran on `docs/superpowers/` specs + plans
 > rather than `/gsd-plan-phase`, so their unit of work is a numbered **task**, not a phase,
 > and there are no `.planning/phases/` directories or `milestones/vX.Y-*` archives for them.
 > Phase numbering stops at **137** (v2.20); a future GSD-phased milestone continues from 138.
@@ -11,6 +11,33 @@
 > `milestones/v2.20-*`; it simply never got a write-up here at its close. A pointer stub sits
 > in sequence below so the ordering does not read as "v2.20 never happened", but it is a
 > pointer, not a summary — the archive is the record.
+
+## v2.25 SCOPE-02 — Basis, Reporting Entity, and One Series per (scope, basis) (Shipped: 2026-08-18, tag `v2.25`)
+
+**Tasks completed:** 14 of 14 (no GSD phases — spec: `docs/superpowers/specs/2026-08-17-scope-02-design.md`, plan: `docs/superpowers/plans/2026-08-17-scope-02.md`, closeout: `docs/superpowers/plans/SCOPE-02-CLOSEOUT.md`)
+
+**Delivered:** `basis` and `reporting_entity` on `treasury.budgets`, both stamped from evidenced registries; the unique index widened so one city-year can hold two genuinely published figures; **12 rows of State Controller all-funds actuals backfilled that the old index had been keeping out**; and a series model under which one series is never continued by another. **Fresno's spending no longer falls 44% in a year it didn't.** Rows 79,927 → 79,939. Merged as PRs #16 and #17; the API change shipped separately from EV-Accounts.
+
+**Key accomplishments:**
+
+- **🔑 Three premises were tested and all three failed**, before a line of the plan was written. The milestone was specced twice, and each break made it smaller and better founded. This is the substance of the work, not a preamble.
+- **"Total Governmental is derivable from the SCO row" — false for 63% of rows.** The SCO cities report restructures at FY2017. In FY2003–2016 it is a **function** taxonomy spanning all funds: Modesto FY2016→FY2017 shows `Health` vanishing and `Transportation` collapsing by $45M, because solid waste was inside Health and transit inside Transportation. No subset of era-A roots equals the enterprise funds. ⚠ **A regex over root names would have subtracted `Public Utilities` in era A and produced figures too high in a way no arithmetic gate could see**, sitting between two correct years on a chart. Derived Total Governmental was dropped from the milestone and moved to SCOPE-03.
+- **🔑 "The seam is a fund-scope change" — it is two changes stacked.** SCO publishes **actuals**; the city rows that follow are **adopted budgets**, and several cities carry FY2026 rows for a year that has not closed. `basis` was `fund_scope` before SCOPE-01: an axis the data varies on that the schema could not express, so the app silently drew across it.
+- **🔑 "The recent years need new documents" — some were already published, and the index kept them out.** SCO published through FY2024, but Fresno FY2020–2024, Riverside and Santa Ana FY2023–2024 and Oakland FY2024 were absent because a budget-document row held the key and the loader's never-overwrite policy skipped them every time. **Part of the seam was missing data, not mislabelled data.**
+- **ZERO pre-existing figures moved.** `sha256(id | total_budget)` over every row except the twelve created is `3bc12db8…82a2` — byte-identical to v2.24 and to the value SCOPE-01 recorded independently. Verified after every database step.
+- **🔑 The figure invariant was inverted rather than accepted as specced.** The plan wanted a committed list of all 79,927 v2.24 ids. Measurement showed **`created_at` is NULL on 79,899 of them**, so the plan's timestamp fallback would have silently excluded 99.96% of rows and left the invariant nearly vacuous — and the id list would have been a ~3MB permanent artifact. It became an **exclusion** over the ~12 ids the backfill records. An unrecorded id fails the harness **loudly**.
+- **🔑 A real precision bug surfaced in the harness.** `fetchScopeRows` read `total_budget` as a bare numeric and PostgREST's JSON round-trip loses digits past ~15–17 significant figures (`43283121.249999955`). The digest could not reproduce until the select became `total_budget::text`.
+- **The RPC was targeting a narrower key than the index.** `treasury_sync_city_budget` looked up by `(muni, fy, dataset_type)` only; with two rows it would have overwritten an arbitrary one's tree while keeping its `data_source` label — writing SCO actuals into a row labelled as a city's adopted budget. Now key-complete, and it **refuses** on an ambiguous target rather than guessing. ⚠ The old 9-argument overload **survived `CREATE OR REPLACE`** and had to be dropped explicitly; two callable versions would have reintroduced the ambiguity by another route.
+- **🔑 Three of the seven seams are not closed, and that is correct.** Long Beach, Anaheim and Bakersfield cannot be backfilled — SCO ends at FY2024 and their adopted rows begin at FY2025. All three carry 22 evidenced actual years, so the display rule draws FY2003–2024 continuously and renders FY2025 as a **gap**, which is what the spec asks for. `detectSeams` still flags them because it groups **scope-blind** and now compares rows from two different series. **The criterion predates the series model; the Definition of Done's phrasing was defective, not the code.** An independent final review verified the reasoning rather than accepting it.
+- **Everything mutation-tested.** Both CHECK constraints in the rejecting direction; the widened index proven to permit the intended pair **and** still reject a true duplicate; the new summation lint proven able to fail before being trusted.
+- **The review loop caught three defects that would otherwise have shipped:** a **literal NUL byte** that made git classify `budgetSeries.ts` as binary and destroyed its diff and blame — while the implementer's report described a space delimiter that was never there, caught only by a reviewer hex-dumping the blob; **two `unknown` guard clauses in `areComparable` that no test pinned**; and the surviving RPC overload. ⚠ **The raw-NUL trap fired three separate times in this milestone.** Three is a pattern, not bad luck — it wants a lint.
+- **Verification at close:** `npm run build` clean · `npm test` **370 passed / 23 files** · frozen figure invariant unchanged · 249 pre-existing rows for the backfilled cities unchanged on all four axes · 0 measured backfill gaps · final whole-branch review with **no blocking findings**.
+
+**Known deferred at close:** `verify-fund-scope.mjs` now reports a false alarm on every run — it compares against SCOPE-01's whole-table digest, which the twelve legitimate rows move, and never got the exclusion mechanism; **a harness nobody believes is worse than no harness**, so retire or update it. `detectSeams` scope-blindness can register a spurious zero-gap seam for a dual-row city-year, polluting the ~37-seam backlog — fix the instrument before triaging with it. `bulkLoadStateController.js` checks `rows_inserted` but never `result.error`, so the RPC's ambiguity guard would undercount silently. The RPC key omits `period_label` and so fails closed only on ≥2-way collisions. SCOPE-01's own `fundScopeRegistry.mjs` says "seven taxonomies" where RECON §4.3 says eight. And **still the highest-value single task anywhere in this project, and in none of these milestones: one MA ACFR from a town that runs its own schools** unblocks 16,816 rows — 21% of the database — moving `general_fund` from 2.2% to ~23%.
+
+**Archive:** none — no `milestones/v2.25-*` directory (not a GSD-phased milestone).
+
+---
 
 ## v2.24 SCOPE-01 — Fund Scope on Every Row (Shipped: 2026-08-17, tag `v2.24`)
 
