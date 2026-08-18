@@ -220,3 +220,104 @@ export function checkRequiredSeams(seams, tolerancePct = 1.0) {
   });
   return { ok: results.every((r) => r.found), results };
 }
+
+/**
+ * SCOPE-02 — the duplicate rule, INVERTED.
+ *
+ * ⚠ SCOPE-01's findDuplicateScopes() asserted that NO city-year holds more than
+ * one fund_scope. That assertion passing is now itself the bug: the milestone
+ * deliberately creates exactly that pair (a State Controller all-funds actuals
+ * row beside a city's adopted General Fund budget row), so a detector still
+ * demanding zero would fail on correct data and get switched off.
+ *
+ * The legal shape is now: at most one row per (city-year, dataset_type, basis).
+ * Two rows sharing a basis is a genuine double-count hazard whatever their
+ * scopes; an actuals row beside an adopted-budget row is the intended state.
+ *
+ * Grouping still EXCLUDES period_label, for the SCOPE-01 reason: the FY1976
+ * Transition Quarter pair is a real double-count hazard for anything summing a
+ * city-year, and grouping it apart would hide it by construction.
+ *
+ * findDuplicateScopes() above is kept as-is: SCOPE-01's tests still cover it and
+ * it documents what the detector proved before this fix.
+ */
+export function findIllegalDuplicates(rows) {
+  const groups = new Map();
+  for (const r of rows) {
+    const k = `${r.municipality_id}\u0000${r.fiscal_year}\u0000${r.dataset_type}\u0000${r.basis ?? 'unknown'}`;
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(r);
+  }
+
+  const bad = [];
+  for (const g of groups.values()) {
+    if (g.length < 2) continue;
+    const first = g[0];
+    bad.push({
+      municipality_id: first.municipality_id,
+      name: first.name,
+      state: first.state,
+      fiscal_year: first.fiscal_year,
+      dataset_type: first.dataset_type,
+      basis: first.basis ?? 'unknown',
+      rows: g.length,
+      detail: g.map((r) => ({
+        fund_scope: r.fund_scope,
+        basis: r.basis,
+        period_label: r.period_label ?? null,
+        total_budget: Number(r.total_budget),
+        data_source: r.data_source,
+      })),
+    });
+  }
+  bad.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '') || a.fiscal_year - b.fiscal_year);
+  return bad;
+}
+
+/**
+ * SCOPE-02 — the seam acceptance test, FLIPPED.
+ *
+ * SCOPE-01's checkRequiredSeams() demanded the seven be FOUND; this demands they
+ * be GONE. Both are kept: the SCOPE-01 form documents what the detector proved
+ * before the fix, and this one proves the fix.
+ *
+ * ⚠ Scoped to the seven BY NAME. The other 19 seams in the database are out of
+ * scope and must still be found — a detector reporting zero seams overall has
+ * broken, not succeeded.
+ */
+export const REQUIRED_ABSENT_SEAMS = REQUIRED_SEAMS;
+
+export function checkSeamsClosed(seams) {
+  const stillOpen = REQUIRED_ABSENT_SEAMS
+    .map((want) => seams.find((s) => s.name === want.name
+      && s.dataset_type === 'operating'
+      && s.from_fy === want.from_fy
+      && s.to_fy === want.to_fy))
+    .filter(Boolean);
+  return { ok: stillOpen.length === 0, stillOpen };
+}
+
+/**
+ * SCOPE-02 — THE FIGURE INVARIANT, re-based as an EXCLUSION.
+ *
+ * SCOPE-01's figureDigest() covered every row and was asserted never to move.
+ * This milestone adds rows by design, so that digest moves legitimately and a
+ * baseline rewritten to accommodate it would defeat the check permanently.
+ *
+ * ⚠ Inverted from the brief's inclusion-list design: `created_at` is NULL on
+ * 79,899 of the 79,927 rows that existed at v2.24, so it cannot identify that
+ * set, and committing all 79,927 ids would be a ~3MB permanent repo artifact.
+ * What IS cheap and known exactly is the small set this milestone created —
+ * `scripts/data/scope02CreatedIds.json`, 12 ids. So this covers every row
+ * EXCEPT the excluded (newly-created) ones: a row that existed at v2.24 must
+ * still be present and byte-identical. A frozen row disappearing moves the
+ * digest too, which is the point — a delete is exactly as bad as an edit.
+ */
+export function frozenIdDigest(rows, excludedIds) {
+  const excluded = new Set(excludedIds);
+  return sha(rows
+    .filter((r) => !excluded.has(r.id))
+    .map((r) => `${r.id}|${nz(r.total_budget)}`)
+    .sort()
+    .join('\n'));
+}

@@ -6,5 +6,6 @@
   "composite_history": [],
   "frozen_row_count": 79927,
   "figures_frozen": "3bc12db8bb7dd04c1602befd68d78020e39d333df75705f6f94d3c1a939d82a2",
-  "_frozen_note": "SCOPE-02: the id set frozen at v2.24. The invariant is computed over current rows MINUS the ids in scripts/data/scope02CreatedIds.json, which the backfill task writes. created_at is NOT usable to identify this set -- 79,899 of 79,927 rows have it NULL."
+  "excluded_ids_file": "scripts/data/scope02CreatedIds.json",
+  "_frozen_note": "SCOPE-02: the id set frozen at v2.24. The invariant is computed over current rows MINUS the ids in scripts/data/scope02CreatedIds.json (the 12 rows the SCOPE-02 backfill created), which is what excluded_ids_file points to. created_at is NOT usable to identify the frozen set directly -- 79,899 of 79,927 rows have it NULL -- and committing all 79,927 ids would be a ~3MB permanent repo artifact, so the invariant is computed as an exclusion instead of an inclusion list."
 }

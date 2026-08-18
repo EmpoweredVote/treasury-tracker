@@ -79,10 +79,18 @@ async function findCityMunicipality(cityName, state) {
 }
 
 /**
- * Read-only: return the existing budget row for (muni, fy, dataset) IF it was
- * loaded from a DIFFERENT source than this run (a collision to preserve).
- * Returns null when there is no budget, or the existing budget is from this
- * loader's own source (safe to refresh).
+ * Read-only: return an existing budget row that this run would COLLIDE with.
+ *
+ * ⚠ SCOPE-02 narrowed this. It used to treat any row for (muni, fy, dataset) from
+ * a different source as a collision and skip — which is why SCO's published
+ * all-funds actuals for Fresno FY2020-2024, Riverside/Santa Ana FY2023-2024 and
+ * Oakland FY2024 were never loaded: a city adopted-budget row held the key.
+ * Those are DIFFERENT figures (all-funds actuals vs an adopted General Fund
+ * budget), not competing versions of the same one, and the widened unique index
+ * now lets both exist.
+ *
+ * A collision is now only a row occupying this run's exact identity — same
+ * fund_scope AND basis — from a different source.
  */
 async function findConflictingBudget(municipalityId, fiscalYear, datasetType, sourceName) {
   const { data, error } = await supabase
@@ -92,12 +100,14 @@ async function findConflictingBudget(municipalityId, fiscalYear, datasetType, so
     .eq('municipality_id', municipalityId)
     .eq('fiscal_year', fiscalYear)
     .eq('dataset_type', datasetType)
+    .eq('fund_scope', 'all_funds')
+    .eq('basis', 'actual')
     .limit(1);
   if (error) throw new Error(`Budget lookup failed: ${error.message}`);
   const existing = data && data[0];
   if (!existing) return null;
-  if (existing.data_source && existing.data_source !== sourceName) return existing; // different source → preserve
-  return null; // our own source (or unlabeled) → safe to refresh
+  if (existing.data_source && existing.data_source !== sourceName) return existing;
+  return null;
 }
 
 async function importCityData(cityName, state, population, rows, fiscalYear, datasetType, ds, fetchDate) {
@@ -166,6 +176,10 @@ async function importCityData(cityName, state, population, rows, fiscalYear, dat
     p_data_source_name: runSourceName(ds),
     p_source_url: ds.pageUrl,
     p_source_date: fetchDate,
+    // SCOPE-02: the SCO Annual Report is citywide all funds (Modesto FY2024 ties
+    // to the dollar) and reports a closed year's actuals.
+    p_fund_scope: 'all_funds',
+    p_basis: 'actual',
   });
 
   if (error) {

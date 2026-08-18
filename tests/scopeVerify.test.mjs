@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   pctChange, detectSeams, findDuplicateScopes, checkRequiredSeams,
   figureDigest, compositeDigest, REQUIRED_SEAMS,
+  findIllegalDuplicates, checkSeamsClosed, frozenIdDigest,
 } from '../scripts/lib/scopeVerify.mjs';
 import { SCOPE } from '../scripts/lib/fundScope.mjs';
 
@@ -181,5 +182,80 @@ describe('the two digests', () => {
     const withNull = [base[0], { ...base[1], total_budget: null }];
     const withZero = [base[0], { ...base[1], total_budget: 0 }];
     expect(figureDigest(withNull)).not.toBe(figureDigest(withZero));
+  });
+});
+
+const r = (over = {}) => ({
+  id: 'id-1', municipality_id: 'm1', name: 'Testville', state: 'CA',
+  fiscal_year: 2024, dataset_type: 'operating', period_label: null,
+  fund_scope: 'all_funds', basis: 'actual', total_budget: 100, data_source: 'SCO', ...over,
+});
+
+describe('findIllegalDuplicates — inverted from SCOPE-01', () => {
+  it('ALLOWS the pair this milestone exists to create', () => {
+    const rows = [r(), r({ id: 'id-2', fund_scope: 'general_fund', basis: 'adopted', total_budget: 25 })];
+    expect(findIllegalDuplicates(rows)).toEqual([]);
+  });
+
+  it('REJECTS two rows sharing a (city-year, dataset, basis) — a real double-count', () => {
+    const rows = [r(), r({ id: 'id-2', fund_scope: 'general_fund', total_budget: 25 })];
+    expect(findIllegalDuplicates(rows)).toHaveLength(1);
+  });
+
+  it('REJECTS two identical rows outright', () => {
+    expect(findIllegalDuplicates([r(), r({ id: 'id-2' })])).toHaveLength(1);
+  });
+
+  it('still groups ACROSS period_label, so the FY1976 TQ hazard stays visible', () => {
+    const rows = [
+      r({ fiscal_year: 1976, period_label: null }),
+      r({ id: 'id-2', fiscal_year: 1976, period_label: 'Transition Quarter (Jul–Sep 1976)' }),
+    ];
+    expect(findIllegalDuplicates(rows)).toHaveLength(1);
+  });
+});
+
+describe('checkSeamsClosed', () => {
+  it('passes when none of the seven is present', () => {
+    expect(checkSeamsClosed([]).ok).toBe(true);
+  });
+  it('fails when one of the seven is still there', () => {
+    const seams = [{ name: 'Long Beach', dataset_type: 'operating', from_fy: 2024, to_fy: 2025, pct: -75 }];
+    const res = checkSeamsClosed(seams);
+    expect(res.ok).toBe(false);
+    expect(res.stillOpen.map((s) => s.name)).toContain('Long Beach');
+  });
+  it('does NOT fail on a seam outside the seven — the other 19 must still be found', () => {
+    const seams = [{ name: 'Nevada', dataset_type: 'operating', from_fy: 2023, to_fy: 2024, pct: -57.5 }];
+    expect(checkSeamsClosed(seams).ok).toBe(true);
+  });
+});
+
+describe('frozenIdDigest — exclusion-based (Chris\'s inversion of the brief)', () => {
+  // The parameter is EXCLUDED ids (rows the backfill created), not an inclusion
+  // list of everything frozen at v2.24 -- created_at can't identify that set
+  // (NULL on 79,899/79,927 rows) and committing all 79,927 ids would be a ~3MB
+  // permanent artifact. The digest covers every row NOT in the excluded set.
+  const excludedIds = ['new'];
+
+  it('ignores rows created after the freeze (the excluded ones)', () => {
+    const before = frozenIdDigest([{ id: 'a', total_budget: 1 }, { id: 'b', total_budget: 2 }], excludedIds);
+    const after = frozenIdDigest(
+      [{ id: 'a', total_budget: 1 }, { id: 'b', total_budget: 2 }, { id: 'new', total_budget: 9 }],
+      excludedIds,
+    );
+    expect(after).toBe(before);
+  });
+
+  it('moves when a frozen row\'s figure changes', () => {
+    const a = frozenIdDigest([{ id: 'a', total_budget: 1 }, { id: 'b', total_budget: 2 }], excludedIds);
+    const b = frozenIdDigest([{ id: 'a', total_budget: 1 }, { id: 'b', total_budget: 3 }], excludedIds);
+    expect(b).not.toBe(a);
+  });
+
+  it('moves when a frozen row DISAPPEARS', () => {
+    const a = frozenIdDigest([{ id: 'a', total_budget: 1 }, { id: 'b', total_budget: 2 }], excludedIds);
+    const b = frozenIdDigest([{ id: 'a', total_budget: 1 }], excludedIds);
+    expect(b).not.toBe(a);
   });
 });
