@@ -18,12 +18,19 @@ now pinned to the dollar for expenditures.
 `validateRegistry` requires `evidence.document` **and** `evidence.figures`, so a
 taxonomy-only citation cannot pass. This document is the figures half.
 
-**Both axes are now pinned** — expenditures to $1–$2 against the ACFR's budgetary
-Actual column, revenues to a bounded ~0.1% once the two financing columns DLS
-folds into its total are separated out. All 16,816 rows are classifiable as
-`general_fund`. Read §6 before writing anything: the classification must go per
-*dataset* across both eras, not per source, or the seam detector gains 336 new
-seams.
+**Both axes are pinned, at different strengths** (§4b, confirmed on two towns):
+
+- **Revenues — strong.** Once the two financing columns DLS folds into its total
+  are separated out, the revenue-proper subtotal ties within **0.017%–0.10%** on
+  both Natick and Lexington, against a raw-total control that misses by >1.2%.
+- **Expenditures — directionally right, precision town-dependent.** $1–$2 on
+  Natick, ~0.34% on Lexington FY2023–24, and FY2025 inverts. UMAS is applied with
+  local judgement, so this will never be exact for every town.
+
+All 16,816 rows are classifiable as `general_fund`; the *scope* conclusion does
+not rest on the figure precision. Read §6 before writing anything: the
+classification must go per *dataset* across both eras, not per source, or the
+seam detector gains 336 new seams.
 
 ---
 
@@ -196,6 +203,66 @@ between UMAS Schedule A revenue categories and the ACFR's revenue presentation
 which is what the registry needs: these are General Fund revenue categories,
 reconciling to the General Fund budgetary statement.
 
+## 4b. SECOND-TOWN CONFIRMATION — Lexington. One rule held, one did not.
+
+⚠ **This section corrects §3.** The expenditure precision claimed there is
+Natick-specific and was over-claimed as the rule. Confirming on a second town is
+what caught it, which is why it was listed as the weakest link.
+
+Lexington: a town that runs its own K–12 district, a different auditor, a
+different document layout, audited statements at
+`lexingtonma.gov/DocumentCenter/View/{13089,16407,17397}` for FY2023–25. All
+figures below are read from each ACFR's **named** `Budgetary Basis` reconciliation
+line and its stated encumbrances — no proximity matching.
+
+### Revenue — CONFIRMED, and it is the stronger of the two rules
+
+| FY | DLS total | OFS + Transfers | revenue-proper | ACFR budgetary revenues | diff |
+|---|---:|---:|---:|---:|---:|
+| 2023 | 275,550,318 | 4,351,871 | 271,198,447 | 271,245,502 | **0.017%** |
+| 2024 | 292,486,320 | 4,041,527 | 288,444,793 | 288,174,636 | **0.094%** |
+| 2025 | 305,292,240 | 4,073,643 | 301,218,597 | 301,053,298 | **0.055%** |
+
+Against a control of the *raw* DLS total, which misses by 1.280% and 1.327% in
+FY2023–24. The decomposition transfers cleanly to a second town.
+
+### Expenditure — DOES NOT transfer cleanly
+
+| FY | DLS total | ACFR budgetary exp | encumbrances | vs exp − encumbr | vs exp |
+|---|---:|---:|---:|---:|---:|
+| 2023 | 247,552,273 | 259,009,722 | 12,301,146 | **0.342%** | 4.424% |
+| 2024 | 264,827,741 | 272,537,067 | 8,616,082 | **0.344%** | 2.829% |
+| 2025 | 279,365,730 | 278,838,659 | 4,184,162 | 1.715% | **0.189%** |
+
+The *direction* is confirmed — Lexington's own note says
+`Add end-of-year appropriation carryforwards to expenditures 8,616,082`, and its
+ENCUMBRANCES disclosure states the same figure, so DLS excluding encumbrances is
+right for FY2023–24 at a suspiciously consistent ~0.34%. But **FY2025 inverts**:
+DLS *exceeds* the ACFR budgetary total, which excluding encumbrances cannot
+produce.
+
+**Why it varies.** Lexington's reconciliation carries town-specific UMAS
+reclassifications that Natick's does not — Enterprise Fund indirect cost
+transfers +1,894,067, BAN transfers +549,644, OPEB contribution transfer
+−1,979,721, Enterprise Fund debt service −289,516. UMAS is applied with local
+judgement, so the DLS Schedule A total will not equal the ACFR budgetary total
+for every town. **Natick's $1–$2 is the best case, not the rule.**
+
+⚠ Proximity matching produced another coincidence here, exactly as in §4:
+Lexington FY2024's "nearest number" to the DLS expenditure total was
+**265,620,280 — the Total OPEB Liability.** Always read the label.
+
+### What this does and does not change
+
+- **The scope conclusion stands.** Both DLS products are General Fund products,
+  their categories are General Fund categories, and both reconcile to the ACFR's
+  General Fund budgetary statement within a small bounded margin on two
+  independent towns. Classifying all 16,816 rows `general_fund` is evidenced.
+- **The figure precision claim must be stated as a range, not a point.**
+  Expenditures tie within $2 (Natick) to ~1.7% (Lexington FY2025); revenues
+  within 0.017%–0.10% across both towns. `evidence.figures` should cite **both
+  towns**, not Natick's $2 alone, which would misrepresent the precision.
+
 ## 4a. The loaded figures are byte-exact against the source workbooks
 
 Every MA row FY2020–FY2025 was compared to its workbook cell:
@@ -243,9 +310,13 @@ Both axes are now evidenced, so all **16,816** rows are classifiable as
 `general_fund` — subject to the caveats below.
 
 1. **Registry entries** for the four sources. `evidence.document` = the Natick
-   ACFR URL + statement; `evidence.figures` = the FY2024 expenditure pair
-   `$185,379,535 / $185,379,533` and the FY2022 revenue pair
-   `$162,201,959 / $162,243,865`.
+   **and Lexington** ACFR URLs + statements; `evidence.figures` must cite **both
+   towns and the observed range** — Natick FY2024 expenditure
+   `$185,379,535 / $185,379,533` beside Lexington FY2024
+   `$263,920,985 / $264,827,741` (0.34%), and Natick FY2022 revenue
+   `$162,201,959 / $162,243,865` beside Lexington FY2023
+   `$271,245,502 / $271,198,447` (0.017%). Citing Natick's $2 alone would
+   misrepresent the precision (§4b).
 2. ⚠ **Classify per DATASET, across both eras — never per source.** The operating
    rows come from two sources partitioning at FY2021. Classify one era and not
    the other and the seam detector gains **336 new FY2020→FY2021 seams**,
@@ -256,9 +327,10 @@ Both axes are now evidenced, so all **16,816** rows are classifiable as
 3. **Correct the 1,560 mislabelled `Special Revenue Funds` labels.** Production
    write; label only, so `figures_frozen` must NOT move. Needs its own go-ahead
    (SCOPE-02 Ruling 3 pattern).
-4. **Second-town confirmation** (Lexington / Andover / Winchester) via the
-   headless-render route. Both rules rest on Natick alone. This is now the
-   weakest link in the evidence and should precede the classification write.
+4. ~~Second-town confirmation~~ — **DONE (§4b, Lexington).** It found a real
+   over-claim: the expenditure precision was Natick-specific. A third town would
+   further characterise the expenditure spread, but the scope conclusion no
+   longer depends on it.
 5. **Check the 10 workbook-blank rows** (§4a) before relying on FY2024–25 for
    Holyoke, Hudson and the eight FY2025 towns.
 6. **Decide how the revenue/expenditure asymmetry (§4) is surfaced.** MA revenue
