@@ -46,14 +46,42 @@ import { FUND_SCOPE_REGISTRY } from './data/fundScopeRegistry.mjs';
  * which need explaining in the recon document before the count is edited.
  */
 export const EXPECTED_ROWS = Object.freeze({
-  'ca-sco-city-exp': 10438,
-  'ca-sco-city-rev': 10446,
+  // ⚠ +10 and +2 against the Task 1 measurements of 10438 / 10446. The table
+  // changed underneath, which the header permits once explained: SCOPE-02 Task 10
+  // backfilled 12 State Controller rows (Fresno operating FY2020-24, Riverside
+  // FY2023-24, Oakland FY2024, Santa Ana operating+revenue FY2023-24). Their ids
+  // are committed in scripts/data/scope02CreatedIds.json, and querying that exact
+  // id set by data_source gives 10 "CA State Controller - Expenditures" and 2
+  // "CA State Controller - Revenues" — precisely the overage, with nothing left
+  // over. Not a pattern change: both patterns are byte-identical to SCOPE-01's.
+  // The gate had been failing on this since the backfill; the classifier was not
+  // re-run afterwards.
+  'ca-sco-city-exp': 10448,
+  'ca-sco-city-rev': 10448,
   'ca-sco-county-exp': 1188,
   'ca-sco-county-rev': 1188,
   'state-acfr-gf': 1448,
   'wa-sao': 286,
   'mn-osa': 21794,
   'oh-aos': 6616,
+  // ── MA DLS (MA-01) ────────────────────────────────────────────────────────
+  // 8403 + 6663 + 1750 = 16,816, the whole MA DLS family.
+  //
+  // ⚠ 8403 IS DELIBERATELY THE POST-RELABEL COUNT, and the gate will FAIL at
+  // 6843 until the 1,560 rows still labelled "MA DLS Schedule A — Special
+  // Revenue Funds" are corrected to "MA General Fund Expenditures". That is the
+  // intended ordering, enforced rather than remembered: classification is per
+  // SOURCE STRING, so classifying first would require an entry whose pattern
+  // matches a label MA-01-RECON.md §4a proves false — writing a wrong statement
+  // into the audit trail of record. Fix the label, then this passes.
+  //
+  // Both counts were measured directly, not derived: the patterns were run
+  // against all 3,824 distinct data_source strings before the entries were
+  // written, matching 351 / 351 / 350 strings with zero over-match and zero
+  // collision with an existing entry.
+  'ma-dls-gf-exp': 8403,
+  'ma-dls-gf-rev': 6663,
+  'ma-dls-gf-rev-by-source': 1750,
 });
 
 /** Batch size for `data_source IN (...)` updates — 1,448 strings is one family. */

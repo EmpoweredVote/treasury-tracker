@@ -214,6 +214,36 @@ describe('the shipped registry', () => {
       .toEqual({ scope: SCOPE.TOTAL_GOVERNMENTAL, entryId: 'mn-osa' });  // §4.7
     expect(classify('Ohio Auditor of State Summarized Annual Financial Reports', FUND_SCOPE_REGISTRY))
       .toEqual({ scope: SCOPE.TOTAL_GOVERNMENTAL, entryId: 'oh-aos' });  // §4.8
+    // MA DLS — MA-01-RECON.md §4, §4a, §4b. Per-town labels, so these patterns
+    // are end-anchored on the family suffix rather than the whole string.
+    expect(classify('Leyden — MA General Fund Expenditures', FUND_SCOPE_REGISTRY))
+      .toEqual({ scope: SCOPE.GENERAL_FUND, entryId: 'ma-dls-gf-exp' });
+    expect(classify('Acton — MA General Fund Revenues', FUND_SCOPE_REGISTRY))
+      .toEqual({ scope: SCOPE.GENERAL_FUND, entryId: 'ma-dls-gf-rev' });
+    expect(classify('Adams — MA DLS General Fund Revenue by Source', FUND_SCOPE_REGISTRY))
+      .toEqual({ scope: SCOPE.GENERAL_FUND, entryId: 'ma-dls-gf-rev-by-source' });
+  });
+
+  it('leaves the FALSE "Special Revenue Funds" label UNCLASSIFIED, deliberately', () => {
+    // MA-01-RECON.md §4a proves those 1,560 rows carry figures byte-identical to
+    // the GENERAL FUND expenditure workbook, so the label is wrong. No pattern is
+    // written for it: classification is per SOURCE STRING, so matching this one
+    // would put a statement the recon disproves into the audit trail of record.
+    // The label gets corrected in the database; the registry never learns it.
+    expect(classify('Acushnet — MA DLS Schedule A — Special Revenue Funds', FUND_SCOPE_REGISTRY))
+      .toEqual({ scope: SCOPE.UNKNOWN, entryId: null });
+  });
+
+  it('anchors the MA patterns to the family suffix, not a bare town name', () => {
+    // ` — MA General Fund Expenditures$` must not be loosened to something like
+    // /MA General Fund/ , which would also claim the Revenues family and the
+    // DLS-by-source family and silently merge three entries into one.
+    const exp = FUND_SCOPE_REGISTRY.find((e) => e.id === 'ma-dls-gf-exp');
+    expect(exp.match.test('Natick — MA General Fund Expenditures')).toBe(true);
+    expect(exp.match.test('Natick — MA General Fund Revenues')).toBe(false);
+    expect(exp.match.test('Natick — MA DLS General Fund Revenue by Source')).toBe(false);
+    // and it must not match a town whose NAME ends in the family string
+    expect(exp.match.test('MA General Fund Expenditures')).toBe(false);
   });
 
   it('every total_governmental entry states its reporting entity', () => {
@@ -258,10 +288,9 @@ describe('the shipped registry', () => {
       'CA State Controller — Government Compensation in California (publicpay.ca.gov)',
       'Virginia APA Comparative Report',
       'Transparent Utah',
-      'Leyden — MA General Fund Expenditures',
-      'Acton — MA General Fund Revenues',
-      'Adams — MA DLS General Fund Revenue by Source',
-      'Acushnet — MA DLS Schedule A — Special Revenue Funds',
+      // The three MA DLS families moved OUT of this list when MA-01 evidenced
+      // them; 'Acushnet — MA DLS Schedule A — Special Revenue Funds' stays
+      // unclassified on purpose and has its own test above.
       'Wisconsin State CAFR — General Fund Revenue (FY2000 actual, pre-GASB-34 combined statement basis)',
       'City of Tucson ACFR — General Fund Expenditure by Function (FY2018 actual, GAAP basis)',
       'Texas State ACFR — General Revenue Fund (FY2015 actual, GAAP basis)',
