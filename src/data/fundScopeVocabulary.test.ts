@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   FUND_SCOPE_VALUES, FUND_SCOPE_COPY, FUND_SCOPE_EXPLAINER, NON_COMPARABLE_SCOPES,
   isComparableScope, normalizeScope, scopeLabel,
+  areComparable, normalizeReportingEntity, normalizeBasis,
 } from './fundScopeVocabulary';
 
 describe('fund scope values', () => {
@@ -105,5 +106,53 @@ describe('scopeLabel', () => {
   it('gives a label for anything, including nothing', () => {
     expect(scopeLabel('all_funds')).toBe('All Funds');
     expect(scopeLabel(undefined)).toBe('Scope not established');
+  });
+});
+
+describe('normalizeBasis', () => {
+  it('passes legal values through', () => {
+    expect(normalizeBasis('actual')).toBe('actual');
+    expect(normalizeBasis('adopted')).toBe('adopted');
+  });
+  it('turns absent, null and nonsense into unknown', () => {
+    expect(normalizeBasis(undefined)).toBe('unknown');
+    expect(normalizeBasis(null)).toBe('unknown');
+    expect(normalizeBasis('estimated')).toBe('unknown');
+    expect(normalizeBasis(7)).toBe('unknown');
+  });
+});
+
+describe('areComparable — three axes', () => {
+  const ok = { fundScope: 'all_funds', basis: 'actual', reportingEntity: 'primary_government' } as const;
+
+  it('compares two identical, fully evidenced figures', () => {
+    expect(areComparable(ok, { ...ok })).toBe(true);
+  });
+  it('refuses when fund scope differs', () => {
+    expect(areComparable(ok, { ...ok, fundScope: 'general_fund' })).toBe(false);
+  });
+  it('refuses when basis differs — actuals vs an adopted budget', () => {
+    expect(areComparable(ok, { ...ok, basis: 'adopted' })).toBe(false);
+  });
+  it('refuses when reporting entity differs — the MN OSA ~7-22% bias', () => {
+    expect(areComparable(ok, { ...ok, reportingEntity: 'incl_component_units' })).toBe(false);
+  });
+  it('refuses when ANY axis is unknown on either side', () => {
+    expect(areComparable(ok, { ...ok, basis: 'unknown' })).toBe(false);
+    expect(areComparable({ ...ok, reportingEntity: 'unknown' }, ok)).toBe(false);
+    expect(areComparable({ ...ok, fundScope: 'unknown' }, ok)).toBe(false);
+  });
+  it('refuses when a field is absent — absent is unknown, never optimistic', () => {
+    expect(areComparable(ok, { fundScope: 'all_funds', basis: 'actual' })).toBe(false);
+    expect(areComparable(ok, {})).toBe(false);
+  });
+});
+
+describe('normalizeReportingEntity', () => {
+  it('passes legal values and rejects everything else', () => {
+    expect(normalizeReportingEntity('primary_government')).toBe('primary_government');
+    expect(normalizeReportingEntity('incl_component_units')).toBe('incl_component_units');
+    expect(normalizeReportingEntity('component_units_only')).toBe('unknown');
+    expect(normalizeReportingEntity(undefined)).toBe('unknown');
   });
 });
