@@ -1,6 +1,6 @@
 # MA-01 — Massachusetts DLS Reconciliation: Evidence of Record
 
-**Status:** Recon complete for expenditures; revenue rule OPEN. No production writes.
+**Status:** Recon COMPLETE — both axes pinned. No production writes.
 **Measured:** 2026-08-18, against the live `treasury.budgets` table (79,939 rows).
 **Purpose:** establish what the 16,816 MA rows actually are, so
 `FUND_SCOPE_REGISTRY` can classify them with the evidence SCOPE-01 requires.
@@ -17,6 +17,13 @@ now pinned to the dollar for expenditures.
 
 `validateRegistry` requires `evidence.document` **and** `evidence.figures`, so a
 taxonomy-only citation cannot pass. This document is the figures half.
+
+**Both axes are now pinned** — expenditures to $1–$2 against the ACFR's budgetary
+Actual column, revenues to a bounded ~0.1% once the two financing columns DLS
+folds into its total are separated out. All 16,816 rows are classifiable as
+`general_fund`. Read §6 before writing anything: the classification must go per
+*dataset* across both eras, not per source, or the seam detector gains 336 new
+seams.
 
 ---
 
@@ -129,17 +136,88 @@ where the containing statement and column were confirmed by reading them.
 **18 of 19 years land within 0.33%; two are exact to the dollar.** FY2018 is a
 scanned image with no text layer and was not verified — recorded, not glossed.
 
-## 4. ⚠ OPEN — the revenue rule is NOT pinned
+## 4. The revenue rule — PINNED, via the source workbooks
 
-Revenue matches are looser (0.002%–1.73%) and several "best matches" proved to be
-coincidences on unrelated lines (`Buildings`, `Net Position - Beginning of Year`,
-and in FY2016 the *expenditure* Actual+Encumbrances total). **No revenue tie has
-been confirmed by reading its statement.** Natick FY2021: DLS $160,383,112 vs
-budgetary actual revenues $154,137,719 — a $6,245,393 gap. Transfers In actual
-was $5,816,508, which nearly closes it but not exactly ($428,885 short).
+The first attempt failed and the failure was informative. Searching each ACFR for
+the DLS revenue total gave a median miss of 0.383%, and in **FY2012, FY2017 and
+FY2019 there was no number anywhere in the document within 1%**. A figure that is
+not in the document cannot be a line of the document. (Calibration matters here:
+each ACFR holds 560–1,140 distinct numbers above $1M, with only ~2–4 within 1% of
+any given target, so a lone tight match is not by itself evidence.)
 
-Do not classify the two revenue sources (8,413 rows) until this is pinned the way
-expenditures now are.
+**The unlock is that the DLS source files are IN THIS REPO.** `docs/MA/` holds all
+48 workbooks, `GenFundExpenditures{YYYY}.xlsx` and `GenFundRevenues{YYYY}.xlsx`
+FY2002–FY2025, loaded by `scripts/loadMaGFExcel.js` with an explicit
+`totalCol` of `Total Expenditures` / `Total Revenues`. There was no need to
+reverse-engineer anything — the column structure *is* the answer.
+
+### ⚠ The two DLS products are NOT symmetric
+
+| | columns |
+|---|---|
+| `GenFundRevenues` | Taxes · Service Charges · Licenses and Permits · Federal Revenue · State Revenue · Revenue from Other Governments · Special Assessments · Fines and Forfeitures · Miscellaneous · **Other Financing Sources** · **Transfers** · Total Revenues |
+| `GenFundExpenditures` | General Government · Public Safety · Education · Public Works · Human Services · Culture and Recreation · Fixed Costs · Intergov Assessments · Other Expenditures · Debt Service · Total Expenditures |
+
+**Revenue includes other financing sources and transfers IN; expenditure excludes
+transfers OUT.** So the DLS revenue and expenditure totals are not like-for-like,
+and the difference between them is not a surplus. Natick FY2021 reads
+$160,383,112 in against $157,667,368 out — but $6,374,182 of that "in" is
+financing sources and transfers. **Anything comparing MA Money In to Money Out
+must account for this**, and it applies to all 351 municipalities.
+
+### The rule
+
+> **MA DLS General Fund revenue total = revenue-proper + Other Financing Sources
+> + Transfers.** It is the **revenue-proper subtotal** (the total less those two
+> columns) that corresponds to the ACFR's General Fund budgetary-basis actual
+> Total Revenues.
+
+Natick FY2021: 132,457,936 + 2,919,915 + 2,268,209 + 100,000 + 14,524,987 +
+42,831 + 2,131 + 38,610 + 1,654,311 = **154,008,930**, then + 355,000 + 6,019,182
+= 160,383,112. ACFR budgetary actual Total Revenues = **154,137,719** (0.084%).
+
+| | raw DLS total | revenue-proper |
+|---|---|---|
+| years within 0.5% of an ACFR figure | 12 / 18 | **18 / 18** |
+| median miss | 0.383% | **0.102%** |
+| years with NO match within 1% | 3 | **0** |
+
+Confirmed by reading the labelled statement, not by proximity:
+
+- **FY2021** — `Budgetary Basis as Reported… $154,137,719`, also the Actual column
+  of the budget-and-actual schedule. DLS revenue-proper $154,008,930.
+- **FY2022** — `Budgetary Basis as Reported… $162,201,959`. DLS revenue-proper
+  $162,243,865, **0.026%**.
+
+The residual ~0.1% is bounded and consistent, and is smaller than the differences
+between UMAS Schedule A revenue categories and the ACFR's revenue presentation
+(refund and abatement netting; DLS `Transfers` 6,019,182 vs the ACFR's
+`Transfers In` 5,816,508 in FY2021). It does not disturb the **scope** question,
+which is what the registry needs: these are General Fund revenue categories,
+reconciling to the General Fund budgetary statement.
+
+## 4a. The loaded figures are byte-exact against the source workbooks
+
+Every MA row FY2020–FY2025 was compared to its workbook cell:
+
+| dataset | years | rows compared | exact | differ |
+|---|---|---|---|---|
+| operating | FY2020–2025 | 2,095 | 2,095 | **0** |
+| revenue | FY2020–2025 | 2,106 | 2,096 | 10 |
+
+**This proves the mislabel outright.** The 1,560 rows labelled
+`MA DLS Schedule A — Special Revenue Funds` carry figures identical to
+`GenFundExpenditures{YYYY}.xlsx` — the *General Fund* expenditure workbook. The
+earlier ratio evidence (§2) inferred it; this settles it. The label came from
+`scripts/scrapeMaDLS.js`, which took the DLS Gateway report name; the figures
+came from the Excel loader.
+
+⚠ The 10 revenue exceptions are rows where the **workbook holds 0** and the
+database holds a figure — FY2024 Holyoke ($205,834,091) and Hudson
+($107,521,743), plus 8 in FY2025. Those municipalities had not filed when the
+workbook was captured, so those specific figures came from elsewhere (portal
+scrape) and are **not** covered by this reconciliation. Check them before relying
+on FY2024–25 for those towns.
 
 ## 5. The fetch route
 
@@ -161,16 +239,32 @@ needs the cached Playwright Chromium route
 
 ## 6. Next steps
 
-1. **Second-town confirmation** (Lexington / Andover / Winchester) via the
-   headless-render route — the expenditure rule is pinned on one town only.
-2. **Pin the revenue rule**, or leave the 8,413 revenue rows `unknown` and
-   classify only the 8,403 operating rows. Honest partial beats a guess.
+Both axes are now evidenced, so all **16,816** rows are classifiable as
+`general_fund` — subject to the caveats below.
+
+1. **Registry entries** for the four sources. `evidence.document` = the Natick
+   ACFR URL + statement; `evidence.figures` = the FY2024 expenditure pair
+   `$185,379,535 / $185,379,533` and the FY2022 revenue pair
+   `$162,201,959 / $162,243,865`.
+2. ⚠ **Classify per DATASET, across both eras — never per source.** The operating
+   rows come from two sources partitioning at FY2021. Classify one era and not
+   the other and the seam detector gains **336 new FY2020→FY2021 seams**,
+   swamping the 21-seam backlog. The Natick verification deliberately spans the
+   boundary (FY2016 and FY2024 sit on opposite sides), so each dataset is safe to
+   classify as a unit. The same applies to revenue's own FY2002–2020 /
+   FY2021–2025 split.
 3. **Correct the 1,560 mislabelled `Special Revenue Funds` labels.** Production
    write; label only, so `figures_frozen` must NOT move. Needs its own go-ahead
    (SCOPE-02 Ruling 3 pattern).
-4. **Registry entries** with `evidence.document` = the Natick ACFR URL + page, and
-   `evidence.figures` = the FY2024 `$185,379,535 / $185,379,533` pair.
-5. FY2018 could be OCR'd if a 19th year is wanted; not required.
+4. **Second-town confirmation** (Lexington / Andover / Winchester) via the
+   headless-render route. Both rules rest on Natick alone. This is now the
+   weakest link in the evidence and should precede the classification write.
+5. **Check the 10 workbook-blank rows** (§4a) before relying on FY2024–25 for
+   Holyoke, Hudson and the eight FY2025 towns.
+6. **Decide how the revenue/expenditure asymmetry (§4) is surfaced.** MA revenue
+   includes transfers in; MA expenditure excludes transfers out. Money In minus
+   Money Out is not a surplus for any MA municipality.
+7. FY2018 could be OCR'd if a 19th year is wanted; not required.
 
 ## Appendix — reproduce
 
