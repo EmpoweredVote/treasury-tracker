@@ -15,7 +15,7 @@
 
 import { readFileSync } from 'node:fs';
 import { getSupabase, fetchScopeRows } from './lib/scopeDb.mjs';
-import { findIllegalDuplicates, frozenIdDigest } from './lib/scopeVerify.mjs';
+import { findIllegalDuplicates, classifyDuplicates, frozenIdDigest } from './lib/scopeVerify.mjs';
 
 const LAST_CLOSED_FY = 2025;
 
@@ -56,13 +56,22 @@ if (unclosed.length) {
 }
 
 console.log('\n── illegal duplicates (inverted rule) ──');
-const dupes = findIllegalDuplicates(rows);
-if (dupes.length) {
+const { illegal, periodSplit } = classifyDuplicates(findIllegalDuplicates(rows));
+if (illegal.length) {
   failed = true;
-  console.error(`  ✗ ${dupes.length} (city-year, dataset, basis) groups hold more than one row`);
-  for (const d of dupes.slice(0, 10)) console.error(`      ${d.name} FY${d.fiscal_year} ${d.dataset_type} basis=${d.basis} rows=${d.rows}`);
+  console.error(`  ✗ ${illegal.length} (city-year, dataset, basis) groups hold more than one row FOR THE SAME PERIOD`);
+  for (const d of illegal.slice(0, 10)) console.error(`      ${d.name} FY${d.fiscal_year} ${d.dataset_type} basis=${d.basis} rows=${d.rows}`);
 } else {
-  console.log('  ✅ at most one row per (city-year, dataset, basis)');
+  console.log('  ✅ at most one row per (city-year, dataset, basis, period)');
+}
+if (periodSplit.length) {
+  // Reported, never fatal: these are two non-overlapping reporting periods filed
+  // under one fiscal year, not a double-count. See classifyDuplicates().
+  console.log(`  ℹ ${periodSplit.length} group(s) split across DISTINCT periods — expected, still a hazard for naive summing:`);
+  for (const d of periodSplit.slice(0, 10)) {
+    const labels = d.detail.map((r) => r.period_label ?? '(annual)').join(' | ');
+    console.log(`      ${d.name} FY${d.fiscal_year} ${d.dataset_type} — ${labels}`);
+  }
 }
 
 console.log('\n── the figure invariant (frozen at v2.24, computed as an exclusion) ──');

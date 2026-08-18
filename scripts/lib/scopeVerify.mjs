@@ -70,6 +70,18 @@ function seriesKey(r) {
 }
 
 /**
+ * The rows of one fiscal year, reduced to what a seam comparison needs.
+ * `rep` is the largest-magnitude row, used for the reported total and pct when a
+ * year holds more than one row. It is a REPRESENTATIVE, not a sum: summing across
+ * two scopes is the double-count hazard findIllegalDuplicates exists to police.
+ */
+function yearFacts(yearRows) {
+  const rep = yearRows.reduce((m, r) => (
+    Math.abs(Number(r.total_budget)) > Math.abs(Number(m.total_budget)) ? r : m));
+  return { scopes: new Set(yearRows.map((r) => r.fund_scope)), rep, count: yearRows.length };
+}
+
+/**
  * Task 6 — find every point where an entity's series changes `fund_scope`
  * between consecutive PRESENT fiscal years.
  *
@@ -84,6 +96,31 @@ function seriesKey(r) {
  * (FY2009 is missing from several CA series), and a gap must not hide a seam. The
  * gap width is reported so a wide one can be judged on its own merits.
  *
+ * ── SCOPE-02: A YEAR IS A SET OF SCOPES, NOT ONE SCOPE ───────────────────────
+ * SCOPE-01 wrote this as a pairwise walk over rows sorted by fiscal year, which
+ * silently assumed ONE ROW PER YEAR — an assumption the old unique index enforced.
+ * Task 9 widened that index to include (fund_scope, basis), so a series may now
+ * hold an all-funds actuals row beside the city's own adopted budget row for the
+ * same year. Against the live table the old walk then:
+ *   · compared two rows of the SAME year and reported it as a seam (fy_gap 0) —
+ *     12 spurious findings out of 40, ~30% of the triage backlog; and
+ *   · picked whichever of a year's rows PostgREST happened to return first when
+ *     comparing to the neighbouring year, so the output was NOT REPRODUCIBLE.
+ *     Reversing the fetch order changed which seams were reported.
+ *
+ * The rule now: compare consecutive YEARS, and a seam exists only when the two
+ * years share NO fund_scope. If a scope is present on both sides, the reader has
+ * an unbroken same-scope series across that boundary and there is no cliff —
+ * which is exactly what Task 10's backfill achieved for Fresno, Riverside, Santa
+ * Ana and Oakland. Long Beach, Anaheim and Bakersfield stay open at their
+ * measured magnitudes, because SCO has no FY2025 data to continue them with.
+ *
+ * ⚠ NOT partitioned by `basis`. That looks like the obvious fix and is not: every
+ * seam in the database is a scope change that coincides with a basis change, so
+ * keying the series on basis puts the two sides in different series and the
+ * detector reports ZERO — including 0 of the 7 required seams. Measured, not
+ * assumed. A detector reporting no seams has broken, not succeeded.
+ *
  * @param {Array<{municipality_id, name, state, dataset_type, fiscal_year,
  *                period_label, fund_scope, total_budget, data_source}>} rows
  * @returns {Array<object>} seams, largest absolute change first
@@ -92,38 +129,49 @@ export function detectSeams(rows) {
   const series = new Map();
   for (const r of rows) {
     const k = seriesKey(r);
-    if (!series.has(k)) series.set(k, []);
-    series.get(k).push(r);
+    if (!series.has(k)) series.set(k, new Map());
+    const years = series.get(k);
+    if (!years.has(r.fiscal_year)) years.set(r.fiscal_year, []);
+    years.get(r.fiscal_year).push(r);
   }
 
   const seams = [];
-  for (const list of series.values()) {
-    list.sort((a, b) => a.fiscal_year - b.fiscal_year);
-    for (let i = 1; i < list.length; i += 1) {
-      const prev = list[i - 1];
-      const cur = list[i];
-      if (prev.fund_scope === cur.fund_scope) continue;
+  for (const years of series.values()) {
+    const ordered = [...years.keys()].sort((a, b) => a - b);
+    for (let i = 1; i < ordered.length; i += 1) {
+      const prev = yearFacts(years.get(ordered[i - 1]));
+      const cur = yearFacts(years.get(ordered[i]));
+      // Continuity: any scope present on both sides means the series did not break.
+      if ([...prev.scopes].some((s) => cur.scopes.has(s))) continue;
+
+      const fromScopes = [...prev.scopes].sort();
+      const toScopes = [...cur.scopes].sort();
       seams.push({
-        municipality_id: cur.municipality_id,
-        name: cur.name,
-        state: cur.state,
-        dataset_type: cur.dataset_type,
-        period_label: cur.period_label ?? null,
-        from_fy: prev.fiscal_year,
-        to_fy: cur.fiscal_year,
-        fy_gap: cur.fiscal_year - prev.fiscal_year,
-        from_scope: prev.fund_scope,
-        to_scope: cur.fund_scope,
-        from_total: Number(prev.total_budget),
-        to_total: Number(cur.total_budget),
-        pct: pctChange(prev.total_budget, cur.total_budget),
-        from_source: prev.data_source,
-        to_source: cur.data_source,
-        involves_unknown: prev.fund_scope === SCOPE.UNKNOWN || cur.fund_scope === SCOPE.UNKNOWN,
+        municipality_id: cur.rep.municipality_id,
+        name: cur.rep.name,
+        state: cur.rep.state,
+        dataset_type: cur.rep.dataset_type,
+        period_label: cur.rep.period_label ?? null,
+        from_fy: ordered[i - 1],
+        to_fy: ordered[i],
+        fy_gap: ordered[i] - ordered[i - 1],
+        from_scope: fromScopes.join('+'),
+        to_scope: toScopes.join('+'),
+        from_scopes: fromScopes,
+        to_scopes: toScopes,
+        multi_row: prev.count > 1 || cur.count > 1,
+        from_total: Number(prev.rep.total_budget),
+        to_total: Number(cur.rep.total_budget),
+        pct: pctChange(prev.rep.total_budget, cur.rep.total_budget),
+        from_source: prev.rep.data_source,
+        to_source: cur.rep.data_source,
+        involves_unknown: prev.scopes.has(SCOPE.UNKNOWN) || cur.scopes.has(SCOPE.UNKNOWN),
       });
     }
   }
-  seams.sort((a, b) => Math.abs(b.pct ?? 0) - Math.abs(a.pct ?? 0));
+  seams.sort((a, b) => Math.abs(b.pct ?? 0) - Math.abs(a.pct ?? 0)
+    || (a.name ?? '').localeCompare(b.name ?? '')
+    || a.from_fy - b.from_fy);
   return seams;
 }
 
@@ -275,6 +323,43 @@ export function findIllegalDuplicates(rows) {
 }
 
 /**
+ * Split findIllegalDuplicates' findings into a genuine double-count and two
+ * DIFFERENT REPORTING PERIODS filed under one fiscal year.
+ *
+ * ⚠ Why this exists. findIllegalDuplicates groups ACROSS `period_label` on
+ * purpose — an annual row and its Transition Quarter row are a real hazard for
+ * anything that sums a city-year, and grouping them apart would hide that by
+ * construction. Correct, and it means the detector fires on a shape that is
+ * PERMANENT and CORRECT: the federal FY1976 pairs, where the United States moved
+ * its fiscal year from a July start to an October start and OMB published both
+ * FY1976 (Jul 1975–Jun 1976) and a Transition Quarter (Jul–Sep 1976). Three
+ * datasets × two periods = the 3 groups the harness reported on every run.
+ *
+ * Two non-overlapping periods from two separate evidenced sources are not a
+ * duplicate. But a harness that exits 1 on permanently-correct data is a harness
+ * that gets switched off, so the finding is CLASSIFIED rather than suppressed:
+ * period splits stay in the report, and only same-period collisions are fatal.
+ *
+ * The test is structural, not an allowlist of FY1976: if every row in the group
+ * carries a DISTINCT period_label they describe different periods; if two share
+ * one, they describe the same period twice and that is a double-count.
+ *
+ * ⚠ Known limit: the same figures loaded twice under two different period_labels
+ * would classify as a period split. It stays visible in the report — it is not
+ * silenced — but it would not fail the run.
+ */
+export function classifyDuplicates(dupes) {
+  const illegal = [];
+  const periodSplit = [];
+  for (const d of dupes) {
+    const labels = d.detail.map((r) => r.period_label ?? '');
+    const allDistinct = new Set(labels).size === labels.length;
+    (allDistinct ? periodSplit : illegal).push(d);
+  }
+  return { illegal, periodSplit };
+}
+
+/**
  * SCOPE-02 — the seam acceptance test, FLIPPED.
  *
  * SCOPE-01's checkRequiredSeams() demanded the seven be FOUND; this demands they
@@ -287,8 +372,39 @@ export function findIllegalDuplicates(rows) {
  */
 export const REQUIRED_ABSENT_SEAMS = REQUIRED_SEAMS;
 
-export function checkSeamsClosed(seams) {
-  const stillOpen = REQUIRED_ABSENT_SEAMS
+/**
+ * The four the SCOPE-02 backfill actually closed, by loading the State
+ * Controller all-funds actuals that were missing from the later years. These MUST
+ * STAY CLOSED: one reappearing means a figure or a classification regressed.
+ */
+export const SEAMS_CLOSED_BY_SCOPE_02 = Object.freeze(
+  REQUIRED_SEAMS.filter((s) => ['Riverside', 'Santa Ana', 'Oakland', 'Fresno'].includes(s.name)),
+);
+
+/**
+ * The three that CANNOT be closed by loading anything, and whose presence is
+ * therefore not a defect (SCOPE-02 Ruling 9, verified independently).
+ *
+ * SCO's data ends at FY2024 and these cities' adopted rows begin at FY2025, so
+ * there is no all-funds actual to continue the series with — the seam is a
+ * property of the sources, not of our classification. Each carries 22 evidenced
+ * actual years (FY2003-2024), so `chooseDisplaySeries` draws that series and
+ * renders FY2025 as a GAP rather than a cliff, which is what the spec asks for.
+ *
+ * ⚠ They are still REPORTED. Expected-but-open is not the same as fine: if SCO
+ * ever publishes FY2025, these become closable and should move to the list above.
+ */
+export const SEAMS_OPEN_BY_SOURCE_COVERAGE = Object.freeze(
+  REQUIRED_SEAMS.filter((s) => ['Long Beach', 'Anaheim', 'Bakersfield'].includes(s.name)),
+);
+
+/**
+ * @param {Array} seams
+ * @param {Array} expected which seams must be ABSENT (defaults to all seven,
+ *   preserving the SCOPE-02 Task 11 behaviour its tests pin)
+ */
+export function checkSeamsClosed(seams, expected = REQUIRED_ABSENT_SEAMS) {
+  const stillOpen = expected
     .map((want) => seams.find((s) => s.name === want.name
       && s.dataset_type === 'operating'
       && s.from_fy === want.from_fy

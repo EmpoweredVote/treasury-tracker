@@ -13,12 +13,32 @@
  *
  *   figures   sha256 over (id | total_budget), ordered by id.
  *             THE INVARIANT. `id` is the primary key, so this is immune to any
- *             relabelling. It must NEVER move while this milestone runs. If it
- *             does, something wrote a figure and that is a bug, full stop.
+ *             relabelling. If it moves, something wrote a figure -- a bug, full stop.
  *
  *   composite sha256 over the Task 3 key. A CHANGE DETECTOR, not an invariant.
  *             It is allowed to move when a migration says so, and the baseline is
  *             then updated with that migration cited.
+ *
+ * ── SCOPE-02: BOTH DIGESTS ARE NOW COMPUTED AS AN EXCLUSION ─────────────────
+ * SCOPE-01 computed both over EVERY row and asserted the figure digest never
+ * moves. SCOPE-02 adds rows by design (Task 10 inserted 12), so a whole-table
+ * digest moves legitimately -- and this script, left unchanged, reported
+ * "FIGURE DIGEST MOVED" plus a grown row count on every single run. Three red
+ * lines, none of them real. A harness nobody believes is worse than no harness.
+ *
+ * It was ONLY ever the row set that was wrong. Verified before this was changed:
+ * over the frozen rows alone this script's own digests still reproduce the v2.24
+ * baselines byte-for-byte (figures 2d6b948f..., composite 84c75e1c...). No figure
+ * had moved; the harness was asking the wrong question.
+ *
+ * So both now cover every row EXCEPT the ids in scripts/data/scope02CreatedIds.json,
+ * the same exclusion mechanism verify-budget-axes.mjs uses -- and this script now
+ * shares that harness's fetch, so there is ONE query and ONE number for the
+ * invariant. It previously kept a private fetch that selected `total_budget` as a
+ * bare numeric; PostgREST's JSON encoding drops `numeric` scale (420993316.00 ->
+ * 420993316) and on one row loses precision outright (316736239.26999999985 ->
+ * 316736239.27), so the two harnesses computed DIFFERENT digests for the same
+ * invariant and neither could corroborate the other.
  *
  * Baselines live in scripts/data/scopeBaseline.json so they are committed, diffable
  * and reviewable rather than buried in a comment.
@@ -32,34 +52,25 @@ import { parseArgs } from 'node:util';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { getSupabase } from './lib/scopeDb.mjs';
+import { getSupabase, fetchScopeRows } from './lib/scopeDb.mjs';
 import { validateRegistry, SCOPE_VALUES, SCOPE } from './lib/fundScope.mjs';
-import { figureDigest, compositeDigest } from './lib/scopeVerify.mjs';
+import { compositeDigest, frozenIdDigest } from './lib/scopeVerify.mjs';
 import { FUND_SCOPE_REGISTRY } from './data/fundScopeRegistry.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const BASELINE_PATH = join(HERE, 'data', 'scopeBaseline.json');
 
-/** Fetch every row with the fields both digests and the tally need. */
-async function fetchAll(supabase) {
-  const rows = [];
-  for (let from = 0; ; from += 1000) {
-    const { data, error } = await supabase
-      .schema('treasury').from('budgets')
-      .select('id, municipality_id, fiscal_year, dataset_type, period_label, total_budget, fund_scope, data_source')
-      .order('id')
-      .range(from, from + 999);
-    if (error) throw new Error(`fetch budgets: ${error.message}`);
-    if (!data?.length) break;
-    rows.push(...data);
-    if (data.length < 1000) break;
-  }
-  return rows;
-}
-
 function loadBaseline() {
   if (!existsSync(BASELINE_PATH)) return null;
   return JSON.parse(readFileSync(BASELINE_PATH, 'utf8'));
+}
+
+/** The ids SCOPE-02 created, which both digests exclude. Path is committed in the baseline. */
+function loadExcludedIds(baseline) {
+  const rel = baseline?.excluded_ids_file;
+  if (!rel) return [];
+  const path = join(HERE, '..', rel);
+  return existsSync(path) ? JSON.parse(readFileSync(path, 'utf8')) : [];
 }
 
 async function main() {
@@ -80,7 +91,7 @@ async function main() {
 
   // ── 2. Coverage ──────────────────────────────────────────────────────────
   const supabase = await getSupabase();
-  const rows = await fetchAll(supabase);
+  const rows = await fetchScopeRows(supabase);
   console.log(`\n── coverage (${rows.length.toLocaleString()} rows) ──`);
 
   const missing = rows.filter((r) => r.fund_scope == null || r.fund_scope === '');
@@ -106,50 +117,71 @@ async function main() {
   const unknownRows = t.get(SCOPE.UNKNOWN)?.rows ?? 0;
   console.log(`  → ${unknownRows.toLocaleString()} rows (${(unknownRows / rows.length * 100).toFixed(1)}%) are honestly unclassified.`);
 
-  // ── 4. The two digests ───────────────────────────────────────────────────
-  console.log('\n── digests ──');
-  const figures = figureDigest(rows);
-  const composite = compositeDigest(rows);
+  // ── 4. The two digests, over the FROZEN row set ──────────────────────────
   const baseline = loadBaseline();
+  const excludedIds = loadExcludedIds(baseline);
+  const excluded = new Set(excludedIds);
+  const frozenRows = rows.filter((r) => !excluded.has(r.id));
+
+  console.log(`\n── digests (${frozenRows.length.toLocaleString()} frozen rows; `
+    + `${excluded.size} created since v2.24 and excluded) ──`);
+  const figures = frozenIdDigest(rows, excludedIds);
+  const composite = compositeDigest(frozenRows);
 
   if (values['write-baseline']) {
     // ⚠ ONLY when a committed migration explains the change. Rewriting a baseline
     // to silence this harness is the one action that defeats the entire task.
+    // `figures_frozen` is therefore NOT writable here: the invariant must not be
+    // silenceable by a flag. If it genuinely needs rebasing, that is a deliberate,
+    // reviewed edit to the JSON with the reason recorded beside it.
+    if (baseline?.figures_frozen && baseline.figures_frozen !== figures) {
+      fail('refusing to write a baseline while the FIGURE INVARIANT is moved.');
+      console.error('     --write-baseline updates the change detector, never the invariant.');
+      console.error('     Find out which frozen row changed first.');
+      process.exit(1);
+    }
     const next = {
-      _warning: 'Do NOT edit or regenerate to make the harness pass. `figures` must never change; `composite` changes only when a migration explains it.',
-      rows: rows.length,
-      figures,
-      composite,
-      composite_history: [
-        ...(baseline?.composite_history ?? []),
-        ...(baseline && baseline.composite !== composite
-          ? [{ digest: baseline.composite, superseded_by: 'see the newest migration in supabase/migrations/' }] : []),
+      ...baseline,
+      _warning: 'Do NOT edit or regenerate to make the harness pass. `figures_frozen` must never change and is NOT written by --write-baseline; `composite_frozen` changes only when a migration explains it.',
+      composite_frozen: composite,
+      composite_frozen_history: [
+        ...(baseline?.composite_frozen_history ?? []),
+        ...(baseline?.composite_frozen && baseline.composite_frozen !== composite
+          ? [{ digest: baseline.composite_frozen, superseded_by: 'see the newest migration in supabase/migrations/' }] : []),
       ],
     };
     writeFileSync(BASELINE_PATH, `${JSON.stringify(next, null, 2)}\n`);
     console.log(`  wrote ${BASELINE_PATH}`);
-    console.log(`  figures   ${figures}`);
-    console.log(`  composite ${composite}`);
+    console.log(`  composite_frozen ${composite}`);
     return;
   }
 
   if (!baseline) {
     fail(`no baseline at ${BASELINE_PATH} — run once with --write-baseline`);
   } else {
-    if (baseline.rows === rows.length) pass(`row count unchanged at ${rows.length.toLocaleString()}`);
-    else fail(`row count moved: baseline ${baseline.rows} → now ${rows.length}`);
-
-    if (baseline.figures === figures) pass(`FIGURE digest unchanged — no figure moved  (${figures.slice(0, 16)}…)`);
-    else {
-      fail(`FIGURE DIGEST MOVED. baseline ${baseline.figures}\n        now      ${figures}`);
-      console.error('     This is the invariant. A figure was written. Investigate before anything else —');
-      console.error('     this milestone changes no figure, so a move here is a bug, not a baseline to update.');
+    if (baseline.frozen_row_count === frozenRows.length) {
+      pass(`frozen row count unchanged at ${frozenRows.length.toLocaleString()}`);
+    } else {
+      fail(`frozen row count moved: baseline ${baseline.frozen_row_count} → now ${frozenRows.length}`);
+      console.error('     A row that existed at v2.24 was deleted, or a new row is missing from');
+      console.error(`     ${baseline.excluded_ids_file}. Add created ids there as they are inserted.`);
     }
 
-    if (baseline.composite === composite) pass(`composite digest unchanged (${composite.slice(0, 16)}…)`);
+    if (baseline.figures_frozen === figures) pass(`FIGURE digest unchanged — no frozen figure moved  (${figures.slice(0, 16)}…)`);
     else {
-      console.log(`  ⚠ composite digest moved (it includes dataset_type, a mutable label):`);
-      console.log(`      baseline ${baseline.composite}`);
+      fail(`FIGURE DIGEST MOVED. baseline ${baseline.figures_frozen}\n        now      ${figures}`);
+      console.error('     This is the invariant, over rows that existed at v2.24. A figure was');
+      console.error('     written or a frozen row vanished. Investigate before anything else —');
+      console.error('     this is a bug, never a baseline to update.');
+    }
+
+    if (!baseline.composite_frozen) {
+      console.log(`  ⚠ no composite_frozen baseline yet — run once with --write-baseline (${composite.slice(0, 16)}…)`);
+    } else if (baseline.composite_frozen === composite) {
+      pass(`composite digest unchanged (${composite.slice(0, 16)}…)`);
+    } else {
+      console.log('  ⚠ composite digest moved (it includes dataset_type, a mutable label):');
+      console.log(`      baseline ${baseline.composite_frozen}`);
       console.log(`      now      ${composite}`);
       console.log('    This is only acceptable if a committed migration explains it. If it does,');
       console.log('    re-run with --write-baseline; if it does not, a label changed unintentionally.');

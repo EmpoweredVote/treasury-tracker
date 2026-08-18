@@ -6,11 +6,20 @@
  * where `fund_scope` changes. Reports both scopes and the percentage change in
  * total_budget across the seam.
  *
- * ⚠ IT MUST FIND THE SEVEN KNOWN CA CITIES. Chris's instruction, verbatim: "the
- * seam detector in Task 6 must find those seven cities. If it finds fewer, the
- * detector is broken, not the data." So this script ASSERTS them and exits 1 on a
- * short count -- it is an acceptance test that happens to also produce a report.
- * Finding MORE is a result: the extras are recorded as SCOPE-02's work queue.
+ * ── WHAT THIS ASSERTS, AND WHY IT CHANGED ───────────────────────────────────
+ * SCOPE-01 asserted the seven known CA seams must be FOUND: "if it finds fewer,
+ * the detector is broken, not the data". That was right while the seams were
+ * open. SCOPE-02 then CLOSED four of them on purpose, so the SCOPE-01 assertion
+ * inverted into a permanent false alarm -- the script exited 1 shouting
+ * "DETECTOR BROKEN" precisely because the milestone had succeeded. A harness
+ * nobody believes is worse than no harness, so the assertion now matches reality:
+ *
+ *   · the four SCOPE-02 closed must STAY closed  -> absent, or exit 1
+ *   · the three that source coverage leaves open -> reported, never fatal
+ *     (SCO ends FY2024, their adopted rows start FY2025: nothing to load)
+ *
+ * Finding MORE seams elsewhere is a result, not a failure: the rest of the list
+ * is the triage queue.
  *
  * Logic lives in scripts/lib/scopeVerify.mjs (pure); this file is IO + reporting.
  *
@@ -22,7 +31,10 @@
 
 import { parseArgs } from 'node:util';
 import { getSupabase, fetchScopeRows } from './lib/scopeDb.mjs';
-import { detectSeams, checkRequiredSeams, REQUIRED_SEAMS } from './lib/scopeVerify.mjs';
+import {
+  detectSeams, checkSeamsClosed,
+  SEAMS_CLOSED_BY_SCOPE_02, SEAMS_OPEN_BY_SOURCE_COVERAGE,
+} from './lib/scopeVerify.mjs';
 
 const fmt = (n) => (n == null ? '     —' : `${n >= 0 ? '+' : ''}${n.toFixed(1)}%`);
 const money = (n) => (Number.isFinite(n) ? `$${(n / 1e6).toFixed(1)}M` : '—');
@@ -35,34 +47,47 @@ async function main() {
   const supabase = await getSupabase();
   const rows = await fetchScopeRows(supabase);
   const seams = detectSeams(rows);
-  const check = checkRequiredSeams(seams);
+  const check = checkSeamsClosed(seams, SEAMS_CLOSED_BY_SCOPE_02);
+  const find = (want) => seams.find((s) => s.name === want.name && s.dataset_type === 'operating'
+    && s.from_fy === want.from_fy && s.to_fy === want.to_fy);
 
   if (values.json) {
-    console.log(JSON.stringify({ seams, required: check }, null, 2));
+    console.log(JSON.stringify({
+      seams,
+      closed_by_scope_02: check,
+      open_by_source_coverage: SEAMS_OPEN_BY_SOURCE_COVERAGE.map((w) => ({ ...w, present: Boolean(find(w)) })),
+    }, null, 2));
     process.exit(check.ok ? 0 : 1);
   }
 
   console.log(`read ${rows.length.toLocaleString()} rows`);
   console.log(`found ${seams.length} scope seams\n`);
 
-  console.log('── REQUIRED: the seven CA seams from CA-CITIES-01 ──');
-  for (const r of check.results) {
-    const mark = r.found ? '✅' : '❌';
-    const detail = r.found
-      ? `${fmt(r.actual_pct)} (expected ${fmt(r.pct)}, drift ${r.drift.toFixed(2)}pt)  ${r.from_scope} → ${r.to_scope}`
-      : `MISSING — ${r.reason}`;
-    console.log(`  ${mark} ${r.name.padEnd(13)} FY${r.from_fy}→${r.to_fy}  ${detail}`);
+  console.log('── MUST STAY CLOSED: the four SCOPE-02 backfilled ──');
+  for (const want of SEAMS_CLOSED_BY_SCOPE_02) {
+    const hit = find(want);
+    console.log(`  ${hit ? '❌' : '✅'} ${want.name.padEnd(13)} FY${want.from_fy}→${want.to_fy}  `
+      + `${hit ? `REOPENED at ${fmt(hit.pct)} (${hit.from_scope} → ${hit.to_scope})` : 'closed'}`);
+  }
+
+  console.log('\n── OPEN BY SOURCE COVERAGE: expected, not a defect (Ruling 9) ──');
+  for (const want of SEAMS_OPEN_BY_SOURCE_COVERAGE) {
+    const hit = find(want);
+    console.log(`  ${hit ? '•' : '🎉'} ${want.name.padEnd(13)} FY${want.from_fy}→${want.to_fy}  `
+      + (hit
+        ? `open at ${fmt(hit.pct)} — SCO has no FY${want.to_fy} data to continue the series`
+        : 'NOW CLOSED — a source must have gained coverage; move it to SEAMS_CLOSED_BY_SCOPE_02'));
   }
 
   if (!check.ok) {
-    console.error(`\n❌ DETECTOR BROKEN: found ${check.results.filter((r) => r.found).length}/${REQUIRED_SEAMS.length} required seams.`);
-    console.error('   Per the plan, a short count condemns the DETECTOR, not the data. Do not');
-    console.error('   relax the expectations — fix the detection. The most likely cause is');
-    console.error('   treating a change into/out of `unknown` as "not a seam": every one of the');
-    console.error('   seven is all_funds → unknown, so that bug reports zero and looks clean.');
+    console.error(`\n❌ ${check.stillOpen.length} seam(s) SCOPE-02 closed have REOPENED: `
+      + `${check.stillOpen.map((s) => s.name).join(', ')}.`);
+    console.error('   These were closed by loading the missing all-funds actuals. A reopening');
+    console.error('   means a figure or a classification regressed — investigate before triaging');
+    console.error('   anything else in the list below.');
     process.exit(1);
   }
-  console.log(`\n✅ all ${REQUIRED_SEAMS.length} required seams found`);
+  console.log(`\n✅ all ${SEAMS_CLOSED_BY_SCOPE_02.length} seams SCOPE-02 closed are still closed`);
 
   const shown = values.all ? seams : seams.slice(0, 40);
   console.log(`\n── all seams, largest change first ${values.all ? '' : `(top ${shown.length} of ${seams.length}; --all for the rest)`} ──`);
@@ -86,7 +111,9 @@ async function main() {
   const involvingUnknown = seams.filter((s) => s.involves_unknown).length;
   console.log(`\n${seams.length} seams across ${entities.size} entities. ${involvingUnknown} involve \`unknown\`,`
     + ` ${seams.length - involvingUnknown} are between two KNOWN scopes (those are the unambiguous defects).`);
-  console.log('This list is SCOPE-02\'s work queue.');
+  console.log('This list is the triage queue. Every entry is a change across TIME between');
+  console.log('two years that share no fund_scope — same-year dual rows are not seams and');
+  console.log('are policed by verify-budget-axes.mjs instead.');
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

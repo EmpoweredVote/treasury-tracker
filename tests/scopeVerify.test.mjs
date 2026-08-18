@@ -3,6 +3,7 @@ import {
   pctChange, detectSeams, findDuplicateScopes, checkRequiredSeams,
   figureDigest, compositeDigest, REQUIRED_SEAMS,
   findIllegalDuplicates, checkSeamsClosed, frozenIdDigest,
+  SEAMS_CLOSED_BY_SCOPE_02, SEAMS_OPEN_BY_SOURCE_COVERAGE, classifyDuplicates,
 } from '../scripts/lib/scopeVerify.mjs';
 import { SCOPE } from '../scripts/lib/fundScope.mjs';
 
@@ -84,6 +85,93 @@ describe('detectSeams', () => {
       row({ municipality_id: 'm2', fiscal_year: 2025, fund_scope: SCOPE.GENERAL_FUND }),
       row({ dataset_type: 'revenue', fiscal_year: 2025, fund_scope: SCOPE.GENERAL_FUND }),
     ])).toEqual([]);
+  });
+});
+
+describe('detectSeams once a city-year can hold TWO rows (post-SCOPE-02)', () => {
+  // SCOPE-02 Task 9 widened the unique index to include (fund_scope, basis), so a
+  // (city, dataset, period) series may now hold more than one row per fiscal year.
+  // detectSeams was written against the OLD index and assumed one row per year: it
+  // walked the list pairwise, so two rows of the SAME year were compared to each
+  // other and reported as a seam with fy_gap 0. Measured against the live table
+  // that produced 12 spurious seams out of 40, and made the output depend on the
+  // order rows came back from PostgREST.
+
+  it('does NOT report a seam between two rows of the SAME fiscal year', () => {
+    // A seam is a change ACROSS time. Two rows in one year are the intended
+    // SCOPE-02 pair (SCO all-funds actuals beside the city's own adopted budget);
+    // findIllegalDuplicates owns that case, and deliberately permits it.
+    const seams = detectSeams([
+      row({ fiscal_year: 2024, fund_scope: SCOPE.ALL_FUNDS, basis: 'actual', total_budget: 1474000000 }),
+      row({ id: 'x', fiscal_year: 2024, fund_scope: SCOPE.UNKNOWN, basis: 'adopted', total_budget: 774000000 }),
+    ]);
+    expect(seams).toEqual([]);
+  });
+
+  it('reports NO seam when a scope continues across the boundary — the Fresno case', () => {
+    // Task 10 backfilled all_funds/actual into FY2020, so all_funds now runs
+    // FY2019 -> FY2020 continuously. The reader has an unbroken same-scope series;
+    // that the year ALSO carries an unknown-scope adopted row does not break it.
+    const seams = detectSeams([
+      row({ id: 'a', fiscal_year: 2019, fund_scope: SCOPE.ALL_FUNDS, total_budget: 822_000_000 }),
+      row({ id: 'b', fiscal_year: 2020, fund_scope: SCOPE.ALL_FUNDS, total_budget: 874_000_000 }),
+      row({ id: 'c', fiscal_year: 2020, fund_scope: SCOPE.UNKNOWN, total_budget: 452_000_000 }),
+    ]);
+    expect(seams).toEqual([]);
+  });
+
+  it('STILL reports a seam when the years share no scope — the Long Beach case', () => {
+    // SCO ends at FY2024 and the adopted rows begin FY2025, so nothing can be
+    // backfilled and the seam is genuinely open. This must not be silenced.
+    const seams = detectSeams([
+      row({ id: 'a', fiscal_year: 2024, fund_scope: SCOPE.ALL_FUNDS, total_budget: 3015653000 }),
+      row({ id: 'b', fiscal_year: 2025, fund_scope: SCOPE.UNKNOWN, total_budget: 755369580 }),
+    ]);
+    expect(seams).toHaveLength(1);
+    expect(seams[0].from_scope).toBe(SCOPE.ALL_FUNDS);
+    expect(seams[0].to_scope).toBe(SCOPE.UNKNOWN);
+    expect(seams[0].pct).toBeCloseTo(-74.95, 1);
+  });
+
+  it('is INDEPENDENT of row order when a year holds two rows', () => {
+    // The old pairwise walk picked whichever row PostgREST happened to return
+    // first, so reversing the fetch changed which seams were reported.
+    const rows = [
+      row({ id: 'a', fiscal_year: 2019, fund_scope: SCOPE.ALL_FUNDS }),
+      row({ id: 'b', fiscal_year: 2020, fund_scope: SCOPE.ALL_FUNDS }),
+      row({ id: 'c', fiscal_year: 2020, fund_scope: SCOPE.UNKNOWN }),
+      row({ id: 'd', fiscal_year: 2021, fund_scope: SCOPE.UNKNOWN }),
+      row({ id: 'e', fiscal_year: 2021, fund_scope: SCOPE.ALL_FUNDS }),
+    ];
+    const key = (s) => `${s.from_fy}->${s.to_fy}:${s.from_scope}->${s.to_scope}`;
+    expect(detectSeams(rows).map(key)).toEqual(detectSeams([...rows].reverse()).map(key));
+  });
+
+  it('reports BOTH scopes when a multi-row year genuinely is a seam', () => {
+    // Disjoint on both sides: FY2024 holds general_fund + all_funds, FY2025 holds
+    // only unknown. Nothing continues, so it is a real seam, and the report must
+    // not pretend the year had a single scope.
+    const seams = detectSeams([
+      row({ id: 'a', fiscal_year: 2024, fund_scope: SCOPE.ALL_FUNDS, total_budget: 900 }),
+      row({ id: 'b', fiscal_year: 2024, fund_scope: SCOPE.GENERAL_FUND, total_budget: 300 }),
+      row({ id: 'c', fiscal_year: 2025, fund_scope: SCOPE.UNKNOWN, total_budget: 250 }),
+    ]);
+    expect(seams).toHaveLength(1);
+    expect(seams[0].from_scopes).toEqual(['all_funds', 'general_fund']);
+    expect(seams[0].from_scope).toBe('all_funds+general_fund');
+    expect(seams[0].multi_row).toBe(true);
+    // the representative total is the largest-magnitude row of the year
+    expect(seams[0].from_total).toBe(900);
+  });
+
+  it('keeps fy_gap meaning what it always meant, and never emits 0', () => {
+    const seams = detectSeams([
+      row({ id: 'a', fiscal_year: 2001, fund_scope: SCOPE.UNKNOWN }),
+      row({ id: 'b', fiscal_year: 2003, fund_scope: SCOPE.GENERAL_FUND }),
+      row({ id: 'c', fiscal_year: 2003, fund_scope: SCOPE.GENERAL_FUND, period_label: 'TQ' }),
+    ]);
+    expect(seams.every((s) => s.fy_gap >= 1)).toBe(true);
+    expect(seams[0].fy_gap).toBe(2);
   });
 });
 
@@ -215,6 +303,39 @@ describe('findIllegalDuplicates — inverted from SCOPE-01', () => {
   });
 });
 
+describe('classifyDuplicates', () => {
+  const grp = (labels) => ({
+    name: 'United States', fiscal_year: 1976, dataset_type: 'operating', basis: 'unknown',
+    rows: labels.length, detail: labels.map((period_label) => ({ period_label, total_budget: 1 })),
+  });
+
+  it('treats the federal FY1976 annual + Transition Quarter pair as a PERIOD SPLIT', () => {
+    // The US moved its fiscal year from a July start to an October start in 1976,
+    // so OMB published both FY1976 and a Jul-Sep Transition Quarter. Two
+    // non-overlapping periods from two evidenced sources are not a duplicate.
+    const { illegal, periodSplit } = classifyDuplicates([grp([null, 'Transition Quarter (Jul–Sep 1976)'])]);
+    expect(illegal).toEqual([]);
+    expect(periodSplit).toHaveLength(1);
+  });
+
+  it('treats two rows sharing a period_label as ILLEGAL — a real double-count', () => {
+    const { illegal, periodSplit } = classifyDuplicates([grp([null, null])]);
+    expect(illegal).toHaveLength(1);
+    expect(periodSplit).toEqual([]);
+  });
+
+  it('is fatal when three rows hold only two distinct periods', () => {
+    const { illegal } = classifyDuplicates([grp(['Q1', 'Q2', 'Q2'])]);
+    expect(illegal).toHaveLength(1);
+  });
+
+  it('keeps every finding — classification never drops one', () => {
+    const input = [grp([null, 'TQ']), grp([null, null]), grp(['Q1', 'Q2', 'Q3'])];
+    const { illegal, periodSplit } = classifyDuplicates(input);
+    expect(illegal.length + periodSplit.length).toBe(input.length);
+  });
+});
+
 describe('checkSeamsClosed', () => {
   it('passes when none of the seven is present', () => {
     expect(checkSeamsClosed([]).ok).toBe(true);
@@ -228,6 +349,34 @@ describe('checkSeamsClosed', () => {
   it('does NOT fail on a seam outside the seven — the other 19 must still be found', () => {
     const seams = [{ name: 'Nevada', dataset_type: 'operating', from_fy: 2023, to_fy: 2024, pct: -57.5 }];
     expect(checkSeamsClosed(seams).ok).toBe(true);
+  });
+
+  it('accepts a narrower expected set without disturbing the default', () => {
+    const longBeach = [{ name: 'Long Beach', dataset_type: 'operating', from_fy: 2024, to_fy: 2025, pct: -75 }];
+    // against all seven it is still open, so not ok...
+    expect(checkSeamsClosed(longBeach).ok).toBe(false);
+    // ...but it is not one of the four SCOPE-02 actually closed.
+    expect(checkSeamsClosed(longBeach, SEAMS_CLOSED_BY_SCOPE_02).ok).toBe(true);
+  });
+});
+
+describe('which of the seven SCOPE-02 could close', () => {
+  // The seven split cleanly, and the split is the difference between a harness
+  // that shouts "DETECTOR BROKEN" on a successful milestone and one worth reading.
+  it('partitions the seven with no overlap and nothing dropped', () => {
+    const closed = SEAMS_CLOSED_BY_SCOPE_02.map((s) => s.name);
+    const open = SEAMS_OPEN_BY_SOURCE_COVERAGE.map((s) => s.name);
+    expect(closed).toEqual(['Riverside', 'Santa Ana', 'Oakland', 'Fresno']);
+    expect(open).toEqual(['Long Beach', 'Anaheim', 'Bakersfield']);
+    expect([...closed, ...open].sort()).toEqual(REQUIRED_SEAMS.map((s) => s.name).sort());
+    expect(closed.filter((n) => open.includes(n))).toEqual([]);
+  });
+
+  it('the three that stay open are exactly the ones whose seam lands after SCO ends', () => {
+    // SCO publishes through FY2024. A seam INTO FY2025 cannot be closed by loading
+    // anything, because there is nothing to load. That is the whole criterion.
+    expect(SEAMS_OPEN_BY_SOURCE_COVERAGE.every((s) => s.to_fy === 2025)).toBe(true);
+    expect(SEAMS_CLOSED_BY_SCOPE_02.every((s) => s.to_fy <= 2024)).toBe(true);
   });
 });
 
