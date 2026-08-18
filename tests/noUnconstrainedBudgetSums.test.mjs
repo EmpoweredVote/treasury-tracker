@@ -31,6 +31,19 @@ function walk(dir, out = []) {
 const FILES = [...walk('scripts'), ...walk('src')];
 
 describe('no unconstrained sum over treasury.budgets', () => {
+  // ⚠ EXPLICIT 30s TIMEOUT, not the 5s default. This body does ~520 synchronous
+  // readFileSync calls, and on a cold filesystem that exceeds 5s — the suite has
+  // failed here three times (SCOPE-02 recorded it twice as a deferred minor,
+  // "watch for recurrence"). It is not a flaky assertion: the assertion is
+  // deterministic and has never failed on its merits. It is an I/O-bound test
+  // wearing a timeout meant for a unit test.
+  //
+  // This matters more than a slow test usually would. At the v2.25 tag step the
+  // gate and the tag were chained in one command, so the tag was created during a
+  // run reporting 1 failed / 369 passed, and the failing test could not be named
+  // afterwards. Measured here: warm the whole body runs in ~150ms; the failing
+  // run showed `tests 8.57s` against a normal ~0.6s, which locates the cost in
+  // this body rather than in module load (the directory walk is at module scope).
   it('every aggregate constrains basis, or is allowlisted with a reason', () => {
     const offenders = [];
     for (const f of FILES) {
@@ -42,5 +55,5 @@ describe('no unconstrained sum over treasury.budgets', () => {
       }
     }
     expect(offenders).toEqual([]);
-  });
+  }, 30_000);
 });
