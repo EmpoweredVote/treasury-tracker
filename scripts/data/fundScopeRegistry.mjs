@@ -356,8 +356,10 @@ export const FUND_SCOPE_REGISTRY = [
              + 'a figure — FY2024 Holyoke $205,834,091 and Hudson $107,521,743, plus 8 in FY2025. '
              + 'Those towns had not filed when the workbook was captured, so those particular '
              + 'figures came from the portal scrape and are NOT covered by this reconciliation. '
-             + 'They are classified with the rest because the SOURCE is the same DLS General Fund '
-             + 'product; the caveat is recorded here so it is not lost.',
+             + 'They are classified with the rest — Chris\'s explicit decision on 2026-08-18, not '
+             + 'a default — because the SOURCE is the same DLS General Fund product and scope is '
+             + 'a property of the source. The FIGURES remain unreconciled; the caveat is recorded '
+             + 'here so it survives the decision rather than being erased by it.',
     },
   },
 

@@ -304,10 +304,46 @@ fetch — the CivicPlus client-side-injection case documented for Beaverton. It
 needs the cached Playwright Chromium route
 (`--headless=new --dump-dom`, see OREGON-CITIES-RECON §Obstacle 1).
 
-## 6. Next steps
+## 6. Next steps — CLASSIFICATION APPLIED 2026-08-18
 
-Both axes are now evidenced, so all **16,816** rows are classifiable as
-`general_fund` — subject to the caveats below.
+`node scripts/classifyFundScope.mjs` stamped 70,232 rows across all 11 registry
+entries (the MA families plus every previously-evidenced source, which the
+stamper rewrites idempotently). Result:
+
+| fund_scope | before | after |
+|---|---:|---:|
+| `general_fund` | 1,734 (2.2%), 54 munis | **18,550 (23.2%), 405 munis** |
+| `unknown` | 26,523 (33.2%) | **9,707 (12.1%)** |
+| `total_governmental` | 28,410 | 28,410 unchanged |
+| `all_funds` | 23,272 | 23,272 unchanged |
+
+`figures_frozen` **unchanged** at `3bc12db8…82a2`; frozen row count 79,927;
+composite unchanged; all four harnesses exit 0.
+
+### ⚠ Cambridge lost its six most recent years from the chart
+
+Predicted by simulating the write before running it, and it happened exactly as
+simulated: seams went **21 → 23**, the two new ones being
+
+```
+Cambridge, MA  operating  FY2020→2021  general_fund → unknown  $561.9M → $606.2M
+Cambridge, MA  revenue    FY2020→2021  general_fund → unknown  $695.8M → $732.4M
+```
+
+Cambridge is the **only** MA municipality with a mixed source history: 19 MA DLS
+rows (FY2002–2020) and 6 `cambridge-open-data` rows (FY2021–2026) per series.
+Classifying the DLS era `general_fund` while the open-data era stays `unknown`
+splits it into two series, and `chooseDisplaySeries` takes the widest — the
+19-year one — so FY2021–2026 now renders as a **gap**.
+
+That is the spec's intended behaviour ("a gap, which is honest, rather than a
+cliff, which is a lie") and the recent data genuinely is unevidenced. But it is a
+visible downgrade on one real page, and the fix is small and known: **evidence
+`cambridge-open-data`**. Cambridge publishes ACFRs, its site returns 200 to the
+documented header set, and it runs its own K-12 district — the same recipe used
+for Natick and Lexington. Until then the loss stands.
+
+### Still open
 
 1. **Registry entries** for the four sources. `evidence.document` = the Natick
    **and Lexington** ACFR URLs + statements; `evidence.figures` must cite **both
@@ -337,8 +373,12 @@ Both axes are now evidenced, so all **16,816** rows are classifiable as
    over-claim: the expenditure precision was Natick-specific. A third town would
    further characterise the expenditure spread, but the scope conclusion no
    longer depends on it.
-5. **Check the 10 workbook-blank rows** (§4a) before relying on FY2024–25 for
-   Holyoke, Hudson and the eight FY2025 towns.
+5. ~~Check the 10 workbook-blank rows~~ — **SWEPT IN, on Chris's explicit
+   decision 2026-08-18.** They classify `general_fund` with the rest because the
+   SOURCE is the same DLS General Fund product. Their *figures* still came from
+   the portal scrape rather than the workbooks and remain outside the
+   reconciliation: FY2024 Holyoke $205,834,091 and Hudson $107,521,743, plus
+   eight in FY2025. Recorded so the caveat survives the decision.
 6. **Decide how the revenue/expenditure asymmetry (§4) is surfaced.** MA revenue
    includes transfers in; MA expenditure excludes transfers out. Money In minus
    Money Out is not a surplus for any MA municipality.
