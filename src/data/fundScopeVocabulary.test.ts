@@ -146,6 +146,23 @@ describe('areComparable — three axes', () => {
     expect(areComparable(ok, { fundScope: 'all_funds', basis: 'actual' })).toBe(false);
     expect(areComparable(ok, {})).toBe(false);
   });
+
+  // Two figures being EQUALLY unestablished on one axis does not make them
+  // comparable on that axis. Without the explicit `unknown` guard clauses in
+  // areComparable(), the final per-field equality check alone would let
+  // 'unknown' === 'unknown' slip through and be judged comparable -- these
+  // cases fail if either guard clause is removed, unlike the "refuses when
+  // ANY axis is unknown" tests above, where the two sides' values differ
+  // textually and the equality check alone already returns false.
+  it('refuses when BOTH sides share the same unknown fund scope, even with the other axes matching', () => {
+    expect(areComparable({ ...ok, fundScope: 'unknown' }, { ...ok, fundScope: 'unknown' })).toBe(false);
+  });
+  it('refuses when BOTH sides share the same unknown basis, even with the other axes matching', () => {
+    expect(areComparable({ ...ok, basis: 'unknown' }, { ...ok, basis: 'unknown' })).toBe(false);
+  });
+  it('refuses when BOTH sides share the same unknown reporting entity, even with the other axes matching', () => {
+    expect(areComparable({ ...ok, reportingEntity: 'unknown' }, { ...ok, reportingEntity: 'unknown' })).toBe(false);
+  });
 });
 
 describe('normalizeReportingEntity', () => {
