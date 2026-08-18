@@ -154,7 +154,15 @@ describe('no module a test imports starts with a shebang', () => {
       const src = readFileSync(path.join(testDir, f), 'utf8');
       for (const m of src.matchAll(/from\s+'(\.\.?\/[^']+)'/g)) {
         const resolved = path.resolve(testDir, m[1]);
-        if (resolved.endsWith('.mjs')) imported.add(resolved);
+        // ⚠ WIDENED A THIRD TIME. This read `.endsWith('.mjs')`, which is the same
+        // proxy-for-the-real-invariant mistake as the original scripts/lib/ scope.
+        // The repo's entry-point scripts are `.js` (package.json is type: module,
+        // so they are ESM all the same) and Vite's shebang strip is just as broken
+        // for them. scripts/bulkLoadStateController.js starts with `#!` to this
+        // day; the only reason it has never taken the suite down is that no test
+        // had imported it yet. Extension is not the invariant — "a test imports
+        // it" is.
+        if (/\.(mjs|js)$/.test(resolved)) imported.add(resolved);
       }
     }
     // The set must be non-empty, or this test passes vacuously.
