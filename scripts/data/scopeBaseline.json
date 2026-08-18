@@ -3,5 +3,8 @@
   "rows": 79927,
   "figures": "2d6b948fff272b2292a0c049816054a71a9d1eb7d3bea2303517bf53c536946c",
   "composite": "84c75e1c9c164c01e0c0d2c140825c298cb3fa2c63ca0c0a0f6cdba3ff68ef8b",
-  "composite_history": []
+  "composite_history": [],
+  "frozen_row_count": 79927,
+  "figures_frozen": "3bc12db8bb7dd04c1602befd68d78020e39d333df75705f6f94d3c1a939d82a2",
+  "_frozen_note": "SCOPE-02: the id set frozen at v2.24. The invariant is computed over current rows MINUS the ids in scripts/data/scope02CreatedIds.json, which the backfill task writes. created_at is NOT usable to identify this set -- 79,899 of 79,927 rows have it NULL."
 }
