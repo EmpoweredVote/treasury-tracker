@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.24
-milestone_name: SCOPE-01 — Fund Scope on Every Row
-status: v2.24 SHIPPED — UAT passed, PR #15 merged, tagged v2.24
-stopped_at: Milestone closed. SCOPE-02 is next and is scoped but not planned.
-last_updated: "2026-08-17T00:00:00.000Z"
-last_activity: 2026-08-17
-last_activity_desc: "v2.24 SCOPE-01 shipped: fund_scope on all 79,927 rows — 53,404 classified from 8 evidenced sources, 26,523 (33.2%) honestly unknown, ZERO figures moved; 26 seams found; 304 vitest; UAT found + fixed the dead ev-blue chip classes"
+milestone: v2.25
+milestone_name: SCOPE-02 — Basis, Reporting Entity, and One Series per (scope, basis)
+status: v2.25 SHIPPED — PRs #16 and #17 merged, tagged v2.25; Chris's UAT sign-off outstanding
+stopped_at: Milestone closed. SCOPE-03 is next and is scoped but not planned.
+last_updated: "2026-08-18T00:00:00.000Z"
+last_activity: 2026-08-18
+last_activity_desc: "v2.25 SCOPE-02 shipped: basis + reporting_entity stamped from evidenced registries, unique index widened, 12 rows of SCO all-funds actuals backfilled that the index had kept out; Fresno no longer falls 44% in a year it did not; ZERO pre-existing figures moved; 370 vitest"
 progress:
-  total_phases: 11
-  completed_phases: 11
+  total_phases: 14
+  completed_phases: 14
   total_plans: 0
   completed_plans: 0
   percent: 100
@@ -41,9 +41,26 @@ See: .planning/PROJECT.md (updated 2026-07-16 — v2.18 Pima County Municipaliti
 
 ## Current Position
 
-Milestone: **v2.24 SCOPE-01 — Fund Scope on Every Row — ✅ SHIPPED 2026-08-17, tag `v2.24`**
-Task: 11 of 11 complete (superpowers plan, not GSD phases — see the banner above)
-Status: **`fund_scope` is live on all 79,927 rows and the API serves it in production.** UAT passed; PR #15 merged from `feat/scope-01`; tagged.
+Milestone: **v2.25 SCOPE-02 — Basis, Reporting Entity, and One Series per (scope, basis) — ✅ SHIPPED 2026-08-18, tag `v2.25`**
+Task: 14 of 14 complete (superpowers plan, not GSD phases — see the banner above)
+Status: **The seam is closed in production.** PRs #16 and #17 merged; the API change shipped separately from EV-Accounts and is live. **Chris's UAT sign-off is still outstanding.**
+
+**Fresno's spending no longer falls 44% in a year it didn't.** Its all-funds actuals series now runs FY2018→FY2024 continuously — $822M · $874M · $938M · $1,079M · $1,187M · $1,380M · $1,474M — where it previously stopped at FY2019 and dropped onto the city's adopted General Fund budget. Those budget rows now sit alongside as a separate, labelled series.
+
+| | |
+|---|---|
+| `basis` | actual 53,404 · unknown 26,358 · adopted 165 |
+| `reporting_entity` | unknown 56,399 · incl_component_units 21,794 · primary_government 1,734 |
+| Backfilled | **12 rows, 0 measured gaps** (Fresno FY2020–24, Riverside + Santa Ana FY2023–24, Oakland FY2024) |
+| Rows | 79,927 → **79,939** |
+| Pre-existing figures changed | **ZERO** — `3bc12db8…82a2`, unchanged from v2.24 |
+
+⚠ **Three of the seven seams are still reported, and that is correct.** Long Beach, Anaheim and Bakersfield cannot be backfilled — SCO ends at FY2024 and their adopted rows begin at FY2025. All three carry 22 evidenced actual years, so the app draws FY2003–2024 continuously and renders FY2025 as a **gap**. `detectSeams` flags them only because it groups scope-blind and now compares rows from two different series. **The criterion predates the series model; the code is right.** Full working: `docs/superpowers/plans/SCOPE-02-CLOSEOUT.md`.
+
+<details>
+<summary>Previous milestone — v2.24 SCOPE-01 — Fund Scope on Every Row (shipped 2026-08-17, tag `v2.24`)</summary>
+
+Status: `fund_scope` live on all 79,927 rows. UAT passed; PR #15 merged from `feat/scope-01`; tagged.
 
 **53,404 rows (66.8%) classified from 8 evidenced registry entries. 26,523 (33.2%), across 1,066 entities and 2,084 source strings, are honestly `unknown`** — and that is the milestone's headline result, not a shortfall. Before SCOPE-01 every one of those rows was displayed as though its scope were known and comparable.
 
@@ -182,7 +199,26 @@ Last activity: 2026-08-15 — merged, pushed, and a latent Windows test bug fixe
 
 </details>
 
+</details>
+
 ## Deferred Items
+
+### Carried at v2.25 close (2026-08-18)
+
+Full working: `docs/superpowers/plans/SCOPE-02-CLOSEOUT.md`.
+
+| Category | Item | Status |
+|----------|------|--------|
+| **data** | **MA DLS — 16,816 rows, 21% of the database** | **OPEN, and still the highest-value single task anywhere in this project** — and it sits in none of the SCOPE milestones. One ACFR from a town that runs its own schools moves `general_fund` from 2.2% to ~23% and `unknown` from 33% to ~12%. Newton, Somerville and Arlington all return HTTP 403 to scripted fetches, which is precisely why it keeps not happening |
+| **harness** | `verify-fund-scope.mjs` now reports a false alarm on EVERY run | **OPEN.** It compares against SCOPE-01's whole-table digest, which the 12 legitimate new rows move, and it never got the exclusion mechanism. **A harness nobody believes is worse than no harness** — retire or update it before it trains people to ignore a red result |
+| **instrument** | `detectSeams` is scope-blind | **OPEN.** For a dual-row city-year it can register a spurious `fy_gap=0` seam between two legally-coexisting rows, polluting the ~37-seam backlog. **Fix the instrument before triaging with it** |
+| **defect** | `bulkLoadStateController.js` checks `rows_inserted` but never `result.error` | **OPEN.** The RPC's ambiguity guard returns `{error}` as a *successful* PostgREST call, so a future hit undercounts silently with no output. Did not fire during this backfill |
+| tooling | No lint for raw control characters in source | **OPEN.** The raw-NUL trap fired **three separate times** in this milestone; it makes git classify a file as binary and destroys its diff and blame. Three is a pattern, not bad luck |
+| schema | The RPC key omits `period_label` | **open** — fails closed only on ≥2-way collisions. If exactly one row matches but differs in `period_label` it would overwrite silently. No current loader can reach it; CA SCO has no TQ rows |
+| docs | SCOPE-01's `fundScopeRegistry.mjs` says "seven taxonomies" where RECON §4.3 says **eight** | **open** — corrected in the new basis registry; the shipped SCOPE-01 file still carries the error |
+| ui | `ScopeLabel.tsx:84` keys the basis chip off `TONE['general_fund']` rather than the in-scope `VERIFIED_TONE` | **open, cosmetic** — safe only while a test asserts the three fund-scope tones are identical |
+| ⛔ cost | Transparent Utah | **unchanged — NEVER reconcile by querying BigQuery.** Unpartitioned, full-scan, ~$132 surprise bill on 2026-06-19. Use a free SLC/Provo ACFR PDF |
+
 
 ### Carried at v2.24 close (2026-08-17)
 
@@ -441,38 +477,38 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-08-17
-Stopped at: **v2.24 SCOPE-01 CLOSED.** UAT passed, one defect found and fixed (`e5806be`), PR #15 merged from `feat/scope-01`, `.planning/` updated, tagged `v2.24`. Working tree clean.
-Resume file: `docs/superpowers/plans/SCOPE-01-CLOSEOUT.md`
+Last session: 2026-08-18
+Stopped at: **v2.25 SCOPE-02 CLOSED.** PRs #16 and #17 merged, `.planning/` updated, tagged `v2.25`. UAT sign-off still outstanding. Working tree clean.
+Resume file: `docs/superpowers/plans/SCOPE-02-CLOSEOUT.md`
 
 ### Next Session
 
-**RESUME AT: SCOPE-02.** It is scoped but not planned. Read, in this order:
+**RESUME AT: one of two things, and they are not the same size.**
 
-1. `docs/superpowers/plans/SCOPE-01-CLOSEOUT.md` — status and the open-items list
-2. `docs/superpowers/plans/SCOPE-01-RECON.md` — evidence for every classification, **including the ones that came out `unknown` and why**
+**The highest-value task is not in any SCOPE milestone: one MA ACFR.** 16,816 rows — 21% of the database — are `unknown` because the MA DLS revenue report's `Transfers` column is an all-governmental-funds figure, making its published total a hybrid. Expenditures point clearly at `general_fund` (2.59% from the ACFR vs 20.35% from Total Governmental). It needs **one audited document from a town that runs its own schools** — Amherst is a regional-school-district town and a poor witness. Newton, Somerville and Arlington all return HTTP 403 to scripted fetches, so this needs a human or another route, which is exactly why it keeps not happening. Landing it moves `general_fund` from 2.2% to ~23% and `unknown` from 33% to ~12%.
 
-**SCOPE-02's own scope**, per the three-milestone split Chris approved 2026-08-16: CA remediation (derive Total Governmental for SCO cities, marked as derived; close the seven seams; supply General Fund via the CA-CITIES-01 extractors), the **`reporting_entity` column**, the index widening, and the read-path/summation guards. **SCOPE-03** is the GF ⇄ Total Governmental ⇄ All Funds toggle and making the enterprise slice visible.
+**Otherwise SCOPE-03**, which is scoped but not planned: the GF ⇄ Total Governmental ⇄ All Funds toggle, and making the enterprise slice visible. Its foundation is now in place. Read, in this order:
+
+1. `docs/superpowers/plans/SCOPE-02-CLOSEOUT.md`
+2. `docs/superpowers/plans/SCOPE-01-CLOSEOUT.md` and `SCOPE-01-RECON.md`
 
 **Chris's framing, which is the point of the whole arc:** the transfer between an enterprise fund and the general fund is where money gets quietly reclassified, and a tool that only ever shows one total cannot show that movement. Enterprise/ISF is **59% of Long Beach, 52% of Anaheim, 50% of Modesto** — under a GF-only view, more than half the city is invisible.
 
-The highest-value single task available is **not** in SCOPE-02's stated scope: **one MA ACFR from a town that runs its own schools** unblocks 16,816 rows, 21% of the database, and would move `general_fund` from 2.2% to ~23%.
+⚠ **Fix the instruments before triaging the seam backlog with them.** Two are known-broken and both are cheap:
+* `verify-fund-scope.mjs` reports a false alarm on every run — it never got the exclusion mechanism. A harness nobody believes is worse than no harness.
+* `detectSeams` is scope-blind, so it manufactures phantom zero-gap seams for legally-coexisting rows. Redefining what a "seam" means once series exist is a genuine SCOPE-03 design question.
 
-⚠ **Do not trust `/gsd-progress` on its own here.** `ROADMAP.md`'s phase tables end at v2.20 and know nothing about v2.21–v2.24, because all four ran on `docs/superpowers/` plans rather than GSD phases. Read this file, then the plan docs under `docs/superpowers/plans/`.
+⚠ **Traps this arc has already paid for. Do not rediscover them:**
+* **A raw NUL byte in source makes git treat the file as binary**, killing diff and blame. It fired **three times** in SCOPE-02 alone. Write ` `, never the byte.
+* **`npm run build` is the CI gate, not `npx tsc --noEmit`** — the latter does not build project references and passes on errors CI fails.
+* **Tailwind drops an undefined colour class silently.** There is no `ev-blue`; light steps are three-digit (`ev-gray-050`). Only `getComputedStyle` off the running app catches it.
+* **`dotenv` is not installed** — `node -r dotenv/config` fails. Use `set -a && source .env && set +a`.
+* **PostgREST round-trips bare numerics lossily** past ~15–17 significant figures. Select `total_budget::text` when a digest depends on it.
+* **A `data_source` string is not evidence.** Read the loader's actual input files.
+* ⛔ **Never query Utah's BigQuery table** — unpartitioned, ~$132 on 2026-06-19.
 
-⚠ **Four traps this milestone paid for. Do not rediscover them:**
-  * **The MA label trap.** A `data_source` string is not evidence. `X — MA DLS Schedule A — Special Revenue Funds` is General Fund expenditure data with a wrong label, and a CHECK value was added on that false premise before anyone opened `docs/MA/`. **Read the loader's actual input files.**
-  * **`^CA State Controller` is two unrelated sources.** 7,682 of its 30,942 rows are publicpay compensation data the Modesto reconciliation never covered. Anchor patterns per string; do not rest it on the hyphen/em-dash tell.
-  * **Two digests, always.** `sha256(id | total_budget)` is the figure invariant and must never move. The composite one includes `dataset_type` and legitimately moves on a relabel. One digest alone conflates "a figure moved" with "a label changed".
-  * **There is exactly one working lever for hiding rows:** relabel `dataset_type` to something outside `src/App.tsx`'s allow-list. A `display_suppressed` column cannot work — EV-Accounts uses explicit column lists and `available_datasets` carries no source info.
+To start the next one: `/gsd-new-milestone`. If it runs as a superpowers spec + plan again, **tag and update `.planning/` in the same step** — that drifted on four milestones running before v2.24 and v2.25 fixed it.
 
-⚠ **And one from UAT:** a Tailwind class naming an undefined token is dropped **silently** — build, `tsc` and the whole suite stay green. There is no `ev-blue` scale in this project and the gray steps are three-digit (`ev-gray-050`). `getComputedStyle` off the running app is the only check that sees it; `ScopeLabel.tokens.test.ts` is the cheap CI guard, worth copying for any other colour map.
-
-Other candidates, unchanged:
-  * **BANNER-01** — partly done (Seattle + King County wired 2026-08-16); the other 10 WA entities have no bucket assets. Transcribe credits from Essentials' `buildingImages.js`, **never infer them**.
-  * Votes/amendments hub (VOTES-01); sourced-standard backfill to city data (SRCSTD-01, brief at `.planning/SRCSTD-01-SCOPING.md`); deeper history on the ACFR state nodes (CA/NY/FL/TX pre-window holes).
-
-To start the next one: `/gsd-new-milestone`. If it runs as a superpowers spec + plan again, **tag and update `.planning/` in the same step** — that has now drifted on three milestones running.
 
 ## Performance Metrics
 
