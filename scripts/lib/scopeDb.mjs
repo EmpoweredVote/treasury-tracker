@@ -43,7 +43,14 @@ export async function fetchScopeRows(supabase) {
   for (let from = 0; ; from += 1000) {
     const { data, error } = await supabase
       .schema('treasury').from('budgets')
-      .select('municipality_id, fiscal_year, dataset_type, period_label, fund_scope, total_budget, data_source')
+      // total_budget is cast to text in-query: it is `numeric` in Postgres, and some
+      // rows carry more significant digits (e.g. 43283121.249999955, a float sum
+      // baked in upstream) than a JS float64 round-trips through PostgREST's JSON
+      // encoding without loss. frozenIdDigest hashes this value byte-for-byte
+      // against a SQL-computed digest, so a lossy fetch here silently breaks that
+      // invariant. Every consumer already does Number(r.total_budget) before doing
+      // math with it, so returning a string here changes nothing downstream.
+      .select('id, municipality_id, fiscal_year, dataset_type, period_label, fund_scope, basis, reporting_entity, total_budget::text, data_source')
       .order('municipality_id').order('fiscal_year')
       .range(from, from + 999);
     if (error) throw new Error(`fetch budgets: ${error.message}`);
