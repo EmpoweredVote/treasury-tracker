@@ -50,7 +50,7 @@ export const BASIS_REGISTRY = [
     value: BASIS.ACTUAL,
     evidence: {
       document: 'SCO Counties Annual Report; County of Stanislaus FY2024 ACFR p.23 (SCOPE-01-RECON §4.3)',
-      figures: 'Reported prior-year collections; 0.547% residue decomposed across seven taxonomies with mixed signs.',
+      figures: '0.547% residue decomposed across eight taxonomies with mixed signs (five SCO-higher, three SCO-lower); a missing fund would subtract in one direction only, so this is a taxonomy difference, not an absent fund.',
     },
   },
   {

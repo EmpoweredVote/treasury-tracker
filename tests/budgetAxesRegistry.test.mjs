@@ -42,6 +42,9 @@ describe('basis classification', () => {
   it('MA stays unknown -- not probed', () => {
     expect(basisOf('Newton — MA DLS General Fund Revenue by Source')).toBe('unknown');
   });
+  it('city-adopted-budget-doc\'s unguarded "Budget FY####" tail alternative matches with no keyword present -- pinning intended, not accidental, behaviour', () => {
+    expect(basisOf('Some City Adopted Budget FY2025')).toBe('adopted');
+  });
 });
 
 describe('reporting entity classification', () => {
@@ -50,6 +53,10 @@ describe('reporting entity classification', () => {
   });
   it('ACFR extracts are the primary government', () => {
     expect(entityOf('Utah State ACFR — General Fund (FY2024 actual, GAAP basis)')).toBe('primary_government');
+  });
+  it('WA SAO is the primary government', () => {
+    expect(entityOf('WA State Auditor — Spokane Annual Financial Report FY2024 (General Fund, Expenditure by Function)'))
+      .toBe('primary_government');
   });
   it('Ohio stays unknown -- EXPECTED primary_government but columbus.gov returned 403', () => {
     expect(entityOf('Ohio Auditor of State Summarized Annual Financial Reports')).toBe('unknown');
