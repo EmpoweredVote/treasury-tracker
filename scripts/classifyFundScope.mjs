@@ -79,9 +79,18 @@ export const EXPECTED_ROWS = Object.freeze({
   // against all 3,824 distinct data_source strings before the entries were
   // written, matching 351 / 351 / 350 strings with zero over-match and zero
   // collision with an existing entry.
-  'ma-dls-gf-exp': 8403,
+  // +5 and +5 for Cambridge (migration 20260818000400). Cambridge's FY2021-2025
+  // rows were labelled 'cambridge-open-data' but are byte-identical to
+  // docs/MA/GenFund{Expenditures,Revenues}{2021..2025}.xlsx on all 10 rows, so it
+  // is the same DLS source as the other 350 municipalities wearing a third wrong
+  // label. Before that fix ma-dls-gf-rev-by-source matched 350 strings, not 351 —
+  // Cambridge was the missing one, which is what led to finding this.
+  // Cambridge FY2026 is NOT included: revenue equals operating exactly
+  // ($992,181,320), the balanced-adopted-budget signature, and no FY2026 workbook
+  // exists. It stays 'cambridge-open-data' and stays unknown.
+  'ma-dls-gf-exp': 8408,
   'ma-dls-gf-rev': 6663,
-  'ma-dls-gf-rev-by-source': 1750,
+  'ma-dls-gf-rev-by-source': 1755,
 });
 
 /** Batch size for `data_source IN (...)` updates — 1,448 strings is one family. */

@@ -336,12 +336,57 @@ Classifying the DLS era `general_fund` while the open-data era stays `unknown`
 splits it into two series, and `chooseDisplaySeries` takes the widest — the
 19-year one — so FY2021–2026 now renders as a **gap**.
 
-That is the spec's intended behaviour ("a gap, which is honest, rather than a
-cliff, which is a lie") and the recent data genuinely is unevidenced. But it is a
-visible downgrade on one real page, and the fix is small and known: **evidence
-`cambridge-open-data`**. Cambridge publishes ACFRs, its site returns 200 to the
-documented header set, and it runs its own K-12 district — the same recipe used
-for Natick and Lexington. Until then the loss stands.
+**RESOLVED — and the premise was wrong.** See §7.
+
+## 7. `cambridge-open-data` was MA DLS all along — a THIRD wrong label
+
+Investigating the regression showed `cambridge-open-data` is not a different
+source at all. Its stored category names are **exactly the MA DLS Schedule A
+taxonomy** — operating roots Education, Public Safety, Fixed Costs, Debt Service,
+General Government, Intergov Assessments, Public Works, Human Services, Culture
+and Recreation, Other Expenditures (all ten columns), and revenue roots including
+`Transfers` and `Other Financing Sources`. A city's own open-data portal does not
+publish in the state's Schedule A taxonomy.
+
+Proven the same way the 1,560 were — against the workbooks:
+
+| FY | DB operating | xlsx Total Exp | DB revenue | xlsx Total Rev |
+|---|---:|---:|---:|---:|
+| 2021 | 606,245,838 | 606,245,838 | 732,355,439 | 732,355,439 |
+| 2022 | 621,077,310 | 621,077,310 | 757,378,045 | 757,378,045 |
+| 2023 | 695,363,085 | 695,363,085 | 831,741,384 | 831,741,384 |
+| 2024 | 741,021,949 | 741,021,949 | 917,998,626 | 917,998,626 |
+| 2025 | 815,852,939 | 815,852,939 | 952,578,856 | 952,578,856 |
+
+**All 10 byte-identical.** A corroborating signal had been visible and unread all
+along: `ma-dls-gf-rev-by-source` matched **350** strings, not 351 — Cambridge was
+the missing one.
+
+Migration `20260818000400` relabels those 10 rows, id-scoped.
+
+**Deliberately not touched:** FY2026 operating and revenue, both exactly
+$992,181,320. Revenue equalling expenditure to the dollar is the
+balanced-adopted-budget signature, no FY2026 workbook exists, and the FY2021–2025
+rows have revenue ≠ operating — it is an adopted budget, not DLS actuals. Also
+untouched: all 6 salary rows, which lie outside both workbooks.
+
+**Outcome — the seam moved rather than vanishing, which is correct:**
+
+```
+was  Cambridge FY2020→2021  general_fund → unknown   6 years lost
+now  Cambridge FY2025→2026  general_fund → unknown   1 year lost
+```
+
+Cambridge draws **FY2002–2025 continuously — 24 years, five recovered** — and
+FY2026 renders as a gap, which is honest for an unevidenced adopted budget.
+`general_fund` 18,550 → 18,560; `unknown` 9,707 → 9,697; `figures_frozen`
+unchanged; all four harnesses exit 0.
+
+⚠ **Three wrong source labels have now been found in this one family** (Special
+Revenue Funds ×1,560, cambridge-open-data ×10, and the still-true-but-inconsistent
+by-source split). Each was found by the same test — compare the stored figure to
+the committed workbook cell. Any future MA row whose label is not one of the three
+registry patterns should be run through that test before anything else.
 
 ### Still open
 
