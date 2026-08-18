@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   FUND_SCOPE_VALUES, FUND_SCOPE_COPY, FUND_SCOPE_EXPLAINER, NON_COMPARABLE_SCOPES,
   isComparableScope, normalizeScope, scopeLabel,
-  areComparable, normalizeReportingEntity, normalizeBasis,
+  areComparable, normalizeReportingEntity, normalizeBasis, BASIS_COPY,
 } from './fundScopeVocabulary';
 
 describe('fund scope values', () => {
@@ -171,5 +171,21 @@ describe('normalizeReportingEntity', () => {
     expect(normalizeReportingEntity('incl_component_units')).toBe('incl_component_units');
     expect(normalizeReportingEntity('component_units_only')).toBe('unknown');
     expect(normalizeReportingEntity(undefined)).toBe('unknown');
+  });
+});
+
+describe('basis copy', () => {
+  it('covers every basis value', () => {
+    expect(Object.keys(BASIS_COPY).sort()).toEqual(['actual', 'adopted', 'unknown']);
+  });
+  it('says what an adopted budget IS, in plain words, without jargon', () => {
+    expect(BASIS_COPY.adopted.short.toLowerCase()).toMatch(/plan|approved|before/);
+    expect(BASIS_COPY.adopted.short).not.toMatch(/basis of accounting|encumbrance/i);
+  });
+  it('blames nobody for an unestablished basis', () => {
+    const all = Object.values(BASIS_COPY).map((c) => `${c.label} ${c.short}`).join(' ').toLowerCase();
+    for (const word of ['fail', 'error', 'bad', 'wrong', 'missing data', 'incomplete']) {
+      expect(all).not.toContain(word);
+    }
   });
 });

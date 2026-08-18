@@ -178,6 +178,33 @@ export function normalizeBasis(raw: unknown): Basis {
 }
 
 /**
+ * Basis copy (SCOPE-02 Task 13).
+ *
+ * ⚠ PUBLIC-FACING COPY, reviewed in one file (same rule as FUND_SCOPE_COPY).
+ *
+ * The distinction a reader needs is "what a government PLANNED to spend" versus
+ * "what it actually spent once the year closed" -- not the accounting-basis
+ * lecture (cash vs. modified accrual, encumbrances, and so on). An adopted
+ * budget is not a lesser or less-trustworthy figure; it answers a different
+ * question than an actual does, and drawing the two as consecutive points on
+ * one line is what produced the -75% Long Beach cliff that opened SCOPE-02.
+ */
+export const BASIS_COPY: Record<Basis, { label: string; short: string }> = {
+  actual: {
+    label: 'Actuals',
+    short: 'What was actually spent or received, reported after the year closed.',
+  },
+  adopted: {
+    label: 'Adopted budget',
+    short: 'The spending plan approved before the year began, not what was finally spent.',
+  },
+  unknown: {
+    label: 'Basis not established',
+    short: 'We have not verified whether this is a closed-year actual or a budget.',
+  },
+};
+
+/**
  * Reporting-entity vocabulary (SCOPE-02 Task 7).
  *
  * A government's own operations ("primary government") versus its primary

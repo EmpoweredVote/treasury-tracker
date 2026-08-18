@@ -374,12 +374,14 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
               {operatingData && (
                 <ScopeLabel
                   scope={operatingData.metadata.fundScope}
+                  basis={operatingData.metadata.basis}
                   datasetLabel={revenueData ? 'Money out' : undefined}
                 />
               )}
               {revenueData && (
                 <ScopeLabel
                   scope={revenueData.metadata.fundScope}
+                  basis={revenueData.metadata.basis}
                   datasetLabel={operatingData ? 'Money in' : undefined}
                   withExplainer={!operatingData}
                 />
