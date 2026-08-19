@@ -12,7 +12,7 @@
 > in sequence below so the ordering does not read as "v2.20 never happened", but it is a
 > pointer, not a summary — the archive is the record.
 
-## v2.26 SCOPE-03 — The Series Toggle (BUILT 2026-08-18 on `feat/scope-03` — **not merged, not tagged, UAT outstanding**)
+## v2.26 SCOPE-03 — The Series Toggle (Shipped: 2026-08-19, tag `v2.26`)
 
 **Tasks completed:** 10 of 10 (no GSD phases — spec: `docs/superpowers/specs/2026-08-18-scope-03-design.md`, plan: `docs/superpowers/plans/2026-08-18-scope-03.md`, closeout: `docs/superpowers/plans/SCOPE-03-CLOSEOUT.md`)
 
@@ -26,6 +26,10 @@
 - ⚠ **This repo cannot run component tests and none exist.** `vitest.config.ts` is `environment: 'node'` and its `include` never collects `.test.tsx`; a `.test.tsx` file **silently does not run**. Testable logic must live in pure modules.
 
 **Tests:** 458 passing / 29 files (from 445 / 28). `npm run build` clean.
+
+**Merged:** PR #31 → `main` as `4cd598b`, 19 files, +4,670/−877. Tagged `v2.26` in the same commit as this entry — the thing v2.21 through v2.23 each got wrong in a different way.
+
+**Follow-up, deliberately separate:** the NUL-byte lint and its pre-commit hook ship as PR #32, not as part of this milestone. ⚠ Its `build` check had never run while it was stacked on `feat/scope-03`: `build-check.yml` triggers on `pull_request` with `branches: [main]`, and retargeting a base does **not** re-fire it — a close/reopen does. **A stacked PR in this repo is untested until it points at `main`.**
 
 **Archive:** none — no `milestones/v2.26-*` directory (not a GSD-phased milestone).
 
