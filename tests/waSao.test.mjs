@@ -145,7 +145,10 @@ describe('no module a test imports starts with a shebang', () => {
       .filter((f) => f.endsWith('.mjs'))
       .filter((f) => readFileSync(path.join(libDir, f), 'utf8').startsWith('#!'));
     expect(offenders).toEqual([]);
-  });
+    // ⚠ Explicit timeout: this reads a directory of files, so its duration
+    // tracks disk contention, not the code under test. See the note in
+    // tests/pagedReadOrdering.test.mjs.
+  }, 30_000);
 
   it('nor does any module imported by a test, wherever it lives', () => {
     const testDir = path.join(root, 'tests');
@@ -171,5 +174,7 @@ describe('no module a test imports starts with a shebang', () => {
       .filter((p) => existsSync(p) && readFileSync(p, 'utf8').startsWith('#!'))
       .map((p) => path.relative(root, p).replace(/\\/g, '/'));
     expect(offenders).toEqual([]);
-  });
+    // ⚠ Explicit timeout, same reason: this one walks tests/ and reads every
+    // module they import.
+  }, 30_000);
 });

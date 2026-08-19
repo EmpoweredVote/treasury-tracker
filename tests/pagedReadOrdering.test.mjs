@@ -45,9 +45,18 @@ describe('every paged read orders by a total key', () => {
     return out;
   }
 
+  // ⚠ EXPLICIT TIMEOUTS throughout this file: every test here walks the source
+  // tree and reads files, so its duration tracks disk contention rather than any
+  // property of the code under test. vitest's default 5s then fails a passing
+  // test whenever the machine is busy.
+  //
+  // `noUnconstrainedBudgetSums.test.mjs` already carries `}, 30_000)` for exactly
+  // this reason -- SCOPE-02 hit the flake, fixed the instance, and left the
+  // siblings that do the same thing unprotected. Measured 2026-08-19: 153ms idle,
+  // 445ms under moderate load, and the failing runs showed ~8x.
   it('finds the paged readers at all, so this cannot pass vacuously', () => {
     expect(pagedFiles().length).toBeGreaterThan(0);
-  });
+  }, 30_000);
 
   it("scopeDb's budgets read is ordered by id last", () => {
     const src = readFileSync(path.join(root, 'scripts', 'lib', 'scopeDb.mjs'), 'utf8');
@@ -59,12 +68,12 @@ describe('every paged read orders by a total key', () => {
       expect(orders.at(-1), `ordering chain ${orders.join(' -> ')} must end on the primary key`)
         .toBe('id');
     }
-  });
+  }, 30_000);
 
   it('no paged .range in scopeDb is left with no ordering at all', () => {
     const src = readFileSync(path.join(root, 'scripts', 'lib', 'scopeDb.mjs'), 'utf8');
     const ranges = [...src.matchAll(/\.range\(\s*from\s*,/g)].length;
     const orderedRanges = [...src.matchAll(/\.order\('[a-z_]+'\)\s*\.range\(\s*from\s*,/g)].length;
     expect(orderedRanges).toBe(ranges);
-  });
+  }, 30_000);
 });
