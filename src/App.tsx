@@ -951,7 +951,20 @@ function App() {
                 ref={yearSelectorRef}
                 selectedYear={selectedYear}
                 years={availableYears}
-                onYearChange={setSelectedYear}
+                // Re-resolve the dataset against the NEW year, the same way the
+                // mount and entity-change paths do. Without this, moving to a
+                // year that lacks the active dataset asks the API for a row that
+                // cannot exist — e.g. Brockton MA FY2025 has revenue but no
+                // operating, which rendered "Unable to load budget data".
+                onYearChange={(year) => {
+                  setSelectedYear(year);
+                  if (!selectedEntity) return;
+                  const typesForYear = selectedEntity.available_datasets
+                    .filter(d => d.fiscal_year === parsePeriod(year).fiscalYear)
+                    .map(d => d.dataset_type)
+                    .filter(t => t !== 'all_funds_requirements' && t !== 'federal_agency');
+                  setActiveDataset(resolveEffectiveDataset(typesForYear, activeDataset) as DatasetType);
+                }}
               />
             )}
             {/* Funds on Hand — static, dated bank balance (Phase 76). A quiet meta
