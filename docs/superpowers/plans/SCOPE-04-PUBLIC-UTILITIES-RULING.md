@@ -5,6 +5,9 @@
 **Method:** per-SOURCE classification with mandatory evidence (SCOPE-01's rule)
 **Also carries:** a base-rate check of the whole CA SCO source (§7) — 8 city-years
 tie to an audited ACFR, 1 fails
+**Companion:** `SCOPE-04-NEGATIVES-RULING.md` adjudicates §3.5's negative-enterprise
+trap. ⚠ Read its §5 before using the ACFR tie as a gate — the test has **three**
+outcomes, and one of them is "diverges legitimately".
 
 > The handoff said: *"Adjudicate against a document before deciding, and record
 > the ruling."* This is that record. Two city ACFRs settle it to the dollar.
