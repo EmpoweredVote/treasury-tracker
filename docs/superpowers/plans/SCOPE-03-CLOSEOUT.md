@@ -114,9 +114,9 @@ Longview TX   [ Scope not established · adopted FY2026 ✓ ]  Money Out $104.8M
 
 Removed with a byte-preserving replacement. ⚠ `sed -i` silently stripped all 833 CRs on the first attempt; `perl` with `binmode` did not. The commit shows a whole-file diff because git never CRLF-normalises a *binary* blob and now normalises a *text* one — verified line-by-line that **exactly one line changed**.
 
-SCOPE-02 recorded this firing three times and said "it wants a lint". **The lint is now written** — `scripts/lib/nulByteLint.mjs` (pure) + `tests/nulByte.test.mjs`, so `npm test` enforces it. A standalone script nobody runs is how the count reached four.
+SCOPE-02 recorded this firing three times and said "it wants a lint". **The lint is now written, on its own branch `chore/nul-byte-lint`** — deliberately not in this PR, which stays SCOPE-03 only.
 
-⚠ **It found a fifth occurrence on its first run, in this milestone's own plan.** `docs/superpowers/plans/2026-08-18-scope-03.md` line 21 — again *inside the bullet warning against NUL bytes* — which git had committed as **`Bin 0 → 86484 bytes`**. The entire implementation plan was an unreviewable binary blob in PR #31 and nobody had noticed. Fixed.
+⚠ **It found a fifth occurrence on its first run, in this milestone's own plan** — and that fix *is* in this PR, because it is a defect in this PR's own content. `docs/superpowers/plans/2026-08-18-scope-03.md` line 21, again *inside the bullet warning against NUL bytes*, had been committed as **`Bin 0 → 86484 bytes`**: the entire implementation plan was an unreviewable binary blob and nobody had noticed.
 
 Two design points worth keeping:
 
@@ -130,7 +130,7 @@ Two design points worth keeping:
 1. **Derived Total Governmental for era B** (FY2017+, ~8,500 rows) — a level in the toggle. Era A is structurally underivable; do not retry.
 2. **The enterprise slice made visible.** The roots are already named (`Water Enterprise Fund`, `Internal Service Fund`, …) on era-B rows.
 3. **A seam definition that survives the series model**, plus the ~19 remaining seams.
-4. ~~A NUL-byte lint.~~ **Written in this milestone** after it reached five occurrences. Consider extending it to a pre-commit hook so the failure arrives before the commit rather than after.
+4. ~~A NUL-byte lint.~~ **Written, on branch `chore/nul-byte-lint`** — reviewed separately from this milestone. Consider extending it to a pre-commit hook so the failure arrives before the commit rather than after.
 5. **No component tests exist and none can be written** — `vitest.config.ts` is `environment: 'node'` and its `include` never collects `.test.tsx`, with no testing-library or DOM environment. A `.test.tsx` file **silently does not run**. Adding the toolchain is a decision for Chris; until then, push testable logic into pure modules.
 
 ## Open items
