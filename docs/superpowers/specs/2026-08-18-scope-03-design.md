@@ -212,10 +212,19 @@ Two readings, and they lead to different pages:
   it contradicts the shared-selection rule as stated, and it re-permits a cross-basis pair
   on the one page where the data proves the pair is unsound.
 
-⚠ **This is the one decision in this document not settled by the brainstorming session**,
-because the case was not known then. Recommendation is the first. Chris to rule at spec
-review; the plan cannot be written until he does, since it changes both the Definition of
-Done and the copy.
+**RULED 2026-08-18 — Chris: honour the rule (the first reading).**
+
+Longview's Money In and Money Out are not a pair and the app will stop presenting them as
+one. Selecting either pill renders that dataset and marks the other absent, with the same
+copy every other absent side uses. Both figures stay reachable; neither is deleted.
+
+Consequences carried into the rest of this document:
+
+* The first-paint invariant (§2) is stated **with this exception**, not as an absolute.
+* The Definition of Done names Longview explicitly rather than asserting "no page changes".
+* A detector for the shape — *entity renders more than one pill while no single dataset is
+  multi-series* — is in scope, so the next one is found by a harness rather than by a
+  reader. There is exactly one today and nothing would report a second.
 
 ---
 
@@ -336,7 +345,8 @@ from the design.
 
 **In:** `seriesSelection.ts`; `FundSeriesToggle.tsx`; series threading through the six
 `loadBudgetData` call sites in `App.tsx`; the cache-key fix; the absent-result fix; the
-`availableYears` filter and year clamp; the two URL params; the copy; the tests.
+`availableYears` filter and year clamp; the two URL params; the copy; the tests; and
+`verify-series-shape.mjs` (§3.1, §9).
 
 **Out:** every database write, every migration, every EV-Accounts change, derived Total
 Governmental, the enterprise slice, the seam-definition fix, and any change to
@@ -354,7 +364,7 @@ Governmental, the enterprise slice, the seam-definition fix, and any change to
 | Switching series now captures a pageview, moving engagement figures | Correct behaviour, but it changes a published metric's meaning. Flag it to whoever reads the Treasury funnel before it ships |
 | The FY1976 TQ token breaks and no multi-series fixture catches it | Its own test, called out in §4.2 |
 | Shipping a control that most entities render as a single inert pill | Accepted and intended. 17 entities exercise it today; the rest light up as sources land, with no further frontend work — which is the whole point of the milestone |
-| **A Longview-shaped entity appears in a future load and silently loses a tile** | The shape is not detectable by any existing harness. If §3.1 is ruled the first way, a check for "entity renders >1 pill but no dataset is multi-series" belongs with the seam detectors, so the next one is found rather than reported by a reader |
+| **A Longview-shaped entity appears in a future load and silently loses a tile** | Not detectable by any existing harness. §3.1 having been ruled, a `verify-series-shape.mjs` check for "entity renders >1 pill but no dataset is multi-series" ships with this milestone and is mutation-tested against a synthetic second case |
 
 ---
 
