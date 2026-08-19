@@ -144,7 +144,52 @@ Every constraint added was mutation-tested: both CHECK constraints in the reject
 
 ---
 
+## Appendix — the ten rulings
+
+⚠ **Preserved here on 2026-08-18 because they were about to be destroyed.** These
+lived only in `.superpowers/sdd/2026-08-17-scope-02/progress.md`, which is
+gitignored and therefore in no commit anywhere. Ruling 10 said to delete that
+workspace after UAT sign-off, while also noting it was "the only place the ten
+rulings and the near-misses live in narrative form" — so sign-off would have
+erased them. This file was checked first and mentioned "Ruling" zero times.
+
+A ruling is a decision made mid-execution where the plan was wrong, ambiguous, or
+unsafe, recorded with its cost-if-wrong.
+
+| # | Decision | Why |
+|---|---|---|
+| 1 | `Basis`, `normalizeBasis`, `ReportingEntity`, `normalizeReportingEntity` all live in `fundScopeVocabulary.ts`; Task 7 runs **before** Task 6 | The plan had `budgetSeries.ts` and `fundScopeVocabulary.ts` importing from each other. Vite/Vitest resolution of mixed type+value cycles is fragile and the spec never required the split |
+| 2 | Capture the frozen id set during **Task 1**, the first database touch | The plan captured it in Task 11, which runs *after* the Task 10 backfill it is supposed to predate |
+| 3 | All pure-code tasks first (T2→T7→T6→T8→T13→T12), then **stop for go-ahead** | T1/3/4/9/10 write to the shared production database and T5 pushes to a second repo. Side effects outside the workspace need explicit authorisation |
+| 4 | Re-review the **whole task** range `0363fe6..d42b068`, not the fix-only range | The fix-only range still rendered as `Bin` — its OLD side was the corrupt NUL-byte blob. A re-reviewer cannot verdict a diff git will not render |
+| 5 | **Invert the invariant**: record `frozen_row_count` + a digest, have Task 10 record the ids it INSERTS, and compute over *current rows minus those ids* — supersedes Ruling 2's mechanism | `created_at` is NULL on 79,899 of 79,927 rows, so the plan's fallback would have left the invariant 99.96% vacuous; committing all 79,927 ids was a ~3MB permanent artifact. Fail direction is safe: a forgotten id is treated as frozen, so the digest moves and the harness fails loudly |
+| 6 | An **evidence-text** inaccuracy goes into the fix round despite grading Minor | Evidence strings are the milestone's audit trail of record. An entry's evidence is the only thing standing between a value and a guess. (Style minors stayed deferred; provenance did not) |
+| 7 | **Merge and deploy before the backfill**, moving Tasks 10/11/14 to a follow-up branch — Chris's decision | The planned ordering would have opened a live non-determinism window on nine city-years, because the frontend fix was committed but not deployed |
+| 8 | The backfill uses `--city`, not the plan's `--county` | `--county` would have deleted and reinserted the category tree of every city in four counties to add rows for four. Totals unchanged, blast radius indefensible |
+| 9 | The **"seven seams closed" Definition of Done is defective**; the implementation is correct | Long Beach, Anaheim and Bakersfield cannot be closed by loading anything — SCO ends FY2024 and their adopted rows start FY2025. `detectSeams` groups scope-blind and compares two different series |
+| 10 | Do **not** delete the SDD workspace at finish | UAT sign-off outstanding, and the ledger was the only narrative record. See the warning at the top of this appendix |
+
+### Near-misses worth keeping
+
+- **Three NUL-byte incidents in one milestone.** A raw `U+0000` written as a byte instead of an escape makes git treat the file as binary — no diff, no blame — and it degraded a review package badly enough that the reviewer had to hex-dump. SCOPE-01 had already documented this exact defect in `scopeVerify.mjs`.
+- **The old 9-arg RPC overload survived `CREATE OR REPLACE`** and had to be dropped explicitly. Two callable versions would have reintroduced the ambiguity by another route. A controller-added overload check caught it.
+- **Two briefs were never generated** (Tasks 1 and 5). Both implementers recovered the task verbatim from the plan, flagged the gap, and did not improvise.
+- **A lossy `total_budget` select** — PostgREST drops `numeric` scale, so the digest was not byte-faithful to SQL. Found by an implementer, not a reviewer.
+- **The tag was created during a run reporting 1 failed / 369 passed**, because the gate and the tag were chained into one command. The failing test could not be named afterwards. *(It has since been identified and fixed: an I/O-bound scan wearing a 5s unit-test timeout.)*
+
+### What later work corrected in the ledger
+
+Recorded so the appendix is not trusted further than it earned:
+
+- The `verify-fund-scope.mjs` note blamed both a lossy select **and** a stale baseline. Only the baseline caused the failure; the lossy select was real but separate.
+- The backlog was "~37 seams". It was **40**, of which 12 were instrument artifacts.
+- `detectSeams` was recorded as scope-blind. It was also **order-unstable**.
+- The `bulkLoadStateController` note described the ambiguity guard. The function's blanket `EXCEPTION WHEN OTHERS` meant *every* database error took the same silent path.
+- The closeout and tag both read "370 passed, 23 files". It was **22**.
+
+---
+
 ## Open items
 
-- [ ] **Chris's UAT sign-off.** Not tagged until then.
-- [ ] `v2.25` tag, **in the same step as this file and `.planning/`** — v2.21 never reached `.planning/`, v2.22 was never tagged, v2.23 read "awaiting UAT" for a day after its tag existed. Four milestones, four misses.
+- [x] **Chris's UAT sign-off** — given 2026-08-18. The ten rulings were preserved into the appendix above before the SDD workspace was deleted.
+- [x] `v2.25` tag, **in the same step as this file and `.planning/`** — v2.21 never reached `.planning/`, v2.22 was never tagged, v2.23 read "awaiting UAT" for a day after its tag existed. Four milestones, four misses. *(Tagged 2026-08-18; the tag was rebuilt the same day to correct "23 files" → "22 files", same target commit `6f35b91`, tagger and date preserved.)*
