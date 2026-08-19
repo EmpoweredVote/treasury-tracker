@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { DollarSign, TrendingDown, Users, Info } from 'lucide-react';
 import { useAnimatedCounter } from '../../hooks/useAnimatedCounter';
-import { financingInflowNote, type FinancingInflow } from '../../data/fundScopeVocabulary';
+import { financingInflowNote, SERIES_TOGGLE_COPY, type FinancingInflow } from '../../data/fundScopeVocabulary';
 
 interface DatasetCardsProps {
   activeDataset: string;
@@ -18,6 +18,14 @@ interface DatasetCardsProps {
    * never hard-coded per source. Absent for most sources, which render nothing.
    */
   financingInflow?: FinancingInflow | null;
+  /**
+   * SCOPE-03: datasets with no row in the chosen series. Their tile shows the
+   * absent note instead of a figure — never a figure from a different series,
+   * which would put a Money In from one series beside a Money Out from another.
+   */
+  absentDatasets?: Record<string, boolean>;
+  /** Reader-facing name of the chosen series, for the absent note. */
+  activeSeriesLabel?: string;
 }
 
 const formatCurrency = (amount: number, exact = false): string => {
@@ -68,6 +76,8 @@ export default function DatasetTabs({
   availableDatasets,
   isNonprofit = false,
   financingInflow = null,
+  absentDatasets = {},
+  activeSeriesLabel = '',
 }: DatasetCardsProps) {
   const available = availableDatasets ?? ['operating', 'revenue'];
   const hasSalaries = available.includes('salaries');
@@ -116,9 +126,15 @@ export default function DatasetTabs({
     return null;
   };
 
+  /** SCOPE-03: this dataset has no row in the chosen series. */
+  const isAbsent = (id: string) => absentDatasets[id] === true;
+
   // Only meaningful when both tiles are actually on screen to be compared.
+  // ⚠ SCOPE-03: with either tile absent there is no like-for-like comparison to
+  // qualify, so the note has nothing to say.
   const showFinancingNote =
-    financingInflow != null && available.includes('revenue') && available.includes('operating');
+    financingInflow != null && available.includes('revenue') && available.includes('operating')
+    && !isAbsent('revenue') && !isAbsent('operating');
 
   return (
     <>
@@ -182,20 +198,31 @@ export default function DatasetTabs({
                   {label}
                 </span>
               </div>
-              {total != null && (
-                <div
-                  className={`text-2xl font-bold inline-block rounded-sm px-0.5 ${highlighted ? 'text-ev-gray-900 dark:text-ev-gray-100' : 'text-ev-gray-600 dark:text-ev-gray-300'}`}
-                  style={id === 'revenue' ? {
-                    transition: 'box-shadow 700ms ease-out',
-                    boxShadow: revenueGlowing
-                      ? '0 0 0 2px #22c55e, 0 0 16px 4px rgba(34, 197, 94, 0.4)'
-                      : 'none',
-                  } : undefined}
-                >
-                  {id === 'revenue' ? formatCurrency(animatedRevenue, isNonprofit) : formatCurrency(total, isNonprofit)}
-                </div>
+              {isAbsent(id) ? (
+                /* SCOPE-03: no figure in the chosen series. We say so rather than
+                   substituting one from another series, which would not be
+                   comparable with the tile beside it. */
+                <p className="text-xs leading-relaxed text-ev-gray-500 dark:text-ev-gray-400">
+                  {SERIES_TOGGLE_COPY.absent(label, activeSeriesLabel)}
+                </p>
+              ) : (
+                <>
+                  {total != null && (
+                    <div
+                      className={`text-2xl font-bold inline-block rounded-sm px-0.5 ${highlighted ? 'text-ev-gray-900 dark:text-ev-gray-100' : 'text-ev-gray-600 dark:text-ev-gray-300'}`}
+                      style={id === 'revenue' ? {
+                        transition: 'box-shadow 700ms ease-out',
+                        boxShadow: revenueGlowing
+                          ? '0 0 0 2px #22c55e, 0 0 16px 4px rgba(34, 197, 94, 0.4)'
+                          : 'none',
+                      } : undefined}
+                    >
+                      {id === 'revenue' ? formatCurrency(animatedRevenue, isNonprofit) : formatCurrency(total, isNonprofit)}
+                    </div>
+                  )}
+                  <div className="text-xs text-ev-gray-400 dark:text-ev-gray-500 mt-1">{description}</div>
+                </>
               )}
-              <div className="text-xs text-ev-gray-400 dark:text-ev-gray-500 mt-1">{description}</div>
             </div>
           </button>
         );
