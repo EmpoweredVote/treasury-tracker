@@ -9,6 +9,34 @@ import { normalizeScope, normalizeReportingEntity } from './fundScopeVocabulary'
 import { chooseDisplaySeries, normalizeBasis, type SeriesKey } from './budgetSeries';
 import type { BudgetData, BudgetCategory, FederalContext, LinkedTransactionSummary, Municipality, OrgFinancialSummary, SearchResult } from '../types/budget';
 
+/**
+ * The chosen series genuinely has no row for this dataset and year.
+ *
+ * ⚠ A DISTINCT type, not a plain Error, and load-bearing. `pickBudgetForSeries`
+ * already returns undefined rather than substituting another series' figure —
+ * that is SCOPE-02's fix. But turning that into a plain throw makes it
+ * indistinguishable from a network failure at the call site, so the UI shows an
+ * error screen where the honest answer is "this series has no Money In figure
+ * for FY2025". Substituting would be worse; failing loudly is merely wrong.
+ */
+export class SeriesAbsentError extends Error {
+  // ⚠ Declared and assigned explicitly, NOT as constructor parameter properties.
+  // tsconfig sets `erasableSyntaxOnly`, which rejects `constructor(readonly x: T)`
+  // with TS1294. `npm test` passes either way — only `npm run build` catches it,
+  // which is why that is the gate.
+  readonly dataset: string;
+  readonly year: number;
+  readonly series: SeriesKey;
+
+  constructor(dataset: string, year: number, series: SeriesKey) {
+    super(`No ${dataset} row for FY${year} in series ${series.fundScope}/${series.basis}`);
+    this.name = 'SeriesAbsentError';
+    this.dataset = dataset;
+    this.year = year;
+    this.series = series;
+  }
+}
+
 // In dev: use /api which Vite proxies to the backend (avoids CORS).
 // In production: no proxy exists, so use the full API URL directly.
 const API_BASE = import.meta.env.PROD && import.meta.env.VITE_API_URL
@@ -27,9 +55,18 @@ export async function loadBudgetData(
   municipalityName: string = 'Bloomington',
   municipalityState: string = 'IN',
   dataset: string = 'operating',
-  periodLabel: string | null = null
+  periodLabel: string | null = null,
+  series: SeriesKey | null = null
 ): Promise<BudgetData> {
-  const cacheKey = `${municipalityName}-${municipalityState}-${year}-${dataset}-${periodLabel ?? ''}`;
+  // ⚠ THE SERIES IS PART OF THE KEY. Before SCOPE-03 the series was chosen
+  // deterministically inside this function and never varied for a given key, so
+  // omitting it was harmless. The moment the CALLER can choose, omitting it
+  // returns the previously cached other-series figure — a city would report its
+  // all-funds total under a General Fund pill. Pinned by dataLoader.series.test.ts,
+  // and that test is mutation-verified: it fails 900 === 100 without this.
+  const seriesPart = series ? `${series.fundScope}|${series.basis}` : '';
+  const cacheKey =
+    `${municipalityName}-${municipalityState}-${year}-${dataset}-${periodLabel ?? ''}-${seriesPart}`;
 
   if (cache.has(cacheKey)) {
     return cache.get(cacheKey)!;
@@ -62,12 +99,20 @@ export async function loadBudgetData(
   // the row belonging to it. Disambiguates by period_label along the way: a
   // normal year wants the null-label row; the Transition Quarter wants its
   // labeled row.
-  const series = chooseDisplaySeries(city.available_datasets ?? [], dataset);
-  const budget = pickBudgetForSeries(budgets, dataset, periodLabel ?? null, series);
+  // An explicit series from the caller wins; otherwise fall back to SCOPE-02's
+  // automatic choice, which is what every pre-SCOPE-03 caller relies on.
+  const effectiveSeries = series ?? chooseDisplaySeries(city.available_datasets ?? [], dataset);
+  const budget = pickBudgetForSeries(budgets, dataset, periodLabel ?? null, effectiveSeries);
   if (!budget?.id) {
+    const datasetHasRows = budgets.some((b: any) => b.dataset_type === dataset);
+    if (effectiveSeries && datasetHasRows) {
+      // The dataset exists for this city-year but not in the chosen series. The
+      // caller renders an absent tile; it must not render an error screen.
+      throw new SeriesAbsentError(dataset, year, effectiveSeries);
+    }
     throw new Error(
       `No budget found for ${municipalityName} ${year} (${dataset})`
-      + (series ? ` in the displayed series ${series.fundScope}/${series.basis}` : ''),
+      + (effectiveSeries ? ` in the displayed series ${effectiveSeries.fundScope}/${effectiveSeries.basis}` : ''),
     );
   }
 

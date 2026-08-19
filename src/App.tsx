@@ -16,7 +16,7 @@ import { financingInflow } from './data/fundScopeVocabulary';
 import ScaleToggle, { type FederalScale } from './components/federal/ScaleToggle';
 import ProgramOrigins from './components/federal/ProgramOrigins';
 import BudgetSearch from './components/dashboard/BudgetSearch';
-import { loadBudgetData, loadFederalContext, loadOrgFinancialSummary, loadLinkedTransactions, listMunicipalities, clearCache } from './data/dataLoader';
+import { loadBudgetData, SeriesAbsentError, loadFederalContext, loadOrgFinancialSummary, loadLinkedTransactions, listMunicipalities, clearCache } from './data/dataLoader';
 import EntitySwitcher from './components/EntitySwitcher';
 import AlphaLanding from './components/AlphaLanding';
 import type { LandingReason } from './components/AlphaLanding';
@@ -28,8 +28,17 @@ import DonateModal from './components/DonateModal';
 
 import YearSelector from './components/YearSelector';
 import type { YearSelectorHandle } from './components/YearSelector';
-import { parsePeriod, buildPeriodTokens } from './utils/period'
+// SCOPE-03: buildPeriodTokens is no longer called here — seriesPeriodTokens wraps
+// it, filtering its INPUT so the year list follows the selected series.
+import { parsePeriod } from './utils/period'
 import { resolveEffectiveDataset } from './utils/resolveDataset';
+import FundSeriesToggle from './components/FundSeriesToggle';
+import {
+  listSeries, defaultSeries, seriesId, encodeSeries, decodeSeries,
+  seriesPeriodTokens, clampYearToSeries,
+} from './data/seriesSelection';
+import { SERIES_TOGGLE_COPY } from './data/fundScopeVocabulary';
+import type { SeriesKey } from './data/budgetSeries';
 import { resolveUrlSync } from './utils/spaUrl';
 import Breadcrumb from './components/Breadcrumb';
 import BudgetVisualization from './components/BudgetVisualization';
@@ -94,9 +103,12 @@ function hoistSingleRoot(data: BudgetData | null): BudgetData | null {
 // and capturing unconditionally would inflate the very figure this fixes.
 // See utils/spaUrl.ts for what counts as a change and why it compares parsed
 // params rather than raw strings.
-function syncURL(entity: Municipality, year: string, dataset: string, lens?: string) {
+function syncURL(
+  entity: Municipality, year: string, dataset: string, lens?: string,
+  series?: { scope: string; basis: string },
+) {
   const { search, changed } = resolveUrlSync(
-    { entity: toSlug(entity), year, dataset, lens },
+    { entity: toSlug(entity), year, dataset, lens, scope: series?.scope, basis: series?.basis },
     window.location.search
   );
   if (!changed) return;
@@ -178,6 +190,15 @@ function App() {
 
   const [selectedYear, setSelectedYear] = useState('2025');
 
+  // SCOPE-03: which published series the reader is looking at. `null` means "not
+  // chosen yet" and resolves to defaultSeries(), so first paint is unchanged.
+  const [selectedSeries, setSelectedSeries] = useState<SeriesKey | null>(null);
+  // Set when the chosen series has no row for a dataset at this year. Keyed by
+  // dataset so Money In and Money Out report independently (Longview, spec §3.1).
+  const [absentDatasets, setAbsentDatasets] = useState<Record<string, boolean>>({});
+  // Set when switching series stranded the selected year outside its coverage.
+  const [yearClampNote, setYearClampNote] = useState<string | null>(null);
+
   const [budgetData, setBudgetData] = useState<BudgetData | null>(null);
   const [operatingBudgetData, setOperatingBudgetData] = useState<BudgetData | null>(null);
   const [revenueData, setRevenueData] = useState<BudgetData | null>(null);
@@ -221,14 +242,90 @@ function App() {
     }
   }, [selectedEntity, selectedYear]);
 
+  // SCOPE-03: the series this entity actually has, widest and best-evidenced first.
+  // ⚠ Declared ABOVE availableYears, which now depends on it. `const` is not
+  // hoisted, so the reverse order fails `tsc -b` with use-before-declaration.
+  const availableSeries = useMemo(
+    () => (selectedEntity ? listSeries(selectedEntity.available_datasets) : []),
+    [selectedEntity],
+  );
+
+  // ⚠ THE DEFAULT IS SEEDED ONCE PER ENTITY AND HELD — it must NOT be recomputed
+  // when the reader changes tab.
+  //
+  // `defaultSeries` takes a dataset, so deriving it live from `activeDataset`
+  // means switching between Money In and Money Out silently switches SERIES too,
+  // which is exactly what the shared selection exists to prevent. Measured on
+  // Plano TX: landing on Money Out gives `unknown · adopted` (operating FY2019–25,
+  // revenue FY2019/20/22); clicking Money In recomputed the default for `revenue`,
+  // jumped to `unknown · basis not established` — which has NO operating rows at
+  // all — and blanked BOTH tiles. Seeding from whichever dataset the reader
+  // arrives on preserves first paint without that coupling.
+  //
+  // Assigned during render, not in an effect, so the seeding effect below always
+  // reads the current value regardless of effect ordering.
+  const activeDatasetRef = useRef(activeDataset);
+  activeDatasetRef.current = activeDataset;
+
+  const [defaultSeriesSeed, setDefaultSeriesSeed] = useState<SeriesKey | null>(null);
+
+  // The series in force: the reader's choice if they made one and it still exists
+  // for this entity, otherwise the seeded default.
+  const effectiveSeries = useMemo(() => {
+    if (!selectedEntity) return null;
+    if (selectedSeries) {
+      const stillHere = availableSeries.some((s) => s.id === seriesId(selectedSeries));
+      if (stillHere) return selectedSeries;
+    }
+    return defaultSeriesSeed;
+  }, [selectedEntity, selectedSeries, availableSeries, defaultSeriesSeed]);
+
+  const effectiveSeriesLabel = useMemo(
+    () => availableSeries.find(
+      (s) => effectiveSeries && s.id === seriesId(effectiveSeries))?.label ?? '',
+    [availableSeries, effectiveSeries],
+  );
+
+  // SCOPE-03: the selection does NOT persist across entities — a series Modesto
+  // has, Natick will not, and carrying it over drops the reader into an absent
+  // state on arrival. Each entity resolves its own default. Spec §5.
+  //
+  // ⚠ Keyed on the entity ONLY. Adding activeDataset here would re-seed on every
+  // tab change and reintroduce the Plano defect described above.
+  useEffect(() => {
+    setSelectedSeries(null);
+    setDefaultSeriesSeed(
+      selectedEntity
+        ? defaultSeries(selectedEntity.available_datasets, activeDatasetRef.current)
+        : null,
+    );
+  }, [selectedEntity?.id, selectedEntity]);
+
   // Derive available years and datasets from selected entity
   // Period tokens: annual years descending, with the FY1976 Transition Quarter
   // (a period_label row) inserted right after '1976'. Non-federal entities have
   // no period_label rows, so this is a plain descending year list for them.
+  //
+  // SCOPE-03: the list follows the chosen series. Offering years the series does
+  // not cover would land the reader on an absent state that reads as a bug rather
+  // than a fact. Years belonging only to a non-series dataset (salaries) are kept
+  // so the Employees tab stays reachable.
   const availableYears = useMemo(() => {
     if (!selectedEntity) return [];
-    return buildPeriodTokens(selectedEntity.available_datasets);
-  }, [selectedEntity]);
+    return seriesPeriodTokens(selectedEntity.available_datasets, effectiveSeries);
+  }, [selectedEntity, effectiveSeries]);
+
+  // SCOPE-03: switching to a narrower series can strand the selected year outside
+  // it. Move to the nearest covered year and record what happened, so the reader
+  // is told rather than silently relocated.
+  useEffect(() => {
+    if (!selectedEntity || availableYears.length === 0) return;
+    if (availableYears.includes(selectedYear)) { setYearClampNote(null); return; }
+    const clamped = clampYearToSeries(selectedYear, availableYears);
+    setYearClampNote(
+      SERIES_TOGGLE_COPY.yearClamped(selectedYear, clamped, effectiveSeriesLabel));
+    setSelectedYear(clamped);
+  }, [availableYears, selectedYear, selectedEntity, effectiveSeriesLabel]);
 
   const availableDatasetTypes = useMemo(() => {
     if (!selectedEntity) return ['operating', 'revenue', 'salaries'];
@@ -288,6 +385,13 @@ function App() {
           .map(d => d.dataset_type)
           .filter(t => t !== 'all_funds_requirements' && t !== 'federal_agency');
         setActiveDataset(resolveEffectiveDataset(resolvedYearTypes, datasetParam));
+        // SCOPE-03: restore a deep-linked series. decodeSeries returns null for
+        // anything invalid, or for a series this entity does not have, which
+        // leaves the default in force rather than erroring.
+        setSelectedSeries(decodeSeries(
+          params.get('scope'), params.get('basis'),
+          listSeries(entity.available_datasets),
+        ));
         if (params.get('lens') === 'agency' && entity.entity_type === 'federal') {
           setFederalLens('agency');
         }
@@ -380,15 +484,27 @@ function App() {
     const hasSalaries = entityDatasets.some(d => d.dataset_type === 'salaries');
     const hasAllFundsRequirements = entityDatasets.some(d => d.dataset_type === 'all_funds_requirements');
 
+    // SCOPE-03: an absent series is a FACT about this series, not a failure, so it
+    // resolves to null here and is reported per dataset below. Only real failures
+    // propagate to the catch.
+    const absentToNull = (e: unknown) => {
+      if (e instanceof SeriesAbsentError) return null;
+      throw e;
+    };
+
     const promises: Promise<BudgetData | null>[] = [
       hasOperating
-        ? loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'operating', periodLabel)
+        ? loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'operating', periodLabel, effectiveSeries)
+            .catch(absentToNull)
         : Promise.resolve(null),
       hasRevenue
-        ? loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'revenue', periodLabel)
+        ? loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'revenue', periodLabel, effectiveSeries)
+            .catch(absentToNull)
         : Promise.resolve(null),
       hasSalaries
-        ? loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'salaries', periodLabel)
+        // Salaries is NOT a series dataset — see SERIES_DATASETS in seriesSelection.ts.
+        // Passing a series would make pickBudgetForSeries hunt for an impossible match.
+        ? loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'salaries', periodLabel, null)
         : Promise.resolve(null),
     ];
 
@@ -397,23 +513,31 @@ function App() {
         setOperatingBudgetData(hoistSingleRoot(operating));
         setRevenueData(hoistSingleRoot(revenue));
         setSalariesData(salaries);
+        // Recorded per dataset so Money In and Money Out report independently —
+        // Longview selects one series and loses the other tile (spec §3.1).
+        setAbsentDatasets({
+          operating: hasOperating && operating === null,
+          revenue: hasRevenue && revenue === null,
+        });
       })
       .catch(error => {
         console.error('Failed to load dataset totals:', error);
         setOperatingBudgetData(null);
         setRevenueData(null);
         setSalariesData(null);
+        setAbsentDatasets({});
       });
 
     // Load all_funds_requirements separately so a failure never affects the main data loads
     if (hasAllFundsRequirements) {
-      loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'all_funds_requirements', periodLabel)
+      // Not a series dataset — pass null, same reason as salaries above.
+      loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'all_funds_requirements', periodLabel, null)
         .then(data => setAllFundsRequirementsData(data))
         .catch(() => setAllFundsRequirementsData(null));
     } else {
       setAllFundsRequirementsData(null);
     }
-  }, [selectedYear, selectedEntity]);
+  }, [selectedYear, selectedEntity, effectiveSeries]);
 
   // Load main budget data when dataset, year, entity, or federal lens changes.
   // The agency lens substitutes the federal_agency dataset for 'operating' —
@@ -439,18 +563,30 @@ function App() {
     setNavigationPath([]);
 
     const { fiscalYear, periodLabel } = parsePeriod(selectedYear);
-    loadBudgetData(fiscalYear, selectedEntity.name, selectedEntity.state, requestDataset, periodLabel)
+    // SCOPE-03: only the series datasets carry a series; federal_agency, salaries
+    // and all_funds_requirements are outside the series model.
+    const seriesForRequest =
+      requestDataset === 'operating' || requestDataset === 'revenue' ? effectiveSeries : null;
+    loadBudgetData(fiscalYear, selectedEntity.name, selectedEntity.state, requestDataset, periodLabel, seriesForRequest)
       .then(data => {
         setBudgetData(hoistSingleRoot(data));
         setLoading(false);
       })
       .catch(error => {
+        // An absent series is not a load failure — the chart renders empty and the
+        // tile note explains why. Only real failures trip the error screen.
+        if (error instanceof SeriesAbsentError) {
+          setBudgetData(null);
+          setLoading(false);
+          setBudgetLoadError(false);
+          return;
+        }
         console.error(`Failed to load ${requestDataset} data:`, error);
         setBudgetData(null);
         setLoading(false);
         setBudgetLoadError(true);
       });
-  }, [activeDataset, selectedYear, selectedEntity, federalLens]);
+  }, [activeDataset, selectedYear, selectedEntity, federalLens, effectiveSeries]);
 
   // Entity change handler — computes effective year BEFORE triggering data load (avoids Pitfall 1)
   const handleEntityChange = useCallback((entity: Municipality) => {
@@ -529,9 +665,12 @@ function App() {
     if (!selectedEntity) return;
     syncURL(
       selectedEntity, selectedYear, activeDataset,
-      selectedEntity.entity_type === 'federal' && federalLens === 'agency' ? 'agency' : undefined
+      selectedEntity.entity_type === 'federal' && federalLens === 'agency' ? 'agency' : undefined,
+      // SCOPE-03: only a DELIBERATE choice reaches the URL. A default selection
+      // emits neither param, so today's URLs keep their exact current meaning.
+      selectedSeries ? encodeSeries(selectedSeries) : undefined,
     );
-  }, [selectedEntity, selectedYear, activeDataset, federalLens]);
+  }, [selectedEntity, selectedYear, activeDataset, federalLens, selectedSeries]);
 
   // Silently refetch revenue once when the user returns to this tab.
   // Fires at most once per entity+year — the listener removes itself after the first visible-return.
@@ -549,14 +688,17 @@ function App() {
       if (!hasRevenue) return;
 
       clearCache();
-      loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'revenue', periodLabel)
+      loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'revenue', periodLabel, effectiveSeries)
         .then(data => setRevenueData(hoistSingleRoot(data)))
-        .catch(err => console.error('Post-donation revenue refetch failed:', err));
+        .catch(err => {
+          if (err instanceof SeriesAbsentError) return;
+          console.error('Post-donation revenue refetch failed:', err);
+        });
     };
 
     document.addEventListener('visibilitychange', handleVisibility);
     return () => document.removeEventListener('visibilitychange', handleVisibility);
-  }, [selectedEntity, selectedYear]);
+  }, [selectedEntity, selectedYear, effectiveSeries]);
 
   // Lazy-load linked transactions when navigating into a category (operating only)
   useEffect(() => {
@@ -1131,9 +1273,28 @@ function App() {
                 ) : null;
               })()}
 
+              {/* SCOPE-03: which published series is on screen */}
+              {availableSeries.length > 0 && (
+                <div className="mb-4">
+                  <FundSeriesToggle
+                    series={availableSeries}
+                    selectedId={effectiveSeries ? seriesId(effectiveSeries) : ''}
+                    onSelect={setSelectedSeries}
+                  />
+                  {yearClampNote && (
+                    <p className="mt-1.5 max-w-prose text-[11px] leading-relaxed
+                                  text-ev-gray-500 dark:text-ev-gray-400">
+                      {yearClampNote}
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* Dataset Tabs */}
               <div className="mb-8">
                 <DatasetTabs
+                  absentDatasets={absentDatasets}
+                  activeSeriesLabel={effectiveSeriesLabel}
                   activeDataset={activeDataset}
                   onDatasetChange={(id) => setActiveDataset(id as DatasetType)}
                   revenueTotal={revenueData?.metadata.totalBudget}

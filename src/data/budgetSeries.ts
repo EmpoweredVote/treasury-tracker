@@ -35,22 +35,29 @@ export interface DatasetEntry {
   basis?: string | null;
 }
 
-/** Later is better. `unknown` is the absence of a value, so it sorts below everything. */
-const SCOPE_RANK: Record<FundScope, number> = {
+/**
+ * Later is better. `unknown` is the absence of a value, so it sorts below everything.
+ *
+ * ⚠ EXPORTED for SCOPE-03 (`seriesSelection.ts`), which orders its pills by the
+ * same rule this file ranks by. A second copy of these tables would drift the day
+ * one of them is edited, and the drift would be invisible: the pills would simply
+ * order differently from the default and no test would notice.
+ */
+export const SCOPE_RANK: Record<FundScope, number> = {
   unknown: 0,
   general_fund: 1,
   all_funds: 2,
   total_governmental: 3,
 };
 
-const BASIS_RANK: Record<Basis, number> = {
+export const BASIS_RANK: Record<Basis, number> = {
   unknown: 0,
   adopted: 1,
   actual: 2,
 };
 
 /** True when neither axis is `unknown` — i.e. the series rests on evidence. */
-function isEvidenced(k: SeriesKey): boolean {
+export function isEvidenced(k: SeriesKey): boolean {
   return k.fundScope !== 'unknown' && k.basis !== 'unknown';
 }
 

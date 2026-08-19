@@ -12,6 +12,25 @@
 > in sequence below so the ordering does not read as "v2.20 never happened", but it is a
 > pointer, not a summary — the archive is the record.
 
+## v2.26 SCOPE-03 — The Series Toggle (BUILT 2026-08-18 on `feat/scope-03` — **not merged, not tagged, UAT outstanding**)
+
+**Tasks completed:** 10 of 10 (no GSD phases — spec: `docs/superpowers/specs/2026-08-18-scope-03-design.md`, plan: `docs/superpowers/plans/2026-08-18-scope-03.md`, closeout: `docs/superpowers/plans/SCOPE-03-CLOSEOUT.md`)
+
+**The headline:** 91 budget rows across 17 entities were in the database and unreachable in the UI. SCOPE-02's `chooseDisplaySeries` picks one series and holds it — correct, and what killed the Long Beach cliff — but everything it did not pick became invisible. The reader can now choose. **Zero database writes**: no migration, no row, no EV-Accounts change.
+
+- **🔑 The request was reframed by measurement, and the first measurement was wrong.** Chris asked for a General Fund / All Funds toggle. **Zero** entity+dataset pairs carry two different *known* fund scopes, so that control would have shown two permanently disabled buttons for every city in the country. But querying `fund_scope` alone said "nothing to toggle at all"; querying `(fund_scope, basis)` — SCOPE-02's actual series identity — found **28 multi-series pairs across 17 entities**, 26 of them differing on *basis*. So this ships as a **series** toggle. ⚠ Same error shape as SCOPE-02's Premise 2: **querying one axis when the data varies on two.**
+- **🔑 Two silent defects found by reading, killed by mutation tests.** `loadBudgetData`'s cache key omitted `fund_scope`/`basis` — harmless until the caller can choose, then it returns the previously cached *other* series' figure. And `availableYears` was series-blind. ⚠ Its filter must be applied to `buildPeriodTokens`' **input**, never its output: the FY1976 Transition Quarter token is synthesised from a `period_label` row, and Federal (the only TQ entity) has a single series, so no multi-series fixture could catch it.
+- **🔑 Three things only the running app caught, none of them in the plan.** (1) The default series was coupled to the **active tab** — switching Money In/Money Out silently switched series, defeating the shared selection; found on Plano, fixed by seeding the default once per entity. (2) `erasableSyntaxOnly` rejects constructor parameter properties: `npm test` passed, `npm run build` failed TS1294 — the reason `npx tsc --noEmit` is not the gate. (3) **Los Angeles was already broken on `main`** — it renders no tiles and error text at its landing year, because `loadBudgetData` threw when the displayed series had no row for the year. Verified side by side in a throwaway worktree. SCOPE-03 fixes it as a side effect.
+- **Longview TX (§3.1)** is the one entity whose two datasets each hold one series and hold *different* ones, so shared selection drops a tile that renders today. Chris ruled to honour the rule; `scripts/verify-series-shape.mjs` ships to catch the next one, since the seam detectors compare *within* a dataset and would never see it.
+- **🔑 NUL bytes four and five.** `.planning/STATE.md` held a raw `U+0000` — inside the line warning against NUL bytes — making git treat the file as binary. ⚠ And **this milestone's own plan** had been committed as `Bin 0 → 86484 bytes`, an unreviewable binary blob, again from a literal NUL inside a warning *about* NUL bytes. Both fixed here. The **lint** SCOPE-02 asked for is written but lives on `chore/nul-byte-lint`, reviewed separately so this milestone stays SCOPE-03 only. ⚠ Traps recorded there: the filter **cannot** ask git whether a file is binary (that is the symptom, so a corrupted `.ts` would exclude itself); `LC_ALL=C grep -P '\x00'` errors on the locale and reports a clean repo it never read; `sed -i` strips every CR; and `perl`'s `s/\x00/\\0/` no-ops because `\0` in a replacement is an octal NUL.
+- ⚠ **This repo cannot run component tests and none exist.** `vitest.config.ts` is `environment: 'node'` and its `include` never collects `.test.tsx`; a `.test.tsx` file **silently does not run**. Testable logic must live in pure modules.
+
+**Tests:** 458 passing / 29 files (from 445 / 28). `npm run build` clean.
+
+**Archive:** none — no `milestones/v2.26-*` directory (not a GSD-phased milestone).
+
+---
+
 ## v2.25 SCOPE-02 — Basis, Reporting Entity, and One Series per (scope, basis) (Shipped: 2026-08-18, tag `v2.25`)
 
 **Tasks completed:** 14 of 14 (no GSD phases — spec: `docs/superpowers/specs/2026-08-17-scope-02-design.md`, plan: `docs/superpowers/plans/2026-08-17-scope-02.md`, closeout: `docs/superpowers/plans/SCOPE-02-CLOSEOUT.md`)

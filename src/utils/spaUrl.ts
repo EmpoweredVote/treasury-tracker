@@ -32,10 +32,22 @@ export interface BudgetLocation {
   dataset: string;
   /** Federal agency lens; only `'agency'` is ever serialized. */
   lens?: string;
+  /**
+   * SCOPE-03: the chosen series, `fund_scope` and `basis`. Both are omitted when
+   * the selection is the app's default, so every URL that exists today keeps its
+   * exact current meaning.
+   */
+  scope?: string;
+  basis?: string;
 }
 
-/** The params that identify a budget view. Anything else (UTMs, etc.) is noise. */
-const IDENTIFYING_PARAMS = ['entity', 'year', 'dataset', 'lens'] as const;
+/**
+ * The params that identify a budget view. Anything else (UTMs, etc.) is noise.
+ *
+ * ⚠ `scope` and `basis` ARE identifying: switching series changes which figures
+ * are on screen, so it is a real navigation and is counted as one.
+ */
+const IDENTIFYING_PARAMS = ['entity', 'year', 'dataset', 'lens', 'scope', 'basis'] as const;
 
 /**
  * Build the canonical search string for a budget view. Key order is fixed here
@@ -49,6 +61,12 @@ export function buildBudgetSearch(loc: BudgetLocation): string {
   });
   // The lens param appears only for the federal agency lens (Phase 45).
   if (loc.lens === 'agency') params.set('lens', 'agency');
+  // SCOPE-03: only a DELIBERATE series choice is serialized. Both or neither —
+  // half a series key cannot be resolved back to a series.
+  if (loc.scope && loc.basis) {
+    params.set('scope', loc.scope);
+    params.set('basis', loc.basis);
+  }
   return `?${params.toString()}`;
 }
 
