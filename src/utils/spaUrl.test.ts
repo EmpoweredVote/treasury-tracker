@@ -100,3 +100,37 @@ describe('isSameBudgetView — direct', () => {
     expect(isSameBudgetView('entity=seattle-wa', '?entity=seattle-wa')).toBe(true);
   });
 });
+
+describe('SCOPE-03 series params', () => {
+  it('omits scope and basis when they are not set, so existing URLs are unchanged', () => {
+    expect(buildBudgetSearch({ entity: 'fresno-ca', year: '2024', dataset: 'operating' }))
+      .toBe('?entity=fresno-ca&year=2024&dataset=operating');
+  });
+
+  it('serialises both params when set', () => {
+    expect(buildBudgetSearch({
+      entity: 'fresno-ca', year: '2026', dataset: 'operating',
+      scope: 'unknown', basis: 'adopted',
+    })).toBe('?entity=fresno-ca&year=2026&dataset=operating&scope=unknown&basis=adopted');
+  });
+
+  it('treats a series change as a real navigation', () => {
+    const a = buildBudgetSearch({ entity: 'fresno-ca', year: '2024', dataset: 'operating' });
+    const b = buildBudgetSearch({
+      entity: 'fresno-ca', year: '2024', dataset: 'operating',
+      scope: 'unknown', basis: 'adopted',
+    });
+    expect(isSameBudgetView(a, b)).toBe(false);
+  });
+
+  it('still reports NO change for a same-view deep link', () => {
+    // The guard that stops a deep-link load being counted twice. Treasury spent 90
+    // days recording every visitor against the bare host; a published engagement
+    // rate had to be withdrawn for want of a denominator. Adding an identifying
+    // param must not break this.
+    const search = '?dataset=operating&entity=fresno-ca&year=2024&utm_source=x';
+    const { changed } = resolveUrlSync(
+      { entity: 'fresno-ca', year: '2024', dataset: 'operating' }, search);
+    expect(changed).toBe(false);
+  });
+});

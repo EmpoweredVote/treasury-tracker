@@ -34,7 +34,7 @@ import { parsePeriod } from './utils/period'
 import { resolveEffectiveDataset } from './utils/resolveDataset';
 import FundSeriesToggle from './components/FundSeriesToggle';
 import {
-  listSeries, defaultSeries, seriesId,
+  listSeries, defaultSeries, seriesId, encodeSeries, decodeSeries,
   seriesPeriodTokens, clampYearToSeries,
 } from './data/seriesSelection';
 import { SERIES_TOGGLE_COPY } from './data/fundScopeVocabulary';
@@ -103,9 +103,12 @@ function hoistSingleRoot(data: BudgetData | null): BudgetData | null {
 // and capturing unconditionally would inflate the very figure this fixes.
 // See utils/spaUrl.ts for what counts as a change and why it compares parsed
 // params rather than raw strings.
-function syncURL(entity: Municipality, year: string, dataset: string, lens?: string) {
+function syncURL(
+  entity: Municipality, year: string, dataset: string, lens?: string,
+  series?: { scope: string; basis: string },
+) {
   const { search, changed } = resolveUrlSync(
-    { entity: toSlug(entity), year, dataset, lens },
+    { entity: toSlug(entity), year, dataset, lens, scope: series?.scope, basis: series?.basis },
     window.location.search
   );
   if (!changed) return;
@@ -354,6 +357,13 @@ function App() {
           .map(d => d.dataset_type)
           .filter(t => t !== 'all_funds_requirements' && t !== 'federal_agency');
         setActiveDataset(resolveEffectiveDataset(resolvedYearTypes, datasetParam));
+        // SCOPE-03: restore a deep-linked series. decodeSeries returns null for
+        // anything invalid, or for a series this entity does not have, which
+        // leaves the default in force rather than erroring.
+        setSelectedSeries(decodeSeries(
+          params.get('scope'), params.get('basis'),
+          listSeries(entity.available_datasets),
+        ));
         if (params.get('lens') === 'agency' && entity.entity_type === 'federal') {
           setFederalLens('agency');
         }
@@ -627,9 +637,12 @@ function App() {
     if (!selectedEntity) return;
     syncURL(
       selectedEntity, selectedYear, activeDataset,
-      selectedEntity.entity_type === 'federal' && federalLens === 'agency' ? 'agency' : undefined
+      selectedEntity.entity_type === 'federal' && federalLens === 'agency' ? 'agency' : undefined,
+      // SCOPE-03: only a DELIBERATE choice reaches the URL. A default selection
+      // emits neither param, so today's URLs keep their exact current meaning.
+      selectedSeries ? encodeSeries(selectedSeries) : undefined,
     );
-  }, [selectedEntity, selectedYear, activeDataset, federalLens]);
+  }, [selectedEntity, selectedYear, activeDataset, federalLens, selectedSeries]);
 
   // Silently refetch revenue once when the user returns to this tab.
   // Fires at most once per entity+year — the listener removes itself after the first visible-return.
