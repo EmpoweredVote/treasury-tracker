@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   listSeries, seriesId, defaultSeries, encodeSeries, decodeSeries,
-  seriesPeriodTokens, clampYearToSeries,
+  seriesPeriodTokens, clampYearToSeries, spanLabel,
 } from './seriesSelection';
 import { TQ_TOKEN, TQ_LABEL } from '../utils/period';
 
@@ -233,5 +233,27 @@ describe('clampYearToSeries', () => {
 
   it('handles the Transition Quarter token without producing NaN', () => {
     expect(clampYearToSeries(TQ_TOKEN, ['1977', '1976'])).toBe('1976');
+  });
+});
+
+describe('spanLabel', () => {
+  it('abbreviates a multi-year span to a two-digit end', () => {
+    expect(spanLabel({ min: 2003, max: 2024 })).toBe('FY2003–24');
+  });
+
+  it('renders a single-year span with no range dash', () => {
+    expect(spanLabel({ min: 2026, max: 2026 })).toBe('FY2026');
+  });
+
+  it('PLANO: distinguishes two series whose labels are identical', () => {
+    // Both series read "Scope not established ...". The span is the only thing
+    // separating them for a reader, which is why the pill renders it.
+    expect(spanLabel({ min: 2018, max: 2024 })).not.toBe(spanLabel({ min: 2019, max: 2022 }));
+  });
+
+  it('does not abbreviate across a century boundary into an ambiguous pair', () => {
+    // FY1998-2003 must not read "FY1998-03", which looks like a backwards range.
+    // Connecticut and Wisconsin both carry pre-2000 series, so this is live.
+    expect(spanLabel({ min: 1998, max: 2003 })).toBe('FY1998–2003');
   });
 });

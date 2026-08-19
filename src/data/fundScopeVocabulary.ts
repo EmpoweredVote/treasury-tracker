@@ -352,3 +352,43 @@ export function financingInflowNote(f: FinancingInflow): string {
     + 'government. Money Out has no matching outflow line, so the two totals are not '
     + 'like-for-like and the difference between them is not a surplus.';
 }
+
+/**
+ * Series-toggle copy (SCOPE-03).
+ *
+ * ⚠ PUBLIC-FACING COPY, reviewed in one file (same rule as FUND_SCOPE_COPY and
+ * BASIS_COPY).
+ *
+ * Written for a reader who has just discovered that "how much does this city
+ * spend?" has more than one published answer. The word this copy avoids is
+ * "correct": both series are correct, and saying so is the whole point. What the
+ * reader needs is that they answer different questions and are not two attempts
+ * at the same one.
+ */
+export const SERIES_TOGGLE_COPY = {
+  heading: 'Which published figures',
+
+  intro:
+    'This place publishes more than one set of figures, covering different funds or '
+    + 'different kinds of number. They are all real and all published; they answer '
+    + 'different questions. Choose which one you are looking at.',
+
+  single:
+    'One published set of figures, shown here with what it covers.',
+
+  /**
+   * Shown in place of a tile whose dataset has no row in the chosen series.
+   *
+   * ⚠ Never offers a substitute figure. Falling back to another series would put
+   * a Money In from one series beside a Money Out from another, and the reader
+   * would subtract them — the defect this whole arc exists to remove.
+   */
+  absent: (datasetLabel: string, seriesLabel: string): string =>
+    `${datasetLabel} is not published in ${seriesLabel}. We could show you a figure from a `
+    + 'different set, but it would not be comparable with what is beside it, so we leave '
+    + 'this blank instead. Choose another set above to see it.',
+
+  yearClamped: (requested: string, shown: string, seriesLabel: string): string =>
+    `${seriesLabel} does not cover FY${requested}, so we have moved you to FY${shown}, `
+    + 'the closest year it does cover.',
+};

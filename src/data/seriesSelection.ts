@@ -199,3 +199,22 @@ export function clampYearToSeries(token: string, tokens: string[]): string {
   }
   return best;
 }
+
+/**
+ * Reader-facing coverage span: "FY2003–24", or "FY2026" for a single year.
+ *
+ * ⚠ The two-digit abbreviation is DROPPED across a century boundary. "FY1998–03"
+ * reads as a backwards range; "FY1998–2003" cannot be misread. Connecticut and
+ * Wisconsin both carry pre-2000 series, so this is a live case, not a hypothetical.
+ *
+ * Lives here rather than in FundSeriesToggle because this repo collects no
+ * `.test.tsx` and has no DOM environment, so logic inside a component cannot be
+ * tested at all. See the plan's File Structure note.
+ */
+export function spanLabel(span: { min: number; max: number }): string {
+  if (span.min === span.max) return `FY${span.min}`;
+  const sameCentury = Math.floor(span.min / 100) === Math.floor(span.max / 100);
+  return sameCentury
+    ? `FY${span.min}–${String(span.max).slice(-2)}`
+    : `FY${span.min}–${span.max}`;
+}

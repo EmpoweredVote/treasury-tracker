@@ -20,13 +20,20 @@ import type { BudgetData, BudgetCategory, FederalContext, LinkedTransactionSumma
  * for FY2025". Substituting would be worse; failing loudly is merely wrong.
  */
 export class SeriesAbsentError extends Error {
-  constructor(
-    readonly dataset: string,
-    readonly year: number,
-    readonly series: SeriesKey,
-  ) {
+  // ⚠ Declared and assigned explicitly, NOT as constructor parameter properties.
+  // tsconfig sets `erasableSyntaxOnly`, which rejects `constructor(readonly x: T)`
+  // with TS1294. `npm test` passes either way — only `npm run build` catches it,
+  // which is why that is the gate.
+  readonly dataset: string;
+  readonly year: number;
+  readonly series: SeriesKey;
+
+  constructor(dataset: string, year: number, series: SeriesKey) {
     super(`No ${dataset} row for FY${year} in series ${series.fundScope}/${series.basis}`);
     this.name = 'SeriesAbsentError';
+    this.dataset = dataset;
+    this.year = year;
+    this.series = series;
   }
 }
 
