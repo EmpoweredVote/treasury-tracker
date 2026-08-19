@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { listSeries, seriesId } from './seriesSelection';
+import { listSeries, seriesId, defaultSeries, encodeSeries, decodeSeries } from './seriesSelection';
 
 /** One available_datasets entry. */
 const d = (
@@ -94,5 +94,63 @@ describe('listSeries', () => {
 
   it('seriesId round-trips a key', () => {
     expect(seriesId({ fundScope: 'general_fund', basis: 'actual' })).toBe('general_fund|actual');
+  });
+});
+
+describe('defaultSeries', () => {
+  it('is exactly what chooseDisplaySeries picks for the active dataset', () => {
+    const sets = [
+      ...Array.from({ length: 22 }, (_, i) => d(2003 + i, 'operating', 'all_funds', 'actual')),
+      ...[2025, 2026].map((y) => d(y, 'operating', 'unknown', 'adopted')),
+    ];
+    expect(defaultSeries(sets, 'operating')).toEqual({ fundScope: 'all_funds', basis: 'actual' });
+  });
+
+  it('falls back to the entity-wide best when the active dataset has no rows', () => {
+    // LONGVIEW selecting the Employees tab, or any dataset with no series rows:
+    // there is still a sensible entity-level default rather than null.
+    const sets = [d(2026, 'revenue', 'unknown', 'unknown')];
+    expect(defaultSeries(sets, 'operating')).toEqual({ fundScope: 'unknown', basis: 'unknown' });
+  });
+
+  it('returns null when the entity has no series datasets at all', () => {
+    expect(defaultSeries([d(2024, 'salaries', 'unknown', 'unknown')], 'operating')).toBeNull();
+  });
+});
+
+describe('decodeSeries', () => {
+  const available = listSeries([
+    d(2024, 'operating', 'all_funds', 'actual'),
+    d(2026, 'operating', 'unknown', 'adopted'),
+  ]);
+
+  it('resolves a valid pair the entity actually has', () => {
+    expect(decodeSeries('unknown', 'adopted', available))
+      .toEqual({ fundScope: 'unknown', basis: 'adopted' });
+  });
+
+  it('returns null for a series the entity does not have, so the caller defaults', () => {
+    expect(decodeSeries('general_fund', 'actual', available)).toBeNull();
+  });
+
+  it('returns null when either param is missing', () => {
+    expect(decodeSeries(null, 'actual', available)).toBeNull();
+    expect(decodeSeries('all_funds', null, available)).toBeNull();
+  });
+
+  it('does NOT let a garbage param normalise into the unknown series', () => {
+    // normalizeScope('garbage') returns 'unknown'. Normalising BEFORE validating
+    // would make ?scope=garbage&basis=garbage silently select this entity's
+    // unknown|adopted series instead of falling back to the default -- a garbage
+    // URL quietly changing the figure on screen.
+    expect(decodeSeries('garbage', 'garbage', available)).toBeNull();
+    expect(decodeSeries('garbage', 'adopted', available)).toBeNull();
+    expect(decodeSeries('unknown', 'garbage', available)).toBeNull();
+  });
+
+  it('round-trips through encodeSeries', () => {
+    const k = { fundScope: 'all_funds', basis: 'actual' } as const;
+    const { scope, basis } = encodeSeries(k);
+    expect(decodeSeries(scope, basis, available)).toEqual(k);
   });
 });

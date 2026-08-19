@@ -16,10 +16,12 @@
  */
 
 import {
-  seriesLabel, isEvidenced, SCOPE_RANK, BASIS_RANK,
+  chooseDisplaySeries, seriesLabel, isEvidenced, SCOPE_RANK, BASIS_RANK,
   type SeriesKey, type DatasetEntry,
 } from './budgetSeries';
-import { normalizeScope, normalizeBasis } from './fundScopeVocabulary';
+import {
+  normalizeScope, normalizeBasis, FUND_SCOPE_VALUES, BASIS_VALUES,
+} from './fundScopeVocabulary';
 
 /**
  * The dataset types that participate in series selection.
@@ -107,4 +109,46 @@ export function listSeries(datasets: DatasetEntry[]): AvailableSeries[] {
     || SCOPE_RANK[b.key.fundScope] - SCOPE_RANK[a.key.fundScope]);
 
   return out;
+}
+
+/**
+ * The series the app selects when the reader has not chosen one.
+ *
+ * ⚠ Delegates to `chooseDisplaySeries` rather than reimplementing its rule. That
+ * is the load-bearing invariant of this milestone: on first paint every entity
+ * shows exactly the figure it shows today (spec §2, and §3.1 for the one
+ * measured exception).
+ *
+ * When the active dataset has no rows — the Employees tab, or Longview's
+ * operating side viewed from revenue — fall back to the widest entity-level
+ * series rather than returning null, so the control still has a selection.
+ */
+export function defaultSeries(datasets: DatasetEntry[], activeDataset: string): SeriesKey | null {
+  const forActive = chooseDisplaySeries(datasets, activeDataset);
+  if (forActive) return forActive;
+  return listSeries(datasets)[0]?.key ?? null;
+}
+
+export function encodeSeries(k: SeriesKey): { scope: string; basis: string } {
+  return { scope: k.fundScope, basis: k.basis };
+}
+
+/**
+ * Resolve URL params to a series this entity actually has, or null to default.
+ *
+ * ⚠ VALIDATE BEFORE NORMALISING. `normalizeScope('garbage')` returns `'unknown'`
+ * by design — absent means unknown, never a guess. Normalising here first would
+ * turn a garbage URL into a silent selection of the entity's unknown series
+ * instead of a fallback to the default. Check the raw strings against the legal
+ * value lists, then match.
+ */
+export function decodeSeries(
+  scope: string | null,
+  basis: string | null,
+  available: AvailableSeries[],
+): SeriesKey | null {
+  if (!scope || !basis) return null;
+  if (!(FUND_SCOPE_VALUES as readonly string[]).includes(scope)) return null;
+  if (!(BASIS_VALUES as readonly string[]).includes(basis)) return null;
+  return available.find((s) => s.id === `${scope}|${basis}`)?.key ?? null;
 }
