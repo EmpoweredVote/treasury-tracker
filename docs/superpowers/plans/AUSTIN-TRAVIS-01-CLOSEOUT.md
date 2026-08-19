@@ -172,6 +172,18 @@ Repo gates: `npm test` **471 passed** (30 files, including 8 new), `acfrGF.selft
    in `scripts/data/fundScopeRegistry.mjs` rather than an ad-hoc loader stamp,
    and SCOPE-04 is mid-flight over exactly this ledger. **Left as an explicit
    decision for the SCOPE-04 owner**, not silently stamped.
+
+   Scope of the consequence, stated precisely so it is neither ignored nor
+   overstated: the rows **display normally** — `chooseDisplaySeries` treats
+   `unknown` as a legitimate series (that is what SCOPE-03 made reachable), and
+   the production API returns all 16 Austin and 22 Travis fiscal years in
+   `available_datasets`. What `unknown` costs is *comparability labelling*:
+   `isComparableScope()` excludes it, so these rows cannot participate in any
+   scope-matched cross-entity comparison. The contrast is visible in the API
+   response — the neighbouring **Austin, MN** row carries
+   `total_governmental / actual / incl_component_units` from the MN OSA
+   classification, while Austin, TX carries none. For the state capital of
+   Texas that asymmetry is worth closing deliberately.
 4. **Austin straddles three counties** (Travis 922,309 / Williamson 70,212 /
    Hays 1,067). `county_id → Travis` is a *predominance* claim (92.8% of
    population, and the seat of city government), not an identity. Worth knowing
