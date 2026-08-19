@@ -108,20 +108,29 @@ Longview TX   [ Scope not established · adopted FY2026 ✓ ]  Money Out $104.8M
 | Plano | 2 pills, series stable across tabs |
 | **Longview** | the §3.1 ruling, as above |
 
-## Incidental fix — a NUL byte in `.planning/STATE.md`
+## The NUL byte, occurrences four and five — and the lint that ends it
 
-`STATE.md` contained a raw `U+0000`, so git classified it as **binary** and its diff and blame were destroyed. It sat **inside the line warning against NUL bytes**, written as a literal while documenting "never write the byte".
+`.planning/STATE.md` contained a raw `U+0000`, so git classified it as **binary** and its diff and blame were destroyed. It sat **inside the line warning against NUL bytes**, written as a literal while documenting "never write the byte".
 
-Removed with a byte-preserving replacement (`sed` silently stripped all 833 CRs on the first attempt; `perl` with `binmode` did not). The commit shows a whole-file diff because git never CRLF-normalises a *binary* blob and now normalises a *text* one — verified line-by-line that **exactly one line changed**.
+Removed with a byte-preserving replacement. ⚠ `sed -i` silently stripped all 833 CRs on the first attempt; `perl` with `binmode` did not. The commit shows a whole-file diff because git never CRLF-normalises a *binary* blob and now normalises a *text* one — verified line-by-line that **exactly one line changed**.
 
-⚠ SCOPE-02 recorded this defect firing three times and said "it wants a lint". This is the fourth. **The lint is still not written**, and it should be the next small task.
+SCOPE-02 recorded this firing three times and said "it wants a lint". **The lint is now written** — `scripts/lib/nulByteLint.mjs` (pure) + `tests/nulByte.test.mjs`, so `npm test` enforces it. A standalone script nobody runs is how the count reached four.
+
+⚠ **It found a fifth occurrence on its first run, in this milestone's own plan.** `docs/superpowers/plans/2026-08-18-scope-03.md` line 21 — again *inside the bullet warning against NUL bytes* — which git had committed as **`Bin 0 → 86484 bytes`**. The entire implementation plan was an unreviewable binary blob in PR #31 and nobody had noticed. Fixed.
+
+Two design points worth keeping:
+
+* ⚠ **The filter cannot ask git whether a file is binary** — that is the *symptom* being hunted, so a corrupted `.ts` would be excluded by the very corruption being looked for. Selection is an explicit text-extension allowlist; PNG/XLSX/PDF legitimately contain thousands of NULs and are never examined.
+* ⚠ **The first scan attempt was vacuous.** `LC_ALL=C grep -P '\x00'` errors with *"supports only unibyte and UTF-8 locales"* and reported a clean repo it had never actually read. The lint reads bytes in Node, and its tests assert the detector can fire before asserting the repo is clean.
+
+⚠ `perl`'s `s/\x00/\\0/` also silently no-ops — `\0` in a *replacement* is itself an octal NUL escape, so it substitutes the byte with itself. Use Node, or a non-ambiguous replacement text.
 
 ## What SCOPE-04 inherits
 
 1. **Derived Total Governmental for era B** (FY2017+, ~8,500 rows) — a level in the toggle. Era A is structurally underivable; do not retry.
 2. **The enterprise slice made visible.** The roots are already named (`Water Enterprise Fund`, `Internal Service Fund`, …) on era-B rows.
 3. **A seam definition that survives the series model**, plus the ~19 remaining seams.
-4. **A NUL-byte lint.** Four occurrences across three milestones.
+4. ~~A NUL-byte lint.~~ **Written in this milestone** after it reached five occurrences. Consider extending it to a pre-commit hook so the failure arrives before the commit rather than after.
 5. **No component tests exist and none can be written** — `vitest.config.ts` is `environment: 'node'` and its `include` never collects `.test.tsx`, with no testing-library or DOM environment. A `.test.tsx` file **silently does not run**. Adding the toolchain is a decision for Chris; until then, push testable logic into pure modules.
 
 ## Open items
