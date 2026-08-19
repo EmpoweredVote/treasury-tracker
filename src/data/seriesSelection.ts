@@ -22,6 +22,7 @@ import {
 import {
   normalizeScope, normalizeBasis, FUND_SCOPE_VALUES, BASIS_VALUES,
 } from './fundScopeVocabulary';
+import { buildPeriodTokens, parsePeriod } from '../utils/period';
 
 /**
  * The dataset types that participate in series selection.
@@ -151,4 +152,50 @@ export function decodeSeries(
   if (!(FUND_SCOPE_VALUES as readonly string[]).includes(scope)) return null;
   if (!(BASIS_VALUES as readonly string[]).includes(basis)) return null;
   return available.find((s) => s.id === `${scope}|${basis}`)?.key ?? null;
+}
+
+/**
+ * The selectable period tokens for the chosen series.
+ *
+ * ⚠ The filter is applied to buildPeriodTokens' INPUT, never to its output. The
+ * FY1976 Transition Quarter token is SYNTHESISED from a `period_label` row, so
+ * filtering the token list would drop it or leave it orphaned after a year that
+ * is no longer present.
+ *
+ * Years belonging only to a NON-series dataset (salaries, all_funds_requirements,
+ * federal_agency) are kept: the Employees tab must stay reachable in a year the
+ * chosen budget series does not cover.
+ */
+export function seriesPeriodTokens(
+  datasets: DatasetEntry[],
+  series: SeriesKey | null,
+): string[] {
+  if (!series) return buildPeriodTokens(datasets);
+  const kept = datasets.filter((dd) => {
+    if (!SERIES_DATASETS.includes(dd.dataset_type)) return true;
+    return normalizeScope(dd.fund_scope) === series.fundScope
+        && normalizeBasis(dd.basis) === series.basis;
+  });
+  return buildPeriodTokens(kept);
+}
+
+/**
+ * Move a selected period to the nearest one the series offers.
+ *
+ * Ties resolve to the LATER year: `tokens` descends and the scan only replaces
+ * on a strict improvement, so the first (most recent) candidate wins.
+ */
+export function clampYearToSeries(token: string, tokens: string[]): string {
+  if (tokens.length === 0 || tokens.includes(token)) return token;
+  const want = parsePeriod(token).fiscalYear;
+  let best = tokens[0];
+  let bestDistance = Infinity;
+  for (const t of tokens) {
+    const distance = Math.abs(parsePeriod(t).fiscalYear - want);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = t;
+    }
+  }
+  return best;
 }

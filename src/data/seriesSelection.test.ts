@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { listSeries, seriesId, defaultSeries, encodeSeries, decodeSeries } from './seriesSelection';
+import {
+  listSeries, seriesId, defaultSeries, encodeSeries, decodeSeries,
+  seriesPeriodTokens, clampYearToSeries,
+} from './seriesSelection';
+import { TQ_TOKEN, TQ_LABEL } from '../utils/period';
 
 /** One available_datasets entry. */
 const d = (
@@ -152,5 +156,82 @@ describe('decodeSeries', () => {
     const k = { fundScope: 'all_funds', basis: 'actual' } as const;
     const { scope, basis } = encodeSeries(k);
     expect(decodeSeries(scope, basis, available)).toEqual(k);
+  });
+});
+
+describe('seriesPeriodTokens', () => {
+  it('offers only the years the selected series covers', () => {
+    const sets = [
+      ...[2022, 2023, 2024].map((y) => d(y, 'operating', 'all_funds', 'actual')),
+      ...[2025, 2026].map((y) => d(y, 'operating', 'unknown', 'adopted')),
+    ];
+    expect(seriesPeriodTokens(sets, { fundScope: 'unknown', basis: 'adopted' }))
+      .toEqual(['2026', '2025']);
+  });
+
+  it('unions the series years across operating and revenue', () => {
+    const sets = [
+      d(2024, 'operating', 'all_funds', 'actual'),
+      d(2023, 'revenue', 'all_funds', 'actual'),
+    ];
+    expect(seriesPeriodTokens(sets, { fundScope: 'all_funds', basis: 'actual' }))
+      .toEqual(['2024', '2023']);
+  });
+
+  it('KEEPS years that only a non-series dataset has, so the Employees tab stays reachable', () => {
+    const sets = [
+      d(2024, 'operating', 'all_funds', 'actual'),
+      d(2025, 'salaries', 'unknown', 'unknown'),
+    ];
+    expect(seriesPeriodTokens(sets, { fundScope: 'all_funds', basis: 'actual' }))
+      .toEqual(['2025', '2024']);
+  });
+
+  it('preserves the FY1976 Transition Quarter token', () => {
+    // The TQ is SYNTHESISED by buildPeriodTokens from a period_label row, so the
+    // filter must be applied to its INPUT, never to its output tokens -- filtering
+    // tokens would drop or orphan it. Federal is the only entity with TQ rows and
+    // it has a single series, so no multi-series fixture can catch this.
+    const sets = [
+      d(1975, 'operating', 'unknown', 'unknown'),
+      d(1976, 'operating', 'unknown', 'unknown'),
+      d(1976, 'operating', 'unknown', 'unknown', TQ_LABEL),
+      d(1977, 'operating', 'unknown', 'unknown'),
+    ];
+    expect(seriesPeriodTokens(sets, { fundScope: 'unknown', basis: 'unknown' }))
+      .toEqual(['1977', '1976', TQ_TOKEN, '1975']);
+  });
+
+  it('falls back to every year when no series is selected', () => {
+    const sets = [
+      d(2024, 'operating', 'all_funds', 'actual'),
+      d(2026, 'operating', 'unknown', 'adopted'),
+    ];
+    expect(seriesPeriodTokens(sets, null)).toEqual(['2026', '2024']);
+  });
+});
+
+describe('clampYearToSeries', () => {
+  it('keeps a year the series covers', () => {
+    expect(clampYearToSeries('2023', ['2024', '2023', '2022'])).toBe('2023');
+  });
+
+  it('moves to the nearest covered year', () => {
+    expect(clampYearToSeries('2019', ['2024', '2023', '2022'])).toBe('2022');
+    expect(clampYearToSeries('2030', ['2024', '2023', '2022'])).toBe('2024');
+  });
+
+  it('prefers the LATER year on an equal distance', () => {
+    // Tokens descend, and the scan keeps the first strict improvement, so a tie
+    // resolves to the more recent year. Readers reach for recent data.
+    expect(clampYearToSeries('2023', ['2024', '2022'])).toBe('2024');
+  });
+
+  it('returns the token unchanged when the series covers nothing', () => {
+    expect(clampYearToSeries('2024', [])).toBe('2024');
+  });
+
+  it('handles the Transition Quarter token without producing NaN', () => {
+    expect(clampYearToSeries(TQ_TOKEN, ['1977', '1976'])).toBe('1976');
   });
 });
