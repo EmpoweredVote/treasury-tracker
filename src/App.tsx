@@ -12,6 +12,7 @@ import MethodologyPanel from './components/federal/MethodologyPanel';
 import ComparabilityNote from './components/federal/ComparabilityNote';
 import { comparability } from './data/comparability';
 import { cityBasisNotes } from './data/cityBasisNotes';
+import { financingInflow } from './data/fundScopeVocabulary';
 import ScaleToggle, { type FederalScale } from './components/federal/ScaleToggle';
 import ProgramOrigins from './components/federal/ProgramOrigins';
 import BudgetSearch from './components/dashboard/BudgetSearch';
@@ -1127,6 +1128,12 @@ function App() {
                   salariesTotal={salariesData?.metadata.totalBudget}
                   availableDatasets={availableDatasetTypes}
                   isNonprofit={selectedEntity?.entity_type === 'nonprofit'}
+                  // Derived from the revenue categories already loaded — no API
+                  // change and no hard-coded source list. Null for most sources.
+                  financingInflow={financingInflow(
+                    revenueData?.categories,
+                    revenueData?.metadata.totalBudget,
+                  )}
                 />
               </div>
             </>

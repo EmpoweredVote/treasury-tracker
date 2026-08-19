@@ -259,3 +259,96 @@ export function areComparable(a: ComparableFigure, b: ComparableFigure): boolean
     && x.basis === y.basis
     && x.reportingEntity === y.reportingEntity;
 }
+
+/**
+ * ── CROSS-DATASET COMPARABILITY: financing inflow ───────────────────────────
+ *
+ * `areComparable` above answers "may these two FIGURES sit on a shared axis?"
+ * along (fund_scope, basis, reporting_entity). It cannot answer a different
+ * question the app also invites: **may the Money In total be compared with the
+ * Money Out total?**
+ *
+ * For some sources it may not, and no value of the three axes expresses why.
+ * MA DLS folds `Other Financing Sources` and `Transfers` INTO its General Fund
+ * revenue total, while its expenditure product has no transfers-out column at
+ * all. CA State Controller does the same with `Other Financing Sources`. So the
+ * two tiles are built on different bases and the difference between them is not
+ * a surplus.
+ *
+ * Magnitudes measured 2026-08-18:
+ *   MA  2.73% aggregate, worst row 56.5% (Goshen FY2003)
+ *   CA  3.71% aggregate, worst row 77.8% (Healdsburg FY2006); 1,419 rows
+ *
+ * ⚠ THE FIGURES ARE NOT ADJUSTED. Subtracting would fabricate a total neither
+ * publisher reports and would move `figures_frozen`. The asymmetry is DISCLOSED
+ * instead, and it is DERIVED FROM THE CATEGORIES ALREADY LOADED rather than from
+ * a hard-coded list of sources — which is how the CA exposure was found at all,
+ * having gone looking only for the MA one.
+ */
+
+/**
+ * Revenue-side category names that are money MOVED IN rather than earned.
+ *
+ * ⚠ Matched WHOLE and case-insensitively, never as a substring. Loosening this
+ * to /transfer/i would match expenditure lines such as "Transfers to Other
+ * Funds" or "Operating Transfers Out" and invert the meaning of the note.
+ */
+const FINANCING_INFLOW_CATEGORIES = new Set(['transfers', 'other financing sources']);
+
+export interface FinancingInflow {
+  /** Total of the matched categories, in the same units as the tile. */
+  amount: number;
+  /** Share of the Money In total, 0-100. */
+  pct: number;
+  /** The matched category names as displayed, sorted for a stable note. */
+  categories: string[];
+}
+
+/**
+ * The portion of a Money In total that is financing/transfers, or null when
+ * there is none — which is the common case and renders nothing.
+ */
+export function financingInflow(
+  categories: Array<{ name?: string | null; amount?: number | null }> | null | undefined,
+  total: number | null | undefined,
+): FinancingInflow | null {
+  if (!categories?.length) return null;
+  if (typeof total !== 'number' || !Number.isFinite(total) || total <= 0) return null;
+
+  let amount = 0;
+  const names: string[] = [];
+  for (const c of categories) {
+    const key = String(c?.name ?? '').trim().toLowerCase();
+    if (!FINANCING_INFLOW_CATEGORIES.has(key)) continue;
+    const a = Number(c?.amount);
+    if (!Number.isFinite(a) || a <= 0) continue;
+    amount += a;
+    names.push(String(c.name).trim());
+  }
+  if (amount <= 0) return null;
+
+  return { amount, pct: (amount / total) * 100, categories: names.sort() };
+}
+
+/** Compact money for the note: $110.3M, $2.1B, $400.0K. */
+function shortMoney(n: number): string {
+  if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(1)}B`;
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `$${(n / 1_000).toFixed(1)}K`;
+  return `$${n.toFixed(0)}`;
+}
+
+/**
+ * Reader-facing wording. Lives here with the rest of the scope vocabulary so
+ * there is one reviewable home for what the app tells a reader about scope.
+ */
+export function financingInflowNote(f: FinancingInflow): string {
+  const pct = f.pct >= 0.1 ? f.pct.toFixed(1) : f.pct.toFixed(2);
+  const what = f.categories.length > 1
+    ? 'transfers and other financing sources'
+    : f.categories[0].toLowerCase();
+  return `Money In includes ${shortMoney(f.amount)} (${pct}%) of ${what} — money moved in from `
+    + 'this government\'s own other funds, not raised from taxes or received from another '
+    + 'government. Money Out has no matching outflow line, so the two totals are not '
+    + 'like-for-like and the difference between them is not a surplus.';
+}
