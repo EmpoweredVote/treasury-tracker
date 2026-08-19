@@ -250,17 +250,35 @@ function App() {
     [selectedEntity],
   );
 
+  // ⚠ THE DEFAULT IS SEEDED ONCE PER ENTITY AND HELD — it must NOT be recomputed
+  // when the reader changes tab.
+  //
+  // `defaultSeries` takes a dataset, so deriving it live from `activeDataset`
+  // means switching between Money In and Money Out silently switches SERIES too,
+  // which is exactly what the shared selection exists to prevent. Measured on
+  // Plano TX: landing on Money Out gives `unknown · adopted` (operating FY2019–25,
+  // revenue FY2019/20/22); clicking Money In recomputed the default for `revenue`,
+  // jumped to `unknown · basis not established` — which has NO operating rows at
+  // all — and blanked BOTH tiles. Seeding from whichever dataset the reader
+  // arrives on preserves first paint without that coupling.
+  //
+  // Assigned during render, not in an effect, so the seeding effect below always
+  // reads the current value regardless of effect ordering.
+  const activeDatasetRef = useRef(activeDataset);
+  activeDatasetRef.current = activeDataset;
+
+  const [defaultSeriesSeed, setDefaultSeriesSeed] = useState<SeriesKey | null>(null);
+
   // The series in force: the reader's choice if they made one and it still exists
-  // for this entity, otherwise SCOPE-02's automatic pick. Resolving here rather
-  // than seeding state with a default is what keeps first paint identical to today.
+  // for this entity, otherwise the seeded default.
   const effectiveSeries = useMemo(() => {
     if (!selectedEntity) return null;
     if (selectedSeries) {
       const stillHere = availableSeries.some((s) => s.id === seriesId(selectedSeries));
       if (stillHere) return selectedSeries;
     }
-    return defaultSeries(selectedEntity.available_datasets, activeDataset);
-  }, [selectedEntity, selectedSeries, availableSeries, activeDataset]);
+    return defaultSeriesSeed;
+  }, [selectedEntity, selectedSeries, availableSeries, defaultSeriesSeed]);
 
   const effectiveSeriesLabel = useMemo(
     () => availableSeries.find(
@@ -271,7 +289,17 @@ function App() {
   // SCOPE-03: the selection does NOT persist across entities — a series Modesto
   // has, Natick will not, and carrying it over drops the reader into an absent
   // state on arrival. Each entity resolves its own default. Spec §5.
-  useEffect(() => { setSelectedSeries(null); }, [selectedEntity?.id]);
+  //
+  // ⚠ Keyed on the entity ONLY. Adding activeDataset here would re-seed on every
+  // tab change and reintroduce the Plano defect described above.
+  useEffect(() => {
+    setSelectedSeries(null);
+    setDefaultSeriesSeed(
+      selectedEntity
+        ? defaultSeries(selectedEntity.available_datasets, activeDatasetRef.current)
+        : null,
+    );
+  }, [selectedEntity?.id, selectedEntity]);
 
   // Derive available years and datasets from selected entity
   // Period tokens: annual years descending, with the FY1976 Transition Quarter
