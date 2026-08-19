@@ -15,3 +15,15 @@ jobs:
           cache: 'npm'
       - run: npm ci
       - run: npm run build
+      # ⚠ Until 2026-08-19 this workflow ran the build and nothing else, so NONE
+      # of the tests gated a PR -- including the guards written specifically to
+      # stop defects reaching main (the NUL-byte lint, the paged-read ordering
+      # check, the unconstrained-sum check). They passed locally and were inert
+      # here, which is the "harness nobody runs" shape this project keeps
+      # rediscovering.
+      #
+      # Added only after the I/O-bound tests were given explicit timeouts: they
+      # scan the source tree, so their duration tracks disk contention, and
+      # vitest's default 5s made them fail under load. A flaky required check is
+      # worse than no check.
+      - run: npm test
