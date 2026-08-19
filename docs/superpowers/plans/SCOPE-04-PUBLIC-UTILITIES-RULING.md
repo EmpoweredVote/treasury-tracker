@@ -162,8 +162,53 @@ overstatement                              5,348,719
 ```
 
 Neither 1,945,588 nor 1,780,090 appears **anywhere** in Brisbane's FY2017 ACFR.
-The duplicated pairs account for 3,725,678 of the 5,348,719 gap; **$1.6M has no
-duplicate signature at all.**
+
+### The residual is a THIRD duplicate — the Marina (resolved 2026-08-19)
+
+Brisbane reports **three** enterprise funds twice. The third is the Marina, and
+it hides inside the governmental `Culture and Leisure` root:
+
+```
+Culture and Leisure = 5,675,907
+    CURR_EXP_PARK_REC          2,143,904
+    CURR_EXP_MARINA_WHARFS     3,506,424   <-- the Marina, again
+    CURR_EXP_LIBRARIES            25,579
+```
+
+Brisbane's ACFR states it "uses enterprise funds to account for its Water and
+Sewer Utility Services and **for its Marina**", and TT's `Other Enterprise Fund`
+(2,089,184) is already the Marina's audited figure (1,939,409 opex + 149,775
+interest). The ACFR's `Parks and recreation` is 2,138,545, matching
+`CURR_EXP_PARK_REC` alone — so the 3,506,424 is purely additional.
+
+That closes the gap:
+
+```
+governmental overstatement                7,489,237
+  less Water   CURR_EXP_WATER             1,945,588
+  less Sewer   CURR_EXP_SEWERS            1,780,090
+  less Marina  CURR_EXP_MARINA_WHARFS     3,506,424
+                                         ----------
+  unexplained remainder                     257,135   (1.3%, ordinary mapping noise)
+```
+
+⚠ **This is why the exact-equality screen is NOT a gate.** The Marina is the
+LARGEST of Brisbane's three duplicates and the screen never fired on it, because
+the two Marina figures **differ** (3,506,424 vs 2,089,184). The screen caught 2
+of 3 duplicates in the one city known to be broken.
+
+⚠ **And there is no structural screen that would catch it either.** A
+proprietary-named function line co-occurring with its enterprise fund is
+*normal* — Cerritos and Lakewood both carry `CURR_EXP_WATER` alongside a
+`Water Enterprise Fund` and both tie to their ACFRs exactly. **Only the
+governmental ACFR tie distinguishes Brisbane from them.** Cf. §7 and
+`SCOPE-04-NEGATIVES-RULING.md` §5: the tie is the discriminator, and it must be
+read with the three-outcome caveat.
+
+Separately, TT's Water + Sewer enterprise roots (3,725,678) understate the
+ACFR's Utility fund (5,866,494) by 2,140,816, because that fund also contains
+GVMID (Guadalupe Valley Municipal Improvement District), which Brisbane's SCO
+filing drops.
 
 ### The quarantine list
 
