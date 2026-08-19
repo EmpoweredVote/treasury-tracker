@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { DollarSign, TrendingDown, Users } from 'lucide-react';
+import { DollarSign, TrendingDown, Users, Info } from 'lucide-react';
 import { useAnimatedCounter } from '../../hooks/useAnimatedCounter';
+import { financingInflowNote, type FinancingInflow } from '../../data/fundScopeVocabulary';
 
 interface DatasetCardsProps {
   activeDataset: string;
@@ -10,6 +11,13 @@ interface DatasetCardsProps {
   salariesTotal?: number;
   availableDatasets?: string[];
   isNonprofit?: boolean;
+  /**
+   * Set when this source folds transfers / other financing sources INTO its
+   * Money In total while its Money Out total has no matching outflow line — so
+   * the two tiles are not like-for-like. Derived from the loaded categories,
+   * never hard-coded per source. Absent for most sources, which render nothing.
+   */
+  financingInflow?: FinancingInflow | null;
 }
 
 const formatCurrency = (amount: number, exact = false): string => {
@@ -59,6 +67,7 @@ export default function DatasetTabs({
   salariesTotal,
   availableDatasets,
   isNonprofit = false,
+  financingInflow = null,
 }: DatasetCardsProps) {
   const available = availableDatasets ?? ['operating', 'revenue'];
   const hasSalaries = available.includes('salaries');
@@ -107,7 +116,12 @@ export default function DatasetTabs({
     return null;
   };
 
+  // Only meaningful when both tiles are actually on screen to be compared.
+  const showFinancingNote =
+    financingInflow != null && available.includes('revenue') && available.includes('operating');
+
   return (
+    <>
     <div className={`grid grid-cols-1 gap-3 ${hasSalaries ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
       {CARDS.map(({ id, label, icon: Icon, description }) => {
         const isActive = id === activeDataset;
@@ -187,6 +201,19 @@ export default function DatasetTabs({
         );
       })}
     </div>
+
+    {showFinancingNote && (
+      <div
+        className="mt-3 flex items-start gap-2 rounded-lg border border-ev-gray-200 dark:border-ev-gray-700
+                   bg-ev-gray-50 dark:bg-ev-gray-900 px-3 py-2"
+      >
+        <Info size={14} className="mt-0.5 shrink-0 text-ev-gray-400" aria-hidden />
+        <p className="text-xs leading-relaxed text-ev-gray-500 dark:text-ev-gray-400">
+          {financingInflowNote(financingInflow!)}
+        </p>
+      </div>
+    )}
+    </>
   );
 }
 
