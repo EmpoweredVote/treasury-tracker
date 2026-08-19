@@ -1,0 +1,8 @@
+# Git hooks must keep LF endings on every platform.
+#
+# ⚠ A `#!/bin/sh` script checked out with CRLF fails as "bad interpreter: No
+# such file or directory" — the shell reads the trailing CR as part of the
+# interpreter path. Windows clones default to CRLF on checkout, so without this
+# the pre-commit hook would silently stop running for anyone on Windows: the
+# worst failure mode for a guard, since it looks exactly like "no violations".
+.githooks/** text eol=lf
