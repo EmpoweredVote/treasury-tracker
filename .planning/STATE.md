@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v2.26
 milestone_name: SCOPE-03 — The Series Toggle
-status: v2.26 SCOPE-03 BUILT on feat/scope-03 — verified against production data; NOT merged, NOT tagged; Chris UAT sign-off outstanding
-stopped_at: "Task 10 complete. Awaiting UAT sign-off, then merge + tag v2.26 in the same step as .planning/."
-last_updated: "2026-08-18T00:00:00.000Z"
-last_activity: 2026-08-18
+status: v2.26 SCOPE-03 SHIPPED — PR #31 merged to main as 4cd598b, tagged v2.26
+stopped_at: "Milestone closed. SCOPE-04 is next: scoped in the closeout, not planned."
+last_updated: "2026-08-19T00:00:00.000Z"
+last_activity: 2026-08-19
 last_activity_desc: "SCOPE-03 series toggle built: 91 rows across 17 entities that were in the DB and unreachable are now reachable. ZERO database writes. Two silent defects killed with mutation tests (series-blind cache key; series-blind availableYears). Three things only the real app caught: the default series was coupled to the active tab (Plano), erasableSyntaxOnly rejects parameter properties, and Los Angeles was already broken on main and is fixed here. 458 vitest, 29 files"
 progress:
   total_phases: 14
