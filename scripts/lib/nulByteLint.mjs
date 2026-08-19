@@ -79,6 +79,24 @@ export function findNulBytes(bytes) {
   return hits;
 }
 
+/**
+ * Violations across a set of already-read files.
+ *
+ * `files` is `[{ path, bytes }]`. Non-text paths are skipped HERE rather than by
+ * the caller, so the vitest repo scan and the pre-commit hook cannot drift apart
+ * on which files count — they share this one function.
+ */
+export function collectViolations(files) {
+  const violations = [];
+  for (const { path, bytes } of files) {
+    if (!isTextPath(path)) continue;
+    // Fast path: almost every file is clean, and indexOf is a memchr.
+    if (bytes.indexOf(0) === -1) continue;
+    violations.push(formatViolation(path, findNulBytes(bytes)));
+  }
+  return violations;
+}
+
 /** Human-readable report for one offending file. */
 export function formatViolation(path, hits) {
   const where = hits

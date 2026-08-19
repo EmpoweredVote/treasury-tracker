@@ -1,0 +1,20 @@
+#!/bin/sh
+#
+# Treasury Tracker pre-commit hook.
+#
+# Enabled by `core.hooksPath=.githooks`, which `npm run prepare` sets — so it
+# arrives with a plain `npm install` and needs no extra dependency. Verify with:
+#   git config core.hooksPath
+#
+# Keep this fast. It runs on every commit, so it checks only STAGED content and
+# never the whole repo or the test suite.
+
+# Node is required for the check. If it is missing, say so and let the commit
+# through rather than blocking work on a machine that cannot run the gate — the
+# vitest lint (`npm test`) is the backstop.
+if ! command -v node >/dev/null 2>&1; then
+  echo "pre-commit: node not found, skipping the NUL-byte check." >&2
+  exit 0
+fi
+
+exec node "$(git rev-parse --show-toplevel)/scripts/checkStagedNulBytes.mjs"

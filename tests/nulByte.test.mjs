@@ -13,7 +13,7 @@ import { describe, it, expect } from 'vitest';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import {
-  findNulBytes, isTextPath, formatViolation, REMEDY,
+  findNulBytes, isTextPath, collectViolations, REMEDY,
 } from '../scripts/lib/nulByteLint.mjs';
 
 // ── The detector must be able to FIRE ───────────────────────────────────────
@@ -44,6 +44,34 @@ describe('findNulBytes — proven able to fire', () => {
   it('does not confuse the two-character text "U+0000" for the byte', () => {
     // The remedy itself must not trip the lint, or fixing a file is impossible.
     expect(findNulBytes(Buffer.from('Write `U+0000`, never the byte.\n'))).toEqual([]);
+  });
+});
+
+describe('collectViolations — shared by the vitest scan and the pre-commit hook', () => {
+  const dirty = Buffer.from(`has a ${String.fromCharCode(0)} byte\n`, 'binary');
+  const clean = Buffer.from('all good\n', 'binary');
+
+  it('reports a text file that carries a NUL', () => {
+    const out = collectViolations([{ path: 'a/b.md', bytes: dirty }]);
+    expect(out).toHaveLength(1);
+    expect(out[0]).toContain('a/b.md');
+    expect(out[0]).toContain('line 1');
+  });
+
+  it('says nothing about clean files', () => {
+    expect(collectViolations([{ path: 'a/b.md', bytes: clean }])).toEqual([]);
+  });
+
+  it('ignores a binary format even when it is full of NULs', () => {
+    expect(collectViolations([{ path: 'public/logo.png', bytes: dirty }])).toEqual([]);
+  });
+
+  it('reports every offender, not just the first', () => {
+    expect(collectViolations([
+      { path: 'a.md', bytes: dirty },
+      { path: 'b.ts', bytes: clean },
+      { path: 'c.mjs', bytes: dirty },
+    ])).toHaveLength(2);
   });
 });
 
@@ -88,6 +116,15 @@ describe('isTextPath', () => {
  * after staging. A pre-commit hook would close the gap properly.
  */
 describe('the repository contains no raw NUL bytes', () => {
+  // ⚠ EXPLICIT TIMEOUT, because this test is I/O-bound, not CPU-bound: it reads
+  // ~1,470 files totalling ~19MB. Measured at ~540ms warm (read 512ms, scan 3ms)
+  // — but under a cold cache, with vitest's parallel workers competing for disk,
+  // it can run many times slower. vitest's default 5s would then fail a test that
+  // is working perfectly.
+  //
+  // SCOPE-02 shipped a tag during a run reporting one failure that could not be
+  // named afterwards; it was later identified as exactly this — an I/O-bound scan
+  // wearing a unit-test timeout. Not repeating it.
   it('every tracked text file is clean', () => {
     const tracked = execFileSync('git', ['ls-files', '-z'], {
       cwd: new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'),
@@ -106,21 +143,20 @@ describe('the repository contains no raw NUL bytes', () => {
     const candidates = tracked.filter(isTextPath);
     expect(candidates.length).toBeGreaterThan(100);
 
-    const violations = [];
+    const files = [];
     for (const rel of candidates) {
-      let bytes;
       try {
-        bytes = readFileSync(new URL(`../${rel}`, import.meta.url));
+        files.push({ path: rel, bytes: readFileSync(new URL(`../${rel}`, import.meta.url)) });
       } catch {
         continue; // deleted-but-tracked, or a path this platform cannot open
       }
-      // Fast path: almost every file is clean, and indexOf is a memchr.
-      if (bytes.indexOf(0) === -1) continue;
-      violations.push(formatViolation(rel, findNulBytes(bytes)));
     }
+
+    // Shared with the pre-commit hook — one definition of "a violation".
+    const violations = collectViolations(files);
 
     if (violations.length > 0) {
       throw new Error(`\n${violations.join('\n')}\n\n${REMEDY}\n`);
     }
-  });
+  }, 60_000);
 });
