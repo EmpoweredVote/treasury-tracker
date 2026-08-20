@@ -54,6 +54,26 @@ export const BASIS_REGISTRY = [
     },
   },
   {
+    // AUSTIN-TRAVIS-01. 76 rows, measured 2026-08-19. Anchored to the two entity
+    // names — see the fund-scope entry of the same id for why a general
+    // / ACFR — General Fund/ pattern would wrongly claim 260 unreconciled rows.
+    id: 'tx-local-acfr-gf',
+    match: /^(City of Austin|Travis County) ACFR — General Fund /,
+    value: BASIS.ACTUAL,
+    evidence: {
+      document: 'City of Austin FY2024 + FY2015 and Travis County FY2024 ACFRs — audited, '
+              + 'unmodified opinion, closed fiscal years (AUSTIN-TRAVIS-01-SCOPE-RECON.md §2)',
+      figures: 'Every stored figure is the printed General Fund column of the governmental-funds '
+             + 'Statement of Revenues, Expenditures and Changes in Fund Balances — a year-end GAAP '
+             + 'actual, tying exactly on both sides in all three probes. NOT an appropriation: the '
+             + 'same documents present budget and actual in separate columns of a budgetary '
+             + 'comparison SCHEDULE, and acfrGF.py excludes any page whose title carries '
+             + '"Budgetary" or "Budget and Actual", so the budget schedule is structurally '
+             + 'unreachable. The whole window is closed — FY2025 ended 2025-09-30 and both FY2025 '
+             + 'reports are published and audited.',
+    },
+  },
+  {
     id: 'wa-sao',
     match: /^WA State Auditor — /,
     value: BASIS.ACTUAL,

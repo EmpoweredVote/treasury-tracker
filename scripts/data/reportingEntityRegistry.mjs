@@ -35,6 +35,35 @@ export const REPORTING_ENTITY_REGISTRY = [
     },
   },
   {
+    // AUSTIN-TRAVIS-01. 76 rows, measured 2026-08-19. Anchored to the two entity
+    // names — see the fund-scope entry of the same id.
+    id: 'tx-local-acfr-gf',
+    match: /^(City of Austin|Travis County) ACFR — General Fund /,
+    value: REPORTING_ENTITY.PRIMARY,
+    evidence: {
+      document: 'Note 1 (Reporting Entity) and the Overview of the Financial Statements in the '
+              + 'City of Austin FY2024 and Travis County FY2024 ACFRs '
+              + '(AUSTIN-TRAVIS-01-SCOPE-RECON.md §3)',
+      figures: 'The stored figure is the printed General Fund column of the FUND financial '
+             + 'statements. Under GASB 34 discretely presented component units appear only in the '
+             + 'government-wide statements, in their own separate column, so they cannot be in it. '
+             + 'Austin states this outright for its NINE discrete units (ABLE, ACE, Austin Transit '
+             + 'Partnership, Sobriety Center, Rally Austin, three housing LPs, Waller Creek LGC): '
+             + '"data from these units are shown separately from data of the City". Corroboration '
+             + 'on the BLENDED units, which are inside the primary government\'s funds by GASB 34 '
+             + 'exactly as they are for wa-sao and state-acfr-gf: Austin\'s Note 1 names a '
+             + '"Reporting Fund" per blended unit and none of the named ones is the General Fund — '
+             + 'Austin Energy (major PROPRIETARY fund), Austin Housing Finance Corporation '
+             + '(nonmajor SPECIAL REVENUE fund), Urban Renewal Agency (nonmajor SPECIAL REVENUE '
+             + 'fund). Travis\'s blended units are eight governmental entities plus TCHFC, reported '
+             + 'in BUSINESS-TYPE activities via an enterprise fund; its General Fund is one of six '
+             + 'major governmental funds. Contrast mn-osa, which is incl_component_units because '
+             + 'the OSA re-aggregates HRA/EDA/TIF the city ACFR presents separately (+21.7% on '
+             + 'Bloomington FY2022) — nothing of that kind happens here, the figure is read FROM '
+             + 'the ACFR\'s own fund statement.',
+    },
+  },
+  {
     id: 'wa-sao',
     match: /^WA State Auditor — /,
     value: REPORTING_ENTITY.PRIMARY,

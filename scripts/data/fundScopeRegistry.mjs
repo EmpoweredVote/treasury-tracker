@@ -140,6 +140,53 @@ export const FUND_SCOPE_REGISTRY = [
   },
 
   {
+    // AUSTIN-TRAVIS-01. 76 rows / 76 strings (Austin 32 + Travis 44), measured
+    // 2026-08-19.
+    //
+    // ⚠ ANCHORED TO THE TWO ENTITY NAMES ON PURPOSE. The tempting general
+    // pattern, / ACFR — General Fund/, matches 1,784 rows: the 1,448 already
+    // owned by state-acfr-gf, these 76, and 260 rows across SIXTEEN other city
+    // and state ACFR families (Bend 36, State of Minnesota 36, Seattle 34,
+    // Sherwood 22, Tucson 20, …) that no reconciliation covers. Those stay
+    // `unknown`: this entry's evidence is the Austin and Travis statements, and
+    // nobody has read Bend's. A future Texas city ACFR load therefore lands
+    // `unknown` until it is evidenced, which is the correct failure direction.
+    id: 'tx-local-acfr-gf',
+    match: /^(City of Austin|Travis County) ACFR — General Fund /,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'THREE probes across two Texas entities, each the governmental-funds Statement of '
+              + 'Revenues, Expenditures and Changes in Fund Balances: City of Austin FY2024 '
+              + '(docs/Austin/austin-2024-acfr.pdf p.50, Exhibit B-2) and FY2015 '
+              + '(austin-2015-acfr.pdf p.50), and Travis County FY2024 '
+              + '(docs/TravisCounty/travis-2024-acfr.pdf pp.58-59). NOTE: these filings ARE the '
+              + 'source the loader read, so the reconciliation is not against a second reporter — '
+              + 'it establishes WHICH COLUMN of the statement the stored figure is, which is the '
+              + 'question that decides scope. Same method as state-acfr-gf and wa-sao. '
+              + 'Full working: docs/superpowers/plans/AUSTIN-TRAVIS-01-SCOPE-RECON.md §1.',
+      figures: 'AUSTIN FY2024 (thousands) — printed General Fund column: Total revenues 1,280,826 '
+             + 'and Total expenditures 1,347,127, matching the stored $1,280,826,000 and '
+             + '$1,347,127,000 EXACTLY. Total Governmental columns are 2,216,395 and 2,881,179, so '
+             + 'the stored figure is 57.8% / 46.8% of total governmental; columns sum exactly '
+             + '(1,280,826 + 935,569 = 2,216,395; 1,347,127 + 1,534,052 = 2,881,179). '
+             + 'AUSTIN FY2015 (thousands, the earlier of Austin\'s two label eras) — General Fund '
+             + '736,921 and 878,869, stored exactly; Total Governmental 1,066,268 and 1,296,816 '
+             + '(69.1% / 67.8%); columns sum exactly. '
+             + 'TRAVIS FY2024 (WHOLE DOLLARS) — printed General column: Total revenues '
+             + '1,030,822,292 and Total expenditures 888,757,389, stored EXACTLY. Total '
+             + 'Governmental is 1,309,590,625 and 1,318,378,253 (78.7% / 67.4%); all seven fund '
+             + 'columns sum to those totals exactly on both sides. '
+             + 'Candidate scopes rejected: total_governmental is off by 42.2%/53.2% (Austin FY2024), '
+             + '30.9%/32.2% (Austin FY2015) and 21.3%/32.6% (Travis FY2024); all_funds further '
+             + 'still, since neither statement contains any proprietary fund (Austin Energy, '
+             + 'Austin Water, the airport, Travis\'s TCHFC and internal service funds are all '
+             + 'outside it). The two entities print in DIFFERENT units — Austin "(In thousands)", '
+             + 'Travis whole dollars — so the tie also confirms the loader normalised units per '
+             + 'document rather than assuming one scale, which the $0 tie gate cannot see.',
+    },
+  },
+
+  {
     id: 'wa-sao',
     match: /^WA State Auditor — /,
     scope: SCOPE.GENERAL_FUND,

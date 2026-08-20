@@ -38,6 +38,11 @@
  *   5. No `data_sources` residue for either entity — those rows are ephemeral.
  *   6. Austin is entity_type 'city' linked to Travis County, and no duplicate
  *      name/type row exists for either (the Utah phantom-row defect).
+ *   7. Every row is classified general_fund / actual / primary_government by the
+ *      `tx-local-acfr-gf` registry entries, so a re-run of the loader (which
+ *      writes the DEFAULT 'unknown' on a fresh row) cannot silently drop these
+ *      rows out of scope-matched comparison without this harness noticing.
+ *      Evidence: docs/superpowers/plans/AUSTIN-TRAVIS-01-SCOPE-RECON.md.
  *
  * Exits non-zero on any failure. Usage:
  *   node scripts/verify-austin-travis.mjs
@@ -127,7 +132,8 @@ async function main() {
 
     // CHECK 2 — row inventory.
     const { data: rows } = await db.from('budgets')
-      .select('fiscal_year, dataset_type, total_budget, source_url, source_date, data_source, fiscal_year_start_month')
+      .select('fiscal_year, dataset_type, total_budget, source_url, source_date, data_source, '
+        + 'fiscal_year_start_month, fund_scope, basis, reporting_entity')
       .eq('municipality_id', muni.id)
       .order('fiscal_year')
       .order('dataset_type');
@@ -155,6 +161,13 @@ async function main() {
         if (row.source_date !== `${fy}-09-30`) fail(`FY${fy} ${dataset}: source_date ${row.source_date} != ${fy}-09-30`);
         if (!row.data_source) fail(`FY${fy} ${dataset}: no data_source label`);
         if (row.fiscal_year_start_month !== 10) fail(`FY${fy} ${dataset}: fiscal_year_start_month ${row.fiscal_year_start_month} != 10`);
+        // CHECK 7 — the classification axes. 'unknown' here means the loader has
+        // been re-run since the last classify/stamp pass: both write the column
+        // default on a fresh row, so the fix is to re-run
+        // classifyFundScope.mjs + stampBudgetAxes.mjs, not to edit anything.
+        if (row.fund_scope !== 'general_fund') fail(`FY${fy} ${dataset}: fund_scope '${row.fund_scope}' != general_fund — re-run scripts/classifyFundScope.mjs`);
+        if (row.basis !== 'actual') fail(`FY${fy} ${dataset}: basis '${row.basis}' != actual — re-run scripts/stampBudgetAxes.mjs`);
+        if (row.reporting_entity !== 'primary_government') fail(`FY${fy} ${dataset}: reporting_entity '${row.reporting_entity}' != primary_government — re-run scripts/stampBudgetAxes.mjs`);
         checked++;
       }
       console.log(`  FY${fy}: printed rev ${oracle.revenue_total.toLocaleString()} / exp ${oracle.expenditure_total.toLocaleString()}`

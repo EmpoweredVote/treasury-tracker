@@ -61,6 +61,10 @@ export const EXPECTED_ROWS = Object.freeze({
   'ca-sco-county-exp': 1188,
   'ca-sco-county-rev': 1188,
   'state-acfr-gf': 1448,
+  // AUSTIN-TRAVIS-01, measured 2026-08-19: Austin 32 + Travis County 44. A NEW
+  // family, so no pre-existing count moved.
+  // Evidence: docs/superpowers/plans/AUSTIN-TRAVIS-01-SCOPE-RECON.md §1.
+  'tx-local-acfr-gf': 76,
   'wa-sao': 286,
   'mn-osa': 21794,
   'oh-aos': 6616,

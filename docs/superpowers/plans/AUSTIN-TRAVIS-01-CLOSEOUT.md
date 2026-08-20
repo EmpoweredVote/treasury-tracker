@@ -164,26 +164,41 @@ Repo gates: `npm test` **471 passed** (30 files, including 8 new), `acfrGF.selft
 2. **Austin FY1998–FY2001 (4 years).** Pre-GASB-34 shape plus `units=1`. Lower
    value: a different statement basis, and the repo already has
    `scripts/pre34Extract.mjs` for that boundary.
-3. **Classification axes.** All 76 rows land with
-   `fund_scope = basis = reporting_entity = 'unknown'`, which is what **every**
-   sibling city-ACFR load carries (Tucson, Seattle, King County, Bainbridge are
-   all `unknown`). These rows are unambiguously General Fund / GAAP actual and
-   the evidence is in hand, but SCOPE-01's contract requires an evidenced entry
-   in `scripts/data/fundScopeRegistry.mjs` rather than an ad-hoc loader stamp,
-   and SCOPE-04 is mid-flight over exactly this ledger. **Left as an explicit
-   decision for the SCOPE-04 owner**, not silently stamped.
+3. ~~**Classification axes.**~~ **DONE 2026-08-19** — all 76 rows are now
+   `general_fund / actual / primary_government`, via three evidenced
+   `tx-local-acfr-gf` registry entries rather than an ad-hoc loader stamp.
+   Reconciliation of record: **`AUSTIN-TRAVIS-01-SCOPE-RECON.md`**. The live API
+   confirms `{"general_fund/actual/primary_government": 32}` for Austin and
+   `{…: 44}` for Travis. Every whole-table `unknown` tally fell by exactly 76
+   (`fund_scope` 9,773 → 9,697; `basis` 26,434 → 26,358; `reporting_entity`
+   56,487 → 56,411) and no loaded figure moved.
 
-   Scope of the consequence, stated precisely so it is neither ignored nor
-   overstated: the rows **display normally** — `chooseDisplaySeries` treats
-   `unknown` as a legitimate series (that is what SCOPE-03 made reachable), and
-   the production API returns all 16 Austin and 22 Travis fiscal years in
-   `available_datasets`. What `unknown` costs is *comparability labelling*:
-   `isComparableScope()` excludes it, so these rows cannot participate in any
-   scope-matched cross-entity comparison. The contrast is visible in the API
-   response — the neighbouring **Austin, MN** row carries
-   `total_governmental / actual / incl_component_units` from the MN OSA
-   classification, while Austin, TX carries none. For the state capital of
-   Texas that asymmetry is worth closing deliberately.
+   Two things worth carrying forward from that work:
+
+   * **The pattern is anchored to the two entity names on purpose.** The
+     tempting general `/ ACFR — General Fund/` claims **1,784** rows — the 1,448
+     already owned by `state-acfr-gf`, these 76, and **260 rows across sixteen
+     other city/state ACFR families** (Bend 36, State of Minnesota 36, Seattle
+     34, Sherwood 22, Tucson 20, …) that no reconciliation covers. Those stay
+     `unknown`: nobody has read Bend's statement. **That 260 is the real
+     remaining prize** — the same three-probe method would close most of it, and
+     the extractors already exist.
+   * **A pre-existing gate failure surfaced and was fixed.**
+     `stampBudgetAxes.mjs`'s `EXPECTED_BASIS_ROWS` still held the pre-backfill
+     10,438 / 10,446 for the two CA SCO city entries, while
+     `classifyFundScope.mjs` had already been corrected to 10,448 / 10,448 for
+     the same cause — so that gate had been failing on those entries since the
+     SCOPE-02 Task 10 backfill, independently of this milestone. Re-verified
+     against the live table before editing: the 12 ids in
+     `scripts/data/scope02CreatedIds.json` return exactly 12 rows splitting
+     10 Expenditures + 2 Revenues, precisely the overage.
+   * Also noted, not acted on: three of those 260-row families are STATE ACFRs
+     labelled `State of Minnesota ACFR — …` rather than `… State ACFR — …`, so
+     `state-acfr-gf`'s pattern misses them. Pre-existing gap in another entry.
+
+   `verify-austin-travis.mjs` now asserts all three axes (CHECK 7), because both
+   stampers write the column default on a fresh row — so re-running the loader
+   would silently drop these rows back out of scope-matched comparison.
 4. **Austin straddles three counties** (Travis 922,309 / Williamson 70,212 /
    Hays 1,067). `county_id → Travis` is a *predominance* claim (92.8% of
    population, and the seat of city government), not an identity. Worth knowing
