@@ -87,6 +87,23 @@ const IN_SCOPE = [
   // city budget documents whose `source_date` is an ISSUE date, not a period
   // end — deriving a fiscal calendar from those would be inventing one.
   / State ACFR — General Fund/,
+  // Pre-GASB-34 state filings, labelled `… State CAFR …`. A different statement
+  // on a different basis, but the same three states' same fiscal calendars.
+  /^(Connecticut|Wisconsin|Massachusetts) State CAFR — General Fund/,
+  // Texas. `General REVENUE Fund` is the state's own name for its principal
+  // operating fund; those rows are unclassified for `fund_scope` by standing
+  // ruling, but the fiscal calendar is not in doubt — Texas closes August 31.
+  /^Texas State ACFR — General Revenue Fund/,
+  // Oregon city ADOPTED BUDGET documents. `basis` is adopted rather than actual,
+  // which is irrelevant here: a fiscal calendar belongs to the entity, not to the
+  // basis of a particular figure.
+  /^(Portland|Gresham|Troutdale) (Operating Budget|Revenue Budget|All Funds Requirements) FY\d{4}$/,
+  // NASBO rows are attributed to INDIVIDUAL state entities (one Kentucky row, one
+  // Nevada row), not to a multi-state aggregate — so each does have a single
+  // correct fiscal calendar. An earlier pass wrongly excluded these two on the
+  // assumption that they were an aggregate; the entity-level enumeration is what
+  // disproved it.
+  /^NASBO State Expenditure Report — General Fund /,
 ];
 
 /**
@@ -96,30 +113,50 @@ const IN_SCOPE = [
  *   Dec 31 -> 1    Seattle
  *   Mar 31 -> 4    NEW YORK, verified "Fiscal Year Ended March 31, 2005" in its
  *                  own FY2005 ACFR (osc.ny.gov)
- *   Jun 30 -> 7    44 states plus every Oregon/Arizona entity; verified
+ *   Jun 30 -> 7    46 states plus every Oregon/Arizona entity; verified
  *                  "Fiscal Year Ended June 30, 2025" in California's FY2025 ACFR
  *                  (sco.ca.gov) and in Bend, Tucson, Minnesota, Ohio, Virginia
+ *   Aug 31 -> 9    TEXAS, verified "FISCAL YEAR ENDED AUGUST 31, 2023" in its
+ *                  own FY2023 ACFR (comptroller.texas.gov)
  *   Sep 30 -> 10   Alabama, Michigan, Austin, Travis County
+ *
+ * All four STATE exceptions are independently corroborated by the 2025 NASBO
+ * State Expenditure Report (in the repo root), which states outright: "In 46
+ * states the fiscal year begins on July 1 and ends on June 30. The exceptions
+ * are as follows: in New York, the fiscal year begins on April 1; in Texas, the
+ * fiscal year begins on September 1; and in Alabama and Michigan the fiscal year
+ * begins on October 1." That is a second, independent source agreeing with every
+ * month this script derives for a state.
  *
  * A whitelist alone is weak — it would happily accept `7` for a state whose
  * `source_date` was wrong in a way that still landed on June 30. That is what
  * `assertFamilyConsistency` below is for.
  */
-const ALLOWED_MONTHS = new Set([1, 4, 7, 10]);
+const ALLOWED_MONTHS = new Set([1, 4, 7, 9, 10]);
 
 /**
- * Every row within one source family must derive the SAME start month.
+ * Every row belonging to one ENTITY must derive the SAME start month.
  *
- * This is the guard that actually has teeth. Each family here spans up to 24
- * fiscal years, so a `source_date` wrong enough to shift the derived month would
- * have to be wrong IDENTICALLY across all of them to survive — whereas a single
- * mis-stamped year shows up immediately as a family deriving two months. A
- * month whitelist cannot see that at all.
+ * This is the guard with teeth. An entity has exactly one fiscal calendar, and
+ * each entity here carries up to 48 rows spanning up to 24 fiscal years — so a
+ * `source_date` wrong enough to shift the derived month would have to be wrong
+ * IDENTICALLY across all of them to survive, while a single mis-stamped year
+ * shows up at once as an entity deriving two months. A month whitelist cannot
+ * see that at all.
+ *
+ * ⚠ Grouped by `municipality_id`, NOT by a `data_source` prefix. The prefix is
+ * fine for ACFR labels, which repeat verbatim across years, but Oregon's budget
+ * documents embed the year in the label itself ("Portland Operating Budget
+ * FY2024"), so a prefix key would make every such row its own single-row family
+ * and the check would pass vacuously on exactly the rows it most needs to test.
  */
-export function assertFamilyConsistency(fams) {
+export function assertEntityConsistency(entities) {
   const split = [];
-  for (const [name, f] of Object.entries(fams)) {
-    if (f.to.size > 1) split.push(`${name}: derives ${[...f.to].sort().join(' and ')} (period ends ${[...f.end].join(', ')})`);
+  for (const [name, e] of Object.entries(entities)) {
+    if (e.to.size > 1) {
+      split.push(`${name}: derives ${[...e.to].sort((a, b) => a - b).join(' and ')} `
+        + `from period ends ${[...e.end].sort().join(', ')} (${e.n} rows)`);
+    }
   }
   return split;
 }
@@ -151,17 +188,29 @@ async function main() {
   );
 
   // Paged, ordered by the PRIMARY KEY last. PostgREST caps a single response at
-  // 1000 rows, and the in-scope set is ~1,784 — an unpaged `.limit(3000)` would
-  // silently return a partial set and this script would report "0 rows need a
-  // change" for a family it never saw. Ordering by a non-unique column alone is
+  // 1000 rows, and an unpaged `.limit()` silently returns a partial set — which
+  // is how an earlier run of this script reported "0 rows need a change" for
+  // 1,386 rows that plainly needed one. Ordering by a non-unique column alone is
   // also unsafe: rows tying on it can repeat or vanish across page boundaries
   // (auto-memory reference_paged_reads_need_total_order).
+  //
+  // No `data_source` filter here: the in-scope families no longer share a common
+  // substring (ACFR, CAFR, adopted budget documents and a NASBO report), so the
+  // IN_SCOPE list is the only gate and it is applied below.
+  const municipalities = {};
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await db.from('municipalities')
+      .select('id, name, state, entity_type').order('id').range(from, from + 999);
+    if (error) { console.error(error.message); process.exit(1); }
+    if (!data.length) break;
+    for (const m of data) municipalities[m.id] = m;
+    if (data.length < 1000) break;
+  }
+
   const rows = [];
   for (let from = 0; ; from += 1000) {
     const { data, error } = await db.from('budgets')
-      .select('id, data_source, source_date, fiscal_year, fiscal_year_start_month')
-      .like('data_source', '% ACFR — General Fund%')
-      .order('data_source')
+      .select('id, data_source, source_date, fiscal_year, fiscal_year_start_month, municipality_id')
       .order('id')
       .range(from, from + 999);
     if (error) { console.error(error.message); process.exit(1); }
@@ -174,26 +223,43 @@ async function main() {
   console.log(`${rows.length} candidate row(s); ${scoped.length} in scope`
     + `${rows.length !== scoped.length ? ` (${rows.length - scoped.length} skipped: not an enumerated family)` : ''}`);
 
+  // Two groupings, for two different jobs:
+  //   `entities` — keyed by municipality_id, the thing that actually owns a
+  //                fiscal calendar. This is what the consistency guard asserts on.
+  //   `fams`     — keyed by a human-readable label, purely for the report.
+  const entities = {};
   const fams = {};
   const problems = [];
   const changes = [];
   for (const r of scoped) {
-    const fam = r.data_source.split(' ACFR')[0];
-    fams[fam] = fams[fam] || { n: 0, from: new Set(), to: new Set(), change: 0, end: new Set() };
-    const f = fams[fam];
-    f.n++;
+    const m = municipalities[r.municipality_id];
+    const who = m ? `${m.name}, ${m.state}` : `(unknown muni ${r.municipality_id})`;
+    // Strip the fiscal year out of the label so ACFR rows and Oregon's
+    // year-bearing budget-document labels both collapse to one reporting family.
+    const fam = r.data_source.replace(/\s*\(FY\d{4}[^)]*\)/, '').replace(/\s+FY\d{4}$/, '');
+
+    for (const [bucket, key] of [[entities, who], [fams, fam]]) {
+      bucket[key] = bucket[key] || { n: 0, from: new Set(), to: new Set(), change: 0, end: new Set() };
+    }
+    entities[who].n++; fams[fam].n++;
+
     const d = deriveStartMonth(r);
-    if (d.error) { problems.push(`${fam} FY${r.fiscal_year}: ${d.error}`); continue; }
-    f.end.add(r.source_date.slice(5));
-    f.from.add(r.fiscal_year_start_month);
-    f.to.add(d.month);
-    if (r.fiscal_year_start_month !== d.month) { f.change++; changes.push({ id: r.id, month: d.month }); }
+    if (d.error) { problems.push(`${who} / ${fam} FY${r.fiscal_year}: ${d.error}`); continue; }
+    for (const bucket of [entities[who], fams[fam]]) {
+      bucket.end.add(r.source_date.slice(5));
+      bucket.from.add(r.fiscal_year_start_month);
+      bucket.to.add(d.month);
+    }
+    if (r.fiscal_year_start_month !== d.month) {
+      entities[who].change++; fams[fam].change++;
+      changes.push({ id: r.id, month: d.month });
+    }
   }
 
-  console.log('\nfamily                 rows  period-end  stored -> derived   to change');
+  console.log('\nfamily                                          rows  end     stored -> derived  change');
   for (const [k, v] of Object.entries(fams).sort((a, b) => b[1].n - a[1].n)) {
-    console.log(`${k.padEnd(22)} ${String(v.n).padStart(4)}  ${[...v.end].join(',').padEnd(10)}  `
-      + `${[...v.from].join(',').padEnd(6)} -> ${[...v.to].join(',').padEnd(6)}      ${v.change || '-'}`);
+    console.log(`${k.slice(0, 46).padEnd(47)}${String(v.n).padStart(4)}  ${[...v.end].join(',').padEnd(7)} `
+      + `${[...v.from].join(',').padEnd(6)} -> ${[...v.to].join(',').padEnd(6)}   ${v.change || '-'}`);
   }
 
   if (problems.length) {
@@ -202,13 +268,14 @@ async function main() {
     process.exit(1);
   }
 
-  const split = assertFamilyConsistency(fams);
+  const split = assertEntityConsistency(entities);
   if (split.length) {
-    console.error(`\n${split.length} family/families derive MORE THAN ONE start month — refusing to write.`);
-    console.error('A family spans many fiscal years; two derived months means at least one source_date is wrong.');
+    console.error(`\n${split.length} entity/entities derive MORE THAN ONE start month — refusing to write.`);
+    console.error('An entity has ONE fiscal calendar; two derived months means at least one source_date is wrong.');
     split.forEach((s) => console.error(`  ${s}`));
     process.exit(1);
   }
+  console.log(`\nentity consistency: ${Object.keys(entities).length} entities, each deriving a single start month.`);
 
   if (verifyOnly) {
     const wrong = scoped.filter((r) => {

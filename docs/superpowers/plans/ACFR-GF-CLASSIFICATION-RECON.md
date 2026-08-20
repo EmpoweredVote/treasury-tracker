@@ -301,23 +301,68 @@ derive the *same* start month, or the run aborts. Each family spans up to 24
 fiscal years, so a `source_date` wrong enough to shift the month would have to be
 wrong identically across all of them to survive. No family tripped it.
 
-### 5.2 What is still mis-stamped — 107 rows, deliberately out of scope
+### 5.2 The last 107 rows — ALSO FIXED. Nothing derivable is left wrong.
 
-Four groups remain, fully characterised. **105 of the 107 are safely derivable**;
-they were left because each belongs to a different milestone and would widen this
-pass a fourth time.
+All four remaining groups were fixed, and **two of this document's earlier
+claims about them were wrong**. Re-enumerating by ENTITY rather than by
+`data_source` prefix is what exposed both:
 
-| Group | Rows | Period end | Would derive | Safe? |
-|---|---|---|---|---|
-| City adopted-budget documents (Portland, Gresham, Troutdale) | 51 | `06-30` | 7 | yes — Oregon cities, and the fiscal calendar is independent of `basis: adopted` |
-| Pre-GASB-34 `Connecticut State CAFR` rows | 34 | `06-30` | 7 | yes — Connecticut closes June 30 regardless of statement vintage |
-| `Texas State ACFR — General REVENUE Fund` | 20 | `08-31` | **9** | yes — Texas closes Aug 31; needs a *fifth* month value |
-| `NASBO State Expenditure Report` | 2 | `06-30` | 7 | **no** — an aggregate across states with different calendars, so one month cannot be right for it |
+| Group | Rows | Period end | → |
+|---|---|---|---|
+| Oregon city adopted-budget documents — Troutdale 24, Portland 15, Gresham 12 | 51 | `06-30` | 7 |
+| Pre-GASB-34 `State CAFR` — Connecticut 28, **Wisconsin 4, Massachusetts 2** | 34 | `06-30` | 7 |
+| `Texas State ACFR — General REVENUE Fund` | 20 | `08-31` | **9** |
+| `NASBO State Expenditure Report` — **Kentucky 1, Nevada 1** | 2 | `06-30` | 7 |
 
-Note the Texas rows are a genuinely different thing from the 50-state ACFR
-family: the fund is the **General Revenue Fund**, the state's own name for its
-principal operating fund, and it is unclassified for `fund_scope` by standing
-ruling. Its fiscal calendar is nevertheless unambiguous.
+**Correction 1.** This section previously called the pre-GASB-34 group
+"`Connecticut State CAFR` rows". It is three states: Connecticut 28, Wisconsin 4,
+Massachusetts 2.
+
+**Correction 2.** It previously ruled the two NASBO rows *unsafe*, on the grounds
+that a NASBO report is "an aggregate across states with different calendars, so
+one month cannot be right for it". That was wrong. The rows are attributed to
+**individual state entities** — one Kentucky row, one Nevada row — and both
+states begin their fiscal year on July 1, so each has a single correct calendar.
+The figure of "105 safely derivable" should have been **107**, and 107 is what
+was applied.
+
+Texas remains a genuinely different thing from the 50-state ACFR family: the fund
+is the **General Revenue Fund**, the state's own name for its principal operating
+fund, and it is unclassified for `fund_scope` by standing ruling (verified
+unchanged: still `unknown` after this fix). Its fiscal calendar is not in doubt —
+"FISCAL YEAR ENDED AUGUST 31, 2023" in its own FY2023 ACFR
+(comptroller.texas.gov), which is the fifth and last month value this corpus
+needs.
+
+#### The guard was regrouped from label to ENTITY
+
+Oregon's budget documents embed the fiscal year in the label itself ("Portland
+Operating Budget FY2024"), so the per-family consistency check — keyed on a
+`data_source` prefix — would have given every such row its own single-row
+"family" and passed vacuously on exactly the rows most in need of testing. It is
+now keyed on `municipality_id`, which is what actually owns a fiscal calendar.
+**68 entities, each deriving a single start month.**
+
+#### Independent corroboration for every state month
+
+The 2025 NASBO State Expenditure Report — already in the repo root — states the
+convention outright:
+
+> "In 46 states the fiscal year begins on July 1 and ends on June 30. The
+> exceptions are as follows: in New York, the fiscal year begins on April 1; in
+> Texas, the fiscal year begins on September 1; and in Alabama and Michigan the
+> fiscal year begins on October 1."
+
+That is a second, independent source agreeing with every month derived for a
+state: 7, and the four exceptions 4 (NY), 9 (TX), 10 (AL, MI).
+
+#### Final state
+
+`--verify` reports **1,891 rows checked / 0 wrong**. Across the WHOLE table,
+2,213 rows have a period-end `source_date` that makes the month derivable and
+**0 of them are mis-stamped**. Distribution:
+`{1: 17,458, 4: 44, 7: 62,202, 9: 20, 10: 291}`. No figure and no classification
+moved.
 
 ---
 
