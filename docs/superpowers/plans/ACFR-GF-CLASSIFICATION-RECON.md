@@ -266,32 +266,58 @@ one of {1, 7, 10}. **All 336 rows passed every guard** — 0 null dates, 0
 non-month-ends, 0 year mismatches. 226 updated, `--verify` reports 336 checked /
 0 wrong, and no figure or classification moved.
 
-### 5.1 The same defect on 1,386 MORE rows — NOT fixed, needs a decision
+### 5.1 The 50-state ACFR family — 1,386 rows, ALSO FIXED 2026-08-19
 
-Auditing the rest of the table with the same rule found **1,493 further rows**
-whose period-end `source_date` disagrees with their stored month, **1,386 of them
-in the 50-state ACFR family** (`… State ACFR — General Fund …`, the rows owned by
-`state-acfr-gf`). The data is just as clean: every state has a single, consistent
-period end, and the year always matches `fiscal_year`.
+The same defect, same rule, same script (scope extended to
+`/ State ACFR — General Fund/`). **1,386 of the family's 1,448 rows changed**;
+Alabama's 48 and Michigan's 14 were already correct at 10.
 
-| | |
-|---|---|
-| stored `1`, period end `06-30`, want `7` | 44 states, e.g. California 48 rows, Wisconsin 48, South Dakota 48 |
-| stored `1`, period end `03-31`, want `4` | **New York, 44 rows** |
-| already correct at `10` | Alabama 48, Michigan 14 (their loaders set it) |
+| | Rows | Period end | → |
+|---|---|---|---|
+| 44 states | 1,342 | `06-30` | **7** |
+| **New York** | 44 | `03-31` | **4** |
+| Alabama, Michigan | 62 | `09-30` | 10 (already correct) |
 
-Two reasons this was not swept up here:
+New York is the reason `ALLOWED_MONTHS` needed a fourth value, and the guard
+rejecting `4` beforehand is exactly what surfaced it instead of silently stamping
+it `7`. Both unusual calendars were verified against the documents themselves,
+not just the database:
 
-1. It is **another milestone's data** (the 50-state ACFR arc) and 1,386 rows is a
-   materially larger change than the one that was asked for.
-2. **New York needs a fourth month value (4)**, which the fix script's
-   `ALLOWED_MONTHS` guard deliberately rejects. Widening that guard is a
-   deliberate decision, not a parameter tweak — and the guard firing is exactly
-   what surfaced New York rather than silently stamping it 7.
+* **New York** — "Fiscal Year Ended **March 31**, 2005", FY2005 ACFR (osc.ny.gov)
+* **California** — "Fiscal Year Ended **June 30**, 2025", FY2025 ACFR (sco.ca.gov),
+  as a check on the 44-state common case
 
-Texas is *not* in this set: its rows are labelled `General Revenue Fund` (the
-state's own name for its principal operating fund) and are unclassified by
-standing ruling.
+`--verify` reports **1,784 rows checked / 0 wrong**. Whole-table distribution is
+now `{1: 17,565, 4: 44, 7: 62,115, 10: 291}`. No figure and no classification
+moved — the state family's 1,448 `total_budget` values still sum to
+$31,672,041,568,010, and New York and California remain `general_fund`.
+
+#### A stronger guard was added at the same time
+
+A month whitelist alone is weak: it would accept `7` for a state whose
+`source_date` was wrong in a way that still landed on June 30. So the script now
+also asserts **per-family consistency** — every row in a source family must
+derive the *same* start month, or the run aborts. Each family spans up to 24
+fiscal years, so a `source_date` wrong enough to shift the month would have to be
+wrong identically across all of them to survive. No family tripped it.
+
+### 5.2 What is still mis-stamped — 107 rows, deliberately out of scope
+
+Four groups remain, fully characterised. **105 of the 107 are safely derivable**;
+they were left because each belongs to a different milestone and would widen this
+pass a fourth time.
+
+| Group | Rows | Period end | Would derive | Safe? |
+|---|---|---|---|---|
+| City adopted-budget documents (Portland, Gresham, Troutdale) | 51 | `06-30` | 7 | yes — Oregon cities, and the fiscal calendar is independent of `basis: adopted` |
+| Pre-GASB-34 `Connecticut State CAFR` rows | 34 | `06-30` | 7 | yes — Connecticut closes June 30 regardless of statement vintage |
+| `Texas State ACFR — General REVENUE Fund` | 20 | `08-31` | **9** | yes — Texas closes Aug 31; needs a *fifth* month value |
+| `NASBO State Expenditure Report` | 2 | `06-30` | 7 | **no** — an aggregate across states with different calendars, so one month cannot be right for it |
+
+Note the Texas rows are a genuinely different thing from the 50-state ACFR
+family: the fund is the **General Revenue Fund**, the state's own name for its
+principal operating fund, and it is unclassified for `fund_scope` by standing
+ruling. Its fiscal calendar is nevertheless unambiguous.
 
 ---
 

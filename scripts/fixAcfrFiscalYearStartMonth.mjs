@@ -80,9 +80,49 @@ const IN_SCOPE = [
   /^City of Seattle ACFR — General Fund /,
   /^State of (Minnesota|Ohio|Virginia) ACFR — General Fund/,
   /^(City of Austin|Travis County) ACFR — General Fund /,
+  // The 50-state ACFR family (1,448 rows, owned by the `state-acfr-gf` registry
+  // entry). Deliberately NOT widened to every row with a period-end
+  // `source_date`: the ~107 others that would qualify are pre-GASB-34
+  // `… State CAFR …` rows, Texas's `General Revenue Fund` rows, and adopted
+  // city budget documents whose `source_date` is an ISSUE date, not a period
+  // end — deriving a fiscal calendar from those would be inventing one.
+  / State ACFR — General Fund/,
 ];
 
-const ALLOWED_MONTHS = new Set([1, 7, 10]);
+/**
+ * Months a fiscal year in this corpus can start in, i.e. the four period ends
+ * actually printed on these documents:
+ *
+ *   Dec 31 -> 1    Seattle
+ *   Mar 31 -> 4    NEW YORK, verified "Fiscal Year Ended March 31, 2005" in its
+ *                  own FY2005 ACFR (osc.ny.gov)
+ *   Jun 30 -> 7    44 states plus every Oregon/Arizona entity; verified
+ *                  "Fiscal Year Ended June 30, 2025" in California's FY2025 ACFR
+ *                  (sco.ca.gov) and in Bend, Tucson, Minnesota, Ohio, Virginia
+ *   Sep 30 -> 10   Alabama, Michigan, Austin, Travis County
+ *
+ * A whitelist alone is weak — it would happily accept `7` for a state whose
+ * `source_date` was wrong in a way that still landed on June 30. That is what
+ * `assertFamilyConsistency` below is for.
+ */
+const ALLOWED_MONTHS = new Set([1, 4, 7, 10]);
+
+/**
+ * Every row within one source family must derive the SAME start month.
+ *
+ * This is the guard that actually has teeth. Each family here spans up to 24
+ * fiscal years, so a `source_date` wrong enough to shift the derived month would
+ * have to be wrong IDENTICALLY across all of them to survive — whereas a single
+ * mis-stamped year shows up immediately as a family deriving two months. A
+ * month whitelist cannot see that at all.
+ */
+export function assertFamilyConsistency(fams) {
+  const split = [];
+  for (const [name, f] of Object.entries(fams)) {
+    if (f.to.size > 1) split.push(`${name}: derives ${[...f.to].sort().join(' and ')} (period ends ${[...f.end].join(', ')})`);
+  }
+  return split;
+}
 
 const lastDayOf = (y, m) => new Date(Date.UTC(y, m, 0)).getUTCDate();
 
@@ -110,14 +150,25 @@ async function main() {
     { db: { schema: 'treasury' } },
   );
 
-  const { data: rows, error } = await db.from('budgets')
-    .select('id, data_source, source_date, fiscal_year, fiscal_year_start_month')
-    .like('data_source', '% ACFR — General Fund%')
-    .not('data_source', 'like', '% State ACFR — General Fund%')
-    .order('data_source')
-    .order('id')
-    .limit(3000);
-  if (error) { console.error(error.message); process.exit(1); }
+  // Paged, ordered by the PRIMARY KEY last. PostgREST caps a single response at
+  // 1000 rows, and the in-scope set is ~1,784 — an unpaged `.limit(3000)` would
+  // silently return a partial set and this script would report "0 rows need a
+  // change" for a family it never saw. Ordering by a non-unique column alone is
+  // also unsafe: rows tying on it can repeat or vanish across page boundaries
+  // (auto-memory reference_paged_reads_need_total_order).
+  const rows = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await db.from('budgets')
+      .select('id, data_source, source_date, fiscal_year, fiscal_year_start_month')
+      .like('data_source', '% ACFR — General Fund%')
+      .order('data_source')
+      .order('id')
+      .range(from, from + 999);
+    if (error) { console.error(error.message); process.exit(1); }
+    if (!data.length) break;
+    rows.push(...data);
+    if (data.length < 1000) break;
+  }
 
   const scoped = rows.filter((r) => IN_SCOPE.some((re) => re.test(r.data_source)));
   console.log(`${rows.length} candidate row(s); ${scoped.length} in scope`
@@ -148,6 +199,14 @@ async function main() {
   if (problems.length) {
     console.error(`\n${problems.length} row(s) could not be derived — refusing to write:`);
     problems.slice(0, 20).forEach((p) => console.error(`  ${p}`));
+    process.exit(1);
+  }
+
+  const split = assertFamilyConsistency(fams);
+  if (split.length) {
+    console.error(`\n${split.length} family/families derive MORE THAN ONE start month — refusing to write.`);
+    console.error('A family spans many fiscal years; two derived months means at least one source_date is wrong.');
+    split.forEach((s) => console.error(`  ${s}`));
     process.exit(1);
   }
 
