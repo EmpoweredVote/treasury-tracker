@@ -53,6 +53,65 @@ export const BASIS_REGISTRY = [
       figures: '0.547% residue decomposed across eight taxonomies with mixed signs (five SCO-higher, three SCO-lower); a missing fund would subtract in one direction only, so this is a taxonomy difference, not an absent fund.',
     },
   },
+  // ── The sixteen entity-published city/state ACFR families ─────────────────
+  // 260 rows. Evidence: ACFR-GF-CLASSIFICATION-RECON.md §2. Patterns and row
+  // counts are identical to the fund-scope entries of the same ids; see those
+  // for the per-family probe tables.
+  //
+  // Shared basis argument: every stored figure is the printed General Fund
+  // column of a governmental-funds Statement of Revenues, Expenditures and
+  // Changes in Fund Balances — a year-end GAAP actual, tying exactly across 54
+  // coordinate-verified probes. These are NOT appropriations: the same documents
+  // present budget against actual in a separate budgetary comparison SCHEDULE,
+  // and both the loading path (acfrGF.py `_EXCLUDE`) and the verifying path
+  // (acfrPrintedTotal.py) refuse any page whose title carries "Budgetary" or
+  // "Budget and Actual", so the budget schedule is structurally unreachable.
+  // Latest year in any family is FY2025, closed 2025-06-30 for all sixteen.
+  {
+    id: 'or-city-acfr-gf',
+    match: /^City of (Bend|Sherwood|Beaverton|Hillsboro|Tualatin|Cornelius|Tigard) ACFR — General Fund /,
+    value: BASIS.ACTUAL,
+    evidence: {
+      document: 'Seven Oregon cities\' own ACFRs, 15 coordinate-verified entity-years '
+              + '(ACFR-GF-CLASSIFICATION-RECON.md §1.2, §2)',
+      figures: 'Every probe ties exactly to the printed General Fund column of the audited '
+             + 'governmental-funds statement for a CLOSED fiscal year — e.g. Bend FY2006 '
+             + '26,414,845 / 14,236,241 and Beaverton FY2025 84,105,297 / 83,828,091.',
+    },
+  },
+  {
+    id: 'az-muni-acfr-gf',
+    match: /^(City of Tucson|Marana|Oro Valley|Sahuarita|South Tucson) ACFR — General Fund /,
+    value: BASIS.ACTUAL,
+    evidence: {
+      document: 'Five Arizona municipalities\' own ACFRs, 10 coordinate-verified entity-years '
+              + '(ACFR-GF-CLASSIFICATION-RECON.md §1.2, §2)',
+      figures: 'Every probe ties exactly — e.g. Tucson FY2024 773,493,270 / 648,657,363 and '
+             + 'Sahuarita FY2019 17,760,711 / 15,763,375. All closed June-30 fiscal years.',
+    },
+  },
+  {
+    id: 'seattle-city-acfr-gf',
+    match: /^City of Seattle ACFR — General Fund /,
+    value: BASIS.ACTUAL,
+    evidence: {
+      document: 'City of Seattle ACFRs FY2024 and FY2025 (ACFR-GF-CLASSIFICATION-RECON.md §1.2, §2)',
+      figures: 'FY2025 General Fund column 2,407,090 / 2,300,612 (thousands) ties exactly to the '
+             + 'stored $2,407,090,000 / $2,300,612,000. Audited, closed calendar-year period.',
+    },
+  },
+  {
+    id: 'state-acfr-gf-by-name',
+    match: /^State of (Minnesota|Ohio|Virginia) ACFR — General Fund/,
+    value: BASIS.ACTUAL,
+    evidence: {
+      document: 'Minnesota, Ohio and Virginia state ACFRs, two fiscal years each '
+              + '(ACFR-GF-CLASSIFICATION-RECON.md §1.2, §2)',
+      figures: 'Every probe ties exactly in thousands — Minnesota FY2025 35,478,861 / 35,114,726, '
+             + 'Ohio FY2025 49,343,227 / 49,447,475, Virginia FY2025 31,593,096 / 34,099,267. Same '
+             + 'document class and basis conclusion as the existing state-acfr-gf entry.',
+    },
+  },
   {
     // AUSTIN-TRAVIS-01. 76 rows, measured 2026-08-19. Anchored to the two entity
     // names — see the fund-scope entry of the same id for why a general

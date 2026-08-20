@@ -34,6 +34,76 @@ export const REPORTING_ENTITY_REGISTRY = [
       figures: 'The figure read is the printed General Fund column of the primary government\'s governmental-funds statement; component units are presented discretely elsewhere in the same document.',
     },
   },
+  // ── The sixteen entity-published city/state ACFR families ─────────────────
+  // 260 rows. Evidence: ACFR-GF-CLASSIFICATION-RECON.md §3.
+  //
+  // Shared argument, the same one the three entries below rest on: the stored
+  // figure is a column of the FUND financial statements, and under GASB 34
+  // discretely presented component units appear only in the government-wide
+  // statements, in their own separate column — never in a governmental-funds
+  // column. Every statement read across the 54 probes is titled "Governmental
+  // Funds", so none of these figures can contain a discrete component unit.
+  //
+  // ⚠ This is a STANDARDS-level property of the statement, not 16 separate
+  // readings of 16 Note 1 sections — stated plainly in RECON §4 so a future
+  // reader can raise the bar. Spot-verified in detail for Austin and Travis,
+  // where each blended unit's own "Reporting Fund" designation put it in a
+  // proprietary or nonmajor special revenue fund, never the General Fund.
+  //
+  // Note the contrast that makes this axis meaningful: `mn-osa` is
+  // incl_component_units because the Minnesota STATE AUDITOR re-aggregates
+  // HRA/EDA/TIF activity a city's ACFR presents separately (+21.7% on
+  // Bloomington FY2022). The `State of Minnesota` rows claimed below are a
+  // different thing entirely — the state's own ACFR, read from its own fund
+  // statement — and are primary_government.
+  {
+    id: 'or-city-acfr-gf',
+    match: /^City of (Bend|Sherwood|Beaverton|Hillsboro|Tualatin|Cornelius|Tigard) ACFR — General Fund /,
+    value: REPORTING_ENTITY.PRIMARY,
+    evidence: {
+      document: 'Seven Oregon cities\' own ACFR governmental-funds statements '
+              + '(ACFR-GF-CLASSIFICATION-RECON.md §1.2, §3)',
+      figures: 'The stored figure is the printed General Fund column of the "Governmental Funds" '
+             + 'statement in each city\'s own ACFR, verified exactly across 15 entity-years. Under '
+             + 'GASB 34 that column cannot contain a discretely presented component unit.',
+    },
+  },
+  {
+    id: 'az-muni-acfr-gf',
+    match: /^(City of Tucson|Marana|Oro Valley|Sahuarita|South Tucson) ACFR — General Fund /,
+    value: REPORTING_ENTITY.PRIMARY,
+    evidence: {
+      document: 'Five Arizona municipalities\' own ACFR governmental-funds statements '
+              + '(ACFR-GF-CLASSIFICATION-RECON.md §1.2, §3)',
+      figures: 'The stored figure is the printed General Fund column of the "Governmental Funds" '
+             + 'statement, verified exactly across 10 entity-years. Discrete component units appear '
+             + 'only in these documents\' government-wide statements.',
+    },
+  },
+  {
+    id: 'seattle-city-acfr-gf',
+    match: /^City of Seattle ACFR — General Fund /,
+    value: REPORTING_ENTITY.PRIMARY,
+    evidence: {
+      document: 'City of Seattle ACFRs FY2024, FY2025 (ACFR-GF-CLASSIFICATION-RECON.md §1.2, §3)',
+      figures: 'The stored $2,407,090,000 / $2,300,612,000 is the printed General Fund column of '
+             + 'the FY2025 governmental-funds statement (62.9% / 62.2% of total governmental).',
+    },
+  },
+  {
+    id: 'state-acfr-gf-by-name',
+    match: /^State of (Minnesota|Ohio|Virginia) ACFR — General Fund/,
+    value: REPORTING_ENTITY.PRIMARY,
+    evidence: {
+      document: 'Minnesota, Ohio and Virginia state ACFRs '
+              + '(ACFR-GF-CLASSIFICATION-RECON.md §1.2, §3)',
+      figures: 'The figure read is the printed General Fund column of each state primary '
+             + 'government\'s governmental-funds statement — Minnesota\'s columns are literally '
+             + 'headed GENERAL | FEDERAL | NONMAJOR | TOTAL. Component units are presented '
+             + 'discretely elsewhere in the same documents. Same conclusion, and the same reasoning, '
+             + 'as the existing state-acfr-gf entry.',
+    },
+  },
   {
     // AUSTIN-TRAVIS-01. 76 rows, measured 2026-08-19. Anchored to the two entity
     // names — see the fund-scope entry of the same id.

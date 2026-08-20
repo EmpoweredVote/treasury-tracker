@@ -54,12 +54,37 @@ _MONEY = re.compile(r'^\(?\$?\d[\d,]*\)?$')
 # A fragment of a money token: digits, commas, and the decorations that can lead
 # or trail one. Used only to decide whether two TOUCHING words are two halves of
 # one number.
-_MONEY_FRAG = re.compile(r'^\(?\$?[\d,]+\)?$')
+_MONEY_FRAG = re.compile(r'^\(?\$?[\d.,]+\)?$')
 MERGE_GAP = 1.5
 
 
+def strip_leader_dots(tok):
+    """Remove DOT-LEADER glyphs that a PDF has interleaved into a number.
+
+    The State of Minnesota's older ACFRs run the row's leader dots straight
+    through the figures, so its FY2008 General Fund revenue total extracts as:
+
+        $......1..6..,.6.0..0..,.8..6..4
+
+    which is `16,600,864`. Unrepaired, that token is unparseable, the General
+    Fund column drops out of the row, and "the leftmost number" becomes the
+    FEDERAL column — 6,271,343 instead of 16,600,864. The harness reported a
+    factor of 2647 against a database row that was exactly right.
+
+    THE GUARD IS THE DOT COUNT: two or more dots, and only when removing every
+    dot leaves a clean integer (digits and commas). A genuine decimal has ONE
+    dot, so "1.5" and "16.5" are never touched. These statements print whole
+    thousands with no decimal places in the fund columns anyway.
+    """
+    if tok.count('.') < 2:
+        return tok
+    cleaned = tok.replace('.', '')
+    core = cleaned.replace('$', '').replace(',', '').strip('()')
+    return cleaned if core.isdigit() and core != '' else tok
+
+
 def parse_money(tok):
-    t = tok.replace('$', '').replace(',', '').strip()
+    t = strip_leader_dots(tok).replace('$', '').replace(',', '').strip()
     neg = t.startswith('(')
     t = t.strip('()')
     if not t.isdigit():
@@ -112,6 +137,24 @@ def lines_of(page):
     return [merge_split_numbers(sorted(ws, key=lambda w: w['x0'])) for ws in rows]
 
 
+def _is_money_fragment(tok):
+    """Could `tok` be part of one printed number?
+
+    Dots are tolerated because dot-LEADER runs get welded onto and into figures
+    (see `strip_leader_dots`); on Minnesota's FY2008 statement the General Fund
+    revenue total arrives as two overlapping words,
+    `.....$......1` and `..6..,.6.0..0..,.8..6..4.............$....`,
+    which are `16,600,864` once the leaders come out.
+
+    A fragment must still contain at least one DIGIT, so a label's own leader run
+    (`Revenues..........`, or a bare `.........`) can never be merged onto the
+    figure that follows it — which is what keeps this from gluing text to money.
+    """
+    if not any(c.isdigit() for c in tok):
+        return False
+    return _MONEY_FRAG.match(tok.replace('.', '').replace('$', '') or '_') is not None
+
+
 def merge_split_numbers(ws):
     """Rejoin a single printed number that pdfplumber returned as two words.
 
@@ -139,7 +182,7 @@ def merge_split_numbers(ws):
     """
     out = []
     for w in ws:
-        if (out and _MONEY_FRAG.match(out[-1]['text']) and _MONEY_FRAG.match(w['text'])
+        if (out and _is_money_fragment(out[-1]['text']) and _is_money_fragment(w['text'])
                 and w['x0'] - out[-1]['x1'] < MERGE_GAP):
             prev = out[-1]
             out[-1] = {**prev, 'text': prev['text'] + w['text'], 'x1': w['x1']}
@@ -162,7 +205,19 @@ def find_statement(pdf):
         low = text.lower()
         if not _TITLE.search(text):
             continue
-        if 'total revenues' not in low and 'total operating revenues' not in low:
+        # The revenue-subtotal label VARIES by issuer and the variants are not
+        # cosmetic: the State of Minnesota's governmental-funds statement prints
+        # "Net Revenues" (its revenue lines are stated net of refunds), and
+        # Bainbridge-era filings print "Total Operating Revenues". Requiring only
+        # "total revenues" silently reports "statement page not found" for a
+        # document whose statement is right there.
+        #
+        # The EXPENDITURE side stays the hard literal 'total expenditures' on
+        # purpose — same asymmetry acfrGF.py documents. A proprietary-funds
+        # statement prints "Total Operating Revenues" next to "Total Operating
+        # EXPENSES", never "Total Expenditures", so widening only the revenue
+        # side cannot let a proprietary page qualify as the governmental one.
+        if not any(lbl in low for lbl in ('total revenues', 'total operating revenues', 'net revenues')):
             continue
         if 'total expenditures' not in low:
             continue
@@ -174,37 +229,70 @@ def find_statement(pdf):
     return None, None, None
 
 
-def first_number_on(rows, label_re):
-    """Leftmost money value on the first row whose text starts with `label_re`."""
+def numbers_on(rows, label_re):
+    """(all money values, row text) for the first row matching `label_re`.
+
+    Returned left to right, i.e. in printed COLUMN ORDER. For a governmental-funds
+    statement the General Fund is column 0 and the rightmost value is normally the
+    Total Governmental column — normally, not always: an issuer that splits its
+    fund columns across two pages (Travis County) prints only the first few
+    columns on the statement page and carries `Total` onto the continued page. So
+    callers get the whole row and decide, rather than being handed a "total" this
+    script guessed at.
+    """
     for ws in rows:
         text = ' '.join(w['text'] for w in ws)
         if not label_re.match(text):
             continue
-        for w in ws:
-            if _MONEY.match(w['text']):
-                v = parse_money(w['text'])
-                if v is not None:
-                    return v, text
+        # `parse_money` is the single arbiter of what counts as money — it
+        # returns None for anything else, including a bare '-' cell. Gating on a
+        # regex FIRST (as this did originally) meant a dot-shredded token was
+        # rejected before parse_money ever got the chance to repair it.
+        vals = [v for v in (parse_money(w['text']) for w in ws) if v is not None]
+        if vals:
+            return vals, text
     return None, None
+
+
+def first_number_on(rows, label_re):
+    """Leftmost money value on the first row whose text starts with `label_re`."""
+    vals, text = numbers_on(rows, label_re)
+    return (vals[0] if vals else None), text
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('pdf_path')
     ap.add_argument('--units', type=int, default=1)
+    # Skip the page search and read the page given (1-based). `find_statement`
+    # calls extract_text() on every page, which on a 300-page ACFR costs minutes;
+    # this is for when the statement page is already known (from a prior run, or
+    # from a cheap `pdftotext` scan).
+    #
+    # It does NOT weaken the cross-check. What makes this an independent read is
+    # that the VALUE and its COLUMN come from the PDF's own glyph coordinates —
+    # page selection is a lookup, and `find_statement` deliberately mirrors
+    # acfrGF's own page-qualifying rule anyway, since reading a different page
+    # would not be a second read of the same figure.
+    ap.add_argument('--page', type=int, default=None, help='1-based statement page (skips the search)')
     args = ap.parse_args()
 
     with pdfplumber.open(args.pdf_path) as pdf:
-        idx, page, text = find_statement(pdf)
+        if args.page:
+            idx = args.page - 1
+            page = pdf.pages[idx]
+            text = page.extract_text() or ''
+        else:
+            idx, page, text = find_statement(pdf)
         if page is None:
             print(json.dumps({'error': 'primary GF statement page not found'}))
             sys.exit(3)
         rows = lines_of(page)
-        rev, rev_row = first_number_on(rows, re.compile(r'^Total\s+(operating\s+)?revenues\b', re.I))
-        exp, exp_row = first_number_on(rows, re.compile(r'^Total\s+expenditures\b', re.I))
+        rev_cols, rev_row = numbers_on(rows, re.compile(r'^(?:Total|Net)\s+(operating\s+)?revenues\b', re.I))
+        exp_cols, exp_row = numbers_on(rows, re.compile(r'^Total\s+expenditures\b', re.I))
         m = re.search(r'year\s+ended\s+\w+\s*\d{1,2},\s*(\d{4})', text, re.I)
 
-    if rev is None or exp is None:
+    if not rev_cols or not exp_cols:
         print(json.dumps({'error': 'printed total row not located',
                           'revenue_row': rev_row, 'expenditure_row': exp_row}))
         sys.exit(4)
@@ -212,8 +300,16 @@ def main():
     print(json.dumps({
         'statement_page': idx + 1,
         'fiscal_year': int(m.group(1)) if m else None,
-        'revenue_total': rev * args.units,
-        'expenditure_total': exp * args.units,
+        # Column 0 = General Fund. Kept under the original names so
+        # verify-austin-travis.mjs keeps working unchanged.
+        'revenue_total': rev_cols[0] * args.units,
+        'expenditure_total': exp_cols[0] * args.units,
+        # Every printed column, left to right, UNSCALED — so a caller can see the
+        # Total Governmental column (the discriminator that decides General Fund
+        # vs total_governmental scope) and can derive the unit factor itself
+        # instead of being told one.
+        'revenue_columns': rev_cols,
+        'expenditure_columns': exp_cols,
         'units': args.units,
     }, indent=2))
 

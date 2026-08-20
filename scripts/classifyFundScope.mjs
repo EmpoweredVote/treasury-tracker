@@ -65,6 +65,15 @@ export const EXPECTED_ROWS = Object.freeze({
   // family, so no pre-existing count moved.
   // Evidence: docs/superpowers/plans/AUSTIN-TRAVIS-01-SCOPE-RECON.md §1.
   'tx-local-acfr-gf': 76,
+  // The sixteen entity-published city/state ACFR families, measured 2026-08-19.
+  // Evidence: docs/superpowers/plans/ACFR-GF-CLASSIFICATION-RECON.md.
+  // 106 + 64 + 34 + 56 = 260. All NEW families; no pre-existing count moved.
+  'or-city-acfr-gf': 106,       // Bend 36, Sherwood 22, Beaverton 12, Hillsboro 10,
+                                // Tualatin 10, Cornelius 8, Tigard 8
+  'az-muni-acfr-gf': 64,        // Tucson 20, Marana 12, Oro Valley 12, Sahuarita 12,
+                                // South Tucson 8
+  'seattle-city-acfr-gf': 34,
+  'state-acfr-gf-by-name': 56,  // Minnesota 36, Ohio 12, Virginia 8
   'wa-sao': 286,
   'mn-osa': 21794,
   'oh-aos': 6616,
