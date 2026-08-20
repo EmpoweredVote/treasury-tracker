@@ -1,7 +1,7 @@
 # LA-01 — Los Angeles City: reconcile Socrata against an audited ACFR (DRIVING DOC)
 
 **Created:** 2026-08-20, at Chris's request, to be worked unattended overnight.
-**Status:** IN PROGRESS — see §7 Running log for where I actually am.
+**Status:** PROBE COMPLETE — verdict in §9. DB write NOT started (see §9 "NOT DONE").
 **Branch:** create `fix/la-city-series` off `main` (do NOT work on `main`).
 
 > **Read this file first if you are a fresh session.** It is written to be
@@ -104,7 +104,11 @@ audited ACFR is directly fetchable.
 
 **Method — reuse what already exists, do not write a new extractor:**
 
-1. Fetch `acfr23.pdf` into `_acfr-work/la/` (gitignored).
+1. Fetch `acfr23.pdf` into `_acfr-work/la-city/` (gitignored).
+   ⚠ **NOT `_acfr-work/la/` — that is LOUISIANA.** `_acfr-work/` is keyed by STATE
+   code and `la/` already holds the Louisiana state ACFR corpus (LA2002–LA2025 from
+   `doa.la.gov`, with `HEALTH & WELFARE` / `CORRECTIONS` / `MILITARY & VETERANS`
+   categories). I nearly built on it as if it were Los Angeles. Use `la-city/`.
 2. `python scripts/acfrPrintedTotal.py <pdf>` — pdfplumber coordinate reader,
    independent of `pdftotext -table`. Gives every printed fund column on the
    `Total revenues` / `Total expenditures` rows of the governmental-funds
@@ -176,6 +180,11 @@ audited ACFR is directly fetchable.
 
 <!-- APPEND ONLY. Newest at the bottom. Keep this honest — including dead ends. -->
 
+- **2026-08-20 ~05:2x** — PROBE DONE. Verdict in §9: **H1 confirmed, Socrata is
+  `all_funds / actual`**, residues 0.080% (revenue) and 0.147% (expenditure) after
+  decomposing non-operating revenue + capital contributions; nearest rival scope out
+  by 45–51%. Stopped before any DB write. Trap avoided: `_acfr-work/la/` is
+  LOUISIANA, not Los Angeles.
 - **2026-08-20 ~05:0x** — Doc created. Confirmed the five defects in §2 against
   the live DB and API. Confirmed `acfr23.pdf` / `acfr22.pdf` return HTTP 200 and
   `acfr24/25.pdf` are 404. Nothing fetched or written yet. Next: create the
@@ -195,3 +204,88 @@ audited ACFR is directly fetchable.
 4. **The 11 null `source_url`s** — acceptable to backfill with the dataset landing
    page (`https://data.lacity.org`), or does each row need a per-FY dataset URL
    the way AUSTIN-TRAVIS-01 did it?
+
+---
+
+## 9. VERDICT — H1 CONFIRMED. Socrata is ALL FUNDS ACTUALS.
+
+**Probe:** City of Los Angeles FY2023 ACFR, `https://controller.lacity.gov/acfr23.pdf`
+(450pp, 16,780,245 bytes, "Year Ended June 30, 2023", amounts in **thousands**).
+Governmental funds statement pp.63–64; proprietary funds statement pp.71–72.
+Read with `scripts/acfrPrintedTotal.py` + `scripts/acfrContinuedTotal.py`
+(pdfplumber coordinates), the `Total` column recovered by the additive identity
+with exactly ONE candidate row on each side.
+
+### The printed figures (thousands)
+
+| | Revenue | Expenditure |
+|---|---|---|
+| General Fund | 6,744,996 | 5,999,543 |
+| **Total Governmental** | **10,378,641** | **9,939,996** |
+| Enterprise funds, operating | 9,854,989 | 8,195,396 |
+| Enterprise investment income | 154,710 | — |
+| Enterprise grant revenues | 119,074 | — |
+| Enterprise capital contributions | 616,983 | — |
+
+Enterprise columns sum exactly to their printed total:
+`1,752,855 (Airports) + 656,400 (Harbor) + 4,958,539 (Power) + 1,661,278 (Water)
++ 775,945 + 49,972 = 9,854,989` ✓
+
+### The reconciliation
+
+**REVENUE** — governmental + enterprise operating + investment income + grants + capital contributions:
+`10,378,641 + 9,854,989 + 154,710 + 119,074 + 616,983 = 21,124,397` (thousands)
+= **$21,124,397,000** vs stored Socrata **$21,141,407,923**
+→ residue **$17,010,923 = 0.080%**
+
+**EXPENDITURE** — governmental + enterprise operating expenses:
+`9,939,996 + 8,195,396 = 18,135,392` (thousands)
+= **$18,135,392,000** vs stored Socrata **$18,162,091,478**
+→ residue **$26,699,478 = 0.147%**
+
+### Candidate scopes — the discrimination is not close
+
+| Candidate | Revenue vs Socrata | Expenditure vs Socrata |
+|---|---|---|
+| `general_fund` | −68.1% | −67.0% |
+| `total_governmental` | −50.9% | −45.3% |
+| **`all_funds`** | **−0.080%** | **−0.147%** |
+
+The nearest rival is out by 45–51%. This is well inside the precedent set by
+`ca-sco-county-rev`, which was accepted as `all_funds` on a 0.547% residue with a
+decomposed explanation while its alternatives sat at 15.87% and 67.04%.
+
+### The unexplained remainder, stated honestly
+
+Both residues are small, same-signed (Socrata slightly HIGHER on both sides) and
+of similar magnitude ($17.0M / $26.7M). The most likely cause is **Internal
+Service Funds**, which I did NOT locate in this pass — LA's proprietary statement
+pp.71–72 carries enterprise columns only, with no ISF column, so its ISF activity
+is presented elsewhere. That is the first thing to check before writing a registry
+entry. ⚠ Note the asymmetry: revenue needs non-operating and capital
+contributions added to reconcile, expenditure does not — the same shape as the
+documented MA DLS trap where "revenue folds transfers in, expenditure doesn't,
+so Money In − Money Out is NOT a surplus". **Do not present an LA surplus/deficit
+from these two figures without settling that.**
+
+### Consequence for the product
+
+Socrata continues the CA State Controller series on the SAME scope
+(`all_funds / actual`). SCO ends FY2020 at $16.99B/$17.08B and Socrata FY2021
+opens at $16.17B/$17.56B — continuous, no step change. **So classifying the
+Socrata source rejoins LA's severed history and fixes defect 1.**
+
+### NOT DONE — deliberately stopped here
+
+The task Chris set was the reconciliation, and it has a verdict. The DB write was
+contingent on that verdict and is a separate step, not started:
+
+1. Locate LA's Internal Service Funds and try to close the $17.0M / $26.7M
+   residues (or record them as an accepted, decomposed remainder).
+2. Confirm on a SECOND year (`acfr22.pdf` is already known-reachable, HTTP 200)
+   before classifying 9 rows off one probe.
+3. Then: registry entries for `Socrata: https://data.lacity.org`
+   (`all_funds` / `actual`), row-count gates, dry run, stamp, verify.
+4. Backfill the NULL `source_url` / `source_date` on the 11 FY2021+ rows.
+5. Chris's §8 questions still stand — particularly whether he'd rather have a
+   direct ACFR load than a classified portal feed.
