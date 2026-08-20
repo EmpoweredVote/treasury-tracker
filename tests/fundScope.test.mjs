@@ -266,9 +266,17 @@ describe('the shipped registry', () => {
       .toEqual({ scope: SCOPE.UNKNOWN, entryId: null });
     expect(classify('Wisconsin State CAFR — General Fund Revenue (FY2000 actual, pre-GASB-34 combined statement basis)', FUND_SCOPE_REGISTRY))
       .toEqual({ scope: SCOPE.UNKNOWN, entryId: null });
-    // ...and it must not reach down to city/county ACFRs either.
-    expect(classify('City of Tucson ACFR — General Fund Expenditure by Function (FY2018 actual, GAAP basis)', FUND_SCOPE_REGISTRY))
-      .toEqual({ scope: SCOPE.UNKNOWN, entryId: null });
+    // ...and it must not reach down to city/county ACFRs either. Tucson IS
+    // classified now — by `az-muni-acfr-gf`, on its own evidence
+    // (ACFR-GF-CLASSIFICATION-RECON.md) — so the assertion this test needs to
+    // make is about WHICH entry claims it, not whether anything does. A city
+    // ACFR being swept up by the STATE pattern would still be the bug.
+    const tucson = classify(
+      'City of Tucson ACFR — General Fund Expenditure by Function (FY2018 actual, GAAP basis)',
+      FUND_SCOPE_REGISTRY,
+    );
+    expect(tucson.entryId).not.toBe('state-acfr-gf');
+    expect(tucson.entryId).toBe('az-muni-acfr-gf');
   });
 
   it('records that ca-sco-county-rev is the one entry without a dollar tie', () => {
@@ -292,7 +300,12 @@ describe('the shipped registry', () => {
       // them; 'Acushnet — MA DLS Schedule A — Special Revenue Funds' stays
       // unclassified on purpose and has its own test above.
       'Wisconsin State CAFR — General Fund Revenue (FY2000 actual, pre-GASB-34 combined statement basis)',
-      'City of Tucson ACFR — General Fund Expenditure by Function (FY2018 actual, GAAP basis)',
+      // The sixteen city/state ACFR families moved OUT of this list when
+      // ACFR-GF-CLASSIFICATION-RECON.md evidenced them — same reason the three
+      // MA DLS families did above. The representative string that used to sit
+      // here, 'City of Tucson ACFR — General Fund Expenditure by Function', is
+      // now asserted in the state-acfr-gf over-reach test to be claimed by
+      // `az-muni-acfr-gf`.
       'Texas State ACFR — General Revenue Fund (FY2015 actual, GAAP basis)',
       'King County ACFR General Fund Operating (GAAP actuals)',
       'Sacramento Operating Budget',

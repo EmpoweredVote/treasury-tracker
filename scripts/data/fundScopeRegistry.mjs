@@ -139,6 +139,176 @@ export const FUND_SCOPE_REGISTRY = [
     },
   },
 
+  // ── The sixteen entity-published city/state ACFR families ─────────────────
+  // Evidence for all four entries below:
+  // docs/superpowers/plans/ACFR-GF-CLASSIFICATION-RECON.md (2026-08-19).
+  //
+  // Method is `state-acfr-gf`'s and `tx-local-acfr-gf`'s: these filings ARE the
+  // source the loaders read, so the reconciliation is not against a second
+  // reporter — it establishes WHICH COLUMN of the statement the stored figure
+  // is, read by pdfplumber glyph coordinates rather than the `pdftotext -table`
+  // path every one of these extractors uses. 54 of 54 readable probes matched
+  // the printed FIRST (General Fund) column EXACTLY, and every General Fund
+  // share of Total Governmental landed between 19.9% and 86.9% — nowhere near
+  // the ~100% a mislabelled total-governmental figure would show.
+  //
+  // ⚠ Grouped by source family, but UNLIKE state-acfr-gf every member family was
+  // probed individually — this is not two probes standing in for fifty
+  // publishers. Patterns enumerate their entities so an unreconciled future load
+  // lands `unknown` instead of inheriting a claim.
+  {
+    id: 'or-city-acfr-gf',
+    match: /^City of (Bend|Sherwood|Beaverton|Hillsboro|Tualatin|Cornelius|Tigard) ACFR — General Fund /,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'Seven Oregon cities, each its own ACFR governmental-funds Statement of Revenues, '
+              + 'Expenditures and Changes in Fund Balances, two fiscal years apiece (Sherwood '
+              + 'three): Bend FY2006+FY2025, Sherwood FY2015+FY2024+FY2025, Beaverton '
+              + 'FY2020+FY2025, Hillsboro FY2021+FY2025, Cornelius FY2022+FY2025, Tigard '
+              + 'FY2022+FY2025, Tualatin FY2021. Full table: ACFR-GF-CLASSIFICATION-RECON.md §1.2.',
+      figures: 'Stored equals the printed General Fund column EXACTLY (factor 1, whole dollars) in '
+             + 'every probe. Examples with the Total Governmental discriminator from the same row: '
+             + 'BEND FY2006 revenue 26,414,845 of 63,344,172 total governmental (41.7%), '
+             + 'expenditures 14,236,241 of 71,632,573 (19.9%). SHERWOOD FY2025 17,725,106 of '
+             + '31,416,090 (56.4%) and 20,034,416 of 47,362,405 (42.3%). BEAVERTON FY2025 '
+             + '84,105,297 of 146,520,756 (57.4%) and 83,828,091 of 141,834,528 (59.1%). TIGARD '
+             + 'FY2022 43,753,463 of 70,854,718 (61.8%) and 30,516,074 of 53,825,413 (56.7%). '
+             + 'CORNELIUS FY2025 10,826,496 of 14,881,042 (72.8%) and 15,037,256 of 17,297,870 '
+             + '(86.9%). TUALATIN FY2021 20,825,943 of 29,742,455 (70.0%) and 23,895,226 of '
+             + '42,029,042 (56.9%). HILLSBORO FY2025 175,243,196 of 263,710,906 (66.5%) and '
+             + '165,543,779 of 220,973,329 (74.9%) — Hillsboro splits its fund columns across two '
+             + 'pages, so its total came from the continued page via the additive identity in '
+             + 'RECON §1.3, which returned exactly ONE candidate row on each side. '
+             + '⚠ DISCLOSED: Tualatin has ONE verified year, not two (RECON §4) — its FY2025 title '
+             + 'wrap defeats the oracle and pdfplumber is pathologically slow on its FY2022/FY2023 '
+             + 'files; its other four years rest on the extractor\'s own $0 tie gate.',
+    },
+  },
+
+  {
+    id: 'az-muni-acfr-gf',
+    match: /^(City of Tucson|Marana|Oro Valley|Sahuarita|South Tucson) ACFR — General Fund /,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'Five Arizona municipalities, each its own ACFR governmental-funds Statement of '
+              + 'Revenues, Expenditures and Changes in Fund Balances, two fiscal years apiece: '
+              + 'Tucson FY2015+FY2024, Marana FY2019+FY2024, Oro Valley FY2019+FY2024, Sahuarita '
+              + 'FY2019+FY2024, South Tucson FY2019+FY2022 (South Tucson titles its filing "Annual '
+              + 'Financial Report"). Full table: ACFR-GF-CLASSIFICATION-RECON.md §1.2.',
+      figures: 'Stored equals the printed General Fund column EXACTLY (factor 1, whole dollars) in '
+             + 'every probe. TUCSON FY2024 revenue 773,493,270 of 1,373,161,136 total governmental '
+             + '(56.3%), expenditures 648,657,363 of 1,262,441,832 (51.4%); FY2015 468,385,932 of '
+             + '723,796,248 (64.7%) and 422,167,515 of 766,150,387 (55.1%). MARANA FY2024 '
+             + '94,153,099 of 151,204,836 (62.3%) and 59,821,670 of 116,985,368 (51.1%). SAHUARITA '
+             + 'FY2024 32,166,628 of 51,310,948 (62.7%) and 23,924,397 of 45,006,746 (53.2%); '
+             + 'FY2019 17,760,711 of 27,426,685 (64.8%) and 15,763,375 of 29,842,748 (52.8%). '
+             + 'SOUTH TUCSON FY2022 6,201,468 of 9,539,140 (65.0%) and 5,883,806 of 8,865,838 '
+             + '(66.4%). ORO VALLEY FY2024 59,077,316 of 80,149,319 (73.7%) and 50,170,504 of '
+             + '91,241,735 (55.0%) — Oro Valley splits its fund columns across two pages, so its '
+             + 'total came from the continued page via the additive identity in RECON §1.3, which '
+             + 'returned exactly ONE candidate row on each side.',
+    },
+  },
+
+  {
+    id: 'seattle-city-acfr-gf',
+    match: /^City of Seattle ACFR — General Fund /,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'City of Seattle ACFRs FY2024 and FY2025, governmental-funds Statement of '
+              + 'Revenues, Expenditures and Changes in Fund Balances (statement pages 56 and 59). '
+              + 'Separate from the `wa-sao` entry, which covers rows sourced from the WA State '
+              + 'Auditor portal — these are the city\'s own publication. '
+              + 'ACFR-GF-CLASSIFICATION-RECON.md §1.2.',
+      figures: 'FY2025 (IN THOUSANDS, factor 1000) — printed General Fund column: Total Revenues '
+             + '2,407,090 and Total Expenditures 2,300,612, matching the stored $2,407,090,000 and '
+             + '$2,300,612,000 EXACTLY. Total Governmental columns are 3,826,477 and 3,699,453, so '
+             + 'the stored figure is 62.9% / 62.2% of total governmental. FY2024 matches its '
+             + 'printed General Fund column exactly on both sides as well. '
+             + '⚠ Seattle FY2009 and FY2010 could NOT be read and are not counted as evidence: '
+             + 'that era prints "Page 1 of 2" between "...AND CHANGES" and "IN FUND BALANCES", so '
+             + 'no title regex spans the wrap — the same defect acfrGF.py documents, and the reason '
+             + 'Seattle\'s own extractor identifies its statement by the `B-4` schedule id.',
+    },
+  },
+
+  {
+    id: 'state-acfr-gf-by-name',
+    match: /^State of (Minnesota|Ohio|Virginia) ACFR — General Fund/,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'Three state ACFRs, each its governmental-funds Statement of Revenues, '
+              + 'Expenditures and Changes in Fund Balances, two fiscal years apiece: Minnesota '
+              + 'FY2008+FY2025, Ohio FY2020+FY2025, Virginia FY2022+FY2025. These are the SAME '
+              + 'document class as `state-acfr-gf` and the same conclusion; they need their own '
+              + 'entry only because their data_source strings read "State of Minnesota ACFR — …" '
+              + 'rather than "… State ACFR — …", so that entry\'s pattern never matched them. '
+              + 'ACFR-GF-CLASSIFICATION-RECON.md §1.2.',
+      figures: 'All in THOUSANDS (factor 1000), all matching the printed General Fund column '
+             + 'EXACTLY. MINNESOTA FY2025 revenue 35,478,861 of 60,581,559 total governmental '
+             + '(58.6%), expenditures 35,114,726 of 61,668,498 (56.9%); FY2008 16,600,864 of '
+             + '26,686,484 (62.2%) and 16,086,550 of 27,064,691 (59.4%). Minnesota\'s columns are '
+             + 'printed GENERAL | FEDERAL | NONMAJOR | TOTAL and it labels its revenue subtotal '
+             + '"Net Revenues", not "Total Revenues". OHIO FY2025 49,343,227 of 87,078,671 (56.7%) '
+             + 'and 49,447,475 of 91,951,477 (53.8%). VIRGINIA FY2025 31,593,096 of 67,935,968 '
+             + '(46.5%) and 34,099,267 of 71,193,478 (47.9%). Ohio and Virginia split their fund '
+             + 'columns across two pages; both totals came from the continued page via the additive '
+             + 'identity in RECON §1.3, one candidate row each. '
+             + '⚠ Minnesota FY2008 nearly went the other way: its dot leaders run THROUGH the '
+             + 'figures ("$......1..6..,.6.0..0..,.8..6..4"), so the General Fund token was '
+             + 'unparseable and the leftmost readable number was the FEDERAL column, 6,271,343. '
+             + 'The column identity 16,600,864 + 6,271,343 + 3,814,277 = 26,686,484 is what pins '
+             + 'the General Fund value (RECON §1.4).',
+    },
+  },
+
+  {
+    // AUSTIN-TRAVIS-01. 76 rows / 76 strings (Austin 32 + Travis 44), measured
+    // 2026-08-19.
+    //
+    // ⚠ ANCHORED TO THE TWO ENTITY NAMES ON PURPOSE. The tempting general
+    // pattern, / ACFR — General Fund/, matches 1,784 rows: the 1,448 already
+    // owned by state-acfr-gf, these 76, and 260 rows across SIXTEEN other city
+    // and state ACFR families (Bend 36, State of Minnesota 36, Seattle 34,
+    // Sherwood 22, Tucson 20, …) that no reconciliation covers. Those stay
+    // `unknown`: this entry's evidence is the Austin and Travis statements, and
+    // nobody has read Bend's. A future Texas city ACFR load therefore lands
+    // `unknown` until it is evidenced, which is the correct failure direction.
+    id: 'tx-local-acfr-gf',
+    match: /^(City of Austin|Travis County) ACFR — General Fund /,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'THREE probes across two Texas entities, each the governmental-funds Statement of '
+              + 'Revenues, Expenditures and Changes in Fund Balances: City of Austin FY2024 '
+              + '(docs/Austin/austin-2024-acfr.pdf p.50, Exhibit B-2) and FY2015 '
+              + '(austin-2015-acfr.pdf p.50), and Travis County FY2024 '
+              + '(docs/TravisCounty/travis-2024-acfr.pdf pp.58-59). NOTE: these filings ARE the '
+              + 'source the loader read, so the reconciliation is not against a second reporter — '
+              + 'it establishes WHICH COLUMN of the statement the stored figure is, which is the '
+              + 'question that decides scope. Same method as state-acfr-gf and wa-sao. '
+              + 'Full working: docs/superpowers/plans/AUSTIN-TRAVIS-01-SCOPE-RECON.md §1.',
+      figures: 'AUSTIN FY2024 (thousands) — printed General Fund column: Total revenues 1,280,826 '
+             + 'and Total expenditures 1,347,127, matching the stored $1,280,826,000 and '
+             + '$1,347,127,000 EXACTLY. Total Governmental columns are 2,216,395 and 2,881,179, so '
+             + 'the stored figure is 57.8% / 46.8% of total governmental; columns sum exactly '
+             + '(1,280,826 + 935,569 = 2,216,395; 1,347,127 + 1,534,052 = 2,881,179). '
+             + 'AUSTIN FY2015 (thousands, the earlier of Austin\'s two label eras) — General Fund '
+             + '736,921 and 878,869, stored exactly; Total Governmental 1,066,268 and 1,296,816 '
+             + '(69.1% / 67.8%); columns sum exactly. '
+             + 'TRAVIS FY2024 (WHOLE DOLLARS) — printed General column: Total revenues '
+             + '1,030,822,292 and Total expenditures 888,757,389, stored EXACTLY. Total '
+             + 'Governmental is 1,309,590,625 and 1,318,378,253 (78.7% / 67.4%); all seven fund '
+             + 'columns sum to those totals exactly on both sides. '
+             + 'Candidate scopes rejected: total_governmental is off by 42.2%/53.2% (Austin FY2024), '
+             + '30.9%/32.2% (Austin FY2015) and 21.3%/32.6% (Travis FY2024); all_funds further '
+             + 'still, since neither statement contains any proprietary fund (Austin Energy, '
+             + 'Austin Water, the airport, Travis\'s TCHFC and internal service funds are all '
+             + 'outside it). The two entities print in DIFFERENT units — Austin "(In thousands)", '
+             + 'Travis whole dollars — so the tie also confirms the loader normalised units per '
+             + 'document rather than assuming one scale, which the $0 tie gate cannot see.',
+    },
+  },
+
   {
     id: 'wa-sao',
     match: /^WA State Auditor — /,

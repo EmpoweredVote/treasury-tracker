@@ -34,8 +34,22 @@ import { REPORTING_ENTITY_REGISTRY } from './data/reportingEntityRegistry.mjs';
 
 /** Measured 2026-08-17. See plan Task 3 Step 1 for the query that produced them. */
 export const EXPECTED_BASIS_ROWS = Object.freeze({
-  'ca-sco-city-exp': 10438,
-  'ca-sco-city-rev': 10446,
+  // ⚠ +10 and +2 against the 2026-08-17 measurements of 10438 / 10446 — the SAME
+  // drift, from the same cause, that `classifyFundScope.mjs`'s EXPECTED_ROWS was
+  // already corrected for. That file was updated and this one was not, so this
+  // gate has been failing on these two entries ever since, independently of any
+  // new entry.
+  //
+  // Cause: SCOPE-02 Task 10 backfilled 12 State Controller rows (Fresno
+  // operating FY2020-24, Riverside FY2023-24, Oakland FY2024, Santa Ana
+  // operating+revenue FY2023-24). Re-verified against the live table on
+  // 2026-08-19 rather than taken on trust: selecting the 12 ids in
+  // scripts/data/scope02CreatedIds.json returns exactly 12 rows, splitting
+  // 10 "CA State Controller - Expenditures" + 2 "CA State Controller -
+  // Revenues" — precisely the overage, with nothing left over. Neither pattern
+  // changed; both are byte-identical to SCOPE-01's.
+  'ca-sco-city-exp': 10448,
+  'ca-sco-city-rev': 10448,
   'ca-sco-county-exp': 1188,
   'ca-sco-county-rev': 1188,
   'wa-sao': 286,
@@ -43,12 +57,30 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   'mn-osa': 21794,
   'oh-aos': 6616,
   'city-adopted-budget-doc': 165,
+  // AUSTIN-TRAVIS-01, measured 2026-08-19: Austin 32 + Travis County 44. A NEW
+  // family, so no pre-existing count moved.
+  // Evidence: docs/superpowers/plans/AUSTIN-TRAVIS-01-SCOPE-RECON.md §2.
+  'tx-local-acfr-gf': 76,
+  // The sixteen entity-published city/state ACFR families, measured 2026-08-19.
+  // Evidence: docs/superpowers/plans/ACFR-GF-CLASSIFICATION-RECON.md §2.
+  'or-city-acfr-gf': 106,
+  'az-muni-acfr-gf': 64,
+  'seattle-city-acfr-gf': 34,
+  'state-acfr-gf-by-name': 56,
 });
 
 export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
   'mn-osa': 21794,
   'state-acfr-gf': 1448,
   'wa-sao': 286,
+  // AUSTIN-TRAVIS-01. Evidence: AUSTIN-TRAVIS-01-SCOPE-RECON.md §3.
+  'tx-local-acfr-gf': 76,
+  // The sixteen entity-published city/state ACFR families.
+  // Evidence: ACFR-GF-CLASSIFICATION-RECON.md §3.
+  'or-city-acfr-gf': 106,
+  'az-muni-acfr-gf': 64,
+  'seattle-city-acfr-gf': 34,
+  'state-acfr-gf-by-name': 56,
 });
 
 /** The last fiscal year that has closed. A row after this cannot be an actual. */
