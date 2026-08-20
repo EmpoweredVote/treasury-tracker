@@ -233,19 +233,65 @@ statement — and is `primary_government`.
 
 ---
 
-## 5. A separate defect found, NOT fixed here
+## 5. A separate defect found — FIXED 2026-08-19
 
-**All 260 rows carry `fiscal_year_start_month = 1`, and for 253 of them that is
-wrong.** Every Oregon and Arizona entity in this set, plus Minnesota, Ohio and
-Virginia, closes its fiscal year on **June 30** — so the correct value is 7.
-Only Seattle's 34 rows are genuinely a calendar year (Dec 31), and even they are
-`1` by luck rather than by intent.
+**All 260 rows carried `fiscal_year_start_month = 1`, and for 226 of them that
+was wrong.** Every Oregon city, every Arizona municipality, and the Minnesota,
+Ohio and Virginia state nodes close on **June 30**, so the year starts in July
+(7). Seattle's 34 rows are genuinely a calendar year (Dec 31 → 1) and were
+already right — by luck, since 1 is also the column default.
 
-This is a fiscal-calendar error, not a classification one: it is not
-registry-driven, no stamper writes it, and correcting it means a direct update to
-253 rows. Left alone deliberately, and raised for a decision. (AUSTIN-TRAVIS-01
-set `10` correctly for its own 76 rows, following the Oct–Sep state ACFR
-loaders.)
+*(An earlier draft of this section said 253. That was arithmetic error: 260 − 34
+Seattle = **226**. The corrected figure is what was applied.)*
+
+Fixed by `scripts/fixAcfrFiscalYearStartMonth.mjs`. The value is **derived from
+each row's own `source_date`**, not from a per-family lookup table that would be
+a second place to get a fiscal calendar wrong:
+
+```
+start_month = (month_of(source_date) % 12) + 1
+2025-06-30 -> 7      2025-12-31 -> 1      2025-09-30 -> 10
+```
+
+Every one of these loaders stamped `source_date` with the fiscal-year END, and
+the rule was checked against the documents themselves, not just the database:
+Bend FY2025 "Year Ended June 30, 2025", Tucson FY2024 "Fiscal Year Ended
+June 30, 2024", Seattle FY2025 "Fiscal Year Ended December 31, 2025", and
+Minnesota / Ohio / Virginia FY2025 all "Fiscal Year Ended June 30, 2025".
+
+Guards: scope limited to the enumerated families; `source_date` must be present,
+must be the **last day of its month** (a period end always is, an issue date
+usually is not), and its year must equal `fiscal_year`; the derived month must be
+one of {1, 7, 10}. **All 336 rows passed every guard** — 0 null dates, 0
+non-month-ends, 0 year mismatches. 226 updated, `--verify` reports 336 checked /
+0 wrong, and no figure or classification moved.
+
+### 5.1 The same defect on 1,386 MORE rows — NOT fixed, needs a decision
+
+Auditing the rest of the table with the same rule found **1,493 further rows**
+whose period-end `source_date` disagrees with their stored month, **1,386 of them
+in the 50-state ACFR family** (`… State ACFR — General Fund …`, the rows owned by
+`state-acfr-gf`). The data is just as clean: every state has a single, consistent
+period end, and the year always matches `fiscal_year`.
+
+| | |
+|---|---|
+| stored `1`, period end `06-30`, want `7` | 44 states, e.g. California 48 rows, Wisconsin 48, South Dakota 48 |
+| stored `1`, period end `03-31`, want `4` | **New York, 44 rows** |
+| already correct at `10` | Alabama 48, Michigan 14 (their loaders set it) |
+
+Two reasons this was not swept up here:
+
+1. It is **another milestone's data** (the 50-state ACFR arc) and 1,386 rows is a
+   materially larger change than the one that was asked for.
+2. **New York needs a fourth month value (4)**, which the fix script's
+   `ALLOWED_MONTHS` guard deliberately rejects. Widening that guard is a
+   deliberate decision, not a parameter tweak — and the guard firing is exactly
+   what surfaced New York rather than silently stamping it 7.
+
+Texas is *not* in this set: its rows are labelled `General Revenue Fund` (the
+state's own name for its principal operating fund) and are unclassified by
+standing ruling.
 
 ---
 
