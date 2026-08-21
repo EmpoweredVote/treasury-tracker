@@ -1,0 +1,90 @@
+# Watch for the CA State Controller publishing a fiscal year newer than the one
+# LA City's series is loaded to, and open an issue when it happens.
+#
+# Why here and not a Claude cloud routine: that sandbox's egress proxy blocks
+# bythenumbers.sco.ca.gov (EGRESS_BLOCKED on both curl and WebFetch), and the
+# allowlist is enforced upstream with no self-serve surface. GitHub-hosted
+# runners have open internet, so the check lives here instead — and unlike a
+# scheduled task on a laptop, it does not depend on any machine being awake.
+name: SCO fiscal-year watch
+
+on:
+  schedule:
+    # 1st of the month, 16:07 UTC. Off-the-hour on purpose: :00 is the busiest
+    # minute on GitHub's scheduler and delays cron runs.
+    - cron: '7 16 1 * *'
+  workflow_dispatch:
+    inputs:
+      baseline:
+        description: 'Newest fiscal year already loaded (report anything newer)'
+        required: false
+        default: '2024'
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: sco-fiscal-year-watch
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # ⚠ BUMP THIS after loading a new year, or the check re-reports it forever.
+      - name: Check the State Controller for a newer fiscal year
+        id: check
+        env:
+          BASELINE: ${{ github.event.inputs.baseline || '2024' }}
+        run: |
+          set +e
+          node scripts/checkScoNewFiscalYear.mjs --baseline "$BASELINE" > out.txt 2>&1
+          code=$?
+          set -e
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          cat out.txt
+          {
+            echo '### SCO fiscal-year watch'
+            echo '```'
+            cat out.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Open an issue when a newer fiscal year is available
+        if: steps.check.outputs.exit_code == '10'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          title="SCO has published a fiscal year past the loaded one — LA City series can be extended"
+          # Reuse the open issue if there is one, so a monthly re-check does not
+          # pile up duplicates while the load is pending.
+          existing=$(gh issue list --state open --search "$title in:title" --json number --jq '.[0].number')
+          body=$(printf 'The monthly State Controller check found a newer fiscal year.\n\n```\n%s\n```\n\nRun: `%s`\n' \
+            "$(cat out.txt)" "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}")
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body" --label "data" || \
+              gh issue create --title "$title" --body "$body"
+          fi
+
+      # A check that cannot reach its source must not look like a clean pass:
+      # exit 2 is INCONCLUSIVE, and a red run emails whoever owns the cron.
+      - name: Fail loudly if the check was inconclusive
+        if: steps.check.outputs.exit_code == '2'
+        run: |
+          echo "::error::SCO fiscal-year check was INCONCLUSIVE (could not reach the API). This is NOT 'nothing new'."
+          exit 1
+
+      - name: Report an unexpected exit code
+        if: steps.check.outputs.exit_code != '0' && steps.check.outputs.exit_code != '2' && steps.check.outputs.exit_code != '10'
+        run: |
+          echo "::error::Unexpected exit code ${{ steps.check.outputs.exit_code }} from checkScoNewFiscalYear.mjs"
+          exit 1
