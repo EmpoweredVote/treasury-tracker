@@ -40,9 +40,15 @@ export default function FundSeriesToggle({
 
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
-      <span className="text-[11px] font-medium text-ev-gray-500 dark:text-ev-gray-400">
-        {SERIES_TOGGLE_COPY.heading}
-      </span>
+      {/* The heading is a QUESTION ("Which published figures"), so it only belongs
+          where there is actually something to choose. On a single-series entity it
+          contradicted the body copy directly below it, which says "One published
+          set of figures". Reported twice in AUSTIN-TRAVIS-01 UAT. */}
+      {!single && (
+        <span className="text-[11px] font-medium text-ev-gray-500 dark:text-ev-gray-400">
+          {SERIES_TOGGLE_COPY.heading}
+        </span>
+      )}
 
       <div
         className="flex flex-wrap gap-2"
@@ -60,13 +66,29 @@ export default function FundSeriesToggle({
           );
 
           if (single) {
+            // PLAIN TEXT, not a pill. It used to carry the same
+            // `rounded-full border px-3 py-1` treatment as the real radio buttons
+            // below, so it looked clickable and did nothing — the stated intent
+            // ("nothing invites a click") was undercut by its own styling. Chris
+            // hit it twice in AUSTIN-TRAVIS-01 UAT: "Why are we showing the
+            // actuals as a button when you get nothing for clicking on it?"
+            //
+            // The WORDS stay: "General Fund · actuals" is what stops a reader
+            // comparing an adopted all-funds figure against a General Fund actual
+            // (the Long Beach -75% seam). It is a caption, not a control.
+            //
+            // `tone` is deliberately NOT applied — it carries bg/border colours
+            // that only make sense on a chip, and an unknown Tailwind colour class
+            // is dropped SILENTLY in this repo (no `ev-blue` scale; gray steps are
+            // three-digit). Plain inherited text cannot regress that way.
+            // NOT `{body}`: that fragment's two spans relied on the pill's
+            // `inline-flex gap-2` for the space between them, so dropping the flex
+            // container would have run them together as "actualsFY2010–25".
+            // The separator is explicit here.
             return (
-              <span
-                key={s.id}
-                className={`inline-flex items-center gap-2 rounded-full border px-3 py-1
-                            text-[11px] ${tone}`}
-              >
-                {body}
+              <span key={s.id} className="text-[11px] text-ev-gray-600 dark:text-ev-gray-300">
+                <span className="font-medium">{s.label}</span>
+                <span className="opacity-70">{' · '}{spanLabel(s.span)}</span>
               </span>
             );
           }

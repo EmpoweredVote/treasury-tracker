@@ -77,11 +77,26 @@ export default function ScopeLabel({
           {copy.label}
           <Info className="h-3 w-3 opacity-60" aria-hidden="true" />
         </button>
+        {/* PLAIN TEXT, not a chip. This used to carry the same
+            `rounded-full border px-2 py-0.5` treatment AND a TONE colour as the
+            scope button immediately to its left — but the scope chip is a real
+            <button> that opens the explainer below, while this has only a
+            tooltip. Two identical-looking pills, one live and one inert, sitting
+            side by side. Chris, in AUSTIN-TRAVIS-01 UAT: "Why are we showing the
+            actuals as a button when you get nothing for clicking on it? Why does
+            actuals even need to be there in a pill if I can't click on it?"
+
+            The WORD stays — actual-vs-adopted is the distinction that produced the
+            Long Beach -75% cliff, so a reader needs it — and so does the tooltip.
+            Only the false affordance goes.
+
+            The old TONE call was also odd on its own terms: it mapped ANY known
+            basis onto the `general_fund` colour, so an `adopted` figure borrowed
+            General Fund green. Dropping the chip drops that too. */}
         {basis != null && (
           <span
             title={BASIS_COPY[normalizeBasis(basis)].short}
-            className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px]
-                        font-medium ${TONE[normalizeBasis(basis) === 'unknown' ? 'unknown' : 'general_fund']}`}
+            className="text-[11px] font-medium text-ev-gray-600 dark:text-ev-gray-300"
           >
             {BASIS_COPY[normalizeBasis(basis)].label}
           </span>
