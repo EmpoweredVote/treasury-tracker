@@ -3,7 +3,7 @@
  * Travis County, TX — General Fund operating (expenditure-by-function) +
  * revenue (revenue-by-source), FY2004–FY2025, ACTUAL (ACFR GAAP basis).
  *
- * Thin driver over `scripts/lib/txAcfrLoad.mjs`, which carries the write path
+ * Thin driver over `scripts/lib/acfrGfLoad.mjs`, which carries the write path
  * and the five guards (tie gate, fiscal-year assertion, per-capita units
  * guard, sanity ceiling, idempotence).
  *
@@ -30,7 +30,7 @@
  *   node scripts/processTravis.js
  */
 
-import { run } from './lib/txAcfrLoad.mjs';
+import { run } from './lib/acfrGfLoad.mjs';
 
 const FYS = Array.from({ length: 22 }, (_, i) => 2004 + i); // 2004..2025
 
@@ -44,4 +44,11 @@ await run({
   datasetIdPrefix: 'travis-acfr-gf',
   baseUrl: 'https://tctransparency.traviscountytx.gov/FinancialDocuments',
   fys: FYS,
+  state: 'TX',
+  // October 1 - September 30. Stated here rather than defaulted in the shared
+  // lib, which now also serves two calendar-year Colorado entities.
+  fyEndMonthDay: '09-30',
+  fiscalYearStartMonth: 10,
+  seedScript: 'scripts/seedAustinTravis.mjs',
+  fetchScript: 'scripts/fetchAustinTravis.mjs',
 });

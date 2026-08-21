@@ -310,6 +310,62 @@ export const FUND_SCOPE_REGISTRY = [
   },
 
   {
+    // CO-SPRINGS-EPC-01. 64 rows / 64 strings (Colorado Springs 28 + El Paso
+    // County 36), measured 2026-08-21.
+    //
+    // WARNING ANCHORED TO THE TWO ENTITY NAMES, for the same reason
+    // tx-local-acfr-gf is: the general / ACFR - General Fund/ pattern claims
+    // ~1,850 rows across eighteen families nobody has reconciled. A future
+    // Colorado ACFR load therefore lands `unknown` until it is evidenced, which
+    // is the correct failure direction.
+    //
+    // WARNING "El Paso County" is also a TEXAS county. This pattern matches the
+    // DATA_SOURCE STRING this milestone's loader writes, and no Texas El Paso
+    // rows exist in the table; were they loaded later under a colliding label
+    // they would need splitting by municipality_id rather than by this string.
+    id: 'co-local-acfr-gf',
+    match: /^(City of Colorado Springs|El Paso County) ACFR — General Fund /,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'FIVE probes across two Colorado entities, each the governmental-funds Statement '
+              + 'of Revenues, Expenditures and Changes in Fund Balances: City of Colorado Springs '
+              + 'FY2024 (docs/ColoradoSprings/colorado-springs-2024-acfr.pdf p.56, Exhibit 4) and '
+              + 'FY2016 (colorado-springs-2016-acfr.pdf p.51), and El Paso County FY2024 '
+              + '(docs/ElPasoCounty/el-paso-county-2024-acfr.pdf p.50), FY2020 (p.44) and FY2012 '
+              + '(p.40). NOTE: these filings ARE the source the loader read, so the reconciliation '
+              + 'is not against a second reporter - it establishes WHICH COLUMN of the statement '
+              + 'the stored figure is, which is the question that decides scope. Same method as '
+              + 'state-acfr-gf, wa-sao and tx-local-acfr-gf. Full working: '
+              + 'docs/superpowers/plans/CO-SPRINGS-EPC-01-CLOSEOUT.md section 6.',
+      figures: 'All figures WHOLE DOLLARS (both entities print full figures; neither says '
+             + '"in thousands"). Read by scripts/acfrPrintedTotal.py, which reads only the printed '
+             + 'TOTAL cell from pdfplumber glyph coordinates and shares no code with either '
+             + 'loader. '
+             + 'COLORADO SPRINGS FY2024 - printed General Fund column: Total revenues 371,035,085 '
+             + 'and Total expenditures 422,363,896, matching the stored figures EXACTLY. Total '
+             + 'Governmental columns are 613,764,319 and 661,715,191, so the stored figure is '
+             + '60.5% / 63.8% of total governmental; the columns sum exactly '
+             + '(371,035,085 + 73,271,800 + 169,457,434 = 613,764,319 and '
+             + '422,363,896 + 65,931,505 + 173,419,790 = 661,715,191). '
+             + 'COLORADO SPRINGS FY2016 - General Fund 233,693,029 and 246,212,379, stored '
+             + 'exactly; Total Governmental 387,980,606 and 400,060,465 (60.2% / 61.5%); columns '
+             + 'sum exactly. '
+             + 'EL PASO COUNTY FY2024 - General Fund 308,220,434 and 289,511,043, stored exactly; '
+             + 'Total Governmental 478,645,790 and 459,853,042 (64.4% / 63.0%); all six fund '
+             + 'columns sum exactly on both sides. FY2020 - 358,327,750 and 322,185,041, stored '
+             + 'exactly (74.0% / 65.3% of 484,486,536 and 493,042,013). FY2012 - 118,451,903 and '
+             + '123,652,632, stored exactly (49.9% / 49.8% of 237,301,973 and 248,369,807). '
+             + 'Candidate scopes rejected: total_governmental is off by 39.5%/36.2% (Springs '
+             + 'FY2024), 39.8%/38.5% (Springs FY2016), 35.6%/37.0% (El Paso FY2024) and '
+             + '50.1%/50.2% (El Paso FY2012) - the El Paso early years are the clearest '
+             + 'discriminator, where the General Fund is barely half of total governmental. '
+             + 'all_funds is further still: neither statement contains any proprietary fund, and '
+             + 'Colorado Springs Utilities - a ~$1B enterprise operation reported in the same '
+             + 'ACFR - is entirely outside the governmental-funds statement, which is why an '
+             + 'all_funds reading of this city would be off by a multiple rather than a margin.',
+    },
+  },
+  {
     id: 'wa-sao',
     match: /^WA State Auditor — /,
     scope: SCOPE.GENERAL_FUND,

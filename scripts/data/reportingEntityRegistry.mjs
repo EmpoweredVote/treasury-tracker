@@ -134,6 +134,44 @@ export const REPORTING_ENTITY_REGISTRY = [
     },
   },
   {
+    // CO-SPRINGS-EPC-01. 64 rows, measured 2026-08-21. Anchored to the two
+    // entity names - see the fund-scope entry of the same id.
+    id: 'co-local-acfr-gf',
+    match: /^(City of Colorado Springs|El Paso County) ACFR — General Fund /,
+    value: REPORTING_ENTITY.PRIMARY,
+    evidence: {
+      document: 'Note I.A (Reporting Entity) of the City of Colorado Springs FY2024 ACFR and '
+              + 'Note A.1 (Reporting entity) of the El Paso County FY2024 ACFR '
+              + '(CO-SPRINGS-EPC-01-CLOSEOUT.md section 6)',
+      figures: 'The stored figure is the printed General Fund column of the FUND financial '
+             + 'statements. Under GASB 34 discretely presented component units appear only in the '
+             + 'government-wide statements, in their own separate column, so they cannot be in it '
+             + '- El Paso states exactly that: "Each discretely presented component unit ... is '
+             + 'reported in a single column in the government-wide financial statements" (its one '
+             + 'discrete unit is El Paso County Public Health). Colorado Springs states the '
+             + 'counterpart: "Discretely presented component units are legally separate entities '
+             + 'for which the financial data are presented separately from the financial data of '
+             + 'the City", and it presents them in their own combining exhibits (GOVERNMENTAL and '
+             + 'PROPRIETARY FUND COMPONENT UNITS COMBINING statements). '
+             + 'Corroboration on the BLENDED units, which are inside the primary government by '
+             + 'GASB 34 exactly as for wa-sao, state-acfr-gf and tx-local-acfr-gf - in both cases '
+             + 'none of them is the General Fund. Colorado Springs blends exactly two: the General '
+             + 'Improvement Districts (special districts, reported in special revenue and debt '
+             + 'service funds) and the Public Authority for Colorado Energy (a gas-supply '
+             + 'financing authority, proprietary); "All other component units are discretely '
+             + 'presented". El Paso blends exactly two: the El Paso County Retirement Plan, a '
+             + 'cost-sharing defined benefit plan and therefore FIDUCIARY - excluded from the '
+             + 'governmental-funds statement altogether - and the El Paso County Facilities '
+             + 'Corporation, a lease-financing nonprofit whose activity is debt service and '
+             + 'capital acquisition. Arithmetic corroboration: in all five probes the printed fund '
+             + 'columns sum EXACTLY to the Total Governmental Funds column, so no component-unit '
+             + 'column is inside the General Fund figure. Contrast mn-osa, which is '
+             + 'incl_component_units because the OSA re-aggregates units the city ACFR presents '
+             + 'separately; nothing of that kind happens here - the figure is read FROM the '
+             + 'ACFR own fund statement.',
+    },
+  },
+  {
     id: 'wa-sao',
     match: /^WA State Auditor — /,
     value: REPORTING_ENTITY.PRIMARY,
