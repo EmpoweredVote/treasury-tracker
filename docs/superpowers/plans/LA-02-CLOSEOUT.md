@@ -110,5 +110,33 @@ Delete counts matched the backups exactly (10,627 / 5,554 / 10 and 3,670 / 4,340
 3. **The FMS departmental ledger is now absent from the product.** It was the only LA
    source with department/program detail and has real value as a *departmental* view —
    but it is not Money Out. Backups in §5 if it is ever wanted back under an honest label.
-4. **`reporting_entity` is `unknown`** on all 44 rows — same as FY2003–2020, so no
+4. ⚠ **Copy bug, pre-existing and now more visible:** the narrative reads
+   "Los Angeles's **budgeted** $21.5 billion" directly above an **Actuals** chip.
+   The template says "budgeted" for every entity regardless of basis, so this is
+   wrong on every actuals node, not just LA. Not fixed here (it is a template-wide
+   copy change, not an LA data issue).
+5. **`reporting_entity` is `unknown`** on all 44 rows — same as FY2003–2020, so no
    regression, but the axis is still unevidenced for SCO.
+
+## 8. End-to-end verification (not just the DB)
+
+**Production API** (`ev-accounts-api.onrender.com/api/treasury/cities`): LA's
+`available_datasets` serves `operating` + `revenue` as `all_funds` / `actual` for
+**every year FY2003–FY2024**, with no `unknown` money-in/out entry and no FY2025/FY2026
+operating or revenue at all.
+
+**UI** (dev server against the production API, `?entity=los-angeles-ca`, screenshot
+captured). The LA page now renders:
+
+* series label **"All Funds · actuals · FY2003–24"** with *"One published set of
+  figures, shown here with what it covers"* — i.e. the SINGLE-series state. The
+  toggle is gone because there is nothing left to toggle between. This is the
+  product-visible fix: before, a reader saw FY2003–2020 *or* FY2021–2026, never a
+  continuous LA.
+* **Money Out $21.5B / Money In $21.6B**, matching SCO FY2024 to the figures loaded
+  in §2 (21,517,484,103 / 21,612,492,478).
+* *"Data sourced from CA State Controller - Expenditures and CA State Controller -
+  Revenues"* — correct provenance, now actually shown (the source chip only began
+  rendering for cities in PR #38).
+* both scope/basis chips read **All Funds / Actuals** rather than unknown.
+* default year is now **FY2024** — previously FY2026, which was the adopted-budget row.
