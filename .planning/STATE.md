@@ -1,12 +1,12 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.26
-milestone_name: SCOPE-03 — The Series Toggle
-status: v2.26 SCOPE-03 SHIPPED — PR #31 merged to main as 4cd598b, tagged v2.26
-stopped_at: "Milestone closed. SCOPE-04 is next: scoped in the closeout, not planned."
-last_updated: "2026-08-19T00:00:00.000Z"
-last_activity: 2026-08-19
-last_activity_desc: "SCOPE-03 series toggle built: 91 rows across 17 entities that were in the DB and unreachable are now reachable. ZERO database writes. Two silent defects killed with mutation tests (series-blind cache key; series-blind availableYears). Three things only the real app caught: the default series was coupled to the active tab (Plano), erasableSyntaxOnly rejects parameter properties, and Los Angeles was already broken on main and is fixed here. 458 vitest, 29 files"
+milestone: v2.29
+milestone_name: CO-SPRINGS-EPC-01 — Colorado Springs + El Paso County
+status: v2.29 CO-SPRINGS-EPC-01 SHIPPED — PR #47 merged to main as 02f93d0, tagged v2.29. v2.27 (AUSTIN-TRAVIS-01) and v2.28 (LA-02) tagged retroactively the same day. UAT outstanding on v2.25, v2.26, v2.27, v2.29.
+stopped_at: "Milestone closed and tagged. SCOPE-04 is next: scoped and feasibility-probed, both adjudications closed in PR #36, not specced and not planned. Read docs/superpowers/plans/SCOPE-04-HANDOFF.md first."
+last_updated: "2026-08-21T00:00:00.000Z"
+last_activity: 2026-08-21
+last_activity_desc: "CO-SPRINGS-EPC-01 merged as PR #47 (02f93d0) and tagged v2.29 -- Colorado's first local entities, 64 General Fund rows. Every gate independently re-run at merge time rather than taken from the PR body: npm test 504/33 files, build clean, acfrGF.selftest.py 166, verify-colorado.mjs 64 rows ALL PASSED, verify-austin-travis.mjs 76 rows ALL PASSED. Three milestones that had shipped to main untagged were tagged retroactively at their own merge commits: v2.27 AUSTIN-TRAVIS-01 (34caf9a), v2.28 LA-02 (1f74b6a), v2.29 CO-SPRINGS-EPC-01 (02f93d0) -- main had taken 40 commits across 12 merged PRs since v2.26 with no tag at all. Also repaired this file's double-encoded mojibake: 403 U+00E2 leads and 799 C1 control characters, zero proper warning signs in a file full of them."
 progress:
   total_phases: 14
   completed_phases: 14
@@ -37,9 +37,28 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-16 — v2.18 Pima County Municipalities STARTED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** **v2.24 SCOPE-01 SHIPPED. SCOPE-02 (CA remediation + `reporting_entity`) is next — scoped, not planned.**
+**Current focus:** **v2.29 CO-SPRINGS-EPC-01 SHIPPED and tagged. SCOPE-04 (derived Total Governmental + the enterprise slice) is next — scoped and feasibility-probed, not specced, not planned.**
 
 ## Current Position
+
+Milestone: **v2.29 CO-SPRINGS-EPC-01 — Colorado Springs + El Paso County — ✅ SHIPPED 2026-08-21, tag `v2.29`**
+Task: onboarding milestone on a `docs/superpowers/` plan, not GSD phases — see the banner above
+Status: **Merged as PR #47 → `main` (`02f93d0`) and tagged.** All five gates were independently re-run at merge time rather than taken from the PR body: `npm test` **504 passed / 33 files**, `npm run build` clean, `acfrGF.selftest.py` **166 passed**, `verify-colorado.mjs` **64 rows ALL CHECKS PASSED**, `verify-austin-travis.mjs` **76 rows ALL CHECKS PASSED**. ⚠ **UAT not run.**
+
+**Colorado has local entities for the first time.** 64 General Fund rows of ACFR GAAP actuals — Colorado Springs FY2012–FY2025 (28) and El Paso County FY2005 + FY2009–FY2025 (36), whole dollars, calendar fiscal year. Six real defects were found and fixed, **four of them tying at exactly $0 while being wrong** — including a shared loader that hardcoded Texas's fiscal calendar, which changes no dollar figure and therefore trips no gate. Full working: `docs/superpowers/plans/CO-SPRINGS-EPC-01-CLOSEOUT.md`.
+
+⚠ **Three milestones had shipped to `main` untagged, and were tagged retroactively on 2026-08-21** at their own merge commits: **v2.27** AUSTIN-TRAVIS-01 (`34caf9a`), **v2.28** LA-02 (`1f74b6a`), **v2.29** CO-SPRINGS-EPC-01 (`02f93d0`). Between v2.26 and this entry `main` had taken **40 commits across 12 merged PRs with no tag at all**. Write-ups for all three are in `MILESTONES.md`. **This is the fourth time tagging and updating `.planning/` came apart** — see the banner above.
+
+⚠ **UAT is outstanding on four milestones** — SCOPE-02 (v2.25), SCOPE-03 (v2.26), AUSTIN-TRAVIS-01 (v2.27) and CO-SPRINGS-EPC-01 (v2.29). That is the largest unverified backlog this project has carried.
+
+**Next: SCOPE-04 — derived Total Governmental + the enterprise slice.** Scoped and feasibility-probed; both open adjudications closed in PR #36 (`Public Utilities` ruled governmental, the negative-enterprise trap adjudicated with **no pattern rule**). Not specced, not planned. Read `docs/superpowers/plans/SCOPE-04-HANDOFF.md`, then the two rulings.
+
+⚠ **Re-measured against the live database on 2026-08-21 and the 2026-08-19 probe reproduces exactly**: 8,516 era-B rows, **7,664 eligible across 488 entities**, 852 skipped (no enterprise root, so there is no second scope to create), 44 flagged for negative enterprise amounts, 6 of those caught by the `derived_TG <= all_funds_total` gate. Modesto FY2024 still ties to the dollar: `588,042,068 − 296,400,946 = 291,641,122`.
+
+⚠ **Every `all_funds` row in the database is California** — 8,528 era-B and 14,752 era-A rows across 533 entities, and **zero rows in any other state**. So the CO DOLA compendium cannot validate a single derived row; its contribution would be a *published* Total Governmental for Colorado, which is a separate load blocked on an access request. Confirmed by query, not assumed.
+
+<details>
+<summary>Previous milestone — v2.25 SCOPE-02 — Basis, Reporting Entity, and One Series per (scope, basis) (shipped 2026-08-18, tag `v2.25`)</summary>
 
 Milestone: **v2.25 SCOPE-02 — Basis, Reporting Entity, and One Series per (scope, basis) — ✅ SHIPPED 2026-08-18, tag `v2.25`**
 Task: 14 of 14 complete (superpowers plan, not GSD phases — see the banner above)
@@ -56,6 +75,8 @@ Status: **The seam is closed in production.** PRs #16 and #17 merged; the API ch
 | Pre-existing figures changed | **ZERO** — `3bc12db8…82a2`, unchanged from v2.24 |
 
 ⚠ **Three of the seven seams are still reported, and that is correct.** Long Beach, Anaheim and Bakersfield cannot be backfilled — SCO ends at FY2024 and their adopted rows begin at FY2025. All three carry 22 evidenced actual years, so the app draws FY2003–2024 continuously and renders FY2025 as a **gap**. `detectSeams` flags them only because it groups scope-blind and now compares rows from two different series. **The criterion predates the series model; the code is right.** Full working: `docs/superpowers/plans/SCOPE-02-CLOSEOUT.md`.
+
+</details>
 
 <details>
 <summary>Previous milestone — v2.24 SCOPE-01 — Fund Scope on Every Row (shipped 2026-08-17, tag `v2.24`)</summary>

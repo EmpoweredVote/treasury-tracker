@@ -12,6 +12,85 @@
 > in sequence below so the ordering does not read as "v2.20 never happened", but it is a
 > pointer, not a summary — the archive is the record.
 
+## v2.29 CO-SPRINGS-EPC-01 — Colorado Springs + El Paso County (Shipped: 2026-08-21, tag `v2.29`)
+
+**Tasks completed:** onboarding milestone on a `docs/superpowers/` plan, not GSD phases — closeout: `docs/superpowers/plans/CO-SPRINGS-EPC-01-CLOSEOUT.md`
+
+**The headline:** Colorado's first **local** entities — 64 General Fund rows of ACFR GAAP actuals. Colorado Springs FY2012–FY2025 (28 rows) and El Paso County FY2005 + FY2009–FY2025 (36 rows), both whole dollars, both on a **calendar** fiscal year. Before this the state had only its state node.
+
+- **🔑 Six real defects found and fixed, four of them tied at exactly $0 while being wrong.** The `$0` tie gate is blind to all four; each needed a different instrument. This is the milestone's substance.
+- **🔑 The shared Texas loader hardcoded Texas's fiscal calendar.** Reused as-is it would have stamped a September period end and an October start month onto rows that close December 31 — **no dollar figure changes, so nothing downstream notices**. `state`, `fyEndMonthDay` and `fiscalYearStartMonth` are now **required and cross-checked for mutual agreement**; `txAcfrLoad.mjs` → `acfrGfLoad.mjs`.
+- ⚠ **All 27 Colorado Springs links are pdf.js viewer shells** — every one returns HTTP 200 `text/html` from a `.pdf` URL. Assets are *resolved* from the shell, never reconstructed: the files sit under five Drupal conventions, and FY2022+ embed the **upload month**.
+- ⚠ **The city's statement title is unmatchable.** It prints its own name down the right margin, so "EXPENDITURES" and "AND CHANGES" are separated by the word COLORADO. Fixed with a `statement_anchor`, with page-by-page proof that **Exhibit 6 — a budgetary-basis budget-and-actual decoy — stays excluded**.
+- **🔑 El Paso County defeats BOTH `acfrGF` column strategies**, each confirmed to the dollar: `positional` by a GF column rendered at two character offsets (FY2020's dropped rows sum to its 7,761,496 delta exactly), `ordinal` by the TABOR figure printed *inside* the revenue label (FY2024 delta = 122,194,544 − 4,477,783). **Selecting whichever tied $0 would have been curve-fitting** — the error that got the LA-01 verdict retracted — so a coordinate reader was built instead, and the `-table` readers were kept as cross-checks.
+- **New tool: `scripts/acfrGfComponents.py`** reads **every** General Fund component row from glyph coordinates, closing the follow-up v2.27 left open and **unblocking Austin FY2002–FY2009**. It locates the column by an edge derived from two total rows that must agree, and **refuses the page rather than guessing** when they disagree.
+- ⚠ **Wrapped TABOR labels published as fragments** (`limitation)`, `$15,174,442`) while the amounts were right and the tie was $0. Fixed with an opt-in weld behind **two** coordinate guards — the second added because the first still fused `Highway user taxes Intergovernmental`.
+- **21 of 53 candidate years excluded, every one diagnosed:** image-only scans where `pdftotext` returns *zero* characters (Springs FY1999–FY2011, El Paso FY2000–FY2004 — needs OCR), and El Paso FY2006–FY2008's genuinely different statement, titled "Statement of Revenues **and Changes in Fund Balances**" and split *horizontally across two pages*.
+
+**Verification:** `verify-colorado.mjs` → **64 rows checked, ALL CHECKS PASSED, 58 corroborated by a second implementation.** The two entities are cross-checked in **opposite directions** — each loaded by one reader and checked by the other — and the 6 rows neither `-table` strategy can read are **reported by name, not folded into the pass count**. Regression: `verify-austin-travis.mjs` → **76 rows, ALL CHECKS PASSED**, so the shared-lib refactor moved nothing.
+
+**Tests:** `npm test` **504 passed / 33 files** (16 new) · `acfrGF.selftest.py` **166 passed** · `npm run build` clean.
+
+**Merged:** PR #47 → `main` as `02f93d0`, 22 files, +2,838/−27. Every gate was independently re-run at merge time rather than taken from the PR body.
+
+⚠ **UAT not run at tag time.** ⚠ The API serves `data_source` **double-encoded** for every em-dash label, Austin's included — pre-existing, and in `C:\EV-Accounts`, not this repo.
+
+**Archive:** none — not a GSD-phased milestone.
+
+---
+
+## v2.28 LA-02 — LA City's severed history is repaired (Shipped: 2026-08-20, tag `v2.28`)
+
+**Tasks completed:** remediation milestone on a `docs/superpowers/` plan — scoping: `docs/superpowers/plans/LA-02-SCOPING.md`, closeout: `LA-02-CLOSEOUT.md`. **Writes were made to PRODUCTION**, backed up first.
+
+**The headline:** Money In and Money Out both run **FY2003–FY2024 `all_funds/actual` from the CA State Controller — 22 consecutive years, one source, 0 `unknown` rows, 0 NULL `source_url`s, 0 seams.** The UI shows one series and no toggle, and LA no longer appears in the seam report at all.
+
+- **🔑 The bug was a LABEL, not the data.** The rows blamed on `Socrata: data.lacity.org` were never Socrata. Revenue was **always** SCO — the loader re-derived it **dollar-identical 4 of 4 years** — and the operating rows were LA's **FMS appropriation ledger**, a different animal entirely.
+- **🔑 FY2026 counted $4.77B of TRAN activity alongside itself.** Tax and Revenue Anticipation Note proceeds are *borrowing*, not spending; they inflated the figure by 16.5%. FY2025 and FY2026 **withdrawn**.
+- ⚠ **SCO publishes through FY2024, and nobody had checked.** That one unverified assumption bounded the entire repair. Re-checked 2026-08-21: **SCO has zero FY2025 rows for any entity** — never backfill FY2025 from the ACFR, it would re-create the seam.
+- **🔑 An earlier "Socrata IS all_funds" verdict was CURVE-FITTED and retracted** (PR #39) before this work could build on it.
+- **The audit found the mislabel is LA-only** — 0 portal labels anywhere else in the database, and 0 of 56 CA rows match.
+- ⚠ **`treasury_sync_city_budget` never updates `data_source` and keys on `fund_scope`+`basis`**, so writing a new scope **INSERTS a duplicate** rather than overwriting. Load, verify, then delete the superseded rows — never assume a replacement happened.
+- ⚠ **`budget_categories` is FLAT and holds every tree level.** Sum the ROOTS (`parent_id is null`), not all rows, or totals come out 2–3× too high.
+- **🔑 THE LESSON: check what a figure IS before modelling its scope.** One provenance-API call plus a total beat two ACFRs and 384 combinations of hypotheses.
+
+**Verification:** `verify-scope-seams.mjs` → **21 seams, down from 22, with LA gone** and SCOPE-02's four still closed. `npm test` **479/479** · `npm run build` clean · NUL-byte lint 13/13.
+
+**Merged:** PR #40 → `main` as `1f74b6a`, preceded by the retraction in PR #39.
+
+**Follow-ups that shipped separately:** the actuals-tense copy fix (#41), the SCO fiscal-year watch as a GitHub Actions job (#42, #43, #45), and durable restorable backups (#46).
+
+⚠ **UAT not run at tag time.**
+
+**Archive:** none — not a GSD-phased milestone.
+
+---
+
+## v2.27 AUSTIN-TRAVIS-01 — Austin, Travis County, and every ACFR General Fund row (Shipped: 2026-08-19, tag `v2.27`)
+
+**Tasks completed:** onboarding milestone on a `docs/superpowers/` plan — closeout: `docs/superpowers/plans/AUSTIN-TRAVIS-01-CLOSEOUT.md`, reconciliations: `AUSTIN-TRAVIS-01-SCOPE-RECON.md` and `ACFR-GF-CLASSIFICATION-RECON.md`
+
+**The headline:** 76 General Fund rows of ACFR GAAP actuals — City of Austin FY2010–FY2025 (32 rows, **thousands**) and Travis County FY2004–FY2025 (44 rows, whole dollars) — and then **every remaining `ACFR — General Fund` row in the database got classified**: **336 rows** across 5 evidenced registry entries, with whole-table `unknown` falling by exactly 336 on each of the three axes.
+
+- **🔑 Verified by an INDEPENDENT oracle, because the obvious check is tautological.** The database's `total = Σ items` test *cannot* fail — the loader computes the total from the items it just parsed. A separate pdfplumber reader was written to read the same statements from glyph coordinates. ⚠ **The same tautology later bit the SCOPE-04 handoff**, whose "0 of 23,260 rows tie" green light is guaranteed by construction.
+- **🔑 Four failure modes that each tie at exactly $0 while being wrong**, none of them findable without the oracle: Austin FY1998–FY2001 tie at $0 while being **1000× wrong** (whole dollars, not thousands); a renamed lease line mis-nested FY2022 with an identical $0 tie; Austin **ciphers its header digit glyphs**, rendering "September 32, 2222"; and `pdftotext -table` places the GF column at two different character positions, so 7 of 9 sources read $0.
+- ⚠ **Austin FY2002–FY2009 left unloadable** for that last reason. *(v2.29's coordinate reader unblocks it.)*
+- ⚠ **Austin publishes through a Widen DAM.** Every legacy `austintexas.gov` CAFR path is a 404, and `/view/pdf/` serves **HTML**; the working form is `/content/<id>/pdf/`.
+- ⚠ **Travis County's host is `tctransparency`.** A WebFetch summary **invented** `financialtransparency`, which 404s everywhere — a fabricated hostname that reads as entirely plausible.
+- ⚠ **Both stampers write `unknown` on a FRESH row**, so re-running a loader silently **un-classifies** its own output.
+- **A pre-existing gate failure surfaced and was fixed.** `stampBudgetAxes.mjs`'s `EXPECTED_BASIS_ROWS` still held the pre-backfill 10,438 / 10,446 for the two CA SCO entries while `classifyFundScope.mjs` had already been corrected to 10,448 / 10,448 — so that gate had been failing since the SCOPE-02 Task 10 backfill, independently of this milestone.
+- ⚠ **The general `/ACFR — General Fund/` pattern was NOT used.** It claims 1,784 rows, sweeping in the 1,448 already owned by `state-acfr-gf`. The registry entries are anchored to entity names on purpose; the 260 rows across sixteen other families were then closed deliberately, per family, with evidence.
+
+**Tests:** `npm test` **471 passed / 30 files** (8 new) · `acfrGF.selftest.py` **166 passed** · `npm run build` clean.
+
+**Merged:** PR #37 → `main` as `34caf9a`.
+
+⚠ **UAT not run at tag time.**
+
+**Archive:** none — not a GSD-phased milestone.
+
+---
+
 ## v2.26 SCOPE-03 — The Series Toggle (Shipped: 2026-08-19, tag `v2.26`)
 
 **Tasks completed:** 10 of 10 (no GSD phases — spec: `docs/superpowers/specs/2026-08-18-scope-03-design.md`, plan: `docs/superpowers/plans/2026-08-18-scope-03.md`, closeout: `docs/superpowers/plans/SCOPE-03-CLOSEOUT.md`)
