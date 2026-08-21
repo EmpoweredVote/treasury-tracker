@@ -180,6 +180,26 @@ export function seriesPeriodTokens(
 }
 
 /**
+ * The period tokens this series can actually RENDER for one dataset.
+ *
+ * Narrower than `seriesPeriodTokens` on purpose. That function keeps years held
+ * only by a non-series dataset so the Employees tab stays reachable -- correct
+ * for the year PICKER, and the reason the year clamp had a hole: a salaries-only
+ * year looks available while the selected budget series has no row for it.
+ */
+export function seriesDatasetTokens(
+  datasets: DatasetEntry[],
+  series: SeriesKey,
+  activeDataset: string,
+): string[] {
+  const kept = datasets.filter((dd) =>
+    dd.dataset_type === activeDataset
+    && normalizeScope(dd.fund_scope) === series.fundScope
+    && normalizeBasis(dd.basis) === series.basis);
+  return buildPeriodTokens(kept);
+}
+
+/**
  * Move a selected period to the nearest one the series offers.
  *
  * Ties resolve to the LATER year: `tokens` descends and the scan only replaces
@@ -198,6 +218,67 @@ export function clampYearToSeries(token: string, tokens: string[]): string {
     }
   }
   return best;
+}
+
+/**
+ * Where the reader should land when they pick a series.
+ *
+ * ⚠ The year clamp in App.tsx cannot use the PICKER list. `seriesPeriodTokens`
+ * keeps years held only by a non-series dataset so the Employees tab stays
+ * reachable, so for Anaheim -- budget series FY2003-24 and FY2025-26, salaries
+ * FY2009-24 -- FY2024 is in the picker while the adopted series has no operating
+ * row for it. The clamp saw an available year, returned early, and left the
+ * reader on a blank tile whose copy told them to choose the set they had just
+ * chosen. Found by UAT 2026-08-21; no unit test had an entity with salaries AND
+ * disjoint budget series.
+ *
+ * `moved` is returned rather than inferred by the caller comparing tokens, so the
+ * reader can be TOLD they were relocated instead of silently moved.
+ *
+ * Stays put in three cases, each deliberate:
+ *  - no series selected: nothing to move into;
+ *  - the active dataset is not a series dataset (Employees): its own year wins;
+ *  - the series has NO row for this dataset at all (Fresno revenue/adopted,
+ *    Longview). There is nowhere to clamp TO, and the display rule wants the
+ *    absent state shown with the toggle still usable -- not a relocation.
+ */
+export function resolveSeriesYear(
+  datasets: DatasetEntry[],
+  series: SeriesKey | null,
+  activeDataset: string,
+  currentToken: string,
+): { token: string; moved: boolean } {
+  const stay = { token: currentToken, moved: false };
+  if (!series) return stay;
+  // A budget dataset is judged on the rows the series has FOR IT. A non-series
+  // dataset (Employees) is judged on the picker list instead, so a series choice
+  // never drags a valid Employees year -- while a year outside the picker
+  // altogether is still rescued rather than stranding the reader on a blank.
+  const tokens = SERIES_DATASETS.includes(activeDataset)
+    ? seriesDatasetTokens(datasets, series, activeDataset)
+    : seriesPeriodTokens(datasets, series);
+  if (tokens.length === 0 || tokens.includes(currentToken)) return stay;
+  return { token: clampYearToSeries(currentToken, tokens), moved: true };
+}
+
+/**
+ * Should picking up a new entity clear the reader's series choice?
+ *
+ * Yes on a real CHANGE — a series Modesto has, Natick will not, and carrying it
+ * over drops the reader into an absent state on arrival (spec §5).
+ *
+ * ⚠ NO on first sight. Keyed on the entity VALUE, the reset also fired once on
+ * mount, AFTER the URL-restore batch had decoded `?scope=&basis=` for that same
+ * entity — wiping the restored selection, which made the URL sync drop both
+ * params, so a shared link silently showed a DIFFERENT series than the one sent.
+ * The year had already been resolved from the URL, so the page rendered FY2025
+ * adopted figures under an "All Funds · actuals, FY 2024" label. UAT 2026-08-21.
+ */
+export function shouldResetSeries(
+  previousEntityId: string | null,
+  nextEntityId: string | null,
+): boolean {
+  return previousEntityId !== null && previousEntityId !== nextEntityId;
 }
 
 /**

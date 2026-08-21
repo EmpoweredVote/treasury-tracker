@@ -35,7 +35,7 @@ import { resolveEffectiveDataset } from './utils/resolveDataset';
 import FundSeriesToggle from './components/FundSeriesToggle';
 import {
   listSeries, defaultSeries, seriesId, encodeSeries, decodeSeries,
-  seriesPeriodTokens, clampYearToSeries,
+  seriesPeriodTokens, resolveSeriesYear, shouldResetSeries,
 } from './data/seriesSelection';
 import { SERIES_TOGGLE_COPY } from './data/fundScopeVocabulary';
 import type { SeriesKey } from './data/budgetSeries';
@@ -317,8 +317,20 @@ function App() {
   //
   // ⚠ Keyed on the entity ONLY. Adding activeDataset here would re-seed on every
   // tab change and reintroduce the Plano defect described above.
+  // ⚠ Reset on a real CHANGE of entity, never on first sight. Keyed on the entity
+  // VALUE this also fired once on mount, AFTER the URL-restore batch had decoded
+  // ?scope=&basis= for the SAME entity — wiping the restored selection, so the URL
+  // sync dropped both params and a shared link showed a different series than the
+  // one sent. The year was already resolved from the URL, so the page rendered
+  // FY2025 adopted figures under an "All Funds · actuals, FY 2024" label.
+  // Found by UAT 2026-08-21; the predicate is tested in seriesSelection.test.ts.
+  const previousEntityIdRef = useRef<string | null>(null);
   useEffect(() => {
-    setSelectedSeries(null);
+    const nextEntityId = selectedEntity?.id ?? null;
+    if (shouldResetSeries(previousEntityIdRef.current, nextEntityId)) {
+      setSelectedSeries(null);
+    }
+    previousEntityIdRef.current = nextEntityId;
     setDefaultSeriesSeed(
       selectedEntity
         ? defaultSeries(selectedEntity.available_datasets, activeDatasetRef.current)
@@ -340,17 +352,28 @@ function App() {
     return seriesPeriodTokens(selectedEntity.available_datasets, effectiveSeries);
   }, [selectedEntity, effectiveSeries]);
 
-  // SCOPE-03: switching to a narrower series can strand the selected year outside
-  // it. Move to the nearest covered year and record what happened, so the reader
-  // is told rather than silently relocated.
+  // SCOPE-03: picking a series can strand the selected year outside it. Move to
+  // the nearest covered year and record what happened, so the reader is told
+  // rather than silently relocated.
+  //
+  // ⚠ The decision CANNOT be made against `availableYears`. That list keeps years
+  // held only by a non-series dataset so the Employees tab stays reachable, so for
+  // Anaheim — budget series FY2003–24 and FY2025–26, salaries FY2009–24 — FY2024 is
+  // in the list while the adopted series has no operating row for it. This guard
+  // used to see an available year, return early, and leave the reader on a blank
+  // tile whose copy told them to choose the set they had just chosen. Found by UAT
+  // 2026-08-21. `resolveSeriesYear` judges a budget dataset on the rows the series
+  // has FOR IT; its tests are in seriesSelection.test.ts because this file cannot
+  // be tested at all.
   useEffect(() => {
-    if (!selectedEntity || availableYears.length === 0) return;
-    if (availableYears.includes(selectedYear)) { setYearClampNote(null); return; }
-    const clamped = clampYearToSeries(selectedYear, availableYears);
+    if (!selectedEntity) return;
+    const { token, moved } = resolveSeriesYear(
+      selectedEntity.available_datasets, effectiveSeries, activeDataset, selectedYear);
+    if (!moved) { setYearClampNote(null); return; }
     setYearClampNote(
-      SERIES_TOGGLE_COPY.yearClamped(selectedYear, clamped, effectiveSeriesLabel));
-    setSelectedYear(clamped);
-  }, [availableYears, selectedYear, selectedEntity, effectiveSeriesLabel]);
+      SERIES_TOGGLE_COPY.yearClamped(selectedYear, token, effectiveSeriesLabel));
+    setSelectedYear(token);
+  }, [selectedEntity, effectiveSeries, activeDataset, selectedYear, effectiveSeriesLabel]);
 
   const availableDatasetTypes = useMemo(() => {
     if (!selectedEntity) return ['operating', 'revenue', 'salaries'];
