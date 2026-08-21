@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   listSeries, seriesId, defaultSeries, encodeSeries, decodeSeries,
-  seriesPeriodTokens, clampYearToSeries, spanLabel,
+  seriesPeriodTokens, seriesDatasetTokens, resolveSeriesYear, shouldResetSeries,
+  clampYearToSeries, spanLabel,
 } from './seriesSelection';
 import { TQ_TOKEN, TQ_LABEL } from '../utils/period';
 
@@ -255,5 +256,170 @@ describe('spanLabel', () => {
     // FY1998-2003 must not read "FY1998-03", which looks like a backwards range.
     // Connecticut and Wisconsin both carry pre-2000 series, so this is live.
     expect(spanLabel({ min: 1998, max: 2003 })).toBe('FY1998–2003');
+  });
+});
+
+describe('seriesDatasetTokens', () => {
+  /**
+   * ANAHEIM, found by UAT on 2026-08-21 and not by any unit test.
+   *
+   * Its two budget series are DISJOINT -- all_funds/actual FY2003-24 and
+   * unknown/adopted FY2025-26 -- and it also carries salaries FY2009-24.
+   *
+   * `seriesPeriodTokens` deliberately KEEPS salaries-only years so the Employees
+   * tab stays reachable. Correct on its own. But it means FY2024 is in the year
+   * list while the adopted series has no operating row for FY2024, so the clamp
+   * in App.tsx sees an "available" year, returns early, and the reader lands on a
+   * blank tile reading "not published in Scope not established - adopted budget.
+   * Choose another set above to see it." -- the set they just chose.
+   *
+   * Two individually-correct decisions combining into a dead end.
+   */
+  const anaheim = [
+    ...Array.from({ length: 22 }, (_, i) => d(2003 + i, 'operating', 'all_funds', 'actual')),
+    ...Array.from({ length: 22 }, (_, i) => d(2003 + i, 'revenue', 'all_funds', 'actual')),
+    ...[2025, 2026].map((y) => d(y, 'operating', 'unknown', 'adopted')),
+    ...[2025, 2026].map((y) => d(y, 'revenue', 'unknown', 'adopted')),
+    ...Array.from({ length: 16 }, (_, i) => d(2009 + i, 'salaries', 'unknown', 'unknown')),
+  ];
+  const adopted = { fundScope: 'unknown', basis: 'adopted' } as const;
+
+  it('offers only years the series can actually render for the active dataset', () => {
+    expect(seriesDatasetTokens(anaheim, adopted, 'operating')).toEqual(['2026', '2025']);
+  });
+});
+
+describe('resolveSeriesYear', () => {
+  // The decision App.tsx makes when the reader picks a series. Pure, because this
+  // repo collects no `.test.tsx` and a component cannot be tested at all.
+  const anaheim = [
+    ...Array.from({ length: 22 }, (_, i) => d(2003 + i, 'operating', 'all_funds', 'actual')),
+    ...Array.from({ length: 22 }, (_, i) => d(2003 + i, 'revenue', 'all_funds', 'actual')),
+    ...[2025, 2026].map((y) => d(y, 'operating', 'unknown', 'adopted')),
+    ...[2025, 2026].map((y) => d(y, 'revenue', 'unknown', 'adopted')),
+    ...Array.from({ length: 16 }, (_, i) => d(2009 + i, 'salaries', 'unknown', 'unknown')),
+  ];
+  const adopted = { fundScope: 'unknown', basis: 'adopted' } as const;
+
+  it('moves the reader into the selected series instead of stranding them on a blank', () => {
+    // THE BUG: FY2024 is in the year picker because salaries covers it, so the
+    // clamp saw an available year and returned early -- leaving the reader on a
+    // blank tile telling them to choose the set they had just chosen.
+    expect(resolveSeriesYear(anaheim, adopted, 'operating', '2024'))
+      .toEqual({ token: '2025', moved: true });
+  });
+
+  it('reports the move rather than making it silently', () => {
+    // `moved` exists so the reader can be told. If the caller had to infer it by
+    // comparing tokens, a clamp that happens to land on the same year would be
+    // indistinguishable from no clamp at all.
+    expect(resolveSeriesYear(anaheim, adopted, 'operating', '2024').moved).toBe(true);
+    expect(resolveSeriesYear(anaheim, adopted, 'operating', '2025').moved).toBe(false);
+  });
+
+  it('does not move a year the series already covers', () => {
+    expect(resolveSeriesYear(anaheim, adopted, 'operating', '2026'))
+      .toEqual({ token: '2026', moved: false });
+  });
+
+  it('leaves the Employees tab on its own year', () => {
+    // salaries is not a series dataset; its years must not be dragged into a
+    // budget series' range or the tab becomes unreachable in the years it has.
+    expect(resolveSeriesYear(anaheim, adopted, 'salaries', '2024'))
+      .toEqual({ token: '2024', moved: false });
+  });
+
+  it('a budget-series choice never drags the Employees year', () => {
+    // Pins the non-series-dataset guard. Needs a fixture where salaries shares
+    // the SELECTED series' scope+basis and does NOT cover the current year --
+    // otherwise the empty-tokens guard catches it and the guard looks redundant.
+    // A mutation run proved exactly that: this was the one surviving mutant.
+    const sets = [
+      ...[2020, 2021, 2022, 2023, 2024].map((y) => d(y, 'operating', 'unknown', 'unknown')),
+      ...[2020, 2021, 2022].map((y) => d(y, 'salaries', 'unknown', 'unknown')),
+    ];
+    const series = { fundScope: 'unknown', basis: 'unknown' } as const;
+    // Reader is on Employees in FY2024, a year salaries does not cover -- legal,
+    // because the picker offers the UNION so every tab stays reachable.
+    expect(resolveSeriesYear(sets, series, 'salaries', '2024'))
+      .toEqual({ token: '2024', moved: false });
+  });
+
+  it('stays put when the series has no row for this dataset at all', () => {
+    // FRESNO / LONGVIEW: a one-sided series. There is nowhere to clamp TO, and
+    // the display rule wants the absent state shown with the toggle still usable
+    // -- not a relocation to an unrelated year.
+    const fresno = [
+      ...Array.from({ length: 22 }, (_, i) => d(2003 + i, 'operating', 'all_funds', 'actual')),
+      ...Array.from({ length: 22 }, (_, i) => d(2003 + i, 'revenue', 'all_funds', 'actual')),
+      ...[2025, 2026].map((y) => d(y, 'operating', 'unknown', 'adopted')),
+    ];
+    expect(resolveSeriesYear(fresno, adopted, 'revenue', '2024'))
+      .toEqual({ token: '2024', moved: false });
+  });
+
+  it('stays put when no series is selected', () => {
+    expect(resolveSeriesYear(anaheim, null, 'operating', '2024'))
+      .toEqual({ token: '2024', moved: false });
+  });
+
+  it('still rescues a year that is outside the picker entirely, even on Employees', () => {
+    // Do not regress the pre-existing clamp. "Stay put on a non-series dataset"
+    // must mean "do not drag a VALID year", not "never correct an invalid one" --
+    // otherwise a reader deep-linked to FY2030 is stranded on a blank forever.
+    const sets = [
+      ...[2020, 2021, 2022].map((y) => d(y, 'operating', 'unknown', 'unknown')),
+      ...[2020, 2021, 2022].map((y) => d(y, 'salaries', 'unknown', 'unknown')),
+    ];
+    const series = { fundScope: 'unknown', basis: 'unknown' } as const;
+    expect(resolveSeriesYear(sets, series, 'salaries', '2030'))
+      .toEqual({ token: '2022', moved: true });
+  });
+
+  it('resolves the deep-linked adopted series that UAT saw revert to the default', () => {
+    // Establishes WHERE the round-trip fault is. Reloading
+    // ?scope=unknown&basis=adopted dropped both params and reverted the pill.
+    // If this passes, decodeSeries is sound and the fault is in the App wiring.
+    expect(decodeSeries('unknown', 'adopted', listSeries(anaheim)))
+      .toEqual({ fundScope: 'unknown', basis: 'adopted' });
+  });
+
+  it('does NOT narrow the year picker -- Employees stays reachable in FY2024', () => {
+    // Guards the fix against over-correcting. The picker keeps salaries-only
+    // years; only the landing decision uses the narrow list.
+    expect(seriesPeriodTokens(anaheim, adopted)).toContain('2024');
+    expect(seriesDatasetTokens(anaheim, adopted, 'operating')).not.toContain('2024');
+  });
+});
+
+describe('shouldResetSeries', () => {
+  /**
+   * SCOPE-03 clears the selection when the reader moves between entities: a
+   * series Modesto has, Natick will not. Correct -- but the effect was keyed on
+   * the entity VALUE, so it also fired once on mount, AFTER the URL-restore batch
+   * had already decoded ?scope=&basis= for that same entity. It wiped the
+   * restored selection, the URL sync then dropped both params, and a shared link
+   * silently showed a DIFFERENT series than the one that was sent.
+   *
+   * Worse, the year had already been resolved from the URL, so the page rendered
+   * FY2025 adopted figures under an "All Funds - actuals, FY 2024" label. Found
+   * by UAT 2026-08-21.
+   *
+   * Reset on a real CHANGE, never on first sight.
+   */
+  it('does not reset on first sight, so a URL-restored series survives mount', () => {
+    expect(shouldResetSeries(null, 'anaheim-ca')).toBe(false);
+  });
+
+  it('does not reset when the entity has not changed', () => {
+    expect(shouldResetSeries('anaheim-ca', 'anaheim-ca')).toBe(false);
+  });
+
+  it('resets when the reader moves to a different entity', () => {
+    expect(shouldResetSeries('anaheim-ca', 'natick-ma')).toBe(true);
+  });
+
+  it('resets when leaving an entity for the landing screen', () => {
+    expect(shouldResetSeries('anaheim-ca', null)).toBe(true);
   });
 });
