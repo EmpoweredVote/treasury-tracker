@@ -1,7 +1,9 @@
 # LA-01 — Los Angeles City: reconcile Socrata against an audited ACFR (DRIVING DOC)
 
 **Created:** 2026-08-20, at Chris's request, to be worked unattended overnight.
-**Status:** PROBE COMPLETE — verdict in §9. DB write NOT started (see §9 "NOT DONE").
+**Status:** PROBE COMPLETE, SECOND YEAR RUN — **the §9 verdict DID NOT SURVIVE it.**
+**The live verdict is §10. §9 is SUPERSEDED and must not be acted on.**
+No DB write was made, and on this evidence none is warranted.
 **Branch:** create `fix/la-city-series` off `main` (do NOT work on `main`).
 
 > **Read this file first if you are a fresh session.** It is written to be
@@ -180,6 +182,15 @@ audited ACFR is directly fetchable.
 
 <!-- APPEND ONLY. Newest at the bottom. Keep this honest — including dead ends. -->
 
+- **2026-08-20 ~18:4x** — SECOND-YEAR CONFIRMATION RUN, AND IT FAILED. §9 is
+  SUPERSEDED by §10. Ruled out the ISF residue hypothesis outright (LA has NO
+  internal service funds — "Internal Service" occurs 0 times in both the FY2023
+  and FY2022 ACFRs). Found the line §9 missed (`Interest Income from Leases`
+  17,016) which drives FY2023 revenue to a $5,077 residue — and then showed
+  that this is FITTING, not scope identity: 7 of 128 subsets tie FY2023 revenue
+  inside 0.5%, FY2022 is won by a DIFFERENT subset, and §9's formula misses
+  FY2022 by +2.36%. Government-wide (zero fitting freedom) fails too, with the
+  sign FLIPPING between years. Verdict: leave `unknown`. No DB write.
 - **2026-08-20 ~05:2x** — PROBE DONE. Verdict in §9: **H1 confirmed, Socrata is
   `all_funds / actual`**, residues 0.080% (revenue) and 0.147% (expenditure) after
   decomposing non-operating revenue + capital contributions; nearest rival scope out
@@ -207,7 +218,13 @@ audited ACFR is directly fetchable.
 
 ---
 
-## 9. VERDICT — H1 CONFIRMED. Socrata is ALL FUNDS ACTUALS.
+## 9. ~~VERDICT — H1 CONFIRMED. Socrata is ALL FUNDS ACTUALS.~~
+
+> 🛑 **SUPERSEDED 2026-08-20 by §10. DO NOT ACT ON THIS SECTION.**
+> Retained verbatim so the error stays auditable. Its FY2023 "tie" is one of
+> SEVEN subset assemblies that land inside 0.5% in that year alone, and the
+> very formula it endorses misses FY2022 by +2.36%. Kept as a record of how a
+> fitted result can look decisive.
 
 **Probe:** City of Los Angeles FY2023 ACFR, `https://controller.lacity.gov/acfr23.pdf`
 (450pp, 16,780,245 bytes, "Year Ended June 30, 2023", amounts in **thousands**).
@@ -289,3 +306,135 @@ contingent on that verdict and is a separate step, not started:
 4. Backfill the NULL `source_url` / `source_date` on the 11 FY2021+ rows.
 5. Chris's §8 questions still stand — particularly whether he'd rather have a
    direct ACFR load than a classified portal feed.
+
+---
+
+## 10. VERDICT (LIVE) — H4. Socrata reconciles to NOTHING STABLE. Leave it `unknown`.
+
+**Supersedes §9.** §9 classified on a single year. This section runs the second
+year §9 itself said was mandatory ("Confirm on a SECOND year before classifying 9
+rows off one probe"), plus a test §9 never ran — how many *other* assemblies fit
+just as well. Both break it.
+
+Probes: FY2023 `acfr23.pdf` (450pp) and FY2022 `acfr22.pdf` (434pp, 17,516,950
+bytes as predicted). Every figure below is read off a **GAAP** statement by
+pdfplumber glyph coordinates — page titles were verified to exclude the
+`Budget and Actual (Non-GAAP Budgetary)` statement, which sits a page or two
+later in both books and is a live trap.
+
+### 10.1 The ISF hypothesis is dead — LA has no internal service funds
+
+§9 guessed the residues were Internal Service Funds. They are not, and this is
+not a failure to find them: the string `Internal Service` occurs **0 times** in
+both ACFRs (FY2023 450pp, FY2022 434pp; extraction verified complete by form-feed
+count, and re-scanned with `grep -a` after the first pass tripped grep's binary
+heuristic — an absence proved by a grep that bailed early is worth nothing).
+LA's MD&A says it plainly: *"the City's **six** enterprise funds"*. Proprietary
+= enterprise, full stop.
+
+### 10.2 The line §9 missed, and why it is a trap rather than a fix
+
+§9 omitted `Interest Income from Leases` (FY2023: **17,016**). Adding it:
+
+`10,378,641 + 9,854,989 + 154,710 + 17,016 + 119,074 + 616,983 = 21,141,413`
+vs stored **21,141,407.923** → residue **$5,077 on $21.1B = 0.000024%**.
+
+Six-significant-figure agreement. §9's 0.080% residue was simply this missing
+line. It is extremely tempting and it is **not** evidence, because:
+
+### 10.3 The fit test — the method has no discriminating power
+
+Enumerating every subset of the optional nonoperating/capital components over the
+base (governmental total + enterprise operating), against the stored figure:
+
+| Year / side | base residue | subsets within 0.5% | best fit |
+|---|---|---|---|
+| FY2023 revenue | +4.2938% | **7 of 128** | −0.00002% (§9's + lease interest) |
+| FY2023 expenditure | +0.1470% | **10 of 128** | +0.053% = base + *lease interest* |
+| FY2022 revenue | +2.3623% | **5 of 64** | +0.085% = base + lease interest + other income net |
+| FY2022 expenditure | +2.2575% | **6 of 64** | −0.076% = base + other income net + capital contributions + transfers out |
+
+Three things kill the classification:
+
+1. **No two year/side pairs agree on the winning assembly.** §9's FY2023 formula
+   gives **+2.36%** on FY2022 — outside the STOP threshold in §4.
+2. **Several best fits are accounting nonsense.** FY2023 expenditure's top fit
+   adds *Interest Income from Leases* — a revenue — to expenditures. FY2022
+   expenditure's adds capital contributions and transfers out.
+3. **A sub-0.5% hit is guaranteed by construction.** Six or seven optional
+   components spanning 17,016 to 1,162,020 generate subset sums that densely
+   cover a ±1M band around an ~19M base. Hitting 0.5% is arithmetic, not scope
+   identity. This is the tautology trap in a new costume — same family as the
+   `total = Σ items` check and the "0/23,260 rows tie" green light.
+
+### 10.4 The zero-degrees-of-freedom candidate also fails, and its sign flips
+
+Government-wide Statement of Activities (primary government, full accrual) is a
+single printed pair — nothing to assemble, so nothing to fit:
+
+| | FY2023 | FY2022 |
+|---|---|---|
+| ACFR total expenses | 19,564,849 | 16,555,364 |
+| Socrata operating | 18,162,091 | 17,447,659 |
+| **Δ** | **−7.72%** | **+5.11%** |
+| ACFR total revenues | 21,633,543 | 19,952,927 |
+| Socrata revenue | 21,141,408 | 19,280,740 |
+| **Δ** | **−2.33%** | **−3.49%** |
+
+Socrata is 7.7% *below* government-wide expenses one year and 5.1% *above* the
+next. A scope relationship cannot change sign. This is not a scope difference.
+
+### 10.5 Full candidate table
+
+| Candidate | FY2023 rev | FY2023 exp | FY2022 rev | FY2022 exp |
+|---|---|---|---|---|
+| `general_fund` | −68.1% | −67.0% | — | — |
+| `total_governmental` | −50.9% | −45.3% | — | — |
+| `all_funds` (gov + enterprise operating) | +4.29% | +0.15% | +2.36% | +2.26% |
+| government-wide primary government | −2.33% | −7.72% | −3.49% | +5.11% |
+| any fitted subset | ties | ties | ties | ties — *differently each time* |
+
+Nothing is stable. Per the §4 decision rule — *"best candidate off by >2% with no
+decomposition → STOP, leave `unknown`"* — **H4 is the outcome. Socrata stays
+`unknown`. No registry entry, no stamp, no DB write.**
+
+### 10.6 What Socrata probably is (hypothesis, NOT established)
+
+Stored Socrata figures carry **cents** in FY2025 (`25,063,362,950.98`), so they
+are transaction-level rollups out of LA's financial management system, not
+statement figures. On the fund-statement base, Socrata is higher on **both** sides
+in FY2022 (+2.36% / +2.26%) — the signature of **interfund activity that was
+never eliminated**, which a raw ledger rollup would double-count and an audited
+statement removes. That would make the figures internally coherent but
+**not comparable to any ACFR scope, and not consolidatable** — worth stating
+plainly rather than classifying around.
+
+⚠ Do not resurrect the §2 magnitude-continuity argument (SCO ends FY2020 at
+$16.99B, Socrata FY2021 opens at $16.17B). §3 already warned that LA's huge
+proprietary funds put several unrelated scopes in the same band, and §10.3 shows
+exactly how that band produces false ties.
+
+### 10.7 Recommendation
+
+1. **Leave the Socrata rows `unknown`.** That is the honest state and it is what
+   the evidence gate is for. LA stays severed — the severance is *real*, and
+   papering it over with a fitted classification would print a continuous LA
+   history that no audited document supports.
+2. **The fix is a direct ACFR load for FY2021–FY2025**, not a classification.
+   Encouragingly, the audited all-funds base *is* continuous with the CA SCO
+   series: SCO ends FY2020 at $16.99B expenditure; the FY2022 ACFR base is
+   $17.05B. So an ACFR load rejoins the history **on evidence** rather than on a
+   coincidence. `acfr22.pdf`/`acfr23.pdf` are already extracted and known-good;
+   `acfr24.pdf`/`acfr25.pdf` are 404 and must be found from
+   `https://controller.lacity.gov/reports`.
+3. **Do not present an LA surplus/deficit** from the current stored pair under any
+   circumstance — FY2025 already mixes two different documents (§2 defect 2).
+4. §8's questions all still stand, and Q1 is now answered: *classify now* is off
+   the table.
+
+### 10.8 Cost of the correction
+
+Two ACFRs read, ~40 printed figures transcribed by coordinates, 384 subset
+combinations enumerated. It cost one session to avoid stamping **9 rows** — and,
+worse, to avoid publishing a continuous Los Angeles history built on a
+coincidence, in the flagship city Chris flagged as "still feels broken".
