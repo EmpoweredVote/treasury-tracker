@@ -1,11 +1,25 @@
 /**
- * Shared loader core for the two Texas ACFR entities (City of Austin, Travis
- * County). NO SHEBANG — library module under scripts/lib/.
+ * Shared loader core for per-entity ACFR General Fund loads.
+ * NO SHEBANG — library module under scripts/lib/.
  *
- * Drives `scripts/extractAustin.py` / `scripts/extractTravis.py` and writes
- * General Fund `operating` + `revenue` trees through the source-safe
- * `treasury_sync_budget_tree` RPC. Two thin drivers (`processAustin.js`,
- * `processTravis.js`) supply an `EntityConfig`; everything else lives here.
+ * Serves four entities across two states, each with a thin driver that supplies
+ * an `EntityConfig`:
+ *
+ *   TX (Oct-Sep fiscal year)   processAustin.js, processTravis.js
+ *   CO (calendar fiscal year)  processColoradoSprings.js, processElPasoCounty.js
+ *
+ * Drives the entity's `scripts/extract<Entity>.py` and writes General Fund
+ * `operating` + `revenue` trees through the source-safe
+ * `treasury_sync_budget_tree` RPC.
+ *
+ * -- WHY THE FISCAL CALENDAR IS A REQUIRED CONFIG FIELD ----------------------
+ * `state`, `fyEndMonthDay` and `fiscalYearStartMonth` are ASSERTED PRESENT by
+ * `assertConfig` rather than defaulted. This file was originally TX-only and
+ * hardcoded `09-30` / month 10; leaving those as defaults while adding a
+ * calendar-year state would have stamped a September period end and an October
+ * start month onto Colorado rows that close December 31 -- the exact defect
+ * class `fixAcfrFiscalYearStartMonth.mjs` had to sweep 1,719 rows to undo. A
+ * missing field is a loud startup failure instead.
  *
  * Never `treasury_sync_city_budget` — that RPC overwrites existing
  * (muni, fy, dataset) rows and keeps the stale `data_source` label
@@ -67,11 +81,40 @@ import { resolvePython } from './pythonBin.mjs';
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '..', '..');
 
-/** Absolute per-FY ceiling. Austin's GF is ~$1.4B and Travis's ~$1.1B in FY2025. */
+/**
+ * Absolute per-FY ceiling. The largest General Fund in this cohort is Austin's
+ * at ~$1.4B (FY2025); Travis ~$1.1B, Colorado Springs ~$422M, El Paso ~$290M.
+ */
 const SANITY_MAX = 5_000_000_000;
 /** Plausible General Fund dollars per resident per year. */
 const PER_CAPITA_MIN = 100;
 const PER_CAPITA_MAX = 20_000;
+
+/**
+ * Fail before touching the network or the database if a driver omits a field
+ * whose wrong value would be SILENT. A missing `state` would resolve the wrong
+ * entity (or none); a missing fiscal-calendar field would mislabel the period
+ * of every row it writes without changing a single dollar figure.
+ */
+export function assertConfig(cfg) {
+  const required = ['entityLabel', 'muniName', 'entityType', 'state', 'pdfDir', 'filePattern',
+    'extractScript', 'datasetIdPrefix', 'baseUrl', 'fys', 'fyEndMonthDay', 'fiscalYearStartMonth'];
+  const missing = required.filter((k) => cfg[k] === undefined || cfg[k] === null);
+  if (missing.length) throw new Error(`EntityConfig is missing required field(s): ${missing.join(', ')}`);
+  if (!/^\d{2}-\d{2}$/.test(cfg.fyEndMonthDay)) {
+    throw new Error(`fyEndMonthDay must be "MM-DD", got ${JSON.stringify(cfg.fyEndMonthDay)}`);
+  }
+  // A calendar fiscal year ends 12-31 and starts in month 1; an Oct-Sep year
+  // ends 09-30 and starts in month 10. The two facts must agree, or one of them
+  // is a typo that no dollar check downstream can see.
+  const endMonth = Number(cfg.fyEndMonthDay.slice(0, 2));
+  const expectedStart = (endMonth % 12) + 1;
+  if (cfg.fiscalYearStartMonth !== expectedStart) {
+    throw new Error(`fiscalYearStartMonth ${cfg.fiscalYearStartMonth} contradicts fyEndMonthDay `
+      + `${cfg.fyEndMonthDay} (a year ending in month ${endMonth} starts in month ${expectedStart})`);
+  }
+  return cfg;
+}
 
 export function loadEnv() {
   for (const f of ['.env.local', '.env']) {
@@ -147,7 +190,7 @@ export function toBudgetTree(extractorTree, mode) {
 export function readManifest(cfg) {
   const p = path.join(ROOT, cfg.pdfDir, 'manifest.json');
   if (!existsSync(p)) {
-    console.error(`ERROR: ${p} missing — run scripts/fetchAustinTravis.mjs first.`);
+    console.error(`ERROR: ${p} missing — run ${cfg.fetchScript ?? 'the entity fetcher'} first.`);
     console.error('       Refusing to load without the URL that served each parsed file.');
     process.exit(2);
   }
@@ -168,18 +211,19 @@ export function discoverPdfsByFY(cfg) {
 export async function ensureMunicipality(supabase, cfg) {
   const { data, error } = await supabase.schema('treasury').from('municipalities')
     .select('id, name, population')
-    .eq('name', cfg.muniName).eq('state', 'TX').eq('entity_type', cfg.entityType)
+    .eq('name', cfg.muniName).eq('state', cfg.state).eq('entity_type', cfg.entityType)
     .maybeSingle();
   if (error) { console.error(`  ERROR resolving ${cfg.muniName}:`, error.message); process.exit(2); }
   if (!data?.id) {
-    console.error(`  ${cfg.muniName}, TX (entity_type=${cfg.entityType}) not found — run scripts/seedAustinTravis.mjs first`);
+    console.error(`  ${cfg.muniName}, ${cfg.state} (entity_type=${cfg.entityType}) not found `
+      + `— run ${cfg.seedScript ?? 'the entity seeder'} first`);
     process.exit(2);
   }
   if (!data.population) {
     console.error(`  ${cfg.muniName} has no population — the per-capita units guard cannot run. Refusing to load.`);
     process.exit(2);
   }
-  console.log(`  Entity: ${data.name}, TX (${data.id}) pop ${data.population.toLocaleString()}`);
+  console.log(`  Entity: ${data.name}, ${cfg.state} (${data.id}) pop ${data.population.toLocaleString()}`);
   return data;
 }
 
@@ -195,14 +239,15 @@ export async function createEphemeralDataSource(supabase, cfg, muniId, datasetTy
     base_url: cfg.baseUrl,
     fiscal_years: fys,
     municipality_id: muniId,
-    // Both Texas entities run an October 1 - September 30 fiscal year. The RPC
-    // propagates v_ds.fiscal_year_start_month into treasury.budgets (migration
-    // 20260613120000), and the budgets stamp below sets it again directly so the
-    // value does not depend on that propagation still holding. Same convention
-    // as the Oct-Sep state ACFR loaders (processALAcfr.js, processMIAcfr.js).
-    // Leaving the column at its default 1 would assert a CALENDAR-year period
-    // for a fiscal year that ends in September.
-    fiscal_year_start_month: 10,
+    // The RPC propagates v_ds.fiscal_year_start_month into treasury.budgets
+    // (migration 20260613120000), and the budgets stamp below sets it again
+    // directly so the value does not depend on that propagation still holding.
+    // Both Texas entities run October 1 - September 30 (month 10, same as the
+    // Oct-Sep state ACFR loaders processALAcfr.js / processMIAcfr.js); both
+    // Colorado entities run the calendar year (month 1). Leaving the column at
+    // its default 1 for a TX entity would assert a CALENDAR-year period for a
+    // fiscal year that ends in September, so this is config, never a default.
+    fiscal_year_start_month: cfg.fiscalYearStartMonth,
   };
   await supabase.schema('treasury').from('data_sources').delete().eq('dataset_id', datasetId);
   const { data, error } = await supabase.schema('treasury').from('data_sources').insert(payload).select().single();
@@ -247,12 +292,12 @@ async function loadFiscalYear(supabase, cfg, muniId, dsId, fy, datasetType, tree
   }
   const { error: stampErr } = await supabase.schema('treasury').from('budgets').update({
     source_url: sourceUrl,
-    source_date: `${fy}-09-30`,
+    source_date: `${fy}-${cfg.fyEndMonthDay}`,
     data_source: dataSourceLabel(cfg, fy, datasetType),
-    fiscal_year_start_month: 10,
+    fiscal_year_start_month: cfg.fiscalYearStartMonth,
   }).eq('id', bud.id);
   if (stampErr) { console.error('    Source stamp failed:', stampErr.message); return false; }
-  console.log(`    Inserted ${rpc?.rows_inserted ?? '?'} line items; stamped source_date=${fy}-09-30`);
+  console.log(`    Inserted ${rpc?.rows_inserted ?? '?'} line items; stamped source_date=${fy}-${cfg.fyEndMonthDay}`);
   return true;
 }
 
@@ -334,6 +379,7 @@ export async function processMode(supabase, cfg, muni, { dryRun, mode, targetFY 
 
 // ── Driver entry point ───────────────────────────────────────────────────────
 export async function run(cfg) {
+  assertConfig(cfg);
   loadEnv();
   const argv = process.argv.slice(2);
   const arg = (k) => { const i = argv.indexOf(k); return i >= 0 ? argv[i + 1] : null; };

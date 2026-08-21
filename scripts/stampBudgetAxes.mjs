@@ -67,6 +67,10 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // family, so no pre-existing count moved.
   // Evidence: docs/superpowers/plans/AUSTIN-TRAVIS-01-SCOPE-RECON.md §2.
   'tx-local-acfr-gf': 76,
+  // CO-SPRINGS-EPC-01, measured 2026-08-21: Colorado Springs 28 + El Paso
+  // County 36. A NEW family, so no pre-existing count moved.
+  // Evidence: docs/superpowers/plans/CO-SPRINGS-EPC-01-CLOSEOUT.md section 6.
+  'co-local-acfr-gf': 64,
   // The sixteen entity-published city/state ACFR families, measured 2026-08-19.
   // Evidence: docs/superpowers/plans/ACFR-GF-CLASSIFICATION-RECON.md §2.
   'or-city-acfr-gf': 106,
@@ -81,6 +85,10 @@ export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
   'wa-sao': 286,
   // AUSTIN-TRAVIS-01. Evidence: AUSTIN-TRAVIS-01-SCOPE-RECON.md §3.
   'tx-local-acfr-gf': 76,
+  // CO-SPRINGS-EPC-01, measured 2026-08-21: Colorado Springs 28 + El Paso
+  // County 36. A NEW family, so no pre-existing count moved.
+  // Evidence: docs/superpowers/plans/CO-SPRINGS-EPC-01-CLOSEOUT.md section 6.
+  'co-local-acfr-gf': 64,
   // The sixteen entity-published city/state ACFR families.
   // Evidence: ACFR-GF-CLASSIFICATION-RECON.md §3.
   'or-city-acfr-gf': 106,

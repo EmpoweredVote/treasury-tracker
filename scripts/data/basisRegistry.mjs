@@ -133,6 +133,31 @@ export const BASIS_REGISTRY = [
     },
   },
   {
+    // CO-SPRINGS-EPC-01. 64 rows, measured 2026-08-21. Anchored to the two
+    // entity names - see the fund-scope entry of the same id.
+    id: 'co-local-acfr-gf',
+    match: /^(City of Colorado Springs|El Paso County) ACFR — General Fund /,
+    value: BASIS.ACTUAL,
+    evidence: {
+      document: 'City of Colorado Springs FY2024 + FY2016 and El Paso County FY2024 + FY2020 + '
+              + 'FY2012 ACFRs - audited, unmodified opinion, closed fiscal years '
+              + '(CO-SPRINGS-EPC-01-CLOSEOUT.md section 6)',
+      figures: 'Every stored figure is the printed General Fund column of the governmental-funds '
+             + 'Statement of Revenues, Expenditures and Changes in Fund Balances - a year-end GAAP '
+             + 'actual, tying exactly on both sides in all five probes. NOT an appropriation, and '
+             + 'Colorado Springs is the reason to say so explicitly: its ACFR prints a SECOND '
+             + 'statement with almost the same title - "GENERAL FUND / STATEMENT OF REVENUES, '
+             + 'EXPENDITURES AND CHANGES IN FUND BALANCE / BUDGET AND ACTUAL" (Exhibit 6, four '
+             + 'pages, Original | Final | Actual | Variance) - which IS budgetary basis. Loading '
+             + 'that page instead would have put budget-basis figures under a GAAP-actual label '
+             + 'with no arithmetic symptom. It is structurally unreachable: both readers exclude '
+             + 'any page whose text carries "budget and actual" or "budgetary", and Exhibit 4 '
+             + 'precedes Exhibit 6 in every year so the earliest-qualifying rule reaches it first. '
+             + 'The whole window is closed - FY2025 ended 2025-12-31 and both FY2025 reports are '
+             + 'published and audited.',
+    },
+  },
+  {
     id: 'wa-sao',
     match: /^WA State Auditor — /,
     value: BASIS.ACTUAL,

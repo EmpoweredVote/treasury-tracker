@@ -3,7 +3,7 @@
  * City of Austin, TX — General Fund operating (expenditure-by-function) +
  * revenue (revenue-by-source), FY2010–FY2025, ACTUAL (ACFR GAAP basis).
  *
- * Thin driver over `scripts/lib/txAcfrLoad.mjs`, which carries the write path
+ * Thin driver over `scripts/lib/acfrGfLoad.mjs`, which carries the write path
  * and the five guards (tie gate, fiscal-year assertion, per-capita units
  * guard, sanity ceiling, idempotence).
  *
@@ -47,7 +47,7 @@
  *   node scripts/processAustin.js
  */
 
-import { run } from './lib/txAcfrLoad.mjs';
+import { run } from './lib/acfrGfLoad.mjs';
 
 const FYS = Array.from({ length: 16 }, (_, i) => 2010 + i); // 2010..2025
 
@@ -61,4 +61,11 @@ await run({
   datasetIdPrefix: 'austin-acfr-gf',
   baseUrl: 'https://www.austintexas.gov/page/financial-reports',
   fys: FYS,
+  state: 'TX',
+  // October 1 - September 30. Stated here rather than defaulted in the shared
+  // lib, which now also serves two calendar-year Colorado entities.
+  fyEndMonthDay: '09-30',
+  fiscalYearStartMonth: 10,
+  seedScript: 'scripts/seedAustinTravis.mjs',
+  fetchScript: 'scripts/fetchAustinTravis.mjs',
 });
