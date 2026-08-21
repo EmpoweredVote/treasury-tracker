@@ -56,8 +56,14 @@ export const EXPECTED_ROWS = Object.freeze({
   // over. Not a pattern change: both patterns are byte-identical to SCOPE-01's.
   // The gate had been failing on this since the backfill; the classifier was not
   // re-run afterwards.
-  'ca-sco-city-exp': 10448,
-  'ca-sco-city-rev': 10448,
+  // ⚠ +4 each against 10448: LA-02 loaded the State Controller's already-published
+  // FY2021-2024 for Los Angeles City (4 expenditure + 4 revenue rows). Those years
+  // had been sitting under a `Socrata: https://data.lacity.org` label — the revenue
+  // figures were the State Controller's all along, dollar-identical in all 4 years.
+  // Verified against the live table: the two sources now count 10452 / 10452, exactly
+  // +4 / +4, with nothing else moved. Evidence: LA-02-SCOPING.md §2.
+  'ca-sco-city-exp': 10452,
+  'ca-sco-city-rev': 10452,
   'ca-sco-county-exp': 1188,
   'ca-sco-county-rev': 1188,
   'state-acfr-gf': 1448,
