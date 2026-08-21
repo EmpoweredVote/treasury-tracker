@@ -2,7 +2,9 @@
 
 **Created:** 2026-08-20, at Chris's request, to be worked unattended overnight.
 **Status:** PROBE COMPLETE, SECOND YEAR RUN — **the §9 verdict DID NOT SURVIVE it.**
-**The live verdict is §10. §9 is SUPERSEDED and must not be acted on.**
+**Live verdict: §10 (why not to classify) + §11 (what the data actually is).**
+**§9 is SUPERSEDED and must not be acted on. §10.6/§10.7 are superseded by §11.**
+**Next work is `LA-02-SCOPING.md` — the ACFR load §10.7 recommended is NOT needed.**
 No DB write was made, and on this evidence none is warranted.
 **Branch:** create `fix/la-city-series` off `main` (do NOT work on `main`).
 
@@ -438,3 +440,42 @@ Two ACFRs read, ~40 printed figures transcribed by coordinates, 384 subset
 combinations enumerated. It cost one session to avoid stamping **9 rows** — and,
 worse, to avoid publishing a continuous Los Angeles history built on a
 coincidence, in the flagship city Chris flagged as "still feels broken".
+
+---
+
+## 11. POSTSCRIPT — the label was the bug. §10.6/§10.7 are superseded; §10.1–10.5 stand.
+
+Found immediately after §10, while scoping the ACFR load §10.7 recommended. **The ACFR
+load is not needed.** See `LA-02-SCOPING.md`.
+
+`Socrata: https://data.lacity.org` is stamped on **two unrelated datasets**:
+
+* **revenue FY2021–2024 was never Socrata.** It is **CA State Controller ByTheNumbers**
+  (`rrtv-rsj9`) — the same source as FY2003–2020 — and the stored totals are
+  **dollar-identical to the API in all four years** (17,563,869,909 / 19,280,740,014 /
+  21,141,407,923 / 21,612,492,478). The stored categories are verbatim SCO taxonomy
+  (`Electric Enterprise Fund`, `Intergovernmental – Federal, County, and Other Taxes
+  In-Lieu`, `Special Benefit Assessments`).
+* **operating FY2021–2025 is LA's own FMS appropriation ledger**
+  (`hierarchy = ["Department_Name","SubDepartment_Name","Program_Name"]`; categories
+  `POLICE`, `NON-DEPARTMENTAL - …`, `TX REV ANTICIP NOTE PROC`).
+
+**And SCO still publishes — through FY2024 on both datasets.** The series never had to be
+severed; nobody checked. Loading SCO expenditures for FY2021–24 and correcting the revenue
+label yields a continuous FY2003–2024 series on both sides from one already-evidenced
+source, with no new extractor.
+
+**Why this matters for the §9 error, and for the method generally:** §10 correctly refused
+to classify, but its *explanation* was still a guess. The reconciliation was comparing a
+**departmental appropriation ledger** against **audited fund statements** — categories that
+were never commensurable. ⚠ **A one-line provenance check (does the label's own API still
+serve this entity, and does its total match?) would have answered in one call what two
+ACFRs and 384 subset combinations could not.** Check what a figure *is* before modelling
+what scope it *might be*.
+
+⚠ The operating figures are not merely mis-scoped, they are **wrong as Money Out**: FY2023
+includes `TX REV ANTICIP NOTE PROC` = **$1,322,635,748** of Tax Revenue Anticipation Note
+*proceeds* — borrowing, money IN — 7.3% of the total.
+
+⚠ **Probably not LA-only.** One loader wrote a portal label over State Controller figures;
+which other municipalities carry the same mislabel is an open audit (LA-02 §4.4).
