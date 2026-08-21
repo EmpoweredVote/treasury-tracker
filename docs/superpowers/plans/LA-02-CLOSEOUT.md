@@ -87,7 +87,41 @@ exists in CA.
   4,340 categories, 3,670 line items.
 
 Delete counts matched the backups exactly (10,627 / 5,554 / 10 and 3,670 / 4,340 / 1).
-⚠ `_acfr-work/` is gitignored, so these live only on this machine.
+
+✅ **Made durable 2026-08-21.** `_acfr-work/` is gitignored, so the above were
+machine-local only — one reimage from gone. They are now committed, verified and
+restorable:
+
+* **Archive:** `.planning/backups/la-city/la02-withdrawn-rows-fy2021-2026.json.gz`
+  (1.76 MB gz / 12.2 MB raw) — 7 budget rows, 9,738 categories, 13,773 line items,
+  with a `why` / `do_not_restore_blindly` / `restore` manifest inside the file itself.
+  `.planning/` is tracked; ⚠ **`docs/*` is gitignored**, which is why it does not live
+  beside this document.
+* **Trimmed on purpose:** the FY2021–2024 **revenue** rows were dropped, because they
+  were CA State Controller data all along and LA-02 re-fetched them to a
+  dollar-identical total in all four years. Archiving a copy of something the API still
+  serves is not a backup, it is clutter. What remains is the part that is **not**
+  re-derivable: the **FMS appropriation ledger** (operating FY2021–2026) plus the
+  FY2025 ACFR revenue row.
+* **Why it is genuinely irreplaceable:** the loader's `data_source` is defunct, and the
+  obvious portal candidate `data.lacity.org` `5242-pnmt` ("Open Budget — Appropriations
+  FY2010–2025") sums to **$10.5–13.1B** for FY2021–25 — nowhere near the $16.2–25.1B
+  stored here, and it carries no third tree level. **It is not the source.**
+* **Restore path:** `scripts/la02RestoreBackup.mjs <archive> [--only FY] [--commit]`,
+  **dry run by default**. It refuses any row whose archived roots do not sum to its
+  archived total, and warns when a restore would create a SECOND row for a
+  (muni, FY, dataset) already occupied — which is the case for FY2021–2024 operating,
+  now held by the State Controller.
+* **Verified, not assumed:** counts matched the recorded manifest exactly, **zero orphan
+  categories or line items**, and every one of the 7 rows has roots summing to its total
+  (e.g. FY2023 operating 54 roots = 18,162,091,478 exactly). ⚠ Note that summing *all*
+  `budget_categories` rows multiplies the total by tree depth (2× or 3×) — that table is
+  flat and holds every level, so **sum the roots (`parent_id is null`), never all rows.**
+
+⚠ **Do not blind-restore the FMS rows.** They include Tax Revenue Anticipation Note
+*proceeds* — borrowing, i.e. money **in** — 16.5% of the FY2026 total. Restoring them as
+`operating` puts them straight back on the Money Out chart. Give the departmental detail
+an honest source label and a scope/basis that does not collide with the SCO series.
 
 ## 6. Gates
 
