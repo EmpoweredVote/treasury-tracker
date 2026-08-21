@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   listSeries, seriesId, defaultSeries, encodeSeries, decodeSeries,
   seriesPeriodTokens, seriesDatasetTokens, resolveSeriesYear, shouldResetSeries,
+  initialYearForEntity,
   clampYearToSeries, spanLabel,
 } from './seriesSelection';
 import { TQ_TOKEN, TQ_LABEL } from '../utils/period';
@@ -421,5 +422,71 @@ describe('shouldResetSeries', () => {
 
   it('resets when leaving an entity for the landing screen', () => {
     expect(shouldResetSeries('anaheim-ca', null)).toBe(true);
+  });
+});
+
+describe('initialYearForEntity', () => {
+  /**
+   * The ~10-second "not published" wrong state, measured on production
+   * 2026-08-21: Anaheim 11.8s, Long Beach 10.2s, San Diego 10.1s, Fresno 8.5s,
+   * each costing ~10 budget requests instead of ~3.
+   *
+   * The landing year was `operatingYears[0]` -- the max across ALL operating
+   * rows. Once an entity gained an adopted FY2025-26 series that became FY2026,
+   * which the DEFAULT series (all_funds/actual, FY2003-24) has no row for. So the
+   * first render asked for a year the default series cannot render, the page said
+   * the figure "is not published" while it demonstrably is, and it only corrected
+   * once the clamp fired and everything refetched.
+   *
+   * Resolve the landing year against what the default series can actually show.
+   */
+  const anaheim = [
+    ...Array.from({ length: 22 }, (_, i) => d(2003 + i, 'operating', 'all_funds', 'actual')),
+    ...Array.from({ length: 22 }, (_, i) => d(2003 + i, 'revenue', 'all_funds', 'actual')),
+    ...[2025, 2026].map((y) => d(y, 'operating', 'unknown', 'adopted')),
+    ...[2025, 2026].map((y) => d(y, 'revenue', 'unknown', 'adopted')),
+    ...Array.from({ length: 16 }, (_, i) => d(2009 + i, 'salaries', 'unknown', 'unknown')),
+  ];
+
+  it('lands on the newest year the DEFAULT series can render, not the newest row', () => {
+    expect(initialYearForEntity(anaheim, null)).toBe('2024');
+  });
+
+  it('honours an explicit requested year, even one outside the default series', () => {
+    // A deep link must still work. Correcting it is the clamp's job, not this
+    // function's -- otherwise ?year=2026 could never reach the adopted series.
+    expect(initialYearForEntity(anaheim, '2026')).toBe('2026');
+    expect(initialYearForEntity(anaheim, '2025')).toBe('2025');
+  });
+
+  it('ignores a requested year the entity does not have at all', () => {
+    expect(initialYearForEntity(anaheim, '1999')).toBe('2024');
+  });
+
+  it('falls back to the reference dataset when there is no series to seed from', () => {
+    // salaries is not a series dataset, so defaultSeries has nothing to pick and
+    // the old year rule is the only thing left.
+    const salariesOnly = [2022, 2023].map((y) => d(y, 'salaries', 'unknown', 'unknown'));
+    expect(initialYearForEntity(salariesOnly, null)).toBe('2023');
+  });
+
+  it('returns a real year when the default series has no row for the reference dataset', () => {
+    // LONGVIEW-shaped: revenue carries a series, operating carries none. Then
+    // defaultSeries falls back to the widest ENTITY-level series (a revenue one)
+    // and its operating token list is empty. Without the guard this returns
+    // `undefined` as the fiscal year -- a mutation run proved no other test
+    // catches that.
+    const revenueOnly = [2020, 2021, 2022].map((y) => d(y, 'revenue', 'all_funds', 'actual'));
+    expect(initialYearForEntity(revenueOnly, null)).toBe('2022');
+  });
+
+  it('returns a usable year for an entity with no datasets at all', () => {
+    expect(initialYearForEntity([], null)).toBe('2025');
+  });
+
+  it('is unchanged for a single-series entity', () => {
+    // The overwhelming majority of entities. This fix must move nothing for them.
+    const single = Array.from({ length: 5 }, (_, i) => d(2020 + i, 'operating', 'all_funds', 'actual'));
+    expect(initialYearForEntity(single, null)).toBe('2024');
   });
 });
