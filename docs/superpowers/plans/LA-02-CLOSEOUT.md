@@ -103,7 +103,29 @@ Delete counts matched the backups exactly (10,627 / 5,554 / 10 and 3,670 / 4,340
 ## 7. Still open
 
 1. **FY2025+ returns only when SCO publishes it** (currently max FY2024). At that point
-   the fix is one loader run per year — no new decision.
+   the fix is one loader run per year — no new decision. **Watched automatically in the
+   cloud:** `.github/workflows/sco-fiscal-year-watch.yml` runs
+   `scripts/checkScoNewFiscalYear.mjs` monthly (1st, 16:07 UTC) on a GitHub runner, plus
+   `workflow_dispatch` with a `baseline` input for manual runs. On a hit it **opens an
+   issue**, or comments on the existing open one so monthly re-checks do not pile up
+   duplicates. Exit codes: 0 nothing new / 10 newer year available / **2 INCONCLUSIVE,
+   which FAILS the job on purpose** — a check that cannot reach its source must not read
+   as a clean pass, and a red scheduled run emails the cron owner.
+   ⚠ **Bump the workflow's `baseline` after a load**, or it re-reports the same year forever.
+   ✅ Verified end-to-end 2026-08-21 by dispatching all three paths: nothing-new (success),
+   a hit via `baseline=2023` (opened issue #44 carrying the correct FY2024 figures), and
+   the dedupe branch (a second run commented on #44 rather than opening #45). Issue #44
+   was a test fixture and is closed.
+   ⚠ **A Claude cloud routine CANNOT do this job**, and one should not be created for it:
+   that sandbox's egress proxy blocks `bythenumbers.sco.ca.gov` (`EGRESS_BLOCKED` on both
+   `curl` and `WebFetch`) and **the allowlist cannot be extended** — `/root/.ccr/` holds
+   only certs, its sole endpoint `__agentproxy/status` is read-only, and the 403 comes
+   back at CONNECT from the *upstream* proxy outside the sandbox. Two disabled routines
+   remain in the account as a record; delete them at claude.ai/code/routines if unwanted.
+   ⚠ A local Windows scheduled task was built first and then **deliberately removed** —
+   two detectors would mean two baselines to bump, the same drift trap as the row-count
+   gates in §6. The machine-local wrapper `_acfr-work/la-city/sco-fy-watch.cmd` is left
+   on disk in case a laptop-side fallback is ever wanted.
 2. **`salaries` (18 rows) and `transactions` (2 rows) remain `unknown` with NULL
    `source_url`.** Different dataset types, systemic across all years and not specific
    to LA; deliberately untouched here.
