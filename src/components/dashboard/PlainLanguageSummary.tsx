@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import ScopeLabel from '../ScopeLabel';
 import type { BudgetData, OrgFinancialSummary } from '../../types/budget';
 import { useAnimatedCounter } from '../../hooks/useAnimatedCounter';
+import { chooseSpendVerb, usesSpentLanguage } from '../../utils/spendVerb';
 
 interface PlainLanguageSummaryProps {
   entity: {
@@ -49,9 +50,24 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
   );
   // Only use "spent" language if we actually have actual spending data
   const hasActualData = actualTotal > 0;
-  const showActual = isPastYear && hasActualData;
+  // ⚠ AMOUNT ONLY. Tense/verb choice must not use this — see spendVerb below.
+  const showActualAmount = isPastYear && hasActualData;
   // Current year with actual spend data — year isn't done, so use "has spent" + "As of {month}"
   const isCurrentYearWithActuals = !isPastYear && hasActualData;
+  // Verb choice comes from the `basis` axis when the row states it, because
+  // `hasActualData` only sees per-category actualAmount values — which sources
+  // publishing one audited total per year (CA State Controller, every ACFR load)
+  // never carry. Without this, an audited actual reads as "budgeted" directly
+  // beneath an "Actuals" chip. See src/utils/spendVerb.ts.
+  // ⚠ VERB ONLY — `total` below must keep using hasActualData, since actualTotal
+  // is 0 in exactly the case this fixes.
+  const spendVerb = chooseSpendVerb({
+    basis: operatingData?.metadata.basis ?? null, isPastYear, hasActualData,
+  });
+  const spentLanguage = usesSpentLanguage(spendVerb);
+  const revenueSpentLanguage = usesSpentLanguage(chooseSpendVerb({
+    basis: revenueData?.metadata.basis ?? null, isPastYear, hasActualData,
+  }));
   // Revenue count-up animation + green-glow settle
   const revenueTarget = revenueData?.metadata.totalBudget ?? 0;
 
@@ -86,7 +102,7 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
   if (!operatingData) return null;
 
   const currentMonthName = new Date().toLocaleString('en-US', { month: 'long' });
-  const total = showActual ? actualTotal : budgetedTotal;
+  const total = showActualAmount ? actualTotal : budgetedTotal;
   const population = entity.population;
   const populationYear = entity.population_year;
   const yearSuffix = populationYear ? ` (${populationYear} est.)` : '';
@@ -146,8 +162,8 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
           <div className="w-1.5 h-1.5 rounded-full bg-ev-yellow-400 mt-2.5 flex-shrink-0 opacity-70" />
           <h2 className="text-lg md:text-xl font-bold text-ev-gray-900 dark:text-ev-gray-100 leading-snug">
             {isNonprofit
-              ? `How ${entity.name} ${showActual ? 'used its' : 'uses its'} funds`
-              : `How ${entity.name} ${showActual ? 'spent' : 'plans to spend'} your money`}
+              ? `How ${entity.name} ${spentLanguage ? 'used its' : 'uses its'} funds`
+              : `How ${entity.name} ${spentLanguage ? 'spent' : 'plans to spend'} your money`}
           </h2>
         </div>
 
@@ -166,14 +182,14 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
             {isNonprofit ? (
               <>
                 {entity.name}{' '}
-                {showActual ? 'spent' : isCurrentYearWithActuals ? 'has spent' : isPastYear ? 'budgeted' : 'is spending'}{' '}
+                {spendVerb}{' '}
                 <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(isCurrentYearWithActuals ? actualTotal : total)}</strong> on operations.
               </>
             ) : (
-              <>{entity.name}'s {isGeneralFundOnly ? 'General Fund ' : ''}
+              <>{entity.name}{isGeneralFundOnly ? "'s General Fund" : ''}{' '}
               {population > 0 ? (
                 <>
-                  {showActual
+                  {spentLanguage
                     ? <>spent <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(total)}</strong> serving its {population.toLocaleString()} residents{yearSuffix}</>
                     : isGeneralFundOnly
                       ? <>totaled <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(total)}</strong> for core city operations serving {population.toLocaleString()} residents{yearSuffix} — that's roughly{' '}
@@ -181,13 +197,13 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
                       : <>budgeted <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(total)}</strong> to serve its {population.toLocaleString()} residents{yearSuffix} — that's roughly{' '}
                           <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatPerResident(perResident)} per person</strong>.</>
                   }
-                  {showActual && <> — roughly{' '}
+                  {spentLanguage && <> — roughly{' '}
                     <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatPerResident(perResident)} per person</strong>.</>
                   }
                 </>
               ) : (
                 <>
-                  {showActual ? 'spent' : 'budgeted'} <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(total)}</strong> across
+                  {spendVerb} <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(total)}</strong> across
                   all departments and services.
                 </>
               )}</>
@@ -217,7 +233,7 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
           {isNonprofit && (
             <p>
               {salariesTotal != null && salariesTotal > 0
-                ? <>{entity.name} {showActual ? 'paid' : 'budgets'}{' '}
+                ? <>{entity.name} {spentLanguage ? 'paid' : 'budgets'}{' '}
                     <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(salariesTotal)}</strong> in staff compensation.
                   </>
                 : <>{isPastYear ? <>In {fiscalYear}, {entity.name} paid</> : <>So far in {fiscalYear}, {entity.name} has paid</>} <strong className="text-ev-gray-800 dark:text-ev-gray-100">$0</strong> in staff compensation.</>
@@ -227,7 +243,7 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
 
           {topCategories.length > 0 && (
             <p>
-              The {isNonprofit ? 'largest expense' : `biggest ${isGeneralFundOnly ? 'department' : 'share'}`} {showActual ? 'was' : 'is'}{' '}
+              The {isNonprofit ? 'largest expense' : `biggest ${isGeneralFundOnly ? 'department' : 'share'}`} {spentLanguage ? 'was' : 'is'}{' '}
               <button
                 className="font-bold text-ev-gray-800 dark:text-ev-gray-100 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
                 onClick={() => onCategoryClick?.(topCategories[0]?.name, 'operating')}
@@ -288,8 +304,8 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
           {revenueData && (
             <p>
               {isNonprofit
-                ? <>{entity.name} {showActual ? 'raised' : 'raises'}{' '}</>
-                : <>The city {showActual ? 'funded' : 'funds'} this through{' '}</>
+                ? <>{entity.name} {revenueSpentLanguage ? 'raised' : 'raises'}{' '}</>
+                : <>The city {revenueSpentLanguage ? 'funded' : 'funds'} this through{' '}</>
               }
               <strong
                 className="text-ev-gray-800 dark:text-ev-gray-100 inline-block rounded-sm px-0.5"
@@ -300,7 +316,7 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
                     : 'none',
                 }}
               >{formatAmount(animatedRevenue)}</strong>
-              {' '}in {isNonprofit ? 'income' : `${showActual ? '' : 'expected '}revenue`}
+              {' '}in {isNonprofit ? 'income' : `${revenueSpentLanguage ? '' : 'expected '}revenue`}
               {revenueData.categories?.[0] && (
                 <>, with the {isNonprofit ? 'primary source being' : 'largest source being'}{' '}
                   <button
