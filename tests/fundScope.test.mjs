@@ -251,8 +251,14 @@ describe('the shipped registry', () => {
     // `reporting_entity` column; until then, each entry at this level must say
     // where it stands, so the SCOPE-02 migration has its inputs already written
     // down rather than needing every source re-probed.
+    // ⚠ SCOPE-04 adds the third, and it is the first DERIVED one: `ca-sco-derived-tg`
+    // is Treasury Tracker's own arithmetic over CA State Controller components, not
+    // a figure any government published at this level. That is precisely why the
+    // `derivation` column exists — `total_governmental` alone now spans two
+    // epistemically different kinds of figure, and this list is the place that fact
+    // is hardest to overlook.
     const totGov = FUND_SCOPE_REGISTRY.filter((e) => e.scope === SCOPE.TOTAL_GOVERNMENTAL);
-    expect(totGov.map((e) => e.id).sort()).toEqual(['mn-osa', 'oh-aos']);
+    expect(totGov.map((e) => e.id).sort()).toEqual(['ca-sco-derived-tg', 'mn-osa', 'oh-aos']);
     for (const e of totGov) {
       expect(e.evidence.figures, e.id).toMatch(/REPORTING ENTITY|reporting-entity/);
     }
