@@ -365,6 +365,18 @@ export function financingInflowNote(f: FinancingInflow): string {
  * reader needs is that they answer different questions and are not two attempts
  * at the same one.
  */
+/**
+ * SCOPE-04 — the derived-figure marker, re-exported so ALL reader-facing copy has
+ * one reviewable home. It is defined in `src/data/derivation.ts` beside the
+ * normaliser it belongs to; this is the door Chris reviews it through.
+ *
+ * ⚠ Per PR #38 it renders as an INERT LABEL — plain text, never a chip — because
+ * it states something about the figure rather than offering a control. And it
+ * keeps its words: the whole point is that a reader can tell a computed total
+ * from a published one without knowing what `total_governmental` means.
+ */
+export { DERIVED_COPY, type Derivation } from './derivation';
+
 export const SERIES_TOGGLE_COPY = {
   heading: 'Which published figures',
 

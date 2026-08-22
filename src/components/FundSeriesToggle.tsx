@@ -1,4 +1,4 @@
-import { SERIES_TOGGLE_COPY } from '../data/fundScopeVocabulary';
+import { SERIES_TOGGLE_COPY, DERIVED_COPY } from '../data/fundScopeVocabulary';
 import { TONE } from './ScopeLabel';
 import { spanLabel, type AvailableSeries } from '../data/seriesSelection';
 import type { SeriesKey } from '../data/budgetSeries';
@@ -58,10 +58,20 @@ export default function FundSeriesToggle({
         {series.map((s) => {
           const selected = s.id === selectedId;
           const tone = TONE[s.key.fundScope];
+          // SCOPE-04 — a derived figure declares itself wherever its series is named.
+          // `total_governmental` alone cannot carry this: it holds both published
+          // rows (MN OSA, Ohio AOS) and rows Treasury Tracker computed, so without
+          // the marker a reader sees one label over two different kinds of figure.
+          const derived = s.derivation === 'derived';
           const body = (
             <>
               <span className="font-medium">{s.label}</span>
               <span className="opacity-70">{spanLabel(s.span)}</span>
+              {/* Inert: no tone, no chip of its own, and it is never the control.
+                  Inside the button it inherits the pill's `gap-2`, so no explicit
+                  separator is needed HERE — unlike the single-series branch below,
+                  which has no flex container. */}
+              {derived && <span className="italic opacity-70">{DERIVED_COPY.marker}</span>}
             </>
           );
 
@@ -89,6 +99,13 @@ export default function FundSeriesToggle({
               <span key={s.id} className="text-[11px] text-ev-gray-600 dark:text-ev-gray-300">
                 <span className="font-medium">{s.label}</span>
                 <span className="opacity-70">{' · '}{spanLabel(s.span)}</span>
+                {/* ⚠ EXPLICIT separator. This branch is plain text with no flex
+                    container, so a marker appended without one renders as
+                    "FY2010–25computed by Treasury Tracker" — the exact defect
+                    AUSTIN-TRAVIS-01 UAT hit as "actualsFY2010–25". */}
+                {derived && (
+                  <span className="italic opacity-70">{' · '}{DERIVED_COPY.marker}</span>
+                )}
               </span>
             );
           }
