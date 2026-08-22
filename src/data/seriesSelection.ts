@@ -23,6 +23,7 @@ import {
   normalizeScope, normalizeBasis, FUND_SCOPE_VALUES, BASIS_VALUES,
 } from './fundScopeVocabulary';
 import { buildPeriodTokens, parsePeriod } from '../utils/period';
+import { normalizeDerivation, isDerived, type Derivation } from './derivation';
 
 /**
  * The dataset types that participate in series selection.
@@ -54,6 +55,18 @@ export interface AvailableSeries {
   span: { min: number; max: number };
   /** Distinct fiscal years across all datasets — the ordering weight. */
   totalYears: number;
+  /**
+   * SCOPE-04 — 'published' | 'derived'. A PROPERTY of the series, never part of
+   * its identity: `(fund_scope, basis)` already identifies a series uniquely, so
+   * `derivation` must not reach seriesId() or two epistemically-different labels
+   * would split one series into two pills.
+   *
+   * ⚠ A series is 'derived' if ANY of its entries is, not if the first one is.
+   * The deviation from "first entry seen" is deliberate and one-directional: the
+   * failure this milestone exists to prevent is a derived figure rendering
+   * UNMARKED, so a mixed series must over-disclose rather than under-disclose.
+   */
+  derivation: Derivation;
 }
 
 export function seriesId(k: SeriesKey): string {
@@ -69,7 +82,7 @@ export function seriesId(k: SeriesKey): string {
  * adopted operating figures permanently invisible.
  */
 export function listSeries(datasets: DatasetEntry[]): AvailableSeries[] {
-  const acc = new Map<string, { key: SeriesKey; years: Map<string, Set<number>> }>();
+  const acc = new Map<string, { key: SeriesKey; years: Map<string, Set<number>>; derivation: Derivation }>();
 
   for (const d of datasets) {
     if (!SERIES_DATASETS.includes(d.dataset_type)) continue;
@@ -78,14 +91,16 @@ export function listSeries(datasets: DatasetEntry[]): AvailableSeries[] {
       basis: normalizeBasis(d.basis),
     };
     const id = seriesId(key);
-    if (!acc.has(id)) acc.set(id, { key, years: new Map() });
+    if (!acc.has(id)) acc.set(id, { key, years: new Map(), derivation: 'published' });
     const entry = acc.get(id)!;
+    // Any derived entry makes the whole series derived — see AvailableSeries.derivation.
+    if (isDerived(normalizeDerivation(d.derivation))) entry.derivation = 'derived';
     if (!entry.years.has(d.dataset_type)) entry.years.set(d.dataset_type, new Set());
     entry.years.get(d.dataset_type)!.add(d.fiscal_year);
   }
 
   const out: AvailableSeries[] = [];
-  for (const [id, { key, years }] of acc) {
+  for (const [id, { key, years, derivation }] of acc) {
     const coverage: Record<string, SeriesCoverage> = {};
     const all = new Set<number>();
     for (const [dataset, set] of years) {
@@ -95,7 +110,7 @@ export function listSeries(datasets: DatasetEntry[]): AvailableSeries[] {
     }
     const allSorted = [...all].sort((a, b) => a - b);
     out.push({
-      key, id, label: seriesLabel(key), coverage,
+      key, id, label: seriesLabel(key), coverage, derivation,
       span: { min: allSorted[0], max: allSorted[allSorted.length - 1] },
       totalYears: allSorted.length,
     });
