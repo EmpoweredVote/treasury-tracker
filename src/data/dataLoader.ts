@@ -292,11 +292,11 @@ export async function searchBudget(
  * Get a list of available municipalities from the API
  */
 export async function listMunicipalities(): Promise<Municipality[]> {
-  const response = await fetch(`${API_BASE}/treasury/cities`);
-  if (!response.ok) {
-    throw new Error(`Cities API returned ${response.status}`);
-  }
-  return await response.json();
+  // ⚠ Shares the memo with loadBudgetData deliberately — this was a second,
+  // byte-identical fetcher of the same 12.3 MB list, and App.tsx calls it on
+  // mount. Memoizing only the copy inside loadBudgetData still left 3 requests
+  // per page load instead of 1.
+  return fetchCityList();
 }
 
 // ── Federal context (Phase 45) ────────────────────────────────────────────────

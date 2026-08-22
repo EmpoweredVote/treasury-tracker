@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { loadBudgetData, clearCache, SeriesAbsentError } from './dataLoader';
+import { loadBudgetData, clearCache, SeriesAbsentError, listMunicipalities } from './dataLoader';
 
 const CITY = {
   id: 'city-1', name: 'Testville', state: 'CA', population: 1000,
@@ -146,6 +146,24 @@ describe('loadBudgetData — the city list is fetched once, not once per dataset
     ]);
     expect(op.metadata.totalBudget).toBe(900);
     expect(rev.metadata.totalBudget).toBe(950);
+  });
+
+  it('listMunicipalities shares the SAME memo as loadBudgetData', async () => {
+    // A second, byte-identical fetcher of the same list. Memoizing only the one
+    // inside loadBudgetData left 3 requests per page load in the real app instead
+    // of 1 -- App.tsx calls listMunicipalities on mount as well.
+    const calls = stubFetch();
+    await Promise.all([
+      listMunicipalities(),
+      loadBudgetData(2024, 'Testville', 'CA', 'operating', null, SERIES),
+    ]);
+    expect(cityCalls(calls)).toHaveLength(1);
+  });
+
+  it('listMunicipalities still returns the list', async () => {
+    stubFetch();
+    const list = await listMunicipalities();
+    expect(list.map((m) => m.name)).toEqual(['Testville']);
   });
 
   it('does NOT memoize a failure — a later load retries and succeeds', async () => {
