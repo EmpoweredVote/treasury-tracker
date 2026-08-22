@@ -76,7 +76,12 @@ if (periodSplit.length) {
 
 console.log('\n── the figure invariant (frozen at v2.24, computed as an exclusion) ──');
 const baseline = JSON.parse(readFileSync('scripts/data/scopeBaseline.json', 'utf8'));
-const excludedIds = JSON.parse(readFileSync(baseline.excluded_ids_file, 'utf8'));
+// ⚠ A LIST since v2.30 — one file per milestone that creates rows. It was a single
+// path and went un-updated across v2.27, v2.28 and v2.29, so this digest read as
+// moved on every run in that window. See scopeBaseline.json `_rebased_at_v2_30`.
+const excludedIds = (baseline.excluded_ids_files
+  ?? (baseline.excluded_ids_file ? [baseline.excluded_ids_file] : []))
+  .flatMap((rel) => JSON.parse(readFileSync(rel, 'utf8')));
 const digest = frozenIdDigest(rows, excludedIds);
 if (baseline.figures_frozen && digest !== baseline.figures_frozen) {
   failed = true;

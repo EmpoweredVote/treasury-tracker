@@ -1,11 +1,37 @@
 {
-  "_warning": "Do NOT edit or regenerate to make the harness pass. `figures_frozen` must never change and is NOT written by --write-baseline; `composite_frozen` changes only when a migration explains it.",
-  "frozen_row_count": 79927,
-  "figures_frozen": "3bc12db8bb7dd04c1602befd68d78020e39d333df75705f6f94d3c1a939d82a2",
-  "composite_frozen": "e2c72925e26e3161a18ad77adad97abe18cb5c75913c772a5d70249db466d26f",
-  "composite_frozen_history": [],
-  "excluded_ids_file": "scripts/data/scope02CreatedIds.json",
-  "_frozen_note": "SCOPE-02: the id set frozen at v2.24. Both digests are computed over current rows MINUS the ids in scripts/data/scope02CreatedIds.json (the 12 rows the SCOPE-02 backfill created), which is what excluded_ids_file points to. created_at is NOT usable to identify the frozen set directly -- 79,899 of 79,927 rows have it NULL -- and committing all 79,927 ids would be a ~3MB permanent repo artifact, so the invariant is computed as an exclusion instead of an inclusion list.",
+  "_warning": "Do NOT edit or regenerate to make the harness pass. `figures_frozen` must never change and is NOT written by --write-baseline; `composite_frozen` changes only when a migration explains it. The one rebase this file has ever had is recorded in `_rebased_at_v2_30` below, with its full accounting.",
+  "frozen_row_count": 79916,
+  "figures_frozen": "4cce9d6a8dfe9ac235dfd488f1903243892c7ebc4ac41b17dbd9022bfb068b9a",
+  "composite_frozen": "9e1bf9fdd9bbbe3c94abb83758384dacc289140f32e270c8bd943db98bd21a36",
+  "composite_frozen_history": [
+    {
+      "digest": "e2c72925e26e3161a18ad77adad97abe18cb5c75913c772a5d70249db466d26f",
+      "superseded_by": "see _rebased_at_v2_30 — the LA-02 withdrawals (v2.28) deleted 11 frozen rows"
+    }
+  ],
+  "excluded_ids_files": [
+    "scripts/data/scope02CreatedIds.json",
+    "scripts/data/postV224CreatedIds.json"
+  ],
+  "_frozen_note": "Both digests are computed over current rows MINUS the ids listed in `excluded_ids_files`. created_at is NOT usable to identify the frozen set directly -- 19 of 80,076 rows have it non-NULL -- and committing all ~80k ids would be a ~3MB permanent repo artifact, so the invariant is computed as an exclusion instead of an inclusion list. EVERY milestone that inserts rows MUST append its own created-ids file to `excluded_ids_files` in the same commit as the write.",
+  "_rebased_at_v2_30": {
+    "_what": "figures_frozen was rebased ONCE, from 3bc12db8bb7dd04c1602befd68d78020e39d333df75705f6f94d3c1a939d82a2 (79,927 rows, set at v2.25) to the value above (79,916 rows). This is the action the _warning forbids doing casually; it was done deliberately, with Chris's explicit sign-off, because the v2.24 digest had become UNRECONSTRUCTABLE -- not merely stale.",
+    "_why_it_cannot_be_reproduced": "figures_frozen is sha256 over (id | total_budget) for SURVIVING rows. LA-02 (v2.28) deliberately DELETED 11 rows -- Los Angeles FY2021-2025 operating+revenue (10) and FY2026 operating (1) -- on Chris's call. A deleted row removes its term from the hash input permanently. The LA-02 backup archive (.planning/backups/la-city/la02-withdrawn-rows-fy2021-2026.json.gz) preserved ids for only 7 of the 11; the other 4 were recorded under `dropped_as_rederivable` with fiscal_year/dataset_type/total but NO id. The exact v2.24 hash input therefore can never be rebuilt.",
+    "_the_accounting_reconciles_exactly": {
+      "v2_24_baseline_rows": 79939,
+      "plus_new_entity_acfr_loads": 140,
+      "_new_entity_detail": "Austin TX 32 + Travis County TX 44 (v2.27 AUSTIN-TRAVIS-01), Colorado Springs CO 28 + El Paso County CO 36 (v2.29 CO-SPRINGS-EPC-01)",
+      "minus_la02_withdrawals": -11,
+      "plus_la02_sco_reloads": 8,
+      "_la_reload_detail": "Los Angeles FY2021-2024 operating+revenue, reloaded as CA State Controller all_funds/actual",
+      "equals_live_table": 80076,
+      "_verified": "Measured against the live table 2026-08-21. Every change traces to a documented, approved milestone; there is no unexplained insert or delete."
+    },
+    "_what_is_proven_and_what_is_not": "PROVEN: the row count reconciles exactly, and all 148 post-v2.24 inserts are identified by id in postV224CreatedIds.json. NOT PROVEN: that no surviving row's figure moved. That cannot be established without the v2.24 id list, which was never committed. An id-free check was attempted -- reconstruct the v2.24 state and recompute the COMPOSITE digest, which is keyed on (municipality_id, fiscal_year, dataset_type, period_label, total_budget) rather than id. The reconstructed row count came back at exactly 79,927 but the hash did not match, and that test is INCONCLUSIVE rather than incriminating: the archive's figures were captured through PostgREST's JSON encoding, which this codebase documents as dropping numeric scale, and the archive demonstrably carries at least one float artifact (28918416617.270008). 9 rows in the live table carry trailing-zero scale, so the hazard is real but rare.",
+    "_the_process_defect": "The single `excluded_ids_file` went un-updated across THREE milestones (v2.27, v2.28, v2.29), so this harness reported FIGURE DIGEST MOVED on every run through that window -- which is exactly how an invariant stops being read. `excluded_ids_files` is a LIST now so each milestone appends its own file instead of editing a shared one. Pairing the write with the exclusion-file update is not optional.",
+    "_date": "2026-08-21",
+    "_authorised_by": "Chris, during SCOPE-04 execution, before any SCOPE-04 database write"
+  },
   "_superseded_at_v2_25": {
     "_note": "The SCOPE-01 whole-table baselines. Retired, not invalidated: they were computed over every row (79,927 at v2.24), so SCOPE-02's 12 legitimate inserts moved them and verify-fund-scope.mjs reported FIGURE DIGEST MOVED on every run. Kept here as the v2.24 audit record.",
     "_proof_no_figure_ever_moved": "Measured before the harness was changed. Re-running SCOPE-01's exact digest over the CURRENT table minus the 12 created ids, using SCOPE-01's own bare-numeric select, reproduces BOTH values below byte-for-byte. The row set was the only thing wrong.",
