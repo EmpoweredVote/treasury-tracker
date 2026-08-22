@@ -12,6 +12,45 @@
 > in sequence below so the ordering does not read as "v2.20 never happened", but it is a
 > pointer, not a summary — the archive is the record.
 
+## v2.30 SCOPE-04 — Derived Total Governmental, and the enterprise slice (Shipped: 2026-08-22, tag `v2.30`)
+
+**488 California entities gained a second, honestly-labelled fund scope.** 7,650 derived
+Total Governmental rows, so a reader can see how much of a "city budget" is the tax-funded
+government and how much is its utilities. Modesto FY2024: All Funds **$588.0M** → Total
+Governmental **$291.6M**, the difference being $296.4M of water, sewer, solid waste, airport
+and internal service funds. **50.4% of Modesto's "city budget" is not the tax-funded city.**
+
+`TG = Σ governmental roots`, never `all_funds − enterprise` — algebraically identical here,
+but immune to enterprise-side defects. Classification is a NEGATIVE match, so the loader
+commits the 51-name era-B vocabulary and **refuses to derive on any unrecognised root**.
+
+Every derived figure declares itself three ways: `derivation='derived'` (a new column,
+DEFAULT `'published'`, so no existing row was rewritten), the inert label *computed by
+Treasury Tracker*, and a disclosure naming what the scope excludes.
+
+⚠ **The scope caveat, disclosed rather than hidden.** `derived_TG` is the State Controller's
+governmental scope, which is NOT identical to an ACFR's "Total Governmental Funds" — the two
+differ by redevelopment successor-agency funds. Proven at Napa FY2017 to the dollar
+(`97,277,497 − 18,524 + 79,307 = 97,338,280`). Both figures are individually correct, so no
+arithmetic gate can surface it. Chris's ruling: keep the name, disclose the exclusion. The
+magnitude beyond Napa is **unmeasured**, and the copy never claims it is small.
+
+⚠ **The stopping rule was NOT met as written.** It asked for ≥10 assessable city-years;
+**1 of 16** was assessed before Chris directed the milestone to the write. Two independent
+controls (Cerritos, Lakewood FY2017) tie exactly and Napa reconciles to the dollar, but the
+sample is short and the closeout says so.
+
+**Five defects that move no dollar figure**, so no tie test could have caught any:
+the figure invariant had been **dead since v2.27** and was unreconstructable (LA-02 deleted
+11 rows; 4 of their ids were never preserved) — repaired and rebased with full accounting;
+the fund-scope registry would have **un-derived all 7,664 rows** on the next stamper run;
+the disclosure copy **had no renderer** and the copy around it said "published" three times;
+a **racing paged read invented 27 rows of drift** that did not exist; and
+`_treasury_insert_tree` **swaps two amount columns**.
+
+Full working: `docs/superpowers/plans/SCOPE-04-CLOSEOUT.md` and `SCOPE-04-RECON.md`.
+API change: EmpoweredVote/ev-accounts#135.
+
 ## v2.29 CO-SPRINGS-EPC-01 — Colorado Springs + El Paso County (Shipped: 2026-08-21, tag `v2.29`)
 
 **Tasks completed:** onboarding milestone on a `docs/superpowers/` plan, not GSD phases — closeout: `docs/superpowers/plans/CO-SPRINGS-EPC-01-CLOSEOUT.md`
