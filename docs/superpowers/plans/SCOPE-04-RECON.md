@@ -100,21 +100,53 @@ rather than the original SQL, so the two agree by different means.
 
 | city-year | dataset | derived TG | printed TG | delta | bucket |
 |---|---|---|---|---|---|
-| **Napa FY2017** | operating | `97,734,023` | `97,734,046` | **+23** | ⚠ unexplained |
-| **Napa FY2017** | revenue | `97,338,280` | `97,277,497` | **−60,783** | ⚠ unexplained |
+| Napa FY2017 | operating | `97,734,023` | `97,734,046` | −23 | ✅ **diverges legitimately** |
+| Napa FY2017 | revenue | `97,338,280` | `97,277,497` | +60,783 | ✅ **diverges legitimately** |
 
-Napa's printed columns sum exactly to its printed total
-(`79,717,801 + 395,982 + 514,418 + 23 + 7,755,037 + 9,350,785 = 97,734,046`), so the **ACFR
-side is sound** — the derived figure is what misses.
+### Napa FY2017 — both deltas reconcile TO THE DOLLAR
 
-⚠ **Lead worth chasing, not yet a conclusion:** Napa's statement carries a fund whose
-expenditure is exactly **$23**, and the operating delta is exactly **$23**. That points at
-the SCO feed omitting one tiny fund rather than at a systematic error. The revenue delta of
-−60,783 (0.062%, derived *higher* than printed) is **not** explained by that and has no
-documented signature yet.
+Napa's printed columns sum exactly to its printed total, so the ACFR side is sound. Reading
+the statement (page 37) resolves both deltas by exactly two mechanisms:
 
-Neither delta currently qualifies as a documented source error or a documented legitimate
-divergence, so under the stopping rule as written **both are unexplained misses**.
+```
+REVENUE      printed Total Governmental        97,277,497
+             − Successor Agency fund column       −18,524   SCO excludes it
+             + Sale of capital assets             +79,307   SCO counts as revenue
+             = 97,338,280  ==  derived            ✅ EXACT
+
+EXPENDITURE  printed Total Governmental        97,734,046
+             − Successor Agency fund column          −23   SCO excludes it
+             = 97,734,023  ==  derived            ✅ EXACT
+```
+
+**Signature A — the Successor Agency fund.** Napa's statement carries a
+`Successor Agency Low Mod Set Aside` column *inside* Total Governmental Funds (revenue
+`18,524`, expenditure `23`). The SCO governmental schedule excludes it. The mysterious "$23"
+is simply that fund's entire Community-development expenditure.
+
+**Signature B — sale of capital assets.** Napa reports `Sale of capital assets 79,307` under
+**OTHER FINANCING SOURCES**, below the `Total Revenues` line, where GAAP puts it. The SCO
+revenue schedule counts it as revenue. This is structurally the SAME shape as the Placentia
+FY2021 signature the spec already documents: a below-the-line GAAP item that the feed
+carries above the line. It moves the **revenue** side only, always making derived *higher*.
+
+Both are **legitimate divergences, not source errors** — neither figure is wrong; they
+answer slightly different questions. Under the stopping rule Napa therefore **publishes,
+with the signature recorded**.
+
+### ⚠ The scoping consequence, which is bigger than Napa
+
+Signature A means **`derived_TG` is the SCO feed's governmental scope, which is NOT
+identical to the ACFR's "Total Governmental Funds"** — the two differ by successor-agency
+funds. At Napa that difference is $23 and $18,524, i.e. nothing. It will not be nothing
+everywhere: a city with a large RDA successor agency reported inside its governmental funds
+would show a materially smaller derived TG than its audited Total Governmental, while the UI
+labels the figure "Total Governmental".
+
+This is a **disclosure question the milestone has not yet answered**, and it is exactly the
+kind of thing the `derivation` column exists to make visible. It should be settled before the
+write, and the remaining sample should be read specifically for successor-agency magnitude
+rather than only for a tie.
 
 ### Reachability
 
@@ -133,12 +165,16 @@ divergence, so under the stopping rule as written **both are unexplained misses*
 
 ## 4. Open decisions
 
-1. **The Napa result.** The prior base rate was 6/6 assessed with 0 failures; the first
-   fresh target misses on **both** datasets. Under the stopping rule as written this halts
-   the milestone unless each delta is documented. Chase the $23 single-fund hypothesis and
-   the revenue delta, or re-open scoping?
-2. **EV-Accounts deploy.** Task 4 is committed locally on branch
-   `feat/scope-04-derivation` (`e99ec732`) but **not pushed and not deployed**. It must
-   land before any derived row is written, or the UI cannot mark them.
-3. **Sample cost.** Each target costs a search, a scrape, a browser-driven fetch and a
+1. ⚠ **The successor-agency scope gap (Signature A).** Does a derived figure that excludes
+   successor-agency funds get labelled "Total Governmental"? At Napa the gap is immaterial;
+   the milestone has no measurement of how large it gets elsewhere. **This is now the
+   milestone's main open risk** — it is a labelling question, not an arithmetic one, and no
+   tie test can surface it because both figures are individually correct.
+2. **Signature B is population-testable without fetching.** "Sale of capital assets counted
+   as revenue" moves the revenue side only and always makes derived higher. Its prevalence
+   can be measured against the SCO feed directly, far more cheaply than 15 more ACFRs.
+3. **EV-Accounts deploy.** Task 4 is committed locally on branch
+   `feat/scope-04-derivation` (`e99ec732`), **held local by Chris's decision** until the
+   write is approved. It must land before any derived row is written.
+4. **Sample cost.** Each target costs a search, a scrape, a browser-driven fetch and a
    coordinate read. Reaching ≥10 assessable is a substantial campaign.
