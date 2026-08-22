@@ -47,6 +47,38 @@ const API_BASE = import.meta.env.PROD && import.meta.env.VITE_API_URL
 const cache: Map<string, BudgetData> = new Map();
 
 /**
+ * The city list, fetched at most once per session.
+ *
+ * ⚠ Memoize the PROMISE, not the resolved value. `loadBudgetData` resolves the
+ * city by NAME from the full list, and the app loads operating + revenue +
+ * salaries in a single `Promise.all` — so a value cache still fires N requests,
+ * because none of them has resolved when the others start. Storing the in-flight
+ * promise is what actually dedupes them.
+ *
+ * Measured on production 2026-08-21: this list was fetched 3-5 times per page
+ * load (alaska-ak 3x, anaheim-ca 5x, modesto-ca 4x), serially, and the first
+ * figure appeared right after the LAST one landed — 6.3s, 5.0s, 4.9s. It is
+ * 12.3 MB decompressed (204 KB brotli on the wire), 94.7% of which is
+ * `available_datasets` for 2,463 entities, to look up ONE id.
+ *
+ * ⚠ A rejection must NOT be memoized, or one transient failure poisons the whole
+ * session and every later load throws without ever retrying.
+ */
+let citiesPromise: Promise<Municipality[]> | null = null;
+
+function fetchCityList(): Promise<Municipality[]> {
+  if (!citiesPromise) {
+    citiesPromise = (async () => {
+      const res = await fetch(`${API_BASE}/treasury/cities`);
+      if (!res.ok) throw new Error(`Cities API returned ${res.status}`);
+      return res.json();
+    })();
+    citiesPromise.catch(() => { citiesPromise = null; });
+  }
+  return citiesPromise;
+}
+
+/**
  * Load budget data for a specific municipality and year.
  * Throws on API failure — callers must handle errors (no silent fallback).
  */
@@ -72,12 +104,8 @@ export async function loadBudgetData(
     return cache.get(cacheKey)!;
   }
 
-  // Step 1: Find the city by name from /treasury/cities
-  const citiesResponse = await fetch(`${API_BASE}/treasury/cities`);
-  if (!citiesResponse.ok) {
-    throw new Error(`Cities API returned ${citiesResponse.status}`);
-  }
-  const cities = await citiesResponse.json();
+  // Step 1: Find the city by name — from the memoized list, see fetchCityList.
+  const cities = await fetchCityList();
   const city = cities.find((c: any) =>
     c.name?.toLowerCase() === municipalityName.toLowerCase() &&
     (!municipalityState || c.state?.toLowerCase() === municipalityState.toLowerCase())
@@ -229,6 +257,7 @@ function transformAPIResponse(budget: any, categories: BudgetCategory[], city?: 
  */
 export function clearCache() {
   cache.clear();
+  citiesPromise = null;
   txCache.clear();
   orgSummaryCache.clear();
 }
@@ -263,11 +292,11 @@ export async function searchBudget(
  * Get a list of available municipalities from the API
  */
 export async function listMunicipalities(): Promise<Municipality[]> {
-  const response = await fetch(`${API_BASE}/treasury/cities`);
-  if (!response.ok) {
-    throw new Error(`Cities API returned ${response.status}`);
-  }
-  return await response.json();
+  // ⚠ Shares the memo with loadBudgetData deliberately — this was a second,
+  // byte-identical fetcher of the same 12.3 MB list, and App.tsx calls it on
+  // mount. Memoizing only the copy inside loadBudgetData still left 3 requests
+  // per page load instead of 1.
+  return fetchCityList();
 }
 
 // ── Federal context (Phase 45) ────────────────────────────────────────────────
