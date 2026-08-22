@@ -260,6 +260,71 @@ def first_number_on(rows, label_re):
     return (vals[0] if vals else None), text
 
 
+# ── SCOPE-04: the Total Governmental column ─────────────────────────────────
+_GOVERNMENTAL = re.compile(r'governmental', re.I)
+# How far a column HEADER's centre may sit from the centre of the figure beneath
+# it. Adjacent fund columns in this corpus are 50-90pt apart, so 40pt cannot
+# reach the neighbouring column while still tolerating a header that is wider
+# than its figure ("Total Governmental Funds" set over an 11-digit number).
+HEADER_ALIGN_TOL = 40.0
+
+
+def money_cells(rows, label_re):
+    """(value, x_centre) for every money cell on the first row matching `label_re`.
+
+    Same rule and same arbiter as `numbers_on` — this one keeps the COORDINATE,
+    which is what lets a caller pick a column by its printed header rather than
+    by ordinal position.
+    """
+    for ws in rows:
+        text = ' '.join(w['text'] for w in ws)
+        if not label_re.match(text):
+            continue
+        cells = []
+        for w in ws:
+            v = parse_money(w['text'])
+            if v is not None:
+                cells.append((v, (w['x0'] + w['x1']) / 2))
+        if cells:
+            return cells, text
+    return None, None
+
+
+def total_governmental_x(rows, money_xs):
+    """Centre of the Total Governmental column, or None.
+
+    ⚠ NOT "the rightmost number on the row". That is true for most issuers and
+    WRONG for the ones that matter: Travis County splits its fund columns across
+    two pages and prints only the first few on the statement page, so the
+    rightmost value there is a Nonmajor fund. Reading the wrong column would
+    produce a real number from the wrong fund — the exact failure `lines_of`
+    documents, and nothing about the output would look malformed.
+
+    So the column is located by its printed HEADER and then TIED TO A REAL
+    COLUMN: a `/governmental/i` header only counts if some money cell on the
+    total row sits under it. That self-validation is also what keeps the page
+    TITLE ("... Governmental Funds", centred above everything) from being
+    mistaken for a column header — it aligns with no single column.
+
+    The rightmost qualifying header wins: on a statement that prints both
+    "Nonmajor Governmental Funds" and "Total Governmental Funds", Total is
+    always the last column.
+    """
+    best = None
+    for ws in rows:
+        for w in ws:
+            if not _GOVERNMENTAL.search(w['text']):
+                continue
+            xc = (w['x0'] + w['x1']) / 2
+            near = [mx for mx in money_xs if abs(mx - xc) <= HEADER_ALIGN_TOL]
+            if not near:
+                continue
+            aligned = min(near, key=lambda mx: abs(mx - xc))
+            if best is None or aligned > best:
+                best = aligned
+    return best
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('pdf_path')
@@ -275,6 +340,13 @@ def main():
     # acfrGF's own page-qualifying rule anyway, since reading a different page
     # would not be a second read of the same figure.
     ap.add_argument('--page', type=int, default=None, help='1-based statement page (skips the search)')
+    # SCOPE-04. `general_fund` is column 0 and is the DEFAULT, so every existing
+    # caller (verify-austin-travis.mjs, acfrGF.selftest.py) is untouched.
+    # `total_governmental` reads the column under the `/governmental/i` header
+    # instead -- the oracle for a derived Total Governmental figure.
+    ap.add_argument('--column', choices=('general_fund', 'total_governmental'),
+                    default='general_fund',
+                    help='which printed fund column to report (default: general_fund)')
     args = ap.parse_args()
 
     with pdfplumber.open(args.pdf_path) as pdf:
@@ -288,18 +360,59 @@ def main():
             print(json.dumps({'error': 'primary GF statement page not found'}))
             sys.exit(3)
         rows = lines_of(page)
-        rev_cols, rev_row = numbers_on(rows, re.compile(r'^(?:Total|Net)\s+(operating\s+)?revenues\b', re.I))
-        exp_cols, exp_row = numbers_on(rows, re.compile(r'^Total\s+expenditures\b', re.I))
+        rev_re = re.compile(r'^(?:Total|Net)\s+(operating\s+)?revenues\b', re.I)
+        exp_re = re.compile(r'^Total\s+expenditures\b', re.I)
+        rev_cells, rev_row = money_cells(rows, rev_re)
+        exp_cells, exp_row = money_cells(rows, exp_re)
+        rev_cols = [v for v, _ in rev_cells] if rev_cells else None
+        exp_cols = [v for v, _ in exp_cells] if exp_cells else None
         m = re.search(r'year\s+ended\s+\w+\s*\d{1,2},\s*(\d{4})', text, re.I)
+
+        tg_x = None
+        if args.column == 'total_governmental' and rev_cells and exp_cells:
+            # One column for the whole statement: locate it from the union of
+            # both total rows' cells so a blank cell on one row cannot move it.
+            tg_x = total_governmental_x(rows, [x for _, x in rev_cells + exp_cells])
 
     if not rev_cols or not exp_cols:
         print(json.dumps({'error': 'printed total row not located',
                           'revenue_row': rev_row, 'expenditure_row': exp_row}))
         sys.exit(4)
 
+    if args.column == 'total_governmental':
+        # ⚠ REFUSE rather than fall back to the rightmost column. A silent
+        # fallback would report a Nonmajor fund as Total Governmental on exactly
+        # the split-column statements this selector exists to handle.
+        if tg_x is None:
+            print(json.dumps({'error': 'Total Governmental column header not found on the statement page',
+                              'revenue_row': rev_row, 'expenditure_row': exp_row}))
+            sys.exit(5)
+
+        def pick(cells):
+            hit = [v for v, x in cells if abs(x - tg_x) < 0.01]
+            return hit[0] if hit else None
+
+        rev_tg, exp_tg = pick(rev_cells), pick(exp_cells)
+        if rev_tg is None or exp_tg is None:
+            print(json.dumps({'error': 'Total Governmental column has no figure on one of the total rows',
+                              'revenue_row': rev_row, 'expenditure_row': exp_row}))
+            sys.exit(5)
+        print(json.dumps({
+            'statement_page': idx + 1,
+            'fiscal_year': int(m.group(1)) if m else None,
+            'column': 'total_governmental',
+            'revenue_total': rev_tg * args.units,
+            'expenditure_total': exp_tg * args.units,
+            'revenue_columns': rev_cols,
+            'expenditure_columns': exp_cols,
+            'units': args.units,
+        }, indent=2))
+        return
+
     print(json.dumps({
         'statement_page': idx + 1,
         'fiscal_year': int(m.group(1)) if m else None,
+        'column': 'general_fund',
         # Column 0 = General Fund. Kept under the original names so
         # verify-austin-travis.mjs keeps working unchanged.
         'revenue_total': rev_cols[0] * args.units,
