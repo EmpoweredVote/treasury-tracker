@@ -159,6 +159,11 @@ export interface Municipality {
     fund_scope?: FundScope | null;
     basis?: string | null;
     reporting_entity?: string | null;
+    // SCOPE-04: 'published' | 'derived'. Optional for the same reason as
+    // fund_scope -- an older API build omits it. Normalise through
+    // normalizeDerivation() in src/data/derivation.ts, which reads absent as
+    // 'published'; every row predating SCOPE-04 is.
+    derivation?: string | null;
   }>;
 }
 
@@ -186,6 +191,9 @@ export interface BudgetData {
     fundScope?: FundScope | null;
     basis?: import('../data/budgetSeries').Basis | null;
     reportingEntity?: import('../data/fundScopeVocabulary').ReportingEntity | null;
+    // SCOPE-04: did a government publish this total, or did TT compute it from
+    // published components? Absent means 'published'.
+    derivation?: import('../data/derivation').Derivation | null;
     // For salaries
     totalCompensation?: number;
     totalEmployees?: number;
