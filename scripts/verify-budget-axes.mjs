@@ -56,7 +56,7 @@ if (unclosed.length) {
 }
 
 console.log('\n── illegal duplicates (inverted rule) ──');
-const { illegal, periodSplit } = classifyDuplicates(findIllegalDuplicates(rows));
+const { illegal, periodSplit, scopeSplit } = classifyDuplicates(findIllegalDuplicates(rows));
 if (illegal.length) {
   failed = true;
   console.error(`  ✗ ${illegal.length} (city-year, dataset, basis) groups hold more than one row FOR THE SAME PERIOD`);
@@ -72,6 +72,20 @@ if (periodSplit.length) {
     const labels = d.detail.map((r) => r.period_label ?? '(annual)').join(' | ');
     console.log(`      ${d.name} FY${d.fiscal_year} ${d.dataset_type} — ${labels}`);
   }
+}
+if (scopeSplit.length) {
+  // SCOPE-04. Reported, never fatal: one published all_funds row beside one
+  // derived total_governmental row for the same city-year is the state this
+  // milestone exists to create. ⚠ Still a hazard for anything that SUMS a
+  // city-year, because all_funds CONTAINS total_governmental — the app draws one
+  // series at a time and never adds them.
+  console.log(`  ℹ ${scopeSplit.length} group(s) split across DISTINCT fund scopes — SCOPE-04's intended`
+    + ' state, still a hazard for naive summing (all_funds CONTAINS total_governmental):');
+  for (const d of scopeSplit.slice(0, 5)) {
+    const scopes = d.detail.map((r) => `${r.fund_scope}${r.derivation === 'derived' ? ' (derived)' : ''}`).join(' | ');
+    console.log(`      ${d.name} FY${d.fiscal_year} ${d.dataset_type} — ${scopes}`);
+  }
+  if (scopeSplit.length > 5) console.log(`      … and ${scopeSplit.length - 5} more`);
 }
 
 console.log('\n── the figure invariant (frozen at v2.24, computed as an exclusion) ──');

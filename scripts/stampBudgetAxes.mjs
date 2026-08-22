@@ -56,6 +56,13 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // +4 / +4, with nothing else moved. Evidence: LA-02-SCOPING.md §2.
   'ca-sco-city-exp': 10452,
   'ca-sco-city-rev': 10452,
+  // SCOPE-04 — the derived Total Governmental rows. basis='actual', INHERITED from
+  // the parent all_funds rows (all 7,664 eligible were measured uniformly actual);
+  // summing a subset of a row's own roots cannot change the basis of the figure.
+  // 7,650 = 7,664 eligible − 8 quarantined − 6 excluded, from the post-write count.
+  // ⚠ See the note in classifyFundScope.mjs EXPECTED_ROWS: never run this gate
+  // while a load is in flight, or LIMIT/OFFSET paging invents drift.
+  'ca-sco-derived-tg': 7650,
   'ca-sco-county-exp': 1188,
   'ca-sco-county-rev': 1188,
   'wa-sao': 286,
