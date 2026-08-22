@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v2.30
 milestone_name: SCOPE-04 — Derived Total Governmental + the enterprise slice
-status: "v2.30 SCOPE-04 WRITTEN AND VERIFIED on feat/scope-04 — 7,650 derived Total Governmental rows across 488 CA entities. NOT yet merged, NOT yet tagged; PR outstanding. UAT outstanding on v2.25, v2.26, v2.27, v2.29 and now v2.30."
-stopped_at: "SCOPE-04 write COMPLETE and verified: 87,726 rows = 80,076 + 7,650, figures_frozen unmoved at 4cce9d6a, stampers proven not to un-derive, Modesto renders $588.0M -> $291.6M in the app. Remaining: open the PR to main, let CI run, merge and TAG v2.30 IN THE SAME COMMIT as this file. ⚠ The API change is ALREADY MERGED AND DEPLOYED (ev-accounts#135) — it is live in production ahead of the TT merge, which is the intended ordering."
+status: "v2.30 SCOPE-04 SHIPPED — merged to main as `d1e77c3` (PR #52) and tagged `v2.30`. 7,650 derived Total Governmental rows across 488 CA entities. ⚠ UAT outstanding on v2.25, v2.26, v2.27, v2.29 and v2.30."
+stopped_at: "SCOPE-04 COMPLETE and shipped. Nothing outstanding in the milestone itself. ⚠ TOP FOLLOW-UP: the successor-agency scope gap is UNMEASURED beyond Napa — derived_TG excludes redevelopment successor-agency funds while the UI labels it Total Governmental, and NO arithmetic gate can surface it because both figures are individually correct. The 15 unread sample targets in scripts/data/scope04VerificationSample.json should be read for successor-agency MAGNITUDE, not for a tie. Also open: the 12 rootless $0 rows, and the /treasury/cities payload projection in C:/EV-Accounts."
 last_updated: "2026-08-22T00:00:00.000Z"
 last_activity: 2026-08-22
 last_activity_desc: "SCOPE-04 executed end to end. 7,650 derived TG rows written, 8 quarantined, 6 excluded (negative enterprise). ⚠ TWO harnesses were found DEAD before the milestone could use them: figures_frozen had been red since v2.27 and was UNRECONSTRUCTABLE (LA-02 deleted 11 rows, 4 ids never preserved) — rebased 3bc12db8 -> 4cce9d6a with full accounting; and the duplicate rule went stale for the THIRD time in this arc. ⚠ A racing paged read invented 27 rows of drift I first reported as pre-existing — never run a partition gate during a load. ⚠ The stopping rule was NOT met: 1 of 16 sample targets assessed, Chris directed the write anyway. ⚠ derived_TG excludes successor-agency funds and its magnitude is UNMEASURED beyond Napa — disclosed in the UI by ruling, not hidden."
@@ -41,9 +41,9 @@ See: .planning/PROJECT.md (updated 2026-07-16 — v2.18 Pima County Municipaliti
 
 ## Current Position
 
-Milestone: **v2.30 SCOPE-04 — Derived Total Governmental + the enterprise slice — ⏳ WRITTEN AND VERIFIED 2026-08-22, NOT merged, NOT tagged**
+Milestone: **v2.30 SCOPE-04 — Derived Total Governmental + the enterprise slice — ✅ SHIPPED 2026-08-22, merged `d1e77c3` (PR #52), tag `v2.30`**
 Task: milestone on a `docs/superpowers/` plan, not GSD phases — see the banner above
-Status: **All 13 tasks executed. 7,650 derived rows live in the database.** Gates at close: `npm test` **552 passed / 35 files**, `npm run build` clean, `acfrGF.selftest.py` **166 passed**, `verify-fund-scope.mjs` **all checks passed**, `verify-budget-axes.mjs` **all checks passed**. ⚠ **PR not yet opened; v2.30 not yet tagged. UAT not run.**
+Status: **All 13 tasks executed. 7,650 derived rows live in the database.** Gates at close: `npm test` **552 passed / 35 files**, `npm run build` clean, `acfrGF.selftest.py` **166 passed**, `verify-fund-scope.mjs` **all checks passed**, `verify-budget-axes.mjs` **all checks passed**. ⚠ **UAT not run.**
 
 **488 California entities now have a second, honestly-labelled fund scope.** Modesto FY2024 renders **$588.0M → $291.6M** on selecting Total Governmental — 50.4% of its "city budget" is water, sewer, solid waste, airport and internal service funds, not the tax-funded city. Every derived figure carries `derivation='derived'`, the inert *computed by Treasury Tracker* label, and a disclosure of what the scope excludes. Full working: `docs/superpowers/plans/SCOPE-04-CLOSEOUT.md`.
 
@@ -57,7 +57,7 @@ Status: **All 13 tasks executed. 7,650 derived rows live in the database.** Gate
 
 ⚠ **UAT is outstanding on five milestones** — v2.25, v2.26, v2.27, v2.29 and now v2.30.
 
-**Next: open the PR, let CI run, merge, and TAG v2.30 in the same commit as `.planning/`.** That pairing has come apart four milestones running.
+**Next: UAT, and the successor-agency magnitude question.** The five-milestone UAT backlog (v2.25–v2.30) is the largest this project has carried. The 15 unread SCOPE-04 sample targets are committed and should be read for successor-agency magnitude rather than for a tie — that is the number nobody has.
 
 ⚠ **Re-measured against the live database on 2026-08-21 and the 2026-08-19 probe reproduces exactly**: 8,516 era-B rows, **7,664 eligible across 488 entities**, 852 skipped (no enterprise root, so there is no second scope to create), 44 flagged for negative enterprise amounts, 6 of those caught by the `derived_TG <= all_funds_total` gate. Modesto FY2024 still ties to the dollar: `588,042,068 − 296,400,946 = 291,641,122`.
 
