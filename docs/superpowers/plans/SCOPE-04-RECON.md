@@ -1,8 +1,12 @@
 # SCOPE-04 — verification record
 
-**Status:** IN PROGRESS — Task 9 Step 2 partially run. **The Task 9 Step 4 checkpoint has
-NOT been reached**: the stopping rule needs ≥10 assessable city-years and 1 of 16 sample
-targets has been assessed so far. **Nothing has been written to the database.**
+**Status:** ✅ **SHIPPED as v2.30** — merged `d1e77c3`, tagged at `0955da5`. 7,650 derived
+rows across 488 CA entities.
+
+⚠ **The stopping rule was NOT met as written.** It asked for ≥10 assessable city-years;
+**5 were assessed** (7 dataset comparisons) — 1 before the write, 4 more in the
+successor-agency follow-up read of 2026-08-22 (§3a). Chris directed the write after the
+first. Recorded plainly rather than presented as a passed gate.
 
 ---
 
@@ -96,7 +100,7 @@ rather than the original SQL, so the two agree by different means.
 
 ---
 
-## 3. Results so far — 1 of 16 assessed
+## 3. Results — the pre-write read (Napa)
 
 | city-year | dataset | derived TG | printed TG | delta | bucket |
 |---|---|---|---|---|---|
@@ -143,10 +147,68 @@ everywhere: a city with a large RDA successor agency reported inside its governm
 would show a materially smaller derived TG than its audited Total Governmental, while the UI
 labels the figure "Total Governmental".
 
-This is a **disclosure question the milestone has not yet answered**, and it is exactly the
-kind of thing the `derivation` column exists to make visible. It should be settled before the
-write, and the remaining sample should be read specifically for successor-agency magnitude
-rather than only for a tie.
+This is exactly the kind of thing the `derivation` column exists to make visible. **Ruled
+2026-08-22: keep the name, disclose the exclusion** — and then the sample WAS re-read for
+successor-agency magnitude rather than for a tie. See §3a, which sharpens this considerably:
+the discriminator turns out not to be the word "successor" at all.
+
+---
+
+## 3a. Successor-agency magnitude — the follow-up read (2026-08-22)
+
+The sample was re-read for the question that actually matters: **how big does the
+successor-agency exclusion get?**
+
+| city-year | ds | derived TG | printed TG | delta | successor fund on the statement |
+|---|---|---|---|---|---|
+| Cerritos FY2017 *(control)* | op | — | 69,951,331 | tie | **none** — "successor" appears only in a footnote (y≈547, label column) |
+| Lakewood FY2017 *(control)* | op | — | 57,831,166 | tie | **none** |
+| **Napa FY2017** | op | 97,734,023 | 97,734,046 | **−23** | `Successor Agency Low Mod Set Aside` — **EXCLUDED by SCO** |
+| **Napa FY2017** | rev | 97,338,280 | 97,277,497 | **+60,783** | same, plus `Sale of capital assets 79,307` |
+| **Inglewood FY2017** | op | 159,804,204 | 159,804,204 | **0** | `Housing Successor` — **INCLUDED by both** |
+| **Inglewood FY2017** | rev | 158,240,244 | 158,240,244 | **0** | `Housing Successor` — **INCLUDED by both** |
+| **Paso Robles FY2019** | op | 66,725,554 | 66,725,554 | **0** | **none** |
+
+**5 city-years / 7 dataset comparisons** — 5 of 16 sample targets, plus the 2 controls.
+Paso Robles required `acfrContinuedTotal.py`'s additive identity, its statement splitting
+across pages 46–47.
+
+### ⚠ The discriminator is NOT the word "successor" — it is *whose fund it is*
+
+This is the finding, and it is sharper than the original caveat:
+
+* **Napa** — `Successor Agency Low Mod Set Aside` belongs to the **Successor Agency**, the
+  separate legal entity winding down the former RDA. Napa presents it *inside* its
+  governmental funds. **SCO excludes it.** → gap.
+* **Inglewood** — `Housing Successor` is a **city** special revenue fund: the city acting
+  as housing successor, holding retained housing assets. **SCO includes it**, and the
+  figures tie to the dollar despite $530,715 / $237,915 flowing through it. → no gap.
+
+So the gap opens only where a city presents *Successor Agency* funds inside governmental
+funds. That is **unusual post-dissolution**: successor agencies are normally reported as
+**fiduciary** (private-purpose trust) funds, outside governmental funds entirely — which is
+why 4 of the 5 ACFRs read show no gap at all.
+
+**Measured magnitude where the gap does occur:** Napa, the only case in 5,
+**0.00002% of TG on the spending side and 0.019% on revenue.**
+
+⚠ **This does not license the word "slightly" in the copy.** n=5, one positive case, and no
+large-RDA city has been read — Oxnard, Indian Wells and Inglewood's larger peers were all
+unreachable. The bound is *"rare and trivial in every case measured"*, not *"small in
+general"*, and the test forbidding "slightly"/"minor" stays.
+
+### ⚠ A second defect, found while reading Inglewood: the fiscal calendar is wrong
+
+Inglewood's ACFR reads **"YEAR ENDED SEPTEMBER 30, 2017"**, and our derived figures match
+that September-year statement *exactly* — so SCO's FY2017 for Inglewood **is** the
+October–September year. Every Inglewood row nevertheless carries
+`fiscal_year_start_month = 7` (July → June).
+
+This is **pre-existing in the SCO parent rows**, and SCOPE-04 propagated it to the derived
+rows. Worse, the loader's own gate asserted `fiscal_year_start_month === 7` and all 7,664
+rows passed — the gate validated **conformity to the hardcode**, not correctness. It is the
+CO-SPRINGS defect class exactly: a wrong fiscal calendar moves no dollar figure, so no tie
+test can see it. **The July assumption is unvalidated across all 488 CA entities.**
 
 ### Reachability
 
@@ -155,9 +217,13 @@ rather than only for a tie.
 | Cerritos FY2017 | ✅ fetched — ⚠ `cerritos.us` TLS cert **EXPIRED**; moved to `cerritos.gov` |
 | Lakewood FY2017 | ✅ fetched — 403s curl even with full browser headers; `fetchViaBrowser.mjs` clears it |
 | Napa FY2017 | ✅ fetched — CivicPlus `Archive.aspx?ADID=` links, not direct PDFs |
-| Oxnard FY2017 | ⚠ likely unavailable — the finance page posts FY2020+ only |
-| Rocklin FY2018 | ⚠ not yet located — page exposes 77 links, none matching to the scraper |
-| remaining 12 | not yet attempted |
+| Inglewood FY2017 | ✅ fetched — CivicPlus `Archive.aspx?ADID=764` |
+| Paso Robles FY2019 | ✅ fetched — statement splits pages 46–47, needed `acfrContinuedTotal.py` |
+| Oxnard FY2017 | ❌ unreachable — finance page posts FY2020+ only; not indexed anywhere |
+| Rocklin FY2018 | ❌ unreachable — both `.ca.gov` and `.ca.us` pages expose no document links to a scraper |
+| Indian Wells FY2017 | ❌ unreachable — CMS loads documents dynamically, no links exposed |
+| Arroyo Grande FY2017 / FY2018 | ❌ unreachable — archive lists budgets only; `ADID=138` turned out to be **FY2013** |
+| Waterford FY2017 · Alturas FY2022 · Ridgecrest FY2017 | not attempted |
 
 ⚠ **Unreachable is recorded as unreachable and never folded into the pass count.**
 
