@@ -282,6 +282,46 @@ export function shouldResetSeries(
 }
 
 /**
+ * The fiscal year to land on when arriving at an entity.
+ *
+ * ⚠ NOT the newest row the entity has. The old rule was `operatingYears[0]`, the
+ * max across ALL operating rows; once an entity gained an adopted FY2025-26
+ * series that became FY2026, which the DEFAULT series (all_funds/actual,
+ * FY2003-24) has no row for. The first render then asked for a year the default
+ * series cannot render, the page asserted the figure "is not published" while it
+ * demonstrably is, and it only corrected once the clamp fired and every dataset
+ * refetched. Measured on production 2026-08-21: Anaheim wrong for 11.8s, Long
+ * Beach 10.2s, San Diego 10.1s, Fresno 8.5s, at ~10 budget requests instead of ~3.
+ *
+ * An explicit requested year still wins, so a deep link keeps working and the
+ * clamp remains responsible for correcting it.
+ *
+ * `referenceDataset` is 'operating' because the dataset is resolved FROM the year
+ * at the call sites; using the active dataset here would be circular. That
+ * matches what the old `operatingYears` rule already assumed.
+ */
+export function initialYearForEntity(
+  datasets: DatasetEntry[],
+  requestedYear: string | null,
+  referenceDataset: string = 'operating',
+): string {
+  const entityYears = [...new Set(datasets.map((dd) => dd.fiscal_year))].sort((a, b) => b - a);
+  if (requestedYear && entityYears.includes(parsePeriod(requestedYear).fiscalYear)) {
+    return requestedYear;
+  }
+  const seed = defaultSeries(datasets, referenceDataset);
+  if (seed) {
+    const tokens = seriesDatasetTokens(datasets, seed, referenceDataset);
+    if (tokens.length > 0) return tokens[0];
+  }
+  const referenceYears = [...new Set(
+    datasets.filter((dd) => dd.dataset_type === referenceDataset).map((dd) => dd.fiscal_year),
+  )].sort((a, b) => b - a);
+  if (referenceYears.length > 0) return String(referenceYears[0]);
+  return entityYears.length > 0 ? String(entityYears[0]) : '2025';
+}
+
+/**
  * Reader-facing coverage span: "FY2003–24", or "FY2026" for a single year.
  *
  * ⚠ The two-digit abbreviation is DROPPED across a century boundary. "FY1998–03"

@@ -35,7 +35,7 @@ import { resolveEffectiveDataset } from './utils/resolveDataset';
 import FundSeriesToggle from './components/FundSeriesToggle';
 import {
   listSeries, defaultSeries, seriesId, encodeSeries, decodeSeries,
-  seriesPeriodTokens, resolveSeriesYear, shouldResetSeries,
+  seriesPeriodTokens, resolveSeriesYear, shouldResetSeries, initialYearForEntity,
 } from './data/seriesSelection';
 import { SERIES_TOGGLE_COPY } from './data/fundScopeVocabulary';
 import type { SeriesKey } from './data/budgetSeries';
@@ -387,9 +387,10 @@ function App() {
 
   // Helper: navigate directly to an entity (used by landing page and auth routing)
   const navigateToEntity = useCallback((entity: Municipality, list: Municipality[]) => {
-    const entityYears = [...new Set(entity.available_datasets.map(d => d.fiscal_year))].sort((a, b) => b - a);
-    const operatingYears = [...new Set(entity.available_datasets.filter(d => d.dataset_type === 'operating').map(d => d.fiscal_year))].sort((a, b) => b - a);
-    const year = operatingYears.length > 0 ? String(operatingYears[0]) : (entityYears.length > 0 ? String(entityYears[0]) : '2025');
+    // ⚠ NOT the newest row — the newest year the DEFAULT series can render.
+    // See initialYearForEntity: an adopted FY2025–26 series made the old rule
+    // land on a year the default actuals series has no row for.
+    const year = initialYearForEntity(entity.available_datasets, null);
     setMunicipalities(list);
     setSelectedEntity(entity);
     setSelectedYear(year);
@@ -412,17 +413,10 @@ function App() {
         const entity = matched ?? list.find(m => m.name === 'Bloomington' && m.state === 'IN') ?? list[0];
         setSelectedEntity(entity);
 
-        const entityYears = [...new Set(entity.available_datasets.map(d => d.fiscal_year))].sort((a, b) => b - a);
-        const operatingYears = [...new Set(entity.available_datasets.filter(d => d.dataset_type === 'operating').map(d => d.fiscal_year))].sort((a, b) => b - a);
-        // Compute the resolved year as a local variable so we can validate
-        // ?dataset= against availability for that specific year (REVUX-02 fix).
-        const resolvedYear = (yearParam && entityYears.includes(parseInt(yearParam)))
-          ? yearParam
-          : operatingYears.length > 0
-            ? String(operatingYears[0])
-            : entityYears.length > 0
-              ? String(entityYears[0])
-              : '2025';
+        // Resolved as a local so ?dataset= can be validated against availability
+        // for that specific year (REVUX-02 fix). ⚠ An explicit ?year= still wins;
+        // otherwise land on what the DEFAULT series can render, not the newest row.
+        const resolvedYear = initialYearForEntity(entity.available_datasets, yearParam);
         setSelectedYear(resolvedYear);
         // Validate ?dataset= against the entity's actual availability for the
         // resolved year — falls back to 'operating' for garbage params, missing
@@ -638,17 +632,17 @@ function App() {
 
   // Entity change handler — computes effective year BEFORE triggering data load (avoids Pitfall 1)
   const handleEntityChange = useCallback((entity: Municipality) => {
-    const entityYears = [...new Set(entity.available_datasets.map(d => d.fiscal_year))].sort((a, b) => b - a);
+    // Keep the current year only if the new entity's DEFAULT series can render it;
+    // otherwise land where that series actually has data. Passing selectedYear as
+    // the requested year preserves 'stay put when possible' — initialYearForEntity
+    // honours it when the entity has that year at all.
     const operatingYears = [...new Set(
       entity.available_datasets.filter(d => d.dataset_type === 'operating').map(d => d.fiscal_year)
     )].sort((a, b) => b - a);
-    // Prefer a year with operating data; only keep current year if it has operating data
     const currentHasOperating = operatingYears.includes(parsePeriod(selectedYear).fiscalYear);
     const effectiveYear = currentHasOperating
       ? selectedYear
-      : operatingYears.length > 0
-        ? String(operatingYears[0])
-        : (entityYears.length > 0 ? String(entityYears[0]) : selectedYear);
+      : initialYearForEntity(entity.available_datasets, null);
 
     // Check if current dataset is available for new entity in effective year.
     // Uses the shared helper so both the mount path and handleEntityChange
