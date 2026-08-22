@@ -170,9 +170,19 @@ rather than only for a tie.
    the milestone has no measurement of how large it gets elsewhere. **This is now the
    milestone's main open risk** — it is a labelling question, not an arithmetic one, and no
    tie test can surface it because both figures are individually correct.
-2. **Signature B is population-testable without fetching.** "Sale of capital assets counted
-   as revenue" moves the revenue side only and always makes derived higher. Its prevalence
-   can be measured against the SCO feed directly, far more cheaply than 15 more ACFRs.
+2. ⚠ **NEITHER SIGNATURE IS DETECTABLE IN OUR OWN DATA — measured, not assumed.** Both
+   signatures are invisible in the SCO feed by construction, so there is no cheap
+   population-wide screen for either:
+   * **Signature A** — SCO's roots are FUNCTIONAL (`Public Safety`, `General Government`),
+     never per-fund, so a successor-agency fund cannot be identified or sized from them.
+   * **Signature B** — checked directly on Napa: the children under
+     `Miscellaneous Revenues` are `Functional Revenues 6,137,216` and
+     `General Revenues 89,875`. Generic buckets. `Sale of capital assets` is already
+     aggregated away and cannot be recovered.
+
+   **Consequence:** the only instrument that can characterise the gap between derived TG and
+   the audited Total Governmental is reading ACFRs — i.e. the sample. There is no shortcut,
+   and no arithmetic gate over the feed can ever substitute for one.
 3. **EV-Accounts deploy.** Task 4 is committed locally on branch
    `feat/scope-04-derivation` (`e99ec732`), **held local by Chris's decision** until the
    write is approved. It must land before any derived row is written.
