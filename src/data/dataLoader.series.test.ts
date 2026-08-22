@@ -108,3 +108,75 @@ describe('loadBudgetData — absent in this series', () => {
     expect(err).not.toBeInstanceOf(SeriesAbsentError);
   });
 });
+
+describe('loadBudgetData — the city list is fetched once, not once per dataset', () => {
+  const SERIES = { fundScope: 'all_funds', basis: 'actual' } as const;
+  const cityCalls = (calls: string[]) => calls.filter((u) => u.endsWith('/treasury/cities'));
+
+  it('CONCURRENT loads share ONE city-list request', async () => {
+    // Measured on production 2026-08-21: /treasury/cities was fetched 3-5 times
+    // per page load -- alaska-ak 3x, anaheim-ca 5x, modesto-ca 4x -- serially,
+    // and the first figure appeared right after the LAST one landed (6.3s, 5.0s,
+    // 4.9s). Step 1 of loadBudgetData resolves the city by NAME from the full
+    // 2,463-entity list and cached nothing, so every dataset re-downloaded it.
+    // The app loads operating + revenue + salaries in one Promise.all, so the
+    // memo must dedupe IN FLIGHT, not merely after the first resolves.
+    const calls = stubFetch();
+    await Promise.all([
+      loadBudgetData(2024, 'Testville', 'CA', 'operating', null, SERIES),
+      loadBudgetData(2024, 'Testville', 'CA', 'revenue', null, SERIES),
+    ]);
+    expect(cityCalls(calls)).toHaveLength(1);
+  });
+
+  it('SEQUENTIAL loads share ONE city-list request', async () => {
+    const calls = stubFetch();
+    await loadBudgetData(2024, 'Testville', 'CA', 'operating', null, SERIES);
+    await loadBudgetData(2024, 'Testville', 'CA', 'revenue', null, SERIES);
+    expect(cityCalls(calls)).toHaveLength(1);
+  });
+
+  it('still returns the right figure for each dataset', async () => {
+    // The memo must not become a correctness bug: dedupe the LOOKUP, never the
+    // per-dataset result.
+    stubFetch();
+    const [op, rev] = await Promise.all([
+      loadBudgetData(2024, 'Testville', 'CA', 'operating', null, SERIES),
+      loadBudgetData(2024, 'Testville', 'CA', 'revenue', null, SERIES),
+    ]);
+    expect(op.metadata.totalBudget).toBe(900);
+    expect(rev.metadata.totalBudget).toBe(950);
+  });
+
+  it('does NOT memoize a failure — a later load retries and succeeds', async () => {
+    // ⚠ Memoizing the rejected promise would poison the whole session: one
+    // transient 500 on the city list and every later load throws forever,
+    // without ever retrying.
+    let failOnce = true;
+    const calls: string[] = [];
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      calls.push(url);
+      if (url.endsWith('/treasury/cities')) {
+        if (failOnce) { failOnce = false; return { ok: false, status: 500, json: async () => null } as unknown as Response; }
+        return { ok: true, status: 200, json: async () => [CITY] } as unknown as Response;
+      }
+      const body = url.includes('/categories') ? [] : url.includes('/budgets') ? BUDGETS : null;
+      return { ok: true, status: 200, json: async () => body } as unknown as Response;
+    }));
+    await expect(
+      loadBudgetData(2024, 'Testville', 'CA', 'operating', null, SERIES),
+    ).rejects.toThrow();
+    const recovered = await loadBudgetData(2024, 'Testville', 'CA', 'operating', null, SERIES);
+    expect(recovered.metadata.totalBudget).toBe(900);
+    expect(cityCalls(calls)).toHaveLength(2);
+  });
+
+  it('clearCache() resets the memo, so a later load re-fetches', async () => {
+    const calls = stubFetch();
+    await loadBudgetData(2024, 'Testville', 'CA', 'operating', null, SERIES);
+    expect(cityCalls(calls)).toHaveLength(1);
+    clearCache();
+    await loadBudgetData(2024, 'Testville', 'CA', 'revenue', null, SERIES);
+    expect(cityCalls(calls)).toHaveLength(2);
+  });
+});
