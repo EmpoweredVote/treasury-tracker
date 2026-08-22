@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v2.29
 milestone_name: CO-SPRINGS-EPC-01 — Colorado Springs + El Paso County
 status: v2.29 CO-SPRINGS-EPC-01 SHIPPED — PR #47 merged to main as 02f93d0, tagged v2.29. v2.27 (AUSTIN-TRAVIS-01) and v2.28 (LA-02) tagged retroactively the same day. UAT outstanding on v2.25, v2.26, v2.27, v2.29.
-stopped_at: "Milestone closed and tagged. SCOPE-04 is next: scoped and feasibility-probed, both adjudications closed in PR #36, not specced and not planned. Read docs/superpowers/plans/SCOPE-04-HANDOFF.md first."
-last_updated: "2026-08-21T00:00:00.000Z"
+stopped_at: "SCOPE-04 SPECCED AND PLANNED on branch feat/scope-04, execution NOT started. Read docs/superpowers/specs/2026-08-21-scope-04-design.md then docs/superpowers/plans/2026-08-21-scope-04.md (13 tasks). Task 9 Step 4 is a HARD human checkpoint -- the ACFR stopping rule -- and Task 4 is in a DIFFERENT repo (C:/EV-Accounts). Nothing has been written to the database."
+last_updated: "2026-08-21T21:00:00.000Z"
 last_activity: 2026-08-21
-last_activity_desc: "CO-SPRINGS-EPC-01 merged as PR #47 (02f93d0) and tagged v2.29 -- Colorado's first local entities, 64 General Fund rows. Every gate independently re-run at merge time rather than taken from the PR body: npm test 504/33 files, build clean, acfrGF.selftest.py 166, verify-colorado.mjs 64 rows ALL PASSED, verify-austin-travis.mjs 76 rows ALL PASSED. Three milestones that had shipped to main untagged were tagged retroactively at their own merge commits: v2.27 AUSTIN-TRAVIS-01 (34caf9a), v2.28 LA-02 (1f74b6a), v2.29 CO-SPRINGS-EPC-01 (02f93d0) -- main had taken 40 commits across 12 merged PRs since v2.26 with no tag at all. Also repaired this file's double-encoded mojibake: 403 U+00E2 leads and 799 C1 control characters, zero proper warning signs in a file full of them."
+last_activity_desc: "SCOPE-04 specced and planned (feat/scope-04): derived Total Governmental for 488 CA entities. Three decisions -- a derivation column (published|derived) defaulting to published so figures_frozen cannot move; derived TG rows ONLY with the enterprise slice as the difference; and a stratified 16-city ACFR sample BEFORE any write, stopping rule declared in advance. TG = SUM of governmental roots, never all_funds minus enterprise, so the 44 negative-enterprise rows cannot corrupt the figure. Spec self-review caught that the fund-scope registry would have OVERWRITTEN total_governmental back to all_funds for all 7,664 rows -- fixed with distinct data_source labels. Also fixed: three earlier defects shipped first -- PR #49 series year-clamp, PR #50 the FY2026 landing-year bug, PR #51 the city-list refetch that was Chris's Alaska stall (18 fetches -> 1). Nothing written to the database yet."
 progress:
   total_phases: 14
   completed_phases: 14
@@ -37,7 +37,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-07-16 — v2.18 Pima County Municipalities STARTED)
 
 **Core value:** Any citizen can open treasurytracker.empowered.vote and trust that every figure shown is real and sourced — no "best guess" data wearing a real-looking label.
-**Current focus:** **v2.29 CO-SPRINGS-EPC-01 SHIPPED and tagged. SCOPE-04 (derived Total Governmental + the enterprise slice) is next — scoped and feasibility-probed, not specced, not planned.**
+**Current focus:** **SCOPE-04 SPECCED AND PLANNED on `feat/scope-04` — 13 tasks, execution not started, zero database writes so far.** Read `docs/superpowers/specs/2026-08-21-scope-04-design.md`, then `docs/superpowers/plans/2026-08-21-scope-04.md`.
 
 ## Current Position
 
