@@ -28,4 +28,24 @@ describe('DERIVED_COPY', () => {
     expect(DERIVED_COPY.marker).toMatch(/computed/i);
     expect(DERIVED_COPY.explainer).toMatch(/published components/i);
   });
+
+  // SCOPE-04 ruling (Chris, 2026-08-22): keep calling the figure "Total
+  // Governmental", and DISCLOSE the successor-agency exclusion.
+  //
+  // ⚠ Why this needs its own test. The gap is invisible to every arithmetic
+  // gate: derived TG is the SCO feed's governmental scope, the ACFR's "Total
+  // Governmental Funds" includes redevelopment successor-agency funds, and BOTH
+  // figures are individually correct. Proven at Napa FY2017 to the dollar
+  // (97,277,497 - 18,524 + 79,307 = 97,338,280). Disclosure is therefore the
+  // ONLY mechanism that can tell a reader, and prose in a chip is not
+  // machine-checkable -- so it is pinned here.
+  it('discloses the successor-agency exclusion', () => {
+    expect(DERIVED_COPY.scopeNote).toMatch(/successor agency/i);
+  });
+
+  it('does NOT claim the difference is small — it is unmeasured', () => {
+    // Napa's gap was $23 and $18,524, i.e. nothing. That is ONE city. Promising
+    // "slightly" or "minor" would be a claim this milestone has not earned.
+    expect(DERIVED_COPY.scopeNote).not.toMatch(/slight|minor|negligible|small differ/i);
+  });
 });

@@ -38,6 +38,19 @@ export default function FundSeriesToggle({
 
   const single = series.length === 1;
 
+  // SCOPE-04 — the disclosure below is tied to the series ACTUALLY ON SCREEN, not
+  // to "any derived series exists". It describes the figure the reader is looking
+  // at; showing it while a published series is selected would explain the wrong
+  // number. Each pill still carries its own `computed by Treasury Tracker` marker.
+  const shown = series.find((s) => s.id === selectedId) ?? (single ? series[0] : undefined);
+  const shownIsDerived = shown?.derivation === 'derived';
+
+  // ⚠ The heading and intro describe the WHOLE LIST, so they switch on whether any
+  // listed series is derived — not on which one is selected. Saying "Which published
+  // figures" above a list containing a computed option is false regardless of the
+  // reader's current choice.
+  const anyDerived = series.some((s) => s.derivation === 'derived');
+
   return (
     <div className={`flex flex-col gap-1.5 ${className}`}>
       {/* The heading is a QUESTION ("Which published figures"), so it only belongs
@@ -46,14 +59,14 @@ export default function FundSeriesToggle({
           set of figures". Reported twice in AUSTIN-TRAVIS-01 UAT. */}
       {!single && (
         <span className="text-[11px] font-medium text-ev-gray-500 dark:text-ev-gray-400">
-          {SERIES_TOGGLE_COPY.heading}
+          {anyDerived ? SERIES_TOGGLE_COPY.headingAnyDerived : SERIES_TOGGLE_COPY.heading}
         </span>
       )}
 
       <div
         className="flex flex-wrap gap-2"
         role={single ? undefined : 'radiogroup'}
-        aria-label={single ? undefined : SERIES_TOGGLE_COPY.heading}
+        aria-label={single ? undefined : (anyDerived ? SERIES_TOGGLE_COPY.headingAnyDerived : SERIES_TOGGLE_COPY.heading)}
       >
         {series.map((s) => {
           const selected = s.id === selectedId;
@@ -130,8 +143,26 @@ export default function FundSeriesToggle({
       </div>
 
       <span className="max-w-prose text-[11px] leading-relaxed text-ev-gray-500 dark:text-ev-gray-400">
-        {single ? SERIES_TOGGLE_COPY.single : SERIES_TOGGLE_COPY.intro}
+        {single
+          ? (anyDerived ? SERIES_TOGGLE_COPY.singleDerived : SERIES_TOGGLE_COPY.single)
+          : (anyDerived ? SERIES_TOGGLE_COPY.introAnyDerived : SERIES_TOGGLE_COPY.intro)}
       </span>
+
+      {/* ⚠ SCOPE-04 — this is the whole disclosure, and it is load-bearing.
+          `Total Governmental` here is built from the State Controller's
+          governmental schedule; a city's own audited "Total Governmental Funds"
+          also includes its redevelopment successor-agency funds. BOTH totals are
+          individually correct, so no arithmetic gate can ever surface the
+          difference — a tie test would be comparing two right answers to
+          different questions. Chris's ruling (2026-08-22) was to keep the name
+          and disclose the exclusion, which makes this sentence the only thing
+          that tells a reader. If it stops rendering, the label silently
+          overstates what the figure covers. */}
+      {shownIsDerived && (
+        <span className="max-w-prose text-[11px] leading-relaxed text-ev-gray-500 dark:text-ev-gray-400">
+          {DERIVED_COPY.explainer}{' '}{DERIVED_COPY.scopeNote}
+        </span>
+      )}
     </div>
   );
 }
