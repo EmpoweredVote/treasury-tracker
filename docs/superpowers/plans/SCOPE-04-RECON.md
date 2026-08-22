@@ -165,11 +165,30 @@ rather than only for a tie.
 
 ## 4. Open decisions
 
-1. ⚠ **The successor-agency scope gap (Signature A).** Does a derived figure that excludes
-   successor-agency funds get labelled "Total Governmental"? At Napa the gap is immaterial;
-   the milestone has no measurement of how large it gets elsewhere. **This is now the
-   milestone's main open risk** — it is a labelling question, not an arithmetic one, and no
-   tie test can surface it because both figures are individually correct.
+1. ✅ **RULED 2026-08-22 (Chris): keep the name "Total Governmental", and disclose the
+   successor-agency exclusion.** Implemented in `89240b9` as `DERIVED_COPY.scopeNote`,
+   rendered beneath the series pills whenever the figure on screen is derived:
+
+   > *This covers the governmental funds the city reports to the State Controller.
+   > Redevelopment successor agency funds are not included, so it can differ from the
+   > "total governmental funds" figure printed in the city's own audited report.*
+
+   ⚠ The copy deliberately avoids "slightly" / "minor" / "negligible" — Napa's gap was
+   immaterial but that is one city, and the magnitude elsewhere is **still unmeasured**.
+   A unit test fails if those words appear. The remaining sample should therefore be read
+   for **successor-agency magnitude**, not only for a tie; that is now the useful output of
+   the campaign, and the disclosure holds regardless of what it finds.
+
+   ⚠ Two rendering defects were found and fixed while verifying this, neither caught by
+   any gate:
+   * `DERIVED_COPY.explainer` had been defined and unit-tested since Task 5 but **rendered
+     nowhere**. The disclosure would have been dead text the same way.
+   * The toggle copy asserted "published" three times (`heading`, `intro`, `single`) and
+     all three render beside the *computed by Treasury Tracker* marker. After the write
+     every CA city carries a published `all_funds` series next to a derived one, so
+     "Which published figures" would have headed a list containing a computed option on
+     all 488 entities. Derived-aware variants added; the all-published wording is
+     unchanged for the rest of the country.
 2. ⚠ **NEITHER SIGNATURE IS DETECTABLE IN OUR OWN DATA — measured, not assumed.** Both
    signatures are invisible in the SCO feed by construction, so there is no cheap
    population-wide screen for either:
