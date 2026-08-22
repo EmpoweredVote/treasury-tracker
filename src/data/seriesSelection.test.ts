@@ -490,3 +490,29 @@ describe('initialYearForEntity', () => {
     expect(initialYearForEntity(single, null)).toBe('2024');
   });
 });
+
+describe('listSeries — derivation', () => {
+  it('carries derivation onto the series without changing its identity', () => {
+    const sets = [
+      { fiscal_year: 2024, dataset_type: 'operating', period_label: null,
+        fund_scope: 'all_funds', basis: 'actual', derivation: 'published' },
+      { fiscal_year: 2024, dataset_type: 'operating', period_label: null,
+        fund_scope: 'total_governmental', basis: 'actual', derivation: 'derived' },
+    ];
+    const out = listSeries(sets);
+    const tg = out.find((s) => s.id === 'total_governmental|actual');
+    const af = out.find((s) => s.id === 'all_funds|actual');
+    expect(tg?.derivation).toBe('derived');
+    expect(af?.derivation).toBe('published');
+    // identity must NOT include derivation
+    expect(tg?.id).toBe('total_governmental|actual');
+  });
+
+  it('defaults a dataset entry with no derivation field to published', () => {
+    const out = listSeries([
+      { fiscal_year: 2024, dataset_type: 'operating', period_label: null,
+        fund_scope: 'all_funds', basis: 'actual' },
+    ]);
+    expect(out[0].derivation).toBe('published');
+  });
+});

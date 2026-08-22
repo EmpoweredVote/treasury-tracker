@@ -331,8 +331,45 @@ describe('classifyDuplicates', () => {
 
   it('keeps every finding — classification never drops one', () => {
     const input = [grp([null, 'TQ']), grp([null, null]), grp(['Q1', 'Q2', 'Q3'])];
-    const { illegal, periodSplit } = classifyDuplicates(input);
-    expect(illegal.length + periodSplit.length).toBe(input.length);
+    const { illegal, periodSplit, scopeSplit } = classifyDuplicates(input);
+    expect(illegal.length + periodSplit.length + (scopeSplit?.length ?? 0)).toBe(input.length);
+  });
+
+  // ── SCOPE-04 ──────────────────────────────────────────────────────────────
+  //
+  // ⚠ SCOPE-02's rule was "two rows sharing a basis is a genuine double-count
+  // hazard WHATEVER their scopes", and it was right when the only legal pair was
+  // an actuals row beside an adopted-budget row. SCOPE-04 deliberately creates
+  // actual+actual at TWO DIFFERENT SCOPES for the same city-year — a published
+  // all_funds row and a derived total_governmental one — on 7,650 rows. The
+  // detector firing on all of them is the assertion being wrong, not the data;
+  // this is the same shape as SCOPE-01's findDuplicateScopes going stale when
+  // SCOPE-02 created its first legal pair.
+  const scopeGrp = (scopes) => ({
+    name: 'Modesto', fiscal_year: 2024, dataset_type: 'operating', basis: 'actual',
+    rows: scopes.length,
+    detail: scopes.map((fund_scope) => ({ fund_scope, period_label: null, total_budget: 1 })),
+  });
+
+  it('treats one all_funds row beside one total_governmental row as a SCOPE SPLIT', () => {
+    const { illegal, scopeSplit } = classifyDuplicates([scopeGrp(['all_funds', 'total_governmental'])]);
+    expect(illegal).toEqual([]);
+    expect(scopeSplit).toHaveLength(1);
+  });
+
+  it('is still fatal when two rows share BOTH scope and period', () => {
+    // The unique index forbids this, which is exactly why the detector must keep
+    // reporting it — a guard that only ever sees legal data is a guard nobody has
+    // tested.
+    const { illegal, scopeSplit } = classifyDuplicates([scopeGrp(['all_funds', 'all_funds'])]);
+    expect(illegal).toHaveLength(1);
+    expect(scopeSplit).toEqual([]);
+  });
+
+  it('is fatal when three rows hold only two distinct scopes', () => {
+    const { illegal } = classifyDuplicates([
+      scopeGrp(['all_funds', 'total_governmental', 'total_governmental'])]);
+    expect(illegal).toHaveLength(1);
   });
 });
 

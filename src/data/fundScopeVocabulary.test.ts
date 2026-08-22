@@ -3,6 +3,7 @@ import {
   FUND_SCOPE_VALUES, FUND_SCOPE_COPY, FUND_SCOPE_EXPLAINER, NON_COMPARABLE_SCOPES,
   isComparableScope, normalizeScope, scopeLabel,
   areComparable, normalizeReportingEntity, normalizeBasis, BASIS_COPY,
+  SERIES_TOGGLE_COPY,
 } from './fundScopeVocabulary';
 
 describe('fund scope values', () => {
@@ -187,5 +188,29 @@ describe('basis copy', () => {
     for (const word of ['fail', 'error', 'bad', 'wrong', 'missing data', 'incomplete']) {
       expect(all).not.toContain(word);
     }
+  });
+});
+
+// SCOPE-04 — the toggle copy claimed "published" three times over. Once a derived
+// series is in the list that is FALSE, and it renders directly beside the
+// "computed by Treasury Tracker" marker. A disclosure undercut by the copy around
+// it is not a disclosure.
+describe('SERIES_TOGGLE_COPY — derived-aware variants', () => {
+  it('keeps the all-published wording for the all-published case', () => {
+    expect(SERIES_TOGGLE_COPY.heading).toMatch(/published/i);
+    expect(SERIES_TOGGLE_COPY.single).toMatch(/published/i);
+    expect(SERIES_TOGGLE_COPY.intro).toMatch(/published/i);
+  });
+
+  it('never calls a derived figure published', () => {
+    // ⚠ These render next to "computed by Treasury Tracker". The word `published`
+    // appearing here is a direct contradiction of the marker.
+    expect(SERIES_TOGGLE_COPY.singleDerived).not.toMatch(/\bpublished\b/i);
+    expect(SERIES_TOGGLE_COPY.headingAnyDerived).not.toMatch(/\bpublished\b/i);
+  });
+
+  it('tells a mixed list that some figures are computed, not all published', () => {
+    expect(SERIES_TOGGLE_COPY.introAnyDerived).toMatch(/computed/i);
+    expect(SERIES_TOGGLE_COPY.introAnyDerived).not.toMatch(/all published/i);
   });
 });

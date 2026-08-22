@@ -351,12 +351,44 @@ export function findIllegalDuplicates(rows) {
 export function classifyDuplicates(dupes) {
   const illegal = [];
   const periodSplit = [];
+  const scopeSplit = [];
   for (const d of dupes) {
     const labels = d.detail.map((r) => r.period_label ?? '');
-    const allDistinct = new Set(labels).size === labels.length;
-    (allDistinct ? periodSplit : illegal).push(d);
+    if (new Set(labels).size === labels.length) { periodSplit.push(d); continue; }
+
+    // ── SCOPE-04: two SCOPES for one city-year is the intended state ─────────
+    //
+    // ⚠ SCOPE-02 wrote the rule as "two rows sharing a basis is a genuine
+    // double-count hazard WHATEVER their scopes", and that was correct when the
+    // only legal pair was an actuals row beside an adopted-budget row. SCOPE-04
+    // deliberately creates actual+actual at TWO DIFFERENT SCOPES for the same
+    // city-year — a published `all_funds` row and a derived `total_governmental`
+    // one — on 7,650 rows across 488 entities. The detector fired on every one of
+    // them, which is the ASSERTION being stale, not the data.
+    //
+    // This is the third time this exact shape has come round: SCOPE-01's
+    // findDuplicateScopes went stale the moment SCOPE-02 created its first legal
+    // pair, and it is kept above precisely as that record.
+    //
+    // ⚠ Still classified, NEVER suppressed, and for the reason the period-split
+    // comment gives: summing a city-year across scopes double-counts, because
+    // all_funds CONTAINS total_governmental. The app never does — it draws one
+    // series at a time — but anything that adds these rows up is wrong, so the
+    // pair stays visible in the report.
+    //
+    // The test is structural, matching the period-split rule: if every row in the
+    // group carries a DISTINCT fund_scope they describe different scopes; if two
+    // share one, they describe the same scope twice and that IS a double-count —
+    // which the unique index forbids, so the detector must keep reporting it.
+    const scopes = d.detail.map((r) => r.fund_scope ?? '');
+    if (scopes.every(Boolean) && new Set(scopes).size === scopes.length) {
+      scopeSplit.push(d);
+      continue;
+    }
+
+    illegal.push(d);
   }
-  return { illegal, periodSplit };
+  return { illegal, periodSplit, scopeSplit };
 }
 
 /**

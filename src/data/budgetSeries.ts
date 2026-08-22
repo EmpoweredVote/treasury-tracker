@@ -33,6 +33,9 @@ export interface DatasetEntry {
   period_label?: string | null;
   fund_scope?: string | null;
   basis?: string | null;
+  // SCOPE-04: 'published' | 'derived'. Absent means published — every row
+  // predating SCOPE-04 is, and an older API build omits the field.
+  derivation?: string | null;
 }
 
 /**

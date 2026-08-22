@@ -194,6 +194,27 @@ export const BASIS_REGISTRY = [
     },
   },
   {
+    id: 'ca-sco-derived-tg',
+    match: /^Treasury Tracker derived: Total Governmental \(CA State Controller/,
+    value: BASIS.ACTUAL,
+    // ⚠ Placed ABOVE the adopted-budget catch-all. That entry matches on
+    // /(Operating|Revenue|...).*Budget.../i and the derived labels contain
+    // "Revenues", so ordering is what guarantees they can never be read as
+    // adopted. (Checked: the catch-all also requires "Budget" at the end, which
+    // these labels do not have — so this is belt and braces, not the only guard.)
+    evidence: {
+      document: 'Inherited, not asserted. Every derived row is computed from a CA State '
+              + 'Controller all_funds row, and all 7,664 eligible parents were MEASURED as '
+              + 'basis=actual uniformly — the derivation sums a subset of a parent\'s own root '
+              + 'categories, so it cannot change the basis of the figure.',
+      figures: 'The SCO Annual Report publishes year-end ACTUALS for a closed fiscal year, not '
+             + 'appropriations; era B is FY2017+ and every such year has closed. Corroborated '
+             + 'against audited statements at Cerritos FY2017 (69,951,331) and Lakewood FY2017 '
+             + '(57,831,166), both of which are audited year-end GAAP actuals and both of which '
+             + 'the derived figures reproduce exactly. See SCOPE-04-RECON.md.',
+    },
+  },
+  {
     // Adopted budget documents. 165 rows / 129 strings / 30 entities, measured 2026-08-17.
     // Placed LAST so a more specific source above always wins.
     id: 'city-adopted-budget-doc',

@@ -65,12 +65,30 @@ function loadBaseline() {
   return JSON.parse(readFileSync(BASELINE_PATH, 'utf8'));
 }
 
-/** The ids SCOPE-02 created, which both digests exclude. Path is committed in the baseline. */
+/**
+ * The ids created SINCE v2.24, which both digests exclude. Paths are committed in
+ * the baseline.
+ *
+ * ⚠ This was a single `excluded_ids_file` holding SCOPE-02's 12 ids, and it went
+ * un-updated across THREE milestones — v2.27 (Austin + Travis, 76 rows), v2.28
+ * (LA-02) and v2.29 (Colorado Springs + El Paso, 64 rows). The harness reported
+ * a moved figure digest on every run in that window, which is precisely how an
+ * invariant stops being read. It is a LIST now so each milestone appends its own
+ * file rather than editing a shared one.
+ */
 function loadExcludedIds(baseline) {
-  const rel = baseline?.excluded_ids_file;
-  if (!rel) return [];
-  const path = join(HERE, '..', rel);
-  return existsSync(path) ? JSON.parse(readFileSync(path, 'utf8')) : [];
+  const rels = baseline?.excluded_ids_files
+    ?? (baseline?.excluded_ids_file ? [baseline.excluded_ids_file] : []);
+  const ids = [];
+  for (const rel of rels) {
+    const path = join(HERE, '..', rel);
+    if (!existsSync(path)) {
+      console.error(`  ⚠ excluded ids file missing: ${rel}`);
+      continue;
+    }
+    ids.push(...JSON.parse(readFileSync(path, 'utf8')));
+  }
+  return ids;
 }
 
 async function main() {

@@ -56,7 +56,7 @@ if (unclosed.length) {
 }
 
 console.log('\n── illegal duplicates (inverted rule) ──');
-const { illegal, periodSplit } = classifyDuplicates(findIllegalDuplicates(rows));
+const { illegal, periodSplit, scopeSplit } = classifyDuplicates(findIllegalDuplicates(rows));
 if (illegal.length) {
   failed = true;
   console.error(`  ✗ ${illegal.length} (city-year, dataset, basis) groups hold more than one row FOR THE SAME PERIOD`);
@@ -73,10 +73,29 @@ if (periodSplit.length) {
     console.log(`      ${d.name} FY${d.fiscal_year} ${d.dataset_type} — ${labels}`);
   }
 }
+if (scopeSplit.length) {
+  // SCOPE-04. Reported, never fatal: one published all_funds row beside one
+  // derived total_governmental row for the same city-year is the state this
+  // milestone exists to create. ⚠ Still a hazard for anything that SUMS a
+  // city-year, because all_funds CONTAINS total_governmental — the app draws one
+  // series at a time and never adds them.
+  console.log(`  ℹ ${scopeSplit.length} group(s) split across DISTINCT fund scopes — SCOPE-04's intended`
+    + ' state, still a hazard for naive summing (all_funds CONTAINS total_governmental):');
+  for (const d of scopeSplit.slice(0, 5)) {
+    const scopes = d.detail.map((r) => `${r.fund_scope}${r.derivation === 'derived' ? ' (derived)' : ''}`).join(' | ');
+    console.log(`      ${d.name} FY${d.fiscal_year} ${d.dataset_type} — ${scopes}`);
+  }
+  if (scopeSplit.length > 5) console.log(`      … and ${scopeSplit.length - 5} more`);
+}
 
 console.log('\n── the figure invariant (frozen at v2.24, computed as an exclusion) ──');
 const baseline = JSON.parse(readFileSync('scripts/data/scopeBaseline.json', 'utf8'));
-const excludedIds = JSON.parse(readFileSync(baseline.excluded_ids_file, 'utf8'));
+// ⚠ A LIST since v2.30 — one file per milestone that creates rows. It was a single
+// path and went un-updated across v2.27, v2.28 and v2.29, so this digest read as
+// moved on every run in that window. See scopeBaseline.json `_rebased_at_v2_30`.
+const excludedIds = (baseline.excluded_ids_files
+  ?? (baseline.excluded_ids_file ? [baseline.excluded_ids_file] : []))
+  .flatMap((rel) => JSON.parse(readFileSync(rel, 'utf8')));
 const digest = frozenIdDigest(rows, excludedIds);
 if (baseline.figures_frozen && digest !== baseline.figures_frozen) {
   failed = true;

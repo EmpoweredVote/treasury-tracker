@@ -67,6 +67,21 @@ export const EXPECTED_ROWS = Object.freeze({
   'ca-sco-county-exp': 1188,
   'ca-sco-county-rev': 1188,
   'state-acfr-gf': 1448,
+  // SCOPE-04, measured from the ACTUAL post-write count, never the estimate.
+  // 7,650 = 7,664 eligible − 8 quarantined − 6 excluded. Ids are committed in
+  // scripts/data/scope04CreatedIds.json and proven an exact set match against the
+  // rows carrying derivation='derived'.
+  //
+  // ⚠ DO NOT RUN THIS GATE WHILE A LOAD IS IN FLIGHT. Measured the hard way: run
+  // mid-write, it reported eight entries OVER-MATCHING by a total of 27 rows —
+  // including mn-osa +11 and oh-aos +2, in states SCOPE-04 does not touch at all.
+  // Nothing was wrong with any pattern. Paging is LIMIT/OFFSET, so rows inserted
+  // during the scan shift later pages and existing rows get counted twice. The
+  // fabricated drift looked exactly like a real stale baseline, and the reasoning
+  // that "this milestone is CA-only so it cannot have added MN rows" does NOT
+  // exonerate the numbers — a racing read double-counts rows that were already
+  // there. Re-run after the load: every entry matched exactly.
+  'ca-sco-derived-tg': 7650,
   // AUSTIN-TRAVIS-01, measured 2026-08-19: Austin 32 + Travis County 44. A NEW
   // family, so no pre-existing count moved.
   // Evidence: docs/superpowers/plans/AUSTIN-TRAVIS-01-SCOPE-RECON.md §1.

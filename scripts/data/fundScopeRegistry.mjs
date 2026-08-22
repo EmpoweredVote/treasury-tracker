@@ -606,6 +606,69 @@ export const FUND_SCOPE_REGISTRY = [
   // Everything else — publicpay (7,682), VA APA, Transparent Utah, the
   // state/local ACFR families, Texas's "General Revenue Fund" — is Task 4.
   // (MN OSA, Ohio AOS and MA DLS have since been evidenced and are entries above.)
+
+  {
+    id: 'ca-sco-derived-tg',
+    match: /^Treasury Tracker derived: Total Governmental \(CA State Controller/,
+    scope: SCOPE.TOTAL_GOVERNMENTAL,
+    // ⚠ THIS ENTRY EXISTS BECAUSE THE DERIVED ROWS CARRY THEIR OWN data_source.
+    // Had they inherited the parent's label, `ca-sco-expenditures` above —
+    // /^CA State Controller - Expenditures$/, ANCHORED — would have matched them
+    // on the next classifyFundScope run and overwritten total_governmental back
+    // to all_funds, silently turning 7,664 derived figures into duplicate
+    // all-funds rows. Found in spec self-review, not in testing.
+    //
+    // ⚠ The scope here is asserted BY CONSTRUCTION, not inferred from a tie: the
+    // loader SUMS the governmental roots of an all_funds row, so the figure is
+    // total governmental by definition of how it was built. The evidence below
+    // establishes that the construction is FAITHFUL to what a government prints.
+    evidence: {
+      document: 'Four probes against audited governmental-funds statements, read by '
+              + 'scripts/acfrPrintedTotal.py --column total_governmental, which takes the '
+              + 'printed TOTAL cell from pdfplumber glyph coordinates and shares no code or '
+              + 'strategy with the SCO feed the figures are derived from. '
+              + 'CONTROLS (proven independently in PR #36, re-read here): City of Cerritos '
+              + 'FY2017 (docs/Cerritos/cerritos-2017-acfr.pdf p.49) and City of Lakewood FY2017 '
+              + '(docs/Lakewood/lakewood-2017-cafr.pdf p.58, a CONTINUED page). '
+              + 'SAMPLE: City of Napa FY2017 (docs/Napa/napa-2017-cafr.pdf p.37), operating and '
+              + 'revenue. Full working: docs/superpowers/plans/SCOPE-04-RECON.md.',
+      figures: 'CERRITOS FY2017 - printed Total Governmental expenditure 69,951,331, matching '
+             + 'PR #36 EXACTLY; its component columns sum exactly (59,900,750 + 10,050,581). '
+             + 'Revenue 75,655,871 (70,710,711 + 311,958 + 4,633,202). '
+             + 'LAKEWOOD FY2017 - printed Total Governmental expenditure 57,831,166, matching '
+             + 'PR #36 EXACTLY; columns sum exactly across both pages '
+             + '(46,962,212 + 181,200 + 7,286,202 + 3,401,552). Revenue 56,865,770. '
+             + 'NAPA FY2017 - derived 97,734,023 operating and 97,338,280 revenue against '
+             + 'printed 97,734,046 and 97,277,497. BOTH deltas reconcile TO THE DOLLAR by two '
+             + 'documented mechanisms, so this is a LEGITIMATE DIVERGENCE and not a miss: '
+             + '(A) Napa carries a `Successor Agency Low Mod Set Aside` fund INSIDE Total '
+             + 'Governmental Funds (revenue 18,524, expenditure 23) which the SCO governmental '
+             + 'schedule excludes; (B) Napa reports `Sale of capital assets 79,307` under OTHER '
+             + 'FINANCING SOURCES, below the Total Revenues line where GAAP puts it, while the '
+             + 'SCO revenue schedule counts it as revenue. '
+             + '97,277,497 - 18,524 + 79,307 = 97,338,280 exactly, and 97,734,046 - 23 = '
+             + '97,734,023 exactly. '
+             + '⚠ SCOPE CAVEAT, DISCLOSED IN THE UI RATHER THAN HIDDEN (Chris, 2026-08-22): '
+             + 'mechanism (A) means this scope is the SCO feed\'s governmental scope, which is '
+             + 'NOT identical to an ACFR\'s "Total Governmental Funds" - the two differ by '
+             + 'redevelopment successor-agency funds. At Napa that gap is $23 and $18,524, i.e. '
+             + 'immaterial, but its magnitude ELSEWHERE IS UNMEASURED: the sample was stopped at '
+             + '1 of 16 targets by decision, short of the >=10 the stopping rule asked for. '
+             + 'Neither figure is wrong, so no arithmetic gate can surface the difference, which '
+             + 'is why the disclosure lives in reader-facing copy (DERIVED_COPY.scopeNote) and '
+             + 'why every row carries derivation=\'derived\'. '
+             + 'REPORTING ENTITY: unknown, and deliberately so. All 7,664 eligible parent rows '
+             + 'were measured as reporting_entity=\'unknown\', and a derivation that sums a '
+             + 'subset of a parent\'s own roots cannot establish an entity boundary the parent '
+             + 'never stated. Unlike mn-osa — which is KNOWN to consolidate HRA/EDA/TIF component '
+             + 'units and is therefore incl_component_units — the SCO Annual Report\'s entity '
+             + 'boundary has not been probed, so claiming primary_government here would be a '
+             + 'guess. It stays unknown until someone reconciles the SCO boundary against a city '
+             + 'ACFR\'s component-unit presentation. ⚠ Note this is a SEPARATE axis from the '
+             + 'successor-agency caveat above: that one is about which FUNDS are in scope, this '
+             + 'one is about which ENTITIES.',
+    },
+  },
 ];
 
 export default FUND_SCOPE_REGISTRY;

@@ -365,6 +365,18 @@ export function financingInflowNote(f: FinancingInflow): string {
  * reader needs is that they answer different questions and are not two attempts
  * at the same one.
  */
+/**
+ * SCOPE-04 — the derived-figure marker, re-exported so ALL reader-facing copy has
+ * one reviewable home. It is defined in `src/data/derivation.ts` beside the
+ * normaliser it belongs to; this is the door Chris reviews it through.
+ *
+ * ⚠ Per PR #38 it renders as an INERT LABEL — plain text, never a chip — because
+ * it states something about the figure rather than offering a control. And it
+ * keeps its words: the whole point is that a reader can tell a computed total
+ * from a published one without knowing what `total_governmental` means.
+ */
+export { DERIVED_COPY, type Derivation } from './derivation';
+
 export const SERIES_TOGGLE_COPY = {
   heading: 'Which published figures',
 
@@ -375,6 +387,29 @@ export const SERIES_TOGGLE_COPY = {
 
   single:
     'One published set of figures, shown here with what it covers.',
+
+  // ── SCOPE-04: the same three lines, for a list containing a DERIVED series ──
+  //
+  // ⚠ The three strings above assert "published" and they render directly beside
+  // the `computed by Treasury Tracker` marker. Once a derived series is in the
+  // list that assertion is FALSE, and a disclosure undercut by the copy around it
+  // is not a disclosure. Caught while verifying the successor-agency note against
+  // the running app, not in review.
+  //
+  // ⚠ These are ADDITIONS, not edits: the all-published wording is unchanged and
+  // still used wherever every series really is published, which is most of the
+  // country. `fundScopeVocabulary.test.ts` pins both directions.
+
+  headingAnyDerived: 'Which set of figures',
+
+  introAnyDerived:
+    'This place has more than one set of figures, covering different funds or '
+    + 'different kinds of number. They are all real and they answer different '
+    + 'questions — some the government published, and some Treasury Tracker computed '
+    + 'by adding up published parts. Choose which one you are looking at.',
+
+  singleDerived:
+    'One set of figures, shown here with what it covers.',
 
   /**
    * Shown in place of a tile whose dataset has no row in the chosen series.
