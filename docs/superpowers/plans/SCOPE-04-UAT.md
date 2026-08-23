@@ -1,5 +1,5 @@
 ---
-status: testing
+status: complete
 phase: scope-04 (v2.30 — no GSD phase dir; docs/superpowers milestone, per .planning/STATE.md)
 source: SCOPE-04-CLOSEOUT.md, SCOPE-04-RECON.md
 started: 2026-08-22T00:00:00Z
@@ -25,12 +25,7 @@ here, so a mismatch on screen is a UI defect, not a stale expectation.
 
 ## Current Test
 
-number: 9
-name: No regression outside California
-expected: |
-  Seattle, WA looks exactly as it did before v2.30 — same figures, same chart,
-  and the words "computed by Treasury Tracker" appear nowhere on the page.
-awaiting: user response
+[testing complete]
 
 ## Tests
 
@@ -77,7 +72,8 @@ correction: My first draft of this test expected no toggle at all on FY2017. Tha
 
 ### 9. No regression outside California
 expected: Seattle, WA looks exactly as it did before — same figures, same chart, and the words "computed by Treasury Tracker" appear nowhere on the page
-result: [pending]
+result: pass
+note: The regression control for the whole milestone. 7,650 rows were written and 488 entities gained a second series; nothing outside California moved.
 
 ### 10. Off-script: the salaries icicle under a derived-scope link
 expected: (not a scripted test — Chris tested `?entity=modesto-ca&year=2024&dataset=salaries&scope=total_governmental&basis=actual` and reported)
@@ -89,11 +85,29 @@ note: Three distinct defects, split into gaps G1–G4 below. Reproduced in Chrom
 ## Summary
 
 total: 10
-passed: 7
-issues: 3
-pending: 1
+passed: 8
+issues: 2
+pending: 0
 skipped: 0
 blocked: 0
+
+## Verdict
+
+**v2.30 SCOPE-04 is verified from a reader's seat.** Every claim the milestone makes on
+screen holds: the toggle moves the figures to the dollar, the derived series names itself,
+the successor-agency disclosure renders beside the derived figure and only there, the
+enterprise slice is visible as categories appearing and disappearing, a county behaves
+differently from a city in the right direction, the one ACFR-reconciled city-year reads
+$97,734,023, and nothing outside California moved.
+
+**8 of 10 passed. The two issues were both found off-script, and NEITHER was SCOPE-04's
+own work** — they were pre-existing paths that SCOPE-04 made reachable by giving 488 CA
+entities a second series. Three defects fixed test-first (G1, G5, G6, PR #54); three left
+open by decision (G2, G3, G4), all in the icicle and all predating this milestone.
+
+⚠ Worth naming plainly: **no arithmetic gate could have found any of the six.** Every
+figure involved was correct. What was wrong was which figure was on screen, whether the
+reader was told, and whether the thing they clicked did anything.
 
 ## Gaps
 
