@@ -122,6 +122,35 @@ describe('defaultSeries', () => {
   it('returns null when the entity has no series datasets at all', () => {
     expect(defaultSeries([d(2024, 'salaries', 'unknown', 'unknown')], 'operating')).toBeNull();
   });
+
+  // ⚠ UAT 2026-08-22, SCOPE-04. Arriving on the Employees tab seeded the series
+  // from the SALARIES rows, whose scope and basis are both `unknown` by
+  // construction. That is a non-null key, so the entity-wide fallback below it
+  // never ran -- and `listSeries` deliberately never lists salaries, so the seed
+  // matched no pill: nothing selected, an empty series label ("Money Out is not
+  // published in ."), and BOTH budget tiles blank until the reader clicked a pill.
+  // Measured at 480 California entities on FY2024 alone.
+  //
+  // The seed must always be a series the reader can actually see listed.
+  it('seeds a LISTED series when the arriving dataset is not a series dataset', () => {
+    // MODESTO-shaped: two real budget series plus a salaries row.
+    const sets = [
+      ...Array.from({ length: 22 }, (_, i) => d(2003 + i, 'operating', 'all_funds', 'actual')),
+      ...Array.from({ length: 22 }, (_, i) => d(2003 + i, 'revenue', 'all_funds', 'actual')),
+      ...Array.from({ length: 8 }, (_, i) => d(2017 + i, 'operating', 'total_governmental', 'actual')),
+      ...Array.from({ length: 8 }, (_, i) => d(2017 + i, 'revenue', 'total_governmental', 'actual')),
+      d(2024, 'salaries', 'unknown', 'unknown'),
+    ];
+    const seed = defaultSeries(sets, 'salaries');
+    expect(seed).toEqual({ fundScope: 'all_funds', basis: 'actual' });
+    expect(listSeries(sets).map((s) => s.id)).toContain(seriesId(seed!));
+  });
+
+  it('returns null for a salaries-only entity asked for its salaries tab', () => {
+    // Nothing to seed from and nothing to fall back to: null is correct, and the
+    // toggle renders nothing rather than an unlisted selection.
+    expect(defaultSeries([d(2024, 'salaries', 'unknown', 'unknown')], 'salaries')).toBeNull();
+  });
 });
 
 describe('decodeSeries', () => {

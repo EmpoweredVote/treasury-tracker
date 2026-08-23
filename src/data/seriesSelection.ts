@@ -138,11 +138,21 @@ export function listSeries(datasets: DatasetEntry[]): AvailableSeries[] {
  * When the active dataset has no rows — the Employees tab, or Longview's
  * operating side viewed from revenue — fall back to the widest entity-level
  * series rather than returning null, so the control still has a selection.
+ *
+ * ⚠ The seed must be a series `listSeries` LISTS. `chooseDisplaySeries` answers
+ * for whatever dataset it is handed, and a non-series dataset answers with its
+ * own key: every salaries row is `unknown/unknown`, so arriving on the Employees
+ * tab used to seed `unknown|unknown` — non-null, so this fallback never ran, and
+ * unlistable, so it matched no pill. The result was no selection, an empty series
+ * label ("Money Out is not published in ."), and both budget tiles blank for the
+ * rest of the visit, since the seed is held per entity. 480 California entities
+ * on FY2024 alone. Found by UAT 2026-08-22, not by any gate.
  */
 export function defaultSeries(datasets: DatasetEntry[], activeDataset: string): SeriesKey | null {
+  const listed = listSeries(datasets);
   const forActive = chooseDisplaySeries(datasets, activeDataset);
-  if (forActive) return forActive;
-  return listSeries(datasets)[0]?.key ?? null;
+  if (forActive && listed.some((s) => s.id === seriesId(forActive))) return forActive;
+  return listed[0]?.key ?? null;
 }
 
 export function encodeSeries(k: SeriesKey): { scope: string; basis: string } {
