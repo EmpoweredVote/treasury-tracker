@@ -99,4 +99,24 @@ jobs:
         if: steps.changes.outputs.changed == 'true' && (steps.inputs.outputs.bump_type == 'patch' || steps.inputs.outputs.bump_type == 'minor')
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: gh pr merge "${{ steps.pr.outputs.pr_url }}" --auto --squash
+        # ⚠ FAIL SOFT. This step is the LAST one, and everything that matters has
+        # already happened by the time it runs: the version is bumped, committed,
+        # pushed, and the PR is open. When `--auto` cannot be enabled the bump is
+        # not lost — it is sitting in a PR waiting for a human — but the run went
+        # RED, and a red tile on the Actions page is indistinguishable from a bump
+        # that failed outright.
+        #
+        # Both workflows sat red for a month for exactly this: `ev-ui` on
+        # 2026-08-02 with "Protected branch rules not configured for this branch",
+        # `analytics` on 2026-07-20 with "Pull request is in clean status" — auto-
+        # merge refusing because `main` had nothing for it to wait on. Three bump
+        # PRs (#4, #5, #7) were opened successfully by runs that reported failure.
+        #
+        # `main` now requires the `build` check, so auto-merge should normally
+        # succeed. When it does not, say so and leave the PR open.
+        run: |
+          if gh pr merge "${{ steps.pr.outputs.pr_url }}" --auto --squash; then
+            echo "Auto-merge enabled."
+          else
+            echo "::warning::Could not enable auto-merge — the bump PR is open at ${{ steps.pr.outputs.pr_url }} and needs a human to merge it."
+          fi
