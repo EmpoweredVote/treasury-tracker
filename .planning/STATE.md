@@ -2,7 +2,7 @@
 gsd_state_version: 1.0
 milestone: v2.30
 milestone_name: SCOPE-04 — Derived Total Governmental + the enterprise slice
-status: "v2.30 SCOPE-04 SHIPPED — merged `d1e77c3` (PR #52), tagged `v2.30`, and ✅ **UAT RUN AND PASSED 2026-08-23, 8 of 10 tests** (`docs/superpowers/plans/SCOPE-04-UAT.md`). 7,650 derived Total Governmental rows across 488 CA entities. ⚠ UAT still outstanding on v2.25, v2.26, v2.27 and v2.29."
+status: "v2.30 SCOPE-04 SHIPPED — merged `d1e77c3` (PR #52), tagged `v2.30`, and ✅ **UAT RUN AND PASSED 2026-08-23, 8 of 10 tests** (`docs/superpowers/plans/SCOPE-04-UAT.md`). 7,650 derived Total Governmental rows across 488 CA entities. ✅ v2.29 UAT PASSED 2026-08-23 (9 of 9, no defects). ⚠ UAT still outstanding on v2.25, v2.26 and v2.27."
 stopped_at: "SCOPE-04 COMPLETE, shipped and UAT-VERIFIED. ⚠ OPEN: PR #54 carries five UAT fixes (G1, G2, G3, G5, G6) and is unmerged — review it before anything else touches src/. G4 (drilling hides the dataset tabs and series pills) is left open as a product decision. ⚠ TOP FOLLOW-UP: the successor-agency scope gap is UNMEASURED beyond Napa — derived_TG excludes redevelopment successor-agency funds while the UI labels it Total Governmental, and NO arithmetic gate can surface it because both figures are individually correct. The 15 unread sample targets in scripts/data/scope04VerificationSample.json should be read for successor-agency MAGNITUDE, not for a tie. Also open: the 12 rootless $0 rows, and the /treasury/cities payload projection in C:/EV-Accounts."
 last_updated: "2026-08-23T00:00:00.000Z"
 last_activity: 2026-08-23
@@ -61,9 +61,11 @@ Status: **All 13 tasks executed. 7,650 derived rows live in the database.** Gate
 
 ⚠ **No arithmetic gate could have found any of the six.** Every figure involved was correct. What was wrong was *which* figure was on screen, whether the reader was told, and whether the thing they clicked did anything. Three of the five fixes had to move logic out of components into pure modules first, because this repo can run **no component tests** — see `reference_no_component_tests_vitest`.
 
-⚠ **UAT is still outstanding on four milestones** — v2.25, v2.26, v2.27 and v2.29.
+✅ **v2.29 UAT PASSED 2026-08-23 — 9 of 9, no defects** (`docs/superpowers/plans/CO-SPRINGS-EPC-01-UAT.md`). It also CLOSED a defect v2.29 had left open (the double-encoded em-dash, global across every such label incl. 1,448 state-ACFR rows) and established that the calendar fiscal year IS reader-visible through the source chip's as-of date — the first time that defect class has been checkable by a human.
 
-**Next: merge PR #54, then the four-milestone UAT backlog and the successor-agency magnitude question.** The backlog (v2.25–v2.29) is still the largest this project has carried. The 15 unread SCOPE-04 sample targets are committed and should be read for successor-agency magnitude rather than for a tie — that is the number nobody has.
+⚠ **UAT is still outstanding on three milestones** — v2.25, v2.26 and v2.27.
+
+**Next: the three-milestone UAT backlog and the successor-agency magnitude question.** PRs #54 and #55 are MERGED. The backlog is now v2.25, v2.26 and v2.27. The 15 unread SCOPE-04 sample targets are committed and should be read for successor-agency magnitude rather than for a tie — that is the number nobody has.
 
 ⚠ **Re-measured against the live database on 2026-08-21 and the 2026-08-19 probe reproduces exactly**: 8,516 era-B rows, **7,664 eligible across 488 entities**, 852 skipped (no enterprise root, so there is no second scope to create), 44 flagged for negative enterprise amounts, 6 of those caught by the `derived_TG <= all_funds_total` gate. Modesto FY2024 still ties to the dollar: `588,042,068 − 296,400,946 = 291,641,122`.
 

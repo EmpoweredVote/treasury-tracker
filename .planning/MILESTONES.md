@@ -83,9 +83,31 @@ flag would have shipped with no regression guard at all.
 Full working: `docs/superpowers/plans/SCOPE-04-CLOSEOUT.md`, `SCOPE-04-RECON.md` and
 `SCOPE-04-UAT.md`. API change: EmpoweredVote/ev-accounts#135.
 
-## v2.29 CO-SPRINGS-EPC-01 — Colorado Springs + El Paso County (Shipped: 2026-08-21, tag `v2.29`)
+## v2.29 CO-SPRINGS-EPC-01 — Colorado Springs + El Paso County (Shipped: 2026-08-21, tag `v2.29`, UAT ✅ 2026-08-23)
 
 **Tasks completed:** onboarding milestone on a `docs/superpowers/` plan, not GSD phases — closeout: `docs/superpowers/plans/CO-SPRINGS-EPC-01-CLOSEOUT.md`
+
+✅ **UAT PASSED 2026-08-23 — 9 of 9 tests, no defects found.** Record:
+`docs/superpowers/plans/CO-SPRINGS-EPC-01-UAT.md`. Both windows draw complete, the figures
+match the printed ACFRs to the dollar (Springs FY2024 $422,363,896 out / $371,035,085 in;
+El Paso FY2024 $289,511,043 / $308,220,434), no unit error anywhere, the chip names each
+entity's own audited report and links to the real PDF, the city nests under its county, and
+neither the CO state node nor any out-of-state entity was disturbed.
+
+Two things the UAT settled that the closeout could not:
+1. ✅ **The double-encoded em-dash is FIXED** — logged here as pre-existing and global
+   (every em-dash label, incl. the 1,448 state-ACFR rows), owed by `C:\EV-Accounts`. Clean
+   U+2014 on the wire and on screen. A defect this milestone reported as open is closed.
+2. ✅ **The calendar fiscal year IS reader-visible**, via the source chip's
+   `as of 2024-12-31`. The Texas-hardcoded fiscal calendar was one of the six defects here
+   and it moves no dollar figure; AUSTIN-TRAVIS-01 UAT had to withdraw its fiscal-calendar
+   tests as unmeetable, so this is the FIRST time that defect class has been checkable by a
+   human — possible only because the city chip started rendering in PR #38, after that UAT.
+
+⚠ Follow-up raised and ACCEPTED rather than fixed: **a missing year is silent about why.**
+El Paso offers FY2005 then jumps to FY2009, and a visitor cannot tell FY2006–08 are
+documents we decline to parse rather than years never published. Chris's call: acceptable
+next to inventing a figure or trusting a statement we cannot read.
 
 **The headline:** Colorado's first **local** entities — 64 General Fund rows of ACFR GAAP actuals. Colorado Springs FY2012–FY2025 (28 rows) and El Paso County FY2005 + FY2009–FY2025 (36 rows), both whole dollars, both on a **calendar** fiscal year. Before this the state had only its state node.
 
