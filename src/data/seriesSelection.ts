@@ -138,11 +138,21 @@ export function listSeries(datasets: DatasetEntry[]): AvailableSeries[] {
  * When the active dataset has no rows — the Employees tab, or Longview's
  * operating side viewed from revenue — fall back to the widest entity-level
  * series rather than returning null, so the control still has a selection.
+ *
+ * ⚠ The seed must be a series `listSeries` LISTS. `chooseDisplaySeries` answers
+ * for whatever dataset it is handed, and a non-series dataset answers with its
+ * own key: every salaries row is `unknown/unknown`, so arriving on the Employees
+ * tab used to seed `unknown|unknown` — non-null, so this fallback never ran, and
+ * unlistable, so it matched no pill. The result was no selection, an empty series
+ * label ("Money Out is not published in ."), and both budget tiles blank for the
+ * rest of the visit, since the seed is held per entity. 480 California entities
+ * on FY2024 alone. Found by UAT 2026-08-22, not by any gate.
  */
 export function defaultSeries(datasets: DatasetEntry[], activeDataset: string): SeriesKey | null {
+  const listed = listSeries(datasets);
   const forActive = chooseDisplaySeries(datasets, activeDataset);
-  if (forActive) return forActive;
-  return listSeries(datasets)[0]?.key ?? null;
+  if (forActive && listed.some((s) => s.id === seriesId(forActive))) return forActive;
+  return listed[0]?.key ?? null;
 }
 
 export function encodeSeries(k: SeriesKey): { scope: string; basis: string } {
@@ -353,4 +363,39 @@ export function spanLabel(span: { min: number; max: number }): string {
   return sameCentury
     ? `FY${span.min}–${String(span.max).slice(-2)}`
     : `FY${span.min}–${span.max}`;
+}
+
+/** The clamp note, plus the year the clamp moved the reader to. */
+export interface ClampNoteState {
+  note: string | null;
+  /** The token `resolveSeriesYear` relocated to, while that note is showing. */
+  movedTo: string | null;
+}
+
+/**
+ * Decide whether the year-clamp note shows, given one pass of the clamp effect.
+ *
+ * ⚠ This exists because the note NEVER REACHED THE SCREEN. The effect that sets
+ * it also calls `setSelectedYear(token)`, and `selectedYear` is one of its own
+ * dependencies — so it re-ran immediately against the new year, `resolveSeriesYear`
+ * reported `moved: false`, and the "nothing to do" branch cleared the note that the
+ * previous pass had just set. A reader picking Total Governmental on a pre-2017 CA
+ * year was relocated in silence, which is the exact opposite of the note's purpose.
+ * Found by UAT 2026-08-22 (G5); App.tsx cannot be tested in this repo, so the
+ * decision lives here where it can be.
+ *
+ * The note therefore survives exactly one thing: the re-render its own move caused,
+ * identified by `selectedYear` having become the token we moved to. Any other year —
+ * the reader choosing for themselves — clears it.
+ */
+export function resolveClampNote(
+  prev: ClampNoteState,
+  moved: boolean,
+  token: string,
+  note: string,
+  selectedYear: string,
+): ClampNoteState {
+  if (moved) return { note, movedTo: token };
+  if (prev.movedTo !== null && selectedYear === prev.movedTo) return prev;
+  return { note: null, movedTo: null };
 }

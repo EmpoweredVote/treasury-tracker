@@ -12,7 +12,7 @@
 > in sequence below so the ordering does not read as "v2.20 never happened", but it is a
 > pointer, not a summary — the archive is the record.
 
-## v2.30 SCOPE-04 — Derived Total Governmental, and the enterprise slice (Shipped: 2026-08-22, tag `v2.30`)
+## v2.30 SCOPE-04 — Derived Total Governmental, and the enterprise slice (Shipped: 2026-08-22, tag `v2.30`, UAT ✅ 2026-08-23)
 
 **488 California entities gained a second, honestly-labelled fund scope.** 7,650 derived
 Total Governmental rows, so a reader can see how much of a "city budget" is the tax-funded
@@ -48,8 +48,40 @@ the disclosure copy **had no renderer** and the copy around it said "published" 
 a **racing paged read invented 27 rows of drift** that did not exist; and
 `_treasury_insert_tree` **swaps two amount columns**.
 
-Full working: `docs/superpowers/plans/SCOPE-04-CLOSEOUT.md` and `SCOPE-04-RECON.md`.
-API change: EmpoweredVote/ev-accounts#135.
+✅ **UAT RUN AND PASSED 2026-08-23 — 8 of 10 tests.** Record:
+`docs/superpowers/plans/SCOPE-04-UAT.md`. Deployment was verified live BEFORE testing (the
+API answers with `derivation`, the deployed bundle carries the marker, the heading and the
+successor-agency sentence), so nothing was blocked. Confirmed from a reader's seat: the
+toggle moves Modesto to the dollar ($588,042,068 → $291,641,122 out, $643,894,826 →
+$322,089,879 in); the derived series names itself and the heading reads *"Which set of
+figures"*; the successor-agency disclosure renders beside the derived figure and only there;
+the enterprise slice appears and disappears as six categories (11 roots → 5); Napa FY2017
+reads **$97,734,023**, the one derived figure with a printed-ACFR oracle behind it; a county
+gap is 11% where a city's is 50%; the deep link carries the choice; **Seattle is unchanged**.
+
+⚠ **The two failures were both found off-script by Chris, and NEITHER was SCOPE-04's own
+work.** They were pre-existing paths that SCOPE-04 made REACHABLE by giving 488 CA entities
+a second series — before this, nearly every CA entity had one series, so no series had
+missing years and no reader could select an uncovered one. **Six defects, five fixed
+test-first in PR #54:**
+
+| | what a reader saw | |
+|---|---|---|
+| G1 | arriving on an Employees link blanked BOTH budget tiles — *"not published in ."* — on **480 CA entities** | fixed `1680ed5` |
+| G6 | picking an uncovered year left "FY 2018" on the label while the tiles said the figure was not published and the chart drew nothing — a **stale load stamping state over a newer one** | fixed `fe0b03a` |
+| G5 | the year-clamp note **had never rendered once**: the effect cleared the note its own `setSelectedYear` re-run had just set | fixed `fe0b03a` |
+| G2 | clicking a leaf dimmed **every** row to 40% with nothing clickable — "the icicle doesn't work" | fixed `5b84bdb` |
+| G3 | 36 children of a drilled root in one identical fill, 2 labels legible | fixed `6d21f08` — lightness per child, hue untouched |
+| G4 | drilling hides the dataset tabs and the pills; the breadcrumb is the only way back | **open** — deliberate today, a product decision |
+
+⚠ **No arithmetic gate could have found any of the six.** Every figure involved was correct.
+What was wrong was *which* figure was on screen, whether the reader was told, and whether the
+thing they clicked did anything. Three of the five fixes had to move logic OUT of components
+into pure modules first, because this repo can run **no component tests** — a React cleanup
+flag would have shipped with no regression guard at all.
+
+Full working: `docs/superpowers/plans/SCOPE-04-CLOSEOUT.md`, `SCOPE-04-RECON.md` and
+`SCOPE-04-UAT.md`. API change: EmpoweredVote/ev-accounts#135.
 
 ## v2.29 CO-SPRINGS-EPC-01 — Colorado Springs + El Paso County (Shipped: 2026-08-21, tag `v2.29`)
 

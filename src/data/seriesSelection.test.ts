@@ -3,7 +3,7 @@ import {
   listSeries, seriesId, defaultSeries, encodeSeries, decodeSeries,
   seriesPeriodTokens, seriesDatasetTokens, resolveSeriesYear, shouldResetSeries,
   initialYearForEntity,
-  clampYearToSeries, spanLabel,
+  clampYearToSeries, spanLabel, resolveClampNote,
 } from './seriesSelection';
 import { TQ_TOKEN, TQ_LABEL } from '../utils/period';
 
@@ -121,6 +121,35 @@ describe('defaultSeries', () => {
 
   it('returns null when the entity has no series datasets at all', () => {
     expect(defaultSeries([d(2024, 'salaries', 'unknown', 'unknown')], 'operating')).toBeNull();
+  });
+
+  // ⚠ UAT 2026-08-22, SCOPE-04. Arriving on the Employees tab seeded the series
+  // from the SALARIES rows, whose scope and basis are both `unknown` by
+  // construction. That is a non-null key, so the entity-wide fallback below it
+  // never ran -- and `listSeries` deliberately never lists salaries, so the seed
+  // matched no pill: nothing selected, an empty series label ("Money Out is not
+  // published in ."), and BOTH budget tiles blank until the reader clicked a pill.
+  // Measured at 480 California entities on FY2024 alone.
+  //
+  // The seed must always be a series the reader can actually see listed.
+  it('seeds a LISTED series when the arriving dataset is not a series dataset', () => {
+    // MODESTO-shaped: two real budget series plus a salaries row.
+    const sets = [
+      ...Array.from({ length: 22 }, (_, i) => d(2003 + i, 'operating', 'all_funds', 'actual')),
+      ...Array.from({ length: 22 }, (_, i) => d(2003 + i, 'revenue', 'all_funds', 'actual')),
+      ...Array.from({ length: 8 }, (_, i) => d(2017 + i, 'operating', 'total_governmental', 'actual')),
+      ...Array.from({ length: 8 }, (_, i) => d(2017 + i, 'revenue', 'total_governmental', 'actual')),
+      d(2024, 'salaries', 'unknown', 'unknown'),
+    ];
+    const seed = defaultSeries(sets, 'salaries');
+    expect(seed).toEqual({ fundScope: 'all_funds', basis: 'actual' });
+    expect(listSeries(sets).map((s) => s.id)).toContain(seriesId(seed!));
+  });
+
+  it('returns null for a salaries-only entity asked for its salaries tab', () => {
+    // Nothing to seed from and nothing to fall back to: null is correct, and the
+    // toggle renders nothing rather than an unlisted selection.
+    expect(defaultSeries([d(2024, 'salaries', 'unknown', 'unknown')], 'salaries')).toBeNull();
   });
 });
 
@@ -514,5 +543,39 @@ describe('listSeries — derivation', () => {
         fund_scope: 'all_funds', basis: 'actual' },
     ]);
     expect(out[0].derivation).toBe('published');
+  });
+});
+
+describe('resolveClampNote', () => {
+  // ⚠ UAT 2026-08-22 (G5). The clamp note NEVER reached the screen. The effect
+  // that shows it also calls setSelectedYear(token), and `selectedYear` is in its
+  // own dependency list, so it re-ran immediately against the NEW year, found
+  // nothing left to move, and cleared the note it had just set. The reader was
+  // relocated FY2017 -> FY2018 in silence.
+  //
+  // The note must survive exactly the re-render its own move causes, and no longer.
+  const NOTE = 'Total Governmental · actuals does not cover FY2017, so we have '
+    + 'moved you to FY2018, the closest year it does cover.';
+
+  it('records the note and the year it moved the reader to', () => {
+    expect(resolveClampNote({ note: null, movedTo: null }, true, '2018', NOTE, '2017'))
+      .toEqual({ note: NOTE, movedTo: '2018' });
+  });
+
+  it('KEEPS the note on the re-run its own move triggers', () => {
+    // Second pass: selectedYear is now the token we moved to, so `moved` is false
+    // -- but this pass IS the move. Clearing here is the defect.
+    const after = resolveClampNote({ note: NOTE, movedTo: '2018' }, false, '2018', NOTE, '2018');
+    expect(after.note).toBe(NOTE);
+  });
+
+  it('clears the note once the reader chooses a different year themselves', () => {
+    expect(resolveClampNote({ note: NOTE, movedTo: '2018' }, false, '2021', NOTE, '2021'))
+      .toEqual({ note: null, movedTo: null });
+  });
+
+  it('stays quiet when nothing was ever clamped', () => {
+    expect(resolveClampNote({ note: null, movedTo: null }, false, '2024', NOTE, '2024'))
+      .toEqual({ note: null, movedTo: null });
   });
 });
