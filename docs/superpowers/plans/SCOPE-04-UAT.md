@@ -102,8 +102,9 @@ $97,734,023, and nothing outside California moved.
 
 **8 of 10 passed. The two issues were both found off-script, and NEITHER was SCOPE-04's
 own work** — they were pre-existing paths that SCOPE-04 made reachable by giving 488 CA
-entities a second series. Three defects fixed test-first (G1, G5, G6, PR #54); three left
-open by decision (G2, G3, G4), all in the icicle and all predating this milestone.
+entities a second series.  four fixed
+test-first (G1, G2, G5, G6, PR #54); two left open by decision (G3 needs a design call,
+G4 is deliberate), both predating this milestone.
 
 ⚠ Worth naming plainly: **no arithmetic gate could have found any of the six.** Every
 figure involved was correct. What was wrong was which figure was on screen, whether the
@@ -160,6 +161,31 @@ reader was told, and whether the thing they clicked did anything.
       issue: "leaf click navigates into a path that produces no current level"
   missing:
     - "Either do not navigate on a childless segment (keep the level current and show the no-breakdown panel), or keep the deepest rendered level `current` when the selected node is a leaf"
+  outcome: fixed
+  fix: |
+    The level builder moved out of the component into a pure `data/icicleLevels.ts`
+    — it decides which row a reader can interact with, it was wrong for every leaf
+    click in the product, and a component cannot be tested in this repo at all. The
+    rule is now derived from what was actually pushed ("the deepest level RENDERED is
+    the current one") instead of from the path ("is this the last path item"), which
+    is only the same thing while the last item has children.
+
+    Proven, not assumed: the module was first written with the ORIGINAL rule, and
+    exactly one of the 6 new tests failed — the leaf case. Restoring the fix greens
+    it. 568/568 tests pass, tsc clean.
+
+    Verified in the browser against a local build wired to production, clicking
+    "Maintenance Worker II (26)" on the Modesto salaries chart:
+
+    | | before | after |
+    |---|---|---|
+    | levels | ancestor + ancestor | ancestor + **current** |
+    | segments at full opacity on the deepest row | 0 of 36 | **36 of 36** |
+    | clickable current segments | 0 | **36** |
+    | "No further breakdown available" panel | shown | shown (unchanged) |
+
+    A normal 3-level budget tree is untouched: Modesto operating still renders
+    current-11 at the top, and ancestor-11 + current-2 once drilled.
 
 - truth: "The colours in a drilled icicle level distinguish its segments"
   status: failed

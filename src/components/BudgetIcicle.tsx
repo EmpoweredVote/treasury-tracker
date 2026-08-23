@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import type { BudgetCategory } from '../types/budget';
+import { buildIcicleLevels, type BarSegment, type BarLevel } from '../data/icicleLevels';
 import { getCategoryColor } from '../utils/chartColors';
 import { BRAND_BAR_COLORS, getContrastText } from '../utils/brandColors';
 import './BudgetIcicle.css';
@@ -22,21 +23,11 @@ interface BudgetIcicleProps {
   isNonprofit?: boolean;
 }
 
-interface BarSegment {
-  category: BudgetCategory;
-  path: BudgetCategory[];
-  width: number; // percentage
-  isSelected: boolean;
-  hasChildren: boolean;
-  categoryIndex: number; // root-level category index for color cycling
-}
-
-interface BarLevel {
-  segments: BarSegment[];
-  isAncestor: boolean; // ancestor levels are compressed
-  totalAmount: number;
-  levelName: string; // for accessibility
-}
+/**
+ * ⚠ The level builder lives in `data/icicleLevels.ts`, not here. It decides which
+ * row a reader can interact with, it was wrong for every leaf click in the product,
+ * and a component cannot be tested in this repo at all — see UAT 2026-08-22 (G2).
+ */
 
 const BudgetIcicle: React.FC<BudgetIcicleProps> = ({
   categories,
@@ -45,67 +36,10 @@ const BudgetIcicle: React.FC<BudgetIcicleProps> = ({
   onPathClick,
   isNonprofit = false,
 }) => {
-  // Build the levels to display
-  const levels = useMemo(() => {
-    const result: BarLevel[] = [];
-
-    // Build a lookup from root category name to its index
-    const rootIndexMap = new Map<string, number>();
-    categories.forEach((cat, i) => rootIndexMap.set(cat.name, i));
-
-    // Always add root level (top-level categories)
-    const rootSegments: BarSegment[] = categories.map((cat, i) => ({
-      category: cat,
-      path: [cat],
-      width: (cat.amount / totalBudget) * 100,
-      isSelected: navigationPath.length > 0 && navigationPath[0].name === cat.name,
-      hasChildren: (cat.subcategories && cat.subcategories.length > 0) || false,
-      categoryIndex: i,
-    }));
-
-    result.push({
-      segments: rootSegments,
-      isAncestor: navigationPath.length > 0,
-      totalAmount: totalBudget,
-      levelName: 'Total Budget',
-    });
-
-    // Add levels for each item in the navigation path
-    navigationPath.forEach((pathCat, pathIndex) => {
-      const subcats = pathCat.subcategories || [];
-      if (subcats.length === 0) return; // No children to show
-
-      // Normalize by the sum of displayed children, not the parent's stored
-      // amount. Identical for trees where children sum to the parent (all
-      // municipal data); required for federal nets, where positive account
-      // bars sit under a parent whose official total nets out offsetting
-      // receipts (the offsets live in line items, not bars).
-      const childrenSum = subcats.reduce((sum, c) => sum + c.amount, 0);
-      const levelTotal = childrenSum > 0 ? childrenSum : pathCat.amount;
-      const isCurrentLevel = pathIndex === navigationPath.length - 1;
-
-      // Inherit the root-level index from the first path item
-      const rootCatIndex = rootIndexMap.get(navigationPath[0].name) ?? 0;
-
-      const segments: BarSegment[] = subcats.map(cat => ({
-        category: cat,
-        path: [...navigationPath.slice(0, pathIndex + 1), cat],
-        width: (cat.amount / levelTotal) * 100,
-        isSelected: !isCurrentLevel && navigationPath[pathIndex + 1]?.name === cat.name,
-        hasChildren: (cat.subcategories && cat.subcategories.length > 0) || false,
-        categoryIndex: rootCatIndex,
-      }));
-
-      result.push({
-        segments,
-        isAncestor: !isCurrentLevel,
-        totalAmount: levelTotal,
-        levelName: pathCat.name,
-      });
-    });
-
-    return result;
-  }, [categories, navigationPath, totalBudget]);
+  const levels = useMemo(
+    () => buildIcicleLevels(categories, navigationPath, totalBudget),
+    [categories, navigationPath, totalBudget],
+  );
 
   // Format currency
   const formatCurrency = (amount: number) => {
