@@ -25,12 +25,11 @@ here, so a mismatch on screen is a UI defect, not a stale expectation.
 
 ## Current Test
 
-number: 2
-name: The wording on screen
+number: 9
+name: No regression outside California
 expected: |
-  On the Modesto FY2024 Money Out page, the heading above the pills reads
-  "Which set of figures" — NOT "Which published figures" — and the italic words
-  "computed by Treasury Tracker" sit inside the Total Governmental pill only.
+  Seattle, WA looks exactly as it did before v2.30 — same figures, same chart,
+  and the words "computed by Treasury Tracker" appear nowhere on the page.
 awaiting: user response
 
 ## Tests
@@ -42,11 +41,13 @@ source: automated — driven in Chromium against production 2026-08-22. Money Ou
 
 ### 2. The wording on screen
 expected: The heading above the pills reads "Which set of figures" (NOT "Which published figures"); the Total Governmental pill carries the italic words "computed by Treasury Tracker"; the All Funds pill does not
-result: [pending]
+result: pass
 
 ### 3. The disclosure renders, and only beside a derived figure
 expected: With Total Governmental selected, two sentences sit below the pills — "Treasury Tracker computed this figure by adding up published components. The government published the parts, not this total." and the successor-agency sentence naming redevelopment successor agency funds. Switching back to All Funds removes both.
-result: [pending]
+result: pass
+reported: "Below total Government acutals: [intro] Treasury Tracker computed this figure by adding up published components. The government published the parts, not this total. This covers the governmental funds the city reports to the State Controller. Redevelopment successor agency funds are not included, so it can differ from the \"total governmental funds\" figure printed in the city's own audited report. // Below All funds actuals: [intro only]"
+note: Exactly the intended split — SERIES_TOGGLE_COPY.introAnyDerived renders for both series (it describes the LIST), while DERIVED_COPY.explainer + scopeNote render only while the derived series is the one on screen.
 
 ### 4. The enterprise slice is visible in the chart
 expected: Under All Funds the Modesto FY2024 icicle shows 11 top-level categories including Internal Service Fund $122.1M, Water Enterprise Fund $89.0M, Sewer $53.6M, Other Enterprise $15.5M, Solid Waste $14.5M and Airport $1.7M. Under Total Governmental only 5 remain and all six of those are gone, while "General Government and Public Safety" stays $164,848,113 in both.
@@ -55,19 +56,24 @@ source: automated — read the icicle segments' aria-labels in both states. All 
 
 ### 5. The choice survives a deep link
 expected: After selecting Total Governmental the address bar gains &scope=total_governmental&basis=actual. Opening that URL fresh (new tab) lands already on Total Governmental with $291,641,122, not on All Funds.
-result: [pending]
+result: pass
 
 ### 6. Napa FY2017 — the one city-year reconciled to a printed ACFR
 expected: ?entity=napa-ca&year=2017&dataset=operating — All Funds $170,963,742, Total Governmental $97,734,023. That derived figure is the one proven to the dollar against Napa's own audited statement (printed 97,734,046 − $23 successor agency).
-result: [pending]
+result: pass
+note: The only derived figure in the milestone with an independent printed-ACFR oracle behind it. Reader-visible confirmation that the derivation is right, not merely self-consistent.
 
 ### 7. A county, not just a city
 expected: ?entity=napa-county-ca&year=2024&dataset=operating — the same two pills; Total Governmental moves Money Out $616,676,926 → $545,783,155
-result: [pending]
+result: pass
+note: ~11% enterprise slice against Modesto's 50%, which is the right shape — counties do not run city-style utilities. A county showing a Modesto-sized gap would have been the suspicious result.
 
-### 8. A quarantined year offers no derived figure
-expected: ?entity=brisbane-ca&year=2017&dataset=operating — no toggle to choose from: a single plain-text caption "All Funds · actuals · FY2003–24" with NO "computed by Treasury Tracker" marker, figures render normally ($35,043,823 Money Out), nothing blank or $0. Brisbane FY2018 does offer the Total Governmental pill.
-result: [pending]
+### 8. A quarantined year, and what selecting the derived series does there
+expected: ?entity=brisbane-ca&year=2017&dataset=operating — BOTH pills show (the list is entity-level), and the Total Governmental pill's span reads FY2018–24, correctly excluding the quarantined FY2017. All Funds shows $35.0M Money Out / $28.6M Money In for FY2017. Selecting Total Governmental moves the year control to FY 2018 and the figures to $23.2M / $21.6M — and it should TELL the reader it moved them.
+result: issue
+reported: "No, 2017 is available to choose in Total.  And it looks broke."
+severity: major
+correction: My first draft of this test expected no toggle at all on FY2017. That was wrong — `availableSeries` is entity-level, not year-level, so both pills always show. Corrected before putting it to Chris, and the corrected version is the stronger test: it exercises the year clamp, which is where the defect turned out to be (G5).
 
 ### 9. No regression outside California
 expected: Seattle, WA looks exactly as it did before — same figures, same chart, and the words "computed by Treasury Tracker" appear nowhere on the page
@@ -83,9 +89,9 @@ note: Three distinct defects, split into gaps G1–G4 below. Reproduced in Chrom
 ## Summary
 
 total: 10
-passed: 2
-issues: 1
-pending: 7
+passed: 7
+issues: 3
+pending: 1
 skipped: 0
 blocked: 0
 
@@ -168,6 +174,66 @@ blocked: 0
       issue: "navigationPath.length === 0 hides the tab strip and the series toggle once drilled in"
   missing:
     - "Decide whether the tab strip should persist while drilled (it is the only in-page way to switch dataset; today the breadcrumb is the only way back)"
+
+- truth: "Selecting a series that does not cover the year on screen tells the reader they were moved"
+  status: failed
+  reason: "Reproduced in Chromium against production. Brisbane FY2017 → click Total Governmental: the year control moves FY 2017 → FY 2018, the URL moves to year=2018, and Money Out moves $35.0M → $23.2M. The sentence 'Total Governmental · actuals does not cover FY2017, so we have moved you to FY2018, the closest year it does cover.' NEVER RENDERS — searched the rendered body for both 'have moved you to' and 'does not cover FY': absent."
+  severity: minor
+  test: 8
+  gap_id: G5
+  attribution: "PRE-EXISTING (SCOPE-03). SCOPE-04 widens the exposure to every CA entity, because every derived series spans FY2017–24 against an all_funds series spanning FY2003–24 — so any reader on a pre-2017 year who picks Total Governmental gets silently relocated."
+  root_cause: "The clamp effect in src/App.tsx sets the note and then calls setSelectedYear(token) in the same pass. `selectedYear` is in the effect's own dependency list, so the effect immediately re-runs against the NEW year, `resolveSeriesYear` now reports moved: false, and the first branch runs setYearClampNote(null) — wiping the note the previous pass had just set. The note can never survive the move that produces it."
+  artifacts:
+    - path: "src/App.tsx"
+      issue: "clamp effect clears yearClampNote on the re-run its own setSelectedYear triggers"
+  missing:
+    - "Only clear the note when the year changed for a reason other than the clamp — e.g. remember the token the clamp moved to and keep the note while selectedYear still equals it"
+  note: "Not a wrong figure: the year control and the URL both update, so what is on screen is labelled correctly. What is missing is the explanation, which the code comment above the effect says is the point of the note ('so the reader is told rather than silently relocated')."
+  outcome: fixed
+  fix: |
+    The note and the year it moved the reader to are now ONE piece of state,
+    decided by a pure `resolveClampNote` in `seriesSelection.ts`: the note survives
+    exactly the re-render its own move caused (identified by `selectedYear` having
+    become the token we moved to) and nothing else. 4 tests, written first — the
+    "KEEPS the note on the re-run its own move triggers" case is the defect.
+
+    Verified in the browser against a local build wired to production: picking
+    FY2017 on Brisbane under Total Governmental now renders "Total Governmental ·
+    actuals does not cover FY2017, so we have moved you to FY2018, the closest year
+    it does cover." Then choosing FY2021 by hand clears it.
+
+- truth: "Choosing a year the selected series does not cover leaves the page in a coherent state"
+  status: failed
+  reason: "User reported: 'No, 2017 is available to choose in Total. And it looks broke.' Reproduced exactly. With Total Governmental selected on Brisbane, the year picker OFFERS FY2017 (and 2016, 2014...2009 — years the derived series does not cover). Choosing FY2017 lands on a self-contradictory screen: the year control and the URL both read FY 2018, a year the derived series DOES cover ($23.2M), while BOTH tiles read 'Money In is not published in Total Governmental · actuals...' and the chart renders 0 segments. The only figure left on the page is $11.7M, the salaries total."
+  severity: major
+  test: 8
+  gap_id: G6
+  attribution: "PRE-EXISTING code paths (SCOPE-03), but v2.30 is what makes them REACHABLE. Before SCOPE-04 all but a handful of CA entities carried exactly ONE series, so no series had missing years and the clamp never fired. Every one of the 488 CA entities now carries a second series starting at FY2017 against an all_funds series reaching back to FY2003, so any reader who picks a pre-2017 year while Total Governmental is selected reproduces this."
+  root_cause: "TWO defects compounding, in the loader effect at src/App.tsx:520-583. (1) The effect has NO stale-response guard — no cancellation flag, no cleanup. (2) Picking FY2017 starts load A for 2017, which correctly resolves to SeriesAbsentError -> null and stamps absentDatasets {operating:true, revenue:true}; the clamp effect then moves selectedYear to 2018, starting load B, which resolves from the module cache almost immediately (FY2018 was already loaded on arrival). A, on the network, lands AFTER B and overwrites B's good state with its own absent flags. Deterministic in this direction, because the cached response always wins the race. Nothing re-runs afterwards to correct it."
+  artifacts:
+    - path: "src/App.tsx"
+      issue: "the dual-dataset load effect (520-583) applies its result unconditionally — a superseded request can overwrite a newer one"
+    - path: "src/App.tsx"
+      issue: "the year picker offers years the selected series does not cover (seriesPeriodTokens keeps them so the Employees tab stays reachable)"
+  missing:
+    - "A cancellation guard in the loader effect: `let cancelled = false; ... if (cancelled) return; return () => { cancelled = true; }` so a superseded year's response can never stamp state"
+    - "Decide whether uncovered years should be visibly marked in the picker rather than silently clamped (design call — they must stay reachable for the Employees tab)"
+  note: "G5 and G6 are the same user action seen twice: G5 is the missing explanation, G6 is the wrong state. Fixing G6 without G5 leaves a reader silently relocated; fixing G5 without G6 explains a screen that is still broken."
+  outcome: fixed
+  fix: |
+    New pure module `src/data/latestRequest.ts` — `createRequestSequence()` hands
+    out a claim whose predicate is true only while it is the most recent one. One
+    sequence per loader effect (tiles, chart); every `.then` and `.catch` drops
+    itself when superseded. 4 tests, written first, one of which reproduces the
+    Brisbane ordering exactly: FY2017 claimed first, resolving last, must not be
+    applied.
+
+    Verified in the browser against a local build wired to production. Picking
+    FY2017 on Brisbane under Total Governmental now lands on FY 2018 with real
+    figures — $23.2M Money Out / $21.6M Money In, chart drawing 4 segments led by
+    "General Government and Public Safety $12.6M (54%)" — and NO blank tile.
+    Regression sweep unchanged: Modesto 11 segments $588.0M, Napa County 11
+    segments $616.7M, Seattle 2 segments $2.4B.
 
 ### Checked and NOT a defect
 

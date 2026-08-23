@@ -36,7 +36,9 @@ import FundSeriesToggle from './components/FundSeriesToggle';
 import {
   listSeries, defaultSeries, seriesId, encodeSeries, decodeSeries,
   seriesPeriodTokens, resolveSeriesYear, shouldResetSeries, initialYearForEntity,
+  resolveClampNote, type ClampNoteState,
 } from './data/seriesSelection';
+import { createRequestSequence } from './data/latestRequest';
 import { SERIES_TOGGLE_COPY } from './data/fundScopeVocabulary';
 import type { SeriesKey } from './data/budgetSeries';
 import { resolveUrlSync } from './utils/spaUrl';
@@ -222,7 +224,19 @@ function App() {
   // dataset so Money In and Money Out report independently (Longview, spec §3.1).
   const [absentDatasets, setAbsentDatasets] = useState<Record<string, boolean>>({});
   // Set when switching series stranded the selected year outside its coverage.
-  const [yearClampNote, setYearClampNote] = useState<string | null>(null);
+  // ⚠ The note and the year it moved the reader TO are one piece of state. Held
+  // apart, the note could not survive the re-render its own move triggers — see
+  // resolveClampNote, and UAT 2026-08-22 (G5).
+  const [clampState, setClampState] = useState<ClampNoteState>({ note: null, movedTo: null });
+  const yearClampNote = clampState.note;
+
+  // ⚠ One sequence per loader effect. Both effects can have two loads in flight
+  // for the same view (pick an uncovered year, get clamped), and the second is
+  // usually served from cache while the first is still on the network — so
+  // without these the stale response lands last and stamps its own state over
+  // the good one. UAT 2026-08-22 (G6). See data/latestRequest.ts.
+  const tilesSequence = useRef(createRequestSequence()).current;
+  const chartSequence = useRef(createRequestSequence()).current;
 
   const [budgetData, setBudgetData] = useState<BudgetData | null>(null);
   const [operatingBudgetData, setOperatingBudgetData] = useState<BudgetData | null>(null);
@@ -369,10 +383,9 @@ function App() {
     if (!selectedEntity) return;
     const { token, moved } = resolveSeriesYear(
       selectedEntity.available_datasets, effectiveSeries, activeDataset, selectedYear);
-    if (!moved) { setYearClampNote(null); return; }
-    setYearClampNote(
-      SERIES_TOGGLE_COPY.yearClamped(selectedYear, token, effectiveSeriesLabel));
-    setSelectedYear(token);
+    const note = SERIES_TOGGLE_COPY.yearClamped(selectedYear, token, effectiveSeriesLabel);
+    setClampState((prev) => resolveClampNote(prev, moved, token, note, selectedYear));
+    if (moved) setSelectedYear(token);
   }, [selectedEntity, effectiveSeries, activeDataset, selectedYear, effectiveSeriesLabel]);
 
   const availableDatasetTypes = useMemo(() => {
@@ -550,8 +563,12 @@ function App() {
         : Promise.resolve(null),
     ];
 
+    const isLatestTiles = tilesSequence.claim();
+
     Promise.all(promises)
       .then(([operating, revenue, salaries]) => {
+        // A superseded year's response must never stamp state — see G6.
+        if (!isLatestTiles()) return;
         setOperatingBudgetData(hoistSingleRoot(operating));
         setRevenueData(hoistSingleRoot(revenue));
         setSalariesData(salaries);
@@ -563,6 +580,7 @@ function App() {
         });
       })
       .catch(error => {
+        if (!isLatestTiles()) return;
         console.error('Failed to load dataset totals:', error);
         setOperatingBudgetData(null);
         setRevenueData(null);
@@ -609,12 +627,16 @@ function App() {
     // and all_funds_requirements are outside the series model.
     const seriesForRequest =
       requestDataset === 'operating' || requestDataset === 'revenue' ? effectiveSeries : null;
+    const isLatestChart = chartSequence.claim();
+
     loadBudgetData(fiscalYear, selectedEntity.name, selectedEntity.state, requestDataset, periodLabel, seriesForRequest)
       .then(data => {
+        if (!isLatestChart()) return;
         setBudgetData(hoistSingleRoot(data));
         setLoading(false);
       })
       .catch(error => {
+        if (!isLatestChart()) return;
         // An absent series is not a load failure — the chart renders empty and the
         // tile note explains why. Only real failures trip the error screen.
         if (error instanceof SeriesAbsentError) {

@@ -3,7 +3,7 @@ import {
   listSeries, seriesId, defaultSeries, encodeSeries, decodeSeries,
   seriesPeriodTokens, seriesDatasetTokens, resolveSeriesYear, shouldResetSeries,
   initialYearForEntity,
-  clampYearToSeries, spanLabel,
+  clampYearToSeries, spanLabel, resolveClampNote,
 } from './seriesSelection';
 import { TQ_TOKEN, TQ_LABEL } from '../utils/period';
 
@@ -543,5 +543,39 @@ describe('listSeries — derivation', () => {
         fund_scope: 'all_funds', basis: 'actual' },
     ]);
     expect(out[0].derivation).toBe('published');
+  });
+});
+
+describe('resolveClampNote', () => {
+  // ⚠ UAT 2026-08-22 (G5). The clamp note NEVER reached the screen. The effect
+  // that shows it also calls setSelectedYear(token), and `selectedYear` is in its
+  // own dependency list, so it re-ran immediately against the NEW year, found
+  // nothing left to move, and cleared the note it had just set. The reader was
+  // relocated FY2017 -> FY2018 in silence.
+  //
+  // The note must survive exactly the re-render its own move causes, and no longer.
+  const NOTE = 'Total Governmental · actuals does not cover FY2017, so we have '
+    + 'moved you to FY2018, the closest year it does cover.';
+
+  it('records the note and the year it moved the reader to', () => {
+    expect(resolveClampNote({ note: null, movedTo: null }, true, '2018', NOTE, '2017'))
+      .toEqual({ note: NOTE, movedTo: '2018' });
+  });
+
+  it('KEEPS the note on the re-run its own move triggers', () => {
+    // Second pass: selectedYear is now the token we moved to, so `moved` is false
+    // -- but this pass IS the move. Clearing here is the defect.
+    const after = resolveClampNote({ note: NOTE, movedTo: '2018' }, false, '2018', NOTE, '2018');
+    expect(after.note).toBe(NOTE);
+  });
+
+  it('clears the note once the reader chooses a different year themselves', () => {
+    expect(resolveClampNote({ note: NOTE, movedTo: '2018' }, false, '2021', NOTE, '2021'))
+      .toEqual({ note: null, movedTo: null });
+  });
+
+  it('stays quiet when nothing was ever clamped', () => {
+    expect(resolveClampNote({ note: null, movedTo: null }, false, '2024', NOTE, '2024'))
+      .toEqual({ note: null, movedTo: null });
   });
 });

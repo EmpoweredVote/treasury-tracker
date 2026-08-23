@@ -364,3 +364,38 @@ export function spanLabel(span: { min: number; max: number }): string {
     ? `FY${span.min}–${String(span.max).slice(-2)}`
     : `FY${span.min}–${span.max}`;
 }
+
+/** The clamp note, plus the year the clamp moved the reader to. */
+export interface ClampNoteState {
+  note: string | null;
+  /** The token `resolveSeriesYear` relocated to, while that note is showing. */
+  movedTo: string | null;
+}
+
+/**
+ * Decide whether the year-clamp note shows, given one pass of the clamp effect.
+ *
+ * ⚠ This exists because the note NEVER REACHED THE SCREEN. The effect that sets
+ * it also calls `setSelectedYear(token)`, and `selectedYear` is one of its own
+ * dependencies — so it re-ran immediately against the new year, `resolveSeriesYear`
+ * reported `moved: false`, and the "nothing to do" branch cleared the note that the
+ * previous pass had just set. A reader picking Total Governmental on a pre-2017 CA
+ * year was relocated in silence, which is the exact opposite of the note's purpose.
+ * Found by UAT 2026-08-22 (G5); App.tsx cannot be tested in this repo, so the
+ * decision lives here where it can be.
+ *
+ * The note therefore survives exactly one thing: the re-render its own move caused,
+ * identified by `selectedYear` having become the token we moved to. Any other year —
+ * the reader choosing for themselves — clears it.
+ */
+export function resolveClampNote(
+  prev: ClampNoteState,
+  moved: boolean,
+  token: string,
+  note: string,
+  selectedYear: string,
+): ClampNoteState {
+  if (moved) return { note, movedTo: token };
+  if (prev.movedTo !== null && selectedYear === prev.movedTo) return prev;
+  return { note: null, movedTo: null };
+}
