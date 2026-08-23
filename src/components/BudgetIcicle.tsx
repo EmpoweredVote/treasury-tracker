@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import type { BudgetCategory } from '../types/budget';
 import { buildIcicleLevels, type BarSegment, type BarLevel } from '../data/icicleLevels';
-import { getCategoryColor } from '../utils/chartColors';
+import { getCategoryColor, shadeWithinBranch } from '../utils/chartColors';
 import { BRAND_BAR_COLORS, getContrastText } from '../utils/brandColors';
 import './BudgetIcicle.css';
 
@@ -103,12 +103,23 @@ const BudgetIcicle: React.FC<BudgetIcicleProps> = ({
             role="list"
             aria-label={`${level.levelName} breakdown`}
           >
-            {level.segments.map((segment) => {
+            {level.segments.map((segment, segmentIndex) => {
               const isClickable = true;
               const showText = canFitText(segment.width, level.isAncestor);
 
-              const bgColor = BRAND_BAR_COLORS[segment.category.name] ?? getCategoryColor(segment.categoryIndex);
-              const textColor = getContrastText(bgColor);
+              const baseColor = BRAND_BAR_COLORS[segment.category.name] ?? getCategoryColor(segment.categoryIndex);
+              // ⚠ G3: children of a drilled category all inherit the ROOT's colour
+              // index, so a branch reads as one colour. On a 36-child level that
+              // rendered 36 identical fills with 2 legible labels — one block of
+              // green. Lightness varies per child, hue never does, and the ROOT
+              // level is untouched because its segments already carry distinct hues.
+              const bgColor = levelIndex === 0
+                ? baseColor
+                : shadeWithinBranch(baseColor, segmentIndex);
+              // Deliberately the BASE, not the shaded fill: getContrastText returns
+              // white for any non-hex input, which is what every var() fill already
+              // got, so the text colour is unchanged by construction.
+              const textColor = getContrastText(baseColor);
               return (
                 <div
                   key={segment.category.name}

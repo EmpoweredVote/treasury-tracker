@@ -102,9 +102,9 @@ $97,734,023, and nothing outside California moved.
 
 **8 of 10 passed. The two issues were both found off-script, and NEITHER was SCOPE-04's
 own work** — they were pre-existing paths that SCOPE-04 made reachable by giving 488 CA
-entities a second series.  four fixed
-test-first (G1, G2, G5, G6, PR #54); two left open by decision (G3 needs a design call,
-G4 is deliberate), both predating this milestone.
+entities a second series.  five fixed
+test-first (G1, G2, G3, G5, G6 — PR #54); one left open (G4, the tab strip hidden while
+drilled, deliberate today). Every one of them predates this milestone.
 
 ⚠ Worth naming plainly: **no arithmetic gate could have found any of the six.** Every
 figure involved was correct. What was wrong was which figure was on screen, whether the
@@ -200,6 +200,31 @@ reader was told, and whether the thing they clicked did anything.
       issue: "categoryIndex: rootCatIndex gives every child of a drilled root one colour"
   missing:
     - "A design call from Chris: keep branch-colour identity but vary lightness per child, or colour children by their own index within the level"
+  outcome: fixed
+  fix: |
+    Chris's call 2026-08-23: **keep the branch colour, vary the lightness.**
+    `shadeWithinBranch` in `utils/chartColors.ts` mixes the base token toward white
+    or black in a 5-step cycle — never toward another hue, so a segment still says
+    which branch it belongs to. 7 tests, written first, pinning both sides of the
+    requirement: adjacent children must differ, AND every step must keep the base as
+    at least 80% of the mix.
+
+    ⚠ NOT one step per child. A 36-child level would run the far end out of contrast
+    entirely; the cycle repeats instead. Step 0 is the base itself, so the first
+    child of every level — and every single-child level — renders exactly as before.
+
+    ⚠ Contrast is still computed from the BASE, not the shaded fill. `getContrastText`
+    returns white for any non-hex input, which is what every `var(--color-data-*)`
+    fill already got and what a `color-mix()` gets too, so the text colour on screen
+    is unchanged by construction rather than by luck.
+
+    Verified in the browser in BOTH themes on the 36-child Parks level: 5 distinct
+    fills where there was 1, root level still 10 distinct hues, and the oklab a/b
+    components hold steady while L moves 0.54–0.69 (light) and 0.62–0.76 (dark) —
+    lightness varying, hue not.
+
+    The other half of G3 is NOT fixed: only 2 of 36 segments are wide enough to carry
+    a label, which is the `canFitText` width heuristic and a separate question.
 
 - truth: "The dataset tabs and the series pills stay reachable while reading a category"
   status: failed
