@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import type { BudgetCategory } from '../types/budget';
-import { buildIcicleLevels, type BarSegment, type BarLevel } from '../data/icicleLevels';
+import { buildIcicleLevels, type BarSegment } from '../data/icicleLevels';
 import { getCategoryColor, shadeWithinBranch } from '../utils/chartColors';
 import { BRAND_BAR_COLORS, getContrastText } from '../utils/brandColors';
 import './BudgetIcicle.css';
