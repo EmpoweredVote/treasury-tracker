@@ -39,6 +39,7 @@ import {
   resolveClampNote, type ClampNoteState,
 } from './data/seriesSelection';
 import { createRequestSequence } from './data/latestRequest';
+import { showsSourceChip } from './data/sourceChipTypes';
 import { SERIES_TOGGLE_COPY } from './data/fundScopeVocabulary';
 import type { SeriesKey } from './data/budgetSeries';
 import { resolveUrlSync } from './utils/spaUrl';
@@ -154,30 +155,9 @@ function getDatasetLabel(type: DatasetType): string {
 
 const isFinancialsHost = window.location.hostname === 'financials.empowered.vote';
 
-/**
- * Entity types that get the municipal source chip.
- *
- * ⚠ `city` was MISSING until 2026-08-20, so no city ever showed its provenance or
- * its "as of" date — reported in AUSTIN-TRAVIS-01 UAT ("I don't see sept 30
- * anywhere on austin"). The chip was added for counties only (Phase 57, "OC county
- * page only") and never widened. The data was never the problem: the API populates
- * `data_source_info` for municipal budgets from source_url + source_date +
- * data_source, and Austin FY2024 returns `fetchedAt: 2024-09-30` with the correct
- * ACFR URL. Proven by the same chip rendering correctly on Travis County.
- *
- * `municipality`, `town` and `township` are included because they are the same kind
- * of entity under a different label — leaving them out would have shown a chip on
- * Austin (`city`) and none on Plano (`municipality`), which is the same bug with a
- * narrower blast radius.
- *
- * Deliberately EXCLUDED: `federal` and `nonprofit` render their own source
- * treatments above, so adding them here would double up. `state` is excluded only
- * because nobody has checked the quality of state `data_source_info` yet — it is a
- * candidate, not a decision.
- */
-const MUNICIPAL_SOURCE_CHIP_TYPES = new Set([
-  'city', 'municipality', 'town', 'township', 'county',
-]);
+// The source chip's entity types live in data/sourceChipTypes.ts — membership of
+// that set is a real defect surface (it is what failed AUSTIN-TRAVIS-01 UAT test 5),
+// and only a pure module can carry a test for it.
 
 
 function App() {
@@ -1430,7 +1410,7 @@ function App() {
                   populates data_source_info for county/municipal budgets from the
                   source_url + source_date + data_source columns when data_source_id is
                   null (treasuryService.ts, deployed 2026-06-16) — so this chip is live. */}
-              {MUNICIPAL_SOURCE_CHIP_TYPES.has(selectedEntity?.entity_type ?? '')
+              {showsSourceChip(selectedEntity?.entity_type)
                 && budgetData.metadata.dataSourceInfo && (
                 <div className="flex items-center gap-3 flex-wrap">
                   <SourceChip
