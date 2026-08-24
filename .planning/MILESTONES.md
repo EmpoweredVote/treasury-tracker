@@ -126,7 +126,7 @@ next to inventing a figure or trusting a statement we cannot read.
 
 **Merged:** PR #47 → `main` as `02f93d0`, 22 files, +2,838/−27. Every gate was independently re-run at merge time rather than taken from the PR body.
 
-⚠ **UAT not run at tag time.** ⚠ The API serves `data_source` **double-encoded** for every em-dash label, Austin's included — pre-existing, and in `C:\EV-Accounts`, not this repo.
+⚠ UAT was not run at tag time; re-verified 2026-08-23, see above. ✅ The `data_source` double-encoding noted here is **FIXED** upstream in `C:\EV-Accounts` — clean U+2014 on the wire and on screen.
 
 **Archive:** none — not a GSD-phased milestone.
 
@@ -159,7 +159,33 @@ next to inventing a figure or trusting a statement we cannot read.
 
 ---
 
-## v2.27 AUSTIN-TRAVIS-01 — Austin, Travis County, and every ACFR General Fund row (Shipped: 2026-08-19, tag `v2.27`)
+## v2.27 AUSTIN-TRAVIS-01 — Austin, Travis County, and every ACFR General Fund row (Shipped: 2026-08-19, tag `v2.27`, UAT ✅ re-verified 2026-08-23)
+
+✅ **UAT RE-VERIFIED 2026-08-23 — 5 of 5 on re-run.** The original UAT (2026-08-20) left one
+failure and two withdrawn tests, all three about whether a reader can tell what PERIOD a
+figure covers. Record: `docs/superpowers/plans/AUSTIN-TRAVIS-01-UAT.md`, re-verification
+section.
+
+| original | then | now |
+|---|---|---|
+| test 5 — provenance visible | ❌ issue, major — *"I don't see sept 30 anywhere on austin"* | ✅ **resolved** — PR #38 added `city` to the source-chip types (county-only since Phase 57, never widened) |
+| test 6 — a June-30 entity's fiscal year | ⊘ withdrawn, unmeetable | ✅ **satisfied** via Bend's `as of 2024-06-30` |
+| test 7 — New York's April fiscal year | ⊘ withdrawn, unmeetable | ⚠ **still unmeetable — the reason no longer holds** |
+
+⚠ **One item left, and it is a DECISION, not a defect.** `MUNICIPAL_SOURCE_CHIP_TYPES`
+excludes `state` because "nobody has checked the quality of state `data_source_info` yet —
+it is a candidate, not a decision". **That check is now done: 10 of 10 state nodes carry a
+display name, a real source URL, and an as-of date matching that state's own fiscal year
+end** — NY 03-31, TX 08-31, AL/MI 09-30, and six more at 06-30. One `Set` entry would close
+test 7.
+
+Figures re-confirmed live: Austin FY2024 $1,347,127,000 out / $1,280,826,000 in (the only
+entity in the app whose source prints in thousands); Travis FY2024 $888,757,389 /
+$1,030,822,292; Travis FY2004 $270,078,987 / $283,615,180, its chip still resolving
+`fy2004-cafr.pdf` under the pre-GFOA-rename name. Austin FY2002–09 correctly still absent —
+CO-SPRINGS unblocked those years, it never loaded them.
+
+⚠ The em-dash double-encoding this entry recorded as open is **FIXED** (see v2.29 UAT).
 
 **Tasks completed:** onboarding milestone on a `docs/superpowers/` plan — closeout: `docs/superpowers/plans/AUSTIN-TRAVIS-01-CLOSEOUT.md`, reconciliations: `AUSTIN-TRAVIS-01-SCOPE-RECON.md` and `ACFR-GF-CLASSIFICATION-RECON.md`
 
