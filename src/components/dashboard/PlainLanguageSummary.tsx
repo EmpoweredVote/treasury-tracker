@@ -3,6 +3,7 @@ import ScopeLabel from '../ScopeLabel';
 import type { BudgetData, OrgFinancialSummary } from '../../types/budget';
 import { useAnimatedCounter } from '../../hooks/useAnimatedCounter';
 import { chooseSpendVerb, usesSpentLanguage } from '../../utils/spendVerb';
+import { revenueOpening } from '../../data/narrativeCopy';
 
 interface PlainLanguageSummaryProps {
   entity: {
@@ -303,10 +304,12 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
 
           {revenueData && (
             <p>
-              {isNonprofit
-                ? <>{entity.name} {revenueSpentLanguage ? 'raised' : 'raises'}{' '}</>
-                : <>The city {revenueSpentLanguage ? 'funded' : 'funds'} this through{' '}</>
-              }
+              {/* ⚠ This clause used to hardcode "The city", so the New York state page
+                  read "The city funded this through $93.9 billion" — and every county
+                  and the federal page read the same way. The paragraph above it already
+                  named the entity correctly, which is how it survived. See
+                  data/narrativeCopy.ts. */}
+              {revenueOpening(entity.name, isNonprofit, revenueSpentLanguage)}{' '}
               <strong
                 className="text-ev-gray-800 dark:text-ev-gray-100 inline-block rounded-sm px-0.5"
                 style={{
