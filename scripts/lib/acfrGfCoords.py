@@ -1,0 +1,315 @@
+#!/usr/bin/env python3
+"""
+Shared COORDINATE-BASED General Fund extractor for ACFR governmental-funds
+statements (GAAP actuals).
+
+Common machinery behind the per-entity `scripts/extract<Entity>Coords.py`
+scripts, each a thin wrapper supplying a `CoordsConfig`. Emits the same JSON
+contract as `scripts/lib/acfrGF.py` (`fiscal_year`, `mode`, `tree`,
+`computed_total`, `printed_total`, `tie_delta`, `zero_rows`), so
+`scripts/lib/acfrGfLoad.mjs` drives it exactly like every `-table` extractor.
+
+Reads the page through `scripts/acfrGfComponents.py` — pdfplumber glyph
+coordinates — instead of the `pdftotext -table` character grid. It shares no
+code and no strategy with `acfrGF.py`:
+
+  acfrGF.py    flattens the page onto a CHARACTER grid, then assigns each money
+               token to the nearest column anchor.
+  this module  the PDF's own glyph x-coordinates. Never sees the character
+               grid, so the grid's artifacts cannot reach it.
+
+── WHEN AN ENTITY BELONGS HERE ─────────────────────────────────────────────
+Only on a DIAGNOSED, mechanical failure of the `-table` reader — never because
+a year "happened to tie" here and not there. Choosing per year whichever
+strategy tied $0 is CURVE-FITTING, the error that got the LA-01 scope verdict
+retracted. The choice is made per ENTITY, for a reason stated in that entity's
+wrapper, and the other reader is then required to CORROBORATE every year it can
+still read (see `scripts/verify-nc.mjs`, `scripts/verify-colorado.mjs`).
+
+The three diagnosed reasons in this corpus, each confirmed by arithmetic that
+lands on the dollar:
+
+  TWO-OFFSET COLUMN   `pdftotext -table` renders the General Fund column at two
+                      different character positions, so rows whose later cells
+                      are dashes sit ~20 characters right and read $0.
+                      El Paso County FY2020's four dropped rows sum to
+                      7,761,496 = its exact tie delta; Durham County NC
+                      FY2006-FY2011 fails identically (FY2008's four dropped
+                      rows sum to 1,049,599 + 4,859,005 + 2,062,145 + 659,642 =
+                      8,630,391 = its exact delta); Austin FY2002-FY2009 too.
+
+  EMBEDDED LABEL FIGURE
+                      El Paso prints its TABOR refund INSIDE the revenue label
+                      ("Sales taxes net of $4,477,783 TABOR limitation"), which
+                      the ordinal reader returns as the amount.
+
+  LETTER-SPACED GLYPHS
+                      The PDF sets character spacing such that `-table` splits
+                      every word: Asheville FY2021/FY2022 render
+                      "A d valo rem taxes" and "T o t a l e xpe ndit ure s", so
+                      no label or section regex can match anything on the page.
+
+In glyph space none of the three exists: the column has ONE x-position, the
+label's embedded figure sits tens of points from the column edge, and character
+spacing is not a word boundary.
+
+── NESTING COMES FROM THE PAGE, NOT FROM CONFIG ────────────────────────────
+`acfrGF.CityConfig` needs `parents` / `root_leaves` declared by hand because
+`-table` flattens the leading whitespace that states the hierarchy. Glyph
+coordinates keep it, so this module reads the tree off the printed INDENTATION
+and needs no structural declaration at all. That matters: a tie proves
+arithmetic and never structure, so a hand-declared nesting can be wrong while
+every gate stays green.
+"""
+
+import argparse
+import json
+import pathlib
+import re
+import sys
+
+import pdfplumber
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
+from acfrGfComponents import (  # noqa: E402
+    collect, establish_column, find_statement, lines_of,
+    numbers_on, REV_BANNER, REV_TOTAL, EXP_BANNER, EXP_TOTAL,
+)
+
+# Indentation deeper than the section's root by more than this many points is a
+# CHILD row. Measured gaps are 5.0pt (El Paso 69.8 -> 74.8) and 8.3pt
+# (Asheville 53.6 -> 61.9), and fund columns are 50-90pt apart, so this sits
+# clear of both. A row within tolerance of the root x0 is a root-level peer
+# even if it is visually a hair off.
+INDENT_TOL = 1.5
+
+
+class CoordsConfig:
+    """Per-entity facts for the coordinate reader.
+
+    city            display name stamped into the emitted JSON.
+    units           multiplier applied to every amount. ⚠ NOT checkable by the
+                    tie gate, which compares a sum against a printed total read
+                    through the SAME multiplier and is therefore 0 whether or
+                    not the scaling is right. Checked by the loader's per-capita
+                    plausibility guard.
+    weld            `collect`'s wrapped-label policy. 'disclosure' welds a
+                    label's continuation line when it carries an embedded
+                    disclosure figure (El Paso's TABOR wrap). None for issuers
+                    with no such construction — turning it on where it is not
+                    needed risks fusing two genuine line items.
+    exclude_ignore  `_EXCLUDE` terms to stop disqualifying a page, for issuers
+                    that print an excluded phrase ON the primary statement.
+    title_anchor    optional extra regex qualifying the statement page where
+                    the printed title cannot be matched left-to-right.
+    """
+
+    def __init__(self, city, units=1, weld=None, exclude_ignore=(), title_anchor=None):
+        if not isinstance(units, int) or isinstance(units, bool):
+            raise TypeError(
+                'CoordsConfig.units must be an int, got %r (%s). A float would '
+                'silently turn every extracted amount into a float and change '
+                'the emitted JSON shape.' % (units, type(units).__name__))
+        if weld not in (None, 'disclosure'):
+            raise ValueError("CoordsConfig.weld must be None or 'disclosure', got %r" % (weld,))
+        self.city = city
+        self.units = units
+        self.weld = weld
+        self.exclude_ignore = tuple(t.lower() for t in exclude_ignore)
+        self.title_anchor = title_anchor
+
+
+def clean_label(label):
+    """Strip a TRAILING COLON from a printed label.
+
+    Punctuation only, never wording. Issuers print a group heading as "Current:"
+    in some years and "Current" in others, and a category named `Current:` in
+    the UI is the issuer's typography leaking into a chart legend.
+    `acfrGF._is_section_header` already ignores a trailing colon for the same
+    reason, so this keeps the two readers' labels COMPARABLE — which matters
+    because the verifiers diff them against each other.
+    """
+    return label.rstrip(':').strip()
+
+
+def build_revenue_tree(rows, revenue_parents=()):
+    """Revenue children, read off the printed indentation.
+
+    Flat for most issuers: every source is a root child. Where an issuer GROUPS
+    its revenue (Asheville prints a `Taxes:` heading over `Ad valorem taxes` and
+    `Other taxes`), the group is read from indentation exactly as the
+    expenditure side is — no `revenue_parents` declaration is needed, because
+    glyph coordinates preserve the indent that states it.
+
+    `revenue_parents` is accepted only so a caller can ASSERT an expected
+    grouping; it is not required and is not used to create structure.
+
+    Zero rows are dropped and reported, matching acfrGF's `zero_rows` field.
+    """
+    indents = [r['indent'] for r in rows if r['indent'] is not None]
+    if not indents:
+        return [], [], ['no label indentation could be measured']
+    root_x = min(indents)
+    grouped = any(r['indent'] is not None and r['indent'] > root_x + INDENT_TOL for r in rows)
+
+    if not grouped:
+        children, zeros = [], []
+        for r in rows:
+            if r['amount'] == 0:
+                zeros.append(r['label'])
+                continue
+            children.append({'n': clean_label(r['label']), 'a': r['amount']})
+        return children, zeros, []
+
+    tree, zeros, errors = _nested(rows, root_x)
+    if revenue_parents:
+        got = {n['n'].lower() for n in tree if 'c' in n}
+        missing = [p for p in revenue_parents if p.lower() not in got]
+        if missing:
+            errors.append('expected revenue group(s) %r not found; read %r' % (missing, sorted(got)))
+    return tree, zeros, errors
+
+
+def build_operating_tree(rows):
+    """Two levels, read off the printed indentation.
+
+    A root-level row with money is a VALUED ROOT LEAF (Capital outlay, where the
+    issuer puts it at root). A root-level row with a blank or dash cell opens a
+    PARENT, and the indented rows that follow are its children. A parent that
+    ends up with no non-zero child is DROPPED rather than published as an empty
+    node — the same choice acfrGF makes.
+    """
+    indents = [r['indent'] for r in rows if r['indent'] is not None]
+    if not indents:
+        return [], [], ['no label indentation could be measured']
+    return _nested(rows, min(indents))
+
+
+def _nested(rows, root_x):
+    """Shared root/child walk for both sections.
+
+    ⚠ Handles the case where two DIFFERENT parents carry IDENTICAL child
+    labels: Asheville prints `Principal` and `Interest and other charges` under
+    both `Debt service:` and `Lease/subscription debt service:`. Because
+    children are appended to whichever parent is open, the two pairs stay
+    separate and no label collision occurs. A dict keyed on label would have
+    merged them and silently halved the reported category count.
+    """
+    tree, zeros, errors = [], [], []
+    open_parent = None
+    for r in rows:
+        if r['indent'] is None:
+            errors.append('row with no measurable indent: %s' % r['label'][:40])
+            continue
+        is_root = r['indent'] <= root_x + INDENT_TOL
+        if is_root:
+            open_parent = None
+            if r['cell'] == 'number' and r['amount'] != 0:
+                tree.append({'n': clean_label(r['label']), 'a': r['amount']})
+            elif r['amount'] == 0:
+                # Ambiguous by value alone (a $0 root leaf and a group heading
+                # both read 0), so it is opened as a parent and dropped below if
+                # nothing indented follows. Publishing it as a $0 leaf would
+                # invent a category the issuer did not report.
+                open_parent = {'n': clean_label(r['label']), 'a': 0, 'c': []}
+                tree.append(open_parent)
+            continue
+        if open_parent is None:
+            errors.append('indented row with no open parent: %s' % r['label'][:40])
+            continue
+        if r['amount'] == 0:
+            zeros.append(r['label'])
+            continue
+        open_parent['c'].append({'n': clean_label(r['label']), 'a': r['amount']})
+        open_parent['a'] += r['amount']
+
+    kept = []
+    for node in tree:
+        if 'c' in node and not node['c']:
+            zeros.append(node['n'])
+            continue
+        kept.append(node)
+    return kept, zeros, errors
+
+
+def leaf_sum(tree):
+    total = 0
+    for node in tree:
+        total += sum(c['a'] for c in node['c']) if 'c' in node else node['a']
+    return total
+
+
+def run_cli(cfg):
+    ap = argparse.ArgumentParser()
+    ap.add_argument('pdf_path')
+    ap.add_argument('--mode', choices=('revenue', 'operating'), required=True)
+    ap.add_argument('--page', type=int, default=None)
+    args = ap.parse_args()
+
+    with pdfplumber.open(args.pdf_path) as pdf:
+        if args.page:
+            idx, page = args.page - 1, pdf.pages[args.page - 1]
+            text = page.extract_text() or ''
+        else:
+            idx, page, text = find_statement(pdf, cfg.title_anchor, cfg.exclude_ignore)
+        if page is None:
+            print('  ERROR: primary GF statement not found in %s' % args.pdf_path, file=sys.stderr)
+            sys.exit(3)
+        rows_all = lines_of(page)
+        alignment, edge = establish_column(rows_all)
+        if alignment is None:
+            print('  ERROR: General Fund column not established: %s' % edge, file=sys.stderr)
+            sys.exit(4)
+
+        if args.mode == 'revenue':
+            comps, errs, welds = collect(rows_all, REV_BANNER, REV_TOTAL,
+                                         alignment, edge, cfg.units, weld=cfg.weld)
+            printed_cols, _ = numbers_on(rows_all, REV_TOTAL)
+            children, zeros, more = build_revenue_tree(comps)
+            root_name = 'General Fund Revenue by Source'
+        else:
+            comps, errs, welds = collect(rows_all, EXP_BANNER, EXP_TOTAL,
+                                         alignment, edge, cfg.units, weld=cfg.weld)
+            printed_cols, _ = numbers_on(rows_all, EXP_TOTAL)
+            children, zeros, more = build_operating_tree(comps)
+            root_name = 'General Fund Expenditure by Function'
+        errs = errs + more
+
+        m = re.search(r'year\s+ended\s+\w+\s*\d{1,2},\s*(\d{4})', text, re.I)
+
+    if errs:
+        for e in errs:
+            print('  ROW ERROR: %s' % e, file=sys.stderr)
+        sys.exit(5)
+    if not printed_cols:
+        print('  ERROR: printed total row not located', file=sys.stderr)
+        sys.exit(6)
+
+    printed_total = printed_cols[0] * cfg.units
+    computed_total = leaf_sum(children)
+    tie_delta = computed_total - printed_total
+
+    result = {
+        'city': cfg.city,
+        'fiscal_year': int(m.group(1)) if m else None,
+        'mode': args.mode,
+        'statement_page': idx + 1,
+        'reader': 'pdfplumber-coordinates',
+        'alignment': alignment,
+        'column_edge': round(edge, 2),
+        'tree': {'n': root_name, 'a': computed_total, 'c': children},
+        'computed_total': computed_total,
+        'printed_total': printed_total,
+        'tie_delta': tie_delta,
+        'zero_rows': zeros,
+        'welded_labels': welds,
+    }
+
+    if tie_delta != 0:
+        print('  TIE FAILURE (%s FY%s): computed %d vs printed %d (delta %d)'
+              % (args.mode, result['fiscal_year'], computed_total, printed_total, tie_delta),
+              file=sys.stderr)
+        print(json.dumps(result, indent=2))
+        sys.exit(1)
+
+    print(json.dumps(result, indent=2))

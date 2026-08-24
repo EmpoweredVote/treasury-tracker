@@ -132,7 +132,7 @@ def row_text(ws):
     return ' '.join(w['text'] for w in ws)
 
 
-def find_statement(pdf, title_anchor=None):
+def find_statement(pdf, title_anchor=None, exclude_ignore=()):
     """Earliest page carrying the primary governmental-funds statement.
 
     Same qualifying rule as acfrGF.find_statement_page and
@@ -140,6 +140,14 @@ def find_statement(pdf, title_anchor=None):
     "what does the General Fund column of THAT page say", not "which page is
     it". Reading a different page would not be a second read of the same
     figure.
+
+    `exclude_ignore` drops named terms from `_EXCLUDE` for issuers that print
+    an excluded phrase ON the primary statement page. Buncombe County FY2011-
+    FY2018 set the government-wide RECONCILIATION at the foot of the fund
+    statement itself, so the genuine page carries both 'reconciliation' and
+    'net position'. Without this the cross-check silently has nothing to say
+    about eight of that county's sixteen years, which reads identically to
+    "the two readers agree" in a summary that only counts failures.
     """
     for i, page in enumerate(pdf.pages):
         text = page.extract_text() or ''
@@ -152,7 +160,7 @@ def find_statement(pdf, title_anchor=None):
             continue
         if 'general' not in low or 'fund' not in low:
             continue
-        if any(x in low for x in _EXCLUDE):
+        if any(x in low for x in _EXCLUDE if x not in exclude_ignore):
             continue
         return i, page, text
     return None, None, None
@@ -438,6 +446,8 @@ def main():
     ap.add_argument('--units', type=int, default=1)
     ap.add_argument('--page', type=int, default=None, help='1-based statement page (skips the search)')
     ap.add_argument('--title-anchor', choices=sorted(TITLE_ANCHORS), default=None)
+    ap.add_argument('--exclude-ignore', action='append', default=None,
+                    help='_EXCLUDE term to stop disqualifying a page (repeatable)')
     args = ap.parse_args()
 
     anchor = TITLE_ANCHORS.get(args.title_anchor)
@@ -448,7 +458,7 @@ def main():
             page = pdf.pages[idx]
             text = page.extract_text() or ''
         else:
-            idx, page, text = find_statement(pdf, anchor)
+            idx, page, text = find_statement(pdf, anchor, tuple(args.exclude_ignore or ()))
         if page is None:
             print(json.dumps({'error': 'primary GF statement page not found'}))
             sys.exit(3)

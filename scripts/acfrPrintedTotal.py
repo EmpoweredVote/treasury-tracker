@@ -155,6 +155,38 @@ def _is_money_fragment(tok):
     return _MONEY_FRAG.match(tok.replace('.', '').replace('$', '') or '_') is not None
 
 
+def _is_lone_open_paren(tok):
+    """A bare `(` — an accounting negative whose sign was split off its digits.
+
+    ⚠ This is a SIGN FLIP, the quietest defect class this corpus has produced.
+    Asheville's FY2022 statement emits its negative investment earnings as TWO
+    words 0.1pt apart:
+
+        x0=277.1  '('            <- x1 = 279.1
+        x0=279.2  '372,058)'     <- gap = 0.1pt
+
+    `_is_money_fragment` requires at least one DIGIT, so the lone `(` is not a
+    fragment and never merges. The reader then sees `372,058)` — a trailing
+    parenthesis with no opening one — and `parse_money` falls through to its
+    unsigned alternative and returns +372,058 for a printed (372,058).
+
+    Nothing about the output looks malformed. It was caught only because the
+    revenue components then over-summed the printed total by exactly
+    2 x 372,058 = 744,116; had this row been the LAST component, or had the
+    statement not printed a total, the sign would have shipped inverted.
+
+    Kept separate from `_is_money_fragment` rather than folded into it: that
+    predicate is also used to decide whether the PRECEDING token may absorb the
+    next, and a bare `(` must never be absorbed BACKWARD onto a completed
+    number. It may only merge FORWARD onto the digits it belongs to.
+
+    A lone `)` is deliberately NOT handled. It would have to merge backward,
+    and `parse_money` already reads `(372,058` and `372,058)` identically, so
+    a split closing paren does not change the sign.
+    """
+    return tok == '('
+
+
 def merge_split_numbers(ws):
     """Rejoin a single printed number that pdfplumber returned as two words.
 
@@ -184,6 +216,11 @@ def merge_split_numbers(ws):
     for w in ws:
         if (out and _is_money_fragment(out[-1]['text']) and _is_money_fragment(w['text'])
                 and w['x0'] - out[-1]['x1'] < MERGE_GAP):
+            prev = out[-1]
+            out[-1] = {**prev, 'text': prev['text'] + w['text'], 'x1': w['x1']}
+        elif (out and _is_lone_open_paren(out[-1]['text']) and _is_money_fragment(w['text'])
+                and w['x0'] - out[-1]['x1'] < MERGE_GAP):
+            # A NEGATIVE whose opening parenthesis was split off its digits.
             prev = out[-1]
             out[-1] = {**prev, 'text': prev['text'] + w['text'], 'x1': w['x1']}
         else:
