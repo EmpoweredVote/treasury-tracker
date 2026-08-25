@@ -61,6 +61,32 @@ export const SOURCE_CALENDARS = {
     month: 7,
     authority: 'Cal. Gov. Code § 29001 (County Budget Act) — July 1 through June 30.',
   },
+  'Virginia APA Comparative Report': {
+    month: 7,
+    // ⚠ This one took an extra step to establish, and the extra step MATTERED.
+    // Va. Code § 15.2-2500 puts "every locality and school division" on July–June,
+    // but its applicability clause reads on all counties and cities, on towns of
+    // 3,500+ population, and on towns constituting a separate school division —
+    // so the statute alone does NOT settle a small town. We hold 161 VA entities:
+    // 93 counties + 34 cities (bound regardless of population) and 34 TOWNS.
+    //
+    // 32 of the towns are >= 3,500 and bound directly. The two below 3,500 were
+    // checked individually rather than assumed:
+    //   West Point (3,414) — one of only TWO Virginia towns with an independent
+    //     school division, so § 15.2-2500 binds it "regardless of population".
+    //   Wise (2,971) — no separate division, so settled by its OWN charter,
+    //     § 4.2: "The fiscal year of the Town shall begin on July 1 of each year
+    //     and end on June 30 of the following year."
+    //     https://law.lis.virginia.gov/charters/wise/
+    //
+    // All 161 entities therefore run July–June, and all 608 stored rows already
+    // read 7 — this wiring changes no data, it only stops the value depending on
+    // the RPC's fallback.
+    authority: 'Va. Code § 15.2-2500 (counties, cities, towns >= 3,500 and towns '
+      + 'constituting a separate school division — covers 33 of our 34 towns, '
+      + 'West Point via the school-division clause); Town of Wise charter § 4.2 '
+      + 'for the one remaining town.',
+  },
 };
 
 /**
@@ -69,13 +95,14 @@ export const SOURCE_CALENDARS = {
  * entity, which is the correct outcome while its calendar is unestablished.
  */
 export const UNWIRED = {
-  'Virginia APA Comparative Report':
-    'Code of Virginia § 15.2-2500 puts every locality on July–June, but the '
-    + 'applicability clause reads on towns of 3,500+ population (and towns that '
-    + 'are a separate school division), and we hold 34 VA TOWNS whose populations '
-    + 'have not been checked. Counties and cities are certainly 7; the towns are '
-    + 'not established, so the source is left alone rather than wired at 7 and '
-    + 'quietly cementing the towns.',
+  // ⚠ Virginia used to sit here, and the reason it no longer does is worth
+  // keeping: it was resolved by CHECKING, not by deciding the doubt was small.
+  // The doubt was two towns out of 161 entities, and both turned out to be 7 —
+  // but West Point is 7 for a reason that has nothing to do with its population,
+  // and Wise is 7 only because its own charter says so. Wiring the source at 7
+  // on the strength of "counties and cities are certainly 7" would have reached
+  // the right answer by the wrong route, which is how the original hardcode
+  // survived four milestones.
   'LA County Open Data - Employee Salaries':
     'The publishing period of this dataset is not stated in anything read so far. '
     + 'LA County itself is July–June, but a compensation extract may well be a '

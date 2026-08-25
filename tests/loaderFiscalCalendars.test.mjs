@@ -39,12 +39,24 @@ describe('loader fiscal calendars', () => {
   });
 
   it('throws a source-specific reason for a deliberately unwired source', () => {
-    expect(() => monthForSource('Virginia APA Comparative Report'))
-      .toThrow(/deliberately unwired/i);
-    expect(() => monthForSource('Virginia APA Comparative Report'))
-      .toThrow(/3,500/);
     expect(() => monthForSource('LA County Open Data - Employee Salaries'))
       .toThrow(/deliberately unwired/i);
+  });
+
+  // ⚠ Virginia is wired at 7, but NOT because "most localities are July–June".
+  // § 15.2-2500's applicability clause does not reach a town under 3,500 that is
+  // not its own school division, and we hold two towns below that line. Both were
+  // checked individually: West Point via the school-division clause, Wise via its
+  // own charter § 4.2. The authority string must keep both, so a later reader can
+  // see the small towns were settled rather than rounded off.
+  it('wires Virginia at 7 and cites BOTH authorities, not just the statute', () => {
+    expect(monthForSource('Virginia APA Comparative Report')).toBe(7);
+    const a = SOURCE_CALENDARS['Virginia APA Comparative Report'].authority;
+    expect(a).toMatch(/15\.2-2500/);
+    expect(a).toMatch(/3,500/);
+    expect(a).toMatch(/school division/i);
+    expect(a).toMatch(/Wise/);
+    expect(a).toMatch(/charter/i);
   });
 
   it('never wires a source it also lists as unwired', () => {
