@@ -18,6 +18,7 @@ import {
   BUNCOMBE_DOC_IDS, BUNCOMBE_REJECTED_IDS, BUNCOMBE_LEGACY_FYS, BUNCOMBE_FYS, buncombeUrls,
   NC_FISCAL_YEAR_START_MONTH, NC_FY_END_MONTH_DAY, NC_ENTITIES,
   assertFiscalYear, assertIssuer, NC_ISSUERS,
+  coordRootAmounts, treeRootAmounts, isDoubledGlyphs,
 } from '../scripts/lib/ncAcfrSources.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -237,5 +238,95 @@ describe('NC fiscal calendar', () => {
     // The cross-check acfrGfLoad.mjs enforces: a year ending 06-30 starts in 07.
     const endMonth = Number(NC_FY_END_MONTH_DAY.split('-')[0]);
     expect((endMonth % 12) + 1).toBe(NC_FISCAL_YEAR_START_MONTH);
+  });
+});
+
+describe('structure comparison — the weld and overprint checks', () => {
+  /**
+   * The Buncombe County FY2008 case, from the real coordinate read. `Current:`
+   * and `Debt service:` are blank-cell headings; `Intergovernmental:` is a
+   * THIRD root heading at the same depth. The overprinted `development` row is
+   * included because that is what the page actually yields.
+   */
+  const FY2008 = [
+    { label: 'Current:', amount: 0, cell: 'blank', indent: 47.4 },
+    { label: 'General government', amount: 21047852, cell: 'number', indent: 55.68 },
+    { label: 'Public safety', amount: 45520526, cell: 'number', indent: 55.68 },
+    { label: 'Human services', amount: 84888420, cell: 'number', indent: 55.68 },
+    { label: 'Cultural and recreational', amount: 7304597, cell: 'number', indent: 55.68 },
+    { label: 'Intergovernmental:', amount: 0, cell: 'blank', indent: 47.4 },
+    { label: 'Education', amount: 66171518, cell: 'number', indent: 55.68 },
+    { label: 'Debt service:', amount: 0, cell: 'blank', indent: 47.4 },
+    { label: 'Principal retirement', amount: 8675686, cell: 'number', indent: 55.68 },
+    { label: 'Interest and fees', amount: 3132216, cell: 'number', indent: 55.68 },
+  ];
+
+  it('reads Intergovernmental as its own ROOT, not part of Current', () => {
+    // 21,047,852 + 45,520,526 + 84,888,420 + 7,304,597 = 158,761,395 under
+    // Current; 66,171,518 under Intergovernmental; 11,807,902 under Debt
+    // service. A weld would have produced two roots, not three.
+    expect(coordRootAmounts(FY2008)).toEqual([11807902, 66171518, 158761395]);
+  });
+
+  it('CATCHES the weld: a two-root stored tree differs from the three-root document', () => {
+    const welded = { c: [
+      { n: 'Current', c: [{ n: 'Intergovernmental Education', a: 66171518 }, { n: 'x', a: 158761395 }] },
+      { n: 'Debt service', c: [{ n: 'p', a: 11807902 }] },
+    ] };
+    expect(treeRootAmounts(welded)).toEqual([11807902, 224932913]);
+    expect(treeRootAmounts(welded)).not.toEqual(coordRootAmounts(FY2008));
+  });
+
+  it('a valued row at root level is a root leaf, not a parent', () => {
+    const rows = [
+      { label: 'Current:', amount: 0, cell: 'blank', indent: 47.4 },
+      { label: 'General government', amount: 100, cell: 'number', indent: 55.68 },
+      { label: 'Capital outlay', amount: 250, cell: 'number', indent: 47.4 },
+    ];
+    expect(coordRootAmounts(rows)).toEqual([100, 250]);
+  });
+
+  it('returns null rather than a wrong answer when indentation is unmeasurable', () => {
+    expect(coordRootAmounts([{ label: 'x', amount: 1, cell: 'number', indent: null }])).toBeNull();
+    expect(coordRootAmounts([])).toBeNull();
+  });
+
+  it('treeRootAmounts sums a parent from its children and keeps root leaves whole', () => {
+    const tree = { c: [
+      { n: 'Current', c: [{ n: 'a', a: 10 }, { n: 'b', a: 20 }] },
+      { n: 'Capital outlay', a: 5 },
+    ] };
+    expect(treeRootAmounts(tree)).toEqual([5, 30]);
+  });
+});
+
+describe('isDoubledGlyphs — the overprinted-row detector', () => {
+  it('detects the real Buncombe FY2008 artifact', () => {
+    expect(isDoubledGlyphs('ddeevveellooppmmeenntt')).toBe(true);
+  });
+
+  it('does NOT fire on any genuine label in this corpus', () => {
+    for (const label of [
+      'development', 'Fees', 'Taxes', 'Intergovernmental', 'Public safety',
+      'General government', 'Cultural and recreational', 'Principal retirement',
+      'Interest and other charges', 'Licenses and permits', 'Ad valorem taxes',
+      'Economic and physical development', 'Capital outlay', 'Debt service',
+      // the FUSED rendering of City of Durham FY2023 must not look doubled
+      'Licensesandpermits', 'Intergovernmentalrevenues', 'Totalrevenues',
+    ]) {
+      expect(isDoubledGlyphs(label), label).toBe(false);
+    }
+  });
+
+  it('needs a real run of pairs — a short accidental pair is not enough', () => {
+    expect(isDoubledGlyphs('aa')).toBe(false);
+    expect(isDoubledGlyphs('Fees')).toBe(false);
+    expect(isDoubledGlyphs('aabbccdd')).toBe(true);
+  });
+
+  it('tolerates missing input', () => {
+    expect(isDoubledGlyphs(null)).toBe(false);
+    expect(isDoubledGlyphs(undefined)).toBe(false);
+    expect(isDoubledGlyphs('')).toBe(false);
   });
 });

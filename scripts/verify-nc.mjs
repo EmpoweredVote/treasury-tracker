@@ -99,7 +99,10 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createClient } from '@supabase/supabase-js';
 import { resolvePython } from './lib/pythonBin.mjs';
-import { assertIssuer, assertFiscalYear, NC_ISSUERS } from './lib/ncAcfrSources.mjs';
+import {
+  assertIssuer, assertFiscalYear, NC_ISSUERS,
+  coordRootAmounts, treeRootAmounts, isDoubledGlyphs,
+} from './lib/ncAcfrSources.mjs';
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '..');
 
@@ -238,58 +241,8 @@ function extractorLeaves(tree, mode) {
 
 const sameMultiset = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
 
-/**
- * Root-level subtotals implied by the coordinate reader's flat component list.
- *
- * ⚠ THE CHECK THAT CATCHES A WELD, and the reason it exists.
- *
- * `CHECK 2` compares LEAF amounts, and a weld does not change them. When a
- * group heading is read as a wrapped label and fused onto its first child
- * ("Intergovernmental Education"), the heading carried $0, so the leaf multiset
- * is IDENTICAL either way and CHECK 2 passes. So does the extractor tie gate,
- * for the same reason. Eleven of Buncombe County's sixteen operating rows
- * shipped exactly that label, and it surfaced only incidentally — through an
- * unrelated glyph defect on one year.
- *
- * What a weld DOES change is the ROOT structure: the document has three root
- * categories and the stored tree has two, with the survivor inflated by the
- * whole of the missing one ($66,171,518 of education transfers in FY2008).
- * Comparing root-level subtotals catches that precisely.
- *
- * Compared as AMOUNTS, never as label strings: the two readers legitimately
- * render labels differently on documents that fuse or split their glyphs
- * (City of Durham FY2023 yields "Licensesandpermits" under pdfplumber), so a
- * string comparison would raise false failures on correct data.
- */
-function coordRootAmounts(components) {
-  const indents = components.map((c) => c.indent).filter((i) => i !== null && i !== undefined);
-  if (!indents.length) return null;
-  const rootX = Math.min(...indents);
-  const TOL = 1.5;   // same tolerance lib/acfrGfCoords.py uses
-  const roots = [];
-  let open = null;
-  for (const c of components) {
-    if (c.indent === null || c.indent === undefined) return null;
-    if (c.indent <= rootX + TOL) {
-      if (c.cell === 'number' && c.amount !== 0) { roots.push(c.amount); open = null; }
-      else { open = { a: 0 }; roots.push(open); }
-    } else if (open) {
-      open.a += c.amount;
-    }
-  }
-  return roots
-    .map((r) => (typeof r === 'number' ? r : r.a))
-    .filter((a) => a !== 0)
-    .sort((a, b) => a - b);
-}
 
-/** Root-level subtotals of an acfrGF-shaped tree. */
-function treeRootAmounts(tree) {
-  return (tree?.c ?? [])
-    .map((c) => (Array.isArray(c.c) && c.c.length ? c.c.reduce((s, g) => s + g.a, 0) : c.a))
-    .filter((a) => a !== 0)
-    .sort((a, b) => a - b);
-}
+
 
 async function main() {
   const argv = process.argv.slice(2);
@@ -429,6 +382,14 @@ async function main() {
         // CHECK 1 + 2 + 11 — independent read
         if (ent.checker === 'coords') {
           const d = coord.data;
+          const comps0 = (dataset === 'revenue' ? d.revenue : d.expenditure) ?? [];
+          if (comps0.some((c) => isDoubledGlyphs(c.label))) {
+            // The checker cannot read this page — see isDoubledGlyphs. Named,
+            // never silently passed and never counted as corroborated.
+            singleReader.push(`${ent.label} FY${fy} ${dataset} `
+              + '(coordinate reader defeated by an OVERPRINTED row — every glyph doubled)');
+            continue;
+          }
           const printed = dataset === 'revenue' ? d.revenue_total : d.expenditure_total;
           if (printed !== Number(row.total_budget)) {
             fail(`${ent.label} FY${fy} ${dataset}: stored ${row.total_budget} != coordinate-read printed total ${printed}`);

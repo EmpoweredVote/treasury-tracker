@@ -430,6 +430,96 @@ export const NC_ISSUERS = {
   },
 };
 
+// -- Structure comparison (verifier helpers) ---------------------------------
+/**
+ * These live in the lib, not in the shebang verifier, so `tests/` can exercise
+ * them. `isDoubledGlyphs` in particular is a structural predicate that must not
+ * fire on a genuine label, and that is only credible if it is tested.
+ */
+
+/**
+ * Root-level subtotals implied by the coordinate reader's flat component list.
+ *
+ * ⚠ THE CHECK THAT CATCHES A WELD, and the reason it exists.
+ *
+ * `CHECK 2` compares LEAF amounts, and a weld does not change them. When a
+ * group heading is read as a wrapped label and fused onto its first child
+ * ("Intergovernmental Education"), the heading carried $0, so the leaf multiset
+ * is IDENTICAL either way and CHECK 2 passes. So does the extractor tie gate,
+ * for the same reason. Eleven of Buncombe County's sixteen operating rows
+ * shipped exactly that label, and it surfaced only incidentally — through an
+ * unrelated glyph defect on one year.
+ *
+ * What a weld DOES change is the ROOT structure: the document has three root
+ * categories and the stored tree has two, with the survivor inflated by the
+ * whole of the missing one ($66,171,518 of education transfers in FY2008).
+ * Comparing root-level subtotals catches that precisely.
+ *
+ * Compared as AMOUNTS, never as label strings: the two readers legitimately
+ * render labels differently on documents that fuse or split their glyphs
+ * (City of Durham FY2023 yields "Licensesandpermits" under pdfplumber), so a
+ * string comparison would raise false failures on correct data.
+ */
+export function coordRootAmounts(components) {
+  const indents = components.map((c) => c.indent).filter((i) => i !== null && i !== undefined);
+  if (!indents.length) return null;
+  const rootX = Math.min(...indents);
+  const TOL = 1.5;   // same tolerance lib/acfrGfCoords.py uses
+  const roots = [];
+  let open = null;
+  for (const c of components) {
+    if (c.indent === null || c.indent === undefined) return null;
+    if (c.indent <= rootX + TOL) {
+      if (c.cell === 'number' && c.amount !== 0) { roots.push(c.amount); open = null; }
+      else { open = { a: 0 }; roots.push(open); }
+    } else if (open) {
+      open.a += c.amount;
+    }
+  }
+  return roots
+    .map((r) => (typeof r === 'number' ? r : r.a))
+    .filter((a) => a !== 0)
+    .sort((a, b) => a - b);
+}
+
+/** Root-level subtotals of an acfrGF-shaped tree. */
+export function treeRootAmounts(tree) {
+  return (tree?.c ?? [])
+    .map((c) => (Array.isArray(c.c) && c.c.length ? c.c.reduce((s, g) => s + g.a, 0) : c.a))
+    .filter((a) => a !== 0)
+    .sort((a, b) => a - b);
+}
+
+/**
+ * Is this label the OVERPRINTED-GLYPH artifact?
+ *
+ * ⚠ Buncombe County's FY2008 statement draws one row twice, so pdfplumber sees
+ * every glyph doubled and interleaved. Verbatim from the coordinate reader:
+ *
+ *     label   ddeevveellooppmmeenntt        (i.e. "development")
+ *     amount  77553388887766                (i.e. 7,538,876)
+ *
+ * The `-table` reader is unaffected — it reads 7,538,876 and ties at exactly $0
+ * against the printed 244,279,691, and `acfrPrintedTotal` independently agrees
+ * on the total. So the STORED FIGURE IS RIGHT and it is the CHECKER that cannot
+ * read this page.
+ *
+ * A row in that state is therefore reported as SINGLE-READER and named, exactly
+ * as `verify-colorado.mjs` reports the six El Paso rows neither `-table`
+ * strategy can read. It is NOT downgraded to a pass, and NOT counted as
+ * corroborated.
+ *
+ * Detection is structural, not a hardcoded string: every character appears
+ * twice in adjacent pairs. The length floor keeps a genuine short label
+ * ("Fees") from ever qualifying.
+ */
+export function isDoubledGlyphs(label) {
+  const s = (label ?? '').replace(/\s+/g, '');
+  if (s.length < 8 || s.length % 2 !== 0) return false;
+  for (let i = 0; i < s.length; i += 2) if (s[i] !== s[i + 1]) return false;
+  return true;
+}
+
 // -- Shared ------------------------------------------------------------------
 /**
  * N.C.G.S. 159-8(b): every NC local unit's fiscal year begins July 1.
