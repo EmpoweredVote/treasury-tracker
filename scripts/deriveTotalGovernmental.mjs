@@ -161,10 +161,21 @@ async function main() {
     // enterprise-like root under a new name would be counted as governmental and
     // inflate TG with NO arithmetic gate able to see it — the era-A failure shape.
     if (d.unrecognised.length) { halt.push({ b, why: `unrecognised root(s): ${d.unrecognised.join(', ')}` }); continue; }
-    // ⚠ Do NOT trust the RPC's hardcoded fiscal_year_start_month = 7. CO-SPRINGS
-    // shipped a defect from exactly this kind of hardcode, and it moves no dollar
-    // figure so no tie test can catch it.
-    if (b.fiscal_year_start_month !== 7) { halt.push({ b, why: `fiscal_year_start_month ${b.fiscal_year_start_month} != 7` }); continue; }
+    // ⚠ THIS GUARD USED TO ASSERT `=== 7`, AND THAT WAS THE BUG IT WAS MEANT TO
+    // CATCH. All 7,664 rows passed it, which was read as confirmation; in fact it
+    // only confirmed that every row matched the literal 7 the RPC hardcoded into
+    // its INSERT. It validated CONFORMITY TO THE HARDCODE, NOT CORRECTNESS —
+    // Inglewood closes September 30 and was 10 all along (PR #60), and Minnesota,
+    // Ohio and Utah counties are calendar-year (PR #63).
+    //
+    // What actually matters for a derived row is that the parent states a usable
+    // calendar, which is then carried through to the child below. So: require a
+    // real month, never a particular one.
+    const parentMonth = Number(b.fiscal_year_start_month);
+    if (!Number.isInteger(parentMonth) || parentMonth < 1 || parentMonth > 12) {
+      halt.push({ b, why: `fiscal_year_start_month ${b.fiscal_year_start_month} is not a month (1-12)` });
+      continue;
+    }
     if (!DERIVED_SOURCE[b.data_source]) { halt.push({ b, why: `no derived label for data_source "${b.data_source}"` }); continue; }
 
     // ── EXCLUDE conditions: this row is defective, the rest are fine ─────────
@@ -193,7 +204,9 @@ async function main() {
       && /^operating expenses$/i.test(c.name) && Number(c.amount) < 0);
     if (opex.length) negOpEx.push({ b, kids: opex.map((k) => `${k.name} ${Number(k.amount)}`) });
 
-    candidates.push({ b, roots, derived: d.totalGovernmental, enterprise: d.enterprise });
+    // parentMonth travels with the candidate so the value WRITTEN is the same
+    // one the guard above validated, rather than a second read of the field.
+    candidates.push({ b, roots, derived: d.totalGovernmental, enterprise: d.enterprise, parentMonth });
   }
 
   if (LIMIT) candidates = candidates.slice(0, LIMIT);
@@ -301,6 +314,12 @@ async function main() {
       p_fund_scope: 'total_governmental',
       p_basis: 'actual',
       p_derivation: 'derived',
+      // A derived row describes the SAME period as the parent it was derived
+      // from, so its calendar is the parent's — not a constant, and not a
+      // lookup. This is the one caller that needs no external evidence at all.
+      // Inglewood's parents read 10 (it closes September 30), so its derived
+      // rows now read 10 too instead of the 7 the RPC used to hardcode.
+      p_fiscal_year_start_month: cand.parentMonth,
     });
 
     // ⚠ CHECK result.error, NOT just rows_inserted. bulkLoadStateController checks

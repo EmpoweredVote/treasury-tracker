@@ -49,6 +49,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { parseArgs } from 'node:util';
+import { monthForSource } from './lib/loaderFiscalCalendars.mjs';
 
 // ── Supabase client ──────────────────────────────────────────────────────────
 
@@ -283,6 +284,11 @@ async function syncYear(opts) {
     p_data_source_name: ds.label,
     p_source_url:       ds.pageUrl,
     p_source_date:      fetchDate,
+    // CA counties only (entity_type='county', per this script's locked
+    // conventions). Cal. Gov. Code § 29001, the County Budget Act, defines the
+    // budget year as July 1 through June 30 — month 7, now evidenced rather than
+    // inherited from the RPC's old hardcode.
+    p_fiscal_year_start_month: monthForSource(ds.label),
   });
 
   if (error) {

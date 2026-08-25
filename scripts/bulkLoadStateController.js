@@ -111,7 +111,11 @@ async function findConflictingBudget(municipalityId, fiscalYear, datasetType, so
   return null;
 }
 
-async function importCityData(cityName, state, population, rows, fiscalYear, datasetType, ds, fetchDate) {
+// `fiscalYearStartMonth` is OPTIONAL and is passed straight through. Undefined
+// means "let the RPC resolve it": it inherits the month from this city's existing
+// rows under this data_source, and refuses if the city is new — which is correct,
+// because nobody has established a new city's fiscal calendar yet.
+async function importCityData(cityName, state, population, rows, fiscalYear, datasetType, ds, fetchDate, fiscalYearStartMonth) {
   // Ensure municipality exists (creates with feed population when provided)
   const { data: municipalityId, error: munErr } = await supabase.rpc('treasury_ensure_municipality', {
     p_name: cityName, p_state: state, p_entity_type: 'city', p_population: population || 0,
@@ -181,6 +185,8 @@ async function importCityData(cityName, state, population, rows, fiscalYear, dat
     // to the dollar) and reports a closed year's actuals.
     p_fund_scope: 'all_funds',
     p_basis: 'actual',
+    // undefined is meaningful here — see the note on this function's signature.
+    p_fiscal_year_start_month: fiscalYearStartMonth,
   });
 
   if (error) {
@@ -202,9 +208,33 @@ async function main() {
       'source-date': { type: 'string' },
       'dry-run': { type: 'boolean' },
       'list-cities': { type: 'boolean' },
+      // ⚠ NOT a default, and deliberately not a constant. This loader covers
+      // every CA city, and CA cities do NOT share one fiscal calendar: most
+      // close June 30 (month 7) but Inglewood closes September 30 (month 10),
+      // which is the defect that started this whole arc. There is no single
+      // right value to hardcode here — that is exactly what the RPC used to do.
+      //
+      // Omit it and the RPC inherits the month from the entity's existing rows
+      // under this data_source, which is correct for every city we already hold.
+      // For a BRAND-NEW city the RPC refuses, and this flag is how the operator
+      // supplies the month read off that city's own ACFR.
+      'fiscal-year-start-month': { type: 'string' },
     },
     strict: false,
   });
+
+  // Parsed once, validated loudly. A typo must not become a fiscal calendar.
+  let fiscalYearStartMonth;
+  if (values['fiscal-year-start-month'] !== undefined) {
+    fiscalYearStartMonth = Number(values['fiscal-year-start-month']);
+    if (!Number.isInteger(fiscalYearStartMonth)
+      || fiscalYearStartMonth < 1 || fiscalYearStartMonth > 12) {
+      console.error('--fiscal-year-start-month must be an integer 1-12 '
+        + '(the month the fiscal year STARTS: June 30 year end -> 7, '
+        + 'September 30 year end -> 10). Read it off the city ACFR itself.');
+      process.exit(1);
+    }
+  }
 
   const county = values.county || 'Los Angeles';
   const cityFilter = values.city || null;
@@ -298,7 +328,7 @@ async function main() {
       }
 
       for (const [cityName, cityData] of wouldImport) {
-        const result = await importCityData(cityName, state, cityData.population, cityData.rows, fy, ds.type, ds, fetchDate);
+        const result = await importCityData(cityName, state, cityData.population, cityData.rows, fy, ds.type, ds, fetchDate, fiscalYearStartMonth);
         // ⚠ The RPC reports failure INSIDE a successful call — see
         // scripts/lib/rpcResult.mjs. The old `if (result && result.rows_inserted)`
         // silently treated a REFUSED write as "nothing to do".

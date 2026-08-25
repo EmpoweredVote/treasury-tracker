@@ -54,6 +54,7 @@
  */
 
 import { parseArgs } from 'node:util';
+import { ohioMonthFor } from './lib/loaderFiscalCalendars.mjs';
 import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -464,7 +465,11 @@ export async function findConflictingBudget(supabase, municipalityId, fiscalYear
   return existing.data_source && existing.data_source !== DATA_SOURCE_NAME ? existing : null;
 }
 
-export async function importDataset(supabase, municipalityId, fiscalYear, datasetType, tree, total, sourceUrl, sourceDate) {
+// ⚠ `entityName` is REQUIRED, not decorative. Ohio Rev. Code § 9.34 puts every
+// political subdivision on the calendar year EXCEPT school districts and the
+// city of Cincinnati, so this loader cannot pass a constant — Cincinnati is in
+// our data and its July–June year is correct. See lib/calendarYearLocalGov.mjs.
+export async function importDataset(supabase, municipalityId, entityName, fiscalYear, datasetType, tree, total, sourceUrl, sourceDate) {
   const conflict = await findConflictingBudget(supabase, municipalityId, fiscalYear, datasetType);
   if (conflict) {
     console.log(`  SKIP ${datasetType} FY${fiscalYear} — existing ${conflict.data_source} data preserved (never-overwrite)`);
@@ -480,6 +485,7 @@ export async function importDataset(supabase, municipalityId, fiscalYear, datase
     p_data_source_name: DATA_SOURCE_NAME,
     p_source_url: sourceUrl,
     p_source_date: sourceDate,
+    p_fiscal_year_start_month: ohioMonthFor({ name: entityName, state: 'OH' }),
   });
   if (error) { console.error(`  RPC error (${datasetType}): ${error.message}`); return null; }
   return data;
@@ -540,8 +546,8 @@ export async function importCity(supabase, workbook, opts) {
   if (munErr) throw new Error(`Municipality error (${dbName}): ${munErr.message}`);
 
   summary.municipalityId = municipalityId;
-  summary.operating = await importDataset(supabase, municipalityId, fiscalYear, 'operating', exp.tree, exp.total, sourceUrl, sourceDate);
-  summary.revenue   = await importDataset(supabase, municipalityId, fiscalYear, 'revenue',   rev.tree, rev.total,  sourceUrl, sourceDate);
+  summary.operating = await importDataset(supabase, municipalityId, dbName, fiscalYear, 'operating', exp.tree, exp.total, sourceUrl, sourceDate);
+  summary.revenue   = await importDataset(supabase, municipalityId, dbName, fiscalYear, 'revenue',   rev.tree, rev.total,  sourceUrl, sourceDate);
   return summary;
 }
 

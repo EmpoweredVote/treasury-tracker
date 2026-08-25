@@ -21,6 +21,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { parseArgs } from 'node:util';
+import { monthForSource } from './lib/loaderFiscalCalendars.mjs';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -133,6 +134,10 @@ async function syncYear(municipalityId, year, rows, dryRun) {
     p_tree:            jsonTree,
     p_row_count:       rows.length,
     p_data_source_name: 'CA State Controller - County Revenues',
+    // Cal. Gov. Code § 29001 (County Budget Act): the budget year is July 1
+    // through June 30. Month 7 — evidenced, no longer a coincidence of the
+    // RPC's hardcode.
+    p_fiscal_year_start_month: monthForSource('CA State Controller - County Revenues'),
   });
 
   if (error) { console.error(`  RPC error: ${error.message}`); return; }

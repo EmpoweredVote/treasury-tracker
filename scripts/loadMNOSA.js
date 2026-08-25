@@ -44,6 +44,7 @@
  */
 
 import { parseArgs } from 'node:util';
+import { monthForSource } from './lib/loaderFiscalCalendars.mjs';
 import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -450,6 +451,9 @@ export async function importDataset(supabase, municipalityId, fiscalYear, datase
     p_data_source_name: DATA_SOURCE_NAME,
     p_source_url: sourceUrl,
     p_source_date: sourceDate,
+    // Minn. Stat. § 471.696 puts every MN city and town on the calendar year, and
+    // the OSA's own county report is "For the Year Ended December 31". Month 1.
+    p_fiscal_year_start_month: monthForSource(DATA_SOURCE_NAME),
   });
   if (error) { console.error(`  RPC error (${datasetType}): ${error.message}`); return null; }
   return data;
