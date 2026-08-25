@@ -436,6 +436,9 @@ async function syncYear(municipalityId, year, rows, dryRun) {
     p_tree:            tree,
     p_row_count:       rowCount,
     p_data_source_name: DATA_SOURCE_NAME,
+    // GCC is a W-2-based CALENDAR-year report, so month 1 — not the 7 the
+    // RPC used to hardcode. Authority in lib/loaderFiscalCalendars.mjs.
+    p_fiscal_year_start_month: monthForSource(DATA_SOURCE_NAME),
   });
 
   if (error) {

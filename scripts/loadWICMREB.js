@@ -36,6 +36,7 @@
  */
 
 import { parseArgs } from 'node:util';
+import { monthForSource } from './lib/loaderFiscalCalendars.mjs';
 import ExcelJS from 'exceljs';
 
 export const DATA_SOURCE_NAME =
@@ -387,6 +388,11 @@ export async function importDataset(supabase, municipalityId, fiscalYear, datase
     p_data_source_name: DATA_SOURCE_NAME,
     p_source_url:       sourceUrl,
     p_source_date:      sourceDate,
+    // Wisconsin municipalities run the calendar year (MAD-06). This loader used
+    // to post-stamp the column to work around the RPC's hardcoded 7; the RPC is
+    // now told directly, and that stamp becomes a no-op assertion rather than a
+    // correction.
+    p_fiscal_year_start_month: monthForSource(DATA_SOURCE_NAME),
   });
   if (error) throw new Error(`RPC error (${datasetType} CY${fiscalYear}): ${error.message}`);
 

@@ -41,6 +41,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { parseArgs } from 'node:util';
+import { utahMonthFor } from './lib/loaderFiscalCalendars.mjs';
 import { fileURLToPath } from 'node:url';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
@@ -537,6 +538,10 @@ async function importEntityData(municipalityName, state, rows, fiscalYear, datas
     p_data_source_name: DATA_SOURCE_NAME,
     p_source_url: entitySourceUrl(),
     p_source_date: fetchDate,
+    // ⚠ Utah splits by ENTITY TYPE inside this one source: counties run the
+    // calendar year (Utah Code § 17-36-3.5) while municipalities run July–June
+    // (§ 10-6-105). A constant here would be wrong for one of them.
+    p_fiscal_year_start_month: utahMonthFor({ entity_type: entityType }),
   });
   if (error) { console.error(`    RPC error: ${error.message}`); return null; }
   return result;
@@ -708,6 +713,8 @@ async function main() {
         p_data_source_name: DATA_SOURCE_NAME,
         p_source_url: entitySourceUrl(),
         p_source_date: fetchDate,
+        // Same split as the other call site: county -> 1, municipality -> 7.
+        p_fiscal_year_start_month: utahMonthFor({ entity_type: group.entityType }),
       });
       if (rpcErr) {
         console.error(`  ERROR ${label} — RPC: ${rpcErr.message}`);
