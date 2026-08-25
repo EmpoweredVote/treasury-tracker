@@ -88,6 +88,7 @@ export const FAMILIES = [
   {
     source: 'Minnesota Office of the State Auditor City/County Finances Report',
     state: 'MN',
+    entityType: null, // every type under this label is a calendar-year entity
     rows: 21794,
     entities: 945,
     authority: 'Minn. Stat. § 471.696 (cities, towns); '
@@ -96,12 +97,52 @@ export const FAMILIES = [
   {
     source: 'Ohio Auditor of State Summarized Annual Financial Reports',
     state: 'OH',
+    entityType: null,
     rows: 6596,
     entities: 340,
     authority: 'Ohio Rev. Code § 9.34 (all political subdivisions except school '
       + 'districts and the city of Cincinnati)',
   },
+  {
+    // ⚠ UTAH SPLITS INSIDE A SINGLE data_source, BY ENTITY TYPE. Counties run the
+    // calendar year; municipalities do not. Both sit under `Transparent Utah`, so
+    // scoping this family by `source` alone would have swept 360 correct city
+    // rows to 1. `entityType` is what keeps them apart.
+    source: 'Transparent Utah',
+    state: 'UT',
+    entityType: 'county',
+    rows: 179,
+    entities: 5,
+    authority: 'Utah Code § 17-36-3.5(1) — "the fiscal period for each county '
+      + 'shall be an annual period beginning on January 1 ... ending December 31"',
+  },
 ];
+
+/**
+ * Entity types that share a `source` with an in-scope family but keep a DIFFERENT
+ * calendar, and must survive the sweep untouched.
+ *
+ * Utah municipalities are July–June under Utah Code § 10-6-105 ("The fiscal
+ * period for each city shall be an annual period beginning July 1 ... ending
+ * June 30"), so their stored 7 is CORRECT. The Utah State Auditor states the
+ * split plainly: "Some government entities, such as counties and some special
+ * service districts, use a calendar year (January 1–December 31) as their fiscal
+ * year. Other entities, such as municipalities, use the period of July 1 through
+ * June 30." (auditor.utah.gov, "Fiscal Years: A Brief Explanation")
+ *
+ * ⚠ No special/service districts exist under this label — our 15 UT entities are
+ * 10 cities and 5 counties. If districts are ever loaded, the Auditor's "some"
+ * means they must be evidenced individually, not assumed either way.
+ */
+export const PROTECTED_TYPES = [
+  { source: 'Transparent Utah', entityType: 'city', month: 7, why: 'Utah Code § 10-6-105 — municipalities run July–June' },
+];
+
+export function protectionFor(source, entity) {
+  if (!entity) return null;
+  return PROTECTED_TYPES.find(
+    (p) => p.source === source && p.entityType === entity.entity_type) ?? null;
+}
 
 export const IN_SCOPE_SOURCES = new Set(FAMILIES.map((f) => f.source));
 
@@ -144,7 +185,19 @@ export function classify(row) {
   if (!IN_SCOPE_SOURCES.has(row.data_source)) {
     return { error: `out-of-scope data_source: "${row.data_source}"` };
   }
-  const family = FAMILIES.find((f) => f.source === row.data_source);
+  // A different entity type under the same label may keep a different calendar.
+  const protectedType = protectionFor(row.data_source, row.entity);
+  if (protectedType) {
+    return { error: `protected entity type reached the update set: `
+      + `${row.entity.entity_type} under "${row.data_source}" `
+      + `(${protectedType.why}) — its ${protectedType.month} is CORRECT` };
+  }
+  const family = FAMILIES.find((f) => f.source === row.data_source
+    && (f.entityType == null || f.entityType === row.entity.entity_type));
+  if (!family) {
+    return { error: `no family for entity_type "${row.entity.entity_type}" `
+      + `under "${row.data_source}" — its calendar is not established` };
+  }
   if (row.entity.state !== family.state) {
     return { error: `entity state ${row.entity.state} does not match the `
       + `${family.state} family for "${row.data_source}"` };

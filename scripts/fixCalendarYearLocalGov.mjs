@@ -1,12 +1,17 @@
 #!/usr/bin/env node
 /**
- * Correct `fiscal_year_start_month` on the Minnesota OSA and Ohio AOS rows:
- * 7 -> 1. Both states' local governments run the CALENDAR year by statute.
+ * Correct `fiscal_year_start_month` where a local government runs the CALENDAR
+ * year by statute but its rows claimed July: 7 -> 1.
  *
  *     Minnesota OSA   21,794 rows   945 entities   FY2012–FY2023
  *     Ohio AOS         6,596 rows   340 entities   FY2016–FY2025
+ *     Transparent Utah   179 rows     5 COUNTIES   FY2014–FY2025
  *
- * ⚠ CINCINNATI IS EXEMPT (Ohio Rev. Code § 9.34) and stays at 7.
+ * ⚠ TWO CARVE-OUTS, BOTH LOAD-BEARING, BOTH IN OUR DATA:
+ *   CINCINNATI is exempt (Ohio Rev. Code § 9.34) and stays at 7 — 20 rows.
+ *   UTAH CITIES are July–June (Utah Code § 10-6-105) and stay at 7 — 360 rows.
+ *   Utah splits INSIDE one `data_source`, by entity type, so scoping that family
+ *   by label alone would have swept 360 correct rows to 1.
  *
  * The statutes, the exception and the classification guards all live in — and
  * are tested through — the library:
@@ -40,7 +45,7 @@ import path from 'node:path';
 import { createClient } from '@supabase/supabase-js';
 import {
   CORRECT_MONTH, HARDCODED_MONTH, FAMILIES, SWEEP_ROWS, EXEMPT_ENTITIES,
-  exemptionFor, classify,
+  exemptionFor, protectionFor, classify,
 } from './lib/calendarYearLocalGov.mjs';
 
 const ROOT = path.resolve(
@@ -85,11 +90,13 @@ async function loadMunicipalities(db) {
   for (let from = 0; ; from += PAGE) {
     const { data, error } = await db
       .from('municipalities')
-      .select('id, name, state')
+      .select('id, name, state, entity_type')
       .order('id', { ascending: true })
       .range(from, from + PAGE - 1);
     if (error) { console.error('FATAL: municipalities read failed:', error.message); process.exit(1); }
-    for (const m of data ?? []) map.set(m.id, { name: m.name, state: m.state });
+    for (const m of data ?? []) {
+      map.set(m.id, { name: m.name, state: m.state, entity_type: m.entity_type });
+    }
     if (!data || data.length < PAGE) break;
   }
   return map;
@@ -114,6 +121,7 @@ async function main() {
   const errors = [];
   let alreadyCorrect = 0;
   let exemptSeen = 0;
+  let protectedSeen = 0;
 
   for (const family of FAMILIES) {
     // Guard (a)+(b): the whole family is read before anything is written.
@@ -123,11 +131,20 @@ async function main() {
     let famUpdates = 0;
     let famCorrect = 0;
     let famExempt = 0;
+    let famProtected = 0;
     for (const r of rows) {
-      // The exemption is applied HERE, before classify, because classify treats
-      // an exempt row reaching it as an abort — that is its job. Skipping is the
-      // caller's decision; swallowing it silently inside classify is not.
+      // Exemptions and protected types are applied HERE, before classify, because
+      // classify treats either reaching it as an abort — that is its job.
+      // Skipping is the caller's decision; swallowing it inside classify is not.
       if (exemptionFor(r.entity)) { famExempt += 1; exemptSeen += 1; continue; }
+      if (protectionFor(family.source, r.entity)) {
+        famProtected += 1; protectedSeen += 1; continue;
+      }
+      // A family scoped to one entity type ignores the others outright; they are
+      // covered by their own family or protected above, never swept by default.
+      if (family.entityType != null && r.entity?.entity_type !== family.entityType) {
+        famProtected += 1; protectedSeen += 1; continue;
+      }
       const c = classify(r);
       if (c.error) errors.push(`${family.state} FY${r.fiscal_year} ${r.id}: ${c.error}`);
       else if (c.action === 'update') { updates.push(r); famUpdates += 1; }
@@ -143,12 +160,14 @@ async function main() {
       + (famUpdates === family.rows ? '  (matches baseline)' : `  ⚠ baseline ${family.rows}`));
     console.log(`    already ${CORRECT_MONTH}        ${famCorrect}`);
     console.log(`    statutorily exempt ${famExempt}`);
+    console.log(`    protected (other calendar) ${famProtected}`);
   }
 
   console.log(`\nTOTAL to change ${updates.length}`
     + (updates.length === SWEEP_ROWS ? `  (matches baseline ${SWEEP_ROWS})` : `  ⚠ baseline ${SWEEP_ROWS}`));
   console.log(`already ${CORRECT_MONTH}       ${alreadyCorrect}`);
   console.log(`exempt          ${exemptSeen}`);
+  console.log(`protected       ${protectedSeen}`);
   console.log(`errors          ${errors.length}`);
   for (const e of errors.slice(0, 20)) console.log(`    ! ${e}`);
   if (errors.length > 20) console.log(`    ... and ${errors.length - 20} more`);

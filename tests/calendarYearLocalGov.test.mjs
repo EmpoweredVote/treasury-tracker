@@ -4,15 +4,17 @@ import { describe, it, expect } from 'vitest';
 // any module that does.
 import {
   CORRECT_MONTH, HARDCODED_MONTH, FAMILIES, IN_SCOPE_SOURCES, SWEEP_ROWS,
-  EXEMPT_ENTITIES, exemptionFor, classify,
+  EXEMPT_ENTITIES, PROTECTED_TYPES, exemptionFor, protectionFor, classify,
 } from '../scripts/lib/calendarYearLocalGov.mjs';
 
 const MN = 'Minnesota Office of the State Auditor City/County Finances Report';
 const OH = 'Ohio Auditor of State Summarized Annual Financial Reports';
 
+const UT = 'Transparent Utah';
+
 const row = (over = {}) => ({
   data_source: MN,
-  entity: { name: 'Duluth', state: 'MN' },
+  entity: { name: 'Duluth', state: 'MN', entity_type: 'city' },
   fiscal_year: 2023,
   fiscal_year_start_month: 7,
   ...over,
@@ -30,16 +32,24 @@ describe('calendar-year local government families', () => {
     expect(HARDCODED_MONTH).toBe(7);
   });
 
-  it('covers exactly the two statutory families', () => {
-    expect(IN_SCOPE_SOURCES.size).toBe(2);
-    expect(IN_SCOPE_SOURCES.has(MN)).toBe(true);
-    expect(IN_SCOPE_SOURCES.has(OH)).toBe(true);
+  it('covers exactly the three statutory families', () => {
+    expect(IN_SCOPE_SOURCES.size).toBe(3);
+    for (const s of [MN, OH, UT]) expect(IN_SCOPE_SOURCES.has(s)).toBe(true);
   });
 
-  it('records the sweep baseline: 21,794 MN + 6,596 OH = 28,390', () => {
+  it('records the sweep baseline: 21,794 MN + 6,596 OH + 179 UT = 28,569', () => {
     expect(FAMILIES.find((f) => f.state === 'MN').rows).toBe(21794);
     expect(FAMILIES.find((f) => f.state === 'OH').rows).toBe(6596);
-    expect(SWEEP_ROWS).toBe(28390);
+    expect(FAMILIES.find((f) => f.state === 'UT').rows).toBe(179);
+    expect(SWEEP_ROWS).toBe(28569);
+  });
+
+  // ⚠ Utah's family is scoped to counties. Without entityType it would match
+  // every Transparent Utah row and sweep 360 correct city rows to 1.
+  it('scopes the Utah family to counties only', () => {
+    const ut = FAMILIES.find((f) => f.state === 'UT');
+    expect(ut.entityType).toBe('county');
+    expect(FAMILIES.find((f) => f.state === 'MN').entityType).toBeNull();
   });
 
   it('cites an authority for every family — no family without evidence', () => {
@@ -126,5 +136,50 @@ describe('classify', () => {
     expect(classify(row({ fiscal_year_start_month: null })).error).toMatch(/unparseable/i);
     expect(classify(row({ fiscal_year_start_month: '' })).error).toMatch(/unparseable/i);
     expect(classify(row({ fiscal_year_start_month: 'Jan' })).error).toMatch(/unparseable/i);
+  });
+});
+
+// ⚠⚠ THE SECOND CARVE-OUT, AND A DIFFERENT SHAPE FROM CINCINNATI'S. Utah splits
+// inside ONE data_source by ENTITY TYPE: counties run the calendar year (Utah
+// Code § 17-36-3.5) while municipalities run July–June (§ 10-6-105). Scoping
+// this family by label alone would have swept 360 correct city rows to 1.
+describe('the Utah city/county split', () => {
+  const utCounty = (over = {}) => ({
+    data_source: UT,
+    entity: { name: 'Weber', state: 'UT', entity_type: 'county' },
+    fiscal_year: 2024,
+    fiscal_year_start_month: 7,
+    ...over,
+  });
+
+  it('registers the protected municipal type with its statute', () => {
+    const p = PROTECTED_TYPES.find((x) => x.source === UT);
+    expect(p.entityType).toBe('city');
+    expect(p.month).toBe(7);
+    expect(p.why).toMatch(/10-6-105/);
+  });
+
+  it('sweeps a Utah COUNTY to 1', () => {
+    expect(classify(utCounty())).toEqual({ action: 'update', month: 1 });
+  });
+
+  it('ABORTS rather than sweep a Utah CITY, whose 7 is correct', () => {
+    const c = classify(utCounty({ entity: { name: 'Provo', state: 'UT', entity_type: 'city' } }));
+    expect(c.error).toMatch(/protected entity type/i);
+    expect(c.error).toMatch(/CORRECT/);
+    expect(c.action).toBeUndefined();
+  });
+
+  it('protectionFor is keyed on source AND type, not type alone', () => {
+    expect(protectionFor(UT, { entity_type: 'city' })).toBeTruthy();
+    // A city under a different label is not protected by Utah's municipal rule.
+    expect(protectionFor(MN, { entity_type: 'city' })).toBeNull();
+    expect(protectionFor(UT, { entity_type: 'county' })).toBeNull();
+  });
+
+  it('aborts on a Utah entity type with no established calendar', () => {
+    const c = classify(utCounty({
+      entity: { name: 'Some District', state: 'UT', entity_type: 'district' } }));
+    expect(c.error).toMatch(/no family for entity_type/i);
   });
 });
