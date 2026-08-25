@@ -97,7 +97,7 @@ import pdfplumber
 # that is total.
 sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parent))
 from acfrPrintedTotal import (  # noqa: E402
-    lines_of, parse_money, numbers_on, _EXCLUDE, _TITLE,
+    lines_of, parse_money, numbers_on, _EXCLUDE, _TITLE, _NOSPACE,
 )
 
 EDGE_TOL = 4.0          # points; adjacent fund columns are 50-90pt apart
@@ -110,8 +110,13 @@ _DASH = re.compile(r'^[-–—]+$')
 # printed TABOR label) has no chance of matching and is kept.
 _BARE_CURRENCY = re.compile(r'^\$+$')
 
-REV_TOTAL = re.compile(r'^(?:Total|Net)\s+(?:operating\s+)?revenues\b', re.I)
-EXP_TOTAL = re.compile(r'^Total\s+expenditures\b', re.I)
+# ⚠ `\s*` not `\s+` — see the note on _TITLE in acfrPrintedTotal.py. A PDF that
+# FUSES its words emits "Totalrevenues", and City of Durham FY2023 does exactly
+# that. The trailing `\b` still keeps this from matching a longer fused label
+# such as "Totalrevenuesandtransfers", because the character after "revenues"
+# there is a word character.
+REV_TOTAL = re.compile(r'^(?:Total|Net)\s*(?:operating\s*)?revenues\b', re.I)
+EXP_TOTAL = re.compile(r'^Total\s*expenditures\b', re.I)
 REV_BANNER = re.compile(r'^revenues?\s*:?\s*$', re.I)
 EXP_BANNER = re.compile(r'^expenditures?\s*:?\s*$', re.I)
 
@@ -154,9 +159,15 @@ def find_statement(pdf, title_anchor=None, exclude_ignore=()):
         low = text.lower()
         if not (_TITLE.search(text) or (title_anchor and title_anchor.search(text))):
             continue
-        if not any(lbl in low for lbl in ('total revenues', 'total operating revenues', 'net revenues')):
+        # ⚠ Matched with whitespace COLLAPSED, because a PDF that fuses its
+        # words renders these as 'totalrevenues' / 'totalexpenditures'. City of
+        # Durham FY2023 does exactly that, and a literal-substring test reports
+        # 'statement page not found' for a statement that is plainly there.
+        flat = _NOSPACE.sub('', low)
+        if not any(_NOSPACE.sub('', lbl) in flat
+                   for lbl in ('total revenues', 'total operating revenues', 'net revenues')):
             continue
-        if 'total expenditures' not in low:
+        if 'totalexpenditures' not in flat:
             continue
         if 'general' not in low or 'fund' not in low:
             continue

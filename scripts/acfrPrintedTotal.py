@@ -45,9 +45,19 @@ import sys
 
 import pdfplumber
 
+# ⚠ EVERY GAP HERE IS `\s*`, NOT `\s+`, BECAUSE SOME PDFs FUSE THEIR WORDS.
+# City of Durham FY2023 renders under pdfplumber as
+#   "CITYOFDURHAM,NORTHCAROLINA ... StatementofRevenues,ExpendituresandChangesinFundBalances"
+# with no spaces at all — the exact inverse of Asheville FY2021/22, which splits
+# every word ("A d valo rem taxes"). A `\s+` title cannot match the fused form,
+# so the page is reported "not found" for a statement that is plainly there, and
+# the whole coordinate family (this reader, acfrGfComponents, acfrGfCoords) then
+# has nothing to say about that year. Same reasoning as the `June\s*30` fix in
+# the fiscal-year regexes, which exists because pdftotext drops that space too.
 _TITLE = re.compile(
-    r'Statement\s+of\s+Revenues\s*,?\s*Expenditures\s*,?\s+and\s+Changes\s+in\s+Fund\s+Balances?',
+    r'Statement\s*of\s*Revenues\s*,?\s*Expenditures\s*,?\s*and\s*Changes\s*in\s*Fund\s*Balances?',
     re.I)
+_NOSPACE = re.compile(r'\s+')
 _EXCLUDE = ('combining', 'reconciliation', 'budgetary', 'budget and actual',
             'proprietary', 'fiduciary', 'net position')
 _MONEY = re.compile(r'^\(?\$?\d[\d,]*\)?$')
@@ -254,9 +264,15 @@ def find_statement(pdf):
         # statement prints "Total Operating Revenues" next to "Total Operating
         # EXPENSES", never "Total Expenditures", so widening only the revenue
         # side cannot let a proprietary page qualify as the governmental one.
-        if not any(lbl in low for lbl in ('total revenues', 'total operating revenues', 'net revenues')):
+        # ⚠ Matched with whitespace COLLAPSED, because a PDF that fuses its
+        # words renders these as 'totalrevenues' / 'totalexpenditures'. City of
+        # Durham FY2023 does exactly that, and a literal-substring test reports
+        # 'statement page not found' for a statement that is plainly there.
+        flat = _NOSPACE.sub('', low)
+        if not any(_NOSPACE.sub('', lbl) in flat
+                   for lbl in ('total revenues', 'total operating revenues', 'net revenues')):
             continue
-        if 'total expenditures' not in low:
+        if 'totalexpenditures' not in flat:
             continue
         if 'general' not in low or 'fund' not in low:
             continue

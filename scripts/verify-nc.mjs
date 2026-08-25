@@ -78,6 +78,16 @@
  *      sees a negative one. Asheville FY2022's investment LOSS is the live case
  *      — a sign flip changes a total by twice the figure and is invisible to
  *      any check that compares absolute values.
+ *  12. ⚠ ROOT STRUCTURE — the WELD check. The document's root-level subtotals
+ *      must match the stored ones. A group heading read as a wrapped label and
+ *      fused onto its first child moves NO MONEY, so the tie gate passes, CHECK
+ *      1 passes and CHECK 2 passes — the heading carried $0, so the leaf
+ *      multiset is identical either way. Eleven of Buncombe County's sixteen
+ *      operating rows shipped the label "Intergovernmental Education" through
+ *      all of those gates, and were caught only when an unrelated glyph defect
+ *      on one year forced a component comparison. Compared as AMOUNTS, never as
+ *      label strings, because the two readers legitimately render labels
+ *      differently on documents that fuse or split glyphs.
  *
  * Exits non-zero on any failure. Usage:
  *   node scripts/verify-nc.mjs
@@ -228,6 +238,59 @@ function extractorLeaves(tree, mode) {
 
 const sameMultiset = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
 
+/**
+ * Root-level subtotals implied by the coordinate reader's flat component list.
+ *
+ * ⚠ THE CHECK THAT CATCHES A WELD, and the reason it exists.
+ *
+ * `CHECK 2` compares LEAF amounts, and a weld does not change them. When a
+ * group heading is read as a wrapped label and fused onto its first child
+ * ("Intergovernmental Education"), the heading carried $0, so the leaf multiset
+ * is IDENTICAL either way and CHECK 2 passes. So does the extractor tie gate,
+ * for the same reason. Eleven of Buncombe County's sixteen operating rows
+ * shipped exactly that label, and it surfaced only incidentally — through an
+ * unrelated glyph defect on one year.
+ *
+ * What a weld DOES change is the ROOT structure: the document has three root
+ * categories and the stored tree has two, with the survivor inflated by the
+ * whole of the missing one ($66,171,518 of education transfers in FY2008).
+ * Comparing root-level subtotals catches that precisely.
+ *
+ * Compared as AMOUNTS, never as label strings: the two readers legitimately
+ * render labels differently on documents that fuse or split their glyphs
+ * (City of Durham FY2023 yields "Licensesandpermits" under pdfplumber), so a
+ * string comparison would raise false failures on correct data.
+ */
+function coordRootAmounts(components) {
+  const indents = components.map((c) => c.indent).filter((i) => i !== null && i !== undefined);
+  if (!indents.length) return null;
+  const rootX = Math.min(...indents);
+  const TOL = 1.5;   // same tolerance lib/acfrGfCoords.py uses
+  const roots = [];
+  let open = null;
+  for (const c of components) {
+    if (c.indent === null || c.indent === undefined) return null;
+    if (c.indent <= rootX + TOL) {
+      if (c.cell === 'number' && c.amount !== 0) { roots.push(c.amount); open = null; }
+      else { open = { a: 0 }; roots.push(open); }
+    } else if (open) {
+      open.a += c.amount;
+    }
+  }
+  return roots
+    .map((r) => (typeof r === 'number' ? r : r.a))
+    .filter((a) => a !== 0)
+    .sort((a, b) => a - b);
+}
+
+/** Root-level subtotals of an acfrGF-shaped tree. */
+function treeRootAmounts(tree) {
+  return (tree?.c ?? [])
+    .map((c) => (Array.isArray(c.c) && c.c.length ? c.c.reduce((s, g) => s + g.a, 0) : c.a))
+    .filter((a) => a !== 0)
+    .sort((a, b) => a - b);
+}
+
 async function main() {
   const argv = process.argv.slice(2);
   const i = argv.indexOf('--entity');
@@ -360,6 +423,8 @@ async function main() {
         }
 
         const stored = leafRows.map(leafAmount).filter((a) => a !== 0).sort((a, b) => a - b);
+        const storedRoots = catRows.filter((c) => c.parent_id === null)
+          .map((c) => Number(c.amount)).filter((a) => a !== 0).sort((a, b) => a - b);
 
         // CHECK 1 + 2 + 11 — independent read
         if (ent.checker === 'coords') {
@@ -383,6 +448,14 @@ async function main() {
             fail(`${ent.label} FY${fy} ${dataset}: ${negIndependent} negative component(s) in the document `
               + `but ${negStored} stored — a sign flip changes a total by TWICE the figure`);
           }
+          // CHECK 12 — root structure (the weld check)
+          const docRoots = coordRootAmounts(dataset === 'revenue' ? d.revenue : d.expenditure);
+          if (docRoots && !sameMultiset(docRoots, storedRoots)) {
+            fail(`${ent.label} FY${fy} ${dataset}: ROOT structure differs — document has `
+              + `${docRoots.length} root categor(ies) ${JSON.stringify(docRoots)}, stored has `
+              + `${storedRoots.length} ${JSON.stringify(storedRoots)}. A group heading welded onto `
+              + 'its child moves no money, so the tie gate and the leaf check both pass.');
+          }
         } else {
           // Coordinate-loaded: corroborate with the -table reader where it can
           // read the page at all. Where it cannot — for the diagnosed reasons
@@ -400,6 +473,14 @@ async function main() {
             if (negIndependent !== negStored) {
               fail(`${ent.label} FY${fy} ${dataset}: ${negIndependent} negative component(s) in the document `
                 + `but ${negStored} stored — a sign flip changes a total by TWICE the figure`);
+            }
+            // CHECK 12 — root structure (the weld check)
+            const docRoots = treeRootAmounts(t.data.tree);
+            if (!sameMultiset(docRoots, storedRoots)) {
+              fail(`${ent.label} FY${fy} ${dataset}: ROOT structure differs — document has `
+                + `${docRoots.length} root categor(ies) ${JSON.stringify(docRoots)}, stored has `
+                + `${storedRoots.length} ${JSON.stringify(storedRoots)}. A group heading welded onto `
+                + 'its child moves no money, so the tie gate and the leaf check both pass.');
             }
           } else if (t.ok && t.data?.tie_delta === 0 && t.data.computed_total !== Number(row.total_budget)) {
             fail(`${ent.label} FY${fy} ${dataset}: stored ${row.total_budget} != -table read ${t.data.computed_total}`);

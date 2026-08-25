@@ -12,6 +12,47 @@
 > in sequence below so the ordering does not read as "v2.20 never happened", but it is a
 > pointer, not a summary — the archive is the record.
 
+## v2.31 NC-DURHAM-AVL-01 — Durham, Asheville, and the report that is not the county's (Shipped: 2026-08-24, UAT pending)
+
+**North Carolina's first LOCAL entities.** The state had only its state node. 116 General
+Fund rows across four governments — City of Durham FY2009–24 (32), Durham County FY2005–25
+(42), City of Asheville FY2021–25 (10), Buncombe County FY2008 + FY2011–25 (32) — all GAAP
+actuals, all whole dollars, all tying at exactly $0.
+
+⚠ **The guard this milestone exists for was WRONG on its first version, and the fixture
+proved it.** Buncombe County and the Buncombe County **Board of Education** each publish an
+ACFR. The schools' FY2024 report is a genuine 137-page PDF saying "Buncombe County" and
+"June 30, 2024" on its cover, and it outranks the county's own report in search. Magic
+bytes, byte size, page count and the fiscal-year check all pass on it. A guard that required
+the issuer's name and forbade the neighbour's **accepted the impostor** — "Buncombe County
+Board of Education" *contains* "Buncombe County", and because every real county ACFR names
+its school board as a component unit, the exception that stopped the guard rejecting all 16
+real years is exactly what let the fake one through. A cover-page rule fails too: **21 of 58
+reports have an image-only page 1**. What holds is POSITIVE EVIDENCE OF AUTHORSHIP — an
+any-of governing-body marker, measured across all 58 files. Counties say *county manager*;
+cities say *mayor*; a school board says *superintendent*.
+
+⚠ **A SIGN FLIP in shipped code.** Asheville FY2022 emits its negative investment earnings
+as two words 0.1pt apart — a lone `(` then `372,058)` — and the merge rule required every
+fragment to contain a digit, so `parse_money` returned **+372,058 for a printed (372,058)**.
+It surfaced only because the components then over-summed by exactly twice the figure. Had
+that row been last, it would have shipped inverted. Colorado was re-verified rather than
+assumed after the fix.
+
+The reader is chosen **per entity on a diagnosed cause**, never per year by which one tied —
+that is curve-fitting, the LA-01 error. Durham County reads by glyph coordinates because
+`-table` renders its General Fund column at two character offsets in FY2006–11 (FY2008's
+four dropped rows sum to 8,630,391 = its exact tie delta); Asheville because FY2021–22
+letter-space every glyph on the page.
+
+**Gates:** `npm test` 616/616 · `npm run build` clean · `acfrGF.selftest.py` 166/166 ·
+`verify-colorado.mjs` 64 rows / 58 corroborated ALL PASSED · 116/116 rows tie at $0 ·
+both partition gates green, table total 87,726 → 87,842 (exactly +116).
+
+Closeout: `docs/superpowers/plans/NC-DURHAM-AVL-01-CLOSEOUT.md`.
+
+---
+
 ## v2.30 SCOPE-04 — Derived Total Governmental, and the enterprise slice (Shipped: 2026-08-22, tag `v2.30`, UAT ✅ 2026-08-23)
 
 **488 California entities gained a second, honestly-labelled fund scope.** 7,650 derived
