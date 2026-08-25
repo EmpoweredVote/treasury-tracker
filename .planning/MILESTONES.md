@@ -12,7 +12,7 @@
 > in sequence below so the ordering does not read as "v2.20 never happened", but it is a
 > pointer, not a summary — the archive is the record.
 
-## v2.31 NC-DURHAM-AVL-01 — Durham, Asheville, and the report that is not the county's (Shipped: 2026-08-24, UAT pending)
+## v2.31 NC-DURHAM-AVL-01 — Durham, Asheville, and the report that is not the county's (Shipped: 2026-08-24, tag `v2.31`, UAT ✅ 9/9 2026-08-25)
 
 **North Carolina's first LOCAL entities.** The state had only its state node. 138 General
 Fund rows across four governments — City of Durham FY2009–24 (32), Durham County FY2005–25
@@ -78,6 +78,12 @@ case pointing the other way: on Asheville FY2023 the *checker* was the guilty on
 city renames its lease-debt heading every year (`Leases` → `Leases/SBITA's` →
 `Lease/subscription debt service`) and only the coordinate reader, which takes hierarchy from
 printed indentation, was unaffected.
+
+**UAT ✅ PASSED 9 of 9, no defects** (`NC-DURHAM-AVL-01-UAT.md`). Both archive-discovery recoveries
+confirmed end to end in production with FIRST-PARTY urls — Asheville FY2009 $85.5M/$84.4M, Buncombe
+FY2009 $251.5M/$240.2M — and the welded label is visibly fixed: Buncombe FY2009 renders
+**Current 66% / Intergovernmental 29% / Debt service 5%** as three distinct categories, on a surface
+no arithmetic gate could check.
 
 **Gates:** `verify-nc.mjs` **ALL CHECKS PASSED** · `npm test` 632/632 ·
 `npm run build` clean · `acfrGF.selftest.py` 166/166 · `verify-colorado.mjs` 64 rows /
