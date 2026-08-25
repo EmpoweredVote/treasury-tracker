@@ -45,9 +45,21 @@ that is curve-fitting, the LA-01 error. Durham County reads by glyph coordinates
 four dropped rows sum to 8,630,391 = its exact tie delta); Asheville because FY2021–22
 letter-space every glyph on the page.
 
-**Gates:** `npm test` 616/616 · `npm run build` clean · `acfrGF.selftest.py` 166/166 ·
-`verify-colorado.mjs` 64 rows / 58 corroborated ALL PASSED · 116/116 rows tie at $0 ·
-both partition gates green, table total 87,726 → 87,842 (exactly +116).
+⚠ **TWO WELDED LABELS, IN OPPOSITE DIRECTIONS, both invisible to every gate that
+existed.** A group heading read as a wrapped label and fused onto its child moves NO MONEY —
+so the $0 tie passes, the total check passes, and the leaf-multiset check passes, because the
+heading carried $0. Eleven Buncombe rows shipped "Intergovernmental Education" through all of
+them. The new **CHECK 12 compares ROOT-LEVEL SUBTOTALS**, and it immediately caught a second
+case pointing the other way: on Asheville FY2023 the *checker* was the guilty one, because the
+city renames its lease-debt heading every year (`Leases` → `Leases/SBITA's` →
+`Lease/subscription debt service`) and only the coordinate reader, which takes hierarchy from
+printed indentation, was unaffected.
+
+**Gates:** `verify-nc.mjs` **ALL CHECKS PASSED** — 116 rows, 99 corroborated by a second
+implementation, 17 named single-reader with a diagnosed cause each · `npm test` 625/625 ·
+`npm run build` clean · `acfrGF.selftest.py` 166/166 · `verify-colorado.mjs` 64 rows /
+58 corroborated ALL PASSED · 116/116 rows tie at $0 · both partition gates green, table
+total 87,726 → 87,842 (exactly +116).
 
 Closeout: `docs/superpowers/plans/NC-DURHAM-AVL-01-CLOSEOUT.md`.
 

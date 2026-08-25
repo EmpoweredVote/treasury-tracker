@@ -167,6 +167,32 @@ and database — the only check in the harness that can see a weld. Compared as
 *amounts*, never as label strings, because the two readers legitimately render
 labels differently on documents that fuse or split glyphs.
 
+### ⚠ The same defect in the other direction — and the checker was the guilty one
+
+CHECK 12 then caught a root-structure disagreement on **Asheville FY2023** — and
+this time **the stored data was right and the CHECKER was wrong.** Worth stating
+plainly: a disagreement does not say which side is at fault.
+
+The city renames its GASB-87/96 lease-debt heading **every year**:
+
+| FY | Heading |
+|---|---|
+| 2021 | *(absent — pre-GASB-87)* |
+| 2022 | `Leases` |
+| 2023 | `Leases/SBITA's` |
+| 2024 | `Lease/subscription debt service` |
+| 2025 | `Lease/subscription debt service` |
+
+`extractAsheville.py` (the `-table` cross-check) declared only the FY2024
+wording, so on FY2023 the heading fell through as a wrapped label and welded
+onto its own child — producing a category literally named
+`Leases/SBITA's Principal`. The coordinate reader, which **loads** this entity,
+reads the hierarchy from printed indentation and was unaffected.
+
+That contrast is the argument for the coordinate reader: a hand-declared
+`parents` list is a standing bet that the issuer will not rename anything, and
+this issuer renamed the same heading **three times in four years**.
+
 ### ⚠ A PDF that FUSES its words — the inverse of Asheville
 
 City of Durham **FY2023** renders under pdfplumber with **no spaces at all**:
@@ -256,6 +282,23 @@ A database self-check would be **tautological** — the loader computes the tota
 as the sum of the nodes it passes to the RPC, so `total = Σ items` agrees by
 construction and passes on a completely mis-parsed statement.
 
+**Result: ALL CHECKS PASSED. 116 rows checked, 99 corroborated by a second
+implementation.**
+
+The **17 uncorroborated rows are named**, never folded into the pass count, and
+each has a diagnosed cause:
+
+| Rows | Reason |
+|---|---|
+| Durham County FY2006–FY2011 (12) | `-table` renders the GF column at two character offsets |
+| City of Asheville FY2021–FY2022 (4) | the PDFs letter-space every glyph |
+| Buncombe County FY2008 operating (1) | the issuer **overprints** one row, so pdfplumber sees every glyph doubled (`ddeevveellooppmmeenntt`, `77553388887766`). The `-table` reader is unaffected and ties at $0, and `acfrPrintedTotal` agrees on the total, so the stored figure is right and it is the *checker* that cannot read the page |
+
+⚠ **CHECK 8 earned its place during this milestone.** Reloading Buncombe's 16
+operating rows after the label fix re-created them with the column DEFAULT
+`unknown`, and the check flagged all 16. The axes were re-stamped and confirmed
+in SQL: all 116 rows on `general_fund / actual / primary_government`.
+
 ---
 
 ## 6. Scope classification
@@ -304,11 +347,12 @@ Partition gates green on both writers with **no pre-existing count moved**:
 
 | Gate | Result |
 |---|---|
-| `npm test` | 616/616, 41 files |
+| `npm test` | 625/625, 41 files |
 | `npm run build` | clean |
 | `acfrGF.selftest.py` | 166/166 |
 | `verify-colorado.mjs` | 64 rows, 58 corroborated, ALL CHECKS PASSED (re-run after the paren fix **and** after the El Paso refactor) |
 | Extraction tie gate | 116/116 rows at exactly $0 |
+| `verify-nc.mjs` | **ALL CHECKS PASSED** — 116 rows, 99 corroborated, 17 named single-reader |
 | `classifyFundScope --dry-run` | partition gate ✅ |
 | `stampBudgetAxes --dry-run` | partition gate ✅ |
 
@@ -321,7 +365,7 @@ implementations in both modes: **52/52 byte-identical**.
 ## 8. Open items
 
 1. **UAT not yet run.** No milestone is done until a human has seen the figures
-   on screen.
+   on screen. This is the only outstanding gate.
 2. **A missing year is silent about why** (§4) — carried over from
    CO-SPRINGS-EPC-01, not introduced here.
 3. **NC LGC AFIR remains the bulk-source milestone for North Carolina.** It
