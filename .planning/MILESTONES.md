@@ -14,18 +14,34 @@
 
 ## v2.31 NC-DURHAM-AVL-01 — Durham, Asheville, and the report that is not the county's (Shipped: 2026-08-24, UAT pending)
 
-**North Carolina's first LOCAL entities.** The state had only its state node. 134 General
+**North Carolina's first LOCAL entities.** The state had only its state node. 138 General
 Fund rows across four governments — City of Durham FY2009–24 (32), Durham County FY2005–25
-(42), City of Asheville FY2009–25 (28), Buncombe County FY2008 + FY2011–25 (32) — all GAAP
+(42), City of Asheville FY2009–25 (28), Buncombe County FY2008–25 unbroken (36) — all GAAP
 actuals, all whole dollars, all tying at exactly $0.
 
 ⚠ **ASHEVILLE WAS ALMOST A FIVE-YEAR SERIES.** Its ACFR page lists only FY2021 onward, and
 the first pass took that at face value. Wayback snapshots of *the city's own page* list Drive
 ids for FY2007–FY2020, and **every one of those files is still live** — the city removed the
-links, not the documents. Nine years recovered, 5 → 14. The archive was used only to DISCOVER
-the addresses; every byte is fetched from the city's own Drive and `source_url` records that
-live first-party URL. **"The issuer publishes only N years" is a claim about a page, and a
-page is not an archive.**
+links, not the documents. Nine years recovered, 5 → 14.
+
+⚠ **THE SAME MISTAKE HAD BEEN MADE ABOUT BUNCOMBE.** Its FY2009/FY2010 hole was recorded as
+"not published anywhere the county exposes", on the evidence that every two-digit year 404s
+against the flat `cafr/CAFR<yy>.pdf` scheme. That was evidence about the SCHEME. The archive's
+index of the host revealed a **fourth naming convention** — per-year subdirectories, one of
+them holding a file called simply `cafr.pdf` — all live on the county's own host. Buncombe is
+now **FY2008–FY2025 unbroken**. The move that found both was asking *"what has this host ever
+served?"* rather than *"does this name resolve?"*.
+
+**"The issuer publishes only N years" is a claim about a page, and a page is not an archive.**
+In both cases the archive was used only to DISCOVER addresses; every byte is fetched
+first-party and `source_url` records the live URL.
+
+⚠ **Two years were found, proven parseable, and deliberately NOT loaded.** Durham City
+FY2004–FY2006 exist only in the Internet Archive (its legacy host is dead) and all three
+extract at $0. Chris's call: keep the invariant that **every stored figure has a live,
+first-party `source_url`**. Buncombe FY2007 is excluded on stronger grounds — its largest
+revenue line produces no token in either reader, and recovering it by subtracting the rest
+from the printed total would be DERIVING a figure that then ties at $0 by construction.
 
 ⚠ **The guard this milestone exists for was WRONG on its first version, and the fixture
 proved it.** Buncombe County and the Buncombe County **Board of Education** each publish an
@@ -63,11 +79,12 @@ city renames its lease-debt heading every year (`Leases` → `Leases/SBITA's` �
 `Lease/subscription debt service`) and only the coordinate reader, which takes hierarchy from
 printed indentation, was unaffected.
 
-**Gates:** `verify-nc.mjs` **ALL CHECKS PASSED** · `npm test` 630/630 ·
+**Gates:** `verify-nc.mjs` **ALL CHECKS PASSED** · `npm test` 632/632 ·
 `npm run build` clean · `acfrGF.selftest.py` 166/166 · `verify-colorado.mjs` 64 rows /
-58 corroborated ALL PASSED · 134/134 rows tie at $0 · both partition gates green (the gate
-REFUSED to write when Asheville grew and the registered count still said 116), table
-total 87,726 → 87,860 (exactly +134).
+58 corroborated ALL PASSED · 138/138 rows tie at $0 · 121 corroborated by a second
+implementation · both partition gates green — and the gate **REFUSED THE WRITE TWICE**, once
+when Asheville grew past 116 and again when Buncombe grew past 134. Table total
+87,726 → 87,864 (exactly +138).
 
 Closeout: `docs/superpowers/plans/NC-DURHAM-AVL-01-CLOSEOUT.md`.
 

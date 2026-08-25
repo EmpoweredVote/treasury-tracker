@@ -314,11 +314,80 @@ export const BUNCOMBE_REJECTED_IDS = {
   '6519': 'FY2019 Popular Annual Financial Report (PAFR, no fund statements)',
 };
 
-/** Years the `CAFR<yy>.pdf` scheme serves — probed, not assumed. */
+/** Years the FLAT `CAFR<yy>.pdf` scheme serves — probed, not assumed. */
 export const BUNCOMBE_LEGACY_FYS = [2008, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019];
+
+/**
+ * ⚠ A FOURTH SCHEME, found only by asking the archive what the county used to
+ * publish: a PER-YEAR SUBDIRECTORY `cafr/cafr<yy>/`, with a different filename
+ * in each one.
+ *
+ *   FY2007  cafr07/CAFR2007.pdf   (4-digit year)
+ *   FY2009  cafr09/cafr.pdf       (no year at all)
+ *   FY2010  cafr10/CAFR10.pdf     (2-digit year)
+ *
+ * These three are why Buncombe first shipped with a FY2009/FY2010 hole and a
+ * FY2008 start. The flat scheme genuinely 404s for them — every two-digit year
+ * and several casings were probed — so the gap looked like an upstream absence.
+ * It was a NAMING gap, not a publication gap.
+ *
+ * ✅ ALL THREE ARE LIVE ON THE COUNTY'S OWN HOST. The archive was used only to
+ * learn that `cafr<yy>/` subdirectories ever existed; every byte is then
+ * fetched first-party from media.buncombenc.gov and `source_url` records that
+ * live URL. Same discipline as the recovered Asheville years.
+ *
+ * ⚠ FY2005 and FY2006 were NEVER PUBLISHED. The archive's full index of
+ * `buncombecounty.org/common/finance/cafr/*` contains exactly four
+ * subdirectories — cafr07, cafr08, cafr09, cafr10 — so FY2007 is the county's
+ * earliest online report, and that is now the start of its series.
+ *
+ * ⚠ FY2009 is ALSO published as a set of per-section PDFs under
+ * `cafr09/Financial Section/` and `cafr09/Compliance Section/`. Those are NOT
+ * used: `cafr09/cafr.pdf` is the whole report in one file, which is what every
+ * reader in this repo expects. A split-document era is a separate build, not a
+ * config change (the same call CO-SPRINGS-EPC-01 made for El Paso FY2006-08).
+ */
+export const BUNCOMBE_SUBDIR_FILES = {
+  2009: 'cafr09/cafr.pdf',
+  2010: 'cafr10/CAFR10.pdf',
+};
+
+/**
+ * ⚠ FY2007 IS RETRIEVABLE AND STILL NOT LOADABLE, for two independent reasons,
+ * BOTH confirmed by both readers rather than inferred from one.
+ *
+ * (a) ITS LARGEST REVENUE LINE IS NOT IN THE TEXT LAYER. `Ad valorem taxes`
+ *     yields NO token at all — `-table` renders the row with no figures and the
+ *     coordinate reader reports the General Fund cell as `blank`. The gap is
+ *     exactly 246,360,973 - 107,219,531 = 139,141,442, so the figure is
+ *     arithmetically forced by the printed total. IT IS STILL NOT LOADED:
+ *     recovering a line item by SUBTRACTING the rest from the total is deriving
+ *     a figure, not reading one, and it would tie at $0 by construction — the
+ *     tie gate would confirm nothing. Every other figure in this table is read
+ *     from the document.
+ *
+ * (b) ITS FONT HAS A BROKEN ToUnicode CMap. Labels come out as `3HUPLWVDQGIHHV`
+ *     under `-table` and as `(cid:51)(cid:72)(cid:85)...` under pdfplumber —
+ *     the same row, "Permits and fees", with every character displaced by
+ *     exactly 29 (0x50 'P' -> 0x33 '3'). Decodable in principle (see
+ *     `scripts/decodeSaoFont2009.py`, which solved this class for WA SAO), but
+ *     a decode is a TRANSCRIPTION step and it does not fix (a).
+ *
+ * FY2005 and FY2006 were never published at all: the archive's full index of
+ * `common/finance/cafr/*` contains exactly cafr07, cafr08, cafr09 and cafr10.
+ * So Buncombe's loadable series starts at FY2008 and is now UNBROKEN to FY2025.
+ */
+export const BUNCOMBE_EXCLUDED = {
+  2005: 'NEVER PUBLISHED — no cafr05 directory has ever existed on the county host',
+  2006: 'NEVER PUBLISHED — no cafr06 directory has ever existed on the county host',
+  2007: 'RETRIEVABLE BUT UNREADABLE — "Ad valorem taxes" ($139,141,442, the largest '
+      + 'revenue line) produces no token in either reader, and the font has a broken '
+      + 'ToUnicode CMap that renders labels as (cid:NN) / character-shifted text',
+};
 
 export const BUNCOMBE_FYS = [...new Set([
   ...BUNCOMBE_LEGACY_FYS,
+  ...Object.keys(BUNCOMBE_SUBDIR_FILES).map(Number),
   ...Object.keys(BUNCOMBE_DOC_IDS).map(Number),
 ])].sort((a, b) => a - b);
 
@@ -328,6 +397,9 @@ export function buncombeUrls(fy) {
   if (doc) urls.push(`https://www.buncombenc.gov/DocumentCenter/View/${doc}`);
   if (BUNCOMBE_LEGACY_FYS.includes(fy)) {
     urls.push(`https://media.buncombenc.gov/common/finance/cafr/CAFR${String(fy).slice(2)}.pdf`);
+  }
+  if (BUNCOMBE_SUBDIR_FILES[fy]) {
+    urls.push(`https://media.buncombenc.gov/common/finance/cafr/${BUNCOMBE_SUBDIR_FILES[fy]}`);
   }
   if (fy >= 2020 && fy <= 2024) {
     // The GFOA rename sits inside this scheme: FY2020 keeps the old word order.

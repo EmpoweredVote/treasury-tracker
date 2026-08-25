@@ -1,28 +1,40 @@
 #!/usr/bin/env node
 /**
  * Buncombe County, NC — General Fund operating (expenditure-by-function) +
- * revenue (revenue-by-source), FY2008 + FY2011–FY2025, ACTUAL (ACFR GAAP
+ * revenue (revenue-by-source), FY2008–FY2025, ACTUAL (ACFR GAAP
  * basis).
  *
  * Thin driver over `scripts/lib/acfrGfLoad.mjs`, which carries the write path
  * and the five guards (tie gate, fiscal-year assertion, per-capita units
  * guard, sanity ceiling, idempotence).
  *
- * FY WINDOW: FY2008 and FY2011–FY2025, sixteen years, 32 rows.
+ * FY WINDOW: FY2008–FY2025, eighteen years, 36 rows — UNBROKEN.
  *
- * ⚠ THE FY2009/FY2010 GAP IS AN UPSTREAM ABSENCE, DIAGNOSED. The county's
- * legacy asset host serves `CAFR<yy>.pdf`, and every two-digit year from 05 to
- * 25 was probed: FY2008 and FY2011–FY2019 return 200, and FY2005–FY2007,
- * FY2009, FY2010 and FY2020+ return 404 with a 1,245-byte body. The naming
- * variants `cafr09`, `CAFR2009` and `CAFR_09` were probed too and also 404. The
- * modern `financial-reports/<span>/` scheme starts at FY2020 and the
- * DocumentCenter index starts at FY2015, so neither reaches back over the gap.
- * Those two years are not published anywhere the county exposes.
+ * ⚠ THIS SERIES HAD A TWO-YEAR HOLE, AND THE HOLE WAS A NAMING GAP, NOT AN
+ * ABSENCE. FY2009 and FY2010 were first recorded as "not published anywhere the
+ * county exposes", on the evidence that every two-digit year was probed against
+ * the flat `cafr/CAFR<yy>.pdf` scheme and both 404. That was true of the SCHEME.
+ * Asking the archive what the county used to publish turned up a FOURTH naming
+ * convention — a per-year subdirectory with a different filename in each one:
  *
- * ⚠ A visitor sees FY2008 and then a jump to FY2011 with nothing explaining
- * why — the same accepted-not-fixed gap CO-SPRINGS-EPC-01 recorded for El Paso
- * County FY2006–08. A per-year "published but not machine-readable / not
- * published" note would close it and does not exist yet.
+ *     FY2007  cafr07/CAFR2007.pdf   (4-digit year)
+ *     FY2009  cafr09/cafr.pdf       (no year at all)
+ *     FY2010  cafr10/CAFR10.pdf     (2-digit year)
+ *
+ * All of them are LIVE on the county's own host. The archive was used only to
+ * learn the convention existed; every byte is fetched first-party.
+ *
+ * ⚠ FY2007 IS RETRIEVABLE AND STILL EXCLUDED — see BUNCOMBE_EXCLUDED in
+ * scripts/lib/ncAcfrSources.mjs. Its largest revenue line, `Ad valorem taxes`
+ * at $139,141,442, produces NO TOKEN in either reader, and its font has a
+ * broken ToUnicode CMap. The figure is arithmetically forced by the printed
+ * total (246,360,973 - 107,219,531), and it is still not loaded: recovering a
+ * line item by subtracting the rest from the total is DERIVING a figure, not
+ * reading one, and it would tie at $0 by construction so the tie gate would
+ * confirm nothing.
+ *
+ * FY2005 and FY2006 were never published — the archive's full index of
+ * `common/finance/cafr/*` contains exactly four subdirectories.
  *
  * READER: `pdftotext -table`, via `scripts/extractBuncombeCounty.py`. This
  * county has no diagnosed `-table` column defect, so it stays on the shared
@@ -54,10 +66,9 @@
 
 import { run } from './lib/acfrGfLoad.mjs';
 
-// FY2009 and FY2010 are absent upstream — see the header. Written out rather
-// than generated so the gap is visible in the source, not implied by a filter.
-const FYS = [2008, 2011, 2012, 2013, 2014, 2015, 2016, 2017,
-  2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
+// FY2008-FY2025, unbroken. FY2007 is retrievable but unreadable and FY2005/06
+// were never published — see the header and BUNCOMBE_EXCLUDED.
+const FYS = Array.from({ length: 18 }, (_, i) => 2008 + i); // 2008..2025
 
 await run({
   entityLabel: 'Buncombe County',

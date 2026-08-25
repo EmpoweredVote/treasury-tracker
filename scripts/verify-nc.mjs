@@ -124,7 +124,9 @@ const DURHAM_COUNTY_FYS = Array.from({ length: 21 }, (_, i) => 2005 + i);       
 // city's Drive. See ASHEVILLE_EXCLUDED in lib/ncAcfrSources.mjs.
 const ASHEVILLE_FYS = [2009, 2010, 2011, 2012, 2014, 2015, 2016, 2017, 2018,
   2021, 2022, 2023, 2024, 2025];
-const BUNCOMBE_FYS = [2008, ...Array.from({ length: 15 }, (_, i) => 2011 + i)];  // 2008, 2011..2025
+// FY2008-FY2025 UNBROKEN. FY2005/06 were never published; FY2007 is
+// retrievable but unreadable — see BUNCOMBE_EXCLUDED in lib/ncAcfrSources.mjs.
+const BUNCOMBE_FYS = Array.from({ length: 18 }, (_, i) => 2008 + i);  // 2008..2025
 
 const ENTITIES = {
   'durham-city': {

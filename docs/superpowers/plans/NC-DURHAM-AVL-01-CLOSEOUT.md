@@ -15,9 +15,9 @@ Branch `feat/nc-durham-asheville-onboarding`.
 | City of Durham | `city` | Durham County | FY2009–FY2024 | 16 | 32 | `pdftotext -table` |
 | Durham County | `county` | — | FY2005–FY2025 | 21 | 42 | glyph coordinates |
 | City of Asheville | `city` | Buncombe County | FY2009–FY2025 (14 of 17) | 14 | 28 | glyph coordinates |
-| Buncombe County | `county` | — | FY2008, FY2011–FY2025 | 16 | 32 | `pdftotext -table` |
+| Buncombe County | `county` | — | FY2008–FY2025 (unbroken) | 18 | 36 | `pdftotext -table` |
 
-**134 rows.** General Fund GAAP actuals, `general_fund / actual /
+**138 rows.** General Fund GAAP actuals, `general_fund / actual /
 primary_government`, **whole dollars** for all four, **July–June fiscal year**
 (`fiscal_year_start_month = 7`, `source_date = <FY>-06-30`) — statutory for every
 NC local unit under **N.C.G.S. 159-8(b)**, and matching the NC state node already
@@ -26,7 +26,7 @@ in the table.
 Populations, US Census PEP Vintage 2024: Durham 301,870 · Durham County 343,628 ·
 Asheville 94,992 · Buncombe County 279,210.
 
-Every one of the 134 rows ties at **exactly $0** through its primary reader.
+Every one of the 138 rows ties at **exactly $0** through its primary reader.
 
 ---
 
@@ -50,8 +50,8 @@ accepted the impostor** — verified against the real file, not reasoned about:
   "BUNCOMBE COUNTY, NORTH CAROLINA", never "County of Buncombe", so the name
   cannot be tightened to exclude the school board.
 - Every genuine county ACFR mentions its Board of Education as a **discretely
-  presented component unit**, so forbidding that phrase outright rejects all 16
-  real years. The escape hatch that fixed *that* is exactly what let the fake one
+  presented component unit**, so forbidding that phrase outright rejects every
+  real year. The escape hatch that fixed *that* is exactly what let the fake one
   through.
 
 A cover-page-only rule does not rescue it either: **21 of the 58 reports have an
@@ -64,9 +64,9 @@ governing-body marker, measured across all 58 files:
 | Corpus | Marker | Impostor |
 |---|---|---|
 | Durham County (21/21) | `county manager` | absent |
-| Buncombe County (16/16) | `county manager` + `board of commissioners` | absent |
+| Buncombe County (18/18) | `county manager` + `board of commissioners` | absent |
 | City of Durham (16/16) | `mayor` + `city council` + `city manager` | absent |
-| City of Asheville (5/5) | `mayor` | absent |
+| City of Asheville (14/14) | `mayor` | absent |
 | Buncombe County Schools | — | `superintendent`, `board of education` |
 
 `city council` alone would have failed on Asheville FY2024–25, which is why
@@ -131,7 +131,7 @@ reader, which finds its own page independently.
 
 ### ⚠ A welded label that passed every gate — and the check that now catches it
 
-**Eleven of Buncombe County's sixteen operating rows shipped the category
+**Eleven of Buncombe County's operating rows shipped the category
 `Intergovernmental Education`.** The county prints `Intergovernmental:` as a
 **root-level group heading** with `Education` as its only child; the `-table`
 reader, not told that `intergovernmental` is a parent, read the heading as a
@@ -278,6 +278,30 @@ were published and are now **gone** (HTTP 404). Recovering them needs the NC LGC
 FY2019–FY2021 archive is a JavaScript app with no file listing and whose FY2022+ sibling is a
 Power Apps portal behind `/_services/entity-grid-data.json`, or a request to the city.
 
+### ⚠ And Buncombe's two-year hole was a NAMING gap, not an absence
+
+Buncombe first shipped as FY2008 + FY2011–FY2025, with FY2009 and FY2010 recorded as *"not
+published anywhere the county exposes"*. The evidence for that was real — every two-digit year
+and several casings were probed against the flat `cafr/CAFR<yy>.pdf` scheme, and both 404 —
+but it was evidence about the **scheme**, not about the county.
+
+Asking the archive what the county *used to* publish turned up a **fourth naming convention**:
+a per-year subdirectory, with a different filename inside each one.
+
+| FY | Path | Filename pattern |
+|---|---|---|
+| 2007 | `cafr/cafr07/CAFR2007.pdf` | 4-digit year |
+| 2009 | `cafr/cafr09/cafr.pdf` | **no year at all** |
+| 2010 | `cafr/cafr10/CAFR10.pdf` | 2-digit year |
+
+**All three are live on the county's own host.** The archive was used only to learn the
+convention existed. Buncombe is now **FY2008–FY2025 unbroken, 18 years**.
+
+⚠ Note what made this findable: not a cleverer guess at filenames, but asking a *different
+question* — "what has this host ever served?" rather than "does this name resolve?". The full
+`cafr/*` index also settled FY2005 and FY2006 as genuinely never published, which no amount of
+name-probing could have established.
+
 ---
 
 ## 4. Diagnosed absences
@@ -285,7 +309,10 @@ Power Apps portal behind `/_services/entity-grid-data.json`, or a request to the
 | Gap | Cause |
 |---|---|
 | City of Durham FY2025 | Upstream — the city has published its FY2025 *Citizens* Financial Report, not its FY2025 ACFR |
-| Buncombe County FY2009, FY2010 | Upstream. Every two-digit year 05–25 was probed against `CAFR<yy>.pdf`; FY2005–07, FY2009, FY2010 and FY2020+ all 404 with a 1,245-byte body, and the variants `cafr09` / `CAFR2009` / `CAFR_09` 404 too. The modern scheme starts FY2020 and DocumentCenter starts FY2015, so neither reaches back over the gap |
+| Buncombe County FY2005, FY2006 | **Never published** — the archive's full index of `common/finance/cafr/*` contains exactly four subdirectories (`cafr07`–`cafr10`) |
+| Buncombe County FY2007 | ⚠ **Retrievable and still unreadable.** Its largest revenue line, `Ad valorem taxes` at **$139,141,442**, produces **no token in either reader**, and its font has a broken ToUnicode CMap (labels render as `(cid:51)(cid:72)…` / `3HUPLWVDQGIHHV`, every character displaced by 29). The figure is *arithmetically forced* by the printed total (246,360,973 − 107,219,531) and is **still not loaded**: recovering a line item by subtracting the rest from the total is **deriving** a figure, not reading one, and it would tie at $0 by construction so the tie gate would confirm nothing |
+| City of Durham FY2004–FY2006 | ⚠ **Retrievable, parseable, and deliberately not loaded.** They exist only in the Internet Archive — the city's legacy host `ci.durham.nc.us` is dead. All three extract cleanly at $0 ($146.6M / $162.9M / $168.5M revenue, slotting in coherently ahead of FY2009's $196.6M). **Chris's call: keep the invariant that every stored figure has a live, first-party `source_url`.** Loading them would have needed a new provenance class saying so on screen |
+| City of Durham FY2001–FY2003, FY2007, FY2008 | FY2001–03 are published as **dozens of per-page PDFs** (`cafr_01/001.pdf`, `003.pdf`, …); FY2007's archived snapshot is not replayable; FY2008 is not archived anywhere found |
 | City of Asheville FY2007, FY2008 | **Image-only scans** — 292 and 172 characters of text in 183 and 172 pages. No text layer to read |
 | City of Asheville FY2013 | **Hybrid scan** — only 18 of its 240 pages carry text, and the fund statements are not among them (the auditor's report page is born-digital, the statements are images) |
 | City of Asheville FY2019, FY2020 | ⚠ **Published, then DELETED.** The Drive ids are recorded from the 2021-12 snapshot and both now return HTTP 404. Every other id from the same snapshots still resolves, so this is deletion by the city, not rot in the archive |
@@ -311,7 +338,7 @@ A database self-check would be **tautological** — the loader computes the tota
 as the sum of the nodes it passes to the RPC, so `total = Σ items` agrees by
 construction and passes on a completely mis-parsed statement.
 
-**Result: ALL CHECKS PASSED. 134 rows checked, 117 corroborated by a second
+**Result: ALL CHECKS PASSED. 138 rows checked, 121 corroborated by a second
 implementation.**
 
 The **17 uncorroborated rows are named**, never folded into the pass count, and
@@ -372,7 +399,7 @@ purposes."* That is the issuer's own GAAP General Fund column — the column sto
 Partition gates green on both writers with **no pre-existing count moved**:
 `classifyFundScope` 78,416 claimed + 9,426 unknown = 87,842/87,842;
 `stampBudgetAxes` the same on basis and reporting_entity. Table total moved
-**87,726 → 87,860, exactly +134**.
+**87,726 → 87,864, exactly +138**.
 
 ---
 
@@ -380,12 +407,12 @@ Partition gates green on both writers with **no pre-existing count moved**:
 
 | Gate | Result |
 |---|---|
-| `npm test` | 630/630, 41 files |
+| `npm test` | 632/632, 41 files |
 | `npm run build` | clean |
 | `acfrGF.selftest.py` | 166/166 |
 | `verify-colorado.mjs` | 64 rows, 58 corroborated, ALL CHECKS PASSED (re-run after the paren fix **and** after the El Paso refactor) |
-| Extraction tie gate | 134/134 rows at exactly $0 |
-| `verify-nc.mjs` | **ALL CHECKS PASSED** — 134 rows, 117 corroborated, 17 named single-reader |
+| Extraction tie gate | 138/138 rows at exactly $0 |
+| `verify-nc.mjs` | **ALL CHECKS PASSED** — 138 rows, 121 corroborated, 17 named single-reader |
 | `classifyFundScope --dry-run` | partition gate ✅ |
 | `stampBudgetAxes --dry-run` | partition gate ✅ |
 

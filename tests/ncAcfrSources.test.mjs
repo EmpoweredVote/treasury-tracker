@@ -16,6 +16,7 @@ import {
   DURHAM_COUNTY_FILES, DURHAM_COUNTY_FYS, durhamCountyUrls,
   ASHEVILLE_DRIVE_IDS, ASHEVILLE_REJECTED_IDS, ashevilleUrls, ashevilleViewerUrl,
   BUNCOMBE_DOC_IDS, BUNCOMBE_REJECTED_IDS, BUNCOMBE_LEGACY_FYS, BUNCOMBE_FYS, buncombeUrls,
+  BUNCOMBE_SUBDIR_FILES, BUNCOMBE_EXCLUDED,
   NC_FISCAL_YEAR_START_MONTH, NC_FY_END_MONTH_DAY, NC_ENTITIES,
   assertFiscalYear, assertIssuer, NC_ISSUERS,
   coordRootAmounts, treeRootAmounts, isDoubledGlyphs,
@@ -194,14 +195,41 @@ describe('source manifests', () => {
     expect(urls).toContain('annual-comprehensive-financial-report.pdf');
   });
 
-  it('Buncombe has a real FY2009/FY2010 gap, not a naming variant', () => {
-    // Every two-digit year 05-25 was probed against CAFR<yy>.pdf; these 404.
+  /**
+   * ⚠ THIS TEST ONCE ASSERTED THE OPPOSITE, AND IT WAS WRONG.
+   *
+   * It read: "Buncombe has a real FY2009/FY2010 gap, not a naming variant",
+   * on the evidence that every two-digit year 05-25 was probed against the flat
+   * `cafr/CAFR<yy>.pdf` scheme and those two 404. That evidence was real and
+   * the CONCLUSION was false — it was a fact about the SCHEME, not the county.
+   * Both years sit under a FOURTH convention, `cafr/cafr<yy>/`, live on the
+   * county's own host. The test is kept in this shape, rather than deleted, so
+   * the two facts stay pinned separately: the flat scheme really does lack
+   * them, and the series really does contain them.
+   */
+  it('Buncombe FY2009/FY2010 are absent from the FLAT scheme but present in the series', () => {
     expect(BUNCOMBE_LEGACY_FYS).not.toContain(2009);
     expect(BUNCOMBE_LEGACY_FYS).not.toContain(2010);
-    expect(BUNCOMBE_FYS).not.toContain(2009);
-    expect(BUNCOMBE_FYS).not.toContain(2010);
-    expect(BUNCOMBE_FYS).toContain(2008);
-    expect(BUNCOMBE_FYS).toContain(2011);
+    expect(BUNCOMBE_SUBDIR_FILES[2009]).toBe('cafr09/cafr.pdf');
+    expect(BUNCOMBE_SUBDIR_FILES[2010]).toBe('cafr10/CAFR10.pdf');
+    expect(BUNCOMBE_FYS).toContain(2009);
+    expect(BUNCOMBE_FYS).toContain(2010);
+  });
+
+  it('Buncombe is UNBROKEN FY2008-FY2025', () => {
+    for (let fy = 2008; fy <= 2025; fy++) expect(BUNCOMBE_FYS, `FY${fy}`).toContain(fy);
+    expect(BUNCOMBE_FYS.length).toBe(18);
+  });
+
+  it('Buncombe FY2005-FY2007 are excluded, each with a measured reason', () => {
+    for (const fy of [2005, 2006, 2007]) {
+      expect(BUNCOMBE_FYS, `FY${fy}`).not.toContain(fy);
+      expect(BUNCOMBE_EXCLUDED[fy], `FY${fy}`).toMatch(/NEVER PUBLISHED|UNREADABLE/);
+    }
+    // FY2007 is the one that is retrievable and still refused: its largest
+    // revenue line is absent from the text layer, so loading it would mean
+    // DERIVING that figure from the printed total.
+    expect(BUNCOMBE_EXCLUDED[2007]).toMatch(/139,141,442/);
   });
 
   it('Buncombe FY2025 exists only on DocumentCenter', () => {
