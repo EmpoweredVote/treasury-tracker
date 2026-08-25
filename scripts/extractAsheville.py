@@ -31,9 +31,9 @@ City of Asheville specifics
   closes the group in exactly the right place: both children end in "taxes"
   and the next source, `Intergovernmental`, does not.
 
-* ⚠ **Two debt-service parents with IDENTICAL child labels.** The city reports
-  conventional debt and GASB-87/96 lease-and-subscription debt separately, and
-  both use the same two child names:
+* ⚠ **Two debt-service parents with IDENTICAL child labels, and the second one
+  IS RENAMED EVERY YEAR.** The city reports conventional debt and GASB-87/96
+  lease-and-subscription debt separately, and both use the same two child names:
 
         Debt service:                  (0 sp)
           Principal                    (2 sp)
@@ -42,9 +42,26 @@ City of Asheville specifics
           Principal                    (2 sp)
           Interest and other charges   (2 sp)
 
-  Both parents must be declared. Declaring only `debt service` would let the
-  second heading fall through as a wrapped label and weld onto its `Principal`
-  child, and the two `Principal` rows would then sit under one parent.
+  Every variant the city has used must be declared, because a heading not in
+  `parents` falls through as a wrapped label and welds onto its own first child.
+  Read off the statements, not guessed:
+
+        FY2021   (absent — pre-GASB-87)
+        FY2022   Leases
+        FY2023   Leases/SBITA's
+        FY2024   Lease/subscription debt service
+        FY2025   Lease/subscription debt service
+
+  ⚠ `leases` is deliberately listed BEFORE the longer forms only for
+  readability — `_is_section_header` matches a whole label-only line, not a
+  prefix, so the order does not matter and `leases` cannot swallow
+  `leases/sbita's`.
+
+  This is exactly what `scripts/extractAshevilleCoords.py` needs NONE of: the
+  coordinate reader takes the hierarchy from printed indentation, so a renamed
+  heading costs it nothing. That is why the coordinate reader is the LOADER for
+  this entity and this file is only the cross-check — and the check that caught
+  the omission is `verify-nc.mjs` CHECK 12, comparing root-level subtotals.
 
 * **`Capital outlay` NESTS UNDER `Current:`** for this city — it is printed at
   the same 2-space depth as `General government` and `Public safety`, not at
@@ -63,7 +80,8 @@ from lib.acfrGF import CityConfig, run_cli   # noqa: E402
 
 CONFIG = CityConfig(
     city='City of Asheville, NC',
-    parents=('current', 'debt service', 'lease/subscription debt service'),
+    parents=('current', 'debt service', 'leases',
+             "leases/sbita's", 'lease/subscription debt service'),
     root_leaves=(),
     revenue_parents=('taxes',),
     revenue_group_members=('taxes',),
