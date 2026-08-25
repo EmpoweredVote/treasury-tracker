@@ -367,8 +367,10 @@ export const FUND_SCOPE_REGISTRY = [
   },
   {
     // NC-DURHAM-AVL-01, measured 2026-08-24: City of Durham 32 + Durham County 42
-    // + City of Asheville 10 + Buncombe County 32 = 116. A NEW family, so no
-    // pre-existing count moved.
+    // + City of Asheville 28 + Buncombe County 32 = 134. A NEW family, so no
+    // pre-existing count moved. (Asheville was 10 rows at first load; nine
+    // DELINKED-but-not-deleted years were later recovered from Wayback
+    // snapshots of the city's own page.)
     //
     // WARNING ANCHORED TO THE FOUR ENTITY NAMES, for the same reason
     // tx-local-acfr-gf and co-local-acfr-gf are: the general /ACFR - General
@@ -413,7 +415,14 @@ export const FUND_SCOPE_REGISTRY = [
              + 'exactly (95.3% / 80.5% of 430,812,088 and 463,732,424). '
              + 'CITY OF ASHEVILLE FY2024 - 165,122,861 and 158,194,252 stored exactly (92.0% / '
              + '80.7% of 179,393,546 and 195,930,715). FY2022 - 153,677,325 and 130,597,069 stored '
-             + 'exactly (88.6% / 79.6% of 173,494,316 and 164,070,306). '
+             + 'exactly (88.6% / 79.6% of 173,494,316 and 164,070,306). THREE MORE ASHEVILLE PROBES '
+             + 'were added when nine delinked years were recovered, because those come from an '
+             + 'EARLIER ERA of the city typesetting and the column layout could not be assumed to '
+             + 'carry back: FY2018 - 120,357,313 and 106,120,672 stored exactly (92.6% / 75.2% of '
+             + '129,919,928 and 141,123,391); FY2015 - 105,376,679 and 95,324,746 stored exactly '
+             + '(95.4% / 83.7% of 110,451,980 and 113,826,689); FY2009 - 85,540,877 and 84,438,678 '
+             + 'stored exactly (90.2% / 85.7% of 94,838,905 and 98,500,553). All three close the '
+             + 'additive identity exactly. '
              + 'BUNCOMBE COUNTY FY2024 - 406,010,643 and 416,293,947 stored exactly (65.9% / 63.8% '
              + 'of 616,166,627 and 651,997,848; this county splits its fund columns across two '
              + 'pages and the continuation page carries NO ROW LABELS, so its total is recovered '

@@ -120,7 +120,10 @@ loadEnv();
 
 const DURHAM_CITY_FYS = Array.from({ length: 16 }, (_, i) => 2009 + i);          // 2009..2024
 const DURHAM_COUNTY_FYS = Array.from({ length: 21 }, (_, i) => 2005 + i);        // 2005..2025
-const ASHEVILLE_FYS = [2021, 2022, 2023, 2024, 2025];
+// FY2007/08 and FY2013 are image-only scans; FY2019/20 were DELETED from the
+// city's Drive. See ASHEVILLE_EXCLUDED in lib/ncAcfrSources.mjs.
+const ASHEVILLE_FYS = [2009, 2010, 2011, 2012, 2014, 2015, 2016, 2017, 2018,
+  2021, 2022, 2023, 2024, 2025];
 const BUNCOMBE_FYS = [2008, ...Array.from({ length: 15 }, (_, i) => 2011 + i)];  // 2008, 2011..2025
 
 const ENTITIES = {

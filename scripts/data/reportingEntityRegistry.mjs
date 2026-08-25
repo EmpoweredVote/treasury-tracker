@@ -173,8 +173,10 @@ export const REPORTING_ENTITY_REGISTRY = [
   },
   {
     // NC-DURHAM-AVL-01, measured 2026-08-24: City of Durham 32 + Durham County 42
-    // + City of Asheville 10 + Buncombe County 32 = 116. A NEW family, so no
-    // pre-existing count moved.
+    // + City of Asheville 28 + Buncombe County 32 = 134. A NEW family, so no
+    // pre-existing count moved. (Asheville was 10 rows at first load; nine
+    // DELINKED-but-not-deleted years were later recovered from Wayback
+    // snapshots of the city's own page.)
     //
     // WARNING ANCHORED TO THE FOUR ENTITY NAMES, for the same reason
     // tx-local-acfr-gf and co-local-acfr-gf are: the general /ACFR - General

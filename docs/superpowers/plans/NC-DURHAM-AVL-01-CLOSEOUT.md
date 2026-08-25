@@ -14,10 +14,10 @@ Branch `feat/nc-durham-asheville-onboarding`.
 |---|---|---|---|---|---|---|
 | City of Durham | `city` | Durham County | FY2009–FY2024 | 16 | 32 | `pdftotext -table` |
 | Durham County | `county` | — | FY2005–FY2025 | 21 | 42 | glyph coordinates |
-| City of Asheville | `city` | Buncombe County | FY2021–FY2025 | 5 | 10 | glyph coordinates |
+| City of Asheville | `city` | Buncombe County | FY2009–FY2025 (14 of 17) | 14 | 28 | glyph coordinates |
 | Buncombe County | `county` | — | FY2008, FY2011–FY2025 | 16 | 32 | `pdftotext -table` |
 
-**116 rows.** General Fund GAAP actuals, `general_fund / actual /
+**134 rows.** General Fund GAAP actuals, `general_fund / actual /
 primary_government`, **whole dollars** for all four, **July–June fiscal year**
 (`fiscal_year_start_month = 7`, `source_date = <FY>-06-30`) — statutory for every
 NC local unit under **N.C.G.S. 159-8(b)**, and matching the NC state node already
@@ -26,7 +26,7 @@ in the table.
 Populations, US Census PEP Vintage 2024: Durham 301,870 · Durham County 343,628 ·
 Asheville 94,992 · Buncombe County 279,210.
 
-Every one of the 116 rows ties at **exactly $0** through its primary reader.
+Every one of the 134 rows ties at **exactly $0** through its primary reader.
 
 ---
 
@@ -253,13 +253,42 @@ document's own content is.
 
 ---
 
+## 3a. ⚠ Asheville was a five-year series because the city DELINKED its own archive
+
+The first pass shipped Asheville as **FY2021–FY2025 only**, on the evidence that its ACFR
+page lists nothing earlier. That was true of the page and **false of the city**.
+
+Wayback snapshots of *the city's own page* — 2019-08 and 2021-12 — list Google Drive ids for
+**FY2007 through FY2020**, and **every one of those files is still live on Drive**. The city
+removed the links, not the documents. Nine years were recovered this way, taking Asheville
+from 5 years to **14** and the milestone from 116 rows to **134**.
+
+**The bytes are still first-party.** The archive was used only to *discover* the addresses;
+every file is fetched from the city's own Drive at load time and `source_url` records that
+live URL, never a `web.archive.org` one. Had a file been gone from Drive, the honest options
+were a Wayback-sourced row **labelled as such**, or no row — not a silent archive fetch under
+a first-party URL.
+
+⚠ **The lesson generalises past this entity:** "the issuer publishes only N years" is a claim
+about a *page*, and a page is not an archive. Checking the issuer's own historical page cost
+one CDX query and returned nine years.
+
+⚠ **FY2019 and FY2020 are a different kind of gap from anything else here** — those documents
+were published and are now **gone** (HTTP 404). Recovering them needs the NC LGC, whose
+FY2019–FY2021 archive is a JavaScript app with no file listing and whose FY2022+ sibling is a
+Power Apps portal behind `/_services/entity-grid-data.json`, or a request to the city.
+
+---
+
 ## 4. Diagnosed absences
 
 | Gap | Cause |
 |---|---|
 | City of Durham FY2025 | Upstream — the city has published its FY2025 *Citizens* Financial Report, not its FY2025 ACFR |
 | Buncombe County FY2009, FY2010 | Upstream. Every two-digit year 05–25 was probed against `CAFR<yy>.pdf`; FY2005–07, FY2009, FY2010 and FY2020+ all 404 with a 1,245-byte body, and the variants `cafr09` / `CAFR2009` / `CAFR_09` 404 too. The modern scheme starts FY2020 and DocumentCenter starts FY2015, so neither reaches back over the gap |
-| City of Asheville pre-FY2021 | **Scope decision**, not a failure — the city hosts nothing earlier, and chasing the legacy site / Wayback was ruled out of scope up front |
+| City of Asheville FY2007, FY2008 | **Image-only scans** — 292 and 172 characters of text in 183 and 172 pages. No text layer to read |
+| City of Asheville FY2013 | **Hybrid scan** — only 18 of its 240 pages carry text, and the fund statements are not among them (the auditor's report page is born-digital, the statements are images) |
+| City of Asheville FY2019, FY2020 | ⚠ **Published, then DELETED.** The Drive ids are recorded from the 2021-12 snapshot and both now return HTTP 404. Every other id from the same snapshots still resolves, so this is deletion by the city, not rot in the archive |
 
 ⚠ **Accepted, not fixed:** a missing year is silent about *why*. Buncombe offers
 FY2008 then jumps to FY2011 with nothing telling a visitor those reports were
@@ -282,7 +311,7 @@ A database self-check would be **tautological** — the loader computes the tota
 as the sum of the nodes it passes to the RPC, so `total = Σ items` agrees by
 construction and passes on a completely mis-parsed statement.
 
-**Result: ALL CHECKS PASSED. 116 rows checked, 99 corroborated by a second
+**Result: ALL CHECKS PASSED. 134 rows checked, 117 corroborated by a second
 implementation.**
 
 The **17 uncorroborated rows are named**, never folded into the pass count, and
@@ -304,8 +333,12 @@ in SQL: all 116 rows on `general_fund / actual / primary_government`.
 ## 6. Scope classification
 
 A new **`nc-local-acfr-gf`** family in all three axis registries, evidenced by
-**eight probes** across all four entities — two per entity, one recent and one
-from the hardest era of its corpus.
+**eleven probes** across all four entities — at least two each, one recent and
+one from the hardest era of its corpus. Asheville carries five, because nine of
+its years were recovered later and come from an **earlier era of the city's
+typesetting**, so the column layout could not be assumed to carry back: FY2009,
+FY2015 and FY2018 were probed as well, and all three close the additive identity
+exactly (GF at 90.2% / 95.4% / 92.6% of total governmental revenue).
 
 `scripts/ncScopeProbe.py` identifies the Total Governmental column by a
 **self-validating additive identity** (the other fund columns must sum to it
@@ -339,7 +372,7 @@ purposes."* That is the issuer's own GAAP General Fund column — the column sto
 Partition gates green on both writers with **no pre-existing count moved**:
 `classifyFundScope` 78,416 claimed + 9,426 unknown = 87,842/87,842;
 `stampBudgetAxes` the same on basis and reporting_entity. Table total moved
-**87,726 → 87,842, exactly +116**.
+**87,726 → 87,860, exactly +134**.
 
 ---
 
@@ -347,12 +380,12 @@ Partition gates green on both writers with **no pre-existing count moved**:
 
 | Gate | Result |
 |---|---|
-| `npm test` | 625/625, 41 files |
+| `npm test` | 630/630, 41 files |
 | `npm run build` | clean |
 | `acfrGF.selftest.py` | 166/166 |
 | `verify-colorado.mjs` | 64 rows, 58 corroborated, ALL CHECKS PASSED (re-run after the paren fix **and** after the El Paso refactor) |
-| Extraction tie gate | 116/116 rows at exactly $0 |
-| `verify-nc.mjs` | **ALL CHECKS PASSED** — 116 rows, 99 corroborated, 17 named single-reader |
+| Extraction tie gate | 134/134 rows at exactly $0 |
+| `verify-nc.mjs` | **ALL CHECKS PASSED** — 134 rows, 117 corroborated, 17 named single-reader |
 | `classifyFundScope --dry-run` | partition gate ✅ |
 | `stampBudgetAxes --dry-run` | partition gate ✅ |
 

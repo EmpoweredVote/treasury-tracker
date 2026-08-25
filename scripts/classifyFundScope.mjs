@@ -91,10 +91,14 @@ export const EXPECTED_ROWS = Object.freeze({
   // Evidence: docs/superpowers/plans/CO-SPRINGS-EPC-01-CLOSEOUT.md section 6.
   'co-local-acfr-gf': 64,
   // NC-DURHAM-AVL-01, measured 2026-08-24: City of Durham 32 + Durham County 42
-  // + City of Asheville 10 + Buncombe County 32. A NEW family, so no
+  // + City of Asheville 28 + Buncombe County 32. A NEW family, so no
   // pre-existing count moved.
+  // ⚠ Was 116 at first load. Asheville rose 10 -> 28 rows when nine years the
+  // city had DELINKED (but not deleted) were recovered from Wayback snapshots
+  // of its own page; the Drive files are still live. See ASHEVILLE_EXCLUDED in
+  // scripts/lib/ncAcfrSources.mjs for the five years that remain unloadable.
   // Evidence: docs/superpowers/plans/NC-DURHAM-AVL-01-CLOSEOUT.md section 6.
-  'nc-local-acfr-gf': 116,
+  'nc-local-acfr-gf': 134,
   // The sixteen entity-published city/state ACFR families, measured 2026-08-19.
   // Evidence: docs/superpowers/plans/ACFR-GF-CLASSIFICATION-RECON.md.
   // 106 + 64 + 34 + 56 = 260. All NEW families; no pre-existing count moved.

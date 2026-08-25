@@ -159,30 +159,78 @@ export function durhamCountyUrls(fy) {
 
 // -- City of Asheville -------------------------------------------------------
 /**
- * `{ fiscal_year: Google Drive file id }`, transcribed from the city's ACFR
- * page. Asheville is the only one of the four that publishes to Drive rather
- * than to its own host, so there is no filename to reason about at all — the
- * id is the whole address and it is opaque.
+ * `{ fiscal_year: Google Drive file id }`. Asheville is the only one of the four
+ * that publishes to Drive rather than to its own host, so there is no filename
+ * to reason about at all — the id is the whole address and it is opaque.
  *
- * ⚠ The page carries SIX Drive links for five fiscal years: FY2021 is listed
- * twice, once as the ACFR (`18Nx9L…`) and once as the "Compliance Audit"
- * (`1TLDiS…`), which is the Uniform Guidance single-audit report — a
- * different document that names the same fiscal year and would pass a naive
- * year check. Only the ACFR id is recorded here; the compliance id is listed
- * in ASHEVILLE_REJECTED_IDS so the test can assert it never returns.
+ * ⚠ FY2007-FY2020 ARE NOT ON THE CITY'S CURRENT PAGE. That page lists only
+ * FY2021 onward, which is why NC-DURHAM-AVL-01 first shipped Asheville as a
+ * five-year series. The earlier ids were recovered from WAYBACK SNAPSHOTS OF
+ * THE CITY'S OWN PAGE — the 2019-08 snapshot lists FY2007-FY2018 and the
+ * 2021-12 snapshot adds FY2019 and FY2020 — and every one of those Drive files
+ * IS STILL LIVE. The city removed the links, not the documents.
  *
- * The published archive begins at FY2021; the city does not host earlier
- * reports. Per the milestone scope decision, earlier years are NOT pursued —
- * Asheville is a five-year series and is expected to be shorter than the
- * other three.
+ * ⚠ SO THE BYTES ARE STILL FIRST-PARTY. The archive was used only to DISCOVER
+ * the addresses; every file is fetched from the city's own Google Drive at load
+ * time and `source_url` records that live URL, never a web.archive.org one.
+ * Nothing here is served from an archive copy. (Had a file been gone from
+ * Drive, the honest options were a Wayback-sourced row labelled as such, or no
+ * row — not a silent archive fetch under a first-party URL.)
+ *
+ * ⚠ FY2019 uses Drive's OLD long-form id (`0B2t_…`), where every other year
+ * uses the modern short form. Both resolve; a length or charset assumption
+ * about Drive ids would drop exactly that one year.
+ *
+ * ⚠ The page carries an EXTRA Drive link for FY2021: the Uniform Guidance
+ * single-audit "Compliance Audit", which names the same fiscal year and would
+ * pass a naive year check. Only the ACFR id is recorded here; the compliance id
+ * is listed in ASHEVILLE_REJECTED_IDS so the test can assert it never returns.
  */
 export const ASHEVILLE_DRIVE_IDS = {
+  // FY2009-FY2018 — transcribed from the 2019-08-23 Wayback snapshot of the
+  // city's own ACFR page. Still live on Drive; only the LINKS were removed.
+  2009: '12ZXmbgvTs_Frf58bMR41Jas6qRJ3I0Tm',
+  2010: '12W9pYa1pWwimsPCVCaYNBQ7idMbY3XIK',
+  2011: '12VqXONdpf54KNJ3MzHsEMb-W-jJeDQs2',
+  2012: '11LWYubKb-zZdBSVCriFS78d_4lADS9xp',
+  2014: '11IAoBtBRLTRLca0gKoYJsC5K7nbsR--6',
+  2015: '11HzbAnLc4phtL_EU3XBlUtgouvx9s_ht',
+  2016: '116mxNgtWoTbMLG78NvHwUjJsydb6c8qw',
+  2017: '115zJHlCFw4f0f-nN_4uTpS5CCbOW2YbE',
+  2018: '10wv1YNCnSx5bgNqyr_x-lGZHPtTOkGGh',
+  // FY2021+ — currently published on the city's live ACFR page.
   2021: '18Nx9LLB9aiKRW7KmpAorpiq2Inuf__7_',
   2022: '1wKYxK1c81LfzXj6aLuNxTqm0Y_mr2hXs',
   2023: '1Ac9khivhKor4YjSpmDIg3c4o_Zji2Qbx',
   2024: '1pAvE04Ka-hMDMIwcD2Wagwwg1bHJkOtm',
   2025: '1TWc9sOMHvgy5aSbN3uo-V1vOF29ifzwm',
 };
+
+/**
+ * Asheville years that EXIST but cannot be loaded, each with the reason
+ * MEASURED rather than assumed. Recorded here so the gaps in the city's series
+ * are auditable instead of looking like years nobody looked for.
+ *
+ * ⚠ FY2019 and FY2020 are a DIFFERENT KIND of gap from the rest of this
+ * milestone: the documents were published and are now GONE. The Drive ids are
+ * transcribed from the 2021-12 Wayback snapshot of the city's page and both
+ * return HTTP 404 — the city deleted the files, not just the links. Every other
+ * id from those snapshots still resolves, so this is deletion, not rot in the
+ * archive. Recovering them needs the NC LGC, whose FY2019-FY2021 archive is a
+ * JavaScript app with no file listing (its FY2022+ sibling is a Power Apps
+ * portal behind `/_services/entity-grid-data.json`), or a request to the city.
+ */
+export const ASHEVILLE_EXCLUDED = {
+  2007: 'IMAGE-ONLY SCAN — 292 characters of text in 183 pages',
+  2008: 'IMAGE-ONLY SCAN — 172 characters of text in 172 pages',
+  2013: 'HYBRID SCAN — only 18 of 240 pages carry text, and the fund statements '
+      + 'are not among them; the auditor report page is born-digital, the '
+      + 'statements are images',
+  2019: 'DELETED FROM DRIVE — id 0B2t_Ch5LbY5eUXdxMHBDR18xX1lhTXFoZ3dMcEExMGNQaXFr returns HTTP 404',
+  2020: 'DELETED FROM DRIVE — id 1H6OtnyAm1zIYknYf-aXADRidRfc3gGs3 returns HTTP 404',
+};
+
+
 
 /** The FY2021 single-audit report. Present on the page, never a source. */
 export const ASHEVILLE_REJECTED_IDS = {

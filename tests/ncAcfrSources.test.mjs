@@ -19,6 +19,7 @@ import {
   NC_FISCAL_YEAR_START_MONTH, NC_FY_END_MONTH_DAY, NC_ENTITIES,
   assertFiscalYear, assertIssuer, NC_ISSUERS,
   coordRootAmounts, treeRootAmounts, isDoubledGlyphs,
+  ASHEVILLE_FYS, ASHEVILLE_EXCLUDED as EXCLUDED,
 } from '../scripts/lib/ncAcfrSources.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -328,5 +329,42 @@ describe('isDoubledGlyphs — the overprinted-row detector', () => {
     expect(isDoubledGlyphs(null)).toBe(false);
     expect(isDoubledGlyphs(undefined)).toBe(false);
     expect(isDoubledGlyphs('')).toBe(false);
+  });
+});
+
+describe('Asheville — the delinked years', () => {
+  it('covers FY2009-FY2025 apart from five diagnosed exclusions', () => {
+    for (let fy = 2009; fy <= 2025; fy++) {
+      const loadable = ASHEVILLE_FYS.includes(fy);
+      const excluded = Object.keys(EXCLUDED).map(Number).includes(fy);
+      expect(loadable !== excluded, `FY${fy} must be exactly one of loadable/excluded`).toBe(true);
+    }
+    expect(ASHEVILLE_FYS.length).toBe(14);
+  });
+
+  it('every excluded year states a MEASURED reason, not a shrug', () => {
+    for (const [fy, why] of Object.entries(EXCLUDED)) {
+      expect(why, `FY${fy}`).toMatch(/IMAGE-ONLY|HYBRID|DELETED/);
+      // each reason carries a number or an id — evidence, not an adjective
+      expect(why, `FY${fy}`).toMatch(/\d/);
+    }
+  });
+
+  it('the two DELETED years are recorded as deletion, not as never-published', () => {
+    expect(EXCLUDED[2019]).toMatch(/DELETED FROM DRIVE/);
+    expect(EXCLUDED[2020]).toMatch(/DELETED FROM DRIVE/);
+  });
+
+  it('no excluded year has a Drive id that could be fetched by mistake', () => {
+    for (const fy of Object.keys(EXCLUDED).map(Number)) {
+      expect(ASHEVILLE_DRIVE_IDS[fy], `FY${fy}`).toBeUndefined();
+      expect(ashevilleUrls(fy), `FY${fy}`).toEqual([]);
+    }
+  });
+
+  it('FY2013 sits INSIDE the run, so the series has an interior gap', () => {
+    expect(ASHEVILLE_FYS).toContain(2012);
+    expect(ASHEVILLE_FYS).not.toContain(2013);
+    expect(ASHEVILLE_FYS).toContain(2014);
   });
 });

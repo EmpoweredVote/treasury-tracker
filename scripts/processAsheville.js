@@ -1,18 +1,39 @@
 #!/usr/bin/env node
 /**
  * City of Asheville, NC — General Fund operating (expenditure-by-function) +
- * revenue (revenue-by-source), FY2021–FY2025, ACTUAL (ACFR GAAP basis).
+ * revenue (revenue-by-source), FY2009–FY2025 where readable, ACTUAL (ACFR GAAP
+ * basis).
  *
  * Thin driver over `scripts/lib/acfrGfLoad.mjs`, which carries the write path
  * and the five guards (tie gate, fiscal-year assertion, per-capita units
  * guard, sanity ceiling, idempotence).
  *
- * FY WINDOW: FY2021–FY2025, five years, 10 rows — the entire published corpus.
- * This is deliberately the SHORTEST series in the milestone: the city hosts
- * nothing earlier than FY2021 on its ACFR page, and chasing older reports
- * through the legacy site or the Wayback Machine was scoped OUT of
- * NC-DURHAM-AVL-01 rather than attempted and quietly abandoned. Asheville will
- * therefore show a five-year chart next to Durham County's twenty-one.
+ * FY WINDOW: FY2009–FY2012, FY2014–FY2018 and FY2021–FY2025 — fourteen years,
+ * 28 rows.
+ *
+ * ⚠ NINE OF THOSE YEARS ARE NOT ON THE CITY'S CURRENT PAGE. It lists only
+ * FY2021 onward, which is why this entity first shipped as a five-year series.
+ * The earlier Google Drive ids were recovered from WAYBACK SNAPSHOTS OF THE
+ * CITY'S OWN PAGE, and the files themselves are STILL LIVE on Drive — the city
+ * removed the links, not the documents. The archive was used only to DISCOVER
+ * the addresses; every byte is fetched from the city's own Drive at load time
+ * and `source_url` records that live first-party URL, never a web.archive.org
+ * one.
+ *
+ * ⚠ FIVE YEARS EXIST AND STILL CANNOT BE LOADED, each diagnosed rather than
+ * shrugged at (see ASHEVILLE_EXCLUDED in scripts/lib/ncAcfrSources.mjs):
+ *
+ *   FY2007  IMAGE-ONLY SCAN — 292 characters of text in 183 pages
+ *   FY2008  IMAGE-ONLY SCAN — 172 characters of text in 172 pages
+ *   FY2013  HYBRID SCAN — only 18 of 240 pages carry text, and the fund
+ *           statements are not among them
+ *   FY2019  DELETED FROM DRIVE — HTTP 404
+ *   FY2020  DELETED FROM DRIVE — HTTP 404
+ *
+ * FY2019/FY2020 are a different kind of gap from anything else in this
+ * milestone: those documents were published and are now GONE. Every other id
+ * from the same snapshots still resolves, so this is deletion by the city, not
+ * rot in the archive.
  *
  * ⚠ READER: COORDINATES, via `scripts/extractAshevilleCoords.py`, for the WHOLE
  * ENTITY. The FY2021 and FY2022 PDFs set character spacing such that
@@ -39,7 +60,10 @@
 
 import { run } from './lib/acfrGfLoad.mjs';
 
-const FYS = [2021, 2022, 2023, 2024, 2025];
+// Written out rather than generated so the three gaps are visible in the
+// source, not implied by a filter. FY2013 sits INSIDE the run.
+const FYS = [2009, 2010, 2011, 2012, 2014, 2015, 2016, 2017, 2018,
+  2021, 2022, 2023, 2024, 2025];
 
 await run({
   entityLabel: 'City of Asheville',

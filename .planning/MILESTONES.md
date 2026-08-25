@@ -14,10 +14,18 @@
 
 ## v2.31 NC-DURHAM-AVL-01 — Durham, Asheville, and the report that is not the county's (Shipped: 2026-08-24, UAT pending)
 
-**North Carolina's first LOCAL entities.** The state had only its state node. 116 General
+**North Carolina's first LOCAL entities.** The state had only its state node. 134 General
 Fund rows across four governments — City of Durham FY2009–24 (32), Durham County FY2005–25
-(42), City of Asheville FY2021–25 (10), Buncombe County FY2008 + FY2011–25 (32) — all GAAP
+(42), City of Asheville FY2009–25 (28), Buncombe County FY2008 + FY2011–25 (32) — all GAAP
 actuals, all whole dollars, all tying at exactly $0.
+
+⚠ **ASHEVILLE WAS ALMOST A FIVE-YEAR SERIES.** Its ACFR page lists only FY2021 onward, and
+the first pass took that at face value. Wayback snapshots of *the city's own page* list Drive
+ids for FY2007–FY2020, and **every one of those files is still live** — the city removed the
+links, not the documents. Nine years recovered, 5 → 14. The archive was used only to DISCOVER
+the addresses; every byte is fetched from the city's own Drive and `source_url` records that
+live first-party URL. **"The issuer publishes only N years" is a claim about a page, and a
+page is not an archive.**
 
 ⚠ **The guard this milestone exists for was WRONG on its first version, and the fixture
 proved it.** Buncombe County and the Buncombe County **Board of Education** each publish an
@@ -55,11 +63,11 @@ city renames its lease-debt heading every year (`Leases` → `Leases/SBITA's` �
 `Lease/subscription debt service`) and only the coordinate reader, which takes hierarchy from
 printed indentation, was unaffected.
 
-**Gates:** `verify-nc.mjs` **ALL CHECKS PASSED** — 116 rows, 99 corroborated by a second
-implementation, 17 named single-reader with a diagnosed cause each · `npm test` 625/625 ·
+**Gates:** `verify-nc.mjs` **ALL CHECKS PASSED** · `npm test` 630/630 ·
 `npm run build` clean · `acfrGF.selftest.py` 166/166 · `verify-colorado.mjs` 64 rows /
-58 corroborated ALL PASSED · 116/116 rows tie at $0 · both partition gates green, table
-total 87,726 → 87,842 (exactly +116).
+58 corroborated ALL PASSED · 134/134 rows tie at $0 · both partition gates green (the gate
+REFUSED to write when Asheville grew and the registered count still said 116), table
+total 87,726 → 87,860 (exactly +134).
 
 Closeout: `docs/superpowers/plans/NC-DURHAM-AVL-01-CLOSEOUT.md`.
 
