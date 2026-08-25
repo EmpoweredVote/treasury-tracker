@@ -172,6 +172,59 @@ export const REPORTING_ENTITY_REGISTRY = [
     },
   },
   {
+    // NC-DURHAM-AVL-01, measured 2026-08-24: City of Durham 32 + Durham County 42
+    // + City of Asheville 10 + Buncombe County 32 = 116. A NEW family, so no
+    // pre-existing count moved.
+    //
+    // WARNING ANCHORED TO THE FOUR ENTITY NAMES, for the same reason
+    // tx-local-acfr-gf and co-local-acfr-gf are: the general /ACFR - General
+    // Fund/ pattern claims ~1,850 rows across families nobody has reconciled. A
+    // future North Carolina ACFR load therefore lands `unknown` until it is
+    // evidenced, which is the correct failure direction.
+    //
+    // WARNING this matches the DATA_SOURCE STRING, and "Durham" is also a town
+    // in CONNECTICUT and NEW HAMPSHIRE - TT already carries CT entities. The
+    // string written here is "City of Durham", which neither town would use,
+    // and no such rows exist today; were they loaded later under a colliding
+    // label they would need splitting by municipality_id rather than by this
+    // string.
+    id: 'nc-local-acfr-gf',
+    match: /^(City of Durham|Durham County|City of Asheville|Buncombe County) ACFR — General Fund /,
+    value: REPORTING_ENTITY.PRIMARY,
+    evidence: {
+      document: 'The Reporting Entity / Summary of Significant Accounting Policies notes of the '
+              + 'FY2024 ACFRs of all four entities.',
+      figures: 'The stored figure is the printed General Fund column of the FUND financial '
+             + 'statements. Under GASB 34 discretely presented component units appear only in the '
+             + 'government-wide statements, in their own separate column, so they cannot be in it '
+             + '- and each issuer states exactly that. '
+             + 'DURHAM COUNTY: "The Durham County Board of Alcoholic Beverage Control (ABC Board) '
+             + 'is a discretely presented component unit"; "The discretely presented component '
+             + 'unit below is reported in a separate column in the County government-wide '
+             + 'financial statements to emphasize that it is legally separate from the County." '
+             + 'CITY OF ASHEVILLE: the ABC Board is likewise discrete - "The City discretely '
+             + 'presented component unit is reported in a separate column ... in order to '
+             + 'emphasize that it is legally separate from the City", and the auditor records it '
+             + 'as "100% of the assets, net position and revenues of the City discretely '
+             + 'presented component unit". '
+             + 'BUNCOMBE COUNTY: "The discretely presented component units listed below are '
+             + 'reported in separate columns in the financial statements of the County." '
+             + 'CITY OF DURHAM is the cleanest case of all: "Based on these criteria the City does '
+             + 'not have any discretely presented component units." '
+             + 'Corroboration on the BLENDED units, which are inside the primary government by '
+             + 'GASB 34 exactly as for wa-sao, state-acfr-gf, tx-local-acfr-gf and '
+             + 'co-local-acfr-gf - in every case none of them IS the General Fund. City of Durham '
+             + 'blends the New Durham Corporation, "reported as a blended component unit because '
+             + 'its purpose is to finance City revitalization projects and purchases of capital '
+             + 'equipment", and the city lists it among its GOVERNMENTAL ACTIVITIES rather than in '
+             + 'the General Fund. Buncombe County blends the Buncombe County Service Foundation, '
+             + 'and the county states where it lands: it is listed among the NON-MAJOR legally '
+             + 'budgeted special revenue funds as "the Buncombe County Service Foundation blended '
+             + 'component unit presented as a fund" - a nonmajor special revenue fund, not the '
+             + 'General Fund column.',
+    },
+  },
+  {
     id: 'wa-sao',
     match: /^WA State Auditor — /,
     value: REPORTING_ENTITY.PRIMARY,

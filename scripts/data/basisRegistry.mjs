@@ -158,6 +158,50 @@ export const BASIS_REGISTRY = [
     },
   },
   {
+    // NC-DURHAM-AVL-01, measured 2026-08-24: City of Durham 32 + Durham County 42
+    // + City of Asheville 10 + Buncombe County 32 = 116. A NEW family, so no
+    // pre-existing count moved.
+    //
+    // WARNING ANCHORED TO THE FOUR ENTITY NAMES, for the same reason
+    // tx-local-acfr-gf and co-local-acfr-gf are: the general /ACFR - General
+    // Fund/ pattern claims ~1,850 rows across families nobody has reconciled. A
+    // future North Carolina ACFR load therefore lands `unknown` until it is
+    // evidenced, which is the correct failure direction.
+    //
+    // WARNING this matches the DATA_SOURCE STRING, and "Durham" is also a town
+    // in CONNECTICUT and NEW HAMPSHIRE - TT already carries CT entities. The
+    // string written here is "City of Durham", which neither town would use,
+    // and no such rows exist today; were they loaded later under a colliding
+    // label they would need splitting by municipality_id rather than by this
+    // string.
+    id: 'nc-local-acfr-gf',
+    match: /^(City of Durham|Durham County|City of Asheville|Buncombe County) ACFR — General Fund /,
+    value: BASIS.ACTUAL,
+    evidence: {
+      document: 'City of Durham FY2024 + FY2012, Durham County FY2024 + FY2008, City of Asheville '
+              + 'FY2024 + FY2022 and Buncombe County FY2024 + FY2015 ACFRs - audited, closed '
+              + 'fiscal years. Every NC local unit closes June 30 (N.C.G.S. 159-8(b)) and FY2025 '
+              + 'ended 2025-06-30, so the whole window is closed.',
+      figures: 'Every stored figure is the printed General Fund column of the governmental-funds '
+             + 'Statement of Revenues, Expenditures and Changes in Fund Balances - a year-end GAAP '
+             + 'actual, tying at exactly $0 on both sides in all 116 rows. NOT an appropriation. '
+             + 'All four issuers ALSO publish a budgetary-comparison statement for the General '
+             + 'Fund in the same document (Asheville describes its own: "four columns: 1) the '
+             + 'original budget as adopted by the City Council, 2) ... as amended, 3) the actual '
+             + 'resources ... and 4) the difference or variance"), which IS budgetary basis. '
+             + 'Loading that page instead would have put budget-basis figures under a GAAP-actual '
+             + 'label with no arithmetic symptom. It is structurally unreachable: every reader '
+             + 'excludes any page whose text carries "budget and actual" or "budgetary", and the '
+             + 'fund statement precedes the budgetary schedule in all four issuers so the '
+             + 'earliest-qualifying rule reaches it first. '
+             + 'A SECOND DECOY, specific to this milestone: all four issuers publish a POPULAR '
+             + 'ANNUAL FINANCIAL REPORT alongside the ACFR - and Durham County publishes its real '
+             + 'FY2020 ACFR under the PAFR-style filename "FY-2020-Financial-Report.pdf". The '
+             + 'separation is by page count and by the presence of the fund statements, never by '
+             + 'filename (scripts/lib/ncAcfrSources.mjs).',
+    },
+  },
+  {
     id: 'wa-sao',
     match: /^WA State Auditor — /,
     value: BASIS.ACTUAL,

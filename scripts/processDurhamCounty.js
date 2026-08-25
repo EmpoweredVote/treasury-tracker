@@ -22,6 +22,19 @@
  * `scripts/verify-nc.mjs` requires the two readers to agree to the dollar and
  * names the six rows that rest on one reader alone.
  *
+ * ⚠ AN HONEST STRUCTURAL ABSENCE, CHECKED RATHER THAN ASSUMED. FY2005–FY2021
+ * publish ONE expenditure category (`Current`); FY2022–23 publish two and
+ * FY2024–25 three. The county's General Fund prints a DASH for `Principal
+ * retirement`, `Interest and fiscal charges` and `Debt issuance costs` in the
+ * early years — it runs debt service through a separate DEBT SERVICE FUND,
+ * which its own MD&A names as a major fund alongside the General Fund — and the
+ * eight `Current` children sum exactly to the printed `Total expenditures`, so
+ * no money is missing. Verified in the document rather than inferred, because
+ * "a category vanished for seventeen years and the tie still passed" is exactly
+ * the shape a mis-parse takes. The extractor drops a childless parent rather
+ * than publishing an empty node, which is why the count changes rather than a
+ * $0 category appearing.
+ *
  * Nesting is read from the printed glyph indentation rather than declared, so
  * this entity needs no `parents` / `root_leaves` config at all. That matters
  * because a tie proves arithmetic and never structure.

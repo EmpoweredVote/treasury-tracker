@@ -18,6 +18,18 @@
  * `scripts/lib/ncAcfrSources.mjs` for why this milestone never filters on
  * filenames.
  *
+ * ⚠ AN HONEST STRUCTURAL ABSENCE, CHECKED RATHER THAN ASSUMED. FY2016–FY2021
+ * publish only ONE expenditure category (`Current`) where the surrounding years
+ * publish two. The city's General Fund prints a DASH for both `Principal` and
+ * `Interest and other charges` in those years — its debt service sat in a
+ * separate Debt Service Fund — and the six `Current` children sum exactly to
+ * the printed `Total expenditures`, so no money is missing. Confirmed by BOTH
+ * readers independently (`-table` reports them in `zero_rows`; the coordinate
+ * reader reports `cell: "dash"`), because "a category vanished for six years
+ * and the tie still passed" is precisely the shape a mis-parse takes. The
+ * shared extractor drops a childless parent rather than publishing an empty
+ * node, which is why the count changes rather than a $0 category appearing.
+ *
  * READER: `pdftotext -table`, via `scripts/extractDurhamCity.py`. This city has
  * no diagnosed `-table` defect, so it stays on the shared reader; the
  * coordinate reader is applied only as an independent CROSS-CHECK in
