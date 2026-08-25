@@ -221,6 +221,42 @@ class CityConfig:
                  same `B-4`, but `find_statement_page` returns the EARLIEST
                  qualifying page and the General Fund column plus both `Total`
                  rows are wholly on page 1, so page 1 always wins.
+    exclude_ignore
+                 `_EXCLUDE` terms to STOP disqualifying a page for this entity.
+                 Defaults to empty, so every entity that does not set it keeps
+                 the previous behaviour byte-for-byte.
+
+                 `_EXCLUDE` assumes its terms only ever appear on pages that are
+                 NOT the primary statement — a combining schedule, a budgetary
+                 comparison, a proprietary or fiduciary statement. Buncombe
+                 County breaks that assumption: FY2011-FY2018 print the
+                 GOVERNMENT-WIDE RECONCILIATION AT THE FOOT OF THE FUND
+                 STATEMENT ITSELF, on the same page, so the genuine primary
+                 statement carries both 'reconciliation' and 'net position':
+
+                     Total revenues                          289,342,572
+                     Total expenditures                      286,305,444
+                     ...
+                     Amounts reported for governmental activities in the
+                       statement of activities (Exhibit 2) are different:
+                     Reconciliation to full accrual basis ...  (59,815,308)
+                     Total change in net position ...        $ (48,705,758)
+
+                 With the default list those eight years report "primary GF
+                 statement not found" and the county's series has a
+                 seven-year hole in the middle. Naming the two terms here is
+                 narrower than deleting them from `_EXCLUDE`, which would
+                 weaken the check for the other twenty-odd entities that rely
+                 on it.
+
+                 The value is VALIDATED against `_EXCLUDE` at construction: a
+                 term not in that tuple raises, because a typo would disable
+                 nothing while looking like it had.
+
+                 ⚠ This widens which pages can qualify, so it must be paired
+                 with evidence that the page chosen is the RIGHT one.
+                 `verify-nc.mjs` re-derives every Buncombe year through an
+                 independent coordinate reader that finds its own page.
     revenue_total_labels
                  lowercase candidate strings for the printed revenue-subtotal
                  row, tried in order, matched case-insensitively. Defaults to
@@ -312,7 +348,7 @@ class CityConfig:
                  revenue_parents=(), revenue_group_members=(),
                  statement_anchor=None, section_header_mode='exact',
                  fy_end=('June', 30), revenue_total_labels=('total revenues',),
-                 empty_rows=()):
+                 empty_rows=(), exclude_ignore=()):
         if not isinstance(units, int) or isinstance(units, bool):
             raise TypeError(
                 'CityConfig.units must be an int, got %r (%s). A float would '
@@ -336,6 +372,13 @@ class CityConfig:
         self.fy_end = fy_end
         self.revenue_total_labels = tuple(lbl.lower() for lbl in revenue_total_labels)
         self.empty_rows = tuple(r.lower() for r in empty_rows)
+        unknown = tuple(t for t in exclude_ignore if t.lower() not in _EXCLUDE)
+        if unknown:
+            raise ValueError(
+                'CityConfig.exclude_ignore names %r, which is not in _EXCLUDE %r. '
+                'A typo there would silently disable nothing and leave the page '
+                'rejected, which reads as "no statement found".' % (unknown, _EXCLUDE))
+        self.exclude_ignore = tuple(t.lower() for t in exclude_ignore)
 
 
 # ── Money parsing ─────────────────────────────────────────────────────────────
@@ -605,7 +648,8 @@ def table_pages(pdf_path):
         sys.exit(2)
     return out.stdout.split('\f')
 
-def find_statement_page(pages, statement_anchor=None, revenue_total_labels=('total revenues',)):
+def find_statement_page(pages, statement_anchor=None, revenue_total_labels=('total revenues',),
+                        exclude_ignore=()):
     """(page_index, page_text) for the primary governmental-funds statement —
     the earliest qualifying page, since basic statements precede supplementary
     schedules. (None, None) if not found.
@@ -634,7 +678,7 @@ def find_statement_page(pages, statement_anchor=None, revenue_total_labels=('tot
             continue
         if 'general' not in low or 'fund' not in low:
             continue
-        if any(x in low for x in _EXCLUDE):
+        if any(x in low for x in _EXCLUDE if x not in exclude_ignore):
             continue
         cands.append((i, pg))
     if not cands:
@@ -1287,7 +1331,8 @@ def build_operating(lines, col_anchors, cfg):
 # ── Orchestration ────────────────────────────────────────────────────────────
 def extract(pdf_path, mode, cfg):
     pages = table_pages(pdf_path)
-    pi, pg = find_statement_page(pages, cfg.statement_anchor, cfg.revenue_total_labels)
+    pi, pg = find_statement_page(pages, cfg.statement_anchor, cfg.revenue_total_labels,
+                                cfg.exclude_ignore)
     if pg is None:
         print('  ERROR: primary GF statement not found in %s' % pdf_path, file=sys.stderr)
         sys.exit(3)

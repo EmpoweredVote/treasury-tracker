@@ -80,188 +80,28 @@ Usage:
   py -3 scripts/extractElPasoCountyCoords.py docs/ElPasoCounty/el-paso-county-2020-acfr.pdf --mode operating
 """
 
-import argparse
-import json
+# ── THIS FILE IS NOW A THIN WRAPPER ─────────────────────────────────────────
+# The machinery below used to live here in full. NC-DURHAM-AVL-01 needed the
+# same coordinate reader for Durham County and Asheville, so it was generalised
+# into `scripts/lib/acfrGfCoords.py` rather than copied — two divergent copies
+# of a parser this subtle is how a fix lands in one entity and not the other.
+#
+# The move was proved rather than assumed: every one of this county's 26 years
+# was run through BOTH implementations in both modes and all 52 outputs were
+# BYTE-IDENTICAL, and `scripts/verify-colorado.mjs` still reports 64 rows / 58
+# corroborated / ALL CHECKS PASSED.
+
 import pathlib
 import sys
 
-import pdfplumber
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent / 'lib'))
+from acfrGfCoords import CoordsConfig, run_cli   # noqa: E402
 
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from acfrGfComponents import (  # noqa: E402
-    collect, establish_column, find_statement, lines_of,
-    numbers_on, REV_BANNER, REV_TOTAL, EXP_BANNER, EXP_TOTAL,
+CONFIG = CoordsConfig(
+    city='El Paso County, CO',
+    units=1,               # whole dollars; the county prints full figures
+    weld='disclosure',     # the TABOR figure printed inside the revenue label
 )
-import re  # noqa: E402
-
-def clean_label(label):
-    """Strip a TRAILING COLON from a printed label.
-
-    Punctuation only, never wording. The county prints its expenditure group
-    heading as "Current:" in most years and "Current" in others, and a category
-    named `Current:` in the UI is the issuer's typography leaking into a chart
-    legend. `acfrGF._is_section_header` already ignores a trailing colon for the
-    same reason, so this keeps the two readers' labels comparable — which
-    matters because `verify-colorado.mjs` compares them.
-    """
-    return label.rstrip(':').strip()
-
-
-CITY = 'El Paso County, CO'
-UNITS = 1  # whole dollars; the county prints full figures
-
-# Indentation deeper than the section's root by more than this many points is a
-# CHILD row. Measured gap is 5.0pt (69.8 -> 74.8) and fund columns are 50-90pt
-# apart, so this sits clear of both. A row within tolerance of the root x0 is a
-# root-level peer even if it is visually a hair off.
-INDENT_TOL = 1.5
-
-
-def build_revenue_tree(rows):
-    """Flat: every revenue source is a root child. Zero rows are dropped and
-    reported, matching acfrGF's own behaviour (its `zero_rows` field)."""
-    children, zeros = [], []
-    for r in rows:
-        if r['amount'] == 0:
-            zeros.append(r['label'])
-            continue
-        children.append({'n': clean_label(r['label']), 'a': r['amount']})
-    return children, zeros
-
-
-def build_operating_tree(rows):
-    """Two levels, read off the printed indentation.
-
-    A root-level row with money is a VALUED ROOT LEAF (Capital outlay). A
-    root-level row with a blank or dash cell opens a PARENT, and the indented
-    rows that follow are its children. A parent that ends up with no non-zero
-    child is DROPPED rather than published as an empty node — the same choice
-    acfrGF makes, and why Travis County's FY2004-FY2011 emit no Debt service.
-    """
-    indents = [r['indent'] for r in rows if r['indent'] is not None]
-    if not indents:
-        return [], [], ['no label indentation could be measured']
-    root_x = min(indents)
-
-    tree, zeros, errors = [], [], []
-    open_parent = None
-    for r in rows:
-        if r['indent'] is None:
-            errors.append(f'row with no measurable indent: {r["label"][:40]}')
-            continue
-        is_root = r['indent'] <= root_x + INDENT_TOL
-        if is_root:
-            open_parent = None
-            if r['cell'] == 'number' and r['amount'] != 0:
-                tree.append({'n': clean_label(r['label']), 'a': r['amount']})
-            elif r['amount'] == 0:
-                # Ambiguous by value alone (a $0 root leaf and a group heading
-                # both read 0), so it is opened as a parent and dropped below if
-                # nothing indented follows. Publishing it as a $0 leaf would
-                # invent a category the county did not report.
-                open_parent = {'n': clean_label(r['label']), 'a': 0, 'c': []}
-                tree.append(open_parent)
-            continue
-        # Child row.
-        if open_parent is None:
-            errors.append(f'indented row with no open parent: {r["label"][:40]}')
-            continue
-        if r['amount'] == 0:
-            zeros.append(r['label'])
-            continue
-        open_parent['c'].append({'n': clean_label(r['label']), 'a': r['amount']})
-        open_parent['a'] += r['amount']
-
-    kept = []
-    for node in tree:
-        if 'c' in node:
-            if not node['c']:
-                zeros.append(node['n'])
-                continue
-        kept.append(node)
-    return kept, zeros, errors
-
-
-def leaf_sum(tree):
-    total = 0
-    for node in tree:
-        total += sum(c['a'] for c in node['c']) if 'c' in node else node['a']
-    return total
-
-
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument('pdf_path')
-    ap.add_argument('--mode', choices=('revenue', 'operating'), required=True)
-    ap.add_argument('--page', type=int, default=None)
-    args = ap.parse_args()
-
-    with pdfplumber.open(args.pdf_path) as pdf:
-        if args.page:
-            idx, page = args.page - 1, pdf.pages[args.page - 1]
-            text = page.extract_text() or ''
-        else:
-            idx, page, text = find_statement(pdf)
-        if page is None:
-            print('  ERROR: primary GF statement not found in %s' % args.pdf_path, file=sys.stderr)
-            sys.exit(3)
-        rows_all = lines_of(page)
-        alignment, edge = establish_column(rows_all)
-        if alignment is None:
-            print('  ERROR: General Fund column not established: %s' % edge, file=sys.stderr)
-            sys.exit(4)
-
-        if args.mode == 'revenue':
-            comps, errs, welds = collect(rows_all, REV_BANNER, REV_TOTAL, alignment, edge, UNITS, weld='disclosure')
-            printed_cols, _ = numbers_on(rows_all, REV_TOTAL)
-            children, zeros = build_revenue_tree(comps)
-            root_name = 'General Fund Revenue by Source'
-        else:
-            comps, errs, welds = collect(rows_all, EXP_BANNER, EXP_TOTAL, alignment, edge, UNITS, weld='disclosure')
-            printed_cols, _ = numbers_on(rows_all, EXP_TOTAL)
-            children, zeros, more = build_operating_tree(comps)
-            errs = errs + more
-            root_name = 'General Fund Expenditure by Function'
-
-        m = re.search(r'year\s+ended\s+\w+\s*\d{1,2},\s*(\d{4})', text, re.I)
-
-    if errs:
-        for e in errs:
-            print('  ROW ERROR: %s' % e, file=sys.stderr)
-        sys.exit(5)
-    if not printed_cols:
-        print('  ERROR: printed total row not located', file=sys.stderr)
-        sys.exit(6)
-
-    printed_total = printed_cols[0] * UNITS
-    computed_total = leaf_sum(children)
-    tie_delta = computed_total - printed_total
-
-    result = {
-        'city': CITY,
-        'fiscal_year': int(m.group(1)) if m else None,
-        'mode': args.mode,
-        'statement_page': idx + 1,
-        'reader': 'pdfplumber-coordinates',
-        'alignment': alignment,
-        'column_edge': round(edge, 2),
-        'tree': {'n': root_name, 'a': computed_total, 'c': children},
-        'computed_total': computed_total,
-        'printed_total': printed_total,
-        'tie_delta': tie_delta,
-        'zero_rows': zeros,
-        'welded_labels': welds,
-    }
-
-    if tie_delta != 0:
-        print('  TIE FAILURE (%s FY%s): computed %d vs printed %d (delta %d)'
-              % (args.mode, result['fiscal_year'], computed_total, printed_total, tie_delta),
-              file=sys.stderr)
-        print(json.dumps(result, indent=2))
-        sys.exit(1)
-
-    print(json.dumps(result, indent=2))
-
 
 if __name__ == '__main__':
-    main()
+    run_cli(CONFIG)

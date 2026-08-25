@@ -12,6 +12,84 @@
 > in sequence below so the ordering does not read as "v2.20 never happened", but it is a
 > pointer, not a summary — the archive is the record.
 
+## v2.31 NC-DURHAM-AVL-01 — Durham, Asheville, and the report that is not the county's (Shipped: 2026-08-24, UAT pending)
+
+**North Carolina's first LOCAL entities.** The state had only its state node. 138 General
+Fund rows across four governments — City of Durham FY2009–24 (32), Durham County FY2005–25
+(42), City of Asheville FY2009–25 (28), Buncombe County FY2008–25 unbroken (36) — all GAAP
+actuals, all whole dollars, all tying at exactly $0.
+
+⚠ **ASHEVILLE WAS ALMOST A FIVE-YEAR SERIES.** Its ACFR page lists only FY2021 onward, and
+the first pass took that at face value. Wayback snapshots of *the city's own page* list Drive
+ids for FY2007–FY2020, and **every one of those files is still live** — the city removed the
+links, not the documents. Nine years recovered, 5 → 14.
+
+⚠ **THE SAME MISTAKE HAD BEEN MADE ABOUT BUNCOMBE.** Its FY2009/FY2010 hole was recorded as
+"not published anywhere the county exposes", on the evidence that every two-digit year 404s
+against the flat `cafr/CAFR<yy>.pdf` scheme. That was evidence about the SCHEME. The archive's
+index of the host revealed a **fourth naming convention** — per-year subdirectories, one of
+them holding a file called simply `cafr.pdf` — all live on the county's own host. Buncombe is
+now **FY2008–FY2025 unbroken**. The move that found both was asking *"what has this host ever
+served?"* rather than *"does this name resolve?"*.
+
+**"The issuer publishes only N years" is a claim about a page, and a page is not an archive.**
+In both cases the archive was used only to DISCOVER addresses; every byte is fetched
+first-party and `source_url` records the live URL.
+
+⚠ **Two years were found, proven parseable, and deliberately NOT loaded.** Durham City
+FY2004–FY2006 exist only in the Internet Archive (its legacy host is dead) and all three
+extract at $0. Chris's call: keep the invariant that **every stored figure has a live,
+first-party `source_url`**. Buncombe FY2007 is excluded on stronger grounds — its largest
+revenue line produces no token in either reader, and recovering it by subtracting the rest
+from the printed total would be DERIVING a figure that then ties at $0 by construction.
+
+⚠ **The guard this milestone exists for was WRONG on its first version, and the fixture
+proved it.** Buncombe County and the Buncombe County **Board of Education** each publish an
+ACFR. The schools' FY2024 report is a genuine 137-page PDF saying "Buncombe County" and
+"June 30, 2024" on its cover, and it outranks the county's own report in search. Magic
+bytes, byte size, page count and the fiscal-year check all pass on it. A guard that required
+the issuer's name and forbade the neighbour's **accepted the impostor** — "Buncombe County
+Board of Education" *contains* "Buncombe County", and because every real county ACFR names
+its school board as a component unit, the exception that stopped the guard rejecting all 16
+real years is exactly what let the fake one through. A cover-page rule fails too: **21 of 58
+reports have an image-only page 1**. What holds is POSITIVE EVIDENCE OF AUTHORSHIP — an
+any-of governing-body marker, measured across all 58 files. Counties say *county manager*;
+cities say *mayor*; a school board says *superintendent*.
+
+⚠ **A SIGN FLIP in shipped code.** Asheville FY2022 emits its negative investment earnings
+as two words 0.1pt apart — a lone `(` then `372,058)` — and the merge rule required every
+fragment to contain a digit, so `parse_money` returned **+372,058 for a printed (372,058)**.
+It surfaced only because the components then over-summed by exactly twice the figure. Had
+that row been last, it would have shipped inverted. Colorado was re-verified rather than
+assumed after the fix.
+
+The reader is chosen **per entity on a diagnosed cause**, never per year by which one tied —
+that is curve-fitting, the LA-01 error. Durham County reads by glyph coordinates because
+`-table` renders its General Fund column at two character offsets in FY2006–11 (FY2008's
+four dropped rows sum to 8,630,391 = its exact tie delta); Asheville because FY2021–22
+letter-space every glyph on the page.
+
+⚠ **TWO WELDED LABELS, IN OPPOSITE DIRECTIONS, both invisible to every gate that
+existed.** A group heading read as a wrapped label and fused onto its child moves NO MONEY —
+so the $0 tie passes, the total check passes, and the leaf-multiset check passes, because the
+heading carried $0. Eleven Buncombe rows shipped "Intergovernmental Education" through all of
+them. The new **CHECK 12 compares ROOT-LEVEL SUBTOTALS**, and it immediately caught a second
+case pointing the other way: on Asheville FY2023 the *checker* was the guilty one, because the
+city renames its lease-debt heading every year (`Leases` → `Leases/SBITA's` →
+`Lease/subscription debt service`) and only the coordinate reader, which takes hierarchy from
+printed indentation, was unaffected.
+
+**Gates:** `verify-nc.mjs` **ALL CHECKS PASSED** · `npm test` 632/632 ·
+`npm run build` clean · `acfrGF.selftest.py` 166/166 · `verify-colorado.mjs` 64 rows /
+58 corroborated ALL PASSED · 138/138 rows tie at $0 · 121 corroborated by a second
+implementation · both partition gates green — and the gate **REFUSED THE WRITE TWICE**, once
+when Asheville grew past 116 and again when Buncombe grew past 134. Table total
+87,726 → 87,864 (exactly +138).
+
+Closeout: `docs/superpowers/plans/NC-DURHAM-AVL-01-CLOSEOUT.md`.
+
+---
+
 ## v2.30 SCOPE-04 — Derived Total Governmental, and the enterprise slice (Shipped: 2026-08-22, tag `v2.30`, UAT ✅ 2026-08-23)
 
 **488 California entities gained a second, honestly-labelled fund scope.** 7,650 derived

@@ -78,6 +78,19 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // County 36. A NEW family, so no pre-existing count moved.
   // Evidence: docs/superpowers/plans/CO-SPRINGS-EPC-01-CLOSEOUT.md section 6.
   'co-local-acfr-gf': 64,
+  // NC-DURHAM-AVL-01, measured 2026-08-25: City of Durham 32 + Durham County 42
+  // + City of Asheville 28 + Buncombe County 36. A NEW family, so no
+  // pre-existing count moved.
+  // ⚠ This count moved TWICE after the first load, both times because a series
+  // that looked complete was not. 116 -> 134: Asheville rose 10 -> 28 when nine
+  // years the city had DELINKED (not deleted) were recovered from Wayback
+  // snapshots of its own page. 134 -> 138: Buncombe rose 32 -> 36 when FY2009
+  // and FY2010, recorded as "never published", turned out to sit under a FOURTH
+  // naming convention (cafr09/cafr.pdf, cafr10/CAFR10.pdf) that is live on the
+  // county's own host. Both times the partition gate REFUSED THE WRITE first.
+  // Remaining exclusions are documented per entity in ncAcfrSources.mjs.
+  // Evidence: docs/superpowers/plans/NC-DURHAM-AVL-01-CLOSEOUT.md section 6.
+  'nc-local-acfr-gf': 138,
   // The sixteen entity-published city/state ACFR families, measured 2026-08-19.
   // Evidence: docs/superpowers/plans/ACFR-GF-CLASSIFICATION-RECON.md §2.
   'or-city-acfr-gf': 106,
@@ -96,6 +109,19 @@ export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
   // County 36. A NEW family, so no pre-existing count moved.
   // Evidence: docs/superpowers/plans/CO-SPRINGS-EPC-01-CLOSEOUT.md section 6.
   'co-local-acfr-gf': 64,
+  // NC-DURHAM-AVL-01, measured 2026-08-25: City of Durham 32 + Durham County 42
+  // + City of Asheville 28 + Buncombe County 36. A NEW family, so no
+  // pre-existing count moved.
+  // ⚠ This count moved TWICE after the first load, both times because a series
+  // that looked complete was not. 116 -> 134: Asheville rose 10 -> 28 when nine
+  // years the city had DELINKED (not deleted) were recovered from Wayback
+  // snapshots of its own page. 134 -> 138: Buncombe rose 32 -> 36 when FY2009
+  // and FY2010, recorded as "never published", turned out to sit under a FOURTH
+  // naming convention (cafr09/cafr.pdf, cafr10/CAFR10.pdf) that is live on the
+  // county's own host. Both times the partition gate REFUSED THE WRITE first.
+  // Remaining exclusions are documented per entity in ncAcfrSources.mjs.
+  // Evidence: docs/superpowers/plans/NC-DURHAM-AVL-01-CLOSEOUT.md section 6.
+  'nc-local-acfr-gf': 138,
   // The sixteen entity-published city/state ACFR families.
   // Evidence: ACFR-GF-CLASSIFICATION-RECON.md §3.
   'or-city-acfr-gf': 106,

@@ -97,7 +97,7 @@ import pdfplumber
 # that is total.
 sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parent))
 from acfrPrintedTotal import (  # noqa: E402
-    lines_of, parse_money, numbers_on, _EXCLUDE, _TITLE,
+    lines_of, parse_money, numbers_on, _EXCLUDE, _TITLE, _NOSPACE,
 )
 
 EDGE_TOL = 4.0          # points; adjacent fund columns are 50-90pt apart
@@ -110,8 +110,13 @@ _DASH = re.compile(r'^[-–—]+$')
 # printed TABOR label) has no chance of matching and is kept.
 _BARE_CURRENCY = re.compile(r'^\$+$')
 
-REV_TOTAL = re.compile(r'^(?:Total|Net)\s+(?:operating\s+)?revenues\b', re.I)
-EXP_TOTAL = re.compile(r'^Total\s+expenditures\b', re.I)
+# ⚠ `\s*` not `\s+` — see the note on _TITLE in acfrPrintedTotal.py. A PDF that
+# FUSES its words emits "Totalrevenues", and City of Durham FY2023 does exactly
+# that. The trailing `\b` still keeps this from matching a longer fused label
+# such as "Totalrevenuesandtransfers", because the character after "revenues"
+# there is a word character.
+REV_TOTAL = re.compile(r'^(?:Total|Net)\s*(?:operating\s*)?revenues\b', re.I)
+EXP_TOTAL = re.compile(r'^Total\s*expenditures\b', re.I)
 REV_BANNER = re.compile(r'^revenues?\s*:?\s*$', re.I)
 EXP_BANNER = re.compile(r'^expenditures?\s*:?\s*$', re.I)
 
@@ -132,7 +137,7 @@ def row_text(ws):
     return ' '.join(w['text'] for w in ws)
 
 
-def find_statement(pdf, title_anchor=None):
+def find_statement(pdf, title_anchor=None, exclude_ignore=()):
     """Earliest page carrying the primary governmental-funds statement.
 
     Same qualifying rule as acfrGF.find_statement_page and
@@ -140,19 +145,33 @@ def find_statement(pdf, title_anchor=None):
     "what does the General Fund column of THAT page say", not "which page is
     it". Reading a different page would not be a second read of the same
     figure.
+
+    `exclude_ignore` drops named terms from `_EXCLUDE` for issuers that print
+    an excluded phrase ON the primary statement page. Buncombe County FY2011-
+    FY2018 set the government-wide RECONCILIATION at the foot of the fund
+    statement itself, so the genuine page carries both 'reconciliation' and
+    'net position'. Without this the cross-check silently has nothing to say
+    about eight of that county's sixteen years, which reads identically to
+    "the two readers agree" in a summary that only counts failures.
     """
     for i, page in enumerate(pdf.pages):
         text = page.extract_text() or ''
         low = text.lower()
         if not (_TITLE.search(text) or (title_anchor and title_anchor.search(text))):
             continue
-        if not any(lbl in low for lbl in ('total revenues', 'total operating revenues', 'net revenues')):
+        # ⚠ Matched with whitespace COLLAPSED, because a PDF that fuses its
+        # words renders these as 'totalrevenues' / 'totalexpenditures'. City of
+        # Durham FY2023 does exactly that, and a literal-substring test reports
+        # 'statement page not found' for a statement that is plainly there.
+        flat = _NOSPACE.sub('', low)
+        if not any(_NOSPACE.sub('', lbl) in flat
+                   for lbl in ('total revenues', 'total operating revenues', 'net revenues')):
             continue
-        if 'total expenditures' not in low:
+        if 'totalexpenditures' not in flat:
             continue
         if 'general' not in low or 'fund' not in low:
             continue
-        if any(x in low for x in _EXCLUDE):
+        if any(x in low for x in _EXCLUDE if x not in exclude_ignore):
             continue
         return i, page, text
     return None, None, None
@@ -438,6 +457,8 @@ def main():
     ap.add_argument('--units', type=int, default=1)
     ap.add_argument('--page', type=int, default=None, help='1-based statement page (skips the search)')
     ap.add_argument('--title-anchor', choices=sorted(TITLE_ANCHORS), default=None)
+    ap.add_argument('--exclude-ignore', action='append', default=None,
+                    help='_EXCLUDE term to stop disqualifying a page (repeatable)')
     args = ap.parse_args()
 
     anchor = TITLE_ANCHORS.get(args.title_anchor)
@@ -448,7 +469,7 @@ def main():
             page = pdf.pages[idx]
             text = page.extract_text() or ''
         else:
-            idx, page, text = find_statement(pdf, anchor)
+            idx, page, text = find_statement(pdf, anchor, tuple(args.exclude_ignore or ()))
         if page is None:
             print(json.dumps({'error': 'primary GF statement page not found'}))
             sys.exit(3)

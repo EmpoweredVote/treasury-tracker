@@ -366,6 +366,88 @@ export const FUND_SCOPE_REGISTRY = [
     },
   },
   {
+    // NC-DURHAM-AVL-01, measured 2026-08-24: City of Durham 32 + Durham County 42
+    // + City of Asheville 28 + Buncombe County 36 = 138. A NEW family, so no
+    // pre-existing count moved. (Asheville was 10 rows at first load; nine
+    // DELINKED-but-not-deleted years were later recovered from Wayback
+    // snapshots of the city's own page, and Buncombe was 32 until FY2009/FY2010
+    // were found under a fourth naming convention on its own live host.)
+    //
+    // WARNING ANCHORED TO THE FOUR ENTITY NAMES, for the same reason
+    // tx-local-acfr-gf and co-local-acfr-gf are: the general /ACFR - General
+    // Fund/ pattern claims ~1,850 rows across families nobody has reconciled. A
+    // future North Carolina ACFR load therefore lands `unknown` until it is
+    // evidenced, which is the correct failure direction.
+    //
+    // WARNING this matches the DATA_SOURCE STRING, and "Durham" is also a town
+    // in CONNECTICUT and NEW HAMPSHIRE - TT already carries CT entities. The
+    // string written here is "City of Durham", which neither town would use,
+    // and no such rows exist today; were they loaded later under a colliding
+    // label they would need splitting by municipality_id rather than by this
+    // string.
+    id: 'nc-local-acfr-gf',
+    match: /^(City of Durham|Durham County|City of Asheville|Buncombe County) ACFR — General Fund /,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'EIGHT probes across all four North Carolina entities, each the governmental-funds '
+              + 'Statement of Revenues, Expenditures and Changes in Fund Balances: City of Durham '
+              + 'FY2024 (docs/DurhamCity/durham-city-2024-acfr.pdf p.46, Exhibit A-4) and FY2012 '
+              + '(p.44); Durham County FY2024 (docs/DurhamCounty/durham-county-2024-acfr.pdf p.56) '
+              + 'and FY2008 (p.59); City of Asheville FY2024 (docs/Asheville/asheville-2024-acfr.pdf '
+              + 'p.40) and FY2022 (p.41); Buncombe County FY2024 '
+              + '(docs/BuncombeCounty/buncombe-county-2024-acfr.pdf p.41) and FY2015 (p.46). '
+              + 'NOTE: these filings ARE the source the loaders read, so the reconciliation is not '
+              + 'against a second reporter - it establishes WHICH COLUMN of the statement the '
+              + 'stored figure is, which is the question that decides scope. Same method as '
+              + 'state-acfr-gf, wa-sao, tx-local-acfr-gf and co-local-acfr-gf. Read by '
+              + 'scripts/ncScopeProbe.py, which shares no code with either loader.',
+      figures: 'All figures WHOLE DOLLARS (no NC entity in this milestone prints "in thousands"). '
+             + 'Every probe identifies the Total Governmental column by a SELF-VALIDATING ADDITIVE '
+             + 'IDENTITY - the other fund columns must sum to it EXACTLY - rather than by taking '
+             + 'the rightmost number, which on a statement whose last column is a nonmajor fund is '
+             + 'silently wrong by the size of that fund. '
+             + 'CITY OF DURHAM FY2024 - printed General Fund column: Total revenues 272,219,369 '
+             + 'and Total expenditures 258,674,094, matching the stored figures EXACTLY; Total '
+             + 'Governmental 387,053,497 and 373,281,225, so the stored figure is 70.3% / 69.3% of '
+             + 'total governmental. FY2012 - 173,529,729 and 168,283,156 stored exactly (78.6% / '
+             + '67.3% of 220,820,108 and 250,083,705). '
+             + 'DURHAM COUNTY FY2024 - 653,273,050 and 558,341,960 stored exactly (93.6% / 68.0% '
+             + 'of 698,294,751 and 821,398,625). FY2008 - 410,763,108 and 373,328,462 stored '
+             + 'exactly (95.3% / 80.5% of 430,812,088 and 463,732,424). '
+             + 'CITY OF ASHEVILLE FY2024 - 165,122,861 and 158,194,252 stored exactly (92.0% / '
+             + '80.7% of 179,393,546 and 195,930,715). FY2022 - 153,677,325 and 130,597,069 stored '
+             + 'exactly (88.6% / 79.6% of 173,494,316 and 164,070,306). THREE MORE ASHEVILLE PROBES '
+             + 'were added when nine delinked years were recovered, because those come from an '
+             + 'EARLIER ERA of the city typesetting and the column layout could not be assumed to '
+             + 'carry back: FY2018 - 120,357,313 and 106,120,672 stored exactly (92.6% / 75.2% of '
+             + '129,919,928 and 141,123,391); FY2015 - 105,376,679 and 95,324,746 stored exactly '
+             + '(95.4% / 83.7% of 110,451,980 and 113,826,689); FY2009 - 85,540,877 and 84,438,678 '
+             + 'stored exactly (90.2% / 85.7% of 94,838,905 and 98,500,553). All three close the '
+             + 'additive identity exactly. '
+             + 'BUNCOMBE COUNTY FY2024 - 406,010,643 and 416,293,947 stored exactly (65.9% / 63.8% '
+             + 'of 616,166,627 and 651,997,848; this county splits its fund columns across two '
+             + 'pages and the continuation page carries NO ROW LABELS, so its total is recovered '
+             + 'by the additive identity in scripts/acfrContinuedTotal.py). FY2015 - 289,342,572 '
+             + 'and 286,305,444 stored exactly (80.2% / 63.9% of 360,732,789 and 447,781,825). '
+             + 'Candidate scopes rejected: total_governmental is off by 29.7%/30.7% (Durham City '
+             + 'FY2024), 34.1%/36.2% (Buncombe FY2024) and 19.8%/36.1% (Buncombe FY2015). The '
+             + 'Durham COUNTY probes are the WEAKEST discriminator on the revenue side - its '
+             + 'General Fund is 93-95% of total governmental revenue, because its capital projects '
+             + 'funds are financed by debt issuance, which is an OTHER FINANCING SOURCE and not '
+             + 'revenue - which is exactly why the EXPENDITURE side is stated alongside it: there '
+             + 'the same county is only 68.0% / 80.5%. all_funds is further still - none of these '
+             + 'statements contains any proprietary fund, and the Asheville water '
+             + 'resources, parking, stormwater and mass transit enterprises sit entirely outside '
+             + 'the governmental-funds statement. '
+             + 'ONE ISSUER FOLDS A LEGALLY BUDGETED FUND INTO ITS GENERAL FUND: Buncombe County '
+             + 'states "The Reappraisal Reserve Fund is legally budgeted, but is consolidated into '
+             + 'the General Fund for reporting purposes." That is the issuer own GAAP-basis '
+             + 'presentation of its General Fund column, which is the column stored, so the scope '
+             + 'label is unaffected - recorded here because a reader comparing TT against the '
+             + 'county BUDGET ordinance would otherwise find an unexplained difference.',
+    },
+  },
+  {
     id: 'wa-sao',
     match: /^WA State Auditor — /,
     scope: SCOPE.GENERAL_FUND,

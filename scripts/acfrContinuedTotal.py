@@ -36,8 +36,9 @@ import pdfplumber
 sys.path.insert(0, __file__.rsplit('\\', 1)[0].rsplit('/', 1)[0])
 from acfrPrintedTotal import lines_of, numbers_on, parse_money  # noqa: E402
 
-_REV = re.compile(r'^(?:Total|Net)\s+(operating\s+)?revenues\b', re.I)
-_EXP = re.compile(r'^Total\s+expenditures\b', re.I)
+# ⚠ `\s*` not `\s+` — see the note on _TITLE in acfrPrintedTotal.py.
+_REV = re.compile(r'^(?:Total|Net)\s*(operating\s*)?revenues\b', re.I)
+_EXP = re.compile(r'^Total\s*expenditures\b', re.I)
 
 
 def rows_of(page):
