@@ -27,6 +27,11 @@ import { existsSync, readFileSync } from 'node:fs';
 import path              from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolve, dirname } from 'node:path';
+// ⚠ treasury_sync_budget_tree takes NO month parameter — it copies
+// `fiscal_year_start_month` off the `data_sources` row, and BOTH columns are
+// declared NOT NULL DEFAULT 1. Leaving it unset is what put these county rows on
+// a January fiscal year. The statute and the two charter checks are in the library.
+import { CORRECT_MONTH as MA_FY_START_MONTH } from './lib/maFiscalCalendar.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT      = path.resolve(__dirname, '..');
@@ -133,6 +138,11 @@ async function upsertDataSource(muniId, countyName, fiscalYear, pdfUrl) {
     base_url:        pdfUrl ?? '',
     fiscal_years:    [fiscalYear],
     municipality_id: muniId,
+    // Mass. Gen. Laws ch. 35 § 16 — "The fiscal year of each county shall be the
+    // year beginning with July first". Barnstable's Home Rule Charter § 5-1 and
+    // the Dukes County FY2027 hearing notice agree; § 16 carries no
+    // "notwithstanding charters" clause, so both were checked individually.
+    fiscal_year_start_month: MA_FY_START_MONTH,
   };
 
   const { data: existing } = await supabase.schema('treasury')
