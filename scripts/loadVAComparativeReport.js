@@ -47,6 +47,7 @@
  */
 
 import { parseArgs } from 'node:util';
+import { monthForSource } from './lib/loaderFiscalCalendars.mjs';
 import { fileURLToPath } from 'node:url';
 import ExcelJS from 'exceljs';
 
@@ -416,6 +417,11 @@ export async function importDataset(supabase, municipalityId, fiscalYear, datase
     p_data_source_name: DATA_SOURCE_NAME,
     p_source_url: sourceUrl,
     p_source_date: sourceDate,
+    // Va. Code § 15.2-2500 for counties, cities and towns >= 3,500 or holding a
+    // separate school division; the Town of Wise charter § 4.2 for the one town
+    // that clause does not reach. All 161 entities run July–June. Authority in
+    // lib/loaderFiscalCalendars.mjs.
+    p_fiscal_year_start_month: monthForSource(DATA_SOURCE_NAME),
   });
   if (error) { console.error(`  RPC error (${datasetType}): ${error.message}`); return null; }
   return data;
