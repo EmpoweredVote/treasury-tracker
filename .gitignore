@@ -107,6 +107,7 @@ scripts/output/
 .env
 .env.*
 !.env.example
+!.env.*.example
 
 # Planning recon data samples (large source xlsx/csv kept locally, not tracked)
 .planning/**/samples/
@@ -161,3 +162,15 @@ _wi-recon/
 app*.html
 app*.js
 .golden-baseline/
+
+# Editor/tooling backups. A `.env.bak` holding live credentials sat
+# untracked in ev-accounts on 2026-07-26 and a single `git add -A`
+# would have published it.
+*.bak
+*.backup
+*.orig
+*~
+
+# Playwright MCP page captures. 556 of these were committed to
+# ev-accounts and held live credentials.
+.playwright-mcp/
