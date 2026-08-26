@@ -27,6 +27,10 @@
 import { createClient } from '@supabase/supabase-js';
 import { parseArgs } from 'node:util';
 import { classifySyncResult } from './lib/rpcResult.mjs';
+// California sets no municipal fiscal year by statute, so a charter city may
+// legitimately differ. Two have been checked and both did — Inglewood and Long
+// Beach are October cities. See the registry for why a global flag must refuse.
+import { monthForCity } from './lib/caCityFiscalExceptions.mjs';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -328,7 +332,17 @@ async function main() {
       }
 
       for (const [cityName, cityData] of wouldImport) {
-        const result = await importCityData(cityName, state, cityData.population, cityData.rows, fy, ds.type, ds, fetchDate, fiscalYearStartMonth);
+        // ⚠ `--fiscal-year-start-month` is ONE value for a whole multi-city run,
+        // so a CA county load with `7` would flatten every checked exception back
+        // to the wrong month — and nothing would fail, because the column moves no
+        // dollar and every tie test would still pass at $0. The registry resolves
+        // the month per city and REFUSES a flag that contradicts evidence.
+        const resolved = monthForCity(cityName, state, fiscalYearStartMonth);
+        if (resolved.error) {
+          console.error(`\nFATAL: ${resolved.error}`);
+          process.exit(1);
+        }
+        const result = await importCityData(cityName, state, cityData.population, cityData.rows, fy, ds.type, ds, fetchDate, resolved.month);
         // ⚠ The RPC reports failure INSIDE a successful call — see
         // scripts/lib/rpcResult.mjs. The old `if (result && result.rows_inserted)`
         // silently treated a REFUSED write as "nothing to do".
