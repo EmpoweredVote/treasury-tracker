@@ -78,6 +78,12 @@ import { createClient }        from '@supabase/supabase-js';
 import { readdirSync, existsSync, readFileSync } from 'node:fs';
 import path                    from 'node:path';
 import { fileURLToPath }       from 'node:url';
+// ⚠ REQUIRED SINCE THE COLUMN DEFAULT WAS DROPPED. `treasury.data_sources`
+// .fiscal_year_start_month used to be NOT NULL DEFAULT 1, and the ephemeral row
+// created below never set it — so it silently inherited January, which happens to
+// be right for Washington. The default is gone, so that insert now REFUSES and
+// the month has to be stated. RCW citations live in the library.
+import { monthForWAEntity }    from './waFiscalCalendar.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT      = path.resolve(__dirname, '..', '..'); // scripts/lib -> scripts -> repo root
@@ -323,6 +329,22 @@ async function createEphemeralDataSource(treasuryClient, muniId, datasetType, de
   } catch (e) {
     throw new Error(`createEphemeralDataSource base_url (${datasetType}): sourceUrlFor(${firstFy}) returned an invalid URL "${sampleUrl}": ${e.message}`);
   }
+  // ⚠ The month is REQUIRED here since the column default was dropped, and
+  // `treasury_sync_budget_tree` copies it off this row onto every budgets row it
+  // creates — so an omission here is what silently stamped a fiscal calendar
+  // nobody had established. It is resolved from the municipality's own
+  // `entity_type` as recorded in the database rather than from the descriptor,
+  // because that is the fact the statute keys on (RCW 1.16.030 distinguishes
+  // school districts from all other taxing districts), and a descriptor can drift
+  // from it. `monthForWAEntity` THROWS on an unestablished type.
+  const { data: muni, error: muniErr } = await treasuryClient
+    .from('municipalities').select('name, state, entity_type').eq('id', muniId).single();
+  if (muniErr || !muni) {
+    throw new Error(`createEphemeralDataSource: could not resolve municipality ${muniId}: `
+      + `${muniErr?.message ?? '(no row)'}`);
+  }
+  const fiscalYearStartMonth = monthForWAEntity(muni);
+
   const payload = {
     name: `${descriptor.entityName} General Fund ${kind} Budget`,
     api_type: 'pdf_download',
@@ -331,6 +353,7 @@ async function createEphemeralDataSource(treasuryClient, muniId, datasetType, de
     base_url: baseUrl,
     fiscal_years: descriptor.fiscalYears,
     municipality_id: muniId,
+    fiscal_year_start_month: fiscalYearStartMonth,
   };
   await treasuryClient.from('data_sources').delete().eq('dataset_id', datasetId);
   const { data, error } = await treasuryClient.from('data_sources').insert(payload).select().single();
