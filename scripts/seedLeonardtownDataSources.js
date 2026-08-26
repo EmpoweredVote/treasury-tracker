@@ -12,6 +12,13 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+// ⚠ REQUIRED SINCE THE COLUMN DEFAULT WAS DROPPED (PR #69).
+// `treasury.data_sources.fiscal_year_start_month` used to be NOT NULL DEFAULT 1,
+// and these payloads never set it — so Leonardtown silently inherited a JANUARY
+// fiscal year while its charter § 703 puts the town on July–June. The default is
+// gone, so the month must be stated or the insert REFUSES.
+import { CORRECT_MONTH as LEONARDTOWN_FY_START_MONTH } from './lib/leonardtownFiscalCalendar.mjs';
+
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -42,6 +49,7 @@ const sources = [
     base_url:        'https://leonardtown.somd.com',
     fiscal_years:    [2023],
     municipality_id: municipalityId,
+    fiscal_year_start_month: LEONARDTOWN_FY_START_MONTH,
     column_mapping:  {
       url_path: '/pdf/Budget-FY2023.pdf',
       pdf_type: 'text',
@@ -55,6 +63,7 @@ const sources = [
     base_url:        'https://leonardtown.somd.com',
     fiscal_years:    [2024],
     municipality_id: municipalityId,
+    fiscal_year_start_month: LEONARDTOWN_FY_START_MONTH,
     column_mapping:  {
       url_path: '/pdf/BudgetFY2024.pdf',
       pdf_type: 'scanned',
@@ -68,6 +77,7 @@ const sources = [
     base_url:        'https://leonardtown.somd.com',
     fiscal_years:    [2025],
     municipality_id: municipalityId,
+    fiscal_year_start_month: LEONARDTOWN_FY_START_MONTH,
     column_mapping:  {
       url_path: '/pdf/BudgetFY2025.pdf',
       pdf_type: 'scanned',
