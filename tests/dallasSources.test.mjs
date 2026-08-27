@@ -50,7 +50,7 @@ function edgeBuildBudgetTree(rows, cm) {
       if (ch.ch.size === 0 && ch.rs.length > 0) {
         o.i = ch.rs.map(r => ({
           d: r[cm.description_column] || nm,
-          a: amt(r[ac]),
+          a: cm.actual_amount_column ? amt(r[cm.actual_amount_column]) : amt(r[ac]),
           aa: cm.approved_amount_column ? amt(r[cm.approved_amount_column]) : null,
           f: cm.fund_column ? r[cm.fund_column] : null,
         }));
@@ -157,5 +157,35 @@ describe('repo-loader tree build agrees with the edge function', () => {
     const repo = buildBudgetTree(OPERATING_ROWS, cm);
     expect(repo.total).toBe(edge.total);
     expect(repo.jsonTree.map(t => t.n).sort()).toEqual(edge.tree.map(t => t.n).sort());
+  });
+});
+
+describe('actual_amount must not silently mirror the budget', () => {
+  // _treasury_insert_tree maps i.aa -> approved_amount and i.a -> actual_amount.
+  // Pointing amount_column at budcurr (needed for the rollup) previously also drove
+  // i.a, so actual_amount came back exactly equal to the budget.
+  it('reads i.a from actual_amount_column, not amount_column', () => {
+    const cm = bySlug.operating.column_mapping;
+    expect(cm.actual_amount_column).toBe('expbfy');
+
+    const rows = [
+      { appropriation: 'Police Department GF', service: 'Patrol', objectgroup: 'Supplies',
+        budcurr: '1000', expbfy: '250', fundtype: 'General Fund' },
+    ];
+    const { tree, total } = edgeBuildBudgetTree(rows, cm);
+    const item = tree[0].c[0].c[0].i[0];
+
+    expect(total).toBe(1000);
+    expect(item.aa).toBe(1000); // -> approved_amount
+    expect(item.a).toBe(250);   // -> actual_amount, NOT 1000
+    expect(item.a).not.toBe(item.aa);
+  });
+
+  it('falls back to amount_column when no actual_amount_column is declared', () => {
+    const cm = { ...bySlug.operating.column_mapping };
+    delete cm.actual_amount_column;
+    const rows = [{ appropriation: 'A', service: 'B', objectgroup: 'C', budcurr: '1000', expbfy: '250' }];
+    const item = edgeBuildBudgetTree(rows, cm).tree[0].c[0].c[0].i[0];
+    expect(item.a).toBe(1000);
   });
 });

@@ -71,7 +71,14 @@ function buildBudgetTree(rows: any[], cm: any) {
   for (const r of rows) { let n = root; for (const c of hCols) { const k = r[c] || "Unknown"; if (!n.ch.has(k)) n.ch.set(k, mk()); n = n.ch.get(k)!; } n.a += amt(r[ac]); n.rs.push(r); }
   function rc(n: N): number { if (n.ch.size === 0) return n.a; let t = 0; for (const [, c] of n.ch) t += rc(c); n.a = t; return t; } rc(root);
   function tj(n: N): any[] { const a: any[] = []; for (const [nm, ch] of n.ch) { const o: any = { n: nm, a: ch.a };
-    if (ch.ch.size === 0 && ch.rs.length > 0) { o.i = ch.rs.map(r => ({ d: r[cm.description_column] || nm, a: amt(r[ac]),
+    // _treasury_insert_tree maps i.aa -> budget_line_items.approved_amount and
+    // i.a -> budget_line_items.actual_amount. So when a source declares an explicit
+    // actual_amount_column, `a` must read THAT, not the rollup amount_column —
+    // otherwise actual_amount silently comes back equal to the budget, i.e. the row
+    // claims the city spent its appropriation to the cent. Sources with no
+    // actual_amount_column keep the previous fallback.
+    if (ch.ch.size === 0 && ch.rs.length > 0) { o.i = ch.rs.map(r => ({ d: r[cm.description_column] || nm,
+      a: cm.actual_amount_column ? amt(r[cm.actual_amount_column]) : amt(r[ac]),
       aa: cm.approved_amount_column ? amt(r[cm.approved_amount_column]) : null, f: cm.fund_column ? r[cm.fund_column] : null, e: cm.expense_type_column ? r[cm.expense_type_column] : null })); }
     else if (ch.ch.size > 0) o.c = tj(ch); a.push(o); } a.sort((x, y) => y.a - x.a); return a; }
   return { tree: tj(root), total: root.a };
