@@ -175,8 +175,25 @@ let _dsCache = null;
 async function getDataSources() {
   if (_dsCache) return _dsCache;
 
-  const { data: sources, error } = await supabase.rpc('treasury_list_source_ids');
+  // ⚠ NOT treasury_list_source_ids. That RPC returns every enabled source, and
+  // PostgREST truncates the response at db-max-rows = 1000 ordered by name, so the
+  // cut is ALPHABETICAL — it currently lands at "Norwood — MA DLS General Fund
+  // Revenue by Source". Both Sacramento sources sort after it and were simply absent
+  // from the list, so this loader exited with "run seedSacramentoCA.js first" against
+  // rows that already existed. Verified over HTTP: the call returns exactly 1000 rows
+  // and contains neither Sacramento source.
+  const { data: sources, error } = await supabase.rpc('treasury_list_sources', {
+    p_api_type: 'csv_download',
+    p_dataset_types: ['operating', 'revenue'],
+  });
   if (error) { console.error('Failed to list sources:', error.message); process.exit(1); }
+
+  // A result sitting exactly on the cap is truncation until proven otherwise.
+  if ((sources || []).length === 1000) {
+    console.error('Refusing to proceed: source listing returned exactly 1000 rows, ' +
+                  'which is PostgREST db-max-rows. Narrow the filter or paginate.');
+    process.exit(1);
+  }
 
   const operating = (sources || []).find(s => s.name === 'Sacramento Operating Budget');
   const revenue   = (sources || []).find(s => s.name === 'Sacramento Revenue Budget');

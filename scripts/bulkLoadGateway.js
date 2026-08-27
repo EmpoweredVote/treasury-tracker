@@ -251,8 +251,19 @@ async function importBudgetData(rows, year) {
       if (!fundNode.has(dept)) fundNode.set(dept, []);
       fundNode.get(dept).push({
         d: row[descCol] || dept,
-        a: amt(row[amtCol]),
-        aa: null, f: fund, e: null,
+        // ⚠ aa -> approved_amount, a -> actual_amount in _treasury_insert_tree (see the
+        // contract note in scripts/buildBudgetTree.mjs). This is the BUDGET report —
+        // amtCol resolves to 'total budget estimate_adopted' / 'adopted_amount' — so the
+        // figure is an ADOPTED BUDGET and belongs in `aa`. It was emitted as `a` until
+        // 2026-08-27, which stored a budget in actual_amount and rendered as
+        // "Budgeted $0 / Actual $X", the San Francisco defect (PR #85).
+        //
+        // ⚠ importReceipts() and importDisbursements() below deliberately do the
+        // OPPOSITE — `a: amount, aa: null` — and are CORRECT: those two reports are
+        // actual money received and actually paid out, not a plan. Do not "fix" them
+        // to match this one.
+        a: null,
+        aa: amt(row[amtCol]), f: fund, e: null,
       });
     }
 
@@ -272,7 +283,11 @@ async function importBudgetData(rows, year) {
     jsonTree.sort((a, b) => b.a - a.a);
 
     // Get data source ID for this entity
-    const { data: sources } = await supabase.rpc('treasury_list_source_ids');
+    // ⚠ NOT treasury_list_source_ids — PostgREST truncates it at db-max-rows = 1000
+    // ordered by name, an ALPHABETICAL cut currently landing at "Norwood — MA DLS".
+    const { data: sources } = await supabase.rpc('treasury_list_sources', {
+      p_api_type: 'indiana_gateway', p_dataset_types: ['operating', 'revenue'],
+    });
     const ds = sources?.find(s => s.name.toLowerCase().includes(entityName.toLowerCase()));
 
     if (!ds) {
@@ -349,7 +364,11 @@ async function importReceipts(rows, year) {
     jsonTree.sort((a, b) => b.a - a.a);
 
     // Find matching data source — look for a revenue one, or create if operating exists
-    const { data: sources } = await supabase.rpc('treasury_list_source_ids');
+    // ⚠ NOT treasury_list_source_ids — PostgREST truncates it at db-max-rows = 1000
+    // ordered by name, an ALPHABETICAL cut currently landing at "Norwood — MA DLS".
+    const { data: sources } = await supabase.rpc('treasury_list_sources', {
+      p_api_type: 'indiana_gateway', p_dataset_types: ['operating', 'revenue'],
+    });
     const ds = sources?.find(s => s.name.toLowerCase().includes(entityName.toLowerCase()));
 
     if (!ds) { console.log(`  ⚠️  No Gateway data source for ${entityName}`); continue; }
@@ -440,7 +459,11 @@ async function importDisbursements(rows, year) {
     }
     jsonTree.sort((a, b) => b.a - a.a);
 
-    const { data: sources } = await supabase.rpc('treasury_list_source_ids');
+    // ⚠ NOT treasury_list_source_ids — PostgREST truncates it at db-max-rows = 1000
+    // ordered by name, an ALPHABETICAL cut currently landing at "Norwood — MA DLS".
+    const { data: sources } = await supabase.rpc('treasury_list_sources', {
+      p_api_type: 'indiana_gateway', p_dataset_types: ['operating', 'revenue'],
+    });
     const ds = sources?.find(s => s.name.toLowerCase().includes(entityName.toLowerCase()));
     if (!ds) { console.log(`  ⚠️  No Gateway data source for ${entityName}`); continue; }
 

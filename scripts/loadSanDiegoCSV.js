@@ -239,11 +239,34 @@ async function main() {
     strict: false,
   });
 
-  const { data: sources, error } = await supabase.rpc('treasury_list_source_ids');
+  // ⚠ NOT treasury_list_source_ids — PostgREST truncates that at db-max-rows = 1000
+  // ordered by name, so the cut is ALPHABETICAL (currently "Norwood — MA DLS General
+  // Fund Revenue by Source"). Both San Diego sources sort after it and never appeared,
+  // so --list showed nothing and a load silently had no targets. Filter SERVER-side.
+  const { data: sources, error } = await supabase.rpc('treasury_list_sources', {
+    p_api_type: 'csv_download',
+    p_dataset_types: ['operating', 'revenue'],
+  });
   if (error) { console.error('Failed to list sources:', error.message); process.exit(1); }
 
+  // A result sitting exactly on the cap is truncation until proven otherwise.
+  if ((sources || []).length === 1000) {
+    console.error('Refusing to proceed: source listing returned exactly 1000 rows, ' +
+                  'which is PostgREST db-max-rows. Narrow the filter or paginate.');
+    process.exit(1);
+  }
+
+  // ⚠ Narrow to THIS city. `api_type = 'csv_download'` is not a San Diego marker —
+  // Sacramento uses it too. While the listing above was the capped RPC, neither city
+  // came back (both sort after the truncation point) and the over-broad filter was
+  // invisible; uncapping it made this loader start pointing San Diego's CSV at
+  // Sacramento's data sources, which reported a harmless "empty" only because
+  // San Diego's file has no rows matching Sacramento's fiscal years. A loader that
+  // hardcodes one city's CSV URL must only ever target that city's sources.
   const sdSources = (sources || []).filter(
-    s => s.api_type === 'csv_download' && ['operating', 'revenue'].includes(s.dataset_type)
+    s => s.api_type === 'csv_download'
+      && ['operating', 'revenue'].includes(s.dataset_type)
+      && s.name.startsWith('San Diego ')
   );
 
   if (values.list) {
