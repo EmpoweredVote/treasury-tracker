@@ -27,6 +27,35 @@
  * Ohio exempts the city of Cincinnati, and Utah splits by entity type. Both are
  * resolved through `scripts/lib/calendarYearLocalGov.mjs`, which owns those
  * carve-outs and their statutes, so the sweep and the loaders cannot drift apart.
+ *
+ * ⚠⚠ THIS FILE ONLY GOVERNS ONE OF THE TWO WRITE PATHS. It describes
+ * `treasury_sync_city_budget`, which takes an explicit month. There is a SECOND
+ * RPC — `treasury_sync_budget_tree` — which takes NO month parameter at all and
+ * instead copies `fiscal_year_start_month` off the `treasury.data_sources` row:
+ *
+ *     INSERT INTO treasury.budgets (..., fiscal_year_start_month, ...)
+ *     VALUES (..., v_ds.fiscal_year_start_month, ...)
+ *
+ * and BOTH columns are declared `NOT NULL DEFAULT 1`:
+ *
+ *     treasury.data_sources.fiscal_year_start_month  bigint NOT NULL DEFAULT 1
+ *     treasury.budgets.fiscal_year_start_month       bigint NOT NULL DEFAULT 1
+ *
+ * So PR #61 removing the literal `7` from the other RPC did NOT end the class of
+ * defect — it left a silent JANUARY on every loader that writes through the tree
+ * RPC without setting the source row's month. That is what put 16,839
+ * Massachusetts rows on a calendar fiscal year (see
+ * `scripts/lib/maFiscalCalendar.mjs` and PR "fix(ma): July–June by statute").
+ *
+ * A loader that calls `treasury_sync_budget_tree` therefore cannot be wired by
+ * adding an entry here. It must set `fiscal_year_start_month` on the
+ * `data_sources` row it creates. `scripts/loadMaGFExcel.js` and
+ * `scripts/loadMACountyBudget.js` are the worked examples.
+ *
+ * ⚠ The remaining `1`s outside Massachusetts have NOT been swept: CA 99 rows,
+ * TX 71, IN 86, WA 336, CO 64, MD 6. CO/WA/IN are believed correct because those
+ * states' localities genuinely run the calendar year — which means they are right
+ * BY COINCIDENCE, the default having matched. None of the six is evidenced yet.
  */
 
 import { exemptionFor, protectionFor } from './calendarYearLocalGov.mjs';

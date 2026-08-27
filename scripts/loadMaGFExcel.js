@@ -32,6 +32,11 @@ import { writeFileSync, readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import pkg from 'exceljs';
+// ⚠ treasury_sync_budget_tree takes NO month parameter — it copies
+// `fiscal_year_start_month` off the `data_sources` row, and BOTH columns are
+// declared NOT NULL DEFAULT 1. Leaving it unset is what put 16,839 MA rows on a
+// January fiscal year. The statutes are in the library.
+import { CORRECT_MONTH as MA_FY_START_MONTH } from './lib/maFiscalCalendar.mjs';
 const { Workbook } = pkg;
 
 const __dirname  = dirname(fileURLToPath(import.meta.url));
@@ -249,6 +254,10 @@ async function loadFile(supabase, { typeName, cfg, fy, file }, municMap, progres
           base_url:        'https://www.mass.gov/orgs/division-of-local-services',
           column_mapping:  { source: 'xlsx', filePrefix: cfg.filePrefix },
           fiscal_years:    [fy],
+          // Mass. Gen. Laws ch. 44 §§ 56, 56A — July 1 to June 30 for every
+          // Massachusetts town and city, the latter "notwithstanding the
+          // provisions of their respective charters".
+          fiscal_year_start_month: MA_FY_START_MONTH,
         })
         .select('id')
         .single();
