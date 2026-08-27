@@ -10,7 +10,7 @@
  * Data sources:
  *   FY2023: leonardtown.somd.com/pdf/Budget-FY2023.pdf (text PDF)
  *   FY2024: leonardtown.somd.com/pdf/BudgetFY2024.pdf (scanned PDF, read from page images)
- *   FY2025: leonardtown.somd.com/pdf/BudgetFY2025.pdf (scanned PDF, read from page images)
+ *   FY2025: leonardtown.somd.com/pdf/BudgetDraft2025.pdf (scanned PDF, read from page images)
  *
  * True revenue totals (excluding fund balance appropriation):
  *   FY2023: $2,430,580   FY2024: $2,487,335   FY2025: $2,683,356
@@ -334,7 +334,8 @@ async function main() {
   const PDF_URLS = {
     2023: 'https://leonardtown.somd.com/pdf/Budget-FY2023.pdf',
     2024: 'https://leonardtown.somd.com/pdf/BudgetFY2024.pdf',
-    2025: 'https://leonardtown.somd.com/pdf/BudgetFY2025.pdf',
+    // BudgetDraft2025.pdf  ⚠ the town replaced BudgetFY2025.pdf, which now 404s. Cover verified by OCR: "THE COMMISSIONERS OF LEONARDTOWN / BUDGET DOCUMENT / FISCAL YEAR 2025" — right entity, right FY. Note the cover says "BUDGET DOCUMENT", not "APPROVED BUDGET DOCUMENT" as FY2023's does, and the filename says Draft. Figure-level tie to our stored rows NOT verified (image-only PDF).
+    2025: 'https://leonardtown.somd.com/pdf/BudgetDraft2025.pdf',
   };
 
   for (const fy of years) {

@@ -6,7 +6,7 @@
  * Sources:
  *   FY2023 Operating: https://leonardtown.somd.com/pdf/Budget-FY2023.pdf (text PDF)
  *   FY2024 Operating: https://leonardtown.somd.com/pdf/BudgetFY2024.pdf (scanned PDF)
- *   FY2025 Operating: https://leonardtown.somd.com/pdf/BudgetFY2025.pdf (scanned PDF)
+ *   FY2025 Operating: https://leonardtown.somd.com/pdf/BudgetDraft2025.pdf (scanned PDF)
  *
  * Run this AFTER insertLeonardtownMunicipality.js.
  */
@@ -79,7 +79,8 @@ const sources = [
     municipality_id: municipalityId,
     fiscal_year_start_month: LEONARDTOWN_FY_START_MONTH,
     column_mapping:  {
-      url_path: '/pdf/BudgetFY2025.pdf',
+      // BudgetDraft2025.pdf  ⚠ the town replaced BudgetFY2025.pdf, which now 404s. Cover verified by OCR: "THE COMMISSIONERS OF LEONARDTOWN / BUDGET DOCUMENT / FISCAL YEAR 2025" — right entity, right FY. Note the cover says "BUDGET DOCUMENT", not "APPROVED BUDGET DOCUMENT" as FY2023's does, and the filename says Draft. Figure-level tie to our stored rows NOT verified (image-only PDF).
+      url_path: '/pdf/BudgetDraft2025.pdf',
       pdf_type: 'scanned',
     },
   },
