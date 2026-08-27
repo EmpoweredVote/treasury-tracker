@@ -25,6 +25,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { parseArgs } from 'node:util';
 import { classifySyncHealth, isUnhealthy, summarise } from './lib/syncHealth.mjs';
+import { mappingProblems } from './lib/sourceMappingChecks.mjs';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -61,6 +62,28 @@ async function main() {
     process.exit(1);
   }
 
+  // ⚠ treasury_list_sources deliberately does NOT return column_mapping, so the
+  // mapping checks must fetch it separately. Reading it off the RPC result gives
+  // `undefined` for every source, which makes mappingProblems() report every
+  // transactions source as having no amount_column and every budget source as
+  // satisfying neither dialect — confidently wrong, about all of them. Caught only
+  // by checking a source whose mapping was known to be fine.
+  const ids = (sources || []).map((s) => s.id);
+  const mappings = new Map();
+  for (let i = 0; i < ids.length; i += 200) {
+    const { data: cms, error: cmErr } = await supabase
+      .schema('treasury')
+      .from('data_sources')
+      .select('id, column_mapping')
+      .in('id', ids.slice(i, i + 200));
+    if (cmErr) { console.error('Failed to read column_mapping:', cmErr.message); process.exit(1); }
+    for (const r of cms || []) mappings.set(r.id, r.column_mapping);
+  }
+  if (mappings.size !== ids.length) {
+    console.error(`Refusing to report: got ${mappings.size} column_mapping rows for ${ids.length} sources.`);
+    process.exit(1);
+  }
+
   const now = new Date();
   const rows = [];
   for (const s of sources || []) {
@@ -72,7 +95,11 @@ async function main() {
       .order('started_at', { ascending: false })
       .limit(1);
     const health = classifySyncHealth(s, logs?.[0] || null, now);
-    rows.push({ name: s.name, dataset_type: s.dataset_type, freq: s.sync_frequency, ...health });
+    // A source can be unhealthy for a reason visible without ever calling the API:
+    // a mapping that cannot possibly work. Report that alongside the runtime state,
+    // because "never synced" is a symptom and "no amount_column" is the cause.
+    const problems = mappingProblems({ ...s, column_mapping: mappings.get(s.id) });
+    rows.push({ name: s.name, dataset_type: s.dataset_type, freq: s.sync_frequency, problems, ...health });
   }
 
   rows.sort((a, b) => b.severity - a.severity || a.name.localeCompare(b.name));
@@ -83,6 +110,9 @@ async function main() {
   for (const r of shown.slice(0, limit)) {
     console.log(`  [${r.verdict.toUpperCase()}] ${r.name} (${r.dataset_type}, ${r.freq})`);
     if (r.verdict !== 'ok') console.log(`      ${r.reason}`);
+    for (const p of r.problems || []) {
+      console.log(`      ${p.fatal ? 'UNSYNCABLE' : 'warn'}: ${p.code} — ${p.detail}`);
+    }
   }
 
   const s = summarise(rows);

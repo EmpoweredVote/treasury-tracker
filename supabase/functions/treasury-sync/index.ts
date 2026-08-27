@@ -205,6 +205,18 @@ Deno.serve(async (req: Request) => {
       let rpcReached = false;
       try {
         if (ds.dataset_type === 'transactions') {
+          // ⚠ A transactions source with no amount_column would write every row into
+          // treasury.transactions with amount 0 — thousands of $0 rows that read as
+          // spending. Bloomington Public Contracts (a contract register) and LA City
+          // Vendor List (a vendor lookup) were both typed 'transactions' with no
+          // amount column; see scripts/lib/sourceMappingChecks.mjs. Refuse, loudly,
+          // before any write. Mirrors the zero-total budget guard below.
+          if (!cm.amount_column) {
+            throw new Error(
+              `Refusing to sync ${ds.name} FY${fy} as transactions: column_mapping has no ` +
+              `amount_column, so every row would be written with amount 0. If this is a ` +
+              `contract register or a reference dataset, it is not a transactions feed.`);
+          }
           res = await syncTxnPaginated(ds, fy, triggered_by, offset);
         } else {
           const rows = await fetchAll(ds.base_url, ds.dataset_id, filters);
