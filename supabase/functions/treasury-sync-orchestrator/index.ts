@@ -41,11 +41,32 @@ Deno.serve(async (req: Request) => {
     const body = await req.json().catch(() => ({}));
     const { force = false, data_source_id = null, fiscal_year = null, triggered_by = "scheduler" } = body;
 
-    // Get all enabled sources
-    const { data: allSources, error: srcErr } = await supabase.rpc('treasury_list_source_ids');
+    // Get all enabled socrata sources.
+    //
+    // ⚠⚠ Filtered SERVER-side. This used treasury_list_source_ids() and filtered
+    // api_type in JS — but that function returns all 1,811 enabled sources and
+    // PostgREST truncates the response at db-max-rows = 1000. Ordered by
+    // `priority DESC, name`, the cut is ALPHABETICAL, landing at "Norwell — MA
+    // General Fund Expenditures". Every source sorting after it — San Francisco,
+    // Sacramento, San Diego, Seattle, Portland, Oakland, Tacoma, Tucson, West
+    // Hollywood — was never enumerated here, so the nightly and weekly crons
+    // have never synced any of them. They show sync_status 'idle' and
+    // last_error NULL, which reads as healthy: the worst possible failure shape,
+    // and the reason San Francisco silently sat on 2026-05-23 data.
+    const { data: allSources, error: srcErr } = await supabase.rpc('treasury_list_sources', {
+      p_api_type: 'socrata',
+    });
     if (srcErr) return new Response(JSON.stringify({ error: srcErr.message }), { status: 500 });
 
-    let sources = (allSources || []).filter((s: any) => s.api_type === 'socrata');
+    // A result sitting exactly on the cap is truncation until proven otherwise.
+    if ((allSources || []).length === 1000) {
+      return new Response(JSON.stringify({
+        error: 'Source listing returned exactly 1000 rows (PostgREST db-max-rows). ' +
+               'Refusing to sync a possibly-truncated source set.',
+      }), { status: 500 });
+    }
+
+    let sources = allSources || [];
     if (data_source_id) sources = sources.filter((s: any) => s.id === data_source_id);
 
     const now = new Date();

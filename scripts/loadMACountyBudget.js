@@ -121,7 +121,8 @@ function buildBudgetTree(rows) {
     .map(r => ({
       n: r.department,
       a: r.amount,
-      i: [{ d: r.department, a: r.amount, aa: null, f: null, e: null }],
+      // ⚠ aa -> approved_amount, a -> actual_amount. See scripts/buildBudgetTree.mjs.
+      i: [{ d: r.department, a: null, aa: r.amount, f: null, e: null }],
     }));
   nodes.sort((a, b) => b.a - a.a);
   const total = nodes.reduce((s, n) => s + n.a, 0);

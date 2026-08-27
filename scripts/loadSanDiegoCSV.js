@@ -128,8 +128,11 @@ function buildBudgetTree(rows, cm) {
 
     tree.get(cat).get(sub).push({
       d: sub,
-      a: approved,
-      aa: actual,
+      // ⚠ aa -> approved_amount, a -> actual_amount in _treasury_insert_tree.
+      // See the contract note in scripts/buildBudgetTree.mjs; these were swapped
+      // until 2026-08-27, which stored the budget in actual_amount.
+      a: actual,
+      aa: approved,
       f: fundCol ? (row[fundCol] || null) : null,
       e: null,
     });
@@ -144,7 +147,7 @@ function buildBudgetTree(rows, cm) {
     let catTotal = 0;
     const children = [];
     for (const [subName, items] of subs) {
-      const subTotal = items.reduce((s, i) => s + i.a, 0);
+      const subTotal = items.reduce((s, i) => s + i.aa, 0);
       catTotal += subTotal;
       children.push({ n: subName, a: subTotal, i: items });
     }

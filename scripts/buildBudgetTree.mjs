@@ -32,6 +32,24 @@ export function parseAmount(v) {
  *
  * Returns { jsonTree, total, kept, droppedZero }
  *
+ * ⚠⚠ ITEM FIELD CONTRACT — `aa` IS THE APPROVED AMOUNT, `a` IS THE ACTUAL.
+ *
+ * `_treasury_insert_tree` (the RPC that persists this tree) does:
+ *     approved_amount := (i->>'aa')::numeric
+ *     actual_amount   := (i->>'a')::numeric
+ *
+ * This builder had it backwards — it emitted `{ a: approved, aa: actual }` — so
+ * every entity it loaded stored its ADOPTED BUDGET in `actual_amount` and left
+ * `approved_amount` NULL. San Francisco showed the effect: 19,299 line items
+ * rendering as "Budgeted $0 / Actual $15.9B" with a nonsense variance, and a
+ * sort key that was uniformly zero. The `total` was right the whole time, which
+ * is why it went unnoticed — the headline number never moved.
+ *
+ * Node rollups therefore sum `i.aa`, NOT `i.a`: the tree is a budget tree, and
+ * its node amounts must agree with `total`, which sums the approved figure.
+ * If you add a loader, match this contract — the treasury-sync edge function
+ * already does.
+ *
  * 2-level shape:
  *   [{ n, a, c: [{ n, a, i: [{ d, a, aa, f, e }] }] }]
  *
@@ -82,8 +100,8 @@ export function buildBudgetTree(rows, cm) {
 
       tree.get(dept).get(cat).get(sub).push({
         d: sub,
-        a: approved,
-        aa: actual,
+        a: actual,      // -> budget_line_items.actual_amount
+        aa: approved,   // -> budget_line_items.approved_amount
         f: fundCol ? (row[fundCol] || null) : null,
         e: null,
       });
@@ -97,8 +115,8 @@ export function buildBudgetTree(rows, cm) {
 
       tree.get(cat).get(sub).push({
         d: sub,
-        a: approved,
-        aa: actual,
+        a: actual,      // -> budget_line_items.actual_amount
+        aa: approved,   // -> budget_line_items.approved_amount
         f: fundCol ? (row[fundCol] || null) : null,
         e: null,
       });
@@ -120,7 +138,7 @@ export function buildBudgetTree(rows, cm) {
         let catTotal = 0;
         const subNodes = [];
         for (const [subName, items] of subs) {
-          const subTotal = items.reduce((s, i) => s + i.a, 0);
+          const subTotal = items.reduce((s, i) => s + i.aa, 0);
           catTotal += subTotal;
           subNodes.push({ n: subName, a: subTotal, i: items });
         }
@@ -141,7 +159,7 @@ export function buildBudgetTree(rows, cm) {
     let catTotal = 0;
     const children = [];
     for (const [subName, items] of subs) {
-      const subTotal = items.reduce((s, i) => s + i.a, 0);
+      const subTotal = items.reduce((s, i) => s + i.aa, 0);
       catTotal += subTotal;
       children.push({ n: subName, a: subTotal, i: items });
     }
