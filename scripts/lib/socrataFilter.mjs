@@ -36,6 +36,8 @@
  * default_filters.$where, if present, is ANDed in front of all of it.
  */
 
+import { hasYearColumns, yearColumnsCoverageProblem } from './yearColumnMapping.mjs';
+
 /** Drop a leading AND/OR so a fragment can stand alone as the whole clause. */
 function stripLeadingConjunction(fragment) {
   return String(fragment).replace(/^\s*(AND|OR)\s+/i, '').trim();
@@ -104,15 +106,34 @@ export function buildSocrataFilters(cm = {}, fiscalYear, defaultFilters = {}) {
  * `amount_column` on those sources names a single hard-coded year
  * (e.g. `_2018_actuals`) — the same figures too.
  *
- * West Hollywood's FY15-18 budget sources are exactly this: skip_fy_filter with
+ * West Hollywood's FY15-18 budget sources were exactly this: skip_fy_filter with
  * `amount_column: "_2018_actuals"` and `fiscal_years: [2015,2016,2017,2018]`. A
  * sync over the last two would file FY2018 actuals under FY2017 as well.
+ *
+ * ── The one legitimate multi-year case ──
+ *
+ * `skip_fy_filter` says the dataset has no year DIMENSION; it does not say the
+ * dataset holds only one year. Wide-format feeds carry a column per year, and a
+ * mapping that declares `year_columns` reads a DIFFERENT column for each fiscal
+ * year (see scripts/lib/yearColumnMapping.mjs). Those rows repeat across years
+ * by design — they are the line-item definitions — while the money does not.
+ * So the refusal lifts exactly when `year_columns` covers every requested year
+ * with a distinct amount column, and not otherwise.
  */
 export function skipFyFilterMultiYearProblem(cm = {}, fiscalYears = []) {
   const skipFy = cm.skip_fy_filter === true || cm.skip_fy_filter === 'true';
   if (!skipFy || fiscalYears.length <= 1) return null;
+
+  if (hasYearColumns(cm)) {
+    // Covered cleanly → allowed. Covered badly → say what is wrong with the
+    // mapping, rather than the generic "sync one year at a time", which is not
+    // the fix for a wide-format source.
+    return yearColumnsCoverageProblem(cm, fiscalYears);
+  }
+
   return `skip_fy_filter is set (the dataset has no fiscal-year column) but ${fiscalYears.length} `
        + `fiscal years were requested (${fiscalYears.join(', ')}). Every year would be written the `
        + `same rows${cm.amount_column ? `, all read from '${cm.amount_column}'` : ''}. `
-       + `Sync one explicit fiscal year at a time.`;
+       + `Either sync one explicit fiscal year at a time, or — if the dataset carries a column `
+       + `per year — declare column_mapping.year_columns.`;
 }

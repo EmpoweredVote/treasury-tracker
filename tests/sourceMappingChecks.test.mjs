@@ -77,4 +77,69 @@ describe('mappingProblems — budgets accept either loader dialect', () => {
     expect(codes({ dataset_type: 'operating', column_mapping: {} })).toContain('budget_mapping_incomplete');
     expect(mappingProblems(null)).toEqual([]);
   });
+  // ── Wide-format sources (West Hollywood) ──────────────────────────────────
+  //
+  // These name their amount column per fiscal year and have NO top-level
+  // amount_column, deliberately. Before year_columns was taught to this checker
+  // all four of West Hollywood's budget sources — which load correctly and tie to
+  // the cent against Socrata — came back as FATAL budget_mapping_incomplete.
+  const WEHO = {
+    dataset_type: 'operating',
+    fiscal_years: [2017, 2018, 2019, 2020],
+    column_mapping: {
+      fund_column: 'fund_title',
+      skip_fy_filter: true,
+      hierarchy_columns: ['fund_title', 'department_title', 'division_title', 'account_category_title'],
+      description_column: 'account_title',
+      year_columns: {
+        2017: { amount_column: '_2017_actuals', basis: 'actual' },
+        2018: { amount_column: '_2018_actuals', basis: 'actual' },
+        2019: { amount_column: '_2019_actuals', basis: 'actual' },
+        2020: { amount_column: '_2020_approved', basis: 'adopted' },
+      },
+    },
+  };
+
+  it('accepts a wide-format source with year_columns and no amount_column', () => {
+    expect(codes(WEHO)).toEqual([]);
+    expect(isUnsyncable(WEHO)).toBe(false);
+  });
+
+  it('accepts the repo dialect expressed as category_column + year_columns', () => {
+    const s = {
+      dataset_type: 'revenue',
+      fiscal_years: [2020],
+      column_mapping: {
+        category_column: 'fund_title',
+        year_columns: { 2020: { amount_column: '_2020_approved', basis: 'adopted' } },
+      },
+    };
+    expect(codes(s)).toEqual([]);
+  });
+
+  it('rejects a wide-format source whose year_columns misses a declared fiscal year', () => {
+    const s = { ...WEHO, fiscal_years: [2017, 2018, 2019, 2020, 2021] };
+    expect(codes(s)).toContain('year_columns_coverage');
+    expect(isUnsyncable(s)).toBe(true);
+  });
+
+  it('rejects a wide-format source mapping two years to one column', () => {
+    const s = {
+      dataset_type: 'operating',
+      fiscal_years: [2017, 2018],
+      column_mapping: {
+        hierarchy_columns: ['fund_title'],
+        year_columns: {
+          2017: { amount_column: '_2018_actuals', basis: 'actual' },
+          2018: { amount_column: '_2018_actuals', basis: 'actual' },
+        },
+      },
+    };
+    expect(codes(s)).toContain('year_columns_coverage');
+  });
+
+  it('still rejects a budget source with neither dialect nor year_columns', () => {
+    const s = { dataset_type: 'operating', column_mapping: { hierarchy_columns: ['fund'] } };
+    expect(codes(s)).toContain('budget_mapping_incomplete');
+  });
 });

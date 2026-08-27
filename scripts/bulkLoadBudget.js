@@ -25,6 +25,7 @@ import { createClient } from '@supabase/supabase-js';
 import { parseArgs } from 'node:util';
 import { buildBudgetTree, parseAmount } from './buildBudgetTree.mjs';
 import { buildSocrataWhere, skipFyFilterMultiYearProblem } from './lib/socrataFilter.mjs';
+import { resolveYearColumns } from './lib/yearColumnMapping.mjs';
 
 // ── Config ──────────────────────────────────────────────────────────────
 const SUPABASE_URL = process.env.SUPABASE_URL;
@@ -65,7 +66,10 @@ async function fetchSocrataPage(baseUrl, datasetId, offset, limit, where, order)
 
 // ── Per-source sync ─────────────────────────────────────────────────────
 async function syncBudgetSource(ds, fiscalYear, opts = {}) {
-  const cm = ds.column_mapping || {};
+  // Wide-format sources (one column per year, no fiscal_year column) bind a
+  // different amount column and a different basis for each year. Everything else
+  // resolves to itself, so this is a no-op for every long-format source.
+  const { cm, basis } = resolveYearColumns(ds.column_mapping || {}, fiscalYear, ds.name);
 
   // ⚠ The WHERE clause now comes from scripts/lib/socrataFilter.mjs, shared with the
   // treasury-sync edge function. The two used to be separate implementations
@@ -149,6 +153,7 @@ async function syncBudgetSource(ds, fiscalYear, opts = {}) {
     p_tree: jsonTree,
     p_row_count: allRows.length,
     p_triggered_by: 'bulk_load',
+    p_basis: basis,
   });
 
   if (error) {
