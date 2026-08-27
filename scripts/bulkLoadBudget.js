@@ -24,6 +24,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { parseArgs } from 'node:util';
 import { buildBudgetTree, parseAmount } from './buildBudgetTree.mjs';
+import { buildSocrataWhere, skipFyFilterMultiYearProblem } from './lib/socrataFilter.mjs';
 
 // ── Config ──────────────────────────────────────────────────────────────
 const SUPABASE_URL = process.env.SUPABASE_URL;
@@ -65,27 +66,18 @@ async function fetchSocrataPage(baseUrl, datasetId, offset, limit, where, order)
 // ── Per-source sync ─────────────────────────────────────────────────────
 async function syncBudgetSource(ds, fiscalYear, opts = {}) {
   const cm = ds.column_mapping || {};
-  const fyCol = cm.fiscal_year_column || 'bfy';
-  const fyType = cm.fiscal_year_type || 'string';
-  const whereExtra = cm.where_extra || '';
 
-  // column_mapping extensions (both optional):
-  //   fiscal_year_type: 'integer' -> WHERE fiscal_year=2025 (no quotes; for LA revenue vvm4-a2zu)
-  //                     anything else / absent -> WHERE bfy='2025' (default, matches TX cities)
-  //   where_extra:      additional WHERE clause fragment appended after the year filter.
-  //                     Caller supplies the leading 'AND' (e.g., "AND revenue_or_spending='Spending'").
-  //                     Used by SF Budget (xdgd-c79v) to filter combined spending/revenue dataset.
-
-  // Build base WHERE — integer columns must NOT be quoted (e.g., LA Revenue vvm4-a2zu)
-  // String columns (default) match the prior behavior exactly
-  const baseWhere =
-    fyType === 'integer'
-      ? `${fyCol}=${fiscalYear}`
-      : `${fyCol}='${fiscalYear}'`;
-
-  // Append where_extra verbatim if provided (e.g., SF xdgd-c79v needs
-  // "AND revenue_or_spending='Spending'"). Caller supplies the leading AND.
-  const where = whereExtra ? `${baseWhere} ${whereExtra}` : baseWhere;
+  // ⚠ The WHERE clause now comes from scripts/lib/socrataFilter.mjs, shared with the
+  // treasury-sync edge function. The two used to be separate implementations
+  // supporting different subsets of the same column_mapping extensions — this side
+  // had where_extra and fiscal_year_type, the edge side had skip_fy_filter and the
+  // date-field note, and neither had the other's. San Francisco depends on
+  // where_extra, so it loaded here and was structurally unsyncable by cron.
+  //
+  // Note this loader gains skip_fy_filter and date-field support as a side effect,
+  // which it previously lacked. Defaults the year column to 'bfy' as before.
+  const where = buildSocrataWhere(
+    { fiscal_year_column: 'bfy', ...cm }, fiscalYear, ds.default_filters);
 
   const totalCount = await fetchSocrataCount(ds.base_url, ds.dataset_id, where);
   console.log(`\n${ds.name} FY${fiscalYear}: ${totalCount.toLocaleString()} total rows`);

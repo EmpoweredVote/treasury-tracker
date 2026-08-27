@@ -36,14 +36,69 @@ function amt(v: any): number {
   if (v == null || v === "") return 0; if (typeof v === "number") return v;
   return parseFloat(String(v).replace(/[,$]/g, "").replace(/\((.+)\)/, "-$1")) || 0;
 }
+/**
+ * MIRROR of buildSocrataWhere() in scripts/lib/socrataFilter.mjs. Keep them in step —
+ * tests/socrataFilter.test.mjs carries a copy of this function and asserts the two
+ * agree case for case.
+ *
+ * ⚠⚠ This previously ignored `where_extra` and `fiscal_year_type`, both of which
+ * scripts/bulkLoadBudget.js has supported for months. San Francisco's whole
+ * configuration turns on `where_extra: "AND revenue_or_spending='Spending'"` —
+ * dataset xdgd-c79v holds BOTH revenue and spending — so this function fetched
+ * both directions at once and built a meaningless tree, making SF structurally
+ * unsyncable by cron while the repo script loaded it fine. Los Angeles Operating
+ * Budget ("AND adopted_budget_amount > 0") had the same exposure.
+ *
+ * Precedence: default_filters.$where, then the year predicate (unless
+ * skip_fy_filter), then where_extra appended verbatim with its own leading AND.
+ */
 function buildFyFilter(cm: any, fy: number, defaultFilters: any): Record<string, any> {
-  const filters = { ...defaultFilters };
-  if (cm.skip_fy_filter === 'true' || cm.skip_fy_filter === true) return filters;
-  const fyCol = cm.fiscal_year_column || 'fiscal_year';
-  const isDate = cm.note?.includes('date field');
-  const where = isDate ? `date_extract_y(${fyCol})=${fy}` : `${fyCol}='${fy}'`;
-  filters.$where = filters.$where ? `${filters.$where} AND ${where}` : where;
+  const filters = { ...(defaultFilters || {}) };
+  const parts: string[] = [];
+  if (filters.$where) parts.push(String(filters.$where).trim());
+
+  const skipFy = cm.skip_fy_filter === true || cm.skip_fy_filter === 'true';
+  if (!skipFy) {
+    const fyCol = cm.fiscal_year_column || 'fiscal_year';
+    const isDateField = typeof cm.note === 'string' && cm.note.includes('date field');
+    if (isDateField) parts.push(`date_extract_y(${fyCol})=${fy}`);
+    // Integer columns must NOT be quoted — e.g. LA Revenue vvm4-a2zu.
+    else if (cm.fiscal_year_type === 'integer') parts.push(`${fyCol}=${fy}`);
+    else parts.push(`${fyCol}='${fy}'`);
+  }
+
+  if (cm.where_extra) {
+    // Supplied with its own leading AND; strip it if it is the only predicate.
+    parts.push(parts.length === 0
+      ? String(cm.where_extra).replace(/^\s*(AND|OR)\s+/i, '').trim()
+      : String(cm.where_extra).trim());
+  }
+
+  if (parts.length === 0) { delete filters.$where; return filters; }
+  filters.$where = parts.reduce((acc, p) =>
+    !acc ? p : (/^\s*(AND|OR)\s+/i.test(p) ? `${acc} ${p}` : `${acc} AND ${p}`), '');
   return filters;
+}
+
+/**
+ * A dataset with no fiscal-year dimension cannot be loaded for more than one year:
+ * every year receives the same rows, and `amount_column` on those sources names a
+ * single hard-coded year (e.g. `_2018_actuals`), so the same figures too.
+ *
+ * West Hollywood's FY15-18 budget sources are exactly this — skip_fy_filter with
+ * amount_column '_2018_actuals' and fiscal_years [2015,2016,2017,2018] — so a sync
+ * over the last two would file FY2018 actuals under FY2017 as well.
+ */
+function assertSingleYearWhenSkippingFyFilter(ds: any, years: number[]) {
+  const cm = ds.column_mapping || {};
+  const skipFy = cm.skip_fy_filter === true || cm.skip_fy_filter === 'true';
+  if (!skipFy || years.length <= 1) return;
+  throw new Error(
+    `Refusing to sync ${ds.name}: skip_fy_filter is set (the dataset has no fiscal-year ` +
+    `column) but ${years.length} fiscal years were requested (${years.join(', ')}). Every ` +
+    `year would be written the same rows` +
+    `${cm.amount_column ? `, all read from '${cm.amount_column}'` : ''}. ` +
+    `Sync one explicit fiscal year at a time.`);
 }
 
 function buildSalaryTree(rows: any[], cm: any) {
@@ -68,7 +123,22 @@ function buildBudgetTree(rows: any[], cm: any) {
   const ac = cm.amount_column || "total_budget";
   type N = { a: number; ch: Map<string, N>; rs: any[] };
   const mk = (): N => ({ a: 0, ch: new Map(), rs: [] }); const root = mk();
-  for (const r of rows) { let n = root; for (const c of hCols) { const k = r[c] || "Unknown"; if (!n.ch.has(k)) n.ch.set(k, mk()); n = n.ch.get(k)!; } n.a += amt(r[ac]); n.rs.push(r); }
+  let droppedZero = 0;
+  for (const r of rows) {
+    // ⚠ Drop rows where BOTH the budget and the actual are zero — the same rule
+    // scripts/buildBudgetTree.mjs applies. Without it an edge sync of San Francisco
+    // would write 23,729 line items where the repo loader writes 7,174, the extra
+    // 16,555 being $0 rows that render as real line items. Rows with a zero budget
+    // but a non-zero actual are KEPT: Dallas has 125 such rows (blank appropriation,
+    // budcurr 0, $880k of expbfy) and they are real spending.
+    const approved = amt(r[ac]);
+    const actual = cm.actual_amount_column ? amt(r[cm.actual_amount_column]) : 0;
+    if (approved === 0 && actual === 0) { droppedZero++; continue; }
+    let n = root;
+    for (const c of hCols) { const k = r[c] || "Unknown"; if (!n.ch.has(k)) n.ch.set(k, mk()); n = n.ch.get(k)!; }
+    n.a += approved; n.rs.push(r);
+  }
+  if (droppedZero) console.log(`  dropped ${droppedZero} all-zero row(s)`);
   function rc(n: N): number { if (n.ch.size === 0) return n.a; let t = 0; for (const [, c] of n.ch) t += rc(c); n.a = t; return t; } rc(root);
   function tj(n: N): any[] { const a: any[] = []; for (const [nm, ch] of n.ch) { const o: any = { n: nm, a: ch.a };
     // _treasury_insert_tree maps i.aa -> budget_line_items.approved_amount and
@@ -77,9 +147,17 @@ function buildBudgetTree(rows: any[], cm: any) {
     // otherwise actual_amount silently comes back equal to the budget, i.e. the row
     // claims the city spent its appropriation to the cent. Sources with no
     // actual_amount_column keep the previous fallback.
+    // aa -> approved_amount, a -> actual_amount (see _treasury_insert_tree).
+    //   approved := approved_amount_column ?? amount_column — for a budget dataset the
+    //     rollup amount IS the approved figure, and without this fallback a source
+    //     configured with only amount_column (LA Open Budget Appropriations) loses its
+    //     money at the line-item level entirely: both columns NULL.
+    //   actual   := actual_amount_column ?? NULL — never the budget. Falling back to the
+    //     rollup amount made every row claim the city spent its appropriation to the
+    //     cent, which is the bug PR #83 shipped and then had to undo for Dallas.
     if (ch.ch.size === 0 && ch.rs.length > 0) { o.i = ch.rs.map(r => ({ d: r[cm.description_column] || nm,
-      a: cm.actual_amount_column ? amt(r[cm.actual_amount_column]) : amt(r[ac]),
-      aa: cm.approved_amount_column ? amt(r[cm.approved_amount_column]) : null, f: cm.fund_column ? r[cm.fund_column] : null, e: cm.expense_type_column ? r[cm.expense_type_column] : null })); }
+      a: cm.actual_amount_column ? amt(r[cm.actual_amount_column]) : null,
+      aa: cm.approved_amount_column ? amt(r[cm.approved_amount_column]) : amt(r[ac]), f: cm.fund_column ? r[cm.fund_column] : null, e: cm.expense_type_column ? r[cm.expense_type_column] : null })); }
     else if (ch.ch.size > 0) o.c = tj(ch); a.push(o); } a.sort((x, y) => y.a - x.a); return a; }
   return { tree: tj(root), total: root.a };
 }
@@ -195,6 +273,17 @@ Deno.serve(async (req: Request) => {
     if (ds.api_type !== 'socrata') return new Response(JSON.stringify({ error: `Unsupported: ${ds.api_type}` }), { status: 400 });
     const years = fiscal_year ? [fiscal_year] : (ds.fiscal_years || [new Date().getFullYear()]);
     const cm = ds.column_mapping; const results: any[] = [];
+
+    if (ds.dataset_type === 'operating' || ds.dataset_type === 'revenue') {
+      try {
+        assertSingleYearWhenSkippingFyFilter(ds, years);
+      } catch (e) {
+        await logFailure(data_source_id, null, e.message, 'skip_fy_multi_year', 0, triggered_by);
+        return new Response(JSON.stringify({ data_source: ds.name, dataset_type: ds.dataset_type,
+          fiscal_years: years, results: [{ status: 'error', error: e.message }] }, null, 2),
+          { headers: { "Content-Type": "application/json" } });
+      }
+    }
     for (const fy of years) {
       console.log(`Syncing ${ds.name} FY${fy} (${ds.dataset_type})...`);
       const filters = buildFyFilter(cm, fy, ds.default_filters);
