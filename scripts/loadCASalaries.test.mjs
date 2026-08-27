@@ -2,7 +2,7 @@
  * Behavioral unit tests for normalizeDeptLabel and parseMoney
  * exported from scripts/loadCASalaries.js (Phase 55 — SAL-02 gap closure).
  *
- * Run with: node --test scripts/loadCASalaries.test.mjs
+ * Run with: npx vitest run scripts/loadCASalaries.test.mjs
  *
  * CRITICAL: Set a dummy SUPABASE_SERVICE_KEY BEFORE the import to prevent
  * the top-level guard (`if (!SUPABASE_KEY) process.exit(1)`) from killing
@@ -12,7 +12,7 @@
 process.env.SUPABASE_SERVICE_KEY =
   process.env.SUPABASE_SERVICE_KEY || 'test-key-not-used';
 
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 
 import { normalizeDeptLabel, parseMoney } from './loadCASalaries.js';

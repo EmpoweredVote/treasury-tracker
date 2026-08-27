@@ -4,10 +4,10 @@
  * RED phase: tests fail because buildBudgetTree does NOT yet support
  * department_column or the 3-level path.
  *
- * Run with: node --test scripts/buildBudgetTree.test.mjs
+ * Run with: npx vitest run scripts/buildBudgetTree.test.mjs
  */
 
-import { describe, it, before } from 'node:test';
+import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 
 // The function under test will be extracted to scripts/buildBudgetTree.mjs

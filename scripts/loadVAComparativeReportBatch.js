@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * Virginia APA Comparative Report — BATCH driver (v2.7 Phase 80/81 — VALOAD-01/02/04/03)
  *

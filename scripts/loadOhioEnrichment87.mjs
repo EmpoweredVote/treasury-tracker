@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * Phase 87 — Ohio Enrichment Parity loader (inline-authored, $0; NO paid API path).
  *

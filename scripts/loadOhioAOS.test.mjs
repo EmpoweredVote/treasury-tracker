@@ -1,5 +1,5 @@
 // Offline unit tests for the Ohio AOS loader (Phase 84 — OHSRC-01; Phase 86 — OHCO-01).
-// Run: node --test scripts/loadOhioAOS.test.mjs
+// Run: npx vitest run scripts/loadOhioAOS.test.mjs
 //
 // Asserts against the recon samples (gitignored — absent on fresh clone → tests SKIP):
 //   _oh-recon/City_2024_GAAP_Summarized.XLSX   (Phase 84/85 city tests)
@@ -7,7 +7,7 @@
 //   _oh-recon/County_2024_GAAP_Summarized.XLSX (Phase 86 county tests)
 // Pure-helper tests always run regardless of sample availability.
 
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';

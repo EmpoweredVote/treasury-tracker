@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * Empowered Vote Bank Expense Loader (Phase 75 — expense side, pulled forward)
  *

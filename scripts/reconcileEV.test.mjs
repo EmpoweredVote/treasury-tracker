@@ -1,4 +1,4 @@
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { classifyDeposit, extractDeposits } from './lib/evBankDeposits.js';
 import { monthlyBurn, runway, buildIncome, reconcile } from './reconcileEV.js';

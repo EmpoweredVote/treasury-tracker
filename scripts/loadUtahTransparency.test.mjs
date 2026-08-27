@@ -2,7 +2,7 @@
  * Offline unit tests for the pure logic exported from scripts/loadUtahTransparency.js
  * (v2.5 Phase 68 — UTSRC-02 build verification).
  *
- * Run with: node --test scripts/loadUtahTransparency.test.mjs
+ * Run with: npx vitest run scripts/loadUtahTransparency.test.mjs
  *
  * These tests exercise the tree builder, amount parser, type→dataset mapper, and
  * never-overwrite decision against FIXTURE rows — NO BigQuery, NO Supabase, NO
@@ -16,7 +16,7 @@
 process.env.SUPABASE_SERVICE_KEY =
   process.env.SUPABASE_SERVICE_KEY || 'test-key-not-used';
 
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';

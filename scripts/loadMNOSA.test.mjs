@@ -1,12 +1,12 @@
 // Offline unit tests for the MN OSA loader (Phase 89 — MNSRC-01/02).
-// Run: node --test scripts/loadMNOSA.test.mjs
+// Run: npx vitest run scripts/loadMNOSA.test.mjs
 //
 // Asserts against the recon samples (gitignored — absent on fresh clone → data-backed tests SKIP):
 //   _mn-recon/cired_23_data.xlsx   (city FY2023 — Minneapolis GAAP + Ada/Adams Cash-basis)
 //   _mn-recon/county_21_data.xlsx  (county FY2021 — county layout, no GAAPInd/ParentEntityName)
 // Pure-helper tests always run regardless of sample availability.
 
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -195,7 +195,11 @@ test('enumerateEntities is layout-agnostic — works on the county sheet too (D-
   assert.ok(names.length > 0 && names.includes('Aitkin'), 'county roster includes Aitkin');
 });
 
-test('loadMNOSABatch FY2023 dry-run processes the full roster, zero writes, GAAP+Cash both present', { skip: !HAVE_CITY }, async () => {
+// ⚠ Explicit timeout: this walks an 851-city workbook, so its duration tracks
+// disk contention, not the code under test. vitest's 5s default fails it under
+// load; node --test (this file's previous runner) had no default at all, which
+// is why the need was invisible until the file was actually wired into the suite.
+test('loadMNOSABatch FY2023 dry-run processes the full roster, zero writes, GAAP+Cash both present', { skip: !HAVE_CITY, timeout: 120_000 }, async () => {
   const res = await loadMNOSABatch({ fy: 2023, file: CITY_SAMPLE, dryRun: true });
   assert.ok(res.processed >= 800, `processed ${res.processed} cities`);
   assert.equal(res.failures.length, 0, 'zero per-city failures');

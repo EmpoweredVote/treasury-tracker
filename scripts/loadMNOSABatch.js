@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * MN OSA City/County Finances Report — BATCH driver (v2.9 Phase 90 — MNCITY-01/02)
  *

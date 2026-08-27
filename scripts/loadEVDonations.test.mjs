@@ -1,4 +1,4 @@
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -274,7 +274,12 @@ test('computeRecurringAggregates: typical_monthly is the median of GB+Patreon am
 const gbExportFile  = new URL('../data/ev-sources/givebutter_transactions-2026-06-21-1895409277.csv', import.meta.url).pathname.replace(/^\/([A-Z]:\/)/i, m => m.slice(1));
 const patDetailExportFile = new URL('../data/ev-sources/patreon_creator-analytics-detailed-earnings.csv', import.meta.url).pathname.replace(/^\/([A-Z]:\/)/i, m => m.slice(1));
 
-test('computeRecurringAggregates: FY2026 real export data — 9 supporters, median $10', () => {
+// ⚠ data/ev-sources/ is gitignored, so these exports are absent on a fresh clone
+// and in CI. Skip rather than fail — same convention as the _mn-recon/_oh-recon/
+// _va-recon sample guards in the MN, Ohio and VA loader tests.
+const HAVE_EXPORTS = fs.existsSync(gbExportFile) && fs.existsSync(patDetailExportFile);
+
+test('computeRecurringAggregates: FY2026 real export data — 9 supporters, median $10', { skip: !HAVE_EXPORTS }, () => {
   const { readCsvRows } = { readCsvRows: (f) => {
     const lines = fs.readFileSync(f, 'utf-8').split(/\r?\n/).filter(l => l.trim());
     if (!lines.length) return [];

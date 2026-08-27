@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * Virginia APA Comparative Report Loader (v2.7 Phase 79 — VASRC-01)
  *

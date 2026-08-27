@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * Ohio Auditor of State Summarized Annual Financial Reports Loader (v2.8 Phase 84 — OHSRC-01/02)
  *

@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * Phase 72 — Utah Enrichment Parity loader (inline-authored, $0; NO paid API path).
  *

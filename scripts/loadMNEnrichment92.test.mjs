@@ -4,7 +4,7 @@
  * Pure: imports CONCEPTS/EXPECTED_CONCEPTS + buildRows/findDollarLeaks/findLocalityLeaks/lastSegment only.
  * No DB / network access (the loader's main() is entry-guarded).
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { CONCEPTS, EXPECTED_CONCEPTS } from '../data/mnEnrichment92.mjs';
 import { buildRows, findDollarLeaks, findLocalityLeaks, lastSegment, GUARD_NAME_SKIP } from './loadMNEnrichment92.mjs';
