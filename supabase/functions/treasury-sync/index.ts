@@ -85,6 +85,32 @@ function buildBudgetTree(rows: any[], cm: any) {
 }
 
 /**
+ * Record a failure that happened BEFORE one of the treasury_sync_* RPCs ran.
+ *
+ * Those RPCs are what write sync_logs, so until this existed every pre-RPC
+ * failure — a Socrata 4xx, a timeout, the zero-total abort below, a bad
+ * column_mapping — left NO trace at all: no sync_logs row, last_error NULL,
+ * sync_status 'idle', last_synced_at unchanged. The source looked healthy and
+ * merely old, which is how San Francisco sat on 2026-05-23 data for three
+ * months without anything reporting a problem.
+ *
+ * Never allowed to throw: an error path that can itself fail turns a loud
+ * failure back into a silent one.
+ */
+async function logFailure(dsId: string, fy: number | null, err: string, stage: string,
+                          rowsFetched = 0, triggeredBy = 'manual', status = 'error') {
+  try {
+    const { error } = await supabase.rpc('treasury_log_sync_failure', {
+      p_data_source_id: dsId, p_fiscal_year: fy, p_error: err, p_stage: stage,
+      p_rows_fetched: rowsFetched, p_triggered_by: triggeredBy, p_status: status,
+    });
+    if (error) console.error(`could not record ${stage} failure: ${error.message}`);
+  } catch (e) {
+    console.error(`could not record ${stage} failure: ${e?.message}`);
+  }
+}
+
+/**
  * Guard against silently persisting an all-zero budget.
  *
  * This function and scripts/buildBudgetTree.mjs read `column_mapping` with DIFFERENT
@@ -161,7 +187,11 @@ Deno.serve(async (req: Request) => {
     const { data_source_id, fiscal_year, triggered_by = "manual", offset = 0 } = await req.json();
     if (!data_source_id) return new Response(JSON.stringify({ error: "data_source_id required" }), { status: 400 });
     const { data: ds, error: dsErr } = await supabase.rpc('treasury_get_data_source_config', { p_data_source_id: data_source_id });
-    if (dsErr || !ds) return new Response(JSON.stringify({ error: `Config: ${dsErr?.message}` }), { status: 500 });
+    if (dsErr || !ds) {
+      await logFailure(data_source_id, fiscal_year ?? null,
+        `Config lookup failed: ${dsErr?.message || 'no config returned'}`, 'get_config', 0, triggered_by);
+      return new Response(JSON.stringify({ error: `Config: ${dsErr?.message}` }), { status: 500 });
+    }
     if (ds.api_type !== 'socrata') return new Response(JSON.stringify({ error: `Unsupported: ${ds.api_type}` }), { status: 400 });
     const years = fiscal_year ? [fiscal_year] : (ds.fiscal_years || [new Date().getFullYear()]);
     const cm = ds.column_mapping; const results: any[] = [];
@@ -169,24 +199,49 @@ Deno.serve(async (req: Request) => {
       console.log(`Syncing ${ds.name} FY${fy} (${ds.dataset_type})...`);
       const filters = buildFyFilter(cm, fy, ds.default_filters);
       let res: any;
+      // Once an RPC is entered it writes its own sync_logs row (success or, via its
+      // EXCEPTION block, error). Only failures BEFORE that point need logging here,
+      // or every failure would be recorded twice.
+      let rpcReached = false;
       try {
         if (ds.dataset_type === 'transactions') {
           res = await syncTxnPaginated(ds, fy, triggered_by, offset);
         } else {
           const rows = await fetchAll(ds.base_url, ds.dataset_id, filters);
-          if (rows.length === 0) { results.push({ fiscal_year: fy, rows_fetched: 0, status: 'empty' }); continue; }
+          if (rows.length === 0) {
+            // Zero rows for a fiscal year the source claims to cover is almost always
+            // a fiscal_year_column / filter mistake. Record it as 'empty' — not an
+            // error, but no longer invisible.
+            await logFailure(data_source_id, fy,
+              `Fetched 0 rows for FY${fy}. Filter: ${JSON.stringify(filters)}`,
+              'fetch_empty', 0, triggered_by, 'empty');
+            results.push({ fiscal_year: fy, rows_fetched: 0, status: 'empty' });
+            continue;
+          }
           if (ds.dataset_type === 'salaries') {
             const { tree, total } = buildSalaryTree(rows, cm);
+            rpcReached = true;
             const { data, error } = await supabase.rpc('treasury_sync_salary_tree', { p_data_source_id: data_source_id, p_fiscal_year: fy, p_total: total, p_tree: tree, p_row_count: rows.length, p_triggered_by: triggered_by });
             if (error) throw new Error(error.message); res = data;
           } else if (ds.dataset_type === 'operating' || ds.dataset_type === 'revenue') {
             const { tree, total } = buildBudgetTree(rows, cm);
             assertNonZeroBudget(ds, fy, rows.length, total, tree);
+            rpcReached = true;
             const { data, error } = await supabase.rpc('treasury_sync_budget_tree', { p_data_source_id: data_source_id, p_fiscal_year: fy, p_dataset_type: ds.dataset_type, p_total: total, p_tree: tree, p_row_count: rows.length, p_triggered_by: triggered_by });
             if (error) throw new Error(error.message); res = data;
-          } else { res = { status: 'unsupported', error: `Unknown: ${ds.dataset_type}` }; }
+          } else {
+            res = { status: 'unsupported', error: `Unknown: ${ds.dataset_type}` };
+            await logFailure(data_source_id, fy, `Unsupported dataset_type: ${ds.dataset_type}`,
+              'unsupported_dataset_type', rows.length, triggered_by);
+          }
         }
-      } catch (e) { res = { status: 'error', error: e.message }; }
+      } catch (e) {
+        res = { status: 'error', error: e.message };
+        // Reaching the RPC means it already logged; anything earlier would vanish.
+        if (!rpcReached) {
+          await logFailure(data_source_id, fy, e.message, 'pre_rpc', 0, triggered_by);
+        }
+      }
       results.push({ fiscal_year: fy, ...res });
     }
     return new Response(JSON.stringify({ data_source: ds.name, dataset_type: ds.dataset_type, fiscal_years: years, results,
