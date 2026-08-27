@@ -180,13 +180,28 @@ async function main() {
     strict: false,
   });
 
-  const { data: sources, error } = await supabase.rpc('treasury_list_source_ids');
+  // ⚠ Filter SERVER-side via treasury_list_sources, NOT client-side over
+  // treasury_list_source_ids. The latter returns all 1,811 enabled sources, and
+  // PostgREST truncates the response at db-max-rows = 1000 — ordered by
+  // `priority DESC, name`, so the cut is ALPHABETICAL, landing at "Norwell — MA
+  // General Fund Expenditures". San Francisco, Sacramento, San Diego, Seattle,
+  // Portland, Oakland and West Hollywood all sort after it and were simply
+  // absent from this list: `--list` showed 5 budget sources where 11 exist, and
+  // the sync orchestrator never enumerated them, so they never synced at all.
+  const { data: sources, error } = await supabase.rpc('treasury_list_sources', {
+    p_api_type: 'socrata',
+    p_dataset_types: ['operating', 'revenue'],
+  });
   if (error) { console.error('Failed to list sources:', error.message); process.exit(1); }
 
-  // Default filter to budget types (NOT 'transactions')
-  const budgetSources = (sources || []).filter(
-    s => s.api_type === 'socrata' && ['operating', 'revenue'].includes(s.dataset_type)
-  );
+  // A result sitting exactly on the cap is truncation until proven otherwise.
+  if ((sources || []).length === 1000) {
+    console.error('Refusing to proceed: source listing returned exactly 1000 rows, ' +
+                  'which is PostgREST db-max-rows. Narrow the filter or paginate.');
+    process.exit(1);
+  }
+
+  const budgetSources = sources || [];
 
   if (values.list) {
     console.log('\nAvailable Socrata budget data sources:\n');

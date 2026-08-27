@@ -145,7 +145,10 @@ function buildBudgetTree(rows) {
     if (!tree.has(cat)) tree.set(cat, new Map());
     if (!tree.get(cat).has(sub)) tree.get(cat).set(sub, []);
 
-    tree.get(cat).get(sub).push({ d: sub, a: approved, aa: null, f: fund, e: null });
+    // ⚠ aa -> approved_amount, a -> actual_amount in _treasury_insert_tree. See the
+    // contract note in scripts/buildBudgetTree.mjs. Sacramento publishes no actuals,
+    // so `a` is null and the budget belongs in `aa`.
+    tree.get(cat).get(sub).push({ d: sub, a: null, aa: approved, f: fund, e: null });
     total += approved;
     kept++;
   }
@@ -155,7 +158,7 @@ function buildBudgetTree(rows) {
     let catTotal = 0;
     const children = [];
     for (const [subName, items] of subs) {
-      const subTotal = items.reduce((s, i) => s + i.a, 0);
+      const subTotal = items.reduce((s, i) => s + i.aa, 0);
       catTotal += subTotal;
       children.push({ n: subName, a: subTotal, i: items });
     }
