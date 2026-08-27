@@ -26,8 +26,10 @@
  * not fail quietly once a week forever.
  */
 
+import { hasYearColumns, yearColumnsCoverageProblem } from './yearColumnMapping.mjs';
+
 /**
- * @param {object} source  { dataset_type, column_mapping }
+ * @param {object} source  { dataset_type, column_mapping, fiscal_years }
  * @returns {Array<{code: string, detail: string, fatal: boolean}>}
  */
 export function mappingProblems(source) {
@@ -78,16 +80,38 @@ export function mappingProblems(source) {
   }
 
   if ((type === 'operating' || type === 'revenue')) {
-    const hasEdgeDialect = Array.isArray(cm.hierarchy_columns) && !!cm.amount_column;
-    const hasRepoDialect = !!cm.category_column && !!cm.approved_amount_column;
+    // ⚠ A WIDE-FORMAT source names its amount column per fiscal year in
+    // `year_columns` and has no top-level `amount_column` at all — deliberately, so
+    // there is no second source of truth to drift (scripts/lib/yearColumnMapping.mjs).
+    // Without this clause West Hollywood's four budget sources, which load correctly,
+    // would each be reported as a FATAL mapping problem. Calling a working source
+    // broken is the same failure as calling a broken one healthy, and this checker
+    // has done it before.
+    const wideFormat = hasYearColumns(cm);
+    const hasEdgeDialect = Array.isArray(cm.hierarchy_columns) && (!!cm.amount_column || wideFormat);
+    const hasRepoDialect = (!!cm.category_column && !!cm.approved_amount_column)
+      || (!!cm.category_column && wideFormat);
     if (!hasEdgeDialect && !hasRepoDialect) {
       problems.push({
         code: 'budget_mapping_incomplete',
         detail: 'neither loader dialect is satisfied: the treasury-sync edge function '
-              + 'needs hierarchy_columns + amount_column, and scripts/buildBudgetTree.mjs '
-              + 'needs category_column + approved_amount_column.',
+              + 'needs hierarchy_columns + amount_column (or year_columns), and '
+              + 'scripts/buildBudgetTree.mjs needs category_column + approved_amount_column.',
         fatal: true,
       });
+    }
+
+    // A wide-format mapping that does not cover its own fiscal_years cannot sync the
+    // years it claims — resolveYearColumns throws rather than reading the wrong column.
+    if (wideFormat) {
+      const coverage = yearColumnsCoverageProblem(cm, source.fiscal_years || []);
+      if (coverage) {
+        problems.push({
+          code: 'year_columns_coverage',
+          detail: `column_mapping.year_columns does not cover fiscal_years: ${coverage}`,
+          fatal: true,
+        });
+      }
     }
   }
 

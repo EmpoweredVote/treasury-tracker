@@ -81,18 +81,109 @@ function buildFyFilter(cm: any, fy: number, defaultFilters: any): Record<string,
 }
 
 /**
+ * ⚠ MIRRORED from scripts/lib/yearColumnMapping.mjs — pinned by
+ * tests/yearColumnMapping.test.mjs. Change both or neither.
+ *
+ * Wide-format budget feeds carry one row per line item and a COLUMN PER YEAR
+ * (`_2017_actuals`, `_2020_approved`, …) with no fiscal-year column to filter on.
+ * A single `amount_column` cannot express that, so `year_columns` binds each
+ * fiscal year to its own column and states whether that column holds an actual
+ * or an adopted figure. See the repo module for the full reasoning.
+ */
+function resolveYearColumns(cm: any, fy: number | string, sourceName = 'source'):
+    { cm: any; basis: string | null } {
+  const yc = cm?.year_columns;
+  const has = !!yc && typeof yc === 'object' && !Array.isArray(yc) && Object.keys(yc).length > 0;
+  if (!has) return { cm, basis: null };
+
+  const key = String(fy);
+  const entry = yc[key];
+  const declared = Object.keys(yc).map(Number).filter(Number.isInteger).sort((a, b) => a - b);
+
+  if (!entry) {
+    throw new Error(
+      `Refusing to sync ${sourceName} FY${fy}: column_mapping.year_columns is set ` +
+      `(this is a wide-format dataset with one column per year) but declares no entry for ` +
+      `${key}. Declared years: ${declared.join(', ') || '(none)'}. Falling back to ` +
+      `amount_column '${cm.amount_column ?? 'none'}' would file another year's figures under ` +
+      `FY${fy}. Add the year to year_columns, or drop it from fiscal_years.`);
+  }
+  if (!entry.amount_column) {
+    throw new Error(
+      `Refusing to sync ${sourceName} FY${fy}: year_columns["${key}"] has no ` +
+      `amount_column, so every row would be read as 0.`);
+  }
+  if (!['actual', 'adopted'].includes(entry.basis)) {
+    throw new Error(
+      `Refusing to sync ${sourceName} FY${fy}: year_columns["${key}"].basis is ` +
+      `${JSON.stringify(entry.basis ?? null)}, but a declared year must say whether its ` +
+      `column holds an actual or an adopted figure. A wide dataset puts ` +
+      `closed-year actuals in the columns next to the adopted budget; storing one as the ` +
+      `other is what the basis axis exists to prevent. Figures that are neither — a proposal ` +
+      `never adopted — do not belong in year_columns at all.`);
+  }
+
+  // ⚠ actual_amount_column is REPLACED, not inherited: WeHo's top-level
+  // '_2019_actuals' would otherwise become every year's reported actual.
+  const bound = { ...cm };
+  bound.amount_column = entry.amount_column;
+  if (entry.actual_amount_column) bound.actual_amount_column = entry.actual_amount_column;
+  else delete bound.actual_amount_column;
+  if (entry.approved_amount_column) bound.approved_amount_column = entry.approved_amount_column;
+  else delete bound.approved_amount_column;
+  return { cm: bound, basis: entry.basis };
+}
+
+/** Mirrors yearColumnsCoverageProblem() in scripts/lib/yearColumnMapping.mjs. */
+function yearColumnsCoverageProblem(cm: any, years: number[]): string | null {
+  const yc = cm?.year_columns;
+  const has = !!yc && typeof yc === 'object' && !Array.isArray(yc) && Object.keys(yc).length > 0;
+  if (!has) return null;
+
+  const declared = Object.keys(yc).map(Number).filter(Number.isInteger).sort((a, b) => a - b);
+  const missing = years.filter((fy) => !yc[String(fy)]);
+  if (missing.length > 0) {
+    return `year_columns declares no entry for ${missing.join(', ')} `
+         + `(declared: ${declared.join(', ') || 'none'}).`;
+  }
+  const seen = new Map<string, number>();
+  for (const fy of years) {
+    const col = yc[String(fy)]?.amount_column;
+    if (!col) return `year_columns["${fy}"] has no amount_column.`;
+    if (seen.has(col)) {
+      return `year_columns maps FY${seen.get(col)} and FY${fy} to the same column `
+           + `'${col}', so both years would be written the same figures.`;
+    }
+    seen.set(col, fy);
+  }
+  return null;
+}
+
+/**
  * A dataset with no fiscal-year dimension cannot be loaded for more than one year:
  * every year receives the same rows, and `amount_column` on those sources names a
  * single hard-coded year (e.g. `_2018_actuals`), so the same figures too.
  *
- * West Hollywood's FY15-18 budget sources are exactly this — skip_fy_filter with
+ * West Hollywood's FY15-18 budget sources were exactly this — skip_fy_filter with
  * amount_column '_2018_actuals' and fiscal_years [2015,2016,2017,2018] — so a sync
  * over the last two would file FY2018 actuals under FY2017 as well.
+ *
+ * The refusal lifts for a wide-format source that declares `year_columns` covering
+ * every requested year with a DISTINCT column: those rows repeat by design, the
+ * money does not.
  */
 function assertSingleYearWhenSkippingFyFilter(ds: any, years: number[]) {
   const cm = ds.column_mapping || {};
   const skipFy = cm.skip_fy_filter === true || cm.skip_fy_filter === 'true';
   if (!skipFy || years.length <= 1) return;
+
+  const yc = cm.year_columns;
+  if (yc && typeof yc === 'object' && !Array.isArray(yc) && Object.keys(yc).length > 0) {
+    const problem = yearColumnsCoverageProblem(cm, years);
+    if (!problem) return;
+    throw new Error(`Refusing to sync ${ds.name}: ${problem}`);
+  }
+
   throw new Error(
     `Refusing to sync ${ds.name}: skip_fy_filter is set (the dataset has no fiscal-year ` +
     `column) but ${years.length} fiscal years were requested (${years.join(', ')}). Every ` +
@@ -325,10 +416,13 @@ Deno.serve(async (req: Request) => {
             const { data, error } = await supabase.rpc('treasury_sync_salary_tree', { p_data_source_id: data_source_id, p_fiscal_year: fy, p_total: total, p_tree: tree, p_row_count: rows.length, p_triggered_by: triggered_by });
             if (error) throw new Error(error.message); res = data;
           } else if (ds.dataset_type === 'operating' || ds.dataset_type === 'revenue') {
-            const { tree, total } = buildBudgetTree(rows, cm);
+            // Wide-format sources bind a different amount column — and a different
+            // basis — for each fiscal year. Every other source resolves to itself.
+            const { cm: yearCm, basis } = resolveYearColumns(cm, fy, ds.name);
+            const { tree, total } = buildBudgetTree(rows, yearCm);
             assertNonZeroBudget(ds, fy, rows.length, total, tree);
             rpcReached = true;
-            const { data, error } = await supabase.rpc('treasury_sync_budget_tree', { p_data_source_id: data_source_id, p_fiscal_year: fy, p_dataset_type: ds.dataset_type, p_total: total, p_tree: tree, p_row_count: rows.length, p_triggered_by: triggered_by });
+            const { data, error } = await supabase.rpc('treasury_sync_budget_tree', { p_data_source_id: data_source_id, p_fiscal_year: fy, p_dataset_type: ds.dataset_type, p_total: total, p_tree: tree, p_row_count: rows.length, p_triggered_by: triggered_by, p_basis: basis });
             if (error) throw new Error(error.message); res = data;
           } else {
             res = { status: 'unsupported', error: `Unknown: ${ds.dataset_type}` };
