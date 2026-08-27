@@ -26,13 +26,16 @@ function edgeBuildBudgetTree(rows, cm) {
   const mk = () => ({ a: 0, ch: new Map(), rs: [] });
   const root = mk();
   for (const r of rows) {
+    const approved = amt(r[ac]);
+    const actual = cm.actual_amount_column ? amt(r[cm.actual_amount_column]) : 0;
+    if (approved === 0 && actual === 0) continue;
     let n = root;
     for (const c of hCols) {
       const k = r[c] || 'Unknown';
       if (!n.ch.has(k)) n.ch.set(k, mk());
       n = n.ch.get(k);
     }
-    n.a += amt(r[ac]);
+    n.a += approved;
     n.rs.push(r);
   }
   const rc = n => {
@@ -50,8 +53,8 @@ function edgeBuildBudgetTree(rows, cm) {
       if (ch.ch.size === 0 && ch.rs.length > 0) {
         o.i = ch.rs.map(r => ({
           d: r[cm.description_column] || nm,
-          a: cm.actual_amount_column ? amt(r[cm.actual_amount_column]) : amt(r[ac]),
-          aa: cm.approved_amount_column ? amt(r[cm.approved_amount_column]) : null,
+          a: cm.actual_amount_column ? amt(r[cm.actual_amount_column]) : null,
+          aa: cm.approved_amount_column ? amt(r[cm.approved_amount_column]) : amt(r[ac]),
           f: cm.fund_column ? r[cm.fund_column] : null,
         }));
       } else if (ch.ch.size > 0) o.c = tj(ch);
@@ -132,21 +135,33 @@ describe('edge-function tree build (the loader that actually runs Dallas)', () =
   });
 
   it('reproduces the defect when the edge-function dialect is missing', () => {
-    // This is the pre-fix Dallas mapping: repo dialect only.
+    // The pre-fix Dallas mapping: repo dialect only. Rows carry non-zero actuals so
+    // they survive the all-zero drop and the shape of the original defect stays
+    // visible — every hierarchy level keying to the literal "Unknown".
     const brokenCm = { ...bySlug.operating.column_mapping };
     delete brokenCm.hierarchy_columns;
     delete brokenCm.amount_column;
+    const rowsWithActuals = OPERATING_ROWS.map(r => ({ ...r, expbfy: '500' }));
 
-    const { tree, total } = edgeBuildBudgetTree(OPERATING_ROWS, brokenCm);
+    const { tree, total } = edgeBuildBudgetTree(rowsWithActuals, brokenCm);
     expect(total).toBe(0);                       // -> budgets.total_budget = 0
     expect(tree).toHaveLength(1);
     expect(tree[0].n).toBe('Unknown');           // -> the Unknown > Unknown > Unknown chain
     expect(tree[0].c[0].n).toBe('Unknown');
     expect(tree[0].c[0].c[0].n).toBe('Unknown');
-    // ...while the line-item money stayed correct, which is why this hid so long
-    const items = tree[0].c[0].c[0].i;
-    expect(items.reduce((s, i) => s + i.aa, 0)).toBe(1060825701);
-    expect(items.every(i => i.d === 'Unknown')).toBe(true);
+    expect(tree[0].c[0].c[0].i.every(i => i.d === 'Unknown')).toBe(true);
+  });
+
+  it('and with the zero-drop in place, the wrong dialect collapses to nothing', () => {
+    // Dallas's real rows have expbfy 0, so under the wrong dialect every row is
+    // all-zero and drops: empty tree, total 0, which trips the zero-total guard
+    // before anything is written. Two independent defences now.
+    const brokenCm = { ...bySlug.operating.column_mapping };
+    delete brokenCm.hierarchy_columns;
+    delete brokenCm.amount_column;
+    const { tree, total } = edgeBuildBudgetTree(OPERATING_ROWS, brokenCm);
+    expect(total).toBe(0);
+    expect(tree).toEqual([]);
   });
 });
 
@@ -181,11 +196,61 @@ describe('actual_amount must not silently mirror the budget', () => {
     expect(item.a).not.toBe(item.aa);
   });
 
-  it('falls back to amount_column when no actual_amount_column is declared', () => {
+  it('leaves actual NULL — never the budget — when no actual_amount_column is declared', () => {
+    // San Francisco's case: xdgd-c79v publishes no actuals. Falling back to the
+    // rollup amount here would make every row claim the city spent its budget
+    // exactly, which is the defect PR #83 introduced and had to undo.
     const cm = { ...bySlug.operating.column_mapping };
     delete cm.actual_amount_column;
     const rows = [{ appropriation: 'A', service: 'B', objectgroup: 'C', budcurr: '1000', expbfy: '250' }];
     const item = edgeBuildBudgetTree(rows, cm).tree[0].c[0].c[0].i[0];
-    expect(item.a).toBe(1000);
+    expect(item.a).toBeNull();
+    expect(item.aa).toBe(1000);
+  });
+
+  it('falls approved back to amount_column when approved_amount_column is absent', () => {
+    // LA Open Budget Appropriations: amount_column only. Without this fallback the
+    // money reached NEITHER line-item column.
+    const cm = { ...bySlug.operating.column_mapping };
+    delete cm.approved_amount_column;
+    const rows = [{ appropriation: 'A', service: 'B', objectgroup: 'C', budcurr: '1000', expbfy: '250' }];
+    const item = edgeBuildBudgetTree(rows, cm).tree[0].c[0].c[0].i[0];
+    expect(item.aa).toBe(1000);
+    expect(item.a).toBe(250);
+  });
+});
+
+describe('the edge builder drops all-zero rows, like the repo builder', () => {
+  const cm = () => ({ ...bySlug.operating.column_mapping });
+
+  it('drops a row whose budget AND actual are both zero', () => {
+    const rows = [
+      { appropriation: 'A', service: 'S', objectgroup: 'O', budcurr: '100', expbfy: '0' },
+      { appropriation: 'Z', service: 'S', objectgroup: 'O', budcurr: '0', expbfy: '0' },
+    ];
+    const { tree, total } = edgeBuildBudgetTree(rows, cm());
+    expect(total).toBe(100);
+    expect(tree.map((t) => t.n)).toEqual(['A']);
+  });
+
+  it('KEEPS a zero-budget row that has real actual spending', () => {
+    // Dallas has 125 FY2025 rows with a blank appropriation and budcurr 0 carrying
+    // $880k of expbfy. Dropping those would lose real spending.
+    const rows = [{ appropriation: '', service: 'S', objectgroup: 'O', budcurr: '0', expbfy: '880009.60' }];
+    const { tree, total } = edgeBuildBudgetTree(rows, cm());
+    expect(total).toBe(0);
+    expect(tree).toHaveLength(1);
+    expect(tree[0].n).toBe('Unknown');
+    expect(tree[0].c[0].c[0].i[0].a).toBe(880009.6);
+  });
+
+  it('drops zero rows when the source declares no actual column at all', () => {
+    const c = cm();
+    delete c.actual_amount_column;
+    const rows = [
+      { appropriation: 'A', service: 'S', objectgroup: 'O', budcurr: '100' },
+      { appropriation: 'Z', service: 'S', objectgroup: 'O', budcurr: '0' },
+    ];
+    expect(edgeBuildBudgetTree(rows, c).tree.map((t) => t.n)).toEqual(['A']);
   });
 });
