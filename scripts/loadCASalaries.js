@@ -45,8 +45,12 @@ import { fileURLToPath } from 'node:url';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-if (!SUPABASE_KEY) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit(1); }
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+// ⚠ Do NOT hard-exit at import time. This module is imported by its unit tests,
+// which run in CI with no Supabase key — a top-level process.exit(1) takes the
+// whole vitest worker down with "process.exit unexpectedly called with 1". The
+// CLI entry point at the bottom enforces the key instead, so running the loader
+// for real still fails fast and loud.
+const supabase = SUPABASE_KEY ? createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
 // ── GCC constants (from 55-SPIKE-FINDINGS.md — do NOT re-derive) ────────────
 
@@ -545,5 +549,6 @@ async function main() {
 // Run main() only when executed directly — not when imported (e.g. by sweepOCSalaries.js,
 // which reuses normalizeDeptLabel so both scripts share one normalization source of truth).
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  if (!SUPABASE_KEY) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit(1); }
   main().catch(err => { console.error('Fatal:', err); process.exit(1); });
 }
