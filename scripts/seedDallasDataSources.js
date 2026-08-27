@@ -14,6 +14,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { DALLAS_SOURCES } from './lib/dallasSources.mjs';
 
 // ── Config ──────────────────────────────────────────────────────────────
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
@@ -26,46 +27,10 @@ if (!SUPABASE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ── Dallas municipality_id (confirmed via quick task 001) ───────────────
-const DALLAS_MUNICIPALITY_ID = '17ce5baf-277d-41c9-a3f6-2e44f9def106';
-
-// ── Data source definitions ─────────────────────────────────────────────
-const SOURCES = [
-  {
-    name: 'Dallas Operating Budget',
-    api_type: 'socrata',
-    dataset_type: 'operating',
-    base_url: 'https://www.dallasopendata.com',
-    dataset_id: 'e2fs-y4nb',
-    column_mapping: {
-      fiscal_year_column: 'bfy',
-      approved_amount_column: 'budcurr',
-      actual_amount_column: 'expbfy',
-      category_column: 'service',
-      subcategory_column: 'objectgroup',
-      fund_column: 'fundtype',
-    },
-    fiscal_years: [2025, 2026],
-    municipality_id: DALLAS_MUNICIPALITY_ID,
-  },
-  {
-    name: 'Dallas Revenue Budget',
-    api_type: 'socrata',
-    dataset_type: 'revenue',
-    base_url: 'https://www.dallasopendata.com',
-    dataset_id: 'rtn4-pmj9',
-    column_mapping: {
-      fiscal_year_column: 'bfy',
-      approved_amount_column: 'budcurr',
-      actual_amount_column: 'revbfy',
-      category_column: 'department',
-      subcategory_column: 'revsource',
-      fund_column: 'fundtype',
-    },
-    fiscal_years: [2025, 2026],
-    municipality_id: DALLAS_MUNICIPALITY_ID,
-  },
-];
+// ── Source definitions (single source of truth, unit-tested) ───────────
+// Both column_mapping dialects live in scripts/lib/dallasSources.mjs; see the
+// header there for why Dallas rendered $0 until 2026-08-26.
+const SOURCES = DALLAS_SOURCES;
 
 // ── Idempotent upsert: select by name → insert or update ────────────────
 async function upsertByName(src) {
