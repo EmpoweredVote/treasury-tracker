@@ -6,3 +6,15 @@
 # the pre-commit hook would silently stop running for anyone on Windows: the
 # worst failure mode for a guard, since it looks exactly like "no violations".
 .githooks/** text eol=lf
+
+# Shebang scripts must keep LF too.
+#
+# ⚠ Git stores these as LF, but core.autocrlf=true rewrites them to CRLF on
+# Windows checkout — and while node(1) tolerates `#!/usr/bin/env node`,
+# vitest's esbuild transform rejects it as "SyntaxError: Invalid or unexpected
+# token". The failure is invisible on Linux CI and hits only Windows clones,
+# which is the worst shape: `npm test` disagrees with itself by platform.
+*.js text eol=lf
+*.mjs text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf

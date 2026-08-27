@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * Wisconsin DOR CMREB Loader — County and Municipal Revenues and Expenditures
  *

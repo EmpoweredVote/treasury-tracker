@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * Ohio AOS Summarized Annual Financial Reports — BATCH driver (v2.8 Phase 85 — OHCITY-01/02)
  *

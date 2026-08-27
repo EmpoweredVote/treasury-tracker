@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * Empowered Vote Reconciliation + Summary Loader (Phase 75)
  *

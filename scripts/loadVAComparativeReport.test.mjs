@@ -1,11 +1,11 @@
 // Offline unit tests for the VA APA Comparative Report loader (Phase 79 — VASRC-01).
-// Run: node --test scripts/loadVAComparativeReport.test.mjs
+// Run: npx vitest run scripts/loadVAComparativeReport.test.mjs
 //
 // Asserts against the recon sample (_va-recon/fy2024-comparative-report.xlsx). That file is
 // gitignored; when absent (fresh clone), the data-backed tests SKIP rather than fail, but the
 // pure-helper tests always run.
 
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';

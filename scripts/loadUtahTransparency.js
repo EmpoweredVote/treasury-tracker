@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * Utah Transparency Loader (v2.5 Phases 68–71.1 — UTSRC-02 / UCITY-01/02 / UETL-01)
  *

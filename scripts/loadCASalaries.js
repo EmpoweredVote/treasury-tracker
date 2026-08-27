@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * CA Statewide City Salaries Loader
  *

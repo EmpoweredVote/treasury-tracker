@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * State General Fund Loader — NASBO source (operating / spending-by-function)  [FALLBACK-ONLY]
  * ──────────────────────────────────────────────────────────────────────────

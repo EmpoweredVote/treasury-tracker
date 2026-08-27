@@ -4,7 +4,7 @@
  * Pure: imports OHIO_ENRICHMENT/EXPECTED_KEYS + buildRows/findDollarLeaks/findLocalityLeaks only.
  * No DB / network access (the loader's main() is entry-guarded).
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { OHIO_ENRICHMENT, EXPECTED_KEYS } from '../data/ohioEnrichment87.mjs';
 import { buildRows, findDollarLeaks, findLocalityLeaks } from './loadOhioEnrichment87.mjs';

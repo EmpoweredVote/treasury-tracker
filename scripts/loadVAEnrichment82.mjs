@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * Phase 82 — Virginia Enrichment Parity loader (inline-authored, $0; NO paid API path).
  *

@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * Minnesota Office of the State Auditor "City/County Finances Report" Loader (v2.9 Phase 89 — MNSRC-01/02)
  *

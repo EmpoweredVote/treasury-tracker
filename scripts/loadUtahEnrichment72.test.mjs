@@ -1,7 +1,7 @@
 // Phase 72 — offline tests for the Utah enrichment resolver + bleed-safety.
 // No network: imports resolve* and the concept libraries only (the loader's DB main()
 // runs only when executed as the entry script).
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import { resolve, resolveFund, resolveDept } from './loadUtahEnrichment72.mjs';
 import { UTAH_FUND_CONCEPTS, UTAH_COUNTY_CONCEPTS, UTAH_FUND_ROUTES, UTAH_FUND_TO_DEPT, UTAH_DEPT_EXTRA_ROUTES } from '../data/utahEnrichment72.mjs';

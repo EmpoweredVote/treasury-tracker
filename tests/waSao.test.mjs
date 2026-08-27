@@ -151,9 +151,25 @@ describe('no module a test imports starts with a shebang', () => {
   }, 30_000);
 
   it('nor does any module imported by a test, wherever it lives', () => {
-    const testDir = path.join(root, 'tests');
+    // ⚠ WIDENED A FOURTH TIME. This walked only tests/, which was the whole
+    // universe of test files right up until scripts/*.test.mjs were added to the
+    // vitest include globs. Those 15 files had sat un-run for their entire life,
+    // and they import the repo's CLI loaders directly — so the moment they were
+    // wired in, 17 shebanged modules became test-imported and this guard was
+    // blind to every one of them. The scope was never "tests/", it was "anywhere
+    // a test file lives"; enumerate the include globs, not one directory.
+    // tests/ holds only tests and their fixture helpers, so every .mjs there
+    // counts. scripts/ is full of ordinary CLI modules that are NOT tests, so
+    // only *.test.mjs qualifies — the invariant is "a module a TEST imports",
+    // and casting wider than that just re-buys the proxy mistake from a
+    // different direction.
+    const testDirs = [
+      { dir: path.join(root, 'tests'), isTest: (x) => /\.(test\.)?mjs$/.test(x) },
+      { dir: path.join(root, 'scripts'), isTest: (x) => /\.test\.mjs$/.test(x) },
+    ];
     const imported = new Set();
-    for (const f of readdirSync(testDir).filter((x) => /\.(test\.)?mjs$/.test(x))) {
+    for (const { dir: testDir, isTest } of testDirs) {
+    for (const f of readdirSync(testDir).filter(isTest)) {
       const src = readFileSync(path.join(testDir, f), 'utf8');
       for (const m of src.matchAll(/from\s+'(\.\.?\/[^']+)'/g)) {
         const resolved = path.resolve(testDir, m[1]);
@@ -168,13 +184,14 @@ describe('no module a test imports starts with a shebang', () => {
         if (/\.(mjs|js)$/.test(resolved)) imported.add(resolved);
       }
     }
+    }
     // The set must be non-empty, or this test passes vacuously.
     expect(imported.size).toBeGreaterThan(0);
     const offenders = [...imported]
       .filter((p) => existsSync(p) && readFileSync(p, 'utf8').startsWith('#!'))
       .map((p) => path.relative(root, p).replace(/\\/g, '/'));
     expect(offenders).toEqual([]);
-    // ⚠ Explicit timeout, same reason: this one walks tests/ and reads every
-    // module they import.
+    // ⚠ Explicit timeout, same reason: this one walks both test directories and
+    // reads every module they import.
   }, 30_000);
 });

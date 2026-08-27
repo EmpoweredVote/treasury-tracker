@@ -5,9 +5,9 @@
  * exist mainly to prove it FAILS when it should. A gate that cannot fail is
  * worthless; the Gresham retrofit (593792a) is the cautionary case.
  *
- * Run: node --test scripts/loadWICMREB.test.mjs
+ * Run: npx vitest run scripts/loadWICMREB.test.mjs
  */
-import test from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
   assertTies, identities, REVENUE_LEAVES, EXPENDITURE_LEAVES,

@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * Empowered Vote Donation Loader (Phase 74)
  *

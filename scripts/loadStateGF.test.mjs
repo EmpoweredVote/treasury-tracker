@@ -1,8 +1,8 @@
 /**
  * Offline unit tests for scripts/loadStateGF.mjs pure helpers.
- * No DB / no network. Run: node --test scripts/loadStateGF.test.mjs
+ * No DB / no network. Run: npx vitest run scripts/loadStateGF.test.mjs
  */
-import { test } from 'node:test';
+import { test } from 'vitest';
 import assert from 'node:assert/strict';
 import {
   clampForRender, categoryLabel, buildCategoryLeaf, buildOperatingTree,
