@@ -86,7 +86,18 @@ Deno.serve(async (req: Request) => {
     const results: any[] = [];
     for (const src of due) {
       const { data: ds } = await supabase.rpc('treasury_get_data_source_config', { p_data_source_id: src.id });
-      if (!ds) { results.push({ data_source: src.name, status: 'error', error: 'Config not found' }); continue; }
+      if (!ds) {
+        // Leaves a trace: this happens before treasury-sync is ever called, so
+        // nothing downstream would have recorded it.
+        await supabase.rpc('treasury_log_sync_failure', {
+          p_data_source_id: src.id, p_fiscal_year: null,
+          p_error: 'treasury_get_data_source_config returned no config',
+          p_stage: 'orchestrator_get_config', p_rows_fetched: 0,
+          p_triggered_by: triggered_by, p_status: 'error',
+        }).catch(() => {});
+        results.push({ data_source: src.name, status: 'error', error: 'Config not found' });
+        continue;
+      }
 
       const years = fiscal_year ? [fiscal_year] : (ds.fiscal_years || [now.getFullYear()]).slice(-2);
 
