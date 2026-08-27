@@ -3,7 +3,20 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const SYNC_API_KEY = Deno.env.get("TREASURY_SYNC_API_KEY") || SUPABASE_SERVICE_ROLE_KEY;
+/**
+ * The sync credential. NO SERVICE-ROLE FALLBACK.
+ *
+ * This used to fall back to SUPABASE_SERVICE_ROLE_KEY when TREASURY_SYNC_API_KEY was
+ * unset. It is unset on this project, so that fallback quietly made the SERVICE-ROLE
+ * KEY a valid sync credential. Not an escalation - a service-role holder can already
+ * do anything through PostgREST - but it meant these endpoints had no credential of
+ * their own, and rotating the sync key changed nothing about who could call them.
+ *
+ * The real credential is the Vault secret `treasury_sync_api_key`, read through
+ * treasury_get_sync_key(). This env var remains supported as an override, but an
+ * ABSENT one now grants nothing at all.
+ */
+const ENV_SYNC_KEY = Deno.env.get("TREASURY_SYNC_API_KEY") || "";
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 let dbSyncKey: string | null = null;
@@ -14,9 +27,14 @@ async function getDbSyncKey(): Promise<string> {
 async function checkAuth(req: Request): Promise<boolean> {
   const k = req.headers.get("x-api-key") || "";
   const b = (req.headers.get("Authorization") || "").replace("Bearer ", "");
-  if (k === SYNC_API_KEY || b === SYNC_API_KEY) return true;
+  // Both reads default to "". Comparing those against a key that is itself unset
+  // would make `"" === ""` authenticate every anonymous request - an auth BYPASS,
+  // and exactly the bug that removing the service-role fallback invites. So: refuse
+  // empty credentials first, and never compare against an empty configured key.
+  if (!k && !b) return false;
+  if (ENV_SYNC_KEY && (k === ENV_SYNC_KEY || b === ENV_SYNC_KEY)) return true;
   const dbKey = await getDbSyncKey();
-  return (k === dbKey || b === dbKey) && dbKey !== '';
+  return !!dbKey && (k === dbKey || b === dbKey);
 }
 
 async function fetchPage(baseUrl: string, did: string, off: number, lim: number, f: Record<string, any>, ord?: string): Promise<any[]> {
