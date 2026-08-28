@@ -437,10 +437,17 @@ Deno.serve(async (req: Request) => {
             // Wide-format sources bind a different amount column — and a different
             // basis — for each fiscal year. Every other source resolves to itself.
             const { cm: yearCm, basis } = resolveYearColumns(cm, fy, ds.name);
+            // A source may declare its basis once in column_mapping ("basis": "adopted"),
+            // which is the common case: most feeds publish one kind of figure for every
+            // year. A wide-format source's per-year basis wins, because there the kind of
+            // money genuinely differs column by column. Neither is a guess — an absent
+            // declaration stays NULL and the row keeps whatever basis it already had,
+            // rather than being labelled by default.
+            const effectiveBasis = basis ?? (cm.basis ?? null);
             const { tree, total } = buildBudgetTree(rows, yearCm);
             assertNonZeroBudget(ds, fy, rows.length, total, tree);
             rpcReached = true;
-            const { data, error } = await supabase.rpc('treasury_sync_budget_tree', { p_data_source_id: data_source_id, p_fiscal_year: fy, p_dataset_type: ds.dataset_type, p_total: total, p_tree: tree, p_row_count: rows.length, p_triggered_by: triggered_by, p_basis: basis });
+            const { data, error } = await supabase.rpc('treasury_sync_budget_tree', { p_data_source_id: data_source_id, p_fiscal_year: fy, p_dataset_type: ds.dataset_type, p_total: total, p_tree: tree, p_row_count: rows.length, p_triggered_by: triggered_by, p_basis: effectiveBasis });
             if (error) throw new Error(error.message); res = data;
           } else {
             res = { status: 'unsupported', error: `Unknown: ${ds.dataset_type}` };

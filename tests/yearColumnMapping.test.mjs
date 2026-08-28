@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
 import {
   hasYearColumns, declaredYears, resolveYearColumns, yearColumnsCoverageProblem,
 } from '../scripts/lib/yearColumnMapping.mjs';
@@ -287,5 +288,46 @@ describe('edge function parity', () => {
     try { edgeResolveYearColumns(cm, fy, 'S'); } catch (e) { theirs = e.message; }
     expect(mine).toBeDefined();
     expect(theirs).toBe(mine);
+  });
+});
+
+/**
+ * ── basis precedence, in both implementations ──
+ *
+ * A source can declare its basis once in `column_mapping` ("basis": "adopted"), which
+ * suits the common case of a feed that publishes one kind of figure for every year.
+ * A WIDE-FORMAT source's per-year basis must win, because there the kind of money
+ * genuinely differs column by column.
+ *
+ * ⚠ Without this, a new fiscal year arriving from an existing source lands on the
+ * column default 'unknown' and renders "Basis not established" beside sibling years
+ * reading "Adopted budget" — which is exactly what San Francisco FY2027/FY2028 did.
+ * The rule lives in the edge function AND scripts/bulkLoadBudget.js, so it is the same
+ * two-implementation drift that made SF unsyncable in the first place (PR #88).
+ */
+describe('basis precedence: per-year wins, then the source declaration', () => {
+  const resolve = (yearBasis, cmBasis) => yearBasis ?? (cmBasis ?? null);
+
+  it('prefers a wide-format year basis over the source declaration', () => {
+    expect(resolve('actual', 'adopted')).toBe('actual');
+  });
+
+  it('falls back to the source declaration when there is no per-year basis', () => {
+    expect(resolve(null, 'adopted')).toBe('adopted');
+  });
+
+  it('stays null when neither is declared, so the RPC leaves basis alone', () => {
+    expect(resolve(null, null)).toBeNull();
+    expect(resolve(null, undefined)).toBeNull();
+  });
+
+  it('is implemented identically in both loaders', () => {
+    const edge = readFileSync('supabase/functions/treasury-sync/index.ts', 'utf8');
+    const repo = readFileSync('scripts/bulkLoadBudget.js', 'utf8');
+    expect(edge).toContain('const effectiveBasis = basis ?? (cm.basis ?? null);');
+    expect(repo).toContain('const basis = yearBasis ?? (ds.column_mapping?.basis ?? null);');
+    // ...and the value actually reaches the RPC in both.
+    expect(edge).toContain('p_basis: effectiveBasis');
+    expect(repo).toContain('p_basis: basis');
   });
 });
