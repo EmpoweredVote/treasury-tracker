@@ -118,6 +118,45 @@ The 33 remaining entities are `pending` and are listed in spec §2.
 
 ## Known issues found during this campaign
 
+### ⚠ HIGH — the frozen-figure invariant is jammed, and has been for some time
+
+**Found 2026-08-28, before this session made any database write.**
+`node scripts/verify-budget-axes.mjs` fails its final check:
+
+```
+✗ FROZEN FIGURE DIGEST MOVED — a row that existed at v2.24 changed or vanished
+    expected 4cce9d6a8dfe9ac235dfd488f1903243892c7ebc4ac41b17dbd9022bfb068b9a
+    got      c6e08b16db81224f487a85509230769e9b14e46b44b128deaee7ee45cd2056a5
+```
+
+Its other checks pass. **This is bookkeeping drift, not known corruption:**
+
+| | rows |
+|---|---|
+| Live rows | 87,880 |
+| Excluded (`scope02` 12 + `postV224` 148 + `scope04` 7,650) | 7,810 |
+| Non-excluded, i.e. what gets hashed | **80,070** |
+| `frozen_row_count` the hash was built from | **79,916** |
+| **Unaccounted** | **154** |
+
+154 rows created since v2.24 are in no exclusion file, so they are inside the
+hash. **It therefore cannot match, whether or not any original figure changed** —
+the harness can no longer distinguish "new rows leaked in" from "a figure moved."
+This is the exact failure its own code comment records for v2.27–v2.29, recurring.
+
+⚠ **The 154 cannot be localized from the database.** `created_at` is populated on
+**19 of 87,880 rows**, newest timestamp 2026-03-24 — the RPC write path does not
+set it. And the baseline stores only a count and a hash, never the ID set. So
+drift here is detectable but not attributable.
+
+⚠ **Do NOT regenerate `figures_frozen`.** The file forbids it, and doing so would
+destroy the only evidence of what the 154 are.
+
+Nothing runs this harness automatically — `npm test` is green and does not include
+it — so it could have been failing for weeks unnoticed. Needs its own session.
+
+### Flaky guard test — `tests/listAllSources.test.mjs`
+
 ### Flaky guard test — `tests/listAllSources.test.mjs`
 
 Observed 2026-08-28: "has no live capped-RPC call anywhere in scripts/" failed

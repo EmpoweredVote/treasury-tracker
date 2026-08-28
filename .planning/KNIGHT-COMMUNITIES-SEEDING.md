@@ -116,11 +116,24 @@ Per-row is also the *correct* representation independent of the plumbing argumen
 
 ### 3.4 The default must be honest
 
-**Nullable, no silent default.** `unknown` means "nobody has looked," never a stand-in for a guess.
+**`NOT NULL DEFAULT 'unknown'`.** *(Revised 2026-08-28 during implementation. This section originally said "nullable, no silent default"; the reasoning below is why it changed.)*
 
-This is the direct lesson of `project_fysm_column_default_one_defect`, where a `NOT NULL DEFAULT 1` asserted a fiscal-year start month on ~18,700 rows nobody had verified and read as fact for months. The same failure mode is available here with higher stakes: a row wrongly stamped `audited_gaap` is a false public claim about a government's books.
+`unknown` means "nobody has looked," never a stand-in for a guess.
 
-SCOPE-01 set the precedent for shipping honestly — it went out at 33.2% `unknown` rather than guessing, and that was right.
+The rule that matters is not "never default" — it is **a default is safe exactly when it is true of every existing row.** The `derivation` migration (`20260821000000_scope_04_add_derivation.sql`) is the precedent: `DEFAULT 'published'` was safe because every pre-existing row genuinely was published. `DEFAULT 'unknown'` is safe for the same reason — nobody has assessed any of the 87,880 rows, so it is true of all of them.
+
+This is the **inverse** of `project_fysm_column_default_one_defect`, where `NOT NULL DEFAULT 1` asserted a fiscal-year start month — a *claim* about each entity's calendar that nobody had verified, which then read as fact on ~18,700 rows. `unknown` asserts the **absence** of an assessment, which is the truth. The distinction is the whole reason one is safe and the other was not.
+
+`NOT NULL` rather than nullable is also deliberate: two ways to spell "no grade" (NULL and `'unknown'`) is an ambiguity every consumer would have to resolve.
+
+The stakes justify the care: a row wrongly stamped `audited_gaap` is a false public claim about a government's books. SCOPE-01 set the precedent for shipping honestly — it went out at 33.2% `unknown` rather than guessing, and that was right.
+
+**Enforcement is structural, not by test.** Two CHECK constraints on `treasury.budgets`:
+
+- `budgets_audit_grade_check` — the value is in the vocabulary
+- `budgets_graded_rows_need_a_source_url` — a row with a non-`unknown` grade must carry a non-empty `source_url`; ungraded rows are exempt, because `unknown` makes no claim needing justification
+
+The second was planned as a vitest guard and could not be: **this repo's test suite never touches the database** (zero tests call `createClient`; CI runs `npm test` without credentials). A CHECK constraint is strictly stronger anyway — it holds on every write path, including the sync RPCs and every future loader, and cannot be bypassed by a loader that forgets to stamp or by a verification script nobody runs.
 
 ### 3.5 Evidence is mandatory
 
