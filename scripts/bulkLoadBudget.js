@@ -69,7 +69,11 @@ async function syncBudgetSource(ds, fiscalYear, opts = {}) {
   // Wide-format sources (one column per year, no fiscal_year column) bind a
   // different amount column and a different basis for each year. Everything else
   // resolves to itself, so this is a no-op for every long-format source.
-  const { cm, basis } = resolveYearColumns(ds.column_mapping || {}, fiscalYear, ds.name);
+  const { cm, basis: yearBasis } = resolveYearColumns(ds.column_mapping || {}, fiscalYear, ds.name);
+  // A source may declare its basis once in column_mapping ("basis": "adopted"). A
+  // wide-format source's per-year basis wins, because there the kind of money genuinely
+  // differs column by column. Absent, this stays null and the RPC leaves basis alone.
+  const basis = yearBasis ?? (ds.column_mapping?.basis ?? null);
 
   // ⚠ The WHERE clause now comes from scripts/lib/socrataFilter.mjs, shared with the
   // treasury-sync edge function. The two used to be separate implementations
