@@ -34,6 +34,36 @@ export const REPORTING_ENTITY = Object.freeze({
 });
 export const REPORTING_ENTITY_VALUES = Object.freeze(Object.values(REPORTING_ENTITY));
 
+/**
+ * How much assurance stands behind a figure.
+ *
+ * Added for the Knight communities campaign as a thin slice of SRCSTD-01 — see
+ * .planning/KNIGHT-COMMUNITIES-SEEDING.md §3. It is a THIRD AXIS, classified by
+ * the same classifyAxis() below, and inherits its central rule unchanged:
+ * an entry without evidence cannot classify.
+ *
+ * ⚠ The ladder runs strongest-assurance-first, and a source that is MIXED takes
+ * the WEAKER branch. Colorado DOLA is the known case: it compiles from "audit OR
+ * exemption", so it is self_reported_unaudited unless the specific entity's
+ * filing can be identified as audited.
+ *
+ * ⚠ `unknown` means NOBODY HAS LOOKED. It is never a stand-in for a guess. A row
+ * wrongly stamped `audited_gaap` is a false public claim about a government's
+ * books — a worse failure than admitting ignorance, and the reason the
+ * destructive direction here is "assert a grade", never "skip".
+ */
+export const AUDIT_GRADE = Object.freeze({
+  /** Read directly from an ACFR bearing an independent auditor's opinion. */
+  AUDITED_GAAP: 'audited_gaap',
+  /** A state agency compiled it from audited statements. */
+  COMPILED_FROM_AUDITED: 'compiled_from_audited',
+  /** A state agency compiled entity self-reports, or disclaims audit. */
+  SELF_REPORTED_UNAUDITED: 'self_reported_unaudited',
+  /** Not yet assessed. */
+  UNKNOWN: 'unknown',
+});
+export const AUDIT_GRADE_VALUES = Object.freeze(Object.values(AUDIT_GRADE));
+
 function hasEvidence(entry) {
   const e = entry?.evidence;
   if (!e || typeof e !== 'object') return false;

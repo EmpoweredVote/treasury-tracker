@@ -116,11 +116,20 @@ describe('nothing calls the capped treasury_list_source_ids RPC', () => {
     expect(files.length).toBeGreaterThan(50);
   });
 
+  // ⚠ EXPLICIT TIMEOUT: this reads ~590 files, so its duration tracks DISK
+  // CONTENTION, not the code under test. On vitest's default 5s it fails
+  // intermittently under load — observed 2026-08-28, where it failed once in a
+  // full `npm test` run and then passed in isolation and on re-run.
+  //
+  // This is the same I/O-bound flake already fixed for nulByte, pagedReadOrdering,
+  // waSao and noUnconstrainedBudgetSums — and this file was a sibling the earlier
+  // sweep missed. That memory's own warning: "the fix was applied to the instance,
+  // not the class." Third recurrence; fixing the sibling rather than the instance.
   it('has no live capped-RPC call anywhere in scripts/', () => {
     const offenders = files.filter((f) =>
       /\.rpc\(\s*['"`]treasury_list_source_ids['"`]\s*\)/.test(readFileSync(f, 'utf8')));
     expect(offenders).toEqual([]);
-  });
+  }, 30_000);
 
   it('still recognises the call shape it is looking for', () => {
     // A gate nobody has watched fail is not a gate.
