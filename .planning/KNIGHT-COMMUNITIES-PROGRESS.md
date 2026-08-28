@@ -327,12 +327,30 @@ FY month: the stored `fiscal_year_start_month` and whether the FAC census confir
 | Los Angeles County | CA | county | loaded | CA SCO **counties** | `unknown` — family unverified | 7 · no CA county census | 1 |
 | Santa Clara County | CA | county | loaded | CA SCO **counties** | `unknown` — family unverified | 7 · no CA county census | 1 |
 | San Jose | CA | city | **partial** | GF budget + publicpay | `unknown` | 7 · **FAC confirmed** | 1 |
+| **Charlotte** | NC | city | loaded | **own ACFR** FY2011–25 | `audited_gaap` | 7 · **FAC confirmed** | 2 |
+| **Mecklenburg County** | NC | county | loaded | **own ACFR** FY2005–25 | `audited_gaap` | 7 · **FAC confirmed** | 2 |
 
-The 33 remaining entities are `pending` and are listed in spec §2.
+The 31 remaining entities are `pending` and are listed in spec §2.
 
-⚠ **No oracle column this session — nothing was loaded.** Session 1 built the
-grade axis and verified what already existed; the first oracle runs land in
-session 2 (NC).
+⚠ **Session 1 loaded nothing** — it built the grade axis and verified what
+already existed. **Session 2 is the campaign's first load**, and the first
+`audited_gaap` rows in TT.
+
+**Oracle, session 2.** Every one of the 72 rows ties **$0** against the issuer's
+own printed total on the statement — the check external to the write path that
+spec §5.2 requires, and NOT the tautological DB `total = Σ items`. The component
+sum is computed by the reader and compared against a total it read separately
+from the printed page.
+
+⚠ **What the oracle does NOT cover here, stated plainly.** For Durham County and
+Asheville the `-table` reader independently corroborates every year it can read.
+**Neither Charlotte nor Mecklenburg can be corroborated that way**: both issuers'
+text layers emit the label column and the numeric columns as separate blocks, so
+`-table` does not fail on these pages — it reads them *confidently and wrongly*,
+pairing every label with the row below. A second reader that is reliably wrong is
+not a second opinion. The printed total is therefore the only independent oracle
+for these two, and the label surfaces rest on the coordinate reader plus the
+weld/indent evidence recorded above.
 
 ---
 

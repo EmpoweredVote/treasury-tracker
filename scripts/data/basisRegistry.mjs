@@ -165,6 +165,22 @@ export const BASIS_REGISTRY = [
     // snapshots of the city's own page, and Buncombe was 32 until FY2009/FY2010
     // were found under a fourth naming convention on its own live host.)
     //
+    // EXTENDED by the Knight campaign session 2, measured 2026-08-28:
+    // + City of Charlotte 30 (FY2011-FY2025) + Mecklenburg County 42
+    // (FY2005-FY2025) = 210. Same family on the merits — a General Fund column
+    // read directly from each government's own audited ACFR — so the entry is
+    // extended rather than duplicated.
+    //
+    // ⚠⚠ THE "Durham" COLLISION WARNING BELOW IS NO LONGER HYPOTHETICAL.
+    // `Mecklenburg County` ALREADY EXISTS IN TT AS A VIRGINIA COUNTY, and so do
+    // `Charlotte County, VA` and `Charlottesville, VA`. Checked 2026-08-28: all
+    // three carry `data_source = 'Virginia APA Comparative Report'`, which this
+    // anchored pattern cannot match, so nothing is mis-claimed today. But if a
+    // Virginia ACFR load ever labels its rows `Mecklenburg County ACFR — General
+    // Fund …` the string would be IDENTICAL to North Carolina's and this entry
+    // would silently claim them. Split by municipality_id at that point; do not
+    // widen the string.
+    //
     // WARNING ANCHORED TO THE FOUR ENTITY NAMES, for the same reason
     // tx-local-acfr-gf and co-local-acfr-gf are: the general /ACFR - General
     // Fund/ pattern claims ~1,850 rows across families nobody has reconciled. A
@@ -178,7 +194,7 @@ export const BASIS_REGISTRY = [
     // label they would need splitting by municipality_id rather than by this
     // string.
     id: 'nc-local-acfr-gf',
-    match: /^(City of Durham|Durham County|City of Asheville|Buncombe County) ACFR — General Fund /,
+    match: /^(City of Durham|Durham County|City of Asheville|Buncombe County|City of Charlotte|Mecklenburg County) ACFR — General Fund /,
     value: BASIS.ACTUAL,
     evidence: {
       document: 'City of Durham FY2024 + FY2012, Durham County FY2024 + FY2008, City of Asheville '

@@ -90,7 +90,7 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // county's own host. Both times the partition gate REFUSED THE WRITE first.
   // Remaining exclusions are documented per entity in ncAcfrSources.mjs.
   // Evidence: docs/superpowers/plans/NC-DURHAM-AVL-01-CLOSEOUT.md section 6.
-  'nc-local-acfr-gf': 138,
+  'nc-local-acfr-gf': 210,
   // The sixteen entity-published city/state ACFR families, measured 2026-08-19.
   // Evidence: docs/superpowers/plans/ACFR-GF-CLASSIFICATION-RECON.md §2.
   'or-city-acfr-gf': 106,
@@ -121,7 +121,7 @@ export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
   // county's own host. Both times the partition gate REFUSED THE WRITE first.
   // Remaining exclusions are documented per entity in ncAcfrSources.mjs.
   // Evidence: docs/superpowers/plans/NC-DURHAM-AVL-01-CLOSEOUT.md section 6.
-  'nc-local-acfr-gf': 138,
+  'nc-local-acfr-gf': 210,
   // The sixteen entity-published city/state ACFR families.
   // Evidence: ACFR-GF-CLASSIFICATION-RECON.md §3.
   'or-city-acfr-gf': 106,
