@@ -337,7 +337,12 @@ async function main() {
         // to the wrong month — and nothing would fail, because the column moves no
         // dollar and every tie test would still pass at $0. The registry resolves
         // the month per city and REFUSES a flag that contradicts evidence.
-        const resolved = monthForCity(cityName, state, fiscalYearStartMonth);
+        // ⚠ `fy` is passed because a city can CHANGE its fiscal year: Huntington
+        // Beach ran October through FY2018 and July after it, El Segundo through
+        // FY2021. One month per city is not enough to describe them, and the
+        // registry REFUSES to answer for a scheduled city without a year rather
+        // than guessing the current calendar for sixteen years of history.
+        const resolved = monthForCity(cityName, state, fiscalYearStartMonth, fy);
         if (resolved.error) {
           console.error(`\nFATAL: ${resolved.error}`);
           process.exit(1);

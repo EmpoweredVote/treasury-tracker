@@ -45,6 +45,13 @@ docs/*
 # …and the 50/50-ACFR end-state record (Phase 123, NASBORT-01): the durable source-of-record
 # for the all-50-states-on-ACFR milestone + the two accepted NASBO fallback nodes.
 !docs/state-acfr-5050.md
+# …and the Federal Audit Clearinghouse extract that evidences every California
+# city's fiscal-year end (2016-2025). This is not a convenience copy: it is the
+# EVIDENCE the CA fiscal-calendar census is derived from, and
+# tests/caFiscalYearCensus.test.mjs reads it — untracked, a fresh clone fails.
+!docs/CA/
+docs/CA/*
+!docs/CA/fac-ca-city-fiscal-year-ends.csv
 
 # Supabase temp files
 supabase/.temp/
