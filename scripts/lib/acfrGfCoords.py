@@ -112,6 +112,55 @@ class CoordsConfig:
                     that print an excluded phrase ON the primary statement.
     title_anchor    optional extra regex qualifying the statement page where
                     the printed title cannot be matched left-to-right.
+    label_fixes     {exact_observed_label: corrected_label}, applied to the
+                    EMITTED tree only — it never changes an amount, a nesting
+                    decision or a tie.
+
+                    ⚠ EXACT MATCH ONLY. No fuzzy repair and no de-spacing
+                    heuristic: a rule that rejoined runs of capitals would
+                    happily corrupt a legitimate label, and `acfrGF.CityConfig`
+                    already records why that trade is refused. Every entry must
+                    be a specific string observed in a specific document and
+                    checked against how the SAME line reads in neighbouring
+                    years of the same issuer.
+
+                    ⚠ WHY IT IS NEEDED HERE, and why no structural rule replaces
+                    it. Mecklenburg County FY2025 prints
+
+                        ind=65.0  blank   'Customer satisfaction and'
+                        ind=75.0  number  'management'      40,249,095
+
+                    which is a WRAPPED LABEL — but `Debt Service` on the same
+                    page has an identical signature (blank at the root indent,
+                    followed by a deeper row) and is a GROUP HEADING. At the
+                    section root the two are structurally indistinguishable, so
+                    `weld='indent'` deliberately refuses to act there. The money
+                    is correct either way; only the printed NAME is lost, and a
+                    declared fix is the honest repair.
+
+    collapse_children
+                    exact PARENT labels (as they read AFTER `label_fixes`) whose
+                    single child is a wrapped-label artifact rather than a real
+                    line item, and which should therefore be published as a LEAF.
+
+                    ⚠ Renaming alone cannot fix this. Mecklenburg FY2025 prints
+                    'Customer satisfaction and' / 'management' as a wrapped
+                    label; the reader reads it as a parent with one child, and a
+                    `label_fixes` entry corrects the parent's NAME while leaving
+                    a child literally called `management` underneath it.
+
+                    ⚠ IT IS DECLARED, NOT INFERRED. "A root-level heading with
+                    exactly one child is a wrapped label" is true of all 21
+                    Mecklenburg documents and is still only a fact about 21
+                    documents — a genuine single-child group (a Debt Service
+                    section with only Principal in it) would be silently
+                    flattened by such a rule. Naming the parent makes the claim
+                    checkable and keeps it from spreading.
+
+                    REFUSES to act unless the node really has exactly one child,
+                    so a document that changes shape fails loudly instead of
+                    quietly dropping figures.
+
     indent_tol      points of slack allowed when deciding whether a row sits at
                     the SECTION ROOT. Defaults to the module's INDENT_TOL (1.5),
                     which suits an issuer whose root-level headings are printed
@@ -146,7 +195,7 @@ class CoordsConfig:
     """
 
     def __init__(self, city, units=1, weld=None, exclude_ignore=(), title_anchor=None,
-                 indent_tol=None):
+                 indent_tol=None, label_fixes=None, collapse_children=()):
         if not isinstance(units, int) or isinstance(units, bool):
             raise TypeError(
                 'CoordsConfig.units must be an int, got %r (%s). A float would '
@@ -162,6 +211,62 @@ class CoordsConfig:
         if indent_tol is not None and not (indent_tol > 0):
             raise ValueError('CoordsConfig.indent_tol must be positive, got %r' % (indent_tol,))
         self.indent_tol = INDENT_TOL if indent_tol is None else float(indent_tol)
+        self.label_fixes = dict(label_fixes or {})
+        self.collapse_children = tuple(collapse_children or ())
+        for observed, corrected in self.label_fixes.items():
+            if not observed or not corrected:
+                raise ValueError('CoordsConfig.label_fixes entries must both be non-empty, '
+                                 'got %r -> %r' % (observed, corrected))
+            if observed == corrected:
+                raise ValueError('CoordsConfig.label_fixes entry %r is a no-op; remove it '
+                                 'rather than leaving a rule that asserts nothing.' % (observed,))
+
+
+def apply_label_fixes(nodes, fixes, applied):
+    """Rewrite declared labels in-place, recording each hit.
+
+    Applied to the finished tree so it cannot influence nesting, amounts or the
+    tie — it is a rename and nothing else. A declared fix that never matches is
+    reported by `run_cli` as an error, because a rule that stops firing has
+    either been fixed upstream (and should be deleted) or is now missing a defect
+    it used to catch.
+    """
+    if not fixes:
+        return
+    for node in nodes:
+        if node.get('n') in fixes:
+            applied.add(node['n'])
+            node['n'] = fixes[node['n']]
+        if node.get('c'):
+            apply_label_fixes(node['c'], fixes, applied)
+
+
+def collapse_declared_children(nodes, names, applied):
+    """Publish a declared single-child parent as a LEAF.
+
+    The parent keeps its own amount, which already equals the child's, so no
+    figure moves and the tie is untouched. Raises if the node does not have
+    exactly one child — a shape change must fail loudly, not silently drop rows.
+    """
+    if not names:
+        return
+    for node in nodes:
+        if node.get('n') in names and 'c' in node:
+            kids = node.get('c') or []
+            if len(kids) != 1:
+                raise ValueError(
+                    'collapse_children declared %r but it has %d children (%r). '
+                    'The document has changed shape; re-read the page rather than '
+                    'widening this rule.'
+                    % (node['n'], len(kids), [k.get('n') for k in kids]))
+            if kids[0]['a'] != node['a']:
+                raise ValueError(
+                    'collapse_children %r: child amount %r != parent amount %r'
+                    % (node['n'], kids[0]['a'], node['a']))
+            applied.add(node['n'])
+            del node['c']
+        elif node.get('c'):
+            collapse_declared_children(node['c'], names, applied)
 
 
 def clean_label(label):
@@ -320,6 +425,13 @@ def run_cli(cfg):
             root_name = 'General Fund Expenditure by Function'
         errs = errs + more
 
+        # Declared label repairs — a rename only; see CoordsConfig.label_fixes.
+        applied = set()
+        apply_label_fixes(children, cfg.label_fixes, applied)
+        unused = sorted(set(cfg.label_fixes) - applied)
+        collapsed = set()
+        collapse_declared_children(children, set(cfg.collapse_children), collapsed)
+
         # ── Fiscal year off the statement page ──────────────────────────────
         # PRIMARY: the issuer's own period caption. ⚠ 'year ended' alone is too
         # narrow for this corpus — Mecklenburg County prints
@@ -378,6 +490,15 @@ def run_cli(cfg):
         'tie_delta': tie_delta,
         'zero_rows': zeros,
         'welded_labels': welds,
+        # ⚠ Declared label fixes that did NOT fire on THIS year. Non-empty is
+        # normal per year — a repair declared for one document will not match
+        # its neighbours. What must hold is that every declared fix fires on at
+        # least ONE year of the series; a rule that fires nowhere has either
+        # been fixed upstream (delete it) or has stopped catching the defect it
+        # was written for. That check is series-level and belongs in the
+        # verifier, not here.
+        'unused_label_fixes': unused,
+        'collapsed_parents': sorted(collapsed),
     }
 
     if tie_delta != 0:

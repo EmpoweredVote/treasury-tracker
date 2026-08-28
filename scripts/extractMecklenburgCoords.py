@@ -59,6 +59,46 @@ CONFIG = CoordsConfig(
     city='Mecklenburg County, NC',
     units=1,          # whole dollars; the county prints full figures
     weld=None,        # no embedded-disclosure label construction in this corpus
+    # ⚠ TWO DOCUMENTS PRINT LABELS THE READER CANNOT RECOVER, and BOTH tie at $0
+    # while shipping a name the issuer never printed. Every correction below is
+    # transcribed from how the SAME line reads in FY2005 and FY2007, which agree
+    # with each other exactly.
+    #
+    #  FY2006 — the whole document FUSES its words (it is the same year whose
+    #  period caption reads "FORTHEYEARENDEDJUNE30,2006"). Thirteen labels ship
+    #  without spaces.
+    #
+    #  FY2025 — 'Customer satisfaction and' / 'management' is a WRAPPED label
+    #  whose money sits on the deeper second line. It is NOT fixed by
+    #  weld='indent' because its prefix sits at the SECTION ROOT, where a wrap
+    #  and a group heading (`Debt Service`, same page, same signature) are
+    #  structurally indistinguishable. The amount is already correct; only the
+    #  printed name is lost.
+    label_fixes={
+        # FY2006, fused glyphs
+        'Administrativecharges': 'Administrative charges',
+        'Chargesforservices': 'Charges for services',
+        'Interestearnedoninvestments': 'Interest earned on investments',
+        'Licensesandpermits': 'Licenses and permits',
+        'DebtService': 'Debt Service',
+        'AdministrativeServices': 'Administrative Services',
+        'BusinessPartners': 'Business Partners',
+        'CommunityServices': 'Community Services',
+        'CustomerSatisfactionandManagement': 'Customer Satisfaction and Management',
+        'DetentionandCourtSupportServices': 'Detention and Court Support Services',
+        'FinancialServices': 'Financial Services',
+        'HealthandHumanServices': 'Health and Human Services',
+        'LandUseandEnvironmentalServices': 'Land Use and Environmental Services',
+        'Interestandfiscalcharges': 'Interest and fiscal charges',
+        'Principalpayments': 'Principal payments',
+        # FY2025, wrapped label
+        'Customer satisfaction and': 'Customer satisfaction and management',
+    },
+    # FY2025 only: the wrapped label above is read as a parent with a single
+    # child literally named `management`. Renaming fixes the parent; this
+    # publishes it as the LEAF it actually is. Refuses to act if the node ever
+    # has more than one child.
+    collapse_children=('Customer satisfaction and management',),
     indent_tol=4.0,   # ⚠ FY2005-FY2011 print `Current` ~2pt deeper than its own
                       # sibling headings; measured spread/gap table is in
                       # CoordsConfig's docstring. FY2012+ need only the 1.5

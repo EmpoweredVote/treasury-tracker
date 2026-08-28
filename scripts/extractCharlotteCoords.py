@@ -62,6 +62,18 @@ from acfrGfCoords import CoordsConfig, run_cli   # noqa: E402
 CONFIG = CoordsConfig(
     city='City of Charlotte, NC',
     units=1000,   # ⚠ every statement page is captioned "(Dollar Amounts in Thousands)"
+    # The city sets its two group headings with a trailing HYPHEN where every
+    # other issuer in this corpus uses a colon. `clean_label` strips a trailing
+    # colon for exactly this reason — "a category named `Current:` in the UI is
+    # the issuer's typography leaking into a chart legend" — but the hyphen is
+    # NOT stripped globally, because for other loaders a trailing hyphen is a
+    # genuine word break (Portland ships 'Debt Ser-', 'Replace-'), and turning it
+    # into punctuation-stripping there would truncate real names. Declared here
+    # instead, exactly and per entity.
+    label_fixes={
+        'Current-': 'Current',
+        'Debt service-': 'Debt service',
+    },
     weld='indent',  # ⚠ the city wraps long function names and prints the money on
                     # the DEEPER continuation line ('Engineering and property' /
                     # 'management'). Without this the published categories are
