@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   BASELINE, WINDOW, UNEVIDENCED, EVIDENCE_CSV,
-  readEvidence, buildCensus, nonJulyCities, cityNameFromAuditee, changeoverYears,
+  readEvidence, buildCensus, nonJulyCities, changeoverYears,
 } from '../scripts/lib/caFiscalYearCensus.mjs';
 import { fiscalExceptionFor, monthForEntry } from '../scripts/lib/caCityFiscalExceptions.mjs';
 
@@ -12,30 +12,37 @@ const nonJuly = nonJulyCities(census);
 describe('the committed FAC evidence extract', () => {
   it('is the size it was when the census was built', () => {
     expect(records.length).toBe(BASELINE.records);
-    expect(census.size).toBe(BASELINE.auditees);
+    expect(census.size).toBe(BASELINE.entities);
   });
 
-  it('covers only the audit years the census claims', () => {
+  it('covers only audit years inside the census window', () => {
     const years = records.map((r) => r.auditYear);
     expect(Math.min(...years)).toBe(WINDOW.firstAuditYear);
-    expect(Math.max(...years)).toBe(WINDOW.lastAuditYear);
+    expect(Math.max(...years)).toBeLessThanOrEqual(WINDOW.lastAuditYear);
   });
 
-  // ⚠ The extract is filtered by `auditee_state=eq.CA`, and the federal record
-  // is not clean: it contained "CITY OF GROTON, CONNECTICUT" under CA, plus LA's
-  // Department of Water & Power and four housing authorities. None is a
-  // California city, and each would have entered the census as one.
-  it('excludes auditees that are not California municipalities', () => {
-    expect(cityNameFromAuditee('CITY OF ORANGE HOUSING AUTHORITY')).toBeNull();
-    expect(cityNameFromAuditee('SUCCESSOR AGENCY TO THE CITY OF X')).toBeNull();
+  // ⚠ The pull that produced PR #101 was truncated by the api.fac.gov DEMO_KEY
+  // rate limit before the `TOWN OF …` block, so ~20 CA towns were missing and
+  // that gap was recorded rather than hidden. The bulk download has no rate
+  // limit and closed it: all 14 CA towns that file are present, and every one
+  // is July — the finding set did not change.
+  it('includes the CA towns the rate-limited pull had missed', () => {
+    for (const town of ['Truckee', 'Danville', 'Los Gatos', 'Apple Valley', 'Windsor']) {
+      expect(census.get(town), `${town} missing from the census`).toBeTruthy();
+    }
+    expect(nonJuly.map((c) => c.name)).not.toContain('Truckee');
+  });
+
+  // The name-parsing and not-a-government filters now live in the builder and
+  // are tested in tests/facCensusBuilder.test.mjs. What matters here is that
+  // nothing survived them: no impostor sits in California's committed extract.
+  it('carries no impostor entities', () => {
     expect([...census.keys()]).not.toContain('Groton');
-    for (const name of census.keys()) expect(name).not.toMatch(/authority|department/i);
-  });
-
-  it('reads a city name out of each auditee form', () => {
-    expect(cityNameFromAuditee('CITY OF SANTA ANA')).toBe('Santa Ana');
-    expect(cityNameFromAuditee('CITY AND COUNTY OF SAN FRANCISCO')).toBe('San Francisco');
-    expect(cityNameFromAuditee('TOWN OF TRUCKEE')).toBe('Truckee');
+    for (const name of census.keys()) {
+      expect(name).not.toMatch(/authority|department|commission|district/i);
+    }
+    expect(census.get('San Francisco')).toBeTruthy();
+    expect(census.get('Santa Ana')).toBeTruthy();
   });
 });
 

@@ -31,6 +31,7 @@ import { classifySyncResult } from './lib/rpcResult.mjs';
 // legitimately differ. Two have been checked and both did — Inglewood and Long
 // Beach are October cities. See the registry for why a global flag must refuse.
 import { monthForCity } from './lib/caCityFiscalExceptions.mjs';
+import { censusGuard } from './lib/facFiscalYearCensus.mjs';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -345,6 +346,16 @@ async function main() {
         const resolved = monthForCity(cityName, state, fiscalYearStartMonth, fy);
         if (resolved.error) {
           console.error(`\nFATAL: ${resolved.error}`);
+          process.exit(1);
+        }
+        // ⚠ SECOND OPINION, from the entity's own federally filed audit rather
+        // than from this repo's hand-read registry. The registry only knows the
+        // entities somebody has already examined; the census knows 439 CA, 647 TX
+        // and 74 MD local governments, and it is silent (never contradicting)
+        // where it has no evidence. See scripts/lib/facFiscalYearCensus.mjs.
+        const audited = censusGuard(cityName, state, resolved.month, fy);
+        if (audited.error) {
+          console.error(`\nFATAL: ${audited.error}`);
           process.exit(1);
         }
         const result = await importCityData(cityName, state, cityData.population, cityData.rows, fy, ds.type, ds, fetchDate, resolved.month);

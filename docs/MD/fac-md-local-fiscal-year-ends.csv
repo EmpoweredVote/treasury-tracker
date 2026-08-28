@@ -1,0 +1,394 @@
+entity,kind,audit_year,fy_start_date,fy_end_date,audit_period_covered
+Aberdeen,municipality,2022,2021-06-30,2022-06-30,annual
+Aberdeen,municipality,2023,2022-07-01,2023-06-30,annual
+Aberdeen,municipality,2024,2023-07-01,2024-06-30,annual
+Aberdeen,municipality,2025,2024-07-01,2025-06-30,annual
+Accident,municipality,2020,2019-07-01,2020-06-30,annual
+Allegany County,county,2016,2015-07-01,2016-06-30,annual
+Allegany County,county,2017,2016-06-30,2017-06-30,annual
+Allegany County,county,2018,2017-06-30,2018-06-30,annual
+Allegany County,county,2019,2018-06-30,2019-06-30,annual
+Allegany County,county,2020,2019-07-01,2020-06-30,annual
+Allegany County,county,2021,2020-06-30,2021-06-30,annual
+Allegany County,county,2022,2021-06-30,2022-06-30,annual
+Allegany County,county,2023,2022-07-01,2023-06-30,annual
+Allegany County,county,2024,2023-07-01,2024-06-30,annual
+Allegany County,county,2025,2024-07-01,2025-06-30,annual
+Annapolis,municipality,2016,2015-07-01,2016-06-30,annual
+Annapolis,municipality,2017,2016-06-30,2017-06-30,annual
+Annapolis,municipality,2018,2017-06-30,2018-06-30,annual
+Annapolis,municipality,2019,2018-06-30,2019-06-30,annual
+Annapolis,municipality,2021,2020-06-30,2021-06-30,annual
+Annapolis,municipality,2022,2021-06-30,2022-06-30,annual
+Annapolis,municipality,2023,2022-07-01,2023-06-30,annual
+Annapolis,municipality,2024,2023-07-01,2024-06-30,annual
+Annapolis,municipality,2025,2024-07-01,2025-06-30,annual
+Anne Arundel County,county,2016,2015-07-01,2016-06-30,annual
+Anne Arundel County,county,2017,2016-06-30,2017-06-30,annual
+Anne Arundel County,county,2018,2017-06-30,2018-06-30,annual
+Anne Arundel County,county,2019,2018-06-30,2019-06-30,annual
+Anne Arundel County,county,2020,2019-07-01,2020-06-30,annual
+Anne Arundel County,county,2021,2020-06-30,2021-06-30,annual
+Anne Arundel County,county,2022,2021-06-30,2022-06-30,annual
+Anne Arundel County,county,2023,2022-07-01,2023-06-30,annual
+Anne Arundel County,county,2024,2023-07-01,2024-06-30,annual
+Anne Arundel County,county,2025,2024-07-01,2025-06-30,annual
+Baltimore,municipality,2016,2015-07-01,2016-06-30,annual
+Baltimore,municipality,2017,2016-06-30,2017-06-30,annual
+Baltimore,municipality,2018,2017-06-30,2018-06-30,annual
+Baltimore,municipality,2019,2018-06-30,2019-06-30,annual
+Baltimore,municipality,2020,2019-07-01,2020-06-30,annual
+Baltimore,municipality,2021,2020-06-30,2021-06-30,annual
+Baltimore,municipality,2022,2021-06-30,2022-06-30,annual
+Baltimore,municipality,2024,2023-07-01,2024-06-30,annual
+Baltimore,municipality,2025,2024-07-01,2025-06-30,annual
+Baltimore County,county,2016,2015-07-01,2016-06-30,annual
+Baltimore County,county,2017,2016-06-30,2017-06-30,annual
+Baltimore County,county,2018,2017-06-30,2018-06-30,annual
+Baltimore County,county,2019,2018-06-30,2019-06-30,annual
+Baltimore County,county,2020,2019-07-01,2020-06-30,annual
+Baltimore County,county,2021,2020-06-30,2021-06-30,annual
+Baltimore County,county,2022,2021-06-30,2022-06-30,annual
+Baltimore County,county,2023,2022-07-01,2023-06-30,annual
+Baltimore County,county,2024,2023-07-01,2024-06-30,annual
+Baltimore County,county,2025,2024-07-01,2025-06-30,annual
+Berlin,municipality,2017,2016-06-30,2017-06-30,annual
+Berlin,municipality,2023,2022-07-01,2023-06-30,annual
+Berlin,municipality,2024,2023-07-01,2024-06-30,annual
+Berlin,municipality,2025,2024-07-01,2025-06-30,annual
+Betterton,municipality,2018,2017-06-30,2018-06-30,annual
+Betterton,municipality,2020,2019-07-01,2020-06-30,annual
+Bowie,municipality,2021,2020-06-30,2021-06-30,annual
+Calvert County,county,2016,2015-07-01,2016-06-30,annual
+Calvert County,county,2017,2016-06-30,2017-06-30,annual
+Calvert County,county,2018,2017-06-30,2018-06-30,annual
+Calvert County,county,2019,2018-06-30,2019-06-30,annual
+Calvert County,county,2020,2019-07-01,2020-06-30,annual
+Calvert County,county,2021,2020-06-30,2021-06-30,annual
+Calvert County,county,2022,2021-06-30,2022-06-30,annual
+Calvert County,county,2023,2022-07-01,2023-06-30,annual
+Calvert County,county,2024,2023-07-01,2024-06-30,annual
+Calvert County,county,2025,2024-07-01,2025-06-30,annual
+Cambridge,municipality,2022,2021-06-30,2022-06-30,annual
+Cambridge,municipality,2023,2022-07-01,2023-06-30,annual
+Cambridge,municipality,2024,2023-07-01,2024-06-30,annual
+Cambridge,municipality,2025,2024-07-01,2025-06-30,annual
+Caroline County,county,2016,2015-07-01,2016-06-30,annual
+Caroline County,county,2017,2016-06-30,2017-06-30,annual
+Cecil County,county,2016,2015-07-01,2016-06-30,annual
+Cecil County,county,2017,2016-06-30,2017-06-30,annual
+Cecil County,county,2018,2017-06-30,2018-06-30,annual
+Cecil County,county,2019,2018-06-30,2019-06-30,annual
+Cecil County,county,2020,2019-07-01,2020-06-30,annual
+Cecil County,county,2021,2020-06-30,2021-06-30,annual
+Cecil County,county,2022,2021-06-30,2022-06-30,annual
+Cecil County,county,2023,2022-07-01,2023-06-30,annual
+Cecil County,county,2024,2023-07-01,2024-06-30,annual
+Cecil County,county,2025,2024-07-01,2025-06-30,annual
+Charles County,county,2016,2015-07-01,2016-06-30,annual
+Charles County,county,2017,2016-06-30,2017-06-30,annual
+Charles County,county,2018,2017-06-30,2018-06-30,annual
+Charles County,county,2019,2018-06-30,2019-06-30,annual
+Charles County,county,2020,2019-07-01,2020-06-30,annual
+Charles County,county,2021,2020-06-30,2021-06-30,annual
+Charles County,county,2022,2021-06-30,2022-06-30,annual
+Charles County,county,2023,2022-07-01,2023-06-30,annual
+Charles County,county,2025,2024-07-01,2025-06-30,annual
+Chesapeake Beach,municipality,2016,2015-07-01,2016-06-30,annual
+Chesapeake Beach,municipality,2017,2016-06-30,2017-06-30,annual
+Chesapeake Beach,municipality,2018,2017-06-30,2018-06-30,annual
+Chesapeake Beach,municipality,2022,2021-06-30,2022-06-30,annual
+Chesapeake Beach,municipality,2023,2022-07-01,2023-06-30,annual
+Chesapeake Beach,municipality,2024,2023-07-01,2024-06-30,annual
+Chesapeake Beach,municipality,2025,2024-07-01,2025-06-30,annual
+Chesapeake City,municipality,2023,2022-07-01,2023-06-30,annual
+Crisfield,municipality,2017,2016-06-30,2017-06-30,annual
+Crisfield,municipality,2024,2023-07-01,2024-06-30,annual
+Crisfield,municipality,2025,2024-07-01,2025-06-30,annual
+Cumberland,municipality,2016,2015-07-01,2016-06-30,annual
+Cumberland,municipality,2017,2016-06-30,2017-06-30,annual
+Cumberland,municipality,2018,2017-06-30,2018-06-30,annual
+Cumberland,municipality,2019,2018-06-30,2019-06-30,annual
+Cumberland,municipality,2020,2019-07-01,2020-06-30,annual
+Cumberland,municipality,2021,2020-06-30,2021-06-30,annual
+Cumberland,municipality,2022,2021-06-30,2022-06-30,annual
+Cumberland,municipality,2023,2022-07-01,2023-06-30,annual
+Cumberland,municipality,2024,2023-07-01,2024-06-30,annual
+Cumberland,municipality,2025,2024-07-01,2025-06-30,annual
+Dorchester County,county,2016,2015-07-01,2016-06-30,annual
+Dorchester County,county,2017,2016-06-30,2017-06-30,annual
+Dorchester County,county,2018,2017-06-30,2018-06-30,annual
+Dorchester County,county,2019,2018-06-30,2019-06-30,annual
+Dorchester County,county,2020,2019-07-01,2020-06-30,annual
+Dorchester County,county,2021,2020-07-01,2021-06-30,annual
+Dorchester County,county,2022,2021-07-01,2022-06-30,annual
+Dorchester County,county,2023,2022-07-01,2023-06-30,annual
+East New Market,municipality,2016,2015-07-01,2016-06-30,annual
+East New Market,municipality,2017,2016-06-30,2017-06-30,annual
+East New Market,municipality,2018,2017-06-30,2018-06-30,annual
+East New Market,municipality,2019,2018-06-30,2019-06-30,annual
+East New Market,municipality,2020,2019-07-01,2020-06-30,annual
+East New Market,municipality,2021,2020-06-30,2021-06-30,annual
+East New Market,municipality,2022,2021-06-30,2022-06-30,annual
+Easton,municipality,2019,2018-06-30,2019-06-30,annual
+Easton,municipality,2021,2020-06-30,2021-06-30,annual
+Easton,municipality,2022,2021-06-30,2022-06-30,annual
+Easton,municipality,2023,2022-07-01,2023-06-30,annual
+Easton,municipality,2024,2023-07-01,2024-06-30,annual
+Easton,municipality,2025,2024-07-01,2025-06-30,annual
+Elkton,municipality,2020,2019-07-01,2020-06-30,annual
+Elkton,municipality,2022,2021-06-30,2022-06-30,annual
+Elkton,municipality,2023,2022-07-01,2023-06-30,annual
+Elkton,municipality,2024,2023-07-01,2024-06-30,annual
+Elkton,municipality,2025,2024-07-01,2025-06-30,annual
+Frederick,municipality,2024,2023-07-01,2024-06-30,annual
+Frederick,municipality,2025,2024-07-01,2025-06-30,annual
+Frederick County,county,2016,2015-07-01,2016-06-30,annual
+Frederick County,county,2017,2016-06-30,2017-06-30,annual
+Frederick County,county,2018,2017-06-30,2018-06-30,annual
+Frederick County,county,2019,2018-06-30,2019-06-30,annual
+Frederick County,county,2020,2019-07-01,2020-06-30,annual
+Frederick County,county,2021,2020-06-30,2021-06-30,annual
+Frederick County,county,2022,2021-06-30,2022-06-30,annual
+Frederick County,county,2023,2022-07-01,2023-06-30,annual
+Frederick County,county,2024,2023-07-01,2024-06-30,annual
+Frederick County,county,2025,2024-07-01,2025-06-30,annual
+Frostburg,municipality,2017,2016-06-30,2017-06-30,annual
+Frostburg,municipality,2022,2021-06-30,2022-06-30,annual
+Frostburg,municipality,2023,2022-07-01,2023-06-30,annual
+Frostburg,municipality,2024,2023-07-01,2024-06-30,annual
+Frostburg,municipality,2025,2024-07-01,2025-06-30,annual
+Fruitland,municipality,2022,2021-06-30,2022-06-30,annual
+Gaithersburg,municipality,2021,2020-06-30,2021-06-30,annual
+Gaithersburg,municipality,2022,2021-06-30,2022-06-30,annual
+Gaithersburg,municipality,2023,2022-07-01,2023-06-30,annual
+Gaithersburg,municipality,2024,2023-07-01,2024-06-30,annual
+Galena,municipality,2017,2016-06-30,2017-06-30,annual
+Grantsville,municipality,2024,2023-07-01,2024-06-30,annual
+Greenbelt,municipality,2016,2015-07-01,2016-06-30,annual
+Greenbelt,municipality,2017,2016-06-30,2017-06-30,annual
+Greenbelt,municipality,2018,2017-06-30,2018-06-30,annual
+Greenbelt,municipality,2019,2018-06-30,2019-06-30,annual
+Greenbelt,municipality,2020,2019-07-01,2020-06-30,annual
+Greenbelt,municipality,2021,2020-06-30,2021-06-30,annual
+Greenbelt,municipality,2022,2021-06-30,2022-06-30,annual
+Greenbelt,municipality,2023,2022-07-01,2023-06-30,annual
+Greenbelt,municipality,2024,2023-07-01,2024-06-30,annual
+Greenbelt,municipality,2025,2024-07-01,2025-06-30,annual
+Greensboro,municipality,2016,2015-07-01,2016-06-30,annual
+Greensboro,municipality,2017,2016-06-30,2017-06-30,annual
+Greensboro,municipality,2018,2017-06-30,2018-06-30,annual
+Hagerstown,municipality,2016,2015-07-01,2016-06-30,annual
+Hagerstown,municipality,2017,2016-06-30,2017-06-30,annual
+Hagerstown,municipality,2018,2017-06-30,2018-06-30,annual
+Hagerstown,municipality,2019,2018-06-30,2019-06-30,annual
+Hagerstown,municipality,2020,2019-07-01,2020-06-30,annual
+Hagerstown,municipality,2021,2020-06-30,2021-06-30,annual
+Hagerstown,municipality,2022,2021-06-30,2022-06-30,annual
+Hagerstown,municipality,2023,2022-07-01,2023-06-30,annual
+Hagerstown,municipality,2024,2023-07-01,2024-06-30,annual
+Hagerstown,municipality,2025,2024-07-01,2025-06-30,annual
+Hampstead,municipality,2023,2022-07-01,2023-06-30,annual
+Harford County,county,2016,2015-07-01,2016-06-30,annual
+Harford County,county,2017,2016-06-30,2017-06-30,annual
+Harford County,county,2018,2017-06-30,2018-06-30,annual
+Harford County,county,2019,2018-06-30,2019-06-30,annual
+Harford County,county,2020,2019-07-01,2020-06-30,annual
+Harford County,county,2021,2020-06-30,2021-06-30,annual
+Harford County,county,2022,2021-06-30,2022-06-30,annual
+Harford County,county,2023,2022-07-01,2023-06-30,annual
+Harford County,county,2025,2024-07-01,2025-06-30,annual
+Havre De Grace,municipality,2022,2021-06-30,2022-06-30,annual
+Havre De Grace,municipality,2023,2022-07-01,2023-06-30,annual
+Havre De Grace,municipality,2024,2023-07-01,2024-06-30,annual
+Havre De Grace,municipality,2025,2024-07-01,2025-06-30,annual
+Howard County,county,2016,2015-07-01,2016-06-30,annual
+Howard County,county,2018,2017-06-30,2018-06-30,annual
+Howard County,county,2021,2020-06-30,2021-06-30,annual
+Howard County,county,2022,2021-06-30,2022-06-30,annual
+Howard County,county,2023,2022-07-01,2023-06-30,annual
+Kent County,county,2016,2015-07-01,2016-06-30,annual
+Kent County,county,2017,2016-06-30,2017-06-30,annual
+Kent County,county,2018,2017-06-30,2018-06-30,annual
+Kent County,county,2019,2018-06-30,2019-06-30,annual
+Kent County,county,2021,2020-06-30,2021-06-30,annual
+Kent County,county,2022,2021-06-30,2022-06-30,annual
+Kent County,county,2023,2022-07-01,2023-06-30,annual
+Kent County,county,2024,2023-07-01,2024-06-30,annual
+Kent County,county,2025,2024-07-01,2025-06-30,annual
+Laurel,municipality,2021,2020-06-30,2021-06-30,annual
+Laurel,municipality,2022,2021-06-30,2022-06-30,annual
+Laurel,municipality,2023,2022-07-01,2023-06-30,annual
+Laurel,municipality,2024,2023-07-01,2024-06-30,annual
+Laurel,municipality,2025,2024-07-01,2025-06-30,annual
+Leonardtown,municipality,2023,2022-07-01,2023-06-30,annual
+Lonaconing,municipality,2016,2015-07-01,2016-06-30,annual
+Lonaconing,municipality,2017,2016-06-30,2017-06-30,annual
+Manchester,municipality,2023,2022-07-01,2023-06-30,annual
+Manchester,municipality,2024,2023-07-01,2024-06-30,annual
+Manchester,municipality,2025,2024-07-01,2025-06-30,annual
+Montgomery County,county,2016,2015-07-01,2016-06-30,annual
+Montgomery County,county,2017,2016-06-30,2017-06-30,annual
+Montgomery County,county,2018,2017-06-30,2018-06-30,annual
+Montgomery County,county,2019,2018-06-30,2019-06-30,annual
+Montgomery County,county,2020,2019-07-01,2020-06-30,annual
+Montgomery County,county,2021,2020-06-30,2021-06-30,annual
+Montgomery County,county,2022,2021-06-30,2022-06-30,annual
+Montgomery County,county,2023,2022-07-01,2023-06-30,annual
+Montgomery County,county,2024,2023-07-01,2024-06-30,annual
+Montgomery County,county,2025,2024-07-01,2025-06-30,annual
+Myersville,municipality,2022,2021-06-30,2022-06-30,annual
+New Carrollton,municipality,2023,2022-07-01,2023-06-30,annual
+New Carrollton,municipality,2024,2023-07-01,2024-06-30,annual
+New Carrollton,municipality,2025,2024-07-01,2025-06-30,annual
+Oakland,municipality,2017,2016-06-30,2017-06-30,annual
+Oakland,municipality,2018,2017-06-30,2018-06-30,annual
+Oakland,municipality,2023,2022-07-01,2023-06-30,annual
+Oakland,municipality,2024,2023-07-01,2024-06-30,annual
+Ocean City,municipality,2016,2015-07-01,2016-06-30,annual
+Ocean City,municipality,2017,2016-06-30,2017-06-30,annual
+Ocean City,municipality,2018,2017-06-30,2018-06-30,annual
+Ocean City,municipality,2019,2018-06-30,2019-06-30,annual
+Ocean City,municipality,2020,2019-07-01,2020-06-30,annual
+Ocean City,municipality,2021,2020-06-30,2021-06-30,annual
+Ocean City,municipality,2022,2021-06-30,2022-06-30,annual
+Ocean City,municipality,2024,2023-07-01,2024-06-30,annual
+Ocean City,municipality,2025,2024-07-01,2025-06-30,annual
+Oxford,municipality,2018,2017-06-30,2018-06-30,annual
+Oxford,municipality,2019,2018-06-30,2019-06-30,annual
+Oxford,municipality,2020,2019-07-01,2020-06-30,annual
+Oxford,municipality,2024,2023-07-01,2024-06-30,annual
+Perryville,municipality,2025,2024-07-01,2025-06-30,annual
+Pittsville,municipality,2025,2024-07-01,2025-06-30,annual
+Prince George's County,county,2016,2015-07-01,2016-06-30,annual
+Prince George's County,county,2017,2016-06-30,2017-06-30,annual
+Prince George's County,county,2018,2017-06-30,2018-06-30,annual
+Prince George's County,county,2019,2018-06-30,2019-06-30,annual
+Prince George's County,county,2020,2019-07-01,2020-06-30,annual
+Prince George's County,county,2021,2020-06-30,2021-06-30,annual
+Prince George's County,county,2022,2021-06-30,2022-06-30,annual
+Prince George's County,county,2024,2023-07-01,2024-06-30,annual
+Prince George's County,county,2025,2024-07-01,2025-06-30,annual
+Princess Anne,municipality,2016,2015-07-01,2016-06-30,annual
+Queen Anne's County,county,2016,2015-07-01,2016-06-30,annual
+Queen Anne's County,county,2017,2016-06-30,2017-06-30,annual
+Queen Anne's County,county,2018,2017-06-30,2018-06-30,annual
+Queen Anne's County,county,2019,2018-06-30,2019-06-30,annual
+Queen Anne's County,county,2020,2019-07-01,2020-06-30,annual
+Queen Anne's County,county,2021,2020-06-30,2021-06-30,annual
+Queen Anne's County,county,2022,2021-06-30,2022-06-30,annual
+Queen Anne's County,county,2023,2022-07-01,2023-06-30,annual
+Queen Anne's County,county,2024,2023-07-01,2024-06-30,annual
+Queen Anne's County,county,2025,2024-07-01,2025-06-30,annual
+Queenstown,municipality,2016,2015-07-01,2016-06-30,annual
+Queenstown,municipality,2017,2016-06-30,2017-06-30,annual
+Ridgely,municipality,2018,2017-06-30,2018-06-30,annual
+Rising Sun,municipality,2016,2015-07-01,2016-06-30,annual
+Rising Sun,municipality,2017,2016-06-30,2017-06-30,annual
+Rising Sun,municipality,2018,2017-06-30,2018-06-30,annual
+Rising Sun,municipality,2019,2018-06-30,2019-06-30,annual
+Rising Sun,municipality,2024,2023-07-01,2024-06-30,annual
+Rock Hall,municipality,2024,2023-07-01,2024-06-30,annual
+Rockville,municipality,2018,2017-06-30,2018-06-30,annual
+Rockville,municipality,2020,2019-07-01,2020-06-30,annual
+Rockville,municipality,2021,2020-06-30,2021-06-30,annual
+Rockville,municipality,2022,2021-06-30,2022-06-30,annual
+Rockville,municipality,2023,2022-07-01,2023-06-30,annual
+Rockville,municipality,2025,2024-07-01,2025-06-30,annual
+Salisbury,municipality,2016,2015-07-01,2016-06-30,annual
+Salisbury,municipality,2017,2016-06-30,2017-06-30,annual
+Salisbury,municipality,2018,2017-06-30,2018-06-30,annual
+Salisbury,municipality,2019,2018-06-30,2019-06-30,annual
+Salisbury,municipality,2020,2019-07-01,2020-06-30,annual
+Salisbury,municipality,2021,2020-06-30,2021-06-30,annual
+Salisbury,municipality,2022,2021-06-30,2022-06-30,annual
+Salisbury,municipality,2023,2022-07-01,2023-06-30,annual
+Salisbury,municipality,2024,2023-07-01,2024-06-30,annual
+Salisbury,municipality,2025,2024-07-01,2025-06-30,annual
+Seat Pleasant,municipality,2023,2022-07-01,2023-06-30,annual
+Secretary,municipality,2023,2022-07-01,2023-06-30,annual
+Secretary,municipality,2024,2023-07-01,2024-06-30,annual
+Snow Hill,municipality,2025,2024-07-01,2025-06-30,annual
+Somerset County,county,2016,2015-07-01,2016-06-30,annual
+Somerset County,county,2017,2016-06-30,2017-06-30,annual
+Somerset County,county,2018,2017-06-30,2018-06-30,annual
+Somerset County,county,2019,2018-06-30,2019-06-30,annual
+Somerset County,county,2020,2019-07-01,2020-06-30,annual
+Somerset County,county,2021,2020-06-30,2021-06-30,annual
+Somerset County,county,2022,2021-06-30,2022-06-30,annual
+Somerset County,county,2023,2022-07-01,2023-06-30,annual
+Somerset County,county,2024,2023-07-01,2024-06-30,annual
+Somerset County,county,2025,2024-07-01,2025-06-30,annual
+St. Mary's County,county,2016,2015-07-01,2016-06-30,annual
+St. Mary's County,county,2017,2016-06-30,2017-06-30,annual
+St. Mary's County,county,2018,2017-06-30,2018-06-30,annual
+St. Mary's County,county,2019,2018-06-30,2019-06-30,annual
+St. Mary's County,county,2020,2019-07-01,2020-06-30,annual
+St. Mary's County,county,2022,2021-06-30,2022-06-30,annual
+St. Mary's County,county,2023,2022-07-01,2023-06-30,annual
+St. Mary's County,county,2025,2024-07-01,2025-06-30,annual
+Sudlersville,municipality,2016,2015-07-01,2016-06-30,annual
+Takoma Park,municipality,2019,2018-06-30,2019-06-30,annual
+Takoma Park,municipality,2020,2019-07-01,2020-06-30,annual
+Takoma Park,municipality,2022,2021-06-30,2022-06-30,annual
+Takoma Park,municipality,2023,2022-07-01,2023-06-30,annual
+Takoma Park,municipality,2024,2023-07-01,2024-06-30,annual
+Takoma Park,municipality,2025,2024-07-01,2025-06-30,annual
+Talbot County,county,2016,2015-07-01,2016-06-30,annual
+Talbot County,county,2017,2016-06-30,2017-06-30,annual
+Talbot County,county,2018,2017-06-30,2018-06-30,annual
+Talbot County,county,2019,2018-06-30,2019-06-30,annual
+Talbot County,county,2020,2019-07-01,2020-06-30,annual
+Talbot County,county,2021,2020-06-30,2021-06-30,annual
+Talbot County,county,2022,2021-07-01,2022-06-30,annual
+Talbot County,county,2023,2022-07-01,2023-06-30,annual
+Talbot County,county,2024,2023-07-01,2024-06-30,annual
+Talbot County,county,2025,2024-07-01,2025-06-30,annual
+Thurmont,municipality,2024,2023-07-01,2024-06-30,annual
+Thurmont,municipality,2025,2024-07-01,2025-06-30,annual
+Union Bridge,municipality,2016,2015-07-01,2016-06-30,annual
+Union Bridge,municipality,2017,2016-06-30,2017-06-30,annual
+Union Bridge,municipality,2018,2017-06-30,2018-06-30,annual
+Union Bridge,municipality,2019,2018-06-30,2019-06-30,annual
+Union Bridge,municipality,2020,2019-07-01,2020-06-30,annual
+Union Bridge,municipality,2021,2020-06-30,2021-06-30,annual
+Union Bridge,municipality,2022,2021-06-30,2022-06-30,annual
+Union Bridge,municipality,2023,2022-07-01,2023-06-30,annual
+Union Bridge,municipality,2024,2023-07-01,2024-06-30,annual
+Washington County,county,2016,2015-07-01,2016-06-30,annual
+Washington County,county,2017,2016-06-30,2017-06-30,annual
+Washington County,county,2018,2017-06-30,2018-06-30,annual
+Washington County,county,2019,2018-06-30,2019-06-30,annual
+Washington County,county,2020,2019-07-01,2020-06-30,annual
+Washington County,county,2021,2020-06-30,2021-06-30,annual
+Washington County,county,2022,2021-06-30,2022-06-30,annual
+Washington County,county,2023,2022-07-01,2023-06-30,annual
+Washington County,county,2024,2023-07-01,2024-06-30,annual
+Washington County,county,2025,2024-07-01,2025-06-30,annual
+Westernport,municipality,2017,2016-06-30,2017-06-30,annual
+Westernport,municipality,2018,2017-06-30,2018-06-30,annual
+Westernport,municipality,2023,2022-07-01,2023-06-30,annual
+Westminster,municipality,2016,2015-07-01,2016-06-30,annual
+Westminster,municipality,2017,2016-06-30,2017-06-30,annual
+Westminster,municipality,2018,2017-06-30,2018-06-30,annual
+Westminster,municipality,2019,2018-06-30,2019-06-30,annual
+Westminster,municipality,2020,2019-07-01,2020-06-30,annual
+Westminster,municipality,2021,2020-06-30,2021-06-30,annual
+Westminster,municipality,2022,2021-06-30,2022-06-30,annual
+Westminster,municipality,2023,2022-07-01,2023-06-30,annual
+Westminster,municipality,2024,2023-07-01,2024-06-30,annual
+Westminster,municipality,2025,2024-07-01,2025-06-30,annual
+Wicomico County,county,2016,2015-07-01,2016-06-30,annual
+Wicomico County,county,2017,2016-06-30,2017-06-30,annual
+Wicomico County,county,2019,2018-06-30,2019-06-30,annual
+Wicomico County,county,2020,2019-07-01,2020-06-30,annual
+Wicomico County,county,2021,2020-06-30,2021-06-30,annual
+Wicomico County,county,2022,2021-07-01,2022-06-30,annual
+Worcester County,county,2017,2016-06-30,2017-06-30,annual
+Worcester County,county,2018,2017-06-30,2018-06-30,annual
+Worcester County,county,2019,2018-06-30,2019-06-30,annual
+Worcester County,county,2020,2019-07-01,2020-06-30,annual
+Worcester County,county,2021,2020-06-30,2021-06-30,annual
+Worcester County,county,2022,2021-06-30,2022-06-30,annual
+Worcester County,county,2023,2022-07-01,2023-06-30,annual
+Worcester County,county,2024,2023-07-01,2024-06-30,annual
