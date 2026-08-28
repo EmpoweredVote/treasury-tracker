@@ -355,8 +355,13 @@ function buildTree(deptData) {
         a: adopted,
         i: [{
           d: displayName,
-          a: adopted,
-          aa: (actual && actual !== 0) ? actual : null,
+          // ⚠ aa -> approved_amount, a -> actual_amount in _treasury_insert_tree.
+          // NOTE the trap: the NODE key `a` above is the rollup amount (correctly the
+          // adopted figure), but the ITEM key `a` is actual_amount. Same letter, two
+          // meanings. This emitted `a: adopted, aa: actual` and so filed the adopted
+          // budget as an actual — "Budgeted $0 / Actual $X" (PRs #85, #91, #92).
+          a: (actual && actual !== 0) ? actual : null,
+          aa: adopted,
           f: 'General Fund',
           e: null,
         }],
@@ -414,7 +419,10 @@ async function processFY(supabase, muniId, fiscalYear, dryRun, verbose) {
     console.log('  ' + '─'.repeat(82));
     for (const node of jsonTree) {
       const aStr = Math.round(node.a).toLocaleString();
-      const actVal = node.c[0]?.i[0]?.aa;
+      // ⚠ ITEM `a` is the actual (aa is approved) — see the emission above. This read
+      // `.aa` while labelling the column "Actual ($)", so the verbose table printed
+      // the adopted budget twice and would have masked the swap being wrong.
+      const actVal = node.c[0]?.i[0]?.a;
       const actStr = (actVal && actVal !== 0) ? Math.round(actVal).toLocaleString() : '—';
       console.log('  ' + node.n.padEnd(48) + aStr.padStart(16) + '  ' + actStr.padStart(16));
     }

@@ -123,7 +123,8 @@ function buildOperatingTree(expenditureItems, approvedIdx, actualIdx) {
     nodes.push({
       n: item.name,
       a: approved,
-      i: [{ d: item.name, a: approved, aa: actual, f: 'General Fund', e: null }],
+      // ⚠ a -> actual_amount, aa -> approved_amount. The NODE `a` above is the rollup.
+      i: [{ d: item.name, a: actual, aa: approved, f: 'General Fund', e: null }],
     });
     total += approved;
   }
@@ -143,7 +144,8 @@ function buildRevenueTree(revenueItems, approvedIdx, actualIdx) {
   for (const item of revenueItems) {
     const approved = toFullDollars(item.amounts[approvedIdx]);
     const actual   = actualIdx !== null ? toFullDollars(item.amounts[actualIdx]) : null;
-    const lineItem = { d: item.name, a: approved, aa: actual, f: 'General Fund', e: null };
+    // ⚠ a -> actual_amount, aa -> approved_amount.
+    const lineItem = { d: item.name, a: actual, aa: approved, f: 'General Fund', e: null };
 
     if (TAX_ITEMS.has(item.name)) {
       taxItems.push(lineItem);

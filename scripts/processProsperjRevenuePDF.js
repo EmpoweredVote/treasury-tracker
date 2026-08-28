@@ -665,8 +665,9 @@ function buildTree(fundResults) {
       if (!catMap.has(cat)) catMap.set(cat, []);
       catMap.get(cat).push({
         d: cat,
-        a: approved,
-        aa: actual,
+        // ⚠ a -> actual_amount, aa -> approved_amount.
+        a: actual,
+        aa: approved,
         f: fundName,
         e: null,
       });

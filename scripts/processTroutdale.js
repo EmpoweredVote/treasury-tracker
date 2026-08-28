@@ -150,7 +150,11 @@ function buildRevenueTree(rows) {
     .map(r => ({
       n: r.category,
       a: r.adopted_amount,
-      i: [{ d: r.category, a: r.adopted_amount, aa: null, f: null, e: null }],
+      // ⚠ aa -> approved_amount, a -> actual_amount in _treasury_insert_tree. The NODE
+      // key `a` is the rollup (correctly the adopted figure); the ITEM key `a` is
+      // actual_amount. Same letter, two meanings one line apart — the trap behind
+      // PRs #85, #91, #92 and this one.
+      i: [{ d: r.category, a: null, aa: r.adopted_amount, f: null, e: null }],
     }));
   nodes.sort((a, b) => b.a - a.a);
   const total = nodes.reduce((s, n) => s + n.a, 0);
