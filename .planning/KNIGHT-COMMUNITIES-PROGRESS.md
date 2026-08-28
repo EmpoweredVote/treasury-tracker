@@ -93,6 +93,221 @@ Do not read it as evidence of audit.
 the likely route is the methodology or notes section inside a `cired_*` report PDF,
 or a direct question to OSA.
 
+
+### City of Charlotte + Mecklenburg County ACFRs → `audited_gaap`
+
+**Verified 2026-08-28** by reading the auditor's opinion in **all 36 documents**
+(Charlotte FY2011–FY2025, Mecklenburg FY2005–FY2025).
+
+Verbatim, Charlotte FY2023:
+
+> "In our opinion, the financial statements referred to above present fairly, in
+> all material respects, the respective financial position of the governmental
+> activities, the business-type activities, the discretely presented component
+> unit, **each major fund**, and the aggregate remaining fund information of the
+> City, as of June 30, 2023 … in accordance with accounting principles generally
+> accepted in the United States of America."
+
+Mecklenburg FY2023 is the same form and adds "**and the budgetary comparison for
+the general fund**".
+
+The scope clause is what matters: the opinion names **each major fund**, and the
+General Fund is a major fund in every one of these 36 reports. That is the §3.5
+standard — an opinion covering the statement the figures were actually read from,
+not a general assurance about the document.
+
+⚠ **Eight of the 36 opinion pages are IMAGE-ONLY and were recovered by OCR** —
+Charlotte FY2012/FY2024/FY2025 and Mecklenburg FY2005–FY2009. A text-layer search
+finds "Independent Auditor" only in those documents' tables of contents, which
+reads exactly like an unaudited report. All eight were rendered at 200dpi and
+OCR'd; every one carries an unmodified "present fairly" opinion naming the major
+funds, the General Fund and GAAP. **Without OCR these eight would have been
+stamped `unknown` — a false negative on the two most current Charlotte years.**
+
+---
+
+## North Carolina — the recon gate (session 2)
+
+### ⚠⚠ THE DESIGN'S ASSUMPTION WAS WRONG: NC LGC IS **NOT** AUDIT-DERIVED
+
+Spec §4.3 sequenced North Carolina first because
+`reference_audited_bulk_sources_and_fdta` flagged **NC LGC** as an *audit-derived*
+bulk candidate that "would land at `compiled_from_audited`, a grade above what OH
+and MN can offer." **Recon refutes this.** Risk **R2** fired exactly as written.
+
+The NC Treasurer's own Data and Reports page describes the AFIR dataset as:
+
+> "Data **self-reported** by counties and municipalities"
+
+and the statute it is filed under, N.C.G.S. § 159-33.1, requires local units to
+"**submit** a statement of financial information to the Secretary of the Local
+Government Commission." The companion cash-and-taxes report is described the same
+way — "based on data **reported by** local governments." The LGC receives and
+compiles; it does not audit.
+
+**Bulk availability is also partial and stale:**
+
+| Era | Access |
+|---|---|
+| 1994–2011 | direct per-year downloads, county and municipal, free, no auth |
+| 2012–present | `logos.nctreasurer.com`, a stateful reporting app with **no bulk export** — the Colorado DOLA shape |
+| FY2024+ | submitted through a Power Apps portal |
+
+**Recon outcome = ACFR, not BULK.** So Charlotte and Mecklenburg are read straight
+from their own audited ACFRs — which lands them at **`audited_gaap`**, the
+*highest* grade in the vocabulary and one step **above** the `compiled_from_audited`
+the design hoped for. The campaign gets a better grade than planned, from a worse
+source than planned.
+
+⚠ **The 1994–2011 AFIR files are still a real, free, statewide bulk unlock** for
+every NC county and municipality — at `self_reported_unaudited`, and stopping at
+FY2011. Recorded as a follow-up, not done here.
+
+### FAC census — the CA county blind spot does NOT apply to NC
+
+`docs/fac/fac-local-fiscal-year-ends.csv` holds **422 NC municipality rows and 108
+NC county rows**, so `censusGuard()` has something to check against for both
+entities — unlike California, where zero county rows make the guard silently
+vacuous. Both are confirmed July–June:
+
+    NC,Charlotte,municipality,annual,7,,2000-2025
+    NC,Charlotte City,municipality,annual,7,,1998-1999
+    NC,Mecklenburg County,county,annual,7,,1998-2000 2002-2025
+
+⚠ Charlotte appears under **two names** across the census era boundary
+("Charlotte" 2000–2025, "Charlotte City" 1998–1999). A name-exact guard sees only
+one of them — the `Saint Louis County` census-name-miss shape from session 1.
+
+### Sources acquired — 36 documents, all first-party and live
+
+| Entity | Window | Docs | Host |
+|---|---|---|---|
+| City of Charlotte | FY2011–FY2025 | 15 | `charlottenc.gov` (Akamai WAF) |
+| Mecklenburg County | FY2005–FY2025 | 21 | `mecknc.widencollective.com` (Acquia/Widen DAM) |
+
+⚠ **Charlotte's host rejects every non-browser client.** `curl` and PowerShell
+both get an Akamai `403 Access Denied` on the HTML page *and* on the PDFs; a real
+Chromium passes unchanged. The fetch is driven through Playwright for that reason
+— the WAF fingerprints the client, not the request.
+
+⚠ **Charlotte pre-FY2011 is retrievable but NOT loaded.** The retired
+`charmeck.org` host served `fy10 cafr.pdf` and HTML pages for FY1998/2000/2001/
+2002; that domain now 301s to `charlottenc.gov` and the files are gone, so they
+survive only in the Internet Archive. Under the first-party `source_url` policy
+set 2026-08-25 for City of Durham FY2004–FY2006, they stay unloaded. The FAC
+census independently shows Charlotte audited from FY2000, so the gap is an
+ACCESS fact, not an existence fact.
+
+⚠ **Mecklenburg's DAM has no durable direct-file URL** — a provenance shape new to
+TT. Bytes are served only from signed, expiring `orders-bb.us-east-1.widencdn.net`
+links; `mcknc.widen.net/content/<external_id>/original` and every other public
+Widen pattern 404s. The stable first-party citation is therefore the **portal
+asset page**, `…/portals/y6kaiqln/FinancialReports/asset/<uuid>`, which is what the
+manifest records — the same choice made for Asheville's Google Drive viewer URLs.
+The asset list itself comes from a clean no-auth POST endpoint,
+`/portals/api/assets/search/public/section/<sectionId>`.
+
+### ⚠⚠ The issuer guard, as shipped, ACCEPTS two Charlotte impostors
+
+Charlotte publishes **four** look-alike reports beside its ACFR — a PAFR, the
+**Charlotte Douglas Airport** ACFR, a **Charlotte Water** annual financial report,
+and a Building Code Enforcement report — and Charlotte-Mecklenburg Schools
+publishes an ACFR naming *both* entities. Measured against the real files, not
+reasoned about:
+
+| Document | names entity | governing marker | verdict under the shipped guard |
+|---|---|---|---|
+| Charlotte ACFR (real) | ✓ | ✓ | accept ✓ |
+| **Charlotte Water AFR** | ✓ | ✓ | **ACCEPT — WRONG** |
+| **Charlotte PAFR** | ✓ | ✓ | **ACCEPT — WRONG** |
+| Airport ACFR | ✗ | ✗ | reject ✓ |
+| CMS (schools) ACFR | ✗ | ✗ | reject ✓ |
+
+`assertIssuer` proves **who wrote** a document. It cannot tell a whole-government
+ACFR from that same government's enterprise-fund or popular report, because the
+City genuinely authored all three. This is the Buncombe lesson in a new axis:
+the obvious guard accepts the impostor.
+
+✅ **The fix is POSITIVE STRUCTURAL EVIDENCE, not a forbid-list:** the document
+must contain a **governmental-funds balance sheet**
+(`BALANCE SHEET … GOVERNMENTAL FUNDS`). An enterprise-fund report has no
+governmental funds and a popular report has no statements, so both fail it, while
+all 36 real reports pass. A forbid-list on "POPULAR ANNUAL" or "AVIATION" was
+rejected deliberately — a hand-declared neighbour list is a standing bet the
+issuer will not rename anything, which is what let the Buncombe impostor through.
+
+**Result: 36/36 real documents pass; 8/8 adversary×entity combinations rejected.**
+Fiscal year is asserted by **dominant year** rather than mere presence — Charlotte
+FY2023 names "June 30, 2023" 248 times against 23 for FY2022 — so a comparative
+prior-year column cannot satisfy the check.
+
+### Two reader defects found, both fixed, both regression-proved
+
+**1. A ghost text run (Mecklenburg FY2024/FY2025 revenue).** The sentence "The
+accompanying notes are an integral part of this statement." is drawn a second time
+at **0.10pt**, stacked on the `REVENUES` banner. pdfplumber merges the two into
+`TRhe statement.EVENUES`, `REV_BANNER` matches nothing, and the reader fails
+naming the PAGE HEADER as a row. ⚠ The **expenditure** side of the same page was
+unaffected, so this presented as "revenue is broken for two years" — easy to read
+as a Mecklenburg quirk rather than a reader bug. Fixed by dropping glyphs ≤1.0pt
+before rows are assembled (`INK_MIN_HEIGHT` in `acfrPrintedTotal.py`); real
+statement type is 8–11pt, so the threshold cannot reach printed content.
+
+**2. A split root indent (Mecklenburg FY2005–FY2011 operating).** This era prints
+`Current` about 2pt deeper than its own sibling headings `Debt Service` and
+`Capital Outlay`, so `min(indents)` lands on the shallower pair and `Current`
+reads as a child with no parent open. Measured across the era: root spread
+1.82–2.90pt, root→child gap 3.67–4.08pt, so a valid tolerance is
+**2.90 ≤ tol < 5.50**. The entity declares `indent_tol=4.0`. ⚠ Kept **per entity**,
+not raised globally: El Paso County's root→child gap is 5.0pt, where a shared 4.0
+would leave 1pt of margin instead of 3.5.
+
+**Regression proof for the shared change** — the four NC entities already in TT
+have **zero** sub-visible glyphs on any statement page, so they cannot be affected;
+El Paso has 40, **every one a space character**, which
+`extract_words(keep_blank_chars=False)` already discards. Re-running El Paso
+FY2012/FY2013/FY2014 (the only affected years) with and without the filter gives
+**6/6 byte-identical** outputs. `acfrGF.selftest.py` 166/166 and `npm test`
+1,464/1,464 stay green.
+
+### ⚠ The two entities print in DIFFERENT UNITS
+
+**Charlotte is in THOUSANDS** — every statement page is captioned "(Dollar Amounts
+in Thousands)". **Mecklenburg prints whole dollars.** A units error ties at $0
+while being 1000× wrong, so neither value is checkable by the tie gate; both rest
+on the caption and on the loader's per-capita guard. This is the Austin/Travis
+shape — two entities, one milestone, opposite units — and the reason `units` is
+declared per entity and never carried across.
+
+Populations, US Census PEP Vintage 2024 (same program and vintage as the existing
+four NC entities): **Charlotte 943,476** (`sub-est2024_37.csv`, SUMLEV=162,
+PLACE=12000) · **Mecklenburg County 1,206,285** (`co-est2024-alldata.csv`,
+SUMLEV=050, FIPS 37119). ⚠ Unlike Durham, Charlotte does **not** straddle counties
+— its SUMLEV=157 Mecklenburg county-part row is also 943,476, so `county_id` is an
+identity here.
+
+### ⚠ Both entities need the COORDINATE reader — and a tie cannot detect why
+
+Both issuers' text layers emit the LABEL column and the NUMERIC columns as
+separate blocks, so every line-based reader pairs each label with the value of the
+row **below** it. Charlotte FY2023, `pdftotext -layout`:
+
+    Revenues:                    $426,942  $105,602 ... $553,217
+       Property taxes            144,497   32,606   ...
+       Other taxes               113,572   -        ...
+
+`$426,942` sits on the `Revenues:` banner line but is Property taxes' figure.
+⚠⚠ **This ties at $0 while being completely wrong**: the offset permutes the
+label→value assignment without adding or removing a figure, so the component
+multiset — and therefore the sum, the printed-total check and the leaf-multiset
+check — is identical either way. Only glyph coordinates recover the true pairing.
+
+⚠ **Neither entity can be corroborated by the `-table` reader**, unlike Durham
+County and Asheville, where it cross-checks every year it can read. Here the
+second reader is not merely unable to read the page — it reads it *confidently and
+wrongly*. The independent oracle for these two is therefore the issuer's own
+**printed total** on the statement (§5.2), not a second reader.
+
 ---
 
 ## Entity status

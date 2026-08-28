@@ -548,7 +548,66 @@ export const NC_ISSUERS = {
     governing: [/COUNTY\s+MANAGER/i, /BOARD\s+OF\s+COMMISSIONERS/i],
     forbidGoverning: SCHOOL_MARKERS,
   },
+  // ── Knight campaign session 2 ──────────────────────────────────────────────
+  charlotte: {
+    require: /CITY\s*OF\s*CHARLOTTE/i,
+    governing: [/MAYOR/i, /CITY\s*COUNCIL/i, /CITY\s*MANAGER/i],
+    forbidGoverning: SCHOOL_MARKERS,
+  },
+  mecklenburg: {
+    require: /MECKLENBURG\s*COUNTY/i,
+    governing: [/COUNTY\s*MANAGER/i, /BOARD\s*OF\s*COMMISSIONERS/i],
+    forbidGoverning: SCHOOL_MARKERS,
+  },
 };
+
+/**
+ * ⚠⚠ THE GUARD `assertIssuer` CANNOT PROVIDE, AND WHY IT IS NEEDED.
+ *
+ * `assertIssuer` proves WHO WROTE a document. The City of Charlotte publishes
+ * FOUR look-alike reports beside its ACFR — a Popular Annual Financial Report,
+ * the Charlotte Douglas AIRPORT ACFR, a CHARLOTTE WATER annual financial report
+ * and a Building Code Enforcement report — and it genuinely authored all of
+ * them. Measured against the real files on 2026-08-28, not reasoned about:
+ *
+ *   document                     names entity   governing marker   verdict
+ *   Charlotte ACFR (real)             yes             yes          accept  ✓
+ *   Charlotte Water AFR               yes             yes          ACCEPT  ✗
+ *   Charlotte PAFR                    yes             yes          ACCEPT  ✗
+ *   Airport ACFR                       no              no          reject  ✓
+ *   Charlotte-Mecklenburg Schools      no              no          reject  ✓
+ *
+ * Two impostors pass a guard that is working exactly as designed, because the
+ * question they fail is not "who wrote this" but "WHAT IS THIS".
+ *
+ * ✅ The discriminator is POSITIVE STRUCTURAL EVIDENCE: a whole-government ACFR
+ * contains a GOVERNMENTAL-FUNDS BALANCE SHEET. An enterprise-fund report has no
+ * governmental funds at all, and a popular report carries no statements, so both
+ * fail it — while all 36 Charlotte and Mecklenburg reports pass.
+ *
+ * ⚠ A FORBID-LIST WAS REJECTED DELIBERATELY. Excluding "POPULAR ANNUAL" or
+ * "AVIATION" would work today and is a standing bet that the issuer never
+ * renames anything — the reasoning that let the Buncombe County Board of
+ * Education report through the first version of `assertIssuer`. Positive
+ * evidence of what the document IS cannot rot the same way.
+ */
+export function assertReportType(text) {
+  if (text === null || text === undefined) return { ok: false, note: 'no text — report type UNVERIFIABLE' };
+  // ⚠ `\s*` not `\s+`, and a bounded gap rather than a fixed phrase: issuers set
+  // this title across two or three printed lines and some PDFs FUSE the words
+  // (City of Durham FY2023), so a literal-substring test reports "not an ACFR"
+  // for a statement that is plainly there.
+  const GOV_FUNDS_BALANCE_SHEET = /BALANCE\s*SHEET[\s\S]{0,80}GOVERNMENTAL\s*FUNDS/i;
+  if (!GOV_FUNDS_BALANCE_SHEET.test(text)) {
+    return {
+      ok: false,
+      note: 'NOT A WHOLE-GOVERNMENT ACFR — no governmental-funds balance sheet. '
+        + 'This is the shape of an enterprise-fund report (airport, water) or a '
+        + 'popular annual financial report.',
+    };
+  }
+  return { ok: true };
+}
 
 // -- Structure comparison (verifier helpers) ---------------------------------
 /**

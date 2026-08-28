@@ -47,6 +47,37 @@ const CA_SCO_EVIDENCE = {
     + 'dataset distinguishes them, so the weaker branch applies.',
 };
 
+/**
+ * The North Carolina ACFR judgment, stated once and referenced by both entries.
+ *
+ * These rows are read DIRECTLY from each government's own audited ACFR, so they
+ * are `audited_gaap` rather than any compiled grade. ⚠ The design (§4.3) expected
+ * North Carolina to arrive at `compiled_from_audited` via the LGC's Annual
+ * Financial Information Report; recon on 2026-08-28 REFUTED that — the NC
+ * Treasurer describes AFIR as "Data self-reported by counties and municipalities"
+ * — so the state was loaded from ACFRs instead and landed a grade HIGHER than
+ * planned. See .planning/KNIGHT-COMMUNITIES-PROGRESS.md.
+ */
+const NC_ACFR_EVIDENCE = {
+  document: 'The independent auditor\'s report bound into each Annual Comprehensive '
+    + 'Financial Report, read in ALL 36 documents (City of Charlotte FY2011-FY2025, '
+    + 'Mecklenburg County FY2005-FY2025) on 2026-08-28. ⚠ Eight of the 36 opinion pages '
+    + 'are IMAGE-ONLY — Charlotte FY2012/FY2024/FY2025 and Mecklenburg FY2005-FY2009 — '
+    + 'and were recovered by OCR at 200dpi; a text-layer search finds "Independent '
+    + 'Auditor" only in those documents\' tables of contents, which reads exactly like an '
+    + 'unaudited report.',
+  figures: 'Verbatim, Charlotte FY2023: "In our opinion, the financial statements referred '
+    + 'to above present fairly, in all material respects, the respective financial position '
+    + 'of the governmental activities, the business-type activities, the discretely presented '
+    + 'component unit, EACH MAJOR FUND, and the aggregate remaining fund information of the '
+    + 'City, as of June 30, 2023 ... in accordance with accounting principles generally '
+    + 'accepted in the United States of America." Mecklenburg FY2023 is the same form and '
+    + 'adds "and the budgetary comparison for the general fund". The SCOPE clause is what '
+    + 'qualifies these rows: the opinion covers EACH MAJOR FUND, and the General Fund is a '
+    + 'major fund in every one of the 36 reports — so it covers the very statement the '
+    + 'figures were read from, which is the §3.5 standard.',
+};
+
 /** @type {import('../lib/budgetAxes.mjs').AxisEntry[]} */
 export const AUDIT_GRADE_REGISTRY = [
   {
@@ -64,6 +95,22 @@ export const AUDIT_GRADE_REGISTRY = [
         + 'Reinforced by: "To request a copy of an unaudited Hinkle System filing, email '
         + 'HinkleSystem@ohioauditor.gov". Entities self-file via the Hinkle System under ORC § 117.38.',
     },
+  },
+  {
+    id: 'nc-charlotte-acfr',
+    // ⚠ ANCHORED AT BOTH ENDS and pinned to the exact FY window that was read.
+    // `^City of Charlotte ACFR` alone would also claim any future Charlotte ACFR
+    // series — including years whose opinion nobody has looked at — which is the
+    // `^CA State Controller` trap in a new place.
+    match: /^City of Charlotte ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[1-9]|2[0-5]) actual, GAAP basis\)$/,
+    value: AUDIT_GRADE.AUDITED_GAAP,
+    evidence: NC_ACFR_EVIDENCE,
+  },
+  {
+    id: 'nc-mecklenburg-acfr',
+    match: /^Mecklenburg County ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:0[5-9]|1\d|2[0-5]) actual, GAAP basis\)$/,
+    value: AUDIT_GRADE.AUDITED_GAAP,
+    evidence: NC_ACFR_EVIDENCE,
   },
   {
     id: 'ca-sco-city-exp',

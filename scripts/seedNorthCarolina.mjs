@@ -57,6 +57,8 @@ export const DURHAM_COUNTY_NAME = 'Durham County';
 export const DURHAM_CITY_NAME = 'Durham';
 export const BUNCOMBE_COUNTY_NAME = 'Buncombe County';
 export const ASHEVILLE_NAME = 'Asheville';
+export const MECKLENBURG_COUNTY_NAME = 'Mecklenburg County';
+export const CHARLOTTE_NAME = 'Charlotte';
 
 /**
  * US Census Bureau Population Estimates Program, Vintage 2024 — the same
@@ -94,6 +96,19 @@ const POPULATIONS = {
   [DURHAM_COUNTY_NAME]: 343628,
   [ASHEVILLE_NAME]: 94992,
   [BUNCOMBE_COUNTY_NAME]: 279210,
+  // Added by the Knight campaign, session 2 — same program and vintage as the
+  // four above, so all six are comparable.
+  //
+  //   Charlotte city      sub-est2024_37.csv, SUMLEV=162, PLACE=12000 -> 943,476.
+  //                       ⚠ Unlike Durham, Charlotte does NOT straddle counties:
+  //                       its SUMLEV=157 Mecklenburg county-part row is ALSO
+  //                       943,476, so `county_id` is an identity here and the
+  //                       whole-place / county-part choice cannot change the
+  //                       per-capita denominator.
+  //   Mecklenburg County  co-est2024-alldata.csv, SUMLEV=050, FIPS 37119
+  //                       -> 1,206,285.
+  [CHARLOTTE_NAME]: 943476,
+  [MECKLENBURG_COUNTY_NAME]: 1206285,
 };
 
 async function findOne(name, entityType) {
@@ -129,13 +144,21 @@ async function upsertEntity({ name, entityType, countyId = null }) {
 }
 
 export async function seed() {
-  console.log('Seeding North Carolina local entities (NC-DURHAM-AVL-01)\n');
+  console.log('Seeding North Carolina local entities (NC-DURHAM-AVL-01 + Knight session 2)\n');
 
   // Counties first — the cities' county_id points at them.
   const durhamCountyId = await upsertEntity({ name: DURHAM_COUNTY_NAME, entityType: 'county' });
   const buncombeCountyId = await upsertEntity({ name: BUNCOMBE_COUNTY_NAME, entityType: 'county' });
   await upsertEntity({ name: DURHAM_CITY_NAME, entityType: 'city', countyId: durhamCountyId });
   await upsertEntity({ name: ASHEVILLE_NAME, entityType: 'city', countyId: buncombeCountyId });
+
+  // Knight campaign session 2.
+  const mecklenburgCountyId = await upsertEntity({
+    name: MECKLENBURG_COUNTY_NAME, entityType: 'county',
+  });
+  await upsertEntity({
+    name: CHARLOTTE_NAME, entityType: 'city', countyId: mecklenburgCountyId,
+  });
 
   // ── Post-seed assertions ──────────────────────────────────────────────────
   // Every one of these has been a real defect somewhere in this table's
@@ -152,6 +175,8 @@ export async function seed() {
     [DURHAM_COUNTY_NAME, 'county', null],
     [ASHEVILLE_NAME, 'city', buncombeCountyId],
     [BUNCOMBE_COUNTY_NAME, 'county', null],
+    [CHARLOTTE_NAME, 'city', mecklenburgCountyId],
+    [MECKLENBURG_COUNTY_NAME, 'county', null],
   ];
   for (const [name, entityType, countyId] of wanted) {
     const hits = all.filter((m) => m.name === name && m.entity_type === entityType);
