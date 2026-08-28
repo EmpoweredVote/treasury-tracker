@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   pctChange, detectSeams, findDuplicateScopes, checkRequiredSeams,
   figureDigest, compositeDigest, REQUIRED_SEAMS,
-  findIllegalDuplicates, checkSeamsClosed, frozenIdDigest,
+  findIllegalDuplicates, checkSeamsClosed, frozenIdDigest, classifyFrozenDrift,
   SEAMS_CLOSED_BY_SCOPE_02, SEAMS_OPEN_BY_SOURCE_COVERAGE, classifyDuplicates,
 } from '../scripts/lib/scopeVerify.mjs';
 import { SCOPE } from '../scripts/lib/fundScope.mjs';
@@ -504,5 +504,59 @@ describe('frozenIdDigest — the authorised-correction ledger', () => {
     const b = frozenIdDigest([{ id: 'a', total_budget: 1 }, { id: 'x', total_budget: 5 }],
       ['x'], new Map([['x', 4]]));
     expect(b).toBe(a);
+  });
+});
+
+/**
+ * Telling the two failures apart.
+ *
+ * ⚠ WHY. The harness reported ONE message for both — "a row that existed at
+ * v2.24 changed or vanished" — when the actual condition was usually that a
+ * milestone forgot its created-ids file. That message is alarming, unactionable,
+ * and points at the wrong thing, so the rational response is to stop reading it.
+ * The baseline records exactly that outcome across v2.27, v2.28 and v2.29.
+ *
+ * The harness already HAS the numbers needed to distinguish them. It just never
+ * used them.
+ */
+describe('classifyFrozenDrift', () => {
+  const ok = { nonExcludedCount: 100, frozenRowCount: 100, digest: 'x', expectedDigest: 'x' };
+
+  it('passes when the count and the digest both agree', () => {
+    expect(classifyFrozenDrift(ok).kind).toBe('ok');
+  });
+
+  it('names UNREGISTERED ROWS when more rows are hashed than were frozen', () => {
+    const v = classifyFrozenDrift({ ...ok, nonExcludedCount: 254, digest: 'y' });
+    expect(v.kind).toBe('unregistered_rows');
+    expect(v.deficit).toBe(154);
+    expect(v.message).toMatch(/154/);
+    // It must say what to DO, naming the mechanism.
+    expect(v.message).toMatch(/created-ids|excluded_ids_files/i);
+  });
+
+  it('names MISSING ROWS when rows have vanished', () => {
+    const v = classifyFrozenDrift({ ...ok, nonExcludedCount: 90, digest: 'y' });
+    expect(v.kind).toBe('missing_rows');
+    expect(v.deficit).toBe(-10);
+    expect(v.message).toMatch(/10/);
+  });
+
+  // ⚠ THE ONE THAT MATTERS. Only when the count reconciles is a digest mismatch
+  // actually evidence that a surviving figure moved. Reporting this when the
+  // count is off is what taught everyone to ignore the check.
+  it('reports a FIGURE CHANGE only when the count reconciles', () => {
+    const v = classifyFrozenDrift({ ...ok, digest: 'different' });
+    expect(v.kind).toBe('figure_changed');
+    expect(v.message).toMatch(/ledger/i);
+  });
+
+  it('does not cry figure_changed when the count is off, even though the digest also differs', () => {
+    expect(classifyFrozenDrift({ ...ok, nonExcludedCount: 254, digest: 'y' }).kind)
+      .not.toBe('figure_changed');
+  });
+
+  it('treats a matching digest as ok even if a caller passes no expected digest', () => {
+    expect(classifyFrozenDrift({ ...ok, expectedDigest: null }).kind).toBe('ok');
   });
 });
