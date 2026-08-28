@@ -23,14 +23,15 @@
  */
 
 import {
-  STATES, WINDOW as FAC_WINDOW, readEvidence as facReadEvidence, buildCensus as facBuildCensus,
-  exceptions as facExceptions, changeoverYears, censusMonthFor,
+  EVIDENCE_CSV as NATIONAL_CSV, WINDOW as FAC_WINDOW, STATE_BASELINE,
+  readEvidence as facReadEvidence, buildCensus as facBuildCensus,
+  exceptions as facExceptions, changeoverYears, censusMonthFor, dominantMonthFor,
 } from './facFiscalYearCensus.mjs';
 
 export { changeoverYears };
 
-/** The committed FAC extract this census is derived from. */
-export const EVIDENCE_CSV = STATES.CA.csv;
+/** The committed national FAC extract this census is read out of. */
+export const EVIDENCE_CSV = NATIONAL_CSV;
 
 /** The audit years the extract covers. A finding outside this range is unproven. */
 export const WINDOW = FAC_WINDOW;
@@ -40,12 +41,17 @@ export const WINDOW = FAC_WINDOW;
  * not a silent improvement — it means the federal record changed and the
  * non-July set must be re-read.
  */
-export const BASELINE = { ...STATES.CA.baseline, nonJulyCities: STATES.CA.baseline.exceptions };
+export const BASELINE = {
+  entities: STATE_BASELINE.CA.entities,
+  nonJulyCities: 5,
+  dominantMonth: 7,
+};
 
 export const readEvidence = () => facReadEvidence('CA');
-export const buildCensus = (records) => facBuildCensus('CA', records);
-export const nonJulyCities = (census) => facExceptions('CA', census);
+export const buildCensus = () => facBuildCensus('CA');
+export const nonJulyCities = () => facExceptions('CA');
 export const monthForCityInCensus = (city, fiscalYear) => censusMonthFor('CA', city, fiscalYear);
+export const dominantMonth = () => dominantMonthFor('CA', 'municipality');
 
 /**
  * The one charter city with no evidence of any kind.
