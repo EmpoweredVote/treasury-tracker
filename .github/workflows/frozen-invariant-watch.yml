@@ -11,10 +11,21 @@
 name: Frozen-invariant watch
 
 on:
-  schedule:
-    # Weekly, Mondays 06:23 UTC. Off-the-hour on purpose: :00 is the busiest
-    # minute on GitHub's scheduler and delays cron runs.
-    - cron: '23 6 * * 1'
+  # ⚠ SCHEDULE DISABLED 2026-08-28, deliberately.
+  #
+  # This job needs a SUPABASE_SERVICE_KEY, and putting a service-role key — which
+  # bypasses RLS entirely — into Actions would partly undo PR #90, where the sync
+  # key was moved into Vault and the service-role fallback deleted.
+  #
+  # The invariant now runs INSIDE the database instead (pg_cron +
+  # treasury.frozen_invariant_status), where no credential has to travel and no
+  # rows cross the network. See supabase/migrations/*_frozen_invariant_in_db.sql.
+  #
+  # Left dispatchable so it can still be run by hand if a service key is ever
+  # supplied deliberately. Re-enabling the schedule without one would email a red
+  # build every Monday for a check that was never armed.
+  #
+  # - cron: '23 6 * * 1'
   workflow_dispatch:
 
 permissions:
