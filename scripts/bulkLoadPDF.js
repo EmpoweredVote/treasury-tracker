@@ -303,7 +303,7 @@ async function callHaikuWithRetry(base64, pageNum, prompt, opts = {}) {
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {
       const response = await anthropic.messages.create({
-        model: 'claude-haiku-4-5-20251001',
+        model: 'claude-haiku-4-5',
         max_tokens: 8192,
         messages: [{
           role: 'user',
