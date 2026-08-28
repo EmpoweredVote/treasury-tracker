@@ -98,21 +98,93 @@ or a direct question to OSA.
 ## Entity status
 
 Legend — Status: `loaded` · `partial` · `pending`. Grade: as stamped on the rows.
+FY month: the stored `fiscal_year_start_month` and whether the FAC census confirms it.
 
-| Entity | State | Type | Status | Source | Grade | Oracle | FY month | PR |
-|---|---|---|---|---|---|---|---|---|
-| Akron | OH | city | loaded | OH AOS | self_reported_unaudited | — | | |
-| Summit County | OH | county | loaded | OH AOS | self_reported_unaudited | — | | |
-| Duluth | MN | city | loaded | MN OSA | unknown (unverified) | — | | |
-| Saint Paul | MN | city | loaded | MN OSA | unknown (unverified) | — | | |
-| Ramsey County | MN | county | loaded | MN OSA | unknown (unverified) | — | | |
-| Saint Louis County | MN | county | loaded | MN OSA | unknown (unverified) | — | | |
-| Long Beach | CA | city | loaded | CA SCO | self_reported_unaudited | — | | |
-| Los Angeles County | CA | county | loaded | CA SCO | self_reported_unaudited | — | | |
-| Santa Clara County | CA | county | loaded | CA SCO | self_reported_unaudited | — | | |
-| San Jose | CA | city | **partial** | CA SCO series missing | | | | |
+| Entity | State | Type | Status | Source | Grade | FY month | Session |
+|---|---|---|---|---|---|---|---|
+| Akron | OH | city | loaded | OH AOS | `self_reported_unaudited` | 1 · **FAC confirmed** | 1 |
+| Summit County | OH | county | loaded | OH AOS | `self_reported_unaudited` | 1 · **FAC confirmed** | 1 |
+| Long Beach | CA | city | loaded | CA SCO cities | `self_reported_unaudited` | 10 · **FAC confirmed** | 1 |
+| Duluth | MN | city | loaded | MN OSA | `unknown` — source unverified | 1 · **FAC confirmed** | 1 |
+| Saint Paul | MN | city | loaded | MN OSA | `unknown` — source unverified | 1 · **FAC confirmed** | 1 |
+| Ramsey County | MN | county | loaded | MN OSA | `unknown` — source unverified | 1 · **FAC confirmed** | 1 |
+| Saint Louis County | MN | county | loaded | MN OSA | `unknown` — source unverified | 1 · census name miss | 1 |
+| Los Angeles County | CA | county | loaded | CA SCO **counties** | `unknown` — family unverified | 7 · no CA county census | 1 |
+| Santa Clara County | CA | county | loaded | CA SCO **counties** | `unknown` — family unverified | 7 · no CA county census | 1 |
+| San Jose | CA | city | **partial** | GF budget + publicpay | `unknown` | 7 · **FAC confirmed** | 1 |
 
 The 33 remaining entities are `pending` and are listed in spec §2.
+
+⚠ **No oracle column this session — nothing was loaded.** Session 1 built the
+grade axis and verified what already existed; the first oracle runs land in
+session 2 (NC).
+
+---
+
+## Session 1 outcomes (2026-08-28)
+
+**Shipped:** the `audit_grade` axis, end to end.
+
+- `AUDIT_GRADE` vocabulary in `scripts/lib/budgetAxes.mjs`, reusing the existing
+  `classifyAxis()` unchanged — the grade is a **third axis** alongside
+  `fund_scope` and `basis`/`reporting_entity`, not new machinery.
+- `scripts/data/auditGradeRegistry.mjs` — three entries, patterns anchored at both ends.
+- Two CHECK constraints on `treasury.budgets`. The second,
+  `budgets_graded_rows_need_a_source_url`, replaced a planned vitest guard that
+  **turned out to be impossible**: this repo's test suite never touches the
+  database (zero tests call `createClient`; CI runs `npm test` with no
+  credentials). A constraint is strictly stronger — it holds on every write path
+  and cannot be missed by a loader that forgets or a harness nobody runs.
+- **27,520 rows across 820 entities** stamped `self_reported_unaudited`.
+  TT went from 0% to **31.3%** graded. `sum_total` identical to the digit
+  before and after; 0 graded rows lack a `source_url`.
+- Test suite 1,382 → **1,427**, all passing.
+
+**Scope decision, 2026-08-28:** the stamp was widened from the Knight 43 to every
+row of a verified source family. `unknown` means "nobody has looked" — leaving
+Columbus, OH ungraded after establishing that Ohio AOS is unaudited would make
+the column lie by omission. Spec §3.6 should be read as *scoped by verified
+source family*, not by entity.
+
+**Not done, deliberately:**
+
+- **San Jose's CA SCO series was NOT loaded.** It is not a defect. The exclusion
+  is a recorded decision — `bulkLoadStateController.js:246` says "flagship
+  custom-source cities (e.g. San Jose, Fresno, Bakersfield)… **(Chris decision:
+  the 12 named custom cities get salaries+enrichment only, no SCO backfill.)**",
+  implemented in `loadQuickWinCounties.sh` as `Santa Clara|San Jose`. Confirmed
+  2026-08-28 to leave it alone.
+  ⚠ **Worth revisiting separately:** the exclusion exists because "the
+  never-overwrite guard alone can't protect the empty years," but SCOPE-02
+  narrowed the collision check, and `fund_scope`/`basis`/`derivation` now keep
+  the series distinct. **Long Beach already carries all three series at once**
+  without harm. The policy may have outlived its reason — for all 12 cities, not
+  just San Jose.
+- **MN OSA left `unknown`** — see the evidence section above.
+- **CA SCO *county* series left `unknown`.** The counties use a distinct family
+  (`CA State Controller - County Expenditures` / `- County Revenues`, 2,376 rows)
+  and Gov Code § 53891 does not cleanly settle it: subsection (b) excepts
+  "cities, counties, and school districts" from the Controller's *accounting
+  procedures*, which implies counties are local agencies but does not establish
+  the (a) reporting duty for them. SCO publishes a separate Counties Annual
+  Report with its own methodology. **Cheap follow-up: read that report's front
+  matter.** Would grade LA County and Santa Clara County.
+
+**Follow-ups opened:**
+
+1. ⚠ The jammed frozen-figure invariant (below) — highest priority.
+2. ⚠ The FAC census is blind to **all 54 CA counties** (below).
+3. MN OSA audit status — 4 Knight entities blocked on it.
+4. CA SCO counties audit status — 2 Knight entities blocked on it.
+5. The `--exclude-city` policy for 12 CA cities, possibly obsolete.
+6. **What grade should a TT-derived row carry?** SCOPE-04 rows
+   (`Treasury Tracker derived: Total Governmental (…)`, 857 CA county rows and
+   more) have `derivation='derived'` and are currently `unknown`. Arguably they
+   should inherit their parent source's grade. Not decided — out of session scope.
+7. ev-accounts passthrough so the grade reaches the UI (spec §3.7). Until then
+   the column is correct but invisible — the precise failure `sourceChipTypes.ts`
+   documents, where `city` was missing from the chip set for months with every
+   gate green.
 
 ---
 
@@ -156,6 +228,34 @@ Nothing runs this harness automatically — `npm test` is green and does not inc
 it — so it could have been failing for weeks unnoticed. Needs its own session.
 
 ### Flaky guard test — `tests/listAllSources.test.mjs`
+
+### ⚠ HIGH — the FAC census is blind to every California county
+
+**Found 2026-08-28** while verifying the loaded entities' fiscal calendars.
+
+`docs/fac/fac-local-fiscal-year-ends.csv` holds **549 CA rows, every one typed
+`municipality`, and zero CA `county` rows** — against 3,489 county rows
+nationally (MN alone has 93). The CA slice was built city-scoped, consistent with
+PR #101's stated scope of "all 427 CA cities."
+
+**Consequence:** `censusGuard()` returns `{ok: true}` when it cannot find an
+entity — silence is not disagreement — so it passes **all 54 CA counties in TT**
+without checking anything. Their `fiscal_year_start_month` values (all month 7)
+have never been independently verified. That is the same class of unverified
+assumption as the FYSM defect, and it fails silently because the column moves no
+dollar.
+
+`tests/knightFiscalCalendars.test.mjs` now pins the gap so it cannot go silent.
+
+**Second, smaller gap:** `Saint Louis County, MN` cannot be matched by name. FAC
+holds it as both `St Louis County` (1998-2004, 2021-2022) and `St. Louis County`
+(2005-2020, 2023-2025); TT stores `Saint Louis County`. FAC's month is 1, which
+is what TT stores — so this is a normalisation miss, not a discrepancy. A
+"Saint"/"St." normalisation in `censusMonthFor` would close it.
+
+⚠ **This matters for the campaign:** 16 counties are in scope across 14 states.
+Wherever a state's census slice is city-only, county verification is vacuous.
+**Check per state before trusting a county's month.**
 
 ### Flaky guard test — `tests/listAllSources.test.mjs`
 
