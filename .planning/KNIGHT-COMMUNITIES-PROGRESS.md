@@ -172,10 +172,14 @@ source family*, not by entity.
 
 **Follow-ups opened:**
 
-1. ⚠ The jammed frozen-figure invariant (below) — highest priority.
-2. ⚠ The FAC census is blind to **all 54 CA counties** (below).
-3. MN OSA audit status — 4 Knight entities blocked on it.
-4. CA SCO counties audit status — 2 Knight entities blocked on it.
+1. ~~⚠ The jammed frozen-figure invariant (below)~~ — ✅ **RESOLVED, PRs #106 +
+   #107.** See the struck section below for what it was and what replaced it.
+2. ⚠ The FAC census is blind to **all 54 CA counties** (below) — **now the
+   highest-priority open item.** 16 counties are in this campaign's scope, so
+   **check each state's census slice before trusting a county's month.**
+3. MN OSA audit status — 4 Knight entities blocked on it. Cheap publisher read.
+4. CA SCO counties audit status — 2 Knight entities blocked on it. Cheap
+   publisher read.
 5. The `--exclude-city` policy for 12 CA cities, possibly obsolete.
 6. **What grade should a TT-derived row carry?** SCOPE-04 rows
    (`Treasury Tracker derived: Total Governmental (…)`, 857 CA county rows and
@@ -190,7 +194,29 @@ source family*, not by entity.
 
 ## Known issues found during this campaign
 
-### ⚠ HIGH — the frozen-figure invariant is jammed, and has been for some time
+### ✅ RESOLVED — the frozen-figure invariant was jammed (PRs #106 + #107)
+
+> **Outcome, 2026-08-28.** All 154 unaccounted rows were **attributed exactly** —
+> NC 138 + SF 4 + WeHo 12 — by using the digest itself as an oracle, and
+> registered. `figures_frozen` was never regenerated. PR #106 added a correction
+> **ledger** (`scripts/data/figureChanges.json`) so an authorised repair no longer
+> destroys lineage, and split the two failure messages apart. PR #107 moved the
+> computation **into the database** (`treasury.frozen_invariant_status()`, weekly
+> `pg_cron` job) so one row crosses the wire instead of 87,880.
+>
+> **Verified green 2026-08-28:** 79,916 rows, database and repo agree.
+>
+> ⭐ **The habit this bought — after ANY load that inserts budget rows:**
+> ```
+> npm run verify:frozen      # 1.2s
+> npm run register:rows -- --milestone <name> --match "<entity>"   # only on a deficit
+> ```
+> Three of the four times this broke, the cause was **rows created and never
+> registered**. Doing it while you still know what you loaded is what makes it
+> stick. See `reference_frozen_figure_invariant` in memory.
+>
+> The original diagnosis is kept below, unedited, because it is the record of how
+> the 154 were found.
 
 **Found 2026-08-28, before this session made any database write.**
 `node scripts/verify-budget-axes.mjs` fails its final check:
@@ -225,7 +251,10 @@ drift here is detectable but not attributable.
 destroy the only evidence of what the 154 are.
 
 Nothing runs this harness automatically — `npm test` is green and does not include
-it — so it could have been failing for weeks unnoticed. Needs its own session.
+it — so it could have been failing for weeks unnoticed. ~~Needs its own session.~~
+**It got one: PRs #106 + #107, same day. `npm test` still cannot check this —
+the vitest suite never touches the database — which is why the two-command habit
+above is manual and belongs in every load session.**
 
 ### Flaky guard test — `tests/listAllSources.test.mjs`
 
