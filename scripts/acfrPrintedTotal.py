@@ -104,6 +104,44 @@ def parse_money(tok):
 
 ROW_GAP = 4.0
 
+# Glyphs shorter than this carry NO VISIBLE INK and cannot be part of the
+# printed statement, so they are dropped before rows are assembled.
+#
+# ⚠ WHY THIS EXISTS. Mecklenburg County's FY2024 and FY2025 statements carry a
+# GHOST TEXT RUN: the sentence "The accompanying notes are an integral part of
+# this statement." is drawn a second time at size 0.10pt, stacked on top of the
+# REVENUES banner. Measured on FY2024 page 47:
+#
+#     top=171.743  h=0.100  x0=55.00  size=0.10  'T'
+#     top=171.743  h=0.100  x0=55.05  size=0.10  'h'
+#     top=171.743  h=0.100  x0=55.10  size=0.10  'e'
+#     ...  the whole sentence inside 2.2pt of horizontal space ...
+#
+# pdfplumber merges it with the real banner and emits the single word
+# 'TRhe statement.EVENUES', so `REV_BANNER` (which requires a line to read
+# exactly "REVENUES") matches nothing, `collect` never opens the revenue
+# section, and the reader fails with "indented row with no open parent:
+# Annual Comprehensive Financial" — the PAGE HEADER, read as a data row.
+#
+# ⚠ The expenditure side of the SAME page is unaffected, because the ghost run
+# only overlaps the revenue banner. That is why FY2024/FY2025 failed in
+# `--mode revenue` and passed in `--mode operating`: a partial failure that
+# would have been easy to read as a Mecklenburg quirk rather than a reader bug.
+#
+# The threshold is deliberately far from both populations — real statement type
+# is 8-11pt, the ghost run is 0.10pt — so this cannot silently drop printed
+# content. It is a filter on VISIBILITY, not on position or wording, so it
+# needs no per-entity configuration.
+INK_MIN_HEIGHT = 1.0
+
+
+def _inked(page):
+    """`page` with sub-visible glyphs removed. See INK_MIN_HEIGHT."""
+    return page.filter(
+        lambda obj: obj.get('object_type') != 'char'
+        or (obj.get('height') or 0) > INK_MIN_HEIGHT
+    )
+
 
 def lines_of(page):
     """Group words into visual rows by clustering their vertical midpoints.
@@ -129,7 +167,7 @@ def lines_of(page):
     rows here are ~10.5pt apart and intra-row jitter is ~1.2pt, so ROW_GAP=4.0
     sits an order of magnitude clear of both.
     """
-    words = page.extract_words(use_text_flow=False, keep_blank_chars=False)
+    words = _inked(page).extract_words(use_text_flow=False, keep_blank_chars=False)
     if not words:
         return []
     for w in words:

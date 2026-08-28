@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+"""
+Mecklenburg County, NC ACFR — General Fund extractor, COORDINATE-BASED.
+
+Thin wrapper over `scripts/lib/acfrGfCoords.py`, which carries the shared
+machinery and states the rule for when an entity belongs on the coordinate
+reader at all.
+
+-- WHY THIS ENTITY READS BY COORDINATES -------------------------------------
+Identical mechanism to the City of Charlotte: the text layer emits the LABEL
+column and the NUMERIC columns as separate blocks, so a line-based reader pairs
+each label with the row below it. FY2023, `pdftotext -layout`, measured:
+
+    REVENUES                     $ 1,303,781,250 $ 346,979,301 ...
+        Taxes                                  -             - ...
+        Law Enforcement Service District taxes -             - ...
+
+`1,303,781,250` is printed on the `REVENUES` banner line and is Taxes' figure.
+
+⚠ THIS TIES AT $0 WHILE BEING COMPLETELY WRONG — the offset permutes the
+label→value pairing without changing the multiset of figures, so the sum, the
+printed-total check and the leaf-multiset check are all unmoved. See the same
+note in `extractCharlotteCoords.py`.
+
+-- UNITS: WHOLE DOLLARS -----------------------------------------------------
+The county prints full figures ("1,303,781,250"), with no "in thousands"
+caption on the statement pages. `units=1`. Contrast the City of Charlotte,
+which prints the same statement in THOUSANDS — the two entities in this
+milestone use DIFFERENT units, which is exactly why the value is declared per
+entity and never carried across.
+
+-- ⚠ THE BUDGETARY DECOY ----------------------------------------------------
+Mecklenburg prints a second, BUDGET-AND-ACTUAL General Fund statement
+(FY2023 pages 56-58) on the budgetary basis, immediately after the GAAP
+governmental-funds statement on page 54. `_EXCLUDE` already disqualifies a
+budgetary page, so no `exclude_ignore` is set here; the GAAP statement is the
+one that must be read.
+
+-- STRUCTURE IS READ, NOT DECLARED ------------------------------------------
+Nesting comes from the printed glyph indentation, so no `parents` /
+`root_leaves` config is needed. The county prints `Debt service` as a group
+heading over `Principal payments` / `Interest and fiscal charges`, with
+`Capital outlay` as a valued root peer.
+
+-- WINDOW -------------------------------------------------------------------
+FY2005-FY2025, all twenty-one years the county publishes, unbroken.
+
+Usage:
+  py -3 scripts/extractMecklenburgCoords.py docs/MecklenburgCounty/mecklenburg_fy2023.pdf --mode revenue
+"""
+
+import pathlib
+import sys
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent / 'lib'))
+from acfrGfCoords import CoordsConfig, run_cli   # noqa: E402
+
+CONFIG = CoordsConfig(
+    city='Mecklenburg County, NC',
+    units=1,          # whole dollars; the county prints full figures
+    weld=None,        # no embedded-disclosure label construction in this corpus
+    indent_tol=4.0,   # ⚠ FY2005-FY2011 print `Current` ~2pt deeper than its own
+                      # sibling headings; measured spread/gap table is in
+                      # CoordsConfig's docstring. FY2012+ need only the 1.5
+                      # default, but the value is declared PER ENTITY, so the
+                      # whole series reads through one rule rather than the
+                      # reader changing behaviour mid-series.
+)
+
+if __name__ == '__main__':
+    run_cli(CONFIG)

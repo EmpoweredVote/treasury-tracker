@@ -93,30 +93,75 @@ class CoordsConfig:
                     through the SAME multiplier and is therefore 0 whether or
                     not the scaling is right. Checked by the loader's per-capita
                     plausibility guard.
-    weld            `collect`'s wrapped-label policy. 'disclosure' welds a
-                    label's continuation line when it carries an embedded
-                    disclosure figure (El Paso's TABOR wrap). None for issuers
-                    with no such construction — turning it on where it is not
-                    needed risks fusing two genuine line items.
+    weld            `collect`'s wrapped-label policy, opt-in and per issuer.
+
+                      'disclosure' — the two printed lines share ONE indent and
+                        one of them carries an embedded figure (El Paso's TABOR
+                        wrap).
+                      'indent'     — the continuation is printed DEEPER than the
+                        prefix and carries the money (City of Charlotte's
+                        'Engineering and property / management'). Told from a
+                        group heading by indent LEVEL: a heading sits at the
+                        section root, a wrapped prefix at the child level.
+                      None         — weld nothing.
+
+                    ⚠ Turning one on where it is not needed risks fusing two
+                    genuine line items, which ties at $0 while publishing a
+                    label the issuer never printed.
     exclude_ignore  `_EXCLUDE` terms to stop disqualifying a page, for issuers
                     that print an excluded phrase ON the primary statement.
     title_anchor    optional extra regex qualifying the statement page where
                     the printed title cannot be matched left-to-right.
+    indent_tol      points of slack allowed when deciding whether a row sits at
+                    the SECTION ROOT. Defaults to the module's INDENT_TOL (1.5),
+                    which suits an issuer whose root-level headings are printed
+                    at one x-position.
+
+                    ⚠ Raise it ONLY on a MEASURED root spread, and only far
+                    enough to cover it. Mecklenburg County FY2005-FY2011 print
+                    `Current` about 2pt deeper than its own sibling headings
+                    `Debt Service` and `Capital Outlay`, so `min(indents)` lands
+                    on the shallower pair and `Current` reads as a child with no
+                    parent open. Measured across that era:
+
+                        FY      root spread   root -> first child
+                        2005       1.92            3.84
+                        2006       2.90            3.80
+                        2007       1.90            3.80
+                        2008       1.82            3.68
+                        2009       1.84            3.67
+                        2010       1.93            3.83
+                        2011       2.03            4.08
+
+                    A tolerance must be at least the spread and less than
+                    spread + gap, so this era admits 2.90 <= tol < 5.50 and the
+                    entity declares 4.0 — 1.10pt above the widest spread and
+                    1.50pt below the tightest child gap.
+
+                    ⚠ It is PER ENTITY and not a new global default on purpose.
+                    El Paso County's root->child gap is 5.0pt, so a shared 4.0
+                    would leave that entity 1pt of margin where it currently has
+                    3.5. The same figure is safe here and marginal there, which
+                    is exactly what a per-entity fact is for.
     """
 
-    def __init__(self, city, units=1, weld=None, exclude_ignore=(), title_anchor=None):
+    def __init__(self, city, units=1, weld=None, exclude_ignore=(), title_anchor=None,
+                 indent_tol=None):
         if not isinstance(units, int) or isinstance(units, bool):
             raise TypeError(
                 'CoordsConfig.units must be an int, got %r (%s). A float would '
                 'silently turn every extracted amount into a float and change '
                 'the emitted JSON shape.' % (units, type(units).__name__))
-        if weld not in (None, 'disclosure'):
-            raise ValueError("CoordsConfig.weld must be None or 'disclosure', got %r" % (weld,))
+        if weld not in (None, 'disclosure', 'indent'):
+            raise ValueError("CoordsConfig.weld must be None, 'disclosure' or 'indent', got %r" % (weld,))
         self.city = city
         self.units = units
         self.weld = weld
         self.exclude_ignore = tuple(t.lower() for t in exclude_ignore)
         self.title_anchor = title_anchor
+        if indent_tol is not None and not (indent_tol > 0):
+            raise ValueError('CoordsConfig.indent_tol must be positive, got %r' % (indent_tol,))
+        self.indent_tol = INDENT_TOL if indent_tol is None else float(indent_tol)
 
 
 def clean_label(label):
@@ -132,7 +177,7 @@ def clean_label(label):
     return label.rstrip(':').strip()
 
 
-def build_revenue_tree(rows, revenue_parents=()):
+def build_revenue_tree(rows, revenue_parents=(), indent_tol=INDENT_TOL):
     """Revenue children, read off the printed indentation.
 
     Flat for most issuers: every source is a root child. Where an issuer GROUPS
@@ -150,7 +195,7 @@ def build_revenue_tree(rows, revenue_parents=()):
     if not indents:
         return [], [], ['no label indentation could be measured']
     root_x = min(indents)
-    grouped = any(r['indent'] is not None and r['indent'] > root_x + INDENT_TOL for r in rows)
+    grouped = any(r['indent'] is not None and r['indent'] > root_x + indent_tol for r in rows)
 
     if not grouped:
         children, zeros = [], []
@@ -161,7 +206,7 @@ def build_revenue_tree(rows, revenue_parents=()):
             children.append({'n': clean_label(r['label']), 'a': r['amount']})
         return children, zeros, []
 
-    tree, zeros, errors = _nested(rows, root_x)
+    tree, zeros, errors = _nested(rows, root_x, indent_tol)
     if revenue_parents:
         got = {n['n'].lower() for n in tree if 'c' in n}
         missing = [p for p in revenue_parents if p.lower() not in got]
@@ -170,7 +215,7 @@ def build_revenue_tree(rows, revenue_parents=()):
     return tree, zeros, errors
 
 
-def build_operating_tree(rows):
+def build_operating_tree(rows, indent_tol=INDENT_TOL):
     """Two levels, read off the printed indentation.
 
     A root-level row with money is a VALUED ROOT LEAF (Capital outlay, where the
@@ -182,10 +227,10 @@ def build_operating_tree(rows):
     indents = [r['indent'] for r in rows if r['indent'] is not None]
     if not indents:
         return [], [], ['no label indentation could be measured']
-    return _nested(rows, min(indents))
+    return _nested(rows, min(indents), indent_tol)
 
 
-def _nested(rows, root_x):
+def _nested(rows, root_x, indent_tol=INDENT_TOL):
     """Shared root/child walk for both sections.
 
     ⚠ Handles the case where two DIFFERENT parents carry IDENTICAL child
@@ -201,7 +246,7 @@ def _nested(rows, root_x):
         if r['indent'] is None:
             errors.append('row with no measurable indent: %s' % r['label'][:40])
             continue
-        is_root = r['indent'] <= root_x + INDENT_TOL
+        is_root = r['indent'] <= root_x + indent_tol
         if is_root:
             open_parent = None
             if r['cell'] == 'number' and r['amount'] != 0:
@@ -265,17 +310,47 @@ def run_cli(cfg):
             comps, errs, welds = collect(rows_all, REV_BANNER, REV_TOTAL,
                                          alignment, edge, cfg.units, weld=cfg.weld)
             printed_cols, _ = numbers_on(rows_all, REV_TOTAL)
-            children, zeros, more = build_revenue_tree(comps)
+            children, zeros, more = build_revenue_tree(comps, indent_tol=cfg.indent_tol)
             root_name = 'General Fund Revenue by Source'
         else:
             comps, errs, welds = collect(rows_all, EXP_BANNER, EXP_TOTAL,
                                          alignment, edge, cfg.units, weld=cfg.weld)
             printed_cols, _ = numbers_on(rows_all, EXP_TOTAL)
-            children, zeros, more = build_operating_tree(comps)
+            children, zeros, more = build_operating_tree(comps, indent_tol=cfg.indent_tol)
             root_name = 'General Fund Expenditure by Function'
         errs = errs + more
 
-        m = re.search(r'year\s+ended\s+\w+\s*\d{1,2},\s*(\d{4})', text, re.I)
+        # ── Fiscal year off the statement page ──────────────────────────────
+        # PRIMARY: the issuer's own period caption. ⚠ 'year ended' alone is too
+        # narrow for this corpus — Mecklenburg County prints
+        #   FY2013  "FOR THE PERIOD ENDED JUNE 30, 2013"     (period, not year)
+        #   FY2010  "GOVERNMENTAL FUNDS JUNE 30, 2010"       (no caption phrase)
+        #   FY2011  same as FY2010
+        # and all three returned None, which the loader's fiscal-year assertion
+        # would then reject as a mis-filed document.
+        m = re.search(r'(?:year|period)\s+ended\s+\w+\s*\d{1,2},\s*(\d{4})', text, re.I)
+        if not m:
+            # FALLBACK: the DOMINANT printed date on the statement page. Measured
+            # on the four years that reach it — Mecklenburg FY2006/2010/2011/2013
+            # — each page carries EXACTLY ONE `Month D, YYYY` and it is the
+            # correct year, so there is nothing for a comparative column to win.
+            # ⚠ Applied only when a single year strictly dominates; a tie returns
+            # None rather than picking one, because latching a true-but-unrelated
+            # year is how King County FY2024 once loaded as FY2023.
+            years = re.findall(r'[A-Za-z]+\s+\d{1,2},\s*(\d{4})', text)
+            if years:
+                counts = {y: years.count(y) for y in set(years)}
+                ranked = sorted(counts.items(), key=lambda kv: -kv[1])
+                if len(ranked) == 1 or ranked[0][1] > ranked[1][1]:
+                    m = re.match(r'(\d{4})', ranked[0][0])
+        if not m:
+            # FUSED TEXT. Mecklenburg FY2006 emits the whole caption without
+            # spaces -- 'FORTHEYEARENDEDJUNE30,2006' -- so both attempts above
+            # find nothing. Same defect class as City of Durham FY2023, which is
+            # why `_NOSPACE` already exists for the statement-page test; this
+            # applies it to the period caption too.
+            m = re.search(r'(?:YEAR|PERIOD)ENDED[A-Za-z]+\d{1,2},(\d{4})',
+                          re.sub(r'\s+', '', text), re.I)
 
     if errs:
         for e in errs:
