@@ -17,7 +17,7 @@
  *      PostgREST schema; if insert fails, logs a warning and continues (attribution is
  *      non-blocking — the loader tolerates a null sourceRegistryId).
  *
- *   D. Verification block: calls treasury_list_source_ids RPC and asserts both Sacramento
+ *   D. Verification block: lists every source (paged) and asserts both Sacramento
  *      source names appear. Exits non-zero if either is missing.
  *
  * Usage:
@@ -35,6 +35,7 @@ import { readFileSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
+import { listAllSourcesResult } from './lib/listAllSources.mjs';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // ── Env loading ──────────────────────────────────────────────────────────────
@@ -227,10 +228,10 @@ async function main() {
   }
   console.log('');
 
-  // ── Step D: Verification via treasury_list_source_ids ─────────────────────
-  console.log('Step D: Verifying via treasury_list_source_ids RPC...');
+  // ── Step D: Verification via listAllSources (paged) ─────────────────────
+  console.log('Step D: Verifying via listAllSources (paged, cap-proof)...');
 
-  const { data: listing, error: listErr } = await supabase.rpc('treasury_list_source_ids');
+  const { data: listing, error: listErr } = await listAllSourcesResult(supabase);
   if (listErr) {
     console.error(`  ERROR: ${listErr.message}`);
     process.exit(1);
@@ -253,7 +254,7 @@ async function main() {
   }
 
   if (!allFound) {
-    console.error('\nERROR: one or more expected Sacramento sources not found in treasury_list_source_ids');
+    console.error('\nERROR: one or more expected Sacramento sources not found in treasury.data_sources');
     process.exit(1);
   }
 

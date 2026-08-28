@@ -16,6 +16,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { DALLAS_SOURCES } from './lib/dallasSources.mjs';
 
+import { listAllSourcesResult } from './lib/listAllSources.mjs';
 // ── Config ──────────────────────────────────────────────────────────────
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -98,13 +99,13 @@ async function main() {
     console.log('');
   }
 
-  // ── Verification via treasury_list_source_ids RPC ─────────────────────
-  console.log('Verifying via treasury_list_source_ids RPC...');
+  // ── Verification via listAllSources (paged; NOT the capped RPC) ─────────────────────
+  console.log('Verifying via listAllSources (paged, cap-proof)...');
 
-  const { data: listing, error: listErr } = await supabase.rpc('treasury_list_source_ids');
+  const { data: listing, error: listErr } = await listAllSourcesResult(supabase);
 
   if (listErr) {
-    console.error(`  ERROR calling treasury_list_source_ids: ${listErr.message}`);
+    console.error(`  ERROR listing sources: ${listErr.message}`);
     process.exit(1);
   }
 
@@ -124,7 +125,7 @@ async function main() {
   }
 
   console.log(
-    `  Verification: treasury_list_source_ids returns ${dallasBudgetRows.length} Dallas budget source(s).`
+    `  Verification: the source listing returns ${dallasBudgetRows.length} Dallas budget source(s).`
   );
   for (const r of dallasBudgetRows) {
     console.log(`  - ${r.name} (${r.dataset_type}) id=${r.id}`);

@@ -6,6 +6,7 @@
 import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 
+import { listAllSourcesResult } from './lib/listAllSources.mjs';
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
 if (!SUPABASE_KEY) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit(1); }
@@ -13,7 +14,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // First ensure we have a proper data source for Bloomington checkbook
 async function ensureDataSource() {
-  const { data: sources } = await supabase.rpc('treasury_list_source_ids');
+  const { data: sources } = await listAllSourcesResult(supabase);
   const existing = sources?.find(s => s.name.includes('Bloomington') && s.dataset_type === 'transactions' && s.name.includes('Checkbook'));
   if (existing) return existing.id;
 

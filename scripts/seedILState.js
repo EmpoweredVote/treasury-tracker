@@ -16,7 +16,7 @@
  *           dataset_id='il-gf-revenue',
  *           base_url='https://budget.illinois.gov/budget-books.html',
  *           fiscal_years=[2022,2023,2024,2025,2026])
- *   C. Verification: calls treasury_list_source_ids RPC and asserts both sources appear.
+ *   C. Verification: lists every source (paged) and asserts both sources appear.
  *      Exits non-zero if missing.
  *
  * Illinois is a state-level entity (entity_type='state' accepted by Phase 32 CHECK constraint).
@@ -42,6 +42,7 @@ import { readFileSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
+import { listAllSourcesResult } from './lib/listAllSources.mjs';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // ── Env loading ──────────────────────────────────────────────────────────────
@@ -227,9 +228,9 @@ async function main() {
     console.log(`  id=${row.id}  api_type=${row.api_type}  dataset_type=${row.dataset_type}\n`);
   }
 
-  // ── Step C: Verification via treasury_list_source_ids ────────────────────
-  console.log('Verifying via treasury_list_source_ids RPC...');
-  const { data: listing, error: listErr } = await supabase.rpc('treasury_list_source_ids');
+  // ── Step C: Verification via listAllSources (paged) ────────────────────
+  console.log('Verifying via listAllSources (paged, cap-proof)...');
+  const { data: listing, error: listErr } = await listAllSourcesResult(supabase);
   if (listErr) {
     console.error(`  ERROR: ${listErr.message}`);
     process.exit(1);
@@ -252,7 +253,7 @@ async function main() {
   }
 
   if (!allFound) {
-    console.error('\nERROR: expected source not found in treasury_list_source_ids');
+    console.error('\nERROR: expected source not found in treasury.data_sources');
     process.exit(1);
   }
 

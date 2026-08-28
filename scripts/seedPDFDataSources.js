@@ -27,6 +27,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 
+import { listAllSourcesResult } from './lib/listAllSources.mjs';
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -440,16 +441,16 @@ async function main() {
     console.log('');
   }
 
-  // ── Verify via treasury_list_source_ids RPC ───────────────────────────────
-  console.log('Verifying via treasury_list_source_ids RPC...');
-  const { data: listing, error: listErr } = await supabase.rpc('treasury_list_source_ids');
+  // ── Verify via listAllSources (paged) ───────────────────────────────
+  console.log('Verifying via listAllSources (paged, cap-proof)...');
+  const { data: listing, error: listErr } = await listAllSourcesResult(supabase);
   if (listErr) {
-    console.error(`  ERROR calling treasury_list_source_ids: ${listErr.message}`);
+    console.error(`  ERROR listing sources: ${listErr.message}`);
     process.exit(1);
   }
 
   const pdfRows = (listing || []).filter(r => r.api_type === 'pdf_download');
-  console.log(`  Verification: treasury_list_source_ids returns ${pdfRows.length} pdf_download row(s).`);
+  console.log(`  Verification: the source listing returns ${pdfRows.length} pdf_download row(s).`);
   for (const r of pdfRows) {
     const fy = Array.isArray(r.fiscal_years) ? r.fiscal_years[0] : r.fiscal_years;
     console.log(`  - ${r.name} (${r.dataset_type}, FY${fy})`);

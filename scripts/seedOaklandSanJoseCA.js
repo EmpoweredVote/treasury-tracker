@@ -10,7 +10,7 @@
  *        - 'Oakland General Purpose Fund Revenue Budget'    (api_type='pdf_download', dataset_type='revenue')
  *        - 'San Jose General Fund Operating Budget'         (api_type='pdf_download', dataset_type='operating')
  *        - 'San Jose General Fund Revenue Budget'           (api_type='pdf_download', dataset_type='revenue')
- *   D. Verification: calls treasury_list_source_ids RPC and asserts all four names appear.
+ *   D. Verification: lists every source (paged) and asserts all four names appear.
  *      Exits non-zero if any are missing.
  *
  * Population values from Census sub-est2024_06.csv (SUMLEV=162, California sub-county estimates).
@@ -30,6 +30,7 @@ import { readFileSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
+import { listAllSourcesResult } from './lib/listAllSources.mjs';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // ── Env loading ──────────────────────────────────────────────────────────────
@@ -181,7 +182,7 @@ async function main() {
   // ── Step C: Upsert four data_source rows ─────────────────────────────────
   // Oakland fund label invariant (D-06): "General Purpose Fund" — NEVER "General Fund"
   // San Jose uses "General Fund" (D-03)
-  // These canonical named rows are what treasury_list_source_ids and the app depend on.
+  // These canonical named rows are what the loaders and the app depend on.
   // Per-FY pdf_download rows (with dataset_id = `fy${year}`) are created by processOakland.js
   // and processSanJose.js — do NOT create per-FY rows here.
   const dataSources = [
@@ -230,9 +231,9 @@ async function main() {
     console.log(`  id=${row.id}  api_type=${row.api_type}  dataset_type=${row.dataset_type}\n`);
   }
 
-  // ── Step D: Verification via treasury_list_source_ids ────────────────────
-  console.log('Verifying via treasury_list_source_ids RPC...');
-  const { data: listing, error: listErr } = await supabase.rpc('treasury_list_source_ids');
+  // ── Step D: Verification via listAllSources (paged) ────────────────────
+  console.log('Verifying via listAllSources (paged, cap-proof)...');
+  const { data: listing, error: listErr } = await listAllSourcesResult(supabase);
   if (listErr) {
     console.error(`  ERROR: ${listErr.message}`);
     process.exit(1);
@@ -257,7 +258,7 @@ async function main() {
   }
 
   if (!allFound) {
-    console.error('\nERROR: one or more expected sources not found in treasury_list_source_ids');
+    console.error('\nERROR: one or more expected sources not found in treasury.data_sources');
     process.exit(1);
   }
 

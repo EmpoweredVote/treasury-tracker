@@ -25,6 +25,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 
+import { listAllSourcesResult } from './lib/listAllSources.mjs';
 // ── Config ──────────────────────────────────────────────────────────────
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -290,9 +291,9 @@ async function main() {
     console.log(`  id=${row.id}  api_type=${row.api_type}  dataset_type=${row.dataset_type}  fiscal_years=${JSON.stringify(row.fiscal_years)}\n`);
   }
 
-  // ── Step 4: Verification via treasury_list_source_ids ────────────────
-  console.log('Verifying via treasury_list_source_ids RPC...');
-  const { data: listing, error: listErr } = await supabase.rpc('treasury_list_source_ids');
+  // ── Step 4: Verification via listAllSources (paged) ────────────────
+  console.log('Verifying via listAllSources (paged, cap-proof)...');
+  const { data: listing, error: listErr } = await listAllSourcesResult(supabase);
   if (listErr) { console.error(`  ERROR: ${listErr.message}`); process.exit(1); }
 
   const expectedNames = [
@@ -315,7 +316,7 @@ async function main() {
   }
 
   if (!allFound) {
-    console.error(`\nERROR: one or more expected sources not found in treasury_list_source_ids`);
+    console.error(`\nERROR: one or more expected sources not found in treasury.data_sources`);
     process.exit(1);
   }
 

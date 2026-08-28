@@ -20,6 +20,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 
+import { listAllSourcesResult } from './lib/listAllSources.mjs';
 // ── Config ──────────────────────────────────────────────────────────────
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -96,17 +97,17 @@ async function main() {
   const muniId = await upsertMunicipality(GRESHAM);
   console.log(`  id: ${muniId}\n`);
 
-  // ── Step 2: Verification via treasury_list_source_ids ────────────────
+  // ── Step 2: Verification via listAllSources (paged) ────────────────
   // data_source rows are created by processGresham.js; check for them here
   // as a post-load confirmation (they may not exist yet before first load).
-  // NOTE: treasury_list_source_ids lives in the public schema; call it via
+  // NOTE: the source listing is paged from treasury.data_sources; call it via
   // a public-schema client (init-option schema only affects .from() calls).
-  console.log('Verifying via treasury_list_source_ids RPC...');
+  console.log('Verifying via listAllSources (paged, cap-proof)...');
   const publicClient = createClient(SUPABASE_URL, SUPABASE_KEY);
-  const { data: listing, error: listErr } = await publicClient.rpc('treasury_list_source_ids');
+  const { data: listing, error: listErr } = await listAllSourcesResult(publicClient);
   if (listErr) {
     // Non-fatal: RPC may not exist if this is a fresh DB. Log and continue.
-    console.log(`  NOTE: treasury_list_source_ids RPC not available (${listErr.message})`);
+    console.log(`  NOTE: source listing not available (${listErr.message})`);
     console.log('        This is expected before processGresham.js creates data_source rows.');
   }
 

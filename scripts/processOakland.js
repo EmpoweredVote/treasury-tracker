@@ -14,7 +14,7 @@
  *   fy2024-25-midcycle-adopted-budget.pdf → FY2025 (midcycle amendment)
  *
  * Data source: "Oakland General Purpose Fund Operating Budget" (created by seeder
- * in Plan 01, looked up via treasury_list_source_ids RPC).
+ * in Plan 01, looked up via scripts/lib/listAllSources.mjs).
  *
  * Usage:
  *   node scripts/processOakland.js                    # load all PDFs
@@ -38,6 +38,7 @@ import path                      from 'node:path';
 import { fileURLToPath }         from 'node:url';
 import { resolve, dirname }      from 'node:path';
 
+import { listAllSourcesResult } from './lib/listAllSources.mjs';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT      = path.resolve(__dirname, '..');
 
@@ -148,11 +149,11 @@ async function ensureMunicipality() {
 
 // ── Look up the canonical data_source row by name ────────────────────────────
 // The seeder (Plan 01) created "Oakland General Purpose Fund Operating Budget".
-// Matches by name from treasury_list_source_ids RPC.
+// Matches by name from the paged source listing.
 async function resolveDataSourceByName(name) {
-  const { data: listing, error } = await supabase.rpc('treasury_list_source_ids');
+  const { data: listing, error } = await listAllSourcesResult(supabase);
   if (error) {
-    console.error('  ERROR calling treasury_list_source_ids:', error.message);
+    console.error('  ERROR listing sources:', error.message);
     return null;
   }
   const hit = (listing || []).find(r => r.name === name);

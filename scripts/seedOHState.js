@@ -16,7 +16,7 @@
  *           dataset_id='oh-gf-revenue',
  *           base_url='https://www.lsc.ohio.gov/publications/historical-revenues-and-expenditures',
  *           fiscal_years=[2022,2023,2024,2025,2026])
- *   C. Verification: calls treasury_list_source_ids RPC and asserts the sources appear.
+ *   C. Verification: queries treasury.data_sources BY NAME and asserts they appear.
  *      Exits non-zero if missing.
  *
  * Ohio is a state-level entity (entity_type='state').
