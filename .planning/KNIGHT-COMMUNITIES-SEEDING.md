@@ -110,9 +110,25 @@ Per-row is also the *correct* representation independent of the plumbing argumen
 | Value | Meaning | Expected Knight entities |
 |---|---|---|
 | `audited_gaap` | Read directly from an ACFR bearing an auditor's opinion | Milledgeville, Grand Forks, Boulder, Wichita, Aberdeen, Biloxi |
-| `compiled_from_audited` | State agency compiled it from audited statements | Charlotte (NC LGC), FL four (DFS) — *pending recon confirmation* |
+| `compiled_from_audited` | State agency compiled it from audited statements | ~~Charlotte (NC LGC)~~ **REFUTED — see below**; FL four (DFS) — *still pending recon confirmation* |
 | `self_reported_unaudited` | State agency compiled entity self-reports | Akron (OH AOS), Duluth and Saint Paul (MN OSA) |
 | `unknown` | Not yet assessed | All ~87,000 pre-existing rows |
+
+> ⚠⚠ **RECON RESULT, 2026-08-28 — the NC LGC row above was WRONG.** The NC
+> Treasurer's own Data and Reports page describes the AFIR dataset as **"Data
+> self-reported by counties and municipalities"**, and N.C.G.S. § 159-33.1 has
+> the local unit *submit* the report; the LGC receives and compiles it. Bulk
+> access is also partial — direct downloads stop at **2011**, and 2012+ sits
+> behind `logos.nctreasurer.com` with no export (the Colorado DOLA shape).
+>
+> Charlotte and Mecklenburg were therefore loaded from **their own audited
+> ACFRs** and landed at **`audited_gaap`** — a grade ABOVE the one this table
+> predicted, from a source WORSE than the one it predicted. Risk **R2** fired
+> exactly as written, and §4.2's recon gate is what caught it before a loader
+> was built.
+>
+> ⚠ **FL DFS is the other unverified claim in the same reference.** Verify it the
+> same way before session 3 sequences on it.
 
 ### 3.4 The default must be honest
 

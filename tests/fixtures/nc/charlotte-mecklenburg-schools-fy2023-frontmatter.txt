@@ -1,0 +1,154 @@
+Charlotte-Mecklenburg Board of Education
+ANNUAL
+COMPREHENSIVE
+FINANCIAL REPORT
+Fiscal Year Ended June 30, 2023
+Prepared by Finance Department Kelly Kluttz, Chief Financial Officer
+Crystal Hill, Superintendent
+600 East Fourth Street Charlotte, North Carolina 28202
+
+This page is intentionally left blank.
+
+Table of Contents
+
+INTRODUCTORY SECTION
+Letter of Transmittal .............................................................................................................................. Board Members .................................................................................................................................... Executive Staff ...................................................................................................................................... Organizational Chart ............................................................................................................................. Certificate of Excellence in Financial Reporting - GFOA ..................................................................... Certificate of Excellence in Financial Reporting ­ ASBO.....................................................................
+
+FINANCIAL SECTION
+
+Independent Auditors' Report ............................................................................................................... Management's Discussion and Analysis ..............................................................................................
+
+BASIC FINANCIAL STATEMENTS
+
+Exhibit
+1 2
+
+Government-Wide Financial Statements: Statement of Net Position ......................................................................................................
+Statement of Activities ...........................................................................................................
+
+Fund Financial Statements:
+
+3
+
+Balance Sheet - Governmental Funds ..................................................................................
+
+3
+
+Reconciliation of the Governmental Funds Balance Sheet to the Statement of Net
+
+Position ..........................................................................................................................
+
+4
+
+Statement of Revenues, Expenditures and Changes in Fund Balance ­ Governmental
+
+Funds .............................................................................................................................
+
+5
+
+Reconciliation of the Governmental Funds Statement of Revenues, Expenditures and
+
+Changes in Fund Balance with the Statement of Activities ......................................
+
+6
+
+Statement of Revenues, Expenditures and Changes in Fund Balance ­ Budget and
+
+Actual ­ General Fund and Annually Budgeted Major Special Revenue Funds
+
+(Non-GAAP Budgetary Basis)..................................................................................
+
+7
+
+Statement of Net Position - Proprietary Funds ................................................................
+
+8
+
+Statement of Revenues, Expenses and Changes in Net Position ­ Proprietary Funds ...
+
+9
+
+Statement of Cash Flows - Proprietary Funds .................................................................
+
+Notes to Basic Financial Statements .............................................................................................
+
+REQUIRED SUPPLEMENTARY INFORMATION
+
+Schedule 1 Schedule of the Board's Proportionate Share of the Net Pension Liability ­ Teachers' and State Employees' Retirement System..............................................................................................
+2 Schedule of Board Contributions - Teachers' and State Employees' Retirement System..............
+3 Schedule of the Board's Proportionate Share of the Net OPEB Liability ­ Retiree Health Benefit Fund .....................................................................................................................................
+4 Schedule of Board Contributions - Retiree Health Benefit Fund ....................................................
+5 Schedule of the Board's Proportionate Share of the Net OPEB Asset (Liability) ­ Disability Income Plan of North Carolina................................................................................................
+6 Schedule of Board Contributions - Disability Income Plan of North Carolina .................................
+
+iii-vi vii vii ix x xi
+1-3 4-10
+11 12-13
+14-15 14-15 16-23
+24
+25-29 30 31 32
+33-57
+58 59 60 61 62 63
+
+SUPPLEMENTARY INFORMATION
+
+Table of Contents (concluded)
+
+Schedule
+
+7 Schedule of Revenues, Expenditures and Changes in Fund Balance ­ Budget and Actual ­
+
+Capital Projects Fund (Non-GAAP Budgetary Basis) .............................................................
+
+64
+
+8 Schedule of Revenues and Expenses - Budget and Actual Proprietary Funds (Non-GAAP
+
+Budgetary Basis) ....................................................................................................................
+
+65
+
+STATISTICAL SECTION
+Statistical Section (Unaudited) ­ Contents Facts and Information About Mecklenburg County, North Carolina .................................................... A Profile of Charlotte-Mecklenburg Schools......................................................................................... 2022-2023 Elementary, Middle, and High School Locations ............................................................... Comparative Average Daily Membership - Schools and Special Programs ....................................... Net Position by Components for the Last Ten Fiscal Years ................................................................ Statement of Activities for the Last Ten Fiscal Years........................................................................... General School System Revenues by Function - Government-Wide for the Last Ten Fiscal Years . General School System Expenses by Function - Government-Wide for the Last Ten Fiscal Years . Operational Expenses Government-Wide Per Pupil for the Last Ten Fiscal Years ............................ Fund Balances, Governmental Funds for the Last Ten Fiscal Years .................................................. Changes in Fund Balance, Governmental Funds for the Last Ten Fiscal Years ................................ Governmental Expenditures by Function for the Last Ten Fiscal Years ............................................. Sources of Revenues (All Funds Except Capital Projects) for the Last Ten Fiscal Years .................. Fund Balance Equity for the Last Nine Fiscal Years............................................................................ Governmental Operational Expenditures Per Pupil for the Last Ten Fiscal Years.............................. Sources of Mecklenburg County Capital Project Revenues for the Last Ten Fiscal Years ................ After School Enrichment Program Cost Per Participant Per Week for the Last Ten Fiscal Years ..... Sources of School Nutrition Program Revenues for the Last Ten Fiscal Years .................................. School Nutrition Program Cost Per Pupil Serving for the Last Ten Fiscal Years ................................ School Nutrition Program Servings for the Last Ten Fiscal Years....................................................... Unreserved Fund Equity - School Nutrition Program for the Last Ten Fiscal Years .......................... Mecklenburg County, North Carolina: Estimated Population, Assessed Value and General Revenues by Source for the Last Ten Fiscal Years..................................................................................................................... Assessed and Estimated Actual Value of Taxable Property for the Last Ten Fiscal Years .... Ten Highest Taxpayers Current Year and Nine Years Ago .................................................... Computation of Direct and Overlapping Debt, General Obligation Bonds for the Fiscal Year Ended June 30, 2023 ...................................................................................................... Demographic Statistics for the Last Ten Fiscal Years ............................................................ Principal Employers Current Year and Nine Years Ago.......................................................... Personnel Summary for the Last Ten Fiscal Years.............................................................................. Teacher Salaries for the Last Ten Fiscal Years ................................................................................... Expenditures for Maintenance of Facilities for the Last Ten Fiscal Years ........................................... Lease and Installment Purchase Payments for the Last Ten Fiscal Years ......................................... School Buildings for the Year Ended June 30, 2023............................................................................
+
+66 67-68
+69 70-71 72-73 72-75
+76 77 78-79 80-81 82-83 84 85 86 87-88 89 90 91 92 93-94 95
+96 97 98
+99 100 101 102-103 104 105 106-107 108-111
+
+Letter of Transmittal
+Members of the Charlotte-Mecklenburg Board of Education and residents of Mecklenburg County, NC
+November 30, 2023
+In compliance with the Public School Laws of North Carolina, the Annual Comprehensive Financial Report of the Charlotte-Mecklenburg Board of Education (Board) for the year ended June 30, 2023, is herewith submitted. Responsibility for accuracy, completeness, and clarity of the report rests with management.
+Management's discussion and analysis (MD&A) immediately follows the independent auditor's report and provides a narrative introduction, overview, and analysis of the basic financial statements. MD&A complements this letter of transmittal and should be read in conjunction with it.
+The report has been prepared following the requirements and guidelines prescribed by the Governmental Accounting Standards Board. We believe the data presented is accurate in all material respects and that it is presented in a manner designed to fairly reflect the financial position and results of operations of the Board. All disclosures necessary to enable the reader to gain the maximum understanding of the Board's financial activity have been included.
+REPORTING ENTITY
+The financial reporting entity includes all funds of the Board. The members of the Board are elected by the public and corporately have decision-making authority. Although the county levies all taxes, the Board determines how the school system will spend the funds allocated for schools. The county cannot modify the school district's budget, nor is the county entitled to share in any surpluses or required to finance any deficits of the school system. For these reasons, the Board is not fiscally dependent on the county and therefore is recognized as a primary government as defined by the Governmental Accounting Standards Board. The Board also receives funding from state and federal government sources and must comply with the affiliated requirements of those funding entities. The Board does not have any component units, nor is it a component unit of any other entity.
+In 1997 the North Carolina General Assembly passed legislation creating charter schools, an alternative to traditional public schools. Charter schools receive a per-pupil allocation of local county funding as defined by the legislation. Although county funds to the charter schools pass through the Board, the Board has no authority or responsibility related to the charter schools; therefore, they are not a component unit of the Board.
+LOCAL ECONOMIC CONDITION AND OUTLOOK
+Mecklenburg County is the 41st largest county in the nation with a total population of approximately 1.15 million in 2022. The county comprises Charlotte, North Carolina's largest city, and six additional municipalities: Cornelius, Davidson, Huntersville, Matthews, Mint Hill and Pineville. Mecklenburg continues to be the most populous county in the state, with new people and businesses drawn to the area by a relatively comfortable year-round climate, cultural opportunities and recreational activities.
+Mecklenburg County also is the second-largest banking center in the United States. Seven Fortune 500 companies are headquartered in the county: Bank of America, Brighthouse Financial, Duke Energy, Honeywell, Nucor, Sonic Automotive and Truist Financial. It is also home to Wells Fargo's east coast center of operations and a branch of the Federal Reserve Bank of Richmond and other financial institutions. Another Fortune 500 company, Lowe's Home Improvement, is headquartered in adjacent Iredell County.
+Other companies also announced moves to make Charlotte home. H-T-L perma USA (perma USA), a lubrication technology company, announced it is bringing a new headquarters, production and warehouse facility to the city's southwest corridor. This is the company's biggest expansion and investment outside Germany. Guided Insurance Solutions LLC announced plans for its Charlotte Sales Center to open in the Edison Building, opening and filling 150 new jobs in 2022. Brightspeed also announced it would establish its corporate headquarters in the Queen City's South End neighborhood. The company expects to add more than 100 jobs in the Charlotte area.
+iii
+
+Letter of Transmittal
+Charlotte is an important transportation center, providing options that attract businesses to Mecklenburg County. Two interstate highways, 77 (I-277) and 85 (I-485), intersect in Charlotte, along with numerous U.S. and state highways. The county is served by the Charlotte Area Transit System (CATS), which provides transportation services, including the LYNX Blue Line light-rail service. The LYNX line is 18.9 miles long and operates from I-485 at South Boulevard to the University of North Carolina at Charlotte's main campus in University City. During 2022, CATS bus and light-rail ridership was approximately 5.945 million and 2.6 million, respectively.
+Local commercial operations also benefited from strong rail and air-service support. Norfolk Southern Railway and CSX Transportation, the country's two major rail systems, link the county to 23 states, Washington, D.C., and Canada. Amtrak also provides passenger lines that connect access to most of the United States. Charlotte-Douglas International Airport is ranked among the world's busiest airports, averaging 1,424 arrivals and departures, and 118,636 people traveling to, from and through the city every day, according to Airport Council International.
+Charlotte-Mecklenburg Schools is the 17th largest school system in the nation and the second largest in North Carolina. A consolidated city-county district, it mirrors the area's diversity and continued growth, and strives to create an innovative, inclusive, student-centered environment that supports the development of independent learners.
+During the 2022-2023 academic year, the district served approximately 141,000 students (including pre-kindergarten) and operated 181 schools in Charlotte and Mecklenburg County. CMS students came from 181 countries and spoke 209 native languages. The district remained racially and culturally diverse: 35.5% of students are African American, 29.7% Hispanic, 24.2% Caucasian, 7.1% Asian, 3.2% multiracial, .2% American Indian and .1% Pacific Islander.
+Career and Technical Education served more than 52,000 middle and high school students in CMS. In middle school, students had the opportunity to explore pathways that are offered in all large comprehensive high schools. The district's strategy is for students to opt into a career pathway by their sophomore year. CTE Pathways is a threecourse sequence that allows students to study their career interest, obtain industry-relevant credentials and engage in work-based learning opportunities. Students can also extend their career pathway by enrolling in Career and College Promise.
+The district has 37 magnet programs across 71 schools that connect students' interests and needs with high-quality themes and educational approaches that advance equity, diversity and opportunity. In partnership with Central Piedmont Community College and the University of North Carolina at Charlotte, CMS also offers accelerated learning opportunities that allow students to take college courses while completing their high school graduation requirements.
+Long-term Financial Planning
+The CMS operating budget in 2022-2023 was $2.2 billion, with a budgeted per-pupil expenditure of $15,177. CMS had 17,874 employees, including 8,240 certified teachers, as of June 30th, 2023. In November 2017, voters in Mecklenburg County approved the largest school bond request in county history (and the second-largest one in state history) for $922 million to be spent on the district's capital program. The district's school buildings range widely in age from the oldest, built in 1925, to new facilities completed in 2022 (five) and 2023 (two). CMS has modular structures to facilitate college-level education programs at Central Piedmont Community College and UNC Charlotte.
+CMS currently does not have reliable long-term enrollment projections due to shifting trends in enrollment caused by the COVID_19 Pandemic.
+ACADEMIC PROGRESS AND INITIATIVES
+The impact of the COVID-19 global pandemic on public education has been severe and our recovery continues.
+In English language Arts (ELA), college and career-ready rates (CCR) on end-of-grade reading tests for students in grades three through eight increased by 2 percentage points from the 2021-22 school year, from 28.5 percent to 30.5 percent CCR. In math for grades three through eight, college and career-ready rates increased 2.9 percentage points, moving from 34.8 percent to 37.7 percent CCR. In science (tested in grades five and eight), the percentage of students who were college and career ready decreased 1.4 percentage points, down from 56.4 percent to 55.0 percent CCR.
+For End-of-Course tests, the recovery was also evident, but mixed. The percentage of students who were college and career ready in English II remained steady at 37.6 percent CCR. The percentage of college and career ready students in biology increased 1.4 percentage points to 44.6 percent, up from 43.2 percent CCR. In Math I (grades 912), college and career ready rates rose 1.2 percentage points from 8.2 percent to 9.4 percent CCR. Math I is also
+iv
+
+Letter of Transmittal
+taken in middle school (grades 6-8), offered to students ready for extra challenge. College and career ready rates for Math I students in grades 6-8 also rose, increasing 6.4 percentage points from 58.3 percent to 64.7 percent CCR. The percentage of students who were college and career ready in Math 3 (grades 9-12) increased 2.0 percentage points to 39.5 percent, up from 37.5 percent CCR.
+Another way of evaluating school performance is to measure improvement over time. Specifically, did a school's students make an acceptable amount of academic progress during the school year? The state of North Carolina attempts to measure this growth with its Education Value-Added Assessment System (EVAAS). Schools are given one of three ratings: Did Not Meet Expected Growth, Met Expected Growth, or Exceeded Expected Growth. 82.6 percent of schools (142 schools) received a growth rating of met or exceeded growth expectations. This was a slight decrease (of 1 school), down from 83.1 percent the last year growth ratings were reported. 38 percent of schools (66 schools) received an Exceeds Growth rating. 44 percent of schools (76 schools) received a Met Expected Growth rating. 17 percent of schools (30 schools) received a Did Not Meet Expected Growth rating.
+Lastly, North Carolina assigns schools a School Performance Grade based on a variety of indicators, including EOG and EOC results, the number of high school juniors who pass NC Math 3 or Integrated Math 3 and the percentage of students who graduate f

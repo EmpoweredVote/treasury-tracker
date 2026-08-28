@@ -1,0 +1,320 @@
+Charlotte Water
+An Enterprise Fund of the City of Charlotte
+Financial Statements, Additional Information and Report of Independent Auditor
+FOR THE FISCAL YEAR ENDED June 30, 2023
+
+TABLE OF CONTENTS
+CHARLOTTE WATER
+FINANCIAL SECTION Report of Independent Auditor  1 Management's Discussion and Analysis  7 Basic Financial Statements:
+Statement of Net Position  16 Statement of Revenues, Expenses and Changes in Net Position  18 Statement of Cash Flows  19 Notes to the Financial Statements  23 Required Supplementary Information:
+Local Government Employees' Retirement System Proportionate Share of Net Pension Liability (Asset) for the City of Charlotte  46 City of Charlotte's Contributions  47
+Employee Benefit Trust Plan (EBTP) Schedule of Changes in Net OPEB Liability  48 Schedule of Changes of Total Liability as a Percentage of Covered Payroll  49 Schedule of City Contributions and Investment Returns  50
+Individual Fund and Other Supplemental Information:
+Operating Fund Schedule of Revenues, Expenditures and Transfers ­ Budget and Actual (Non-GAAP Basis )  54
+Debt Service Fund Schedule of Revenues, Expenditures and Transfers ­ Budget and Actual (Non-GAAP Basis)  55
+Schedule of Reconciliation of Budgetary (Non-GAAP Basis) to Full Accrual Basis  56 Capital Projects Fund
+Schedule of Expenditures Compared with Authorizations  57
+STATISTICAL SECTION Financial Trends
+Net Position  62 Changes in Net Position  63 Operating Revenues by Source  64 Operating Expenses  65 Nonoperating Revenues and Expenses  66 Revenue Capacity Water and Sewer Customers  67 Debt Capacity Revenue Bond Coverage  68 Demographic and Economic Information Demographic and Economic Statistics  69
+For The Fiscal Year Ended June 30, 2023
+
+TABLE OF CONTENTS
+CHARLOTTE WATER
+Principal Employers for the City of Charlotte  70 Operating Information
+Full-Time Equivalent Employees by Function/Program  71 Operating Indicators by Function/Program  72 Capital Asset Statistics by Function/Program  73
+For The Fiscal Year Ended June 30, 2023
+
+FINANCIAL SECTION
+CHARLOTTE WATER
+
+Charlotte Water
+
+FINANCIAL SECTION
+
+
+Report of Independent Auditor
+To the Honorable Mayor and Members of the City Council City of Charlotte, North Carolina
+Opinion We have audited the accompanying statement of net position of Charlotte Water, an enterprise fund of the City of Charlotte, North Carolina (the "City"), as of June 30, 2023, and the statements of revenues, expenses, and changes in net position and cash flows for the year then ended, and the related notes to the financial statements, which collectively comprise Charlotte Water's basic financial statements as listed in the table of contents. In our opinion the financial statements referred to above present fairly, in all material respects, the financial position of Charlotte Water as of June 30, 2023 and the changes in its financial position and cash flows for the year then ended in conformity with accounting principles generally accepted in the United States of America. Basis for Opinion We conducted our audit in accordance with auditing standards generally accepted in the United States of America. Our responsibilities under those standards are further described in the Auditor's Responsibilities for the Audit of the Financial Statements section of our report. We are required to be independent of the City, and to meet our other ethical responsibilities, in accordance with the relevant ethical requirements relating to our audit. We believe that the audit evidence we have obtained is sufficient and appropriate to provide a basis for our audit opinion. Emphasis of Matter As discussed in Note 1, the financial statements present only Charlotte Water and do not purport to, and do not, present fairly the financial position of the City as of June 30, 2023 and the changes in its financial position and cash flows for the year then ended in conformity with accounting principles generally accepted in the United States of America. Our opinion is not modified with respect to this matter. Responsibilities of Management for the Financial Statements Management is responsible for the preparation and fair presentation of these financial statements in accordance with accounting principles generally accepted in the United States of America; this includes the design, implementation, and maintenance of internal control relevant to the preparation and fair presentation of financial statements that are free from material misstatement, whether due to fraud or error. In preparing the financial statements, management is required to evaluate whether there are conditions or events, considered in the aggregate, that raise substantial doubt about Charlotte Water's ability to continue as a going concern for 12 months beyond the financial statement date, including any currently known information that may raise substantial doubt shortly thereafter. Auditor's Responsibilities for the Audit of the Financial Statements Our objectives are to obtain reasonable assurance about whether the financial statements as a whole are free from material misstatement, whether due to fraud or error, and to issue an auditor's report that includes our opinion. Reasonable assurance is a high level of assurance but is not absolute assurance and, therefore, is not a guarantee that an audit conducted in accordance with generally accepted auditing standards, will always detect a material misstatement when it exists. The risk of not detecting a material misstatement resulting from fraud is higher than for one resulting from error, as fraud may involve collusion, forgery, intentional omissions, misrepresentations, or the override of internal control. Misstatements are considered material if there is a substantial likelihood that, individually or in the aggregate, they would influence the judgment made by a reasonable user based on the financial statements.
+
+cbh.com
+
+For The Fiscal Year Ended June 30, 2023
+
+1
+
+FINANCIAL SECTION
+
+
+Charlotte Water
+
+In performing an audit in accordance with generally accepted auditing standards we:  Exercise professional judgment and maintain professional skepticism throughout the audit.  Identify and assess the risks of material misstatement of the financial statements, whether due to fraud or error, and design and perform audit procedures responsive to those risks. Such procedures include examining, on a test basis, evidence regarding the amounts and disclosures in the financial statements.  Obtain an understanding of internal control relevant to the audit in order to design audit procedures that are appropriate in the circumstances, but not for the purpose of expressing an opinion on the effectiveness of Charlotte Water's internal control. Accordingly, no such opinion is expressed.  Evaluate the appropriateness of accounting policies used and the reasonableness of significant accounting estimates made by management, as well as evaluate the overall presentation of the financial statements.  Conclude whether, in our judgment, there are conditions or events, considered in the aggregate, that raise substantial doubt about Charlotte Water's ability to continue as a going concern for a reasonable period of time.
+We are required to communicate with those charged with governance regarding, among other matters, the planned scope and timing of the audit, significant audit findings, and certain internal control related matters that we identified during the audit.
+Other Matters
+Required Supplementary Information Accounting principles generally accepted in the United States of America require that the Management's Discussion and Analysis (MD&A) and the required supplementary information, as listed in the table of contents, be presented to supplement the basic financial statements. Such information is the responsibility of management and, although not a part of the basic financial statements, is required by the Governmental Accounting Standards Board, who considers it to be an essential part of financial reporting for placing the basic financial statements in an appropriate operational, economic, or historical context. We have applied certain limited procedures to the required supplementary information in accordance with auditing standards generally accepted in the United States of America, which consisted of inquiries of management about the methods of preparing the information and comparing the information for consistency with management's responses to our inquiries, the basic financial statements, and other knowledge we obtained during our audit of the basic financial statements. We do not express an opinion or provide any assurance on the information because the limited procedures do not provide us with sufficient evidence to express an opinion or provide any assurance.
+Supplementary Information Our audit was conducted for the purpose of forming opinions on the financial statements that collectively comprise Charlotte Water, an enterprise fund of the City of Charlotte, North Carolina, basic financial statements. The Individual Fund and Other Supplemental Information, as listed in the table of contents, are presented for purposes of additional analysis and are not a required part of the basic financial statements. Such information is the responsibility of management and was derived from and relates directly to the underlying accounting and other records used to prepare the basic financial statements. The information has been subjected to the auditing procedures applied in the audit of the basic financial statements and certain additional procedures, including comparing and reconciling such information directly to the underlying accounting and other records used to prepare the basic financial statements or to the basic financial statements themselves, and other additional procedures in accordance with auditing standards generally accepted in the United States of America. In our opinion, the Individual Fund and Other Supplemental Information, as listed in the table of contents, are fairly stated, in all material respects, in relation to the basic financial statements as a whole.
+
+2
+
+For The Fiscal Year Ended June 30, 2023
+
+Charlotte Water
+
+FINANCIAL SECTION
+
+
+Other Information Management is responsible for the other information included in the annual report. The other information comprises the introductory and statistical sections but does not include the basic financial statements and our auditor's report thereon. Our opinion on the basic financial statements do not cover the other information, and we do not express an opinion or any form of assurance thereon. In connection with our audit of the basic financial statements, our responsibility is to read the other information and consider whether a material inconsistency exists between the other information and the basic financial statements, or the other information otherwise appears to be materially misstated. If, based on the work performed, we conclude that an uncorrected material misstatement of the other information exists, we are required to describe it in our report.
+Charlotte, North Carolina February 23, 2024
+
+For The Fiscal Year Ended June 30, 2023
+
+3
+
+This page Intentionally left blank
+
+Management's Discussion and
+Analysis
+
+Charlotte Water
+
+FINANCIAL SECTION
+MANAGEMENT'S DISCUSSION AND ANALYSIS
+
+MANAGEMENT'S DISCUSSION AND ANALYSIS
+Management's Discussion and Analysis (MD&A) serves as an introduction, overview, and analysis of the financial statements of Charlotte Water, an enterprise fund of the City of Charlotte. The information contained herein pertains to the financial performance of Charlotte Water for the Fiscal Year (FY) ended June 30, 2023. This MD&A should be read in conjunction with the Financial Statements and Notes that follow.
+FINANCIAL HIGHLIGHTS
+ Total net position of the Charlotte Water Enterprise Fund on June 30, 2023 was $3,150.0 million; 1.7 percent or $53.4 million of that total was unrestricted. The net position increased by $187.1 million (6.3 percent) from the net position on June 30, 2022.
+ Operating revenues were $540.5 million in FY2023, an increase of $41.4 million (8.3 percent) compared to FY2022, which was due to an average rate increase along with an increase in the customer base and billed charges.
+ Total operating expenses decreased by $9.7 million to $419.9 million in FY2023. This was primarily due to an FY2022 accrued expense related to a lawsuit settlement. This decrease was offset by increases in personnel costs, chemicals for the treatment of water and sewer, and depreciation.
+ Non-operating net expenses increased by $4.1 million to $48.5 million. This was primarily due to a $15.4 million increase in interest expense and other charges to issue debt instruments offset by a $12.0 million increase in investment earnings.
+ Capital contributions decreased by $42.4 million to $116.6 million in FY2023. These contributions consisted of donated water and sewer system construction.
+ During the year, the City implemented GASB Statement 96, Subscription-Based Information Technology Arrangements (SBITAs). The implementation of this standard requires reporting of the right to use another party's subscription-based information technology software and recognizing a subscription liability based on the subscription contract.
+OVERVIEW OF THE FINANCIAL STATEMENTS
+The Financial Section of this report consists of two parts: Management's Discussion & Analysis (this section) and the Basic Financial Statements. The Basic Financial Statement section includes Notes to the Financial Statements that provide explanations and detailed data on pages 23 through 42.
+Charlotte Water is an enterprise fund of the City that accounts for the operations of the public water and wastewater utility systems. All assets and liabilities associated with Charlotte Water's activities are included on the Statement of Net Position. Charlotte Water's financial statements are reported using the economic resources measurement focus and the accrual basis of accounting. Revenues are recorded when earned and expenses are recorded at the time liabilities are incurred.
+
+For The Fiscal Year Ended June 30, 2023
+
+7
+
+FINANCIAL SECTION
+MANAGEMENT'S DISCUSSION AND ANALYSIS
+
+Charlotte Water
+
+The following is a summary of Charlotte Water's Net Position as of June 30:
+
+Net Position (In thousands)
+
+
+ASSETS Current and other noncurrent assets Capital assets, net Total assets
+DEFERRED OUTFLOWS OF RESOURCES LIABILITIES
+Current liabilities Noncurrent liabilities
+Total liabilities DEFERRED INFLOWS OF RESOURCES NET POSITION
+Net investment in capital assets Restricted Unrestricted
+TOTAL NET POSITION
+
+2023
+
+2022
+
+ $447,587$314,012 5,032,5134,641,223 5,480,1004,955,235 50,25349,925  344,321280,657 1,997,2291,701,332 2,341,5501,981,989 38,81760,254  3,071,6172,796,494 24,98414,218 53,385152,205 $3,149,986$2,962,917
+
+Total assets increased by $524.9 million or 10.6 percent in FY2023 compared to FY2022. The increase was primarily due to capitalization of capital projects, such as Stowe WRRF Improvements, Zone 4 Facility, McAlpine Aeration and Clarifier Rehabilitation, and 960 Zone North/South Transmission Main. Additionally, cash increased as a result of reimbursement of construction expenses from debt proceeds.
+Total liabilities increased by $359.6 million in FY2023 compared to FY2022 .This increase was primarily attributable to the issuance of revenue refunding bonds to refund revenue bonds and prepay bond anticipation notes, revenue bond anticipation notes to be used for financing construction and maintenance projects for the water and sewer system, and an accrual for a lawsuit settlement.
+Total net position increased by $187.1 million in FY2023 or 6.3 percent compared to FY2022. As of June 30, 2023, $3.1 billion was invested in capital assets, $25.0 million was restricted for OPEB, while $53.4 million was unrestricted and available for short-term operational needs. This increased net position was primarily due to ongoing capital development for Charlotte Water operations, increasing the utility's capital assets.
+
+8
+
+For The Fiscal Year Ended June 30, 2023
+
+Charlotte Water
+
+FINANCIAL SECTION
+MANAGEMENT'S DISCUSSION AND ANALYSIS
+
+The following is a summary of Changes in Net Position as of June 30:
+
+Changes in Net Position
+
+(In thousands)
+
+
+
+
+
+2023
+
+2022
+
+Operating revenues
+
+$540,536 $499,139 
+
+Operating expenses
+
+419,928 429,609 
+
+ Operating income
+
+120,608 69,530 
+
+
+
+  
+
+Nonoperating revenues (expenses)
+
+  
+
+ Investment earnings
+
+9,291 (2,675)
+
+ Interest expense and other charges
+
+(60,544)(45,146)
+
+ Miscellaneous
+
+2,793 3,413 
+
+
+
+Total nonoperating revenues (expenses)
+
+(48,460)(44,408)
+
+
+
+Income before contributions
+
+72,148 25,122 
+
+
+
+  
+
+Capital contributions
+
+116,633 159,046 
+
+
+
+  
+
+Transfers out
+
+(1,712)(277)
+
+ Change in net position
+
+187,069 183,891 
+
+Total net position - beginning
+
+2,962,917 2,779,026 
+
+Total net position - ending
+
+$3,149,986 $2,962,917 
+
+Charlotte Water's Changes in Net Position provides information concerning what contributed to the net changes reported in the Statement of Net Position. Several financial factors positively and negatively impacted the increase in Net Position highlighted below.
+Charlotte Water's operating revenues were $540.5 million in FY2023, an increase of $41.4 million or 8.3 percent compared to FY2022. This was due to an average rate increase of 3.54 percent for an average customer effective July 1, 2022, and an increase in our customer base and billed charges.
+Operating expenses decreased by $9.7 million or 2.3 percent, to $419.9 million in FY2023. This was primarily due to $80.0 million being accrued for a potential lawsuit settlement in FY2022 versus $26.0 million in FY2023. This decrease was offset by a $49.0 million increase primarily from increased personnel, fleet, and chemical costs and depreciation.
+
+For The Fiscal Year Ended June 30, 2023
+
+9
+
+FINANCIAL SECTION
+MANAGEMENT'S DISCUSSION AND ANALYSIS
+
+Charlotte Water
+
+The following table highlights Charlotte Water's operating expenses for fiscal years 2023 and 2022:
+
+Operating Expenses (In thousands)
+
+Administration Operations and maintenance Other Amortization Depreciation
+Total operating expenses
+
+2023
+
+2022
+
+$69,946$129,997 171,295139,655 2,0681,245 758178 175,861158,534 $419,928$429,609
+
+Capital Assets Charlotte Water's net capital assets were $5,032.5 million in FY 2023 and $4,641.2 million in FY 2022.
+
+The following is a summary of capital assets at June 30, 2023 and 2022:
+
+
+
+Capital Assets
+
+(In thousands)
+
+
+
+Land Construction in progress Buildings Water and sewer systems Intangibles Machinery and equipment Right to use land Right to use machinery and equipment Right to use SBITAs
+Total capital assets
+
+2023
+
+2022
+
+
+
+$66,528$61,878
+
+143,767264,032
+
+96,99251,938
+
+7,046,2566,442,203
+
+48,83228,008
+
+89,16980,508
+
+4747
+
+1,0621,020
+
+3,067-
+
+7,495,7206,929,634
+
+Less accumulated depreciation
+
+2,462,2752,288,233
+
+Less accumulated right to use lease asset amortization354178
+
+Less accumulated right to use SBITA asset amortization578-
+
+Total capital assets, net
+
+$5,032,513$4,641,223
+
+
+
+
+
+10
+
+For The Fiscal Year Ended June 30, 2023
+
+Charlotte Water
+
+FINANCIAL SECTION
+MANAGEMENT'S DISCUSSION AND ANALYSIS
+
+New capital assets added during FY2023 included:
+ Major Water Main Replacement and Rehabilitation - $20.8 million
+ 960 Zone North/South Transmission Main - $23.9 million
+ Zone 4 Facility - $42.4 million
+ Stowe WRRF - $50.9 million
+ McAlpine Aeration and Clarifier Rehabilitation - $62.3 million
+ Donated water and sewer systems - $115.6 million
+Additional information on the Charlotte Water Enterprise Fund's Capital Assets can be found in Note 

@@ -19,6 +19,9 @@
  *       Report whether anything is unregistered, and what it is.
  *
  *   node scripts/registerCreatedRows.mjs --milestone nc-charlotte
+ *   # --match is REPEATABLE; the UNION must equal the deficit exactly:
+ *   node scripts/registerCreatedRows.mjs --milestone knight-s2 \
+ *     --match "City of Charlotte ACFR" --match "Mecklenburg County ACFR"
  *       Write scripts/data/ncCharlotteCreatedIds.json with the unregistered ids,
  *       append it to excluded_ids_files, and re-verify.
  *
@@ -86,12 +89,35 @@ async function main() {
   console.error('✗ Refusing to guess. Registering by deficit alone would file arbitrary rows.');
   console.error('  Add a --match filter (entity or data_source substring) identifying YOUR rows,');
   console.error('  e.g. --milestone nc-charlotte --match "Charlotte, NC"');
-  const matchArg = process.argv.includes('--match')
-    ? process.argv[process.argv.indexOf('--match') + 1] : null;
-  if (!matchArg) process.exit(1);
+  // ⚠ REPEATABLE. A milestone is not always one entity: the Knight campaign
+  // loads Charlotte AND Mecklenburg County together, and its Florida session
+  // loads four cities at once. With a single --match such a milestone cannot be
+  // registered at all — no substring selects exactly those rows and nothing
+  // else — and the only ways through would have been to register the entities
+  // under separate milestone names (the SHARED-FILE bookkeeping that broke the
+  // invariant across v2.27-v2.29) or to widen the match until it over-selected.
+  //
+  // The guard is UNCHANGED and is what matters: the UNION of the matches must
+  // still equal the deficit exactly, and each match is reported separately so an
+  // over-broad one is visible rather than hidden inside a total that happens to
+  // add up.
+  const matchArgs = process.argv.reduce(
+    (acc, a, i) => (a === '--match' && process.argv[i + 1] ? [...acc, process.argv[i + 1]] : acc), [],
+  );
+  if (!matchArgs.length) process.exit(1);
 
-  const mine = nonExcluded.filter((r) => `${r.name}, ${r.state} :: ${r.data_source}`.includes(matchArg));
-  console.log(`\n--match "${matchArg}" selects ${mine.length} row(s); deficit is ${deficit}.`);
+  const key = (r) => `${r.name}, ${r.state} :: ${r.data_source}`;
+  const seen = new Map();
+  for (const m of matchArgs) {
+    const hits = nonExcluded.filter((r) => key(r).includes(m));
+    console.log(`\n--match "${m}" selects ${hits.length} row(s).`);
+    for (const r of hits) seen.set(r.id, r);
+  }
+  const mine = [...seen.values()];
+  const overlap = matchArgs.reduce((n, m) => n + nonExcluded.filter((r) => key(r).includes(m)).length, 0)
+    - mine.length;
+  if (overlap) console.log(`  (${overlap} row(s) matched more than one filter; counted once)`);
+  console.log(`\nunion selects ${mine.length} row(s); deficit is ${deficit}.`);
   if (mine.length !== deficit) {
     console.error('✗ Those do not agree. Registering a set that does not reconcile is exactly the');
     console.error('  bookkeeping error this tool exists to prevent. Refusing to write.');

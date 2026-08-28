@@ -342,7 +342,8 @@ INDENT_MATCH_TOL = 1.5
 def collect(rows, banner_re, total_re, alignment, edge, units, weld=None):
     """General Fund line items of one section.
 
-    `weld='disclosure'` rejoins a label the issuer wrapped across two printed
+    `weld='disclosure'` and `weld='indent'` each rejoin a label the issuer
+    wrapped across two printed
     lines. It is OPT-IN: the default is to weld NOTHING and to report a dangling
     fragment as an error, so a caller can never get a silently mis-joined label
     by omission. Welds are always listed in the return value.
@@ -400,6 +401,11 @@ def collect(rows, banner_re, total_re, alignment, edge, units, weld=None):
             'on_grid': on_any_column(ws, alignment, col_edges),
         })
 
+    # Shallowest label indent in the section — the ROOT level. Used only by
+    # weld='indent' to keep a group heading from ever being welded.
+    _inds = [p['indent'] for p in parsed if p['indent'] is not None]
+    section_root_x = min(_inds) if _inds else None
+
     out, errors, welds = [], [], []
     pending = []          # label fragments awaiting the row that carries money
     for i, r in enumerate(parsed):
@@ -413,6 +419,57 @@ def collect(rows, banner_re, total_re, alignment, edge, units, weld=None):
             continue
 
         nxt = parsed[i + 1] if i + 1 < len(parsed) else None
+        # ── weld='indent' ────────────────────────────────────────────────────
+        # The City of Charlotte wraps a long function name onto a second line
+        # and prints the money on that CONTINUATION line, INDENTED FURTHER:
+        #
+        #   ind=75.0  blank   on_grid=0            'Engineering and property'
+        #   ind=85.0  number  on_grid=1   25,584   'management'
+        #
+        # Read row-by-row that publishes a category literally named
+        # `management` for $25,584k and `development` for $36,701k, while the
+        # amounts are right and the tie stays at exactly $0 — the Kent/El Paso
+        # wrapped-label defect class again, in a new shape.
+        #
+        # ⚠ WHY 'disclosure' CANNOT DO THIS. That mode requires the two lines to
+        # share ONE indent, because for El Paso a SHALLOWER prefix is how a group
+        # heading looks. Charlotte's continuation is DEEPER than its own prefix,
+        # so the same-indent test rejects it; and its labels carry no embedded
+        # figure, so GUARD 2 (`label_money`) rejects it too.
+        #
+        # ⚠ HOW A WRAP IS TOLD FROM A GROUP HEADING HERE. Both are `blank` and
+        # both are off-grid, so neither cell kind nor GUARD 1 separates them.
+        # The INDENT LEVEL does, and it is unambiguous: a group heading sits at
+        # the SECTION ROOT ('Current-' and 'Debt service-' at 65.0), whereas a
+        # wrapped label's first line sits at the CHILD level (75.0) with its
+        # continuation deeper still (85.0). A root-level row with children IS a
+        # heading by construction, so requiring the prefix to be BELOW the root
+        # band can never weld one.
+        #
+        # A genuinely empty line item is not at risk either: this issuer writes
+        # an empty General Fund cell as an explicit DASH and stays ON the column
+        # grid ('Culture and recreation', 'Business-type grant funded' and
+        # 'Capital outlay' all read cell='dash', on_grid=1), so all three are
+        # left alone.
+        is_indent_wrap_prefix = (
+            weld == 'indent'
+            and r['cell'] == 'blank'
+            and nxt is not None and not nxt['error']
+            and nxt['cell'] == 'number'
+            and r['indent'] is not None and nxt['indent'] is not None
+            # the continuation is printed DEEPER than the prefix
+            and nxt['indent'] > r['indent'] + INDENT_MATCH_TOL
+            # the prefix is NOT a root-level row, so a group heading is immune
+            and section_root_x is not None
+            and r['indent'] > section_root_x + INDENT_MATCH_TOL
+            # GUARD 1, unchanged — a real line item blank in the General Fund
+            # still prints cells in the other funds and is left alone.
+            and not r['on_grid']
+        )
+        if is_indent_wrap_prefix:
+            pending.append(r['label'])
+            continue
+
         is_wrap_prefix = (
             weld == 'disclosure'
             and r['cell'] == 'blank'

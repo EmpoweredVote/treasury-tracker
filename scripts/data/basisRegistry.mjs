@@ -165,6 +165,22 @@ export const BASIS_REGISTRY = [
     // snapshots of the city's own page, and Buncombe was 32 until FY2009/FY2010
     // were found under a fourth naming convention on its own live host.)
     //
+    // EXTENDED by the Knight campaign session 2, measured 2026-08-28:
+    // + City of Charlotte 30 (FY2011-FY2025) + Mecklenburg County 42
+    // (FY2005-FY2025) = 210. Same family on the merits — a General Fund column
+    // read directly from each government's own audited ACFR — so the entry is
+    // extended rather than duplicated.
+    //
+    // ⚠⚠ THE "Durham" COLLISION WARNING BELOW IS NO LONGER HYPOTHETICAL.
+    // `Mecklenburg County` ALREADY EXISTS IN TT AS A VIRGINIA COUNTY, and so do
+    // `Charlotte County, VA` and `Charlottesville, VA`. Checked 2026-08-28: all
+    // three carry `data_source = 'Virginia APA Comparative Report'`, which this
+    // anchored pattern cannot match, so nothing is mis-claimed today. But if a
+    // Virginia ACFR load ever labels its rows `Mecklenburg County ACFR — General
+    // Fund …` the string would be IDENTICAL to North Carolina's and this entry
+    // would silently claim them. Split by municipality_id at that point; do not
+    // widen the string.
+    //
     // WARNING ANCHORED TO THE FOUR ENTITY NAMES, for the same reason
     // tx-local-acfr-gf and co-local-acfr-gf are: the general /ACFR - General
     // Fund/ pattern claims ~1,850 rows across families nobody has reconciled. A
@@ -178,7 +194,7 @@ export const BASIS_REGISTRY = [
     // label they would need splitting by municipality_id rather than by this
     // string.
     id: 'nc-local-acfr-gf',
-    match: /^(City of Durham|Durham County|City of Asheville|Buncombe County) ACFR — General Fund /,
+    match: /^(City of Durham|Durham County|City of Asheville|Buncombe County|City of Charlotte|Mecklenburg County) ACFR — General Fund /,
     value: BASIS.ACTUAL,
     evidence: {
       document: 'City of Durham FY2024 + FY2012, Durham County FY2024 + FY2008, City of Asheville '
@@ -262,8 +278,32 @@ export const BASIS_REGISTRY = [
     },
   },
   {
-    // Adopted budget documents. 165 rows / 129 strings / 30 entities, measured 2026-08-17.
+    // Adopted budget documents. 169 rows / 129 strings / 30 entities,
+    // RE-MEASURED 2026-08-28 (was 165 rows, measured 2026-08-17).
     // Placed LAST so a more specific source above always wins.
+    //
+    // ⚠⚠ THE +4 IS THE CRON SYNC, NOT A PATTERN BUG — and the partition gate is
+    // right to have stopped for it. Evidence for re-measuring rather than
+    // rewriting the pattern:
+    //   * STRINGS (129) and ENTITIES (30) are UNCHANGED, so no new source name
+    //     and no new government entered the family. Only fiscal YEARS grew.
+    //   * San Francisco now holds 8 rows across FY2025-FY2028 under 2 strings.
+    //     Its sync is enabled and rolls forward on its own, and
+    //     `project_sf_inverted_amounts_and_listing_cap` already records the
+    //     hazard in as many words: "⚠ A new year arrives basis=unknown".
+    //     FY2027 + FY2028 x {operating, revenue} = exactly the 4.
+    //   * The Knight session-2 load that surfaced this added ONLY
+    //     `... ACFR — General Fund ... (FYnnnn actual, GAAP basis)` rows, none of
+    //     which this pattern can match; it was verified that 0 of the 169 belong
+    //     to Charlotte or Mecklenburg County.
+    //
+    // ⚠ This is the shape to expect again. Any enabled sync silently grows a
+    // family between milestones, so a partition count is a MEASUREMENT WITH A
+    // DATE, not a constant — and the next unrelated milestone will be the one
+    // that trips over it. The gate's own instruction ("fix the pattern, do NOT
+    // edit the expected number") holds for a pattern that claims the wrong
+    // rows; it is not a bar on re-measuring when the rows are right and there
+    // are simply more of them.
     id: 'city-adopted-budget-doc',
     match: /(Operating|Revenue|General Fund|General Purpose Fund).*Budget( FY\d{4})?$|Budget FY\d{4}$/i,
     value: BASIS.ADOPTED,

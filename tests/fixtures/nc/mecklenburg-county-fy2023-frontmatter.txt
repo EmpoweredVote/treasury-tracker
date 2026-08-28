@@ -1,0 +1,323 @@
+MECKLENBURG COUNTY · NORTH CAROLINA
+ANNUAL COMPREHENSIVE FINANCIAL REPORT
+For the fiscal year ended June 30, 2023
+
+TABLE OF CONTENTS
+
+INTRODUCTORY
+
+
+
+Letter of Transmittal................................................................................................................i
+
+
+
+Facts and Information......................................................................................................... xvii
+
+
+
+Board of County Commissioners....................................................................................... xxvi
+
+
+
+Organizational Chart........................................................................................................ xxvii
+
+
+
+GFOA Certificate of Achievement................................................................................... xxviii
+
+
+
+Financial Services Department........................................................................................... xxix
+
+FINANCIAL
+
+
+
+Report of Independent Auditor..............................................................................................1
+
+
+
+Management's Discussion and Analysis...................................................................................4
+
+BASIC FINANCIAL STATEMENTS
+
+ A-1
+
+Government-wide Financial Statements Statement of Net Position (Deficit).......................................................................................14
+
+A-2
+
+Statement of Activities..........................................................................................................15
+
+ 
+A-3 A-4 A-5
+A-6
+ A-7 A-8 A-9
+ A -10 A -11
+
+
+Fund Financial Statements Governmental Funds Balance Sheet........................................................................................................................16 Statement of Revenues, Expenditures and Changes in Fund Balances...................................17 Reconciliation of the Statement of Revenues, Expenditures and Changes in Fund Balances of Governmental Funds to the Statement of Activities.....................................................................................18 General Fund Statement of Revenues, Expenditures and Changes in Fund Balance ­ Budget and Actual....................................................................19
+Proprietary Funds Statement of Net Position.....................................................................................................22 Statement of Revenues, Expenses and Changes in Net Position............................................23 Statement of Cash Flows.......................................................................................................24
+Fiduciary Funds Statement of Fiduciary Net Position.....................................................................................25 Statement of Changes in Fiduciary Net Position...................................................................26 Notes to the Basic Financial Statements................................................................................27
+
+REQUIRED SUPPLEMENTARY INFORMATION
+
+B-1
+
+Local Governmental Employees' Retirement System ­ Schedule of the
+
+County's Proportionate Share of the Net Pension Asset (Liability)........................................79
+
+B­2
+
+Local Governmental Employees' Retirement System ­ Schedule of County Contributions.......................................................................................80
+
+B­3
+
+Law Enforcement Officers' Special Separation Allowance ­ Schedule of Changes in Total Pension Liability and Covered Payroll.....................................81
+
+B­4
+
+Registers of Deeds' Supplemental Pension Fund - Schedule of the County's Proportionate Share of the Net Pension Asset (Liability)........................................82
+
+B­5
+
+Registers of Deeds' Supplemental Pension Fund Schedule of County Contributions.......................................................................................83
+
+B­6
+
+Post Employment Benefit Healthcare Plan ­ Schedule of Changes in the Net OPEB Liability and Related Ratios................................................................................84
+
+B­7
+
+Post Employment Benefit Healthcare Plan ­ Schedule of Investment Returns...........................85
+
+B­8
+
+Post Employment Benefit Healthcare Plan ­ Schedule of County Contributions......................86
+
+TABLE OF CONTENTS
+
+COMBINING AND INDIVIDUAL FUND STATEMENTS AND SCHEDULES
+
+ Nonmajor Governmental Funds
+
+
+
+Nonmajor Governmental Funds Descriptions......................................................................89
+
+C-1
+
+Combining Balance Sheet.....................................................................................................90
+
+C-2
+
+Combining Statement of Revenues, Expenditures and Changes
+
+in Fund Balances..................................................................................................................91
+
+ C-3
+C-4
+
+Special Revenue Funds Combining Balance Sheet.....................................................................................................92
+Combining Statement of Revenues, Expenditures and Changes in Fund Balances .................................................................................................................93
+
+ C-5 C-6
+C-7
+C-8
+
+Capital Projects Funds Combining Balance Sheet.....................................................................................................94
+Combining Statement of Revenues, Expenditures and Changes in Fund Balances..................................................................................................................95
+Statement of Revenues, Expenditures and Changes in Fund Balances Pay-As-You-Go Capital Funding...............................................................96
+Statement of Revenues, Expenditures and Changes in Fund Balances 2022A School Bonds.................................................................................97
+
+ 
+D-1
+D-2
+
+Other Financial Schedules Custodial Funds
+Combining Statement of Fiduciary Net Position..................................................................98
+Combining Statement of Changes in Fiduciary Net Position................................................99
+
+
+
+Other Budgetary Schedules
+
+
+
+Debt Service Fund
+
+E ­ 1Schedule of Revenues, Expenditures and Changes in Fund Balance ­ Budget and Actual ­ Debt Service Fund.............................................................................100
+
+
+
+Special Revenue Funds
+
+F-1
+
+Schedule of Revenues, Expenditures and Changes in Fund Balance ­
+
+Budget and Actual ­ Law Enforcement Service Districts.....................................................101
+
+F-2
+
+Schedule of Revenues, Expenditures and Changes in Fund Balance ­
+
+Budget and Actual ­ Transit One-half Cent Sales Tax.........................................................102
+
+F-3
+
+Schedule of Revenues, Expenditures and Changes in Fund Balance ­
+
+Budget and Actual ­ Scrap Tire Disposal............................................................................103
+
+F-4
+
+Schedule of Revenues, Expenditures and Changes in Fund Balance ­
+
+Budget and Actual ­ Discarded White Goods ....................................................................104
+
+F-5
+
+Schedule of Revenues, Expenditures and Changes in Fund Balance ­
+
+Budget and Actual ­ Register of Deeds...............................................................................105
+
+F-6
+
+Schedule of Revenues, Expenditures and Changes in Fund Balance ­
+
+Budget and Actual ­ Fire Service Districts..........................................................................106
+
+F-7
+
+Schedule of Revenues, Expenditures and Changes in Fund Balance ­
+
+Budget and Actual ­ Child Support Reinvestment..............................................................107
+
+F-8
+
+Schedule of Revenues, Expenditures and Changes in Fund Balance ­
+
+Budget and Actual ­ Emergency Rental Assistance.............................................................108
+
+F-9
+
+Schedule of Revenues, Expenditures and Changes in Fund Balance ­
+
+Budget and Actual ­ Emergency Rental Assistance 2..........................................................109
+
+F - 10
+
+Schedule of Revenues, Expenditures and Changes in Fund Balance ­ Budget and Actual ­ Fee Collection for State......................................................................110
+
+F - 11
+
+Schedule of Revenues, Expenditures and Changes in Fund Balance ­ Budget and Actual ­ Representative Payee..........................................................................111
+
+F - 12
+
+Schedule of Revenues, Expenditures and Changes in Fund Balance ­ Budget and Actual ­ Opioid Settlement.............................................................................112
+
+F - 13
+
+Schedule of Revenues, Expenditures and Changes in Fund Balance ­ Budget and Actual ­ American Rescue Plan Act ................................................................113
+
+TABLE OF CONTENTS
+
+
+
+Proprietary Funds
+
+G-1
+
+Schedule of Revenues and Expenses ­ Budget (Modified Accrual Basis) and Actual ­ Solid Waste Operating Fund..........................................................................114
+
+G - 2Schedule of Revenues and Expenditures ­ Budget and Actual (Non-GAAP) - Solid Waste Capital Projects Fund...................................................115
+
+G - 3Schedule of Revenues and Expenditures ­ Budget and Actual (Non-GAAP) - Special Obligation Bond Fund........................................................116
+
+G ­ 4Schedule of Revenues and Expenses -
+
+
+
+Budget (Modified Accrual Basis) and Actual - Storm Water Operating Fund......................117
+
+G ­ 5Schedule of Revenues and Expenditures ­ Budget and Actual (Non-GAAP) ­ Storm Water Capital Projects Fund..............................118
+
+ Internal Service Funds
+
+
+
+Internal Service Funds Descriptions....................................................................................119
+
+H-1
+
+Combining Statement Of Net Position...............................................................................120
+
+H-2
+
+Combining Statement Of Revenues, Expenses And Changes In Net Position.....................121
+
+H­3
+
+Combining Statement of Cash Flows..................................................................................122
+
+STATISTICAL
+
+
+
+Statistical Section Summary................................................................................................125
+
+ Table 1 Table 2 Table 3 Table 4 Table 5
+
+Financial Trend Information Net Position by Component...............................................................................................126 Change in Net Position......................................................................................................127 Fund Balances, Governmental Funds..................................................................................128 Changes in Fund Balances, Governmental Funds...............................................................129 Governmental Tax Revenues by Source...............................................................................130
+
+ Table 6 Table 7 Table 8 Table 9
+Table 10 Table 11
+
+Revenue Capacity Information Analysis of Current Tax Levy..............................................................................................131 Schedule of Ad Valorem Taxes Receivable...........................................................................132 Assessed and Estimated Actual Value of Taxable Property...................................................133 Property Tax Rates Per $100 Assessed Valuation ­ Direct and Overlapping Governments..................................................................................................134 Principal Taxpayers.............................................................................................................135 Property Tax Levies, Tax Collections and Credits................................................................136
+
+ Table 12 Table 13 Table 14 Table 15
+Table 16 Table 17
+
+Debt Capacity Information Schedule of Bonds Payable..................................................................................................137 Schedule of Installment Financings.....................................................................................138 Ratios of Outstanding Debt by Type..................................................................................139 Ratio of Net General Bonded Debt to Assessed Valuation and Net Bonded Debt Per Capita..............................................................................................140 Computation of Direct and Overlapping Governmental Activities Debt............................141 Computation of Legal Debt Margin...................................................................................142
+
+ Table 18 Table 19
+
+Demographic and Economic Information Demographic Statistics.......................................................................................................143 Principal Employers............................................................................................................144
+
+ Table 20 Table 21 Table 22
+
+Operating Information Full-time Equivalent County Employees ............................................................................145 Operating Indicators by Function/Program........................................................................146 Capital Asset Statistics by Function/Program......................................................................147
+
+INTRODUCTION
+THE INTRODUCTION PROVIDES BACKGROUND AND GENERAL INFORMATION ABOUT THE COUNTY
+
+MECKLENBURG COUNTY, NC
+
+LETTER OF TRANSMITTAL
+
+Mecklenburg County
+David Boyd Chief Financial Officer
+November 30, 2023
+The Board of County Commissioners and County Manager Mecklenburg County Charlotte, North Carolina
+The State requires that all general-purpose local governments publish a complete set of audited financial statements, presented in accordance with generally accepted accounting principles (GAAP) and audited in accordance with generally accepted auditing standards by a firm of licensed, certified public accountants. Pursuant to this requirement, we hereby issue the Annual Comprehensive Financial Report (ACFR) of Mecklenburg County for the fiscal year ended June 30, 2023.
+County management assumes full responsibility for the completeness and reliability of the information contained in this Report, based upon a comprehensive framework of internal control that it has established for this purpose. Because the cost of internal control should not exceed anticipated benefits, the objective is to provide reasonable, rather than absolute, assurance that the financial statements are free of any material misstatements. As management, we assert that, to the best of our knowledge and belief, this financial report is complete and reliable in all material aspects.
+The financial statements have been prepared in compliance with applicable General Statutes of North Carolina and accounting principles generally accepted in the United States of America for governmental entities. Cherry Bekaert LLP, an independent public accounting firm, has issued an unmodified ("clean") opinion on the financial statements. Their opinion is located at the beginning of the Financial Section of the Report. The audit was also designed to meet the requirements of the OMB Uniform Guidance, as well as the State Single Audit Act, N.C.G.S.159-34 and the required reports are issued separately.
+GAAP requires management to provide a narrative introduction, overview, and analysis to accompany the basic financial statements in the form of Management's Discussion and Analysis (MD&A). The MD&A immediately follows the Report of the Independent Auditor. This Letter of Transmittal complements the MD&A, and the two should be read together.
+
+PROFILE OF THE GOVERNMENT Mecklenburg County was created from a portion of Anson County through a petition that was granted on December 11, 1762, by the Provincial Assembly, effective February 1, 1763. During the colonial period, a governor appointed by the King of England administered the County. Settlers chose the name Mecklenburg for their county in the hopes of gaining favor with King George III. His wife, Queen Charlotte, was born in the German province of Mecklenburg. When Mecklenburg was established, it was considerably larger than it is today. Portions of what are now Cabarrus, Union, Lincoln, Rutherford, Cleveland and Gaston Counties in North Carolina and part of South Carolina were all once in Mecklenburg County. The City of Charlotte was incorporated on November 7, 1768, and was chosen as the county seat in 1774.
+The current boundaries of the County were established in 1842. County officials continued to be appointed by the governor until 1868. The Constitution of North Carolina was rewritten in that year to allow citizens, for the first time, to elect officials to govern them at the county level. This form of government is still in practice today with the governing body known as the Board of County Commissioners (the Board). In 1963, the Board adopted the County Manager form of government and appointed a County Manager to perform the administrative duties of the County.
+The Board has six district and three at-large members. Elections for Board commissioners are held in November of even-numbered years, and candidates run for office as members of a political party. Any registered voter is eligible to run for Commissioner. Following the election, Commissioners take office at the first meeting in December. At this meeting, the Board elects a chair and vice-chair from among its members.
+The Board appoints several officials to help carry out the County's business: a County Manager, who serves as chief executive officer; a County Attorney, who serves as legal advisor to the Board; a Chief Financial Officer, who provides required financial information and guidance for planning and conducting fiscal management in operating the County; a Clerk to the Board, who is responsible for keeping official Board records and preparing official minutes of all Board meetings; a County Assessor, who is responsible for discovering, listing, and appraising all real and personal property in accordance with North Carolina General Statutes; and a County Tax Collector who administers the tax laws and collection of taxes due.
+The County provides the following primary services: land use, including listing and appraising all real and personal property, and regulating the development of land and construction of residential, commercial, and industrial facilities; recreation and cultural activities; human services, including social services, public health, mental health and environmental health; detention and court support; and general administration. The County also provides support for education, public libraries, and emergency medical service.
+
+ANNUAL COMPREHENSIVE FINANCIAL REPORT
+
+i
+
+LETTER OF TRANSMITTAL
+
+The County represents a primary government as defined by Governmental Accounting Standards Board Statements 14 and 39, as amended by Statement 61. In addition to the primary government, the basic financial statements include the discrete presentation of three legally separate entities, the Public Library of Charlotte and Mecklenburg County, the Mecklenburg County Alcoholic Beverage Control Board, and the Mecklenburg Emergency Medical Services Agency. These entities are component units of the County as defined by the Governmental Accounting Standards Board. The Board of County Commissioners approves an annual budget for the fiscal year no later than July 1st each year. The bud
