@@ -69,7 +69,12 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   'state-acfr-gf': 1448,
   'mn-osa': 21794,
   'oh-aos': 6616,
-  'city-adopted-budget-doc': 165,
+  // RE-MEASURED 2026-08-28: 165 -> 169. The four extra rows are San Francisco
+  // FY2027 + FY2028 x {operating, revenue}, arriving from its ENABLED cron sync
+  // between milestones. Strings (129) and entities (30) are unchanged, so the
+  // pattern still claims exactly the right rows — there are simply more of them.
+  // See the evidence block in scripts/data/basisRegistry.mjs.
+  'city-adopted-budget-doc': 169,
   // AUSTIN-TRAVIS-01, measured 2026-08-19: Austin 32 + Travis County 44. A NEW
   // family, so no pre-existing count moved.
   // Evidence: docs/superpowers/plans/AUSTIN-TRAVIS-01-SCOPE-RECON.md §2.

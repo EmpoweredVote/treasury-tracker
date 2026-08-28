@@ -278,8 +278,32 @@ export const BASIS_REGISTRY = [
     },
   },
   {
-    // Adopted budget documents. 165 rows / 129 strings / 30 entities, measured 2026-08-17.
+    // Adopted budget documents. 169 rows / 129 strings / 30 entities,
+    // RE-MEASURED 2026-08-28 (was 165 rows, measured 2026-08-17).
     // Placed LAST so a more specific source above always wins.
+    //
+    // ⚠⚠ THE +4 IS THE CRON SYNC, NOT A PATTERN BUG — and the partition gate is
+    // right to have stopped for it. Evidence for re-measuring rather than
+    // rewriting the pattern:
+    //   * STRINGS (129) and ENTITIES (30) are UNCHANGED, so no new source name
+    //     and no new government entered the family. Only fiscal YEARS grew.
+    //   * San Francisco now holds 8 rows across FY2025-FY2028 under 2 strings.
+    //     Its sync is enabled and rolls forward on its own, and
+    //     `project_sf_inverted_amounts_and_listing_cap` already records the
+    //     hazard in as many words: "⚠ A new year arrives basis=unknown".
+    //     FY2027 + FY2028 x {operating, revenue} = exactly the 4.
+    //   * The Knight session-2 load that surfaced this added ONLY
+    //     `... ACFR — General Fund ... (FYnnnn actual, GAAP basis)` rows, none of
+    //     which this pattern can match; it was verified that 0 of the 169 belong
+    //     to Charlotte or Mecklenburg County.
+    //
+    // ⚠ This is the shape to expect again. Any enabled sync silently grows a
+    // family between milestones, so a partition count is a MEASUREMENT WITH A
+    // DATE, not a constant — and the next unrelated milestone will be the one
+    // that trips over it. The gate's own instruction ("fix the pattern, do NOT
+    // edit the expected number") holds for a pattern that claims the wrong
+    // rows; it is not a bar on re-measuring when the rows are right and there
+    // are simply more of them.
     id: 'city-adopted-budget-doc',
     match: /(Operating|Revenue|General Fund|General Purpose Fund).*Budget( FY\d{4})?$|Budget FY\d{4}$/i,
     value: BASIS.ADOPTED,

@@ -533,3 +533,86 @@ Not caused by the Knight work. Recorded rather than fixed, because a guard that
 intermittently fails erodes the exact signal it exists to provide, and the fix
 (tolerating a vanished file) could equally mask a real problem. **Worth a
 deliberate decision.**
+
+---
+
+## Session 2 outcomes (2026-08-28)
+
+**North Carolina → City of Charlotte + Mecklenburg County.** The campaign's first
+load, and the first `audited_gaap` rows in TT.
+
+| | |
+|---|---|
+| Entities added | 2 (Charlotte `city` → Mecklenburg County; Mecklenburg County `county`) |
+| Rows loaded | **72** — Charlotte 30 (FY2011–FY2025 × 2 datasets), Mecklenburg 42 (FY2005–FY2025 × 2) |
+| Tie | **$0 on all 72**, against the issuer's own printed total |
+| Grade | `audited_gaap` on all 72 — the first in the system |
+| FY month | 7 on all 72, **actively confirmed** by the FAC census for both entities across their whole windows |
+| Source documents | 36, all first-party and live, all provenance-verified |
+
+**What the recon gate was for.** It cost one session-hour and it overturned the
+design's sequencing premise before a loader existed. NC LGC is *self-reported*,
+not audit-derived; had the campaign trusted `reference_audited_bulk_sources_and_fdta`
+it would have built a bulk loader for a `self_reported_unaudited` source and
+called it `compiled_from_audited`.
+
+**Follow-ups opened:**
+
+1. ⚠ **FL DFS is the other unverified "audit-derived" claim** in the same
+   reference that was wrong about NC. **Verify it before session 3 sequences on
+   it.** Same two questions: does the publisher state what it compiles from, and
+   is there a free bulk download that is not a stateful app?
+2. **The NC LGC AFIR 1994–2011 files are a real free statewide unlock** — every
+   NC county and municipality, direct download, no auth — at
+   `self_reported_unaudited` and stopping at FY2011. Worth its own milestone; it
+   would give NC coverage far beyond the two Knight entities.
+3. ⚠ **`assertReportType` is not yet wired into `fetchNorthCarolina.mjs`**, only
+   into the new `fetchCharlotteMecklenburg.mjs`. The four original NC entities
+   were fetched before the guard existed and are not re-verified by it. They are
+   not at risk today — none of those four publishes an enterprise-fund ACFR under
+   a colliding name — but the guard should be applied uniformly.
+4. ⚠ **Charlotte pre-FY2011 is retrievable from the Internet Archive and was NOT
+   loaded**, under the first-party `source_url` policy. FAC records the city as
+   audited from FY2000, so eleven further years exist and are reachable only by
+   changing that policy. Recorded, not re-litigated.
+5. ⚠ **Mecklenburg's governing marker sits at character 14,073** of
+   `assertIssuer`'s 20,000-character window. Pinned by a test; if the county's
+   front matter grows, that test fails rather than every real year being rejected
+   as the wrong issuer.
+6. **The `-table` reader cannot corroborate either new entity** — it reads their
+   pages confidently and wrongly. `verify-nc.mjs` covers the original four with a
+   two-reader agreement check that structurally cannot extend here; the printed
+   total is the oracle instead. If a second independent reader is ever wanted for
+   these two, it has to be a genuinely different strategy, not `-table`.
+
+
+7. ⚠ **A PRE-EXISTING partition-gate failure surfaced, unrelated to this load.**
+   `basis/city-adopted-budget-doc` measured 165 rows on 2026-08-17 and now
+   matches **169**. Verified not ours: the 169 contain **zero** Charlotte or
+   Mecklenburg rows, and STRINGS (129) and ENTITIES (30) are unchanged, so no
+   new source or government entered the family — only fiscal years. San
+   Francisco now holds FY2025–**FY2028** under two strings, and its sync is
+   enabled and rolls forward on its own;
+   `project_sf_inverted_amounts_and_listing_cap` already records the hazard
+   verbatim: "⚠ A new year arrives `basis=unknown`". FY2027 + FY2028 ×
+   {operating, revenue} = exactly the 4. Re-measured to 169 with the evidence
+   written into the registry.
+
+   **The general lesson is worth more than the fix:** any enabled sync silently
+   grows a family between milestones, so **a partition count is a measurement
+   with a DATE, not a constant** — and the milestone that trips over it will be
+   an unrelated one, as this was.
+
+8. ⚠ **`register:rows` could not register this milestone at all** until
+   `--match` was made repeatable. It assumed one entity per milestone; no single
+   substring selects Charlotte AND Mecklenburg and nothing else. The only ways
+   through would have been to file them under two milestone names — the
+   shared/split-file bookkeeping that broke the invariant across v2.27–v2.29 —
+   or to widen the match until it over-selected. The reconcile guard is
+   unchanged: the UNION must still equal the deficit exactly. **Session 3 loads
+   four Florida cities at once and would have hit the same wall.**
+
+**Carried forward unchanged from session 1** (none of these were touched):
+the FAC census blind spot for CA counties, MN OSA's audit status, the CA SCO
+Counties report, and the ev-accounts passthrough that would make `audit_grade`
+visible in the UI.
