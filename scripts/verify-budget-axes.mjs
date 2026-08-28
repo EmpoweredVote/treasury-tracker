@@ -120,6 +120,24 @@ const verdict = classifyFrozenDrift({
 
 if (ledger.size) console.log(`  ℹ ${ledger.size} authorised correction(s) applied from the ledger`);
 
+// ⚠ Report the live-sync exposure ALWAYS, pass or fail. A frozen row belonging to
+// an enabled cron-syncing source can have its total_budget rewritten when the
+// upstream publisher revises a figure — with no human involved, so no ledger
+// entry can ever be written for it. That is a drift source the ledger cannot
+// cover, and knowing its size is what makes the next failure diagnosable in
+// minutes instead of an afternoon. If drift recurs here, the fix is to scope the
+// digest to rows NOT under live sync.
+try {
+  const { data: live } = await supabase.schema('treasury').from('data_sources')
+    .select('name').eq('is_enabled', true).not('sync_frequency', 'is', null).limit(5000);
+  const liveNames = new Set((live ?? []).map((d) => d.name));
+  const exposed = rows.filter((r) => !excludedSet.has(r.id) && liveNames.has(r.data_source)).length;
+  const pct = ((exposed / Math.max(nonExcludedCount, 1)) * 100).toFixed(1);
+  console.log(`  ℹ ${exposed.toLocaleString()} of ${nonExcludedCount.toLocaleString()} frozen rows (${pct}%) are under LIVE SYNC — a drift source no ledger can capture`);
+} catch {
+  console.log('  ℹ live-sync exposure could not be measured (data_sources unreadable)');
+}
+
 if (verdict.kind === 'ok') {
   console.log(`  ✅ ${verdict.message} (${digest.slice(0, 16)}…)`);
 } else {

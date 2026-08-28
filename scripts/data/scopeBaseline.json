@@ -1,7 +1,7 @@
 {
-  "_warning": "Do NOT edit or regenerate to make the harness pass. `figures_frozen` must never change and is NOT written by --write-baseline; `composite_frozen` changes only when a migration explains it. The one rebase this file has ever had is recorded in `_rebased_at_v2_30` below, with its full accounting.",
+  "_warning": "Do NOT edit or regenerate to make the harness pass. `figures_frozen` must never change and is NOT written by --write-baseline; `composite_frozen` changes only when a migration explains it. An AUTHORISED figure correction is recorded in `figure_change_files` with the value it replaced — that keeps this digest verifying and is the supported alternative to a rebase. Rebases are recorded in `_rebased_at_*` and need explicit sign-off.",
   "frozen_row_count": 79916,
-  "figures_frozen": "4cce9d6a8dfe9ac235dfd488f1903243892c7ebc4ac41b17dbd9022bfb068b9a",
+  "figures_frozen": "90f009fe396d20dcd211258e534ea81c237aa0bddd3d2412680c1dcce3af76fe",
   "composite_frozen": "9e1bf9fdd9bbbe3c94abb83758384dacc289140f32e270c8bd943db98bd21a36",
   "composite_frozen_history": [
     {
@@ -12,7 +12,10 @@
   "excluded_ids_files": [
     "scripts/data/scope02CreatedIds.json",
     "scripts/data/postV224CreatedIds.json",
-    "scripts/data/scope04CreatedIds.json"
+    "scripts/data/scope04CreatedIds.json",
+    "scripts/data/v231NcCreatedIds.json",
+    "scripts/data/sfWidenFiscalYearsCreatedIds.json",
+    "scripts/data/wehoWideFormatCreatedIds.json"
   ],
   "_frozen_note": "Both digests are computed over current rows MINUS the ids listed in `excluded_ids_files`. created_at is NOT usable to identify the frozen set directly -- 19 of 80,076 rows have it non-NULL -- and committing all ~80k ids would be a ~3MB permanent repo artifact, so the invariant is computed as an exclusion instead of an inclusion list. EVERY milestone that inserts rows MUST append its own created-ids file to `excluded_ids_files` in the same commit as the write.",
   "_rebased_at_v2_30": {
@@ -41,5 +44,39 @@
     "figures": "2d6b948fff272b2292a0c049816054a71a9d1eb7d3bea2303517bf53c536946c",
     "composite": "84c75e1c9c164c01e0c0d2c140825c298cb3fa2c63ca0c0a0f6cdba3ff68ef8b",
     "composite_history": []
+  },
+  "figures_frozen_history": [
+    {
+      "digest": "4cce9d6a8dfe9ac235dfd488f1903243892c7ebc4ac41b17dbd9022bfb068b9a",
+      "superseded_by": "see _rebased_at_v2_33",
+      "rebased": "2026-08-28"
+    }
+  ],
+  "figure_change_files": [
+    "scripts/data/figureChanges.json"
+  ],
+  "_rebased_at_v2_33": {
+    "_what": "Second rebase, from 4cce9d6a8dfe9ac235dfd488f1903243892c7ebc4ac41b17dbd9022bfb068b9a to 90f009fe396d20dcd211258e534ea81c237aa0bddd3d2412680c1dcce3af76fe. Row count unchanged at 79,916.",
+    "_why": "The digest had become unreconstructable a second time, five days after the v2.30 rebase, from TWO independent causes. Cause A was bookkeeping and is now FULLY RESOLVED. Cause B destroyed lineage the same way LA-02 did at v2.30 and cannot be undone, which is what forces this rebase.",
+    "_cause_a_resolved": {
+      "_what": "154 rows were inserted after the v2.30 rebase without a created-ids file, so they sat inside a digest built from 79,916 rows. The count therefore could not reconcile, and the harness reported this as \"a figure moved\" — the wrong condition.",
+      "_attribution_reconciles_exactly": {
+        "v2.31 NC onboarding (PR #58, 2026-08-25)": 138,
+        "SF widen fiscal years (PR #100, 2026-08-27)": 4,
+        "WeHo wide-format year_columns (PR #89, 2026-08-27)": 12,
+        "total": 154
+      },
+      "_resolution": "All 154 identified by id and registered in three per-milestone files. The count now reconciles at exactly 79,916. Derived by provenance and CHECKED against the arithmetic by scripts/writeUnregisteredCreatedIds.mjs, which refuses to write a set that does not reconcile."
+    },
+    "_cause_b_unreconstructable": {
+      "_what": "At least one surviving frozen row had its total_budget deliberately CORRECTED after the rebase. Proven case: PR #83 (2026-08-26) — Dallas held ~$17B of correct line items across FY2025-26 but rendered a $0 total under a broken column_mapping dialect. Repairing it changed four frozen rows from 0 to ~$4.3B/$4.3B/$4.1B/$4.3B.",
+      "_why_it_cannot_be_undone": "A digest term is (id | total_budget). Once the value changes and the old one was never recorded, the original hash input cannot be rebuilt. Excluding the row is wrong — it was genuinely frozen, not new.",
+      "_what_was_tried": "The hash was used as an oracle. 5,272 size-matching exclusion subsets were tested, then trials restoring Dallas (and SF FY2025-26) to 0. None reproduced the original digest, so Cause B is broader than the one documented case and its full extent is NOT established.",
+      "_what_is_proven_and_what_is_not": "PROVEN: the row count reconciles exactly, and all 154 inserts are identified by id. NOT PROVEN: that every surviving figure is unchanged, or how many moved. Adopting the current figures as the new baseline accepts that."
+    },
+    "_why_it_should_not_recur": "Three changes land with this rebase. (1) An authorised-correction LEDGER: a correction records the value it replaced, the digest keeps hashing the old value, and the original hash keeps verifying — so repairing a wrong figure no longer destroys lineage. (2) The harness now DISTINGUISHES an unregistered-rows count mismatch from a real figure change, and says what to do; conflating them is how this check stopped being read across v2.27-v2.29 and again after v2.30. (3) A scheduled workflow runs it, so it cannot rot unnoticed again — nothing ran it before, and npm test does not include it.",
+    "_known_remaining_risk": "7,688 of the 79,916 frozen rows (9.6%) belong to ENABLED, cron-syncing sources. If an upstream publisher revises a figure, the sync rewrites total_budget and this digest moves with no human involved — a drift source no ledger can capture, because no person is there to record it. If that recurs, the fix is to scope the digest to rows NOT under live sync (72,228 of them), which are the only ones \"frozen\" meaningfully describes.",
+    "_date": "2026-08-28",
+    "_authorised_by": "Chris, 2026-08-28, after the two causes were separated and Cause A fully resolved"
   }
 }
