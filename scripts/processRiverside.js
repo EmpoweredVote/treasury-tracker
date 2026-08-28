@@ -19,7 +19,7 @@
  * and charges, which is why it's higher than the net GF of ~$311M-$361M).
  *
  * Data source: "Riverside General Fund Operating Budget" (created by seeder
- * in Plan 01, looked up via treasury_list_source_ids RPC).
+ * in Plan 01, looked up by name).
  *
  * Usage:
  *   node scripts/processRiverside.js                    # load all PDFs

@@ -24,6 +24,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 
+import { listAllSourcesResult } from './lib/listAllSources.mjs';
 // ── Config ──────────────────────────────────────────────────────────────
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -100,11 +101,11 @@ async function main() {
   const muniId = await upsertMunicipality(PORTLAND);
   console.log(`  id: ${muniId}\n`);
 
-  // ── Step 2: Verification via treasury_list_source_ids ────────────────
+  // ── Step 2: Verification via listAllSources (paged) ────────────────
   // data_source rows are created by processPortland.js; check for them here
   // as a post-load confirmation (they may not exist yet before first load).
-  console.log('Verifying via treasury_list_source_ids RPC...');
-  const { data: listing, error: listErr } = await supabase.rpc('treasury_list_source_ids');
+  console.log('Verifying via listAllSources (paged, cap-proof)...');
+  const { data: listing, error: listErr } = await listAllSourcesResult(supabase);
   if (listErr) { console.error(`  ERROR: ${listErr.message}`); process.exit(1); }
 
   const expectedNames = ['Portland Operating Budget FY2025', 'Portland Operating Budget FY2026'];

@@ -19,6 +19,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 
+import { listAllSourcesResult } from './lib/listAllSources.mjs';
 // ── Config ──────────────────────────────────────────────────────────────
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -216,13 +217,13 @@ async function main() {
   console.log(`  fiscal_years: ${JSON.stringify(row.fiscal_years)}`);
   console.log('');
 
-  // ── Verification via treasury_list_source_ids RPC ─────────────────────
-  console.log('Verifying via treasury_list_source_ids RPC...');
+  // ── Verification via listAllSources (paged; NOT the capped RPC) ─────────────────────
+  console.log('Verifying via listAllSources (paged, cap-proof)...');
 
-  const { data: listing, error: listErr } = await supabase.rpc('treasury_list_source_ids');
+  const { data: listing, error: listErr } = await listAllSourcesResult(supabase);
 
   if (listErr) {
-    console.error(`  ERROR calling treasury_list_source_ids: ${listErr.message}`);
+    console.error(`  ERROR listing sources: ${listErr.message}`);
     process.exit(1);
   }
 
@@ -242,7 +243,7 @@ async function main() {
   }
 
   console.log(
-    `  Verification: treasury_list_source_ids returns 1 Los Angeles operating budget source.`
+    `  Verification: the source listing returns 1 Los Angeles operating budget source.`
   );
   for (const r of laBudgetRows) {
     console.log(`  - ${r.name} (${r.dataset_type}) id=${r.id}`);

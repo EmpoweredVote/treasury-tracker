@@ -25,6 +25,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import ExcelJS from 'exceljs';
 
+import { listAllSourcesResult } from './lib/listAllSources.mjs';
 // ── Config ──────────────────────────────────────────────────────────────────
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -388,7 +389,7 @@ async function main() {
   });
 
   // Fetch all data sources
-  const { data: sources, error } = await supabase.rpc('treasury_list_source_ids');
+  const { data: sources, error } = await listAllSourcesResult(supabase);
   if (error) {
     console.error('Failed to list sources:', error.message);
     process.exit(1);

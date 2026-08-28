@@ -35,6 +35,7 @@ import { createHash } from 'node:crypto';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
+import { listAllSourcesResult } from './lib/listAllSources.mjs';
 // ── Config ──────────────────────────────────────────────────────────────────
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -540,7 +541,7 @@ async function main() {
 
   // ── --list: show available PDF data sources ─────────────────────────────────
   if (values.list) {
-    const { data: sources, error } = await supabase.rpc('treasury_list_source_ids');
+    const { data: sources, error } = await listAllSourcesResult(supabase);
     if (error) { console.error('Failed to list sources: ' + error.message); process.exit(2); }
     const pdfSources = (sources || []).filter(s => s.api_type === 'pdf_download');
     if (pdfSources.length === 0) {
@@ -564,7 +565,7 @@ async function main() {
 
   if (values.source) {
     // Path A: --source lookup from data_sources
-    const { data: sources, error } = await supabase.rpc('treasury_list_source_ids');
+    const { data: sources, error } = await listAllSourcesResult(supabase);
     if (error) { console.error('Failed to list sources: ' + error.message); process.exit(2); }
     const matches = (sources || []).filter(s =>
       s.api_type === 'pdf_download' &&
