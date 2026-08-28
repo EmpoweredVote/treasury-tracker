@@ -97,7 +97,7 @@ async function main() {
   for (const [name, expected] of Object.entries(KNOWN_VALUES)) {
     const actual = cityMap.get(name);
     if (actual === undefined) {
-      console.warn(`WARNING: ${name} not in cityMap — cannot verify known value`);
+      console.warn(`WARNING: ${name} not in cityMap â€” cannot verify known value`);
       continue;
     }
     if (Math.abs(actual - expected) / expected > 0.01) {

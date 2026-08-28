@@ -84,7 +84,7 @@ if (!ALL_MODE && (!CITY || !STATE)) {
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!SUPABASE_KEY) {
-  // Do NOT fall back to anon — anon key does not bypass RLS; enrichment writes will fail silently
+  // Do NOT fall back to anon â€” anon key does not bypass RLS; enrichment writes will fail silently
   console.error('Missing SUPABASE_SERVICE_ROLE_KEY (service key required for enrichment writes)');
   process.exit(1);
 }
@@ -363,7 +363,7 @@ async function enrichCategory(cat, municipality, existingResearch = '') {
   const prompt = buildPrompt(cat, municipality, lineItemSummary, vendorSummary, existingResearch);
 
   const response = await anthropic.messages.create({
-    model: process.env.ENRICHMENT_MODEL || 'claude-haiku-4-5-20251001',
+    model: process.env.ENRICHMENT_MODEL || 'claude-haiku-4-5',
     max_tokens: 512,
     messages: [{ role: 'user', content: prompt }],
   });

@@ -60,7 +60,7 @@
 - 83+ universal enrichments (26 CA CAFR + 30 IN statutory + existing)
 - 12 Bloomington-specific official enrichments (bonds with ordinance citations, transit, housing trust)
 - 133 AI-enriched entity-specific categories across all IN municipalities
-- `scripts/enrichCategories.js` — bulk enrichment with `--all`, format detection, `--skip-universal`, uses claude-haiku-4-5-20251001
+- `scripts/enrichCategories.js` — bulk enrichment with `--all`, format detection, `--skip-universal`, uses claude-haiku-4-5
 - `scripts/processEnrichmentQueue.js` — cron queue processor
 - DB trigger `queue_enrichment_trigger` auto-queues new unenriched categories on INSERT
 
