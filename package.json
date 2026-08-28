@@ -20,7 +20,7 @@
     "load-ev-finances": "node scripts/loadEVFinances.js"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.80.0",
+    "@anthropic-ai/sdk": "^0.122.0",
     "@empoweredvote/analytics": "^0.1.3",
     "@empoweredvote/ev-ui": "^0.10.2",
     "@floating-ui/react": "^0.27.19",
