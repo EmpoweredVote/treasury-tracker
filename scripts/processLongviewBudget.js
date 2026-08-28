@@ -343,8 +343,13 @@ function buildTree(deptData) {
         a: adopted,
         i: [{
           d:  deptName,
-          a:  adopted,      // adopted_amount
-          aa: actual,       // actual_amount (2023-24 ACTUAL)
+          // ⚠ aa -> approved_amount, a -> actual_amount in _treasury_insert_tree.
+          // NOTE the trap: the NODE key `a` above is the rollup amount (correctly the
+          // adopted figure), but the ITEM key `a` is actual_amount. Same letter, two
+          // meanings. This emitted `a: adopted, aa: actual` and so filed the adopted
+          // budget as an actual — "Budgeted $0 / Actual $X" (PRs #85, #91, #92).
+          a:  actual,       // -> actual_amount (2023-24 ACTUAL)
+          aa: adopted,      // -> approved_amount (the adopted budget)
           f:  'General Fund',
           e:  null,
         }],

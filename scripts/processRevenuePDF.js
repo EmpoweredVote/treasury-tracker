@@ -931,7 +931,8 @@ function buildTree(rows) {
     const cat  = row.category   || 'General';
     if (!tree.has(dept)) tree.set(dept, new Map());
     if (!tree.get(dept).has(cat)) tree.get(dept).set(cat, []);
-    tree.get(dept).get(cat).push({ d: cat, a: approved, aa: actual, f: row.fund || null, e: null });
+    // ⚠ a -> actual_amount, aa -> approved_amount (see scripts/buildBudgetTree.mjs).
+    tree.get(dept).get(cat).push({ d: cat, a: actual, aa: approved, f: row.fund || null, e: null });
     total += approved;
   }
   const jsonTree = [];

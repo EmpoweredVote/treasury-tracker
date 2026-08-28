@@ -452,7 +452,8 @@ async function processPDF(ds, opts = {}) {
     const sub = row.category || 'General';
     if (!tree.has(cat)) tree.set(cat, new Map());
     if (!tree.get(cat).has(sub)) tree.get(cat).set(sub, []);
-    tree.get(cat).get(sub).push({ d: sub, a: approved, aa: actual, f: row.fund || null, e: null });
+    // ⚠ a -> actual_amount, aa -> approved_amount (see scripts/buildBudgetTree.mjs).
+    tree.get(cat).get(sub).push({ d: sub, a: actual, aa: approved, f: row.fund || null, e: null });
     total += approved;
   }
   const jsonTree = [];

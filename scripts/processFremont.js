@@ -72,7 +72,11 @@ function buildOperatingTree(expenditureItems, approvedIdx, actualIdx) {
     nodes.push({
       n: item.name,
       a: approved,
-      i: [{ d: item.name, a: approved, aa: actual, f: 'General Fund', e: null }],
+      // ⚠ aa -> approved_amount, a -> actual_amount in _treasury_insert_tree. The NODE
+      // `a` above is the rollup (correctly the adopted figure); the ITEM `a` is the
+      // ACTUAL. This was emitted the other way round, filing the adopted budget as an
+      // actual and the Est Actual as the budget.
+      i: [{ d: item.name, a: actual, aa: approved, f: 'General Fund', e: null }],
     });
     total += approved;
   }
@@ -91,7 +95,8 @@ function buildRevenueTree(revenueItems, approvedIdx, actualIdx) {
   for (const item of revenueItems) {
     const approved = toFullDollars(item.amounts[approvedIdx]);
     const actual   = actualIdx !== null ? toFullDollars(item.amounts[actualIdx]) : null;
-    const lineItem = { d: item.name, a: approved, aa: actual, f: 'General Fund', e: null };
+    // ⚠ a -> actual_amount, aa -> approved_amount. See buildOperatingTree above.
+    const lineItem = { d: item.name, a: actual, aa: approved, f: 'General Fund', e: null };
 
     if (TAX_ITEMS.has(item.name)) {
       taxItems.push(lineItem);

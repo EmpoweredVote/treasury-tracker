@@ -173,8 +173,12 @@ function buildTree(deptData) {
         a: adopted,
         i: [{
           d:  group,
-          a:  adopted,
-          aa: null,
+          // ⚠ aa -> approved_amount, a -> actual_amount in _treasury_insert_tree. The NODE
+      // key `a` is the rollup (correctly the adopted figure); the ITEM key `a` is
+      // actual_amount. Same letter, two meanings one line apart — the trap behind
+      // PRs #85, #91, #92 and this one.
+          a:  null,
+          aa: adopted,
           f:  'General Fund',
           e:  null,
         }],
