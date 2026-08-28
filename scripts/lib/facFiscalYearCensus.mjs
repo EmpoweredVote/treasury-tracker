@@ -25,15 +25,16 @@
  * ── Why a state's "usual" month is never the answer ─────────────────────────
  * This census exists because the *generalisation* keeps being wrong:
  *
- *   CA — "cities are July"          → 5 municipalities run October, and TWO OF
+ *   CA — "cities are July"          → 5 municipalities run October across 1998-2025,
+ *                                     and TWO OF
  *                                     THEM ARE GENERAL-LAW cities, so the
  *                                     charter-city framing missed them entirely.
- *   TX — "locals are October"       → 581 of 647 are, but 66 ARE NOT, including
+ *   TX — "locals are October"       → 718 of 842 are, but 124 ARE NOT, including
  *                                     HOUSTON (July) and EL PASO (September),
  *                                     the state's 2nd and 6th largest cities,
  *                                     and 42 entities on a JANUARY calendar —
  *                                     mostly counties.
- *   MD — "locals are July"          → all 74 observed entities are, and that is
+ *   MD — "locals are July"          → all 106 observed entities are, and that is
  *                                     a MEASUREMENT, not an assumption. It is
  *                                     the first state in this arc where the
  *                                     generalisation actually held.
@@ -42,10 +43,9 @@
  * `censusMonthFor()` is the fact. Consult it before applying any default.
  *
  * ── What a census CANNOT tell you ───────────────────────────────────────────
- *   (a) Coverage begins at audit year 2016. A calendar change made earlier is
- *       invisible. (Huntington Beach's 2017 change was caught only because it
- *       falls inside the window.) FAC publishes a separate HISTORIC file for
- *       1998-2015 which would close this; it is not yet loaded.
+ *   (a) Coverage begins at audit year 1998 — the historic archive IS loaded, so
+ *       the old pre-2016 blind spot is closed for every year TT holds. A change
+ *       made before 1998 is still invisible, but every TT row is FY2003+.
  *   (b) An entity below the $750k federal threshold never files, so absence
  *       from the census is NOT evidence of the usual calendar.
  *   (c) A period's END does not reveal its LENGTH. In a changeover year the
@@ -82,28 +82,36 @@ export const STATES = {
     // CA counties are settled by statute — Cal. Gov. Code § 29001(e), "'Budget
     // year' means the fiscal year (July 1 through June 30)" — and are cited in
     // scripts/lib/loaderFiscalCalendars.mjs, so they are not censused here.
-    baseline: { records: 2678, entities: 439, exceptions: 5 },
+    baseline: { records: 7939, entities: 491, exceptions: 5 },
   },
   TX: {
     state: 'TX',
     csv: path.join(REPO, 'docs', 'TX', 'fac-tx-local-fiscal-year-ends.csv'),
     dominantMonth: 10,
     kinds: ['municipality', 'county'],
-    baseline: { records: 2892, entities: 647, exceptions: 66 },
+    baseline: { records: 6975, entities: 842, exceptions: 124 },
   },
   MD: {
     state: 'MD',
     csv: path.join(REPO, 'docs', 'MD', 'fac-md-local-fiscal-year-ends.csv'),
     dominantMonth: 7,
     kinds: ['municipality', 'county'],
-    baseline: { records: 393, entities: 74, exceptions: 0 },
+    baseline: { records: 1119, entities: 106, exceptions: 0 },
   },
 };
 
-/** The audit years every extract covers. A finding outside this is unproven. */
-export const WINDOW = { firstAuditYear: 2016, lastAuditYear: 2026 };
+/**
+ * The audit years every extract covers.
+ *
+ * ⚠ 1998 ONLY BECAUSE THE HISTORIC HALF IS LOADED. The FAC publishes 2016+ and
+ * 1998-2015 as two separate downloads with DIFFERENT SCHEMAS, and a census built
+ * from the modern file alone starts at 2016 — which was this census's blind spot
+ * until the historic archive was merged in. TT holds rows back to FY2003, so
+ * that blind spot covered thirteen years of live data.
+ */
+export const WINDOW = { firstAuditYear: 1998, lastAuditYear: 2026 };
 
-const HEADER = 'entity,kind,audit_year,fy_start_date,fy_end_date,audit_period_covered';
+const HEADER = 'entity,kind,audit_year,fy_start_date,fy_end_date,audit_period_covered,number_months';
 
 /** Parse one committed extract. Deliberately strict — a malformed row throws. */
 export function readEvidence(stateCode) {
@@ -114,11 +122,14 @@ export function readEvidence(stateCode) {
   const header = lines.shift();
   if (header !== HEADER) throw new Error(`unexpected header in ${cfg.csv}: ${header}`);
   return lines.map((line, i) => {
-    const [entity, kind, auditYear, fyStart, fyEnd, period] = line.split(',');
+    const [entity, kind, auditYear, fyStart, fyEnd, period, months] = line.split(',');
     if (!entity || !/^\d{4}$/.test(auditYear ?? '') || !cfg.kinds.includes(kind)) {
       throw new Error(`malformed record at line ${i + 2} of ${cfg.csv}: ${line}`);
     }
-    return { entity, kind, auditYear: Number(auditYear), fyStart, fyEnd, period };
+    return {
+      entity, kind, auditYear: Number(auditYear), fyStart, fyEnd, period,
+      months: months === '' || months === undefined ? null : Number(months),
+    };
   });
 }
 
@@ -143,6 +154,21 @@ export function buildCensus(stateCode, records = readEvidence(stateCode)) {
     census.set(r.entity, entry);
   }
   return census;
+}
+
+/**
+ * `buildCensus` parses a committed file and is therefore pure, but it is not
+ * cheap: the CA extract is ~7,900 records.
+ *
+ * ⚠ `censusGuard` is called ONCE PER ENTITY PER FISCAL YEAR by a loader, and
+ * verifying TT's ~30k California rows against an unmemoised census did not
+ * finish in two minutes. Cache per state; the underlying file does not change
+ * during a run.
+ */
+const CENSUS_CACHE = new Map();
+function cachedCensus(stateCode) {
+  if (!CENSUS_CACHE.has(stateCode)) CENSUS_CACHE.set(stateCode, buildCensus(stateCode));
+  return CENSUS_CACHE.get(stateCode);
 }
 
 /**
@@ -211,7 +237,7 @@ export function exceptions(stateCode, census = buildCensus(stateCode)) {
  * is exactly when a loader should refuse rather than guess.
  */
 export function censusMonthFor(stateCode, entityName, fiscalYear) {
-  const census = buildCensus(stateCode);
+  const census = cachedCensus(stateCode);
   const entry = census.get(entityName);
   if (!entry) {
     return { unknown: `${entityName}, ${stateCode} filed no Single Audit in ${WINDOW.firstAuditYear}-`

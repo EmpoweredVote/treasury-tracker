@@ -131,7 +131,9 @@ describe('censusMonthFor refuses rather than defaults', () => {
   });
 
   it('does not extrapolate outside the audited years', () => {
-    const r = censusMonthFor('TX', 'Houston', 2004);
+    // 1990 predates the FAC entirely. FY2004 no longer qualifies — the historic
+    // archive covers it, which is exactly the gap that closing 1998-2015 filled.
+    const r = censusMonthFor('TX', 'Houston', 1990);
     expect(r.month).toBeUndefined();
     expect(r.unknown).toMatch(/outside the audited years/);
     expect(r.unknown).toMatch(/does not extrapolate/);
@@ -143,6 +145,62 @@ describe('censusMonthFor refuses rather than defaults', () => {
 
   it('throws for a state with no census rather than returning nothing', () => {
     expect(() => readEvidence('ZZ')).toThrow(/no census configured/);
+  });
+});
+
+describe('the 1998-2015 historic archive closes the pre-2016 blind spot', () => {
+  // ⚠⚠ THE GAP THIS CLOSED. The census used to start at audit year 2016 while TT
+  // holds rows back to FY2003, so thirteen years of live data sat outside the
+  // evidence. A pre-2016 calendar change was undetectable — and Huntington
+  // Beach proves such changes happen.
+  it('now answers for the years TT actually holds', () => {
+    expect(WINDOW.firstAuditYear).toBe(1998);
+    for (const fy of [2003, 2008, 2012, 2015]) {
+      expect(censusMonthFor('CA', 'Huntington Beach', fy).month, `FY${fy}`).toBe(10);
+      expect(censusMonthFor('TX', 'Austin', fy).month, `FY${fy}`).toBe(10);
+    }
+  });
+
+  // The corrections made in PR #101 were evidenced from 2016+ filings and a
+  // CAFR. The historic half is INDEPENDENT confirmation of the same rows.
+  it('confirms the CA October cities back to 1998, not just 2016', () => {
+    for (const [city, from] of [['Huntington Beach', 1998], ['Inglewood', 1998],
+      ['South Lake Tahoe', 1998], ['Long Beach', 2000]]) {
+      const months = buildCensus('CA').get(city).byMonth;
+      const october = months.get(10);
+      expect(october[0], `${city} evidence should reach back to ${from}`).toBe(from);
+      expect(censusMonthFor('CA', city, 2003).month, city).toBe(10);
+    }
+  });
+
+  // El Segundo changed TWICE, and the earlier change was invisible before the
+  // historic archive: its FY1998 audit ends 06-30, every audit FY1999-FY2020
+  // ends 09-30, and it returned to June in FY2022.
+  it('reveals the SECOND, earlier El Segundo changeover', () => {
+    const es = buildCensus('CA').get('El Segundo');
+    expect(changeoverYears(es)).toEqual([1999, 2022]);
+    expect(censusMonthFor('CA', 'El Segundo', 1998).month).toBe(7);
+    expect(censusMonthFor('CA', 'El Segundo', 2003).month).toBe(10);
+  });
+
+  // ⚠ The historic half STATES a stub's length; the modern half never does.
+  // These two are textbook fiscal-year changes announcing themselves.
+  it('carries the explicit stub periods the modern data lacks', () => {
+    const tx = readEvidence('TX');
+    const fortBend = tx.find((r) => r.entity === 'Fort Bend County' && r.auditYear === 2002);
+    expect(fortBend.period).toBe('other');
+    expect(fortBend.months).toBe(9);         // Jan-Dec -> Oct-Sep, nine-month stub
+    const corpus = tx.find((r) => r.entity === 'Corpus Christi' && r.auditYear === 2014);
+    expect(corpus.period).toBe('other');
+    expect(corpus.months).toBe(14);          // Aug-Jul -> Oct-Sep, fourteen-month stub
+    // A stub is excluded from month inference — its END is on the new calendar
+    // but its START is on the old one.
+    expect(buildCensus('TX').get('Fort Bend County').byMonth.get(10)).not.toContain(2002);
+  });
+
+  it('leaves MD unchanged: still every observed entity on July', () => {
+    expect(exceptions('MD')).toEqual([]);
+    expect(censusMonthFor('MD', 'Montgomery County', 2003).month).toBe(7);
   });
 });
 
@@ -168,7 +226,7 @@ describe('censusGuard — the second opinion a loader gets', () => {
   // because it has nothing to say — that would make new entities unloadable.
   it('stays silent where it has no evidence', () => {
     expect(censusGuard('Nowhere Ville', 'TX', 10, 2020).ok).toBe(true);
-    expect(censusGuard('Houston', 'TX', 10, 2004).ok).toBe(true);   // before the window
+    expect(censusGuard('Houston', 'TX', 10, 1990).ok).toBe(true);   // before the window
     expect(censusGuard('Anytown', 'WA', 7, 2020).ok).toBe(true);    // no census for WA
     expect(censusGuard('Houston', 'TX', undefined, 2020).ok).toBe(true);
   });

@@ -133,10 +133,11 @@ describe('the gaps are named rather than implied', () => {
     expect(UNEVIDENCED[0].why).toMatch(/no Single Audit|files no/i);
   });
 
-  // The census cannot see a change made before its first audit year. Huntington
-  // Beach changed in 2017 and was caught only because that is inside the window.
-  it('states its own start year, so a pre-2016 change is not implied to be absent', () => {
-    expect(WINDOW.firstAuditYear).toBe(2016);
+  // ✅ The pre-2016 blind spot is CLOSED: the FAC's 1998-2015 archive is merged
+  // in, so the census now covers every fiscal year TT holds (FY2003+). A change
+  // made before 1998 remains invisible, and that is now the honest boundary.
+  it('states its own start year, which is now earlier than any TT row', () => {
+    expect(WINDOW.firstAuditYear).toBe(1998);
     expect(EVIDENCE_CSV).toMatch(/fac-ca-city-fiscal-year-ends\.csv$/);
   });
 });
