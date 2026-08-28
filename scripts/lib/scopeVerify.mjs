@@ -460,12 +460,93 @@ export function checkSeamsClosed(seams, expected = REQUIRED_ABSENT_SEAMS) {
  * EXCEPT the excluded (newly-created) ones: a row that existed at v2.24 must
  * still be present and byte-identical. A frozen row disappearing moves the
  * digest too, which is the point — a delete is exactly as bad as an edit.
+ *
+ * ── THE LEDGER (third parameter) ──────────────────────────────────────────
+ *
+ * `ledger` maps a frozen row's id to the total_budget it held BEFORE an
+ * authorised correction. Ledgered rows hash their OLD value, so the digest
+ * survives the correction; an UNrecorded change still moves it.
+ *
+ * ⚠ WHY THIS WAS NEEDED. This digest became UNRECONSTRUCTABLE TWICE in one
+ * week — rebased at v2.30 after the LA-02 withdrawals, then broken again five
+ * days later. Part of the second break was PR #83: Dallas rendered a $0 total
+ * against ~$17B of correct line items, and repairing that CHANGED a frozen
+ * row's figure. Finding and fixing wrong figures is what TT is FOR. Without a
+ * ledger the invariant fires on its own project's best work, and the recorded
+ * consequence is that people stop reading it — the baseline documents exactly
+ * that across v2.27, v2.28 and v2.29.
+ *
+ * Recording {id, old, new, why} costs a few lines per correction and keeps the
+ * original hash verifying forever, instead of destroying the lineage and
+ * forcing another rebase.
  */
-export function frozenIdDigest(rows, excludedIds) {
+/**
+ * Tell the two frozen-invariant failures apart, and say what to do about each.
+ *
+ * ⚠ WHY THIS EXISTS. The harness printed ONE message for both conditions —
+ * "a row that existed at v2.24 changed or vanished" — when the usual cause was
+ * a milestone forgetting its created-ids file. That message is alarming,
+ * unactionable, and points at the wrong thing, so the rational response is to
+ * stop reading it. The baseline records precisely that across v2.27-v2.29, and
+ * it recurred again after v2.30.
+ *
+ * The harness already had the numbers to distinguish them; it just never used
+ * them. A digest mismatch is only evidence of a changed FIGURE once the row
+ * count reconciles.
+ *
+ * @param {{nonExcludedCount: number, frozenRowCount: number,
+ *          digest: string, expectedDigest: string|null}} o
+ * @returns {{kind: 'ok'|'unregistered_rows'|'missing_rows'|'figure_changed',
+ *            deficit: number, message: string}}
+ */
+export function classifyFrozenDrift({ nonExcludedCount, frozenRowCount, digest, expectedDigest }) {
+  const deficit = nonExcludedCount - frozenRowCount;
+
+  if (deficit > 0) {
+    return {
+      kind: 'unregistered_rows',
+      deficit,
+      message: `${deficit} row(s) are being hashed that were not frozen: `
+        + `${nonExcludedCount} non-excluded vs ${frozenRowCount} frozen. A milestone `
+        + `inserted rows without registering them. Append its created-ids file to `
+        + `\`excluded_ids_files\` in scopeBaseline.json — in the same commit as the write. `
+        + `This is NOT evidence that a figure moved; that cannot be judged until the count reconciles.`,
+    };
+  }
+
+  if (deficit < 0) {
+    return {
+      kind: 'missing_rows',
+      deficit,
+      message: `${-deficit} frozen row(s) have VANISHED: ${nonExcludedCount} non-excluded `
+        + `vs ${frozenRowCount} frozen. A delete is exactly as serious as an edit. `
+        + `If the deletion was authorised, record it before rebasing anything.`,
+    };
+  }
+
+  if (expectedDigest && digest !== expectedDigest) {
+    return {
+      kind: 'figure_changed',
+      deficit: 0,
+      message: `The row count reconciles (${frozenRowCount}), so a SURVIVING row's figure moved. `
+        + `expected ${expectedDigest}, got ${digest}. If the change was an authorised `
+        + `correction, add it to the figure-change ledger with the value it replaced — the `
+        + `digest then keeps verifying and no rebase is needed. If it was not authorised, `
+        + `this is the corruption the invariant exists to catch.`,
+    };
+  }
+
+  return { kind: 'ok', deficit: 0, message: `unchanged (${frozenRowCount} rows)` };
+}
+
+export function frozenIdDigest(rows, excludedIds, ledger = new Map()) {
   const excluded = new Set(excludedIds);
   return sha(rows
     .filter((r) => !excluded.has(r.id))
-    .map((r) => `${r.id}|${nz(r.total_budget)}`)
+    // ⚠ A LEDGERED row hashes the value it REPLACED, not its current one. That
+    // is what lets an authorised correction leave the digest untouched while an
+    // unrecorded change still moves it. See the ledger note below.
+    .map((r) => `${r.id}|${nz(ledger.has(r.id) ? ledger.get(r.id) : r.total_budget)}`)
     .sort()
     .join('\n'));
 }

@@ -1,0 +1,91 @@
+# Run the frozen-figure invariant on a schedule and open an issue when it breaks.
+#
+# Why this exists: NOTHING ran scripts/verify-budget-axes.mjs. `npm test` does not
+# include it (it needs the database, and the vitest suite has no credentials), so
+# it was only ever run by hand. It was found FAILING on 2026-08-28 after an
+# unknown period — and the baseline records the same check going unread across
+# v2.27, v2.28 and v2.29. An invariant nobody runs is not an invariant.
+#
+# Modelled on sco-fiscal-year-watch.yml, including its most important property:
+# a check that cannot reach its source must NOT look like a clean pass.
+name: Frozen-invariant watch
+
+on:
+  schedule:
+    # Weekly, Mondays 06:23 UTC. Off-the-hour on purpose: :00 is the busiest
+    # minute on GitHub's scheduler and delays cron runs.
+    - cron: '23 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: frozen-invariant-watch
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - run: npm ci
+
+      # ⚠ A missing credential must be INCONCLUSIVE, never a pass. Without this
+      # the job would go green while checking nothing — the exact failure mode
+      # this workflow exists to end.
+      - name: Refuse to run blind
+        env:
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          if [ -z "$SUPABASE_SERVICE_KEY" ]; then
+            echo "::error::SUPABASE_SERVICE_KEY is not set, so the invariant cannot be checked. This is INCONCLUSIVE, not a pass."
+            exit 1
+          fi
+
+      - name: Verify the budget axes and the frozen-figure invariant
+        id: check
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          set +e
+          node scripts/verify-budget-axes.mjs > out.txt 2>&1
+          code=$?
+          set -e
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          cat out.txt
+          {
+            echo '### Frozen-invariant watch'
+            echo '```'
+            cat out.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Open an issue when the invariant fails
+        if: steps.check.outputs.exit_code != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          title="Frozen-figure invariant is failing"
+          # Reuse the open issue so a weekly re-check does not pile up duplicates
+          # while a fix is pending.
+          existing=$(gh issue list --state open --search "$title in:title" --json number --jq '.[0].number')
+          body=$(printf 'The scheduled invariant check failed.\n\n```\n%s\n```\n\nThe harness names which condition it is. Read it before acting:\n\n- **ROWS NOT REGISTERED** — a milestone inserted rows without a created-ids file. Append one to `excluded_ids_files`. This is NOT a figure change.\n- **FROZEN ROWS HAVE VANISHED** — a delete is as serious as an edit.\n- **FROZEN FIGURE DIGEST MOVED** — a surviving figure changed. If authorised, add it to `figure_change_files` with the value it replaced; the digest then keeps verifying and no rebase is needed.\n\n⚠ Never regenerate `figures_frozen` to make this pass.\n\nRun: `%s`\n' \
+            "$(cat out.txt)" "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}")
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body" --label "data" || \
+              gh issue create --title "$title" --body "$body"
+          fi
+
+      - name: Fail the run so it is visible
+        if: steps.check.outputs.exit_code != '0'
+        run: exit 1

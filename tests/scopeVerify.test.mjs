@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   pctChange, detectSeams, findDuplicateScopes, checkRequiredSeams,
   figureDigest, compositeDigest, REQUIRED_SEAMS,
-  findIllegalDuplicates, checkSeamsClosed, frozenIdDigest,
+  findIllegalDuplicates, checkSeamsClosed, frozenIdDigest, classifyFrozenDrift,
   SEAMS_CLOSED_BY_SCOPE_02, SEAMS_OPEN_BY_SOURCE_COVERAGE, classifyDuplicates,
 } from '../scripts/lib/scopeVerify.mjs';
 import { SCOPE } from '../scripts/lib/fundScope.mjs';
@@ -443,5 +443,120 @@ describe('frozenIdDigest — exclusion-based (Chris\'s inversion of the brief)',
     const a = frozenIdDigest([{ id: 'a', total_budget: 1 }, { id: 'b', total_budget: 2 }], excludedIds);
     const b = frozenIdDigest([{ id: 'a', total_budget: 1 }], excludedIds);
     expect(b).not.toBe(a);
+  });
+});
+
+/**
+ * The authorised-correction ledger.
+ *
+ * ⚠ WHY THIS EXISTS. `figures_frozen` became UNRECONSTRUCTABLE TWICE in one week
+ * — rebased at v2.30 after the LA-02 withdrawals, and broken again five days
+ * later. The second time, part of the cause was PR #83: Dallas rendered a $0
+ * total against ~$17B of correct line items, and fixing it CHANGED a frozen
+ * row's figure.
+ *
+ * That is the invariant firing on TT's best work. Finding and correcting wrong
+ * figures is the mission; an invariant that treats every correction as
+ * corruption is one people learn to ignore — which the baseline records
+ * happening across v2.27, v2.28 and v2.29.
+ *
+ * The ledger resolves it: a correction is RECORDED with the value it replaced,
+ * and the digest keeps hashing the OLD value. The original hash therefore keeps
+ * verifying across authorised corrections, forever, and no rebase is needed.
+ * An UNrecorded change still moves the digest — that is the whole point.
+ */
+describe('frozenIdDigest — the authorised-correction ledger', () => {
+  const rowsBefore = [{ id: 'a', total_budget: 1 }, { id: 'b', total_budget: 2 }];
+  const rowsAfter = [{ id: 'a', total_budget: 1 }, { id: 'b', total_budget: 999 }];
+
+  it('holds the digest steady across a LEDGERED correction', () => {
+    const before = frozenIdDigest(rowsBefore, []);
+    const after = frozenIdDigest(rowsAfter, [], new Map([['b', 2]]));
+    expect(after).toBe(before);
+  });
+
+  it('still moves for an UNLEDGERED change — the guard must not go soft', () => {
+    const before = frozenIdDigest(rowsBefore, []);
+    const after = frozenIdDigest(rowsAfter, [], new Map());
+    expect(after).not.toBe(before);
+  });
+
+  it('a ledger entry for the wrong row does not mask a real change', () => {
+    const before = frozenIdDigest(rowsBefore, []);
+    const after = frozenIdDigest(rowsAfter, [], new Map([['a', 1]]));
+    expect(after).not.toBe(before);
+  });
+
+  it('accepts the old value as a string, since total_budget arrives as text', () => {
+    const before = frozenIdDigest(rowsBefore, []);
+    const after = frozenIdDigest(rowsAfter, [], new Map([['b', '2']]));
+    expect(after).toBe(before);
+  });
+
+  it('is backward compatible — omitting the ledger behaves exactly as before', () => {
+    expect(frozenIdDigest(rowsBefore, ['new'])).toBe(frozenIdDigest(rowsBefore, ['new'], new Map()));
+  });
+
+  // An excluded row is not frozen at all, so a ledger entry for it is meaningless
+  // and must not resurrect it into the digest.
+  it('ignores a ledger entry for an excluded row', () => {
+    const a = frozenIdDigest([{ id: 'a', total_budget: 1 }], ['x']);
+    const b = frozenIdDigest([{ id: 'a', total_budget: 1 }, { id: 'x', total_budget: 5 }],
+      ['x'], new Map([['x', 4]]));
+    expect(b).toBe(a);
+  });
+});
+
+/**
+ * Telling the two failures apart.
+ *
+ * ⚠ WHY. The harness reported ONE message for both — "a row that existed at
+ * v2.24 changed or vanished" — when the actual condition was usually that a
+ * milestone forgot its created-ids file. That message is alarming, unactionable,
+ * and points at the wrong thing, so the rational response is to stop reading it.
+ * The baseline records exactly that outcome across v2.27, v2.28 and v2.29.
+ *
+ * The harness already HAS the numbers needed to distinguish them. It just never
+ * used them.
+ */
+describe('classifyFrozenDrift', () => {
+  const ok = { nonExcludedCount: 100, frozenRowCount: 100, digest: 'x', expectedDigest: 'x' };
+
+  it('passes when the count and the digest both agree', () => {
+    expect(classifyFrozenDrift(ok).kind).toBe('ok');
+  });
+
+  it('names UNREGISTERED ROWS when more rows are hashed than were frozen', () => {
+    const v = classifyFrozenDrift({ ...ok, nonExcludedCount: 254, digest: 'y' });
+    expect(v.kind).toBe('unregistered_rows');
+    expect(v.deficit).toBe(154);
+    expect(v.message).toMatch(/154/);
+    // It must say what to DO, naming the mechanism.
+    expect(v.message).toMatch(/created-ids|excluded_ids_files/i);
+  });
+
+  it('names MISSING ROWS when rows have vanished', () => {
+    const v = classifyFrozenDrift({ ...ok, nonExcludedCount: 90, digest: 'y' });
+    expect(v.kind).toBe('missing_rows');
+    expect(v.deficit).toBe(-10);
+    expect(v.message).toMatch(/10/);
+  });
+
+  // ⚠ THE ONE THAT MATTERS. Only when the count reconciles is a digest mismatch
+  // actually evidence that a surviving figure moved. Reporting this when the
+  // count is off is what taught everyone to ignore the check.
+  it('reports a FIGURE CHANGE only when the count reconciles', () => {
+    const v = classifyFrozenDrift({ ...ok, digest: 'different' });
+    expect(v.kind).toBe('figure_changed');
+    expect(v.message).toMatch(/ledger/i);
+  });
+
+  it('does not cry figure_changed when the count is off, even though the digest also differs', () => {
+    expect(classifyFrozenDrift({ ...ok, nonExcludedCount: 254, digest: 'y' }).kind)
+      .not.toBe('figure_changed');
+  });
+
+  it('treats a matching digest as ok even if a caller passes no expected digest', () => {
+    expect(classifyFrozenDrift({ ...ok, expectedDigest: null }).kind).toBe('ok');
   });
 });

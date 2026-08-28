@@ -15,7 +15,7 @@
 
 import { readFileSync } from 'node:fs';
 import { getSupabase, fetchScopeRows } from './lib/scopeDb.mjs';
-import { findIllegalDuplicates, classifyDuplicates, frozenIdDigest } from './lib/scopeVerify.mjs';
+import { findIllegalDuplicates, classifyDuplicates, frozenIdDigest, classifyFrozenDrift } from './lib/scopeVerify.mjs';
 
 const LAST_CLOSED_FY = 2025;
 
@@ -96,15 +96,64 @@ const baseline = JSON.parse(readFileSync('scripts/data/scopeBaseline.json', 'utf
 const excludedIds = (baseline.excluded_ids_files
   ?? (baseline.excluded_ids_file ? [baseline.excluded_ids_file] : []))
   .flatMap((rel) => JSON.parse(readFileSync(rel, 'utf8')));
-const digest = frozenIdDigest(rows, excludedIds);
-if (baseline.figures_frozen && digest !== baseline.figures_frozen) {
-  failed = true;
-  console.error(`  ✗ FROZEN FIGURE DIGEST MOVED — a row that existed at v2.24 changed or vanished`);
-  console.error(`      expected ${baseline.figures_frozen}`);
-  console.error(`      got      ${digest}`);
-  console.error('      This is a bug, never a baseline to update.');
+
+// The authorised-correction ledger. Each entry records the value a frozen row
+// held BEFORE an approved correction, so the digest survives the correction
+// while an UNRECORDED change still moves it. Without this, repairing a wrong
+// figure — which is what TT is for — destroys the invariant's lineage and
+// forces a rebase. That happened twice in one week; see scopeBaseline.json.
+const ledger = new Map();
+for (const rel of baseline.figure_change_files ?? []) {
+  for (const e of JSON.parse(readFileSync(rel, 'utf8'))) ledger.set(e.id, e.old);
+}
+
+const excludedSet = new Set(excludedIds);
+const nonExcludedCount = rows.filter((r) => !excludedSet.has(r.id)).length;
+const digest = frozenIdDigest(rows, excludedIds, ledger);
+
+const verdict = classifyFrozenDrift({
+  nonExcludedCount,
+  frozenRowCount: baseline.frozen_row_count,
+  digest,
+  expectedDigest: baseline.figures_frozen,
+});
+
+if (ledger.size) console.log(`  ℹ ${ledger.size} authorised correction(s) applied from the ledger`);
+
+// ⚠ Report the live-sync exposure ALWAYS, pass or fail. A frozen row belonging to
+// an enabled cron-syncing source can have its total_budget rewritten when the
+// upstream publisher revises a figure — with no human involved, so no ledger
+// entry can ever be written for it. That is a drift source the ledger cannot
+// cover, and knowing its size is what makes the next failure diagnosable in
+// minutes instead of an afternoon. If drift recurs here, the fix is to scope the
+// digest to rows NOT under live sync.
+try {
+  const { data: live } = await supabase.schema('treasury').from('data_sources')
+    .select('name').eq('is_enabled', true).not('sync_frequency', 'is', null).limit(5000);
+  const liveNames = new Set((live ?? []).map((d) => d.name));
+  const exposed = rows.filter((r) => !excludedSet.has(r.id) && liveNames.has(r.data_source)).length;
+  const pct = ((exposed / Math.max(nonExcludedCount, 1)) * 100).toFixed(1);
+  console.log(`  ℹ ${exposed.toLocaleString()} of ${nonExcludedCount.toLocaleString()} frozen rows (${pct}%) are under LIVE SYNC — a drift source no ledger can capture`);
+} catch {
+  console.log('  ℹ live-sync exposure could not be measured (data_sources unreadable)');
+}
+
+if (verdict.kind === 'ok') {
+  console.log(`  ✅ ${verdict.message} (${digest.slice(0, 16)}…)`);
 } else {
-  console.log(`  ✅ unchanged (${digest.slice(0, 16)}…)`);
+  failed = true;
+  // ⚠ Name the ACTUAL condition. Reporting "a figure moved" for what is really an
+  // unregistered-rows bookkeeping miss is how this check stopped being read.
+  const title = {
+    unregistered_rows: 'ROWS NOT REGISTERED — the count does not reconcile',
+    missing_rows: 'FROZEN ROWS HAVE VANISHED',
+    figure_changed: 'FROZEN FIGURE DIGEST MOVED — a surviving row changed',
+  }[verdict.kind];
+  console.error(`  ✗ ${title}`);
+  for (const line of verdict.message.match(/.{1,88}(\s|$)/g) ?? []) {
+    console.error(`      ${line.trim()}`);
+  }
+  console.error('      ⚠ Never regenerate figures_frozen to make this pass.');
 }
 
 console.log(failed ? '\n✗ checks failed\n' : '\n✅ all checks passed\n');
