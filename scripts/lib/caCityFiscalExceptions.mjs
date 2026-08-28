@@ -92,8 +92,15 @@ export const CA_FISCAL_EXCEPTIONS = [
   {
     name: 'El Segundo',
     state: 'CA',
-    // ⚠ NOT a charter city. Also changed, three years after Huntington Beach.
+    // ⚠ NOT a charter city, and it changed TWICE — the earlier change was
+    // invisible until the FAC's 1998-2015 archive was merged in. Its FY1998
+    // audit ends 1998-06-30 and every audit from FY1999 to FY2020 ends 09-30, so
+    // it moved to October in 1999 and back to July in 2022.
+    // ⚠ TT holds no El Segundo row before FY2003, so the 1998 era is INERT here;
+    // it is recorded because leaving a known era out is how a later widening of
+    // scope silently picks the wrong month.
     schedule: [
+      { throughFiscalYear: 1998, month: 7 },
       { throughFiscalYear: 2021, month: 10 },
       { month: 7 },
     ],

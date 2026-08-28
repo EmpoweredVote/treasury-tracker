@@ -52,6 +52,15 @@ docs/*
 !docs/CA/
 docs/CA/*
 !docs/CA/fac-ca-city-fiscal-year-ends.csv
+!docs/TX/
+docs/TX/*
+!docs/TX/fac-tx-local-fiscal-year-ends.csv
+!docs/MD/
+docs/MD/*
+!docs/MD/fac-md-local-fiscal-year-ends.csv
+# The FAC bulk download itself is 266 MB and is NEVER committed — regenerate the
+# extracts above with `node scripts/buildFacFiscalYearCensus.mjs --download`.
+.fac-general.csv
 
 # Supabase temp files
 supabase/.temp/
