@@ -460,12 +460,34 @@ export function checkSeamsClosed(seams, expected = REQUIRED_ABSENT_SEAMS) {
  * EXCEPT the excluded (newly-created) ones: a row that existed at v2.24 must
  * still be present and byte-identical. A frozen row disappearing moves the
  * digest too, which is the point — a delete is exactly as bad as an edit.
+ *
+ * ── THE LEDGER (third parameter) ──────────────────────────────────────────
+ *
+ * `ledger` maps a frozen row's id to the total_budget it held BEFORE an
+ * authorised correction. Ledgered rows hash their OLD value, so the digest
+ * survives the correction; an UNrecorded change still moves it.
+ *
+ * ⚠ WHY THIS WAS NEEDED. This digest became UNRECONSTRUCTABLE TWICE in one
+ * week — rebased at v2.30 after the LA-02 withdrawals, then broken again five
+ * days later. Part of the second break was PR #83: Dallas rendered a $0 total
+ * against ~$17B of correct line items, and repairing that CHANGED a frozen
+ * row's figure. Finding and fixing wrong figures is what TT is FOR. Without a
+ * ledger the invariant fires on its own project's best work, and the recorded
+ * consequence is that people stop reading it — the baseline documents exactly
+ * that across v2.27, v2.28 and v2.29.
+ *
+ * Recording {id, old, new, why} costs a few lines per correction and keeps the
+ * original hash verifying forever, instead of destroying the lineage and
+ * forcing another rebase.
  */
-export function frozenIdDigest(rows, excludedIds) {
+export function frozenIdDigest(rows, excludedIds, ledger = new Map()) {
   const excluded = new Set(excludedIds);
   return sha(rows
     .filter((r) => !excluded.has(r.id))
-    .map((r) => `${r.id}|${nz(r.total_budget)}`)
+    // ⚠ A LEDGERED row hashes the value it REPLACED, not its current one. That
+    // is what lets an authorised correction leave the digest untouched while an
+    // unrecorded change still moves it. See the ledger note below.
+    .map((r) => `${r.id}|${nz(ledger.has(r.id) ? ledger.get(r.id) : r.total_budget)}`)
     .sort()
     .join('\n'));
 }

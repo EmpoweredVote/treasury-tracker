@@ -445,3 +445,64 @@ describe('frozenIdDigest — exclusion-based (Chris\'s inversion of the brief)',
     expect(b).not.toBe(a);
   });
 });
+
+/**
+ * The authorised-correction ledger.
+ *
+ * ⚠ WHY THIS EXISTS. `figures_frozen` became UNRECONSTRUCTABLE TWICE in one week
+ * — rebased at v2.30 after the LA-02 withdrawals, and broken again five days
+ * later. The second time, part of the cause was PR #83: Dallas rendered a $0
+ * total against ~$17B of correct line items, and fixing it CHANGED a frozen
+ * row's figure.
+ *
+ * That is the invariant firing on TT's best work. Finding and correcting wrong
+ * figures is the mission; an invariant that treats every correction as
+ * corruption is one people learn to ignore — which the baseline records
+ * happening across v2.27, v2.28 and v2.29.
+ *
+ * The ledger resolves it: a correction is RECORDED with the value it replaced,
+ * and the digest keeps hashing the OLD value. The original hash therefore keeps
+ * verifying across authorised corrections, forever, and no rebase is needed.
+ * An UNrecorded change still moves the digest — that is the whole point.
+ */
+describe('frozenIdDigest — the authorised-correction ledger', () => {
+  const rowsBefore = [{ id: 'a', total_budget: 1 }, { id: 'b', total_budget: 2 }];
+  const rowsAfter = [{ id: 'a', total_budget: 1 }, { id: 'b', total_budget: 999 }];
+
+  it('holds the digest steady across a LEDGERED correction', () => {
+    const before = frozenIdDigest(rowsBefore, []);
+    const after = frozenIdDigest(rowsAfter, [], new Map([['b', 2]]));
+    expect(after).toBe(before);
+  });
+
+  it('still moves for an UNLEDGERED change — the guard must not go soft', () => {
+    const before = frozenIdDigest(rowsBefore, []);
+    const after = frozenIdDigest(rowsAfter, [], new Map());
+    expect(after).not.toBe(before);
+  });
+
+  it('a ledger entry for the wrong row does not mask a real change', () => {
+    const before = frozenIdDigest(rowsBefore, []);
+    const after = frozenIdDigest(rowsAfter, [], new Map([['a', 1]]));
+    expect(after).not.toBe(before);
+  });
+
+  it('accepts the old value as a string, since total_budget arrives as text', () => {
+    const before = frozenIdDigest(rowsBefore, []);
+    const after = frozenIdDigest(rowsAfter, [], new Map([['b', '2']]));
+    expect(after).toBe(before);
+  });
+
+  it('is backward compatible — omitting the ledger behaves exactly as before', () => {
+    expect(frozenIdDigest(rowsBefore, ['new'])).toBe(frozenIdDigest(rowsBefore, ['new'], new Map()));
+  });
+
+  // An excluded row is not frozen at all, so a ledger entry for it is meaningless
+  // and must not resurrect it into the digest.
+  it('ignores a ledger entry for an excluded row', () => {
+    const a = frozenIdDigest([{ id: 'a', total_budget: 1 }], ['x']);
+    const b = frozenIdDigest([{ id: 'a', total_budget: 1 }, { id: 'x', total_budget: 5 }],
+      ['x'], new Map([['x', 4]]));
+    expect(b).toBe(a);
+  });
+});
