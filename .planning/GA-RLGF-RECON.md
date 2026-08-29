@@ -31,6 +31,25 @@ shape, and §4.2 says to answer ACFR and move on when recon hits that wall.
 files themselves need no session, no cookie, and no terms acceptance.
 **Probe before classifying an app by its framework.**
 
+### ⚠ CORRECTION — TED has a working bulk File Export
+
+Recon recorded TED (`ted.cviog.uga.edu`) as copy-paste only, on the strength of
+its `LocalGovernmentIncomeItem` page saying *"Text may be copied and pasted from
+above table to Excel."* **That was wrong.** A corroborating agent reached
+`https://ted.cviog.uga.edu/FileExport` and pulled Milledgeville's full FY2016-2025
+revenue series, plus peer cities, as real workbook exports.
+
+TED is therefore a SECOND independent access path to the same RLGF data, and a
+genuinely independent one — it is a different publisher pipeline, not a
+re-serving of the DCA `.xls`. It was used to corroborate the Milledgeville
+anomaly below and it confirmed the figure.
+
+⚠ Not adopted as this loader's source: the DCA workbooks carry the full printed
+form (function x object detail = the icicle), and TED's export is flatter. But
+**TED is the right cross-check for any future GA figure**, and a candidate for
+the statewide sweep. Its own site warns users to validate its data against
+alternate sources.
+
 ### Entity codes
 
 `CICOID` encodes type + county: `1`=county, `2`=municipality, `3`=consolidated,
