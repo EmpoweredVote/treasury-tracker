@@ -286,7 +286,11 @@ async function main() {
     console.log(`\n⚠ ANOMALIES — the publisher's extract disagrees with its own printed form (${anomalies.length}).`);
     console.log('  The printed form is loaded; these are recorded, not suppressed. See the Milledgeville Rule.');
     for (const a of anomalies) {
-      console.log(`   ${a.entity} FY${a.fiscalYear} ${a.section} ${a.code}: form ${a.form.toLocaleString()} vs extract ${a.extract.toLocaleString()}`);
+      // ⚠ `extract` is null when the publisher's cell is an Excel error — a
+      // different fact from "the extract says zero", and the reason this prints
+      // #REF! rather than a number.
+      const extract = a.extract === null ? '#REF! (no value)' : a.extract.toLocaleString();
+      console.log(`   ${a.entity} FY${a.fiscalYear} ${a.section} ${a.code} "${a.label}": form ${a.form.toLocaleString()} vs extract ${extract}`);
     }
   }
 

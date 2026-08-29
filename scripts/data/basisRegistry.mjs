@@ -278,6 +278,33 @@ export const BASIS_REGISTRY = [
     },
   },
   {
+    // Knight campaign, session 4 — Georgia DCA Report of Local Government Finances.
+    // ⚠ Placed ABOVE the adopted-budget catch-all for the same reason as the
+    // Florida entry below: these labels contain "Revenue", and the RLGF is
+    // emphatically a closed-year REPORT, not a budget.
+    id: 'ga-dca-rlgf',
+    match: /^Georgia DCA Report of Local Government Finances — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, (?:self-reported|preparer-certified audited|audit status not stated)\)$/,
+    value: BASIS.ACTUAL,
+    evidence: {
+      document: 'The RLGF is a CLOSED-YEAR filing by rule. Ga. Comp. R. & Regs. 110-3-1 '
+              + 'requires each local government to "complete a report annually and submit it to '
+              + 'the Georgia Department of Community Affairs" covering "the revenues, '
+              + 'expenditures, assets, and debts of all funds and agencies of the local '
+              + 'government", within six months of the fiscal year end. The form '
+              + 'itself is captioned for the "Fiscal Year Ended" and instructs "Use Audit '
+              + 'figures if available" — an instruction that only makes sense for a year that '
+              + 'has closed. Read 2026-08-29.',
+      figures: 'Corroborated arithmetically, not taken on trust. Each filing carries its own '
+             + 'printed subtotal and grand-total rows, and the parse reproduces every one of '
+             + 'them: 684 of 684 oracle checks across all 38 loaded filings, 0 failed, 0 '
+             + 'skipped — section subtotals, Part I / Part III / Own Source Revenues rollups, '
+             + 'and Total Part V. A figure that reconciles to the year-end totals printed on '
+             + 'the form itself is an actual, not an appropriation. ⚠ The form also carries a '
+             + '`Audited` certification flag, which is about ASSURANCE, not basis, and is '
+             + 'handled on the audit_grade axis instead.',
+    },
+  },
+  {
     // Knight campaign, session 3 — Florida DFS LOGERx Annual Financial Reports.
     // ⚠ Placed ABOVE the adopted-budget catch-all, on the `ca-sco-derived-tg`
     // precedent. That entry matches on /(Operating|Revenue|...).*Budget.../i and

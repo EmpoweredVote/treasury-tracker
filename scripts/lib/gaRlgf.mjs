@@ -637,6 +637,17 @@ export function buildIntergovFromPage(pages, blocks, valueCols = [7, 8, 9]) {
   return { items, expected, actual, columnsTie };
 }
 
+/**
+ * Label for a revenue key, falling back to the BARE code.
+ * ⚠ The page prints the first variant of a split line without its suffix
+ * (`31.4200` for what LOAD1 calls `31_4200A`), so the suffixed key has no label
+ * of its own. Without this fallback an anomaly record reads `"31_4200A"` where a
+ * human needs "Alcoholic Beverage Excise Taxes - Beer & Wine".
+ */
+function revenueLabel(labels, key) {
+  return labels[key] || labels[key.replace(/[A-E]$/, '')] || key;
+}
+
 /** Build the revenue tree (Parts I-III). Part IV (enterprise) is excluded. */
 export function buildRevenueTree(blocks, labels, pages, pageValues, anomalies = []) {
   const roots = [];
@@ -660,13 +671,13 @@ export function buildRevenueTree(blocks, labels, pages, pageValues, anomalies = 
         if (onPage && (errored || (inLoad1 && Math.abs(pageValues[key] - load) > 0.005))) {
           anomalies.push({
             kind: errored ? 'extract_cell_is_excel_error' : 'extract_disagrees_with_form',
-            section: section.id, code: key, label: labels[key] || key,
+            section: section.id, code: key, label: revenueLabel(labels, key),
             form: pageValues[key],
             extract: errored ? null : load,
             delta: errored ? null : load - pageValues[key],
           });
         }
-        items.push({ code: key, label: labels[key] || key, amount });
+        items.push({ code: key, label: revenueLabel(labels, key), amount });
       }
     }
     const amount = items.reduce((a, i) => a + i.amount, 0);

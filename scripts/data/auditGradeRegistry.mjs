@@ -160,6 +160,52 @@ export const AUDIT_GRADE_REGISTRY = [
     },
   },
   {
+    // ⚠⚠ Knight session 4 — Georgia is NEITHER the NC answer NOR the FL answer,
+    // and the difference is worth stating because the campaign has now hit all
+    // three shapes in three consecutive sessions.
+    //
+    // NC LGC: publisher says "self-reported"        -> ACFRs instead, audited_gaap
+    // FL DFS: publisher RECONCILES to the audit     -> compiled_from_audited
+    // GA DCA: publisher DISCLAIMS, and no one checks -> self_reported_unaudited
+    //
+    // ⚠ THE PATTERN MATCHES ALL THREE AUDIT BRANCHES ON PURPOSE. Unlike Florida
+    // — where only the `audit-reconciled` branch earns its grade and the DEW
+    // branch is deliberately unregistered — every Georgia branch grades the
+    // same, because a preparer's own YES adds no independent assurance. The
+    // branch is still carried in the source string so the distinction stays
+    // visible and re-gradable WITHOUT a reload if that judgement ever changes.
+    id: 'ga-dca-rlgf',
+    match: /^Georgia DCA Report of Local Government Finances — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, (?:self-reported|preparer-certified audited|audit status not stated)\)$/,
+    value: AUDIT_GRADE.SELF_REPORTED_UNAUDITED,
+    evidence: {
+      document: 'Georgia Department of Community Affairs, Report of Local Government Finances, '
+        + 'and the Ga. Comp. R. & Regs. 110-3-1 that governs it '
+        + '(https://rules.sos.ga.gov/gac/110-3-1 and '
+        + 'https://dca.georgia.gov/community-assistance/government-authority-reporting/'
+        + 'report-local-government-finance-rlgf), read 2026-08-29. '
+        + 'THERE IS NO RECONCILIATION STEP — which is precisely what earned Florida DFS its '
+        + 'compiled_from_audited grade one session earlier. DCA receives the form and '
+        + 'publishes it.',
+      figures: 'Verbatim, Rule 110-3-1: "This information does not have to be audited but the '
+        + 'use of audited data is encouraged if the audit is available." '
+        + 'Verbatim, the form itself, Page 1: "DCA cannot certify the accuracy of the report '
+        + 'figures submitted." '
+        + 'Verbatim, the UGA Carl Vinson Institute of Government, which publishes the data '
+        + 'portal for the General Assembly (https://ted.cviog.uga.edu): "The data on revenues '
+        + 'and expenditures collected by DCA may or may not be audited amounts or may be '
+        + 'reported on the RLGF using an accounting basis other than that used in the local '
+        + 'government’s financial reports." '
+        + 'The publisher therefore disclaims BOTH the audit and the accounting basis. '
+        + '⚠ THE FORM DOES CARRY A PER-YEAR CERTIFICATION FLAG (Part XV, "Report uses '
+        + 'AUDITED Figures"), and it flips WITHIN a single entity: Milledgeville answered YES '
+        + 'in FY2016-17, NO in FY2019-24, then YES again in FY2025, while Columbus-Muscogee '
+        + 'answered YES in all ten years and Macon-Bibb NO in all but two, which it left '
+        + 'blank. That is a first-party claim with nothing behind it, so it does not lift the '
+        + 'grade (Chris’s call, 2026-08-29) — but it is the strongest evidence yet '
+        + 'that this axis must live per ROW and not per source.',
+    },
+  },
+  {
     id: 'ca-sco-city-exp',
     match: /^CA State Controller - Expenditures$/,
     value: AUDIT_GRADE.SELF_REPORTED_UNAUDITED,

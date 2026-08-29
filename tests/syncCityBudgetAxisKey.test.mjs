@@ -71,6 +71,17 @@ const EXEMPT = {
  * would be duplicated by a re-run if they stopped.
  */
 const REQUIRED = {
+  // ⚠ Georgia is the first REQUIRED caller whose pair is MIXED — `unknown`
+  // scope with a real `actual` basis — so it is worth being explicit about why
+  // it is not EXEMPT. EXEMPT means "omits the params because the family is
+  // wholly unknown/unknown"; this loader PASSES both, and its rows are born
+  // unknown/actual. Omitting them would ask for unknown/unknown, match nothing
+  // on a re-run, and duplicate all 66 rows.
+  // ⚠ fund_scope is `unknown` DELIBERATELY, not pending: RLGF Part V excludes
+  // debt service, so the figures understate a true total_governmental by ~5.5%
+  // and there is no registry entry claiming otherwise. If a scope is ever
+  // asserted for this family, THIS LOADER MUST CHANGE IN THE SAME COMMIT.
+  'loadGeorgiaRLGF.mjs': 'Georgia DCA RLGF — 66 rows, unknown/actual (scope unknown on purpose)',
   'loadFloridaDFS.mjs': 'Florida DFS AFR — 190 rows, total_governmental/actual',
   'loadOhioAOS.js': 'Ohio AOS — 6,616 rows, total_governmental/actual',
   'loadMNOSA.js': 'MN OSA — 21,794 rows, total_governmental/actual',
