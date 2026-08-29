@@ -308,6 +308,168 @@ second reader is not merely unable to read the page — it reads it *confidently
 wrongly*. The independent oracle for these two is therefore the issuer's own
 **printed total** on the statement (§5.2), not a second reader.
 
+## Florida — the recon gate (session 3)
+
+### ✅ THE DESIGN'S ASSUMPTION WAS RIGHT HERE — FL DFS **IS** AUDIT-DERIVED
+
+Session 2 refuted the `compiled_from_audited` prediction for NC LGC and left the
+same claim for **FL DFS** explicitly unverified, with instructions to check it the
+same way before sequencing. **Verified 2026-08-29 — and unlike NC, it holds.**
+
+The chain of evidence, in the order it was gathered, because the first two steps
+alone would have produced the *wrong* answer:
+
+**1. The statute reads like a self-report.** § 218.32(1)(a), F.S., verbatim:
+
+> "Each local governmental entity ... shall **submit to the department** a copy of
+> its annual financial report for the previous fiscal year in a format prescribed
+> by the department. ... The chair of the governing body and the chief financial
+> officer of each local governmental entity shall **sign** the annual financial
+> report submitted pursuant to this subsection **attesting to the accuracy** of
+> the information included in the report."
+
+**2. The rule confirms the AFR and the audit are two separate artifacts.**
+Rule 69I-51.003, F.A.C., verbatim:
+
+> (2) "The following government entities shall **complete and electronically
+> submit** the annual financial report to the Department through the LOGER
+> program..."
+>
+> (3) "The annual financial report **and either a copy of the government entity's
+> audited financial statements or the Auditor General's Data Element Worksheet**
+> shall be submitted to the Department..."
+
+⚠⚠ **Stopping here would have graded Florida `self_reported_unaudited` — the NC
+answer — and it would have been WRONG.** The entity does prepare and attest the
+AFR, and the audit is a separate accompanying document. What that misses is what
+the Department then *does* with the pair.
+
+**3. The publisher states it reconciles the two.** DFS, *Local Government
+Electronic Reporting in XBRL (LOGERx)* manual, **Revised 11/2025, page 13**,
+verbatim:
+
+> "When you certify and submit your AFR, the status becomes **Certified by
+> Entity**. After Department staff **reconciles the AFR to the provided audited
+> financial statements** or Data Element Worksheet, the status will become
+> **Verified by DFS**. If the AFR **does not reconcile** to the audited financial
+> statements or Data Element Worksheet, the AFR will be placed in **Returned by
+> DFS** status until the data can be corrected."
+
+That is § 3.5's standard met in the agency's own words: DFS does not merely
+receive the figures, it **agrees them to the audited financial statements** and
+refuses to publish them as verified until they tie. This is the distinction that
+separates `compiled_from_audited` from `self_reported_unaudited`, and Florida is
+on the correct side of it.
+
+Source: `https://www.myfloridacfo.com/docs-sf/accounting-and-auditing-libraries/manuals/local-government/logerx-manual-2025.pdf`
+
+### ⚠ It is a MIXED source — but the branch is identifiable PER ENTITY PER YEAR
+
+The reconciliation is against "the audited financial statements **or** Data
+Element Worksheet." The DEW branch is the one taken when **no audit was
+performed** — small entities below the § 218.39 thresholds. So the dataset spans
+both grades, which is the Colorado DOLA shape § 3.5 warns about:
+
+> "Where a source is mixed ... the grade reflects the weaker branch **unless the
+> specific entity's filing can be identified.**"
+
+**Here it can be identified, publicly, per entity per year.** The public
+`PUBLICCOMPLIANTGOVS` system report carries `AFR Received Date`, **`Audit Received
+Date`** and **`Audit Completion Date`** columns. An entity with an audit date for
+that year reconciled against an audit; one without took the DEW branch.
+
+All seven session-3 targets carry both audit dates for FY2023:
+
+    100013 County Miami-Dade   9/30  audit recd 2024-06-28  completed 2024-06-26
+    100037 County Leon         9/30  audit recd 2024-06-10  completed 2024-05-22
+    100041 County Manatee      9/30  audit recd 2024-03-07  completed 2024-02-16
+    100050 County Palm Beach   9/30  audit recd 2024-06-14  completed 2024-03-26
+    200037 City   Bradenton    9/30  audit recd 2024-06-27  completed 2024-03-15
+    200239 City   Miami        9/30  audit recd 2024-04-15  completed 2024-03-29
+    200359 City   Tallahassee  9/30  audit recd 2024-06-10  completed 2024-04-26
+
+⚠ **The audit flag must be checked per entity PER YEAR, not once.** It is a
+property of a filing, not of a government — exactly the reason `audit_grade` is a
+per-row column (§ 3.3) and the reason Madison is the vocabulary's proof case.
+**A loader that grades the whole state `compiled_from_audited` off one year's
+compliance report would be making the § 3.4 mistake in a new place.**
+
+### Recon outcome = **BULK**, and the access is the cleanest TT has seen
+
+Free, no auth, no API key, no ToS gate, no stateful session. One anonymous
+`POST` returns a statewide workbook:
+
+    POST https://logerx.myfloridacfo.gov/api/document/systemReport
+    {"afrYear":2023,"reportFormat":"EXCEL","reportName":"REVENUEDETAILREPORT"}
+    -> {"mimeType":"application/vnd...sheet","content":"<base64 xlsx>"}
+
+Public (`adminOnly:false`) reports that matter:
+
+| `reportName` | Contents | From |
+|---|---|---|
+| `REVENUEDETAILREPORT` | Revenue by account × fund, all entities | FY2012 |
+| `EXPENDITUREDETAILREPORT` | Expenditure by function × object × fund | FY2012 |
+| `BALANCESHEETDETAILREPORT` | Balance sheet by account × fund | FY2022 |
+| `TOTALREVEXPDEBT` | Totals + long-term debt | FY2012 |
+| `REVACCOUNTS` / `EXPENDACCOUNTS` | The account-code taxonomy itself | FY2012 |
+| `PUBLICCOMPLIANTGOVS` | AFR + **audit** receipt dates, and `FYE` | FY2012 |
+
+⚠ The API is **anonymous for admin-flagged reports too** — `adminOnly` is a UI
+flag, not an access control. The `*UNCERTIFIED` variants ("includes unverified
+data") were deliberately **not** harvested. TT loads the public, verified reports;
+that is both the right data and the right boundary.
+
+### Granularity — icicle-grade, with `fund_scope` falling out of the source
+
+`EXPENDITUREDETAILREPORT` FY2023: **30,185 rows, 1,871 entities** (409 cities, 66
+counties, 1,377 special districts, 19 other). The shape:
+
+    Code   | Name  | Account              | Object Code             | 12 fund columns
+    200239 | Miami | 511.00 - Legislative | 10 - Personnel Services | General, Special
+                                                                      Revenue, Debt
+                                                                      Service, Capital
+                                                                      Projects, Permanent,
+                                                                      Enterprise, Internal
+                                                                      Service, Custodial,
+                                                                      Pension, Trust,
+                                                                      Private Purpose,
+                                                                      Component Units
+
+A **two-level tree** (function → object code) on the expenditure side and
+account → dwelling/fee type on the revenue side, with the **funds as columns**.
+⚠ This means `fund_scope` is **read from the source, not inferred** — the General
+column is `general_fund` and the governmental columns sum to `total_governmental`,
+which is the SCOPE-04 derivation done by the publisher rather than by TT. That is
+better provenance than most sources TT holds.
+
+Per-entity depth, FY2023: Miami-Dade 220 rows, Manatee 158, Palm Beach 156, Leon
+131, Miami 78, Tallahassee 75, Bradenton 57.
+
+### ⚠⚠ Traps found during recon, before any loader exists
+
+1. **Florida is an OCTOBER state.** `FYE` is `9/30` for **all 262 cities and 49
+   counties** in the FY2023 compliance report, so `fiscal_year_start_month = 10`.
+   **NC was 7. Do not carry the month across** — `project_fysm_column_default_one_defect`
+   is precisely this failure. It must still be resolved **per row** from the FAC
+   census (§ 4.6), not from this column. 11 entities file 6/30, 7 file 12/31 and
+   1 files 4/30 — all non-city/county, but proof the state is not uniform.
+2. **FY2025 is INCOMPLETE and looks complete.** 1,281 entities filed vs 1,918 for
+   FY2024, and **only 4 of the 7 targets are present** (Manatee, Palm Beach,
+   Miami, Tallahassee — Miami-Dade, Leon and Bradenton are absent). The workbook
+   for a partial year is a well-formed workbook. **Check presence per entity per
+   year; never infer a year is whole from the file downloading successfully.**
+3. **`Palm Beach` is TWO governments.** Code `100050` is Palm Beach *County*;
+   code `200287` is the *Town of* Palm Beach. A name-based match silently
+   collides. Join on `Code`, never on `Name`. (Same family: `Miami` 200239 vs
+   `Miami Beach`, `North Miami`, `Miami Gardens`, `Miami Lakes`,
+   `Miami Shores Village`, `Miami Springs`, `South Miami`, `West Miami`.)
+4. **The entity roster endpoint returns `id: null` for every row** —
+   `GET /api/entity/all` (3,299 entities, no auth) is authoritative for `code`,
+   `name`, `status`, but its `id` field is nulled, and the `/visualization/*`
+   endpoints want that internal id. Use `code`; do not build on `/visualization/*`.
+5. `www.myfloridacfo.com` **refuses port 80** — the `http://` links on DFS's own
+   manuals page time out. Rewrite to `https://` before fetching.
+
 ---
 
 ## Entity status
