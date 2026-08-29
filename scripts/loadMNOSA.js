@@ -452,6 +452,15 @@ export async function importDataset(supabase, municipalityId, fiscalYear, datase
     p_source_date: sourceDate,
     // Minn. Stat. § 471.696 puts every MN city and town on the calendar year, and
     // the OSA's own county report is "For the Year Ended December 31". Month 1.
+    // ⚠⚠ THE RPC'S TARGET LOOKUP KEY INCLUDES fund_scope AND basis, and both
+    // default to 'unknown'. Every row of this family is stamped total_governmental/actual,
+    // so omitting these matches NOTHING on a re-run and the RPC takes its INSERT
+    // branch — silently duplicating 21,794 rows instead of updating them.
+    // Proven read-only before fixing: the omitted-params lookup returned 0 rows
+    // for a real loaded entity-year while the passed-params lookup returned 1.
+    // See tests/syncCityBudgetAxisKey.test.mjs.
+    p_fund_scope: 'total_governmental',
+    p_basis: 'actual',
     p_fiscal_year_start_month: monthForSource(DATA_SOURCE_NAME),
   });
   if (error) { console.error(`  RPC error (${datasetType}): ${error.message}`); return null; }

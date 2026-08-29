@@ -113,6 +113,53 @@ export const AUDIT_GRADE_REGISTRY = [
     evidence: NC_ACFR_EVIDENCE,
   },
   {
+    // ⚠⚠ TT'S FIRST `compiled_from_audited` SOURCE — and the design predicted
+    // the WRONG state for it. §4.3 named NC LGC and FL DFS as the two
+    // audit-derived candidates; session 2 refuted NC, and session 3 confirms FL.
+    //
+    // ⚠ THE PATTERN MATCHES ONLY THE `audit-reconciled` BRANCH. Florida is a
+    // MIXED source: DFS reconciles the AFR to "the provided audited financial
+    // statements OR Data Element Worksheet", and the DEW branch is taken when no
+    // audit was performed. There is deliberately NO entry for `DEW-reconciled`
+    // here — no such row has been loaded, and §3.5's rule is that an entry is
+    // created when its evidence is. `scripts/loadFloridaDFS.mjs` refuses to
+    // write a DEW-branch row without an explicit `--allow-dew`, so the two can
+    // never be conflated by accident.
+    id: 'fl-dfs-afr-audited',
+    match: /^Florida DFS Annual Financial Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[2-9]|2[0-5]) actual, audit-reconciled\)$/,
+    value: AUDIT_GRADE.COMPILED_FROM_AUDITED,
+    evidence: {
+      document: 'Florida Department of Financial Services, "Local Government Electronic Reporting '
+        + 'in XBRL (LOGERx)" manual, Revised 11/2025, page 13 — the publisher\'s own description '
+        + 'of what it does with a filing '
+        + '(https://www.myfloridacfo.com/docs-sf/accounting-and-auditing-libraries/manuals/'
+        + 'local-government/logerx-manual-2025.pdf), read 2026-08-29. '
+        + '⚠ THE STATUTE AND THE RULE ALONE WOULD HAVE PRODUCED THE WRONG ANSWER. '
+        + 's. 218.32(1)(a), F.S. has the entity "submit to the department a copy of its annual '
+        + 'financial report", signed by the chair and CFO "attesting to the accuracy" of it, and '
+        + 'Rule 69I-51.003(3), F.A.C. treats the AFR and the audited statements as two SEPARATE '
+        + 'submissions. Read that far, Florida looks exactly like North Carolina — self-reported. '
+        + 'What both miss is what the Department then does with the pair.',
+      figures: 'Verbatim, LOGERx manual p.13: "When you certify and submit your AFR, the status '
+        + 'becomes Certified by Entity. After Department staff RECONCILES THE AFR TO THE PROVIDED '
+        + 'AUDITED FINANCIAL STATEMENTS or Data Element Worksheet, the status will become Verified '
+        + 'by DFS. If the AFR DOES NOT RECONCILE to the audited financial statements or Data '
+        + 'Element Worksheet, the AFR will be placed in Returned by DFS status until the data can '
+        + 'be corrected." DFS agrees the figures to the audit and refuses to publish them as '
+        + 'verified until they tie — the §3.5 standard for a state agency compiling from audited '
+        + 'statements, in the agency\'s own words. '
+        + 'WHICH BRANCH APPLIED IS PUBLIC PER FILING, which is what keeps this out of the '
+        + '"mixed source takes the weaker branch" rule that holds CA SCO down: the public '
+        + 'PUBLICCOMPLIANTGOVS and PUBLICNONCOMPLIANTGOVS reports carry Audit Received Date and '
+        + 'Audit Completion Date per entity per year. All 95 loaded entity-years across the seven '
+        + 'session-3 governments carry both — e.g. City of Miami FY2023, audit received '
+        + '2024-04-15, audit completed 2024-03-29. '
+        + '⚠ BOTH compliance reports must be read: the compliant one lists only filers inside the '
+        + 'nine-month deadline, and 571 late-but-audited entities appear in the other for FY2023 '
+        + 'alone. Reading one would grade every late filer down.',
+    },
+  },
+  {
     id: 'ca-sco-city-exp',
     match: /^CA State Controller - Expenditures$/,
     value: AUDIT_GRADE.SELF_REPORTED_UNAUDITED,

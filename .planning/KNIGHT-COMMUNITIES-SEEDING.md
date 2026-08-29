@@ -110,7 +110,7 @@ Per-row is also the *correct* representation independent of the plumbing argumen
 | Value | Meaning | Expected Knight entities |
 |---|---|---|
 | `audited_gaap` | Read directly from an ACFR bearing an auditor's opinion | Milledgeville, Grand Forks, Boulder, Wichita, Aberdeen, Biloxi |
-| `compiled_from_audited` | State agency compiled it from audited statements | ~~Charlotte (NC LGC)~~ **REFUTED — see below**; FL four (DFS) — *still pending recon confirmation* |
+| `compiled_from_audited` | State agency compiled it from audited statements | ~~Charlotte (NC LGC)~~ **REFUTED — see below**; **FL four + 3 counties (DFS) — CONFIRMED 2026-08-29**, see the progress file |
 | `self_reported_unaudited` | State agency compiled entity self-reports | Akron (OH AOS), Duluth and Saint Paul (MN OSA) |
 | `unknown` | Not yet assessed | All ~87,000 pre-existing rows |
 
@@ -127,8 +127,14 @@ Per-row is also the *correct* representation independent of the plumbing argumen
 > exactly as written, and §4.2's recon gate is what caught it before a loader
 > was built.
 >
-> ⚠ **FL DFS is the other unverified claim in the same reference.** Verify it the
-> same way before session 3 sequences on it.
+> ✅ **FL DFS WAS the other unverified claim in the same reference — session 3
+> verified it, and it HOLDS.** DFS's own LOGERx manual states Department staff
+> "reconciles the AFR to the provided audited financial statements" before a
+> filing becomes *Verified by DFS*. Florida is genuinely `compiled_from_audited`
+> for entities with an audit on file, and that branch is identifiable per entity
+> per year from a public report. ⚠ The statute and the rule ALONE read like a
+> self-report and would have produced the NC answer — the manual is what settles
+> it. See the Florida section of the progress file.
 
 ### 3.4 The default must be honest
 

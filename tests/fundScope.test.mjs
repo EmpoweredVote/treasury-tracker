@@ -257,8 +257,12 @@ describe('the shipped registry', () => {
     // `derivation` column exists — `total_governmental` alone now spans two
     // epistemically different kinds of figure, and this list is the place that fact
     // is hardest to overlook.
+    // ⚠ `fl-dfs-afr` (Knight session 3) joins on 2026-08-29. It is the first at
+    // this level whose scope is read off SEPARATE PUBLISHED FUND COLUMNS rather
+    // than off a statement heading, so it is also the first whose reporting
+    // entity is settled by which columns TT declined to sum.
     const totGov = FUND_SCOPE_REGISTRY.filter((e) => e.scope === SCOPE.TOTAL_GOVERNMENTAL);
-    expect(totGov.map((e) => e.id).sort()).toEqual(['ca-sco-derived-tg', 'mn-osa', 'oh-aos']);
+    expect(totGov.map((e) => e.id).sort()).toEqual(['ca-sco-derived-tg', 'fl-dfs-afr', 'mn-osa', 'oh-aos']);
     for (const e of totGov) {
       expect(e.evidence.figures, e.id).toMatch(/REPORTING ENTITY|reporting-entity/);
     }

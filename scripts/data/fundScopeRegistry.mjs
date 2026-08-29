@@ -777,6 +777,54 @@ export const FUND_SCOPE_REGISTRY = [
              + 'one is about which ENTITIES.',
     },
   },
+  {
+    // Knight campaign, session 3 — Florida DFS LOGERx Annual Financial Reports.
+    // ⚠ ANCHORED AT BOTH ENDS and pinned to the fiscal years actually loaded.
+    // A bare /^Florida DFS/ would also claim any future Florida family — the
+    // `^CA State Controller` trap that this registry's header warns about.
+    id: 'fl-dfs-afr',
+    match: /^Florida DFS Annual Financial Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[2-9]|2[0-5]) actual, (?:audit|DEW)-reconciled\)$/,
+    scope: SCOPE.TOTAL_GOVERNMENTAL,
+    evidence: {
+      document: 'The source workbooks themselves, fetched free and anonymously from the LOGERx '
+              + 'public system reports and cached under docs/fl-dfs/ '
+              + '(EXPENDITUREDETAILREPORT-<FY>.xlsx and REVENUEDETAILREPORT-<FY>.xlsx). Like the '
+              + 'Ohio AOS entry above, this is a FACT rather than an inference: the publisher '
+              + 'prints each GASB fund category as its OWN COLUMN, so which funds TT summed is '
+              + 'recorded in the file TT read.',
+      figures: 'The twelve published fund columns are General, Special Revenue, Debt Service, '
+             + 'Capital Projects, Permanent, Enterprise, Internal Service, Custodial, Pension, '
+             + 'Trust, Private Purpose, Component Units. TT sums exactly the five GOVERNMENTAL '
+             + 'funds — General + Special Revenue + Debt Service + Capital Projects + Permanent '
+             + '— and no others, which is spec §2.3 ("enterprise funds where the source '
+             + 'separates them" are out of scope) applied to a source that separates them by '
+             + 'column. '
+             + 'CORROBORATED BY THE ORACLE: DFS separately publishes TOTALREVEXPDEBT, whose '
+             + 'Total Revenues and Total Expenditures were shown by exhaustive subset search to '
+             + 'equal the sum of every column EXCEPT the four fiduciary ones. TT\'s parse '
+             + 'reproduces that figure to the cent for all 95 loaded entity-years, so the '
+             + 'governmental subset is a column selection off a verified read, not an estimate. '
+             + '⚠ SCOPE CAVEAT, STATED RATHER THAN HIDDEN: the loaded figure also EXCLUDES '
+             + 'expenditure object code 90 "Other Uses" and revenue accounts 38x/39x "Other '
+             + 'Sources", both of which the publisher defines as interfund transfers rather than '
+             + 'spending or revenue ("Expenditures are ... all decreases in fund net assets ... '
+             + 'EXCEPT THOSE ARISING FROM OPERATING AND RESIDUAL EQUITY TRANSFERS TO OTHER '
+             + 'FUNDS"; "38x.xxx OTHER SOURCES — Amounts received by the entity, WHICH ARE NOT '
+             + 'ADDITIONS TO ASSETS OF THE ENTITY AS A WHOLE"). The 38x block also holds 384 '
+             + 'Debt Proceeds and 385 Proceeds From Refunding Bonds, so including it would '
+             + 'repeat the Los Angeles FY2026 defect in which TRAN borrowing read as spending. '
+             + 'This means the loaded total is deliberately BELOW the DFS headline; the gap is '
+             + 'the transfers, and it is reported per entity-year by scripts/verifyFloridaDFS.mjs. '
+             + 'REPORTING ENTITY: primary_government, and settled by the same column fact rather '
+             + 'than by inference. DFS publishes "Component Units" as its own twelfth fund column; '
+             + 'TT sums only the five governmental columns, so discretely presented component '
+             + 'units are excluded by construction. Blended units are inside the primary '
+             + 'government\'s own funds by GASB 34 and are therefore inside these figures — the '
+             + 'same treatment as oh-aos. ⚠ This is the OPPOSITE of mn-osa, which consolidates '
+             + 'HRA/EDA/TIF component units into the same columns and is incl_component_units for '
+             + 'that reason.',
+    },
+  },
 ];
 
 export default FUND_SCOPE_REGISTRY;
