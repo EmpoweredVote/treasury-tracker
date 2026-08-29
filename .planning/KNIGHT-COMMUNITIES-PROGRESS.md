@@ -957,6 +957,84 @@ created them is still enabled. They are honestly `fund_scope: unknown` /
 time the sync rolls a year, and each time it will surface inside somebody else's
 milestone.
 
+### The account-code prefix was STRIPPED from labels (Chris, 2026-08-29)
+
+Follow-up 5 below was decided rather than carried: `521.00 - Law Enforcement`
+now displays as **Law Enforcement**, `10 - Personnel Services` as **Personnel
+Services**. The plain-language sentence reads as English again — *"The biggest
+share was Law Enforcement (26% of the budget), followed by Fire Control (17%)"*.
+
+⚠ **Why this is not a breach of the transcribe-verbatim rule.** That rule exists
+because a *rewritten* label can drift from the source it claims to quote.
+Dropping a machine code is deterministic, reversible from the source workbook,
+and leaves the publisher's own words untouched. `stripAccountCode()` records the
+reasoning next to the regex.
+
+**MEASURED BEFORE IT WAS APPLIED, across all 14 published years:**
+
+| | distinct labels | collisions |
+|---|---|---|
+| Expenditure (function + object) | 170 | **0** |
+| Revenue (account) | 320 | **7 pairs** |
+
+Every revenue collision is the same category filed under two codes — a
+`.900`/`.xxx` catch-all pair, or two adjacent codes with identical names
+(`324.720`/`324.920` Impact Fees - Commercial - Other; `319.900`/`319.xxx` Other
+General Taxes; `335.380`/`335.390` State Revenue Sharing - Other Physical
+Environment, and four more). A collision **merges and sums**, which is right on
+the merits and cannot move a total — and the tree builders return a `merged`
+list so it is never silent. ⚠ **None of the seven entities triggers one**: no
+colliding pair co-occurs in the same entity-year with a non-zero governmental
+amount. The statewide sweep will hit them.
+
+**Proof nothing moved.** The re-run wrote all 190 rows and afterwards the table
+holds the same 190 ids and an identical `id|total_budget` digest
+(`0dbc420307b2ccdff951503972d94bf5`) — so no row was created or destroyed and no
+figure changed. Frozen invariant digest unchanged. Oracle still $0 on 95/95.
+
+### ⚠⚠ THE RE-RUN WOULD HAVE INSERTED 190 DUPLICATES — a latent loader bug
+
+`treasury_sync_city_budget` finds its target by **(municipality, fiscal_year,
+dataset_type, fund_scope, basis)**, and both axis parameters default to
+`'unknown'`. The first Florida load omitted them, which was harmless *only*
+because the rows did not exist yet. Once the stampers had written
+`total_governmental` / `actual`, a re-run would have matched nothing and taken
+the RPC's INSERT branch — silently duplicating every row.
+
+Caught by reading the RPC definition before re-running, not by the re-run.
+`loadFloridaDFS.mjs` now passes `p_fund_scope`, `p_basis` and `p_derivation`
+explicitly, which also means a row is born correctly classified instead of
+waiting for a stamper. **This is `project_sync_city_budget_not_source_safe` in a
+new axis: the guard people remember is `data_source`, and the key that actually
+decides insert-vs-update is the axis pair.**
+
+### ⚠ SIDE EFFECT: the strip opted Florida into category enrichment
+
+Stripping the codes changed `link_key`, and 11 of Florida's 336 depth-0 labels
+now match **universal** (`municipality_id IS NULL`) enrichment rows — so reader
+pages gained explainer copy and the category search box that were not there
+before: *law enforcement, fire control, parks and recreation, executive,
+legislative, airports, information systems, other public safety, special events,
+other federal grants, interest.*
+
+Checked rather than assumed:
+
+* **No state-specific bleed.** Zero of the matched rows contain Indiana,
+  California, Bloomington or Los Angeles text — the failure
+  `project_enrichment_scoping_fix` repaired. These are in the 22 records that
+  memory records as "genuinely generic".
+* **Object codes CANNOT be enriched, which matters here.** Depth-1 nodes key on a
+  composite `parent|name` (`law enforcement|capital outlay`), so the universal
+  `personnel services` row — which reads "Hiring, benefits, and employee
+  relations", an HR *department*, not Florida's object code 10 **payroll** — can
+  never attach. Had depth-1 keys been plain names, that explainer would have
+  rendered under every function of every Florida entity and been wrong.
+* ⚠ **9 of the 11 are `source='ai'` with no `source_url`.** That is the
+  uncited-explainer policy question SRCSTD-01 already carries
+  (`project_srcstd01_scoping`), not something this session introduced — but the
+  strip extended its reach to 7 new entities, so it is recorded here rather than
+  discovered later.
+
 ### Follow-ups opened
 
 1. ⚠ **The LA Operating Budget cron sync re-creates rows in a severed series**
@@ -978,13 +1056,17 @@ milestone.
    10: 1998-2025", which reads as though 2014 is inside the range that just
    rejected it. The verdict is right and the explanation is misleading. Cheap
    fix, in `scripts/lib/facFiscalYearCensus.mjs`.
-5. **Labels carry the publisher's account codes** — `521.00 - Law Enforcement`,
-   `10 - Personnel Services`. Verbatim transcription is the house rule and it
-   reads fine in the icicle, but in the plain-language sentence ("The biggest
-   share was 521.00 - Law Enforcement") it is clunky for a general reader.
-   Stripping a leading `\d+\.\d+ - ` is deterministic rather than a rewrite —
-   a labelling judgment call, deliberately left to Chris rather than taken
-   unilaterally.
+5. ~~**Labels carry the publisher's account codes**~~ ✅ **DECIDED AND DONE**
+   (Chris, 2026-08-29) — stripped. See the section above for the collision
+   measurement, the proof that no figure moved, and the enrichment side effect.
 6. ⚠ **The seven entities have no `geo_id` or `hero_image_url`** — consistent
    with every entity seeded since Tucson, noted so it is a known gap rather
    than an oversight.
+7. ⚠ **Universal enrichment now reaches Florida** — 11 depth-0 labels, 9 of them
+   `source='ai'` with no `source_url`. No state-specific bleed, and object codes
+   are structurally immune, but this is SRCSTD-01's uncited-explainer question
+   arriving on 7 new entities. A policy call, not a defect.
+8. ⚠ **Any loader calling `treasury_sync_city_budget` after its rows are stamped
+   MUST pass `p_fund_scope` and `p_basis`** or a re-run duplicates instead of
+   updating. Worth auditing the other loaders — Ohio AOS and MN OSA both omit
+   them, and both have stamped families.

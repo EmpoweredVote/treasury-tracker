@@ -105,6 +105,19 @@ export const DATASET_LABEL = {
 };
 
 /**
+ * The axis values every row of this family carries.
+ *
+ * ⚠ They are passed to the RPC at write time, not left to a stamper, because the
+ * RPC's target lookup key INCLUDES fund_scope and basis — see the note at the
+ * call site. They must stay in step with the registry entries
+ * (`fl-dfs-afr` in fundScopeRegistry / basisRegistry), which
+ * tests/floridaDfs.test.mjs asserts.
+ */
+export const FUND_SCOPE = 'total_governmental';
+export const BASIS_VALUE = 'actual';
+export const DERIVATION = 'published';
+
+/**
  * Build the `data_source` string for one row.
  *
  * ⚠ THE BRANCH IS PART OF THE NAME, NOT A COMMENT. `audit_grade` for this family
@@ -221,6 +234,7 @@ async function main() {
     confirmed: 0, unverified: 0, oracleChecks: 0,
   };
   const unverifiedNotes = [];
+  const mergeNotes = [];
 
   console.log(`\nFlorida DFS Annual Financial Report — ${entities.length} entities, `
     + `FY${years[0]}-FY${years[years.length - 1]}${dryRun ? '  [dry-run]' : ''}`);
@@ -294,6 +308,13 @@ async function main() {
       const exp = buildExpenditureTree(expRows, ent.code, GOVERNMENTAL_FUNDS);
       const rev = buildRevenueTree(revRows, ent.code, GOVERNMENTAL_FUNDS);
 
+      // ⚠ A label merge must never be silent. Two source codes can strip to one
+      // display label (seven such pairs exist statewide); the amounts sum, which
+      // cannot move a total, but the reader deserves to know two codes became one
+      // node. None of these seven entities triggers it — the statewide sweep will.
+      const merges = [...new Set([...exp.merged, ...rev.merged])];
+      for (const m of merges) mergeNotes.push(`FY${year} ${ent.label}: ${m}`);
+
       const fmt = (n) => '$' + Math.round(n).toLocaleString('en-US');
       console.log(`  FY${year} ${ent.label.padEnd(19)} oracle $0 · month ${m.month}`
         + `${m.confirmed ? ' CONFIRMED' : ' unverified'} · operating ${fmt(exp.total)} (${exp.tree.length}) `
@@ -332,6 +353,20 @@ async function main() {
           p_source_url: SOURCE_URL,
           p_source_date: sourceDate,
           p_fiscal_year_start_month: m.month,
+          // ⚠⚠ THESE TWO ARE LOAD-BEARING, NOT DECORATION. The RPC's target
+          // lookup key is (municipality, fiscal_year, dataset_type, fund_scope,
+          // basis). Omitting them defaults BOTH to 'unknown', so once the axis
+          // stampers have run, a re-run matches NOTHING and the RPC takes its
+          // INSERT branch — silently creating a duplicate of every row instead
+          // of updating it. The first Florida load omitted them and the relabel
+          // re-run would have inserted 190 phantom rows.
+          //
+          // Passing them also means a row is born correctly classified instead
+          // of being 'unknown' until a stamper catches up; the stampers then
+          // confirm rather than repair.
+          p_fund_scope: FUND_SCOPE,
+          p_basis: BASIS_VALUE,
+          p_derivation: DERIVATION,
         });
         if (error) throw new Error(`RPC error (${ent.label} FY${year} ${datasetType}): ${error.message}`);
         stats.written++;
@@ -349,6 +384,14 @@ async function main() {
     console.log('\n  ⚠ UNVERIFIED fiscal months — the census has no evidence for these, which is NOT');
     console.log('    the same as agreement. The month written is the entity\'s declared October.');
     for (const n of unverifiedNotes) console.log(`      ${n}`);
+  }
+  if (mergeNotes.length) {
+    console.log(`
+  ⚠ ${mergeNotes.length} label MERGE(S) — two account codes stripped to one`);
+    console.log('    display label and were summed. The total is unmoved; the node count is not.');
+    for (const n of mergeNotes) console.log(`      ${n}`);
+  } else {
+    console.log('  label merges:       none (no two account codes share a display label here)');
   }
   if (!dryRun && stats.written > 0) {
     console.log('\n  Next, while you still know what was loaded:');

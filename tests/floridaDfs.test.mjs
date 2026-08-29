@@ -7,8 +7,13 @@ import {
   mergeCompliance, assertParsed, accountCode, objectCodeOf,
   isTransferObject, isTransferRevenueAccount,
   buildExpenditureTree, buildRevenueTree, oracleTotalFor, hasAuditOnFile,
+  stripAccountCode,
 } from '../scripts/lib/floridaDfs.mjs';
-import { sourceNameFor, SOURCE_PREFIX } from '../scripts/loadFloridaDFS.mjs';
+import {
+  sourceNameFor, SOURCE_PREFIX, FUND_SCOPE, BASIS_VALUE, DERIVATION,
+} from '../scripts/loadFloridaDFS.mjs';
+import { FUND_SCOPE_REGISTRY } from '../scripts/data/fundScopeRegistry.mjs';
+import { BASIS_REGISTRY } from '../scripts/data/basisRegistry.mjs';
 import { FL_ENTITIES, entityByCode } from '../scripts/data/floridaKnightEntities.mjs';
 import { AUDIT_GRADE_REGISTRY, gradeFor } from '../scripts/data/auditGradeRegistry.mjs';
 import { AUDIT_GRADE } from '../scripts/lib/budgetAxes.mjs';
@@ -199,7 +204,113 @@ describe('Florida DFS — 38x/39x are other sources, not revenue', () => {
     const { tree, total, excludedTransfers } = buildRevenueTree(rows, '200239');
     expect(total).toBe(1000);
     expect(excludedTransfers).toBe(7000);
-    expect(tree).toEqual([{ n: '311.000 - Ad Valorem Taxes', a: 1000 }]);
+    expect(tree).toEqual([{ n: 'Ad Valorem Taxes', a: 1000 }]);
+  });
+});
+
+describe('Florida DFS — the account-code prefix is stripped for display', () => {
+  it('drops the code and keeps the publisher\'s words', () => {
+    expect(stripAccountCode('521.00 - Law Enforcement')).toBe('Law Enforcement');
+    expect(stripAccountCode('10 - Personnel Services')).toBe('Personnel Services');
+    expect(stripAccountCode('311.000 - Ad Valorem Taxes')).toBe('Ad Valorem Taxes');
+    expect(stripAccountCode('369.xxx - Other Miscellaneous Revenues'))
+      .toBe('Other Miscellaneous Revenues'); // the `x` placeholder form
+    expect(stripAccountCode('335.180 - State Revenue Sharing - Local Government Half-Cent Sales Tax Program'))
+      .toBe('State Revenue Sharing - Local Government Half-Cent Sales Tax Program'); // inner dashes survive
+  });
+
+  it('never blanks a label, whatever it is handed', () => {
+    // The identity branch is unreachable on real data — all 490 published labels
+    // carry a code — but a label that loses its text is far worse than one that
+    // keeps a code, so the fallback returns the original.
+    expect(stripAccountCode('No Code Here')).toBe('No Code Here');
+    expect(stripAccountCode('511.00 - ')).toBe('511.00 -');
+    expect(stripAccountCode('')).toBe('');
+    expect(stripAccountCode(null)).toBe('');
+    expect(stripAccountCode(undefined)).toBe('');
+  });
+
+  it('reaches BOTH levels of the expenditure tree', () => {
+    const rows = readDetailRows(expenditureSheet([
+      ['200239', 'Miami', '512.00 - Executive', '10 - Personnel Services', ...funds(300)],
+      ['200239', 'Miami', '512.00 - Executive', '30 - Operating Expenditures/Expenses', ...funds(700)],
+    ]));
+    const { tree } = buildExpenditureTree(rows, '200239');
+    expect(tree[0].n).toBe('Executive');
+    expect(tree[0].c.map((c) => c.n)).toEqual(['Operating Expenditures/Expenses', 'Personnel Services']);
+  });
+
+  it('MERGES two codes that share a display label, and says so', () => {
+    // 369.900 and 369.xxx are both "Other Miscellaneous Revenues" — the same
+    // category filed under a catch-all pair. Merging is right on the merits and
+    // cannot move a total, but it must never be silent.
+    const rows = readDetailRows(revenueSheet([
+      ['200239', 'Miami', '369.900 - Other Miscellaneous Revenues', ' ', ' ', ...funds(400)],
+      ['200239', 'Miami', '369.xxx - Other Miscellaneous Revenues', ' ', ' ', ...funds(600)],
+    ]));
+    const { tree, total, merged } = buildRevenueTree(rows, '200239');
+    expect(tree).toEqual([{ n: 'Other Miscellaneous Revenues', a: 1000 }]);
+    expect(total).toBe(1000); // the total is unmoved; only the node count changed
+    expect(merged).toEqual([
+      'Other Miscellaneous Revenues <- 369.900 - Other Miscellaneous Revenues + 369.xxx - Other Miscellaneous Revenues',
+    ]);
+  });
+
+  it('reports no merge when none happened', () => {
+    const rows = readDetailRows(revenueSheet([
+      ['200239', 'Miami', '311.000 - Ad Valorem Taxes', ' ', ' ', ...funds(400)],
+      ['200239', 'Miami', '312.410 - Local Option Fuel Tax', ' ', ' ', ...funds(600)],
+    ]));
+    expect(buildRevenueTree(rows, '200239').merged).toEqual([]);
+  });
+
+  it('still excludes 38x by CODE after the code is stripped from the label', () => {
+    // ⚠ The exclusion must be decided BEFORE the prefix is dropped. Once the
+    // label reads "Debt Proceeds" there is no code left to test, and a
+    // label-based rule would be the forbid-list mistake session 2 rejected.
+    const rows = readDetailRows(revenueSheet([
+      ['200239', 'Miami', '311.000 - Ad Valorem Taxes', ' ', ' ', ...funds(1000)],
+      ['200239', 'Miami', '384.000 - Debt Proceeds', ' ', ' ', ...funds(7000)],
+    ]));
+    const { tree, total } = buildRevenueTree(rows, '200239');
+    expect(total).toBe(1000);
+    expect(tree.map((n) => n.n)).toEqual(['Ad Valorem Taxes']);
+  });
+
+  it('still excludes object 90 by CODE after stripping', () => {
+    const rows = readDetailRows(expenditureSheet([
+      ['200239', 'Miami', '511.00 - Legislative', '10 - Personnel Services', ...funds(100)],
+      ['200239', 'Miami', '511.00 - Legislative', '90 - Other Uses', ...funds(500)],
+    ]));
+    const { total, excludedTransfers } = buildExpenditureTree(rows, '200239');
+    expect(total).toBe(100);
+    expect(excludedTransfers).toBe(500);
+  });
+});
+
+describe('Florida DFS — the write path must UPDATE, not duplicate', () => {
+  it('declares the axes the RPC uses as its target lookup key', () => {
+    // ⚠⚠ treasury_sync_city_budget finds its target by (municipality,
+    // fiscal_year, dataset_type, fund_scope, basis). Both axis params default to
+    // 'unknown'. Once the stampers have run, a loader that omits them matches
+    // NOTHING and the RPC takes its INSERT branch — silently duplicating every
+    // row. The first Florida load omitted them; the relabel re-run would have
+    // inserted 190 phantom rows.
+    expect(FUND_SCOPE).toBe('total_governmental');
+    expect(BASIS_VALUE).toBe('actual');
+    expect(DERIVATION).toBe('published');
+  });
+
+  it('keeps those values in step with the registries that classify the same rows', () => {
+    // If the loader writes one scope and the registry claims another, the
+    // partition gate fails and the row is classified twice, differently.
+    const src = sourceNameFor('operating', 2023, true);
+    const fsEntry = FUND_SCOPE_REGISTRY.find((e) => e.id === 'fl-dfs-afr');
+    expect(fsEntry.match.test(src)).toBe(true);
+    expect(fsEntry.scope).toBe(FUND_SCOPE);
+    const bEntry = BASIS_REGISTRY.find((e) => e.id === 'fl-dfs-afr');
+    expect(bEntry.match.test(src)).toBe(true);
+    expect(bEntry.value).toBe(BASIS_VALUE);
   });
 });
 
@@ -212,7 +323,7 @@ describe('Florida DFS — tree shape', () => {
     const { tree, total } = buildExpenditureTree(rows, '200239');
     expect(total).toBe(1000);
     expect(tree).toHaveLength(1);
-    expect(tree[0].n).toBe('512.00 - Executive');
+    expect(tree[0].n).toBe('Executive');
     expect(tree[0].a).toBe(1000);
     expect(tree[0].c.map((c) => c.a)).toEqual([700, 300]); // descending
   });

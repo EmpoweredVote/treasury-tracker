@@ -280,6 +280,52 @@ export function objectCodeOf(objectCode) {
   return m ? m[1] : '';
 }
 
+/**
+ * The publisher's chart-of-accounts prefix, stripped for display.
+ *
+ *   "521.00 - Law Enforcement"   -> "Law Enforcement"
+ *   "10 - Personnel Services"    -> "Personnel Services"
+ *   "369.xxx - Other Misc..."    -> "Other Misc..."   (the `x` placeholders too)
+ *
+ * ⚠ THIS IS A DELIBERATE EXCEPTION TO TT'S TRANSCRIBE-VERBATIM HABIT, taken by
+ * Chris on 2026-08-29. The rule exists because a *rewritten* label can drift from
+ * the source it claims to quote; dropping a machine code is not a rewrite — it is
+ * deterministic, reversible from the source workbook, and leaves the publisher's
+ * own words untouched. It matters because these strings reach reader-facing prose:
+ * "The biggest share was 521.00 - Law Enforcement" is not a sentence written for
+ * the general public.
+ *
+ * ⚠ MEASURED, NOT ASSUMED. Across all 14 published years:
+ *   - EXPENDITURE (170 distinct function + object labels): **0 collisions**.
+ *   - REVENUE (320 distinct account labels): **7 colliding pairs**, every one the
+ *     same category filed under two codes — a `.900`/`.xxx` catch-all pair, or two
+ *     adjacent codes with identical names:
+ *       324.720 / 324.920  Impact Fees - Commercial - Other
+ *       324.710 / 324.910  Impact Fees - Residential - Other
+ *       319.900 / 319.xxx  Other General Taxes
+ *       369.900 / 369.xxx  Other Miscellaneous Revenues
+ *       329.500 / 329.xxx  Other Permits, Fees And Special Assessments
+ *       335.380 / 335.390  State Revenue Sharing - Other Physical Environment
+ *       335.480 / 335.490  State Revenue Sharing - Other Transportation
+ *
+ * A collision MERGES the two into one node and sums them, which is right on the
+ * merits and cannot move a total. It is still reported by the tree builders so a
+ * merge is never silent — and **none of the seven session-3 entities triggers
+ * one**: no colliding pair co-occurs in the same entity-year with a non-zero
+ * governmental amount. The statewide sweep will hit them.
+ *
+ * ⚠ Every one of the 490 labels carries a code, so this never falls through to
+ * the identity branch on real data. It is there so a future label without one is
+ * kept whole rather than blanked.
+ */
+export const ACCOUNT_CODE_PREFIX_RE = /^\s*[0-9][0-9.x]*\s*[-–]\s*(?=\S)/;
+
+export function stripAccountCode(label) {
+  if (typeof label !== 'string') return '';
+  const out = label.replace(ACCOUNT_CODE_PREFIX_RE, '').trim();
+  return out || label.trim();
+}
+
 /** True for the interfund/other-uses object code excluded from the tree. */
 export function isTransferObject(objectCode) {
   return objectCodeOf(objectCode) === EXCLUDED_OBJECT_CODE;
@@ -299,25 +345,40 @@ export function isTransferRevenueAccount(account) {
  * Nodes use the nested `{n, a, c: [...]}` shape that `treasury_sync_city_budget`
  * persists (the MN OSA dialect), NOT the flat `{n, a}` Ohio emits.
  *
- * Labels are the publisher's strings VERBATIM, including the numeric code. TT's
- * habit is to transcribe rather than prettify: a rewritten label is a label that
- * can silently drift from the source it claims to quote.
+ * Labels have the publisher's chart-of-accounts prefix stripped for display —
+ * see `stripAccountCode`, which records why that is not the same thing as
+ * rewriting a label. `merged` reports any two source codes that collapsed onto
+ * one display label, so a merge is never silent.
  *
- * @returns {{tree: Array, total: number, excludedTransfers: number}}
+ * @returns {{tree: Array, total: number, excludedTransfers: number, merged: string[]}}
  */
 export function buildExpenditureTree(rows, code, funds = GOVERNMENTAL_FUNDS) {
   const byFunction = new Map();
+  const rawByDisplay = new Map();
   let excludedTransfers = 0;
+
+  const note = (raw) => {
+    const d = stripAccountCode(raw);
+    if (!rawByDisplay.has(d)) rawByDisplay.set(d, new Set());
+    rawByDisplay.get(d).add(raw);
+    return d;
+  };
 
   for (const r of rows) {
     if (r.code !== code) continue;
     const amount = sumFunds(r.funds, funds);
     if (amount === 0) continue;
     if (isTransferObject(r.objectCode)) { excludedTransfers += amount; continue; }
-    if (!byFunction.has(r.account)) byFunction.set(r.account, new Map());
-    const objs = byFunction.get(r.account);
-    objs.set(r.objectCode, (objs.get(r.objectCode) || 0) + amount);
+    const fn = note(r.account);
+    const obj = note(r.objectCode);
+    if (!byFunction.has(fn)) byFunction.set(fn, new Map());
+    const objs = byFunction.get(fn);
+    objs.set(obj, (objs.get(obj) || 0) + amount);
   }
+
+  const merged = [...rawByDisplay.entries()]
+    .filter(([, raws]) => raws.size > 1)
+    .map(([d, raws]) => `${d} <- ${[...raws].sort().join(' + ')}`);
 
   const tree = [];
   let total = 0;
@@ -332,7 +393,7 @@ export function buildExpenditureTree(rows, code, funds = GOVERNMENTAL_FUNDS) {
     tree.push(children.length === 1 ? { n: fn, a } : { n: fn, a, c: children });
   }
   tree.sort((x, y) => y.a - x.a);
-  return { tree, total, excludedTransfers };
+  return { tree, total, excludedTransfers, merged };
 }
 
 /**
@@ -342,10 +403,11 @@ export function buildExpenditureTree(rows, code, funds = GOVERNMENTAL_FUNDS) {
  * accounts — one node per revenue source. 38x/39x accounts are excluded; see
  * EXCLUDED_REVENUE_ACCOUNT_RE.
  *
- * @returns {{tree: Array, total: number, excludedTransfers: number}}
+ * @returns {{tree: Array, total: number, excludedTransfers: number, merged: string[]}}
  */
 export function buildRevenueTree(rows, code, funds = GOVERNMENTAL_FUNDS) {
   const byAccount = new Map();
+  const rawByDisplay = new Map();
   let excludedTransfers = 0;
 
   for (const r of rows) {
@@ -353,7 +415,10 @@ export function buildRevenueTree(rows, code, funds = GOVERNMENTAL_FUNDS) {
     const amount = sumFunds(r.funds, funds);
     if (amount === 0) continue;
     if (isTransferRevenueAccount(r.account)) { excludedTransfers += amount; continue; }
-    byAccount.set(r.account, (byAccount.get(r.account) || 0) + amount);
+    const d = stripAccountCode(r.account);
+    if (!rawByDisplay.has(d)) rawByDisplay.set(d, new Set());
+    rawByDisplay.get(d).add(r.account);
+    byAccount.set(d, (byAccount.get(d) || 0) + amount);
   }
 
   const tree = [...byAccount.entries()]
@@ -361,7 +426,10 @@ export function buildRevenueTree(rows, code, funds = GOVERNMENTAL_FUNDS) {
     .filter((n) => n.a !== 0)
     .sort((x, y) => y.a - x.a);
   const total = tree.reduce((s, n) => s + n.a, 0);
-  return { tree, total, excludedTransfers };
+  const merged = [...rawByDisplay.entries()]
+    .filter(([, raws]) => raws.size > 1)
+    .map(([d, raws]) => `${d} <- ${[...raws].sort().join(' + ')}`);
+  return { tree, total, excludedTransfers, merged };
 }
 
 // ── The totals report (the oracle) ──────────────────────────────────────────
