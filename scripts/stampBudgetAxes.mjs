@@ -102,11 +102,23 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // the "do NOT edit the expected number" rule is about a pattern claiming the
   // WRONG rows, not about the right rows becoming more numerous.
   //
-  // ⚠ SEPARATE FOLLOW-UP, NOT FIXED HERE: these two rows are a re-growth of the
-  // series v2.28 deliberately severed (project_la_city_series_severed). They are
-  // honestly `fund_scope: unknown` / `basis: unknown`, so nothing is currently
-  // drawn wrong — but the sync that creates them is enabled and will keep going.
-  'city-adopted-budget-doc': 171,
+  // ✅ RESOLVED 2026-08-29 (PR #111), and this count is BACK TO 169. Both halves
+  // were done: `Los Angeles Operating Budget` is now `is_enabled = false`, so the
+  // cron can no longer re-create rows here; and the two rows it had already made
+  // were deleted by decision (migrations 20260829000000 + 20260829000100).
+  //
+  // ⚠ CORRECTED against the live DB before deleting: an earlier version of this
+  // note said those rows were `basis: unknown`. They were `basis: adopted` —
+  // which is WHY they landed in this partition at all. A row with `basis:
+  // unknown` could not have moved this count. `fund_scope: unknown` is the
+  // separate axis that kept them out of the rendered series.
+  //
+  // 171 -> 169 is a RETURN to the pre-drift measurement, not a new one. Deleting
+  // was frozen-invariant NEUTRAL (79,916 / 90f009fe... before and after): the
+  // ids were already in laOperatingCronDriftCreatedIds.json, so the digest had
+  // always filtered them out. Backup:
+  // .planning/backups/la-city/la-operating-cron-drift-fy2025-2026.json.gz.
+  'city-adopted-budget-doc': 169,
   // AUSTIN-TRAVIS-01, measured 2026-08-19: Austin 32 + Travis County 44. A NEW
   // family, so no pre-existing count moved.
   // Evidence: docs/superpowers/plans/AUSTIN-TRAVIS-01-SCOPE-RECON.md §2.
