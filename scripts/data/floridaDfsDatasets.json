@@ -1,0 +1,987 @@
+{
+  "source": "Florida Department of Financial Services — LOGERx public system reports",
+  "source_url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+  "endpoint": "https://logerx.myfloridacfo.gov/api/document/systemReport",
+  "datasets": [
+    {
+      "report": "EXPENDITUREDETAILREPORT",
+      "fiscal_year": 2012,
+      "file": "docs/fl-dfs/EXPENDITUREDETAILREPORT-2012.xlsx",
+      "bytes": 1908040,
+      "sha256": "db4f1b48593105ea1a300ce7cce686e9a5ed695e6ddb3e4333337434072594cb",
+      "request": {
+        "afrYear": 2012,
+        "reportFormat": "EXCEL",
+        "reportName": "EXPENDITUREDETAILREPORT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "EXPENDITUREDETAILREPORT",
+      "fiscal_year": 2013,
+      "file": "docs/fl-dfs/EXPENDITUREDETAILREPORT-2013.xlsx",
+      "bytes": 1913144,
+      "sha256": "773419556098d68f27d855b975fba60d3c6d9ae598df3a10c98275db069a893a",
+      "request": {
+        "afrYear": 2013,
+        "reportFormat": "EXCEL",
+        "reportName": "EXPENDITUREDETAILREPORT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "EXPENDITUREDETAILREPORT",
+      "fiscal_year": 2014,
+      "file": "docs/fl-dfs/EXPENDITUREDETAILREPORT-2014.xlsx",
+      "bytes": 1915428,
+      "sha256": "c1b636aafd9fc6bc96bda06025284d9177084b9c2fb9f0e6e5887abf015f9b07",
+      "request": {
+        "afrYear": 2014,
+        "reportFormat": "EXCEL",
+        "reportName": "EXPENDITUREDETAILREPORT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "EXPENDITUREDETAILREPORT",
+      "fiscal_year": 2015,
+      "file": "docs/fl-dfs/EXPENDITUREDETAILREPORT-2015.xlsx",
+      "bytes": 1928819,
+      "sha256": "dd3cd0b3a3559593fc231d134657ed0f70b18410600423f9dc419f6c797ddb15",
+      "request": {
+        "afrYear": 2015,
+        "reportFormat": "EXCEL",
+        "reportName": "EXPENDITUREDETAILREPORT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "EXPENDITUREDETAILREPORT",
+      "fiscal_year": 2016,
+      "file": "docs/fl-dfs/EXPENDITUREDETAILREPORT-2016.xlsx",
+      "bytes": 1944054,
+      "sha256": "174ec4ef7f9434152d761d326fd84aa2eda7a3547ef0bec46c0ee4101618ad1e",
+      "request": {
+        "afrYear": 2016,
+        "reportFormat": "EXCEL",
+        "reportName": "EXPENDITUREDETAILREPORT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "EXPENDITUREDETAILREPORT",
+      "fiscal_year": 2017,
+      "file": "docs/fl-dfs/EXPENDITUREDETAILREPORT-2017.xlsx",
+      "bytes": 1956242,
+      "sha256": "bfd0036a05152b23866a742f8b9847b01321f3cf13c74bb22a6d9b522e01e101",
+      "request": {
+        "afrYear": 2017,
+        "reportFormat": "EXCEL",
+        "reportName": "EXPENDITUREDETAILREPORT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "EXPENDITUREDETAILREPORT",
+      "fiscal_year": 2018,
+      "file": "docs/fl-dfs/EXPENDITUREDETAILREPORT-2018.xlsx",
+      "bytes": 1962356,
+      "sha256": "214476362340721b3d7f6ee5fcdcacfa8827b793ee04be75f8a409b430a63219",
+      "request": {
+        "afrYear": 2018,
+        "reportFormat": "EXCEL",
+        "reportName": "EXPENDITUREDETAILREPORT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "EXPENDITUREDETAILREPORT",
+      "fiscal_year": 2019,
+      "file": "docs/fl-dfs/EXPENDITUREDETAILREPORT-2019.xlsx",
+      "bytes": 1983407,
+      "sha256": "bcfbfdd7baaada05fb80125914f0fcec02071a62b4697c9146102559093e4c41",
+      "request": {
+        "afrYear": 2019,
+        "reportFormat": "EXCEL",
+        "reportName": "EXPENDITUREDETAILREPORT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "EXPENDITUREDETAILREPORT",
+      "fiscal_year": 2020,
+      "file": "docs/fl-dfs/EXPENDITUREDETAILREPORT-2020.xlsx",
+      "bytes": 1990422,
+      "sha256": "9fcfb009798db54cce2491770379e0b5977b88a3ba11e2507db3ca4645094cae",
+      "request": {
+        "afrYear": 2020,
+        "reportFormat": "EXCEL",
+        "reportName": "EXPENDITUREDETAILREPORT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "EXPENDITUREDETAILREPORT",
+      "fiscal_year": 2021,
+      "file": "docs/fl-dfs/EXPENDITUREDETAILREPORT-2021.xlsx",
+      "bytes": 2006112,
+      "sha256": "61ea7d205b3ad86bd8f59d41366c3f4c8556ad2e1e9ab4ed06c8dfc82ce48b5f",
+      "request": {
+        "afrYear": 2021,
+        "reportFormat": "EXCEL",
+        "reportName": "EXPENDITUREDETAILREPORT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "EXPENDITUREDETAILREPORT",
+      "fiscal_year": 2022,
+      "file": "docs/fl-dfs/EXPENDITUREDETAILREPORT-2022.xlsx",
+      "bytes": 2065587,
+      "sha256": "2696f98fc5c5bc91b48dacb1270a62505dd4c92270bdc60150685fe4a77de930",
+      "request": {
+        "afrYear": 2022,
+        "reportFormat": "EXCEL",
+        "reportName": "EXPENDITUREDETAILREPORT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "EXPENDITUREDETAILREPORT",
+      "fiscal_year": 2023,
+      "file": "docs/fl-dfs/EXPENDITUREDETAILREPORT-2023.xlsx",
+      "bytes": 2113796,
+      "sha256": "d5d7c8c4f0e555c8a153793b7ca9446318ace26fc35cf903894f7bf6f33bdd64",
+      "request": {
+        "afrYear": 2023,
+        "reportFormat": "EXCEL",
+        "reportName": "EXPENDITUREDETAILREPORT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "EXPENDITUREDETAILREPORT",
+      "fiscal_year": 2024,
+      "file": "docs/fl-dfs/EXPENDITUREDETAILREPORT-2024.xlsx",
+      "bytes": 2198371,
+      "sha256": "8bd35dfe61a219affafa34ea82e665ed072e7093b52983ee6ccdd87c009d1bb1",
+      "request": {
+        "afrYear": 2024,
+        "reportFormat": "EXCEL",
+        "reportName": "EXPENDITUREDETAILREPORT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "EXPENDITUREDETAILREPORT",
+      "fiscal_year": 2025,
+      "file": "docs/fl-dfs/EXPENDITUREDETAILREPORT-2025.xlsx",
+      "bytes": 1283454,
+      "sha256": "b81f578ea1f459397beb21808e5006f3fb5be7e002cf83b02222af0da3f1b4af",
+      "request": {
+        "afrYear": 2025,
+        "reportFormat": "EXCEL",
+        "reportName": "EXPENDITUREDETAILREPORT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "PUBLICCOMPLIANTGOVS",
+      "fiscal_year": 2012,
+      "file": "docs/fl-dfs/PUBLICCOMPLIANTGOVS-2012.xlsx",
+      "bytes": 97221,
+      "sha256": "3ea9a28f80683f7732e64253bb44f35516b3c0b2bc165cb7277d6b314dee4170",
+      "request": {
+        "afrYear": 2012,
+        "reportFormat": "EXCEL",
+        "reportName": "PUBLICCOMPLIANTGOVS"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "PUBLICCOMPLIANTGOVS",
+      "fiscal_year": 2013,
+      "file": "docs/fl-dfs/PUBLICCOMPLIANTGOVS-2013.xlsx",
+      "bytes": 94227,
+      "sha256": "47616e1af84aaf46c5fde6952d552553632a1290993d8f3893524ff76eda4419",
+      "request": {
+        "afrYear": 2013,
+        "reportFormat": "EXCEL",
+        "reportName": "PUBLICCOMPLIANTGOVS"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "PUBLICCOMPLIANTGOVS",
+      "fiscal_year": 2014,
+      "file": "docs/fl-dfs/PUBLICCOMPLIANTGOVS-2014.xlsx",
+      "bytes": 96213,
+      "sha256": "28a7d13b5d1d26662c47b6d84438c6068dc9e3b19895c26f564c83ec60c74fec",
+      "request": {
+        "afrYear": 2014,
+        "reportFormat": "EXCEL",
+        "reportName": "PUBLICCOMPLIANTGOVS"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "PUBLICCOMPLIANTGOVS",
+      "fiscal_year": 2015,
+      "file": "docs/fl-dfs/PUBLICCOMPLIANTGOVS-2015.xlsx",
+      "bytes": 89466,
+      "sha256": "3b6137898a2fe0f8378595522334ea57f1713ee25a5736d2929c59be705432fa",
+      "request": {
+        "afrYear": 2015,
+        "reportFormat": "EXCEL",
+        "reportName": "PUBLICCOMPLIANTGOVS"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "PUBLICCOMPLIANTGOVS",
+      "fiscal_year": 2016,
+      "file": "docs/fl-dfs/PUBLICCOMPLIANTGOVS-2016.xlsx",
+      "bytes": 88348,
+      "sha256": "d51897041ef10359fa70ffa052a1d6f23543778b833cf00b752bb2ebaf333402",
+      "request": {
+        "afrYear": 2016,
+        "reportFormat": "EXCEL",
+        "reportName": "PUBLICCOMPLIANTGOVS"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "PUBLICCOMPLIANTGOVS",
+      "fiscal_year": 2017,
+      "file": "docs/fl-dfs/PUBLICCOMPLIANTGOVS-2017.xlsx",
+      "bytes": 95905,
+      "sha256": "abbf8301d4d8231fdbe6f1c83c16f751d0de182b218b45ec3ad159a3739e6caf",
+      "request": {
+        "afrYear": 2017,
+        "reportFormat": "EXCEL",
+        "reportName": "PUBLICCOMPLIANTGOVS"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "PUBLICCOMPLIANTGOVS",
+      "fiscal_year": 2018,
+      "file": "docs/fl-dfs/PUBLICCOMPLIANTGOVS-2018.xlsx",
+      "bytes": 106471,
+      "sha256": "2596382ba0e90f15e92fe6cfd718eec900bb57eb77f739809cd2910ff379f576",
+      "request": {
+        "afrYear": 2018,
+        "reportFormat": "EXCEL",
+        "reportName": "PUBLICCOMPLIANTGOVS"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "PUBLICCOMPLIANTGOVS",
+      "fiscal_year": 2019,
+      "file": "docs/fl-dfs/PUBLICCOMPLIANTGOVS-2019.xlsx",
+      "bytes": 111741,
+      "sha256": "2ed6d47f326fa27531c47422f23ae71ba985888742cd764146d7364bb8a3345b",
+      "request": {
+        "afrYear": 2019,
+        "reportFormat": "EXCEL",
+        "reportName": "PUBLICCOMPLIANTGOVS"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "PUBLICCOMPLIANTGOVS",
+      "fiscal_year": 2020,
+      "file": "docs/fl-dfs/PUBLICCOMPLIANTGOVS-2020.xlsx",
+      "bytes": 113304,
+      "sha256": "563520e3b7217c6bf6de309accd1f70dfcb6806d46048081e3f32c52abe84bfd",
+      "request": {
+        "afrYear": 2020,
+        "reportFormat": "EXCEL",
+        "reportName": "PUBLICCOMPLIANTGOVS"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "PUBLICCOMPLIANTGOVS",
+      "fiscal_year": 2021,
+      "file": "docs/fl-dfs/PUBLICCOMPLIANTGOVS-2021.xlsx",
+      "bytes": 110192,
+      "sha256": "a90b22587c7b1f9026004587547e0c3f9cc0d0b919ae065425f65cf34bafbaae",
+      "request": {
+        "afrYear": 2021,
+        "reportFormat": "EXCEL",
+        "reportName": "PUBLICCOMPLIANTGOVS"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "PUBLICCOMPLIANTGOVS",
+      "fiscal_year": 2022,
+      "file": "docs/fl-dfs/PUBLICCOMPLIANTGOVS-2022.xlsx",
+      "bytes": 92789,
+      "sha256": "cc3676745dafb08f3199d82c3472825f0c754fc0bbfc4e9a8f8ad71846d10c34",
+      "request": {
+        "afrYear": 2022,
+        "reportFormat": "EXCEL",
+        "reportName": "PUBLICCOMPLIANTGOVS"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "PUBLICCOMPLIANTGOVS",
+      "fiscal_year": 2023,
+      "file": "docs/fl-dfs/PUBLICCOMPLIANTGOVS-2023.xlsx",
+      "bytes": 111655,
+      "sha256": "37cd2ce131f05fb43f53ca953278fc795fc252c52d160d45c5929eef8ac4c205",
+      "request": {
+        "afrYear": 2023,
+        "reportFormat": "EXCEL",
+        "reportName": "PUBLICCOMPLIANTGOVS"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "PUBLICCOMPLIANTGOVS",
+      "fiscal_year": 2024,
+      "file": "docs/fl-dfs/PUBLICCOMPLIANTGOVS-2024.xlsx",
+      "bytes": 119162,
+      "sha256": "3fc0deffcefdfd968c8bc02e9ca54e3528f766c458569137b59f345323fc9139",
+      "request": {
+        "afrYear": 2024,
+        "reportFormat": "EXCEL",
+        "reportName": "PUBLICCOMPLIANTGOVS"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "PUBLICCOMPLIANTGOVS",
+      "fiscal_year": 2025,
+      "file": "docs/fl-dfs/PUBLICCOMPLIANTGOVS-2025.xlsx",
+      "bytes": 120514,
+      "sha256": "bbe40e08a0a39a062ccd642f5c4dfaa858c4444afd32236d99e9e06deafa917d",
+      "request": {
+        "afrYear": 2025,
+        "reportFormat": "EXCEL",
+        "reportName": "PUBLICCOMPLIANTGOVS"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "PUBLICNONCOMPLIANTGOVS",
+      "fiscal_year": 2012,
+      "file": "docs/fl-dfs/PUBLICNONCOMPLIANTGOVS-2012.xlsx",
+      "bytes": 52354,
+      "sha256": "d956d644c998467447e6f126453774cdae882c68943bc4d411a295d32c2f0045",
+      "request": {
+        "afrYear": 2012,
+        "reportFormat": "EXCEL",
+        "reportName": "PUBLICNONCOMPLIANTGOVS"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "PUBLICNONCOMPLIANTGOVS",
+      "fiscal_year": 2013,
+      "file": "docs/fl-dfs/PUBLICNONCOMPLIANTGOVS-2013.xlsx",
+      "bytes": 56561,
+      "sha256": "74c321945f3d464cf70e82256a702418162be763cd7e12511e7c40407d3d6bd9",
+      "request": {
+        "afrYear": 2013,
+        "reportFormat": "EXCEL",
+        "reportName": "PUBLICNONCOMPLIANTGOVS"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "PUBLICNONCOMPLIANTGOVS",
+      "fiscal_year": 2014,
+      "file": "docs/fl-dfs/PUBLICNONCOMPLIANTGOVS-2014.xlsx",
+      "bytes": 53686,
+      "sha256": "56a78e289de077cdda5546e3b33e54d555b1453163c1ebdc39d2c96b6e980504",
+      "request": {
+        "afrYear": 2014,
+        "reportFormat": "EXCEL",
+        "reportName": "PUBLICNONCOMPLIANTGOVS"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "PUBLICNONCOMPLIANTGOVS",
+      "fiscal_year": 2015,
+      "file": "docs/fl-dfs/PUBLICNONCOMPLIANTGOVS-2015.xlsx",
+      "bytes": 64154,
+      "sha256": "6c4c1f4fafd5d8222e06e1318fe8c419d980be3efcb6b3e4b6626b0d4472bcff",
+      "request": {
+        "afrYear": 2015,
+        "reportFormat": "EXCEL",
+        "reportName": "PUBLICNONCOMPLIANTGOVS"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "PUBLICNONCOMPLIANTGOVS",
+      "fiscal_year": 2016,
+      "file": "docs/fl-dfs/PUBLICNONCOMPLIANTGOVS-2016.xlsx",
+      "bytes": 65766,
+      "sha256": "aec8a8456c2af3a22bcf5f7b971ff03c443565105b35ec1ff7481b733ba0d0ed",
+      "request": {
+        "afrYear": 2016,
+        "reportFormat": "EXCEL",
+        "reportName": "PUBLICNONCOMPLIANTGOVS"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "PUBLICNONCOMPLIANTGOVS",
+      "fiscal_year": 2017,
+      "file": "docs/fl-dfs/PUBLICNONCOMPLIANTGOVS-2017.xlsx",
+      "bytes": 56101,
+      "sha256": "c2b4879cadfb518c16ca8efbbddc40cd2d4c1856c14d9459b0a260bcc0d22f65",
+      "request": {
+        "afrYear": 2017,
+        "reportFormat": "EXCEL",
+        "reportName": "PUBLICNONCOMPLIANTGOVS"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "PUBLICNONCOMPLIANTGOVS",
+      "fiscal_year": 2018,
+      "file": "docs/fl-dfs/PUBLICNONCOMPLIANTGOVS-2018.xlsx",
+      "bytes": 45006,
+      "sha256": "f0e8801a2bdabd3ab782636ec6c52766abee4af28a3ed0cb4406c6f6187fd708",
+      "request": {
+        "afrYear": 2018,
+        "reportFormat": "EXCEL",
+        "reportName": "PUBLICNONCOMPLIANTGOVS"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "PUBLICNONCOMPLIANTGOVS",
+      "fiscal_year": 2019,
+      "file": "docs/fl-dfs/PUBLICNONCOMPLIANTGOVS-2019.xlsx",
+      "bytes": 39548,
+      "sha256": "290eecc1d1699f7458c8ad014765b0a52075fa0a8dac1f1502baba0923ed5b36",
+      "request": {
+        "afrYear": 2019,
+        "reportFormat": "EXCEL",
+        "reportName": "PUBLICNONCOMPLIANTGOVS"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "PUBLICNONCOMPLIANTGOVS",
+      "fiscal_year": 2020,
+      "file": "docs/fl-dfs/PUBLICNONCOMPLIANTGOVS-2020.xlsx",
+      "bytes": 38044,
+      "sha256": "791798e26151e0be8be75cde46bea1b859dd67d19ee3c54506686e8bd550dbe4",
+      "request": {
+        "afrYear": 2020,
+        "reportFormat": "EXCEL",
+        "reportName": "PUBLICNONCOMPLIANTGOVS"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "PUBLICNONCOMPLIANTGOVS",
+      "fiscal_year": 2021,
+      "file": "docs/fl-dfs/PUBLICNONCOMPLIANTGOVS-2021.xlsx",
+      "bytes": 45587,
+      "sha256": "2f92f57e17a57bc49f62e121999ab3da698378ff7f2b5b16ac4be19e711f6c49",
+      "request": {
+        "afrYear": 2021,
+        "reportFormat": "EXCEL",
+        "reportName": "PUBLICNONCOMPLIANTGOVS"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "PUBLICNONCOMPLIANTGOVS",
+      "fiscal_year": 2022,
+      "file": "docs/fl-dfs/PUBLICNONCOMPLIANTGOVS-2022.xlsx",
+      "bytes": 75329,
+      "sha256": "c0f05741c257718a7b6116c8cbfc1c6a087626b0c17f204f62efa482e1149af8",
+      "request": {
+        "afrYear": 2022,
+        "reportFormat": "EXCEL",
+        "reportName": "PUBLICNONCOMPLIANTGOVS"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "PUBLICNONCOMPLIANTGOVS",
+      "fiscal_year": 2023,
+      "file": "docs/fl-dfs/PUBLICNONCOMPLIANTGOVS-2023.xlsx",
+      "bytes": 53157,
+      "sha256": "77d64f1fbc2c6fd76159e1efceb6e7ab63b9a8e1acd58963750000c583b74e9b",
+      "request": {
+        "afrYear": 2023,
+        "reportFormat": "EXCEL",
+        "reportName": "PUBLICNONCOMPLIANTGOVS"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "PUBLICNONCOMPLIANTGOVS",
+      "fiscal_year": 2024,
+      "file": "docs/fl-dfs/PUBLICNONCOMPLIANTGOVS-2024.xlsx",
+      "bytes": 47837,
+      "sha256": "c6d6ac9b18e4a3efbacefcf7378d0e782b1f21035afa9ae178b62bc1d5c01b6f",
+      "request": {
+        "afrYear": 2024,
+        "reportFormat": "EXCEL",
+        "reportName": "PUBLICNONCOMPLIANTGOVS"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "PUBLICNONCOMPLIANTGOVS",
+      "fiscal_year": 2025,
+      "file": "docs/fl-dfs/PUBLICNONCOMPLIANTGOVS-2025.xlsx",
+      "bytes": 46776,
+      "sha256": "eb3060ae474616a3dc5a3b6f8edfef5ed7f737f203ee8378563900068beb875f",
+      "request": {
+        "afrYear": 2025,
+        "reportFormat": "EXCEL",
+        "reportName": "PUBLICNONCOMPLIANTGOVS"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "REVENUEDETAILREPORT",
+      "fiscal_year": 2012,
+      "file": "docs/fl-dfs/REVENUEDETAILREPORT-2012.xlsx",
+      "bytes": 1963769,
+      "sha256": "33ed5a74f4e86cbf38626772de5a8683ff93cdba614c95edf7fb2512f22d9bc9",
+      "request": {
+        "afrYear": 2012,
+        "reportFormat": "EXCEL",
+        "reportName": "REVENUEDETAILREPORT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "REVENUEDETAILREPORT",
+      "fiscal_year": 2013,
+      "file": "docs/fl-dfs/REVENUEDETAILREPORT-2013.xlsx",
+      "bytes": 2011644,
+      "sha256": "9f7e66f7f7b744de3b1b442fc42e621e9f4f9b9d695e2f984d8ee3e7976e51e8",
+      "request": {
+        "afrYear": 2013,
+        "reportFormat": "EXCEL",
+        "reportName": "REVENUEDETAILREPORT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "REVENUEDETAILREPORT",
+      "fiscal_year": 2014,
+      "file": "docs/fl-dfs/REVENUEDETAILREPORT-2014.xlsx",
+      "bytes": 2024902,
+      "sha256": "01ac921815c25bdf91062d228a113ee8618f3b1b73b2b7560123521fdcae420c",
+      "request": {
+        "afrYear": 2014,
+        "reportFormat": "EXCEL",
+        "reportName": "REVENUEDETAILREPORT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "REVENUEDETAILREPORT",
+      "fiscal_year": 2015,
+      "file": "docs/fl-dfs/REVENUEDETAILREPORT-2015.xlsx",
+      "bytes": 2047330,
+      "sha256": "ef6b4a6cd96a1c4af96f541fd000956ff8ead3d9b1e1fb67c63f77737ab2c06c",
+      "request": {
+        "afrYear": 2015,
+        "reportFormat": "EXCEL",
+        "reportName": "REVENUEDETAILREPORT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "REVENUEDETAILREPORT",
+      "fiscal_year": 2016,
+      "file": "docs/fl-dfs/REVENUEDETAILREPORT-2016.xlsx",
+      "bytes": 2053162,
+      "sha256": "0240815d732a3ac7f79d4a88ee4d980a8971feb2a6490dfbd4698918f8a530f8",
+      "request": {
+        "afrYear": 2016,
+        "reportFormat": "EXCEL",
+        "reportName": "REVENUEDETAILREPORT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "REVENUEDETAILREPORT",
+      "fiscal_year": 2017,
+      "file": "docs/fl-dfs/REVENUEDETAILREPORT-2017.xlsx",
+      "bytes": 2071324,
+      "sha256": "07e4df9bc12709f8df29d8ff282fbacb8d2e994faa583ad8f0ebac079abe1032",
+      "request": {
+        "afrYear": 2017,
+        "reportFormat": "EXCEL",
+        "reportName": "REVENUEDETAILREPORT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "REVENUEDETAILREPORT",
+      "fiscal_year": 2018,
+      "file": "docs/fl-dfs/REVENUEDETAILREPORT-2018.xlsx",
+      "bytes": 2080494,
+      "sha256": "fe08cd6adc1be760ab82f1b7f872e6f118bc4aa7d234097c779f3d79eea17eab",
+      "request": {
+        "afrYear": 2018,
+        "reportFormat": "EXCEL",
+        "reportName": "REVENUEDETAILREPORT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "REVENUEDETAILREPORT",
+      "fiscal_year": 2019,
+      "file": "docs/fl-dfs/REVENUEDETAILREPORT-2019.xlsx",
+      "bytes": 2126837,
+      "sha256": "62cd9bb29a3da0f0f12a7783ae7e851ceaeef2cb19c7e9791b2efb418580167c",
+      "request": {
+        "afrYear": 2019,
+        "reportFormat": "EXCEL",
+        "reportName": "REVENUEDETAILREPORT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "REVENUEDETAILREPORT",
+      "fiscal_year": 2020,
+      "file": "docs/fl-dfs/REVENUEDETAILREPORT-2020.xlsx",
+      "bytes": 2219115,
+      "sha256": "df49006dad6399695cdecbd5c47c5f2d5780ada18a8f5200b003a6b9fa3a254f",
+      "request": {
+        "afrYear": 2020,
+        "reportFormat": "EXCEL",
+        "reportName": "REVENUEDETAILREPORT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "REVENUEDETAILREPORT",
+      "fiscal_year": 2021,
+      "file": "docs/fl-dfs/REVENUEDETAILREPORT-2021.xlsx",
+      "bytes": 2230648,
+      "sha256": "0d9222a7a08348aa99b597768dcb5b1f7fe65ab1471080160dd5d72c3b556f69",
+      "request": {
+        "afrYear": 2021,
+        "reportFormat": "EXCEL",
+        "reportName": "REVENUEDETAILREPORT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "REVENUEDETAILREPORT",
+      "fiscal_year": 2022,
+      "file": "docs/fl-dfs/REVENUEDETAILREPORT-2022.xlsx",
+      "bytes": 2441686,
+      "sha256": "d1ff357e1b677a6fa999c869cd1499153d415264715a3e4e53576df3a7229099",
+      "request": {
+        "afrYear": 2022,
+        "reportFormat": "EXCEL",
+        "reportName": "REVENUEDETAILREPORT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "REVENUEDETAILREPORT",
+      "fiscal_year": 2023,
+      "file": "docs/fl-dfs/REVENUEDETAILREPORT-2023.xlsx",
+      "bytes": 2507597,
+      "sha256": "46650d38a779a15c20d7d6535f83987c0cb43330811d2a89058c1d9efa54159c",
+      "request": {
+        "afrYear": 2023,
+        "reportFormat": "EXCEL",
+        "reportName": "REVENUEDETAILREPORT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "REVENUEDETAILREPORT",
+      "fiscal_year": 2024,
+      "file": "docs/fl-dfs/REVENUEDETAILREPORT-2024.xlsx",
+      "bytes": 2730067,
+      "sha256": "80522c1317c79b63248233c6b10d98fa1b9a79d4a41d4d45496e2f1c5081d4c6",
+      "request": {
+        "afrYear": 2024,
+        "reportFormat": "EXCEL",
+        "reportName": "REVENUEDETAILREPORT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "REVENUEDETAILREPORT",
+      "fiscal_year": 2025,
+      "file": "docs/fl-dfs/REVENUEDETAILREPORT-2025.xlsx",
+      "bytes": 1554735,
+      "sha256": "244b884dbd0097ea374d717195dd200ffa647a545c59d742c3a5bfef79137fbd",
+      "request": {
+        "afrYear": 2025,
+        "reportFormat": "EXCEL",
+        "reportName": "REVENUEDETAILREPORT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "TOTALREVEXPDEBT",
+      "fiscal_year": 2012,
+      "file": "docs/fl-dfs/TOTALREVEXPDEBT-2012.xlsx",
+      "bytes": 142773,
+      "sha256": "6bedd759f8cb9385d573077492e64fbd7b2157f7eb29ba73c73af7fe5badea21",
+      "request": {
+        "afrYear": 2012,
+        "reportFormat": "EXCEL",
+        "reportName": "TOTALREVEXPDEBT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "TOTALREVEXPDEBT",
+      "fiscal_year": 2013,
+      "file": "docs/fl-dfs/TOTALREVEXPDEBT-2013.xlsx",
+      "bytes": 143045,
+      "sha256": "aa01292322fa624f2b8bbe08109a6be0467827a9856c08b2a6e09f1d437d43ec",
+      "request": {
+        "afrYear": 2013,
+        "reportFormat": "EXCEL",
+        "reportName": "TOTALREVEXPDEBT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "TOTALREVEXPDEBT",
+      "fiscal_year": 2014,
+      "file": "docs/fl-dfs/TOTALREVEXPDEBT-2014.xlsx",
+      "bytes": 142326,
+      "sha256": "f83570b0589dc46ef98ea0129a651c6f9c2194dec93766f5731a0740fdb223c5",
+      "request": {
+        "afrYear": 2014,
+        "reportFormat": "EXCEL",
+        "reportName": "TOTALREVEXPDEBT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "TOTALREVEXPDEBT",
+      "fiscal_year": 2015,
+      "file": "docs/fl-dfs/TOTALREVEXPDEBT-2015.xlsx",
+      "bytes": 144115,
+      "sha256": "c4627362b124987bfe185cc2108e52b855cb847ecb3f8a2a9d8d1ec84b636f32",
+      "request": {
+        "afrYear": 2015,
+        "reportFormat": "EXCEL",
+        "reportName": "TOTALREVEXPDEBT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "TOTALREVEXPDEBT",
+      "fiscal_year": 2016,
+      "file": "docs/fl-dfs/TOTALREVEXPDEBT-2016.xlsx",
+      "bytes": 143702,
+      "sha256": "5ac5b8bd03b2b498555b9ad5de6f5f21a5257b2e9964eff7b9d97b71b00e741e",
+      "request": {
+        "afrYear": 2016,
+        "reportFormat": "EXCEL",
+        "reportName": "TOTALREVEXPDEBT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "TOTALREVEXPDEBT",
+      "fiscal_year": 2017,
+      "file": "docs/fl-dfs/TOTALREVEXPDEBT-2017.xlsx",
+      "bytes": 141328,
+      "sha256": "e5c6d4db7b5a190ddd1dd94100382579574be36628b1dfefc3c0a8eafea77439",
+      "request": {
+        "afrYear": 2017,
+        "reportFormat": "EXCEL",
+        "reportName": "TOTALREVEXPDEBT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "TOTALREVEXPDEBT",
+      "fiscal_year": 2018,
+      "file": "docs/fl-dfs/TOTALREVEXPDEBT-2018.xlsx",
+      "bytes": 142966,
+      "sha256": "b699b59fd1dd67bb167f153308cf07cf5a71a7ed005eaae82330bc15ebdea95a",
+      "request": {
+        "afrYear": 2018,
+        "reportFormat": "EXCEL",
+        "reportName": "TOTALREVEXPDEBT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "TOTALREVEXPDEBT",
+      "fiscal_year": 2019,
+      "file": "docs/fl-dfs/TOTALREVEXPDEBT-2019.xlsx",
+      "bytes": 144274,
+      "sha256": "7e801d6808c7c85af78d7a8fe5b76d201f2ef7706cde73d7ead8518a218c64f7",
+      "request": {
+        "afrYear": 2019,
+        "reportFormat": "EXCEL",
+        "reportName": "TOTALREVEXPDEBT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "TOTALREVEXPDEBT",
+      "fiscal_year": 2020,
+      "file": "docs/fl-dfs/TOTALREVEXPDEBT-2020.xlsx",
+      "bytes": 146603,
+      "sha256": "2731dd3fb05b70dd94c2ff9cba2d609809b67121135c34baf4c8a73bac51da88",
+      "request": {
+        "afrYear": 2020,
+        "reportFormat": "EXCEL",
+        "reportName": "TOTALREVEXPDEBT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "TOTALREVEXPDEBT",
+      "fiscal_year": 2021,
+      "file": "docs/fl-dfs/TOTALREVEXPDEBT-2021.xlsx",
+      "bytes": 150094,
+      "sha256": "6c9f4a16a260064d119cc821eb1bd9a91020ab772a971202dbc4e7900e99a1e1",
+      "request": {
+        "afrYear": 2021,
+        "reportFormat": "EXCEL",
+        "reportName": "TOTALREVEXPDEBT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "TOTALREVEXPDEBT",
+      "fiscal_year": 2022,
+      "file": "docs/fl-dfs/TOTALREVEXPDEBT-2022.xlsx",
+      "bytes": 155456,
+      "sha256": "b43349d237f5a79bc516340068600c58b361ca464eb685376454e32f149e54f3",
+      "request": {
+        "afrYear": 2022,
+        "reportFormat": "EXCEL",
+        "reportName": "TOTALREVEXPDEBT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "TOTALREVEXPDEBT",
+      "fiscal_year": 2023,
+      "file": "docs/fl-dfs/TOTALREVEXPDEBT-2023.xlsx",
+      "bytes": 159761,
+      "sha256": "e035a9f21e9ba8a4e3a21ed3b08076a64f84bf3b2595ba78ed9390431a22a649",
+      "request": {
+        "afrYear": 2023,
+        "reportFormat": "EXCEL",
+        "reportName": "TOTALREVEXPDEBT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "TOTALREVEXPDEBT",
+      "fiscal_year": 2024,
+      "file": "docs/fl-dfs/TOTALREVEXPDEBT-2024.xlsx",
+      "bytes": 163525,
+      "sha256": "5b617aa8d7b0e1b095ec88cc5bcb7bc3e449672ab06688f1a1913ff08b73301d",
+      "request": {
+        "afrYear": 2024,
+        "reportFormat": "EXCEL",
+        "reportName": "TOTALREVEXPDEBT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    },
+    {
+      "report": "TOTALREVEXPDEBT",
+      "fiscal_year": 2025,
+      "file": "docs/fl-dfs/TOTALREVEXPDEBT-2025.xlsx",
+      "bytes": 110482,
+      "sha256": "6dc0ecf302761825d392ff7a847e69e2290577de5f56b0f74ad0b5a99154de94",
+      "request": {
+        "afrYear": 2025,
+        "reportFormat": "EXCEL",
+        "reportName": "TOTALREVEXPDEBT"
+      },
+      "url": "https://logerx.myfloridacfo.gov/LogerX/PublicReportsMenu",
+      "fetched": "2026-08-29"
+    }
+  ]
+}

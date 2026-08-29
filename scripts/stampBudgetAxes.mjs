@@ -74,7 +74,39 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // between milestones. Strings (129) and entities (30) are unchanged, so the
   // pattern still claims exactly the right rows — there are simply more of them.
   // See the evidence block in scripts/data/basisRegistry.mjs.
-  'city-adopted-budget-doc': 169,
+  //
+  // ⚠⚠ RE-MEASURED AGAIN 2026-08-29: 169 -> 171, ONE DAY LATER, and the cause is
+  // the same shape as the previous +4 but a DIFFERENT city. The two extra rows
+  // are `Los Angeles Operating Budget` FY2025 + FY2026, created by that source's
+  // ENABLED cron sync at 03:07 UTC on 2026-08-29 — after session 2 verified the
+  // frozen invariant green at 79,916.
+  //
+  // ATTRIBUTED EXACTLY, not inferred. Two independent measurements agree:
+  //   (a) The frozen-invariant digest as an oracle. Excluding ids
+  //       804fd360-8d0e-4ed2-ad17-3d4c67ad9e0f (FY2025, $19,340,363,947.28) and
+  //       9d9205b9-f920-43c7-9452-a5b958df6e35 (FY2026, $20,853,668,993.02)
+  //       reproduces scopeBaseline.figures_frozen byte-for-byte; no other pair
+  //       in the candidate set does. Registered as
+  //       scripts/data/laOperatingCronDriftCreatedIds.json.
+  //   (b) This gate, arrived at from the opposite direction: exactly 2 rows of
+  //       `Los Angeles Operating Budget` match this pattern, FY2025-FY2026.
+  //
+  // ⚠ The Knight session-3 Florida load ran in the same session and CANNOT be
+  // the cause: its 190 rows carry no "Budget" in their source strings, so this
+  // pattern cannot reach them, and they are counted separately under
+  // `fl-dfs-afr` below.
+  //
+  // ⚠ THE STANDING LESSON, now observed twice in two days: a partition count is
+  // a MEASUREMENT WITH A DATE, not a constant, and the milestone that trips over
+  // an enabled sync's drift will be an UNRELATED one. Re-measure with evidence;
+  // the "do NOT edit the expected number" rule is about a pattern claiming the
+  // WRONG rows, not about the right rows becoming more numerous.
+  //
+  // ⚠ SEPARATE FOLLOW-UP, NOT FIXED HERE: these two rows are a re-growth of the
+  // series v2.28 deliberately severed (project_la_city_series_severed). They are
+  // honestly `fund_scope: unknown` / `basis: unknown`, so nothing is currently
+  // drawn wrong — but the sync that creates them is enabled and will keep going.
+  'city-adopted-budget-doc': 171,
   // AUSTIN-TRAVIS-01, measured 2026-08-19: Austin 32 + Travis County 44. A NEW
   // family, so no pre-existing count moved.
   // Evidence: docs/superpowers/plans/AUSTIN-TRAVIS-01-SCOPE-RECON.md §2.
@@ -96,6 +128,13 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // Remaining exclusions are documented per entity in ncAcfrSources.mjs.
   // Evidence: docs/superpowers/plans/NC-DURHAM-AVL-01-CLOSEOUT.md section 6.
   'nc-local-acfr-gf': 210,
+  // Knight session 3 (Florida DFS), measured from the ACTUAL post-write count on
+  // 2026-08-29. A NEW family, so no pre-existing count moved. 190 = 95
+  // entity-years x 2 datasets over 28 source strings; three of the 98 possible
+  // entity-years are absent because Miami-Dade, Leon and Bradenton had not filed
+  // FY2025 when the workbooks were fetched. See the note in
+  // scripts/classifyFundScope.mjs for why that number may legitimately rise.
+  'fl-dfs-afr': 190,
   // The sixteen entity-published city/state ACFR families, measured 2026-08-19.
   // Evidence: docs/superpowers/plans/ACFR-GF-CLASSIFICATION-RECON.md §2.
   'or-city-acfr-gf': 106,
@@ -108,6 +147,12 @@ export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
   'mn-osa': 21794,
   'state-acfr-gf': 1448,
   'wa-sao': 286,
+  // Knight session 3 (Florida DFS), measured 2026-08-29. Same 190 rows as the
+  // basis entry above; primary_government because DFS publishes discretely
+  // presented component units in their own twelfth fund column and TT sums only
+  // the five governmental ones. ⚠ The exact OPPOSITE of mn-osa directly above,
+  // which consolidates its component units into the same columns.
+  'fl-dfs-afr': 190,
   // AUSTIN-TRAVIS-01. Evidence: AUSTIN-TRAVIS-01-SCOPE-RECON.md §3.
   'tx-local-acfr-gf': 76,
   // CO-SPRINGS-EPC-01, measured 2026-08-21: Colorado Springs 28 + El Paso

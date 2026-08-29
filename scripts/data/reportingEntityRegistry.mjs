@@ -244,6 +244,31 @@ export const REPORTING_ENTITY_REGISTRY = [
     },
   },
   {
+    // Knight campaign, session 3 — Florida DFS LOGERx Annual Financial Reports.
+    id: 'fl-dfs-afr',
+    match: /^Florida DFS Annual Financial Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[2-9]|2[0-5]) actual, (?:audit|DEW)-reconciled\)$/,
+    value: REPORTING_ENTITY.PRIMARY,
+    evidence: {
+      document: 'The source workbooks, cached under docs/fl-dfs/. As with fund_scope, the entity '
+              + 'boundary here is a FACT read off a column header rather than an inference about '
+              + 'a publisher\'s conventions: DFS publishes "Component Units" as its own twelfth '
+              + 'fund column, alongside the five governmental, two proprietary and four fiduciary '
+              + 'columns.',
+      figures: 'TT sums the five GOVERNMENTAL columns only, so the discretely presented component '
+             + 'units in that twelfth column are excluded by construction — there is no judgment '
+             + 'call to get wrong. That the column is real and material is visible in the figures: '
+             + 'at Miami-Dade County FY2023 the difference between summing with and without it is '
+             + 'billions of dollars, and City of Miami FY2023 has a non-zero Component Units '
+             + 'column that TT does not read. '
+             + 'Blended component units are, by GASB 34, reported inside the primary government\'s '
+             + 'own funds and are therefore inside these figures — the same treatment as wa-sao, '
+             + 'state-acfr-gf, tx-local-acfr-gf and co-local-acfr-gf. '
+             + '⚠ Unlike mn-osa, which is KNOWN to consolidate HRA/EDA/TIF units and is therefore '
+             + 'incl_component_units, Florida keeps them in a separate column that TT never sums, '
+             + 'so primary_government is the accurate label rather than the convenient one.',
+    },
+  },
+  {
     id: 'wa-sao',
     match: /^WA State Auditor — /,
     value: REPORTING_ENTITY.PRIMARY,

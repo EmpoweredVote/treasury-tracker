@@ -278,6 +278,31 @@ export const BASIS_REGISTRY = [
     },
   },
   {
+    // Knight campaign, session 3 — Florida DFS LOGERx Annual Financial Reports.
+    // ⚠ Placed ABOVE the adopted-budget catch-all, on the `ca-sco-derived-tg`
+    // precedent. That entry matches on /(Operating|Revenue|...).*Budget.../i and
+    // these labels contain "Revenue"; they carry no "Budget" today, so ordering
+    // is belt to the pattern's braces rather than the only thing standing
+    // between a closed-year actual and an `adopted` stamp.
+    id: 'fl-dfs-afr',
+    match: /^Florida DFS Annual Financial Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[2-9]|2[0-5]) actual, (?:audit|DEW)-reconciled\)$/,
+    value: BASIS.ACTUAL,
+    evidence: {
+      document: 'Florida\'s Annual Financial Report is a CLOSED-YEAR filing by statute: '
+              + 's. 218.32(1)(a), F.S. requires each local governmental entity to submit "a copy '
+              + 'of its annual financial report FOR THE PREVIOUS FISCAL YEAR", and s. 218.32(1)(d) '
+              + 'sets the deadline at 45 days after the audit report is completed, no later than '
+              + 'nine months after the fiscal year ends. A report filed after the year closed and '
+              + 'reconciled against that year\'s audited statements cannot be an adopted budget.',
+      figures: 'Corroborated arithmetically rather than taken on trust. DFS separately publishes '
+             + 'TOTALREVEXPDEBT per entity; TT\'s parse of the detail reports reproduces both '
+             + 'Total Revenues and Total Expenditures to the cent for all 95 loaded entity-years '
+             + '(e.g. City of Miami FY2023 expenditures $1,617,244,615 and revenues '
+             + '$1,717,354,156). Every loaded year is FY2012-FY2025, all closed. The unclosed-year '
+             + 'rule in stampBudgetAxes.mjs is the standing guard if that ever stops being true.',
+    },
+  },
+  {
     // Adopted budget documents. 169 rows / 129 strings / 30 entities,
     // RE-MEASURED 2026-08-28 (was 165 rows, measured 2026-08-17).
     // Placed LAST so a more specific source above always wins.

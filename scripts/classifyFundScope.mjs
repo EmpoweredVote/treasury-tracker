@@ -103,6 +103,23 @@ export const EXPECTED_ROWS = Object.freeze({
   // Remaining exclusions are documented per entity in ncAcfrSources.mjs.
   // Evidence: docs/superpowers/plans/NC-DURHAM-AVL-01-CLOSEOUT.md section 6.
   'nc-local-acfr-gf': 210,
+  // Knight session 3 (Florida DFS), measured from the ACTUAL post-write count on
+  // 2026-08-29, never from an estimate. A NEW family, so no pre-existing count
+  // moved: the gate reported every other entry unchanged in the same run.
+  //
+  // 190 = 95 entity-years x 2 datasets, across 28 source strings (14 fiscal years
+  // x {Expenditure by Function, Revenue by Source}). The seven entities span
+  // FY2012-FY2025 = 98 possible entity-years; THREE are absent because those
+  // governments had not filed FY2025 when the workbooks were fetched — Miami-Dade,
+  // Leon and Bradenton. 98 - 3 = 95.
+  //
+  // ⚠ THAT SHORTFALL IS THE NUMBER TO WATCH. FY2025 is still filling: 1,281
+  // entities had filed statewide against 1,918 for FY2024. When those three file,
+  // a re-run of the loader will legitimately raise this to as much as 196, and
+  // that is a re-measurement, not a pattern bug — the same distinction
+  // basisRegistry.mjs's `city-adopted-budget-doc` entry had to make for San
+  // Francisco's cron sync. Check WHICH rows appeared before editing the number.
+  'fl-dfs-afr': 190,
   // The sixteen entity-published city/state ACFR families, measured 2026-08-19.
   // Evidence: docs/superpowers/plans/ACFR-GF-CLASSIFICATION-RECON.md.
   // 106 + 64 + 34 + 56 = 260. All NEW families; no pre-existing count moved.

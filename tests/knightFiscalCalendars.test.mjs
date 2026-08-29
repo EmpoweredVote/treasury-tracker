@@ -35,6 +35,27 @@ const LOADED = [
   { name: 'Los Angeles County', state: 'CA', month: 7, fy: 2023 },
   { name: 'Santa Clara County', state: 'CA', month: 7, fy: 2023 },
   { name: 'San Jose', state: 'CA', month: 7, fy: 2023 },
+  // North Carolina — July, the statutory year for every NC local unit
+  // (N.C.G.S. 159-8(b)). Session 2.
+  { name: 'Charlotte', state: 'NC', month: 7, fy: 2023 },
+  { name: 'Mecklenburg County', state: 'NC', month: 7, fy: 2023 },
+  // ⚠⚠ FLORIDA IS OCTOBER, and North Carolina directly above is JULY. Session 3
+  // loaded them one session apart, which is exactly the distance over which a
+  // month gets carried by accident. FYE is 9/30 for all 262 cities and 49
+  // counties in Florida's FY2023 compliance report.
+  //
+  // ⚠ `censusName` is not decoration. FAC spells Miami-Dade WITHOUT the hyphen,
+  // so passing TT's name would make censusGuard() return {ok:true} for an entity
+  // it never found — the Saint Louis County shape, one row further down this
+  // same list. The years chosen here are inside each entity's censused window;
+  // the gaps are pinned separately below.
+  { name: 'Miami', state: 'FL', month: 10, fy: 2023 },
+  { name: 'Tallahassee', state: 'FL', month: 10, fy: 2023 },
+  { name: 'Bradenton', state: 'FL', month: 10, fy: 2023 },
+  { name: 'Miami Dade County', state: 'FL', month: 10, fy: 2024 },
+  { name: 'Leon County', state: 'FL', month: 10, fy: 2023 },
+  { name: 'Manatee County', state: 'FL', month: 10, fy: 2023 },
+  { name: 'Palm Beach County', state: 'FL', month: 10, fy: 2019 },
 ];
 
 /**
@@ -103,6 +124,33 @@ describe('the guard is doing real work, not passing on ignorance', () => {
       'Saint Louis County, MN',
       'Santa Clara County, CA',
     ]);
+  });
+
+  /**
+   * ⚠ Florida's census coverage is complete for the STATE but not for every
+   * entity-year, and the loader must not describe an uncovered year as
+   * confirmed. 18 of the 95 loaded Florida entity-years fall in these holes.
+   *
+   * Unlike California's counties — where `docs/fac/` holds ZERO county rows and
+   * the guard is vacuous for all 54 — Florida's slice has 74 county rows, so the
+   * guard here is doing real work everywhere it has evidence. These are gaps in
+   * the federal filing record itself, not a scoping mistake in the census build.
+   */
+  it('pins the Florida per-entity-year census holes', () => {
+    const holes = [
+      ['Miami Dade County', 2012], ['Miami Dade County', 2022], // covered only 2023-2025
+      ['Palm Beach County', 2021], ['Palm Beach County', 2024], // covered 1998-2020, 2025
+      ['Bradenton', 2014], ['Bradenton', 2017], // covered 1998-2013, 2016, 2018-2025
+    ];
+    for (const [name, fy] of holes) {
+      expect(censusMonthFor('FL', name, fy).unknown, `${name} FY${fy}`).toBeTruthy();
+      // ...and the guard must still PASS, because silence is not disagreement.
+      expect(censusGuard(name, 'FL', 10, fy).error).toBeUndefined();
+    }
+    // The years the loader reports as CONFIRMED really are confirmed.
+    for (const [name, fy] of [['Miami', 2023], ['Leon County', 2023], ['Manatee County', 2025]]) {
+      expect(censusMonthFor('FL', name, fy).month, `${name} FY${fy}`).toBe(10);
+    }
   });
 
   it('would catch a contradicted month for an entity the census knows', () => {

@@ -491,12 +491,27 @@ FY month: the stored `fiscal_year_start_month` and whether the FAC census confir
 | San Jose | CA | city | **partial** | GF budget + publicpay | `unknown` | 7 · **FAC confirmed** | 1 |
 | **Charlotte** | NC | city | loaded | **own ACFR** FY2011–25 | `audited_gaap` | 7 · **FAC confirmed** | 2 |
 | **Mecklenburg County** | NC | county | loaded | **own ACFR** FY2005–25 | `audited_gaap` | 7 · **FAC confirmed** | 2 |
+| **Miami** | FL | city | loaded | **FL DFS** FY2012–25 | `compiled_from_audited` | 10 · **FAC confirmed** | 3 |
+| **Tallahassee** | FL | city | loaded | **FL DFS** FY2012–25 | `compiled_from_audited` | 10 · **FAC confirmed** | 3 |
+| **Bradenton** | FL | city | loaded | **FL DFS** FY2012–24 | `compiled_from_audited` | 10 · confirmed exc. FY14/15/17 | 3 |
+| **Palm Beach County** | FL | county | loaded | **FL DFS** FY2012–25 | `compiled_from_audited` | 10 · confirmed exc. FY21–24 | 3 |
+| **Miami-Dade County** | FL | county | loaded | **FL DFS** FY2012–24 | `compiled_from_audited` | 10 · confirmed FY23–24 only | 3 |
+| **Leon County** | FL | county | loaded | **FL DFS** FY2012–24 | `compiled_from_audited` | 10 · **FAC confirmed** | 3 |
+| **Manatee County** | FL | county | loaded | **FL DFS** FY2012–25 | `compiled_from_audited` | 10 · **FAC confirmed** | 3 |
 
-The 31 remaining entities are `pending` and are listed in spec §2.
+The 24 remaining entities are `pending` and are listed in spec §2.
+
+⚠ The three Florida windows ending FY2024 are NOT gaps in the source — Miami-Dade,
+Leon and Bradenton had simply not filed FY2025 when the workbooks were fetched.
+FY2025 is still filling statewide (1,281 filers against 1,918 for FY2024).
 
 ⚠ **Session 1 loaded nothing** — it built the grade axis and verified what
 already existed. **Session 2 is the campaign's first load**, and the first
-`audited_gaap` rows in TT.
+`audited_gaap` rows in TT. **Session 3 is the first BULK state**, the first
+`compiled_from_audited` rows, and the first source in TT whose icicle actually
+drills down.
+
+**Running total: 19 of 43 entities loaded (44%), 1 partial, 23 pending.**
 
 **Oracle, session 2.** Every one of the 72 rows ties **$0** against the issuer's
 own printed total on the statement — the check external to the write path that
@@ -778,3 +793,198 @@ called it `compiled_from_audited`.
 the FAC census blind spot for CA counties, MN OSA's audit status, the CA SCO
 Counties report, and the ev-accounts passthrough that would make `audit_grade`
 visible in the UI.
+
+---
+
+## Session 3 outcomes (2026-08-29)
+
+**Florida DFS → Miami, Tallahassee, Bradenton, Palm Beach County, Miami-Dade,
+Leon and Manatee Counties.** Florida's FIRST local entities in TT — the state
+previously held only its state node — and the campaign's first
+`compiled_from_audited` rows.
+
+| | |
+|---|---|
+| Entities added | **7** — 3 cities + 4 counties (Palm Beach County is itself the Knight community) |
+| Rows loaded | **190** = 95 entity-years × 2 datasets, FY2012–FY2025 |
+| Oracle | **$0 drift on all 95 entity-years, both money columns**, against DFS's separately published `TOTALREVEXPDEBT` |
+| Second reader | **18/18 exact** — an independently written openpyxl reader vs the database |
+| Grade | `compiled_from_audited` on all 190 — **the first in TT** |
+| Scope | `total_governmental` · `basis=actual` · `reporting_entity=primary_government` on all 190; `source_url` on all 190 |
+| FY month | 10 on all 190; **77 of 95 entity-years actively census-CONFIRMED**, 18 uncovered and reported as such |
+| Frozen invariant | 190 registered, digest **unchanged** — $0 moved |
+| Tests | 1,482 → **1,528**, all passing. Build green. |
+| UAT | **9/9** — 8 entity-year pages + the two-level drill-down |
+
+### The oracle, and what it deliberately does not cover
+
+DFS publishes `TOTALREVEXPDEBT` — per-entity Total Revenues and Total
+Expenditures — computed outside the detail reports TT parses. That is the check
+external to the write path spec §5.2 requires, and NOT the tautological DB
+`total = Σ items`.
+
+⚠ **The loaded total is deliberately BELOW the oracle, and that gap is a
+feature.** DFS's headline includes expenditure object code 90 and revenue
+accounts 38x/39x, both of which the publisher itself defines as interfund
+transfers rather than spending or revenue. So the oracle runs over the FULL
+parse — every account, every object code, over the eight non-fiduciary fund
+columns — which proves every figure was read from the right cell; the loaded
+tree is then a documented subset of a verified parse. `scripts/verifyFloridaDFS.mjs`
+prints the excluded amount per entity-year so the difference is a number on the
+page rather than a mystery. **Never widen the tree to close it.**
+
+For scale, FY2023: Miami-Dade excludes $1.57B of object-90 transfers and $916M
+of 38x/39x other sources; Palm Beach County $387M and $626M. These are not
+rounding.
+
+### A SECOND READER WAS AVAILABLE HERE, AND IT MATTERED
+
+Session 2 could not corroborate Charlotte or Mecklenburg with a second reader —
+`-table` read those pages *confidently and wrongly*. A bulk XLSX source has no
+such problem, so 18 entity-year figures were re-derived with **openpyxl in
+Python** — a different language, a different library, and a reader written from
+the workbook layout rather than from the loader — and compared against what is
+actually stored in the database. 18/18 byte-exact. Combined with the DFS oracle
+that is two independent confirmations of the same 190 rows.
+
+### ⚠ THE FIRST PARSE RETURNED ZERO ROWS AND THE VERIFIER CALLED IT GREEN
+
+The most useful defect of the session, and it was ours.
+
+`readDetailRows` passed ExcelJS **`Cell` objects** into a coercion helper that
+expected `.value`. An ExcelJS `Cell` carries a `result` property (undefined
+unless the cell holds a formula), so `'result' in cell` is true for *every*
+cell, the `{result: n}` branch returned `undefined`, and 30,189 real rows parsed
+to nothing.
+
+⚠⚠ **What made it dangerous was not the bug, it was the report.** The verifier
+found no rows for any entity, wrote "not filed" seven times — which is a
+*legitimate* state for FY2025 — counted zero checks, and printed
+**"Oracle green"**. A gate that passes because it measured nothing is the
+CA-county `censusGuard()` shape exactly: silence read as agreement.
+
+Both halves are now pinned. `assertParsed()` refuses a zero-row detail workbook,
+and the verifier exits non-zero on **zero checks**. `tests/floridaDfs.test.mjs`
+uses a worksheet stub whose `getCell()` returns a Cell-shaped object *with* a
+`result` property, because a stub returning bare values would not have caught
+this.
+
+### The traps, confirmed against the real data
+
+* **Florida is OCTOBER; North Carolina, one session earlier, is JULY.** All 190
+  rows carry month 10, resolved per row through `censusGuard()` and never
+  carried from the previous session.
+* **`Miami Dade County` — FAC drops the hyphen.** `floridaKnightEntities.mjs`
+  carries a `censusName` for exactly this. Without it `censusGuard()` would
+  return `{ok:true}` for an entity it never found, on all 13 of that county's
+  entity-years. The `Saint Louis County` shape, third occurrence.
+* **18 of 95 entity-years are census HOLES, not confirmations** — Miami-Dade
+  FY2012–2022, Palm Beach County FY2021–2024, Bradenton FY2014/2015/2017. The
+  loader reports CONFIRMED and unverified as different words and never
+  conflates them.
+* **FY2025 is genuinely partial** — Miami-Dade, Leon and Bradenton had not
+  filed. 190 rows, not 196.
+* **Palm Beach is two governments** (county `100050`, Town `200287`); every
+  join is on `code`, and the oracle report — which carries no code at all — is
+  keyed on (Unit Type, Unit Name) together.
+
+### ⚠ Rounding is the ISSUER's, not ours
+
+Miami-Dade, Manatee and Tallahassee file figures rounded to the nearest
+thousand; Miami, Leon, Palm Beach and Bradenton file to the dollar. Both are
+whole dollars — this is NOT the Charlotte/Austin units trap. The per-capita
+guard confirms it: every entity lands in the $800–$2,700 band
+(Leon $802, Tallahassee $1,639, Miami $2,703, Manatee $2,567), where a 1000×
+slip would put them near $1–$3.
+
+### UAT — 9 of 9
+
+Driven through a real Chromium against the production API, 2026-08-29.
+
+Eight entity-year pages render with correct totals, per-capita figures,
+breadcrumbs (`United States / Florida / Miami-Dade County / Miami / Budget` —
+the `county_id` linkage works), and a source chip naming the exact filing:
+*"Florida DFS Annual Financial Report — Expenditure by Function (FY2023 actual,
+audit-reconciled) · as of 2026-08-29"*. `Total Governmental` and `Actuals` both
+render as scope chips.
+
+⭐ **The drill-down works, and Florida is the first bulk source in TT where it
+does.** Clicking `521.00 - Law Enforcement` on Miami FY2023 opens its object
+codes — Personnel Services $295.2M (87.8%), Operating $36.9M, Capital Outlay
+$4.0M, Grants and Aids $86,292. Ohio AOS and the other flat sources dim to an
+empty panel on a leaf click (`project_flat_source_icicle_limitation`); this one
+has a real second level.
+
+⚠ **`audit_grade` STILL DOES NOT RENDER** — the ev-accounts passthrough
+(follow-up 7, spec §3.7) is unchanged. TT now holds its first
+`compiled_from_audited` rows and a reader cannot see that they are. The column
+is correct and invisible, which is the precise failure `sourceChipTypes.ts`
+documents.
+
+### ⚠⚠ A PRE-EXISTING 2-ROW INVARIANT DEFICIT, FOUND BEFORE THIS LOAD WROTE ANYTHING
+
+`npm run verify:frozen` was run BEFORE the Florida load — which is the only
+reason the 190 could be attributed cleanly afterwards — and it was already
+failing by 2 rows.
+
+**Attributed EXACTLY, by two independent routes that agree:**
+
+1. **The digest as an oracle** (the session-2 technique). Excluding
+   `804fd360-8d0e-4ed2-ad17-3d4c67ad9e0f` (FY2025, $19,340,363,947.28) and
+   `9d9205b9-f920-43c7-9452-a5b958df6e35` (FY2026, $20,853,668,993.02)
+   reproduces `figures_frozen` byte-for-byte; no other pair does.
+2. **The `basis` partition gate**, arriving from the opposite direction:
+   `city-adopted-budget-doc` measured 169 on 2026-08-28 and matched 171.
+
+Both name the same rows: **`Los Angeles Operating Budget` FY2025 + FY2026**,
+created by that source's enabled cron sync at 03:07 UTC on 2026-08-29 — hours
+after session 2 verified the invariant green. Registered under their own
+milestone, `scripts/data/laOperatingCronDriftCreatedIds.json`, so they are NOT
+filed under Florida's name.
+
+⚠ **This is the second enabled-sync drift in two days** (San Francisco on
+2026-08-28, Los Angeles on 2026-08-29) and it confirms the standing lesson
+rather than adding a new one: **a partition count is a measurement with a date,
+and the milestone that trips over the drift is always an unrelated one.** The
+habit that made it cheap was running `verify:frozen` *before* writing, not only
+after.
+
+⚠ **OPEN, NOT FIXED HERE: those two rows are the series v2.28 deliberately
+severed, growing back.** `project_la_city_series_severed` records why LA's
+Socrata operating series was cut away from the SCO actuals. The sync that
+created them is still enabled. They are honestly `fund_scope: unknown` /
+`basis: unknown`, so nothing is currently drawn wrong — but this will recur every
+time the sync rolls a year, and each time it will surface inside somebody else's
+milestone.
+
+### Follow-ups opened
+
+1. ⚠ **The LA Operating Budget cron sync re-creates rows in a severed series**
+   (above). Decide whether to disable it, scope it, or accept and register the
+   drift on a schedule.
+2. **The statewide Florida unlock is REAL and was deliberately not taken.** The
+   same loader reaches **409 cities and 66 counties** with no new extraction
+   work — the marginal cost is verification, not code. Scoped out of this
+   session by decision (Chris, 2026-08-29) so the session could end whole per
+   §4.4; filed as its own milestone. ⚠ It would also be TT's first large
+   `compiled_from_audited` population, and the **DEW branch must be handled
+   deliberately** — `loadFloridaDFS.mjs` refuses those rows without
+   `--allow-dew` precisely so that decision cannot be made by accident.
+3. **`BALANCESHEETDETAILREPORT` (FY2022+) and `TOTALREVEXPDEBT`'s `Total Debt`
+   column are unused.** TT has no balance-sheet or debt dataset today; Florida
+   publishes both, free and bulk, for every local government.
+4. ⚠ **`censusMonthFor`'s "outside the audited years" message prints a min–max
+   RANGE, not the actual coverage.** Bradenton FY2014 reports "observed month
+   10: 1998-2025", which reads as though 2014 is inside the range that just
+   rejected it. The verdict is right and the explanation is misleading. Cheap
+   fix, in `scripts/lib/facFiscalYearCensus.mjs`.
+5. **Labels carry the publisher's account codes** — `521.00 - Law Enforcement`,
+   `10 - Personnel Services`. Verbatim transcription is the house rule and it
+   reads fine in the icicle, but in the plain-language sentence ("The biggest
+   share was 521.00 - Law Enforcement") it is clunky for a general reader.
+   Stripping a leading `\d+\.\d+ - ` is deterministic rather than a rewrite —
+   a labelling judgment call, deliberately left to Chris rather than taken
+   unilaterally.
+6. ⚠ **The seven entities have no `geo_id` or `hero_image_url`** — consistent
+   with every entity seeded since Tucson, noted so it is a known gap rather
+   than an oversight.
