@@ -147,6 +147,19 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // FY2025 when the workbooks were fetched. See the note in
   // scripts/classifyFundScope.mjs for why that number may legitimately rise.
   'fl-dfs-afr': 190,
+  // Knight session 4 (Georgia DCA RLGF), measured from the ACTUAL post-write
+  // count on 2026-08-29. A NEW family, so no pre-existing count moved.
+  // 76 = 38 entity-years x 2 datasets, over 44 source strings — more strings per
+  // row than Florida because the GA label carries the per-year AUDIT BRANCH as
+  // well as the fiscal year.
+  // ⚠ The 38 are not 4 entities x 10 years: DCA's own listing has no Macon-Bibb
+  // FY2024 and no Milledgeville FY2018, and this load covers FY2016+ only
+  // (FY2009-2015 is a different form generation). Those gaps are the
+  // publisher's, not fetch failures.
+  // ⚠ This count WILL rise when the FY2009-2015 follow-up or the statewide
+  // sweep lands. Re-measure with evidence then; a partition count is a
+  // measurement with a date, not a constant.
+  'ga-dca-rlgf': 76,
   // The sixteen entity-published city/state ACFR families, measured 2026-08-19.
   // Evidence: docs/superpowers/plans/ACFR-GF-CLASSIFICATION-RECON.md §2.
   'or-city-acfr-gf': 106,

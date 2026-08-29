@@ -67,7 +67,9 @@ const SOURCE_PREFIX = 'Georgia DCA Report of Local Government Finances';
 const SOURCE_URL = 'https://apps.dca.ga.gov/RLGF/Default.aspx';
 const FUND_SCOPE = 'unknown';
 const BASIS_VALUE = 'actual';
-const DERIVATION = 'as_published';
+// ⚠ `published` or `derived` ONLY — budgets_derivation_check allows nothing else.
+// These figures are transcribed from the filing, not computed by TT.
+const DERIVATION = 'published';
 const GA_STATE = 'GA';
 
 /**
@@ -335,6 +337,7 @@ async function main() {
   const sourceDate = new Date().toISOString().slice(0, 10);
   let written = 0;
   let conflicts = 0;
+  let categories = 0;
   for (const f of filings) {
     const ent = entityByCicoid(f.cicoid);
     const municipalityId = ids.get(ent.key);
@@ -357,7 +360,7 @@ async function main() {
         console.log(`  SKIP ${ent.name} FY${f.fiscalYear} ${datasetType} — "${existing[0].data_source}" preserved`);
         continue;
       }
-      const { error } = await db.rpc('treasury_sync_city_budget', {
+      const { data, error } = await db.rpc('treasury_sync_city_budget', {
         p_municipality_id: municipalityId,
         p_fiscal_year: f.fiscalYear,
         p_dataset_type: datasetType,
@@ -376,12 +379,43 @@ async function main() {
         p_basis: BASIS_VALUE,
         p_derivation: DERIVATION,
       });
-      if (error) throw new Error(`RPC error (${ent.name} FY${f.fiscalYear} ${datasetType}): ${error.message}`);
+      // ⚠⚠ THE RPC REPORTS FAILURE IN ITS RETURN PAYLOAD, NOT AS A POSTGREST
+      // ERROR. treasury_sync_city_budget ends with
+      //     EXCEPTION WHEN OTHERS THEN RETURN jsonb_build_object('error', SQLERRM);
+      // so a constraint violation comes back as `data.error` while `error` is
+      // null and the call looks like a success. Checking only `error` made this
+      // loader report "Wrote 76 budget rows" while writing NOTHING AT ALL — the
+      // exact shape of session 3's zero-row parse that printed "Oracle green".
+      // A write that cannot prove it wrote must fail.
+      if (error) throw new Error(`RPC transport error (${ent.name} FY${f.fiscalYear} ${datasetType}): ${error.message}`);
+      if (data?.error) throw new Error(`RPC refused (${ent.name} FY${f.fiscalYear} ${datasetType}): ${data.error}`);
+      if (data?.status !== 'success' || !data?.budget_id) {
+        throw new Error(`RPC returned no success status (${ent.name} FY${f.fiscalYear} ${datasetType}): ${JSON.stringify(data)}`);
+      }
       written++;
+      categories += tree.reduce((a, r) => a + 1 + (r.c?.length || 0), 0);
     }
   }
-  console.log(`\nWrote ${written} budget rows (${conflicts} skipped by the never-overwrite guard).`);
-  console.log('Now run:  npm run verify:frozen   then   npm run register:rows -- --milestone knight-s4-georgia ...');
+  console.log(`\nWrote ${written} budget rows over ${categories.toLocaleString()} categories `
+    + `(${conflicts} skipped by the never-overwrite guard).`);
+  // ⚠⚠ A RUN THAT WROTE NOTHING MUST NOT READ AS A SUCCESS. This loader once
+  // printed "Wrote 76 budget rows" having written none at all — every RPC call
+  // had been refused by a check constraint and reported it in its RETURN
+  // PAYLOAD rather than as a transport error. Counting ATTEMPTS is not counting
+  // WRITES. The proof of a write is the `budget_id` the RPC returns, asserted
+  // per call above.
+  //
+  // ⚠ Do NOT gate on the RPC's `rows_inserted`: it counts third-level
+  // `budget_line_items`, and this tree is TWO levels (section -> line, both
+  // categories), so it is legitimately 0 on every call. Gating on it refuses a
+  // perfectly good load — measured, not reasoned about.
+  if (written === 0 || categories === 0) {
+    console.error('REFUSING: no rows were actually written. Nothing was measured, so nothing is verified.');
+    process.exit(1);
+  }
+  console.log('Now run:  npm run verify:frozen');
+  console.log('     then npm run register:rows -- --milestone knight-s4-georgia --match "Georgia DCA Report of Local Government Finances"');
+  console.log('     then node scripts/syncFrozenInvariantState.mjs   # mirror the exclusions into the DB');
 }
 
 const invokedDirectly = process.argv[1] && process.argv[1].endsWith('loadGeorgiaRLGF.mjs');
