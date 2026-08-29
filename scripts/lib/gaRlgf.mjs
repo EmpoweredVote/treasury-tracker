@@ -5,17 +5,32 @@
  * See .planning/GA-RLGF-RECON.md for the recon that chose this source, the
  * publisher's own audit-status wording, and the traps below in full.
  *
- * ── THE CENTRAL DESIGN DECISION ──
- * VALUES come from `LOAD1`, DCA's own normalised machine extract, keyed by UCOA
- * code. LABELS come from the printed pages. They are joined on the code, never
- * on position.
+ * ── THE CENTRAL DESIGN DECISION: THE PRINTED FORM IS PRIMARY ──
+ * VALUES and LABELS both come from the printed Pages 1-4 — the form the
+ * government actually filed. `LOAD1`, DCA's own machine extract, is the
+ * CORROBORATING read, and disagreements between the two are RECORDED as
+ * anomalies rather than resolved silently.
  *
- * That is deliberate, and it is what makes this immune to the defect session 2
- * shipped against in NC: a label/value offset. If a page reader welds a label to
- * the wrong row, the label simply lands on a different code — and because the
- * value for that code is read independently out of LOAD1, the printed-page value
- * and the LOAD1 value for that code stop agreeing. `crossCheckPageAgainstLoad1`
- * asserts exactly that. A silent one-row slip cannot survive it.
+ * ⚠⚠ THIS IS THE INVERSE OF THE OBVIOUS DESIGN, AND IT WAS ARRIVED AT BY
+ * MEASUREMENT. LOAD1 looks more authoritative — it is normalised, machine-keyed
+ * and published by the same agency. It is also demonstrably broken in places:
+ * across the 38-filing corpus, 10 of 18,801 code-keyed comparisons disagree, and
+ * every single one is paired 1:1 with an Excel `#REF!` error cell whose
+ * neighbour's formula has collapsed and re-pointed a real dollar amount onto the
+ * WRONG UCOA account. $29,041,043.53 is misattributed that way and $2,026,961.00
+ * of genuine reported amounts vanishes from LOAD1 entirely. The printed detail,
+ * by contrast, reconciles to the form's own subtotal and grand-total rows in
+ * 1,672 of 1,672 tests.
+ *
+ * ⚠ LOAD1's `TTL_*` cells are NOT affected — they still agree with the printed
+ * subtotals. So a control-total check passes while the line items underneath are
+ * misattributed. That is why `checkSectionTotals` alone is not sufficient and
+ * the per-code page/extract comparison exists.
+ *
+ * ⚠ LOAD1 is largely DERIVED from the pages by cell reference (its cells are
+ * `tRef3d` formulas pointing at `Page N`), so agreement between the two is NOT
+ * independent corroboration — they agree by construction. It is the
+ * DISAGREEMENTS that carry information: they mark where the reference broke.
  *
  * ⚠⚠ LOAD1 KEY ORDER IS NOT PAGE ORDER AND NOT SECTION ORDER. In `_R1`,
  * `31_3900D` sits between `31_1320` and `31_1340`, and `TTL_1A` sits after
@@ -371,8 +386,37 @@ export function parseLoad1(rows) {
   return { blocks, flat };
 }
 
-/** Coerce a LOAD1 cell to a number. Blank/non-numeric becomes 0. */
+/**
+ * Excel error values, as `scripts/tools/xlsToXlsx.py` writes them.
+ *
+ * ⚠⚠ THESE ARE NOT ZERO AND NOT MISSING-BY-ACCIDENT — they are a BROKEN FORMULA
+ * in the publisher's own extract, and DCA's LOAD1 sheet is full of them: 1,851
+ * error cells across 37 of the 58 GA workbooks. Ten of them sit inside the
+ * loaded trees, and every one marks a place where a cell reference collapsed and
+ * displaced a real dollar amount onto the wrong account code.
+ *
+ * ⚠ In the raw .xls an error cell's "value" is its error CODE, so a naive reader
+ * sees `#REF!` as the integer **23**, `#DIV/0!` as 7, `#VALUE!` as 15 and `#N/A`
+ * as 42 — small, plausible dollar amounts. That is exactly how this defect hid.
+ */
+const EXCEL_ERROR = /^#(REF!|VALUE!|DIV\/0!|NAME\?|NUM!|N\/A|NULL!|ERR\d+)$/;
+
+export function isErrorValue(v) {
+  return typeof v === 'string' && EXCEL_ERROR.test(v.trim());
+}
+
+/** True only when a key exists AND carries a usable number. */
+export function hasNumber(scope, key) {
+  return key in scope && !isErrorValue(scope[key]);
+}
+
+/**
+ * Coerce a LOAD1 cell to a number. Blank/non-numeric becomes 0.
+ * ⚠ An Excel error returns NaN, deliberately: it must propagate loudly rather
+ * than pass as a zero that quietly shrinks a total.
+ */
 export function num(v) {
+  if (isErrorValue(v)) return NaN;
   if (typeof v === 'number') return Number.isFinite(v) ? v : 0;
   if (v === null || v === undefined) return 0;
   const s = String(v).replace(/[$,\s]/g, '');
@@ -523,18 +567,24 @@ export function buildExpenditureTree(blocks, labels, pageValues, anomalies = [])
       const onPage = fn in pageValues;
       let load = 0;
       let inLoad1 = false;
+      let errored = false;
       for (const obj of OBJECT_COLUMNS) {
         const key = `${fn}${obj}`;
-        if (key in scope) { inLoad1 = true; load += num(scope[key]); }
+        // hasNumber, not `in`: a #REF! key EXISTS but carries no value. Counting
+        // it as present would let a broken formula stand in for the form.
+        if (isErrorValue(scope[key])) { errored = true; continue; }
+        if (hasNumber(scope, key)) { inLoad1 = true; load += num(scope[key]); }
       }
       if (!onPage && !inLoad1) continue;
       // The printed form is authoritative; LOAD1 is the corroborating read.
       const amount = onPage ? pageValues[fn] : load;
-      if (onPage && inLoad1 && Math.abs(pageValues[fn] - load) > 0.005) {
+      if (onPage && (errored || (inLoad1 && Math.abs(pageValues[fn] - load) > 0.005))) {
         anomalies.push({
-          kind: 'extract_disagrees_with_form',
+          kind: errored ? 'extract_cell_is_excel_error' : 'extract_disagrees_with_form',
           section: section.id, code: fn, label: labels[fn] || fn,
-          form: pageValues[fn], extract: load, delta: load - pageValues[fn],
+          form: pageValues[fn],
+          extract: errored ? null : load,
+          delta: errored ? null : load - pageValues[fn],
         });
       }
       items.push({ code: fn, label: labels[fn] || fn, amount });
@@ -602,15 +652,18 @@ export function buildRevenueTree(blocks, labels, pages, pageValues, anomalies = 
       items = [];
       for (const key of REVENUE_ITEMS[section.id]) {
         const onPage = key in pageValues;
-        const inLoad1 = key in scope;
+        const errored = isErrorValue(scope[key]);
+        const inLoad1 = hasNumber(scope, key);
         if (!onPage && !inLoad1) continue;
         const load = inLoad1 ? num(scope[key]) : 0;
         const amount = onPage ? pageValues[key] : load;
-        if (onPage && inLoad1 && Math.abs(pageValues[key] - load) > 0.005) {
+        if (onPage && (errored || (inLoad1 && Math.abs(pageValues[key] - load) > 0.005))) {
           anomalies.push({
-            kind: 'extract_disagrees_with_form',
+            kind: errored ? 'extract_cell_is_excel_error' : 'extract_disagrees_with_form',
             section: section.id, code: key, label: labels[key] || key,
-            form: pageValues[key], extract: load, delta: load - pageValues[key],
+            form: pageValues[key],
+            extract: errored ? null : load,
+            delta: errored ? null : load - pageValues[key],
           });
         }
         items.push({ code: key, label: labels[key] || key, amount });
@@ -640,8 +693,17 @@ export function checkSectionTotals(tree, blocks, sections) {
     const scope = scopedLookup(blocks, SECTION_BLOCKS[section.id]);
     let expected = 0;
     let found = 0;
+    let errored = null;
     for (const key of section.totalKeys) {
+      if (isErrorValue(scope[key])) { errored = key; break; }
       if (key in scope) { found++; expected += num(scope[key]); }
+    }
+    if (errored) {
+      // ⚠ Reported, never counted as a pass. A subtotal cell that is #REF! means
+      // the oracle CANNOT run for this section, which is a different and louder
+      // thing than the section being fine.
+      checks.push({ id: section.id, skipped: true, reason: `subtotal ${errored} is an Excel error cell` });
+      continue;
     }
     if (!found) {
       checks.push({ id: section.id, skipped: true, reason: `none of ${section.totalKeys.join('/')} present` });
@@ -653,6 +715,40 @@ export function checkSectionTotals(tree, blocks, sections) {
       actual: root.amount,
       ok: Math.abs(expected - root.amount) <= 0.005,
     });
+  }
+  return checks;
+}
+
+/**
+ * Oracle the PART-level rollups, not just the sections.
+ *
+ * Section checks alone would miss a form whose sections each tie but whose Part
+ * total does not equal their sum. Cheap, and one level further up the form's own
+ * arithmetic than the section subtotals.
+ *
+ * ⚠ `TTL_OSR` ("Own Source Revenues") is Part I + Part III ONLY — it excludes
+ * Part II intergovernmental by the form's own definition. Treating it as the
+ * revenue grand total would understate every entity by its state and federal
+ * money.
+ */
+export function checkPartTotals(tree, blocks) {
+  const r1 = blocks._R1 || {};
+  const r3 = blocks._R3 || {};
+  const amt = (id) => tree.roots.find((r) => r.id === id)?.amount ?? 0;
+  const checks = [];
+  const part1 = amt('1A') + amt('1B') + amt('1C') + amt('1D');
+  const part3 = amt('3A') + amt('3B');
+  if ('TTL_Part1' in r1) {
+    checks.push({ id: 'Part I', expected: num(r1.TTL_Part1), actual: part1,
+      ok: Math.abs(num(r1.TTL_Part1) - part1) <= 0.005 });
+  }
+  if ('TTL_Part3' in r3) {
+    checks.push({ id: 'Part III', expected: num(r3.TTL_Part3), actual: part3,
+      ok: Math.abs(num(r3.TTL_Part3) - part3) <= 0.005 });
+  }
+  if ('TTL_OSR' in r3) {
+    checks.push({ id: 'Own Source (I+III)', expected: num(r3.TTL_OSR), actual: part1 + part3,
+      ok: Math.abs(num(r3.TTL_OSR) - (part1 + part3)) <= 0.005 });
   }
   return checks;
 }
@@ -680,8 +776,9 @@ export function checkItemCoverage(blocks, sections, itemsFor, suffixes) {
       if (mapped.has(key)) continue;
       if (key === 'CICOID' || key === 'Fyear') continue;
       if (key.startsWith('TTL_') || key.startsWith('TTl_')) continue;
+      if (isErrorValue(raw)) continue; // an error cell holds no money to map
       const amount = num(raw);
-      if (amount === 0) continue;
+      if (amount === 0 || Number.isNaN(amount)) continue;
       orphans.push({ section: section.id, key, amount });
     }
   }

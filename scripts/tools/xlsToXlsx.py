@@ -51,6 +51,21 @@ def convert(src, dst):
                 v = s.cell_value(r, c)
                 if v == "" or v is None:
                     continue
+                # ⚠⚠ ERROR CELLS MUST NEVER BECOME NUMBERS. xlrd reports an
+                # Excel error cell as XL_CELL_ERROR (type 5) whose "value" is the
+                # error CODE — an int. #REF! is code 23, #DIV/0! is 7, #VALUE! is
+                # 15, #N/A is 42. Copied naively, a broken formula silently
+                # becomes a small, plausible dollar amount: this corpus holds
+                # 1,851 error cells across 37 of 58 workbooks, and every #REF!
+                # would have landed in the data as the number 23.
+                # Written as the error TEXT so no downstream reader can mistake
+                # it for money, and so it is visible rather than merely absent.
+                if s.cell_type(r, c) == xlrd.XL_CELL_ERROR:
+                    cell = ws.cell(row=r + 1, column=c + 1,
+                                   value=xlrd.error_text_from_code.get(v, f"#ERR{v}"))
+                    cell.data_type = "s"
+                    n += 1
+                    continue
                 cell = ws.cell(row=r + 1, column=c + 1, value=v)
                 # ⚠ SILENT CORRUPTION GUARD. openpyxl infers a FORMULA from any
                 # string starting with "=", so a text cell holding "='Page 1'!F22"
@@ -78,6 +93,13 @@ def check(src, dst):
                 if a == "" or a is None:
                     continue
                 v = ws.cell(row=r + 1, column=c + 1).value
+                if s.cell_type(r, c) == xlrd.XL_CELL_ERROR:
+                    # Deliberately transformed: code -> text. Assert the mapping.
+                    want = xlrd.error_text_from_code.get(a, f"#ERR{a}")
+                    if v != want:
+                        bad.append(f"{os.path.basename(src)} [{s.name}] r{r+1}c{c+1}: "
+                                   f"error cell {a!r} -> {v!r}, expected {want!r}")
+                    continue
                 if a == v:
                     continue
                 if isinstance(a, str) and isinstance(v, str) and _norm_ws(a) == _norm_ws(v):
