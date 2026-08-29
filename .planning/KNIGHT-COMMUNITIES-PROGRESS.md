@@ -511,7 +511,10 @@ already existed. **Session 2 is the campaign's first load**, and the first
 `compiled_from_audited` rows, and the first source in TT whose icicle actually
 drills down.
 
-**Running total: 19 of 43 entities loaded (44%), 1 partial, 23 pending.**
+**Session 4 is the first source TT reads TWICE by different routes**, and the
+first where the publisher's own machine extract turned out to be defective.
+
+**Running total: 23 of 43 entities loaded (53%), 1 partial, 19 pending.**
 
 **Oracle, session 2.** Every one of the 72 rows ties **$0** against the issuer's
 own printed total on the statement — the check external to the write path that
@@ -1070,6 +1073,159 @@ Checked rather than assumed:
    section at the end of this file. 30,786 rows across 4 families were exposed;
    all five call sites fixed and verified live, the cron path proved safe, and
    `tests/syncCityBudgetAxisKey.test.mjs` now blocks a regression.
+
+---
+
+
+## Session 4 outcomes — Georgia (2026-08-29)
+
+**Recon gate: BULK.** Georgia DCA's Report of Local Government Finances covers
+**721 local governments, FY2009–2025**, free, no-auth, at genuine icicle grade.
+Full recon in `.planning/GA-RLGF-RECON.md`.
+
+**Loaded: 4 entities, 76 rows, FY2016–2025** — Georgia's first locals. Macon-Bibb
+County, Columbus-Muscogee, Milledgeville and Baldwin County. 38 filings × 2
+datasets; the 38 are not 4×10 because DCA's own listing has no Macon-Bibb FY2024
+and no Milledgeville FY2018.
+
+**Frozen invariant: registered 76, digest UNCHANGED at `90f009fe…` — $0 moved.**
+
+### The audit grade: neither the NC answer nor the FL answer
+
+Three sessions, three shapes:
+
+| | publisher's position | grade |
+|---|---|---|
+| NC LGC | says "self-reported" | went to ACFRs → `audited_gaap` |
+| FL DFS | RECONCILES to the audit | `compiled_from_audited` |
+| **GA DCA** | **DISCLAIMS, and nobody checks** | **`self_reported_unaudited`** |
+
+Rule 110-3-1: *"This information does not have to be audited."* The form: *"DCA
+cannot certify the accuracy of the report figures submitted."* CVIOG: *"may or
+may not be audited amounts or may be reported... using an accounting basis other
+than that used in the local government's financial reports."*
+
+⚠⚠ **But the form carries a PER-YEAR audited flag that flips within one entity** —
+Milledgeville answered YES, YES, NO ×6, then YES again. Chris's call: all
+branches grade `self_reported_unaudited`, because a preparer's own YES adds no
+independent assurance; the branch is recorded in the `data_source` string so it
+stays re-gradable without a reload. **The strongest evidence yet that this axis
+must live per ROW.**
+
+### ⚠⚠ THE MILLEDGEVILLE RULE — established this session
+
+Milledgeville FY2025 reports **Rents and Royalties = $7,176,532,550.32** for a
+city of 16,664. It passes every internal oracle, because DCA's subtotals carry it
+through.
+
+**It is LOADED, as published.** Chris: *"it is not our job to hide bad data"* —
+suppressing a verified outlier would create a blind spot for legitimate fraud. I
+had proposed refusing it; that was reversed. The register is
+`scripts/data/gaRlgfAnomalies.mjs`, and **nothing in it is withheld from the
+product.**
+
+⚠ **Every flag is corroborated by independent agents before being recorded** — a
+standing requirement from this session. Two agents, neutral prompts, raw files.
+They confirmed the figure is a literal `NUMBER` record at `Page 2!J49` (raw BIFF8
+walk), reproduced it from a separate publisher pipeline (TED), and independently
+reached the same benign explanation: `7176532550` is exactly ten digits, the
+signature of a phone or account number in a dollar cell. No allegation is made.
+
+### ⚠⚠ The publisher's machine extract is defective — and it hid as data
+
+`LOAD1` is a formula layer over the printed pages. Where a form row was
+renumbered, the reference snapped to `#REF!` and its neighbour picked up the
+displaced value, attaching real money to the WRONG UCOA account. Two independent
+agents converged on this from 18,801 and 3,154 comparisons respectively.
+
+* **10 disagreements, each paired 1:1 with a `#REF!`.** $29,041,043.53
+  misattributed; $2,026,961.00 vanishes from the extract entirely.
+* **Largest: $18.13M of Macon-Bibb jail spending filed under "Prisoner Custody"
+  instead of "Jail Operations".**
+* ⚠⚠ **`LOAD1`'s `TTL_*` subtotals stay CORRECT even where its line items are
+  wrong**, so a control-total check passes over misattributed detail. Three cases
+  disturb no subtotal at all. **Subtotal ties are necessary but demonstrably not
+  sufficient.**
+* The `33_1000C` break repeats identically in three consecutive Macon-Bibb years
+  — a property of the template, not a keystroke.
+
+**So the design is inverted from the obvious one: the PRINTED FORM is primary and
+the extract is the corroborating read.** The printed detail reconciles to the
+form's own subtotals in 1,672 of 1,672 tests; `LOAD1` fails 10.
+
+⚠ **`LOAD1` is largely DERIVED from the pages by cell reference (`tRef3d`)**, so
+page/extract AGREEMENT is not independent corroboration — they agree by
+construction. Only the disagreements carry information.
+
+### ⚠⚠ An Excel error cell reads as a small plausible dollar amount
+
+xlrd reports an error cell as its error CODE: `#REF!` is **23**, `#DIV/0!` 7,
+`#VALUE!` 15, `#N/A` 42. TT's converter was copying those through as numbers.
+**This corpus holds 1,851 error cells across 37 of 58 workbooks.** Now written as
+error TEXT and asserted by `--check`; the parser treats them as ABSENT, never 0.
+
+### ⚠⚠ A write that reported success and wrote nothing
+
+`treasury_sync_city_budget` ends with `EXCEPTION WHEN OTHERS THEN RETURN
+jsonb_build_object('error', SQLERRM)`, so a constraint violation arrives as
+`data.error` while PostgREST's `error` is null. The loader printed **"Wrote 76
+budget rows"** having written none — all 76 refused by `budgets_derivation_check`.
+Only querying the table afterwards caught it. **Counting attempts is not counting
+writes.**
+
+⚠ `loadFloridaDFS.mjs` has the same blindness. It has never fired there.
+
+### Verification
+
+* **684 of 684 oracle checks**, 0 failed, 0 skipped, across all 38 filings —
+  section subtotals, Part I / Part III / Own Source rollups, and Total Part V,
+  every one against the publisher's OWN printed figure.
+* 76 rows, **0 duplicate slots**, 0 null `source_url`, 7 roots with real children.
+* **Re-ran the loader end to end: still 76 rows, still 0 duplicates, digest
+  unchanged** — proving the axis pair updates in place rather than duplicating.
+* 1,592 tests green (34 new).
+
+### Fiscal calendars
+
+⚠ **Georgia is not a uniform-month state** — the FAC GA slice splits 225 July /
+212 January / 60 October. Baldwin County is month **1**; the other three are 7.
+
+⚠⚠ **Two of the four are ABSENT from the FAC census** — Columbus-Muscogee has no
+row under any name, and Macon-Bibb appears only as the pre-consolidation `Macon`
+and `Bibb County`. `censusGuard()` returns ok when it cannot find an entity, so
+both would pass unchecked. Recorded honestly as `censusConfirms: false` rather
+than claiming a confirmation that was never made.
+
+⚠ **Baldwin County changed its calendar** — month 7 through 2008, month 1 from
+2011, with a 9-month stub in 2010. The FY2016+ window is clear of it; it is a
+live trap for the FY2009–2015 follow-up.
+
+### Modelling decisions, all revisitable
+
+* **Consolidated governments are typed `county`.** Macon-Bibb and
+  Columbus-Muscogee are TT's first, so this sets precedent for Philadelphia,
+  Lexington-Fayette and Nashville-Davidson. Census confirms both are coterminous
+  with their counties (157,056 and 201,830 match exactly).
+* **`fund_scope` is `unknown`, deliberately.** Part V excludes debt service, so
+  these understate a true `total_governmental` by ~5.5%. Claiming that scope
+  would assert a comparability the rows do not have — the WeHo precedent.
+
+### Follow-ups filed
+
+1. **FY2009–2015** — a different form generation (`Exportable Data`, 1,219 keys).
+   ⚠ It carries **1,393 `#REF!` cells** and no `LOAD1` layer: MORE error-ridden
+   than the window loaded here, not less.
+2. **The statewide sweep** — 721 governments on the same URL pattern and schema.
+3. **`loadFloridaDFS.mjs` ignores the RPC's return payload**, as this loader did.
+4. **`reporting_entity` is `unknown` on all 76.** The form has a Part XIV
+   "Dependent Entities" question that would settle it; not yet read.
+5. **TED (`ted.cviog.uga.edu/FileExport`) is a second, genuinely independent
+   access path** to the same data — the right cross-check for any future GA
+   figure, and a candidate for the sweep.
+6. **Macon-Bibb FY2016 Part XII**: the printed form's own total formula
+   contradicts its own caption ("excl. Held Prev. Yr" but includes it),
+   overstating by $99,304,981. Outside the loaded trees, but it is the one
+   measured case where the PRINTED FORM is wrong.
 
 ---
 
