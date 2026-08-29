@@ -484,6 +484,15 @@ export async function importDataset(supabase, municipalityId, entityName, fiscal
     p_data_source_name: DATA_SOURCE_NAME,
     p_source_url: sourceUrl,
     p_source_date: sourceDate,
+    // ⚠⚠ THE RPC'S TARGET LOOKUP KEY INCLUDES fund_scope AND basis, and both
+    // default to 'unknown'. Every row of this family is stamped total_governmental/actual,
+    // so omitting these matches NOTHING on a re-run and the RPC takes its INSERT
+    // branch — silently duplicating 6,616 rows instead of updating them.
+    // Proven read-only before fixing: the omitted-params lookup returned 0 rows
+    // for a real loaded entity-year while the passed-params lookup returned 1.
+    // See tests/syncCityBudgetAxisKey.test.mjs.
+    p_fund_scope: 'total_governmental',
+    p_basis: 'actual',
     p_fiscal_year_start_month: ohioMonthFor({ name: entityName, state: 'OH' }),
   });
   if (error) { console.error(`  RPC error (${datasetType}): ${error.message}`); return null; }

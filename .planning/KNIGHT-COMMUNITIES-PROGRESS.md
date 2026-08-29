@@ -1066,7 +1066,96 @@ Checked rather than assumed:
    `source='ai'` with no `source_url`. No state-specific bleed, and object codes
    are structurally immune, but this is SRCSTD-01's uncited-explainer question
    arriving on 7 new entities. A policy call, not a defect.
-8. ⚠ **Any loader calling `treasury_sync_city_budget` after its rows are stamped
-   MUST pass `p_fund_scope` and `p_basis`** or a re-run duplicates instead of
-   updating. Worth auditing the other loaders — Ohio AOS and MN OSA both omit
-   them, and both have stamped families.
+8. ~~⚠ **Audit the other loaders**~~ ✅ **DONE 2026-08-29** — see the audit
+   section at the end of this file. 30,786 rows across 4 families were exposed;
+   all five call sites fixed and verified live, the cron path proved safe, and
+   `tests/syncCityBudgetAxisKey.test.mjs` now blocks a regression.
+
+---
+
+## ⚠⚠ AUDIT: `treasury_sync_city_budget` callers and the axis lookup key (2026-08-29)
+
+Prompted by the Florida relabel, which would have inserted 190 duplicates. The
+audit was driven from the DATA as well as the code, per the a/aa inversion
+lesson — the code pattern alone would have over-reported by five families.
+
+### The mechanism
+
+`treasury_sync_city_budget` finds its target with:
+
+```
+WHERE municipality_id = p_municipality_id
+  AND fiscal_year     = p_fiscal_year
+  AND dataset_type    = p_dataset_type
+  AND fund_scope      = p_fund_scope   -- DEFAULT 'unknown'
+  AND basis           = p_basis        -- DEFAULT 'unknown'
+```
+
+A caller that omits the pair is asking for the row whose axes are *still*
+`unknown`. That is correct on a first load and becomes a duplicate-generator the
+moment the stampers classify the family. The RPC returns `status: success`.
+
+⚠ **The guard everyone remembers is the wrong one.** `project_sync_city_budget_not_source_safe`
+trained us to think about `data_source`, and `findConflictingBudget` checks
+exactly that — but `data_source` is **not in the lookup key**. A loader can pass
+every source-safety check and still duplicate.
+
+### Proven read-only, before anything was changed
+
+For Columbus, OH FY2024 operating: the omitted-params lookup matched **0** rows;
+the passed-params lookup matched **1**. Real, not theoretical — and provable
+without writing a byte.
+
+**And it had never fired: 0 duplicate `(municipality, fiscal_year, dataset_type,
+data_source)` groups in all 88,144 rows.** Latent exposure, not live corruption.
+
+### EXPOSED — omitted the pair AND the family is 100% stamped
+
+| Family | Rows | Axes | Caller(s) | Fixed |
+|---|---|---|---|---|
+| MN OSA | **21,794** | `total_governmental` / `actual` | `loadMNOSA.js` | ✅ |
+| Ohio AOS | **6,616** | `total_governmental` / `actual` | `loadOhioAOS.js` | ✅ |
+| CA SCO County Expenditures | 1,188 | `all_funds` / `actual` | `loadCountyBudget.js`, `loadLACountyOperating.js` | ✅ |
+| CA SCO County Revenues | 1,188 | `all_funds` / `actual` | `loadCountyBudget.js`, `loadLACountyRevenue.js` | ✅ |
+| **Total at risk** | **30,786** | | | |
+
+⚠ **The asymmetry is the interesting part.** `bulkLoadStateController.js` — the
+CITY State Controller loader — always passed the pair. The COUNTY loaders for
+the same publisher never did. Nothing distinguished them but the person who
+wrote them.
+
+**Verified live, not reasoned about:** `loadOhioAOS.js` was re-run for Columbus
+FY2024 after the fix. The operating row kept id
+`146f91f5-9366-4eb9-aca3-763508fd1942`, two rows exist rather than four, the axes
+survived, and the totals still match the figures quoted in `basisRegistry`'s own
+evidence string ($2,477,440,000 / $2,166,549,000). Frozen digest unchanged.
+
+### NOT exposed — the family is still `unknown`/`unknown`, so the defaults match
+
+`loadCASalaries.js` + `sweepCASalaries.js` + `sweepOCSalaries.js` (publicpay,
+7,682 rows) · `loadVAComparativeReport.js` (608) · `loadUtahTransparency.js`
+(539) · `loadWICMREB.js` (20) · `loadLACountySalaries.js` (1).
+
+⚠⚠ **These must NOT be "fixed".** Passing real values to a caller whose family is
+unstamped is the INVERSE defect — the lookup would stop matching and it would
+duplicate in the other direction. The rule is not *always pass*; it is **pass
+exactly what the family's rows carry**. Each is exempted in the guard with the
+measurement that justifies it, and must be revisited if its family is stamped.
+
+### The cron path is SAFE, and it is worth knowing why
+
+`treasury_sync_budget_tree` — **256 call sites**, including the Socrata edge
+functions that run unattended — keys on `(municipality, fiscal_year,
+dataset_type, period_label, data_source)`. It takes **no `p_fund_scope` at all**,
+and writes `basis = COALESCE(p_basis, basis)` so a silent caller cannot reset it
+either. The two RPCs key differently, and only the MANUAL one puts the axes in
+its key. The automated, highest-volume path was never at risk.
+
+### The guard
+
+`tests/syncCityBudgetAxisKey.test.mjs` enumerates every caller under `scripts/`
+and requires each to be explicitly REQUIRED (passes the pair) or EXEMPT (family
+measured unstamped, with the measurement). A new caller fails the suite until
+someone measures its family. It also asserts it found at least 14 call sites, so
+it cannot pass by matching nothing — the "Oracle green" failure from earlier in
+this same session.
