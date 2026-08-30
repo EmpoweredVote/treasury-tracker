@@ -289,6 +289,47 @@ export const AUDIT_GRADE_REGISTRY = [
     },
   },
   {
+    id: 'sc-city-acfr',
+    match: /^(City of Columbia|City of Myrtle Beach) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
+    value: AUDIT_GRADE.AUDITED_GAAP,
+    evidence: {
+      document: 'The independent auditor\'s report, read in ALL NINETEEN loaded documents '
+        + '(City of Columbia FY2016-FY2018 and FY2020-FY2025, City of Myrtle Beach FY2016-FY2025) '
+        + 'on 2026-08-30. '
+        + '⚠⚠ NINE OF THE NINETEEN WOULD HAVE READ AS UNAUDITED ON A PLAIN TEXT SEARCH, a worse '
+        + 'rate than session 2\'s eight-of-thirty-six, and in TWO DISTINCT WAYS. Seven have an '
+        + 'IMAGE-ONLY opinion page and were recovered by OCR at 200dpi (Columbia FY2020-FY2023, '
+        + 'Myrtle Beach FY2017, FY2021, FY2024); a text search finds "Independent Auditor" only '
+        + 'in the table of contents, which reads exactly like an unaudited report. TWO MORE have '
+        + 'a text layer that has LOST ITS SPACES (Myrtle Beach FY2022 and FY2025 render '
+        + '"eachmajorfundandtheaggregateremainingfundinformation" and "fmancial" for "financial"), '
+        + 'so the phrase is present and unsearchable — found only by collapsing all whitespace '
+        + 'before matching. Neither failure is visible to any arithmetic gate. '
+        + '⚠ Myrtle Beach FY2025 is a MIXED document: its opinion pages are OCR-damaged while its '
+        + 'statement pages are born-digital and extract cleanly. Do not infer the quality of one '
+        + 'section from another.',
+      figures: 'Verbatim, City of Columbia FY2020 (recovered by OCR): "In our opinion, the '
+        + 'financial statements referred to above present fairly, in all material respects, the '
+        + 'respective financial position of the governmental activities, the business-type '
+        + 'activities, the aggregate discretely presented component units, EACH MAJOR FUND, and '
+        + 'the aggregate remaining fund information of the City as of June 30, 2020 ... in '
+        + 'accordance with accounting principles generally accepted in the United States of '
+        + 'America." Myrtle Beach FY2017 is the same form, naming "the City of Myrtle Beach, '
+        + 'South Carolina". '
+        + 'The scope clause is what matters and it is the same §3.5 standard session 2 applied to '
+        + 'Charlotte: the opinion names EACH MAJOR FUND, and the General Fund is a major fund in '
+        + 'every one of these nineteen reports — so the opinion covers the statement the figures '
+        + 'were actually read from, not merely the document containing it. '
+        + '⚠ The one opinion that does NOT support this grade was also found and set aside: '
+        + 'Myrtle Beach FY2022 page 21 carries an "In our opinion" on the COMBINING AND '
+        + 'INDIVIDUAL FUND STATEMENTS AND SCHEDULES "in relation to the basic financial '
+        + 'statements as a whole", which is in-relation-to assurance and NOT an opinion on the '
+        + 'General Fund. That year\'s grade rests on its PRIMARY opinion, found separately in the '
+        + 'whitespace-collapsed text layer. A search that stopped at the first "In our opinion" '
+        + 'would have graded it on the wrong sentence.',
+    },
+  },
+  {
     id: 'sc-rfa-lgf-county',
     match: /^South Carolina RFA Local Government Finance Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[2-9]|2[0-4]) actual, county only(?:, excl\. bond and lease proceeds)?\)$/,
     value: AUDIT_GRADE.SELF_REPORTED_UNAUDITED,

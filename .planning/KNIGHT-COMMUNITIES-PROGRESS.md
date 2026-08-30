@@ -509,8 +509,12 @@ FY month: the stored `fiscal_year_start_month` and whether the FAC census confir
 | **Gary** | IN | city | loaded | **IN Gateway** FY2016–24 | `self_reported_unaudited` | 1 · **FAC confirmed** | 5 |
 | **Allen County** | IN | county | loaded | **IN Gateway** FY2015–24 | `self_reported_unaudited` | 1 · confirmed exc. FY15 | 5 |
 | **Lake County** | IN | county | loaded | **IN Gateway** FY2015–24 | `self_reported_unaudited` | 1 · confirmed exc. FY19 | 5 |
+| **Richland County** | SC | county | loaded | **SC RFA LGF** FY2012–24 | `self_reported_unaudited` | 7 · **FAC confirmed** | 6a |
+| **Horry County** | SC | county | loaded | **SC RFA LGF** FY2012–24 | `self_reported_unaudited` | 7 · **FAC confirmed** | 6a |
+| **Columbia** | SC | city | loaded | **own ACFR** FY2016–25 exc. FY19 | `audited_gaap` | 7 · **FAC confirmed** | 6a |
+| **Myrtle Beach** | SC | city | loaded | **own ACFR** FY2016–25 | `audited_gaap` | 7 · **FAC confirmed** | 6a |
 
-The 17 remaining entities are `pending` and are listed in spec §2.
+The 13 remaining entities are `pending` and are listed in spec §2.
 
 ⚠ The three Florida windows ending FY2024 are NOT gaps in the source — Miami-Dade,
 Leon and Bradenton had simply not filed FY2025 when the workbooks were fetched.
@@ -527,6 +531,13 @@ first where the publisher's own machine extract turned out to be defective.
 
 **Session 5 is the first session where a passing oracle hid a scope error** — see
 its section below.
+
+**Session 6a is the first session that needed BOTH routes for one state** — a
+statewide bulk source for the counties and one-off ACFRs for the cities, because
+South Carolina's otherwise-excellent statewide source structurally cannot produce
+a municipality. It is also the session that found the **Federal Audit
+Clearinghouse serves complete audited ACFR PDFs**, free and unauthenticated —
+the access route session 2 needed and did not have.
 
 **Running total: 29 fully loaded + 1 partial (San Jose) + 13 pending = 43.**
 **30 of 43 entities (70%) now carry data.**
@@ -1622,3 +1633,251 @@ and an unknown type would drop these entities out of both — still true. That i
 UI/rollup question, filed separately, and **Nashville-Davidson (session 6) and
 Lexington-Fayette (session 8) now have an unambiguous convention to follow either
 way.**
+
+---
+
+## Session 6a outcomes — South Carolina (2026-08-30)
+
+**4 entities / 90 rows. 34 of 43 entities carry data (79%).** South Carolina's
+FIRST local entities in TT — the live table held exactly one SC row before this
+session, the state node.
+
+| | |
+|---|---|
+| Entities added | **4** — Richland County, Horry County, Columbia, Myrtle Beach |
+| Rows loaded | **90** = 52 county (RFA bulk, FY2012–24 × 2 datasets) + 38 city (own ACFRs) |
+| Counties | `self_reported_unaudited` · `unknown` scope · `actual` · month 7 |
+| Cities | **`audited_gaap`** · `general_fund` · `actual` · month 7 |
+| Frozen invariant | digest **BYTE-IDENTICAL** before and after BOTH loads — $0 moved |
+| Tests | 1,664 → **1,717**, all passing. Build green. |
+
+### ⚠⚠ THE SESSION'S HEADLINE — ONE STATE NEEDED BOTH ROUTES
+
+Session 6 was planned as "SC + TN → 3 primary entities + counties" and recon
+broke that in two directions at once, so it was split and SC taken alone.
+
+**South Carolina has an excellent statewide source that CANNOT PRODUCE A CITY.**
+RFA's Local Government Finance Report is free, no-auth, icicle-grade and reaches
+FY93–FY24 across 46 county sheets — and it publishes each county's municipalities
+only as a **combined "Cities only" block**. The footnote says so outright:
+
+> "*Cities Include: Arcadia Lakes, Blythewood, **Columbia**, Eastover, and Forest
+> Acres."
+
+Reading Columbia out of that block would have handed five governments' money to
+one of them **and tied against every internal check while doing so.** The counties
+are therefore BULK and the cities are ACFR, recorded in the roster as `source` so
+the two routes can never be confused.
+
+⚠ **Tennessee was split out for the mirror-image reason** and is session 6b. The
+Comptroller's TAG export is fund/account/object-level for all 95 counties,
+FY2007–2025, prepared by the division that AUDITS 91 of them — potentially the
+strongest grade TT has seen — and **Davidson is one of the four CPA-audited
+exceptions, present at TOTAL ONLY**: one revenue row and one expenditure row per
+year, no tree. The TN bulk unlock serves **zero** session-6 entities.
+⚠⚠ And Davidson's single row hides a scope break: through FY2024 the `PRI` total
+runs $1.72B → $4.00B, then FY2025 reads $2.41B with a separate `SCH` row at
+$1.56B. Loading the `PRI` series would render a fake $1.4B collapse. The
+session-5 Lake County trap in a new costume.
+
+### ⚠⚠ THE ORACLE PROVED THE READ AND MISSED A REAL DEFECT — AGAIN
+
+Horry County's `Local Option Sales Tax` reads **$0 for eleven straight years
+(FY2012–FY2022), then 133,451,553 in FY2023, then BYTE-IDENTICAL 133,451,553 in
+FY2024.**
+
+Every gate passed over it:
+
+* 208/208 in-file checks (parent = Σ children at every depth) — pass
+* statewide oracle, Σ all 46 county sheets vs RFA's own `State Summary`, both
+  money columns, all 13 years — **$0**
+* independent second reader (xlrd over the original .xls) vs the database — 52/52
+
+It passes because **RFA's own aggregation propagates the same defective cell**:
+county 133,451,553 + cities 3,883,307 + school 0 = the combined block's
+137,334,860, exactly. The arithmetic is consistent around a county figure that
+did not move between years while the cities figure did.
+
+**Horry County's own audited FY2024 ACFR shows no Local Option Sales Tax at all**
+— it reports a Capital Projects Sales Tax (RIDE II/III) and a Hospitality Fee.
+SC's LOST (§4-10-10) is a distinct tax Horry has never adopted, which is what the
+eleven years of $0 were telling us.
+
+**Loaded as published and flagged, per the Milledgeville rule.** It is ~14% of
+that entity-year ($133.5M of $943.0M). Suppressing it would hide a publisher
+data-quality defect that a reader of TT should be able to see.
+
+### ⚠⚠ THE WORKBOOK'S TWO QUALITY SIGNALS CONTRADICT EACH OTHER
+
+A year can be marked not-reported in the column header (`FY 23*`) or in the
+`County Info` Y/N matrix, and **neither is a superset of the other**:
+
+| County | header asterisk | `County Info` |
+|---|---|---|
+| Clarendon, Jasper | FY23, FY24 | all `Y` |
+| Kershaw | FY21 | all `Y` |
+| Allendale | none | `N` FY20, FY21, FY24 |
+| Hampton / Orangeburg / Williamsburg | none | `N` FY22–24 |
+
+A county-year is trustworthy only when BOTH agree, so `reportedYears()`
+intersects them. Richland and Horry are clean on both across the whole window.
+
+⚠ A naive `FY \d{2}` match SILENTLY DROPS a starred column; stripping the
+asterisk SILENTLY LOADS a year the county never reported. Neither is acceptable.
+
+⚠ This matters because before the 2023 edition a non-reporting county's missing
+year was **backfilled with the prior year's data**.
+
+### A FIFTH DISTINCT AUDIT-GRADE ANSWER IN FIVE STATES
+
+| | publisher's position | grade |
+|---|---|---|
+| NC LGC | says "self-reported" | went to ACFRs → `audited_gaap` |
+| FL DFS | statute says self-report; MANUAL says DFS reconciles to audited statements | `compiled_from_audited` |
+| GA DCA | rule says audit optional; per-year flag flips within one entity | `self_reported_unaudited` |
+| PA DCED | form is titled "AUDIT" and an auditor really does sign some classes | `self_reported_unaudited` |
+| **SC RFA** | **explicitly REFUSES the audit as a submission** | `self_reported_unaudited` |
+
+Verbatim, the county form instructions:
+
+> "NOTE: **We cannot accept financial audits as submissions.** That is a separate
+> reporting requirement with the State Treasurer's Office."
+
+The cleanest evidence in the arc. There is no reconciliation step of any kind,
+which is exactly what earned Florida its higher grade.
+
+⚠ **One column family has different provenance and is still not audited:**
+"Property tax sections have been removed to reduce duplication of effort. RFA
+uses the Department of Revenue's Local Government Report from county auditors
+instead." A second self-reporting channel — grade unchanged, provenance recorded.
+
+### ⭐⭐ THE TRANSFERABLE FIND — FAC SERVES COMPLETE AUDITED ACFRs, FREE
+
+    https://app.fac.gov/dissemination/report/pdf/<report_id>
+
+**No API key, no auth, no WAF, back to at least FY2016**, and the bytes are the
+auditee's own submission filed under federal penalty. (The metadata API at
+`api.fac.gov` DOES need `X-Api-Key: DEMO_KEY`; the PDF endpoint needs nothing.)
+
+⚠ **This is the route session 2 needed and did not have.** It bypasses
+charlottenc.gov's Akamai WAF (which required a real Chromium), Mecklenburg's
+Widen DAM (which has NO durable file URL), and Richland County's own site here,
+which 403s curl AND PowerShell. Its ids also do not rot the way a city CMS path
+does — `charmeck.org` losing Charlotte's pre-FY2011 reports is the failure this
+avoids. **Worth revisiting the NC access gap with this.**
+
+⚠ FAC stores whatever the auditee uploaded, so quality varies — see below.
+
+### ⚠⚠ NINE OF NINETEEN OPINIONS WOULD HAVE READ AS UNAUDITED
+
+Session 2 found 8 of 36 opinion pages image-only. This corpus is worse — 9 of 19,
+in **two distinct failure modes**:
+
+* **7 image-only opinion pages**, recovered by OCR at 200dpi (Columbia
+  FY2020–FY2023; Myrtle Beach FY2017, FY2021, FY2024). A text search finds
+  "Independent Auditor" only in the table of contents.
+* **2 text layers that lost their spaces** (Myrtle Beach FY2022, FY2025), which
+  render `eachmajorfundandtheaggregateremainingfundinformation` and `fmancial`.
+  The phrase is present and unsearchable; found only by collapsing all whitespace.
+
+All 19 carry an unmodified GAAP opinion naming **"each major fund"**, and the
+General Fund is a major fund in every one — the §3.5 standard.
+
+⚠ **The first "In our opinion" on a page is not necessarily the right one.**
+Myrtle Beach FY2022 p21 carries an in-relation-to opinion on the COMBINING AND
+INDIVIDUAL FUND STATEMENTS. Grading on it would have been grading the wrong
+sentence.
+
+⚠ **Myrtle Beach FY2025 is a MIXED document** — OCR-damaged opinion pages,
+born-digital statement pages that extract cleanly. Do not infer one section's
+quality from another's.
+
+### ⚠⚠ AN OCR'D STATEMENT MISSED THE TIE BY EXACTLY $1
+
+Myrtle Beach FY2018's FAC copy is a scan. Its OCR layer renders `Stonn Water
+Fees`, `Local Option Touris1n Taxes` and `Jntergovernmental`, and **fuses four
+revenue line items into a single row** — and computes 64,439,897 against a
+printed 64,439,896.
+
+**A "small delta" tolerance would have shipped it with four categories
+destroyed.** This is precisely why `acfrGF.py`'s `source_rounding` is an
+exact-delta registry and NOT a tolerance. Replaced with the city's own copy,
+which ties at $0 with clean labels; its CDN 403s a bare curl and serves the file
+to browser `Sec-Fetch-*` headers plus a Referer (the Oregon workaround).
+
+⚠ **Columbia FY2019 is NOT LOADED and that is a decision.** Both surviving copies
+are scans — FAC's OCR renders `20 ,775,337` and `Slate government`, and the
+city's own copy has no text layer at all (1,900 characters across 169 pages).
+Reported as a gap, never written as $0. The statistical section of a later ACFR
+carries ten years of General Fund figures and would cover it, but that section is
+OUTSIDE the auditor's opinion, so those rows could not be graded `audited_gaap`.
+
+### ⚠ `-layout` AND `-table` DISAGREED, AND THE TIE COULD NOT ARBITRATE
+
+Columbia's `-layout` output emits the label column and the numeric columns as
+separate blocks, pairing `34,353,509` with `Local option sales tax` when it
+belongs to `Licenses and permits` — the Charlotte defect. **Both pairings tie at
+exactly $0**, because the offset permutes the multiset without changing it.
+
+Settled by running `scripts/acfrGfComponents.py` (pdfplumber glyph
+x-coordinates, which never see the character grid) over the same page: the glyph
+reader agrees with `-table`, including three dash-zeros. So `-table` is sound
+here and Columbia stays on the standard reader. **Choosing `-table` because it
+tied would have been curve-fitting** — the error that got the LA-01 scope verdict
+retracted.
+
+### Scope decisions, all read from the publisher
+
+* **FY2012 floor.** RFA's notes record bonds/leases becoming separately reported
+  and county local option sales tax changing definition at exactly FY2012.
+  Loading across it renders a definitional change as a trend.
+* **Bonds & Leases excluded** — "proceeds from general obligation bonds" and
+  "proceeds from capital leases" (form lines 861/862). The class TT already
+  excludes in FL and PA, and the one v2.28 exists because of.
+* **`fund_scope` = `unknown` on the county rows, deliberately.** The report drops
+  utility sales REVENUE while keeping utility SPENDING (form line 970, "Public
+  Works (Utility Systems, Public Transit)"), so the two money columns are on
+  different scopes by construction — which is mechanically why RFA warns the data
+  must not be used to relate revenues to expenditures.
+
+⚠ **AN ASYMMETRY WORTH CHRIS'S ATTENTION, FLAGGED NOT HIDDEN.** Excluding bond
+proceeds normalises the REVENUE side to operating flows, but the expenditure
+side's `Debt Service & Interest on Debt` still contains the principal repayment
+of those same notes and has no removable subtotal. Richland runs a Transportation
+Penny programme on **Bond Anticipation Notes**, which are rolled over yearly, so
+its debt service tracks its bond proceeds almost exactly (FY2019 $187M proceeds /
+$279M service; FY2022 $44M / $51M; FY2023 $0.01M / $40M). This follows TT's
+established convention in three prior states, and it is reversible if you prefer
+symmetry.
+
+### Corroboration of the largest figure
+
+Richland County FY2024 `State Grants` reads **$330,077,746**, against $11.4M in
+FY2022 — a 29x rise. Corroborated first-party from the county's own audited MD&A:
+
+> "Revenues from governmental activities grew by 48.1% in 2024, largely due to a
+> **$322.8 million grant for Scout**"
+
+(Scout Motors' $2B EV plant in Blythewood.) Real and explained, not an outlier.
+FAC independently corroborates the federal column too — $31.1M of federal awards
+expended against RFA's $29.6M of federal revenue.
+
+### Open follow-ups from this session
+
+1. **Session 6b = Tennessee / Nashville-Davidson**, from Metro's own ACFR
+   (`nashville.gov`, direct PDFs, FY2014+ at least, no WAF seen). ⚠ Consolidated
+   → `city` with `county_id` NULL, per the settled convention.
+2. **Nashville-Davidson is ABSENT from the TN FAC census slice** — every other TN
+   county is there at month 7. Its month must come from the ACFR itself
+   ("For the Year Ended June 30"), which is first-party and stronger anyway.
+3. **The TN TAG statewide unlock** — 95 counties, FY2007–2025, fund/account/object
+   detail, from the division that audits 91 of them. A filed, ready milestone
+   that serves no Knight entity. ⚠ `SCH` and lowercase `Sch` both appear in the
+   fund prefix column — the session-5 `d704`/`D704` case hazard.
+4. **The SC statewide sweep** — the same loader reaches all 46 counties with no
+   new extraction work; the marginal cost is verification. ⚠ It must handle the
+   asterisk/`County Info` disagreement above, and Beaufort's 3 empty trailing
+   columns.
+5. **Re-examine the NC access gap with FAC** — Charlotte pre-FY2011 was ruled out
+   as Wayback-only under the first-party policy; FAC may serve it first-party.
+6. **Columbia FY2019** stays out unless someone decides OCR'd money is acceptable.

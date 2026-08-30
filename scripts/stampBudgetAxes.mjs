@@ -140,6 +140,14 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // Remaining exclusions are documented per entity in ncAcfrSources.mjs.
   // Evidence: docs/superpowers/plans/NC-DURHAM-AVL-01-CLOSEOUT.md section 6.
   'nc-local-acfr-gf': 210,
+  // Knight session 6a (South Carolina's first two cities), measured from the
+  // ACTUAL post-write count on 2026-08-30. A NEW family, so no pre-existing
+  // count moved. 38 = 19 entity-years x 2 datasets: Myrtle Beach FY2016-FY2025
+  // and Columbia FY2016-FY2018 + FY2020-FY2025.
+  // ⚠ Columbia FY2019 is absent BY DECISION — both surviving copies of that
+  // ACFR are scans and the only text layer is defective OCR. See the fuller note
+  // on the same id in scripts/classifyFundScope.mjs.
+  'sc-local-acfr-gf': 38,
   // Knight session 3 (Florida DFS), measured from the ACTUAL post-write count on
   // 2026-08-29. A NEW family, so no pre-existing count moved. 190 = 95
   // entity-years x 2 datasets over 28 source strings; three of the 98 possible

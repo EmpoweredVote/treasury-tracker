@@ -158,6 +158,33 @@ export const BASIS_REGISTRY = [
     },
   },
   {
+    // Knight session 6a — South Carolina's first two cities.
+    // ⚠ See the ambiguity warning on sc-local-acfr-gf in fundScopeRegistry.mjs:
+    // `City of Columbia` names governments in at least seven states.
+    id: 'sc-local-acfr-gf',
+    match: /^(City of Columbia|City of Myrtle Beach) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
+    value: BASIS.ACTUAL,
+    evidence: {
+      document: 'City of Columbia FY2016-FY2018 and FY2020-FY2025 and City of Myrtle Beach '
+              + 'FY2016-FY2025 ACFRs — audited, closed fiscal years. Both cities close June 30, '
+              + 'ACTIVELY confirmed per entity by the FAC census (SC,Columbia,municipality,'
+              + 'annual,7 and SC,Myrtle Beach,municipality,annual,7) and by each statement\'s own '
+              + '"Year Ended June 30" caption, so the whole window is closed. '
+              + '⚠ The month is NOT assumed from the state: the SC RFA publisher warns that a '
+              + 'city fiscal year ends "on or before June 30", so uniformity would have been a '
+              + 'guess.',
+      figures: 'Every stored figure is the printed General Fund column of the governmental-funds '
+             + 'Statement of Revenues, Expenditures and Changes in Fund Balances — a year-end '
+             + 'GAAP actual, tying at exactly $0 on both sides in all 38 rows. NOT an '
+             + 'appropriation. Both issuers ALSO publish a General Fund budgetary-comparison '
+             + 'schedule in the same document, which IS budgetary basis; loading that page '
+             + 'instead would have put budget-basis figures under a GAAP-actual label with no '
+             + 'arithmetic symptom. It is structurally unreachable: the reader excludes any page '
+             + 'whose text carries "budget and actual" or "budgetary", and the fund statement '
+             + 'precedes the budgetary schedule in both issuers.',
+    },
+  },
+  {
     // NC-DURHAM-AVL-01, measured 2026-08-24: City of Durham 32 + Durham County 42
     // + City of Asheville 28 + Buncombe County 36 = 138. A NEW family, so no
     // pre-existing count moved. (Asheville was 10 rows at first load; nine
