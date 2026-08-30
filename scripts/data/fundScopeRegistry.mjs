@@ -366,6 +366,57 @@ export const FUND_SCOPE_REGISTRY = [
     },
   },
   {
+    // Knight session 6a. South Carolina's first two cities, and the two entities
+    // the SC statewide bulk source structurally cannot produce — RFA publishes
+    // each county's municipalities only as a COMBINED "Cities only" block.
+    //
+    // ⚠ ANCHORED TO THE TWO ENTITY NAMES, like nc-local-acfr-gf and
+    // tx-local-acfr-gf, because the general /ACFR — General Fund/ shape claims
+    // ~1,850 rows across families nobody has reconciled. A future South Carolina
+    // ACFR load lands `unknown` until it is evidenced, which is the correct
+    // failure direction.
+    //
+    // ⚠ `City of Columbia` IS AMBIGUOUS ACROSS STATES and the risk is real, not
+    // hypothetical: the FAC census carries Columbia in MO (fiscal month 10), CT,
+    // IL, KY, LA, MS and NC, and TT could plausibly load any of them later. This
+    // string would be IDENTICAL for a Missouri load. Split by municipality_id at
+    // that point; do not widen the string.
+    id: 'sc-local-acfr-gf',
+    match: /^(City of Columbia|City of Myrtle Beach) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'FIVE probes across both South Carolina entities, each the governmental-funds '
+              + 'Statement of Revenues, Expenditures and Changes in Fund Balances, measured '
+              + '2026-08-30. City of Columbia FY2016 (General Fund revenue is 69.1% of the Total '
+              + 'Governmental column, expenditure 55.4%), FY2022 (68.3% / 59.0%) and FY2024 '
+              + '(65.7% / 67.1%); City of Myrtle Beach FY2016 (45.0% / 53.1%), FY2020 (42.5% / '
+              + '55.0%) and FY2024 (38.2%). A Total Governmental reading would be 100% by '
+              + 'construction, so every probe excludes it. '
+              + '⚠ Myrtle Beach is the STRONGEST discriminator in this corpus rather than the '
+              + 'weakest — its General Fund is under half of total governmental activity because '
+              + 'the tourism taxes that carry the city (local accommodations, hospitality fee, '
+              + 'local option tourism) are legally restricted and sit in special revenue funds, '
+              + 'not the General Fund. Those rows read $0 in the General Fund column on purpose.',
+      figures: 'All figures WHOLE DOLLARS — neither issuer prints "in thousands", checked on every '
+             + 'statement page. '
+             + 'CITY OF COLUMBIA FY2024 — printed General Fund column: Total revenues 157,677,640 '
+             + 'and Total expenditures 164,777,304, matching the stored figures EXACTLY; Total '
+             + 'Governmental 239,848,849 and 245,424,174. FY2022 — 140,531,196 and 144,146,039 '
+             + 'against 205,699,181 and 244,321,334. FY2016 — 120,078,310 and 121,545,141 against '
+             + '173,699,323 and 219,266,325. '
+             + 'CITY OF MYRTLE BEACH FY2024 — General Fund 96,136,323 against Total Governmental '
+             + '251,707,640. FY2020 — 67,593,684 and 84,401,089 against 158,897,625 and '
+             + '153,537,197. FY2016 — 59,380,597 and 72,115,771 against 131,844,776 and '
+             + '135,723,982. '
+             + '⚠ MYRTLE BEACH PRINTS ITS STATEMENT ACROSS TWO PHYSICAL PAGES — the General Fund '
+             + 'and three other major funds on the first, the remaining funds and the Total '
+             + 'Governmental column on the second. The two columns compared here therefore come '
+             + 'from different pages, and the second page carries NO row labels at all; rows are '
+             + 'matched by ordinal position. Taking the rightmost number on the FIRST page would '
+             + 'silently return a nonmajor fund instead of the total.',
+    },
+  },
+  {
     // NC-DURHAM-AVL-01, measured 2026-08-24: City of Durham 32 + Durham County 42
     // + City of Asheville 28 + Buncombe County 36 = 138. A NEW family, so no
     // pre-existing count moved. (Asheville was 10 rows at first load; nine

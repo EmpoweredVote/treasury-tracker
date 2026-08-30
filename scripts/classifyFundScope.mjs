@@ -103,6 +103,23 @@ export const EXPECTED_ROWS = Object.freeze({
   // Remaining exclusions are documented per entity in ncAcfrSources.mjs.
   // Evidence: docs/superpowers/plans/NC-DURHAM-AVL-01-CLOSEOUT.md section 6.
   'nc-local-acfr-gf': 210,
+  // Knight session 6a (South Carolina's first two cities), measured from the
+  // ACTUAL post-write count on 2026-08-30, never from an estimate. A NEW family,
+  // so no pre-existing count moved.
+  //
+  // 38 = 19 entity-years x 2 datasets: City of Myrtle Beach FY2016-FY2025 (10)
+  // and City of Columbia FY2016-FY2018 + FY2020-FY2025 (9).
+  //
+  // ⚠ THE MISSING YEAR IS COLUMBIA FY2019, AND IT IS ABSENT BY DECISION. Both
+  // available copies of that ACFR are SCANS: the Federal Audit Clearinghouse
+  // copy carries a defective OCR text layer (it renders `20 ,775,337` with an
+  // embedded space and `State government` as `Slate government`), and the city's
+  // own copy has no text layer at all — 1,900 characters across 169 pages. The
+  // year is reported as a gap rather than written as $0, and it is NOT expected
+  // to appear later unless someone decides money read off an image is
+  // acceptable. If this count ever reads 40, that decision was made somewhere
+  // and needs to be in the recon document, not in this number.
+  'sc-local-acfr-gf': 38,
   // Knight session 3 (Florida DFS), measured from the ACTUAL post-write count on
   // 2026-08-29, never from an estimate. A NEW family, so no pre-existing count
   // moved: the gate reported every other entry unchanged in the same run.

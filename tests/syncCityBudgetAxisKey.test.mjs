@@ -92,6 +92,18 @@ const REQUIRED = {
   // passed whichever that entity's rows actually carry.
   'loadPaDced.mjs': 'PA DCED CLGS-30 — 58 rows, all_funds (municipal) + total_governmental (county) / actual',
   'loadIndianaGateway.mjs': 'Indiana Gateway AFR — 78 rows, total_governmental/actual',
+  // Knight session 6a. A NEW family — South Carolina held only its state node
+  // before this load — so the first run inserts and every later run matches on
+  // the values written here.
+  // ⚠ Like Georgia, the pair is MIXED: `unknown` scope with a real `actual`
+  // basis, and the scope is unknown DELIBERATELY rather than pending. RFA drops
+  // utility sales REVENUE from the report while keeping utility SPENDING (form
+  // line 970, "Public Works (Utility Systems, Public Transit)"), so the two
+  // money columns are on different scopes by construction — which is why RFA
+  // itself warns the data must not be used to relate revenues to expenditures.
+  // If a scope is ever asserted for this family, THIS LOADER MUST CHANGE IN THE
+  // SAME COMMIT.
+  'loadScRfa.mjs': 'SC RFA Local Government Finance Report — 52 rows, unknown/actual (scope unknown on purpose)',
   'loadFloridaDFS.mjs': 'Florida DFS AFR — 190 rows, total_governmental/actual',
   'loadOhioAOS.js': 'Ohio AOS — 6,616 rows, total_governmental/actual',
   'loadMNOSA.js': 'MN OSA — 21,794 rows, total_governmental/actual',
