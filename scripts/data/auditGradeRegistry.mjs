@@ -289,6 +289,46 @@ export const AUDIT_GRADE_REGISTRY = [
     },
   },
   {
+    id: 'sc-rfa-lgf-county',
+    match: /^South Carolina RFA Local Government Finance Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[2-9]|2[0-4]) actual, county only(?:, excl\. bond and lease proceeds)?\)$/,
+    value: AUDIT_GRADE.SELF_REPORTED_UNAUDITED,
+    evidence: {
+      document: 'S.C. Revenue and Fiscal Affairs Office, "FY 2025 Annual County Financial Report '
+        + 'Instructions" (revised December 2025, https://rfa.sc.gov/media/11436), read in full '
+        + '2026-08-30, together with the "About the Report" and "Sources and Notes" sheets of the '
+        + 'FY 2023-24 Local Government Finance Report itself (revised 2026-05-12). '
+        + '⚠ A FIFTH DISTINCT ANSWER IN FIVE STATES, AND THE CLEANEST ONE YET: where North '
+        + 'Carolina had to be inferred from a "self-reported" note, Florida turned on a '
+        + 'reconciliation buried in a manual, Georgia on a rule saying audit was optional and '
+        + 'Pennsylvania on who signs the form, SOUTH CAROLINA EXPLICITLY REFUSES THE AUDIT AS A '
+        + 'SUBMISSION. There is no reconciliation step of any kind, which is precisely what earned '
+        + 'Florida DFS its higher grade.',
+      figures: 'Verbatim, the instructions, under the filing rules: "NOTE: We cannot accept '
+        + 'financial audits as submissions. That is a separate reporting requirement with the '
+        + 'State Treasurer\'s Office." '
+        + 'Verbatim, About the Report: "we request the revenue and expenditure information needed '
+        + 'for our analyses based upon the local governments audited annual financial reports IF '
+        + 'THE AUDIT IS COMPLETE BEFORE THE SURVEY IS DUE" — conditional, the same shape as CA '
+        + 'Government Code § 53891(a)\'s "if this data is available", so an unknown share of rows '
+        + 'is not audit-derived and nothing in the dataset distinguishes them. '
+        + 'Verbatim, About the Report: "This report is not intended to replace audited financial '
+        + 'statements or reflect an opinion on the overall financial status of a local political '
+        + 'subdivision." '
+        + 'Verbatim, Sources and Notes: "County Data: S.C. counties annually submit a form to RFA" '
+        + 'and "Note: RFA does not modify data unless otherwise noted." The agency receives and '
+        + 'compiles; it does not verify, not even arithmetically the way Pennsylvania DCED does. '
+        + 'The form is signed by the county\'s own officer: "Certification: ... Name of Responsible '
+        + 'Officer". Submission is compelled by S.C. Code § 6-1-50 on pain of withholding ten '
+        + 'percent of state aid — a filing duty, not an assurance. '
+        + '⚠ ONE COLUMN FAMILY HAS A DIFFERENT PROVENANCE AND IT IS STILL NOT AUDITED: property '
+        + 'tax figures do not come from this form at all. Verbatim: "NOTE: Property tax sections '
+        + 'have been removed to reduce duplication of effort. RFA uses the Department of Revenue\'s '
+        + 'Local Government Report from county auditors instead." A second self-reporting channel, '
+        + 'so the grade is unchanged, but the mixed provenance is recorded because it makes the '
+        + 'property-tax rows non-independent of SCDOR rather than of the county.',
+    },
+  },
+  {
     id: 'ca-sco-city-exp',
     match: /^CA State Controller - Expenditures$/,
     value: AUDIT_GRADE.SELF_REPORTED_UNAUDITED,

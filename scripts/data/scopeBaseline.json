@@ -21,7 +21,8 @@
     "scripts/data/knightS3FloridaCreatedIds.json",
     "scripts/data/knightS4GeorgiaCreatedIds.json",
     "scripts/data/knightS5PaInCreatedIds.json",
-    "scripts/data/liveSyncExcludedIds.json"
+    "scripts/data/liveSyncExcludedIds.json",
+    "scripts/data/knightS6aScCreatedIds.json"
   ],
   "_frozen_note": "Both digests are computed over current rows MINUS the ids listed in `excluded_ids_files`. created_at is NOT usable to identify the frozen set directly -- 19 of 80,076 rows have it non-NULL -- and committing all ~80k ids would be a ~3MB permanent repo artifact, so the invariant is computed as an exclusion instead of an inclusion list. EVERY milestone that inserts rows MUST append its own created-ids file to `excluded_ids_files` in the same commit as the write. ⚠⚠ SINCE v2.34 THERE ARE TWO KINDS OF ENTRY IN `excluded_ids_files`, and they are not interchangeable. (1) PROVENANCE — one created-ids file per milestone that inserted rows; registerCreatedRows.mjs reconciles the deficit against these, so a row appearing in two of them is a bookkeeping error. (2) SCOPE — scripts/data/liveSyncExcludedIds.json, the rows owned by an ENABLED data source, which can be rewritten by a cron sync with no human involved and so were never meaningfully 'frozen'. The scope file is a COMPLETE statement of its own scope, not a diff, so it OVERLAPS the milestone files by design (16 overlaps on the day it was added) and everything unions into a Set before use. Re-measure it with `npm run verify:live-sync`; re-snapshot with `node scripts/liveSyncExclusions.mjs --write`.",
   "_rebased_at_v2_30": {
