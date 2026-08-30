@@ -173,6 +173,13 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // sweep lands. Re-measure with evidence then; a partition count is a
   // measurement with a date, not a constant.
   'ga-dca-rlgf': 76,
+  // Knight session 7a (Michigan Treasury F-65), measured from the ACTUAL
+  // post-write count on 2026-08-30. A NEW family, so no pre-existing count
+  // moved. 128 = 32 entity-years x 2 dataset types x 2 FUND SCOPES — Detroit and
+  // Wayne County, FY2010-FY2025 with no gaps in either series.
+  // ⚠ Unlike the fund-scope registry, basis does not split by scope: both series
+  // are `actual`, so ONE entry claims all 128.
+  'mi-treasury-f65': 128,
   // The sixteen entity-published city/state ACFR families, measured 2026-08-19.
   // Evidence: docs/superpowers/plans/ACFR-GF-CLASSIFICATION-RECON.md §2.
   'or-city-acfr-gf': 106,

@@ -91,6 +91,18 @@ const REQUIRED = {
   // read from the source, so `fundScopeFor()` resolves per entity and the RPC is
   // passed whichever that entity's rows actually carry.
   'loadPaDced.mjs': 'PA DCED CLGS-30 — 58 rows, all_funds (municipal) + total_governmental (county) / actual',
+  // Knight session 7a. A NEW family — no Michigan local rows existed before this
+  // load — so the first run INSERTs and every later run matches on the values
+  // written here.
+  // ⚠⚠ THE FIRST LOADER IN TT TO WRITE TWO SCOPES FOR THE SAME ENTITY-YEAR, and
+  // therefore the caller with the most to lose if the pair were omitted. The
+  // RPC's lookup key is fund_scope + basis (NOT data_source), which is exactly
+  // what makes the two series coexist rather than overwrite each other: one
+  // general_fund/actual row and one total_governmental/actual row per entity per
+  // year per dataset type. Omit p_fund_scope and both series would collapse onto
+  // the same unknown/unknown lookup — the first run would have them fight for
+  // one row and a re-run would DUPLICATE all 128.
+  'loadMichiganF65.mjs': 'MI Treasury F-65 — 128 rows, general_fund + total_governmental / actual',
   'loadIndianaGateway.mjs': 'Indiana Gateway AFR — 78 rows, total_governmental/actual',
   // Knight session 6a. A NEW family — South Carolina held only its state node
   // before this load — so the first run inserts and every later run matches on

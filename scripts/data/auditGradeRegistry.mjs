@@ -416,6 +416,64 @@ export const AUDIT_GRADE_REGISTRY = [
     value: AUDIT_GRADE.SELF_REPORTED_UNAUDITED,
     evidence: CA_SCO_EVIDENCE,
   },
+  {
+    // Knight campaign, session 7a — Michigan Treasury Form F-65.
+    //
+    // ⚠⚠ A SIXTH DISTINCT ANSWER IN SIX STATES, and the one that most nearly
+    // earned a higher grade without doing so:
+    //
+    //   NC LGC:  publisher says "self-reported"           -> ACFRs, audited_gaap
+    //   FL DFS:  publisher RECONCILES to the audit        -> compiled_from_audited
+    //   GA DCA:  publisher DISCLAIMS, nobody checks       -> self_reported_unaudited
+    //   PA DCED: AN AUDITOR FILES IT for some classes     -> self_reported_unaudited
+    //   SC RFA:  publisher REFUSES to accept the audit    -> self_reported_unaudited
+    //   MI F-65: publisher INSTRUCTS "use the audited     -> self_reported_unaudited
+    //            numbers" — and never checks that you did
+    //
+    // ⚠ ANCHORED AT BOTH ENDS and pinned to the years actually loaded, and the
+    // scope phrase is enumerated rather than wildcarded, so a future Michigan
+    // family at a third scope cannot be silently swallowed by this entry.
+    id: 'mi-treasury-f65',
+    match: /^Michigan Treasury Form F-65 Annual Local Unit Fiscal Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[0-9]|2[0-5]) actual, (?:general fund|governmental funds), excl\. financing sources and uses\)$/,
+    value: AUDIT_GRADE.SELF_REPORTED_UNAUDITED,
+    evidence: {
+      document: 'Michigan Department of Treasury, "Instructions for Michigan Form F-65 '
+        + '(Form No. 3965), Annual Local Unit Fiscal Report", read in full 2026-08-30 '
+        + '(https://www.michigan.gov/-/media/Project/Websites/treasury/Property/'
+        + '20152016_F65_Instructions.pdf), together with the Department\'s "Audit Manual for '
+        + 'Local Units of Government in Michigan". '
+        + '⚠ michigan.gov\'s WWW host is behind a WAF that 403s a plain fetch AND WebFetch (the '
+        + 'Charlotte/Akamai shape); browser headers plus Sec-Fetch-* and a Referer retrieve it. '
+        + '⚠⚠ THE INSTRUCTION TO USE AUDITED NUMBERS IS THE STRONGEST THIS CAMPAIGN HAS READ, '
+        + 'AND IT IS STILL NOT ENOUGH — because it is CONDITIONAL, the filer is the local unit '
+        + 'itself, and NO ONE RECONCILES THE RESULT. That reconciliation is precisely what '
+        + 'earned Florida its higher grade. Michigan\'s own Audit Manual mentions the F-65 '
+        + 'EXACTLY ONCE, and only to cite the filing requirement at MCL 141.424. Treasury '
+        + 'collects the form; it does not check it against the audit.',
+      figures: 'Verbatim, from the instructions. Directing audited data: "If you are required to '
+        + 'have an audit for the 2015-2016 fiscal year, please use the audited numbers." And: '
+        + '"Report the final adjusted balances of all revenues received and expenditures made by '
+        + 'fund type ... in accordance with the official state Uniform Chart of Accounts and '
+        + 'your annual financial audit report. Take information directly from your audit report '
+        + 'where possible." And: "in accordance with your unit\'s audited financial statements '
+        + '(or year-end trial balance if your unit is not subject to an audit requirement)". '
+        + 'Disclaiming the form\'s standing and naming the unaudited fallback: "The Form F-65 '
+        + 'does not satisfy other statutory requirements for audited financial statements '
+        + 'required by Public Act 2 of 1968 or the Single Audit Act Amendments of 1996." And: '
+        + '"If you are not being audited for the current year, you still are required to file. '
+        + 'Prepare Form F-65 based on your year-end trial balance." '
+        + 'This is the CALIFORNIA SCO shape stated more explicitly — audited data directed '
+        + 'CONDITIONALLY, filed by the unit\'s own officers — so §3.5\'s mixed-source rule takes '
+        + 'the weaker branch. '
+        + '⚠ SECOND CASE WHERE THE GRADE UNDERSTATES WHAT TT KNOWS (Pennsylvania was the first). '
+        + 'Detroit and Wayne County are far above every Michigan audit threshold and both file '
+        + 'Single Audits every year, so for THESE TWO ENTITIES the "required to have an audit" '
+        + 'branch is certainly true and their figures are audit-derived in fact. But the F-65 '
+        + 'carries no audited flag in any published column, so the branch is not identifiable '
+        + 'per entity per year the way Florida\'s is — and a grade TT cannot read from the data '
+        + 'is a grade TT must not assert.',
+    },
+  },
 ];
 
 /**
