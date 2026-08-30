@@ -79,8 +79,30 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
+      # ⚠ The digest only means something if every row inside it is beyond the
+      # reach of a sync. A source ENABLED since the last snapshot puts rewritable
+      # rows back inside it, and that is silent by construction — no person is
+      # involved when a cron job revises a figure. This names them.
+      - name: Check that no live-syncing row sits inside the digest
+        id: livesync
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          set +e
+          node scripts/liveSyncExclusions.mjs --check > live.txt 2>&1
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+          set -e
+          cat live.txt
+          {
+            echo '### Live-sync scope'
+            echo '```'
+            cat live.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Open an issue when the invariant fails
-        if: steps.check.outputs.exit_code != '0'
+        if: steps.check.outputs.exit_code != '0' || steps.livesync.outputs.exit_code != '0'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -88,7 +110,7 @@ jobs:
           # Reuse the open issue so a weekly re-check does not pile up duplicates
           # while a fix is pending.
           existing=$(gh issue list --state open --search "$title in:title" --json number --jq '.[0].number')
-          body=$(printf 'The scheduled invariant check failed.\n\n```\n%s\n```\n\nThe harness names which condition it is. Read it before acting:\n\n- **ROWS NOT REGISTERED** — a milestone inserted rows without a created-ids file. Append one to `excluded_ids_files`. This is NOT a figure change.\n- **FROZEN ROWS HAVE VANISHED** — a delete is as serious as an edit.\n- **FROZEN FIGURE DIGEST MOVED** — a surviving figure changed. If authorised, add it to `figure_change_files` with the value it replaced; the digest then keeps verifying and no rebase is needed.\n\n⚠ Never regenerate `figures_frozen` to make this pass.\n\nRun: `%s`\n' \
+          body=$(printf 'The scheduled invariant check failed.\n\n```\n%s\n```\n\nThe harness names which condition it is. Read it before acting:\n\n- **ROWS NOT REGISTERED** — a milestone inserted rows without a created-ids file. Append one to `excluded_ids_files`. This is NOT a figure change.\n- **FROZEN ROWS HAVE VANISHED** — a delete is as serious as an edit.\n- **FROZEN FIGURE DIGEST MOVED** — a surviving figure changed. If authorised, add it to `figure_change_files` with the value it replaced; the digest then keeps verifying and no rebase is needed.\n- **UNPROTECTED rows reported by the live-sync step** — a data source was ENABLED since the last snapshot, so rows a cron job can rewrite are back inside the digest. Re-snapshot with `node scripts/liveSyncExclusions.mjs --write`, register it, re-sync the mirror and re-baseline. This is the v2.34 scope, not a figure change.\n\n⚠ Never regenerate `figures_frozen` to make this pass.\n\nRun: `%s`\n' \
             "$(cat out.txt)" "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}")
           if [ -n "$existing" ]; then
             gh issue comment "$existing" --body "$body"
@@ -98,5 +120,5 @@ jobs:
           fi
 
       - name: Fail the run so it is visible
-        if: steps.check.outputs.exit_code != '0'
+        if: steps.check.outputs.exit_code != '0' || steps.livesync.outputs.exit_code != '0'
         run: exit 1

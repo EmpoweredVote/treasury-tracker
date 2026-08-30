@@ -100,14 +100,42 @@ describe('exclusion ids', () => {
 
   // ⚠ A row registered twice would be excluded once but counted twice by anyone
   // reconciling the arithmetic, which is how an off-by-N hides.
-  it('contain no duplicates across files', () => {
+  //
+  // ⚠⚠ SCOPED TO THE MILESTONE FILES since 2026-08-30. Exclusions now come in two
+  // KINDS, and only one of them is provenance:
+  //
+  //   created-ids files   "this milestone inserted these rows after the freeze"
+  //                       — provenance, and the deficit arithmetic in
+  //                       registerCreatedRows.mjs reconciles against them, so a
+  //                       row appearing in two of these IS a bookkeeping error.
+  //   liveSyncExcludedIds "these rows belong to a source that can rewrite them"
+  //                       — SCOPE. It is deliberately a COMPLETE statement of
+  //                       what is out of scope, not a diff against the others, so
+  //                       it overlaps them by design. 16 such overlaps existed on
+  //                       the day it was introduced: rows both created by a
+  //                       milestone and owned by a live-syncing source.
+  //
+  // Both kinds are unioned into a Set before use, so an overlap changes no
+  // arithmetic. Forbidding it would force the scope file to be expressed as a
+  // diff, which is exactly the shape that went stale across v2.27-v2.29.
+  const SCOPE_FILES = new Set(['scripts/data/liveSyncExcludedIds.json']);
+  const milestoneFiles = (baseline.excluded_ids_files ?? []).filter((f) => !SCOPE_FILES.has(f));
+
+  it('contain no duplicates across the MILESTONE files', () => {
     const seen = new Set();
     const dupes = [];
-    for (const id of ids) {
+    for (const id of milestoneFiles.flatMap(readList)) {
       if (seen.has(id)) dupes.push(id);
       seen.add(id);
     }
     expect(dupes).toEqual([]);
+  });
+
+  it('have no duplicates WITHIN any single file, scope files included', () => {
+    for (const rel of baseline.excluded_ids_files ?? []) {
+      const list = readList(rel);
+      expect(new Set(list).size, `${rel} repeats an id`).toBe(list.length);
+    }
   });
 });
 

@@ -55,8 +55,23 @@ async function main() {
   const baseline = JSON.parse(readFileSync(BASELINE, 'utf8'));
   const client = await getSupabase();
 
+  // ⚠ FILES MAY LEGITIMATELY OVERLAP, so the mirror dedupes by id.
+  //
+  // An id can be excluded for more than one reason at once: a row created by a
+  // milestone AND owned by a live-syncing source belongs in both that milestone's
+  // created-ids file and liveSyncExcludedIds.json, and each file is meant to be a
+  // COMPLETE statement of its own scope rather than a diff against the others.
+  // 16 such overlaps existed the day the live-sync scope was introduced.
+  //
+  // Without this the insert dies on the primary key, which is a confusing way to
+  // learn that two correct files agree. First writer wins, so `source_file`
+  // records the earliest-registered reason — enough for provenance, and the
+  // exclusion itself is identical whichever reason is named.
+  const seen = new Set();
   const excluded = (baseline.excluded_ids_files ?? []).flatMap((file) =>
-    JSON.parse(readFileSync(file, 'utf8')).map((id) => ({ id, source_file: file })));
+    JSON.parse(readFileSync(file, 'utf8'))
+      .filter((id) => !seen.has(id) && seen.add(id))
+      .map((id) => ({ id, source_file: file })));
 
   const ledger = (baseline.figure_change_files ?? []).flatMap((file) =>
     JSON.parse(readFileSync(file, 'utf8')).map((e) => ({
