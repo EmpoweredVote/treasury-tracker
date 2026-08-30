@@ -82,6 +82,16 @@ const REQUIRED = {
   // and there is no registry entry claiming otherwise. If a scope is ever
   // asserted for this family, THIS LOADER MUST CHANGE IN THE SAME COMMIT.
   'loadGeorgiaRLGF.mjs': 'Georgia DCA RLGF — 66 rows, unknown/actual (scope unknown on purpose)',
+  // Knight session 5. Both families are NEW — no rows existed before this load —
+  // so the first run takes the INSERT branch and every later run matches on the
+  // values written here. ⚠ Pennsylvania carries TWO scopes in one loader:
+  // municipalities are all_funds (DCED folds enterprise into its totals and
+  // publishes no removable enterprise subtotal) and counties are
+  // total_governmental (the county report says so in its column names). Both are
+  // read from the source, so `fundScopeFor()` resolves per entity and the RPC is
+  // passed whichever that entity's rows actually carry.
+  'loadPaDced.mjs': 'PA DCED CLGS-30 — 58 rows, all_funds (municipal) + total_governmental (county) / actual',
+  'loadIndianaGateway.mjs': 'Indiana Gateway AFR — 78 rows, total_governmental/actual',
   'loadFloridaDFS.mjs': 'Florida DFS AFR — 190 rows, total_governmental/actual',
   'loadOhioAOS.js': 'Ohio AOS — 6,616 rows, total_governmental/actual',
   'loadMNOSA.js': 'MN OSA — 21,794 rows, total_governmental/actual',

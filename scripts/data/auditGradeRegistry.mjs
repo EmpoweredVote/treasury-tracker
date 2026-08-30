@@ -206,6 +206,89 @@ export const AUDIT_GRADE_REGISTRY = [
     },
   },
   {
+    // ⚠⚠ Knight session 5 — Indiana is the NC answer arrived at HONESTLY, and it
+    // is worth stating why it is not the Florida answer, because it looks like
+    // it should be. Indiana HAS a real state auditor (SBOA) that genuinely
+    // audits these units. But the audit happens AFTERWARDS, on a cycle, and what
+    // Gateway publishes is the pre-audit submission. An audit existing somewhere
+    // in the process is not the published figures being audit-derived.
+    id: 'in-gateway-afr',
+    match: /^Indiana Gateway Annual Financial Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[5-9]|2[0-5]) actual, unaudited, excl\. settlement funds\)$/,
+    value: AUDIT_GRADE.SELF_REPORTED_UNAUDITED,
+    evidence: {
+      document: 'Indiana Gateway for Government Units (IFI / DLGF / SBOA), "Learn more about … '
+        + 'The Annual Financial Report (AFR)", rev. 11/3/2022 '
+        + '(https://gateway.ifionline.org/guides/about/LearnMoreAFR.pdf), read 2026-08-29. '
+        + 'This is the publisher\'s own explainer, and it states the audit status in one '
+        + 'sentence — no inference, no reading of the statute required.',
+      figures: 'Verbatim: "Indiana state law requires that the state examiner (State Board of '
+        + 'Accounts) receive annual financial reports from counties, cities, towns, townships, '
+        + 'schools, libraries, utilities and special districts and that they submit those reports '
+        + 'via the collection systems of Gateway (see IC 5-11-1-4). These reports, as submitted by '
+        + 'the units, are made available via Gateway to the public soon after the deadline for '
+        + 'submission (60 days after year end) or earlier. THESE REPORTS, HOWEVER, ARE UNAUDITED. '
+        + 'The State Board of Accounts (SBOA) uses these Gateway submissions as part of their '
+        + 'required auditing of these units." '
+        + 'Basis is stated in the same document: "Units are required to use a REGULATORY BASIS of '
+        + 'accounting which complies with the financial reporting provisions of a government '
+        + 'regulatory agency (in this case, SBOA)." Not GAAP, so audited_gaap was never available.',
+    },
+  },
+  {
+    // ⚠⚠ Knight session 5 — Pennsylvania is a FOURTH shape, and the campaign has
+    // now hit four distinct answers in four consecutive states:
+    //
+    //   NC LGC: publisher says "self-reported"          -> ACFRs, audited_gaap
+    //   FL DFS: publisher RECONCILES to the audit       -> compiled_from_audited
+    //   GA DCA: publisher DISCLAIMS, nobody checks      -> self_reported_unaudited
+    //   PA DCED: AN AUDITOR FILES IT — for some classes -> self_reported_unaudited
+    //            of government, and the finance office     (weaker branch; the
+    //            for others, and the branch is not         branch is not
+    //            in the published extract                  identifiable)
+    //
+    // ⚠ THIS IS THE FIRST TIME THE GRADE UNDERSTATES WHAT TT ACTUALLY KNOWS.
+    // State College is a Borough, so its filing is signed by elected auditors, an
+    // independent auditor, or a controller. Philadelphia is a City, so its
+    // Director of Accounts and Finance self-reports it. Those are genuinely
+    // different levels of assurance and the four-value vocabulary cannot say so.
+    // Chris's call 2026-08-29: take §3.5's weaker branch now, and hunt for a
+    // per-entity auditor-type field as its own follow-up. If that field is found,
+    // Pennsylvania becomes Florida-shaped and State College would grade ABOVE
+    // Philadelphia — which is why the nuance is recorded here rather than lost.
+    id: 'pa-dced-clgs30',
+    match: /^Pennsylvania DCED Municipal Annual Audit and Financial Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[5-9]|2[0-5]) actual, cash basis, (?:all funds|governmental funds), excl\. financing sources\)$/,
+    value: AUDIT_GRADE.SELF_REPORTED_UNAUDITED,
+    evidence: {
+      document: 'Pennsylvania DCED, Municipal Annual Audit and Financial Report, form DCED-CLGS-30 '
+        + '(12/2023), read in full 2026-08-29 '
+        + '(https://dced.pa.gov/download/dced-clgs-30-2023-municipal-annual-audit-and-financial-report/), '
+        + 'together with its Tip Sheet. '
+        + '⚠ THE FORM\'S TITLE CONTAINS THE WORD "AUDIT" AND THAT PROVES NOTHING — the North '
+        + 'Carolina lesson. What settles it is that DCED\'s own verification is ARITHMETIC, not '
+        + 'evidentiary: it reconciles the form to ITSELF, never to an audited statement. That is '
+        + 'exactly the step Florida DFS performs and Pennsylvania does not, so PA is not '
+        + 'compiled_from_audited.',
+      figures: 'Verbatim, Section III: "DCED verifies that the ending cash/investments balance '
+        + '(accounts 100-120) agrees to the calculated balance taking last year\'s ending '
+        + 'cash/investments balance and adding the current year\'s revenues and subtracting the '
+        + 'current year\'s expenditures." A roll-forward footing check. '
+        + 'Verbatim, Section IV, on who files: "Cities: Director of Accounts and Finance / '
+        + 'Boroughs: Elected Auditors, Independent Auditor, or Controller / First Class Townships: '
+        + 'Elected Auditors, Independent Auditor, or Controller / Second Class Townships: Elected '
+        + 'Auditors or Independent Auditor / Home Rule Communities: In accordance with charter." '
+        + 'So the source is MIXED, and it splits our two municipalities the opposite way round '
+        + 'from what size suggests — an auditor signs State College\'s filing; Philadelphia\'s '
+        + 'finance office signs its own. '
+        + 'The auditor-type selection ("Elected Auditor" / "Appointed Auditor/CPA") is captured in '
+        + 'the online form but appears in NONE of the 71 columns of the statewide extract, so '
+        + 'unlike Florida the branch cannot be identified per entity per year. §3.5: the grade '
+        + 'reflects the weaker branch. '
+        + 'Basis is stated by the publisher and it is CASH, not GAAP: "BALANCE SHEET (CASH BASIS '
+        + 'OF ACCOUNTING ONLY)" (Tip Sheet) and "Cash Basis - Elected Auditors Only" (Section III), '
+        + 'so audited_gaap was never available regardless of who signed.',
+    },
+  },
+  {
     id: 'ca-sco-city-exp',
     match: /^CA State Controller - Expenditures$/,
     value: AUDIT_GRADE.SELF_REPORTED_UNAUDITED,
