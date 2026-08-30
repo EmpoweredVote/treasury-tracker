@@ -514,8 +514,41 @@ FY month: the stored `fiscal_year_start_month` and whether the FAC census confir
 | **Columbia** | SC | city | loaded | **own ACFR** FY2016–25 exc. FY19 | `audited_gaap` | 7 · **FAC confirmed** | 6a |
 | **Myrtle Beach** | SC | city | loaded | **own ACFR** FY2016–25 | `audited_gaap` | 7 · **FAC confirmed** | 6a |
 | **Nashville-Davidson** | TN | **city** (consolidated) | loaded | **own ACFR** FY2016–25 | `audited_gaap` | 7 · ACFR + live FAC | 6b |
+| **Detroit** | MI | city | loaded | **MI Treasury F-65** FY2010–25 | `self_reported_unaudited` | **7** · **FAC confirmed** (1998–2025) | 7a |
+| **Wayne County** | MI | county | loaded | **MI Treasury F-65** FY2010–25 | `self_reported_unaudited` | **10** · filing + FAC 1999–2005; **window UNCOVERED** | 7a |
 
-The 12 remaining entities are `pending` and are listed in spec §2.
+**COUNTED FROM THE TABLE ABOVE, 2026-08-30: 37 rows — 36 `loaded` + 1 `partial`
+(San Jose). 21 primary entities + 16 parent counties.**
+
+The remaining entities are `pending`: **6 primaries** (Aberdeen SD, Biloxi MS,
+Boulder CO, Grand Forks ND, Lexington-Fayette KY, Wichita KS) and **5 counties**
+(Brown SD, Harrison MS, Boulder CO, Grand Forks ND, Sedgwick KS) = **11**.
+
+⚠⚠ **THE ROSTER TOTAL OF 43 DOES NOT RECONCILE, AND THIS IS THE FIRST SESSION TO
+COUNT IT RATHER THAN CARRY IT.** Spec §2 states "Total entity target: 43
+(27 primary + 16 counties)", but 16 counties are ALREADY LOADED and five more are
+still pending, so the campaign has **21 parent counties, not 16**. The arithmetic
+that reconciles is 27 primary + 21 counties = **48**, and 37 + 11 = 48 exactly.
+The undercount is explained by the five CONSOLIDATED primaries that have no
+separate county (Macon-Bibb, Columbus-Muscogee, Philadelphia, Nashville-Davidson,
+Lexington-Fayette) — subtracting them from 21 gives the 16 in §2, which appears
+to have counted "new counties to create" rather than "counties in the roster".
+⚠ **Percentages quoted in earlier sessions were computed against 43** and are
+therefore optimistic: 37 of 48 is **77%**, not 86%. Left as a flagged
+discrepancy for Chris rather than silently restated — the headline number is a
+scoping decision, not a bookkeeping one. **Count the table; never carry a total
+forward** — the same rule that caught session 4's missing Georgia rows.
+
+⚠ **Detroit and Wayne County are on DIFFERENT fiscal calendars** — a city and its
+own parent county, month 7 against month 10. Both are read per filing from the
+F-65's own `fiscalendmonth` field and both are constant across all sixteen years.
+Michigan's counties split **72 January / 29 October / 1 July** in the FAC census
+and Wayne is in the 29, so no state-wide default would have been safe.
+
+⚠ **Wayne County's FAC census coverage stops at 2005**, before the load window
+opens, so its month is reported as UNCOVERED for all 16 loaded years rather than
+confirmed. The month is nonetheless read from every filing and agrees with the
+pre-2005 census. Detroit's 16 years are all actively confirmed.
 
 ⚠ The three Florida windows ending FY2024 are NOT gaps in the source — Miami-Dade,
 Leon and Bradenton had simply not filed FY2025 when the workbooks were fetched.
@@ -2064,3 +2097,237 @@ which is exactly why `acfrGfLoad` reads a manifest instead of rebuilding a URL.
 3. **Nashville pre-FY2016** sits behind an "Archive for Previous Years" page and
    is not loaded, under the first-party `source_url` policy.
 4. **Session 7 = MI + CO + KS** — Detroit, Boulder, Wichita + counties.
+
+---
+
+## ✅ Session 7a (MICHIGAN) — 2026-08-30
+
+**2 entities / 128 rows. Michigan's FIRST local entities** — the table held one
+MI row before this, the state node. Detroit (a Knight *resident* community) and
+Wayne County, **FY2010–FY2025 with no gaps: sixteen years, the deepest unbroken
+reach in this campaign.** Frozen digest **byte-identical** before the load, after
+the load, and after both axis stampers. Tests 1,734 → 1,768.
+
+| | Michigan |
+|---|---|
+| Source | Treasury Form F-65, Annual Local Unit Fiscal Report |
+| Access | `data.michigan.gov` Socrata — anonymous GET, no key, no terms gate |
+| Reach | all 1,856 cities/villages/townships/counties, FY2010–2025 |
+| Grade | `self_reported_unaudited` |
+| Scopes | `general_fund` (published) **and** `total_governmental` (derived) |
+
+### Recon outcomes for all three session-7 states
+
+* **MI = BULK.** Icicle-grade, and the fund scope is *published per column*.
+* **CO = ACFR.** DOLA is the documented trap (stateful PrimeFaces/JSF app, terms
+  gate, ToS discouraging automation) — **and** its scope is `total_governmental`,
+  so it could not have extended the existing `co-local-acfr-gf` General Fund
+  series for Colorado Springs even if access were free.
+* **KS = ACFR.** The Kansas Department of Administration publishes **adopted
+  budgets only** (2022–2026), per-entity PDFs browsed by county, no bulk
+  download, no API, and **no actuals**.
+
+### ⚠⚠ THE HEADLINE — THE SAME COLLAPSE SIGNATURE, AND THIS TIME IT IS REAL
+
+Wayne County's Total Governmental revenue drops **$1,511,273,000 → $915,641,000
+at FY2014, −39%**, while its General Fund runs smoothly across the same boundary
+($536.6M → $565.2M). That is *verbatim* the signature of session 5's Lake County
+renumbered fund and session 6b's Davidson `PRI`/`SCH` split — **both of which
+were defects that would have rendered a fake collapse.**
+
+Here it is a real governmental reorganisation. The entire step is one line,
+`TOTAL STATE GRANTS` in All Other Governmental Funds, $784.5M → $166.4M; every
+other category is smooth. **Michigan Public Acts 375 and 376 of 2012** required
+Wayne County to establish its community mental health services programme as an
+independent entity "separate and distinct from Wayne County functions",
+**effective 1 October 2013 — the exact first day of Wayne County's FY2014.** The
+Detroit-Wayne County Community Mental Health Agency became the Detroit Wayne
+Mental Health Authority and took its state Medicaid funding out of the county's
+books. Loaded as published and flagged, per the Milledgeville rule.
+
+⭐ **The transferable lesson: the signature does not tell you which it is.** A
+39% one-year step with a smooth General Fund underneath looked identical in all
+three sessions. Only external evidence — a statute, a grant award, a fund
+renumbering — separates the real reorganisation from the parse defect. Reading
+the series finds the *question*; it never answers it.
+
+### ⚠⚠ A FORMATTED-CURRENCY FILING THAT WOULD HAVE LOADED AS $0, GREEN
+
+**Detroit FY2020 — and only that filing, 517 of its 537 rows** — publishes
+`field_data` as `"$290,017,002.00"` where every other filing in the corpus emits
+a bare `"290017002.00"`. Wayne FY2020 is clean, so it is a one-off defect in a
+single upload rather than an era.
+
+`parseFloat` returns NaN; **`Number(x) || 0` returns ZERO, and the zero is the
+dangerous one** — the whole entity-year would load as $0 and *every* internal
+check would still pass, because a sum of zeros ties a total of zero. This is
+session 3's zero-row parse ("any gate that can measure nothing must fail, not
+pass") in a new costume. `parseAmount()` accepts `$`, commas and a leading minus,
+treats an empty cell as an explicit null, and **throws** on anything else.
+
+⚠ Negatives here are a LEADING minus (290 observed), never parentheses —
+checked empirically after Nashville's trailing-paren sign inversion.
+
+### ⚠⚠ A SUBTOTAL THAT IS CORRECT WHILE ITS OWN LINE ITEMS ARE NOT
+
+Detroit's FY2015 filing writes three values onto **two account lines each** while
+its own subtotal counts each once — an exact 2.000 ratio in all three:
+
+| Face | Root | Value duplicated across |
+|---|---|---|
+| Revenue | `TOTAL CHARGES FOR SERVICES` | `626-637` and `638-642, 651, 653, 654` |
+| Expenditure | `TOTAL HEALTH AND WELFARE` | `601, 605, 610, 611` and `600-699 Except Above` |
+| Expenditure | `TOTAL RECREATION AND CULTURE` | `751-752, …` and `803-805` |
+
+This is **Georgia's LOAD1 defect class** — real money on the wrong account while
+the subtotal stays right — and it is **invisible to any grand-total check**,
+because the grand total sums the (correct) subtotals. Only asserting each root
+against its OWN leaves finds it. Session 4 proved subtotal ties are necessary but
+not sufficient; **this is the mirror image, and the same assertion catches both.**
+
+⚠ Which line of each pair is the stray copy **cannot** be determined from the
+extract. In each case the specific line looks plausible and the catch-all
+duplicate does not — but *looks plausible* is not evidence, and dropping whichever
+makes the arithmetic work is the curve-fitting error that LA-01 and session 6a's
+reader choice both warn about. **The verified subtotal is loaded and the
+contradicted detail is suppressed**, declared in `KNOWN_DUPLICATED_DETAIL` as an
+**exact registry, never a tolerance**: the entry must name the entity, year,
+category, root, published figure *and* observed leaf total, and any undeclared
+mismatch still stops the load. ⭐ Detroit's own FY2015 ACFR would arbitrate all
+three — a filed follow-up.
+
+### The audit grade — a SIXTH distinct answer in six states
+
+`self_reported_unaudited`, and it is the closest any source has come to a higher
+grade without earning it. Michigan **instructs** the filer to use audited numbers:
+
+> "If you are required to have an audit for the 2015-2016 fiscal year, please use
+> the audited numbers."
+> "Take information directly from your audit report where possible."
+
+And in the same document disclaims the form and names the fallback:
+
+> "The Form F-65 does not satisfy other statutory requirements for audited
+> financial statements required by Public Act 2 of 1968…"
+> "If you are not being audited for the current year, you still are required to
+> file. Prepare Form F-65 based on your year-end trial balance."
+
+**This is the California SCO shape stated more explicitly** — audited data
+directed *conditionally*, filed by the unit's own officers — so §3.5's
+mixed-source rule takes the weaker branch. ⚠⚠ **And crucially there is no
+reconciliation step**, which is exactly what earned Florida its
+`compiled_from_audited`: Michigan's own *Audit Manual for Local Units of
+Government* mentions the F-65 **exactly once**, only to cite MCL 141.424.
+
+⚠ **Second case where the grade UNDERSTATES what TT knows** (Pennsylvania was the
+first). Detroit and Wayne County are far above every Michigan audit threshold and
+both file Single Audits annually, so their figures *are* audit-derived in fact —
+but the branch appears in no published column, and a grade TT cannot read from
+the data is a grade TT must not assert.
+
+### Fund scope — TT's first two-series family
+
+`general_fund` is column a, read. `total_governmental` is column a + column b —
+and **the publisher defines that partition**, enumerating column b as permanent,
+special revenue, debt service and capital project funds. So it is exactly GASB's
+governmental-funds set; the form simply publishes no subtotal of it, which is why
+those rows carry `derivation='derived'`.
+
+⚠⚠ **The form's own `Total` is NOT this scope.** It is a+b+c+d and folds in
+enterprise, internal service **and discretely presented component units**.
+Verified line by line on Detroit FY2024: All Other Federal Aid Grants,
+governmental+CU 112,631,465 + enterprise 56,516,497 = the published 169,147,962.
+Loading column e would have overstated the government itself.
+
+⚠⚠ **Financing is removed from BOTH faces, and Michigan can do symmetrically what
+South Carolina structurally could not** (see the asymmetry acknowledged in PR
+#115). For `total_governmental` this is *arithmetic*, not convention: a transfer
+from the General Fund to a special revenue fund is an expenditure in column a AND
+a revenue in column b — both inside the same scope. Wayne County FY2023 alone
+moves **$330,326,239** that way.
+
+### ⚠⚠ Two calendars, one state, a city against its own parent county
+
+Detroit starts **month 7**; Wayne County starts **month 10**. Both are read per
+filing from the F-65's `fiscalendmonth` and both are constant across all sixteen
+years. Michigan's counties split **72 January / 29 October / 1 July** in the FAC
+census and **Wayne is in the 29** — the dominant month would have been wrong by
+nine months on every Wayne row while moving $0 and passing every tie test.
+
+⚠⚠ **Fifth Saint-Louis-County near-miss, and the sharpest yet.** Michigan's census
+slice carries four rows matching `/Detroit|Wayne/`:
+
+    MI,Detroit,municipality,annual,7,,1998-2025      <- the city
+    MI,Wayne,municipality,annual,7,,1998-2013        <- THE CITY OF WAYNE, MI
+    MI,Wayne County,county,annual,10,,1999-2005      <- the county
+    MI,Wayne Township,township,annual,4,,2015
+
+The City of Wayne is a real government *inside* Wayne County at a **different
+fiscal month**. A bare `Wayne` lookup returns month 7 and `censusGuard()` would
+then have **confirmed a wrong month enthusiastically**. `censusName` is exact and
+a test pins it.
+
+⚠ Wayne County's census coverage stops at **2005**, before the window opens, so
+its sixteen years are reported **UNCOVERED — never as confirmed** (the Florida
+rule). Detroit's sixteen are all actively confirmed.
+
+### The structure is published, not inferred
+
+`notes` states each row's role (`Number` / `Total` / `Summary - Number`) and
+`field_name` is the printed form's own grid coordinate `T{table}R{row}C{column}`,
+so the leaf/subtotal split is **read**, and ordering never depends on Socrata's
+row order. Two independent signals agree on every row checked: `notes='Number'`
+iff `account_number` is non-blank.
+
+⚠⚠ **`Summary - Number` rows have a blank `account_number` and are NOT
+subtotals** — they are fund balances. A "blank means subtotal" rule would have
+filed Detroit FY2024's **$1,197,106,602** opening fund balance as an expenditure
+category. Both signals are required, which is why neither is trusted alone.
+
+⚠ **Column numbers in `field_name` are table-relative** and must never be keyed
+on: `General Fund` is C2 in the Revenue table (where the budget column occupies
+C1) and C1 in the Expenditure table.
+
+⚠⚠ **A BUDGET COLUMN SITS IN THE SAME TABLE AS THE ACTUALS** —
+`General Fund Final Amended Budget` is a `group` like any other, beside
+`General Fund`. Detroit FY2024 Income Tax reads 666,247,119 as final amended
+budget and 692,923,583 as actual. The loader reads only the groups it names, so
+no appropriation can reach an actuals row.
+
+### ⚠ A row-count collapse that was NOT a data break
+
+FY2010–2015 filings carry exactly **1,172 rows each — identical for a city and a
+county, six years running** — then FY2016 reads 424. That is a fixed template
+emitting every form cell whether or not it holds data (~765 zero rows per
+filing); **non-zero** content runs 373–402 against 479–537 later, continuous. The
+"64% collapse" is a template change. Checked before it was explained away — the
+session-6b rule that a varying shape is not automatically a bug.
+
+### Verification
+
+* **1,145 / 1,145** in-file checks across 32 entity-years, 0 skipped. Every root
+  asserted against its own leaves, and `operating + financing = the publisher's
+  own grand total` on all 32.
+* Frozen digest `62654 rows 3a48ac28…` **byte-identical** before the load, after
+  the load, and after both axis stampers. Deficit at registration was **exactly
+  128**, union exactly 128. `verify:live-sync` reports **0** unprotected rows.
+* Both partition gates green: `mi-treasury-f65-gf` 64 / `mi-treasury-f65-tg` 64;
+  `mi-treasury-f65` 128 basis + 128 reporting_entity.
+
+### Open follow-ups from this session
+
+1. ⭐ **Detroit's own FY2015 ACFR would arbitrate the three duplicated lines**,
+   converting three suppressed breakdowns back into published detail.
+2. ⭐⭐ **The Michigan statewide sweep is a filed, ready milestone** — the same
+   loader reaches **all 1,856 Michigan local units** across FY2010–2025 with no
+   new extraction work; the marginal cost is verification. Scoped out of 7a by
+   decision so the session would end whole.
+3. **Wayne County's FAC census gap** (coverage stops at 2005) means sixteen
+   loaded years rest on the filing's own `fiscalendmonth`. A live FAC API lookup
+   — the route session 6b used for Nashville — would close it.
+4. ⚠ **The roster total of 43 does not reconcile** — see the note under the
+   per-entity table. 37 + 11 = 48.
+5. **Session 7b = CO + KS** — Boulder + Boulder County, Wichita + Sedgwick
+   County, both by the ACFR route. Recon is already done (above); CO must
+   **extend** `co-local-acfr-gf` rather than duplicate it, and KS needs a new
+   `ks-local-acfr-gf` family with its five registrations.

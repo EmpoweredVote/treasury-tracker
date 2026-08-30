@@ -261,8 +261,16 @@ describe('the shipped registry', () => {
     // this level whose scope is read off SEPARATE PUBLISHED FUND COLUMNS rather
     // than off a statement heading, so it is also the first whose reporting
     // entity is settled by which columns TT declined to sum.
+    // ⚠ `mi-treasury-f65-tg` (Knight session 7a) joins on 2026-08-30 as the
+    // SECOND derived entry at this level, and the first derived one whose
+    // components are separate PUBLISHED COLUMNS rather than TT's own arithmetic
+    // over fund-level rows: the F-65 instructions enumerate column a + column b
+    // as exactly the governmental funds, so the derivation is a two-column sum
+    // the publisher defined. It is also the first family in TT to carry two
+    // scopes from one loader, which is why its label — and therefore its
+    // registry entry — is scope-specific.
     const totGov = FUND_SCOPE_REGISTRY.filter((e) => e.scope === SCOPE.TOTAL_GOVERNMENTAL);
-    expect(totGov.map((e) => e.id).sort()).toEqual(['ca-sco-derived-tg', 'fl-dfs-afr', 'mn-osa', 'oh-aos']);
+    expect(totGov.map((e) => e.id).sort()).toEqual(['ca-sco-derived-tg', 'fl-dfs-afr', 'mi-treasury-f65-tg', 'mn-osa', 'oh-aos']);
     for (const e of totGov) {
       expect(e.evidence.figures, e.id).toMatch(/REPORTING ENTITY|reporting-entity/);
     }

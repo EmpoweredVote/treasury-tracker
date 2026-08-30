@@ -917,6 +917,73 @@ export const FUND_SCOPE_REGISTRY = [
              + 'that reason.',
     },
   },
+  {
+    // Knight campaign, session 7a — Michigan Treasury Form F-65, GENERAL FUND.
+    //
+    // ⚠⚠ MICHIGAN IS THE FIRST FAMILY IN TT TO CARRY TWO SCOPES FROM ONE LOADER,
+    // so it gets TWO entries whose patterns are mutually exclusive on the scope
+    // phrase. This is not tidiness: SCOPE-04 established that a derived row which
+    // shares its parent's `data_source` has its scope OVERWRITTEN by the next
+    // classifier run. The scope is therefore inside the label, and each label
+    // matches exactly one entry.
+    id: 'mi-treasury-f65-gf',
+    match: /^Michigan Treasury Form F-65 Annual Local Unit Fiscal Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[0-9]|2[0-5]) actual, general fund, excl\. financing sources and uses\)$/,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'The source rows themselves, fetched free and anonymously from the State of '
+              + 'Michigan Socrata portal (https://data.michigan.gov, one dataset per fiscal year '
+              + 'per unit type) and cached under _acfr-work/mi/. Like the Ohio AOS and Florida '
+              + 'DFS entries, this is a FACT rather than an inference: the publisher labels each '
+              + 'fund column in its own `group` field, so which funds TT summed is recorded in '
+              + 'the data TT read.',
+      figures: 'The published `group` values are General Fund, All Other Governmental Funds, '
+             + 'Enterprise Funds, Internal Service Funds, Component Units, Total, and — in later '
+             + 'years — General Fund Final Amended Budget. This entry is exactly the rows whose '
+             + 'group is `General Fund`, which the F-65 instructions define as "column a". '
+             + 'Nothing is summed and nothing is inferred.',
+    },
+  },
+  {
+    // Knight campaign, session 7a — Michigan Treasury F-65, TOTAL GOVERNMENTAL.
+    id: 'mi-treasury-f65-tg',
+    match: /^Michigan Treasury Form F-65 Annual Local Unit Fiscal Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[0-9]|2[0-5]) actual, governmental funds, excl\. financing sources and uses\)$/,
+    scope: SCOPE.TOTAL_GOVERNMENTAL,
+    evidence: {
+      document: 'Same source rows as `mi-treasury-f65-gf` above. This scope is column a + '
+              + 'column b, and THE PUBLISHER DEFINES THAT PARTITION — it is not TT\'s construction. '
+              + 'Verbatim from the Form F-65 instructions: "General Fund--(column a) / All Other '
+              + 'Governmental Funds--(column b) / Permanent Funds (Combine as part of column b) / '
+              + 'Special Revenue Funds (Combine as part of column b) / Debt Service Funds '
+              + '(Combine as part of column b) / Capital Project Funds (Combine as part of '
+              + 'column b) / Enterprise Fund Type--(column c) / Discretely Presented Component '
+              + 'Unit Funds--(column d) / Total--(column e)". Column a + column b is therefore '
+              + 'exactly GASB\'s governmental-funds set, enumerated by the publisher.',
+      figures: '⚠ THE FORM PUBLISHES NO GOVERNMENTAL SUBTOTAL OF ITS OWN, so these rows carry '
+             + 'derivation=\'derived\' and their own data_source string. '
+             + '⚠⚠ THE FORM\'S `Total` (column e) IS NOT THIS SCOPE — it is a+b+c+d and folds in '
+             + 'enterprise, internal service AND discretely presented component units. Verified '
+             + 'line by line on Detroit FY2024: All Other Federal Aid Grants, governmental+CU '
+             + '112,631,465 plus enterprise 56,516,497 equals the published Total 169,147,962. '
+             + 'Loading column e would therefore have overstated the government itself. '
+             + 'SCOPE CAVEAT, STATED RATHER THAN HIDDEN: both faces EXCLUDE `TOTAL OTHER '
+             + 'FINANCING SOURCES` and `TOTAL OTHER FINANCING USES`. For this scope that is '
+             + 'arithmetic rather than convention — a transfer from the General Fund to a '
+             + 'special revenue fund is an expenditure in column a AND a revenue in column b, '
+             + 'both INSIDE this scope, so leaving transfers in would inflate both faces by the '
+             + 'same internal money (Wayne County FY2023 alone moves $330,326,239 that way). '
+             + '⚠ Michigan can remove financing SYMMETRICALLY, which South Carolina structurally '
+             + 'could not — see the asymmetry acknowledged in PR #115. '
+             + 'REPORTING ENTITY: primary_government, and settled by the same column fact that '
+             + 'settles the scope rather than by inference. The F-65 publishes "Discretely '
+             + 'Presented Component Unit Funds" as its OWN column d, and TT sums only columns a '
+             + 'and b, so discretely presented component units are excluded by construction — '
+             + 'the same route as fl-dfs-afr. Blended component units sit inside the primary '
+             + 'government\'s own funds by GASB 34 and are therefore inside these figures, the '
+             + 'same treatment as oh-aos. ⚠ This is the OPPOSITE of mn-osa, which consolidates '
+             + 'HRA/EDA/TIF component units into the same columns and is incl_component_units '
+             + 'for that reason.',
+    },
+  },
 ];
 
 export default FUND_SCOPE_REGISTRY;

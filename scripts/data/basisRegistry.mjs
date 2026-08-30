@@ -384,6 +384,38 @@ export const BASIS_REGISTRY = [
     },
   },
   {
+    // Knight campaign, session 7a — Michigan Treasury Form F-65.
+    // ⚠ Placed ABOVE the adopted-budget catch-all for the same reason as the
+    // Florida entry: these labels contain the word "Revenue", and one of the two
+    // scopes is a DERIVED row, which is exactly the shape `ca-sco-derived-tg`
+    // had to guard.
+    //
+    // ⚠⚠ THE F-65 PUBLISHES A BUDGET COLUMN IN THE SAME TABLE AS THE ACTUALS —
+    // `General Fund Final Amended Budget` is a `group` like any other, sitting
+    // beside `General Fund`. The loader reads ONLY the groups it names, so no
+    // appropriation can reach an actuals row; this entry records that the
+    // distinction was made deliberately rather than survived by luck.
+    id: 'mi-treasury-f65',
+    match: /^Michigan Treasury Form F-65 Annual Local Unit Fiscal Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[0-9]|2[0-5]) actual, (?:general fund|governmental funds), excl\. financing sources and uses\)$/,
+    value: BASIS.ACTUAL,
+    evidence: {
+      document: 'The F-65 is a CLOSED-YEAR filing by construction and by instruction. Michigan '
+              + 'Treasury\'s "Instructions for Michigan Form F-65" require the unit to "Report '
+              + 'the final adjusted balances of all revenues received and expenditures made by '
+              + 'fund type", drawn "directly from your audit report where possible" or, failing '
+              + 'that, from "your year-end trial balance". Both are post-close artefacts; '
+              + 'neither is an appropriation. The form is filed after the fiscal year ends '
+              + 'under Public Act 2 of 1968 (MCL 141.424).',
+      figures: 'Corroborated by the source\'s OWN separation of the two. Each filing carries a '
+             + 'distinct `General Fund Final Amended Budget` group ALONGSIDE the `General Fund` '
+             + 'actuals group, and the two differ: Detroit FY2024 Income Tax reads 666,247,119 '
+             + 'as final amended budget and 692,923,583 as actual. TT loads the actuals group '
+             + 'and never the budget group, so the basis is read from the publisher\'s own '
+             + 'column labelling rather than inferred from the fiscal year being closed. '
+             + 'All 32 loaded entity-years are FY2010-FY2025, every one closed.',
+    },
+  },
+  {
     // Adopted budget documents. 169 rows / 129 strings / 30 entities,
     // RE-MEASURED 2026-08-28 (was 165 rows, measured 2026-08-17).
     // Placed LAST so a more specific source above always wins.

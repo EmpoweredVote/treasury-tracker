@@ -90,6 +90,19 @@ export const EXPECTED_ROWS = Object.freeze({
   // County 36. A NEW family, so no pre-existing count moved.
   // Evidence: docs/superpowers/plans/CO-SPRINGS-EPC-01-CLOSEOUT.md section 6.
   'co-local-acfr-gf': 64,
+  // Knight session 7a (Michigan's first local entities), measured from the
+  // ACTUAL post-write count on 2026-08-30. A NEW family, so no pre-existing
+  // count moved. Detroit and Wayne County, FY2010-FY2025 with no gaps.
+  //
+  // ⚠ 64 EACH, NOT 128 BETWEEN THEM. Michigan is the first family in TT to write
+  // TWO scopes for the same entity-year, so every filing produces one
+  // general-fund row and one governmental-funds row per dataset type:
+  //   32 entity-years x 2 dataset types = 64 rows per scope, 128 in total.
+  // `treasury_sync_city_budget` keys on fund_scope + basis, so the two series
+  // coexist rather than overwrite — the same keying that made
+  // project_sync_city_budget_not_source_safe dangerous when scope was OMITTED.
+  'mi-treasury-f65-gf': 64,
+  'mi-treasury-f65-tg': 64,
   // NC-DURHAM-AVL-01, measured 2026-08-25: City of Durham 32 + Durham County 42
   // + City of Asheville 28 + Buncombe County 36. A NEW family, so no
   // pre-existing count moved.

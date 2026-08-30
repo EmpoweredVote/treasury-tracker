@@ -277,4 +277,32 @@ export const REPORTING_ENTITY_REGISTRY = [
       figures: 'The stored figure equals the printed General Fund column of the primary government\'s governmental-funds statement, tied exactly on both sides in two different units.',
     },
   },
+  {
+    // Knight campaign, session 7a — Michigan Treasury Form F-65.
+    // ⚠ ONE entry covers BOTH fund scopes: general_fund reads column a and
+    // total_governmental reads columns a + b, and component units are column d
+    // in either case, so the entity boundary is identical for the two series.
+    id: 'mi-treasury-f65',
+    match: /^Michigan Treasury Form F-65 Annual Local Unit Fiscal Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[0-9]|2[0-5]) actual, (?:general fund|governmental funds), excl\. financing sources and uses\)$/,
+    value: REPORTING_ENTITY.PRIMARY,
+    evidence: {
+      document: 'The source rows, fetched from https://data.michigan.gov and cached under '
+              + '_acfr-work/mi/. As with fund_scope, the entity boundary is a FACT read off the '
+              + 'publisher\'s own column labelling rather than an inference: the Form F-65 '
+              + 'instructions enumerate "Discretely Presented Component Unit Funds--(column d)" '
+              + 'as a column of its own, distinct from "General Fund--(column a)" and "All Other '
+              + 'Governmental Funds--(column b)".',
+      figures: 'TT reads columns a and b only, so discretely presented component units are '
+             + 'excluded by construction — the same route as fl-dfs-afr, and there is no '
+             + 'judgment call to record. Blended component units are inside the primary '
+             + 'government\'s own funds by GASB 34 and are therefore inside these figures, as '
+             + 'with oh-aos. '
+             + 'CORROBORATED ARITHMETICALLY: on Detroit FY2024 the published `Total` (column e) '
+             + 'exceeds governmental+component-unit by exactly the enterprise column on every '
+             + 'line — e.g. All Other Federal Aid Grants, 112,631,465 + 56,516,497 = 169,147,962 '
+             + '— which is how the column partition was verified rather than assumed. '
+             + '⚠ This is the OPPOSITE of mn-osa, which consolidates HRA/EDA/TIF component units '
+             + 'into the same columns and is incl_component_units for that reason.',
+    },
+  },
 ];

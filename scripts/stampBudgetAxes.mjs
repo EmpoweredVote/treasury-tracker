@@ -173,6 +173,13 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // sweep lands. Re-measure with evidence then; a partition count is a
   // measurement with a date, not a constant.
   'ga-dca-rlgf': 76,
+  // Knight session 7a (Michigan Treasury F-65), measured from the ACTUAL
+  // post-write count on 2026-08-30. A NEW family, so no pre-existing count
+  // moved. 128 = 32 entity-years x 2 dataset types x 2 FUND SCOPES — Detroit and
+  // Wayne County, FY2010-FY2025 with no gaps in either series.
+  // ⚠ Unlike the fund-scope registry, basis does not split by scope: both series
+  // are `actual`, so ONE entry claims all 128.
+  'mi-treasury-f65': 128,
   // The sixteen entity-published city/state ACFR families, measured 2026-08-19.
   // Evidence: docs/superpowers/plans/ACFR-GF-CLASSIFICATION-RECON.md §2.
   'or-city-acfr-gf': 106,
@@ -193,6 +200,12 @@ export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
   'fl-dfs-afr': 190,
   // AUSTIN-TRAVIS-01. Evidence: AUSTIN-TRAVIS-01-SCOPE-RECON.md §3.
   'tx-local-acfr-gf': 76,
+  // Knight session 7a (Michigan Treasury F-65), measured 2026-08-30. The same
+  // 128 rows as the basis entry above; primary_government because the F-65
+  // publishes discretely presented component units in their own column d and TT
+  // reads only columns a and b. ⚠ ONE entry spans BOTH fund scopes — the entity
+  // boundary is identical whether TT reads column a alone or a + b.
+  'mi-treasury-f65': 128,
   // CO-SPRINGS-EPC-01, measured 2026-08-21: Colorado Springs 28 + El Paso
   // County 36. A NEW family, so no pre-existing count moved.
   // Evidence: docs/superpowers/plans/CO-SPRINGS-EPC-01-CLOSEOUT.md section 6.
