@@ -374,30 +374,59 @@ publisher resolves which side carries the data, unprompted:**
 DCED keeps a placeholder county row that never files. All the money is on the
 **city** row, and DCED types it `City`.
 
-⚠⚠ **This is in tension with the Georgia precedent, which typed consolidated
-governments (Macon-Bibb, Columbus-Muscogee) as `county`.** Per the session-4
-handoff this is to be **revisited deliberately here, not diverged from by
-accident**. It is flagged for Chris in §7 and no entity has been created.
+### ✅ RESOLVED 2026-08-29 — `city`, and GEORGIA IS THE OUTLIER
+
+Raised by Chris: *"Don't we refer to San Francisco as a city when it is also a
+county?"* — checked against the live DB rather than reasoned about:
+
+| Entity | `entity_type` in TT | `county_id` |
+|---|---|---|
+| **San Francisco, CA** (consolidated city-county) | **`city`** | NULL |
+| Macon-Bibb, GA | `county` | NULL |
+| Columbus-Muscogee, GA | `county` | NULL |
+
+**TT's pre-existing convention is `city`,** and it predates session 4. Georgia's
+`county` typing is the divergence, not Philadelphia's. So following the DCED
+publisher and following TT's own older precedent give the SAME answer, and the
+session-4 handoff's "revisit on purpose" is what surfaced it.
+
+**Decision: Philadelphia is `entity_type = 'city'`, `county_id = NULL`.**
+
+⚠ The one thing all three rows already agree on is `county_id = NULL` — a
+consolidated government is not *inside* a county. That part is consistent and
+stays.
+
+⚠⚠ **FOLLOW-UP, NOT DONE HERE: Macon-Bibb and Columbus-Muscogee are now
+inconsistent with SF and Philadelphia.** Retyping them moves $0 (`entity_type`
+is on `municipalities`, not `budgets`, so the frozen invariant is untouched) but
+it edits merged, verified session-4 work and is its own small piece of work.
+**Two more consolidated governments are coming** — Lexington-Fayette (session 8)
+and Nashville-Davidson (session 6) — so the rule should be settled before those
+land, not after.
 
 ⚠ Note `PHILADELPHIA  COUNTY` contains a **double space**. Never key on the name.
 
 ---
 
-## 7. Open decisions for Chris — nothing is loaded until these are answered
+## 7. Decisions — ALL THREE ANSWERED 2026-08-29 by Chris
 
-1. **Philadelphia's `entity_type`.** Georgia set `county` for consolidated
-   governments; Pennsylvania's publisher files Philadelphia as a `City` and
-   leaves the county row empty. Follow the GA precedent, or follow the publisher?
-2. **Pennsylvania's `audit_grade`.** §3.5's mixed-source rule gives
-   `self_reported_unaudited`, because the auditor-type branch is not in the bulk
-   file. But State College's report is signed by an auditor and Philadelphia's is
-   not, and the vocabulary cannot express the difference. Accept the weaker
-   branch, hunt for a per-entity auditor field, or extend the vocabulary?
-3. **PA municipal `fund_scope`.** The source cannot separate enterprise, so rows
-   are all-funds and not comparable to the PA county rows (governmental) or the
-   IN rows (governmental) loaded in the same session. Load as published and flag
-   (the WeHo precedent), or derive a governmental subtotal (the SCOPE-04
-   precedent)?
+1. **Philadelphia's `entity_type` → `city`.** Follow the publisher, which also
+   matches TT's pre-existing San Francisco precedent. See §6. **Georgia's two
+   consolidated governments are now the inconsistency**, filed as a follow-up.
+2. **Pennsylvania's `audit_grade` → `self_reported_unaudited` (weaker branch),
+   hunt later.** §3.5's mixed-source rule applied as written, because the
+   auditor-type branch is not in the bulk file. The nuance — that State College's
+   report is auditor-signed and Philadelphia's is not — is recorded in §2 and
+   **must not be lost**; the vocabulary simply cannot express it today.
+   **FOLLOW-UP:** look for a per-entity auditor-type source (the per-municipality
+   AFR report or the Final Review data). If found, PA becomes Florida-shaped and
+   State College would grade above Philadelphia.
+3. **PA municipal `fund_scope` → load as published, all-funds, flagged.** The
+   WeHo precedent: record the scope honestly rather than forcing comparability
+   with the PA county rows (governmental) or the IN rows (governmental) sitting
+   beside it. **No derived governmental subtotal** — the six enterprise columns
+   may not exhaust proprietary funds, and a confidently wrong "governmental"
+   total is worse than an honest all-funds one.
 
 ## 8. Scope proposed for the load half of session 5
 
