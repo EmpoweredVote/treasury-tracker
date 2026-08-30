@@ -498,8 +498,15 @@ FY month: the stored `fiscal_year_start_month` and whether the FAC census confir
 | **Miami-Dade County** | FL | county | loaded | **FL DFS** FY2012–24 | `compiled_from_audited` | 10 · confirmed FY23–24 only | 3 |
 | **Leon County** | FL | county | loaded | **FL DFS** FY2012–24 | `compiled_from_audited` | 10 · **FAC confirmed** | 3 |
 | **Manatee County** | FL | county | loaded | **FL DFS** FY2012–25 | `compiled_from_audited` | 10 · **FAC confirmed** | 3 |
+| **Philadelphia** | PA | **city** | loaded | **PA DCED** FY2015–24 | `self_reported_unaudited` | **7** · **FAC confirmed** | 5 |
+| **State College** | PA | municipality | loaded | **PA DCED** FY2015–24 | `self_reported_unaudited` | 1 · **FAC confirmed** | 5 |
+| **Centre County** | PA | county | loaded | **PA DCED** FY2015–24 exc. FY16 | `self_reported_unaudited` | 1 · **FAC confirmed** | 5 |
+| **Fort Wayne** | IN | city | loaded | **IN Gateway** FY2015–24 | `self_reported_unaudited` | 1 · **FAC confirmed** | 5 |
+| **Gary** | IN | city | loaded | **IN Gateway** FY2016–24 | `self_reported_unaudited` | 1 · **FAC confirmed** | 5 |
+| **Allen County** | IN | county | loaded | **IN Gateway** FY2015–24 | `self_reported_unaudited` | 1 · confirmed exc. FY15 | 5 |
+| **Lake County** | IN | county | loaded | **IN Gateway** FY2015–24 | `self_reported_unaudited` | 1 · confirmed exc. FY19 | 5 |
 
-The 24 remaining entities are `pending` and are listed in spec §2.
+The 17 remaining entities are `pending` and are listed in spec §2.
 
 ⚠ The three Florida windows ending FY2024 are NOT gaps in the source — Miami-Dade,
 Leon and Bradenton had simply not filed FY2025 when the workbooks were fetched.
@@ -514,7 +521,10 @@ drills down.
 **Session 4 is the first source TT reads TWICE by different routes**, and the
 first where the publisher's own machine extract turned out to be defective.
 
-**Running total: 23 of 43 entities loaded (53%), 1 partial, 19 pending.**
+**Session 5 is the first session where a passing oracle hid a scope error** — see
+its section below.
+
+**Running total: 30 of 43 entities loaded (70%), 1 partial, 12 pending.**
 
 **Oracle, session 2.** Every one of the 72 rows ties **$0** against the issuer's
 own printed total on the statement — the check external to the write path that
@@ -1315,3 +1325,224 @@ measured unstamped, with the measurement). A new caller fails the suite until
 someone measures its family. It also asserts it found at least 14 call sites, so
 it cannot pass by matching nothing — the "Oracle green" failure from earlier in
 this same session.
+
+---
+
+## Session 5 outcomes — Pennsylvania + Indiana (2026-08-30)
+
+**7 entities / 136 rows / FY2015–2024.** Pennsylvania's FIRST local entities in
+TT; Indiana's first outside the Monroe County set. **30 of 43 entities (70%).**
+Recon detail lives in `.planning/PA-IN-RECON.md`.
+
+Both states cleared the §4.2 gate as **BULK**, so the session unlocked two more
+statewide sources rather than two cities.
+
+| | Pennsylvania | Indiana |
+|---|---|---|
+| Source | DCED Municipal Statistics, form DCED-CLGS-30 | Gateway (IFI / DLGF / SBOA) |
+| Access | anonymous ASP.NET POST → `.xls` | anonymous ASP.NET POST → pipe-delimited |
+| Reach | 2,572 municipalities + 67 counties, **1996–2024** | all cities/towns + 92 counties, **2011–2025** |
+| Grade | `self_reported_unaudited` | `self_reported_unaudited` |
+| Basis | cash (publisher's word) | regulatory (publisher's word) |
+| Oracle | Philadelphia's own ACFR, **$0** | Gateway's Cash and Investments report, **11,283/11,283** |
+
+### ⚠⚠ THE HEADLINE LESSON: A PASSING ORACLE HID A $735M SCOPE ERROR
+
+Lake County's settlement fund carries Gateway `Fund_code` 106000 in every year of
+the window **except FY2022, where Gateway renumbers it 900334** — same name, same
+magnitude, sitting neatly between its neighbours.
+
+A code-only exclusion missed it, and **all 11,283 fund-level oracle checks still
+passed.** Lake County FY2022 would have shipped at $1.51B against ~$800M either
+side. It was caught by reading the series for continuity, not by any gate.
+
+> **The oracle proves the READ. It cannot prove the SCOPE.**
+
+This is Georgia's "a tie is necessary but not sufficient" in its most expensive
+form so far, and it is now a test.
+
+### ⚠⚠ Name-based rules failed in BOTH directions, three times
+
+* `Settlement` (Lake) vs `TAX SETTLEMENT` (Allen) — same fund, different spelling.
+* `Transfer In` vs the actual `Transfers In` — a pattern missed **$789,783,682**.
+* **`d704` in lowercase** beside `D704`, worth $455,000.
+* And over-matching: `Monsanto Class Action Settlement` and `Wheel Tax Bond Road
+  Improvement` ($4M) are real revenue any substring rule would have dropped.
+
+The settlement rule is now code **OR** exact name, corroborated per entity-year by
+`assertSettlementIsPassThrough()` — what comes in must go back out. Lake FY2023
+received $799,271,207.07 and disbursed $799,270,607.06: **$600 apart on $799M.**
+
+### ⚠⚠ The expenditure report that is not the revenue report's counterpart
+
+Gateway's "Disbursements by Fund and **Department**" is **General Fund only** —
+Fort Wayne FY2023 carries ONE fund ($129,840,788) against 105 funds and
+$523,127,046 on the receipts side. Pairing them files General Fund spending
+against all-fund revenue, a 4x scope mismatch that ties against its own subtotals
+the whole way. The loader uses "Disbursements by **Fund**" instead.
+
+⚠ Gateway serves **four different column orders** across its AFR reports, and one
+uses lowercase `fund_code`. Everything is parsed by header name.
+
+### ⚠⚠ A published subtotal that does not sum its own columns
+
+PA's `Governmental Funds- Total Miscellaneous Revenues` is NOT the sum of the
+columns beneath it. `Charges for Service` is a **sibling**, not a child, despite
+appearing above the subtotal — $13,312,294 for Centre County FY2023. Reading the
+columns positionally misparents it **while the grand total still ties.** Verified
+across all 63 approved county rows, zero exceptions.
+
+⚠ Separately, `Total Taxes Revenues` disagrees with its own detail in **139 of
+2,395** approved municipal rows (5.8%). Neither loaded entity is affected — checked,
+not assumed — and it is now asserted per row.
+
+### Philadelphia: the coterminous question, resolved by the DB not by argument
+
+Chris asked whether San Francisco is called a city despite being a consolidated
+city-county. It is: **SF is typed `city` with `county_id` NULL in TT, and that
+predates session 4.** So Georgia's `county` typing is the outlier, and following
+DCED (which files Philadelphia in the MUNICIPAL extract, typed `City`, leaving an
+empty `PHILADELPHIA  COUNTY` placeholder) agrees with TT's own older convention.
+
+Census corroborates coterminousness independently: Philadelphia city (SUMLEV 162)
+and Philadelphia County (SUMLEV 050) are both **1,573,916**.
+
+⚠ **FOLLOW-UP: Macon-Bibb and Columbus-Muscogee are now inconsistent** with SF and
+Philadelphia. Retyping moves $0 but edits merged session-4 work.
+**Nashville-Davidson (session 6) and Lexington-Fayette (session 8) are still
+coming — settle the rule before those land, not after.**
+
+### The audit grade: a FOURTH distinct answer in four states
+
+```
+NC LGC  publisher says "self-reported"           -> ACFRs instead, audited_gaap
+FL DFS  publisher RECONCILES to the audit        -> compiled_from_audited
+GA DCA  publisher DISCLAIMS, nobody checks       -> self_reported_unaudited
+PA DCED AN AUDITOR FILES IT — for some classes   -> self_reported_unaudited
+IN SBOA a real auditor, but AFTERWARDS           -> self_reported_unaudited
+```
+
+**Indiana**, verbatim from Gateway's own explainer (`LearnMoreAFR.pdf`, rev.
+11/3/2022): *"These reports, as submitted by the units … **are unaudited**. The
+State Board of Accounts (SBOA) uses these Gateway submissions as part of their
+required auditing of these units."* ⚠ SBOA genuinely audits these units — but
+afterwards, on a cycle, and Gateway publishes the pre-audit submission. **An audit
+existing somewhere in the process is not the published figures being
+audit-derived.**
+
+**Pennsylvania** is the first case where the grade UNDERSTATES what TT knows.
+DCED-CLGS-30 §IV: *"Cities: Director of Accounts and Finance / Boroughs: Elected
+Auditors, Independent Auditor, or Controller"* — so **State College's filing is
+auditor-signed and Philadelphia's is not**, the opposite way round from what size
+suggests. DCED's own verification is arithmetic (*"agrees to the calculated
+balance taking last year's ending … plus revenues minus expenditures"*), never
+against an audited statement — so PA is **not** `compiled_from_audited`. The
+auditor-type branch appears in none of the 71 published columns, so §3.5's
+weaker-branch rule applies. **FOLLOW-UP: find a per-entity auditor-type source and
+PA becomes Florida-shaped.**
+
+### Scope decisions, all Chris's, all recorded
+
+1. **Settlement funds excluded** (SBOA: *"Only used for settlement"*; disbursements
+   are `Distributions to Other Governmental Entities`; nets to $600 on $799M).
+   ⚠ 60 of 92 counties report it and 32 do not, so loading it as published would
+   make Lake look far richer than Allen for presentation reasons alone.
+   Payroll Clearing and Clerk Trust are deliberately left IN — the
+   Gateway-code-to-SBOA-class mapping for those is inference, not the publisher's word.
+2. **Everything normalised to OPERATING flows.** PA municipal `Total Revenues`
+   INCLUDES financing sources (14.5% — Philadelphia $1,785,924,110); PA county
+   does NOT; Indiana includes transfers ($789.8M), debt proceeds ($675.6M) and
+   investment churn ($522.6M). Session 3 already excluded FL's 384 Debt Proceeds,
+   so loading as published would have made this campaign's own entities
+   incomparable. Excluded by SBOA code, never by name.
+3. **PA municipal is `all_funds`, PA county is `total_governmental`** — both READ
+   from the source. The municipal report folds enterprise in with no removable
+   subtotal (Philadelphia: Water $478,492,062, Sewer $343,180,320), so §2.3's
+   exclusion cannot be applied. The WeHo precedent: record the scope honestly
+   rather than force a comparability the rows do not have.
+
+### Fiscal calendars — PA's single most dangerous trap
+
+**611 of the 643 PA rows in the FAC census are month 1. Philadelphia is one of
+thirteen that are not — it is month 7.** A loader resolving "PA = January" once
+mislabels its entire series.
+
+⚠⚠ And DCED's form contradicts the census on its face: it is calendar-framed
+throughout (*"Fund Balance/Retained Earnings 12/31"*) while Philadelphia's year
+ends June 30. **Resolved by oracle, not argument:**
+
+```
+DCED  Total Taxes Revenues, Reporting Year 2023        $5,160,574,000
+ACFR  governmental funds, FY ended June 30 2023,
+      Tax Revenue  $5,160,574 thousand              =  $5,160,574,000
+                                                       ------------- $0
+```
+
+An exact match to the dollar against a different publisher's document. FY2022 ties
+exactly too; FY2021 and FY2015 differ by 0.006% and 0.18% — later restatements in
+ACFR Table 4. **This settled the period AND supplied the independent oracle.**
+
+### Verification
+
+* **Indiana: 11,283 / 11,283** fund-level checks tie against Gateway's separate
+  Cash and Investments report — a different report, not a self-tie.
+  ⚠ Its `r_bal`/`d_bal` are *net of investment transactions*, so the oracle
+  compares like with like; the two initial mismatches were `Sale of Investments`
+  ($400,000) and `Purchase of Investments` ($760,817.76), to the cent.
+* **Pennsylvania: 105 / 105** in-file checks across 29 entity-years.
+* **1,642 tests pass** (1,592 baseline + 50 new).
+* **Frozen invariant: count reconciles at 79,916**, all 136 rows registered.
+  The digest was **byte-identical before and after the load** — this load moved $0.
+* 0 duplicate `(entity, fiscal_year, dataset_type)` rows; 0 graded rows lacking a
+  `source_url`.
+
+### Gaps, reported rather than hidden
+
+* **Gary FY2015 was never filed** — absent from BOTH the receipts and
+  disbursements extracts while 2011–2014 and 2016–2024 are present. The loader
+  distinguishes "not filed" (skip, report) from "parse broke" (fail loudly);
+  a year missing from only ONE side is a defect, not a gap.
+* **Centre County FY2016 is `status=P`** (pending, not approved). Reported and
+  withheld — never written as $0.
+* Census-UNCOVERED years reported as uncovered, never as confirmation: Allen
+  FY2015, Lake FY2019.
+
+### ⚠⚠ Found BEFORE the load: the v2.33 predicted drift fired
+
+`verify:frozen` was green at session start (79,916 / `90f009fe…`) and red before
+the load, with the **count reconciling** — a surviving row's figure had moved. Four
+enabled sources cron-synced at 04:13–04:16 UTC that day: LA City Checkbook, Dallas
+Revenue Budget, Dallas Operating Budget, Bloomington Annual Compensation. All seven
+of their rows are inside the frozen set.
+
+**This is exactly the risk recorded at the v2.33 rebase**, verbatim: *"7,688 of the
+79,916 frozen rows (9.6%) belong to ENABLED, cron-syncing sources … the sync
+rewrites total_budget and this digest moves with no human involved — a drift source
+no ledger can capture."* The prescribed fix is already written there: **scope the
+digest to the 72,228 rows NOT under live sync.**
+
+⚠ It could not be attributed to a single row — no per-row baseline exists, and
+`budgets.updated_at` is not stamped by the RPC. Structurally the likeliest mover is
+**LA City Checkbook**: the only *weekly* source, and a `transactions` dataset that
+accumulates by design.
+
+⭐ **Running `verify:frozen` BEFORE the load is what proved this load innocent** —
+the database digest is byte-identical before and after the 136 rows landed.
+
+### Follow-ups filed
+
+1. **Implement the v2.33 prescribed fix** — scope the frozen digest to rows not
+   under live sync. Until then `verify:frozen` reports FIGURE CHANGED for a
+   pre-existing, unattributable, non-TT cause. **This is the highest-value item.**
+2. **Retype Macon-Bibb and Columbus-Muscogee to `city`** for consistency with SF
+   and Philadelphia — before Nashville-Davidson (session 6) lands.
+3. **Hunt for PA's per-entity auditor-type field.** If found, PA becomes
+   Florida-shaped and State College grades above Philadelphia.
+4. **The PA statewide sweep** — 2,572 municipalities + 67 counties, FY1996–2024,
+   no new extraction work. **The IN statewide sweep** — all cities/towns + 92
+   counties, FY2011–2025. Both filed the way session 3 filed the Florida sweep.
+5. **Extend the windows**: PA reaches back to 1996 and IN to 2011; this session
+   took an aligned FY2015–2024 decade so it would end whole.
+6. Payroll Clearing (105100) and Clerk Trust (100006) remain IN the Indiana
+   figures. Deciding them needs a Gateway-code-to-SBOA-class mapping TT does not
+   have.

@@ -428,7 +428,7 @@ land, not after.
    may not exhaust proprietary funds, and a confidently wrong "governmental"
    total is worse than an honest all-funds one.
 
-## 8. Scope proposed for the load half of session 5
+## 8. Scope taken in the load half of session 5 — ✅ DONE
 
 * **Indiana** — Fort Wayne, Gary, Allen County, Lake County; receipts +
   disbursements; `ent_name = 'Governmental Activities'`; `total_governmental`;
@@ -440,3 +440,32 @@ land, not after.
 * **Not in scope:** the PA statewide sweep (2,572 munis + 67 counties) and the IN
   statewide sweep. Both are now *ready* milestones with no new extraction work —
   filed the way session 3 filed the Florida sweep, so this session ends whole.
+
+---
+
+## 9. Load outcome — 2026-08-30
+
+**7 entities / 136 rows / FY2015–2024 loaded and verified.** Full results, the
+scope decisions and every trap found while building are in
+`.planning/KNIGHT-COMMUNITIES-PROGRESS.md` under "Session 5 outcomes".
+
+⚠⚠ **Three things in this document were REFINED by contact with the data and the
+progress file supersedes them:**
+
+1. §3 says exclusion is keyed on `Fund_code`. That is **not sufficient** —
+   Gateway renumbered Lake County's settlement fund from 106000 to 900334 in
+   FY2022 alone, and a code-only rule missed $735,638,546 **while all 11,283
+   oracle checks passed.** The rule is now code OR exact name, corroborated by a
+   pass-through assertion.
+2. §3 warns that receipts and disbursements transpose `cnty_cd`. True, but only
+   of the **by-department** report — which turned out to be **General Fund only**
+   and is not used. The loader reads "Disbursements by Fund", which shares the
+   receipts layout. Gateway serves **four** column orders in total.
+3. §8 proposed loading Philadelphia only after its ACFR resolved the July-vs-
+   December question. It did, exactly: DCED's FY2023 `Total Taxes Revenues`
+   ($5,160,574,000) matches the ACFR's governmental-funds Tax Revenue for the year
+   ended June 30 2023 to the dollar. Philadelphia is loaded, at month 7.
+
+⚠ The §7 decisions were all answered and are recorded there and in the progress
+file. Philadelphia is `city` — **and TT's existing San Francisco typing, not the
+Georgia precedent, is what settled it.**
