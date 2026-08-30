@@ -19,7 +19,8 @@
     "process-all": "npm run process-budget && npm run process-revenue && npm run process-salaries && npm run process-transactions",
     "load-ev-finances": "node scripts/loadEVFinances.js",
     "verify:frozen": "node scripts/checkFrozenInvariant.mjs",
-    "register:rows": "node scripts/registerCreatedRows.mjs"
+    "register:rows": "node scripts/registerCreatedRows.mjs",
+    "verify:live-sync": "node scripts/liveSyncExclusions.mjs --check"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",

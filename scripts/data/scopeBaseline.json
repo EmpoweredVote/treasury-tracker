@@ -1,7 +1,7 @@
 {
   "_warning": "Do NOT edit or regenerate to make the harness pass. `figures_frozen` must never change and is NOT written by --write-baseline; `composite_frozen` changes only when a migration explains it. An AUTHORISED figure correction is recorded in `figure_change_files` with the value it replaced — that keeps this digest verifying and is the supported alternative to a rebase. Rebases are recorded in `_rebased_at_*` and need explicit sign-off.",
-  "frozen_row_count": 79916,
-  "figures_frozen": "90f009fe396d20dcd211258e534ea81c237aa0bddd3d2412680c1dcce3af76fe",
+  "frozen_row_count": 62654,
+  "figures_frozen": "3a48ac283a15704fc62f970239a5ab3c37989f0d98f899be259be2de54ed41c6",
   "composite_frozen": "9e1bf9fdd9bbbe3c94abb83758384dacc289140f32e270c8bd943db98bd21a36",
   "composite_frozen_history": [
     {
@@ -20,9 +20,10 @@
     "scripts/data/laOperatingCronDriftCreatedIds.json",
     "scripts/data/knightS3FloridaCreatedIds.json",
     "scripts/data/knightS4GeorgiaCreatedIds.json",
-    "scripts/data/knightS5PaInCreatedIds.json"
+    "scripts/data/knightS5PaInCreatedIds.json",
+    "scripts/data/liveSyncExcludedIds.json"
   ],
-  "_frozen_note": "Both digests are computed over current rows MINUS the ids listed in `excluded_ids_files`. created_at is NOT usable to identify the frozen set directly -- 19 of 80,076 rows have it non-NULL -- and committing all ~80k ids would be a ~3MB permanent repo artifact, so the invariant is computed as an exclusion instead of an inclusion list. EVERY milestone that inserts rows MUST append its own created-ids file to `excluded_ids_files` in the same commit as the write.",
+  "_frozen_note": "Both digests are computed over current rows MINUS the ids listed in `excluded_ids_files`. created_at is NOT usable to identify the frozen set directly -- 19 of 80,076 rows have it non-NULL -- and committing all ~80k ids would be a ~3MB permanent repo artifact, so the invariant is computed as an exclusion instead of an inclusion list. EVERY milestone that inserts rows MUST append its own created-ids file to `excluded_ids_files` in the same commit as the write. ⚠⚠ SINCE v2.34 THERE ARE TWO KINDS OF ENTRY IN `excluded_ids_files`, and they are not interchangeable. (1) PROVENANCE — one created-ids file per milestone that inserted rows; registerCreatedRows.mjs reconciles the deficit against these, so a row appearing in two of them is a bookkeeping error. (2) SCOPE — scripts/data/liveSyncExcludedIds.json, the rows owned by an ENABLED data source, which can be rewritten by a cron sync with no human involved and so were never meaningfully 'frozen'. The scope file is a COMPLETE statement of its own scope, not a diff, so it OVERLAPS the milestone files by design (16 overlaps on the day it was added) and everything unions into a Set before use. Re-measure it with `npm run verify:live-sync`; re-snapshot with `node scripts/liveSyncExclusions.mjs --write`.",
   "_rebased_at_v2_30": {
     "_what": "figures_frozen was rebased ONCE, from 3bc12db8bb7dd04c1602befd68d78020e39d333df75705f6f94d3c1a939d82a2 (79,927 rows, set at v2.25) to the value above (79,916 rows). This is the action the _warning forbids doing casually; it was done deliberately, with Chris's explicit sign-off, because the v2.24 digest had become UNRECONSTRUCTABLE -- not merely stale.",
     "_why_it_cannot_be_reproduced": "figures_frozen is sha256 over (id | total_budget) for SURVIVING rows. LA-02 (v2.28) deliberately DELETED 11 rows -- Los Angeles FY2021-2025 operating+revenue (10) and FY2026 operating (1) -- on Chris's call. A deleted row removes its term from the hash input permanently. The LA-02 backup archive (.planning/backups/la-city/la02-withdrawn-rows-fy2021-2026.json.gz) preserved ids for only 7 of the 11; the other 4 were recorded under `dropped_as_rederivable` with fiscal_year/dataset_type/total but NO id. The exact v2.24 hash input therefore can never be rebuilt.",
@@ -55,6 +56,12 @@
       "digest": "4cce9d6a8dfe9ac235dfd488f1903243892c7ebc4ac41b17dbd9022bfb068b9a",
       "superseded_by": "see _rebased_at_v2_33",
       "rebased": "2026-08-28"
+    },
+    {
+      "digest": "90f009fe396d20dcd211258e534ea81c237aa0bddd3d2412680c1dcce3af76fe",
+      "row_count": 79916,
+      "superseded_by": "see _rebased_at_v2_34 — the digest was SCOPED to rows not under live sync",
+      "rebased": "2026-08-30"
     }
   ],
   "figure_change_files": [
@@ -83,5 +90,18 @@
     "_known_remaining_risk": "7,688 of the 79,916 frozen rows (9.6%) belong to ENABLED, cron-syncing sources. If an upstream publisher revises a figure, the sync rewrites total_budget and this digest moves with no human involved — a drift source no ledger can capture, because no person is there to record it. If that recurs, the fix is to scope the digest to rows NOT under live sync (72,228 of them), which are the only ones \"frozen\" meaningfully describes.",
     "_date": "2026-08-28",
     "_authorised_by": "Chris, 2026-08-28, after the two causes were separated and Cause A fully resolved"
+  },
+  "_rebased_at_v2_34": {
+    "_what": "Third rebase, from 90f009fe396d20dcd211258e534ea81c237aa0bddd3d2412680c1dcce3af76fe to 3a48ac283a15704fc62f970239a5ab3c37989f0d98f899be259be2de54ed41c6. Row count 79916 -> 62654. Unlike the v2.30 and v2.33 rebases this is NOT a recovery from lost lineage — it is a deliberate NARROWING OF WHAT THE INVARIANT COVERS, executed on purpose.",
+    "_why": "The v2.33 rebase recorded a _known_remaining_risk, verbatim: frozen rows belonging to ENABLED, cron-syncing sources drift when an upstream publisher revises a figure, \"with no human involved — a drift source no ledger can capture, because no person is there to record it\", and it named the fix: \"scope the digest to rows NOT under live sync, which are the only ones 'frozen' meaningfully describes.\" It recurred on 2026-08-30 during Knight session 5: green at the start of the session, moved before anything was written, count reconciling. Four enabled sources had cron-synced in between. It could NOT be attributed to a single row — no per-row baseline exists and budgets.updated_at is not stamped by treasury_sync_city_budget — which is precisely the failure the note predicted. This is that prescribed fix, applied.",
+    "_what_changed": "scripts/data/liveSyncExcludedIds.json, a snapshot of the 17,278 budget rows owned by an ENABLED data source, was added to excluded_ids_files. 17,262 of them were inside the frozen set, so the digest now covers 62,654 rows instead of 79,916. No figure moved and no row was deleted; the invariant simply stopped making a claim it could not keep.",
+    "_the_note_s_numbers_did_not_reproduce": "The v2.33 note estimated 7,688 rows at risk and 72,228 remaining. Measured 2026-08-30 the answer is 17,262 at risk and 62,654 remaining — more than double. A partition count is a MEASUREMENT WITH A DATE, not a constant (the session-2 `basis` lesson). Re-measure with scripts/liveSyncExclusions.mjs --check; never carry the number forward.",
+    "_why_broad_and_not_the_cron_slice": "The cron orchestrator only re-syncs fiscal_years.slice(-2) per source (supabase/functions/treasury-sync-orchestrator/index.ts:127), so a narrower rule was measured: 1,069 rows at risk instead of 17,262, keeping far more of the table frozen. REJECTED on two measured grounds. (1) It does not cover the observed drift: of the seven candidate rows from the 2026-08-30 incident the broad rule covers 7 and the narrow rule covers 6, missing LA City Checkbook FY2024 because that source's fiscal_years ends 2026. A fix that does not cover the event that prompted it is not a fix. (2) fiscal_years is MUTABLE, so membership keyed on it changes whenever a publisher adds a year — the \"a new year arrives\" hazard that already bit San Francisco — putting the frozen set itself back under silent, human-free change one level up from the problem being solved. is_enabled is a single stable flag.",
+    "_why_a_snapshot_and_not_a_live_predicate": "The exclusion is materialised into repo JSON and mirrored into treasury.frozen_excluded_ids like every other exclusion, NOT evaluated live inside the SQL function. A live predicate would let toggling is_enabled on any source move the digest with no commit — the same class of silent movement being eliminated. The repo stays the source of truth and re-scoping requires a commit. Residual cost: a source ENABLED LATER has rows still inside the digest that can drift, which is what scripts/liveSyncExclusions.mjs --check exists to name in seconds rather than the hours the 2026-08-30 incident took to not-quite-attribute.",
+    "_the_join_is_the_text_column": "data_source_id links ZERO budget rows to an enabled source — only 984 of 88,354 rows carry one at all (1.1%), the same 1.1% that forced audit_grade to live per-row. The link is budgets.data_source (text) = data_sources.name. A filter using data_source_id matches nothing and looks exactly like a filter that found nothing to do.",
+    "_proven_before_the_baseline_was_written": "Two independent implementations agree on the new value: the SQL function treasury.frozen_invariant_status() and the JS frozenIdDigest() both return 62,654 rows and 3a48ac283a15704fc62f970239a5ab3c37989f0d98f899be259be2de54ed41c6. ⚠ The first parity attempt DISAGREED because the probe fetched total_budget as a bare numeric; PostgREST drops numeric scale, which is why scopeDb.mjs selects total_budget::text. The system was right and the probe was wrong.",
+    "_known_remaining_risk": "62,654 rows are now covered and genuinely beyond the reach of a sync. The residual risks are (a) a source enabled after this snapshot, caught by liveSyncExclusions.mjs --check, and (b) a targeted manual sync passing an explicit fiscal_year, which can rewrite any year of any source — including one that is currently disabled. Neither is silent any more: both move the digest and both are now diagnosable.",
+    "_date": "2026-08-30",
+    "_authorised_by": "Chris, 2026-08-30 — \"now do the frozen invariant scoping fix\""
   }
 }
