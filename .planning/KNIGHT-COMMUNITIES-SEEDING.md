@@ -26,7 +26,7 @@ Knight distinguishes **8 "resident communities"** (a program director lives ther
 |---|---|---|---|---|
 | 1 | Akron | OH | yes | **Loaded** — OH AOS, FY2016–2025, operating + revenue, `total_governmental` |
 | 2 | Charlotte | NC | yes | Missing |
-| 3 | Detroit | MI | yes | Missing |
+| 3 | Detroit | MI | yes | **Loaded** — MI Treasury F-65, FY2010–2025, `general_fund` + `total_governmental` |
 | 4 | Macon-Bibb | GA | yes | Missing (consolidated) |
 | 5 | Miami | FL | yes | Missing |
 | 6 | Philadelphia | PA | yes | Missing (coterminous city-county) |
@@ -231,7 +231,8 @@ Outcome is **BULK** (build a loader; unlocks the state) or **ACFR** (one-off ext
 | 4 | GA recon → Macon-Bibb, Columbus-Muscogee, Milledgeville + Baldwin | 3 |
 | 5 | PA + IN → Philadelphia, State College, Fort Wayne, Gary + counties | 4 |
 | 6 | SC + TN → Columbia, Myrtle Beach, Nashville-Davidson + counties | 3 |
-| 7 | MI + CO + KS → Detroit, Boulder, Wichita + counties | 3 |
+| 7a | **MI → Detroit + Wayne County** (BULK, Socrata F-65) — *done 2026-08-30* | 1 |
+| 7b | CO + KS → Boulder, Wichita + counties (both ACFR; recon done in 7a) | 2 |
 | 8 | Orphans → Aberdeen, Biloxi, Grand Forks, Lexington-Fayette + counties | 4 |
 
 Approximately **8 sessions, plus or minus 2**, depending on how many states yield a bulk source. The table is a shape, not a commitment; recon outcomes reshuffle it.
