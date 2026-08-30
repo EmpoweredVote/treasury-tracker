@@ -261,10 +261,24 @@ describe('loader identity and naming', () => {
     expect(entityByCicoid('1096096')).toBeNull(); // Macon County is not in scope
   });
 
-  it('types both consolidated governments as one entity each', () => {
+  // ⚠⚠ CORRECTED 2026-08-30. Session 4 typed these `county` believing it set
+  // TT's precedent for consolidated governments. It did not — TT already carried
+  // San Francisco, itself a consolidated city-county, as `city` with county_id
+  // NULL, and that predates the campaign. Session 5 checked the live database and
+  // Philadelphia went in as `city`, so these two were retyped to match.
+  // The NAME "Macon-Bibb County" is deliberately unchanged: it is the
+  // government's legal name, and only the type moved.
+  it('types both consolidated governments as ONE `city` entity each', () => {
     const consolidated = GA_KNIGHT_ENTITIES.filter((e) => e.cicoid.startsWith('3'));
     expect(consolidated).toHaveLength(2);
-    for (const e of consolidated) expect(e.entityType).toBe('county');
+    for (const e of consolidated) {
+      expect(e.entityType).toBe('city');
+      // One entity, not two — never inside another county.
+      expect(e.parentCountyKey).toBeNull();
+    }
+    // No second row was created for the county half.
+    expect(GA_KNIGHT_ENTITIES.filter((e) => e.name === 'Bibb County')).toHaveLength(0);
+    expect(GA_KNIGHT_ENTITIES.filter((e) => e.name === 'Muscogee County')).toHaveLength(0);
   });
 
   it('⚠ does not claim census confirmation it does not have', () => {
