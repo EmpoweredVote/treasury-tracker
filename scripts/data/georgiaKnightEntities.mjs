@@ -26,25 +26,56 @@
  * A name match silently swaps an 11,831-person county for a 157,056-person
  * consolidated government. This is the Palm Beach shape from session 3.
  *
- * ── ⚠ CONSOLIDATED GOVERNMENTS ARE TYPED `county` ───────────────────────────
+ * ── ⚠⚠ CONSOLIDATED GOVERNMENTS ARE TYPED `city` — CORRECTED 2026-08-30 ─────
  *
  * Macon-Bibb and Columbus-Muscogee are single governments performing both city
  * and county functions, so each is ONE entity (spec §4.5) — creating a city AND
- * a county row would double-count them in every rollup.
+ * a county row would double-count them in every rollup. That part was always
+ * right. **The TYPE was not.**
  *
- * They are TT's FIRST consolidated governments, so this sets the precedent for
- * Philadelphia, Lexington-Fayette and Nashville-Davidson later in the campaign.
- * `county` was chosen because:
+ * Session 4 typed them `county` believing it was setting TT's precedent. It was
+ * not: TT ALREADY CARRIED ONE. **San Francisco — itself a consolidated
+ * city-county — has been typed `city` with `county_id` NULL since long before
+ * this campaign.** Session 5 checked the live database rather than reasoning
+ * from the filings, and that made session 4's call the divergence, not the
+ * precedent.
+ *
+ * Retyped to `city` on 2026-08-30 (Chris's call) so TT holds ONE convention:
+ *   San Francisco  CA  city, county_id NULL   (pre-existing)
+ *   Philadelphia   PA  city, county_id NULL   (session 5)
+ *   Macon-Bibb     GA  city, county_id NULL   (this correction)
+ *   Columbus-Muscogee GA city, county_id NULL (this correction)
+ * Nashville-Davidson (session 6) and Lexington-Fayette (session 8) follow it.
+ *
+ * ⚠ The session-4 arguments FOR `county` were real and are worth keeping, because
+ * they are what makes this a judgement rather than a bug:
  *   - Census confirms each is COTERMINOUS with its county: Macon-Bibb's place
  *     population (157,056) is identical to Bibb County's, and Columbus city's
  *     (201,830) is identical to Muscogee County's. Verified, not assumed.
  *   - The RLGF filings show them performing county functions — Sheriff's
  *     Office, Tax Commissioner, Superior Court, Probate Court, Coroner.
- *   - Macon-Bibb's legal name is literally "Macon-Bibb County".
+ *   - Macon-Bibb's legal NAME is literally "Macon-Bibb County", and the name is
+ *     deliberately UNCHANGED by this correction — only the type moved.
+ * Every one of those is equally true of San Francisco, which is the point:
+ * they justify a `consolidated` type, not `county` specifically.
+ *
+ * ⚠ Pennsylvania's publisher independently agrees: DCED files Philadelphia in
+ * the MUNICIPAL extract typed `City`, and keeps an empty `PHILADELPHIA  COUNTY`
+ * placeholder that never files.
+ *
+ * ⚠ SAFE TO CHANGE, MEASURED NOT ASSUMED: `entity_type` lives on
+ * `municipalities`, not `budgets`, so the frozen-figure digest — which hashes
+ * (budget id | total_budget) — cannot move. $0 moved and the 38 budget rows on
+ * these two entities are untouched. Checked before the change: NOTHING pointed
+ * at either as its `county_id` (Milledgeville's parent is Baldwin County), so
+ * no parent/child relationship broke.
+ *
  * ⚠ TT's `entity_type` is free text, so a `consolidated` value was possible; it
  * was rejected because UI and rollup code switches on the existing values and
- * an unknown type would drop these two out of both. Revisit as its own change
- * if the campaign wants consolidated governments distinguishable.
+ * an unknown type would drop these two out of both. `city` is also in
+ * `SOURCE_CHIP_ENTITY_TYPES`, so provenance keeps rendering. Revisit as its own
+ * change if the campaign ever wants consolidated governments distinguishable —
+ * that is a UI/rollup question, not a typing one.
  *
  * ── POPULATIONS ─────────────────────────────────────────────────────────────
  *
@@ -122,7 +153,9 @@ export const GA_KNIGHT_ENTITIES = Object.freeze([
     cicoid: '3011011',
     name: 'Macon-Bibb County',
     state: 'GA',
-    entityType: 'county',
+    // ⚠ `city`, corrected 2026-08-30 — see the header. The NAME keeps "County"
+    // because that is the government's legal name; only the type moved.
+    entityType: 'city',
     population: 157056,
     populationSource: 'sub-est2024_13.csv SUMLEV=162 PLACE=49008 (= Bibb County, coterminous)',
     fiscalYearStartMonth: 7,
@@ -140,7 +173,8 @@ export const GA_KNIGHT_ENTITIES = Object.freeze([
     cicoid: '3106002',
     name: 'Columbus-Muscogee',
     state: 'GA',
-    entityType: 'county',
+    // ⚠ `city`, corrected 2026-08-30 — see the header.
+    entityType: 'city',
     population: 201830,
     populationSource: 'sub-est2024_13.csv SUMLEV=162 PLACE=19000 (= Muscogee County, coterminous)',
     fiscalYearStartMonth: 7,

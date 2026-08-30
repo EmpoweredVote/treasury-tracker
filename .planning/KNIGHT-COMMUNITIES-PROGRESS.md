@@ -498,6 +498,10 @@ FY month: the stored `fiscal_year_start_month` and whether the FAC census confir
 | **Miami-Dade County** | FL | county | loaded | **FL DFS** FY2012–24 | `compiled_from_audited` | 10 · confirmed FY23–24 only | 3 |
 | **Leon County** | FL | county | loaded | **FL DFS** FY2012–24 | `compiled_from_audited` | 10 · **FAC confirmed** | 3 |
 | **Manatee County** | FL | county | loaded | **FL DFS** FY2012–25 | `compiled_from_audited` | 10 · **FAC confirmed** | 3 |
+| **Macon-Bibb County** | GA | **city** | loaded | **GA DCA RLGF** FY2016–25 exc. FY24 | `self_reported_unaudited` | 7 · census absent | 4 |
+| **Columbus-Muscogee** | GA | **city** | loaded | **GA DCA RLGF** FY2016–25 | `self_reported_unaudited` | 7 · census absent | 4 |
+| **Milledgeville** | GA | city | loaded | **GA DCA RLGF** FY2016–25 exc. FY18 | `self_reported_unaudited` | 7 · **FAC confirmed** | 4 |
+| **Baldwin County** | GA | county | loaded | **GA DCA RLGF** FY2016–25 | `self_reported_unaudited` | 1 · **FAC confirmed** | 4 |
 | **Philadelphia** | PA | **city** | loaded | **PA DCED** FY2015–24 | `self_reported_unaudited` | **7** · **FAC confirmed** | 5 |
 | **State College** | PA | municipality | loaded | **PA DCED** FY2015–24 | `self_reported_unaudited` | 1 · **FAC confirmed** | 5 |
 | **Centre County** | PA | county | loaded | **PA DCED** FY2015–24 exc. FY16 | `self_reported_unaudited` | 1 · **FAC confirmed** | 5 |
@@ -524,7 +528,14 @@ first where the publisher's own machine extract turned out to be defective.
 **Session 5 is the first session where a passing oracle hid a scope error** — see
 its section below.
 
-**Running total: 30 of 43 entities loaded (70%), 1 partial, 12 pending.**
+**Running total: 29 fully loaded + 1 partial (San Jose) + 13 pending = 43.**
+**30 of 43 entities (70%) now carry data.**
+
+⚠ The table above is the arithmetic: 10 (s1) + 2 (s2) + 7 (s3) + 4 (s4) + 7 (s5)
+= 30 rows. Session 4's four Georgia entities were **missing from this table until
+2026-08-30** — the narrative recorded them but the authoritative per-entity table
+did not, so earlier running totals were counted by hand and drifted. Count the
+table, do not carry the previous line forward.
 
 **Oracle, session 2.** Every one of the 72 rows ties **$0** against the issuer's
 own printed total on the statement — the check external to the write path that
@@ -1212,10 +1223,17 @@ live trap for the FY2009–2015 follow-up.
 
 ### Modelling decisions, all revisitable
 
-* **Consolidated governments are typed `county`.** Macon-Bibb and
-  Columbus-Muscogee are TT's first, so this sets precedent for Philadelphia,
-  Lexington-Fayette and Nashville-Davidson. Census confirms both are coterminous
-  with their counties (157,056 and 201,830 match exactly).
+* ~~**Consolidated governments are typed `county`.**~~ ⚠⚠ **CORRECTED 2026-08-30
+  — RETYPED TO `city`.** The premise was wrong: these were NOT TT's first
+  consolidated governments. **San Francisco has been typed `city` with
+  `county_id` NULL since long before this campaign**, so session 4 set no
+  precedent — it diverged from one. Session 5 found it by checking the live
+  database rather than reasoning from the filings, Philadelphia went in as
+  `city`, and these two were retyped to match. Census confirmation of
+  coterminousness (157,056 and 201,830 exact) still stands and is equally true
+  of San Francisco — which is the point: it justifies a `consolidated` type, not
+  `county` specifically. $0 moved; the frozen digest was byte-identical either
+  side. See "Retyped the two GA consolidated governments" below.
 * **`fund_scope` is `unknown`, deliberately.** Part V excludes debt service, so
   these understate a true `total_governmental` by ~5.5%. Claiming that scope
   would assert a comparability the rows do not have — the WeHo precedent.
@@ -1534,8 +1552,9 @@ the database digest is byte-identical before and after the 136 rows landed.
 1. **Implement the v2.33 prescribed fix** — scope the frozen digest to rows not
    under live sync. Until then `verify:frozen` reports FIGURE CHANGED for a
    pre-existing, unattributable, non-TT cause. **This is the highest-value item.**
-2. **Retype Macon-Bibb and Columbus-Muscogee to `city`** for consistency with SF
-   and Philadelphia — before Nashville-Davidson (session 6) lands.
+2. ✅ **DONE 2026-08-30 — Macon-Bibb and Columbus-Muscogee retyped to `city`**,
+   so TT now holds ONE convention for consolidated governments. See the section
+   below.
 3. **Hunt for PA's per-entity auditor-type field.** If found, PA becomes
    Florida-shaped and State College grades above Philadelphia.
 4. **The PA statewide sweep** — 2,572 municipalities + 67 counties, FY1996–2024,
@@ -1546,3 +1565,60 @@ the database digest is byte-identical before and after the 136 rows landed.
 6. Payroll Clearing (105100) and Clerk Trust (100006) remain IN the Indiana
    figures. Deciding them needs a Gateway-code-to-SBOA-class mapping TT does not
    have.
+
+---
+
+## Retyped the two GA consolidated governments — 2026-08-30
+
+**Macon-Bibb County and Columbus-Muscogee: `county` -> `city`.** Chris's call,
+executed the same day session 5 surfaced the inconsistency.
+
+TT now holds **one** convention for consolidated city-counties:
+
+| Entity | State | type | `county_id` | since |
+|---|---|---|---|---|
+| San Francisco | CA | `city` | NULL | pre-dates the campaign |
+| Philadelphia | PA | `city` | NULL | session 5 |
+| Macon-Bibb County | GA | `city` | NULL | **this correction** |
+| Columbus-Muscogee | GA | `city` | NULL | **this correction** |
+
+### Why session 4 got it wrong, and why that is worth recording
+
+Session 4 believed it was **setting** TT's precedent for consolidated
+governments. It was not — **TT already carried San Francisco as `city`**, and
+nobody looked. The session-4 reasoning was sound on its own terms (Census
+coterminousness, county functions in the RLGF filings, the legal name
+"Macon-Bibb County"); it was simply answering the question in isolation.
+
+⚠ **Every one of those arguments is equally true of San Francisco.** They justify
+a distinct `consolidated` type, not `county` specifically. The lesson is the
+campaign's own recurring one, in a new place: **check the live database before
+declaring a precedent.**
+
+⚠ Pennsylvania's publisher independently agrees with `city`: DCED files
+Philadelphia in the MUNICIPAL extract typed `City`, leaving an empty
+`PHILADELPHIA  COUNTY` placeholder that never files.
+
+### Safety, measured rather than assumed
+
+* `entity_type` lives on `municipalities`, **not** `budgets`, so the frozen digest
+  — which hashes `(budget id | total_budget)` — cannot move. Confirmed: the
+  digest was **byte-identical** before and after.
+* The **38 budget rows** on the two entities are untouched, summing to
+  $11,131,004,635.38 before and after.
+* Checked BEFORE the change: **nothing pointed at either as its `county_id`**
+  (Milledgeville's parent is Baldwin County), so no parent/child link broke.
+* `city` is in `SOURCE_CHIP_ENTITY_TYPES`, so provenance keeps rendering.
+* The **NAME "Macon-Bibb County" is deliberately unchanged** — it is the
+  government's legal name. Only the type moved.
+* 1,644 tests pass; `tests/gaRlgf.test.mjs` now asserts `city` **and** that no
+  second row exists for the county half.
+
+### ⚠ What this does NOT settle
+
+Whether TT should have a distinct `consolidated` entity type at all. It was
+rejected in session 4 because UI and rollup code switches on the existing values
+and an unknown type would drop these entities out of both — still true. That is a
+UI/rollup question, filed separately, and **Nashville-Davidson (session 6) and
+Lexington-Fayette (session 8) now have an unambiguous convention to follow either
+way.**
