@@ -34,7 +34,7 @@ Knight distinguishes **8 "resident communities"** (a program director lives ther
 | 8 | Saint Paul | MN | yes | **Loaded** — MN OSA, FY2012–2023 |
 | 9 | Aberdeen | SD | | Missing — new state |
 | 10 | Biloxi | MS | | Missing — new state |
-| 11 | Boulder | CO | | Missing |
+| 11 | Boulder | CO | | **Loaded** — own ACFR via FAC, FY2016–2022, `audited_gaap` |
 | 12 | Bradenton | FL | | Missing |
 | 13 | Columbia | SC | | Missing |
 | 14 | Columbus-Muscogee | GA | | Missing (consolidated) |
@@ -49,7 +49,7 @@ Knight distinguishes **8 "resident communities"** (a program director lives ther
 | 23 | Palm Beach County | FL | | Missing (is itself a county) |
 | 24 | State College | PA | | Missing (borough) |
 | 25 | Tallahassee | FL | | Missing |
-| 26 | Wichita | KS | | Missing |
+| 26 | Wichita | KS | | **Loaded** — own ACFR, FY2000–2025 exc. FY2001/FY2008, `audited_gaap` |
 | 27 | Nashville-Davidson | TN | n/a | Missing (consolidated) — **not a Knight community**; added independently |
 
 **4 loaded, 1 partial, 22 missing**, across **14 states**.
@@ -232,7 +232,7 @@ Outcome is **BULK** (build a loader; unlocks the state) or **ACFR** (one-off ext
 | 5 | PA + IN → Philadelphia, State College, Fort Wayne, Gary + counties | 4 |
 | 6 | SC + TN → Columbia, Myrtle Beach, Nashville-Davidson + counties | 3 |
 | 7a | **MI → Detroit + Wayne County** (BULK, Socrata F-65) — *done 2026-08-30* | 1 |
-| 7b | CO + KS → Boulder, Wichita + counties (both ACFR; recon done in 7a) | 2 |
+| 7b | **CO + KS → Boulder + Boulder County, Wichita + Sedgwick County** (both ACFR) — *done 2026-08-30* | 2 |
 | 8 | Orphans → Aberdeen, Biloxi, Grand Forks, Lexington-Fayette + counties | 4 |
 
 Approximately **8 sessions, plus or minus 2**, depending on how many states yield a bulk source. The table is a shape, not a commitment; recon outcomes reshuffle it.
