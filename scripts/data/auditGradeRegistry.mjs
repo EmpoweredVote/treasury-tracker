@@ -289,6 +289,41 @@ export const AUDIT_GRADE_REGISTRY = [
     },
   },
   {
+    id: 'tn-nashville-acfr',
+    match: /^Metro Nashville ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
+    value: AUDIT_GRADE.AUDITED_GAAP,
+    evidence: {
+      document: 'The independent auditor\'s report, read in ALL TEN loaded documents '
+        + '(The Metropolitan Government of Nashville and Davidson County ACFRs FY2016-FY2025) '
+        + 'on 2026-08-30. '
+        + '⚠ A WELCOME CONTRAST WITH SESSION 6a: every one of these ten carries a born-digital '
+        + 'text layer and the opinion is found by a plain search. Nine of South Carolina\'s '
+        + 'nineteen needed OCR or whitespace-collapsing. Document quality is a property of the '
+        + 'ISSUER, not of the campaign, and must be re-checked per entity rather than assumed '
+        + 'from the previous session.',
+      figures: 'Verbatim, FY2025: "In our opinion, based on our audit and the reports of other '
+        + 'auditors, the financial statements referred to above present fairly, in all material '
+        + 'respects, the respective financial position of the governmental activities, the '
+        + 'business-type activities, the aggregate discretely presented component units, EACH '
+        + 'MAJOR FUND, and the aggregate remaining fund information of The Metropolitan '
+        + 'Government of Nashville and Davidson County, Tennessee, as of June 30, 2025 ... and '
+        + 'the respective budgetary comparisons for the General Fund". FY2016 is the same form. '
+        + 'The scope clause is the §3.5 standard: the opinion names EACH MAJOR FUND, and the '
+        + 'General Fund is a major fund in every one of these ten reports — so it covers the '
+        + 'statement the figures were read from, not merely the document containing it. '
+        + '⚠ "BASED ON OUR AUDIT AND THE REPORTS OF OTHER AUDITORS" IS NOT A QUALIFICATION. It '
+        + 'is a group-audit division of responsibility — component auditors reported on parts of '
+        + 'the reporting entity — and the opinion itself is unmodified. Reading it as a scope '
+        + 'limitation would understate the grade. '
+        + '⚠ Metro is audited by a CPA FIRM, not by the Tennessee Comptroller\'s Division of '
+        + 'Local Government Audit, which audits 91 of the state\'s 95 counties itself. That is '
+        + 'why Davidson is one of the four counties absent from the detail of the Comptroller\'s '
+        + 'TAG export, and it is also why the figures here are read from the ACFR directly. '
+        + 'The grade is unaffected: an independent auditor\'s opinion is an independent '
+        + 'auditor\'s opinion.',
+    },
+  },
+  {
     id: 'sc-city-acfr',
     match: /^(City of Columbia|City of Myrtle Beach) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
     value: AUDIT_GRADE.AUDITED_GAAP,

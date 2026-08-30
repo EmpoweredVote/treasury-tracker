@@ -10,7 +10,8 @@ from lib.acfrGF import (CityConfig, column_value, classify, build_revenue,
                          build_operating, anchors, slots, dash_zero_label,
                          find_statement_page, parse_fy, _is_section_header,
                          _recover_label_past_leading_page_number,
-                         target_cell_is_dash_zero, label_of)
+                         target_cell_is_dash_zero, label_of, parse_money,
+                         nums_with_pos)
 # The SHIPPED Bainbridge configs themselves, not copies of them -- see
 # TestShippedBainbridgeConfigsAreWholeDollars at the bottom of this file for
 # why the real objects have to be under test rather than a local fixture.
@@ -1643,6 +1644,42 @@ class TestRevenueDashZeroHeading(unittest.TestCase):
         for lbl in ('lodging', 'real estate excise tax', 'contributions and donations',
                     'issuance costs'):
             self.assertIn(lbl, extractKent.CONFIG.empty_rows)
+
+
+class TestNashvilleStrayTrailingParen(unittest.TestCase):
+    """Metro Nashville renders EVERY positive amount with a stray trailing `)`.
+
+    Knight session 6b. The FY2024 governmental-funds page carries 79 money
+    tokens and all 79 read `835,727,083)` — the closing paren is a rendering
+    artifact of the text layer, not a sign. The SAME document also uses ordinary
+    accounting negatives with a LEADING paren, `(213,716,851)`.
+
+    So the two must be told apart by the LEADING character. A reader that keyed
+    "negative" off a trailing paren would flip all 79 positives; one that
+    stripped every paren would flip the genuine negatives. Either is a
+    whole-entity SIGN INVERSION with no arithmetic symptom — the tie still
+    passes, because the tie is computed from the same mis-signed numbers.
+    `project_adopted_budget_inversion_sweep` had to sweep that class across 106
+    sources; this pins the parser so it cannot come back here.
+    """
+
+    def test_stray_trailing_paren_stays_positive(self):
+        # Transcribed from nashville_2024.pdf p53, General Fund column.
+        self.assertEqual(parse_money('835,727,083)'), 835727083)
+        self.assertEqual(parse_money('$  835,727,083)'), 835727083)
+
+    def test_leading_paren_is_still_negative(self):
+        self.assertEqual(parse_money('(213,716,851)'), -213716851)
+
+    def test_the_money_regex_never_captures_the_stray_paren(self):
+        # `nums_with_pos` is what the column reader actually walks, so the
+        # guarantee has to hold there and not only in parse_money.
+        line = 'Property taxes                  $  835,727,083)    $  471,756,031)'
+        self.assertEqual([v for v, _ in nums_with_pos(line)], [835727083, 471756031])
+
+    def test_a_real_negative_on_the_same_line_survives(self):
+        line = 'Excess (deficiency)             $  117,101,361)    $ (213,716,851)'
+        self.assertEqual([v for v, _ in nums_with_pos(line)], [117101361, -213716851])
 
 
 if __name__ == '__main__':

@@ -381,6 +381,47 @@ export const FUND_SCOPE_REGISTRY = [
     // IL, KY, LA, MS and NC, and TT could plausibly load any of them later. This
     // string would be IDENTICAL for a Missouri load. Split by municipality_id at
     // that point; do not widen the string.
+    // Knight session 6b. Tennessee's FIRST local entity in TT, and a
+    // CONSOLIDATED government — Metro performs both city and county functions,
+    // so its General Fund sits alongside separate `General Purpose School` and
+    // `Education Services` major funds rather than containing them.
+    //
+    // ⚠ ANCHORED to the entity name, like nc-/sc-/tx-/co-local-acfr-gf. The bare
+    // /ACFR — General Fund/ shape claims ~1,850 rows across families nobody has
+    // reconciled, so a future Tennessee ACFR load lands `unknown` until it is
+    // evidenced.
+    id: 'tn-local-acfr-gf',
+    match: /^Metro Nashville ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'TEN probes, one per loaded fiscal year, measured 2026-08-30 — and the denominator '
+              + 'comes from a DIFFERENT PUBLISHER, which no other entry in this registry can say. '
+              + 'Metro prints its governmental-funds statement across FOUR pages and the Total '
+              + 'Governmental column is not on the page the General Fund is on (and in FY2016 is '
+              + 'not on the first continued page either), so instead of chasing it the total was '
+              + 'taken from the TENNESSEE COMPTROLLER\'S TAG export — the statewide bulk source '
+              + 'this milestone deliberately did NOT load, because it carries Davidson at total '
+              + 'level only. That limitation is exactly what makes it a good denominator here. '
+              + '⚠ The two agree EXACTLY where they can be compared directly: for FY2024 the '
+              + 'ACFR\'s own Total Governmental revenue is 3,999,358,895 and TAG\'s independently '
+              + 'published Davidson total is 3,999,358,895.',
+      figures: 'All figures WHOLE DOLLARS — no statement page carries an "in thousands" caption. '
+             + 'General Fund revenue as a share of total governmental revenue, by year: '
+             + 'FY2016 938,174,383 / 2,271,379,104 = 41.3%; FY2017 41.0%; FY2018 41.2%; '
+             + 'FY2019 41.2%; FY2020 41.5%; FY2021 41.6%; FY2022 38.8%; FY2023 39.8%; '
+             + 'FY2024 1,562,264,668 / 3,999,358,895 = 39.1%; FY2025 40.1%. A Total Governmental '
+             + 'reading would be 100% by construction, so every probe excludes it, and the share '
+             + 'is remarkably stable in a 38.8-41.6% band across a decade. '
+             + 'Directly from the FY2024 statement, expenditure side: General Fund 1,445,163,307 '
+             + 'against Total Governmental 4,273,235,588 = 33.8%. '
+             + '⚠⚠ FY2025 NEEDS ITS TWO TAG ROWS ADDED TOGETHER. Gateway splits the school '
+             + 'department out of the primary government in that year only — `PRI` 2,405,409,575 '
+             + 'plus `SCH` 1,555,208,386 = 3,960,617,961, continuous with FY2024. Taking `PRI` '
+             + 'alone would show a 40% collapse that did not happen, and would push this probe to '
+             + 'a spurious 66%.',
+    },
+  },
+  {
     id: 'sc-local-acfr-gf',
     match: /^(City of Columbia|City of Myrtle Beach) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
     scope: SCOPE.GENERAL_FUND,

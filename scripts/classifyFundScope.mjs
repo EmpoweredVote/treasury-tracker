@@ -120,6 +120,12 @@ export const EXPECTED_ROWS = Object.freeze({
   // acceptable. If this count ever reads 40, that decision was made somewhere
   // and needs to be in the recon document, not in this number.
   'sc-local-acfr-gf': 38,
+  // Knight session 6b (Tennessee's first local entity), measured from the ACTUAL
+  // post-write count on 2026-08-30. A NEW family, so no pre-existing count moved.
+  // 20 = 10 fiscal years (FY2016-FY2025) x 2 datasets, ONE entity — Metro
+  // Nashville is a consolidated government and is deliberately a single row in
+  // `municipalities`, not a city plus a county (spec §4.5).
+  'tn-local-acfr-gf': 20,
   // Knight session 3 (Florida DFS), measured from the ACTUAL post-write count on
   // 2026-08-29, never from an estimate. A NEW family, so no pre-existing count
   // moved: the gate reported every other entry unchanged in the same run.

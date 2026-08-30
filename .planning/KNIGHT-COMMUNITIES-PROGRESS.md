@@ -513,8 +513,9 @@ FY month: the stored `fiscal_year_start_month` and whether the FAC census confir
 | **Horry County** | SC | county | loaded | **SC RFA LGF** FY2012–24 | `self_reported_unaudited` | 7 · **FAC confirmed** | 6a |
 | **Columbia** | SC | city | loaded | **own ACFR** FY2016–25 exc. FY19 | `audited_gaap` | 7 · **FAC confirmed** | 6a |
 | **Myrtle Beach** | SC | city | loaded | **own ACFR** FY2016–25 | `audited_gaap` | 7 · **FAC confirmed** | 6a |
+| **Nashville-Davidson** | TN | **city** (consolidated) | loaded | **own ACFR** FY2016–25 | `audited_gaap` | 7 · ACFR + live FAC | 6b |
 
-The 13 remaining entities are `pending` and are listed in spec §2.
+The 12 remaining entities are `pending` and are listed in spec §2.
 
 ⚠ The three Florida windows ending FY2024 are NOT gaps in the source — Miami-Dade,
 Leon and Bradenton had simply not filed FY2025 when the workbooks were fetched.
@@ -1881,3 +1882,185 @@ expended against RFA's $29.6M of federal revenue.
 5. **Re-examine the NC access gap with FAC** — Charlotte pre-FY2011 was ruled out
    as Wayback-only under the first-party policy; FAC may serve it first-party.
 6. **Columbia FY2019** stays out unless someone decides OCR'd money is acceptable.
+
+---
+
+## Session 6b outcomes — Tennessee / Nashville-Davidson (2026-08-30)
+
+**1 entity / 20 rows. 35 of 43 entities carry data (81%).** Tennessee's FIRST
+local entity in TT — the live table held exactly one TN row before this session,
+the state node.
+
+| | |
+|---|---|
+| Entity | **Nashville-Davidson**, `city`, `county_id` NULL (consolidated) |
+| Rows | **20** = FY2016–FY2025 × 2 datasets, all from Metro's own ACFRs |
+| Axes | `audited_gaap` · `general_fund` · `actual` · month 7 |
+| Tie | **$0 on all 20**, against each year's printed General Fund total |
+| Frozen invariant | digest **BYTE-IDENTICAL** before and after — $0 moved |
+| Tests | 1,717 → **1,734** vitest, plus 166 → **170** ACFR selftests. Build green. |
+
+Nashville is **not** a Knight community — it was added independently because EV
+Essentials seeded it and TT had no Tennessee locals at all (spec §2).
+
+### ⚠⚠ THE STATEWIDE BULK SOURCE IS EXCELLENT AND USELESS HERE
+
+The TN Comptroller's TAG export is fund/account/object-level for all 95 counties,
+FY2007–2025, free and unauthenticated, prepared by the Division of Local
+Government Audit — **which audits 91 of the 95 counties itself.** On paper it is
+the strongest grade TT has ever been offered.
+
+**Davidson is one of the four audited by a CPA firm instead** (with Hamilton,
+Knox and Shelby), and it appears in TAG at **TOTAL ONLY**: exactly one revenue
+row and one expenditure row per year, no tree at all. So the state's best source
+serves zero Knight entities, and Metro comes from its own ACFRs.
+
+⚠⚠ **And that single row hides a scope break.** Through FY2024 the `PRI` total
+runs $1.72B → $4.00B; FY2025 reads **$2.41B** with a separate `SCH` row at
+$1.56B. The school department was inside the primary-government total until
+FY2025 and split out afterwards. **Loading the `PRI` series would have rendered a
+fake $1.4B collapse** — the session-5 Lake County trap in a third costume, and
+again invisible to every gate.
+
+⭐ **The refused source still earned its keep as an ORACLE.** TAG's Davidson total
+is an independently published Total Governmental figure, and it matches the
+ACFR's own exactly where they can be compared — FY2024 both read
+**3,999,358,895**. It became the denominator for the fund-scope probes, which no
+other entry in `fundScopeRegistry` can say. And recombining the FY2025 split
+(`PRI` + `SCH` = 3,960,617,961, continuous with FY2024) independently confirmed
+the diagnosis above.
+
+### ⚠⚠ THE FAC CENSUS BLIND SPOT IS SYSTEMATIC, AND NOW DIAGNOSED
+
+Session 6a recorded "Nashville-Davidson is ABSENT from the TN FAC census slice".
+The cause is now known, and it is **not** that FAC lacks the entity — the live
+API has all ten years under auditee `0000193991`. It is that
+`buildFacFiscalYearCensus.classifyAuditee()` returns **null** for the name:
+
+    CITY OF PHILADELPHIA                          -> municipality  ✅
+    CITY AND COUNTY OF SAN FRANCISCO / DENVER     -> municipality  ✅
+    THE METROPOLITAN GOVERNMENT OF NASHVILLE …    -> null          ❌
+    MACON-BIBB COUNTY                             -> null          ❌
+    COLUMBUS CONSOLIDATED GOVERNMENT              -> null          ❌
+    LEXINGTON-FAYETTE URBAN COUNTY GOVERNMENT     -> null          ❌
+
+**Consolidated governments are dropped unless their legal name happens to start
+"City of" or "City and County of".** This explains the "census absent" notes on
+Macon-Bibb and Columbus-Muscogee that sessions 4 and 5 recorded without
+diagnosing, and **it predicts a fourth for Lexington-Fayette in session 8.**
+
+⚠ `censusGuard()` returns `{ok:true}` when it cannot find an entity, so every one
+of these passes WITHOUT BEING CHECKED. This is the same failure shape as the CA
+county blind spot, with a second, name-based cause.
+
+**NOT fixed here** — the classifier governs 33,932 already-censused rows and
+changing it is its own milestone. `tests/tnNashville.test.mjs` PINS the current
+behaviour so a future fix fails the test loudly rather than closing the gap
+unnoticed. The month for this entity instead comes from two first-party sources,
+both stronger than the census: every statement page prints "For the Year Ended
+June 30, <year>", and the live FAC record gives `fy_end_date` = June 30 in all
+ten audit years.
+
+### ⚠⚠ EVERY POSITIVE AMOUNT CARRIES A STRAY TRAILING `)`
+
+Metro's text layer renders every amount on the statement pages as
+`835,727,083)` — **all 79 money tokens on the FY2024 page, positives included.**
+The same document also uses ordinary accounting negatives with a LEADING paren,
+`(213,716,851)`.
+
+A reader keying "negative" off a trailing paren would **flip all 79 positives**;
+one stripping every paren would flip the genuine negatives. Either is a
+whole-entity SIGN INVERSION with no arithmetic symptom, because the tie is
+computed from the same mis-signed numbers —
+`project_adopted_budget_inversion_sweep` had to sweep that class across 106
+sources.
+
+`acfrGF.parse_money` already distinguishes them correctly: `_MONEY` alternates a
+fully bracketed `\((?:\d[\d,]*)\)` against a bare `\$?\s*\d[\d,]*`, so the stray
+paren is never captured and `neg` is set only by a LEADING `(`. **Verified
+empirically rather than by reading the regex**, and pinned by four new cases in
+`scripts/lib/acfrGF.selftest.py`.
+
+### ⚠ THE TREE SHAPE CHANGES BY YEAR, AND THAT IS THE DOCUMENT, NOT THE PARSER
+
+The operating roots vary — 1 category in FY2016–FY2019, 2 in FY2020 and FY2022,
+3 from FY2023. A tie proves arithmetic and never structure, so this was checked
+against the printed pages rather than accepted:
+
+* **FY2016** — `Principal retirement`, `Interest` and `Capital outlay` all print
+  `-` in the General Fund column (that year's $63M of debt service sits in
+  Education Services). Metro's General Fund genuinely had no debt service and no
+  capital outlay.
+* **FY2022** — `Principal retirement` is `-` but `Capital outlay` is 10,615,724.
+
+Every omitted line is REPORTED in the extractor's `zero_rows`, never silently
+dropped: FY2016 lists `["Education","Principal retirement","Interest","Fiscal
+charges","Capital outlay"]`.
+
+### ⚠ POPULATION — CONSOLIDATED, BUT NOT COTERMINOUS THE WAY PHILADELPHIA IS
+
+Census vintage 2024 gives **three** numbers for this one government:
+
+| series | 2024 |
+|---|---|
+| Davidson County (SUMLEV 050) | 729,505 |
+| Nashville-Davidson metropolitan government (SUMLEV **170**) | 729,505 |
+| Nashville-Davidson metro government **(balance)** (SUMLEV 162) | 704,963 |
+
+**729,505 is correct.** The "(balance)" figure excludes six independent satellite
+cities inside Davidson County that never merged — Belle Meade, Berry Hill,
+Forest Hills, Goodlettsville, Oak Hill and Ridgetop. Metro's General Services
+District covers the whole county, and the General Fund is a GSD fund.
+
+⚠ **This differs from Philadelphia**, where session 5 proved coterminousness by
+finding place (162) and county (050) both at 1,573,916. Here 162 ≠ 050 and only
+170 matches. **Do not carry the Philadelphia method forward without checking
+which SUMLEV actually agrees.**
+
+### Scope and grade
+
+`fund_scope = general_fund`, evidenced by ten probes — one per year — showing the
+General Fund at a stable **38.8%–41.6%** of total governmental revenue, plus
+33.8% on the FY2024 expenditure side read directly from the statement. ⚠ Metro's
+General Fund sits ALONGSIDE separate `General Purpose School` and `Education
+Services` major funds rather than containing them, which is why a consolidated
+government's General Fund is a smaller share than a plain city's.
+
+`audit_grade = audited_gaap`. All ten opinions name **"each major fund"**, and
+the General Fund is a major fund in every one.
+
+⚠ **A welcome contrast with session 6a**: every one of these ten documents has a
+born-digital text layer and the opinion is found by a plain search, where nine of
+South Carolina's nineteen needed OCR or whitespace-collapsing. **Document quality
+is a property of the ISSUER and must be re-checked per entity**, never assumed
+from the previous session.
+
+⚠ FY2025's opinion reads "based on our audit **and the reports of other
+auditors**". That is a group-audit division of responsibility, NOT a scope
+limitation — the opinion itself is unmodified. Reading it as a qualification
+would have understated the grade.
+
+### Access
+
+Metro serves its own PDFs from `nashville.gov` with **no WAF**, so unlike session
+6a's South Carolina cities the Federal Audit Clearinghouse was not needed for the
+bytes. FAC report ids are still recorded per year as a second route and as the
+fiscal-period evidence. ⚠ The URLs are NOT derivable — the naming changes three
+times across the decade (`CAFR2016.pdf`, `ACFRFY21_01_21_2022_Upload.pdf`,
+`2022_Annual_Comprehensive_Financial_Report_Final_Published_06062023.pdf`) —
+which is exactly why `acfrGfLoad` reads a manifest instead of rebuilding a URL.
+
+### Open follow-ups from this session
+
+1. ⭐ **Fix the FAC census classifier for consolidated governments**, or add an
+   explicit alias list. Four campaign entities are affected and one
+   (Lexington-Fayette) has not been loaded yet. `tests/tnNashville.test.mjs`
+   pins the current behaviour.
+2. **The TN TAG statewide unlock** — 95 counties, FY2007–2025, fund/account/object
+   detail, from the division that audits 91 of them. Still a filed, ready
+   milestone; it just cannot serve Davidson. ⚠ `SCH` and lowercase `Sch` both
+   appear in the fund-prefix column (the session-5 `d704`/`D704` hazard), and
+   FY2025 splits the school department out of `PRI`.
+3. **Nashville pre-FY2016** sits behind an "Archive for Previous Years" page and
+   is not loaded, under the first-party `source_url` policy.
+4. **Session 7 = MI + CO + KS** — Detroit, Boulder, Wichita + counties.
