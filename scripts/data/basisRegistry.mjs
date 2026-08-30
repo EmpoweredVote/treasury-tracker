@@ -136,7 +136,8 @@ export const BASIS_REGISTRY = [
     // CO-SPRINGS-EPC-01. 64 rows, measured 2026-08-21. Anchored to the two
     // entity names - see the fund-scope entry of the same id.
     id: 'co-local-acfr-gf',
-    match: /^(City of Colorado Springs|El Paso County) ACFR — General Fund /,
+    // ⚠ EXTENDED by Knight session 7b with City of Boulder and Boulder County.
+    match: /^(City of Colorado Springs|El Paso County|City of Boulder|Boulder County) ACFR — General Fund /,
     value: BASIS.ACTUAL,
     evidence: {
       document: 'City of Colorado Springs FY2024 + FY2016 and El Paso County FY2024 + FY2020 + '
@@ -381,6 +382,26 @@ export const BASIS_REGISTRY = [
              + '(e.g. City of Miami FY2023 expenditures $1,617,244,615 and revenues '
              + '$1,717,354,156). Every loaded year is FY2012-FY2025, all closed. The unclosed-year '
              + 'rule in stampBudgetAxes.mjs is the standing guard if that ever stops being true.',
+    },
+  },
+  {
+    // Knight campaign, session 7b — Kansas's first local entities.
+    id: 'ks-local-acfr-gf',
+    match: /^(City of Wichita|Sedgwick County) ACFR — General Fund /,
+    value: BASIS.ACTUAL,
+    evidence: {
+      document: 'City of Wichita FY2000-FY2025 and Sedgwick County FY2006-FY2024 ACFRs, each '
+              + 'carrying an unmodified independent auditor\'s opinion on the basic financial '
+              + 'statements for a CLOSED fiscal year ending December 31. Verified per document '
+              + 'by scripts/verifyCoKsOpinions.py.',
+      figures: 'Every stored figure is the printed General Fund column of the governmental-funds '
+             + 'Statement of Revenues, Expenditures and Changes in Fund Balances — a year-end '
+             + 'GAAP actual, tying exactly on both faces in all 54 entity-years. '
+             + '⚠ NOT an appropriation, and both issuers are a reason to say so explicitly: each '
+             + 'ACFR also prints a General Fund "Budget and Actual" schedule on the BUDGETARY '
+             + 'basis (Sedgwick County FY2019 carries twelve such pages). Loading one would put '
+             + 'budget-basis figures under a GAAP-actual label — the Colorado Springs hazard '
+             + 'recorded on co-local-acfr-gf, in a second state.',
     },
   },
   {

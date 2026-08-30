@@ -137,7 +137,8 @@ export const REPORTING_ENTITY_REGISTRY = [
     // CO-SPRINGS-EPC-01. 64 rows, measured 2026-08-21. Anchored to the two
     // entity names - see the fund-scope entry of the same id.
     id: 'co-local-acfr-gf',
-    match: /^(City of Colorado Springs|El Paso County) ACFR — General Fund /,
+    // ⚠ EXTENDED by Knight session 7b with City of Boulder and Boulder County.
+    match: /^(City of Colorado Springs|El Paso County|City of Boulder|Boulder County) ACFR — General Fund /,
     value: REPORTING_ENTITY.PRIMARY,
     evidence: {
       document: 'Note I.A (Reporting Entity) of the City of Colorado Springs FY2024 ACFR and '
@@ -275,6 +276,24 @@ export const REPORTING_ENTITY_REGISTRY = [
     evidence: {
       document: 'WA SAO filings; Spokane FY2019, Tacoma FY2019 (SCOPE-01-RECON §4.6)',
       figures: 'The stored figure equals the printed General Fund column of the primary government\'s governmental-funds statement, tied exactly on both sides in two different units.',
+    },
+  },
+  {
+    // Knight campaign, session 7b — Kansas's first local entities.
+    id: 'ks-local-acfr-gf',
+    match: /^(City of Wichita|Sedgwick County) ACFR — General Fund /,
+    value: REPORTING_ENTITY.PRIMARY,
+    evidence: {
+      document: 'City of Wichita FY2000-FY2025 and Sedgwick County FY2006-FY2024 ACFRs, '
+              + 'governmental-funds Statement of Revenues, Expenditures and Changes in Fund '
+              + 'Balances.',
+      figures: 'The stored figure is the printed GENERAL FUND column of the PRIMARY government\'s '
+             + 'governmental-funds statement. Discretely presented component units appear in '
+             + 'their own columns elsewhere in each statement set and are never inside this '
+             + 'column — Wichita\'s own auditor\'s report names "the discretely presented '
+             + 'component unit" as a separate opinion unit. Blended units sit inside the primary '
+             + 'government\'s own funds by GASB 34 and are therefore inside these figures, the '
+             + 'same treatment as co-local-acfr-gf and oh-aos.',
     },
   },
   {

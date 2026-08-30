@@ -126,7 +126,15 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // CO-SPRINGS-EPC-01, measured 2026-08-21: Colorado Springs 28 + El Paso
   // County 36. A NEW family, so no pre-existing count moved.
   // Evidence: docs/superpowers/plans/CO-SPRINGS-EPC-01-CLOSEOUT.md section 6.
-  'co-local-acfr-gf': 64,
+  // ⚠ 64 -> 88 on 2026-08-30: Knight session 7b extended this family with City
+  // of Boulder (7 years) and Boulder County (5 years) = 24 rows. The
+  // pre-existing 64 did not move.
+  'co-local-acfr-gf': 88,
+  // Knight session 7b — Kansas's FIRST local entities. A NEW family. 84 = 42
+  // entity-years x 2 datasets (Wichita FY2000-2025 less FY2001/FY2008; Sedgwick
+  // County FY2006-2024 less FY2019). The four absent years are DECLARED
+  // document gaps, never written as $0 — see scripts/extractCoKsAll.mjs.
+  'ks-local-acfr-gf': 84,
   // NC-DURHAM-AVL-01, measured 2026-08-25: City of Durham 32 + Durham County 42
   // + City of Asheville 28 + Buncombe County 36. A NEW family, so no
   // pre-existing count moved.
@@ -209,7 +217,15 @@ export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
   // CO-SPRINGS-EPC-01, measured 2026-08-21: Colorado Springs 28 + El Paso
   // County 36. A NEW family, so no pre-existing count moved.
   // Evidence: docs/superpowers/plans/CO-SPRINGS-EPC-01-CLOSEOUT.md section 6.
-  'co-local-acfr-gf': 64,
+  // ⚠ 64 -> 88 on 2026-08-30: Knight session 7b extended this family with City
+  // of Boulder (7 years) and Boulder County (5 years) = 24 rows. The
+  // pre-existing 64 did not move.
+  'co-local-acfr-gf': 88,
+  // Knight session 7b — Kansas's FIRST local entities. A NEW family. 84 = 42
+  // entity-years x 2 datasets (Wichita FY2000-2025 less FY2001/FY2008; Sedgwick
+  // County FY2006-2024 less FY2019). The four absent years are DECLARED
+  // document gaps, never written as $0 — see scripts/extractCoKsAll.mjs.
+  'ks-local-acfr-gf': 84,
   // NC-DURHAM-AVL-01, measured 2026-08-25: City of Durham 32 + Durham County 42
   // + City of Asheville 28 + Buncombe County 36. A NEW family, so no
   // pre-existing count moved.

@@ -89,7 +89,25 @@ export const EXPECTED_ROWS = Object.freeze({
   // CO-SPRINGS-EPC-01, measured 2026-08-21: Colorado Springs 28 + El Paso
   // County 36. A NEW family, so no pre-existing count moved.
   // Evidence: docs/superpowers/plans/CO-SPRINGS-EPC-01-CLOSEOUT.md section 6.
-  'co-local-acfr-gf': 64,
+  // ⚠ 64 -> 88 on 2026-08-30. Knight session 7b EXTENDED this family with the
+  // City of Boulder (FY2016-FY2022, 7 years) and Boulder County (FY2021-FY2025,
+  // 5 years) = 12 entity-years x 2 datasets = 24 rows. The pre-existing 64
+  // (Colorado Springs 28 + El Paso County 36) did not move; this is a family
+  // that GREW, which the header permits once explained. A partition count is a
+  // measurement with a date, not a constant.
+  'co-local-acfr-gf': 88,
+  // Knight session 7b — KANSAS'S FIRST LOCAL ENTITIES. A NEW family, so no
+  // pre-existing count moved. 84 = 42 entity-years x 2 datasets: City of
+  // Wichita FY2000-FY2025 less FY2001 and FY2008 (24 years) and Sedgwick County
+  // FY2006-FY2024 less FY2019 (18 years).
+  // ⚠ THE FOUR ABSENT YEARS ARE DOCUMENT GAPS, NOT FETCH FAILURES, and each is
+  // declared in scripts/extractCoKsAll.mjs: Wichita FY2001 and FY2008 are
+  // image-only scans; Sedgwick County FY2005 is a dead link in the county's own
+  // archive; Sedgwick County FY2019's statement page carries a custom font
+  // encoding under which NO NUMBER survives extraction. None is written as $0.
+  // ⚠ This count WILL rise if the FY2019 recovery via FAC lands. Re-measure
+  // with evidence then.
+  'ks-local-acfr-gf': 84,
   // Knight session 7a (Michigan's first local entities), measured from the
   // ACTUAL post-write count on 2026-08-30. A NEW family, so no pre-existing
   // count moved. Detroit and Wayne County, FY2010-FY2025 with no gaps.

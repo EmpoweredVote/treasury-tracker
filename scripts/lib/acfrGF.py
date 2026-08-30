@@ -286,6 +286,23 @@ class CityConfig:
                  AND the literal `'total expenditures'` to be present on the
                  same page, so widening only the revenue side cannot turn a
                  proprietary page into a false positive.
+    revenue_section_header
+                 the section-header word that OPENS the revenue section,
+                 default 'revenues'. Boulder County, CO prints the header
+                 SINGULAR — `Revenue` — and with the plural hard-coded the
+                 section reader matched nothing at all: the revenue tree came
+                 back EMPTY while the printed total was still found, so the tie
+                 gate failed loudly with a full -283,438,244 delta rather than
+                 shipping a wrong shape. That loud failure is the design working.
+
+                 ⚠ This is the same class of fact as `revenue_total_labels`,
+                 added for Bainbridge's `Total Operating Revenues`, and it is
+                 configured for the same reason: the section word is a property
+                 of the ISSUER's chosen wording, not of the statement type.
+                 Note the EXPENDITURE side needs no equivalent — every document
+                 in this corpus prints `Expenditures` plural, including Boulder
+                 County, which is exactly why only one of the two is
+                 configurable.
     section_header_mode
                  'exact' (default) requires the section header to be the WHOLE
                  line. 'prefix' allows trailing text, which Seattle's 2024-era
@@ -348,7 +365,12 @@ class CityConfig:
                  revenue_parents=(), revenue_group_members=(),
                  statement_anchor=None, section_header_mode='exact',
                  fy_end=('June', 30), revenue_total_labels=('total revenues',),
-                 empty_rows=(), exclude_ignore=()):
+                 empty_rows=(), exclude_ignore=(),
+                 # ⚠ The literal, not `_SEC_REVENUES`: that constant is defined
+                 # further down this module and a default argument is evaluated
+                 # when the function is DEFINED, so referring to it here is a
+                 # NameError at import. The two are asserted equal below.
+                 revenue_section_header='revenues'):
         if not isinstance(units, int) or isinstance(units, bool):
             raise TypeError(
                 'CityConfig.units must be an int, got %r (%s). A float would '
@@ -371,6 +393,7 @@ class CityConfig:
         self.section_header_mode = section_header_mode
         self.fy_end = fy_end
         self.revenue_total_labels = tuple(lbl.lower() for lbl in revenue_total_labels)
+        self.revenue_section_header = str(revenue_section_header).lower()
         self.empty_rows = tuple(r.lower() for r in empty_rows)
         unknown = tuple(t for t in exclude_ignore if t.lower() not in _EXCLUDE)
         if unknown:
@@ -887,6 +910,12 @@ def classify(line, col_anchors, cfg):
 # "expenditures".
 _SEC_REVENUES     = 'revenues'
 _SEC_EXPENDITURES = 'expenditures'
+# ⚠ `CityConfig.revenue_section_header` defaults to the LITERAL 'revenues'
+# because a default argument is evaluated where the function is defined, which
+# is above this line. Kept honest by an assertion rather than a comment alone.
+assert _SEC_REVENUES == 'revenues', (
+    'CityConfig.revenue_section_header duplicates this literal as its default; '
+    'change both or neither.')
 _END_EXPENDITURES = r'^Total\s+expenditures\b'
 
 def _end_revenues_pattern(revenue_total_labels):
@@ -1163,7 +1192,7 @@ def build_revenue(lines, col_anchors, cfg):
     parent_seen = False
     pending = ''
     end_revenues = _end_revenues_pattern(cfg.revenue_total_labels)
-    for l in _section(lines, _SEC_REVENUES, end_revenues, cfg.section_header_mode):
+    for l in _section(lines, cfg.revenue_section_header, end_revenues, cfg.section_header_mode):
         kind, lbl, val = classify(l, col_anchors, cfg)
         low = (lbl or '').lower()
 
