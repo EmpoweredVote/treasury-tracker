@@ -200,6 +200,12 @@ export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
   'fl-dfs-afr': 190,
   // AUSTIN-TRAVIS-01. Evidence: AUSTIN-TRAVIS-01-SCOPE-RECON.md §3.
   'tx-local-acfr-gf': 76,
+  // Knight session 7a (Michigan Treasury F-65), measured 2026-08-30. The same
+  // 128 rows as the basis entry above; primary_government because the F-65
+  // publishes discretely presented component units in their own column d and TT
+  // reads only columns a and b. ⚠ ONE entry spans BOTH fund scopes — the entity
+  // boundary is identical whether TT reads column a alone or a + b.
+  'mi-treasury-f65': 128,
   // CO-SPRINGS-EPC-01, measured 2026-08-21: Colorado Springs 28 + El Paso
   // County 36. A NEW family, so no pre-existing count moved.
   // Evidence: docs/superpowers/plans/CO-SPRINGS-EPC-01-CLOSEOUT.md section 6.
