@@ -161,6 +161,33 @@ export const BASIS_REGISTRY = [
     // Knight session 6a — South Carolina's first two cities.
     // ⚠ See the ambiguity warning on sc-local-acfr-gf in fundScopeRegistry.mjs:
     // `City of Columbia` names governments in at least seven states.
+    // Knight session 6b — Tennessee's first local entity in TT.
+    id: 'tn-local-acfr-gf',
+    match: /^Metro Nashville ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
+    value: BASIS.ACTUAL,
+    evidence: {
+      document: 'The Metropolitan Government of Nashville and Davidson County ACFRs FY2016-FY2025 '
+              + '— audited, closed fiscal years. Every statement page states its own period, '
+              + '"For the Year Ended June 30, <year>", and the live Federal Audit Clearinghouse '
+              + 'record for auditee 0000193991 independently gives fy_end_date = June 30 in all '
+              + 'ten audit years. '
+              + '⚠ The month is NOT taken from the repo FAC census, which has no row for this '
+              + 'entity at all — buildFacFiscalYearCensus.classifyAuditee() returns null for the '
+              + 'name form "THE METROPOLITAN GOVERNMENT OF ...". That is a systematic blind spot '
+              + 'for consolidated governments, filed as a follow-up.',
+      figures: 'Every stored figure is the printed General Fund column of the governmental-funds '
+             + 'Statement of Revenues, Expenditures and Changes in Fund Balances — a year-end '
+             + 'GAAP actual, tying at exactly $0 on both sides in all 20 rows. NOT an '
+             + 'appropriation. Metro ALSO publishes a General Fund budgetary-comparison statement '
+             + 'in the same document — its FY2025 opinion even names "the respective budgetary '
+             + 'comparisons for the General Fund" — and loading that page instead would have put '
+             + 'budget-basis figures under a GAAP-actual label with no arithmetic symptom. It is '
+             + 'structurally unreachable: the reader excludes any page whose text carries "budget '
+             + 'and actual" or "budgetary", and the fund statement precedes the budgetary '
+             + 'schedule in every year.',
+    },
+  },
+  {
     id: 'sc-local-acfr-gf',
     match: /^(City of Columbia|City of Myrtle Beach) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
     value: BASIS.ACTUAL,

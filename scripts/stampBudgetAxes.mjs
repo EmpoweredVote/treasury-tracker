@@ -148,6 +148,11 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // ACFR are scans and the only text layer is defective OCR. See the fuller note
   // on the same id in scripts/classifyFundScope.mjs.
   'sc-local-acfr-gf': 38,
+  // Knight session 6b (Tennessee's first local entity), measured from the ACTUAL
+  // post-write count on 2026-08-30. 20 = 10 fiscal years x 2 datasets, ONE
+  // consolidated entity. See the fuller note on the same id in
+  // scripts/classifyFundScope.mjs.
+  'tn-local-acfr-gf': 20,
   // Knight session 3 (Florida DFS), measured from the ACTUAL post-write count on
   // 2026-08-29. A NEW family, so no pre-existing count moved. 190 = 95
   // entity-years x 2 datasets over 28 source strings; three of the 98 possible
