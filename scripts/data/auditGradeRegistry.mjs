@@ -420,14 +420,17 @@ export const AUDIT_GRADE_REGISTRY = [
     // Knight campaign, session 7b — the four Colorado + Kansas ACFR entities.
     //
     // ⚠⚠ ANCHORED TO THE FOUR ENTITIES WHOSE OPINIONS THIS SESSION ACTUALLY
-    // READ, not to the whole `co-local-acfr-gf` family. Colorado Springs and
-    // El Paso County have been in TT since v2.29 and still carry
-    // `audit_grade = unknown`; widening this pattern to `co-local-acfr-gf`
-    // would grade 64 merged rows off evidence nobody gathered. §3.5 requires
+    // READ, not to the whole `co-local-acfr-gf` family. Widening this pattern
+    // would have graded rows off evidence nobody gathered. §3.5 requires
     // evidence PER DOCUMENT, and "it is an ACFR, so it is audited" is exactly
-    // the assumption North Carolina punished in session 2. Grading those two is
-    // a filed follow-up and a cheap one — scripts/verifyCoKsOpinions.py would
-    // do it unchanged.
+    // the assumption North Carolina punished in session 2.
+    //
+    // ✅ The follow-up this comment used to name — Colorado Springs and El Paso
+    // County, `unknown` since v2.29 — was done on 2026-08-31 and has its OWN
+    // entry below (`co-springs-epc-acfr-gf`) with its own evidence. It is a
+    // separate entry rather than a widened pattern for the same reason this one
+    // was narrow: the documents were read separately, so they are attested
+    // separately.
     id: 'co-ks-local-acfr-gf',
     match: /^(City of Boulder|Boulder County|City of Wichita|Sedgwick County) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY(?:20[0-2][0-9]) actual, GAAP basis\)$/,
     value: AUDIT_GRADE.AUDITED_GAAP,
@@ -459,6 +462,71 @@ export const AUDIT_GRADE_REGISTRY = [
         + 'to downgrade automatically. '
         + '⚠ The four unloadable documents are NOT graded because they are not loaded — they are '
         + 'declared gaps in scripts/extractCoKsAll.mjs, never written as $0.',
+    },
+  },
+  {
+    // Colorado Springs + El Paso County — the follow-up session 7b filed and
+    // deliberately did not take. Loaded in v2.29 (PR #47), `unknown` until now.
+    //
+    // ⚠⚠ THE GATE THAT PROVES AN OPINION EXISTS CANNOT PROVE IT IS CLEAN, and
+    // this entry is the first in the campaign to say so out loud.
+    // verifyCoKsOpinions.py identifies the primary opinion by pairing "present
+    // fairly, in all material respects" with a GAAP conformity phrase — and a
+    // QUALIFIED opinion contains BOTH, because its sentence reads "except for
+    // the effects of ..., the financial statements present fairly, in all
+    // material respects". Harrison County MS is the proof: ten loaded rows pass
+    // that gate and are NOT clean. So a second implementation was written —
+    // scripts/checkOpinionType.py — which reads the opinion PARAGRAPH rather
+    // than the document and reports any modifier inside it. Both were run over
+    // all 32 documents and both are re-runnable.
+    //
+    // ⚠ ANCHORED AT BOTH ENDS and pinned to the years actually loaded. Note the
+    // NAME COLLISION this guards against: El Paso County, TEXAS is a real
+    // county TT does not yet hold. If it is ever onboarded with this same label
+    // shape, this pattern WOULD claim it — the registry sees `data_source` and
+    // nothing else. Re-check this entry before loading any Texas El Paso.
+    id: 'co-springs-epc-acfr-gf',
+    // ⚠ The year alternation is EXACTLY the loaded set — FY2005, FY2009 and
+    // FY2010-FY2025 — not a decade wildcard. A looser `20[1-2][0-9]` would
+    // auto-grade a FY2026 ACFR the moment it loaded, off an opinion nobody had
+    // read. It also excludes El Paso FY2006-FY2008, which are published but
+    // declined as unparseable, so the gap stays visible as `unknown`.
+    match: /^(City of Colorado Springs|El Paso County) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY(?:200[59]|201[0-9]|202[0-5]) actual, GAAP basis\)$/,
+    value: AUDIT_GRADE.AUDITED_GAAP,
+    evidence: {
+      document: 'All 32 loaded ACFRs, read on 2026-08-31: City of Colorado Springs FY2012-FY2025 '
+        + '(14 documents) and El Paso County, Colorado FY2005 and FY2009-FY2025 (18 documents), '
+        + 'each fetched from the `source_url` already stored on the rows it grades — so the '
+        + 'document attested here is the same one the reader is offered. Every one carries an '
+        + 'independent auditor\'s report on the basic financial statements. Verified twice: '
+        + 'scripts/verifyCoKsOpinions.py (opinion PRESENT: 19 in the text layer, 13 recovered by '
+        + 'OCR, 0 not found) and scripts/checkOpinionType.py (opinion UNMODIFIED: 32 clean, 0 '
+        + 'modified, 0 unreadable).',
+      figures: '⚠⚠ THIRTEEN OF THE 32 OPINIONS ARE INVISIBLE TO A PLAIN TEXT SEARCH — the fourth '
+        + 'occurrence of this failure mode in the campaign, and the proportion is worse here '
+        + 'than in 7b (13 of 32 against 17 of 57). Colorado Springs is image-only on the '
+        + 'auditor\'s page for EVERY year FY2018-FY2025, and El Paso County for FY2005, '
+        + 'FY2009-FY2011 and FY2020. Grading on the text layer alone would have shipped all '
+        + 'thirteen as `unknown`. OCR at 200dpi recovers them; Colorado Springs FY2024 reads, '
+        + 'under the heading "Opinions", "In our opinion, based on our audit and the report of '
+        + 'the other auditors, the accompanying financial statements referred to above present '
+        + 'fairly, in all material respects, the respective financial position of the '
+        + 'governmental activities ... as of December 31, 2024" over the signature of '
+        + 'ForvisMazars. El Paso County FY2005 reads the same over the reports of other auditors. '
+        + '⚠ "Based on our audit AND THE REPORTS OF OTHER AUDITORS" appears in most of these and '
+        + 'is NOT a modification — it is the standard group-audit reference to component units '
+        + 'audited by someone else. Reading it as a qualification would downgrade 30 clean '
+        + 'opinions. '
+        + '⚠ The heading over the opinion is "Opinions", never "Unmodified Opinion" — the AU-C '
+        + '700 format does not label a clean opinion, it labels only a modified one. So the '
+        + 'clean verdict rests on a POSITIVE fair-presentation sentence plus the ABSENCE of any '
+        + 'modifier within 1,200 characters of it, which is what checkOpinionType.py measures. '
+        + 'Four opinion sentences were additionally read by eye (Springs FY2012 and FY2024, El '
+        + 'Paso FY2005 and FY2019) and none carries an "except for". '
+        + '⚠ The excluded years are NOT graded because they are not loaded: Springs FY1999-FY2011 '
+        + 'and El Paso FY2000-FY2004 are image-only scans, and El Paso FY2006-FY2008 is a '
+        + 'differently-titled statement split across two pages. See '
+        + '[[project_co_springs_el_paso_onboarding]].',
     },
   },
   {
