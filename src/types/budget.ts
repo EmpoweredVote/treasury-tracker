@@ -164,6 +164,11 @@ export interface Municipality {
     // normalizeDerivation() in src/data/derivation.ts, which reads absent as
     // 'published'; every row predating SCOPE-04 is.
     derivation?: string | null;
+    // AUDIT-GRADE: what independent assurance stands behind the row. Optional for
+    // the same reason as fund_scope -- an older API build omits it, and absent
+    // must be read as 'unknown'. Normalise through normalizeAuditGrade() in
+    // src/data/auditGrade.ts.
+    audit_grade?: string | null;
   }>;
 }
 
@@ -194,6 +199,13 @@ export interface BudgetData {
     // SCOPE-04: did a government publish this total, or did TT compute it from
     // published components? Absent means 'published'.
     derivation?: import('../data/derivation').Derivation | null;
+    // AUDIT-GRADE: how much independent checking stands behind totalBudget.
+    // Absent means 'unknown' -- nobody has looked -- never a guess.
+    //
+    // ⚠⚠ NOT a ranked scale. `audited_ocboa` is the same assurance as
+    // `audited_gaap` on a non-GAAP measurement basis; assurance and
+    // comparability are separate questions. See src/data/auditGrade.ts.
+    auditGrade?: import('../data/auditGrade').AuditGrade | null;
     // For salaries
     totalCompensation?: number;
     totalEmployees?: number;

@@ -1,25 +1,36 @@
 # Follow-up — explain the audit-grade scale to readers
 
 **Filed 2026-08-31, after Knight session 8 (PR #120).**
-**Status: NOT STARTED. This is the highest-value unshipped piece of the grade work.**
+**Status: SHIPPED 2026-08-31 — `src/data/auditGrade.ts` + the ScopeLabel chip in
+Treasury Tracker, `audit_grade` passthrough in ev-accounts. The qualified-opinion
+gap below remains OPEN and is the only unshipped part.**
 
 ## The problem in one line
 
-TT now stores **five distinct audit grades** on 88,820 budget rows — and **a
-reader cannot see any of them.**
+TT stores **five distinct audit grades** on 88,820 budget rows — and until
+2026-08-31 **a reader could see none of them.**
 
-The `audit_grade` column exists, is constrained, is populated, and is invisible.
-Everything built across sessions 1–8 to grade honestly currently reaches nobody.
+The `audit_grade` column existed, was constrained, was populated, and was
+invisible. Everything built across sessions 1–8 to grade honestly reached nobody.
 
 ## What is actually stored today
 
-| value | meaning | rows |
-|---|---|---|
-| `audited_gaap` | read from a report bearing an independent auditor's opinion, GAAP basis | ~28,300 classified |
-| `audited_ocboa` | audited to the same standard, but on a NON-GAAP basis (modified cash / regulatory) | 8 — Brown County SD |
-| `compiled_from_audited` | a state agency compiled it from audited statements | FL DFS |
-| `self_reported_unaudited` | a state agency compiled entity self-reports, or disclaims audit | OH AOS, CA SCO, PA DCED, IN Gateway, MI F-65, GA RLGF, SC RFA |
-| `unknown` | **nobody has looked** — never a guess | the majority |
+⚠⚠ **CORRECTED 2026-08-31.** The first draft of this table put "~28,300
+classified" against `audited_gaap`. That was the count of ALL classified rows,
+mis-attributed to one value. Measured against the database:
+
+| value | meaning | rows | entities | share |
+|---|---|---:|---:|---:|
+| `audited_gaap` | read from a report bearing an independent auditor's opinion, GAAP basis | 342 | 15 | 0.4% |
+| `audited_ocboa` | audited to the same standard, but on a NON-GAAP basis (modified cash / regulatory) | 8 | 1 | 0.01% |
+| `compiled_from_audited` | a state agency compiled it from audited statements (FL DFS) | 190 | 7 | 0.2% |
+| `self_reported_unaudited` | a state agency compiled entity self-reports, or disclaims audit (OH AOS, CA SCO, PA DCED, IN Gateway, MI F-65, GA RLGF, SC RFA) | 27,912 | 835 | **31.4%** |
+| `unknown` | **nobody has looked** — never a guess | 60,368 | 2,122 | **68.0%** |
+
+⭐ **This is why the wording is the whole task and the rendering is not.** The two
+values the next section warns will mislead a layperson are **99.4% of what a
+reader will ever see**. Making `audited_gaap` look good affects 0.4% of rows;
+wording the other two so they do not libel 2,957 governments is the job.
 
 ## What the reader needs, and why plain wording matters
 
@@ -73,11 +84,36 @@ receivable. Not alarming — genuinely not identical to clean.
 component unit (the Mississippi Coast Coliseum Commission, omitted from the
 reporting entity). It does **not** touch the General Fund.
 
-**Decision still open (Chris):** a fifth grade value, an orthogonal
+**Decision still open (Chris):** a sixth grade value, an orthogonal
 modified-opinion flag, or accept the loss. It was deliberately NOT resolved
 unilaterally on top of adding `audited_ocboa` in the same session.
 
-## Scope of the work
+⭐ **DEFERRED, 2026-08-31 (Chris).** The reader-facing work shipped without it, on
+these grounds: the invisibility gap affected 88,820 rows and every reader, while
+this one affects **10 rows on one entity** (Harrison County MS FY2016/17/21/22/23
+× operating + revenue); and because opinion is ORTHOGONAL to grade, adding it
+later is an addition rather than a rework. `auditGrade.test.ts` forbids the
+explainer copy from claiming a precision the vocabulary does not have — it may not
+use the words "clean opinion" or "unmodified opinion" — so the shipped copy does
+not paper over this gap.
+
+## Scope of the work — DONE except where noted
+
+⭐ **What shipped 2026-08-31:**
+* `src/data/auditGrade.ts` — type, `normalizeAuditGrade()` (absent -> `unknown`,
+  the OPPOSITE default from `normalizeDerivation()`), `isAudited()` (TRUE for both
+  audited values), `AUDIT_GRADE_COPY`, `AUDIT_GRADE_EXPLAINER`.
+* `auditGrade.test.ts` — 15 tests. The load-bearing ones pin the copy against
+  drift: no alarm word on `unknown`, no "unverified" on `self_reported_unaudited`,
+  both halves of the OCBOA sentence, no ranking words anywhere.
+* `ScopeLabel.tsx` — a second chip beside the fund-scope one, with its own
+  disclosure state. ⚠ **All graded values share ONE colour**; `unknown` keeps the
+  existing neutral grey. Colour is a ranking whether or not you intend it, so the
+  WORDS carry the distinction. Verified in the running app by reading
+  `getComputedStyle` off the rendered chip.
+* ev-accounts: `audit_grade` at all ten sites in `treasuryService.ts`, plus a NEW
+  `tests/integration/treasury-budgets.test.ts` — the budget payload had NO
+  contract test at all, on the very route that feeds the reader's figure.
 
 1. **ev-accounts passthrough** — `audit_grade` joins `fund_scope`, `basis`,
    `reporting_entity` and `derivation` in `metadata` (`src/types/budget.ts:180`),
