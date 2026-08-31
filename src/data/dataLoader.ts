@@ -6,6 +6,7 @@
  */
 
 import { normalizeScope, normalizeReportingEntity } from './fundScopeVocabulary';
+import { normalizeAuditGrade } from './auditGrade';
 import { chooseDisplaySeries, normalizeBasis, type SeriesKey } from './budgetSeries';
 import type { BudgetData, BudgetCategory, FederalContext, LinkedTransactionSummary, Municipality, OrgFinancialSummary, SearchResult } from '../types/budget';
 
@@ -246,7 +247,12 @@ function transformAPIResponse(budget: any, categories: BudgetCategory[], city?: 
       // of "the API has not told us" and survives the pre-deploy window.
       fundScope: normalizeScope(budget.fund_scope),
       basis: normalizeBasis(budget.basis),
-      reportingEntity: normalizeReportingEntity(budget.reporting_entity)
+      reportingEntity: normalizeReportingEntity(budget.reporting_entity),
+      // AUDIT-GRADE: normalised here like the others, so every consumer sees a
+      // legal value. ⚠ Absent becomes 'unknown' -- the honest reading of "the API
+      // has not told us" -- and NEVER a graded value, which would have Treasury
+      // Tracker assert an audit it never read.
+      auditGrade: normalizeAuditGrade(budget.audit_grade)
     },
     categories: categories
   };
