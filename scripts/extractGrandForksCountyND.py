@@ -85,6 +85,22 @@ CONFIG = CityConfig(
     parents=('current', 'debt service'),
     root_leaves=('capital outlay',),
     fy_end=('December', 31),
+    # ⚠⚠ TWO MONEY REGIMES IN ONE SERIES. The ND Office of the State Auditor
+    # audited FY2016-FY2021 and printed CENTS ($12,716,043.81); Brady Martz took
+    # over at FY2022 and prints whole dollars. Read from the documents, and
+    # corroborated independently by FAC's `auditor_firm_name` changing on the
+    # same boundary.
+    #
+    # Without this, `156,022.41` matched as `156,022` + `41` and the column
+    # reader returned **41** for Economic development and **98** for Capital
+    # outlay. The tie failed at -401,161 and nothing shipped, but that is the
+    # silent-corruption shape the campaign exists to prevent.
+    #
+    # ⚠ Left ON for the whole series, deliberately: decimal mode reads a
+    # whole-dollar token exactly too (it scales to cents with no rounding), and
+    # FY2022-2024 tie at $0 under it — verified, not assumed. One config per
+    # entity beats a per-year switch that would have to be maintained forever.
+    decimal_money=True,
 )
 
 if __name__ == '__main__':

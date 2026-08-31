@@ -370,7 +370,8 @@ class CityConfig:
                  # further down this module and a default argument is evaluated
                  # when the function is DEFINED, so referring to it here is a
                  # NameError at import. The two are asserted equal below.
-                 revenue_section_header='revenues'):
+                 revenue_section_header='revenues',
+                 decimal_money=False, whitespace_repair=False):
         if not isinstance(units, int) or isinstance(units, bool):
             raise TypeError(
                 'CityConfig.units must be an int, got %r (%s). A float would '
@@ -402,26 +403,75 @@ class CityConfig:
                 'A typo there would silently disable nothing and leave the page '
                 'rejected, which reads as "no statement found".' % (unknown, _EXCLUDE))
         self.exclude_ignore = tuple(t.lower() for t in exclude_ignore)
+        self.decimal_money = bool(decimal_money)
+        self.whitespace_repair = bool(whitespace_repair)
 
 
 # ── Money parsing ─────────────────────────────────────────────────────────────
 _MONEY = re.compile(r'\((?:\d[\d,]*)\)|\$?\s*\d[\d,]*')
 
+# ⚠⚠ DECIMAL (cents-printing) VARIANT — Knight session 8, opt-in only.
+#
+# Grand Forks County ND FY2016-FY2021 is audited by the ND Office of the State
+# Auditor and prints CENTS: `$ 12,716,043.81`. With the whole-dollar `_MONEY`
+# above, `156,022.41` matches as TWO tokens -- `156,022` and `41` -- and the
+# positional column reader then picks whichever landed in the General Fund
+# column. Observed live: `Economic development` came back as **41** and
+# `Capital outlay` as **98**. That is a silent two-order-of-magnitude corruption
+# and it is exactly the shape that would ship if the tie happened to pass.
+#
+# It did NOT pass -- the tie failed at -401,161 and the years were held back --
+# which is the design working. This variant exists so those years can be read
+# correctly rather than excluded.
+#
+# ⚠ The county switched to Brady Martz at FY2022 and whole dollars came with it,
+# so ONE ENTITY NEEDS BOTH REGIMES ACROSS ITS OWN SERIES. Decimal mode is
+# therefore safe to leave on for such an entity: a whole-dollar token still
+# matches, and is scaled to exact cents with no rounding.
+_MONEY_DEC = re.compile(r'\((?:\d[\d,]*(?:\.\d{1,2})?)\)|\$?\s*\d[\d,]*(?:\.\d{1,2})?')
+
+# Module-level because `nums_with_pos`/`slots`/`label_of_slots` are called from
+# a dozen places that do not all carry a `cfg`. It is set from cfg at the top of
+# `extract()` on EVERY call, so it cannot leak between entities, and the module
+# is not concurrent. Default False keeps every pre-session-8 entity bit-identical.
+_DECIMAL_MONEY = False
+
+
+def _money_re():
+    return _MONEY_DEC if _DECIMAL_MONEY else _MONEY
+
+
 def parse_money(tok):
-    """'$  8,347,443' -> 8347443 ; '(555,070)' -> -555070 ; '' / '-' -> None."""
+    """'$  8,347,443' -> 8347443 ; '(555,070)' -> -555070 ; '' / '-' -> None.
+
+    ⚠ In decimal mode the return is **integer CENTS**, not dollars, so that the
+    whole pipeline -- component sums, the printed total, and therefore
+    `tie_delta` -- stays in exact integer arithmetic. Rounding each row to
+    dollars first would make the tie drift by a few dollars on a large statement
+    and force a fake `source_rounding` entry to paper over OUR error rather than
+    the source's. Conversion to dollars happens ONCE, at emission, in `extract`.
+    """
     t = tok.replace('$', '').replace(' ', '').strip()
     if not t or t == '-':
         return None
     neg = t.startswith('(')
     t = t.strip('()').replace(',', '')
-    if not t.isdigit():
+    if not _DECIMAL_MONEY:
+        if not t.isdigit():
+            return None
+        return -int(t) if neg else int(t)
+    # Decimal mode: everything becomes cents, including whole-dollar tokens.
+    whole, _, frac = t.partition('.')
+    if not whole.isdigit() or (frac and not frac.isdigit()):
         return None
-    return -int(t) if neg else int(t)
+    cents = int(whole) * 100 + int((frac + '00')[:2] or 0)
+    return -cents if neg else cents
+
 
 def nums_with_pos(line):
     """[(value, end_char_pos)] for every money token on the line."""
     out = []
-    for m in _MONEY.finditer(line):
+    for m in _money_re().finditer(line):
         v = parse_money(m.group())
         if v is not None:
             out.append((v, m.end()))
@@ -444,10 +494,23 @@ def nums_with_pos(line):
 # -- the exact "columns slide left" failure this feature exists to prevent.
 _SLOT = re.compile(r'\((?:\d[\d,]*)\)|\$?\s*\d[\d,]*|(?:(?<=^)|(?<=\s\s))[-–—]+(?=\s\s|$)')
 
+# ⚠ The decimal twin of `_SLOT`. It MUST stay in lockstep with `_MONEY_DEC`:
+# if a cents token were one slot to the money reader and two to the slot reader,
+# ordinal column counting would slide every later column left by one — the very
+# failure the dash-run rule above exists to prevent.
+_SLOT_DEC = re.compile(
+    r'\((?:\d[\d,]*(?:\.\d{1,2})?)\)|\$?\s*\d[\d,]*(?:\.\d{1,2})?'
+    r'|(?:(?<=^)|(?<=\s\s))[-–—]+(?=\s\s|$)')
+
+
+def _slot_re():
+    return _SLOT_DEC if _DECIMAL_MONEY else _SLOT
+
+
 def slots(line):
     """Every column slot on `line`, left to right. A dash-run yields 0."""
     out = []
-    for m in _SLOT.finditer(line):
+    for m in _slot_re().finditer(line):
         t = m.group().replace('$', '').replace(' ', '').strip()
         if not t:
             continue
@@ -489,7 +552,7 @@ def label_of(line):
     money token and is untouched, so no ordinal city is affected either.
     """
     raw = line
-    for m in _MONEY.finditer(line):
+    for m in _money_re().finditer(line):
         if not re.search(r'[A-Za-z]{2,}', line[m.end():]):
             raw = line[:m.start()]
             break
@@ -497,7 +560,7 @@ def label_of(line):
 
 def label_of_slots(line):
     """Row label for ordinal mode: text before the first COLUMN SLOT."""
-    m = _SLOT.search(line)
+    m = _slot_re().search(line)
     return norm_label(line[:m.start()] if m else line)
 
 _DASH_ROW = re.compile(r'^(?P<label>.*?[^\s\-–—])(?P<dashes>(?:\s+[-–—]+)+)\s*$')
@@ -831,11 +894,11 @@ def target_cell_is_dash_zero(line, col_anchors, cfg):
     if not nums_with_pos(line):
         return dash_zero_label(line) is not None
     if cfg.column_strategy == 'ordinal':
-        m = _SLOT.search(line)
+        m = _slot_re().search(line)
         return bool(m) and _DASH_ONLY.match(m.group().strip()) is not None
     if not col_anchors or gf_value(line, col_anchors) is not None:
         return False
-    for m in _SLOT.finditer(line):
+    for m in _slot_re().finditer(line):
         if not _DASH_ONLY.match(m.group().strip()):
             continue
         col = min(range(len(col_anchors)), key=lambda k: abs(m.end() - col_anchors[k]))
@@ -1358,8 +1421,64 @@ def build_operating(lines, col_anchors, cfg):
 
 
 # ── Orchestration ────────────────────────────────────────────────────────────
+# ── OCR whitespace repair (opt-in) ────────────────────────────────────────────
+#
+# Knight session 8. City of Biloxi's post-FY2020 filings are scans, and their
+# OCR splits thousands groups with a single space: `4, 363 ,800`, `20,034, 199`,
+# `77, 153,727`. Every publisher's copy is the same scan (FAC, the city's own
+# site, and the MS State Auditor), so there is no cleaner copy to prefer.
+#
+# ⚠⚠ THE SAFETY ARGUMENT, WHICH IS THE WHOLE POINT:
+#
+#   1. It repairs ONLY a comma adjacent to EXACTLY ONE space. `pdftotext -table`
+#      separates COLUMNS with runs of two or more spaces, so a single space can
+#      never be a column boundary. A two-space gap is left untouched.
+#   2. It requires a digit on one side and a full three-digit group on the
+#      other, so it can only ever close a thousands separator.
+#   3. IT NEVER INVENTS, DELETES OR ALTERS A DIGIT -- it only removes a space.
+#      `4, 363 ,800` -> `4,363,800` is the same digits in the same order.
+#   4. It cannot rescue a LOST digit. `4,973,!09` and `I09,091,141` are left
+#      exactly as they are and will fail to parse, so the tie gate still fails
+#      loudly on Biloxi FY2024. That is correct: a lost digit is unrecoverable
+#      and must not be guessed.
+#   5. The TIE GATE independently validates every repair. If a repair joined two
+#      figures that were not one figure, the component sum would stop matching
+#      the printed total. Nothing here is trusted on its own.
+_WS_REPAIR = (
+    (re.compile(r'(?<=\d), (?=\d{3}\b)'), ','),   # `20,034, 199` -> `20,034,199`
+    (re.compile(r'(?<=\d) ,(?=\d{3}\b)'), ','),   # `77 ,153,727` -> `77,153,727`
+)
+
+
+def repair_ocr_whitespace(text):
+    """Close single-space-split thousands groups. Digits are never changed."""
+    for rx, repl in _WS_REPAIR:
+        text = rx.sub(repl, text)
+    return text
+
+
+def _to_dollars(cents):
+    """Exact cents -> dollars, half-up, sign-symmetric. Never floats."""
+    if cents is None:
+        return None
+    neg = cents < 0
+    v = (abs(cents) + 50) // 100
+    return -v if neg else v
+
+
+def _tree_to_dollars(node):
+    node['a'] = _to_dollars(node['a'])
+    for child in node.get('c', []):
+        _tree_to_dollars(child)
+
+
 def extract(pdf_path, mode, cfg):
+    global _DECIMAL_MONEY
+    # Set from cfg on EVERY call so a previous entity's mode cannot leak.
+    _DECIMAL_MONEY = cfg.decimal_money
     pages = table_pages(pdf_path)
+    if cfg.whitespace_repair:
+        pages = [repair_ocr_whitespace(p) for p in pages]
     pi, pg = find_statement_page(pages, cfg.statement_anchor, cfg.revenue_total_labels,
                                 cfg.exclude_ignore)
     if pg is None:
@@ -1401,6 +1520,17 @@ def extract(pdf_path, mode, cfg):
         'source_rounding_accepted': accepted,
         'zero_rows': zero_rows,
     }
+    # ⚠ The tie above was checked in EXACT CENTS. Convert only now, and only
+    # once, so no rounding can ever reach the arithmetic that proves the read.
+    # `tie_delta_cents` is retained because a decimal entity's registered
+    # `source_rounding` deltas live in the cents domain, not the dollar one.
+    if _DECIMAL_MONEY:
+        result['tie_delta_cents'] = tie_delta
+        result['money_domain'] = 'cents_verified_dollars_emitted'
+        _tree_to_dollars(result['tree'])
+        result['computed_total'] = _to_dollars(computed)
+        result['printed_total'] = _to_dollars(printed)
+        result['tie_delta'] = _to_dollars(tie_delta)
     if accepted is not None:
         print(f'  NOTE ({mode} FY{fy}): printed total {printed:,} disagrees with the sum of '
               f'its own components {computed:,} by {tie_delta:+,} -- accepted as a registered '
