@@ -324,7 +324,12 @@ export const FUND_SCOPE_REGISTRY = [
     // rows exist in the table; were they loaded later under a colliding label
     // they would need splitting by municipality_id rather than by this string.
     id: 'co-local-acfr-gf',
-    match: /^(City of Colorado Springs|El Paso County) ACFR — General Fund /,
+    // ⚠ EXTENDED by Knight session 7b (2026-08-30) with City of Boulder and
+    // Boulder County — the same statement, the same column, the same state, so
+    // this family grows rather than a lookalike family appearing beside it.
+    // The alternation stays ANCHORED and enumerated: a bare /^City of/ would
+    // claim every future Colorado entity sight unseen.
+    match: /^(City of Colorado Springs|El Paso County|City of Boulder|Boulder County) ACFR — General Fund /,
     scope: SCOPE.GENERAL_FUND,
     evidence: {
       document: 'FIVE probes across two Colorado entities, each the governmental-funds Statement '
@@ -915,6 +920,42 @@ export const FUND_SCOPE_REGISTRY = [
              + 'same treatment as oh-aos. ⚠ This is the OPPOSITE of mn-osa, which consolidates '
              + 'HRA/EDA/TIF component units into the same columns and is incl_component_units for '
              + 'that reason.',
+    },
+  },
+  {
+    // Knight campaign, session 7b — Kansas's FIRST local entities.
+    // ⚠ A NEW family rather than an extension: Colorado's `co-local-acfr-gf`
+    // is anchored to named Colorado entities, and widening it across a state
+    // line would make one entry's evidence cover documents nobody read.
+    id: 'ks-local-acfr-gf',
+    match: /^(City of Wichita|Sedgwick County) ACFR — General Fund /,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'The entities\' own ACFRs, fetched from their own publishers and cached under '
+              + '_acfr-work/coks/: City of Wichita FY2000-FY2025 from the city archive '
+              + '(https://www.wichita.gov/Archive.aspx?AMID=36) and Sedgwick County '
+              + 'FY2006-FY2024 from the county finance pages. Every figure is read by '
+              + 'scripts/lib/acfrGF.py from the GOVERNMENTAL-FUNDS Statement of Revenues, '
+              + 'Expenditures and Changes in Fund Balances — the same statement, and the same '
+              + 'General Fund column, that co-local-acfr-gf, nc-local-acfr-gf, sc-local-acfr-gf '
+              + 'and tn-local-acfr-gf read. The scope is therefore READ off a printed column '
+              + 'heading rather than inferred.',
+      figures: 'Both entities print WHOLE DOLLARS — no statement page carries an "in thousands" '
+             + 'caption, and Wichita FY2024 prints General Fund total revenues 317,858,416 with '
+             + 'Sedgwick County FY2024 at 257,880,208. ⚠ Checked per entity and NOT carried: '
+             + 'City of Boulder, loaded into co-local-acfr-gf in this same session, prints '
+             + '"(Amounts in 000\'s)" and uses units=1000. '
+             + 'Every one of the 54 loaded entity-years ties EXACTLY against the issuer\'s own '
+             + 'printed General Fund total on both faces — 108 trees, tie_delta 0, no '
+             + 'tolerance anywhere. '
+             + '⚠ BUDGETARY SCHEDULES ARE EXCLUDED BY CONSTRUCTION: both issuers also print a '
+             + 'General Fund "Budget and Actual" schedule, and Sedgwick County FY2019 alone '
+             + 'carries twelve of them. Loading one would put budget-basis figures under a '
+             + 'GAAP-actual label; the library\'s _EXCLUDE list keeps those pages from ever '
+             + 'qualifying. '
+             + 'REPORTING ENTITY: primary_government — the figure is the primary government\'s '
+             + 'own General Fund column, with discretely presented component units in their own '
+             + 'columns elsewhere in the statement set.',
     },
   },
   {

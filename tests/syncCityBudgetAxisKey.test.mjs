@@ -103,6 +103,12 @@ const REQUIRED = {
   // the same unknown/unknown lookup — the first run would have them fight for
   // one row and a re-run would DUPLICATE all 128.
   'loadMichiganF65.mjs': 'MI Treasury F-65 — 128 rows, general_fund + total_governmental / actual',
+  // Knight session 7b. Kansas is a NEW family; Colorado EXTENDS the existing
+  // `co-local-acfr-gf`, whose 64 pre-existing rows were measured in the live
+  // table as general_fund/actual before this load and are unchanged by it — so
+  // the 24 new Colorado rows key identically to the rows already there, which
+  // is exactly what makes the extension safe rather than a collision.
+  'loadCoKsAcfrs.mjs': 'CO+KS local ACFRs — 108 rows, general_fund / actual',
   'loadIndianaGateway.mjs': 'Indiana Gateway AFR — 78 rows, total_governmental/actual',
   // Knight session 6a. A NEW family — South Carolina held only its state node
   // before this load — so the first run inserts and every later run matches on

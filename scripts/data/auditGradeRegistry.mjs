@@ -417,6 +417,51 @@ export const AUDIT_GRADE_REGISTRY = [
     evidence: CA_SCO_EVIDENCE,
   },
   {
+    // Knight campaign, session 7b — the four Colorado + Kansas ACFR entities.
+    //
+    // ⚠⚠ ANCHORED TO THE FOUR ENTITIES WHOSE OPINIONS THIS SESSION ACTUALLY
+    // READ, not to the whole `co-local-acfr-gf` family. Colorado Springs and
+    // El Paso County have been in TT since v2.29 and still carry
+    // `audit_grade = unknown`; widening this pattern to `co-local-acfr-gf`
+    // would grade 64 merged rows off evidence nobody gathered. §3.5 requires
+    // evidence PER DOCUMENT, and "it is an ACFR, so it is audited" is exactly
+    // the assumption North Carolina punished in session 2. Grading those two is
+    // a filed follow-up and a cheap one — scripts/verifyCoKsOpinions.py would
+    // do it unchanged.
+    id: 'co-ks-local-acfr-gf',
+    match: /^(City of Boulder|Boulder County|City of Wichita|Sedgwick County) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY(?:20[0-2][0-9]) actual, GAAP basis\)$/,
+    value: AUDIT_GRADE.AUDITED_GAAP,
+    evidence: {
+      document: 'The 54 loaded ACFRs themselves, each carrying an independent auditor\'s report '
+        + 'on the basic financial statements: City of Boulder FY2016-FY2022 (fetched from the '
+        + 'Federal Audit Clearinghouse by report_id), Boulder County FY2021-FY2025, City of '
+        + 'Wichita FY2000-FY2025 less FY2001/FY2008, and Sedgwick County FY2006-FY2024 less '
+        + 'FY2005/FY2019. Verified per document by scripts/verifyCoKsOpinions.py, which is '
+        + 'committed alongside this entry and re-runnable.',
+      figures: '⚠⚠ SEVENTEEN OF THESE OPINIONS ARE INVISIBLE TO A PLAIN TEXT SEARCH, and grading '
+        + 'on the text layer alone would have shipped City of Wichita FY2000-FY2010 and Sedgwick '
+        + 'County FY2006-FY2011 as `unknown`. Those documents are born-digital in the statements '
+        + 'and IMAGE-ONLY on the auditor\'s page, so a text search finds "Independent Auditor" '
+        + 'exactly ONCE — in the TABLE OF CONTENTS — which reads precisely like an unaudited '
+        + 'report. This is session 2\'s lesson (8 of 36 Charlotte/Mecklenburg opinion pages were '
+        + 'image-only) in its third occurrence. OCR at 200dpi recovers them; Wichita FY2005 reads '
+        + '"In our opinion, the financial statements referred to above present fairly, in all '
+        + 'material respects ... in conformity with accounting principles generally accepted in '
+        + 'the United States of America" over the signature of Allen, Gibbs & Houlik, L.C. '
+        + '⚠ THE FIRST "IN OUR OPINION" IS NOT NECESSARILY THE RIGHT ONE — every one of these '
+        + 'reports also carries an IN-RELATION-TO paragraph about the combining schedules '
+        + '("...we express no opinion on such information"). The primary opinion is identified '
+        + 'positively instead, by pairing a fair-presentation phrase with a GAAP conformity '
+        + 'phrase, so a document can never be graded off the supplementary-information paragraph. '
+        + '⚠ A modified-opinion WORD is not a modified opinion: "qualified opinion" and "adverse '
+        + 'opinion" appear in the Single Audit compliance report and in standard boilerplate in '
+        + 'several of these documents. Those occurrences are reported for review and never used '
+        + 'to downgrade automatically. '
+        + '⚠ The four unloadable documents are NOT graded because they are not loaded — they are '
+        + 'declared gaps in scripts/extractCoKsAll.mjs, never written as $0.',
+    },
+  },
+  {
     // Knight campaign, session 7a — Michigan Treasury Form F-65.
     //
     // ⚠⚠ A SIXTH DISTINCT ANSWER IN SIX STATES, and the one that most nearly

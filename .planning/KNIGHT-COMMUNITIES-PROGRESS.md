@@ -516,25 +516,30 @@ FY month: the stored `fiscal_year_start_month` and whether the FAC census confir
 | **Nashville-Davidson** | TN | **city** (consolidated) | loaded | **own ACFR** FY2016–25 | `audited_gaap` | 7 · ACFR + live FAC | 6b |
 | **Detroit** | MI | city | loaded | **MI Treasury F-65** FY2010–25 | `self_reported_unaudited` | **7** · **FAC confirmed** (1998–2025) | 7a |
 | **Wayne County** | MI | county | loaded | **MI Treasury F-65** FY2010–25 | `self_reported_unaudited` | **10** · filing + FAC 1999–2005; **window UNCOVERED** | 7a |
+| **City of Boulder** | CO | city | loaded | **own ACFR via FAC** FY2016–22 | `audited_gaap` | 1 · **FAC confirmed** | 7b |
+| **Boulder County** | CO | county | loaded | **own ACFR** FY2021–25 | `audited_gaap` | 1 · **FAC confirmed** | 7b |
+| **City of Wichita** | KS | city | loaded | **own ACFR** FY2000–25 exc. **FY01, FY08** | `audited_gaap` | 1 · confirmed exc. FY2022 | 7b |
+| **Sedgwick County** | KS | county | loaded | **own ACFR** FY2006–24 exc. **FY19** | `audited_gaap` | 1 · **FAC confirmed** | 7b |
 
-**COUNTED FROM THE TABLE ABOVE, 2026-08-30: 37 rows — 36 `loaded` + 1 `partial`
-(San Jose). 21 primary entities + 16 parent counties.**
+**COUNTED FROM THE TABLE ABOVE, 2026-08-30 after session 7b: 41 rows — 40
+`loaded` + 1 `partial` (San Jose). 23 primary entities + 18 parent counties.**
 
-The remaining entities are `pending`: **6 primaries** (Aberdeen SD, Biloxi MS,
-Boulder CO, Grand Forks ND, Lexington-Fayette KY, Wichita KS) and **5 counties**
-(Brown SD, Harrison MS, Boulder CO, Grand Forks ND, Sedgwick KS) = **11**.
+The remaining entities are `pending`: **4 primaries** (Aberdeen SD, Biloxi MS,
+Grand Forks ND, Lexington-Fayette KY) and **3 counties** (Brown SD, Harrison MS,
+Grand Forks ND) = **7**. All seven are session 8's "orphans" slice.
 
-⚠⚠ **THE ROSTER TOTAL OF 43 DOES NOT RECONCILE, AND THIS IS THE FIRST SESSION TO
+⚠⚠ **THE ROSTER TOTAL OF 43 DOES NOT RECONCILE, AND SESSION 7a WAS THE FIRST TO
 COUNT IT RATHER THAN CARRY IT.** Spec §2 states "Total entity target: 43
-(27 primary + 16 counties)", but 16 counties are ALREADY LOADED and five more are
+(27 primary + 16 counties)", but 18 counties are ALREADY LOADED and three more are
 still pending, so the campaign has **21 parent counties, not 16**. The arithmetic
-that reconciles is 27 primary + 21 counties = **48**, and 37 + 11 = 48 exactly.
+that reconciles is 27 primary + 21 counties = **48**, and 41 + 7 = 48 exactly.
 The undercount is explained by the five CONSOLIDATED primaries that have no
 separate county (Macon-Bibb, Columbus-Muscogee, Philadelphia, Nashville-Davidson,
 Lexington-Fayette) — subtracting them from 21 gives the 16 in §2, which appears
 to have counted "new counties to create" rather than "counties in the roster".
 ⚠ **Percentages quoted in earlier sessions were computed against 43** and are
-therefore optimistic: 37 of 48 is **77%**, not 86%. Left as a flagged
+therefore optimistic: **41 of 48 is 85%**, where the same count against 43 would
+read 95%. Left as a flagged
 discrepancy for Chris rather than silently restated — the headline number is a
 scoping decision, not a bookkeeping one. **Count the table; never carry a total
 forward** — the same rule that caught session 4's missing Georgia rows.
@@ -2331,3 +2336,232 @@ session-6b rule that a varying shape is not automatically a bug.
    County, both by the ACFR route. Recon is already done (above); CO must
    **extend** `co-local-acfr-gf` rather than duplicate it, and KS needs a new
    `ks-local-acfr-gf` family with its five registrations.
+
+---
+
+## ✅ Session 7b (COLORADO + KANSAS) — 2026-08-30
+
+**4 entities / 108 rows / 54 entity-years. KANSAS'S FIRST LOCAL ENTITIES** — the
+table held one KS row before this, the state node. Colorado **EXTENDS** the
+existing `co-local-acfr-gf` family (Colorado Springs + El Paso County, v2.29)
+rather than duplicating it. Frozen digest **byte-identical** before and after —
+and unchanged across *both* session-7 loads. Tests 1,768 → 1,793.
+
+| Entity | Route | Window | Yrs | Rows |
+|---|---|---|---|---|
+| City of Boulder | **FAC** by report_id | FY2016–2022 | 7 | 14 |
+| Boulder County | county's own PDFs | FY2021–2025 | 5 | 10 |
+| City of Wichita | city archive by ADID | FY2000–2025 exc. FY01/FY08 | 24 | 48 |
+| Sedgwick County | county media library | FY2006–2024 exc. FY19 | 18 | 36 |
+
+Both recon outcomes were **ACFR**: Colorado's DOLA is the documented trap *and*
+publishes at `total_governmental`, so it could not have extended TT's General
+Fund series regardless; Kansas's statewide source publishes **adopted budgets
+only** (2022–2026), no actuals.
+
+### ⚠⚠ SEVENTEEN OF FIFTY-SEVEN OPINIONS ARE INVISIBLE TO A TEXT SEARCH
+
+Wichita FY2000–2010 and Sedgwick County FY2006–2011 are born-digital in the
+statements and **image-only on the auditor's page**. In every one of them a plain
+text search finds "Independent Auditor" exactly once — **in the TABLE OF
+CONTENTS** — which reads precisely like an unaudited report. Grading on the text
+layer alone would have shipped all seventeen as `unknown`.
+
+This is session 2's lesson (8 of 36 Charlotte/Mecklenburg opinion pages were
+image-only) in its **third occurrence**. `scripts/verifyCoKsOpinions.py` OCRs the
+front matter at 200dpi and recovers every one — **40 found in the text layer, 17
+by OCR, 0 NOT FOUND.** Wichita FY2005 reads, over the signature of Allen, Gibbs &
+Houlik, L.C.:
+
+> "In our opinion, the financial statements referred to above present fairly, in
+> all material respects … in conformity with accounting principles generally
+> accepted in the United States of America."
+
+⚠ **The first "In our opinion" is not necessarily the right one** — every one of
+these reports also carries an in-relation-to paragraph about the combining
+schedules ("…we express no opinion on such information"). The primary opinion is
+identified *positively* instead, by pairing a fair-presentation phrase with a
+GAAP conformity phrase.
+
+### ⚠⚠ AND THAT GATE'S FIRST VERSION INVERTED ITS OWN SIGNAL
+
+Its modified-opinion pattern matched a collapsed `qualifiedopinion` — which also
+matches **inside `UNqualifiedopinion`, the opposite meaning**. It flagged 20
+documents, and the flags were sentences like Wichita FY2005's "issued an
+**unqualified** opinion on the City of Wichita's financial statements" and
+Sedgwick County FY2009's "a reasonable basis for rendering **unqualified**
+opinions". *Evidence of a clean opinion, reported as a possible defect.*
+
+Fixed with a negative lookbehind and pinned by six cases. ⚠ A `\b` cannot do this
+job — whitespace is already collapsed, so there is no non-word character between
+"un" and "qualified" to anchor to.
+
+⚠ The one surviving true positive is real and benign: Wichita FY2021 carries a
+genuine **"Qualified Opinion on the Water Infrastructure Finance and Innovation
+Act (WIFIA) Program"** — a *federal program compliance* opinion in the Single
+Audit, whose own summary reads "Unmodified for all major federal programs …
+except for 66.958". Not an opinion on the financial statements. **This is exactly
+why the pattern reports and never downgrades.**
+
+### ⚠⚠ FOUR DOCUMENTS, FOUR STRUCTURES — THREE OF THE DIFFERENCES SILENT
+
+Boulder city and Boulder County sit twenty miles apart, load into the *same*
+registry family in the *same* session, and disagree on every fact the extractor
+config exists to declare:
+
+| | Boulder city | Boulder County |
+|---|---|---|
+| units | `(Amounts in 000's)` | **whole dollars** |
+| debt parent | `Debt service payments:` | **`Service on long-term obligations:`** |
+| revenue total | `Total revenues` | **`Total revenue`** (singular) |
+| revenue section | `Revenues` | **`Revenue`** (singular) |
+
+1. **A units error is invisible to the tie** — every figure on a statement scales
+   together. Carrying the city's `units=1000` across would have shipped the
+   county 1000× too large with a $0 delta. The Charlotte/Mecklenburg pairing, one
+   session after Detroit/Wayne.
+2. **The debt parent is not called "Debt service"** on Boulder County. A config
+   copied from the city — or from Wichita or Sedgwick County, which both say
+   `Debt service:` — would not match it, and Principal and Interest would
+   silently reparent **while the statement still tied to the cent**.
+3. **The revenue section header is singular**, and with the plural hard-coded the
+   section reader matched *nothing*: the revenue tree came back EMPTY while the
+   printed total was still found, so the tie gate **failed loudly at the full
+   −283,438,244** rather than shipping a wrong shape. That loud failure is the
+   design working. Fixed by a new `CityConfig.revenue_section_header` — the same
+   class of fact as `revenue_total_labels`, which was added for Bainbridge's
+   "Total Operating Revenues". ⚠ The expenditure side needs no equivalent: every
+   document in this corpus prints `Expenditures` plural, **including Boulder
+   County**, which is exactly why only one of the two is configurable.
+
+⚠ **And a fourth, self-inflicted:** setting `revenue_parents` without
+`revenue_group_members` closed Boulder's tax group after its FIRST child, leaving
+`Taxes` at 81,136 with one child and five tax lines standing as root categories —
+**and it tied at $170,917,000**, because the multiset was unchanged and only the
+parenting moved. The library documents this failure in as many words; it still
+had to be read.
+
+### ⚠⚠ FOUR DOCUMENT GAPS, THREE DISTINCT CAUSES
+
+| Document | Cause |
+|---|---|
+| Wichita FY2001, FY2008 | **image-only scans** — 30 and 20 chars/page against 1,301–1,973 for every other year; FY2001's PDF producer is literally `eCopy, Inc.` |
+| Sedgwick County FY2005 | **HTTP 404** — a dead link in the county's *own* archive listing |
+| Sedgwick County FY2019 | **a third defect class** (below) |
+
+Sedgwick FY2019 is born-digital yet unreadable: its statement page is set in a
+font subset with a **custom encoding and no ToUnicode map**, so `pdftotext` emits
+a uniform −29 byte shift — `6('*:,&. &2817< .$16$6` is "SEDGWICK COUNTY,
+KANSAS", `3URSHUW\ WD[HV` is "Property taxes". **The shift is uniform and
+therefore trivially reversible, which is precisely the trap: every numeric column
+extracts EMPTY.** Decoding the labels would produce a perfectly readable
+statement with no money in it. The same document also emits **411 form-feed
+chunks across 175 real pages**, fragmenting the statement so no single chunk
+carries all the page-qualifying markers — either fault alone would have blocked
+it. ⭐ FAC lists a 2019 filing for this auditee: a recovery route, blocked only by
+the DEMO_KEY rate limit.
+
+⚠ Neighbouring years are clean in every case, so none of these is an era. All
+four are declared in `scripts/extractCoKsAll.mjs` and **none is written as $0**.
+
+### The series read — both ≥20% moves explained from the issuer's own words
+
+**Boulder County FY2024, +22.1%.** The county's own audited MD&A: *"revenues
+exceeded expenditures by $41.4 million, which was mainly attributed to an increase
+in investment earnings and property tax revenue, and **reimbursements received
+from FEMA related to the county's 2013 flood recovery efforts**."* Eleven-year-old
+flood money finally landing; Intergovernmental runs 14.2M → 35.0M → 10.1M.
+⭐ **That sentence is also an independent oracle**: the extraction's
+283,438,244 − 242,050,192 = **41,388,052** matches the narrative "$41.4 million"
+exactly, confirming *both* totals at once.
+
+**Wichita FY2023, +20.6%.** A $44.9M swing on a single line — investment earnings
+going from a −$7.8M loss (FY2022 bond market) to a +$37.1M gain.
+
+⚠ **FLAGGED, NOT NORMALISED.** Wichita prints that line under **three labels**
+across 24 years: `Interest earnings` (15 yrs), `Interest and investment earnings`
+(6), and `Interest and investment earnings (loss)` (3). The `(loss)` variant
+appears on **positive** years — FY2018 +6,903,511 and FY2020 +5,409,173 — so it
+carries no information and is arguably captioning drift. It is nonetheless the
+issuer's own wording, and normalising it would be TT inferring intent, so all
+three are loaded as published. A `label_fixes` normalisation is a decision for
+Chris, not for the loader.
+
+### ⚠⚠ Sixth Saint-Louis-County near-miss
+
+The FAC census carries **`KS,Sedgwick,municipality`** beside `KS,Sedgwick
+County,county`. The City of Sedgwick is a real government of about 1,600 people
+in **Harvey County** — not even inside Sedgwick County. `censusName` is exact and
+a test pins it. (Also avoided: **Boulder City, NEVADA**, which surfaced in this
+campaign's own searches; and FAC's Boulder Community Health, Boulder Housing
+Partners, Boulder Valley School District, Wichita State University, Wichita
+Public Schools USD 259, **Wichita County** Health Center, and the Sedgwick County
+Zoological Society.)
+
+⚠ **The auditee name is not stable across years** either: the same governments
+file as `BOULDER COUNTY, COLORADO` → `Boulder County` → `County of Boulder`, and
+`SEDGWICK COUNTY` → `SEDGWICK COUNTY, KS` → `Sedgwick County, KS`.
+
+### ⚠ Wichita's archive ids are not ordered by year
+
+FY2018 is ADID 56 while FY2017 is 57; FY2016 is 54 while FY2015 is 55 — two
+adjacent inversions. Deriving an id from a year would load one year's money under
+another year's label and **every tie would still pass**, because each document is
+internally consistent. Every mapping was verified against the fiscal year printed
+on the document's own cover: **24 of 26 confirmed**, the two exceptions being the
+scans, which have no cover text at all.
+
+### Access notes
+
+* **Boulder city comes from FAC** because bouldercolorado.gov publishes only the
+  two most recent ACFRs directly and every earlier year sits in a Laserfiche
+  archive that is unreachable to a plain client — `documents.bouldercolorado.gov`
+  serves an **incomplete TLS chain** (curl exit 60, the Ohio AOS shape).
+  PowerShell reaches it, but the page is a JS viewer shell with no document link.
+* ⚠ The FAC **PDF endpoint needs no key**, which is what made Boulder loadable at
+  all: the census-era id shape `<FY>-12-CENSUS-0000134815` was probed directly
+  and verified year by year off each cover page. It **404s from FY2023**, where
+  FAC migrated to GSAFAC ids — so FY2023/24 are recorded as a gap, not guessed.
+* ⚠ The FAC **metadata API** rate-limits `DEMO_KEY` hard. A real key would close
+  both the Boulder FY2023/24 gap and the Sedgwick FY2019 gap.
+* ⚠ Colorado's Census place file is `sub-est2024_8.csv`, **not `_08`** —
+  single-digit state FIPS drop the leading zero, where Kansas is `_20`.
+
+### Verification
+
+* **108 trees, every one tying at 0** against the issuer's own printed General
+  Fund total. **161/161** loader checks across 54 entity-years.
+* **53 of 54 entity-years FAC-census confirmed.** The one exception is Wichita
+  FY2022, reported UNCOVERED — and it matches the census's own recorded gap
+  (`1998-2021 2023-2025`) exactly.
+* Frozen digest `62654 rows 3a48ac28…` byte-identical before and after; deficit
+  at registration exactly **108**, union exactly 108 across four entity matches.
+  `verify:live-sync` 0 unprotected.
+* Partition gates green: `co-local-acfr-gf` **64 → 88** (extended; the
+  pre-existing 64 did not move), `ks-local-acfr-gf` **84**, both basis and
+  reporting_entity likewise.
+* 20 ACFR selftests still pass — the `acfrGF.py` library change is
+  regression-clean.
+
+### ⚠ The pre-existing Colorado rows are deliberately left `unknown`
+
+Colorado Springs and El Paso County have had **no `auditGradeRegistry` entry
+since v2.29**, and this session's entry is anchored to the four entities whose
+opinions it actually read. Widening it to the whole `co-local-acfr-gf` family
+would grade 64 merged rows off evidence nobody gathered — and "it is an ACFR, so
+it is audited" is the exact assumption North Carolina punished in session 2.
+⭐ Filed as a follow-up, and a cheap one: `verifyCoKsOpinions.py` would do it
+unchanged.
+
+### Open follow-ups from this session
+
+1. ⭐ **Grade Colorado Springs and El Paso County** — 64 rows, one script run.
+2. ⭐ **A real FAC API key** would recover Boulder city FY2023–24 and very likely
+   Sedgwick County FY2019.
+3. **Wichita's three interest-earnings labels** — normalise via `label_fixes`, or
+   leave as published. Chris's call.
+4. **Wichita FY2001 / FY2008** are scans; the city may hold better copies.
+5. **Session 8 = the orphans** — Aberdeen SD, Biloxi MS, Grand Forks ND,
+   Lexington-Fayette KY + Brown, Harrison and Grand Forks counties = the last 7.
+   ⚠⚠ **Lexington-Fayette is one of the four consolidated governments the FAC
+   census classifier silently drops** — fix that before session 8 loads it.
