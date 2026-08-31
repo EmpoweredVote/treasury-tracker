@@ -908,6 +908,7 @@ def find_statement_span(pages, cfg):
         if any(x in low for x in _EXCLUDE if x not in cfg.exclude_ignore):
             continue
         joined = pg
+        span_pages = [pg]
         for j in range(i + 1, min(i + cfg.multipage_max, len(pages))):
             jl = joined.lower()
             if (any(lbl in jl for lbl in cfg.revenue_total_labels)
@@ -916,12 +917,13 @@ def find_statement_span(pages, cfg):
             nxt = pages[j]
             if any(x in nxt.lower() for x in _EXCLUDE if x not in cfg.exclude_ignore):
                 break
-            joined = joined + '\n' + _strip_continuation_header(nxt)
+            span_pages.append(_strip_continuation_header(nxt))
+            joined = joined + '\n' + span_pages[-1]
         jl = joined.lower()
         if (any(lbl in jl for lbl in cfg.revenue_total_labels)
                 and 'total expenditures' in jl):
-            return i, joined
-    return None, None
+            return i, joined, span_pages
+    return None, None, None
 
 
 def parse_fy(pages, pdf_path, fy_end=('June', 30), statement_page=None):
@@ -965,10 +967,65 @@ def parse_fy(pages, pdf_path, fy_end=('June', 30), statement_page=None):
 def anchors(line):
     return [p for _, p in nums_with_pos(line)]
 
+def _formatted_anchors(line):
+    """Column positions taken ONLY from formatted figures (comma groups or
+    cents). Used to measure a page's grid, never to read a value."""
+    out = []
+    span = _code_span(line)
+    for m in _money_re().finditer(line):
+        if span and m.start() < span[1]:
+            continue
+        tok = m.group()
+        if ',' in tok or '.' in tok:
+            out.append(m.end())
+    return out
+
+
+class TaggedLine(str):
+    """A statement line that remembers which PAGE of a multi-page span it came
+    from, so its column anchors can be resolved per page.
+
+    A `str` subclass rather than a tuple because every consumer in this module
+    -- `_section`, `classify`, `label_of`, the regex tokenizers -- treats a line
+    as a plain string. Subclassing keeps all of that untouched and adds one
+    attribute that only `_anchors_for` reads.
+    """
+    __slots__ = ('page',)
+
+    def __new__(cls, text, page):
+        obj = str.__new__(cls, text)
+        obj.page = page
+        return obj
+
+
+def _anchors_for(line, col_anchors):
+    """Resolve the column anchors that apply to `line`.
+
+    ⚠⚠ `pdftotext -table` LAYS OUT EVERY PAGE INDEPENDENTLY, so a statement
+    spanning pages does not share one column grid. Brown County FY2024 puts the
+    General Fund column near character 47 on p20 and near 61 on p21. A single
+    anchor set read one section correctly and the other not at all -- observed
+    as printed_total 0 on the expenditure side and a -17,030,937 revenue delta,
+    with `ordinal` failing worse than `positional`.
+
+    When `col_anchors` is a per-page mapping, each line is measured against its
+    OWN page's grid. Single-page entities pass a plain list and are unaffected.
+    """
+    if isinstance(col_anchors, dict):
+        page = getattr(line, 'page', None)
+        if page in col_anchors:
+            return col_anchors[page]
+        # A line with no page tag cannot be resolved; use the widest grid rather
+        # than guessing a page, and let the tie gate judge the result.
+        return max(col_anchors.values(), key=len)
+    return col_anchors
+
+
 def gf_value(line, col_anchors):
     """GF value = the number nearest column 0, but only if that number is
     actually closest to anchor[0]. A blank GF cell means the row's first number
     belongs to a later column, so GF is absent rather than that number."""
+    col_anchors = _anchors_for(line, col_anchors)
     best, best_d = None, None
     for v, p in nums_with_pos(line):
         col = min(range(len(col_anchors)), key=lambda k: abs(p - col_anchors[k]))
@@ -1048,6 +1105,7 @@ def target_cell_is_dash_zero(line, col_anchors, cfg):
     if cfg.column_strategy == 'ordinal':
         m = _slot_re().search(line)
         return bool(m) and _DASH_ONLY.match(m.group().strip()) is not None
+    col_anchors = _anchors_for(line, col_anchors)
     if not col_anchors or gf_value(line, col_anchors) is not None:
         return False
     for m in _slot_re().finditer(line):
@@ -1771,8 +1829,9 @@ def extract(pdf_path, mode, cfg):
     pages = table_pages(pdf_path)
     if cfg.whitespace_repair:
         pages = [repair_ocr_whitespace(p) for p in pages]
+    span_pages = None
     if cfg.multipage:
-        pi, pg = find_statement_span(pages, cfg)
+        pi, pg, span_pages = find_statement_span(pages, cfg)
     else:
         pi, pg = find_statement_page(pages, cfg.statement_anchor, cfg.revenue_total_labels,
                                      cfg.exclude_ignore)
@@ -1780,7 +1839,15 @@ def extract(pdf_path, mode, cfg):
         print('  ERROR: primary GF statement not found in %s' % pdf_path, file=sys.stderr)
         sys.exit(3)
     fy = parse_fy(pages, pdf_path, cfg.fy_end, statement_page=pg)
-    lines = pg.split('\n')
+    if span_pages:
+        # Tag every line with the page it came from, so its column grid can be
+        # resolved per page. `TaggedLine` is a str subclass, so nothing else in
+        # the pipeline changes.
+        lines = [TaggedLine(t, i)
+                 for i, page_text in enumerate(span_pages)
+                 for t in page_text.split('\n')]
+    else:
+        lines = pg.split('\n')
     rev_line = next((l for l in lines
                       if any(l.strip().lower().startswith(lbl) for lbl in cfg.revenue_total_labels)),
                      None)
@@ -1796,18 +1863,67 @@ def extract(pdf_path, mode, cfg):
     # a -13m to -17m revenue delta. Each section is anchored on ITS OWN total
     # row instead, and only for multipage entities, so every single-page entity
     # keeps the previous `max(...)` behaviour byte-for-byte.
-    if cfg.multipage:
-        rev_anchors, exp_anchors = anchors(rev_line), anchors(exp_line)
-        if len(rev_anchors) < 2:
-            rev_anchors = exp_anchors
-        if len(exp_anchors) < 2:
-            exp_anchors = rev_anchors
-        col_anchors = rev_anchors if mode == 'revenue' else exp_anchors
+    if span_pages:
+        # ⚠ One grid PER PAGE, taken from that page's widest money row -- the
+        # row that exposes the most columns is the one that best defines them.
+        # The two printed total rows are used for their own pages when they are
+        # the widest, which they usually are.
+        # ⚠⚠ STRIP THE LEADING PAGE NUMBER BEFORE MEASURING. Brown County's
+        # widest row on the first page of the span is
+        # `14  Licenses and Permits  147,135.24  2,670.00 ...` -- the `14` is a
+        # page footer that `-table` interleaves onto the row, and counted as a
+        # column it put anchor[0] at character 2. Every real column then shifted
+        # one index right, the General Fund column was read as column 1, and
+        # `gf_value` (which only accepts column 0) returned None for almost
+        # every row: revenue computed 3,881,505 against a printed 22,577,329.
+        # ⚠⚠ MEASURE THE GRID FROM FORMATTED FIGURES ONLY.
+        # "The page's widest money row" is NOT a safe anchor source: on Brown
+        # County's first span page it selected a header carrying bare integers
+        # and produced anchors at characters 6, 8 and 10, so every real column
+        # shifted right and `gf_value` -- which only accepts column 0 --
+        # returned None for the entire revenue section (3,881,479 against a
+        # printed 22,577,329, with every row reading 0).
+        #
+        # A real money column holds comma-grouped or cents-bearing figures; page
+        # numbers, years and note references do not. Restricting the measurement
+        # to formatted figures makes the grid come from actual data rows.
+        col_anchors = {}
+        for i, page_text in enumerate(span_pages):
+            widest = max((_formatted_anchors(_recover_label_past_leading_page_number(t))
+                          for t in page_text.split('\n')),
+                         key=len, default=[])
+            if len(widest) >= 2:
+                col_anchors[i] = widest
+        if not col_anchors:
+            print('  ERROR: could not anchor fund columns on any page of the span',
+                  file=sys.stderr)
+            sys.exit(3)
+        # ⚠⚠ A PAGE THAT CANNOT DETERMINE ITS OWN GRID MUST NOT BE GUESSED AT.
+        # If one page of the span exposes fewer columns than the widest page,
+        # then some fund column is invisible on it, and a figure belonging to
+        # that column will be assigned to whichever anchor happens to be
+        # nearest -- silently, and often to the General Fund.
+        #
+        # Observed on Brown County FY2024: the third page of the span has no row
+        # populating more than 3 of the statement's 5 columns, so
+        # `Highways, Roads and Bridges  11,616,398.69` (a ROAD AND BRIDGE
+        # figure) landed nearest the General anchor and was added to General
+        # Fund expenditure. The tie caught it at +11,234,651 -- exactly that
+        # figure -- but only because it was large. A smaller misassignment on a
+        # different row would tie inside the noise of another error.
+        widest_n = max(len(a) for a in col_anchors.values())
+        thin = sorted(i for i, a in col_anchors.items() if len(a) < widest_n)
+        if thin:
+            print('  ERROR: span page(s) %s expose only %s fund columns against %d on the '
+                  'widest page -- the grid is under-determined there and a figure from a '
+                  'hidden column would be silently credited to the General Fund. Refusing.'
+                  % (thin, [len(col_anchors[i]) for i in thin], widest_n), file=sys.stderr)
+            sys.exit(3)
     else:
         col_anchors = max(anchors(rev_line), anchors(exp_line), key=len)
-    if len(col_anchors) < 2:
-        print('  ERROR: could not anchor fund columns', file=sys.stderr)
-        sys.exit(3)
+        if len(col_anchors) < 2:
+            print('  ERROR: could not anchor fund columns', file=sys.stderr)
+            sys.exit(3)
 
     if mode == 'revenue':
         tree, computed, zero_rows = build_revenue(lines, col_anchors, cfg)
