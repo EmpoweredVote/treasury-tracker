@@ -115,6 +115,11 @@ const REQUIRED = {
   // its data_source label, never on this axis. Passing anything else here would
   // change the RPC's lookup key and duplicate the rows on a re-run.
   'loadSdAcfrs.mjs': 'SD local ACFRs (Brown County) — 8 rows, general_fund / actual',
+  // The six GAAP entities of the same session. Same axis pair as every other
+  // ACFR family: `basis` is the actuals-vs-appropriation axis, and all 112 rows
+  // measured general_fund / actual in the live table after the load.
+  'loadS8Acfrs.mjs': 'Knight s8 GAAP ACFRs (Aberdeen, Biloxi, Harrison Co, Grand Forks '
+    + 'city+county, LFUCG) — 112 rows, general_fund / actual',
   'loadIndianaGateway.mjs': 'Indiana Gateway AFR — 78 rows, total_governmental/actual',
   // Knight session 6a. A NEW family — South Carolina held only its state node
   // before this load — so the first run inserts and every later run matches on

@@ -533,6 +533,120 @@ export const AUDIT_GRADE_REGISTRY = [
     // writes into the data_source, so it CANNOT claim the GAAP-basis sources of
     // any other entity — including the City of Aberdeen, twelve miles away and
     // in this same state family, whose label reads `GAAP basis`.
+    // Knight session 8 — the four GAAP families. Every opinion below was
+    // verified per document by scripts/verifyCoKsOpinions.py run over
+    // `_acfr-work/s8`: 61 found in the text layer, 5 recovered by OCR.
+    //
+    // ⚠⚠ FOUR LFUCG YEARS ARE DELIBERATELY EXCLUDED — see the ky entry.
+    id: 's8-sd-aberdeen-acfr-gf',
+    match: /^City of Aberdeen ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY(?:20[0-2][0-9]) actual, GAAP basis\)$/,
+    value: AUDIT_GRADE.AUDITED_GAAP,
+    evidence: {
+      document: 'The nine loaded City of Aberdeen reports (FY2016-FY2024), each bearing an '
+        + 'independent auditor\'s report from Eide Bailly LLP. Fetched from the Federal Audit '
+        + 'Clearinghouse by report_id (EIN 466000010, auditee id 0000170919).',
+      figures: 'Opinions located in the TEXT layer of all nine by scripts/verifyCoKsOpinions.py, '
+        + 'which requires a fair-presentation phrase PAIRED with a GAAP conformity phrase so a '
+        + 'document can never be graded off the in-relation-to paragraph about supplementary '
+        + 'information. FAC records `unmodified_opinion` on all nine independently. '
+        + '⚠ NOT Aberdeen, MARYLAND, which publishes its own ACFR at aberdeenmd.gov. '
+        + '⚠ Aberdeen is GAAP and whole dollars; BROWN COUNTY, its own parent county twelve '
+        + 'miles away and audited in the same town, is MODIFIED CASH and prints cents. Neither '
+        + 'fact may be carried between them.',
+    },
+  },
+  {
+    id: 's8-ms-local-acfr-gf',
+    match: /^(?:City of Biloxi|Harrison County) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY(?:20[0-2][0-9]) actual, GAAP basis\)$/,
+    value: AUDIT_GRADE.AUDITED_GAAP,
+    evidence: {
+      document: 'Mississippi\'s first locals in TT. City of Biloxi FY2002-FY2022 (city\'s own '
+        + 'publications page and FAC) and Harrison County FY2016-FY2023 (FAC, EIN 646000425), '
+        + 'each bearing an independent auditor\'s report. Opinions located per document by '
+        + 'scripts/verifyCoKsOpinions.py.',
+      figures: '⚠⚠ EVERY LOADED HARRISON COUNTY YEAR CARRIES A **QUALIFIED OPINION ON THE '
+        + 'GENERAL FUND** — the exact opinion unit these rows come from. Read from each '
+        + 'document\'s own Summary of Auditors\' Results and opinion paragraphs, not inferred: '
+        + 'FY2016 "Governmental Activities Qualified / Discretely presented component unit '
+        + 'ADVERSE / General Fund Qualified / Other major funds Unmodified"; FY2017 the same '
+        + 'less the adverse; FY2021-FY2023 "Qualified Opinions on Governmental Activities and '
+        + 'the General Fund". The cause is identical every year — the County did not maintain '
+        + 'an accurate aging of fines receivable of the Circuit and Justice Courts '
+        + '($8,230,286 at FY2016), a SCOPE limitation on a receivable, not a basis departure. '
+        + 'The FY2016 ADVERSE opinion is on the discretely presented component unit (the '
+        + 'Mississippi Coast Coliseum Commission, omitted from the reporting entity) and does '
+        + 'NOT touch the General Fund. '
+        + '⚠ The statements are GAAP and independently opined on, so `audited_gaap` is true — '
+        + 'but it does not distinguish a qualified opinion from a clean one, and this family is '
+        + 'the campaign\'s first where that matters. Filed for review. '
+        + '⚠ Biloxi\'s own opinions are unmodified; its excluded years are excluded for '
+        + 'DOCUMENT QUALITY (FY2023 is a catastrophic scan at all three publishers), never for '
+        + 'opinion reasons.',
+    },
+  },
+  {
+    id: 's8-nd-local-acfr-gf',
+    match: /^(?:City of Grand Forks|Grand Forks County) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY(?:20[0-2][0-9]) actual, GAAP basis\)$/,
+    value: AUDIT_GRADE.AUDITED_GAAP,
+    evidence: {
+      document: 'North Dakota\'s first locals in TT. City of Grand Forks FY2016-FY2025 (EIN '
+        + '456002085) and Grand Forks County FY2016-FY2024 (EIN 456002215), from the Federal '
+        + 'Audit Clearinghouse by report_id. Opinions located per document by '
+        + 'scripts/verifyCoKsOpinions.py; FAC records `unmodified_opinion` on every filing.',
+      figures: '⚠ Grand Forks COUNTY was flagged by the verifier as containing modified-opinion '
+        + 'WORDS in FY2021 and REVIEWED BY HAND: every occurrence is "QUALIFIED ZONE ACADEMY '
+        + 'BONDS", a US debt instrument created by the Taxpayer Relief Act of 1997, not an '
+        + 'opinion. This is exactly the false positive the verifier reports rather than acts '
+        + 'on. The opinion itself is unmodified. '
+        + '⚠ The county changed auditor at FY2022 (ND Office of the State Auditor -> Brady '
+        + 'Martz) and its MONEY FORMAT changed with it — the state-auditor era prints CENTS. '
+        + 'That is an extraction fact, not an assurance one, and does not affect this grade. '
+        + '⚠ City FY2025 is filed at FAC under `auditee_state = MN`; it is North Dakota, '
+        + 'confirmed on its own cover page.',
+    },
+  },
+  {
+    // ⚠⚠ FOUR YEARS ARE ABSENT FROM THIS PATTERN ON PURPOSE: FY2017, FY2018,
+    // FY2019 and FY2020 are NOT graded and stay `unknown`.
+    //
+    // LFUCG files a package titled "Single Audit Report in Accordance with
+    // Uniform Guidance". It BUNDLES the complete governmental-funds statements
+    // — which is why the data loads — but in those four years it contains NO
+    // OPINION ON THE BASIC FINANCIAL STATEMENTS. Measured on FY2018: the phrase
+    // "present fairly" appears ZERO times, and the only two "In our opinion"
+    // paragraphs are the COMPLIANCE opinion on major federal programs and the
+    // IN-RELATION-TO opinion on the Schedule of Expenditures of Federal Awards.
+    // The financial-statement opinion lives in LFUCG's separate ACFR, which FAC
+    // does not hold for those years.
+    //
+    // ⚠ This is the mirror of the lesson that the package's cover title must
+    // not be used to reject its DATA. The title is wrong about the statements
+    // and right about the opinion, and each has to be checked on its own.
+    // Recovering those four grades means enumerating LFUCG's Google Drive
+    // archive — a filed follow-up, not a guess.
+    id: 's8-ky-lfucg-acfr-gf',
+    match: /^Lexington-Fayette Urban County Government ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY(?:2016|202[1-5]) actual, GAAP basis\)$/,
+    value: AUDIT_GRADE.AUDITED_GAAP,
+    evidence: {
+      document: 'Kentucky\'s first local entity in TT, a consolidated city-county. FY2016 '
+        + '(titled as the CAFR) and FY2021-FY2025, from the Federal Audit Clearinghouse by '
+        + 'report_id, EIN 610858140.',
+      figures: 'FY2016\'s opinion is IMAGE-ONLY and was recovered by OCR at 200dpi; FY2021-FY2025 '
+        + 'are in the text layer. All six located by scripts/verifyCoKsOpinions.py, which pairs '
+        + 'a fair-presentation phrase with a GAAP conformity phrase. FAC records '
+        + '`unmodified_opinion` for every year. '
+        + '⚠⚠ FY2017-FY2020 ARE DELIBERATELY UNGRADED — the documents contain no '
+        + 'financial-statement opinion at all (see the comment above). Their DATA is loaded and '
+        + 'ties at $0; only the grade is withheld, which is what §3.5 requires when evidence is '
+        + 'absent. '
+        + '⚠ FIVE SIBLING GOVERNMENTS share this name (transit authority, housing authority, '
+        + 'health department, airport board, community action council) and the auditee name '
+        + 'loses its hyphen at FY2022. EIN 610858140 is the government; the report_id is the '
+        + 'join. '
+        + '⚠ NOT Lexington County, SOUTH CAROLINA.',
+    },
+  },
+  {
     id: 'sd-dla-county-ocboa',
     match: /^Brown County ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY(?:20[0-2][0-9]) actual, modified cash basis\)$/,
     value: AUDIT_GRADE.AUDITED_OCBOA,
