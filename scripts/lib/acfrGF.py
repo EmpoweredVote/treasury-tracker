@@ -371,7 +371,12 @@ class CityConfig:
                  # when the function is DEFINED, so referring to it here is a
                  # NameError at import. The two are asserted equal below.
                  revenue_section_header='revenues',
-                 decimal_money=False, whitespace_repair=False):
+                 decimal_money=False, whitespace_repair=False,
+                 multipage=False, multipage_max=6,
+                 subparents=(), subparent_member_prefixes=(),
+                 subparent_close='members',
+                 revenue_subparents=(), revenue_group_close='members',
+                 subtotal_prefixes=(), leading_account_code=False):
         if not isinstance(units, int) or isinstance(units, bool):
             raise TypeError(
                 'CityConfig.units must be an int, got %r (%s). A float would '
@@ -405,6 +410,31 @@ class CityConfig:
         self.exclude_ignore = tuple(t.lower() for t in exclude_ignore)
         self.decimal_money = bool(decimal_money)
         self.whitespace_repair = bool(whitespace_repair)
+        if revenue_group_close not in ('members', 'numeric_chart', 'next_heading'):
+            raise ValueError('revenue_group_close must be "members", '
+                             '"numeric_chart" or "next_heading", got %r' % revenue_group_close)
+        if subparent_close not in ('members', 'next_heading'):
+            raise ValueError('subparent_close must be "members" or "next_heading", '
+                             'got %r' % subparent_close)
+        self.subparent_close = subparent_close
+        self.multipage = bool(multipage)
+        self.multipage_max = int(multipage_max)
+        self.subparents = tuple(p.lower() for p in subparents)
+        self.subparent_member_prefixes = tuple(p.lower() for p in subparent_member_prefixes)
+        self.revenue_subparents = tuple(p.lower() for p in revenue_subparents)
+        self.revenue_group_close = revenue_group_close
+        self.subtotal_prefixes = tuple(p.lower() for p in subtotal_prefixes)
+        self.leading_account_code = bool(leading_account_code)
+        if (self.subparents and subparent_close == 'members'
+                and not self.subparent_member_prefixes):
+            # The exact shape of the `revenue_parents`-without-members trap that
+            # shipped a wrong Boulder tree at a $0 tie: a group that cannot
+            # recognise its own members closes after its first child, and every
+            # later sibling silently reparents one level up.
+            raise ValueError(
+                'subparents requires subparent_member_prefixes: without it a '
+                'sub-group closes after its FIRST child and the rest reparent '
+                'silently -- and the statement still ties.')
 
 
 # ── Money parsing ─────────────────────────────────────────────────────────────
@@ -435,6 +465,32 @@ _MONEY_DEC = re.compile(r'\((?:\d[\d,]*(?:\.\d{1,2})?)\)|\$?\s*\d[\d,]*(?:\.\d{1
 # `extract()` on EVERY call, so it cannot leak between entities, and the module
 # is not concurrent. Default False keeps every pre-session-8 entity bit-identical.
 _DECIMAL_MONEY = False
+
+# ⚠⚠ AN ISSUER'S ACCOUNT CODE IS NOT MONEY (opt-in, cfg.leading_account_code).
+#
+# Aberdeen SD prints the South Dakota municipal chart of accounts, so every line
+# begins with its code: `310 Taxes`, `335.01 Bank franchise tax`. `_MONEY`
+# matches a bare digit run, so `310` was read as a VALUE and the group headings
+# arrived as data rows worth 310, 330, 335, 348, 350 ... Every group heading
+# became a $310-ish leaf, no group ever opened, and the revenue tree came back
+# completely flat while the total was only 3,752 over -- small enough to look
+# like a rounding artifact rather than a destroyed hierarchy.
+#
+# `_LEADING_PAGE_NUMBER` does not cover this: it requires TWO spaces after the
+# number (it exists for footer text interleaved by `-table`), and a chart code is
+# followed by exactly one. This is the same class of hazard as the
+# `Fire District # 37 Contract` truncation `label_of` documents -- a number that
+# belongs to the NAME, not to a column.
+_LEADING_CODE = False
+_CODE_AT_START = re.compile(r'^\s*\d{3}(?:\.\d{1,2})?(?=\s\S)')
+
+
+def _code_span(line):
+    """(start, end) of a leading account code, or None. Enabled per entity."""
+    if not _LEADING_CODE:
+        return None
+    m = _CODE_AT_START.match(line)
+    return (m.start(), m.end()) if m else None
 
 
 def _money_re():
@@ -471,7 +527,10 @@ def parse_money(tok):
 def nums_with_pos(line):
     """[(value, end_char_pos)] for every money token on the line."""
     out = []
+    span = _code_span(line)
     for m in _money_re().finditer(line):
+        if span and m.start() < span[1]:
+            continue
         v = parse_money(m.group())
         if v is not None:
             out.append((v, m.end()))
@@ -510,7 +569,10 @@ def _slot_re():
 def slots(line):
     """Every column slot on `line`, left to right. A dash-run yields 0."""
     out = []
+    span = _code_span(line)
     for m in _slot_re().finditer(line):
+        if span and m.start() < span[1]:
+            continue
         t = m.group().replace('$', '').replace(' ', '').strip()
         if not t:
             continue
@@ -560,7 +622,9 @@ def label_of(line):
 
 def label_of_slots(line):
     """Row label for ordinal mode: text before the first COLUMN SLOT."""
-    m = _slot_re().search(line)
+    span = _code_span(line)
+    m = next((x for x in _slot_re().finditer(line)
+              if not (span and x.start() < span[1])), None)
     return norm_label(line[:m.start()] if m else line)
 
 _DASH_ROW = re.compile(r'^(?P<label>.*?[^\s\-–—])(?P<dashes>(?:\s+[-–—]+)+)\s*$')
@@ -771,6 +835,94 @@ def find_statement_page(pages, statement_anchor=None, revenue_total_labels=('tot
         return None, None
     cands.sort()
     return cands[0]
+
+# A real printed figure is comma-grouped or carries cents. A repeated page
+# header contains only bare integers -- a year, a page number, a "(Continued)".
+_FORMATTED_FIGURE = re.compile(r'\d{1,3}(?:,\d{3})+(?:\.\d{1,2})?|\d+\.\d{2}\b')
+
+
+def _strip_continuation_header(page):
+    """Drop a continuation page's repeated title and column-header block.
+
+    ⚠⚠ WITHOUT THIS, JOINING PAGES INVENTS ROWS. Brown County repeats
+    `BROWN COUNTY / STATEMENT OF REVENUES, EXPENDITURES ... / For the Year Ended
+    December 31, 2024 / (Continued)` and its whole column-header block at the
+    top of every continuation page. Fed into the row parser those became data:
+    a row literally named `... For the Year Ended December` worth **31**, and a
+    second welding the entire column header onto the first real label,
+    `General Road and Bridge Debt Service ... Funds Director of Equalization`
+    worth 530,277.
+
+    That is worse than a missing row -- it is a FABRICATED one, and it is the
+    reason a multi-page join cannot simply concatenate.
+
+    The cut rule keys on the first line carrying a FORMATTED figure (comma
+    groups or cents). Headers hold only bare integers -- years, page numbers --
+    so the boundary is unambiguous, and nothing before it on a continuation page
+    is ever a data row.
+    """
+    lines = page.split('\n')
+    for i, ln in enumerate(lines):
+        if _FORMATTED_FIGURE.search(ln):
+            return '\n'.join(lines[i:])
+    return ''
+
+
+def find_statement_span(pages, cfg):
+    """(start_index, joined_text) for a statement that SPANS SEVERAL PAGES.
+
+    Knight session 8, opt-in via `CityConfig.multipage`. Two entities in that
+    session print a governmental-funds statement across more than one page, and
+    `find_statement_page` rejects both outright because it requires a revenue
+    total AND `total expenditures` on the SAME page:
+
+        City of Aberdeen SD   p26 revenues + `Total revenues`
+                              p27 expenditures + `Total expenditures`
+        Brown County SD       p18-p19 revenues, p20-p21 expenditures
+                              (p20 repeats the title with "(Continued)")
+
+    ⚠⚠ THE JOIN IS BOUNDED ON EVERY SIDE, because a runaway join would weld a
+    LATER statement's rows onto this one and still tie against whichever total
+    it happened to find:
+
+      1. It starts only at a page `find_statement_page`'s own tests would
+         accept apart from the both-totals rule -- title/anchor match, `general`
+         and `fund` present, and NOT excluded by `_EXCLUDE`.
+      2. It stops the moment the accumulated text holds BOTH a revenue total and
+         `total expenditures`. It never absorbs a page it does not need.
+      3. It refuses to cross into any page `_EXCLUDE` rejects. That is what
+         stops Brown County at p21: p22 is `STATEMENT OF NET POSITION`, and
+         `net position` is already an `_EXCLUDE` term.
+      4. It is capped at `multipage_max` pages (default 6).
+      5. If it runs out of pages without both totals it returns (None, None) --
+         a partial join is never returned. A gate that can measure nothing must
+         fail, not pass.
+    """
+    anchor = re.compile(cfg.statement_anchor, re.I | re.M) if cfg.statement_anchor else None
+    for i, pg in enumerate(pages):
+        low = pg.lower()
+        if not (_TITLE.search(pg) or (anchor and anchor.search(pg))):
+            continue
+        if 'general' not in low or 'fund' not in low:
+            continue
+        if any(x in low for x in _EXCLUDE if x not in cfg.exclude_ignore):
+            continue
+        joined = pg
+        for j in range(i + 1, min(i + cfg.multipage_max, len(pages))):
+            jl = joined.lower()
+            if (any(lbl in jl for lbl in cfg.revenue_total_labels)
+                    and 'total expenditures' in jl):
+                break
+            nxt = pages[j]
+            if any(x in nxt.lower() for x in _EXCLUDE if x not in cfg.exclude_ignore):
+                break
+            joined = joined + '\n' + _strip_continuation_header(nxt)
+        jl = joined.lower()
+        if (any(lbl in jl for lbl in cfg.revenue_total_labels)
+                and 'total expenditures' in jl):
+            return i, joined
+    return None, None
+
 
 def parse_fy(pages, pdf_path, fy_end=('June', 30), statement_page=None):
     """The fiscal year a document reports for, in priority order:
@@ -1239,11 +1391,41 @@ def _fix_label(label, cfg):
     return cfg.label_fixes.get(label, label)
 
 
+_CHART_CODE = re.compile(r'^(\d{3}(?:\.\d{1,2})?)\b')
+
+
+def _chart_member(group_label, row_label):
+    """Is `row_label`'s account code inside `group_label`'s, per the issuer's
+    numeric chart of accounts? Used only by revenue_group_close='numeric_chart'.
+
+        330 Intergovernmental revenue  <- 331, 334, 335, 336, 338  ✓
+                                       <- 340 Charges for goods    ✗
+        335 State shared revenue       <- 335.01 .. 335.08         ✓
+                                       <- 336 State payments       ✗
+
+    A decimal heading (`335`) owns exactly the codes that extend it with a dot.
+    A round heading (`330`) owns the codes sharing its first two digits. Either
+    label lacking a leading code means the rule cannot decide, and it returns
+    False -- closing the group rather than guessing it stays open.
+    """
+    g = _CHART_CODE.match(group_label.strip())
+    r = _CHART_CODE.match(row_label.strip())
+    if not g or not r:
+        return False
+    gc, rc = g.group(1), r.group(1)
+    if rc.startswith(gc + '.'):
+        return True
+    if '.' in gc:
+        return False
+    return gc.endswith('0') and rc[:2] == gc[:2] and rc != gc
+
+
 def build_revenue(lines, col_anchors, cfg):
     """GF revenue-by-source tree. Flat unless cfg.revenue_parents groups it.
     $0 sources are recorded in zero_rows and dropped."""
     root_children, zero_rows = [], []
     parent = None
+    subparent = None
     # Fix round 1 / Critical 1: whether a data row (zero-valued OR not) has
     # been seen since `parent` last opened. The close guard below gates on
     # THIS, not on `parent['c']` truthiness. A $0 group member never reaches
@@ -1261,8 +1443,14 @@ def build_revenue(lines, col_anchors, cfg):
 
         if kind == 'wrapped' and low in cfg.revenue_parents:
             parent = {'n': lbl, 'a': 0, 'c': []}
+            subparent = None
             parent_seen = False
             root_children.append(parent)
+            pending = ''
+            continue
+        if kind == 'wrapped' and low in cfg.revenue_subparents and parent is not None:
+            subparent = {'n': lbl, 'a': 0, 'c': []}
+            parent['c'].append(subparent)
             pending = ''
             continue
         # Trap 6, on the REVENUE side. `build_operating` has had this branch since
@@ -1309,9 +1497,42 @@ def build_revenue(lines, col_anchors, cfg):
         # `parent_seen`, not on `parent['c']`, so a group whose members are
         # all $0 (dropped, never added as children) still closes correctly
         # on the first later row that isn't a member.
-        if parent is not None and parent_seen and not any(
+        flow = full.lower()
+        if cfg.revenue_group_close == 'numeric_chart':
+            # ⚠⚠ MEMBERSHIP BY THE ISSUER'S OWN CHART OF ACCOUNTS (opt-in).
+            #
+            # Aberdeen SD prints a standard South Dakota municipal chart in
+            # which the group heading is a round code and its members share the
+            # heading's first two digits: `330 Intergovernmental revenue` holds
+            # 331, 334, 335, 336 and 338; `310 Taxes` holds 311-319.
+            #
+            # A suffix-based `revenue_group_members` cannot express this -- the
+            # six children of `310 Taxes` end in "taxes", "taxes", "tax deed
+            # revenue" and "delinquent taxes", sharing no usable suffix -- and a
+            # GLOBAL prefix list cannot either, because `340 Charges...` must
+            # CLOSE 330 while `335.01` must stay inside it. Membership has to be
+            # relative to the OPEN group's own code, which is what this does.
+            #
+            # It reads the rule off the issuer's published numbering rather than
+            # inventing one, and it is confined to entities that declare it.
+            if parent is not None and parent_seen:
+                if not _chart_member(parent['n'], full):
+                    parent = None
+                    subparent = None
+            if subparent is not None and not _chart_member(subparent['n'], full):
+                subparent = None
+        elif cfg.revenue_group_close == 'next_heading':
+            # Groups persist until another DECLARED heading opens one. Correct
+            # where the issuer's revenue sections are exhaustive -- Brown County
+            # prints `Taxes:`, `Intergovernmental Revenue:` (with a `State
+            # Shared Revenue:` sub-heading), `Charges for Goods and Services:`,
+            # `Fines and Forfeits:` and `Miscellaneous Revenue:`, and every
+            # revenue line sits under one of them.
+            pass
+        elif parent is not None and parent_seen and not any(
                 low.endswith(sfx) for sfx in cfg.revenue_group_members):
             parent = None
+            subparent = None
         if parent is not None:
             parent_seen = True
 
@@ -1320,14 +1541,21 @@ def build_revenue(lines, col_anchors, cfg):
             continue
 
         node = {'n': full, 'a': val}
-        if parent is not None:
+        if subparent is not None:
+            subparent['c'].append(node)
+        elif parent is not None:
             parent['c'].append(node)
         else:
             root_children.append(node)
 
-    for n in root_children:
+    def _rollup(n):
         if 'c' in n:
+            for ch in n['c']:
+                _rollup(ch)
+            n['c'] = [ch for ch in n['c'] if ch.get('c') or 'c' not in ch]
             n['a'] = sum(ch['a'] for ch in n['c'])
+    for n in root_children:
+        _rollup(n)
     root_children = [n for n in root_children if n.get('c') or 'c' not in n]
 
     total = sum(n['a'] for n in root_children)
@@ -1340,6 +1568,13 @@ def build_operating(lines, col_anchors, cfg):
     placement is governed by cfg.capital_at_root (trap 3)."""
     root_children, zero_rows = [], []
     parent = None
+    # ⚠ The THIRD level (opt-in, cfg.subparents). Brown County SD prints
+    # `Public Safety:` -> `Law Enforcement:` -> `Sheriff`; with a two-level
+    # reader every one of those grandchildren flattens up into Public Safety.
+    # `subparent` is closed by: a new parent, a root leaf, a printed subtotal,
+    # or a row whose label matches none of `subparent_member_prefixes`.
+    subparent = None
+    subtotal_failures = []
     pending = ''
     for l in _section(lines, _SEC_EXPENDITURES, _END_EXPENDITURES, cfg.section_header_mode):
         if not l.strip():
@@ -1349,7 +1584,13 @@ def build_operating(lines, col_anchors, cfg):
 
         if kind == 'wrapped' and low in cfg.parents:
             parent = {'n': lbl, 'a': 0, 'c': []}
+            subparent = None
             root_children.append(parent)
+            pending = ''
+            continue
+        if kind == 'wrapped' and low in cfg.subparents and parent is not None:
+            subparent = {'n': lbl, 'a': 0, 'c': []}
+            parent['c'].append(subparent)
             pending = ''
             continue
         # Trap 6 -- a `parents`-matched SECTION HEADING carrying a stray
@@ -1396,25 +1637,75 @@ def build_operating(lines, col_anchors, cfg):
         pending = ''
         if not full:
             continue
+        flow = full.lower()
+
+        # ⚠⚠ A PRINTED GROUP SUBTOTAL (opt-in, cfg.subtotal_prefixes).
+        # Aberdeen prints `Total general government`, `Total public safety`,
+        # `Total public works` ... after each numbered group. Loaded as leaves
+        # they DOUBLE-COUNT the whole statement; skipped silently they are a
+        # wasted oracle. So they are neither: each one is CHECKED against the
+        # sum of the group it closes, and a mismatch fails the extraction.
+        # This is the campaign's own rule -- assert every subtotal against its
+        # OWN leaves, not just the grand total -- enforced by the parser.
+        if cfg.subtotal_prefixes and any(flow.startswith(p) for p in cfg.subtotal_prefixes):
+            group = subparent if subparent is not None else parent
+            if group is not None:
+                got = sum(ch['a'] for ch in group['c'])
+                if val != got:
+                    subtotal_failures.append((full, val, got))
+            subparent = None
+            parent = None
+            continue
+
         if val == 0:
             zero_rows.append(full)
             continue
 
         node = {'n': full, 'a': val}
-        if any(full.lower().startswith(pfx) for pfx in cfg.root_leaves):
-            root_children.append(node)   # root-level peer; closes the parent
+        if any(flow.startswith(pfx) for pfx in cfg.root_leaves):
+            root_children.append(node)   # root-level peer; closes both levels
             parent = None
+            subparent = None
+        elif subparent is not None:
+            # 'next_heading': every row belongs to the sub-group until another
+            #   DECLARED heading (parent, subparent, root leaf or subtotal)
+            #   closes it. Correct where sub-groups are exhaustive, as in Brown
+            #   County's chart -- every leaf there sits under some sub-heading.
+            # 'members': the row stays only while its label matches a declared
+            #   prefix; otherwise the sub-group closes and the row belongs to
+            #   the PARENT, not to the root.
+            if (cfg.subparent_close == 'next_heading'
+                    or any(flow.startswith(pfx) for pfx in cfg.subparent_member_prefixes)):
+                subparent['c'].append(node)
+            else:
+                subparent = None
+                parent['c'].append(node)
         elif parent is not None:
             parent['c'].append(node)
         else:
             root_children.append(node)
 
-    for n in root_children:
+    # Roll up innermost-first so a three-level tree totals correctly.
+    def _rollup(n):
         if 'c' in n:
+            for ch in n['c']:
+                _rollup(ch)
+            n['c'] = [ch for ch in n['c'] if ch.get('c') or 'c' not in ch]
             n['a'] = sum(ch['a'] for ch in n['c'])
+    for n in root_children:
+        _rollup(n)
     # Drop parents left childless by all-$0 children (an honest absence, e.g. a
     # year with no General Fund debt service).
     root_children = [n for n in root_children if n.get('c') or 'c' not in n]
+
+    if subtotal_failures:
+        # ⚠ A printed subtotal disagreeing with its own children means the group
+        # was mis-assembled. Refuse loudly -- the grand total can still tie while
+        # rows sit under the wrong parent.
+        for name, printed, got in subtotal_failures:
+            print('  SUBTOTAL FAILURE: %s printed %s but its children sum to %s (delta %s)'
+                  % (name, f'{printed:,}', f'{got:,}', f'{got - printed:+,}'), file=sys.stderr)
+        sys.exit(1)
 
     total = sum(n['a'] for n in root_children)
     return {'n': 'General Fund Expenditure by Function', 'a': total, 'c': root_children}, total, zero_rows
@@ -1473,14 +1764,18 @@ def _tree_to_dollars(node):
 
 
 def extract(pdf_path, mode, cfg):
-    global _DECIMAL_MONEY
+    global _DECIMAL_MONEY, _LEADING_CODE
     # Set from cfg on EVERY call so a previous entity's mode cannot leak.
     _DECIMAL_MONEY = cfg.decimal_money
+    _LEADING_CODE = cfg.leading_account_code
     pages = table_pages(pdf_path)
     if cfg.whitespace_repair:
         pages = [repair_ocr_whitespace(p) for p in pages]
-    pi, pg = find_statement_page(pages, cfg.statement_anchor, cfg.revenue_total_labels,
-                                cfg.exclude_ignore)
+    if cfg.multipage:
+        pi, pg = find_statement_span(pages, cfg)
+    else:
+        pi, pg = find_statement_page(pages, cfg.statement_anchor, cfg.revenue_total_labels,
+                                     cfg.exclude_ignore)
     if pg is None:
         print('  ERROR: primary GF statement not found in %s' % pdf_path, file=sys.stderr)
         sys.exit(3)
@@ -1493,7 +1788,23 @@ def extract(pdf_path, mode, cfg):
     if not rev_line or not exp_line:
         print('  ERROR: Total revenues/expenditures rows not found', file=sys.stderr)
         sys.exit(3)
-    col_anchors = max(anchors(rev_line), anchors(exp_line), key=len)
+    # ⚠⚠ A MULTI-PAGE STATEMENT CAN CHANGE COLUMN GEOMETRY BETWEEN ITS PAGES.
+    # Brown County FY2024 prints `Total Revenues` with the General Fund column
+    # near character 40 on p19 and `Total Expenditures` near character 60 on
+    # p21. One shared anchor set therefore misreads whichever section it was not
+    # derived from -- observed as printed_total == 0 on the expenditure side and
+    # a -13m to -17m revenue delta. Each section is anchored on ITS OWN total
+    # row instead, and only for multipage entities, so every single-page entity
+    # keeps the previous `max(...)` behaviour byte-for-byte.
+    if cfg.multipage:
+        rev_anchors, exp_anchors = anchors(rev_line), anchors(exp_line)
+        if len(rev_anchors) < 2:
+            rev_anchors = exp_anchors
+        if len(exp_anchors) < 2:
+            exp_anchors = rev_anchors
+        col_anchors = rev_anchors if mode == 'revenue' else exp_anchors
+    else:
+        col_anchors = max(anchors(rev_line), anchors(exp_line), key=len)
     if len(col_anchors) < 2:
         print('  ERROR: could not anchor fund columns', file=sys.stderr)
         sys.exit(3)
