@@ -519,6 +519,45 @@ export const AUDIT_GRADE_REGISTRY = [
         + 'is a grade TT must not assert.',
     },
   },
+  {
+    // Knight campaign, session 8 — South Dakota, and TT's FIRST `audited_ocboa`.
+    //
+    // ⚠⚠ THE ONLY NON-GAAP AUDITED FAMILY IN THE CAMPAIGN. Every other audited
+    // family here is `audited_gaap`. Brown County is audited to the same
+    // standard and measured on a different basis, and before session 8 the
+    // vocabulary could not say so: `audited_gaap` asserts a basis the document
+    // denies, `unknown` claims nobody looked, `self_reported_unaudited` denies
+    // the audit. `audited_ocboa` was added for exactly this row set.
+    //
+    // ⚠ The match is anchored on the `modified cash basis` label the loader
+    // writes into the data_source, so it CANNOT claim the GAAP-basis sources of
+    // any other entity — including the City of Aberdeen, twelve miles away and
+    // in this same state family, whose label reads `GAAP basis`.
+    id: 'sd-dla-county-ocboa',
+    match: /^Brown County ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY(?:20[0-2][0-9]) actual, modified cash basis\)$/,
+    value: AUDIT_GRADE.AUDITED_OCBOA,
+    evidence: {
+      document: 'The four loaded Brown County audit reports themselves (FY2016, FY2020, FY2023, '
+        + 'FY2024), each bearing an independent auditor\'s report from the SOUTH DAKOTA '
+        + 'DEPARTMENT OF LEGISLATIVE AUDIT issued under Government Auditing Standards. '
+        + 'FY2016/FY2020/FY2023 were fetched from the Federal Audit Clearinghouse by report_id; '
+        + 'FY2024 from SD DLA\'s own current-reports listing at '
+        + 'legislativeaudit.sd.gov/reports/County/Brown%20County%202024.pdf.',
+      figures: 'Every statement is titled "STATEMENT OF REVENUES, EXPENDITURES AND CHANGES IN '
+        + 'FUND BALANCES - MODIFIED CASH BASIS", and the auditor\'s report states verbatim: '
+        + '"the financial statements are prepared on the modified cash basis of accounting, '
+        + 'which is a basis of accounting other than accounting principles generally accepted '
+        + 'in the United States of America". ⚠ CORROBORATED INDEPENDENTLY: FAC records '
+        + '`gaap_results = not_gaap` on all three of its filings for EIN 466000011, so the '
+        + 'grade does not rest on reading the PDF alone. '
+        + '⚠ ASSURANCE IS NOT COMPARABILITY — these figures are audited, and they are NOT '
+        + 'comparable line-for-line with the GAAP General Funds of the other six session-8 '
+        + 'entities. That is the whole reason this value exists rather than reusing '
+        + '`audited_gaap`. '
+        + '⚠ All eight extractions (4 years x 2 modes) tie to the printed total at EXACTLY $0, '
+        + 'verified in integer cents before conversion to dollars.',
+    },
+  },
 ];
 
 /**

@@ -48,10 +48,49 @@ describe('audit_grade column migration', () => {
     }
   });
 
-  it('constrains the column to exactly the vocabulary', () => {
+  it('declares the CHECK constraint', () => {
     expect(sql).toMatch(/budgets_audit_grade_check/);
+  });
+});
+
+/**
+ * ⚠ THE VOCABULARY IS ASSERTED AGAINST THE *LAST* MIGRATION THAT DECLARES THE
+ * CONSTRAINT, not against the one that first added the column.
+ *
+ * Knight session 8 added `audited_ocboa` in a second migration, so pinning the
+ * original file would fail for a correct schema — and, worse, would keep
+ * passing if a later migration DROPPED a value, because the original still
+ * mentions it. Reading the newest declaration is both correct today and the
+ * stricter guard: whatever is in force must cover exactly the vocabulary.
+ */
+describe('the audit_grade CHECK in force covers exactly the vocabulary', () => {
+  const declaring = readdirSync(MIGRATIONS)
+    .filter((f) => f.endsWith('.sql'))
+    .filter((f) => readFileSync(join(MIGRATIONS, f), 'utf8')
+      .includes('ADD CONSTRAINT budgets_audit_grade_check'))
+    .sort();
+
+  it('at least one migration declares it', () => {
+    expect(declaring.length).toBeGreaterThan(0);
+  });
+
+  const latest = declaring[declaring.length - 1];
+  const sql = readFileSync(join(MIGRATIONS, latest), 'utf8');
+
+  it(`${'lists every vocabulary value'} (from ${declaring[declaring.length - 1]})`, () => {
     for (const grade of AUDIT_GRADE_VALUES) {
-      expect(sql, `vocabulary value ${grade} missing from the CHECK`).toContain(`'${grade}'`);
+      expect(sql, `vocabulary value ${grade} missing from the CHECK in ${latest}`)
+        .toContain(`'${grade}'`);
+    }
+  });
+
+  // The other direction: a value in the constraint that the code does not know
+  // about would let a writer store something classifyAxis can never produce.
+  it('lists no value the vocabulary does not have', () => {
+    const inCheck = [...sql.matchAll(/^\s*'([a-z_]+)',?\s*$/gm)].map((m) => m[1]);
+    expect(inCheck.length, 'could not parse the CHECK list').toBeGreaterThan(0);
+    for (const v of inCheck) {
+      expect(AUDIT_GRADE_VALUES, `${v} is in the CHECK but not in AUDIT_GRADE`).toContain(v);
     }
   });
 });

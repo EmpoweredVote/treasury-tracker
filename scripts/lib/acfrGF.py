@@ -1944,9 +1944,36 @@ def _to_dollars(cents):
 
 
 def _tree_to_dollars(node):
-    node['a'] = _to_dollars(node['a'])
-    for child in node.get('c', []):
+    """Convert an exact-cents tree to dollars, LEAVES FIRST.
+
+    ⚠⚠ ROUNDING EVERY NODE INDEPENDENTLY BREAKS THE TREE. A parent converted
+    from its own cents value is `round(sum(children_cents))`, while its children
+    are each rounded separately — and those differ whenever the fractions carry.
+    Brown County FY2016 revenue: `Taxes` came out 13,804,087 while its seven
+    items summed to 13,804,088. One dollar, invisible in the total, and a reader
+    adding up the drill-down would not get the category.
+
+    Caught by `assertProjection` in scripts/loadSdAcfrs.mjs, not by the tie —
+    the ROOT still matched the printed total exactly, because the error is
+    internal to the tree.
+
+    So every parent is derived from its already-converted children instead. The
+    tree is then internally consistent by construction at every level.
+
+    ⚠ The consequence is explicit and reported, never hidden: the dollar total
+    is now the sum of rounded leaves and can differ from the rounded printed
+    total by a few dollars. THE AUTHORITATIVE TIE IS STILL EXACT — it is checked
+    in integer cents before any of this runs, and `tie_delta_cents` must be 0.
+    The dollar residue is a presentation artifact of a cents-basis issuer, and
+    `dollar_rounding_residue` states it.
+    """
+    kids = node.get('c') or []
+    if not kids:
+        node['a'] = _to_dollars(node['a'])
+        return
+    for child in kids:
         _tree_to_dollars(child)
+    node['a'] = sum(child['a'] for child in kids)
 
 
 def extract(pdf_path, mode, cfg):
@@ -2095,9 +2122,13 @@ def extract(pdf_path, mode, cfg):
         result['tie_delta_cents'] = tie_delta
         result['money_domain'] = 'cents_verified_dollars_emitted'
         _tree_to_dollars(result['tree'])
-        result['computed_total'] = _to_dollars(computed)
+        # The emitted total is the tree's own dollar total, so the loaded rows
+        # are self-consistent; the printed total is stated beside it and any
+        # residue is named rather than absorbed.
+        result['computed_total'] = result['tree']['a']
         result['printed_total'] = _to_dollars(printed)
-        result['tie_delta'] = _to_dollars(tie_delta)
+        result['tie_delta'] = result['computed_total'] - result['printed_total']
+        result['dollar_rounding_residue'] = result['tie_delta']
     if accepted is not None:
         print(f'  NOTE ({mode} FY{fy}): printed total {printed:,} disagrees with the sum of '
               f'its own components {computed:,} by {tie_delta:+,} -- accepted as a registered '
