@@ -126,6 +126,108 @@ stamped `unknown` — a false negative on the two most current Charlotte years.*
 
 ---
 
+### ⭐⭐ Session 8 — a NEW VOCABULARY VALUE: `audited_ocboa`
+
+**Added 2026-08-31.** Brown County SD is audited by the South Dakota Department
+of Legislative Audit under Government Auditing Standards — and NOT on GAAP. Its
+statements are titled `... - MODIFIED CASH BASIS`, and the auditor writes:
+
+> "the financial statements are prepared on the **modified cash basis of
+> accounting, which is a basis of accounting other than accounting principles
+> generally accepted in the United States of America**"
+
+FAC corroborates independently: `gaap_results = not_gaap` on every filing.
+
+⚠⚠ **NONE OF THE FOUR EXISTING VALUES COULD CARRY THAT WITHOUT LYING**, and
+this is worth recording because the wrong choice was tempting:
+
+| value | why it is wrong here |
+|---|---|
+| `audited_gaap` | matches the DEFINITION ("read directly from a report bearing an independent auditor's opinion") but its **NAME asserts GAAP**, which the document explicitly denies — the exact "false public claim about a government's books" the vocabulary's own docstring warns against |
+| `unknown` | means NOBODY HAS LOOKED. Somebody did |
+| `self_reported_unaudited` | denies a real independent audit |
+| `compiled_from_audited` | wrong shape; nobody compiled anything |
+
+`audited_ocboa` sits directly **below** `audited_gaap`: the ASSURANCE is
+equivalent, the measurement basis is not. **Assurance is not comparability** — a
+reader comparing Brown County's General Fund with Aberdeen's, twelve miles away,
+is comparing two different things, and that is what the value exists to say.
+
+⚠ `basis` could NOT carry this. That axis is `actual | adopted | unknown` — the
+actuals-vs-appropriation axis — so Brown County is `actual` like every other
+ACFR family. Migration `20260831000000_audit_grade_audited_ocboa.sql` WIDENS the
+CHECK constraint, so no stored value became invalid and no row changed.
+
+⚠ `audit_grade` is still not surfaced by ev-accounts, so the **data_source label
+is currently the only place a reader sees this**:
+`Brown County ACFR — General Fund Revenue by Source (FY2024 actual, modified
+cash basis)`. The registry match is anchored on that label, so an OCBOA entry can
+never claim a GAAP source.
+
+### Session 8 — the four GAAP families → `audited_gaap`
+
+**Verified 2026-08-31** by running `scripts/verifyCoKsOpinions.py` over the whole
+`_acfr-work/s8` corpus: **61 opinions found in the text layer, 5 recovered by
+OCR**. Entries: `s8-sd-aberdeen-acfr-gf`, `s8-ms-local-acfr-gf`,
+`s8-nd-local-acfr-gf`, `s8-ky-lfucg-acfr-gf`.
+
+⚠ Grand Forks County FY2021 was flagged for modified-opinion WORDS and reviewed
+by hand: every occurrence is **"Qualified Zone Academy Bonds"**, a US debt
+instrument. Exactly the false positive that script reports rather than acts on.
+
+### ⚠⚠ Session 8 — LFUCG FY2017–FY2020 are LOADED BUT UNGRADED
+
+The verifier could not find an opinion for four Lexington-Fayette years. That was
+investigated, not overridden. Those years file a package titled **"Single Audit
+Report in Accordance with Uniform Guidance"** which **BUNDLES the complete
+governmental-funds statements but contains NO OPINION ON THEM.** Measured on
+FY2018: the phrase `present fairly` appears **ZERO times**, and the only two
+"In our opinion" paragraphs are the federal COMPLIANCE opinion and the
+IN-RELATION-TO opinion on the SEFA. The financial-statement opinion lives in
+LFUCG's separate ACFR, which FAC does not hold for those years.
+
+Their DATA ties at $0 and IS loaded; only the grade is withheld. The registry
+pattern deliberately matches `FY2016` and `FY2021-25` only, and exactly **8 of
+the 120 session-8 rows are `unknown`** — verified after stamping.
+
+⚠⚠ **THIS IS THE MIRROR OF THE OTHER LFUCG LESSON.** Elsewhere in this session
+the rule is "do NOT reject a FAC package on its cover title" — the title says
+Single Audit and the statements are all there. Here the same title is RIGHT: the
+opinion genuinely is absent. **The title is wrong about the statements and right
+about the opinion, and each has to be checked on its own.**
+
+**Follow-up:** enumerating LFUCG's Google Drive archive would likely recover
+these four grades. ⚠ Note its Drive link labelled "fiscal year 2025" is a
+**20-page summary, not the ACFR** — a publisher's own label is not evidence of
+what a file is.
+
+### ⚠⚠ Session 8 — EVERY Harrison County year is QUALIFIED on the GENERAL FUND
+
+Read from each document's own Summary of Auditors' Results, not inferred:
+
+| FY | Governmental Activities | Component unit | **General Fund** | Other major funds |
+|---|---|---|---|---|
+| 2016 | Qualified | **Adverse** | **Qualified** | Unmodified |
+| 2017 | Qualified | Unmodified | **Qualified** | Unmodified |
+| 2021–23 | Qualified | Unmodified | **Qualified** | Unmodified |
+
+The cause is identical every year: the County did not maintain an accurate aging
+of fines receivable of the Circuit and Justice Courts ($8,230,286 at FY2016) — a
+**SCOPE limitation on a receivable, not a basis departure**. The FY2016 ADVERSE
+opinion is on the discretely presented component unit (the Mississippi Coast
+Coliseum Commission, omitted from the reporting entity) and does **not** touch
+the General Fund.
+
+Graded `audited_gaap`, which is TRUE — GAAP statements, independent opinion.
+
+⚠⚠ **BUT THE VOCABULARY CANNOT DISTINGUISH A QUALIFIED OPINION FROM A CLEAN ONE,
+AND THIS IS THE FIRST FAMILY WHERE THAT MATTERS.** On an axis whose stated
+purpose is "how much assurance stands behind a figure", a qualified opinion on
+the very fund being loaded is less assurance than an unmodified one, and TT
+currently shows them identically. **FILED FOR CHRIS** — a fifth value, or an
+orthogonal modified-opinion flag, is a scoping decision and was not taken
+unilaterally on top of `audited_ocboa`.
+
 ## North Carolina — the recon gate (session 2)
 
 ### ⚠⚠ THE DESIGN'S ASSUMPTION WAS WRONG: NC LGC IS **NOT** AUDIT-DERIVED
@@ -520,29 +622,53 @@ FY month: the stored `fiscal_year_start_month` and whether the FAC census confir
 | **Boulder County** | CO | county | loaded | **own ACFR** FY2021–25 | `audited_gaap` | 1 · **FAC confirmed** | 7b |
 | **City of Wichita** | KS | city | loaded | **own ACFR** FY2000–25 exc. **FY01, FY08** | `audited_gaap` | 1 · confirmed exc. FY2022 | 7b |
 | **Sedgwick County** | KS | county | loaded | **own ACFR** FY2006–24 exc. **FY19** | `audited_gaap` | 1 · **FAC confirmed** | 7b |
+| **City of Aberdeen** | SD | city | loaded | **own ACFR** FY2016–24 | `audited_gaap` | 1 · **FAC confirmed** | 8 |
+| **Brown County** | SD | county | loaded | **own audit report** FY2016, 20, 23, 24 | ⚠ **`audited_ocboa`** | 1 · **FAC confirmed** | 8 |
+| **City of Biloxi** | MS | city | loaded | **own ACFR** FY2002–2022, 10 gaps | `audited_gaap` | **10** · **FAC confirmed** | 8 |
+| **Harrison County** | MS | county | loaded | **own ACFR** FY2016–17, 21–23 | ⚠ `audited_gaap` (**GF qualified every yr**) | **10** · **FAC confirmed** | 8 |
+| **City of Grand Forks** | ND | city | loaded | **own ACFR via FAC** FY2016–25 | `audited_gaap` | 1 · **FAC confirmed** | 8 |
+| **Grand Forks County** | ND | county | loaded | **own ACFR via FAC** FY2016–24 exc. FY18/19 | `audited_gaap` | 1 · **FAC confirmed** | 8 |
+| **Lexington-Fayette** | KY | **city** (consolidated) | loaded | **own ACFR via FAC** FY2016–25 | `audited_gaap` ×6 · ⚠ **`unknown` ×4** | **7** · live FAC (census absent) | 8 |
 
-**COUNTED FROM THE TABLE ABOVE, 2026-08-30 after session 7b: 41 rows — 40
-`loaded` + 1 `partial` (San Jose). 23 primary entities + 18 parent counties.**
+**COUNTED FROM THE TABLE ABOVE, 2026-08-31 after session 8: 48 rows — 47
+`loaded` + 1 `partial` (San Jose). 27 primary entities + 21 parent counties.**
 
-The remaining entities are `pending`: **4 primaries** (Aberdeen SD, Biloxi MS,
-Grand Forks ND, Lexington-Fayette KY) and **3 counties** (Brown SD, Harrison MS,
-Grand Forks ND) = **7**. All seven are session 8's "orphans" slice.
+⚠ **COUNTING THE `Type` COLUMN GIVES 26 / 22 AND IS NOT A CONTRADICTION.**
+**Palm Beach County FL is a PRIMARY entity that happens to be a county** — a
+Knight community in its own right, with no separate parent (spec §2.2, "Already
+the primary entity (1)"). So the 22 county-TYPED rows are 21 parent counties
+plus Palm Beach, and the 26 non-county-typed rows plus Palm Beach are the 27
+primaries. Both readings reconcile to 48.
 
-⚠⚠ **THE ROSTER TOTAL OF 43 DOES NOT RECONCILE, AND SESSION 7a WAS THE FIRST TO
-COUNT IT RATHER THAN CARRY IT.** Spec §2 states "Total entity target: 43
-(27 primary + 16 counties)", but 18 counties are ALREADY LOADED and three more are
-still pending, so the campaign has **21 parent counties, not 16**. The arithmetic
-that reconciles is 27 primary + 21 counties = **48**, and 41 + 7 = 48 exactly.
-The undercount is explained by the five CONSOLIDATED primaries that have no
-separate county (Macon-Bibb, Columbus-Muscogee, Philadelphia, Nashville-Davidson,
-Lexington-Fayette) — subtracting them from 21 gives the 16 in §2, which appears
-to have counted "new counties to create" rather than "counties in the roster".
-⚠ **Percentages quoted in earlier sessions were computed against 43** and are
-therefore optimistic: **41 of 48 is 85%**, where the same count against 43 would
-read 95%. Left as a flagged
-discrepancy for Chris rather than silently restated — the headline number is a
-scoping decision, not a bookkeeping one. **Count the table; never carry a total
-forward** — the same rule that caught session 4's missing Georgia rows.
+⚠ This is the same class of miscount that produced the original "43": a row can
+belong to one bucket by its TYPE and another by its ROLE. Count roles, and say
+which you are counting.
+
+**THE ROSTER IS COMPLETE. Every entity in scope now carries data.** Nothing is
+`pending`; what remains are per-year document gaps inside loaded entities, all
+diagnosed in `.planning/KNIGHT-SESSION-08-DOCUMENTS.md` and none written as $0.
+
+✅ **THE ROSTER TOTAL RECONCILES, AND SPEC §2 HAS BEEN CORRECTED.** It read
+"Total entity target: 43 (27 primary + 16 counties)" and did not reconcile.
+Session 7a was the first to COUNT the table rather than carry the number, and
+session 8 resolved it: the slip was arithmetic, not scope. §2 added the **16
+counties still to CREATE** instead of the **21 counties IN THE ROSTER**, omitting
+five already-loaded counties — Summit OH, Ramsey MN, Saint Louis MN, Santa Clara
+CA and Los Angeles CA — that are roster members carrying data and were excluded
+only because they needed no new work. `16 new + 5 already loaded = 21`, and
+`27 + 21 = 48`. The table reconciles independently at `47 + 1 = 48`, primaries at
+`23 + 4 = 27` and counties at `18 + 3 = 21`.
+
+⚠ **Do NOT attribute the gap to the five COTERMINOUS primaries** (Philadelphia,
+Macon-Bibb, Columbus-Muscogee, Lexington-Fayette, Nashville-Davidson). Those are
+correctly excluded — one entity each, not a city plus a county. Both groups
+number five, which is exactly what made the misattribution easy, and an earlier
+draft of this document made it.
+
+⚠ **Percentages quoted in sessions 1–7 were computed against 43 and were
+optimistic** — 41 of 48 was 85%, not the 95% that denominator implied. **Count
+the table; never carry a total forward** — the same rule that caught session 4's
+missing Georgia rows.
 
 ⚠ **Detroit and Wayne County are on DIFFERENT fiscal calendars** — a city and its
 own parent county, month 7 against month 10. Both are read per filing from the
@@ -2565,3 +2691,124 @@ unchanged.
    Lexington-Fayette KY + Brown, Harrison and Grand Forks counties = the last 7.
    ⚠⚠ **Lexington-Fayette is one of the four consolidated governments the FAC
    census classifier silently drops** — fix that before session 8 loads it.
+
+---
+
+## ✅ Session 8 (THE LAST SEVEN ORPHANS) — 2026-08-31
+
+**120 rows live across 7 entities and 4 NEW STATES — SD, MS, ND, KY. The roster
+is complete at 48 of 48.** `verify:frozen` green at `62654 / 3a48ac28`, the same
+digest as before the load. 1,803 vitest tests; 170 + 20 ACFR selftests.
+
+| Entity | Years loaded | Grade |
+|---|---|---|
+| City of Biloxi MS | 15 (FY2002–2022) | `audited_gaap` |
+| City of Grand Forks ND | 10 (FY2016–25) | `audited_gaap` |
+| Lexington-Fayette KY | 10 (FY2016–25) | `audited_gaap` ×6, `unknown` ×4 |
+| City of Aberdeen SD | 9 (FY2016–24) | `audited_gaap` |
+| Grand Forks County ND | 7 | `audited_gaap` |
+| Harrison County MS | 5 | `audited_gaap` (**GF qualified every year**) |
+| Brown County SD | 4 | ⭐ `audited_ocboa` |
+
+Every row `general_fund / actual` with a `source_url`; **0 missing**.
+
+### The document hunt — 70 verified documents
+
+Full record in `.planning/KNIGHT-SESSION-08-DOCUMENTS.md`. Two access findings
+that generalise beyond this session:
+
+* ⭐⭐ **The FAC bulk `general.csv` carries `report_id`** — 269 MB in 4.5 s, no
+  key, no rate limit. Combined with the already-open PDF endpoint the whole route
+  is unauthenticated end to end. **This retires the "get a real FAC key"
+  blocker** that stopped six of seven entities.
+* ⚠⚠ **Filter FAC by `auditee_ein`, NEVER by state or name.** City of Grand Forks
+  FY2025 is filed with `auditee_state = MN`; a state filter silently DROPPED a
+  real document. Recovered by EIN; its cover page says North Dakota.
+
+⭐ Reading the MS OSA index found a **statewide Mississippi source the campaign
+had recorded as not existing** — 2,668 municipal + 805 county audits, 299 munis
+and ~82 counties, FY2015–2025. It closed none of session 8's gaps (coverage
+starts FY2015) but is a milestone candidate. See
+[[reference_mississippi_osa_audit_reports]].
+
+### ⚠⚠ Quality gates — FOUR checks, and each catches what the others miss
+
+Biloxi cost the campaign three new gates, because each existing one passed a
+document the next one caught:
+
+| check | catches | threshold |
+|---|---|---|
+| chars/page | image-only scan | ≥ 400 |
+| known-vocabulary share | **dense but garbled** OCR | ≥ 30 % |
+| digit-welded tokens/page | dense but garbled OCR | ≤ 12 |
+| **money-token integrity** (`scripts/checkAcfrMoneyIntegrity.py`) | **prose fine, DIGITS destroyed** | < 1 % |
+
+* ⚠⚠ **Biloxi FY2024 passes every PROSE check** — 43.6 % vocabulary, 1,999
+  chars/page — while its statement reads `4,973,!09` and a total of
+  `I09,091 ,141`. **An OCR engine can read words well and digits badly, and
+  money is the only part of an ACFR TT loads.**
+* ⚠⚠ **DENSITY AND VOCABULARY ARE COMPLEMENTARY, NOT SUBSTITUTES.** Harrison
+  County FY2015 scores **45.7 % vocabulary on 1 text page of 126** — its only
+  text is MS OSA's clean English disclaimer.
+* ⚠⚠ **The first money gate was a FALSE-POSITIVE GENERATOR** — it flagged every
+  document including known-good ones, because `-table` separates columns with
+  runs of spaces. Caught only by running it against proven-good controls first.
+  **A detector that fires on everything is indistinguishable from one that fires
+  on nothing.**
+
+### `scripts/lib/acfrGF.py` — seven new capabilities, all opt-in
+
+`decimal_money`, `whitespace_repair`, `multipage`, `subparents` /
+`subparent_close`, `revenue_group_close` (`numeric_chart` / `next_heading`),
+`subtotal_prefixes`, `leading_account_code`, plus per-page and **header-derived**
+column grids.
+
+⚠ **PROVED INERT BY DEFAULT after every change**: all four session-7b entities
+re-extracted across every staged document in both modes, `diff -rq` clean against
+a pre-change baseline (66 JSON outputs, identical md5).
+
+Defects these found, none of which a tie alone would have caught:
+
+* **The account CODE was being read as money.** Aberdeen's `310 Taxes` parsed as
+  a row worth **310**; every group heading became a ~$300 leaf, the revenue tree
+  came back FLAT, and the total was only **3,752 over** — small enough to look
+  like rounding rather than a destroyed hierarchy.
+* **A naive multipage join INVENTS rows.** Brown County's repeated page headers
+  parsed as data: a row named `"... For the Year Ended December"` worth **31**.
+* ⭐ **Printed subtotals are an ORACLE, not noise.** `subtotal_prefixes` asserts
+  each against its own group — six checks per Aberdeen year — and it immediately
+  caught FY2020, whose revenue ties at $0 while three expenditure subtotals fail.
+* **A CONSTANT tie delta is an artifact.** Brown County was +915 in ALL FOUR
+  years: `911 Remittances` and `63 3/4% Mobile Home` had their LABEL digits read
+  as values. ⚠ The first fix was POSITIONAL and broke the Kent selftest; the
+  structural `label_of` rule (a token is label when more of the name follows) has
+  no geometry assumption.
+* **Converting cents→dollars was breaking the tree.** Rounding each node
+  independently made a parent differ from its own children by $1. Parents are now
+  derived from converted children; the authoritative tie stays exact **in integer
+  cents**, and the dollar residue is reported as `dollar_rounding_residue`.
+
+### ⚠ The shape facts that would have tied at $0 while being wrong
+
+* `Capital outlay` is a **PARENT** for Biloxi and a valued **ROOT LEAF** for
+  Grand Forks County. LFUCG prints `Capital:` instead.
+* Grand Forks city needs `revenue_group_members`; without it `Taxes` closes after
+  its first child and **still ties**.
+* Harrison County FY2016/17 needed `column_strategy='ordinal'` — five General
+  Fund figures were out of positional alignment and their sum was **exactly** the
+  tie delta, which is what identified the cause.
+
+### Open follow-ups from this session
+
+1. ⚠⚠ **A qualified opinion is graded identically to a clean one.** Harrison
+   County — see above. **Chris's call**, deliberately not taken unilaterally.
+2. ⭐ **LFUCG FY2017–20 grades** — enumerate its Google Drive archive.
+3. **10 entity-years remain unloadable**, each diagnosed in the documents record.
+4. **Brown County FY2023** is FAC-flagged `biennial` and names 2022 on its cover
+   — a separate FY2022 statement may sit in the same document.
+5. Carried forward: **grade Colorado Springs + El Paso County** (64 rows, one
+   script run) and the **statewide sweeps** (MI, SC, TN, FL, PA, IN, and now MS).
+6. **The ev-accounts passthrough so `audit_grade` renders.** TT now holds five
+   distinct grades — including TT's first `audited_ocboa` and 8 deliberately
+   `unknown` rows — and **a reader cannot see any of them.**
+
