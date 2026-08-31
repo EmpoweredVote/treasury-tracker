@@ -215,15 +215,26 @@ describe('audit grade', () => {
     }
   });
 
-  // ⚠⚠ The entry is anchored to the four entities whose opinions THIS session
-  // read. Colorado Springs and El Paso County have been in TT since v2.29 and
-  // must stay `unknown` until someone reads their opinions — §3.5 requires
-  // evidence per document, and "it is an ACFR, so it is audited" is the exact
-  // assumption North Carolina punished in session 2.
-  it('does NOT grade the pre-existing Colorado entities', () => {
+  // ⚠⚠ THE GUARANTEE HERE IS ABOUT WHICH ENTRY CLAIMS THEM, NOT ABOUT THE GRADE.
+  //
+  // This test used to assert Colorado Springs and El Paso County were `unknown`,
+  // because session 7b anchored its entry to the four entities whose opinions it
+  // actually read. On 2026-08-31 those 32 documents WERE read — both opinion
+  // gates, over every one — so they are now graded by their OWN entry,
+  // `co-springs-epc-acfr-gf`, carrying its own evidence.
+  //
+  // What must NOT happen is the 7b entry widening to swallow them. That is still
+  // the failure §3.5 forbids: one entry's evidence covering documents nobody
+  // checked under it. So the assertion is now on the entryId. If a future edit
+  // broadens `co-ks-local-acfr-gf`, this fails — which is the whole point.
+  it('grades the pre-existing Colorado entities from their OWN entry, not the 7b one', () => {
     for (const name of ['City of Colorado Springs', 'El Paso County']) {
       const label = sourceNameFor(name, 'revenue', 2024);
-      expect(gradeFor(label).value, label).toBe(AUDIT_GRADE.UNKNOWN);
+      const g = gradeFor(label);
+      expect(g.value, label).toBe(AUDIT_GRADE.AUDITED_GAAP);
+      expect(g.entryId, label).toBe('co-springs-epc-acfr-gf');
+      expect(g.entryId, `${label} must NOT be claimed by the session-7b entry`)
+        .not.toBe('co-ks-local-acfr-gf');
     }
   });
 

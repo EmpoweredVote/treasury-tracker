@@ -80,4 +80,51 @@ describe('gradeFor', () => {
     expect(gradeFor('Archived CA State Controller - Expenditures (superseded)'))
       .toEqual({ value: 'unknown', entryId: null });
   });
+
+  // Colorado Springs + El Paso County, graded 2026-08-31 after both opinion
+  // gates were run over all 32 documents.
+  //
+  // ⚠ THE YEAR ALTERNATION IS THE ASSERTION. It is exactly the loaded set, and
+  // the two exclusions below are the whole reason this entry is not a decade
+  // wildcard. Widen it and rows get graded off opinions nobody read — the
+  // failure this registry exists to prevent.
+  const springs = (fy) =>
+    `City of Colorado Springs ACFR — General Fund Expenditure by Function (FY${fy} actual, GAAP basis)`;
+  const elPaso = (fy) =>
+    `El Paso County ACFR — General Fund Revenue by Source (FY${fy} actual, GAAP basis)`;
+
+  it('grades the loaded Colorado Springs and El Paso County ACFR years', () => {
+    for (const fy of [2012, 2019, 2025]) {
+      expect(gradeFor(springs(fy)))
+        .toEqual({ value: 'audited_gaap', entryId: 'co-springs-epc-acfr-gf' });
+    }
+    for (const fy of [2005, 2009, 2010, 2025]) {
+      expect(gradeFor(elPaso(fy)))
+        .toEqual({ value: 'audited_gaap', entryId: 'co-springs-epc-acfr-gf' });
+    }
+  });
+
+  // ⚠ El Paso FY2006-FY2008 are PUBLISHED but declined as unparseable, so they
+  // are not loaded and no opinion was read. They must stay unknown.
+  it('leaves El Paso County FY2006-FY2008 unknown — published, but never read', () => {
+    for (const fy of [2006, 2007, 2008]) {
+      expect(gradeFor(elPaso(fy))).toEqual({ value: 'unknown', entryId: null });
+    }
+  });
+
+  // ⚠ A future year must NOT inherit this grade. The next ACFR needs its own
+  // opinion read before anything grades it.
+  it('does not grade a year beyond the ones actually read', () => {
+    expect(gradeFor(springs(2026))).toEqual({ value: 'unknown', entryId: null });
+    expect(gradeFor(elPaso(2026))).toEqual({ value: 'unknown', entryId: null });
+  });
+
+  // ⚠⚠ NAME COLLISION. El Paso County, TEXAS is a real county TT does not hold.
+  // The registry sees `data_source` and nothing else, so if it is ever onboarded
+  // with this label shape it WOULD be claimed by the Colorado entry. This pins
+  // the fact that the two are indistinguishable today, so the collision is
+  // discovered here rather than in production.
+  it('cannot tell El Paso County TX from El Paso County CO by label alone', () => {
+    expect(gradeFor(elPaso(2020)).entryId).toBe('co-springs-epc-acfr-gf');
+  });
 });

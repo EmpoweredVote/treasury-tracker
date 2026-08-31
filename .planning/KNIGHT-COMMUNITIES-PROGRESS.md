@@ -2669,7 +2669,7 @@ scans, which have no cover text at all.
 * 20 ACFR selftests still pass — the `acfrGF.py` library change is
   regression-clean.
 
-### ⚠ The pre-existing Colorado rows are deliberately left `unknown`
+### ⚠ The pre-existing Colorado rows are deliberately left `unknown` — ✅ CLOSED 2026-08-31
 
 Colorado Springs and El Paso County have had **no `auditGradeRegistry` entry
 since v2.29**, and this session's entry is anchored to the four entities whose
@@ -2812,3 +2812,126 @@ Defects these found, none of which a tie alone would have caught:
    distinct grades — including TT's first `audited_ocboa` and 8 deliberately
    `unknown` rows — and **a reader cannot see any of them.**
 
+
+---
+
+## ✅ Colorado Springs + El Paso County — GRADED, 2026-08-31
+
+The follow-up session 7b filed and deliberately declined. **64 rows moved
+`unknown` → `audited_gaap`**; registry entry `co-springs-epc-acfr-gf`.
+It got its own entry rather than a widened 7b pattern, for the same reason 7b's
+was narrow: the documents were read separately, so they are attested separately.
+
+* **Colorado Springs** FY2012–FY2025 — 14 documents, 28 rows
+* **El Paso County, CO** FY2005 and FY2009–FY2025 — 18 documents, 36 rows
+
+Every document was fetched from the **`source_url` already stored on the rows it
+grades**, so the document attested is the same one the reader is offered. All 32
+validated as real PDFs by magic bytes before anything read them.
+
+### ⚠⚠ The gate that proves an opinion EXISTS cannot prove it is CLEAN
+
+This is the first session to say so out loud, and it is the reason a second
+script was written rather than the filed one simply being re-run.
+
+`verifyCoKsOpinions.py` identifies the primary opinion by pairing *"present
+fairly, in all material respects"* with a GAAP conformity phrase. **A QUALIFIED
+opinion contains both** — its sentence reads *"except for the effects of …, the
+financial statements present fairly, in all material respects …"*. So a
+qualified document passes that gate silently.
+
+**Harrison County MS is the standing proof:** ten loaded rows pass it and are not
+clean. Re-running the filed script alone would have graded these 64 rows without
+ever asking the question the campaign now knows to ask.
+
+⭐ **`scripts/checkOpinionType.py`** is the answer — a second implementation that
+reads the opinion **paragraph** rather than the document:
+
+* `verifyCoKsOpinions.py` searches the WHOLE document, so its modified-opinion
+  pattern fires on Single Audit compliance opinions and on boilerplate. It
+  reports those and never downgrades — correctly, but it means the signal is
+  noisy by design.
+* `checkOpinionType.py` searches a **1,200-character window around the
+  fair-presentation sentence**, where a modifier can only mean the opinion on the
+  basic financial statements.
+
+⚠ It carries a `--selftest` that fails the script unless it classifies a clean
+opinion and a qualified one correctly **and** proves `unqualified` is not read as
+`qualified`. A detector must be tested against both polarities — session 7b's
+gate inverted its own signal for exactly the missing `(?<!un)`.
+
+### Results — two gates, 32 documents, agreeing
+
+| gate | question | result |
+|---|---|---|
+| `verifyCoKsOpinions.py` | is there an opinion? | **19** text layer · **13** OCR · **0** not found |
+| `checkOpinionType.py` | is it unmodified? | **32 clean** · 0 modified · 0 unreadable |
+
+### ⚠⚠ THIRTEEN OF 32 OPINIONS ARE INVISIBLE TO A TEXT SEARCH
+
+The **fourth** occurrence of this failure mode, and proportionally the worst yet
+— 13 of 32 here against 17 of 57 in 7b, and 8 of 36 in session 2.
+
+**Colorado Springs is image-only on the auditor's page for EVERY year
+FY2018–FY2025.** El Paso County is image-only for FY2005, FY2009–FY2011 and
+FY2020. Grading on the text layer alone would have shipped all thirteen as
+`unknown`. OCR at 200dpi recovers every one.
+
+Colorado Springs FY2024, under the heading **"Opinions"**:
+
+> In our opinion, based on our audit and the report of the other auditors, the
+> accompanying financial statements referred to above present fairly, in all
+> material respects, the respective financial position of the governmental
+> activities … as of December 31, 2024
+
+over the signature of ForvisMazars.
+
+### ⚠ Two things that would have produced a wrong answer
+
+**"Based on our audit AND THE REPORTS OF OTHER AUDITORS" is NOT a modification.**
+It appears in most of these reports and is the standard group-audit reference to
+component units audited by someone else. Reading it as a qualification would
+downgrade 30 clean opinions.
+
+**The heading over a clean opinion is "Opinions", never "Unmodified Opinion".**
+The AU-C 700 format labels only a *modified* opinion. So the clean verdict rests
+on a POSITIVE fair-presentation sentence plus the ABSENCE of any modifier near
+it — which is what the window measures. ⭐ Four opinion sentences were also read
+**by eye** (Springs FY2012 and FY2024, El Paso FY2005 and FY2019); none carries
+an "except for".
+
+### ⚠ What is still NOT graded, and why
+
+**El Paso County FY2006–FY2008** are published but declined as unparseable
+(differently-titled statement, split across two pages), so they are not loaded
+and no opinion was read. The registry's year alternation is **exactly the loaded
+set** — `200[59]|201[0-9]|202[0-5]`, not a decade wildcard — so those years stay
+`unknown`, and **a future FY2026 ACFR will not inherit this grade**. Springs
+FY1999–FY2011 and El Paso FY2000–FY2004 are image-only scans, likewise unloaded.
+
+### ⚠⚠ A name collision this entry cannot see
+
+**El Paso County, TEXAS** is a real county TT does not yet hold. The registry
+matches on `data_source` and nothing else, so if it is ever onboarded with this
+label shape **it would be claimed by the Colorado entry**. A test in
+`tests/auditGradeRegistry.test.mjs` pins that the two are indistinguishable
+today, so the collision surfaces there rather than in production. Re-check this
+entry before loading any Texas El Paso.
+
+### Verification
+
+`verify:frozen` **byte-identical either side of the stamp** —
+`62654 rows / 3a48ac28…` before and after. `audit_grade` is not part of the
+digest (it hashes `id | total_budget`), which is exactly why this change is
+provably **$0 moved**. `verify:live-sync` 0 unprotected. 1,822 vitest tests pass.
+
+⚠ No `register:rows` was needed: nothing was inserted, so there is no deficit.
+
+### Database effect
+
+| grade | before | after |
+|---|---:|---:|
+| `unknown` | 60,368 (2,122 entities) | **60,304 (2,120)** |
+| `audited_gaap` | 342 (15 entities) | **406 (17)** |
+
+Every other value unchanged; total still 88,820.
