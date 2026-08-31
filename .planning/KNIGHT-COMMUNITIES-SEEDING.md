@@ -67,7 +67,32 @@ Where a state yields a bulk source, its counties usually arrive in the same work
 
 ⚠ **Counties must not be assumed to share the city layout.** Per `project_ohio_aos_county_vs_city_layout`, Ohio county workbooks differ from city workbooks in header row, column offsets, and available functions. Verify the county layout independently in every state.
 
-**Total entity target: 43** (27 primary + 16 counties).
+**Total entity target: 48** (27 primary + **21** counties).
+
+> ⚠ **Corrected 2026-08-30 (session 8).** This line originally read "**43**
+> (27 primary + 16 counties)" and did not reconcile. The slip is arithmetic, not
+> scope: it added the **16 counties still to CREATE** instead of the **21
+> counties IN THE ROSTER**. The five already-loaded counties immediately above —
+> Summit OH, Ramsey MN, Saint Louis MN, Santa Clara CA, Los Angeles CA — are
+> roster members that carry data; they were excluded from the total only because
+> they needed no new work. `16 new + 5 already loaded = 21`, and
+> `27 + 21 = 48`.
+>
+> This is confirmed from the other direction by the authoritative per-entity
+> table in `KNIGHT-COMMUNITIES-PROGRESS.md`: **41 entities carrying data
+> (23 primary + 18 counties) + 7 pending (4 primary + 3 counties) = 48**, with
+> primaries reconciling at `23 + 4 = 27` and counties at `18 + 3 = 21`.
+>
+> **No entity is added, removed or rescoped by this correction** — only the
+> denominator changes. ⚠ Percentages quoted in sessions 1–7 were computed against
+> 43 and are therefore optimistic: **41 of 48 is 85 %**, where the same count
+> against 43 reads 95 %. Count the table; never carry a total forward.
+>
+> ⚠ Do **not** attribute the gap to the five *coterminous* primaries
+> (Philadelphia, Macon-Bibb, Columbus-Muscogee, Lexington-Fayette,
+> Nashville-Davidson). Those are correctly excluded — they are one entity each,
+> not a city plus a county. Both groups happen to number five, which is what made
+> the misattribution easy.
 
 ### 2.3 Out of scope
 

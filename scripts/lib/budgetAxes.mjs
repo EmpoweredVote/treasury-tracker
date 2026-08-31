@@ -55,6 +55,32 @@ export const REPORTING_ENTITY_VALUES = Object.freeze(Object.values(REPORTING_ENT
 export const AUDIT_GRADE = Object.freeze({
   /** Read directly from an ACFR bearing an independent auditor's opinion. */
   AUDITED_GAAP: 'audited_gaap',
+  /**
+   * Audited, with an independent opinion — but on an OTHER COMPREHENSIVE BASIS
+   * OF ACCOUNTING (OCBOA), not GAAP. Typically modified cash or regulatory
+   * basis.
+   *
+   * ⚠⚠ ADDED FOR BROWN COUNTY SD (Knight session 8), which had no honest slot.
+   * Its statements are titled `... - MODIFIED CASH BASIS` and its auditor, the
+   * South Dakota Department of Legislative Audit, states outright that they are
+   * "prepared on the modified cash basis of accounting, which is a basis of
+   * accounting other than accounting principles generally accepted in the
+   * United States of America". FAC agrees independently: `gaap_results` is
+   * `not_gaap`.
+   *
+   * The three pre-existing values all misrepresented it. `audited_gaap` matched
+   * the DEFINITION but its NAME asserts GAAP, which the document explicitly
+   * denies — exactly the "false public claim about a government's books" this
+   * docstring warns against. `unknown` means NOBODY HAS LOOKED, and somebody
+   * had. `self_reported_unaudited` denies a real independent audit.
+   *
+   * ⚠ ASSURANCE IS NOT THE SAME AS COMPARABILITY. This sits directly below
+   * AUDITED_GAAP because the assurance is equivalent — an independent opinion
+   * under Government Auditing Standards — while the measurement basis is not.
+   * A reader comparing an OCBOA General Fund with a GAAP one is comparing two
+   * different things, and that is what this value exists to say.
+   */
+  AUDITED_OCBOA: 'audited_ocboa',
   /** A state agency compiled it from audited statements. */
   COMPILED_FROM_AUDITED: 'compiled_from_audited',
   /** A state agency compiled entity self-reports, or disclaims audit. */

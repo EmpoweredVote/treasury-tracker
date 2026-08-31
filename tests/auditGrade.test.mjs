@@ -6,13 +6,26 @@ import {
 } from '../scripts/lib/budgetAxes.mjs';
 
 describe('AUDIT_GRADE vocabulary', () => {
-  it('has exactly the four spec values', () => {
+  // ⚠ The ORDER is asserted, not just the membership: the ladder runs
+  // strongest-assurance-first and `audited_ocboa` belongs directly below
+  // `audited_gaap` — same independent opinion, different measurement basis.
+  it('has exactly the five spec values, strongest assurance first', () => {
     expect(AUDIT_GRADE_VALUES).toEqual([
       'audited_gaap',
+      'audited_ocboa',
       'compiled_from_audited',
       'self_reported_unaudited',
       'unknown',
     ]);
+  });
+
+  // Added with Brown County SD (Knight session 8). Before it, an entity that is
+  // genuinely audited on a NON-GAAP basis had no honest value: `audited_gaap`
+  // asserts a basis its own document denies, `unknown` claims nobody looked, and
+  // `self_reported_unaudited` denies the audit.
+  it('can express an audited non-GAAP (OCBOA) filing', () => {
+    expect(AUDIT_GRADE.AUDITED_OCBOA).toBe('audited_ocboa');
+    expect(AUDIT_GRADE_VALUES).toContain('audited_ocboa');
   });
 
   // ⚠ Assert objecthood FIRST. Object.isFrozen(undefined) is `true` in ES2015+,
