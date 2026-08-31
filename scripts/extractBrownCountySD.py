@@ -120,6 +120,14 @@ CONFIG = CityConfig(
     decimal_money=True,
     multipage=True,
     fy_end=('December', 31),
+    # ⚠ `label_of` ends a label at the first money token after which no WORD
+    # remains, so a percentage inside a name truncates it: the `25` in `(25%)`
+    # is followed only by `%)` and the figures. Same shape as Kent's
+    # `Fire District # 37 Contract`. Repaired by EXACT match only — a heuristic
+    # that re-closed any dangling parenthesis would corrupt real labels.
+    label_fixes={
+        'Liquor Tax Reversion (': 'Liquor Tax Reversion (25%)',
+    },
 )
 
 if __name__ == '__main__':

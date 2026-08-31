@@ -699,6 +699,22 @@ def dash_zero_label(line):
 # either way.
 _LEADING_PAGE_NUMBER = re.compile(r'^(\d{1,4})(\s{2,})(?=[A-Za-z])')
 
+def _retag(text, original):
+    """Re-attach `original`'s page tag to a rewritten line.
+
+    ⚠⚠ `_recover_label_past_leading_page_number` and
+    `_recover_label_past_leading_rule` return a PLAIN str, which silently drops
+    `TaggedLine.page`. The line then resolved against the widest grid in the
+    span instead of its own page's, and any row carrying a leading page number
+    was read with the wrong column positions. Brown County FY2024's
+    `17  Urban and Rural Development  381,747.39` came back as a ZERO ROW --
+    the tie was short by exactly 381,747, and FY2023 by 198,986 for the same
+    reason on a different row.
+    """
+    page = getattr(original, 'page', None)
+    return TaggedLine(text, page) if page is not None else text
+
+
 def _recover_label_past_leading_page_number(line):
     """If `line` begins with a bare page-number token followed by a genuine
     column gap and then a letter, blank out just that token (replace it with
@@ -909,6 +925,7 @@ def find_statement_span(pages, cfg):
             continue
         joined = pg
         span_pages = [pg]
+        span_raw = [pg]
         for j in range(i + 1, min(i + cfg.multipage_max, len(pages))):
             jl = joined.lower()
             if (any(lbl in jl for lbl in cfg.revenue_total_labels)
@@ -918,12 +935,13 @@ def find_statement_span(pages, cfg):
             if any(x in nxt.lower() for x in _EXCLUDE if x not in cfg.exclude_ignore):
                 break
             span_pages.append(_strip_continuation_header(nxt))
+            span_raw.append(nxt)
             joined = joined + '\n' + span_pages[-1]
         jl = joined.lower()
         if (any(lbl in jl for lbl in cfg.revenue_total_labels)
                 and 'total expenditures' in jl):
-            return i, joined, span_pages
-    return None, None, None
+            return i, joined, span_pages, span_raw
+    return None, None, None, None
 
 
 def parse_fy(pages, pdf_path, fy_end=('June', 30), statement_page=None):
@@ -966,6 +984,96 @@ def parse_fy(pages, pdf_path, fy_end=('June', 30), statement_page=None):
 # ── GF column reader ─────────────────────────────────────────────────────────
 def anchors(line):
     return [p for _, p in nums_with_pos(line)]
+
+def _header_anchors(page_text):
+    """Column grid measured from the PRINTED COLUMN HEADERS, or [] if the page
+    has none.
+
+    ⚠⚠ WHY THIS EXISTS. A page can fail to determine its own grid from its
+    figures: Brown County's first span page has no row populating more than four
+    of the statement's five fund columns, and its third page manages only three.
+    A figure belonging to an invisible column is then assigned to whichever
+    anchor is nearest -- `Highways, Roads and Bridges  11,616,398.69`, a ROAD
+    AND BRIDGE figure, landed on the GENERAL FUND anchor.
+
+    The printed headers do not have that weakness: every column is named whether
+    or not it carries a figure on that page, and the names move with the columns
+    when `-table` re-lays a page out. This is how a human reads the statement.
+
+    ── HOW A HEADER LINE IS TOLD FROM A TITLE LINE ────────────────────────────
+
+    A header line splits into TWO OR MORE groups on runs of two or more spaces;
+    a title is one group. That distinguishes
+
+        `General      Road and Bridge      Debt Service      Governmental`   4
+        `Fund         Fund                 Fund              Funds`          4
+
+    from `BROWN COUNTY`, `GOVERNMENTAL FUNDS`, `STATEMENT OF REVENUES, ...` and
+    `For the Year Ended December 31, 2024`, each of which is a single group.
+    Note the grouping is on the GAP, not on words, so `Road and Bridge` stays
+    one column token rather than three.
+
+    Groups are then clustered across the header lines by character-span overlap
+    -- `General`/`Fund` stack into one column, `Debt Service`/`Fund`/`TIF #1`
+    into another -- and each column's anchor is the RIGHTMOST end in its
+    cluster, which is where `-table` puts the end of a figure in that column.
+
+    Verified against Brown County FY2024: page 17's headers yield
+    [56, 79, 99, 116, 133] and its own data row ends at 62, 97 and 134, each
+    nearest the right column; page 19's yield [58, 80, 101, 115, 129] against
+    data ends of 61, 112 and 127.
+    """
+    lines = page_text.split('\n')
+    header_lines = []
+    for ln in lines:
+        if not ln.strip():
+            continue
+        if _FORMATTED_FIGURE.search(ln):
+            break                      # the table body has started
+        groups = [(m.group(), m.start(), m.end())
+                  for m in re.finditer(r'\S+(?:\s\S+)*', ln)]
+        # ⚠⚠ A TITLE CAN SPLIT INTO GROUPS TOO. Brown County's continuation page
+        # prints `STATEMENT OF  REVENUES,  EXPENDITURES AND CHANGES IN FUND
+        # BALANCES - MODIFIED CASH BASIS` with DOUBLE spaces after the first two
+        # words, so the two-group test admitted it -- and its 63-character third
+        # group overlapped four real columns at once, collapsing the grid from
+        # five columns to four ([38, 49, 115, 129]).
+        #
+        # A column header is SHORT. `Road and Bridge` is the longest in this
+        # corpus at 15 characters. Any line carrying a group longer than 25 is a
+        # title or a caption, and the whole line is rejected rather than the
+        # single group -- a title's remaining fragments are not columns either.
+        if len(groups) >= 2 and max(e - s for _, s, e in groups) <= 25:
+            header_lines.append(groups)
+    if not header_lines:
+        return []
+    clusters = []                      # each: [start, end, rightmost_end]
+    for groups in header_lines:
+        for _, s, e in groups:
+            hit = next((c for c in clusters if s < c[1] and e > c[0]), None)
+            if hit:
+                hit[0] = min(hit[0], s)
+                hit[1] = max(hit[1], e)
+                hit[2] = max(hit[2], e)
+            else:
+                clusters.append([s, e, e])
+    clusters.sort()
+    return [c[2] for c in clusters]
+
+
+def _label_end(line):
+    """Character position at which the row's LABEL ends — the same cut
+    `label_of` makes, exposed so the value reader can use it.
+
+    A money token before this point belongs to the name, not to a column.
+    Returns 0 when the very first token already ends the label, so a normal row
+    is unaffected.
+    """
+    for m in _money_re().finditer(line):
+        if not re.search(r'[A-Za-z]{2,}', line[m.end():]):
+            return m.start()
+    return len(line)
+
 
 def _formatted_anchors(line):
     """Column positions taken ONLY from formatted figures (comma groups or
@@ -1026,8 +1134,28 @@ def gf_value(line, col_anchors):
     actually closest to anchor[0]. A blank GF cell means the row's first number
     belongs to a later column, so GF is absent rather than that number."""
     col_anchors = _anchors_for(line, col_anchors)
+    # ⚠⚠ A NUMBER IN THE LABEL IS NOT A COLUMN-0 VALUE.
+    #
+    # Nearest-anchor matching has no left bound, so ANY stray digit run on a row
+    # is nearer anchor[0] than to anchor[1] and is silently read as the General
+    # Fund cell. Brown County FY2024 prints `911 Remittances` and
+    # `63 3/4% Mobile Home`, both blank in the General Fund column; their label
+    # digits were read as values of 911 and 4, and 911 + 4 = 915 was the tie
+    # delta in EVERY ONE of its four years -- a constant, which is what gave it
+    # away.
+    #
+    # This is `label_of`'s `Fire District # 37 Contract` insight applied to the
+    # VALUE side, and it uses that same rule rather than a positional bound: a
+    # token is part of the LABEL when more of the name follows it. A positional
+    # rule was tried first -- "no closer to the left than one column width" --
+    # and it broke the Kent dash-zero fixture, whose synthetic columns are three
+    # characters apart and whose values are left-aligned, dropping `State
+    # grants  76,388`. The label test has no such geometry assumption.
+    label_end = _label_end(line)
     best, best_d = None, None
     for v, p in nums_with_pos(line):
+        if p <= label_end:
+            continue
         col = min(range(len(col_anchors)), key=lambda k: abs(p - col_anchors[k]))
         if col == 0:
             d = abs(p - col_anchors[0])
@@ -1098,8 +1226,8 @@ def target_cell_is_dash_zero(line, col_anchors, cfg):
       * 'positional' -> no money token may resolve to column 0 (else the
         cell holds a number), and some dash-run must resolve to column 0.
     """
-    line = _recover_label_past_leading_page_number(line)
-    line = _recover_label_past_leading_rule(line)
+    line = _retag(_recover_label_past_leading_page_number(line), line)
+    line = _retag(_recover_label_past_leading_rule(line), line)
     if not nums_with_pos(line):
         return dash_zero_label(line) is not None
     if cfg.column_strategy == 'ordinal':
@@ -1148,8 +1276,8 @@ def classify(line, col_anchors, cfg):
     if not line.strip():
         return 'skip', '', None
 
-    line = _recover_label_past_leading_page_number(line)
-    line = _recover_label_past_leading_rule(line)
+    line = _retag(_recover_label_past_leading_page_number(line), line)
+    line = _retag(_recover_label_past_leading_rule(line), line)
 
     if not nums_with_pos(line):
         dz = dash_zero_label(line)
@@ -1829,9 +1957,9 @@ def extract(pdf_path, mode, cfg):
     pages = table_pages(pdf_path)
     if cfg.whitespace_repair:
         pages = [repair_ocr_whitespace(p) for p in pages]
-    span_pages = None
+    span_pages = span_raw = None
     if cfg.multipage:
-        pi, pg, span_pages = find_statement_span(pages, cfg)
+        pi, pg, span_pages, span_raw = find_statement_span(pages, cfg)
     else:
         pi, pg = find_statement_page(pages, cfg.statement_anchor, cfg.revenue_total_labels,
                                      cfg.exclude_ignore)
@@ -1887,13 +2015,25 @@ def extract(pdf_path, mode, cfg):
         # A real money column holds comma-grouped or cents-bearing figures; page
         # numbers, years and note references do not. Restricting the measurement
         # to formatted figures makes the grid come from actual data rows.
+        # ⚠ HEADERS FIRST, FIGURES ONLY AS A FALLBACK. A page's own figures can
+        # leave columns invisible; its printed headers name every column whether
+        # or not it carries a figure there. Pages that repeat the header block
+        # (the ones that open each half of the statement) are measured from it;
+        # true continuation pages, which print no header, fall back to their
+        # figures -- and in this corpus those are exactly the pages whose rows
+        # populate the full column set anyway.
         col_anchors = {}
+        header_pages = []
         for i, page_text in enumerate(span_pages):
-            widest = max((_formatted_anchors(_recover_label_past_leading_page_number(t))
-                          for t in page_text.split('\n')),
-                         key=len, default=[])
-            if len(widest) >= 2:
-                col_anchors[i] = widest
+            grid = _header_anchors(span_raw[i]) if span_raw else []
+            if len(grid) >= 2:
+                header_pages.append(i)
+            else:
+                grid = max((_formatted_anchors(_recover_label_past_leading_page_number(t))
+                            for t in page_text.split('\n')),
+                           key=len, default=[])
+            if len(grid) >= 2:
+                col_anchors[i] = grid
         if not col_anchors:
             print('  ERROR: could not anchor fund columns on any page of the span',
                   file=sys.stderr)
