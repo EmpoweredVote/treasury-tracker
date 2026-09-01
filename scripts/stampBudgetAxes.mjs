@@ -187,7 +187,18 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // Wayne County, FY2010-FY2025 with no gaps in either series.
   // ⚠ Unlike the fund-scope registry, basis does not split by scope: both series
   // are `actual`, so ONE entry claims all 128.
-  'mi-treasury-f65': 128,
+  //
+  // ⭐ RE-MEASURED 2026-08-31: 128 -> 23,084, the Michigan STATEWIDE sweep. Same
+  // family, same pattern, same publisher — 364 cities and counties instead of 2.
+  // 23,084 = 5,771 entity-years x 2 dataset types x 2 fund scopes.
+  //
+  // ⚠ This is the case the standing lesson above describes: the pattern did not
+  // widen and did not claim a row it should not; the right rows became more
+  // numerous. The "do NOT edit the expected number" rule is about a pattern
+  // reaching the WRONG rows. Verified before editing: 23,084 is the exact count
+  // of `data_source LIKE 'Michigan Treasury Form F-65%'` in the live table, over
+  // exactly 364 municipality_ids.
+  'mi-treasury-f65': 23084,
   // The sixteen entity-published city/state ACFR families, measured 2026-08-19.
   // Evidence: docs/superpowers/plans/ACFR-GF-CLASSIFICATION-RECON.md §2.
   'or-city-acfr-gf': 106,
@@ -209,11 +220,15 @@ export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
   // AUSTIN-TRAVIS-01. Evidence: AUSTIN-TRAVIS-01-SCOPE-RECON.md §3.
   'tx-local-acfr-gf': 76,
   // Knight session 7a (Michigan Treasury F-65), measured 2026-08-30. The same
-  // 128 rows as the basis entry above; primary_government because the F-65
+  // 23,084 rows as the basis entry above; primary_government because the F-65
   // publishes discretely presented component units in their own column d and TT
   // reads only columns a and b. ⚠ ONE entry spans BOTH fund scopes — the entity
   // boundary is identical whether TT reads column a alone or a + b.
-  'mi-treasury-f65': 128,
+  //
+  // ⭐ RE-MEASURED 2026-08-31 alongside the basis entry: 128 -> 23,084. The
+  // column-d fact that justifies `primary_government` is a property of the FORM,
+  // so it holds for all 364 filers exactly as it held for two.
+  'mi-treasury-f65': 23084,
   // CO-SPRINGS-EPC-01, measured 2026-08-21: Colorado Springs 28 + El Paso
   // County 36. A NEW family, so no pre-existing count moved.
   // Evidence: docs/superpowers/plans/CO-SPRINGS-EPC-01-CLOSEOUT.md section 6.

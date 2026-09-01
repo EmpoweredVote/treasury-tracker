@@ -66,8 +66,23 @@ const DEFAULT_PAGE_SIZE = 500;
  * @param {number} pageSize
  * @param {number} maxRows safety stop, so a fetcher that never shrinks cannot spin
  * @returns {Promise<Array>}
+ *
+ * ⚠⚠ `maxRows` IS A LIVENESS GUARD, NOT A PRODUCT LIMIT — and it silently became
+ * one. It was 100,000 when treasury.budgets held about 80,000 rows, which read
+ * as generous headroom. The Michigan statewide sweep took the table to 111,776
+ * and `stampAuditGrade` stopped working: a check whose only job is to catch an
+ * ignored `.range()` instead refused a legitimate read.
+ *
+ * A number chosen as "comfortably more than today" becomes a cap on how large TT
+ * can grow, enforced from a library nobody thinks about during a load. It is
+ * raised to 1,000,000 — far above any plausible table — because the failure it
+ * exists to catch (a fetcher that never returns a short page) spins forever and
+ * is caught just as well at a million as at a hundred thousand, while a cap set
+ * near the real size is caught only by breaking a working script.
+ *
+ * ⚠ Callers that genuinely want a smaller bound must pass one explicitly.
  */
-export async function paginate(fetchPage, pageSize = DEFAULT_PAGE_SIZE, maxRows = 100000) {
+export async function paginate(fetchPage, pageSize = DEFAULT_PAGE_SIZE, maxRows = 1000000) {
   if (!Number.isInteger(pageSize) || pageSize < 1) {
     throw new Error(`paginate: pageSize must be a positive integer, got ${pageSize}`);
   }
