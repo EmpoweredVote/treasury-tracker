@@ -103,6 +103,17 @@ const REQUIRED = {
   // the same unknown/unknown lookup — the first run would have them fight for
   // one row and a re-run would DUPLICATE all 128.
   'loadMichiganF65.mjs': 'MI Treasury F-65 — 128 rows, general_fund + total_governmental / actual',
+  // The Michigan STATEWIDE sweep — the same two-scope shape as the 7a loader
+  // above, at 364 entities instead of 2. It passes p_fund_scope and p_basis for
+  // the same reason and with more at stake: 23,084 rows over 5,771 filings, and
+  // a re-run without the pair would duplicate every one of them.
+  //
+  // ⚠ Measured, not assumed: the sweep re-writes Detroit and Wayne County, whose
+  // 128 rows already sit in the live table as general_fund/total_governmental +
+  // actual. All 16 spot-checked totals reproduce byte-identically, so the
+  // statewide rows key exactly as the rows already there.
+  'loadMiStatewideF65.mjs': 'MI Treasury F-65 statewide — 23,084 rows, '
+    + 'general_fund + total_governmental / actual',
   // Knight session 7b. Kansas is a NEW family; Colorado EXTENDS the existing
   // `co-local-acfr-gf`, whose 64 pre-existing rows were measured in the live
   // table as general_fund/actual before this load and are unchanged by it — so

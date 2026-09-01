@@ -205,6 +205,22 @@ export const KNOWN_DUPLICATED_DETAIL = Object.freeze([
     municode: '822050', fiscalYear: 2015, category: 'Expenditure',
     root: 'TOTAL RECREATION AND CULTURE', published: 12439661, leafTotal: 24879322,
   }),
+
+  // ⚠⚠ THE STATEWIDE SWEEP ADDED NOTHING HERE, AND THAT IS THE FINDING.
+  //
+  // Six of the 5,775 city and county filings first LOOKED like this defect —
+  // leaves exactly 2.000x the published subtotal. They are not. Every
+  // `field_name` in those filings appears TWICE, subtotals included, so the
+  // whole filing is emitted twice and the leaf sum doubles while each published
+  // subtotal stays correct. The detail is not contradicted; it is repeated.
+  //
+  // Declaring them here would have SUPPRESSED A COMPLETE AND CORRECT BREAKDOWN
+  // on the strength of a ratio that matched. They are deduplicated instead — see
+  // dedupeFilingRows() below — and the two whose duplicate copies DISAGREE are
+  // excluded rather than deduplicated.
+  //
+  // ⚠ Detroit FY2015 above is genuinely the other thing: 620 keys, none
+  // repeated. Checked, not assumed, when the sweep made the distinction matter.
 ]);
 
 function declaredDefect({ municode, fiscalYear, category, root, published, leafTotal }) {
@@ -214,6 +230,48 @@ function declaredDefect({ municode, fiscalYear, category, root, published, leafT
     && d.root === root
     && Math.abs(d.published - published) <= 0.005
     && Math.abs(d.leafTotal - leafTotal) <= 0.005) ?? null;
+}
+
+/**
+ * Collapse a filing that the portal emitted TWICE.
+ *
+ * ⚠⚠ WHY THIS IS NOT THE `KNOWN_DUPLICATED_DETAIL` DEFECT, THOUGH IT LOOKS LIKE
+ * IT. Both produce leaves exactly 2.000x a published subtotal, and the ratio is
+ * where the resemblance ends. In Detroit FY2015 three VALUES were written onto
+ * two account lines each while the subtotal counted them once: the detail
+ * contradicts the subtotal, nobody can tell which line is the stray, and the
+ * only honest answer is to publish the subtotal and suppress the breakdown.
+ *
+ * Here EVERY `field_name` in the filing appears twice — leaves and subtotals
+ * alike — with identical values. Nothing is contradicted; the response was
+ * repeated. Treating it as the Detroit case would throw away a complete and
+ * correct breakdown because a ratio matched, which is the more expensive
+ * mistake: it is silent, and it looks like diligence.
+ *
+ * ⚠⚠ A REPEAT WHOSE COPIES DISAGREE IS NOT A REPEAT. Farmington Hills FY2018
+ * has 3 keys and Keweenaw County FY2016 has 21 where the two copies carry
+ * DIFFERENT amounts. There is no basis for preferring either, so this THROWS and
+ * those entity-years are excluded upstream. Keeping the first, or the larger, or
+ * the last, would be curve-fitting dressed as a tie-break.
+ *
+ * @param {object[]} rows raw F-65 rows
+ * @param {string} context for the error message
+ * @returns {{rows: object[], removed: number}}
+ */
+export function dedupeFilingRows(rows, context = '') {
+  const byKey = new Map();
+  for (const r of rows) {
+    const key = `${r.field_name}|${r.group ?? ''}`;
+    const prev = byKey.get(key);
+    if (!prev) { byKey.set(key, r); continue; }
+    // ⚠ Compare the VALUE, not the object — the portal varies field order.
+    if (String(prev.field_data) !== String(r.field_data)) {
+      throw new Error(`F-65 duplicate row with CONFLICTING values${context ? ` in ${context}` : ''}: `
+        + `${r.field_name} [${r.group ?? ''}] has ${prev.field_data} and ${r.field_data}. `
+        + 'No basis exists for choosing between them; exclude the entity-year.');
+    }
+  }
+  return { rows: [...byKey.values()], removed: rows.length - byKey.size };
 }
 
 /** `T1R10C2` -> `{ table: 1, row: 10, column: 2 }`. */
