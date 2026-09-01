@@ -49,9 +49,72 @@ export const MI_CENSUS_ALIASES = Object.freeze({
   'Grosse Pointe Shores City of the Village': 'Village of Grosse Pointe Shores city',
 });
 
+/**
+ * ⚠⚠ TOWNSHIP AND VILLAGE ALIASES ARE KEYED ON THE MUNICODE, NOT THE NAME.
+ *
+ * The registry above is keyed on the F-65 name because a Michigan CITY name is
+ * unique statewide. A township name is not, and neither key would work here:
+ *
+ *   • `AuSable` names TWO different governments — `Au Sable charter township`
+ *     in Iosco County (351020) and `Au Sable township` in Roscommon County
+ *     (721010). One name, two units, two Census rows.
+ *   • `LeRoy` and `St Charles` each name BOTH a township and a village
+ *     (671070/673020 and 731210/733050).
+ *
+ * A name-keyed entry would silently resolve one of each pair to the other's
+ * Census row — the St. Joseph trap again, and the seventh time this campaign has
+ * met that shape. The municode is the publisher's own stable key and is unique
+ * by construction, so it is what these are keyed on.
+ *
+ * ⚠ Values are the EXACT Census `NAME`, read from the published files on
+ * 2026-09-01: townships from SUMLEV 061 of `sub-est2024_26.csv`, villages from
+ * SUMLEV 162 of the same file. All fifteen are abbreviation or word-spacing
+ * differences, with one exception noted below.
+ */
+export const MI_TV_CENSUS_ALIASES = Object.freeze({
+  // Townships — `St`/`Mt` written short by the F-65 and long by the Census.
+  '111180': 'St. Joseph charter township', // Berrien
+  '151130': 'St. James township', //          Charlevoix
+  '491110': 'St. Ignace township', //         Mackinac
+  '731210': 'St. Charles township', //        Saginaw
+  '741220': 'St. Clair township', //          St. Clair
+  '091110': 'Mount Forest township', //       Bay
+  '561140': 'Mount Haley township', //        Midland
+  // Townships — one word to the F-65, two to the Census.
+  '351020': 'Au Sable charter township', //   Iosco    ⚠ see AuSable note above
+  '721010': 'Au Sable township', //           Roscommon ⚠ the other AuSable
+  '581090': 'La Salle township', //           Monroe
+  '671070': 'Le Roy township', //             Osceola
+  // ⚠⚠ THE ONE ENTRY WHERE THE BASE WORD ITSELF DIFFERS, not just its spacing.
+  // The F-65 files Chippewa County's township as `Drummond Island Township`; the
+  // Census names it `Drummond township`. They are the same government — the
+  // township is the one that covers Drummond Island — and Chippewa's only other
+  // near name is `Detour township`, a different unit that files separately as
+  // municode 171040. Written down rather than matched, because no normalising
+  // rule connects the two and a fuzzy one would reach `Detour`.
+  '171060': 'Drummond township', //           Chippewa
+  // Villages.
+  '673020': 'Le Roy village', //              Osceola
+  '733050': 'St. Charles village', //         Saginaw
+  // ⚠ The Census name contains the word `Village` as part of the place name, so
+  // stripping the type word leaves `De Tour Village`, which is correct.
+  '173010': 'De Tour Village village', //     Chippewa
+});
+
 /** Strip the Census trailing type word to get a display name. */
 export function displayFromCensusName(censusName) {
   return String(censusName ?? '')
     .replace(/\s+(city|village|town|borough|CDP)$/i, '')
+    .trim();
+}
+
+/**
+ * Turn a Census township `NAME` into TT's display form.
+ * `Comstock charter township` -> `Comstock Charter Township`.
+ */
+export function displayFromCensusTownship(censusName) {
+  return String(censusName ?? '')
+    .replace(/\s+charter\s+township$/i, ' Charter Township')
+    .replace(/\s+township$/i, ' Township')
     .trim();
 }

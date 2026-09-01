@@ -68,8 +68,12 @@ export function readFiling(path) {
   const filing = JSON.parse(readFileSync(path, 'utf8'));
   const entity = entityByKey(filing.entityKey);
   if (!entity) throw new Error(`Unknown entity key ${filing.entityKey} in ${path}`);
-  if (filing.municode !== entity.municode) {
-    throw new Error(`municode mismatch in ${path}: ${filing.municode} vs roster ${entity.municode}`);
+  // ⚠ Any code this government has filed under is acceptable — the Village of
+  // Manchester's series spans 813030 and 812019 — but a code the roster does not
+  // list for it is still a mismatch and still stops the load.
+  if (!entity.municodes.includes(filing.municode)) {
+    throw new Error(`municode mismatch in ${path}: ${filing.municode} vs roster `
+      + `${entity.municodes.join('/')}`);
   }
 
   // ⚠⚠ SIX of the 5,775 filings are emitted TWICE by the portal, every row
@@ -110,8 +114,11 @@ export function readFiling(path) {
   for (const { datasetType, category } of DATASETS) {
     for (const scope of [SCOPES.general_fund, SCOPES.total_governmental]) {
       const context = `${entity.name} FY${filing.fiscalYear}`;
+      // ⚠ The defect registry keys on the code THIS FILING was published under,
+      // not the entity's canonical one — a declared publisher defect belongs to
+      // a filing, and a continuation entity holds filings under two codes.
       const b = buildFiling(filing.rows, {
-        category, scope, context, municode: entity.municode, fiscalYear: filing.fiscalYear,
+        category, scope, context, municode: filing.municode, fiscalYear: filing.fiscalYear,
       });
       built[`${datasetType}:${scope.id}`] = b;
       checks.push(...filingChecks({ category, scope, built: b, context }));
@@ -180,7 +187,16 @@ async function main() {
     }
     // ⚠ censusGuard returns ok:true when it has NO evidence. Silence is not
     // confirmation, so an uncovered unit is simply not a conflict here.
-    const guard = censusGuard(f.entity.censusName, MI_STATE, f.startMonth, Number(f.fiscalYear));
+    //
+    // ⚠⚠ IT READS `facCensusName`, WHICH IS NULL WHEN THE FEDERAL CENSUS CANNOT
+    // NAME THIS GOVERNMENT UNAMBIGUOUSLY. That census carries no county, so
+    // `Grant Township` there could be any of eleven Michigan townships and
+    // `Bedford Township` is already two of them merged into one entry with two
+    // months. Guarding on a shared name would let one township's federal filing
+    // contradict — or worse, confirm — another's calendar.
+    const guard = f.entity.facCensusName
+      ? censusGuard(f.entity.facCensusName, MI_STATE, f.startMonth, Number(f.fiscalYear))
+      : { ok: true };
     if (guard.error) censusConflicts.push(guard.error);
   }
 

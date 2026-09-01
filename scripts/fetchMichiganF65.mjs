@@ -20,9 +20,15 @@
  * rather than rebuilt — the same reason `acfrGfLoad` reads a manifest. They were
  * enumerated from the catalogue API:
  *   https://data.michigan.gov/api/catalog/v1?q=F65&limit=200
- * ⚠ That catalogue FEDERATES across Socrata domains — the same query returns
- * Connecticut and New York datasets — so every ID below was filtered on
+ * ⚠⚠ That catalogue FEDERATES across Socrata domains, and "looks like Michigan"
+ * is NOT the filter. The same query returns Virginia datasets AND NINE
+ * `mi-treasury.data.socrata.com` datasets named `2016 F65 DATA` — a Michigan
+ * Treasury Socrata domain carrying an older, differently-shaped F-65 extract
+ * with no unit-type split. Every ID below was filtered on the EXACT domain
  * `metadata.domain === 'data.michigan.gov'` before being written down.
+ *
+ * ⚠ All 80 IDs (16 years x 5 unit types) were re-verified against the live
+ * catalogue on 2026-09-01: 0 mismatches.
  *
  * ⚠ michigan.gov's WWW host sits behind a WAF that 403s a plain fetch (the
  * Charlotte/Akamai shape); `data.michigan.gov` does not. Only the PDF
@@ -52,7 +58,72 @@ export const DATASETS = Object.freeze({
     2018: '39pz-juri', 2019: 'qdhd-chsz', 2020: '3b83-ypyz', 2021: 'vpup-727t',
     2022: 'augd-8jqd', 2023: 'sem3-w6wy', 2024: 'gwey-cypv', 2025: 'f6yh-g753',
   }),
+  Village: Object.freeze({
+    2010: 'vh2c-y5ec', 2011: 'sxyd-rwhd', 2012: 'mma8-cmwq', 2013: '8hd5-gm5u',
+    2014: 'r6vq-38j5', 2015: 'hdzx-qsna', 2016: 'e2m4-zmqx', 2017: 'eib5-ncft',
+    2018: '5dib-kfan', 2019: '64cq-jwnn', 2020: 'mk56-e2kz', 2021: '66nf-2st7',
+    2022: 'gk28-wfc8', 2023: 'rafs-6syg', 2024: '3iva-dwqi', 2025: '6djr-uu4w',
+  }),
+  // ⚠⚠ PART 1 AND PART 2 ARE DISJOINT SETS OF TOWNSHIPS, NOT TWO HALVES OF ONE
+  // FORM. Measured over all sixteen years: Part 1 covers 577 municodes, Part 2
+  // covers 663, and the OVERLAP IS ZERO — no township ever appears in both, in
+  // any year. Their union is exactly 1,240, which is exactly the number of
+  // townships the Census counts in Michigan.
+  //
+  // Reading only one part would silently halve the roster; joining them per unit
+  // would double every township's money. Read both, as two independent sources
+  // of whole filings.
+  'Township Part 1': Object.freeze({
+    2010: 'pnw6-t8wy', 2011: '7cgj-agee', 2012: 'ib8r-rq84', 2013: 'tw4k-3htr',
+    2014: '9xfa-6yac', 2015: '8d3y-5432', 2016: 'c5td-jruv', 2017: '23jd-8567',
+    2018: 'i8yj-a6wn', 2019: 'ng2v-ag57', 2020: '7xnn-wam2', 2021: 'cg5q-azzy',
+    2022: '89gq-qqsi', 2023: 'tv4s-drxf', 2024: 'eqsx-hk2h', 2025: 'kav9-mfb3',
+  }),
+  'Township Part 2': Object.freeze({
+    2010: 'x444-nw2p', 2011: 'fnim-ewqv', 2012: 'vjwv-gisb', 2013: 'isds-hgy8',
+    2014: 'ydpv-4wdc', 2015: 'vcs3-7my4', 2016: 'dvfg-jbue', 2017: '5uxf-rba5',
+    2018: 'hiiw-ik72', 2019: 'm8cx-grfm', 2020: '6dn8-wrne', 2021: 'pspc-gtks',
+    2022: '85ts-jhs2', 2023: '3qs9-7jii', 2024: 'bd8e-bqvw', 2025: '2see-6c92',
+  }),
 });
+
+/**
+ * ⚠⚠ ONE PUBLISHED DATASET CANNOT BE READ AT ALL, AND IT FAILS LOUDLY.
+ *
+ * In `FY2016 F65 Village` the `field_name` column is a COPY OF `field_data`:
+ * every row carries the amount where the form's grid coordinate belongs.
+ * Measured over the whole dataset — **83,274 of 83,274 rows, 100%** — and ZERO
+ * rows hold a `T{table}R{row}C{column}` value. Socrata therefore types the
+ * column `number`, which is why the server-side `starts_with(field_name, 'T1R')`
+ * filter returns HTTP 400 rather than rows: the type mismatch is the symptom,
+ * the missing coordinate is the defect. It is the only one of the 80 datasets
+ * whose `field_name` is not `text`.
+ *
+ * ⚠⚠ THIS IS NOT RECOVERABLE BY DROPPING THE FILTER. `dedupeFilingRows` keys on
+ * `field_name` + `group`, so with the amount in that column two genuinely
+ * different line items that happen to share a figure inside one fund would be
+ * collapsed as a duplicate — silently deleting real money. The grid coordinate
+ * is also the only thing giving the form's rows their published ORDER.
+ *
+ * So the 251 village filings of FY2016 are NOT LOADED. Each of those villages
+ * keeps its other fifteen years. ⚠ The unit ROSTER is still read from this
+ * dataset — `municode`, `lu_name` and `fiscalendmonth` are all intact, and the
+ * roster query does not touch `field_name`.
+ */
+export const UNUSABLE_DATASETS = Object.freeze([
+  Object.freeze({
+    unitType: 'Village',
+    fiscalYear: 2016,
+    datasetId: 'e2m4-zmqx',
+    why: 'field_name is a copy of field_data on all 83,274 rows — the T/R/C grid '
+      + 'coordinate the extraction and the dedup key both depend on is absent',
+  }),
+]);
+
+export function datasetIsUsable(unitType, fiscalYear) {
+  return !UNUSABLE_DATASETS.some(
+    (d) => d.unitType === unitType && d.fiscalYear === Number(fiscalYear));
+}
 
 export function datasetFor(unitType, fiscalYear) {
   return DATASETS[unitType]?.[fiscalYear] ?? null;
