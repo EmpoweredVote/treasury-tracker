@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Municipality } from '../types/budget';
+import { hasDatasets } from '../data/municipalityDatasets';
 
 interface StatesInFederalPanelProps {
   municipalities: Municipality[];
@@ -20,11 +21,11 @@ const StatesInFederalPanel: React.FC<StatesInFederalPanelProps> = ({
   if (states.length === 0) return null;
 
   const withData = states
-    .filter(s => s.available_datasets.length > 0)
+    .filter(s => hasDatasets(s))
     .sort((a, b) => a.name.localeCompare(b.name));
 
   const withoutData = states
-    .filter(s => s.available_datasets.length === 0)
+    .filter(s => !hasDatasets(s))
     .sort((a, b) => a.name.localeCompare(b.name));
 
   return (

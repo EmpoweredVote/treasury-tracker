@@ -16,7 +16,7 @@ import { financingInflow } from './data/fundScopeVocabulary';
 import ScaleToggle, { type FederalScale } from './components/federal/ScaleToggle';
 import ProgramOrigins from './components/federal/ProgramOrigins';
 import BudgetSearch from './components/dashboard/BudgetSearch';
-import { loadBudgetData, SeriesAbsentError, loadFederalContext, loadOrgFinancialSummary, loadLinkedTransactions, listMunicipalities, clearCache } from './data/dataLoader';
+import { loadBudgetData, SeriesAbsentError, loadFederalContext, loadOrgFinancialSummary, loadLinkedTransactions, listMunicipalities, hydrateMunicipality, clearCache } from './data/dataLoader';
 import EntitySwitcher from './components/EntitySwitcher';
 import AlphaLanding from './components/AlphaLanding';
 import type { LandingReason } from './components/AlphaLanding';
@@ -57,7 +57,8 @@ import { useEssentialsCoverage } from './utils/essentialsCoverage';
 import { useTriviaCoverage } from './utils/triviaCoverage';
 import { resolveFeatureIcons, resolveTriviaIcon } from './utils/featureIcons';
 import { FeatureIconRow } from './components/FeatureIconRow';
-import type { BudgetCategory, BudgetData, FederalContext, LinkedTransactionSummary, Municipality, OrgFinancialSummary } from './types/budget';
+import type { BudgetCategory, BudgetData, FederalContext, HydratedMunicipality, LinkedTransactionSummary, Municipality, OrgFinancialSummary } from './types/budget';
+import { hasDatasets } from './data/municipalityDatasets';
 
 interface BreadcrumbItem {
   label: string;
@@ -193,7 +194,12 @@ function App() {
 
   // Entity state
   const [municipalities, setMunicipalities] = useState<Municipality[]>([]);
-  const [selectedEntity, setSelectedEntity] = useState<Municipality | null>(null);
+  // ⚠⚠ HYDRATED, not a bare list entry. The list is fetched with
+  // `?datasets=summary` and carries no `available_datasets`, so every read
+  // below — the series picker, the year picker, the dataset tabs — would see
+  // an entity with NO DATA rather than throw. The type makes that a compile
+  // error instead; `hydrateMunicipality` is the only way to produce one.
+  const [selectedEntity, setSelectedEntity] = useState<HydratedMunicipality | null>(null);
 
   const [selectedYear, setSelectedYear] = useState('2025');
 
@@ -379,16 +385,19 @@ function App() {
   }, [selectedEntity, selectedYear]);
 
   // Helper: navigate directly to an entity (used by landing page and auth routing)
-  const navigateToEntity = useCallback((entity: Municipality, list: Municipality[]) => {
+  const navigateToEntity = useCallback(async (entity: Municipality, list: Municipality[]) => {
+    // ⚠ Hydrate FIRST. initialYearForEntity reads per-row datasets, and a
+    // summarised list entry would give it nothing to choose from.
+    const full = await hydrateMunicipality(entity);
     // ⚠ NOT the newest row — the newest year the DEFAULT series can render.
     // See initialYearForEntity: an adopted FY2025–26 series made the old rule
     // land on a year the default actuals series has no row for.
-    const year = initialYearForEntity(entity.available_datasets, null);
+    const year = initialYearForEntity(full.available_datasets, null);
     setMunicipalities(list);
-    setSelectedEntity(entity);
+    setSelectedEntity(full);
     setSelectedYear(year);
     setAppView('budget');
-    syncURL(entity, year, 'operating');
+    syncURL(full, year, 'operating');
   }, []);
 
   // On mount: resolve auth + load municipalities in parallel, then route
@@ -400,10 +409,12 @@ function App() {
 
     // If a URL entity param is present, bypass auth routing entirely (shared/bookmarked link)
     if (entityParam) {
-      listMunicipalities().then(list => {
+      listMunicipalities().then(async list => {
         setMunicipalities(list);
         const matched = list.find(m => toSlug(m) === entityParam);
-        const entity = matched ?? list.find(m => m.name === 'Bloomington' && m.state === 'IN') ?? list[0];
+        const listEntry = matched ?? list.find(m => m.name === 'Bloomington' && m.state === 'IN') ?? list[0];
+        // ⚠ Hydrate before ANY of the year/dataset resolution below reads it.
+        const entity = await hydrateMunicipality(listEntry);
         setSelectedEntity(entity);
 
         // Resolved as a local so ?dataset= can be validated against availability
@@ -487,7 +498,7 @@ function App() {
         m =>
           m.name.trim().toLowerCase() === cityNorm &&
           m.state.trim().toUpperCase() === stateNorm &&
-          m.available_datasets.length > 0
+          hasDatasets(m)
       );
 
       if (match) {
@@ -633,7 +644,11 @@ function App() {
   }, [activeDataset, selectedYear, selectedEntity, federalLens, effectiveSeries]);
 
   // Entity change handler — computes effective year BEFORE triggering data load (avoids Pitfall 1)
-  const handleEntityChange = useCallback((entity: Municipality) => {
+  const handleEntityChange = useCallback(async (listEntry: Municipality) => {
+    // ⚠ Hydrate FIRST. Every read below is per-row detail the summarised list
+    // does not carry, and an unhydrated entry would resolve to "no years, no
+    // datasets" — which renders as an empty entity rather than an error.
+    const entity = await hydrateMunicipality(listEntry);
     // Keep the current year only if the new entity's DEFAULT series can render it;
     // otherwise land where that series actually has data. Passing selectedYear as
     // the requested year preserves 'stay put when possible' — initialYearForEntity

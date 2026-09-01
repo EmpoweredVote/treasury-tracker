@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import type { Municipality } from '../types/budget';
+import { hasDatasets } from '../data/municipalityDatasets';
 
 interface CitiesInStatePanelProps {
   state: Municipality;
@@ -37,7 +38,7 @@ const CitiesInStatePanel: React.FC<CitiesInStatePanelProps> = ({
   const withData = useMemo(
     () =>
       cities
-        .filter(c => c.available_datasets.length > 0)
+        .filter(c => hasDatasets(c))
         .sort((a, b) => a.name.localeCompare(b.name)),
     [cities]
   );
@@ -45,7 +46,7 @@ const CitiesInStatePanel: React.FC<CitiesInStatePanelProps> = ({
   const withoutData = useMemo(
     () =>
       cities
-        .filter(c => c.available_datasets.length === 0)
+        .filter(c => !hasDatasets(c))
         .sort((a, b) => a.name.localeCompare(b.name)),
     [cities]
   );
