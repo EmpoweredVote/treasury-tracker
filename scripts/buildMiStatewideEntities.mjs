@@ -310,6 +310,362 @@ export const EXCLUDED_ENTITY_YEARS = Object.freeze([
     municode: '092010', fiscalYear: 2019, name: 'Auburn',
     why: 'the filing contains no Revenue table — 130 rows, all T2 (Expenditure)',
   }),
+
+  // ══ THE VILLAGE + TOWNSHIP SWEEP, 2026-09-01 ══════════════════════════════
+  //
+  // 39 entity-years of 23,397 (0.17%). Found the same way as the four above:
+  // `surveyMiF65Defects.mjs` ran EVERY filing through `buildFiling()` before
+  // anything loaded, and this analysis then re-ran them the way `readFiling`
+  // does — WITH `dedupeFilingRows` — because the survey's 58 failures include
+  // 19 whole-filing repeats that the loader collapses losslessly.
+  //
+  // ⚠ Reading the survey's ratios alone would have declared those 19 as
+  // duplicated detail and SUPPRESSED A CORRECT BREAKDOWN. Same trap as the
+  // FY2026-08 sweep, same answer: read the rows, not the ratio.
+
+  // ── 22 filings: A SUBTOTAL PUBLISHED WITHOUT ITS BREAKDOWN ────────────────
+  //
+  // ⚠⚠ Every leaf of one or more roots is ABSENT — `field_data` is null, which
+  // is not the same as zero — while the root's own subtotal carries a figure.
+  // Algansee Township FY2012 states TOTAL FEDERAL GRANTS of 140,180 above eight
+  // leaves that are all empty.
+  //
+  // ⚠ 15 of the 22 are Branch County townships in FY2012 alone, so this is a
+  // filing-software artifact rather than 22 independent accidents.
+  //
+  // ⭐ THE MONEY IS RECOVERABLE AND IS DELIBERATELY NOT RECOVERED HERE. In 21 of
+  // the 22, the filing's own category subtotals still sum EXACTLY to its
+  // published grand total, so the category figures are corroborated and only the
+  // within-category detail is missing; TT already renders childless roots
+  // (Detroit FY2015). Publishing them would need a new rule in
+  // lib/michiganF65.mjs — "all leaves absent" is a different fact from "leaves
+  // disagree" — and that is a change to proven extraction code for 22 filings in
+  // 23,397. It belongs to its own session, with its own gates.
+  // ⚠ Yankee Springs FY2015 is the exception: its revenue subtotals do NOT sum
+  // to its grand total (1,282,158 vs 876,107), so that one is simply broken.
+  Object.freeze({
+    municode: '041010', fiscalYear: 2012, name: 'Alpena Township, Alpena County',
+    why: 'a published subtotal whose leaves are ALL ABSENT (not zero) — the '
+      + 'publisher filed the category total and no breakdown',
+  }),
+  Object.freeze({
+    municode: '081160', fiscalYear: 2015, name: 'Yankee Springs Township, Barry County',
+    why: 'a published subtotal whose leaves are ALL ABSENT (not zero) — the '
+      + 'publisher filed the category total and no breakdown',
+  }),
+  Object.freeze({
+    municode: '121010', fiscalYear: 2012, name: 'Algansee Township, Branch County',
+    why: 'a published subtotal whose leaves are ALL ABSENT (not zero) — the '
+      + 'publisher filed the category total and no breakdown',
+  }),
+  Object.freeze({
+    municode: '121020', fiscalYear: 2012, name: 'Batavia Township, Branch County',
+    why: 'a published subtotal whose leaves are ALL ABSENT (not zero) — the '
+      + 'publisher filed the category total and no breakdown',
+  }),
+  Object.freeze({
+    municode: '121040', fiscalYear: 2012, name: 'Bronson Township, Branch County',
+    why: 'a published subtotal whose leaves are ALL ABSENT (not zero) — the '
+      + 'publisher filed the category total and no breakdown',
+  }),
+  Object.freeze({
+    municode: '121050', fiscalYear: 2012, name: 'Butler Township, Branch County',
+    why: 'a published subtotal whose leaves are ALL ABSENT (not zero) — the '
+      + 'publisher filed the category total and no breakdown',
+  }),
+  Object.freeze({
+    municode: '121060', fiscalYear: 2012, name: 'California Township, Branch County',
+    why: 'a published subtotal whose leaves are ALL ABSENT (not zero) — the '
+      + 'publisher filed the category total and no breakdown',
+  }),
+  Object.freeze({
+    municode: '121070', fiscalYear: 2012, name: 'Coldwater Township, Branch County',
+    why: 'a published subtotal whose leaves are ALL ABSENT (not zero) — the '
+      + 'publisher filed the category total and no breakdown',
+  }),
+  Object.freeze({
+    municode: '121080', fiscalYear: 2012, name: 'Gilead Township, Branch County',
+    why: 'a published subtotal whose leaves are ALL ABSENT (not zero) — the '
+      + 'publisher filed the category total and no breakdown',
+  }),
+  Object.freeze({
+    municode: '121090', fiscalYear: 2012, name: 'Girard Township, Branch County',
+    why: 'a published subtotal whose leaves are ALL ABSENT (not zero) — the '
+      + 'publisher filed the category total and no breakdown',
+  }),
+  Object.freeze({
+    municode: '121100', fiscalYear: 2012, name: 'Kinderhook Township, Branch County',
+    why: 'a published subtotal whose leaves are ALL ABSENT (not zero) — the '
+      + 'publisher filed the category total and no breakdown',
+  }),
+  Object.freeze({
+    municode: '121110', fiscalYear: 2012, name: 'Matteson Township, Branch County',
+    why: 'a published subtotal whose leaves are ALL ABSENT (not zero) — the '
+      + 'publisher filed the category total and no breakdown',
+  }),
+  Object.freeze({
+    municode: '121120', fiscalYear: 2012, name: 'Noble Township, Branch County',
+    why: 'a published subtotal whose leaves are ALL ABSENT (not zero) — the '
+      + 'publisher filed the category total and no breakdown',
+  }),
+  Object.freeze({
+    municode: '121130', fiscalYear: 2012, name: 'Ovid Township, Branch County',
+    why: 'a published subtotal whose leaves are ALL ABSENT (not zero) — the '
+      + 'publisher filed the category total and no breakdown',
+  }),
+  Object.freeze({
+    municode: '121140', fiscalYear: 2012, name: 'Quincy Township, Branch County',
+    why: 'a published subtotal whose leaves are ALL ABSENT (not zero) — the '
+      + 'publisher filed the category total and no breakdown',
+  }),
+  Object.freeze({
+    municode: '121150', fiscalYear: 2012, name: 'Sherwood Township, Branch County',
+    why: 'a published subtotal whose leaves are ALL ABSENT (not zero) — the '
+      + 'publisher filed the category total and no breakdown',
+  }),
+  Object.freeze({
+    municode: '121160', fiscalYear: 2012, name: 'Union Township, Branch County',
+    why: 'a published subtotal whose leaves are ALL ABSENT (not zero) — the '
+      + 'publisher filed the category total and no breakdown',
+  }),
+  Object.freeze({
+    municode: '321110', fiscalYear: 2012, name: 'Hume Township, Huron County',
+    why: 'a published subtotal whose leaves are ALL ABSENT (not zero) — the '
+      + 'publisher filed the category total and no breakdown',
+  }),
+  Object.freeze({
+    municode: '521130', fiscalYear: 2013, name: 'Richmond Township, Marquette County',
+    why: 'a published subtotal whose leaves are ALL ABSENT (not zero) — the '
+      + 'publisher filed the category total and no breakdown',
+  }),
+  Object.freeze({
+    municode: '611020', fiscalYear: 2013, name: 'Casnovia Township, Muskegon County',
+    why: 'a published subtotal whose leaves are ALL ABSENT (not zero) — the '
+      + 'publisher filed the category total and no breakdown',
+  }),
+  Object.freeze({
+    municode: '731260', fiscalYear: 2013, name: 'Tittabawassee Township, Saginaw County',
+    why: 'a published subtotal whose leaves are ALL ABSENT (not zero) — the '
+      + 'publisher filed the category total and no breakdown',
+  }),
+  Object.freeze({
+    municode: '791200', fiscalYear: 2015, name: 'Vassar Township, Tuscola County',
+    why: 'a published subtotal whose leaves are ALL ABSENT (not zero) — the '
+      + 'publisher filed the category total and no breakdown',
+  }),
+  // ── 6 filings: SUBTOTALS THAT DISAGREE WITH THEIR OWN LEAVES ──────────────
+  //
+  // The Marysville FY2016 class. Not a duplication — the ratios are arbitrary —
+  // so nothing here can say which of the two published figures is wrong.
+  // ⚠ Winterfield FY2015 is the extreme: TOTAL TAX REVENUES of 12.34 above
+  // leaves summing to 9,808.34, which is 794x. Loading either number would be a
+  // guess.
+  Object.freeze({
+    municode: '121030', fiscalYear: 2012, name: 'Bethel Township, Branch County',
+    why: 'published subtotals disagree with their own leaves at TOTAL TAX '
+      + 'REVENUES 0.9196x',
+  }),
+  Object.freeze({
+    municode: '151150', fiscalYear: 2015, name: 'Wilson Township, Charlevoix County',
+    why: 'published subtotals disagree with their own leaves at TOTAL '
+      + 'FEDERAL GRANTS 0.0203x',
+  }),
+  Object.freeze({
+    municode: '181160', fiscalYear: 2015, name: 'Winterfield Township, Clare County',
+    why: 'published subtotals disagree with their own leaves at TOTAL TAX '
+      + 'REVENUES 794.8412x',
+  }),
+  Object.freeze({
+    municode: '211010', fiscalYear: 2016, name: 'Baldwin Township, Delta County',
+    why: 'published subtotals disagree with their own leaves at TOTAL PUBLIC '
+      + 'WORKS 1.1610x',
+  }),
+  Object.freeze({
+    municode: '671020', fiscalYear: 2016, name: 'Cedar Township, Osceola County',
+    why: 'published subtotals disagree with their own leaves at TOTAL '
+      + 'LICENSES AND PERMITS 2.1111x, TOTAL RECREATION AND CULTURE 9.9244x',
+  }),
+  Object.freeze({
+    municode: '741150', fiscalYear: 2015, name: 'Ira Township, St. Clair County',
+    why: 'published subtotals disagree with their own leaves at TOTAL TAX '
+      + 'REVENUES 0.9894x',
+  }),
+  // ── 9 filings: THE FY2020 FORMATTING DEFECT, IN ITS BROKEN FORM ───────────
+  //
+  // ⚠⚠ FY2020 is the year the publisher emitted currency as `"$290,017,002.00"`
+  // instead of a bare number — `parseAmount` strips `$` and `,` and reads those
+  // correctly. In these nine filings the formatting produced a CELL WITH NO
+  // NUMBER IN IT: the bare string `"$"`, or `".00"`, or `".0"`.
+  //
+  // ⚠ `parseAmount` THROWS rather than coercing, which is the whole point:
+  // `Number(x) || 0` would load each of these as a $0 line item and every
+  // subtotal check would still pass, because a missing leaf and a zero leaf are
+  // indistinguishable once coerced.
+  Object.freeze({
+    municode: '061030', fiscalYear: 2020, name: 'Au Gres Township, Arenac County',
+    why: 'FY2020 formatting defect: an amount is the bare string "$"',
+  }),
+  Object.freeze({
+    municode: '091050', fiscalYear: 2020, name: 'Garfield Township, Bay County',
+    why: 'FY2020 formatting defect: an amount is the bare string "$"',
+  }),
+  Object.freeze({
+    municode: '181110', fiscalYear: 2020, name: 'Lincoln Township, Clare County',
+    why: 'FY2020 formatting defect: an amount is the bare string "$"',
+  }),
+  Object.freeze({
+    municode: '251180', fiscalYear: 2020, name: 'Vienna Charter Township, Genesee County',
+    why: 'FY2020 formatting defect: an amount is the bare string "$"',
+  }),
+  Object.freeze({
+    municode: '311010', fiscalYear: 2020, name: 'Adams Township, Houghton County',
+    why: 'FY2020 formatting defect: an amount is the bare string "$"',
+  }),
+  Object.freeze({
+    municode: '331080', fiscalYear: 2020, name: 'Leslie Township, Ingham County',
+    why: 'FY2020 formatting defect: an amount is the bare string ".0"',
+  }),
+  Object.freeze({
+    municode: '531080', fiscalYear: 2020, name: 'Logan Township, Mason County',
+    why: 'FY2020 formatting defect: an amount is the bare string "."',
+  }),
+  Object.freeze({
+    municode: '633080', fiscalYear: 2020, name: 'Leonard',
+    why: 'FY2020 formatting defect: an amount is the bare string ".00"',
+  }),
+  Object.freeze({
+    municode: '761200', fiscalYear: 2020, name: 'Moore Township, Sanilac County',
+    why: 'FY2020 formatting defect: an amount is the bare string "$"',
+  }),
+  // ── 2 filings: A DUPLICATE WHOSE COPIES DISAGREE ──────────────────────────
+  //
+  // Emitted twice by the portal, like the others `dedupeFilingRows` collapses —
+  // but some keys carry DIFFERENT amounts in the two copies, so there is no
+  // basis for preferring either. It throws rather than pick one.
+  // ⚠ Joins Farmington Hills FY2018 and Keweenaw County FY2016 from the
+  // FY2026-08 city sweep, which are the same shape.
+  Object.freeze({
+    municode: '323080', fiscalYear: 2014, name: 'Sebewaing',
+    why: 'duplicate filing whose copies disagree',
+  }),
+  Object.freeze({
+    municode: '731010', fiscalYear: 2013, name: 'Albee Township, Saginaw County',
+    why: 'duplicate filing whose copies disagree',
+  }),
+
+  // ── 15 filings the SUBTOTAL SURVEY COULD NOT SEE ──────────────────────────
+  //
+  // ⚠⚠ A PRE-LOAD SURVEY THAT RUNS DIFFERENT GATES THAN THE LOAD IS NOT A
+  // PRE-LOAD SURVEY. `surveyMiF65Defects.mjs` ran `buildFiling()` on all 23,397
+  // filings and called them 99.75% clean — but the LOADER also runs
+  // `filingChecks()`, which asserts that a published grand total EXISTS and that
+  // operating + financing reconciles to it. Fifteen filings passed the first and
+  // failed the second, and they only surfaced in the dry run.
+  // ⭐ The survey now runs `filingChecks` too. Fixed here, in this sweep.
+  Object.freeze({
+    municode: '053020', fiscalYear: 2022, name: 'Central Lake',
+    why: 'the filing contains no Revenue table — 110 rows, all T2 '
+      + '(Expenditure). The Auburn FY2019 class: TT pairs a revenue and '
+      + 'an expenditure series per year, and writing $0 revenue would '
+      + 'state that the township received nothing',
+  }),
+  Object.freeze({
+    municode: '181030', fiscalYear: 2017, name: 'Freeman Township, Clare County',
+    why: 'the MIRROR of the Auburn case — 46 Revenue rows and effectively '
+      + 'no Expenditure table (6 rows, no TOTAL EXPENDITURES), so there '
+      + 'is no spending series to pair with the revenue one',
+  }),
+  Object.freeze({
+    municode: '191080', fiscalYear: 2017, name: 'Essex Township, Clinton County',
+    why: 'the filing contains no Revenue table — 86 rows, all T2 '
+      + '(Expenditure). The Auburn FY2019 class: TT pairs a revenue and '
+      + 'an expenditure series per year, and writing $0 revenue would '
+      + 'state that the township received nothing',
+  }),
+  Object.freeze({
+    municode: '331040', fiscalYear: 2021, name: 'Delhi Charter Township, Ingham County',
+    why: 'the filing contains no Revenue table — 119 rows, all T2 '
+      + '(Expenditure). The Auburn FY2019 class: TT pairs a revenue and '
+      + 'an expenditure series per year, and writing $0 revenue would '
+      + 'state that the township received nothing',
+  }),
+  Object.freeze({
+    municode: '443060', fiscalYear: 2017, name: 'North Branch',
+    why: 'the filing contains no Revenue table — 94 rows, all T2 '
+      + '(Expenditure). The Auburn FY2019 class: TT pairs a revenue and '
+      + 'an expenditure series per year, and writing $0 revenue would '
+      + 'state that the township received nothing',
+  }),
+  Object.freeze({
+    municode: '443060', fiscalYear: 2019, name: 'North Branch',
+    why: 'the filing contains no Revenue table — 114 rows, all T2 '
+      + '(Expenditure). The Auburn FY2019 class: TT pairs a revenue and '
+      + 'an expenditure series per year, and writing $0 revenue would '
+      + 'state that the township received nothing',
+  }),
+  Object.freeze({
+    municode: '501030', fiscalYear: 2021, name: 'Chesterfield Township, Macomb County',
+    why: 'the filing contains no Revenue table — 129 rows, all T2 '
+      + '(Expenditure). The Auburn FY2019 class: TT pairs a revenue and '
+      + 'an expenditure series per year, and writing $0 revenue would '
+      + 'state that the township received nothing',
+  }),
+  Object.freeze({
+    municode: '561150', fiscalYear: 2017, name: 'Porter Township, Midland County',
+    why: 'the filing contains no Revenue table — 74 rows, all T2 '
+      + '(Expenditure). The Auburn FY2019 class: TT pairs a revenue and '
+      + 'an expenditure series per year, and writing $0 revenue would '
+      + 'state that the township received nothing',
+  }),
+  Object.freeze({
+    municode: '631200', fiscalYear: 2013, name: 'Southfield Township, Oakland County',
+    why: 'the filing contains no Revenue table — 290 rows, all T2 '
+      + '(Expenditure). The Auburn FY2019 class: TT pairs a revenue and '
+      + 'an expenditure series per year, and writing $0 revenue would '
+      + 'state that the township received nothing',
+  }),
+  Object.freeze({
+    municode: '631240', fiscalYear: 2021, name: 'White Lake Charter Township, Oakland County',
+    why: 'the filing contains no Revenue table — 132 rows, all T2 '
+      + '(Expenditure). The Auburn FY2019 class: TT pairs a revenue and '
+      + 'an expenditure series per year, and writing $0 revenue would '
+      + 'state that the township received nothing',
+  }),
+  Object.freeze({
+    municode: '731060', fiscalYear: 2021, name: 'Bridgeport Charter Township, Saginaw County',
+    why: 'the filing contains no Revenue table — 130 rows, all T2 '
+      + '(Expenditure). The Auburn FY2019 class: TT pairs a revenue and '
+      + 'an expenditure series per year, and writing $0 revenue would '
+      + 'state that the township received nothing',
+  }),
+  Object.freeze({
+    municode: '741030', fiscalYear: 2013, name: 'Burtchville Township, St. Clair County',
+    why: 'the filing contains no Revenue table — 290 rows, all T2 '
+      + '(Expenditure). The Auburn FY2019 class: TT pairs a revenue and '
+      + 'an expenditure series per year, and writing $0 revenue would '
+      + 'state that the township received nothing',
+  }),
+  Object.freeze({
+    municode: '741040', fiscalYear: 2022, name: 'Casco Township, St. Clair County',
+    why: 'the filing contains no Revenue table — 89 rows, all T2 '
+      + '(Expenditure). The Auburn FY2019 class: TT pairs a revenue and '
+      + 'an expenditure series per year, and writing $0 revenue would '
+      + 'state that the township received nothing',
+  }),
+  Object.freeze({
+    municode: '821070', fiscalYear: 2021, name: 'Plymouth Charter Township, Wayne County',
+    why: 'the filing contains no Revenue table — 147 rows, all T2 '
+      + '(Expenditure). The Auburn FY2019 class: TT pairs a revenue and '
+      + 'an expenditure series per year, and writing $0 revenue would '
+      + 'state that the township received nothing',
+  }),
+  Object.freeze({
+    municode: '731270', fiscalYear: 2016, name: 'Zilwaukee Township, Saginaw County',
+    why: 'operating + financing does not reconcile to the published total: '
+      + '69,261 vs a published 68,601, a 660 difference. Not a '
+      + 'subtotal-vs-leaves defect — every root ties its own leaves — so '
+      + 'nothing here can say which figure is wrong',
+  }),
 ]);
 
 /**

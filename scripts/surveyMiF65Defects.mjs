@@ -32,7 +32,7 @@ import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
 
 import {
-  buildFiling, SCOPES, CATEGORY_REVENUE, CATEGORY_EXPENDITURE,
+  buildFiling, filingChecks, dedupeFilingRows, SCOPES, CATEGORY_REVENUE, CATEGORY_EXPENDITURE,
 } from './lib/michiganF65.mjs';
 import { entityByKey } from './data/miStatewideEntities.mjs';
 
@@ -55,14 +55,35 @@ function main() {
     const entity = entityByKey(filing.entityKey);
     if (!entity) { otherErrors.push(`${file}: unknown entity`); continue; }
     filings += 1;
+    // ⚠⚠ DEDUPLICATE FIRST, EXACTLY AS `readFiling` DOES. Nineteen of the
+    // township filings are emitted TWICE by the portal, and left alone every
+    // leaf sum doubles while the published subtotals stay right — which reads
+    // as the Detroit FY2015 duplicated-detail defect and is NOT it. A survey
+    // that skips the dedupe reports 19 filings as broken and would have had
+    // them declared, SUPPRESSING A CORRECT BREAKDOWN.
+    let rows = filing.rows;
+    try { ({ rows } = dedupeFilingRows(filing.rows, `${entity.name} FY${filing.fiscalYear}`)); }
+    catch (err) { otherErrors.push(`${entity.name} FY${filing.fiscalYear}: ${err.message}`); continue; }
     let hadDefect = false;
     for (const category of CATEGORIES) {
       for (const scope of [SCOPES.general_fund, SCOPES.total_governmental]) {
         try {
-          buildFiling(filing.rows, {
-            category, scope, context: `${entity.name} FY${filing.fiscalYear}`,
-            municode: entity.municode, fiscalYear: filing.fiscalYear,
+          const context = `${entity.name} FY${filing.fiscalYear}`;
+          const built = buildFiling(rows, {
+            category, scope, context, municode: filing.municode, fiscalYear: filing.fiscalYear,
           });
+          // ⚠⚠ THE LOADER RUNS THESE TOO, AND THEY CATCH A DIFFERENT CLASS.
+          // `buildFiling` throws when a subtotal disagrees with its own leaves;
+          // `filingChecks` asserts the published GRAND TOTAL exists and that
+          // operating + financing reconciles to it. Fifteen township filings
+          // passed the first and failed the second, and because this survey
+          // once ran only the first it reported them as clean — the load found
+          // them instead. A survey that runs different gates than the load is
+          // not a survey of the load.
+          for (const c of filingChecks({ category, scope, built, context })) {
+            if (!c.ok) throw new Error(`filingCheck ${c.kind}: ${c.id} `
+              + `expected ${c.expected} actual ${c.actual}`);
+          }
         } catch (err) {
           const m = PARSE.exec(err.message);
           if (!m) { otherErrors.push(`${entity.name} FY${filing.fiscalYear}: ${err.message}`); hadDefect = true; continue; }

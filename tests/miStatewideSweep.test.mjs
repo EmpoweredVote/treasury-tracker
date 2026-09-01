@@ -501,18 +501,30 @@ describe('MI_STATEWIDE_ENTITIES', () => {
     expect(entityByMunicode('12010')).toBe(entityByMunicode('012010'));
   });
 
-  it('has dropped every excluded entity-year', () => {
+  // ⚠⚠ A DECLARED EXCLUSION THAT NAMES NOTHING EXCLUDES NOTHING. One of these
+  // was written with a municode that belonged to a different township — the
+  // registry looked right, the entry was well-formed, and the year it named
+  // stayed in the load. Only counting the drops found it.
+  it('has dropped every excluded entity-year, and each names a real unit', () => {
+    const byCode = new Map();
+    for (const e of MI_STATEWIDE_ENTITIES) for (const c of e.municodes) byCode.set(c, e);
+    expect(EXCLUDED_ENTITY_YEARS.length).toBe(58);
     for (const x of EXCLUDED_ENTITY_YEARS) {
-      const e = entityByMunicode(x.municode);
+      const e = byCode.get(x.municode);
+      expect(e, `${x.municode} (${x.name}) is not in the roster`).toBeTruthy();
+      // ⚠ The registry's own name must match the roster's, or the entry is
+      // describing one government while excluding another.
+      expect(e.name, x.municode).toBe(x.name);
       expect(e.fiscalYears, `${x.name} FY${x.fiscalYear}`).not.toContain(x.fiscalYear);
+      expect(x.why, `${x.name} FY${x.fiscalYear}`).toBeTruthy();
     }
   });
 
   // ⚠⚠ The load's own claim about itself. If a future edit widens the roster,
   // this is the number that has to move with it.
-  it('accounts for exactly 29,168 entity-years', () => {
+  it('accounts for exactly 29,114 entity-years', () => {
     const total = MI_STATEWIDE_ENTITIES.reduce((n, e) => n + e.fiscalYears.length, 0);
-    expect(total).toBe(29168);
+    expect(total).toBe(29114);
     // The city+county half is the FY2026-08 sweep, unchanged except that
     // Manchester's six years moved with it into `village`.
     const cityCounty = MI_STATEWIDE_ENTITIES
