@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Municipality } from '../types/budget';
+import { hasDatasets } from '../data/municipalityDatasets';
 
 interface CitiesInCountyPanelProps {
   county: Municipality;
@@ -20,11 +21,11 @@ const CitiesInCountyPanel: React.FC<CitiesInCountyPanelProps> = ({
   if (cities.length === 0) return null;
 
   const withData = cities
-    .filter(c => c.available_datasets.length > 0)
+    .filter(c => hasDatasets(c))
     .sort((a, b) => a.name.localeCompare(b.name));
 
   const withoutData = cities
-    .filter(c => c.available_datasets.length === 0)
+    .filter(c => !hasDatasets(c))
     .sort((a, b) => a.name.localeCompare(b.name));
 
   return (

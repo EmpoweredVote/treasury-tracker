@@ -149,7 +149,17 @@ export interface Municipality {
   population_year?: number | null;
   hero_image_url?: string | null;
   county_id?: string | null;           // UUID reference to parent county municipality row
-  available_datasets: Array<{
+  /**
+   * ⚠⚠ ABSENT ON THE LIST RESPONSE. `/treasury/cities` is fetched with
+   * `?datasets=summary` (see fetchCityList), which returns `dataset_summary`
+   * instead — the per-row array was 97.1% of a 23.5 MB payload.
+   *
+   * A HYDRATED entity always has this: see `hydrateMunicipality` and the
+   * `HydratedMunicipality` type below. Anything needing the AXES — fund scope,
+   * basis, derivation, audit grade — needs a hydrated entity, because a summary
+   * cannot answer for them.
+   */
+  available_datasets?: Array<{
     fiscal_year: number;
     dataset_type: 'operating' | 'revenue' | 'salaries' | 'all_funds_requirements' | 'federal_agency';
     period_label?: string | null; // non-null only for sub-annual periods (FY1976 Transition Quarter)
@@ -170,7 +180,26 @@ export interface Municipality {
     // src/data/auditGrade.ts.
     audit_grade?: string | null;
   }>;
+  /**
+   * The compact alternative, returned by `?datasets=summary`. Read it through
+   * src/data/municipalityDatasets.ts rather than directly, so a caller never has
+   * to know which shape it was handed.
+   */
+  dataset_summary?: { years: number[]; dataset_types: string[] };
 }
+
+/**
+ * A municipality whose full per-row `available_datasets` has been fetched.
+ *
+ * ⚠⚠ THE TYPE IS THE ENFORCEMENT. Everything that reads a fund scope, basis,
+ * derivation or audit grade — the series picker, the year picker, the scope
+ * label — needs this and not a list entry. Making the field optional on
+ * `Municipality` and required here means the compiler refuses the mistake
+ * instead of the app rendering an entity as having no data at all.
+ */
+export type HydratedMunicipality = Municipality & {
+  available_datasets: NonNullable<Municipality['available_datasets']>;
+};
 
 export interface BudgetData {
   budgetId?: string; // API budget UUID for follow-up queries (e.g., transactions)

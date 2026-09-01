@@ -29,7 +29,7 @@ function stubFetch() {
     const body =
       url.includes('/categories') ? []
       : url.includes('/budgets') ? BUDGETS
-      : url.endsWith('/treasury/cities') ? [CITY]
+      : isCityListUrl(url) ? [CITY]
       : null;
     return { ok: true, status: 200, json: async () => body } as unknown as Response;
   }));
@@ -38,6 +38,15 @@ function stubFetch() {
 
 beforeEach(() => { clearCache(); });
 afterEach(() => { vi.unstubAllGlobals(); });
+
+/**
+ * ⚠ MATCH THE PATH, NOT THE WHOLE URL. The city list is now fetched as
+ * `/treasury/cities?datasets=summary` — the payload projection that took that
+ * response from 23.5 MB to 1.1 MB. An `endsWith('/treasury/cities')` mock stops
+ * matching the moment a query string is added, and the failure is confusing:
+ * the fetch returns null and the assertion blames the code under test.
+ */
+const isCityListUrl = (u: string) => new URL(u, 'http://test').pathname.endsWith('/treasury/cities');
 
 describe('loadBudgetData — series-aware cache key', () => {
   it('returns the RIGHT figure for each series, not the first one cached', async () => {
@@ -111,7 +120,7 @@ describe('loadBudgetData — absent in this series', () => {
 
 describe('loadBudgetData — the city list is fetched once, not once per dataset', () => {
   const SERIES = { fundScope: 'all_funds', basis: 'actual' } as const;
-  const cityCalls = (calls: string[]) => calls.filter((u) => u.endsWith('/treasury/cities'));
+  const cityCalls = (calls: string[]) => calls.filter(isCityListUrl);
 
   it('CONCURRENT loads share ONE city-list request', async () => {
     // Measured on production 2026-08-21: /treasury/cities was fetched 3-5 times
@@ -174,7 +183,7 @@ describe('loadBudgetData — the city list is fetched once, not once per dataset
     const calls: string[] = [];
     vi.stubGlobal('fetch', vi.fn(async (url: string) => {
       calls.push(url);
-      if (url.endsWith('/treasury/cities')) {
+      if (isCityListUrl(url)) {
         if (failOnce) { failOnce = false; return { ok: false, status: 500, json: async () => null } as unknown as Response; }
         return { ok: true, status: 200, json: async () => [CITY] } as unknown as Response;
       }

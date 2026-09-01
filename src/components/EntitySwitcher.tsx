@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { ChevronDown, Search } from 'lucide-react';
 import type { Municipality } from '../types/budget';
 import { STATE_NAMES } from '../utils/wikiImage';
+import { hasDatasets } from '../data/municipalityDatasets';
 
 interface EntitySwitcherProps {
   municipalities: Municipality[];
@@ -75,7 +76,7 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
     // Ordinary localities (city, county, town, etc.) still require at least one dataset.
     const withData = filtered.filter(
       m =>
-        (m.available_datasets && m.available_datasets.length > 0) ||
+        hasDatasets(m) ||
         m.entity_type === 'state' ||
         m.entity_type === 'federal'
     );
@@ -120,7 +121,7 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
   }, [municipalities, filter]);
 
   const totalCount = useMemo(
-    () => municipalities.filter(m => m.available_datasets && m.available_datasets.length > 0).length,
+    () => municipalities.filter(hasDatasets).length,
     [municipalities]
   );
   const displayName = selectedEntity

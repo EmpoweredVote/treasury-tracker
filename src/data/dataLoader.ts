@@ -8,7 +8,7 @@
 import { normalizeScope, normalizeReportingEntity } from './fundScopeVocabulary';
 import { normalizeAuditGrade } from './auditGrade';
 import { chooseDisplaySeries, normalizeBasis, type SeriesKey } from './budgetSeries';
-import type { BudgetData, BudgetCategory, FederalContext, LinkedTransactionSummary, Municipality, OrgFinancialSummary, SearchResult } from '../types/budget';
+import type { BudgetData, BudgetCategory, FederalContext, LinkedTransactionSummary, Municipality, OrgFinancialSummary, SearchResult, HydratedMunicipality } from '../types/budget';
 
 /**
  * The chosen series genuinely has no row for this dataset and year.
@@ -70,13 +70,66 @@ let citiesPromise: Promise<Municipality[]> | null = null;
 function fetchCityList(): Promise<Municipality[]> {
   if (!citiesPromise) {
     citiesPromise = (async () => {
-      const res = await fetch(`${API_BASE}/treasury/cities`);
+      // ⚠⚠ `?datasets=summary`. The default response carries ONE
+      // `available_datasets` ENTRY PER BUDGET ROW — 111,776 of them, 97.1% of
+      // 23.5 MB — and this list is fetched to look up ONE id and to render
+      // "which places have data". Summary mode answers both in 1.1 MB.
+      //
+      // ⚠ The full detail is NOT lost, it is deferred: hydrateMunicipality()
+      // fetches it for the entity actually being viewed. Read coverage through
+      // src/data/municipalityDatasets.ts, never off `available_datasets` here.
+      const res = await fetch(`${API_BASE}/treasury/cities?datasets=summary`);
       if (!res.ok) throw new Error(`Cities API returned ${res.status}`);
       return res.json();
     })();
     citiesPromise.catch(() => { citiesPromise = null; });
   }
   return citiesPromise;
+}
+
+/**
+ * Memoized per id, like the list. Same reason and the same trap: the app opens
+ * an entity and immediately fires several effects that all want its datasets, so
+ * caching the VALUE still lets N requests start before any resolves.
+ *
+ * ⚠ A rejection is NOT memoized — one transient failure would otherwise make an
+ * entity permanently unopenable for the session.
+ */
+const hydratedCities = new Map<string, Promise<HydratedMunicipality>>();
+
+/**
+ * Fetch an entity's full `available_datasets`.
+ *
+ * ⚠⚠ EVERY SELECTED ENTITY MUST GO THROUGH THIS. The list is summarised, so a
+ * list entry has no fund scope, basis, derivation or audit grade — and the
+ * series picker, the year picker and the scope label all need them. Reading a
+ * summarised entry as if it were hydrated does not throw; it renders the entity
+ * as having NO DATA, which looks like a data gap rather than a bug.
+ *
+ * ⚠ Returns the entity ALREADY HYDRATED unchanged, so callers can be
+ * unconditional without paying a second request.
+ */
+export async function hydrateMunicipality(m: Municipality): Promise<HydratedMunicipality> {
+  if (Array.isArray(m.available_datasets)) return m as HydratedMunicipality;
+
+  let inflight = hydratedCities.get(m.id);
+  if (!inflight) {
+    inflight = (async () => {
+      const res = await fetch(`${API_BASE}/treasury/cities/${m.id}`);
+      if (!res.ok) throw new Error(`City API returned ${res.status} for ${m.id}`);
+      const full = await res.json();
+      if (!Array.isArray(full?.available_datasets)) {
+        throw new Error(`City ${m.id} came back without available_datasets`);
+      }
+      // ⚠ Keep the LIST's fields and take only the datasets from the detail
+      // response, so a divergence between the two endpoints cannot silently
+      // change an entity's name, population or county under the reader.
+      return { ...m, available_datasets: full.available_datasets } as HydratedMunicipality;
+    })();
+    hydratedCities.set(m.id, inflight);
+    inflight.catch(() => { hydratedCities.delete(m.id); });
+  }
+  return inflight;
 }
 
 /**
@@ -130,7 +183,11 @@ export async function loadBudgetData(
   // labeled row.
   // An explicit series from the caller wins; otherwise fall back to SCOPE-02's
   // automatic choice, which is what every pre-SCOPE-03 caller relies on.
-  const effectiveSeries = series ?? chooseDisplaySeries(city.available_datasets ?? [], dataset);
+  // ⚠⚠ HYDRATE BEFORE CHOOSING A SERIES. `city` comes from the summarised list,
+  // so `available_datasets` is absent and `?? []` would hand chooseDisplaySeries
+  // an empty array — which picks no series at all and renders the entity blank.
+  const hydrated = await hydrateMunicipality(city);
+  const effectiveSeries = series ?? chooseDisplaySeries(hydrated.available_datasets, dataset);
   const budget = pickBudgetForSeries(budgets, dataset, periodLabel ?? null, effectiveSeries);
   if (!budget?.id) {
     const datasetHasRows = budgets.some((b: any) => b.dataset_type === dataset);
@@ -266,6 +323,11 @@ export function clearCache() {
   citiesPromise = null;
   txCache.clear();
   orgSummaryCache.clear();
+  // ⚠ Every memo, or clearCache() is a half-truth. The hydration map is keyed by
+  // municipality id and outlived a clear until 2026-09-01, so a caller that
+  // cleared and re-fetched still got the previous datasets for any entity it had
+  // already opened.
+  hydratedCities.clear();
 }
 
 /**

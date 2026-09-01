@@ -5,6 +5,7 @@ import { MapPin, ArrowRight, Building2, Search, X } from 'lucide-react';
 import type { Municipality } from '../types/budget';
 import { getLoginUrl } from '../utils/auth';
 import { useTheme } from '../hooks/useTheme';
+import { hasDatasets, datasetYears } from '../data/municipalityDatasets';
 
 export type LandingReason =
   | { type: 'guest' }
@@ -54,7 +55,7 @@ function CitySearch({
     if (!q) return { results: [] as Municipality[], hiddenCount: 0 };
     const matches = municipalities.filter(
       m =>
-        m.available_datasets.length > 0 &&
+        hasDatasets(m) &&
         (m.name.toLowerCase().includes(q) || m.state.toLowerCase().includes(q))
     );
     // Cap rendered rows so a broad query (e.g. a single letter) doesn't render
@@ -89,7 +90,7 @@ function CitySearch({
       {results.length > 0 && (
         <div className="mt-2 bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl overflow-hidden shadow-sm dark:shadow-black/40">
           {results.map(city => {
-            const years = [...new Set(city.available_datasets.map(d => d.fiscal_year))].sort((a, b) => b - a);
+            const years = datasetYears(city);
             return (
               <button
                 key={city.id}
@@ -136,7 +137,7 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
   const userAddress = readUserAddress();
   const preloadedCity = useMemo((): Municipality | null => {
     if (!userAddress) return null;
-    const available = municipalities.filter(m => m.available_datasets.length > 0);
+    const available = municipalities.filter(hasDatasets);
     const addrLower = userAddress.addr.toLowerCase();
     const match = available.find(m =>
       m.entity_type !== 'state' &&
