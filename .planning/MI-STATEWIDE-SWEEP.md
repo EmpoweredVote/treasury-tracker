@@ -142,10 +142,46 @@ entry with no change. ⚠ That is correct rather than lazy: unlike an ACFR opini
 which is evidence about one document, this evidence is about **the form's own
 instructions** — a property of the source that extends to every filer of it.
 
-## What is still not loaded
+## What is still not loaded — and what the next pass needs
 
-* **1,217 townships and 247 villages** — deferred on payload grounds, not data
-  grounds. The loader reaches them unchanged.
-* The `/treasury/cities` projection fix in ev-accounts is the prerequisite:
-  `available_datasets` carries one entry per budget row, and the list is fetched
-  on every page load.
+**1,217 townships and 247 villages.** ✅ The payload objection is GONE: the
+projection landed 2026-09-01 (TT #125 + ev-accounts #302), taking
+`/treasury/cities` from 23.5 MB to 1.1 MB. Nothing now blocks them.
+
+⚠ **The extraction is free; four concrete things are not.** Measured during this
+sweep and recorded here because they exist nowhere else:
+
+1. ⚠⚠ **`Township Part 1` and `Township Part 2` are DISJOINT SETS OF UNITS, not
+   two halves of one form.** Measured FY2024: Part 1 has 565 municodes, Part 2
+   has 652, and the **overlap is ZERO**. They are 1,217 different townships, so
+   a loader must read BOTH and must NOT try to join them per unit. Assuming
+   "part 1 + part 2 = one filing" would either halve the roster or double-count
+   every township's money.
+2. ⚠⚠ **TOWNSHIP POPULATIONS ARE A DIFFERENT CENSUS SUMLEV.**
+   `resolveCensus()` in `buildMiStatewideEntities.mjs` reads **SUMLEV 162**
+   (incorporated places) only, which covers cities and villages. Michigan
+   townships are **minor civil divisions — SUMLEV 061** in the same
+   `sub-est2024_26.csv`. Left as-is, every township resolves to `null` and the
+   generator excludes all 1,217 — loudly, in its `unresolved` count, but it will
+   look like a data problem rather than a one-line scope fix.
+   ⚠ And expect name collisions the city sweep never hit: a township and a
+   village can share a name inside the same county. The Saint-Louis-County shape
+   again — extend `miCensusAliases.mjs` with EXACT entries, never a fuzzy match.
+3. ⚠ **`fetchMichiganF65.mjs` only carries City and County dataset ids.** The
+   catalogue holds **80** (16 years × 5 unit types); Village, Township Part 1 and
+   Township Part 2 need enumerating and writing down. ⚠ Cross-check them the way
+   the city ids were — the check found 0 mismatches on 32 and is worth re-running
+   on all 80. ⚠ Filter on `metadata.domain === 'data.michigan.gov'`; the
+   catalogue federates and returns Connecticut and New York datasets.
+4. ⚠ **`SWEEP_UNIT_TYPES` in `buildMiStatewideRoster.mjs` is hardcoded
+   `['City', 'County']`.** Widening it is the entry point for the whole pass.
+
+⭐ Everything else carries over unchanged: the municode zero-padding fix, the
+duplicate-filing dedupe, the fiscal-month audit against the FAC census, and the
+per-year month write. Run `surveyMiF65Defects.mjs` and
+`auditMiF65FiscalMonths.mjs` over the new rosters BEFORE loading — both are
+scoped by directory and roster, not by unit type.
+
+⚠ Size: roughly **1,464 units → ~94,000 rows**, which would take the database
+from 111,776 to ~206,000. Worth a fresh scope decision even though the payload
+no longer objects.
