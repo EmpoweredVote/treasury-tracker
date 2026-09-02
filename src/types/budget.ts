@@ -136,6 +136,9 @@ export interface Municipality {
     | 'city'
     | 'county'
     | 'township'
+    // ⚠ A Michigan village is a legally distinct class from a city: incorporated,
+    // but still part of its township. 253 of them arrived with the F-65 sweep.
+    | 'village'
     | 'nonprofit'
     | 'state'
     | 'municipality'

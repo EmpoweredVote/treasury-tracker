@@ -1,6 +1,7 @@
 /**
  * Audit the F-65's self-reported `fiscalendmonth` against the FEDERAL AUDIT
- * CLEARINGHOUSE census, for every Michigan city and county in the sweep roster.
+ * CLEARINGHOUSE census, for every Michigan unit in the sweep — cities, counties,
+ * villages and townships.
  *
  * NO SHEBANG — kept importable.
  *
@@ -42,15 +43,34 @@ import { censusMonthFor } from './lib/facFiscalYearCensus.mjs';
 const STATE = 'MI';
 
 /**
- * @returns {{agree: number, conflict: number, uncovered: number, details: object[]}}
+ * The name to look a unit up under, or `null` to refuse the lookup entirely.
+ *
+ * ⚠⚠ A UNIT CARRYING `facCensusName: null` IS REFUSED, NOT UNCOVERED. The FAC
+ * census records no county, so `Grant Township, MI` there could be any of the
+ * eleven Michigan townships of that name, and `Bedford Township` is already two
+ * of them merged into a single entry carrying two different months. Looking
+ * those up by bare name would let one government's federal filing confirm or
+ * contradict another's calendar — and a WRONG CONFIRMATION is worse than no
+ * evidence, because it reads as a check that passed.
  */
-export function auditRoster(roster, censusLookup = censusMonthFor) {
-  let agree = 0, conflict = 0, uncovered = 0;
+export function defaultLookupName(unit) {
+  if ('facCensusName' in unit) return unit.facCensusName;
+  return unit.censusName ?? unit.name;
+}
+
+/**
+ * @returns {{agree: number, conflict: number, uncovered: number, refused: number,
+ *            details: object[]}}
+ */
+export function auditRoster(roster, censusLookup = censusMonthFor, lookupNameFor = defaultLookupName) {
+  let agree = 0, conflict = 0, uncovered = 0, refused = 0;
   const details = [];
   for (const unit of roster) {
+    const lookup = lookupNameFor(unit);
     for (const [fyStr, month] of Object.entries(unit.monthsByYear ?? {})) {
       const fy = Number(fyStr);
-      const seen = censusLookup(STATE, unit.censusName ?? unit.name, fy);
+      if (!lookup) { refused += 1; continue; }
+      const seen = censusLookup(STATE, lookup, fy);
       if (seen?.unknown) { uncovered += 1; continue; }
       if (Number(month) === Number(seen?.month)) { agree += 1; continue; }
       conflict += 1;
@@ -64,22 +84,34 @@ export function auditRoster(roster, censusLookup = censusMonthFor) {
       });
     }
   }
-  return { agree, conflict, uncovered, details };
+  return { agree, conflict, uncovered, refused, details };
 }
 
-function main() {
+async function main() {
   const { values } = parseArgs({
-    options: { roster: { type: 'string', default: '_acfr-work/mi-sweep/roster.json' } },
+    options: {
+      roster: { type: 'string' },
+      // ⚠ Default to the GENERATED ENTITIES, because those carry
+      // `facCensusName` and are what actually loads. The raw roster has no
+      // ambiguity information, so auditing it would report a coverage this
+      // load does not have.
+      entities: { type: 'boolean', default: true },
+    },
   });
-  const roster = JSON.parse(readFileSync(values.roster, 'utf8'));
-  const { agree, conflict, uncovered, details } = auditRoster(roster);
+  const roster = values.roster
+    ? JSON.parse(readFileSync(values.roster, 'utf8'))
+    : (await import('./data/miStatewideEntities.mjs')).MI_STATEWIDE_ENTITIES;
+  const {
+    agree, conflict, uncovered, refused, details,
+  } = auditRoster(roster);
   const checked = agree + conflict;
 
   console.log(`roster units        : ${roster.length}`);
-  console.log(`entity-years        : ${agree + conflict + uncovered}`);
+  console.log(`entity-years        : ${agree + conflict + uncovered + refused}`);
   console.log(`  census AGREES     : ${agree}`);
   console.log(`  census CONFLICTS  : ${conflict}`);
   console.log(`  census UNCOVERED  : ${uncovered}   (no evidence — never counted as agreement)`);
+  console.log(`  lookup REFUSED    : ${refused}   (name is not unambiguous — see defaultLookupName)`);
   if (checked > 0) {
     console.log(`agreement where measurable: ${(100 * agree / checked).toFixed(1)}%`);
   }
@@ -106,5 +138,5 @@ function main() {
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
-  process.exit(main());
+  main().then((c) => process.exit(c));
 }

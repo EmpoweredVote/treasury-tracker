@@ -38,7 +38,7 @@ import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { pathToFileURL } from 'node:url';
 
-import { DATASETS, PORTAL } from './fetchMichiganF65.mjs';
+import { DATASETS, PORTAL, datasetIsUsable, UNUSABLE_DATASETS } from './fetchMichiganF65.mjs';
 import { MI_STATEWIDE_ENTITIES, MI_STATEWIDE_LOAD_WINDOW } from './data/miStatewideEntities.mjs';
 
 const PAGE = 50000;
@@ -86,21 +86,42 @@ async function main() {
     options: {
       out: { type: 'string', default: '_acfr-work/mi-sweep/filings' },
       fy: { type: 'string' },
+      // ⚠ The unit types to pull, comma-separated. Defaults to the two the
+      // FY2026-08 sweep loaded so an unqualified re-run reproduces it exactly.
+      'unit-types': { type: 'string', default: 'City,County' },
     },
   });
   mkdirSync(values.out, { recursive: true });
+  const unitTypes = values['unit-types'].split(',').map((s) => s.trim()).filter(Boolean);
+  for (const ut of unitTypes) {
+    if (!DATASETS[ut]) throw new Error(`unknown unit type ${JSON.stringify(ut)}`);
+  }
 
-  const byCode = new Map(MI_STATEWIDE_ENTITIES.map((e) => [e.municode, e]));
+  // ⚠⚠ INDEX EVERY CODE THE ENTITY HAS FILED UNDER. The Village of Manchester
+  // filed as 813030 through FY2019 and 812019 from FY2020; indexing only the
+  // canonical code would drop ten years of its filings on the floor, silently.
+  const byCode = new Map();
+  for (const e of MI_STATEWIDE_ENTITIES) for (const c of e.municodes) byCode.set(c, e);
   const years = values.fy
     ? [Number(values.fy)]
     : Array.from({ length: MI_STATEWIDE_LOAD_WINDOW.last - MI_STATEWIDE_LOAD_WINDOW.first + 1 },
       (_, i) => MI_STATEWIDE_LOAD_WINDOW.first + i);
 
-  let files = 0; let skipped = 0; let unknown = 0;
-  for (const unitType of ['City', 'County']) {
+  let files = 0; let skipped = 0; let unknown = 0; let unusable = 0;
+  for (const unitType of unitTypes) {
     for (const fy of years) {
       const id = DATASETS[unitType]?.[fy];
       if (!id) throw new Error(`no dataset id for ${unitType} FY${fy}`);
+      // ⚠⚠ A DECLARED-UNREADABLE DATASET IS SKIPPED BY NAME, never by catching
+      // its error. FY2016 Village returns HTTP 400 because its `field_name`
+      // column holds amounts instead of grid coordinates; swallowing that status
+      // would also swallow a real outage, and the load would quietly shrink.
+      if (!datasetIsUsable(unitType, fy)) {
+        const d = UNUSABLE_DATASETS.find((x) => x.unitType === unitType && x.fiscalYear === fy);
+        console.log(`  ${unitType} FY${fy}: SKIPPED (${id}) — ${d.why}`);
+        unusable += 1;
+        continue;
+      }
       const rows = await fetchDataset(id);
 
       const grouped = new Map();
@@ -115,11 +136,16 @@ async function main() {
         const ent = byCode.get(code);
         // A unit outside the roster (wrong type for this dataset, or an
         // entity-year the census contradicted) is skipped, and counted.
-        if (!ent || ent.unitType !== unitType) { unknown += 1; continue; }
+        // ⚠ The type is checked PER YEAR, not per entity: a continuation
+        // changes form mid-series, so `unitType` alone would reject half of it.
+        if (!ent || ent.unitTypeByYear?.[fy] !== unitType) { unknown += 1; continue; }
         if (!ent.fiscalYears.includes(fy)) { skipped += 1; continue; }
         writeFileSync(join(values.out, `${ent.key}-${fy}.json`), JSON.stringify({
           entityKey: ent.key,
-          municode: ent.municode,
+          // ⚠ The code THIS filing was published under, not the entity's
+          // canonical one. They differ for a continuation, and a declared
+          // publisher defect belongs to the filing that carries it.
+          municode: code,
           unitType,
           fiscalYear: fy,
           datasetId: id,
@@ -135,6 +161,7 @@ async function main() {
   console.log(`\nfilings written : ${files}`);
   console.log(`entity-years skipped (excluded by the census audit): ${skipped}`);
   console.log(`municodes not in the roster (other unit types): ${unknown}`);
+  console.log(`datasets SKIPPED as declared-unreadable: ${unusable}`);
   if (files === 0) { console.error('REFUSING: no filings written.'); return 1; }
   return 0;
 }
