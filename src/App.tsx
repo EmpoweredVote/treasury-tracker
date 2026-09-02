@@ -13,6 +13,7 @@ import ComparabilityNote from './components/federal/ComparabilityNote';
 import { comparability } from './data/comparability';
 import { cityBasisNotes } from './data/cityBasisNotes';
 import { financingInflow } from './data/fundScopeVocabulary';
+import { shortNameInCounty } from './data/entityListLabel';
 import ScaleToggle, { type FederalScale } from './components/federal/ScaleToggle';
 import ProgramOrigins from './components/federal/ProgramOrigins';
 import BudgetSearch from './components/dashboard/BudgetSearch';
@@ -888,8 +889,18 @@ function App() {
       });
     }
 
+    // ⚠⚠ Do not say the county twice in a row. A Michigan township is NAMED
+    // "Hopkins Township, Allegan County" — it has to be, because 302 townships
+    // share 117 names and the municipality key is (name, state, entity_type) —
+    // so with the county crumb immediately to its left the trail read
+    // "Michigan › Allegan County › Hopkins Township, Allegan County".
+    // ⚠ Trimmed only against the county ACTUALLY in this trail, so the suffix
+    // survives everywhere the county is not already on screen.
+    const countyCrumb = selectedEntity?.county_id
+      ? jurisdictionParents.find(p => p.id === selectedEntity.county_id)
+      : undefined;
     items.push({
-      label: selectedEntity?.name ?? 'City',
+      label: shortNameInCounty(selectedEntity?.name ?? 'City', countyCrumb?.name),
       onClick: navigationPath.length > 0 ? () => setNavigationPath([]) : undefined
     });
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { listLabel, TYPE_LABELS, MIXED_LABEL } from './entityListLabel';
+import { listLabel, shortNameInCounty, TYPE_LABELS, MIXED_LABEL } from './entityListLabel';
 import type { Municipality } from '../types/budget';
 
 const of = (...types: Municipality['entity_type'][]) => types.map(t => ({ entity_type: t }));
@@ -51,5 +51,55 @@ describe('listLabel', () => {
     for (const t of ['state', 'federal', 'county', 'nonprofit']) {
       expect(TYPE_LABELS[t], t).toBeUndefined();
     }
+  });
+});
+
+describe('shortNameInCounty', () => {
+  // ⚠⚠ The stored name MUST keep its county — 117 Michigan township names are
+  // shared by 302 townships, and the municipality key is (name, state,
+  // entity_type). This trims only for DISPLAY, where the county is already
+  // on screen: the county page's own list, and a breadcrumb whose immediate
+  // parent is that county.
+  it('drops the county the caller has already shown', () => {
+    expect(shortNameInCounty('Hopkins Township, Allegan County', 'Allegan County'))
+      .toBe('Hopkins Township');
+    expect(shortNameInCounty('Shelby Charter Township, Macomb County', 'Macomb County'))
+      .toBe('Shelby Charter Township');
+  });
+
+  // ⚠⚠ It matches the ONE county passed in. A general /, .* County$/ rule would
+  // strip Iosco's Grant Township down to "Grant Township" on a page showing a
+  // DIFFERENT county, and every one of the eleven would read identically.
+  it('leaves a name alone when the county on screen is a different one', () => {
+    expect(shortNameInCounty('Grant Township, Iosco County', 'Allegan County'))
+      .toBe('Grant Township, Iosco County');
+    for (const c of ['Iosco County', 'Clare County', 'Kent County']) {
+      const kept = shortNameInCounty('Grant Township, Newaygo County', c);
+      expect(kept).toBe('Grant Township, Newaygo County');
+    }
+  });
+
+  // The eleven Grant Townships stay distinguishable wherever no county is shown.
+  it('is a no-op without a county', () => {
+    for (const c of [undefined, null, '']) {
+      expect(shortNameInCounty('Grant Township, Iosco County', c)).toBe('Grant Township, Iosco County');
+    }
+  });
+
+  // Cities and villages carry no county suffix at all.
+  it('leaves an unsuffixed name untouched', () => {
+    expect(shortNameInCounty('Detroit', 'Wayne County')).toBe('Detroit');
+    expect(shortNameInCounty('Mackinaw City', 'Cheboygan County')).toBe('Mackinaw City');
+  });
+
+  // ⚠ Never return an empty label, however odd the input.
+  it('never empties a label', () => {
+    expect(shortNameInCounty(', Allegan County', 'Allegan County')).toBe(', Allegan County');
+    expect(shortNameInCounty('Allegan County', 'Allegan County')).toBe('Allegan County');
+  });
+
+  // ⚠ A partial suffix match must not fire — the separator is part of the match.
+  it('requires the comma-space separator', () => {
+    expect(shortNameInCounty('Grand Traverse County', 'Traverse County')).toBe('Grand Traverse County');
   });
 });
