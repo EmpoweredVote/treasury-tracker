@@ -115,6 +115,10 @@ const CITY_TIER_TYPES = new Set<Municipality['entity_type']>([
   'city',
   'town',
   'township',
+  // ⚠ A village is city-tier: an incorporated place with its own government,
+  // which is what a city-tier record describes. Michigan's 253 arrived with the
+  // F-65 sweep.
+  'village',
   'municipality',
 ]);
 
@@ -124,7 +128,7 @@ const CITY_TIER_TYPES = new Set<Municipality['entity_type']>([
  *   - federal → the first federal-tier collection (location-independent).
  *   - state → a state-tier collection whose `localeName` matches the full state
  *     name (`entity.name` for a state entity, e.g. "California").
- *   - city/town/township/municipality → a city-tier collection whose slug equals
+ *   - city/town/township/village/municipality → a city-tier collection whose slug equals
  *     `<stripped-name>-<state>`; requires a 2-letter state (city slugs are always
  *     state-suffixed, so without one a match is ambiguous → null).
  *   - any other tier (county, nonprofit, special_district, …) → null.
@@ -153,9 +157,15 @@ export function matchEntityToTrivia(
   const state = entity.state;
   if (!/^[A-Za-z]{2}$/.test(state ?? '')) return null;
 
+  // ⚠⚠ Drop a parent-county suffix first. Michigan's townships are NAMED
+  // "Hopkins Township, Allegan County" because 117 township names are shared by
+  // 302 townships; slugifying that whole string produces
+  // `hopkins-township-allegan-county-mi`, which matches no collection, so all
+  // 1,240 would silently fail while `township` sat in CITY_TIER_TYPES.
+  const withoutCounty = entity.name.replace(/,\s*[^,]+\s+county$/i, '');
   // Strip a leading "City of "/"Town of "/… prefix before slugifying (parity
   // with Essentials' findMatchingCityCollection).
-  const strippedName = normalize(entity.name).replace(
+  const strippedName = normalize(withoutCounty).replace(
     /^(city|town|village|county|township|borough) of /,
     ''
   );

@@ -113,3 +113,47 @@ describe('fetchCoverage — never throws (COV-02)', () => {
     await expect(fetchCoverage()).resolves.toBeNull();
   });
 });
+
+describe('village and township tiers (MI F-65 sweep)', () => {
+  const catalog = {
+    cities: [
+      { label: 'Springport', geoids: ['2675420'], state: 'MI' },
+      { label: 'Hopkins Township', geoids: ['2699999'], state: 'MI' },
+      { label: 'Grant Township', geoids: ['2688888'], state: 'MI' },
+    ],
+    counties: [{ label: 'Allegan County', geoids: ['26005'], state: 'MI' }],
+  };
+
+  // ⚠ A village is city-tier: an incorporated place with its own government.
+  it('resolves a village against the city records', () => {
+    const r = matchEntityToCoverage(
+      { name: 'Springport', state: 'MI', entity_type: 'village' }, catalog);
+    expect(r?.tier).toBe('city');
+    expect(r?.label).toBe('Springport');
+  });
+
+  // ⚠⚠ Michigan townships are NAMED "Hopkins Township, Allegan County" — 117
+  // township names are shared by 302 townships, so the county is part of the
+  // identity. Before the parent-county strip, `stripLabel` reduced that to
+  // "Hopkins Township, Allegan" and all 1,240 silently matched NOTHING.
+  it('resolves a township whose name carries its parent county', () => {
+    const r = matchEntityToCoverage(
+      { name: 'Hopkins Township, Allegan County', state: 'MI', entity_type: 'township' }, catalog);
+    expect(r?.tier).toBe('city');
+    expect(r?.label).toBe('Hopkins Township');
+  });
+
+  // ⚠ A county's OWN label still reduces past the bare " County" rule.
+  it('still matches a county on its own label', () => {
+    const r = matchEntityToCoverage(
+      { name: 'Allegan County', state: 'MI', entity_type: 'county' }, catalog);
+    expect(r?.tier).toBe('county');
+    expect(r?.label).toBe('Allegan County');
+  });
+
+  // ⚠ Never a wrong-state link, whatever the tier.
+  it('refuses a same-name village in another state', () => {
+    expect(matchEntityToCoverage(
+      { name: 'Springport', state: 'IN', entity_type: 'village' }, catalog)).toBeNull();
+  });
+});

@@ -136,6 +136,15 @@ export function normalizePlace(s: string): string {
 function stripLabel(s: string): string {
   return s
     .replace(/,\s*[A-Za-z]{2}$/, '')
+    // ⚠⚠ DROP A PARENT-COUNTY SUFFIX BEFORE the bare " County" rule below.
+    // Michigan's townships are NAMED "Hopkins Township, Allegan County" — they
+    // have to be, because 117 township names are shared by 302 townships. The
+    // bare rule alone turns that into "Hopkins Township, Allegan", which can
+    // match nothing at all, so every one of those 1,240 units would silently
+    // fail to resolve while `township` sat in CITY_TIER_TYPES looking supported.
+    // ⚠ Requires the comma, so a county's OWN label ("Los Angeles County") still
+    // falls through to the rule beneath and reduces to "Los Angeles".
+    .replace(/,\s*[^,]+\s+county$/i, '')
     .replace(/\s+county$/i, '')
     .trim();
 }
@@ -144,13 +153,17 @@ const CITY_TIER_TYPES = new Set<Municipality['entity_type']>([
   'city',
   'town',
   'township',
+  // ⚠ A village is city-tier: an incorporated place with its own government,
+  // which is what a city-tier record describes. Michigan's 253 arrived with the
+  // F-65 sweep.
+  'village',
   'municipality',
 ]);
 
 /**
  * Resolve a TT entity to its Essentials coverage record, tier-aligned:
  * federal → the federal record (location-independent); state → by abbrev;
- * county → county records; city/town/township/municipality → city records.
+ * county → county records; city/town/township/village/municipality → city records.
  * Any other tier (nonprofit, special_district, school_district, library,
  * conservancy) returns null. A name match with no same-state record returns
  * null — never a wrong-state link (D-03a).

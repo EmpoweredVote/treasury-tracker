@@ -76,3 +76,32 @@ describe('matchEntityToTrivia — tier alignment', () => {
     expect(matchEntityToTrivia({ name: 'Los Angeles', state: 'CA', entity_type: 'city' }, null)).toBeNull();
   });
 });
+
+describe('village and township tiers (MI F-65 sweep)', () => {
+  const collections = [
+    { slug: 'springport-mi', tier: 'city' as const },
+    { slug: 'hopkins-township-mi', tier: 'city' as const },
+  ];
+
+  it('resolves a village', () => {
+    const r = matchEntityToTrivia(
+      { name: 'Springport', state: 'MI', entity_type: 'village' }, collections);
+    expect(r).toEqual({ tier: 'city', slug: 'springport-mi' });
+  });
+
+  // ⚠⚠ Without the parent-county strip this slugified to
+  // `hopkins-township-allegan-county-mi`, matching nothing — all 1,240 Michigan
+  // townships would have failed silently.
+  it('resolves a township whose name carries its parent county', () => {
+    const r = matchEntityToTrivia(
+      { name: 'Hopkins Township, Allegan County', state: 'MI', entity_type: 'township' },
+      collections);
+    expect(r).toEqual({ tier: 'city', slug: 'hopkins-township-mi' });
+  });
+
+  // ⚠ A county is NOT city-tier and must still resolve to null.
+  it('refuses a county', () => {
+    expect(matchEntityToTrivia(
+      { name: 'Allegan County', state: 'MI', entity_type: 'county' }, collections)).toBeNull();
+  });
+});
