@@ -46,3 +46,36 @@ export function listLabel(entities: Pick<Municipality, 'entity_type'>[]): string
   const [only] = [...types];
   return TYPE_LABELS[only] ?? MIXED_LABEL;
 }
+
+/**
+ * Drop a trailing `, <county>` when the county is ALREADY on screen.
+ *
+ * ── ⚠⚠ WHY THE STORED NAME KEEPS IT ANYWAY ─────────────────────────────────
+ *
+ * Michigan's townships are named `Hopkins Township, Allegan County` because they
+ * have to be: 117 township names are shared by 302 townships, `Grant Township`
+ * names eleven of them, and `treasury_ensure_municipality` keys on
+ * (name, state, entity_type) — so a bare name would merge those governments into
+ * one municipality carrying all their budgets. The county in the name is an
+ * identity, not a decoration, and it must never be trimmed from the stored value.
+ *
+ * But in a context that has already named the county it reads twice over:
+ *
+ *   Michigan › Allegan County › Hopkins Township, Allegan County
+ *   "Local governments in Allegan County"  ->  Hopkins Township, Allegan County
+ *
+ * So it is trimmed HERE, at the point of display, and only where the caller can
+ * prove the county is already visible — the county page's own list, and a
+ * breadcrumb whose immediate parent IS that county.
+ *
+ * ⚠ It matches the ONE county passed in, exactly. A general `/, .* County$/`
+ * rule would also strike a place genuinely named that way, and would fire on the
+ * state page where the suffix is the only thing telling 302 townships apart.
+ */
+export function shortNameInCounty(name: string, countyName?: string | null): string {
+  if (!countyName) return name;
+  const suffix = `, ${countyName}`;
+  // ⚠ Never return an empty label, however odd the input.
+  if (!name.endsWith(suffix) || name.length <= suffix.length) return name;
+  return name.slice(0, -suffix.length);
+}

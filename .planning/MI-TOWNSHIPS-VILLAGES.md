@@ -311,6 +311,61 @@ survived the round trip: Hampton 1, Redford 4.
   is the existing behaviour rather than a regression, and turning it on is a
   product decision of its own.
 * The 22 recoverable "subtotal with no breakdown" filings, above.
-* ⚠ Townships carry no `county_id`, so they do not appear in
-  `CitiesInCountyPanel`. Now that every township name states its county, linking
-  them is possible and was not done here.
+* ✅ **`county_id` is DONE** — see the section below.
+
+## ✅ Follow-up, same week: every Michigan local government is linked to its county
+
+**1,773 entities linked — 1,240 townships, 280 cities, 253 villages** — across
+all 83 counties. Michigan previously had **one** row set: Detroit, by hand in
+session 7a. `verify:frozen` byte-identical throughout; `county_id` is not in the
+digest and no budget row was touched.
+
+⚠⚠ **ALL THREE TYPES OR NONE.** Linking townships alone would have made the
+county page WORSE than empty: Allegan County would have listed its 24 townships
+while omitting its 7 cities and 2 villages — a page that looks complete and is
+not.
+
+### The county comes from the municode, and it is the right authority
+
+`fips = 2 * CC - 1`, already verified on all 83 counties.
+
+⚠⚠ **28 Michigan places straddle a county line** and `county_id` holds one.
+Lansing lies in three counties, Fenton in three; Traverse City, Holland, Midland
+and Niles in two. Measured from Census SUMLEV 157; ⚠ `PRIMGEO_FLAG` is **0 on all
+645 of those rows**, so the Census names no primary and could not settle it.
+
+Settled empirically instead: against the MAJORITY-POPULATION county of each
+straddling place, the municode agrees in **25 of 27**. The two it does not are
+near-even splits where the municode records the government's county of RECORD
+rather than where more of its residents live — **Mackinaw City** (Cheboygan 278 /
+Emmet 562) and **Northville** (Wayne 2,726 / Oakland 3,321).
+
+⚠ **Townships cannot straddle** — a township is a subdivision of exactly one
+county by definition, so all 1,240 are unambiguous.
+
+⭐ **1,240 of 1,240 townships pass a free exact self-check**: the county named in
+the township's own name equals the county its `county_id` points at. The two were
+derived independently — one from the Census join, one from municode arithmetic —
+and they agree on every row.
+
+### Saying the county once
+
+The stored name keeps its county and always must: 117 township names are shared
+by 302 townships, and the municipality key is (name, state, entity_type). But the
+breadcrumb read **`Michigan > Allegan County > Hopkins Township, Allegan County`**.
+
+`shortNameInCounty` trims a trailing `, <county>` **only where the caller can
+prove the county is already on screen** — the county page's list, and a
+breadcrumb whose immediate parent IS that county. ⚠ It matches the ONE county
+passed in; a general `/, .* County$/` rule would strip the suffix on the state
+page, where it is the only thing telling eleven Grant Townships apart.
+
+⭐ **Zero display collisions**, checked across all 83 counties: because only the
+`, County` is removed and never the type word, `Harrisville` (city) and
+`Harrisville Township` stay distinct in Alcona County, as do the village of
+Hopkins and Hopkins Township in Allegan.
+
+⚠ `CitiesInCountyPanel` also got the state panel's treatment: it had the same
+hardcoded "Cities in {county}" heading, and its filter still excluded townships
+behind a comment reading *"add 'township' if/when townships are linked to
+counties"*. They now are.
