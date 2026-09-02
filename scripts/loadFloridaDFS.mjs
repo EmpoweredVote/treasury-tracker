@@ -127,9 +127,36 @@ export const DERIVATION = 'published';
  * without the grader needing to re-open a workbook.
  */
 export function sourceNameFor(datasetType, fiscalYear, auditReconciled) {
+  return sourceNameForBranch(datasetType, fiscalYear, auditReconciled ? 'audit-reconciled' : 'DEW-reconciled');
+}
+
+/**
+ * The three reconciliation branches a Florida filing can carry.
+ *
+ * ⚠⚠ `branch-unrecorded` IS NOT `DEW-reconciled`, AND CONFLATING THEM ASSERTS A
+ * FACT THE RECORD DOES NOT CONTAIN.
+ *
+ * `hasAuditOnFile` returns false for an entity that IS listed in a compliance
+ * report but whose `Audit Received Date` and `Audit Completion Date` are both
+ * blank. That is "DFS's record does not say", not "a Data Element Worksheet was
+ * used" — and the difference is not academic: across all fourteen published
+ * years exactly four city-years have a blank pair, and one of them is **Tampa
+ * FY2013**, Florida's third-largest city, which was certainly audited.
+ *
+ * Neither `branch-unrecorded` nor `DEW-reconciled` has an entry in
+ * `auditGradeRegistry`, so both grade `unknown` — which is what "we do not know"
+ * should look like to a reader. The label exists so the row says *why* it is
+ * unknown rather than claiming the weaker branch happened.
+ */
+export const SOURCE_BRANCHES = Object.freeze(['audit-reconciled', 'DEW-reconciled', 'branch-unrecorded']);
+
+export function sourceNameForBranch(datasetType, fiscalYear, branch) {
   const label = DATASET_LABEL[datasetType];
   if (!label) throw new Error(`unknown dataset type ${datasetType}`);
-  const branch = auditReconciled ? 'audit-reconciled' : 'DEW-reconciled';
+  if (!SOURCE_BRANCHES.includes(branch)) {
+    throw new Error(`unknown reconciliation branch ${JSON.stringify(branch)} — `
+      + `expected one of ${SOURCE_BRANCHES.join(', ')}`);
+  }
   return `${SOURCE_PREFIX} — ${label} (FY${fiscalYear} actual, ${branch})`;
 }
 

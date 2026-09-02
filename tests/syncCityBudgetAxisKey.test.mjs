@@ -145,6 +145,10 @@ const REQUIRED = {
   // SAME COMMIT.
   'loadScRfa.mjs': 'SC RFA Local Government Finance Report — 52 rows, unknown/actual (scope unknown on purpose)',
   'loadFloridaDFS.mjs': 'Florida DFS AFR — 190 rows, total_governmental/actual',
+  // ⚠ The statewide sweep writes the SAME family as loadFloridaDFS.mjs and imports
+  // its FUND_SCOPE/BASIS_VALUE constants rather than restating them, so the two
+  // cannot drift into writing one family under two axis pairs.
+  'loadFlStatewide.mjs': 'Florida DFS AFR statewide — total_governmental/actual, same family',
   'loadOhioAOS.js': 'Ohio AOS — 6,616 rows, total_governmental/actual',
   'loadMNOSA.js': 'MN OSA — 21,794 rows, total_governmental/actual',
   'loadCountyBudget.js': 'CA SCO county expenditures + revenues — 2,376 rows, all_funds/actual',
