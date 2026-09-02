@@ -1,11 +1,11 @@
 # Michigan townships and villages — every remaining local unit, FY2010–FY2025
 
-**2026-09-01.** The second half of the Michigan sweep. PR #124 loaded the state's
+**2026-09-02.** The second half of the Michigan sweep. PR #124 loaded the state's
 281 cities and 83 counties; this loads its **1,240 townships and 253 villages**,
 which is every other general-purpose local government the Form F-65 covers.
 
 Scope decided by Chris: townships named with their county, villages typed
-`village`, and the `/treasury/cities` panel labelling left as a follow-up.
+`village`, and — after the load — the `/treasury/cities` panel labelling fixed too.
 
 ## What loaded
 
@@ -225,7 +225,64 @@ filings.
 * Fetch reconciliation: 23,343 expected entity-years, 23,343 files on disk, **0
   missing, 0 extra**.
 * All 80 dataset ids re-verified against the live catalogue: **0 mismatches**.
-* 1,890 tests pass (100 files).
+* 1,897 tests pass (101 files).
+
+### After the load
+
+* **205,148 budget rows**, exactly the predicted 111,776 + 93,372.
+* **93,396 rows / 93,396 DISTINCT keys** — no duplicate can hide inside a total
+  that happens to add up. Every entity-year has exactly 4 rows; 0 have any other
+  number. (93,396 = the 93,372 written plus Manchester's 24 pre-existing rows,
+  which the migration re-typed to `village`.)
+* the loaded set is the roster set, PROVED BY DIGEST. An md5 over every
+  `name|fiscal_year` pair, computed in Postgres and again in Node from
+  `miStatewideEntities.mjs`, agrees: `422e4010092a30cff73bd5497bd1e41f` over
+  23,349 entity-years. Nothing missing, nothing extra.
+* the `register:rows` deficit was **exactly 93,372** — the number this load
+  wrote — and the match selected exactly that many.
+* **`verify:frozen` is BYTE-IDENTICAL either side of the whole sweep:**
+  `62654 rows / 3a48ac28...` before and after. **$0 moved.** No `--set-baseline`
+  was needed or used; the new rows are registered, so the frozen set never
+  changed.
+* `verify:live-sync`: **0 unprotected rows**.
+* Stamps: every one of the 93,396 rows carries `self_reported_unaudited` /
+  `primary_government` / `actual`, split 46,698 published `general_fund` and
+  46,698 derived `total_governmental`. No nulls, no unknowns.
+
+### The partition gate failed first, and it was right to
+
+`EXPECTED_BASIS_ROWS` and `EXPECTED_REPORTING_ENTITY_ROWS` declared 23,084 rows
+for `mi-treasury-f65`; the family is now 116,456. Re-measured before editing,
+asking the questions of the PATTERN rather than of the total: the source-name
+match selects exactly 116,456 rows over exactly 1,856 municipality_ids — the
+roster's own size — with **0 rows outside Michigan, 0 rows of an entity type this
+family cannot contain**, FY2010-FY2025, and 64 distinct source names (2 faces x
+16 years x 2 scopes). A widened pattern shows up in those columns, not in the
+count. This is what the registry's own standing note means by *a partition count
+is a measurement with a date, not a constant.*
+
+- No registry needed a new ENTRY. The source names are unchanged from PR #124,
+  so the existing `mi-treasury-f65` patterns in all four registries already
+  covered 1,493 new units. Only the counts moved.
+
+### The audited ACFRs, re-checked FROM THE DATABASE
+
+Read back out of `treasury.budgets` after the load rather than from the
+extractor, so the chain source to extraction to RPC to database is proved end to
+end.
+
+| | in the database | audited ACFR |
+|---|---:|---:|
+| Hampton GF revenue | 5,445,837 | 5,445,837 |
+| Hampton GF expenditure | 4,185,479 | 4,185,479 |
+| Hampton total gov. revenue | 6,598,004 | 6,598,004 |
+| Hampton total gov. expenditure | 5,205,645 | 5,205,645 |
+| Redford GF expenditure | 48,356,140 | 48,356,140 |
+| Redford total gov. expenditure | 65,777,460 | 65,777,460 |
+
+Redford's two revenue figures carry the reconciled classification difference
+(51,345,397 vs 50,653,366 and 63,627,178 vs 62,794,181). Both fiscal months
+survived the round trip: Hampton 1, Redford 4.
 
 ## Access notes
 
@@ -243,7 +300,17 @@ filings.
 
 ## What this does NOT do
 
-* ⚠ **`/treasury/cities` still says "Cities in Michigan"** over what is now 1,774
-  Michigan entries. The panel filters by exclusion, so townships and villages
-  land there automatically. Deferred deliberately, to keep this a data change.
+* ✅ **The "Cities in Michigan" heading is FIXED.** `listLabel` derives the label
+  from what the list actually holds, so Michigan reads "Local governments in
+  Michigan" while a single-type state keeps its precise heading. It also
+  surfaced two defects this load introduced: `Municipality.entity_type` had no
+  `'village'`, and `EntitySwitcher` rendered villages as the raw lowercase
+  schema string.
+* ⚠ **`CITY_TIER_TYPES` in `essentialsCoverage.ts` and `triviaCoverage.ts` still
+  exclude villages**, so the 253 of them get no Essentials or trivia link. That
+  is the existing behaviour rather than a regression, and turning it on is a
+  product decision of its own.
 * The 22 recoverable "subtotal with no breakdown" filings, above.
+* ⚠ Townships carry no `county_id`, so they do not appear in
+  `CitiesInCountyPanel`. Now that every township name states its county, linking
+  them is possible and was not done here.

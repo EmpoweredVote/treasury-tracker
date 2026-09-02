@@ -198,7 +198,20 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // reaching the WRONG rows. Verified before editing: 23,084 is the exact count
   // of `data_source LIKE 'Michigan Treasury Form F-65%'` in the live table, over
   // exactly 364 municipality_ids.
-  'mi-treasury-f65': 23084,
+  //
+  // ⭐ RE-MEASURED 2026-09-02: 23,084 -> 116,456, the Michigan TOWNSHIP and
+  // VILLAGE sweep. Same family, same pattern, same publisher — the state's other
+  // 1,493 general-purpose local governments. 116,456 = 23,084 + 93,372, and
+  // 93,372 = 23,343 entity-years x 2 dataset types x 2 fund scopes.
+  //
+  // ⚠ Verified BEFORE editing, the same way and with the same questions asked of
+  // the pattern rather than of the total: `data_source LIKE 'Michigan Treasury
+  // Form F-65%'` selects exactly 116,456 rows over exactly 1,856
+  // municipality_ids — the roster's own size — with ZERO rows outside Michigan,
+  // ZERO rows of an entity type this family cannot contain, FY2010-FY2025, and
+  // 64 distinct source names (2 faces x 16 years x 2 scopes). A widened pattern
+  // shows up in those columns, not in the count.
+  'mi-treasury-f65': 116456,
   // The sixteen entity-published city/state ACFR families, measured 2026-08-19.
   // Evidence: docs/superpowers/plans/ACFR-GF-CLASSIFICATION-RECON.md §2.
   'or-city-acfr-gf': 106,
@@ -228,7 +241,12 @@ export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
   // ⭐ RE-MEASURED 2026-08-31 alongside the basis entry: 128 -> 23,084. The
   // column-d fact that justifies `primary_government` is a property of the FORM,
   // so it holds for all 364 filers exactly as it held for two.
-  'mi-treasury-f65': 23084,
+  //
+  // ⭐ RE-MEASURED 2026-09-02 alongside the basis entry: 23,084 -> 116,456, the
+  // township and village sweep. The same reasoning carries a third time and for
+  // the same reason: column d is a fact about the FORM every filer submits, so
+  // it holds for 1,856 filers exactly as it held for 364 and for two.
+  'mi-treasury-f65': 116456,
   // CO-SPRINGS-EPC-01, measured 2026-08-21: Colorado Springs 28 + El Paso
   // County 36. A NEW family, so no pre-existing count moved.
   // Evidence: docs/superpowers/plans/CO-SPRINGS-EPC-01-CLOSEOUT.md section 6.
