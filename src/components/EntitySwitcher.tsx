@@ -3,6 +3,7 @@ import { ChevronDown, Search } from 'lucide-react';
 import type { Municipality } from '../types/budget';
 import { STATE_NAMES } from '../utils/wikiImage';
 import { hasDatasets } from '../data/municipalityDatasets';
+import { TYPE_LABELS } from '../data/entityListLabel';
 
 interface EntitySwitcherProps {
   municipalities: Municipality[];
@@ -14,18 +15,14 @@ interface EntitySwitcherProps {
 // small enough to stay responsive while typing; the filter narrows past it.
 const MAX_LOCALITY_RESULTS = 60;
 
+// ⚠ The sub-state types come from the SHARED map, so this dropdown and the
+// state page's panel cannot drift apart — `village` reached the UI labelled
+// with its raw database value because they were two independent lists.
 const ENTITY_TYPE_LABELS: Record<string, string> = {
+  ...TYPE_LABELS,
   federal: 'Federal Government',
   state: 'State Governments',
-  city: 'Cities',
   county: 'Counties',
-  township: 'Townships',
-  town: 'Towns',
-  municipality: 'Municipalities',
-  special_district: 'Special Districts',
-  school_district: 'School Districts',
-  library: 'Libraries',
-  conservancy: 'Conservancy Districts',
 };
 
 const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
@@ -159,7 +156,7 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
               <input
                 ref={searchRef}
                 type="text"
-                placeholder={`Search ${totalCount} jurisdictions...`}
+                placeholder={`Search ${totalCount.toLocaleString()} jurisdictions...`}
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
                 className="w-full pl-8 pr-3 py-2 text-sm border border-[#E2EBEF] dark:border-ev-gray-700 rounded-md bg-[#F7F7F8] dark:bg-ev-gray-900 text-[#1C1C1C] dark:text-ev-gray-200 placeholder:text-ev-gray-400 focus:outline-none focus:ring-2 focus:ring-ev-muted-blue focus:border-transparent"
