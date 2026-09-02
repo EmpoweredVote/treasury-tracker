@@ -19,6 +19,10 @@ import {
 import { FL_ORACLE_DRIFT, declaredDriftFor } from '../scripts/data/flOracleDrift.mjs';
 import { toCents, moneyEquals } from '../scripts/lib/floridaDfs.mjs';
 import { gradeFor } from '../scripts/data/auditGradeRegistry.mjs';
+import { FUND_SCOPE_REGISTRY } from '../scripts/data/fundScopeRegistry.mjs';
+import { BASIS_REGISTRY } from '../scripts/data/basisRegistry.mjs';
+import { REPORTING_ENTITY_REGISTRY } from '../scripts/data/reportingEntityRegistry.mjs';
+import { FUND_SCOPE as FL_FUND_SCOPE, BASIS_VALUE as FL_BASIS } from '../scripts/loadFloridaDFS.mjs';
 import { AUDIT_GRADE } from '../scripts/lib/budgetAxes.mjs';
 
 describe('Census PEP reader — the quoted comma that shifts a column', () => {
@@ -441,5 +445,39 @@ describe('Florida oracle drift — a declared exclusion must name something', ()
   it('is a small, named exception rather than a blanket', () => {
     const entityYears = FL_STATEWIDE_ENTITIES.reduce((s, e) => s + e.fiscalYears.length, 0);
     expect(FL_ORACLE_DRIFT.length / entityYears).toBeLessThan(0.01);
+  });
+});
+
+describe('Florida — every branch is classified on the axes that do not depend on it', () => {
+  // ⚠ fund_scope, basis and reporting_entity are properties of HOW THE FILING WAS
+  // PARSED — the same fund columns, the same actuals — so they are identical
+  // across reconciliation branches. Only audit_grade depends on the branch.
+  // Leaving `branch-unrecorded` out of these three would have left 8 real rows
+  // unclassified on axes that were never in question.
+  const fsEntry = FUND_SCOPE_REGISTRY.find((e) => e.id === 'fl-dfs-afr');
+  const bEntry = BASIS_REGISTRY.find((e) => e.id === 'fl-dfs-afr');
+  const reEntry = REPORTING_ENTITY_REGISTRY.find((e) => e.id === 'fl-dfs-afr');
+
+  it('the three registry entries exist and carry the values the loader writes', () => {
+    expect(fsEntry.scope).toBe(FL_FUND_SCOPE);   // ⚠ this registry names it `scope`
+    expect(bEntry.value).toBe(FL_BASIS);
+    expect(reEntry).toBeTruthy();
+  });
+
+  for (const branch of SOURCE_BRANCHES) {
+    it(`classifies fund_scope, basis and reporting_entity for the ${branch} branch`, () => {
+      for (const dataset of ['operating', 'revenue']) {
+        const src = sourceNameForBranch(dataset, 2019, branch);
+        expect(fsEntry.match.test(src), `${branch} fund_scope`).toBe(true);
+        expect(bEntry.match.test(src), `${branch} basis`).toBe(true);
+        expect(reEntry.match.test(src), `${branch} reporting_entity`).toBe(true);
+      }
+    });
+  }
+
+  it('⚠ but audit_grade still depends on the branch, and only one branch earns it', () => {
+    expect(gradeFor(sourceNameForBranch('operating', 2019, 'audit-reconciled')).entryId).toBeTruthy();
+    expect(gradeFor(sourceNameForBranch('operating', 2019, 'branch-unrecorded')).entryId).toBeNull();
+    expect(gradeFor(sourceNameForBranch('operating', 2019, 'DEW-reconciled')).entryId).toBeNull();
   });
 });

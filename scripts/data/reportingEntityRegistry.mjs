@@ -247,7 +247,7 @@ export const REPORTING_ENTITY_REGISTRY = [
   {
     // Knight campaign, session 3 — Florida DFS LOGERx Annual Financial Reports.
     id: 'fl-dfs-afr',
-    match: /^Florida DFS Annual Financial Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[2-9]|2[0-5]) actual, (?:audit|DEW)-reconciled\)$/,
+    match: /^Florida DFS Annual Financial Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[2-9]|2[0-5]) actual, (?:audit-reconciled|DEW-reconciled|branch-unrecorded)\)$/,
     value: REPORTING_ENTITY.PRIMARY,
     evidence: {
       document: 'The source workbooks, cached under docs/fl-dfs/. As with fund_scope, the entity '

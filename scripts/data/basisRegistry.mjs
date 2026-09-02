@@ -367,7 +367,7 @@ export const BASIS_REGISTRY = [
     // is belt to the pattern's braces rather than the only thing standing
     // between a closed-year actual and an `adopted` stamp.
     id: 'fl-dfs-afr',
-    match: /^Florida DFS Annual Financial Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[2-9]|2[0-5]) actual, (?:audit|DEW)-reconciled\)$/,
+    match: /^Florida DFS Annual Financial Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[2-9]|2[0-5]) actual, (?:audit-reconciled|DEW-reconciled|branch-unrecorded)\)$/,
     value: BASIS.ACTUAL,
     evidence: {
       document: 'Florida\'s Annual Financial Report is a CLOSED-YEAR filing by statute: '

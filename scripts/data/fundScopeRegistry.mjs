@@ -880,7 +880,7 @@ export const FUND_SCOPE_REGISTRY = [
     // A bare /^Florida DFS/ would also claim any future Florida family — the
     // `^CA State Controller` trap that this registry's header warns about.
     id: 'fl-dfs-afr',
-    match: /^Florida DFS Annual Financial Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[2-9]|2[0-5]) actual, (?:audit|DEW)-reconciled\)$/,
+    match: /^Florida DFS Annual Financial Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[2-9]|2[0-5]) actual, (?:audit-reconciled|DEW-reconciled|branch-unrecorded)\)$/,
     scope: SCOPE.TOTAL_GOVERNMENTAL,
     evidence: {
       document: 'The source workbooks themselves, fetched free and anonymously from the LOGERx '
