@@ -55,6 +55,29 @@ describe('toBudgetTree — operating (2-level)', () => {
     expect(rowCount).toBe(2);
   });
 
+  it('REFUSES a three-level tree instead of silently dropping the grandchildren', () => {
+    // ⚠⚠ The RPC shape this produces is category -> items, exactly two levels,
+    // so a grandchild has nowhere to go. It used to be mapped away in silence:
+    // `child.c.map((gc) => ({ d: gc.n, a: gc.a }))` publishes the SUB-GROUP as
+    // the item and discards every leaf under it, while `a` still rolls up, so
+    // the total, the tie and `assertProjection` all stay green. Same defect
+    // `toRpcTree` in loadScCityAcfrs.mjs carried until it was fixed.
+    //
+    // It became REACHABLE when acfrGfCoords learned to read more than two
+    // levels off the printed indentation (Summerville SC prints
+    // `Current:` > `General Government:` > `Administrative`). Loaders that need
+    // to flatten such a tree deliberately already have `toBudgetTree3`, which
+    // keeps the top function as the category and lifts every descendant leaf
+    // into it; this function must not make that choice by accident.
+    expect(() => toBudgetTree({
+      n: 'General Fund', a: 90,
+      c: [{
+        n: 'Current', a: 90,
+        c: [{ n: 'General Government', a: 90, c: [{ n: 'Administrative', a: 90 }] }],
+      }],
+    }, 'operating')).toThrow(/three levels|toBudgetTree3/i);
+  });
+
   it('returns an empty tree rather than throwing on a childless extract', () => {
     expect(toBudgetTree({ n: 'General Fund', a: 0 }, 'operating')).toEqual({ tree: [], total: 0, rowCount: 0 });
     expect(toBudgetTree(null, 'revenue')).toEqual({ tree: [], total: 0, rowCount: 0 });

@@ -408,10 +408,22 @@ def collect(rows, banner_re, total_re, alignment, edge, units, weld=None):
 
     out, errors, welds = [], [], []
     pending = []          # label fragments awaiting the row that carries money
+    # ⚠⚠ AND THE INDENT OF THE FIRST OF THEM. A welded line item belongs where
+    # its LABEL STARTS, not where the money landed. City of Charlotte prints
+    #     ind=75.00  dash   0       'Culture and recreation'
+    #     ind=75.00  blank  0       'Community planning and'
+    #     ind=85.00  number 36,701  'development'
+    # and reporting the joined row at 85.00 made it look DEEPER than the $0 row
+    # above it. A two-level reader could not tell the difference — everything
+    # under the root band was a child either way — but `acfrGfCoords` now nests
+    # to whatever depth the issuer prints, and there 85.00 put another
+    # category's money under `Culture and recreation`, at a tie of exactly $0.
+    pending_indent = None
     for i, r in enumerate(parsed):
         if r['error']:
             errors.append(f'{r["label"] or r["raw"]}: {r["error"]}')
             pending = []
+            pending_indent = None
             continue
         if not r['label']:
             # No label left of the columns: a continuation of the column area or
@@ -467,6 +479,8 @@ def collect(rows, banner_re, total_re, alignment, edge, units, weld=None):
             and not r['on_grid']
         )
         if is_indent_wrap_prefix:
+            if not pending:
+                pending_indent = r['indent']
             pending.append(r['label'])
             continue
 
@@ -494,15 +508,21 @@ def collect(rows, banner_re, total_re, alignment, edge, units, weld=None):
             and (r['label_money'] or nxt['label_money'])
         )
         if is_wrap_prefix:
+            if not pending:
+                pending_indent = r['indent']
             pending.append(r['label'])
             continue
 
         label = ' '.join([*pending, r['label']]) if pending else r['label']
+        indent = r['indent']
         if pending:
             welds.append(label)
+            if pending_indent is not None:
+                indent = pending_indent
         pending = []
+        pending_indent = None
         out.append({'label': label, 'amount': r['amount'] * units,
-                    'cell': r['cell'], 'indent': r['indent']})
+                    'cell': r['cell'], 'indent': indent})
     if pending:
         errors.append(f'label fragment never joined to a valued row: {pending!r}')
     return out, errors, welds

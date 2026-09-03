@@ -54,12 +54,12 @@ label's embedded figure sits tens of points from the column edge, and character
 spacing is not a word boundary.
 
 ── NESTING COMES FROM THE PAGE, NOT FROM CONFIG ────────────────────────────
-`acfrGF.CityConfig` needs `parents` / `root_leaves` declared by hand because
-`-table` flattens the leading whitespace that states the hierarchy. Glyph
-coordinates keep it, so this module reads the tree off the printed INDENTATION
-and needs no structural declaration at all. That matters: a tie proves
-arithmetic and never structure, so a hand-declared nesting can be wrong while
-every gate stays green.
+`acfrGF.CityConfig` needs `parents` / `root_leaves` / `subparents` declared by
+hand because `-table` flattens the leading whitespace that states the
+hierarchy. Glyph coordinates keep it, so this module reads the tree off the
+printed INDENTATION and needs no structural declaration at all — at ANY depth
+the issuer prints. That matters: a tie proves arithmetic and never structure,
+so a hand-declared nesting can be wrong while every gate stays green.
 """
 
 import argparse
@@ -321,13 +321,14 @@ def build_revenue_tree(rows, revenue_parents=(), indent_tol=INDENT_TOL):
 
 
 def build_operating_tree(rows, indent_tol=INDENT_TOL):
-    """Two levels, read off the printed indentation.
+    """As many levels as the issuer prints, read off the printed indentation.
 
-    A root-level row with money is a VALUED ROOT LEAF (Capital outlay, where the
-    issuer puts it at root). A root-level row with a blank or dash cell opens a
-    PARENT, and the indented rows that follow are its children. A parent that
-    ends up with no non-zero child is DROPPED rather than published as an empty
-    node — the same choice acfrGF makes.
+    A row with money is a VALUED LEAF at the level it is printed (Capital
+    outlay, where the issuer puts it at root; Summerville's `Culture and
+    recreation`, printed as a peer of the sub-groups). A row with a blank or
+    dash cell opens a GROUP, and the rows printed deeper than it are its
+    children. A group that ends up with no non-zero descendant is DROPPED
+    rather than published as an empty node — the same choice acfrGF makes.
     """
     indents = [r['indent'] for r in rows if r['indent'] is not None]
     if not indents:
@@ -336,7 +337,27 @@ def build_operating_tree(rows, indent_tol=INDENT_TOL):
 
 
 def _nested(rows, root_x, indent_tol=INDENT_TOL):
-    """Shared root/child walk for both sections.
+    """Shared root/child walk for both sections — as many levels as the page prints.
+
+    A row carrying money is a LEAF at whatever level it is printed. A row with
+    an empty or dashed General Fund cell OPENS a group there, and the rows
+    printed DEEPER than it belong to it; it is dropped if nothing does.
+
+    ⚠⚠ WHY THIS IS NOT A TWO-LEVEL WALK ANY MORE. The Town of Summerville SC
+    prints THREE levels — `Current:` > `General Government:` > `Administrative`
+    — with `Culture and recreation` a VALUED LEAF sitting at the middle level.
+    A root/child reader drops the three valueless sub-headings and promotes
+    their twelve children into `Current`, which leaves the leaf multiset
+    unchanged and therefore ties at EXACTLY $0 while publishing a shape the
+    town never printed. Same class of error as Boulder's `revenue_parents`
+    without `revenue_group_members`, and the reason this module reads nesting
+    off the page rather than off a declaration.
+
+    ⚠ DEPTH IS RELATIVE TO THE OPEN GROUP, not to the section root. Only the
+    OUTERMOST level is decided by the root band (`root_x + indent_tol`); every
+    row below it is compared against the group it would sit inside. A row that
+    is deeper than the root band with no group open is an error, exactly as
+    before — that is how a too-small `indent_tol` still fails loudly.
 
     ⚠ Handles the case where two DIFFERENT parents carry IDENTICAL child
     labels: Asheville prints `Principal` and `Interest and other charges` under
@@ -346,32 +367,55 @@ def _nested(rows, root_x, indent_tol=INDENT_TOL):
     merged them and silently halved the reported category count.
     """
     tree, zeros, errors = [], [], []
-    open_parent = None
+    stack = []            # open groups, outermost first
+
+    def close(entry):
+        """Finish one group: roll its amount up, or drop it if nothing landed."""
+        node = entry['node']
+        if not node['c']:
+            # ⚠ A group with nothing under it is an ABSENCE, not a $0 category.
+            # A NON-root one is dropped here, in document order, which is where
+            # the two-level reader recorded a $0 child. A root-level one is left
+            # for the end-of-loop filter below, so `zeros` keeps the order that
+            # reader produced.
+            if entry['container'] is not tree:
+                # ⚠ By IDENTITY, not equality: two childless groups printed
+                # under one parent with the same label are equal dicts, and
+                # list.remove would take whichever came first.
+                for i, sib in enumerate(entry['container']):
+                    if sib is node:
+                        del entry['container'][i]
+                        break
+                zeros.append(node['n'])
+            return
+        node['a'] = sum(ch['a'] for ch in node['c'])
+
     for r in rows:
         if r['indent'] is None:
             errors.append('row with no measurable indent: %s' % r['label'][:40])
             continue
-        is_root = r['indent'] <= root_x + indent_tol
-        if is_root:
-            open_parent = None
-            if r['cell'] == 'number' and r['amount'] != 0:
-                tree.append({'n': clean_label(r['label']), 'a': r['amount']})
-            elif r['amount'] == 0:
-                # Ambiguous by value alone (a $0 root leaf and a group heading
-                # both read 0), so it is opened as a parent and dropped below if
-                # nothing indented follows. Publishing it as a $0 leaf would
-                # invent a category the issuer did not report.
-                open_parent = {'n': clean_label(r['label']), 'a': 0, 'c': []}
-                tree.append(open_parent)
-            continue
-        if open_parent is None:
+        # Close every open group this row is not printed INSIDE.
+        while stack and not (r['indent'] > stack[-1]['indent'] + indent_tol):
+            close(stack.pop())
+        if stack:
+            container = stack[-1]['node']['c']
+        elif r['indent'] <= root_x + indent_tol:
+            container = tree
+        else:
             errors.append('indented row with no open parent: %s' % r['label'][:40])
             continue
-        if r['amount'] == 0:
-            zeros.append(r['label'])
+        if r['amount'] != 0:
+            container.append({'n': clean_label(r['label']), 'a': r['amount']})
             continue
-        open_parent['c'].append({'n': clean_label(r['label']), 'a': r['amount']})
-        open_parent['a'] += r['amount']
+        # Ambiguous by value alone (a $0 leaf and a group heading both read 0),
+        # so it is opened as a group and dropped above if nothing deeper
+        # follows. Publishing it as a $0 leaf would invent a category the issuer
+        # did not report.
+        node = {'n': clean_label(r['label']), 'a': 0, 'c': []}
+        container.append(node)
+        stack.append({'indent': r['indent'], 'node': node, 'container': container})
+    while stack:
+        close(stack.pop())
 
     kept = []
     for node in tree:

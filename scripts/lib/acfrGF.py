@@ -358,6 +358,30 @@ class CityConfig:
                  Fixed by (a) checking the statement page first and (b)
                  widening the month/day gap in the regex to `\\s*` so the
                  dropped-space form matches too.
+    subtotal_prefixes
+                 lowercase label PREFIXES that identify a printed GROUP
+                 SUBTOTAL -- a row the issuer prints to close a group it has
+                 just listed (`Total general government`, `Total local
+                 revenues`). Opt-in, and empty for every entity that does not
+                 declare it, so it can move nothing by omission.
+
+                 Such a row is neither loaded nor silently skipped. Loaded as a
+                 leaf it DOUBLE-COUNTS the group it closes; skipped, it wastes
+                 an oracle the issuer has already published. So each one is
+                 CHECKED against the sum of the group it closes and a mismatch
+                 FAILS the extraction -- the campaign's own rule, that every
+                 subtotal is asserted against its OWN leaves and not just
+                 against the grand total, enforced by the parser.
+
+                 ⚠ IT APPLIES TO BOTH SECTIONS. It was written for Aberdeen SD's
+                 expenditure side and lived only in `build_operating` until
+                 Goose Creek SC, whose revenue section prints `Total local
+                 revenues` over six sources; every year missed by exactly that
+                 subtotal, in BOTH readers, which is what identified it as a
+                 library gap rather than a reader artifact.
+
+                 ⚠ A subtotal also CLOSES the group (and any open sub-group), so
+                 rows printed after it land at root, where the issuer put them.
     """
 
     def __init__(self, city, parents, root_leaves=(), source_rounding=None,
@@ -1608,7 +1632,9 @@ def _chart_member(group_label, row_label):
 
 def build_revenue(lines, col_anchors, cfg):
     """GF revenue-by-source tree. Flat unless cfg.revenue_parents groups it.
-    $0 sources are recorded in zero_rows and dropped."""
+    $0 sources are recorded in zero_rows and dropped. A printed group subtotal
+    named by cfg.subtotal_prefixes is checked against its group and suppressed;
+    see CityConfig."""
     root_children, zero_rows = [], []
     parent = None
     subparent = None
@@ -1621,6 +1647,7 @@ def build_revenue(lines, col_anchors, cfg):
     # first unrelated, non-member row would then be silently swallowed into
     # the (visually empty) group instead of closing it.
     parent_seen = False
+    subtotal_failures = []
     pending = ''
     end_revenues = _end_revenues_pattern(cfg.revenue_total_labels)
     for l in _section(lines, cfg.revenue_section_header, end_revenues, cfg.section_header_mode):
@@ -1678,12 +1705,42 @@ def build_revenue(lines, col_anchors, cfg):
         if not full:
             continue
 
+        flow = full.lower()
+
+        # ⚠⚠ A PRINTED GROUP SUBTOTAL (opt-in, cfg.subtotal_prefixes), the same
+        # branch `build_operating` has carried since Aberdeen SD. The City of
+        # Goose Creek SC prints `Total local revenues` closing a six-source
+        # `Local revenues` group; read as a leaf it DOUBLE-COUNTS its own
+        # children and every year misses by exactly the subtotal (FY2024 by
+        # 36,953,087). ⚠⚠ BOTH readers failed identically with the same deltas,
+        # which is what identified it as a library gap rather than a reader
+        # artifact: this section had no subtotal handling at all.
+        #
+        # Neither loaded nor silently skipped: each one is CHECKED against the
+        # sum of the group it closes, so a mis-assembled group fails the
+        # extraction even where the GRAND total would still tie. That is the
+        # campaign's own rule -- assert every subtotal against its OWN leaves --
+        # and it costs nothing, because the issuer already printed the answer.
+        #
+        # ⚠ It must be tested BEFORE the group-close logic below, or the
+        # subtotal would close its own group first and have nothing to check
+        # against. And it closes both levels, exactly as the expenditure side
+        # does.
+        if cfg.subtotal_prefixes and any(flow.startswith(p) for p in cfg.subtotal_prefixes):
+            group = subparent if subparent is not None else parent
+            if group is not None:
+                got = sum(ch['a'] for ch in group['c'])
+                if val != got:
+                    subtotal_failures.append((full, val, got))
+            subparent = None
+            parent = None
+            continue
+
         # Close an open revenue group once a row is no longer one of its
         # members. Checked BEFORE the val==0 branch below and gated on
         # `parent_seen`, not on `parent['c']`, so a group whose members are
         # all $0 (dropped, never added as children) still closes correctly
         # on the first later row that isn't a member.
-        flow = full.lower()
         if cfg.revenue_group_close == 'numeric_chart':
             # ⚠⚠ MEMBERSHIP BY THE ISSUER'S OWN CHART OF ACCOUNTS (opt-in).
             #
@@ -1743,6 +1800,15 @@ def build_revenue(lines, col_anchors, cfg):
     for n in root_children:
         _rollup(n)
     root_children = [n for n in root_children if n.get('c') or 'c' not in n]
+
+    if subtotal_failures:
+        # ⚠ A printed subtotal disagreeing with its own children means the group
+        # was mis-assembled. Refuse loudly -- the grand total can still tie while
+        # rows sit under the wrong parent.
+        for name, printed, got in subtotal_failures:
+            print('  SUBTOTAL FAILURE: %s printed %s but its children sum to %s (delta %s)'
+                  % (name, f'{printed:,}', f'{got:,}', f'{got - printed:+,}'), file=sys.stderr)
+        sys.exit(1)
 
     total = sum(n['a'] for n in root_children)
     return {'n': 'General Fund Revenue by Source', 'a': total, 'c': root_children}, total, zero_rows

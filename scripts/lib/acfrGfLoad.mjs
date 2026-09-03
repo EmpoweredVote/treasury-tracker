@@ -167,9 +167,36 @@ export function extractPDF(cfg, pdfPath, mode) {
  *
  * This is the established contract for a 2-level RPC tree (processTucson.js,
  * processPortland.js, loadFederalAgencies.js).
+ *
+ * ⚠⚠ IT REFUSES A THIRD LEVEL RATHER THAN DROPPING IT. The emitted shape is
+ * category -> items and nothing deeper, so a grandchild has nowhere to go; the
+ * mapping below would have published the SUB-GROUP as the item and discarded
+ * every leaf beneath it, silently. Nothing downstream could see that: the
+ * amounts roll up, so the total, the tie and `assertProjection` all stay green
+ * — the same defect `toRpcTree` in loadScCityAcfrs.mjs carried until it was
+ * fixed, and the same lesson, that a gate upstream of a transformation cannot
+ * see that transformation's defects.
+ *
+ * It became REACHABLE when `acfrGfCoords` learned to read as many levels as the
+ * issuer prints (Summerville SC prints `Current:` > `General Government:` >
+ * `Administrative`). A loader that WANTS to flatten such a tree onto this shape
+ * already has `toBudgetTree3` (loadS8Acfrs.mjs / loadSdAcfrs.mjs), which keeps
+ * the top function as the category and lifts every descendant leaf into it, and
+ * checks the projection arithmetically. That is a deliberate choice a loader
+ * makes; this function must not make it by accident.
  */
 export function toBudgetTree(extractorTree, mode) {
   const rootChildren = extractorTree?.c || [];
+  for (const child of rootChildren) {
+    const deep = (child.c || []).filter((gc) => Array.isArray(gc.c) && gc.c.length);
+    if (deep.length) {
+      throw new Error(
+        `toBudgetTree cannot map three levels: "${child.n}" > "${deep[0].n}" has `
+        + `${deep[0].c.length} child(ren) of its own, which this 2-level RPC shape `
+        + 'would drop silently. Use toBudgetTree3 if flattening is intended.',
+      );
+    }
+  }
   const single = (child) => ({
     n: child.n, a: child.a,
     i: [{ d: child.n, a: child.a, aa: null, f: null, e: null }],
