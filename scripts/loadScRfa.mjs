@@ -8,12 +8,24 @@
  *   node scripts/loadScRfa.mjs --file _acfr-work/sc/xlsx/ScLgfReport_2024.xlsx --dry-run
  *   node scripts/loadScRfa.mjs --file ... --commit
  *   node scripts/loadScRfa.mjs --file ... --entity richland-county --fy 2024 --dry-run
+ *   node scripts/loadScRfa.mjs --file ... --statewide --dry-run
  *
  * ⚠ COUNTIES ONLY. The workbook publishes no individual municipality — its
  * "Cities only" block is every municipality in the county summed together. See
  * scripts/data/scKnightEntities.mjs. Columbia and Myrtle Beach come from their
  * own ACFRs and NOT from here; `scBulkEntities()` is what this loader iterates,
  * so a city cannot reach the write path by accident.
+ *
+ * ── `--statewide` SWAPS THE ROSTER AND NOTHING ELSE ─────────────────────────
+ *
+ * Without the flag this iterates the two Knight counties; with it, all 46 from
+ * scripts/data/scStatewideEntities.mjs. Deliberately ONE write path rather than a
+ * second loader: every check, refusal, the statewide oracle and the RPC call are
+ * shared, so the sweep cannot drift from the code that was already proven on
+ * Richland and Horry. The two rosters overlap on those counties by design, and
+ * the generator asserts the overlapping entries are field-for-field identical —
+ * `treasury_ensure_municipality` keys on (name, state, entity_type), so a drift
+ * would create a twin rather than update the existing rows.
  *
  * ── SCOPE, ALL THREE DECISIONS READ FROM THE PUBLISHER ──────────────────────
  *
@@ -49,6 +61,10 @@ import {
   checkTree, money, BLOCK, FINANCING_LEAF, NON_COUNTY_SHEETS,
 } from './lib/scRfa.mjs';
 import { SC_LOAD_WINDOW, scBulkEntities } from './data/scKnightEntities.mjs';
+import { SC_STATEWIDE_ENTITIES, SC_STATEWIDE_LOAD_WINDOW } from './data/scStatewideEntities.mjs';
+import {
+  declaredResidue, residueKey, assertResiduesObserved,
+} from './data/scRfaPublisherResidue.mjs';
 
 export const SOURCE_PREFIX = 'South Carolina RFA Local Government Finance Report';
 export const SOURCE_URL = 'https://rfa.sc.gov/data-research/local-government/finance';
@@ -68,6 +84,40 @@ export function sourceNameFor(datasetType, fiscalYear) {
   return datasetType === 'operating'
     ? `${SOURCE_PREFIX} — Expenditure by Function (FY${fiscalYear} actual, county only)`
     : `${SOURCE_PREFIX} — Revenue by Source (FY${fiscalYear} actual, county only, excl. bond and lease proceeds)`;
+}
+
+/**
+ * The roster and window this run iterates.
+ *
+ * ⚠⚠ EVERY ENTITY REACHING THE WRITE PATH MUST CARRY AN EVIDENCED FISCAL MONTH.
+ * `fiscal_year_start_month` moves no dollar, so a wrong one fails NO tie test and
+ * NO oracle — that is exactly how `project_fysm_column_default_one_defect` put a
+ * wrong month on ~18,700 rows. The statewide registry records `monthStatus` per
+ * county; anything not `confirmed` is refused here rather than silently written
+ * at the state's usual 7.
+ */
+export function rosterFor({ statewide }) {
+  const entities = statewide ? SC_STATEWIDE_ENTITIES : scBulkEntities();
+  const window = statewide ? SC_STATEWIDE_LOAD_WINDOW : SC_LOAD_WINDOW;
+
+  const unevidenced = entities.filter((e) => (
+    !Number.isInteger(e.fiscalYearStartMonth)
+    || (e.monthStatus !== undefined && e.monthStatus !== 'confirmed')));
+  if (unevidenced.length) {
+    throw new Error(`REFUSING: ${unevidenced.length} entities carry no evidenced fiscal month `
+      + `(${unevidenced.map((e) => `${e.name}:${e.monthStatus ?? 'none'}`).join(', ')}). `
+      + 'Re-run scripts/buildScStatewideEntities.mjs, or read a document for them.');
+  }
+
+  // A city cannot reach this write path: RFA publishes none, and its "Cities
+  // only" block is an aggregate of every municipality in the county.
+  const nonCounty = entities.filter((e) => e.entityType !== 'county');
+  if (nonCounty.length) {
+    throw new Error(`REFUSING: ${nonCounty.length} non-county entities in the roster `
+      + `(${nonCounty.map((e) => e.name).join(', ')}). This source publishes no municipality.`);
+  }
+
+  return { entities, window };
 }
 
 /** Read every requested entity-year out of the workbook. */
@@ -176,6 +226,7 @@ export async function main() {
       fy: { type: 'string' },
       'dry-run': { type: 'boolean', default: false },
       commit: { type: 'boolean', default: false },
+      statewide: { type: 'boolean', default: false },
     },
   });
   if (!values['dry-run'] && !values.commit) {
@@ -183,13 +234,16 @@ export async function main() {
     process.exit(1);
   }
 
-  const all = scBulkEntities();
+  const { entities: all, window } = rosterFor({ statewide: values.statewide });
   const entities = values.entity ? all.filter((e) => e.key === values.entity) : all;
   if (!entities.length) throw new Error(`No bulk entity matched ${values.entity}`);
   const years = values.fy
     ? [Number(values.fy)]
-    : Array.from({ length: SC_LOAD_WINDOW.last - SC_LOAD_WINDOW.first + 1 },
-      (_, i) => SC_LOAD_WINDOW.first + i);
+    : Array.from({ length: window.last - window.first + 1 },
+      (_, i) => window.first + i);
+
+  console.log(`roster: ${all.length} ${values.statewide ? 'statewide' : 'Knight'} counties, `
+    + `FY${window.first}-FY${window.last}, every fiscal month confirmed against the federal audit record`);
 
   const { filings, refused, wb } = await readFilings({ file: values.file, entities, years });
 
@@ -202,19 +256,69 @@ export async function main() {
   const usd = (n) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
   let checks = 0;
   let bad = 0;
+  // ⚠ A publisher whose own total contradicts its own detail is a THIRD
+  // category — neither our defect nor a reason to invent a reconciling figure.
+  // Each one is named EXACTLY in scRfaPublisherResidue.mjs; anything not named
+  // there still refuses the write.
+  const observedResidues = new Set();
   for (const f of filings.sort((a, b) => a.entity.key.localeCompare(b.entity.key) || a.fiscalYear - b.fiscalYear)) {
-    const fails = f.checks.filter((c) => !c.ok);
+    const rawFails = f.checks.filter((c) => !c.ok);
+    const fails = [];
+    for (const c of rawFails) {
+      const d = declaredResidue({
+        entityKey: f.entity.key, fiscalYear: f.fiscalYear, checkId: c.id, diff: c.diff,
+      });
+      if (d) {
+        observedResidues.add(residueKey(d));
+        console.log(`  DECLARED PUBLISHER RESIDUE ${d.id}: ${f.entity.name} FY${f.fiscalYear} `
+          + `${c.id} — the printed total ${d.publishedTotal.toLocaleString()} exceeds RFA's own `
+          + `detail ${d.detailTotal.toLocaleString()} by ${Math.abs(d.residue)}. Loaded as published.`);
+        continue;
+      }
+      fails.push(c);
+    }
     checks += f.checks.length;
     bad += fails.length;
-    console.log(`  ${f.entity.name} FY${f.fiscalYear}`);
-    console.log(`    revenue   ${usd(f.revenue.total)}  (published ${usd(f.publishedRevenue)}, bonds & leases ${usd(f.financing)})`);
-    console.log(`    operating ${usd(f.operating.total)}  (published ${usd(f.publishedExpenditure)})`);
+    // ⚠ 598 filings is 1,800 lines of detail. Statewide prints a per-county
+    // summary instead — but ALWAYS every failure, whichever mode.
+    if (!values.statewide) {
+      console.log(`  ${f.entity.name} FY${f.fiscalYear}`);
+      console.log(`    revenue   ${usd(f.revenue.total)}  (published ${usd(f.publishedRevenue)}, bonds & leases ${usd(f.financing)})`);
+      console.log(`    operating ${usd(f.operating.total)}  (published ${usd(f.publishedExpenditure)})`);
+    }
     for (const c of fails) {
-      console.log(`      CHECK FAILED ${c.id} (${c.kind}): expected ${c.expected} got ${c.actual} diff ${c.diff}`);
+      console.log(`      CHECK FAILED ${f.entity.name} FY${f.fiscalYear} ${c.id} (${c.kind}): expected ${c.expected} got ${c.actual} diff ${c.diff}`);
     }
   }
 
-  console.log(`\nIn-file checks: ${checks - bad}/${checks} across ${filings.length} entity-years.`);
+  if (values.statewide) {
+    const byCounty = new Map();
+    for (const f of filings) {
+      const g = byCounty.get(f.entity.name) ?? { years: [], revenue: 0, operating: 0 };
+      g.years.push(f.fiscalYear);
+      g.revenue += f.revenue.total;
+      g.operating += f.operating.total;
+      byCounty.set(f.entity.name, g);
+    }
+    for (const [name, g] of [...byCounty].sort((a, b) => a[0].localeCompare(b[0]))) {
+      const ys = g.years.sort((a, b) => a - b);
+      console.log(`  ${name.padEnd(22)} ${String(ys.length).padStart(2)} yrs FY${ys[0]}-FY${ys[ys.length - 1]}  `
+        + `rev ${usd(g.revenue).padStart(16)}  exp ${usd(g.operating).padStart(16)}`);
+    }
+    console.log(`  ${byCounty.size} counties with at least one loadable year.`);
+  }
+
+  // ⚠⚠ A declared residue that is never observed excludes nothing. Scoped to the
+  // entity-years this run actually read, so `--fy 2024` does not trip on a
+  // declaration about FY2020.
+  const ranEntities = new Set(entities.map((e) => e.key));
+  const ranYears = new Set(years);
+  const declaredInScope = assertResiduesObserved(
+    observedResidues, (r) => ranEntities.has(r.entityKey) && ranYears.has(r.fiscalYear),
+  );
+
+  console.log(`\nIn-file checks: ${checks - bad}/${checks} across ${filings.length} entity-years `
+    + `(${declaredInScope} declared publisher residue${declaredInScope === 1 ? '' : 's'} in scope, all observed).`);
 
   console.log('\nStatewide oracle — Σ all 46 county sheets vs RFA\'s own State Summary:');
   const oracle = statewideOracle(wb, years);
@@ -313,7 +417,8 @@ export async function main() {
     process.exit(1);
   }
   console.log('Now run:  npm run verify:frozen');
-  console.log('     then npm run register:rows -- --milestone knight-s6a-sc --match "South Carolina RFA"');
+  console.log(`     then npm run register:rows -- --milestone ${values.statewide ? 'sc-statewide-counties' : 'knight-s6a-sc'} --match "South Carolina RFA"`);
+  if (values.statewide) console.log('     then node scripts/verifyScStatewideLoad.mjs');
   return filings;
 }
 
