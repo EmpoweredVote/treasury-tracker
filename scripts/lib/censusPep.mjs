@@ -27,11 +27,16 @@
  * and nothing would have failed.
  *
  * scripts/buildMiStatewideEntities.mjs carries a naive reader with the comment
- * "These two files have no quoted commas in the columns used here." That was
- * true of Michigan's file and is FALSE of Florida's. A per-file assumption
- * about quoting is not a property of the format, so this reader does not make
- * one — and `readPepCsv` ASSERTS the cell count against the header count, so a
- * file that violates the expectation fails loudly instead of shifting a column.
+ * "These two files have no quoted commas in the columns used here."
+ *
+ * ⚠ THAT CLAIM IS TRUE, AND IT WAS CHECKED RATHER THAN ASSUMED: Michigan's
+ * `sub-est2024_26.csv` has 0 quoted lines out of 3,696, and the national county
+ * file has 0 out of all of them. No Michigan population is affected. But the
+ * claim is a property of THOSE FILES, not of the format — Florida's place file
+ * breaks it — so the assumption does not travel, and this reader replaces it
+ * with an assertion: `readPepCsv` checks every row's cell count against the
+ * header count, so a file that violates the expectation fails loudly instead of
+ * silently shifting a column.
  *
  * ── ⚠ SUMLEV, AND WHY 162 IS NOT ENOUGH ────────────────────────────────────
  *
