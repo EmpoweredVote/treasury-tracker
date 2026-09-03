@@ -921,7 +921,11 @@ export const FUND_SCOPE_REGISTRY = [
              + 'this loader deliberately does not read. Financing flows (interfund transfers, '
              + 'proceeds from long-term debt, refunds of bonds, sale of capital assets) also sit '
              + 'outside Governmental Funds- Total Revenues in this report, so no exclusion is '
-             + 'needed on the county side.',
+             + 'needed on the county side. '
+             + 'REPORTING ENTITY: primary_government. The boundary is settled by which column '
+             + 'blocks TT declined to read — Proprietary, Internal Service and Fiduciary are '
+             + 'published separately and are not summed, and the report carries no '
+             + 'component-unit column at all. See reportingEntityRegistry pa-dced-clgs30.',
     },
   },
 

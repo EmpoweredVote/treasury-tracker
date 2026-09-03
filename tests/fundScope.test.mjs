@@ -270,7 +270,11 @@ describe('the shipped registry', () => {
     // scopes from one loader, which is why its label — and therefore its
     // registry entry — is scope-specific.
     const totGov = FUND_SCOPE_REGISTRY.filter((e) => e.scope === SCOPE.TOTAL_GOVERNMENTAL);
-    expect(totGov.map((e) => e.id).sort()).toEqual(['ca-sco-derived-tg', 'fl-dfs-afr', 'mi-treasury-f65-tg', 'mn-osa', 'oh-aos']);
+    // ⚠ `pa-dced-clgs30-county` joins on 2026-09-03. It is the first at this level
+    // whose SIBLING in the same state sits at a DIFFERENT scope: DCED publishes two
+    // separate reports, and the municipal one is all_funds. That is why the PA
+    // entries are report-specific rather than one Pennsylvania entry.
+    expect(totGov.map((e) => e.id).sort()).toEqual(['ca-sco-derived-tg', 'fl-dfs-afr', 'mi-treasury-f65-tg', 'mn-osa', 'oh-aos', 'pa-dced-clgs30-county']);
     for (const e of totGov) {
       expect(e.evidence.figures, e.id).toMatch(/REPORTING ENTITY|reporting-entity/);
     }
