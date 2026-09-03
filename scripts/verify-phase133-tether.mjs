@@ -46,7 +46,7 @@ function isValidCatalogShape(body) {
 // any other tier (state/federal/nonprofit/…) BEFORE touching catalog.cities. Mirror that
 // gate exactly rather than an unconditional else, so this harness stays correct if it is
 // ever copied forward to a non-city phase (as verify-phase130-tether.mjs was copied here).
-const CITY_TIER_TYPES = new Set(['city', 'town', 'township', 'municipality']);
+const CITY_TIER_TYPES = new Set(['city', 'town', 'township', 'municipality', 'borough', 'village']);
 function matchEntityToCoverage(entity, catalog) {
   if (!catalog) return null;
   let records, tier;
