@@ -179,6 +179,24 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // totals report contradicts its own detail report for them. See
   // scripts/data/flOracleDrift.mjs.
   'fl-dfs-afr': 12764,
+  // Pennsylvania DCED form DCED-CLGS-30, statewide sweep, measured 2026-09-03.
+  // Was absent entirely: the Knight session-5 load's 58 rows were never claimed
+  // by a basis or reporting_entity entry, so Pennsylvania sat in the `unknown`
+  // bucket and nothing noticed.
+  //
+  // 51,078 = 25,539 approved entity-years x 2 datasets, over exactly 40 source
+  // strings = 10 fiscal years x 2 datasets x 2 SCOPES — DCED publishes a
+  // municipal report that is all-funds and a county report that is
+  // governmental, and the loader writes which one into the source string.
+  //
+  // ⚠ THE PATTERN WAS INTERROGATED BEFORE THIS NUMBER WAS WRITTEN, which is the
+  // rule this gate exists to enforce: every row maps to a registry entity, each
+  // row's fund_scope matches that entity's report, every row carries its own
+  // entity's fiscal month (1, or 7 for Philadelphia), and the loaded set
+  // reconciles to the registry BY DIGEST — 4aeb630dde9f86e85e3af72200ad30fa,
+  // member for member (scripts/verifyPaStatewideLoad.mjs). The family grew
+  // because a load added members, not because a pattern widened.
+  'pa-dced-clgs30': 51078,
   // Knight session 4 (Georgia DCA RLGF), measured from the ACTUAL post-write
   // count on 2026-08-29. A NEW family, so no pre-existing count moved.
   // 76 = 38 entity-years x 2 datasets, over 44 source strings — more strings per
@@ -241,6 +259,12 @@ export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
   // sums only the five governmental ones. ⚠ The exact OPPOSITE of mn-osa
   // directly above, which consolidates its component units into the same columns.
   'fl-dfs-afr': 12764,
+  // PA DCED statewide — the same 51,078 rows as the basis entry above.
+  // primary_government because neither DCED report publishes a component-unit
+  // column, and the county report keeps proprietary, internal service and
+  // fiduciary funds in blocks this loader never reads. ⚠ Also the exact opposite
+  // of mn-osa, which consolidates component units into the same columns.
+  'pa-dced-clgs30': 51078,
   // AUSTIN-TRAVIS-01. Evidence: AUSTIN-TRAVIS-01-SCOPE-RECON.md §3.
   'tx-local-acfr-gf': 76,
   // Knight session 7a (Michigan Treasury F-65), measured 2026-08-30. The same
