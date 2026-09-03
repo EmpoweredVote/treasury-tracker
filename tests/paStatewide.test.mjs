@@ -7,8 +7,8 @@ import {
   PA_CONSOLIDATED, PA_EXISTING_TT_NAMES, PA_DEFAULT_FISCAL_MONTH, FISCAL_MONTH_IDS,
 } from '../scripts/data/paNameRules.mjs';
 import { resolveMonth, PA_FIRST_YEAR, PA_LAST_YEAR } from '../scripts/buildPaStatewideEntities.mjs';
-import { plannedRowsFor, DATASETS, toRpcTree } from '../scripts/loadPaStatewide.mjs';
-import { buildTree } from '../scripts/lib/paDced.mjs';
+import { plannedRowsFor, DATASETS, toRpcTree, oracleChecks } from '../scripts/loadPaStatewide.mjs';
+import { buildTree, indexHeader } from '../scripts/lib/paDced.mjs';
 import {
   PA_STATEWIDE_ENTITIES, PA_STATEWIDE_LOAD_WINDOW, paEntityByDcedId,
 } from '../scripts/data/paStatewideEntities.mjs';
@@ -311,15 +311,23 @@ describe('PA statewide load — reconciliation is by digest, not by count', () =
     expect(expectedKeys()).toHaveLength(entityYears * DATASETS.length);
   });
 
+  // ⚠ Collect violations and assert ONCE. Calling expect() 51,078 times is slow
+  // enough to trip vitest's 5s default under full-suite load — the I/O/CPU-bound
+  // timeout flake reference_ci_and_io_test_timeouts records, which keeps
+  // recurring on whichever sibling was missed last time. One assertion is both
+  // faster and gives a better failure message than the first of 51,078.
   it('every intended key names a real entity and one of its own approved years', () => {
     const byName = new Map(PA_STATEWIDE_ENTITIES.map((e) => [e.name, e]));
+    const bad = [];
     for (const k of expectedKeys()) {
       const [name, fy, ds] = k.split('|');
-      expect(byName.has(name), `key names ${name}`).toBe(true);
-      expect(byName.get(name).fiscalYears).toContain(Number(fy));
-      expect(DATASETS).toContain(ds);
+      const ent = byName.get(name);
+      if (!ent) { bad.push(`${k}: no such entity`); continue; }
+      if (!ent.fiscalYears.includes(Number(fy))) bad.push(`${k}: FY${fy} is not an approved year`);
+      if (!DATASETS.includes(ds)) bad.push(`${k}: ${ds} is not a dataset`);
     }
-  });
+    expect(bad.slice(0, 10)).toEqual([]);
+  }, 30_000);
 
   it('⚠⚠ the digest is order-independent but membership-sensitive', () => {
     const a = ['Philadelphia|2023|operating', 'State College|2023|revenue'];
@@ -337,5 +345,67 @@ describe('PA statewide load — reconciliation is by digest, not by count', () =
     const county = PA_STATEWIDE_ENTITIES.find((e) => e.source === 'PA_COUNTY');
     expect(fundScopeFor(muni)).toBe('all_funds');
     expect(fundScopeFor(county)).toBe('total_governmental');
+  });
+});
+
+describe("PA oracle — DCED's own derived figures check the column mapping", () => {
+  // Column indexes chosen to match the real municipal layout's shape.
+  const muniIx = new Map([
+    ['total revenues', 0], ['total expenditures', 1], ['revenues over expenditures', 2],
+    ['population', 3], ['revenues per capita', 4], ['expenditures per capita', 5],
+  ]);
+  // rev, exp, net, pop, revPC, expPC
+  const clean = [1000, 800, 200, 100, 10, 8];
+
+  it("passes when the publisher's derived figures reproduce", () => {
+    const checks = oracleChecks({ row: clean, ix: muniIx, isCounty: false });
+    expect(checks).toHaveLength(3);
+    expect(checks.every((c) => c.ok)).toBe(true);
+  });
+
+  it('⚠⚠ FAILS if Total Revenues is read from the wrong column', () => {
+    // A shifted mapping that still "works" — the WeHo defect.
+    const shifted = [1500, 800, 200, 100, 10, 8];
+    const checks = oracleChecks({ row: shifted, ix: muniIx, isCounty: false });
+    expect(checks.filter((c) => !c.ok).length).toBeGreaterThan(0);
+  });
+
+  it('⚠ FAILS if Population is read from the wrong column', () => {
+    const badPop = [1000, 800, 200, 250, 10, 8];
+    const checks = oracleChecks({ row: badPop, ix: muniIx, isCounty: false });
+    expect(checks.filter((c) => !c.ok).length).toBeGreaterThan(0);
+  });
+
+  it('the net check is EXACT — one dollar still fails', () => {
+    const offByOne = [1000, 800, 201, 100, 10, 8];
+    const net = oracleChecks({ row: offByOne, ix: muniIx, isCounty: false })
+      .find((c) => c.id.includes('revenues over expenditures'));
+    expect(net.ok).toBe(false);
+  });
+
+  it("⚠ the per-capita checks allow the publisher's own rounding, and no more", () => {
+    const rounded = [1000, 800, 200, 100, 11, 8];   // 10 -> 11 is within $1
+    expect(oracleChecks({ row: rounded, ix: muniIx, isCounty: false })
+      .find((c) => c.id.includes('revenue per capita')).ok).toBe(true);
+    const tooFar = [1000, 800, 200, 100, 13, 8];
+    expect(oracleChecks({ row: tooFar, ix: muniIx, isCounty: false })
+      .find((c) => c.id.includes('revenue per capita')).ok).toBe(false);
+  });
+
+  it('skips the per-capita checks when the publisher reports no population', () => {
+    const noPop = [1000, 800, 200, 0, 0, 0];
+    const checks = oracleChecks({ row: noPop, ix: muniIx, isCounty: false });
+    expect(checks).toHaveLength(1);   // the exact net check only
+  });
+
+  it('the county report has no net column, so it gets two checks not three', () => {
+    // ⚠ Built with indexHeader, not hand-written keys: normHeader collapses the
+    // space around DCED's dash, so 'Governmental Funds- Total Revenues' keys as
+    // 'governmental funds-total revenues'. Hand-writing it got that wrong.
+    const countyIx = indexHeader([
+      'Governmental Funds- Total Revenues', 'Governmental Funds- Total Expenditures',
+      'unused', 'Population', 'Revenue Per Capita', 'Expenditures Per Capita',
+    ]);
+    expect(oracleChecks({ row: clean, ix: countyIx, isCounty: true })).toHaveLength(2);
   });
 });

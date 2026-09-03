@@ -124,6 +124,7 @@ export function planRow({ row, ix, isCounty, fiscalYear }) {
   const checks = [
     ...checkRow({ tree: rev, publishedTotal: opRev, label: 'revenue' }),
     ...checkRow({ tree: exp, publishedTotal: opExp, label: 'operating' }),
+    ...oracleChecks({ row, ix, isCounty }),
   ];
 
   return {
@@ -136,6 +137,59 @@ export function planRow({ row, ix, isCounty, fiscalYear }) {
     failed: checks.filter((c) => !c.ok),
     collapsed: [...rev.collapsed, ...exp.collapsed],
   };
+}
+
+/**
+ * ⭐ AN INDEPENDENT ORACLE ON THE COLUMN MAPPING, FROM COLUMNS THE TREE NEVER READS.
+ *
+ * DCED publishes DERIVED figures alongside the detail: `Revenues Over
+ * Expenditures`, and per-capita revenue and expenditure on both reports. It
+ * computes them itself, outside anything this loader parses, so reproducing them
+ * proves TT read `Total Revenues`, `Total Expenditures` AND `Population` from the
+ * right columns.
+ *
+ * That is the class of check Pennsylvania looked to be missing. Florida had a
+ * separate totals report to oracle against; PA's cash basis means its filings
+ * cannot be tied to a GAAP ACFR, so there is no external document to compare —
+ * but these derived columns are an internal one, and a WeHo-style column shift
+ * (three of four mappings naming columns that did not exist, while the load still
+ * "worked") could not survive them.
+ *
+ * MEASURED on FY2023 before being wired in: 2,395/2,395 approved municipal rows
+ * and 63/63 county rows satisfy all of them.
+ *
+ * ⚠ The net check is EXACT. The per-capita checks carry a $1 tolerance because
+ * DCED rounds a derived display figure — that is the publisher's own precision,
+ * not slack invented here.
+ */
+export function oracleChecks({ row, ix, isCounty }) {
+  const out = [];
+  const rev = num(row[col(ix, isCounty ? 'Governmental Funds- Total Revenues' : 'Total Revenues')]);
+  const exp = num(row[col(ix, isCounty ? 'Governmental Funds- Total Expenditures' : 'Total Expenditures')]);
+  const pop = num(row[col(ix, 'Population')]);
+
+  if (!isCounty) {
+    // ⚠ Exact: both sides are whole dollars the publisher printed.
+    const net = num(row[col(ix, 'Revenues Over Expenditures')]);
+    out.push({
+      id: 'oracle: revenues over expenditures', kind: 'oracle',
+      expected: net, actual: rev - exp, diff: net - (rev - exp),
+      ok: Math.abs(net - (rev - exp)) <= 0.5,
+    });
+  }
+  if (pop > 0) {
+    for (const [label, published, computed] of [
+      ['revenue per capita', num(row[col(ix, isCounty ? 'Revenue Per Capita' : 'Revenues Per Capita')]), rev / pop],
+      ['expenditure per capita', num(row[col(ix, 'Expenditures Per Capita')]), exp / pop],
+    ]) {
+      out.push({
+        id: `oracle: ${label}`, kind: 'oracle',
+        expected: published, actual: computed, diff: published - computed,
+        ok: Math.abs(published - computed) <= 1.0,
+      });
+    }
+  }
+  return out;
 }
 
 /** Read and plan one report-year. */
