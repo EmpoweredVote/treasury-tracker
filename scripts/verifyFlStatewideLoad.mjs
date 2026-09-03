@@ -92,8 +92,13 @@ async function main() {
   const PAGE = 1000;
   for (let from = 0; ; from += PAGE) {
     const { data, error } = await db.schema('treasury').from('budgets')
+      // ⚠⚠ `total_budget`, NOT `total`, and `hierarchy`, NOT `tree`. A wrong column
+      // name here does not throw a useful error — PostgREST returns an error object
+      // and `data` comes back undefined, which a careless caller reads as "no rows".
+      // That is exactly how a first draft of this verifier reported 0 loaded rows
+      // for eight entities while 4,262 sat in the table.
       .select('id, municipality_id, fiscal_year, dataset_type, data_source, fiscal_year_start_month, '
-        + 'fund_scope, basis, audit_grade, total')
+        + 'fund_scope, basis, audit_grade, reporting_entity, total_budget')
       .in('municipality_id', munis.map((m) => m.id))
       .like('data_source', `${SOURCE_PREFIX}%`)
       .order('fiscal_year', { ascending: true })
@@ -174,7 +179,7 @@ async function main() {
   }
 
   // ── A total of 0 is legal but worth seeing.
-  const zeroTotals = rows.filter((r) => Number(r.total) === 0);
+  const zeroTotals = rows.filter((r) => Number(r.total_budget) === 0);
   if (zeroTotals.length) {
     console.log(`  ⚠ ${zeroTotals.length} row(s) carry a total of $0 — legal, but look at them:`);
     for (const r of zeroTotals.slice(0, 10)) {
