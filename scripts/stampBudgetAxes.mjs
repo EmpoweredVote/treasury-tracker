@@ -182,7 +182,24 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   //
   // ⚠⚠ Non-uniform BY DESIGN: entity_type is city AND town, and Charleston runs
   // a JANUARY fiscal year while the other five run July.
-  'sc-local-acfr-gf': 114,
+  // ⚠ 114 -> 138 on 2026-09-03: city wave 3 added Town of Summerville and City
+  // of Goose Creek, 6 years each, 24 rows. 38 -> 74 -> 114 -> 138, and no
+  // pre-existing count moved.
+  //
+  // ⚠ THE PATTERN WAS INTERROGATED BEFORE THIS NUMBER WAS TOUCHED: 138 rows over
+  // 138 DISTINCT ids, read PAGED with distinct-id == row-count asserted across
+  // all 269,960 rows; 0 rows outside South Carolina; exactly 8 entities; 2
+  // dataset types; 138 distinct source strings; 0 duplicate (entity, year,
+  // dataset) keys; 0 non-positive totals; uniform general_fund / actual /
+  // audited_gaap. 69 entity-years x 2 = 138, with Columbia 9 (FY2019 absent by
+  // decision), Mount Pleasant 8, and Summerville and Goose Creek 6 each (a
+  // Single Audit is filed only when federal awards reach $750k).
+  //
+  // ⚠⚠ SUMMERVILLE CARRIES TWO FISCAL MONTHS — 1 through FY2020 and 7 from
+  // FY2022, because the town changed its fiscal year inside the loaded window.
+  // Correct, and the first in this campaign; a uniformity check over this family
+  // must not read it as a defect.
+  'sc-local-acfr-gf': 138,
   // Knight session 6b (Tennessee's first local entity), measured from the ACTUAL
   // post-write count on 2026-08-30. 20 = 10 fiscal years x 2 datasets, ONE
   // consolidated entity. See the fuller note on the same id in

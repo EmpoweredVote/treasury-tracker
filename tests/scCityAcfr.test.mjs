@@ -136,11 +136,12 @@ describe('South Carolina city ACFR axes', () => {
   });
 
   it('pins the partition count, including the year that is deliberately missing', () => {
-    // ⚠ 38 -> 74 -> 114: wave 1 added Charleston (10 years) and Mount Pleasant
-    // (8) = 36 rows; wave 2 added Rock Hill and Greenville (10 each) = 40. The
+    // ⚠ 38 -> 74 -> 114 -> 138: wave 1 added Charleston (10 years) and Mount
+    // Pleasant (8) = 36 rows; wave 2 added Rock Hill and Greenville (10 each) =
+    // 40; wave 3 added Summerville and Goose Creek (6 each) = 24. The
     // session-6a half is UNCHANGED and still checked separately below, because
     // THAT is what this test is for.
-    expect(expectedRowsFor('sc-local-acfr-gf')).toBe(114);
+    expect(expectedRowsFor('sc-local-acfr-gf')).toBe(138);
 
     // ⚠⚠ THE ORIGINAL INTENT, PRESERVED. 38 = 19 session-6a entity-years x 2
     // datasets, and 40 would mean Columbia FY2019 came back — the year whose only
@@ -149,11 +150,16 @@ describe('South Carolina city ACFR axes', () => {
     expect((COLUMBIA_LOAD_YEARS.length + MYRTLE_BEACH_LOAD_YEARS.length) * 2).toBe(38);
     expect(COLUMBIA_LOAD_YEARS).not.toContain(2019);
 
-    // 76 = Charleston 10 + Mount Pleasant 8 + Rock Hill 10 + Greenville 10,
-    // x 2 datasets. ⚠ 80 would mean Mount Pleasant FY2016/FY2017 were invented:
-    // FAC serves no filing under EIN 576001079 before FY2018.
-    expect(scCityFilings().length * 2).toBe(76);
-    expect(38 + 76).toBe(114);
+    // 100 = Charleston 10 + Mount Pleasant 8 + Rock Hill 10 + Greenville 10 +
+    // Summerville 6 + Goose Creek 6, x 2 datasets.
+    // ⚠ 104 would mean Mount Pleasant FY2016/FY2017 were invented: FAC serves no
+    // filing under EIN 576001079 before FY2018.
+    // ⚠ And 120 would mean wave 3's missing years were invented. Summerville and
+    // Goose Creek file a Single Audit only in years they expend >= $750k of
+    // federal awards, so six years each is the FEDERAL record, not the town's
+    // publishing history — those gaps are declared, never written as $0.
+    expect(scCityFilings().length * 2).toBe(100);
+    expect(38 + 100).toBe(138);
   });
 
   // ⚠ `city` was missing from this set for months with every gate green.

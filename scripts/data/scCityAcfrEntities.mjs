@@ -270,8 +270,20 @@ export const SC_CITY_ENTITIES = Object.freeze([
     /** ⚠ A TOWN — `Summerville town` in the Census file, `TOWN OF SUMMERVILLE`
      * in its own filings. Same call as Mount Pleasant. */
     entityType: 'town',
-    /** ⚠ DEFERRED — see SC_CITY_DEFERRED. No extractor exists on purpose. */
-    extractor: null,
+    /**
+     * ⚠⚠ THE COORDINATE READER IS THE RECORD READER, and the reason is SHAPE,
+     * not arithmetic. The town prints THREE levels — `Current:` >
+     * `General Government:` > `Administrative`, with `Culture and recreation` a
+     * VALUED LEAF at the middle one — and no `CityConfig` can hold three. The
+     * `-table` reader below ties at $0 on all twelve extractions while
+     * flattening the middle level, which is exactly why the tie cannot choose
+     * between them.
+     */
+    extractor: 'scripts/extractSummervilleCoords.py',
+    /** ⚠ Required once an entity moves to coordinates — see verifyScCityReaders.mjs.
+     * `column_strategy='ordinal'` is load-bearing: this issuer renders the
+     * General Fund column at TWO character offsets. 12/12 exact agreement. */
+    corroboratingExtractor: 'scripts/extractSummervilleSC.py',
     state: SC_CITY_STATE,
     population: 52625,
     censusPlace: '70270',
@@ -307,8 +319,11 @@ export const SC_CITY_ENTITIES = Object.freeze([
     key: 'goose-creek',
     name: 'Goose Creek',
     entityType: 'city',
-    /** ⚠ DEFERRED — see SC_CITY_DEFERRED. No extractor exists on purpose. */
-    extractor: null,
+    /** ⚠ Its revenue section is closed by a PRINTED SUBTOTAL (`Total local
+     * revenues`) which double-counted until `cfg.subtotal_prefixes` was
+     * extended to `build_revenue`. It is now checked against its own six
+     * children every year — the issuer's own free oracle. */
+    extractor: 'scripts/extractGooseCreekSC.py',
     state: SC_CITY_STATE,
     population: 50352,
     censusPlace: '29815',
@@ -430,65 +445,52 @@ export const SC_CITY_COVERAGE_GAPS = Object.freeze({
  * ⚠ Loading only the 3 fully-clean years would give a reader a 10-year city with
  * a 3-year series full of holes, which is worse than not shipping it.
  */
-export const SC_CITY_DEFERRED = Object.freeze({
-  /**
-   * ⚠⚠ DEFERRED ON A **LIBRARY** GAP, NOT A CONFIG GAP — and that is the point.
-   * Waves 1 and 2 were per-entity configuration. These two are the first SC
-   * cities whose statements need a change to the SHARED extractors, which are
-   * used by ~40 entities across merged milestones and deserve their own scoped
-   * change with every existing entity re-extracted and proved byte-identical.
-   *
-   * All the discovery work IS done and recorded above: EIN, every per-year report
-   * id, populations, entity types, coverage gaps and the fiscal calendar. Both
-   * documents are fetched and both pass all four quality checks. What is missing
-   * is only the extraction.
-   */
+/**
+ * ⭐ WAVE 3's TWO BLOCKERS WERE **LIBRARY** GAPS, AND THEY ARE FIXED.
+ *
+ * Kept because the distinction is the lesson, not the outcome. Waves 1 and 2
+ * were per-entity CONFIGURATION; these two were the first SC cities whose
+ * statements needed a change to the SHARED extractors — used by ~40 entities
+ * across merged milestones — so the fix got its own scoped change with every
+ * existing entity re-extracted and proved byte-identical (238 of 242 unchanged;
+ * the 4 that moved are Mecklenburg FY2013-FY2016 `zero_rows` ORDER only, same
+ * set, same tree, same totals).
+ *
+ * ⚠ The regression run is not ceremony: it caught a defect the nesting fix
+ * itself introduced, where a WELDED label carried the indent of the printed line
+ * holding the money rather than the line where its label starts, and Charlotte
+ * FY2022/FY2023 published one category's money under another. It tied at $0.
+ */
+export const SC_CITY_LIBRARY_FIXES = Object.freeze({
   summerville: {
-    reason: 'three-level expenditure hierarchy that neither shared reader can render',
-    diagnosis: [
-      'The statement nests THREE deep: `Current:` > `General Government:` > '
-      + '`Administrative`, with `Public Safety:` and `Roads and drainage:` as sibling '
-      + 'sub-groups and `Culture and recreation` a VALUED LEAF sitting at the '
-      + 'sub-group level.',
-      '`acfrGF.py` (-table) cannot read this issuer at all: 14 rows that carry money '
-      + 'come back $0 (FY2024 operating computes 24,184,615 against a printed '
-      + '47,063,844). Its `subparents` mechanisms do not reach it either — '
-      + '`subparent_member_prefixes` needs a shared suffix the children do not have, '
-      + 'and `subparent_close=next_heading` swallows `Culture and recreation`.',
-      '`acfrGfCoords.py` reads it correctly and ALL TWELVE extractions tie at $0 — '
-      + 'but it is a TWO-LEVEL reader, so it drops the three valueless sub-headings '
-      + 'and promotes their children one level, publishing `Current > Administrative` '
-      + 'where the town printed `Current > General Government > Administrative`. '
-      + 'Same class of shape error as Boulder, so it is not shipped.',
-      'FIX: nested-group support in acfrGfCoords.py.',
-    ],
-    /** ⭐ Settled empirically, so the next session need not re-ask. */
+    wasBlockedBy: 'three-level expenditure hierarchy that neither shared reader could render',
+    fix: '`acfrGfCoords._nested` now nests to whatever depth the page prints, measuring '
+       + 'depth against the OPEN GROUP rather than the section root.',
+    /** ⭐ Settled empirically, so it need not be re-asked. */
     fiscalYearChangeover: 'The town moved from a December to a June fiscal year, and '
       + 'FY2022 is NOT a short stub: revenue runs 32.9M (FY2020, Dec) -> 37.7M (FY2022, '
       + 'Jun) -> 40.2M -> 46.7M -> 50.8M. A six-month period would be ~18M. The '
       + 'transition fell in FY2021, which FAC does not hold. The document says "FOR THE '
       + 'FISCAL YEAR ENDED JUNE 30, 2022" and carries no transition-period language.',
+    /** ⚠ CORRECTION to the wave-3 diagnosis, which said the `-table` reader could not
+     *  read this issuer at all. It cannot with `column_strategy='positional'`; with
+     *  `ordinal` it reads all twelve and agrees to the dollar. What it still cannot do
+     *  is carry the THREE-LEVEL SHAPE, which is the real reason for the coordinate
+     *  reader — and a better reason, because arithmetic alone would not have justified
+     *  the move. */
+    corroboration: 'the -table reader agrees on all 12 totals; it flattens the middle level',
   },
   'goose-creek': {
-    reason: 'a printed revenue subtotal that neither shared reader suppresses',
-    diagnosis: [
-      'Its revenue section groups: `Local revenues` holds six sources and is closed '
-      + 'by a printed `Total local revenues` SUBTOTAL, with `State revenues` and '
-      + '`Federal revenues` as root leaves after it.',
-      'Read as an ordinary leaf that subtotal DOUBLE-COUNTS its own children. Every '
-      + 'year fails by exactly the subtotal — FY2024 by 36,953,087, which IS `Total '
-      + 'local revenues` on the printed page.',
-      '⚠⚠ BOTH readers fail identically, with the same deltas, so it is not a reader '
-      + 'artifact: `CityConfig.subtotal_prefixes` is applied ONLY in the expenditure '
-      + 'section (acfrGF.py ~line 1836). `build_revenue` has no subtotal handling and '
-      + 'no `subtotal_failures` list at all.',
-      'All twelve OPERATING extractions already tie at $0 under both readers; only '
-      + 'revenue is blocked.',
-      'FIX: mirror the expenditure subtotal block into build_revenue — guarded by '
-      + 'cfg.subtotal_prefixes so no existing entity changes, and CHECKING each '
-      + 'subtotal against its own group (a free extra oracle).',
-    ],
+    wasBlockedBy: 'a printed revenue subtotal that neither shared reader suppressed',
+    fix: '`cfg.subtotal_prefixes` now applies to `build_revenue` as well as '
+       + '`build_operating`, where each subtotal is CHECKED against the sum of the group '
+       + 'it closes rather than merely skipped.',
+    /** ⭐ The check is a free extra oracle: six years confirm their own subtotal. */
+    corroboration: 'the printed `Total local revenues` equals its own six children exactly, every year',
   },
+});
+
+export const SC_CITY_DEFERRED = Object.freeze({
   'north-charleston': {
     reason: 'OCR-damaged statement tables in every readable year, plus three '
           + 'image-only years at both publishers',
