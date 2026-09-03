@@ -10,6 +10,7 @@ import { classify as classifyScope } from '../scripts/lib/fundScope.mjs';
 import { FUND_SCOPE_REGISTRY } from '../scripts/data/fundScopeRegistry.mjs';
 import { AUDIT_GRADE } from '../scripts/lib/budgetAxes.mjs';
 import { SOURCE_CHIP_ENTITY_TYPES } from '../src/data/sourceChipTypes.ts';
+import { scCityFilings } from '../scripts/data/scCityAcfrEntities.mjs';
 import { readFileSync } from 'node:fs';
 
 /**
@@ -135,9 +136,23 @@ describe('South Carolina city ACFR axes', () => {
   });
 
   it('pins the partition count, including the year that is deliberately missing', () => {
-    // 38 = 19 entity-years x 2 datasets. 40 would mean Columbia FY2019 came back.
-    expect(expectedRowsFor('sc-local-acfr-gf')).toBe(38);
+    // ⚠ 38 -> 74: the city wave 1 added Charleston (10 years) and Mount Pleasant
+    // (8 years) = 36 rows. The session-6a half is UNCHANGED and still checked
+    // separately below, because THAT is what this test is for.
+    expect(expectedRowsFor('sc-local-acfr-gf')).toBe(74);
+
+    // ⚠⚠ THE ORIGINAL INTENT, PRESERVED. 38 = 19 session-6a entity-years x 2
+    // datasets, and 40 would mean Columbia FY2019 came back — the year whose only
+    // two surviving copies are scans with a defective OCR layer. Extending the
+    // family must not quietly relax the check that year is still absent.
     expect((COLUMBIA_LOAD_YEARS.length + MYRTLE_BEACH_LOAD_YEARS.length) * 2).toBe(38);
+    expect(COLUMBIA_LOAD_YEARS).not.toContain(2019);
+
+    // 36 = Charleston FY2016-FY2025 + Mount Pleasant FY2018-FY2025, x 2 datasets.
+    // ⚠ 40 would mean Mount Pleasant FY2016/FY2017 were invented: FAC serves no
+    // filing under EIN 576001079 before FY2018.
+    expect(scCityFilings().length * 2).toBe(36);
+    expect(38 + 36).toBe(74);
   });
 
   // ⚠ `city` was missing from this set for months with every gate green.

@@ -150,7 +150,21 @@ export const EXPECTED_ROWS = Object.freeze({
   // to appear later unless someone decides money read off an image is
   // acceptable. If this count ever reads 40, that decision was made somewhere
   // and needs to be in the recon document, not in this number.
-  'sc-local-acfr-gf': 38,
+  // ⚠ 38 -> 74 on 2026-09-03: the South Carolina city wave 1 added City of
+  // Charleston (FY2016-FY2025) and Town of Mount Pleasant (FY2018-FY2025),
+  // 36 rows. The pre-existing 38 did not move.
+  //
+  // ⚠ THE PATTERN WAS INTERROGATED BEFORE THIS NUMBER WAS TOUCHED: 74 rows over
+  // 74 distinct ids, 0 rows outside South Carolina, exactly 4 entities
+  // (Charleston, Columbia, Mount Pleasant, Myrtle Beach), exactly 2 dataset
+  // types, 74 distinct source strings, 0 duplicate (entity, year, dataset) keys,
+  // and uniform general_fund / actual / audited_gaap. The family grew because a
+  // load added members, not because a pattern widened past its evidence.
+  //
+  // ⚠⚠ `entity_type` is now city AND town — Mount Pleasant is a town in the
+  // Census file and in its own filings, and that is part of its identity.
+  // ⚠⚠ And the months are NOT uniform: Charleston is 1, the other three are 7.
+  'sc-local-acfr-gf': 74,
   // Knight session 6b (Tennessee's first local entity), measured from the ACTUAL
   // post-write count on 2026-08-30. A NEW family, so no pre-existing count moved.
   // 20 = 10 fiscal years (FY2016-FY2025) x 2 datasets, ONE entity — Metro
