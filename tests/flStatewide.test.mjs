@@ -17,6 +17,7 @@ import {
   FL_CENSUS_ALIASES, FL_COUNTY_ALIASES, FL_DISSOLVED, FL_EXISTING_TT_NAMES, FL_CONSOLIDATED,
 } from '../scripts/data/flCensusAliases.mjs';
 import { FL_ORACLE_DRIFT, declaredDriftFor } from '../scripts/data/flOracleDrift.mjs';
+import { expectedKeys, digestOf } from '../scripts/verifyFlStatewideLoad.mjs';
 import { toCents, moneyEquals } from '../scripts/lib/floridaDfs.mjs';
 import { gradeFor } from '../scripts/data/auditGradeRegistry.mjs';
 import { FUND_SCOPE_REGISTRY } from '../scripts/data/fundScopeRegistry.mjs';
@@ -479,5 +480,44 @@ describe('Florida — every branch is classified on the axes that do not depend 
     expect(gradeFor(sourceNameForBranch('operating', 2019, 'audit-reconciled')).entryId).toBeTruthy();
     expect(gradeFor(sourceNameForBranch('operating', 2019, 'branch-unrecorded')).entryId).toBeNull();
     expect(gradeFor(sourceNameForBranch('operating', 2019, 'DEW-reconciled')).entryId).toBeNull();
+  });
+});
+
+describe('Florida statewide load — reconciliation is by digest, not by count', () => {
+  it('the intended key set excludes every declared oracle drift', () => {
+    const keys = new Set(expectedKeys());
+    for (const d of FL_ORACLE_DRIFT) {
+      for (const ds of DATASETS) {
+        expect(keys.has(`${d.name}|${d.fiscalYear}|${ds}`),
+          `${d.name} FY${d.fiscalYear} ${ds} must not be expected`).toBe(false);
+      }
+    }
+  });
+
+  it('the intended count is entity-years minus declared drift, times two datasets', () => {
+    const entityYears = FL_STATEWIDE_ENTITIES.reduce((s, e) => s + e.fiscalYears.length, 0);
+    expect(expectedKeys()).toHaveLength((entityYears - FL_ORACLE_DRIFT.length) * DATASETS.length);
+  });
+
+  it('every intended key names a real registry entity and one of its own years', () => {
+    const byName = new Map(FL_STATEWIDE_ENTITIES.map((e) => [e.name, e]));
+    for (const k of expectedKeys()) {
+      const [name, fy, ds] = k.split('|');
+      expect(byName.has(name), `key names ${name}`).toBe(true);
+      expect(byName.get(name).fiscalYears).toContain(Number(fy));
+      expect(DATASETS).toContain(ds);
+    }
+  });
+
+  it('⚠⚠ the digest is order-independent but membership-sensitive', () => {
+    const a = ['Miami|2023|operating', 'Tampa|2023|revenue'];
+    expect(digestOf(a)).toBe(digestOf([...a].reverse()));
+    // A count that matches while the MEMBERS differ must not produce one digest.
+    expect(digestOf(a)).not.toBe(digestOf(['Miami|2023|operating', 'Tampa|2024|revenue']));
+  });
+
+  it('holds no duplicate intended keys', () => {
+    const keys = expectedKeys();
+    expect(new Set(keys).size).toBe(keys.length);
   });
 });
