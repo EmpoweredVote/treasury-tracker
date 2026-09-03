@@ -95,12 +95,26 @@ export function monthFromFye(fye) {
  * OR Data Element Worksheet" before a filing becomes *Verified by DFS*.
  *
  * ⚠⚠ A BLANK AUDIT DATE IS NOT EVIDENCE OF A WORKSHEET. Only four city-years in
- * fourteen published years have both audit dates blank, and one of them is
- * **Tampa FY2013** — Florida's third-largest city, which certainly was audited.
+ * fourteen published years have both audit dates blank, and the federal audit
+ * record proves the point for half of them:
+ *
+ *   Tampa FY2013        filed a federal Single Audit in EVERY year 1998-2025.
+ *   Plantation FY2015   filed one in 1998, 2000-2015 and 2017-2025.
+ *   Lake Alfred FY2015  filed in 2003, 2006-2007, 2022 — not 2015.
+ *   Perry FY2020        filed in 2005, 2012, 2018, 2021, 2023-2024 — not 2020.
+ *
+ * So two of the four were DEMONSTRABLY AUDITED, and grading them down to the
+ * worksheet branch would have been not merely unsupported but false. The other
+ * two spend under the $750k federal threshold in those years, which is evidence
+ * of nothing in either direction.
+ *
  * The honest reading of a blank pair is "DFS's record does not say", so this
  * returns `branch-unrecorded` rather than asserting the weaker branch. That
  * string has no entry in `auditGradeRegistry`, so such a row grades `unknown` —
  * which is what "we do not know" should look like to a reader.
+ *
+ * ⚠ Measured from docs/fac/fac-local-fiscal-year-ends.csv, not from the FAC API,
+ * which reaches back only to audit year 2016.
  *
  * `absent` is returned when the entity is in neither compliance report. It
  * happens for zero city/county entity-years today, and the loader refuses it
