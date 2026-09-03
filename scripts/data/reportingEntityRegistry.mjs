@@ -245,6 +245,25 @@ export const REPORTING_ENTITY_REGISTRY = [
     },
   },
   {
+    // Pennsylvania DCED form DCED-CLGS-30, both reports.
+    id: 'pa-dced-clgs30',
+    match: /^Pennsylvania DCED Municipal Annual Audit and Financial Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[5-9]|2[0-5]) actual, cash basis, (?:all funds|governmental funds), excl\. financing sources\)$/,
+    value: REPORTING_ENTITY.PRIMARY,
+    evidence: {
+      document: 'Form DCED-CLGS-30 is filed BY the municipality or county for ITSELF. Neither '
+              + 'statewide extract publishes a component-unit column, and neither carries a '
+              + 'consolidated or blended total.',
+      figures: '⚠ The county report separates Proprietary, Internal Service and Fiduciary funds '
+             + 'into their own column blocks, none of which TT reads, so component activity is '
+             + 'excluded by construction. The municipal report is all-funds for the FILING '
+             + 'ENTITY: enterprise activity it runs itself (its own water, sewer, parking) is '
+             + 'inside the total, which is the primary government operating a utility — not a '
+             + 'discretely presented component unit. ⚠ Contrast mn-osa, which consolidates '
+             + 'component units into the same columns and is therefore incl_component_units.',
+    },
+  },
+
+  {
     // Knight campaign, session 3 — Florida DFS LOGERx Annual Financial Reports.
     id: 'fl-dfs-afr',
     match: /^Florida DFS Annual Financial Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[2-9]|2[0-5]) actual, (?:audit-reconciled|DEW-reconciled|branch-unrecorded)\)$/,

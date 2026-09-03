@@ -89,7 +89,7 @@ function isUsableCatalog(body) {
   return Array.isArray(body.cities) && body.cities.length > 0
     && Array.isArray(body.counties) && body.counties.length > 0;
 }
-const CITY_TIER_TYPES = new Set(['city', 'town', 'township', 'municipality']);
+const CITY_TIER_TYPES = new Set(['city', 'town', 'township', 'municipality', 'borough', 'village']);
 function matchEntityToCoverage(entity, catalog) {
   if (!catalog) return null;
   let records, tier;

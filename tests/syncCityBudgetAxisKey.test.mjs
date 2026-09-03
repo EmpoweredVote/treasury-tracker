@@ -91,6 +91,12 @@ const REQUIRED = {
   // read from the source, so `fundScopeFor()` resolves per entity and the RPC is
   // passed whichever that entity's rows actually carry.
   'loadPaDced.mjs': 'PA DCED CLGS-30 — 58 rows, all_funds (municipal) + total_governmental (county) / actual',
+  // ⚠ The statewide sweep writes the SAME family as loadPaDced.mjs and imports
+  // its `fundScopeFor`, BASIS_VALUE and DERIVATION rather than restating them, so
+  // the two cannot drift into writing one family under two axis pairs. It carries
+  // the same two scopes for the same reason: DCED's municipal report is all-funds
+  // and its county report is governmental, and both are READ from the source.
+  'loadPaStatewide.mjs': 'PA DCED CLGS-30 statewide — all_funds (municipal) + total_governmental (county) / actual',
   // Knight session 7a. A NEW family — no Michigan local rows existed before this
   // load — so the first run INSERTs and every later run matches on the values
   // written here.

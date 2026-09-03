@@ -331,30 +331,56 @@ export const COUNTY_EXPENDITURE_TREE = [
  * A child worth 0 is dropped; a parent whose children are all 0 and whose own
  * amount is 0 is dropped. Nothing is invented.
  */
-export function buildTree(spec, row, ix) {
+export function buildTree(spec, row, ix, { onSubtotalMismatch = 'refuse' } = {}) {
   const roots = [];
   let total = 0;
   const checks = [];
+  const collapsed = [];
   for (const node of spec) {
-    const kids = node.children
+    let kids = node.children
       .map((name) => ({ n: prettyLabel(name), a: num(row[col(ix, name)]) }))
       .filter((k) => k.a !== 0);
     const sum = kids.reduce((a, k) => a + k.a, 0);
     let amount = sum;
     if (node.subtotal) {
       const published = num(row[col(ix, node.subtotal)]);
-      checks.push({ id: node.label, expected: published, actual: sum, diff: published - sum });
+      const diff = published - sum;
       // ⚠ The PUBLISHED subtotal is authoritative for the parent, because the
-      // grand total is built from it. A detail/subtotal disagreement is REPORTED
-      // (and refused by the caller), never silently papered over.
+      // grand total is built from it.
       amount = published;
+
+      if (Math.abs(diff) > EPS && onSubtotalMismatch === 'collapse') {
+        // ⚠⚠ THE DETAIL IS DROPPED, THE TOTAL IS KEPT, AND IT IS RECORDED.
+        //
+        // DCED's `Total Taxes Revenues` exceeds the sum of its own ten tax
+        // columns for ~5.8% of approved municipal rows every year — 139 of 2,395
+        // in FY2023 — and 125 of those 139 are ALLEGHENY COUNTY, at a strikingly
+        // consistent ~4.3% of the published figure. Whatever DCED is counting, it
+        // publishes it in NO detail column, so the shortfall cannot be attributed
+        // to a category without inventing one.
+        //
+        // TT's tree contract requires a node's children to sum to the node
+        // (tests/budgetTreeItemContract.test.mjs), so a 4% short decomposition
+        // cannot ship. The alternatives were to refuse ~1,400 entity-years —
+        // dropping most of the Pittsburgh area — or to keep the publisher's
+        // total and drop the detail that does not reconcile to it.
+        //
+        // This does the latter: the node becomes a LEAF carrying the published
+        // amount. Nothing is invented, no total moves, and the loss is exactly
+        // one level of breakdown on the rows where the publisher's own numbers
+        // disagree. `collapsed` reports every instance so it is never silent.
+        collapsed.push({ id: node.label, published, detailSum: sum, diff });
+        kids = [];
+      } else {
+        checks.push({ id: node.label, expected: published, actual: sum, diff });
+      }
     }
     if (amount === 0 && kids.length === 0) continue;
     total += amount;
     roots.push(kids.length > 1 ? { n: node.label, a: amount, c: kids }
       : { n: node.label, a: amount });
   }
-  return { roots, total, checks };
+  return { roots, total, checks, collapsed };
 }
 
 /** Strip the publisher's suffixes so the UI shows a human label. */
