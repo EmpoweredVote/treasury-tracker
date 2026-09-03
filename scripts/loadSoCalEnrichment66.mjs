@@ -47,7 +47,7 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SER
 // 1. Universal enrichment name_keys (paginate past the 1000-row cap).
 const enrKeys = new Set();
 for (let from = 0; ; from += 1000) {
-  const { data } = await supabase.from('category_enrichment').select('name_key').is('municipality_id', null).range(from, from + 999);
+  const { data } = await supabase.from('category_enrichment').select('name_key').is('municipality_id', null).order('id').range(from, from + 999);
   if (!data || !data.length) break;
   data.forEach(e => enrKeys.add(e.name_key));
   if (data.length < 1000) break;

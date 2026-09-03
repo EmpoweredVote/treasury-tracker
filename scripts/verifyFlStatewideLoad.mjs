@@ -99,7 +99,11 @@ async function main() {
       // for eight entities while 4,262 sat in the table.
       .select('id, municipality_id, fiscal_year, dataset_type, data_source, fiscal_year_start_month, '
         + 'fund_scope, basis, audit_grade, reporting_entity, total_budget')
-      .in('municipality_id', munis.map((m) => m.id))
+      // ⚠ NO `.in('municipality_id', [...])` here. 479 UUIDs make a ~17KB query
+      // string and PostgREST answers with a bare `fetch failed`, which reads like
+      // a network blip rather than a request you built too big. The data_source
+      // prefix already scopes this to exactly one family, so the id list was
+      // redundant as well as fatal.
       .like('data_source', `${SOURCE_PREFIX}%`)
       .order('fiscal_year', { ascending: true })
       .order('dataset_type', { ascending: true })

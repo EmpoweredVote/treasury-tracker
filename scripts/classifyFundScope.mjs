@@ -240,7 +240,7 @@ async function fetchSourceCounts(supabase) {
     const { data, error } = await supabase
       .schema('treasury').from('budgets')
       .select('data_source')
-      .range(from, from + PAGE - 1);
+      .order('id').range(from, from + PAGE - 1);
     if (error) throw new Error(`fetch data_source: ${error.message}`);
     if (!data?.length) break;
     for (const r of data) counts.set(r.data_source, (counts.get(r.data_source) ?? 0) + 1);

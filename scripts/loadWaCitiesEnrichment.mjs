@@ -182,7 +182,7 @@ async function collectLiveKeys(supabase, muniId, label) {
     const slice = bids.slice(i, i + 25);
     for (let from = 0; ; from += 1000) {
       const { data: cats, error } = await supabase
-        .from('budget_categories').select('name,link_key').in('budget_id', slice).eq('depth', 0).range(from, from + 999);
+        .from('budget_categories').select('name,link_key').in('budget_id', slice).eq('depth', 0).order('id').range(from, from + 999);
       if (error) throw new Error(`${label} budget_categories fetch error: ${error.message}`);
       for (const c of (cats || [])) {
         const k = (c.link_key || (c.name || '').toLowerCase().trim());
