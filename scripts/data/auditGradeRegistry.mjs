@@ -324,8 +324,21 @@ export const AUDIT_GRADE_REGISTRY = [
     },
   },
   {
+    // ⚠ EXTENDED by the South Carolina city wave 1 with City of Charleston
+    // (FY2016-FY2025) and Town of Mount Pleasant (FY2018-FY2025), +36 rows.
+    //
+    // The grade was CHECKED for all 18 new documents, not assumed:
+    //   * scripts/checkOpinionType.py read the opinion PARAGRAPH of each —
+    //     18 clean, 0 modified, 0 unreadable. ⚠⚠ That distinction matters: a
+    //     QUALIFIED opinion contains BOTH the fair-presentation phrase and the
+    //     GAAP-conformity phrase, so a presence-only gate passes it. Harrison
+    //     County MS is the campaign's proof, and it is still open.
+    //   * every document grepped for `modified cash basis`, `regulatory basis`
+    //     and `basis of accounting other than` — 0 hits across 18 — while the
+    //     GAAP conformity phrase appears 4-6 times in each. One OCBOA entity
+    //     hiding in a GAAP cohort is what Brown County SD turned out to be.
     id: 'sc-city-acfr',
-    match: /^(City of Columbia|City of Myrtle Beach) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
+    match: /^(City of Columbia|City of Myrtle Beach|City of Charleston|Town of Mount Pleasant) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
     value: AUDIT_GRADE.AUDITED_GAAP,
     evidence: {
       document: 'The independent auditor\'s report, read in ALL NINETEEN loaded documents '

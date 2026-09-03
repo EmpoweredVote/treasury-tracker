@@ -189,8 +189,19 @@ export const BASIS_REGISTRY = [
     },
   },
   {
+    // ⚠ EXTENDED by the South Carolina city wave 1 with City of Charleston
+    // (FY2016-FY2025) and Town of Mount Pleasant (FY2018-FY2025), +36 rows.
+    //
+    // ⚠⚠ THE PATTERN HAD TO BE WIDENED IN THE SAME CHANGE. It anchors on the
+    // entity name, so without this the 36 new rows would have sat unclaimed
+    // while looking perfectly fine — Florida matched none of three registries
+    // and Pennsylvania only one. Invisible at 38 rows; this load nearly doubles
+    // the family.
+    //
+    // ⚠ `Town of` Mount Pleasant, not `City of`: it is a town in the Census
+    // file and in its own filings, and entity_type is part of its identity.
     id: 'sc-local-acfr-gf',
-    match: /^(City of Columbia|City of Myrtle Beach) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
+    match: /^(City of Columbia|City of Myrtle Beach|City of Charleston|Town of Mount Pleasant) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
     value: BASIS.ACTUAL,
     evidence: {
       document: 'City of Columbia FY2016-FY2018 and FY2020-FY2025 and City of Myrtle Beach '
