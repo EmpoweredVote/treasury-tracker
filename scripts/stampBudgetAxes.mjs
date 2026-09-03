@@ -169,7 +169,20 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // ⚠⚠ `entity_type` is now city AND town — Mount Pleasant is a town in the
   // Census file and in its own filings, and that is part of its identity.
   // ⚠⚠ And the months are NOT uniform: Charleston is 1, the other three are 7.
-  'sc-local-acfr-gf': 74,
+  // ⚠ 74 -> 114 on 2026-09-03: city wave 2 added City of Rock Hill and City of
+  // Greenville, FY2016-FY2025 each, 40 rows. 38 (session 6a) -> 74 (wave 1) ->
+  // 114. No pre-existing count moved.
+  //
+  // ⚠ THE PATTERN WAS INTERROGATED FIRST: 114 rows over 114 DISTINCT ids, 0 rows
+  // outside South Carolina, exactly 6 entities, 2 dataset types, 114 distinct
+  // source strings, 0 duplicate (entity, year, dataset) keys, uniform
+  // general_fund / actual / audited_gaap. 57 entity-years x 2 = 114, and the
+  // per-entity year counts still read Columbia 9 (FY2019 absent by decision) and
+  // Mount Pleasant 8 (no FAC filing before FY2018).
+  //
+  // ⚠⚠ Non-uniform BY DESIGN: entity_type is city AND town, and Charleston runs
+  // a JANUARY fiscal year while the other five run July.
+  'sc-local-acfr-gf': 114,
   // Knight session 6b (Tennessee's first local entity), measured from the ACTUAL
   // post-write count on 2026-08-30. 20 = 10 fiscal years x 2 datasets, ONE
   // consolidated entity. See the fuller note on the same id in
