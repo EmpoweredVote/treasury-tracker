@@ -81,6 +81,49 @@ def year_columns(sheet):
     raise SystemExit(f"no year header row on sheet {sheet.name}")
 
 
+def county_info(book):
+    """Read the `County Info` submission matrix INDEPENDENTLY.
+
+    ⚠⚠ The workbook carries TWO non-reporting signals that contradict each other,
+    and neither is a superset of the other: an asterisk in a county sheet's year
+    header, and an `N` in this matrix. A county-year is trustworthy only when
+    BOTH say it was reported.
+
+    This reader emits both signals rather than applying the rule, so the
+    comparison in verifyScRfa.mjs is driven by THIS reader's own view of what the
+    publisher said — not by the loader's. Keys are trimmed: the sheet stores
+    `'Richland '` with a trailing space.
+
+    Returns {county: {fy: bool}}.
+    """
+    sheet = book.sheet_by_name("County Info")
+    header = None
+    for r in range(sheet.nrows):
+        if str(sheet.cell_value(r, 0)).strip() == "County":
+            header = r
+            break
+    if header is None:
+        raise SystemExit("County Info: no header row")
+
+    cols = {}
+    for c in range(1, sheet.ncols):
+        raw = str(sheet.cell_value(header, c)).strip()
+        m = YEAR_RE.match(re.sub(r"^FY(\d)", r"FY \1", raw))
+        if m:
+            yy = int(m.group(1))
+            cols[1900 + yy if yy >= 90 else 2000 + yy] = c
+
+    out = {}
+    for r in range(header + 1, sheet.nrows):
+        name = str(sheet.cell_value(r, 0)).strip()
+        if not name:
+            continue
+        out[name] = {
+            fy: str(sheet.cell_value(r, c)).strip().upper() == "Y" for fy, c in cols.items()
+        }
+    return out
+
+
 def block_rows(sheet, anchor):
     """The anchor row index and the body rows of one block."""
     start = None
@@ -144,14 +187,28 @@ def main():
     ap.add_argument("xls")
     ap.add_argument("--out", required=True)
     ap.add_argument("--sheets", default="Richland,Horry")
+    # ⚠ `--all-counties` reads every county sheet in the workbook, for the
+    # statewide sweep. NON_COUNTY sheets are named rather than inferred.
+    ap.add_argument("--all-counties", action="store_true")
     ap.add_argument("--first", type=int, default=2012)
     ap.add_argument("--last", type=int, default=2024)
     args = ap.parse_args()
 
     book = xlrd.open_workbook(args.xls)
+    info = county_info(book)
+
+    if args.all_counties:
+        non_county = {
+            "About the Report", "Sources and Notes", "County Info", "Municipal Info",
+            "Special Purpose District Info", "State Summary",
+        }
+        names = [n for n in book.sheet_names() if n not in non_county]
+    else:
+        names = [n.strip() for n in args.sheets.split(",")]
+
     rows = []
-    for name in args.sheets.split(","):
-        sheet = book.sheet_by_name(name.strip())
+    for name in names:
+        sheet = book.sheet_by_name(name)
         years = year_columns(sheet)
         rev_anchor, rev_body = block_rows(sheet, REVENUE_ANCHOR)
         exp_anchor, exp_body = block_rows(sheet, EXPENDITURE_ANCHOR)
@@ -172,6 +229,10 @@ def main():
                 "financing_excluded": financing,
                 "published_revenue": cents(sheet.cell_value(rev_anchor, col)),
                 "published_operating": cents(sheet.cell_value(exp_anchor, col)),
+                # ⚠ The SECOND signal, read here rather than inherited: `N` in
+                # the County Info matrix. None means this reader found no matrix
+                # row at all, which is itself worth surfacing.
+                "submitted": info.get(name.strip(), {}).get(fy),
             })
 
     if not rows:
