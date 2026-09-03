@@ -13,6 +13,8 @@ import {
   PA_STATEWIDE_ENTITIES, PA_STATEWIDE_LOAD_WINDOW, paEntityByDcedId,
 } from '../scripts/data/paStatewideEntities.mjs';
 import { TYPE_MIGRATIONS } from '../scripts/seedPaStatewide.mjs';
+import { expectedKeys, digestOf } from '../scripts/verifyPaStatewideLoad.mjs';
+import { fundScopeFor } from '../scripts/loadPaDced.mjs';
 
 describe('PA names — the published string is not the name', () => {
   it('collapses the double spaces DCED ships', () => {
@@ -300,5 +302,40 @@ describe('PA statewide registry — integrity', () => {
     const entityYears = PA_STATEWIDE_ENTITIES.reduce((s, e) => s + e.fiscalYears.length, 0);
     expect(plannedRowsFor()).toBe(entityYears * 2);
     expect(entityYears).toBeGreaterThan(25000);
+  });
+});
+
+describe('PA statewide load — reconciliation is by digest, not by count', () => {
+  it('the intended count is entity-years times two datasets', () => {
+    const entityYears = PA_STATEWIDE_ENTITIES.reduce((s, e) => s + e.fiscalYears.length, 0);
+    expect(expectedKeys()).toHaveLength(entityYears * DATASETS.length);
+  });
+
+  it('every intended key names a real entity and one of its own approved years', () => {
+    const byName = new Map(PA_STATEWIDE_ENTITIES.map((e) => [e.name, e]));
+    for (const k of expectedKeys()) {
+      const [name, fy, ds] = k.split('|');
+      expect(byName.has(name), `key names ${name}`).toBe(true);
+      expect(byName.get(name).fiscalYears).toContain(Number(fy));
+      expect(DATASETS).toContain(ds);
+    }
+  });
+
+  it('⚠⚠ the digest is order-independent but membership-sensitive', () => {
+    const a = ['Philadelphia|2023|operating', 'State College|2023|revenue'];
+    expect(digestOf(a)).toBe(digestOf([...a].reverse()));
+    expect(digestOf(a)).not.toBe(digestOf(['Philadelphia|2023|operating', 'State College|2024|revenue']));
+  });
+
+  it('holds no duplicate intended keys', () => {
+    const keys = expectedKeys();
+    expect(new Set(keys).size).toBe(keys.length);
+  });
+
+  it('⚠⚠ carries TWO fund scopes, read from the two reports', () => {
+    const muni = PA_STATEWIDE_ENTITIES.find((e) => e.source === 'PA_MUNI');
+    const county = PA_STATEWIDE_ENTITIES.find((e) => e.source === 'PA_COUNTY');
+    expect(fundScopeFor(muni)).toBe('all_funds');
+    expect(fundScopeFor(county)).toBe('total_governmental');
   });
 });
