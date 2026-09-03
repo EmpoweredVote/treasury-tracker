@@ -63,6 +63,34 @@ function loadEnv() {
   }
 }
 
+
+/**
+ * Read every row of a table, paged.
+ *
+ * ⚠⚠ PostgREST caps an unqualified select at 1,000 ROWS. The first version of
+ * this seeder verified its work with a single unpaged select over a state that
+ * now holds 2,620 rows, so 1,620 governments it had just inserted correctly came
+ * back as "0 rows, expected 1" and the seed reported failure on a clean load.
+ *
+ * ⚠ The order ends on the PRIMARY KEY, which is what makes `.range()` paging
+ * deterministic — see tests/pagedReadOrdering.test.mjs.
+ */
+async function readAllRows(db, state) {
+  const PAGE = 1000;
+  const out = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await db.from('municipalities')
+      .select('id, name, entity_type, population, county_id')
+      .eq('state', state)
+      .order('id')
+      .range(from, from + PAGE - 1);
+    if (error) throw new Error(`read municipalities: ${error.message}`);
+    out.push(...data);
+    if (data.length < PAGE) break;
+  }
+  return out;
+}
+
 export async function seed({ dryRun = false } = {}) {
   loadEnv();
   const key = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -79,12 +107,7 @@ export async function seed({ dryRun = false } = {}) {
 
   // ── Read the whole FL cohort once rather than 479 times.
   let existing = [];
-  if (db) {
-    const { data, error } = await db.from('municipalities')
-      .select('id, name, entity_type, population, county_id').eq('state', FL_STATE);
-    if (error) throw new Error(`lookup: ${error.message}`);
-    existing = data;
-  }
+  if (db) existing = await readAllRows(db, FL_STATE);
   const byKey = new Map();
   for (const m of existing) {
     const k = `${m.name}|${m.entity_type}`;
@@ -148,9 +171,7 @@ export async function seed({ dryRun = false } = {}) {
   if (dryRun) { console.log('\n  [dry-run] nothing written.'); return; }
 
   // ── Post-seed assertions. Each has been a real defect somewhere in this table.
-  const { data: all, error } = await db.from('municipalities')
-    .select('id, name, entity_type, population, county_id').eq('state', FL_STATE);
-  if (error) throw new Error(`verify: ${error.message}`);
+  const all = await readAllRows(db, FL_STATE);
 
   const problems = [];
   for (const ent of FL_STATEWIDE_ENTITIES) {

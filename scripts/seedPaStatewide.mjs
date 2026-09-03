@@ -74,6 +74,34 @@ function loadEnv() {
   }
 }
 
+
+/**
+ * Read every row of a table, paged.
+ *
+ * ⚠⚠ PostgREST caps an unqualified select at 1,000 ROWS. The first version of
+ * this seeder verified its work with a single unpaged select over a state that
+ * now holds 2,620 rows, so 1,620 governments it had just inserted correctly came
+ * back as "0 rows, expected 1" and the seed reported failure on a clean load.
+ *
+ * ⚠ The order ends on the PRIMARY KEY, which is what makes `.range()` paging
+ * deterministic — see tests/pagedReadOrdering.test.mjs.
+ */
+async function readAllRows(db, state) {
+  const PAGE = 1000;
+  const out = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await db.from('municipalities')
+      .select('id, name, entity_type, population, county_id')
+      .eq('state', state)
+      .order('id')
+      .range(from, from + PAGE - 1);
+    if (error) throw new Error(`read municipalities: ${error.message}`);
+    out.push(...data);
+    if (data.length < PAGE) break;
+  }
+  return out;
+}
+
 export async function seed({ dryRun = false } = {}) {
   loadEnv();
   const key = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -93,12 +121,7 @@ export async function seed({ dryRun = false } = {}) {
   console.log(`  ${[...byType].sort((a, b) => b[1] - a[1]).map(([t, c]) => `${c} ${t}`).join(', ')}\n`);
 
   let existing = [];
-  if (db) {
-    const { data, error } = await db.from('municipalities')
-      .select('id, name, entity_type, population, county_id').eq('state', PA_STATE);
-    if (error) throw new Error(`lookup: ${error.message}`);
-    existing = data;
-  }
+  if (db) existing = await readAllRows(db, PA_STATE);
   console.log(`  already in the table: ${existing.length} PA row(s) — `
     + `${existing.map((m) => `${m.name} (${m.entity_type})`).join(', ') || 'none'}\n`);
 
@@ -189,9 +212,7 @@ export async function seed({ dryRun = false } = {}) {
   if (dryRun) { console.log('\n  [dry-run] nothing written.'); return; }
 
   // ── Post-seed assertions.
-  const { data: all, error } = await db.from('municipalities')
-    .select('id, name, entity_type, population, county_id').eq('state', PA_STATE);
-  if (error) throw new Error(`verify: ${error.message}`);
+  const all = await readAllRows(db, PA_STATE);
 
   const problems = [];
   for (const ent of PA_STATEWIDE_ENTITIES) {
