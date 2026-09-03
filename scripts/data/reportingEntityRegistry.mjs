@@ -263,6 +263,30 @@ export const REPORTING_ENTITY_REGISTRY = [
     },
   },
 
+  // ── ⚠ SOUTH CAROLINA RFA IS DELIBERATELY ABSENT FROM THIS REGISTRY ────────
+  //
+  // Not an oversight and not a pending gap. The statewide sweep registered
+  // `sc-rfa-lgf` on basisRegistry, and the question was asked here too:
+  //
+  //   FOR `primary_government`: each county sheet partitions the four government
+  //   types into separate blocks — School District only, County only, Cities
+  //   only, and Special Purpose District only — so the block TT reads excludes
+  //   South Carolina's special purpose districts by construction. That is the
+  //   same SHAPE of evidence pa-dced-clgs30 relies on.
+  //
+  //   ⚠⚠ AND IT STILL DOES NOT ANSWER THIS AXIS. A South Carolina special
+  //   purpose district is an INDEPENDENT political subdivision, which is not the
+  //   same question as whether a county's OWN blended component units sit inside
+  //   its County-only figures. The form never says, and no block boundary
+  //   settles it. Asserting `primary_government` from the SPD split would be
+  //   reasoning from adjacent evidence to a conclusion it does not reach.
+  //
+  // So these rows stay `unknown`, which is the honest value, on the same footing
+  // as Georgia's. ⚠ An explicit `value: REPORTING_ENTITY.UNKNOWN` entry was
+  // considered and is pointless: `classifyAxis()` returns `none` for an
+  // unknown-valued entry, so it would claim nothing while LOOKING like coverage.
+  // An entry is created when its evidence is, never before.
+
   {
     // Knight campaign, session 3 — Florida DFS LOGERx Annual Financial Reports.
     id: 'fl-dfs-afr',
