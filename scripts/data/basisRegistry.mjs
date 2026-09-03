@@ -360,6 +360,30 @@ export const BASIS_REGISTRY = [
     },
   },
   {
+    // Pennsylvania DCED form DCED-CLGS-30, both reports.
+    //
+    // ⚠ One entry covers both scopes: basis is a property of WHEN the figures
+    // were struck, not of which funds they cover.
+    id: 'pa-dced-clgs30',
+    match: /^Pennsylvania DCED Municipal Annual Audit and Financial Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[5-9]|2[0-5]) actual, cash basis, (?:all funds|governmental funds), excl\. financing sources\)$/,
+    value: BASIS.ACTUAL,
+    evidence: {
+      document: 'Form DCED-CLGS-30 is a CLOSED-YEAR filing: it reports a completed fiscal year '
+              + 'and DCED verifies it arithmetically against the prior year ending balance '
+              + '(Section III: "DCED verifies that the ending cash/investments balance ... agrees '
+              + 'to the calculated balance taking last year ending ... plus revenues minus '
+              + 'expenditures"). A form reconciled against last year closing balance cannot be '
+              + 'an adopted budget.',
+      figures: '⚠⚠ THE ACCOUNTING BASIS IS CASH, AND THE PUBLISHER SAYS SO — "BALANCE SHEET '
+             + '(CASH BASIS OF ACCOUNTING ONLY)" on the tip sheet and "Cash Basis - Elected '
+             + 'Auditors Only" in Section III. That is why audited_gaap was never available to '
+             + 'Pennsylvania regardless of who signs the filing, and why these rows cannot be '
+             + 'tied to a GAAP ACFR. This axis records ACTUAL (as opposed to adopted); the '
+             + 'cash-versus-GAAP fact lives in audit_grade and in the source string.',
+    },
+  },
+
+  {
     // Knight campaign, session 3 — Florida DFS LOGERx Annual Financial Reports.
     // ⚠ Placed ABOVE the adopted-budget catch-all, on the `ca-sco-derived-tg`
     // precedent. That entry matches on /(Operating|Revenue|...).*Budget.../i and

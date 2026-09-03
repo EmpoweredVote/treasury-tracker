@@ -875,6 +875,57 @@ export const FUND_SCOPE_REGISTRY = [
     },
   },
   {
+    // Pennsylvania DCED form DCED-CLGS-30 — the MUNICIPAL statewide extract.
+    //
+    // ⚠⚠ TWO SCOPES IN ONE STATE, AND THE SOURCE STRING NAMES WHICH. DCED
+    // publishes two DIFFERENT reports with different fund boundaries, so there
+    // are two entries here rather than one guess. The loader writes the scope
+    // into the data_source, which is what lets this registry read it back
+    // instead of inferring it.
+    id: 'pa-dced-clgs30-muni',
+    match: /^Pennsylvania DCED Municipal Annual Audit and Financial Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[5-9]|2[0-5]) actual, cash basis, all funds, excl\. financing sources\)$/,
+    scope: SCOPE.ALL_FUNDS,
+    evidence: {
+      document: 'The StatewideMuniAfr extract itself, fetched by scripts/fetchPaDced.mjs and '
+              + 'cached under _acfr-work/pa/. Form DCED-CLGS-30, "Municipal Annual Audit and '
+              + 'Financial Report".',
+      figures: '⚠ ALL FUNDS is READ, not chosen. The municipal report folds enterprise activity '
+             + 'into its published Total Revenues, and the line items prove it: Philadelphia '
+             + 'FY2023 carries Water $478,492,062 and Sewer $343,180,320 inside that total, and '
+             + 'the report publishes Sewer, Water, Solid Waste, Electric System, Gas System and '
+             + 'Parking as revenue columns. There is NO removable enterprise subtotal, so spec '
+             + '§2.3 enterprise exclusion cannot be applied without inventing a total the '
+             + 'publisher does not publish. Load as published and flag it — the West Hollywood '
+             + 'precedent. '
+             + '⚠ FINANCING FLOWS ARE EXCLUDED: Other Financing Sources/Uses is one clean '
+             + 'column on each side and sits INSIDE DCED municipal total (14.5% of it for both '
+             + 'Philadelphia and State College in FY2023), while the COUNTY report keeps '
+             + 'financing outside its total. Normalising to operating flows is what makes the '
+             + 'two comparable; the exclusion is exact and reversible, not an estimate.',
+    },
+  },
+
+  {
+    // Pennsylvania DCED form DCED-CLGS-30 — the COUNTY statewide extract.
+    id: 'pa-dced-clgs30-county',
+    match: /^Pennsylvania DCED Municipal Annual Audit and Financial Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[5-9]|2[0-5]) actual, cash basis, governmental funds, excl\. financing sources\)$/,
+    scope: SCOPE.TOTAL_GOVERNMENTAL,
+    evidence: {
+      document: 'The StatewideCountyAfr extract itself. ⚠ A DIFFERENT REPORT from the municipal '
+              + 'one, not a variant: 128 columns against 71, uppercase MUNICIPALITY NAME against '
+              + 'mixed-case Municipality Name, and no shared column names at all. They cannot '
+              + 'share a parser and they do not share a scope.',
+      figures: 'GOVERNMENTAL FUNDS is stated by the publisher in its own column names — every '
+             + 'figure TT reads is prefixed "Governmental Funds-" — and the report carries '
+             + 'Proprietary, Internal Service and Fiduciary funds in SEPARATE column blocks that '
+             + 'this loader deliberately does not read. Financing flows (interfund transfers, '
+             + 'proceeds from long-term debt, refunds of bonds, sale of capital assets) also sit '
+             + 'outside Governmental Funds- Total Revenues in this report, so no exclusion is '
+             + 'needed on the county side.',
+    },
+  },
+
+  {
     // Knight campaign, session 3 — Florida DFS LOGERx Annual Financial Reports.
     // ⚠ ANCHORED AT BOTH ENDS and pinned to the fiscal years actually loaded.
     // A bare /^Florida DFS/ would also claim any future Florida family — the
