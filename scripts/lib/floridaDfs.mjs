@@ -244,6 +244,32 @@ export function assertParsed(rows, label) {
   return rows;
 }
 
+/**
+ * Money as an integer number of cents.
+ *
+ * ⚠⚠ THE ORACLE MUST COMPARE AT THE PUBLISHED PRECISION, NOT IN BINARY FLOATS.
+ *
+ * Through FY2021 every LOGERx amount is a whole dollar and `===` is safe. FY2022
+ * introduced cents, and summing a few thousand of them in IEEE-754 gives results
+ * like `1384728563.8200004` against a published `1384728563.82`. Thirteen
+ * entity-years failed the oracle on differences of about a ten-millionth of a
+ * dollar, with a parse that was in fact exactly right.
+ *
+ * ⚠ This is NOT a tolerance, and it must not become one. Rounding to cents
+ * compares the two figures at the precision the publisher actually states: a
+ * one-cent discrepancy still fails, and every real drift found in this sweep was
+ * between $107 and $24 million. "Never a tolerance where an exact registry will
+ * do" — and cents ARE the exact registry for money.
+ */
+export function toCents(n) {
+  return Math.round(Number(n) * 100);
+}
+
+/** True when two money figures agree to the cent. */
+export function moneyEquals(a, b) {
+  return toCents(a) === toCents(b);
+}
+
 /** Sum one row's amounts over the named funds. */
 export function sumFunds(funds, fundNames) {
   let s = 0;

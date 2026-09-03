@@ -58,6 +58,49 @@ describe('every paged read orders by a total key', () => {
     expect(pagedFiles().length).toBeGreaterThan(0);
   }, 30_000);
 
+  /**
+   * ⚠⚠ THE GUARD ITSELF HAD THE BUG IT WAS WRITTEN TO PREVENT.
+   *
+   * `pagedFiles()` DERIVES every file that pages with `.range(from, ...)` — and
+   * then, until 2026-09-02, the only assertions ran against ONE hard-coded file,
+   * `scopeDb.mjs`. Fourteen other paged readers sat in the derived list and were
+   * never checked, `scripts/stampBudgetAxes.mjs` among them.
+   *
+   * That one mattered. Its read had no `order()` at all, over a 217,722-row
+   * table. Measured across three consecutive runs it returned the right TOTAL
+   * every time — 217,722 — while reading only 143,537 / 137,267 / 138,261
+   * DISTINCT ids, so roughly 80,000 rows were read twice and 80,000 not at all,
+   * a different set each run. The stamper was classifying about two thirds of
+   * the table and its per-family counts were noise: it read the Florida family
+   * at 13,255 / 13,744 / 13,905 against a true 12,764, and every other family's
+   * declared count looked "drifted" as a result.
+   *
+   * Fixing the ordering made every other family's long-standing expected number
+   * match EXACTLY, which is what proved both the fix and the numbers.
+   *
+   * This is the shape `reference_ci_and_io_test_timeouts` records: an instance
+   * gets fixed and the siblings that do the same thing are left unprotected. So
+   * the assertion now runs over the DERIVED LIST, not one name.
+   */
+  it('EVERY paged read ends its ordering on the primary key', () => {
+    const offenders = [];
+    for (const { rel, src } of pagedFiles()) {
+      // ⚠ Strip line comments first: a trailing `// PK last, for a total order`
+      // must not be able to stand in for the code that would make it true.
+      // `.` does not match a newline, so this is exactly a line comment.
+      const bare = src.replace(/\/\/.*/g, '');
+      for (const m of bare.matchAll(/\.range\(\s*from\s*,/g)) {
+        const prefix = bare.slice(0, m.index).trimEnd();
+        // The ordering chain must END on the primary key, with or without an
+        // options object: `.order('id')` and `.order('id', { ascending: true })`.
+        if (!/\.order\(\s*'id'\s*(?:,\s*\{[^}]*\}\s*)?\)$/.test(prefix)) {
+          offenders.push(`${rel}: ...${prefix.slice(-70).replace(/\s+/g, ' ')}  <-- .range() here`);
+        }
+      }
+    }
+    expect(offenders, `paged reads without a total order: ${offenders.join(' | ')}`).toEqual([]);
+  }, 30_000);
+
   it("scopeDb's budgets read is ordered by id last", () => {
     const src = readFileSync(path.join(root, 'scripts', 'lib', 'scopeDb.mjs'), 'utf8');
     // the ordering chain immediately preceding the paged .range must end in id

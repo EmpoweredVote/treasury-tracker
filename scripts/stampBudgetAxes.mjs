@@ -161,13 +161,24 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // consolidated entity. See the fuller note on the same id in
   // scripts/classifyFundScope.mjs.
   'tn-local-acfr-gf': 20,
-  // Knight session 3 (Florida DFS), measured from the ACTUAL post-write count on
-  // 2026-08-29. A NEW family, so no pre-existing count moved. 190 = 95
-  // entity-years x 2 datasets over 28 source strings; three of the 98 possible
-  // entity-years are absent because Miami-Dade, Leon and Bradenton had not filed
-  // FY2025 when the workbooks were fetched. See the note in
-  // scripts/classifyFundScope.mjs for why that number may legitimately rise.
-  'fl-dfs-afr': 190,
+  // Florida DFS. Was 190 (Knight session 3, seven entities); re-measured
+  // 2026-09-02 after the STATEWIDE sweep loaded every filing city and county.
+  //
+  // 12,764 = 6,382 entity-years x 2 datasets, over 34 source strings and 479
+  // entities across FY2012-FY2025.
+  //
+  // ⚠ The PATTERN did not widen — it was interrogated before this number was
+  // touched, which is the rule this gate exists to enforce: 0 rows outside
+  // Florida, 0 rows of an entity type the family cannot contain (city and county
+  // only), 0 dataset types beyond operating/revenue, and 0 duplicate
+  // (entity, year, dataset) keys. The family grew because a load added members,
+  // and that load reconciles to the registry BY DIGEST, member for member
+  // (scripts/verifyFlStatewideLoad.mjs).
+  //
+  // ⚠ 6,382 rather than 6,396 entity-years: 14 are withheld because DFS's own
+  // totals report contradicts its own detail report for them. See
+  // scripts/data/flOracleDrift.mjs.
+  'fl-dfs-afr': 12764,
   // Knight session 4 (Georgia DCA RLGF), measured from the ACTUAL post-write
   // count on 2026-08-29. A NEW family, so no pre-existing count moved.
   // 76 = 38 entity-years x 2 datasets, over 44 source strings — more strings per
@@ -224,12 +235,12 @@ export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
   'mn-osa': 21794,
   'state-acfr-gf': 1448,
   'wa-sao': 286,
-  // Knight session 3 (Florida DFS), measured 2026-08-29. Same 190 rows as the
-  // basis entry above; primary_government because DFS publishes discretely
-  // presented component units in their own twelfth fund column and TT sums only
-  // the five governmental ones. ⚠ The exact OPPOSITE of mn-osa directly above,
-  // which consolidates its component units into the same columns.
-  'fl-dfs-afr': 190,
+  // Florida DFS, re-measured 2026-09-02 after the statewide sweep. Same 12,764
+  // rows as the basis entry above; primary_government because DFS publishes
+  // discretely presented component units in their own twelfth fund column and TT
+  // sums only the five governmental ones. ⚠ The exact OPPOSITE of mn-osa
+  // directly above, which consolidates its component units into the same columns.
+  'fl-dfs-afr': 12764,
   // AUSTIN-TRAVIS-01. Evidence: AUSTIN-TRAVIS-01-SCOPE-RECON.md §3.
   'tx-local-acfr-gf': 76,
   // Knight session 7a (Michigan Treasury F-65), measured 2026-08-30. The same
@@ -307,6 +318,23 @@ async function fetchSourceYearCounts(supabase) {
     const { data, error } = await supabase
       .schema('treasury').from('budgets')
       .select('data_source, fiscal_year')
+      // ⚠⚠ TOTAL ORDER, PRIMARY KEY LAST. Without it PostgreSQL gives no stable
+      // row order and `.range()` page boundaries drift: rows repeat in one page
+      // and vanish from another.
+      //
+      // This read had NO `order()` at all, and the failure was invisible because
+      // the TOTAL came out right. Measured over 217,722 rows, three consecutive
+      // runs read 217,722 rows each but only 143,537 / 137,267 / 138,261 DISTINCT
+      // ids — roughly 80,000 rows read twice and 80,000 never read — and counted
+      // the Florida family at 13,255 / 13,744 / 13,905 against a true 12,764. So
+      // this stamper was classifying about two thirds of the table, a different
+      // two thirds every run, and its per-family counts were noise.
+      //
+      // Every sibling read already carried this comment (stampAuditGrade.mjs,
+      // listAllSources.mjs). This one was the missed sibling.
+      .order('data_source', { nullsFirst: true })
+      .order('fiscal_year')
+      .order('id')
       .range(from, from + PAGE - 1);
     if (error) throw new Error(`fetch data_source: ${error.message}`);
     if (!data?.length) break;

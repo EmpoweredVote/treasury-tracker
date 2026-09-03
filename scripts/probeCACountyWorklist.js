@@ -66,7 +66,7 @@ async function main() {
       .schema('treasury')
       .from('budgets')
       .select('municipality_id, dataset_type')
-      .range(from, from + PAGE - 1);
+      .order('id').range(from, from + PAGE - 1);
     if (error) throw new Error(`budgets: ${error.message}`);
     if (!data.length) break;
     for (const b of data) {

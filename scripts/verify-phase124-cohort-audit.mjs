@@ -185,7 +185,7 @@ async function fetchAllBudgets() {
       .select('id,municipality_id,fiscal_year,dataset_type,total_budget,data_source,source_url,source_date,data_source_id,fiscal_year_start_month')
       .in('municipality_id', stateIds)
       .order('municipality_id').order('fiscal_year').order('dataset_type')
-      .range(from, from + PAGE - 1);
+      .order('id').range(from, from + PAGE - 1);
     if (error) throw error;
     all = all.concat(data);
     if (data.length < PAGE) break;

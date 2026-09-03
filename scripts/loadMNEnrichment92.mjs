@@ -264,7 +264,7 @@ async function main() {
   // 1. MN cohort: entity_type IN ('city', 'county'), state = 'MN'.
   let munis = [];
   for (let from = 0; ; from += 1000) {
-    const { data, error } = await supabase.from('municipalities').select('id,name,entity_type').eq('state', 'MN').in('entity_type', ['city', 'county']).range(from, from + 999);
+    const { data, error } = await supabase.from('municipalities').select('id,name,entity_type').eq('state', 'MN').in('entity_type', ['city', 'county']).order('id').range(from, from + 999);
     if (error) { console.error('municipalities fetch error:', error.message); process.exit(1); }
     munis = munis.concat(data || []);
     if (!data || data.length < 1000) break;
@@ -291,7 +291,7 @@ async function main() {
     const slice = bids.slice(i, i + 25);
     for (let from = 0; ; from += 1000) {
       const { data: cats, error } = await supabase.from('budget_categories')
-        .select('name,link_key,depth').in('budget_id', slice).range(from, from + 999);
+        .select('name,link_key,depth').in('budget_id', slice).order('id').range(from, from + 999);
       if (error) { console.error('budget_categories fetch error:', error.message); process.exit(1); }
       for (const c of (cats || [])) {
         const k = ((c.link_key || (c.name || '').toLowerCase().trim()) + '').toLowerCase();

@@ -120,7 +120,7 @@ async function main() {
     const slice = bids.slice(i, i + 25);
     // categories
     for (let from = 0; ; from += 1000) {
-      const { data, error } = await supabase.from('budget_categories').select('id,name,link_key').in('budget_id', slice).in('depth', [0, 1]).range(from, from + 999);
+      const { data, error } = await supabase.from('budget_categories').select('id,name,link_key').in('budget_id', slice).in('depth', [0, 1]).order('id').range(from, from + 999);
       if (error) { console.error('budget_categories error:', error.message); process.exit(1); }
       for (const c of (data || [])) { const k = (c.link_key || (c.name || '').toLowerCase().trim()); if (k) keys.add(k); }
       if (!data || data.length < 1000) break;
@@ -131,7 +131,7 @@ async function main() {
     for (let j = 0; j < catIds.length; j += 50) {
       const cslice = catIds.slice(j, j + 50);
       for (let from = 0; ; from += 1000) {
-        const { data, error } = await supabase.from('budget_line_items').select('description').in('category_id', cslice).range(from, from + 999);
+        const { data, error } = await supabase.from('budget_line_items').select('description').in('category_id', cslice).order('id').range(from, from + 999);
         if (error) { console.error('budget_line_items error:', error.message); process.exit(1); }
         for (const li of (data || [])) { const k = (li.description || '').toLowerCase().trim(); if (k) keys.add(k); }
         if (!data || data.length < 1000) break;

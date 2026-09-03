@@ -104,7 +104,7 @@ async function main() {
     for (let i = 0; i < bids.length; i += 25) {
       const slice = bids.slice(i, i + 25);
       for (let from = 0; ; from += 1000) {
-        const { data: cats, error } = await supabase.from('budget_categories').select('name,link_key').in('budget_id', slice).eq('depth', depth).range(from, from + 999);
+        const { data: cats, error } = await supabase.from('budget_categories').select('name,link_key').in('budget_id', slice).eq('depth', depth).order('id').range(from, from + 999);
         if (error) { console.error('budget_categories fetch error:', error.message); process.exit(1); }
         for (const c of (cats || [])) {
           const k = (c.link_key || (c.name || '').toLowerCase().trim());
