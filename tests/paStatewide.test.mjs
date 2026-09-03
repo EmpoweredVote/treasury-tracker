@@ -15,6 +15,9 @@ import {
 import { TYPE_MIGRATIONS } from '../scripts/seedPaStatewide.mjs';
 import { expectedKeys, digestOf } from '../scripts/verifyPaStatewideLoad.mjs';
 import { fundScopeFor } from '../scripts/loadPaDced.mjs';
+import {
+  looksLikeXls, fieldValue, formFields, REPORTS, FIRST_YEAR, LAST_YEAR, XLS_MAGIC,
+} from '../scripts/fetchPaDced.mjs';
 
 describe('PA names — the published string is not the name', () => {
   it('collapses the double spaces DCED ships', () => {
@@ -407,5 +410,49 @@ describe("PA oracle — DCED's own derived figures check the column mapping", ()
       'unused', 'Population', 'Revenue Per Capita', 'Expenditures Per Capita',
     ]);
     expect(oracleChecks({ row: clean, ix: countyIx, isCounty: true })).toHaveLength(2);
+  });
+});
+
+describe("PA fetch — fingerprint the bytes, never the Content-Type", () => {
+  it("accepts an OLE2 workbook", () => {
+    const ole = Buffer.concat([Buffer.from(XLS_MAGIC, "hex"), Buffer.alloc(64)]);
+    expect(looksLikeXls(ole)).toBe(true);
+  });
+
+  it("⚠⚠ REJECTS an HTML page, however large and however it is labelled", () => {
+    // Read as text this is ~1.5MB and still "looks" like a response.
+    const page = Buffer.from(`<!DOCTYPE html><html>${"x".repeat(5000)}</html>`);
+    expect(looksLikeXls(page)).toBe(false);
+    expect(looksLikeXls(Buffer.alloc(0))).toBe(false);
+    expect(looksLikeXls("not a buffer")).toBe(false);
+  });
+
+  it("pulls a ViewState field out of a rendered page", () => {
+    const html = '<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="ABC123" />';
+    expect(fieldValue(html, "__VIEWSTATE")).toBe("ABC123");
+    expect(fieldValue(html, "__NOT_THERE")).toBe("");
+  });
+
+  it("builds the POST body that makes btnDisplay stream the workbook", () => {
+    const html = '<input id="__VIEWSTATE" value="V" /><input id="__VIEWSTATEGENERATOR" value="G" />'
+      + '<input id="__EVENTVALIDATION" value="E" />';
+    const fd = formFields(html, 2023);
+    expect(fd.get("__VIEWSTATE")).toBe("V");
+    expect(fd.get("__VIEWSTATEGENERATOR")).toBe("G");
+    expect(fd.get("__EVENTVALIDATION")).toBe("E");
+    expect(fd.get("ctl00$ContentPlaceHolder1$ddREPORTING_YEAR")).toBe("2023");
+    expect(fd.get("ctl00$ContentPlaceHolder1$btnDisplay")).toBe("Display");
+  });
+
+  it("⚠ the fetch window matches the parser's, not everything DCED serves", () => {
+    // DCED offers 1996 onward; the pre-2015 extract is a different report.
+    expect(FIRST_YEAR).toBe(2015);
+    expect(LAST_YEAR).toBe(2024);
+    expect(FIRST_YEAR).toBe(PA_STATEWIDE_LOAD_WINDOW.first);
+    expect(LAST_YEAR).toBe(PA_STATEWIDE_LOAD_WINDOW.last);
+  });
+
+  it("names both statewide reports", () => {
+    expect(Object.keys(REPORTS).sort()).toEqual(["StatewideCountyAfr", "StatewideMuniAfr"]);
   });
 });
