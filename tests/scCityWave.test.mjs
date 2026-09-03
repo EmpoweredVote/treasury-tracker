@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 
 import {
   SC_CITY_ENTITIES, SC_CITY_DEFERRED, SC_CITY_COVERAGE_GAPS, SC_CITY_STATE,
-  scCityLoadableEntities, scCityFilings, scCityByKey,
+  scCityLoadableEntities, scCityFilings, scCityByKey, fiscalMonthFor,
 } from '../scripts/data/scCityAcfrEntities.mjs';
 import { sourceNameFor, sourcePrefixFor, FUND_SCOPE, BASIS_VALUE, DERIVATION } from '../scripts/loadScCityAcfrs.mjs';
 import { gradeFor } from '../scripts/data/auditGradeRegistry.mjs';
@@ -13,10 +13,12 @@ import { SOURCE_CHIP_ENTITY_TYPES } from '../src/data/sourceChipTypes.ts';
 import { READER_DISAGREEMENTS, disagreementFor } from '../scripts/verifyScCityReaders.mjs';
 
 describe('the South Carolina city wave-1 roster', () => {
-  it('holds five governments and loads four of them', () => {
-    expect(SC_CITY_ENTITIES.map((e) => e.key).sort())
-      .toEqual(['charleston', 'greenville', 'mount-pleasant', 'north-charleston', 'rock-hill']);
-    // ⚠ North Charleston is the only one held back, and on evidence — see below.
+  it('holds seven governments and loads four of them', () => {
+    expect(SC_CITY_ENTITIES.map((e) => e.key).sort()).toEqual([
+      'charleston', 'goose-creek', 'greenville', 'mount-pleasant',
+      'north-charleston', 'rock-hill', 'summerville',
+    ]);
+    // ⚠ Three are held back, each ON EVIDENCE and each with a diagnosis — see below.
     expect(scCityLoadableEntities().map((e) => e.key))
       .toEqual(['charleston', 'mount-pleasant', 'rock-hill', 'greenville']);
   });
@@ -117,7 +119,8 @@ describe('the South Carolina city wave-1 roster', () => {
    * page is clean.
    */
   it('defers North Charleston with a diagnosis and no extractor', () => {
-    expect(Object.keys(SC_CITY_DEFERRED)).toEqual(['north-charleston']);
+    expect(Object.keys(SC_CITY_DEFERRED).sort())
+      .toEqual(['goose-creek', 'north-charleston', 'summerville']);
     const d = SC_CITY_DEFERRED['north-charleston'];
     expect(Object.keys(d.unreadableYears).sort()).toEqual(['2019', '2020', '2023']);
     for (const why of Object.values(d.unreadableYears)) {
@@ -292,5 +295,62 @@ describe('the two-reader corroboration register', () => {
     expect(disagreementFor({ entityKey: 'rock-hill', fiscalYear: 2023, mode: 'revenue' })).toBeNull();
     expect(disagreementFor({ entityKey: 'rock-hill', fiscalYear: 2024, mode: 'operating' })).toBeNull();
     expect(disagreementFor({ entityKey: 'greenville', fiscalYear: 2024, mode: 'revenue' })).toBeNull();
+  });
+});
+
+/**
+ * ⚠⚠ SUMMERVILLE AND GOOSE CREEK ARE DEFERRED ON A **LIBRARY** GAP, NOT A CONFIG
+ * GAP. Waves 1 and 2 were per-entity configuration; these two are the first SC
+ * cities whose statements need a change to the SHARED extractors, which ~40
+ * entities depend on. All the discovery work is done and recorded.
+ */
+describe('the wave-3 deferrals', () => {
+  it('records both, with a diagnosis and no extractor', () => {
+    for (const k of ['summerville', 'goose-creek']) {
+      expect(scCityByKey(k).extractor).toBeNull();
+      expect(scCityFilings().some((f) => f.entity.key === k)).toBe(false);
+      const d = SC_CITY_DEFERRED[k];
+      expect(d.reason.length).toBeGreaterThan(20);
+      expect(d.diagnosis.length).toBeGreaterThanOrEqual(3);
+      // Every diagnosis names the FIX, so the next session starts from it.
+      expect(d.diagnosis.join(' ')).toMatch(/FIX:/);
+    }
+  });
+
+  it('keeps their discovery work — EINs, report ids, months, gaps', () => {
+    expect(scCityByKey('summerville').facEin).toBe('576001110');
+    expect(scCityByKey('goose-creek').facEin).toBe('576008064');
+    expect(Object.keys(scCityByKey('summerville').facReports).map(Number).sort())
+      .toEqual([2018, 2020, 2022, 2023, 2024, 2025]);
+    expect(Object.keys(scCityByKey('goose-creek').facReports).map(Number).sort())
+      .toEqual([2016, 2021, 2022, 2023, 2024, 2025]);
+    expect(Object.keys(SC_CITY_COVERAGE_GAPS.summerville).sort())
+      .toEqual(['2016', '2017', '2019', '2021']);
+    expect(Object.keys(SC_CITY_COVERAGE_GAPS['goose-creek']).sort())
+      .toEqual(['2017', '2018', '2019', '2020']);
+  });
+
+  /**
+   * ⚠⚠ SUMMERVILLE CHANGED ITS FISCAL YEAR INSIDE THE WINDOW — the first entity
+   * in this campaign to do so. A single per-entity month would put a
+   * January-starting year under a July label: a wrong value that moves no dollar
+   * and fails no tie gate.
+   */
+  it('carries a PER-YEAR fiscal month for Summerville', () => {
+    const s = scCityByKey('summerville');
+    expect(fiscalMonthFor(s, 2018)).toBe(1);
+    expect(fiscalMonthFor(s, 2020)).toBe(1);
+    expect(fiscalMonthFor(s, 2022)).toBe(7);
+    expect(fiscalMonthFor(s, 2025)).toBe(7);
+    // ⭐ Settled empirically: FY2022 is a FULL year, not a six-month stub.
+    expect(SC_CITY_DEFERRED.summerville.fiscalYearChangeover).toMatch(/NOT a short stub/);
+  });
+
+  it('still resolves a plain per-entity month for everyone else', () => {
+    for (const e of scCityLoadableEntities()) {
+      expect(fiscalMonthFor(e, 2024)).toBe(e.fiscalYearStartMonth);
+      expect(e.fiscalMonthOverrides).toBeUndefined();
+    }
+    expect(fiscalMonthFor(scCityByKey('goose-creek'), 2024)).toBe(1);
   });
 });

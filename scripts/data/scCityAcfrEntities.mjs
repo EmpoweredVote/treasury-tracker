@@ -264,6 +264,71 @@ export const SC_CITY_ENTITIES = Object.freeze([
       2025: '2025-06-GSAFAC-0000388925',
     },
   },
+  {
+    key: 'summerville',
+    name: 'Summerville',
+    /** ⚠ A TOWN — `Summerville town` in the Census file, `TOWN OF SUMMERVILLE`
+     * in its own filings. Same call as Mount Pleasant. */
+    entityType: 'town',
+    /** ⚠ DEFERRED — see SC_CITY_DEFERRED. No extractor exists on purpose. */
+    extractor: null,
+    state: SC_CITY_STATE,
+    population: 52625,
+    censusPlace: '70270',
+    parentCountyName: 'Dorchester County',
+    facEin: '576001110',
+    censusName: 'Summerville',
+    /**
+     * ⚠⚠ SUMMERVILLE CHANGED ITS FISCAL YEAR **INSIDE THIS WINDOW**, and it is
+     * the first entity in this campaign to do so. Its filings end 12-31 in
+     * FY2018 and FY2020 and 06-30 from FY2022 — independently confirmed by the
+     * FAC census, which records month 1 for 2018/2020 and month 7 for 2022-2025.
+     *
+     * A single per-entity month cannot express that, so the default below is the
+     * LATER month and `fiscalMonthOverrides` carries the earlier years. Writing 7
+     * across the whole series would put a January-starting year under a July
+     * label — a wrong value that moves no dollar and fails no tie gate, which is
+     * exactly the shape of project_fysm_column_default_one_defect.
+     */
+    fiscalYearStartMonth: 7,
+    fiscalMonthOverrides: Object.freeze({ 2018: 1, 2020: 1 }),
+    monthStatus: 'confirmed',
+    publicationPage: 'https://www.summervillesc.gov/206/Finance',
+    facReports: {
+      2018: '2018-12-CENSUS-0000187544',
+      2020: '2020-12-CENSUS-0000187544',
+      2022: '2022-06-CENSUS-0000187544',
+      2023: '2023-06-GSAFAC-0000022779',
+      2024: '2024-06-GSAFAC-0000358242',
+      2025: '2025-06-GSAFAC-0000408794',
+    },
+  },
+  {
+    key: 'goose-creek',
+    name: 'Goose Creek',
+    entityType: 'city',
+    /** ⚠ DEFERRED — see SC_CITY_DEFERRED. No extractor exists on purpose. */
+    extractor: null,
+    state: SC_CITY_STATE,
+    population: 50352,
+    censusPlace: '29815',
+    parentCountyName: 'Berkeley County',
+    facEin: '576008064',
+    censusName: 'Goose Creek',
+    /** ⚠ JANUARY, like Charleston — all six filings end 12-31, and the census
+     * records month 1 across 1999, 2002-2003, 2016 and 2021-2025. */
+    fiscalYearStartMonth: 1,
+    monthStatus: 'confirmed',
+    publicationPage: 'https://www.cityofgoosecreek.com/departments/finance',
+    facReports: {
+      2016: '2016-12-CENSUS-0000170470',
+      2021: '2021-12-CENSUS-0000170470',
+      2022: '2022-12-CENSUS-0000170470',
+      2023: '2023-12-GSAFAC-0000044988',
+      2024: '2024-12-GSAFAC-0000374202',
+      2025: '2025-12-GSAFAC-0000420983',
+    },
+  },
 ]);
 
 /**
@@ -277,6 +342,23 @@ export const SC_CITY_COVERAGE_GAPS = Object.freeze({
   'mount-pleasant': {
     2016: 'no filing under EIN 576001079 in the Federal Audit Clearinghouse',
     2017: 'no filing under EIN 576001079 in the Federal Audit Clearinghouse',
+  },
+  // ⚠ Summerville and Goose Creek file a Single Audit only in years they expend
+  // >= $750k of federal awards, so their FAC coverage is genuinely intermittent —
+  // six years each, not ten. Absence here is absence of a FEDERAL filing, NOT
+  // evidence the government published no ACFR. Their own sites may carry the
+  // missing years; that is a follow-up, never a reason to write $0.
+  summerville: {
+    2016: 'no filing under EIN 576001110 in the Federal Audit Clearinghouse',
+    2017: 'no filing under EIN 576001110 in the Federal Audit Clearinghouse',
+    2019: 'no filing under EIN 576001110 in the Federal Audit Clearinghouse',
+    2021: 'no filing under EIN 576001110 in the Federal Audit Clearinghouse',
+  },
+  'goose-creek': {
+    2017: 'no filing under EIN 576008064 in the Federal Audit Clearinghouse',
+    2018: 'no filing under EIN 576008064 in the Federal Audit Clearinghouse',
+    2019: 'no filing under EIN 576008064 in the Federal Audit Clearinghouse',
+    2020: 'no filing under EIN 576008064 in the Federal Audit Clearinghouse',
   },
 });
 
@@ -349,6 +431,64 @@ export const SC_CITY_COVERAGE_GAPS = Object.freeze({
  * a 3-year series full of holes, which is worse than not shipping it.
  */
 export const SC_CITY_DEFERRED = Object.freeze({
+  /**
+   * ⚠⚠ DEFERRED ON A **LIBRARY** GAP, NOT A CONFIG GAP — and that is the point.
+   * Waves 1 and 2 were per-entity configuration. These two are the first SC
+   * cities whose statements need a change to the SHARED extractors, which are
+   * used by ~40 entities across merged milestones and deserve their own scoped
+   * change with every existing entity re-extracted and proved byte-identical.
+   *
+   * All the discovery work IS done and recorded above: EIN, every per-year report
+   * id, populations, entity types, coverage gaps and the fiscal calendar. Both
+   * documents are fetched and both pass all four quality checks. What is missing
+   * is only the extraction.
+   */
+  summerville: {
+    reason: 'three-level expenditure hierarchy that neither shared reader can render',
+    diagnosis: [
+      'The statement nests THREE deep: `Current:` > `General Government:` > '
+      + '`Administrative`, with `Public Safety:` and `Roads and drainage:` as sibling '
+      + 'sub-groups and `Culture and recreation` a VALUED LEAF sitting at the '
+      + 'sub-group level.',
+      '`acfrGF.py` (-table) cannot read this issuer at all: 14 rows that carry money '
+      + 'come back $0 (FY2024 operating computes 24,184,615 against a printed '
+      + '47,063,844). Its `subparents` mechanisms do not reach it either — '
+      + '`subparent_member_prefixes` needs a shared suffix the children do not have, '
+      + 'and `subparent_close=next_heading` swallows `Culture and recreation`.',
+      '`acfrGfCoords.py` reads it correctly and ALL TWELVE extractions tie at $0 — '
+      + 'but it is a TWO-LEVEL reader, so it drops the three valueless sub-headings '
+      + 'and promotes their children one level, publishing `Current > Administrative` '
+      + 'where the town printed `Current > General Government > Administrative`. '
+      + 'Same class of shape error as Boulder, so it is not shipped.',
+      'FIX: nested-group support in acfrGfCoords.py.',
+    ],
+    /** ⭐ Settled empirically, so the next session need not re-ask. */
+    fiscalYearChangeover: 'The town moved from a December to a June fiscal year, and '
+      + 'FY2022 is NOT a short stub: revenue runs 32.9M (FY2020, Dec) -> 37.7M (FY2022, '
+      + 'Jun) -> 40.2M -> 46.7M -> 50.8M. A six-month period would be ~18M. The '
+      + 'transition fell in FY2021, which FAC does not hold. The document says "FOR THE '
+      + 'FISCAL YEAR ENDED JUNE 30, 2022" and carries no transition-period language.',
+  },
+  'goose-creek': {
+    reason: 'a printed revenue subtotal that neither shared reader suppresses',
+    diagnosis: [
+      'Its revenue section groups: `Local revenues` holds six sources and is closed '
+      + 'by a printed `Total local revenues` SUBTOTAL, with `State revenues` and '
+      + '`Federal revenues` as root leaves after it.',
+      'Read as an ordinary leaf that subtotal DOUBLE-COUNTS its own children. Every '
+      + 'year fails by exactly the subtotal — FY2024 by 36,953,087, which IS `Total '
+      + 'local revenues` on the printed page.',
+      '⚠⚠ BOTH readers fail identically, with the same deltas, so it is not a reader '
+      + 'artifact: `CityConfig.subtotal_prefixes` is applied ONLY in the expenditure '
+      + 'section (acfrGF.py ~line 1836). `build_revenue` has no subtotal handling and '
+      + 'no `subtotal_failures` list at all.',
+      'All twelve OPERATING extractions already tie at $0 under both readers; only '
+      + 'revenue is blocked.',
+      'FIX: mirror the expenditure subtotal block into build_revenue — guarded by '
+      + 'cfg.subtotal_prefixes so no existing entity changes, and CHECKING each '
+      + 'subtotal against its own group (a free extra oracle).',
+    ],
+  },
   'north-charleston': {
     reason: 'OCR-damaged statement tables in every readable year, plus three '
           + 'image-only years at both publishers',
@@ -364,6 +504,21 @@ export const SC_CITY_DEFERRED = Object.freeze({
 /** Wave-1 entities that are actually loaded. */
 export function scCityLoadableEntities() {
   return SC_CITY_ENTITIES.filter((e) => !(e.key in SC_CITY_DEFERRED));
+}
+
+/**
+ * The fiscal month for ONE entity-year.
+ *
+ * ⚠⚠ NOT a per-entity constant. Summerville changed its fiscal year inside the
+ * loaded window — 12-31 year ends through FY2020, 06-30 from FY2022 — so a single
+ * month per entity would put a January-starting year under a July label. That
+ * error moves no dollar and fails no tie gate, which is precisely why
+ * project_fysm_column_default_one_defect exists.
+ */
+export function fiscalMonthFor(entity, fiscalYear) {
+  const o = entity.fiscalMonthOverrides;
+  if (o && Object.prototype.hasOwnProperty.call(o, fiscalYear)) return o[fiscalYear];
+  return entity.fiscalYearStartMonth;
 }
 
 export function scCityByKey(key) {

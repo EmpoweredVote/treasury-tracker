@@ -85,11 +85,30 @@ export function sourceNameFor(entity, datasetType, fiscalYear) {
   return `${sourcePrefixFor(entity)} ACFR — General Fund ${face} (FY${fiscalYear} actual, GAAP basis)`;
 }
 
-/** `{n,a,c}` shape the RPC expects, from the extractor's own tree. */
+/**
+ * `{n,a,c}` shape the RPC expects, from the extractor's own tree.
+ *
+ * ⚠⚠ RECURSES. The first version of this function hard-stopped at depth two —
+ * `r.c.map((k) => ({ n: k.n, a: k.a }))` — which SILENTLY DROPPED every
+ * grandchild. That was invisible while the wave held only two-level issuers, and
+ * Summerville is three levels deep: `Current:` > `General Government:` >
+ * `Administrative`. Its seven General Government leaves, three Public Safety
+ * leaves and two Roads and drainage leaves would all have vanished, and NOTHING
+ * would have failed — the tie is computed on the extractor's tree, before this
+ * conversion, so it would still have been $0 while the loaded tree was missing
+ * twelve categories.
+ *
+ * `_treasury_insert_tree` recurses on `c` with no depth limit, so the full
+ * hierarchy survives into the icicle. ⚠ This is a no-op for the four entities
+ * loaded before Summerville — Charleston, Mount Pleasant, Rock Hill and
+ * Greenville are all two levels deep, so recursing reproduces their trees
+ * byte-for-byte.
+ */
 function toRpcTree(tree) {
-  return (tree.c || []).map((r) => (r.c && r.c.length
-    ? { n: r.n, a: r.a, c: r.c.map((k) => ({ n: k.n, a: k.a })) }
-    : { n: r.n, a: r.a }));
+  const node = (r) => (r.c && r.c.length
+    ? { n: r.n, a: r.a, c: r.c.map(node) }
+    : { n: r.n, a: r.a });
+  return (tree.c || []).map(node);
 }
 
 export function readExtracted(dir, entityKey, fiscalYear, datasetType) {
