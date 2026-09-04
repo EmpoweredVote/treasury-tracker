@@ -102,12 +102,31 @@ from acfrGfComponents import (  # noqa: E402
 # drift, so the pattern accepts either opening rather than inferring intent.
 # Anchoring on `Excess` alone silently skipped four of Florence's ten years,
 # which read as "this document has no such line" rather than as a miss.
+# ⚠⚠ `revenues` IS OPTIONAL ON THIS LINE — wave 5. Hilton Head breaks the caption
+# after `of` in ALL NINE of its years, so the first line is just
+# `EXCESS (DEFICIENCY) OF` and requiring `of revenues` matched nothing. That
+# failed the RIGHT way (`missing a required row`, never a silent skip), but it
+# failed on all nine.
+#
+# ⚠ `excees` is the TOWN'S OWN TYPO in FY2017 (`Excees (deficiency) of`), kept
+# verbatim rather than repaired — the Wichita rule. It is listed explicitly, as
+# one misspelling of one word in one document, NOT absorbed into a fuzzy match:
+# a spell-tolerant anchor here would start matching captions this campaign has
+# never seen and could not describe.
 EXCESS = re.compile(
-    r'^(?:excess|deficiency)\s*(?:\(\s*deficiency\s*\)\s*)?of\s*revenues', re.I)
+    r'^(?:excess|excees|deficiency)\s*(?:\(\s*deficiency\s*\)\s*)?of\s*(?:revenues)?\s*$'
+    r'|^(?:excess|excees|deficiency)\s*(?:\(\s*deficiency\s*\)\s*)?of\s*revenues', re.I)
 # ⚠ The continuation row, which is where the money sits whenever the caption
 # wraps: `OVER EXPENDITURES`, `(under) expenditures`, `over (under) expenditures`.
+#
+# ⚠⚠ AND `REVENUES OVER (UNDER) EXPENDITURES` — wave 5. Hilton Head puts the word
+# `revenues` on the CONTINUATION rather than on the caption line, so the money row
+# starts with `Revenues`, not with `over`/`under`. The optional prefix is anchored
+# to the start of the line and still requires an `over`/`under` and `expenditures`
+# after it, so it cannot match `Total revenues` or any other revenue row.
 EXCESS_CONT = re.compile(
-    r'^\(?\s*(?:over|under)\s*\)?\s*(?:\(?\s*(?:over|under)\s*\)?\s*)?expenditures', re.I)
+    r'^(?:revenues\s*)?\(?\s*(?:over|under)\s*\)?\s*'
+    r'(?:\(?\s*(?:over|under)\s*\)?\s*)?expenditures', re.I)
 TOTAL_REV = re.compile(r'^(?:Total|Net)\s*(?:operating\s*)?revenues\b', re.I)
 TOTAL_EXP = re.compile(r'^Total\s*expenditures\b', re.I)
 
