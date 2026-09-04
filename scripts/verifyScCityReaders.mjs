@@ -35,6 +35,7 @@ import path from 'node:path';
 import { parseArgs } from 'node:util';
 
 import { scCityLoadableEntities } from './data/scCityAcfrEntities.mjs';
+import { KNOWN_DOCUMENT_GAPS, stemFor } from './extractScCitiesAll.mjs';
 
 const ROOT = process.cwd();
 const PDF_BASE = path.join(ROOT, '_acfr-work', 'sc-cities', 'acfr');
@@ -73,6 +74,64 @@ export const READER_DISAGREEMENTS = Object.freeze([
        + 'breaks THIS year by 20,125 while fixing FY2024. It is the year that proves '
        + 'neither -table strategy is right for this issuer, which is why the entity moved '
        + 'to coordinates rather than to ordinal.',
+  },
+  // ── City of North Charleston ────────────────────────────────────────────
+  // ⚠ Four of its eight loaded extractions are corroborated to the DOLLAR
+  // (FY2021/FY2022/FY2025 revenue and FY2025 operating). These four are the
+  // character grid meeting the very defects the coordinate reader was
+  // configured for, and each is named rather than waved through.
+  //
+  // ⭐ Worth recording: on FY2021 the corroborating reader independently
+  // computes `Current` = 109,369,135, the SAME figure the record reader reads.
+  // The two agree on the components and part company only on what the grid
+  // sweeps in around them, which is why this is a reader limit and not a doubt
+  // about the money.
+  {
+    id: 'north-charleston-fy2021-operating-grid',
+    entityKey: 'north-charleston',
+    fiscalYear: 2021,
+    mode: 'operating',
+    /** ⚠ null: the corroborating reader does not return a total at all here —
+     *  it exits on its own tie failure. A future run that DID return one would
+     *  not match this entry and would be reported, which is the intent. */
+    delta: null,
+    recordTotal: 113143394,
+    why: 'the character grid reads the split leading `1` literally (printed total '
+       + '13,143,394 instead of 113,143,394) and sweeps adjacent fund columns into '
+       + 'the rows, computing 135,594,802. It agrees with the record reader on '
+       + '`Current` = 109,369,135.',
+  },
+  {
+    id: 'north-charleston-fy2022-operating-grid',
+    entityKey: 'north-charleston',
+    fiscalYear: 2022,
+    mode: 'operating',
+    delta: null,
+    recordTotal: 124120138,
+    why: 'same defect class: the grid computes 136,115,265 against a printed '
+       + '124,120,138, sweeping figures from neighbouring fund columns into the '
+       + 'expenditure rows.',
+  },
+  {
+    id: 'north-charleston-fy2024-revenue-grid',
+    entityKey: 'north-charleston',
+    fiscalYear: 2024,
+    mode: 'revenue',
+    delta: null,
+    recordTotal: 162291262,
+    why: 'the grid assigns NOTHING to the General Fund column on this page and '
+       + 'computes 0 — the page furniture at x0 ~32 that the coordinate reader '
+       + 'drops by `left_margin` shifts every -table column assignment.',
+  },
+  {
+    id: 'north-charleston-fy2024-operating-grid',
+    entityKey: 'north-charleston',
+    fiscalYear: 2024,
+    mode: 'operating',
+    delta: null,
+    recordTotal: 144062880,
+    why: 'same page, same cause: the grid computes 180,433,728 against a printed '
+       + '144,062,880.',
   },
 ]);
 
@@ -113,12 +172,21 @@ export async function main() {
   const py = pythonBin();
   const problems = [];
   const observed = new Set();
+  const skipped = [];
   let compared = 0;
   let agreed = 0;
 
   for (const ent of entities) {
     console.log(`\n${ent.name} — ${ent.extractor} (record) vs ${ent.corroboratingExtractor} (corroborating)`);
     for (const fy of Object.keys(ent.facReports).map(Number).sort((a, b) => a - b)) {
+      // ⚠ A year whose DOCUMENT is already declared unreadable has nothing to
+      // corroborate — the record reader cannot read it either, and that is
+      // stated, with its cause and its second publisher, in KNOWN_DOCUMENT_GAPS.
+      // Re-declaring it here would be the same fact in two registries, and the
+      // one that rots is the one nobody reads.
+      const gap = KNOWN_DOCUMENT_GAPS[stemFor(ent.key, fy)];
+      if (gap) { skipped.push(`${ent.key} FY${fy}: ${gap.slice(0, 60)}...`); continue; }
+
       const pdf = path.join(PDF_BASE, ent.key, `${ent.key}_${fy}.pdf`);
       if (!existsSync(pdf)) continue;
       for (const mode of MODES) {
@@ -163,6 +231,11 @@ export async function main() {
   for (const d of unobserved) {
     problems.push(`declared disagreement ${d.id} was NOT observed — the register is stale, `
       + 'or the check that should have surfaced it is no longer running');
+  }
+
+  if (skipped.length) {
+    console.log(`\nSkipped ${skipped.length} entity-year(s) whose document is declared unreadable:`);
+    for (const k of skipped) console.log(`  ${k}`);
   }
 
   console.log(`\n${agreed}/${compared} entity-year-datasets agree exactly between two independent readers `

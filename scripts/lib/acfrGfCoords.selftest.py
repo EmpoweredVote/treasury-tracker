@@ -28,6 +28,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 from acfrGfComponents import (  # noqa: E402
     collect, establish_column, EXP_BANNER, EXP_TOTAL,
 )
+from acfrPrintedTotal import rows_from_words  # noqa: E402
 
 
 def row(label, indent, amount, cell='number'):
@@ -396,6 +397,177 @@ class TestWeldedLabelIndent(unittest.TestCase):
         # `Culture and recreation` prints an explicit dash: an absence, not a
         # parent and not a $0 category.
         self.assertIn('Culture and recreation', zeros)
+
+
+def word(text, x0, x1, top, height=7.0):
+    return {'text': text, 'x0': x0, 'x1': x1, 'top': top, 'bottom': top + height}
+
+
+class TestRowChaining(unittest.TestCase):
+    """City of North Charleston — single-linkage clustering CHAINS.
+
+    ⚠⚠ THE DEFERRAL BLAMED THE WRONG THING. This entity was held back as
+    "OCR-damaged statement tables"; the glyphs are in fact clean and the defect
+    is mechanical. `lines_of` grows a row while each successive word is within
+    ROW_GAP of the PREVIOUS one, so a word printed BETWEEN two statement rows
+    bridges them and the two merge — labels interleaved by x0, money
+    concatenated.
+
+    Real geometry, north-charleston_2016.pdf page 42 (midpoints):
+
+        158.99  'Property taxes'        + 43,976,066 at the General Fund edge
+        160.58  ... other funds' cells on that same row
+        163.98  '9,566,068.'  <- ANOTHER FUND'S COLUMN, printed between the rows
+        167.44  'Licenses and pennits'  + 37,036,183
+
+    160.58 -> 163.98 is 3.40 and 163.98 -> 167.44 is 3.47: two hops, each under
+    ROW_GAP=4.0, so all of it became ONE row reading
+    `Property Licenses taxes and pennits` for 4,419,364,731,548,834.
+    """
+
+    ROWS = [
+        word('Property', 78.83, 107.64, 155.5), word('taxes', 108.91, 125.66, 155.5),
+        word('43,976,066', 248.27, 285.06, 156.0),
+        word('53,779,197', 687.28, 723.95, 157.1),
+        word('9,566,068.', 374.01, 407.33, 160.5),          # the bridge
+        word('pennits', 122.48, 147.07, 164.0),
+        word('Licenses', 79.06, 107.24, 164.1), word('and', 109.35, 120.36, 164.1),
+        word('37,036,183', 248.56, 285.21, 164.7),
+    ]
+
+    def _labels(self, **kw):
+        return [' '.join(w['text'] for w in r) for r in rows_from_words(list(self.ROWS), **kw)]
+
+    def test_the_DEFAULT_gap_chains_the_two_rows_into_one(self):
+        # Pinning the defect, so the per-entity value keeps its justification.
+        rows = self._labels()
+        self.assertEqual(len(rows), 1)
+        self.assertIn('Property Licenses taxes and pennits', rows[0])
+
+    def test_a_DECLARED_narrower_gap_separates_them(self):
+        rows = self._labels(gap=3.0)
+        self.assertIn('Property taxes 43,976,066 53,779,197', rows)
+        self.assertIn('Licenses and pennits 37,036,183', ' '.join(rows))
+        # ⚠ The bridging figure belongs to NEITHER row; it lands on its own,
+        # carries no label left of the columns, and `collect` ignores it.
+        self.assertIn('9,566,068.', rows)
+
+    def test_the_narrower_gap_still_keeps_a_row_together(self):
+        # ⚠ The upper bound matters as much as the lower one: the widest REAL
+        # row measured across 51 statement pages of this corpus is 3.42pt, and
+        # the widest DATA row is 0.50pt. A label and its own money sit ~1.2pt
+        # apart (the Austin case ROW_GAP exists for), so 3.0 clears both.
+        rows = self._labels(gap=3.0)
+        self.assertTrue(any('43,976,066' in r and 'Property' in r for r in rows))
+
+
+class TestLeftMarginStrays(unittest.TestCase):
+    """Stray glyphs in the left margin poison the indent baseline.
+
+    north-charleston_2024.pdf page 50 prints a bare `N` at x0=32.37 and a
+    leader-dot run `,........` at x0=32.34, where every real row on that page
+    starts at x0 >= 58.96. They do two kinds of damage: they BRIDGE adjacent
+    rows, and — because `_nested` takes `min(indents)` as the section root —
+    they drag the root band 26pt left of the actual label column, so every
+    genuine row reads as "an indented row with no open parent".
+    """
+
+    ROWS = [
+        word('Debt', 65.73, 80.27, 288.0), word('service:', 82.46, 105.00, 288.0),
+        word('N', 32.37, 37.86, 298.6),                      # margin junk
+        word('Fin.', 72.69, 83.86, 296.0), word('purchase', 86.17, 112.66, 296.0),
+        word('3,519,881', 234.64, 263.95, 296.2),
+        word(',........', 32.34, 40.63, 301.9),              # margin junk
+        word('Lease', 72.68, 89.60, 303.6), word('principal', 147.37, 173.63, 303.6),
+        word('835,966', 240.59, 264.60, 304.1),
+    ]
+
+    def test_without_the_margin_the_junk_WELDS_ONTO_THE_LABELS(self):
+        # ⚠ At the declared gap the junk no longer BRIDGES two rows — it is
+        # absorbed into the nearest one, where it prefixes the printed label.
+        rows = rows_from_words(list(self.ROWS), gap=3.0)
+        joined = [' '.join(w['text'] for w in r) for r in rows]
+        self.assertEqual(joined, [
+            'Debt service:',
+            'N Fin. purchase 3,519,881',
+            ',........ Lease principal 835,966',
+        ])
+
+    def test_and_it_drags_the_INDENT_BASELINE_26pt_LEFT(self):
+        # ⚠⚠ THE DAMAGE THAT ACTUALLY STOPS THE READ. `_nested` takes
+        # `min(indents)` as the section root, so a glyph at x0=32.34 puts the
+        # root band 26pt left of every real label and each genuine row then
+        # reports "an indented row with no open parent".
+        rows = rows_from_words(list(self.ROWS), gap=3.0)
+        self.assertEqual(min(w['x0'] for r in rows for w in r), 32.34)
+        clean = rows_from_words(list(self.ROWS), gap=3.0, left_margin=35.0)
+        self.assertEqual(min(w['x0'] for r in clean for w in r), 65.73)
+
+    def test_a_DECLARED_margin_drops_it_and_the_rows_separate(self):
+        rows = rows_from_words(list(self.ROWS), gap=3.0, left_margin=35.0)
+        joined = [' '.join(w['text'] for w in r) for r in rows]
+        self.assertEqual(joined, [
+            'Debt service:',
+            'Fin. purchase 3,519,881',
+            'Lease principal 835,966',
+        ])
+
+    def test_the_margin_keeps_every_real_label(self):
+        # ⚠ It must sit BELOW the shallowest real label on the page. This
+        # issuer's root headings print at 65.73 in FY2024 and 42.05 in FY2025,
+        # which is why the declared value is 35 and not 60: one number has to
+        # clear the junk in every year without cutting a label in any of them.
+        rows = rows_from_words(list(self.ROWS), gap=3.0, left_margin=35.0)
+        kept = {w['text'] for r in rows for w in r}
+        self.assertNotIn('N', kept)
+        self.assertNotIn(',........', kept)
+        self.assertIn('Debt', kept)
+        self.assertIn('Lease', kept)
+
+
+class TestOcrLeadingOne(unittest.TestCase):
+    """⚠⚠ A LEADING `1` RENDERED AS THE LETTER `I`, AND WHY IT IS ALLOWED HERE.
+
+    north-charleston_2021.pdf prints its General Fund `Total expenditures` as
+    two words: `I` then `13,143,394`. Read literally the total is 13,143,394 —
+    against 129,509,947 of revenue in the same column, for a city of 126,005.
+
+    ⚠⚠ `acfrGF._WS_REPAIR` REFUSES exactly this shape (`I09,091,141`, Biloxi
+    FY2024) on the ground that a lost digit must never be guessed. The
+    difference here is that NOTHING IS GUESSED: the eight expenditure
+    components are independently clean and sum to 113,143,394, which is the
+    printed digits with the `I` read as `1`. THE TIE GATE VALIDATES THE REPAIR,
+    exactly as it validates `_WS_REPAIR` — were the reading wrong, the
+    components would stop matching and the extraction would fail loudly.
+
+    It is opt-in per entity for that reason: it is only ever safe where an
+    independent sum can confirm it.
+    """
+
+    def rows(self, **kw):
+        ws = [word('Total', 66.51, 110.27, 339.5), word('expenditures', 81.82, 122.33, 339.5),
+              word('I', 210.30, 213.10, 339.3), word('13,143,394', 216.27, 251.93, 339.3)]
+        return [' '.join(w['text'] for w in r) for r in rows_from_words(ws, **kw)]
+
+    def test_off_by_default_the_letter_is_left_exactly_as_printed(self):
+        self.assertEqual(self.rows(), ['Total expenditures I 13,143,394'])
+
+    def test_declared_it_reads_the_leading_one(self):
+        self.assertEqual(self.rows(ocr_leading_one=True), ['Total expenditures 113,143,394'])
+
+    def test_it_refuses_when_the_letter_does_not_ABUT_the_figure(self):
+        # A column marker or a footnote reference stands apart from the money.
+        # 6pt is about one character; this `I` sits 33pt away and is left alone.
+        ws = [word('Total', 66.51, 110.27, 339.5),
+              word('I', 180.00, 182.80, 339.3), word('13,143,394', 216.27, 251.93, 339.3)]
+        joined = ' '.join(w['text'] for r in rows_from_words(ws, ocr_leading_one=True) for w in r)
+        self.assertIn('I 13,143,394', joined)
+
+    def test_it_never_touches_a_figure_with_no_letter_before_it(self):
+        ws = [word('Total', 66.51, 110.27, 339.5), word('13,143,394', 216.27, 251.93, 339.3)]
+        self.assertEqual(
+            [' '.join(w['text'] for w in r) for r in rows_from_words(ws, ocr_leading_one=True)],
+            ['Total 13,143,394'])
 
 
 class TestCleanLabel(unittest.TestCase):

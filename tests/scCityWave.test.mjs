@@ -2,9 +2,10 @@ import { describe, it, expect } from 'vitest';
 
 import {
   SC_CITY_ENTITIES, SC_CITY_DEFERRED, SC_CITY_COVERAGE_GAPS, SC_CITY_STATE,
-  SC_CITY_LIBRARY_FIXES,
+  SC_CITY_LIBRARY_FIXES, SC_CITY_READER_HISTORY,
   scCityLoadableEntities, scCityFilings, scCityByKey, fiscalMonthFor,
 } from '../scripts/data/scCityAcfrEntities.mjs';
+import { KNOWN_DOCUMENT_GAPS } from '../scripts/extractScCitiesAll.mjs';
 import { sourceNameFor, sourcePrefixFor, FUND_SCOPE, BASIS_VALUE, DERIVATION } from '../scripts/loadScCityAcfrs.mjs';
 import { gradeFor } from '../scripts/data/auditGradeRegistry.mjs';
 import { AUDIT_GRADE, BASIS, BASIS_VALUES, classifyAxis } from '../scripts/lib/budgetAxes.mjs';
@@ -14,22 +15,25 @@ import { SOURCE_CHIP_ENTITY_TYPES } from '../src/data/sourceChipTypes.ts';
 import { READER_DISAGREEMENTS, disagreementFor } from '../scripts/verifyScCityReaders.mjs';
 
 describe('the South Carolina city wave-1 roster', () => {
-  it('holds seven governments and loads six of them', () => {
+  it('holds seven governments and loads all seven', () => {
     expect(SC_CITY_ENTITIES.map((e) => e.key).sort()).toEqual([
       'charleston', 'goose-creek', 'greenville', 'mount-pleasant',
       'north-charleston', 'rock-hill', 'summerville',
     ]);
-    // ⚠ ONE is still held back, ON EVIDENCE and with a diagnosis — see below.
-    // Summerville and Goose Creek were held back on a LIBRARY gap, which is now
-    // fixed; North Charleston is held back on the DOCUMENTS, which is not.
+    // ⚠⚠ NONE is deferred any more — but that does NOT mean every year loads.
+    // North Charleston contributes four years of ten; its other six documents
+    // cannot be read at EITHER publisher and are declared, with their causes, in
+    // KNOWN_DOCUMENT_GAPS. Entity-level deferral and year-level document gaps
+    // are different things, and conflating them is how a gap becomes a $0.
     expect(scCityLoadableEntities().map((e) => e.key))
-      .toEqual(['charleston', 'mount-pleasant', 'rock-hill', 'greenville',
-        'summerville', 'goose-creek']);
+      .toEqual(['charleston', 'north-charleston', 'mount-pleasant', 'rock-hill',
+        'greenville', 'summerville', 'goose-creek']);
+    expect(Object.keys(SC_CITY_DEFERRED)).toEqual([]);
   });
 
-  it('loads 50 entity-years, and Mount Pleasant is short by exactly its two gaps', () => {
+  it('loads 60 entity-years, and Mount Pleasant is short by exactly its two gaps', () => {
     const filings = scCityFilings();
-    expect(filings).toHaveLength(50);
+    expect(filings).toHaveLength(60);
     const byKey = {};
     for (const f of filings) byKey[f.entity.key] = (byKey[f.entity.key] || 0) + 1;
     // ⚠ Mount Pleasant's 8 is the point: FAC serves no filing under its EIN
@@ -40,8 +44,14 @@ describe('the South Carolina city wave-1 roster', () => {
     // neither is written as $0.
     expect(byKey).toEqual({
       charleston: 10, 'mount-pleasant': 8, 'rock-hill': 10, greenville: 10,
-      summerville: 6, 'goose-creek': 6,
+      summerville: 6, 'goose-creek': 6, 'north-charleston': 10,
     });
+    // ⚠⚠ North Charleston's TEN are roster years, not loaded years: six of its
+    // documents are unreadable at both publishers and only four produce rows.
+    const loadable = filings.filter((f) => !KNOWN_DOCUMENT_GAPS[`${f.entity.key}-${f.fiscalYear}`]);
+    expect(loadable.filter((f) => f.entity.key === 'north-charleston').map((f) => f.fiscalYear))
+      .toEqual([2021, 2022, 2024, 2025]);
+    expect(loadable).toHaveLength(54);
   });
 
   /**
@@ -134,22 +144,34 @@ describe('the South Carolina city wave-1 roster', () => {
    * (`Licenses and pennits`). A whole-document gate does not prove the statement
    * page is clean.
    */
-  it('defers North Charleston with a diagnosis and no extractor', () => {
-    expect(scCityByKey('north-charleston').extractor).toBeNull();
-    expect(Object.keys(SC_CITY_DEFERRED).sort()).toEqual(['north-charleston']);
-    const d = SC_CITY_DEFERRED['north-charleston'];
-    expect(Object.keys(d.unreadableYears).sort()).toEqual(['2019', '2020', '2023']);
-    for (const why of Object.values(d.unreadableYears)) {
+  /**
+   * ⚠⚠ NORTH CHARLESTON IS NO LONGER DEFERRED, AND THE REASON MATTERS. It was
+   * held back as "OCR-damaged statement tables in every readable year"; the
+   * glyphs are clean on the years that matter and two of the three defects were
+   * MECHANICAL properties of the shared reader (single-linkage row chaining and
+   * left-margin page furniture poisoning the indent baseline). ⭐ "The document
+   * is damaged" is a CONCLUSION and needs the same evidence as any other.
+   *
+   * What remains genuinely unreadable is declared PER YEAR, with its cause and
+   * with the SECOND publisher that was checked before it was called lost.
+   */
+  it('declares six unreadable North Charleston years, each checked at two publishers', () => {
+    const years = [2016, 2017, 2018, 2019, 2020, 2023];
+    for (const fy of years) {
+      const why = KNOWN_DOCUMENT_GAPS[`north-charleston-${fy}`];
+      expect(why, `FY${fy} must be declared`).toBeTruthy();
       // Both publishers named in every entry — quality is a property of the COPY.
-      expect(why).toMatch(/FAC/);
-      expect(why).toMatch(/city/);
+      expect(why).toMatch(/FAC|city/i);
+      expect(why.length).toBeGreaterThan(40);
     }
-    expect(scCityByKey('north-charleston').extractor).toBeNull();
-    expect(scCityFilings().some((f) => f.entity.key === 'north-charleston')).toBe(false);
+    expect(Object.keys(KNOWN_DOCUMENT_GAPS).sort())
+      .toEqual(years.map((fy) => `north-charleston-${fy}`).sort());
   });
 
-  it('gives every loaded entity an extractor', () => {
-    for (const e of scCityLoadableEntities()) expect(e.extractor).toMatch(/^scripts\/extract.*\.py$/);
+  it('keeps the corrected diagnosis on the record', () => {
+    const h = SC_CITY_READER_HISTORY['north-charleston'];
+    expect(h.actualCause).toMatch(/chaining/i);
+    expect(h.loadedYears).toEqual([2021, 2022, 2024, 2025]);
   });
 });
 
@@ -190,14 +212,32 @@ describe('the South Carolina city source labels', () => {
   });
 
   it('does not claim a neighbouring South Carolina source', () => {
+    // ⚠⚠ `City of North Charleston` USED to belong in this list, because it is a
+    // DIFFERENT GOVERNMENT from `City of Charleston` and must never be swept up
+    // by its pattern. It is now a loaded entity with its own alternative in the
+    // regex, so the check that matters moved to the test below: it must be
+    // claimed AS ITSELF, and Charleston's own rows must be unaffected.
     for (const s of [
       'City of Charleston ACFR',
-      'City of North Charleston ACFR — General Fund Revenue by Source (FY2024 actual, GAAP basis)',
       'South Carolina RFA Local Government Finance Report — Revenue by Source (FY2024 actual, county only, excl. bond and lease proceeds)',
     ]) {
       expect(classifyAxis(s, BASIS_REGISTRY, BASIS_VALUES, BASIS.UNKNOWN).entryId)
         .not.toBe('sc-local-acfr-gf');
     }
+  });
+
+  it('claims North Charleston as ITSELF, not as a Charleston variant', () => {
+    // ⚠ Two governments, one substring. The alternation is of whole prefixes, so
+    // `City of North Charleston` matches its own branch — and Charleston's
+    // ten-year series is untouched by its arrival.
+    const nc = 'City of North Charleston ACFR — General Fund Revenue by Source (FY2024 actual, GAAP basis)';
+    const chas = 'City of Charleston ACFR — General Fund Revenue by Source (FY2024 actual, GAAP basis)';
+    for (const label of [nc, chas]) {
+      expect(classifyAxis(label, BASIS_REGISTRY, BASIS_VALUES, BASIS.UNKNOWN).entryId)
+        .toBe('sc-local-acfr-gf');
+      expect(gradeFor(label).value).toBe(AUDIT_GRADE.AUDITED_GAAP);
+    }
+    expect(sourcePrefixFor(scCityByKey('north-charleston'))).toBe('City of North Charleston');
   });
 
   it('writes the axis triple the existing family already carries', () => {
@@ -268,7 +308,7 @@ describe('the South Carolina city wave-2 roster', () => {
     // corroborator on a `-table` entity would be a check that never runs; a
     // coordinate entity without one would be unfalsifiable.
     const coords = scCityLoadableEntities().filter((e) => e.extractor.endsWith('Coords.py'));
-    expect(coords.map((e) => e.key)).toEqual(['rock-hill', 'summerville']);
+    expect(coords.map((e) => e.key)).toEqual(['north-charleston', 'rock-hill', 'summerville']);
     for (const e of scCityLoadableEntities()) {
       expect(Boolean(e.corroboratingExtractor)).toBe(e.extractor.endsWith('Coords.py'));
     }
@@ -293,13 +333,36 @@ describe('the South Carolina city wave-2 roster', () => {
  * that and breaks FY2025 operating by 20,125.
  */
 describe('the two-reader corroboration register', () => {
-  it('declares exactly the two Rock Hill disagreements, with their cause', () => {
-    expect(READER_DISAGREEMENTS.map((d) => d.id).sort())
-      .toEqual(['rock-hill-fy2024-revenue-two-offset', 'rock-hill-fy2025-operating-readable']);
+  it('declares exactly six disagreements, each with its cause', () => {
+    expect(READER_DISAGREEMENTS.map((d) => d.id).sort()).toEqual([
+      'north-charleston-fy2021-operating-grid',
+      'north-charleston-fy2022-operating-grid',
+      'north-charleston-fy2024-operating-grid',
+      'north-charleston-fy2024-revenue-grid',
+      'rock-hill-fy2024-revenue-two-offset',
+      'rock-hill-fy2025-operating-readable',
+    ]);
     for (const d of READER_DISAGREEMENTS) {
-      expect(d.entityKey).toBe('rock-hill');
+      expect(['rock-hill', 'north-charleston']).toContain(d.entityKey);
       expect(d.why.length).toBeGreaterThan(40);
     }
+  });
+
+  /**
+   * ⚠ North Charleston's four are declared because the corroborating reader
+   * FAILS on them, not because it disagrees by a known amount — so `delta` is
+   * null on purpose. A future run in which that reader DID return a total would
+   * not match, and the verifier would report it. That is the intent: a
+   * declaration must not quietly widen into permission.
+   */
+  it('records a null delta where the corroborating reader returns nothing', () => {
+    for (const d of READER_DISAGREEMENTS.filter((x) => x.entityKey === 'north-charleston')) {
+      expect(d.delta).toBeNull();
+      expect(d.recordTotal).toBeGreaterThan(0);
+    }
+    // ⭐ And the four it CAN read are not declared at all — they are checks.
+    expect(disagreementFor({ entityKey: 'north-charleston', fiscalYear: 2021, mode: 'revenue' })).toBeNull();
+    expect(disagreementFor({ entityKey: 'north-charleston', fiscalYear: 2025, mode: 'operating' })).toBeNull();
   });
 
   it('pins the FY2024 delta to the exact dropped figure', () => {

@@ -10,6 +10,7 @@ import { classify as classifyScope } from '../scripts/lib/fundScope.mjs';
 import { FUND_SCOPE_REGISTRY } from '../scripts/data/fundScopeRegistry.mjs';
 import { AUDIT_GRADE } from '../scripts/lib/budgetAxes.mjs';
 import { SOURCE_CHIP_ENTITY_TYPES } from '../src/data/sourceChipTypes.ts';
+import { KNOWN_DOCUMENT_GAPS } from '../scripts/extractScCitiesAll.mjs';
 import { scCityFilings } from '../scripts/data/scCityAcfrEntities.mjs';
 import { readFileSync } from 'node:fs';
 
@@ -136,12 +137,12 @@ describe('South Carolina city ACFR axes', () => {
   });
 
   it('pins the partition count, including the year that is deliberately missing', () => {
-    // ⚠ 38 -> 74 -> 114 -> 138: wave 1 added Charleston (10 years) and Mount
-    // Pleasant (8) = 36 rows; wave 2 added Rock Hill and Greenville (10 each) =
-    // 40; wave 3 added Summerville and Goose Creek (6 each) = 24. The
-    // session-6a half is UNCHANGED and still checked separately below, because
-    // THAT is what this test is for.
-    expect(expectedRowsFor('sc-local-acfr-gf')).toBe(138);
+    // ⚠ 38 -> 74 -> 114 -> 138 -> 146: wave 1 added Charleston (10 years) and
+    // Mount Pleasant (8) = 36 rows; wave 2 added Rock Hill and Greenville (10
+    // each) = 40; wave 3 added Summerville and Goose Creek (6 each) = 24, then
+    // North Charleston (4 of its 10) = 8. The session-6a half is UNCHANGED and
+    // still checked separately below, because THAT is what this test is for.
+    expect(expectedRowsFor('sc-local-acfr-gf')).toBe(146);
 
     // ⚠⚠ THE ORIGINAL INTENT, PRESERVED. 38 = 19 session-6a entity-years x 2
     // datasets, and 40 would mean Columbia FY2019 came back — the year whose only
@@ -158,8 +159,15 @@ describe('South Carolina city ACFR axes', () => {
     // Goose Creek file a Single Audit only in years they expend >= $750k of
     // federal awards, so six years each is the FEDERAL record, not the town's
     // publishing history — those gaps are declared, never written as $0.
-    expect(scCityFilings().length * 2).toBe(100);
-    expect(38 + 100).toBe(138);
+    // ⚠⚠ NOT scCityFilings() * 2 ANY MORE. That counts every year in the
+    // roster, and North Charleston contributes TEN while only FOUR are
+    // loadable — its other six documents cannot be read at either publisher and
+    // are declared in KNOWN_DOCUMENT_GAPS. A count that ignored them would
+    // silently expect 12 rows that must never exist.
+    const loadable = scCityFilings()
+      .filter((f) => !KNOWN_DOCUMENT_GAPS[`${f.entity.key}-${f.fiscalYear}`]);
+    expect(loadable.length * 2).toBe(108);
+    expect(38 + 108).toBe(146);
   });
 
   // ⚠ `city` was missing from this set for months with every gate green.

@@ -75,6 +75,7 @@ from acfrGfComponents import (  # noqa: E402
     collect, establish_column, find_statement, lines_of,
     numbers_on, REV_BANNER, REV_TOTAL, EXP_BANNER, EXP_TOTAL,
 )
+from acfrPrintedTotal import ROW_GAP  # noqa: E402
 
 # Indentation deeper than the section's root by more than this many points is a
 # CHILD row. Measured gaps are 5.0pt (El Paso 69.8 -> 74.8) and 8.3pt
@@ -192,10 +193,56 @@ class CoordsConfig:
                     would leave that entity 1pt of margin where it currently has
                     3.5. The same figure is safe here and marginal there, which
                     is exactly what a per-entity fact is for.
+
+    row_gap         vertical tolerance when grouping glyphs into printed ROWS.
+                    Defaults to the shared ROW_GAP (4.0).
+
+                    ⚠⚠ SINGLE-LINKAGE CHAINS. A row grows while each successive
+                    word is within the gap of the PREVIOUS one, so a word printed
+                    BETWEEN two rows bridges them. North Charleston FY2016 prints
+                    another fund's figure 3.40pt below one row and 3.47pt above
+                    the next, and the two merged into a single row reading
+                    `Property Licenses taxes and pennits`.
+
+                    ⚠ Lower it only on MEASURED evidence, and mind the upper
+                    bound: across 51 statement pages here the widest real row
+                    spans 3.42pt and the widest DATA row 0.50pt, while a label
+                    and its own money can sit 1.2pt apart. 3.0 clears both.
+
+    left_margin     drop glyphs starting left of this x, as page furniture.
+
+                    ⚠⚠ It is the INDENT BASELINE that this protects. North
+                    Charleston FY2024 prints a bare `N` and a leader run
+                    `,........` at x0 ~32 where every real row starts at 58.96;
+                    `_nested` takes `min(indents)` as the section root, so those
+                    two glyphs drag the root band 26pt left and EVERY genuine row
+                    then reports "an indented row with no open parent".
+
+                    ⚠ One value has to clear the junk in every year without
+                    cutting a label in any of them. This issuer's root headings
+                    print at 65.73 (FY2024) and 42.05 (FY2025), so it declares 35.
+
+    ocr_leading_one join a standalone `I`/`l`/`|` onto the money token it abuts,
+                    as the leading `1` the issuer printed.
+
+                    ⚠⚠ `acfrGF._WS_REPAIR` REFUSES this shape (`I09,091,141`,
+                    Biloxi FY2024) because a lost digit must never be guessed,
+                    and that refusal STANDS. Nothing is guessed here: North
+                    Charleston FY2021 prints `I` `13,143,394` for its General
+                    Fund total and its eight expenditure components are
+                    independently clean and sum to 113,143,394 — the printed
+                    digits with the `I` read as `1`. THE TIE GATE VALIDATES THE
+                    REPAIR, exactly as it validates `_WS_REPAIR`.
+
+                    ⚠ Fires only where the letter TOUCHES the figure (<= 6pt),
+                    so a column marker standing apart from the money is left
+                    alone. Opt-in, because it is safe only where an independent
+                    sum can confirm it.
     """
 
     def __init__(self, city, units=1, weld=None, exclude_ignore=(), title_anchor=None,
-                 indent_tol=None, label_fixes=None, collapse_children=()):
+                 indent_tol=None, label_fixes=None, collapse_children=(),
+                 row_gap=None, left_margin=None, ocr_leading_one=False):
         if not isinstance(units, int) or isinstance(units, bool):
             raise TypeError(
                 'CoordsConfig.units must be an int, got %r (%s). A float would '
@@ -213,6 +260,14 @@ class CoordsConfig:
         self.indent_tol = INDENT_TOL if indent_tol is None else float(indent_tol)
         self.label_fixes = dict(label_fixes or {})
         self.collapse_children = tuple(collapse_children or ())
+        if row_gap is not None and not (row_gap > 0):
+            raise ValueError('CoordsConfig.row_gap must be positive, got %r' % (row_gap,))
+        self.row_gap = ROW_GAP if row_gap is None else float(row_gap)
+        if left_margin is not None and not (left_margin >= 0):
+            raise ValueError('CoordsConfig.left_margin must not be negative, got %r'
+                             % (left_margin,))
+        self.left_margin = None if left_margin is None else float(left_margin)
+        self.ocr_leading_one = bool(ocr_leading_one)
         for observed, corrected in self.label_fixes.items():
             if not observed or not corrected:
                 raise ValueError('CoordsConfig.label_fixes entries must both be non-empty, '
@@ -449,7 +504,8 @@ def run_cli(cfg):
         if page is None:
             print('  ERROR: primary GF statement not found in %s' % args.pdf_path, file=sys.stderr)
             sys.exit(3)
-        rows_all = lines_of(page)
+        rows_all = lines_of(page, gap=cfg.row_gap, left_margin=cfg.left_margin,
+                            ocr_leading_one=cfg.ocr_leading_one)
         alignment, edge = establish_column(rows_all)
         if alignment is None:
             print('  ERROR: General Fund column not established: %s' % edge, file=sys.stderr)

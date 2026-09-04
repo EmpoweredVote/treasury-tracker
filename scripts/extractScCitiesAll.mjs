@@ -42,12 +42,33 @@ export const MODES = ['revenue', 'operating'];
 /**
  * Documents that exist but cannot be read, with the CAUSE.
  *
- * ⚠ Empty for the two loaded entities: all 18 of their documents are
- * born-digital and pass all four quality checks. North Charleston's damaged
- * years are not here because the whole ENTITY is deferred — see
- * `SC_CITY_DEFERRED`, which records the diagnosis.
+ * ⚠ Empty for every entity but North Charleston, whose six unreadable years are
+ * declared below with the CAUSE and with the second publisher that was checked
+ * before each was called lost.
  */
-export const KNOWN_DOCUMENT_GAPS = Object.freeze({});
+export const KNOWN_DOCUMENT_GAPS = Object.freeze({
+  // ⚠⚠ NORTH CHARLESTON — six of ten years, each checked at BOTH publishers
+  // (the Federal Audit Clearinghouse and the city's own site, which publishes
+  // FY2015-FY2025). Quality is a property of the COPY, not only the issuer, so
+  // "unreadable" is only ever said after the second copy has been measured too.
+  // ⚠ A gap here is a DOCUMENT-QUALITY gap, unlike Summerville's and Goose
+  // Creek's, which are years with no federal filing at all. Never $0.
+  'north-charleston-2016': 'FAC: revenue reads and ties, but the EXPENDITURE section '
+    + 'fuses three printed rows beyond recovery (`General Public Sanitation safety '
+    + 'government`). City copy: a pure image, 1 char/page. A year needs both datasets.',
+  'north-charleston-2017': 'FAC: the primary General Fund statement page cannot be '
+    + 'located at all — only budgetary and combining schedules match. City copy: 1 '
+    + 'char/page.',
+  'north-charleston-2018': 'FAC: the General Fund expenditure total is mangled as '
+    + '`I 18.446,203` — a letter for a digit AND a period for a comma, two '
+    + 'substitutions nothing independent confirms. ⭐ The CITY copy passes all four '
+    + 'quality checks and its REVENUE ties at $0, but its expenditure statement '
+    + 'prints no General Fund figure for `General government` or `Public safety`.',
+  'north-charleston-2019': 'image-only at FAC (120 chars/page) AND at the city (1 '
+    + 'char/page over 150 pages).',
+  'north-charleston-2020': 'image-only at FAC (118 chars/page) AND at the city (226).',
+  'north-charleston-2023': 'image-only at FAC (238 chars/page) AND at the city (129).',
+});
 
 export function stemFor(entityKey, fiscalYear) {
   return `${entityKey}-${fiscalYear}`;

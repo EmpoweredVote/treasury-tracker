@@ -115,8 +115,16 @@ export const SC_CITY_ENTITIES = Object.freeze([
     key: 'north-charleston',
     name: 'North Charleston',
     entityType: 'city',
-    /** ⚠ DEFERRED — see SC_CITY_DEFERRED. No extractor exists on purpose. */
-    extractor: null,
+    /**
+     * ⚠⚠ FOUR OF TEN YEARS, and the six gaps are DOCUMENT-QUALITY gaps checked
+     * at TWO publishers each — see KNOWN_DOCUMENT_GAPS. The coordinate reader is
+     * the record reader because this issuer needs `row_gap`, `left_margin` and
+     * `ocr_leading_one`, none of which a CityConfig can express.
+     */
+    extractor: 'scripts/extractNorthCharlestonCoords.py',
+    /** ⚠ Required once an entity moves to coordinates. Agrees to the dollar on
+     * four of the eight loaded extractions; the other four are declared. */
+    corroboratingExtractor: 'scripts/extractNorthCharlestonSC.py',
     state: SC_CITY_STATE,
     population: 126005,
     censusPlace: '50875',
@@ -490,18 +498,39 @@ export const SC_CITY_LIBRARY_FIXES = Object.freeze({
   },
 });
 
-export const SC_CITY_DEFERRED = Object.freeze({
+/**
+ * ⚠⚠ NORTH CHARLESTON'S DEFERRAL BLAMED THE WRONG THING, AND THAT IS THE LESSON.
+ *
+ * It was held back as "OCR-damaged statement tables in every readable year". The
+ * glyphs are CLEAN on the years that matter; two of the three defects were
+ * MECHANICAL properties of the shared reader:
+ *
+ *   1. `lines_of` used SINGLE-LINKAGE clustering, so a word printed BETWEEN two
+ *      statement rows bridged them. FY2016 merged `Property taxes` and
+ *      `Licenses and permits` into one row for 4,419,364,731,548,834 because
+ *      another fund's figure sat 3.40pt below one and 3.47pt above the other.
+ *   2. Page furniture at x0 ~32 poisoned `min(indents)`, dragging the section
+ *      root 26pt left so every genuine row read as "an indented row with no open
+ *      parent".
+ *
+ * Only the third was a document defect: a leading `1` rendered as the letter
+ * `I`. ⭐ THE GENERAL LESSON: "the document is damaged" is a CONCLUSION, and it
+ * needs the same evidence as any other. Read the glyphs before accepting it.
+ */
+export const SC_CITY_READER_HISTORY = Object.freeze({
   'north-charleston': {
-    reason: 'OCR-damaged statement tables in every readable year, plus three '
-          + 'image-only years at both publishers',
-    unreadableYears: Object.freeze({
-      2019: 'image-only at FAC (120 chars/page) AND at the city (1 char/page)',
-      2020: 'image-only at FAC (118 chars/page) AND at the city (226 chars/page)',
-      2023: 'image-only at FAC (238 chars/page) AND at the city (129 chars/page)',
-    }),
-    cityPublicationPage: 'https://www.northcharleston.org/government/city_departments/finance/index.php',
+    wasBlockedBy: 'diagnosed as OCR-damaged statement tables in every readable year',
+    actualCause: 'single-linkage row chaining and left-margin page furniture in the '
+      + 'SHARED coordinate reader, plus one genuine text-layer defect (a leading `1` '
+      + 'rendered as the letter `I`)',
+    fix: '`row_gap`, `left_margin` and `ocr_leading_one` on CoordsConfig, each opt-in '
+      + 'and each defaulting to the behaviour every other entity already had.',
+    /** ⚠ The six gaps are REAL and were checked at both publishers. */
+    loadedYears: Object.freeze([2021, 2022, 2024, 2025]),
   },
 });
+
+export const SC_CITY_DEFERRED = Object.freeze({});
 
 /** Wave-1 entities that are actually loaded. */
 export function scCityLoadableEntities() {
