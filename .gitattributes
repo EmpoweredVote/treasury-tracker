@@ -10,7 +10,8 @@
 # Shebang scripts must keep LF too.
 #
 # ⚠ Git stores these as LF, but core.autocrlf=true rewrites them to CRLF on
-# Windows checkout — and while node(1) tolerates `#!/usr/bin/env node`,
+# Windows checkout — and while node(1) tolerates `#!/usr/bin/env node
+`,
 # vitest's esbuild transform rejects it as "SyntaxError: Invalid or unexpected
 # token". The failure is invisible on Linux CI and hits only Windows clones,
 # which is the worst shape: `npm test` disagrees with itself by platform.
@@ -18,3 +19,15 @@
 *.mjs text eol=lf
 *.ts text eol=lf
 *.tsx text eol=lf
+
+# Verbatim data fixtures must keep the SOURCE's line endings.
+#
+# ⚠⚠ `tests/fixtures/census/co-est2024-sc-slice.csv` is a byte extract of the
+# Census PEP county file, which uses LF. Without this rule a Windows checkout
+# rewrites it to CRLF, and the parity test that re-reads the real source file
+# then finds NONE of its 51 lines — because it compares ``-terminated fixture
+# lines against an ``-stripped source. Observed exactly that way: green on
+# Linux CI (where the source is absent and the test skips) and red on the first
+# Windows clone with the cache file present. Same shape as the shebang rule
+# above — CI and a developer machine disagreeing by platform.
+tests/fixtures/census/*.csv text eol=lf
