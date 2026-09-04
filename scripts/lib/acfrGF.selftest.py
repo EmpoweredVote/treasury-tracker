@@ -1845,5 +1845,100 @@ class TestFindStatementPageIgnoresWhitespace(unittest.TestCase):
 
 
 
+class TestPhysicalPageResolution(unittest.TestCase):
+    """⚠⚠ AN INDEX INTO `table_pages` IS NOT A PAGE NUMBER.
+
+    `pdftotext` emits a spurious EMPTY chunk for some pages, so the index runs
+    AHEAD of the physical page. Hilton Head FY2019 renders 181 chunks for a
+    166-page PDF with nine empty chunks before the General Fund statement, and
+    `statement_page` reported 58 for a statement physically on page 48 — where
+    page 58 is the NOTES.
+
+    ⚠⚠ The FIGURES were never wrong. This is a PROVENANCE defect, which is what
+    makes it corrosive: every gate stays green while the one field whose job is
+    to let a human re-check the work sends them to the wrong page.
+
+    These tests stub the per-page render, so they exercise the resolution rule
+    itself rather than poppler.
+    """
+
+    def _resolver(self, physical_pages):
+        """A `physical_page_for` whose per-page render returns `physical_pages`."""
+        import lib.acfrGF as mod
+
+        class _Result:
+            def __init__(self, stdout):
+                self.stdout = stdout
+                self.returncode = 0
+
+        def fake_run(argv, **kw):
+            k = int(argv[argv.index('-f') + 1])
+            return _Result(physical_pages.get(k, '') + '')
+
+        mod._PHYSICAL_PAGE_CACHE.clear()
+        return mod, fake_run
+
+    def test_it_resolves_the_page_behind_a_run_of_empty_chunks(self):
+        """The Hilton Head FY2019 shape: nine empty chunks push the statement's
+        index to 58 while the document puts it on page 48."""
+        mod, fake_run = self._resolver({48: 'THE STATEMENT'})
+        pages = [''] * 9 + ['x'] * 49
+        pages[57] = 'THE STATEMENT'
+        orig = mod.subprocess.run
+        mod.subprocess.run = fake_run
+        try:
+            self.assertEqual(mod.physical_page_for('doc.pdf', pages, 57), 48)
+        finally:
+            mod.subprocess.run = orig
+
+    def test_a_clean_document_resolves_on_the_first_try(self):
+        """⚠ Where there are no spurious chunks the index IS the page, and the
+        walk must terminate immediately — this is the overwhelmingly common case
+        and it must not cost a scan."""
+        mod, fake_run = self._resolver({47: 'THE STATEMENT'})
+        pages = ['x'] * 60
+        pages[46] = 'THE STATEMENT'
+        calls = []
+
+        def counting(argv, **kw):
+            calls.append(int(argv[argv.index('-f') + 1]))
+            return fake_run(argv, **kw)
+
+        orig = mod.subprocess.run
+        mod.subprocess.run = counting
+        try:
+            self.assertEqual(mod.physical_page_for('doc.pdf', pages, 46), 47)
+        finally:
+            mod.subprocess.run = orig
+        self.assertEqual(calls, [47])
+
+    def test_it_returns_None_rather_than_a_number_it_cannot_support(self):
+        """⚠⚠ AN UNRESOLVABLE PAGE MUST NOT BE GUESSED. If no rendered page
+        matches, the honest answer is None — the caller then reports the raw
+        index and flags it, instead of printing a page number that sends a
+        reader somewhere the statement is not."""
+        mod, fake_run = self._resolver({})
+        pages = ['x'] * 60
+        pages[46] = 'THE STATEMENT'
+        orig = mod.subprocess.run
+        mod.subprocess.run = fake_run
+        try:
+            self.assertIsNone(mod.physical_page_for('doc.pdf', pages, 46))
+        finally:
+            mod.subprocess.run = orig
+
+    def test_a_blank_chunk_can_never_identify_a_page(self):
+        """⚠ Every blank page renders the same text, so a blank chunk would
+        match the first one tried. Refuse instead."""
+        mod, fake_run = self._resolver({1: '', 2: '', 3: ''})
+        orig = mod.subprocess.run
+        mod.subprocess.run = fake_run
+        try:
+            self.assertIsNone(mod.physical_page_for('doc.pdf', ['', '', '   '], 2))
+        finally:
+            mod.subprocess.run = orig
+
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)
