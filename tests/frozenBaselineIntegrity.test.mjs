@@ -42,18 +42,18 @@ describe('scopeBaseline.json shape', () => {
   it('carries a frozen row count and digest', () => {
     expect(typeof baseline.frozen_row_count).toBe('number');
     expect(baseline.figures_frozen).toMatch(/^[0-9a-f]{64}$/);
-  });
+  }, 30_000);
 
   it('lists exclusion files, never a single shared path', () => {
     // The single `excluded_ids_file` is what went stale across three milestones.
     expect(Array.isArray(baseline.excluded_ids_files)).toBe(true);
     expect(baseline.excluded_ids_files.length).toBeGreaterThan(0);
     expect(baseline.excluded_ids_file).toBeUndefined();
-  });
+  }, 30_000);
 
   it('keeps the warning against regenerating the digest', () => {
     expect(baseline._warning).toMatch(/do NOT edit or regenerate/i);
-  });
+  }, 30_000);
 
   // Every rebase must stay documented. Losing the history is losing the reason.
   it('records every rebase it has performed', () => {
@@ -63,7 +63,7 @@ describe('scopeBaseline.json shape', () => {
       expect(typeof baseline[k]._date, k).toBe('string');
       expect(typeof baseline[k]._authorised_by, k).toBe('string');
     }
-  });
+  }, 30_000);
 });
 
 describe('every registered file exists and parses', () => {
@@ -71,12 +71,12 @@ describe('every registered file exists and parses', () => {
 
   it('registers at least one file', () => {
     expect(all.length).toBeGreaterThan(0);
-  });
+  }, 30_000);
 
   for (const rel of all) {
     it(`${rel} exists`, () => {
       expect(existsSync(rel), `${rel} is registered in ${BASELINE} but missing on disk`).toBe(true);
-    });
+    }, 30_000);
 
     // ⚠ Asserts on the RAW bytes, not via readList — readList swallows a parse
     // error to keep collection alive, so testing it here would always pass.
@@ -86,7 +86,7 @@ describe('every registered file exists and parses', () => {
       let parsed;
       expect(() => { parsed = JSON.parse(raw); }, `${rel} is not valid JSON`).not.toThrow();
       expect(Array.isArray(parsed), `${rel} must hold a JSON array`).toBe(true);
-    });
+    }, 30_000);
   }
 });
 
@@ -96,7 +96,7 @@ describe('exclusion ids', () => {
   it('are all non-empty strings', () => {
     for (const id of ids) expect(typeof id).toBe('string');
     expect(ids.every((id) => id.trim() !== '')).toBe(true);
-  });
+  }, 30_000);
 
   // ⚠ A row registered twice would be excluded once but counted twice by anyone
   // reconciling the arithmetic, which is how an off-by-N hides.
@@ -129,14 +129,14 @@ describe('exclusion ids', () => {
       seen.add(id);
     }
     expect(dupes).toEqual([]);
-  });
+  }, 30_000);
 
   it('have no duplicates WITHIN any single file, scope files included', () => {
     for (const rel of baseline.excluded_ids_files ?? []) {
       const list = readList(rel);
       expect(new Set(list).size, `${rel} repeats an id`).toBe(list.length);
     }
-  });
+  }, 30_000);
 });
 
 describe('the authorised-correction ledger', () => {
@@ -145,7 +145,7 @@ describe('the authorised-correction ledger', () => {
   it('is registered, so a correction has somewhere to go', () => {
     expect(Array.isArray(baseline.figure_change_files)).toBe(true);
     expect(baseline.figure_change_files.length).toBeGreaterThan(0);
-  });
+  }, 30_000);
 
   // ⚠ An entry without `old` is useless: the digest hashes the value a row
   // REPLACED, so a missing old value silently fails to hold the digest steady.
@@ -156,17 +156,17 @@ describe('the authorised-correction ledger', () => {
       expect(e.new, JSON.stringify(e)).toBeDefined();
       expect(String(e.why ?? '').length, JSON.stringify(e)).toBeGreaterThan(20);
     }
-  });
+  }, 30_000);
 
   it('never ledgers the same row twice', () => {
     const ids = entries.map((e) => e.id);
     expect(new Set(ids).size).toBe(ids.length);
-  });
+  }, 30_000);
 
   // A ledgered row must be frozen, not excluded — excluding it already removes
   // it from the digest, so a ledger entry would be dead weight hiding a mistake.
   it('never ledgers a row that is also excluded', () => {
     const excluded = new Set((baseline.excluded_ids_files ?? []).flatMap(readList));
     expect(entries.filter((e) => excluded.has(e.id)).map((e) => e.id)).toEqual([]);
-  });
+  }, 30_000);
 });

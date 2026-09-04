@@ -15,12 +15,35 @@
  * status could not be established has NO entry here and its rows stay `unknown`.
  * That is the correct outcome, not a gap to be filled in later by guessing.
  *
- * ⚠ DELIBERATELY ABSENT: the Minnesota OSA City/County Finances Report. Three
- * publisher pages were checked on 2026-08-28 and none states what that report is
- * compiled from or whether it is audited. Cities are known to submit a Local
- * Government Financial Reporting Form via SAFES *and* to file a GAAP audit, so
- * "self-reported" is plausible — but plausible is not evidence. Duluth, Saint
- * Paul, Ramsey County and Saint Louis County stay `unknown` until OSA says.
+ * ⚠ STILL ABSENT: the Minnesota OSA City/County Finances Report — but the reason
+ * CHANGED on 2026-09-04 and the distinction matters.
+ *
+ * It is no longer absent for want of evidence. The evidence was found (the
+ * `cired_*`/`county_*` report PDFs' own Scope and Methodology, OSA's Form
+ * Instructions, and Minn. Stat. §§ 6.481 / 471.697 / 471.698) and the grading
+ * decision is RECORDED — a three-way split:
+ *
+ *     counties              -> compiled_from_audited   (§ 6.481 subd. 2: an
+ *                                                       annual audit is MANDATORY)
+ *     cities over 2,500     -> compiled_from_audited   (§ 471.697(c): audited
+ *                                                       statements filed with OSA)
+ *     cities under 2,500    -> self_reported_unaudited (§ 471.698: NO audit
+ *                                                       clause; 56.1% cash basis)
+ *
+ * ⚠⚠ IT IS ABSENT NOW FOR A MECHANICAL REASON: `gradeFor()` matches the SOURCE
+ * STRING, and Florida and Georgia carry their branch inside it (`...,
+ * audit-reconciled`). All 21,794 Minnesota rows predate that convention and share
+ * one bare string — `Minnesota Office of the State Auditor City/County Finances
+ * Report` — with no year, no dataset and no branch, so no pattern here can
+ * separate a county from a 900-person city. Applying the decision needs either a
+ * `data_source` rewrite on 21,794 rows or a branch-resolving grader, and that is
+ * its own scoped work.
+ *
+ * ⚠ DO NOT "fix" this by adding a single entry that grades the whole family. That
+ * would stamp `compiled_from_audited` onto ~347 cash-basis small cities the law
+ * does not require to be audited at all — the §3.5 failure this registry exists
+ * to prevent, and the inverse of the "mixed source takes the weaker branch" rule
+ * that holds CA SCO down.
  *
  * Spec:     .planning/KNIGHT-COMMUNITIES-SEEDING.md §3.5
  * Evidence: .planning/KNIGHT-COMMUNITIES-PROGRESS.md

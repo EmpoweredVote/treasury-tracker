@@ -62,36 +62,117 @@ Per the vocabulary's own rule, a mixed source takes the **weaker** branch.
 audit evidence. Its Modesto FY2024 reconciliation establishes that the figures are
 closed-year *actuals*, which is a statement about basis, not about assurance.
 
-### Minnesota OSA City/County Finances Report → `unknown` (NO REGISTRY ENTRY)
+### Minnesota OSA City/County Finances Report → **RESOLVED 2026-09-04** — a MIXED source
 
-**Could not be verified 2026-08-28.** Three publisher pages checked:
+**Session 1 could not verify this and correctly left it `unknown`.** The route it
+predicted — "the methodology section inside a `cired_*` report PDF" — is exactly
+where the answer was. Three publisher documents and four statutes settle it.
 
-- `https://www.osa.state.mn.us/reports-data-analysis/local-government/cities/`
-- `https://www.osa.state.mn.us/reports-data-analysis/reports/local-government-finances-report/`
-- `https://www.auditor.state.mn.us/reports-data-analysis/reports/local-government-finances-report/`
+⚠⚠ **THE STAKES ARE NOT 4 ENTITIES.** Measured in the DB 2026-09-04: **21,794
+rows across 946 Minnesota entities** carry this family (20,414 city + 1,380
+county), FY2008–FY2025 — all currently `unknown`.
 
-None states what the Finances Report is compiled **from**, nor its audit status.
-The only related sentence is a general description of the office:
+**1. What the dataset IS.** OSA, *2023 Minnesota City Finances Report*, Scope and
+Methodology, verbatim:
 
-> "In addition to performing audits, the State Auditor's Office reviews the
-> financial statements, audits, management letters, and financial reporting forms
-> of all local governments under the Office's purview."
+> "The report summarizes ... the financial operations of the 851 Minnesota cities
+> that **provided their financial information to the Office of the State Auditor
+> (OSA)** for calendar year 2023. Minnesota cities are **required to submit annual
+> financial reports to the OSA** pursuant to Minn. Stat. § 6.74 and §§ 471.697-.698."
 
-That describes what OSA reviews, not what populates this dataset.
+So the figures arrive on a submitted *Local Government Financial Reporting Form*
+(SAFES), not lifted by OSA out of an audit. Stopping here gives
+`self_reported_unaudited` — and, as in Florida, that would be the wrong answer,
+because it ignores what the law requires to accompany the Form.
 
-**What is known but is NOT sufficient:** cities submit a Local Government
-Financial Reporting Form through SAFES, and separately file a GAAP audit. Because
-OSA receives both, "compiled from the self-reported form" is *likely* but not
-stated. Guessing `self_reported_unaudited` here would be inference from plausibility
-— exactly what spec §3.5 forbids.
+**2. The audit requirement is REAL but SPLITS BY CLASS.**
 
-⚠ `GAAPInd` in the raw data indicates **basis of accounting**, not audit status.
-Do not read it as evidence of audit.
+* **Counties** — Minn. Stat. § 6.481, subd. 2, verbatim:
+  > "**A county must have an annual financial audit.**"
+  (by the state auditor or a CPA firm meeting § 326A.05). ⚠ § 6.48, which the
+  older notes cite, was **REPEALED** in 2015 — use § 6.481.
+* **Cities over 2,500** — Minn. Stat. § 471.697, subd. 1(c), verbatim:
+  > "(c) **Submit to the state auditor audited financial statements which have
+  > been attested to by a certified public accountant, public accountant, or the
+  > state auditor** within 180 days after the close of the fiscal year ... The
+  > state auditor may accept this report **in lieu of** the report required in
+  > clause (b)."
+  And subd. 2: "**First class city audits.** The state auditor shall continue to
+  audit cities of the first class pursuant to section 6.49" — so Saint Paul (and
+  Duluth, which retains first-class status under § 410.01's 25% rule) are audited
+  by the State Auditor itself.
+* **Cities under 2,500** — Minn. Stat. § 471.698 requires only "a detailed
+  statement of the financial affairs of the city ... **in the style and form
+  prescribed by the state auditor**". ⚠⚠ **There is NO audit clause.** The 2023
+  report adds that **347 of 619 small cities (56.1%) used a CASH basis**.
 
-**Consequence:** Duluth, Saint Paul, Ramsey County and Saint Louis County stay
-`unknown` — 4 of this session's 9 entities. **Resolving this is a live follow-up:**
-the likely route is the methodology or notes section inside a `cired_*` report PDF,
-or a direct question to OSA.
+**3. OSA ties the Form to the audit, in its own words, twice.**
+
+*Local Government Financial Reporting Form Instructions* (Updated February 2026),
+Section 10, verbatim:
+
+> "If supporting **financial statements/audit do not match to the amounts in the
+> Form, please provide an explanation as to the differences. The Form must be
+> accurate.**"
+
+and throughout: "Total revenues should reconcile with the financial statements",
+"Total expenditures should reconcile with the financial statements".
+
+⭐⭐ **And the strongest item — OSA NAMES THE EXCEPTIONS.** *2022 Minnesota County
+Finances Report*, Scope and Methodology footnote 1, verbatim:
+
+> "Two counties, Dodge and Kittson, did not fulfill the annual financial reporting
+> requirements. **Kittson County submitted their 2022 Annual Financial Reporting
+> Form without an accompanying audit. Unaudited data provided by Kittson County is
+> included in this report for comparison purposes.**"
+
+That is the publisher stating its own baseline — Form **plus** accompanying audit
+— and flagging, by entity and year, where that failed. A rule stated by naming
+its exception is stronger evidence than a rule stated abstractly.
+
+**⚠ Where this sits against the FLORIDA bar.** FL earned `compiled_from_audited`
+because **DFS itself** reconciles the AFR to the audited statements and returns it
+if it does not tie. Minnesota puts that duty on the **submitter** and OSA
+"reviews". The county branch comes closest; the *City* report says nothing about
+audits at all. **This is weaker than Florida and stronger than Ohio AOS**, which
+prints "UNAUDITED" in capitals on its own download page.
+
+**DECISION (Chris, 2026-09-04) — a THREE-WAY split, branch identifiable per
+entity-year:**
+
+| branch | grade | why |
+|---|---|---|
+| counties | `compiled_from_audited` | § 6.481 subd. 2 audit is mandatory; OSA states the audit accompanies the Form and names the exceptions |
+| cities **over** 2,500 | `compiled_from_audited` | § 471.697(c) requires audited statements be filed with OSA; the Form must reconcile to them |
+| cities **under** 2,500 | `self_reported_unaudited` | § 471.698 imposes **no audit**; 56.1% are cash basis |
+
+⭐ The branch is derivable per entity-year and does not need authoring: the
+`cired_*` raw data carries `Population`, and OSA classifies over/under 2,500 on
+it. That is the same property that let Florida grade per branch (spec §3.5) and
+that Pennsylvania lacked.
+
+⚠ `GAAPInd` in the raw data is **basis of accounting, not audit status**. The old
+note stands.
+
+⚠⚠ **NOT YET IMPLEMENTED — and the reason is mechanical, not evidential.**
+`gradeFor()` matches the **source string**, and Florida/Georgia carry their branch
+inside it (`..., audit-reconciled`). Minnesota's rows predate that convention and
+all 21,794 carry the same bare string:
+
+    "Minnesota Office of the State Auditor City/County Finances Report"
+
+— no fiscal year, no dataset, no branch. So applying the decision needs either
+(a) rewriting `data_source` on 21,794 rows to carry the branch, or (b) teaching
+the grading mechanism to resolve a branch per entity. **That is its own scoped
+piece of work and must not be improvised**; see the follow-up list.
+
+**Sources:**
+`https://www.osa.state.mn.us/media/tgbpnju3/cired_23_report.pdf` ·
+`https://www.osa.state.mn.us/media/acqhhgxq/county_22_report.pdf` ·
+`https://www.osa.state.mn.us/media/35xpwwlj/instructionsfinancialform.pdf` ·
+`https://www.revisor.mn.gov/statutes/cite/6.481` ·
+`https://www.revisor.mn.gov/statutes/cite/471.697` ·
+`https://www.revisor.mn.gov/statutes/cite/471.698`
 
 
 ### City of Charlotte + Mecklenburg County ACFRs → `audited_gaap`
