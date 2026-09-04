@@ -115,8 +115,16 @@ export const SC_CITY_ENTITIES = Object.freeze([
     key: 'north-charleston',
     name: 'North Charleston',
     entityType: 'city',
-    /** ⚠ DEFERRED — see SC_CITY_DEFERRED. No extractor exists on purpose. */
-    extractor: null,
+    /**
+     * ⚠⚠ FOUR OF TEN YEARS, and the six gaps are DOCUMENT-QUALITY gaps checked
+     * at TWO publishers each — see KNOWN_DOCUMENT_GAPS. The coordinate reader is
+     * the record reader because this issuer needs `row_gap`, `left_margin` and
+     * `ocr_leading_one`, none of which a CityConfig can express.
+     */
+    extractor: 'scripts/extractNorthCharlestonCoords.py',
+    /** ⚠ Required once an entity moves to coordinates. Agrees to the dollar on
+     * four of the eight loaded extractions; the other four are declared. */
+    corroboratingExtractor: 'scripts/extractNorthCharlestonSC.py',
     state: SC_CITY_STATE,
     population: 126005,
     censusPlace: '50875',
@@ -264,6 +272,157 @@ export const SC_CITY_ENTITIES = Object.freeze([
       2025: '2025-06-GSAFAC-0000388925',
     },
   },
+  {
+    key: 'summerville',
+    name: 'Summerville',
+    /** ⚠ A TOWN — `Summerville town` in the Census file, `TOWN OF SUMMERVILLE`
+     * in its own filings. Same call as Mount Pleasant. */
+    entityType: 'town',
+    /**
+     * ⚠⚠ THE COORDINATE READER IS THE RECORD READER, and the reason is SHAPE,
+     * not arithmetic. The town prints THREE levels — `Current:` >
+     * `General Government:` > `Administrative`, with `Culture and recreation` a
+     * VALUED LEAF at the middle one — and no `CityConfig` can hold three. The
+     * `-table` reader below ties at $0 on all twelve extractions while
+     * flattening the middle level, which is exactly why the tie cannot choose
+     * between them.
+     */
+    extractor: 'scripts/extractSummervilleCoords.py',
+    /** ⚠ Required once an entity moves to coordinates — see verifyScCityReaders.mjs.
+     * `column_strategy='ordinal'` is load-bearing: this issuer renders the
+     * General Fund column at TWO character offsets. 12/12 exact agreement. */
+    corroboratingExtractor: 'scripts/extractSummervilleSC.py',
+    state: SC_CITY_STATE,
+    population: 52625,
+    censusPlace: '70270',
+    parentCountyName: 'Dorchester County',
+    facEin: '576001110',
+    censusName: 'Summerville',
+    /**
+     * ⚠⚠ SUMMERVILLE CHANGED ITS FISCAL YEAR **INSIDE THIS WINDOW**, and it is
+     * the first entity in this campaign to do so. Its filings end 12-31 in
+     * FY2018 and FY2020 and 06-30 from FY2022 — independently confirmed by the
+     * FAC census, which records month 1 for 2018/2020 and month 7 for 2022-2025.
+     *
+     * A single per-entity month cannot express that, so the default below is the
+     * LATER month and `fiscalMonthOverrides` carries the earlier years. Writing 7
+     * across the whole series would put a January-starting year under a July
+     * label — a wrong value that moves no dollar and fails no tie gate, which is
+     * exactly the shape of project_fysm_column_default_one_defect.
+     */
+    fiscalYearStartMonth: 7,
+    fiscalMonthOverrides: Object.freeze({ 2018: 1, 2020: 1 }),
+    monthStatus: 'confirmed',
+    publicationPage: 'https://www.summervillesc.gov/206/Finance',
+    facReports: {
+      2018: '2018-12-CENSUS-0000187544',
+      2020: '2020-12-CENSUS-0000187544',
+      2022: '2022-06-CENSUS-0000187544',
+      2023: '2023-06-GSAFAC-0000022779',
+      2024: '2024-06-GSAFAC-0000358242',
+      2025: '2025-06-GSAFAC-0000408794',
+    },
+  },
+  {
+    key: 'goose-creek',
+    name: 'Goose Creek',
+    entityType: 'city',
+    /** ⚠ Its revenue section is closed by a PRINTED SUBTOTAL (`Total local
+     * revenues`) which double-counted until `cfg.subtotal_prefixes` was
+     * extended to `build_revenue`. It is now checked against its own six
+     * children every year — the issuer's own free oracle. */
+    extractor: 'scripts/extractGooseCreekSC.py',
+    state: SC_CITY_STATE,
+    population: 50352,
+    censusPlace: '29815',
+    parentCountyName: 'Berkeley County',
+    facEin: '576008064',
+    censusName: 'Goose Creek',
+    /** ⚠ JANUARY, like Charleston — all six filings end 12-31, and the census
+     * records month 1 across 1999, 2002-2003, 2016 and 2021-2025. */
+    fiscalYearStartMonth: 1,
+    monthStatus: 'confirmed',
+    publicationPage: 'https://www.cityofgoosecreek.com/departments/finance',
+    facReports: {
+      2016: '2016-12-CENSUS-0000170470',
+      2021: '2021-12-CENSUS-0000170470',
+      2022: '2022-12-CENSUS-0000170470',
+      2023: '2023-12-GSAFAC-0000044988',
+      2024: '2024-12-GSAFAC-0000374202',
+      2025: '2025-12-GSAFAC-0000420983',
+    },
+  },
+  {
+    key: 'spartanburg',
+    name: 'Spartanburg',
+    entityType: 'city',
+    /**
+     * ⚠⚠ THE COORDINATE READER, on a DIAGNOSED failure of the character grid:
+     * `pdftotext -table` mis-renders the FY2018 statement page and mixes the two
+     * sections (revenue 5,975,414 over — exactly an EXPENDITURE line — and no
+     * printed expenditure total at all). BOTH column strategies fail it
+     * identically. ⚠ Nine years read fine through `-table`; using it for those
+     * and coordinates for FY2018 would be picking whichever reader tied, so the
+     * ENTITY moves as a whole.
+     */
+    extractor: 'scripts/extractSpartanburgCoords.py',
+    /** ⚠ Required once an entity moves to coordinates. 18 of 20 exact; the two
+     * FY2018 failures are declared in verifyScCityReaders.mjs. */
+    corroboratingExtractor: 'scripts/extractSpartanburgSC.py',
+    state: SC_CITY_STATE,
+    population: 39606,
+    censusPlace: '68290',
+    parentCountyName: 'Spartanburg County',
+    /**
+     * ⚠⚠ ITS TWO ONE-DIGIT NEIGHBOURS ARE BOTH CITIES ALREADY LOADED IN TT:
+     *
+     *     576000244  CITY OF ROCK HILL      <- wave 2, loaded
+     *     576000245  CITY OF SPARTANBURG    <- wanted
+     *     576000246  CITY OF SUMTER         <- a real SC city, not yet loaded
+     *
+     * A typo in either direction does not fail. It loads ANOTHER LOADED CITY'S
+     * audited statements under Spartanburg's name, and every tie gate passes on
+     * them — the wave-1 near-miss lesson at its sharpest, because here the wrong
+     * answer is a government TT already holds and could be diffed against.
+     *
+     * ⚠ Also in SC and NOT this government: SPARTANBURG COUNTY (576000401),
+     * HOUSING AUTHORITY OF THE CITY OF SPARTANBURG (576001369), Spartanburg
+     * Water System (576000944), Spartanburg Sanitary Sewer District (576000941),
+     * SPARTANBURG COUNTY SCHOOL DISTRICT SEVEN (576000942) and six other school
+     * districts, Spartanburg Regional Health Services District (571075649),
+     * Spartanburg Community College (570439615) and Spartanburg Methodist
+     * College (570314415).
+     *
+     * ⭐ THIS EIN IS EXCEPTIONALLY CLEAN, checked in the bulk table rather than
+     * assumed: 10 filings, ONE auditee_name (`CITY OF SPARTANBURG`), ONE fiscal
+     * year end, one state, one city. No Rock Hill-style collision and no
+     * `Drew Cooper`-style name substitution anywhere in the series.
+     */
+    facEin: '576000245',
+    censusName: 'Spartanburg',
+    /**
+     * ⭐ JULY, and confirmed three ways: `fy_end_date` is 06-30 on all ten
+     * filings, the FAC census records `SC,Spartanburg,municipality,annual,7`
+     * across audit years 1998-1999, 2001-2021 and 2023-2025, and each statement
+     * states its own period. ⚠ The census has no 2022 row — a census gap, not a
+     * disagreement, and the filing for that year exists.
+     */
+    fiscalYearStartMonth: 7,
+    monthStatus: 'confirmed',
+    publicationPage: 'https://www.cityofspartanburg.org/287/Annual-Financial-Reports',
+    facReports: {
+      2016: '2016-06-CENSUS-0000195157',
+      2017: '2017-06-CENSUS-0000195157',
+      2018: '2018-06-CENSUS-0000195157',
+      2019: '2019-06-CENSUS-0000195157',
+      2020: '2020-06-CENSUS-0000195157',
+      2021: '2021-06-CENSUS-0000195157',
+      2022: '2022-06-CENSUS-0000195157',
+      2023: '2023-06-GSAFAC-0000014256',
+      2024: '2024-06-GSAFAC-0000353147',
+      2025: '2025-06-GSAFAC-0000405784',
+    },
+  },
 ]);
 
 /**
@@ -277,6 +436,23 @@ export const SC_CITY_COVERAGE_GAPS = Object.freeze({
   'mount-pleasant': {
     2016: 'no filing under EIN 576001079 in the Federal Audit Clearinghouse',
     2017: 'no filing under EIN 576001079 in the Federal Audit Clearinghouse',
+  },
+  // ⚠ Summerville and Goose Creek file a Single Audit only in years they expend
+  // >= $750k of federal awards, so their FAC coverage is genuinely intermittent —
+  // six years each, not ten. Absence here is absence of a FEDERAL filing, NOT
+  // evidence the government published no ACFR. Their own sites may carry the
+  // missing years; that is a follow-up, never a reason to write $0.
+  summerville: {
+    2016: 'no filing under EIN 576001110 in the Federal Audit Clearinghouse',
+    2017: 'no filing under EIN 576001110 in the Federal Audit Clearinghouse',
+    2019: 'no filing under EIN 576001110 in the Federal Audit Clearinghouse',
+    2021: 'no filing under EIN 576001110 in the Federal Audit Clearinghouse',
+  },
+  'goose-creek': {
+    2017: 'no filing under EIN 576008064 in the Federal Audit Clearinghouse',
+    2018: 'no filing under EIN 576008064 in the Federal Audit Clearinghouse',
+    2019: 'no filing under EIN 576008064 in the Federal Audit Clearinghouse',
+    2020: 'no filing under EIN 576008064 in the Federal Audit Clearinghouse',
   },
 });
 
@@ -348,22 +524,159 @@ export const SC_CITY_COVERAGE_GAPS = Object.freeze({
  * ⚠ Loading only the 3 fully-clean years would give a reader a 10-year city with
  * a 3-year series full of holes, which is worse than not shipping it.
  */
-export const SC_CITY_DEFERRED = Object.freeze({
-  'north-charleston': {
-    reason: 'OCR-damaged statement tables in every readable year, plus three '
-          + 'image-only years at both publishers',
-    unreadableYears: Object.freeze({
-      2019: 'image-only at FAC (120 chars/page) AND at the city (1 char/page)',
-      2020: 'image-only at FAC (118 chars/page) AND at the city (226 chars/page)',
-      2023: 'image-only at FAC (238 chars/page) AND at the city (129 chars/page)',
-    }),
-    cityPublicationPage: 'https://www.northcharleston.org/government/city_departments/finance/index.php',
+/**
+ * ⭐ WAVE 3's TWO BLOCKERS WERE **LIBRARY** GAPS, AND THEY ARE FIXED.
+ *
+ * Kept because the distinction is the lesson, not the outcome. Waves 1 and 2
+ * were per-entity CONFIGURATION; these two were the first SC cities whose
+ * statements needed a change to the SHARED extractors — used by ~40 entities
+ * across merged milestones — so the fix got its own scoped change with every
+ * existing entity re-extracted and proved byte-identical (238 of 242 unchanged;
+ * the 4 that moved are Mecklenburg FY2013-FY2016 `zero_rows` ORDER only, same
+ * set, same tree, same totals).
+ *
+ * ⚠ The regression run is not ceremony: it caught a defect the nesting fix
+ * itself introduced, where a WELDED label carried the indent of the printed line
+ * holding the money rather than the line where its label starts, and Charlotte
+ * FY2022/FY2023 published one category's money under another. It tied at $0.
+ */
+export const SC_CITY_LIBRARY_FIXES = Object.freeze({
+  summerville: {
+    wasBlockedBy: 'three-level expenditure hierarchy that neither shared reader could render',
+    fix: '`acfrGfCoords._nested` now nests to whatever depth the page prints, measuring '
+       + 'depth against the OPEN GROUP rather than the section root.',
+    /** ⭐ Settled empirically, so it need not be re-asked. */
+    fiscalYearChangeover: 'The town moved from a December to a June fiscal year, and '
+      + 'FY2022 is NOT a short stub: revenue runs 32.9M (FY2020, Dec) -> 37.7M (FY2022, '
+      + 'Jun) -> 40.2M -> 46.7M -> 50.8M. A six-month period would be ~18M. The '
+      + 'transition fell in FY2021, which FAC does not hold. The document says "FOR THE '
+      + 'FISCAL YEAR ENDED JUNE 30, 2022" and carries no transition-period language.',
+    /** ⚠ CORRECTION to the wave-3 diagnosis, which said the `-table` reader could not
+     *  read this issuer at all. It cannot with `column_strategy='positional'`; with
+     *  `ordinal` it reads all twelve and agrees to the dollar. What it still cannot do
+     *  is carry the THREE-LEVEL SHAPE, which is the real reason for the coordinate
+     *  reader — and a better reason, because arithmetic alone would not have justified
+     *  the move. */
+    corroboration: 'the -table reader agrees on all 12 totals; it flattens the middle level',
+  },
+  'goose-creek': {
+    wasBlockedBy: 'a printed revenue subtotal that neither shared reader suppressed',
+    fix: '`cfg.subtotal_prefixes` now applies to `build_revenue` as well as '
+       + '`build_operating`, where each subtotal is CHECKED against the sum of the group '
+       + 'it closes rather than merely skipped.',
+    /** ⭐ The check is a free extra oracle: six years confirm their own subtotal. */
+    corroboration: 'the printed `Total local revenues` equals its own six children exactly, every year',
   },
 });
+
+/**
+ * ⚠⚠ NORTH CHARLESTON'S DEFERRAL BLAMED THE WRONG THING, AND THAT IS THE LESSON.
+ *
+ * It was held back as "OCR-damaged statement tables in every readable year". The
+ * glyphs are CLEAN on the years that matter; two of the three defects were
+ * MECHANICAL properties of the shared reader:
+ *
+ *   1. `lines_of` used SINGLE-LINKAGE clustering, so a word printed BETWEEN two
+ *      statement rows bridged them. FY2016 merged `Property taxes` and
+ *      `Licenses and permits` into one row for 4,419,364,731,548,834 because
+ *      another fund's figure sat 3.40pt below one and 3.47pt above the other.
+ *   2. Page furniture at x0 ~32 poisoned `min(indents)`, dragging the section
+ *      root 26pt left so every genuine row read as "an indented row with no open
+ *      parent".
+ *
+ * Only the third was a document defect: a leading `1` rendered as the letter
+ * `I`. ⭐ THE GENERAL LESSON: "the document is damaged" is a CONCLUSION, and it
+ * needs the same evidence as any other. Read the glyphs before accepting it.
+ */
+/**
+ * ⚠⚠ GREER IS NOT HERE, AND THE REASON CORRECTS A PREMISE THIS CAMPAIGN CARRIED.
+ *
+ * Greer is SC's NINTH LARGEST incorporated place (46,316, Census PEP 2024), so by
+ * population it is the next city after Goose Creek. It is absent because
+ * **THE CITY OF GREER HAS NO FEDERAL SINGLE AUDIT FILING IN THE LOADABLE
+ * WINDOW.** The FAC bulk table was searched by NAME and by LOCATION and returns
+ * only three Greer entities, none of them the city:
+ *
+ *     134349419  GREER MIDDLE COLLEGE CHARTER HIGH SCHOOL
+ *     570474477  HOUSING AUTHORITY OF GREER
+ *     576001040  Greer CPW            <- the Commission of Public Works, a
+ *                                        SEPARATE government with its own ACFR;
+ *                                        the Charleston `Commissioners of Public
+ *                                        Works` trap, in a second city
+ *
+ * The FAC fiscal-year census records Greer filing exactly ONCE, in audit year
+ * 2002 (`SC,Greer,municipality,annual,7`). A Single Audit is required only when
+ * federal awards reach $750k, and Greer's evidently have not since.
+ *
+ * ⚠⚠ SO "TOP-30 BY POPULATION ALL HAVE FAC COVERAGE" IS FALSE. It was true of
+ * every city checked before Greer, which is exactly how a sampled claim becomes
+ * a general one. Coverage must be checked per entity, not inherited.
+ *
+ * ── WHY THE CITY'S OWN SITE DID NOT RESCUE IT (checked, not assumed) ──────
+ *
+ * `cityofgreersc.gov` answers every request with a 3,038-byte bot-challenge, its
+ * document listing is rendered by JavaScript so only the page shell is
+ * retrievable, and the legacy S3 assets that search engines indexed now return
+ * HTTP 403. Exactly ONE document proved reachable, on a different asset host:
+ * FY2025, verified as the CITY's own ACFR (133 pages, June 30 year end, 130
+ * mentions of `City of Greer` and none of `Commission of Public Works`).
+ *
+ * ⚠ One year is not a series, and the campaign has twice judged even three years
+ * of ten to be worse than not shipping. Greer waits for a route that can serve
+ * the series, not for more effort against the same wall.
+ */
+export const SC_CITY_NO_FEDERAL_FILING = Object.freeze({
+  greer: {
+    population: 46316,
+    censusPlace: '30985',
+    lastFacAuditYear: 2002,
+    fiscalYearStartMonth: 7,
+    monthEvidence: 'FAC census `SC,Greer,municipality,annual,7`, audit year 2002 only',
+    /** ⚠ NOT the city. Recorded so nobody joins on the name and loads it. */
+    notThisGovernment: Object.freeze({
+      '576001040': 'Greer CPW — the Commission of Public Works, a separate government',
+      '570474477': 'HOUSING AUTHORITY OF GREER',
+      '134349419': 'GREER MIDDLE COLLEGE CHARTER HIGH SCHOOL',
+    }),
+    reachableDocument: 'FY2025 only, via files-backend.assets.thrillshare.com; the '
+      + 'listing that would give the other years is JavaScript-rendered behind a bot '
+      + 'challenge and its asset ids are opaque UUIDs that cannot be derived.',
+  },
+});
+
+export const SC_CITY_READER_HISTORY = Object.freeze({
+  'north-charleston': {
+    wasBlockedBy: 'diagnosed as OCR-damaged statement tables in every readable year',
+    actualCause: 'single-linkage row chaining and left-margin page furniture in the '
+      + 'SHARED coordinate reader, plus one genuine text-layer defect (a leading `1` '
+      + 'rendered as the letter `I`)',
+    fix: '`row_gap`, `left_margin` and `ocr_leading_one` on CoordsConfig, each opt-in '
+      + 'and each defaulting to the behaviour every other entity already had.',
+    /** ⚠ The six gaps are REAL and were checked at both publishers. */
+    loadedYears: Object.freeze([2021, 2022, 2024, 2025]),
+  },
+});
+
+export const SC_CITY_DEFERRED = Object.freeze({});
 
 /** Wave-1 entities that are actually loaded. */
 export function scCityLoadableEntities() {
   return SC_CITY_ENTITIES.filter((e) => !(e.key in SC_CITY_DEFERRED));
+}
+
+/**
+ * The fiscal month for ONE entity-year.
+ *
+ * ⚠⚠ NOT a per-entity constant. Summerville changed its fiscal year inside the
+ * loaded window — 12-31 year ends through FY2020, 06-30 from FY2022 — so a single
+ * month per entity would put a January-starting year under a July label. That
+ * error moves no dollar and fails no tie gate, which is precisely why
+ * project_fysm_column_default_one_defect exists.
+ */
+export function fiscalMonthFor(entity, fiscalYear) {
+  const o = entity.fiscalMonthOverrides;
+  if (o && Object.prototype.hasOwnProperty.call(o, fiscalYear)) return o[fiscalYear];
+  return entity.fiscalYearStartMonth;
 }
 
 export function scCityByKey(key) {

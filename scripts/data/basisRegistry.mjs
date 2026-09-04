@@ -189,10 +189,23 @@ export const BASIS_REGISTRY = [
     },
   },
   {
-    // ⚠ EXTENDED TWICE. Wave 1 added City of Charleston (FY2016-FY2025) and
-    // Town of Mount Pleasant (FY2018-FY2025), +36 rows; wave 2 added City of
-    // Rock Hill and City of Greenville (FY2016-FY2025 each), +40 rows.
-    // 38 -> 74 -> 114.
+    // ⚠ EXTENDED FOUR TIMES. Wave 1 added City of Charleston (FY2016-FY2025)
+    // and Town of Mount Pleasant (FY2018-FY2025), +36 rows; wave 2 added City of
+    // Rock Hill and City of Greenville (FY2016-FY2025 each), +40 rows; wave 3
+    // added Town of Summerville and City of Goose Creek, +24 rows, then City of
+    // North Charleston, +8, then City of Spartanburg, +20 (a full ten years).
+    // 38 -> 74 -> 114 -> 138 -> 146 -> 166.
+    //
+    // ⚠⚠ NORTH CHARLESTON IS FOUR YEARS OF TEN (FY2021, FY2022, FY2024, FY2025)
+    // and its six gaps are DOCUMENT-QUALITY gaps, not missing filings: three
+    // years are image-only at BOTH publishers, and three more carry statement
+    // pages that cannot be read without inventing digits. Every one is declared
+    // with its cause in KNOWN_DOCUMENT_GAPS, and none is written as $0.
+    //
+    // ⚠ Wave 3's two are SHORT SERIES — six years each, not ten — because a
+    // Single Audit is filed only when federal awards reach $750k. That is a
+    // FEDERAL FILING gap, not evidence the government published no ACFR, and it
+    // is never written as $0. See SC_CITY_COVERAGE_GAPS.
     //
     // ⚠⚠ THE PATTERN HAD TO BE WIDENED IN THE SAME CHANGE. It anchors on the
     // entity name, so without this the 36 new rows would have sat unclaimed
@@ -203,7 +216,7 @@ export const BASIS_REGISTRY = [
     // ⚠ `Town of` Mount Pleasant, not `City of`: it is a town in the Census
     // file and in its own filings, and entity_type is part of its identity.
     id: 'sc-local-acfr-gf',
-    match: /^(City of Columbia|City of Myrtle Beach|City of Charleston|Town of Mount Pleasant|City of Rock Hill|City of Greenville) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
+    match: /^(City of Columbia|City of Myrtle Beach|City of Charleston|Town of Mount Pleasant|City of Rock Hill|City of Greenville|Town of Summerville|City of Goose Creek|City of North Charleston|City of Spartanburg) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
     value: BASIS.ACTUAL,
     evidence: {
       document: 'City of Columbia FY2016-FY2018 and FY2020-FY2025 and City of Myrtle Beach '

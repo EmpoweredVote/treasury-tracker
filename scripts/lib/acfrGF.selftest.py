@@ -108,6 +108,79 @@ class TestRevenueParentsAllZeroMembers(unittest.TestCase):
         self.assertIn('Retail sales and use taxes', zero_rows)
 
 
+# ⚠⚠ A PRINTED REVENUE SUBTOTAL. City of Goose Creek SC p.24, FY2024,
+# transcribed verbatim from `pdftotext -table`. `Total local revenues` closes a
+# six-source `Local revenues` group; read as a leaf it DOUBLE-COUNTS its own
+# children and every year fails by exactly the subtotal (FY2024 by 36,953,087).
+# `build_operating` has suppressed-and-CHECKED such a row since Aberdeen SD;
+# this section had no subtotal handling at all.
+GC_REV_LINES = [
+    'REVENUES',
+    'Local revenues',
+    'Property taxes                                       $  8,773,340     $                    -  $                 -  $         -     $  8,773,340',
+    'Licenses and permits                                    15,224,034            2,892,571                         -            -        18,116,605',
+    'Franchise taxes                                         3,273,895                          -                    -            -        3,273,895',
+    'Charges for services                                    5,299,118                          -                    -            -        5,299,118',
+    'Fines and forfeitures                                   1,262,172                          -                    -     81,924          1,344,096',
+    'Miscellaneous revenues                                  3,120,528             280,076                           -     1,566,718       4,967,322',
+    'Total local revenues                                    36,953,087            3,172,647                         -     1,648,642       41,774,376',
+    'State revenues                                          11,063,959                         -                    -     386,930         11,450,889',
+    'Federal revenues                                        31,820                             -     15,458,822           47,076          15,537,718',
+    'Total revenues                                          48,048,866            3,172,647          15,458,822           2,082,648       68,762,983',
+]
+GC_REV_ANCHOR = GC_REV_LINES[-1]
+GC_LOCAL_MEMBERS = 8773340 + 15224034 + 3273895 + 5299118 + 1262172 + 3120528  # 36,953,087
+GC_PRINTED_TOTAL = 48048866
+
+
+class TestRevenueSubtotal(unittest.TestCase):
+    def _cfg(self, subtotals=('total local revenues',)):
+        return CityConfig(city='X', parents=('current',), column_strategy='ordinal',
+                          revenue_parents=('local revenues',),
+                          revenue_group_close='next_heading',
+                          subtotal_prefixes=subtotals)
+
+    def test_the_printed_subtotal_is_not_published_as_a_leaf(self):
+        tree, total, _ = build_revenue(GC_REV_LINES, anchors(GC_REV_ANCHOR), self._cfg())
+        self.assertEqual([c['n'] for c in tree['c']],
+                         ['Local revenues', 'State revenues', 'Federal revenues'])
+        self.assertEqual(total, GC_PRINTED_TOTAL)
+
+    def test_the_group_keeps_its_six_printed_sources(self):
+        tree, _, _ = build_revenue(GC_REV_LINES, anchors(GC_REV_ANCHOR), self._cfg())
+        local = tree['c'][0]
+        self.assertEqual([c['n'] for c in local['c']],
+                         ['Property taxes', 'Licenses and permits', 'Franchise taxes',
+                          'Charges for services', 'Fines and forfeitures',
+                          'Miscellaneous revenues'])
+        self.assertEqual(local['a'], GC_LOCAL_MEMBERS)
+
+    def test_the_subtotal_CLOSES_the_group(self):
+        # State and Federal revenues are printed OUTSIDE the local group; if the
+        # subtotal did not close it they would be swallowed into it, tying at $0.
+        tree, _, _ = build_revenue(GC_REV_LINES, anchors(GC_REV_ANCHOR), self._cfg())
+        self.assertNotIn('c', tree['c'][1])
+        self.assertEqual(tree['c'][1]['a'], 11063959)
+
+    def test_the_subtotal_is_CHECKED_against_its_own_children_and_refuses_on_a_mismatch(self):
+        # ⭐ The free oracle: a subtotal that disagrees with the group it closes
+        # means the group was mis-assembled, which the GRAND total can still
+        # hide. Same refusal `build_operating` already makes.
+        doctored = [l.replace('36,953,087', '36,953,000') for l in GC_REV_LINES]
+        with self.assertRaises(SystemExit) as ctx:
+            build_revenue(doctored, anchors(GC_REV_ANCHOR), self._cfg())
+        self.assertEqual(ctx.exception.code, 1)
+
+    def test_WITHOUT_the_declaration_nothing_changes(self):
+        # ⚠ The gate is opt-in precisely so no already-shipped entity moves:
+        # with no `subtotal_prefixes` the row is still read as a leaf and still
+        # double-counts, exactly as before this branch existed.
+        tree, total, _ = build_revenue(GC_REV_LINES, anchors(GC_REV_ANCHOR),
+                                       self._cfg(subtotals=()))
+        self.assertIn('Total local revenues', [c['n'] for c in tree['c'][0]['c']])
+        self.assertEqual(total, GC_PRINTED_TOTAL + GC_LOCAL_MEMBERS)
+
+
 # Fix round 1 / Critical 2: `_DASH_ROW`'s dashes group only ever matched ONE
 # dash character per repetition, so it recognised King County's single '-'
 # placeholder but not Seattle's '--'. When it fails to match, `classify`

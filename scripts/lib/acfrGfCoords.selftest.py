@@ -24,6 +24,11 @@ from acfrGfCoords import (  # noqa: E402
     INDENT_TOL, CoordsConfig, apply_label_fixes, clean_label,
     collapse_declared_children, build_operating_tree, leaf_sum,
 )
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+from acfrGfComponents import (  # noqa: E402
+    collect, establish_column, EXP_BANNER, EXP_TOTAL,
+)
+from acfrPrintedTotal import rows_from_words  # noqa: E402
 
 
 def row(label, indent, amount, cell='number'):
@@ -169,26 +174,400 @@ class TestIndentTolerance(unittest.TestCase):
         self.assertEqual([c['n'] for c in tree[1]['c']],
                          ['Principal payments', 'Interest and fiscal charges'])
 
-    def test_a_tolerance_past_the_child_gap_DESTROYS_the_nesting_SILENTLY(self):
+    def test_a_tolerance_past_the_child_gap_DESTROYS_the_nesting(self):
         # ⚠ THE UPPER BOUND IS NOT DECORATION, and this is why the declared value
         # is 4.0 rather than "something comfortably large". The measured
         # root->child gap in this era is 3.67-4.08pt, so at tol=6.0 the shallower
-        # children (84.74) fall INSIDE the root band: `Debt Service` loses both
-        # of its children, ends up childless and is DROPPED, while Principal
-        # payments and Interest are promoted to root categories.
+        # children (84.74) fall INSIDE `Debt Service`'s own band: the group takes
+        # nothing, is dropped childless, and Principal payments and Interest are
+        # promoted to root categories.
         #
-        # It reports NO error and the leaf sum is UNCHANGED, so the tie still
-        # lands at exactly $0. Nothing downstream could catch it.
+        # ⭐ WHAT CHANGED WHEN THE READER LEARNED MORE THAN TWO LEVELS. This case
+        # used to be SILENT — the two-level walk mis-nested every row and still
+        # reported no error, with a leaf sum identical to the correct reading, so
+        # the tie landed at exactly $0 and nothing downstream could catch it.
+        # Depth is now measured against the OPEN GROUP rather than the section
+        # root, so `Current`'s children no longer fit inside anything and the
+        # reader says so. run_cli exits 5 on a row error.
         tree, zeros, errors = build_operating_tree(self.ROWS, indent_tol=6.0)
-        self.assertEqual(errors, [], 'the damage is silent — that is the point')
+        self.assertEqual(
+            errors,
+            ['indented row with no open parent: Customer Satisfaction and Management',
+             'indented row with no open parent: Administrative Services'])
         self.assertEqual([n['n'] for n in tree],
-                         ['Current', 'Principal payments', 'Interest and fiscal charges'])
+                         ['Principal payments', 'Interest and fiscal charges'])
         self.assertIn('Debt Service', zeros)
 
-        # And the arithmetic is identical to the correct reading, which is
-        # exactly why a tie cannot be used to choose a tolerance.
+        # ⚠ And it is loud TWICE over: the two dropped rows take $55,226,860 with
+        # them, so the tie fails as well. Neither signal existed before.
         correct, _, _ = build_operating_tree(self.ROWS, indent_tol=4.0)
-        self.assertEqual(leaf_sum(tree), leaf_sum(correct))
+        self.assertEqual(leaf_sum(correct) - leaf_sum(tree), 9345322 + 45881538)
+
+
+class TestNestedGroups(unittest.TestCase):
+    """Town of Summerville SC — THREE printed levels, and a valued leaf at the
+    MIDDLE one.
+
+    ⚠⚠ WHY A TWO-LEVEL READER IS NOT SAFE HERE, even though it tied at $0 on
+    all twelve extractions. The town prints
+
+        Current:                       <- root heading
+          General Government:          <- sub-heading, no money
+            Administrative   3,563,324 <- leaf
+          Culture and recreation
+                             3,457,494 <- VALUED LEAF at the sub-heading level
+
+    and a reader that only knows root/child drops the three valueless
+    sub-headings and promotes their twelve children to `Current`. The multiset
+    of leaves is unchanged, so `leaf_sum` is identical and the tie stays at
+    exactly $0 while the published shape is the issuer's — the Boulder
+    `revenue_parents`-without-members error in a new dress.
+
+    Geometry below is REAL, transcribed from summerville_2024.pdf page 18
+    (alignment right, column edge 440.29). Root spread is 0.07pt and the
+    root -> sub gap is 6.5pt, so the module default tolerance reads it.
+    """
+
+    ROWS = [
+        row('Current:', 44.27, 0, cell='blank'),
+        row('General Government:', 50.75, 0, cell='blank'),
+        row('Administrative', 57.23, 3563324),
+        row('Planning and annexation', 57.22, 1493624),
+        row('Engineering', 57.21, 822676),
+        row('Municipal court', 57.21, 604718),
+        row('Maintenance', 57.21, 862014),
+        row('Public buildings and grounds', 57.21, 2952726),
+        row('Housing and development', 57.21, 0, cell='blank'),
+        row('Public Safety:', 50.72, 0, cell='blank'),
+        row('Police', 57.21, 12887485),
+        row('Fire', 57.20, 11297130),
+        row('Communications', 57.20, 1885950),
+        row('Roads and drainage:', 50.71, 0, cell='blank'),
+        row('Street', 57.19, 2983854),
+        row('Stormwater', 57.18, 0, cell='blank'),
+        row('Culture and recreation', 50.70, 3457494),
+        row('Capital outlay', 44.20, 3410013),
+        row('Debt service:', 44.20, 0, cell='blank'),
+        row('Principal', 50.69, 687709),
+        row('Interest', 50.69, 155127),
+    ]
+    PRINTED_TOTAL = 47063844
+
+    def _tree(self):
+        tree, zeros, errors = build_operating_tree(self.ROWS)
+        self.assertEqual(errors, [])
+        return tree, zeros
+
+    def test_reads_all_three_printed_levels(self):
+        tree, _ = self._tree()
+        self.assertEqual([n['n'] for n in tree],
+                         ['Current', 'Capital outlay', 'Debt service'])
+        current = tree[0]
+        self.assertEqual([c['n'] for c in current['c']],
+                         ['General Government', 'Public Safety',
+                          'Roads and drainage', 'Culture and recreation'])
+        self.assertEqual([g['n'] for g in current['c'][0]['c']],
+                         ['Administrative', 'Planning and annexation', 'Engineering',
+                          'Municipal court', 'Maintenance',
+                          'Public buildings and grounds'])
+
+    def test_a_VALUED_LEAF_at_the_sub_heading_level_stays_a_leaf(self):
+        # `Culture and recreation` is printed at the same indent as
+        # `General Government:` and carries money. It is a peer of the
+        # sub-groups, not a child of the last one open.
+        tree, _ = self._tree()
+        culture = tree[0]['c'][3]
+        self.assertNotIn('c', culture)
+        self.assertEqual(culture['a'], 3457494)
+
+    def test_a_sub_group_amount_is_the_sum_of_ITS_OWN_children(self):
+        tree, _ = self._tree()
+        gg = tree[0]['c'][0]
+        self.assertEqual(gg['a'], sum(c['a'] for c in gg['c']))
+        self.assertEqual(gg['a'], 10299082)
+        self.assertEqual(tree[0]['a'], sum(c['a'] for c in tree[0]['c']))
+
+    def test_the_root_leaf_and_the_root_group_after_it_are_unaffected(self):
+        # `Capital outlay` closes `Current`; `Debt service:` opens again at root.
+        tree, _ = self._tree()
+        self.assertNotIn('c', tree[1])
+        self.assertEqual([c['n'] for c in tree[2]['c']], ['Principal', 'Interest'])
+
+    def test_a_valueless_row_with_nothing_beneath_it_is_dropped_not_published(self):
+        # `Housing and development` and `Stormwater` print no money and nothing
+        # deeper follows them, so they are absences, not $0 categories.
+        tree, zeros = self._tree()
+        self.assertIn('Housing and development', zeros)
+        self.assertIn('Stormwater', zeros)
+        names = []
+
+        def walk(nodes):
+            for n in nodes:
+                names.append(n['n'])
+                walk(n.get('c') or [])
+        walk(tree)
+        self.assertNotIn('Housing and development', names)
+        self.assertNotIn('Stormwater', names)
+
+    def test_THE_TIE_CANNOT_SEE_ANY_OF_THIS(self):
+        # ⚠⚠ The whole reason the shape needs its own test: the leaf multiset is
+        # identical either way, so both the correct three-level reading and the
+        # flattened two-level one land on the printed total exactly.
+        tree, _ = self._tree()
+        self.assertEqual(leaf_sum(tree), self.PRINTED_TOTAL)
+
+
+class TestWeldedLabelIndent(unittest.TestCase):
+    """City of Charlotte FY2022/FY2023 — a WRAPPED label next to a $0 line item.
+
+    ⚠⚠ WHY THIS NEEDS `collect` IN THE TEST AND NOT JUST SYNTHETIC ROWS. The
+    page prints (real geometry, charlotte_fy2023.pdf, expenditure section):
+
+        ind=75.00  dash   grid=1  0       'Culture and recreation'
+        ind=75.00  blank  grid=0  0       'Community planning and'
+        ind=85.00  number grid=1  36,701  'development'
+
+    `weld='indent'` correctly joins the last two into one line item — and used
+    to emit it carrying the CONTINUATION's indent, 85.00, because that is the
+    row that holds the money. A two-level reader could not see the difference:
+    everything below the root band was a child either way.
+
+    Once the reader nests to any depth the issuer prints, it can: 85.00 is
+    deeper than the $0 `Culture and recreation` above it, so that row opened a
+    group and swallowed the welded item, publishing
+    `Culture and recreation > Community planning and development` — a category
+    the city never printed, holding another category's money, at a tie of
+    exactly $0. A wrapped row belongs where its LABEL STARTS.
+    """
+
+    BOUND_X = 268.0          # label/column boundary; GF cells run x0=270..x1=300
+    EDGES = (300.0, 380.0, 460.0)
+
+    @staticmethod
+    def _w(text, x0, x1):
+        return {'text': text, 'x0': x0, 'x1': x1}
+
+    @classmethod
+    def _cells(cls, *vals):
+        """One printed cell per fund column, right-aligned on its edge."""
+        return [cls._w(v, e - 30.0, e) for v, e in zip(vals, cls.EDGES) if v is not None]
+
+    @classmethod
+    def _page(cls):
+        w = cls._w
+        return [
+            [w('REVENUES', 65.0, 130.0)],
+            [w('Property', 75.0, 110.0), w('taxes', 112.0, 140.0), *cls._cells('803,314', '10', '20')],
+            [w('Total', 65.0, 95.0), w('revenues', 97.0, 150.0), *cls._cells('803,314', '10', '20')],
+            [w('EXPENDITURES', 65.0, 150.0)],
+            [w('Current-', 65.0, 110.0)],
+            [w('Public', 75.0, 105.0), w('safety', 107.0, 140.0), *cls._cells('488,211', '1', '2')],
+            [w('Culture', 75.0, 105.0), w('and', 107.0, 125.0), w('recreation', 127.0, 180.0),
+             *cls._cells('-', '3', '4')],
+            [w('Community', 75.0, 125.0), w('planning', 127.0, 170.0), w('and', 172.0, 190.0)],
+            [w('development', 85.0, 145.0), *cls._cells('36,701', '5', '6')],
+            [w('Debt', 65.0, 90.0), w('service-', 92.0, 135.0)],
+            [w('Principal', 75.0, 120.0), *cls._cells('13,621', '7', '8')],
+            [w('Total', 65.0, 95.0), w('expenditures', 97.0, 165.0), *cls._cells('538,533', '16', '20')],
+        ]
+
+    def _collect(self):
+        rows = self._page()
+        alignment, edge = establish_column(rows)
+        self.assertEqual(alignment, 'right')
+        comps, errs, welds = collect(rows, EXP_BANNER, EXP_TOTAL, alignment, edge, 1,
+                                     weld='indent')
+        self.assertEqual(errs, [])
+        self.assertEqual(welds, ['Community planning and development'])
+        return comps
+
+    def test_a_welded_row_reports_the_indent_of_its_FIRST_printed_line(self):
+        comps = self._collect()
+        welded = [r for r in comps if r['label'] == 'Community planning and development']
+        self.assertEqual(len(welded), 1)
+        self.assertEqual(welded[0]['indent'], 75.0)
+        self.assertEqual(welded[0]['amount'], 36701)
+
+    def test_it_stays_a_SIBLING_of_the_zero_row_above_it(self):
+        tree, zeros, errors = build_operating_tree(self._collect())
+        self.assertEqual(errors, [])
+        self.assertEqual([n['n'] for n in tree], ['Current-', 'Debt service-'])
+        self.assertEqual([c['n'] for c in tree[0]['c']],
+                         ['Public safety', 'Community planning and development'])
+        # `Culture and recreation` prints an explicit dash: an absence, not a
+        # parent and not a $0 category.
+        self.assertIn('Culture and recreation', zeros)
+
+
+def word(text, x0, x1, top, height=7.0):
+    return {'text': text, 'x0': x0, 'x1': x1, 'top': top, 'bottom': top + height}
+
+
+class TestRowChaining(unittest.TestCase):
+    """City of North Charleston — single-linkage clustering CHAINS.
+
+    ⚠⚠ THE DEFERRAL BLAMED THE WRONG THING. This entity was held back as
+    "OCR-damaged statement tables"; the glyphs are in fact clean and the defect
+    is mechanical. `lines_of` grows a row while each successive word is within
+    ROW_GAP of the PREVIOUS one, so a word printed BETWEEN two statement rows
+    bridges them and the two merge — labels interleaved by x0, money
+    concatenated.
+
+    Real geometry, north-charleston_2016.pdf page 42 (midpoints):
+
+        158.99  'Property taxes'        + 43,976,066 at the General Fund edge
+        160.58  ... other funds' cells on that same row
+        163.98  '9,566,068.'  <- ANOTHER FUND'S COLUMN, printed between the rows
+        167.44  'Licenses and pennits'  + 37,036,183
+
+    160.58 -> 163.98 is 3.40 and 163.98 -> 167.44 is 3.47: two hops, each under
+    ROW_GAP=4.0, so all of it became ONE row reading
+    `Property Licenses taxes and pennits` for 4,419,364,731,548,834.
+    """
+
+    ROWS = [
+        word('Property', 78.83, 107.64, 155.5), word('taxes', 108.91, 125.66, 155.5),
+        word('43,976,066', 248.27, 285.06, 156.0),
+        word('53,779,197', 687.28, 723.95, 157.1),
+        word('9,566,068.', 374.01, 407.33, 160.5),          # the bridge
+        word('pennits', 122.48, 147.07, 164.0),
+        word('Licenses', 79.06, 107.24, 164.1), word('and', 109.35, 120.36, 164.1),
+        word('37,036,183', 248.56, 285.21, 164.7),
+    ]
+
+    def _labels(self, **kw):
+        return [' '.join(w['text'] for w in r) for r in rows_from_words(list(self.ROWS), **kw)]
+
+    def test_the_DEFAULT_gap_chains_the_two_rows_into_one(self):
+        # Pinning the defect, so the per-entity value keeps its justification.
+        rows = self._labels()
+        self.assertEqual(len(rows), 1)
+        self.assertIn('Property Licenses taxes and pennits', rows[0])
+
+    def test_a_DECLARED_narrower_gap_separates_them(self):
+        rows = self._labels(gap=3.0)
+        self.assertIn('Property taxes 43,976,066 53,779,197', rows)
+        self.assertIn('Licenses and pennits 37,036,183', ' '.join(rows))
+        # ⚠ The bridging figure belongs to NEITHER row; it lands on its own,
+        # carries no label left of the columns, and `collect` ignores it.
+        self.assertIn('9,566,068.', rows)
+
+    def test_the_narrower_gap_still_keeps_a_row_together(self):
+        # ⚠ The upper bound matters as much as the lower one: the widest REAL
+        # row measured across 51 statement pages of this corpus is 3.42pt, and
+        # the widest DATA row is 0.50pt. A label and its own money sit ~1.2pt
+        # apart (the Austin case ROW_GAP exists for), so 3.0 clears both.
+        rows = self._labels(gap=3.0)
+        self.assertTrue(any('43,976,066' in r and 'Property' in r for r in rows))
+
+
+class TestLeftMarginStrays(unittest.TestCase):
+    """Stray glyphs in the left margin poison the indent baseline.
+
+    north-charleston_2024.pdf page 50 prints a bare `N` at x0=32.37 and a
+    leader-dot run `,........` at x0=32.34, where every real row on that page
+    starts at x0 >= 58.96. They do two kinds of damage: they BRIDGE adjacent
+    rows, and — because `_nested` takes `min(indents)` as the section root —
+    they drag the root band 26pt left of the actual label column, so every
+    genuine row reads as "an indented row with no open parent".
+    """
+
+    ROWS = [
+        word('Debt', 65.73, 80.27, 288.0), word('service:', 82.46, 105.00, 288.0),
+        word('N', 32.37, 37.86, 298.6),                      # margin junk
+        word('Fin.', 72.69, 83.86, 296.0), word('purchase', 86.17, 112.66, 296.0),
+        word('3,519,881', 234.64, 263.95, 296.2),
+        word(',........', 32.34, 40.63, 301.9),              # margin junk
+        word('Lease', 72.68, 89.60, 303.6), word('principal', 147.37, 173.63, 303.6),
+        word('835,966', 240.59, 264.60, 304.1),
+    ]
+
+    def test_without_the_margin_the_junk_WELDS_ONTO_THE_LABELS(self):
+        # ⚠ At the declared gap the junk no longer BRIDGES two rows — it is
+        # absorbed into the nearest one, where it prefixes the printed label.
+        rows = rows_from_words(list(self.ROWS), gap=3.0)
+        joined = [' '.join(w['text'] for w in r) for r in rows]
+        self.assertEqual(joined, [
+            'Debt service:',
+            'N Fin. purchase 3,519,881',
+            ',........ Lease principal 835,966',
+        ])
+
+    def test_and_it_drags_the_INDENT_BASELINE_26pt_LEFT(self):
+        # ⚠⚠ THE DAMAGE THAT ACTUALLY STOPS THE READ. `_nested` takes
+        # `min(indents)` as the section root, so a glyph at x0=32.34 puts the
+        # root band 26pt left of every real label and each genuine row then
+        # reports "an indented row with no open parent".
+        rows = rows_from_words(list(self.ROWS), gap=3.0)
+        self.assertEqual(min(w['x0'] for r in rows for w in r), 32.34)
+        clean = rows_from_words(list(self.ROWS), gap=3.0, left_margin=35.0)
+        self.assertEqual(min(w['x0'] for r in clean for w in r), 65.73)
+
+    def test_a_DECLARED_margin_drops_it_and_the_rows_separate(self):
+        rows = rows_from_words(list(self.ROWS), gap=3.0, left_margin=35.0)
+        joined = [' '.join(w['text'] for w in r) for r in rows]
+        self.assertEqual(joined, [
+            'Debt service:',
+            'Fin. purchase 3,519,881',
+            'Lease principal 835,966',
+        ])
+
+    def test_the_margin_keeps_every_real_label(self):
+        # ⚠ It must sit BELOW the shallowest real label on the page. This
+        # issuer's root headings print at 65.73 in FY2024 and 42.05 in FY2025,
+        # which is why the declared value is 35 and not 60: one number has to
+        # clear the junk in every year without cutting a label in any of them.
+        rows = rows_from_words(list(self.ROWS), gap=3.0, left_margin=35.0)
+        kept = {w['text'] for r in rows for w in r}
+        self.assertNotIn('N', kept)
+        self.assertNotIn(',........', kept)
+        self.assertIn('Debt', kept)
+        self.assertIn('Lease', kept)
+
+
+class TestOcrLeadingOne(unittest.TestCase):
+    """⚠⚠ A LEADING `1` RENDERED AS THE LETTER `I`, AND WHY IT IS ALLOWED HERE.
+
+    north-charleston_2021.pdf prints its General Fund `Total expenditures` as
+    two words: `I` then `13,143,394`. Read literally the total is 13,143,394 —
+    against 129,509,947 of revenue in the same column, for a city of 126,005.
+
+    ⚠⚠ `acfrGF._WS_REPAIR` REFUSES exactly this shape (`I09,091,141`, Biloxi
+    FY2024) on the ground that a lost digit must never be guessed. The
+    difference here is that NOTHING IS GUESSED: the eight expenditure
+    components are independently clean and sum to 113,143,394, which is the
+    printed digits with the `I` read as `1`. THE TIE GATE VALIDATES THE REPAIR,
+    exactly as it validates `_WS_REPAIR` — were the reading wrong, the
+    components would stop matching and the extraction would fail loudly.
+
+    It is opt-in per entity for that reason: it is only ever safe where an
+    independent sum can confirm it.
+    """
+
+    def rows(self, **kw):
+        ws = [word('Total', 66.51, 110.27, 339.5), word('expenditures', 81.82, 122.33, 339.5),
+              word('I', 210.30, 213.10, 339.3), word('13,143,394', 216.27, 251.93, 339.3)]
+        return [' '.join(w['text'] for w in r) for r in rows_from_words(ws, **kw)]
+
+    def test_off_by_default_the_letter_is_left_exactly_as_printed(self):
+        self.assertEqual(self.rows(), ['Total expenditures I 13,143,394'])
+
+    def test_declared_it_reads_the_leading_one(self):
+        self.assertEqual(self.rows(ocr_leading_one=True), ['Total expenditures 113,143,394'])
+
+    def test_it_refuses_when_the_letter_does_not_ABUT_the_figure(self):
+        # A column marker or a footnote reference stands apart from the money.
+        # 6pt is about one character; this `I` sits 33pt away and is left alone.
+        ws = [word('Total', 66.51, 110.27, 339.5),
+              word('I', 180.00, 182.80, 339.3), word('13,143,394', 216.27, 251.93, 339.3)]
+        joined = ' '.join(w['text'] for r in rows_from_words(ws, ocr_leading_one=True) for w in r)
+        self.assertIn('I 13,143,394', joined)
+
+    def test_it_never_touches_a_figure_with_no_letter_before_it(self):
+        ws = [word('Total', 66.51, 110.27, 339.5), word('13,143,394', 216.27, 251.93, 339.3)]
+        self.assertEqual(
+            [' '.join(w['text'] for w in r) for r in rows_from_words(ws, ocr_leading_one=True)],
+            ['Total 13,143,394'])
 
 
 class TestCleanLabel(unittest.TestCase):

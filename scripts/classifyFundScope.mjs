@@ -177,7 +177,58 @@ export const EXPECTED_ROWS = Object.freeze({
   //
   // ⚠⚠ Non-uniform BY DESIGN: entity_type is city AND town, and Charleston runs
   // a JANUARY fiscal year while the other five run July.
-  'sc-local-acfr-gf': 114,
+  //
+  // ⚠ 114 -> 138 on 2026-09-03: city wave 3 added Town of Summerville and City
+  // of Goose Creek, 6 years each, 24 rows. 38 (session 6a) -> 74 (wave 1) ->
+  // 114 (wave 2) -> 138. No pre-existing count moved.
+  //
+  // ⚠ THE PATTERN WAS INTERROGATED FIRST, and a count is a MEASUREMENT WITH A
+  // DATE: 138 rows over 138 DISTINCT ids, read PAGED with distinct-id ==
+  // row-count asserted over all 269,960 rows; 0 rows outside South Carolina;
+  // exactly 8 entities; 2 dataset types; 138 distinct source strings; 0
+  // duplicate (entity, year, dataset) keys; 0 non-positive totals; uniform
+  // general_fund / actual / audited_gaap. 69 entity-years x 2 = 138, and the
+  // per-entity year counts read Columbia 9 (FY2019 absent by decision), Mount
+  // Pleasant 8 (no FAC filing before FY2018), and Summerville 6 and Goose Creek
+  // 6 (a Single Audit is filed only when federal awards reach $750k). The family
+  // grew because a load added members, not because a pattern widened past its
+  // evidence.
+  //
+  // ⚠⚠ AND SUMMERVILLE CARRIES **TWO** FISCAL MONTHS — the probe reads `months
+  // 1/7` for that one entity, because the town moved from a December to a June
+  // fiscal year inside the loaded window. That is the first entity in this
+  // campaign to do so, it is correct, and a uniformity check over this family
+  // must not treat it as a defect.
+  //
+  // ⚠ 138 -> 146 on 2026-09-03: City of North Charleston, FOUR years of ten
+  // (FY2021, FY2022, FY2024, FY2025), 8 rows. No pre-existing count moved.
+  //
+  // ⚠ THE PATTERN WAS INTERROGATED FIRST: 146 rows over 146 DISTINCT ids, read
+  // PAGED with distinct-id == row-count asserted across the whole table; 0 rows
+  // outside South Carolina; exactly 9 entities; 2 dataset types; 146 distinct
+  // source strings; 0 duplicate (entity, year, dataset) keys; 0 non-positive
+  // totals; uniform general_fund / actual / audited_gaap.
+  //
+  // ⚠⚠ THIS FAMILY IS NOW DELIBERATELY RAGGED, and a uniformity check over it
+  // must not read that as a defect. Year counts run 10, 10, 10, 9, 8, 6, 6, 4;
+  // entity_type is city AND town; and the fiscal month is 1 for Charleston and
+  // Goose Creek, 7 for four others, and BOTH for Summerville, which changed its
+  // fiscal year inside the loaded window.
+  //
+  // ⚠ 146 -> 166 on 2026-09-03: City of Spartanburg, a FULL ten years
+  // (FY2016-FY2025), 20 rows. No pre-existing count moved.
+  //
+  // ⚠ THE PATTERN WAS INTERROGATED FIRST: 166 rows over 166 DISTINCT ids, read
+  // PAGED with distinct-id == row-count asserted across the whole table; 0 rows
+  // outside South Carolina; exactly 10 entities; 2 dataset types; 166 distinct
+  // source strings; 0 duplicate (entity, year, dataset) keys; 0 non-positive
+  // totals; uniform general_fund / actual / audited_gaap.
+  //
+  // ⚠⚠ THE FAMILY IS DELIBERATELY RAGGED and a uniformity check must not read
+  // that as a defect: year counts run 10, 10, 10, 10, 9, 8, 6, 6, 4;
+  // entity_type is city AND town; the fiscal month is 1 for two entities, 7 for
+  // five, and BOTH for Summerville, which changed its fiscal year mid-window.
+  'sc-local-acfr-gf': 166,
   // Knight session 6b (Tennessee's first local entity), measured from the ACTUAL
   // post-write count on 2026-08-30. A NEW family, so no pre-existing count moved.
   // 20 = 10 fiscal years (FY2016-FY2025) x 2 datasets, ONE entity — Metro

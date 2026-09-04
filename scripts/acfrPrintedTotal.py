@@ -143,7 +143,7 @@ def _inked(page):
     )
 
 
-def lines_of(page):
+def lines_of(page, gap=ROW_GAP, left_margin=None, ocr_leading_one=False):
     """Group words into visual rows by clustering their vertical midpoints.
 
     NOT a fixed grid. The first version of this function bucketed by
@@ -167,22 +167,97 @@ def lines_of(page):
     rows here are ~10.5pt apart and intra-row jitter is ~1.2pt, so ROW_GAP=4.0
     sits an order of magnitude clear of both.
     """
-    words = _inked(page).extract_words(use_text_flow=False, keep_blank_chars=False)
+    return rows_from_words(
+        _inked(page).extract_words(use_text_flow=False, keep_blank_chars=False),
+        gap=gap, left_margin=left_margin, ocr_leading_one=ocr_leading_one)
+
+
+def rows_from_words(words, gap=ROW_GAP, left_margin=None, ocr_leading_one=False):
+    """The pure half of `lines_of` — clustering over plain word dicts.
+
+    Split out so the three per-entity knobs below can be tested without a PDF.
+    All three default to the behaviour every shipped entity already had, and
+    each is opt-in for ONE diagnosed issuer.
+
+    ⚠⚠ `gap` — SINGLE-LINKAGE CHAINS, and that is a real defect, not a
+    theoretical one. A row grows while each successive word is within `gap` of
+    the PREVIOUS one, so a word printed BETWEEN two statement rows bridges them.
+    City of North Charleston FY2016 prints another fund's figure `9,566,068.`
+    3.40pt below one row and 3.47pt above the next: two legal hops, one merged
+    row, `Property Licenses taxes and pennits` for 4,419,364,731,548,834.
+
+    ⚠ Lower it only on MEASURED evidence, and know the upper bound: across 51
+    statement pages of this corpus the widest real row spans 3.42pt and the
+    widest DATA row 0.50pt, while a label and its own money can sit 1.2pt apart
+    (the Austin case in `lines_of`'s docstring). North Charleston declares 3.0.
+
+    ⚠⚠ `left_margin` — page furniture poisons the INDENT BASELINE. North
+    Charleston FY2024 prints a bare `N` and a leader run `,........` at x0 ~32
+    where every real row starts at 58.96. `_nested` takes `min(indents)` as the
+    section root, so those two glyphs drag the root band 26pt left and every
+    genuine row reads as "an indented row with no open parent". Dropping words
+    that start left of a declared margin fixes both that and the bridging.
+    ⚠ It must clear the junk in EVERY year without cutting a label in ANY of
+    them; this issuer's root headings print at 65.73 (FY2024) and 42.05
+    (FY2025), so the declared value is 35.
+
+    ⚠⚠ `ocr_leading_one` — a leading `1` rendered as the LETTER `I`, joined back
+    onto the figure it abuts. `acfrGF._WS_REPAIR` REFUSES this shape
+    (`I09,091,141`, Biloxi FY2024) because a lost digit must never be guessed,
+    and that refusal stands. Nothing is guessed here: North Charleston FY2021
+    prints `I` `13,143,394` for its General Fund total, and the eight
+    expenditure components are independently clean and sum to 113,143,394 —
+    the printed digits with the `I` read as `1`. THE TIE GATE IS WHAT VALIDATES
+    IT, exactly as it validates `_WS_REPAIR`: were the reading wrong the
+    components would stop matching and the extraction would fail loudly.
+    ⚠ It only ever fires where the letter TOUCHES the figure (<= 6pt, about one
+    character), so a column marker or footnote reference standing apart from the
+    money is left exactly as printed. Opt-in, because it is safe only where an
+    independent sum can confirm it.
+    """
+    if left_margin is not None:
+        words = [w for w in words if w['x0'] >= left_margin]
     if not words:
         return []
+    words = list(words)
     for w in words:
         w['_mid'] = (w['top'] + w['bottom']) / 2
     words.sort(key=lambda w: w['_mid'])
 
     rows, current = [], [words[0]]
     for w in words[1:]:
-        if w['_mid'] - current[-1]['_mid'] > ROW_GAP:
+        if w['_mid'] - current[-1]['_mid'] > gap:
             rows.append(current)
             current = [w]
         else:
             current.append(w)
     rows.append(current)
-    return [merge_split_numbers(sorted(ws, key=lambda w: w['x0'])) for ws in rows]
+    return [merge_split_numbers(_join_leading_one(sorted(ws, key=lambda w: w['x0'])))
+            if ocr_leading_one else merge_split_numbers(sorted(ws, key=lambda w: w['x0']))
+            for ws in rows]
+
+
+_LEADING_ONE = ('I', 'l', '|')
+
+
+def _join_leading_one(ws):
+    """Fold a standalone `I`/`l`/`|` onto the money token it abuts. See above."""
+    out, i = [], 0
+    while i < len(ws):
+        w = ws[i]
+        nxt = ws[i + 1] if i + 1 < len(ws) else None
+        if (w['text'] in _LEADING_ONE and nxt is not None
+                and parse_money(nxt['text']) is not None
+                and 0 <= nxt['x0'] - w['x1'] <= 6.0):
+            joined = dict(nxt)
+            joined['text'] = '1' + nxt['text']
+            joined['x0'] = w['x0']
+            out.append(joined)
+            i += 2
+            continue
+        out.append(w)
+        i += 1
+    return out
 
 
 def _is_money_fragment(tok):

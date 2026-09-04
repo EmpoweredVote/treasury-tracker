@@ -66,6 +66,7 @@ import { parseArgs } from 'node:util';
 
 import {
   SC_CITY_COVERAGE_GAPS, SC_CITY_DEFERRED, SC_CITY_STATE, scCityLoadableEntities,
+  fiscalMonthFor,
 } from './data/scCityAcfrEntities.mjs';
 import { KNOWN_DOCUMENT_GAPS, DEFAULT_OUT, stemFor } from './extractScCitiesAll.mjs';
 import { censusGuard } from './lib/facFiscalYearCensus.mjs';
@@ -85,11 +86,30 @@ export function sourceNameFor(entity, datasetType, fiscalYear) {
   return `${sourcePrefixFor(entity)} ACFR — General Fund ${face} (FY${fiscalYear} actual, GAAP basis)`;
 }
 
-/** `{n,a,c}` shape the RPC expects, from the extractor's own tree. */
+/**
+ * `{n,a,c}` shape the RPC expects, from the extractor's own tree.
+ *
+ * ⚠⚠ RECURSES. The first version of this function hard-stopped at depth two —
+ * `r.c.map((k) => ({ n: k.n, a: k.a }))` — which SILENTLY DROPPED every
+ * grandchild. That was invisible while the wave held only two-level issuers, and
+ * Summerville is three levels deep: `Current:` > `General Government:` >
+ * `Administrative`. Its seven General Government leaves, three Public Safety
+ * leaves and two Roads and drainage leaves would all have vanished, and NOTHING
+ * would have failed — the tie is computed on the extractor's tree, before this
+ * conversion, so it would still have been $0 while the loaded tree was missing
+ * twelve categories.
+ *
+ * `_treasury_insert_tree` recurses on `c` with no depth limit, so the full
+ * hierarchy survives into the icicle. ⚠ This is a no-op for the four entities
+ * loaded before Summerville — Charleston, Mount Pleasant, Rock Hill and
+ * Greenville are all two levels deep, so recursing reproduces their trees
+ * byte-for-byte.
+ */
 function toRpcTree(tree) {
-  return (tree.c || []).map((r) => (r.c && r.c.length
-    ? { n: r.n, a: r.a, c: r.c.map((k) => ({ n: k.n, a: k.a })) }
-    : { n: r.n, a: r.a }));
+  const node = (r) => (r.c && r.c.length
+    ? { n: r.n, a: r.a, c: r.c.map(node) }
+    : { n: r.n, a: r.a });
+  return (tree.c || []).map(node);
 }
 
 export function readExtracted(dir, entityKey, fiscalYear, datasetType) {
@@ -147,7 +167,14 @@ export async function main() {
 
       // ⚠ censusGuard returns {ok:true} when it has NO evidence — silence is not
       // confirmation, so an uncovered year is reported, never counted.
-      const guard = censusGuard(ent.censusName, SC_CITY_STATE, ent.fiscalYearStartMonth, fy);
+      // ⚠⚠ PER ENTITY-YEAR, not per entity. Summerville moved from a December
+      // to a June fiscal year INSIDE this window, so its own constant is wrong
+      // for FY2018 and FY2020. Passing the constant here is not academic: this
+      // guard rejected it with `month 7 contradicts the federal audit record`,
+      // which is the only reason the mistake was visible — it moves no dollar
+      // and fails no tie gate.
+      const month = fiscalMonthFor(ent, fy);
+      const guard = censusGuard(ent.censusName, SC_CITY_STATE, month, fy);
       if (guard.error) {
         console.error(`      CENSUS CONTRADICTION: ${guard.error}`);
         bad += 1;
@@ -156,13 +183,13 @@ export async function main() {
       } else {
         checks += 1;
       }
-      filings.push({ entity: ent, fiscalYear: fy, revenue, operating });
+      filings.push({ entity: ent, fiscalYear: fy, revenue, operating, month });
     }
   }
 
   for (const f of filings) {
     console.log(`  ${sourcePrefixFor(f.entity)} FY${f.fiscalYear}  `
-      + `rev ${usd(f.revenue.tree.a)}   exp ${usd(f.operating.tree.a)}  (month ${f.entity.fiscalYearStartMonth})`);
+      + `rev ${usd(f.revenue.tree.a)}   exp ${usd(f.operating.tree.a)}  (month ${f.month})`);
   }
 
   if (gaps.length) {
@@ -244,8 +271,11 @@ export async function main() {
         p_data_source_name: label,
         p_source_url: f.entity.publicationPage,
         p_source_date: sourceDate,
-        // ⚠⚠ PER ENTITY. Charleston is 1, Mount Pleasant is 7.
-        p_fiscal_year_start_month: f.entity.fiscalYearStartMonth,
+        // ⚠⚠ PER ENTITY-YEAR. Charleston and Goose Creek are 1, Mount Pleasant,
+        // Rock Hill and Greenville are 7 — and SUMMERVILLE IS BOTH: 1 through
+        // FY2020, 7 from FY2022. `fiscalMonthFor` resolves it and `censusGuard`
+        // has already checked this exact value against the federal record.
+        p_fiscal_year_start_month: f.month,
         p_fund_scope: FUND_SCOPE,
         p_basis: BASIS_VALUE,
         p_derivation: DERIVATION,
@@ -265,8 +295,17 @@ export async function main() {
     console.error('REFUSING: no rows were actually written.');
     process.exit(1);
   }
+  // ⚠ The --match list must name the entities THIS run wrote and nothing else:
+  // the union has to equal the frozen-invariant deficit exactly, or arbitrary
+  // rows get registered. Built from the run rather than hard-coded, because a
+  // stale hint here is how the wrong rows get filed.
+  const matches = [...new Set(filings.map((f) => `${sourcePrefixFor(f.entity)} ACFR`))]
+    .map((m) => `--match "${m}"`).join(' ');
   console.log('Now run:  npm run verify:frozen');
-  console.log('     then npm run register:rows -- --milestone sc-cities-charleston-wave --match "City of Charleston ACFR" --match "Town of Mount Pleasant ACFR"');
+  console.log(`     then npm run register:rows -- --milestone <name> ${matches}`);
+  console.log('     then node scripts/syncFrozenInvariantState.mjs   (NEVER --set-baseline)');
+  console.log('     then node scripts/stampAuditGrade.mjs && node scripts/stampBudgetAxes.mjs');
+  console.log('     then npm run verify:live-sync');
   return filings;
 }
 
