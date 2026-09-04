@@ -560,6 +560,109 @@ export const SC_CITY_ENTITIES = Object.freeze([
       2025: '2025-06-GSAFAC-0000397355',
     },
   },
+  {
+    key: 'hilton-head',
+    /**
+     * ⚠ A TOWN — `Hilton Head Island town` in the Census place file and
+     * `TOWN OF HILTON HEAD ISLAND` in its own filings. Same call as Mount
+     * Pleasant and Summerville: `treasury_ensure_municipality` keys on
+     * (name, state, entity_type), so the type is part of this government's
+     * identity and flattening it to `city` would create a different row.
+     * The source label is therefore `Town of Hilton Head Island ACFR — ...`.
+     */
+    name: 'Hilton Head Island',
+    entityType: 'town',
+    extractor: 'scripts/extractHiltonHeadSC.py',
+    state: SC_CITY_STATE,
+    population: 38158,
+    censusPlace: '34045',
+    /**
+     * ⭐ ONE SUMLEV-157 row (county 013), so this town does not straddle a
+     * county line — unlike Florence. Beaufort County is FIPS 45013.
+     */
+    parentCountyName: 'Beaufort County',
+    /**
+     * ⚠⚠ THE NAME TRAP HERE IS A PUBLIC SERVICE DISTRICT, NOT A WATERWORKS:
+     *
+     *     570752325  TOWN OF HILTON HEAD ISLAND                 <- wanted
+     *     570680099  Hilton Head No. 1 Public Service District  <- a SEPARATE
+     *                                                              government
+     *
+     * The PSD is a real independent special-purpose district filing its own
+     * audited statements (one filing, audit year 2025). It does NOT share this
+     * EIN, so it is a name-search trap only — but it is the third occurrence of
+     * the Charleston CPW / Mount Pleasant Waterworks shape in this campaign.
+     *
+     * ⭐ Checked in the FAC bulk table: ONE government on this EIN, ONE fiscal
+     * year end (06-30), and THREE auditee_name spellings —
+     * `TOWN OF HILTON HEAD ISLAND, SOUTH CAROLINA`,
+     * `TOWN OF HILTON HEAD ISLAND` and `Town of Hilton Head Island, South
+     * Carolina`. A name join would split this town into three series.
+     *
+     * ⚠⚠ AND ITS UEI IS NOT STABLE ACROSS THE WINDOW: `GSA_MIGRATION` through
+     * FY2021, `CCGUAVLGD1G9` from FY2022. The (EIN + audit_year + fy_end + UEI)
+     * key is the right one for asking whether a GOVERNMENT-YEAR has a second
+     * filing, but it must never be used to group a SERIES across years — do
+     * that and this town reads as two governments. Asked here: 8 filings,
+     * ZERO duplicate government-years. Sumter's reissue does not recur.
+     */
+    facEin: '570752325',
+    censusName: 'Hilton Head Island',
+    /**
+     * ⭐ JULY, confirmed on every filing: `fy_end_date` 06-30 on all eight FAC
+     * filings, and the town's own FY2020 document states `Fiscal Year Ended
+     * June 30, 2020` on its cover and in its PDF metadata. No mid-window change
+     * of the Summerville kind.
+     */
+    fiscalYearStartMonth: 7,
+    monthStatus: 'confirmed',
+    publicationPage:
+      'https://hiltonheadislandsc.gov/government/finance/annual_comprehensive_financial_reports.php',
+    facReports: {
+      2017: '2017-06-CENSUS-0000201322',
+      2018: '2018-06-CENSUS-0000201322',
+      2019: '2019-06-CENSUS-0000201322',
+      2021: '2021-06-CENSUS-0000201322',
+      2022: '2022-06-CENSUS-0000201322',
+      2023: '2023-06-GSAFAC-0000017854',
+      2024: '2024-06-GSAFAC-0000347727',
+      2025: '2025-06-GSAFAC-0000397601',
+    },
+    /**
+     * ⭐⭐ THE FIRST YEAR IN THIS CAMPAIGN LOADED FROM THE ISSUER INSTEAD OF FAC.
+     *
+     * FY2020 has no federal Single Audit filing under this EIN, and the recorded
+     * coverage figure for this town was "8 of 10" because of it. The town
+     * publishes that year ITSELF, and it is the real document — verified before
+     * it was believed:
+     *
+     *     12,108,104 bytes, magic `%PDF-`, 162 pages
+     *     cover      `Town of Hilton Head Island, South Carolina /
+     *                 COMPREHENSIVE ANNUAL FINANCIAL REPORT /
+     *                 Fiscal Year Ended June 30, 2020`
+     *     PDF Author `Town of Hilton Head Island`
+     *     acfrDocQuality  1,922 ch/pg · 56.0% vocab · 0.0 welds · 73 stmt pages
+     *
+     * ⚠⚠ A YEAR REACHABLE AT THE ISSUER IS NOT AUTOMATICALLY A YEAR THAT CAN
+     * SHIP. North Charleston's FY2018 passes all four checks at its own
+     * publisher and STILL cannot be loaded, because its expenditure statement
+     * prints no General Fund figure for two functions. Fetch, then MEASURE.
+     *
+     * ⚠ A year may appear here or in `facReports`, NEVER BOTH — two publishers
+     * for one government-year is ambiguous provenance, and the fetcher refuses
+     * it rather than picking. (The town also republishes FY2021-FY2025, which
+     * FAC already serves; those are deliberately NOT listed, so every year has
+     * exactly one recorded source. The full listing is kept for the record in
+     * `HILTON_HEAD_SELF_PUBLISHED`.)
+     */
+    selfPublishedReports: Object.freeze({
+      2020: Object.freeze({
+        url: 'https://hiltonheadislandsc.gov/Documents/Government/Town%20Finances/ACFR/ACFRs/FY2020CAFR.pdf',
+        why: 'no filing under EIN 570752325 in the Federal Audit Clearinghouse; '
+          + "fetched from the town's own ACFR listing",
+      }),
+    }),
+  },
 ]);
 
 /**
@@ -591,6 +694,51 @@ export const SC_CITY_COVERAGE_GAPS = Object.freeze({
     2019: 'no filing under EIN 576008064 in the Federal Audit Clearinghouse',
     2020: 'no filing under EIN 576008064 in the Federal Audit Clearinghouse',
   },
+  /**
+   * ⚠⚠ HILTON HEAD'S TWO FAC GAPS DO NOT HAVE THE SAME CAUSE, AND ONLY ONE IS
+   * A COVERAGE GAP. The recorded figure for this town was "8 of 10"; asking the
+   * question per YEAR at BOTH publishers — the North Charleston discipline —
+   * turned it into NINE.
+   *
+   *   FY2016  absent at FAC and absent from the town's own ACFR listing, which
+   *           starts at FY2020. A genuine gap, and the ONLY one.
+   *   FY2020  absent at FAC, but the TOWN PUBLISHES IT ITSELF — so it is NOT a
+   *           coverage gap and is deliberately absent from this map. It loads
+   *           from `selfPublishedReports`. See that field for its evidence.
+   *
+   * ⭐⭐ THE GENERAL POINT: "8 of 10" was a measurement of ONE PUBLISHER, and it
+   * was recorded as if it were a measurement of the YEAR. Asking per year at
+   * BOTH publishers — the North Charleston discipline — moved this town to NINE.
+   */
+  'hilton-head': {
+    2016: 'no filing under EIN 570752325 in the Federal Audit Clearinghouse, '
+      + "and the town's own ACFR listing begins at FY2020",
+  },
+});
+
+/**
+ * ⭐ The town's own ACFR listing, which covers FY2020-FY2025 and therefore
+ * OVERLAPS the federal record everywhere except FY2020.
+ *
+ * ⚠ Spaces MUST be percent-encoded — the North Charleston lesson; unencoded,
+ * curl returns 000. ⚠ The listing decorates each href with a `?t=` cache-buster
+ * that is NOT required to fetch the bytes and is deliberately not recorded.
+ *
+ * ⚠⚠ A year reachable here is NOT automatically a year that can ship. North
+ * Charleston's FY2018 passed all four document-quality checks at the town's
+ * publisher and still could not be loaded, because its expenditure statement
+ * prints no General Fund figure for two functions. Fetch, then MEASURE.
+ */
+export const HILTON_HEAD_SELF_PUBLISHED = Object.freeze({
+  base: 'https://hiltonheadislandsc.gov/Documents/Government/Town%20Finances/ACFR/ACFRs',
+  files: Object.freeze({
+    2020: 'FY2020CAFR.pdf',
+    2021: 'FY2021CAFR.pdf',
+    2022: 'FY2022ACFR.pdf',
+    2023: 'FY2023ACFR.pdf',
+    2024: 'FY2024ACFR.pdf',
+    2025: 'FY2025ACFR.pdf',
+  }),
 });
 
 /**
@@ -948,12 +1096,60 @@ export function scCityByKey(key) {
   return SC_CITY_ENTITIES.find((e) => e.key === key) ?? null;
 }
 
-/** Every (entity, fiscalYear) the wave intends to LOAD. Deferred entities are excluded. */
+/**
+ * Every fiscal year this entity has a DOCUMENT for, from EITHER publisher.
+ *
+ * ⚠⚠ USE THIS, NEVER `Object.keys(entity.facReports)`. Wave 5 introduced a second
+ * publisher (`selfPublishedReports`, for a year FAC does not serve) and there
+ * were FOUR places iterating `facReports` directly — the fetcher, the extraction
+ * driver, the loader and the reader gate. Wiring only the fetcher meant the
+ * document was fetched and then silently skipped by the other three: 184
+ * extractions where 186 were expected, no error, no failing tie, and the year
+ * simply absent. The count is the only thing that showed it.
+ *
+ * ⭐ THE GENERAL LESSON, and it is the SECOND time this campaign has learned it
+ * (see `fiscalMonthFor` in wave 3): AFTER ADDING A NEW SOURCE OF TRUTH, GREP FOR
+ * EVERY CALL SITE OF THE OLD ONE — and then give them one function to call, so
+ * the next publisher cannot reintroduce the same divergence.
+ */
+export function scCityYearsFor(entity) {
+  return [...new Set([
+    ...Object.keys(entity.facReports || {}).map(Number),
+    ...Object.keys(entity.selfPublishedReports || {}).map(Number),
+  ])].sort((a, b) => a - b);
+}
+
+/**
+ * Every (entity, fiscalYear) the wave intends to LOAD. Deferred entities are excluded.
+ *
+ * ⚠⚠ THIS MUST ENUMERATE BOTH PUBLISHERS. Wave 5 added `selfPublishedReports`
+ * for Hilton Head FY2020 and wired it into `fetchScCityWaveAcfrs.mjs` — and this
+ * function still read `facReports` alone, so the document would have been
+ * fetched, quality-checked and then SILENTLY NEVER LOADED. No tie would fail and
+ * no total would move; the year would just quietly not exist.
+ *
+ * ⭐ That is `fiscalMonthFor()`'s lesson from wave 3, repeating one wave later:
+ * AFTER ADDING A NEW SOURCE OF TRUTH, GREP FOR EVERY CALL SITE OF THE OLD ONE.
+ * `facReports` is read here, in the fetcher, and in the manifest check.
+ *
+ * ⚠ `reportId` is null for a self-published year, and `publisher` says which is
+ * which, so no caller can mistake an issuer-served document for a federal filing.
+ */
 export function scCityFilings() {
   const out = [];
   for (const e of scCityLoadableEntities()) {
-    for (const fy of Object.keys(e.facReports).map(Number).sort((a, b) => a - b)) {
-      out.push({ entity: e, fiscalYear: fy, reportId: e.facReports[fy] });
+    const years = new Set([
+      ...Object.keys(e.facReports || {}).map(Number),
+      ...Object.keys(e.selfPublishedReports || {}).map(Number),
+    ]);
+    for (const fy of [...years].sort((a, b) => a - b)) {
+      const reportId = e.facReports?.[fy] ?? null;
+      out.push({
+        entity: e,
+        fiscalYear: fy,
+        reportId,
+        publisher: reportId ? 'fac' : 'self',
+      });
     }
   }
   return out;

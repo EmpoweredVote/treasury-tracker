@@ -31,7 +31,7 @@ import path from 'node:path';
 import { parseArgs } from 'node:util';
 
 import {
-  SC_CITY_COVERAGE_GAPS, SC_CITY_DEFERRED, scCityLoadableEntities,
+  SC_CITY_COVERAGE_GAPS, SC_CITY_DEFERRED, scCityLoadableEntities, scCityYearsFor,
 } from './data/scCityAcfrEntities.mjs';
 
 const ROOT = process.cwd();
@@ -107,7 +107,7 @@ export async function main() {
 
   for (const ent of entities) {
     if (!ent.extractor) throw new Error(`${ent.key} has no extractor declared`);
-    const years = Object.keys(ent.facReports).map(Number).sort((a, b) => a - b);
+    const years = scCityYearsFor(ent);
     console.log(`\n${ent.name} (${ent.entityType}) — ${years.length} documents`);
 
     for (const fy of years) {

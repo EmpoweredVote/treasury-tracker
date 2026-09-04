@@ -149,7 +149,7 @@ describe('South Carolina city ACFR axes', () => {
     // every previous wave nothing is subtracted for a coverage or document gap.
     // That is a MEASURED fact per entity (Greer proved the population-based
     // claim false), not an assumption from their size.
-    expect(expectedRowsFor('sc-local-acfr-gf')).toBe(206);
+    expect(expectedRowsFor('sc-local-acfr-gf')).toBe(224);
 
     // ⚠⚠ THE ORIGINAL INTENT, PRESERVED. 38 = 19 session-6a entity-years x 2
     // datasets, and 40 would mean Columbia FY2019 came back — the year whose only
@@ -172,10 +172,13 @@ describe('South Carolina city ACFR axes', () => {
     // are declared in KNOWN_DOCUMENT_GAPS. A count that ignored them would
     // silently expect 12 rows that must never exist.
     // ⚠ 168 = the 128 above plus wave 4's Sumter 10 + Florence 10, x 2 datasets.
+    // ⚠ 186 = 168 plus wave 5's Hilton Head NINE, x 2 datasets. Nine, not eight:
+    // eight federal filings plus FY2020 from the town's own publisher. Every one
+    // of the nine is readable, so none is subtracted here.
     const loadable = scCityFilings()
       .filter((f) => !KNOWN_DOCUMENT_GAPS[`${f.entity.key}-${f.fiscalYear}`]);
-    expect(loadable.length * 2).toBe(168);
-    expect(38 + 168).toBe(206);
+    expect(loadable.length * 2).toBe(186);
+    expect(38 + 186).toBe(224);
   });
 
   // ⚠ `city` was missing from this set for months with every gate green.

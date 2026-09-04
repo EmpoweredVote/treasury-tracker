@@ -18,10 +18,11 @@ import { SOURCE_CHIP_ENTITY_TYPES } from '../src/data/sourceChipTypes.ts';
 import { READER_DISAGREEMENTS, disagreementFor } from '../scripts/verifyScCityReaders.mjs';
 
 describe('the South Carolina city wave-1 roster', () => {
-  it('holds ten governments and loads all ten', () => {
+  it('holds eleven governments and loads all eleven', () => {
     expect(SC_CITY_ENTITIES.map((e) => e.key).sort()).toEqual([
-      'charleston', 'florence', 'goose-creek', 'greenville', 'mount-pleasant',
-      'north-charleston', 'rock-hill', 'spartanburg', 'summerville', 'sumter',
+      'charleston', 'florence', 'goose-creek', 'greenville', 'hilton-head',
+      'mount-pleasant', 'north-charleston', 'rock-hill', 'spartanburg',
+      'summerville', 'sumter',
     ]);
     // ⚠⚠ GREER IS DELIBERATELY ABSENT and is SC's ninth-largest place. It has NO
     // federal Single Audit filing in the window — the FAC census records it once,
@@ -40,13 +41,13 @@ describe('the South Carolina city wave-1 roster', () => {
     expect(scCityLoadableEntities().map((e) => e.key))
       .toEqual(['charleston', 'north-charleston', 'mount-pleasant', 'rock-hill',
         'greenville', 'summerville', 'goose-creek', 'spartanburg', 'sumter',
-        'florence']);
+        'florence', 'hilton-head']);
     expect(Object.keys(SC_CITY_DEFERRED)).toEqual([]);
   });
 
-  it('loads 90 entity-years, and Mount Pleasant is short by exactly its two gaps', () => {
+  it('loads 99 entity-years, and Mount Pleasant is short by exactly its two gaps', () => {
     const filings = scCityFilings();
-    expect(filings).toHaveLength(90);
+    expect(filings).toHaveLength(99);
     const byKey = {};
     for (const f of filings) byKey[f.entity.key] = (byKey[f.entity.key] || 0) + 1;
     // ⚠ Mount Pleasant's 8 is the point: FAC serves no filing under its EIN
@@ -62,16 +63,37 @@ describe('the South Carolina city wave-1 roster', () => {
       // table, not inherited from the "top-30 all have FAC coverage" claim that
       // Greer falsified.
       sumter: 10, florence: 10,
+      // ⚠⚠ Wave 5, and the FIRST entity whose years come from TWO PUBLISHERS.
+      // EIGHT are FAC filings; the NINTH (FY2020) is the town's own copy, which
+      // is why this is 9 and not the "8 of 10" the campaign had recorded. FY2016
+      // is absent at both publishers and is the only declared gap.
+      'hilton-head': 9,
     });
+    // ⚠⚠ AND THE SELF-PUBLISHED YEAR MUST ACTUALLY BE ENUMERATED HERE. Wave 5
+    // wired `selfPublishedReports` into the FETCHER first and left this function
+    // reading `facReports` alone — the document would have been fetched, quality
+    // -checked, and then silently never loaded. Nothing would have failed.
+    const hh = filings.filter((f) => f.entity.key === 'hilton-head');
+    expect(hh.map((f) => f.fiscalYear))
+      .toEqual([2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]);
+    expect(hh.filter((f) => f.publisher === 'self').map((f) => f.fiscalYear)).toEqual([2020]);
+    expect(hh.find((f) => f.fiscalYear === 2020).reportId).toBeNull();
+    // ⚠ Every OTHER year of every OTHER entity is a federal filing with an id.
+    for (const f of filings) {
+      if (f.publisher === 'fac') expect(f.reportId).toMatch(/^\d{4}-\d{2}-(CENSUS|GSAFAC)-\d{10}$/);
+    }
     // ⚠⚠ North Charleston's TEN are roster years, not loaded years: six of its
     // documents are unreadable at both publishers and only four produce rows.
     const loadable = filings.filter((f) => !KNOWN_DOCUMENT_GAPS[`${f.entity.key}-${f.fiscalYear}`]);
     expect(loadable.filter((f) => f.entity.key === 'north-charleston').map((f) => f.fiscalYear))
       .toEqual([2021, 2022, 2024, 2025]);
-    // ⚠ 90 filings less North Charleston's six unreadable documents = 84.
+    // ⚠ 99 filings less North Charleston's six unreadable documents = 93.
     // Wave 4 adds twenty and subtracts nothing: neither Sumter nor Florence
-    // has a document gap, and both are full decades at FAC.
-    expect(loadable).toHaveLength(84);
+    // has a document gap, and both are full decades at FAC. Wave 5 adds NINE
+    // and subtracts nothing either — all nine Hilton Head documents pass all
+    // four checks in scripts/tools/acfrDocQuality.py, the self-published FY2020
+    // included (1,922 ch/pg, 56.0% vocab, 0.0 welds, 73 numeric statement pages).
+    expect(loadable).toHaveLength(93);
   });
 
   /**

@@ -216,7 +216,7 @@ export const BASIS_REGISTRY = [
     // ⚠ `Town of` Mount Pleasant, not `City of`: it is a town in the Census
     // file and in its own filings, and entity_type is part of its identity.
     id: 'sc-local-acfr-gf',
-    match: /^(City of Columbia|City of Myrtle Beach|City of Charleston|Town of Mount Pleasant|City of Rock Hill|City of Greenville|Town of Summerville|City of Goose Creek|City of North Charleston|City of Spartanburg|City of Sumter|City of Florence) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
+    match: /^(City of Columbia|City of Myrtle Beach|City of Charleston|Town of Mount Pleasant|City of Rock Hill|City of Greenville|Town of Summerville|City of Goose Creek|City of North Charleston|City of Spartanburg|City of Sumter|City of Florence|Town of Hilton Head Island) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
     value: BASIS.ACTUAL,
     evidence: {
       document: 'City of Columbia FY2016-FY2018 and FY2020-FY2025 and City of Myrtle Beach '

@@ -35,7 +35,7 @@ import path from 'node:path';
 import { parseArgs } from 'node:util';
 
 import {
-  scCityLoadableEntities, SC_CITY_NO_TABLE_CORROBORATOR,
+  scCityLoadableEntities, SC_CITY_NO_TABLE_CORROBORATOR, scCityYearsFor,
 } from './data/scCityAcfrEntities.mjs';
 import { KNOWN_DOCUMENT_GAPS, stemFor } from './extractScCitiesAll.mjs';
 
@@ -244,7 +244,7 @@ export async function main() {
 
   for (const ent of entities) {
     console.log(`\n${ent.name} — ${ent.extractor} (record) vs ${ent.corroboratingExtractor} (corroborating)`);
-    for (const fy of Object.keys(ent.facReports).map(Number).sort((a, b) => a - b)) {
+    for (const fy of scCityYearsFor(ent)) {
       // ⚠ A year whose DOCUMENT is already declared unreadable has nothing to
       // corroborate — the record reader cannot read it either, and that is
       // stated, with its cause and its second publisher, in KNOWN_DOCUMENT_GAPS.

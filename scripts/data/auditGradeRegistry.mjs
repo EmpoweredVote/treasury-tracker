@@ -353,7 +353,7 @@ export const AUDIT_GRADE_REGISTRY = [
     //     GAAP conformity phrase appears 4-6 times in each. One OCBOA entity
     //     hiding in a GAAP cohort is what Brown County SD turned out to be.
     id: 'sc-city-acfr',
-    match: /^(City of Columbia|City of Myrtle Beach|City of Charleston|Town of Mount Pleasant|City of Rock Hill|City of Greenville|Town of Summerville|City of Goose Creek|City of North Charleston|City of Spartanburg|City of Sumter|City of Florence) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
+    match: /^(City of Columbia|City of Myrtle Beach|City of Charleston|Town of Mount Pleasant|City of Rock Hill|City of Greenville|Town of Summerville|City of Goose Creek|City of North Charleston|City of Spartanburg|City of Sumter|City of Florence|Town of Hilton Head Island) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
     value: AUDIT_GRADE.AUDITED_GAAP,
     evidence: {
       document: 'The independent auditor\'s report, read in ALL NINETEEN loaded documents '
