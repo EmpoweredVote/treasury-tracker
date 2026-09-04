@@ -149,7 +149,17 @@ const REQUIRED = {
   // itself warns the data must not be used to relate revenues to expenditures.
   // If a scope is ever asserted for this family, THIS LOADER MUST CHANGE IN THE
   // SAME COMMIT.
-  'loadScRfa.mjs': 'SC RFA Local Government Finance Report — 52 rows, unknown/actual (scope unknown on purpose)',
+  'loadScRfa.mjs': 'SC RFA Local Government Finance Report — 1,170 rows statewide, '
+    + 'unknown/actual (scope unknown on purpose)',
+  // South Carolina city wave 1. EXTENDS the existing `sc-local-acfr-gf` family
+  // (Columbia + Myrtle Beach, 38 rows) rather than opening one beside it, so it
+  // writes the SAME axis pair those rows already carry and a re-run matches on
+  // the values written here.
+  // ⚠ The opposite pair from loadScRfa.mjs directly above, and deliberately: an
+  // entity's OWN ACFR gives a real General Fund column, whereas RFA's statewide
+  // report puts revenues and expenditures on different scopes by construction.
+  // Same state, two sources, two honest answers.
+  'loadScCityAcfrs.mjs': 'SC city ACFRs (Charleston, Mount Pleasant) — 36 rows, general_fund / actual',
   'loadFloridaDFS.mjs': 'Florida DFS AFR — 190 rows, total_governmental/actual',
   // ⚠ The statewide sweep writes the SAME family as loadFloridaDFS.mjs and imports
   // its FUND_SCOPE/BASIS_VALUE constants rather than restating them, so the two
