@@ -34,7 +34,9 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { parseArgs } from 'node:util';
 
-import { scCityLoadableEntities } from './data/scCityAcfrEntities.mjs';
+import {
+  scCityLoadableEntities, SC_CITY_NO_TABLE_CORROBORATOR,
+} from './data/scCityAcfrEntities.mjs';
 import { KNOWN_DOCUMENT_GAPS, stemFor } from './extractScCitiesAll.mjs';
 
 const ROOT = process.cwd();
@@ -186,11 +188,48 @@ function runReader(py, script, pdf, mode) {
 
 export async function main() {
   const { values } = parseArgs({ options: { entity: { type: 'string' } } });
-  const entities = scCityLoadableEntities()
+  const loadable = scCityLoadableEntities();
+
+  // ⚠⚠ EVERY COORDINATE ENTITY MUST BE ACCOUNTED FOR — the filter below used to
+  // select `.filter(e => e.corroboratingExtractor)` and nothing else, so a
+  // coordinate entity that declared no corroborator was skipped IN SILENCE and
+  // this gate reported success having never looked at it. That is the campaign's
+  // own recurring defect (a gate that measures nothing), so it is now a hard
+  // error: a coordinate entity is either corroborated by the other reader or
+  // named in SC_CITY_NO_TABLE_CORROBORATOR with its diagnosis and substitute.
+  const coords = loadable.filter((e) => /Coords\.py$/.test(e.extractor || ''));
+  const unaccounted = coords.filter(
+    (e) => !e.corroboratingExtractor && !(e.key in SC_CITY_NO_TABLE_CORROBORATOR));
+  if (unaccounted.length) {
+    console.error('REFUSING: these coordinate entities declare neither a '
+      + 'corroborating extractor nor an exemption in SC_CITY_NO_TABLE_CORROBORATOR: '
+      + `${unaccounted.map((e) => e.key).join(', ')}.`);
+    process.exit(1);
+  }
+
+  // ⚠ And a declared exemption that is NOT needed fails too, exactly as a
+  // declared-but-unobserved READER_DISAGREEMENT does — otherwise dead permission
+  // accumulates and a later entity inherits it by name.
+  const needless = Object.keys(SC_CITY_NO_TABLE_CORROBORATOR).filter((key) => {
+    const e = loadable.find((x) => x.key === key);
+    return e && e.corroboratingExtractor;
+  });
+  if (needless.length) {
+    console.error('REFUSING: these entities are exempted from -table corroboration '
+      + `but DO declare a corroborating extractor: ${needless.join(', ')}. `
+      + 'Remove the exemption or the extractor.');
+    process.exit(1);
+  }
+  for (const [key, ex] of Object.entries(SC_CITY_NO_TABLE_CORROBORATOR)) {
+    console.log(`${key} — NO -table corroborator, by diagnosis. Substitute: ${ex.substitute.split('—')[0].trim()}`);
+    console.log(`  result: ${ex.substituteResult}`);
+  }
+
+  const entities = loadable
     .filter((e) => e.corroboratingExtractor)
     .filter((e) => !values.entity || e.key === values.entity);
 
-  if (!entities.length) {
+  if (!entities.length && !values.entity) {
     console.error('REFUSING: no entity declares a corroborating extractor. '
       + 'A check that measures nothing must fail.');
     process.exit(1);

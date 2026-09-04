@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest';
 import {
   SC_CITY_ENTITIES, SC_CITY_DEFERRED, SC_CITY_COVERAGE_GAPS, SC_CITY_STATE,
   SC_CITY_LIBRARY_FIXES, SC_CITY_READER_HISTORY, SC_CITY_NO_FEDERAL_FILING,
+  SC_CITY_NO_TABLE_CORROBORATOR, SC_CITY_SUPERSEDED_REPORTS,
   scCityLoadableEntities, scCityFilings, scCityByKey, fiscalMonthFor,
 } from '../scripts/data/scCityAcfrEntities.mjs';
 import { KNOWN_DOCUMENT_GAPS } from '../scripts/extractScCitiesAll.mjs';
@@ -10,15 +11,17 @@ import { sourceNameFor, sourcePrefixFor, FUND_SCOPE, BASIS_VALUE, DERIVATION } f
 import { gradeFor } from '../scripts/data/auditGradeRegistry.mjs';
 import { AUDIT_GRADE, BASIS, BASIS_VALUES, classifyAxis } from '../scripts/lib/budgetAxes.mjs';
 import { BASIS_REGISTRY } from '../scripts/data/basisRegistry.mjs';
+import { FUND_SCOPE_REGISTRY } from '../scripts/data/fundScopeRegistry.mjs';
+import { classify } from '../scripts/lib/fundScope.mjs';
 import { censusGuard, censusMonthFor } from '../scripts/lib/facFiscalYearCensus.mjs';
 import { SOURCE_CHIP_ENTITY_TYPES } from '../src/data/sourceChipTypes.ts';
 import { READER_DISAGREEMENTS, disagreementFor } from '../scripts/verifyScCityReaders.mjs';
 
 describe('the South Carolina city wave-1 roster', () => {
-  it('holds eight governments and loads all eight', () => {
+  it('holds ten governments and loads all ten', () => {
     expect(SC_CITY_ENTITIES.map((e) => e.key).sort()).toEqual([
-      'charleston', 'goose-creek', 'greenville', 'mount-pleasant',
-      'north-charleston', 'rock-hill', 'spartanburg', 'summerville',
+      'charleston', 'florence', 'goose-creek', 'greenville', 'mount-pleasant',
+      'north-charleston', 'rock-hill', 'spartanburg', 'summerville', 'sumter',
     ]);
     // ⚠⚠ GREER IS DELIBERATELY ABSENT and is SC's ninth-largest place. It has NO
     // federal Single Audit filing in the window — the FAC census records it once,
@@ -36,13 +39,14 @@ describe('the South Carolina city wave-1 roster', () => {
     // are different things, and conflating them is how a gap becomes a $0.
     expect(scCityLoadableEntities().map((e) => e.key))
       .toEqual(['charleston', 'north-charleston', 'mount-pleasant', 'rock-hill',
-        'greenville', 'summerville', 'goose-creek', 'spartanburg']);
+        'greenville', 'summerville', 'goose-creek', 'spartanburg', 'sumter',
+        'florence']);
     expect(Object.keys(SC_CITY_DEFERRED)).toEqual([]);
   });
 
-  it('loads 70 entity-years, and Mount Pleasant is short by exactly its two gaps', () => {
+  it('loads 90 entity-years, and Mount Pleasant is short by exactly its two gaps', () => {
     const filings = scCityFilings();
-    expect(filings).toHaveLength(70);
+    expect(filings).toHaveLength(90);
     const byKey = {};
     for (const f of filings) byKey[f.entity.key] = (byKey[f.entity.key] || 0) + 1;
     // ⚠ Mount Pleasant's 8 is the point: FAC serves no filing under its EIN
@@ -54,13 +58,20 @@ describe('the South Carolina city wave-1 roster', () => {
     expect(byKey).toEqual({
       charleston: 10, 'mount-pleasant': 8, 'rock-hill': 10, greenville: 10,
       summerville: 6, 'goose-creek': 6, 'north-charleston': 10, spartanburg: 10,
+      // ⚠ Wave 4. Both are FULL decades at FAC — coverage MEASURED in the bulk
+      // table, not inherited from the "top-30 all have FAC coverage" claim that
+      // Greer falsified.
+      sumter: 10, florence: 10,
     });
     // ⚠⚠ North Charleston's TEN are roster years, not loaded years: six of its
     // documents are unreadable at both publishers and only four produce rows.
     const loadable = filings.filter((f) => !KNOWN_DOCUMENT_GAPS[`${f.entity.key}-${f.fiscalYear}`]);
     expect(loadable.filter((f) => f.entity.key === 'north-charleston').map((f) => f.fiscalYear))
       .toEqual([2021, 2022, 2024, 2025]);
-    expect(loadable).toHaveLength(64);
+    // ⚠ 90 filings less North Charleston's six unreadable documents = 84.
+    // Wave 4 adds twenty and subtracts nothing: neither Sumter nor Florence
+    // has a document gap, and both are full decades at FAC.
+    expect(loadable).toHaveLength(84);
   });
 
   /**
@@ -312,16 +323,49 @@ describe('the South Carolina city wave-2 roster', () => {
     const rh = scCityByKey('rock-hill');
     expect(rh.extractor).toBe('scripts/extractRockHillCoords.py');
     expect(rh.corroboratingExtractor).toBe('scripts/extractRockHillSC.py');
-    // ⚠ Exactly the entities on the COORDINATE reader declare a corroborator,
-    // and every other loaded entity reads cleanly through `-table` alone. A
-    // corroborator on a `-table` entity would be a check that never runs; a
-    // coordinate entity without one would be unfalsifiable.
+    // ⚠ A corroborator on a `-table` entity would be a check that never runs, so
+    // only coordinate entities carry one.
     const coords = scCityLoadableEntities().filter((e) => e.extractor.endsWith('Coords.py'));
     expect(coords.map((e) => e.key))
-      .toEqual(['north-charleston', 'rock-hill', 'summerville', 'spartanburg']);
+      .toEqual(['north-charleston', 'rock-hill', 'summerville', 'spartanburg', 'sumter']);
     for (const e of scCityLoadableEntities()) {
-      expect(Boolean(e.corroboratingExtractor)).toBe(e.extractor.endsWith('Coords.py'));
+      if (!e.extractor.endsWith('Coords.py')) {
+        expect(e.corroboratingExtractor).toBeUndefined();
+      }
     }
+  });
+
+  /**
+   * ⚠⚠ A COORDINATE ENTITY WITHOUT A CORROBORATOR WOULD BE UNFALSIFIABLE, so it
+   * must be accounted for one way or the other. This test used to read
+   * `Boolean(e.corroboratingExtractor) === e.extractor.endsWith('Coords.py')`,
+   * which Sumter breaks DELIBERATELY: `pdftotext -table` cannot read that issuer
+   * in any of its ten years, so there is no second reading to be had.
+   *
+   * The invariant is therefore EITHER/OR, never neither and never both — and it
+   * is asserted here rather than left to `verifyScCityReaders.mjs`, which used
+   * to select entities with `.filter(e => e.corroboratingExtractor)` and so
+   * skipped exactly this case in silence.
+   */
+  it('accounts for every coordinate entity — a corroborator or a declared exemption', () => {
+    const coords = scCityLoadableEntities().filter((e) => e.extractor.endsWith('Coords.py'));
+    expect(coords.length).toBeGreaterThan(0);
+    for (const e of coords) {
+      const hasReader = Boolean(e.corroboratingExtractor);
+      const exempt = e.key in SC_CITY_NO_TABLE_CORROBORATOR;
+      expect(hasReader || exempt).toBe(true);
+      expect(hasReader && exempt).toBe(false);
+    }
+    // ⚠ And no exemption may name an entity that is not a coordinate entity, or
+    // one that does have a corroborator — dead permission is how a later entity
+    // inherits an excuse it never earned.
+    for (const key of Object.keys(SC_CITY_NO_TABLE_CORROBORATOR)) {
+      const e = scCityByKey(key);
+      expect(e).not.toBeNull();
+      expect(e.extractor.endsWith('Coords.py')).toBe(true);
+      expect(e.corroboratingExtractor).toBeUndefined();
+    }
+    expect(Object.keys(SC_CITY_NO_TABLE_CORROBORATOR)).toEqual(['sumter']);
   });
 
   it('claims both new entities on the audit-grade and basis registries', () => {
@@ -482,5 +526,145 @@ describe('the wave-3 entities', () => {
       expect(e.fiscalMonthOverrides).toBeUndefined();
     }
     expect(fiscalMonthFor(scCityByKey('goose-creek'), 2024)).toBe(1);
+  });
+});
+
+describe('the wave-4 entities — Sumter and Florence', () => {
+  it('measures coverage per entity rather than inheriting a claim', () => {
+    // ⚠⚠ Greer falsified "top-30 by population all have FAC coverage", so
+    // coverage is read per entity out of the bulk table. Both of these are full
+    // decades, and BOTH ARE LARGER THAN SPARTANBURG, which wave 3 loaded.
+    expect(scCityByKey('sumter').population).toBe(42958);
+    expect(scCityByKey('florence').population).toBe(40923);
+    expect(scCityByKey('sumter').population)
+      .toBeGreaterThan(scCityByKey('spartanburg').population);
+    expect(scCityByKey('florence').population)
+      .toBeGreaterThan(scCityByKey('spartanburg').population);
+    for (const key of ['sumter', 'florence']) {
+      expect(Object.keys(scCityByKey(key).facReports).map(Number).sort())
+        .toEqual([2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]);
+      // ⚠ No coverage gap and no document gap — asserted, not assumed.
+      expect(SC_CITY_COVERAGE_GAPS[key]).toBeUndefined();
+      expect(KNOWN_DOCUMENT_GAPS[key]).toBeUndefined();
+    }
+  });
+
+  it('joins on an EIN whose one-digit neighbours are real, wrong governments', () => {
+    expect(scCityByKey('sumter').facEin).toBe('576000246');
+    expect(scCityByKey('florence').facEin).toBe('576000232');
+    // ⚠⚠ Sumter's neighbours are two cities TT ALREADY HOLDS, so a typo loads a
+    // loaded city's money under another city's name and every tie gate passes.
+    expect(scCityByKey('rock-hill').facEin).toBe('576000244');
+    expect(scCityByKey('spartanburg').facEin).toBe('576000245');
+    // ⚠ Every EIN in the family is distinct — the cheap check that catches a
+    // transposed digit landing on a sibling.
+    const eins = scCityLoadableEntities().map((e) => e.facEin);
+    expect(new Set(eins).size).toBe(eins.length);
+  });
+
+  it('evidences July three ways for both, and agrees with the federal record', () => {
+    for (const key of ['sumter', 'florence']) {
+      const e = scCityByKey(key);
+      expect(e.fiscalYearStartMonth).toBe(7);
+      expect(e.monthStatus).toBe('confirmed');
+      expect(e.fiscalMonthOverrides).toBeUndefined();
+      // ⚠ The census is an INDEPENDENT record, so it is asked rather than told.
+      expect(censusMonthFor(SC_CITY_STATE, e.censusName).month).toBe(7);
+      for (const fy of Object.keys(e.facReports).map(Number)) {
+        expect(censusGuard(e.censusName, SC_CITY_STATE, fiscalMonthFor(e, fy), fy).error)
+          .toBeUndefined();
+      }
+    }
+  });
+
+  /**
+   * ⚠⚠ ONE GOVERNMENT-YEAR, TWO ACCEPTED FILINGS, AND EVERY TIE GATE PASSES BOTH.
+   *
+   * FAC serves eleven filings for Sumter's ten years. The extra is the same city,
+   * same UEI, same 06-30 year end, filed twice — and the two documents differ by
+   * a General Fund RECLASSIFICATION that offsets to the dollar, so the totals,
+   * the tie, the row count and a leaf-sum check are all identical. Only the
+   * record can decide, and it does: the PDF title says `- Reissued`, FAC accepted
+   * it a year later, and the city's own site publishes only that one.
+   */
+  it('loads the REISSUED Sumter FY2024 and records what the superseded one said', () => {
+    const sup = SC_CITY_SUPERSEDED_REPORTS.sumter[2024];
+    expect(scCityByKey('sumter').facReports[2024]).toBe('2024-06-GSAFAC-0000392867');
+    expect(sup.loadedReportId).toBe('2024-06-GSAFAC-0000392867');
+    expect(sup.supersededReportId).toBe('2024-06-GSAFAC-0000344027');
+    expect(sup.pdfTitles[sup.loadedReportId]).toMatch(/Reissued/);
+    expect(sup.pdfTitles[sup.supersededReportId]).toMatch(/Final/);
+    // ⚠⚠ THE RECLASSIFICATION SUMS TO ZERO — which is exactly why no arithmetic
+    // gate can tell the two documents apart.
+    const moves = Object.values(sup.generalFundReclassification);
+    expect(moves).toHaveLength(4);
+    expect(moves.reduce((a, b) => a + b, 0)).toBe(0);
+    expect(sup.generalFundReclassification['Capital Outlay > Public safety']).toBe(-227950);
+    expect(sup.generalFundReclassification['Current > Public safety and law enforcement'])
+      .toBe(227950);
+    // ⚠ And the figures that do NOT move are the ones every gate looks at.
+    expect(sup.unchanged.totalRevenues).toBe(85437318);
+    expect(sup.unchanged.totalExpenditures).toBe(64284680);
+    // ⚠ A superseded id must never be the one recorded for loading.
+    for (const e of scCityLoadableEntities()) {
+      expect(Object.values(e.facReports)).not.toContain(sup.supersededReportId);
+    }
+  });
+
+  it('claims both new entities on all THREE axis registries', () => {
+    // ⚠⚠ All three anchor on the ENTITY NAME, so a load that widens two of them
+    // leaves rows unclaimed while looking fine. Wave 3 widened basis and
+    // audit-grade and NOT fund-scope, which the next test pins.
+    for (const f of scCityFilings().filter((x) => ['sumter', 'florence'].includes(x.entity.key))) {
+      for (const ds of ['revenue', 'operating']) {
+        const label = sourceNameFor(f.entity, ds, f.fiscalYear);
+        expect(gradeFor(label).value).toBe(AUDIT_GRADE.AUDITED_GAAP);
+        expect(classifyAxis(label, BASIS_REGISTRY, BASIS_VALUES, BASIS.UNKNOWN).entryId)
+          .toBe('sc-local-acfr-gf');
+        expect(classify(label, FUND_SCOPE_REGISTRY))
+          .toEqual({ scope: FUND_SCOPE, entryId: 'sc-local-acfr-gf' });
+      }
+    }
+  });
+
+  it('claims the WAVE-3 entities on fund-scope too, which wave 3 omitted', () => {
+    // ⚠⚠ Found while adding wave 4: Summerville, Goose Creek, North Charleston
+    // and Spartanburg were never added to fundScopeRegistry, so 52 of the
+    // family's 166 rows sat unclaimed by it while looking perfectly fine.
+    // Pinned here so it cannot regress.
+    for (const key of ['summerville', 'goose-creek', 'north-charleston', 'spartanburg']) {
+      const label = sourceNameFor(scCityByKey(key), 'revenue', 2024);
+      expect(classify(label, FUND_SCOPE_REGISTRY))
+        .toEqual({ scope: FUND_SCOPE, entryId: 'sc-local-acfr-gf' });
+    }
+  });
+
+  it('keeps both as CITIES, and reads Capital Outlay per entity', () => {
+    expect(scCityByKey('sumter').entityType).toBe('city');
+    expect(scCityByKey('florence').entityType).toBe('city');
+    expect(sourcePrefixFor(scCityByKey('sumter'))).toBe('City of Sumter');
+    expect(sourcePrefixFor(scCityByKey('florence'))).toBe('City of Florence');
+    // ⚠⚠ The two disagree on `Capital Outlay` — a PARENT over five children in
+    // Sumter, a valued ROOT LEAF in Florence — in the same wave and the same
+    // pull request. The Hillsboro inversion between two cities shipped on the
+    // same day, which is why the fact lives per entity in each reader.
+    expect(scCityByKey('sumter').extractor).toBe('scripts/extractSumterCoords.py');
+    expect(scCityByKey('florence').extractor).toBe('scripts/extractFlorenceSC.py');
+  });
+
+  /**
+   * ⚠⚠ SUMTER IS THE FIRST COORDINATE ENTITY WITH NO SECOND READER, and the
+   * reason is a property of the DOCUMENTS: `pdftotext -table` renders its
+   * statement page letter-spaced in every one of the ten years, so the shared
+   * reader's banner and total-anchor patterns match nothing and `classify`
+   * refuses the page outright. De-letter-spacing is the workaround the library
+   * already declines. What checks it instead is the line the city derived itself.
+   */
+  it('substitutes the printed excess for the missing second reader', () => {
+    const ex = SC_CITY_NO_TABLE_CORROBORATOR.sumter;
+    expect(ex.why).toMatch(/letter-spaced/);
+    expect(ex.refusedWorkaround).toMatch(/fuzzy label repair/);
+    expect(ex.substitute).toMatch(/verifyScCityExcess\.py/);
+    expect(ex.substituteResult).toMatch(/10 of 10/);
   });
 });

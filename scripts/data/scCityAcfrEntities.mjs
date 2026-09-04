@@ -423,6 +423,143 @@ export const SC_CITY_ENTITIES = Object.freeze([
       2025: '2025-06-GSAFAC-0000405784',
     },
   },
+  {
+    key: 'sumter',
+    name: 'Sumter',
+    entityType: 'city',
+    /**
+     * ⚠⚠ THE COORDINATE READER, and for TWO independent reasons — either alone
+     * would justify it. (1) `pdftotext -table` renders this issuer LETTER-SPACED
+     * (`Re ve nue s`, `T otal revenues`, `Go v ern men t al`) so the shared
+     * reader's banner and anchor patterns match nothing and `classify` refuses
+     * the page on a stray page number in the General Fund column. (2) Its
+     * revenue section GROUPS THREE TIMES with valued root leaves printed
+     * BETWEEN the groups, a shape none of `acfrGF`'s three grouping rules can
+     * express — and every wrong shape ties at $0.
+     *
+     * ⚠⚠ NO `-table` CORROBORATOR IS POSSIBLE, unlike Rock Hill and
+     * Spartanburg: the grid reader fails all ten years, not some. The
+     * independent check is `scripts/verifyScCityExcess.py`, which reproduces
+     * the issuer's OWN printed `Excess (deficiency) of revenues over (under)
+     * expenditures` on 10 of 10 years. See the extractor docstring for what
+     * that does and does not rule out.
+     */
+    extractor: 'scripts/extractSumterCoords.py',
+    state: SC_CITY_STATE,
+    population: 42958,
+    censusPlace: '70405',
+    parentCountyName: 'Sumter County',
+    /**
+     * ⚠⚠ ITS ONE-DIGIT NEIGHBOUR IS A CITY TT ALREADY HOLDS, and the one below
+     * that is another one:
+     *
+     *     576000244  CITY OF ROCK HILL      <- wave 2, loaded
+     *     576000245  CITY OF SPARTANBURG    <- wave 3, loaded
+     *     576000246  CITY OF SUMTER         <- wanted
+     *
+     * A typo does not fail. It loads a LOADED city's audited statements under
+     * Sumter's name and every tie gate passes on them.
+     *
+     * ⚠ Also in SC and NOT this government: SUMTER COUNTY (576000405),
+     * HOUSING AUTHORITY OF SUMTER (570475456), SUMTER SCHOOL DISTRICT
+     * (364682689), SUMTER COUNTY COMMISSION ON ALCOHOL AND DRUG ABUSE
+     * (570604046), SUMTER COUNTY DISABILITIES AND SPECIAL NEEDS BOARD
+     * (570645651 and 824401069 — two EINs, one board name) and SUMTER FAMILY
+     * HEALTH CENTER (571095992).
+     *
+     * ⭐ Checked in the bulk table, not assumed: this EIN carries ONE
+     * government — one UEI (WA1XM9LJCL85), one fiscal year end (06-30), one
+     * city, and `CITY OF SUMTER` / `City of Sumter` as its only two
+     * auditee_name spellings. No Rock Hill-style collision.
+     */
+    facEin: '576000246',
+    censusName: 'Sumter',
+    /**
+     * ⭐ JULY, confirmed three ways: `fy_end_date` is 06-30 on all eleven
+     * filings, `fy_start_date` 07-01; the FAC census records
+     * `SC,Sumter,municipality,annual,7` across audit years 1998-2000,
+     * 2003-2015 and 2017-2025; and each statement states its own period
+     * (`For the Year Ended June 30, 2024`). ⚠ The census has no 2016 row — a
+     * census gap, not a disagreement; the filing for that year exists.
+     */
+    fiscalYearStartMonth: 7,
+    monthStatus: 'confirmed',
+    publicationPage: 'https://www.sumtersc.gov/finance/financial-reports-budgets',
+    facReports: {
+      2016: '2016-06-CENSUS-0000170600',
+      2017: '2017-06-CENSUS-0000170600',
+      2018: '2018-06-CENSUS-0000170600',
+      2019: '2019-06-CENSUS-0000170600',
+      2020: '2020-06-CENSUS-0000170600',
+      2021: '2021-06-CENSUS-0000170600',
+      2022: '2022-06-CENSUS-0000170600',
+      2023: '2023-06-GSAFAC-0000012936',
+      2024: '2024-06-GSAFAC-0000392867',
+      2025: '2025-06-GSAFAC-0000394755',
+    },
+  },
+  {
+    key: 'florence',
+    name: 'Florence',
+    entityType: 'city',
+    extractor: 'scripts/extractFlorenceSC.py',
+    state: SC_CITY_STATE,
+    population: 40923,
+    censusPlace: '25810',
+    /**
+     * ⚠ Florence city straddles TWO counties in the Census place file — SUMLEV
+     * 157 records it under county 041 (Florence, 40,923) and county 031
+     * (Darlington, 0). The whole population sits in Florence County.
+     */
+    parentCountyName: 'Florence County',
+    /**
+     * ⚠⚠ ITS ONE-DIGIT NEIGHBOUR IS A SCHOOL DISTRICT IN THE SAME CITY:
+     *
+     *     576000231  FLORENCE SCHOOL DISTRICT ONE
+     *     576000232  CITY OF FLORENCE, SC            <- wanted
+     *     576000233  CITY OF GAFFNEY                 <- a different SC city
+     *
+     * ⚠ Also in SC and NOT this government: FLORENCE COUNTY (576000351), the
+     * housing authorities (570515841 and 831445511 — two EINs, one authority),
+     * FLORENCE DARLINGTON TECHNICAL COLLEGE (570424007), Florence County
+     * school districts 2/3/4/5 (570641055 / 570641054 / 570641053 /
+     * 570641052), the Florence County disabilities board (570718156 and
+     * 570718186), the alcohol and drug abuse commission (570559761) and
+     * `Pee Dee Regional Aiport Authority DBA Florence Regional Airport`
+     * (571076384 — the publisher's own typo, kept verbatim).
+     *
+     * ⭐ Checked in the bulk table: one government on this EIN — one fiscal
+     * year end (06-30), one city, three auditee_name spellings
+     * (`CITY OF FLORENCE, SC`, `City of Florence, SC`,
+     * `City of Florence, South Carolina`). ⚠⚠ Three spellings on ten filings is
+     * exactly why the join is (EIN + fiscal-year-end + report id): a name join
+     * would split this city into three series or drop two of them.
+     */
+    facEin: '576000232',
+    censusName: 'Florence',
+    /**
+     * ⭐ JULY, confirmed three ways: `fy_end_date` 06-30 and `fy_start_date`
+     * 07-01 on all ten filings, the FAC census records
+     * `SC,Florence,municipality,annual,7` across audit years 1998-2020 and
+     * 2022-2025, and each statement states its own period. ⚠ The census has no
+     * 2021 row — a census gap, not a disagreement.
+     */
+    fiscalYearStartMonth: 7,
+    monthStatus: 'confirmed',
+    publicationPage: 'https://www.cityofflorencesc.gov/finance-department',
+    facReports: {
+      2016: '2016-06-CENSUS-0000170511',
+      2017: '2017-06-CENSUS-0000170511',
+      2018: '2018-06-CENSUS-0000170511',
+      2019: '2019-06-CENSUS-0000170511',
+      2020: '2020-06-CENSUS-0000170511',
+      2021: '2021-06-CENSUS-0000170511',
+      2022: '2022-06-CENSUS-0000170511',
+      2023: '2023-06-GSAFAC-0000019341',
+      2024: '2024-06-GSAFAC-0000356681',
+      2025: '2025-06-GSAFAC-0000397355',
+    },
+  },
 ]);
 
 /**
@@ -454,6 +591,92 @@ export const SC_CITY_COVERAGE_GAPS = Object.freeze({
     2019: 'no filing under EIN 576008064 in the Federal Audit Clearinghouse',
     2020: 'no filing under EIN 576008064 in the Federal Audit Clearinghouse',
   },
+});
+
+/**
+ * ⚠⚠ ONE GOVERNMENT-YEAR, TWO ACCEPTED FILINGS, AND EVERY TIE GATE PASSES BOTH.
+ *
+ * Sumter FY2024 is the campaign's first. The Federal Audit Clearinghouse serves
+ * ELEVEN filings for this EIN's ten years, and the extra one is not a collision
+ * with another government (the Rock Hill case) — it is the same city, the same
+ * UEI, the same 06-30 year end, the same auditor, filed twice:
+ *
+ *     2024-06-GSAFAC-0000344027  accepted 2024-12-16  128 pp
+ *                                PDF title `ACFR City of Sumter 2024 Final`
+ *     2024-06-GSAFAC-0000392867  accepted 2025-12-17  130 pp   <- LOADED
+ *                                PDF title `ACFR City of Sumter 2024 - Reissued`
+ *
+ * ⚠⚠ FAC ITSELF DOES NOT MARK EITHER AS SUPERSEDED. Both carry
+ * `resubmission_version 1` and `resubmission_status most_recent`, so the field
+ * built for exactly this question answers it wrongly. They differ in
+ * `fac_accepted_date` (a year apart), in `total_amount_expended` (1,440,456 vs
+ * 3,205,394), in `oversight_agency` (16 vs 21) and in
+ * `is_internal_control_material_weakness_disclosed` (No vs Yes).
+ *
+ * ── ⚠⚠ AND THE REISSUE MOVES GENERAL FUND MONEY BETWEEN CATEGORIES ─────────
+ *
+ * Diffed page for page. The General Fund statement of revenues, expenditures and
+ * changes in fund balances differs in exactly four line items:
+ *
+ *     Current > General government administration   8,950,216 -> 8,981,421   +31,205
+ *     Current > Public safety and law enforcement   25,601,510 -> 25,829,460  +227,950
+ *     Capital Outlay > Public safety                3,721,022 -> 3,493,072   -227,950
+ *     Capital Outlay > Economic development         858,893 -> 827,688       -31,205
+ *
+ * A reclassification out of capital outlay and into current, offsetting to the
+ * dollar. **Total expenditures (64,284,680), total revenues (85,437,318), every
+ * other line and every fund balance are IDENTICAL in the two documents.**
+ *
+ * ⚠⚠ SO THE TIE GATE CANNOT TELL THEM APART — it passes at exactly $0 on both,
+ * and so would a total-only oracle, a row count and a leaf-sum check. Loading
+ * the superseded copy would have published $227,950 of public safety CAPITAL
+ * spending as CURRENT operating spending, with every gate green. This is the
+ * `project_austin_travis_onboarding` lesson (a tautological check) reaching a
+ * new place: the arithmetic is internally consistent in BOTH documents, so
+ * arithmetic is not what decides. The RECORD decides.
+ *
+ * ⭐ THREE INDEPENDENT REASONS THE REISSUE IS THE REPORT OF RECORD:
+ *   1. its own PDF title says `- Reissued` and the other says `Final`;
+ *   2. FAC accepted it a year later, 2025-12-17 against 2024-12-16;
+ *   3. ⭐ THE CITY'S OWN SITE PUBLISHES THE REISSUE AND NOT THE OTHER —
+ *      `acfr-city-of-sumter-2024-reissued.pdf` is the only FY2024 document on
+ *      sumtersc.gov/finance/financial-reports-budgets. The issuer's own answer to
+ *      "which one is your annual report" needed no inference.
+ *
+ * ⭐ CHECKED ACROSS THE WHOLE FAMILY, not just here: every one of the 90 report
+ * ids recorded in this module and in scAcfrSources.mjs was resolved in the bulk
+ * table and grouped by (EIN + audit_year + fiscal-year-end + UEI). NO other
+ * loaded government-year carries a second filing, so no already-loaded row is
+ * built on a superseded document. The nine multi-filing EIN-years all belong to
+ * the known Rock Hill collision — two governments sharing one EIN, which is a
+ * different defect with a different fix.
+ * ⚠ Charleston FY2025 is the one recorded id absent from the bulk snapshot; bulk
+ * lags recent filings, as wave 1 recorded.
+ */
+export const SC_CITY_SUPERSEDED_REPORTS = Object.freeze({
+  sumter: Object.freeze({
+    2024: Object.freeze({
+      supersededReportId: '2024-06-GSAFAC-0000344027',
+      loadedReportId: '2024-06-GSAFAC-0000392867',
+      pdfTitles: Object.freeze({
+        '2024-06-GSAFAC-0000344027': 'ACFR City of Sumter 2024 Final',
+        '2024-06-GSAFAC-0000392867': 'ACFR City of Sumter 2024 - Reissued',
+      }),
+      /** ⚠⚠ Both documents tie at $0. Only the split differs. */
+      generalFundReclassification: Object.freeze({
+        'Current > General government administration': 31205,
+        'Current > Public safety and law enforcement': 227950,
+        'Capital Outlay > Public safety': -227950,
+        'Capital Outlay > Economic development': -31205,
+      }),
+      unchanged: Object.freeze({
+        totalRevenues: 85437318,
+        totalExpenditures: 64284680,
+      }),
+      evidence: 'the PDF title says `- Reissued`; FAC accepted it a year later; and '
+        + "the city's own publication page carries only this document for FY2024",
+    }),
+  }),
 });
 
 /**
@@ -642,6 +865,48 @@ export const SC_CITY_NO_FEDERAL_FILING = Object.freeze({
       + 'listing that would give the other years is JavaScript-rendered behind a bot '
       + 'challenge and its asset ids are opaque UUIDs that cannot be derived.',
   },
+});
+
+/**
+ * ⚠⚠ COORDINATE ENTITIES THAT CANNOT HAVE A `-table` CORROBORATOR, DECLARED.
+ *
+ * The campaign's rule is that an entity on `acfrGfCoords.py` keeps being
+ * corroborated by `acfrGF.py` on every year the grid reader can still read, or
+ * the move is unfalsifiable. Rock Hill and Spartanburg are corroborated that
+ * way. Sumter cannot be, and the reason is a property of the DOCUMENTS.
+ *
+ * ⚠⚠ THIS MAP EXISTS BECAUSE THE GATE USED TO SKIP SUCH AN ENTITY IN SILENCE.
+ * `verifyScCityReaders.mjs` selects entities by `.filter(e =>
+ * e.corroboratingExtractor)`, so a coordinate entity that simply declared none
+ * was not checked and nothing said so — the campaign's own recurring defect (a
+ * gate that measures nothing), one more time. The gate now REQUIRES every
+ * coordinate entity to appear either with a corroborating extractor or here,
+ * and it fails on an entry that turns out not to be needed, exactly as
+ * `READER_DISAGREEMENTS` fails on a declared-but-unobserved disagreement.
+ */
+export const SC_CITY_NO_TABLE_CORROBORATOR = Object.freeze({
+  sumter: Object.freeze({
+    why: '`pdftotext -table` renders the statement page letter-spaced in every one '
+      + 'of the ten years (`Re ve nue s`, `T otal revenues`, `Go v ern men t al`), so '
+      + 'the acfrGF revenue banner and total-anchor patterns match nothing, and '
+      + '`acfrGF.classify` then refuses the page because the printed page number '
+      + 'lands in the General Fund column. It fails LOUDLY rather than producing a '
+      + 'wrong shape, which is correct — but it means there is no second reading.',
+    /** ⚠ The workaround the library already refuses, recorded so it is not retried. */
+    refusedWorkaround: 'de-letter-spacing the text layer would be a fuzzy label repair; '
+      + 'CityConfig.label_fixes declines that trade explicitly, and '
+      + 'repair_ocr_whitespace closes split thousands groups only, never letters.',
+    /** ⭐ What checks it instead, and what that is worth. */
+    substitute: 'scripts/verifyScCityExcess.py — the printed `Excess '
+      + '(deficiency) of revenues over (under) expenditures` line THE CITY ITSELF '
+      + 'derived, which equals the two '
+      + 'extracted totals on 10 of 10 years. It binds the two SIDES together, which '
+      + 'the tie gate does not (the tie compares each side against its own printed '
+      + 'total, so a side read from a neighbouring fund column still ties at $0). '
+      + 'Its honest limit: two errors equal in size and identical in sign, one per '
+      + 'side, would survive it.',
+    substituteResult: '10 of 10 Sumter years exact, 20 of 20 across wave 4',
+  }),
 });
 
 export const SC_CITY_READER_HISTORY = Object.freeze({

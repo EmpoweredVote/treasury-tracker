@@ -228,7 +228,19 @@ export const EXPECTED_ROWS = Object.freeze({
   // that as a defect: year counts run 10, 10, 10, 10, 9, 8, 6, 6, 4;
   // entity_type is city AND town; the fiscal month is 1 for two entities, 7 for
   // five, and BOTH for Summerville, which changed its fiscal year mid-window.
-  'sc-local-acfr-gf': 166,
+  //
+  // ⚠ 166 -> 206 on 2026-09-04 (wave 4): City of Sumter and City of Florence,
+  // FY2016-FY2025 each, 20 rows apiece. No pre-existing count moved.
+  //
+  // ⚠⚠ THE FAMILY IS STILL DELIBERATELY RAGGED and a uniformity check must not
+  // read that as a defect. MEASURED in the database after the write, not derived
+  // from the roster: 206 rows over 206 DISTINCT ids and 12 distinct
+  // municipality_ids, with year counts 10, 10, 10, 10, 10, 10, 10, 9, 8, 6, 6, 4
+  // (Columbia is 9 — FY2019 exists only as defective scans; North Charleston is
+  // 4 of 10). entity_type is city AND town; the fiscal month is 1 for two
+  // entities, 7 for nine, and BOTH for Summerville, which changed its fiscal
+  // year inside the loaded window.
+  'sc-local-acfr-gf': 206,
   // Knight session 6b (Tennessee's first local entity), measured from the ACTUAL
   // post-write count on 2026-08-30. A NEW family, so no pre-existing count moved.
   // 20 = 10 fiscal years (FY2016-FY2025) x 2 datasets, ONE entity — Metro
