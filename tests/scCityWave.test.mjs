@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { existsSync } from 'node:fs';
 
 import {
   SC_CITY_ENTITIES, SC_CITY_DEFERRED, SC_CITY_COVERAGE_GAPS, SC_CITY_STATE,
@@ -235,15 +236,41 @@ describe('the South Carolina city source labels', () => {
    * Florida's third branch matched none of three registries; Pennsylvania matched
    * only auditGrade.
    */
-  it('is claimed by the audit-grade and basis registries, for every loaded year', () => {
+  /**
+   * ⚠⚠ ALL THREE REGISTRIES, FOR EVERY ENTITY — and it must stay all three.
+   *
+   * This loop checked audit-grade and basis and NOT fund-scope, which is the
+   * exact pair wave 3 widened while forgetting the third. Fund-scope was instead
+   * verified by HARD-CODED PER-WAVE LISTS added retroactively each time it broke
+   * (see the wave-3 and wave-4 tests below, both kept as historical pins). So the
+   * guard reproduced the defect's own shape: every wave had to remember to add
+   * itself, which is precisely what a wave forgets.
+   *
+   * ⭐⭐ THE GENERAL LESSON, and the reason this is now driven from
+   * `scCityFilings()` instead of a list: A GUARD THAT REQUIRES EACH NEW MEMBER TO
+   * REGISTER ITSELF CANNOT CATCH THE MEMBER THAT FORGETS. Enumerate the
+   * population and require every member to pass — the same rule
+   * `verifyScCityReaders.mjs` learned when a gate derived its subject list from
+   * the thing it was checking. Wave 6 is covered by this without doing anything.
+   */
+  it('is claimed by ALL THREE axis registries, for every entity and every loaded year', () => {
+    const checked = [];
     for (const f of scCityFilings()) {
       for (const ds of ['revenue', 'operating']) {
         const label = sourceNameFor(f.entity, ds, f.fiscalYear);
         expect(gradeFor(label).value).toBe(AUDIT_GRADE.AUDITED_GAAP);
         expect(classifyAxis(label, BASIS_REGISTRY, BASIS_VALUES, BASIS.UNKNOWN).entryId)
           .toBe('sc-local-acfr-gf');
+        // ⚠⚠ THE ONE WAVE 3 OMITTED. 52 of 166 rows sat unclaimed by it.
+        expect(classify(label, FUND_SCOPE_REGISTRY))
+          .toEqual({ scope: FUND_SCOPE, entryId: 'sc-local-acfr-gf' });
+        checked.push(label);
       }
     }
+    // ⚠⚠ A GATE THAT CAN MEASURE NOTHING MUST FAIL, NOT PASS. If the roster ever
+    // returns empty this loop passes vacuously and reports full coverage.
+    expect(checked.length).toBeGreaterThan(0);
+    expect(new Set(checked).size).toBe(checked.length);
   });
 
   it('still claims the two entities that were already in the family', () => {
@@ -688,5 +715,106 @@ describe('the wave-4 entities — Sumter and Florence', () => {
     expect(ex.refusedWorkaround).toMatch(/fuzzy label repair/);
     expect(ex.substitute).toMatch(/verifyScCityExcess\.py/);
     expect(ex.substituteResult).toMatch(/10 of 10/);
+  });
+});
+
+/**
+ * Invariants that hold for EVERY entity in the roster, present and future.
+ *
+ * ⭐ Written after wave 5, where three separate defects were each caught only by
+ * a hard-coded per-entity assertion or by a row COUNT that happened not to
+ * match. Each one below is the general form of a specific thing that went
+ * wrong, so the next wave inherits the guard instead of re-learning the defect.
+ */
+describe('South Carolina city roster — universal invariants', () => {
+  /**
+   * ⚠⚠ EVERY DECLARED YEAR MUST BE ENUMERATED, FROM EVERY PUBLISHER.
+   *
+   * Wave 5 added `selfPublishedReports` (a year FAC does not serve, fetched from
+   * the town itself) and wired it into the FETCHER only. Four places iterated
+   * `entity.facReports` directly, so the document was fetched, quality-checked
+   * and then silently skipped by three of them: 184 extractions where 186 were
+   * expected, no error, no failing tie, the year simply absent.
+   *
+   * ⭐ The count was the ONLY signal. This asserts the relationship instead, so a
+   * SIXTH publisher — or a new entity using an existing one — cannot lose a year
+   * quietly. It is `fiscalMonthFor`'s "grep for the call site" lesson as a test.
+   */
+  it('enumerates every year declared by every publisher, for every entity', () => {
+    for (const e of scCityLoadableEntities()) {
+      const declared = [...new Set([
+        ...Object.keys(e.facReports || {}).map(Number),
+        ...Object.keys(e.selfPublishedReports || {}).map(Number),
+      ])].sort((a, b) => a - b);
+      const enumerated = scCityFilings()
+        .filter((f) => f.entity.key === e.key)
+        .map((f) => f.fiscalYear)
+        .sort((a, b) => a - b);
+      expect(enumerated, `${e.key}: declared years must all be enumerated`)
+        .toEqual(declared);
+      expect(declared.length).toBeGreaterThan(0);
+    }
+  });
+
+  /**
+   * ⚠⚠ A YEAR IS A FILING OR A DECLARED GAP — NEVER BOTH, AND NEVER NEITHER.
+   *
+   * A declared gap that quietly became a row, or a year that is neither loaded
+   * nor declared, are the two shapes this whole campaign is organised against.
+   * Both are silent: no dollar moves and no tie fails either way.
+   */
+  it('never declares a coverage gap for a year it also loads', () => {
+    for (const e of scCityLoadableEntities()) {
+      const gaps = Object.keys(SC_CITY_COVERAGE_GAPS[e.key] || {}).map(Number);
+      const years = new Set(scCityFilings()
+        .filter((f) => f.entity.key === e.key).map((f) => f.fiscalYear));
+      for (const g of gaps) {
+        expect(years.has(g), `${e.key} FY${g} is declared a gap AND enumerated`).toBe(false);
+      }
+      // ⚠ And a declared gap must state a REASON — an empty string excludes
+      // nothing while looking like a declaration (the "declared exception that
+      // names nothing" family, which has bitten in MI, PA and SC).
+      for (const [fy, why] of Object.entries(SC_CITY_COVERAGE_GAPS[e.key] || {})) {
+        expect(String(why).trim().length, `${e.key} FY${fy} gap has no reason`)
+          .toBeGreaterThan(20);
+      }
+    }
+  });
+
+  /**
+   * ⚠ EVERY DECLARED EXTRACTOR MUST EXIST ON DISK.
+   *
+   * A roster entry naming a renamed or not-yet-written extractor is well-formed
+   * and inert until something tries to run it, at which point the failure is a
+   * missing-file error far from the roster that caused it.
+   */
+  it('names an extractor that exists for every loadable entity', () => {
+    for (const e of scCityLoadableEntities()) {
+      expect(e.extractor, `${e.key} declares no extractor`).toMatch(/^scripts\/extract.*\.py$/);
+      expect(existsSync(e.extractor), `${e.key}: ${e.extractor} does not exist`).toBe(true);
+    }
+  });
+
+  /**
+   * ⚠ A self-published year must carry a REAL URL and no FAC id, and the two
+   * maps must never claim the same year — ambiguous provenance is refused at
+   * fetch time and should be unrepresentable here too.
+   */
+  it('keeps the two publishers disjoint and evidenced', () => {
+    let selfPublished = 0;
+    for (const e of SC_CITY_ENTITIES) {
+      const self = e.selfPublishedReports || {};
+      for (const [fy, spec] of Object.entries(self)) {
+        selfPublished += 1;
+        expect(e.facReports?.[fy], `${e.key} FY${fy} declares BOTH publishers`).toBeUndefined();
+        expect(spec.url).toMatch(/^https:\/\//);
+        // ⚠ Spaces MUST be percent-encoded — unencoded, curl returns 000.
+        expect(spec.url).not.toMatch(/ /);
+        expect(String(spec.why || '').trim().length).toBeGreaterThan(20);
+      }
+    }
+    // ⚠⚠ Wave 5 introduced exactly one. If this ever reads 0 the feature has
+    // been removed and the tests above are passing vacuously.
+    expect(selfPublished).toBeGreaterThan(0);
   });
 });

@@ -1,0 +1,12 @@
+# Python dependencies for the extractor selftests (`npm run test:acfr`).
+#
+# ⚠ Only `acfrGfCoords` needs anything third-party — `acfrGF.selftest.py` is
+# stdlib-only, which is why its 183 tests can run anywhere. `acfrGfCoords`
+# imports pdfplumber at module load, so its 39 tests need this installed.
+#
+# ⚠ PINNED so CI and a developer machine agree. `acfrGfCoords` reads GLYPH
+# COORDINATES, and the coordinates a PDF library reports are its own answer, not
+# a fact about the document — a silent minor-version change to pdfplumber's word
+# extraction is exactly the kind of drift this project's coordinate readers are
+# built to notice. Version matched to the machine the readers were developed on.
+pdfplumber==0.11.9
