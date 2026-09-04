@@ -31,3 +31,22 @@ jobs:
       # vitest's default 5s made them fail under load. A flaky required check is
       # worse than no check.
       - run: npm test
+      # ⚠⚠ AND THE SAME OMISSION SURVIVED IN PYTHON UNTIL 2026-09-04, a third
+      # time. `npm test` is vitest only, so the extractor selftests -- 183 in
+      # `acfrGF.selftest.py` and 39 in `acfrGfCoords.selftest.py` -- had NEVER
+      # run on a pull request. They pin genuinely subtle rules: dash-zero rows,
+      # welded-label indent, row chaining, the parent/root-leaf inversion, and
+      # now the statement_page resolution. All of it was inert here.
+      #
+      # ⚠ `test:acfr` invoked `py -3` by name. That happens to work on the
+      # primary developer machine today, but there is no `py` on an ubuntu
+      # runner, and the Microsoft Store alias trap that lib/pythonBin.mjs exists
+      # for can be re-armed by a Windows update. `scripts/runPythonTests.mjs`
+      # RESOLVES an interpreter via that existing helper, and FAILS -- rather
+      # than skipping -- when a suite's dependency is missing, so this step
+      # cannot quietly go back to measuring nothing.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --disable-pip-version-check -r requirements-dev.txt
+      - run: npm run test:acfr
