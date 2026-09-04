@@ -838,6 +838,68 @@ def table_pages(pdf_path):
         sys.exit(2)
     return out.stdout.split('\f')
 
+
+# ⚠⚠ AN INDEX INTO `table_pages` IS NOT A PAGE NUMBER.
+#
+# `table_pages` splits `pdftotext` output on the form feed, and `pdftotext` does
+# NOT emit exactly one form feed per page: some pages produce a spurious EMPTY
+# chunk as well. Hilton Head FY2019 renders **181 chunks for a 166-page PDF**,
+# thirteen of them empty, and NINE of those empties precede the General Fund
+# statement. So the statement sits at index 57 -- reported for years as
+# `statement_page: 58` -- while physically being on **page 48**, which is where a
+# reader who opens the document finds it. Page 58 of that PDF is the NOTES.
+#
+# ⚠⚠ THE FIGURES WERE NEVER WRONG. This is a PROVENANCE defect, and that is
+# exactly what makes it corrosive: every total ties, every gate passes, and the
+# one field whose whole job is to let a human re-check the work sends them to the
+# wrong page. Someone verifying Hilton Head FY2019 opens page 58, finds prose,
+# and concludes the extraction is fabricated.
+#
+# ⚠ The offset is NOT derivable by counting empty chunks (57 + 1 - 9 = 49, and
+# the answer is 48). It is resolved by CONTENT: render one physical page and
+# compare. `pdftotext -f k -l k` reproduces the whole-document chunk exactly
+# except for a trailing form feed, so `.strip()` equality is an identity, not a
+# heuristic.
+#
+# ⚠ Extra chunks only ever ADD, so the physical page is never beyond `pi + 1` and
+# the walk goes DOWNWARD. If a document ever merged two pages into one chunk the
+# page would sit above the start of the walk and this returns None — reporting
+# that it could not resolve, rather than reporting a number it cannot support.
+#
+# ⚠ Cached per (pdf, index): `extract()` runs once per MODE, so an uncached
+# resolver would pay the subprocess twice for every document.
+_PHYSICAL_PAGE_CACHE = {}
+
+
+def physical_page_for(pdf_path, pages, pi, window=64):
+    """The PDF's own page number for `pages[pi]`, or None if it cannot be shown.
+
+    `pages` is the list `table_pages` returned. The result is what a person
+    typing a page number into a PDF viewer needs, which is the only thing a
+    provenance field is for.
+    """
+    key = (pdf_path, pi)
+    if key in _PHYSICAL_PAGE_CACHE:
+        return _PHYSICAL_PAGE_CACHE[key]
+
+    want = pages[pi].strip()
+    found = None
+    # ⚠ A blank chunk cannot identify a page — every blank page would match it.
+    if want:
+        lo = max(1, pi + 1 - window)
+        for k in range(pi + 1, lo - 1, -1):
+            out = subprocess.run(
+                ['pdftotext', '-table', '-f', str(k), '-l', str(k), pdf_path, '-'],
+                capture_output=True, text=True, encoding='utf-8', errors='replace')
+            if out.returncode != 0:
+                break
+            if out.stdout.strip() == want:
+                found = k
+                break
+
+    _PHYSICAL_PAGE_CACHE[key] = found
+    return found
+
 # ⚠⚠ THE MEMBERSHIP TESTS IN `find_statement_page` MUST IGNORE WHITESPACE.
 #
 # They compare hard-coded literals against raw `-table` output, and the character
@@ -2228,10 +2290,17 @@ def extract(pdf_path, mode, cfg):
     # A registered source-rounding case must match its expected delta EXACTLY.
     accepted = cfg.source_rounding.get((fy, mode))
     accepted = accepted if (accepted is not None and accepted == tie_delta) else None
+    # ⚠⚠ THE PDF'S OWN PAGE NUMBER, not the index into `pdftotext`'s output —
+    # see `physical_page_for`. `statement_page_index` keeps the raw index so the
+    # two can be compared when they disagree, and so this change is legible in a
+    # diff of the extracted corpus instead of silently rewriting a number.
+    physical = physical_page_for(pdf_path, pages, pi)
     result = {
         'fiscal_year': fy,
         'mode': mode,
-        'statement_page': pi + 1,
+        'statement_page': physical if physical is not None else pi + 1,
+        'statement_page_index': pi + 1,
+        'statement_page_resolved': physical is not None,
         'tree': tree,
         'computed_total': computed,
         'printed_total': printed,

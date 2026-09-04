@@ -40,6 +40,7 @@ import re
 import json
 import subprocess
 import argparse
+from pathlib import Path
 
 # ── Money parsing ─────────────────────────────────────────────────────────────
 _MONEY = re.compile(r'\((?:\d[\d,]*)\)|\$?\s*\d[\d,]*')
@@ -81,6 +82,21 @@ def table_pages(pdf_path):
         print(f'  pdftotext failed ({out.returncode}): {out.stderr.strip()}', file=sys.stderr)
         sys.exit(2)
     return out.stdout.split('\f')
+
+
+# ⚠⚠ An index into `table_pages` is NOT a page number — `pdftotext` emits
+# spurious EMPTY chunks for some pages, so the index runs AHEAD of the physical
+# page. Hilton Head FY2019 reported page 58 for a statement physically on 48.
+# The resolver is shared with `lib/acfrGF.py` rather than copied, because this
+# defect existed in both files independently and a second copy is how it would
+# come back. See the long note there.
+#
+# ⚠ MEASURED ON THIS SCRIPT'S OWN CORPUS: all 23 Pima-municipality documents
+# render exactly one chunk per page, so this correction is INERT for every
+# document processPimaCities.js loads today. Applied anyway — the next document
+# is the one that trips it, and an inert correctness fix costs nothing.
+sys.path.insert(0, str(Path(__file__).resolve().parent / 'lib'))
+from acfrGF import physical_page_for  # noqa: E402
 
 def find_statement_page(pages):
     """Return (page_index, page_text) for the primary governmental-funds
@@ -271,7 +287,8 @@ def extract(pdf_path, mode):
     result = {
         'fiscal_year': fy,
         'mode': mode,
-        'statement_page': pi + 1,
+        'statement_page': (physical_page_for(pdf_path, pages, pi) or pi + 1),
+        'statement_page_index': pi + 1,
         'tree': tree,
         'computed_total': computed,
         'printed_total': printed,
