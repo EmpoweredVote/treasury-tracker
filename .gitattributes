@@ -10,8 +10,8 @@
 # Shebang scripts must keep LF too.
 #
 # ⚠ Git stores these as LF, but core.autocrlf=true rewrites them to CRLF on
-# Windows checkout — and while node(1) tolerates `#!/usr/bin/env node
-`,
+# Windows checkout — and while node(1) tolerates a shebang line whose
+# newline is preceded by a carriage return,
 # vitest's esbuild transform rejects it as "SyntaxError: Invalid or unexpected
 # token". The failure is invisible on Linux CI and hits only Windows clones,
 # which is the worst shape: `npm test` disagrees with itself by platform.
@@ -22,12 +22,23 @@
 
 # Verbatim data fixtures must keep the SOURCE's line endings.
 #
-# ⚠⚠ `tests/fixtures/census/co-est2024-sc-slice.csv` is a byte extract of the
-# Census PEP county file, which uses LF. Without this rule a Windows checkout
-# rewrites it to CRLF, and the parity test that re-reads the real source file
-# then finds NONE of its 51 lines — because it compares ``-terminated fixture
-# lines against an ``-stripped source. Observed exactly that way: green on
-# Linux CI (where the source is absent and the test skips) and red on the first
-# Windows clone with the cache file present. Same shape as the shebang rule
-# above — CI and a developer machine disagreeing by platform.
+# WARNING: `tests/fixtures/census/co-est2024-sc-slice.csv` is a byte extract of
+# the Census PEP county file, which uses LF endings. Without this rule a Windows
+# checkout rewrites it to CRLF, and the parity test that re-reads the real source
+# file then matches NONE of its 51 lines: it compares CR-terminated fixture lines
+# against a source it split on CRLF-or-LF, so every line differs by one trailing
+# carriage return. Observed exactly that way -- green on Linux CI, where the
+# source file is absent and the test skips, and red on the first Windows clone
+# that had the cache file. Same shape as the shebang rules above: CI and a
+# developer machine disagreeing by platform.
 tests/fixtures/census/*.csv text eol=lf
+
+# A rescued document whose VERBATIM-ness is asserted by a recorded hash must keep
+# the bytes that hash was taken over.
+#
+# ⚠ `docs/inform-pillar-treasury-tracker-spec.md` carries its original sha256 in
+# its own provenance header, so a Windows checkout rewriting LF to CRLF would
+# make the file disagree with the hash printed inside it — the claim and the bytes
+# would part company silently. Exactly the failure the Census fixture rule below
+# was added for, one file type over.
+docs/inform-pillar-treasury-tracker-spec.md text eol=lf
