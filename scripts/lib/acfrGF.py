@@ -838,6 +838,45 @@ def table_pages(pdf_path):
         sys.exit(2)
     return out.stdout.split('\f')
 
+# ⚠⚠ THE MEMBERSHIP TESTS IN `find_statement_page` MUST IGNORE WHITESPACE.
+#
+# They compare hard-coded literals against raw `-table` output, and the character
+# grid inserts whitespace that no config can anticipate. Three documents in three
+# states defeat the literal in two different ways:
+#
+#     Florence SC FY2016   `TOTAL  EXPENDITURES`   two spaces BETWEEN the words
+#     Sumter SC FY2018+    `T otal expenditures`   a space INSIDE a word
+#     Oklahoma FY2013      `T otal Expenditures`   the same, on a STATE ACFR
+#
+# Each one produced `primary GF statement not found` on a perfectly clean,
+# born-digital page — which is the symptom
+# reference_acfr_gf_extractor_howto warns reads exactly like OCR damage. It is
+# the READER, not the document: the eighth failure mode, in a new place.
+#
+# ⚠ Whitespace is REMOVED, not collapsed, because collapsing fixes only the
+# first of the two shapes. `_TITLE` already tolerates both (it is built from
+# `\s+`), so this brings the membership tests up to the discrimination the title
+# regex has always had.
+#
+# ⚠⚠ AND IT DOES NOT WEAKEN WHAT THE LITERAL IS FOR. The docstring below keeps
+# `total expenditures` hard-coded so a PROPRIETARY-funds statement — which prints
+# `Total Operating Revenues` beside `Total Operating Expenses` — can never
+# qualify. `totaloperatingexpenses` does not contain `totalexpenditures`, so that
+# guard survives verbatim. `_EXCLUDE` is normalised the same way, which can only
+# make a page EASIER to disqualify, never harder.
+#
+# ⭐ MEASURED BEFORE SHIPPING, over all 1,053 PDFs in `_acfr-work`: the selected
+# page changed on 9 documents, and on every one of them it changed from NOTHING
+# FOUND to a page. **Zero documents moved to a different page and zero lost the
+# page they had**, so no already-loaded row can shift. The three inspected by
+# hand are the genuine primary statement in each case.
+_WS_ALL = re.compile(r'\s+')
+
+
+def _squash(text):
+    """Lowercase with ALL whitespace removed — see the note above."""
+    return _WS_ALL.sub('', text.lower())
+
 def find_statement_page(pages, statement_anchor=None, revenue_total_labels=('total revenues',),
                         exclude_ignore=()):
     """(page_index, page_text) for the primary governmental-funds statement —
@@ -860,15 +899,19 @@ def find_statement_page(pages, statement_anchor=None, revenue_total_labels=('tot
     revenues'`."""
     anchor = re.compile(statement_anchor, re.I | re.M) if statement_anchor else None
     cands = []
+    # ⚠ Every literal is squashed the same way the page is — see _squash.
+    want_rev = [_squash(lbl) for lbl in revenue_total_labels]
+    want_exp = _squash('total expenditures')
+    excluded = [(x, _squash(x)) for x in _EXCLUDE]
     for i, pg in enumerate(pages):
-        low = pg.lower()
+        low = _squash(pg)
         if not (_TITLE.search(pg) or (anchor and anchor.search(pg))):
             continue
-        if not any(lbl in low for lbl in revenue_total_labels) or 'total expenditures' not in low:
+        if not any(lbl in low for lbl in want_rev) or want_exp not in low:
             continue
         if 'general' not in low or 'fund' not in low:
             continue
-        if any(x in low for x in _EXCLUDE if x not in exclude_ignore):
+        if any(sq in low for raw, sq in excluded if raw not in exclude_ignore):
             continue
         cands.append((i, pg))
     if not cands:
@@ -950,20 +993,27 @@ def find_statement_span(pages, cfg):
         joined = pg
         span_pages = [pg]
         span_raw = [pg]
+        # ⚠ Squashed on the same grounds as `find_statement_page` — a multipage
+        # issuer is no less likely to letter-space its own total row, and the
+        # module's own history (see `_end_revenues_pattern`) records that fixing
+        # one site of this literal and not the others only RELOCATES the failure.
+        want_rev = [_squash(lbl) for lbl in cfg.revenue_total_labels]
+        want_exp = _squash('total expenditures')
+
+        def _has_both(text):
+            sq = _squash(text)
+            return any(lbl in sq for lbl in want_rev) and want_exp in sq
+
         for j in range(i + 1, min(i + cfg.multipage_max, len(pages))):
-            jl = joined.lower()
-            if (any(lbl in jl for lbl in cfg.revenue_total_labels)
-                    and 'total expenditures' in jl):
+            if _has_both(joined):
                 break
             nxt = pages[j]
-            if any(x in nxt.lower() for x in _EXCLUDE if x not in cfg.exclude_ignore):
+            if any(_squash(x) in _squash(nxt) for x in _EXCLUDE if x not in cfg.exclude_ignore):
                 break
             span_pages.append(_strip_continuation_header(nxt))
             span_raw.append(nxt)
             joined = joined + '\n' + span_pages[-1]
-        jl = joined.lower()
-        if (any(lbl in jl for lbl in cfg.revenue_total_labels)
-                and 'total expenditures' in jl):
+        if _has_both(joined):
             return i, joined, span_pages, span_raw
     return None, None, None, None
 
@@ -2069,10 +2119,19 @@ def extract(pdf_path, mode, cfg):
                  for t in page_text.split('\n')]
     else:
         lines = pg.split('\n')
+    # ⚠⚠ SQUASHED, for the reason recorded at `_squash`. These are the second and
+    # third places the same literal is tested; Florence SC FY2016 prints
+    # `TOTAL  EXPENDITURES` and, once the page gate was fixed, failed HERE
+    # instead — the module's own `_end_revenues_pattern` note warns about exactly
+    # this, having already been the third such site once before.
+    # ⚠ The MATCH is squashed; the LINE passed on is the ORIGINAL, because
+    # `anchors()` measures the column grid from its character positions.
+    _rev_want = [_squash(lbl) for lbl in cfg.revenue_total_labels]
+    _exp_want = _squash('total expenditures')
     rev_line = next((l for l in lines
-                      if any(l.strip().lower().startswith(lbl) for lbl in cfg.revenue_total_labels)),
-                     None)
-    exp_line = next((l for l in lines if l.strip().lower().startswith('total expenditures')), None)
+                     if any(_squash(l).startswith(lbl) for lbl in _rev_want)),
+                    None)
+    exp_line = next((l for l in lines if _squash(l).startswith(_exp_want)), None)
     if not rev_line or not exp_line:
         print('  ERROR: Total revenues/expenditures rows not found', file=sys.stderr)
         sys.exit(3)

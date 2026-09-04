@@ -1755,5 +1755,95 @@ class TestNashvilleStrayTrailingParen(unittest.TestCase):
         self.assertEqual([v for v, _ in nums_with_pos(line)], [117101361, -213716851])
 
 
+# Transcribed from the real `-table` output of three documents in three states.
+# ⚠ The double space in `TOTAL  EXPENDITURES` and the split `T otal` are the
+# POINT of these fixtures — do not tidy them.
+FLORENCE_2016_PAGE = """                        City of Florence, South Carolina
+
+Statement of Revenues, Expenditures and                     Changes in                        Fund Balances
+
+                            Governmental Funds
+
+                            Year Ended June 30, 2016
+
+                                                        General          Hospitality        Other            Total
+Revenues
+                            TOTAL REVENUES     27,961,115      3,956,679      6,226,828      38,144,622
+Expenditures
+                       TOTAL  EXPENDITURES     33,514,818      3,484,660     13,917,244      50,916,722
+"""
+
+SUMTER_2024_PAGE = """                            CITY OF SUMTER, SOUTH CAROLINA
+
+STATEMENT OF REVENUES, EXPENDITURES, AND CHANGES IN FUND BALANCES
+
+                                    GOVERNMENTAL FUNDS
+
+                            For the Year Ended June 30, 2024
+
+                                        General          Go v ern men t al   Go v ern men t al
+                                        Fund                Funds               Funds
+Re ve nue s
+T otal revenues                            85,437,318          7,712,338          93,149,656
+Expe nditure s
+T otal expenditures                        64,284,680          6,446,077          70,730,757
+"""
+
+PROPRIETARY_PAGE = """                            SOME CITY, USA
+
+Statement of Revenues, Expenditures and Changes in Fund Balances
+
+                            Proprietary Funds — General
+
+                            Year Ended June 30, 2024
+
+Total Operating Revenues                    12,345,678
+Total Operating Expenses                    11,222,333
+"""
+
+
+class TestFindStatementPageIgnoresWhitespace(unittest.TestCase):
+    """⚠⚠ The membership tests compare hard-coded literals against RAW `-table`
+    output, and the character grid inserts whitespace no config can anticipate.
+    Both shapes below returned `primary GF statement not found` on a clean,
+    born-digital page — the symptom the how-to warns reads exactly like OCR
+    damage. Fixed by squashing whitespace out of both sides of the comparison."""
+
+    def test_double_space_between_the_words_still_qualifies(self):
+        # Florence SC FY2016 prints `TOTAL  EXPENDITURES`.
+        self.assertEqual(find_statement_page([FLORENCE_2016_PAGE])[0], 0)
+
+    def test_a_space_inside_a_word_still_qualifies(self):
+        # Sumter SC prints `T otal revenues` / `T otal expenditures`, and the
+        # State of Oklahoma FY2013 does the same on a state ACFR.
+        self.assertEqual(find_statement_page([SUMTER_2024_PAGE])[0], 0)
+
+    def test_a_proprietary_page_is_still_refused(self):
+        """⚠⚠ THE WHOLE POINT OF THE HARD-CODED LITERAL, PRESERVED.
+
+        `revenue_total_labels` is configurable but `total expenditures` is not,
+        so a proprietary-funds statement — which prints `Total Operating
+        Revenues` beside `Total Operating EXPENSES` — can never qualify as the
+        primary governmental-funds statement. Squashing whitespace must not
+        weaken that: `totaloperatingexpenses` does not contain
+        `totalexpenditures`. Tested with the widened label set that would
+        otherwise let this page in on its revenue row alone.
+        """
+        self.assertEqual(
+            find_statement_page(
+                [PROPRIETARY_PAGE],
+                revenue_total_labels=('total revenues', 'total operating revenues'))[0],
+            None)
+
+    def test_an_excluded_term_still_disqualifies_when_it_is_spaced_out(self):
+        """⚠ `_EXCLUDE` is squashed the same way, which can only make a page
+        EASIER to disqualify. A budgetary page whose caption the grid spaced out
+        must not become eligible as a side effect of this fix."""
+        page = FLORENCE_2016_PAGE.replace('Governmental Funds',
+                                          'Budget  and  Actual — General Fund')
+        self.assertEqual(find_statement_page([page])[0], None)
+
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)
