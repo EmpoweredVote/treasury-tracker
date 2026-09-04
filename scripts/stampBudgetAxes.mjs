@@ -214,7 +214,21 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // entity_type is city AND town; and the fiscal month is 1 for Charleston and
   // Goose Creek, 7 for four others, and BOTH for Summerville, which changed its
   // fiscal year inside the loaded window.
-  'sc-local-acfr-gf': 146,
+  //
+  // ⚠ 146 -> 166 on 2026-09-03: City of Spartanburg, a FULL ten years
+  // (FY2016-FY2025), 20 rows. No pre-existing count moved.
+  //
+  // ⚠ THE PATTERN WAS INTERROGATED FIRST: 166 rows over 166 DISTINCT ids, read
+  // PAGED with distinct-id == row-count asserted across the whole table; 0 rows
+  // outside South Carolina; exactly 10 entities; 2 dataset types; 166 distinct
+  // source strings; 0 duplicate (entity, year, dataset) keys; 0 non-positive
+  // totals; uniform general_fund / actual / audited_gaap.
+  //
+  // ⚠⚠ THE FAMILY IS DELIBERATELY RAGGED and a uniformity check must not read
+  // that as a defect: year counts run 10, 10, 10, 10, 9, 8, 6, 6, 4;
+  // entity_type is city AND town; the fiscal month is 1 for two entities, 7 for
+  // five, and BOTH for Summerville, which changed its fiscal year mid-window.
+  'sc-local-acfr-gf': 166,
   // Knight session 6b (Tennessee's first local entity), measured from the ACTUAL
   // post-write count on 2026-08-30. 20 = 10 fiscal years x 2 datasets, ONE
   // consolidated entity. See the fuller note on the same id in

@@ -133,6 +133,33 @@ export const READER_DISAGREEMENTS = Object.freeze([
     why: 'same page, same cause: the grid computes 180,433,728 against a printed '
        + '144,062,880.',
   },
+  // ── City of Spartanburg ─────────────────────────────────────────────────
+  // ⚠ 18 of its 20 extractions are corroborated to the DOLLAR. Both failures are
+  // the SAME document: `pdftotext -table` mis-renders the FY2018 statement page
+  // and mixes the two sections. This is the diagnosed reason the entity is on
+  // the coordinate reader at all, so it is named rather than waved through.
+  {
+    id: 'spartanburg-fy2018-revenue-grid',
+    entityKey: 'spartanburg',
+    fiscalYear: 2018,
+    mode: 'revenue',
+    delta: null,
+    recordTotal: 37209254,
+    why: 'the character grid reads 5,975,414 MORE than the page — exactly `Policy '
+       + 'Formulation and Administration`, an EXPENDITURE line, pulled into the revenue '
+       + 'section. Both -table column strategies produce this same delta.',
+  },
+  {
+    id: 'spartanburg-fy2018-operating-grid',
+    entityKey: 'spartanburg',
+    fiscalYear: 2018,
+    mode: 'operating',
+    delta: null,
+    recordTotal: 36404820,
+    why: 'same page: the grid finds NO printed expenditure total (`printed_total: '
+       + 'null`) and computes 66,011,076 against a printed 36,404,820. The coordinate '
+       + 'reader reads the same page cleanly and ties at $0.',
+  },
 ]);
 
 export function disagreementFor({ entityKey, fiscalYear, mode }) {

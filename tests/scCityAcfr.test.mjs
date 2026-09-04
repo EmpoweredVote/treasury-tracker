@@ -137,12 +137,13 @@ describe('South Carolina city ACFR axes', () => {
   });
 
   it('pins the partition count, including the year that is deliberately missing', () => {
-    // ⚠ 38 -> 74 -> 114 -> 138 -> 146: wave 1 added Charleston (10 years) and
-    // Mount Pleasant (8) = 36 rows; wave 2 added Rock Hill and Greenville (10
-    // each) = 40; wave 3 added Summerville and Goose Creek (6 each) = 24, then
-    // North Charleston (4 of its 10) = 8. The session-6a half is UNCHANGED and
-    // still checked separately below, because THAT is what this test is for.
-    expect(expectedRowsFor('sc-local-acfr-gf')).toBe(146);
+    // ⚠ 38 -> 74 -> 114 -> 138 -> 146 -> 166: wave 1 added Charleston (10 years)
+    // and Mount Pleasant (8) = 36 rows; wave 2 added Rock Hill and Greenville
+    // (10 each) = 40; wave 3 added Summerville and Goose Creek (6 each) = 24,
+    // then North Charleston (4 of its 10) = 8, then Spartanburg (a full 10) =
+    // 20. The session-6a half is UNCHANGED and still checked separately below,
+    // because THAT is what this test is for.
+    expect(expectedRowsFor('sc-local-acfr-gf')).toBe(166);
 
     // ⚠⚠ THE ORIGINAL INTENT, PRESERVED. 38 = 19 session-6a entity-years x 2
     // datasets, and 40 would mean Columbia FY2019 came back — the year whose only
@@ -166,8 +167,8 @@ describe('South Carolina city ACFR axes', () => {
     // silently expect 12 rows that must never exist.
     const loadable = scCityFilings()
       .filter((f) => !KNOWN_DOCUMENT_GAPS[`${f.entity.key}-${f.fiscalYear}`]);
-    expect(loadable.length * 2).toBe(108);
-    expect(38 + 108).toBe(146);
+    expect(loadable.length * 2).toBe(128);
+    expect(38 + 128).toBe(166);
   });
 
   // ⚠ `city` was missing from this set for months with every gate green.

@@ -352,6 +352,77 @@ export const SC_CITY_ENTITIES = Object.freeze([
       2025: '2025-12-GSAFAC-0000420983',
     },
   },
+  {
+    key: 'spartanburg',
+    name: 'Spartanburg',
+    entityType: 'city',
+    /**
+     * ⚠⚠ THE COORDINATE READER, on a DIAGNOSED failure of the character grid:
+     * `pdftotext -table` mis-renders the FY2018 statement page and mixes the two
+     * sections (revenue 5,975,414 over — exactly an EXPENDITURE line — and no
+     * printed expenditure total at all). BOTH column strategies fail it
+     * identically. ⚠ Nine years read fine through `-table`; using it for those
+     * and coordinates for FY2018 would be picking whichever reader tied, so the
+     * ENTITY moves as a whole.
+     */
+    extractor: 'scripts/extractSpartanburgCoords.py',
+    /** ⚠ Required once an entity moves to coordinates. 18 of 20 exact; the two
+     * FY2018 failures are declared in verifyScCityReaders.mjs. */
+    corroboratingExtractor: 'scripts/extractSpartanburgSC.py',
+    state: SC_CITY_STATE,
+    population: 39606,
+    censusPlace: '68290',
+    parentCountyName: 'Spartanburg County',
+    /**
+     * ⚠⚠ ITS TWO ONE-DIGIT NEIGHBOURS ARE BOTH CITIES ALREADY LOADED IN TT:
+     *
+     *     576000244  CITY OF ROCK HILL      <- wave 2, loaded
+     *     576000245  CITY OF SPARTANBURG    <- wanted
+     *     576000246  CITY OF SUMTER         <- a real SC city, not yet loaded
+     *
+     * A typo in either direction does not fail. It loads ANOTHER LOADED CITY'S
+     * audited statements under Spartanburg's name, and every tie gate passes on
+     * them — the wave-1 near-miss lesson at its sharpest, because here the wrong
+     * answer is a government TT already holds and could be diffed against.
+     *
+     * ⚠ Also in SC and NOT this government: SPARTANBURG COUNTY (576000401),
+     * HOUSING AUTHORITY OF THE CITY OF SPARTANBURG (576001369), Spartanburg
+     * Water System (576000944), Spartanburg Sanitary Sewer District (576000941),
+     * SPARTANBURG COUNTY SCHOOL DISTRICT SEVEN (576000942) and six other school
+     * districts, Spartanburg Regional Health Services District (571075649),
+     * Spartanburg Community College (570439615) and Spartanburg Methodist
+     * College (570314415).
+     *
+     * ⭐ THIS EIN IS EXCEPTIONALLY CLEAN, checked in the bulk table rather than
+     * assumed: 10 filings, ONE auditee_name (`CITY OF SPARTANBURG`), ONE fiscal
+     * year end, one state, one city. No Rock Hill-style collision and no
+     * `Drew Cooper`-style name substitution anywhere in the series.
+     */
+    facEin: '576000245',
+    censusName: 'Spartanburg',
+    /**
+     * ⭐ JULY, and confirmed three ways: `fy_end_date` is 06-30 on all ten
+     * filings, the FAC census records `SC,Spartanburg,municipality,annual,7`
+     * across audit years 1998-1999, 2001-2021 and 2023-2025, and each statement
+     * states its own period. ⚠ The census has no 2022 row — a census gap, not a
+     * disagreement, and the filing for that year exists.
+     */
+    fiscalYearStartMonth: 7,
+    monthStatus: 'confirmed',
+    publicationPage: 'https://www.cityofspartanburg.org/287/Annual-Financial-Reports',
+    facReports: {
+      2016: '2016-06-CENSUS-0000195157',
+      2017: '2017-06-CENSUS-0000195157',
+      2018: '2018-06-CENSUS-0000195157',
+      2019: '2019-06-CENSUS-0000195157',
+      2020: '2020-06-CENSUS-0000195157',
+      2021: '2021-06-CENSUS-0000195157',
+      2022: '2022-06-CENSUS-0000195157',
+      2023: '2023-06-GSAFAC-0000014256',
+      2024: '2024-06-GSAFAC-0000353147',
+      2025: '2025-06-GSAFAC-0000405784',
+    },
+  },
 ]);
 
 /**
@@ -517,6 +588,62 @@ export const SC_CITY_LIBRARY_FIXES = Object.freeze({
  * `I`. ⭐ THE GENERAL LESSON: "the document is damaged" is a CONCLUSION, and it
  * needs the same evidence as any other. Read the glyphs before accepting it.
  */
+/**
+ * ⚠⚠ GREER IS NOT HERE, AND THE REASON CORRECTS A PREMISE THIS CAMPAIGN CARRIED.
+ *
+ * Greer is SC's NINTH LARGEST incorporated place (46,316, Census PEP 2024), so by
+ * population it is the next city after Goose Creek. It is absent because
+ * **THE CITY OF GREER HAS NO FEDERAL SINGLE AUDIT FILING IN THE LOADABLE
+ * WINDOW.** The FAC bulk table was searched by NAME and by LOCATION and returns
+ * only three Greer entities, none of them the city:
+ *
+ *     134349419  GREER MIDDLE COLLEGE CHARTER HIGH SCHOOL
+ *     570474477  HOUSING AUTHORITY OF GREER
+ *     576001040  Greer CPW            <- the Commission of Public Works, a
+ *                                        SEPARATE government with its own ACFR;
+ *                                        the Charleston `Commissioners of Public
+ *                                        Works` trap, in a second city
+ *
+ * The FAC fiscal-year census records Greer filing exactly ONCE, in audit year
+ * 2002 (`SC,Greer,municipality,annual,7`). A Single Audit is required only when
+ * federal awards reach $750k, and Greer's evidently have not since.
+ *
+ * ⚠⚠ SO "TOP-30 BY POPULATION ALL HAVE FAC COVERAGE" IS FALSE. It was true of
+ * every city checked before Greer, which is exactly how a sampled claim becomes
+ * a general one. Coverage must be checked per entity, not inherited.
+ *
+ * ── WHY THE CITY'S OWN SITE DID NOT RESCUE IT (checked, not assumed) ──────
+ *
+ * `cityofgreersc.gov` answers every request with a 3,038-byte bot-challenge, its
+ * document listing is rendered by JavaScript so only the page shell is
+ * retrievable, and the legacy S3 assets that search engines indexed now return
+ * HTTP 403. Exactly ONE document proved reachable, on a different asset host:
+ * FY2025, verified as the CITY's own ACFR (133 pages, June 30 year end, 130
+ * mentions of `City of Greer` and none of `Commission of Public Works`).
+ *
+ * ⚠ One year is not a series, and the campaign has twice judged even three years
+ * of ten to be worse than not shipping. Greer waits for a route that can serve
+ * the series, not for more effort against the same wall.
+ */
+export const SC_CITY_NO_FEDERAL_FILING = Object.freeze({
+  greer: {
+    population: 46316,
+    censusPlace: '30985',
+    lastFacAuditYear: 2002,
+    fiscalYearStartMonth: 7,
+    monthEvidence: 'FAC census `SC,Greer,municipality,annual,7`, audit year 2002 only',
+    /** ⚠ NOT the city. Recorded so nobody joins on the name and loads it. */
+    notThisGovernment: Object.freeze({
+      '576001040': 'Greer CPW — the Commission of Public Works, a separate government',
+      '570474477': 'HOUSING AUTHORITY OF GREER',
+      '134349419': 'GREER MIDDLE COLLEGE CHARTER HIGH SCHOOL',
+    }),
+    reachableDocument: 'FY2025 only, via files-backend.assets.thrillshare.com; the '
+      + 'listing that would give the other years is JavaScript-rendered behind a bot '
+      + 'challenge and its asset ids are opaque UUIDs that cannot be derived.',
+  },
+});
+
 export const SC_CITY_READER_HISTORY = Object.freeze({
   'north-charleston': {
     wasBlockedBy: 'diagnosed as OCR-damaged statement tables in every readable year',

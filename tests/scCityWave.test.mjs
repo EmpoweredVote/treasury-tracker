@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 
 import {
   SC_CITY_ENTITIES, SC_CITY_DEFERRED, SC_CITY_COVERAGE_GAPS, SC_CITY_STATE,
-  SC_CITY_LIBRARY_FIXES, SC_CITY_READER_HISTORY,
+  SC_CITY_LIBRARY_FIXES, SC_CITY_READER_HISTORY, SC_CITY_NO_FEDERAL_FILING,
   scCityLoadableEntities, scCityFilings, scCityByKey, fiscalMonthFor,
 } from '../scripts/data/scCityAcfrEntities.mjs';
 import { KNOWN_DOCUMENT_GAPS } from '../scripts/extractScCitiesAll.mjs';
@@ -15,11 +15,20 @@ import { SOURCE_CHIP_ENTITY_TYPES } from '../src/data/sourceChipTypes.ts';
 import { READER_DISAGREEMENTS, disagreementFor } from '../scripts/verifyScCityReaders.mjs';
 
 describe('the South Carolina city wave-1 roster', () => {
-  it('holds seven governments and loads all seven', () => {
+  it('holds eight governments and loads all eight', () => {
     expect(SC_CITY_ENTITIES.map((e) => e.key).sort()).toEqual([
       'charleston', 'goose-creek', 'greenville', 'mount-pleasant',
-      'north-charleston', 'rock-hill', 'summerville',
+      'north-charleston', 'rock-hill', 'spartanburg', 'summerville',
     ]);
+    // ⚠⚠ GREER IS DELIBERATELY ABSENT and is SC's ninth-largest place. It has NO
+    // federal Single Audit filing in the window — the FAC census records it once,
+    // in 2002 — so the route every other entity here uses does not exist for it.
+    // Recorded with its evidence rather than silently skipped, and it falsifies
+    // the campaign's earlier "top-30 all have FAC coverage" claim.
+    expect(SC_CITY_NO_FEDERAL_FILING.greer.lastFacAuditYear).toBe(2002);
+    expect(Object.keys(SC_CITY_NO_FEDERAL_FILING.greer.notThisGovernment))
+      .toContain('576001040');   // Greer CPW — a separate government
+    expect(SC_CITY_ENTITIES.some((e) => e.key === 'greer')).toBe(false);
     // ⚠⚠ NONE is deferred any more — but that does NOT mean every year loads.
     // North Charleston contributes four years of ten; its other six documents
     // cannot be read at EITHER publisher and are declared, with their causes, in
@@ -27,13 +36,13 @@ describe('the South Carolina city wave-1 roster', () => {
     // are different things, and conflating them is how a gap becomes a $0.
     expect(scCityLoadableEntities().map((e) => e.key))
       .toEqual(['charleston', 'north-charleston', 'mount-pleasant', 'rock-hill',
-        'greenville', 'summerville', 'goose-creek']);
+        'greenville', 'summerville', 'goose-creek', 'spartanburg']);
     expect(Object.keys(SC_CITY_DEFERRED)).toEqual([]);
   });
 
-  it('loads 60 entity-years, and Mount Pleasant is short by exactly its two gaps', () => {
+  it('loads 70 entity-years, and Mount Pleasant is short by exactly its two gaps', () => {
     const filings = scCityFilings();
-    expect(filings).toHaveLength(60);
+    expect(filings).toHaveLength(70);
     const byKey = {};
     for (const f of filings) byKey[f.entity.key] = (byKey[f.entity.key] || 0) + 1;
     // ⚠ Mount Pleasant's 8 is the point: FAC serves no filing under its EIN
@@ -44,14 +53,14 @@ describe('the South Carolina city wave-1 roster', () => {
     // neither is written as $0.
     expect(byKey).toEqual({
       charleston: 10, 'mount-pleasant': 8, 'rock-hill': 10, greenville: 10,
-      summerville: 6, 'goose-creek': 6, 'north-charleston': 10,
+      summerville: 6, 'goose-creek': 6, 'north-charleston': 10, spartanburg: 10,
     });
     // ⚠⚠ North Charleston's TEN are roster years, not loaded years: six of its
     // documents are unreadable at both publishers and only four produce rows.
     const loadable = filings.filter((f) => !KNOWN_DOCUMENT_GAPS[`${f.entity.key}-${f.fiscalYear}`]);
     expect(loadable.filter((f) => f.entity.key === 'north-charleston').map((f) => f.fiscalYear))
       .toEqual([2021, 2022, 2024, 2025]);
-    expect(loadable).toHaveLength(54);
+    expect(loadable).toHaveLength(64);
   });
 
   /**
@@ -308,7 +317,8 @@ describe('the South Carolina city wave-2 roster', () => {
     // corroborator on a `-table` entity would be a check that never runs; a
     // coordinate entity without one would be unfalsifiable.
     const coords = scCityLoadableEntities().filter((e) => e.extractor.endsWith('Coords.py'));
-    expect(coords.map((e) => e.key)).toEqual(['north-charleston', 'rock-hill', 'summerville']);
+    expect(coords.map((e) => e.key))
+      .toEqual(['north-charleston', 'rock-hill', 'summerville', 'spartanburg']);
     for (const e of scCityLoadableEntities()) {
       expect(Boolean(e.corroboratingExtractor)).toBe(e.extractor.endsWith('Coords.py'));
     }
@@ -333,7 +343,7 @@ describe('the South Carolina city wave-2 roster', () => {
  * that and breaks FY2025 operating by 20,125.
  */
 describe('the two-reader corroboration register', () => {
-  it('declares exactly six disagreements, each with its cause', () => {
+  it('declares exactly eight disagreements, each with its cause', () => {
     expect(READER_DISAGREEMENTS.map((d) => d.id).sort()).toEqual([
       'north-charleston-fy2021-operating-grid',
       'north-charleston-fy2022-operating-grid',
@@ -341,11 +351,28 @@ describe('the two-reader corroboration register', () => {
       'north-charleston-fy2024-revenue-grid',
       'rock-hill-fy2024-revenue-two-offset',
       'rock-hill-fy2025-operating-readable',
-    ]);
+      'spartanburg-fy2018-revenue-grid',
+      'spartanburg-fy2018-operating-grid',
+    ].sort());
     for (const d of READER_DISAGREEMENTS) {
-      expect(['rock-hill', 'north-charleston']).toContain(d.entityKey);
+      expect(['rock-hill', 'north-charleston', 'spartanburg']).toContain(d.entityKey);
       expect(d.why.length).toBeGreaterThan(40);
     }
+  });
+
+  /**
+   * ⚠⚠ SPARTANBURG'S TWO ARE THE SAME DOCUMENT, and they are the diagnosed
+   * reason the entity is on the coordinate reader at all. Nine of its ten years
+   * read fine through `-table`; using it for those and coordinates for FY2018
+   * would be picking whichever reader tied — the curve-fitting error the LA-01
+   * scope verdict was retracted for. The ENTITY moves, once, for a stated reason.
+   */
+  it('names Spartanburg FY2018 as one document failing in both modes', () => {
+    const both = READER_DISAGREEMENTS.filter((d) => d.entityKey === 'spartanburg');
+    expect(both.map((d) => d.mode).sort()).toEqual(['operating', 'revenue']);
+    expect(both.every((d) => d.fiscalYear === 2018)).toBe(true);
+    // ⚠ The revenue delta IS an expenditure line: the grid mixed the sections.
+    expect(both.find((d) => d.mode === 'revenue').why).toMatch(/EXPENDITURE line/);
   });
 
   /**
@@ -356,7 +383,8 @@ describe('the two-reader corroboration register', () => {
    * declaration must not quietly widen into permission.
    */
   it('records a null delta where the corroborating reader returns nothing', () => {
-    for (const d of READER_DISAGREEMENTS.filter((x) => x.entityKey === 'north-charleston')) {
+    for (const d of READER_DISAGREEMENTS.filter(
+      (x) => x.entityKey === 'north-charleston' || x.entityKey === 'spartanburg')) {
       expect(d.delta).toBeNull();
       expect(d.recordTotal).toBeGreaterThan(0);
     }

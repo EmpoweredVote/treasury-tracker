@@ -328,7 +328,8 @@ export const AUDIT_GRADE_REGISTRY = [
     // and Town of Mount Pleasant (FY2018-FY2025), +36 rows; wave 2 added City of
     // Rock Hill and City of Greenville (FY2016-FY2025 each), +40 rows; wave 3
     // added Town of Summerville and City of Goose Creek, +24 rows, then City of
-    // North Charleston, +8. 38 -> 74 -> 114 -> 138 -> 146.
+    // North Charleston, +8, then City of Spartanburg, +20 (a full ten years).
+    // 38 -> 74 -> 114 -> 138 -> 146 -> 166.
     //
     // ⚠⚠ NORTH CHARLESTON IS FOUR YEARS OF TEN (FY2021, FY2022, FY2024, FY2025)
     // and its six gaps are DOCUMENT-QUALITY gaps, not missing filings: three
@@ -352,7 +353,7 @@ export const AUDIT_GRADE_REGISTRY = [
     //     GAAP conformity phrase appears 4-6 times in each. One OCBOA entity
     //     hiding in a GAAP cohort is what Brown County SD turned out to be.
     id: 'sc-city-acfr',
-    match: /^(City of Columbia|City of Myrtle Beach|City of Charleston|Town of Mount Pleasant|City of Rock Hill|City of Greenville|Town of Summerville|City of Goose Creek|City of North Charleston) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
+    match: /^(City of Columbia|City of Myrtle Beach|City of Charleston|Town of Mount Pleasant|City of Rock Hill|City of Greenville|Town of Summerville|City of Goose Creek|City of North Charleston|City of Spartanburg) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
     value: AUDIT_GRADE.AUDITED_GAAP,
     evidence: {
       document: 'The independent auditor\'s report, read in ALL NINETEEN loaded documents '
