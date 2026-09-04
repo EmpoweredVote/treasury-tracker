@@ -40,6 +40,25 @@
 *.py text eol=lf
 *.sh text eol=lf
 
+# ⚠⚠ AND JSON, BECAUSE A GENERATED FILE IS COMPARED BYTE FOR BYTE.
+#
+# `scripts/buildMnOsaAuditBranch.mjs --check` re-derives its JSON from the OSA
+# source and compares it to the committed file to prove the file is not stale.
+# The generator writes LF; a Windows checkout rewrote the committed copy to CRLF;
+# so the guard reported STALE on a file that was byte-identical in content. A
+# check that fails on the line endings of its own checkout is worse than no
+# check, because the obvious "fix" is to regenerate and commit the CRLF version,
+# which then fails for everyone on Linux.
+#
+# ⚠ EXACTLY the failure the Census fixture rule below was added for (#139),
+# and it recurred here two commits after *.py and *.sh were pinned. The lesson
+# this file keeps re-learning is to pin the CLASS, not the file that just broke:
+# any file whose BYTES are asserted by a checker or a hash needs an eol rule.
+#
+# ⚠ Measured before adding: all 102 tracked .json files are already stored
+# LF (or have no newlines at all), so this changes NO bytes today.
+*.json text eol=lf
+
 # Verbatim data fixtures must keep the SOURCE's line endings.
 #
 # WARNING: `tests/fixtures/census/co-est2024-sc-slice.csv` is a byte extract of
