@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync, existsSync } from 'node:fs';
 
 import {
   keyFor, displayNameFor, readPopulations, resolveMonth,
@@ -14,6 +15,34 @@ import { SC_LOAD_FLOOR } from '../scripts/lib/scRfa.mjs';
 import {
   SC_PUBLISHED_TOTAL_RESIDUE, declaredResidue, residueKey, assertResiduesObserved,
 } from '../scripts/data/scRfaPublisherResidue.mjs';
+
+/**
+ * ⚠⚠ THESE POPULATION CHECKS USED TO READ `cache/co-est2024-alldata.csv`, WHICH IS
+ * GITIGNORED — so they threw ENOENT in CI and the `build` job went red on PR #134
+ * while passing on every developer machine that happened to have the file. A test
+ * that only runs where the data was manually downloaded is the harness-nobody-runs
+ * problem in reverse: it ran locally, blocked the merge remotely, and asserted
+ * nothing either way once it failed.
+ *
+ * The fixture is a VERBATIM extract of that Census PEP file — same bytes, same
+ * column order — committed at 30 KB. Three inclusions are deliberate and must not
+ * be "tidied":
+ *
+ *   * all 46 SUMLEV-050 rows for STATE 45          the counties under test
+ *   * the SUMLEV-040 `South Carolina` row          one assertion below requires
+ *     that this is NOT read as a county; drop it and the assertion passes
+ *     trivially and proves nothing
+ *   * three SUMLEV-050 rows for STATE 37 (NC)      otherwise `readPopulations`'s
+ *     own `f[STATE] !== stateFips` filter is never exercised
+ *
+ * ⭐ And `keeps the fixture honest against its source` below re-reads the real
+ * cache file WHEN PRESENT and asserts every fixture line appears in it verbatim,
+ * so the fixture cannot drift into agreeing with a wrong registry. That check
+ * SKIPS explicitly (and says so) where the source is absent, which is the only
+ * part of this that CI cannot do.
+ */
+const CENSUS_FIXTURE = 'tests/fixtures/census/co-est2024-sc-slice.csv';
+const CENSUS_SOURCE = 'cache/co-est2024-alldata.csv';
 
 describe('the South Carolina statewide county registry', () => {
   it('holds all 46 counties, every one of them a county', () => {
@@ -157,7 +186,7 @@ describe('the statewide registry builders', () => {
   });
 
   it('reads exactly the 46 South Carolina counties out of the Census PEP file', () => {
-    const pops = readPopulations('cache/co-est2024-alldata.csv');
+    const pops = readPopulations(CENSUS_FIXTURE);
     expect(pops.size).toBe(SC_COUNTY_COUNT);
     // Case-insensitive, so the Census `McCormick` and the record's `Mccormick`
     // reach the same row.
@@ -168,7 +197,7 @@ describe('the statewide registry builders', () => {
   });
 
   it('carries each county\'s own Census population, not a neighbour\'s', () => {
-    const pops = readPopulations('cache/co-est2024-alldata.csv');
+    const pops = readPopulations(CENSUS_FIXTURE);
     for (const e of SC_STATEWIDE_ENTITIES) {
       expect(e.population).toBe(pops.get(e.name.toUpperCase()).population);
       expect(e.fips).toBe(pops.get(e.name.toUpperCase()).fips);
@@ -246,5 +275,44 @@ describe('the published-total residue register', () => {
       expect(scStatewideByKey(r.entityKey)).toBeTruthy();
       expect(scStatewideByKey(r.entityKey).name).toBe(r.name);
     }
+  });
+});
+
+describe('the committed Census fixture', () => {
+  it('holds exactly the rows the assertions depend on', () => {
+    const lines = readFileSync(CENSUS_FIXTURE, 'latin1').split('\n').filter(Boolean);
+    const head = lines[0].split(',');
+    const ix = (n) => head.indexOf(n);
+    const rows = lines.slice(1).map((l) => l.split(','));
+    const sc = rows.filter((f) => f[ix('SUMLEV')] === '050' && f[ix('STATE')] === '45');
+    expect(sc).toHaveLength(SC_COUNTY_COUNT);
+    // ⚠ The state row must be PRESENT, so "not read as a county" is a real test.
+    expect(rows.some((f) => f[ix('SUMLEV')] === '040' && f[ix('STATE')] === '45')).toBe(true);
+    // ⚠ And a foreign state must be present, so the state filter is exercised.
+    expect(rows.some((f) => f[ix('SUMLEV')] === '050' && f[ix('STATE')] === '37')).toBe(true);
+    // ⚠ readPopulations must reject the foreign rows, not merely ignore them.
+    const pops = readPopulations(CENSUS_FIXTURE);
+    expect(pops.size).toBe(SC_COUNTY_COUNT);
+    expect(pops.get('ALAMANCE COUNTY')).toBeUndefined();   // NC, SUMLEV 050
+  });
+
+  /**
+   * ⚠⚠ A FIXTURE CAN DRIFT INTO AGREEING WITH A WRONG REGISTRY. This is the only
+   * check that cannot run in CI, because it needs the 1.8 MB source file. It
+   * SKIPS LOUDLY rather than passing vacuously — silence would mean the fixture
+   * is trusted forever on the strength of one extraction.
+   */
+  it('keeps the fixture honest against its source, where the source is present', () => {
+    if (!existsSync(CENSUS_SOURCE)) {
+      console.log(`  SKIPPED: ${CENSUS_SOURCE} absent (gitignored). `
+        + 'Fixture-vs-source parity was NOT checked in this run.');
+      return;
+    }
+    const source = new Set(
+      readFileSync(CENSUS_SOURCE, 'latin1').split(/\r?\n/).filter(Boolean),
+    );
+    const fixture = readFileSync(CENSUS_FIXTURE, 'latin1').split('\n').filter(Boolean);
+    const missing = fixture.filter((l) => !source.has(l));
+    expect(missing).toEqual([]);
   });
 });
