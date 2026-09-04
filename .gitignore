@@ -45,6 +45,15 @@ docs/*
 # …and the 50/50-ACFR end-state record (Phase 123, NASBORT-01): the durable source-of-record
 # for the all-50-states-on-ACFR milestone + the two accepted NASBO fallback nodes.
 !docs/state-acfr-5050.md
+# …and the Inform-pillar product brief, RESCUED from the orphan `master` branch
+# before that branch was deleted (2026-09-04). `master` shared no commit with
+# `main`, so this 40 KB document existed in exactly one place and would have gone
+# with it. It is the only written record of the intent behind several features
+# that were never built — the "Follow Your Tax Dollars" calculator, the
+# "Did You Know?" pop-ups, and the Compass / Read & Rank / Issues in Focus
+# integrations. ⚠ A HISTORICAL BRIEF, not a description of current behaviour; the
+# file carries its own provenance header saying so.
+!docs/inform-pillar-treasury-tracker-spec.md
 # …and the Federal Audit Clearinghouse extract that evidences the fiscal-year
 # calendar of 16,228 local governments in 56 jurisdictions, audit years
 # 1998-2026. This is not a convenience copy: it is the EVIDENCE the whole
