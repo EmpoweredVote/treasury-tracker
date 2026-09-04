@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { AUDIT_GRADE, AUDIT_GRADE_VALUES, validateAxisRegistry } from '../scripts/lib/budgetAxes.mjs';
-import { AUDIT_GRADE_REGISTRY, gradeFor } from '../scripts/data/auditGradeRegistry.mjs';
+import { AUDIT_GRADE_REGISTRY, gradeFor, mnOsaGradeFor } from '../scripts/data/auditGradeRegistry.mjs';
 
 describe('audit grade registry', () => {
   it('is structurally valid', () => {
@@ -54,14 +55,106 @@ describe('gradeFor', () => {
     expect(gradeFor(publicpay)).toEqual({ value: 'unknown', entryId: null });
   });
 
-  // ⚠ MN OSA is DELIBERATELY absent from the registry. Three publisher pages were
-  // checked on 2026-08-28 and none states what the Finances Report is compiled
-  // from or whether it is audited. "Probably self-reported" is inference, and
-  // spec §3.5 forbids classifying on inference. See KNIGHT-COMMUNITIES-PROGRESS.md.
-  // If MN is later verified, this assertion is the one to change — deliberately.
-  it('leaves the MN OSA report unknown, because its audit status is unverified', () => {
-    expect(gradeFor('Minnesota Office of the State Auditor City/County Finances Report'))
-      .toEqual({ value: 'unknown', entryId: null });
+  /**
+   * ⚠⚠ MN OSA IS THE REGISTRY'S FIRST **BRANCHING** ENTRY (2026-09-04). It used to
+   * be deliberately absent, and the assertion here used to pin `unknown` — the old
+   * comment said "if MN is later verified, this assertion is the one to change,
+   * deliberately". It was verified, so it changed.
+   *
+   * It is a MIXED source: the audit duty follows the entity's statutory class.
+   *   counties            Minn. Stat. § 6.481 subd. 2 — audit UNCONDITIONAL
+   *   cities over 2,500   § 471.697(c) — audited statements filed with OSA
+   *   cities under 2,500  § 471.698 — NO audit clause at all
+   */
+  const MN = 'Minnesota Office of the State Auditor City/County Finances Report';
+
+  it('grades an MN COUNTY compiled_from_audited — § 6.481 makes the audit unconditional', () => {
+    expect(gradeFor(MN, { entityType: 'county', name: 'Ramsey', fiscalYear: 2021 }))
+      .toEqual({ value: 'compiled_from_audited', entryId: 'mn-osa-lgf' });
+  });
+
+  it('grades a LARGE MN city compiled_from_audited, using the OSA class code', () => {
+    // ⭐ Duluth is ClassCode 1 at a population of 86,788 — still a city of the
+    // FIRST class though under 100,000, because § 410.01 does not reclassify until
+    // population falls 25% below the qualifying figure. Read off OSA's data, not
+    // reasoned about, and first-class cities are audited BY the State Auditor.
+    expect(gradeFor(MN, { entityType: 'city', name: 'Duluth', fiscalYear: 2021 }))
+      .toEqual({ value: 'compiled_from_audited', entryId: 'mn-osa-lgf' });
+    expect(gradeFor(MN, { entityType: 'city', name: 'Saint Paul', fiscalYear: 2021 }))
+      .toEqual({ value: 'compiled_from_audited', entryId: 'mn-osa-lgf' });
+  });
+
+  it('grades a FIFTH-CLASS city self_reported_unaudited — § 471.698 requires no audit', () => {
+    expect(gradeFor(MN, { entityType: 'city', name: 'Ada', fiscalYear: 2021 }))
+      .toEqual({ value: 'self_reported_unaudited', entryId: 'mn-osa-lgf' });
+  });
+
+  /**
+   * ⚠⚠ THE PROPERTY THAT MATTERS MOST: a branch can only ever RAISE a grade on
+   * evidence. Every unresolvable shape must land on the WEAKER branch, never on
+   * `compiled_from_audited`. If this ever inverts, the registry starts asserting
+   * assurance that no document supports — the exact failure §3.5 exists to stop.
+   */
+  it('falls back to the WEAKER branch whenever the entity-year cannot be resolved', () => {
+    const weak = { value: 'self_reported_unaudited', entryId: 'mn-osa-lgf' };
+    expect(gradeFor(MN)).toEqual(weak);                                            // no context
+    expect(gradeFor(MN, null)).toEqual(weak);                                      // explicit null
+    expect(gradeFor(MN, { entityType: 'city', name: 'Nowhere', fiscalYear: 2021 })).toEqual(weak);
+    expect(gradeFor(MN, { entityType: 'city', name: 'Ada', fiscalYear: 1999 })).toEqual(weak);
+    expect(gradeFor(MN, { entityType: 'township', name: 'Ada', fiscalYear: 2021 })).toEqual(weak);
+    expect(gradeFor(MN, { entityType: 'city' })).toEqual(weak);                    // no name/year
+  });
+
+  it('resolves the branch directly, and never invents a class', () => {
+    expect(mnOsaGradeFor(null)).toBeNull();
+    expect(mnOsaGradeFor({ entityType: 'city', name: 'Nowhere', fiscalYear: 2021 })).toBeNull();
+    expect(mnOsaGradeFor({ entityType: 'township', name: 'Ada', fiscalYear: 2021 })).toBeNull();
+    expect(mnOsaGradeFor({ entityType: 'county', name: 'anything', fiscalYear: 2021 }))
+      .toBe('compiled_from_audited');
+  });
+
+  /**
+   * ⚠ The committed branch file must agree with the publisher's own prose. The
+   * 2023 City Finances Report says "347 of the 619 small cities (56.1 percent)",
+   * so FY2023 must hold exactly 619 fifth-class cities. This is the one number
+   * that ties the generated file back to a sentence a human can read.
+   */
+  it('reconciles the branch file against the count the report itself states', () => {
+    const branch = JSON.parse(
+      readFileSync(new URL('../scripts/data/mnOsaAuditBranch.json', import.meta.url), 'utf8'),
+    );
+    expect(branch.per_fy_class_distribution['2023'][5]).toBe(619);
+    // ⚠ And the file must not be empty in a way that makes the tests above vacuous.
+    expect(branch.entity_years).toBeGreaterThan(10_000);
+    expect(Object.keys(branch.cities).length).toBeGreaterThan(800);
+  });
+
+  /**
+   * ⚠⚠ THE PUBLISHER ITSELF LEAVES A ROW UNCLASSIFIED, and that is DECLARED
+   * rather than silently dropped. Pierz FY2012 carries `ClassCode` = null in
+   * OSA's own cired_12 file (population 1,387; class 5 the following year).
+   *
+   * It resolves to the WEAKER branch — which is the right answer here — but by
+   * the safe default, NOT by inferring class from population. Inferring would
+   * break the rule that OSA assigns class from the DECENNIAL census, so a city
+   * can sit under 2,500 and still be fourth class.
+   *
+   * ⚠ Asserted exactly, so a new unclassified row appearing, or this one being
+   * quietly back-filled, is a VISIBLE change. A declared exception that stops
+   * being observed must fail, or it rots into dead permission.
+   */
+  it('declares every entity-year the publisher left unclassified, and no more', () => {
+    const branch = JSON.parse(
+      readFileSync(new URL('../scripts/data/mnOsaAuditBranch.json', import.meta.url), 'utf8'),
+    );
+    expect(branch.unclassified_entity_years).toEqual([
+      { name: 'Pierz', fy: 2012, population: 1387 },
+    ]);
+    // ⚠ And it must NOT appear in the lookup, so the grader cannot read a class
+    // for it by accident.
+    expect(branch.cities.Pierz?.['2012']).toBeUndefined();
+    expect(branch.cities.Pierz?.['2013']).toBe(5);
+    expect(mnOsaGradeFor({ entityType: 'city', name: 'Pierz', fiscalYear: 2012 })).toBeNull();
   });
 
   it('returns unknown for an unregistered source', () => {

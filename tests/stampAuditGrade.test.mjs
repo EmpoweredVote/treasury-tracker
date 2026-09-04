@@ -25,11 +25,43 @@ describe('planStamps', () => {
     expect(planStamps([{ id: 'r5', data_source: OH, source_url: '   ' }])).toEqual([]);
   });
 
-  // ⚠ MN OSA is unverified, so it must NOT be stamped even though its rows are
-  // otherwise perfectly good. Silence about assurance is the honest output.
-  it('does not stamp the unverified MN OSA source', () => {
-    expect(planStamps([{ id: 'r6', data_source: MN, source_url: 'https://osa.state.mn.us/x.xlsx' }]))
-      .toEqual([]);
+  /**
+   * ⚠⚠ MN OSA WAS unverified and unstamped; as of 2026-09-04 it is a BRANCHING
+   * entry — the audit duty follows the entity's statutory class, not the source
+   * string. `planStamps` therefore has to pass the row's entity context through.
+   */
+  it('stamps MN OSA per BRANCH, using the entity context on the row', () => {
+    const url = 'https://osa.state.mn.us/x.xlsx';
+    const plan = (context) => planStamps([{ id: 'r6', data_source: MN, source_url: url, context }])[0];
+
+    // § 6.481 subd. 2 — a county audit is unconditional.
+    expect(plan({ entityType: 'county', name: 'Ramsey', fiscalYear: 2021 }).audit_grade)
+      .toBe('compiled_from_audited');
+    // § 471.697(c) — a city over 2,500 files audited statements with the OSA.
+    expect(plan({ entityType: 'city', name: 'Duluth', fiscalYear: 2021 }).audit_grade)
+      .toBe('compiled_from_audited');
+    // § 471.698 — a fifth-class city has NO audit duty at all.
+    expect(plan({ entityType: 'city', name: 'Ada', fiscalYear: 2021 }).audit_grade)
+      .toBe('self_reported_unaudited');
+  });
+
+  /**
+   * ⚠⚠ THE DIRECTION THAT MATTERS. A row reaching the stamper WITHOUT context —
+   * an older caller, a municipality that failed to join — must never be graded
+   * `compiled_from_audited`. It falls to the weaker branch, so the worst case is
+   * under-stating assurance.
+   */
+  it('never grades an MN row audited without the evidence to support it', () => {
+    const rows = [
+      { id: 'n1', data_source: MN, source_url: 'https://x' },                       // no context
+      { id: 'n2', data_source: MN, source_url: 'https://x', context: null },
+      { id: 'n3', data_source: MN, source_url: 'https://x',
+        context: { entityType: 'city', name: 'Nowhere', fiscalYear: 2021 } },
+      { id: 'n4', data_source: MN, source_url: 'https://x',
+        context: { entityType: 'city', name: 'Ada', fiscalYear: 1875 } },
+    ];
+    for (const r of planStamps(rows)) expect(r.audit_grade).toBe('self_reported_unaudited');
+    expect(planStamps(rows)).toHaveLength(4);
   });
 
   it('skips unregistered sources', () => {
@@ -48,7 +80,9 @@ describe('planStamps', () => {
       { id: 'c', data_source: OH, source_url: null },
       { id: 'd', data_source: SCO_EXP, source_url: 'https://y' },
     ]);
-    expect(out.map((r) => r.id)).toEqual(['a', 'd']);
+    // ⚠ 'b' is now KEPT — MN classifies since 2026-09-04, at its weaker branch
+    // because this row carries no entity context.
+    expect(out.map((r) => r.id)).toEqual(['a', 'b', 'd']);
   });
 
   it('is a pure function — it does not mutate its input', () => {
