@@ -280,7 +280,7 @@ describe('the published-total residue register', () => {
 
 describe('the committed Census fixture', () => {
   it('holds exactly the rows the assertions depend on', () => {
-    const lines = readFileSync(CENSUS_FIXTURE, 'latin1').split('\n').filter(Boolean);
+    const lines = readFileSync(CENSUS_FIXTURE, 'latin1').split(/\r?\n/).filter(Boolean);
     const head = lines[0].split(',');
     const ix = (n) => head.indexOf(n);
     const rows = lines.slice(1).map((l) => l.split(','));
@@ -308,10 +308,16 @@ describe('the committed Census fixture', () => {
         + 'Fixture-vs-source parity was NOT checked in this run.');
       return;
     }
-    const source = new Set(
-      readFileSync(CENSUS_SOURCE, 'latin1').split(/\r?\n/).filter(Boolean),
-    );
-    const fixture = readFileSync(CENSUS_FIXTURE, 'latin1').split('\n').filter(Boolean);
+    // ⚠⚠ SPLIT BOTH SIDES THE SAME WAY. The first version split the source on
+    // /\r?\n/ and the fixture on '\n', so a CRLF checkout left every fixture line
+    // with a trailing \r and NONE of the 51 matched — a 100% failure that read as
+    // catastrophic drift and was purely line endings. `.gitattributes` now pins the
+    // fixture to LF; this stays tolerant anyway, because a guard that depends on
+    // checkout configuration is not a guard.
+    const split = (t) => t.split(/\r?\n/).filter(Boolean);
+    const source = new Set(split(readFileSync(CENSUS_SOURCE, 'latin1')));
+    const fixture = split(readFileSync(CENSUS_FIXTURE, 'latin1'));
+    expect(fixture).toHaveLength(51);
     const missing = fixture.filter((l) => !source.has(l));
     expect(missing).toEqual([]);
   });
