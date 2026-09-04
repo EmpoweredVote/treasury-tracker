@@ -42,7 +42,12 @@ export function planStamps(rows) {
   for (const row of rows) {
     const url = row?.source_url;
     if (typeof url !== 'string' || url.trim() === '') continue;
-    const { value, entryId } = gradeFor(row?.data_source);
+    // ⚠⚠ THE SECOND ARGUMENT IS WHAT MAKES A MIXED SOURCE GRADEABLE. Minnesota's
+    // audit duty follows the entity's statutory class, not the source string, so
+    // `gradeFor` needs the entity. A row with no context still classifies — the
+    // branching entry falls back to its own WEAKER value — so an un-enriched
+    // caller under-states assurance rather than inventing it.
+    const { value, entryId } = gradeFor(row?.data_source, row?.context ?? null);
     // entryId is non-null ONLY when a real classification happened, so this
     // never stamps the unknown value.
     if (entryId === null) continue;
@@ -71,7 +76,7 @@ async function readAllRows(client) {
     const { data, error } = await client
       .schema('treasury')
       .from('budgets')
-      .select('id, data_source, source_url, audit_grade')
+      .select('id, data_source, source_url, audit_grade, municipality_id, fiscal_year')
       // ⚠ Total order, primary key LAST. Without `id` the page boundaries are
       // not deterministic and rows can repeat or vanish across pages.
       .order('data_source', { nullsFirst: true })
@@ -82,12 +87,45 @@ async function readAllRows(client) {
   }, PAGE_SIZE);
 }
 
+/** ⚠ Paged with a total order and DISTINCT ids asserted — the defect that has
+ *  bitten four times (reference_paged_reads_need_total_order). */
+async function readAllMunicipalities(client) {
+  const rows = await paginate(async (from, to) => {
+    const { data, error } = await client
+      .schema('treasury')
+      .from('municipalities')
+      .select('id, name, state, entity_type')
+      .order('id')
+      .range(from, to);
+    if (error) throw new Error(`readAllMunicipalities: ${error.message}`);
+    return data ?? [];
+  }, PAGE_SIZE);
+  const ids = new Set(rows.map((r) => r.id));
+  if (ids.size !== rows.length) {
+    throw new Error(`PAGING DEFECT: ${rows.length} municipalities, ${ids.size} distinct ids`);
+  }
+  return rows;
+}
+
 async function main() {
   const dryRun = process.argv.includes('--dry-run');
   const client = await getSupabase();
 
-  const rows = await readAllRows(client);
-  console.log(`read ${rows.length.toLocaleString()} budget rows`);
+  const rawRows = await readAllRows(client);
+  console.log(`read ${rawRows.length.toLocaleString()} budget rows`);
+
+  // ⚠ Entity context for the branching entries. Read ONCE and joined in memory —
+  // a per-row lookup would be 200k+ round trips.
+  const municipalities = await readAllMunicipalities(client);
+  const byMuni = new Map(municipalities.map((m) => [m.id, m]));
+  console.log(`read ${municipalities.length.toLocaleString()} municipalities`);
+
+  const rows = rawRows.map((r) => {
+    const m = byMuni.get(r.municipality_id);
+    return m
+      ? { ...r, context: { entityType: m.entity_type, name: m.name, state: m.state, fiscalYear: r.fiscal_year } }
+      : r;
+  });
 
   const planned = planStamps(rows);
   // Only write rows whose grade would actually change — a no-op UPDATE still
