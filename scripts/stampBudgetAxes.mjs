@@ -197,6 +197,36 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // member for member (scripts/verifyPaStatewideLoad.mjs). The family grew
   // because a load added members, not because a pattern widened.
   'pa-dced-clgs30': 51078,
+  // South Carolina RFA Local Government Finance Report, county blocks. Statewide
+  // sweep, measured 2026-09-03 from the ACTUAL post-write count.
+  //
+  // Was absent entirely: the Knight session-6a load's 52 rows were never claimed
+  // by a basis entry, so South Carolina sat in the `unknown` bucket and nothing
+  // noticed — the same gap Pennsylvania carried until #133.
+  //
+  // 1,170 = 585 loadable county-years x 2 datasets, over exactly 26 source
+  // strings = 13 fiscal years x 2 datasets, across all 46 counties.
+  //
+  // ⚠ 585 rather than 598 county-years: 13 are refused because the publisher
+  // marks them not reported — by an asterisk in the column header (Clarendon
+  // FY23/24, Jasper FY23/24, Kershaw FY21) or an `N` in the `County Info` matrix
+  // (Allendale FY20/21/24, Hampton FY22, Orangeburg FY21, Williamsburg
+  // FY22/23/24). Neither signal is a superset of the other, so a county-year is
+  // trusted only when BOTH agree, and a refused year is ABSENT rather than $0.
+  //
+  // ⚠ THE PATTERN WAS INTERROGATED BEFORE THIS NUMBER WAS WRITTEN, which is the
+  // rule this gate exists to enforce: 0 rows outside South Carolina, 0 rows of an
+  // entity type the family cannot contain (county only), exactly 2 dataset types,
+  // exactly 26 distinct source strings over exactly 46 entity ids, and 0 duplicate
+  // (entity, year, dataset) keys. The loaded set also reconciles to the workbook
+  // BY DIGEST — 8723ea9adbb20af36dbc3ff12a51e383, member for member
+  // (scripts/verifyScStatewideLoad.mjs). The family grew because a load added
+  // members, not because a pattern widened.
+  //
+  // ⚠ There is deliberately NO reporting_entity twin for this id: RFA never says
+  // whether a county's component units are inside its County-only figures, so
+  // those rows stay `unknown`. See scripts/data/reportingEntityRegistry.mjs.
+  'sc-rfa-lgf': 1170,
   // Knight session 4 (Georgia DCA RLGF), measured from the ACTUAL post-write
   // count on 2026-08-29. A NEW family, so no pre-existing count moved.
   // 76 = 38 entity-years x 2 datasets, over 44 source strings — more strings per

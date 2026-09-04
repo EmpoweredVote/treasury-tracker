@@ -384,6 +384,34 @@ export const BASIS_REGISTRY = [
   },
 
   {
+    // South Carolina RFA Local Government Finance Report, county blocks.
+    //
+    // ⚠ Added with the statewide sweep. The Knight session-6a load's 52 rows were
+    // never claimed by a basis entry, so South Carolina sat in the `unknown`
+    // bucket and nothing noticed — the same gap Pennsylvania carried until #133.
+    // Invisible at 52 rows; not at 1,170.
+    id: 'sc-rfa-lgf',
+    match: /^South Carolina RFA Local Government Finance Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[2-9]|2[0-4]) actual, county only(?:, excl\. bond and lease proceeds)?\)$/,
+    value: BASIS.ACTUAL,
+    evidence: {
+      document: 'RFA\'s county submission form and its instructions. The form asks throughout for '
+              + '"the most recently completed fiscal year" and is due 8.5 months after that year '
+              + 'ends, so every figure is a closed-year actual and never an appropriation. '
+              + 'Reinforced by the report\'s own Sources and Notes, which describe category '
+              + 'changes taking effect in past filing years rather than budget cycles.',
+      figures: '⚠ THIS AXIS IS ACTUALS-vs-APPROPRIATION, NOT THE ACCOUNTING BASIS. South '
+             + 'Carolina explicitly REFUSES the audit — "We cannot accept financial audits as '
+             + 'submissions. That is a separate reporting requirement with the State Treasurer\'s '
+             + 'Office" — so the assurance fact lives on audit_grade as '
+             + 'self_reported_unaudited, never here. ⚠ fund_scope stays `unknown` for this '
+             + 'family ON PURPOSE and has no registry entry: RFA drops utility sales REVENUE '
+             + 'from the report while keeping utility SPENDING (form line 970), so the two money '
+             + 'columns are on different scopes by construction and RFA itself warns against '
+             + 'relating them.',
+    },
+  },
+
+  {
     // Knight campaign, session 3 — Florida DFS LOGERx Annual Financial Reports.
     // ⚠ Placed ABOVE the adopted-budget catch-all, on the `ca-sco-derived-tg`
     // precedent. That entry matches on /(Operating|Revenue|...).*Budget.../i and
