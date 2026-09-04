@@ -432,6 +432,35 @@ export const FUND_SCOPE_REGISTRY = [
     // Rock Hill and City of Greenville (FY2016-FY2025 each), +40 rows.
     // 38 -> 74 -> 114.
     //
+    // ⚠⚠ AND THEN WAVE 3 DID NOT EXTEND IT, WHICH IS THE VERY THING THE NOTE
+    // BELOW WARNS ABOUT. Town of Summerville, City of Goose Creek, City of
+    // North Charleston and City of Spartanburg were added to `basisRegistry`
+    // and `auditGradeRegistry` and NOT here, leaving 52 of the family's 166
+    // rows unclaimed by this registry while looking perfectly fine — the third
+    // occurrence of "all three registries anchor on the ENTITY NAME, so widen
+    // them in the SAME change" (Florida matched none of three, Pennsylvania
+    // only one). Found while adding wave 4; both waves are repaired together
+    // in that change, so this entry goes 114 -> 166 -> 206 in one step.
+    //
+    // ⚠ It stayed invisible because `classifyFundScope.mjs` is the only writer
+    // that reads this registry and it has been failing CLOSED since #132 over
+    // stale EXPECTED_ROWS, while every loader in this family writes fund_scope
+    // directly. So no row was ever mis-stamped — but the registry was wrong
+    // about its own family, which is the part that has to be right for the
+    // declared evidence to mean anything.
+    //
+    // ⚠ Wave 4 adds City of Sumter and City of Florence, FY2016-FY2025 each,
+    // +40 rows. 166 -> 206.
+    //
+    // ⚠⚠ `City of Florence` IS AMBIGUOUS ACROSS STATES TOO, and more sharply than
+    // Columbia: the FAC bulk table carries a City of Florence in ALABAMA
+    // (population ~40k, the same order as this one), and there are incorporated
+    // Florences in AZ, CO, KY, MS, NJ, OR, SC, TX and WI. This match string
+    // would be IDENTICAL for an Alabama load. Same instruction as Columbia:
+    // split by municipality_id at that point, do NOT widen the string.
+    // ⚠ `City of Sumter` is unique among SC-adjacent candidates today, but the
+    // rule does not depend on that and should not start doing so.
+    //
     // ⚠⚠ THE PATTERN HAD TO BE WIDENED IN THE SAME CHANGE. It anchors on the
     // entity name, so without this the 36 new rows would have sat unclaimed
     // while looking perfectly fine — Florida matched none of three registries
@@ -441,7 +470,7 @@ export const FUND_SCOPE_REGISTRY = [
     // ⚠ `Town of` Mount Pleasant, not `City of`: it is a town in the Census
     // file and in its own filings, and entity_type is part of its identity.
     id: 'sc-local-acfr-gf',
-    match: /^(City of Columbia|City of Myrtle Beach|City of Charleston|Town of Mount Pleasant|City of Rock Hill|City of Greenville) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
+    match: /^(City of Columbia|City of Myrtle Beach|City of Charleston|Town of Mount Pleasant|City of Rock Hill|City of Greenville|Town of Summerville|City of Goose Creek|City of North Charleston|City of Spartanburg|City of Sumter|City of Florence) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
     scope: SCOPE.GENERAL_FUND,
     evidence: {
       document: 'FIVE probes across both South Carolina entities, each the governmental-funds '
