@@ -137,13 +137,19 @@ describe('South Carolina city ACFR axes', () => {
   });
 
   it('pins the partition count, including the year that is deliberately missing', () => {
-    // ⚠ 38 -> 74 -> 114 -> 138 -> 146 -> 166: wave 1 added Charleston (10 years)
-    // and Mount Pleasant (8) = 36 rows; wave 2 added Rock Hill and Greenville
-    // (10 each) = 40; wave 3 added Summerville and Goose Creek (6 each) = 24,
-    // then North Charleston (4 of its 10) = 8, then Spartanburg (a full 10) =
-    // 20. The session-6a half is UNCHANGED and still checked separately below,
+    // ⚠ 38 -> 74 -> 114 -> 138 -> 146 -> 166 -> 206: wave 1 added Charleston (10
+    // years) and Mount Pleasant (8) = 36 rows; wave 2 added Rock Hill and
+    // Greenville (10 each) = 40; wave 3 added Summerville and Goose Creek (6
+    // each) = 24, then North Charleston (4 of its 10) = 8, then Spartanburg (a
+    // full 10) = 20; wave 4 added Sumter and Florence, a FULL DECADE EACH = 40.
+    // The session-6a half is UNCHANGED and still checked separately below,
     // because THAT is what this test is for.
-    expect(expectedRowsFor('sc-local-acfr-gf')).toBe(166);
+    //
+    // ⚠ 206 and not more: both wave-4 cities are complete at FAC, so unlike
+    // every previous wave nothing is subtracted for a coverage or document gap.
+    // That is a MEASURED fact per entity (Greer proved the population-based
+    // claim false), not an assumption from their size.
+    expect(expectedRowsFor('sc-local-acfr-gf')).toBe(206);
 
     // ⚠⚠ THE ORIGINAL INTENT, PRESERVED. 38 = 19 session-6a entity-years x 2
     // datasets, and 40 would mean Columbia FY2019 came back — the year whose only
@@ -165,10 +171,11 @@ describe('South Carolina city ACFR axes', () => {
     // loadable — its other six documents cannot be read at either publisher and
     // are declared in KNOWN_DOCUMENT_GAPS. A count that ignored them would
     // silently expect 12 rows that must never exist.
+    // ⚠ 168 = the 128 above plus wave 4's Sumter 10 + Florence 10, x 2 datasets.
     const loadable = scCityFilings()
       .filter((f) => !KNOWN_DOCUMENT_GAPS[`${f.entity.key}-${f.fiscalYear}`]);
-    expect(loadable.length * 2).toBe(128);
-    expect(38 + 128).toBe(166);
+    expect(loadable.length * 2).toBe(168);
+    expect(38 + 168).toBe(206);
   });
 
   // ⚠ `city` was missing from this set for months with every gate green.
