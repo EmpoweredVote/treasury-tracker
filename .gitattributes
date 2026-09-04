@@ -20,6 +20,26 @@
 *.ts text eol=lf
 *.tsx text eol=lf
 
+# ...and the SAME rule for the other two shebang-bearing file types, which
+# this file has now had to learn three times, one type over each time.
+#
+# ⚠ HONEST SCOPE: unlike the .js/.mjs rules above, this fixes a LATENT
+# risk, not an observed break. Nothing invokes `./scripts/x.py` or `./x.sh` --
+# every .py is run as `<interpreter> <file>`, which ignores the shebang, and
+# all 111 of these files are mode 100644, so none can be executed directly at
+# all. Their shebangs are decorative today, exactly as the 17 .js shebangs were
+# (see reference_ci_and_io_test_timeouts).
+#
+# ⚠ It is still worth pinning, and it is free: git already stores all 111 as
+# LF, so this changes no bytes today. What it buys is that a Windows checkout
+# followed by a renormalising commit cannot quietly put CRLF into the index --
+# and if anything ever DOES exec one of these directly, `#!/usr/bin/env python3`
+# with a trailing CR fails on Linux as "bad interpreter" while working fine in
+# Git Bash, which msys makes tolerate it. That is this file's recurring shape:
+# a break that is invisible on the machine you are typing on.
+*.py text eol=lf
+*.sh text eol=lf
+
 # Verbatim data fixtures must keep the SOURCE's line endings.
 #
 # WARNING: `tests/fixtures/census/co-est2024-sc-slice.csv` is a byte extract of
