@@ -240,7 +240,11 @@ export const EXPECTED_ROWS = Object.freeze({
   // 4 of 10). entity_type is city AND town; the fiscal month is 1 for two
   // entities, 7 for nine, and BOTH for Summerville, which changed its fiscal
   // year inside the loaded window.
-  'sc-local-acfr-gf': 206,
+  // ⚠ Wave 5 adds Town of Hilton Head Island — NINE years x 2 datasets = 18,
+  // taking 206 to 224. Nine, not ten: FY2016 is absent at both publishers. And
+  // nine, not eight: FY2020 has no federal filing and comes from the TOWN's own
+  // publisher, the first year in this family sourced outside FAC.
+  'sc-local-acfr-gf': 224,
   // Knight session 6b (Tennessee's first local entity), measured from the ACTUAL
   // post-write count on 2026-08-30. A NEW family, so no pre-existing count moved.
   // 20 = 10 fiscal years (FY2016-FY2025) x 2 datasets, ONE entity — Metro

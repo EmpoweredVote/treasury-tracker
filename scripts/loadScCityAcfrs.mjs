@@ -66,7 +66,7 @@ import { parseArgs } from 'node:util';
 
 import {
   SC_CITY_COVERAGE_GAPS, SC_CITY_DEFERRED, SC_CITY_STATE, scCityLoadableEntities,
-  fiscalMonthFor,
+  fiscalMonthFor, scCityYearsFor,
 } from './data/scCityAcfrEntities.mjs';
 import { KNOWN_DOCUMENT_GAPS, DEFAULT_OUT, stemFor } from './extractScCitiesAll.mjs';
 import { censusGuard } from './lib/facFiscalYearCensus.mjs';
@@ -156,7 +156,7 @@ export async function main() {
   let bad = 0;
 
   for (const ent of entities) {
-    for (const fy of Object.keys(ent.facReports).map(Number).sort((a, b) => a - b)) {
+    for (const fy of scCityYearsFor(ent)) {
       if (values.fy && Number(values.fy) !== fy) continue;
       const stem = stemFor(ent.key, fy);
       if (KNOWN_DOCUMENT_GAPS[stem]) { gaps.push(`${stem}: ${KNOWN_DOCUMENT_GAPS[stem]}`); continue; }

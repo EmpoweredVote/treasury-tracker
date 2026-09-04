@@ -58,9 +58,46 @@ function assertPdf(file) {
   const head = readFileSync(file).subarray(0, 5).toString('latin1');
   if (head !== '%PDF-') {
     throw new Error(`${path.basename(file)} is not a PDF (starts ${JSON.stringify(head)}) — `
-      + 'FAC serves an HTML error page with HTTP 200 for an id it cannot find. '
-      + 'Check the report id in scripts/data/scCityAcfrEntities.mjs.');
+      + 'FAC serves an HTML error page with HTTP 200 for an id it cannot find, and a '
+      + "municipal CMS serves its own 404 page the same way. Check the report id or "
+      + 'self-published URL in scripts/data/scCityAcfrEntities.mjs.');
   }
+}
+
+/**
+ * The documents to fetch for one entity, one entry per fiscal year.
+ *
+ * ⚠⚠ A YEAR MAY DECLARE A FAC REPORT ID **OR** A SELF-PUBLISHED URL, NEVER BOTH.
+ * Two publishers for one government-year is ambiguous provenance, and silently
+ * preferring one would make the manifest lie about which bytes were parsed. It
+ * is the Sumter double-filing question in a different costume: when two
+ * documents claim one government-year, the answer is to REFUSE and decide
+ * deliberately, never to let precedence order pick.
+ *
+ * ⚠ `reportId` is null for a self-published document. Nothing may rebuild a FAC
+ * URL from it, and the manifest records the publisher explicitly so a reader can
+ * tell a federally-filed year from an issuer-served one without inference.
+ */
+function plannedDocuments(entity) {
+  const self = entity.selfPublishedReports || {};
+  const fac = entity.facReports || {};
+
+  const both = Object.keys(fac).filter((fy) => fy in self);
+  if (both.length) {
+    throw new Error(`${entity.key}: FY${both.join(', FY')} declares BOTH a FAC report id and a `
+      + 'self-published URL. One government-year gets ONE recorded source — remove one, '
+      + 'and record why in scripts/data/scCityAcfrEntities.mjs.');
+  }
+
+  const docs = [
+    ...Object.entries(fac).map(([fy, reportId]) => ({
+      fy: Number(fy), url: `${FAC_PDF_BASE}/${reportId}`, reportId, publisher: 'fac',
+    })),
+    ...Object.entries(self).map(([fy, spec]) => ({
+      fy: Number(fy), url: spec.url, reportId: null, publisher: 'self', why: spec.why,
+    })),
+  ];
+  return docs.sort((a, b) => a.fy - b.fy);
 }
 
 async function main() {
@@ -84,12 +121,13 @@ async function main() {
       ? JSON.parse(readFileSync(manifestPath, 'utf8'))
       : {};
 
-    const years = Object.keys(entity.facReports).map(Number).sort((a, b) => a - b);
-    console.log(`\n${entity.name} (${entity.entityType}) — EIN ${entity.facEin}, ${years.length} filings`);
+    const docs = plannedDocuments(entity);
+    const selfCount = docs.filter((d) => d.publisher === 'self').length;
+    console.log(`\n${entity.name} (${entity.entityType}) — EIN ${entity.facEin}, `
+      + `${docs.length - selfCount} filings`
+      + (selfCount ? ` + ${selfCount} self-published` : ''));
 
-    for (const fy of years) {
-      const reportId = entity.facReports[fy];
-      const url = `${FAC_PDF_BASE}/${reportId}`;
+    for (const { fy, url, reportId, publisher } of docs) {
       const file = path.join(dir, `${entity.key}_${fy}.pdf`);
 
       if (existsSync(file) && !values.force) {
@@ -104,9 +142,10 @@ async function main() {
 
       const bytes = statSync(file).size;
       const sha256 = createHash('sha256').update(readFileSync(file)).digest('hex');
-      manifest[String(fy)] = { fy, url, reportId, bytes, pages: pageCount(file), sha256 };
+      manifest[String(fy)] = { fy, url, reportId, publisher, bytes, pages: pageCount(file), sha256 };
       fetched += 1;
-      console.log(`  FY${fy}  ${bytes.toLocaleString()} bytes  ${manifest[String(fy)].pages} pages  ${reportId}`);
+      console.log(`  FY${fy}  ${bytes.toLocaleString()} bytes  ${manifest[String(fy)].pages} pages  `
+        + `${reportId || `${publisher}: ${url.split('/').pop()}`}`);
     }
 
     writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
