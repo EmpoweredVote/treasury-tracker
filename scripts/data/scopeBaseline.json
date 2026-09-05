@@ -1,12 +1,16 @@
 {
-  "_warning": "Do NOT edit or regenerate to make the harness pass. `figures_frozen` must never change and is NOT written by --write-baseline; `composite_frozen` changes only when a migration explains it. An AUTHORISED figure correction is recorded in `figure_change_files` with the value it replaced — that keeps this digest verifying and is the supported alternative to a rebase. Rebases are recorded in `_rebased_at_*` and need explicit sign-off.",
-  "frozen_row_count": 62654,
-  "figures_frozen": "3a48ac283a15704fc62f970239a5ab3c37989f0d98f899be259be2de54ed41c6",
-  "composite_frozen": "9e1bf9fdd9bbbe3c94abb83758384dacc289140f32e270c8bd943db98bd21a36",
+  "_warning": "Do NOT edit or regenerate to make the harness pass. `figures_frozen` must never change and is NOT written by --write-baseline; `composite_frozen` changes only when a migration explains it.",
+  "frozen_row_count": 62644,
+  "figures_frozen": "332a8fda00bea86918959d15eef014b1e94a92071bd5546e31546e9fb53ab6e7",
+  "composite_frozen": "40f52eeea1b779cf26baa8a8140c04bcf48feb371197bbbcd44945e09dee9e3d",
   "composite_frozen_history": [
     {
       "digest": "e2c72925e26e3161a18ad77adad97abe18cb5c75913c772a5d70249db466d26f",
       "superseded_by": "see _rebased_at_v2_30 — the LA-02 withdrawals (v2.28) deleted 11 frozen rows"
+    },
+    {
+      "digest": "9e1bf9fdd9bbbe3c94abb83758384dacc289140f32e270c8bd943db98bd21a36",
+      "superseded_by": "see the newest migration in supabase/migrations/"
     }
   ],
   "excluded_ids_files": [
@@ -81,6 +85,12 @@
       "row_count": 79916,
       "superseded_by": "see _rebased_at_v2_34 — the digest was SCOPED to rows not under live sync",
       "rebased": "2026-08-30"
+    },
+    {
+      "digest": "3a48ac283a15704fc62f970239a5ab3c37989f0d98f899be259be2de54ed41c6",
+      "row_count": 62654,
+      "superseded_by": "see _rebased_at_v2_35 — ten rows left the digest when the legacy Indiana Gateway vintage was deleted",
+      "rebased": "2026-09-05"
     }
   ],
   "figure_change_files": [
@@ -122,5 +132,97 @@
     "_known_remaining_risk": "62,654 rows are now covered and genuinely beyond the reach of a sync. The residual risks are (a) a source enabled after this snapshot, caught by liveSyncExclusions.mjs --check, and (b) a targeted manual sync passing an explicit fiscal_year, which can rewrite any year of any source — including one that is currently disabled. Neither is silent any more: both move the digest and both are now diagnosable.",
     "_date": "2026-08-30",
     "_authorised_by": "Chris, 2026-08-30 — \"now do the frozen invariant scoping fix\""
+  },
+  "_rebased_at_v2_35": {
+    "_what": "Fourth rebase, from 3a48ac283a15704fc62f970239a5ab3c37989f0d98f899be259be2de54ed41c6 to 332a8fda00bea86918959d15eef014b1e94a92071bd5546e31546e9fb53ab6e7. Row count 62654 -> 62644. Like v2.34 and unlike v2.30/v2.33 this is NOT a recovery from lost lineage. It is the SAME SCOPE CORRECTION v2.34 made, applied to ten rows that correction should have covered and did not.",
+    "_why": "Migration 20260905000100 deleted the 45 legacy Indiana Gateway-vintage budget rows (diagnosis in that migration and in 20260905000000). 35 of them were already outside the digest via scripts/data/liveSyncExcludedIds.json. TEN WERE INSIDE IT, and they are exactly the ten carrying the bare data_source string \"Indiana Gateway\". Their owning sources are named \"Ellettsville Budget & Disbursements\" and \"Monroe County Budget & Disbursements\", both ENABLED and cron-syncing quarterly at the time. They therefore met v2.34's own definition of the live-sync exclusion verbatim — rows owned by an enabled data source, rewritable by a cron with no human involved, and so never meaningfully \"frozen\" — and were counted as frozen anyway.",
+    "_the_defect_that_hid_them": "Both scripts/liveSyncExclusions.mjs and the exposure report in scripts/verify-budget-axes.mjs identify a row's source by matching budgets.data_source against data_sources.name:\n    const liveNames = new Set(live.map(d => d.name));\n    rows.filter(r => !excludedSet.has(r.id) && liveNames.has(r.data_source))\nA sync that writes rows under any string other than its own name is invisible to it. That is the exclusion-side twin of the write-side defect already recorded in project_sync_city_budget_not_source_safe: treasury_sync_city_budget keys on fund_scope+basis, NOT data_source, so nothing forces the two strings to agree. `npm run verify:live-sync` reported \"0 unprotected\" for these ten on the morning they were deleted.",
+    "_why_the_join_cannot_simply_be_fixed_here": "budgets.data_source_id is not usable as the link: measured 2026-09-05 it is NULL on 269,062 rows and DANGLING on all 939 that carry one (11 distinct ids, none resolving to a data_sources row). The free-text column is the only link that exists. Re-keying the exclusion on municipality ownership instead would re-scope the set for up to 385 other enabled sources — measured: 385 of 1,799 enabled cron-syncing sources have a name that matches no budget row on their own municipality while that municipality does have rows. That is a much larger blast radius than this change and is left OPEN, deliberately, as its own milestone.",
+    "_the_accounting_reconciles_exactly": "62654 verified green at the start of the session, before any write. The only writes between the two measurements were migration 20260905000000 (treasury.data_sources only) and 20260905000100 (the 45 budget rows and their cascades). Of the 45, 35 were in the exclusion union and 10 were not. 62654 - 10 = 62644, which is what the database reports. No surviving row changed value.",
+    "_what_is_proven_and_what_is_not": "PROVEN: exactly these ten ids left the frozen set, they are all recoverable from .planning/backups/in-legacy-gateway/in-legacy-gateway-rows-fy2021-2025.json.gz (45 budgets / 5,320 categories / 4,050 line items, root-sum ties 45/45, dry-run through scripts/la02RestoreBackup.mjs before the delete), and the count reconciles to the row. NOT PROVEN by this block: that no OTHER row in the 62,644 has ever drifted — the 385 unmatched enabled sources above mean the live-sync scope is still incomplete, and a row it misses is a row the digest is still wrongly claiming to freeze.",
+    "_withdrawn_rows": [
+      {
+        "id": "aa4d1838-2998-4a19-b512-72eedc4ae0be",
+        "entity": "Ellettsville",
+        "fiscal_year": 2021,
+        "dataset_type": "operating",
+        "total_budget": 3140654,
+        "data_source": "Indiana Gateway"
+      },
+      {
+        "id": "43373e8a-dd5c-468b-89b0-2fc789c2cfe5",
+        "entity": "Ellettsville",
+        "fiscal_year": 2022,
+        "dataset_type": "operating",
+        "total_budget": 3499205.7199999983,
+        "data_source": "Indiana Gateway"
+      },
+      {
+        "id": "f2e2e521-eed5-4c18-8b40-a8f9367f14cb",
+        "entity": "Ellettsville",
+        "fiscal_year": 2023,
+        "dataset_type": "operating",
+        "total_budget": 3233708.8400000003,
+        "data_source": "Indiana Gateway"
+      },
+      {
+        "id": "6ca5c0c5-27f9-4cb3-b5dd-d38e5ffd9e82",
+        "entity": "Ellettsville",
+        "fiscal_year": 2024,
+        "dataset_type": "operating",
+        "total_budget": 3706503.5400000014,
+        "data_source": "Indiana Gateway"
+      },
+      {
+        "id": "3b25f1c7-01b1-4e17-9713-38ea0e6e0bc6",
+        "entity": "Ellettsville",
+        "fiscal_year": 2025,
+        "dataset_type": "operating",
+        "total_budget": 8057049,
+        "data_source": "Indiana Gateway"
+      },
+      {
+        "id": "91ade821-cd91-450b-891b-37c57d040ed1",
+        "entity": "Monroe County",
+        "fiscal_year": 2021,
+        "dataset_type": "operating",
+        "total_budget": 43283121.249999955,
+        "data_source": "Indiana Gateway"
+      },
+      {
+        "id": "4350856e-5164-49ec-995f-216e99ab24e9",
+        "entity": "Monroe County",
+        "fiscal_year": 2022,
+        "dataset_type": "operating",
+        "total_budget": 44598937.52999996,
+        "data_source": "Indiana Gateway"
+      },
+      {
+        "id": "87fd6483-6aaa-4596-8025-02b3f4fd5d78",
+        "entity": "Monroe County",
+        "fiscal_year": 2023,
+        "dataset_type": "operating",
+        "total_budget": 48586929.61,
+        "data_source": "Indiana Gateway"
+      },
+      {
+        "id": "3cbc027f-4a39-427c-a997-bfb891092521",
+        "entity": "Monroe County",
+        "fiscal_year": 2024,
+        "dataset_type": "operating",
+        "total_budget": 55986032.500000015,
+        "data_source": "Indiana Gateway"
+      },
+      {
+        "id": "c55e9fa6-6523-49f0-adea-7577447febac",
+        "entity": "Monroe County",
+        "fiscal_year": 2025,
+        "dataset_type": "operating",
+        "total_budget": 345064922,
+        "data_source": "Indiana Gateway"
+      }
+    ],
+    "_date": "2026-09-05",
+    "_authorised_by": "Chris, 2026-09-05 — asked explicitly before the baseline was touched, with the accounting above and the alternative (restore the ten and defer) on the table."
   }
 }
