@@ -124,8 +124,35 @@ describe('the v2.34 rebase is recorded, not silent', () => {
 
 describe('the baseline itself', () => {
   it('carries the scoped row count and digest', () => {
-    expect(baseline.frozen_row_count).toBe(62654);
+    // 62654 (v2.34) - 10 = 62644. Migration 20260905000100 deleted the legacy
+    // Indiana Gateway vintage; ten of those rows were inside the digest because
+    // they carried a data_source string their owning enabled source is not named
+    // after, so this file's name-join could not see them. See scopeBaseline.json
+    // `_rebased_at_v2_35`, which is what the next test guards.
+    expect(baseline.frozen_row_count).toBe(62644);
     expect(baseline.figures_frozen).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  // ⚠⚠ The v2.35 rebase exists BECAUSE this file's scope rule has a blind spot:
+  // it identifies a row's owner by matching budgets.data_source against
+  // data_sources.name. Measured 2026-09-05, 385 of 1,799 enabled cron-syncing
+  // sources have a name matching NO budget row on their own municipality while
+  // that municipality does have rows — each one a candidate for the same miss.
+  // budgets.data_source_id cannot replace the join: NULL on 269,062 rows and
+  // dangling on all 939 that carry one. This test fails if that admission is
+  // ever quietly dropped from the baseline.
+  it('records that the name-join blind spot is open, not closed', () => {
+    const v235 = baseline._rebased_at_v2_35;
+    expect(v235).toBeTruthy();
+    expect(v235._the_defect_that_hid_them).toMatch(/data_sources\.name/);
+    expect(v235._why_the_join_cannot_simply_be_fixed_here).toMatch(/385/);
+    expect(v235._what_is_proven_and_what_is_not).toMatch(/NOT PROVEN/);
+    expect(v235._authorised_by).toBeTruthy();
+    expect(v235._withdrawn_rows).toHaveLength(10);
+    for (const r of v235._withdrawn_rows) {
+      expect(r.data_source).toBe('Indiana Gateway');
+      expect(r.id).toMatch(/^[0-9a-f-]{36}$/);
+    }
   });
 
   it('has not lost the never-regenerate warning', () => {

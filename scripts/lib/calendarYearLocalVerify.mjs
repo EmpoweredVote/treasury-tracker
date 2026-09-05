@@ -81,20 +81,40 @@ export const STATES = {
       library: LOCAL_MONTH,
       state: STATE_MONTH,
     },
+    /**
+     * ⚠ RE-MEASURED 2026-09-05. This baseline had been stale in BOTH directions
+     * and was reporting FAIL on `main` before anything in this change was made —
+     * with `disagreeing 0, errors 0`, so no fiscal-calendar fact was ever wrong.
+     * A partition count is a measurement with a date, and this one had two:
+     *
+     *   +78  PR #113 loaded Fort Wayne, Gary, Allen County and Lake County from
+     *        the Indiana Gateway AFR branch and never moved this number.
+     *   -45  migration 20260905000100 deleted the legacy Gateway-vintage rows
+     *        for Ellettsville, Monroe County and three townships. Those five
+     *        entities now hold NO budget rows: the AFR reload path covers cities
+     *        /towns and counties, so Ellettsville and Monroe County return with
+     *        the statewide sweep, and the three townships hold nothing until a
+     *        township sweep is decided.
+     *
+     *   86 + 78 - 45 = 119, measured in the database, not derived.
+     *
+     * `sourceRows` is unchanged at 11: the nine legacy sources were DISABLED by
+     * migration 20260905000000, not deleted, and this verifier counts rows in
+     * treasury.data_sources regardless of is_enabled.
+     */
     baseline: {
-      localRows: 86,
-      localEntities: 6,
+      localRows: 119,
+      localEntities: 5,
       stateRows: 48,
       sourceRows: 11,
       sourceEntities: 9,
     },
     localRowsByEntity: {
       Bloomington: 41,
-      'Bean Blossom Township': 9,
-      'Clear Creek Township': 9,
-      Ellettsville: 9,
-      'Indian Creek Township': 9,
-      'Monroe County': 9,
+      'Allen County': 20,
+      'Fort Wayne': 20,
+      'Lake County': 20,
+      Gary: 18,
     },
   },
 

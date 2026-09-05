@@ -41,9 +41,13 @@ describe('scope and baselines', () => {
   });
 
   it('records that nothing in either population needs changing', () => {
-    expect(STATES.IN.baseline).toMatchObject({ localRows: 86, stateRows: 48, sourceRows: 11 });
+    // ⚠ Indiana re-measured 2026-09-05: 86 + 78 (PR #113's AFR entities, never
+    // absorbed here) - 45 (migration 20260905000100's legacy deletion) = 119.
+    // Colorado's 64 is ALSO stale against the live database (measured 88) but is
+    // someone else's population change and is deliberately left alone here.
+    expect(STATES.IN.baseline).toMatchObject({ localRows: 119, stateRows: 48, sourceRows: 11 });
     expect(STATES.CO.baseline).toMatchObject({ localRows: 64, stateRows: 6, sourceRows: 0 });
-    expect(Object.values(STATES.IN.localRowsByEntity).reduce((a, b) => a + b, 0)).toBe(86);
+    expect(Object.values(STATES.IN.localRowsByEntity).reduce((a, b) => a + b, 0)).toBe(119);
     expect(Object.values(STATES.CO.localRowsByEntity).reduce((a, b) => a + b, 0)).toBe(64);
   });
 
