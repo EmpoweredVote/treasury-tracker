@@ -13,7 +13,11 @@ Contract (unchanged from the original per-city scripts):
   * Column isolation is positional: the fund columns' right edges are anchored
     from the fully-populated `Total revenues` / `Total expenditures` rows, and
     every number is assigned to the nearest column. The General Fund is
-    column 0.
+    column 0, and is the default target.
+  * `CityConfig(target_column=...)` reads a DIFFERENT fund column instead --
+    `'last'` for the Total Governmental Funds column, or an integer index.
+    Indiana's counties are loaded on that narrower own-funds scope; see
+    `target_column` in CityConfig for why it must be `'last'` and not an index.
   * `tie_delta` (computed_total - printed_total) MUST be 0. A non-zero delta
     prints the offending rows to stderr and exits non-zero, so a mis-parse can
     never pass silently downstream.
@@ -386,6 +390,7 @@ class CityConfig:
 
     def __init__(self, city, parents, root_leaves=(), source_rounding=None,
                  label_fixes=None, units=1, column_strategy='positional',
+                 target_column=0,
                  revenue_parents=(), revenue_group_members=(),
                  statement_anchor=None, section_header_mode='exact',
                  fy_end=('June', 30), revenue_total_labels=('total revenues',),
@@ -408,6 +413,15 @@ class CityConfig:
                 'the emitted JSON shape.' % (units, type(units).__name__))
         if column_strategy not in ('positional', 'ordinal'):
             raise ValueError('column_strategy must be "positional" or "ordinal", got %r' % column_strategy)
+        # ⚠ `isinstance(True, int)` is True in Python, so bools are excluded
+        # explicitly -- `target_column=True` would silently mean column 1.
+        if target_column != 'last' and (
+                isinstance(target_column, bool)
+                or not isinstance(target_column, int)
+                or target_column < 0):
+            raise ValueError(
+                'target_column must be a non-negative int or the string "last", '
+                'got %r (%s)' % (target_column, type(target_column).__name__))
         if section_header_mode not in ('exact', 'prefix'):
             raise ValueError('section_header_mode must be "exact" or "prefix", got %r' % section_header_mode)
         self.city = city
@@ -417,6 +431,7 @@ class CityConfig:
         self.label_fixes = dict(label_fixes or {})
         self.units = units
         self.column_strategy = column_strategy
+        self.target_column = target_column
         self.revenue_parents = tuple(p.lower() for p in revenue_parents)
         self.revenue_group_members = tuple(m.lower() for m in revenue_group_members)
         self.statement_anchor = statement_anchor
@@ -1265,11 +1280,56 @@ def _anchors_for(line, col_anchors):
     return col_anchors
 
 
-def gf_value(line, col_anchors):
-    """GF value = the number nearest column 0, but only if that number is
-    actually closest to anchor[0]. A blank GF cell means the row's first number
-    belongs to a later column, so GF is absent rather than that number."""
+def resolve_target_index(n_columns, cfg):
+    """The index into `n_columns` columns that `cfg` targets, or None.
+
+    ⚠⚠ `'last'` IS RESOLVED AGAINST THE COLUMNS ACTUALLY PRESENT, which is the
+    whole point of supporting it. THE COLUMN COUNT IS A PROPERTY OF THE YEAR:
+    Marion County FY2025 prints SIX fund columns but its `Total revenues` row
+    exposes only FOUR money tokens, because two GASB 100 "(formerly a major
+    fund)" columns are entirely dash-zero and there is nothing to anchor. A
+    hard-coded index would read the wrong fund the moment a county's fund
+    structure changed -- which is precisely the discontinuity the Indiana work
+    exists to surface, so it must not be recreated in the reader.
+    """
+    if not n_columns:
+        return None
+    t = getattr(cfg, 'target_column', 0)
+    return n_columns - 1 if t == 'last' else t
+
+
+def scope_label(cfg):
+    """The fund scope this config actually reads, for the tree's root label.
+
+    ⚠⚠ A LABEL DEFECT IS NOT COSMETIC HERE. The first end-to-end run of Marion
+    County produced a tree rooted "General Fund Revenue by Source" holding
+    463,520,173 of TOTAL GOVERNMENTAL money — the county's General Fund figure
+    is 304,421,719. It tied at $0 and every number in it was correct; only the
+    scope claim was false, and nothing downstream would have contradicted it.
+    That is the LA TRAN shape (`project_la_city_series_severed`), where the bug
+    was a LABEL and $4.77B of borrowing was published as spending.
+
+    ⚠ Derived from `target_column` rather than declared by each wrapper, so a
+    wrapper cannot claim a scope it does not read.
+
+    ⚠ An arbitrary integer index has no name in the document, so it gets an
+    honest generic label. Calling it "General Fund" would be the defect above.
+    """
+    t = getattr(cfg, 'target_column', 0)
+    if t == 'last':
+        return 'Total Governmental Funds'
+    if t == 0:
+        return 'General Fund'
+    return 'Fund column %d' % t
+
+
+def value_at_column(line, col_anchors, index=0):
+    """The number in column `index`, but only if some number is actually closest
+    to `anchor[index]`. A blank cell means the row's numbers belong to other
+    columns, so the cell is absent rather than the nearest number to it."""
     col_anchors = _anchors_for(line, col_anchors)
+    if not col_anchors or index is None or index >= len(col_anchors):
+        return None
     # ⚠⚠ A NUMBER IN THE LABEL IS NOT A COLUMN-0 VALUE.
     #
     # Nearest-anchor matching has no left bound, so ANY stray digit run on a row
@@ -1293,11 +1353,21 @@ def gf_value(line, col_anchors):
         if p <= label_end:
             continue
         col = min(range(len(col_anchors)), key=lambda k: abs(p - col_anchors[k]))
-        if col == 0:
-            d = abs(p - col_anchors[0])
+        if col == index:
+            d = abs(p - col_anchors[index])
             if best_d is None or d < best_d:
                 best, best_d = v, d
     return best
+
+
+def gf_value(line, col_anchors):
+    """The General Fund cell -- `value_at_column` at index 0.
+
+    ⚠ Kept as its own name because `extractAcfrGF.py`, `extractTucson.py` and
+    183 selftests call it, and because the General Fund remains the default
+    target. It must stay exactly equivalent to the pre-`target_column` reader.
+    """
+    return value_at_column(line, col_anchors, 0)
 
 
 def column_value(line, col_anchors, cfg):
@@ -1314,14 +1384,24 @@ def column_value(line, col_anchors, cfg):
     """
     if cfg.column_strategy == 'ordinal':
         s = slots(line)
-        v = s[0] if s else None
+        # ⚠ Resolved against the SLOT count, not the anchor count. `slots`
+        # counts dash-runs as occupied columns, so a year whose middle funds are
+        # all dashes still has its total in the LAST slot -- where the
+        # positional reader, which cannot anchor an all-dash column, finds it at
+        # a lower index. The two strategies agree on 'last' only because each
+        # resolves it against what it can itself see.
+        i = resolve_target_index(len(s), cfg)
+        v = s[i] if s and i is not None and i < len(s) else None
     else:
-        v = gf_value(line, col_anchors)
+        anchors_here = _anchors_for(line, col_anchors)
+        i = resolve_target_index(len(anchors_here), cfg)
+        v = value_at_column(line, col_anchors, i)
     return None if v is None else v * cfg.units
 
 
 def target_cell_is_dash_zero(line, col_anchors, cfg):
-    """True when `line`'s TARGET (General Fund) cell is an explicit DASH
+    """True when `line`'s TARGET cell -- the General Fund by default, or
+    whatever `cfg.target_column` selects -- is an explicit DASH
     PLACEHOLDER -- an empty cell the issuer wrote as `-` -- rather than a
     printed number.
 
@@ -1358,25 +1438,35 @@ def target_cell_is_dash_zero(line, col_anchors, cfg):
       * no money tokens anywhere on the line -> the row is a label followed
         only by dashes, so the target cell is a dash by construction (this
         is the shape all three confirmed Kitsap years take);
-      * 'ordinal' -> the FIRST column slot must itself be a dash-run;
-      * 'positional' -> no money token may resolve to column 0 (else the
-        cell holds a number), and some dash-run must resolve to column 0.
+      * 'ordinal' -> the TARGET column slot must itself be a dash-run;
+      * 'positional' -> no money token may resolve to the TARGET column (else
+        the cell holds a number), and some dash-run must resolve to it.
     """
     line = _retag(_recover_label_past_leading_page_number(line), line)
     line = _retag(_recover_label_past_leading_rule(line), line)
     if not nums_with_pos(line):
         return dash_zero_label(line) is not None
     if cfg.column_strategy == 'ordinal':
-        m = _slot_re().search(line)
-        return bool(m) and _DASH_ONLY.match(m.group().strip()) is not None
+        # ⚠ The TARGET slot must be the dash-run, not merely the first one. A
+        # reader that checked slot 0 while extracting the total column would
+        # call rows $0 on the strength of a blank General Fund cell and drop
+        # them from the tree -- silently, since the remaining rows still tie.
+        ms = list(_slot_re().finditer(line))
+        i = resolve_target_index(len(ms), cfg)
+        if i is None or i >= len(ms):
+            return False
+        return _DASH_ONLY.match(ms[i].group().strip()) is not None
     col_anchors = _anchors_for(line, col_anchors)
-    if not col_anchors or gf_value(line, col_anchors) is not None:
+    index = resolve_target_index(len(col_anchors), cfg)
+    if index is None or index >= len(col_anchors):
+        return False
+    if value_at_column(line, col_anchors, index) is not None:
         return False
     for m in _slot_re().finditer(line):
         if not _DASH_ONLY.match(m.group().strip()):
             continue
         col = min(range(len(col_anchors)), key=lambda k: abs(m.end() - col_anchors[k]))
-        if col == 0:
+        if col == index:
             return True
     return False
 
@@ -1923,7 +2013,8 @@ def build_revenue(lines, col_anchors, cfg):
         sys.exit(1)
 
     total = sum(n['a'] for n in root_children)
-    return {'n': 'General Fund Revenue by Source', 'a': total, 'c': root_children}, total, zero_rows
+    return ({'n': '%s Revenue by Source' % scope_label(cfg), 'a': total,
+             'c': root_children}, total, zero_rows)
 
 
 def build_operating(lines, col_anchors, cfg):
@@ -2072,7 +2163,8 @@ def build_operating(lines, col_anchors, cfg):
         sys.exit(1)
 
     total = sum(n['a'] for n in root_children)
-    return {'n': 'General Fund Expenditure by Function', 'a': total, 'c': root_children}, total, zero_rows
+    return ({'n': '%s Expenditure by Function' % scope_label(cfg), 'a': total,
+             'c': root_children}, total, zero_rows)
 
 
 # ── Orchestration ────────────────────────────────────────────────────────────

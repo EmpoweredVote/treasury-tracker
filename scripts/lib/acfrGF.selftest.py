@@ -10,7 +10,7 @@ from lib.acfrGF import (CityConfig, column_value, classify, build_revenue,
                          build_operating, anchors, slots, dash_zero_label,
                          find_statement_page, parse_fy, _is_section_header,
                          _recover_label_past_leading_page_number,
-                         target_cell_is_dash_zero, label_of, parse_money,
+                         target_cell_is_dash_zero, scope_label, label_of, parse_money,
                          nums_with_pos)
 # The SHIPPED Bainbridge configs themselves, not copies of them -- see
 # TestShippedBainbridgeConfigsAreWholeDollars at the bottom of this file for
@@ -1939,6 +1939,230 @@ class TestPhysicalPageResolution(unittest.TestCase):
             mod.subprocess.run = orig
 
 
+
+
+# ── ⚠⚠ TARGETING A COLUMN OTHER THAN THE GENERAL FUND ────────────────────────
+#
+# Chris, 2026-09-08: Indiana's 92 counties come from their own audited ACFRs on
+# a narrower OWN-FUNDS scope, which is the TOTAL GOVERNMENTAL FUNDS column — not
+# the General Fund this module was built for. Gateway's General Fund figures are
+# already within 0.5% of the audited ones, so a General Fund extraction would add
+# almost nothing; the governmental-funds total is the figure that matters.
+#
+# ⚠ `target_column='last'` and NOT an integer index, because THE COLUMN COUNT IS
+# A PROPERTY OF THE YEAR. Marion County FY2025 prints SIX fund columns but its
+# `Total revenues` row exposes only FOUR money tokens, because two GASB 100
+# "(formerly a major fund)" columns are entirely dash-zero. A hard index would
+# read the wrong fund the moment a county's fund structure changed — which is
+# exactly the discontinuity the Indiana work has been chasing all day.
+#
+# Lines below are VERBATIM `pdftotext -table` output from Marion County's FY2025
+# ACFR (FAC report 2025-12-GSAFAC-0000409398), trailing parens and all.
+MARION_TOTAL_REV = (
+    '           Total revenues                                                        '
+    '304,421,719)     70,241,476                                     -                '
+    '         -     88,856,978)         463,520,173)')
+MARION_INTEREST = (
+    'Interest                                                                         '
+    '21,062,031)                     -                               -                '
+    '         -     125,740)            21,187,771)')
+MARION_CHARGES = (
+    'Charges for services                                                             '
+    '8,740,512)                      -                               -                '
+    '         -     24,082,412)         32,822,924)')
+MARION_TRAFFIC = (
+    'Traffic violations and court fees                                                '
+    '14,317)                         -                               -                '
+    '         -                   -            14,317)')
+MARION_MISC = (
+    'Miscellaneous                                                                    '
+    '814,311)                        -                               -                '
+    '         -     158,119)            972,430)')
+# MARION_INTEREST with the General Fund cell replaced by the issuer's own dash
+# placeholder, and nothing else changed. Used to prove dash-zero detection
+# follows the TARGET column rather than always inspecting column 0.
+MARION_INTEREST_GF_DASH = (
+    'Interest                                                                         '
+    '         -                      -                               -                '
+    '         -     125,740)            21,187,771)')
+# ⚠⚠ AND THE MIRROR IMAGE, which is the one that reaches the dash-zero LOOP.
+# MARION_INTEREST with the TOTAL cell replaced by a dash: the General Fund still
+# holds 21,062,031 while the target cell is empty. Without this shape,
+# `target_cell_is_dash_zero` returns early on the target cell having a value and
+# the loop's column comparison is never executed — two mutations of it survived
+# the whole suite until this fixture existed.
+MARION_INTEREST_TOTAL_DASH = (
+    'Interest                                                                         '
+    '21,062,031)                     -                               -                '
+    '         -     125,740)                     -')
+
+
+class TestTargetColumn(unittest.TestCase):
+    def setUp(self):
+        self.anchors = anchors(MARION_TOTAL_REV)
+
+    def test_the_anchor_row_exposes_fewer_columns_than_there_are_funds(self):
+        # Six fund columns, four money tokens: the two all-dash columns simply
+        # are not there to be anchored. This is why the target is 'last'.
+        self.assertEqual(len(self.anchors), 4)
+
+    def test_default_is_unchanged_and_still_reads_the_general_fund(self):
+        cfg = CityConfig(city='X', parents=('current',))
+        self.assertEqual(column_value(MARION_TOTAL_REV, self.anchors, cfg), 304421719)
+        self.assertEqual(column_value(MARION_INTEREST, self.anchors, cfg), 21062031)
+        self.assertEqual(column_value(MARION_CHARGES, self.anchors, cfg), 8740512)
+
+    def test_last_reads_the_total_governmental_funds_column(self):
+        cfg = CityConfig(city='X', parents=('current',), target_column='last')
+        self.assertEqual(column_value(MARION_TOTAL_REV, self.anchors, cfg), 463520173)
+        self.assertEqual(column_value(MARION_INTEREST, self.anchors, cfg), 21187771)
+        self.assertEqual(column_value(MARION_CHARGES, self.anchors, cfg), 32822924)
+        self.assertEqual(column_value(MARION_MISC, self.anchors, cfg), 972430)
+
+    def test_the_total_column_ties_to_its_own_components(self):
+        cfg = CityConfig(city='X', parents=('current',), target_column='last')
+        rows = [MARION_INTEREST, MARION_CHARGES, MARION_TRAFFIC, MARION_MISC]
+        # Taxes and Intergovernmental are on other lines; this checks the four
+        # transcribed rows read independently and sum to their own printed parts.
+        self.assertEqual(
+            [column_value(r, self.anchors, cfg) for r in rows],
+            [21187771, 32822924, 14317, 972430])
+
+    def test_a_row_equal_in_both_columns_is_not_confused(self):
+        # ⚠ Traffic violations prints 14,317 in the General Fund AND 14,317 in
+        # the total, with dashes between. A reader that fell back to "the first
+        # number" or "the last number on the line" would appear to work here and
+        # fail everywhere else, so pin both readings explicitly.
+        gf = CityConfig(city='X', parents=('current',))
+        last = CityConfig(city='X', parents=('current',), target_column='last')
+        self.assertEqual(column_value(MARION_TRAFFIC, self.anchors, gf), 14317)
+        self.assertEqual(column_value(MARION_TRAFFIC, self.anchors, last), 14317)
+
+    def test_an_integer_index_reads_that_column(self):
+        cfg = CityConfig(city='X', parents=('current',), target_column=1)
+        self.assertEqual(column_value(MARION_TOTAL_REV, self.anchors, cfg), 70241476)
+
+    def test_target_column_composes_with_units(self):
+        cfg = CityConfig(city='X', parents=('current',), target_column='last', units=1000)
+        self.assertEqual(column_value(MARION_INTEREST, self.anchors, cfg), 21_187_771_000)
+
+    def test_target_column_composes_with_ordinal(self):
+        # ⚠ 'ordinal' counts dash-runs as occupied columns, so its LAST slot is
+        # the sixth, which is the total. The two strategies must agree here.
+        cfg = CityConfig(city='X', parents=('current',),
+                         target_column='last', column_strategy='ordinal')
+        self.assertEqual(column_value(MARION_TOTAL_REV, self.anchors, cfg), 463520173)
+
+    def test_a_bad_target_column_is_refused_at_construction(self):
+        for bad in (-1, 1.5, 'first', 'total', None, True):
+            with self.assertRaises((ValueError, TypeError), msg=repr(bad)):
+                CityConfig(city='X', parents=('current',), target_column=bad)
+
+    def test_dash_zero_detection_follows_the_target(self):
+        # ⚠⚠ THIS TEST MUST DISCRIMINATE. Its first version asserted False for
+        # both targets on a row where neither cell was a dash — which any
+        # mutation would also satisfy. A test that cannot fail is not a test.
+        #
+        # MARION_INTEREST with its General Fund cell replaced by the dash the
+        # issuer prints for an empty cell, everything else untouched. The two
+        # targets must now disagree in BOTH directions:
+        #   target=0     -> no value, and the cell IS a dash-zero
+        #   target='last'-> the total is 21,187,771 and is NOT a dash-zero
+        # A reader that checked column 0 while extracting the total would call
+        # this row $0 and drop it, silently, because the rows that remain still
+        # tie. That is trap 1 wearing a different hat.
+        gf = CityConfig(city='X', parents=('current',))
+        last = CityConfig(city='X', parents=('current',), target_column='last')
+
+        self.assertIsNone(column_value(MARION_INTEREST_GF_DASH, self.anchors, gf))
+        self.assertTrue(target_cell_is_dash_zero(MARION_INTEREST_GF_DASH, self.anchors, gf))
+
+        self.assertEqual(column_value(MARION_INTEREST_GF_DASH, self.anchors, last), 21187771)
+        self.assertFalse(target_cell_is_dash_zero(MARION_INTEREST_GF_DASH, self.anchors, last))
+
+    def test_a_row_with_values_in_neither_target_is_dash_zero_for_neither(self):
+        # The control: a row whose General Fund and total BOTH carry a number.
+        gf = CityConfig(city='X', parents=('current',))
+        last = CityConfig(city='X', parents=('current',), target_column='last')
+        self.assertFalse(target_cell_is_dash_zero(MARION_TRAFFIC, self.anchors, gf))
+        self.assertFalse(target_cell_is_dash_zero(MARION_TRAFFIC, self.anchors, last))
+
+    def test_dash_zero_reaches_the_loop_and_compares_the_right_column(self):
+        # ⚠⚠ THE TEST THE OTHERS COULD NOT BE. When the TARGET cell holds a
+        # value, `target_cell_is_dash_zero` returns before the loop, so the
+        # loop's `col == index` comparison is never executed — mutating it to
+        # `col == 0` survived the entire suite until this shape existed.
+        #
+        # Here the General Fund holds 21,062,031 and the TOTAL cell is the dash.
+        # A reader comparing against column 0 finds no dash there and answers
+        # False, missing a genuinely empty target cell — which would drop the
+        # row instead of recording the $0 the issuer printed.
+        gf = CityConfig(city='X', parents=('current',))
+        last = CityConfig(city='X', parents=('current',), target_column='last')
+        line = MARION_INTEREST_TOTAL_DASH
+
+        self.assertEqual(column_value(line, self.anchors, gf), 21062031)
+        self.assertFalse(target_cell_is_dash_zero(line, self.anchors, gf))
+
+        self.assertIsNone(column_value(line, self.anchors, last))
+        self.assertTrue(target_cell_is_dash_zero(line, self.anchors, last))
+
+
+    def test_the_tree_root_label_names_the_scope_it_actually_read(self):
+        # ⚠⚠ A LABEL DEFECT IS NOT COSMETIC. The first end-to-end run of Marion
+        # County produced a tree rooted "General Fund Revenue by Source" holding
+        # 463,520,173 of TOTAL GOVERNMENTAL money — the General Fund figure is
+        # 304,421,719. It tied at $0 and every number in it was right; only the
+        # scope claim was false. That is the LA TRAN shape, where the bug was a
+        # label and $4.77B of borrowing was published as spending.
+        rev_lines = [
+            'Revenues:',
+            MARION_INTEREST,
+            MARION_CHARGES,
+            MARION_TRAFFIC,
+            MARION_MISC,
+            MARION_TOTAL_REV,
+        ]
+        gf = CityConfig(city='X', parents=('current',))
+        last = CityConfig(city='X', parents=('current',), target_column='last')
+        tree_gf, _, _ = build_revenue(rev_lines, self.anchors, gf)
+        tree_last, _, _ = build_revenue(rev_lines, self.anchors, last)
+        self.assertEqual(tree_gf['n'], 'General Fund Revenue by Source')
+        self.assertEqual(tree_last['n'], 'Total Governmental Funds Revenue by Source')
+
+    def test_the_default_label_is_unchanged_for_every_existing_entity(self):
+        # Byte-identical to what the eight already-loaded cities carry, because
+        # their stored hierarchies use these exact strings.
+        gf = CityConfig(city='X', parents=('current',))
+        self.assertEqual(scope_label(gf), 'General Fund')
+
+    def test_the_last_column_label_says_total_governmental_funds(self):
+        last = CityConfig(city='X', parents=('current',), target_column='last')
+        self.assertEqual(scope_label(last), 'Total Governmental Funds')
+
+    def test_an_indexed_column_gets_an_honest_generic_label(self):
+        # ⚠ An arbitrary index has no name in the document, so the label must not
+        # invent one. Naming it "General Fund" would be the very defect above.
+        cfg = CityConfig(city='X', parents=('current',), target_column=2)
+        self.assertEqual(scope_label(cfg), 'Fund column 2')
+
+    def test_dash_zero_follows_the_target_under_ordinal_too(self):
+        # Same shape, `column_strategy='ordinal'`. Its slots are
+        # [21062031, 0, 0, 0, 125740, 0] — six of them, the last being the dash —
+        # so inspecting slot 0 instead of the target slot answers False here.
+        gf = CityConfig(city='X', parents=('current',), column_strategy='ordinal')
+        last = CityConfig(city='X', parents=('current',), target_column='last',
+                          column_strategy='ordinal')
+        line = MARION_INTEREST_TOTAL_DASH
+        self.assertFalse(target_cell_is_dash_zero(line, self.anchors, gf))
+        self.assertTrue(target_cell_is_dash_zero(line, self.anchors, last))
+
+    def test_a_row_blank_in_the_target_column_reads_as_absent(self):
+        # A row with a General Fund value and NOTHING in the total column must
+        # not borrow the General Fund number.
+        line = 'Special item                       12,345)'
+        cfg = CityConfig(city='X', parents=('current',), target_column='last')
+        self.assertIsNone(column_value(line, self.anchors, cfg))
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
