@@ -53,6 +53,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 
@@ -61,6 +62,7 @@ import {
   SETTLEMENT_FUND_CODE, GOVERNMENTAL_ENT_NAME, assertSettlementIsPassThrough,
 } from './lib/inGateway.mjs';
 import { IN_ENTITIES, PA_IN_LOAD_WINDOW } from './data/paInKnightEntities.mjs';
+import { ROSTER_FILE } from './buildInStatewideRoster.mjs';
 
 export const SOURCE_PREFIX = 'Indiana Gateway Annual Financial Report';
 export const SOURCE_URL = 'https://gateway.ifionline.org/public/download.aspx';
@@ -248,12 +250,69 @@ function report(f) {
   return { nChecks, bad: bad.length };
 }
 
+/**
+ * ── ⭐ SWAP THE ROSTER, NOT THE LOADER ──────────────────────────────────────
+ *
+ * `--statewide` substitutes all 660 governments for the four Knight entities and
+ * changes NOTHING else. The write path below — the never-overwrite guard, the
+ * explicit fund_scope/basis, the RPC-payload check, the oracle refusal — is the
+ * code PR #113 proved and #149 regression-verified against a fresh fetch (78/78
+ * rows, 11,283/11,283 fund checks). South Carolina's `--statewide` did the same
+ * for 46 counties: one write path cannot drift from the one that was proven.
+ *
+ * ⚠ `population: 0` on every entry is deliberate and safe.
+ * `treasury_ensure_municipality` is SELECT-then-INSERT-IF-NOT-FOUND with NO
+ * UPDATE (read from the live function 2026-09-07), so this cannot overwrite the
+ * real populations Fort Wayne, Gary, Bloomington, Allen County, Lake County or
+ * Monroe County already carry. New entities land at 0 until the Census join is
+ * done, which is a separate job: matching 568 Indiana places to
+ * `sub-est2024_18.csv` has the type-word trap all over it (14 places named
+ * "X City"), and a wrong population is worse than an absent one.
+ *
+ * ⚠ `fiscalYearStartMonth: 1` for all 660 — Indiana is a calendar-year state,
+ * established from DLGF's own compilation and pinned by
+ * `scripts/verifyCalendarYearLocals.mjs`, not inherited from a column default.
+ */
+export function statewideEntities() {
+  const roster = JSON.parse(readFileSync(ROSTER_FILE, 'utf8'));
+  const entities = roster.entities ?? [];
+  if (!entities.length) throw new Error(`REFUSING: ${ROSTER_FILE} holds no entities`);
+
+  const countyKeyByCode = new Map(
+    entities.filter((e) => e.entityType === 'county').map((e) => [e.countyCode, e.key]));
+
+  return entities.map((e) => {
+    const parentCountyKey = e.entityType === 'county' ? null : countyKeyByCode.get(e.countyCode);
+    // ⚠⚠ A city whose county is missing would be created with a NULL county_id
+    // and vanish from its county's children panel — silently, since nothing
+    // downstream asks. Measured: all 92 county codes resolve.
+    if (e.entityType !== 'county' && !parentCountyKey) {
+      throw new Error(`REFUSING: ${e.name} (${e.sboaId}) is in county ${e.countyCode}, `
+        + 'which has no county entity in the roster');
+    }
+    return {
+      key: e.key,
+      name: e.name,
+      state: IN_STATE,
+      entityType: e.entityType,
+      population: 0,
+      parentCountyKey,
+      countyCode: e.countyCode,
+      unitCode: e.unitCode,
+      fiscalYearStartMonth: 1,
+      sboaId: e.sboaId,
+      filedYears: e.years,
+    };
+  });
+}
+
 export async function main() {
   const { values } = parseArgs({
     options: {
       dir: { type: 'string', default: '_acfr-work/in' },
       entity: { type: 'string' },
       fy: { type: 'string' },
+      statewide: { type: 'boolean', default: false },
       'dry-run': { type: 'boolean', default: false },
       commit: { type: 'boolean', default: false },
     },
@@ -263,19 +322,48 @@ export async function main() {
     process.exit(1);
   }
 
+  const roster = values.statewide ? statewideEntities() : IN_ENTITIES;
   const entities = values.entity
-    ? IN_ENTITIES.filter((e) => e.key === values.entity)
-    : IN_ENTITIES;
+    ? roster.filter((e) => e.key === values.entity || e.name === values.entity)
+    : roster;
   if (!entities.length) throw new Error(`No entity matched ${values.entity}`);
+
+  // ⚠⚠ The statewide window is 2011-2025, not the Knight window (2015-2024).
+  // `year="All"` really does return 2011 even though the year control's earliest
+  // explicit option is 2012 — measured, see scripts/fetchIndianaGateway.mjs.
+  const window = values.statewide ? { first: 2011, last: 2025 } : PA_IN_LOAD_WINDOW;
   const years = values.fy
     ? [Number(values.fy)]
-    : Array.from({ length: PA_IN_LOAD_WINDOW.last - PA_IN_LOAD_WINDOW.first + 1 },
-      (_, i) => PA_IN_LOAD_WINDOW.first + i);
+    : Array.from({ length: window.last - window.first + 1 }, (_, i) => window.first + i);
 
-  console.log(`Indiana Gateway — ${entities.length} entities x ${years.length} years`);
+  // ⚠⚠ DRIVE PER YEAR. 660 entities x 15 years is 9,900 accumulators per group and
+  // four groups, over 443 MB of extracts — the shape that made the Michigan load
+  // run out of heap. Per-year also tells you WHICH year broke.
+  if (values.statewide && !values.fy && years.length > 1) {
+    console.error(`REFUSING: --statewide over ${years.length} years at once builds `
+      + `${(entities.length * years.length * 4).toLocaleString()} accumulators over 443 MB `
+      + 'of extracts. Drive it per year under nohup:\n'
+      + `    for y in $(seq ${window.first} ${window.last}); do \\\n`
+      + `      node scripts/loadIndianaGateway.mjs --statewide --fy $y ${values.commit ? '--commit' : '--dry-run'}; \\\n`
+      + '    done\n'
+      + '  The RPC upserts, so re-running a year is idempotent.');
+    process.exit(1);
+  }
+
+  // ⚠ Skip entity-years the roster says were never filed, so "not filed" is a
+  // statement from the source rather than an empty parse to be explained later.
+  const scoped = entities.filter((e) => !e.filedYears
+    || years.some((y) => e.filedYears.includes(Number(y))));
+  if (values.statewide) {
+    const skipped = entities.length - scoped.length;
+    console.log(`Indiana Gateway — ${scoped.length} of ${entities.length} governments filed `
+      + `FY${years.join(', FY')} (${skipped} did not, per the roster)`);
+  }
+
+  console.log(`Indiana Gateway — ${scoped.length} entities x ${years.length} years`);
   console.log(`Settlement funds (Fund_code ${SETTLEMENT_FUND_CODE}) EXCLUDED; oracle runs on the full parse.\n`);
 
-  const filings = await collectAll(values.dir, entities, years.map(String));
+  const filings = await collectAll(values.dir, scoped, years.map(String));
   let totalChecks = 0;
   let totalBad = 0;
   for (const f of filings) {
@@ -306,7 +394,7 @@ export async function main() {
   const db = createClient(url, key);
 
   // Counties first — a city's county_id must exist before the city references it.
-  const order = [...entities].sort((a, b) => (a.parentCountyKey ? 1 : 0) - (b.parentCountyKey ? 1 : 0));
+  const order = [...scoped].sort((a, b) => (a.parentCountyKey ? 1 : 0) - (b.parentCountyKey ? 1 : 0));
   const ids = new Map();
   for (const ent of order) {
     const { data, error } = await db.rpc('treasury_ensure_municipality', {
@@ -317,7 +405,7 @@ export async function main() {
     ids.set(ent.key, data);
     console.log(`  entity ${ent.name} -> ${data}`);
   }
-  for (const ent of entities) {
+  for (const ent of scoped) {
     if (!ent.parentCountyKey || !ids.has(ent.parentCountyKey)) continue;
     const { error } = await db.schema('treasury').from('municipalities')
       .update({ county_id: ids.get(ent.parentCountyKey) }).eq('id', ids.get(ent.key));
