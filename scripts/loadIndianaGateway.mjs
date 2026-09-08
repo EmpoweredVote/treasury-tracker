@@ -59,7 +59,8 @@ import { parseArgs } from 'node:util';
 
 import {
   eachRow, makeAccumulator, toTree, assertParsed, need, money, pad,
-  SETTLEMENT_FUND_CODE, GOVERNMENTAL_ENT_NAME, assertSettlementIsPassThrough,
+  SETTLEMENT_FUND_CODE, GOVERNMENTAL_ENT_NAME,
+  makeSettlementSeriesIndex, assertSettlementSeriesIsPassThrough, settlementPerYearDrift,
 } from './lib/inGateway.mjs';
 import { IN_ENTITIES, PA_IN_LOAD_WINDOW } from './data/paInKnightEntities.mjs';
 import { ROSTER_FILE } from './buildInStatewideRoster.mjs';
@@ -117,6 +118,71 @@ export function oracleChecks(parsedByFund, oracleByFund, which) {
 }
 
 /**
+ * Walk every government's settlement series: REFUSE on the series, REPORT the
+ * per-year drift.
+ *
+ * ⚠⚠ The per-year check was demoted, not deleted. 38 of 1,219 county-years
+ * drift over 2% because property tax collected in December is settled in
+ * January, and the pairs are equal and opposite across adjacent years. Those
+ * years are printed so the timing difference stays VISIBLE — a check that
+ * quietly stops reporting is the Michigan "22 recoverable filings" mistake.
+ *
+ * ⚠ `governments: 0` is reported as zero, never as a pass. Measured, 0 of 568
+ * cities and towns report a settlement fund at all, so a city-only run audits
+ * nothing and must not print a reassuring green line about it.
+ */
+export function auditSettlementSeries(series, { log = console.log } = {}) {
+  const declaredResidues = [];
+  const oneSidedGovts = [];
+  let overYears = 0;
+  let oneSidedYears = 0;
+
+  for (const entry of series.values()) {
+    const label = `${entry.name} settlement series`;
+    const res = assertSettlementSeriesIsPassThrough(entry, label);
+    if (res.residueDeclared) declaredResidues.push(entry.name);
+
+    const years = settlementPerYearDrift(entry);
+    const over = years.filter((y) => y.over);
+    overYears += over.length;
+    const lopsided = years.filter((y) => y.oneSided);
+    oneSidedYears += lopsided.length;
+    if (lopsided.length) oneSidedGovts.push(entry.name);
+
+    if (over.length) {
+      // ⚠ States the MEASUREMENT, not an explanation. Most of these are the
+      // December/January settlement straddling the year end — proven by equal
+      // and opposite pairs — but saying so on every row would assert a cause
+      // that has only been verified for the pairs. #142's lesson: a confident
+      // wrong label is worse than no label, because it looks like knowledge.
+      log(`  ${entry.name}: settlement series ties to ${(res.drift * 100).toFixed(2)}%`
+        + `${res.residueDeclared ? ' (declared residue)' : ''}, `
+        + `but ${over.length} of ${years.length} year(s) drift over tolerance within it:`);
+      for (const y of over) {
+        log(`      FY${y.year} in ${y.r.toFixed(2)} out ${y.d.toFixed(2)} `
+          + `delta ${y.delta >= 0 ? '+' : ''}${y.delta.toFixed(2)} (${(y.drift * 100).toFixed(1)}%)`
+          + `${y.oneSided ? '   <-- ONE SIDE ONLY, not a timing difference' : ''}`);
+      }
+    }
+  }
+
+  log(`settlement pass-through audited across the SERIES for ${series.size} government(s)`
+    + `: ${overYears} entity-year(s) drift over tolerance within an otherwise netting series`
+    + `${declaredResidues.length ? `; declared residues: ${declaredResidues.join(', ')}` : ''}`);
+  // ⚠⚠ Reported LAST and on its own, because this is the signal that found
+  // Marion County's collapsed FY2024/FY2025 filing. A one-sided year means the
+  // publisher booked a pass-through in one direction only; it is not the
+  // December/January timing difference and must not be read as one.
+  if (oneSidedYears) {
+    log(`⚠⚠ ${oneSidedYears} entity-year(s) report settlement on ONE SIDE ONLY, across `
+      + `${oneSidedGovts.length} government(s): ${oneSidedGovts.join(', ')}. `
+      + 'Listed above. This is a filing shape, not a timing difference — check the '
+      + "government's TOTAL receipts for that year before trusting the year.");
+  }
+  return { governments: series.size, overYears, oneSidedYears, declaredResidues };
+}
+
+/**
  * Collect every (entity, year) in ONE PASS PER FILE.
  *
  * ⚠ The naive shape — stream the file once per entity-year — costs 120 passes
@@ -138,6 +204,10 @@ async function collectAll(dir, entities, years) {
   const key = (cc, uc, y) => `${cc}|${uc}|${y}`;
   const acc = new Map();   // kind -> Map(key -> accumulator)
   const cash = new Map();  // key -> {byFund, seen}
+  // ⚠⚠ Indexed for EVERY year in the extract, not just `years`. The sweep is
+  // driven one --fy at a time (a 15-year run exhausts the heap), and a series
+  // assertion that only saw the loaded year would be the per-year gate again.
+  const settlement = makeSettlementSeriesIndex(entities);
 
   for (const g of groups) {
     const want = new Map();
@@ -149,6 +219,7 @@ async function collectAll(dir, entities, years) {
     }
     if (!want.size) continue;
     await eachRow(join(dir, g.file), (r, ix) => {
+      settlement.consume(r, ix, g.kind);
       const k = key(pad(r[need(ix, 'cnty_cd')], 2), pad(r[need(ix, 'unit_code')], 4),
         String(r[need(ix, 'year')]).trim());
       const a = want.get(k);
@@ -157,6 +228,11 @@ async function collectAll(dir, entities, years) {
     if (!acc.has(g.kind)) acc.set(g.kind, new Map());
     for (const [k, a] of want) acc.get(g.kind).set(k, a);
   }
+
+  // ⚠ Refuses BEFORE anything is written, and before the oracle pass, so a bad
+  // settlement identification cannot be masked by a green oracle. The oracle
+  // proves the READ; this proves the SCOPE. They are different jobs.
+  auditSettlementSeries(settlement.result());
 
   for (const g of cashGroups) {
     const want = new Set();
@@ -202,9 +278,10 @@ async function collectAll(dir, entities, years) {
       }
       const revRes = assertParsed(rev0, `${entity.name} FY${year} revenue`);
       const expRes = assertParsed(exp0, `${entity.name} FY${year} operating`);
-      // ⚠ Corroborate the settlement identification: what a pass-through takes
-      // in must go straight back out. Refuses rather than quietly removing money.
-      assertSettlementIsPassThrough(revRes, expRes, `${entity.name} FY${year}`);
+      // ⚠⚠ The settlement identification is corroborated across the SERIES by
+      // `auditSettlementSeries` above, NOT here per year. Greene County FY2024
+      // is 2.4% apart within the year and nets out across the series; a per-year
+      // assertion at this line refused 644-of-660 correct data.
       const c = cash.get(k) ?? { byFund: new Map(), seen: 0 };
       out.push({
         entity, year, revenue: revRes, operating: expRes, cash: c,
