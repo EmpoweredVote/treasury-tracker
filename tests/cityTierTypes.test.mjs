@@ -108,15 +108,30 @@ describe('the three node-run scripts that cannot import it', () => {
  * third is a subset, so the next new entity type cannot repeat the pattern.
  */
 describe('the entity_type CHECK constraint, the TS union and this set stay in step', () => {
-  /** Values from the newest migration that (re)defines the CHECK constraint. */
+  /**
+   * Values from the newest migration that (re)DEFINES the CHECK constraint.
+   *
+   * ⚠⚠ Selected by the presence of an actual `CHECK ( entity_type IN (` clause,
+   * NOT by the constraint NAME. The first version of this matched on the name and
+   * was immediately fooled by 20260907000000_in_ellettsville_is_a_town.sql, which
+   * only MENTIONS the constraint in a comment — so it picked a file with nothing
+   * to parse. "Contains the name" is not "defines the thing".
+   */
+  const DEFINES_CHECK = /CHECK\s*\(\s*entity_type\s+IN\s*\(/i;
+
   function checkConstraintValues() {
     const dir = 'supabase/migrations';
     const files = readdirSync(dir)
       .filter((f) => f.endsWith('.sql'))
-      .filter((f) => readFileSync(`${dir}/${f}`, 'utf8').includes('municipalities_entity_type_check'))
+      .filter((f) => DEFINES_CHECK.test(readFileSync(`${dir}/${f}`, 'utf8')))
       .sort();
-    expect(files.length, 'no migration defines municipalities_entity_type_check').toBeGreaterThan(0);
+    expect(files.length, 'no migration contains a CHECK (entity_type IN (...)) clause')
+      .toBeGreaterThan(0);
     const newest = files[files.length - 1];
+    // ⚠ And the file it picked must be one that actually carries the constraint
+    // NAME too, so a stray CHECK clause elsewhere cannot become the authority.
+    expect(readFileSync(`${dir}/${newest}`, 'utf8'), newest)
+      .toMatch(/municipalities_entity_type_check/);
     const src = readFileSync(`${dir}/${newest}`, 'utf8');
     const m = /CHECK\s*\(\s*entity_type\s+IN\s*\(([\s\S]*?)\)\s*\)/i.exec(src);
     expect(m, `could not parse the CHECK list out of ${newest}`).not.toBeNull();
