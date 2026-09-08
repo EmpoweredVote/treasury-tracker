@@ -1,7 +1,7 @@
 {
   "_warning": "Do NOT edit or regenerate to make the harness pass. `figures_frozen` must never change and is NOT written by --write-baseline; `composite_frozen` changes only when a migration explains it.",
-  "frozen_row_count": 62644,
-  "figures_frozen": "332a8fda00bea86918959d15eef014b1e94a92071bd5546e31546e9fb53ab6e7",
+  "frozen_row_count": 62593,
+  "figures_frozen": "d7075002766d440d08783f3741f94e1d35f647b156c295d6d3f6d75e7302840b",
   "composite_frozen": "40f52eeea1b779cf26baa8a8140c04bcf48feb371197bbbcd44945e09dee9e3d",
   "composite_frozen_history": [
     {
@@ -91,6 +91,12 @@
       "row_count": 62654,
       "superseded_by": "see _rebased_at_v2_35 — ten rows left the digest when the legacy Indiana Gateway vintage was deleted",
       "rebased": "2026-09-05"
+    },
+    {
+      "digest": "332a8fda00bea86918959d15eef014b1e94a92071bd5546e31546e9fb53ab6e7",
+      "row_count": 62644,
+      "superseded_by": "see _rebased_at_v2_36 — the live-sync scope was re-keyed from the data_source NAME to the rewrite surface the sync RPC actually uses",
+      "rebased": "2026-09-07"
     }
   ],
   "figure_change_files": [
@@ -224,5 +230,428 @@
     ],
     "_date": "2026-09-05",
     "_authorised_by": "Chris, 2026-09-05 — asked explicitly before the baseline was touched, with the accounting above and the alternative (restore the ten and defer) on the table."
+  },
+  "_rebased_at_v2_36": {
+    "_what": "Fifth rebase, 332a8fda00bea86918959d15eef014b1e94a92071bd5546e31546e9fb53ab6e7 -> d7075002766d440d08783f3741f94e1d35f647b156c295d6d3f6d75e7302840b. Row count 62644 -> 62593. Same KIND of change as v2.34 and v2.35 — a scope correction, not a figure rebase — but this one fixes the RULE rather than patching the rows it missed.",
+    "_why": "v2.34 scoped the digest to rows not under live sync, and identified \"under live sync\" by matching budgets.data_source against data_sources.name. That rule reported ZERO unprotected rows on two separate mornings when a row had demonstrably moved: v2.35 (ten legacy Indiana rows labelled `Indiana Gateway` whose owning sources were named `... Budget & Disbursements`) and again on 2026-09-07. A gate that reports all-clear while the thing it guards is moving is worse than no gate.",
+    "_the_cause_is_in_the_rpc": "public.treasury_sync_city_budget finds its row by (municipality, fiscal_year, dataset_type, fund_scope, basis) and NEVER by data_source. Its update path is exactly: UPDATE treasury.budgets SET total_budget = p_total, source_url = COALESCE(p_source_url, source_url), source_date = COALESCE(p_source_date, source_date) WHERE id = v_budget_id. It rewrites the VALUE and leaves data_source and hierarchy as first written. So a row LABEL is not evidence of which feed sets its VALUE, and any scope rule keyed on the label is blind by construction. Read the function before trusting a label.",
+    "_the_row_that_moved_this_time": "Bloomington, IN FY2025 `salaries`, total_budget 68750835.07, data_source \"data/checkbook-all.csv\". treasury.sync_logs shows `Bloomington Annual Compensation` (dataset_type salaries, FY2021-2026) fetching and inserting 1,440 rows for FY2025 EVERY Sunday since at least 2026-08-02, including 2026-09-06 04:13 UTC -- the only sync between the last green check (2026-09-05) and the failure. 1,440 is exactly the record count of that publisher's 2025-12-31 snapshot, so the attribution is measured, not inferred.",
+    "_what_is_permanently_LOST": "THE PRE-DRIFT VALUE OF THAT ROW. The observed digest at the time of failure was dc6c586e345227ffb69d67030e7dd4fd9ab0ed95fc0a4f5e4c9e67a7884b6409 over 62644 rows — the count reconciled, so a surviving figure moved — and there is no per-row history and budgets.updated_at is not stamped by the RPC. This rebase therefore passes OVER an unrecoverable change: it records which row moved and why, not what it was before. That is a real loss and it is recorded here rather than smoothed away.",
+    "_the_new_rule_is_a_UNION_and_that_matters": "A row is under live sync if EITHER (a) its data_source names an enabled source — the original rule — OR (b) an enabled source on the same municipality declares that fiscal_year and writes that dataset_type. Measured 2026-09-07: (a) 17,243 rows, (b) 17,324, union 17,340. ⚠⚠ (a) IS NOT A SUBSET OF (b): 16 rows match only by name, because a source can hold rows for a year it no longer declares (LA City Payroll salaries FY2017-2020, several MA DLS revenue rows). REPLACING rather than unioning would have silently dropped those 16 from the scope. A change to this rule must only ever widen.",
+    "_why_ownership_alone_was_rejected": "Keying on (municipality, fiscal_year) without dataset_type was measured too: 17,464 rows, and it would have freed 165 digest rows instead of 51 — including all 24 California State ACFR REVENUE rows, which no enabled source can write (the only enabled California source is dataset_type `operating`). The tighter rule keeps 114 rows frozen that ownership would have wrongly released.",
+    "_fiscal_years_is_mutable_and_that_is_handled": "This file's own header rejects fiscal_years for NARROWING the scope because a publisher adding a year changes membership silently. Rule (b) uses it only to WIDEN, and the exclusion remains a SNAPSHOT materialised in the repo — so a mutated fiscal_years cannot move the digest until someone re-snapshots and commits, and `npm run verify:live-sync` names the drift in the meantime.",
+    "_the_51_rows_that_left_the_digest": [
+      {
+        "id": "89777cc0-aa88-4ecb-a822-d765cb59c3e8",
+        "entity": "Berkeley, CA",
+        "fiscal_year": 2012,
+        "dataset_type": "operating",
+        "total_budget": 295613971,
+        "data_source": "CA State Controller - Expenditures"
+      },
+      {
+        "id": "427a9350-0c9b-4d23-a5cf-2e2bfba9065f",
+        "entity": "Berkeley, CA",
+        "fiscal_year": 2013,
+        "dataset_type": "operating",
+        "total_budget": 285747552,
+        "data_source": "CA State Controller - Expenditures"
+      },
+      {
+        "id": "319facb9-3275-4bb5-a542-10132da10cf8",
+        "entity": "Berkeley, CA",
+        "fiscal_year": 2014,
+        "dataset_type": "operating",
+        "total_budget": 0,
+        "data_source": "CA State Controller - Expenditures"
+      },
+      {
+        "id": "916225fb-207d-4493-8539-60d065face74",
+        "entity": "Berkeley, CA",
+        "fiscal_year": 2015,
+        "dataset_type": "operating",
+        "total_budget": 0,
+        "data_source": "CA State Controller - Expenditures"
+      },
+      {
+        "id": "673eb698-1ff6-4612-8937-47ced1cf639b",
+        "entity": "Bloomington, IN",
+        "fiscal_year": 2021,
+        "dataset_type": "salaries",
+        "total_budget": 46596153.69000001,
+        "data_source": "data/checkbook-all.csv"
+      },
+      {
+        "id": "4bec255b-c62a-4b91-84ab-94000f9bf91b",
+        "entity": "Bloomington, IN",
+        "fiscal_year": 2022,
+        "dataset_type": "salaries",
+        "total_budget": 47745782.41,
+        "data_source": "data/checkbook-all.csv"
+      },
+      {
+        "id": "8cb01978-7d37-4215-a431-9b00eb4aec5f",
+        "entity": "Bloomington, IN",
+        "fiscal_year": 2023,
+        "dataset_type": "salaries",
+        "total_budget": 53263641.82,
+        "data_source": "data/checkbook-all.csv"
+      },
+      {
+        "id": "ac9aadfc-8d72-45e7-88b0-0cfccf192eca",
+        "entity": "Bloomington, IN",
+        "fiscal_year": 2024,
+        "dataset_type": "salaries",
+        "total_budget": 57732764.83000001,
+        "data_source": "data/checkbook-all.csv"
+      },
+      {
+        "id": "aa7a7dc2-9972-4914-905a-280dd43f14a5",
+        "entity": "Bloomington, IN",
+        "fiscal_year": 2025,
+        "dataset_type": "salaries",
+        "total_budget": 68750835.07,
+        "data_source": "data/checkbook-all.csv"
+      },
+      {
+        "id": "f24cae1c-5871-4b68-929e-279a17b47309",
+        "entity": "California, CA",
+        "fiscal_year": 2002,
+        "dataset_type": "operating",
+        "total_budget": 73900709000,
+        "data_source": "California State ACFR â€” General Fund (FY2002 actual, GAAP basis)"
+      },
+      {
+        "id": "e5f3e4f3-f422-48a4-8d43-4db93d1e68e6",
+        "entity": "California, CA",
+        "fiscal_year": 2003,
+        "dataset_type": "operating",
+        "total_budget": 76571568000,
+        "data_source": "California State ACFR â€” General Fund (FY2003 actual, GAAP basis)"
+      },
+      {
+        "id": "0ede3131-9e51-4399-baf2-b413ec44721e",
+        "entity": "California, CA",
+        "fiscal_year": 2004,
+        "dataset_type": "operating",
+        "total_budget": 73714298000,
+        "data_source": "California State ACFR â€” General Fund (FY2004 actual, GAAP basis)"
+      },
+      {
+        "id": "a42fb947-3259-4ad9-b684-88ce0e2a3470",
+        "entity": "California, CA",
+        "fiscal_year": 2005,
+        "dataset_type": "operating",
+        "total_budget": 80367868000,
+        "data_source": "California State ACFR â€” General Fund (FY2005 actual, GAAP basis)"
+      },
+      {
+        "id": "88d4fa17-f3a4-46f2-be57-22a2bd7d4526",
+        "entity": "California, CA",
+        "fiscal_year": 2006,
+        "dataset_type": "operating",
+        "total_budget": 89196958000,
+        "data_source": "California State ACFR â€” General Fund (FY2006 actual, GAAP basis)"
+      },
+      {
+        "id": "9b3465f8-1da5-4bae-9e46-5f47fb1a04cf",
+        "entity": "California, CA",
+        "fiscal_year": 2007,
+        "dataset_type": "operating",
+        "total_budget": 96186583000,
+        "data_source": "California State ACFR â€” General Fund (FY2007 actual, GAAP basis)"
+      },
+      {
+        "id": "79858038-50cf-4d29-96c5-dafbfa1658f7",
+        "entity": "California, CA",
+        "fiscal_year": 2008,
+        "dataset_type": "operating",
+        "total_budget": 98975042000,
+        "data_source": "California State ACFR â€” General Fund (FY2008 actual, GAAP basis)"
+      },
+      {
+        "id": "f7f1173b-28ce-47c7-8a4e-94cb2c7a73ad",
+        "entity": "California, CA",
+        "fiscal_year": 2009,
+        "dataset_type": "operating",
+        "total_budget": 92605222000,
+        "data_source": "California State ACFR â€” General Fund (FY2009 actual, GAAP basis)"
+      },
+      {
+        "id": "83be6d55-ecc4-40fa-a812-d2ef4b479399",
+        "entity": "California, CA",
+        "fiscal_year": 2010,
+        "dataset_type": "operating",
+        "total_budget": 87247026000,
+        "data_source": "California State ACFR â€” General Fund (FY2010 actual, GAAP basis)"
+      },
+      {
+        "id": "9c409d38-38ad-4afe-a84b-31baa81db47c",
+        "entity": "California, CA",
+        "fiscal_year": 2011,
+        "dataset_type": "operating",
+        "total_budget": 90431674000,
+        "data_source": "California State ACFR â€” General Fund (FY2011 actual, GAAP basis)"
+      },
+      {
+        "id": "7fa708b8-d670-41ba-9af8-1b9f91ec1813",
+        "entity": "California, CA",
+        "fiscal_year": 2012,
+        "dataset_type": "operating",
+        "total_budget": 88281652000,
+        "data_source": "California State ACFR â€” General Fund (FY2012 actual, GAAP basis)"
+      },
+      {
+        "id": "9a919622-e3e9-4298-8b72-147b140b13b5",
+        "entity": "California, CA",
+        "fiscal_year": 2013,
+        "dataset_type": "operating",
+        "total_budget": 90114980000,
+        "data_source": "California State ACFR â€” General Fund (FY2013 actual, GAAP basis)"
+      },
+      {
+        "id": "976358fc-d998-452f-a5dc-8c8d3de81ef7",
+        "entity": "California, CA",
+        "fiscal_year": 2014,
+        "dataset_type": "operating",
+        "total_budget": 95337085000,
+        "data_source": "California State ACFR â€” General Fund (FY2014 actual, GAAP basis)"
+      },
+      {
+        "id": "85c09e1c-85c1-4bb0-80f0-7cdedf031fbf",
+        "entity": "California, CA",
+        "fiscal_year": 2015,
+        "dataset_type": "operating",
+        "total_budget": 107163567000,
+        "data_source": "California State ACFR â€” General Fund (FY2015 actual, GAAP basis)"
+      },
+      {
+        "id": "712e9da8-a012-4736-bf54-d566847a652b",
+        "entity": "California, CA",
+        "fiscal_year": 2016,
+        "dataset_type": "operating",
+        "total_budget": 111804448000,
+        "data_source": "California State ACFR â€” General Fund (FY2016 actual, GAAP basis)"
+      },
+      {
+        "id": "d1a80bb5-695e-474c-b86e-b9bd42ba99e9",
+        "entity": "California, CA",
+        "fiscal_year": 2017,
+        "dataset_type": "operating",
+        "total_budget": 116260039000,
+        "data_source": "California State ACFR â€” General Fund (FY2017 actual, GAAP basis)"
+      },
+      {
+        "id": "aba5e8d8-e21e-4d9f-b201-abb907921844",
+        "entity": "California, CA",
+        "fiscal_year": 2018,
+        "dataset_type": "operating",
+        "total_budget": 124239316000,
+        "data_source": "California State ACFR â€” General Fund (FY2018 actual, GAAP basis)"
+      },
+      {
+        "id": "510ebb1c-e81e-4a35-ae32-488f58c17ca6",
+        "entity": "California, CA",
+        "fiscal_year": 2019,
+        "dataset_type": "operating",
+        "total_budget": 129113153000,
+        "data_source": "California State ACFR â€” General Fund (FY2019 actual, GAAP basis)"
+      },
+      {
+        "id": "301a3daf-e43a-4388-b29a-19ca3c04d284",
+        "entity": "California, CA",
+        "fiscal_year": 2020,
+        "dataset_type": "operating",
+        "total_budget": 138516673000,
+        "data_source": "California State ACFR â€” General Fund (FY2020 actual, GAAP basis)"
+      },
+      {
+        "id": "7d293d35-c6fa-41b3-adf7-6323104e01da",
+        "entity": "California, CA",
+        "fiscal_year": 2021,
+        "dataset_type": "operating",
+        "total_budget": 146375674000,
+        "data_source": "California State ACFR â€” General Fund (FY2021 actual, GAAP basis)"
+      },
+      {
+        "id": "717bc4da-2670-4e46-8050-1219b5c56f7e",
+        "entity": "California, CA",
+        "fiscal_year": 2022,
+        "dataset_type": "operating",
+        "total_budget": 191119860000,
+        "data_source": "California State ACFR â€” General Fund (FY2022 actual, GAAP basis)"
+      },
+      {
+        "id": "1ac5baa2-1f85-4842-a525-c23976fd5407",
+        "entity": "California, CA",
+        "fiscal_year": 2023,
+        "dataset_type": "operating",
+        "total_budget": 191010618000,
+        "data_source": "California State ACFR â€” General Fund (FY2023 actual, GAAP basis)"
+      },
+      {
+        "id": "b8ffffc3-902a-40f4-833e-db1136b36c28",
+        "entity": "California, CA",
+        "fiscal_year": 2024,
+        "dataset_type": "operating",
+        "total_budget": 190318638000,
+        "data_source": "California State ACFR â€” General Fund (FY2024 actual, GAAP basis)"
+      },
+      {
+        "id": "00e54d62-5ea1-4cde-b427-620e491556ae",
+        "entity": "California, CA",
+        "fiscal_year": 2025,
+        "dataset_type": "operating",
+        "total_budget": 221826907000,
+        "data_source": "California State ACFR â€” General Fund (FY2025 actual, GAAP basis)"
+      },
+      {
+        "id": "dc6291d9-aef8-497a-85c4-39f334bc4335",
+        "entity": "Long Beach, CA",
+        "fiscal_year": 2022,
+        "dataset_type": "operating",
+        "total_budget": 4249198000,
+        "data_source": "CA State Controller - Expenditures"
+      },
+      {
+        "id": "bdbe5422-62e4-4530-8055-aee9c460750c",
+        "entity": "Long Beach, CA",
+        "fiscal_year": 2022,
+        "dataset_type": "revenue",
+        "total_budget": 2893916000,
+        "data_source": "CA State Controller - Revenues"
+      },
+      {
+        "id": "12fd96dd-4926-4e79-ae47-ceb783018fb3",
+        "entity": "Long Beach, CA",
+        "fiscal_year": 2023,
+        "dataset_type": "operating",
+        "total_budget": 2888820000,
+        "data_source": "CA State Controller - Expenditures"
+      },
+      {
+        "id": "3666a326-0b83-4b6f-8f9e-b1fe399e31fe",
+        "entity": "Long Beach, CA",
+        "fiscal_year": 2023,
+        "dataset_type": "revenue",
+        "total_budget": 3038459571,
+        "data_source": "CA State Controller - Revenues"
+      },
+      {
+        "id": "a2165e20-f20f-43c5-a7e5-6ac6624a9e68",
+        "entity": "Long Beach, CA",
+        "fiscal_year": 2024,
+        "dataset_type": "operating",
+        "total_budget": 3015653000,
+        "data_source": "CA State Controller - Expenditures"
+      },
+      {
+        "id": "2c412a14-c63c-487e-801b-43fcd6aedda5",
+        "entity": "Long Beach, CA",
+        "fiscal_year": 2024,
+        "dataset_type": "revenue",
+        "total_budget": 3228068564,
+        "data_source": "CA State Controller - Revenues"
+      },
+      {
+        "id": "204163c3-b69b-4646-8314-091e2e850cd5",
+        "entity": "West Hollywood, CA",
+        "fiscal_year": 2013,
+        "dataset_type": "operating",
+        "total_budget": 85058124,
+        "data_source": "CA State Controller - Expenditures"
+      },
+      {
+        "id": "e3532b67-53ae-4d59-b4cb-3cbde5830485",
+        "entity": "West Hollywood, CA",
+        "fiscal_year": 2013,
+        "dataset_type": "revenue",
+        "total_budget": 94268919,
+        "data_source": "CA State Controller - Revenues"
+      },
+      {
+        "id": "170f1a90-1afc-4d84-8d14-b59ec76d2f9c",
+        "entity": "West Hollywood, CA",
+        "fiscal_year": 2014,
+        "dataset_type": "operating",
+        "total_budget": 97977986,
+        "data_source": "CA State Controller - Expenditures"
+      },
+      {
+        "id": "7b1face2-28f0-4283-a04d-595dab752ab5",
+        "entity": "West Hollywood, CA",
+        "fiscal_year": 2014,
+        "dataset_type": "revenue",
+        "total_budget": 130732470,
+        "data_source": "CA State Controller - Revenues"
+      },
+      {
+        "id": "15896e88-5544-4c28-8141-c798c76de6ca",
+        "entity": "West Hollywood, CA",
+        "fiscal_year": 2017,
+        "dataset_type": "operating",
+        "total_budget": 123354867,
+        "data_source": "CA State Controller - Expenditures"
+      },
+      {
+        "id": "72d50961-3905-42e2-b598-ba38075eddba",
+        "entity": "West Hollywood, CA",
+        "fiscal_year": 2017,
+        "dataset_type": "revenue",
+        "total_budget": 132574030,
+        "data_source": "CA State Controller - Revenues"
+      },
+      {
+        "id": "2277b32e-4b7e-4073-9288-0a0964dd4045",
+        "entity": "West Hollywood, CA",
+        "fiscal_year": 2018,
+        "dataset_type": "operating",
+        "total_budget": 131859337,
+        "data_source": "CA State Controller - Expenditures"
+      },
+      {
+        "id": "ef162dba-29ad-4ee6-9ada-1892f832286e",
+        "entity": "West Hollywood, CA",
+        "fiscal_year": 2018,
+        "dataset_type": "revenue",
+        "total_budget": 125379477,
+        "data_source": "CA State Controller - Revenues"
+      },
+      {
+        "id": "fa607b0a-0709-463d-ad4b-5f4e37da32b7",
+        "entity": "West Hollywood, CA",
+        "fiscal_year": 2019,
+        "dataset_type": "operating",
+        "total_budget": 149366634,
+        "data_source": "CA State Controller - Expenditures"
+      },
+      {
+        "id": "ca66e432-79c4-4e93-aa0f-7b898bace1eb",
+        "entity": "West Hollywood, CA",
+        "fiscal_year": 2019,
+        "dataset_type": "revenue",
+        "total_budget": 139169693,
+        "data_source": "CA State Controller - Revenues"
+      },
+      {
+        "id": "8b5be9a4-c4de-44dd-9a3c-08807518be23",
+        "entity": "West Hollywood, CA",
+        "fiscal_year": 2020,
+        "dataset_type": "operating",
+        "total_budget": 175703303,
+        "data_source": "CA State Controller - Expenditures"
+      },
+      {
+        "id": "a51d0853-97a0-4dd0-8f8c-1c5f850e80b4",
+        "entity": "West Hollywood, CA",
+        "fiscal_year": 2020,
+        "dataset_type": "revenue",
+        "total_budget": 133030930,
+        "data_source": "CA State Controller - Revenues"
+      }
+    ],
+    "_date": "2026-09-07",
+    "_authorised_by": "Chris, 2026-09-07 — asked before the baseline was touched, with the three candidate rules measured and the alternative (patch the 51 rows without fixing the rule) declined explicitly.",
+    "_correction_do_not_repeat_this_mistake": "An earlier draft of this block said the label, the tree-shape declaration and the number \"come from three different places\", and read the row as a splice of a checkbook feed and a compensation feed. THAT WAS WRONG, and checking the publisher settled it: Socrata fcnf-g862 sums to the stored total EXACTLY for FY2021 46,596,153.69 / FY2022 47,745,782.41 / FY2023 53,263,641.82 / FY2024 57,732,764.83 / FY2025 68,750,835.07. All five rows labelled \"data/checkbook-all.csv\" hold data from that ONE dataset, so the series is internally consistent and the FY2024->FY2025 +19.1% step is real growth in the publisher's roster, not a change of source. Only the LABEL is wrong (and the stored `hierarchy` says [\"department\",\"position_type\"] where the source declares [\"department\",\"title\"]). ⚠ The lesson: a differing tree-shape or a job-title typo between years distinguishes VINTAGES of one publisher just as readily as it distinguishes two feeds. Ask the publisher before concluding a splice."
   }
 }

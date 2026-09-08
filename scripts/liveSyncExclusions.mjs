@@ -105,6 +105,13 @@ export async function pageAll(client, table, select) {
     out.push(...data);
     if (data.length < size) break;
   }
+  // ⚠⚠ The cheap guard for the defect this repo has hit FOUR times: an unstable
+  // or unpaged window silently drops and repeats rows, and the result still looks
+  // like a plausible list. Distinct ids must equal the row count.
+  const ids = new Set(out.map((r) => r.id));
+  if (ids.size !== out.length) {
+    throw new Error(`PAGING DEFECT in ${table}: ${out.length} rows but ${ids.size} distinct ids`);
+  }
   return out;
 }
 
@@ -112,11 +119,70 @@ export async function pageAll(client, table, select) {
  * Which budget rows belong to a source that can rewrite them?
  *
  * Pure, so it is testable without a database.
- * ⚠ Matches on the TEXT column. See the header — `data_source_id` matches nothing.
+ *
+ * ── ⚠⚠ THE NAME MATCH ALONE WAS NOT THE REWRITE SURFACE (v2.36, 2026-09-07) ─
+ *
+ * The original rule was `budgets.data_source === data_sources.name`. It reported
+ * **0 unprotected** on the morning a row demonstrably moved, twice:
+ *
+ *   * v2.35: ten legacy Indiana rows carried the bare string `Indiana Gateway`
+ *     while their owning sources were named `… Budget & Disbursements`.
+ *   * This fix: **Bloomington, IN FY2025 `salaries`** is written EVERY WEEK by
+ *     `Bloomington Annual Compensation` (proved from `treasury.sync_logs`:
+ *     1,440 rows fetched and inserted every Sunday) while the row is labelled
+ *     `data/checkbook-all.csv`. The name join cannot see it.
+ *
+ * ⚠⚠ THE CAUSE IS IN THE RPC. `public.treasury_sync_city_budget` finds its row by
+ * (municipality, fiscal_year, dataset_type, fund_scope, basis) — NEVER by
+ * data_source — and its update path is:
+ *
+ *     UPDATE treasury.budgets
+ *        SET total_budget = p_total,
+ *            source_url   = COALESCE(p_source_url, source_url),
+ *            source_date  = COALESCE(p_source_date, source_date)
+ *      WHERE id = v_budget_id;
+ *
+ * It rewrites `total_budget` and leaves `data_source` and `hierarchy` exactly as
+ * first written. So a row's LABEL is not evidence of which feed sets its VALUE,
+ * and any rule keyed on the label is blind by construction.
+ *
+ * ── THE RULE IS A UNION, AND DELIBERATELY SO ────────────────────────────────
+ *
+ * A row is under live sync if EITHER holds:
+ *   (a) its `data_source` names an enabled source          — the original rule
+ *   (b) an enabled source on the SAME municipality declares that fiscal_year
+ *       and writes that dataset_type                       — the rewrite surface
+ *
+ * ⚠ Measured 2026-09-07: (a) 17,243 rows · (b) 17,324 · union 17,340. **(a) is
+ * NOT a subset of (b)** — 16 rows match only by name, because a source can carry
+ * rows for a year it no longer declares (`LA City Payroll` salaries FY2017-2020,
+ * several MA DLS revenue rows). Replacing rather than unioning would have SILENTLY
+ * DROPPED those 16 from the scope. A rule change here must only ever widen.
+ *
+ * ⚠ Rule (b) reads `fiscal_years`, which the header rejects for NARROWING because
+ * it is mutable. Widening is the safe direction, and this stays a SNAPSHOT — a
+ * publisher adding a year cannot move the digest until someone re-snapshots and
+ * commits, and `--check` names the drift meanwhile.
+ *
+ * ⚠ A source with NO `dataset_type` could write anything, so it widens to the
+ * whole (municipality, year) rather than being skipped. Measured 2026-09-07: 0 of
+ * 1,799 enabled sources lack one, but a gate must not depend on that staying true.
  */
 export function liveSyncRowIds(budgets, sources) {
-  const enabled = new Set(sources.filter((s) => s.is_enabled).map((s) => s.name));
-  return budgets.filter((b) => b.data_source && enabled.has(b.data_source)).map((b) => b.id);
+  const enabled = sources.filter((s) => s.is_enabled);
+  const byName = new Set(enabled.map((s) => s.name));
+  const surface = new Set();
+  for (const s of enabled) {
+    if (!s.municipality_id) continue;
+    for (const y of s.fiscal_years ?? []) {
+      surface.add(`${s.municipality_id}|${Number(y)}|${s.dataset_type || '*'}`);
+    }
+  }
+  const rewritable = (b) => surface.has(`${b.municipality_id}|${Number(b.fiscal_year)}|${b.dataset_type}`)
+    || surface.has(`${b.municipality_id}|${Number(b.fiscal_year)}|*`);
+  return budgets
+    .filter((b) => (b.data_source && byName.has(b.data_source)) || rewritable(b))
+    .map((b) => b.id);
 }
 
 /** Ids currently excluded for any reason, read from the repo — the source of truth. */
@@ -127,8 +193,13 @@ export function repoExcludedIds(baseline, read = (f) => readFileSync(f, 'utf8'))
 
 export async function collect(client) {
   const baseline = JSON.parse(readFileSync(BASELINE, 'utf8'));
-  const sources = await pageAll(client, 'data_sources', 'id,name,is_enabled,sync_frequency');
-  const budgets = await pageAll(client, 'budgets', 'id,data_source,fiscal_year');
+  // ⚠ municipality_id, fiscal_years, dataset_type and dataset_type on the rows are
+  // all needed by rule (b) in liveSyncRowIds. Selecting too few columns here is how
+  // that rule would silently match nothing.
+  const sources = await pageAll(client, 'data_sources',
+    'id,name,is_enabled,sync_frequency,municipality_id,fiscal_years,dataset_type');
+  const budgets = await pageAll(client, 'budgets',
+    'id,data_source,fiscal_year,municipality_id,dataset_type');
   const excluded = repoExcludedIds(baseline);
   const live = new Set(liveSyncRowIds(budgets, sources));
   const frozen = budgets.filter((b) => !excluded.has(b.id));
