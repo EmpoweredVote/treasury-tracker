@@ -23,8 +23,23 @@
  * The receipts and disbursements files publish no control total, so summing them
  * and comparing to themselves would be tautological — the Austin rule. Instead
  * every fund is checked against **Cash and Investments**, a SEPARATE Gateway
- * report carrying `r_bal` (receipts) and `d_bal` (disbursements) per fund, which
- * the unit files independently.
+ * report carrying `r_bal` (receipts) and `d_bal` (disbursements) per fund.
+ *
+ * ⚠⚠ CORRECTED 2026-09-08 — THIS COMMENT USED TO SAY THE UNIT FILES CASH AND
+ * INVESTMENTS "INDEPENDENTLY". IT DOES NOT, AND THAT OVERSOLD THE ORACLE.
+ * A unit submits ONE Annual Financial Report; Gateway publishes several REPORTS
+ * over that one submission. Measured across all 1,275 county-years with cash
+ * rows: sum(receipts) equals sum(`r_bal`) TO THE CENT in 887 of them, and every
+ * one of the 388 that differ is explained to the cent by R901 Sale of
+ * Investments — the exact amount the cash report nets out. Lake FY2018 differs
+ * by $142,900,000.00 and its R901 is $142,900,000.00.
+ *
+ * So the oracle proves TT READ THE SUBMISSION CORRECTLY — a real and necessary
+ * job, and it has caught real defects. It CANNOT corroborate that the
+ * submission is true, because it is not a second source. Marion County is the
+ * worked example: 179/179 funds tied in FY2023 while the filing carried ~3x the
+ * county's own audited revenue in custodial pass-through. Necessary, not
+ * sufficient — see scripts/data/inGatewayAnomalies.mjs.
  *
  * ⚠ The oracle runs on the FULL governmental parse INCLUDING Settlement, then the
  * documented subset is loaded. Proving the read and choosing the scope are two
@@ -59,14 +74,30 @@ import { parseArgs } from 'node:util';
 
 import {
   eachRow, makeAccumulator, toTree, assertParsed, need, money, pad,
-  SETTLEMENT_FUND_CODE, GOVERNMENTAL_ENT_NAME, assertSettlementIsPassThrough,
+  SETTLEMENT_FUND_CODE, GOVERNMENTAL_ENT_NAME,
+  makeSettlementSeriesIndex, assertSettlementSeriesIsPassThrough, settlementPerYearDrift,
+  makeCustodialFundIndex, PAYROLL_CLEARING_DOMINANCE,
 } from './lib/inGateway.mjs';
+import {
+  IN_FIGURE_FLAGS, figureFlagsFor, assertFigureFlagStillHolds,
+} from './data/inGatewayAnomalies.mjs';
 import { IN_ENTITIES, PA_IN_LOAD_WINDOW } from './data/paInKnightEntities.mjs';
 import { ROSTER_FILE } from './buildInStatewideRoster.mjs';
 
 export const SOURCE_PREFIX = 'Indiana Gateway Annual Financial Report';
 export const SOURCE_URL = 'https://gateway.ifionline.org/public/download.aspx';
-export const FUND_SCOPE = 'total_governmental';
+// ⚠⚠ `all_funds`, NOT `total_governmental`. Corrected 2026-09-08.
+// Gateway's AFR is a receipts-and-disbursements statement for EVERY fund in the
+// treasury, and a county auditor's treasury carries custodial money it collects
+// and remits for other taxing units. Under GASB a custodial fund is NOT a
+// governmental fund, so the old label claimed a scope these figures do not have
+// — Marion County FY2023 loaded 3.3x the county's own audited governmental-funds
+// revenue while labelled `total_governmental`.
+// ⚠ Changing this value CHANGES THE RPC'S UPSERT KEY: `treasury_sync_city_budget`
+// keys on (municipality, fiscal_year, dataset_type, fund_scope, basis), so a
+// re-run under the new label INSERTS rather than updates. The old rows must be
+// deleted deliberately — see project_sync_city_budget_not_source_safe.
+export const FUND_SCOPE = 'all_funds';
 export const BASIS_VALUE = 'actual';
 // ⚠ `published` or `derived` ONLY — budgets_derivation_check allows nothing else.
 // Selecting a documented subset of published line items is still publishing them;
@@ -75,9 +106,17 @@ export const DERIVATION = 'published';
 const IN_STATE = 'IN';
 const EPS = 1.0; // whole-dollar files; float slack only
 
+/**
+ * ⚠ The source name is the ONE reader-facing surface that can honestly carry the
+ * loaded scope — it renders in the source chip. It is not a place for prose (the
+ * live-sync name join and the frozen digest both key on `budgets.data_source`),
+ * but naming what is excluded is scope, not commentary, and a reader comparing
+ * this against a county's ACFR deserves to know.
+ */
 export function sourceNameFor(datasetType, fiscalYear) {
   const face = datasetType === 'operating' ? 'Expenditure by Function' : 'Revenue by Source';
-  return `${SOURCE_PREFIX} — ${face} (FY${fiscalYear} actual, unaudited, excl. settlement funds)`;
+  return `${SOURCE_PREFIX} — ${face} (FY${fiscalYear} actual, unaudited, `
+    + 'all funds excl. settlement and payroll clearing)';
 }
 
 /** Read the Cash and Investments oracle for one entity-year: fund -> {r, d}. */
@@ -117,6 +156,106 @@ export function oracleChecks(parsedByFund, oracleByFund, which) {
 }
 
 /**
+ * Walk every government's settlement series: REFUSE on the series, REPORT the
+ * per-year drift.
+ *
+ * ⚠⚠ The per-year check was demoted, not deleted. 38 of 1,219 county-years
+ * drift over 2% because property tax collected in December is settled in
+ * January, and the pairs are equal and opposite across adjacent years. Those
+ * years are printed so the timing difference stays VISIBLE — a check that
+ * quietly stops reporting is the Michigan "22 recoverable filings" mistake.
+ *
+ * ⚠ `governments: 0` is reported as zero, never as a pass. Measured, 0 of 568
+ * cities and towns report a settlement fund at all, so a city-only run audits
+ * nothing and must not print a reassuring green line about it.
+ */
+export function auditSettlementSeries(series, { log = console.log } = {}) {
+  const declaredResidues = [];
+  const oneSidedGovts = [];
+  let overYears = 0;
+  let oneSidedYears = 0;
+
+  for (const entry of series.values()) {
+    const label = `${entry.name} settlement series`;
+    const res = assertSettlementSeriesIsPassThrough(entry, label);
+    if (res.residueDeclared) declaredResidues.push(entry.name);
+
+    const years = settlementPerYearDrift(entry);
+    const over = years.filter((y) => y.over);
+    overYears += over.length;
+    const lopsided = years.filter((y) => y.oneSided);
+    oneSidedYears += lopsided.length;
+    if (lopsided.length) oneSidedGovts.push(entry.name);
+
+    if (over.length) {
+      // ⚠ States the MEASUREMENT, not an explanation. Most of these are the
+      // December/January settlement straddling the year end — proven by equal
+      // and opposite pairs — but saying so on every row would assert a cause
+      // that has only been verified for the pairs. #142's lesson: a confident
+      // wrong label is worse than no label, because it looks like knowledge.
+      log(`  ${entry.name}: settlement series ties to ${(res.drift * 100).toFixed(2)}%`
+        + `${res.residueDeclared ? ' (declared residue)' : ''}, `
+        + `but ${over.length} of ${years.length} year(s) drift over tolerance within it:`);
+      for (const y of over) {
+        log(`      FY${y.year} in ${y.r.toFixed(2)} out ${y.d.toFixed(2)} `
+          + `delta ${y.delta >= 0 ? '+' : ''}${y.delta.toFixed(2)} (${(y.drift * 100).toFixed(1)}%)`
+          + `${y.oneSided ? '   <-- ONE SIDE ONLY, not a timing difference' : ''}`);
+      }
+    }
+  }
+
+  log(`settlement pass-through audited across the SERIES for ${series.size} government(s)`
+    + `: ${overYears} entity-year(s) drift over tolerance within an otherwise netting series`
+    + `${declaredResidues.length ? `; declared residues: ${declaredResidues.join(', ')}` : ''}`);
+  // ⚠⚠ Reported LAST and on its own, because this is the signal that found
+  // Marion County's collapsed FY2024/FY2025 filing. A one-sided year means the
+  // publisher booked a pass-through in one direction only; it is not the
+  // December/January timing difference and must not be read as one.
+  if (oneSidedYears) {
+    log(`⚠⚠ ${oneSidedYears} entity-year(s) report settlement on ONE SIDE ONLY, across `
+      + `${oneSidedGovts.length} government(s): ${oneSidedGovts.join(', ')}. `
+      + 'Listed above. This is a filing shape, not a timing difference — check the '
+      + "government's TOTAL receipts for that year before trusting the year.");
+  }
+  return { governments: series.size, overYears, oneSidedYears, declaredResidues };
+}
+
+/**
+ * Announce every recorded anomaly flag that covers a filing being loaded, and
+ * re-check that the flag still describes the data.
+ *
+ * ⚠⚠ THE MILLEDGEVILLE RULE, IN CODE. Nothing here withholds a figure — the
+ * flagged filings load exactly as published. This exists so a reader can be
+ * told WHY a figure looks inconsistent, not so TT can quietly decline to show
+ * it. Suppressing an outlier would create a blind spot for legitimate fraud.
+ *
+ * ⚠ Its predecessor, `scripts/data/gaRlgfAnomalies.mjs`, is imported by NOTHING
+ * — so the Milledgeville flag could never reach a reader and nothing noticed if
+ * the data moved underneath it. This function is the fix for that shape: the
+ * registry is read on every load, and a flag whose claim has gone stale REFUSES.
+ */
+export function auditFigureFlags(filings, { flags = IN_FIGURE_FLAGS, log = console.log } = {}) {
+  let flagged = 0;
+  for (const f of filings) {
+    const hits = figureFlagsFor(f.entity.countyCode, f.entity.unitCode, f.year, { flags });
+    for (const flag of hits) {
+      flagged++;
+      // ⚠⚠ Re-check BEFORE announcing, so a stale claim is never printed.
+      assertFigureFlagStillHolds(flag, f.year, f, `${f.entity.name} FY${f.year}`);
+      log(`⚠⚠ RECORDED ANOMALY FLAG "${flag.id}" covers ${f.entity.name} FY${f.year} `
+        + '— LOADED AS PUBLISHED, not withheld, not corrected.');
+      log(`     ${flag.what}`);
+      log(`     revenue ${f.revenue.subsetTotal.toFixed(2)} / operating `
+        + `${f.operating.subsetTotal.toFixed(2)} — see scripts/data/inGatewayAnomalies.mjs`);
+    }
+  }
+  if (flagged) {
+    log(`${flagged} filing(s) carry a recorded anomaly flag. Every one is loaded as published.`);
+  }
+  return { flagged };
+}
+
+/**
  * Collect every (entity, year) in ONE PASS PER FILE.
  *
  * ⚠ The naive shape — stream the file once per entity-year — costs 120 passes
@@ -136,19 +275,42 @@ async function collectAll(dir, entities, years) {
     { county: true, file: 'cash_county_ALL.txt' },
   ];
   const key = (cc, uc, y) => `${cc}|${uc}|${y}`;
+
+  // ⚠⚠ A SEPARATE FIRST PASS, and it has to be. A fund's classification depends
+  // on its R909 share across the WHOLE SERIES, which is not known until the
+  // receipts files have been read to the end — so it cannot be decided inside
+  // the accumulators that need the answer. Two passes over the two receipts
+  // files (~190 MB) is the price of classifying over the series instead of
+  // per-year, and per-year would let a fund flip scope between years and
+  // manufacture the very discontinuity this loader now flags Marion for.
+  const custodialIdx = makeCustodialFundIndex(entities);
+  for (const f of ['rec_city_ALL.txt', 'rec_county_ALL.txt']) {
+    await eachRow(join(dir, f), (r, ix) => custodialIdx.consume(r, ix));
+  }
+  const custodialFunds = custodialIdx.result();
+  console.log(`payroll-clearing funds excluded (R909 >= ${(PAYROLL_CLEARING_DOMINANCE * 100).toFixed(0)}%`
+    + ` of a fund's receipts across its whole series): ${custodialFunds.size} fund(s)
+`);
+
   const acc = new Map();   // kind -> Map(key -> accumulator)
   const cash = new Map();  // key -> {byFund, seen}
+  // ⚠⚠ Indexed for EVERY year in the extract, not just `years`. The sweep is
+  // driven one --fy at a time (a 15-year run exhausts the heap), and a series
+  // assertion that only saw the loaded year would be the per-year gate again.
+  const settlement = makeSettlementSeriesIndex(entities);
 
   for (const g of groups) {
     const want = new Map();
     for (const e of entities) {
       if ((e.entityType === 'county') !== g.county) continue;
       for (const y of years) {
-        want.set(key(e.countyCode, e.unitCode, y), makeAccumulator({ entity: e, year: y, kind: g.kind }));
+        want.set(key(e.countyCode, e.unitCode, y),
+          makeAccumulator({ entity: e, year: y, kind: g.kind, custodialFunds }));
       }
     }
     if (!want.size) continue;
     await eachRow(join(dir, g.file), (r, ix) => {
+      settlement.consume(r, ix, g.kind);
       const k = key(pad(r[need(ix, 'cnty_cd')], 2), pad(r[need(ix, 'unit_code')], 4),
         String(r[need(ix, 'year')]).trim());
       const a = want.get(k);
@@ -157,6 +319,11 @@ async function collectAll(dir, entities, years) {
     if (!acc.has(g.kind)) acc.set(g.kind, new Map());
     for (const [k, a] of want) acc.get(g.kind).set(k, a);
   }
+
+  // ⚠ Refuses BEFORE anything is written, and before the oracle pass, so a bad
+  // settlement identification cannot be masked by a green oracle. The oracle
+  // proves the READ; this proves the SCOPE. They are different jobs.
+  auditSettlementSeries(settlement.result());
 
   for (const g of cashGroups) {
     const want = new Set();
@@ -202,9 +369,10 @@ async function collectAll(dir, entities, years) {
       }
       const revRes = assertParsed(rev0, `${entity.name} FY${year} revenue`);
       const expRes = assertParsed(exp0, `${entity.name} FY${year} operating`);
-      // ⚠ Corroborate the settlement identification: what a pass-through takes
-      // in must go straight back out. Refuses rather than quietly removing money.
-      assertSettlementIsPassThrough(revRes, expRes, `${entity.name} FY${year}`);
+      // ⚠⚠ The settlement identification is corroborated across the SERIES by
+      // `auditSettlementSeries` above, NOT here per year. Greene County FY2024
+      // is 2.4% apart within the year and nets out across the series; a per-year
+      // assertion at this line refused 644-of-660 correct data.
       const c = cash.get(k) ?? { byFund: new Map(), seen: 0 };
       out.push({
         entity, year, revenue: revRes, operating: expRes, cash: c,
@@ -234,6 +402,12 @@ function report(f) {
   console.log(`    operating subset ${f.operating.subsetTotal.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}`
     + `  (full ${f.operating.fullTotal.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}`
     + `, settlement ${f.operating.settlementTotal.toLocaleString('en-US', { style: 'currency', currency: 'USD' })})`);
+  for (const which of ['revenue', 'operating']) {
+    if (f[which].custodialTotal) {
+      console.log(`    ${which} excluded payroll clearing: `
+        + `${f[which].custodialTotal.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}`);
+    }
+  }
   for (const which of ['revenue', 'operating']) {
     const no = f[which].nonOperating;
     if (no && no.size) {
@@ -364,6 +538,13 @@ export async function main() {
   console.log(`Settlement funds (Fund_code ${SETTLEMENT_FUND_CODE}) EXCLUDED; oracle runs on the full parse.\n`);
 
   const filings = await collectAll(values.dir, scoped, years.map(String));
+
+  // ⚠⚠ READ THE ANOMALY REGISTER ON EVERY RUN. Its Georgia predecessor is
+  // imported by nothing, so the Milledgeville flag could never reach anyone and
+  // nothing noticed when the data moved. A flagged filing is announced here and
+  // its recorded claim re-checked — and it still LOADS, exactly as published.
+  auditFigureFlags(filings);
+
   let totalChecks = 0;
   let totalBad = 0;
   for (const f of filings) {

@@ -61,7 +61,9 @@
  * Lake FY2022, which Gateway renumbered from 106000 to 900334. Both failure
  * modes were observed in this corpus, and the second survived 11,283 passing
  * oracle checks. The rule is the usual code OR an exact name match, corroborated
- * per entity-year by `assertSettlementIsPassThrough()`.
+ * ACROSS EACH GOVERNMENT'S WHOLE SERIES by
+ * `assertSettlementSeriesIsPassThrough()` — not per year, because the December/
+ * January settlement straddles the year end.
  *
  * ── ⚠ `fund_scope` IS READ, NOT INFERRED ────────────────────────────────────
  *
@@ -108,9 +110,10 @@ export const SETTLEMENT_FUND_CODE = '106000';
  * Storm Sewer, Wheel Tax, Airport, Library Bonds and Township Firefighting,
  * which is a much larger exclusion than the one that was agreed.
  *
- * So: the usual code, OR an exact name match. Corroborated per entity-year by
- * `assertSettlementIsPassThrough()`, since a settlement fund's defining property
- * is that what comes in goes straight back out.
+ * So: the usual code, OR an exact name match. Corroborated by
+ * `assertSettlementSeriesIsPassThrough()`, since a settlement fund's defining
+ * property is that what comes in goes straight back out — measured over the
+ * SERIES, since the property-tax settlement crosses the year end.
  */
 const SETTLEMENT_EXACT_NAMES = new Set(['settlement', 'tax settlement']);
 
@@ -125,20 +128,354 @@ export function isSettlementFund(fundCode, fundName) {
  * $799M. If an excluded "settlement" fund does NOT behave that way, the
  * identification is wrong and the load must stop rather than quietly remove real
  * money.
+ *
+ * ── ⚠⚠ THE IDENTITY HOLDS ACROSS THE SERIES, NOT WITHIN ONE YEAR ────────────
+ *
+ * This gate was written per entity-year and it refused the statewide load:
+ *
+ *   REFUSING Greene County FY2024: funds excluded as settlement do not behave as
+ *   a pass-through — received 29,101,078.42, disbursed 29,829,410.08 (2.4% apart)
+ *
+ * The gate was RIGHT to fire and the identification was right too. Property tax
+ * is collected in December and settled in January, so a county's settlement fund
+ * straddles the year end. Measured over the whole 2011-2025 extract
+ * (`scripts/inSettlementSeriesProbe.py`):
+ *
+ *   county-years reporting a settlement fund   1,219
+ *   over the 2% tolerance PER YEAR                38   (3.1%)
+ *   counties reporting settlement                 92
+ *   over the 2% tolerance PER SERIES               1   (Parke, 2.57%)
+ *   city/town-years reporting settlement           0   — this gate only ever
+ *                                                       bites counties
+ *
+ * The 38 come in EQUAL AND OPPOSITE PAIRS across adjacent years — Scott FY2023
+ * +9,193,538.46 against FY2024 -9,193,538.46, exactly offsetting; Owen FY2014 /
+ * FY2015 $30 apart on $6.26M. Per series, 88 of 92 counties tie within 0.1%.
+ *
+ * ⚠⚠ This is the $735M `Fund_code` lesson in a second form: READ THE SERIES FOR
+ * CONTINUITY. A single-year window cannot see a flow that crosses the year end,
+ * and it will keep refusing correct data forever.
+ *
+ * ── ⚠⚠ WHAT THIS GATE MUST NOT BECOME: THE CASH IDENTITY ────────────────────
+ *
+ * Parke County's entire residue sits in Gateway's OWN Cash and Investments
+ * report as a closing balance, which makes `receipts - disbursements ==
+ * cash_bal - beg_cash_inv` look like a stronger, exact replacement for this
+ * tolerance. IT IS A TAUTOLOGY. Measured over every governmental county fund
+ * (`scripts/inSettlementCashIdentityProbe.py`):
+ *
+ *   settlement funds  identity holds on 1,212 / 1,212 = 100.00%
+ *   ORDINARY funds    identity holds on 175,164 / 176,484 =  99.25%
+ *
+ * Ordinary revenue satisfies it just as well, so it cannot tell a settlement
+ * fund from real money and cannot do this gate's job. The Austin rule: a tie
+ * that is necessary but not sufficient. The pass-through property — in equals
+ * out — is the only DISCRIMINATING signal, so that is what is asserted here.
  */
-export function assertSettlementIsPassThrough(revenue, operating, label, tolerance = 0.02) {
-  const r = revenue.settlementTotal;
-  const d = operating.settlementTotal;
+
+/**
+ * ── EXACT DECLARED RESIDUES, ONE GOVERNMENT AT A TIME ───────────────────────
+ *
+ * ⚠⚠ THE FIX IS NOT A WIDER TOLERANCE. 2% -> 3% would admit Parke and silence
+ * every future case at the same time. A residue admits exactly one government
+ * for exactly one measured, corroborated reason, and anything else still
+ * refuses.
+ *
+ * Keyed `cnty_cd|unit_code` — the key the loader itself uses. NOT the unit name:
+ * two governments sharing a name would silently merge into one series.
+ *
+ * `residue` is disbursed minus received, in dollars, over the whole series.
+ */
+export const SETTLEMENT_SERIES_RESIDUES = new Map([
+  ['61|0000', {
+    name: 'PARKE COUNTY',
+    residue: -5_221_953.81,
+    // in $203,327,806.75 / out $198,105,852.94 over FY2012-2025, drift 2.57%.
+    why: 'Parke closed FY2025 still holding the money: it received 18,071,815.85 '
+      + 'and disbursed 12,824,664.03, and Gateway\'s own Cash and Investments '
+      + 'report — a DIFFERENT report — carries cash_bal 5,247,151.79 for the same '
+      + 'fund in the same year, which is that gap to three cents. Every other '
+      + 'year of the series ties exactly, and each smaller residue reappears as '
+      + 'the next year\'s beg_cash_inv (FY2014\'s 3,471.29 is FY2015\'s opening '
+      + 'balance). Undistributed settlement cash, in the publisher\'s own words, '
+      + 'not a misidentified fund.',
+  }],
+]);
+
+/** Fractional drift between the two sides of a pass-through. 0 when both are 0. */
+export function settlementDrift(r, d) {
   const scale = Math.max(Math.abs(r), Math.abs(d));
-  if (scale === 0) return { ok: true, r, d, drift: 0 };
-  const drift = Math.abs(r - d) / scale;
+  return scale === 0 ? 0 : Math.abs(r - d) / scale;
+}
+
+/**
+ * Assert the pass-through identity over a government's WHOLE settlement series.
+ *
+ * `entry` is `{ countyCode, unitCode, r, d }` — settlement receipts and
+ * disbursements summed across every year the extract holds, regardless of which
+ * year is being loaded.
+ *
+ * ⚠ A declared residue is checked whenever one exists, not only when the drift
+ * is over tolerance. A registry entry that no longer describes the data is a
+ * stale exemption, and the guard-shape lesson from #143 is that a guard nobody
+ * re-checks is the one that lets the next defect through. If Parke settles the
+ * money in FY2026 this refuses and asks a human to re-measure.
+ */
+export function assertSettlementSeriesIsPassThrough(entry, label, {
+  tolerance = 0.02, residues = SETTLEMENT_SERIES_RESIDUES, epsilon = 1.0,
+} = {}) {
+  const { countyCode, unitCode, r, d } = entry;
+  const drift = settlementDrift(r, d);
+  const residue = d - r;
+  const key = `${countyCode}|${unitCode}`;
+  const declared = residues.get(key);
+
+  if (declared) {
+    if (Math.abs(residue - declared.residue) > epsilon) {
+      throw new Error(
+        `REFUSING ${label}: its declared residue no longer matches the data — `
+        + `declared ${declared.residue.toFixed(2)}, measured ${residue.toFixed(2)} `
+        + `(received ${r.toFixed(2)}, disbursed ${d.toFixed(2)}). `
+        + 'Re-measure with scripts/inSettlementSeriesProbe.py and either update '
+        + 'the declaration with a reason or remove it. Do NOT widen the tolerance.');
+    }
+    return { ok: true, r, d, drift, residue, residueDeclared: true };
+  }
+
   if (drift > tolerance) {
     throw new Error(
-      `REFUSING ${label}: funds excluded as settlement do not behave as a pass-through — `
-      + `received ${r.toFixed(2)}, disbursed ${d.toFixed(2)} (${(drift * 100).toFixed(1)}% apart). `
-      + 'Either the identification is wrong or this is not a settlement fund.');
+      `REFUSING ${label}: funds excluded as settlement do not behave as a pass-through `
+      + `ACROSS THE SERIES — received ${r.toFixed(2)}, disbursed ${d.toFixed(2)} `
+      + `(${(drift * 100).toFixed(1)}% apart). Either the identification is wrong or this `
+      + 'is not a settlement fund. A single year straddling the December/January '
+      + 'settlement is expected and is reported, not refused; a whole series that does '
+      + 'not net out is not.');
   }
-  return { ok: true, r, d, drift };
+  return { ok: true, r, d, drift, residue, residueDeclared: false };
+}
+
+/**
+ * ── ⚠⚠ PAYROLL CLEARING FUNDS ARE EXCLUDED, BY FUND AND NOT BY CODE ─────────
+ *
+ * Chris, 2026-09-08, chose a narrower own-funds scope for Indiana counties. A
+ * TRUE own-funds scope IS NOT DERIVABLE FROM THIS SOURCE — measured, the most
+ * principled available rule (pass-through behaviour AND dominance of the
+ * publisher's own "pays somebody else" codes) still leaves Marion County at
+ * 1.87x its own audited revenue while wrongly deleting real county money
+ * (financial institution tax, overweight vehicle fines, surtax, sewage
+ * collections), and 76% of the $3.76B in the R913 catch-all is unclassifiable
+ * either way. The counties therefore go to their own audited ACFRs for genuine
+ * own-funds figures; THIS is the one clean narrowing the extract does support.
+ *
+ * A payroll clearing fund receives employees' money and remits it to the IRS,
+ * PERF and insurers. It is custodial, and reporting it gross inflates both sides
+ * without any of it being the government's own revenue or spending. Marion
+ * County FY2019 is the worked example: ONE such fund reported $1,988,575,425.58
+ * — 41.7% of the county's year — while its own cash balance never left $3-4.5M.
+ *
+ * ── ⚠ WHY BY FUND, when the rule everywhere else here is "match the CODE" ────
+ *
+ * Two measurements forced it:
+ *   1. D702 "Payment of Taxes and Other Payroll Withholdings" is NOT confined to
+ *      clearing funds. 11% of it (counties) sits in operating funds, where it is
+ *      REAL employer payroll tax. A code exclusion would delete ~$85M of genuine
+ *      spending statewide.
+ *   2. Excluding R909 receipts alone would be ASYMMETRIC — revenue down
+ *      $967.7M (counties FY2023) with no matching disbursement exclusion, so TT
+ *      would invent a surplus. Every other exclusion here is a PAIR (R910/D704
+ *      transfers, R901/D900 investments).
+ *
+ * Excluding the FUND is symmetric by construction. Measured asymmetry of what it
+ * removes: 0.15% counties, 0.33% cities.
+ *
+ * ── ⚠⚠ CLASSIFIED BY A MAJORITY OF YEARS, NOT BY A DOLLAR-WEIGHTED SHARE ───
+ *
+ * The first version of this measured R909 as a share of the fund's receipts
+ * SUMMED OVER THE SERIES and it MISSED THE MOST IMPORTANT CASE. Marion County's
+ * "payroll clearing" fund is 92.24% R909 across its series — just under the
+ * threshold — because FY2020's $275,260,415.64 was coded R913 (the catch-all)
+ * instead of R909. So it excluded Marion's small "gross county payroll" fund
+ * (100% R909, $318M) and KEPT the fund whose FY2019 figure is $1,988,575,425.58.
+ *
+ * ⚠⚠ THE FIX WAS NOT A LOOSER THRESHOLD. 95% -> 90% would admit that one case
+ * and quietly move every future one — the reasoning that refused to widen the
+ * settlement tolerance for Parke County. A dollar-weighted share lets ONE large
+ * miscoded year decide; a per-year majority asks what the fund USUALLY is.
+ *
+ * ── ⚠⚠ DOMINANCE, NEVER PRESENCE ───────────────────────────────────────────
+ *
+ * General funds carry small R909 amounts — a county "General Fund" at 1.4%, a
+ * city "GENERAL FUND" at 2.9%. "The fund touches R909" would DELETE GENERAL
+ * FUNDS. The population is cleanly bimodal: 565 county funds are >=95% R909 and
+ * only 34 sit in the 50-95% band, so this threshold separates two distinct
+ * populations rather than cutting through one. Sensitivity measured — the county
+ * receipts removed move only ~9% across a 50%-99% sweep, and NO fund that is
+ * really a general fund is caught at any threshold in either entity type.
+ * (`AMERICAN GENERAL EACH W/H`, $4,437.73, is an insurance withholding fund.)
+ *
+ * ── ⚠ HONEST LIMITATION: AN INCONSISTENT CODER ESCAPES THIS RULE ────────────
+ *
+ * It can only see what the publisher codes as R909. Fort Wayne reports its two
+ * clearing funds ("Allocated Expenses Clearing" $76,789, "Clearing Funds"
+ * $25,106) entirely under R913, so nothing is excluded for it — correctly, since
+ * those are trivial, but a unit that routed ALL its payroll through an
+ * R913-coded fund would be invisible here. Marion survived exactly that in
+ * FY2020 only because its other years are R909 and the classifier votes by year.
+ * This is not a hole that can be closed from this extract: R913 is the catch-all
+ * that also carries real revenue, which is the whole reason a true own-funds
+ * scope is not derivable from this source.
+ */
+export const PAYROLL_CLEARING_RECEIPT_CODE = 'R909';
+export const PAYROLL_CLEARING_DOMINANCE = 0.95;
+
+/**
+ * ⚠ Keyed on the fund NAME, not `Fund_code`: the code is not stable across years
+ * (the $735M Lake County lesson). Marion's payroll fund is 105100 through FY2023
+ * and 990001 from FY2024 — the same fund.
+ */
+export function custodialFundKey(countyCode, unitCode, fundName) {
+  return `${countyCode}|${unitCode}|${String(fundName ?? '').trim().toLowerCase()}`;
+}
+
+/**
+ * Identify payroll clearing funds from the receipts extracts.
+ *
+ * ⚠⚠ CLASSIFIED OVER THE WHOLE SERIES, not per year. If a fund could flip
+ * classification from one year to the next, TT would manufacture exactly the
+ * kind of discontinuity this investigation started from — and one odd
+ * non-payroll receipt booked to a clearing fund in a single year should not
+ * re-scope it. Same lesson as the settlement gate.
+ */
+export function makeCustodialFundIndex(entities) {
+  const inScope = new Set();
+  for (const e of entities) inScope.add(`${e.countyCode}|${e.unitCode}`);
+  // fundKey -> Map(year -> {total, clearing}). Per-year, so the classification
+  // is a majority over the fund's years rather than a dollar-weighted share.
+  const perYear = new Map();
+
+  return {
+    consume(r, ix) {
+      const cc = pad(r[need(ix, 'cnty_cd')], 2);
+      const uc = pad(r[need(ix, 'unit_code')], 4);
+      if (!inScope.has(`${cc}|${uc}`)) return;
+      if (String(r[need(ix, 'ent_name')]).trim() !== GOVERNMENTAL_ENT_NAME) return;
+
+      const key = custodialFundKey(cc, uc, r[need(ix, 'fund_name')]);
+      const year = String(r[need(ix, 'year')]).trim();
+      const amt = money(r[need(ix, 'amount')]);
+      if (!perYear.has(key)) perYear.set(key, new Map());
+      const years = perYear.get(key);
+      if (!years.has(year)) years.set(year, { total: 0, clearing: 0 });
+      const slot = years.get(year);
+      slot.total += amt;
+      // ⚠ UPPERCASED. `d704` appears alongside `D704` in this corpus, so codes
+      // are never trusted to arrive in one case.
+      if (String(r[need(ix, 'receipt_code')]).trim().toUpperCase()
+          === PAYROLL_CLEARING_RECEIPT_CODE) {
+        slot.clearing += amt;
+      }
+    },
+    result() {
+      const out = new Set();
+      for (const [key, years] of perYear) {
+        // ⚠ Only years with actual receipt activity get a vote. A year of zeros
+        // is silence, not evidence either way.
+        const voting = [...years.values()].filter((v) => v.total > 0);
+        if (!voting.length) continue;
+        const clearingYears = voting
+          .filter((v) => v.clearing / v.total >= PAYROLL_CLEARING_DOMINANCE).length;
+        if (clearingYears * 2 > voting.length) out.add(key);
+      }
+      return out;
+    },
+  };
+}
+
+/**
+ * Accumulate every in-scope government's settlement series while the big files
+ * are already being streamed.
+ *
+ * ⚠⚠ WHY THIS IS NOT JUST A LOOP OVER THE ACCUMULATORS: the loader refuses a
+ * 15-year run because 39,600 accumulators over 443 MB exhausts the heap, so the
+ * statewide sweep is driven one `--fy` at a time. A series assertion that only
+ * saw the loaded year would be the per-year gate wearing a new name. This holds
+ * TWO NUMBERS per government-year instead of a tree, so all 660 governments x 15
+ * years cost ~10,000 small objects and the pass count does not change.
+ *
+ * ⚠ Governments with no settlement fund never appear as keys. That is not an
+ * omission — measured, 0 of 568 cities and towns report one, so for them the
+ * gate is silence rather than a pass, and `result()` says so by absence.
+ */
+export function makeSettlementSeriesIndex(entities) {
+  const inScope = new Map();
+  for (const e of entities) inScope.set(`${e.countyCode}|${e.unitCode}`, e);
+  const out = new Map();
+
+  return {
+    consume(r, ix, kind) {
+      const key = `${pad(r[need(ix, 'cnty_cd')], 2)}|${pad(r[need(ix, 'unit_code')], 4)}`;
+      const entity = inScope.get(key);
+      if (!entity) return;
+      // ⚠ Exact whitelist. A utility's settlement is not the government's.
+      if (String(r[need(ix, 'ent_name')]).trim() !== GOVERNMENTAL_ENT_NAME) return;
+      const fundCode = String(r[need(ix, 'fund_code')]).trim();
+      const fundName = String(r[need(ix, 'fund_name')] ?? '');
+      // ⚠⚠ The SAME rule the accumulator excludes by — code OR exact name — so
+      // the gate measures exactly the money the load removes. Two rules would
+      // let the gate bless a set the loader never dropped.
+      if (!isSettlementFund(fundCode, fundName)) return;
+
+      const year = String(r[need(ix, 'year')]).trim();
+      const amt = money(r[need(ix, 'amount')]);
+      let entry = out.get(key);
+      if (!entry) {
+        entry = {
+          countyCode: entity.countyCode, unitCode: entity.unitCode, name: entity.name,
+          r: 0, d: 0, byYear: new Map(),
+        };
+        out.set(key, entry);
+      }
+      if (!entry.byYear.has(year)) entry.byYear.set(year, { r: 0, d: 0 });
+      const side = kind === 'revenue' ? 'r' : 'd';
+      entry[side] += amt;
+      entry.byYear.get(year)[side] += amt;
+    },
+    result() { return out; },
+  };
+}
+
+/**
+ * The per-year drift, as a REPORT rather than a gate.
+ *
+ * ⚠ Demoting the per-year check must not mean deleting the signal. 38 county-
+ * years drift over 2% and a reader deserves to see which ones and by how much —
+ * the pairs are what show it is a timing difference rather than a bad read.
+ *
+ * ── ⚠⚠ `oneSided` IS A DIFFERENT FINDING AND IS REPORTED APART ──────────────
+ *
+ * The December/January timing story is proven by EQUAL AND OPPOSITE pairs in
+ * adjacent years. A year carrying money on only ONE side is not that, and
+ * conflating them hid the biggest thing in this corpus:
+ *
+ *   Marion County FY2024   settlement in $0.00   out $71,482,508.88
+ *
+ * Marion's settlement fund ran $1.05-1.85 BILLION a year from 2011 to 2023. Its
+ * FY2024 filing carries a $71.5M fragment, and its NET receipts fall from
+ * $1,558,918,179.86 to $607,214,107.07 — a 61% collapse that persists into
+ * FY2025, with ~$950M of NON-settlement receipts missing as well. The series
+ * gate passes Marion and is right to: the pass-through identity holds. So the
+ * one-sided year is the ONLY signal, and it must not read as routine drift.
+ */
+export function settlementPerYearDrift(entry, { tolerance = 0.02 } = {}) {
+  const rows = [];
+  for (const [year, { r, d }] of entry.byYear ?? new Map()) {
+    const drift = settlementDrift(r, d);
+    // ⚠ Exactly one side empty. Both-empty is silence, not a finding.
+    const oneSided = (r === 0) !== (d === 0);
+    rows.push({ year, r, d, delta: d - r, drift, over: drift > tolerance, oneSided });
+  }
+  rows.sort((a, b) => String(a.year).localeCompare(String(b.year)));
+  return rows;
 }
 
 /**
@@ -276,7 +613,7 @@ export async function eachRow(path, onRow) {
  * "Oracle the FULL parse to prove the read; load a documented SUBSET. Never
  * widen the tree to close the gap."
  */
-export function makeAccumulator({ entity, year, kind }) {
+export function makeAccumulator({ entity, year, kind, custodialFunds = new Set() }) {
   const isReceipts = kind === 'revenue';
   const tree = new Map();      // class -> Map(name -> amount)
   // ⚠ byFund holds the CASH-COMPARABLE parse (full, less investment codes) so it
@@ -287,6 +624,9 @@ export function makeAccumulator({ entity, year, kind }) {
   let subsetTotal = 0;
   let fullTotal = 0;
   let settlementTotal = 0;
+  // ⚠ Payroll clearing, reported separately from settlement so the two
+  // exclusions never get conflated in a report or a gate.
+  let custodialTotal = 0;
   let rows = 0;
 
   const dropCodes = isReceipts ? NON_OPERATING_RECEIPT_CODES : NON_OPERATING_DISBURSE_CODES;
@@ -316,6 +656,13 @@ export function makeAccumulator({ entity, year, kind }) {
 
       const fundName = String(r[need(ix, 'fund_name')] ?? '');
       if (isSettlementFund(fundCode, fundName)) { settlementTotal += amt; return; }
+      // ⚠⚠ AFTER byFund, exactly like settlement: the oracle must still see the
+      // FULL governmental parse. Narrowing the oracle to match the loaded subset
+      // would stop it being able to catch a misread at all.
+      if (custodialFunds.has(custodialFundKey(entity.countyCode, entity.unitCode, fundName))) {
+        custodialTotal += amt;
+        return;
+      }
       if (dropCodes.has(code)) {
         nonOperating.set(code, (nonOperating.get(code) ?? 0) + amt);
         return;
@@ -331,7 +678,10 @@ export function makeAccumulator({ entity, year, kind }) {
       kids.set(leaf, (kids.get(leaf) ?? 0) + amt);
     },
     result() {
-      return { tree, byFund, subsetTotal, fullTotal, settlementTotal, nonOperating, rows };
+      return {
+        tree, byFund, subsetTotal, fullTotal, settlementTotal, custodialTotal,
+        nonOperating, rows,
+      };
     },
   };
 }

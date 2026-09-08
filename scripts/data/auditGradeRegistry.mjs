@@ -267,7 +267,20 @@ export const AUDIT_GRADE_REGISTRY = [
     // Gateway publishes is the pre-audit submission. An audit existing somewhere
     // in the process is not the published figures being audit-derived.
     id: 'in-gateway-afr',
-    match: /^Indiana Gateway Annual Financial Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[5-9]|2[0-5]) actual, unaudited, excl\. settlement funds\)$/,
+    // ⚠ SUFFIX AND WINDOW BOTH CHANGED 2026-09-08, and the anchored pattern is
+    // what caught it — the grade silently fell to `unknown` the moment the source
+    // name changed, which is exactly what anchoring is for.
+    //   * the loaded scope now also excludes payroll clearing funds, and the
+    //     source name says so (see sourceNameFor in loadIndianaGateway.mjs);
+    //   * the window opens at FY2012, not FY2015. Marion County loads FY2012
+    //     onward, and those six rows were grading `unknown` for want of a year in
+    //     this pattern. ⚠ FY2011 is deliberately NOT included: the Cash and
+    //     Investments oracle carries no 2011 rows, so no Indiana county-year
+    //     before FY2012 can be loaded at all.
+    // The publisher's unaudited disclaimer is a statement about the AFR programme
+    // as a whole, not about particular years, so extending the window down does
+    // not claim evidence nobody looked at — the same document covers all of them.
+    match: /^Indiana Gateway Annual Financial Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[2-9]|2[0-5]) actual, unaudited, all funds excl\. settlement and payroll clearing\)$/,
     value: AUDIT_GRADE.SELF_REPORTED_UNAUDITED,
     evidence: {
       document: 'Indiana Gateway for Government Units (IFI / DLGF / SBOA), "Learn more about … '
