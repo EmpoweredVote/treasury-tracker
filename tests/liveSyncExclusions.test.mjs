@@ -267,6 +267,14 @@ describe('the baseline itself', () => {
     // ⚠⚠ An unrecoverable change must never be smoothed away by a rebase.
     expect(v._what_is_permanently_LOST).toMatch(/PRE-DRIFT VALUE/);
     expect(v._the_row_that_moved_this_time).toMatch(/Bloomington/);
+    // ⚠⚠ The correction must survive. An earlier draft read this row as a splice
+    // of two feeds; checking the publisher showed Socrata fcnf-g862 sums EXACTLY
+    // to all five stored totals, so the series is one consistent source and only
+    // the label is wrong. A block that quietly dropped that would leave the wrong
+    // conclusion as the record.
+    expect(v._correction_do_not_repeat_this_mistake).toMatch(/THAT WAS WRONG/);
+    expect(v._correction_do_not_repeat_this_mistake).toMatch(/fcnf-g862/);
+    expect(v._correction_do_not_repeat_this_mistake).toMatch(/real growth/);
     expect(v._authorised_by).toBeTruthy();
     expect(v._the_51_rows_that_left_the_digest).toHaveLength(51);
     for (const r of v._the_51_rows_that_left_the_digest) {
