@@ -354,7 +354,7 @@ function finish(kind, rawEntity, fullName, stateCode, target) {
   if (kind === 'county' && !/ (County|Parish)$/i.test(entity)) {
     // Louisiana calls them parishes; Alaska's consolidated boroughs keep County
     // only when the record itself said so.
-    entity += /PARISH/i.test(fullName) || stateCode === 'LA' ? ' Parish' : ' County';
+    entity += /(?:^| )PARISH(?= |$)/i.test(fullName) || stateCode === 'LA' ? ' Parish' : ' County';
   }
   if (kind === 'township' && !/ Township$/i.test(entity)) entity += ' Township';
   if (!target.kinds.includes(kind)) return null;
