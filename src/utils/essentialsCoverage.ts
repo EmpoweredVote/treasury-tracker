@@ -20,6 +20,7 @@
 
 import { useState, useEffect } from 'react';
 import type { Municipality } from '../types/budget';
+import { CITY_TIER_TYPES } from './cityTierTypes';
 
 // ── Types (contract shape agreed in 125-CONTEXT.md D-02c) ──────────────────
 
@@ -149,21 +150,16 @@ function stripLabel(s: string): string {
     .trim();
 }
 
-const CITY_TIER_TYPES = new Set<Municipality['entity_type']>([
-  'city',
-  'town',
-  'township',
-  // ⚠ A village is city-tier: an incorporated place with its own government,
-  // which is what a city-tier record describes. Michigan's 253 arrived with the
-  // F-65 sweep.
-  'village',
-  'municipality',
-]);
+// ⚠⚠ CITY_TIER_TYPES used to be re-declared here. It existed in four places and
+// they disagreed: `borough` was in three verify-*-tether.mjs scripts and in NONE
+// of the lists the product consults, so PA's 949 boroughs matched nothing. It is
+// now imported from src/utils/cityTierTypes.ts — see that file's header.
 
 /**
  * Resolve a TT entity to its Essentials coverage record, tier-aligned:
  * federal → the federal record (location-independent); state → by abbrev;
- * county → county records; city/town/township/village/municipality → city records.
+ * county → county records; every city-tier type (city, town, township, village,
+ * borough, municipality) → city records.
  * Any other tier (nonprofit, special_district, school_district, library,
  * conservancy) returns null. A name match with no same-state record returns
  * null — never a wrong-state link (D-03a).

@@ -23,6 +23,7 @@
 
 import { useState, useEffect } from 'react';
 import type { Municipality } from '../types/budget';
+import { CITY_TIER_TYPES } from './cityTierTypes';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -111,16 +112,9 @@ export function toCollectionSlug(name: string, state?: string): string {
   return s ? `${n}-${s}` : n;
 }
 
-const CITY_TIER_TYPES = new Set<Municipality['entity_type']>([
-  'city',
-  'town',
-  'township',
-  // ⚠ A village is city-tier: an incorporated place with its own government,
-  // which is what a city-tier record describes. Michigan's 253 arrived with the
-  // F-65 sweep.
-  'village',
-  'municipality',
-]);
+// ⚠⚠ CITY_TIER_TYPES used to be re-declared here, and it had drifted from its
+// three other copies — `borough` was missing, so PA's 949 boroughs resolved to no
+// CTC collection. Now imported from src/utils/cityTierTypes.ts.
 
 /**
  * Resolve a TT entity to its CTC collection, tier-aligned (parity with

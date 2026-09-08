@@ -36,8 +36,27 @@
  * above this chip's position, so including them would double up — a deliberate
  * exclusion, and the enumeration test pins it so it cannot be "fixed" by accident.
  */
+/**
+ * ⚠⚠ `borough` AND `village` WERE MISSING, AND BOTH CARRY DATA.
+ *
+ * Measured 2026-09-07: 949 of Pennsylvania's 2,620 municipalities are `borough`
+ * (36%, every one with budget rows) and 253 Michigan units are `village`. All
+ * 1,202 rendered NO source chip — a figure on screen with no provenance, which
+ * is the one thing TT is not allowed to show.
+ *
+ * ⚠ It was not a simple omission. Knight session 5 typed State College
+ * `municipality` INSTEAD of `borough` precisely because this list lacked it, and
+ * `tests/paInLoad.test.mjs` pinned that workaround with an assertion that
+ * `borough` is absent. Then the DCED statewide sweep (#133) introduced `borough`
+ * for 949 entities anyway — so the two decisions collided and the loser was the
+ * chip. State College is `borough` in the database today while that test still
+ * asserted `municipality`, because it read the registry constant and not the row.
+ *
+ * ⭐ Adding both here is what lets the Indiana sweep type 449 CIVIL TOWNs as
+ * `town` and PA's boroughs as `borough` without a provenance chip going missing.
+ */
 export const SOURCE_CHIP_ENTITY_TYPES: ReadonlySet<string> = new Set([
-  'city', 'municipality', 'town', 'township', 'county', 'state',
+  'city', 'municipality', 'town', 'township', 'village', 'borough', 'county', 'state',
 ]);
 
 /** True when this entity type renders the source chip. */

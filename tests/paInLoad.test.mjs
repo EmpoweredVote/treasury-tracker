@@ -41,8 +41,7 @@ describe('PA/IN Knight entity registry', () => {
     expect(IN_ENTITIES).toHaveLength(4);
   });
 
-  // ⚠ `borough` is NOT in SOURCE_CHIP_ENTITY_TYPES. Typing State College by its
-  // legal class would silently drop its provenance chip — the exact defect
+  // ⚠ Every entity must render its provenance chip — the exact defect
   // src/data/sourceChipTypes.ts was written to record. This test is the only
   // guard available, because the repo can run no component tests.
   it('types every entity so the source chip renders', () => {
@@ -51,10 +50,29 @@ describe('PA/IN Knight entity registry', () => {
     }
   });
 
-  it('never types a PA borough as `borough`', () => {
+  /**
+   * ⚠⚠ REPLACES `never types a PA borough as borough`, 2026-09-07.
+   *
+   * That test pinned a WORKAROUND — State College was typed `municipality`
+   * because `borough` was missing from SOURCE_CHIP_ENTITY_TYPES. Three things
+   * made it wrong to keep:
+   *
+   *   1. `borough` is now in the chip set, so the reason is gone.
+   *   2. The #133 statewide sweep made `borough` real and seeded 949 of them.
+   *      State College is `borough` IN THE DATABASE and all 20 of its rows come
+   *      from that family — so the old assertion described a row that does not
+   *      exist. It read this registry constant, never the database, which is why
+   *      it stayed green.
+   *   3. `treasury_ensure_municipality` keys on (name, state, ENTITY_TYPE), so a
+   *      re-run of loadPaDced.mjs with `municipality` would have created a SECOND
+   *      State College and written to it.
+   */
+  it('types State College by its legal class, matching the row that exists', () => {
     const sc = PA_ENTITIES.find((e) => e.key === 'state-college');
-    expect(sc.entityType).toBe('municipality');
-    expect(SOURCE_CHIP_ENTITY_TYPES.has('borough')).toBe(false);
+    expect(sc.entityType).toBe('borough');
+    expect(sc.dcedName).toBe('STATE COLLEGE BORO');
+    // The chip must cover it, or point 1 above has regressed.
+    expect(SOURCE_CHIP_ENTITY_TYPES.has('borough')).toBe(true);
   });
 
   // ⚠⚠ Philadelphia is coterminous with its county, so it is ONE entity, and it

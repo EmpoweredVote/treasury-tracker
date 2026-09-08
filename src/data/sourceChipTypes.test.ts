@@ -45,8 +45,20 @@ describe('showsSourceChip', () => {
   it('enumerates exactly the types that get a chip', () => {
     // Spelled out so ADDING or REMOVING a type has to be a deliberate edit to a
     // test, not a silent one-word change in a component.
+    // ⚠⚠ `village` and `borough` added 2026-09-07: 253 MI villages and 949 PA
+    // boroughs all carry data and all rendered NO chip, i.e. a figure with no
+    // provenance. See the header in sourceChipTypes.ts.
     expect([...SOURCE_CHIP_ENTITY_TYPES].sort()).toEqual(
-      ['city', 'county', 'municipality', 'state', 'town', 'township'],
+      ['borough', 'city', 'county', 'municipality', 'state', 'town', 'township', 'village'],
     );
+  });
+
+  it('gives a chip to every incorporated-place type TT actually stores', () => {
+    // ⚠ The point of the fix: an entity type that holds budget rows must not be
+    // able to render a figure with no source. These are the six sub-city classes
+    // TT holds today (city, town, township, village, borough, municipality).
+    for (const t of ['city', 'town', 'township', 'village', 'borough', 'municipality']) {
+      expect(showsSourceChip(t), t).toBe(true);
+    }
   });
 });
