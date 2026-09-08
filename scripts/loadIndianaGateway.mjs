@@ -23,8 +23,23 @@
  * The receipts and disbursements files publish no control total, so summing them
  * and comparing to themselves would be tautological — the Austin rule. Instead
  * every fund is checked against **Cash and Investments**, a SEPARATE Gateway
- * report carrying `r_bal` (receipts) and `d_bal` (disbursements) per fund, which
- * the unit files independently.
+ * report carrying `r_bal` (receipts) and `d_bal` (disbursements) per fund.
+ *
+ * ⚠⚠ CORRECTED 2026-09-08 — THIS COMMENT USED TO SAY THE UNIT FILES CASH AND
+ * INVESTMENTS "INDEPENDENTLY". IT DOES NOT, AND THAT OVERSOLD THE ORACLE.
+ * A unit submits ONE Annual Financial Report; Gateway publishes several REPORTS
+ * over that one submission. Measured across all 1,275 county-years with cash
+ * rows: sum(receipts) equals sum(`r_bal`) TO THE CENT in 887 of them, and every
+ * one of the 388 that differ is explained to the cent by R901 Sale of
+ * Investments — the exact amount the cash report nets out. Lake FY2018 differs
+ * by $142,900,000.00 and its R901 is $142,900,000.00.
+ *
+ * So the oracle proves TT READ THE SUBMISSION CORRECTLY — a real and necessary
+ * job, and it has caught real defects. It CANNOT corroborate that the
+ * submission is true, because it is not a second source. Marion County is the
+ * worked example: 179/179 funds tied in FY2023 while the filing carried ~3x the
+ * county's own audited revenue in custodial pass-through. Necessary, not
+ * sufficient — see scripts/data/inGatewayAnomalies.mjs.
  *
  * ⚠ The oracle runs on the FULL governmental parse INCLUDING Settlement, then the
  * documented subset is loaded. Proving the read and choosing the scope are two
