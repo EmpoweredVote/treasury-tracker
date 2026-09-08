@@ -10,10 +10,27 @@
  * Chris, 2026-08-29: *"It is not our job to hide bad data"* — reflect what is
  * ACCURATE, and flag what looks inconsistent, saying why.
  *
- * **Nothing in this file is withheld from the product.** Every figure recorded
- * here is LOADED exactly as the government published it. Editing or dropping a
- * verified figure because it looks outlandish would create a blind spot for
+ * **Nothing here is withheld for LOOKING outlandish.** Editing or dropping a
+ * verified figure because it seems implausible would create a blind spot for
  * legitimate fraud — an outlier is a FINDING, not noise to be cleaned up.
+ *
+ * ── ⚠⚠ `disposition` — AND WHY IT IS NOT ALL `loaded-as-published` ──────────
+ *
+ * Every flag declares one:
+ *
+ *   'loaded-as-published'  the figure is in the product exactly as filed.
+ *   'excluded-by-scope'    the money is OUT of the loaded scope, by a
+ *                          documented, publisher-evidenced rule that applies to
+ *                          every government equally — never to this figure
+ *                          because of how it looked.
+ *
+ * ⚠ The distinction is the Milledgeville rule's own carve-out: refusal is right
+ * where TT would otherwise assert something the source never said (a wrong
+ * SCOPE), and wrong where the source said exactly this and it merely looks
+ * absurd. Marion County FY2019's $1,988,575,425.58 payroll clearing fund is the
+ * former — loading it would assert that ~$2B of employees' withheld pay was
+ * county revenue. `scopeDecision` names the rule for any flag so marked, so a
+ * scope choice can never be quietly dressed up as suppression, or vice versa.
  *
  * ⚠ Every entry was CORROBORATED BY INDEPENDENT AGENTS working from the raw
  * source with neutral prompts, before being recorded — Chris's standing
@@ -71,6 +88,7 @@ export const IN_FIGURE_FLAGS = Object.freeze([
     fiscalYears: [2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023],
     dataset: 'both',
     loaded: true,
+    disposition: 'loaded-as-published',
     severity: 'scope-overstatement',
     what:
       'Marion County (Indianapolis, consolidated under Unigov) reports its Gateway AFR '
@@ -79,10 +97,15 @@ export const IN_FIGURE_FLAGS = Object.freeze([
       + 'already excludes the Settlement fund, and the remainder still runs ~3x the '
       + "county's own audited revenue.",
     magnitude: [
-      "FY2023: TT loads revenue $1,448,064,843.05 against the county's own AUDITED "
-        + 'governmental-funds revenue of $436,289,784 — 3.32x.',
+      "FY2023: TT loads revenue $1,346,189,557.52 against the county's own AUDITED "
+        + 'governmental-funds revenue of $436,289,784 — 3.09x. (It was 3.32x before '
+        + 'payroll clearing was excluded from scope on 2026-09-08; that narrowing helped '
+        + 'and was never going to be enough.)',
       'The gap narrows to 1.28x in FY2024 ($569,988,242.80 vs $446,935,168 audited) and '
         + '1.11x in FY2025 ($516,280,371.48 vs $463,520,173 audited).',
+      'The residue is LIT distributions and the R913 catch-all, which the extract does '
+        + 'not let anyone separate: 76% of the statewide $3.76B in R913 is unclassifiable. '
+        + 'That is why the counties are going to their own audited ACFRs.',
       "Marion's FY2025 ACFR shows custodial-fund additions of $2,895,709,431, of which "
         + '$2,691,995,013 is "taxes from individuals and organizations" collected for '
         + "other units — the mechanism, in the county's own audited words.",
@@ -132,8 +155,8 @@ export const IN_FIGURE_FLAGS = Object.freeze([
       + 'conversion at either entity. Recorded as a disagreement rather than resolved. '
       + 'Load-bearing figures were then re-verified against the primary documents.',
     assertions: [
-      { fiscalYear: 2023, dataset: 'revenue', measure: 'subsetTotal', expected: 1_448_064_843.05 },
-      { fiscalYear: 2023, dataset: 'operating', measure: 'subsetTotal', expected: 1_456_345_289.00 },
+      { fiscalYear: 2023, dataset: 'revenue', measure: 'subsetTotal', expected: 1_346_189_557.52 },
+      { fiscalYear: 2023, dataset: 'operating', measure: 'subsetTotal', expected: 1_354_781_204.45 },
     ],
   },
 
@@ -149,16 +172,17 @@ export const IN_FIGURE_FLAGS = Object.freeze([
     fiscalYears: [2024, 2025],
     dataset: 'both',
     loaded: true,
+    disposition: 'loaded-as-published',
     severity: 'series-discontinuity',
     what:
       "Marion County's FY2024 and FY2025 Gateway filings sit on a different fund "
       + 'structure from FY2013-FY2023 and largely stop reporting custodial pass-through. '
-      + 'TT therefore shows revenue falling from $1,448,064,843.05 to $569,988,242.80, '
-      + "-60.6%. ⚠⚠ THAT IS NOT A DECLINE IN THE COUNTY'S FINANCES — these two years "
+      + 'TT therefore shows revenue falling from $1,346,189,557.52 to $569,988,242.80, '
+      + "-57.7%. ⚠⚠ THAT IS NOT A DECLINE IN THE COUNTY'S FINANCES — these two years "
       + 'are the ones that AGREE with its audited statements.',
     magnitude: [
-      'Revenue $1,448,064,843.05 (FY2023) -> $569,988,242.80 (FY2024): -60.6%.',
-      'Expenditure $1,456,345,289.00 -> $469,158,041.04: -67.8%.',
+      'Revenue $1,346,189,557.52 (FY2023) -> $569,988,242.80 (FY2024): -57.7%.',
+      'Expenditure $1,354,781,204.45 -> $469,158,041.04: -65.4%.',
       'Against audited governmental-funds revenue the SAME step is $436,289,784 -> '
         + '$446,935,168, i.e. +2.4%. The county grew.',
       'ZERO of 98 fund codes carry over from FY2023 to FY2024 (Jaccard 0.000). Marion is '
@@ -210,10 +234,23 @@ export const IN_FIGURE_FLAGS = Object.freeze([
   },
 
   /**
-   * ── FLAG 3: FY2019 carries ~$1.8B of payroll clearing that never rested ───
+   * ── FLAG 3: FY2019's ~$1.8B payroll clearing — NOW EXCLUDED BY SCOPE ──────
    *
    * ⚠ Found only because the FY2024 investigation looked at the WHOLE series.
    * A single-year review would have missed it entirely.
+   *
+   * ⚠⚠ THIS FLAG IS THE ONE THAT MOTIVATED THE PAYROLL-CLEARING EXCLUSION.
+   * Chris chose a narrower own-funds scope on 2026-09-08, and payroll clearing is
+   * the one clean narrowing this source supports. So the $1.99B is no longer
+   * loaded — and this entry is kept as the PROVENANCE for why FY2019 does not
+   * spike, plus the record of what the publisher actually filed.
+   *
+   * ⚠ Excluding a fund on a documented, publisher-evidenced SCOPE rule is not
+   * the same as suppressing a figure for looking outlandish. The Milledgeville
+   * rule's own carve-out: refusal is right where TT would otherwise assert
+   * something the source never said — here, that ~$2B of employees' withheld pay
+   * was county revenue. `disposition` records the difference explicitly so the
+   * two can never be conflated.
    */
   {
     id: 'marion-county-fy2019-payroll-clearing-gross-up',
@@ -223,14 +260,22 @@ export const IN_FIGURE_FLAGS = Object.freeze([
     unitCode: '0000',
     fiscalYears: [2019],
     dataset: 'both',
-    loaded: true,
+    loaded: false,
+    disposition: 'excluded-by-scope',
+    scopeDecision:
+      'Payroll clearing funds are excluded from the loaded scope — see '
+      + 'PAYROLL_CLEARING_RECEIPT_CODE in scripts/lib/inGateway.mjs. Chris, '
+      + '2026-09-08: load Indiana counties on a narrower own-funds scope. The fund is '
+      + 'identified by the publisher own R909 code dominating its receipts in a majority '
+      + 'of its years, and it is excluded on BOTH sides so the two stay comparable.',
     severity: 'extreme-outlier',
     what:
       'Marion County FY2019 reports fund 105100 "Payroll Clearing" at '
       + '$1,988,575,425.58 received and $1,988,679,715.33 disbursed, against $175M-$275M '
-      + 'in the surrounding years. That ONE fund is 41.7% of the year\'s receipts, and it '
-      + "lifts TT's loaded revenue to $3,038,450,485.48 from $1,201,173,627.09 the year "
-      + 'before and $1,437,986,303.30 the year after.',
+      + 'in the surrounding years — 41.7% of the year as filed. ⚠ TT NO LONGER LOADS IT: '
+      + 'payroll clearing is now out of scope, so FY2019 loads at $1,049,875,059.90, in '
+      + 'trend with $1,025,790,692.72 (FY2018) and $1,162,725,887.66 (FY2020). Before the '
+      + 'exclusion it loaded at $3,038,450,485.48.',
     magnitude: [
       '11.34x the FY2018 figure, 7.22x FY2020, and 10.79x the FY2014-18 mean of '
         + '$184,245,319.',
@@ -267,8 +312,10 @@ export const IN_FIGURE_FLAGS = Object.freeze([
         + 'of a cents-precise value would end in .60, not .58. Do not lead with it.',
     ],
     supportingContext:
-      'TT loads this year as published. A reader sees Marion revenue spike +153% in '
-      + 'FY2019 and fall -53% in FY2020, driven entirely by this one fund.',
+      'Before the exclusion a reader saw Marion revenue spike +153% in FY2019 and fall '
+      + '-53% in FY2020, driven entirely by this one fund. That artefact is gone. '
+      + 'The FY2012 double-report (the next flag) is NOT payroll clearing and remains '
+      + 'loaded, so the series still carries one real discontinuity.',
     corroboration:
       '2 independent agents, neutral prompts, told not to reuse repo scripts and '
       + 'explicitly invited to return a null result. Both found this fund-year without '
@@ -278,8 +325,8 @@ export const IN_FIGURE_FLAGS = Object.freeze([
       + '2013 renumbering), which is the behaviour that makes the rest credible. Figures '
       + 're-verified against the raw extracts before recording.',
     assertions: [
-      { fiscalYear: 2019, dataset: 'revenue', measure: 'subsetTotal', expected: 3_038_450_485.48 },
-      { fiscalYear: 2019, dataset: 'operating', measure: 'subsetTotal', expected: 2_933_456_533.66 },
+      { fiscalYear: 2019, dataset: 'revenue', measure: 'subsetTotal', expected: 1_049_875_059.90 },
+      { fiscalYear: 2019, dataset: 'operating', measure: 'subsetTotal', expected: 944_776_818.33 },
     ],
   },
 
@@ -295,6 +342,7 @@ export const IN_FIGURE_FLAGS = Object.freeze([
     fiscalYears: [2012],
     dataset: 'both',
     loaded: true,
+    disposition: 'loaded-as-published',
     severity: 'extreme-outlier',
     what:
       'In FY2012 alone Marion County populated BOTH settlement-type funds at full scale: '
@@ -308,8 +356,10 @@ export const IN_FIGURE_FLAGS = Object.freeze([
       '110899 is 35.4x its own FY2011 value on the same fund code ($38,531,900.03), then '
         + 'the code disappears from FY2013 onward.',
       'It is 36.96% of the year\'s receipts.',
-      "TT's loaded revenue reads $2,368,797,655.54 for FY2012 against $843,350,482.27 "
-        + '(FY2011) and $1,264,024,397.66 (FY2013) — +181% then -47%.',
+      "TT's loaded revenue reads $2,207,933,091.14 for FY2012 against "
+        + '$1,188,210,509.04 (FY2013) — an 86% step down into the following year. '
+        + '⚠ FY2011 is NOT loaded at all: the Cash and Investments oracle carries no '
+        + '2011 rows, so the read cannot be verified and the loader refuses it.',
       'Marion\'s settlement-family receipts: $1.09B (FY2011) -> $2.68B (FY2012) -> $1.35B '
         + '(FY2013). FY2012 is ~$1.3B above its own trend.',
     ],
@@ -353,8 +403,8 @@ export const IN_FIGURE_FLAGS = Object.freeze([
       + 'identified this pair with the same amounts, adding the line-item semantics and '
       + 'the peer-county naming evidence. Re-verified against the raw extracts.',
     assertions: [
-      { fiscalYear: 2012, dataset: 'revenue', measure: 'subsetTotal', expected: 2_368_797_655.54 },
-      { fiscalYear: 2012, dataset: 'operating', measure: 'subsetTotal', expected: 2_362_027_138.70 },
+      { fiscalYear: 2012, dataset: 'revenue', measure: 'subsetTotal', expected: 2_207_933_091.14 },
+      { fiscalYear: 2012, dataset: 'operating', measure: 'subsetTotal', expected: 2_204_296_194.79 },
     ],
   },
 ]);

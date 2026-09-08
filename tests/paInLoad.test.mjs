@@ -157,8 +157,14 @@ describe('audit grade — every loaded source string must classify', () => {
     expect(paSourceName('revenue', 2020, p).startsWith(PA_PREFIX)).toBe(true);
   });
 
+  // ⚠⚠ `all_funds`, corrected 2026-09-08. Gateway's AFR covers EVERY fund in the
+  // treasury, including custodial money a county collects and remits for other
+  // taxing units — and under GASB a custodial fund is NOT a governmental fund.
+  // The old `total_governmental` label claimed a scope these figures never had:
+  // Marion County FY2023 loaded 3.3x the county's own audited governmental-funds
+  // revenue while carrying that label. See scripts/data/inGatewayAnomalies.mjs.
   it('uses axis values the constraints allow', () => {
-    expect(IN_FUND_SCOPE).toBe('total_governmental');
+    expect(IN_FUND_SCOPE).toBe('all_funds');
     expect(IN_BASIS).toBe('actual');
     expect(['published', 'derived']).toContain(IN_DERIVATION);
   });

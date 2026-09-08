@@ -255,6 +255,143 @@ export function assertSettlementSeriesIsPassThrough(entry, label, {
 }
 
 /**
+ * ── ⚠⚠ PAYROLL CLEARING FUNDS ARE EXCLUDED, BY FUND AND NOT BY CODE ─────────
+ *
+ * Chris, 2026-09-08, chose a narrower own-funds scope for Indiana counties. A
+ * TRUE own-funds scope IS NOT DERIVABLE FROM THIS SOURCE — measured, the most
+ * principled available rule (pass-through behaviour AND dominance of the
+ * publisher's own "pays somebody else" codes) still leaves Marion County at
+ * 1.87x its own audited revenue while wrongly deleting real county money
+ * (financial institution tax, overweight vehicle fines, surtax, sewage
+ * collections), and 76% of the $3.76B in the R913 catch-all is unclassifiable
+ * either way. The counties therefore go to their own audited ACFRs for genuine
+ * own-funds figures; THIS is the one clean narrowing the extract does support.
+ *
+ * A payroll clearing fund receives employees' money and remits it to the IRS,
+ * PERF and insurers. It is custodial, and reporting it gross inflates both sides
+ * without any of it being the government's own revenue or spending. Marion
+ * County FY2019 is the worked example: ONE such fund reported $1,988,575,425.58
+ * — 41.7% of the county's year — while its own cash balance never left $3-4.5M.
+ *
+ * ── ⚠ WHY BY FUND, when the rule everywhere else here is "match the CODE" ────
+ *
+ * Two measurements forced it:
+ *   1. D702 "Payment of Taxes and Other Payroll Withholdings" is NOT confined to
+ *      clearing funds. 11% of it (counties) sits in operating funds, where it is
+ *      REAL employer payroll tax. A code exclusion would delete ~$85M of genuine
+ *      spending statewide.
+ *   2. Excluding R909 receipts alone would be ASYMMETRIC — revenue down
+ *      $967.7M (counties FY2023) with no matching disbursement exclusion, so TT
+ *      would invent a surplus. Every other exclusion here is a PAIR (R910/D704
+ *      transfers, R901/D900 investments).
+ *
+ * Excluding the FUND is symmetric by construction. Measured asymmetry of what it
+ * removes: 0.15% counties, 0.33% cities.
+ *
+ * ── ⚠⚠ CLASSIFIED BY A MAJORITY OF YEARS, NOT BY A DOLLAR-WEIGHTED SHARE ───
+ *
+ * The first version of this measured R909 as a share of the fund's receipts
+ * SUMMED OVER THE SERIES and it MISSED THE MOST IMPORTANT CASE. Marion County's
+ * "payroll clearing" fund is 92.24% R909 across its series — just under the
+ * threshold — because FY2020's $275,260,415.64 was coded R913 (the catch-all)
+ * instead of R909. So it excluded Marion's small "gross county payroll" fund
+ * (100% R909, $318M) and KEPT the fund whose FY2019 figure is $1,988,575,425.58.
+ *
+ * ⚠⚠ THE FIX WAS NOT A LOOSER THRESHOLD. 95% -> 90% would admit that one case
+ * and quietly move every future one — the reasoning that refused to widen the
+ * settlement tolerance for Parke County. A dollar-weighted share lets ONE large
+ * miscoded year decide; a per-year majority asks what the fund USUALLY is.
+ *
+ * ── ⚠⚠ DOMINANCE, NEVER PRESENCE ───────────────────────────────────────────
+ *
+ * General funds carry small R909 amounts — a county "General Fund" at 1.4%, a
+ * city "GENERAL FUND" at 2.9%. "The fund touches R909" would DELETE GENERAL
+ * FUNDS. The population is cleanly bimodal: 565 county funds are >=95% R909 and
+ * only 34 sit in the 50-95% band, so this threshold separates two distinct
+ * populations rather than cutting through one. Sensitivity measured — the county
+ * receipts removed move only ~9% across a 50%-99% sweep, and NO fund that is
+ * really a general fund is caught at any threshold in either entity type.
+ * (`AMERICAN GENERAL EACH W/H`, $4,437.73, is an insurance withholding fund.)
+ *
+ * ── ⚠ HONEST LIMITATION: AN INCONSISTENT CODER ESCAPES THIS RULE ────────────
+ *
+ * It can only see what the publisher codes as R909. Fort Wayne reports its two
+ * clearing funds ("Allocated Expenses Clearing" $76,789, "Clearing Funds"
+ * $25,106) entirely under R913, so nothing is excluded for it — correctly, since
+ * those are trivial, but a unit that routed ALL its payroll through an
+ * R913-coded fund would be invisible here. Marion survived exactly that in
+ * FY2020 only because its other years are R909 and the classifier votes by year.
+ * This is not a hole that can be closed from this extract: R913 is the catch-all
+ * that also carries real revenue, which is the whole reason a true own-funds
+ * scope is not derivable from this source.
+ */
+export const PAYROLL_CLEARING_RECEIPT_CODE = 'R909';
+export const PAYROLL_CLEARING_DOMINANCE = 0.95;
+
+/**
+ * ⚠ Keyed on the fund NAME, not `Fund_code`: the code is not stable across years
+ * (the $735M Lake County lesson). Marion's payroll fund is 105100 through FY2023
+ * and 990001 from FY2024 — the same fund.
+ */
+export function custodialFundKey(countyCode, unitCode, fundName) {
+  return `${countyCode}|${unitCode}|${String(fundName ?? '').trim().toLowerCase()}`;
+}
+
+/**
+ * Identify payroll clearing funds from the receipts extracts.
+ *
+ * ⚠⚠ CLASSIFIED OVER THE WHOLE SERIES, not per year. If a fund could flip
+ * classification from one year to the next, TT would manufacture exactly the
+ * kind of discontinuity this investigation started from — and one odd
+ * non-payroll receipt booked to a clearing fund in a single year should not
+ * re-scope it. Same lesson as the settlement gate.
+ */
+export function makeCustodialFundIndex(entities) {
+  const inScope = new Set();
+  for (const e of entities) inScope.add(`${e.countyCode}|${e.unitCode}`);
+  // fundKey -> Map(year -> {total, clearing}). Per-year, so the classification
+  // is a majority over the fund's years rather than a dollar-weighted share.
+  const perYear = new Map();
+
+  return {
+    consume(r, ix) {
+      const cc = pad(r[need(ix, 'cnty_cd')], 2);
+      const uc = pad(r[need(ix, 'unit_code')], 4);
+      if (!inScope.has(`${cc}|${uc}`)) return;
+      if (String(r[need(ix, 'ent_name')]).trim() !== GOVERNMENTAL_ENT_NAME) return;
+
+      const key = custodialFundKey(cc, uc, r[need(ix, 'fund_name')]);
+      const year = String(r[need(ix, 'year')]).trim();
+      const amt = money(r[need(ix, 'amount')]);
+      if (!perYear.has(key)) perYear.set(key, new Map());
+      const years = perYear.get(key);
+      if (!years.has(year)) years.set(year, { total: 0, clearing: 0 });
+      const slot = years.get(year);
+      slot.total += amt;
+      // ⚠ UPPERCASED. `d704` appears alongside `D704` in this corpus, so codes
+      // are never trusted to arrive in one case.
+      if (String(r[need(ix, 'receipt_code')]).trim().toUpperCase()
+          === PAYROLL_CLEARING_RECEIPT_CODE) {
+        slot.clearing += amt;
+      }
+    },
+    result() {
+      const out = new Set();
+      for (const [key, years] of perYear) {
+        // ⚠ Only years with actual receipt activity get a vote. A year of zeros
+        // is silence, not evidence either way.
+        const voting = [...years.values()].filter((v) => v.total > 0);
+        if (!voting.length) continue;
+        const clearingYears = voting
+          .filter((v) => v.clearing / v.total >= PAYROLL_CLEARING_DOMINANCE).length;
+        if (clearingYears * 2 > voting.length) out.add(key);
+      }
+      return out;
+    },
+  };
+}
+
+/**
  * Accumulate every in-scope government's settlement series while the big files
  * are already being streamed.
  *
@@ -476,7 +613,7 @@ export async function eachRow(path, onRow) {
  * "Oracle the FULL parse to prove the read; load a documented SUBSET. Never
  * widen the tree to close the gap."
  */
-export function makeAccumulator({ entity, year, kind }) {
+export function makeAccumulator({ entity, year, kind, custodialFunds = new Set() }) {
   const isReceipts = kind === 'revenue';
   const tree = new Map();      // class -> Map(name -> amount)
   // ⚠ byFund holds the CASH-COMPARABLE parse (full, less investment codes) so it
@@ -487,6 +624,9 @@ export function makeAccumulator({ entity, year, kind }) {
   let subsetTotal = 0;
   let fullTotal = 0;
   let settlementTotal = 0;
+  // ⚠ Payroll clearing, reported separately from settlement so the two
+  // exclusions never get conflated in a report or a gate.
+  let custodialTotal = 0;
   let rows = 0;
 
   const dropCodes = isReceipts ? NON_OPERATING_RECEIPT_CODES : NON_OPERATING_DISBURSE_CODES;
@@ -516,6 +656,13 @@ export function makeAccumulator({ entity, year, kind }) {
 
       const fundName = String(r[need(ix, 'fund_name')] ?? '');
       if (isSettlementFund(fundCode, fundName)) { settlementTotal += amt; return; }
+      // ⚠⚠ AFTER byFund, exactly like settlement: the oracle must still see the
+      // FULL governmental parse. Narrowing the oracle to match the loaded subset
+      // would stop it being able to catch a misread at all.
+      if (custodialFunds.has(custodialFundKey(entity.countyCode, entity.unitCode, fundName))) {
+        custodialTotal += amt;
+        return;
+      }
       if (dropCodes.has(code)) {
         nonOperating.set(code, (nonOperating.get(code) ?? 0) + amt);
         return;
@@ -531,7 +678,10 @@ export function makeAccumulator({ entity, year, kind }) {
       kids.set(leaf, (kids.get(leaf) ?? 0) + amt);
     },
     result() {
-      return { tree, byFund, subsetTotal, fullTotal, settlementTotal, nonOperating, rows };
+      return {
+        tree, byFund, subsetTotal, fullTotal, settlementTotal, custodialTotal,
+        nonOperating, rows,
+      };
     },
   };
 }

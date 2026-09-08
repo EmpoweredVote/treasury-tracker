@@ -94,9 +94,29 @@ describe('Indiana figure flags — the flag is self-checking', () => {
  * each new member to opt in cannot catch the member that forgets.
  */
 describe('Indiana figure flags — the recorded registry', () => {
-  it('records every flag as LOADED, never withheld', () => {
+  // ⚠⚠ This used to assert `loaded === true` for every flag. That became a LIE
+  // when Chris narrowed the Indiana scope on 2026-09-08 and Marion FY2019's
+  // payroll clearing fund left the loaded set. Forcing the old invariant would
+  // have meant recording something untrue to keep a test green, so the model now
+  // names the two dispositions apart — and an excluded one must cite the rule
+  // that excluded it, so a scope choice can never be dressed up as suppression.
+  it('declares a disposition for every flag, and cites the rule when excluded', () => {
     for (const f of IN_FIGURE_FLAGS) {
-      expect(f.loaded, f.id).toBe(true);
+      expect(['loaded-as-published', 'excluded-by-scope'], f.id).toContain(f.disposition);
+      expect(f.loaded, f.id).toBe(f.disposition === 'loaded-as-published');
+      if (f.disposition === 'excluded-by-scope') {
+        // must name a documented rule, not a per-figure judgement
+        expect(f.scopeDecision, f.id).toBeTruthy();
+        expect(f.scopeDecision, f.id).toMatch(/inGateway\.mjs/);
+      }
+    }
+  });
+
+  // ⚠ And nothing may be withheld merely for looking implausible: an excluded
+  // flag has to point at a rule that applies to every government equally.
+  it('never withholds a figure on plausibility grounds alone', () => {
+    for (const f of IN_FIGURE_FLAGS.filter((x) => x.disposition === 'excluded-by-scope')) {
+      expect(f.scopeDecision, f.id).toMatch(/scope|excluded/i);
     }
   });
 

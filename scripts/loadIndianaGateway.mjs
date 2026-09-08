@@ -76,6 +76,7 @@ import {
   eachRow, makeAccumulator, toTree, assertParsed, need, money, pad,
   SETTLEMENT_FUND_CODE, GOVERNMENTAL_ENT_NAME,
   makeSettlementSeriesIndex, assertSettlementSeriesIsPassThrough, settlementPerYearDrift,
+  makeCustodialFundIndex, PAYROLL_CLEARING_DOMINANCE,
 } from './lib/inGateway.mjs';
 import {
   IN_FIGURE_FLAGS, figureFlagsFor, assertFigureFlagStillHolds,
@@ -85,7 +86,18 @@ import { ROSTER_FILE } from './buildInStatewideRoster.mjs';
 
 export const SOURCE_PREFIX = 'Indiana Gateway Annual Financial Report';
 export const SOURCE_URL = 'https://gateway.ifionline.org/public/download.aspx';
-export const FUND_SCOPE = 'total_governmental';
+// ⚠⚠ `all_funds`, NOT `total_governmental`. Corrected 2026-09-08.
+// Gateway's AFR is a receipts-and-disbursements statement for EVERY fund in the
+// treasury, and a county auditor's treasury carries custodial money it collects
+// and remits for other taxing units. Under GASB a custodial fund is NOT a
+// governmental fund, so the old label claimed a scope these figures do not have
+// — Marion County FY2023 loaded 3.3x the county's own audited governmental-funds
+// revenue while labelled `total_governmental`.
+// ⚠ Changing this value CHANGES THE RPC'S UPSERT KEY: `treasury_sync_city_budget`
+// keys on (municipality, fiscal_year, dataset_type, fund_scope, basis), so a
+// re-run under the new label INSERTS rather than updates. The old rows must be
+// deleted deliberately — see project_sync_city_budget_not_source_safe.
+export const FUND_SCOPE = 'all_funds';
 export const BASIS_VALUE = 'actual';
 // ⚠ `published` or `derived` ONLY — budgets_derivation_check allows nothing else.
 // Selecting a documented subset of published line items is still publishing them;
@@ -94,9 +106,17 @@ export const DERIVATION = 'published';
 const IN_STATE = 'IN';
 const EPS = 1.0; // whole-dollar files; float slack only
 
+/**
+ * ⚠ The source name is the ONE reader-facing surface that can honestly carry the
+ * loaded scope — it renders in the source chip. It is not a place for prose (the
+ * live-sync name join and the frozen digest both key on `budgets.data_source`),
+ * but naming what is excluded is scope, not commentary, and a reader comparing
+ * this against a county's ACFR deserves to know.
+ */
 export function sourceNameFor(datasetType, fiscalYear) {
   const face = datasetType === 'operating' ? 'Expenditure by Function' : 'Revenue by Source';
-  return `${SOURCE_PREFIX} — ${face} (FY${fiscalYear} actual, unaudited, excl. settlement funds)`;
+  return `${SOURCE_PREFIX} — ${face} (FY${fiscalYear} actual, unaudited, `
+    + 'all funds excl. settlement and payroll clearing)';
 }
 
 /** Read the Cash and Investments oracle for one entity-year: fund -> {r, d}. */
@@ -255,6 +275,23 @@ async function collectAll(dir, entities, years) {
     { county: true, file: 'cash_county_ALL.txt' },
   ];
   const key = (cc, uc, y) => `${cc}|${uc}|${y}`;
+
+  // ⚠⚠ A SEPARATE FIRST PASS, and it has to be. A fund's classification depends
+  // on its R909 share across the WHOLE SERIES, which is not known until the
+  // receipts files have been read to the end — so it cannot be decided inside
+  // the accumulators that need the answer. Two passes over the two receipts
+  // files (~190 MB) is the price of classifying over the series instead of
+  // per-year, and per-year would let a fund flip scope between years and
+  // manufacture the very discontinuity this loader now flags Marion for.
+  const custodialIdx = makeCustodialFundIndex(entities);
+  for (const f of ['rec_city_ALL.txt', 'rec_county_ALL.txt']) {
+    await eachRow(join(dir, f), (r, ix) => custodialIdx.consume(r, ix));
+  }
+  const custodialFunds = custodialIdx.result();
+  console.log(`payroll-clearing funds excluded (R909 >= ${(PAYROLL_CLEARING_DOMINANCE * 100).toFixed(0)}%`
+    + ` of a fund's receipts across its whole series): ${custodialFunds.size} fund(s)
+`);
+
   const acc = new Map();   // kind -> Map(key -> accumulator)
   const cash = new Map();  // key -> {byFund, seen}
   // ⚠⚠ Indexed for EVERY year in the extract, not just `years`. The sweep is
@@ -267,7 +304,8 @@ async function collectAll(dir, entities, years) {
     for (const e of entities) {
       if ((e.entityType === 'county') !== g.county) continue;
       for (const y of years) {
-        want.set(key(e.countyCode, e.unitCode, y), makeAccumulator({ entity: e, year: y, kind: g.kind }));
+        want.set(key(e.countyCode, e.unitCode, y),
+          makeAccumulator({ entity: e, year: y, kind: g.kind, custodialFunds }));
       }
     }
     if (!want.size) continue;
@@ -364,6 +402,12 @@ function report(f) {
   console.log(`    operating subset ${f.operating.subsetTotal.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}`
     + `  (full ${f.operating.fullTotal.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}`
     + `, settlement ${f.operating.settlementTotal.toLocaleString('en-US', { style: 'currency', currency: 'USD' })})`);
+  for (const which of ['revenue', 'operating']) {
+    if (f[which].custodialTotal) {
+      console.log(`    ${which} excluded payroll clearing: `
+        + `${f[which].custodialTotal.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}`);
+    }
+  }
   for (const which of ['revenue', 'operating']) {
     const no = f[which].nonOperating;
     if (no && no.size) {
