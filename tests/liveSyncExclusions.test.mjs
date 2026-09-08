@@ -122,14 +122,123 @@ describe('the v2.34 rebase is recorded, not silent', () => {
   });
 });
 
+/**
+ * The rule v2.36 added: an enabled source can rewrite any row on its own
+ * municipality, for a fiscal_year it declares, of the dataset_type it writes —
+ * whatever data_source string that row happens to carry. That is how
+ * treasury_sync_city_budget keys, and it NEVER keys on data_source.
+ */
+describe('the rewrite surface the sync RPC actually uses', () => {
+  const MUNI = 'muni-1';
+  const OTHER = 'muni-2';
+  const sources = [{
+    id: 's1',
+    name: 'Bloomington Annual Compensation',
+    is_enabled: true,
+    municipality_id: MUNI,
+    fiscal_years: [2025, 2026],
+    dataset_type: 'salaries',
+  }];
+
+  /**
+   * ⚠⚠ THE ACTUAL 2026-09-07 INCIDENT, as a fixture. The row is labelled
+   * `data/checkbook-all.csv` and no enabled source is named that — yet the
+   * compensation feed rewrites it weekly, because the RPC matches on
+   * (municipality, fiscal_year, dataset_type) and updates total_budget while
+   * leaving data_source untouched.
+   */
+  it('catches a row a sync rewrites under someone else\'s label', () => {
+    const rows = [{
+      id: 'bloomington-fy2025-salaries',
+      municipality_id: MUNI,
+      fiscal_year: 2025,
+      dataset_type: 'salaries',
+      data_source: 'data/checkbook-all.csv',
+    }];
+    expect(liveSyncRowIds(rows, sources)).toEqual(['bloomington-fy2025-salaries']);
+  });
+
+  it('does not reach a different dataset_type on the same entity and year', () => {
+    // Bloomington's FY2025 operating/revenue rows are NOT rewritable by a
+    // salaries source — this is why (municipality, fiscal_year) alone was
+    // rejected: it would have wrongly freed 165 rows instead of 51, including
+    // all 24 California State ACFR revenue rows.
+    const rows = [
+      { id: 'op', municipality_id: MUNI, fiscal_year: 2025, dataset_type: 'operating', data_source: 'x' },
+      { id: 'rev', municipality_id: MUNI, fiscal_year: 2025, dataset_type: 'revenue', data_source: 'x' },
+    ];
+    expect(liveSyncRowIds(rows, sources)).toEqual([]);
+  });
+
+  it('does not reach a year the source does not declare', () => {
+    const rows = [{ id: 'old', municipality_id: MUNI, fiscal_year: 2024, dataset_type: 'salaries', data_source: 'x' }];
+    expect(liveSyncRowIds(rows, sources)).toEqual([]);
+  });
+
+  it('does not reach another municipality', () => {
+    const rows = [{ id: 'elsewhere', municipality_id: OTHER, fiscal_year: 2025, dataset_type: 'salaries', data_source: 'x' }];
+    expect(liveSyncRowIds(rows, sources)).toEqual([]);
+  });
+
+  /**
+   * ⚠⚠ THE UNION, NOT A REPLACEMENT. Measured 2026-09-07: 16 real rows match by
+   * NAME but fall outside the surface, because a source can hold rows for a year
+   * it no longer declares (LA City Payroll salaries FY2017-2020, several MA DLS
+   * revenue rows). Replacing the name rule would have silently dropped them.
+   */
+  it('keeps a name match that falls OUTSIDE the declared surface', () => {
+    const rows = [{
+      id: 'name-only',
+      municipality_id: MUNI,
+      fiscal_year: 2017,                       // not in fiscal_years
+      dataset_type: 'salaries',
+      data_source: 'Bloomington Annual Compensation', // but the name matches
+    }];
+    expect(liveSyncRowIds(rows, sources)).toEqual(['name-only']);
+  });
+
+  it('never returns a row twice when both halves of the union match', () => {
+    const rows = [{
+      id: 'both', municipality_id: MUNI, fiscal_year: 2025, dataset_type: 'salaries',
+      data_source: 'Bloomington Annual Compensation',
+    }];
+    expect(liveSyncRowIds(rows, sources)).toEqual(['both']);
+  });
+
+  it('ignores the surface of a DISABLED source', () => {
+    const off = [{ ...sources[0], is_enabled: false }];
+    const rows = [{ id: 'a', municipality_id: MUNI, fiscal_year: 2025, dataset_type: 'salaries', data_source: 'x' }];
+    expect(liveSyncRowIds(rows, off)).toEqual([]);
+  });
+
+  /**
+   * ⚠ A source with no declared dataset_type could write anything, so it must
+   * widen to the whole (municipality, year) rather than being skipped. Measured
+   * 2026-09-07: 0 of 1,799 enabled sources lack one — but a gate must not depend
+   * on that staying true.
+   */
+  it('widens to the whole year when a source declares no dataset_type', () => {
+    const vague = [{ ...sources[0], dataset_type: null }];
+    const rows = [
+      { id: 'op', municipality_id: MUNI, fiscal_year: 2025, dataset_type: 'operating', data_source: 'x' },
+      { id: 'sal', municipality_id: MUNI, fiscal_year: 2025, dataset_type: 'salaries', data_source: 'x' },
+      { id: 'other-year', municipality_id: MUNI, fiscal_year: 2024, dataset_type: 'operating', data_source: 'x' },
+    ];
+    expect(liveSyncRowIds(rows, vague).sort()).toEqual(['op', 'sal']);
+  });
+
+  it('ignores a source with no municipality rather than matching everything', () => {
+    const orphan = [{ ...sources[0], municipality_id: null, name: 'Orphan' }];
+    const rows = [{ id: 'a', municipality_id: MUNI, fiscal_year: 2025, dataset_type: 'salaries', data_source: 'x' }];
+    expect(liveSyncRowIds(rows, orphan)).toEqual([]);
+  });
+});
+
 describe('the baseline itself', () => {
   it('carries the scoped row count and digest', () => {
-    // 62654 (v2.34) - 10 = 62644. Migration 20260905000100 deleted the legacy
-    // Indiana Gateway vintage; ten of those rows were inside the digest because
-    // they carried a data_source string their owning enabled source is not named
-    // after, so this file's name-join could not see them. See scopeBaseline.json
-    // `_rebased_at_v2_35`, which is what the next test guards.
-    expect(baseline.frozen_row_count).toBe(62644);
+    // 62654 (v2.34) -10 (v2.35, the legacy Indiana rows the name-join could not
+    // see) -51 (v2.36, re-keying the scope to the RPC's actual rewrite surface).
+    expect(baseline.frozen_row_count).toBe(62593);
     expect(baseline.figures_frozen).toMatch(/^[0-9a-f]{64}$/);
   });
 
@@ -141,6 +250,32 @@ describe('the baseline itself', () => {
   // budgets.data_source_id cannot replace the join: NULL on 269,062 rows and
   // dangling on all 939 that carry one. This test fails if that admission is
   // ever quietly dropped from the baseline.
+  /**
+   * ⚠⚠ v2.36 closed the blind spot v2.35 only documented. The rule is now a UNION
+   * of the name match and the RPC's real rewrite surface — see the tests in
+   * "the rewrite surface the sync RPC actually uses" below.
+   */
+  it('records the v2.36 scope correction with its measurement and its loss', () => {
+    const v = baseline._rebased_at_v2_36;
+    expect(v).toBeTruthy();
+    // The cause must stay recorded as the RPC's update path, not the label.
+    expect(v._the_cause_is_in_the_rpc).toMatch(/treasury_sync_city_budget/);
+    expect(v._the_cause_is_in_the_rpc).toMatch(/leaves\s+data_source and hierarchy/);
+    // ⚠ The union-not-replacement lesson, with the 16 rows that proved it.
+    expect(v._the_new_rule_is_a_UNION_and_that_matters).toMatch(/NOT A SUBSET/);
+    expect(v._the_new_rule_is_a_UNION_and_that_matters).toMatch(/16/);
+    // ⚠⚠ An unrecoverable change must never be smoothed away by a rebase.
+    expect(v._what_is_permanently_LOST).toMatch(/PRE-DRIFT VALUE/);
+    expect(v._the_row_that_moved_this_time).toMatch(/Bloomington/);
+    expect(v._authorised_by).toBeTruthy();
+    expect(v._the_51_rows_that_left_the_digest).toHaveLength(51);
+    for (const r of v._the_51_rows_that_left_the_digest) {
+      expect(r.id).toMatch(/^[0-9a-f-]{36}$/);
+      expect(typeof r.total_budget).toBe('number');
+      expect(r.entity).toBeTruthy();
+    }
+  });
+
   it('records that the name-join blind spot is open, not closed', () => {
     const v235 = baseline._rebased_at_v2_35;
     expect(v235).toBeTruthy();
