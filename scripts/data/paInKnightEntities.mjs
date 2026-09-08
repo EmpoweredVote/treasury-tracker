@@ -57,15 +57,32 @@
  *
  * ── ⚠⚠ `entity_type` MUST RENDER THE SOURCE CHIP ────────────────────────────
  *
- * `src/data/sourceChipTypes.ts` limits the chip to
- * {city, municipality, town, township, county, state}. **`borough` is not in
- * that set**, so typing State College by its legal class would silently drop its
- * provenance chip — precisely the defect that file was written to record (`city`
- * was missing for months, every gate green, no city showed a source).
+ * `src/data/sourceChipTypes.ts` limits the chip to a named set of entity types,
+ * and for a while `borough` was not in it, so typing State College by its legal
+ * class would silently have dropped its provenance chip — precisely the defect
+ * that file was written to record (`city` was missing for months, every gate
+ * green, no city showed a source). State College was therefore typed
+ * `municipality` as a deliberate WORKAROUND.
  *
- * State College is therefore `municipality`: covered by the chip set, and more
- * honest than `city`, which Pennsylvania law uses for a distinct class of
- * government that a borough is not.
+ * ── ⚠⚠ THAT WORKAROUND IS RETIRED, 2026-09-07 ──────────────────────────────
+ *
+ * `borough` and `village` are now both in `SOURCE_CHIP_ENTITY_TYPES`, so the
+ * constraint that forced it is gone — and the workaround had become actively
+ * harmful:
+ *
+ *   - The DCED STATEWIDE sweep (#133) introduced `borough` as a real entity type
+ *     and seeded 949 of them. **State College is `borough` in the database
+ *     today** and all 20 of its rows belong to that statewide family.
+ *   - So this registry disagreed with the row it describes, and
+ *     `treasury_ensure_municipality` keys on (name, state, ENTITY_TYPE) — meaning
+ *     a re-run of `loadPaDced.mjs` would have created a SECOND State College as
+ *     `municipality` and written to it. A latent duplicate, the same shape as the
+ *     Ellettsville city/town conflict found in the Indiana survey.
+ *   - And the test pinning the workaround read THIS CONSTANT, never the database,
+ *     so it stayed green while describing something untrue.
+ *
+ * State College is `borough`: its legal class, DCED's own `STATE COLLEGE BORO`,
+ * what the database already holds, and now chip-covered.
  *
  * ── POPULATIONS ─────────────────────────────────────────────────────────────
  *
@@ -152,8 +169,10 @@ export const PA_IN_KNIGHT_ENTITIES = [
     key: 'state-college',
     name: 'State College',
     state: 'PA',
-    // ⚠ NOT `borough` — see the source-chip note in the header.
-    entityType: 'municipality',
+    // ⚠⚠ `borough` — its legal class, DCED's own `STATE COLLEGE BORO`, and what
+    // the database already holds from the #133 statewide sweep. Was
+    // `municipality` as a source-chip workaround; see the header note.
+    entityType: 'borough',
     population: 41_228,
     parentCountyKey: 'centre-county',
     source: 'PA_MUNI',

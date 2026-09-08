@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import type { Municipality } from '../types/budget';
+import { CITY_TIER_TYPES } from '../utils/cityTierTypes';
 import { hasDatasets } from '../data/municipalityDatasets';
 import { listLabel, shortNameInCounty } from '../data/entityListLabel';
 
@@ -9,8 +10,13 @@ interface CitiesInCountyPanelProps {
   onCityClick: (city: Municipality) => void;
 }
 
-/** Entity types a COUNTY can be the parent of. Counties never nest. */
-const CHILD_TYPES = ['city', 'town', 'township', 'village', 'municipality'];
+/**
+ * Entity types a COUNTY can be the parent of. Counties never nest.
+ *
+ * ⚠⚠ This was a private copy of the city-tier list and it had drifted: `borough`
+ * was missing, so PA's 949 boroughs never appeared under their own county. It now
+ * comes from src/utils/cityTierTypes.ts, the single definition.
+ */
 
 const CitiesInCountyPanel: React.FC<CitiesInCountyPanelProps> = ({
   county,
@@ -24,7 +30,7 @@ const CitiesInCountyPanel: React.FC<CitiesInCountyPanelProps> = ({
   // Allegan County two dozen fewer governments than it has.
   const cities = useMemo(
     () => municipalities.filter(
-      m => m.county_id === county.id && CHILD_TYPES.includes(m.entity_type)
+      m => m.county_id === county.id && CITY_TIER_TYPES.has(m.entity_type)
     ),
     [municipalities, county.id]
   );

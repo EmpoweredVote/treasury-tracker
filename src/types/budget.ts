@@ -139,6 +139,15 @@ export interface Municipality {
     // ⚠ A Michigan village is a legally distinct class from a city: incorporated,
     // but still part of its township. 253 of them arrived with the F-65 sweep.
     | 'village'
+    // ⚠⚠ A Pennsylvania borough likewise — 949 arrived with the DCED statewide
+    // sweep (#133) and 36% of PA's municipalities are one. THIS UNION WAS THE
+    // ROOT OF THE DRIFT: `borough` reached the database and the CHECK constraint
+    // (migration 20260903000000) but never this type, so it could not be added to
+    // CITY_TIER_TYPES or SOURCE_CHIP_ENTITY_TYPES without `tsc` rejecting it —
+    // and the omission read as a choice rather than as a compile error nobody
+    // had hit yet. Added 2026-09-07 with those sets. Keep this union, the CHECK
+    // constraint, and src/utils/cityTierTypes.ts in step.
+    | 'borough'
     | 'nonprofit'
     | 'state'
     | 'municipality'
