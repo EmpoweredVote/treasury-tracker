@@ -62,6 +62,9 @@ import {
   SETTLEMENT_FUND_CODE, GOVERNMENTAL_ENT_NAME,
   makeSettlementSeriesIndex, assertSettlementSeriesIsPassThrough, settlementPerYearDrift,
 } from './lib/inGateway.mjs';
+import {
+  IN_FIGURE_FLAGS, figureFlagsFor, assertFigureFlagStillHolds,
+} from './data/inGatewayAnomalies.mjs';
 import { IN_ENTITIES, PA_IN_LOAD_WINDOW } from './data/paInKnightEntities.mjs';
 import { ROSTER_FILE } from './buildInStatewideRoster.mjs';
 
@@ -180,6 +183,41 @@ export function auditSettlementSeries(series, { log = console.log } = {}) {
       + "government's TOTAL receipts for that year before trusting the year.");
   }
   return { governments: series.size, overYears, oneSidedYears, declaredResidues };
+}
+
+/**
+ * Announce every recorded anomaly flag that covers a filing being loaded, and
+ * re-check that the flag still describes the data.
+ *
+ * ⚠⚠ THE MILLEDGEVILLE RULE, IN CODE. Nothing here withholds a figure — the
+ * flagged filings load exactly as published. This exists so a reader can be
+ * told WHY a figure looks inconsistent, not so TT can quietly decline to show
+ * it. Suppressing an outlier would create a blind spot for legitimate fraud.
+ *
+ * ⚠ Its predecessor, `scripts/data/gaRlgfAnomalies.mjs`, is imported by NOTHING
+ * — so the Milledgeville flag could never reach a reader and nothing noticed if
+ * the data moved underneath it. This function is the fix for that shape: the
+ * registry is read on every load, and a flag whose claim has gone stale REFUSES.
+ */
+export function auditFigureFlags(filings, { flags = IN_FIGURE_FLAGS, log = console.log } = {}) {
+  let flagged = 0;
+  for (const f of filings) {
+    const hits = figureFlagsFor(f.entity.countyCode, f.entity.unitCode, f.year, { flags });
+    for (const flag of hits) {
+      flagged++;
+      // ⚠⚠ Re-check BEFORE announcing, so a stale claim is never printed.
+      assertFigureFlagStillHolds(flag, f.year, f, `${f.entity.name} FY${f.year}`);
+      log(`⚠⚠ RECORDED ANOMALY FLAG "${flag.id}" covers ${f.entity.name} FY${f.year} `
+        + '— LOADED AS PUBLISHED, not withheld, not corrected.');
+      log(`     ${flag.what}`);
+      log(`     revenue ${f.revenue.subsetTotal.toFixed(2)} / operating `
+        + `${f.operating.subsetTotal.toFixed(2)} — see scripts/data/inGatewayAnomalies.mjs`);
+    }
+  }
+  if (flagged) {
+    log(`${flagged} filing(s) carry a recorded anomaly flag. Every one is loaded as published.`);
+  }
+  return { flagged };
 }
 
 /**
@@ -441,6 +479,13 @@ export async function main() {
   console.log(`Settlement funds (Fund_code ${SETTLEMENT_FUND_CODE}) EXCLUDED; oracle runs on the full parse.\n`);
 
   const filings = await collectAll(values.dir, scoped, years.map(String));
+
+  // ⚠⚠ READ THE ANOMALY REGISTER ON EVERY RUN. Its Georgia predecessor is
+  // imported by nothing, so the Milledgeville flag could never reach anyone and
+  // nothing noticed when the data moved. A flagged filing is announced here and
+  // its recorded claim re-checked — and it still LOADS, exactly as published.
+  auditFigureFlags(filings);
+
   let totalChecks = 0;
   let totalBad = 0;
   for (const f of filings) {
