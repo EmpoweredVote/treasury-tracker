@@ -474,7 +474,7 @@ export const AUDIT_GRADE_REGISTRY = [
     // window actually read, so a future Indiana county lands `unknown` until its
     // own opinion has been read.
     id: 'in-county-acfr-tg',
-    match: /^(Marion County|Lake County|Allen County|Hamilton County|St\. Joseph County|Elkhart County|Tippecanoe County|Hendricks County|Vanderburgh County|Porter County|Johnson County|Monroe County) ACFR — Total Governmental Funds (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
+    match: /^(Marion County|Lake County|Allen County|Hamilton County|St\. Joseph County|Elkhart County|Tippecanoe County|Hendricks County|Vanderburgh County|Porter County|Johnson County|Monroe County|Madison County|Clark County|Delaware County|LaPorte County|Vigo County) ACFR — Total Governmental Funds (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
     value: AUDIT_GRADE.AUDITED_GAAP,
     evidence: {
       document: 'The independent auditor\'s report, read in ALL 107 FETCHED DOCUMENTS across the '

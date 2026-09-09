@@ -244,7 +244,7 @@ export const BASIS_REGISTRY = [
     // `Marion County` names governments in at least sixteen states, and TT
     // already carries Marion County, FL and Marion County, OR.
     id: 'in-county-acfr-tg',
-    match: /^(Marion County|Lake County|Allen County|Hamilton County|St\. Joseph County|Elkhart County|Tippecanoe County|Hendricks County|Vanderburgh County|Porter County|Johnson County|Monroe County) ACFR — Total Governmental Funds (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
+    match: /^(Marion County|Lake County|Allen County|Hamilton County|St\. Joseph County|Elkhart County|Tippecanoe County|Hendricks County|Vanderburgh County|Porter County|Johnson County|Monroe County|Madison County|Clark County|Delaware County|LaPorte County|Vigo County) ACFR — Total Governmental Funds (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
     value: BASIS.ACTUAL,
     evidence: {
       document: 'Marion County FY2016-FY2025, Hamilton County FY2016-FY2025, Allen County '

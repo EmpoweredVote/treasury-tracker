@@ -281,7 +281,25 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // Accounts, and Porter County's own website, whose copy was produced by a
   // photocopier). 6+5+6+6 = 23, not 24. An expected count derived from
   // "four counties x six years" would have been 48 and would have been wrong.
-  'in-county-acfr-tg': 156,
+  //
+  // ⭐⭐ WAVE 4 (2026-09-08) COMPLETES THE FAMILY AT **198** — all seventeen
+  // Indiana counties that have ever filed a GAAP audit, 99 county-years.
+  // MEASURED IN THE TABLE after the write, like every count above it.
+  //
+  //   wave 4   Madison 6 · Clark 4 · Delaware 5 · LaPorte 2 · Vigo 4 = 21 years
+  //
+  // ⚠⚠ AND THE GATE FAILED CLOSED ON **BOTH** AXES THIS TIME — `expected 156,
+  // got 198` twice, in one run. That is wave 3's lesson landing: there are FOUR
+  // registries, and widening all four up front means both halves of this gate
+  // now report the same number instead of one hiding behind the other.
+  //
+  // ⚠⚠ THE YEAR COUNTS ARE NOT UNIFORM AND MUST NOT BE DERIVED. Only Madison
+  // runs FY2019-FY2024. Clark opens at FY2021 because its FY2019 and FY2020
+  // filings are the only two `cash_basis` filings in the state; Delaware opens
+  // at FY2020; and LaPorte and Vigo file GAAP for two and four years and then
+  // REVERT to `other_basis`. "Five counties x six years" would have said 60 new
+  // rows and 216 total. The answer is 42 and 198.
+  'in-county-acfr-tg': 198,
   // Knight session 6b (Tennessee's first local entity), measured from the ACTUAL
   // post-write count on 2026-08-30. 20 = 10 fiscal years x 2 datasets, ONE
   // consolidated entity. See the fuller note on the same id in
@@ -480,8 +498,17 @@ export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
   // waves land on units this scope does not report, and they land there because
   // modified-accrual fund statements report neither component units nor capital
   // assets. (The nineteenth is Allen FY2020, flagged `fund_level`.)
-  // ⚠ MEASURED FROM THE TABLE after the wave-3 write, like its basis twin.
-  'in-county-acfr-tg': 156,
+  // ⚠ MEASURED FROM THE TABLE after each write, like its basis twin.
+  //
+  // ⭐ WAVE 4 BRINGS IT TO 198 AND COMPLETES THE FAMILY. Ten more modifications
+  // arrive with it — Clark in all four of its years, Madison in three, LaPorte
+  // in both, Vigo in one — and ONE OF THEM IS THE FAMILY'S SECOND FUND-LEVEL
+  // MODIFICATION: Clark FY2022, qualified on the Aggregate Remaining Fund
+  // Information because the Jail Commissary fund's records were "unavailable to
+  // be audited" as a result of an ongoing investigation. That is a governmental
+  // fund, and its $2,019,288 of revenue and $2,446,254 of expenditure are inside
+  // the loaded totals. Loaded as published, flagged, and printed at load time.
+  'in-county-acfr-tg': 198,
   // The sixteen entity-published city/state ACFR families.
   // Evidence: ACFR-GF-CLASSIFICATION-RECON.md §3.
   'or-city-acfr-gf': 106,
