@@ -11,7 +11,9 @@ from lib.acfrGF import (CityConfig, column_value, classify, build_revenue,
                          find_statement_page, parse_fy, _is_section_header,
                          _recover_label_past_leading_page_number,
                          target_cell_is_dash_zero, scope_label, label_of, parse_money,
-                         nums_with_pos)
+                         nums_with_pos, _expenditure_lines, _is_section_end,
+                         _section, _END_EXPENDITURE_LABELS, build_operating,
+                         anchors as _anchors)
 # The SHIPPED Bainbridge configs themselves, not copies of them -- see
 # TestShippedBainbridgeConfigsAreWholeDollars at the bottom of this file for
 # why the real objects have to be under test rather than a local fixture.
@@ -2305,6 +2307,233 @@ class TestTargetColumn(unittest.TestCase):
         line = 'Special item                       12,345)'
         cfg = CityConfig(city='X', parents=('current',), target_column='last')
         self.assertIsNone(column_value(line, self.anchors, cfg))
+
+# ── ⚠⚠ A STATEMENT THAT PRINTS NO `Expenditures` CAPTION ─────────────────────
+#
+# Tippecanoe County, Indiana, FY2022 onward. Its governmental-funds statement
+# goes straight from the `Total revenues` row to `Current:`. Confirmed by
+# RENDERING page 23 of the FY2022 filing to an image and reading it — the words
+# are not printed. FY2019-FY2021 of the same county DO print them, which is what
+# makes this a per-YEAR fact and why the fallback must be a fallback.
+#
+# Lines below are the real FY2022 page, trimmed to the two boundary rows and
+# the block between them.
+TIPPECANOE_2022_NO_CAPTION = [
+    'Revenues',
+    'Taxes:',
+    'Property                       29,083,949      244,249         -    13,556,530    42,884,728',
+    '        Total revenues         55,698,558      422,786  6,871,198  54,366,771   117,359,313',
+    'Current:',
+    'General government             25,909,113            -  6,876,824   7,616,478    40,402,415',
+    'Public safety                  24,553,306            -          -  13,062,850    37,616,156',
+    'Debt service:',
+    'Principal                               -            -          -   1,439,022     1,439,022',
+    '        Total expenditures     56,788,992      490,204  6,876,824  65,206,627   129,362,647',
+    'Other Financing Sources (Uses)',
+    'Transfers in                      202,278            -          -   1,854,404     2,056,682',
+]
+
+# The same shape WITH the caption, as FY2019-FY2021 print it.
+TIPPECANOE_2019_WITH_CAPTION = (TIPPECANOE_2022_NO_CAPTION[:4]
+                                + ['Expenditures']
+                                + TIPPECANOE_2022_NO_CAPTION[4:])
+
+
+class TestExpendituresFollowRevenueTotal(unittest.TestCase):
+    """The opt-in fallback for an absent expenditure caption."""
+
+    def _cfg(self, **kw):
+        base = dict(city='Tippecanoe County, IN',
+                    parents=('current', 'debt service', 'capital outlay'),
+                    target_column='last')
+        base.update(kw)
+        return CityConfig(**base)
+
+    def test_the_flag_defaults_off_so_no_shipped_entity_moves(self):
+        self.assertFalse(self._cfg().expenditures_follow_revenue_total)
+
+    def test_without_the_flag_a_captionless_page_yields_nothing(self):
+        # ⚠ This is the LOUD failure, and it is the correct default: an empty
+        # expenditure section makes the tie gate fail with the whole printed
+        # total as its delta. It is never a wrong tree at a $0 tie.
+        rows = _expenditure_lines(TIPPECANOE_2022_NO_CAPTION, self._cfg())
+        self.assertEqual(rows, [])
+
+    def test_with_the_flag_the_section_is_bounded_by_the_two_total_rows(self):
+        rows = _expenditure_lines(TIPPECANOE_2022_NO_CAPTION,
+                                  self._cfg(expenditures_follow_revenue_total=True))
+        self.assertEqual([r.strip().split('  ')[0] for r in rows],
+                         ['Current:', 'General government', 'Public safety',
+                          'Debt service:', 'Principal'])
+
+    def test_the_fallback_stops_before_other_financing_sources(self):
+        # ⚠⚠ THE LA TRAN DEFECT. An unbounded section would count transfers and
+        # debt proceeds as spending.
+        rows = _expenditure_lines(TIPPECANOE_2022_NO_CAPTION,
+                                  self._cfg(expenditures_follow_revenue_total=True))
+        joined = ' '.join(rows)
+        self.assertNotIn('Transfers in', joined)
+        self.assertNotIn('Other Financing', joined)
+
+    def test_a_year_that_prints_the_caption_still_takes_the_ordinary_path(self):
+        # ⚠ And the caption line itself must NOT appear as a data row — with the
+        # fallback it would be the first line after `Total revenues`.
+        rows = _expenditure_lines(TIPPECANOE_2019_WITH_CAPTION,
+                                  self._cfg(expenditures_follow_revenue_total=True))
+        self.assertEqual(rows[0].strip(), 'Current:')
+        self.assertNotIn('Expenditures', [r.strip() for r in rows])
+
+    def test_the_two_paths_agree_on_the_same_statement(self):
+        flagged = self._cfg(expenditures_follow_revenue_total=True)
+        self.assertEqual(_expenditure_lines(TIPPECANOE_2019_WITH_CAPTION, flagged),
+                         _expenditure_lines(TIPPECANOE_2019_WITH_CAPTION, self._cfg()))
+
+    def test_an_unbounded_section_raises_rather_than_running_to_the_page_foot(self):
+        no_end = [l for l in TIPPECANOE_2022_NO_CAPTION
+                  if 'Total expenditures' not in l]
+        with self.assertRaises(ValueError):
+            _expenditure_lines(no_end, self._cfg(expenditures_follow_revenue_total=True))
+
+    def test_a_missing_revenue_total_raises_too(self):
+        no_rev = [l for l in TIPPECANOE_2022_NO_CAPTION
+                  if 'Total revenues' not in l]
+        with self.assertRaises(ValueError):
+            _expenditure_lines(no_rev, self._cfg(expenditures_follow_revenue_total=True))
+
+    def test_the_fallback_honours_a_widened_revenue_total_label(self):
+        # Bainbridge's `Total Operating Revenues` shape, so the boundary is not
+        # a second hard-coded literal.
+        lines = [l.replace('Total revenues', 'Total Operating Revenues')
+                 for l in TIPPECANOE_2022_NO_CAPTION]
+        rows = _expenditure_lines(lines, self._cfg(
+            expenditures_follow_revenue_total=True,
+            revenue_total_labels=('total revenues', 'total operating revenues')))
+        self.assertEqual(rows[0].strip(), 'Current:')
+
+
+# ── FAILURE MODE 9, THE FIFTH SITE: A LETTER-SPACED SECTION TOTAL ────────────
+#
+# St. Joseph County IN. The PRINTED page says `Total revenues` and `Current:`;
+# `pdftotext -table` renders them `T otal revenues` and `Curren t :`, differently
+# in different years. Confirmed by rendering page 46 of the FY2024 filing to an
+# image. Before `_is_section_end`, the revenue section never closed on such a
+# page and ran away through the expenditures into the fund balances -- FY2020
+# computed 867,083,274 against a printed 169,635,305.
+SJ_LETTER_SPACED = [
+    'Revenue:',
+    'T axes                              56,262,947   12,790,732   15,480,323    90,985,241',
+    'In t ergo v ern men t al             9,215,223            -   38,144,218    47,384,117',
+    'T otal revenues                     75,617,643   13,708,024   73,833,723   169,635,305',
+    'Ex p en dit ures:',
+    'Curren t :',
+    'General government                  48,196,090    6,134,930    9,876,203    64,207,223',
+    'Debt service:',
+    'P rin cip al                           986,491            -    4,505,652     5,725,268',
+    'Capital outlay                       1,340,330    2,739,903   11,025,094    15,314,713',
+    'T otal expenditures                 71,612,259   14,278,409   73,641,749   165,615,917',
+    'Excess (deficiency) of revenues',
+    'T ransfers in                           47,563            -    1,677,740     1,725,303',
+]
+
+
+class TestSectionEndToleratesALetterSpacedTotal(unittest.TestCase):
+    """The section-total literal, squashed at the fifth and last site."""
+
+    def test_a_letter_spaced_total_is_recognised(self):
+        self.assertTrue(_is_section_end('T otal expenditures   1,234',
+                                        _END_EXPENDITURE_LABELS))
+        self.assertTrue(_is_section_end('TOTAL  EXPENDITURES   1,234',
+                                        _END_EXPENDITURE_LABELS))
+
+    def test_an_ordinary_total_still_is(self):
+        self.assertTrue(_is_section_end('Total expenditures   1,234',
+                                        _END_EXPENDITURE_LABELS))
+        self.assertTrue(_is_section_end('Total revenues  1,234', ('total revenues',)))
+
+    def test_a_proprietary_statement_still_cannot_qualify(self):
+        # ⚠⚠ THE WHOLE REASON THE EXPENDITURE LITERAL IS HARD-CODED. Squashing
+        # must not weaken it: `totaloperatingexpenses` does not START WITH
+        # `totalexpenditures`.
+        self.assertFalse(_is_section_end('Total Operating Expenses   1,234',
+                                         _END_EXPENDITURE_LABELS))
+        self.assertFalse(_is_section_end('Total operating revenues  1,234',
+                                         ('total revenues',)))
+
+    def test_an_unrelated_row_is_not_a_section_end(self):
+        self.assertFalse(_is_section_end('Total other financing sources (uses)',
+                                         _END_EXPENDITURE_LABELS))
+        self.assertFalse(_is_section_end('Capital outlay   1,340,330',
+                                         _END_EXPENDITURE_LABELS))
+
+    def test_the_revenue_section_closes_on_a_letter_spaced_total(self):
+        # The runaway this fix ends: without it the section swallows the whole
+        # rest of the page.
+        rows = list(_section(SJ_LETTER_SPACED, 'revenue', ('total revenues',)))
+        self.assertEqual(len(rows), 2)
+        self.assertTrue(rows[0].startswith('T axes'))
+        self.assertNotIn('Capital outlay', ' '.join(rows))
+        self.assertNotIn('T ransfers in', ' '.join(rows))
+
+    def test_the_expenditure_section_closes_on_a_letter_spaced_total(self):
+        rows = list(_section(SJ_LETTER_SPACED, 'expenditures', _END_EXPENDITURE_LABELS))
+        self.assertEqual(rows[0].strip(), 'Curren t :')
+        self.assertNotIn('T ransfers in', ' '.join(rows))
+        self.assertNotIn('Excess', ' '.join(rows))
+
+    def test_a_letter_spaced_section_caption_still_opens_the_section(self):
+        # `_is_section_header` already squashed; pinned here so the two halves
+        # of the same document's damage are covered together.
+        self.assertTrue(_is_section_header('Ex p en dit ures:', 'expenditures'))
+        self.assertTrue(_is_section_header('Revenue:', 'revenue'))
+
+
+class TestLabelFixesReachGroupHeadings(unittest.TestCase):
+    """`label_fixes` repairs a PARENT's name, not only its children's."""
+
+    def setUp(self):
+        self.anchors = _anchors(
+            'T otal expenditures                 71,612,259   14,278,409   '
+            '73,641,749   165,615,917')
+
+    def _cfg(self, **kw):
+        base = dict(city='St. Joseph County, IN',
+                    parents=('current', 'curren t', 'debt service'),
+                    root_leaves=('capital outlay', 'debt service'),
+                    target_column='last')
+        base.update(kw)
+        return CityConfig(**base)
+
+    def test_an_unrepaired_heading_is_published_broken(self):
+        # ⚠ The defect this closed: every LEAF under the group repaired, the tie
+        # at $0, and the group itself named `Curren t`.
+        tree, _, _ = build_operating(SJ_LETTER_SPACED, self.anchors, self._cfg())
+        self.assertEqual(tree['c'][0]['n'], 'Curren t')
+
+    def test_a_declared_fix_renames_the_heading(self):
+        cfg = self._cfg(label_fixes={'Curren t': 'Current',
+                                     'P rin cip al': 'Principal'})
+        tree, _, _ = build_operating(SJ_LETTER_SPACED, self.anchors, cfg)
+        self.assertEqual(tree['c'][0]['n'], 'Current')
+
+    def test_the_leaves_under_it_are_repaired_too(self):
+        cfg = self._cfg(label_fixes={'Curren t': 'Current',
+                                     'P rin cip al': 'Principal'})
+        tree, _, _ = build_operating(SJ_LETTER_SPACED, self.anchors, cfg)
+        debt = next(n for n in tree['c'] if n['n'] == 'Debt service')
+        self.assertEqual([c['n'] for c in debt['c']], ['Principal'])
+
+    def test_the_group_still_opens_on_the_RAW_label(self):
+        # ⚠⚠ TWO SEPARATE DECLARATIONS. Repairing the name does not make the row
+        # open a group — `parents` must still name the spelling the grid emits.
+        cfg = self._cfg(parents=('current', 'debt service'),
+                        label_fixes={'Curren t': 'Current'})
+        tree, _, _ = build_operating(SJ_LETTER_SPACED, self.anchors, cfg)
+        self.assertNotIn('Current', [n['n'] for n in tree['c']])
+
+    def test_no_fixes_declared_changes_nothing(self):
+        plain = build_operating(SJ_LETTER_SPACED, self.anchors, self._cfg())
+        self.assertEqual(plain[0]['c'][0]['n'], 'Curren t')
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

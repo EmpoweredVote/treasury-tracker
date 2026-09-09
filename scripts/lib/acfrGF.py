@@ -141,6 +141,24 @@ class CityConfig:
                  facilities" and "Urban renew al" where every adjacent year of the
                  same city prints them normally.
 
+                 IT APPLIES TO GROUP HEADINGS AS WELL AS TO LEAVES, and for
+                 four rounds it did not. `_fix_label` was reached only through
+                 the LEAF path (`full = _fix_label(norm_label(...))`); a
+                 parent or subparent node took its label RAW, so an entity
+                 could repair every leaf under a heading and still publish a
+                 broken heading over them. St. Joseph County IN prints
+                 `Current:` normally on the page and `-table` renders it
+                 `Curren t :` in FY2020, FY2021, FY2022 and FY2025 -- the same
+                 heading, the same money, two spellings, tie 0 either way.
+
+                 The MATCH that opens a group is still made against the RAW
+                 label, so a damaged heading must also be named in `parents` /
+                 `revenue_parents` in the form the grid produced. The repair
+                 only decides what the node is CALLED. Those are two separate
+                 declarations because they answer two separate questions, and
+                 collapsing them would mean guessing which spellings of a word
+                 are "the same heading".
+
                  EXACT match only — no fuzzy repair, no de-spacing heuristic. A
                  heuristic that rejoined single spaces would happily corrupt
                  legitimate multi-word labels. Every entry here is a specific
@@ -307,6 +325,44 @@ class CityConfig:
                  in this corpus prints `Expenditures` plural, including Boulder
                  County, which is exactly why only one of the two is
                  configurable.
+
+                 ⚠⚠ AND TIPPECANOE COUNTY, IN BREAKS THAT CLAIM A THIRD WAY —
+                 not by WORDING but by ABSENCE. See
+                 `expenditures_follow_revenue_total` immediately below.
+    expenditures_follow_revenue_total
+                 opt-in fallback for a statement that prints NO expenditure
+                 section caption at all. Default False, so every entity that
+                 does not declare it is byte-identical.
+
+                 Tippecanoe County, Indiana prints `Revenues` and then, from
+                 FY2022 onward, goes STRAIGHT from the `Total revenues` row to
+                 `Current:` with no `Expenditures` heading between them. This
+                 was confirmed by RENDERING page 23 of the FY2022 filing to an
+                 image and reading it, not merely by the absence of the word
+                 from `-table` output — the caption is genuinely not printed.
+                 FY2019-FY2021 of the same county DO print it.
+
+                 With the caption absent, `_section` opens nothing, the
+                 expenditure tree comes back EMPTY, and the tie gate fails
+                 loudly with the whole printed total as its delta. That loud
+                 failure is correct behaviour and is what found this; it is
+                 not a shape that can be shipped wrong at a $0 tie.
+
+                 When this flag is set AND the caption is genuinely absent, the
+                 expenditure section is taken as the lines strictly between the
+                 printed REVENUE TOTAL row and the printed `Total expenditures`
+                 row. On a governmental-funds Statement of Revenues,
+                 Expenditures and Changes in Fund Balances there is nothing else
+                 between those two rows — the presentation order is fixed by
+                 GASB 34.
+
+                 ⚠⚠ IT IS A FALLBACK, NOT AN ALTERNATIVE. It engages ONLY when
+                 the ordinary header scan yields no lines at all, so a year of
+                 the same county that DOES print the caption still takes the
+                 ordinary path and the caption line itself can never be read as
+                 a data row. And it REFUSES rather than truncating: if either
+                 boundary row is missing it raises, because a section with no
+                 end would silently swallow the Other Financing Sources block.
     section_header_mode
                  'exact' (default) requires the section header to be the WHOLE
                  line. 'prefix' allows trailing text, which Seattle's 2024-era
@@ -400,6 +456,7 @@ class CityConfig:
                  # when the function is DEFINED, so referring to it here is a
                  # NameError at import. The two are asserted equal below.
                  revenue_section_header='revenues',
+                 expenditures_follow_revenue_total=False,
                  decimal_money=False, whitespace_repair=False,
                  multipage=False, multipage_max=6,
                  subparents=(), subparent_member_prefixes=(),
@@ -439,6 +496,7 @@ class CityConfig:
         self.fy_end = fy_end
         self.revenue_total_labels = tuple(lbl.lower() for lbl in revenue_total_labels)
         self.revenue_section_header = str(revenue_section_header).lower()
+        self.expenditures_follow_revenue_total = bool(expenditures_follow_revenue_total)
         self.empty_rows = tuple(r.lower() for r in empty_rows)
         unknown = tuple(t for t in exclude_ignore if t.lower() not in _EXCLUDE)
         if unknown:
@@ -1107,7 +1165,7 @@ def find_statement_span(pages, cfg):
         span_raw = [pg]
         # ⚠ Squashed on the same grounds as `find_statement_page` — a multipage
         # issuer is no less likely to letter-space its own total row, and the
-        # module's own history (see `_end_revenues_pattern`) records that fixing
+        # module's own history (see `_is_section_end`) records that fixing
         # one site of this literal and not the others only RELOCATES the failure.
         want_rev = [_squash(lbl) for lbl in cfg.revenue_total_labels]
         want_exp = _squash('total expenditures')
@@ -1578,34 +1636,73 @@ _SEC_EXPENDITURES = 'expenditures'
 assert _SEC_REVENUES == 'revenues', (
     'CityConfig.revenue_section_header duplicates this literal as its default; '
     'change both or neither.')
-_END_EXPENDITURES = r'^Total\s+expenditures\b'
+# The FIFTH site of the same literal — see `_is_section_end` below.
+_END_EXPENDITURE_LABELS = ('total expenditures',)
 
-def _end_revenues_pattern(revenue_total_labels):
-    """Build the revenue SECTION-END regex from `CityConfig.revenue_total_labels`.
 
-    Before `revenue_total_labels` existed, this was the single hard-coded
-    literal `r'^Total\\s+revenues\\b'`. Discovered live while unblocking
-    Bainbridge's FY2004/2005/2007/2008 (which print `Total Operating
-    Revenues`, not `Total Revenues`): fixing only the page-qualifying gate in
-    `find_statement_page` and the `rev_line` lookup in `extract()` was NOT
-    enough on its own. `build_revenue`'s own section reader still stopped
-    only at the old literal, so the revenue section never closed at `Total
-    Operating Revenues` and ran away, swallowing EXPENDITURES, OTHER
-    FINANCING SOURCES/USES and every row after it into one inflated "revenue"
-    tree (observed live: FY2004 computed $44,401,783 against a printed
-    $12,636,832 -- the whole rest of the page). This was the THIRD hard-coded
-    `'total revenues'` spot, not the two originally identified, and needed
-    the same treatment for the fix to actually work end-to-end rather than
-    only relocating the correct page.
+def _is_section_end(line, labels):
+    """Does `line` open with one of the printed section-total labels?
 
-    Each label becomes `^word1\\s+word2...\\b` (whitespace-tolerant the same
-    way the original literal was, and still matched case-insensitively by
-    `_section`), joined as alternatives. With the default
-    `('total revenues',)` this produces the exact same pattern as the old
-    literal, so every city that does not set `revenue_total_labels` is
-    unaffected."""
-    alts = [r'\s+'.join(re.escape(w) for w in lbl.split()) for lbl in revenue_total_labels]
-    return r'^(?:%s)\b' % '|'.join(alts)
+    -- FAILURE MODE 9, AT THE ONE SITE THAT WAS STILL UNFIXED ----------------
+
+    The character grid invents whitespace. `pdftotext -table` renders Florence
+    SC FY2016 as `TOTAL  EXPENDITURES` and St. Joseph County IN as `T otal
+    expenditures` and `T otal revenues` -- every year of that county from
+    FY2020 on, and INSIDE THE WORD, not between words. `_squash` (lowercase,
+    ALL whitespace removed) is the module's answer to that, and it was already
+    applied at FOUR sites: `find_statement_page`'s page gate,
+    `find_statement_span`'s span gate, and the `rev_line`/`exp_line` anchor
+    lookups in `extract()`.
+
+    THE SECTION-END TEST WAS THE FIFTH, and it was still a character-exact
+    regex (`^Total\\s+expenditures\\b`) -- tolerant of whitespace BETWEEN the
+    two words and of none inside them. On a letter-spaced page the revenue
+    section therefore never closed and ran away, swallowing the expenditures,
+    the Other Financing Sources block and the fund balances into one inflated
+    "revenue" tree. Observed live on St. Joseph County FY2020: 867,083,274
+    computed against a printed 169,635,305.
+
+    THE MODULE'S OWN HISTORY PREDICTED THIS. `_end_revenues_pattern`, which
+    this function replaces, existed because fixing two sites of the identical
+    literal "was NOT enough on its own" and merely relocated the failure. Fix
+    every site in one change; this is that change, and it leaves none.
+
+    Strictly MORE PERMISSIVE than the regex it replaces, and only in the
+    whitespace direction: the two accept exactly the same lines except where
+    the character grid has inserted whitespace inside a word.
+
+    MEASURED, NOT ASSUMED -- the corpus-diff proof, comparing THIS function's
+    answer old vs new, line by line, on every located statement page under
+    `_acfr-work`:
+
+        1,136 PDFs  ->  992 statement pages  ->  53,778 lines compared
+        26 disagreements, ALL of them old=False -> new=True
+        ZERO in the other direction
+
+    A one-directional diff is the property that makes a relaxation safe: this
+    change can only make a section CLOSE where it previously ran away, never
+    stop one closing where it already did. The 26 fall on 13 documents:
+
+        st-joseph_2020/21/22/24/25   the family this fix was written for
+        sumter_2018..2025 (7)        read by the COORDINATE reader
+                                     (`acfrGfCoords`), never by this module --
+                                     the SC route already records that
+                                     `pdftotext -table` renders that issuer
+                                     `Re ve nue s` / `T otal revenues`
+        OK2013                       read only by verify-phase124-rederive.mjs,
+                                     which deliberately uses its own extraction
+
+    NOT ONE shipped entity of this module is among them, and all 62 wave-1
+    Indiana county extractions were re-run through the changed reader and
+    diffed byte-for-byte against the committed one: identical.
+
+    It cannot let a PROPRIETARY-funds statement through, which is what the
+    hard-coded literal on the expenditure side is for: `totaloperatingexpenses`
+    does not START WITH `totalexpenditures` under squashing, any more than it
+    matched the regex.
+    """
+    sq = _squash(line)
+    return any(sq.startswith(_squash(lbl)) for lbl in labels)
 
 # Fix round 1 (Task 6) rejected a title wrap only when it landed "changes in
 # fund" on the SAME physical line as the section word, or left the section
@@ -1818,18 +1915,62 @@ def _is_section_header(line, want, mode='exact'):
         return False
     return False
 
-def _section(lines, start_word, end_pat, mode='exact'):
-    """Yield raw lines strictly between the start and end header lines."""
+def _section(lines, start_word, end_labels, mode='exact'):
+    """Yield raw lines strictly between the start and end header lines.
+
+    `end_labels` is a tuple of printed section-total LABELS, matched by
+    `_is_section_end` (squashed), not a regex -- see that function for why the
+    character-exact form was failure mode 9's last unfixed site.
+    """
     on = False
     for l in lines:
         st = l.strip()
         if not on and _is_section_header(st, start_word, mode):
             on = True
             continue
-        if on and re.match(end_pat, st, re.I):
+        if on and _is_section_end(st, end_labels):
             return
         if on:
             yield l
+
+
+def _expenditure_lines(lines, cfg):
+    """The expenditure block, with the no-caption fallback (opt-in).
+
+    ⚠⚠ TIPPECANOE COUNTY, IN PRINTS NO `Expenditures` CAPTION FROM FY2022 ON.
+    Its statement goes straight from the `Total revenues` row to `Current:`.
+    Confirmed by rendering the page to an image, not inferred from `-table`
+    output; FY2019-FY2021 of the same county DO print it. See
+    `CityConfig.expenditures_follow_revenue_total` for the full reasoning.
+
+    ⚠ The fallback engages ONLY when the ordinary header scan found NOTHING, so:
+      * every entity that does not set the flag is byte-identical;
+      * a year of the SAME entity that does print the caption still takes the
+        ordinary path, and the caption line can never be read as a data row.
+
+    ⚠⚠ AND IT REFUSES RATHER THAN TRUNCATING. A section with a start and no end
+    would run to the bottom of the page and swallow the Other Financing Sources
+    block — transfers and debt proceeds counted as spending, which is the LA
+    TRAN defect. Both boundary rows must be found or this raises.
+    """
+    rows = list(_section(lines, _SEC_EXPENDITURES, _END_EXPENDITURE_LABELS,
+                         cfg.section_header_mode))
+    if rows or not cfg.expenditures_follow_revenue_total:
+        return rows
+
+    want_rev = [_squash(lbl) for lbl in cfg.revenue_total_labels]
+    start = next((i for i, l in enumerate(lines)
+                  if any(_squash(l).startswith(w) for w in want_rev)), None)
+    end = next((i for i, l in enumerate(lines)
+                if _is_section_end(l.strip(), _END_EXPENDITURE_LABELS)), None)
+    if start is None or end is None or end <= start:
+        raise ValueError(
+            'acfrGF: expenditures_follow_revenue_total is set and no '
+            '`Expenditures` caption was found, but the fallback cannot bound '
+            'the section either (revenue-total row %r, total-expenditures row '
+            '%r). Refusing to read an unbounded section, which would swallow '
+            'the Other Financing Sources block.' % (start, end))
+    return lines[start + 1:end]
 
 
 # ── Tree builders ────────────────────────────────────────────────────────────
@@ -1886,8 +2027,8 @@ def build_revenue(lines, col_anchors, cfg):
     parent_seen = False
     subtotal_failures = []
     pending = ''
-    end_revenues = _end_revenues_pattern(cfg.revenue_total_labels)
-    for l in _section(lines, cfg.revenue_section_header, end_revenues, cfg.section_header_mode):
+    for l in _section(lines, cfg.revenue_section_header, cfg.revenue_total_labels,
+                      cfg.section_header_mode):
         kind, lbl, val = classify(l, col_anchors, cfg)
         low = (lbl or '').lower()
 
@@ -1919,12 +2060,12 @@ def build_revenue(lines, col_anchors, cfg):
         # `revenue_subparents` tuples are disjoint, so no label can reach both
         # branches and the order cannot matter. Pinned by a selftest.
         if kind == 'wrapped' and low in cfg.revenue_subparents and parent is not None:
-            subparent = {'n': lbl, 'a': 0, 'c': []}
+            subparent = {'n': _fix_label(lbl, cfg), 'a': 0, 'c': []}
             parent['c'].append(subparent)
             pending = ''
             continue
         if kind == 'wrapped' and low in cfg.revenue_parents:
-            parent = {'n': lbl, 'a': 0, 'c': []}
+            parent = {'n': _fix_label(lbl, cfg), 'a': 0, 'c': []}
             subparent = None
             parent_seen = False
             root_children.append(parent)
@@ -1947,7 +2088,7 @@ def build_revenue(lines, col_anchors, cfg):
         # stays a leaf.
         if (kind == 'data' and val == 0 and low in cfg.revenue_parents
                 and target_cell_is_dash_zero(l, col_anchors, cfg)):
-            parent = {'n': lbl, 'a': 0, 'c': []}
+            parent = {'n': _fix_label(lbl, cfg), 'a': 0, 'c': []}
             parent_seen = False
             root_children.append(parent)
             pending = ''
@@ -2093,20 +2234,20 @@ def build_operating(lines, col_anchors, cfg):
     subparent = None
     subtotal_failures = []
     pending = ''
-    for l in _section(lines, _SEC_EXPENDITURES, _END_EXPENDITURES, cfg.section_header_mode):
+    for l in _expenditure_lines(lines, cfg):
         if not l.strip():
             continue
         kind, lbl, val = classify(l, col_anchors, cfg)
         low = (lbl or '').lower()
 
         if kind == 'wrapped' and low in cfg.parents:
-            parent = {'n': lbl, 'a': 0, 'c': []}
+            parent = {'n': _fix_label(lbl, cfg), 'a': 0, 'c': []}
             subparent = None
             root_children.append(parent)
             pending = ''
             continue
         if kind == 'wrapped' and low in cfg.subparents and parent is not None:
-            subparent = {'n': lbl, 'a': 0, 'c': []}
+            subparent = {'n': _fix_label(lbl, cfg), 'a': 0, 'c': []}
             parent['c'].append(subparent)
             pending = ''
             continue
@@ -2131,7 +2272,7 @@ def build_operating(lines, col_anchors, cfg):
         #     and every other shipped entity unmoved.
         if (kind == 'data' and val == 0 and low in cfg.parents
                 and target_cell_is_dash_zero(l, col_anchors, cfg)):
-            parent = {'n': lbl, 'a': 0, 'c': []}
+            parent = {'n': _fix_label(lbl, cfg), 'a': 0, 'c': []}
             root_children.append(parent)
             pending = ''
             continue
@@ -2338,7 +2479,7 @@ def extract(pdf_path, mode, cfg):
     # ⚠⚠ SQUASHED, for the reason recorded at `_squash`. These are the second and
     # third places the same literal is tested; Florence SC FY2016 prints
     # `TOTAL  EXPENDITURES` and, once the page gate was fixed, failed HERE
-    # instead — the module's own `_end_revenues_pattern` note warns about exactly
+    # instead — the module's own `_is_section_end` note warns about exactly
     # this, having already been the third such site once before.
     # ⚠ The MATCH is squashed; the LINE passed on is the ORIGINAL, because
     # `anchors()` measures the column grid from its character positions.
