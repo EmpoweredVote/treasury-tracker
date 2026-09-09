@@ -108,6 +108,102 @@ class TestRevenueParentsAllZeroMembers(unittest.TestCase):
         self.assertIn('Retail sales and use taxes', zero_rows)
 
 
+# Transcribed from Hamilton County IN FY2016 (`2016-12-CENSUS-0000142341`). The
+# SAME label `Other:` is printed TWICE at TWO DIFFERENT LEVELS on one page — a
+# sub-heading inside `Taxes:`, and a root group after `Fines and forfeits`.
+HAMILTON_TWO_LEVEL_OTHER_LINES = [
+    'Revenues:',
+    'Taxes:',
+    'Property                                        58,882,613',
+    'Income                                          42,646,363',
+    'Other:',
+    '     Food and beverage                           4,771,131',
+    '     Innkeepers                                  4,169,884',
+    'Fines and forfeits                               3,412,680',
+    'Other:',
+    'Interest revenue                                   870,076',
+    'Sale of property                                   310,052',
+    'Total revenues                                 115,062,799',
+]
+HAMILTON_TWO_LEVEL_ANCHOR = 'Total revenues                                 115,062,799'
+
+
+class TestRevenueSubparentBeatsParentWhenAGroupIsOpen(unittest.TestCase):
+    """⚠⚠ ONE LABEL, TWO LEVELS, ONE PAGE — and the branch order decides.
+
+    Hamilton County IN prints `Other:` as a sub-heading inside `Taxes:` AND as a
+    root group later in the same revenue section. What separates them is whether
+    a group is currently OPEN: the first arrives while `Taxes` is open, the
+    second only after a non-member (`Fines and forfeits`) has closed it.
+
+    With the parent branch tested first, the in-Taxes heading opened a THIRD ROOT
+    group and hung Food and beverage + Innkeepers off it — 10 revenue roots where
+    the page prints 7, **at a tie of exactly $0**. Failure mode 1.
+    """
+
+    def _cfg(self):
+        return CityConfig(
+            city='X', parents=('current',), column_strategy='ordinal',
+            revenue_parents=('taxes', 'other'),
+            revenue_subparents=('other',),
+            revenue_group_members=(
+                'property', 'income', 'food and beverage', 'innkeepers',
+                'other', 'interest revenue', 'sale of property',
+            ),
+        )
+
+    def test_the_heading_inside_an_open_group_nests_rather_than_opening_a_root(self):
+        tree, total, _ = build_revenue(
+            HAMILTON_TWO_LEVEL_OTHER_LINES, anchors(HAMILTON_TWO_LEVEL_ANCHOR), self._cfg())
+        self.assertEqual([c['n'] for c in tree['c']],
+                         ['Taxes', 'Fines and forfeits', 'Other'])
+        taxes = tree['c'][0]
+        self.assertEqual([c['n'] for c in taxes['c']], ['Property', 'Income', 'Other'])
+        self.assertEqual([c['n'] for c in taxes['c'][2]['c']],
+                         ['Food and beverage', 'Innkeepers'])
+        self.assertEqual(total, 115062799)
+
+    def test_the_same_heading_at_root_still_opens_a_group(self):
+        tree, _, _ = build_revenue(
+            HAMILTON_TWO_LEVEL_OTHER_LINES, anchors(HAMILTON_TWO_LEVEL_ANCHOR), self._cfg())
+        root_other = tree['c'][2]
+        self.assertEqual([c['n'] for c in root_other['c']],
+                         ['Interest revenue', 'Sale of property'])
+        self.assertEqual(root_other['a'], 870076 + 310052)
+
+    def test_declaring_no_subparent_is_the_defect_this_fixes(self):
+        """⚠ The behaviour WITHOUT `revenue_subparents`, pinned so the failure
+        mode stays legible: the in-Taxes heading opens a third root group."""
+        cfg = CityConfig(
+            city='X', parents=('current',), column_strategy='ordinal',
+            revenue_parents=('taxes', 'other'),
+            revenue_group_members=(
+                'property', 'income', 'food and beverage', 'innkeepers',
+                'other', 'interest revenue', 'sale of property',
+            ),
+        )
+        tree, total, _ = build_revenue(
+            HAMILTON_TWO_LEVEL_OTHER_LINES, anchors(HAMILTON_TWO_LEVEL_ANCHOR), cfg)
+        self.assertEqual([c['n'] for c in tree['c']],
+                         ['Taxes', 'Other', 'Fines and forfeits', 'Other'])
+        # ⚠⚠ AND IT STILL TIES. The total is identical; only the shape is wrong.
+        self.assertEqual(total, 115062799)
+
+    def test_disjoint_parent_and_subparent_tuples_are_unaffected_by_the_order(self):
+        """⚠ The two entities that declared `revenue_subparents` before Hamilton
+        (Aberdeen SD, Brown County SD) keep their tuples disjoint, so no label can
+        reach both branches and the order cannot change their output. Pinned here
+        so a future overlap has to be a deliberate choice."""
+        import extractAberdeenSD
+        import extractBrownCountySD
+        for mod in (extractAberdeenSD, extractBrownCountySD):
+            cfg = mod.CONFIG
+            self.assertEqual(
+                set(cfg.revenue_parents) & set(cfg.revenue_subparents), set(),
+                f'{cfg.city} now overlaps parents and subparents — the branch '
+                'order became load-bearing for it, so read the printed page.')
+
+
 # ⚠⚠ A PRINTED REVENUE SUBTOTAL. City of Goose Creek SC p.24, FY2024,
 # transcribed verbatim from `pdftotext -table`. `Total local revenues` closes a
 # six-source `Local revenues` group; read as a leaf it DOUBLE-COUNTS its own
@@ -1841,6 +1937,52 @@ class TestFindStatementPageIgnoresWhitespace(unittest.TestCase):
         must not become eligible as a side effect of this fix."""
         page = FLORENCE_2016_PAGE.replace('Governmental Funds',
                                           'Budget  and  Actual — General Fund')
+        self.assertEqual(find_statement_page([page])[0], None)
+
+
+# ⚠ Transcribed from Allen County IN FY2016 (`2016-12-CENSUS-0000142314`). The
+# misplaced comma in `EXPENDITURES ,AND` is the POINT of this fixture — it is
+# what the county PRINTED, in seven of its ten filings. Do not tidy it.
+ALLEN_2016_PAGE = """                                    ALLEN COUNTY
+
+    STATEMENT OF REVENUES, EXPENDITURES ,AND CHANGES IN FUND BALANCES -
+
+                                 GOVERNMENTAL FUNDS
+
+                          For The Year Ended December 31, 2016
+
+                                    General          Other            Total
+Revenues:
+Total revenues                   106,393,741      65,790,726      172,184,467
+Expenditures:
+Total expenditures                97,205,318      61,655,496      158,860,814
+"""
+
+
+class TestTitleToleratesAMisplacedComma(unittest.TestCase):
+    """⚠⚠ THE ISSUER'S OWN TYPO, NOT THE CHARACTER GRID.
+
+    The two whitespace defects above (Florence, Sumter) are `pdftotext -table`
+    inventing space. This one is in the published document: Allen County IN
+    prints `EXPENDITURES ,AND` — the comma on the wrong side of the space — in
+    FY2016 through FY2022, and `COMBINING STATMENT` on its subfund pages, so it
+    is not an isolated slip. `_TITLE` required `,?\\s+and`, so seven of ten
+    filings reported `primary GF statement not found` on a clean, born-digital
+    page.
+    """
+
+    def test_a_comma_with_no_space_after_it_still_qualifies(self):
+        self.assertEqual(find_statement_page([ALLEN_2016_PAGE])[0], 0)
+
+    def test_the_conventional_spacing_still_qualifies(self):
+        page = ALLEN_2016_PAGE.replace('EXPENDITURES ,AND', 'EXPENDITURES, AND')
+        self.assertEqual(find_statement_page([page])[0], 0)
+
+    def test_a_combining_page_with_the_same_typo_is_still_refused(self):
+        """⚠ Relaxing the separator must not let an excluded page in. Allen's own
+        subfund pages carry the identical malformed title."""
+        page = ALLEN_2016_PAGE.replace('GOVERNMENTAL FUNDS',
+                                       'COMBINING — NONMAJOR GOVERNMENTAL FUNDS')
         self.assertEqual(find_statement_page([page])[0], None)
 
 
