@@ -6,11 +6,16 @@ import type { Municipality } from '../types/budget';
 import { getLoginUrl } from '../utils/auth';
 import { useTheme } from '../hooks/useTheme';
 import { hasDatasets, datasetYears } from '../data/municipalityDatasets';
+import { displaySlug } from '../utils/entityRouting';
 
 export type LandingReason =
   | { type: 'guest' }
   | { type: 'no_location' }
-  | { type: 'city_not_available'; cityName: string; state: string };
+  | { type: 'city_not_available'; cityName: string; state: string }
+  // A `?entity=` deep link whose slug matches nothing. Carries the slug so the
+  // page can name what was asked for — see entityRouting.ts for why this is a
+  // state of its own rather than a fallback to some other entity's budget.
+  | { type: 'entity_not_found'; slug: string };
 
 interface AlphaLandingProps {
   reason: LandingReason;
@@ -329,6 +334,26 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
 
             <div>
               <h2 className="text-base font-bold text-[#1C1C1C] dark:text-ev-gray-100 mb-3">Find another city</h2>
+              <CitySearch municipalities={municipalities} onNavigateToCity={onNavigateToCity} />
+            </div>
+          </>
+        )}
+
+        {/* ── A shared/bookmarked ?entity= link that matches nothing ── */}
+        {reason.type === 'entity_not_found' && (
+          <>
+            <div className="bg-[#FFF8ED] dark:bg-ev-yellow-950/30 border border-[#F5D98B] dark:border-ev-yellow-700/50 rounded-xl p-5">
+              <p className="text-sm font-semibold text-[#92400E] dark:text-ev-yellow-300">
+                We couldn't find a government matching &ldquo;{displaySlug(reason.slug)}&rdquo;.
+              </p>
+              <p className="text-sm text-ev-gray-500 mt-1">
+                The link may be out of date, or that entity may have been renamed. Search below
+                to find it.
+              </p>
+            </div>
+
+            <div>
+              <h2 className="text-base font-bold text-[#1C1C1C] dark:text-ev-gray-100 mb-3">Search for a government</h2>
               <CitySearch municipalities={municipalities} onNavigateToCity={onNavigateToCity} />
             </div>
           </>

@@ -60,6 +60,7 @@ import { resolveFeatureIcons, resolveTriviaIcon } from './utils/featureIcons';
 import { FeatureIconRow } from './components/FeatureIconRow';
 import type { BudgetCategory, BudgetData, FederalContext, HydratedMunicipality, LinkedTransactionSummary, Municipality, OrgFinancialSummary } from './types/budget';
 import { hasDatasets } from './data/municipalityDatasets';
+import { resolveEntityParam, toSlug } from './utils/entityRouting';
 
 interface BreadcrumbItem {
   label: string;
@@ -67,11 +68,6 @@ interface BreadcrumbItem {
 }
 
 type DatasetType = 'revenue' | 'operating' | 'salaries';
-
-// Derive URL slug from municipality at runtime
-function toSlug(m: Municipality): string {
-  return `${m.name.toLowerCase().replace(/\s+/g, '-')}-${m.state.toLowerCase()}`;
-}
 
 // Some entities (notably state General Fund budgets) wrap every category under a
 // single synthetic root node ("<Entity> General Fund Budget"). At the top level
@@ -412,10 +408,18 @@ function App() {
     if (entityParam) {
       listMunicipalities().then(async list => {
         setMunicipalities(list);
-        const matched = list.find(m => toSlug(m) === entityParam);
-        const listEntry = matched ?? list.find(m => m.name === 'Bloomington' && m.state === 'IN') ?? list[0];
+        // ⚠ An unmatched slug must NOT resolve to another entity. It used to
+        // fall back to Bloomington, IN (then list[0]), so a stale or renamed
+        // link silently rendered the wrong government's budget with nothing on
+        // the page saying so. See utils/entityRouting.ts.
+        const resolution = resolveEntityParam(list, entityParam);
+        if (resolution.kind === 'not_found') {
+          setLandingReason({ type: 'entity_not_found', slug: resolution.slug });
+          setAppView('landing');
+          return;
+        }
         // ⚠ Hydrate before ANY of the year/dataset resolution below reads it.
-        const entity = await hydrateMunicipality(listEntry);
+        const entity = await hydrateMunicipality(resolution.entity);
         setSelectedEntity(entity);
 
         // Resolved as a local so ?dataset= can be validated against availability
