@@ -313,6 +313,38 @@ export const REPORTING_ENTITY_REGISTRY = [
     },
   },
   {
+    // Indiana's counties via their own audited ACFRs, wave 1.
+    //
+    // ⚠⚠ THE ONLY FAMILY IN THIS REGISTRY WHOSE ENTITY BOUNDARY IS ITSELF THE
+    // SUBJECT OF AN AUDIT MODIFICATION, which makes it the best-evidenced entry
+    // here rather than the weakest: Allen County carries a QUALIFIED opinion in
+    // all nine loaded years FOR OMITTING four fire protection districts from its
+    // discretely presented component units, and Lake County an ADVERSE one for
+    // omitting its component units entirely. The auditor is telling us, in the
+    // document, exactly where the boundary is and that the county drew it wrong
+    // — on a COLUMN THIS SCOPE DOES NOT REPORT.
+    id: 'in-county-acfr-tg',
+    match: /^(Marion County|Lake County|Allen County|Hamilton County) ACFR — Total Governmental Funds (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
+    value: REPORTING_ENTITY.PRIMARY,
+    evidence: {
+      document: 'The governmental-funds Statement of Revenues, Expenditures and Changes in Fund '
+              + 'Balances of each county ACFR, plus each auditor\'s own Summary of Opinions — '
+              + 'read in all 31 loaded documents by scripts/verifyInCountyOpinions.py and '
+              + 'recorded per entity-year in scripts/data/inCountyAcfrOpinions.mjs.',
+      figures: 'Under GASB 34 a DISCRETELY PRESENTED component unit appears only in the '
+             + 'GOVERNMENT-WIDE statements, in its own column, so it cannot be inside a '
+             + 'governmental-FUNDS total; a BLENDED one is presented as a fund of the primary '
+             + 'government and therefore is. Allen County FY2024 makes both halves visible on '
+             + 'the very page read here: `Allen County, Indiana Building Corporation` is printed '
+             + 'as a MAJOR FUND COLUMN (blended, inside), while the Summary of Opinions on the '
+             + 'auditor\'s page lists `Aggregate Discretely Presented Component Units` as a '
+             + 'SEPARATE OPINION UNIT and marks it QUALIFIED (discrete, outside). '
+             + '⚠ NARROWER than mn-osa, which consolidates HRA/EDA/TIF component units that city '
+             + 'ACFRs present separately; identical in kind to every other issuer-published ACFR '
+             + 'family here.',
+    },
+  },
+  {
     id: 'wa-sao',
     match: /^WA State Auditor — /,
     value: REPORTING_ENTITY.PRIMARY,
