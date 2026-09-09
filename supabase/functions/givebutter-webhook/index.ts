@@ -2,9 +2,30 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 
 const SIGNING_SECRET = Deno.env.get('GIVEBUTTER_SIGNING_SECRET') ?? ''
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? ''
-const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+/**
+ * Supabase client credential for this function.
+ *
+ * Prefers the named new-format secret key `supabase_edge_functions`, which the
+ * platform exposes as a JSON object in SUPABASE_SECRET_KEYS (keyed by key name).
+ * Falls back to the platform-injected legacy SUPABASE_SERVICE_ROLE_KEY so this
+ * deploys safely BEFORE legacy keys are disabled and keeps working AFTER (Part B,
+ * ev-cto decision 0014). Logs which source was used — the NAME only, never the value —
+ * so the switch is verifiable from function logs.
+ */
+function resolveSecretKey(): string {
+  try {
+    const keys = JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS') ?? '{}');
+    if (typeof keys?.supabase_edge_functions === 'string' && keys.supabase_edge_functions) {
+      console.log('supabase client key: SUPABASE_SECRET_KEYS.supabase_edge_functions');
+      return keys.supabase_edge_functions;
+    }
+  } catch (_) { /* malformed or absent — fall through */ }
+  console.log('supabase client key: legacy SUPABASE_SERVICE_ROLE_KEY');
+  return Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+}
+const SUPABASE_SECRET_KEY = resolveSecretKey()
 
-const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
+const supabase = createClient(SUPABASE_URL, SUPABASE_SECRET_KEY, {
   db: { schema: 'treasury' },
 })
 
