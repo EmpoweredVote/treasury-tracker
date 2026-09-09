@@ -324,7 +324,7 @@ export const REPORTING_ENTITY_REGISTRY = [
     // document, exactly where the boundary is and that the county drew it wrong
     // — on a COLUMN THIS SCOPE DOES NOT REPORT.
     id: 'in-county-acfr-tg',
-    match: /^(Marion County|Lake County|Allen County|Hamilton County) ACFR — Total Governmental Funds (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
+    match: /^(Marion County|Lake County|Allen County|Hamilton County|St\. Joseph County|Elkhart County|Tippecanoe County|Hendricks County) ACFR — Total Governmental Funds (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
     value: REPORTING_ENTITY.PRIMARY,
     evidence: {
       document: 'The governmental-funds Statement of Revenues, Expenditures and Changes in Fund '

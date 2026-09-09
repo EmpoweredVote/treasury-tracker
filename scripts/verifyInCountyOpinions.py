@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Audit-opinion evidence gate for the Indiana county ACFRs (wave 1).
+Audit-opinion evidence gate for the Indiana county ACFRs (waves 1 and 2).
 
 A row may carry `audit_grade = audited_gaap` only where THIS script finds, in
 that specific document, the auditor's own opinion on the statements the row is
@@ -90,6 +90,32 @@ _HEADING = re.compile(
     r'(?:\s+on\s+(?:the\s+)?([^\n]{0,120}?))?\s*$',
     re.I | re.M)
 
+# ⚠⚠ THE VERDICT HEADING CAN BE BARE WHILE THE AUDITOR NAMES THE UNIT ANYWAY.
+#
+# Wave 2. St. Joseph FY2020 prints a bare `Adverse Opinion` and Elkhart FY2020 a
+# bare `Qualified Opinion` — but each sits directly under its own
+# `Basis for <kind> Opinion on <unit>` heading, which DOES name the unit:
+#
+#     Basis for Adverse Opinion on Aggregate Discretely Presented Component Units
+#     Adverse Opinion                       <- bare
+#     Unmodified Opinions                   <- governmental activities, each major
+#                                              fund, aggregate remaining fund info
+#
+# The conservative default below — "a modification with no named unit modifies
+# everything" — then reported BOTH as fund-level hits. Reading the documents
+# showed both name a DISCRETELY PRESENTED COMPONENT UNIT and neither touches the
+# funds. Two false positives standing beside the one real signal is exactly the
+# dilution this gate was written to avoid, so the basis heading is read.
+#
+# ⚠ It is a NARROWING of an existing conservative default, never a widening: the
+# unit is taken from the auditor's OWN heading, and when there is no such heading
+# the in-scope default is unchanged.
+_BASIS_HEADING = re.compile(
+    r'^\s*Basis\s+(?:for|of)\s+((?:Adverse|Disclaimer\s+of|(?<![Uu]n)Qualified)'
+    r'(?:\s+(?:and\s+)?(?:Adverse|Disclaimer\s+of|Disclaimed|(?<![Uu]n)Qualified'
+    r'|Unmodified))*)\s+Opinions?\s+on\s+(?:the\s+)?([^\n]{0,160}?)\s*$',
+    re.I | re.M)
+
 # ⚠⚠ A COMPOUND HEADING IS THE SECTION TITLE, NOT A VERDICT. Allen prints
 # `Qualified and Unmodified Opinions` and Lake FY2021 prints `Adverse,
 # Disclaimed, and Unmodified Opinions` as the umbrella over the whole report,
@@ -126,11 +152,75 @@ _OUT_OF_SCOPE_UNITS = re.compile(
     r'|generally\s+accepted\s+accounting\s+principles|regulatory\s+basis',
     re.I)
 
-_FAIR = re.compile(r'present\s+fairly,?\s+in\s+all\s+material\s+respects', re.I)
+# ⚠⚠ TWO WAVE-2 DOCUMENTS FAILED THIS PHRASE CHECK WHILE BEING PERFECTLY CLEAN,
+# and neither failure was about the audit:
+#
+#   Tippecanoe FY2019   the AUDITOR'S OWN GRAMMAR — "the financial statements
+#                       referred to above PRESENTS fairly, in all material
+#                       respects". Allen County's `EXPENDITURES ,AND` typo
+#                       (failure mode 12) moved from the issuer's title into the
+#                       auditor's sentence.
+#   Elkhart FY2024      HYPHENATION ACROSS A LINE BREAK — "present fairly, in all
+#                       mate-\nrial respects". Nothing is wrong with the document
+#                       at all; `pdftotext` faithfully reproduced the typesetting.
+#
+# Both reported `fair=0`, which reads as A MEASUREMENT FAILURE and would block
+# `audited_gaap` on a clean report if taken at face value. `dehyphenate` joins
+# words split across lines before any phrase is matched, and the verb is allowed
+# its stray `s`. ⚠ NEITHER relaxation can turn a modified opinion into a clean
+# one: this phrase is evidence that a GAAP fair-presentation opinion EXISTS, and
+# the modified/unmodified question is decided by the HEADINGS, separately.
+_FAIR = re.compile(r'presents?\s+fairly,?\s+in\s+all\s+material\s+respects', re.I)
+_HYPHEN_BREAK = re.compile(r'(?<=[a-z])-[ \t]*\r?\n[ \t]*(?=[a-z])')
+
+
+def dehyphenate(text):
+    """Join a word split across a line break. Digits and headings are untouched:
+    both sides of the hyphen must be LOWERCASE letters, so `Highways and\nStreets`
+    and `2024-\n2025` are left exactly as they are."""
+    return _HYPHEN_BREAK.sub('', text)
 _GAAP = re.compile(r'accounting\s+principles\s+generally\s+accepted', re.I)
 _OCBOA = re.compile(
     r'modified\s+cash\s+basis|regulatory\s+basis|cash\s+basis\s+of\s+accounting'
     r'|basis\s+of\s+accounting\s+other\s+than', re.I)
+
+
+def _kind_key(kind):
+    """`Adverse Opinion` and `Adverse` reduce to the same key.
+
+    ⚠ The verdict heading's captured group INCLUDES the word `Opinion`
+    (`Adverse Opinion`) and the basis heading's does not (`Basis for Adverse
+    Opinion on ...` captures just `Adverse`). Keying the two dictionaries
+    differently is how the first version of this lookup matched nothing at all
+    while looking exactly right.
+    """
+    return re.sub(r'\s+opinions?$', '', kind.strip().lower())
+
+
+# ⚠⚠ THE SBOA DUAL-OPINION SIGNATURE — what actually makes a report
+# regulatory basis.
+#
+# An Indiana State Board of Accounts regulatory-basis report gives TWO opinions:
+# ADVERSE on U.S. generally accepted accounting principles, and unmodified on the
+# regulatory basis described in the notes. That adverse-on-GAAP opinion IS the
+# definition, it is printed as its own heading, and all seventeen regulatory-basis
+# documents in this corpus carry it.
+#
+# ⚠⚠ IT REPLACES A DISCRIMINATOR THAT RESTED ON A VERB ENDING. The previous rule
+# was `an OCBOA phrase AND NO fair-presentation phrase`, and the reason the second
+# half held was not about the basis of accounting at all: SBOA writes "the
+# financial statement referred to above PRESENTS fairly" (singular — one
+# statement) where a private firm writes "the financial statements ... PRESENT
+# fairly" (plural). The phrase regex required the plural. Every regulatory-basis
+# report DOES state a fair-presentation opinion — on the regulatory basis — so
+# the old rule classified 17 documents correctly by accident of grammar, and
+# relaxing the verb to `presents?` (needed for Tippecanoe FY2019, where the
+# AUDITOR wrote the singular in a GAAP report) silently emptied the whole
+# category.
+_ADVERSE_ON_GAAP = re.compile(
+    r'Adverse\s+Opinions?\s+on\s+(?:the\s+)?(?:U\.?\s?S\.?\s+)?'
+    r'(?:Accounting\s+Principles\s+)?Generally\s+Accepted'
+    r'(?:\s+Accounting\s+Principles)?', re.I)
 
 
 def pdf_pages(path):
@@ -164,15 +254,49 @@ def assess(path):
             'headings': [], 'modified': [], 'modified_in_scope': [],
             'has_unmodified_fund_opinion': False, 'fair_presentation_phrase': False,
             'gaap_conformity_phrase': False, 'ocboa_phrase': False,
-            'auditor_report_page': None,
+            'adverse_on_gaap': False, 'auditor_report_page': None,
         }
+    # ⚠ Dehyphenate BEFORE anything is matched — see `_FAIR`. Headings are
+    # unaffected (the rule needs lowercase letters either side of the hyphen).
+    text = dehyphenate(text)
+
+    # The auditor's own `Basis for <kind> Opinion on <unit>` headings, kept per
+    # KIND so a bare verdict below can borrow the unit its own basis names.
+    basis_units = {}
+    for m in _BASIS_HEADING.finditer(text):
+        kind = re.sub(r'\s+', ' ', m.group(1)).strip().lower()
+        unit = re.sub(r'\s+', ' ', m.group(2)).strip()
+        # ⚠ A COMPOUND basis heading (`Basis for Qualified and Unmodified
+        # Opinions`) is the umbrella over the whole report and names no single
+        # unit — the same trap the verdict headings have. Those never reach here,
+        # because this pattern requires ` on <unit>` and the umbrella has none.
+        basis_units.setdefault(_kind_key(kind), []).append(unit)
+
     headings = []
     for m in _HEADING.finditer(text):
         if _COMPOUND_HEADING.match(m.group(0)):
             continue
         kind = re.sub(r'\s+', ' ', m.group(1)).strip()
         unit = re.sub(r'\s+', ' ', (m.group(2) or '')).strip()
-        headings.append((kind, unit))
+        if unit:
+            headings.append((kind, unit))
+            continue
+        # ⚠⚠ EVERY basis heading of this kind, not the first.
+        #
+        # Allen County FY2020 prints TWO — `Basis for Qualified Opinion on the
+        # Discretely Presented Component Unit` and `Basis for Qualified Opinion
+        # on the Aggregate Remaining Fund Information` — under ONE bare
+        # `Qualified Opinions` verdict. Taking only the first resolved the year
+        # to the component unit and marked it OUT OF SCOPE: wave 1's single
+        # genuine fund-level modification, silently downgraded by a lookup that
+        # answered plausibly. One entry per named unit, so the fund unit is seen.
+        #
+        # ⚠ Still the conservative default when the auditor named nothing
+        # anywhere: no basis heading means one bare, unit-less entry, which the
+        # in-scope test below treats as modifying everything.
+        borrowed = basis_units.get(_kind_key(kind)) or ['']
+        for u in borrowed:
+            headings.append((kind, u))
 
     modified = [(k, u) for k, u in headings if not re.match(r'^unmodified', k, re.I)]
     # ⚠ A modification with NO named unit modifies everything — treat it as
@@ -194,6 +318,9 @@ def assess(path):
         # it is not hiding at all: 459 of 562 county filings are regulatory
         # basis. A GAAP document should not carry these phrases about ITSELF.
         'ocboa_phrase': bool(_OCBOA.search(text)),
+        # ⚠⚠ The SBOA dual opinion — see `_ADVERSE_ON_GAAP`. This, not the
+        # absence of a fair-presentation phrase, is what says regulatory basis.
+        'adverse_on_gaap': bool(_ADVERSE_ON_GAAP.search(text)),
         'auditor_report_page': page_index,
     }
 
@@ -236,7 +363,7 @@ def main():
             # no GAAP fair-presentation opinion because it is not a GAAP report:
             # there is no governmental-funds statement in it to grade. Counting
             # it as a measurement failure would bury the real ones.
-            r['regulatory_basis'] = r['ocboa_phrase'] and not r['fair_presentation_phrase']
+            r['regulatory_basis'] = r['ocboa_phrase'] and r['adverse_on_gaap']
             if r['regulatory_basis']:
                 regulatory_basis.append(stem)
             elif not (r['fair_presentation_phrase'] and r['gaap_conformity_phrase']):

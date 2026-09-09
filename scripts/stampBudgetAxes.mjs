@@ -245,20 +245,29 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // nine, not eight: FY2020 has no federal filing and comes from the TOWN's own
   // publisher, the first year in this family sourced outside FAC.
   'sc-local-acfr-gf': 224,
-  // Indiana counties via their own audited ACFRs, wave 1. MEASURED IN THE
-  // DATABASE AFTER THE WRITE, never derived from the roster: 62 rows over 62
-  // DISTINCT ids, 62 distinct source strings and 4 municipality_ids, splitting
-  // 31 operating + 31 revenue, with fund_scope total_governmental / basis actual
+  // Indiana counties via their own audited ACFRs, waves 1 AND 2. MEASURED IN THE
+  // DATABASE AFTER THE WRITE, never derived from the roster: 110 rows over 110
+  // DISTINCT ids, 110 distinct source strings and 8 municipality_ids, splitting
+  // 55 operating + 55 revenue, with fund_scope total_governmental / basis actual
   // / derivation published / audit_grade audited_gaap and fiscal month 1 uniform
-  // across all 62. Year counts 10, 10, 9, 2 (Marion, Hamilton, Allen, Lake).
+  // across all 110, and 0 null-or-zero totals.
   //
-  // ⚠⚠ LAKE'S 2 IS THE POINT, NOT A DEFECT. Six of its eight FAC filings are
-  // SBOA REGULATORY-BASIS reports with no governmental-funds statement in them,
-  // so only FY2020 and FY2021 are loadable. Statewide, 459 of Indiana's 562
-  // county filings are regulatory basis and only 17 counties ever file GAAP —
-  // see IN_COUNTY_BASIS_GAPS. A future wave adding a fifth county must
-  // re-measure this number from the table, not add 2 per year per county.
-  'in-county-acfr-tg': 62,
+  //   wave 1   Marion 10 · Hamilton 10 · Allen 9 · Lake 2        = 31 years
+  //   wave 2   St. Joseph 6 · Elkhart 6 · Tippecanoe 6 · Hendricks 6 = 24 years
+  //
+  // ⚠⚠ THE PARTITION GATE FAILED CLOSED ON WAVE 2's FIRST STAMPER RUN —
+  // `basis/in-county-acfr-tg: expected 62, got 110` — which is the gate working,
+  // for the second wave running. That is what this number is for.
+  //
+  // ⚠⚠ THE SHORT YEAR COUNTS ARE THE POINT, NOT A DEFECT. Lake loads 2 of 8
+  // filings and each wave-2 county 6 of 8-or-9, because the rest are SBOA
+  // REGULATORY-BASIS reports with no governmental-funds statement in them.
+  // Statewide, 459 of Indiana's 562 county filings are regulatory basis and only
+  // 17 counties ever file GAAP — see IN_COUNTY_BASIS_GAPS. ⚠ AND THE GAAP WINDOW
+  // OPENS AT FY2019 FOR EVERY COUNTY OUTSIDE THE TOP THREE, so a wave 3 cannot
+  // assume ten years each. Re-measure this from the table; never add rows per
+  // county per year.
+  'in-county-acfr-tg': 110,
   // Knight session 6b (Tennessee's first local entity), measured from the ACTUAL
   // post-write count on 2026-08-30. 20 = 10 fiscal years x 2 datasets, ONE
   // consolidated entity. See the fuller note on the same id in
@@ -440,15 +449,22 @@ export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
   // Remaining exclusions are documented per entity in ncAcfrSources.mjs.
   // Evidence: docs/superpowers/plans/NC-DURHAM-AVL-01-CLOSEOUT.md section 6.
   'nc-local-acfr-gf': 210,
-  // Indiana counties, wave 1 — the same 62 rows as the basis entry above,
-  // measured in the table after the write. `primary_government` because a
+  // Indiana counties, waves 1 and 2 — the same 110 rows as the basis entry
+  // above, measured in the table after the write. `primary_government` because a
   // DISCRETELY PRESENTED component unit appears only in the government-wide
   // statements, never in a governmental-FUNDS total, while a BLENDED one is a
   // fund of the primary government and therefore is inside.
-  // ⚠⚠ Uniquely well evidenced, because the auditor says so: Allen County is
-  // QUALIFIED in all nine years for OMITTING component units it should have
-  // presented discretely, and Lake County ADVERSE for omitting them entirely.
-  'in-county-acfr-tg': 62,
+  // ⚠⚠ Uniquely well evidenced, because the auditors keep saying so. Wave 1:
+  // Allen County QUALIFIED in all nine years for OMITTING component units it
+  // should have presented discretely, Lake ADVERSE for omitting them entirely.
+  // Wave 2 adds five more of the same shape — St. Joseph ADVERSE (FY2020) and
+  // DISCLAIMED (FY2021) over two public libraries it left out, Elkhart QUALIFIED
+  // (FY2020, FY2021) over four — plus three that name BUSINESS-TYPE ACTIVITIES
+  // (Hendricks FY2020-FY2022). Seventeen of eighteen modified opinions across
+  // both waves land on units this scope does not report, and they land there
+  // because modified-accrual fund statements report neither component units nor
+  // capital assets.
+  'in-county-acfr-tg': 110,
   // The sixteen entity-published city/state ACFR families.
   // Evidence: ACFR-GF-CLASSIFICATION-RECON.md §3.
   'or-city-acfr-gf': 106,
