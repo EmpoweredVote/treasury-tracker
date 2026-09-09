@@ -11,7 +11,9 @@ import {
 import {
   IN_COUNTY_MODIFIED_OPINIONS, IN_COUNTY_UNMODIFIED, opinionFor, opinionIsFundLevel,
 } from '../scripts/data/inCountyAcfrOpinions.mjs';
-import { KNOWN_DOCUMENT_GAPS, MODES, loadableYearsFor } from '../scripts/extractInCountiesAll.mjs';
+import {
+  KNOWN_DOCUMENT_GAPS, MODES, loadableYearsFor, stemFor,
+} from '../scripts/extractInCountiesAll.mjs';
 import {
   BASIS_VALUE, DERIVATION, FUND_SCOPE, sourceNameFor, sourcePrefixFor,
 } from '../scripts/loadInCountyAcfrs.mjs';
@@ -23,28 +25,51 @@ import { SCOPE, classify } from '../scripts/lib/fundScope.mjs';
 import { censusGuard } from '../scripts/lib/facFiscalYearCensus.mjs';
 import { SOURCE_CHIP_ENTITY_TYPES } from '../src/data/sourceChipTypes.ts';
 
-/** Every (entity, fiscalYear) this wave intends to write. Derived, never listed. */
+/** Every (entity, fiscalYear) whose filing is GAAP — the years this route READS. */
 function loadablePairs() {
   return inCountyLoadableEntities().flatMap(
     (e) => loadableYearsFor(e).map((fy) => ({ entity: e, fy })),
   );
 }
 
-describe('the Indiana county ACFR roster, waves 1 and 2', () => {
-  it('holds Indiana\'s eight largest counties, in population order, and loads all eight', () => {
+/**
+ * Every (entity, fiscalYear) that actually becomes rows — the GAAP years MINUS
+ * the ones whose document cannot be read.
+ *
+ * ⚠⚠ WAVE 3 FORCED THIS DISTINCTION AND IT IS NOT PEDANTIC. Porter FY2022 is a
+ * GAAP filing this route CANNOT READ (image-only statements at all three
+ * publishers), so it is loadable in principle and loaded never. Counting the two
+ * the same way would either demand an audit opinion for a document no row is
+ * built from, or quietly drop a year from the coverage arithmetic. The loader
+ * already keeps them apart — it skips a declared document gap BEFORE it asks for
+ * an opinion — and these tests now do too.
+ */
+function loadedPairs() {
+  return loadablePairs().filter(
+    ({ entity, fy }) => !KNOWN_DOCUMENT_GAPS[stemFor(entity.key, fy)]);
+}
+
+describe('the Indiana county ACFR roster, waves 1 to 3', () => {
+  it('holds twelve counties, in population order, and loads all twelve', () => {
     expect(IN_COUNTY_ENTITIES.map((e) => e.key)).toEqual([
-      'marion', 'lake', 'allen', 'hamilton',              // wave 1
-      'st-joseph', 'elkhart', 'tippecanoe', 'hendricks',  // wave 2
+      'marion', 'lake', 'allen', 'hamilton',                // wave 1
+      'st-joseph', 'elkhart', 'tippecanoe', 'hendricks',    // wave 2
+      'vanderburgh', 'porter', 'johnson', 'monroe',         // wave 3
     ]);
-    expect(inCountyLoadableEntities().map((e) => e.key)).toHaveLength(8);
+    expect(inCountyLoadableEntities().map((e) => e.key)).toHaveLength(12);
     expect(Object.keys(IN_COUNTY_DEFERRED)).toEqual([]);
     // ⚠ Each wave was chosen on a MEASURED ranking (Census PEP vintage 2024,
-    // SUMLEV 050), not on reputation, and the two together are Indiana's eight
-    // largest counties in order — so wave 3 starts at number nine.
+    // SUMLEV 050), not on reputation, and the three together are in descending
+    // order — so wave 4 starts at number thirteen.
     const pops = IN_COUNTY_ENTITIES.map((e) => e.population);
     expect(pops).toEqual([...pops].sort((a, b) => b - a));
     expect(pops).toEqual([981628, 502955, 399295, 379704,
-      273744, 207436, 191650, 190629]);
+      273744, 207436, 191650, 190629,
+      180387, 175860, 170614, 140702]);
+    // ⚠⚠ THE RANKING IS OVER THE SEVENTEEN GAAP COUNTIES, NOT THE 92. Population
+    // does not decide whether a county files GAAP — reading this list as
+    // "Indiana's twelve largest counties" would be the "89 of 92 file" error one
+    // level further down.
   });
 
   it('types every entity as a county, and `county` renders a source chip', () => {
@@ -210,22 +235,32 @@ describe('THE GAAP CEILING — basis is a property of the FILING, not the county
     }
   });
 
-  it('loads 55 entity-years and declares every absence with a cause', () => {
-    expect(loadablePairs()).toHaveLength(55);
+  it('reads 79 GAAP entity-years, LOADS 78, and declares every absence with a cause', () => {
+    expect(loadablePairs()).toHaveLength(79);
+    // ⚠⚠ ONE OF THE 79 NEVER BECOMES A ROW — see `loadedPairs`.
+    expect(loadedPairs()).toHaveLength(78);
     const perEntity = Object.fromEntries(
       inCountyLoadableEntities().map((e) => [e.key, loadableYearsFor(e).length]));
     expect(perEntity).toEqual({
       marion: 10, lake: 2, allen: 9, hamilton: 10,                     // 31, wave 1
       'st-joseph': 6, elkhart: 6, tippecanoe: 6, hendricks: 6,         // 24, wave 2
+      vanderburgh: 6, porter: 6, johnson: 6, monroe: 6,                // 24, wave 3
     });
     // ⚠ THREE KINDS OF ABSENCE, NONE OF THEM $0: a coverage gap (no filing), a
     // basis gap (a filing that is not GAAP), a document gap (a GAAP filing that
-    // cannot be read). Wave 1 had 3 + 6 + 0; both waves together are 8 + 17 + 0.
+    // cannot be read). Wave 1 had 3 + 6 + 0, wave 2 5 + 11 + 0, wave 3
+    // 5 + 11 + 1 — and the THIRD CLASS IS NO LONGER HYPOTHETICAL.
     const coverage = Object.values(IN_COUNTY_COVERAGE_GAPS)
       .reduce((n, y) => n + Object.keys(y).length, 0);
     const basis = Object.values(IN_COUNTY_BASIS_GAPS)
       .reduce((n, y) => n + Object.keys(y).length, 0);
-    expect([coverage, basis, Object.keys(KNOWN_DOCUMENT_GAPS).length]).toEqual([8, 17, 0]);
+    expect([coverage, basis, Object.keys(KNOWN_DOCUMENT_GAPS).length]).toEqual([13, 28, 1]);
+    // ⚠⚠ THE ONE DOCUMENT GAP NAMES ITS CAUSE AND ITS EVIDENCE, because a gap
+    // recorded without either is indistinguishable from a year nobody tried.
+    expect(Object.keys(KNOWN_DOCUMENT_GAPS)).toEqual(['porter-2022']);
+    expect(KNOWN_DOCUMENT_GAPS['porter-2022']).toMatch(/THREE PUBLISHERS/);
+    expect(KNOWN_DOCUMENT_GAPS['porter-2022']).toMatch(/in\.gov\/sboa/);
+    expect(KNOWN_DOCUMENT_GAPS['porter-2022']).toMatch(/portercountyin\.gov/);
     // ⚠⚠ AND THE 17 ARE CORROBORATED FROM THE DOCUMENTS THEMSELVES, not only
     // from FAC's metadata: `scripts/verifyInCountyOpinions.py` finds the SBOA
     // dual-opinion signature (ADVERSE on GAAP + unmodified on the regulatory
@@ -246,12 +281,15 @@ describe('the fiscal calendar is confirmed per entity-year, never assumed', () =
       expect(guard.error).toBeUndefined();
       if (guard.unknown) uncovered += 1; else confirmed += 1;
     }
-    // ⚠ ALL 55 are actively confirmed — the census reaches FY2025 for all three
+    // ⚠ ALL 79 are actively confirmed — the census reaches FY2025 for all three
     // counties that filed one. The `uncovered` branch is still asserted at zero
     // rather than dropped: silence is not disagreement, and if a later wave adds
     // a year the census cannot reach, this number is where it will show up.
+    // ⚠ Measured over the GAAP years, Porter FY2022 included: the fiscal
+    // calendar of a year is a fact about the government, not about whether this
+    // route could read that year's PDF.
     expect(uncovered).toBe(0);
-    expect(confirmed).toBe(55);
+    expect(confirmed).toBe(79);
   });
 
   it('rejects a contradicting month, so the guard is not decorative', () => {
@@ -262,8 +300,12 @@ describe('the fiscal calendar is confirmed per entity-year, never assumed', () =
 });
 
 describe('the audit opinion is recorded per document', () => {
-  it('covers every loadable entity-year exactly once', () => {
-    for (const { entity, fy } of loadablePairs()) {
+  it('covers every LOADED entity-year exactly once', () => {
+    // ⚠⚠ `loadedPairs`, not `loadablePairs`. An audit opinion is evidence about
+    // a document a row was built from; Porter FY2022 produces no row, and
+    // recording a clean opinion for it would be answering a question nobody
+    // asked — and would put a year in the registry that the loader never reaches.
+    for (const { entity, fy } of loadedPairs()) {
       // ⚠⚠ THROWS on an entity-year nobody looked at. A registry that answers
       // "no modification" for an unexamined year launders an absence of evidence
       // into a clean bill.
@@ -278,12 +320,13 @@ describe('the audit opinion is recorded per document', () => {
     expect(() => opinionFor('marion', 2099)).toThrow(/no recorded audit opinion/);
   });
 
-  it('records eighteen modified opinions, of which exactly one is fund-level', () => {
-    const modified = loadablePairs().filter(({ entity, fy }) => opinionFor(entity.key, fy));
+  it('records nineteen modified opinions, of which exactly one is fund-level', () => {
+    const modified = loadedPairs().filter(({ entity, fy }) => opinionFor(entity.key, fy));
     // 11 in wave 1 (9 Allen + 2 Lake), 7 more in wave 2 (2 St. Joseph,
-    // 2 Elkhart, 3 Hendricks). Tippecanoe is clean in all six of its years.
-    expect(modified).toHaveLength(18);
-    const fundLevel = loadablePairs()
+    // 2 Elkhart, 3 Hendricks), 1 more in wave 3 (Porter FY2019). Tippecanoe,
+    // Vanderburgh, Johnson and Monroe are clean in every year they file GAAP.
+    expect(modified).toHaveLength(19);
+    const fundLevel = loadedPairs()
       .filter(({ entity, fy }) => opinionIsFundLevel(entity.key, fy))
       .map(({ entity, fy }) => `${entity.key}-${fy}`);
     // ⚠⚠ Allen FY2020's SECOND qualification names the Aggregate Remaining Fund
@@ -354,11 +397,36 @@ describe('every 20%+ series movement is traced, and one of them is a relabelling
     expect(Object.keys(IN_COUNTY_SERIES_NOTES).sort()).toEqual([
       'allen-2023', 'allen-2024', 'elkhart-2022', 'elkhart-2023', 'elkhart-2024',
       'hamilton-2023', 'hendricks-2020', 'hendricks-2023',
+      'johnson-2020', 'johnson-2023',
       'marion-2019', 'marion-2020', 'marion-2022', 'marion-2023',
-      'st-joseph-2024', 'tippecanoe-2023',
+      'monroe-2024', 'porter-2023',
+      'st-joseph-2024', 'tippecanoe-2023', 'vanderburgh-2023',
     ]);
-    const loadable = new Set(loadablePairs().map(({ entity, fy }) => `${entity.key}-${fy}`));
-    for (const key of Object.keys(IN_COUNTY_SERIES_NOTES)) expect(loadable.has(key)).toBe(true);
+    // ⚠ A note keyed to a year no row is built from would describe a movement
+    // nobody can see, so these are checked against LOADED years.
+    const loaded = new Set(loadedPairs().map(({ entity, fy }) => `${entity.key}-${fy}`));
+    for (const key of Object.keys(IN_COUNTY_SERIES_NOTES)) expect(loaded.has(key)).toBe(true);
+  });
+
+  it('says that Porter\'s FY2023 movement spans two years AND two charts of accounts', () => {
+    // ⚠⚠ THE SECOND WAY A PERCENTAGE MISLEADS, AND BOTH AT ONCE. St. Joseph
+    // taught that a missing filing makes a two-year move look like a one-year
+    // one. Porter's FY2022 is missing for a DIFFERENT reason (a document gap,
+    // not a coverage gap) and the county changed its revenue chart of accounts
+    // inside the gap — so a leaf diff shows a 44.8M line vanishing and a 48.9M
+    // line appearing where the real tax move is +5.0M.
+    const note = IN_COUNTY_SERIES_NOTES['porter-2023'];
+    expect(note).toMatch(/ACROSS TWO YEARS, NOT ONE/);
+    expect(note).toMatch(/DOCUMENT\s+GAP/);
+    expect(note).toMatch(/chart of accounts/i);
+    expect(note).toMatch(/\+5,027,573/);
+    // ⭐ And it says what the residual actually is: an endowment's investment
+    // return, which the county BROKE OUT as its own line the following year.
+    expect(note).toMatch(/23,082,699/);
+    expect(note).toMatch(/RECLASSIFICATION/);
+    const porter = IN_COUNTY_ENTITIES.find((e) => e.key === 'porter');
+    expect(loadableYearsFor(porter)).toContain(2022);
+    expect(loadedPairs().map(({ entity, fy }) => `${entity.key}-${fy}`)).not.toContain('porter-2022');
   });
 
   it('records that Marion RECLASSIFIED its expenditure functions at FY2023', () => {
@@ -435,13 +503,15 @@ describe('the source label, and the three axis registries that must match it', (
     }
   });
 
-  it('is claimed by ALL THREE registries, for every one of the 110 labels', () => {
+  it('is claimed by ALL THREE registries, for every one of the 156 labels', () => {
     // ⚠⚠ THE DEFECT THIS EXISTS TO CATCH HAS HAPPENED THREE TIMES: Florida's
     // third branch matched NONE of three registries, Pennsylvania matched only
     // auditGrade, and SC wave 3 widened two of three. Rows sit unclaimed while
     // looking perfectly fine — invisible at 58 rows, not at 51,078.
     let n = 0;
-    for (const { entity, fy } of loadablePairs()) {
+    // ⚠ Over LOADED years — 156 labels, two per row-pair. A label for a year no
+    // row exists in is not a row sitting unclaimed; it is a string nobody writes.
+    for (const { entity, fy } of loadedPairs()) {
       for (const datasetType of ['revenue', 'operating']) {
         const label = sourceNameFor(entity, datasetType, fy);
         n += 1;
@@ -453,7 +523,7 @@ describe('the source label, and the three axis registries that must match it', (
           .toEqual(['in-county-acfr-tg']);
       }
     }
-    expect(n).toBe(110);
+    expect(n).toBe(156);
   });
 
   it('classifies to total_governmental / actual / audited_gaap', () => {
@@ -487,20 +557,32 @@ describe('the source label, and the three axis registries that must match it', (
     }
   });
 
-  it('is anchored, so a NINTH county lands `unknown` until it is evidenced', () => {
+  it('is anchored, so a THIRTEENTH county lands `unknown` until it is evidenced', () => {
     // ⚠ An unanchored `/ACFR —/` shape claims ~1,850 rows across families nobody
     // has reconciled. The correct failure direction for a new entity is
     // `unknown`, not an inherited grade.
-    // ⚠⚠ THIS TEST NAMED ST. JOSEPH COUNTY UNTIL WAVE 2 LOADED IT, and then
-    // asserted the opposite of the truth. A placeholder that is a real
-    // government is a placeholder with an expiry date; Vanderburgh is the next
-    // county in the seventeen and is deliberately NOT loaded.
-    const unevidenced = 'Vanderburgh County ACFR — Total Governmental Funds Revenue by Source '
-      + '(FY2024 actual, GAAP basis)';
-    expect(IN_COUNTY_ENTITIES.some((e) => e.name === 'Vanderburgh County')).toBe(false);
-    expect(FUND_SCOPE_REGISTRY.some((e) => e.match.test(unevidenced))).toBe(false);
-    expect(AUDIT_GRADE_REGISTRY.some((e) => e.match.test(unevidenced))).toBe(false);
-    expect(BASIS_REGISTRY.some((e) => e.match.test(unevidenced))).toBe(false);
+    //
+    // ⚠⚠ THIS TEST NAMED ST. JOSEPH UNTIL WAVE 2 LOADED IT AND VANDERBURGH UNTIL
+    // WAVE 3 DID, and each time it briefly asserted the opposite of the truth. A
+    // placeholder that is a real government has an expiry date — so the
+    // invariant is now stated over the WHOLE ROSTER, which cannot expire: NOT
+    // ONE of Indiana's other 80 counties may match any of the three registries.
+    const loaded = new Set(IN_COUNTY_ENTITIES.map((e) => e.name));
+    const others = inCountyRoster().entities
+      .map((e) => e.name).filter((n) => !loaded.has(n));
+    expect(others.length).toBe(80);
+    for (const name of others) {
+      for (const mode of ['Revenue by Source', 'Expenditure by Function']) {
+        const label = `${name} ACFR — Total Governmental Funds ${mode} `
+          + '(FY2024 actual, GAAP basis)';
+        for (const reg of [FUND_SCOPE_REGISTRY, BASIS_REGISTRY, AUDIT_GRADE_REGISTRY]) {
+          expect(reg.some((e) => e.match.test(label))).toBe(false);
+        }
+      }
+    }
+    // ⚠ And the named next one, which is the tripwire wave 4 will trip:
+    // Madison County is number thirteen of the seventeen by PEP-2024 population.
+    expect(others).toContain('Madison County');
   });
 
   it('escapes the period in `St. Joseph County` so the pattern is not merely inert', () => {
@@ -531,8 +613,24 @@ describe('the extractors declare the facts the library cannot infer', () => {
       // the loader both assert the root name too.
       expect(src).toMatch(/target_column='last'/);
       expect(src).toMatch(/fy_end=\('December', 31\)/);
-      // ⚠ Failure mode 10: a General-Fund-only statement in the same document.
-      expect(src).toMatch(/Governmental\\s\+Funds/);
+      // ⚠⚠ CORRECTED IN WAVE 3. This assertion used to require the string
+      // `Governmental\s+Funds` in EVERY wrapper, on the belief that a
+      // `statement_anchor` REQUIRES those words and so excludes the
+      // General-Fund-only statement (failure mode 10). It does not.
+      // `find_statement_page` does `_TITLE.search(pg) OR anchor.search(pg)`, so
+      // an anchor can only WIDEN the candidate set — measured over all 64
+      // wave-1/2 Indiana documents, the anchor moves ZERO pages. Wave 3's four
+      // wrappers declare no anchor at all and are located by the title alone.
+      // What is asserted instead is the property that IS true: an anchor, where
+      // one exists, must name the governmental-funds statement rather than a
+      // General-Fund-only one.
+      if (/statement_anchor=/.test(src)) expect(src).toMatch(/Governmental\\s\+Funds/);
+    }
+    // ⚠ And the four wave-3 wrappers really do declare none, so the branch above
+    // is exercised in both directions rather than being vacuously true.
+    for (const key of ['vanderburgh', 'porter', 'johnson', 'monroe']) {
+      const e = inCountyLoadableEntities().find((x) => x.key === key);
+      expect(read(e.extractor)).not.toMatch(/statement_anchor=/);
     }
   });
 
@@ -568,6 +666,29 @@ describe('the extractors declare the facts the library cannot infer', () => {
     expect(sj).toMatch(/root_leaves=\('capital outlay', 'debt service'\)/);
     // ⚠ And its revenue section header is SINGULAR.
     expect(sj).toMatch(/revenue_section_header='revenue'/);
+    // ── wave 3 ─────────────────────────────────────────────────────────────
+    // ⚠⚠ A SIXTH SHAPE AND A SEVENTH, IN ONE WAVE.
+    // Vanderburgh and Porter take the Allen/Hamilton three-parent shape.
+    expect(parents.vanderburgh).toMatch(/'current', 'debt service', 'capital outlay'/);
+    expect(parents.porter).toMatch(/'current', 'debt service', 'capital outlay'/);
+    // ⚠ MONROE PRINTS THEM IN A DIFFERENT ORDER — Current, then CAPITAL OUTLAY,
+    // then Debt Service. Order does not change the parse (each heading opens its
+    // own group), and the tuple is written in the PRINTED order rather than
+    // copied from a neighbour, which is the habit that keeps failure mode 2 out.
+    expect(parents.monroe).toMatch(/'current', 'capital outlay', 'debt service'/);
+    // ⚠⚠ JOHNSON IS THE SEVENTH SHAPE AND THE ONLY ONE IN THE FAMILY THAT NO
+    // CONFIG CAN MAKE LITERAL IN EVERY YEAR: FY2019/FY2020 print `Debt Service`
+    // NESTED INSIDE `Current` (confirmed by RENDERING page 28 of the FY2019
+    // filing), FY2021 prints the three as peers, and FY2022+ print NO
+    // `Debt service` heading at all. `debt service` is a parent and `capital
+    // outlay` a root leaf — literal for four years of six, and the two it is not
+    // are declared in the wrapper and in IN_COUNTY_SERIES_NOTES.
+    const jo = configOf(read('scripts/extractJohnsonCountyIN.py'));
+    expect(parents.johnson).toMatch(/'current', 'debt service'/);
+    expect(parents.johnson).not.toMatch(/'capital outlay'/);
+    expect(jo).toMatch(/root_leaves=\('capital outlay',\)/);
+    expect(read('scripts/extractJohnsonCountyIN.py'))
+      .toMatch(/RENDERED TO AN IMAGE/);
   });
 
   it('gives Tippecanoe the no-caption fallback and nobody else', () => {

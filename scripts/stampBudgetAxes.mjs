@@ -267,7 +267,21 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // OPENS AT FY2019 FOR EVERY COUNTY OUTSIDE THE TOP THREE, so a wave 3 cannot
   // assume ten years each. Re-measure this from the table; never add rows per
   // county per year.
-  'in-county-acfr-tg': 110,
+  //
+  // ⚠⚠ WAVE 3 (2026-09-08) TRIPPED IT A THIRD TIME — `basis/in-county-acfr-tg:
+  // expected 110, got 156` — and the number below is again the MEASURED count,
+  // read out of the table after the write, never derived from the roster.
+  //
+  //   wave 3   Vanderburgh 6 · Porter 5 · Johnson 6 · Monroe 6   = 23 years
+  //
+  // ⚠⚠ PORTER LOADS **FIVE** OF ITS SIX GAAP YEARS, AND THAT IS A FOURTH KIND OF
+  // SHORTFALL: FY2022 is a DOCUMENT gap, not a coverage or a basis gap. The
+  // filing exists, is GAAP and is unmodified — and its statements are IMAGES at
+  // all three publishers that serve it (FAC, the Indiana State Board of
+  // Accounts, and Porter County's own website, whose copy was produced by a
+  // photocopier). 6+5+6+6 = 23, not 24. An expected count derived from
+  // "four counties x six years" would have been 48 and would have been wrong.
+  'in-county-acfr-tg': 156,
   // Knight session 6b (Tennessee's first local entity), measured from the ACTUAL
   // post-write count on 2026-08-30. 20 = 10 fiscal years x 2 datasets, ONE
   // consolidated entity. See the fuller note on the same id in
@@ -460,11 +474,14 @@ export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
   // Wave 2 adds five more of the same shape — St. Joseph ADVERSE (FY2020) and
   // DISCLAIMED (FY2021) over two public libraries it left out, Elkhart QUALIFIED
   // (FY2020, FY2021) over four — plus three that name BUSINESS-TYPE ACTIVITIES
-  // (Hendricks FY2020-FY2022). Seventeen of eighteen modified opinions across
-  // both waves land on units this scope does not report, and they land there
-  // because modified-accrual fund statements report neither component units nor
-  // capital assets.
-  'in-county-acfr-tg': 110,
+  // (Hendricks FY2020-FY2022). Wave 3 adds ONE more — Porter FY2019, ADVERSE for
+  // unevidenced capital assets at the county AIRPORT and for omitting the county
+  // PUBLIC LIBRARY. Eighteen of nineteen modified opinions across the three
+  // waves land on units this scope does not report, and they land there because
+  // modified-accrual fund statements report neither component units nor capital
+  // assets. (The nineteenth is Allen FY2020, flagged `fund_level`.)
+  // ⚠ MEASURED FROM THE TABLE after the wave-3 write, like its basis twin.
+  'in-county-acfr-tg': 156,
   // The sixteen entity-published city/state ACFR families.
   // Evidence: ACFR-GF-CLASSIFICATION-RECON.md §3.
   'or-city-acfr-gf': 106,

@@ -116,6 +116,43 @@ _BASIS_HEADING = re.compile(
     r'|Unmodified))*)\s+Opinions?\s+on\s+(?:the\s+)?([^\n]{0,160}?)\s*$',
     re.I | re.M)
 
+# ⚠⚠ AND THE UNIT CAN BE NAMED IN NEITHER HEADING — ONLY IN THE VERDICT ITSELF.
+#
+# Wave 3. Porter County FY2019 prints a bare `Basis for Adverse Opinion` AND a
+# bare `Adverse Opinion`, so the wave-2 rule above finds nothing to borrow and
+# the conservative default reports a FUND-LEVEL modification. The auditor does
+# name the unit — in the opinion sentence:
+#
+#     Adverse Opinion
+#         In our opinion, because of the significance of the matters discussed
+#         in the Basis for Adverse Opinion paragraph, the financial statements
+#         referred to above DO NOT PRESENT FAIRLY THE FINANCIAL POSITION OF THE
+#         AGGREGATE DISCRETELY PRESENTED COMPONENT UNITS of the County, as of
+#         December 31, 2019, ...
+#
+# The county's own `Summary of Opinions` table agrees line for line —
+# Governmental Activities, General, Cumulative Bridge, Co Revenue Bond Project,
+# Cable Franchise, the Foundation, Foundation Holding Account and Aggregate
+# Remaining Funds are all Unmodified; only the Aggregate Discretely Presented
+# Component Units are Adverse — and the basis paragraph names the two causes:
+# the Porter County Airport's capital-asset estimates and the OMITTED Porter
+# County Public Library. Both live only on the government-wide statements.
+#
+# ⚠ THE THIRD SOURCE IS TRIED LAST AND NARROWS NOTHING ELSE: heading unit first,
+# then the matching basis heading, then this. With no verdict sentence either,
+# the in-scope default is unchanged. The unit is still the AUDITOR'S OWN WORDS —
+# what is relaxed is where on the page they are read from.
+#
+# ⚠ ANCHORED AT BOTH ENDS AND SENTENCE-BOUND. `[^.]` cannot cross a full stop,
+# so a later paragraph about a different unit can never supply this verdict's
+# unit; and the tail `of the County, as of` is the auditor's own fixed wording,
+# so a sentence that does not have this exact shape matches NOTHING and leaves
+# the conservative in-scope default in place — the right direction to fail.
+_VERDICT_UNIT = re.compile(
+    r'presents?\s+fairly[^.]{0,300}?(?:respective\s+)?financial\s+position\s+of\s+'
+    r'(?:the\s+)?([^.]{0,240}?)\s+of\s+the\s+County\s*,\s*as\s+of\b',
+    re.I)
+
 # ⚠⚠ A COMPOUND HEADING IS THE SECTION TITLE, NOT A VERDICT. Allen prints
 # `Qualified and Unmodified Opinions` and Lake FY2021 prints `Adverse,
 # Disclaimed, and Unmodified Opinions` as the umbrella over the whole report,
@@ -294,7 +331,16 @@ def assess(path):
         # ⚠ Still the conservative default when the auditor named nothing
         # anywhere: no basis heading means one bare, unit-less entry, which the
         # in-scope test below treats as modifying everything.
-        borrowed = basis_units.get(_kind_key(kind)) or ['']
+        borrowed = basis_units.get(_kind_key(kind))
+        if not borrowed:
+            # ⚠⚠ THIRD AND LAST SOURCE: the verdict's OWN SENTENCE — see
+            # `_VERDICT_UNIT`. Porter FY2019 names its unit nowhere else.
+            # Bounded by the NEXT heading so one verdict can never read the
+            # sentence belonging to another.
+            nxt = _HEADING.search(text, m.end())
+            para = text[m.end():nxt.start() if nxt else len(text)]
+            said = _VERDICT_UNIT.search(para)
+            borrowed = [re.sub(r'\s+', ' ', said.group(1)).strip()] if said else ['']
         for u in borrowed:
             headings.append((kind, u))
 
