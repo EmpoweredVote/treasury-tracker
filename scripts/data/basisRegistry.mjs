@@ -239,6 +239,48 @@ export const BASIS_REGISTRY = [
     },
   },
   {
+    // Indiana's counties via their own audited ACFRs, wave 1.
+    // ⚠ See the collision warning on in-county-acfr-tg in fundScopeRegistry.mjs:
+    // `Marion County` names governments in at least sixteen states, and TT
+    // already carries Marion County, FL and Marion County, OR.
+    id: 'in-county-acfr-tg',
+    match: /^(Marion County|Lake County|Allen County|Hamilton County) ACFR — Total Governmental Funds (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
+    value: BASIS.ACTUAL,
+    evidence: {
+      document: 'Marion County FY2016-FY2025, Hamilton County FY2016-FY2025, Allen County '
+              + 'FY2016-FY2024 and Lake County FY2020-FY2021 audited ACFRs — closed calendar '
+              + 'years, every one of them. '
+              + '⭐ THE FISCAL CALENDAR IS CONFIRMED THREE TIMES OVER AND ASSUMED NOWHERE: every '
+              + 'statement page prints "For The Year Ended December 31, <year>"; every one of '
+              + 'the 562 Indiana county filings in the FAC roster reports fy_end_date 12-31; and '
+              + 'the FAC fiscal-year census independently returns month 1 for all four counties, '
+              + 'checked per entity-YEAR by censusGuard at load time so a contradiction fails '
+              + 'the load. ⭐ All 31 loaded entity-years come back ACTIVELY CONFIRMED; none '
+              + 'rests on the census being silent.',
+      figures: 'Every stored figure is the printed TOTAL GOVERNMENTAL FUNDS column of the '
+             + 'governmental-funds Statement of Revenues, Expenditures and Changes in Fund '
+             + 'Balances — a year-end GAAP actual, tying at exactly $0 on both sides in all 62 '
+             + 'extractions. NOT an appropriation. '
+             + '⚠⚠ ALL FOUR ISSUERS ALSO PRINT A BUDGETARY COMPARISON SCHEDULE IN THE SAME '
+             + 'DOCUMENT, which IS budget basis and would carry no arithmetic symptom under a '
+             + 'GAAP-actual label. It is structurally unreachable: the reader excludes any page '
+             + 'carrying "budgetary" or "budget and actual", and each wrapper\'s '
+             + '`statement_anchor` additionally REQUIRES the words "Governmental Funds" — which '
+             + 'also excludes the General-Fund-only statement Marion prints on p.114, a page '
+             + '`target_column=\'last\'` would otherwise read happily at a $0 tie. '
+             + '⚠⚠ BASIS IS NOT UNIFORM ACROSS INDIANA COUNTIES AND WAS MEASURED, NOT ASSUMED: '
+             + '459 of the 562 county filings are State Board of Accounts REGULATORY-BASIS '
+             + 'reports (`Statement of Receipts, Disbursements, and Cash and Investment Balances '
+             + '- Regulatory Basis`) with no governmental-funds statement in them. Lake County '
+             + 'files six of those and only TWO GAAP years, which is why its window is FY2020-'
+             + 'FY2021 alone. Two independent FAC signals agree on all 562 with zero '
+             + 'disagreements (`gaap_results` contains `not_gaap` exactly when '
+             + '`sp_framework_basis` is non-empty), and both were confirmed against the '
+             + 'documents. ⚠ The COVER TITLE is not the test — Allen\'s GAAP filings carry a '
+             + 'plain SBOA "ANNUAL FINANCIAL REPORT" cover.',
+    },
+  },
+  {
     // NC-DURHAM-AVL-01, measured 2026-08-24: City of Durham 32 + Durham County 42
     // + City of Asheville 28 + Buncombe County 36 = 138. A NEW family, so no
     // pre-existing count moved. (Asheville was 10 rows at first load; nine

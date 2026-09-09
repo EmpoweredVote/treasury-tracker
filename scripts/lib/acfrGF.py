@@ -819,8 +819,43 @@ def _recover_label_past_leading_rule(line):
 # "Balances?" — Tigard titles its statement "CHANGES IN FUND BALANCE" (singular)
 # while every other city so far uses the plural. Requiring the plural silently
 # fails detection ("primary GF statement not found") rather than mis-parsing.
+#
+# ⚠⚠ `\s*` AND NOT `\s+` AFTER THE SECOND COMMA — the issuer, not the grid.
+# Allen County IN prints its own title with the comma on the WRONG SIDE of the
+# space in FY2016-FY2022:
+#
+#     FY2024   STATEMENT OF REVENUES, EXPENDITURES, AND CHANGES IN FUND BALANCES
+#     FY2016   STATEMENT OF REVENUES, EXPENDITURES ,AND CHANGES IN FUND BALANCES
+#                                                 ^^^^ space before, none after
+#
+# The old `,?\s+and` required whitespace between the comma and "and", so seven
+# of Allen's ten filings reported `primary GF statement not found` on a clean,
+# born-digital page — the symptom that reads exactly like OCR damage (failure
+# mode 8) and exactly like the FY2016 Florence / FY2018 Sumter whitespace
+# defects (failure mode 9). Those two were the CHARACTER GRID inserting
+# whitespace; this one is a TYPO IN THE PUBLISHED DOCUMENT, reproduced
+# faithfully by every reader. The same document also prints `COMBINING
+# STATMENT` on its subfund pages, so it is not an isolated slip.
+#
+# ⚠ This cannot admit a wrong page: "and Changes in Fund Balances" still has to
+# follow, and a proprietary or budgetary page is excluded by `_EXCLUDE`
+# regardless of how its commas are spaced.
+#
+# ⭐ PROVED SAFE THE CHEAP WAY, over the WHOLE PDF CORPUS: `find_statement_page`'s
+# ANSWER was compared old-regex vs new across all **1,828 PDFs** in the repo and
+# `_acfr-work` (0 unreadable). The selected page changed on **7 documents, and
+# all seven are Allen County IN** — every one of them `NOTHING FOUND -> a page`:
+#
+#     allen_2016 None -> 22    allen_2019 None -> 22    allen_2022 None -> 25
+#     allen_2017 None -> 22    allen_2020 None -> 23
+#     allen_2018 None -> 22    allen_2021 None -> 25
+#
+# ZERO documents moved to a DIFFERENT page and ZERO lost the page they had, which
+# is the property that matters: relaxing a separator can only ever find a page
+# that was previously lost. Same method as the failure-mode-9 fix, which found
+# 9 such documents across 1,053.
 _TITLE = re.compile(
-    r'Statement\s+of\s+Revenues\s*,?\s*Expenditures\s*,?\s+and\s+Changes\s+in\s+Fund\s+Balances?',
+    r'Statement\s+of\s+Revenues\s*,?\s*Expenditures\s*,?\s*and\s+Changes\s+in\s+Fund\s+Balances?',
     re.I)
 # A combining / subfund / budgetary page must never be mistaken for the primary
 # statement. Budgetary pages in particular are budget-basis (and, for biennial
@@ -1856,16 +1891,43 @@ def build_revenue(lines, col_anchors, cfg):
         kind, lbl, val = classify(l, col_anchors, cfg)
         low = (lbl or '').lower()
 
+        # ⚠⚠ THE SUBPARENT TEST COMES FIRST, AND THE ORDER IS LOAD-BEARING.
+        #
+        # Hamilton County IN prints `Other:` TWICE in one revenue section, at two
+        # different levels, in FY2016-FY2020:
+        #
+        #     Taxes:
+        #         Property / Income
+        #         Other:                  <- a SUB-heading, inside Taxes
+        #             Food and beverage / Innkeepers
+        #     Special assessments ... Fines and forfeits
+        #     Other:                      <- a ROOT group
+        #         Interest revenue / Sale of property / Donations / Other
+        #
+        # so the same label has to be a subparent in one place and a parent in the
+        # other. What separates them is whether a group is OPEN: the first `Other:`
+        # arrives while `Taxes` is open, the second only after `Fines and forfeits`
+        # (not a member) has closed it. Testing subparents first expresses exactly
+        # that, and the parent branch still catches every `Other:` at root level.
+        #
+        # With the parent test first, the in-Taxes heading opened a THIRD root
+        # group and hung Food and beverage + Innkeepers off it — 10 revenue roots
+        # where the page prints 7, at a tie of exactly $0. Failure mode 1 again.
+        #
+        # ⚠ This is a NO-OP for the only two entities that declared subparents
+        # before (Aberdeen SD, Brown County SD): their `revenue_parents` and
+        # `revenue_subparents` tuples are disjoint, so no label can reach both
+        # branches and the order cannot matter. Pinned by a selftest.
+        if kind == 'wrapped' and low in cfg.revenue_subparents and parent is not None:
+            subparent = {'n': lbl, 'a': 0, 'c': []}
+            parent['c'].append(subparent)
+            pending = ''
+            continue
         if kind == 'wrapped' and low in cfg.revenue_parents:
             parent = {'n': lbl, 'a': 0, 'c': []}
             subparent = None
             parent_seen = False
             root_children.append(parent)
-            pending = ''
-            continue
-        if kind == 'wrapped' and low in cfg.revenue_subparents and parent is not None:
-            subparent = {'n': lbl, 'a': 0, 'c': []}
-            parent['c'].append(subparent)
             pending = ''
             continue
         # Trap 6, on the REVENUE side. `build_operating` has had this branch since

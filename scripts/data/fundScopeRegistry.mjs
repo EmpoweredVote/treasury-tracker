@@ -505,6 +505,87 @@ export const FUND_SCOPE_REGISTRY = [
     },
   },
   {
+    // ⚠⚠ THE ONE ACFR FAMILY IN TT THAT IS NOT GENERAL FUND, AND THAT IS THE
+    // WHOLE POINT OF IT. Every other `ACFR —` entry above reads the General Fund
+    // column; Indiana's counties read the TOTAL GOVERNMENTAL FUNDS column,
+    // because the question they exist to answer is a scope question.
+    //
+    // ⚠ ANCHORED AT BOTH ENDS and pinned to the four wave-1 counties and the
+    // exact FY window read, for the reason `nc-charlotte-acfr` is: an unanchored
+    // `/ACFR —/` shape claims ~1,850 rows across families nobody has
+    // reconciled, and a future Indiana county lands `unknown` until it is
+    // evidenced, which is the correct failure direction.
+    //
+    // ⚠ `Marion County` NAMES GOVERNMENTS IN AT LEAST SIXTEEN STATES and TT
+    // already carries Marion County, FL and Marion County, OR. Nothing collides
+    // today because no other loader writes this label shape — but if one ever
+    // does, split by municipality_id rather than widening the string.
+    id: 'in-county-acfr-tg',
+    match: /^(Marion County|Lake County|Allen County|Hamilton County) ACFR — Total Governmental Funds (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
+    scope: SCOPE.TOTAL_GOVERNMENTAL,
+    evidence: {
+      document: 'Each county\'s own audited ACFR, governmental-funds Statement of Revenues, '
+              + 'Expenditures and Changes in Fund Balances, fetched from the Federal Audit '
+              + 'Clearinghouse (app.fac.gov/dissemination/report/pdf/<report_id>, free, no key) '
+              + 'and parsed by scripts/lib/acfrGF.py with `target_column=\'last\'`. Every one of '
+              + 'the 62 extractions ties at exactly $0 against the printed total. '
+              + '⭐ THIS IS THE STRONGEST DISCRIMINATOR SHAPE AVAILABLE ANYWHERE IN THIS '
+              + 'REGISTRY, the Ohio AOS shape: the SAME DOCUMENT prints the General Fund and the '
+              + 'Total Governmental Funds columns SIDE BY SIDE on one page, so which column TT '
+              + 'loaded is a fact about a column position, not an inference from a ratio.',
+      figures: 'All figures WHOLE DOLLARS — no units caption on any statement page, checked per '
+             + 'document rather than carried between them. '
+             + 'MARION COUNTY FY2025 (report 2025-12-GSAFAC-0000409398, p.63): printed GENERAL '
+             + 'FUND revenue 304,421,719 against printed TOTAL GOVERNMENTAL revenue 463,520,173, '
+             + 'and the stored figure is 463,520,173 — the component sum of Taxes 357,319,222 + '
+             + 'Intergovernmental 51,203,509 + Charges for services 32,822,924 + Interest '
+             + '21,187,771 + Miscellaneous 972,430 + Traffic violations and court fees 14,317, '
+             + 'tie delta 0. Expenditure 461,580,878, likewise tying at 0. '
+             + '⭐ INDEPENDENTLY CROSS-CHECKED: the same PDF carries a ten-year statistical '
+             + 'schedule listing 463,520,173 for FY2025 down to 289,151,824 for FY2016, and the '
+             + 'ten extractions reproduce both endpoints exactly. ⚠ That schedule is labelled '
+             + '"III. STATISTICAL SECTION (UNAUDITED)" in the document\'s own table of contents '
+             + 'and is therefore used ONLY as a free cross-check, never as the source. '
+             + 'HAMILTON COUNTY FY2024 (p.49): Total Governmental revenue 345,104,150 = Taxes '
+             + '96,108,741+111,489,249+8,414,503+8,757,312+29,783 + Special assessments 6,914,634 '
+             + '+ Intergovernmental 72,030,524 + Charges for services 9,651,788 + Fines and '
+             + 'forfeits 2,152,493 + Investment earnings 24,724,832 + Other 101,795+4,728,496; '
+             + 'the General Fund column of the same row is 160,867,746, i.e. 46.6% of it. '
+             + 'ALLEN COUNTY FY2024 (p.25): Total Governmental revenue 324,150,411 against a '
+             + 'General Fund column of 151,644,249 (46.8%). '
+             + 'LAKE COUNTY FY2020 (p.13): 351,845,744 against a General Fund 185,217,724 '
+             + '(52.6%). '
+             + '⚠⚠ REJECTED SCOPES, measured not assumed: `general_fund` is 34-53% of every '
+             + 'stored figure above, so it is excluded by a wide margin. `all_funds` is excluded '
+             + 'STRUCTURALLY — these statements are the GOVERNMENTAL FUNDS statement and carry no '
+             + 'enterprise or internal service column at all, and TT independently holds the '
+             + 'all-funds answer for the same county-years from the Indiana Gateway AFR, which '
+             + 'runs FAR higher: Marion County FY2023 loads at roughly 3.3x its own audited '
+             + 'governmental-funds revenue on custodial property-tax and local-income-tax '
+             + 'pass-through settled to other units. Those Gateway rows stay, labelled '
+             + '`all_funds`; these are a different scope of the same government, not a '
+             + 'correction of them. '
+             + 'REPORTING ENTITY: the PRIMARY GOVERNMENT, including its BLENDED component units '
+             + 'and excluding its DISCRETELY PRESENTED ones — which is a fact about the '
+             + 'statement, not a choice this loader made. A discretely presented component unit '
+             + 'appears only in its own column on the GOVERNMENT-WIDE statements and never on '
+             + 'the governmental funds statement; a blended one is presented as a fund of the '
+             + 'primary government and is therefore inside the total by construction (Allen '
+             + 'County FY2024 prints `Allen County, Indiana Building Corporation` as a MAJOR '
+             + 'FUND COLUMN of the very statement read here). '
+             + '⚠⚠ AND THE BOUNDARY IS AUDITED, NOT ASSUMED: Allen County carries a QUALIFIED '
+             + 'opinion in all nine loaded years for omitting four fire protection districts '
+             + 'from its DISCRETELY PRESENTED component units, and Lake County an ADVERSE one '
+             + 'for omitting its component units entirely. Both defects are about a column this '
+             + 'scope does not report — which is exactly why the boundary is worth stating. See '
+             + 'scripts/data/inCountyAcfrOpinions.mjs. '
+             + '⚠ This makes the entity boundary NARROWER than the mn-osa entry\'s, which '
+             + 'consolidates '
+             + 'HRA/EDA/TIF component units that city ACFRs present separately, and identical '
+             + 'in kind to every other issuer-published ACFR family in TT.',
+    },
+  },
+  {
     // NC-DURHAM-AVL-01, measured 2026-08-24: City of Durham 32 + Durham County 42
     // + City of Asheville 28 + Buncombe County 36 = 138. A NEW family, so no
     // pre-existing count moved. (Asheville was 10 rows at first load; nine

@@ -460,6 +460,78 @@ export const AUDIT_GRADE_REGISTRY = [
     },
   },
   {
+    // ⚠⚠ THE FIRST FAMILY IN TT WHERE `audited_gaap` COVERS DOCUMENTS THAT ARE
+    // NOT ALL CLEAN. Eleven of the 31 loaded entity-years carry a MODIFIED
+    // opinion on some opinion unit, and `project_audit_grade_reader_facing`
+    // records an OPEN defect: a qualified opinion currently grades identically
+    // to a clean one. That defect is harmless where every document is clean, so
+    // this entry does NOT rely on the grade string to carry the nuance —
+    // `scripts/data/inCountyAcfrOpinions.mjs` records every modification, which
+    // unit it names, and whether it reaches the loaded figures, and
+    // `scripts/loadInCountyAcfrs.mjs` prints all of them at load time.
+    //
+    // ⚠ ANCHORED AT BOTH ENDS and pinned to the four wave-1 counties and the FY
+    // window actually read, so a future Indiana county lands `unknown` until its
+    // own opinion has been read.
+    id: 'in-county-acfr-tg',
+    match: /^(Marion County|Lake County|Allen County|Hamilton County) ACFR — Total Governmental Funds (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
+    value: AUDIT_GRADE.AUDITED_GAAP,
+    evidence: {
+      document: 'The independent auditor\'s report, read in ALL 37 FETCHED DOCUMENTS (the 31 '
+        + 'loaded, plus Lake County\'s six regulatory-basis filings) on 2026-09-08 by '
+        + '`scripts/verifyInCountyOpinions.py`, which locates the report by its own heading and '
+        + 'reads the auditor\'s OPINION-UNIT SECTION HEADINGS rather than searching for words. '
+        + '⚠⚠ A WORD-PRESENCE GATE IS THE WRONG INSTRUMENT HERE. `verifyCoKsOpinions.py` asks '
+        + '"does this document contain modified-opinion WORDS", which in Colorado and Kansas '
+        + 'flagged only boilerplate. In Indiana it would flag twelve documents identically and '
+        + 'downgrade none, burying the one case that matters. Indiana\'s SBOA reports print a '
+        + '"Summary of Opinions" table and a section heading PER OPINION UNIT, so the question '
+        + 'this gate asks is the answerable one: does any modification name a FUND-LEVEL unit? '
+        + '⚠ All 31 loaded documents are born-digital and the opinion is found by plain search; '
+        + 'no OCR was needed, unlike nine of South Carolina\'s nineteen. Document quality is a '
+        + 'property of the issuer and was re-checked here rather than assumed.',
+      figures: 'THE SCOPE CLAUSE IS WHAT MATTERS, and what these rows report is the TOTAL '
+        + 'GOVERNMENTAL FUNDS column — i.e. each major governmental fund plus the nonmajor '
+        + 'governmental funds inside the Aggregate Remaining Fund Information. '
+        + 'MARION (10 years) and HAMILTON (10 years): unmodified on every opinion unit; FAC\'s '
+        + '`gaap_results` independently records `unmodified_opinion` with no second token on all '
+        + 'twenty. '
+        + 'ALLEN (9 years): a QUALIFIED opinion in EVERY year, on the AGGREGATE DISCRETELY '
+        + 'PRESENTED COMPONENT UNITS — the county omits the Southwest / Northeast / Northwest / '
+        + 'West Central Allen County Fire Protection Districts (and, through FY2017, the Solid '
+        + 'Waste District) that GAAP requires it to present. FY2024 verbatim, from the county\'s '
+        + 'own Summary of Opinions table: Governmental Activities Unmodified, Business-Type '
+        + 'Activities Unmodified, Aggregate Discretely Presented Component Units QUALIFIED, '
+        + 'General Fund Unmodified, and Unmodified on all five remaining fund units. A discretely '
+        + 'presented component unit is a legally separate organisation shown in its own column on '
+        + 'the GOVERNMENT-WIDE statements and appears nowhere in the governmental funds '
+        + 'statement these figures come from. '
+        + '⚠⚠ ALLEN FY2020 IS THE ONE EXCEPTION AND IT IS RECORDED AS SUCH: it carries a SECOND '
+        + 'qualification, on the AGGREGATE REMAINING FUND INFORMATION, which IS a fund-level '
+        + 'unit. The auditor\'s stated basis is an omitted receivable "due to other governmental '
+        + 'units IN THE FIDUCIARY FUNDS" — a balance-sheet item in the fiduciary half of a unit '
+        + 'that spans both — so it does not reach any revenue or expenditure line loaded here. '
+        + 'That is a judgement, not a proof, and the year is flagged `fund_level` rather than '
+        + 'argued down. '
+        + 'LAKE (2 years): FY2020 and FY2021 carry a DISCLAIMER of opinion on GOVERNMENTAL '
+        + 'ACTIVITIES ($288,186,733 of capital assets and $12,658,380 of depreciation for which '
+        + '"the County did not provide documentation", 39% of total assets) and an ADVERSE '
+        + 'opinion on the component units, which it omitted entirely. Governmental Activities is '
+        + 'the GOVERNMENT-WIDE, full-accrual statement, and capital assets and depreciation are '
+        + 'precisely what a modified-accrual governmental FUNDS statement does not report; the '
+        + 'General Fund, the ARP fund and the Aggregate Remaining Fund Information are each '
+        + 'UNMODIFIED and together they ARE the Total Governmental Funds column. Both years are '
+        + 'flagged. '
+        + '⚠ ONE OCBOA HIDES IN A GAAP COHORT — except in Indiana it is not hiding: 459 of the '
+        + '562 county filings are regulatory basis, and Lake\'s other six are among them. Every '
+        + 'loaded document was checked for `modified cash basis`, `regulatory basis` and `basis '
+        + 'of accounting other than`; the only GAAP-year hit is Marion FY2016, whose own notes '
+        + 'say "Financial statements for periods prior to 2016 were prepared on the modified cash '
+        + 'basis" — a statement about the PRIOR years, and the reason this window opens at '
+        + 'FY2016.',
+    },
+  },
+  {
     id: 'sc-rfa-lgf-county',
     match: /^South Carolina RFA Local Government Finance Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[2-9]|2[0-4]) actual, county only(?:, excl\. bond and lease proceeds)?\)$/,
     value: AUDIT_GRADE.SELF_REPORTED_UNAUDITED,

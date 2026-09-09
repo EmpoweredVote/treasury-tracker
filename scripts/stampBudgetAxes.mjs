@@ -245,6 +245,20 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // nine, not eight: FY2020 has no federal filing and comes from the TOWN's own
   // publisher, the first year in this family sourced outside FAC.
   'sc-local-acfr-gf': 224,
+  // Indiana counties via their own audited ACFRs, wave 1. MEASURED IN THE
+  // DATABASE AFTER THE WRITE, never derived from the roster: 62 rows over 62
+  // DISTINCT ids, 62 distinct source strings and 4 municipality_ids, splitting
+  // 31 operating + 31 revenue, with fund_scope total_governmental / basis actual
+  // / derivation published / audit_grade audited_gaap and fiscal month 1 uniform
+  // across all 62. Year counts 10, 10, 9, 2 (Marion, Hamilton, Allen, Lake).
+  //
+  // ⚠⚠ LAKE'S 2 IS THE POINT, NOT A DEFECT. Six of its eight FAC filings are
+  // SBOA REGULATORY-BASIS reports with no governmental-funds statement in them,
+  // so only FY2020 and FY2021 are loadable. Statewide, 459 of Indiana's 562
+  // county filings are regulatory basis and only 17 counties ever file GAAP —
+  // see IN_COUNTY_BASIS_GAPS. A future wave adding a fifth county must
+  // re-measure this number from the table, not add 2 per year per county.
+  'in-county-acfr-tg': 62,
   // Knight session 6b (Tennessee's first local entity), measured from the ACTUAL
   // post-write count on 2026-08-30. 20 = 10 fiscal years x 2 datasets, ONE
   // consolidated entity. See the fuller note on the same id in
@@ -426,6 +440,15 @@ export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
   // Remaining exclusions are documented per entity in ncAcfrSources.mjs.
   // Evidence: docs/superpowers/plans/NC-DURHAM-AVL-01-CLOSEOUT.md section 6.
   'nc-local-acfr-gf': 210,
+  // Indiana counties, wave 1 — the same 62 rows as the basis entry above,
+  // measured in the table after the write. `primary_government` because a
+  // DISCRETELY PRESENTED component unit appears only in the government-wide
+  // statements, never in a governmental-FUNDS total, while a BLENDED one is a
+  // fund of the primary government and therefore is inside.
+  // ⚠⚠ Uniquely well evidenced, because the auditor says so: Allen County is
+  // QUALIFIED in all nine years for OMITTING component units it should have
+  // presented discretely, and Lake County ADVERSE for omitting them entirely.
+  'in-county-acfr-tg': 62,
   // The sixteen entity-published city/state ACFR families.
   // Evidence: ACFR-GF-CLASSIFICATION-RECON.md §3.
   'or-city-acfr-gf': 106,

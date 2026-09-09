@@ -160,6 +160,18 @@ const REQUIRED = {
   // report puts revenues and expenditures on different scopes by construction.
   // Same state, two sources, two honest answers.
   'loadScCityAcfrs.mjs': 'SC city ACFRs (Charleston, Mount Pleasant) — 36 rows, general_fund / actual',
+  // ⚠⚠ THE CALLER WITH THE MOST TO LOSE FROM OMITTING THE PAIR, because it is
+  // the ONLY one writing into county-years that ALREADY HOLD A ROW FROM ANOTHER
+  // TT FAMILY. Every wave-1 county already carries Indiana Gateway AFR rows at
+  // `all_funds` for the same (municipality, fiscal_year, dataset_type), and the
+  // RPC's key is (municipality, fiscal_year, dataset_type, FUND_SCOPE, BASIS).
+  // Omit the pair here and the call asks for unknown/unknown — matching neither
+  // the Gateway row nor its own — and every re-run duplicates all 62.
+  // ⚠ `total_governmental`, not `general_fund`: the one ACFR family in TT that
+  // does not read the General Fund column. See the module docstring for why.
+  'loadInCountyAcfrs.mjs': 'Indiana county audited ACFRs (Marion, Lake, Allen, Hamilton) — '
+    + '62 rows, total_governmental / actual, written ALONGSIDE the same counties\' '
+    + 'Gateway all_funds rows',
   'loadFloridaDFS.mjs': 'Florida DFS AFR — 190 rows, total_governmental/actual',
   // ⚠ The statewide sweep writes the SAME family as loadFloridaDFS.mjs and imports
   // its FUND_SCOPE/BASIS_VALUE constants rather than restating them, so the two
