@@ -59,11 +59,33 @@ export const MODES = ['revenue', 'operating'];
 /**
  * Documents that exist, are GAAP, and still cannot be read, with the CAUSE.
  *
- * ⚠ EMPTY for wave 1 — all 30 loadable documents read and tie. Kept because a
- * gap must be DECLARED with its cause rather than skipped, and because an empty
- * map is a measured statement rather than an absent one.
+ * ⚠ EMPTY through waves 1 and 2 — all 55 loadable documents read and tied. Kept
+ * because a gap must be DECLARED with its cause rather than skipped, and because
+ * an empty map is a measured statement rather than an absent one.
+ *
+ * ⚠⚠⚠ WAVE 3 OPENED IT. Porter County FY2022 is the family's FIRST document gap
+ * — and the how-to's own instruction ("check other publishers before declaring a
+ * year lost, and check more than one") was followed to the end before declaring
+ * it. THREE publishers, THREE distinct files, all unreadable in the same place.
  */
-export const KNOWN_DOCUMENT_GAPS = Object.freeze({});
+export const KNOWN_DOCUMENT_GAPS = Object.freeze({
+  'porter-2022': 'IMAGE-ONLY STATEMENTS. The FAC copy (2022-12-GSAFAC-0000037032, 22.9 MB, '
+    + '223 pages) carries a text layer on only 20 of its pages — the auditor\'s report and the '
+    + 'single-audit schedules at the back — and `Total revenues` appears NOWHERE in it. '
+    + '`scripts/tools/acfrDocQuality.py` scores it 174 chars/page against 1,649-2,344 for '
+    + 'Porter\'s five other years, and 3 numeric statement pages against 95-158. '
+    + '⚠⚠ THREE PUBLISHERS WERE CHECKED AND ALL THREE ARE DAMAGED, WHICH IS WHAT MAKES THIS A '
+    + 'DOCUMENT GAP RATHER THAN A BAD COPY: the Indiana State Board of Accounts copy '
+    + '(in.gov/sboa/WebReports/85053A.pdf, 24.8 MB, 226 pages) scores 182 chars/page, and '
+    + 'Porter County\'s OWN copy (portercountyin.gov DocumentCenter/View/24007, 68.0 MB, 206 '
+    + 'pages) scores 1 char/page and was produced by a TOSHIBA e-STUDIO4528A — the county '
+    + 'printed its audited report and scanned it back in. Three different sha256s, one damaged '
+    + 'document. '
+    + '⭐ NOTE WHAT THIS BREAKS: the auditor\'s report IS born-digital in the FAC copy, so an '
+    + 'opinion gate reads this document perfectly while there is nothing whatever to extract. '
+    + 'A grading pass is not an extraction pass. '
+    + 'Porter therefore loads FIVE years, not six. Never interpolated, never a $0.',
+});
 
 export function stemFor(entityKey, fiscalYear) {
   return `${entityKey}-${fiscalYear}`;
@@ -144,7 +166,16 @@ export async function main() {
           continue;
         }
         // ⚠⚠ Refuse to WRITE a bad tie. A cached file is trusted downstream.
-        if (data.tie_delta !== 0) {
+        //
+        // ⚠⚠ ONE EXCEPTION, AND IT IS NOT A TOLERANCE: a delta the wrapper's own
+        // `source_rounding` registry DECLARED for this exact (fiscal_year, mode)
+        // and the library confirmed. Porter FY2020 is the family's first — the
+        // county's General Fund column is a dollar short of its own printed
+        // total and the Total Governmental column carries it. A different delta
+        // in the same year, or an undeclared one, still fails here.
+        if (data.tie_delta !== 0
+            && !(data.source_rounding_accepted !== null
+                 && data.source_rounding_accepted === data.tie_delta)) {
           failures.push(`${stem} ${mode}: tie_delta ${data.tie_delta}`);
           continue;
         }

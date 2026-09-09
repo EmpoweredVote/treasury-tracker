@@ -276,6 +276,79 @@ export const IN_COUNTY_ENTITIES = Object.freeze([
     fiscalYearStartMonth: 1,
     monthStatus: 'confirmed',
   },
+
+  // ── WAVE 3 — counties nine to twelve by PEP-2024 population ───────────────
+  //
+  // ⭐ THE FY2019 GAAP WINDOW HELD A THIRD TIME, AND IT WAS MEASURED BEFORE A
+  // BYTE WAS FETCHED: every FY2016-FY2018 filing these four counties have
+  // carries `sp_framework_basis=regulatory_basis` and `gaap_results=not_gaap`,
+  // and every FY2019-onward one carries a GAAP opinion and an empty
+  // `sp_framework_basis`. Six loadable years each, FY2019-FY2024.
+  //
+  // ⚠ The wave is the next four of the SEVENTEEN GAAP counties by population —
+  // Vanderburgh 180,387 · Porter 175,860 · Johnson 170,614 · Monroe 140,702,
+  // ahead of Madison 134,222 and Clark 127,479. The ranking is over the 17, not
+  // over the 92: population does not decide whether a county files GAAP.
+  {
+    key: 'vanderburgh',
+    name: 'Vanderburgh County',
+    entityType: IN_COUNTY_ENTITY_TYPE,
+    extractor: 'scripts/extractVanderburghCountyIN.py',
+    state: IN_COUNTY_STATE,
+    population: 180387,
+    censusName: 'Vanderburgh County',
+    facEin: '356000205',
+    fiscalYearStartMonth: 1,
+    monthStatus: 'confirmed',
+  },
+  {
+    key: 'porter',
+    name: 'Porter County',
+    entityType: IN_COUNTY_ENTITY_TYPE,
+    extractor: 'scripts/extractPorterCountyIN.py',
+    state: IN_COUNTY_STATE,
+    population: 175860,
+    censusName: 'Porter County',
+    facEin: '356000187',
+    fiscalYearStartMonth: 1,
+    monthStatus: 'confirmed',
+  },
+  {
+    key: 'johnson',
+    name: 'Johnson County',
+    entityType: IN_COUNTY_ENTITY_TYPE,
+    extractor: 'scripts/extractJohnsonCountyIN.py',
+    state: IN_COUNTY_STATE,
+    population: 170614,
+    censusName: 'Johnson County',
+    facEin: '356000164',
+    fiscalYearStartMonth: 1,
+    monthStatus: 'confirmed',
+    /** ⚠ No FY2018 filing at all — a coverage gap OUTSIDE the GAAP window. */
+    note: 'no FY2018 filing at FAC',
+  },
+  {
+    key: 'monroe',
+    /**
+     * ⚠⚠ MONROE IS THE EIN-CHANGE COUNTY THIS ROUTE WAS BUILT TO SURVIVE. Its
+     * FY2016 filing is under EIN 351732465 and every filing from FY2017 is under
+     * 351732462 — ONE GOVERNMENT, TWO EINs, the Indiana shape that SPLITS a
+     * series if anything joins on it. Nothing here does: identity is the ROSTER
+     * COUNTY and `facEin` is evidence. The value below is the one that covers
+     * the loadable window (FY2019-FY2024); the FY2016 filing it does not name is
+     * a REGULATORY-BASIS report this route cannot read anyway.
+     */
+    name: 'Monroe County',
+    entityType: IN_COUNTY_ENTITY_TYPE,
+    extractor: 'scripts/extractMonroeCountyIN.py',
+    state: IN_COUNTY_STATE,
+    population: 140702,
+    censusName: 'Monroe County',
+    facEin: '351732462',
+    fiscalYearStartMonth: 1,
+    monthStatus: 'confirmed',
+    note: 'files under two EINs across its FAC history (351732465 -> 351732462)',
+  },
 ]);
 
 /**
@@ -410,6 +483,27 @@ export const IN_COUNTY_BASIS_GAPS = Object.freeze({
   hendricks: Object.freeze(Object.fromEntries([2016, 2017, 2018].map((fy) => [
     fy, SBOA_REGULATORY("Hendricks's GAAP filings begin at FY2019."),
   ]))),
+
+  // ── ⭐ WAVE 3: THE FY2019 WINDOW HOLDS IN A THIRD SET OF FOUR ─────────────
+  //
+  // Twelve counties now, and outside Marion/Allen/Hamilton not ONE of them
+  // files GAAP before FY2019. Wave 2 could still have been four counties that
+  // happened to move together; three waves and eight counties is the shape of
+  // the ceiling. ⚠ Johnson's FY2018 is a COVERAGE gap, not a basis one — it has
+  // no filing at all — so it is declared once, below, and not twice.
+  vanderburgh: Object.freeze(Object.fromEntries([2016, 2017, 2018].map((fy) => [
+    fy, SBOA_REGULATORY("Vanderburgh's GAAP filings begin at FY2019."),
+  ]))),
+  porter: Object.freeze(Object.fromEntries([2016, 2017, 2018].map((fy) => [
+    fy, SBOA_REGULATORY("Porter's GAAP filings begin at FY2019."),
+  ]))),
+  johnson: Object.freeze(Object.fromEntries([2016, 2017].map((fy) => [
+    fy, SBOA_REGULATORY("Johnson's GAAP filings begin at FY2019, and it has no FY2018 filing."),
+  ]))),
+  monroe: Object.freeze(Object.fromEntries([2016, 2017, 2018].map((fy) => [
+    fy, SBOA_REGULATORY("Monroe's GAAP filings begin at FY2019. ⚠ Its FY2016 filing is under a "
+      + 'DIFFERENT EIN (351732465) from every later one (351732462).'),
+  ]))),
 });
 
 /**
@@ -453,6 +547,24 @@ export const IN_COUNTY_COVERAGE_GAPS = Object.freeze({
     2025: 'No FY2025 filing at FAC yet — FY2025 is still arriving.',
   }),
   hendricks: Object.freeze({
+    2025: 'No FY2025 filing at FAC yet — FY2025 is still arriving.',
+  }),
+
+  // ── WAVE 3 ────────────────────────────────────────────────────────────────
+  vanderburgh: Object.freeze({
+    2025: 'No FY2025 filing at FAC yet — FY2025 is still arriving.',
+  }),
+  porter: Object.freeze({
+    2025: 'No FY2025 filing at FAC yet — FY2025 is still arriving.',
+  }),
+  johnson: Object.freeze({
+    2018: 'No FY2018 filing at FAC for EIN 356000164 — Johnson files for FY2016, FY2017 and '
+      + 'then FY2019 onward. The $750k Single Audit threshold, not a publishing decision. '
+      + '⚠ It is OUTSIDE the GAAP window either way: FY2016 and FY2017 are both regulatory '
+      + 'basis, so no loadable year is lost to it.',
+    2025: 'No FY2025 filing at FAC yet — FY2025 is still arriving.',
+  }),
+  monroe: Object.freeze({
     2025: 'No FY2025 filing at FAC yet — FY2025 is still arriving.',
   }),
 });
@@ -522,9 +634,16 @@ export function fiscalMonthFor(entity, _fiscalYear) {
  * The tie gate proves the READ. It says nothing about whether a series is
  * comparable year to year, and the acfrGF how-to's own sanity check is to
  * explain every big move before shipping. Eight moves in wave 1's eight series
- * exceed 20%, and NINE MORE in wave 2's eight. All seventeen were decomposed
- * by root category — and, where the issuer says something, traced to the
- * issuer's own words.
+ * exceed 20%, NINE MORE in wave 2's eight and SIX MORE in wave 3's eight. All
+ * twenty-three were decomposed by root category — and, where the issuer says
+ * something, traced to the issuer's own words.
+ *
+ * ⚠⚠ WAVE 3 ADDS A SECOND WAY A PERCENTAGE CAN MISLEAD. Wave 2 found one that
+ * spanned TWO YEARS because of a missing filing (St. Joseph). Porter's spans two
+ * years AND a change of chart of accounts inside the gap, so its leaf-level
+ * diff shows a 44.8M line vanishing and a 48.9M line appearing where the real
+ * move is +5.0M. A movement report that trusted labels across that break would
+ * have described a rename as a collapse.
  *
  * ⚠⚠ ONE OF WAVE 2's IS NOT A ONE-YEAR MOVE AT ALL. St. Joseph has NO FY2023
  * filing, so its FY2024 row's neighbour in the series is FY2022 and the
@@ -637,6 +756,91 @@ export const IN_COUNTY_SERIES_NOTES = Object.freeze({
     + 'MECHANISM FOR THE LARGEST PIECE IN ITS OWN WORDS: "Income taxes increased by $12,712,833 '
     + 'due to the change in estimating local income taxes" — a change in the STATE\'S '
     + 'CERTIFICATION METHOD, not in what Hendricks County collects.',
+
+  // ══ WAVE 3 ═══════════════════════════════════════════════════════════════
+  //
+  // ⭐ SIX MOVES IN EIGHT SERIES, AND THE SAME TWO STATEWIDE DRIVERS AGAIN —
+  // LOCAL INCOME TAX and INVESTMENT EARNINGS. ⚠⚠ TWO OF THE SIX ARE NOT WHAT A
+  // NAIVE DECOMPOSITION SAYS THEY ARE: Porter's spans two years AND a change of
+  // chart of accounts, and Johnson's FY2020 expenditure move crosses the year
+  // its own headings moved.
+
+  'vanderburgh-2023': 'Revenue +20.6% (160,303,547 -> 193,255,278): Intergovernmental '
+    + '+13,138,701, Investment earnings +6,181,195, Taxes > Income +5,774,136 and Taxes > '
+    + 'Property +4,851,638. ⭐ THE COUNTY NAMES THE SAME MECHANISM HENDRICKS DID, in the same '
+    + 'year and in almost the same words: "Income taxes increased by $3,177,626 due to the '
+    + 'change in estimating local income taxes receivable" and "Property tax revenues increase '
+    + 'in 2023 by $1,991,829 due to the increase in statewide property tax growth rate" — a '
+    + 'change in the STATE\'S certification method and in a STATEWIDE rate, not in what '
+    + 'Vanderburgh collects locally. ⚠ Those two figures are GOVERNMENT-WIDE (full accrual); '
+    + 'this row is total governmental FUNDS, so they corroborate the drivers, never the total. '
+    + '⭐ A free check on the READ, correctly scoped: the MD&A states that revenues exceeded '
+    + 'expenditures by $10,220,242 excluding other financing sources, and 10,220,242 is exactly '
+    + 'what the statement prints in the GENERAL FUND column of that row — the leftmost column, '
+    + 'not the one this route loads.',
+
+  // ── ⚠⚠ PORTER: TWO YEARS, TWO CHARTS OF ACCOUNTS, ONE PERCENTAGE ────────
+  'porter-2023': 'Revenue +27.9% — ⚠⚠ ACROSS TWO YEARS, NOT ONE: Porter FY2022 is a DOCUMENT '
+    + 'GAP (image-only statements at all three publishers), so FY2023\'s neighbour in the '
+    + 'series is FY2021. ⚠⚠ AND THE COUNTY CHANGED ITS CHART OF ACCOUNTS IN THE SAME GAP, so a '
+    + 'leaf-level diff is meaningless: FY2021 prints eight flat revenue lines and FY2023 prints '
+    + 'two groups over six. Decomposed by CATEGORY across the rename: taxes 55,734,152 '
+    + '(Property Taxes + Other taxes) -> 60,761,725 (Taxes > Property + Income + Other) = '
+    + '+5,027,573; Intergovernmental 14,929,467 -> 27,187,546 = +12,258,079; the residual '
+    + 'category, `Other receipts` -> `Other > Miscellaneous`, 21,348,032 -> 36,616,352 = '
+    + '+15,268,320. Charges for services, licenses, assessments and fines all FELL slightly. '
+    + '⭐ THE RESIDUAL IS AN ENDOWMENT, NOT COUNTY REVENUE IN THE ORDINARY SENSE: 23,082,699 of '
+    + 'that 36,616,352 is the whole revenue of the PORTER COUNTY GOVERNMENT CHARITABLE '
+    + 'NONPROFIT FOUNDATION, which the county reports as a governmental fund of its own and '
+    + 'whose income is investment return. ⚠ In FY2024 the county BROKE THAT OUT as `Investment '
+    + 'earnings` (25,241,235 total, of which 17,312,319 is the Foundation), leaving `Other > '
+    + 'Miscellaneous` at 8,372,626 — a RECLASSIFICATION inside a +2.3% year, which is exactly '
+    + 'the shape that reads as a collapse and a new source if the labels are trusted over the '
+    + 'columns. The county\'s own MD&A corroborates the intergovernmental direction only '
+    + '("Operating grants and contributions increased by $12,046,521") and says property and '
+    + 'income taxes FELL on the government-wide basis — a different basis and a different year '
+    + 'pair. Loaded as published in both charts and flagged here.',
+
+  // ── JOHNSON ──────────────────────────────────────────────────────────────
+  'johnson-2020': 'Revenue +31.1% (69,475,062 -> 91,115,244) and operating +38.7% '
+    + '(68,677,440 -> 95,254,932), and the county gives the mechanism for both sides of the '
+    + 'revenue move in its own words: "Local income taxes increased by $10,597,693, due to a '
+    + 'NEW PUBLIC SAFETY LOCAL INCOME TAX in 2020 in the amount of $11,823,669" and "Program '
+    + 'revenues (operating grants and contributions) reported an increase of $12,719,375 ... '
+    + 'partially the result of $6,105,448 of funds received from the CARES Act". The statement '
+    + 'agrees: Income taxes +9,461,336 and Intergovernmental +8,528,848 are 83% of the move. '
+    + 'On the expenditure side Capital outlay +18,716,447 is 70% of it, alongside Public safety '
+    + '+8,199,202 — the new public-safety tax being spent. '
+    + '⚠⚠ THE EXPENDITURE DECOMPOSITION CROSSES A HEADING CHANGE AND MUST BE READ AS SUCH: '
+    + 'FY2019 prints `Debt Service` and FY2020 `Debt service:`, so a naive label diff shows '
+    + 'Principal as -2,915,000 and +5,310,000 on two separate lines where the real change is '
+    + '+2,395,000. Both are loaded IN THE CASE THE ISSUER PRINTED — see the wrapper docstring '
+    + 'for why Johnson\'s expenditure hierarchy needs saying out loud.',
+  'johnson-2023': 'Revenue +28.2% (92,479,106 -> 118,569,544): Taxes > Income +12,158,034, '
+    + 'Investment earnings +4,486,285, Taxes > Property +4,255,372 and Intergovernmental '
+    + '+2,528,570 — the two statewide drivers again, and between them 63% of the move. The '
+    + 'county names the first two: "Property tax revenues increased by $7,181,362 in comparison '
+    + 'to the prior year due to the increase in the net levy" and "Income taxes increased by '
+    + '$6,570,107", plus, for the General Fund alone, "an increase in income tax by $4,484,423 '
+    + '... and an increase in revenues from investment earnings of $4,599,512". '
+    + '⚠ The first two figures are GOVERNMENT-WIDE and the third GENERAL FUND; this row is '
+    + 'total governmental funds. They corroborate the drivers, never the total.',
+
+  // ── MONROE ───────────────────────────────────────────────────────────────
+  'monroe-2024': 'Operating +49.2% (101,998,374 -> 152,197,987), and the largest single piece '
+    + 'is NOT a programme: Debt Service > Principal Retirement +14,996,040. ⭐ THE COUNTY GIVES '
+    + 'THE MECHANISM: "During 2024, the County\'s total debt decreased by $15.1 million or '
+    + '36.6%. The decrease is attributed to regularly scheduled AND PREPAYMENT of debt service '
+    + 'payments offset by the issuance of $3.1 million in general obligation bonds." A '
+    + 'PREPAYMENT retires debt early and shows up as one year of unusually large principal '
+    + 'expenditure; it is not a rise in the cost of running the county. The rest is spread: '
+    + 'Current > Highway and Streets +11,740,169, Current > General Government +7,627,393, '
+    + 'Capital Outlay > Highway and Streets +6,797,099, Current > Public Safety +4,109,390. '
+    + '⚠ The $3.1M of bonds issued in the same year is an OTHER FINANCING SOURCE and is '
+    + 'correctly NOT in the revenue figure — the LA TRAN defect, avoided by reading the printed '
+    + '`Total Revenues` row rather than everything above `Net Change in Fund Balance`. '
+    + '⚠ Monroe\'s revenue side moved +16.4% in the same year, under the 20% threshold, so the '
+    + 'two sides of this county diverge in FY2024 by design of the prepayment.',
 
   'allen-2024': 'Revenue +24.2% (260,926,477 -> 324,150,411): Intergovernmental +34,375,899 and '
     + 'Taxes +24,504,788. Both are named by the county — the MD&A cites "the new Local Income '

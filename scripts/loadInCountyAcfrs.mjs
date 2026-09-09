@@ -129,7 +129,21 @@ export function readExtracted(dir, entityKey, fiscalYear, datasetType) {
   const data = JSON.parse(readFileSync(path, 'utf8'));
   // ⚠ Belt and braces: the extractor refuses to WRITE a bad tie, but a loader
   // that trusted a cached file blindly is one refactor away from a mis-parse.
-  if (data.tie_delta !== 0) throw new Error(`${path}: tie_delta ${data.tie_delta}`);
+  //
+  // ⚠⚠ A NON-ZERO TIE IS ACCEPTED IN EXACTLY ONE CASE: the extractor's own
+  // `source_rounding` registry declared THIS delta for THIS (year, mode) and the
+  // extractor confirmed it matched. That is an EXACT-value registry, never a
+  // tolerance — see `CityConfig.source_rounding`. Porter County FY2020 is the
+  // first Indiana county to need it: the county's own General Fund column adds
+  // up a dollar short of its own printed total and the Total Governmental column
+  // inherits the dollar. Anything else — including the same year drifting to a
+  // different delta — still fails here, as it does in the extractor.
+  if (data.tie_delta !== 0
+      && !(data.source_rounding_accepted !== null
+           && data.source_rounding_accepted === data.tie_delta)) {
+    throw new Error(`${path}: tie_delta ${data.tie_delta} with no matching source_rounding `
+      + `entry (source_rounding_accepted ${JSON.stringify(data.source_rounding_accepted)})`);
+  }
   if (Number(data.fiscal_year) !== Number(fiscalYear)) {
     throw new Error(`${path}: document reports FY${data.fiscal_year}, expected FY${fiscalYear}`);
   }
