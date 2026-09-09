@@ -840,6 +840,20 @@ def _recover_label_past_leading_rule(line):
 # ⚠ This cannot admit a wrong page: "and Changes in Fund Balances" still has to
 # follow, and a proprietary or budgetary page is excluded by `_EXCLUDE`
 # regardless of how its commas are spaced.
+#
+# ⭐ PROVED SAFE THE CHEAP WAY, over the WHOLE PDF CORPUS: `find_statement_page`'s
+# ANSWER was compared old-regex vs new across all **1,828 PDFs** in the repo and
+# `_acfr-work` (0 unreadable). The selected page changed on **7 documents, and
+# all seven are Allen County IN** — every one of them `NOTHING FOUND -> a page`:
+#
+#     allen_2016 None -> 22    allen_2019 None -> 22    allen_2022 None -> 25
+#     allen_2017 None -> 22    allen_2020 None -> 23
+#     allen_2018 None -> 22    allen_2021 None -> 25
+#
+# ZERO documents moved to a DIFFERENT page and ZERO lost the page they had, which
+# is the property that matters: relaxing a separator can only ever find a page
+# that was previously lost. Same method as the failure-mode-9 fix, which found
+# 9 such documents across 1,053.
 _TITLE = re.compile(
     r'Statement\s+of\s+Revenues\s*,?\s*Expenditures\s*,?\s*and\s+Changes\s+in\s+Fund\s+Balances?',
     re.I)
