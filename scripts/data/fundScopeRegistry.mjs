@@ -521,7 +521,7 @@ export const FUND_SCOPE_REGISTRY = [
     // today because no other loader writes this label shape — but if one ever
     // does, split by municipality_id rather than widening the string.
     id: 'in-county-acfr-tg',
-    match: /^(Marion County|Lake County|Allen County|Hamilton County|St\. Joseph County|Elkhart County|Tippecanoe County|Hendricks County|Vanderburgh County|Porter County|Johnson County|Monroe County) ACFR — Total Governmental Funds (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
+    match: /^(Marion County|Lake County|Allen County|Hamilton County|St\. Joseph County|Elkhart County|Tippecanoe County|Hendricks County|Vanderburgh County|Porter County|Johnson County|Monroe County|Madison County|Clark County|Delaware County|LaPorte County|Vigo County) ACFR — Total Governmental Funds (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
     scope: SCOPE.TOTAL_GOVERNMENTAL,
     evidence: {
       document: 'Each county\'s own audited ACFR, governmental-funds Statement of Revenues, '
