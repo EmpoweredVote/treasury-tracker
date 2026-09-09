@@ -274,7 +274,15 @@ describe('the shipped registry', () => {
     // whose SIBLING in the same state sits at a DIFFERENT scope: DCED publishes two
     // separate reports, and the municipal one is all_funds. That is why the PA
     // entries are report-specific rather than one Pennsylvania entry.
-    expect(totGov.map((e) => e.id).sort()).toEqual(['ca-sco-derived-tg', 'fl-dfs-afr', 'mi-treasury-f65-tg', 'mn-osa', 'oh-aos', 'pa-dced-clgs30-county']);
+    // ⚠ `in-county-acfr-tg` joins on 2026-09-08. It is the first at this level
+    // read from a government's OWN AUDITED ACFR rather than from a state
+    // publisher's compilation, and the first whose reporting-entity boundary is
+    // itself the subject of an audit modification: Allen County is QUALIFIED in
+    // all nine loaded years for omitting four fire protection districts from its
+    // discretely presented component units, and Lake County ADVERSE for omitting
+    // its component units entirely. Both concern a column this scope does not
+    // report, which is precisely why the boundary has to be stated.
+    expect(totGov.map((e) => e.id).sort()).toEqual(['ca-sco-derived-tg', 'fl-dfs-afr', 'in-county-acfr-tg', 'mi-treasury-f65-tg', 'mn-osa', 'oh-aos', 'pa-dced-clgs30-county']);
     for (const e of totGov) {
       expect(e.evidence.figures, e.id).toMatch(/REPORTING ENTITY|reporting-entity/);
     }
