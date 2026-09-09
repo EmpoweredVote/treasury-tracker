@@ -349,6 +349,101 @@ export const IN_COUNTY_ENTITIES = Object.freeze([
     monthStatus: 'confirmed',
     note: 'files under two EINs across its FAC history (351732465 -> 351732462)',
   },
+
+  // ── WAVE 4 — THE LAST FIVE OF THE SEVENTEEN ───────────────────────────────
+  //
+  // ⭐⭐ THIS COMPLETES THE CEILING. After this wave every Indiana county that
+  // has ever filed a GAAP audit with the Federal Audit Clearinghouse is loaded,
+  // and the remaining 75 counties are not a backlog — they file on a
+  // special-purpose framework and there is no governmental-funds statement in
+  // their documents to read.
+  //
+  // ⚠⚠⚠ AND THE FY2019 WINDOW BREAKS HERE, IN THREE DIFFERENT DIRECTIONS. Waves
+  // 2 and 3 found eight counties whose GAAP run opens at FY2019 and continues.
+  // Not one of these five does that:
+  //
+  //     Madison    FY2019-FY2024   the wave-2/3 pattern, and the only one
+  //     Clark      FY2021-FY2024   opens LATE — FY2019/FY2020 are CASH BASIS
+  //     Delaware   FY2020-FY2024   opens one year late
+  //     LaPorte    FY2019-FY2020   TWO YEARS, THEN REVERTS to other_basis
+  //     Vigo       FY2019-FY2022   FOUR YEARS, THEN REVERTS to other_basis
+  //
+  // ⚠⚠ A REVERSION IS THE SHAPE THAT BREAKS AN ASSUMPTION NOBODY WROTE DOWN:
+  // that basis moves one way. Two of these five went back. A route that fetched
+  // "FY2019 onward" for a county it had seen file GAAP once would have loaded
+  // five all-funds cash documents under an `audited_gaap` label.
+  {
+    key: 'madison',
+    name: 'Madison County',
+    entityType: IN_COUNTY_ENTITY_TYPE,
+    extractor: 'scripts/extractMadisonCountyIN.py',
+    state: IN_COUNTY_STATE,
+    population: 134222,
+    censusName: 'Madison County',
+    facEin: '356000171',
+    fiscalYearStartMonth: 1,
+    monthStatus: 'confirmed',
+  },
+  {
+    key: 'clark',
+    name: 'Clark County',
+    entityType: IN_COUNTY_ENTITY_TYPE,
+    extractor: 'scripts/extractClarkCountyIN.py',
+    state: IN_COUNTY_STATE,
+    population: 127479,
+    censusName: 'Clark County',
+    facEin: '356000132',
+    fiscalYearStartMonth: 1,
+    monthStatus: 'confirmed',
+    /** ⚠⚠ Its FY2019 and FY2020 filings are the ONLY TWO `cash_basis` filings
+     * among all 562 Indiana county filings. Its GAAP run opens at FY2021. */
+    note: 'the statewide cash_basis pair (FY2019, FY2020); GAAP opens FY2021',
+  },
+  {
+    key: 'delaware',
+    name: 'Delaware County',
+    entityType: IN_COUNTY_ENTITY_TYPE,
+    extractor: 'scripts/extractDelawareCountyIN.py',
+    state: IN_COUNTY_STATE,
+    population: 112951,
+    censusName: 'Delaware County',
+    facEin: '356000140',
+    fiscalYearStartMonth: 1,
+    monthStatus: 'confirmed',
+  },
+  {
+    key: 'laporte',
+    /** ⚠ FAC writes `LAPORTE`; the county writes `LaPorte`. The roster's own
+     * key normaliser handles the case, and nothing here matches on the name. */
+    name: 'LaPorte County',
+    entityType: IN_COUNTY_ENTITY_TYPE,
+    extractor: 'scripts/extractLaPorteCountyIN.py',
+    state: IN_COUNTY_STATE,
+    population: 111348,
+    censusName: 'LaPorte County',
+    facEin: '356000169',
+    fiscalYearStartMonth: 1,
+    monthStatus: 'confirmed',
+    /** ⚠⚠ TWO GAAP YEARS AND THEN BACK — the Lake County shape in a second
+     * county, and the reason a basis gap is checked per FILING, not per era. */
+    note: 'GAAP FY2019-FY2020 only, then reverts to other_basis; no FY2024 filing',
+  },
+  {
+    key: 'vigo',
+    name: 'Vigo County',
+    entityType: IN_COUNTY_ENTITY_TYPE,
+    extractor: 'scripts/extractVigoCountyIN.py',
+    state: IN_COUNTY_STATE,
+    population: 106166,
+    censusName: 'Vigo County',
+    facEin: '356000207',
+    fiscalYearStartMonth: 1,
+    monthStatus: 'confirmed',
+    /** ⚠⚠ FY2022 carries TWO accepted filings — see IN_COUNTY_FILING_CHOICES.
+     * The third such county-year in this family, after Allen FY2023 and
+     * Tippecanoe FY2024. */
+    note: 'two accepted FAC filings for FY2022; GAAP FY2019-FY2022 then reverts',
+  },
 ]);
 
 /**
@@ -405,6 +500,37 @@ export const IN_COUNTY_FILING_CHOICES = Object.freeze({
       + 'the wrong document. Compare, then record. '
       + '⚠⚠ `resubmission_status` says `most_recent` on BOTH here too.',
   }),
+  // ── ⭐ A THIRD FLAVOUR: THE FINANCIAL STATEMENTS NEVER CHANGED AT ALL ─────
+  //
+  // Allen FY2023's pair were identical on this statement and had to be
+  // separated on completeness elsewhere. Tippecanoe FY2024's earlier copy was
+  // PHYSICALLY BROKEN on the page this family loads. Vigo FY2022's pair are
+  // neither: the resubmission exists because a FEDERAL PROGRAM opinion in the
+  // SINGLE AUDIT was revised, and the financial statements were never in
+  // question.
+  //
+  // ⚠⚠ WHICH IS EXACTLY THE CASE THE acfrGF HOW-TO WARNS ABOUT — "a genuine
+  // Qualified Opinion is usually about a FEDERAL PROGRAM in the Single Audit,
+  // not the financial statements; report, never auto-downgrade." Here it is,
+  // and it is also the reason the two documents exist.
+  'vigo-2022': Object.freeze({
+    reportId: '2022-12-GSAFAC-0000049327',
+    why: 'BOTH filings were fetched and compared. THE STATEMENT THIS ROUTE READS IS IDENTICAL '
+      + 'IN BOTH — same physical page 23, and byte-identical after whitespace normalisation, so '
+      + 'the loaded figures cannot depend on the choice. '
+      + 'The two documents differ on 289 of ~6,186 normalised lines and EVERY ONE of them is in '
+      + 'the SINGLE AUDIT half: the earlier filing reports `93.563 Child Support Enforcement` as '
+      + 'QUALIFIED with a `Basis for Qualified Opinion` and a finding 2022-002 for Activities '
+      + 'Allowed or Unallowed; the later one reports it UNMODIFIED and says why in its own '
+      + 'words — "2022-002, was revised to unmodified as a result of the additional audit '
+      + 'evidence obtained". It also adds a Corrective Action Plan and an Auditor\'s Response. '
+      + '0000049327 is therefore both the LATER filing (fac_accepted_date 2024-09-27 against '
+      + '2023-09-28) and the SUPERSEDING one — the revision is the reason it exists. '
+      + '⚠ FAC records `gaap_results=unmodified_opinion` on BOTH, which is correct and is the '
+      + 'point: the revision was FEDERAL, not financial, and never touched the governmental '
+      + 'funds. '
+      + '⚠⚠ `resubmission_status` says `most_recent` on BOTH, a fourth time.',
+  }),
 });
 
 /**
@@ -449,6 +575,28 @@ const SBOA_REGULATORY = (which) => 'Indiana State Board of Accounts REGULATORY-B
   + '(Statement of Receipts, Disbursements, and Cash and Investment Balances). No '
   + 'governmental-funds statement exists in this document. FAC records '
   + `\`sp_framework_basis=regulatory_basis\` and \`gaap_results=not_gaap\`. ${which}`;
+
+/**
+ * ⚠⚠ WAVE 4: `regulatory_basis` IS NOT THE ONLY WAY TO BE NOT-GAAP, AND THE
+ * HELPER ABOVE HARD-CODES THE VALUE IT ASSERTS.
+ *
+ * Waves 1-3 met exactly one special-purpose framework, so `SBOA_REGULATORY`
+ * could state `sp_framework_basis=regulatory_basis` as a constant. Wave 4 meets
+ * both of the others FAC records, and a gap reason that named the wrong one
+ * would be a citation to a value the filing does not carry — plausible, inert,
+ * and wrong in the one field a reader would check.
+ *
+ *     regulatory_basis   342 of Indiana's 562 county filings
+ *     other_basis        115   <- LaPorte FY2021-FY2023, Vigo FY2023-FY2024
+ *     cash_basis           2   <- BOTH ARE CLARK COUNTY, FY2019 and FY2020
+ *
+ * ⭐ Clark's two ARE the entire statewide `cash_basis` population. That is not a
+ * coincidence worth admiring — it is why the value is passed in rather than
+ * assumed.
+ */
+const NOT_GAAP = (framework, gaapResults, which) => 'AUDITED, and NOT GAAP: a special-purpose '
+  + `framework report carrying no governmental-funds statement. FAC records \`sp_framework_basis=${framework}\` `
+  + `and \`gaap_results=${gaapResults}\`. ${which}`;
 
 export const IN_COUNTY_BASIS_GAPS = Object.freeze({
   lake: Object.freeze(Object.fromEntries([2016, 2017, 2018, 2022, 2023, 2024].map((fy) => [
@@ -504,6 +652,71 @@ export const IN_COUNTY_BASIS_GAPS = Object.freeze({
     fy, SBOA_REGULATORY("Monroe's GAAP filings begin at FY2019. ⚠ Its FY2016 filing is under a "
       + 'DIFFERENT EIN (351732465) from every later one (351732462).'),
   ]))),
+
+  // ── ⚠⚠⚠ WAVE 4: THREE FRAMEWORKS, AND TWO COUNTIES THAT GO BACK ──────────
+  //
+  // Every basis gap in waves 1-3 was `regulatory_basis`, and every one of them
+  // sat BEFORE the county's GAAP run. Wave 4 breaks both halves of that.
+  madison: Object.freeze(Object.fromEntries([2016, 2017, 2018].map((fy) => [
+    fy, SBOA_REGULATORY("Madison's GAAP filings begin at FY2019."),
+  ]))),
+
+  // ⚠⚠ CLARK OPENS AT FY2021, AND ITS TWO PRE-GAAP YEARS ARE A FRAMEWORK THIS
+  // ROUTE HAD NOT MET. FY2019 and FY2020 are `cash_basis` — and they are the
+  // ONLY TWO `cash_basis` filings among all 562 Indiana county filings.
+  clark: Object.freeze({
+    ...Object.fromEntries([2016, 2017, 2018].map((fy) => [
+      fy, SBOA_REGULATORY("Clark's GAAP filings begin at FY2021."),
+    ])),
+    ...Object.fromEntries([2019, 2020].map((fy) => [
+      fy, NOT_GAAP('cash_basis', 'not_gaap',
+        'These are the ONLY TWO `cash_basis` filings in the whole 562-filing Indiana county '
+        + "roster, and they are both Clark's. Clark's GAAP run opens at FY2021, so an FY2019 "
+        + 'window carried over from waves 2 and 3 would have read two cash-basis documents '
+        + 'here.'),
+    ])),
+  }),
+
+  // ⚠ DELAWARE OPENS AT FY2020, ONE YEAR LATE. Its FY2019 filing is regulatory
+  // basis AND carries an adverse opinion on GAAP — the SBOA dual-opinion
+  // signature, which is what makes a regulatory-basis report what it is.
+  delaware: Object.freeze({
+    ...Object.fromEntries([2016, 2017, 2018].map((fy) => [
+      fy, SBOA_REGULATORY("Delaware's GAAP filings begin at FY2020."),
+    ])),
+    2019: NOT_GAAP('regulatory_basis', 'adverse_opinion,not_gaap',
+      "⚠ ONE YEAR LATER THAN THE WAVE-2/3 PATTERN. Delaware's GAAP run opens at FY2020, not "
+      + 'FY2019, and this filing records the ADVERSE-ON-GAAP opinion explicitly — the SBOA '
+      + 'dual-opinion signature that defines a regulatory-basis report.'),
+  }),
+
+  // ⚠⚠⚠ LAPORTE FILES GAAP FOR TWO YEARS AND GOES BACK. FY2019 and FY2020 are
+  // GAAP; FY2021, FY2022 and FY2023 are `other_basis`. A basis gap AFTER the
+  // GAAP run, not before it — the Lake County shape in a second county, and the
+  // reason basis is checked per FILING rather than per era.
+  laporte: Object.freeze({
+    ...Object.fromEntries([2016, 2017, 2018].map((fy) => [
+      fy, SBOA_REGULATORY("LaPorte files GAAP for FY2019 and FY2020 ONLY."),
+    ])),
+    ...Object.fromEntries([2021, 2022, 2023].map((fy) => [
+      fy, NOT_GAAP('other_basis', 'adverse_opinion,not_gaap',
+        '⚠⚠ A REVERSION, NOT A RUN-UP: LaPorte filed GAAP for FY2019 and FY2020 and then went '
+        + 'BACK to a special-purpose framework. A rule of the form "GAAP from FY2019 onward" '
+        + 'would have loaded three all-funds cash documents under an `audited_gaap` label.'),
+    ])),
+  }),
+
+  // ⚠⚠⚠ VIGO REVERTS TOO, after four years rather than two.
+  vigo: Object.freeze({
+    ...Object.fromEntries([2016, 2017].map((fy) => [
+      fy, SBOA_REGULATORY("Vigo files GAAP for FY2019-FY2022 ONLY."),
+    ])),
+    ...Object.fromEntries([2023, 2024].map((fy) => [
+      fy, NOT_GAAP('other_basis', 'adverse_opinion,not_gaap',
+        '⚠⚠ THE SECOND REVERSION IN THIS WAVE. Vigo filed GAAP for FY2019-FY2022 and then went '
+        + 'back for FY2023 and FY2024. Both were accepted on the same day (2025-09-25).'),
+    ])),
+  }),
 });
 
 /**
@@ -565,6 +778,29 @@ export const IN_COUNTY_COVERAGE_GAPS = Object.freeze({
     2025: 'No FY2025 filing at FAC yet — FY2025 is still arriving.',
   }),
   monroe: Object.freeze({
+    2025: 'No FY2025 filing at FAC yet — FY2025 is still arriving.',
+  }),
+
+  // ── WAVE 4 ────────────────────────────────────────────────────────────────
+  madison: Object.freeze({
+    2025: 'No FY2025 filing at FAC yet — FY2025 is still arriving.',
+  }),
+  clark: Object.freeze({
+    2025: 'No FY2025 filing at FAC yet — FY2025 is still arriving.',
+  }),
+  delaware: Object.freeze({
+    2025: 'No FY2025 filing at FAC yet — FY2025 is still arriving.',
+  }),
+  laporte: Object.freeze({
+    2024: 'No FY2024 filing at FAC for EIN 356000169 — LaPorte\'s filings stop at FY2023. '
+      + '⚠ It is OUTSIDE the GAAP window either way: FY2021-FY2023 are all `other_basis`, so '
+      + 'no loadable year is lost to it.',
+    2025: 'No FY2025 filing at FAC yet — FY2025 is still arriving.',
+  }),
+  vigo: Object.freeze({
+    2018: 'No FY2018 filing at FAC for EIN 356000207 — Vigo files for FY2016, FY2017 and then '
+      + 'FY2019 onward. The $750k Single Audit threshold, not a publishing decision. '
+      + '⚠ Outside the GAAP window either way: FY2016 and FY2017 are both regulatory basis.',
     2025: 'No FY2025 filing at FAC yet — FY2025 is still arriving.',
   }),
 });
@@ -634,9 +870,22 @@ export function fiscalMonthFor(entity, _fiscalYear) {
  * The tie gate proves the READ. It says nothing about whether a series is
  * comparable year to year, and the acfrGF how-to's own sanity check is to
  * explain every big move before shipping. Eight moves in wave 1's eight series
- * exceed 20%, NINE MORE in wave 2's eight and SIX MORE in wave 3's eight. All
- * twenty-three were decomposed by root category — and, where the issuer says
- * something, traced to the issuer's own words.
+ * exceed 20%, NINE MORE in wave 2's eight, SIX MORE in wave 3's eight and SEVEN
+ * MORE in wave 4's ten. All thirty were decomposed by root category — and, where
+ * the issuer says something, traced to the issuer's own words.
+ *
+ * ⭐ WAVE 4 IS DRIVEN BY CONSTRUCTION, NOT BY REVENUE, and six of its seven
+ * moves are one capital project going up and coming down. Vigo's FY2020, FY2021
+ * and FY2022 movements are all explained by a single sentence the county
+ * published — a new jail and a new convention centre, started in 2020 and
+ * "expected to be completed in 2022" — and Delaware's FY2021/FY2022 pair is the
+ * Fountain Square Project doing the same thing.
+ *
+ * ⚠⚠ AND ONE MOVE IS DELIBERATELY LEFT UNQUOTED. Madison's FY2020 MD&A narrative
+ * is OFF BY ONE ROW against its own table, so every figure in it names the wrong
+ * function. That note decomposes from the printed statement instead and says
+ * why. An issuer narrative is evidence only while it agrees with the issuer's
+ * own numbers.
  *
  * ⚠⚠ WAVE 3 ADDS A SECOND WAY A PERCENTAGE CAN MISLEAD. Wave 2 found one that
  * spanned TWO YEARS because of a missing filing (St. Joseph). Porter's spans two
@@ -841,6 +1090,80 @@ export const IN_COUNTY_SERIES_NOTES = Object.freeze({
     + '`Total Revenues` row rather than everything above `Net Change in Fund Balance`. '
     + '⚠ Monroe\'s revenue side moved +16.4% in the same year, under the 20% threshold, so the '
     + 'two sides of this county diverge in FY2024 by design of the prepayment.',
+
+  // ══ WAVE 4 ═══════════════════════════════════════════════════════════════
+  //
+  // ⚠⚠ SEVEN MOVES, AND SIX OF THE SEVEN ARE ONE CAPITAL PROJECT GOING UP AND
+  // COMING DOWN. Waves 2 and 3 were driven by REVENUE — local income tax and
+  // investment earnings, statewide. Wave 4 is driven by CONSTRUCTION, and in two
+  // counties the issuer names the buildings.
+
+  // ── VIGO: A JAIL AND A CONVENTION CENTRE, IN THE COUNTY'S OWN WORDS ──────
+  //
+  // ⭐ ONE QUOTED SENTENCE EXPLAINS THREE OF THIS WAVE'S SEVEN MOVES, which is
+  // the best return the "explain every 20% move from the issuer's own words"
+  // rule has yet produced.
+  'vigo-2020': 'Operating +21.1% (85,888,196 -> 104,029,618), and Capital outlay > General '
+    + 'government alone is +23,341,397 of it while Current > General government FELL 6,303,697. '
+    + '⭐ THE COUNTY NAMES THE CAUSE: "During 2020, Vigo County started TWO LARGE CONSTRUCTION '
+    + 'PROJECTS, construction on a NEW JAIL and construction on a NEW CONVENTION CENTER, which '
+    + 'resulted in the large increase in construction in progress amounts being reported. Both '
+    + 'of these projects continue in 2021 and are expected to be completed in 2022." A '
+    + 'construction programme, not a growth in operations.',
+  'vigo-2021': 'Operating +30.4% (104,029,618 -> 135,642,012) — the SAME TWO PROJECTS at full '
+    + 'height, exactly as the county said they would be. Capital outlay > General government '
+    + '+18,107,129 and Capital outlay > Highways and streets +12,581,825 are 97% of the move. '
+    + '⚠ Revenue moved +5.9% in the same year, so this is spending against accumulated fund '
+    + 'balance and debt already issued, not a matching rise in what the county collects.',
+  'vigo-2022': 'Operating -22.2% (135,642,012 -> 105,519,915) as the jail and convention centre '
+    + 'COMPLETE, on the county\'s own published schedule: Capital outlay > General government '
+    + '-22,414,481 and Capital outlay > Highways and streets -10,581,971, partly offset by '
+    + 'Current > Culture and recreation +2,773,763. ⭐ Three consecutive movements — up, up, '
+    + 'down — all three traced to one sentence the county published in FY2021.',
+
+  // ── DELAWARE: THE FOUNTAIN SQUARE PROJECT, UP AND DOWN ──────────────────
+  'delaware-2021': 'Operating +38.7% (67,194,011 -> 93,195,234), of which Capital outlay > '
+    + 'General government is +17,684,088 — and the county names it: "The County issued economic '
+    + 'development bonds to pay for the FOUNTAIN SQUARE PROJECT of $18,070" (⚠ the MD&A is in '
+    + 'THOUSANDS, so $18.07M, which matches the capital-outlay move almost to the dollar). '
+    + 'FY2021\'s statement shows it as a major fund of its own — the `Fountain Square '
+    + 'Construction Fund` column. Also Current > Highways and streets +5,364,744 and Debt '
+    + 'service > Principal +5,145,795. '
+    + '⚠ THE $29,910 (thousand) OF BONDS ISSUED THAT YEAR IS AN OTHER FINANCING SOURCE and is '
+    + 'correctly NOT in the revenue figure — revenue moved -6.0% in the same year, which is what '
+    + 'a bond-funded project looks like when the borrowing is kept out of revenue. The LA TRAN '
+    + 'defect, avoided by reading the printed `Total revenues` row.',
+  'delaware-2022': 'Operating -27.0% (93,195,234 -> 68,039,900) — THE SAME PROJECT UNWINDING, '
+    + 'and the decomposition is the FY2021 note in reverse: Capital outlay > General government '
+    + '-17,742,900 (against +17,684,088 the year before), Current > Highways and streets '
+    + '-4,542,799 and Current > Economic development -2,869,981. Nothing about the county\'s '
+    + 'ordinary operations changed by a quarter; one construction fund emptied.',
+
+  // ── MADISON ──────────────────────────────────────────────────────────────
+  'madison-2020': 'Operating -22.1% (87,592,828 -> 68,275,571), and it is ALMOST ENTIRELY ONE '
+    + 'CATEGORY IN ONE COLUMN: Current > General government -19,609,977 of a -19,317,257 total '
+    + 'move. ⭐ LOCATED RATHER THAN INFERRED, by reading the printed columns: FY2019 prints '
+    + 'General government 48,282,266, of which the NONMAJOR GOVERNMENTAL FUNDS column alone is '
+    + '24,865,743 and County General is 23,085,588; FY2020 prints 28,672,289, of which nonmajor '
+    + 'is 5,711,479 and County General 22,960,810. The County General column barely moves '
+    + '(-124,778). The whole change is in the nonmajor funds. '
+    + '⚠⚠ NO ISSUER NARRATIVE IS QUOTED HERE, AND THAT IS DELIBERATE: MADISON\'S OWN FY2020 '
+    + 'MD&A IS OFF BY ONE ROW AGAINST ITS OWN TABLE. The table lists Expenses 36,425 / General '
+    + 'government 21,547 / Public safety 19,060 (thousands); the narrative beneath it says '
+    + '"General government expenses reported a total amount of $36,425. Public safety expenses '
+    + 'reported a total amount of $21,547. Highway and streets expenses reported a total amount '
+    + 'of $19,060." Each sentence names the row ABOVE the figure it quotes. It is also '
+    + 'GOVERNMENT-WIDE accrual, not the funds statement. A future reader should not use it as '
+    + 'an oracle for this county.',
+  'madison-2024': 'Revenue +20.3% (92,311,047 -> 111,030,864), spread rather than concentrated: '
+    + 'Other > Miscellaneous +6,020,554, Intergovernmental +4,766,790, Taxes > Income '
+    + '+4,385,678, Taxes > Property +1,666,886 and Investment earnings +1,367,747. '
+    + '⚠ THE COUNTY ISSUED $77,283,558 OF BONDS IN THE SAME YEAR ("The County\'s total amount '
+    + 'of bonds increased by $77,283,558 during the current fiscal year") and FY2024 opens a '
+    + 'BUILDING CORPORATION CAPITAL PROJECTS FUND as a major fund. NONE of that borrowing is in '
+    + 'this figure — it is an OTHER FINANCING SOURCE, below the printed `Total revenues` row. '
+    + 'A revenue series that swept up everything above `Net change in fund balances` would show '
+    + 'this county nearly doubling its revenue in one year. It did not.',
 
   'allen-2024': 'Revenue +24.2% (260,926,477 -> 324,150,411): Intergovernmental +34,375,899 and '
     + 'Taxes +24,504,788. Both are named by the county — the MD&A cites "the new Local Income '

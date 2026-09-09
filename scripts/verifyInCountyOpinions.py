@@ -80,8 +80,58 @@ except Exception:  # pragma: no cover — a stream that cannot be reconfigured
 # Uniform Guidance reports at the back (whose headings continue "ON INTERNAL
 # CONTROL ..." / "ON COMPLIANCE ..."). Marion's report sits ~40 pages in and
 # Hamilton's ~25, so a fixed front-matter window misses both.
+# ⚠⚠ AND THE LETTERHEAD CAN LAND ON THE TITLE'S OWN LINE (wave 4, 2026-09-08).
+#
+# The "alone on its line" rule above is load-bearing and stays. What broke is
+# that `pdftotext -layout` decides what "its line" contains, and on an SBOA
+# report the letterhead block sits at the same VERTICAL POSITION as the title,
+# so the two are emitted as ONE line:
+#
+#     INDEPENDENT AUDITOR'S REPORT  INDIANAPOLIS, INDIANA 46204-2769
+#
+# Madison County FY2019 renders exactly that. The page therefore did not qualify,
+# the locator matched the NEXT page instead — the `(Continued)` one — and the
+# window opened AFTER the opinion paragraph. The gate reported `fair=0` on a
+# report whose opinion reads "present fairly, in all material respects, the
+# respective financial position of the governmental activities, the aggregate
+# discretely presented component units, each major fund, and the aggregate
+# remaining fund information". A MEASUREMENT FAILURE on a clean document, and the
+# third of its kind in this family after Tippecanoe FY2019's verb and Elkhart
+# FY2024's hyphenation — but the first in the LOCATOR rather than in a phrase.
+#
+# ⚠⚠ AND THE FIRST ATTEMPT AT THIS RELAXATION BROKE NINE DOCUMENTS — the corpus
+# diff caught it, which is the entire reason that diff is run before shipping.
+#
+# Allowing any trailing text after two spaces admitted the TABLE OF CONTENTS
+# entry, because these contents pages pad with WHITESPACE rather than dot
+# leaders:
+#
+#     Independent Auditors Report                                        4
+#     Independent Auditor's Report                                      27
+#
+# The locator then opened its window on the contents page, found no opinion at
+# all, and reported `fair=0 gaap=0 fundopinion=0` on Hamilton FY2022-FY2025 and
+# St. Joseph FY2020-FY2025 — INCLUDING SILENTLY DROPPING two recorded fund-level
+# flags on St. Joseph FY2020 and FY2021. A relaxation that fixes one document and
+# breaks nine is not a fix, and nothing but the old-vs-new comparison would have
+# said so.
+#
+# ⚠ SO THE TAIL MUST BE TEXT, NOT A PAGE NUMBER. Three conditions, each aimed at
+# one thing this rule exists to exclude:
+#   * `\s{2,}` — two or more spaces, which is what `-layout` puts between two
+#     separate blocks welded onto one line. The back-of-report headings
+#     (`... REPORT ON INTERNAL CONTROL ...`) continue after a SINGLE space.
+#   * `(?!ON\b)` — belt and braces for that same heading, in case an issuer ever
+#     renders it with the wider gap.
+#   * `(?=[^\n]*[A-Za-z])` — the tail must contain a LETTER, so a contents entry
+#     whose tail is a bare page number (with or without dot leaders) cannot
+#     qualify. Madison's tail is `INDIANAPOLIS, INDIANA 46204-2769`.
+#
+# and the leading `\s*` is unchanged, so a heading indented into the middle of
+# the page still matches exactly as before.
 _AUDITOR_PAGE = re.compile(
-    r"^\s*INDEPENDENT\s+AUDITORS?'?S?\s+REPORT\s*(\(Continued\))?\s*$",
+    r"^\s*INDEPENDENT\s+AUDITORS?'?S?\s+REPORT\s*(\(Continued\))?"
+    r"(?:\s{2,}(?!ON\b)(?=[^\n]*[A-Za-z])\S[^\n]*)?\s*$",
     re.I | re.M)
 
 # A SINGLE-kind heading naming one opinion unit — the auditor's verdict.
@@ -266,16 +316,53 @@ def pdf_pages(path):
     return out.split('\f')
 
 
-def auditor_report_text(pages, window=8):
-    """The auditor's report, located by its own heading.
 
-    Returns (text, first_page_index) or ('', None). ⚠ The heading must be alone
-    on its line: the table-of-contents entry carries dot leaders and a page
-    number, and the two back-of-report Government Auditing Standards / Uniform
-    Guidance opinions continue onto the same line.
+# ⚠⚠ THE HEADING ALONE CANNOT SEPARATE THE REPORT FROM THE CONTENTS PAGE.
+#
+# Widening `_AUDITOR_PAGE` to admit Madison's welded letterhead also admitted
+# contents entries, and NO tail rule separates them reliably: Hamilton FY2022
+# ends its contents line in `4`, FY2023 in `xxv`, and a rule that excluded
+# roman numerals would meet the next issuer that paginates some other way.
+#
+# ⭐ SO THE PAGE IS IDENTIFIED BY WHAT IT SAYS, NOT ONLY BY ITS TITLE. Every
+# auditor's report in this corpus opens its scope paragraph with "We have
+# audited"; no table of contents contains that phrase, because a contents page
+# contains no prose at all. This is the same move `acfrDocQuality.py` made when
+# a page-level lexical score could not separate a damaged statement from a clean
+# one: stop scoring the label and read the content.
+#
+# ⚠ It does NOT replace the heading test — both must hold. The back-of-report
+# Government Auditing Standards and Uniform Guidance reports DO say "We have
+# audited", and what keeps them out is still their heading continuing "ON
+# INTERNAL CONTROL ..." after a single space.
+# ⚠⚠⚠ AND A DISCLAIMER REPORT DOES NOT SAY "WE HAVE AUDITED".
+#
+# The corpus diff caught this too, and it is the sharpest of the three: keying on
+# the standard phrase alone dropped Lake FY2020, Lake FY2021 and LaPorte FY2019 —
+# ALL THREE OF THE DISCLAIMER REPORTS, and two of them carrying `fundopinion=1`
+# flags this family had already recorded. An auditor who disclaims cannot say
+# they audited; AU-C 705 has them write "We were ENGAGED TO AUDIT" instead.
+#
+# ⚠ A content test that silently drops precisely the documents with the most
+# serious opinions is worse than no content test. Both openings are named.
+_HAVE_AUDITED = re.compile(r'we\s+(?:have\s+audited|were\s+engaged\s+to\s+audit)', re.I)
+
+
+def auditor_report_text(pages, window=8):
+    """The auditor's report, located by its own heading AND its own opening.
+
+    Returns (text, first_page_index) or ('', None).
+
+    ⚠ TWO tests, and both are needed. The heading must be alone on its line (or
+    welded only to a letterhead — see `_AUDITOR_PAGE`), which excludes the two
+    back-of-report Government Auditing Standards / Uniform Guidance opinions;
+    and the page must contain the scope paragraph's "We have audited", which
+    excludes the table of contents. Neither test alone is sufficient, and the
+    corpus diff proved it: the heading alone admits contents pages, and the
+    phrase alone admits the back-of-report reports.
     """
     for i, p in enumerate(pages):
-        if _AUDITOR_PAGE.search(p):
+        if _AUDITOR_PAGE.search(p) and _HAVE_AUDITED.search(p):
             return '\n'.join(pages[i:i + window]), i
     return '', None
 

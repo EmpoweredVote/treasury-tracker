@@ -10,15 +10,25 @@
  * that evidence is not uniform: **eleven of the thirty-one loaded entity-years
  * carry a MODIFIED opinion on some opinion unit.**
  *
- * ⚠⚠ WAVE 2 ADDS SEVEN MORE AND WAVE 3 ONE MORE, AND STILL NOT ONE OF THEM IS
- * FUND-LEVEL. Across all three waves: **78 loaded entity-years, 19 carrying a
- * modification**, and ALLEN COUNTY FY2020 remains the ONLY one that names an
- * opinion unit this column is built from. The other eighteen name a DISCRETELY
- * PRESENTED COMPONENT UNIT, GOVERNMENTAL ACTIVITIES, or BUSINESS-TYPE
- * ACTIVITIES — three things a governmental-FUNDS total does not report.
+ * ⚠⚠ WAVE 2 ADDS SEVEN MORE, WAVE 3 ONE MORE AND WAVE 4 TEN MORE. Across all
+ * FOUR waves: **99 loaded entity-years, 29 carrying a modification**, and
+ * **TWO** of them name an opinion unit this column is built from — Allen FY2020
+ * and Clark FY2022. The other twenty-seven name a DISCRETELY PRESENTED COMPONENT
+ * UNIT, GOVERNMENTAL ACTIVITIES, or BUSINESS-TYPE ACTIVITIES — three things a
+ * governmental-FUNDS total does not report.
  *
- * ⭐ WAVE 3 IS THE CLEANEST OF THE THREE: 22 of its 23 loaded entity-years carry
- * no modification at all, against 20 of 31 in wave 1 and 17 of 24 in wave 2.
+ * ⭐ WAVE 3 IS THE CLEANEST AND WAVE 4 THE MOST MODIFIED: 22 of 23 loaded years
+ * clean in wave 3, against 20 of 31 in wave 1, 17 of 24 in wave 2 and only
+ * **10 of 21** in wave 4.
+ *
+ * ⚠⚠⚠ AND THE SECOND FUND-LEVEL ONE IS NOT LIKE THE FIRST. Allen FY2020's basis
+ * is a FIDUCIARY receivable — a balance-sheet item beside the loaded figures.
+ * **Clark FY2022's basis names the REVENUES AND EXPENDITURES OF A GOVERNMENTAL
+ * FUND**: $2,019,288 and $2,446,254 in the Jail Commissary fund, whose records
+ * were "unavailable to be audited" as a result of an ONGOING INVESTIGATION into
+ * the Sheriff Department. That money is inside the loaded FY2022 totals. It is
+ * loaded as published and flagged — the Milledgeville rule, in the case the rule
+ * was written for.
  *
  * ⭐ THAT IS A FINDING ABOUT INDIANA, NOT A COINCIDENCE. Every one of the
  * seventeen is a boundary or full-accrual problem: a county that left a library
@@ -50,10 +60,10 @@
  *   `scope` = 'outside'         the modification names a unit this column does
  *                               not report
  *
- * ⚠⚠ ONE ENTITY-YEAR IN SEVENTY-EIGHT IS `fund_level`, AND IT IS STILL ALLEN
- * COUNTY FY2020. Wave 2 added twenty-four more loaded years and seven more
- * modifications without adding a second one; wave 3 added twenty-three more and
- * one more modification, and that one is out of scope too.
+ * ⚠⚠ TWO ENTITY-YEARS IN NINETY-NINE ARE `fund_level`: ALLEN COUNTY FY2020 and
+ * CLARK COUNTY FY2022. Waves 2 and 3 added forty-seven loaded years and eight
+ * modifications between them without adding one; wave 4 added twenty-one loaded
+ * years, ten modifications, and the second one.
  */
 
 /** Every loaded entity-year with no modification of any kind. */
@@ -98,6 +108,19 @@ export const IN_COUNTY_UNMODIFIED = Object.freeze({
   porter: Object.freeze([2020, 2021, 2023, 2024]),
   johnson: Object.freeze([2019, 2020, 2021, 2022, 2023, 2024]),
   monroe: Object.freeze([2019, 2020, 2021, 2022, 2023, 2024]),
+
+  // ── WAVE 4 — THE LAST FIVE ──────────────────────────────────────────────
+  //
+  // ⚠⚠ THE OPPOSITE OF WAVE 3. Wave 3 was the cleanest wave (22 of 23 clean);
+  // wave 4 is the most modified (11 of 21 carry a modification), and it holds
+  // the family's SECOND fund-level one.
+  madison: Object.freeze([2019, 2023, 2024]),
+  // ⚠ DELAWARE IS THE ONLY WAVE-4 COUNTY CLEAN IN EVERY LOADED YEAR, and FAC's
+  // `gaap_results` says `unmodified_opinion` alone on all five.
+  delaware: Object.freeze([2020, 2021, 2022, 2023, 2024]),
+  vigo: Object.freeze([2020, 2021, 2022]),
+  // ⚠ Clark and LaPorte appear ONLY in the modified map — every year each of
+  // them loads carries a modification.
 });
 
 /**
@@ -345,6 +368,151 @@ export const IN_COUNTY_MODIFIED_OPINIONS = Object.freeze({
       + '⚠ FAC\'s `gaap_results` records `unmodified_opinion,adverse_opinion` for this year, '
       + 'the first time in this family that the metadata reports BOTH sides — but it still '
       + 'cannot say which unit each covers, which is the whole question.',
+  }),
+
+  // ══ WAVE 4 ═══════════════════════════════════════════════════════════════
+  //
+  // ── ⚠⚠⚠ CLARK COUNTY FY2022 — THE SECOND FUND-LEVEL MODIFICATION IN THE
+  //    WHOLE FAMILY, AND A MORE SERIOUS ONE THAN THE FIRST ─────────────────
+  //
+  // Allen FY2020's qualification names a fund unit but its stated basis is a
+  // FIDUCIARY receivable — a balance-sheet item, in the fiduciary half of a unit
+  // that spans both, so it reaches no revenue or expenditure line loaded here.
+  // That was argued, recorded and flagged rather than dismissed.
+  //
+  // Clark FY2022 is NOT that. Its basis names the REVENUES AND EXPENDITURES OF A
+  // GOVERNMENTAL FUND — which is exactly what the Total Governmental Funds
+  // column sums — and the money is inside the loaded figures.
+  'clark-2022': Object.freeze({
+    scope: 'fund_level',
+    units: ['Aggregate Remaining Fund Information'],
+    kind: 'qualified',
+    why: 'QUALIFIED on the AGGREGATE REMAINING FUND INFORMATION, which holds the nonmajor '
+      + 'governmental funds this column sums. The auditor\'s stated basis, verbatim: "As a '
+      + 'result of an ONGOING INVESTIGATION, financial records of the Sheriff Department, '
+      + 'specifically the JAIL COMMISSARY FUND, are unavailable to be audited. The Jail '
+      + 'Commissary fund is a NONMAJOR SPECIAL REVENUE FUND. The Jail Commissary fund reported '
+      + 'assets of $219,332, REVENUES OF $2,019,288 AND EXPENDITURES OF $2,446,254. The assets, '
+      + 'revenues and expenditures of the fund represent 0.5 percent of total assets and 5 '
+      + "percent of total revenues and expenditures of the County's nonmajor funds.\" "
+      + '⚠⚠ THAT MONEY IS INSIDE THE LOADED FY2022 FIGURES (revenue 74,445,193 / expenditure '
+      + '80,188,839), so unlike Allen FY2020 this modification reaches the figures themselves '
+      + 'rather than a balance-sheet item beside them. It is loaded AS PUBLISHED and FLAGGED — '
+      + 'the Milledgeville rule: a figure is not hidden for being uncomfortable, it is shown '
+      + 'with what the auditor said about it. '
+      + '⭐ The county\'s own Summary of Opinions is what settles the scope: Governmental '
+      + 'Activities DISCLAIMER, Aggregate Discretely Presented Component Units ADVERSE, General '
+      + 'Fund Unmodified, ARP Fund Unmodified, Aggregate Remaining Fund Information QUALIFIED — '
+      + 'and FY2021, FY2023 and FY2024 print the identical table with that last line reading '
+      + 'Unmodified. FY2022 is the one year the qualification reaches a fund unit. '
+      + '⚠ The DISCLAIMER on Governmental Activities is out of scope for the Lake County '
+      + 'reason: $580,275,230 of capital assets net of depreciation with no supporting '
+      + 'documentation, 84% of the total assets of the governmental activities — and capital '
+      + 'assets and depreciation are precisely what a modified-accrual funds statement does not '
+      + 'report.',
+  }),
+  // ── CLARK'S OTHER THREE YEARS: THE SAME TWO MODIFICATIONS, NEITHER IN SCOPE ─
+  ...Object.fromEntries([2021, 2023, 2024].map((fy) => [
+    `clark-${fy}`,
+    {
+      scope: 'outside',
+      units: ['Governmental Activities', 'Aggregate Discretely Presented Component Units'],
+      kind: 'disclaimer',
+      why: 'DISCLAIMER on the GOVERNMENTAL ACTIVITIES and ADVERSE on the aggregate discretely '
+        + 'presented component units. The disclaimer\'s basis is capital assets and '
+        + 'depreciation the county could not evidence (FY2022 quantifies it at $580,275,230, '
+        + '84% of governmental-activities total assets); the adverse opinion\'s basis is that '
+        + 'the statements "did not include financial data for the County\'s legally separate '
+        + 'aggregate discretely presented component units" at all. Governmental Activities is '
+        + 'the GOVERNMENT-WIDE, full-accrual statement and component units appear only there; '
+        + 'neither is reported by a governmental FUNDS statement. '
+        + '⭐ THE COUNTY\'S OWN SUMMARY OF OPINIONS NAMES EVERY FUND UNIT AS UNMODIFIED IN '
+        + 'THESE THREE YEARS: General Fund, ARP Fund and the Aggregate Remaining Fund '
+        + 'Information — which, named one by one, are every column of the statement this row is '
+        + 'built from. ⚠ FY2022 is the exception and is recorded separately as `fund_level`.',
+    },
+  ])),
+
+  // ── MADISON ──────────────────────────────────────────────────────────────
+  'madison-2020': Object.freeze({
+    scope: 'outside',
+    units: ['Governmental Activities', 'Aggregate Discretely Presented Component Units'],
+    kind: 'qualified',
+    why: 'QUALIFIED on the GOVERNMENTAL ACTIVITIES and ADVERSE on the component units. The '
+      + 'qualification\'s basis is capital assets: "The County\'s capital assets at historical '
+      + 'cost, accumulated depreciation, net investment in capital assets portion of net '
+      + 'position, and depreciation expense are recorded at $648,712,215, $400,758,479, '
+      + '237,497,814 and $12,175,880 respectively for Governmental Activities ... We were '
+      + 'unable to obtain sufficient appropriate audit evidence ... because the records were '
+      + 'incomplete." That is the LAKE COUNTY shape exactly — a full-accrual, government-wide '
+      + 'problem, and capital assets and depreciation do not appear in a modified-accrual funds '
+      + 'statement. The adverse opinion is for omitting discretely presented component units '
+      + 'that GASB Codification Section 2600 requires. '
+      + '⭐ UNMODIFIED on the GENERAL FUND and the AGGREGATE REMAINING FUND INFORMATION, named '
+      + 'in the auditor\'s own words — between them every column of the loaded statement.',
+  }),
+  ...Object.fromEntries([2021, 2022].map((fy) => [
+    `madison-${fy}`,
+    {
+      scope: 'outside',
+      units: ['Aggregate Discretely Presented Component Units'],
+      kind: 'adverse',
+      why: 'ADVERSE on the aggregate discretely presented component units, for omitting them. '
+        + '⭐ The county\'s own Summary of Opinions lists the other three units explicitly: '
+        + '"Governmental Activities - Unmodified opinion. Each Major Fund - Unmodified opinion. '
+        + 'Aggregate Remaining Fund Information - Unmodified opinion." Every fund unit is clean '
+        + 'and the modification names the one thing a governmental funds statement never '
+        + 'reports. ⚠ Madison returns to a fully unmodified report in FY2023 and FY2024.',
+    },
+  ])),
+
+  // ── LAPORTE: BOTH ITS LOADED YEARS CARRY A MODIFICATION ──────────────────
+  'laporte-2019': Object.freeze({
+    scope: 'outside',
+    units: ['Governmental Activities', 'Aggregate Discretely Presented Component Units'],
+    kind: 'disclaimer',
+    why: 'TWO DISCLAIMERS — on the governmental activities and on the aggregate discretely '
+      + 'presented component units — and the auditor states the fund-level opinions separately '
+      + 'and unmodified: "In our opinion, the financial statements referred to above present '
+      + 'fairly, in all material respects, the respective financial position of EACH MAJOR FUND '
+      + 'AND THE AGGREGATE REMAINING FUND INFORMATION of the County, as of December 31, 2019". '
+      + 'Those two units are the whole of the Total Governmental Funds column. The Lake County '
+      + 'shape in a third county. '
+      + '⚠ The gate captures this document\'s first heading with trailing prose welded onto it '
+      + '(`Disclaimer of Opinion on Aggregate Discretely Presented Component Units paragraph, '
+      + 'we conducted our`) — a `-layout` artifact that does not change the classification, '
+      + 'since the unit named is still the component units.',
+  }),
+  'laporte-2020': Object.freeze({
+    scope: 'outside',
+    units: ['Aggregate Discretely Presented Component Units'],
+    kind: 'qualified',
+    why: 'QUALIFIED on the aggregate discretely presented component units: the county reported '
+      + 'a LIBRARY\'s book and other collections in Capital Assets, Net of Depreciation without '
+      + 'an approved depreciation policy for book collections, and there was "not sufficient '
+      + 'audit evidence to substantiate the beginning balance of the book and other '
+      + 'collections, and buildings for the Library". '
+      + '⭐ UNMODIFIED on the governmental activities, EACH MAJOR FUND and the AGGREGATE '
+      + 'REMAINING FUND INFORMATION — the auditor names all three in one sentence. '
+      + '⚠ A library again, as in Elkhart FY2020/FY2021 and Porter FY2019: an omitted or '
+      + 'unevidenced LIBRARY is the single most common cause of a modified opinion in this '
+      + 'family, and it is a boundary problem every time.',
+  }),
+
+  // ── VIGO ─────────────────────────────────────────────────────────────────
+  'vigo-2019': Object.freeze({
+    scope: 'outside',
+    units: ['Aggregate Discretely Presented Component Units'],
+    kind: 'qualified',
+    why: 'QUALIFIED on the aggregate discretely presented component units: some were omitted, '
+      + 'and "for the ones presented, they were presented at FULL VALUE AND NOT NET OF '
+      + 'ACCUMULATED DEPRECIATION, as required by accounting principles generally accepted in '
+      + 'the United States of America". '
+      + '⭐ UNMODIFIED on the governmental activities, each major fund and the aggregate '
+      + 'remaining fund information — every unit the loaded column is built from. '
+      + '⚠ FAC records `unmodified_opinion,qualified_opinion` for this year, which is the '
+      + 'first wave-4 case where the metadata reports both sides — and, as ever, it cannot say '
+      + 'which unit each covers.',
   }),
 });
 
