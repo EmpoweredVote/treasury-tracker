@@ -521,14 +521,21 @@ export const FUND_SCOPE_REGISTRY = [
     // today because no other loader writes this label shape — but if one ever
     // does, split by municipality_id rather than widening the string.
     id: 'in-county-acfr-tg',
-    match: /^(Marion County|Lake County|Allen County|Hamilton County|St\. Joseph County|Elkhart County|Tippecanoe County|Hendricks County) ACFR — Total Governmental Funds (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
+    match: /^(Marion County|Lake County|Allen County|Hamilton County|St\. Joseph County|Elkhart County|Tippecanoe County|Hendricks County|Vanderburgh County|Porter County|Johnson County|Monroe County) ACFR — Total Governmental Funds (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
     scope: SCOPE.TOTAL_GOVERNMENTAL,
     evidence: {
       document: 'Each county\'s own audited ACFR, governmental-funds Statement of Revenues, '
               + 'Expenditures and Changes in Fund Balances, fetched from the Federal Audit '
               + 'Clearinghouse (app.fac.gov/dissemination/report/pdf/<report_id>, free, no key) '
               + 'and parsed by scripts/lib/acfrGF.py with `target_column=\'last\'`. Every one of '
-              + 'the 62 extractions ties at exactly $0 against the printed total. '
+              + 'the 156 extractions across the twelve counties ties at exactly $0 against the '
+              + 'printed total, with ONE declared exception whose delta is registered EXACTLY and '
+              + 'never as a tolerance: PORTER COUNTY FY2020 expenditure, where the county\'s own '
+              + 'GENERAL FUND column adds up a dollar short of its own printed total (42,250,496 '
+              + 'against a printed 42,250,497) and the Total Governmental column inherits the '
+              + 'dollar. Every row of that statement ties ACROSS the funds and the other two fund '
+              + 'columns tie down their own length, which is how the dollar was located rather '
+              + 'than assumed. '
               + '⭐ THIS IS THE STRONGEST DISCRIMINATOR SHAPE AVAILABLE ANYWHERE IN THIS '
               + 'REGISTRY, the Ohio AOS shape: the SAME DOCUMENT prints the General Fund and the '
               + 'Total Governmental Funds columns SIDE BY SIDE on one page, so which column TT '
@@ -555,6 +562,13 @@ export const FUND_SCOPE_REGISTRY = [
              + 'General Fund column of 151,644,249 (46.8%). '
              + 'LAKE COUNTY FY2020 (p.13): 351,845,744 against a General Fund 185,217,724 '
              + '(52.6%). '
+             + '⭐ WAVE 3 REPRODUCES THE SAME SIDE-BY-SIDE PROOF IN FOUR MORE COUNTIES, and the '
+             + 'General Fund share is nowhere near the total in any of them: '
+             + 'VANDERBURGH FY2024 (p.25) GF revenue 89,407,943 against TOTAL GOVERNMENTAL '
+             + '210,299,051 (42.5%); PORTER FY2023 (p.25) GF 49,850,742 against 138,845,025 '
+             + '(35.9%); JOHNSON FY2021 (p.25) GF 39,538,060 against 84,805,150 (46.6%); '
+             + 'MONROE FY2024 (p.21) GF 55,959,162 against 141,414,313 (39.6%), the expenditure '
+             + 'side of the same page reading 49,545,569 against 152,197,987. '
              + '⚠⚠ REJECTED SCOPES, measured not assumed: `general_fund` is 34-53% of every '
              + 'stored figure above, so it is excluded by a wide margin. `all_funds` is excluded '
              + 'STRUCTURALLY — these statements are the GOVERNMENTAL FUNDS statement and carry no '

@@ -474,13 +474,19 @@ export const AUDIT_GRADE_REGISTRY = [
     // window actually read, so a future Indiana county lands `unknown` until its
     // own opinion has been read.
     id: 'in-county-acfr-tg',
-    match: /^(Marion County|Lake County|Allen County|Hamilton County|St\. Joseph County|Elkhart County|Tippecanoe County|Hendricks County) ACFR — Total Governmental Funds (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
+    match: /^(Marion County|Lake County|Allen County|Hamilton County|St\. Joseph County|Elkhart County|Tippecanoe County|Hendricks County|Vanderburgh County|Porter County|Johnson County|Monroe County) ACFR — Total Governmental Funds (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[6-9]|2[0-5]) actual, GAAP basis\)$/,
     value: AUDIT_GRADE.AUDITED_GAAP,
     evidence: {
-      document: 'The independent auditor\'s report, read in ALL 37 FETCHED DOCUMENTS (the 31 '
-        + 'loaded, plus Lake County\'s six regulatory-basis filings) on 2026-09-08 by '
-        + '`scripts/verifyInCountyOpinions.py`, which locates the report by its own heading and '
-        + 'reads the auditor\'s OPINION-UNIT SECTION HEADINGS rather than searching for words. '
+      document: 'The independent auditor\'s report, read in ALL 107 FETCHED DOCUMENTS across the '
+        + 'twelve counties — the 78 loaded, the 28 regulatory-basis filings and Porter FY2022, '
+        + 'whose statements cannot be read — by `scripts/verifyInCountyOpinions.py`, which '
+        + 'locates the report by its own heading and reads the auditor\'s OPINION-UNIT SECTION '
+        + 'HEADINGS rather than searching for words. '
+        + '⚠⚠ READING THE OPINION IS NOT READING THE STATEMENTS, and Porter FY2022 is the proof: '
+        + 'its auditor\'s report is born-digital and scores a clean unmodified opinion in this '
+        + 'very gate, while the governmental-funds statement in the same PDF is an IMAGE at all '
+        + 'three publishers. It is a declared DOCUMENT GAP and carries no row. A grading pass '
+        + 'that stood in for an extraction pass would have graded a year TT cannot load. '
         + '⚠⚠ A WORD-PRESENCE GATE IS THE WRONG INSTRUMENT HERE. `verifyCoKsOpinions.py` asks '
         + '"does this document contain modified-opinion WORDS", which in Colorado and Kansas '
         + 'flagged only boilerplate. In Indiana it would flag twelve documents identically and '
@@ -528,7 +534,30 @@ export const AUDIT_GRADE_REGISTRY = [
         + 'of accounting other than`; the only GAAP-year hit is Marion FY2016, whose own notes '
         + 'say "Financial statements for periods prior to 2016 were prepared on the modified cash '
         + 'basis" — a statement about the PRIOR years, and the reason this window opens at '
-        + 'FY2016.',
+        + 'FY2016. '
+        + '⭐ WAVES 2 AND 3 ADD 47 MORE LOADED ENTITY-YEARS AND EIGHT MORE MODIFICATIONS, AND '
+        + 'NOT ONE OF THEM IS FUND-LEVEL. Across all 78: nineteen carry a modification and '
+        + 'ALLEN FY2020 IS STILL THE ONLY ONE naming a unit this column is built from. '
+        + 'St. Joseph FY2020/FY2021, Elkhart FY2020/FY2021 and Porter FY2019 name DISCRETELY '
+        + 'PRESENTED COMPONENT UNITS; Hendricks FY2020/FY2021/FY2022 name the BUSINESS-TYPE '
+        + 'ACTIVITIES and the Hendricks County Regional Sewer District, which is a major '
+        + 'ENTERPRISE fund and appears in no column of the governmental funds statement. '
+        + '⚠⚠ PORTER FY2019 IS THE ONE THAT NAMES ITS UNIT IN NEITHER HEADING: both the verdict '
+        + '(`Adverse Opinion`) and its basis heading are bare, and the unit appears only in the '
+        + 'opinion sentence — "do not present fairly the financial position of THE AGGREGATE '
+        + 'DISCRETELY PRESENTED COMPONENT UNITS of the County" — corroborated line by line by '
+        + 'the county\'s own Summary of Opinions table, in which all eight fund-level units and '
+        + 'the Governmental Activities are Unmodified. The stated causes are the Porter County '
+        + 'Airport\'s unevidenced capital-asset estimates and the OMITTED Porter County Public '
+        + 'Library, both of which live only on the government-wide statements. '
+        + '⭐ THE PATTERN IS THE FINDING: every one of the eighteen out-of-scope modifications '
+        + 'is a BOUNDARY or FULL-ACCRUAL problem — an omitted library, fire district or airport, '
+        + 'or unevidenced capital assets — and a modified-accrual funds statement reports '
+        + 'neither component units nor capital assets. '
+        + '⚠ FAC\'s metadata UNDER-REPORTS in five places (Allen FY2016/FY2017, Elkhart FY2021, '
+        + 'Hendricks FY2020/FY2021), each recording a modification alone and omitting the '
+        + 'unmodified fund-level opinions the document plainly gives. THE DOCUMENT IS THE '
+        + 'AUTHORITY. Per-document detail is in scripts/data/inCountyAcfrOpinions.mjs.',
     },
   },
   {
