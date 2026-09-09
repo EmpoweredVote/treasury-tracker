@@ -213,6 +213,69 @@ export const IN_COUNTY_ENTITIES = Object.freeze([
     fiscalYearStartMonth: 1,
     monthStatus: 'confirmed',
   },
+
+  // ── WAVE 2 — counties five to eight by PEP-2024 population ────────────────
+  //
+  // ⭐ THE WAVE-1 QUESTION ANSWERED: THE PATTERN GENERALISES, AND THE GAAP
+  // WINDOW IS THE REAL CONSTRAINT. Only Marion, Allen and Hamilton reach back to
+  // FY2016. All four counties here open at **FY2019** and not one of them files
+  // GAAP before it: every FY2016-FY2018 filing they have is an SBOA
+  // REGULATORY-BASIS report. That is not a coincidence of four counties — it is
+  // the shape of the 17-county ceiling, measured in `IN_COUNTY_BASIS_GAPS`.
+  {
+    key: 'st-joseph',
+    /** ⚠ THE PERIOD IS PART OF THE NAME. FAC writes `ST JOSEPH` without one, and
+     * a name normaliser that did not strip periods reported this county as
+     * having NO filings when it has eight — see `countyKey` in
+     * scripts/buildInCountyFacRoster.mjs. Nothing here matches on the name. */
+    name: 'St. Joseph County',
+    entityType: IN_COUNTY_ENTITY_TYPE,
+    extractor: 'scripts/extractStJosephCountyIN.py',
+    state: IN_COUNTY_STATE,
+    population: 273744,
+    censusName: 'St. Joseph County',
+    facEin: '356000194',
+    fiscalYearStartMonth: 1,
+    monthStatus: 'confirmed',
+  },
+  {
+    key: 'elkhart',
+    name: 'Elkhart County',
+    entityType: IN_COUNTY_ENTITY_TYPE,
+    extractor: 'scripts/extractElkhartCountyIN.py',
+    state: IN_COUNTY_STATE,
+    population: 207436,
+    censusName: 'Elkhart County',
+    facEin: '356000142',
+    fiscalYearStartMonth: 1,
+    monthStatus: 'confirmed',
+  },
+  {
+    key: 'tippecanoe',
+    name: 'Tippecanoe County',
+    entityType: IN_COUNTY_ENTITY_TYPE,
+    extractor: 'scripts/extractTippecanoeCountyIN.py',
+    state: IN_COUNTY_STATE,
+    population: 191650,
+    censusName: 'Tippecanoe County',
+    facEin: '356000202',
+    fiscalYearStartMonth: 1,
+    monthStatus: 'confirmed',
+    /** ⚠⚠ FY2024 carries TWO accepted filings — see IN_COUNTY_FILING_CHOICES. */
+    note: 'two accepted FAC filings for FY2024',
+  },
+  {
+    key: 'hendricks',
+    name: 'Hendricks County',
+    entityType: IN_COUNTY_ENTITY_TYPE,
+    extractor: 'scripts/extractHendricksCountyIN.py',
+    state: IN_COUNTY_STATE,
+    population: 190629,
+    censusName: 'Hendricks County',
+    facEin: '356000154',
+    fiscalYearStartMonth: 1,
+    monthStatus: 'confirmed',
+  },
 ]);
 
 /**
@@ -240,6 +303,34 @@ export const IN_COUNTY_FILING_CHOICES = Object.freeze({
       + '2024-09-30) and the more complete one. '
       + '⚠⚠ `resubmission_status` says `most_recent` on BOTH and cannot decide — the Sumter SC '
       + 'FY2024 defect in a second state.',
+  }),
+  // ── ⚠⚠⚠ A DEFECTIVE PAGE, FIXED BY THE RESUBMISSION ──────────────────────
+  //
+  // Allen FY2023's two filings were IDENTICAL on the statement this route reads
+  // and had to be separated on completeness elsewhere in the document.
+  // Tippecanoe FY2024's are not identical: **the earlier filing's copy of the
+  // statement is BROKEN, and it is broken on the page this family loads.**
+  'tippecanoe-2024': Object.freeze({
+    reportId: '2024-12-GSAFAC-0000397320',
+    why: 'BOTH filings were fetched, rendered and compared. After whitespace normalisation '
+      + 'the two documents differ by EXACTLY EIGHT LINES out of ~5,390, and all eight are '
+      + 'missing from 0000384819 on page 25 — THE GOVERNMENTAL FUNDS STATEMENT ITSELF: the '
+      + 'sub-title `Governmental Funds`, the `Year Ended December 31, 2024` line, all three '
+      + 'rows of column headings (General Fund / TIF Capital Projects-Southeast / American '
+      + 'Rescue Plan / Other Governmental Funds / Total Governmental Funds), the `Revenues` '
+      + 'and `Taxes:` headings, and THE ENTIRE PROPERTY TAX ROW — $31,749,201 general fund, '
+      + '$54,149,405 total governmental. '
+      + '⚠⚠ THE INK IS GENUINELY ABSENT, not merely unextractable: page 25 was RENDERED TO '
+      + 'AN IMAGE from both PDFs and read. 0000384819 prints a statement that begins at '
+      + '`Income`, under no column headings at all, while still printing `Total revenues '
+      + '157,570,713`. Every other line in the two documents is identical. '
+      + '0000397320 is therefore both the LATER filing (fac_accepted_date 2026-01-09 against '
+      + '2025-12-16) and the only COMPLETE one. '
+      + '⭐ The tie gate would have caught this one — the leaves would have come up '
+      + '$54,149,405 short of the printed total — but a route that relies on the safety net '
+      + 'to make a choice it declined to make is one identical-total pair away from loading '
+      + 'the wrong document. Compare, then record. '
+      + '⚠⚠ `resubmission_status` says `most_recent` on BOTH here too.',
   }),
 });
 
@@ -281,13 +372,43 @@ export const IN_COUNTY_FILING_CHOICES = Object.freeze({
  *
  * Keyed by entity, then fiscal year.
  */
+const SBOA_REGULATORY = (which) => 'Indiana State Board of Accounts REGULATORY-BASIS report '
+  + '(Statement of Receipts, Disbursements, and Cash and Investment Balances). No '
+  + 'governmental-funds statement exists in this document. FAC records '
+  + `\`sp_framework_basis=regulatory_basis\` and \`gaap_results=not_gaap\`. ${which}`;
+
 export const IN_COUNTY_BASIS_GAPS = Object.freeze({
   lake: Object.freeze(Object.fromEntries([2016, 2017, 2018, 2022, 2023, 2024].map((fy) => [
-    fy,
-    'Indiana State Board of Accounts REGULATORY-BASIS report (Statement of Receipts, '
-    + 'Disbursements, and Cash and Investment Balances). No governmental-funds statement '
-    + 'exists in this document. FAC records `sp_framework_basis=regulatory_basis`. Only '
-    + "Lake's FY2020 and FY2021 filings are GAAP.",
+    fy, SBOA_REGULATORY("Only Lake's FY2020 and FY2021 filings are GAAP."),
+  ]))),
+
+  // ── ⚠⚠ WAVE 2: THE SAME THREE YEARS, IN ALL FOUR COUNTIES ─────────────────
+  //
+  // ⭐ THIS IS THE FINDING OF WAVE 2, AND IT WAS MEASURED, NOT GUESSED. Every
+  // FY2016-FY2018 filing these four counties have is an SBOA regulatory-basis
+  // report, and every FY2019-onward filing is GAAP. The transition is a
+  // PUBLISHING CHANGE, not a coverage change: the counties were filing all
+  // along, and what changed in FY2019 is the basis they filed on.
+  //
+  // ⚠⚠ SO "THE GAAP WINDOW OPENS AT FY2019" IS A STATEMENT ABOUT THE DOCUMENTS,
+  // NOT ABOUT FAC'S COVERAGE. St. Joseph's FY2017 and FY2018 filings EXIST and
+  // are AUDITED and are unusable here; a route that measured coverage would have
+  // read them as loadable and produced the exact all-funds cash figures this
+  // family exists to escape, under an `audited_gaap` label.
+  //
+  // Marion, Allen and Hamilton reaching FY2016 is the exception among Indiana's
+  // seventeen GAAP counties, not the rule.
+  'st-joseph': Object.freeze(Object.fromEntries([2017, 2018].map((fy) => [
+    fy, SBOA_REGULATORY("St. Joseph's GAAP filings begin at FY2019."),
+  ]))),
+  elkhart: Object.freeze(Object.fromEntries([2016, 2017, 2018].map((fy) => [
+    fy, SBOA_REGULATORY("Elkhart's GAAP filings begin at FY2019."),
+  ]))),
+  tippecanoe: Object.freeze(Object.fromEntries([2016, 2017, 2018].map((fy) => [
+    fy, SBOA_REGULATORY("Tippecanoe's GAAP filings begin at FY2019."),
+  ]))),
+  hendricks: Object.freeze(Object.fromEntries([2016, 2017, 2018].map((fy) => [
+    fy, SBOA_REGULATORY("Hendricks's GAAP filings begin at FY2019."),
   ]))),
 });
 
@@ -308,6 +429,31 @@ export const IN_COUNTY_COVERAGE_GAPS = Object.freeze({
   }),
   allen: Object.freeze({
     2025: 'No FY2025 filing at FAC yet (see above).',
+  }),
+
+  // ── WAVE 2 ────────────────────────────────────────────────────────────────
+  //
+  // ⚠ St. Joseph's FY2023 is a HOLE INSIDE ITS OWN GAAP RUN — FY2019-FY2022 and
+  // FY2024-FY2025 file, FY2023 does not. That is a coverage gap in the middle of
+  // a series and it is REPORTED, never interpolated and never a $0. The county
+  // is under no obligation to file a Single Audit in a year it spent less than
+  // $750k of federal awards, and FY2023 is the year federal relief unwound.
+  'st-joseph': Object.freeze({
+    2016: 'No FY2016 filing at FAC for EIN 356000194. 44 of 92 Indiana counties filed for '
+      + 'FY2016, against 86 for FY2020 — the $750k Single Audit threshold, not a publishing '
+      + 'decision. (FY2016 would be a basis gap anyway: FY2017 and FY2018 are both '
+      + 'regulatory basis and the GAAP run starts at FY2019.)',
+    2023: 'No FY2023 filing at FAC for EIN 356000194, between GAAP filings either side of it. '
+      + '⚠ A HOLE INSIDE THE SERIES, reported rather than interpolated.',
+  }),
+  elkhart: Object.freeze({
+    2025: 'No FY2025 filing at FAC yet — FY2025 is still arriving.',
+  }),
+  tippecanoe: Object.freeze({
+    2025: 'No FY2025 filing at FAC yet — FY2025 is still arriving.',
+  }),
+  hendricks: Object.freeze({
+    2025: 'No FY2025 filing at FAC yet — FY2025 is still arriving.',
   }),
 });
 
@@ -375,8 +521,16 @@ export function fiscalMonthFor(entity, _fiscalYear) {
  *
  * The tie gate proves the READ. It says nothing about whether a series is
  * comparable year to year, and the acfrGF how-to's own sanity check is to
- * explain every big move before shipping. Eight moves in these eight series
- * exceed 20%; all eight were decomposed by root category and traced.
+ * explain every big move before shipping. Eight moves in wave 1's eight series
+ * exceed 20%, and NINE MORE in wave 2's eight. All seventeen were decomposed
+ * by root category — and, where the issuer says something, traced to the
+ * issuer's own words.
+ *
+ * ⚠⚠ ONE OF WAVE 2's IS NOT A ONE-YEAR MOVE AT ALL. St. Joseph has NO FY2023
+ * filing, so its FY2024 row's neighbour in the series is FY2022 and the
+ * percentage spans TWO YEARS. A movement report that assumed consecutive years
+ * would describe a two-year change as a one-year one. The gap is a coverage gap
+ * (`IN_COUNTY_COVERAGE_GAPS`), never interpolated and never a $0.
  *
  * ⚠⚠ AND ONE OF THEM IS NOT A SPENDING CHANGE AT ALL — see `marion-2023`.
  *
@@ -415,6 +569,75 @@ export const IN_COUNTY_SERIES_NOTES = Object.freeze({
     + 'Intergovernmental +16,228,829 and Other +9,878,856. The county\'s own MD&A attributes '
     + 'the general-fund part to property (+$5.2M) and income (+$6.3M) tax and to a $5.1M rise in '
     + 'interest revenue.',
+  // ══ WAVE 2 ═══════════════════════════════════════════════════════════════
+  //
+  // ⭐ A PATTERN ACROSS ALL FOUR COUNTIES, worth stating once rather than four
+  // times: the two biggest recurring drivers are LOCAL INCOME TAX and
+  // INVESTMENT EARNINGS. Indiana's LIT is distributed by the STATE on a
+  // certified estimate, so a distribution change moves every county in the same
+  // direction in the same year, and the 2022-2024 interest-rate environment
+  // moved investment earnings the same way. Neither is a change in what a county
+  // collects locally. Where a county says so itself, it is quoted.
+
+  // ── ST. JOSEPH: THE GM/SAMSUNG BATTERY PLANT AND AWS AT NEW CARLISLE ─────
+  'st-joseph-2024': 'Revenue +27.5% and operating +31.5% — ⚠⚠ ACROSS TWO YEARS, NOT ONE: '
+    + 'St. Joseph has no FY2023 filing, so FY2024\'s neighbour in the series is FY2022. '
+    + 'Revenue: Taxes +43,950,955 and Other revenue +43,447,734 against Intergovernmental '
+    + '-27,773,531. Operating: Capital outlay +45,854,744 and Economic development +26,657,899. '
+    + 'THE COUNTY NAMES THE CAUSE: its MD&A attributes the rise to "higher property tax revenue '
+    + '(higher housing assessments), higher local income tax revenue, and the reimbursement from '
+    + 'Amazon Web Servies (AWS) for expenses paid by the County in the New Carlisle Tax '
+    + 'Increment Financing (TIF) funds", and the fall in grant revenue to "less spending on the '
+    + 'American Rescue Plan grant". The statement shows it column by column: FY2024 opens TWO '
+    + 'NEW MAJOR FUNDS — `New Carlisle Development Area TIF #1` (Economic development '
+    + '15,988,141, Other revenue 12,913,117) and `RDA 2024B GM-Samsung Bond Capital` (Capital '
+    + 'outlay 34,399,926). '
+    + '⚠ The $40,000,000 of debt issued into that fund is an OTHER FINANCING SOURCE and is '
+    + 'correctly NOT in the revenue figure — the LA TRAN defect, avoided by reading the printed '
+    + '`Total revenues` row.',
+
+  // ── ELKHART ──────────────────────────────────────────────────────────────
+  'elkhart-2023': 'Revenue +25.7% (161,180,380 -> 202,656,239): Taxes > Income +26,019,176 and '
+    + 'Investment earnings +12,552,361 — the two statewide drivers, and between them 93% of the '
+    + 'move. Charges for services FELL 4,580,236 in the same year.',
+  'elkhart-2024': 'Revenue +22.5% and operating +21.8%, and BOTH SIDES ARE THE SAME MONEY '
+    + 'PASSING THROUGH ONE FUND. The `ARP Coronavirus LFR` column takes in 27,966,688 of '
+    + 'Intergovernmental revenue and pays out 27,970,691 of Capital outlay > Health and welfare '
+    + '— its whole revenue and its whole expenditure, to the dollar either side. On the revenue '
+    + 'side Intergovernmental is +22,713,438 of the +45,581,978; on the expenditure side Capital '
+    + 'outlay > Health and welfare is +20,705,967, alongside Current > Public safety +24,501,359 '
+    + 'and Capital outlay > Highways and streets +14,123,862 against Capital outlay > General '
+    + 'government -18,420,784. ⚠ The county\'s own MD&A discusses only the General Fund here '
+    + '("an increase in income tax of $2,009" — in THOUSANDS, that fund\'s presentation), which '
+    + 'is why the decomposition is taken from the statement rather than the narrative.',
+  'elkhart-2022': 'Operating +22.2% (139,694,863 -> 170,652,616): Capital outlay > General '
+    + 'government +17,336,873 and Current > General government +12,656,864, partly offset by '
+    + 'Current > Public safety -6,296,248. A capital programme, not a growth in operations.',
+
+  // ── TIPPECANOE ───────────────────────────────────────────────────────────
+  'tippecanoe-2023': 'Revenue +24.6% (117,359,313 -> 146,250,929): Investment earnings (loss) '
+    + '+8,564,542, Taxes > Income +7,555,468, Other > Miscellaneous +7,384,856 and Taxes > '
+    + 'Property +5,594,802. The county names two of them: its MD&A records that "Income taxes '
+    + 'increased by $4,185,175 mainly due to an increase in amounts distributed by the state" '
+    + 'and, for the General Fund, "an increase in property taxes of $1,687,259, income taxes of '
+    + '$3,464,308 and investment earnings of $4,121,772". ⚠ Those are the GOVERNMENT-WIDE and '
+    + 'GENERAL FUND figures respectively; this row is TOTAL GOVERNMENTAL FUNDS, so they '
+    + 'corroborate the direction and the drivers, never the total.',
+
+  // ── HENDRICKS ────────────────────────────────────────────────────────────
+  'hendricks-2020': 'Revenue +21.3% (96,592,901 -> 117,154,371): Taxes > Income +10,765,816 and '
+    + 'Intergovernmental +6,446,873 — the first pandemic year. '
+    + '⚠ THE DECOMPOSITION LOOKS LIKE A THIRD MOVE AND IS NOT ONE: the county relabelled '
+    + '`Investment Income` to `Investment income` between the two years, so a naive label diff '
+    + 'shows -3,094,156 and +2,872,463 as separate lines where the real change is -221,693. '
+    + 'Both are loaded IN THE CASE THE ISSUER PRINTED — case-folding one onto the other would be '
+    + 'normalising two presentations onto one another.',
+  'hendricks-2023': 'Revenue +30.2% (126,787,116 -> 165,034,917): Taxes > Income +15,820,674, '
+    + 'Investment earnings +12,537,753 and Intergovernmental +7,345,947. ⭐ THE COUNTY GIVES THE '
+    + 'MECHANISM FOR THE LARGEST PIECE IN ITS OWN WORDS: "Income taxes increased by $12,712,833 '
+    + 'due to the change in estimating local income taxes" — a change in the STATE\'S '
+    + 'CERTIFICATION METHOD, not in what Hendricks County collects.',
+
   'allen-2024': 'Revenue +24.2% (260,926,477 -> 324,150,411): Intergovernmental +34,375,899 and '
     + 'Taxes +24,504,788. Both are named by the county — the MD&A cites "the new Local Income '
     + 'Tax (LIT) correctional facility rate", and the statement shows the ARP Coronavirus Local '
