@@ -1,13 +1,16 @@
 # Note for the Treasury Tracker team — a geoid-keyed coverage catalog, and the Bloomington fallback
 
 **From:** Civic Spaces · **Date:** 2026-09-08
-**Touches your repo:** nothing yet — this note only. No commits, no pushes.
+**Touches your repo:** Ask 3 is implemented (#158, merged). Asks 1 and 2 are requests only.
 **Re:** Civic Spaces Phase 15 (shipped 2026-09-08), which deliberately shipped *without* a
 Treasury Tracker row
 
-Three requests. None of them needs Civic Spaces to change first, all three stand on their
-own merits, and **Ask 3 is a live bug that affects TT users who have never heard of Civic
-Spaces** — read that one even if you bin the rest.
+Three requests. None of them needs Civic Spaces to change first, and all three stand on
+their own merits.
+
+**Status:** Ask 3 was a live bug affecting TT users who have never heard of Civic Spaces,
+and it is **done — #158, merged 2026-09-08.** Asks 1 and 2 (the geoid key and the published
+catalog) are still open, and are what the Treasury row in Civic Spaces waits on.
 
 ---
 
@@ -25,7 +28,8 @@ precisely:
   7-digit place, 2-digit state prefix. That is what `civic_spaces.slices.geoid` stores, and
   that app never geocodes or stores addresses, so a geoid is all we will ever have.
 - TT deep-links by **name-derived slug**: `?entity=<slug>`, where the slug is
-  `` `${m.name.toLowerCase().replace(/\s+/g, '-')}-${m.state.toLowerCase()}` `` (`src/App.tsx:72`).
+  `` `${m.name.toLowerCase().replace(/\s+/g, '-')}-${m.state.toLowerCase()}` ``
+  (`src/utils/entityRouting.ts` since #158; it was `src/App.tsx:72`).
 - `grep -rn geoid supabase/migrations/` returns **nothing**. `municipalities` is
   `id / name / state / entity_type / population / county_id / hero_image_url`. So there is
   no key the two apps share.
@@ -90,7 +94,7 @@ names and types are the request:
 
 The one addition over Essentials' shape is **`slug`**, since you address entities by slug
 rather than by geoid. Emitting it means no consumer ever reconstructs `toSlug` or drifts
-from `src/App.tsx:72`.
+from its definition in `src/utils/entityRouting.ts`.
 
 We could not determine the **federal** entry from outside: you have an `entity_type` of
 `federal` and a `/treasury/federal/context` endpoint, but the slug depends on that row's
@@ -128,6 +132,13 @@ be sending people to a surface branded as EV's own financials when they asked fo
 budget. Your call, not ours, but the two apps should agree.
 
 ## Ask 3 — 🔴 stop resolving an unknown entity to Bloomington
+
+> ✅ **Done in #158** (merged 2026-09-08). An unmatched `?entity=` now resolves to an
+> `entity_not_found` landing state that names the requested slug and offers the city
+> search. The decision moved to `src/utils/entityRouting.ts`, which is now also the single
+> definition of `toSlug` — `App.tsx` imports it for `syncURL` rather than keeping a second
+> copy. 12 regression tests assert an unknown slug resolves to neither Bloomington nor
+> `list[0]`. **The rest of this section is kept as the record of why.**
 
 Independent of everything above, and the reason we will not ship a guessed link.
 
@@ -183,9 +194,11 @@ concatenation, and no `slug` interpolated into a URL.
    passed as `?entity=`, lands on that entity.
 3. Every entity in the catalog resolves — no catalog entry produces the not-found state.
 4. `?entity=definitely-not-a-real-place-zz` shows not-found, **not** Bloomington.
+   — ✅ satisfied by #158; covered by `src/utils/entityRouting.test.ts`.
 
 No rush on our side: Phase 15 shipped without the Treasury row and the Essentials row works
-today, so nothing is broken while this waits. Ask 3 is the one we would not leave sitting.
+today, so nothing is broken while Asks 1 and 2 wait. Ask 3, the one we would not have left
+sitting, is already fixed.
 
 Questions to Chris. The consumer-side design, if you want the other half of the picture, is
 `Civic Spaces/.planning/phases/15-tool-deep-links/15-DESIGN.md`.
