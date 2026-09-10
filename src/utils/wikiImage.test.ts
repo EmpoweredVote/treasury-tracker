@@ -19,6 +19,7 @@ import {
   CURATED_CITY_CREDITS,
   CURATED_CITY_FILES,
   STATE_BANNER_CREDITS,
+  STATE_BANNER_FILES,
   STATE_NAMES,
   FEDERAL_CREDIT,
 } from './wikiImage';
@@ -116,6 +117,57 @@ describe('state + federal banner attribution', () => {
     expect(hero?.credit).not.toContain('Soloviev');
   });
 
+  it('has no filename override for a state that does not exist', () => {
+    expect(Object.keys(STATE_BANNER_FILES).filter((a) => !STATE_NAMES[a])).toEqual([]);
+  });
+
+  it('keeps every versioned state filename under that state', () => {
+    // A transposed entry (FL: 'TX-v2.jpg') would serve the wrong state's photograph
+    // under the right state's credit — the misattribution this whole map exists to end,
+    // and invisible to every other assertion here.
+    for (const [abbr, file] of Object.entries(STATE_BANNER_FILES)) {
+      expect(file, abbr).toMatch(new RegExp(`^${abbr}-v\\d+\\.jpg$`));
+    }
+  });
+
+  it('serves Texas the Chisos frame credited to Tlshands, not the Austin photographer', async () => {
+    // Essentials swapped the banner on 2026-08-18 and TT kept publishing Sk5893, whose
+    // Austin skyline is now cities/austin.jpg. Same shape as the WA case above: the URL
+    // never changed, so nothing failed — the credit just quietly became wrong about a
+    // picture of mountains. Caught by Civic Spaces on 2026-09-10, confirmed against the
+    // Commons File: page rather than the note.
+    const hero = await getHeroImage(entity('Texas', 'TX', 'state'));
+    expect(hero?.url).toBe(`${BUCKET}/states/TX-v2.jpg`);
+    expect(hero?.credit).toBe('Tlshands, CC BY-SA 3.0, via Wikimedia Commons');
+    expect(hero?.credit).not.toContain('Sk5893');
+  });
+
+  it('serves Florida the Rookery Bay frame, so the state and Miami are not one photo', async () => {
+    // states/FL.jpg still serves Euthman's Miami skyline — Euthman was never the wrong
+    // credit for it. The defect was that Florida's banner and Miami's banner were the
+    // same photograph, which is why essentials versioned rather than overwrote. The file
+    // and the author move together or one of them is wrong.
+    const hero = await getHeroImage(entity('Florida', 'FL', 'state'));
+    expect(hero?.url).toBe(`${BUCKET}/states/FL-v2.jpg`);
+    expect(hero?.url).not.toMatch(/\/FL\.jpg$/);
+    expect(hero?.credit).toBe('RW at RookeryBay, CC BY-SA 4.0, via Wikimedia Commons');
+    expect(hero?.credit).not.toContain('Euthman');
+  });
+
+  it('serves California the re-cropped frame under the unchanged credit', async () => {
+    // Same photograph, so Brocken Inaglory stays. Only the crop moved — the shipped one
+    // put the Golden Gate above the visible 6:1 band.
+    const hero = await getHeroImage(entity('California', 'CA', 'state'));
+    expect(hero?.url).toBe(`${BUCKET}/states/CA-v2.jpg`);
+    expect(hero?.credit).toBe('Brocken Inaglory, CC BY-SA 4.0, via Wikimedia Commons');
+  });
+
+  it('leaves the other 47 states on the unversioned path', () => {
+    const versioned = new Set(Object.keys(STATE_BANNER_FILES));
+    expect([...versioned].sort()).toEqual(['CA', 'FL', 'TX']);
+    expect(Object.keys(STATE_NAMES).filter((a) => !versioned.has(a))).toHaveLength(47);
+  });
+
   it('leaves no banner on the generic credit', async () => {
     for (const abbr of Object.keys(STATE_NAMES)) {
       const hero = await getHeroImage(entity(STATE_NAMES[abbr], abbr, 'state'));
@@ -161,14 +213,28 @@ describe('getHeroImage — bucket resolution', () => {
     expect(hero?.credit).toBe('Kpsudeep, CC BY-SA 4.0, brightened, via Wikimedia Commons');
   });
 
-  it('leaves the ten uncovered WA entities on the fallback path, not a 404 URL', () => {
-    // BANNER-01 probed the bucket on 2026-08-16: only seattle and king-county exist.
-    // Inventing a slug for the rest would point a CSS background-image at a 400,
-    // and a background-image cannot onerror-fallback.
+  it('serves Bainbridge Island and Kitsap County, whose assets arrived after the probe', async () => {
+    // BANNER-01 probed on 2026-08-16 and recorded all twelve remaining WA entities as
+    // NoSuchKey. Essentials uploaded these two the NEXT DAY, so the finding was stale
+    // within 24 hours and TT sent both to the unlicensed Wikipedia path until
+    // 2026-09-10. Re-probed then: both return 206.
+    const bainbridge = await getHeroImage(entity('Bainbridge Island', 'WA'));
+    expect(bainbridge?.url).toBe(`${BUCKET}/cities/bainbridge-island.jpg`);
+    expect(bainbridge?.credit).toBe('Ecoscapes, CC BY-SA 4.0, via Wikimedia Commons');
+
+    const kitsap = await getHeroImage(entity('Kitsap County', 'WA', 'county'));
+    expect(kitsap?.url).toBe(`${BUCKET}/cities/kitsap-county.jpg`);
+    expect(kitsap?.url).not.toContain('bremerton');
+    expect(kitsap?.credit).toBe('Joe Mabel, CC BY-SA 4.0, via Wikimedia Commons');
+  });
+
+  it('leaves the ten still-uncovered WA entities on the fallback path, not a 404 URL', () => {
+    // Re-probed 2026-09-10: these ten still return 400. Inventing a slug for them
+    // would point a CSS background-image at that 400, and a background-image cannot
+    // onerror-fallback.
     for (const slug of [
-      'bainbridge-island', 'kitsap-county', 'tacoma', 'spokane', 'vancouver',
-      'bellevue', 'kent', 'everett', 'pierce-county', 'spokane-county',
-      'clark-county', 'snohomish-county',
+      'tacoma', 'spokane', 'vancouver', 'bellevue', 'kent', 'everett',
+      'pierce-county', 'spokane-county', 'clark-county', 'snohomish-county',
     ]) {
       expect(CURATED_CITY_BANNERS.has(`${slug}|WA`), slug).toBe(false);
     }

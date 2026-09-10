@@ -168,9 +168,19 @@ const WIKIMEDIA_CREDIT = 'Wikimedia Commons';
 export const FEDERAL_CREDIT = 'DiscoA340, CC BY-SA 4.0, leveled and cropped, via Wikimedia Commons';
 
 /**
- * Per-state attribution for `states/<ABBR>.jpg`, transcribed 2026-07-28 from the
- * essentials banner registry (`src/lib/buildingImages.js`), same provenance rule as
- * CURATED_CITY_CREDITS: verbatim author and licence, never reconstructed.
+ * Per-state attribution for the state banner — `states/<ABBR>.jpg` unless
+ * STATE_BANNER_FILES versions it. Transcribed 2026-07-28 from the essentials banner
+ * registry (`src/lib/buildingImages.js`), same provenance rule as CURATED_CITY_CREDITS:
+ * verbatim author and licence, never reconstructed.
+ *
+ * ⚠ THIS TABLE IS A SNAPSHOT AND SNAPSHOTS DRIFT. It has now gone stale twice — WA on
+ * 2026-08-16, TX on 2026-09-10 — and both times it published the wrong photographer,
+ * because a swap is silent by construction: the URL does not change, so no test,
+ * typecheck or 404 can see it. Both were caught by someone re-reading the registry for
+ * an unrelated reason. Civic Spaces found the TX one while regenerating its own table
+ * and warned us off porting theirs for the same reason. There is no substitute for
+ * re-reading a state's registry line before trusting the credit here, and any state
+ * whose banner has moved needs its STATE_BANNER_FILES entry checked in the same pass.
  *
  * Five entries the registry marks as brightness-lifted (CT, IL, KY, VA, WA) say so
  * — CC BY / CC BY-SA ask that modifications be indicated. Every banner is also
@@ -192,11 +202,33 @@ export const STATE_BANNER_CREDITS: Record<string, string> = {
   AL: 'WeaponizingArchitecture, CC BY-SA 4.0, via Wikimedia Commons',
   AR: 'Daniel Schwen, CC BY-SA 4.0, via Wikimedia Commons',
   AZ: 'DPPed, CC BY-SA 3.0, via Wikimedia Commons',
+  // UNCHANGED on 2026-09-10, deliberately. California was re-cropped on 2026-09-09 to
+  // states/CA-v2.jpg, but from the SAME photograph, so this line stays exactly as it
+  // was — see STATE_BANNER_FILES.CA for why the file moved. Re-confirmed anyway rather
+  // than assumed: "File:Pano of Golden Gate Bridge and San Francisco from Twin Peaks 1
+  // 1.jpg" — Brocken Inaglory, CC BY-SA 4.0, 10000x3245, the source size the registry
+  // records, matched to CA-v2 at mean abs difference 6.79 per channel using the exact
+  // frame the registry documents (x 0-5900, y 0-1874).
   CA: 'Brocken Inaglory, CC BY-SA 4.0, via Wikimedia Commons',
   CO: 'Quintin Soloviev, CC BY 4.0, via Wikimedia Commons',
   CT: 'KyleConstable, CC BY-SA 4.0, brightened, via Wikimedia Commons',
   DE: 'Tim Kiser, CC BY-SA 2.5, via Wikimedia Commons',
-  FL: 'Euthman, CC BY 4.0, via Wikimedia Commons',
+  // Re-transcribed 2026-09-10 TOGETHER WITH the STATE_BANNER_FILES entry — this credit
+  // was NOT wrong before, and changing it alone would have made it wrong. Essentials
+  // versioned Florida on 2026-08-30 *without* overwriting, so states/FL.jpg still
+  // serves Euthman's Miami skyline and 'Euthman, CC BY 4.0' was honest for it. What
+  // TT had was the older arrangement: that skyline is also Miami's own city banner, so
+  // Florida's state page and Miami's city page were the same photograph. Essentials
+  // moved the skyline down to cities/miami.jpg and gave the state a frame that stands
+  // for the whole state. Pointing at FL-v2.jpg changes the image, so the author changes
+  // with it, in the same commit.
+  //
+  // Verified 2026-09-10: states/FL.jpg is sha256 870112b7…/235,610 b (Miami) and
+  // states/FL-v2.jpg is 58524f94…/137,011 b (Rookery Bay) — genuinely different objects,
+  // unlike TX. Author established on Commons: "File:Aerial view of an island in Rookery
+  // Bay.jpg" — RW at RookeryBay, CC BY-SA 4.0, matched to FL-v2 at mean abs difference
+  // 1.44 per channel on a centred vertical crop.
+  FL: 'RW at RookeryBay, CC BY-SA 4.0, via Wikimedia Commons',
   GA: 'Marc Merlin, CC BY-SA 4.0, via Wikimedia Commons',
   HI: 'Cristo Vlahos, CC BY-SA 3.0, via Wikimedia Commons',
   IA: 'Tony Webster, CC BY 2.0, via Wikimedia Commons',
@@ -230,7 +262,27 @@ export const STATE_BANNER_CREDITS: Record<string, string> = {
   SC: 'bbatsell, CC BY-SA 2.5, via Wikimedia Commons',
   SD: 'Nick Amoscato, CC BY 2.0, via Wikimedia Commons',
   TN: 'Kaldari, public domain, via Wikimedia Commons',
-  TX: 'Sk5893, CC BY-SA 4.0, via Wikimedia Commons',
+  // Re-transcribed 2026-09-10: this line was STALE and published the wrong author,
+  // caught by Civic Spaces regenerating its own credit table from the registry.
+  // Essentials replaced the Texas banner on 2026-08-18 ("Chisos Mountains, Big Bend
+  // National Park | Tlshands | CC BY-SA 3.0") because states/TX.jpg had been a
+  // photograph of Austin, so the state and its capital shared one subject. Sk5893's
+  // Austin skyline moved DOWN to cities/austin.jpg. Identical shape to the WA swap
+  // below, and it published the same way: the URL never changed, so nothing failed.
+  //
+  // The swap was versioned to states/TX-v2.jpg, but the in-place overwrite of the
+  // plain path also propagated eventually — so TT was already serving the Chisos
+  // frame under Sk5893's name. Confirmed 2026-09-10, not taken from the note:
+  // states/TX.jpg and states/TX-v2.jpg are both sha256 b23ea801…/205,609 b (plain
+  // and cache-busted alike), and the image is mountains, not a skyline.
+  //
+  // Author established on the Commons File: page rather than transcribed, per the RI
+  // precedent. "File:Chisos Mountains, Big Bend National Park.jpg" — Tlshands,
+  // CC BY-SA 3.0, 16618x3456, which is the source size the registry records. Matched
+  // to the bucket image by pixel comparison: mean abs difference per channel 3.80 for
+  // the centred crop (and an anchor sweep bottoms out at exactly 0.50, the centring
+  // the registry documents) versus 49.95 against cities/austin.jpg.
+  TX: 'Tlshands, CC BY-SA 3.0, via Wikimedia Commons',
   UT: 'Invictus323, CC BY 4.0, via Wikimedia Commons',
   VA: 'Don.s.okeefe, CC BY-SA 3.0, brightened, via Wikimedia Commons',
   VT: 'chensiyuan, CC BY-SA 4.0, via Wikimedia Commons',
@@ -245,6 +297,51 @@ export const STATE_BANNER_CREDITS: Record<string, string> = {
   WI: 'Dori, CC BY-SA 3.0 US, via Wikimedia Commons',
   WV: 'Gabor Eszes (UED77), CC BY-SA 3.0, via Wikimedia Commons',
   WY: 'GrandTetonNPS, public domain, via Wikimedia Commons',
+};
+
+/**
+ * States whose banner is NOT at `states/<ABBR>.jpg`, mirroring the essentials registry's
+ * `STATE_PANORAMA_FILES`. The city tier has had `CURATED_CITY_FILES` since Bend, and the
+ * federal banner has been `us-capitol-banner-v2.jpg` for longer than that; the state tier
+ * simply never got the same treatment, because its URL was built as `${abbr}.jpg` with no
+ * way to express a version. That gap is what let CA, FL and TX all point at objects
+ * essentials had superseded and deliberately left in place.
+ *
+ * WHY VERSIONED FILENAMES EXIST AT ALL: replacing a banner by overwriting the object does
+ * not reliably purge the CDN. Essentials measured this on Texas — seconds after the
+ * upload, the plain URL still returned the old Austin skyline while `?v=` returned the new
+ * Chisos frame. So a consumer on the plain path serves the old picture for an unknown
+ * period, and then, with no action from anyone, starts serving the new one. Texas is the
+ * proof in both directions: it has now caught up, which is exactly why the stale credit
+ * became a live misattribution instead of merely a stale-looking page.
+ *
+ * ⚠ THE CORRECT ENTRY HERE CANNOT BE INFERRED FROM THE BUCKET. TX-v2.jpg is byte-identical
+ * to TX.jpg today, so probing would say "no override needed" — and would be wrong the next
+ * time essentials ships a v3. Read `STATE_PANORAMA_FILES` in the essentials registry; it is
+ * the authoritative list. Transcribed 2026-09-10.
+ *
+ * ⚠ AND A FILENAME IS HALF THE CHANGE. FL-v2 is a different photograph by a different
+ * author, so its STATE_BANNER_CREDITS line had to move with it. Never add an entry here
+ * without re-reading that state's registry credit line in the same edit.
+ */
+export const STATE_BANNER_FILES: Record<string, string> = {
+  // Re-cropped 2026-09-09 from the same Brocken Inaglory photograph — not a new image and
+  // not an adjacency swap. The shipped frame failed essentials' own 6:1 desktop band: the
+  // Golden Gate towers, Marin and the bay all sat above the visible window, leaving an
+  // anonymous field of rooftops on an asset whose credit names the bridge as its subject.
+  // Cosmetic rather than a licence problem, which is why TT served the rejected frame for
+  // a day without anything being detectably wrong. Credit is unchanged.
+  CA: 'CA-v2.jpg',
+  // Versioned 2026-08-30, and the one entry here that changes what a reader sees AND who
+  // is credited: Euthman's Miami skyline moved down to cities/miami.jpg and the state got
+  // a Rookery Bay aerial by RW at RookeryBay. states/FL.jpg still serves the skyline, so
+  // TT's old credit was honest — it was the adjacency that was stale, with Florida and
+  // Miami showing the same photograph.
+  FL: 'FL-v2.jpg',
+  // Versioned 2026-08-18 when the Austin skyline became the Chisos Mountains. Points at
+  // the same bytes the plain path serves today; the entry is here so it keeps pointing at
+  // what essentials publishes if there is ever a TX-v3.
+  TX: 'TX-v2.jpg',
 };
 
 const toSlug = (name: string) => name.toLowerCase().trim().replace(/\s+/g, '-');
@@ -276,13 +373,25 @@ export const CURATED_CITY_BANNERS = new Set<string>([
   // photo of the SEATTLE courthouse, the exact city-for-county substitution the
   // curated pair exists to prevent.
   //
-  // These two are the WHOLE WA cohort. The bucket was HEAD-probed for all twelve
-  // WA entities plus the `-v2` variants: bainbridge-island, kitsap-county, tacoma,
-  // spokane, vancouver, bellevue, kent, everett, pierce-county, spokane-county,
-  // clark-county and snohomish-county all return NoSuchKey. Those need essentials
-  // to upload assets; do not add a slug here ahead of one.
+  // These two were the whole WA cohort on 2026-08-16. The bucket was HEAD-probed for
+  // all twelve other WA entities plus the `-v2` variants and every one returned
+  // NoSuchKey; do not add a slug here ahead of an asset, because a CSS
+  // background-image pointed at a 400 cannot onerror-fallback.
   'seattle|WA',
   'king-county|WA',
+  // Added 2026-09-10 — and they are the counter-example to the sentence above, which
+  // read "these two are the WHOLE WA cohort" for three weeks after it stopped being
+  // true. Essentials uploaded both on 2026-08-17, one day after the probe that wrote
+  // it. Re-probed 2026-09-10: cities/bainbridge-island.jpg and cities/kitsap-county.jpg
+  // now return 206, while the other ten (tacoma, spokane, vancouver, bellevue, kent,
+  // everett, pierce-county, spokane-county, clark-county, snohomish-county) still
+  // return 400. A negative probe result is true on the day it is taken and never
+  // after — the same class of staleness as a transcribed credit.
+  //
+  // Kitsap County gets its own frame rather than Bremerton's, for the reason King
+  // County gets Snoqualmie Falls rather than Seattle's.
+  'bainbridge-island|WA',
+  'kitsap-county|WA',
 ]);
 
 /**
@@ -349,6 +458,11 @@ export const CURATED_CITY_CREDITS: Record<string, string> = {
   // now names a different photographer for the same key.
   'seattle|WA': 'Daniel Schwen, CC BY-SA 4.0, brightened, via Wikimedia Commons',
   'king-county|WA': 'Kpsudeep, CC BY-SA 4.0, brightened, via Wikimedia Commons',
+
+  // Transcribed 2026-09-10 from the "Washington, second pass" block (essentials
+  // uploaded these on 2026-08-17). No [brightened] tag on either line.
+  'bainbridge-island|WA': 'Ecoscapes, CC BY-SA 4.0, via Wikimedia Commons',
+  'kitsap-county|WA': 'Joe Mabel, CC BY-SA 4.0, via Wikimedia Commons',
 };
 
 /** Build a shared-bucket banner for entities we know are covered, else null.
@@ -361,10 +475,11 @@ function bucketBanner(entity: Municipality): HeroImage | null {
       return { url: `${BANNER_BASE}/national/us-capitol-banner-v2.jpg`, credit: FEDERAL_CREDIT };
     case 'state': {
       const abbr = entity.state.toUpperCase();
-      // All 50 states are covered at states/<ABBR>.jpg.
+      // All 50 states are covered at states/<ABBR>.jpg, except the few essentials has
+      // versioned — see STATE_BANNER_FILES.
       return STATE_NAMES[abbr]
         ? {
-            url: `${BANNER_BASE}/states/${abbr}.jpg`,
+            url: `${BANNER_BASE}/states/${STATE_BANNER_FILES[abbr] ?? `${abbr}.jpg`}`,
             credit: STATE_BANNER_CREDITS[abbr] ?? WIKIMEDIA_CREDIT,
           }
         : null;
