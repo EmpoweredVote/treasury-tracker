@@ -16,8 +16,6 @@ import type { Municipality } from '../types/budget';
 import {
   getHeroImage,
   CURATED_CITY_BANNERS,
-  CURATED_CITY_CREDITS,
-  CURATED_CITY_FILES,
   STATE_BANNER_CREDITS,
   STATE_BANNER_FILES,
   STATE_NAMES,
@@ -30,27 +28,80 @@ const entity = (name: string, state: string, entity_type = 'city'): Municipality
   ({ name, state, entity_type }) as Municipality;
 
 describe('curated banner registry — every banner is attributed', () => {
-  it('has a credit for every curated banner', () => {
-    const missing = [...CURATED_CITY_BANNERS].filter((k) => !CURATED_CITY_CREDITS[k]);
-    expect(missing).toEqual([]);
-  });
-
-  it('has no credit for a banner that does not exist', () => {
-    const orphans = Object.keys(CURATED_CITY_CREDITS).filter((k) => !CURATED_CITY_BANNERS.has(k));
-    expect(orphans).toEqual([]);
-  });
-
-  it('has no filename override for a banner that does not exist', () => {
-    const orphans = Object.keys(CURATED_CITY_FILES).filter((k) => !CURATED_CITY_BANNERS.has(k));
-    expect(orphans).toEqual([]);
-  });
+  // The old "credit with no banner" and "filename override with no banner" orphan
+  // checks are gone because they can no longer fail: one table means a banner cannot
+  // exist without its credit, and a credit cannot outlive its banner.
 
   it('names an author in every credit — the generic string does not satisfy CC BY', () => {
-    for (const [key, credit] of Object.entries(CURATED_CITY_CREDITS)) {
+    for (const [key, { credit }] of Object.entries(CURATED_CITY_BANNERS)) {
       expect(credit, key).toMatch(/via Wikimedia Commons$/);
       expect(credit, key).not.toBe('Wikimedia Commons');
-      // "<author>, <licence>, via Wikimedia Commons" — three parts, author non-empty.
+      // "<author>, <licence>[, <modification>], via Wikimedia Commons".
       expect(credit.split(', ').length, key).toBeGreaterThanOrEqual(3);
+      // The author slot must not hold a licence. This is not hypothetical: the
+      // registry's columbus|GA line reads "<title> | CC BY-SA 4.0 | Wikimedia Commons",
+      // and macon|GA reverses the same two fields. Transcribing either positionally
+      // would publish "CC BY-SA 4.0" as the photographer.
+      expect(credit.split(', ')[0], key).not.toMatch(/^(CC BY|CC0|public domain)/i);
+    }
+  });
+
+  it('keys every banner as slug|STATE, so a shared slug cannot cross states', () => {
+    for (const key of Object.keys(CURATED_CITY_BANNERS)) {
+      expect(key, key).toMatch(/^[a-z0-9.\-]+\|[A-Z]{2}$/);
+    }
+  });
+
+  it('gives no two places the same asset', () => {
+    // Two keys resolving to one file is how a city ends up showing another city's
+    // photograph under its own name — the tier-collision failure that moved the
+    // Seattle, Portland, Austin and Miami frames down a level in the first place.
+    const files = Object.entries(CURATED_CITY_BANNERS).map(
+      ([key, b]) => b.file ?? `${key.split('|')[0]}.jpg`
+    );
+    expect(new Set(files).size).toBe(files.length);
+  });
+
+  it('overrides a filename only where the asset is not at cities/<slug>.jpg', () => {
+    // A redundant override is dead weight that will outlive the reason for it.
+    for (const [key, b] of Object.entries(CURATED_CITY_BANNERS)) {
+      if (b.file) expect(b.file, key).not.toBe(`${key.split('|')[0]}.jpg`);
+    }
+  });
+
+  it('holds the whole transcribed catalog, not a subset of it', () => {
+    // 157 of the registry's 181 state-scoped variants. The 24 absent are listed in the
+    // CURATED_CITY_BANNERS doc comment and every one is a missing AUTHOR or an
+    // inexpressible legacy path — never a missing asset. If this number drops, someone
+    // deleted coverage; if it rises without the doc comment moving, someone guessed.
+    expect(Object.keys(CURATED_CITY_BANNERS)).toHaveLength(157);
+  });
+
+  it('excludes the banners the registry cannot attribute', () => {
+    // 19 Utah "Wave 2" cities record no author at all ("Attribution in review notes"),
+    // and columbus|GA puts its licence where the author belongs. Adding any of them
+    // would render a CC BY image with nobody named.
+    for (const slug of [
+      'alpine', 'bluffdale', 'cedar-hills', 'cottonwood-heights', 'eagle-mountain',
+      'herriman', 'lindon', 'mapleton', 'midvale', 'millcreek', 'payson',
+      'pleasant-grove', 'salem', 'santaquin', 'saratoga-springs', 'south-jordan',
+      'south-salt-lake', 'taylorsville', 'vineyard',
+    ]) {
+      expect(CURATED_CITY_BANNERS[`${slug}|UT`], slug).toBeUndefined();
+    }
+    expect(CURATED_CITY_BANNERS['columbus|GA']).toBeUndefined();
+    expect(CURATED_CITY_BANNERS['macon|GA']?.credit).toBe(
+      'Bubba73, CC BY-SA 3.0, via Wikimedia Commons'
+    );
+  });
+
+  it('excludes the four CA cities still on the legacy la_county path', () => {
+    // los angeles, pomona, torrance and carson live at
+    // la_county/building_photos/<geoid>.jpg, which this builder cannot express, and the
+    // registry carries no credit line for any of them. They stay on the Wikipedia path
+    // until essentials migrates them to cities/ with attribution.
+    for (const slug of ['los-angeles', 'pomona', 'torrance', 'carson']) {
+      expect(CURATED_CITY_BANNERS[`${slug}|CA`], slug).toBeUndefined();
     }
   });
 });
@@ -236,7 +287,7 @@ describe('getHeroImage — bucket resolution', () => {
       'tacoma', 'spokane', 'vancouver', 'bellevue', 'kent', 'everett',
       'pierce-county', 'spokane-county', 'clark-county', 'snohomish-county',
     ]) {
-      expect(CURATED_CITY_BANNERS.has(`${slug}|WA`), slug).toBe(false);
+      expect(CURATED_CITY_BANNERS[`${slug}|WA`], slug).toBeUndefined();
     }
   });
 
@@ -254,8 +305,8 @@ describe('getHeroImage — bucket resolution', () => {
 
   it('is state-scoped, so a shared slug cannot serve the wrong city', () => {
     // Glendale CA is curated; Glendale AZ is not. The key carries the state.
-    expect(CURATED_CITY_BANNERS.has('glendale|CA')).toBe(true);
-    expect(CURATED_CITY_BANNERS.has('glendale|AZ')).toBe(false);
+    expect(CURATED_CITY_BANNERS['glendale|CA']).toBeDefined();
+    expect(CURATED_CITY_BANNERS['glendale|AZ']).toBeUndefined();
   });
 
   // State + federal credits are asserted in their own block above.

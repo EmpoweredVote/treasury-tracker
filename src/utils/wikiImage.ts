@@ -170,7 +170,7 @@ export const FEDERAL_CREDIT = 'DiscoA340, CC BY-SA 4.0, leveled and cropped, via
 /**
  * Per-state attribution for the state banner — `states/<ABBR>.jpg` unless
  * STATE_BANNER_FILES versions it. Transcribed 2026-07-28 from the essentials banner
- * registry (`src/lib/buildingImages.js`), same provenance rule as CURATED_CITY_CREDITS:
+ * registry (`src/lib/buildingImages.js`), same provenance rule as CURATED_CITY_BANNERS:
  * verbatim author and licence, never reconstructed.
  *
  * ⚠ THIS TABLE IS A SNAPSHOT AND SNAPSHOTS DRIFT. It has now gone stale twice — WA on
@@ -301,7 +301,7 @@ export const STATE_BANNER_CREDITS: Record<string, string> = {
 
 /**
  * States whose banner is NOT at `states/<ABBR>.jpg`, mirroring the essentials registry's
- * `STATE_PANORAMA_FILES`. The city tier has had `CURATED_CITY_FILES` since Bend, and the
+ * `STATE_PANORAMA_FILES`. The city tier has had a filename override since Bend, and the
  * federal banner has been `us-capitol-banner-v2.jpg` for longer than that; the state tier
  * simply never got the same treatment, because its URL was built as `${abbr}.jpg` with no
  * way to express a version. That gap is what let CA, FL and TX all point at objects
@@ -347,122 +347,278 @@ export const STATE_BANNER_FILES: Record<string, string> = {
 const toSlug = (name: string) => name.toLowerCase().trim().replace(/\s+/g, '-');
 
 /**
- * Cities with a curated banner at `cities/<slug>.jpg`, keyed "slug|STATE".
- * State-scoped so a shared slug (e.g. Glendale CA vs Glendale AZ) can't collide
- * onto the wrong city's image. Snapshot of the essentials CURATED_LOCAL catalog
- * as of 2026-07-05; the catalog only grows and never repurposes a slug, so a
- * stale snapshot under-covers (falls back to Wikipedia) but never mis-serves.
- * Legacy la_county/<geoid> entries (LA, Pomona, Torrance, Carson) are omitted
- * pending their migration to cities/ — they fall through to the Wikipedia path.
+ * Every curated place banner in the shared bucket, keyed "slug|STATE" — one entry
+ * per banner carrying BOTH its filename and its credit.
+ *
+ * ONE TABLE ON PURPOSE. This was three parallel structures (a Set of covered keys,
+ * a filename-override map and a credit map) that had to be edited in lockstep, which
+ * is survivable at 20 entries and is how the next silent drift happens at 157. Here a
+ * banner cannot exist without a credit, and a credit cannot outlive its banner, by
+ * construction rather than by assertion.
+ *
+ * State-scoped so a shared slug (Glendale CA vs Glendale AZ, Portland OR vs Portland
+ * ME, Springfield MA vs Springfield MO) can never serve the wrong city's photograph.
+ * `file` is present only where the asset is NOT at `cities/<slug>.jpg`; essentials
+ * versions or disambiguates a filename rather than overwriting, because an in-place
+ * overwrite does not reliably purge the CDN.
+ *
+ * ── PROVENANCE ──────────────────────────────────────────────────────────────────
+ * Transcribed 2026-09-10 from the essentials banner registry (`src/lib/
+ * buildingImages.js`, `CURATED_LOCAL` + the credit comment blocks above it), which is
+ * the operator-certified record of what was uploaded. Verbatim author and licence,
+ * never reconstructed and never inferred from a filename — TT renders these lines as
+ * public credits, so an error here is a wrong author on our site.
+ *
+ * Every one of the 157 assets was HEAD-probed on 2026-09-10 and returned 200/206, and
+ * no two keys share a file. Never add a key ahead of an asset: a CSS background-image
+ * pointed at a 400 cannot onerror-fallback.
+ *
+ * Re-deriving the table independently reproduced all 22 previously-published credits
+ * unchanged, which is the main evidence the transcription is faithful.
+ *
+ * ── TWO NORMALISATIONS, both of source-notes rather than names ──────────────────
+ * The registry writes two authors with a provenance note attached: "Wikimedia user
+ * ASDFGH" (West Covina) and "Rgper22008 (Wikimedia Commons)" (South Tucson). The note
+ * is dropped because this credit already ends in "via Wikimedia Commons"; the name is
+ * untouched.
+ *
+ * ── MODIFICATIONS ARE DISCLOSED ─────────────────────────────────────────────────
+ * CC BY / CC BY-SA ask that adaptations be indicated, so where the registry records an
+ * edit it is carried into the credit: brightened (Seattle, King County, Union Grove),
+ * leveled (Newton, Lynn) and both (San Diego). Cropping to the panoramic frame is
+ * inherent to the format and is not called out per-image.
+ *
+ * ── WHAT IS DELIBERATELY ABSENT ─────────────────────────────────────────────────
+ * 24 of the registry's 181 state-scoped variants are NOT here, none of them for want
+ * of an asset:
+ *
+ *   19 Utah "Wave 2" cities (alpine, bluffdale, cedar hills, cottonwood heights,
+ *      eagle mountain, herriman, lindon, mapleton, midvale, millcreek, payson,
+ *      pleasant grove, salem, santaquin, saratoga springs, south jordan, south salt
+ *      lake, taylorsville, vineyard) — the registry records no author for any of
+ *      them, only "Attribution in review notes", and those notes are not in the repo.
+ *      A CC BY image shown without its author is a licence breach, and the generic
+ *      WIKIMEDIA_CREDIT does not name anyone. None is a TT entity today.
+ *
+ *   columbus|GA — its registry line is "<title> | CC BY-SA 4.0 | Wikimedia Commons",
+ *      which puts the LICENCE in the author slot and records no author at all. Not a
+ *      TT entity today. (macon|GA has the same reversed field order but its author is
+ *      still recoverable — see the Georgia block.)
+ *
+ *   los angeles, pomona, torrance, carson (all CA) — still on the legacy
+ *      `la_county/building_photos/<geoid>.jpg` path, which this builder cannot express
+ *      and for which the registry carries no credit line at all. These four ARE TT
+ *      entities, so they keep falling through to the Wikipedia path until essentials
+ *      migrates them to `cities/` with attribution.
  */
-export const CURATED_CITY_BANNERS = new Set<string>([
-  'bloomington|IN',
-  'beaverton|OR', 'hillsboro|OR', 'tigard|OR', 'tualatin|OR', 'forest-grove|OR', 'sherwood|OR', 'cornelius|OR',
-  'long-beach|CA', 'glendale|CA', 'pasadena|CA', 'west-covina|CA', 'downey|CA', 'burbank|CA', 'norwalk|CA',
-  // Added 2026-07-27 by essentials (`buildingImages.js`) — WI's first city banner.
-  // Madison was falling through to the Wikipedia path while a curated asset sat unused.
-  'madison|WI',
-  // Bend's asset is versioned — see CURATED_CITY_FILES.
-  'bend|OR',
-  // First COUNTY in this set (2026-07-29). The bucket keeps county banners under
-  // cities/ and essentials keys it 'dane county', so the hyphenated slug this
-  // builder produces already matches — no filename override needed.
-  'dane-county|WI',
-  // Washington, added 2026-08-16 (BANNER-01). Both assets have sat in the bucket
-  // since v2.21 while TT fell through to Wikipedia — which served King County a
-  // photo of the SEATTLE courthouse, the exact city-for-county substitution the
-  // curated pair exists to prevent.
-  //
-  // These two were the whole WA cohort on 2026-08-16. The bucket was HEAD-probed for
-  // all twelve other WA entities plus the `-v2` variants and every one returned
-  // NoSuchKey; do not add a slug here ahead of an asset, because a CSS
-  // background-image pointed at a 400 cannot onerror-fallback.
-  'seattle|WA',
-  'king-county|WA',
-  // Added 2026-09-10 — and they are the counter-example to the sentence above, which
-  // read "these two are the WHOLE WA cohort" for three weeks after it stopped being
-  // true. Essentials uploaded both on 2026-08-17, one day after the probe that wrote
-  // it. Re-probed 2026-09-10: cities/bainbridge-island.jpg and cities/kitsap-county.jpg
-  // now return 206, while the other ten (tacoma, spokane, vancouver, bellevue, kent,
-  // everett, pierce-county, spokane-county, clark-county, snohomish-county) still
-  // return 400. A negative probe result is true on the day it is taken and never
-  // after — the same class of staleness as a transcribed credit.
-  //
-  // Kitsap County gets its own frame rather than Bremerton's, for the reason King
-  // County gets Snoqualmie Falls rather than Seattle's.
-  'bainbridge-island|WA',
-  'kitsap-county|WA',
-]);
+export interface CuratedBanner {
+  /** Only when the asset is not at `cities/<slug>.jpg`. */
+  file?: string;
+  credit: string;
+}
 
-/**
- * Filename overrides for banners that are NOT at `cities/<slug>.jpg`, keyed
- * "slug|STATE". Essentials versions a filename when it re-crops an image, because
- * overwriting in place left a stale copy on the edge cache — the plain URL kept
- * serving the old file while a cache-busted request returned the new one.
- *
- * `cities/bend.jpg` happens to serve the current bytes again today (verified
- * 2026-07-28: plain and cache-busted requests both sha256 b2d7b7d3…, identical to
- * bend-v2.jpg). That is the CDN catching up, not a guarantee — and if essentials
- * re-crops to a v3, the slug URL would silently diverge from what they publish.
- * Point at the filename essentials designates as canonical instead.
- */
-export const CURATED_CITY_FILES: Record<string, string> = {
-  'bend|OR': 'bend-v2.jpg',
-};
+export const CURATED_CITY_BANNERS: Record<string, CuratedBanner> = {
+  // Arizona (6)
+  'marana|AZ':       { credit: 'Bernard Gagnon, CC BY-SA 3.0, via Wikimedia Commons' },
+  'oro-valley|AZ':   { credit: 'Djmaschek, CC BY-SA 3.0, via Wikimedia Commons' },
+  'pima-county|AZ':  { credit: 'WClarke, CC BY-SA 4.0, via Wikimedia Commons' },
+  'sahuarita|AZ':    { credit: 'Brian Basgen, CC BY-SA 3.0, via Wikimedia Commons' },
+  'south-tucson|AZ': { credit: 'Rgper22008, public domain, via Wikimedia Commons' },
+  'tucson|AZ':       { credit: 'Michael Barera, CC BY-SA 4.0, via Wikimedia Commons' },
 
-/**
- * Per-image attribution, keyed "slug|STATE". CC BY / CC BY-SA require naming the
- * author; the generic WIKIMEDIA_CREDIT does not, so an entry here is a licence
- * obligation, not a nicety. Every curated city banner is covered.
- *
- * Transcribed 2026-07-28 from the essentials banner registry (`src/lib/
- * buildingImages.js`), which is the operator-certified record of what was uploaded
- * to the shared bucket — one credit per asset, verbatim author and licence. These
- * were NOT re-verified against the Commons file pages; the registry is the source
- * of truth for what is actually in the bucket, and second-guessing it from memory
- * would be how a wrong author gets published.
- *
- * CC0 / public-domain entries are listed too. Attribution is not required for those,
- * but naming the author is accurate and free — and a blank entry would read as
- * "unknown" rather than "no obligation".
- *
- * Anything absent still falls back to WIKIMEDIA_CREDIT. State (50) and federal
- * banners remain on the generic string — a separate, larger registry.
- */
-export const CURATED_CITY_CREDITS: Record<string, string> = {
-  'bloomington|IN': 'Yahala, CC BY-SA 3.0, via Wikimedia Commons',
+  // California (35)
+  'alhambra|CA':         { credit: 'Sony 1992, CC0, via Wikimedia Commons' },
+  'bellflower|CA':       { credit: 'YonderStone, CC BY-SA 4.0, via Wikimedia Commons' },
+  'berkeley|CA':         { credit: '4300streetcar, CC BY 4.0, via Wikimedia Commons' },
+  'beverly-hills|CA':    { credit: 'Jess Hawsor, CC BY-SA 4.0, via Wikimedia Commons' },
+  'burbank|CA':          { credit: 'Natecation, CC BY-SA 4.0, via Wikimedia Commons' },
+  'compton|CA':          { credit: 'Eric Polk, CC BY 3.0, via Wikimedia Commons' },
+  'culver-city|CA':      { credit: 'John Margolies / Library of Congress, public domain, via Wikimedia Commons' },
+  'downey|CA':           { credit: 'Northwalker, CC0, via Wikimedia Commons' },
+  'el-monte|CA':         { credit: 'Oran Viriyincy, CC BY-SA 2.0, via Wikimedia Commons' },
+  'el-segundo|CA':       { credit: 'Caterpillar84, CC BY-SA 4.0, via Wikimedia Commons' },
+  'fremont|CA':          { credit: 'Oleg Alexandrov, CC BY-SA 3.0, via Wikimedia Commons' },
+  'gardena|CA':          { credit: 'Jengod, CC BY-SA 4.0, via Wikimedia Commons' },
+  'glendale|CA':         { credit: 'KeeganProbably, CC BY 4.0, via Wikimedia Commons' },
+  'hawthorne|CA':        { credit: 'Juan Kulichevsky, CC BY-SA 2.0, via Wikimedia Commons' },
+  'indio|CA':            { credit: 'Northwalker, CC0, via Wikimedia Commons' },
+  'inglewood|CA':        { credit: 'Troutfarm27, CC BY-SA 4.0, via Wikimedia Commons' },
+  'lancaster|CA':        { credit: 'Rennett Stowe, CC BY 2.0, via Wikimedia Commons' },
+  'long-beach|CA':       { credit: 'Christophe.Finot, CC BY-SA 2.5, via Wikimedia Commons' },
+  'norwalk|CA':          { credit: 'Northwalker, CC0, via Wikimedia Commons' },
+  'palm-springs|CA':     { credit: 'R. Haupt (Renhau), CC BY-SA 3.0, via Wikimedia Commons' },
+  'palmdale|CA':         { credit: 'G-BDXH, CC0, via Wikimedia Commons' },
+  'pasadena|CA':         { credit: 'RBerteig, CC BY 2.0, via Wikimedia Commons' },
+  'riverside|CA':        { credit: 'John Margolies, public domain, via Wikimedia Commons' },
+  'riverside-county|CA': { credit: 'Maliagould, CC BY-SA 4.0, via Wikimedia Commons' },
+  'sacramento|CA':       { credit: 'Sydchrismom, CC BY-SA 4.0, via Wikimedia Commons' },
+  'san-diego|CA':        { credit: 'Mds08011, CC BY 4.0, leveled and brightened, via Wikimedia Commons' },
+  'san-francisco|CA':    { credit: 'Dead.rabbit, CC BY-SA 4.0, via Wikimedia Commons' },
+  'san-jose|CA':         { credit: 'XAtsukex, CC BY 3.0, via Wikimedia Commons' },
+  'santa-clarita|CA':    { credit: 'Konrad Summers, CC BY-SA 2.0, via Wikimedia Commons' },
+  'santa-monica|CA':     { credit: 'Erwin Kreijne, CC BY 3.0, via Wikimedia Commons' },
+  'south-gate|CA':       { credit: 'ShticktatorTal, CC BY-SA 4.0, via Wikimedia Commons' },
+  'temecula|CA':         { credit: 'John Ward (jdubphoto.com), CC BY-SA 3.0, via Wikimedia Commons' },
+  'west-covina|CA':      { credit: 'ASDFGH, CC BY-SA 4.0, via Wikimedia Commons' },
+  'west-hollywood|CA':   { credit: 'Tony Mariotti, CC BY 2.0, via Wikimedia Commons' },
+  'whittier|CA':         { credit: 'Northwalker, CC0, via Wikimedia Commons' },
 
-  'beaverton|OR': 'M.O. Stevens, CC BY 3.0, via Wikimedia Commons',
-  'bend|OR': 'Spencer Dahl, CC BY-SA 3.0, via Wikimedia Commons',
-  'cornelius|OR': 'M.O. Stevens, CC BY-SA 3.0, via Wikimedia Commons',
-  'forest-grove|OR': 'Visitor7, CC BY-SA 3.0, via Wikimedia Commons',
-  'hillsboro|OR': 'Steve Morgan, CC BY-SA 4.0, via Wikimedia Commons',
-  'sherwood|OR': 'dreid1987, CC BY 3.0, via Wikimedia Commons',
-  'tigard|OR': 'M.O. Stevens (Aboutmovies), public domain, via Wikimedia Commons',
-  'tualatin|OR': 'M.O. Stevens (Aboutmovies), CC BY-SA 3.0, via Wikimedia Commons',
+  // Colorado (2)
+  'colorado-springs|CO': { credit: 'WolfmanSF, CC BY-SA 4.0, via Wikimedia Commons' },
+  'el-paso-county|CO':   { file: 'el-paso-county-co.jpg', credit: 'MElizabethTill, CC BY-SA 4.0, via Wikimedia Commons' },
 
-  'burbank|CA': 'Natecation, CC BY-SA 4.0, via Wikimedia Commons',
-  'downey|CA': 'Northwalker, CC0, via Wikimedia Commons',
-  'glendale|CA': 'KeeganProbably, CC BY 4.0, via Wikimedia Commons',
-  'long-beach|CA': 'Christophe.Finot, CC BY-SA 2.5, via Wikimedia Commons',
-  'norwalk|CA': 'Northwalker, CC0, via Wikimedia Commons',
-  'pasadena|CA': 'RBerteig, CC BY 2.0, via Wikimedia Commons',
-  'west-covina|CA': 'ASDFGH, CC BY-SA 4.0, via Wikimedia Commons',
+  // Florida (3)
+  'bradenton|FL':   { credit: 'Ebyabe, CC BY-SA 3.0, via Wikimedia Commons' },
+  'miami|FL':       { credit: 'Euthman, CC BY 4.0, via Wikimedia Commons' },
+  'tallahassee|FL': { credit: 'Daniel Vorndran (DXR), CC BY-SA 4.0, via Wikimedia Commons' },
 
-  'dane-county|WI': 'Corey Coyle, CC BY 3.0, via Wikimedia Commons',
-  'madison|WI': 'John Benson, CC BY 2.5, via Wikimedia Commons',
+  // Georgia (2)
+  // ⚠ macon's registry line REVERSES the author and licence fields — it reads
+  // "<title> | CC BY-SA 3.0 | Bubba73, Wikimedia Commons, own work". Transcribing it
+  // positionally would credit the photograph to "CC BY-SA 3.0". The author is
+  // recoverable here; columbus|GA has the same defect with no author to recover, so it
+  // is omitted. Both reported back to essentials.
+  'macon|GA':         { credit: 'Bubba73, CC BY-SA 3.0, via Wikimedia Commons' },
+  'milledgeville|GA': { credit: 'Clifflandis, CC0, via Wikimedia Commons' },
 
-  // Transcribed 2026-08-16 from the "Washington: Seattle + King County" block.
-  // Seattle's credit is Daniel Schwen because cities/seattle.jpg IS the pre-
-  // 2026-08-14 states/WA.jpg, byte for byte — see STATE_BANNER_CREDITS.WA, which
-  // now names a different photographer for the same key.
-  'seattle|WA': 'Daniel Schwen, CC BY-SA 4.0, brightened, via Wikimedia Commons',
-  'king-county|WA': 'Kpsudeep, CC BY-SA 4.0, brightened, via Wikimedia Commons',
+  // Indiana (1)
+  'bloomington|IN': { credit: 'Yahala, CC BY-SA 3.0, via Wikimedia Commons' },
 
-  // Transcribed 2026-09-10 from the "Washington, second pass" block (essentials
-  // uploaded these on 2026-08-17). No [brightened] tag on either line.
-  'bainbridge-island|WA': 'Ecoscapes, CC BY-SA 4.0, via Wikimedia Commons',
-  'kitsap-county|WA': 'Joe Mabel, CC BY-SA 4.0, via Wikimedia Commons',
+  // Massachusetts (14)
+  'boston|MA':      { credit: 'Beyond My Ken, CC BY-SA 4.0, via Wikimedia Commons' },
+  'brockton|MA':    { credit: 'Tyoung0543, CC BY-SA 4.0, via Wikimedia Commons' },
+  'cambridge|MA':   { credit: 'Yishen Miao, CC BY-SA 3.0, via Wikimedia Commons' },
+  'fall-river|MA':  { credit: 'Leonardo DaSilva, CC BY 3.0, via Wikimedia Commons' },
+  'lowell|MA':      { credit: 'National Park Service, public domain, via Wikimedia Commons' },
+  'lynn|MA':        { credit: 'Terageorge, CC BY-SA 4.0, horizon leveled, via Wikimedia Commons' },
+  'medford|MA':     { credit: 'John Phelan, CC BY 3.0, via Wikimedia Commons' },
+  'new-bedford|MA': { credit: 'Infrogmation, CC BY 2.5, via Wikimedia Commons' },
+  'newton|MA':      { credit: 'Kenneth C. Zirkel, CC BY-SA 4.0, leveled, via Wikimedia Commons' },
+  'quincy|MA':      { credit: 'Sswonk, CC BY 3.0, via Wikimedia Commons' },
+  'somerville|MA':  { credit: '4300streetcar, CC BY 4.0, via Wikimedia Commons' },
+  'springfield|MA': { credit: 'Steven Polom, CC BY 2.0, via Wikimedia Commons' },
+  'waltham|MA':     { credit: 'Traveler100, CC BY-SA 3.0, via Wikimedia Commons' },
+  'worcester|MA':   { credit: '4300streetcar, CC BY 4.0, via Wikimedia Commons' },
+
+  // Maryland (1)
+  'leonardtown|MD': { credit: 'Dougtone, CC BY-SA 2.0, via Wikimedia Commons' },
+
+  // Maine (6)
+  'auburn|ME':         { credit: 'Kenneth C. Zirkel, CC BY-SA 4.0, via Wikimedia Commons' },
+  'bangor|ME':         { credit: 'Warren LeMay, CC BY-SA 2.0, via Wikimedia Commons' },
+  'biddeford|ME':      { credit: 'Dcrjsr, CC BY 3.0, via Wikimedia Commons' },
+  'lewiston|ME':       { credit: 'Carol Boldt, CC BY-SA 4.0, via Wikimedia Commons' },
+  'portland|ME':       { file: 'portland-me.jpg', credit: 'Daderot, CC0, via Wikimedia Commons' },
+  'south-portland|ME': { credit: 'Giorgio Galeotti, CC BY-SA 4.0, via Wikimedia Commons' },
+
+  // Missouri (1)
+  'springfield|MO': { file: 'springfield-mo.jpg', credit: 'Steven Polom, CC BY 2.0, via Wikimedia Commons' },
+
+  // North Carolina (2)
+  'asheville|NC': { credit: 'Bill McMannis, CC BY 2.0, via Wikimedia Commons' },
+  'durham|NC':    { credit: 'DiscoA340, CC BY-SA 4.0, via Wikimedia Commons' },
+
+  // Nevada (4)
+  'boulder-city|NV':    { credit: 'Karlis Dambrans, CC BY 2.0, via Wikimedia Commons' },
+  'henderson|NV':       { credit: 'Coolcaesar, CC BY-SA 4.0, via Wikimedia Commons' },
+  'las-vegas|NV':       { credit: 'Christian David, CC BY-SA 4.0, via Wikimedia Commons' },
+  'north-las-vegas|NV': { credit: 'Kim Dung Ho, CC BY 2.0, via Wikimedia Commons' },
+
+  // Oregon (14)
+  'beaverton|OR':    { credit: 'M.O. Stevens, CC BY 3.0, via Wikimedia Commons' },
+  'bend|OR':         { file: 'bend-v2.jpg', credit: 'Spencer Dahl, CC BY-SA 3.0, via Wikimedia Commons' },
+  'cornelius|OR':    { credit: 'M.O. Stevens, CC BY-SA 3.0, via Wikimedia Commons' },
+  'fairview|OR':     { file: 'fairview-or.jpg', credit: 'Finetooth, CC BY-SA 3.0, via Wikimedia Commons' },
+  'forest-grove|OR': { credit: 'Visitor7, CC BY-SA 3.0, via Wikimedia Commons' },
+  'gresham|OR':      { credit: 'SkateOregon, CC BY 4.0, via Wikimedia Commons' },
+  'hillsboro|OR':    { credit: 'Steve Morgan, CC BY-SA 4.0, via Wikimedia Commons' },
+  'maywood-park|OR': { credit: 'Tedder, CC BY 3.0, via Wikimedia Commons' },
+  'portland|OR':     { credit: 'Daderot, CC0, via Wikimedia Commons' },
+  'sherwood|OR':     { credit: 'dreid1987, CC BY 3.0, via Wikimedia Commons' },
+  'tigard|OR':       { credit: 'M.O. Stevens (Aboutmovies), public domain, via Wikimedia Commons' },
+  'troutdale|OR':    { credit: 'Another Believer, CC BY-SA 4.0, via Wikimedia Commons' },
+  'tualatin|OR':     { credit: 'M.O. Stevens (Aboutmovies), CC BY-SA 3.0, via Wikimedia Commons' },
+  'wood-village|OR': { credit: 'Another Believer, CC BY-SA 4.0, via Wikimedia Commons' },
+
+  // Texas (27)
+  'allen|TX':                { credit: 'Jphill19, CC BY-SA 4.0, via Wikimedia Commons' },
+  'anna|TX':                 { credit: 'Ebmrreditor, CC BY-SA 4.0, via Wikimedia Commons' },
+  'arlington|TX':            { credit: 'Michael Barera, CC BY-SA 4.0, via Wikimedia Commons' },
+  'austin|TX':               { credit: 'Sk5893, CC BY-SA 4.0, via Wikimedia Commons' },
+  'blue-ridge|TX':           { credit: 'Michael Barera, CC BY-SA 4.0, via Wikimedia Commons' },
+  'celina|TX':               { credit: 'Nicolas Henderson, CC BY 2.0, via Wikimedia Commons' },
+  'fairview|TX':             { credit: 'Fairsaka, public domain, via Wikimedia Commons' },
+  'farmersville|TX':         { credit: 'Michael Barera, CC BY-SA 4.0, via Wikimedia Commons' },
+  'fort-worth|TX':           { credit: 'DerekAyala27, CC BY 4.0, via Wikimedia Commons' },
+  'frisco|TX':               { credit: 'Michael Barera, CC BY-SA 4.0, via Wikimedia Commons' },
+  'grapevine|TX':            { credit: 'diego_bf109, CC BY-SA 2.0, via Wikimedia Commons' },
+  'josephine|TX':            { credit: 'Michael Barera, CC BY-SA 4.0, via Wikimedia Commons' },
+  'lavon|TX':                { credit: 'Michael Barera, CC BY-SA 4.0, via Wikimedia Commons' },
+  'longview|TX':             { credit: 'Michael Barera, CC BY-SA 4.0, via Wikimedia Commons' },
+  'mansfield|TX':            { credit: 'Renelibrary, CC BY-SA 4.0, via Wikimedia Commons' },
+  'mckinney|TX':             { credit: 'Rick Ray, CC BY 2.0, via Wikimedia Commons' },
+  'murphy|TX':               { credit: 'Flimbone08, CC BY-SA 4.0, via Wikimedia Commons' },
+  'nevada|TX':               { credit: 'Michael Barera, CC BY-SA 4.0, via Wikimedia Commons' },
+  'north-richland-hills|TX': { credit: 'DerekAyala27, CC BY 4.0, via Wikimedia Commons' },
+  'parker|TX':               { credit: 'Carol M. Highsmith, public domain, via Wikimedia Commons' },
+  'plano|TX':                { credit: 'Mohidshahab, CC BY-SA 4.0, via Wikimedia Commons' },
+  'princeton|TX':            { credit: 'Pinecar, CC0, via Wikimedia Commons' },
+  'prosper|TX':              { credit: 'Colby Nate, CC BY 2.0, via Wikimedia Commons' },
+  'richardson|TX':           { credit: 'Stan9999, public domain, via Wikimedia Commons' },
+  'travis-county|TX':        { credit: 'Fredlyfish4, CC BY-SA 4.0, via Wikimedia Commons' },
+  'van-alstyne|TX':          { credit: 'Renelibrary, CC BY-SA 3.0, via Wikimedia Commons' },
+  'weston|TX':               { credit: 'City0fWeston, CC BY-SA 4.0, via Wikimedia Commons' },
+
+  // Utah (17)
+  'american-fork|UT':    { credit: 'Rick Willoughby, CC BY 2.0, via Wikimedia Commons' },
+  'draper|UT':           { credit: 'Leon7, CC BY-SA 3.0, via Wikimedia Commons' },
+  'holladay|UT':         { credit: 'Derrellwilliams, CC BY-SA 4.0, via Wikimedia Commons' },
+  'layton|UT':           { credit: 'D. Sharon Pruitt, CC BY 2.0, via Wikimedia Commons' },
+  'lehi|UT':             { credit: 'Don Ramey Logan, CC BY 4.0, via Wikimedia Commons' },
+  'murray|UT':           { credit: 'CountyLemonade, CC BY 3.0, via Wikimedia Commons' },
+  'ogden|UT':            { credit: 'sirrobot (Flickr), CC BY 2.0, via Wikimedia Commons' },
+  'orem|UT':             { credit: 'An Errant Knight, CC BY-SA 4.0, via Wikimedia Commons' },
+  'provo|UT':            { credit: 'Farragutful, CC BY-SA 4.0, via Wikimedia Commons' },
+  'riverton|UT':         { credit: 'An Errant Knight, CC BY-SA 4.0, via Wikimedia Commons' },
+  'salt-lake-city|UT':   { credit: 'Pocksuppet1999, CC BY-SA 3.0, via Wikimedia Commons' },
+  'sandy|UT':            { credit: 'Scott Catron, CC BY-SA 3.0, via Wikimedia Commons' },
+  'spanish-fork|UT':     { credit: 'Ken Lund, CC BY-SA 2.0, via Wikimedia Commons' },
+  'springville|UT':      { credit: 'Sbharris, CC BY-SA 3.0, via Wikimedia Commons' },
+  'st.-george|UT':       { file: 'st-george.jpg', credit: 'Stan Shebs, CC BY-SA 3.0, via Wikimedia Commons' },
+  'west-jordan|UT':      { credit: 'Tricia Simpson, CC BY-SA 3.0, via Wikimedia Commons' },
+  'west-valley-city|UT': { credit: 'Ben P L, CC BY-SA 2.0, via Wikimedia Commons' },
+
+  // Virginia (2)
+  'alexandria|VA':   { credit: 'DiscoA340, CC BY-SA 4.0, via Wikimedia Commons' },
+  'falls-church|VA': { credit: 'Southerngs, CC BY-SA 3.0, via Wikimedia Commons' },
+
+  // Washington (4)
+  // bainbridge-island and kitsap-county were probed as NoSuchKey on 2026-08-16 and
+  // uploaded by essentials the NEXT DAY. seattle's photograph is the PRE-2026-08-14
+  // states/WA.jpg byte for byte, which is why STATE_BANNER_CREDITS.WA now names a
+  // different photographer for the same place.
+  'bainbridge-island|WA': { credit: 'Ecoscapes, CC BY-SA 4.0, via Wikimedia Commons' },
+  'king-county|WA':       { credit: 'Kpsudeep, CC BY-SA 4.0, brightened, via Wikimedia Commons' },
+  'kitsap-county|WA':     { credit: 'Joe Mabel, CC BY-SA 4.0, via Wikimedia Commons' },
+  'seattle|WA':           { credit: 'Daniel Schwen, CC BY-SA 4.0, brightened, via Wikimedia Commons' },
+
+  // Wisconsin (16)
+  'burlington|WI':         { file: 'burlington-wi.jpg', credit: 'Royalbroil, CC BY-SA 3.0, via Wikimedia Commons' },
+  'caledonia|WI':          { credit: 'Jim Roberts (Boscophotos), CC BY-SA 4.0, via Wikimedia Commons' },
+  'dane-county|WI':        { credit: 'Corey Coyle, CC BY 3.0, via Wikimedia Commons' },
+  'dover|WI':              { file: 'town-of-dover.jpg', credit: 'Wikideas1, CC0, via Wikimedia Commons' },
+  'madison|WI':            { credit: 'John Benson, CC BY 2.5, via Wikimedia Commons' },
+  'mount-pleasant|WI':     { credit: 'Alinghi3, CC BY-SA 3.0 / GFDL, via Wikimedia Commons' },
+  'norway|WI':             { file: 'town-of-norway.jpg', credit: 'Wikideas1, CC0, via Wikimedia Commons' },
+  'racine|WI':             { credit: 'Jeremy Atherton, CC BY-SA 2.5, via Wikimedia Commons' },
+  'rochester|WI':          { file: 'rochester-wi.jpg', credit: 'Librerink8, CC BY-SA 4.0, via Wikimedia Commons' },
+  'sturtevant|WI':         { credit: 'Znns, CC0, via Wikimedia Commons' },
+  'town-of-burlington|WI': { credit: 'Wikideas1, CC0, via Wikimedia Commons' },
+  'town-of-waterford|WI':  { credit: 'Wikideas1, CC0, via Wikimedia Commons' },
+  'union-grove|WI':        { credit: 'TheCatalyst31, CC BY-SA 4.0, brightened, via Wikimedia Commons' },
+  'waterford|WI':          { file: 'waterford-wi.jpg', credit: 'TCP04, CC BY 4.0, via Wikimedia Commons' },
+  'wind-point|WI':         { credit: 'Tunads (Daniel J Simanek), CC BY 3.0, via Wikimedia Commons' },
+  'yorkville|WI':          { credit: 'Porterhse, CC BY-SA 3.0, via Wikimedia Commons' },
 };
 
 /** Build a shared-bucket banner for entities we know are covered, else null.
@@ -489,11 +645,11 @@ function bucketBanner(entity: Municipality): HeroImage | null {
     default: {
       const slug = toSlug(entity.name);
       const key = `${slug}|${entity.state.toUpperCase()}`;
-      if (!CURATED_CITY_BANNERS.has(key)) return null;
-      const file = CURATED_CITY_FILES[key] ?? `${slug}.jpg`;
+      const banner = CURATED_CITY_BANNERS[key];
+      if (!banner) return null;
       return {
-        url: `${BANNER_BASE}/cities/${file}`,
-        credit: CURATED_CITY_CREDITS[key] ?? WIKIMEDIA_CREDIT,
+        url: `${BANNER_BASE}/cities/${banner.file ?? `${slug}.jpg`}`,
+        credit: banner.credit,
       };
     }
   }
