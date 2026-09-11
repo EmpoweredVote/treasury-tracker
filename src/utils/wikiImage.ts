@@ -404,19 +404,21 @@ const toSlug = (name: string) => name.toLowerCase().trim().replace(/\s+/g, '-');
  * leveled (Newton, Lynn) and both (San Diego). Cropping to the panoramic frame is
  * inherent to the format and is not called out per-image.
  *
- * ── WHAT IS DELIBERATELY ABSENT ─────────────────────────────────────────────────
- * ONE of the registry's 181 state-scoped variants is not here:
+ * ── WHAT IS ABSENT: NOTHING ─────────────────────────────────────────────────────
+ * All 181 of the registry's state-scoped variants are here, every one with a named
+ * author. There is no unattributed banner left to ship.
  *
- *   south-salt-lake|UT — the only banner in the catalog with neither an author nor a
- *      licence on record. A CC BY image shown without its author is a licence breach,
- *      and the generic WIKIMEDIA_CREDIT names nobody, so it cannot ship behind a
- *      placeholder either. Not a TT entity today. See the Utah block.
+ * It was 24 absent on 2026-09-10 and is 0 today, and none of that was fixed here:
+ * essentials closed every gap TT reported (their #127, #128 and #129) — all 19
+ * unattributed Utah banners recovered, all four la_county credits recovered, and both
+ * reversed Georgia field orders fixed. That round trip — note out, fixes back,
+ * re-transcribe — is the mechanism this table depends on, and it is strictly better
+ * than guessing at a credit locally. When the registry cannot attribute an image, the
+ * move is to say so upstream and leave the key out until it can.
  *
- * It was 24 on 2026-09-10 and is 1 today because essentials closed the gaps TT
- * reported (their PRs #127 and #128): 18 of the 19 unattributed Utah banners recovered,
- * all four la_county credits recovered, and both reversed Georgia field orders fixed.
- * That round trip — note out, fixes back, re-transcribe — is the mechanism this table
- * depends on, and it is worth preferring over guessing at a credit locally.
+ * ⚠ SO THE "0 ABSENT" NUMBER IS A SNAPSHOT, NOT A PROPERTY. The registry keeps
+ * growing. A future batch can arrive unattributed exactly as UT Wave 2 did, and the
+ * count assertion in the tests is what will notice.
  */
 export interface CuratedBanner {
   /** Bucket-root-relative path, only when the asset is not at `cities/<slug>.jpg`.
@@ -593,7 +595,36 @@ export const CURATED_CITY_BANNERS: Record<string, CuratedBanner> = {
   'van-alstyne|TX':          { credit: 'Renelibrary, CC BY-SA 3.0, via Wikimedia Commons' },
   'weston|TX':               { credit: 'City0fWeston, CC BY-SA 4.0, via Wikimedia Commons' },
 
-  // Utah (35)
+  // Utah (36)
+  // The 19 "Wave 2" cities were unattributed until 2026-09-11 — the registry recorded
+  // only "Attribution in review notes" and those notes were a session artifact that no
+  // longer exists. TT raised it as a licence-compliance gap and essentials recovered all
+  // 19 by reverse-matching each banner to Commons (their #127 and #129), confirming
+  // every one by eye.
+  //
+  // ⚠ THE LICENCES ARE NOT UNIFORM across that batch — CC BY-SA 4.0, 3.0 and 2.0,
+  // CC BY 2.0 and one public-domain file. The old batch header said "Licensed Wikimedia
+  // Commons", which was wrong about the LICENCE rather than merely silent on the author:
+  // building a batch-level licence string from it would have published five wrong ones.
+  //
+  // ⚠⚠ SOUTH SALT LAKE IS THE LESSON WORTH KEEPING — A FILE IS CATEGORISED BY WHAT IT
+  // IS, NOT BY WHERE IT IS. It was the last unattributed banner in the catalog and it
+  // survived two category sweeps (Category:South Salt Lake at depth 2, plus S-Line /
+  // streetcar / TRAX / UTA full-text searches — 296 files, best score 41.88 where a true
+  // match lands under 13.5). It fell to `intitle:"South Salt Lake"` in the File
+  // namespace instead. Its source carries TWELVE Commons categories and NOT ONE names
+  // the place: "Level crossings in Utah", "S Line (Utah Transit Authority)",
+  // "Photographs by An Errant Knight", "Stop signs in Utah", and so on. No place-scoped
+  // sweep could ever have reached it.
+  //
+  // That GENERALISES the Columbus lesson rather than repeating it. Columbus says refine
+  // around a leader before ruling it out — which only helps once a true candidate is in
+  // the pool. This says the pool itself may be built on the wrong axis. Search by TITLE
+  // as well as by category before concluding a source is not on Commons.
+  //
+  // Verified here rather than transcribed: File:S-Line S 400 E level crossing, South
+  // Salt Lake, Utah, Oct 16.jpg — An Errant Knight, CC BY-SA 4.0, 2592x1944, matched to
+  // the bucket object at mean abs difference 6.18 per channel.
   'alpine|UT':             { credit: 'TungstenKing, CC BY-SA 4.0, via Wikimedia Commons' },
   'american-fork|UT':      { credit: 'Rick Willoughby, CC BY 2.0, via Wikimedia Commons' },
   'bluffdale|UT':          { credit: 'Ken Lund, CC BY-SA 2.0, via Wikimedia Commons' },
@@ -622,6 +653,7 @@ export const CURATED_CITY_BANNERS: Record<string, CuratedBanner> = {
   'santaquin|UT':          { credit: 'An Errant Knight, CC BY-SA 4.0, via Wikimedia Commons' },
   'saratoga-springs|UT':   { credit: 'The Dye Clan, CC BY-SA 3.0, via Wikimedia Commons' },
   'south-jordan|UT':       { credit: 'Dean Derhak, CC BY-SA 3.0, via Wikimedia Commons' },
+  'south-salt-lake|UT':    { credit: 'An Errant Knight, CC BY-SA 4.0, via Wikimedia Commons' },
   'spanish-fork|UT':       { credit: 'Ken Lund, CC BY-SA 2.0, via Wikimedia Commons' },
   'springville|UT':        { credit: 'Sbharris, CC BY-SA 3.0, via Wikimedia Commons' },
   'st.-george|UT':         { path: 'cities/st-george.jpg', credit: 'Stan Shebs, CC BY-SA 3.0, via Wikimedia Commons' },
