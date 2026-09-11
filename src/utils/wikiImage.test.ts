@@ -56,25 +56,35 @@ describe('curated banner registry — every banner is attributed', () => {
     // Two keys resolving to one file is how a city ends up showing another city's
     // photograph under its own name — the tier-collision failure that moved the
     // Seattle, Portland, Austin and Miami frames down a level in the first place.
-    const files = Object.entries(CURATED_CITY_BANNERS).map(
-      ([key, b]) => b.file ?? `${key.split('|')[0]}.jpg`
+    const paths = Object.entries(CURATED_CITY_BANNERS).map(
+      ([key, b]) => b.path ?? `cities/${key.split('|')[0]}.jpg`
     );
-    expect(new Set(files).size).toBe(files.length);
+    expect(new Set(paths).size).toBe(paths.length);
   });
 
-  it('overrides a filename only where the asset is not at cities/<slug>.jpg', () => {
+  it('overrides a path only where the asset is not at cities/<slug>.jpg', () => {
     // A redundant override is dead weight that will outlive the reason for it.
     for (const [key, b] of Object.entries(CURATED_CITY_BANNERS)) {
-      if (b.file) expect(b.file, key).not.toBe(`${key.split('|')[0]}.jpg`);
+      if (b.path) expect(b.path, key).not.toBe(`cities/${key.split('|')[0]}.jpg`);
+    }
+  });
+
+  it('keeps every override inside a known bucket prefix', () => {
+    // A path is now bucket-root-relative rather than a bare filename, so a typo can
+    // point outside the banner library entirely instead of 404ing inside cities/.
+    for (const [key, b] of Object.entries(CURATED_CITY_BANNERS)) {
+      if (b.path) {
+        expect(b.path, key).toMatch(/^(cities|la_county\/building_photos)\/[\w.-]+\.jpg$/);
+      }
     }
   });
 
   it('holds the whole transcribed catalog, not a subset of it', () => {
-    // 158 of the registry's 181 state-scoped variants. The 23 absent are listed in the
-    // CURATED_CITY_BANNERS doc comment and every one is a missing AUTHOR or an
-    // inexpressible legacy path — never a missing asset. If this number drops, someone
-    // deleted coverage; if it rises without the doc comment moving, someone guessed.
-    expect(Object.keys(CURATED_CITY_BANNERS)).toHaveLength(158);
+    // 180 of the registry's 181 state-scoped variants — everything it can attribute.
+    // The one absent is listed in the CURATED_CITY_BANNERS doc comment. If this number
+    // drops, someone deleted coverage; if it rises without the doc comment moving,
+    // someone guessed at a credit.
+    expect(Object.keys(CURATED_CITY_BANNERS)).toHaveLength(180);
   });
 
   it('credits both Georgia banners whose registry lines reverse author and licence', () => {
@@ -90,27 +100,32 @@ describe('curated banner registry — every banner is attributed', () => {
     );
   });
 
-  it('excludes the banners the registry cannot attribute', () => {
-    // The 19 Utah "Wave 2" cities record no author at all ("Attribution in review
-    // notes"), and those notes are not in the repo. Adding any of them would render a
-    // CC BY image with nobody named.
-    for (const slug of [
-      'alpine', 'bluffdale', 'cedar-hills', 'cottonwood-heights', 'eagle-mountain',
-      'herriman', 'lindon', 'mapleton', 'midvale', 'millcreek', 'payson',
-      'pleasant-grove', 'salem', 'santaquin', 'saratoga-springs', 'south-jordan',
-      'south-salt-lake', 'taylorsville', 'vineyard',
-    ]) {
-      expect(CURATED_CITY_BANNERS[`${slug}|UT`], slug).toBeUndefined();
+  it('excludes the one banner the registry still cannot attribute', () => {
+    // south salt lake is the only image in the catalog with neither an author nor a
+    // licence on record — the batch header's blanket "Licensed Wikimedia Commons" is
+    // not evidence for an individual file. Adding it would render a possibly-CC BY
+    // image with nobody named. The other 18 Utah "Wave 2" cities were recovered
+    // upstream and DO ship, so this is a one-line exclusion, not a batch one.
+    expect(CURATED_CITY_BANNERS['south-salt-lake|UT']).toBeUndefined();
+    for (const slug of ['alpine', 'millcreek', 'vineyard', 'taylorsville']) {
+      expect(CURATED_CITY_BANNERS[`${slug}|UT`]?.credit, slug).toBeTruthy();
     }
   });
 
-  it('excludes the four CA cities still on the legacy la_county path', () => {
-    // los angeles, pomona, torrance and carson live at
-    // la_county/building_photos/<geoid>.jpg, which this builder cannot express, and the
-    // registry carries no credit line for any of them. They stay on the Wikipedia path
-    // until essentials migrates them to cities/ with attribution.
-    for (const slug of ['los-angeles', 'pomona', 'torrance', 'carson']) {
-      expect(CURATED_CITY_BANNERS[`${slug}|CA`], slug).toBeUndefined();
+  it('serves the four legacy la_county assets, which are not under cities/', () => {
+    // These were omitted entirely until essentials recovered their credits: the
+    // 2026-07-05 CA audit certified all four WITHOUT crediting them, and all four are
+    // AttributionRequired. They are also the reason this table keys on a bucket-root
+    // path — no filename-within-cities/ could address them.
+    const expected: Record<string, [string, string]> = {
+      'los-angeles|CA': ['la_county/building_photos/0644000-skyline.jpg', 'Adoramassey, CC BY-SA 4.0, via Wikimedia Commons'],
+      'pomona|CA': ['la_county/building_photos/0658072.jpg', 'Cliffo, CC BY 2.5, via Wikimedia Commons'],
+      'torrance|CA': ['la_county/building_photos/0680000.jpg', 'Thurifer, CC BY-SA 4.0, via Wikimedia Commons'],
+      'carson|CA': ['la_county/building_photos/0611530.jpg', 'The Front Page Online, CC BY-SA 4.0, via Wikimedia Commons'],
+    };
+    for (const [key, [path, credit]] of Object.entries(expected)) {
+      expect(CURATED_CITY_BANNERS[key]?.path, key).toBe(path);
+      expect(CURATED_CITY_BANNERS[key]?.credit, key).toBe(credit);
     }
   });
 });
