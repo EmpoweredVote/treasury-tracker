@@ -307,6 +307,21 @@ export const EXPECTED_ROWS = Object.freeze({
   'ma-dls-gf-exp': 8408,
   'ma-dls-gf-rev': 6663,
   'ma-dls-gf-rev-by-source': 1755,
+  // ⚠⚠ NEW 2026-09-11 alongside the fundScopeRegistry entry of the same id.
+  // 106, MEASURED IN THE TABLE with the entry's own anchored pattern (106 rows /
+  // 106 DISTINCT ids / 5 entities / FY2012-FY2025), not derived from the roster.
+  // Expected to move to roughly 16,878 once the FY2012-FY2024 sweep commits;
+  // re-measure then rather than pre-writing it.
+  //
+  // ⚠⚠ THIS WHOLE FILE HAS BEEN INERT SINCE #132 AND THIS ENTRY DOES NOT FIX IT.
+  // Five entries are stale from the FL/MI/PA sweeps and it refuses to write:
+  // `fl-dfs-afr` claims 190 against a recorded 12,764, `mi-treasury-f65-gf` and
+  // `-tg` claim 64 each against 58,228, and `pa-dced-clgs30-muni`/`-county` have
+  // no entry at all. It fails CLOSED and every loader writes fund_scope
+  // directly, so nothing is mis-stamped — but the gate is measuring nothing.
+  // Re-measuring those five is its own session and is NOT done here; this entry
+  // is added so that the Indiana family is not a SIXTH reason it stays broken.
+  'in-gateway-afr': 106,
 });
 
 /** Batch size for `data_source IN (...)` updates — 1,448 strings is one family. */

@@ -74,6 +74,7 @@ import { parseArgs } from 'node:util';
 
 import {
   eachRow, makeAccumulator, toTree, assertParsed, need, money, pad,
+  classifyFilingShape, FILING_SHAPE,
   SETTLEMENT_FUND_CODE, GOVERNMENTAL_ENT_NAME,
   makeSettlementSeriesIndex, assertSettlementSeriesIsPassThrough, settlementPerYearDrift,
   makeCustodialFundIndex, PAYROLL_CLEARING_DOMINANCE,
@@ -360,12 +361,30 @@ async function collectAll(dir, entities, years) {
       // Gary genuinely did not file FY2015 — it is absent from BOTH the receipts
       // and the disbursements extracts while 2011-2014 and 2016-2024 are present.
       // That is a real gap in the source and is REPORTED, never silently skipped
-      // and never counted as a pass. But a year missing from only ONE side is a
-      // parse defect and must fail loudly: this is session 3's zero-row parse
-      // that printed "Oracle green" from 0 checks.
-      if (rev0.rows === 0 && exp0.rows === 0) {
+      // and never counted as a pass.
+      //
+      // ⚠⚠ CORRECTED 2026-09-11. This comment used to continue: "But a year
+      // missing from only ONE side is a parse defect and must fail loudly." THAT
+      // WAS FALSE, and it was stated as fact. Measured across all 9,741 roster
+      // entity-years, the two one-sided cases are PUBLISHER SHAPES — Brooksburg
+      // FY2025 filed only its wastewater ent_name, Altona FY2011 filed receipts
+      // and no disbursements. See classifyFilingShape() for the full census.
+      // The refusal STANDS (a total built from one side is a figure nobody
+      // published) but it must not send the reader hunting a parse bug.
+      const shape = classifyFilingShape(rev0, exp0);
+      if (shape === FILING_SHAPE.NOT_FILED) {
         notFiled.push({ entity, year });
         continue;
+      }
+      if (shape === FILING_SHAPE.ONE_SIDED) {
+        throw new Error(
+          `REFUSING ${entity.name} FY${year}: the publisher filed ONE SIDE ONLY `
+          + `(receipts ${rev0.rows} rows, disbursements ${exp0.rows} rows). `
+          + 'This is a filing shape, not necessarily a parse defect — check the '
+          + 'extracts for this unit-year before changing any parsing code. Known '
+          + 'instances: Altona FY2011, Brooksburg FY2025 (which filed only its '
+          + 'TOWN OF BROOKSBURG WASTEWATER ent_name). Loading one side would '
+          + 'publish a total the unit never reported.');
       }
       const revRes = assertParsed(rev0, `${entity.name} FY${year} revenue`);
       const expRes = assertParsed(exp0, `${entity.name} FY${year} operating`);

@@ -701,6 +701,53 @@ export function toTree(map) {
   return roots.sort((x, y) => y.a - x.a);
 }
 
+/** How much of an entity-year the publisher actually filed. */
+export const FILING_SHAPE = Object.freeze({
+  /** Neither side carries a `Governmental Activities` row. */
+  NOT_FILED: 'not_filed',
+  /** Exactly one side does. */
+  ONE_SIDED: 'one_sided',
+  /** Both do. */
+  COMPLETE: 'complete',
+});
+
+/**
+ * Classify an entity-year by which sides of the filing carry rows.
+ *
+ * ⚠⚠ THIS EXISTS BECAUSE THE LOADER USED TO ASSERT SOMETHING FALSE. Its comment
+ * read: "a year missing from only ONE side is a parse defect and must fail
+ * loudly". Measured across all 9,741 roster entity-years on 2026-09-11, exactly
+ * FOUR carry zero `Governmental Activities` rows on a side, and the two
+ * one-sided ones are publisher shapes rather than defects:
+ *
+ *     FY2011  Altona        receipts 2  disbursements 0
+ *     FY2020  Vernon        receipts 0  disbursements 0
+ *     FY2024  Center Point  receipts 0  disbursements 0
+ *     FY2025  Brooksburg    receipts 7  disbursements 0
+ *
+ * Brooksburg FY2025 filed ONLY its `TOWN OF BROOKSBURG WASTEWATER` ent_name —
+ * three rows, no governmental activities at all. Altona FY2011 is simply absent
+ * from the disbursements extract while present in receipts.
+ *
+ * ⚠ THE OUTCOME IS UNCHANGED: a ONE_SIDED year still refuses. A governmental
+ * total built from one side of a filing is a figure nobody published, and
+ * refusing it is right. What this buys is a refusal that NAMES the likely cause
+ * instead of reporting "parsed 0 rows", which reads as a parse defect and sends
+ * the reader hunting a bug that is not there.
+ *
+ * ⚠ It also means ONE tiny town can refuse a whole year — Altona blocks FY2011
+ * and Brooksburg blocks FY2025 for all ~650 other governments. That is why the
+ * loaded window is held at FY2012-FY2024; widening it needs a DECLARED,
+ * OBSERVED exception per entity-year, not a tolerance.
+ */
+export function classifyFilingShape(revenueResult, operatingResult) {
+  const rev = (revenueResult?.rows ?? 0) > 0;
+  const exp = (operatingResult?.rows ?? 0) > 0;
+  if (!rev && !exp) return FILING_SHAPE.NOT_FILED;
+  if (rev !== exp) return FILING_SHAPE.ONE_SIDED;
+  return FILING_SHAPE.COMPLETE;
+}
+
 /**
  * ⚠⚠ A GATE THAT CAN MEASURE NOTHING MUST FAIL, NOT PASS.
  *
