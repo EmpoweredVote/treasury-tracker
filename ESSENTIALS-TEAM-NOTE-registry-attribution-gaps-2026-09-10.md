@@ -11,7 +11,7 @@ exactly right, and this note is what it caught.
 Context for why we were reading the whole registry rather than one line: Civic Spaces
 told us on 2026-09-10 that our `STATE_BANNER_CREDITS` had drifted and we were publishing
 the wrong photographer for Texas. Fixing that, we refreshed our city catalog from 20 keys
-to 157 against your `CURATED_LOCAL` — and transcribing all 181 state-scoped variants
+to 158 against your `CURATED_LOCAL` — and transcribing all 181 state-scoped variants
 surfaced three places where the registry cannot be transcribed safely.
 
 We have shipped around all three. Nothing here is blocking us. Item 1 is the one we would
@@ -71,31 +71,41 @@ skyline in the same category). Suggested line:
 We are shipping `macon|GA` as `Bubba73, CC BY-SA 3.0, via Wikimedia Commons` on that basis.
 If the operator's notes say otherwise, tell us and we will correct it.
 
-### Columbus — we could not resolve it, and we did not guess
+### Columbus — resolved by reconstruction, and we suggest this replacement line
 
-`cities/columbus.jpg` (sha256 `32e8b5c91cd04892`, 363,180 b) is the Eagle & Phenix mill row
-above the whitewater course, matching your description. We could not find its source on
-Commons. Ruled out by pixel comparison (mean abs difference per channel, lower is closer —
-a true match lands at 1-7):
+*(Updated 2026-09-10, after this note first said we could not resolve it. We could.)*
 
-| candidate | score |
-|---|---|
-| `File:Downtown Columbus, Georgia skyline.jpg` (PghPhxNfk) | 29.92 |
-| `File:Chattahoochee River from Dillingham Bridge.jpg` (Mccunicano) | 49.85 |
-| `File:Downtown Columbus West.jpg` (Brightbillmedia) | 54.16 |
-| `File:Eagle and Phenix Mills 02.jpg` (Farragutful) | 58.34 |
-| `File:Eagle and Phenix Mills 01.jpg` (Farragutful) | 60.46 |
-| `File:Broadway - Columbus, Georgia 01.jpg` (Farragutful) | 72.31 |
+```
+File:Downtown Columbus, Georgia skyline.jpg · PghPhxNfk · CC BY-SA 4.0 · 4032x3021
+```
 
-We swept every CC BY-SA 4.0 file ≥1700px in `Category:Columbus, Georgia`,
-`Category:Downtown Columbus, Georgia`, `Category:Eagle and Phenix Mills`,
-`Category:Phenix City, Alabama` and four full-text searches. Nothing matched. Since GA-4
-says the frame was "composed to 1700x540 FIRST", it is likely a sub-region crop rather
-than a full-frame one, which a whole-image sweep cannot recover.
+Not matched by resemblance — **reproduced byte-for-byte.** Re-running the GA-4 build's own
+compose step on that source (full-width 3.148:1 crop, vertical window centred at 42% of
+source height, LANCZOS to 1700x540, JPEG quality 90) yields `cities/columbus.jpg` at
+sha256 `32e8b5c91cd04892…`, 363,180 bytes — the same hash and the same byte count as the
+live object. The two other anchors your build tried, 0.55 and 0.68, land at mean abs
+difference 60.65 and 60.77. Suggested line:
 
-**The operator who composed it can name the file in seconds from their own working notes.
-We cannot, so `columbus|GA` is omitted from our catalog** — Columbus, GA is not a TT entity
-today, so nothing regresses for us.
+```
+//   columbus - the Eagle & Phenix mill row above the Chattahoochee whitewater course,
+//              seen from the west bank | PghPhxNfk | CC BY-SA 4.0
+```
+
+`columbus|GA` now ships on our side as `PghPhxNfk, CC BY-SA 4.0, via Wikimedia Commons`.
+
+**One caveat you should weigh before pasting.** We did not find this on Commons — a sweep
+of 754 candidates across nine categories, two recursive `deepcat` searches and four
+full-text searches all failed, and we initially reported it as unresolvable. We found it in
+the GA-4 build's own working record, where the upload step reads `asset_E_0.42.jpg` at
+363,180 bytes and `E` resolves to the file above from the session's A-E shortlist. So the
+provenance is your build, not an independent identification — but the byte-exact
+reproduction is about as strong as confirmation gets.
+
+Worth recording why the sweep failed, because it is a reusable trap: this exact file was
+the **top-scoring candidate at 29.92** and was written off, because 41 anchor steps over
+the vertical span landed 14-18px from the true crop — roughly 4px in the rendered banner,
+which on a detailed cityscape reads as a different photograph. When a sweep produces a
+clear leader that still fails the threshold, refine around it before ruling it out.
 
 ## 2. Nineteen Utah banners record no author at all
 
@@ -154,7 +164,8 @@ sources are unrecoverable, fresh Wikimedia sources would too.
   File: page (16618x3456, the source size your own TX swap note records) and matched at 3.80
   against 49.95 for `cities/austin.jpg`.
 - Florida moved to the Rookery Bay frame with `RW at RookeryBay, CC BY-SA 4.0`.
-- City catalog 20 → 157 keys; 114 TT entities now serve a licensed bucket banner, up from 19.
+- City catalog 20 → 158 keys; 114 TT entities now serve a licensed bucket banner, up from 19.
+  (157 shipped first; `columbus|GA` was added once its author was established, see item 1.)
 - Added `bainbridge-island` and `kitsap-county`, which we had recorded as NoSuchKey on
   2026-08-16 — you uploaded them on 2026-08-17, one day later.
 
@@ -182,9 +193,15 @@ the ones who haven't migrated yet.
 ## 6. What we are not asking for
 
 Nothing here blocks us; all three gaps are shipped around. In rough order of value to you:
-the two Georgia lines (public copy, cheap to fix), the four LA-county credits (the only ones
-costing a consumer today), then the nineteen Utah lines (no consumer affected yet, but the
-cheapest moment to fix them is now).
+the two Georgia lines (public copy, and both now come with a corrected line to paste — this
+is the cheapest fix on the list), the four LA-county credits (the only gap still costing a
+consumer today), then the nineteen Utah lines (no consumer affected yet, but the cheapest
+moment to fix them is now, while whoever certified them can still find the review notes).
+
+To be explicit about what is left for you rather than us: **we no longer need anything to
+unblock Columbus.** Both Georgia authors are established. The open asks are the nineteen
+Utah authors and the four LA-county credits, and only the latter changes what a reader
+sees today.
 
 And the reciprocal warning, since we have now been on the receiving end of it twice:
 **do not treat our tables as a source.** `STATE_BANNER_CREDITS` and `CURATED_CITY_BANNERS`

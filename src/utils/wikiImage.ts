@@ -389,7 +389,7 @@ const toSlug = (name: string) => name.toLowerCase().trim().replace(/\s+/g, '-');
  * inherent to the format and is not called out per-image.
  *
  * ── WHAT IS DELIBERATELY ABSENT ─────────────────────────────────────────────────
- * 24 of the registry's 181 state-scoped variants are NOT here, none of them for want
+ * 23 of the registry's 181 state-scoped variants are NOT here, none of them for want
  * of an asset:
  *
  *   19 Utah "Wave 2" cities (alpine, bluffdale, cedar hills, cottonwood heights,
@@ -399,11 +399,6 @@ const toSlug = (name: string) => name.toLowerCase().trim().replace(/\s+/g, '-');
  *      them, only "Attribution in review notes", and those notes are not in the repo.
  *      A CC BY image shown without its author is a licence breach, and the generic
  *      WIKIMEDIA_CREDIT does not name anyone. None is a TT entity today.
- *
- *   columbus|GA — its registry line is "<title> | CC BY-SA 4.0 | Wikimedia Commons",
- *      which puts the LICENCE in the author slot and records no author at all. Not a
- *      TT entity today. (macon|GA has the same reversed field order but its author is
- *      still recoverable — see the Georgia block.)
  *
  *   los angeles, pomona, torrance, carson (all CA) — still on the legacy
  *      `la_county/building_photos/<geoid>.jpg` path, which this builder cannot express
@@ -472,12 +467,31 @@ export const CURATED_CITY_BANNERS: Record<string, CuratedBanner> = {
   'miami|FL':       { credit: 'Euthman, CC BY 4.0, via Wikimedia Commons' },
   'tallahassee|FL': { credit: 'Daniel Vorndran (DXR), CC BY-SA 4.0, via Wikimedia Commons' },
 
-  // Georgia (2)
-  // ⚠ macon's registry line REVERSES the author and licence fields — it reads
-  // "<title> | CC BY-SA 3.0 | Bubba73, Wikimedia Commons, own work". Transcribing it
-  // positionally would credit the photograph to "CC BY-SA 3.0". The author is
-  // recoverable here; columbus|GA has the same defect with no author to recover, so it
-  // is omitted. Both reported back to essentials.
+  // Georgia (3)
+  // ⚠ BOTH GA-4 AND GA-5 REVERSE the registry's author and licence fields, so neither
+  // could be transcribed positionally — doing so would have credited these photographs
+  // to "CC BY-SA 4.0" and "CC BY-SA 3.0". Reported back to essentials (essentials#125).
+  //
+  // macon reads "<title> | CC BY-SA 3.0 | Bubba73, Wikimedia Commons, own work"; the
+  // author survives in the licence slot. Confirmed against Commons rather than trusted:
+  // File:MaconSkyline.JPG, 3008x920 — the "native 3.27:1" the GA-5 note records —
+  // matched to cities/macon.jpg at mean abs difference 2.11 per channel, against 62.69
+  // for the nearest control.
+  //
+  // columbus reads "<title> | CC BY-SA 4.0 | Wikimedia Commons" and names NO author at
+  // all, so the registry alone cannot support a credit. Resolved instead by reproducing
+  // the asset: the GA-4 build composed `File:Downtown Columbus, Georgia skyline.jpg`
+  // (4032x3021, PghPhxNfk, CC BY-SA 4.0) with a full-width 3.148:1 crop centred at 42%
+  // of source height, LANCZOS to 1700x540 at JPEG quality 90. Re-running that produces
+  // cities/columbus.jpg BYTE-FOR-BYTE — sha256 32e8b5c91cd04892…, 363,180 b — so the
+  // authorship is established by reconstruction, not by resemblance.
+  //
+  // ⚠ A COARSE SEARCH GRID HID THIS FOR HOURS. A whole-image anchor sweep scored this
+  // exact file at 29.92 and it was written off as a non-match, because 41 steps over the
+  // vertical span landed 14-18px from the true crop — about 4px in the rendered banner,
+  // and enough on a detailed cityscape to look like a different photograph. When a sweep
+  // produces a clear leader that still "fails", refine around it before ruling it out.
+  'columbus|GA':      { credit: 'PghPhxNfk, CC BY-SA 4.0, via Wikimedia Commons' },
   'macon|GA':         { credit: 'Bubba73, CC BY-SA 3.0, via Wikimedia Commons' },
   'milledgeville|GA': { credit: 'Clifflandis, CC0, via Wikimedia Commons' },
 

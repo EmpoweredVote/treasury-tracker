@@ -70,17 +70,30 @@ describe('curated banner registry — every banner is attributed', () => {
   });
 
   it('holds the whole transcribed catalog, not a subset of it', () => {
-    // 157 of the registry's 181 state-scoped variants. The 24 absent are listed in the
+    // 158 of the registry's 181 state-scoped variants. The 23 absent are listed in the
     // CURATED_CITY_BANNERS doc comment and every one is a missing AUTHOR or an
     // inexpressible legacy path — never a missing asset. If this number drops, someone
     // deleted coverage; if it rises without the doc comment moving, someone guessed.
-    expect(Object.keys(CURATED_CITY_BANNERS)).toHaveLength(157);
+    expect(Object.keys(CURATED_CITY_BANNERS)).toHaveLength(158);
+  });
+
+  it('credits both Georgia banners whose registry lines reverse author and licence', () => {
+    // Neither could be transcribed positionally — that would name "CC BY-SA 3.0" and
+    // "CC BY-SA 4.0" as the photographers. macon's author survives in the licence slot
+    // and was confirmed on Commons; columbus names no author anywhere and was resolved
+    // by reproducing the asset byte-for-byte from its source. See the Georgia block.
+    expect(CURATED_CITY_BANNERS['macon|GA']?.credit).toBe(
+      'Bubba73, CC BY-SA 3.0, via Wikimedia Commons'
+    );
+    expect(CURATED_CITY_BANNERS['columbus|GA']?.credit).toBe(
+      'PghPhxNfk, CC BY-SA 4.0, via Wikimedia Commons'
+    );
   });
 
   it('excludes the banners the registry cannot attribute', () => {
-    // 19 Utah "Wave 2" cities record no author at all ("Attribution in review notes"),
-    // and columbus|GA puts its licence where the author belongs. Adding any of them
-    // would render a CC BY image with nobody named.
+    // The 19 Utah "Wave 2" cities record no author at all ("Attribution in review
+    // notes"), and those notes are not in the repo. Adding any of them would render a
+    // CC BY image with nobody named.
     for (const slug of [
       'alpine', 'bluffdale', 'cedar-hills', 'cottonwood-heights', 'eagle-mountain',
       'herriman', 'lindon', 'mapleton', 'midvale', 'millcreek', 'payson',
@@ -89,10 +102,6 @@ describe('curated banner registry — every banner is attributed', () => {
     ]) {
       expect(CURATED_CITY_BANNERS[`${slug}|UT`], slug).toBeUndefined();
     }
-    expect(CURATED_CITY_BANNERS['columbus|GA']).toBeUndefined();
-    expect(CURATED_CITY_BANNERS['macon|GA']?.credit).toBe(
-      'Bubba73, CC BY-SA 3.0, via Wikimedia Commons'
-    );
   });
 
   it('excludes the four CA cities still on the legacy la_county path', () => {
