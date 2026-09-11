@@ -80,11 +80,11 @@ describe('curated banner registry — every banner is attributed', () => {
   });
 
   it('holds the whole transcribed catalog, not a subset of it', () => {
-    // 180 of the registry's 181 state-scoped variants — everything it can attribute.
-    // The one absent is listed in the CURATED_CITY_BANNERS doc comment. If this number
-    // drops, someone deleted coverage; if it rises without the doc comment moving,
-    // someone guessed at a credit.
-    expect(Object.keys(CURATED_CITY_BANNERS)).toHaveLength(180);
+    // All 181 of the registry's state-scoped variants — nothing is absent any more.
+    // If this number drops, someone deleted coverage; if it rises without the doc
+    // comment moving, someone guessed at a credit for a banner the registry cannot
+    // attribute, which is the failure this whole table is arranged to prevent.
+    expect(Object.keys(CURATED_CITY_BANNERS)).toHaveLength(181);
   });
 
   it('credits both Georgia banners whose registry lines reverse author and licence', () => {
@@ -100,16 +100,23 @@ describe('curated banner registry — every banner is attributed', () => {
     );
   });
 
-  it('excludes the one banner the registry still cannot attribute', () => {
-    // south salt lake is the only image in the catalog with neither an author nor a
-    // licence on record — the batch header's blanket "Licensed Wikimedia Commons" is
-    // not evidence for an individual file. Adding it would render a possibly-CC BY
-    // image with nobody named. The other 18 Utah "Wave 2" cities were recovered
-    // upstream and DO ship, so this is a one-line exclusion, not a batch one.
-    expect(CURATED_CITY_BANNERS['south-salt-lake|UT']).toBeUndefined();
-    for (const slug of ['alpine', 'millcreek', 'vineyard', 'taylorsville']) {
+  it('attributes all 19 Utah "Wave 2" banners, including the one that took three passes', () => {
+    // The whole batch shipped with no author for months — the registry said only
+    // "Attribution in review notes" and those notes no longer existed. south salt lake
+    // was the last to fall and is the one worth asserting by name: it survived two
+    // CATEGORY sweeps because its source carries twelve Commons categories and not one
+    // of them names the place. A file is categorised by what it IS, not where it is.
+    for (const slug of [
+      'alpine', 'bluffdale', 'cedar-hills', 'cottonwood-heights', 'eagle-mountain',
+      'herriman', 'lindon', 'mapleton', 'midvale', 'millcreek', 'payson',
+      'pleasant-grove', 'salem', 'santaquin', 'saratoga-springs', 'south-jordan',
+      'south-salt-lake', 'taylorsville', 'vineyard',
+    ]) {
       expect(CURATED_CITY_BANNERS[`${slug}|UT`]?.credit, slug).toBeTruthy();
     }
+    expect(CURATED_CITY_BANNERS['south-salt-lake|UT']?.credit).toBe(
+      'An Errant Knight, CC BY-SA 4.0, via Wikimedia Commons'
+    );
   });
 
   it('serves the four legacy la_county assets, which are not under cities/', () => {
