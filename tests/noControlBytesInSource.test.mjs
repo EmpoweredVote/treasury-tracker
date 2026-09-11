@@ -70,6 +70,27 @@ describe('no stray control bytes in source', () => {
     expect(files.length).toBeGreaterThan(200);
   });
 
+  // ⚠ EXPLICIT TIMEOUT, for the reason nulByte.test.mjs already documents twelve
+  // lines from here: this is an I/O-bound scan wearing a unit-test timeout. It reads
+  // every file under scripts/, tests/ and src/ — and it FLAKED, roughly one run in
+  // three, for exactly that reason.
+  //
+  // Measured 2026-09-11: the failing run took 7,773ms against vitest's default 5,000ms.
+  // In isolation it passes every time (3/3, ~800ms); it only fails inside the full
+  // suite, where ~116 test files across parallel workers compete for the disk. Its
+  // sibling nulByte scan took 8,002ms in that same run and passed — because it carries
+  // 60_000. Same shape, same run, one guarded and one not.
+  //
+  // ⚠⚠ THE FAILURE LOOKED LIKE A FINDING, WHICH IS WHY IT SURVIVED. A timeout here
+  // reports as "finds no C0 control byte…" failing, i.e. as if a control byte had been
+  // found — and vitest's JSON reporter gives only `Error: STACK_TRACE_ERROR`, with no
+  // offender list, because the assertion never ran. It was written off as a flake three
+  // times in one session before the duration was looked at. If this fails again, read
+  // the DURATION before hunting for a corrupt file.
+  //
+  // SCOPE-02 shipped a tag during a run reporting one failure that could not be named
+  // afterwards, and nulByte.test.mjs closed with "Not repeating it." This is that
+  // repeat, in the next guard written.
   it('finds no C0 control byte other than tab, LF, CR and form feed', () => {
     const offenders = [];
     for (const f of files) {
@@ -81,7 +102,7 @@ describe('no stray control bytes in source', () => {
       offenders.push(`${f}:${line} contains 0x${hex}`);
     }
     expect(offenders).toEqual([]);
-  });
+  }, 60_000);
 
   // Mutation-proof: the matcher must actually reject what it claims to.
   it('would catch the byte that caused this, and allows the legitimate ones', () => {
