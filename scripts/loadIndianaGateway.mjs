@@ -74,7 +74,7 @@ import { parseArgs } from 'node:util';
 
 import {
   eachRow, makeAccumulator, toTree, assertParsed, need, money, pad,
-  classifyFilingShape, FILING_SHAPE,
+  classifyFilingShape, FILING_SHAPE, blockingRow,
   SETTLEMENT_FUND_CODE, GOVERNMENTAL_ENT_NAME,
   makeSettlementSeriesIndex, assertSettlementSeriesIsPassThrough, settlementPerYearDrift,
   makeCustodialFundIndex, PAYROLL_CLEARING_DOMINANCE,
@@ -622,15 +622,35 @@ export async function main() {
       // Never-overwrite guard: treasury_sync_city_budget is NOT source-safe — it
       // never updates data_source, so it would overwrite another publisher's row
       // or silently insert a duplicate.
+      //
+      // ⚠⚠ WIDENED 2026-09-12 TO THE RPC'S OWN KEY, and it was a real defect.
+      // This lookup used to key on (municipality, fiscal_year, dataset_type)
+      // alone while the RPC matches on those PLUS fund_scope and basis. A guard
+      // narrower than the writer refuses writes that could never collide: the
+      // FY2012-FY2024 sweep lost 173 rows that way — Bloomington 21 (its rows
+      // are fund_scope/basis `unknown`) and fourteen GAAP counties 152 (their
+      // ACFR rows are `total_governmental`). Allen, Marion and Lake already
+      // carried BOTH series, which is what proved the two do not collide.
+      //
+      // ⚠ AND `.limit(1)` WITH NO `ORDER BY` IS GONE. It took one row from a set
+      // that can hold more than one, so which row it saw was undefined; those
+      // three counties were written only because it happened to return theirs.
+      // Every row at the key is fetched and ambiguity is REFUSED — see
+      // blockingRow(), which mirrors the RPC's own `v_matches > 1` error.
       const { data: existing, error: lookupErr } = await db
         .schema('treasury').from('budgets')
         .select('id, data_source')
         .eq('municipality_id', municipalityId)
         .eq('fiscal_year', Number(f.year))
         .eq('dataset_type', datasetType)
-        .limit(1);
+        .eq('fund_scope', FUND_SCOPE)
+        .eq('basis', BASIS_VALUE)
+        .order('id');
       if (lookupErr) throw new Error(`Budget lookup failed: ${lookupErr.message}`);
-      if (existing?.[0] && !String(existing[0].data_source || '').startsWith(SOURCE_PREFIX)) {
+      const blocker = blockingRow(existing, SOURCE_PREFIX);
+      if (blocker) {
+        console.log(`  SKIP ${f.entity.name} FY${f.year} ${datasetType} — `
+          + `${blocker.data_source || '(no data_source)'} already holds this exact key`);
         conflicts++;
         console.log(`  SKIP ${f.entity.name} FY${f.year} ${datasetType} — "${existing[0].data_source}" preserved`);
         continue;
