@@ -434,7 +434,24 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // pre-write that figure here: a partition count is a MEASUREMENT WITH A DATE,
   // and the load ceremony re-measures it in the table. If the post-load count is
   // not what the roster predicts, the DIFFERENCE is the finding.
-  'in-gateway-afr': 106,
+  // ⭐ RE-MEASURED IN THE TABLE 2026-09-12, immediately after the FY2012-FY2024
+  // statewide sweep: 16,705 rows / 16,705 DISTINCT ids / 28 strings / 659
+  // entities / 0 non-Indiana / 0 wrong fund_scope or basis.
+  //
+  // ⚠ THE GATE'S OWN INSTRUCTION IS "fix the pattern, do NOT edit the expected
+  // number", and that rule is for a pattern claiming the WRONG rows. It is not a
+  // bar on re-measuring when the rows are right and there are simply more of
+  // them — the same distinction basisRegistry's `city-adopted-budget-doc` entry
+  // had to make for San Francisco's cron sync. The pattern was PROVED correct
+  // before this number moved: 28 strings is exactly 14 fiscal years x 2
+  // datasets, and it claims 0 rows outside Indiana.
+  //
+  // 106 -> 16,705 = 16,599 newly inserted + 104 pre-existing in-window rows the
+  // sweep updated in place + Marion County's 2 FY2025 rows, which sit OUTSIDE
+  // the loaded window and were not rewritten. 173 entity-year rows were refused
+  // by the never-overwrite guard (Bloomington 21, fourteen GAAP counties 152)
+  // and are NOT in this count — see project_pick_up_next.
+  'in-gateway-afr': 16705,
 });
 
 export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
@@ -495,7 +512,24 @@ export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
   //
   // ⚠ EXPECTED TO MOVE ONCE, TO ROUGHLY 16,878, when the FY2012-FY2024 sweep
   // commits. Re-measure in the table at load time; do not pre-write it.
-  'in-gateway-afr': 106,
+  // ⭐ RE-MEASURED IN THE TABLE 2026-09-12, immediately after the FY2012-FY2024
+  // statewide sweep: 16,705 rows / 16,705 DISTINCT ids / 28 strings / 659
+  // entities / 0 non-Indiana / 0 wrong fund_scope or basis.
+  //
+  // ⚠ THE GATE'S OWN INSTRUCTION IS "fix the pattern, do NOT edit the expected
+  // number", and that rule is for a pattern claiming the WRONG rows. It is not a
+  // bar on re-measuring when the rows are right and there are simply more of
+  // them — the same distinction basisRegistry's `city-adopted-budget-doc` entry
+  // had to make for San Francisco's cron sync. The pattern was PROVED correct
+  // before this number moved: 28 strings is exactly 14 fiscal years x 2
+  // datasets, and it claims 0 rows outside Indiana.
+  //
+  // 106 -> 16,705 = 16,599 newly inserted + 104 pre-existing in-window rows the
+  // sweep updated in place + Marion County's 2 FY2025 rows, which sit OUTSIDE
+  // the loaded window and were not rewritten. 173 entity-year rows were refused
+  // by the never-overwrite guard (Bloomington 21, fourteen GAAP counties 152)
+  // and are NOT in this count — see project_pick_up_next.
+  'in-gateway-afr': 16705,
   // NC-DURHAM-AVL-01, measured 2026-08-25: City of Durham 32 + Durham County 42
   // + City of Asheville 28 + Buncombe County 36. A NEW family, so no
   // pre-existing count moved.
