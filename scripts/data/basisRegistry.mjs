@@ -566,6 +566,44 @@ export const BASIS_REGISTRY = [
     },
   },
   {
+    // ⚠⚠ ADDED 2026-09-11 alongside the fundScope and reportingEntity entries of
+    // the same id. Until then `auditGradeRegistry` was the ONLY registry of the
+    // four claiming this family. See the fundScopeRegistry entry for the full
+    // note; the short version is that widening one registry is never enough.
+    //
+    // ⚠ Placed ABOVE `city-adopted-budget-doc`, which is deliberately last.
+    // This string contains no "Budget" token so the catch-all cannot reach it
+    // either way, but the ordering rule is not conditional on that.
+    id: 'in-gateway-afr',
+    match: /^Indiana Gateway Annual Financial Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[2-9]|2[0-5]) actual, unaudited, all funds excl\. settlement and payroll clearing\)$/,
+    value: BASIS.ACTUAL,
+    evidence: {
+      document: 'Indiana Gateway for Government Units (IFI / DLGF / SBOA), "Learn more about … '
+              + 'The Annual Financial Report (AFR)", rev. 11/3/2022 '
+              + '(https://gateway.ifionline.org/guides/about/LearnMoreAFR.pdf) — the same '
+              + 'publisher document the audit-grade entry rests on, which settles both axes in '
+              + 'one sentence each.',
+      figures: 'Verbatim on WHEN it is filed: the reports are "made available via Gateway to '
+             + 'the public soon after the deadline for submission (60 DAYS AFTER YEAR END) or '
+             + 'earlier". A report filed after the year ends, on a receipts-and-disbursements '
+             + 'basis, is an accounting of money that actually moved — not an appropriation. '
+             + '⚠ CORROBORATED BY THE SOURCE\'S OWN SEPARATION OF THE TWO, which is what makes '
+             + 'this evidence rather than inference: Gateway publishes BUDGET data in an '
+             + 'entirely different product (the Budget / Form 4B reports), and this loader '
+             + 'reads neither. `scripts/bulkLoadGateway.js` and '
+             + '`docs/indiana_gateway_reference.md` are STALE and conclude the opposite — they '
+             + 'describe the budget product, and the deleted legacy rows they produced look '
+             + 'like adopted budgets (round numbers, `RAINY DAY $0`). Do not sequence on '
+             + 'either. '
+             + '⚠ THE WINDOW STOPS AT FY2025 IN THE PATTERN AND AT FY2024 IN THE LOADER, on '
+             + 'purpose and in different places. The pattern spans the programme; WHICH years '
+             + 'are loaded is the loader\'s decision (held at FY2012-FY2024 on 2026-09-11 '
+             + 'because FY2025 is an open year that still moves). FY2011 is outside both: the '
+             + 'Cash and Investments oracle carries no 2011 rows, so no Indiana unit can be '
+             + 'loaded for it at all.',
+    },
+  },
+  {
     // Adopted budget documents. 169 rows / 129 strings / 30 entities,
     // RE-MEASURED 2026-08-28 (was 165 rows, measured 2026-08-17).
     // Placed LAST so a more specific source above always wins.

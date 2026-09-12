@@ -399,4 +399,46 @@ export const REPORTING_ENTITY_REGISTRY = [
              + 'into the same columns and is incl_component_units for that reason.',
     },
   },
+  {
+    // ⚠⚠ ADDED 2026-09-11. Until then this family matched NOTHING here and every
+    // one of its 106 loaded rows carried `reporting_entity = 'unknown'` — the
+    // reader-facing consequence of widening one registry of four. See the
+    // fundScopeRegistry entry of the same id for the full note.
+    id: 'in-gateway-afr',
+    match: /^Indiana Gateway Annual Financial Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[2-9]|2[0-5]) actual, unaudited, all funds excl\. settlement and payroll clearing\)$/,
+    value: REPORTING_ENTITY.PRIMARY,
+    evidence: {
+      document: 'Gateway\'s own AFR extracts (`_acfr-work/in`), whose `ent_name` column is the '
+              + 'publisher\'s own partition of a filing into the unit proper and its related '
+              + 'entities. Corroborated against the SBOA\'s audited regulatory-basis report for '
+              + 'the same entity-year (City of Gary FY2020, FAC report_id '
+              + '2020-12-CENSUS-0000191896). Read 2026-09-11.',
+      figures: 'The boundary is a FACT READ OFF THE PUBLISHER\'S OWN COLUMN, not an inference. '
+             + 'TT reads only rows whose `ent_name` is `Governmental Activities` '
+             + '(scripts/lib/inGateway.mjs, GOVERNMENTAL_ENT_NAME) — 290,665 of the 291,100 '
+             + 'county receipt rows, the remainder being the unit\'s separately-reported '
+             + 'LANDFILL, MEMORIAL COLISEUM, STORMWATER UTILITY, SOLID WASTE and similar '
+             + 'entities. Component units therefore cannot be inside these figures: they are '
+             + 'in sibling ent_name blocks this loader never reads. '
+             + '⚠⚠ MEASURED, ON THE ONE ENTITY WHERE THE DIFFERENCE IS LARGE ENOUGH TO SEE. '
+             + 'City of Gary\'s Gateway filing carries exactly three ent_names — '
+             + '`Governmental Activities`, `GSD` (the Gary Sanitary District) and `STORM WATER '
+             + 'MANAGEMENT DISTRICT`. The SBOA\'s AUDITED statement for FY2020 consolidates '
+             + 'all three and totals $228,714,206 of receipts; TT loads $127,292,307. So the '
+             + 'audited document uses a WIDER reporting entity than TT does, and TT\'s is the '
+             + 'narrower one — which is the direction that makes primary_government safe to '
+             + 'claim. '
+             + '⚠ STATED PRECISELY: this value asserts that the figure does NOT consolidate '
+             + 'component units, which is what the axis exists to distinguish and what the '
+             + 'ent_name filter proves. It does not assert that the figure is the primary '
+             + 'government EXACTLY — a blended component unit that Gateway happens to report '
+             + 'inside `Governmental Activities` would be inside it, and one reported in its '
+             + 'own ent_name block (as Gary\'s GSD is) is outside it. The alternative value, '
+             + 'incl_component_units, is affirmatively false; `unknown` claims nobody looked. '
+             + '⚠ This is the OPPOSITE of mn-osa on the same axis, and for a reason worth '
+             + 'keeping: mn-osa is a STATE AUDITOR re-aggregating what a city presents '
+             + 'separately, whereas Gateway is a collection system that preserves the unit\'s '
+             + 'own filed partition unchanged.',
+    },
+  },
 ];

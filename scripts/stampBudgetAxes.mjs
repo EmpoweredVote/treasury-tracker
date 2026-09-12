@@ -421,6 +421,20 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   'az-muni-acfr-gf': 64,
   'seattle-city-acfr-gf': 34,
   'state-acfr-gf-by-name': 56,
+  // ⚠⚠ NEW ENTRY 2026-09-11, ahead of the Indiana Gateway statewide sweep.
+  // 106 is the PRE-SWEEP count, MEASURED IN THE TABLE on 2026-09-11 with the
+  // entry's own anchored pattern (106 rows / 106 DISTINCT ids / 5 entities /
+  // FY2012-FY2025), never derived from the 660-government roster. The distinct-id
+  // count is asserted alongside the row count because an unpaged read returns a
+  // plausible number — see reference_paged_reads_need_total_order.
+  //
+  // ⚠ THIS NUMBER IS EXPECTED TO MOVE ONCE, TO ROUGHLY 16,878, when the
+  // FY2012-FY2024 sweep commits (16,876 swept rows + Marion County's 2 FY2025
+  // rows, which sit outside the loaded window and are not rewritten). DO NOT
+  // pre-write that figure here: a partition count is a MEASUREMENT WITH A DATE,
+  // and the load ceremony re-measures it in the table. If the post-load count is
+  // not what the roster predicts, the DIFFERENCE is the finding.
+  'in-gateway-afr': 106,
 });
 
 export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
@@ -468,6 +482,20 @@ export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
   // County FY2006-2024 less FY2019). The four absent years are DECLARED
   // document gaps, never written as $0 — see scripts/extractCoKsAll.mjs.
   'ks-local-acfr-gf': 84,
+  // ⚠⚠ NEW ENTRY 2026-09-11, ahead of the Indiana Gateway statewide sweep.
+  // Same family and the same 106 as the basis entry above — one family, two
+  // axes, and they must move together. MEASURED IN THE TABLE on 2026-09-11 with
+  // the entry's own anchored pattern (106 rows / 106 DISTINCT ids / 5 entities /
+  // FY2012-FY2025), never derived from the 660-government roster.
+  //
+  // ⚠⚠ EVERY ONE OF THOSE 106 ROWS CARRIED `reporting_entity = 'unknown'` until
+  // this entry existed, because reportingEntityRegistry claimed the family with
+  // nothing at all while auditGradeRegistry had claimed it since Knight session
+  // 5. That is the "widened one registry of four" defect in a FIFTH place.
+  //
+  // ⚠ EXPECTED TO MOVE ONCE, TO ROUGHLY 16,878, when the FY2012-FY2024 sweep
+  // commits. Re-measure in the table at load time; do not pre-write it.
+  'in-gateway-afr': 106,
   // NC-DURHAM-AVL-01, measured 2026-08-25: City of Durham 32 + Durham County 42
   // + City of Asheville 28 + Buncombe County 36. A NEW family, so no
   // pre-existing count moved.

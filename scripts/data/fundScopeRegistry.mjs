@@ -1217,6 +1217,67 @@ export const FUND_SCOPE_REGISTRY = [
              + 'for that reason.',
     },
   },
+  {
+    // ⚠⚠ ADDED 2026-09-11, AHEAD OF THE STATEWIDE SWEEP, AND IT IS LATE.
+    // `auditGradeRegistry` has carried an `in-gateway-afr` entry since Knight
+    // session 5; this registry, `basisRegistry` and `reportingEntityRegistry`
+    // carried NOTHING, and all 106 loaded rows sat at `reporting_entity =
+    // 'unknown'` in consequence. That is the FL / PA / SC / IN-county defect —
+    // "an entry did not claim what was measured" — in a FIFTH place, and the
+    // sweep would have multiplied it from 106 rows to 16,876.
+    //
+    // ⚠ THE VOCABULARY CANNOT SAY THIS EXACTLY, and that is recorded rather
+    // than smoothed over. What TT reads is Gateway's `Governmental Activities`
+    // entity (290,665 of 291,100 county receipt rows — the other ent_names are
+    // the unit's separately-listed LANDFILL, MEMORIAL COLISEUM, STORMWATER
+    // UTILITY and the like, which TT does NOT read), minus the Settlement and
+    // payroll-clearing funds. So it is neither literally every fund in the
+    // treasury nor GASB's governmental-funds set. Of the four legal values it is
+    // the only one that is not affirmatively false, and the source string
+    // carries the exact qualification a reader needs. Same shape as the
+    // pa-dced-clgs30 audit-grade note: state the nuance where it will be found.
+    id: 'in-gateway-afr',
+    match: /^Indiana Gateway Annual Financial Report — (?:Expenditure by Function|Revenue by Source) \(FY20(?:1[2-9]|2[0-5]) actual, unaudited, all funds excl\. settlement and payroll clearing\)$/,
+    scope: SCOPE.ALL_FUNDS,
+    evidence: {
+      document: 'Gateway\'s own AFR extracts (Detailed Receipts / Disbursements by Fund, '
+              + '`year=All`, 443 MB, in `_acfr-work/in`), read together with the SBOA\'s '
+              + 'audited regulatory-basis report for the same entity-year, fetched from the '
+              + 'Federal Audit Clearinghouse. City of Gary FY2020 = FAC report_id '
+              + '2020-12-CENSUS-0000191896; Lake County FY2018 = 2018-12-CENSUS-0000142357. '
+              + 'Read 2026-09-11.',
+      figures: '⚠⚠ `total_governmental` IS AFFIRMATIVELY EXCLUDED, MEASURED NOT ASSUMED. '
+             + 'Gateway\'s `Governmental Activities` entity is a CASH statement of everything '
+             + 'through the unit\'s treasury, so it carries custodial property-tax and '
+             + 'local-income-tax money the unit collects and remits to OTHER taxing units — '
+             + 'which GASB does not classify as a governmental fund at all. Marion County '
+             + 'FY2023 loads at roughly 3.3x the county\'s own audited governmental-funds '
+             + 'revenue for exactly this reason, and TT already holds that audited figure '
+             + 'separately under `in-county-acfr-tg` at `total_governmental`. The two are '
+             + 'different scopes of the same government, not a correction of one another. '
+             + '`general_fund` is excluded by an even wider margin — the parse is per-fund '
+             + 'across every fund the unit reports. '
+             + '⚠ THE UPPER BOUND IS MEASURED TOO, and it is what stops this reading as a '
+             + 'claim to the whole treasury. The SBOA\'s audited all-funds regulatory-basis '
+             + 'statement for City of Gary FY2020 totals $228,714,206 of receipts and '
+             + '$248,531,409 of disbursements; TT loads $127,292,307 and $132,555,915 for the '
+             + 'same entity-year. The gap is the `GSD` and `STORM WATER MANAGEMENT DISTRICT` '
+             + 'entities plus the excluded settlement and payroll-clearing funds. '
+             + '⚠ CORRECTION TO AN EARLIER DRAFT OF THIS ENTRY, kept because the mistake is '
+             + 'the instructive part: those two are NOT separate Gateway units filing their '
+             + 'own AFRs. They are sibling `ent_name` blocks INSIDE `GARY CIVIL CITY`\'s own '
+             + 'filing — measured, the city\'s receipts extract carries exactly three '
+             + 'ent_names: `Governmental Activities`, `GSD`, `STORM WATER MANAGEMENT '
+             + 'DISTRICT`. TT excludes them by reading only the first. A plausible story about '
+             + 'a boundary is not a reading of one. '
+             + 'Lake County FY2018 shows the same shape at county scale: audited '
+             + '$1,312,090,447 against TT\'s $621,491,347, the difference being dominated by '
+             + 'the Settlement funds this loader deliberately excludes. '
+             + 'REPORTING ENTITY: primary_government — see the reportingEntityRegistry entry '
+             + 'of the same id, which rests on the unit boundary being the publisher\'s own '
+             + '`sboa_id`, not on anything inferred here.',
+    },
+  },
 ];
 
 export default FUND_SCOPE_REGISTRY;
