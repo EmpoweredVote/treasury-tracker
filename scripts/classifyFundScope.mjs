@@ -322,8 +322,8 @@ export const EXPECTED_ROWS = Object.freeze({
   // Re-measuring those five is its own session and is NOT done here; this entry
   // is added so that the Indiana family is not a SIXTH reason it stays broken.
   // ⭐ RE-MEASURED IN THE TABLE 2026-09-12 after the statewide sweep:
-  // 16,705 rows / 16,705 DISTINCT ids / 28 strings / 659 entities.
-  'in-gateway-afr': 16705,
+  // 16,878 rows / 16,878 DISTINCT ids / 28 strings / 659 entities.
+  'in-gateway-afr': 16878,
 });
 
 /** Batch size for `data_source IN (...)` updates — 1,448 strings is one family. */

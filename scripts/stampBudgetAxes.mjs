@@ -446,12 +446,14 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   // before this number moved: 28 strings is exactly 14 fiscal years x 2
   // datasets, and it claims 0 rows outside Indiana.
   //
-  // 106 -> 16,705 = 16,599 newly inserted + 104 pre-existing in-window rows the
-  // sweep updated in place + Marion County's 2 FY2025 rows, which sit OUTSIDE
-  // the loaded window and were not rewritten. 173 entity-year rows were refused
-  // by the never-overwrite guard (Bloomington 21, fourteen GAAP counties 152)
-  // and are NOT in this count — see project_pick_up_next.
-  'in-gateway-afr': 16705,
+  // 106 -> 16,705 -> 16,878. The middle figure was the sweep with 173 rows
+  // MISSING: the never-overwrite guard keyed on three columns where the RPC
+  // keys on five, so it refused writes that could never have collided
+  // (Bloomington 21, fourteen GAAP counties 152). Guard fixed, those years
+  // re-run, and the deficit register:rows then reported was EXACTLY 173.
+  // 16,878 = 16,876 swept rows + Marion County's 2 FY2025 rows, which sit
+  // OUTSIDE the loaded window and were never rewritten.
+  'in-gateway-afr': 16878,
 });
 
 export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
@@ -524,12 +526,14 @@ export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
   // before this number moved: 28 strings is exactly 14 fiscal years x 2
   // datasets, and it claims 0 rows outside Indiana.
   //
-  // 106 -> 16,705 = 16,599 newly inserted + 104 pre-existing in-window rows the
-  // sweep updated in place + Marion County's 2 FY2025 rows, which sit OUTSIDE
-  // the loaded window and were not rewritten. 173 entity-year rows were refused
-  // by the never-overwrite guard (Bloomington 21, fourteen GAAP counties 152)
-  // and are NOT in this count — see project_pick_up_next.
-  'in-gateway-afr': 16705,
+  // 106 -> 16,705 -> 16,878. The middle figure was the sweep with 173 rows
+  // MISSING: the never-overwrite guard keyed on three columns where the RPC
+  // keys on five, so it refused writes that could never have collided
+  // (Bloomington 21, fourteen GAAP counties 152). Guard fixed, those years
+  // re-run, and the deficit register:rows then reported was EXACTLY 173.
+  // 16,878 = 16,876 swept rows + Marion County's 2 FY2025 rows, which sit
+  // OUTSIDE the loaded window and were never rewritten.
+  'in-gateway-afr': 16878,
   // NC-DURHAM-AVL-01, measured 2026-08-25: City of Durham 32 + Durham County 42
   // + City of Asheville 28 + Buncombe County 36. A NEW family, so no
   // pre-existing count moved.
