@@ -701,6 +701,41 @@ export function toTree(map) {
   return roots.sort((x, y) => y.a - x.a);
 }
 
+/**
+ * Which existing row, if any, blocks a write at the RPC's own key.
+ *
+ * ⚠⚠ THE GUARD'S KEY MUST BE THE WRITER'S KEY. `treasury_sync_city_budget`
+ * matches on (municipality_id, fiscal_year, dataset_type, fund_scope, basis) —
+ * read from the function body 2026-09-12, not from a comment. The loader used to
+ * look up only the first THREE, so it refused writes that could never have
+ * collided and the FY2012-FY2024 sweep lost 173 rows: Bloomington 21 (its rows
+ * are fund_scope/basis `unknown`) and fourteen GAAP counties 152 (their ACFR
+ * rows are `total_governmental`). Allen, Marion and Lake already carry BOTH
+ * series, which is the proof the two do not collide.
+ *
+ * ⚠ CALLERS MUST PASS EVERY ROW AT THE KEY, not `.limit(1)`. The old lookup took
+ * one row with no ORDER BY from a set that can hold more than one, so which row
+ * it saw was formally undefined — Allen/Marion/Lake were written only because it
+ * happened to return their Gateway row. Ambiguity is REFUSED here rather than
+ * resolved, mirroring the RPC's own `v_matches > 1` error.
+ *
+ * @param {Array<{id: string, data_source: string|null}>|undefined} existing
+ * @param {string} sourcePrefix  the loader's own data_source prefix
+ * @returns {{id: string, data_source: string|null}|null} the blocking row, or null to write
+ */
+export function blockingRow(existing, sourcePrefix) {
+  const rows = existing ?? [];
+  if (rows.length === 0) return null;
+  if (rows.length > 1) {
+    throw new Error(
+      `REFUSING: ambiguous target — ${rows.length} rows share one RPC key `
+      + `(${rows.map((r) => r.id).join(', ')}). The RPC refuses this case too; `
+      + 'two rows at one key is a corrupt table and must be resolved by hand.');
+  }
+  const [row] = rows;
+  return String(row.data_source || '').startsWith(sourcePrefix) ? null : row;
+}
+
 /** How much of an entity-year the publisher actually filed. */
 export const FILING_SHAPE = Object.freeze({
   /** Neither side carries a `Governmental Activities` row. */
