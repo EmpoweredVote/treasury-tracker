@@ -22,8 +22,9 @@
  */
 import { describe, it, expect } from 'vitest';
 
-import { isFilesystemPathLabel, isClosedYearAsOf }
-  from '../scripts/lib/bloomingtonSalaries.mjs';
+import {
+  isFilesystemPathLabel, isClosedYearAsOf, shouldPublishYear, BLOOMINGTON_PARTIAL_YEARS,
+} from '../scripts/lib/bloomingtonSalaries.mjs';
 
 describe('isFilesystemPathLabel', () => {
   it('catches the label that actually shipped', () => {
@@ -80,5 +81,37 @@ describe('isClosedYearAsOf', () => {
     expect(isClosedYearAsOf(null, 2025)).toBe(false);
     expect(isClosedYearAsOf('not a date', 2025)).toBe(false);
     expect(isClosedYearAsOf('2025-12-31T00:00:00.000', null)).toBe(false);
+  });
+});
+
+describe('shouldPublishYear', () => {
+  it('publishes a closed year', () => {
+    expect(shouldPublishYear(2019, '2019-12-31T00:00:00.000').publish).toBe(true);
+  });
+
+  it('REFUSES the open year, because the publisher calls it predicted', () => {
+    const r = shouldPublishYear(2026, '2026-09-11T00:00:00.000');
+    expect(r.publish).toBe(false);
+    expect(r.reason).toMatch(/predicted|not closed/i);
+  });
+
+  it('REFUSES FY2001, a DECLARED partial year', () => {
+    // ⚠⚠ Its as-of date is 2001-12-31, so the closed-year test passes and cannot
+    // catch it. Measured instead: across 168 department+title groups with
+    // IDENTICAL headcounts, 2001 is a median 0.629 of 2002 and 90% fall in
+    // 0.55-0.75, while 2002/2003 and 2003/2004 sit at 0.956 and 0.958. That is
+    // ~7.5 months, not a pay cut — a payroll-system cutover mid-year.
+    const r = shouldPublishYear(2001, '2001-12-31T00:00:00.000');
+    expect(r.publish).toBe(false);
+    expect(r.reason).toMatch(/partial/i);
+  });
+
+  it('every declared partial year carries its evidence', () => {
+    // A declaration without the measurement behind it is a guess someone will
+    // later delete. Same rule as the axis registries.
+    for (const p of BLOOMINGTON_PARTIAL_YEARS) {
+      expect(p.reason.length, `FY${p.year}`).toBeGreaterThan(60);
+      expect(p.reason).toMatch(/0\.6|ratio|month/i);
+    }
   });
 });

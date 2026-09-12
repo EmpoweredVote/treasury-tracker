@@ -62,3 +62,47 @@ export function isClosedYearAsOf(asOfDate, fiscalYear) {
   const [, y, mo, d] = m;
   return Number(y) === Number(fiscalYear) && mo === '12' && d === '31';
 }
+
+/**
+ * Years the publisher dates as closed but which are NOT comparable, declared
+ * individually with the measurement behind them.
+ *
+ * ⚠⚠ FY2001'S AS-OF DATE IS 2001-12-31, so `isClosedYearAsOf` passes and cannot
+ * catch it. Only a comparison against the next year can, and it is unambiguous:
+ * across 168 department+title groups with IDENTICAL headcounts, FY2001 is a
+ * median 0.629 of FY2002 and 90% of those groups fall between 0.55 and 0.75 —
+ * while FY2002/FY2003 and FY2003/FY2004 sit at 0.956 and 0.958 with 2% and 4%
+ * in that band. A whole senior staff does not take a 37% pay cut; that is
+ * roughly 7.5 months of a year, and the `Conversion` job title sitting at the
+ * top of FY2001 points at a payroll-system cutover mid-year.
+ *
+ * Loading it would plant a false +47% step at the very start of the series.
+ */
+export const BLOOMINGTON_PARTIAL_YEARS = Object.freeze([
+  {
+    year: 2001,
+    reason: 'Partial year (~7.5 months). Median ratio to FY2002 is 0.629 across 168 '
+      + 'department+title groups with identical headcounts, 90% within 0.55-0.75, against '
+      + '0.956 and 0.958 for the two following year-pairs. Measured 2026-09-12.',
+  },
+]);
+
+/**
+ * Should TT publish this fiscal year at all?
+ *
+ * Two independent reasons not to, and they catch different things: the
+ * publisher's own as-of date catches the OPEN year, and the declared list above
+ * catches a year the publisher dates as closed but which is not comparable.
+ */
+export function shouldPublishYear(fiscalYear, asOfDate) {
+  const partial = BLOOMINGTON_PARTIAL_YEARS.find((p) => p.year === Number(fiscalYear));
+  if (partial) return { publish: false, reason: partial.reason };
+  if (!isClosedYearAsOf(asOfDate, fiscalYear)) {
+    return {
+      publish: false,
+      reason: `not closed — as-of ${asOfDate}; the publisher calls the current year a `
+        + 'PREDICTED compensation, and every closed year is dated 31 December of itself',
+    };
+  }
+  return { publish: true, reason: 'closed year, dated 31 December of itself' };
+}
