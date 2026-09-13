@@ -20,6 +20,7 @@ import {
   STATE_FIPS, resolveState,
   buildCountyIndex, resolveCounty,
   buildPlaceIndex, resolvePlace,
+  buildMcdIndex, resolveTownship,
 } from '../scripts/lib/geoid.mjs';
 
 describe('STATE_FIPS', () => {
@@ -169,5 +170,69 @@ describe('resolvePlace', () => {
     const r = resolvePlace(dupes, 'Marine on Saint Croix');
     expect(r.geoid).toBeNull();
     expect(r.reason).toMatch(/^ambiguous place match for "Marine on Saint Croix": /);
+  });
+});
+
+describe('resolveTownship', () => {
+  const rows = readPepCsv('tests/fixtures/census/mi-adrian-slice.csv');
+  const mcd = buildMcdIndex(rows);
+  // ⚠ Counties come from the COUNTY file, which is the only one carrying
+  // CTYNAME — mirroring what the driver does. buildCountyIndex now throws if
+  // handed place-file rows rather than quietly building an empty index.
+  const counties = buildCountyIndex(
+    [{ SUMLEV: '050', STATE: '26', COUNTY: '091', STNAME: 'Michigan', CTYNAME: 'Lenawee County' }],
+    '26',
+  );
+
+  // ⚠⚠ THE REGRESSION. In an MCD state an incorporated CITY is ALSO a county
+  // subdivision, so "Adrian city" and "Adrian township" are BOTH SUMLEV-061
+  // rows in Lenawee County. Normalising the designator away collapses them to
+  // one key. Measured: 105 such false ambiguities in Michigan alone, each one
+  // a chance to hand a township a city's geoid.
+  it('does not confuse "Adrian city" with "Adrian township"', () => {
+    const r = resolveTownship(mcd, counties, '26', 'Adrian Township, Lenawee County');
+    expect(r.geoid).toBe('2609100440');   // the TOWNSHIP's COUSUB, not the city's
+    expect(r.basis).toBe('census-pep-061-county-scoped');
+    expect(r.reason).toBeNull();
+  });
+
+  it('composes STATE+COUNTY+COUSUB — ten digits', () => {
+    const r = resolveTownship(mcd, counties, '26', 'Adrian Township, Lenawee County');
+    expect(r.geoid).toHaveLength(10);
+  });
+
+  it('matches a charter township', () => {
+    const r = resolveTownship(mcd, counties, '26', 'Madison Charter Township, Lenawee County');
+    expect(r.geoid).toBe('2609152080');
+  });
+
+  it('never returns a city geoid for any township query', () => {
+    const r = resolveTownship(mcd, counties, '26', 'Adrian Township, Lenawee County');
+    expect(r.geoid).not.toBe('2609100420'); // "Adrian city" as an MCD
+  });
+
+  it('returns a null with a reason when the stored name has no county half', () => {
+    const r = resolveTownship(mcd, counties, '26', 'Adrian Township');
+    expect(r.geoid).toBeNull();
+    expect(r.reason).toBe('township name carries no county: "Adrian Township"');
+  });
+
+  it('returns a null with a reason when the county half does not resolve', () => {
+    const r = resolveTownship(mcd, counties, '26', 'Acme Township, Nowhere County');
+    expect(r.geoid).toBeNull();
+    expect(r.reason).toBe('no county match for "Nowhere County"');
+  });
+
+  it('returns a null with a reason when the township is absent in that county', () => {
+    const r = resolveTownship(mcd, counties, '26', 'Nosuch Township, Lenawee County');
+    expect(r.geoid).toBeNull();
+    expect(r.reason).toBe('no township match for "Nosuch" in county 091');
+  });
+});
+
+describe('buildCountyIndex guards against the wrong file', () => {
+  it('throws when handed place-file rows instead of county-file rows', () => {
+    const placeFileRows = readPepCsv('tests/fixtures/census/mi-adrian-slice.csv');
+    expect(() => buildCountyIndex(placeFileRows, '26')).toThrow(/not the county file/);
   });
 });

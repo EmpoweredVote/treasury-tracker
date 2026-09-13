@@ -86,6 +86,17 @@ export function buildCountyIndex(rows, stateFips) {
   const idx = new Map();
   for (const r of rows) {
     if (r.SUMLEV !== '050' || r.STATE !== stateFips) continue;
+    // ⚠ CTYNAME exists in the COUNTY file (co-est2024-alldata.csv). The place
+    // file names its rows NAME instead, so handing this function a sub-est file
+    // used to build one bogus entry keyed "undefined" and then miss every
+    // county — an empty index that looks like a state with no counties rather
+    // than like the wrong file. Fail loudly instead.
+    if (r.CTYNAME === undefined) {
+      throw new Error(
+        'buildCountyIndex: SUMLEV-050 row has no CTYNAME — this looks like the '
+        + 'place file (sub-est), not the county file (co-est2024-alldata.csv)'
+      );
+    }
     idx.set(countyKey(r.CTYNAME), r.COUNTY);
   }
   return idx;
@@ -149,4 +160,66 @@ export function resolvePlace(index, storedName) {
     return hit([...set][0], BASIS.place);
   }
   return miss(`no place match for "${storedName}"`);
+}
+
+// ── Township / minor civil division (SUMLEV 061) ────────────────────────────
+
+/** Matches a Census MCD name that is genuinely a township. */
+const CENSUS_TOWNSHIP_RE = /\s+(charter\s+)?township$/i;
+/** Matches the township designator on a TT-stored name. */
+const STORED_TOWNSHIP_RE = /\s+(Charter\s+)?Township$/i;
+
+function townshipKey(bareName) {
+  return String(bareName).toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+/**
+ * Index one state's TOWNSHIPS: `${COUNTY}|${name}` -> 10-digit MCD geoid.
+ *
+ * ⚠⚠ THE DESIGNATOR IS REQUIRED HERE, NOT STRIPPED — the inverse of the place
+ * tier above, and the single rule this whole tier depends on.
+ *
+ * In an MCD state an incorporated city is ALSO a county subdivision, so
+ * "Adrian city" and "Adrian township" are both SUMLEV-061 rows in Lenawee
+ * County. Admitting anything that is not literally a township collapses the
+ * pair onto one key and the matcher then has two candidate geoids for one
+ * township. Measured against Michigan: 105 false ambiguities with the
+ * designator normalised away, 0 with it required.
+ */
+export function buildMcdIndex(rows) {
+  const idx = new Map();
+  for (const r of rows) {
+    if (r.SUMLEV !== '061') continue;
+    if (!CENSUS_TOWNSHIP_RE.test(r.NAME)) continue;
+    const k = r.COUNTY + '|' + townshipKey(r.NAME.replace(CENSUS_TOWNSHIP_RE, ''));
+    if (!idx.has(k)) idx.set(k, new Set());
+    idx.get(k).add(r.STATE + r.COUNTY + r.COUSUB);
+  }
+  return idx;
+}
+
+/**
+ * Resolve a township from its TT-stored name.
+ *
+ * TT stores Michigan townships as "Acme Township, Grand Traverse County" —
+ * both halves in one string. The county half is what makes 117 township names
+ * naming 302 townships unambiguous; without it the name alone is not a key.
+ */
+export function resolveTownship(mcdIndex, countyIndex, stateFips, storedName) {
+  const comma = storedName.lastIndexOf(',');
+  if (comma === -1) {
+    return miss(`township name carries no county: "${storedName}"`);
+  }
+  const twpHalf = storedName.slice(0, comma).replace(STORED_TOWNSHIP_RE, '').trim();
+  const countyHalf = storedName.slice(comma + 1).trim();
+
+  const county = countyIndex.get(countyKey(countyHalf));
+  if (!county) return miss(`no county match for "${countyHalf}"`);
+
+  const set = mcdIndex.get(county + '|' + townshipKey(twpHalf));
+  if (!set) return miss(`no township match for "${twpHalf}" in county ${county}`);
+  if (set.size > 1) {
+    return miss(`ambiguous township match for "${storedName}": ${[...set].join(', ')}`);
+  }
+  return hit([...set][0], BASIS.township);
 }
