@@ -295,17 +295,102 @@ Every change goes on a branch and through a PR; nothing is pushed directly to
 ## 8. What must be told to Civic Spaces
 
 1. **The federal slug is `united-states-us`.**
-2. **Township geoids are 10-digit MCD codes and will not match a 7-digit
-   place-FIPS slice.** They are correct data and belong in the catalog, but under
-   their "no match, no row" rule the ~2,787 townships produce no Treasury row
-   today — **Michigan will look absent to them even though its coverage is
-   100%.** Geoid lengths are self-describing (2/5/7/10), so no extra field is
-   needed, but they must not discover this by finding Michigan empty.
-3. **Use the API origin directly**, not
+2. **Use the API origin directly**, not
    `treasurytracker.empowered.vote/api/...` — the TT host reaches the endpoint
    only via a static-site proxy hop, and they already talk to that API.
-4. The catalog's public host for user-facing links is
+   ⚠ Civic Spaces rightly flagged the consequence: the catalog then comes from
+   the API origin while the Treasury **deep link** still points at
+   `treasurytracker.empowered.vote`. Two hosts for one tool looks like a bug to
+   anyone tidying up later. It is deliberate — one is data, one is a
+   user-facing page — and both call sites should say so.
+3. The catalog's public host for user-facing links is
    **`treasurytracker.empowered.vote`** — not `financials.empowered.vote`.
+
+### 8.1 The township gap — resolved, and it is not what either side thought
+
+The 2026-09-12 reply from Civic Spaces corrected TT's framing, and investigating
+their blocking question corrected theirs. Recording the whole chain, because
+each step invalidated the previous conclusion:
+
+- **TT said:** township geoids are 10-digit MCDs and will not match a 7-digit
+  place-FIPS slice, so townships produce no Treasury row.
+- **Civic Spaces said:** it does not get that far. `city_geoid` is taken verbatim
+  from ev-accounts, and the city level is skipped entirely when there is none —
+  so the likely state is *no city slice at all*, hence no City tab to hang a
+  Treasury row on. **No TT-side change reaches that.** They asked one blocking
+  question: *does ev-accounts ever put a 10-digit MCD in `city_geoid`?*
+
+**Answered from `connect.resolve_user_jurisdiction` (live function body) plus
+the boundary table. Three findings:**
+
+1. **No. `city_geoid` is always place-FIPS-or-null.** The RPC fills `city` from
+   `mtfcc = 'G4110'` exclusively — incorporated places. Confirmed in the data:
+   6,008 G4110 boundaries, every one 7 digits.
+2. **But the 10-digit layer already exists.** `mtfcc = 'G4040'` (county
+   subdivision) holds **2,952 boundaries, all 10 digits** (e.g. `0600190020`).
+   So this is not missing infrastructure — the `city` slot's MTFCC filter is
+   simply narrower than the data. The RPC already consults G4040 for the
+   `city_council` and `municipality` slots.
+3. **⚠⚠ And it does not cover the states that matter.** G4040 boundaries exist
+   for **four states only**:
+
+   | | G4040 boundaries | TT townships |
+   |---|---|---|
+   | WI | 1,243 | 2 entities total |
+   | IN | 1,012 | 11 |
+   | CA | 404 | 0 |
+   | MA | 293 | 0 |
+   | **MI** | **0** | **1,240** |
+   | **PA** | **0** | **1,547** |
+
+   **2,787 of TT's 2,798 townships (99.6%) sit in MI and PA, which have no MCD
+   boundary coverage at all.**
+
+**Therefore:** the cheap fix Civic Spaces costed — a 10-digit branch in
+`useJurisdictionName` plus MCD matching — would light up **11 Indiana
+townships and nothing else**. It is the ev-accounts path, as they suspected, but
+the blocker is narrower and more concrete than "a resolution gap": it is
+**missing G4040 boundary rows for Michigan and Pennsylvania**. That is a
+boundary-ingest task, not a code change, and it is outside both Phase 15 and
+this spec.
+
+**None of this changes the TT side.** The geoid column and the catalog are
+correct as designed; townships carry honest 10-digit geoids that no consumer can
+use *yet*. Under the "no match, no row" rule that is safe — it costs a row, never
+a wrong link.
+
+### 8.2 Numbers reconciled
+
+Civic Spaces flagged that the figures did not reconcile: Ask 1 put TT at 2,812
+entities while TT's reply said ~2,787 are townships, implying TT is ~99%
+townships and contradicting Ask 1's own per-tier table.
+
+**They were right to stop on it, and the cause is staleness, not an error.**
+`municipalities` was 2,812 rows on 2026-09-08; it is **8,184** today. Measured:
+
+| entity_type | n | % of table |
+|---|---|---|
+| city | 2,905 | 35.5% |
+| township | 2,798 | 34.2% |
+| borough | 949 | 11.6% |
+| county | 704 | 8.6% |
+| town | 486 | 5.9% |
+| village | 253 | 3.1% |
+| state | 50 | 0.6% |
+| municipality | 30 | 0.4% |
+| everything else | 9 | 0.1% |
+
+Townships are **34.2%**, not 99%. Ask 1's per-tier table was sound; only its
+total was stale. **8,146 of the 8,184 carry at least one budget.**
+
+### 8.3 Withdrawn
+
+Civic Spaces withdrew their Ask 1 note about leaving unresolvable townships null
+and absent — absent is right for an entity with *no* geoid, and wrong for one
+whose geoid is merely a tier nobody had considered. TT's rule is unchanged and
+now rests on the narrower ground: **null is a correct answer, a wrong geoid is
+not** — and a township's geoid is neither null nor wrong, it is a 10-digit MCD
+that is simply not yet consumable.
 
 ---
 
