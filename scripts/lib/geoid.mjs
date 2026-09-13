@@ -62,3 +62,38 @@ export function resolveState(abbrev) {
   const fips = STATE_FIPS[abbrev];
   return fips ? hit(fips, BASIS.state) : miss(`no state FIPS for abbrev ${abbrev}`);
 }
+
+// ── County (SUMLEV 050) ─────────────────────────────────────────────────────
+
+/**
+ * Normalise a county name for MATCHING ONLY — never for display.
+ *
+ * ⚠ The trailing jurisdiction word is dropped from BOTH sides so the
+ * non-"County" states behave: Louisiana files parishes, Alaska files boroughs
+ * and census areas, and a few places are legally a "City and Borough". TT and
+ * Census do not always agree on which of those words they carry.
+ */
+function countyKey(name) {
+  return String(name)
+    .replace(/\s+(County|Parish|Borough|Census Area|Municipality|City and Borough)$/i, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
+}
+
+/** Index one state's counties from the national county file: name -> 3-digit
+ *  COUNTY code. Scoped to a state because county names repeat across states. */
+export function buildCountyIndex(rows, stateFips) {
+  const idx = new Map();
+  for (const r of rows) {
+    if (r.SUMLEV !== '050' || r.STATE !== stateFips) continue;
+    idx.set(countyKey(r.CTYNAME), r.COUNTY);
+  }
+  return idx;
+}
+
+export function resolveCounty(index, stateFips, storedName) {
+  const county = index.get(countyKey(storedName));
+  return county
+    ? hit(stateFips + county, BASIS.county)
+    : miss(`no county match for "${storedName}"`);
+}

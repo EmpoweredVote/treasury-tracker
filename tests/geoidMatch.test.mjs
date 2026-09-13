@@ -16,7 +16,10 @@
 
 import { describe, it, expect } from 'vitest';
 import { readPepCsv, SUMLEV } from '../scripts/lib/censusPep.mjs';
-import { STATE_FIPS, resolveState } from '../scripts/lib/geoid.mjs';
+import {
+  STATE_FIPS, resolveState,
+  buildCountyIndex, resolveCounty,
+} from '../scripts/lib/geoid.mjs';
 
 describe('STATE_FIPS', () => {
   it('has exactly 50 states', () => {
@@ -83,5 +86,36 @@ describe('resolveState', () => {
     expect(r.geoid).toBeNull();
     expect(r.basis).toBeNull();
     expect(r.reason).toBe('no state FIPS for abbrev ZZ');
+  });
+});
+
+describe('resolveCounty', () => {
+  const rows = [
+    { SUMLEV: '050', STATE: '18', COUNTY: '105', STNAME: 'Indiana', CTYNAME: 'Monroe County' },
+    { SUMLEV: '050', STATE: '18', COUNTY: '097', STNAME: 'Indiana', CTYNAME: 'Marion County' },
+    { SUMLEV: '050', STATE: '18', COUNTY: '141', STNAME: 'Indiana', CTYNAME: 'St. Joseph County' },
+    { SUMLEV: '040', STATE: '18', COUNTY: '000', STNAME: 'Indiana', CTYNAME: 'Indiana' },
+    { SUMLEV: '050', STATE: '26', COUNTY: '091', STNAME: 'Michigan', CTYNAME: 'Lenawee County' },
+  ];
+  const idx = buildCountyIndex(rows, '18');
+
+  it('ignores rows from other states and non-county SUMLEVs', () => {
+    expect(idx.size).toBe(3);
+  });
+
+  it('composes STATE+COUNTY, preserving the leading zero', () => {
+    expect(resolveCounty(idx, '18', 'Marion County')).toEqual({
+      geoid: '18097', basis: 'census-pep-050-exact', reason: null,
+    });
+  });
+
+  it('matches a county whose name carries punctuation', () => {
+    expect(resolveCounty(idx, '18', 'St. Joseph County').geoid).toBe('18141');
+  });
+
+  it('returns a null with a reason when the county is absent', () => {
+    const r = resolveCounty(idx, '18', 'Nowhere County');
+    expect(r.geoid).toBeNull();
+    expect(r.reason).toBe('no county match for "Nowhere County"');
   });
 });
