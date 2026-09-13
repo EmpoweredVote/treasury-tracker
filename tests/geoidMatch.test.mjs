@@ -21,6 +21,8 @@ import {
   buildCountyIndex, resolveCounty,
   buildPlaceIndex, resolvePlace,
   buildMcdIndex, resolveTownship,
+  buildMcdStateIndex, resolveMcdByState,
+  buildPlaceCountyIndex,
 } from '../scripts/lib/geoid.mjs';
 
 describe('STATE_FIPS', () => {
@@ -234,5 +236,172 @@ describe('buildCountyIndex guards against the wrong file', () => {
   it('throws when handed place-file rows instead of county-file rows', () => {
     const placeFileRows = readPepCsv('tests/fixtures/census/mi-adrian-slice.csv');
     expect(() => buildCountyIndex(placeFileRows, '26')).toThrow(/not the county file/);
+  });
+});
+
+describe('name normalisation — the shapes TT stores that Census does not', () => {
+  const idx = buildPlaceIndex([
+    { SUMLEV: '162', STATE: '08', PLACE: '07850', NAME: 'Boulder city' },
+    { SUMLEV: '162', STATE: '27', PLACE: '46924', NAME: 'North St. Paul city' },
+    { SUMLEV: '162', STATE: '39', PLACE: '53102', NAME: 'Mount Healthy city' },
+    { SUMLEV: '162', STATE: '42', PLACE: '00212', NAME: 'Addison borough' },
+  ]);
+
+  // TT stores some entities under the government's formal style.
+  it('matches through a "City of X" prefix', () => {
+    expect(resolvePlace(idx, 'City of Boulder').geoid).toBe('0807850');
+  });
+
+  // ⚠ Census abbreviates Saint as St. TT does not, consistently.
+  it('matches Saint against Census St.', () => {
+    expect(resolvePlace(idx, 'North Saint Paul').geoid).toBe('2746924');
+  });
+
+  // ⚠ And the reverse: TT abbreviates Mount as Mt. where Census spells it.
+  it('matches Mt. against Census Mount', () => {
+    expect(resolvePlace(idx, 'Mt. Healthy').geoid).toBe('3953102');
+  });
+
+  // ⚠ PA disambiguates same-named boroughs by appending the county, the same
+  // convention MI uses for townships. The place matcher must strip it.
+  it('matches through a ", X County" disambiguation suffix', () => {
+    expect(resolvePlace(idx, 'Addison, Somerset County').geoid).toBe('4200212');
+  });
+});
+
+describe('resolveMcdByState — New England towns are MCDs, not places', () => {
+  // ⚠⚠ Massachusetts files 351 MCDs and only 58 places. Most MA towns have no
+  // place FIPS at all, and Census renders them "Amherst Town city" — a name
+  // that no amount of designator-appending turns into a 162 match, because
+  // there is no 162 row. The tier is a property of the STATE's Census
+  // structure, not of TT's entity_type label.
+  const rows = [
+    { SUMLEV: '061', STATE: '25', COUNTY: '015', COUSUB: '01370', NAME: 'Amherst Town city' },
+    { SUMLEV: '061', STATE: '25', COUNTY: '025', COUSUB: '07000', NAME: 'Boston city' },
+    { SUMLEV: '162', STATE: '25', PLACE: '07000', NAME: 'Boston city' },
+  ];
+  const idx = buildMcdStateIndex(rows);
+
+  it('resolves a town that exists only as an MCD', () => {
+    expect(resolveMcdByState(idx, 'Amherst')).toEqual({
+      geoid: '2501501370', basis: 'census-pep-061-state-scoped', reason: null,
+    });
+  });
+
+  it('composes STATE+COUNTY+COUSUB — ten digits', () => {
+    expect(resolveMcdByState(idx, 'Amherst').geoid).toHaveLength(10);
+  });
+
+  it('returns a null with a reason when absent', () => {
+    const r = resolveMcdByState(idx, 'Nowhere');
+    expect(r.geoid).toBeNull();
+    expect(r.reason).toBe('no MCD match for "Nowhere"');
+  });
+
+  it('returns a null with a reason when ambiguous — never picks', () => {
+    const dupes = buildMcdStateIndex([
+      { SUMLEV: '061', STATE: '25', COUNTY: '001', COUSUB: '11111', NAME: 'Springfield town' },
+      { SUMLEV: '061', STATE: '25', COUNTY: '003', COUSUB: '22222', NAME: 'Springfield town' },
+    ]);
+    const r = resolveMcdByState(dupes, 'Springfield');
+    expect(r.geoid).toBeNull();
+    expect(r.reason).toMatch(/^ambiguous MCD match for "Springfield": /);
+  });
+});
+
+describe('county-scoped place disambiguation', () => {
+  // ⚠⚠ Pennsylvania has genuinely DISTINCT boroughs sharing a name across
+  // counties — Centerville in Crawford County and Centerville in Washington
+  // County are two different governments. TT disambiguates them the way it
+  // does MI townships, by appending the county, and the matcher must use it.
+  // Refusing (null) is safe but needless here: the answer is in the name.
+  const subRows = [
+    { SUMLEV: '162', STATE: '42', PLACE: '12184', NAME: 'Centerville borough' },
+    { SUMLEV: '162', STATE: '42', PLACE: '12224', NAME: 'Centerville borough' },
+    { SUMLEV: '157', STATE: '42', PLACE: '12184', COUNTY: '039', NAME: 'Centerville borough' },
+    { SUMLEV: '157', STATE: '42', PLACE: '12224', COUNTY: '125', NAME: 'Centerville borough' },
+  ];
+  const countyRows = [
+    { SUMLEV: '050', STATE: '42', COUNTY: '039', STNAME: 'Pennsylvania', CTYNAME: 'Crawford County' },
+    { SUMLEV: '050', STATE: '42', COUNTY: '125', STNAME: 'Pennsylvania', CTYNAME: 'Washington County' },
+  ];
+  const idx = buildPlaceIndex(subRows);
+  const placeCounty = buildPlaceCountyIndex(subRows);
+  const counties = buildCountyIndex(countyRows, '42');
+  const opts = { placeCountyIndex: placeCounty, countyIndex: counties };
+
+  it('still refuses when there is no county to disambiguate with', () => {
+    const r = resolvePlace(idx, 'Centerville');
+    expect(r.geoid).toBeNull();
+    expect(r.reason).toMatch(/^ambiguous place match/);
+  });
+
+  it('uses the county half of the stored name to pick the right one', () => {
+    expect(resolvePlace(idx, 'Centerville, Crawford County', opts).geoid).toBe('4212184');
+    expect(resolvePlace(idx, 'Centerville, Washington County', opts).geoid).toBe('4212224');
+  });
+
+  it('refuses when the named county does not resolve', () => {
+    const r = resolvePlace(idx, 'Centerville, Nowhere County', opts);
+    expect(r.geoid).toBeNull();
+    expect(r.reason).toMatch(/^ambiguous place match/);
+  });
+});
+
+describe('township name variants', () => {
+  // ⚠ PA writes "Mt Joy Township" with no period; Census spells "Mount Joy
+  // township". The place matcher already normalised this — resolveTownship
+  // did not, so the same divergence failed in one tier and passed in another.
+  const mcd = buildMcdIndex([
+    { SUMLEV: '061', STATE: '42', COUNTY: '071', COUSUB: '51520', NAME: 'Mount Joy township' },
+  ]);
+  const counties = buildCountyIndex(
+    [{ SUMLEV: '050', STATE: '42', COUNTY: '071', STNAME: 'Pennsylvania', CTYNAME: 'Lancaster County' }],
+    '42',
+  );
+
+  it('matches Mt against Census Mount in the township tier', () => {
+    const r = resolveTownship(mcd, counties, '42', 'Mt Joy Township, Lancaster County');
+    expect(r.geoid).toBe('4207151520');
+    expect(r.basis).toBe('census-pep-061-county-scoped');
+  });
+});
+
+describe('⚠⚠ collisions the uniqueness check caught after the first national run', () => {
+  // Census renders Indiana's two towns as "Elizabeth town" and
+  // "Elizabethtown town". Appending the designator to TT's "Elizabeth" yields
+  // the key "elizabethtown" — identical to the BARE name of the OTHER town.
+  // Both TT rows then claimed geoid 1820674. This is the same collision shape
+  // the spec flagged in buildFlStatewideEntities.mjs and then reproduced here.
+  it('does not let "Elizabeth" + town steal "Elizabethtown"', () => {
+    const idx = buildPlaceIndex([
+      { SUMLEV: '162', STATE: '18', PLACE: '20674', NAME: 'Elizabeth town' },
+      { SUMLEV: '162', STATE: '18', PLACE: '20682', NAME: 'Elizabethtown town' },
+    ]);
+    expect(resolvePlace(idx, 'Elizabeth', { entityType: 'town' }).geoid).toBe('1820674');
+    expect(resolvePlace(idx, 'Elizabethtown', { entityType: 'town' }).geoid).toBe('1820682');
+  });
+
+  // Pennsylvania has a Franklin BOROUGH in Cambria County and a Franklin CITY
+  // in Venango County. With designators tried in a fixed order beginning
+  // 'city', the borough matched the city and both claimed 4227456. The
+  // entity's own type has to drive which designator is tried first.
+  it('prefers the designator matching the entity type', () => {
+    const idx = buildPlaceIndex([
+      { SUMLEV: '162', STATE: '42', PLACE: '27424', NAME: 'Franklin borough' },
+      { SUMLEV: '162', STATE: '42', PLACE: '27456', NAME: 'Franklin city' },
+    ]);
+    expect(resolvePlace(idx, 'Franklin, Cambria County', { entityType: 'borough' }).geoid)
+      .toBe('4227424');
+    expect(resolvePlace(idx, 'Franklin, Venango County', { entityType: 'city' }).geoid)
+      .toBe('4227456');
+  });
+
+  // The Everglades case must survive both fixes.
+  it('still matches a legal name that ends in a designator word', () => {
+    const idx = buildPlaceIndex([
+      { SUMLEV: '162', STATE: '12', PLACE: '21525', NAME: 'Everglades city' },
+    ]);
+    expect(resolvePlace(idx, 'Everglades City', { entityType: 'city' }).geoid).toBe('1221525');
   });
 });

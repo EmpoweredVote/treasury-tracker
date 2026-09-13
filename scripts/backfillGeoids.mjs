@@ -24,8 +24,8 @@
 import { writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { readPepCsv } from './lib/censusPep.mjs';
 import {
-  STATE_FIPS, buildCountyIndex, buildPlaceIndex, buildMcdIndex,
-  resolveState, resolveCounty, resolvePlace, resolveTownship,
+  STATE_FIPS, buildCountyIndex, buildPlaceIndex, buildMcdIndex, buildMcdStateIndex, buildPlaceCountyIndex,
+  resolveState, resolveCounty, resolvePlace, resolveTownship, resolveMcdByState,
 } from './lib/geoid.mjs';
 
 const CITY_TIER = new Set(['city', 'town', 'village', 'borough', 'municipality']);
@@ -64,9 +64,19 @@ const entities = await res.json();
 await ensure(CO_EST, CO_URL);
 const coRows = readPepCsv(CO_EST);
 
+// Entity types that carry no geoid at all. Filtered out HERE, before the
+// state-FIPS lookup, so the federal row (state 'US') is reported as skipped
+// rather than as an unknown state — it is neither a defect nor a miss.
+const NON_GEOGRAPHIC = new Set([
+  'federal', 'nonprofit', 'special_district', 'school_district',
+  'conservancy', 'library',
+]);
+
 const byState = new Map();
+let skippedNonGeographic = 0;
 for (const m of entities) {
   if (onlyState && m.state !== onlyState) continue;
+  if (NON_GEOGRAPHIC.has(m.entity_type)) { skippedNonGeographic++; continue; }
   if (!byState.has(m.state)) byState.set(m.state, []);
   byState.get(m.state).push(m);
 }
@@ -83,13 +93,16 @@ for (const [abbrev, rows] of [...byState].sort()) {
   }
 
   const countyIdx = buildCountyIndex(coRows, stateFips);
-  let placeIdx = new Map(); let mcdIdx = new Map();
+  let placeIdx = new Map(); let mcdIdx = new Map(); let mcdStateIdx = new Map();
+  let placeCountyIdx = new Map();
   const needsSub = rows.some((m) => CITY_TIER.has(m.entity_type) || m.entity_type === 'township');
   if (needsSub) {
     const p = await ensure(SUB_EST(stateFips), SUB_URL(stateFips));
     const subRows = readPepCsv(p);
     placeIdx = buildPlaceIndex(subRows);
+    placeCountyIdx = buildPlaceCountyIndex(subRows);
     mcdIdx = buildMcdIndex(subRows);
+    mcdStateIdx = buildMcdStateIndex(subRows);
   }
 
   const tally = { resolved: 0, missed: 0, ambiguous: 0, skipped: 0 };
@@ -98,8 +111,24 @@ for (const [abbrev, rows] of [...byState].sort()) {
     if (m.entity_type === 'state') r = resolveState(m.state);
     else if (m.entity_type === 'county') r = resolveCounty(countyIdx, stateFips, m.name);
     else if (m.entity_type === 'township') r = resolveTownship(mcdIdx, countyIdx, stateFips, m.name);
-    else if (CITY_TIER.has(m.entity_type)) r = resolvePlace(placeIdx, m.name);
-    else { tally.skipped++; totals.skipped++; continue; }
+    else if (CITY_TIER.has(m.entity_type)) {
+      r = resolvePlace(placeIdx, m.name, {
+        placeCountyIndex: placeCountyIdx,
+        countyIndex: countyIdx,
+        // ⚠ The entity's own type picks which Census designator is tried
+        // first. Without it a PA borough matched a same-named PA city.
+        entityType: m.entity_type,
+      });
+      // ⚠ New England fallback. Massachusetts files 351 MCDs and only 58
+      // places, so most MA towns have NO place FIPS to find — the tier is a
+      // property of the state's Census structure, not of TT's entity_type.
+      // Tried ONLY after a clean place miss: an AMBIGUOUS place result must
+      // stay null rather than be rescued by a second, looser lookup.
+      if (!r.geoid && !r.reason.startsWith('ambiguous')) {
+        const alt = resolveMcdByState(mcdStateIdx, m.name);
+        if (alt.geoid) r = alt;
+      }
+    } else { tally.skipped++; totals.skipped++; continue; }
 
     if (r.geoid) {
       updates.push([m.id, r.geoid, r.basis]);
@@ -120,7 +149,8 @@ for (const [abbrev, rows] of [...byState].sort()) {
 }
 
 console.log(`\nTOTAL resolved ${totals.resolved}  missed ${totals.missed}  `
-  + `ambiguous ${totals.ambiguous}  skipped ${totals.skipped}`);
+  + `ambiguous ${totals.ambiguous}  skipped ${totals.skipped + skippedNonGeographic}`
+  + ` (${skippedNonGeographic} non-geographic)`);
 
 if (problems.length) {
   console.log(`\nunresolved (${problems.length}):`);
