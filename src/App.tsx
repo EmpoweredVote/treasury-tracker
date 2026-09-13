@@ -25,7 +25,6 @@ import { resolveToken, fetchUserSession, getLoginUrl, signOut } from './utils/au
 import { identify, pageview, track } from '@empoweredvote/analytics';
 import { useTheme } from './hooks/useTheme';
 import DatasetTabs from './components/datasets/DatasetTabs';
-import DonateModal from './components/DonateModal';
 
 import YearSelector from './components/YearSelector';
 import type { YearSelectorHandle } from './components/YearSelector';
@@ -231,7 +230,6 @@ function App() {
   const [navigationPath, setNavigationPath] = useState<BudgetCategory[]>([]);
   const [linkedTransactions, setLinkedTransactions] = useState<LinkedTransactionSummary | null>(null);
   const [heroImage, setHeroImage] = useState<HeroImage | null>(null);
-  const [donateOpen, setDonateOpen] = useState(false);
 
   // Resolve the hero banner (shared bucket → Wikipedia fallback) when entity changes
   useEffect(() => {
@@ -1243,7 +1241,7 @@ function App() {
               selectedYear === String(new Date().getFullYear()) && (
               <button
                 data-donate-btn=""
-                onClick={() => { track('treasury_donate_clicked'); setDonateOpen(true); }}
+                onClick={() => { track('treasury_donate_clicked'); window.open('https://empowered.vote/donate', '_blank', 'noopener'); }}
                 className="flex items-center gap-1.5 h-[42px] px-4 py-2 text-sm font-semibold bg-green-600 hover:bg-green-700 active:bg-green-800 text-white rounded-lg transition-colors duration-200 whitespace-nowrap ml-auto"
               >
                 <Heart size={14} className="shrink-0" fill="currentColor" />
@@ -1695,8 +1693,6 @@ function App() {
       </div>
 
       <SiteFooter darkMode={isDark} />
-
-      <DonateModal open={donateOpen} onClose={() => setDonateOpen(false)} />
     </div>
   )
 }
