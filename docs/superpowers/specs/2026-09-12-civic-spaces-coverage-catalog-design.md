@@ -92,7 +92,7 @@ Two states were measured end to end with throwaway probes:
 
 | state | entities | resolved | ambiguous | wrong |
 |---|---|---|---|---|
-| Indiana | 659 | 651 (98.8%) | 0 | 0 |
+| Indiana | 659 | 652 (98.9%) | 0 | 0 |
 | Michigan | 1,856 | **1,856 (100%)** | 0 | 0 |
 
 Michigan includes all **1,240 townships** — the case the note flagged as the

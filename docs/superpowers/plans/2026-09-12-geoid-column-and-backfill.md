@@ -52,6 +52,7 @@ census-pep-061-county-scoped
 |---|---|
 | `scripts/lib/geoid.mjs` (create) | Pure matcher: state FIPS table, index builders, resolvers. No I/O, no DB, no network. |
 | `tests/geoidMatch.test.mjs` (create) | Unit tests for the matcher, including the Michigan `Adrian` regression. |
+| `tests/fixtures/census/co-est2024-state-slice.csv` (create) | One SUMLEV-050 row per state, so Task 1 verifies all 50 FIPS codes without depending on gitignored `cache/`. |
 | `tests/fixtures/census/mi-adrian-slice.csv` (create) | Minimal PEP fixture carrying both `Adrian city` and `Adrian township` in Lenawee County. |
 | `tests/fixtures/census/in-place-slice.csv` (create) | Minimal PEP fixture for place-tier matching incl. a designator-in-legal-name case. |
 | `supabase/migrations/20260912000000_municipalities_geoid.sql` (create) | `geoid` + `geoid_basis` columns, tier-keyed CHECK, self-verifying `DO` block. |
@@ -103,9 +104,14 @@ describe('STATE_FIPS', () => {
   });
 
   // ⚠ The point of this test: the table is checked AGAINST Census, not merely
-  // asserted. It reads the same national county file the backfill reads.
+  // asserted.
+  //
+  // ⚠⚠ It reads a COMMITTED FIXTURE, not cache/. `cache/` is gitignored
+  // (.gitignore:121), so a test pointed there passes on this machine and fails
+  // on a clean checkout and in CI — a guard that does not run. The fixture is
+  // one SUMLEV-050 row per state, so all 50 are still verified, offline.
   it('every FIPS matches the Census national county file', () => {
-    const rows = readPepCsv('cache/co-est2024-alldata.csv');
+    const rows = readPepCsv('tests/fixtures/census/co-est2024-state-slice.csv');
     const fipsByStateName = new Map();
     for (const r of rows) {
       if (r.SUMLEV !== SUMLEV.county) continue;
@@ -926,7 +932,7 @@ If `ambiguous` is not 0, **stop**. Task 4's designator rule has regressed; do no
 - [ ] **Step 3: Dry-run against Indiana**
 
 Run: `node scripts/backfillGeoids.mjs --state IN --dry-run`
-Expected: `resolved 652, missed 7, ambiguous 0` (651 non-state entities + the Indiana state row). The 7 misses are abbreviation variants — `Mt. Ayr`, `Mt. Carmel`, `Parker`, `Pines`, `Windfall`, `Hardinsburg`, `Victoria Woods`. They stay NULL.
+Expected: `resolved 653, missed 7, ambiguous 0` — 652 of the 659 non-state entities, plus the Indiana state row. The 7 misses are abbreviation variants — `Mt. Ayr`, `Mt. Carmel`, `Parker`, `Pines`, `Windfall`, `Hardinsburg`, `Victoria Woods`. They stay NULL.
 
 - [ ] **Step 4: Commit**
 
