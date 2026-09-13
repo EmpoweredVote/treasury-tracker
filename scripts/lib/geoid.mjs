@@ -97,3 +97,56 @@ export function resolveCounty(index, stateFips, storedName) {
     ? hit(stateFips + county, BASIS.county)
     : miss(`no county match for "${storedName}"`);
 }
+
+// ── Place tier (SUMLEV 162) ─────────────────────────────────────────────────
+
+/**
+ * The designators Census appends to a place NAME, lowercased.
+ *
+ * ⚠⚠ THESE ARE APPENDED TO THE TT NAME, NEVER STRIPPED FROM THE CENSUS NAME.
+ *
+ * Census lowercases the designator even when the type word is part of the
+ * government's legal name, so "Everglades city" is the City of Everglades City
+ * and "Bal Harbour village" is the Village of Bal Harbour — one rendering for
+ * two different facts. Stripping the tail gives "Everglades", which names no
+ * Florida municipality, and eight Michigan villages are genuinely named
+ * "... City" and vanish the same way.
+ */
+const PLACE_DESIGNATORS = [
+  'city', 'town', 'village', 'borough', 'municipality',
+  'urban county', 'metro government', 'consolidated government',
+];
+
+function placeKey(name) {
+  return String(name).toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+export function buildPlaceIndex(rows) {
+  const idx = new Map();
+  for (const r of rows) {
+    // ⚠ 162 ONLY. A 157 row is a place PART and repeats its parent's PLACE
+    // code, so admitting one manufactures an ambiguity out of a single real
+    // place and nulls a match that was never in doubt.
+    if (r.SUMLEV !== '162') continue;
+    const k = placeKey(r.NAME);
+    if (!idx.has(k)) idx.set(k, new Set());
+    idx.get(k).add(r.STATE + r.PLACE);
+  }
+  return idx;
+}
+
+export function resolvePlace(index, storedName) {
+  const candidates = [
+    placeKey(storedName),
+    ...PLACE_DESIGNATORS.map((d) => placeKey(storedName + ' ' + d)),
+  ];
+  for (const k of candidates) {
+    const set = index.get(k);
+    if (!set) continue;
+    if (set.size > 1) {
+      return miss(`ambiguous place match for "${storedName}": ${[...set].join(', ')}`);
+    }
+    return hit([...set][0], BASIS.place);
+  }
+  return miss(`no place match for "${storedName}"`);
+}
