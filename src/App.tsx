@@ -1241,7 +1241,7 @@ function App() {
               selectedYear === String(new Date().getFullYear()) && (
               <button
                 data-donate-btn=""
-                onClick={() => { track('treasury_donate_clicked'); window.open('https://empowered.vote/donate', '_blank', 'noopener'); }}
+                onClick={() => { track('treasury_donate_clicked'); window.open('https://empowered.vote/donate?src=financials', '_blank', 'noopener'); }}
                 className="flex items-center gap-1.5 h-[42px] px-4 py-2 text-sm font-semibold bg-green-600 hover:bg-green-700 active:bg-green-800 text-white rounded-lg transition-colors duration-200 whitespace-nowrap ml-auto"
               >
                 <Heart size={14} className="shrink-0" fill="currentColor" />
