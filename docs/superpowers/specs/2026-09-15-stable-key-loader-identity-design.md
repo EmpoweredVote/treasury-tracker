@@ -276,12 +276,25 @@ blocks. Do not assume CI covers it — see `reference_ci_and_io_test_timeouts`.
    hierarchy. **The tree map is not the file.** Reading the actual header row is
    what found it.
 
-   ⚠ **NOT YET PROVEN STABLE ACROSS YEARS.** Only one year's file is on disk,
-   so `GovEntityID` is shown to be complete and unique WITHIN FY2022, not shown
-   to survive a rename. The decisive test is cheap and should precede any C
-   work: fetch an FY2020 file and confirm Birchwood is also 168 there, while its
-   published name reads "Birchwood". If it is, approach C would have prevented
-   the fork outright.
+   ✅ **PROVEN STABLE ACROSS THE RENAME, 2026-09-17.** The FY2020 city file was
+   fetched (`cired_20_data.xlsx`, HTTP 200, free, $0) and compared to FY2022:
+
+       FY2020   "Birchwood"          GovEntityID=168   pop 863
+       FY2022   "Birchwood Village"  GovEntityID=168   pop 851
+                 ^^^^ name changed                ^^^^ id did not
+
+       FY2020  850 entities / 850 distinct ids / 0 blank
+       FY2022  852 entities / 852 distinct ids / 0 blank
+
+   ⭐⭐ **APPROACH C WOULD HAVE PREVENTED THE BIRCHWOOD FORK OUTRIGHT.** Keying on
+   `(data_source, GovEntityID)` matches FY2021+ rows to the existing entity, so the
+   rename never becomes a second government. This is the only mechanism in this
+   design that prevents rather than detects, and it is now proven available for the
+   publisher that caused BOTH incidents.
+
+   ⭐ Corroboration worth noting: FY2020's population of 863 is exactly what TT
+   stored on its `Birchwood` row, which independently confirms that row came from an
+   FY2020-era OSA load.
 
    ⚠ Note `Marine on Saint Croix` reads with a LOWERCASE "on" in the FY2022
    file, while TT holds the capital-O spelling for FY2014-2023. The publisher's
