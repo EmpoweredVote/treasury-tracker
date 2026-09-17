@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v2.30
 milestone_name: SCOPE-04 — Derived Total Governmental + the enterprise slice
 status: "v2.30 SCOPE-04 SHIPPED — merged `d1e77c3` (PR #52), tagged `v2.30`, and ✅ **UAT RUN AND PASSED 2026-08-23, 8 of 10 tests** (`docs/superpowers/plans/SCOPE-04-UAT.md`). 7,650 derived Total Governmental rows across 488 CA entities. ✅ v2.29 UAT PASSED and v2.27 UAT RE-VERIFIED 2026-08-23. ⚠ UAT still outstanding on v2.25 and v2.26. ⚠ ONE DECISION PENDING: add `state` to MUNICIPAL_SOURCE_CHIP_TYPES — 10/10 state nodes have correct provenance, which discharges the stated reason for excluding them and closes v2.27's last withdrawn test."
-stopped_at: "SCOPE-04 COMPLETE, shipped and UAT-VERIFIED. ⚠ OPEN: PR #54 carries five UAT fixes (G1, G2, G3, G5, G6) and is unmerged — review it before anything else touches src/. G4 (drilling hides the dataset tabs and series pills) is left open as a product decision. ⚠ TOP FOLLOW-UP: the successor-agency scope gap is UNMEASURED beyond Napa — derived_TG excludes redevelopment successor-agency funds while the UI labels it Total Governmental, and NO arithmetic gate can surface it because both figures are individually correct. The 15 unread sample targets in scripts/data/scope04VerificationSample.json should be read for successor-agency MAGNITUDE, not for a tie. Also open: the 12 rootless $0 rows, and the /treasury/cities payload projection in C:/EV-Accounts."
-last_updated: "2026-08-23T00:00:00.000Z"
-last_activity: 2026-08-23
-last_activity_desc: "v2.30 UAT RUN AND PASSED 2026-08-23 — 8 of 10 tests, record in `docs/superpowers/plans/SCOPE-04-UAT.md`. Deployment was verified live BEFORE testing (prod API answers with `derivation`; the deployed bundle carries the marker, the heading and the successor-agency sentence). Confirmed on screen: Modesto $588,042,068 -> $291,641,122 out and $643,894,826 -> $322,089,879 in; the disclosure renders beside the derived figure and only there; the enterprise slice appears and disappears as six categories (11 roots -> 5); Napa FY2017 reads $97,734,023; a county gap is 11pc where a city is 50pc; Seattle unchanged. ⚠ SIX DEFECTS FOUND, FIVE FIXED TEST-FIRST IN PR #54 (unmerged) — and NOT ONE was SCOPE-04's own work: they were pre-existing paths SCOPE-04 made REACHABLE by giving 488 CA entities a second series. G1 arriving on an Employees link blanked both budget tiles on 480 CA entities; G6 a stale load stamped its state over a newer one (cached response always wins the race), leaving FY 2018 on the label while the tiles said the figure was not published; G5 the year-clamp note had NEVER rendered once, because the effect cleared the note its own setSelectedYear re-run had just set; G2 a leaf click dimmed every icicle row to 40pc with nothing clickable; G3 36 children of a drilled root in one identical fill. G4 (drilling hides the tab strip and pills) left open as a product decision. ⚠ NO ARITHMETIC GATE COULD HAVE FOUND ANY OF THE SIX — every figure involved was correct; what was wrong was WHICH figure was on screen, whether the reader was told, and whether the thing they clicked did anything. Three fixes had to move logic out of components into pure modules first, because this repo can run NO component tests. 575 tests pass, tsc clean, each fix verified in Chromium against a local build wired to the production API."
+stopped_at: "2026-09-17 — entity-identity arc merged (#183 #184 #185 #186 #187 #190 and ev-accounts#504). ⚠ NOT a GSD phase; superpowers spec + plan, like v2.22. ⚠⚠ ONE SUCCESS CRITERION DELIBERATELY NOT MET: the fork check is ADVERTISED (`npm run check:forks`), not enforced per-loader — nothing forces you to run it. ⭐ NEXT, and cheap: fetch an FY2020 MN OSA file and confirm Birchwood is `GovEntityID` 168 there while its published name still reads \"Birchwood\". If so, approach C PREVENTS the fork class rather than catching it. ⚠ TOP FOLLOW-UP, unchanged from v2.30: the successor-agency scope gap is UNMEASURED beyond Napa — derived_TG excludes redevelopment successor-agency funds while the UI labels it Total Governmental, and NO arithmetic gate can surface it because both figures are individually correct. Read the 15 targets in scripts/data/scope04VerificationSample.json for MAGNITUDE, not for a tie. Also open: the 12 rootless $0 rows, and the /treasury/cities payload projection in C:/EV-Accounts. ✅ PR #54 is MERGED (this file said unmerged until 2026-09-17)."
+last_updated: "2026-09-17T03:30:00.000Z"
+last_activity: 2026-09-17
+last_activity_desc: "2026-09-15..17 — ENTITY-IDENTITY ARC. Started from a one-row discrepancy between two records of PR #178 (8,127 vs 8,126) and ended six PRs later. The discrepancy was BENIGN: the backfill wrote 8,127 ROWS naming 8,126 distinct GOVERNMENTS, because lines 4461-4462 of the backfill migration are the two Marine on Saint Croix rows BOTH claiming geoid 2740562; PR #181 deleted the husk. Both numbers were right. ⭐ Chasing it properly is what found everything else. #184: all 22 rows the national backfill left NULL were BUDGET-BEARING and therefore omitted from /api/treasury/coverage — 14 resolved (Nashville-Davidson, Lexington-Fayette, Ventura, Paso Robles, La Cañada Flintridge, Columbus-Muscogee, Islamorada and more), catalog 7,372 -> 7,386 cities, 8,140 geoids all distinct. The uniqueness pre-check refused the 15th and found #185: MN Birchwood / Birchwood Village, ONE city held as TWO entities, a SECOND Marine on Saint Croix from the SAME publisher one day apart — merged, 24 budget rows, $12,165,239 unchanged, FY2012-2023 continuous. #186 a validated detector; #187 spec + plan; #190 the fix: municipality_aliases, a fork-review queue, the five-signal rule as treasury.detect_forked_entities(), and 30 call sites across 29 files routed through one helper. ⚠⚠ THE APPROVED INSERT-TIME GUARD WAS MEASURED AND KILLED BEFORE BEING BUILT: ten existing pairs satisfied its rule and ALL TEN were distinct governments (Bell/Bell Gardens, Avon/Avon Lake, Braddock/Braddock Hills, Lake City/Lake Mary ...) — a 100pc false-positive rate. The problem is TIMING, not threshold: at INSERT the new entity has no budgets, so the temporal signature that identifies a rename does not exist yet. Those ten are now a permanent regression test. ⚠ A global `if (error)` strip nearly shipped 32 DELETED ERROR GUARDS (62 removals instead of 30, including RPC transport guards unrelated to the change) — the diff looked correct at the call site; COUNTING the removals is what caught it. ⚠ `process.exit(0)` in a supabase script returned 127 AFTER printing success. ⭐⭐ MN OSA DOES publish a stable unit id — `GovEntityID`, first of 149 columns, 852/852 distinct, 0 blank — nearly missed because mnOsaTreeMap.json maps only the labels the loader needs. THE TREE MAP IS NOT THE FILE. Gates: 124 files / 2,478 tests green, build clean, check:forks exit 0, 8,182 municipalities and 287,017 budget rows unchanged, $0 moved."
 progress:
   total_phases: 14
   completed_phases: 14
@@ -14,6 +14,18 @@ progress:
   completed_plans: 0
   percent: 100
 ---
+
+> ⚠⚠ **THIS FILE DOCUMENTS v2.30. THE REPO IS TAGGED `v2.32`.**
+> `v2.31` (NC — Durham + Asheville) and `v2.32` (national fiscal-calendar census)
+> shipped and were **never recorded here**. Do not read this file as their record;
+> read `docs/superpowers/plans/` and the memory index instead. This is the fourth
+> time tagging and updating `.planning/` have come apart — **they are one step.**
+>
+> ⚠ **2026-09-17: the frontmatter above was REPAIRED, not merely updated.** An
+> uncommitted pause-work marker from 2026-09-14 had moved `last_activity` BACKWARDS
+> to 2026-08-17, replaced the v2.30 UAT record with a stale v2.24-era line about
+> PR #15, and reset `progress` from 14/14/100pc to 0/0. That edit was discarded
+> rather than built on. **A context-exhaustion marker must not overwrite history.**
 
 > ⚠ **THE `progress.total_phases` ABOVE COUNTS TASKS, NOT GSD PHASES.**
 > v2.22 ran on a `docs/superpowers/` plan, not on `/gsd-plan-phase`. **There are no
@@ -516,9 +528,23 @@ $5 per run — estimate before running AI enrichment. Recon estimate for full fe
 
 ## Session Continuity
 
-Last session: 2026-08-18
-Stopped at: **v2.25 SCOPE-02 CLOSED.** PRs #16 and #17 merged, `.planning/` updated, tagged `v2.25`. UAT sign-off still outstanding. Working tree clean.
-Resume file: `docs/superpowers/plans/SCOPE-02-CLOSEOUT.md`
+Last session: 2026-09-17
+Stopped at: **entity-identity arc merged.** #183 #184 #185 #186 #187 #190 on `main`,
+plus ev-accounts#504. No tag cut — this was fix work on top of `v2.32`, not a milestone.
+Working tree clean.
+Resume file: `docs/superpowers/plans/2026-09-16-stable-key-verification.md`
+
+**Three things this arc leaves open, in priority order:**
+
+1. ⭐ **Prove `GovEntityID` is stable across years.** One FY2020 MN OSA file answers it:
+   is Birchwood `168` there while its published name still reads "Birchwood"? If yes,
+   approach C PREVENTS this defect class instead of catching it, for the publisher that
+   caused both incidents. Nothing else on this list is as cheap or as decisive.
+2. ⚠ **The fork check is advertised, not enforced.** `npm run check:forks` is one command
+   nobody is obliged to run, and this repo's own record is that it keeps building harnesses
+   nobody runs. If it is not run after MN OSA loads, a third fork will sit undetected.
+3. ⚠ **A fork can still exist for the length of one load**, and overlapping-year forks and
+   renames into unrelated names remain undetectable by design.
 
 ### Next Session
 
