@@ -259,7 +259,31 @@ blocks. Do not assume CI covers it — see `reference_ci_and_io_test_timeouts`.
 1. **Who clears the review queue, and how?** No UI is proposed — resolution is
    a SQL statement. If anyone but Chris is expected to clear it, that needs a
    surface, and that is separate work.
-2. **Which publisher gets approach C first?** MN OSA caused both incidents and
-   is the obvious candidate — but only if its files carry a stable unit id,
-   which is **unverified**. That check should precede any C work, and it is
-   cheap: read one OSA file and look for an id column.
+2. **Which publisher gets approach C first? ✅ ANSWERED 2026-09-16: MN OSA, and
+   the column is `GovEntityID`.**
+
+   Measured against `docs/MN/cired_22_data.xlsx`, the real published file:
+
+       GovEntityID is the FIRST of 149 columns
+       852 entities, 852 distinct ids, 0 blank
+       Birchwood Village = 168        Marine on Saint Croix = 593
+
+   ⭐ **Approach C is available for the publisher that caused BOTH incidents.**
+   That is the better outcome than expected, and it was nearly missed:
+   `scripts/mnOsaTreeMap.json` lists `identity_labels` as Entity Name /
+   ParentEntityName / Entity Type / GAAPInd / Population / FinancialYear, with
+   no id — because the tree map only maps the labels the loader needs for the
+   hierarchy. **The tree map is not the file.** Reading the actual header row is
+   what found it.
+
+   ⚠ **NOT YET PROVEN STABLE ACROSS YEARS.** Only one year's file is on disk,
+   so `GovEntityID` is shown to be complete and unique WITHIN FY2022, not shown
+   to survive a rename. The decisive test is cheap and should precede any C
+   work: fetch an FY2020 file and confirm Birchwood is also 168 there, while its
+   published name reads "Birchwood". If it is, approach C would have prevented
+   the fork outright.
+
+   ⚠ Note `Marine on Saint Croix` reads with a LOWERCASE "on" in the FY2022
+   file, while TT holds the capital-O spelling for FY2014-2023. The publisher's
+   capitalisation is not even stable within its own series — further argument
+   for keying on the id rather than the name.
