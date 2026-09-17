@@ -20,6 +20,7 @@
     "load-ev-finances": "node scripts/loadEVFinances.js",
     "verify:frozen": "node scripts/checkFrozenInvariant.mjs",
     "check:forks": "node --env-file=.env scripts/checkForkedEntities.mjs",
+    "register:mn-keys": "node --env-file=.env scripts/registerMnOsaEntityKeys.mjs",
     "register:rows": "node scripts/registerCreatedRows.mjs",
     "verify:live-sync": "node scripts/liveSyncExclusions.mjs --check"
   },
