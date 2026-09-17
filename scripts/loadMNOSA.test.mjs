@@ -22,6 +22,9 @@ import {
   entityBasis,
   resolveSourceUrl,
   enumerateEntities,
+  entityGovId,
+  enumerateEntityKeys,
+  importEntity,
   DATA_SOURCE_NAME,
 } from './loadMNOSA.js';
 import { loadMNOSABatch } from './loadMNOSABatch.js';
@@ -229,4 +232,97 @@ test('loadMNOSABatch --entity-type county dry-run: ~87 counties, "<Name> County"
   const aitkin = res.results.find((r) => r.entityName === 'Aitkin County');
   assert.ok(aitkin, 'county DB name is "Aitkin County" (municipalityName applied)');
   assert.ok(Math.abs(aitkin.revenueTotal - 36720288) < 1, 'Aitkin County revenue ties to the Phase 89 figure');
+});
+
+// ── Approach C: identity by the publisher's own id (GovEntityID) ──────────────
+//
+// ⚠⚠ THE DEFECT THESE GUARD AGAINST IS SILENT. MN OSA re-spelled two cities and
+// each time a SECOND entity was created, the history was severed at that year,
+// and every total still tied. Nothing failed. These tests assert the id the
+// prevention rests on is actually read — from the real published workbooks.
+
+const FY20_SAMPLE = join(__dirname, '..', '_mn-recon', 'cired_20_data.xlsx');
+const FY22_SAMPLE = join(__dirname, '..', '_mn-recon', 'cired_22_data.xlsx');
+const HAVE_RENAME_PAIR = existsSync(FY20_SAMPLE) && existsSync(FY22_SAMPLE);
+
+test('entityGovId reads the publisher id from the city layout', { skip: !HAVE_CITY }, async () => {
+  const wb = await cityWb();
+  const id = entityGovId(wb, 'Minneapolis', 'city');
+  assert.ok(id, 'Minneapolis carries a GovEntityID');
+  // ⚠ A STRING, never a number: it is an identifier, and the column is text in
+  // some files and numeric in others. Arithmetic on it is always a bug.
+  assert.equal(typeof id, 'string');
+});
+
+test('entityGovId returns null on the county layout — approach C is city-only here', { skip: !HAVE_COUNTY }, async () => {
+  const wb = await countyWb();
+  // MEASURED: county workbooks print no GovEntityID at all (county_20_data.xlsx
+  // starts at `Entity Name`). Absence must be null, not a throw — counties fall
+  // through to name identity exactly as before.
+  assert.equal(entityGovId(wb, 'Aitkin', 'county'), null);
+});
+
+test('⭐ the id survives the rename that forked Birchwood', { skip: !HAVE_RENAME_PAIR, timeout: 60_000 }, async () => {
+  const wb20 = new ExcelJS.Workbook();
+  await wb20.xlsx.readFile(FY20_SAMPLE);
+  const wb22 = new ExcelJS.Workbook();
+  await wb22.xlsx.readFile(FY22_SAMPLE);
+
+  //   FY2020  "Birchwood"          -> 168
+  //   FY2022  "Birchwood Village"  -> 168      the name changed, the id did not
+  const before = entityGovId(wb20, 'Birchwood', 'city');
+  const after = entityGovId(wb22, 'Birchwood Village', 'city');
+  assert.equal(before, '168');
+  assert.equal(after, before, 'the whole mechanism rests on this equality');
+});
+
+test('enumerateEntityKeys returns one row per published id, and nothing for counties', { skip: !HAVE_CITY, timeout: 60_000 }, async () => {
+  const wb = await cityWb();
+  const pairs = enumerateEntityKeys(wb, 'city');
+  assert.ok(pairs.length > 800, `roster has ${pairs.length} entities with an id`);
+  assert.equal(new Set(pairs.map((p) => p.govEntityId)).size, pairs.length, 'ids are distinct');
+  assert.ok(pairs.every((p) => p.name && p.govEntityId), 'every pair carries both halves');
+
+  // ⚠ Unlike enumerateEntities(), this is NOT filtered to cities that filed
+  // financials: a city that filed nothing still has an identity worth keying.
+  assert.ok(pairs.length >= enumerateEntities(wb, 'city').length);
+
+  if (HAVE_COUNTY) assert.deepEqual(enumerateEntityKeys(await countyWb(), 'county'), []);
+});
+
+test('importEntity hands the publisher id to the lookup — and null where there is none', { skip: !HAVE_CITY }, async () => {
+  const calls = [];
+  // Minimal stand-in: records the ensure call, then reports "no existing budget"
+  // and swallows the two writes.
+  const stub = {
+    rpc: async (fn, args) => {
+      calls.push({ fn, args });
+      return { data: fn === 'treasury_ensure_municipality' ? 'stub-municipality-id' : { ok: true }, error: null };
+    },
+    schema: () => ({
+      from: () => ({
+        select: () => ({ eq: function () { return this; }, limit: async () => ({ data: [], error: null }) }),
+      }),
+    }),
+  };
+
+  const wb = await cityWb();
+  await importEntity(stub, wb, { entityName: 'Minneapolis', fiscalYear: 2023, entityType: 'city' });
+  const ensure = calls.find((c) => c.fn === 'treasury_ensure_municipality');
+  assert.ok(ensure, 'importEntity resolves identity through the one door');
+  assert.equal(ensure.args.p_source, DATA_SOURCE_NAME, 'the key is scoped by the same source stamped on the rows');
+  assert.ok(ensure.args.p_source_entity_key, 'the GovEntityID reaches the RPC');
+  assert.equal(typeof ensure.args.p_source_entity_key, 'string');
+
+  if (HAVE_COUNTY) {
+    const countyCalls = [];
+    const countyStub = { ...stub, rpc: async (fn, args) => { countyCalls.push({ fn, args }); return { data: 'stub-id', error: null }; } };
+    await importEntity(countyStub, await countyWb(), {
+      entityName: 'Aitkin', municipalityName: 'Aitkin County', fiscalYear: 2021, entityType: 'county',
+    });
+    const c = countyCalls.find((x) => x.fn === 'treasury_ensure_municipality');
+    // No id in the county layout → both halves null, i.e. today's name lookup.
+    assert.equal(c.args.p_source, null);
+    assert.equal(c.args.p_source_entity_key, null);
+  }
 });
