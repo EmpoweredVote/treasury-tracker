@@ -62,6 +62,7 @@ import {
 } from './lib/scRfa.mjs';
 import { SC_LOAD_WINDOW, scBulkEntities } from './data/scKnightEntities.mjs';
 import { SC_STATEWIDE_ENTITIES, SC_STATEWIDE_LOAD_WINDOW } from './data/scStatewideEntities.mjs';
+import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
 import {
   declaredResidue, residueKey, assertResiduesObserved,
 } from './data/scRfaPublisherResidue.mjs';
@@ -350,11 +351,9 @@ export async function main() {
 
   const ids = new Map();
   for (const ent of entities) {
-    const { data, error } = await db.rpc('treasury_ensure_municipality', {
-      p_name: ent.name, p_state: SC_STATE,
-      p_entity_type: ent.entityType, p_population: ent.population,
+    const { id: data } = await ensureMunicipality(db, {
+      name: ent.name, state: SC_STATE, entityType: ent.entityType, population: ent.population,
     });
-    if (error) throw new Error(`Municipality error (${ent.name}): ${error.message}`);
     ids.set(ent.key, data);
     console.log(`  entity ${ent.name} (${ent.entityType}) -> ${data}`);
   }

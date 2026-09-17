@@ -23,6 +23,7 @@ import { parseArgs } from 'node:util';
 
 import { TN_ENTITIES } from './data/tnKnightEntities.mjs';
 
+import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
 const STATE = 'TN';
 
 export async function main() {
@@ -46,10 +47,9 @@ export async function main() {
   const db = createClient(url, key);
 
   for (const e of TN_ENTITIES) {
-    const { data: id, error } = await db.rpc('treasury_ensure_municipality', {
-      p_name: e.name, p_state: STATE, p_entity_type: e.entityType, p_population: e.population,
+    const { id: id } = await ensureMunicipality(db, {
+      name: e.name, state: STATE, entityType: e.entityType, population: e.population,
     });
-    if (error) throw new Error(`Municipality error (${e.name}): ${error.message}`);
     console.log(`  ${e.name} -> ${id}`);
 
     // ⚠ Asserted, not assumed: a consolidated government must carry NO parent.

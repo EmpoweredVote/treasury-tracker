@@ -34,6 +34,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { parseArgs } from 'node:util';
 
+import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!SUPABASE_KEY) { console.error('Missing SUPABASE_SERVICE_KEY env var'); process.exit(1); }
@@ -115,10 +116,9 @@ async function main() {
   } else if (dryRun) {
     console.log(`  [DRY RUN] Would create county entity "${countyEntityName}"`);
   } else {
-    const { data: newId, error: insErr } = await supabase.rpc('treasury_ensure_municipality', {
-      p_name: countyEntityName, p_state: state, p_entity_type: 'county', p_population: 0,
+    const { id: newId } = await ensureMunicipality(supabase, {
+      name: countyEntityName, state: state, entityType: 'county', population: 0,
     });
-    if (insErr) { console.error('  County create failed:', insErr.message); process.exit(1); }
     countyId = newId;
     console.log(`  Created county entity [${countyId}]`);
   }

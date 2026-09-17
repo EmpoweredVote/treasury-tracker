@@ -41,6 +41,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 
+import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
 const DRY_RUN = process.argv.includes('--dry-run');
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
@@ -130,11 +131,8 @@ async function ensureDaneCounty() {
     console.log(`  [dry-run] would CREATE "${DANE_COUNTY_NAME}, ${DANE_STATE}" (county) pop ${DANE_POPULATION_2024.toLocaleString()}`);
     return null;
   } else {
-    const { data: newId, error: insErr } = await publicClient.rpc('treasury_ensure_municipality', {
-      p_name: DANE_COUNTY_NAME,
-      p_state: DANE_STATE,
-      p_entity_type: 'county',
-      p_population: DANE_POPULATION_2024,
+    const { id: newId } = await ensureMunicipality(publicClient, {
+      name: DANE_COUNTY_NAME, state: DANE_STATE, entityType: 'county', population: DANE_POPULATION_2024,
     });
     if (insErr) {
       console.error(`  ERROR creating "${DANE_COUNTY_NAME}": ${insErr.message}`);

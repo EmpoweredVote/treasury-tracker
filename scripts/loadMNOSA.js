@@ -49,6 +49,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import ExcelJS from 'exceljs';
 
+import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
 export const DATA_SOURCE_NAME = 'Minnesota Office of the State Auditor City/County Finances Report';
 const SHEET_NAME = 'Governmental Funds';
 const SUBTOTAL_TOLERANCE = 0.005; // 0.5% — D-03 double-count guard
@@ -506,13 +507,9 @@ export async function importEntity(supabase, workbook, opts) {
 
   if (dryRun) return summary;
 
-  const { data: municipalityId, error: munErr } = await supabase.rpc('treasury_ensure_municipality', {
-    p_name: dbName,
-    p_state: 'MN',
-    p_entity_type: entityType,
-    p_population: population || 0,
+  const { id: municipalityId } = await ensureMunicipality(supabase, {
+    name: dbName, state: 'MN', entityType: entityType, population: population || 0,
   });
-  if (munErr) throw new Error(`Municipality error (${dbName}): ${munErr.message}`);
 
   summary.municipalityId = municipalityId;
   summary.operating = await importDataset(supabase, municipalityId, fiscalYear, 'operating', exp.tree, exp.total, sourceUrl, sourceDate);

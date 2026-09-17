@@ -79,6 +79,7 @@ import { opinionFor } from './data/inCountyAcfrOpinions.mjs';
 import { DEFAULT_OUT, KNOWN_DOCUMENT_GAPS, loadableYearsFor, stemFor } from './extractInCountiesAll.mjs';
 import { censusGuard } from './lib/facFiscalYearCensus.mjs';
 
+import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
 export const BASIS_VALUE = 'actual';
 export const DERIVATION = 'published';
 /** ⚠ NOT `general_fund`. See the module docstring. */
@@ -303,11 +304,9 @@ export async function main() {
     // ⚠ SELECT-then-INSERT-IF-NOT-FOUND with no UPDATE. Every wave-1 county
     // already exists from the Gateway load, so this returns the EXISTING id and
     // the population below is not applied. Recorded, not written.
-    const { data, error } = await db.rpc('treasury_ensure_municipality', {
-      p_name: ent.name, p_state: IN_COUNTY_STATE,
-      p_entity_type: ent.entityType, p_population: ent.population,
+    const { id: data } = await ensureMunicipality(db, {
+      name: ent.name, state: IN_COUNTY_STATE, entityType: ent.entityType, population: ent.population,
     });
-    if (error) throw new Error(`Municipality error (${ent.name}): ${error.message}`);
     ids.set(ent.key, data);
     console.log(`  entity ${ent.name} (${ent.entityType}) -> ${data}`);
   }

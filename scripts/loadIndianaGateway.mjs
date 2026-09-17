@@ -85,6 +85,7 @@ import {
 import { IN_ENTITIES, PA_IN_LOAD_WINDOW } from './data/paInKnightEntities.mjs';
 import { ROSTER_FILE } from './buildInStatewideRoster.mjs';
 
+import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
 export const SOURCE_PREFIX = 'Indiana Gateway Annual Financial Report';
 export const SOURCE_URL = 'https://gateway.ifionline.org/public/download.aspx';
 // ⚠⚠ `all_funds`, NOT `total_governmental`. Corrected 2026-09-08.
@@ -597,11 +598,9 @@ export async function main() {
   const order = [...scoped].sort((a, b) => (a.parentCountyKey ? 1 : 0) - (b.parentCountyKey ? 1 : 0));
   const ids = new Map();
   for (const ent of order) {
-    const { data, error } = await db.rpc('treasury_ensure_municipality', {
-      p_name: ent.name, p_state: IN_STATE,
-      p_entity_type: ent.entityType, p_population: ent.population,
+    const { id: data } = await ensureMunicipality(db, {
+      name: ent.name, state: IN_STATE, entityType: ent.entityType, population: ent.population,
     });
-    if (error) throw new Error(`Municipality error (${ent.name}): ${error.message}`);
     ids.set(ent.key, data);
     console.log(`  entity ${ent.name} -> ${data}`);
   }

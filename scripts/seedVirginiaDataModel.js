@@ -34,6 +34,7 @@ import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // ── Configuration ─────────────────────────────────────────────────────────────
@@ -122,11 +123,8 @@ async function main() {
       virginiaNodeId = '<new-state-node-id>';
     }
   } else {
-    const { data: nodeId, error: nodeErr } = await supabase.rpc('treasury_ensure_municipality', {
-      p_name: 'Virginia',
-      p_state: 'VA',
-      p_entity_type: 'state',
-      p_population: VA_POPULATION_2020,
+    const { id: nodeId } = await ensureMunicipality(supabase, {
+      name: 'Virginia', state: 'VA', entityType: 'state', population: VA_POPULATION_2020,
     });
     if (nodeErr) {
       console.error('  ERROR: Failed to ensure Virginia state node:', nodeErr.message);

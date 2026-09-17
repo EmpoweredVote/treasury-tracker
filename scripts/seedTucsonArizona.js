@@ -36,6 +36,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 
+import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
 // ── Config ──────────────────────────────────────────────────────────────
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -131,11 +132,8 @@ async function ensurePimaCounty() {
   if (countyId) {
     console.log(`  Reusing existing county entity [${countyId}]`);
   } else {
-    const { data: newId, error: insErr } = await publicClient.rpc('treasury_ensure_municipality', {
-      p_name: PIMA_COUNTY_NAME,
-      p_state: PIMA_STATE,
-      p_entity_type: 'county',
-      p_population: PIMA_POPULATION_2024,
+    const { id: newId } = await ensureMunicipality(publicClient, {
+      name: PIMA_COUNTY_NAME, state: PIMA_STATE, entityType: 'county', population: PIMA_POPULATION_2024,
     });
     if (insErr) {
       console.error(`  ERROR creating "${PIMA_COUNTY_NAME}": ${insErr.message}`);

@@ -46,6 +46,7 @@ import { CO_KS_WINDOWS, SOURCE_PAGE } from './data/coKsAcfrSources.mjs';
 import { KNOWN_DOCUMENT_GAPS } from './extractCoKsAll.mjs';
 import { censusGuard } from './lib/facFiscalYearCensus.mjs';
 
+import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
 export const BASIS_VALUE = 'actual';
 export const DERIVATION = 'published';
 export const FUND_SCOPE = 'general_fund';
@@ -174,11 +175,9 @@ export async function main() {
   const order = [...entities].sort((a, b) => (a.parentCountyKey ? 1 : 0) - (b.parentCountyKey ? 1 : 0));
   const ids = new Map();
   for (const ent of order) {
-    const { data, error } = await db.rpc('treasury_ensure_municipality', {
-      p_name: ent.name, p_state: ent.state,
-      p_entity_type: ent.entityType, p_population: ent.population,
+    const { id: data } = await ensureMunicipality(db, {
+      name: ent.name, state: ent.state, entityType: ent.entityType, population: ent.population,
     });
-    if (error) throw new Error(`Municipality error (${ent.name}): ${error.message}`);
     ids.set(ent.key, data);
     console.log(`  entity ${ent.name}, ${ent.state} (${ent.entityType}) -> ${data}`);
   }
