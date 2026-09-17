@@ -57,60 +57,15 @@
 -- new name rather than a clean handover), nor one whose names are unrelated
 -- (a genuine renaming, e.g. a town incorporating under a new name).
 
-with geo as (
-  select m.id, m.name, m.state, m.entity_type, m.population, m.geoid,
-         regexp_replace(lower(extensions.unaccent(m.name)), '[^a-z0-9]+', ' ', 'g') as n0
-  from treasury.municipalities m
-  where m.entity_type in ('state','county','township','city','town',
-                          'village','borough','municipality')
-),
-core as (
-  select g.*,
-         btrim(regexp_replace(
-           regexp_replace(btrim(g.n0),
-             '\s+(city|town|township|village|borough|municipality|urban county|county)$', '', 'g'),
-           '^(city|town|village|borough|township) of\s+', '', 'g')) as core_name
-  from geo g
-),
-span as (
-  select b.municipality_id as id,
-         min(b.fiscal_year) as lo, max(b.fiscal_year) as hi,
-         count(*) as rows_n,
-         count(distinct b.data_source) as n_src,
-         min(b.data_source) as src
-  from treasury.budgets b
-  group by b.municipality_id
-)
-select a.state,
-       a.name as name_a, sa.lo || '-' || sa.hi as years_a, sa.rows_n as rows_a,
-       a.population as pop_a, a.geoid as geoid_a,
-       b.name as name_b, sb.lo || '-' || sb.hi as years_b, sb.rows_n as rows_b,
-       b.population as pop_b, b.geoid as geoid_b,
-       case when sa.hi < sb.lo then sb.lo - sa.hi - 1
-            else sa.lo - sb.hi - 1 end as year_gap,
-       round(extensions.similarity(a.core_name, b.core_name)::numeric, 2) as name_sim,
-       left(sa.src, 60) as shared_source
-from core a
-join span sa on sa.id = a.id
-join core b on b.state = a.state and b.id > a.id and b.entity_type = a.entity_type
-join span sb on sb.id = b.id
-where
-  -- 2. one shared publisher
-  sa.n_src = 1 and sb.n_src = 1 and sa.src = sb.src
-  -- 3. non-overlapping and adjacent
-  and (sa.hi < sb.lo or sb.hi < sa.lo)
-  and (case when sa.hi < sb.lo then sb.lo - sa.hi - 1
-            else sa.lo - sb.hi - 1 end) <= 1
-  -- 4. related names
-  and (a.core_name = b.core_name
-       or b.n0 like a.n0 || ' %'
-       or a.n0 like b.n0 || ' %'
-       or extensions.similarity(a.core_name, b.core_name) >= 0.55)
-  -- 5. populations within 25%
-  and (a.population is null or b.population is null
-       or a.population = 0 or b.population = 0
-       or abs(a.population - b.population)::numeric
-          / greatest(a.population, b.population) <= 0.25)
-  -- guard: different non-null geoids means two different governments
-  and (a.geoid is null or b.geoid is null or a.geoid = b.geoid)
-order by name_sim desc, a.state, a.name;
+-- ⚠ THE RULE ITSELF NOW LIVES IN treasury.detect_forked_entities(), so that
+-- this file and the loaders that call it cannot drift. Migration
+-- 20260916092000_detect_forked_entities_fn.sql. The loaders reach it through
+-- assertNoNewForks() in scripts/lib/ensureMunicipality.mjs.
+--
+-- ⚠⚠ An INSERT-time version of this check was measured and abandoned: ten
+-- existing pairs tripped its name-and-population rule and ALL TEN were
+-- distinct governments (Bell/Bell Gardens, Avon/Avon Lake, ...). Three of the
+-- five signals below come from the budgets table, so the rule is only usable
+-- AFTER a load has written them.
+
+SELECT * FROM treasury.detect_forked_entities();
