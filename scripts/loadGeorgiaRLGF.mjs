@@ -63,6 +63,7 @@ import {
 } from './lib/gaRlgf.mjs';
 import { GA_KNIGHT_ENTITIES, entityByCicoid, GA_LOAD_WINDOW } from './data/georgiaKnightEntities.mjs';
 
+import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
 const SOURCE_PREFIX = 'Georgia DCA Report of Local Government Finances';
 const SOURCE_URL = 'https://apps.dca.ga.gov/RLGF/Default.aspx';
 const FUND_SCOPE = 'unknown';
@@ -317,13 +318,9 @@ async function main() {
   const order = [...GA_KNIGHT_ENTITIES].sort((a, b) => (a.parentCountyKey ? 1 : 0) - (b.parentCountyKey ? 1 : 0));
   const ids = new Map();
   for (const ent of order) {
-    const { data, error } = await db.rpc('treasury_ensure_municipality', {
-      p_name: ent.name,
-      p_state: GA_STATE,
-      p_entity_type: ent.entityType,
-      p_population: ent.population,
+    const { id: data } = await ensureMunicipality(db, {
+      name: ent.name, state: GA_STATE, entityType: ent.entityType, population: ent.population,
     });
-    if (error) throw new Error(`Municipality error (${ent.name}): ${error.message}`);
     ids.set(ent.key, data);
     console.log(`  entity ${ent.name} -> ${data}`);
   }
@@ -414,6 +411,7 @@ async function main() {
     process.exit(1);
   }
   console.log('Now run:  npm run verify:frozen');
+  console.log('     then npm run check:forks           # no publisher rename forked a city');
   console.log('     then npm run register:rows -- --milestone knight-s4-georgia --match "Georgia DCA Report of Local Government Finances"');
   console.log('     then node scripts/syncFrozenInvariantState.mjs   # mirror the exclusions into the DB');
 }

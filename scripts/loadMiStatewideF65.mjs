@@ -57,6 +57,7 @@ import {
 import { censusGuard } from './lib/facFiscalYearCensus.mjs';
 import { SOURCE_PREFIX, BASIS_VALUE, sourceNameFor, startMonthFromEnd } from './loadMichiganF65.mjs';
 
+import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
 const MI_STATE = 'MI';
 
 const DATASETS = Object.freeze([
@@ -232,11 +233,9 @@ async function main() {
   // Counties first, so a city can point at a real parent id.
   const order = [...entities].sort((a, b) => (a.entityType === 'county' ? 0 : 1) - (b.entityType === 'county' ? 0 : 1));
   for (const ent of order) {
-    const { data, error } = await db.rpc('treasury_ensure_municipality', {
-      p_name: ent.name, p_state: MI_STATE,
-      p_entity_type: ent.entityType, p_population: ent.population,
+    const { id: data } = await ensureMunicipality(db, {
+      name: ent.name, state: MI_STATE, entityType: ent.entityType, population: ent.population,
     });
-    if (error) throw new Error(`Municipality error (${ent.name}): ${error.message}`);
     ids.set(ent.key, data);
   }
   console.log(`entities ensured: ${ids.size}`);

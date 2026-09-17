@@ -33,6 +33,7 @@ import { classifySyncResult } from './lib/rpcResult.mjs';
 import { monthForCity } from './lib/caCityFiscalExceptions.mjs';
 import { censusGuard } from './lib/facFiscalYearCensus.mjs';
 
+import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!SUPABASE_KEY) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit(1); }
@@ -122,10 +123,9 @@ async function findConflictingBudget(municipalityId, fiscalYear, datasetType, so
 // because nobody has established a new city's fiscal calendar yet.
 async function importCityData(cityName, state, population, rows, fiscalYear, datasetType, ds, fetchDate, fiscalYearStartMonth) {
   // Ensure municipality exists (creates with feed population when provided)
-  const { data: municipalityId, error: munErr } = await supabase.rpc('treasury_ensure_municipality', {
-    p_name: cityName, p_state: state, p_entity_type: 'city', p_population: population || 0,
+  const { id: municipalityId } = await ensureMunicipality(supabase, {
+    name: cityName, state: state, entityType: 'city', population: population || 0,
   });
-  if (munErr) { console.error(`    Municipality error: ${munErr.message}`); return null; }
 
   // Backfill population on existing cities with 0/NULL population (never lower a
   // non-zero population to 0; only write when the feed provides a value).

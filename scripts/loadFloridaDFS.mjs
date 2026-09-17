@@ -86,6 +86,7 @@ import {
 } from './data/floridaKnightEntities.mjs';
 import { censusGuard } from './lib/facFiscalYearCensus.mjs';
 
+import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CACHE = path.join(ROOT, 'docs/fl-dfs');
 
@@ -351,13 +352,9 @@ async function main() {
 
       let municipalityId = municipalityIds.get(ent.dbName);
       if (!municipalityId) {
-        const { data, error } = await db.rpc('treasury_ensure_municipality', {
-          p_name: ent.dbName,
-          p_state: FL_STATE,
-          p_entity_type: ent.entityType,
-          p_population: ent.population,
+        const { id: data } = await ensureMunicipality(db, {
+          name: ent.dbName, state: FL_STATE, entityType: ent.entityType, population: ent.population,
         });
-        if (error) throw new Error(`Municipality error (${ent.dbName}): ${error.message}`);
         municipalityId = data;
         municipalityIds.set(ent.dbName, municipalityId);
       }

@@ -23,6 +23,7 @@ import { parseArgs } from 'node:util';
 
 import { SC_ENTITIES, SC_SOURCE } from './data/scKnightEntities.mjs';
 
+import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
 const STATE = 'SC';
 
 export async function main() {
@@ -56,10 +57,9 @@ export async function main() {
       process.exit(2);
     }
 
-    const { data: id, error } = await db.rpc('treasury_ensure_municipality', {
-      p_name: c.name, p_state: STATE, p_entity_type: c.entityType, p_population: c.population,
+    const { id: id } = await ensureMunicipality(db, {
+      name: c.name, state: STATE, entityType: c.entityType, population: c.population,
     });
-    if (error) throw new Error(`Municipality error (${c.name}): ${error.message}`);
 
     const { error: linkErr } = await db.schema('treasury').from('municipalities')
       .update({ county_id: county[0].id }).eq('id', id);

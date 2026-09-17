@@ -48,6 +48,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { pathToFileURL } from 'node:url';
 
+import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
 const DRY_RUN = process.argv.includes('--dry-run');
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
@@ -140,11 +141,8 @@ async function ensureKingCounty(supabase, publicClient) {
     console.log(`  [dry-run] would CREATE "${KING_COUNTY_NAME}, ${KING_COUNTY_STATE}" (county) pop ${KING_COUNTY_POPULATION_2024.toLocaleString()}`);
     return null;
   } else {
-    const { data: newId, error: insErr } = await publicClient.rpc('treasury_ensure_municipality', {
-      p_name: KING_COUNTY_NAME,
-      p_state: KING_COUNTY_STATE,
-      p_entity_type: 'county',
-      p_population: KING_COUNTY_POPULATION_2024,
+    const { id: newId } = await ensureMunicipality(publicClient, {
+      name: KING_COUNTY_NAME, state: KING_COUNTY_STATE, entityType: 'county', population: KING_COUNTY_POPULATION_2024,
     });
     if (insErr) {
       throw new Error(`creating "${KING_COUNTY_NAME}": ${insErr.message}`);

@@ -43,6 +43,7 @@ import { parseArgs } from 'node:util';
 import { utahMonthFor } from './lib/loaderFiscalCalendars.mjs';
 import { fileURLToPath } from 'node:url';
 
+import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 // ⚠ Do NOT hard-exit at import time. This module is imported by its unit tests,
@@ -523,10 +524,9 @@ async function findConflictingBudget(municipalityId, fiscalYear, datasetType, so
 }
 
 async function importEntityData(municipalityName, state, rows, fiscalYear, datasetType, fetchDate, entityType = 'city') {
-  const { data: municipalityId, error: munErr } = await supabase.rpc('treasury_ensure_municipality', {
-    p_name: municipalityName, p_state: state, p_entity_type: entityType, p_population: 0,
+  const { id: municipalityId } = await ensureMunicipality(supabase, {
+    name: municipalityName, state: state, entityType: entityType, population: 0,
   });
-  if (munErr) { console.error(`    Municipality error: ${munErr.message}`); return null; }
 
   // Branch on dataset type: salaries → 2-level buildSalaryTree (D-71-02); EX/RV → 3-level buildTree (D-69-01).
   const { tree, total } = datasetType === 'salaries' ? buildSalaryTree(rows) : buildTree(rows, TREE_OPTS);
@@ -693,8 +693,8 @@ async function main() {
       // Pass pre-built tree + total directly via a rollup-aware call to importEntityData.
       // importEntityData builds the tree internally, but for rollup we've already built it.
       // Use the RPC directly to pass our pre-built tree.
-      const { data: municipalityId, error: munErr } = await supabase.rpc('treasury_ensure_municipality', {
-        p_name: displayName, p_state: state, p_entity_type: group.entityType, p_population: 0,
+      const { id: municipalityId } = await ensureMunicipality(supabase, {
+        name: displayName, state: state, entityType: group.entityType, population: 0,
       });
       if (munErr) {
         console.error(`  ERROR ${label} — municipality: ${munErr.message}`);

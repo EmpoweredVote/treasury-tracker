@@ -876,21 +876,38 @@ const { id } = await ensureMunicipality(db, {
 ids.set(ent.key, id);
 ```
 
-- [ ] **Step 4: Add the load-end check to each loader**
+- [ ] **Step 4: Add the load-end check as an npm script** — REVISED 2026-09-16
 
-At the end of each script's main path, after budgets are written and **before**
-it prints any success summary:
+⚠⚠ **THE ORIGINAL STEP 4 WAS ABANDONED AFTER MEASURING THE 29 FILES.** It said
+to insert `await assertNoNewForks(db)` at the end of each loader's `main()`.
+They do not share a shape:
 
-```javascript
-// ⚠ Runs AFTER the budgets exist: three of the fork rule's five signals come
-// from them, which is why this cannot run at insert time.
-await assertNoNewForks(db);
+    18 of 29   have a locatable `^async function main(`
+     8 of 29   declare no client under either common name (`db` / `supabase`)
+    most       create the client INSIDE main(), so the bottom-level
+               invocation cannot be wrapped either
+
+A blind insertion across those is the same shape of edit that, earlier in this
+task, removed 62 error checks instead of 30. Not worth repeating.
+
+⭐ **The repo already has a post-load verification convention, and it is npm
+scripts, not in-loader calls.** Loaders end by printing `Now run: npm run
+verify:frozen`. The fork check is GLOBAL — it scans the whole table — so running
+it once after a load is informationally identical to running it inside every
+loader.
+
+Create `scripts/checkForkedEntities.mjs` calling `assertNoNewForks`, and add:
+
+```json
+"check:forks": "node --env-file=.env scripts/checkForkedEntities.mjs"
 ```
 
-⚠ For the four single-entity seeders (`scripts/seedNashville.mjs`,
-`scripts/seedTucsonArizona.js`, `scripts/seedWisconsinMadison.js`,
-`scripts/seedWashingtonSeattle.js`) place it identically — they write budgets
-too, and a seeder that forks a city must not report success either.
+⚠ **The honest cost:** this is ADVERTISED rather than ENFORCED, and the spec's
+success criterion — "every loader calls assertNoNewForks before reporting
+success" — is NOT met as written. Given this project's own lesson that *TT keeps
+building harnesses nobody runs*, that is a real downgrade, not a neutral
+substitution. Chris chose it deliberately on 2026-09-16 over partial enforcement
+(18 files) or 29 hand edits.
 
 - [ ] **Step 5: Run the guard test and the full suite**
 

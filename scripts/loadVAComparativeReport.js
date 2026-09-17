@@ -50,6 +50,7 @@ import { monthForSource } from './lib/loaderFiscalCalendars.mjs';
 import { fileURLToPath } from 'node:url';
 import ExcelJS from 'exceljs';
 
+import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
 export const DATA_SOURCE_NAME = 'Virginia APA Comparative Report';
 
 // ── Cell helpers ──────────────────────────────────────────────────────────────
@@ -469,10 +470,9 @@ export async function importLocality(supabase, workbook, opts) {
 
   if (dryRun) return summary;
 
-  const { data: municipalityId, error: munErr } = await supabase.rpc('treasury_ensure_municipality', {
-    p_name: displayName, p_state: state, p_entity_type: entityType, p_population: population || 0,
+  const { id: municipalityId } = await ensureMunicipality(supabase, {
+    name: displayName, state: state, entityType: entityType, population: population || 0,
   });
-  if (munErr) throw new Error(`Municipality error (${displayName}): ${munErr.message}`);
 
   summary.municipalityId = municipalityId;
   summary.operating = await importDataset(supabase, municipalityId, fiscalYear, 'operating', exp.tree, exp.total, sourceUrl, sourceDate);

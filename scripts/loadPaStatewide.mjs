@@ -65,6 +65,7 @@ import {
 } from './data/paStatewideEntities.mjs';
 import { MUNI_STATUS_HEADER, COUNTY_STATUS_HEADER } from './buildPaStatewideEntities.mjs';
 
+import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DEFAULT_DIR = path.join(ROOT, '_acfr-work/pa/xlsx');
 
@@ -306,11 +307,9 @@ async function main() {
     for (const p of good) {
       let municipalityId = idCache.get(p.entity.name);
       if (!municipalityId) {
-        const { data, error } = await db.rpc('treasury_ensure_municipality', {
-          p_name: p.entity.name, p_state: PA_STATE,
-          p_entity_type: p.entity.entityType, p_population: p.entity.population,
+        const { id: data } = await ensureMunicipality(db, {
+          name: p.entity.name, state: PA_STATE, entityType: p.entity.entityType, population: p.entity.population,
         });
-        if (error) throw new Error(`Municipality error (${p.entity.name}): ${error.message}`);
         municipalityId = data;
         idCache.set(p.entity.name, municipalityId);
       }

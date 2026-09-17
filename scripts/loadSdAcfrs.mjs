@@ -55,6 +55,7 @@ import { parseArgs } from 'node:util';
 import { SD_ENTITIES, SD_WINDOWS } from './data/sdKnightEntities.mjs';
 import { censusGuard } from './lib/facFiscalYearCensus.mjs';
 
+import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
 export const BASIS_VALUE = 'actual';        // actuals, not an appropriation
 export const DERIVATION = 'published';
 export const FUND_SCOPE = 'general_fund';
@@ -255,11 +256,9 @@ export async function main() {
 
   const ids = new Map();
   for (const ent of entities) {
-    const { data, error } = await db.rpc('treasury_ensure_municipality', {
-      p_name: ent.name, p_state: ent.state,
-      p_entity_type: ent.entityType, p_population: ent.population,
+    const { id: data } = await ensureMunicipality(db, {
+      name: ent.name, state: ent.state, entityType: ent.entityType, population: ent.population,
     });
-    if (error) throw new Error(`Municipality error (${ent.name}): ${error.message}`);
     ids.set(ent.key, data);
     console.log(`  entity ${ent.name}, ${ent.state} (${ent.entityType}) -> ${data}`);
   }

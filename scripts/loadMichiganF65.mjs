@@ -82,6 +82,7 @@ import {
 import { MI_ENTITIES, MI_LOAD_WINDOW, entityByKey } from './data/miKnightEntities.mjs';
 import { censusGuard } from './lib/facFiscalYearCensus.mjs';
 
+import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
 export const SOURCE_PREFIX = 'Michigan Treasury Form F-65 Annual Local Unit Fiscal Report';
 export const BASIS_VALUE = 'actual';
 const MI_STATE = 'MI';
@@ -259,11 +260,9 @@ export async function main() {
   const order = [...entities].sort((a, b) => (a.parentCountyKey ? 1 : 0) - (b.parentCountyKey ? 1 : 0));
   const ids = new Map();
   for (const ent of order) {
-    const { data, error } = await db.rpc('treasury_ensure_municipality', {
-      p_name: ent.name, p_state: MI_STATE,
-      p_entity_type: ent.entityType, p_population: ent.population,
+    const { id: data } = await ensureMunicipality(db, {
+      name: ent.name, state: MI_STATE, entityType: ent.entityType, population: ent.population,
     });
-    if (error) throw new Error(`Municipality error (${ent.name}): ${error.message}`);
     ids.set(ent.key, data);
     console.log(`  entity ${ent.name} (${ent.entityType}) -> ${data}`);
   }
@@ -335,6 +334,7 @@ export async function main() {
     process.exit(1);
   }
   console.log('Now run:  npm run verify:frozen');
+  console.log('     then npm run check:forks           # no publisher rename forked a city');
   console.log('     then npm run register:rows -- --milestone knight-s7a-mi --match "Michigan Treasury Form F-65"');
   return filings;
 }

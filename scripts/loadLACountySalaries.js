@@ -20,6 +20,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { parseArgs } from 'node:util';
 
+import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxsdzaojfaibhuzmclfq.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!SUPABASE_KEY) { console.error('Missing SUPABASE_SERVICE_KEY'); process.exit(1); }
@@ -221,13 +222,9 @@ async function main() {
   console.log(`  Dry run      : ${dryRun}\n`);
 
   // Resolve municipality ID for LA County
-  const { data: municipalityId, error: munErr } = await supabase.rpc('treasury_ensure_municipality', {
-    p_name: 'Los Angeles County',
-    p_state: 'CA',
-    p_entity_type: 'county',
-    p_population: 10014009,
+  const { id: municipalityId } = await ensureMunicipality(supabase, {
+    name: 'Los Angeles County', state: 'CA', entityType: 'county', population: 10014009,
   });
-  if (munErr) { console.error('Municipality lookup failed:', munErr.message); process.exit(1); }
   console.log(`Municipality ID: ${municipalityId}`);
 
   for (const fy of fiscalYears) {

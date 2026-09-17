@@ -57,6 +57,7 @@ import {
 } from './lib/paDced.mjs';
 import { PA_ENTITIES, PA_IN_LOAD_WINDOW, entityByDcedId } from './data/paInKnightEntities.mjs';
 
+import { ensureMunicipality } from './lib/ensureMunicipality.mjs';
 export const SOURCE_PREFIX = 'Pennsylvania DCED Municipal Annual Audit and Financial Report';
 export const SOURCE_URL = 'https://apps.dced.pa.gov/munstats-public/ReportInformation2.aspx?report=StatewideMuniAfr';
 export const SOURCE_URL_COUNTY = 'https://apps.dced.pa.gov/munstats-public/ReportInformation2.aspx?report=StatewideCountyAfr';
@@ -220,11 +221,9 @@ export async function main() {
   const order = [...entities].sort((a, b) => (a.parentCountyKey ? 1 : 0) - (b.parentCountyKey ? 1 : 0));
   const ids = new Map();
   for (const ent of order) {
-    const { data, error } = await db.rpc('treasury_ensure_municipality', {
-      p_name: ent.name, p_state: PA_STATE,
-      p_entity_type: ent.entityType, p_population: ent.population,
+    const { id: data } = await ensureMunicipality(db, {
+      name: ent.name, state: PA_STATE, entityType: ent.entityType, population: ent.population,
     });
-    if (error) throw new Error(`Municipality error (${ent.name}): ${error.message}`);
     ids.set(ent.key, data);
     console.log(`  entity ${ent.name} (${ent.entityType}) -> ${data}`);
   }
@@ -293,6 +292,7 @@ export async function main() {
     process.exit(1);
   }
   console.log('Now run:  npm run verify:frozen');
+  console.log('     then npm run check:forks           # no publisher rename forked a city');
   console.log('     then npm run register:rows -- --milestone knight-s5-pa-in --match "Pennsylvania DCED"');
   return good;
 }
