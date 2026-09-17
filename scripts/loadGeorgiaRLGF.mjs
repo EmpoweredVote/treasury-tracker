@@ -411,6 +411,7 @@ async function main() {
     process.exit(1);
   }
   console.log('Now run:  npm run verify:frozen');
+  console.log('     then npm run check:forks           # no publisher rename forked a city');
   console.log('     then npm run register:rows -- --milestone knight-s4-georgia --match "Georgia DCA Report of Local Government Finances"');
   console.log('     then node scripts/syncFrozenInvariantState.mjs   # mirror the exclusions into the DB');
 }

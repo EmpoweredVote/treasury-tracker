@@ -301,6 +301,7 @@ export async function main() {
   const matches = [...new Set(filings.map((f) => `${sourcePrefixFor(f.entity)} ACFR`))]
     .map((m) => `--match "${m}"`).join(' ');
   console.log('Now run:  npm run verify:frozen');
+  console.log('     then npm run check:forks           # no publisher rename forked a city');
   console.log(`     then npm run register:rows -- --milestone <name> ${matches}`);
   console.log('     then node scripts/syncFrozenInvariantState.mjs   (NEVER --set-baseline)');
   console.log('     then node scripts/stampAuditGrade.mjs && node scripts/stampBudgetAxes.mjs');

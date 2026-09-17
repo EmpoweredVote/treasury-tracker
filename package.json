@@ -19,6 +19,7 @@
     "process-all": "npm run process-budget && npm run process-revenue && npm run process-salaries && npm run process-transactions",
     "load-ev-finances": "node scripts/loadEVFinances.js",
     "verify:frozen": "node scripts/checkFrozenInvariant.mjs",
+    "check:forks": "node --env-file=.env scripts/checkForkedEntities.mjs",
     "register:rows": "node scripts/registerCreatedRows.mjs",
     "verify:live-sync": "node scripts/liveSyncExclusions.mjs --check"
   },

@@ -416,6 +416,7 @@ export async function main() {
     process.exit(1);
   }
   console.log('Now run:  npm run verify:frozen');
+  console.log('     then npm run check:forks           # no publisher rename forked a city');
   console.log(`     then npm run register:rows -- --milestone ${values.statewide ? 'sc-statewide-counties' : 'knight-s6a-sc'} --match "South Carolina RFA"`);
   if (values.statewide) console.log('     then node scripts/verifyScStatewideLoad.mjs');
   return filings;
