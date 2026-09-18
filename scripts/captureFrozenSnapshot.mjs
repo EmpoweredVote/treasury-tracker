@@ -69,7 +69,8 @@ async function main() {
     process.exitCode = 1; return;
   }
 
-  const { data, error } = await db.schema('treasury').rpc('capture_frozen_snapshot', {
+  // ⚠ The public wrapper, not the treasury one: PostgREST only reaches `public`.
+  const { data, error } = await db.rpc('capture_frozen_snapshot', {
     p_note: values.note ?? null,
   });
   if (error) {
