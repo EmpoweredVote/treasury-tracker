@@ -9,6 +9,7 @@ import { normalizeScope, normalizeReportingEntity } from './fundScopeVocabulary'
 import { normalizeAuditGrade } from './auditGrade';
 import { chooseDisplaySeries, normalizeBasis, type SeriesKey } from './budgetSeries';
 import type { BudgetData, BudgetCategory, FederalContext, LinkedTransactionSummary, Municipality, OrgFinancialSummary, SearchResult, HydratedMunicipality } from '../types/budget';
+import type { EntityAlias } from '../utils/entityRouting';
 
 /**
  * The chosen series genuinely has no row for this dataset and year.
@@ -354,6 +355,48 @@ export async function searchBudget(
     console.warn('Search failed:', err);
     return [];
   }
+}
+
+/**
+ * Names entities used to be published under, for resolving a `?entity=` link
+ * whose slug has since been retired — see utils/entityRouting.ts.
+ *
+ * ⚠⚠ THIS FAILS SOFT, AND THAT IS THE POINT. Aliases only ever turn a dead
+ * link into a working one; they are never required to render a page. If this
+ * endpoint 404s, times out, or ships malformed JSON, the right outcome is
+ * exactly today's behaviour — an unknown slug lands on the not-found state —
+ * not an error page for readers whose links were fine. So it resolves to `[]`
+ * on every failure and the caller cannot tell the difference.
+ *
+ * ⚠ Unlike the city list, `[]` IS memoized on failure: retrying per call would
+ * put a failing request in front of every deep link, and the upside of a
+ * mid-session retry is one link that would otherwise show not-found.
+ */
+let aliasesPromise: Promise<EntityAlias[]> | null = null;
+
+export function listEntityAliases(): Promise<EntityAlias[]> {
+  if (!aliasesPromise) {
+    aliasesPromise = (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/treasury/aliases`);
+        if (!res.ok) return [];
+        const body: unknown = await res.json();
+        if (!Array.isArray(body)) return [];
+        // Validated field by field: this decides which entity a reader lands
+        // on, so a malformed row is dropped rather than trusted.
+        return body.filter((a): a is EntityAlias =>
+          !!a && typeof a === 'object' &&
+          typeof (a as EntityAlias).slug === 'string' &&
+          typeof (a as EntityAlias).label === 'string' &&
+          typeof (a as EntityAlias).canonicalSlug === 'string' &&
+          typeof (a as EntityAlias).canonicalLabel === 'string'
+        );
+      } catch {
+        return [];
+      }
+    })();
+  }
+  return aliasesPromise;
 }
 
 /**

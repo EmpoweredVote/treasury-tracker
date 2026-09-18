@@ -37,8 +37,31 @@ export function toSlug(m: Municipality): string {
   return `${m.name.toLowerCase().replace(/\s+/g, '-')}-${m.state.toLowerCase()}`;
 }
 
+/**
+ * A slug an entity used to be addressable by, and the slug it uses now.
+ *
+ * Both sides arrive already slugged, from the same SQL expression that builds
+ * `slug` in GET /api/treasury/coverage — so the producer states the identity
+ * once and no consumer rebuilds `toSlug`. `label` is the published name, for
+ * telling a reader what changed; nothing matches on it.
+ */
+export interface EntityAlias {
+  slug: string;
+  label: string;
+  canonicalSlug: string;
+  canonicalLabel: string;
+}
+
 export type EntityParamResolution =
   | { kind: 'matched'; entity: Municipality }
+  | {
+      kind: 'aliased';
+      entity: Municipality;
+      requestedSlug: string;
+      canonicalSlug: string;
+      /** The name that slug was published under, for naming the change to a reader. */
+      requestedLabel: string;
+    }
   | { kind: 'not_found'; slug: string };
 
 /**
@@ -48,11 +71,43 @@ export type EntityParamResolution =
  */
 export function resolveEntityParam(
   list: Municipality[],
-  entityParam: string
+  entityParam: string,
+  aliases: EntityAlias[] = []
 ): EntityParamResolution {
   if (!entityParam) return { kind: 'not_found', slug: entityParam };
+
+  // A LIVE ENTITY ALWAYS WINS. Checked first and unconditionally: a stale alias
+  // row must never shadow a currently-published government. That would be the
+  // Bloomington failure again, and harder to see, because an alias hit looks
+  // deliberate rather than accidental.
   const entity = list.find(m => toSlug(m) === entityParam);
-  return entity ? { kind: 'matched', entity } : { kind: 'not_found', slug: entityParam };
+  if (entity) return { kind: 'matched', entity };
+
+  // Group the aliases claiming this slug by what they point AT. One distinct
+  // target is a rename; two is a contradiction in the data, and a contradiction
+  // is resolved by refusing, never by picking. `aliases` defaults to empty, so
+  // every existing caller keeps exactly the behaviour it had.
+  const claiming = aliases.filter(
+    // A self-alias says nothing; if it matched a live entity we already
+    // returned above, so here it can only add noise to the ambiguity count.
+    a => a.slug === entityParam && a.canonicalSlug !== entityParam
+  );
+  const targets = new Set(claiming.map(a => a.canonicalSlug));
+  if (targets.size !== 1) return { kind: 'not_found', slug: entityParam };
+
+  const canonicalSlug = [...targets][0];
+  const target = list.find(m => toSlug(m) === canonicalSlug);
+  // A dangling alias — the entity it names is not loaded. Not found is the
+  // honest answer; inventing one would be the failure this module prevents.
+  if (!target) return { kind: 'not_found', slug: entityParam };
+
+  return {
+    kind: 'aliased',
+    entity: target,
+    requestedSlug: entityParam,
+    canonicalSlug,
+    requestedLabel: claiming[0]!.label,
+  };
 }
 
 /** Longest slug echoed back to the page before it is truncated. */
@@ -66,6 +121,20 @@ const MAX_DISPLAY_SLUG = 64;
  */
 export function displaySlug(slug: string): string {
   const clean = slug.replace(/[\p{C}\s]/gu, '');
+  return clean.length > MAX_DISPLAY_SLUG
+    ? `${clean.slice(0, MAX_DISPLAY_SLUG - 1)}…`
+    : clean;
+}
+
+/**
+ * The same guard for a published NAME rather than a slug.
+ *
+ * ⚠ `displaySlug` cannot be reused here: it strips whitespace, which is correct
+ * for a slug and turns "Birchwood Village" into "BirchwoodVillage". Names keep
+ * their spaces — collapsed, not removed — and lose only control characters.
+ */
+export function displayLabel(name: string): string {
+  const clean = name.replace(/\p{C}/gu, '').replace(/\s+/g, ' ').trim();
   return clean.length > MAX_DISPLAY_SLUG
     ? `${clean.slice(0, MAX_DISPLAY_SLUG - 1)}…`
     : clean;
