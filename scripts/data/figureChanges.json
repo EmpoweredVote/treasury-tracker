@@ -1,1 +1,8 @@
-[]
+[
+  {
+    "id": "1bd2685c-0de7-43cc-a55d-f4c2a3c94e8b",
+    "old": "2769.51",
+    "new": "2819.51",
+    "why": "Empowered Vote (CA) FY2026 revenue, data_source 'Empowered Vote — platform exports': 2769.51 -> 2819.51, a $50.00 donation picked up when TT's own financials were refreshed between 2026-09-11 07:18 and 2026-09-14 06:23 UTC. AUTHORISED DATA REFRESH, NOT CORRUPTION — the invariant caught a real write, which is what it is for. Identified 2026-09-18 by restoring the 2026-09-11 physical backup to a throwaway project and diffing the frozen set by id-prefix buckets: 15 of 16 top-level buckets were byte-identical, and bucket 1bd resolved to this single row. The restored copy reproduced the repo baseline exactly (62,593 rows / d7075002), which is what makes this attribution certain rather than probable. ⚠ A LEDGER ENTRY PINS THIS ROW AT ITS OLD VALUE FOREVER — the digest hashes `old` in place of the live figure — so further changes to THIS row are no longer detected. That is acceptable only because the row belongs to a continuously refreshed feed that should not have been inside the digest in the first place; see the EV-feed note in scopeBaseline.json."
+  }
+]
