@@ -17,7 +17,7 @@ import { shortNameInCounty } from './data/entityListLabel';
 import ScaleToggle, { type FederalScale } from './components/federal/ScaleToggle';
 import ProgramOrigins from './components/federal/ProgramOrigins';
 import BudgetSearch from './components/dashboard/BudgetSearch';
-import { loadBudgetData, SeriesAbsentError, loadFederalContext, loadOrgFinancialSummary, loadLinkedTransactions, listMunicipalities, hydrateMunicipality, clearCache } from './data/dataLoader';
+import { loadBudgetData, SeriesAbsentError, loadFederalContext, loadOrgFinancialSummary, loadLinkedTransactions, listMunicipalities, listEntityAliases, hydrateMunicipality, clearCache } from './data/dataLoader';
 import EntitySwitcher from './components/EntitySwitcher';
 import AlphaLanding from './components/AlphaLanding';
 import type { LandingReason } from './components/AlphaLanding';
@@ -59,7 +59,7 @@ import { resolveFeatureIcons, resolveTriviaIcon } from './utils/featureIcons';
 import { FeatureIconRow } from './components/FeatureIconRow';
 import type { BudgetCategory, BudgetData, FederalContext, HydratedMunicipality, LinkedTransactionSummary, Municipality, OrgFinancialSummary } from './types/budget';
 import { hasDatasets } from './data/municipalityDatasets';
-import { resolveEntityParam, toSlug } from './utils/entityRouting';
+import { resolveEntityParam, toSlug, displaySlug } from './utils/entityRouting';
 
 interface BreadcrumbItem {
   label: string;
@@ -186,6 +186,10 @@ function App() {
   // App-level view state: resolving auth → landing or budget
   const [appView, setAppView] = useState<'resolving' | 'landing' | 'budget'>('resolving');
   const [landingReason, setLandingReason] = useState<LandingReason>({ type: 'guest' });
+  // Set when a `?entity=` slug resolved through an alias — a name the entity
+  // used to be published under. Null for every ordinary load, so the banner
+  // costs nothing to the 99.99% of links that were never renamed.
+  const [aliasNotice, setAliasNotice] = useState<{ requested: string; currentName: string } | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Entity state
@@ -404,17 +408,36 @@ function App() {
 
     // If a URL entity param is present, bypass auth routing entirely (shared/bookmarked link)
     if (entityParam) {
-      listMunicipalities().then(async list => {
+      // ⚠ Aliases are fetched ALONGSIDE the list, not after it misses: the
+      // request is tiny and a second serial round trip would sit in front of
+      // every renamed entity's first paint. listEntityAliases() resolves to []
+      // on any failure, so this cannot delay or break a link that already works.
+      Promise.all([listMunicipalities(), listEntityAliases()]).then(async ([list, aliases]) => {
         setMunicipalities(list);
         // ⚠ An unmatched slug must NOT resolve to another entity. It used to
         // fall back to Bloomington, IN (then list[0]), so a stale or renamed
         // link silently rendered the wrong government's budget with nothing on
         // the page saying so. See utils/entityRouting.ts.
-        const resolution = resolveEntityParam(list, entityParam);
+        const resolution = resolveEntityParam(list, entityParam, aliases);
         if (resolution.kind === 'not_found') {
           setLandingReason({ type: 'entity_not_found', slug: resolution.slug });
           setAppView('landing');
           return;
+        }
+        // A retired slug resolved through an alias. Canonicalise the address bar
+        // so the next copy of this link carries the current slug, and tell the
+        // reader why the name on the page is not the name they asked for —
+        // silence here would be the same "looks authoritative, is not what you
+        // asked for" failure that the not_found rule exists to prevent, even
+        // though an alias (unlike the old fallback) is an exact identity.
+        if (resolution.kind === 'aliased') {
+          const url = new URL(window.location.href);
+          url.searchParams.set('entity', resolution.canonicalSlug);
+          window.history.replaceState({}, '', url);
+          setAliasNotice({
+            requested: displaySlug(resolution.requestedSlug),
+            currentName: resolution.entity.name,
+          });
         }
         // ⚠ Hydrate before ANY of the year/dataset resolution below reads it.
         const entity = await hydrateMunicipality(resolution.entity);
@@ -1137,6 +1160,29 @@ function App() {
           </span>
         )}
       </div>
+
+      {/* Alias notice — the link asked for a name this entity no longer uses.
+          The address bar has already been canonicalised; this says why the
+          heading does not match what was typed. Dismissible, because it is
+          information about the link rather than about the budget. */}
+      {aliasNotice && (
+        <div className="bg-ev-gray-50 dark:bg-ev-gray-800/60 border-l-4 border-ev-gray-300 dark:border-ev-gray-600">
+          <div className="max-w-[1400px] mx-auto px-6 py-2 flex items-start gap-3">
+            <p className="text-sm text-ev-gray-700 dark:text-ev-gray-300 flex-1" style={{ fontFamily: "'Manrope', sans-serif" }}>
+              <span className="font-semibold">{aliasNotice.requested}</span> is now published as{' '}
+              <span className="font-semibold">{aliasNotice.currentName}</span>. Showing the current entity.
+            </p>
+            <button
+              type="button"
+              onClick={() => setAliasNotice(null)}
+              aria-label="Dismiss renamed-entity notice"
+              className="text-ev-gray-500 hover:text-ev-gray-700 dark:text-ev-gray-400 dark:hover:text-ev-gray-200 text-lg leading-none px-1"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* FY notice — shown when selected entity has no FY2026 data yet */}
       {selectedEntity && availableYears.length > 0 && !availableYears.includes('2026') && (

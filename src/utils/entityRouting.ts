@@ -34,11 +34,38 @@ import type { Municipality } from '../types/budget';
  * stops matching, and before this module that meant landing on Bloomington.
  */
 export function toSlug(m: Municipality): string {
-  return `${m.name.toLowerCase().replace(/\s+/g, '-')}-${m.state.toLowerCase()}`;
+  return slugify(m.name, m.state);
+}
+
+/**
+ * The slug transform itself, over a bare name and state.
+ *
+ * ⚠ `toSlug` delegates here rather than the other way round, so alias slugs and
+ * entity slugs cannot be computed differently. The docblock above is about
+ * exactly this: a second copy of this transform does not throw when it drifts,
+ * it just quietly stops matching. Aliases would then resolve to nothing and
+ * look like missing data rather than a bug.
+ */
+function slugify(name: string, state: string): string {
+  return `${name.toLowerCase().replace(/\s+/g, '-')}-${state.toLowerCase()}`;
+}
+
+/**
+ * A name an entity used to be published under.
+ *
+ * Carries NAMES, not slugs, for the reason in `slugify`: the API that serves
+ * these must not own a second implementation of the slug format. It states
+ * what a publisher called the place; TT decides what that slugs to.
+ */
+export interface EntityAlias {
+  aliasName: string;
+  state: string;
+  canonicalName: string;
 }
 
 export type EntityParamResolution =
   | { kind: 'matched'; entity: Municipality }
+  | { kind: 'aliased'; entity: Municipality; requestedSlug: string; canonicalSlug: string }
   | { kind: 'not_found'; slug: string };
 
 /**
@@ -48,11 +75,39 @@ export type EntityParamResolution =
  */
 export function resolveEntityParam(
   list: Municipality[],
-  entityParam: string
+  entityParam: string,
+  aliases: EntityAlias[] = []
 ): EntityParamResolution {
   if (!entityParam) return { kind: 'not_found', slug: entityParam };
+
+  // A LIVE ENTITY ALWAYS WINS. Checked first and unconditionally: a stale alias
+  // row must never shadow a currently-published government. That would be the
+  // Bloomington failure again, and harder to see, because an alias hit looks
+  // deliberate rather than accidental.
   const entity = list.find(m => toSlug(m) === entityParam);
-  return entity ? { kind: 'matched', entity } : { kind: 'not_found', slug: entityParam };
+  if (entity) return { kind: 'matched', entity };
+
+  // Group the aliases claiming this slug by what they point AT. One distinct
+  // target is a rename; two is a contradiction in the data, and a contradiction
+  // is resolved by refusing, never by picking. `aliases` defaults to empty, so
+  // every existing caller keeps exactly the behaviour it had.
+  const targets = new Set(
+    aliases
+      .filter(a => slugify(a.aliasName, a.state) === entityParam)
+      .map(a => slugify(a.canonicalName, a.state))
+      // A self-alias says nothing; if it matched a live entity we already
+      // returned above, so here it can only add noise to the ambiguity count.
+      .filter(canonicalSlug => canonicalSlug !== entityParam)
+  );
+  if (targets.size !== 1) return { kind: 'not_found', slug: entityParam };
+
+  const canonicalSlug = [...targets][0];
+  const target = list.find(m => toSlug(m) === canonicalSlug);
+  // A dangling alias — the entity it names is not loaded. Not found is the
+  // honest answer; inventing one would be the failure this module prevents.
+  if (!target) return { kind: 'not_found', slug: entityParam };
+
+  return { kind: 'aliased', entity: target, requestedSlug: entityParam, canonicalSlug };
 }
 
 /** Longest slug echoed back to the page before it is truncated. */
