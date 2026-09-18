@@ -14,7 +14,7 @@
 
 import { describe, it, expect } from 'vitest';
 import type { Municipality } from '../types/budget';
-import { resolveEntityParam, displaySlug } from './entityRouting';
+import { resolveEntityParam, displaySlug, displayLabel } from './entityRouting';
 import type { EntityAlias } from './entityRouting';
 
 const muni = (name: string, state: string, entity_type: Municipality['entity_type'] = 'city'): Municipality =>
@@ -109,8 +109,15 @@ describe('displaySlug — the slug is untrusted URL input', () => {
 // reason resolving one does not reintroduce the Bloomington failure. Every
 // rule below exists to keep that distinction true.
 
-const alias = (aliasName: string, state: string, canonicalName: string): EntityAlias =>
-  ({ aliasName, state, canonicalName });
+// Aliases arrive already slugged, from the same SQL expression that builds
+// `slug` in the coverage catalog — so this helper slugs its inputs the way the
+// API does, rather than the resolver doing it.
+const alias = (aliasName: string, state: string, canonicalName: string): EntityAlias => ({
+  slug: `${aliasName.toLowerCase().replace(/\s+/g, '-')}-${state.toLowerCase()}`,
+  label: aliasName,
+  canonicalSlug: `${canonicalName.toLowerCase().replace(/\s+/g, '-')}-${state.toLowerCase()}`,
+  canonicalLabel: canonicalName,
+});
 
 const aliasList: Municipality[] = [
   muni('Bloomington', 'IN'),
@@ -191,5 +198,30 @@ describe('resolveEntityParam — aliases', () => {
 
   it('an empty slug is not_found, never an alias hit', () => {
     expect(resolveEntityParam(aliasList, '', aliases).kind).toBe('not_found');
+  });
+});
+
+describe('displayLabel — the guard for a name, not a slug', () => {
+  it('KEEPS the spaces displaySlug strips', () => {
+    // The bug this exists to prevent: displaySlug('Birchwood Village') is
+    // 'BirchwoodVillage', which is what the rename notice would have shown.
+    expect(displayLabel('Birchwood Village')).toBe('Birchwood Village');
+    expect(displaySlug('Birchwood Village')).toBe('BirchwoodVillage');
+  });
+
+  it('collapses runs of whitespace rather than removing them', () => {
+    expect(displayLabel('Marine  on   Saint Croix')).toBe('Marine on Saint Croix');
+  });
+
+  it('strips control characters and trims', () => {
+    // Built rather than written literally: a raw control byte in a source file
+    // trips tests/noControlBytesInSource.test.mjs and tests/nulByte.test.mjs.
+    expect(displayLabel(`  Birch${String.fromCharCode(0)}wood  `)).toBe('Birchwood');
+  });
+
+  it('truncates a name long enough to blow out the banner', () => {
+    const out = displayLabel('x'.repeat(200));
+    expect(out.length).toBe(64);
+    expect(out.endsWith('…')).toBe(true);
   });
 });

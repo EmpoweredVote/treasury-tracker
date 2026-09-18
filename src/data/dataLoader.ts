@@ -386,9 +386,10 @@ export function listEntityAliases(): Promise<EntityAlias[]> {
         // on, so a malformed row is dropped rather than trusted.
         return body.filter((a): a is EntityAlias =>
           !!a && typeof a === 'object' &&
-          typeof (a as EntityAlias).aliasName === 'string' &&
-          typeof (a as EntityAlias).state === 'string' &&
-          typeof (a as EntityAlias).canonicalName === 'string'
+          typeof (a as EntityAlias).slug === 'string' &&
+          typeof (a as EntityAlias).label === 'string' &&
+          typeof (a as EntityAlias).canonicalSlug === 'string' &&
+          typeof (a as EntityAlias).canonicalLabel === 'string'
         );
       } catch {
         return [];

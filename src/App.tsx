@@ -59,7 +59,7 @@ import { resolveFeatureIcons, resolveTriviaIcon } from './utils/featureIcons';
 import { FeatureIconRow } from './components/FeatureIconRow';
 import type { BudgetCategory, BudgetData, FederalContext, HydratedMunicipality, LinkedTransactionSummary, Municipality, OrgFinancialSummary } from './types/budget';
 import { hasDatasets } from './data/municipalityDatasets';
-import { resolveEntityParam, toSlug, displaySlug } from './utils/entityRouting';
+import { resolveEntityParam, toSlug, displayLabel } from './utils/entityRouting';
 
 interface BreadcrumbItem {
   label: string;
@@ -435,7 +435,11 @@ function App() {
           url.searchParams.set('entity', resolution.canonicalSlug);
           window.history.replaceState({}, '', url);
           setAliasNotice({
-            requested: displaySlug(resolution.requestedSlug),
+            // The published NAME, not the slug — "Birchwood is now published as
+            // Birchwood Village" says something; "birchwood-mn is" does not.
+            // Still run through displaySlug: it is a length and control-character
+            // guard on a value that reached us over the network.
+            requested: displayLabel(resolution.requestedLabel),
             currentName: resolution.entity.name,
           });
         }

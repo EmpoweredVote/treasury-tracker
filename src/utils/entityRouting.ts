@@ -34,38 +34,34 @@ import type { Municipality } from '../types/budget';
  * stops matching, and before this module that meant landing on Bloomington.
  */
 export function toSlug(m: Municipality): string {
-  return slugify(m.name, m.state);
+  return `${m.name.toLowerCase().replace(/\s+/g, '-')}-${m.state.toLowerCase()}`;
 }
 
 /**
- * The slug transform itself, over a bare name and state.
+ * A slug an entity used to be addressable by, and the slug it uses now.
  *
- * ⚠ `toSlug` delegates here rather than the other way round, so alias slugs and
- * entity slugs cannot be computed differently. The docblock above is about
- * exactly this: a second copy of this transform does not throw when it drifts,
- * it just quietly stops matching. Aliases would then resolve to nothing and
- * look like missing data rather than a bug.
- */
-function slugify(name: string, state: string): string {
-  return `${name.toLowerCase().replace(/\s+/g, '-')}-${state.toLowerCase()}`;
-}
-
-/**
- * A name an entity used to be published under.
- *
- * Carries NAMES, not slugs, for the reason in `slugify`: the API that serves
- * these must not own a second implementation of the slug format. It states
- * what a publisher called the place; TT decides what that slugs to.
+ * Both sides arrive already slugged, from the same SQL expression that builds
+ * `slug` in GET /api/treasury/coverage — so the producer states the identity
+ * once and no consumer rebuilds `toSlug`. `label` is the published name, for
+ * telling a reader what changed; nothing matches on it.
  */
 export interface EntityAlias {
-  aliasName: string;
-  state: string;
-  canonicalName: string;
+  slug: string;
+  label: string;
+  canonicalSlug: string;
+  canonicalLabel: string;
 }
 
 export type EntityParamResolution =
   | { kind: 'matched'; entity: Municipality }
-  | { kind: 'aliased'; entity: Municipality; requestedSlug: string; canonicalSlug: string }
+  | {
+      kind: 'aliased';
+      entity: Municipality;
+      requestedSlug: string;
+      canonicalSlug: string;
+      /** The name that slug was published under, for naming the change to a reader. */
+      requestedLabel: string;
+    }
   | { kind: 'not_found'; slug: string };
 
 /**
@@ -91,14 +87,12 @@ export function resolveEntityParam(
   // target is a rename; two is a contradiction in the data, and a contradiction
   // is resolved by refusing, never by picking. `aliases` defaults to empty, so
   // every existing caller keeps exactly the behaviour it had.
-  const targets = new Set(
-    aliases
-      .filter(a => slugify(a.aliasName, a.state) === entityParam)
-      .map(a => slugify(a.canonicalName, a.state))
-      // A self-alias says nothing; if it matched a live entity we already
-      // returned above, so here it can only add noise to the ambiguity count.
-      .filter(canonicalSlug => canonicalSlug !== entityParam)
+  const claiming = aliases.filter(
+    // A self-alias says nothing; if it matched a live entity we already
+    // returned above, so here it can only add noise to the ambiguity count.
+    a => a.slug === entityParam && a.canonicalSlug !== entityParam
   );
+  const targets = new Set(claiming.map(a => a.canonicalSlug));
   if (targets.size !== 1) return { kind: 'not_found', slug: entityParam };
 
   const canonicalSlug = [...targets][0];
@@ -107,7 +101,13 @@ export function resolveEntityParam(
   // honest answer; inventing one would be the failure this module prevents.
   if (!target) return { kind: 'not_found', slug: entityParam };
 
-  return { kind: 'aliased', entity: target, requestedSlug: entityParam, canonicalSlug };
+  return {
+    kind: 'aliased',
+    entity: target,
+    requestedSlug: entityParam,
+    canonicalSlug,
+    requestedLabel: claiming[0]!.label,
+  };
 }
 
 /** Longest slug echoed back to the page before it is truncated. */
@@ -121,6 +121,20 @@ const MAX_DISPLAY_SLUG = 64;
  */
 export function displaySlug(slug: string): string {
   const clean = slug.replace(/[\p{C}\s]/gu, '');
+  return clean.length > MAX_DISPLAY_SLUG
+    ? `${clean.slice(0, MAX_DISPLAY_SLUG - 1)}…`
+    : clean;
+}
+
+/**
+ * The same guard for a published NAME rather than a slug.
+ *
+ * ⚠ `displaySlug` cannot be reused here: it strips whitespace, which is correct
+ * for a slug and turns "Birchwood Village" into "BirchwoodVillage". Names keep
+ * their spaces — collapsed, not removed — and lose only control characters.
+ */
+export function displayLabel(name: string): string {
+  const clean = name.replace(/\p{C}/gu, '').replace(/\s+/g, ' ').trim();
   return clean.length > MAX_DISPLAY_SLUG
     ? `${clean.slice(0, MAX_DISPLAY_SLUG - 1)}…`
     : clean;
