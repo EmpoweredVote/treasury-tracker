@@ -22,6 +22,7 @@
     "frozen:snapshot": "node --env-file=.env scripts/captureFrozenSnapshot.mjs",
     "frozen:backup-diff": "node --env-file=.env scripts/frozenFigureBackupDiff.mjs",
     "check:forks": "node --env-file=.env scripts/checkForkedEntities.mjs",
+    "register:mn-keys": "node --env-file=.env scripts/registerMnOsaEntityKeys.mjs",
     "register:rows": "node scripts/registerCreatedRows.mjs",
     "verify:live-sync": "node scripts/liveSyncExclusions.mjs --check"
   },

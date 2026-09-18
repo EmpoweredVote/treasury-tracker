@@ -300,3 +300,82 @@ blocks. Do not assume CI covers it — see `reference_ci_and_io_test_timeouts`.
    file, while TT holds the capital-O spelling for FY2014-2023. The publisher's
    capitalisation is not even stable within its own series — further argument
    for keying on the id rather than the name.
+
+## ✅ APPROACH C IS BUILT — MN OSA cities, 2026-09-17
+
+Shipped as four migrations, a loader change, a backfill script and five tests.
+**856 of 856 MN cities now carry MN OSA's own `GovEntityID`; none is identified
+by name alone.** Two things this design predicted turned out to be wrong, and
+both were found by measuring rather than by reasoning.
+
+### ⚠⚠ Wrong prediction 1: "approach C lands in the alias table with no further
+### schema work"
+
+It cannot. Two constraints already in the database refuse it, and both were
+measured before anything was written:
+
+1. The `municipality_aliases_not_an_entity` trigger refuses a row whose
+   `alias_name` matches a municipality. Registering Minneapolis's id means a
+   row named `Minneapolis`, so **every one of the 851 registrations would have
+   been refused.** The common case for a key is a name that has never changed —
+   which is exactly what an *alias* table is built to reject.
+2. `UNIQUE (source, source_entity_key)` there permits one row per key, so after
+   a rename the table cannot hold both the key and the new spelling.
+
+So keys live in `treasury.municipality_source_keys (source, source_entity_key)
+→ municipality_id`, and each table keeps one invariant: **the key table says
+which government the publisher means, the alias table says what it has been
+called.** A rename now writes one row in each.
+
+### ⚠⚠ Wrong prediction 2: approach C covers this publisher
+
+It covers its **cities only**. The county workbooks print **no `GovEntityID` at
+all** — measured on `county_20_data.xlsx`, whose first column is `Entity Name`.
+MN's 87 counties keep name identity plus the end-of-load detector. A publisher
+is not uniform, and neither is its file format.
+
+### What was built
+
+| Component | What it does |
+|---|---|
+| `treasury.municipality_source_keys` + `attach_source_key()` | the key, and the one door that writes it |
+| `treasury_ensure_municipality` step 1 | resolves by key before name; **registers** the key it was given |
+| `treasury_register_source_key()` | backfill door — resolves a name, **never creates** |
+| `treasury_unkeyed_entities()` | the residual: who is still name-identified |
+| `loadMNOSA.js` `entityGovId()` / `enumerateEntityKeys()` | reads the id; returns null/`[]` on the county layout |
+| `scripts/registerMnOsaEntityKeys.mjs` (`npm run register:mn-keys`) | the backfill pass |
+
+Three guards, each of which **raises rather than resolving quietly**: a key used
+for another state or kind of government; a key whose entity differs from the
+entity the incoming *name* points at (that is a fork that already exists, and
+resolving by key would hide it forever); and a spelling already aliased to a
+different entity. A new spelling is recorded as an alias, and the stored name is
+never touched — criterion 5.
+
+### Measured results
+
+    backfill roster    FY2023 851 ids + FY2022 3 + FY2014 2 = 856
+                       (every other XLSX year adds ZERO — measured across all 12)
+    registered         856 / 856      no TT entity: 0
+    still unkeyed      0 of 856 MN cities
+    key 168 -> Birchwood Village      key 593 -> Marine on Saint Croix
+    npm run check:forks                OK — no forked cities
+
+⭐ **The union of ids across the whole XLSX era is 856 — exactly the number of
+MN cities TT holds.** Boy River (183) and Thomson (858) last filed in FY2014 and
+would have been missed by a latest-file-only backfill.
+
+⭐ **Proven live, against production, then rolled back:** a spelling TT has
+never seen, carrying the real key 168, resolved to the existing Birchwood
+Village entity, created **0** rows, and left the stored name unchanged. That is
+the Birchwood incident replayed as a non-event.
+
+### ⚠ What is still not prevented
+
+- **Counties, and every other publisher without an id** — name identity and the
+  end-of-load detector, exactly as before.
+- **A city TT holds that MN OSA has never named** — there are none today, and
+  `treasury_unkeyed_entities()` is how that stays true rather than being assumed.
+- **Id churn** — if OSA ever renumbers, `attach_source_key` raises instead of
+  storing a second id. Loud, by choice: the mechanism rests on the id being
+  stable, so the day that stops being true must not pass quietly.

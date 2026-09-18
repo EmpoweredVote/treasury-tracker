@@ -5,6 +5,7 @@
   "header_row": 1,
   "data_start_row": 2,
   "identity_labels": {
+    "gov_entity_id": "GovEntityID",
     "entity_name": "Entity Name",
     "parent_entity_name": "ParentEntityName",
     "entity_type": "Entity Type",
@@ -12,7 +13,7 @@
     "population": "Population",
     "financial_year": "FinancialYear"
   },
-  "identity_notes": "County files have NO 'GAAPInd' and NO 'ParentEntityName' columns — the loader returns null/'' when a label is absent (do not throw). entity_basis is null for counties (no basis flag in the source).",
+  "identity_notes": "⚠⚠ County files also have NO 'GovEntityID' column — measured on county_20_data.xlsx, whose first column is 'Entity Name'. Approach C (identity by the publisher's own stable id) is therefore CITY-ONLY for this source; counties keep name identity plus the end-of-load fork detector. County files have NO 'GAAPInd' and NO 'ParentEntityName' columns — the loader returns null/'' when a label is absent (do not throw). entity_basis is null for counties (no basis flag in the source).",
   "label_aliases": {
     "ecenomicdevelopmentcapitaloutlay": "economicdevelopmentcapitaloutlay"
   },

@@ -325,6 +325,39 @@ export function entityCounty(workbook, entityName, entityType = 'city') {
 }
 
 /**
+ * ⭐ The publisher's own stable unit id, from the `GovEntityID` column — approach C.
+ *
+ * ⚠⚠ THIS IS WHAT STOPS A RE-SPELLING FROM BECOMING A SECOND GOVERNMENT. MN OSA
+ * renamed two cities under TT's feet, and both times a new entity was created and
+ * the city's history was severed with nothing failing:
+ *
+ *   FY2020   "Birchwood"          GovEntityID=168   pop 863
+ *   FY2022   "Birchwood Village"  GovEntityID=168   pop 851
+ *             ^^^^ name changed                ^^^^ id did not
+ *
+ * Returned as a STRING: the key is an identifier, not a quantity, and the column is
+ * text in some files and numeric in others. Never do arithmetic on it.
+ *
+ * ⚠ Returns null when the column is absent — MEASURED: the COUNTY workbooks have no
+ * GovEntityID at all (county_20_data.xlsx starts at `Entity Name`). Counties fall
+ * through to name identity, exactly as before. Absence is not an error here.
+ *
+ * ⚠ The tree map is not the file: `identity_labels` listed no id until 2026-09-16,
+ * because it only maps the labels the HIERARCHY needs. Reading the real header row
+ * is what found this column.
+ */
+export function entityGovId(workbook, entityName, entityType = 'city') {
+  const tm = treeMap();
+  const ws = getSheet(workbook);
+  const headerMap = headerIndex(ws, tm.header_row || 1);
+  const c = colOf(headerMap, tm.identity_labels.gov_entity_id);
+  if (c == null) return null;
+  const row = findEntityRow(ws, headerMap, entityName);
+  const raw = cellText(row.getCell(c));
+  return raw || null;
+}
+
+/**
  * Accounting basis from the per-row `GAAPInd` column (D-07): 'GAAP' | 'Cash'.
  * Returns null when the column is absent (county files have no GAAPInd — D-08).
  */
@@ -377,6 +410,43 @@ export function enumerateEntities(workbook, entityType = 'city') {
     names.push(name);
   }
   return names;
+}
+
+/**
+ * Enumerate every (name, GovEntityID) pair in the sheet — the roster approach C
+ * registers from.
+ *
+ * ⚠ Deliberately NOT filtered by "has financials" the way enumerateEntities() is.
+ * A city that filed nothing this year still has an identity, and keying it is what
+ * stops a rename from forking it before it files again. The two functions answer
+ * different questions: that one asks what to LOAD, this one asks who EXISTS.
+ *
+ * ⚠ One pass over the rows. Calling entityGovId() per name re-scans the sheet for
+ * each of ~850 cities.
+ *
+ * Returns [] when the layout prints no id at all (every county file).
+ */
+export function enumerateEntityKeys(workbook, entityType = 'city') {
+  const tm = treeMap();
+  const ws = getSheet(workbook);
+  const headerMap = headerIndex(ws, tm.header_row || 1);
+  const idCol = colOf(headerMap, tm.identity_labels.gov_entity_id);
+  const nameCol = colOf(headerMap, tm.identity_labels.entity_name);
+  if (idCol == null || nameCol == null) return [];
+
+  const out = [];
+  const seen = new Set();
+  const dataStart = tm.data_start_row || 2;
+  for (let r = dataStart; r <= ws.rowCount; r++) {
+    const row = ws.getRow(r);
+    const name = cellText(row.getCell(nameCol));
+    const govEntityId = cellText(row.getCell(idCol));
+    if (!name || !govEntityId) continue;
+    if (seen.has(govEntityId)) continue;
+    seen.add(govEntityId);
+    out.push({ name, govEntityId });
+  }
+  return out;
 }
 
 // ── Manifest lookup (D-05) ───────────────────────────────────────────────────
@@ -494,6 +564,7 @@ export async function importEntity(supabase, workbook, opts) {
   const population = entityPopulation(workbook, entityName, entityType);
   const county = entityCounty(workbook, entityName, entityType);
   const basis = entityBasis(workbook, entityName, entityType);
+  const govEntityId = entityGovId(workbook, entityName, entityType);
 
   // Canonical DB name (falls back to the workbook lookup name when not overridden).
   const dbName = municipalityName || entityName;
@@ -501,14 +572,24 @@ export async function importEntity(supabase, workbook, opts) {
   const summary = {
     entityName: dbName, fiscalYear, basis, entityType,
     operatingTotal: exp.total, revenueTotal: rev.total,
-    population, county,
+    population, county, govEntityId,
     expFunctions: exp.tree.length, revGroups: rev.tree.length,
   };
 
   if (dryRun) return summary;
 
+  // ⭐ Approach C: identity by the PUBLISHER'S OWN ID where it prints one, so a
+  // re-spelling resolves to the same government instead of creating a second.
+  // `sourceEntityKey` is null on county files (no GovEntityID column), which is
+  // exactly today's name-based behaviour — see entityGovId().
+  //
+  // ⚠ The key is scoped by `source`, and the source string is the SAME one
+  // stamped on every MN budget row (DATA_SOURCE_NAME), so a reader can join the
+  // key back to the rows it protected.
   const { id: municipalityId } = await ensureMunicipality(supabase, {
     name: dbName, state: 'MN', entityType: entityType, population: population || 0,
+    source: govEntityId ? DATA_SOURCE_NAME : null,
+    sourceEntityKey: govEntityId,
   });
 
   summary.municipalityId = municipalityId;
@@ -561,9 +642,11 @@ async function main() {
   const pop = entityPopulation(wb, entity, entityType);
   const county = entityCounty(wb, entity, entityType);
   const basis = entityBasis(wb, entity, entityType);
+  const govId = entityGovId(wb, entity, entityType);
 
   console.log(`\nMN OSA City/County Finances Report — ${entity} (MN, ${entityType}) FY${fiscalYear}${dryRun ? '  [dry-run]' : ''}`);
   console.log(`  Source: ${DATA_SOURCE_NAME}`);
+  console.log(`  GovEntityID (identity key): ${govId ?? '(none — this layout prints no id; identity falls back to the NAME)'}`);
   console.log(`  Basis (GAAPInd): ${basis == null ? '(none — no GAAPInd column)' : basis}`);
   console.log(`  Source URL: ${sourceUrl || '(none)'}`);
   console.log(`  Source date: ${sourceDate}`);
