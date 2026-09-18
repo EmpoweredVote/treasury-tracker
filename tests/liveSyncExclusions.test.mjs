@@ -237,8 +237,11 @@ describe('the rewrite surface the sync RPC actually uses', () => {
 describe('the baseline itself', () => {
   it('carries the scoped row count and digest', () => {
     // 62654 (v2.34) -10 (v2.35, the legacy Indiana rows the name-join could not
-    // see) -51 (v2.36, re-keying the scope to the RPC's actual rewrite surface).
-    expect(baseline.frozen_row_count).toBe(62593);
+    // see) -51 (v2.36, re-keying the scope to the RPC's actual rewrite surface)
+    // -6 (v2.37, TT's OWN Empowered Vote rows: a live feed that was not a
+    // registered data_source AT ALL, so both halves of the union were blind by
+    // construction — v2.35/v2.36 were wrong labels, this was no label).
+    expect(baseline.frozen_row_count).toBe(62587);
     expect(baseline.figures_frozen).toMatch(/^[0-9a-f]{64}$/);
   });
 
