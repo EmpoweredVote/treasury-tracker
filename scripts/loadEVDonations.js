@@ -20,6 +20,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { classifyDeposit, extractDeposits } from './lib/evBankDeposits.js';
+import { findFile, reportSourceWarnings } from './lib/evSourceFiles.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -557,11 +558,6 @@ export function carryForwardFromSheet(sheetPath, fy) {
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────────
-function findFile(dir, re) {
-  const f = fs.readdirSync(dir).find(n => re.test(n));
-  return f ? path.join(dir, f) : null;
-}
-
 async function main() {
   const args = process.argv.slice(2);
   const fyArg = args.includes('--fy') ? parseInt(args[args.indexOf('--fy') + 1], 10) : new Date().getFullYear();
@@ -572,12 +568,15 @@ async function main() {
 
   console.log(`\n  EV Donation Loader -- FY${fyArg}${dryRun ? ' (dry-run)' : ''}${verifyAggregates ? ' (verify-aggregates)' : ''}\n  ${dir}\n`);
 
-  const gbFile  = findFile(dir, /givebutter.*transactions.*\.csv$/i);
-  // monthly earnings file only — "analytics-earnings.csv" suffix excludes "...detailed-earnings.csv"
-  const patFile = findFile(dir, /patreon.*analytics-earnings\.csv$/i);
+  const gbFile  = findFile(dir, /givebutter.*transactions.*\.csv$/i, 'Givebutter transactions');
+  // Monthly earnings only. Patreon appends a period suffix (…-earnings_092026.csv), so the
+  // trailing .* is required — but the split still holds: the detailed file's substring is
+  // "analytics-DETAILED-earnings", which "analytics-earnings" cannot match. Verified against
+  // all 7 Patreon exports in data/ev-sources/ (payouts and refunds are excluded too).
+  const patFile = findFile(dir, /patreon.*analytics-earnings.*\.csv$/i, 'Patreon earnings');
   // detailed earnings — used for distinct patron count (Phase 81.5)
-  const patDetailFile = findFile(dir, /patreon.*detailed-earnings\.csv$/i);
-  const benFile = findFile(dir, /benevity.*disbursement.*\.csv$/i);
+  const patDetailFile = findFile(dir, /patreon.*detailed-earnings.*\.csv$/i, 'Patreon detailed-earnings');
+  const benFile = findFile(dir, /benevity.*disbursement.*\.csv$/i, 'Benevity disbursement');
   if (!gbFile || !patFile || !benFile) {
     console.error('Missing export(s):', { gbFile, patFile, benFile });
     process.exit(1);
@@ -679,5 +678,14 @@ function printTree(categories) {
 
 // Run only when invoked directly (not on import for tests)
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  main().catch(err => { console.error('\n❌ Fatal:', err.message); process.exit(1); });
+  // Source warnings print LAST, after the summary -- a stale or ambiguous export shows up
+  // as a plausible number in the summary, so a warning above it would simply scroll away.
+  const strictSources = process.argv.includes('--strict-sources');
+  main()
+    .then(() => reportSourceWarnings(strictSources))
+    .catch(err => {
+      console.error('\n❌ Fatal:', err.message);
+      reportSourceWarnings(false);
+      process.exit(1);
+    });
 }

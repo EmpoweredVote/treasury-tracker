@@ -26,6 +26,7 @@ import { fileURLToPath } from 'url';
 import { readCsvRows, extractDebits, latestBalance } from './loadEVBank.js';
 import { parseGiveButter, parsePatreon, parseBenevity } from './loadEVDonations.js';
 import { classifyDeposit, extractDeposits } from './lib/evBankDeposits.js';
+import { findFile, reportSourceWarnings } from './lib/evSourceFiles.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const round2 = n => Math.round((n + Number.EPSILON) * 100) / 100;
@@ -120,7 +121,8 @@ export function reconcile(income_by_source, deposits) {
 }
 
 // ── File discovery ────────────────────────────────────────────────────────────
-function findFile(dir, re) { const f = fs.readdirSync(dir).find(n => re.test(n)); return f ? path.join(dir, f) : null; }
+// findFile lives in lib/evSourceFiles.js so staleness/ambiguity warnings are shared
+// across all three EV loaders. Selection semantics are unchanged (first readdir match).
 
 // ── Manual fundraising goal (D-01) ──────────────────────────────────────────────
 // Reads the committed, git-reviewable data/ev-goal.json — an array of
@@ -156,11 +158,13 @@ async function getMunicipalityId(sb) {
 
 // ── Compute the full summary from the source files (pure orchestration) ────────
 export function computeSummary(dir, fy) {
-  const bankFile = findFile(dir, /beneficial.*state.*bank.*\.csv$/i);
+  const bankFile = findFile(dir, /beneficial.*state.*bank.*\.csv$/i, 'Beneficial State Bank');
   if (!bankFile) throw new Error('Missing Beneficial State Bank export in ' + dir);
-  const gbFile = findFile(dir, /givebutter.*transactions.*\.csv$/i);
-  const patFile = findFile(dir, /patreon.*analytics-earnings\.csv$/i);
-  const benFile = findFile(dir, /benevity.*disbursement.*\.csv$/i);
+  const gbFile = findFile(dir, /givebutter.*transactions.*\.csv$/i, 'Givebutter transactions');
+  // Trailing .* tolerates Patreon's period suffix (…-earnings_092026.csv); the
+  // detailed file reads "analytics-detailed-earnings" so it still cannot match here.
+  const patFile = findFile(dir, /patreon.*analytics-earnings.*\.csv$/i, 'Patreon earnings');
+  const benFile = findFile(dir, /benevity.*disbursement.*\.csv$/i, 'Benevity disbursement');
   if (!gbFile || !patFile || !benFile) throw new Error('Missing platform export(s): ' + JSON.stringify({ gbFile, patFile, benFile }));
 
   const bankRows = readCsvRows(bankFile);
@@ -248,5 +252,14 @@ async function main() {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  main().catch(err => { console.error('\n❌ Fatal:', err.message); process.exit(1); });
+  // Source warnings print LAST, after the summary -- a stale or ambiguous export shows up
+  // as a plausible number in the summary, so a warning above it would simply scroll away.
+  const strictSources = process.argv.includes('--strict-sources');
+  main()
+    .then(() => reportSourceWarnings(strictSources))
+    .catch(err => {
+      console.error('\n❌ Fatal:', err.message);
+      reportSourceWarnings(false);
+      process.exit(1);
+    });
 }

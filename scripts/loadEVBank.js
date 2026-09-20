@@ -22,6 +22,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { findFile, reportSourceWarnings } from './lib/evSourceFiles.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -198,7 +199,6 @@ async function insertCategories(sb, budgetId, categories, parentId = null, depth
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────────
-function findFile(dir, re) { const f = fs.readdirSync(dir).find(n => re.test(n)); return f ? path.join(dir, f) : null; }
 
 async function main() {
   const args = process.argv.slice(2);
@@ -207,7 +207,7 @@ async function main() {
   const dir = args.includes('--source-dir') ? args[args.indexOf('--source-dir') + 1] : path.join(__dirname, '..', 'data', 'ev-sources');
 
   console.log(`\n🏦 EV Bank Expense Loader — FY${fy}${dryRun ? ' (dry-run)' : ''}\n📂 ${dir}\n`);
-  const file = findFile(dir, /beneficial.*state.*bank.*\.csv$/i);
+  const file = findFile(dir, /beneficial.*state.*bank.*\.csv$/i, 'Beneficial State Bank');
   if (!file) { console.error('Missing Beneficial State Bank export in', dir); process.exit(1); }
 
   const rows = readCsvRows(file);
@@ -233,5 +233,14 @@ async function main() {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  main().catch(err => { console.error('\n❌ Fatal:', err.message); process.exit(1); });
+  // Source warnings print LAST, after the summary -- a stale or ambiguous export shows up
+  // as a plausible number in the summary, so a warning above it would simply scroll away.
+  const strictSources = process.argv.includes('--strict-sources');
+  main()
+    .then(() => reportSourceWarnings(strictSources))
+    .catch(err => {
+      console.error('\n❌ Fatal:', err.message);
+      reportSourceWarnings(false);
+      process.exit(1);
+    });
 }
