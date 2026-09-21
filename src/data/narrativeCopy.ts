@@ -31,3 +31,26 @@ export function revenueOpening(name: string, isNonprofit: boolean, isPast: boole
   if (isNonprofit) return `${name} ${isPast ? 'raised' : 'raises'}`;
   return `${name} ${isPast ? 'funded' : 'funds'} this through`;
 }
+
+/**
+ * The line under the hero headline.
+ *
+ * ⚠ It read "Explore how public funds are allocated and spent." for EVERY
+ * entity, including Empowered Vote's own page — where the money is donations,
+ * not public funds. Same shape as the `revenueOpening` bug above: one sentence
+ * that reads fine everywhere it was written for, sitting under a headline that
+ * has already said who this is, and no figure is wrong, so nothing would ever
+ * have flagged it.
+ *
+ * ⚠⚠ THE NONPROFIT LINE DELIBERATELY AVOIDS "every dollar" AND ANY OTHER
+ * COMPLETENESS CLAIM. The page publishes the BANK balance only, and EV also
+ * holds money in a Givebutter wallet that has not been transferred out
+ * ($290.91 on 2026-09-20). "Every dollar" would therefore be an overclaim on a
+ * transparency page, which is the worst possible place for one.
+ *
+ * @param isNonprofit  nonprofits raise their own money; governments hold public funds
+ */
+export function heroSubtitle(isNonprofit: boolean): string {
+  if (isNonprofit) return 'Explore how this nonprofit raises and spends its money.';
+  return 'Explore how public funds are allocated and spent.';
+}

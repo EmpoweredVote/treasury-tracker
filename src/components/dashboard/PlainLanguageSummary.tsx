@@ -387,8 +387,28 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
           {/* SCOPE-01 Task 10: which funds each figure covers, beside the source that
               published it. Rendered for `unknown` too -- omitting the label when we have
               not verified the scope would leave exactly the silent ambiguity this exists
-              to remove. Copy lives in src/data/fundScopeVocabulary.ts. */}
-          {(operatingData || revenueData) && (
+              to remove. Copy lives in src/data/fundScopeVocabulary.ts.
+
+              ⚠⚠ NOT FOR NONPROFITS, AND THIS IS NOT THE "HIDE UNKNOWN" MISTAKE.
+              ScopeLabel's own contract says `unknown` must still render, and for a
+              GOVERNMENT that is right: "which funds does this cover", "actual or
+              adopted", "who audited it" are real questions with real answers that we
+              may simply not have established yet, so saying so is the honest state.
+
+              For EV they are not unanswered questions, they are INAPPLICABLE ones.
+              There are no funds — there is one bank account, plus Givebutter, Patreon
+              and Benevity. There is no GASB basis and no ACFR. So "Scope not
+              established" tells a reader we failed to check something that does not
+              exist, which is less honest than saying nothing, not more. All six EV
+              budget rows carry unknown/unknown/unknown, so every chip on that page was
+              this category error.
+
+              ⚠ Gated on `isNonprofit`, deliberately NOT on `scope === 'unknown'` —
+              government rows keep rendering their unknowns exactly as before. If EV's
+              audit status is ever worth stating, the honest line is "unaudited,
+              self-reported from bank records", which is a different claim from "not
+              established" and belongs in copy written for it. */}
+          {!isNonprofit && (operatingData || revenueData) && (
             <span className="mt-3 flex flex-wrap items-start gap-x-4 gap-y-2">
               {operatingData && (
                 <ScopeLabel

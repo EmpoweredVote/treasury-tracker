@@ -60,6 +60,7 @@ import { FeatureIconRow } from './components/FeatureIconRow';
 import type { BudgetCategory, BudgetData, FederalContext, HydratedMunicipality, LinkedTransactionSummary, Municipality, OrgFinancialSummary } from './types/budget';
 import { hasDatasets } from './data/municipalityDatasets';
 import { resolveEntityParam, resolveEntityParamViaLookup, toSlug, displayLabel } from './utils/entityRouting';
+import { heroSubtitle } from './data/narrativeCopy';
 
 interface BreadcrumbItem {
   label: string;
@@ -1189,7 +1190,7 @@ function App() {
               {selectedEntity.name} Finances
             </h1>
             <p className="text-white/80 text-sm mt-1">
-              Explore how public funds are allocated and spent.
+              {heroSubtitle(selectedEntity.entity_type === 'nonprofit')}
             </p>
           </div>
         </div>
@@ -1433,8 +1434,14 @@ function App() {
                 ) : null;
               })()}
 
-              {/* SCOPE-03: which published series is on screen */}
-              {availableSeries.length > 0 && (
+              {/* SCOPE-03: which published series is on screen.
+                  ⚠ Not for nonprofits — same reasoning as the provenance chips in
+                  PlainLanguageSummary. EV has exactly ONE series and it is
+                  unknown/unknown, so this rendered a single-option "toggle" reading
+                  "Scope not established · basis not established": a choice that offers
+                  nothing, described in vocabulary (fund scope, GASB basis) that does
+                  not apply to a nonprofit's own bank and platform records. */}
+              {selectedEntity?.entity_type !== 'nonprofit' && availableSeries.length > 0 && (
                 <div className="mb-4">
                   <FundSeriesToggle
                     series={availableSeries}
