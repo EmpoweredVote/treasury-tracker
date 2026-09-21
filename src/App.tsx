@@ -1433,8 +1433,14 @@ function App() {
                 ) : null;
               })()}
 
-              {/* SCOPE-03: which published series is on screen */}
-              {availableSeries.length > 0 && (
+              {/* SCOPE-03: which published series is on screen.
+                  ⚠ Not for nonprofits — same reasoning as the provenance chips in
+                  PlainLanguageSummary. EV has exactly ONE series and it is
+                  unknown/unknown, so this rendered a single-option "toggle" reading
+                  "Scope not established · basis not established": a choice that offers
+                  nothing, described in vocabulary (fund scope, GASB basis) that does
+                  not apply to a nonprofit's own bank and platform records. */}
+              {selectedEntity?.entity_type !== 'nonprofit' && availableSeries.length > 0 && (
                 <div className="mb-4">
                   <FundSeriesToggle
                     series={availableSeries}
