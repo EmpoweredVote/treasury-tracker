@@ -402,32 +402,92 @@ async function insertCategories(sb, budgetId, categories, fy, parentId = null, d
   }
 }
 
-/** Re-insert post-exportAsOf webhook delta rows under Give Butter and bump totals (mirrors the RPC). */
-async function reapplyWebhookDelta(sb, budgetId, deltaRows) {
+/**
+ * Re-apply post-exportAsOf webhook donations, through the SAME atomic RPC the
+ * live webhook uses.
+ *
+ * ⚠⚠ THIS USED TO BE A READ-MODIFY-WRITE, AND THAT WAS THE BUG. Two writers
+ * keep this budget — this loader, and the Givebutter edge function, which calls
+ * `treasury.record_givebutter_donation`. The RPC is atomic:
+ *
+ *     UPDATE treasury.budgets SET total_budget = total_budget + p_amount ...
+ *
+ * while this function read `total_budget` into JS and wrote back `read + sum`.
+ * A webhook donation landing between the read and the write was ERASED FROM THE
+ * HEADER, while the category amounts kept it — because the RPC increments those
+ * atomically too. The signature is `total_budget` understated relative to the
+ * tree by exactly one donation, which is what was seen on 2026-09-20:
+ * header $4,770.40, tree $4,990.40, categories correct.
+ *
+ * ⚠ It also discarded the error on all four writes, which is why that incident
+ * left NOTHING to diagnose — no failure, just a number that disagreed with the
+ * rows beneath it. Every call here is now checked.
+ *
+ * ⭐ The fix is not a lock. It is that there is now ONE write path: the loader
+ * and the webhook increment through the same function, so concurrency is the
+ * database's problem and neither can clobber the other. The RPC is also
+ * idempotent on (external_id, source), so a re-run cannot double-count.
+ */
+export async function reapplyWebhookDelta(sb, budgetId, deltaRows) {
   if (!deltaRows.length) return 0;
-  const { data: cats } = await sb.from('budget_categories').select('id, name, parent_id, amount').eq('budget_id', budgetId);
-  const gb = cats.find(c => c.name === 'Give Butter');
-  const donations = cats.find(c => c.name === 'Donations');
+
+  const { data: cats, error: catErr } = await sb
+    .from('budget_categories')
+    .select('id, name, parent_id, amount')
+    .eq('budget_id', budgetId);
+  if (catErr) throw new Error(`Fetch categories for webhook delta: ${catErr.message}`);
+
+  const gb = (cats || []).find(c => c.name === 'Give Butter');
+  const donations = (cats || []).find(c => c.name === 'Donations');
   if (!gb) throw new Error('Give Butter category missing — cannot reapply webhook delta');
+  // ⚠ Required, not optional as before: the RPC bumps leaf AND parent in one
+  // statement, so a missing parent would silently leave the tree unbalanced.
+  if (!donations) throw new Error('Donations category missing — cannot reapply webhook delta');
+
   let sum = 0;
   for (const w of deltaRows) {
     const amt = Number(w.actual_amount) || 0;
-    sum += amt;
-    await sb.from('budget_line_items').insert({
-      category_id: gb.id, description: w.description || 'GiveButter donation',
-      approved_amount: amt, actual_amount: amt, vendor: w.vendor || 'GiveButter',
-      date: w.date || null, external_id: w.external_id || null, source: 'givebutter_webhook',
+    const { error } = await sb.rpc('record_givebutter_donation', {
+      p_external_id: w.external_id ?? null,
+      p_leaf_category_id: gb.id,
+      p_parent_category_id: donations.id,
+      p_budget_id: budgetId,
+      p_description: w.description || 'GiveButter donation',
+      p_amount: amt,
+      p_date: w.date || null,
+      p_vendor: w.vendor || 'GiveButter',
     });
+    if (error) {
+      throw new Error(`Re-apply webhook donation ${w.external_id ?? '(no external_id)'}: ${error.message}`);
+    }
+    sum += amt;
   }
-  await sb.from('budget_categories').update({ amount: gb_amount(gb) + sum }).eq('id', gb.id);
-  if (donations) await sb.from('budget_categories').update({ amount: donations_amount(donations) + sum }).eq('id', donations.id);
-  const { data: b } = await sb.from('budgets').select('total_budget').eq('id', budgetId).single();
-  await sb.from('budgets').update({ total_budget: Number(b.total_budget) + sum }).eq('id', budgetId);
   return sum;
 }
-// tiny helpers to read the just-fetched amounts (kept explicit for clarity)
-const gb_amount = c => Number(c.amount || 0);
-const donations_amount = c => Number(c.amount || 0);
+
+/**
+ * The header-vs-tree invariant: `budgets.total_budget` must equal the sum of the
+ * budget's TOP-LEVEL categories.
+ *
+ * ⚠⚠ TOP-LEVEL ONLY. `budget_categories` holds parents and children in one
+ * table, so summing every row double-counts and returns exactly 2x the total —
+ * a mistake I made while diagnosing this, and one that reads as a catastrophic
+ * mismatch rather than as a bad query.
+ *
+ * Returns null when they agree, or { expected, actual, diff } when they do not.
+ * Exists because the 2026-09-20 divergence was INVISIBLE: no error, no failure,
+ * just a headline figure that disagreed with the rows printed beneath it.
+ * Whatever the cause, nothing was asserting they matched.
+ *
+ * @returns {null | { expected: number, actual: number, diff: number }}
+ */
+export function headerTreeMismatch(totalBudget, topLevelCategories) {
+  const expected = round2((topLevelCategories || []).reduce((s, c) => s + Number(c.amount || 0), 0));
+  const actual = round2(Number(totalBudget || 0));
+  const diff = round2(actual - expected);
+  // Half a cent: below any real money difference, above float noise.
+  return Math.abs(diff) < 0.005 ? null : { expected, actual, diff };
+}
 
 /**
  * Persist anonymized micro-donation aggregates on the Donations budget_category row.
@@ -636,6 +696,34 @@ async function main() {
   // Uses set-if-changed: no-op on re-run if already identical.
   const aggResult = await writeDonationsAggregate(sb, budgetId, aggregates);
   console.log(`Donations category aggregate: ${aggResult.wrote ? 'written' : 'skipped'} (${aggResult.reason})`);
+
+  // ── Header-vs-tree invariant ────────────────────────────────────────────────
+  // ⚠⚠ THE 2026-09-20 DIVERGENCE WAS INVISIBLE. total_budget read $4,770.40
+  // while the categories beneath it summed to $4,990.40, and nothing failed —
+  // the writes that should have kept them equal discarded their errors, so the
+  // only symptom was a headline figure disagreeing with its own rows. Whether a
+  // reader saw the wrong number depended on which of the two the UI happened to
+  // read. This asserts they match, and FAILS the load if they do not.
+  const { data: headerRow, error: headerErr } = await sb
+    .from('budgets').select('total_budget').eq('id', budgetId).single();
+  if (headerErr) throw new Error(`Read back total_budget: ${headerErr.message}`);
+  // ⚠ parent_id IS NULL — summing every row double-counts parents and children.
+  const { data: topLevel, error: topErr } = await sb
+    .from('budget_categories').select('name, amount')
+    .eq('budget_id', budgetId).is('parent_id', null);
+  if (topErr) throw new Error(`Read back top-level categories: ${topErr.message}`);
+
+  const mismatch = headerTreeMismatch(headerRow.total_budget, topLevel);
+  if (mismatch) {
+    console.error(`\n❌ HEADER/TREE MISMATCH on FY${fyArg} revenue budget ${budgetId}`);
+    console.error(`   budgets.total_budget = $${mismatch.actual.toFixed(2)}`);
+    console.error(`   top-level categories = $${mismatch.expected.toFixed(2)}  (${topLevel.map(c => c.name).join(', ')})`);
+    console.error(`   difference           = $${mismatch.diff.toFixed(2)}`);
+    console.error('   The header and the rows beneath it disagree. A reader sees whichever');
+    console.error('   one the UI reads. Do NOT publish this — investigate before re-running.');
+    throw new Error(`total_budget $${mismatch.actual.toFixed(2)} != top-level sum $${mismatch.expected.toFixed(2)}`);
+  }
+  console.log(`Header/tree invariant: OK — total_budget $${Number(headerRow.total_budget).toFixed(2)} = Σ ${topLevel.length} top-level categories`);
 
   console.log(`\n  FY${fyArg} EV revenue loaded: $${(total + deltaSum).toFixed(2)} (baseline $${total.toFixed(2)} + webhook delta $${deltaSum.toFixed(2)})`);
   console.log(`  RECONCILE: ${aggregates.recurring_supporters} supporters, typical $${aggregates.typical_monthly}/month, FY${fyArg}\n`);
