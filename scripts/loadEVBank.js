@@ -158,17 +158,42 @@ async function getMunicipalityId(sb) {
   if (!data) throw new Error('Empowered Vote municipality not found');
   return data.id;
 }
-async function deleteOperatingBudget(sb, muniId, fy) {
-  const { data: b } = await sb.from('budgets').select('id').eq('municipality_id', muniId)
-    .eq('fiscal_year', fy).eq('dataset_type', 'operating').maybeSingle();
-  if (!b) return;
-  const { data: cats } = await sb.from('budget_categories').select('id').eq('budget_id', b.id);
-  const ids = (cats || []).map(c => c.id);
-  if (ids.length) await sb.from('budget_line_items').delete().in('category_id', ids);
-  await sb.from('budget_categories').delete().eq('budget_id', b.id);
-  await sb.from('budgets').delete().eq('id', b.id);
-}
-async function createBudget(sb, muniId, fy, total) {
+/**
+ * Get the FY operating budget row, creating it only if it does not exist yet.
+ *
+ * ⚠⚠ THE ROW IS UPDATED IN PLACE. IT MUST NEVER BE DELETED AND RECREATED.
+ *
+ * This loader used to delete the budgets row and insert a replacement, so every
+ * refresh minted a NEW uuid. That broke the frozen-figure invariant twice over
+ * (measured 2026-09-21):
+ *
+ *   1. The digest's EV exclusion materialises to a STATIC ID LIST
+ *      (scripts/data/liveSyncExcludedIds.json). A new id is not on it, so the
+ *      refreshed rows re-entered the digest and the invariant went red -- the
+ *      very thing v2.37 believed it had prevented by registering the feeds as
+ *      sources. It needed a manual re-snapshot after every refresh.
+ *   2. The dead ids stayed in treasury.frozen_excluded_ids as orphans, four of
+ *      them by the time this was found, growing with each refresh.
+ *
+ * Keeping the id stable fixes both at the source. See
+ * tests/../scripts/evBudgetInPlace.test.mjs, which fails if a delete against
+ * `budgets` ever reappears here.
+ */
+export async function ensureBudget(sb, muniId, fy, total) {
+  const { data: existing } = await sb.from('budgets').select('id')
+    .eq('municipality_id', muniId).eq('fiscal_year', fy).eq('dataset_type', 'operating').maybeSingle();
+
+  if (existing) {
+    // Refresh the descriptive columns; total_budget is written LAST, by
+    // setTotalBudget, once the tree beneath it is correct.
+    const { error } = await sb.from('budgets').update({
+      data_source: 'Beneficial State Bank', hierarchy: ['Category', 'Vendor'],
+      fiscal_year_start_month: 1,
+    }).eq('id', existing.id);
+    if (error) throw new Error(`Update budget failed: ${error.message}`);
+    return existing.id;
+  }
+
   const { data, error } = await sb.from('budgets').insert({
     municipality_id: muniId, fiscal_year: fy, dataset_type: 'operating',
     total_budget: total, data_source: 'Beneficial State Bank', hierarchy: ['Category', 'Vendor'],
@@ -176,6 +201,28 @@ async function createBudget(sb, muniId, fy, total) {
   }).select('id').single();
   if (error) throw new Error(`Create budget failed: ${error.message}`);
   return data.id;
+}
+
+/** Remove the budget's tree (line items + categories) WITHOUT touching the budget row. */
+export async function clearBudgetChildren(sb, budgetId) {
+  const { data: cats } = await sb.from('budget_categories').select('id').eq('budget_id', budgetId);
+  const ids = (cats || []).map(c => c.id);
+  if (ids.length) await sb.from('budget_line_items').delete().in('category_id', ids);
+  await sb.from('budget_categories').delete().eq('budget_id', budgetId);
+}
+
+/**
+ * Write the header total LAST, once the tree beneath it is in place.
+ *
+ * ⚠ Ordering is deliberate. The old sequence deleted the whole budget and
+ * rebuilt it, leaving a window where the page's budget was absent entirely.
+ * Writing total_budget after the categories exist means the header only moves
+ * once the rows under it are correct -- the header-vs-tree invariant PR #201
+ * added is asserted immediately after this.
+ */
+export async function setTotalBudget(sb, budgetId, total) {
+  const { error } = await sb.from('budgets').update({ total_budget: total }).eq('id', budgetId);
+  if (error) throw new Error(`Set total_budget failed: ${error.message}`);
 }
 async function insertCategories(sb, budgetId, categories, parentId = null, depth = 0) {
   for (let i = 0; i < categories.length; i++) {
@@ -226,10 +273,14 @@ async function main() {
 
   const sb = await getSupabase();
   const muniId = await getMunicipalityId(sb);
-  await deleteOperatingBudget(sb, muniId, fy);
-  const budgetId = await createBudget(sb, muniId, fy, total);
+  // ⚠ In-place refresh: reuse the existing budget row so its id is stable across
+  // refreshes (see ensureBudget). Header total goes LAST, once the tree is built.
+  const budgetId = await ensureBudget(sb, muniId, fy, total);
+  await clearBudgetChildren(sb, budgetId);
   await insertCategories(sb, budgetId, categories);
-  console.log(`\n✅ FY${fy} EV operating (expenses) loaded from Beneficial State Bank: $${total.toFixed(2)}\n`);
+  await setTotalBudget(sb, budgetId, total);
+  console.log(`\n✅ FY${fy} EV operating (expenses) loaded from Beneficial State Bank: $${total.toFixed(2)}`);
+  console.log(`   budget row ${budgetId} (reused in place — id is stable across refreshes)\n`);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
