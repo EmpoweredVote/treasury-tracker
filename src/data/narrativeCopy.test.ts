@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { revenueOpening } from './narrativeCopy';
+import { revenueOpening, heroSubtitle } from './narrativeCopy';
 
 /**
  * ⚠ Found while verifying the state source chip, 2026-08-23. The narrative's
@@ -49,6 +49,35 @@ describe('revenueOpening', () => {
       for (const past of [true, false]) {
         expect(revenueOpening(name, false, past).toLowerCase()).not.toContain('the city');
       }
+    }
+  });
+});
+
+/**
+ * ⚠ The hero line said "Explore how public funds are allocated and spent." on
+ * EVERY page, including Empowered Vote's own — where the money is donations,
+ * not public funds. Same shape as the revenueOpening defect above.
+ */
+describe('heroSubtitle', () => {
+  it('keeps the public-funds line for governments', () => {
+    expect(heroSubtitle(false)).toBe('Explore how public funds are allocated and spent.');
+  });
+
+  it('never calls a nonprofit’s money public funds', () => {
+    // The defect, stated directly.
+    expect(heroSubtitle(true).toLowerCase()).not.toContain('public funds');
+  });
+
+  it('says whose money it is on the nonprofit page', () => {
+    expect(heroSubtitle(true)).toBe('Explore how this nonprofit raises and spends its money.');
+  });
+
+  it('makes no completeness claim — the page publishes the bank balance only', () => {
+    // EV also holds an untransferred Givebutter wallet balance, so "every dollar"
+    // or "all of our money" would be an overclaim on a transparency page.
+    const s = heroSubtitle(true).toLowerCase();
+    for (const claim of ['every dollar', 'every penny', 'all of', 'complete', 'full accounting']) {
+      expect(s).not.toContain(claim);
     }
   });
 });

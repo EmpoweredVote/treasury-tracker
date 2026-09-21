@@ -60,6 +60,7 @@ import { FeatureIconRow } from './components/FeatureIconRow';
 import type { BudgetCategory, BudgetData, FederalContext, HydratedMunicipality, LinkedTransactionSummary, Municipality, OrgFinancialSummary } from './types/budget';
 import { hasDatasets } from './data/municipalityDatasets';
 import { resolveEntityParam, resolveEntityParamViaLookup, toSlug, displayLabel } from './utils/entityRouting';
+import { heroSubtitle } from './data/narrativeCopy';
 
 interface BreadcrumbItem {
   label: string;
@@ -1189,7 +1190,7 @@ function App() {
               {selectedEntity.name} Finances
             </h1>
             <p className="text-white/80 text-sm mt-1">
-              Explore how public funds are allocated and spent.
+              {heroSubtitle(selectedEntity.entity_type === 'nonprofit')}
             </p>
           </div>
         </div>
