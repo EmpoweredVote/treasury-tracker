@@ -80,7 +80,8 @@ async function callSyncWorker(dsId: string, fy: number, triggeredBy: string, off
 }
 
 /**
- * How stale an anon-EXECUTE sweep verdict may be before it counts as no verdict.
+ * How stale a weekly standing-check verdict may be before it counts as no
+ * verdict at all. Both checks read here run weekly on pg_cron.
  *
  * ⚠⚠ MUST EQUAL CYCLE_DAYS * STALE_CYCLES in scripts/lib/anonExecuteSweep.mjs.
  * Deno cannot import that Node module, so the value is declared twice and
@@ -88,40 +89,44 @@ async function callSyncWorker(dsId: string, fy: number, triggeredBy: string, off
  * "declarations must agree" guard the entity_type union uses. Do not change one
  * without the other.
  */
-const SWEEP_STALE_AFTER_DAYS = 14;
+const VERDICT_STALE_AFTER_DAYS = 14;
 
 /**
- * Read the standing anon-EXECUTE sweep verdict and decide whether to shout.
+ * Read a standing check's latest verdict and decide whether to shout.
  *
- * ⚠⚠ WHY THIS LIVES IN THE DAILY SYNC. The sweep runs in-database on pg_cron so
+ * ⚠⚠ WHY THIS LIVES IN THE DAILY SYNC. Both checks run in-database on pg_cron so
  * no service-role credential has to travel into CI (PR #90). But a verdict
- * nobody reads is not a control: on 2026-09-21 the frozen-figure invariant was
- * found to have failed three consecutive weeks (09-07, 09-14, 09-21) with
- * nobody informed, because its pg_cron job wrote `ok = false` into a table
- * nothing reads. This orchestrator already runs every day, so it is the cheapest
- * place that is guaranteed to look.
+ * nobody reads is not a control, and that is not hypothetical: on 2026-09-21 the
+ * frozen-figure invariant was found to have failed on 09-07, 09-14 AND 09-21 --
+ * three consecutive weeks -- with nobody informed. Its pg_cron job wrote
+ * `ok = false` into treasury.frozen_invariant_runs, which nothing in the repo
+ * reads, and the workflow that would have opened an issue was disabled for want
+ * of a credential. The check worked and reported into a void for three weeks.
  *
- * Fails closed: a MISSING verdict (the sweep was never armed) and a STALE one
- * (the sweep stopped running) are both reported as problems. Absence of a
- * failure is not health.
+ * This orchestrator already runs every day, so it is the cheapest place that is
+ * guaranteed to look.
+ *
+ * Fails closed: a MISSING verdict (the check was never armed) and a STALE one
+ * (it stopped running) are both reported as problems. Absence of a failure is
+ * not health.
  */
-async function readAnonExecuteSweep() {
-  const { data, error } = await supabase.rpc('treasury_anon_execute_status');
+async function readVerdict(rpc: string, label: string, cronHint: string) {
+  const { data, error } = await supabase.rpc(rpc);
   if (error) {
-    return { ok: false, detail: `Could not read the anon-EXECUTE sweep verdict: ${error.message}. This is INCONCLUSIVE, not a pass.` };
+    return { ok: false, detail: `Could not read the ${label} verdict: ${error.message}. This is INCONCLUSIVE, not a pass.` };
   }
 
   const row = Array.isArray(data) ? data[0] : data;
   if (!row) {
-    return { ok: false, detail: 'No anon-EXECUTE sweep has ever recorded a verdict. This is INCONCLUSIVE, not a pass - the sweep is not armed.' };
+    return { ok: false, detail: `No ${label} verdict has ever been recorded. This is INCONCLUSIVE, not a pass - the check is not armed.` };
   }
 
   const ageDays = (Date.now() - new Date(row.ran_at).getTime()) / 86_400_000;
-  if (ageDays > SWEEP_STALE_AFTER_DAYS) {
+  if (ageDays > VERDICT_STALE_AFTER_DAYS) {
     return {
       ok: false,
-      detail: `STALE VERDICT: the last anon-EXECUTE sweep ran ${ageDays.toFixed(1)} days ago (limit ${SWEEP_STALE_AFTER_DAYS}). ` +
-              `It has stopped running, so its last result means nothing. Check the 'anon-execute-sweep-weekly' pg_cron job. ` +
+      detail: `STALE VERDICT: the last ${label} ran ${ageDays.toFixed(1)} days ago (limit ${VERDICT_STALE_AFTER_DAYS}). ` +
+              `It has stopped running, so its last result means nothing. Check the '${cronHint}' pg_cron job. ` +
               `Last recorded detail: ${row.detail}`,
       ran_at: row.ran_at,
     };
@@ -135,11 +140,16 @@ Deno.serve(async (req: Request) => {
   if (!(await checkAuth(req))) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
 
   try {
-    // Read the security sweep FIRST, before the early return below. On most days
-    // no source is due, and checking after that return would mean the verdict
-    // went unread on exactly the quiet days nobody is watching.
-    const sweep = await readAnonExecuteSweep();
+    // Read the standing checks FIRST, before the early return below. On most
+    // days no source is due, and checking after that return would mean the
+    // verdicts went unread on exactly the quiet days nobody is watching.
+    const sweep = await readVerdict(
+      'treasury_anon_execute_status', 'anon-EXECUTE sweep', 'anon-execute-sweep-weekly');
     if (!sweep.ok) console.error(`ANON-EXECUTE SWEEP NOT OK: ${sweep.detail}`);
+
+    const frozen = await readVerdict(
+      'treasury_frozen_invariant_verdict', 'frozen-figure invariant', 'frozen-invariant-weekly');
+    if (!frozen.ok) console.error(`FROZEN INVARIANT NOT OK: ${frozen.detail}`);
 
     const body = await req.json().catch(() => ({}));
     const { force = false, data_source_id = null, fiscal_year = null, triggered_by = "scheduler" } = body;
@@ -182,7 +192,7 @@ Deno.serve(async (req: Request) => {
     });
 
     if (due.length === 0) {
-      return new Response(JSON.stringify({ message: "No sources due", checked: sources.length, due: 0, anon_execute_sweep: sweep }), { headers: { "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ message: "No sources due", checked: sources.length, due: 0, anon_execute_sweep: sweep, frozen_invariant: frozen }), { headers: { "Content-Type": "application/json" } });
     }
 
     // Get full config for each due source
@@ -246,6 +256,7 @@ Deno.serve(async (req: Request) => {
       total_rows_fetched: results.reduce((s, r) => s + (r.rows_fetched || 0), 0),
       total_rows_inserted: results.reduce((s, r) => s + (r.rows_inserted || 0), 0),
       anon_execute_sweep: sweep,
+      frozen_invariant: frozen,
       results,
     }, null, 2), { headers: { "Content-Type": "application/json" } });
   } catch (e) { console.error("Orchestrator error:", e); return new Response(JSON.stringify({ error: e.message }), { status: 500 }); }

@@ -147,14 +147,14 @@ describe('surfaceVerdict — what the orchestrator acts on', () => {
 // asserts they still do, so a change to one is a failing build, not a silent
 // hole in the daily check.
 describe('the Edge Function staleness threshold matches this module', () => {
-  it('declares SWEEP_STALE_AFTER_DAYS equal to CYCLE_DAYS * STALE_CYCLES', () => {
+  it('declares VERDICT_STALE_AFTER_DAYS equal to CYCLE_DAYS * STALE_CYCLES', () => {
     const src = readFileSync(
       new URL('../supabase/functions/treasury-sync-orchestrator/index.ts', import.meta.url),
       'utf8',
     );
-    const m = src.match(/const\s+SWEEP_STALE_AFTER_DAYS\s*=\s*(\d+)/);
+    const m = src.match(/const\s+VERDICT_STALE_AFTER_DAYS\s*=\s*(\d+)/);
 
-    expect(m, 'SWEEP_STALE_AFTER_DAYS not found in treasury-sync-orchestrator/index.ts').not.toBeNull();
+    expect(m, 'VERDICT_STALE_AFTER_DAYS not found in treasury-sync-orchestrator/index.ts').not.toBeNull();
     expect(Number(m[1])).toBe(CYCLE_DAYS * STALE_CYCLES);
   });
 });
