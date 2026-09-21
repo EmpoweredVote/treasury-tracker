@@ -110,6 +110,72 @@ export function resolveEntityParam(
   };
 }
 
+/**
+ * The same resolution as `resolveEntityParam`, but against a SLUG LOOKUP
+ * instead of the full entity list.
+ *
+ * WHY: a page that only needs one entity should not download all 8,149 to find
+ * it. financials.empowered.vote did exactly that — 3,197,605 bytes fetched to
+ * read a 309-byte row, 76% of its critical path — because turning
+ * `?entity=empowered-vote-ca` into an id was the only thing it used the list
+ * for.
+ *
+ * ⚠⚠ THIS MUST MAKE THE SAME DECISIONS AS `resolveEntityParam`, because both
+ * decide WHICH GOVERNMENT A READER LANDS ON. The three rules it mirrors:
+ *
+ *   1. A LIVE ENTITY ALWAYS WINS — the requested slug is looked up first, and a
+ *      hit returns immediately, so a stale alias can never shadow a currently
+ *      published government.
+ *   2. TWO ALIASES CLAIMING THE SAME SLUG BUT DIFFERENT TARGETS IS A REFUSAL,
+ *      not a choice. A contradiction in the data is resolved by refusing.
+ *   3. A DANGLING ALIAS IS `not_found`. If the canonical slug looks up to
+ *      nothing, inventing an entity is the failure this module exists to
+ *      prevent.
+ *
+ * The second lookup is paid ONLY on the alias path, which is rare.
+ *
+ * @param requested  result of `lookup(entityParam)`, already fetched by the
+ *                   caller so it can run in parallel with the alias fetch
+ * @param lookup     fetches the entities whose slug equals the argument
+ */
+export async function resolveEntityParamViaLookup(
+  requested: Municipality[],
+  entityParam: string,
+  aliases: EntityAlias[],
+  lookup: (slug: string) => Promise<Municipality[]>
+): Promise<EntityParamResolution> {
+  if (!entityParam) return { kind: 'not_found', slug: entityParam };
+
+  // Rule 1 — a live entity wins, checked first and unconditionally.
+  // ⚠ Confirm the row's OWN slug rather than trusting the query: the server
+  // filters by slug, but this module owns what a slug is, and a silent drift
+  // between the two definitions is exactly the failure mode that makes a link
+  // stop resolving. Re-deriving here means a drift shows up as not_found — the
+  // honest answer — instead of as the wrong entity.
+  const entity = requested.find(m => toSlug(m) === entityParam);
+  if (entity) return { kind: 'matched', entity };
+
+  // Rule 2 — identical grouping to resolveEntityParam.
+  const claiming = aliases.filter(
+    a => a.slug === entityParam && a.canonicalSlug !== entityParam
+  );
+  const targets = new Set(claiming.map(a => a.canonicalSlug));
+  if (targets.size !== 1) return { kind: 'not_found', slug: entityParam };
+
+  const canonicalSlug = [...targets][0] as string;
+  const target = (await lookup(canonicalSlug)).find(m => toSlug(m) === canonicalSlug);
+  // Rule 3 — dangling alias.
+  if (!target) return { kind: 'not_found', slug: entityParam };
+
+  return {
+    kind: 'aliased',
+    entity: target,
+    requestedSlug: entityParam,
+    canonicalSlug,
+    requestedLabel: claiming[0]!.label,
+  };
+}
+
 /** Longest slug echoed back to the page before it is truncated. */
 const MAX_DISPLAY_SLUG = 64;
 

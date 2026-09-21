@@ -89,6 +89,38 @@ function fetchCityList(): Promise<Municipality[]> {
 }
 
 /**
+ * The entities addressed by one slug — normally exactly one, or none.
+ *
+ * ⚠⚠ THIS IS THE LIST ENDPOINT NARROWED BY A WHERE CLAUSE, NOT A DIFFERENT
+ * QUERY. The server applies `?slug=` on top of the same join, grouping and
+ * "has a budget or is a grouper county" contract the full list uses, so a row
+ * that comes back here is byte-for-byte the row the full list would have
+ * carried — and an unmatched slug comes back as `[]`, never as a substituted
+ * entity. That empty-not-substitute property is what lets a bad link resolve
+ * to "entity not found" instead of someone else's budget (#158).
+ *
+ * WHY IT EXISTS: fetching all 8,149 entities (3.2 MB) to read one 309-byte row
+ * was 76% of the financials page's critical path. See
+ * resolveEntityParamViaLookup in src/utils/entityRouting.ts.
+ *
+ * ⚠ NOT memoized, unlike the full list. A slug lookup is ~1 KB and is made at
+ * most twice per page load (once, plus once more only on the alias path), so
+ * the dedupe that the list needs would be bookkeeping for nothing.
+ *
+ * ⚠ Returns [] rather than throwing on a non-OK response, so a caller can treat
+ * "could not resolve fast" and "no such slug" the same way — by falling back to
+ * the full list, which is still authoritative.
+ */
+export async function listMunicipalitiesBySlug(slug: string): Promise<Municipality[]> {
+  const res = await fetch(
+    `${API_BASE}/treasury/cities?datasets=summary&slug=${encodeURIComponent(slug)}`
+  );
+  if (!res.ok) return [];
+  const body = await res.json();
+  return Array.isArray(body) ? body : [];
+}
+
+/**
  * Memoized per id, like the list. Same reason and the same trap: the app opens
  * an entity and immediately fires several effects that all want its datasets, so
  * caching the VALUE still lets N requests start before any resolves.

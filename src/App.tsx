@@ -17,7 +17,7 @@ import { shortNameInCounty } from './data/entityListLabel';
 import ScaleToggle, { type FederalScale } from './components/federal/ScaleToggle';
 import ProgramOrigins from './components/federal/ProgramOrigins';
 import BudgetSearch from './components/dashboard/BudgetSearch';
-import { loadBudgetData, SeriesAbsentError, loadFederalContext, loadOrgFinancialSummary, loadLinkedTransactions, listMunicipalities, listEntityAliases, hydrateMunicipality, clearCache } from './data/dataLoader';
+import { loadBudgetData, SeriesAbsentError, loadFederalContext, loadOrgFinancialSummary, loadLinkedTransactions, listMunicipalities, listMunicipalitiesBySlug, listEntityAliases, hydrateMunicipality, clearCache } from './data/dataLoader';
 import EntitySwitcher from './components/EntitySwitcher';
 import AlphaLanding from './components/AlphaLanding';
 import type { LandingReason } from './components/AlphaLanding';
@@ -59,7 +59,7 @@ import { resolveFeatureIcons, resolveTriviaIcon } from './utils/featureIcons';
 import { FeatureIconRow } from './components/FeatureIconRow';
 import type { BudgetCategory, BudgetData, FederalContext, HydratedMunicipality, LinkedTransactionSummary, Municipality, OrgFinancialSummary } from './types/budget';
 import { hasDatasets } from './data/municipalityDatasets';
-import { resolveEntityParam, toSlug, displayLabel } from './utils/entityRouting';
+import { resolveEntityParam, resolveEntityParamViaLookup, toSlug, displayLabel } from './utils/entityRouting';
 
 interface BreadcrumbItem {
   label: string;
@@ -412,13 +412,51 @@ function App() {
       // request is tiny and a second serial round trip would sit in front of
       // every renamed entity's first paint. listEntityAliases() resolves to []
       // on any failure, so this cannot delay or break a link that already works.
-      Promise.all([listMunicipalities(), listEntityAliases()]).then(async ([list, aliases]) => {
-        setMunicipalities(list);
-        // ⚠ An unmatched slug must NOT resolve to another entity. It used to
-        // fall back to Bloomington, IN (then list[0]), so a stale or renamed
-        // link silently rendered the wrong government's budget with nothing on
-        // the page saying so. See utils/entityRouting.ts.
-        const resolution = resolveEntityParam(list, entityParam, aliases);
+      //
+      // THE FULL LIST IS AUTHORITATIVE AND IS STILL THE DEFAULT. Every other
+      // host needs it for the county/state/federal panels and the entity
+      // switcher, so this is unchanged for them.
+      const viaFullList = () =>
+        Promise.all([listMunicipalities(), listEntityAliases()]).then(([list, aliases]) => {
+          setMunicipalities(list);
+          // ⚠ An unmatched slug must NOT resolve to another entity. It used to
+          // fall back to Bloomington, IN (then list[0]), so a stale or renamed
+          // link silently rendered the wrong government's budget with nothing on
+          // the page saying so. See utils/entityRouting.ts.
+          return resolveEntityParam(list, entityParam, aliases);
+        });
+
+      // ⚠⚠ FAST PATH — financials.empowered.vote ONLY, and only because the
+      // list is PROVABLY UNUSED there. Every consumer of `municipalities` on
+      // that host is gated behind `!isFinancialsHost` (the entity switcher) or
+      // an `entity_type` of federal / county / state, and EV is a `nonprofit`.
+      // The list's sole job there was turning `?entity=empowered-vote-ca` into
+      // an id: 309 bytes out of 3,197,605, and 76% of the page's critical path.
+      //
+      // ⚠ DO NOT WIDEN THIS TO OTHER HOSTS without moving the panels off the
+      // list first — on a county or state page they would render empty, which
+      // looks like a coverage gap rather than a bug.
+      //
+      // ⚠ Any failure, and anything short of a resolved entity, FALLS BACK to
+      // the full list. So the worst case is the load time we already had, and
+      // the not-found landing keeps the searchable list it has today.
+      const viaSlugLookup = () =>
+        Promise.all([listMunicipalitiesBySlug(entityParam), listEntityAliases()]).then(
+          ([requested, aliases]) =>
+            resolveEntityParamViaLookup(requested, entityParam, aliases, listMunicipalitiesBySlug)
+        );
+
+      (async () => {
+        let resolution: Awaited<ReturnType<typeof viaFullList>> | null = null;
+        if (isFinancialsHost) {
+          try {
+            const fast = await viaSlugLookup();
+            if (fast.kind !== 'not_found') resolution = fast;
+          } catch {
+            // fall through to the full list
+          }
+        }
+        if (!resolution) resolution = await viaFullList();
         if (resolution.kind === 'not_found') {
           setLandingReason({ type: 'entity_not_found', slug: resolution.slug });
           setAppView('landing');
@@ -472,7 +510,7 @@ function App() {
           setFederalLens('agency');
         }
         setAppView('budget');
-      }).catch(() => setAppView('budget'));
+      })().catch(() => setAppView('budget'));
       return;
     }
 
