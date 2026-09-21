@@ -68,7 +68,43 @@ const MIGRATIONS_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', '..',
 
 const CREATE_RE = /CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+([a-z_][a-z0-9_]*)\.([a-z_][a-z0-9_]*)\s*\(/gi;
 const DROP_RE   = /DROP\s+FUNCTION\s+(?:IF\s+EXISTS\s+)?([a-z_][a-z0-9_]*)\.([a-z_][a-z0-9_]*)\s*\(/gi;
-const REVOKE_RE = /REVOKE\s+[\s\S]*?\bON\s+FUNCTION\s+([a-z_][a-z0-9_]*)\.([a-z_][a-z0-9_]*)\s*\([\s\S]*?\)\s*FROM\s+([\s\S]*?);/gi;
+// ⚠ Bounded by `;` on purpose. A SQL statement cannot span a semicolon, but
+// [\s\S]*? can: with a COMMENT ON FUNCTION in the way (whose ')' is not followed
+// by FROM) the argument matcher kept expanding across statements until it found
+// one that was, eating every real REVOKE in between. Measured 2026-09-21 against
+// 20260921190000_anon_execute_live_sweep.sql: three revokes silently lost, and
+// the guard then reported a properly-revoked function as a violation.
+const REVOKE_RE = /REVOKE\s+[^;]*?\bON\s+FUNCTION\s+([a-z_][a-z0-9_]*)\.([a-z_][a-z0-9_]*)\s*\([^;]*?\)\s*FROM\s+([^;]*?);/gi;
+
+/**
+ * Blank out the CONTENTS of dollar-quoted bodies, preserving length and line
+ * breaks so every index into the text stays valid (headerHasSecurityDefiner
+ * relies on that).
+ *
+ * ⚠⚠ SQL PROSE MUST NOT BE READ AS SQL. A plpgsql function that tells its reader
+ * "Close each with REVOKE EXECUTE ON FUNCTION <fn> FROM PUBLIC, anon,
+ * authenticated" is a good error message, and an unmasked parser read it as a
+ * statement. Likewise a commented-out `CREATE FUNCTION ...` inside a body
+ * conjured a SECURITY DEFINER function that does not exist.
+ *
+ * The opening and closing tags are LEFT IN PLACE so `AS $fn$` is still findable.
+ */
+function maskDollarQuotedBodies(txt) {
+  const TAG = /\$([a-zA-Z_][a-zA-Z0-9_]*)?\$/g;
+  let out = txt;
+  let m;
+  TAG.lastIndex = 0;
+  while ((m = TAG.exec(out))) {
+    const tag = m[0];
+    const bodyStart = m.index + tag.length;
+    const close = out.indexOf(tag, bodyStart);
+    if (close === -1) break; // unterminated — leave the rest alone rather than guess
+    const masked = out.slice(bodyStart, close).replace(/[^\n]/g, ' ');
+    out = out.slice(0, bodyStart) + masked + out.slice(close);
+    TAG.lastIndex = close + tag.length;
+  }
+  return out;
+}
 
 /** The function header is everything up to the body delimiter; SECURITY DEFINER
  *  always sits there, never in the dollar-quoted body (where the words could
@@ -96,7 +132,7 @@ export function auditDefinerGrants(dir = MIGRATIONS_DIR) {
   };
 
   files.forEach((f, idx) => {
-    const txt = readFileSync(join(dir, f), 'utf8');
+    const txt = maskDollarQuotedBodies(readFileSync(join(dir, f), 'utf8'));
     let m;
 
     CREATE_RE.lastIndex = 0;
