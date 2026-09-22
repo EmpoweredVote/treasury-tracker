@@ -45,8 +45,24 @@ const API_BASE = import.meta.env.PROD && import.meta.env.VITE_API_URL
   ? `${import.meta.env.VITE_API_URL}/api`
   : '/api';
 
-// Cache structure to support multiple municipality/year/dataset combinations
-const cache: Map<string, BudgetData> = new Map();
+/**
+ * Cache structure to support multiple municipality/year/dataset combinations.
+ *
+ * ⚠⚠ THE IN-FLIGHT PROMISE, NEVER THE RESOLVED VALUE — same reasoning as
+ * `citiesPromise` below, which is worth reading. A value cache is written only
+ * after the awaits land, so concurrent callers all miss it and all fetch.
+ *
+ * Measured on production 2026-09-22, ONE load of the Los Angeles page:
+ * `/treasury/cities/391bf791.../budgets?fiscal_year=2024` was fetched 8 times,
+ * one `/categories` URL 4 times and two more twice each — 12 redundant requests
+ * out of 36, because the app loads operating + revenue + salaries together and
+ * re-renders start more loads before any of them resolve.
+ *
+ * ⚠ A rejection must NOT stay memoized, or one transient failure poisons that
+ * key for the session. `loadBudgetData` deletes the entry on rejection; pinned
+ * by dataLoader.dedupe.test.ts.
+ */
+const cache: Map<string, Promise<BudgetData>> = new Map();
 
 /**
  * The city list, fetched at most once per session.
@@ -169,13 +185,27 @@ export async function hydrateMunicipality(m: Municipality): Promise<HydratedMuni
  * Load budget data for a specific municipality and year.
  * Throws on API failure — callers must handle errors (no silent fallback).
  */
-export async function loadBudgetData(
+export function loadBudgetData(
   year: number = 2025,
   municipalityName: string = 'Bloomington',
   municipalityState: string = 'IN',
   dataset: string = 'operating',
   periodLabel: string | null = null,
-  series: SeriesKey | null = null
+  series: SeriesKey | null = null,
+  /**
+   * ⭐⭐ THE ENTITY ITSELF, WHEN THE CALLER ALREADY HAS IT — which App.tsx
+   * always does (`selectedEntity`). Passing it skips resolving the name
+   * against the FULL ENTITY LIST, which is **3.05 MB decoded** and grows with
+   * every statewide load (O(entities): 1,144 -> 8,149 so far).
+   *
+   * ⚠ This is why #197's `?slug=` win did not remove the big fetch: the
+   * financials page resolved its entity in 311 bytes and then this loader
+   * pulled the whole list anyway, to re-derive an id the caller was holding.
+   *
+   * Omit it and the name lookup still works — not every caller has the object.
+   * See project_financials_page_load_perf.
+   */
+  municipality: Municipality | null = null
 ): Promise<BudgetData> {
   // ⚠ THE SERIES IS PART OF THE KEY. Before SCOPE-03 the series was chosen
   // deterministically inside this function and never varied for a given key, so
@@ -187,11 +217,30 @@ export async function loadBudgetData(
   const cacheKey =
     `${municipalityName}-${municipalityState}-${year}-${dataset}-${periodLabel ?? ''}-${seriesPart}`;
 
-  if (cache.has(cacheKey)) {
-    return cache.get(cacheKey)!;
-  }
+  const inFlight = cache.get(cacheKey);
+  if (inFlight) return inFlight;
 
-  // Step 1: Find the city by name — from the memoized list, see fetchCityList.
+  const pending = fetchBudgetData(
+    year, municipalityName, municipalityState, dataset, periodLabel, series, municipality
+  );
+  cache.set(cacheKey, pending);
+  // ⚠ Evict on failure BEFORE anyone awaits, so a transient error does not
+  // stick to this key. The handler must not swallow the rejection for the
+  // caller — it is attached to a branch, and `pending` is what we return.
+  pending.catch(() => { cache.delete(cacheKey); });
+  return pending;
+}
+
+/**
+ * The name fallback: resolve an entity from the full list.
+ *
+ * ⚠ This is the 3.05 MB path. It stays for callers that genuinely have only a
+ * name, but anything holding the entity should pass it instead.
+ */
+async function findCityByName(
+  municipalityName: string,
+  municipalityState: string
+): Promise<Municipality> {
   const cities = await fetchCityList();
   const city = cities.find((c: any) =>
     c.name?.toLowerCase() === municipalityName.toLowerCase() &&
@@ -200,16 +249,28 @@ export async function loadBudgetData(
   if (!city?.id) {
     throw new Error(`City not found: ${municipalityName}, ${municipalityState}`);
   }
+  return city;
+}
+
+/**
+ * The actual load. Never call this directly — `loadBudgetData` owns the
+ * deduplication, and calling here bypasses it.
+ */
+async function fetchBudgetData(
+  year: number,
+  municipalityName: string,
+  municipalityState: string,
+  dataset: string,
+  periodLabel: string | null,
+  series: SeriesKey | null,
+  municipality: Municipality | null
+): Promise<BudgetData> {
+  // Step 1: Identify the entity. The caller's own object wins — see the
+  // parameter's note on why resolving a NAME here costs 3.05 MB.
+  const city = municipality ?? await findCityByName(municipalityName, municipalityState);
 
   // Step 2: Get budgets for this city, filtered by fiscal year
-  const budgetsUrl = `${API_BASE}/treasury/cities/${city.id}/budgets?fiscal_year=${year}`;
-  const response = await fetch(budgetsUrl);
-  if (!response.ok) {
-    throw new Error(`Budget API returned ${response.status}`);
-  }
-
-  const apiData = await response.json();
-  const budgets = Array.isArray(apiData) ? apiData : [apiData];
+  const budgets = await fetchCityBudgets(city.id, year);
   // SCOPE-02: choose the one series to display for this city/dataset, then pick
   // the row belonging to it. Disambiguates by period_label along the way: a
   // normal year wants the null-label row; the Transition Quarter wants its
@@ -236,15 +297,61 @@ export async function loadBudgetData(
   }
 
   // Step 3: Get categories for the budget (returns nested tree with lineItems)
-  const catResponse = await fetch(`${API_BASE}/treasury/budgets/${budget.id}/categories`);
-  if (!catResponse.ok) {
-    throw new Error(`Categories API returned ${catResponse.status}`);
-  }
-  const categories = await catResponse.json();
+  const categories = await fetchBudgetCategories(budget.id);
 
-  const data = transformAPIResponse(budget, categories, city);
-  cache.set(cacheKey, data);
-  return data;
+  return transformAPIResponse(budget, categories, city);
+}
+
+/**
+ * ── ⚠⚠ MEMOIZED PER RESOURCE, NOT PER CALLER ────────────────────────────────
+ *
+ * Deduping `loadBudgetData` by its own cache key is NOT enough, and measuring
+ * proved it: after that fix the Los Angeles page still fetched this URL 5 times.
+ *
+ * The reason is that the key and the URL disagree. `loadBudgetData` is keyed by
+ * name-state-year-DATASET-period-SERIES, but this endpoint takes only city and
+ * fiscal year — operating, revenue and salaries are filtered out of ONE
+ * response client-side, and each series is another key. So N distinct keys are
+ * N distinct callers of one identical URL, and no cache above this line can see
+ * that they are the same request.
+ *
+ * The same applies to `/categories`: two series can resolve to the same budget
+ * row, which is two keys and one resource.
+ *
+ * ⚠ Rejections are evicted, for the reason given on `cache` above.
+ */
+const cityBudgetsCache: Map<string, Promise<any[]>> = new Map();
+
+function fetchCityBudgets(cityId: string, year: number): Promise<any[]> {
+  const key = `${cityId}:${year}`;
+  let pending = cityBudgetsCache.get(key);
+  if (!pending) {
+    pending = (async () => {
+      const res = await fetch(`${API_BASE}/treasury/cities/${cityId}/budgets?fiscal_year=${year}`);
+      if (!res.ok) throw new Error(`Budget API returned ${res.status}`);
+      const apiData = await res.json();
+      return Array.isArray(apiData) ? apiData : [apiData];
+    })();
+    cityBudgetsCache.set(key, pending);
+    pending.catch(() => { cityBudgetsCache.delete(key); });
+  }
+  return pending;
+}
+
+const budgetCategoriesCache: Map<string, Promise<any>> = new Map();
+
+function fetchBudgetCategories(budgetId: string): Promise<any> {
+  let pending = budgetCategoriesCache.get(budgetId);
+  if (!pending) {
+    pending = (async () => {
+      const res = await fetch(`${API_BASE}/treasury/budgets/${budgetId}/categories`);
+      if (!res.ok) throw new Error(`Categories API returned ${res.status}`);
+      return res.json();
+    })();
+    budgetCategoriesCache.set(budgetId, pending);
+    pending.catch(() => { budgetCategoriesCache.delete(budgetId); });
+  }
+  return pending;
 }
 
 /**
@@ -354,6 +461,11 @@ function transformAPIResponse(budget: any, categories: BudgetCategory[], city?: 
 export function clearCache() {
   cache.clear();
   citiesPromise = null;
+  // ⚠ The per-RESOURCE memos too. They sit below `cache` and survive it, so a
+  // clear that skipped them would serve the previous budgets for a city-year
+  // that had already been opened — the same half-truth the hydration map caused.
+  cityBudgetsCache.clear();
+  budgetCategoriesCache.clear();
   txCache.clear();
   orgSummaryCache.clear();
   // ⚠ Every memo, or clearCache() is a half-truth. The hydration map is keyed by
