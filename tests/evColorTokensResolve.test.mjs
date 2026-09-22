@@ -88,22 +88,18 @@ const sourceFiles = async () => {
 };
 
 /**
- * ⛔ PRE-EXISTING, DELIBERATELY NOT FIXED HERE — these are not exemptions.
+ * ⭐ THE ALLOWLIST IS EMPTY, AND THAT IS THE POINT — keep it that way.
  *
- * Both dropped classes are real: the elements render transparent today. But
- * `bg-ev-gray-50` → `bg-ev-gray-050` is a VISIBLE change (#F7F7F8 appears where
- * nothing was), on the dataset tabs and a page banner, in components this
- * guard's author was not asked to restyle. Making the guard green by quietly
- * repainting three unrelated elements would be the wrong trade.
+ * It briefly held the four pre-existing `bg-ev-gray-50` classes this guard
+ * found on its first run (two in App.tsx, two in DatasetTabs.tsx). Chris chose
+ * to fix them rather than carry them, so the tint those elements were always
+ * meant to have now actually renders.
  *
- * ⚠ Each entry is asserted to STILL BE BROKEN below. Fix one and this file
- * fails, telling you to delete its line — so the list cannot rot into a
- * permanent exemption.
+ * ⚠ Anything added here must be asserted to STILL BE BROKEN below, so fixing it
+ * turns this file red and demands its line be deleted. An exemption that
+ * outlives its defect is how a guard rots into decoration.
  */
-const KNOWN_PREEXISTING = [
-  'src/App.tsx: ev-gray-50',
-  'src/components/datasets/DatasetTabs.tsx: ev-gray-50',
-];
+const KNOWN_PREEXISTING = [];
 
 describe('ev-* colour classes resolve to defined tokens', () => {
   it('every component names only tokens defined in index.css', async () => {
