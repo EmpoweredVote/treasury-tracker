@@ -1304,7 +1304,13 @@ function App() {
                 <span>Annual Report</span>
               </a>
             )}
-            {hasEnrichment && (
+            {/* ⚠ NOT ON THE NONPROFIT PAGE. The search prompts for "roads" or
+                "police" and looks up government department vocabulary — questions
+                that are INAPPLICABLE to Empowered Vote, which has six expense
+                categories visible in full on the page below. Same gate and same
+                reasoning as PR #198: an inapplicable prompt is worse than silence.
+                Government pages keep it exactly as before. */}
+            {hasEnrichment && selectedEntity?.entity_type !== 'nonprofit' && (
               <div className="flex-1 min-w-0">
                 <BudgetSearch
                   cityId={selectedEntity.id}

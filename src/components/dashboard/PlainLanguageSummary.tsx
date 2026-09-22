@@ -102,7 +102,6 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
   // ── Guard: nothing to render without operating data ───────────────────
   if (!operatingData) return null;
 
-  const currentMonthName = new Date().toLocaleString('en-US', { month: 'long' });
   const total = showActualAmount ? actualTotal : budgetedTotal;
   const population = entity.population;
   const populationYear = entity.population_year;
@@ -170,8 +169,25 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
 
         <div className="space-y-4 text-[15px] leading-relaxed text-ev-gray-600 dark:text-ev-gray-400 ml-[18px]">
           <p>
-            {isNonprofit && isCurrentYearWithActuals
-              ? <>As of {currentMonthName}, {fiscalYear},{' '}</>
+            {/* ⚠ "So far in <year>," for a nonprofit's CURRENT year, matching the
+                staff-compensation sentence below it — the two read as a pair and
+                previously opened differently ("In 2026," vs "So far in 2026,").
+                Mirrors that line's isPastYear test rather than inventing a second
+                rule.
+
+                ⚠⚠ A PAST year keeps "In <year>," — "so far" would be false once
+                the year has closed. GOVERNMENTS keep "In <year>," in every case:
+                their figure is usually an ADOPTED BUDGET, and "so far in 2026"
+                would read as year-to-date actuals. Gated on isNonprofit for the
+                same reason as PR #198. */}
+            {isNonprofit && !isPastYear
+              ? <>So far in <button
+                  type="button"
+                  className="font-bold text-ev-gray-800 dark:text-ev-gray-100 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
+                  onClick={() => onYearClick?.()}
+                >
+                  {fiscalYear}
+                </button>,{' '}</>
               : <>In <button
                   type="button"
                   className="font-bold text-ev-gray-800 dark:text-ev-gray-100 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
