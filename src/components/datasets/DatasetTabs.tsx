@@ -176,7 +176,7 @@ export default function DatasetTabs({
             className={`relative overflow-hidden text-left p-4 rounded-xl border-2 transition-all duration-200 cursor-pointer font-manrope focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ev-muted-blue focus-visible:ring-offset-2
               ${highlighted
                 ? `${accent.border} bg-white dark:bg-ev-gray-800 ${isActive ? 'shadow-sm' : ''}`
-                : 'border-ev-gray-200 dark:border-ev-gray-700 bg-ev-gray-50 dark:bg-ev-gray-900'
+                : 'border-ev-gray-200 dark:border-ev-gray-700 bg-ev-gray-050 dark:bg-ev-gray-900'
               }
               ${isDisabled ? 'opacity-40 cursor-not-allowed' : ''}
             `}
@@ -232,7 +232,7 @@ export default function DatasetTabs({
     {showFinancingNote && (
       <div
         className="mt-3 flex items-start gap-2 rounded-lg border border-ev-gray-200 dark:border-ev-gray-700
-                   bg-ev-gray-50 dark:bg-ev-gray-900 px-3 py-2"
+                   bg-ev-gray-050 dark:bg-ev-gray-900 px-3 py-2"
       >
         <Info size={14} className="mt-0.5 shrink-0 text-ev-gray-400" aria-hidden />
         <p className="text-xs leading-relaxed text-ev-gray-500 dark:text-ev-gray-400">

@@ -1209,7 +1209,7 @@ function App() {
           heading does not match what was typed. Dismissible, because it is
           information about the link rather than about the budget. */}
       {aliasNotice && (
-        <div className="bg-ev-gray-50 dark:bg-ev-gray-800/60 border-l-4 border-ev-gray-300 dark:border-ev-gray-600">
+        <div className="bg-ev-gray-050 dark:bg-ev-gray-800/60 border-l-4 border-ev-gray-300 dark:border-ev-gray-600">
           <div className="max-w-[1400px] mx-auto px-6 py-2 flex items-start gap-3">
             <p className="text-sm text-ev-gray-700 dark:text-ev-gray-300 flex-1" style={{ fontFamily: "'Manrope', sans-serif" }}>
               <span className="font-semibold">{aliasNotice.requested}</span> is now published as{' '}
