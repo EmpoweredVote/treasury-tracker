@@ -76,11 +76,21 @@ Deno.serve(async (req: Request) => {
     const amount = Number(tx['amount'] ?? 0)
     const transactedAt = String(tx['transacted_at'] ?? '')
 
-    // Log everything — amount is in cents, divide by 100 for dollars
+    // ⚠⚠ `amount` IS IN DOLLARS, NOT CENTS.
+    //
+    // This log used to claim cents and print `amountDollars: amount / 100`, while the
+    // RPC call below passed `amount` straight through as dollars. The CODE was right
+    // and the COMMENT was wrong: the first donation this webhook ever recorded — a $2
+    // test on 2026-09-22 — arrived as `amount: 2` and landed as $2.00 (revenue
+    // total_budget 6138.40 -> 6140.40, Give Butter 1946 -> 1948). So the log printed
+    // "amountDollars: 0.02" for a $2 gift, understating every donation 100x in the
+    // one place a human would look to check it.
+    //
+    // ⛔ DO NOT "fix" the RPC call below to divide by 100 to match the old comment.
+    // That would make every recorded donation 100x too small. The comment was the bug.
     console.log('givebutter-webhook: transaction.succeeded', {
       externalId,
-      amountCents: amount,
-      amountDollars: amount / 100,
+      amountDollars: amount,
       signatureHeader: sig,
       transactedAt,
     })
@@ -90,7 +100,14 @@ Deno.serve(async (req: Request) => {
       return new Response('OK', { status: 200 })
     }
 
-    // Resolve category IDs dynamically — UUIDs change on loadEVFinances.js re-import
+    // Resolve category IDs dynamically rather than hard-coding them.
+    //
+    // ⚠ The original reason given here — "UUIDs change on loadEVFinances.js re-import"
+    // — is now doubly stale: loadEVFinances.js is RETIRED, and since PR #207 the
+    // loaders UPDATE the budget row in place rather than deleting and recreating it,
+    // so the budget id no longer changes on a refresh. Category ids still do (the tree
+    // is cleared and rebuilt), so resolving dynamically remains correct — the
+    // justification changed, not the behaviour.
     const { data: muniData, error: muniError } = await supabase
       .from('municipalities')
       .select('id')
