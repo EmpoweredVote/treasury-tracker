@@ -384,13 +384,19 @@ export interface OrgFinancialSummary {
   income_gross: number;
   income_fees: number;
   income_net: number;
+  /**
+   * Donations arrived since the last reconcile (Givebutter webhook), gross.
+   * Optional: an API deploy predating 2026-09-22 omits it, which must read as 0.
+   * ⚠⚠ RAISED, never ON HAND — never add this to `balance`.
+   */
+  pending_gross?: number | null;
   income_by_source: IncomeBySource[];
   // reconciliation
   recon_variance: number | null;
   recon_explanation: string | null;
   recon_by_source: ReconBySource[];
   unmatched_deposits: UnmatchedDeposit[];
-  // fundraising goal (manual value, D-01); progress = income_net / goal_amount (D-02)
+  // fundraising goal (manual value, D-01); progress = (income_net + pending_gross) / goal_amount (D-02)
   goal_amount: number | null;
   goal_label: string | null;
   // always-sourced standard
