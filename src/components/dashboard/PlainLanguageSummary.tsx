@@ -24,6 +24,16 @@ interface PlainLanguageSummaryProps {
   /** Reconciled nonprofit summary (Phase 76) — drives the gross→net fee story
    *  and burn-pace line. Null for non-nonprofit entities. */
   orgSummary?: OrgFinancialSummary | null;
+  /**
+   * Which dataset the reader is currently exploring. Only the nonprofit
+   * gross→fee→net block reads it: platform fees are the answer to "how much of
+   * my $2 reached you", which is a Money In question, so it renders beside the
+   * Money In breakdown rather than on arrival.
+   *
+   * ⚠ Mirrors `DatasetType` in App.tsx, which is declared there and not
+   * exported. Widen both together.
+   */
+  activeDataset?: 'revenue' | 'operating' | 'salaries';
 }
 
 /**
@@ -41,6 +51,7 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
   onYearClick,
   allFundsRequirementsData = null,
   orgSummary = null,
+  activeDataset,
 }) => {
   // ── Derive values needed by hooks (safe even when operatingData is null) ──
   const budgetedTotal = allFundsRequirementsData?.metadata.totalBudget
@@ -53,8 +64,6 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
   const hasActualData = actualTotal > 0;
   // ⚠ AMOUNT ONLY. Tense/verb choice must not use this — see spendVerb below.
   const showActualAmount = isPastYear && hasActualData;
-  // Current year with actual spend data — year isn't done, so use "has spent" + "As of {month}"
-  const isCurrentYearWithActuals = !isPastYear && hasActualData;
   // Verb choice comes from the `basis` axis when the row states it, because
   // `hasActualData` only sees per-category actualAmount values — which sources
   // publishing one audited total per year (CA State Controller, every ACFR load)
@@ -152,6 +161,55 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
   const formatPerResident = (n: number) =>
     `$${Math.round(n).toLocaleString()}`;
 
+  // "Sep 20" from an ISO date, parsed as local parts so a UTC timestamp cannot
+  // render as the previous day.
+  const formatAsOf = (iso: string | null | undefined) => {
+    const [y, m, d] = (iso || '').slice(0, 10).split('-').map(Number);
+    if (!y || !m || !d) return null;
+    return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
+  // ── The nonprofit stat row ────────────────────────────────────────────
+  // Each entry is a figure that appears NOWHERE ELSE on the page. Anything a
+  // tile or the chart below already states is deliberately absent — see the
+  // render site.
+  const nonprofitStats: { label: string; value: string; note: string }[] = [];
+  if (isNonprofit) {
+    if (orgSummary) {
+      // ⚠⚠ NOT raised minus spent, and never `balance + pending_gross`. This is
+      // the reconciled bank balance and nothing else, which is why it carries
+      // its own as-of date rather than the fiscal year: bank payouts lag
+      // platform donations, and EV also holds an untransferred Givebutter
+      // wallet balance. See OrgFinancialSummary in types/budget.ts.
+      const asOf = formatAsOf(orgSummary.balance_as_of);
+      nonprofitStats.push({
+        label: 'Money on hand',
+        value: formatAmount(orgSummary.balance),
+        note: asOf ? `as of ${asOf}` : 'last reconciled balance',
+      });
+      if (orgSummary.monthly_burn > 0) {
+        nonprofitStats.push({
+          label: 'Costs to run',
+          value: formatAmount(orgSummary.monthly_burn),
+          note: 'a month',
+        });
+      }
+    }
+    nonprofitStats.push(
+      salariesTotal != null && salariesTotal > 0
+        ? { label: 'Paid to staff', value: formatAmount(salariesTotal), note: `in ${fiscalYear}` }
+        // ⚠ "so far in {year}", NOT an "all-volunteer" badge. $0 is a fact about
+        // one year, not a permanent identity — the goal is eventually to pay
+        // people, and a badge would be a claim about the future. Same reasoning
+        // as the sentence this replaced.
+        : {
+            label: 'Paid to staff',
+            value: '$0',
+            note: isPastYear ? `in ${fiscalYear}` : `so far in ${fiscalYear}`,
+          }
+    );
+  }
+
   return (
     <div className="bg-white dark:bg-ev-gray-800 border border-ev-gray-200 dark:border-ev-gray-700 rounded-xl overflow-hidden">
       {/* Subtle yellow top accent — inform pillar whisper */}
@@ -168,41 +226,59 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
         </div>
 
         <div className="space-y-4 text-[15px] leading-relaxed text-ev-gray-600 dark:text-ev-gray-400 ml-[18px]">
-          <p>
-            {/* ⚠ "So far in <year>," for a nonprofit's CURRENT year, matching the
-                staff-compensation sentence below it — the two read as a pair and
-                previously opened differently ("In 2026," vs "So far in 2026,").
-                Mirrors that line's isPastYear test rather than inventing a second
-                rule.
+          {/* ── Nonprofit: three stats, not five sentences ───────────────────
+              ⚠ The sentences removed here were removed because the page ALREADY
+              states them, louder, within a screen:
+                · "In {year}, EV is spending $X on operations."  → Money Out tile
+                · "EV raises $X in income, primary source …"     → Money In tile
+                · "The largest expense is … (42%) …"             → the chart below
+              Restoring any of them puts the same figure on screen twice and asks
+              a reader to do arithmetic before reaching the interactive part.
+              What stayed is what appears NOWHERE else on the page.
 
-                ⚠⚠ A PAST year keeps "In <year>," — "so far" would be false once
-                the year has closed. GOVERNMENTS keep "In <year>," in every case:
-                their figure is usually an ADOPTED BUDGET, and "so far in 2026"
-                would read as year-to-date actuals. Gated on isNonprofit for the
-                same reason as PR #198. */}
-            {isNonprofit && !isPastYear
-              ? <>So far in <button
-                  type="button"
-                  className="font-bold text-ev-gray-800 dark:text-ev-gray-100 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
-                  onClick={() => onYearClick?.()}
+              ⚠ No figure here is a year button. The year is chosen from the FY
+              selector on the control row above; the old opening sentence was the
+              only other way in, which is why it had one. */}
+          {isNonprofit && nonprofitStats.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {nonprofitStats.map(stat => (
+                <div
+                  key={stat.label}
+                  // ⚠ `ev-gray-050`, with the leading zero — the token is
+                  // `--color-ev-gray-050` (src/index.css). `bg-ev-gray-50`
+                  // silently renders NOTHING, which is how these first shipped
+                  // looking like three columns of floating text.
+                  className="rounded-lg border border-ev-gray-100 bg-ev-gray-050 px-4 py-3 dark:border-ev-gray-700 dark:bg-ev-gray-900/40"
                 >
-                  {fiscalYear}
-                </button>,{' '}</>
-              : <>In <button
-                  type="button"
-                  className="font-bold text-ev-gray-800 dark:text-ev-gray-100 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
-                  onClick={() => onYearClick?.()}
-                >
-                  {fiscalYear}
-                </button>,{' '}</>
-            }
-            {isNonprofit ? (
-              <>
-                {entity.name}{' '}
-                {spendVerb}{' '}
-                <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(isCurrentYearWithActuals ? actualTotal : total)}</strong> on operations.
-              </>
-            ) : (
+                  <div className="text-[11px] font-semibold uppercase tracking-wide text-ev-gray-400 dark:text-ev-gray-500">
+                    {stat.label}
+                  </div>
+                  <div className="mt-0.5 text-2xl font-bold tabular-nums leading-tight text-ev-gray-900 dark:text-ev-gray-100">
+                    {stat.value}
+                  </div>
+                  <div className="text-[13px] text-ev-gray-500 dark:text-ev-gray-400">
+                    {stat.note}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ⚠⚠ GOVERNMENT COPY FROM HERE DOWN — every block below is gated on
+              `!isNonprofit`. The `isNonprofit ?` branches still inside them are
+              unreachable under that gate and are left as they were on purpose:
+              this copy carries documented past bugs (see narrativeCopy.ts), no
+              test in this repo renders it, and churning it to delete dead
+              branches would risk thousands of government pages for tidiness. */}
+          {!isNonprofit && (
+            <p>
+              In <button
+                type="button"
+                className="font-bold text-ev-gray-800 dark:text-ev-gray-100 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
+                onClick={() => onYearClick?.()}
+              >
+                {fiscalYear}
+              </button>,{' '}
               <>{entity.name}{isGeneralFundOnly ? "'s General Fund" : ''}{' '}
               {population > 0 ? (
                 <>
@@ -224,8 +300,8 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
                   all departments and services.
                 </>
               )}</>
-            )}
-          </p>
+            </p>
+          )}
 
 
           {allFundsRequirementsData && operatingData &&
@@ -247,18 +323,10 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
           )}
 
 
-          {isNonprofit && (
-            <p>
-              {salariesTotal != null && salariesTotal > 0
-                ? <>{entity.name} {spentLanguage ? 'paid' : 'budgets'}{' '}
-                    <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(salariesTotal)}</strong> in staff compensation.
-                  </>
-                : <>{isPastYear ? <>In {fiscalYear}, {entity.name} paid</> : <>So far in {fiscalYear}, {entity.name} has paid</>} <strong className="text-ev-gray-800 dark:text-ev-gray-100">$0</strong> in staff compensation.</>
-              }
-            </p>
-          )}
+          {/* Staff compensation moved into the stat row above — it was the 4th
+              line of a prose block and is the page's strongest single fact. */}
 
-          {topCategories.length > 0 && (
+          {!isNonprofit && topCategories.length > 0 && (
             <p>
               The {isNonprofit ? 'largest expense' : `biggest ${isGeneralFundOnly ? 'department' : 'share'}`} {spentLanguage ? 'was' : 'is'}{' '}
               <button
@@ -297,7 +365,10 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
           )}
 
 
-          {topCategories[0]?.enrichment?.description &&
+          {/* ⚠ Gated with the sentence above it, not independently: this italic
+              paragraph describes topCategories[0] without naming it, so without
+              that sentence it reads as a description of nothing. */}
+          {!isNonprofit && topCategories[0]?.enrichment?.description &&
             topCategories[0].enrichment.description !== topCategories[0].enrichment.shortDescription && (
             <p className="text-[14px] text-ev-gray-500 dark:text-ev-gray-500 leading-relaxed italic">
               {topCategories[0].enrichment.description}
@@ -305,20 +376,10 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
           )}
 
 
-          {/* Burn pace (Phase 76, D-05) — honest spend rate, NOT a runway countdown (D-06) */}
-          {isNonprofit && orgSummary && orgSummary.monthly_burn > 0 && topCategories[0] && (
-            <p>
-              {entity.name} currently spends about{' '}
-              <strong className="text-ev-gray-800 dark:text-ev-gray-100">{formatAmount(orgSummary.monthly_burn)}</strong>
-              {' '}per month, mostly on{' '}
-              <button
-                className="font-bold text-ev-gray-800 dark:text-ev-gray-100 underline decoration-ev-yellow-400 decoration-2 underline-offset-2 hover:text-ev-muted-blue cursor-pointer transition-colors bg-transparent border-none p-0 m-0 text-[inherit] leading-[inherit] font-[inherit]"
-                onClick={() => onCategoryClick?.(topCategories[0].name, 'operating')}
-              >{toDisplayName(topCategories[0].name)}</button>.
-            </p>
-          )}
+          {/* Burn pace (Phase 76, D-05) is now the "Costs to run" stat above —
+              still an honest spend rate, NOT a runway countdown (D-06). */}
 
-          {revenueData && (
+          {!isNonprofit && revenueData && (
             <p>
               {/* ⚠ This clause used to hardcode "The city", so the New York state page
                   read "The city funded this through $93.9 billion" — and every county
@@ -360,7 +421,13 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
           {/* Cost-of-fundraising detail (Phase 76, D-07/D-08) — flows from the live
               "raised" figure above. Fees are a reduction of income, never an expense
               (D-09/D-12). Reconciled gross→fee→net per source, as of last refresh. */}
-          {isNonprofit && orgSummary && orgSummary.income_fees > 0 && (
+          {/* ⚠⚠ MOVED, NOT DELETED. This is the only place the page answers
+              "how much of my $2 actually reached you", and a transparency page
+              that drops its own processing costs is worse, not cleaner. But it
+              asks a reader to weigh our platform fees before they have seen
+              anything, so it now waits behind Money In — the tab where that
+              question is actually being asked. */}
+          {isNonprofit && activeDataset === 'revenue' && orgSummary && orgSummary.income_fees > 0 && (
             <div>
               <p>
                 After{' '}
