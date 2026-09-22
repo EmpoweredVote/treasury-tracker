@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
-import { FileText, Heart, Wallet } from 'lucide-react'
+import { FileText, Heart } from 'lucide-react'
 import { AppHeader } from './components/AppHeader';
 import { SiteFooter } from '@empoweredvote/ev-ui';
 import PlainLanguageSummary from './components/dashboard/PlainLanguageSummary';
@@ -1270,29 +1270,11 @@ function App() {
                 }}
               />
             )}
-            {/* Funds on Hand — static, dated bank balance (Phase 76). A quiet meta
-                chip, deliberately out of the donor-feedback flow: it does NOT move
-                on donation (bank payouts lag), so it must not read as a live number. */}
-            {selectedEntity?.entity_type === 'nonprofit' && orgSummary && (
-              <div
-                className="flex items-center gap-1.5 h-[42px] px-3 py-2 text-sm font-medium bg-white dark:bg-ev-gray-700 border border-[#E2EBEF] dark:border-ev-gray-600 rounded-lg text-ev-gray-600 dark:text-ev-gray-300 whitespace-nowrap"
-                title="Current bank balance (Beneficial State Bank). Updated when reconciled — not live; bank payouts lag platform donations."
-              >
-                <Wallet size={14} className="shrink-0 text-ev-gray-500" />
-                <span className="tabular-nums font-semibold text-ev-gray-800 dark:text-ev-gray-100">
-                  ${orgSummary.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </span>
-                <span className="text-ev-gray-400 dark:text-ev-gray-400">on hand</span>
-                {(() => {
-                  const dp = (orgSummary.balance_as_of || '').slice(0, 10);
-                  const [y, m, d] = dp.split('-').map(Number);
-                  const label = (y && m && d)
-                    ? new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                    : dp;
-                  return label ? <span className="text-ev-gray-400 text-[12px]">· as of {label}</span> : null;
-                })()}
-              </div>
-            )}
+            {/* Funds on Hand moved OUT of this control row and into the
+                "Money on hand" stat in PlainLanguageSummary — the balance was
+                appearing twice on the page once it led the stat row. It keeps
+                its as-of date there: it does NOT move on donation (bank payouts
+                lag platform donations), so it must never read as a live number. */}
             {selectedYear === '2025' && selectedEntity?.entity_type === 'nonprofit' && (
               <a
                 href="/Empowered%20Vote%20Annual%20Report%202025.pdf"
@@ -1411,6 +1393,7 @@ function App() {
                     onYearClick={() => yearSelectorRef.current?.open()}
                     allFundsRequirementsData={allFundsRequirementsData}
                     orgSummary={selectedEntity?.entity_type === 'nonprofit' ? orgSummary : null}
+                    activeDataset={activeDataset}
                   />
                   {/* Funds on Hand + goal progress — placed below the narrative (Chris, 2026-06-21) */}
                   {selectedEntity?.entity_type === 'nonprofit' && orgSummary && (
