@@ -609,17 +609,17 @@ function App() {
 
     const promises: Promise<BudgetData | null>[] = [
       hasOperating
-        ? loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'operating', periodLabel, effectiveSeries)
+        ? loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'operating', periodLabel, effectiveSeries, selectedEntity)
             .catch(absentToNull)
         : Promise.resolve(null),
       hasRevenue
-        ? loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'revenue', periodLabel, effectiveSeries)
+        ? loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'revenue', periodLabel, effectiveSeries, selectedEntity)
             .catch(absentToNull)
         : Promise.resolve(null),
       hasSalaries
         // Salaries is NOT a series dataset — see SERIES_DATASETS in seriesSelection.ts.
         // Passing a series would make pickBudgetForSeries hunt for an impossible match.
-        ? loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'salaries', periodLabel, null)
+        ? loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'salaries', periodLabel, null, selectedEntity)
         : Promise.resolve(null),
     ];
 
@@ -651,7 +651,7 @@ function App() {
     // Load all_funds_requirements separately so a failure never affects the main data loads
     if (hasAllFundsRequirements) {
       // Not a series dataset — pass null, same reason as salaries above.
-      loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'all_funds_requirements', periodLabel, null)
+      loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'all_funds_requirements', periodLabel, null, selectedEntity)
         .then(data => setAllFundsRequirementsData(data))
         .catch(() => setAllFundsRequirementsData(null));
     } else {
@@ -689,7 +689,7 @@ function App() {
       requestDataset === 'operating' || requestDataset === 'revenue' ? effectiveSeries : null;
     const isLatestChart = chartSequence.claim();
 
-    loadBudgetData(fiscalYear, selectedEntity.name, selectedEntity.state, requestDataset, periodLabel, seriesForRequest)
+    loadBudgetData(fiscalYear, selectedEntity.name, selectedEntity.state, requestDataset, periodLabel, seriesForRequest, selectedEntity)
       .then(data => {
         if (!isLatestChart()) return;
         setBudgetData(hoistSingleRoot(data));
@@ -816,7 +816,7 @@ function App() {
       if (!hasRevenue) return;
 
       clearCache();
-      loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'revenue', periodLabel, effectiveSeries)
+      loadBudgetData(yearNum, selectedEntity.name, selectedEntity.state, 'revenue', periodLabel, effectiveSeries, selectedEntity)
         .then(data => setRevenueData(hoistSingleRoot(data)))
         .catch(err => {
           if (err instanceof SeriesAbsentError) return;

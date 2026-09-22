@@ -191,7 +191,21 @@ export function loadBudgetData(
   municipalityState: string = 'IN',
   dataset: string = 'operating',
   periodLabel: string | null = null,
-  series: SeriesKey | null = null
+  series: SeriesKey | null = null,
+  /**
+   * ⭐⭐ THE ENTITY ITSELF, WHEN THE CALLER ALREADY HAS IT — which App.tsx
+   * always does (`selectedEntity`). Passing it skips resolving the name
+   * against the FULL ENTITY LIST, which is **3.05 MB decoded** and grows with
+   * every statewide load (O(entities): 1,144 -> 8,149 so far).
+   *
+   * ⚠ This is why #197's `?slug=` win did not remove the big fetch: the
+   * financials page resolved its entity in 311 bytes and then this loader
+   * pulled the whole list anyway, to re-derive an id the caller was holding.
+   *
+   * Omit it and the name lookup still works — not every caller has the object.
+   * See project_financials_page_load_perf.
+   */
+  municipality: Municipality | null = null
 ): Promise<BudgetData> {
   // ⚠ THE SERIES IS PART OF THE KEY. Before SCOPE-03 the series was chosen
   // deterministically inside this function and never varied for a given key, so
@@ -207,7 +221,7 @@ export function loadBudgetData(
   if (inFlight) return inFlight;
 
   const pending = fetchBudgetData(
-    year, municipalityName, municipalityState, dataset, periodLabel, series
+    year, municipalityName, municipalityState, dataset, periodLabel, series, municipality
   );
   cache.set(cacheKey, pending);
   // ⚠ Evict on failure BEFORE anyone awaits, so a transient error does not
@@ -215,6 +229,27 @@ export function loadBudgetData(
   // caller — it is attached to a branch, and `pending` is what we return.
   pending.catch(() => { cache.delete(cacheKey); });
   return pending;
+}
+
+/**
+ * The name fallback: resolve an entity from the full list.
+ *
+ * ⚠ This is the 3.05 MB path. It stays for callers that genuinely have only a
+ * name, but anything holding the entity should pass it instead.
+ */
+async function findCityByName(
+  municipalityName: string,
+  municipalityState: string
+): Promise<Municipality> {
+  const cities = await fetchCityList();
+  const city = cities.find((c: any) =>
+    c.name?.toLowerCase() === municipalityName.toLowerCase() &&
+    (!municipalityState || c.state?.toLowerCase() === municipalityState.toLowerCase())
+  );
+  if (!city?.id) {
+    throw new Error(`City not found: ${municipalityName}, ${municipalityState}`);
+  }
+  return city;
 }
 
 /**
@@ -227,17 +262,12 @@ async function fetchBudgetData(
   municipalityState: string,
   dataset: string,
   periodLabel: string | null,
-  series: SeriesKey | null
+  series: SeriesKey | null,
+  municipality: Municipality | null
 ): Promise<BudgetData> {
-  // Step 1: Find the city by name — from the memoized list, see fetchCityList.
-  const cities = await fetchCityList();
-  const city = cities.find((c: any) =>
-    c.name?.toLowerCase() === municipalityName.toLowerCase() &&
-    (!municipalityState || c.state?.toLowerCase() === municipalityState.toLowerCase())
-  );
-  if (!city?.id) {
-    throw new Error(`City not found: ${municipalityName}, ${municipalityState}`);
-  }
+  // Step 1: Identify the entity. The caller's own object wins — see the
+  // parameter's note on why resolving a NAME here costs 3.05 MB.
+  const city = municipality ?? await findCityByName(municipalityName, municipalityState);
 
   // Step 2: Get budgets for this city, filtered by fiscal year
   const budgets = await fetchCityBudgets(city.id, year);
