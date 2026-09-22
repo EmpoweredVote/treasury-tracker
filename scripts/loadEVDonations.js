@@ -338,13 +338,6 @@ async function getMunicipalityId(sb) {
   return data.id;
 }
 
-/** Read the FY revenue budget id (or null). */
-async function getRevenueBudget(sb, muniId, fy) {
-  const { data } = await sb.from('budgets').select('id').eq('municipality_id', muniId)
-    .eq('fiscal_year', fy).eq('dataset_type', 'revenue').maybeSingle();
-  return data ? data.id : null;
-}
-
 /** All givebutter_webhook line items in the FY revenue budget. */
 async function fetchWebhookRows(sb, budgetId) {
   if (!budgetId) return [];
@@ -357,17 +350,45 @@ async function fetchWebhookRows(sb, budgetId) {
   return data || [];
 }
 
-/** Delete the entire FY revenue budget (all line items, categories, budget row). */
-async function deleteRevenueBudget(sb, budgetId) {
-  if (!budgetId) return;
-  const { data: cats } = await sb.from('budget_categories').select('id').eq('budget_id', budgetId);
-  const ids = (cats || []).map(c => c.id);
-  if (ids.length) await sb.from('budget_line_items').delete().in('category_id', ids);
-  await sb.from('budget_categories').delete().eq('budget_id', budgetId);
-  await sb.from('budgets').delete().eq('id', budgetId);
-}
+/**
+ * Get the FY revenue budget row, creating it only if it does not exist yet.
+ *
+ * ⚠⚠ THE ROW IS UPDATED IN PLACE. IT MUST NEVER BE DELETED AND RECREATED.
+ *
+ * This loader used to delete the budgets row and insert a replacement, so every
+ * refresh minted a NEW uuid. That broke the frozen-figure invariant twice over
+ * (measured 2026-09-21):
+ *
+ *   1. The digest's EV exclusion materialises to a STATIC ID LIST
+ *      (scripts/data/liveSyncExcludedIds.json). A new id is not on it, so the
+ *      refreshed rows re-entered the digest and the invariant went red -- the
+ *      very thing v2.37 believed it had prevented by registering the feeds as
+ *      sources. It needed a manual re-snapshot after every refresh.
+ *   2. The dead ids stayed in treasury.frozen_excluded_ids as orphans, four of
+ *      them by the time this was found, growing with each refresh.
+ *
+ * ⚠ A stable id matters MORE here than for the bank loader, because the live
+ * Givebutter webhook writes into this same budget between refreshes. Recreating
+ * the row moved the target out from under it.
+ *
+ * See scripts/evBudgetInPlace.test.mjs, which fails if a delete against
+ * `budgets` ever reappears here.
+ */
+export async function ensureBudget(sb, muniId, fy, total) {
+  const { data: existing } = await sb.from('budgets').select('id')
+    .eq('municipality_id', muniId).eq('fiscal_year', fy).eq('dataset_type', 'revenue').maybeSingle();
 
-async function createBudget(sb, muniId, fy, total) {
+  if (existing) {
+    // Descriptive columns only; total_budget is written LAST by setTotalBudget,
+    // BEFORE reapplyWebhookDelta increments it atomically.
+    const { error } = await sb.from('budgets').update({
+      data_source: 'Empowered Vote — platform exports',
+      hierarchy: ['Income Type', 'Source'], fiscal_year_start_month: 1,
+    }).eq('id', existing.id);
+    if (error) throw new Error(`Update budget failed: ${error.message}`);
+    return existing.id;
+  }
+
   const { data, error } = await sb.from('budgets').insert({
     municipality_id: muniId, fiscal_year: fy, dataset_type: 'revenue',
     total_budget: total, data_source: 'Empowered Vote — platform exports',
@@ -375,6 +396,30 @@ async function createBudget(sb, muniId, fy, total) {
   }).select('id').single();
   if (error) throw new Error(`Create budget failed: ${error.message}`);
   return data.id;
+}
+
+/** Remove the budget's tree (line items + categories) WITHOUT touching the budget row. */
+export async function clearBudgetChildren(sb, budgetId) {
+  if (!budgetId) return;
+  const { data: cats } = await sb.from('budget_categories').select('id').eq('budget_id', budgetId);
+  const ids = (cats || []).map(c => c.id);
+  if (ids.length) await sb.from('budget_line_items').delete().in('category_id', ids);
+  await sb.from('budget_categories').delete().eq('budget_id', budgetId);
+}
+
+/**
+ * Write the BASELINE header total, once the tree beneath it is in place.
+ *
+ * ⚠⚠ MUST RUN BEFORE reapplyWebhookDelta, NEVER AFTER. That function routes
+ * through the same atomic RPC the Givebutter webhook uses
+ * (treasury.record_givebutter_donation), which INCREMENTS total_budget and the
+ * category amounts together. A plain write afterwards would discard the webhook
+ * delta from the header while the tree kept it -- reintroducing exactly the
+ * header/tree divergence PR #201 fixed ($4,770.40 header vs $4,990.40 tree).
+ */
+export async function setTotalBudget(sb, budgetId, total) {
+  const { error } = await sb.from('budgets').update({ total_budget: total }).eq('id', budgetId);
+  if (error) throw new Error(`Set total_budget failed: ${error.message}`);
 }
 
 async function insertCategories(sb, budgetId, categories, fy, parentId = null, depth = 0) {
@@ -681,14 +726,17 @@ async function main() {
 
   const sb = await getSupabase();
   const muniId = await getMunicipalityId(sb);
-  const existingBudgetId = await getRevenueBudget(sb, muniId, fyArg);
-  const webhookRows = await fetchWebhookRows(sb, existingBudgetId);
+  // ⚠ In-place refresh: reuse the existing budget row so its id is stable across
+  // refreshes (see ensureBudget). The webhook rows must be read BEFORE the tree
+  // is cleared, and the baseline header written BEFORE the delta is re-applied.
+  const budgetId = await ensureBudget(sb, muniId, fyArg, total);
+  const webhookRows = await fetchWebhookRows(sb, budgetId);
   const { superseded, delta } = giveButterDedup(webhookRows, gb.asOf);
   console.log(`Webhook rows in FY${fyArg}: ${webhookRows.length} (superseded <=${gb.asOf}: ${superseded.length}, live delta >${gb.asOf}: ${delta.length})`);
 
-  await deleteRevenueBudget(sb, existingBudgetId);
-  const budgetId = await createBudget(sb, muniId, fyArg, total);
+  await clearBudgetChildren(sb, budgetId);
   await insertCategories(sb, budgetId, categories, fyArg);
+  await setTotalBudget(sb, budgetId, total);
   const deltaSum = await reapplyWebhookDelta(sb, budgetId, delta);
   if (deltaSum) console.log(`Re-applied ${delta.length} post-export webhook donation(s): +$${deltaSum.toFixed(2)}`);
 
