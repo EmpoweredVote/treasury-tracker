@@ -9,6 +9,10 @@ interface EntitySwitcherProps {
   municipalities: Municipality[];
   selectedEntity: Municipality | null;
   onEntityChange: (entity: Municipality) => void;
+  // Fired the first time the dropdown opens — the caller's cue to fetch the
+  // lean index lazily instead of holding it on page load. Optional so the
+  // component still works with a pre-populated list and no lazy loader.
+  onFirstOpen?: () => void;
 }
 
 // Max locality buttons rendered in the dropdown at once. Keeps the dropdown DOM
@@ -29,11 +33,17 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
   municipalities,
   selectedEntity,
   onEntityChange,
+  onFirstOpen,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [filter, setFilter] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const openedOnce = useRef(false);
+  const handleOpen = () => {
+    if (!openedOnce.current) { openedOnce.current = true; onFirstOpen?.(); }
+    setIsOpen(o => !o);
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -131,7 +141,7 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
     <div className="relative" ref={dropdownRef} onKeyDown={handleKeyDown}>
       <button
         className="flex items-center gap-2 h-[42px] px-4 py-2 bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-lg font-manrope text-sm font-medium text-[#1C1C1C] dark:text-ev-gray-200 cursor-pointer transition-colors duration-200 hover:bg-[#F7F7F8] dark:hover:bg-ev-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ev-muted-blue focus-visible:ring-offset-2"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleOpen}
         aria-label="Select jurisdiction"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
@@ -156,7 +166,9 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
               <input
                 ref={searchRef}
                 type="text"
-                placeholder={`Search ${totalCount.toLocaleString()} jurisdictions...`}
+                placeholder={totalCount > 0
+                  ? `Search ${totalCount.toLocaleString()} jurisdictions...`
+                  : 'Search jurisdictions...'}
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
                 className="w-full pl-8 pr-3 py-2 text-sm border border-[#E2EBEF] dark:border-ev-gray-700 rounded-md bg-[#F7F7F8] dark:bg-ev-gray-900 text-[#1C1C1C] dark:text-ev-gray-200 placeholder:text-ev-gray-400 focus:outline-none focus:ring-2 focus:ring-ev-muted-blue focus:border-transparent"

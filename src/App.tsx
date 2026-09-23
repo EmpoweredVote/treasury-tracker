@@ -59,7 +59,7 @@ import { resolveFeatureIcons, resolveTriviaIcon } from './utils/featureIcons';
 import { FeatureIconRow } from './components/FeatureIconRow';
 import type { BudgetCategory, BudgetData, FederalContext, HydratedMunicipality, LinkedTransactionSummary, Municipality, OrgFinancialSummary } from './types/budget';
 import { hasDatasets } from './data/municipalityDatasets';
-import { fetchEntities, fetchEntityById } from './data/entityQueries';
+import { fetchEntities, fetchEntityById, fetchEntityIndex } from './data/entityQueries';
 import { panelQueryFor, parentsQuery } from './data/panelQueries';
 import { resolveEntityParam, resolveEntityParamViaLookup, toSlug, displayLabel } from './utils/entityRouting';
 import { heroSubtitle } from './data/narrativeCopy';
@@ -197,6 +197,18 @@ function App() {
 
   // Entity state
   const [municipalities, setMunicipalities] = useState<Municipality[]>([]);
+  // The lean index (id, name, state, entity_type, county_id, has_data) that
+  // backs the entity switcher and the landing search. NOT fetched on page
+  // load — `loadIndex` is wired to the switcher's first open and to the
+  // landing view's render, so the 1,127 KB request only happens when one of
+  // those is actually shown. `fetchEntityIndex` memoizes its promise, so
+  // calling `loadIndex` from both triggers still issues at most one request.
+  const [entityIndex, setEntityIndex] = useState<Municipality[]>([]);
+  const loadIndex = useCallback(() => {
+    fetchEntityIndex()
+      .then(rows => setEntityIndex(rows as unknown as Municipality[]))
+      .catch(() => setEntityIndex([]));
+  }, []);
   // ⚠⚠ HYDRATED, not a bare list entry. The list is fetched with
   // `?datasets=summary` and carries no `available_datasets`, so every read
   // below — the series picker, the year picker, the dataset tabs — would see
@@ -212,6 +224,13 @@ function App() {
   useEffect(() => {
     fetchEntities(parentsQuery()).then(setParentPool).catch(() => setParentPool([]));
   }, []);
+
+  // The landing page's search needs the index too, and it never opens the
+  // switcher to trigger `onFirstOpen` — so fire the same (memoized) load the
+  // moment the landing view is the one on screen.
+  useEffect(() => {
+    if (appView === 'landing') loadIndex();
+  }, [appView, loadIndex]);
 
   useEffect(() => {
     if (!selectedEntity) { setPanelPool([]); return; }
@@ -1100,7 +1119,7 @@ function App() {
     return (
       <AlphaLanding
         reason={landingReason}
-        municipalities={municipalities}
+        municipalities={entityIndex}
         onNavigateToCity={(city) => navigateToEntity(city, municipalities)}
         profileMenu={profileMenu}
       />
@@ -1275,7 +1294,8 @@ function App() {
           <div className="flex items-center gap-3 flex-wrap">
             {!isFinancialsHost && (
               <EntitySwitcher
-                municipalities={municipalities}
+                municipalities={entityIndex}
+                onFirstOpen={loadIndex}
                 selectedEntity={selectedEntity}
                 onEntityChange={handleEntityChange}
               />
