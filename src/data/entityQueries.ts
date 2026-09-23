@@ -37,10 +37,35 @@ export function entityQueryUrl(base: string, f: EntityQuery): string {
  * drift between a filter and its predicate shows up as a visibly wrong list
  * rather than as silent substitution.
  */
+const entityQueryCache: Map<string, Promise<Municipality[]>> = new Map();
+
+/**
+ * ⚠⚠ MEMOIZED BY URL, and the PROMISE not the value — same reasoning as
+ * `fetchEntityIndex` below and `citiesPromise` in dataLoader.ts. Two callers
+ * asking the same question in the same session should cost one request.
+ *
+ * ⚠ This is not a micro-optimisation while the API is un-deployed: an API that
+ * ignores `entity_type` answers the parents query with all 8,149 rows
+ * (measured: 3,123 KB), so an un-memoized refetch on every entity change —
+ * which App.tsx's parentPool effect now does deliberately, see
+ * parentsQueryFor — would download 3 MB per navigation.
+ *
+ * ⚠ A rejection is NOT memoized — one transient failure must not poison a
+ * query for the rest of the session.
+ */
 export async function fetchEntities(f: EntityQuery): Promise<Municipality[]> {
-  const res = await fetch(entityQueryUrl(`${API_BASE}/treasury/cities`, f));
-  if (!res.ok) throw new Error(`Cities API returned ${res.status}`);
-  return res.json();
+  const url = entityQueryUrl(`${API_BASE}/treasury/cities`, f);
+  let pending = entityQueryCache.get(url);
+  if (!pending) {
+    pending = (async () => {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Cities API returned ${res.status}`);
+      return res.json();
+    })();
+    entityQueryCache.set(url, pending);
+    pending.catch(() => { entityQueryCache.delete(url); });
+  }
+  return pending;
 }
 
 /**
@@ -67,5 +92,17 @@ export function fetchEntityIndex(): Promise<EntityIndexRow[]> {
   return indexPromise;
 }
 
-/** Test seam — clears the memo. */
-export function clearEntityIndexCache(): void { indexPromise = null; }
+/**
+ * Test seam — clears every memo in this module.
+ *
+ * ⚠ Renamed from `clearEntityIndexCache`: it cleared only `indexPromise`, and
+ * once `fetchEntities` grew its own URL-keyed cache a caller who cleared "the"
+ * cache and expected a fresh fetch would still get a memoized response for
+ * any non-index query — the exact "clearCache() is a half-truth" defect
+ * dataLoader.ts documents on its own clearCache(). Clear every memo here, or
+ * this becomes that defect again the next time one is added.
+ */
+export function clearEntityCaches(): void {
+  indexPromise = null;
+  entityQueryCache.clear();
+}

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { entityQueryUrl, fetchEntityIndex, clearEntityIndexCache } from './entityQueries';
+import { entityQueryUrl, fetchEntities, fetchEntityIndex, clearEntityCaches } from './entityQueries';
 
 describe('entityQueryUrl', () => {
   it('always asks for summary mode, as the list endpoint expects', () => {
@@ -29,7 +29,7 @@ describe('entityQueryUrl', () => {
 });
 
 describe('fetchEntityIndex', () => {
-  beforeEach(() => clearEntityIndexCache());
+  beforeEach(() => clearEntityCaches());
   afterEach(() => vi.unstubAllGlobals());
 
   it('requests the lean index and fetches it at most once', async () => {
@@ -57,5 +57,51 @@ describe('fetchEntityIndex', () => {
 
     await expect(fetchEntityIndex()).rejects.toThrow();
     await expect(fetchEntityIndex()).resolves.toEqual([{ id: 'a' }]);
+  });
+});
+
+describe('fetchEntities', () => {
+  beforeEach(() => clearEntityCaches());
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('issues ONE request for repeated identical queries', async () => {
+    const calls: string[] = [];
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      calls.push(url);
+      return { ok: true, status: 200, json: async () => [] } as unknown as Response;
+    }));
+
+    await Promise.all([
+      fetchEntities({ entityTypes: ['state', 'federal'] }),
+      fetchEntities({ entityTypes: ['state', 'federal'] }),
+    ]);
+    await fetchEntities({ entityTypes: ['state', 'federal'] });
+
+    expect(calls.length).toBe(1);
+  });
+
+  it('treats a different query as a different request', async () => {
+    const calls: string[] = [];
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+      calls.push(url);
+      return { ok: true, status: 200, json: async () => [] } as unknown as Response;
+    }));
+
+    await fetchEntities({ state: 'CA' });
+    await fetchEntities({ state: 'MI' });
+
+    expect(calls.length).toBe(2);
+  });
+
+  it('does not memoize a failure — a later call retries', async () => {
+    let n = 0;
+    vi.stubGlobal('fetch', vi.fn(async () => {
+      n += 1;
+      if (n === 1) return { ok: false, status: 500 } as unknown as Response;
+      return { ok: true, status: 200, json: async () => [{ id: 'a' }] } as unknown as Response;
+    }));
+
+    await expect(fetchEntities({ state: 'CA' })).rejects.toThrow();
+    await expect(fetchEntities({ state: 'CA' })).resolves.toEqual([{ id: 'a' }]);
   });
 });
