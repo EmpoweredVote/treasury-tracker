@@ -64,7 +64,7 @@ export function datasetYears(m: Pick<Municipality, 'available_datasets' | 'datas
 export function latestDatasetYear(
   m: Pick<Municipality, 'available_datasets' | 'dataset_summary'> & { latest_year?: number | null }
 ): number | null {
-  if (typeof m.latest_year === 'number') return m.latest_year;
+  if (m.latest_year !== undefined) return m.latest_year;
   return datasetYears(m)[0] ?? null;
 }
 

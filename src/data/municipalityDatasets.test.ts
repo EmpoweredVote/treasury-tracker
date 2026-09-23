@@ -203,8 +203,16 @@ describe('latestDatasetYear', () => {
     expect(latestDatasetYear({ latest_year: 2024 } as never)).toBe(2024);
   });
 
-  it('returns null for an index row with no budget years', () => {
-    expect(latestDatasetYear({ latest_year: null } as never)).toBeNull();
+  it('returns null for latest_year: null even when derivable data is present', () => {
+    // ⚠ THIS IS THE TEST THAT FAILS UNDER A `typeof === 'number'` GUARD.
+    // `latest_year: null` means "no budget years", and must NOT fall through
+    // to the derived branch. Without the competing dataset_summary below, both
+    // a correct and a broken implementation return null and the test proves
+    // nothing.
+    expect(latestDatasetYear({
+      latest_year: null,
+      dataset_summary: { years: [2020], dataset_types: ['operating'] },
+    } as never)).toBeNull();
   });
 
   it('falls back to the newest derived year when latest_year is absent', () => {
