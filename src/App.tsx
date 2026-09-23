@@ -466,9 +466,15 @@ function App() {
       // every renamed entity's first paint. listEntityAliases() resolves to []
       // on any failure, so this cannot delay or break a link that already works.
       //
-      // THE FULL LIST IS AUTHORITATIVE AND IS STILL THE DEFAULT. Every other
-      // host needs it for the county/state/federal panels and the entity
-      // switcher, so this is unchanged for them.
+      // FALLBACK ONLY. Parents, panels, and the entity switcher now fetch their
+      // own slices (see panelQueries.ts / the lean index), so nothing on a
+      // normal load needs this. It still exists as (1) the not-found path — an
+      // unresolvable slug must land on the searchable landing page, not a
+      // blank — and (2) the deploy-order safety net: today's production API
+      // ignores `?slug=` on an unknown value and returns the full list, and the
+      // resolver re-derives `toSlug` on the returned row rather than trusting
+      // the server filter, so a drift surfaces as an honest "not found" rather
+      // than the wrong government's budget (TT #158).
       const viaFullList = () =>
         Promise.all([listMunicipalities(), listEntityAliases()]).then(([list, aliases]) => {
           setMunicipalities(list);
@@ -479,16 +485,11 @@ function App() {
           return resolveEntityParam(list, entityParam, aliases);
         });
 
-      // ⚠⚠ FAST PATH — financials.empowered.vote ONLY, and only because the
-      // list is PROVABLY UNUSED there. Every consumer of `municipalities` on
-      // that host is gated behind `!isFinancialsHost` (the entity switcher) or
-      // an `entity_type` of federal / county / state, and EV is a `nonprofit`.
-      // The list's sole job there was turning `?entity=empowered-vote-ca` into
-      // an id: 309 bytes out of 3,197,605, and 76% of the page's critical path.
-      //
-      // ⚠ DO NOT WIDEN THIS TO OTHER HOSTS without moving the panels off the
-      // list first — on a county or state page they would render empty, which
-      // looks like a coverage gap rather than a bug.
+      // ⚠⚠ FAST PATH — every host. This used to be gated on
+      // financials.empowered.vote because TT's parents and panels needed the
+      // full list; they no longer do (tasks 4-7 moved every consumer onto
+      // narrow queries), so every host now tries the slug lookup first and
+      // only falls through to viaFullList() when it does not resolve.
       //
       // ⚠ Any failure, and anything short of a resolved entity, FALLS BACK to
       // the full list. So the worst case is the load time we already had, and
@@ -501,13 +502,11 @@ function App() {
 
       (async () => {
         let resolution: Awaited<ReturnType<typeof viaFullList>> | null = null;
-        if (isFinancialsHost) {
-          try {
-            const fast = await viaSlugLookup();
-            if (fast.kind !== 'not_found') resolution = fast;
-          } catch {
-            // fall through to the full list
-          }
+        try {
+          const fast = await viaSlugLookup();
+          if (fast.kind !== 'not_found') resolution = fast;
+        } catch {
+          // fall through to the full list
         }
         if (!resolution) resolution = await viaFullList();
         if (resolution.kind === 'not_found') {
