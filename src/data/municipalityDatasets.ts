@@ -27,7 +27,13 @@ import type { Municipality } from '../types/budget';
  */
 
 /** Does this entity have any budget data at all? */
-export function hasDatasets(m: Pick<Municipality, 'available_datasets' | 'dataset_summary'>): boolean {
+export function hasDatasets(
+  m: Pick<Municipality, 'available_datasets' | 'dataset_summary'> & { has_data?: boolean }
+): boolean {
+  // ⚠ THE FLAG FIRST. An index row carries no dataset_summary at all, so
+  // checking the summary first would report every indexed entity as empty and
+  // the switcher would render "0 jurisdictions".
+  if (typeof m.has_data === 'boolean') return m.has_data;
   if (m.dataset_summary) return m.dataset_summary.years.length > 0;
   return (m.available_datasets?.length ?? 0) > 0;
 }

@@ -171,3 +171,21 @@ describe('the city list is requested in summary mode', () => {
     expect(String(fetchMock.mock.calls[0]?.[0])).toContain('datasets=summary');
   });
 });
+
+describe('hasDatasets — index rows', () => {
+  it('trusts an explicit has_data flag', () => {
+    expect(hasDatasets({ has_data: true } as never)).toBe(true);
+    expect(hasDatasets({ has_data: false } as never)).toBe(false);
+  });
+
+  it('still reads dataset_summary when there is no flag', () => {
+    expect(hasDatasets({ dataset_summary: { years: [2024], dataset_types: ['operating'] } } as never)).toBe(true);
+    expect(hasDatasets({ dataset_summary: { years: [], dataset_types: [] } } as never)).toBe(false);
+  });
+
+  it('prefers the flag over an absent summary, not the other way round', () => {
+    // An index row has NO dataset_summary. Reading the summary first would
+    // report every indexed entity as having no data.
+    expect(hasDatasets({ has_data: true, dataset_summary: undefined } as never)).toBe(true);
+  });
+});
