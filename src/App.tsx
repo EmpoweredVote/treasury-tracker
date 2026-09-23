@@ -59,6 +59,8 @@ import { resolveFeatureIcons, resolveTriviaIcon } from './utils/featureIcons';
 import { FeatureIconRow } from './components/FeatureIconRow';
 import type { BudgetCategory, BudgetData, FederalContext, HydratedMunicipality, LinkedTransactionSummary, Municipality, OrgFinancialSummary } from './types/budget';
 import { hasDatasets } from './data/municipalityDatasets';
+import { fetchEntities, fetchEntityById, fetchEntityIndex } from './data/entityQueries';
+import { panelQueryFor, parentsQueryFor } from './data/panelQueries';
 import { resolveEntityParam, resolveEntityParamViaLookup, toSlug, displayLabel } from './utils/entityRouting';
 import { heroSubtitle } from './data/narrativeCopy';
 
@@ -194,13 +196,90 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Entity state
-  const [municipalities, setMunicipalities] = useState<Municipality[]>([]);
+  // The lean index (id, name, state, entity_type, county_id, has_data) that
+  // backs the entity switcher and the landing search. NOT fetched on page
+  // load — `loadIndex` is wired to the switcher's first open and to the
+  // landing view's render, so the 1,127 KB request only happens when one of
+  // those is actually shown. `fetchEntityIndex` memoizes its promise, so
+  // calling `loadIndex` from both triggers still issues at most one request.
+  //
+  // ⚠ Cast, not typed as `EntityIndexRow[]`. A lean row is missing fields
+  // (`population`, `available_datasets`, ...) that `Municipality` declares
+  // required-ish elsewhere, and EntitySwitcher/AlphaLanding both take
+  // `Municipality[]` and hand rows straight to `onEntityChange`/
+  // `onNavigateToCity` → `hydrateMunicipality(m: Municipality)`. Typing this
+  // state as `EntityIndexRow[]` would cascade that type through both
+  // component prop signatures and every callback between them for no runtime
+  // change — `hydrateMunicipality` only reads `available_datasets`, which a
+  // lean row correctly lacks either way. Left as a cast; see Finding 1's fix
+  // in `hydrateMunicipality` for the actual bug this shape caused.
+  const [entityIndex, setEntityIndex] = useState<Municipality[]>([]);
+  // True from the moment `loadIndex()` is called until its promise settles.
+  // NOT inferred from `entityIndex.length === 0` — that can't distinguish
+  // "still loading" from "genuinely fetched, zero rows", and the switcher and
+  // the landing search each used to read an empty index as "no jurisdictions
+  // match" while it was still in flight. See Finding 4.
+  const [indexLoading, setIndexLoading] = useState(false);
+  const loadIndex = useCallback(() => {
+    setIndexLoading(true);
+    fetchEntityIndex()
+      .then(rows => setEntityIndex(rows as unknown as Municipality[]))
+      .catch(() => setEntityIndex([]))
+      .finally(() => setIndexLoading(false));
+  }, []);
   // ⚠⚠ HYDRATED, not a bare list entry. The list is fetched with
   // `?datasets=summary` and carries no `available_datasets`, so every read
   // below — the series picker, the year picker, the dataset tabs — would see
   // an entity with NO DATA rather than throw. The type makes that a compile
   // error instead; `hydrateMunicipality` is the only way to produce one.
   const [selectedEntity, setSelectedEntity] = useState<HydratedMunicipality | null>(null);
+
+  // Parent jurisdictions + whatever the current page's panels need. Both are
+  // narrow queries; neither is the 8,149-row list.
+  const [parentPool, setParentPool] = useState<Municipality[]>([]);
+  const [panelPool, setPanelPool] = useState<Municipality[]>([]);
+
+  useEffect(() => {
+    const q = parentsQueryFor(selectedEntity);
+    if (!q) { setParentPool([]); return; }
+    let live = true;
+    fetchEntities(q).then(rows => { if (live) setParentPool(rows); }).catch(() => { if (live) setParentPool([]); });
+    return () => { live = false; };
+  }, [selectedEntity]);
+
+  // The landing page's search needs the index too, and it never opens the
+  // switcher to trigger `onFirstOpen` — so fire the same (memoized) load the
+  // moment the landing view is the one on screen.
+  useEffect(() => {
+    if (appView === 'landing') loadIndex();
+  }, [appView, loadIndex]);
+
+  useEffect(() => {
+    if (!selectedEntity) { setPanelPool([]); return; }
+    const q = panelQueryFor(selectedEntity);
+    if (!q) { setPanelPool([]); return; }
+    let live = true;
+    fetchEntities(q).then(rows => { if (live) setPanelPool(rows); }).catch(() => { if (live) setPanelPool([]); });
+    return () => { live = false; };
+  }, [selectedEntity]);
+
+  // The county parent, fetched by id — the one jurisdiction not covered by
+  // parentsQuery()'s federal+states fetch.
+  const [countyParent, setCountyParent] = useState<Municipality | null>(null);
+  useEffect(() => {
+    const id = selectedEntity?.county_id;
+    if (!id) { setCountyParent(null); return; }
+    // ⚠ Cleared BEFORE the fetch starts, not just on failure. Otherwise the
+    // PREVIOUS entity's county survives in state for one round trip, and the
+    // breadcrumb names and links to a government that is not this entity's
+    // parent until the fetch resolves.
+    setCountyParent(null);
+    let live = true;
+    fetchEntityById(id)
+      .then(row => { if (live) setCountyParent(row); })
+      .catch(() => { if (live) setCountyParent(null); });
+    return () => { live = false; };
+  }, [selectedEntity?.county_id]);
 
   const [selectedYear, setSelectedYear] = useState('2025');
 
@@ -385,7 +464,7 @@ function App() {
   }, [selectedEntity, selectedYear]);
 
   // Helper: navigate directly to an entity (used by landing page and auth routing)
-  const navigateToEntity = useCallback(async (entity: Municipality, list: Municipality[]) => {
+  const navigateToEntity = useCallback(async (entity: Municipality) => {
     // ⚠ Hydrate FIRST. initialYearForEntity reads per-row datasets, and a
     // summarised list entry would give it nothing to choose from.
     const full = await hydrateMunicipality(entity);
@@ -393,14 +472,15 @@ function App() {
     // See initialYearForEntity: an adopted FY2025–26 series made the old rule
     // land on a year the default actuals series has no row for.
     const year = initialYearForEntity(full.available_datasets, null);
-    setMunicipalities(list);
     setSelectedEntity(full);
     setSelectedYear(year);
     setAppView('budget');
     syncURL(full, year, 'operating');
   }, []);
 
-  // On mount: resolve auth + load municipalities in parallel, then route
+  // On mount: resolve the ?entity= slug (or auth, when there is none), then
+  // route. Neither path fetches the full municipality list unconditionally
+  // any more — see the two branches below for what each actually needs.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const entityParam = params.get('entity') ?? (isFinancialsHost ? 'empowered-vote-ca' : null);
@@ -414,12 +494,17 @@ function App() {
       // every renamed entity's first paint. listEntityAliases() resolves to []
       // on any failure, so this cannot delay or break a link that already works.
       //
-      // THE FULL LIST IS AUTHORITATIVE AND IS STILL THE DEFAULT. Every other
-      // host needs it for the county/state/federal panels and the entity
-      // switcher, so this is unchanged for them.
+      // FALLBACK ONLY. Parents, panels, and the entity switcher now fetch their
+      // own slices (see panelQueries.ts / the lean index), so nothing on a
+      // normal load needs this. It still exists as (1) the not-found path — an
+      // unresolvable slug must land on the searchable landing page, not a
+      // blank — and (2) the deploy-order safety net: today's production API
+      // ignores `?slug=` on an unknown value and returns the full list, and the
+      // resolver re-derives `toSlug` on the returned row rather than trusting
+      // the server filter, so a drift surfaces as an honest "not found" rather
+      // than the wrong government's budget (TT #158).
       const viaFullList = () =>
         Promise.all([listMunicipalities(), listEntityAliases()]).then(([list, aliases]) => {
-          setMunicipalities(list);
           // ⚠ An unmatched slug must NOT resolve to another entity. It used to
           // fall back to Bloomington, IN (then list[0]), so a stale or renamed
           // link silently rendered the wrong government's budget with nothing on
@@ -427,16 +512,11 @@ function App() {
           return resolveEntityParam(list, entityParam, aliases);
         });
 
-      // ⚠⚠ FAST PATH — financials.empowered.vote ONLY, and only because the
-      // list is PROVABLY UNUSED there. Every consumer of `municipalities` on
-      // that host is gated behind `!isFinancialsHost` (the entity switcher) or
-      // an `entity_type` of federal / county / state, and EV is a `nonprofit`.
-      // The list's sole job there was turning `?entity=empowered-vote-ca` into
-      // an id: 309 bytes out of 3,197,605, and 76% of the page's critical path.
-      //
-      // ⚠ DO NOT WIDEN THIS TO OTHER HOSTS without moving the panels off the
-      // list first — on a county or state page they would render empty, which
-      // looks like a coverage gap rather than a bug.
+      // ⚠⚠ FAST PATH — every host. This used to be gated on
+      // financials.empowered.vote because TT's parents and panels needed the
+      // full list; they no longer do (tasks 4-7 moved every consumer onto
+      // narrow queries), so every host now tries the slug lookup first and
+      // only falls through to viaFullList() when it does not resolve.
       //
       // ⚠ Any failure, and anything short of a resolved entity, FALLS BACK to
       // the full list. So the worst case is the load time we already had, and
@@ -449,13 +529,11 @@ function App() {
 
       (async () => {
         let resolution: Awaited<ReturnType<typeof viaFullList>> | null = null;
-        if (isFinancialsHost) {
-          try {
-            const fast = await viaSlugLookup();
-            if (fast.kind !== 'not_found') resolution = fast;
-          } catch {
-            // fall through to the full list
-          }
+        try {
+          const fast = await viaSlugLookup();
+          if (fast.kind !== 'not_found') resolution = fast;
+        } catch {
+          // fall through to the full list
         }
         if (!resolution) resolution = await viaFullList();
         if (resolution.kind === 'not_found') {
@@ -515,13 +593,16 @@ function App() {
       return;
     }
 
-    // No URL param — run auth-based routing
-    Promise.all([
-      resolveToken(),
-      listMunicipalities(),
-    ]).then(async ([token, list]) => {
-      setMunicipalities(list);
-
+    // No URL param — run auth-based routing.
+    //
+    // ⚠ NO full-list fetch upfront. `municipalities` used to be populated here
+    // and held for the rest of the session, but its only real reader was the
+    // city match below — everything else that touched it was write-only. Auth
+    // resolution runs first; the (possibly 3.05 MB, API-dependent) city fetch
+    // only happens for the one path that actually needs it — a Connected/
+    // Empowered reader with a jurisdiction on file — and even then it is
+    // narrowed to their own state.
+    resolveToken().then(async (token) => {
       // Unauthenticated — full access, manual city search
       if (!token) {
         setLandingReason({ type: 'guest' });
@@ -560,10 +641,22 @@ function App() {
         return;
       }
 
-      // Try to match their city to a treasury city
+      // Try to match their city to a treasury city. Narrowed to the reader's
+      // own state — the match below still checks name+state+hasDatasets
+      // itself, so an API that ignores `?state=` and returns everything is
+      // still matched correctly (see fetchEntities' predicate contract).
       const cityNorm = session.jurisdiction.city.trim().toLowerCase();
       const stateNorm = session.jurisdiction.state.trim().toUpperCase();
-      const match = list.find(
+      // ⚠⚠ NOT caught here. A caught-and-emptied `candidates` is indistinguishable
+      // from a real zero-result state fetch, and falls through to
+      // `city_not_available` — "We don't have {city} in Treasury Tracker yet.",
+      // a definite coverage claim, on what may just be a network error. Letting
+      // the rejection propagate to the outer `.catch()` below sends a failure to
+      // the honest guest/search landing instead, exactly as it did before this
+      // fetch existed (when this call sat inside the mount `Promise.all`). Do
+      // NOT re-wrap this in a local catch.
+      const candidates = await fetchEntities({ state: stateNorm });
+      const match = candidates.find(
         m =>
           m.name.trim().toLowerCase() === cityNorm &&
           m.state.trim().toUpperCase() === stateNorm &&
@@ -572,7 +665,7 @@ function App() {
 
       if (match) {
         // Auto-navigate to their city
-        navigateToEntity(match, list);
+        navigateToEntity(match);
       } else {
         // City not in treasury yet
         setLandingReason({
@@ -917,17 +1010,15 @@ function App() {
   // Jurisdiction chain for the breadcrumb: Federal → State → County above the
   // current entity. Gives every city a link up to its State and the federal
   // government (and its County when one is linked). The federal entity and all
-  // 50 state entities are always present in the municipalities list, so a city
-  // resolves its state by abbreviation and the nation directly.
+  // 50 state entities are fetched by parentsQuery(); the county (if any) is
+  // fetched separately by id into countyParent.
   const jurisdictionParents = useMemo<Municipality[]>(() => {
     if (!selectedEntity) return [];
-    const federal = municipalities.find(m => m.entity_type === 'federal') ?? null;
-    const state = municipalities.find(
+    const federal = parentPool.find(m => m.entity_type === 'federal') ?? null;
+    const state = parentPool.find(
       m => m.entity_type === 'state' && m.state === selectedEntity.state
     ) ?? null;
-    const county = selectedEntity.county_id
-      ? municipalities.find(m => m.id === selectedEntity.county_id) ?? null
-      : null;
+    const county = countyParent;
 
     const keep = (arr: (Municipality | null)[]) =>
       arr.filter((m): m is Municipality => m != null);
@@ -944,7 +1035,7 @@ function App() {
       default: // city, town, township, municipality, special_district, etc.
         return keep([federal, state, county]);
     }
-  }, [selectedEntity, municipalities]);
+  }, [selectedEntity, parentPool, countyParent]);
 
   const breadcrumbItems: BreadcrumbItem[] = useMemo(() => {
     const items: BreadcrumbItem[] = [];
@@ -1069,8 +1160,9 @@ function App() {
     return (
       <AlphaLanding
         reason={landingReason}
-        municipalities={municipalities}
-        onNavigateToCity={(city) => navigateToEntity(city, municipalities)}
+        municipalities={entityIndex}
+        indexLoading={indexLoading}
+        onNavigateToCity={(city) => navigateToEntity(city)}
         profileMenu={profileMenu}
       />
     );
@@ -1244,7 +1336,9 @@ function App() {
           <div className="flex items-center gap-3 flex-wrap">
             {!isFinancialsHost && (
               <EntitySwitcher
-                municipalities={municipalities}
+                municipalities={entityIndex}
+                indexLoading={indexLoading}
+                onFirstOpen={loadIndex}
                 selectedEntity={selectedEntity}
                 onEntityChange={handleEntityChange}
               />
@@ -1742,7 +1836,7 @@ function App() {
           {/* All 50 states — jump-off tags at the bottom of the federal page */}
           {navigationPath.length === 0 && selectedEntity?.entity_type === 'federal' && (
             <StatesInFederalPanel
-              municipalities={municipalities}
+              municipalities={panelPool}
               onStateClick={handleEntityChange}
             />
           )}
@@ -1751,7 +1845,7 @@ function App() {
           {navigationPath.length === 0 && selectedEntity?.entity_type === 'county' && (
             <CitiesInCountyPanel
               county={selectedEntity}
-              municipalities={municipalities}
+              municipalities={panelPool}
               onCityClick={handleEntityChange}
             />
           )}
@@ -1760,7 +1854,7 @@ function App() {
           {navigationPath.length === 0 && selectedEntity?.entity_type === 'state' && (
             <CountiesInStatePanel
               state={selectedEntity}
-              municipalities={municipalities}
+              municipalities={panelPool}
               onCountyClick={handleEntityChange}
             />
           )}
@@ -1769,7 +1863,7 @@ function App() {
           {navigationPath.length === 0 && selectedEntity?.entity_type === 'state' && (
             <CitiesInStatePanel
               state={selectedEntity}
-              municipalities={municipalities}
+              municipalities={panelPool}
               onCityClick={handleEntityChange}
             />
           )}

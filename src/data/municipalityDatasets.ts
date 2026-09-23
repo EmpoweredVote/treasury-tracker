@@ -27,7 +27,13 @@ import type { Municipality } from '../types/budget';
  */
 
 /** Does this entity have any budget data at all? */
-export function hasDatasets(m: Pick<Municipality, 'available_datasets' | 'dataset_summary'>): boolean {
+export function hasDatasets(
+  m: Pick<Municipality, 'available_datasets' | 'dataset_summary'> & { has_data?: boolean }
+): boolean {
+  // ⚠ THE FLAG FIRST. An index row carries no dataset_summary at all, so
+  // checking the summary first would report every indexed entity as empty and
+  // the switcher would render "0 jurisdictions".
+  if (typeof m.has_data === 'boolean') return m.has_data;
   if (m.dataset_summary) return m.dataset_summary.years.length > 0;
   return (m.available_datasets?.length ?? 0) > 0;
 }
@@ -42,6 +48,30 @@ export function hasDatasets(m: Pick<Municipality, 'available_datasets' | 'datase
 export function datasetYears(m: Pick<Municipality, 'available_datasets' | 'dataset_summary'>): number[] {
   if (m.dataset_summary) return [...m.dataset_summary.years].sort((a, b) => b - a);
   return [...new Set((m.available_datasets ?? []).map((d) => d.fiscal_year))].sort((a, b) => b - a);
+}
+
+/**
+ * The newest fiscal year this entity has data for, or null.
+ *
+ * ⚠ Prefers an index row's `latest_year` over deriving from the year list,
+ * because a lean index row carries NO `dataset_summary` and NO
+ * `available_datasets` — `datasetYears()` returns `[]` for one, which is how
+ * the landing search's FY label silently blanked.
+ *
+ * ⚠ The fallback matters for deploy order, but only softens the blow for a
+ * HYDRATED entity or a summarised list row: against an API that does not yet
+ * send `latest_year`, those still have `available_datasets` or
+ * `dataset_summary` to derive a year FROM. A LEAN INDEX ROW has neither — it
+ * carries no years at all — so until the API ships `latest_year` this returns
+ * null for one, and the caller's FY label goes BLANK rather than showing a
+ * wrong year. Say that plainly rather than "degrades ... rather than
+ * breaking", which implied a fallback figure that does not exist here.
+ */
+export function latestDatasetYear(
+  m: Pick<Municipality, 'available_datasets' | 'dataset_summary'> & { latest_year?: number | null }
+): number | null {
+  if (m.latest_year !== undefined) return m.latest_year;
+  return datasetYears(m)[0] ?? null;
 }
 
 /** The distinct dataset types this entity has, sorted. */

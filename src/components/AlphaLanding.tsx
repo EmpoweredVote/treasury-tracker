@@ -5,7 +5,7 @@ import { MapPin, ArrowRight, Building2, Search, X } from 'lucide-react';
 import type { Municipality } from '../types/budget';
 import { getLoginUrl } from '../utils/auth';
 import { useTheme } from '../hooks/useTheme';
-import { hasDatasets, datasetYears } from '../data/municipalityDatasets';
+import { hasDatasets, latestDatasetYear } from '../data/municipalityDatasets';
 import { displaySlug } from '../utils/entityRouting';
 
 export type LandingReason =
@@ -22,6 +22,10 @@ interface AlphaLandingProps {
   municipalities: Municipality[];
   onNavigateToCity: (city: Municipality) => void;
   profileMenu?: { label: string; items: { label: string; onClick: () => void }[] };
+  // True while the lean index is in flight. Suppresses the "isn't in our
+  // Alpha yet" not-found message — see CitySearch's `noMatch`, which cannot
+  // otherwise tell an empty-so-far index from a genuine zero-result search.
+  indexLoading?: boolean;
 }
 
 const STEPS = [
@@ -49,9 +53,11 @@ const MAX_CITY_RESULTS = 50;
 function CitySearch({
   municipalities,
   onNavigateToCity,
+  indexLoading,
 }: {
   municipalities: Municipality[];
   onNavigateToCity: (city: Municipality) => void;
+  indexLoading?: boolean;
 }) {
   const [query, setQuery] = useState('');
 
@@ -68,7 +74,11 @@ function CitySearch({
     return { results: matches.slice(0, MAX_CITY_RESULTS), hiddenCount: Math.max(0, matches.length - MAX_CITY_RESULTS) };
   }, [query, municipalities]);
 
-  const noMatch = query.trim().length >= 2 && results.length === 0;
+  // ⚠ Not while the index is still loading — an empty `municipalities` in
+  // flight is not a genuine zero-result search, and rendering the not-found
+  // message here for a slow index load is the same false coverage claim the
+  // switcher's placeholder rule already guards against.
+  const noMatch = !indexLoading && query.trim().length >= 2 && results.length === 0;
 
   return (
     <div>
@@ -95,7 +105,7 @@ function CitySearch({
       {results.length > 0 && (
         <div className="mt-2 bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl overflow-hidden shadow-sm dark:shadow-black/40">
           {results.map(city => {
-            const years = datasetYears(city);
+            const latestYear = latestDatasetYear(city);
             return (
               <button
                 key={city.id}
@@ -106,7 +116,7 @@ function CitySearch({
                 <span className="flex-1 text-sm font-medium text-[#1C1C1C] dark:text-ev-gray-200">
                   {city.name}, {city.state}
                 </span>
-                <span className="text-xs text-ev-gray-400">{years[0]}</span>
+                <span className="text-xs text-ev-gray-400">{latestYear}</span>
                 <ArrowRight size={13} className="text-ev-gray-400 shrink-0" />
               </button>
             );
@@ -134,7 +144,7 @@ function CitySearch({
 }
 
 // ── Main component ──
-export default function AlphaLanding({ reason, municipalities, onNavigateToCity, profileMenu }: AlphaLandingProps) {
+export default function AlphaLanding({ reason, municipalities, onNavigateToCity, profileMenu, indexLoading }: AlphaLandingProps) {
   const cityPickerRef = useRef<HTMLDivElement>(null);
   const { isDark } = useTheme();
 
@@ -211,7 +221,7 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
                 </div>
               ) : (
                 <div className="max-w-md">
-                  <CitySearch municipalities={municipalities} onNavigateToCity={onNavigateToCity} />
+                  <CitySearch municipalities={municipalities} onNavigateToCity={onNavigateToCity} indexLoading={indexLoading} />
                 </div>
               )}
             </div>
@@ -315,7 +325,7 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
 
             <div>
               <h2 className="text-base font-bold text-[#1C1C1C] dark:text-ev-gray-100 mb-3">Or search for a city</h2>
-              <CitySearch municipalities={municipalities} onNavigateToCity={onNavigateToCity} />
+              <CitySearch municipalities={municipalities} onNavigateToCity={onNavigateToCity} indexLoading={indexLoading} />
             </div>
           </>
         )}
@@ -334,7 +344,7 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
 
             <div>
               <h2 className="text-base font-bold text-[#1C1C1C] dark:text-ev-gray-100 mb-3">Find another city</h2>
-              <CitySearch municipalities={municipalities} onNavigateToCity={onNavigateToCity} />
+              <CitySearch municipalities={municipalities} onNavigateToCity={onNavigateToCity} indexLoading={indexLoading} />
             </div>
           </>
         )}
@@ -354,7 +364,7 @@ export default function AlphaLanding({ reason, municipalities, onNavigateToCity,
 
             <div>
               <h2 className="text-base font-bold text-[#1C1C1C] dark:text-ev-gray-100 mb-3">Search for a government</h2>
-              <CitySearch municipalities={municipalities} onNavigateToCity={onNavigateToCity} />
+              <CitySearch municipalities={municipalities} onNavigateToCity={onNavigateToCity} indexLoading={indexLoading} />
             </div>
           </>
         )}

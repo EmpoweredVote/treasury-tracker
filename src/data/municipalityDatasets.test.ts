@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-import { hasDatasets, datasetYears, datasetTypes } from './municipalityDatasets';
+import { hasDatasets, datasetYears, datasetTypes, latestDatasetYear } from './municipalityDatasets';
 import { hydrateMunicipality, clearCache } from './dataLoader';
 import type { Municipality } from '../types/budget';
 
@@ -116,6 +116,53 @@ describe('hydrateMunicipality', () => {
     expect(full.name).toBe('Detroit');
   });
 
+  // ⚠⚠ THE REGRESSION THIS PINS: a LEAN index row (`?fields=index`) carries no
+  // `population` and no `hero_image_url` — the keys are ABSENT, not merely
+  // undefined, exactly like the real `EntityIndexRow` App.tsx casts into this
+  // shape. Spreading that row over the detail response used to blank both
+  // fields after every switcher navigation: the hero silently lost its
+  // Population chip and its curated banner image. The fix spreads the detail
+  // response FIRST so an absent key on the list row cannot overwrite it.
+  it('lets the detail response supply fields a LEAN list row omits', async () => {
+    const leanRow = {
+      id: 'lean-1', name: 'Leanville', state: 'CA', entity_type: 'city',
+      // no `population`, no `hero_image_url` — key ABSENT, not `undefined`.
+    } as unknown as Municipality;
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        id: 'lean-1', name: 'Leanville', state: 'CA', entity_type: 'city',
+        population: 54321,
+        hero_image_url: 'https://example.com/hero.jpg',
+        available_datasets: [entry(2024, 'operating')],
+      }),
+    })));
+    const full = await hydrateMunicipality(leanRow);
+    expect(full.population).toBe(54321);
+    expect(full.hero_image_url).toBe('https://example.com/hero.jpg');
+  });
+
+  // ⚠ The other half of the invariant: a divergence between the two endpoints
+  // must not change an entity's name — or any other field the LIST row
+  // carries — under the reader. This is why the merge is not simply
+  // `{ ...m, ...full }`; that ordering would let a stale/divergent detail
+  // response override a carried field, which the "keeps the LIST entity
+  // fields" test above already guards for `name`. This pins `population` too,
+  // since that is the exact field the merge-order bug blanked.
+  it('still lets the LIST row win for a field it does carry', async () => {
+    const listRow = muni({ population: 999, dataset_summary: { years: [2024], dataset_types: [] } });
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        id: 'abc', name: 'WRONG NAME', state: 'ZZ', population: 1,
+        available_datasets: [entry(2024, 'operating')],
+      }),
+    })));
+    const full = await hydrateMunicipality(listRow);
+    expect(full.name).toBe('Detroit');
+    expect(full.population).toBe(999);
+  });
+
   // ⚠ An already-hydrated entity must cost nothing. The selection path calls
   // this unconditionally so callers do not have to branch.
   it('returns an already-hydrated entity without fetching', async () => {
@@ -169,5 +216,60 @@ describe('the city list is requested in summary mode', () => {
     const { listMunicipalities } = await import('./dataLoader');
     await listMunicipalities();
     expect(String(fetchMock.mock.calls[0]?.[0])).toContain('datasets=summary');
+  });
+});
+
+describe('hasDatasets — index rows', () => {
+  it('trusts an explicit has_data flag', () => {
+    expect(hasDatasets({ has_data: true } as never)).toBe(true);
+    expect(hasDatasets({ has_data: false } as never)).toBe(false);
+  });
+
+  it('still reads dataset_summary when there is no flag', () => {
+    expect(hasDatasets({ dataset_summary: { years: [2024], dataset_types: ['operating'] } } as never)).toBe(true);
+    expect(hasDatasets({ dataset_summary: { years: [], dataset_types: [] } } as never)).toBe(false);
+  });
+
+  it('prefers the flag over an absent summary, not the other way round', () => {
+    // An index row has NO dataset_summary. Reading the summary first would
+    // report every indexed entity as having no data.
+    expect(hasDatasets({ has_data: true, dataset_summary: undefined } as never)).toBe(true);
+  });
+
+  it('pins the ORDER: a truthy-but-empty summary must not override the flag', () => {
+    // ⚠ THIS IS THE TEST THAT FAILS IF THE CHECKS ARE SWAPPED. A summary-first
+    // implementation returns false here (years is empty); flag-first returns
+    // true. The earlier `dataset_summary: undefined` case cannot tell the two
+    // apart, because `if (m.dataset_summary)` is falsy either way.
+    expect(hasDatasets({ has_data: true, dataset_summary: { years: [], dataset_types: [] } } as never)).toBe(true);
+  });
+});
+
+describe('latestDatasetYear', () => {
+  it('prefers an index row\'s latest_year', () => {
+    expect(latestDatasetYear({ latest_year: 2024 } as never)).toBe(2024);
+  });
+
+  it('returns null for latest_year: null even when derivable data is present', () => {
+    // ⚠ THIS IS THE TEST THAT FAILS UNDER A `typeof === 'number'` GUARD.
+    // `latest_year: null` means "no budget years", and must NOT fall through
+    // to the derived branch. Without the competing dataset_summary below, both
+    // a correct and a broken implementation return null and the test proves
+    // nothing.
+    expect(latestDatasetYear({
+      latest_year: null,
+      dataset_summary: { years: [2020], dataset_types: ['operating'] },
+    } as never)).toBeNull();
+  });
+
+  it('falls back to the newest derived year when latest_year is absent', () => {
+    // ⚠ The deploy-order case: an API that does not yet send latest_year.
+    expect(latestDatasetYear({
+      dataset_summary: { years: [2019, 2024, 2021], dataset_types: ['operating'] },
+    } as never)).toBe(2024);
+  });
+
+  it('returns null when there is nothing to derive from', () => {
+    expect(latestDatasetYear({ available_datasets: [] } as never)).toBeNull();
   });
 });
