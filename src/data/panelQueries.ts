@@ -20,6 +20,10 @@ export function panelQueryFor(
   switch (entity.entity_type) {
     case 'federal': return { entityTypes: ['state'] };
     case 'state':   return { state: entity.state };
+    // ⚠ `entityTypes` here is CITY_TIER_TYPES, a client-side list — the backend
+    // has its own whitelist for `?entity_type=`, in a different repo, with no
+    // test spanning the two. Adding a type to CITY_TIER_TYPES that the backend
+    // does not also know makes this a 422, not a silently-narrower result.
     case 'county':  return { countyId: entity.id, entityTypes: [...CITY_TIER_TYPES] };
     default:        return null;
   }
@@ -32,4 +36,20 @@ export function panelQueryFor(
  */
 export function parentsQuery(): EntityQuery {
   return { entityTypes: ['state', 'federal'] };
+}
+
+/**
+ * The parents query an entity actually needs, or null when it has none.
+ *
+ * ⚠ `jurisdictionParents` returns [] for a nonprofit (not a jurisdiction) and
+ * for the federal government (top of the chain), so fetching for them is pure
+ * waste — and on financials.empowered.vote, against an API that ignores the
+ * filter, that waste is the whole 3.05 MB list this project exists to avoid.
+ */
+export function parentsQueryFor(
+  entity: Pick<Municipality, 'entity_type'> | null
+): EntityQuery | null {
+  if (!entity) return null;
+  if (entity.entity_type === 'federal' || entity.entity_type === 'nonprofit') return null;
+  return parentsQuery();
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { panelQueryFor, parentsQuery } from './panelQueries';
+import { panelQueryFor, parentsQuery, parentsQueryFor } from './panelQueries';
 import { CITY_TIER_TYPES } from '../utils/cityTierTypes';
 
 describe('panelQueryFor', () => {
@@ -28,5 +28,23 @@ describe('panelQueryFor', () => {
 describe('parentsQuery', () => {
   it('fetches only the federal row and the 50 states', () => {
     expect(parentsQuery()).toEqual({ entityTypes: ['state', 'federal'] });
+  });
+});
+
+describe('parentsQueryFor', () => {
+  it('returns null when there is no entity yet', () => {
+    expect(parentsQueryFor(null)).toBeNull();
+  });
+
+  it('returns null for federal — top of the chain, nothing above it', () => {
+    expect(parentsQueryFor({ entity_type: 'federal' })).toBeNull();
+  });
+
+  it('returns null for a nonprofit — not a jurisdiction', () => {
+    expect(parentsQueryFor({ entity_type: 'nonprofit' })).toBeNull();
+  });
+
+  it('returns parentsQuery() for a city', () => {
+    expect(parentsQueryFor({ entity_type: 'city' })).toEqual(parentsQuery());
   });
 });

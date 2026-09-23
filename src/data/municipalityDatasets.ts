@@ -58,8 +58,14 @@ export function datasetYears(m: Pick<Municipality, 'available_datasets' | 'datas
  * `available_datasets` — `datasetYears()` returns `[]` for one, which is how
  * the landing search's FY label silently blanked.
  *
- * ⚠ The fallback matters for deploy order: against an API that does not yet
- * send `latest_year`, this degrades to the derived value rather than breaking.
+ * ⚠ The fallback matters for deploy order, but only softens the blow for a
+ * HYDRATED entity or a summarised list row: against an API that does not yet
+ * send `latest_year`, those still have `available_datasets` or
+ * `dataset_summary` to derive a year FROM. A LEAN INDEX ROW has neither — it
+ * carries no years at all — so until the API ships `latest_year` this returns
+ * null for one, and the caller's FY label goes BLANK rather than showing a
+ * wrong year. Say that plainly rather than "degrades ... rather than
+ * breaking", which implied a fallback figure that does not exist here.
  */
 export function latestDatasetYear(
   m: Pick<Municipality, 'available_datasets' | 'dataset_summary'> & { latest_year?: number | null }

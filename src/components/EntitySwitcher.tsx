@@ -13,6 +13,11 @@ interface EntitySwitcherProps {
   // lean index lazily instead of holding it on page load. Optional so the
   // component still works with a pre-populated list and no lazy loader.
   onFirstOpen?: () => void;
+  // True while the lean index is in flight. NOT the same as `municipalities`
+  // being empty — that is also true before the index has ever been fetched
+  // AND permanently true if it fetches zero rows, and this dropdown must not
+  // tell the reader "no jurisdictions match" for either of those reasons.
+  indexLoading?: boolean;
 }
 
 // Max locality buttons rendered in the dropdown at once. Keeps the dropdown DOM
@@ -34,6 +39,7 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
   selectedEntity,
   onEntityChange,
   onFirstOpen,
+  indexLoading,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [filter, setFilter] = useState('');
@@ -178,10 +184,16 @@ const EntitySwitcher: React.FC<EntitySwitcherProps> = ({
 
           {/* Grouped list */}
           <div className="max-h-80 overflow-y-auto">
-            {grouped.byState.size === 0 && grouped.stateEntities.length === 0 && grouped.federalEntities.length === 0 && (
+            {indexLoading ? (
               <div className="px-4 py-6 text-sm text-ev-gray-500 text-center">
-                No jurisdictions match "{filter}"
+                Loading jurisdictions…
               </div>
+            ) : (
+              grouped.byState.size === 0 && grouped.stateEntities.length === 0 && grouped.federalEntities.length === 0 && (
+                <div className="px-4 py-6 text-sm text-ev-gray-500 text-center">
+                  No jurisdictions match "{filter}"
+                </div>
+              )
             )}
 
             {/* FEDERAL GOVERNMENT section — rendered above everything */}

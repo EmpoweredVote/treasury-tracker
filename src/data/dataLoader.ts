@@ -170,10 +170,16 @@ export async function hydrateMunicipality(m: Municipality): Promise<HydratedMuni
       if (!Array.isArray(full?.available_datasets)) {
         throw new Error(`City ${m.id} came back without available_datasets`);
       }
-      // ⚠ Keep the LIST's fields and take only the datasets from the detail
-      // response, so a divergence between the two endpoints cannot silently
-      // change an entity's name, population or county under the reader.
-      return { ...m, available_datasets: full.available_datasets } as HydratedMunicipality;
+      // ⚠ The list row wins for every field it CARRIES, so a divergence between
+      // the two endpoints cannot change an entity's name, population or county
+      // under the reader — that is why this merge exists at all.
+      //
+      // ⚠⚠ But a LEAN index row (?fields=index) carries no population and no
+      // hero_image_url, and spreading it over the detail row blanked both: the
+      // hero lost its Population chip and its curated banner after any switcher
+      // navigation. Spreading the detail row FIRST lets it supply only what the
+      // list omitted, because an absent key cannot overwrite anything.
+      return { ...full, ...m, available_datasets: full.available_datasets } as HydratedMunicipality;
     })();
     hydratedCities.set(m.id, inflight);
     inflight.catch(() => { hydratedCities.delete(m.id); });
