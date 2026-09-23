@@ -59,6 +59,8 @@ import { resolveFeatureIcons, resolveTriviaIcon } from './utils/featureIcons';
 import { FeatureIconRow } from './components/FeatureIconRow';
 import type { BudgetCategory, BudgetData, FederalContext, HydratedMunicipality, LinkedTransactionSummary, Municipality, OrgFinancialSummary } from './types/budget';
 import { hasDatasets } from './data/municipalityDatasets';
+import { fetchEntities, fetchEntityById } from './data/entityQueries';
+import { panelQueryFor, parentsQuery } from './data/panelQueries';
 import { resolveEntityParam, resolveEntityParamViaLookup, toSlug, displayLabel } from './utils/entityRouting';
 import { heroSubtitle } from './data/narrativeCopy';
 
@@ -201,6 +203,37 @@ function App() {
   // an entity with NO DATA rather than throw. The type makes that a compile
   // error instead; `hydrateMunicipality` is the only way to produce one.
   const [selectedEntity, setSelectedEntity] = useState<HydratedMunicipality | null>(null);
+
+  // Parent jurisdictions + whatever the current page's panels need. Both are
+  // narrow queries; neither is the 8,149-row list.
+  const [parentPool, setParentPool] = useState<Municipality[]>([]);
+  const [panelPool, setPanelPool] = useState<Municipality[]>([]);
+
+  useEffect(() => {
+    fetchEntities(parentsQuery()).then(setParentPool).catch(() => setParentPool([]));
+  }, []);
+
+  useEffect(() => {
+    if (!selectedEntity) { setPanelPool([]); return; }
+    const q = panelQueryFor(selectedEntity);
+    if (!q) { setPanelPool([]); return; }
+    let live = true;
+    fetchEntities(q).then(rows => { if (live) setPanelPool(rows); }).catch(() => { if (live) setPanelPool([]); });
+    return () => { live = false; };
+  }, [selectedEntity]);
+
+  // The county parent, fetched by id — the one jurisdiction not covered by
+  // parentsQuery()'s federal+states fetch.
+  const [countyParent, setCountyParent] = useState<Municipality | null>(null);
+  useEffect(() => {
+    const id = selectedEntity?.county_id;
+    if (!id) { setCountyParent(null); return; }
+    let live = true;
+    fetchEntityById(id)
+      .then(row => { if (live) setCountyParent(row); })
+      .catch(() => { if (live) setCountyParent(null); });
+    return () => { live = false; };
+  }, [selectedEntity?.county_id]);
 
   const [selectedYear, setSelectedYear] = useState('2025');
 
@@ -917,17 +950,15 @@ function App() {
   // Jurisdiction chain for the breadcrumb: Federal → State → County above the
   // current entity. Gives every city a link up to its State and the federal
   // government (and its County when one is linked). The federal entity and all
-  // 50 state entities are always present in the municipalities list, so a city
-  // resolves its state by abbreviation and the nation directly.
+  // 50 state entities are fetched by parentsQuery(); the county (if any) is
+  // fetched separately by id into countyParent.
   const jurisdictionParents = useMemo<Municipality[]>(() => {
     if (!selectedEntity) return [];
-    const federal = municipalities.find(m => m.entity_type === 'federal') ?? null;
-    const state = municipalities.find(
+    const federal = parentPool.find(m => m.entity_type === 'federal') ?? null;
+    const state = parentPool.find(
       m => m.entity_type === 'state' && m.state === selectedEntity.state
     ) ?? null;
-    const county = selectedEntity.county_id
-      ? municipalities.find(m => m.id === selectedEntity.county_id) ?? null
-      : null;
+    const county = countyParent;
 
     const keep = (arr: (Municipality | null)[]) =>
       arr.filter((m): m is Municipality => m != null);
@@ -944,7 +975,7 @@ function App() {
       default: // city, town, township, municipality, special_district, etc.
         return keep([federal, state, county]);
     }
-  }, [selectedEntity, municipalities]);
+  }, [selectedEntity, parentPool, countyParent]);
 
   const breadcrumbItems: BreadcrumbItem[] = useMemo(() => {
     const items: BreadcrumbItem[] = [];
@@ -1742,7 +1773,7 @@ function App() {
           {/* All 50 states — jump-off tags at the bottom of the federal page */}
           {navigationPath.length === 0 && selectedEntity?.entity_type === 'federal' && (
             <StatesInFederalPanel
-              municipalities={municipalities}
+              municipalities={panelPool}
               onStateClick={handleEntityChange}
             />
           )}
@@ -1751,7 +1782,7 @@ function App() {
           {navigationPath.length === 0 && selectedEntity?.entity_type === 'county' && (
             <CitiesInCountyPanel
               county={selectedEntity}
-              municipalities={municipalities}
+              municipalities={panelPool}
               onCityClick={handleEntityChange}
             />
           )}
@@ -1760,7 +1791,7 @@ function App() {
           {navigationPath.length === 0 && selectedEntity?.entity_type === 'state' && (
             <CountiesInStatePanel
               state={selectedEntity}
-              municipalities={municipalities}
+              municipalities={panelPool}
               onCountyClick={handleEntityChange}
             />
           )}
@@ -1769,7 +1800,7 @@ function App() {
           {navigationPath.length === 0 && selectedEntity?.entity_type === 'state' && (
             <CitiesInStatePanel
               state={selectedEntity}
-              municipalities={municipalities}
+              municipalities={panelPool}
               onCityClick={handleEntityChange}
             />
           )}
