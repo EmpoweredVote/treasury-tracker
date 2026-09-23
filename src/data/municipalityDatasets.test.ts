@@ -116,6 +116,53 @@ describe('hydrateMunicipality', () => {
     expect(full.name).toBe('Detroit');
   });
 
+  // ⚠⚠ THE REGRESSION THIS PINS: a LEAN index row (`?fields=index`) carries no
+  // `population` and no `hero_image_url` — the keys are ABSENT, not merely
+  // undefined, exactly like the real `EntityIndexRow` App.tsx casts into this
+  // shape. Spreading that row over the detail response used to blank both
+  // fields after every switcher navigation: the hero silently lost its
+  // Population chip and its curated banner image. The fix spreads the detail
+  // response FIRST so an absent key on the list row cannot overwrite it.
+  it('lets the detail response supply fields a LEAN list row omits', async () => {
+    const leanRow = {
+      id: 'lean-1', name: 'Leanville', state: 'CA', entity_type: 'city',
+      // no `population`, no `hero_image_url` — key ABSENT, not `undefined`.
+    } as unknown as Municipality;
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        id: 'lean-1', name: 'Leanville', state: 'CA', entity_type: 'city',
+        population: 54321,
+        hero_image_url: 'https://example.com/hero.jpg',
+        available_datasets: [entry(2024, 'operating')],
+      }),
+    })));
+    const full = await hydrateMunicipality(leanRow);
+    expect(full.population).toBe(54321);
+    expect(full.hero_image_url).toBe('https://example.com/hero.jpg');
+  });
+
+  // ⚠ The other half of the invariant: a divergence between the two endpoints
+  // must not change an entity's name — or any other field the LIST row
+  // carries — under the reader. This is why the merge is not simply
+  // `{ ...m, ...full }`; that ordering would let a stale/divergent detail
+  // response override a carried field, which the "keeps the LIST entity
+  // fields" test above already guards for `name`. This pins `population` too,
+  // since that is the exact field the merge-order bug blanked.
+  it('still lets the LIST row win for a field it does carry', async () => {
+    const listRow = muni({ population: 999, dataset_summary: { years: [2024], dataset_types: [] } });
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        id: 'abc', name: 'WRONG NAME', state: 'ZZ', population: 1,
+        available_datasets: [entry(2024, 'operating')],
+      }),
+    })));
+    const full = await hydrateMunicipality(listRow);
+    expect(full.name).toBe('Detroit');
+    expect(full.population).toBe(999);
+  });
+
   // ⚠ An already-hydrated entity must cost nothing. The selection path calls
   // this unconditionally so callers do not have to branch.
   it('returns an already-hydrated entity without fetching', async () => {

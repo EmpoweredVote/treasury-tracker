@@ -647,7 +647,15 @@ function App() {
       // still matched correctly (see fetchEntities' predicate contract).
       const cityNorm = session.jurisdiction.city.trim().toLowerCase();
       const stateNorm = session.jurisdiction.state.trim().toUpperCase();
-      const candidates = await fetchEntities({ state: stateNorm }).catch(() => [] as Municipality[]);
+      // ⚠⚠ NOT caught here. A caught-and-emptied `candidates` is indistinguishable
+      // from a real zero-result state fetch, and falls through to
+      // `city_not_available` — "We don't have {city} in Treasury Tracker yet.",
+      // a definite coverage claim, on what may just be a network error. Letting
+      // the rejection propagate to the outer `.catch()` below sends a failure to
+      // the honest guest/search landing instead, exactly as it did before this
+      // fetch existed (when this call sat inside the mount `Promise.all`). Do
+      // NOT re-wrap this in a local catch.
+      const candidates = await fetchEntities({ state: stateNorm });
       const match = candidates.find(
         m =>
           m.name.trim().toLowerCase() === cityNorm &&
