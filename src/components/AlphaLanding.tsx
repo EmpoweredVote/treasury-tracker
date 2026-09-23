@@ -5,7 +5,7 @@ import { MapPin, ArrowRight, Building2, Search, X } from 'lucide-react';
 import type { Municipality } from '../types/budget';
 import { getLoginUrl } from '../utils/auth';
 import { useTheme } from '../hooks/useTheme';
-import { hasDatasets, datasetYears } from '../data/municipalityDatasets';
+import { hasDatasets, latestDatasetYear } from '../data/municipalityDatasets';
 import { displaySlug } from '../utils/entityRouting';
 
 export type LandingReason =
@@ -95,7 +95,7 @@ function CitySearch({
       {results.length > 0 && (
         <div className="mt-2 bg-white dark:bg-ev-gray-800 border border-[#E2EBEF] dark:border-ev-gray-700 rounded-xl overflow-hidden shadow-sm dark:shadow-black/40">
           {results.map(city => {
-            const years = datasetYears(city);
+            const latestYear = latestDatasetYear(city);
             return (
               <button
                 key={city.id}
@@ -106,7 +106,7 @@ function CitySearch({
                 <span className="flex-1 text-sm font-medium text-[#1C1C1C] dark:text-ev-gray-200">
                   {city.name}, {city.state}
                 </span>
-                <span className="text-xs text-ev-gray-400">{years[0]}</span>
+                <span className="text-xs text-ev-gray-400">{latestYear}</span>
                 <ArrowRight size={13} className="text-ev-gray-400 shrink-0" />
               </button>
             );

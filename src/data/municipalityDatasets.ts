@@ -50,6 +50,24 @@ export function datasetYears(m: Pick<Municipality, 'available_datasets' | 'datas
   return [...new Set((m.available_datasets ?? []).map((d) => d.fiscal_year))].sort((a, b) => b - a);
 }
 
+/**
+ * The newest fiscal year this entity has data for, or null.
+ *
+ * ⚠ Prefers an index row's `latest_year` over deriving from the year list,
+ * because a lean index row carries NO `dataset_summary` and NO
+ * `available_datasets` — `datasetYears()` returns `[]` for one, which is how
+ * the landing search's FY label silently blanked.
+ *
+ * ⚠ The fallback matters for deploy order: against an API that does not yet
+ * send `latest_year`, this degrades to the derived value rather than breaking.
+ */
+export function latestDatasetYear(
+  m: Pick<Municipality, 'available_datasets' | 'dataset_summary'> & { latest_year?: number | null }
+): number | null {
+  if (typeof m.latest_year === 'number') return m.latest_year;
+  return datasetYears(m)[0] ?? null;
+}
+
 /** The distinct dataset types this entity has, sorted. */
 export function datasetTypes(m: Pick<Municipality, 'available_datasets' | 'dataset_summary'>): string[] {
   if (m.dataset_summary) return [...m.dataset_summary.dataset_types].sort();

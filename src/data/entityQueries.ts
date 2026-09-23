@@ -6,7 +6,7 @@ const API_BASE = import.meta.env.PROD && import.meta.env.VITE_API_URL
 
 export type EntityIndexRow =
   Pick<Municipality, 'id' | 'name' | 'state' | 'entity_type' | 'county_id'>
-  & { has_data: boolean };
+  & { has_data: boolean; latest_year: number | null };
 
 export interface EntityQuery {
   entityTypes?: string[];

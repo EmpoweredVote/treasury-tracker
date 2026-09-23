@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-import { hasDatasets, datasetYears, datasetTypes } from './municipalityDatasets';
+import { hasDatasets, datasetYears, datasetTypes, latestDatasetYear } from './municipalityDatasets';
 import { hydrateMunicipality, clearCache } from './dataLoader';
 import type { Municipality } from '../types/budget';
 
@@ -195,5 +195,26 @@ describe('hasDatasets — index rows', () => {
     // true. The earlier `dataset_summary: undefined` case cannot tell the two
     // apart, because `if (m.dataset_summary)` is falsy either way.
     expect(hasDatasets({ has_data: true, dataset_summary: { years: [], dataset_types: [] } } as never)).toBe(true);
+  });
+});
+
+describe('latestDatasetYear', () => {
+  it('prefers an index row\'s latest_year', () => {
+    expect(latestDatasetYear({ latest_year: 2024 } as never)).toBe(2024);
+  });
+
+  it('returns null for an index row with no budget years', () => {
+    expect(latestDatasetYear({ latest_year: null } as never)).toBeNull();
+  });
+
+  it('falls back to the newest derived year when latest_year is absent', () => {
+    // ⚠ The deploy-order case: an API that does not yet send latest_year.
+    expect(latestDatasetYear({
+      dataset_summary: { years: [2019, 2024, 2021], dataset_types: ['operating'] },
+    } as never)).toBe(2024);
+  });
+
+  it('returns null when there is nothing to derive from', () => {
+    expect(latestDatasetYear({ available_datasets: [] } as never)).toBeNull();
   });
 });
