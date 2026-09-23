@@ -188,4 +188,12 @@ describe('hasDatasets — index rows', () => {
     // report every indexed entity as having no data.
     expect(hasDatasets({ has_data: true, dataset_summary: undefined } as never)).toBe(true);
   });
+
+  it('pins the ORDER: a truthy-but-empty summary must not override the flag', () => {
+    // ⚠ THIS IS THE TEST THAT FAILS IF THE CHECKS ARE SWAPPED. A summary-first
+    // implementation returns false here (years is empty); flag-first returns
+    // true. The earlier `dataset_summary: undefined` case cannot tell the two
+    // apart, because `if (m.dataset_summary)` is falsy either way.
+    expect(hasDatasets({ has_data: true, dataset_summary: { years: [], dataset_types: [] } } as never)).toBe(true);
+  });
 });
