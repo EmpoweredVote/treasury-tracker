@@ -3,6 +3,8 @@
 **Date:** 2026-10-06
 **Status:** design, approved in chat 2026-10-06
 **Branch:** `feat/redmond-duvall-accounting-basis`
+**Phasing:** phase 1 = Redmond only; phase 2 = `accounting_basis` axis, then
+Duvall behind it. See §1.1 — the ordering within phase 2 is a hard dependency.
 
 Onboard two King County, WA cities and add the schema axis the second one
 forces: **Redmond** (GAAP, the existing WA SAO path) and **Duvall** (cash-basis
@@ -13,19 +15,48 @@ probe**, not inferred. Nothing here is carried from another entity.
 
 ---
 
-## 1. Why this is three pieces, not two
+## 1. Three pieces, shipped in two phases
 
 Redmond is a repeat of Bellevue/Kent/Everett. Duvall is not a GAAP filer at
 all, and loading it alongside Redmond would let TT draw a cash-basis General
 Fund against a GAAP one with nothing but a chip to tell them apart. So:
 
-1. **Redmond** — per-entity config over `scripts/lib/acfrGF.py`.
-2. **Duvall** — per-entity config over the same library, `audited_ocboa`.
-3. **`accounting_basis`** — a new axis on `treasury.budgets`, plus a
+1. **Redmond** (§2) — per-entity config over `scripts/lib/acfrGF.py`.
+2. **`accounting_basis`** (§4) — a new axis on `treasury.budgets`, plus a
    comparability rule that refuses a GAAP-vs-cash comparison.
+3. **Duvall** (§3) — per-entity config over the same library, `audited_ocboa`.
 
-Piece 3 is the only one that touches shared code. It also retroactively covers
-Brown County SD and Aberdeen SD, which have this exposure in production today.
+⚠ The list above is **shipping order**; the sections below are grouped by
+subject, so Duvall is documented at §3 and ships last. The axis at §4 is the
+only piece that touches shared code. It also retroactively covers Brown County
+SD and Aberdeen SD, which have this exposure in production today.
+
+### 1.1 Phasing — decided 2026-10-06
+
+> **Phase 1 — Redmond alone.** Ships on the existing pipeline. No schema change.
+> **Phase 2 — the axis, then Duvall behind it.** Duvall does not ship until
+> `accounting_basis` exists and gates.
+
+**Why the split is safe.** Redmond is a GAAP filer joining a cohort of GAAP
+filers. Comparing it to Bellevue or Kent is exactly as valid before the axis
+exists as after, so phase 1 introduces no comparison that phase 2 would have to
+take back. Redmond is simply stamped `gaap` in phase 2's backfill (§4.5), which
+is a stamp on rows already correct rather than a correction.
+
+**⛔ The ordering is a hard dependency, not a preference.** Duvall is the first
+row set in TT that the axis exists to describe. Shipping it first — even
+"temporarily", even with the `audited_ocboa` chip showing — publishes a
+cash-basis General Fund that TT's own comparability rule would declare
+comparable to Redmond's GAAP one. That is the Long Beach cliff in a new costume:
+figures drawn across a basis difference, each correct in isolation. The axis is
+a prerequisite for Duvall's **first** loaded row, not a follow-up to it.
+
+**What this means for the two phases' gates.** Phase 1 is done when Redmond's
+16 years are live and its harnesses are green. Phase 2 is done when the axis
+exists, the four sources in §4.5 are stamped, the comparability rule is
+mutation-tested, **and** Duvall is loaded behind it. Phase 2 may not declare
+itself complete with the axis shipped and Duvall unloaded — that would leave a
+gate guarding nothing, which is how a vacuous check enters the codebase.
 
 ---
 
@@ -289,12 +320,22 @@ Everything else stays `unknown`. **No bulk `gaap` backfill** — assuming GAAP f
 every unexamined row is the same unevidenced assertion this axis exists to
 prevent, and it would silently mark ~60k rows with a claim nobody checked.
 
+Redmond's rows ship in phase 1 and are stamped here, in phase 2. That ordering
+is deliberate and carries no risk: the stamp records a basis those rows already
+had, and until it lands they read `unknown`, which is the honest description of
+a row whose basis TT has not yet recorded. ⚠ Phase 1 must therefore **not**
+write a basis claim anywhere else — not into `data_source`, not into a
+dataset label — or phase 2 will be reconciling against a string instead of a
+document, which is the failure §4.1 exists to end.
+
 ---
 
 ## 5. Verification
 
 Per-entity harnesses follow the established WA pattern — blind re-derivation,
-audit checks, tether — with the additions this work forces:
+audit checks, tether — with the additions this work forces. Items 1–5 and 8
+apply to Redmond in **phase 1**; items 6 and 7, and the Duvall half of items 1–4
+and 8, land in **phase 2**:
 
 1. **Blind re-derivation at $0** for all 16 Redmond years and every loaded
    Duvall year, re-derived from the PDF independently of the loader.
