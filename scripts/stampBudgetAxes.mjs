@@ -65,7 +65,15 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   'ca-sco-derived-tg': 7650,
   'ca-sco-county-exp': 1188,
   'ca-sco-county-rev': 1188,
-  'wa-sao': 286,
+  // RE-MEASURED 2026-10-06: 286 -> 308, exactly +22, with nothing else moved.
+  // The 22 are Redmond, WA (MCAG 0425), the ninth WA SAO entity: 11 fiscal
+  // years x operating+revenue, loaded this milestone. The pattern
+  // /^WA State Auditor — / is byte-identical to the one that measured 286 —
+  // this is the table changing underneath, not a pattern change, which is the
+  // case this file's header permits once explained. Every other entry in this
+  // gate matched its expectation exactly on the same run.
+  // Evidence: docs/superpowers/specs/2026-10-06-redmond-duvall-accounting-basis-design.md §2.
+  'wa-sao': 308,
   'state-acfr-gf': 1448,
   'mn-osa': 21794,
   'oh-aos': 6616,
@@ -459,7 +467,11 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
 export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
   'mn-osa': 21794,
   'state-acfr-gf': 1448,
-  'wa-sao': 286,
+  // RE-MEASURED 2026-10-06: 286 -> 308, the same +22 Redmond rows explained in
+  // EXPECTED_BASIS_ROWS above. Redmond is primary_government like every other
+  // WA SAO entity: the SAO's bound statements present component units
+  // discretely, and TT sums only the governmental funds column.
+  'wa-sao': 308,
   // Florida DFS, re-measured 2026-09-02 after the statewide sweep. Same 12,764
   // rows as the basis entry above; primary_government because DFS publishes
   // discretely presented component units in their own twelfth fund column and TT
