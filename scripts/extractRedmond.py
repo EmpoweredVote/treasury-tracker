@@ -111,7 +111,10 @@ CONFIG = CityConfig(
     target_column=0,
     units=1,
     fy_end=('December', 31),
-    source_rounding={},   # Task 6 registers any confirmed printed-total artifact
+    # EMPTY AND CONFIRMED: all 22 combinations tie at a bare $0 against the
+    # document's own printed total, so expectedResidues is 0 in the roster.
+    # A residue appearing here later is a finding, not a shrug.
+    source_rounding={},
 )
 
 if __name__ == '__main__':

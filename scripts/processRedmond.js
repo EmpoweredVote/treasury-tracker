@@ -43,17 +43,19 @@
  *   node scripts/processRedmond.js
  *   node scripts/processRedmond.js --fy 2024
  */
-import { loadEntity, makeExtractorSelector } from './lib/waSaoLoad.mjs';
+import { loadEntity, makeExtractorSelector, parseTargetFY } from './lib/waSaoLoad.mjs';
 import { REDMOND_ARNS } from './fetchWaCities.mjs';
 import { reportFileUrl } from './lib/waSao.mjs';
 import { getEntity } from './lib/waRoster.mjs';
 
 const argv = process.argv.slice(2);
-const fyArg = argv.indexOf('--fy');
 const E = getEntity('Redmond');
 
-if (!E.fiscalYears) throw new Error('Redmond has no reconned fiscalYears in the roster — run recon first.');
-if (!E.perCapitaBand) throw new Error('Redmond has no per-capita band in the roster — derive it from the observed spread first.');
+// ⚠ `!E.fiscalYears` is NOT enough: `[]` is truthy. An empty window would sail
+// past a presence check, load nothing, fail nothing, print "0 loaded, 0 failed"
+// and exit 0 — a silent no-op reported as success.
+if (!E.fiscalYears?.length) throw new Error('Redmond has no reconned fiscalYears in the roster — run recon first.');
+if (!E.perCapitaBand?.length) throw new Error('Redmond has no per-capita band in the roster — derive it from the observed spread first.');
 
 // Fail fast and locally if the FY window and the ARN manifest ever drift apart.
 // Without this the same mistake surfaces deep inside loadEntity as a
@@ -90,8 +92,14 @@ const { loaded, failed } = await loadEntity({
   sourceUrlFor: (fy) => reportFileUrl(REDMOND_ARNS[fy]),
   sanityMax: E.sanityMax,
   dryRun: argv.includes('--dry-run'),
-  targetFY: fyArg === -1 ? null : Number(argv[fyArg + 1]),
+  // Throws on --fy=, a bare --fy, a non-numeric year or 0 — every one of which
+  // used to degrade silently into a full delete-and-republish of all 11 years.
+  targetFY: parseTargetFY(argv),
 });
 
 console.log(`\nRedmond: ${loaded} loaded, ${failed} failed.`);
+// ⚠ The non-zero branch cannot actually be reached: loadEntity THROWS when a
+// year fails unless `allowPartial` is set, and this descriptor never sets it.
+// Kept as a belt in case that ever changes — but do not read it as evidence
+// that a partial load is tolerated here. It is not.
 process.exit(failed ? 1 : 0);

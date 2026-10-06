@@ -281,6 +281,50 @@ export function checkPerCapita(total, population, band, fy, datasetType) {
 // always-sourced invariant is the whole point. Every call site resolves the
 // URL through here BEFORE touching any row, so a bad descriptor can never
 // cause a delete-then-publish-with-no-source sequence.
+/**
+ * Parse `--fy` from argv, refusing every malformed form instead of degrading
+ * to a full load.
+ *
+ * ⚠⚠ THE BUG THIS REPLACES IS SILENT AND DESTRUCTIVE. The WA drivers each did:
+ *
+ *     const fyArg = argv.indexOf('--fy');
+ *     targetFY = fyArg === -1 ? null : Number(argv[fyArg + 1]);
+ *
+ * and `loadEntity` selects `years = targetFY ? [targetFY] : fiscalYears`.
+ * `--fy=2024` (the `=` form most Node CLIs accept) gives indexOf === -1 → null;
+ * a bare `--fy` or `--fy abc` gives NaN; `--fy 0` gives 0. All four are FALSY,
+ * so an operator asking for ONE year silently re-loads the entire window — and
+ * `processDatasetType` DELETES each FY before re-publishing it. If such a run
+ * dies partway (an SAO 503 through requireSourceUrl), earlier years are left
+ * deleted and unrepublished while the operator believes they touched one year.
+ *
+ * The year-window guard inside loadEntity exists to reject an out-of-window
+ * `--fy`, and NaN walks straight past it. Refusing here is the only place that
+ * can tell "no target" apart from "a target I could not read".
+ *
+ * @param {string[]} argv process.argv.slice(2)
+ * @returns {number|null} the requested fiscal year, or null when --fy is absent
+ */
+export function parseTargetFY(argv) {
+  const eq = argv.find((a) => a.startsWith('--fy='));
+  const idx = argv.indexOf('--fy');
+  if (eq === undefined && idx === -1) return null;
+
+  const raw = eq !== undefined ? eq.slice('--fy='.length) : argv[idx + 1];
+  const bad = (why) => {
+    throw new Error(`--fy ${why}. Pass a four-digit fiscal year, e.g. --fy 2024 or --fy=2024. `
+      + 'Refusing to continue: an unreadable --fy would otherwise load and REPUBLISH every year '
+      + 'in the window, deleting each one first.');
+  };
+  if (raw === undefined || raw === '') bad('was given no value');
+  if (raw.startsWith('-')) bad(`looks like the next flag ("${raw}"), not a year`);
+  if (!/^\d{4}$/.test(raw)) bad(`value "${raw}" is not a four-digit year`);
+
+  const fy = Number(raw);
+  if (!Number.isInteger(fy) || fy < 1900 || fy > 2200) bad(`value "${raw}" is not a plausible fiscal year`);
+  return fy;
+}
+
 export function requireSourceUrl(sourceUrlFor, fy, context) {
   const url = sourceUrlFor(fy);
   if (!url) {

@@ -34,7 +34,7 @@
  */
 
 import { parseArgs } from 'node:util';
-import { classify, validateRegistry, SCOPE, SCOPE_VALUES } from './lib/fundScope.mjs';
+import { classify, validateRegistry, checkPartition, SCOPE, SCOPE_VALUES } from './lib/fundScope.mjs';
 import { FUND_SCOPE_REGISTRY } from './data/fundScopeRegistry.mjs';
 
 /**
@@ -420,66 +420,6 @@ export function plan(sourceCounts, registry) {
   return { byEntry, unknownSources, unknownRows, overlaps };
 }
 
-/**
- * Assert the patterns partition the table the way Task 1 measured.
- *
- * ── `opts.only` — writing ONE entry while another is broken ──────────────────
- *
- * The partition is computed over the WHOLE table either way; `only` changes
- * which problems BLOCK, never which are detected. A problem naming the selected
- * entry — wrong count, no expectation, or an overlap it participates in — still
- * blocks. Everything else moves to `deferred`, is printed, and does not stop a
- * write scoped to the selected entry's own sources.
- *
- * ⚠ THIS IS NOT A QUIET `--force`. `--force` writes EVERY entry including the
- * broken ones; `--only` writes exactly one entry and only when that entry is
- * itself clean. The distinction matters because the whole-corpus gate can sit
- * red for a long time on drift the current milestone did not create and cannot
- * adjudicate — which is how Redmond came to publish 22 General Fund rows under
- * `fund_scope='unknown'`, telling readers "we have not verified which funds
- * this figure covers" about figures that had been re-derived and audited.
- * Holding one milestone's correctness hostage to another's bookkeeping is a
- * worse failure than scoping the write.
- */
-export function checkPartition({ byEntry, unknownRows, overlaps }, totalRows, opts = {}) {
-  const only = opts.only ?? null;
-  const problems = [];
-  let claimed = 0;
-
-  for (const [id, g] of byEntry) {
-    claimed += g.rows;
-    const want = EXPECTED_ROWS[id];
-    if (want === undefined) {
-      problems.push(`entry "${id}" claims ${g.rows} rows but has no EXPECTED_ROWS entry — add it to the recon doc first`);
-    } else if (g.rows > want) {
-      problems.push(`entry "${id}" claims ${g.rows} rows, MORE than the ${want} Task 1 recorded — OVER-MATCHING, fix the pattern`);
-    } else if (g.rows < want) {
-      problems.push(`entry "${id}" claims ${g.rows} rows, FEWER than the ${want} Task 1 recorded — pattern too narrow, or rows changed`);
-    }
-  }
-  for (const id of Object.keys(EXPECTED_ROWS)) {
-    if (!byEntry.has(id)) problems.push(`EXPECTED_ROWS has "${id}" but no source matched it`);
-  }
-  if (claimed + unknownRows !== totalRows) {
-    problems.push(`claimed ${claimed} + unknown ${unknownRows} = ${claimed + unknownRows}, not the table's ${totalRows}`);
-  }
-  for (const o of overlaps) {
-    problems.push(`"${o.src}" matches ${o.hits.length} entries [${o.hits.join(', ')}] — "${o.hits[0]}" wins and shadows the rest`);
-  }
-
-  if (!only) return { ok: problems.length === 0, problems, deferred: [], claimed };
-
-  // A problem BLOCKS only if it names the selected entry. The id is matched as
-  // a whole word so "wa-sao" cannot be shadowed by a longer id containing it.
-  const re = new RegExp(`(^|[^a-z0-9-])${only.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z0-9-]|$)`);
-  const blocking = problems.filter((m) => re.test(m));
-  const deferred = problems.filter((m) => !re.test(m));
-  if (!byEntry.has(only)) {
-    blocking.push(`--only "${only}" matches no registry entry that claimed any row`);
-  }
-  return { ok: blocking.length === 0, problems: blocking, deferred, claimed };
-}
-
 async function updateScope(supabase, sources, scope) {
   let written = 0;
   for (let i = 0; i < sources.length; i += IN_CHUNK) {
@@ -529,7 +469,7 @@ async function main() {
 
   const p = plan(sourceCounts, FUND_SCOPE_REGISTRY);
   const only = values.only ?? null;
-  const check = checkPartition(p, totalRows, { only });
+  const check = checkPartition(p, totalRows, { only, expected: EXPECTED_ROWS });
 
   console.log('\n── per-entry claim vs Task 1 ──');
   for (const [id, g] of [...p.byEntry].sort((a, b) => b[1].rows - a[1].rows)) {

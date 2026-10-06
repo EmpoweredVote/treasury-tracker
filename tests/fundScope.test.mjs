@@ -364,9 +364,12 @@ describe('the shipped registry', () => {
 // `--only` must therefore let one clean entry be written while OTHER entries
 // are broken, WITHOUT becoming a quiet --force: a problem involving the
 // selected entry still blocks.
-import { checkPartition } from '../scripts/classifyFundScope.mjs';
+import { checkPartition } from '../scripts/lib/fundScope.mjs';
 
 describe('checkPartition --only scoping', () => {
+  // Local expectations: the pure function takes them as a parameter so the
+  // library carries no milestone's row counts.
+  const EXP = { 'wa-sao': 308, 'mi-treasury-f65-gf': 64 };
   const partition = (rowsById) => ({
     byEntry: new Map(Object.entries(rowsById).map(([id, rows]) => [id, { scope: 'general_fund', sources: [`src-${id}`], rows }])),
     unknownRows: 0,
@@ -375,7 +378,7 @@ describe('checkPartition --only scoping', () => {
 
   it('still blocks when the SELECTED entry is the one that is wrong', () => {
     // wa-sao claims more than expected -> must block even under --only.
-    const r = checkPartition(partition({ 'wa-sao': 999999 }), 999999, { only: 'wa-sao' });
+    const r = checkPartition(partition({ 'wa-sao': 999999 }), 999999, { only: 'wa-sao', expected: EXP });
     expect(r.ok).toBe(false);
     expect(r.problems.join(' ')).toMatch(/wa-sao/);
   });
@@ -383,7 +386,7 @@ describe('checkPartition --only scoping', () => {
   it('does NOT block on a problem that belongs to a DIFFERENT entry', () => {
     // A foreign entry drifting must not hold the selected one hostage.
     const r = checkPartition(
-      partition({ 'wa-sao': 308, 'mi-treasury-f65-gf': 58228 }), 58536, { only: 'wa-sao' });
+      partition({ 'wa-sao': 308, 'mi-treasury-f65-gf': 58228 }), 58536, { only: 'wa-sao', expected: EXP });
     expect(r.ok).toBe(true);
     expect(r.deferred.join(' ')).toMatch(/mi-treasury-f65-gf/);
   });
@@ -391,12 +394,12 @@ describe('checkPartition --only scoping', () => {
   it('blocks on an overlap that involves the selected entry', () => {
     const p = partition({ 'wa-sao': 308 });
     p.overlaps = [{ src: 'WA State Auditor — x', hits: ['wa-sao', 'other'], rows: 1 }];
-    const r = checkPartition(p, 308, { only: 'wa-sao' });
+    const r = checkPartition(p, 308, { only: 'wa-sao', expected: EXP });
     expect(r.ok).toBe(false);
   });
 
   it('without --only, behaves exactly as before — any problem blocks', () => {
-    const r = checkPartition(partition({ 'wa-sao': 308, 'mi-treasury-f65-gf': 58228 }), 58536);
+    const r = checkPartition(partition({ 'wa-sao': 308, 'mi-treasury-f65-gf': 58228 }), 58536, { expected: EXP });
     expect(r.ok).toBe(false);
   });
 });

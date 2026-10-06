@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import {
   checkPerCapita, dataSourceLabel, buildFilenameRegex, makeExtractorSelector,
   toBudgetTree, requireSourceUrl, loadEntity,
+  parseTargetFY,
 } from '../scripts/lib/waSaoLoad.mjs';
 import {
   BAINBRIDGE_2025_OPERATING_TREE, KITSAP_2024_OPERATING_TREE,
@@ -254,5 +255,47 @@ describe('loadEntity default-reject on failed years (C-1)', () => {
   it('resolves with failed > 0 only when allowPartial is explicitly true', async () => {
     const result = await loadEntity({ ...baseDescriptor, allowPartial: true });
     expect(result).toEqual({ loaded: 0, failed: 2 });
+  });
+});
+
+describe('parseTargetFY', () => {
+  // ⚠⚠ THE FAILURE IS SILENT AND DESTRUCTIVE. The WA drivers used
+  //   const fyArg = argv.indexOf('--fy');
+  //   targetFY = fyArg === -1 ? null : Number(argv[fyArg + 1]);
+  // and loadEntity does `years = targetFY ? [targetFY] : fiscalYears`. Every
+  // malformed form below yields null/NaN/0 — all falsy — so an operator asking
+  // for ONE year silently gets a full live re-load, and processDatasetType
+  // DELETES each FY before re-publishing it. A run that dies partway then
+  // leaves earlier years deleted while the operator believes they touched one.
+  it('reads the space-separated form', () => {
+    expect(parseTargetFY(['--fy', '2024'])).toBe(2024);
+  });
+
+  it('reads the --fy=YYYY form instead of silently loading everything', () => {
+    expect(parseTargetFY(['--fy=2024'])).toBe(2024);
+  });
+
+  it('returns null when the flag is absent — a full load is then intended', () => {
+    expect(parseTargetFY(['--dry-run'])).toBeNull();
+  });
+
+  it('THROWS on a flag with no value rather than loading every year', () => {
+    expect(() => parseTargetFY(['--fy'])).toThrow(/--fy/);
+  });
+
+  it('THROWS on a non-numeric year rather than loading every year', () => {
+    expect(() => parseTargetFY(['--fy', 'abc'])).toThrow(/--fy/);
+    expect(() => parseTargetFY(['--fy=20x4'])).toThrow(/--fy/);
+  });
+
+  it('THROWS on a value that is not a plausible fiscal year', () => {
+    // 0 is the specific poison: Number('0') is falsy, so it reads as "no
+    // target" and loads the whole window.
+    expect(() => parseTargetFY(['--fy', '0'])).toThrow(/--fy/);
+    expect(() => parseTargetFY(['--fy', '-1'])).toThrow(/--fy/);
+  });
+
+  it('does not mistake the NEXT flag for a year', () => {
+    expect(() => parseTargetFY(['--fy', '--dry-run'])).toThrow(/--fy/);
   });
 });

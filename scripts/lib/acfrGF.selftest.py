@@ -2585,44 +2585,112 @@ class TestShippedRedmondConfig(unittest.TestCase):
         self.assertFalse(extractRedmond.CONFIG.multipage)
 
 
+# ── Redmond, WA — the real statement shape ──────────────────────────────────
+# Transcribed VERBATIM from `pdftotext -f 43 -l 43 -table
+# docs/Redmond/redmond-2024-acfr.pdf`, at the offsets the grid actually emits.
+#
+# This corpus is the only one in the WA cohort that depends on POSITIONAL
+# column reading with target_column=0: Redmond prints a BLANK where a fund has
+# no amount, so rows carry 3-4 cells where the widest carries 5, in every one
+# of the 11 loaded years. An ordinal reader counting from the right end shifts
+# a column and still ties at $0.
+REDMOND_REV_LINES = [
+    'REVENUES',
+    'Taxes                                              $  100,126,077              $           -    $  16,796,426    $  116,922,503',
+    'Licenses and permits                                  14,844,220                           -       3,083,737        17,927,957',
+    'Contributions                                         280,856                     3,400            29,543           313,799',
+    'Intergovernmental                                     6,677,404                   6,150,265        580,999          13,408,668',
+    'Fines and forfeitures                                 311,881                              -              60        311,941',
+    'Total revenues                                        149,301,843                 18,239,293       38,335,803       205,876,939',
+]
+REDMOND_REV_ANCHOR = REDMOND_REV_LINES[-1]
+
+REDMOND_EXP_LINES = [
+    'EXPENDITURES',
+    'Current:',
+    'General government                                    30,944,687                  1,125            14,943           30,960,755',
+    'Capital outlay                                        2,599,640                   20,216,035       327,464          23,143,139',
+    'Debt service:',
+    'Principal                                             643,167                              -       4,170,142        4,813,309',
+    'Total expenditures                                    140,249,393                 20,217,160       26,629,097       187,095,650',
+]
+REDMOND_EXP_ANCHOR = REDMOND_EXP_LINES[-1]
+
+
+class TestRedmondShape(unittest.TestCase):
+    """Pins the parse against the SHIPPED config object.
+
+    Without this, the only Redmond assertions were on CONFIG fields, which stay
+    true of a broken reader: a refactor of `column_value`'s positional branch
+    would leave `npm test` and this selftest green and surface only on a live
+    re-derivation against PDFs in a gitignored directory, which CI cannot run.
+    """
+
+    def test_the_general_fund_column_is_read_not_a_neighbour(self):
+        # ⚠ THE LOAD-BEARING ASSERTION. `pdftotext -layout` on this very page
+        # shifts every label against its value and reports Taxes as 14,844,220
+        # -- the NEXT row's figure. That misread ties at $0 on every row,
+        # passes the per-capita band and passes blind re-derivation. The only
+        # thing that catches it is naming the figure.
+        tree, total, _ = build_revenue(
+            REDMOND_REV_LINES, anchors(REDMOND_REV_ANCHOR), extractRedmond.CONFIG)
+        by_name = {c['n']: c['a'] for c in tree['c']}
+        self.assertEqual(by_name['Taxes'], 100126077)
+        self.assertEqual(by_name['Licenses and permits'], 14844220)
+        self.assertEqual(by_name['Intergovernmental'], 6677404)
+        self.assertEqual(total, 100126077 + 14844220 + 280856 + 6677404 + 311881)
+
+    def test_a_short_row_does_not_shift_the_column(self):
+        # `Fines and forfeitures` prints 311,881 / - / 60 / 311,941. The tiny
+        # 60 in the third column is exactly the shape that makes an ordinal
+        # reader return the wrong cell.
+        tree, _, _ = build_revenue(
+            REDMOND_REV_LINES, anchors(REDMOND_REV_ANCHOR), extractRedmond.CONFIG)
+        by_name = {c['n']: c['a'] for c in tree['c']}
+        self.assertEqual(by_name['Fines and forfeitures'], 311881)
+
+    def test_capital_outlay_is_a_ROOT_LEAF_and_current_is_a_parent(self):
+        # ⚠ The shape can INVERT: Bellevue prints `Capital outlay` as a PARENT.
+        # The wrong choice still ties at $0.
+        tree, _, _ = build_operating(
+            REDMOND_EXP_LINES, anchors(REDMOND_EXP_ANCHOR), extractRedmond.CONFIG)
+        roots = {c['n']: c for c in tree['c']}
+        self.assertIn('Capital outlay', roots)
+        self.assertEqual(roots['Capital outlay']['a'], 2599640)
+        self.assertNotIn('c', roots['Capital outlay'])  # a LEAF, not a parent
+        self.assertIn('Current', roots)
+        self.assertIn('General government', [c['n'] for c in roots['Current'].get('c', [])])
+
+
 class TestRedmondCipheredYearsCarryNoMoney(unittest.TestCase):
-    # ⚠⚠ FY2017-FY2019 are excluded because their DIGITS ARE ABSENT, not
-    # because they are encoded. This pins that finding so a future library
-    # change that appears to "fix" those years has to prove it recovered real
-    # money rather than silently publishing a complete tree of correctly-named
-    # rows worth $0. Same class as Bainbridge FY2010 and Kent FY2019/2020/2023.
-    #
-    # Transcribed from docs/Redmond/redmond-2017-acfr.pdf page 33.
-    CIPHERED = (
-        "&,7<2)5('021'\n"
-        "67$7(0(172)5(9(18(6(;3(1',785(6\n"
-        "$1'&+$1*(6,1)81'%$/$1&(6\n"
-    )
+    """FY2017-FY2019 are excluded because their DIGITS ARE ABSENT, not encoded.
 
-    def test_the_labels_decode_under_a_constant_29_shift(self):
-        decoded = ''.join(chr(ord(c) + 29) if c != '\n' else c for c in self.CIPHERED)
-        self.assertIn('CITYOFREDMOND', decoded)
-        self.assertIn('STATEMENTOFREVENUES', decoded)
-        self.assertIn('ANDCHANGESINFUNDBALANCES', decoded)
+    ⚠ WHAT GUARDS THOSE YEARS IS NOT THIS CLASS. Two earlier tests here
+    asserted `chr(ord(c) + 29)` over a literal this file defines, and that no
+    byte of three transcribed TITLE lines fell in 0x13-0x1C -- arithmetic on a
+    constant, importing nothing from the library, incapable of ever failing.
+    They were removed rather than left to look like coverage.
 
-    def test_no_digit_survives_the_cipher(self):
-        # Under a +29 shift an original '0'-'9' (0x30-0x39) lands on bytes
-        # 0x13-0x1C. The extracted page carries ZERO bytes in that range, which
-        # is what makes these years unloadable rather than merely scrambled.
-        self.assertEqual([c for c in self.CIPHERED if 0x13 <= ord(c) <= 0x1C], [])
+    The real guards are declarative and live elsewhere:
+      * `waRoster.mjs` excludedYears 2017/2018/2019, asserted by
+        tests/waRoster.test.mjs
+      * no ARN pinned for them, asserted by tests/waSao.test.mjs
+      * verify-wa-audit check (a): every excluded year has ZERO rows,
+        mutation-tested on this milestone
+
+    What survives below is the one fact that IS about the library, and it is
+    the fact that makes the declarative guards necessary.
+    """
 
     def test_a_ciphered_page_yields_SPURIOUS_money_not_an_empty_page(self):
-        # ⚠⚠ THE DANGEROUS PART, and the reason the exclusion must be
-        # DECLARATIVE. A ciphered page does not look empty to the library: the
-        # ciphered form of "STATEMENT OF REVENUES EXPENDITURES" is
-        # `67$7(0(172)5(9(18(6(;3(1',785(6`, from which nums_with_pos reads
-        # TWELVE money tokens -- including a NEGATIVE -172, because `(172)`
-        # has the shape of parenthesised negative money.
+        # ⚠⚠ A ciphered page does not look empty. The ciphered form of
+        # "STATEMENT OF REVENUES EXPENDITURES" is the string below, from which
+        # nums_with_pos reads TWELVE money tokens -- including a NEGATIVE -172,
+        # because `(172)` has the shape of parenthesised negative money.
         #
         # So "does this page carry money?" answers YES for a page carrying
-        # none. Nothing downstream can infer these years are unloadable; the
-        # roster's excludedYears is what keeps them out, and the audit's
-        # zero-rows assertion is what proves it kept them out.
+        # none. NOTHING downstream can infer these years are unloadable, which
+        # is why the roster must keep them out by name.
         spurious = nums_with_pos("67$7(0(172)5(9(18(6(;3(1',785(6")
         self.assertNotEqual(spurious, [], 'a ciphered page is NOT an empty page')
         self.assertIn(-172, [v for v, _ in spurious],
