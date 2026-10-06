@@ -172,6 +172,41 @@ export const EVERETT_ARNS = {
   2024: 1038217,
 };
 
+/**
+ * Redmond, MCAG 0425. Every ARN below is the "Financial and Federal" /
+ * "Financial" report titled exactly "City of Redmond" for that audit period.
+ *
+ * 54 of the MCAG's 59 reports are the city's own. The decoys are one
+ * "Redmond, City of GASB 68 Examination Report" -- a pension-liability
+ * examination, NAME INVERTED exactly like Bellevue's, so a prefix match on
+ * "City of Redmond" excludes it where a "contains Redmond" match would not --
+ * and four statewide performance audits that merely mention the city ("Use of
+ * Impact Fees in Federal Way, Olympia, Maple Valley, Redmond and Vancouver").
+ *
+ * ⚠ The report-type inversion is TOTAL on this issuer: ALL 14 reports typed
+ * "Annual Comprehensive Financial Report" are 2-5 page opinion letters, and
+ * every statement-bearing filing is typed "Financial and Federal" or
+ * "Financial". Selecting by type name would yield 14 opinion letters and not
+ * one statement.
+ *
+ * ⚠⚠ THIS MANIFEST IS THE LOADED WINDOW, NOT THE READABLE ONE. FY2006-FY2010
+ * are READABLE and deliberately absent: the floor rule's era-split clause ends
+ * the window at FY2011, where the statement stops splitting across two pages.
+ * FY2007-FY2010 would need `multipage=True` and FY2006 a different
+ * `statement_anchor` -- one line of config each, which is exactly why the line
+ * is worth holding. Their ARNs are recorded in the spec (§6) so revisiting that
+ * decision needs no re-recon. Do not "helpfully" restore them here.
+ *
+ * FY2017-FY2019 are absent for a different reason: ciphered text under a
+ * constant +29 shift that decodes every LABEL and no DIGIT. FY2004/FY2005 are
+ * CCITT stencil scans. FY2025 has no filing.
+ */
+export const REDMOND_ARNS = {
+  2011: 1008494, 2012: 1010466, 2013: 1012425, 2014: 1014930,
+  2015: 1017176, 2016: 1019544, 2020: 1029176, 2021: 1031765,
+  2022: 1035798, 2023: 1038568, 2024: 1040508,
+};
+
 export const ARNS_BY_CITY = {
   Tacoma: TACOMA_ARNS,
   Spokane: SPOKANE_ARNS,
@@ -179,6 +214,7 @@ export const ARNS_BY_CITY = {
   Bellevue: BELLEVUE_ARNS,
   Kent: KENT_ARNS,
   Everett: EVERETT_ARNS,
+  Redmond: REDMOND_ARNS,
 };
 
 function pageCount(pdfPath) {

@@ -195,3 +195,31 @@ describe('no module a test imports starts with a shebang', () => {
     // reads every module they import.
   }, 30_000);
 });
+
+describe('REDMOND_ARNS', () => {
+  // The window is FY2011-FY2024 less the three ciphered years. FY2004-FY2010
+  // are excluded by POLICY (spec §2.1.1) and FIVE OF THEM ARE READABLE, so an
+  // ARN appearing here for one of them would load an unauthorised year that
+  // ties at $0 and passes every arithmetic gate.
+  it('pins exactly the eleven loaded fiscal years', async () => {
+    const { REDMOND_ARNS } = await import('../scripts/fetchWaCities.mjs');
+    expect(Object.keys(REDMOND_ARNS).map(Number).sort((a, b) => a - b))
+      .toEqual([2011, 2012, 2013, 2014, 2015, 2016, 2020, 2021, 2022, 2023, 2024]);
+  });
+
+  it('pins no ARN for a policy-excluded, ciphered or unreleased year', async () => {
+    const { REDMOND_ARNS } = await import('../scripts/fetchWaCities.mjs');
+    for (const fy of [2004, 2005, 2006, 2007, 2008, 2009, 2010, 2017, 2018, 2019, 2025]) {
+      expect(REDMOND_ARNS[fy], `FY${fy} must not be pinned`).toBeUndefined();
+    }
+  });
+
+  it('registers Redmond in ARNS_BY_CITY', async () => {
+    const { REDMOND_ARNS, ARNS_BY_CITY } = await import('../scripts/fetchWaCities.mjs');
+    // ⚠ Assert DEFINED first. `expect(undefined).toBe(undefined)` passes before
+    // the manifest exists, so without this the test is green on an empty repo
+    // and proves nothing — it passed vacuously on its first RED run.
+    expect(REDMOND_ARNS, 'REDMOND_ARNS must be exported').toBeDefined();
+    expect(ARNS_BY_CITY.Redmond).toBe(REDMOND_ARNS);
+  });
+});
