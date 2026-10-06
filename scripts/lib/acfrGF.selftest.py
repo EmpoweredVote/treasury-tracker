@@ -27,6 +27,7 @@ import extractSpokane             # noqa: E402
 import extractVancouver           # noqa: E402
 import extractBellevue            # noqa: E402
 import extractKent                # noqa: E402
+import extractRedmond             # noqa: E402
 
 # Transcribed from King County FY2020-era GF statement (values thousands-scale
 # in the real document; kept as bare ints here since these tests exercise
@@ -2533,6 +2534,99 @@ class TestLabelFixesReachGroupHeadings(unittest.TestCase):
     def test_no_fixes_declared_changes_nothing(self):
         plain = build_operating(SJ_LETTER_SPACED, self.anchors, self._cfg())
         self.assertEqual(plain[0]['c'][0]['n'], 'Curren t')
+
+
+
+class TestShippedRedmondConfig(unittest.TestCase):
+    # Asserted against the REAL shipped CONFIG object, for the reason in
+    # TestShippedBainbridgeConfigsAreWholeDollars above: a locally rebuilt
+    # equivalent would pass forever regardless of what the file says.
+    def test_redmond_config_units_is_one(self):
+        # WHOLE DOLLARS, confirmed by unitsOf() on all 11 statement pages.
+        # Tacoma and Bellevue print in thousands; carrying either here would
+        # publish figures 1000x too small behind a green tie.
+        self.assertEqual(extractRedmond.CONFIG.units, 1)
+
+    def test_redmond_column_strategy_is_positional(self):
+        # NOT 'ordinal', and load-bearing rather than stylistic. Redmond prints
+        # a BLANK (not a dash) where a fund has no amount, so rows carry 3 cells
+        # where the widest carries 5 -- in every one of the 11 years. An ordinal
+        # reader counting back from the right end silently shifts a column.
+        self.assertEqual(extractRedmond.CONFIG.column_strategy, 'positional')
+
+    def test_redmond_target_column_is_the_leftmost(self):
+        # The General Fund is the FIRST money column:
+        # General | Capital Improvements Program | Other Governmental | Total.
+        self.assertEqual(extractRedmond.CONFIG.target_column, 0)
+
+    def test_redmond_fy_end_is_december_31(self):
+        self.assertEqual(extractRedmond.CONFIG.fy_end, ('December', 31))
+
+    def test_redmond_treats_capital_outlay_as_a_root_leaf_not_a_parent(self):
+        # ⚠ THE SHAPE CAN INVERT. Bellevue prints 'Capital outlay' as a PARENT
+        # with children; Redmond prints it at level 1 as a PEER of 'current' and
+        # 'debt service', carrying its own value (printedIndents: x=48 against
+        # children at x=50, FY2024). The wrong choice still ties at $0.
+        self.assertIn('capital outlay', extractRedmond.CONFIG.root_leaves)
+        self.assertNotIn('capital outlay', extractRedmond.CONFIG.parents)
+
+    def test_redmond_revenue_side_is_flat(self):
+        # Every revenue item sits at level 1 with no group heading in all 11
+        # years. ⚠ revenue_parents without revenue_group_members closes a group
+        # after its FIRST child and silently reparents every later sibling --
+        # and still ties. Declaring neither is the correct description here.
+        self.assertEqual(extractRedmond.CONFIG.revenue_parents, ())
+        self.assertEqual(extractRedmond.CONFIG.revenue_group_members, ())
+
+    def test_redmond_declares_no_multipage(self):
+        # The two-page split is FY2007-FY2010, which is OUTSIDE the window by
+        # the floor rule's era-split clause. multipage=True appearing here would
+        # mean someone extended the window without revisiting that decision.
+        self.assertFalse(extractRedmond.CONFIG.multipage)
+
+
+class TestRedmondCipheredYearsCarryNoMoney(unittest.TestCase):
+    # ⚠⚠ FY2017-FY2019 are excluded because their DIGITS ARE ABSENT, not
+    # because they are encoded. This pins that finding so a future library
+    # change that appears to "fix" those years has to prove it recovered real
+    # money rather than silently publishing a complete tree of correctly-named
+    # rows worth $0. Same class as Bainbridge FY2010 and Kent FY2019/2020/2023.
+    #
+    # Transcribed from docs/Redmond/redmond-2017-acfr.pdf page 33.
+    CIPHERED = (
+        "&,7<2)5('021'\n"
+        "67$7(0(172)5(9(18(6(;3(1',785(6\n"
+        "$1'&+$1*(6,1)81'%$/$1&(6\n"
+    )
+
+    def test_the_labels_decode_under_a_constant_29_shift(self):
+        decoded = ''.join(chr(ord(c) + 29) if c != '\n' else c for c in self.CIPHERED)
+        self.assertIn('CITYOFREDMOND', decoded)
+        self.assertIn('STATEMENTOFREVENUES', decoded)
+        self.assertIn('ANDCHANGESINFUNDBALANCES', decoded)
+
+    def test_no_digit_survives_the_cipher(self):
+        # Under a +29 shift an original '0'-'9' (0x30-0x39) lands on bytes
+        # 0x13-0x1C. The extracted page carries ZERO bytes in that range, which
+        # is what makes these years unloadable rather than merely scrambled.
+        self.assertEqual([c for c in self.CIPHERED if 0x13 <= ord(c) <= 0x1C], [])
+
+    def test_a_ciphered_page_yields_SPURIOUS_money_not_an_empty_page(self):
+        # ⚠⚠ THE DANGEROUS PART, and the reason the exclusion must be
+        # DECLARATIVE. A ciphered page does not look empty to the library: the
+        # ciphered form of "STATEMENT OF REVENUES EXPENDITURES" is
+        # `67$7(0(172)5(9(18(6(;3(1',785(6`, from which nums_with_pos reads
+        # TWELVE money tokens -- including a NEGATIVE -172, because `(172)`
+        # has the shape of parenthesised negative money.
+        #
+        # So "does this page carry money?" answers YES for a page carrying
+        # none. Nothing downstream can infer these years are unloadable; the
+        # roster's excludedYears is what keeps them out, and the audit's
+        # zero-rows assertion is what proves it kept them out.
+        spurious = nums_with_pos("67$7(0(172)5(9(18(6(;3(1',785(6")
+        self.assertNotEqual(spurious, [], 'a ciphered page is NOT an empty page')
+        self.assertIn(-172, [v for v, _ in spurious],
+                      'the parenthesised run reads as negative money')
 
 
 if __name__ == '__main__':
