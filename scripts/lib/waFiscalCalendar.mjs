@@ -114,10 +114,24 @@ export const ENTITY_TYPE_MONTHS = {
   school_district: SCHOOL_DISTRICT_MONTH,
 };
 
-/** Measured 2026-08-26. Nothing in this population needs changing. */
+/**
+ * Measured 2026-08-26, RE-MEASURED 2026-10-06. Nothing in this population needs
+ * changing.
+ *
+ * ⚠ 336 -> 358 and 10 -> 11 entities: Redmond, WA's 22 rows (11 FY x
+ * operating+revenue). A calendar-year city like every other WA local, so no
+ * month changed — only the population did.
+ *
+ * ⚠⚠ THIS IS NOT OPTIONAL BOOKKEEPING FOR A NEW ENTITY. It was missed on the
+ * Redmond load and `verifyWAFiscalYearStartMonth.mjs` failed on every run until
+ * it was fixed, while `npm test` stayed GREEN because the old constants and the
+ * test that pinned them agreed with each other and not with the database. A
+ * suite can certify a number the table contradicts; re-measure here in the same
+ * commit as the load.
+ */
 export const BASELINE = {
-  localRows: 336,
-  localEntities: 10,
+  localRows: 358,
+  localEntities: 11,
   stateRows: 12,
   schoolDistrictRows: 0,
   dataSourceRows: 0,   // waSaoLoad.mjs creates its data_sources row EPHEMERALLY and deletes it
@@ -133,6 +147,7 @@ export const LOCAL_ROWS_BY_ENTITY = {
   'Kitsap County': 36,
   Seattle: 34,
   Bellevue: 24,
+  Redmond: 22,
   'King County': 16,
 };
 

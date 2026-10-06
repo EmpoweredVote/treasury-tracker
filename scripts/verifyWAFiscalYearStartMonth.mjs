@@ -109,6 +109,7 @@ async function main() {
   const errors = [];
   const drift = [];
   const byEntity = new Map();
+  const localNames = new Set();
   let localRows = 0;
   let stateRows = 0;
   let schoolRows = 0;
@@ -120,6 +121,9 @@ async function main() {
     else if (t === 'school_district') schoolRows += 1;
     else localRows += 1;
     byEntity.set(r.entity?.name, (byEntity.get(r.entity?.name) ?? 0) + 1);
+    // LOCAL_ROWS_BY_ENTITY covers LOCALS only; the state node has its own
+    // stateRows baseline, so it must not be demanded an entry here.
+    if (t !== 'state' && t !== 'school_district') localNames.add(r.entity?.name);
     if (c.error) errors.push(`${r.entity?.name} FY${r.fiscal_year}: ${c.error}`);
     else if (c.action === 'update') {
       drift.push(`${r.entity?.name} (${t}) FY${r.fiscal_year} ${r.dataset_type}: `
@@ -127,11 +131,28 @@ async function main() {
     }
   }
 
+  // ⚠⚠ AN ENTITY WITH NO BASELINE IS UNCHECKED, NOT MERELY UNMEASURED.
+  // This loop used to print an empty bracket for an unknown name and move on,
+  // so a newly loaded entity got NO per-entity assertion at all and a later
+  // partial re-load of it could not raise MISMATCH. Redmond shipped into
+  // exactly that hole. An unbaselined local entity is now an error, which is
+  // the same failure direction as every other gate here: never classify by
+  // absence.
+  const unbaselined = [];
   console.log('rows per entity (baseline in brackets)');
   for (const [n, c] of [...byEntity.entries()].sort()) {
     const want = LOCAL_ROWS_BY_ENTITY[n];
-    const label = want === undefined ? '' : `[${want}]${c === want ? '' : ' ⚠ MISMATCH'}`;
-    console.log(`    ${String(n).padEnd(18)} ${String(c).padStart(3)} ${label}`);
+    if (want === undefined && localNames.has(n)) {
+      unbaselined.push(`${n} (${c} rows)`);
+      console.log(`    ${String(n).padEnd(18)} ${String(c).padStart(3)} ⚠ NO BASELINE — unchecked`);
+      continue;
+    }
+    console.log(`    ${String(n).padEnd(18)} ${String(c).padStart(3)} `
+      + `[${want}]${c === want ? '' : ' ⚠ MISMATCH'}`);
+  }
+  for (const u of unbaselined) {
+    errors.push(`${u} has no entry in LOCAL_ROWS_BY_ENTITY — add one in the same `
+      + 'commit as the load, or this entity has no per-entity row check at all');
   }
 
   console.log(`\nlocal rows            ${localRows} [${BASELINE.localRows}]`);

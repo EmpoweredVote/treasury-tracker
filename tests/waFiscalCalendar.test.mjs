@@ -7,6 +7,7 @@ import {
   ENTITY_TYPE_MONTHS, BASELINE, LOCAL_ROWS_BY_ENTITY,
   monthForWAEntity, classify,
 } from '../scripts/lib/waFiscalCalendar.mjs';
+import { loadableEntities } from '../scripts/lib/waRoster.mjs';
 
 const row = (over = {}) => ({
   data_source: 'WA State Auditor — Seattle Annual Financial Report FY2024 (General Fund, Operating)',
@@ -33,13 +34,33 @@ describe('Washington has THREE fiscal calendars, not one', () => {
   });
 
   it('records that nothing in this population needs changing', () => {
-    expect(BASELINE.localRows).toBe(336);
+    expect(BASELINE.localRows).toBe(358);
     expect(BASELINE.stateRows).toBe(12);
     expect(BASELINE.schoolDistrictRows).toBe(0);
     // waSaoLoad.mjs creates its data_sources row ephemerally and deletes it.
     expect(BASELINE.dataSourceRows).toBe(0);
-    expect(Object.values(LOCAL_ROWS_BY_ENTITY).reduce((a, b) => a + b, 0)).toBe(336);
-    expect(Object.keys(LOCAL_ROWS_BY_ENTITY)).toHaveLength(10);
+    expect(Object.values(LOCAL_ROWS_BY_ENTITY).reduce((a, b) => a + b, 0)).toBe(358);
+    expect(Object.keys(LOCAL_ROWS_BY_ENTITY)).toHaveLength(11);
+  });
+
+  it('carries a per-entity baseline for Redmond', () => {
+    // ⚠ An entity ABSENT from this table is not merely unmeasured — it is
+    // UNCHECKED. verifyWAFiscalYearStartMonth.mjs prints an empty bracket for
+    // an unknown name and never raises MISMATCH, so a partial re-load that left
+    // Redmond at 20 rows instead of 22 would pass the per-entity check in
+    // silence. The aggregate would still catch it, which is exactly the kind of
+    // "caught by something else" that stops being true later.
+    expect(LOCAL_ROWS_BY_ENTITY.Redmond).toBe(22);
+  });
+
+  it('gives EVERY loadable WA roster entity a per-entity baseline', () => {
+    // Derived from the roster rather than hard-coded, so the next WA entity
+    // cannot be added without a baseline the way Redmond nearly was.
+    const missing = loadableEntities()
+      .map((e) => e.name)
+      .filter((n) => LOCAL_ROWS_BY_ENTITY[n] === undefined);
+    expect(missing, `WA entities with no per-entity row baseline: ${missing.join(', ')}`)
+      .toEqual([]);
   });
 });
 
