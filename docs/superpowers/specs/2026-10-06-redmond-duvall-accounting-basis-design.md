@@ -52,7 +52,7 @@ figures drawn across a basis difference, each correct in isolation. The axis is
 a prerequisite for Duvall's **first** loaded row, not a follow-up to it.
 
 **What this means for the two phases' gates.** Phase 1 is done when Redmond's
-16 years are live and its harnesses are green. Phase 2 is done when the axis
+11 years (22 rows) are live and its harnesses are green. Phase 2 is done when the axis
 exists, the four sources in §4.5 are stamped, the comparability rule is
 mutation-tested, **and** Duvall is loaded behind it. Phase 2 may not declare
 itself complete with the axis shipped and Duvall unloaded — that would leave a
@@ -83,21 +83,49 @@ ambiguous page identity is fatal, not a warning.
 
 | Years | Finding | Disposition |
 |---|---|---|
-| FY2004, FY2005 | CCITT stencil scans, 300dpi, 1–2 money tokens in the entire document | **Exclude** — image-only |
-| FY2006 | Caption reads `Changes in Fund Balance`, **singular** | Load — `statement_anchor` |
-| FY2007–FY2010 | Statement **split across two pages** (`Page 1 of 2`) | Load — `multipage=True` |
-| FY2011–FY2016 | Clean, single page, one candidate | Load — no special config |
-| FY2017, FY2018, FY2019 | **Ciphered text, digits absent** (§2.2) | **Exclude** — unreadable |
-| FY2020–FY2024 | Clean, single page, one candidate | Load — no special config |
-| FY2025 | Not released by SAO | Excluded, source timing |
+| FY2004, FY2005 | CCITT stencil scans, 300dpi, 1–2 money tokens in the entire document | Excluded — image-only, **and below the floor** |
+| FY2006 | Caption reads `Changes in Fund Balance`, **singular** | Excluded — **below the floor** (§2.1.1) |
+| FY2007–FY2010 | Statement **split across two pages** (`Page 1 of 2`) | Excluded — **below the floor** (§2.1.1) |
+| FY2011–FY2016 | Clean, single page, one candidate | **Load** — no special config |
+| FY2017, FY2018, FY2019 | **Ciphered text, digits absent** (§2.2) | Excluded — unreadable |
+| FY2020–FY2024 | Clean, single page, one candidate | **Load** — no special config |
+| FY2025 | Not released by SAO | Excluded — source timing |
 
-**Expected load: 16 years** — FY2006–FY2016 and FY2020–FY2024.
-`manifestSpan: [2004, 2025]`, with five `excludedYears` plus FY2025.
+**Load: 11 years** — FY2011–FY2016 and FY2020–FY2024 → **22 rows**
+(operating + revenue per year). `manifestSpan: [2004, 2025]`; every other year
+in the span carries an `excludedYears` reason.
 
-The two-page split is **not** a new defect class. `CityConfig.multipage` /
-`multipage_max` already exist, added for Brown County SD whose statement spans
-four pages. Redmond needs `multipage=True`; `multipage_max` stays at its default
-of 6.
+#### 2.1.1 The floor rule, and why the window stops at FY2011
+
+The roster's floor rule walks back from the newest filing and **stops at two
+consecutive unreadable years**. Redmond has **three** — FY2017, FY2018, FY2019 —
+so applied mechanically the window would end at FY2020 and publish five years.
+
+Decided 2026-10-06: **take the Kent deviation, on Kent's exact justification,
+and no further.** Kent's override was approved because the years below its gap
+parsed on the **unchanged config** — no new work, nothing bent to make a row
+count look better. FY2011–FY2016 meet that test exactly: same config as
+FY2020–FY2024, no flag changed.
+
+FY2006–FY2010 do **not**, and are excluded deliberately even though they are
+readable:
+
+- FY2007–FY2010 need `multipage=True` (the statement splits across two pages).
+- FY2006 needs a different `statement_anchor` (singular `Fund Balance`).
+
+Both are one-line config on existing library features, so the cost is near zero
+— and that is precisely why the line is worth holding. The floor rule's
+era-split clause says *"if this city needs a second config for an era split, it
+does not get one — the window ends where the shape changes."* The statement's
+shape changes at FY2010. Extending through a documented shape change **and** a
+three-year gap, for cheapness, is the reasoning the rule exists to refuse.
+
+⚠ These five years are excluded by **policy, not by defect**. Their
+`excludedYears` reasons must say so, or a later reader will record Redmond as
+having five more unreadable years than it does and a future entity will inherit
+a false difficulty estimate. They remain available if the floor rule is formally
+loosened — which the WA-CITIES-01 closeout recommends and which is a decision of
+its own, not a thing to do quietly inside an onboarding.
 
 ### 2.2 The FY2017–FY2019 cipher — why these are exclusions, not bugs
 
@@ -142,7 +170,7 @@ with no digits in it. The two need different probes to detect.
   band would have rejected Everett outright and they are neighbours by size.
   Loader band ≈ 0.5×min .. 2×max; harness band tighter.
 - **`parents` / `root_leaves`** — determine with `pdftotext -layout` across all
-  16 loadable years. The tree shape is per-city and can invert: Bellevue prints
+  11 loaded years. The tree shape is per-city and can invert: Bellevue prints
   `Capital outlay` as a PARENT where five other WA cities print it as a valued
   root leaf. Guessing produces a $0 tie with a wrong tree.
 - **`column_strategy`** — probe for incomplete rows. No incomplete rows in any
@@ -337,14 +365,17 @@ audit checks, tether — with the additions this work forces. Items 1–5 and 8
 apply to Redmond in **phase 1**; items 6 and 7, and the Duvall half of items 1–4
 and 8, land in **phase 2**:
 
-1. **Blind re-derivation at $0** for all 16 Redmond years and every loaded
+1. **Blind re-derivation at $0** for all 11 Redmond years and every loaded
    Duvall year, re-derived from the PDF independently of the loader.
 2. **Label-surface assertions.** A label defect is invisible to every arithmetic
    gate: Bainbridge shipped a category named `____…____ Interest and Investment
    Revenue` to production with a correct figure and a $0 tie. Assert the strings.
 3. **Per-entity consistency**, not a shared whitelist.
-4. **Exclusion assertions.** Each of Redmond's five excluded years must have
-   **zero rows**. Every exclusion is a deliberate refusal to publish; a row
+4. **Exclusion assertions.** Each of Redmond's ten excluded years
+   (FY2004–FY2010, FY2017–FY2019) plus FY2025 must have **zero rows**. ⚠ Five of
+   those ten are excluded by POLICY and are perfectly readable, so this check is
+   the only thing standing between a correct extractor and five years of
+   unauthorised rows. Every exclusion is a deliberate refusal to publish; a row
    quietly appearing for FY2017 would mean unadjudicated money shipped.
 5. **The cipher probe**, as a test: assert FY2017–FY2019 yield no digits, so a
    future library change that appears to "fix" them has to prove it recovered
@@ -361,17 +392,29 @@ and 8, land in **phase 2**:
 
 ## 6. Pinned ARNs (resolved against the live registry, 2026-10-06)
 
-**Redmond, MCAG 0425** — loadable years only:
+**Redmond, MCAG 0425** — the 11 loaded years:
 
 ```
-2006: 73631     2007: 75373     2008: 1002098   2009: 1003929
-2010: 1006714   2011: 1008494   2012: 1010466   2013: 1012425
-2014: 1014930   2015: 1017176   2016: 1019544   2020: 1029176
-2021: 1031765   2022: 1035798   2023: 1038568   2024: 1040508
+2011: 1008494   2012: 1010466   2013: 1012425   2014: 1014930
+2015: 1017176   2016: 1019544   2020: 1029176   2021: 1031765
+2022: 1035798   2023: 1038568   2024: 1040508
 ```
 
-Excluded: FY2004 `69504`, FY2005 `71153` (scans); FY2017 `1021971`,
-FY2018 `1024295`, FY2019 `1027556` (cipher).
+Excluded, with the ARN recorded so a later decision needs no re-recon:
+
+```
+2004: 69504     CCITT stencil scan, and below the floor
+2005: 71153     CCITT stencil scan, and below the floor
+2006: 73631     READABLE — below the floor (singular caption, §2.1.1)
+2007: 75373     READABLE — below the floor (two-page split)
+2008: 1002098   READABLE — below the floor (two-page split)
+2009: 1003929   READABLE — below the floor (two-page split)
+2010: 1006714   READABLE — below the floor (two-page split)
+2017: 1021971   ciphered, digits absent
+2018: 1024295   ciphered, digits absent
+2019: 1027556   ciphered, digits absent
+2025: —         no filing released
+```
 
 **Duvall, MCAG 0391** — candidates, to be confirmed at recon:
 
