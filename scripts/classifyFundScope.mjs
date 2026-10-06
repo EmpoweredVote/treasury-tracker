@@ -277,7 +277,25 @@ export const EXPECTED_ROWS = Object.freeze({
                                 // South Tucson 8
   'seattle-city-acfr-gf': 34,
   'state-acfr-gf-by-name': 56,  // Minnesota 36, Ohio 12, Virginia 8
-  'wa-sao': 286,
+  // RE-MEASURED 2026-10-06: 286 -> 308, exactly +22, with nothing else moved.
+  // The 22 are Redmond, WA (MCAG 0425) — 11 fiscal years x operating+revenue,
+  // loaded this milestone. The pattern is byte-identical to the one that
+  // measured 286: the table changed underneath, which this header permits once
+  // explained. Evidence: docs/superpowers/specs/2026-10-06-redmond-duvall-
+  // accounting-basis-design.md §2 and docs/superpowers/plans/REDMOND-RECON.md.
+  //
+  // ⚠⚠ THIS GATE STILL FAILS, AND NOT BECAUSE OF THIS NUMBER. Five OTHER
+  // entries drifted before this milestone and are unexplained here:
+  // mi-treasury-f65-gf / -tg (58,228 vs 64), fl-dfs-afr (12,764 vs 190),
+  // pa-dced-clgs30-muni (50,034, no entry), pa-dced-clgs30-county (1,044, no
+  // entry) and in-county-acfr-tg (198, no entry). Each belongs to a later
+  // statewide load whose rows this registry now legitimately claims.
+  // Until they are adjudicated, `node scripts/classifyFundScope.mjs` refuses
+  // to write, so REDMOND'S fund_scope IS STILL `unknown` — and `unknown` is
+  // excluded by isComparableScope(), so Redmond is absent from cross-entity
+  // comparison. Do NOT clear this with --force: that writes every entry above,
+  // including the five whose patterns the gate is flagging as over-matching.
+  'wa-sao': 308,
   'mn-osa': 21794,
   'oh-aos': 6616,
   // ── MA DLS (MA-01) ────────────────────────────────────────────────────────
