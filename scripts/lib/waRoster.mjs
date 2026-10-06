@@ -375,6 +375,47 @@ export const WA_ENTITIES = [
     expectedResidues: 0,
     roundingFiles: ['extractEverett.py'], navOnly: false,
   },
+  // ── 2026-10-06, Redmond phase 1. King County's third city here. ───────────
+  {
+    name: 'Redmond', mcag: '0425', entityType: 'city', countyName: 'King County',
+    pdfDir: 'docs/Redmond', pdfPrefix: 'redmond', datasetIdPrefix: 'redmond-sao-gf',
+    population: 82_380,
+    populationNote: 'WA OFM April 1, 2025 — Filter=4 city row, line 171 (2026 est: 83,320)',
+    // DERIVED from Redmond's own observed spread in Task 5, never inherited.
+    // Bellevue and Kent are its King County neighbours and NEITHER band is
+    // usable here: Kent's [220, 2000] and Bellevue's [400, 4500] were each
+    // derived from a different city's per-resident spending.
+    perCapitaBand: null,
+    verifyPerCapitaBand: null,
+    expectId: null,
+    sanityMax: 5_000_000_000,
+    // MEASURED window: 11 years on ONE config, FY2011–FY2024 less the three
+    // ciphered years. See docs/superpowers/specs/2026-10-06-redmond-duvall-
+    // accounting-basis-design.md §2.1.1 for why it stops at FY2011.
+    fiscalYears: [2011, 2012, 2013, 2014, 2015, 2016, 2020, 2021, 2022, 2023, 2024],
+    // The span covers the WHOLE ARN manifest, not just the loadable part, so
+    // the audit asserts zero rows for every excluded year — and FIVE of those
+    // are perfectly readable, which makes that assertion load-bearing here in
+    // a way it is not for any other entity in this roster.
+    manifestSpan: [2004, 2025],
+    excludedYears: {
+      2004: 'CCITT stencil image-only scan — 300dpi, 1-2 money tokens in the entire document; also below the floor',
+      2005: 'CCITT stencil image-only scan — same shape as FY2004; also below the floor',
+      2006: 'READABLE — excluded by the floor rule, not by defect: captions the statement "Changes in Fund Balance" (SINGULAR) and would need its own statement_anchor below a three-year gap',
+      2007: 'READABLE — excluded by the floor rule, not by defect: the statement splits across two pages ("Page 1 of 2") and would need multipage=True below a three-year gap',
+      2008: 'READABLE — excluded by the floor rule, not by defect: two-page split, as FY2007',
+      2009: 'READABLE — excluded by the floor rule, not by defect: two-page split, as FY2007',
+      2010: 'READABLE — excluded by the floor rule, not by defect: two-page split, as FY2007',
+      2017: 'no usable text layer — a constant +29 shift decodes every LABEL and no DIGIT; an original 0-9 would land on bytes 0x13-0x1C and the page carries ZERO bytes in that range, so the money is absent from the stream rather than encoded',
+      2018: 'no usable text layer — same cipher as FY2017, and consecutive with it',
+      2019: 'no usable text layer — same cipher as FY2017; the third consecutive, which is what invokes the floor rule',
+      2025: 'source timing — the SAO holds no City of Redmond filing for FY2025',
+    },
+    // Confirmed in Task 6. A REAL number, including zero: asserting the zero
+    // means a residue appearing later is a finding rather than a shrug.
+    expectedResidues: 0,
+    roundingFiles: ['extractRedmond.py'], navOnly: false,
+  },
 ];
 
 export function getEntity(name) {

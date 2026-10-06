@@ -5,10 +5,10 @@ import {
 } from '../scripts/lib/waRoster.mjs';
 
 describe('WA roster shape', () => {
-  it('carries the six WA-CITIES-01 cities, the two v2.22 entities and four nav-only counties', () => {
+  it('carries the six WA-CITIES-01 cities, the two v2.22 entities, Redmond and four nav-only counties', () => {
     expect(WA_ENTITIES.map((e) => e.name).sort()).toEqual([
       'Bainbridge Island', 'Bellevue', 'Clark County', 'Everett', 'Kent',
-      'Kitsap County', 'Pierce County', 'Snohomish County', 'Spokane',
+      'Kitsap County', 'Pierce County', 'Redmond', 'Snohomish County', 'Spokane',
       'Spokane County', 'Tacoma', 'Vancouver',
     ]);
   });
@@ -159,5 +159,45 @@ describe('MCAG decoy guard', () => {
     // getEntity('Tacoma').mcag is '0610'; the number 610 must not pass.
     expect(() => assertMcag('Tacoma', 610)).toThrow(/does not match the pinned MCAG/i);
     expect(() => assertMcag('Tacoma', '0610')).not.toThrow();
+  });
+});
+
+describe('Redmond', () => {
+  it('carries Redmond with the eleven-year window', () => {
+    const r = getEntity('Redmond');
+    expect(r.mcag).toBe('0425');
+    expect(r.entityType).toBe('city');
+    expect(r.countyName).toBe('King County');
+    expect(r.fiscalYears).toEqual(
+      [2011, 2012, 2013, 2014, 2015, 2016, 2020, 2021, 2022, 2023, 2024]);
+    expect(r.manifestSpan).toEqual([2004, 2025]);
+  });
+
+  it('declares a reason for every year in the manifest span that is not loaded', () => {
+    const r = getEntity('Redmond');
+    const [lo, hi] = r.manifestSpan;
+    for (let fy = lo; fy <= hi; fy++) {
+      const loaded = r.fiscalYears.includes(fy);
+      const excluded = Object.prototype.hasOwnProperty.call(r.excludedYears, fy);
+      expect(loaded !== excluded, `FY${fy} must be exactly one of loaded/excluded`).toBe(true);
+    }
+  });
+
+  it('records the five policy exclusions as policy, not as document defects', () => {
+    // FY2006-FY2010 are READABLE. If their reasons read like document defects,
+    // a later reader records Redmond as harder than it is and a future WA
+    // entity inherits a false difficulty estimate.
+    const r = getEntity('Redmond');
+    for (const fy of [2006, 2007, 2008, 2009, 2010]) {
+      expect(r.excludedYears[fy], `FY${fy}`).toMatch(/floor rule/i);
+      expect(r.excludedYears[fy], `FY${fy} must say it is readable`).toMatch(/READABLE/);
+    }
+  });
+
+  it('records the three ciphered years as text-layer defects, not as policy', () => {
+    const r = getEntity('Redmond');
+    for (const fy of [2017, 2018, 2019]) {
+      expect(r.excludedYears[fy], `FY${fy}`).toMatch(/no usable text layer/i);
+    }
   });
 });
