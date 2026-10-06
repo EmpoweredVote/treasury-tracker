@@ -381,13 +381,19 @@ export const WA_ENTITIES = [
     pdfDir: 'docs/Redmond', pdfPrefix: 'redmond', datasetIdPrefix: 'redmond-sao-gf',
     population: 82_380,
     populationNote: 'WA OFM April 1, 2025 — Filter=4 city row, line 171 (2026 est: 83,320)',
-    // DERIVED from Redmond's own observed spread in Task 5, never inherited.
-    // Bellevue and Kent are its King County neighbours and NEITHER band is
-    // usable here: Kent's [220, 2000] and Bellevue's [400, 4500] were each
-    // derived from a different city's per-resident spending.
-    perCapitaBand: null,
-    verifyPerCapitaBand: null,
-    expectId: null,
+    // DERIVED from Redmond's own observed spread across all 22 loaded
+    // combinations: $916.57/resident (FY2011 operating) to $1,820.28 (FY2023
+    // revenue). Never inherited — Bellevue [400, 4500] and Kent [220, 2000]
+    // are its King County neighbours and neither describes Redmond.
+    //
+    // Redmond prints WHOLE DOLLARS. A 1000x units error would read $0.92–$1.82
+    // and a /1000 error $916,570+, so both land far outside this band — which
+    // matters because the tie gate is unit-invariant and cannot see either.
+    perCapitaBand: [450, 3_700],
+    // TIGHTER than the loader band: the loader rejects a units catastrophe,
+    // the harness rejects a WRONG PAGE. Measured spread $917–$1,820.
+    verifyPerCapitaBand: [700, 2_400],
+    expectId: '66db27e6-624e-4ecb-9842-da14ee743e2c',
     sanityMax: 5_000_000_000,
     // MEASURED window: 11 years on ONE config, FY2011–FY2024 less the three
     // ciphered years. See docs/superpowers/specs/2026-10-06-redmond-duvall-
