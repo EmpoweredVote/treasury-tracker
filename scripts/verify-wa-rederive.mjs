@@ -534,6 +534,26 @@ const CHANGES_RE = /changes?\s+in\s+fund\s+balances?/i;
 // perfectly readable, and "the scope line is misspelled" is not a reason to
 // refuse a filing. The optional 'n' cannot match anything else meaningful.
 const GOVFUNDS_RE = /govern?mental\s+funds/i;
+// ── THE CASH-BASIS BARS STATEMENT ───────────────────────────────────────────
+// Duvall (MCAG 0391) does not publish a GAAP governmental-funds statement and
+// never has. Its auditor issues an ADVERSE opinion on U.S. GAAP, and the
+// statement is captioned `Fund Resources and Uses Arising from Cash
+// Transactions` with no fund-balance section at all — it opens with Beginning
+// Cash and Investments. TITLE_RE and CHANGES_RE therefore match NOTHING in
+// this corpus, and all twenty rows failed page identity on "no governmental-
+// funds statement page survived".
+//
+// ⚠⚠ THIS IS A SECOND CAPTION, NOT A RELAXATION. A page still has to carry
+// both printed Total rows, still has to pass EXCLUDE_RE, CONTINUATION_RE and
+// GF_CAPTION_RE, and still has to state its own period. What it does NOT have
+// to do is say "Governmental Funds", because a BARS statement never says it —
+// and requiring a phrase the document cannot contain is not a safety property,
+// it is a refusal to read the document.
+//
+// ⚠ The fiduciary twin is caught by EXCLUDE_RE, which already carries
+// `fiduciary`: every Duvall report also prints `Fiduciary Fund Resources and
+// Uses Arising from Cash Transactions`, reporting custodial money.
+const BARS_TITLE_RE = /fund\s+resources\s+and\s+uses\s+arising\s+from\s+cash\s+transactions/i;
 const TOTAL_REV_RE = /^total\s+(operating\s+)?revenues?\b/i;
 const TOTAL_EXP_RE = /^total\s+expenditures\b/i;
 const REV_HEAD_RE = /^revenues?\b/i;
@@ -590,23 +610,53 @@ function captionBlockEnd(lines) {
   return i > 0 ? i + 1 : Math.min(lines.length, 25);
 }
 
-export function findStatementPage(pages, label) {
+export function findStatementPage(pages, label, fy = null) {
   const cands = [];
   const rejected = [];
   pages.forEach((pg, i) => {
     const flat = pg.replace(/\s+/g, ' ');
-    if (!TITLE_RE.test(flat)) return;
-    if (!CHANGES_RE.test(flat)) return;
+    // Either presentation qualifies on its OWN caption. A GAAP statement must
+    // still carry both halves of its title; a BARS statement has no
+    // fund-balance half to carry.
+    const isBars = BARS_TITLE_RE.test(flat);
+    if (!isBars) {
+      if (!TITLE_RE.test(flat)) return;
+      if (!CHANGES_RE.test(flat)) return;
+    }
     const lines = pg.split('\n');
     const trimmed = lines.map((l) => l.trim());
     if (!trimmed.some((t) => TOTAL_REV_RE.test(t))) return;
     if (!trimmed.some((t) => TOTAL_EXP_RE.test(t))) return;
     const headFlat = lines.slice(0, captionBlockEnd(lines)).join(' ').replace(/\s+/g, ' ');
-    if (!GOVFUNDS_RE.test(headFlat)) { rejected.push(`p${i + 1}: caption does not say "Governmental Funds"`); return; }
+    // ⚠ Only the GAAP presentation is asked for the "Governmental Funds" scope
+    // line. The BARS statement's scope is carried by its own caption plus the
+    // exclusions below, which already reject the fiduciary and proprietary
+    // twins by name.
+    if (!isBars && !GOVFUNDS_RE.test(headFlat)) { rejected.push(`p${i + 1}: caption does not say "Governmental Funds"`); return; }
     const ex = headFlat.match(EXCLUDE_RE);
     if (ex) { rejected.push(`p${i + 1}: caption is a "${ex[0]}" page`); return; }
     if (CONTINUATION_RE.test(headFlat)) { rejected.push(`p${i + 1}: caption declares itself a continuation page`); return; }
     if (!GF_CAPTION_RE.test(headFlat)) { rejected.push(`p${i + 1}: caption carries no General Fund column`); return; }
+    // ── A DOCUMENT MAY CARRY MORE THAN ONE YEAR ─────────────────────────────
+    // ⚠⚠ Duvall is audited BIENNIALLY: ARN 1036127 holds a COMPLETE statement
+    // for FY2022 and another for FY2023, both captioned identically, both with
+    // a General Fund column. Two pages legitimately survive, and resolving
+    // that by document order is precisely what this harness refuses to do —
+    // the more so here, because the document prints FY2023 FIRST, so
+    // `cands[0]` would hand FY2022 the wrong year's money and tie at $0.
+    //
+    // A candidate is dropped only when it STATES a period and that period is
+    // some OTHER year. That is evidence, not ordering. A candidate that states
+    // no period at all is KEPT, so `assertPageYear` still refuses it
+    // downstream exactly as before and no existing entity's behaviour moves.
+    if (fy !== null) {
+      const stated = headFlat.match(/end(?:ed|ing)\s*december\s*3\s*1\s*,?\s*(\d{4})/i)
+        || flat.match(/end(?:ed|ing)\s*december\s*3\s*1\s*,?\s*(\d{4})/i);
+      if (stated && Number(stated[1]) !== fy) {
+        rejected.push(`p${i + 1}: states "${stated[0].trim()}", not FY${fy}`);
+        return;
+      }
+    }
     cands.push(i);
   });
   if (!cands.length) {
@@ -791,11 +841,22 @@ function dropLeadingPageNumber(line, toks) {
   return toks.slice(1);
 }
 
-export function readRowOrdinal(line, ncols) {
+export function readRowOrdinal(line, ncols, gfOrdinal = 0) {
   const toks = dropLeadingPageNumber(line, tokensOf(line));
   if (toks.length >= ncols) {
-    const tok = toks[toks.length - ncols];
-    return { kind: 'cell', value: tok.value, label: cleanLabel(line.slice(0, tok.start)), at: tok.start };
+    // `gfOrdinal` counts columns from the LEFT among the `ncols` the Total row
+    // exposes, and is 0 for every entity whose General Fund is printed first —
+    // which, before Duvall, was all of them. Duvall prints `Total for All
+    // Funds (Memo Only)` first and `001 General Fund` second, so its ordinal is
+    // 1 and a hard-coded 0 reads an ALL-FUNDS column that ties at $0.
+    const tok = toks[toks.length - ncols + gfOrdinal];
+    // ⚠ THE LABEL ENDS WHERE THE FIRST COLUMN BEGINS, not where the picked one
+    // does. With gfOrdinal = 0 these are the same token and this is unchanged;
+    // with gfOrdinal = 1 slicing at the picked token would fold the column to
+    // its left INTO THE LABEL — Duvall FY2016 read "Taxes 3,903,701", pasting
+    // the memo figure onto the row name.
+    const firstCol = toks[toks.length - ncols];
+    return { kind: 'cell', value: tok.value, label: cleanLabel(line.slice(0, firstCol.start)), at: tok.start };
   }
   // A row of nothing but dash placeholders is a heading that the renderer put a
   // zero on -- Kitsap FY2011-FY2013 print `-` in the General Fund column on
@@ -822,6 +883,107 @@ function tableBands(totalLine, ncols, label) {
 }
 
 const inBand = (toks, band) => toks.filter((t) => (t.start + t.end) / 2 >= band.left && (t.start + t.end) / 2 < band.right);
+
+/**
+ * The column-caption form of GF_CAPTION_RE, for matching a caption GROUP
+ * rather than a flattened caption line.
+ *
+ * ⚠⚠ NO LEADING `\b`, AND THAT IS THE WHOLE POINT. `-lineprinter` letter-spaces
+ * glyphs (`0  0  1   G  E   N  E   R  A   L`) and `lpGroups` rejoins them with
+ * no spaces, so Duvall's column caption arrives as `001GENERAL` — where
+ * `\bgeneral` CANNOT match, because `1` and `G` are both word characters.
+ * The first version of the band selection below used GF_CAPTION_RE unchanged,
+ * found nothing, and fell back to band 0 — the MEMO column — which is exactly
+ * the failure it exists to prevent. It failed loudly only because assertion 3
+ * then refused the page.
+ *
+ * The trailing exclusions are GF_CAPTION_RE's, restated so they survive the
+ * same squashing: `generalgovernment` is the expenditure FUNCTION and
+ * `generalobligation` is a DEBT fund, neither of which is a General Fund
+ * column — while `generalgovernmental` is a neighbouring column caption and
+ * must still be ACCEPTED (Tacoma FY2003 prints exactly that).
+ */
+// ⚠⚠ AND THE EXCLUSION IS APPLIED TO THE WHOLE STACKED COLUMN CAPTION, never
+// to one line of it. Bainbridge FY2014 prints its fourth column as
+//
+//        Real Estate        General        Governmental
+//        Excise Tax      Obligation Bond      Funds
+//
+// so the GROUP on the upper line is the bare word `General` — the thing that
+// makes it a General Obligation BOND column is on the line BELOW. Testing
+// groups one line at a time found "General" over two columns and refused the
+// page. Stacking the band's caption first (which is what assertion 3 has
+// always done) reads `General Obligation Bond` and excludes it.
+//
+// `government(?!al)` rather than `government\b`, and a bare `obligation`,
+// because `-lineprinter` squashes a stacked caption to `GeneralObligationBond`
+// where no word boundary survives. `General Governmental` must still be
+// ACCEPTED — Tacoma FY2003 prints exactly that over a real General Fund.
+const GF_COLUMN_CAPTION_RE = /general(?!\s*(?:government(?!al)|obligation))/i;
+
+/** The caption groups of each band, stacked top to bottom and joined. */
+function stackedBandCaptions(groupsPerLine, bands) {
+  const stacks = bands.map(() => []);
+  for (const groups of groupsPerLine) {
+    for (const g of groups) {
+      const mid = (g.start + g.end) / 2;
+      const k = bands.findIndex((b) => mid >= b.left && mid < b.right);
+      if (k >= 0) stacks[k].push(g.text);
+    }
+  }
+  return stacks.map((s) => s.join(' '));
+}
+
+/**
+ * Which of `bands` the page's own "General" column caption sits over, on the
+ * `-table` rendering — i.e. the General Fund's ordinal among the columns.
+ *
+ * ⚠⚠ BEFORE DUVALL THIS WAS A HARD-CODED 0 AND THAT WAS AN ASSUMPTION, NOT A
+ * FACT. Nine WA entities print the General Fund first. Duvall prints
+ * `Total for All Funds (Memo Only)` first, so reading column 0 there yields an
+ * internally-consistent ALL-FUNDS figure that ties at exactly $0 and is four
+ * times the General Fund.
+ *
+ * ⚠ NOTHING HERE CONSULTS THE LOADER. The ordinal is read off the caption, in
+ * this harness's own rendering, exactly as the loader's `target_column` was
+ * derived independently from the page. That is what keeps the two readings
+ * capable of disagreeing.
+ *
+ * Returns 0 when the caption cannot be located, which is the previous
+ * behaviour exactly. That fallback CANNOT silently publish the wrong column:
+ * `lpSection` chooses its band from the caption in true page geometry and
+ * asserts "General" sits over it, and the two readings must agree on every row
+ * and on the printed total. A `-table` fallback to 0 against a `-lineprinter`
+ * band 1 is a loud disagreement, not a quiet pass.
+ */
+export function generalFundOrdinal(lines, bands, label) {
+  const headIdx = lines.findIndex((l) => {
+    const t = l.trim();
+    return REV_HEAD_RE.test(t) && !/expenditures|statement/i.test(t);
+  });
+  const end = headIdx > 0 ? headIdx : Math.min(lines.length, 25);
+  const groupsPerLine = [];
+  for (let i = 0; i < end; i++) {
+    // Groups separated by two or more spaces — the same way `-table` separates
+    // one column's caption from the next.
+    groupsPerLine.push([...lines[i].matchAll(/\S+(?: \S+)*/g)]
+      .map((m) => ({ text: m[0], start: m.index, end: m.index + m[0].length })));
+  }
+  const hits = [];
+  stackedBandCaptions(groupsPerLine, bands).forEach((c, k) => {
+    if (GF_COLUMN_CAPTION_RE.test(c)) hits.push(k);
+  });
+  if (hits.length === 1) return hits[0];
+  // ⚠ NEITHER BRANCH BELOW IS WEAKER THAN WHAT THIS REPLACED, which was an
+  // unconditional 0. `-table` normalises column positions, so its caption
+  // geometry is approximate and an ambiguous answer here is not evidence of
+  // anything; the ANCHORED reading is `chooseGeneralFundBand`, in true page
+  // geometry, and the two readings must agree on every row and on the printed
+  // total. A `-table` fallback to 0 against a `-lineprinter` band 1 is a loud
+  // disagreement, never a quiet pass.
+  if (hits.length > 1) return hits.includes(0) ? 0 : hits[0];
+  return 0;
+}
 
 /**
  * Returns the row reader for one section: ordinal everywhere it applies, and a
@@ -856,25 +1018,26 @@ const inBand = (toks, band) => toks.filter((t) => (t.start + t.end) / 2 >= band.
  */
 export const corroboratedElsewhere = [];
 
-export function makeRowReader(body, totalLine, ncols, label, pageRows = []) {
-  const incomplete = body.filter((l) => l.trim() && readRowOrdinal(l, ncols).kind === 'incomplete');
-  if (!incomplete.length) return (line) => readRowOrdinal(line, ncols);
+export function makeRowReader(body, totalLine, ncols, label, pageRows = [], gfOrdinal = 0) {
+  const incomplete = body.filter((l) => l.trim() && readRowOrdinal(l, ncols, gfOrdinal).kind === 'incomplete');
+  if (!incomplete.length) return (line) => readRowOrdinal(line, ncols, gfOrdinal);
 
   const bands = tableBands(totalLine, ncols, label);
+  const gfBand = bands[gfOrdinal];
   // Count the COMPLETE rows in one pool that reproduce the ordinal answer under
   // the bands, and throw on the first that contradicts it.
   const corroborate = (pool, where) => {
     let n = 0;
     for (const line of pool) {
       if (!line.trim()) continue;
-      const r = readRowOrdinal(line, ncols);
+      const r = readRowOrdinal(line, ncols, gfOrdinal);
       if (r.kind !== 'cell') continue;
-      const picked = inBand(tokensOf(line), bands[0]);
+      const picked = inBand(tokensOf(line), gfBand);
       if (picked.length !== 1 || picked[0].value !== r.value || picked[0].start !== r.at) {
         throw new Error(`${label}: this section contains ${incomplete.length} row(s) with an empty cell, which the ` +
           `ordinal rule cannot resolve, but the Total row's column bands CONTRADICT the ordinal reading on ` +
-          `${where} row "${r.label}" (ordinal ${r.value} at column ${r.at}; band ${bands[0].left.toFixed(1)}..` +
-          `${bands[0].right.toFixed(1)} picks ${picked.length} cell(s)${picked.length === 1 ? ` = ${picked[0].value}` : ''}). ` +
+          `${where} row "${r.label}" (ordinal ${r.value} at column ${r.at}; band ${gfBand.left.toFixed(1)}..` +
+          `${gfBand.right.toFixed(1)} picks ${picked.length} cell(s)${picked.length === 1 ? ` = ${picked[0].value}` : ''}). ` +
           `Refusing to locate the empty cell by geometry this page has just disproved.`);
       }
       n++;
@@ -914,9 +1077,9 @@ export function makeRowReader(body, totalLine, ncols, label, pageRows = []) {
   }
 
   return (line) => {
-    const r = readRowOrdinal(line, ncols);
+    const r = readRowOrdinal(line, ncols, gfOrdinal);
     if (r.kind !== 'incomplete') return r;
-    const picked = inBand(r.toks, bands[0]);
+    const picked = inBand(r.toks, gfBand);
     if (picked.length > 1) {
       throw new Error(`${label}: row "${r.label}" puts ${picked.length} cells inside the General Fund band`);
     }
@@ -926,7 +1089,12 @@ export function makeRowReader(body, totalLine, ncols, label, pageRows = []) {
     // name welds onto the next row.
     if (!picked.length) return { kind: 'blank', label: r.label };
     const tok = picked[0];
-    return { kind: 'cell', value: tok.value, label: cleanLabel(line.slice(0, tok.start)), at: tok.start };
+    // Same rule as readRowOrdinal: with a non-zero ordinal the label must stop
+    // at the FIRST money token on the row, or the column to the left of the
+    // General Fund is pasted onto the row name. Guarded so the gfOrdinal = 0
+    // path is byte-identical to before.
+    const cut = gfOrdinal > 0 && r.toks.length ? Math.min(tok.start, r.toks[0].start) : tok.start;
+    return { kind: 'cell', value: tok.value, label: cleanLabel(line.slice(0, cut)), at: tok.start };
   };
 }
 
@@ -1145,6 +1313,42 @@ const labelKey = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '')
  * Returns the ORDERED sequence of valued rows plus the printed total, so it can
  * be compared element-for-element with the ordinal reading.
  */
+/**
+ * Which band the "General" column caption sits over, in TRUE PAGE GEOMETRY.
+ *
+ * This is the `-lineprinter` twin of `generalFundOrdinal`, and the two are
+ * deliberately computed separately from separate renderings: if they disagree,
+ * the row values disagree and the run fails loudly. Neither consults the
+ * loader's config.
+ *
+ * ⚠ Unlike the `-table` side this one does NOT fall back to band 0. It is the
+ * anchored reading, and assertion 3 below — "the General caption sits over the
+ * band being read" — is only meaningful if the band was chosen by that
+ * caption. Where no caption is found we keep band 0 so that every pre-Duvall
+ * entity takes exactly its previous path, and assertion 3 then still has to
+ * pass on band 0, which is what it has always asserted.
+ */
+function chooseGeneralFundBand(lines, split, bands, totalIdx, label) {
+  // Band-independent caption window: everything above the first row whose
+  // label is exactly the revenue section header. Narrower than the window
+  // assertion 3 uses, never wider.
+  let end = split.findIndex((s) => /^revenues?$/.test(labelKey(s.label)));
+  if (end < 0 || end > totalIdx) end = totalIdx;
+  const groupsPerLine = [];
+  for (let i = 0; i < end; i++) groupsPerLine.push(lpGroups(lines[i]));
+  const hits = [];
+  stackedBandCaptions(groupsPerLine, bands).forEach((c, k) => {
+    if (GF_COLUMN_CAPTION_RE.test(c)) hits.push(k);
+  });
+  if (hits.length === 1) return hits[0];
+  // Same reasoning as generalFundOrdinal: band 0 is what this code did
+  // unconditionally before, so preferring it where the captions are ambiguous
+  // cannot be worse — and assertion 3 below still has to find "General" over
+  // whichever band was chosen, exactly as it always has.
+  if (hits.length > 1) return hits.includes(0) ? 0 : hits[0];
+  return 0;
+}
+
 function lpSection(pdfPath, pageNo, mode, label) {
   const lines = linePrinterPage(pdfPath, pageNo).split('\n');
   assertLinePrinterCalibration(lines, label);
@@ -1155,7 +1359,26 @@ function lpSection(pdfPath, pageNo, mode, label) {
   const totalIdx = split.findIndex((s) => isTotal(labelKey(s.label)) && s.cells.length);
   if (totalIdx < 0) throw new Error(`${label}: -lineprinter found no "Total ${mode === 'revenue' ? 'revenues' : 'expenditures'}" row`);
   const bands = lpBands(split[totalIdx].cells, label);
-  const pick = (cells) => cells.filter((c) => (c.start + c.end) / 2 >= bands[0].left && (c.start + c.end) / 2 < bands[0].right);
+
+  // ── WHICH BAND IS THE GENERAL FUND? ─────────────────────────────────────
+  // ⚠⚠ IT IS NOT ALWAYS BAND 0, AND ASSUMING SO IS THE EXACT DEFECT THIS
+  // HARNESS EXISTS TO CATCH. Duvall prints `Total for All Funds (Memo Only)`
+  // FIRST and `001 General Fund` SECOND, so band 0 is an ALL-FUNDS column that
+  // is internally consistent and would tie at $0 while being 4x the General
+  // Fund. Nine other WA entities print the General Fund first; Duvall does not.
+  //
+  // So the band is chosen BY ITS OWN PRINTED CAPTION, which is strictly
+  // stronger than choosing it by position and is what assertion 3 was already
+  // measuring after the fact. It is also INDEPENDENT of the loader: nothing
+  // here reads extractDuvall's `target_column`, so the two readings can still
+  // disagree, which is the whole point of this file.
+  //
+  // ⚠ For every entity whose General Fund IS band 0 this resolves to band 0
+  // and the code path below is byte-identical to before — that is asserted by
+  // the other 358 rows passing unchanged.
+  const bandIndex = chooseGeneralFundBand(lines, split, bands, totalIdx, label);
+  const gfBandRange = bands[bandIndex];
+  const pick = (cells) => cells.filter((c) => (c.start + c.end) / 2 >= gfBandRange.left && (c.start + c.end) / 2 < gfBandRange.right);
 
   const totalPick = pick(split[totalIdx].cells);
   if (totalPick.length !== 1) throw new Error(`${label}: -lineprinter Total row has ${totalPick.length} cells in the General Fund band`);
@@ -1166,11 +1389,32 @@ function lpSection(pdfPath, pageNo, mode, label) {
   }
   if (headIdx < 0) throw new Error(`${label}: -lineprinter found the Total row but no ${mode} section header above it`);
 
+  // Does this statement introduce its rows with BARS account codes? Measured
+  // from the CELLS rather than from a formatted-figure regex, because
+  // `-lineprinter` letter-spaces digits (`5  ,0  0  3 , 8 9  1`) and no
+  // thousands-separator pattern survives that. See LEADING_ACCOUNT_CODE_RE.
+  let codedN = 0;
+  let valuedN = 0;
+  for (let i = headIdx + 1; i < totalIdx; i++) {
+    if (!split[i].cells.length) continue;
+    valuedN++;
+    if (LEADING_ACCOUNT_CODE_RE.test(lines[i])) codedN++;
+  }
+  const codedPage = valuedN >= 3 && codedN / valuedN >= 0.8;
+
   const rows = [];
   for (let i = headIdx + 1; i < totalIdx; i++) {
     const s = split[i];
     if (!s.label && !s.cells.length) continue;
     if (lpRowIsDecoration(s)) continue;   // dashes rendered off their own row's baseline
+    // The tail of the label ABOVE: no account code, no figure in ANY column, on
+    // a statement whose rows all carry codes. Joined here independently of the
+    // `-table` side, from this rendering's own evidence.
+    if (codedPage && !s.cells.length && s.label && rows.length
+        && !LEADING_ACCOUNT_CODE_RE.test(lines[i])) {
+      rows[rows.length - 1].label = `${rows[rows.length - 1].label} ${s.label}`;
+      continue;
+    }
     const p = pick(s.cells);
     if (p.length > 1) throw new Error(`${label}: -lineprinter row "${s.label}" has ${p.length} cells inside the General Fund band`);
     if (!p.length) continue;               // heading or a row with no GF cell
@@ -1194,16 +1438,16 @@ function lpSection(pdfPath, pageNo, mode, label) {
   for (let i = 0; i < captEnd; i++) {
     for (const g of lpGroups(lines[i])) {
       const c = (g.start + g.end) / 2;
-      if (c >= bands[0].left && c < bands[0].right) capt.push(g.text);
+      if (c >= gfBandRange.left && c < gfBandRange.right) capt.push(g.text);
     }
   }
   const gfCaption = capt.join(' ');
   if (!/general/i.test(gfCaption)) {
     throw new Error(`${label}: no "General" caption sits over the column being read ` +
-      `(true-geometry band ${bands[0].left.toFixed(1)}..${bands[0].right.toFixed(1)} is captioned "${gfCaption || '(nothing)'}")`);
+      `(true-geometry band ${gfBandRange.left.toFixed(1)}..${gfBandRange.right.toFixed(1)} is captioned "${gfCaption || '(nothing)'}")`);
   }
 
-  return { rows, printed: totalPick[0].value, gfCaption, band: [bands[0].left, bands[0].right] };
+  return { rows, printed: totalPick[0].value, gfCaption, band: [gfBandRange.left, gfBandRange.right], bandIndex };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1344,6 +1588,42 @@ function indentLevels(body, indents) {
 }
 
 /** 'heading' | 'wrap' | 'empty' for a valueless row, from the page's own geometry. */
+// ── A LABEL THAT WRAPS *DOWNWARD* ───────────────────────────────────────────
+// ⚠⚠ Duvall FY2016-FY2019 print the value on the FIRST line of a two-line
+// label and the tail on the second:
+//
+//     550   Natural and Economic   578,415   578,415   -   -
+//           Environment
+//     560   Social Services          2,556     2,556   -   -
+//
+// Every other WA entity wraps the other way (the fragment comes FIRST and the
+// value is on the second line), and `classifyValueless` has no answer for this
+// shape: it calls `Environment` an empty line item and drops it, truncating a
+// published label to `Natural and Economic`. The loader's default was worse —
+// it welded the fragment FORWARD and published `Environment Social Services`.
+//
+// ⚠ The discriminator is read OFF THE PAGE, not configured, and NOT taken from
+// the loader: on a statement whose data rows are introduced by BARS account
+// codes, a row carrying no code and no money is not a line item at all, it is
+// the tail of the row above. On a page with no account codes — every GAAP
+// entity here — `pageUsesLeadingAccountCodes` is false and this never fires,
+// so Kent's genuinely-empty `Lodging` and `Issuance costs` are untouched.
+const LEADING_ACCOUNT_CODE_RE = /^\s*\d[\d\s/,-]*(?=[A-Za-z])/;
+const FORMATTED_FIGURE_RE = /\d{1,3}(?:,\d{3})+|\d+\.\d{2}\b/;
+
+export function pageUsesLeadingAccountCodes(lines) {
+  let coded = 0;
+  let valued = 0;
+  for (const l of lines) {
+    if (!l.trim() || !FORMATTED_FIGURE_RE.test(l)) continue;
+    valued++;
+    if (LEADING_ACCOUNT_CODE_RE.test(l)) coded++;
+  }
+  // Three rows is the smallest sample worth a verdict, and 80% leaves room for
+  // the odd row the renderer mangles without letting a GAAP page qualify.
+  return valued >= 3 && coded / valued >= 0.8;
+}
+
 function classifyValueless(rowLabel, nextLine, indents, levels, line) {
   const dV = indents.get(labelKey(rowLabel));
   if (dV === undefined) {
@@ -1363,6 +1643,11 @@ export function buildOperating(body, readRow, scale, rawRows, indents = new Map(
   let open = null;
   let pending = '';
   const levels = indentLevels(body, indents);
+  const codedPage = pageUsesLeadingAccountCodes(body);
+  // The leaf most recently emitted, so a TRAILING label fragment can be joined
+  // to the row it belongs to. Both the root and the leaf carry the label on a
+  // flat statement, so both are updated.
+  let lastLeaf = null;
   for (let i = 0; i < body.length; i++) {
     const line = body[i];
     if (!line.trim()) continue;
@@ -1384,6 +1669,16 @@ export function buildOperating(body, readRow, scale, rawRows, indents = new Map(
     }
     if (r.kind === 'header') {
       if (!r.label) continue;
+      // The tail of the label ABOVE — see LEADING_ACCOUNT_CODE_RE. Appended to
+      // the row it belongs to, and to the ordinal row list, so the two
+      // readings stay comparable element-for-element.
+      if (codedPage && !LEADING_ACCOUNT_CODE_RE.test(line) && rawRows.length) {
+        const tail = normLabel(`${rawRows[rawRows.length - 1].label} ${r.label}`);
+        rawRows[rawRows.length - 1].label = tail;
+        if (lastLeaf) { lastLeaf.leaf.label = tail; lastLeaf.root.label = tail; }
+        pending = '';
+        continue;
+      }
       // A valueless row that is NOT a character word is one of the three shapes
       // above. `Issuance costs` (Kent FY2005/FY2009 p.31/p.32) is the EMPTY one,
       // and reading it as a fragment welded it onto `Capital outlay` -- which
@@ -1407,12 +1702,19 @@ export function buildOperating(body, readRow, scale, rawRows, indents = new Map(
     if (!full) throw new Error(`row with a General Fund value but no label: "${line.trim().slice(0, 90)}"`);
     if (CHARACTER_START.test(full)) {
       open = null;
-      roots.push({ label: full, children: [{ label: full, value: scale(r.value) }] });
+      const leaf = { label: full, value: scale(r.value) };
+      const root = { label: full, children: [leaf] };
+      roots.push(root);
+      lastLeaf = { leaf, root };
       continue;
     }
     const child = { label: full, value: scale(r.value) };
-    if (open) open.children.push(child);
-    else roots.push({ label: full, children: [child] });
+    if (open) { open.children.push(child); lastLeaf = { leaf: child, root: open }; }
+    else {
+      const root = { label: full, children: [child] };
+      roots.push(root);
+      lastLeaf = { leaf: child, root };
+    }
   }
   return roots;
 }
@@ -1453,6 +1755,9 @@ export function buildRevenue(body, readRow, scale, rawRows, indents) {
   const roots = [];
   let pending = '';
   let open = null;          // { label, indent, children }
+  const codedPage = pageUsesLeadingAccountCodes(body);
+  // The leaf most recently emitted — see buildOperating.
+  let lastLeaf = null;
   const indentOf = (label, line) => {
     const k = labelKey(label);
     if (!indents.has(k)) {
@@ -1474,6 +1779,16 @@ export function buildRevenue(body, readRow, scale, rawRows, indents) {
     if (r.kind === 'blank') { pending = ''; continue; }
     if (r.kind === 'header') {
       if (!r.label) continue;
+      // The tail of the label ABOVE — see LEADING_ACCOUNT_CODE_RE. Appended to
+      // the row it belongs to, and to the ordinal row list, so the two
+      // readings stay comparable element-for-element.
+      if (codedPage && !LEADING_ACCOUNT_CODE_RE.test(line) && rawRows.length) {
+        const tail = normLabel(`${rawRows[rawRows.length - 1].label} ${r.label}`);
+        rawRows[rawRows.length - 1].label = tail;
+        if (lastLeaf) { lastLeaf.leaf.label = tail; lastLeaf.root.label = tail; }
+        pending = '';
+        continue;
+      }
       if (line.trim().endsWith(':') && indents.has(labelKey(r.label))) {
         open = { label: r.label, indent: indents.get(labelKey(r.label)), children: [] };
         roots.push(open);
@@ -1512,11 +1827,16 @@ export function buildRevenue(body, readRow, scale, rawRows, indents) {
     // recognised at is the depth to nest with.
     const depth = wrapped ? pendingIndent : undefined;
     if (open && (depth !== undefined ? depth : indentOf(full, line)) > open.indent) {
-      open.children.push({ label: full, value: scale(r.value) });
+      const child = { label: full, value: scale(r.value) };
+      open.children.push(child);
+      lastLeaf = { leaf: child, root: open };
       continue;
     }
     open = null;
-    roots.push({ label: full, children: [{ label: full, value: scale(r.value) }] });
+    const leaf = { label: full, value: scale(r.value) };
+    const root = { label: full, children: [leaf] };
+    roots.push(root);
+    lastLeaf = { leaf, root };
   }
   return roots;
 }
@@ -1540,7 +1860,7 @@ function prune(roots) {
 // ═══════════════════════════════════════════════════════════════════════════
 function rederive(pdfPath, fy, mode, label, band, population) {
   const pages = tablePages(pdfPath);
-  const page = findStatementPage(pages, label);
+  const page = findStatementPage(pages, label, fy);
   const yearEvidence = assertPageYear(page.text, fy, label);
   const units = unitsOf(page.text);
   const scale = (v) => v * units;
@@ -1559,7 +1879,10 @@ function rederive(pdfPath, fy, mode, label, band, population) {
     pageRows = [...other.body, other.totalLine];
   } catch { /* the other section is not bounded on this page; no corroboration from it */ }
 
-  const readRow = makeRowReader(body, totalLine, ncols, label, pageRows);
+  // The General Fund's ordinal among the columns, read off this page's own
+  // caption rather than assumed to be the first. See `generalFundOrdinal`.
+  const gfOrdinal = generalFundOrdinal(lines, tableBands(totalLine, ncols, label), label);
+  const readRow = makeRowReader(body, totalLine, ncols, label, pageRows, gfOrdinal);
 
   const rawRows = [];
   // `-layout` is rendered only when this section actually contains a row that
@@ -1567,14 +1890,14 @@ function rederive(pdfPath, fy, mode, label, band, population) {
   // wrapped label fragment or a line item printed empty. Those are precisely the
   // rows whose meaning the indentation decides, and a section without one is
   // read without ever invoking the renderer.
-  const hasValueless = body.some((l) => l.trim() && readRowOrdinal(l, ncols).kind === 'header' && headerLabel(l));
+  const hasValueless = body.some((l) => l.trim() && readRowOrdinal(l, ncols, gfOrdinal).kind === 'header' && headerLabel(l));
   const indents = hasValueless ? printedIndents(pdfPath, page.index + 1, label) : new Map();
   const built = mode === 'revenue'
     ? buildRevenue(body, readRow, scale, rawRows, indents)
     : buildOperating(body, readRow, scale, rawRows, indents);
   const { roots, droppedLeaves, droppedRoots } = prune(built);
 
-  const totalRow = readRowOrdinal(totalLine, ncols);
+  const totalRow = readRowOrdinal(totalLine, ncols, gfOrdinal);
   if (totalRow.kind !== 'cell') throw new Error(`${label}: the Total row has no General Fund cell`);
 
   // ── the second, geometric reading, and the agreement requirement ──────────

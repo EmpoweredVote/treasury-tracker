@@ -2875,6 +2875,14 @@ class TestShippedDuvallConfig(unittest.TestCase):
         self.assertEqual(resolve_statement_page(pages, extractDuvall.CONFIG, 2022)[0], 2)
         self.assertEqual(resolve_statement_page(pages, extractDuvall.CONFIG, 2023)[0], 0)
 
+    def test_duvall_declares_the_trailing_Environment_fragment(self):
+        # ⚠⚠ FY2016-FY2019 print `550 Natural and Economic` WITH its value and
+        # `Environment` alone on the next line. The library's default welds a
+        # valueless line FORWARD, which published `Environment Social Services`
+        # — a real figure under a name no document contains — and left the row
+        # it belongs to truncated to `Natural and Economic`. Both tie at $0.
+        self.assertIn('environment', extractDuvall.CONFIG.trailing_label_continuations)
+
     def test_duvall_registers_exactly_the_two_FY2025_rounding_acceptances(self):
         # ⚠ These are EXACT deltas confirmed by reading the page, not a
         # tolerance, and the roster's expectedResidues: 2 asserts the COUNT.
@@ -2970,6 +2978,30 @@ class TestDuvallShape(unittest.TestCase):
         self.assertNotIn('Utilities', by_name)
         self.assertIn('Utilities', zero_rows)
         self.assertEqual(total, 7801148)
+
+    def test_a_trailing_label_fragment_joins_the_row_ABOVE_it(self):
+        # Transcribed VERBATIM from `pdftotext -table
+        # docs/Duvall/duvall-2016-acfr.pdf`. The wrap exists in FY2016-FY2019
+        # and is gone by FY2020, which prints `Natural/Economic Environment`
+        # on one line.
+        lines = [
+            'Expenditures',
+            '510              General Government                             1,154,451              881,894                  -                -',
+            '550              Natural and Economic                           578,415                578,415                  -                -',
+            '                 Environment',
+            '560              Social Services                                       2,556                 2,556              -                -',
+            'Total Expenditures:                                             8,489,041              4,085,771    436,539               65,501',
+        ]
+        tree, _, _ = build_operating(lines, anchors(lines[-1]), extractDuvall.CONFIG)
+        names = [c['n'] for c in tree['c']]
+        self.assertIn('Natural and Economic Environment', names)
+        self.assertIn('Social Services', names)
+        # The published defect, named so it can never come back silently.
+        self.assertNotIn('Environment Social Services', names)
+        self.assertNotIn('Natural and Economic', names)
+        by_name = {c['n']: c['a'] for c in tree['c']}
+        self.assertEqual(by_name['Natural and Economic Environment'], 578415)
+        self.assertEqual(by_name['Social Services'], 2556)
 
     def test_the_tree_is_FLAT_no_parents_open(self):
         # The BARS statement has no `Current:` / `Debt service:` grouping. A

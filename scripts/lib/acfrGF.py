@@ -444,6 +444,42 @@ class CityConfig:
                  ⚠ A subtotal also CLOSES the group (and any open sub-group), so
                  rows printed after it land at root, where the issuer put them.
 
+    trailing_label_continuations
+                 Lowercase labels that, when they arrive as a wrapped
+                 (valueless) line, belong to the row ABOVE them rather than the
+                 row below.
+
+                 ⚠⚠ THE DEFAULT IS THE OTHER DIRECTION AND IT IS RIGHT FOR MOST
+                 OF THIS CORPUS. `pending` prefixes a valueless line onto the
+                 NEXT valued row, which is what Bend's `Community and economic`
+                 / `development` and Seattle's three-line revenue labels need.
+                 Duvall FY2016-FY2019 wrap the OTHER way:
+
+                     550   Natural and Economic   578,415   578,415   -   -
+                           Environment
+                     560   Social Services          2,556     2,556   -   -
+
+                 The value sits on the FIRST line and `Environment` trails it,
+                 so the default welded it forward and published
+                 `Environment Social Services` — a real figure under a name no
+                 document contains — while leaving the row it belongs to
+                 truncated to `Natural and Economic`. Both rows tie at $0 with
+                 the wrong name, which is the LA TRAN shape: the money was
+                 never wrong, only the label, and nothing arithmetic can see it.
+
+                 ⚠ Each entry is a SPECIFIC FRAGMENT observed in a SPECIFIC
+                 document, exactly like `empty_rows` and `label_fixes`, and for
+                 the same reason: whether a valueless line is a heading, a
+                 forward-wrapped label, an empty line item or a trailing
+                 continuation is NOT decidable from the line itself. Kent's
+                 `Lodging` is a real line item printed empty; Duvall's
+                 `Environment` is the tail of the label above it. Declaring the
+                 string is what distinguishes them.
+
+                 ⚠ It appends ONLY to a node this section has already emitted.
+                 A fragment with nothing above it falls through to the default
+                 forward-wrapping path rather than being silently dropped.
+
     target_column_label
                  The NAME the document prints over the targeted column, when
                  that column has one. Without it a non-zero `target_column`
@@ -537,7 +573,7 @@ class CityConfig:
                  revenue_subparents=(), revenue_group_close='members',
                  subtotal_prefixes=(), leading_account_code=False,
                  target_column_label=None, target_column_header=None,
-                 select_fiscal_year=False):
+                 select_fiscal_year=False, trailing_label_continuations=()):
         if not isinstance(units, int) or isinstance(units, bool):
             raise TypeError(
                 'CityConfig.units must be an int, got %r (%s). A float would '
@@ -597,6 +633,8 @@ class CityConfig:
         self.revenue_group_close = revenue_group_close
         self.subtotal_prefixes = tuple(p.lower() for p in subtotal_prefixes)
         self.leading_account_code = bool(leading_account_code)
+        self.trailing_label_continuations = tuple(
+            c.lower() for c in trailing_label_continuations)
         self.target_column_label = target_column_label
         self.target_column_header = target_column_header
         self.select_fiscal_year = bool(select_fiscal_year)
@@ -2205,6 +2243,9 @@ def build_revenue(lines, col_anchors, cfg):
     named by cfg.subtotal_prefixes is checked against its group and suppressed;
     see CityConfig."""
     root_children, zero_rows = [], []
+    # The last leaf this section emitted, so a TRAILING label continuation
+    # can be appended to the row it belongs to. None until the first leaf.
+    _last_emitted = None
     parent = None
     subparent = None
     # Fix round 1 / Critical 1: whether a data row (zero-valued OR not) has
@@ -2291,6 +2332,16 @@ def build_revenue(lines, col_anchors, cfg):
             # fragment. See CityConfig.empty_rows for what welding these cost.
             if low in cfg.empty_rows:
                 zero_rows.append(lbl)
+                pending = ''
+                continue
+            # A TRAILING continuation belongs to the row ABOVE, not below.
+            # See CityConfig.trailing_label_continuations: Duvall FY2016-FY2019
+            # print `Natural and Economic` WITH its value and `Environment` on
+            # the next line, so the default forward-wrap published
+            # `Environment Social Services`.
+            if low in cfg.trailing_label_continuations and _last_emitted is not None:
+                _last_emitted['n'] = _fix_label(
+                    norm_label('%s %s' % (_last_emitted['n'], lbl)), cfg)
                 pending = ''
                 continue
             pending = norm_label('%s %s' % (pending, lbl))
@@ -2380,6 +2431,7 @@ def build_revenue(lines, col_anchors, cfg):
             continue
 
         node = {'n': full, 'a': val}
+        _last_emitted = node
         if subparent is not None:
             subparent['c'].append(node)
         elif parent is not None:
@@ -2416,6 +2468,9 @@ def build_operating(lines, col_anchors, cfg):
     label-only headers whose value is the sum of their children. Capital-outlay
     placement is governed by cfg.capital_at_root (trap 3)."""
     root_children, zero_rows = [], []
+    # The last leaf this section emitted, so a TRAILING label continuation
+    # can be appended to the row it belongs to. None until the first leaf.
+    _last_emitted = None
     parent = None
     # ⚠ The THIRD level (opt-in, cfg.subparents). Brown County SD prints
     # `Public Safety:` -> `Law Enforcement:` -> `Sheriff`; with a two-level
@@ -2479,6 +2534,16 @@ def build_operating(lines, col_anchors, cfg):
                 zero_rows.append(lbl)
                 pending = ''
                 continue
+            # A TRAILING continuation belongs to the row ABOVE, not below.
+            # See CityConfig.trailing_label_continuations: Duvall FY2016-FY2019
+            # print `Natural and Economic` WITH its value and `Environment` on
+            # the next line, so the default forward-wrap published
+            # `Environment Social Services`.
+            if low in cfg.trailing_label_continuations and _last_emitted is not None:
+                _last_emitted['n'] = _fix_label(
+                    norm_label('%s %s' % (_last_emitted['n'], lbl)), cfg)
+                pending = ''
+                continue
             pending = norm_label('%s %s' % (pending, lbl))
             continue
 
@@ -2511,6 +2576,7 @@ def build_operating(lines, col_anchors, cfg):
             continue
 
         node = {'n': full, 'a': val}
+        _last_emitted = node
         if any(flow.startswith(pfx) for pfx in cfg.root_leaves):
             root_children.append(node)   # root-level peer; closes both levels
             parent = None

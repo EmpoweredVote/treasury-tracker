@@ -132,6 +132,18 @@ CONFIG = CityConfig(
     statement_anchor=r'Fund Resources and Uses Arising from Cash Transactions',
     revenue_section_header='revenues',
     revenue_total_labels=('total revenues:',),
+    # ⚠⚠ FY2016-FY2019 WRAP THE LABEL THE OTHER WAY. They print
+    #     550   Natural and Economic   578,415   578,415   -   -
+    #           Environment
+    #     560   Social Services          2,556     2,556   -   -
+    # so the value is on the FIRST line and `Environment` trails it. The
+    # library's default welds a valueless line FORWARD, which published
+    # `Environment Social Services` — a real figure under a name that appears
+    # in no document — and left the row it belongs to truncated to `Natural and
+    # Economic`. Both tie at $0 with the wrong name: the LA TRAN shape, where
+    # the money is right and only the label lies. FY2020+ print
+    # `Natural/Economic Environment` on one line and are unaffected.
+    trailing_label_continuations=('environment',),
     # ── TWO ACCEPTANCES, BOTH CONFIRMED BY READING THE PAGE ─────────────────
     # FY2025 is the only year in the window where Duvall's own printed total
     # disagrees with its own printed components, and it does so on BOTH sides,
