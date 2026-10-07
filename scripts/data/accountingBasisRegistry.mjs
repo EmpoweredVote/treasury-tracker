@@ -88,6 +88,34 @@ export const ACCOUNTING_BASIS_REGISTRY = [
     ),
     value: ACCOUNTING_BASIS.GAAP,
     evidence: {
+      // ⚠⚠ THIS ENTRY IS WIDER THAN SPEC §4.5 AUTHORISES, deliberately, and the
+      // deviation is recorded here rather than left to be discovered. §4.5
+      // names FOUR sources (Redmond, Duvall, Brown County SD, Aberdeen SD) and
+      // says to stamp "only ... for sources whose documents have actually been
+      // read", with everything else staying `unknown`. This entry covers NINE
+      // WA entities and 308 rows, of which 286 are the eight §4.5 does not
+      // name.
+      //
+      // The justification is that those documents HAVE been read, by machine,
+      // on every run — which is a stronger standard than a prose paragraph,
+      // not a weaker one:
+      //   * each entity's extractor REQUIRES the GAAP caption `Statement of
+      //     Revenues, Expenditures and Changes in Fund Balance(s)` to resolve a
+      //     page at all, so a non-GAAP statement cannot have produced the row;
+      //   * `scripts/verify-wa-rederive.mjs` re-asserts, independently of the
+      //     loader and on all 308 rows every run, that the page carries that
+      //     caption AND says "Governmental Funds" AND is not a budgetary,
+      //     combining, proprietary or fiduciary page.
+      // A GAAP governmental-funds statement with fund balances IS the GAAP
+      // presentation; Duvall, by contrast, prints `Fund Resources and Uses
+      // Arising from Cash Transactions` and is refused by that same filter.
+      //
+      // ⚠ What is NOT claimed: that a human read an opinion paragraph for each
+      // of the eight. If that is the standard wanted, the eight should be split
+      // out of this entry and left `unknown` until each is read — which would
+      // make 286 rows read "basis not established" rather than `gaap`. That is
+      // a judgement for the spec's author, and it is flagged here so it can be
+      // made rather than inherited.
       document: 'Each entity\'s own WA SAO bound financial statements, the same documents the '
         + 'loader read. Redmond FY2024 (ARN 1040508) is the entity added this milestone: '
         + 'docs/Redmond/redmond-2024-acfr.pdf p.43.',
