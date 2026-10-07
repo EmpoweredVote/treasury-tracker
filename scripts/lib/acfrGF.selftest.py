@@ -13,7 +13,7 @@ from lib.acfrGF import (CityConfig, column_value, classify, build_revenue,
                          target_cell_is_dash_zero, scope_label, label_of, parse_money,
                          nums_with_pos, _expenditure_lines, _is_section_end,
                          _section, _END_EXPENDITURE_LABELS, build_operating,
-                         anchors as _anchors)
+                         anchors as _anchors, select_statement_for_fy)
 # The SHIPPED Bainbridge configs themselves, not copies of them -- see
 # TestShippedBainbridgeConfigsAreWholeDollars at the bottom of this file for
 # why the real objects have to be under test rather than a local fixture.
@@ -2695,6 +2695,69 @@ class TestRedmondCipheredYearsCarryNoMoney(unittest.TestCase):
         self.assertNotEqual(spurious, [], 'a ciphered page is NOT an empty page')
         self.assertIn(-172, [v for v, _ in spurious],
                       'the parenthesised run reads as negative money')
+
+
+
+class TestBiennialStatementSelection(unittest.TestCase):
+    """One PDF, two statements — the silent wrong-year trap.
+
+    Duvall is audited BIENNIALLY in places: ARN 1036127 covers FY2022 AND
+    FY2023, and the document carries a full `Fund Resources and Uses Arising
+    from Cash Transactions` statement for each. Taking the first candidate
+    publishes FY2022's money under FY2023 and TIES AT $0 while doing it — the
+    same shape as the wrong-page hits that tied nine times in ten during
+    WA-CITIES-01.
+
+    Transcribed from docs/Duvall/duvall-2023-acfr.pdf, whose statement pages
+    each print their own year in the caption block.
+    """
+
+    PAGES = [
+        'City of Duvall\n'
+        'Fund Resources and Uses Arising from Cash Transactions\n'
+        'For the Year Ended December 31, 2022\n'
+        '                 Total for All    001 GENERAL\n',
+        'City of Duvall\n'
+        'Fund Resources and Uses Arising from Cash Transactions\n'
+        'For the Year Ended December 31, 2023\n'
+        '                 Total for All    001 GENERAL\n',
+    ]
+
+    def test_it_selects_the_page_whose_PRINTED_year_matches(self):
+        self.assertEqual(select_statement_for_fy(self.PAGES, 2022), 0)
+        self.assertEqual(select_statement_for_fy(self.PAGES, 2023), 1)
+
+    def test_it_REFUSES_when_the_requested_year_is_not_printed(self):
+        # ⚠⚠ SILENCE IS THE DEFECT. Returning page 0 here — "the only one we
+        # have" — is precisely how the earlier year's money gets published
+        # under the later year's label. A missing year must be LOUD.
+        with self.assertRaises(ValueError):
+            select_statement_for_fy(self.PAGES, 2024)
+
+    def test_it_REFUSES_when_TWO_pages_claim_the_SAME_year(self):
+        # The library already treats an ambiguous statement page as fatal
+        # rather than taking cands[0]; this keeps that discipline on the year
+        # axis too.
+        dupe = [self.PAGES[0], self.PAGES[0]]
+        with self.assertRaises(ValueError):
+            select_statement_for_fy(dupe, 2022)
+
+    def test_it_REFUSES_an_empty_page_list_rather_than_returning_a_default(self):
+        with self.assertRaises(ValueError):
+            select_statement_for_fy([], 2023)
+
+    def test_a_single_year_document_still_works(self):
+        # The non-biennial case must not regress: one page, its own year.
+        self.assertEqual(select_statement_for_fy([self.PAGES[1]], 2023), 0)
+
+    def test_it_does_not_match_a_year_mentioned_in_PROSE(self):
+        # A notes page can say "the year ended December 31, 2022" in a
+        # sentence. Only the statement caption's own period line counts, so a
+        # prose mention must not make a notes page look like a statement.
+        prose = ['Comparative figures for the year ended December 31, 2022 are '
+                 'presented for information only.']
+        with self.assertRaises(ValueError):
+            select_statement_for_fy(prose, 2023)
 
 
 if __name__ == '__main__':

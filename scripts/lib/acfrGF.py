@@ -1047,6 +1047,44 @@ def _squash(text):
     """Lowercase with ALL whitespace removed — see the note above."""
     return _WS_ALL.sub('', text.lower())
 
+_FY_PRINTED = re.compile(r'For the Year Ended\s+\w+\s+\d{1,2},\s*(\d{4})', re.I)
+
+
+def select_statement_for_fy(pages, fiscal_year):
+    """Pick the statement page whose OWN PRINTED year is `fiscal_year`.
+
+    ⚠⚠ A BIENNIAL REPORT CARRIES TWO FULL STATEMENTS. Duvall WA's ARN 1036127
+    covers FY2022 and FY2023 and prints a complete `Fund Resources and Uses
+    Arising from Cash Transactions` for each. Taking candidate[0] publishes the
+    EARLIER year's money under the LATER year's label and ties at exactly $0
+    while doing it — indistinguishable from a correct load by every arithmetic
+    gate in this repo.
+
+    Refuses loudly on zero matches and on more than one, for the same reason
+    `find_statement_page` treats an ambiguous page as fatal rather than taking
+    the first: silence here IS the defect. During WA-CITIES-01 nine of ten
+    silent wrong-page hits tied at $0.
+
+    :param pages: statement-page texts, in document order
+    :param fiscal_year: the year the caller believes it is loading, normally
+        taken from the PDF's filename
+    :returns: the index into `pages` of the matching statement
+    :raises ValueError: when zero or more than one page claims that year
+    """
+    hits = [i for i, pg in enumerate(pages)
+            if any(int(m.group(1)) == fiscal_year
+                   for m in _FY_PRINTED.finditer(pg or ''))]
+    if not hits:
+        raise ValueError(
+            'no statement page prints "For the Year Ended ... %d" among %d page(s); '
+            'the requested fiscal year is not in this document' % (fiscal_year, len(pages)))
+    if len(hits) > 1:
+        raise ValueError(
+            '%d statement pages claim fiscal year %d (indices %s); refusing to guess '
+            'which is the statement' % (len(hits), fiscal_year, hits))
+    return hits[0]
+
+
 def find_statement_page(pages, statement_anchor=None, revenue_total_labels=('total revenues',),
                         exclude_ignore=()):
     """(page_index, page_text) for the primary governmental-funds statement —
