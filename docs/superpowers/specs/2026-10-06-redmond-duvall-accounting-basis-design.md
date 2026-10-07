@@ -247,13 +247,54 @@ filer, read by this same library, in **134 lines**.
 - Every row needs a `source_url`; a non-`unknown` `audit_grade` without one is
   rejected by the database.
 
-### 3.4 Year disposition
+### 3.4 Year disposition — ANSWERED at recon 2026-10-06
 
-All 18 own-titled financial filings are candidates. Gaps exist in the SAO
-record at FY2010, FY2012, FY2014, FY2022 — **verify at recon whether these are
-genuinely absent or covered by a two-year audit period**, since small WA cities
-are commonly audited biennially and `EndAuditPeriod` would then name only the
-later year. Do not record a gap as an exclusion until that is checked.
+The check this section asked for is done, and it changes the shape of the work.
+**The gaps are BIENNIAL AUDIT PERIODS, not missing years.** Read from
+`BeginAuditPeriod`/`EndAuditPeriod` rather than inferred:
+
+| report | covers | report | covers |
+|---|---|---|---|
+| ARN 69662 | FY2003–FY2004 | ARN 1013701 | FY2012–FY2013 |
+| ARN 1009156 | FY2010–FY2011 | ARN 1018682 | FY2014–FY2015 |
+| ARN 1036127 | FY2022–FY2023 | | |
+
+So the span is **FY2003–FY2025 (23 fiscal years) across 18 PDFs**, and FY2003
+exists too — it was invisible because `EndAuditPeriod` names only the later
+year. `duvall-2013.pdf` carries a full statement for FY2012 *and* one for
+FY2013; verified by its own printed `For the Year Ended December 31, 20xx`
+headings.
+
+#### ⚠⚠ This breaks the shared loader's one-PDF-one-year assumption
+
+`waSaoLoad.mjs` maps files to years with `^<prefix>-(\d{4})-acfr\.pdf$` and
+asserts the extracted `fiscal_year` equals the filename's. A biennial PDF holds
+two statements, so `findStatementPage` sees two candidates — **fatal, and
+correctly so**: silently taking the first would publish FY2012's money under
+FY2013.
+
+**Decided 2026-10-06: save each biennial PDF under BOTH years' filenames** —
+identical bytes, two names — and have the extractor select the statement whose
+printed year matches the filename. The shared loader is untouched, which
+matters because nine entities depend on it and this is one entity's quirk.
+⚠ The sha manifest will then pin one digest under two filenames. That is
+correct and must not be "fixed": they are the same document.
+
+#### Three eras, and the floor rule applies here too
+
+Measured readability, same probe as Redmond:
+
+| era | state |
+|---|---|
+| FY2016–FY2025 | healthy; `001 General Fund` labelled consistently |
+| FY2014–FY2015 | readable, `001 General` present |
+| FY2010–FY2013 | readable text, **zero** `001 General` hits — the column is labelled differently |
+| FY2009 | 26KB of text, **one** money token — effectively unreadable |
+
+The window is settled the way Redmond's was: walk back from FY2025 and stop
+where the statement's shape changes, per the floor rule's era-split clause. On
+this evidence it is expected to land at FY2014 or FY2016, but **the recon task
+measures it rather than this spec asserting it**.
 
 ---
 
