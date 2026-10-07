@@ -6,6 +6,10 @@ import {
   type FundScope, type Basis,
 } from '../data/fundScopeVocabulary';
 import {
+  ACCOUNTING_BASIS_COPY, normalizeAccountingBasis,
+  type AccountingBasis,
+} from '../data/accountingBasisVocabulary';
+import {
   AUDIT_GRADE_COPY, AUDIT_GRADE_EXPLAINER, normalizeAuditGrade, isAudited,
   type AuditGrade,
 } from '../data/auditGrade';
@@ -93,12 +97,27 @@ interface ScopeLabelProps {
   /** Optional dataset name, so a page showing two figures says which is which. */
   datasetLabel?: string;
   /** Render the shared explainer inline when expanded. Default true. */
+  /**
+   * HOW the figure was MEASURED — GAAP, modified cash or cash. Absent renders
+   * nothing rather than guessing, like `basis` and `auditGrade`.
+   *
+   * ⚠ NO SEPARATE COLOUR, for the reason stated on AUDIT_TONE above: colour is
+   * a ranking whether or not you intend it, and `cash` is not a worse `gaap` —
+   * it is a different measurement of a figure that is just as audited. The
+   * WORDS carry the distinction.
+   *
+   * ⚠ `unknown` renders NOTHING here, unlike the scope chip. Scope is ~96%
+   * known, so a gap there is notable and worth saying. This axis starts at
+   * 100% unknown, and a chip on every row reading "basis not established"
+   * would be noise on two hundred thousand rows rather than information.
+   */
+  accountingBasis?: AccountingBasis | null;
   withExplainer?: boolean;
   className?: string;
 }
 
 export default function ScopeLabel({
-  scope, basis, auditGrade, datasetLabel, withExplainer = true, className = '',
+  scope, basis, accountingBasis, auditGrade, datasetLabel, withExplainer = true, className = '',
 }: ScopeLabelProps) {
   const [open, setOpen] = useState(false);
   const [gradeOpen, setGradeOpen] = useState(false);
@@ -146,6 +165,17 @@ export default function ScopeLabel({
             className="text-[11px] font-medium text-ev-gray-600 dark:text-ev-gray-300"
           >
             {BASIS_COPY[normalizeBasis(basis)].label}
+          </span>
+        )}
+        {/* ACCOUNTING BASIS — plain text beside the basis word, same treatment
+            and for the same reason: it informs, it does not afford a click.
+            Hidden when unknown; see the prop's docstring. */}
+        {accountingBasis != null && normalizeAccountingBasis(accountingBasis) !== 'unknown' && (
+          <span
+            title={ACCOUNTING_BASIS_COPY[normalizeAccountingBasis(accountingBasis)].short}
+            className="text-[11px] font-medium text-ev-gray-600 dark:text-ev-gray-300"
+          >
+            {ACCOUNTING_BASIS_COPY[normalizeAccountingBasis(accountingBasis)].label}
           </span>
         )}
         {/* AUDIT-GRADE. A real <button>, unlike the basis text beside it, and for
