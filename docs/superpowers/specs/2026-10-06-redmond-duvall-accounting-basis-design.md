@@ -1,0 +1,501 @@
+# Redmond + Duvall onboarding, and the accounting-basis axis
+
+**Date:** 2026-10-06
+**Status:** design, approved in chat 2026-10-06
+**Branch:** `feat/redmond-duvall-accounting-basis`
+**Phasing:** phase 1 = Redmond only; phase 2 = `accounting_basis` axis, then
+Duvall behind it. See §1.1 — the ordering within phase 2 is a hard dependency.
+
+Onboard two King County, WA cities and add the schema axis the second one
+forces: **Redmond** (GAAP, the existing WA SAO path) and **Duvall** (cash-basis
+BARS, TT's first Washington OCBOA filer).
+
+Everything below about the two documents was **measured during the 2026-10-06
+probe**, not inferred. Nothing here is carried from another entity.
+
+---
+
+## 1. Three pieces, shipped in two phases
+
+Redmond is a repeat of Bellevue/Kent/Everett. Duvall is not a GAAP filer at
+all, and loading it alongside Redmond would let TT draw a cash-basis General
+Fund against a GAAP one with nothing but a chip to tell them apart. So:
+
+1. **Redmond** (§2) — per-entity config over `scripts/lib/acfrGF.py`.
+2. **`accounting_basis`** (§4) — a new axis on `treasury.budgets`, plus a
+   comparability rule that refuses a GAAP-vs-cash comparison.
+3. **Duvall** (§3) — per-entity config over the same library, `audited_ocboa`.
+
+⚠ The list above is **shipping order**; the sections below are grouped by
+subject, so Duvall is documented at §3 and ships last. The axis at §4 is the
+only piece that touches shared code. It also retroactively covers Brown County
+SD and Aberdeen SD, which have this exposure in production today.
+
+### 1.1 Phasing — decided 2026-10-06
+
+> **Phase 1 — Redmond alone.** Ships on the existing pipeline. No schema change.
+> **Phase 2 — the axis, then Duvall behind it.** Duvall does not ship until
+> `accounting_basis` exists and gates.
+
+**Why the split is safe.** Redmond is a GAAP filer joining a cohort of GAAP
+filers. Comparing it to Bellevue or Kent is exactly as valid before the axis
+exists as after, so phase 1 introduces no comparison that phase 2 would have to
+take back. Redmond is simply stamped `gaap` in phase 2's backfill (§4.5), which
+is a stamp on rows already correct rather than a correction.
+
+**⛔ The ordering is a hard dependency, not a preference.** Duvall is the first
+row set in TT that the axis exists to describe. Shipping it first — even
+"temporarily", even with the `audited_ocboa` chip showing — publishes a
+cash-basis General Fund that TT's own comparability rule would declare
+comparable to Redmond's GAAP one. That is the Long Beach cliff in a new costume:
+figures drawn across a basis difference, each correct in isolation. The axis is
+a prerequisite for Duvall's **first** loaded row, not a follow-up to it.
+
+**What this means for the two phases' gates.** Phase 1 is done when Redmond's
+11 years (22 rows) are live and its harnesses are green. Phase 2 is done when the axis
+exists, the four sources in §4.5 are stamped, the comparability rule is
+mutation-tested, **and** Duvall is loaded behind it. Phase 2 may not declare
+itself complete with the axis shipped and Duvall unloaded — that would leave a
+gate guarding nothing, which is how a vacuous check enters the codebase.
+
+---
+
+## 2. Redmond, WA — MCAG 0425
+
+King County. Source: `portal.sao.wa.gov` ReportSearch, the same single host as
+every other WA entity in TT, so every row cites a State Auditor report.
+
+**Whole dollars** (`units=1`), confirmed by `unitsOf()` on every readable year.
+Not thousands — Tacoma and Bellevue are the thousands issuers; never carry that
+setting here.
+
+The report-type inversion holds exactly as `scripts/lib/waSao.mjs` documents:
+all 14 reports typed `Annual Comprehensive Financial Report` are 2–5 page
+opinion letters, and the statements live in `Financial and Federal` /
+`Financial`. Select by `classifyReport()`, never by type name.
+
+### 2.1 Measured year-by-year disposition
+
+All 21 filings FY2004–FY2024 pass `classifyReport()` (≥40pp with a governmental
+funds anchor). Page identity is where they diverge. **15 of 21 resolve to
+exactly one candidate page** — no ambiguity anywhere, which matters because
+ambiguous page identity is fatal, not a warning.
+
+| Years | Finding | Disposition |
+|---|---|---|
+| FY2004, FY2005 | CCITT stencil scans, 300dpi, 1–2 money tokens in the entire document | Excluded — image-only, **and below the floor** |
+| FY2006 | Caption reads `Changes in Fund Balance`, **singular** | Excluded — **below the floor** (§2.1.1) |
+| FY2007–FY2010 | Statement **split across two pages** (`Page 1 of 2`) | Excluded — **below the floor** (§2.1.1) |
+| FY2011–FY2016 | Clean, single page, one candidate | **Load** — no special config |
+| FY2017, FY2018, FY2019 | **Ciphered text, digits absent** (§2.2) | Excluded — unreadable |
+| FY2020–FY2024 | Clean, single page, one candidate | **Load** — no special config |
+| FY2025 | Not released by SAO | Excluded — source timing |
+
+**Load: 11 years** — FY2011–FY2016 and FY2020–FY2024 → **22 rows**
+(operating + revenue per year). `manifestSpan: [2004, 2025]`; every other year
+in the span carries an `excludedYears` reason.
+
+#### 2.1.1 The floor rule, and why the window stops at FY2011
+
+The roster's floor rule walks back from the newest filing and **stops at two
+consecutive unreadable years**. Redmond has **three** — FY2017, FY2018, FY2019 —
+so applied mechanically the window would end at FY2020 and publish five years.
+
+Decided 2026-10-06: **take the Kent deviation, on Kent's exact justification,
+and no further.** Kent's override was approved because the years below its gap
+parsed on the **unchanged config** — no new work, nothing bent to make a row
+count look better. FY2011–FY2016 meet that test exactly: same config as
+FY2020–FY2024, no flag changed.
+
+FY2006–FY2010 do **not**, and are excluded deliberately even though they are
+readable:
+
+- FY2007–FY2010 need `multipage=True` (the statement splits across two pages).
+- FY2006 needs a different `statement_anchor` (singular `Fund Balance`).
+
+Both are one-line config on existing library features, so the cost is near zero
+— and that is precisely why the line is worth holding. The floor rule's
+era-split clause says *"if this city needs a second config for an era split, it
+does not get one — the window ends where the shape changes."* The statement's
+shape changes at FY2010. Extending through a documented shape change **and** a
+three-year gap, for cheapness, is the reasoning the rule exists to refuse.
+
+⚠ These five years are excluded by **policy, not by defect**. Their
+`excludedYears` reasons must say so, or a later reader will record Redmond as
+having five more unreadable years than it does and a future entity will inherit
+a false difficulty estimate. They remain available if the floor rule is formally
+loosened — which the WA-CITIES-01 closeout recommends and which is a decision of
+its own, not a thing to do quietly inside an onboarding.
+
+### 2.2 The FY2017–FY2019 cipher — why these are exclusions, not bugs
+
+The statement page is present and its labels are intact, but shifted by a
+constant 29 bytes:
+
+```
+&,7<2)5('021'              -> CITY OF REDMOND
+67$7(0(172)5(9(18(6        -> STATEMENT OF REVENUES
+$1'&+$1*(6,1)81'%$/$1&(6   -> AND CHANGES IN FUND BALANCES
+```
+
+Decoding is trivial (`chr(b + 29)`) and recovers every label and every column
+header. **It does not recover a single digit.** Under this shift an original
+`'0'`–`'9'` would land on bytes `0x13`–`0x1C`; the extracted page contains
+**zero bytes in that range**. The year is missing from `FOR THE YEAR ENDED
+DECEMBER` for the same reason.
+
+This is the Bainbridge FY2010 outcome repeating: labels decode, money does not,
+because the digits are absent from the text stream rather than encoded. A
+decode that returns a complete tree of correctly-named rows and no money is not
+a partial success — there is nothing to load.
+
+⚠ These are the **same fiscal years** Kitsap was excluded for
+(`font defect, digits absent`, FY2017–FY2019). That is now two WA entities,
+independently audited, losing exactly FY2017–FY2019 to a digit-level text
+defect. Treat it as an SAO-side production-era defect and **probe FY2017–FY2019
+first on any future WA entity** — it is the cheapest year range to rule out.
+
+⚠ Do not record this as "FY2017–FY2019 are scans". They are not. FY2004/FY2005
+are scans (CCITT stencils, no text layer); FY2017–FY2019 have a rich text layer
+with no digits in it. The two need different probes to detect.
+
+### 2.3 Still to be derived during recon
+
+- **ARNs** are pinned in §6 and were resolved against the live registry.
+- **Population** — read from `ofm_april1_population_final.xlsx`, sheet
+  `Population`, the **2025** column, `Filter=4` city rows, and record the line
+  number in `populationNote`. The WA cohort shares the 2025 denominator so
+  per-capita stays comparable; do not use the 2026 column for one entity.
+- **`perCapitaBand`** — derive from the loaded spread, never inherited. Kent's
+  band would have rejected Everett outright and they are neighbours by size.
+  Loader band ≈ 0.5×min .. 2×max; harness band tighter.
+- **`parents` / `root_leaves`** — determine with `pdftotext -layout` across all
+  11 loaded years. The tree shape is per-city and can invert: Bellevue prints
+  `Capital outlay` as a PARENT where five other WA cities print it as a valued
+  root leaf. Guessing produces a $0 tie with a wrong tree.
+- **`column_strategy`** — probe for incomplete rows. No incomplete rows in any
+  year ⇒ ordinal is safe; otherwise positional.
+
+---
+
+## 3. Duvall, WA — MCAG 0391
+
+King County, ~10 miles from Redmond, and **not a GAAP filer**.
+
+### 3.1 What the documents actually are
+
+18 filings FY2004–FY2025. **Zero pass `classifyReport()`**, and this is correct
+behaviour rather than a gap to close: most are under the 40pp threshold and
+none carry a GAAP governmental-funds statement, because none exists. The
+auditor says so outright:
+
+> "...the financial statements are prepared by the City using accounting
+> practices prescribed by the BARS Manual, which is a basis of accounting other
+> than GAAP... Government-wide statements, as defined in GAAP, are not
+> presented."
+
+The opinion is split and both halves matter: **unmodified on the regulatory
+(BARS) basis, adverse on U.S. GAAP.** Duvall is genuinely audited. It is simply
+not measured the way Redmond is.
+
+What it does publish, every year, is *Fund Resources and Uses Arising from Cash
+Transactions*, carrying a `001 General Fund` column beside a
+`Total for All Funds (Memo Only)` column, on the Washington BARS chart of
+accounts:
+
+```
+310  Taxes                        320  Licenses and Permits
+330  Intergovernmental Revenues   340  Charges for Goods and Services
+510  General Government           520  Public Safety
+530  Utilities                    540  Transportation
+```
+
+### 3.2 Why this needs no new extractor
+
+`acfrGF.py` reads statements; it is not GAAP-specific. The shape Duvall prints
+is already covered:
+
+- **`leading_account_code=True`** — added for Aberdeen SD, which prints the
+  South Dakota chart of accounts (`310 Taxes`, `335.01 Bank franchise tax`).
+  Duvall prints the same shape. Without it `_MONEY` reads `310` as a value, every
+  group heading becomes a ~$310 leaf, no group opens, and the tree comes back
+  flat while the total is only slightly over — small enough to look plausible.
+- **`target_column`** — selects `001 General Fund` past the memo column.
+  ⚠ The memo column is **first**, so a `target_column=0` default would load
+  all-funds money under a General Fund label and tie at $0 while doing it.
+- **`units=1`** — whole dollars, confirmed on the FY2023 statement.
+- **`revenue_section_header` / `revenue_total_labels`** — BARS names its
+  sections differently (`Total Revenues:`, `Total Expenditures:`, with trailing
+  colons). Set from the document.
+
+Precedent for the whole approach is `scripts/extractBrownCountySD.py`: an OCBOA
+filer, read by this same library, in **134 lines**.
+
+### 3.3 Grading and scope
+
+- **`audit_grade = 'audited_ocboa'`.** The value exists for exactly this case —
+  equivalent assurance, different measurement basis. `audited_gaap` would be a
+  false public claim; `self_reported_unaudited` denies a real audit; `unknown`
+  claims nobody looked.
+- **`accounting_basis = 'cash'`** (§4). Brown County SD is `modified_cash`;
+  these are different bases and must not be merged into one value.
+- **`fund_scope = 'general_fund'`**, with a caveat to verify at recon: Duvall's
+  own notes state *"The 002 Contingency Fund and 103 Strategic Fund are rolled
+  up into the 001 General Fund."* That is the city's own definition of its
+  General Fund, so `general_fund` is right — but it must be recorded, because it
+  is a real difference from a city that reports those separately.
+- Every row needs a `source_url`; a non-`unknown` `audit_grade` without one is
+  rejected by the database.
+
+### 3.4 Year disposition — ANSWERED at recon 2026-10-06
+
+The check this section asked for is done, and it changes the shape of the work.
+**The gaps are BIENNIAL AUDIT PERIODS, not missing years.** Read from
+`BeginAuditPeriod`/`EndAuditPeriod` rather than inferred:
+
+| report | covers | report | covers |
+|---|---|---|---|
+| ARN 69662 | FY2003–FY2004 | ARN 1013701 | FY2012–FY2013 |
+| ARN 1009156 | FY2010–FY2011 | ARN 1018682 | FY2014–FY2015 |
+| ARN 1036127 | FY2022–FY2023 | | |
+
+So the span is **FY2003–FY2025 (23 fiscal years) across 18 PDFs**, and FY2003
+exists too — it was invisible because `EndAuditPeriod` names only the later
+year. `duvall-2013.pdf` carries a full statement for FY2012 *and* one for
+FY2013; verified by its own printed `For the Year Ended December 31, 20xx`
+headings.
+
+#### ⚠⚠ This breaks the shared loader's one-PDF-one-year assumption
+
+`waSaoLoad.mjs` maps files to years with `^<prefix>-(\d{4})-acfr\.pdf$` and
+asserts the extracted `fiscal_year` equals the filename's. A biennial PDF holds
+two statements, so `findStatementPage` sees two candidates — **fatal, and
+correctly so**: silently taking the first would publish FY2012's money under
+FY2013.
+
+**Decided 2026-10-06: save each biennial PDF under BOTH years' filenames** —
+identical bytes, two names — and have the extractor select the statement whose
+printed year matches the filename. The shared loader is untouched, which
+matters because nine entities depend on it and this is one entity's quirk.
+⚠ The sha manifest will then pin one digest under two filenames. That is
+correct and must not be "fixed": they are the same document.
+
+#### Three eras, and the floor rule applies here too
+
+Measured readability, same probe as Redmond:
+
+| era | state |
+|---|---|
+| FY2016–FY2025 | healthy; `001 General Fund` labelled consistently |
+| FY2014–FY2015 | readable, `001 General` present |
+| FY2010–FY2013 | readable text, **zero** `001 General` hits — the column is labelled differently |
+| FY2009 | 26KB of text, **one** money token — effectively unreadable |
+
+The window is settled the way Redmond's was: walk back from FY2025 and stop
+where the statement's shape changes, per the floor rule's era-split clause. On
+this evidence it is expected to land at FY2014 or FY2016, but **the recon task
+measures it rather than this spec asserting it**.
+
+---
+
+## 4. The `accounting_basis` axis
+
+### 4.1 The problem
+
+Today the GAAP/non-GAAP distinction exists **only as text inside the
+`data_source` string** (`'modified cash basis'` vs `'GAAP basis'`), matched by
+regex in `scripts/data/auditGradeRegistry.mjs`. That is precisely the pattern
+`scripts/lib/fundScope.mjs` was written to forbid: *"Read a loader's actual
+input before believing what its source string calls itself."* A `special_revenue`
+scope was once added on the strength of a source string and later removed as
+wrong.
+
+`treasury.budgets.basis` cannot carry this. It is constrained to
+`('actual','adopted','unknown')` and means **closed-year actual vs adopted
+budget** — a different axis that already earns its keep. Overloading it would
+destroy both meanings.
+
+### 4.2 The column
+
+```sql
+ALTER TABLE treasury.budgets
+  ADD COLUMN accounting_basis text NOT NULL DEFAULT 'unknown'
+    CONSTRAINT budgets_accounting_basis_check
+      CHECK (accounting_basis IN ('gaap','modified_cash','cash','unknown'));
+```
+
+- **Additive and safe.** No existing row is read or changed; every current row
+  becomes `unknown`, which is the honest value for a row nobody has adjudicated.
+- **`unknown` is a correct outcome, not a shortfall** — same discipline as
+  `fund_scope`, `basis` and `audit_grade`. Nothing is classified by absence.
+- **Stamped per source from evidence**, through a registry entry carrying the
+  document it was read from — mirroring `auditGradeRegistry.mjs`. An unevidenced
+  entry must be structurally incapable of classifying.
+- **Orthogonal to `audit_grade` on purpose.** An unaudited cash-basis source is
+  describable; deriving basis from `audited_ocboa` would make it invisible and
+  would re-encode the confusion the OCBOA migration was written to escape.
+
+The four values are grounded in documents TT already holds or is loading — GAAP
+(Redmond, Aberdeen SD), modified cash (Brown County SD), cash (Duvall) — plus
+`unknown`. No speculative values.
+
+### 4.3 The comparability rule
+
+> **Refuse a comparison only when both bases are known and different.**
+> `unknown` on either side preserves today's behaviour exactly.
+
+This is the load-bearing decision. The inverse rule — *comparable only if both
+are known and equal* — would be defensible in the abstract and catastrophic in
+practice: the column starts at 100% `unknown` and will stay mostly `unknown` for
+a long time, exactly as `audit_grade` is 68% `unknown` today. That rule would
+switch off cross-entity comparison across nearly the whole site on the day it
+shipped.
+
+So the gate fires only on a **proven** mismatch — Duvall vs Redmond, Brown
+County SD vs Aberdeen SD — and is otherwise invisible. This is the same
+failure-direction discipline `fundScope.mjs` already applies, pointed at the
+other error: there, never declare two figures comparable without evidence; here,
+never declare them *in*comparable without evidence either.
+
+Implementation goes beside `isComparableScope()` in `scripts/lib/fundScope.mjs`,
+which already keeps its non-comparable set as a list behind a function for this
+kind of extension. It stays pure — no DB, no network — so the rule deciding
+whether two governments' figures may be charted together is testable without a
+database.
+
+### 4.4 Reader-facing
+
+`src/components/ScopeLabel.tsx` already renders `audited_ocboa` and already
+shares one colour across every graded value, deliberately: colour is a ranking
+whether or not you intend it, and these values are not a ranking. The
+accounting-basis chip follows the same rule — **the words carry the
+distinction, never the palette.**
+
+⚠ `bg-ev-gray-050`, not `-50`. A bad Tailwind colour class is dropped silently.
+
+### 4.5 Backfill
+
+Stamp from the registry only, for sources whose documents have actually been
+read:
+
+| Source | Value | Evidence |
+|---|---|---|
+| Redmond SAO GF | `gaap` | statements titled per GAAP, unmodified opinion |
+| Duvall SAO BARS | `cash` | adverse GAAP opinion, BARS manual cited |
+| Brown County SD | `modified_cash` | statements titled `- MODIFIED CASH BASIS`; FAC `gaap_results = not_gaap` |
+| Aberdeen SD | `gaap` | GAAP basis, already labelled so in its loader |
+
+Everything else stays `unknown`. **No bulk `gaap` backfill** — assuming GAAP for
+every unexamined row is the same unevidenced assertion this axis exists to
+prevent, and it would silently mark ~60k rows with a claim nobody checked.
+
+Redmond's rows ship in phase 1 and are stamped here, in phase 2. That ordering
+is deliberate and carries no risk: the stamp records a basis those rows already
+had, and until it lands they read `unknown`, which is the honest description of
+a row whose basis TT has not yet recorded. ⚠ Phase 1 must therefore **not**
+write a basis claim anywhere else — not into `data_source`, not into a
+dataset label — or phase 2 will be reconciling against a string instead of a
+document, which is the failure §4.1 exists to end.
+
+---
+
+## 5. Verification
+
+Per-entity harnesses follow the established WA pattern — blind re-derivation,
+audit checks, tether — with the additions this work forces. Items 1–5 and 8
+apply to Redmond in **phase 1**; items 6 and 7, and the Duvall half of items 1–4
+and 8, land in **phase 2**:
+
+1. **Blind re-derivation at $0** for all 11 Redmond years and every loaded
+   Duvall year, re-derived from the PDF independently of the loader.
+2. **Label-surface assertions.** A label defect is invisible to every arithmetic
+   gate: Bainbridge shipped a category named `____…____ Interest and Investment
+   Revenue` to production with a correct figure and a $0 tie. Assert the strings.
+3. **Per-entity consistency**, not a shared whitelist.
+4. **Exclusion assertions.** Each of Redmond's ten excluded years
+   (FY2004–FY2010, FY2017–FY2019) plus FY2025 must have **zero rows**. ⚠ Five of
+   those ten are excluded by POLICY and are perfectly readable, so this check is
+   the only thing standing between a correct extractor and five years of
+   unauthorised rows. Every exclusion is a deliberate refusal to publish; a row
+   quietly appearing for FY2017 would mean unadjudicated money shipped.
+5. **The cipher probe**, as a test: assert FY2017–FY2019 yield no digits, so a
+   future library change that appears to "fix" them has to prove it recovered
+   real money rather than decoded zeros.
+6. **`accounting_basis` constraint parity** — a test asserting the JS vocabulary
+   and the SQL CHECK constraint are the same set, as `SCOPE_VALUES` already does.
+   A value in one and not the other is a write that fails in production.
+7. **The comparability rule is mutation-tested.** A gate that cannot be shown to
+   fail is a gate that passes vacuously forever.
+8. **sha256 of every PDF pinned.** Check for mismatches *before* re-recording;
+   `--record-sha` would otherwise silently bless a changed file.
+
+---
+
+## 6. Pinned ARNs (resolved against the live registry, 2026-10-06)
+
+**Redmond, MCAG 0425** — the 11 loaded years:
+
+```
+2011: 1008494   2012: 1010466   2013: 1012425   2014: 1014930
+2015: 1017176   2016: 1019544   2020: 1029176   2021: 1031765
+2022: 1035798   2023: 1038568   2024: 1040508
+```
+
+Excluded, with the ARN recorded so a later decision needs no re-recon:
+
+```
+2004: 69504     CCITT stencil scan, and below the floor
+2005: 71153     CCITT stencil scan, and below the floor
+2006: 73631     READABLE — below the floor (singular caption, §2.1.1)
+2007: 75373     READABLE — below the floor (two-page split)
+2008: 1002098   READABLE — below the floor (two-page split)
+2009: 1003929   READABLE — below the floor (two-page split)
+2010: 1006714   READABLE — below the floor (two-page split)
+2017: 1021971   ciphered, digits absent
+2018: 1024295   ciphered, digits absent
+2019: 1027556   ciphered, digits absent
+2025: —         no filing released
+```
+
+**Duvall, MCAG 0391** — candidates, to be confirmed at recon:
+
+```
+2004: 69662     2005: 71025     2006: 73981     2007: 1000252
+2008: 1002034   2009: 1004186   2011: 1009156   2013: 1013701
+2015: 1018682   2016: 1019869   2017: 1023192   2018: 1025265
+2019: 1027182   2020: 1029480   2021: 1032480   2023: 1036127
+2024: 1038791   2025: 1040405
+```
+
+⚠ MCAGs are **strings**; leading zeros are significant. Both were resolved
+against the live SAO registry, not inferred — `0425` returned
+`City of Redmond` and `0391` returned `City of Duvall`.
+
+---
+
+## 7. Out of scope
+
+- **Other WA BARS cities.** Duvall is the first, and most small WA cities file
+  this way, so the config built here is a template for a large class. That
+  expansion is its own project with its own recon.
+- **Backfilling `accounting_basis` beyond the four sources in §4.5.**
+- **Banner assets.** Neither city is assumed to have one; check the bucket and
+  fall through to the Wikipedia default rather than inferring a credit from a
+  filename.
+- **Essentials tether.** The live catalog answers; do not assert coverage.
+
+---
+
+## 8. Things that will bite
+
+- **`py` and `python` on PATH are Microsoft Store stubs.** Use
+  `scripts/lib/pythonBin.mjs` `resolvePython()`, never a hardcoded path.
+- **`docs/*` is gitignored** — specs and plans are force-added (`git add -f`).
+- **Never bulk-edit a source file with PowerShell + `Set-Content -Encoding
+  utf8`** — it adds a BOM and rewrites every line ending. Use Edit.
+- **No shebang on anything under `scripts/lib/`.** A test guards it; a `#!` plus
+  CRLF breaks the whole Vite suite with an error naming no file.
+- **`treasury_sync_city_budget` keys on fund_scope+basis, not data_source.**
+  Omitting a key on a re-run duplicates rows.
+- **A new fiscal year arrives `basis=unknown`** and must be stamped.
+- **Branch and open a PR.** Never push directly to `main`.

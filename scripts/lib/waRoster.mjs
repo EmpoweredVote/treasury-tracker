@@ -375,6 +375,125 @@ export const WA_ENTITIES = [
     expectedResidues: 0,
     roundingFiles: ['extractEverett.py'], navOnly: false,
   },
+  // ── 2026-10-06, Redmond phase 1. King County's third city here. ───────────
+  {
+    name: 'Redmond', mcag: '0425', entityType: 'city', countyName: 'King County',
+    pdfDir: 'docs/Redmond', pdfPrefix: 'redmond', datasetIdPrefix: 'redmond-sao-gf',
+    population: 82_380,
+    populationNote: 'WA OFM April 1, 2025 — Filter=4 city row, line 171 (2026 est: 83,320)',
+    // DERIVED from Redmond's own observed spread across all 22 loaded
+    // combinations: $916.57/resident (FY2011 operating) to $1,820.28 (FY2023
+    // revenue). Never inherited — Bellevue [400, 4500] and Kent [220, 2000]
+    // are its King County neighbours and neither describes Redmond.
+    //
+    // Redmond prints WHOLE DOLLARS. A 1000x units error would read $0.92–$1.82
+    // and a /1000 error $916,570+, so both land far outside this band — which
+    // matters because the tie gate is unit-invariant and cannot see either.
+    perCapitaBand: [450, 3_700],
+    // TIGHTER than the loader band: the loader rejects a units catastrophe,
+    // the harness rejects a WRONG PAGE. Measured spread $917–$1,820.
+    verifyPerCapitaBand: [700, 2_400],
+    expectId: '66db27e6-624e-4ecb-9842-da14ee743e2c',
+    sanityMax: 5_000_000_000,
+    // MEASURED window: 11 years on ONE config, FY2011–FY2024 less the three
+    // ciphered years. See docs/superpowers/specs/2026-10-06-redmond-duvall-
+    // accounting-basis-design.md §2.1.1 for why it stops at FY2011.
+    fiscalYears: [2011, 2012, 2013, 2014, 2015, 2016, 2020, 2021, 2022, 2023, 2024],
+    // The span covers the WHOLE ARN manifest, not just the loadable part, so
+    // the audit asserts zero rows for every excluded year — and FIVE of those
+    // are perfectly readable, which makes that assertion load-bearing here in
+    // a way it is not for any other entity in this roster.
+    manifestSpan: [2004, 2025],
+    excludedYears: {
+      2004: 'CCITT stencil image-only scan — 300dpi, 1-2 money tokens in the entire document; also below the floor',
+      2005: 'CCITT stencil image-only scan — same shape as FY2004; also below the floor',
+      2006: 'READABLE — excluded by the floor rule, not by defect: captions the statement "Changes in Fund Balance" (SINGULAR) and would need its own statement_anchor below a three-year gap',
+      2007: 'READABLE — excluded by the floor rule, not by defect: the statement splits across two pages ("Page 1 of 2") and would need multipage=True below a three-year gap',
+      2008: 'READABLE — excluded by the floor rule, not by defect: two-page split, as FY2007',
+      2009: 'READABLE — excluded by the floor rule, not by defect: two-page split, as FY2007',
+      2010: 'READABLE — excluded by the floor rule, not by defect: two-page split, as FY2007',
+      2017: 'no usable text layer — a constant +29 shift decodes every LABEL and no DIGIT; an original 0-9 would land on bytes 0x13-0x1C and the page carries ZERO bytes in that range, so the money is absent from the stream rather than encoded',
+      2018: 'no usable text layer — same cipher as FY2017, and consecutive with it',
+      2019: 'no usable text layer — same cipher as FY2017; the third consecutive, which is what invokes the floor rule',
+      2025: 'source timing — the SAO holds no City of Redmond filing for FY2025',
+    },
+    // Confirmed in Task 6. A REAL number, including zero: asserting the zero
+    // means a residue appearing later is a finding rather than a shrug.
+    expectedResidues: 0,
+    roundingFiles: ['extractRedmond.py'], navOnly: false,
+  },
+  // ── 2026-10-06, Duvall phase 2. King County's fourth city here, and the
+  // first entity in this roster that is NOT GAAP. Duvall files on the BARS
+  // regulatory (cash) basis; its auditor issues an unmodified opinion on that
+  // basis and an ADVERSE opinion on U.S. GAAP, in the same report. See
+  // docs/superpowers/plans/DUVALL-RECON.md §1.
+  //
+  // ⚠⚠ NOTHING HERE IS INHERITED FROM REDMOND. They share King County and the
+  // `WA State Auditor — …` publisher prefix and they share neither an
+  // accounting basis, a statement caption, a column order, nor a scale.
+  {
+    name: 'Duvall', mcag: '0391', entityType: 'city', countyName: 'King County',
+    pdfDir: 'docs/Duvall', pdfPrefix: 'duvall', datasetIdPrefix: 'duvall-sao-gf',
+    population: 8_810,
+    populationNote: 'WA OFM April 1, 2025 — Filter=4 city row, line 154 (2026 est: 8,910)',
+    // DERIVED from Duvall's OWN observed spread across all 20 loaded
+    // combinations: $463.77/resident (FY2016 operating) to $949.08 (FY2020
+    // revenue). Half the minimum below and roughly twice the maximum above.
+    // ⚠ NEVER inherited. Redmond's [450, 3700] describes 82,380 residents and
+    // its own $917-$1,820 spread; Duvall is 8,810 people and its floor sits
+    // BELOW Redmond's, so Redmond's band would have rejected six of Duvall's
+    // twenty combinations outright.
+    //
+    // Duvall prints WHOLE DOLLARS. A 1000x units error reads $463,765/resident
+    // and a /1000 error $0.95 — both far outside this band, which matters
+    // because the $0 tie gate is unit-invariant and cannot see either.
+    perCapitaBand: [230, 1_900],
+    // TIGHTER than the loader band, deliberately: the loader's job is to reject
+    // a units catastrophe, the harness's is to reject a WRONG PAGE, whose
+    // per-capita lands far outside the real spread but often inside a generous
+    // units band. Measured spread is $464-$949, so this brackets it closely.
+    // ⚠ A wrong-page read here is NOT hypothetical: the memo column is printed
+    // FIRST, and FY2024's memo revenue is $28.7M = $3,252/resident, which this
+    // band refuses and [230, 1900] would also refuse.
+    verifyPerCapitaBand: [400, 1_200],
+    expectId: 'cce91206-27d2-4f74-bbdb-39b65c1aa968',
+    // ⚠ Duvall's General Fund runs single-digit millions. Bainbridge (~25k
+    // residents) uses 500M; this ceiling is sized for ~8,800 and still leaves
+    // roughly an order of magnitude of headroom over the largest plausible
+    // year, while a units=1000 catastrophe lands far above it.
+    sanityMax: 100_000_000,
+    // MEASURED window, DUVALL-RECON.md §5: ten fiscal years on ONE config,
+    // FY2016–FY2025, from NINE PDFs — FY2022 and FY2023 share ARN 1036127
+    // because Duvall is audited BIENNIALLY and that report carries a full
+    // statement for both years.
+    fiscalYears: [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025],
+    // The span starts at FY2003, the earliest audit period in the SAO's
+    // manifest for MCAG 0391 (ARN 69662 covers FY2003–FY2004), so the audit
+    // asserts zero rows for every excluded year.
+    manifestSpan: [2003, 2025],
+    excludedYears: {
+      2003: 'below the floor — the statement shape changes between FY2015 and FY2016 (DUVALL-RECON.md §5) and the window stops there; the pre-FY2016 era was characterised, not year-by-year re-probed, below FY2010',
+      2004: 'below the floor — same era as FY2003; ARN 69662 covers FY2003-FY2004 as one biennial audit period',
+      2005: 'below the floor — same era as FY2003',
+      2006: 'below the floor — same era as FY2003',
+      2007: 'below the floor — same era as FY2003',
+      2008: 'below the floor — same era as FY2003',
+      2009: 'no usable text layer — 26KB of text and ONE money token in the entire document; it also sits below the floor, so no floor-rule deviation is claimed for it',
+      2010: 'READABLE — excluded by the floor rule, not by defect: parses on a different config in which the BARS code sits on its OWN line rather than leading the label, and the amounts print CENTS',
+      2011: 'READABLE — excluded by the floor rule, not by defect: same pre-FY2016 era as FY2010; ARN 1009156 covers FY2010-FY2011',
+      2012: 'READABLE — excluded by the floor rule, not by defect: same pre-FY2016 era as FY2010; ARN 1013701 covers FY2012-FY2013',
+      2013: 'READABLE — excluded by the floor rule, not by defect: same pre-FY2016 era as FY2010',
+      2014: 'READABLE — excluded by the floor rule, not by defect: same pre-FY2016 era as FY2010; ARN 1018682 covers FY2014-FY2015',
+      2015: 'READABLE — excluded by the floor rule, not by defect: the LAST year of the pre-FY2016 era, and the boundary itself — it prints cents where FY2016 prints whole dollars',
+    },
+    // MEASURED, and a real 2 rather than an unfilled field: FY2025 is the only
+    // year in the window whose own printed total disagrees with its own printed
+    // components, and it does so on BOTH sides in OPPOSITE directions (revenue
+    // -1, operating +1). Both deltas are registered EXACTLY in
+    // scripts/extractDuvall.py; the other nine years tie at a bare $0.
+    expectedResidues: 2,
+    roundingFiles: ['extractDuvall.py'], navOnly: false,
+  },
 ];
 
 export function getEntity(name) {

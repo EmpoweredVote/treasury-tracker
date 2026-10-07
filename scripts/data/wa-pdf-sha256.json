@@ -570,5 +570,89 @@
   "Everett|2024": {
     "sha256": "1be5398cfe8d6ad6757308a1a122b6f78772655b781996bbf96af401ae4f4061",
     "bytes": 2736041
+  },
+  "Redmond|2011": {
+    "sha256": "9b6bad65f2ad8d466f92c8196e74ccd604e6ae7c57652ee7c65e156c65cb7d90",
+    "bytes": 805833
+  },
+  "Redmond|2012": {
+    "sha256": "1b5a640fac80bd0e0709b487c8e26acccf85b0741368c8e860242a2ca439579a",
+    "bytes": 1796330
+  },
+  "Redmond|2013": {
+    "sha256": "a00f0540a02740641a4cbe576ddcb1a83703b324eb7f30e030b694353b829ff6",
+    "bytes": 3312634
+  },
+  "Redmond|2014": {
+    "sha256": "0b60898ed8ef30c32a46d6c2b352d573860a6f0b750f1b8710e2bbfafa278767",
+    "bytes": 1309321
+  },
+  "Redmond|2015": {
+    "sha256": "45c88853255963fec3d2b9d3e49164b5795baf531fb5ded74a0cc8f8b517d703",
+    "bytes": 6732712
+  },
+  "Redmond|2016": {
+    "sha256": "d6117ca4744b7a5fa7aa34468b72b183f6a376d39afd793fd60a159a63237d45",
+    "bytes": 2106774
+  },
+  "Redmond|2020": {
+    "sha256": "4aa4d487027fd02cfad8880c40a155e177153fbf6c46d27b933effb877c934f2",
+    "bytes": 3519715
+  },
+  "Redmond|2021": {
+    "sha256": "3988f4045f1dfb0246f27d25c00c76a895310c5008ca608c1bb0146be939ba41",
+    "bytes": 4425123
+  },
+  "Redmond|2022": {
+    "sha256": "8ca12b247e09c171de9e5195d6891304d23fe63a07a73713fc75b3e89921e946",
+    "bytes": 2423075
+  },
+  "Redmond|2023": {
+    "sha256": "52977003e01e08dd35abe32632bf684aaa89032aa97c288b79d12c4882334d90",
+    "bytes": 2737536
+  },
+  "Redmond|2024": {
+    "sha256": "a47249059601b76237528dd0f1528f4ffb0eeaff72774d6b43f856c017404705",
+    "bytes": 3091611
+  },
+  "Duvall|2016": {
+    "sha256": "051998f942d1ac30fcd7777d47f41c1351ce071d467299037abc00f4b3790fdf",
+    "bytes": 1486417
+  },
+  "Duvall|2017": {
+    "sha256": "fe327d333b04ab1473da248d5d5afb91bee5046634b34e562081631b49a776e8",
+    "bytes": 1148389
+  },
+  "Duvall|2018": {
+    "sha256": "744c676a591d17d48e58bb9c9a0eee4aa660601456726c4818711afbfda427eb",
+    "bytes": 1501247
+  },
+  "Duvall|2019": {
+    "sha256": "11cb5a59c558b1180abf7a97f211aeb92f76993854b8b70de1afa07226945561",
+    "bytes": 1595336
+  },
+  "Duvall|2020": {
+    "sha256": "b3e0cbccb239d000be20323fa255181c94e86ea8e33096bba752863bedd2ea92",
+    "bytes": 1625656
+  },
+  "Duvall|2021": {
+    "sha256": "c78d79a1f8d24f60b6778fff5db3972a6fab3fac263872cae574f24268cd8da3",
+    "bytes": 1291733
+  },
+  "Duvall|2022": {
+    "sha256": "2734843cb8bcd7d7fa166ed118bd77417de852ca360ad344182c595e31ebdf9d",
+    "bytes": 1734877
+  },
+  "Duvall|2023": {
+    "sha256": "2734843cb8bcd7d7fa166ed118bd77417de852ca360ad344182c595e31ebdf9d",
+    "bytes": 1734877
+  },
+  "Duvall|2024": {
+    "sha256": "9c547fbda3486f8399064cf7aa34ad296cc7da846e712211c21423667e2641c2",
+    "bytes": 1473229
+  },
+  "Duvall|2025": {
+    "sha256": "d9bf97c96df156ed0ac3820039c7585965c0e0a16b95b1b0ae143d31b800319e",
+    "bytes": 1203597
   }
 }

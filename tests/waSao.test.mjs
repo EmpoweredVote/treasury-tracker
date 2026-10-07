@@ -79,6 +79,49 @@ describe('classifyReport', () => {
       'Reconciliation of the Statement of Revenues, Expenditures and Changes in Fund Balance');
     expect(r.ok).toBe(false);
   });
+
+  // ── CASH-BASIS BARS FILERS ────────────────────────────────────────────────
+  // Duvall (MCAG 0391) files on the BARS regulatory basis. Its statements are
+  // captioned `Fund Resources and Uses Arising from Cash Transactions` — the
+  // GAAP caption this guard was written for DOES NOT EXIST anywhere in its
+  // corpus — and its whole annual report runs 27-34 pages, where a GAAP city's
+  // runs 76-188. Both halves of the guard therefore rejected all ten of
+  // Duvall's filings, which is how this was found.
+  const BARS = ['City of Duvall',
+                'Fund Resources and Uses Arising from Cash Transactions',
+                'For the Year Ended December 31, 2024',
+                'Total Revenues: 12,345,678'].join('\n');
+
+  it('accepts a BARS cash-basis annual report', () => {
+    expect(classifyReport(33, BARS).ok).toBe(true);
+  });
+
+  it('still rejects a BARS opinion letter that merely names the statement', () => {
+    // The page floor is lower for BARS, not absent. Duvall's smallest real
+    // filing is 27pp (FY2017); its opinion letters are single digits.
+    const r = classifyReport(6, BARS);
+    expect(r.ok).toBe(false);
+    expect(r.reason).toMatch(/page count/i);
+  });
+
+  it('does not accept the FIDUCIARY cash statement as the anchor', () => {
+    // Every Duvall report also prints `Fiduciary Fund Resources and Uses
+    // Arising from Cash Transactions`. A document carrying ONLY that one is
+    // not a governmental-funds statement, and loading it would publish
+    // custodial money under a General Fund label.
+    const r = classifyReport(33,
+      'Fiduciary Fund Resources and Uses Arising from Cash Transactions');
+    expect(r.ok).toBe(false);
+    expect(r.reason).toMatch(/statement/i);
+  });
+
+  it('does NOT lower the page floor for a GAAP report', () => {
+    // ⚠ The whole risk of this change is that a GAAP city's 33-page opinion
+    // letter starts passing. The lower floor must apply ONLY to the BARS
+    // caption.
+    expect(classifyReport(33, STMT).ok).toBe(false);
+    expect(classifyReport(33, STMT).reason).toMatch(/page count/i);
+  });
 });
 
 describe('fetchReportPdf', () => {
@@ -194,4 +237,32 @@ describe('no module a test imports starts with a shebang', () => {
     // ⚠ Explicit timeout, same reason: this one walks both test directories and
     // reads every module they import.
   }, 30_000);
+});
+
+describe('REDMOND_ARNS', () => {
+  // The window is FY2011-FY2024 less the three ciphered years. FY2004-FY2010
+  // are excluded by POLICY (spec §2.1.1) and FIVE OF THEM ARE READABLE, so an
+  // ARN appearing here for one of them would load an unauthorised year that
+  // ties at $0 and passes every arithmetic gate.
+  it('pins exactly the eleven loaded fiscal years', async () => {
+    const { REDMOND_ARNS } = await import('../scripts/fetchWaCities.mjs');
+    expect(Object.keys(REDMOND_ARNS).map(Number).sort((a, b) => a - b))
+      .toEqual([2011, 2012, 2013, 2014, 2015, 2016, 2020, 2021, 2022, 2023, 2024]);
+  });
+
+  it('pins no ARN for a policy-excluded, ciphered or unreleased year', async () => {
+    const { REDMOND_ARNS } = await import('../scripts/fetchWaCities.mjs');
+    for (const fy of [2004, 2005, 2006, 2007, 2008, 2009, 2010, 2017, 2018, 2019, 2025]) {
+      expect(REDMOND_ARNS[fy], `FY${fy} must not be pinned`).toBeUndefined();
+    }
+  });
+
+  it('registers Redmond in ARNS_BY_CITY', async () => {
+    const { REDMOND_ARNS, ARNS_BY_CITY } = await import('../scripts/fetchWaCities.mjs');
+    // ⚠ Assert DEFINED first. `expect(undefined).toBe(undefined)` passes before
+    // the manifest exists, so without this the test is green on an empty repo
+    // and proves nothing — it passed vacuously on its first RED run.
+    expect(REDMOND_ARNS, 'REDMOND_ARNS must be exported').toBeDefined();
+    expect(ARNS_BY_CITY.Redmond).toBe(REDMOND_ARNS);
+  });
 });

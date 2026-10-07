@@ -172,6 +172,74 @@ export const EVERETT_ARNS = {
   2024: 1038217,
 };
 
+/**
+ * Redmond, MCAG 0425. Every ARN below is the "Financial and Federal" /
+ * "Financial" report titled exactly "City of Redmond" for that audit period.
+ *
+ * 54 of the MCAG's 59 reports are the city's own. The decoys are one
+ * "Redmond, City of GASB 68 Examination Report" -- a pension-liability
+ * examination, NAME INVERTED exactly like Bellevue's, so a prefix match on
+ * "City of Redmond" excludes it where a "contains Redmond" match would not --
+ * and four statewide performance audits that merely mention the city ("Use of
+ * Impact Fees in Federal Way, Olympia, Maple Valley, Redmond and Vancouver").
+ *
+ * ⚠ The report-type inversion is TOTAL on this issuer: ALL 14 reports typed
+ * "Annual Comprehensive Financial Report" are 2-5 page opinion letters, and
+ * every statement-bearing filing is typed "Financial and Federal" or
+ * "Financial". Selecting by type name would yield 14 opinion letters and not
+ * one statement.
+ *
+ * ⚠⚠ THIS MANIFEST IS THE LOADED WINDOW, NOT THE READABLE ONE. FY2006-FY2010
+ * are READABLE and deliberately absent: the floor rule's era-split clause ends
+ * the window at FY2011, where the statement stops splitting across two pages.
+ * FY2007-FY2010 would need `multipage=True` and FY2006 a different
+ * `statement_anchor` -- one line of config each, which is exactly why the line
+ * is worth holding. Their ARNs are recorded in the spec (§6) so revisiting that
+ * decision needs no re-recon. Do not "helpfully" restore them here.
+ *
+ * FY2017-FY2019 are absent for a different reason: ciphered text under a
+ * constant +29 shift that decodes every LABEL and no DIGIT. FY2004/FY2005 are
+ * CCITT stencil scans. FY2025 has no filing.
+ */
+export const REDMOND_ARNS = {
+  2011: 1008494, 2012: 1010466, 2013: 1012425, 2014: 1014930,
+  2015: 1017176, 2016: 1019544, 2020: 1029176, 2021: 1031765,
+  2022: 1035798, 2023: 1038568, 2024: 1040508,
+};
+
+/**
+ * Duvall, MCAG 0391 — CASH-BASIS BARS, not GAAP.
+ *
+ * ⚠⚠ ONE ARN APPEARS TWICE. Duvall is audited BIENNIALLY, and each biennial
+ * report carries a full statement for BOTH covered years, so the same document
+ * is saved under both filenames. Identical bytes, two names — the sha manifest
+ * will pin ONE digest under TWO paths, which is CORRECT and must not be
+ * "fixed": they are the same document. The statement is then chosen by its own
+ * printed `For the Year Ended December 31, <FY>` caption, never by position —
+ * see select_statement_for_fy in scripts/lib/acfrGF.py.
+ *
+ * ⚠⚠ MEASURED, AND INVERTED FROM THE OBVIOUS GUESS: ARN 1036127 prints FY2023
+ * FIRST and FY2022 SECOND, so taking the first candidate would publish
+ * FY2023's money under the FY2022 label — not the other way round — and tie at
+ * exactly $0 doing it.
+ *
+ * Audit periods read from BeginAuditPeriod/EndAuditPeriod, never inferred:
+ *   ARN 69662   covers FY2003-FY2004   ARN 1013701 covers FY2012-FY2013
+ *   ARN 1009156 covers FY2010-FY2011   ARN 1018682 covers FY2014-FY2015
+ *   ARN 1036127 covers FY2022-FY2023   <- the only biennial pair IN the window
+ *
+ * ⚠ FY2003-FY2015 are pinned NOWHERE here on purpose: they are excluded by the
+ * floor rule (the statement's shape changes between FY2015 and FY2016), and
+ * SIX of them are perfectly READABLE on a different config. Pinning an ARN for
+ * a year the roster does not load is exactly what processDuvall.js's stray-ARN
+ * guard refuses — see scripts/lib/waRoster.mjs for each year's reason.
+ */
+export const DUVALL_ARNS = {
+  2016: 1019869, 2017: 1023192, 2018: 1025265, 2019: 1027182,
+  2020: 1029480, 2021: 1032480, 2022: 1036127, 2023: 1036127,
+  2024: 1038791, 2025: 1040405,
+};
+
 export const ARNS_BY_CITY = {
   Tacoma: TACOMA_ARNS,
   Spokane: SPOKANE_ARNS,
@@ -179,6 +247,8 @@ export const ARNS_BY_CITY = {
   Bellevue: BELLEVUE_ARNS,
   Kent: KENT_ARNS,
   Everett: EVERETT_ARNS,
+  Redmond: REDMOND_ARNS,
+  Duvall: DUVALL_ARNS,
 };
 
 function pageCount(pdfPath) {

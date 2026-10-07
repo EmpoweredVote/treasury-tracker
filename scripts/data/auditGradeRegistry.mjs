@@ -820,6 +820,56 @@ export const AUDIT_GRADE_REGISTRY = [
     },
   },
   {
+    // ── 2026-10-06, Duvall phase 2. THE FIRST WA ENTITY GRADED AT ALL, and it
+    // is NOT GAAP. Washington's other nine entities in this roster publish
+    // GAAP ACFRs and remain `unknown` here because nobody has read their
+    // opinions yet — an entry is created when its evidence is, never before.
+    //
+    // ⚠⚠ `audited_gaap` WOULD BE A FALSE PUBLIC CLAIM. Duvall's auditor issues
+    // an ADVERSE opinion on U.S. GAAP in so many words. `unknown` would be
+    // false in the other direction — it claims nobody looked, when the State
+    // Auditor looked and signed. `self_reported_unaudited` denies the audit
+    // outright. `audited_ocboa` is the only one of the four that is true, and
+    // it is why the Brown County SD work added the value.
+    //
+    // ⚠ THE MATCH MUST NOT REACH REDMOND. Redmond is also King County, also
+    // `WA State Auditor — `, and is GAAP; a prefix match would grade eleven
+    // Redmond years off Duvall's opinion. The entity name is therefore
+    // literal, anchored at both ends, and the YEARS ARE ENUMERATED to the
+    // loaded window — FY2015 was never read (floor rule) and FY2026 does not
+    // exist, and neither may inherit this opinion.
+    //
+    // ⚠ This grade carries only HALF the fact. The other half — that the
+    // figure is measured on a cash basis — lives in
+    // scripts/data/accountingBasisRegistry.mjs under `wa-sao-duvall-cash`,
+    // whose match is the same row set by construction and asserted equal to
+    // this one in tests/auditGradeRegistry.test.mjs. Neither axis can carry
+    // both facts alone, which is the whole reason phase 2 exists.
+    id: 'wa-sao-duvall-ocboa',
+    match: /^WA State Auditor — Duvall Annual Financial Report FY(?:201[6-9]|202[0-5]) \(General Fund, (?:Expenditure by Function|Revenue by Source)\)$/,
+    value: AUDIT_GRADE.AUDITED_OCBOA,
+    evidence: {
+      document: 'City of Duvall Financial Statements Audit Report, WA State Auditor '
+        + '(ARN 1036127, covering the years ended December 31, 2023 AND 2022 — Duvall is '
+        + 'audited biennially), read from docs/Duvall/duvall-2023-acfr.pdf. The same split '
+        + 'opinion appears in every filing in the loaded FY2016-FY2025 window.',
+      figures: 'THE OPINION IS SPLIT AND BOTH HALVES MATTER. The report heads its opinion '
+        + 'section "Unmodified and Adverse Opinions" and divides it into "Unmodified Opinion '
+        + 'on the Regulatory Basis of Accounting (BARS Manual)" and "Adverse Opinion on U.S. '
+        + 'GAAP". The transmittal states it plainly: "We issued an unmodified opinion on the '
+        + 'fair presentation of the City\'s financial statements in accordance with its '
+        + 'regulatory basis of accounting. We issued an adverse opinion on the fair '
+        + 'presentation with regard to accounting principles generally accepted in the United '
+        + 'States of America (GAAP) because the financial statements are prepared by the City '
+        + 'using accounting practices prescribed by the ... BARS manual described in Note 1, '
+        + 'which is a basis of accounting other than GAAP." Note 1 adds that "Financial '
+        + 'transactions are recognized on a cash basis of accounting" and that '
+        + '"Government-wide statements, as defined in GAAP, are not presented." '
+        + 'So the figure IS audited, to an unmodified opinion, and it is NOT GAAP — which is '
+        + 'exactly what audited_ocboa means and what no other value in this vocabulary says.',
+    },
+  },
+  {
     id: 's8-ms-local-acfr-gf',
     match: /^(?:City of Biloxi|Harrison County) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY(?:20[0-2][0-9]) actual, GAAP basis\)$/,
     value: AUDIT_GRADE.AUDITED_GAAP,

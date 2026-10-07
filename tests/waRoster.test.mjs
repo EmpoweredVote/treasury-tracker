@@ -5,11 +5,11 @@ import {
 } from '../scripts/lib/waRoster.mjs';
 
 describe('WA roster shape', () => {
-  it('carries the six WA-CITIES-01 cities, the two v2.22 entities and four nav-only counties', () => {
+  it('carries the six WA-CITIES-01 cities, the two v2.22 entities, Redmond, Duvall and four nav-only counties', () => {
     expect(WA_ENTITIES.map((e) => e.name).sort()).toEqual([
-      'Bainbridge Island', 'Bellevue', 'Clark County', 'Everett', 'Kent',
-      'Kitsap County', 'Pierce County', 'Snohomish County', 'Spokane',
-      'Spokane County', 'Tacoma', 'Vancouver',
+      'Bainbridge Island', 'Bellevue', 'Clark County', 'Duvall', 'Everett',
+      'Kent', 'Kitsap County', 'Pierce County', 'Redmond', 'Snohomish County',
+      'Spokane', 'Spokane County', 'Tacoma', 'Vancouver',
     ]);
   });
 
@@ -159,5 +159,95 @@ describe('MCAG decoy guard', () => {
     // getEntity('Tacoma').mcag is '0610'; the number 610 must not pass.
     expect(() => assertMcag('Tacoma', 610)).toThrow(/does not match the pinned MCAG/i);
     expect(() => assertMcag('Tacoma', '0610')).not.toThrow();
+  });
+});
+
+describe('Redmond', () => {
+  it('carries Redmond with the eleven-year window', () => {
+    const r = getEntity('Redmond');
+    expect(r.mcag).toBe('0425');
+    expect(r.entityType).toBe('city');
+    expect(r.countyName).toBe('King County');
+    expect(r.fiscalYears).toEqual(
+      [2011, 2012, 2013, 2014, 2015, 2016, 2020, 2021, 2022, 2023, 2024]);
+    expect(r.manifestSpan).toEqual([2004, 2025]);
+  });
+
+  it('declares a reason for every year in the manifest span that is not loaded', () => {
+    const r = getEntity('Redmond');
+    const [lo, hi] = r.manifestSpan;
+    for (let fy = lo; fy <= hi; fy++) {
+      const loaded = r.fiscalYears.includes(fy);
+      const excluded = Object.prototype.hasOwnProperty.call(r.excludedYears, fy);
+      expect(loaded !== excluded, `FY${fy} must be exactly one of loaded/excluded`).toBe(true);
+    }
+  });
+
+  it('records the five policy exclusions as policy, not as document defects', () => {
+    // FY2006-FY2010 are READABLE. If their reasons read like document defects,
+    // a later reader records Redmond as harder than it is and a future WA
+    // entity inherits a false difficulty estimate.
+    const r = getEntity('Redmond');
+    for (const fy of [2006, 2007, 2008, 2009, 2010]) {
+      expect(r.excludedYears[fy], `FY${fy}`).toMatch(/floor rule/i);
+      expect(r.excludedYears[fy], `FY${fy} must say it is readable`).toMatch(/READABLE/);
+    }
+  });
+
+  it('records the three ciphered years as text-layer defects, not as policy', () => {
+    const r = getEntity('Redmond');
+    for (const fy of [2017, 2018, 2019]) {
+      expect(r.excludedYears[fy], `FY${fy}`).toMatch(/no usable text layer/i);
+    }
+  });
+});
+
+describe('Duvall', () => {
+  it('carries Duvall with its measured window', () => {
+    const d = getEntity('Duvall');
+    expect(d.mcag).toBe('0391');
+    expect(d.entityType).toBe('city');
+    expect(d.countyName).toBe('King County');
+    expect(d.fiscalYears.length).toBeGreaterThan(0);
+    // MEASURED in DUVALL-RECON.md §5: ten years on ONE config, ending at
+    // FY2016 because the statement's shape changes between FY2015 and FY2016.
+    expect(d.fiscalYears).toEqual(
+      [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]);
+    expect(d.manifestSpan).toEqual([2003, 2025]);
+  });
+
+  it('declares a reason for every year in the manifest span that is not loaded', () => {
+    const d = getEntity('Duvall');
+    const [lo, hi] = d.manifestSpan;
+    for (let fy = lo; fy <= hi; fy++) {
+      const loaded = d.fiscalYears.includes(fy);
+      const excluded = Object.prototype.hasOwnProperty.call(d.excludedYears, fy);
+      expect(loaded !== excluded, `FY${fy} must be exactly one of loaded/excluded`).toBe(true);
+    }
+  });
+
+  it('is in King County alongside Redmond, Bellevue and Kent', () => {
+    expect(getEntity('Duvall').countyName).toBe(getEntity('Redmond').countyName);
+  });
+
+  it('records FY2010-FY2015 as policy exclusions, not as document defects', () => {
+    // DUVALL-RECON.md §5: these parse fine on a DIFFERENT config and are
+    // excluded by the floor rule's era-split clause. A reason that reads like
+    // a defect records Duvall as harder than it is, exactly as Redmond's
+    // five readable exclusions would have.
+    const d = getEntity('Duvall');
+    for (const fy of [2010, 2011, 2012, 2013, 2014, 2015]) {
+      expect(d.excludedYears[fy], `FY${fy}`).toMatch(/floor rule/i);
+      expect(d.excludedYears[fy], `FY${fy} must say it is readable`).toMatch(/READABLE/);
+    }
+  });
+
+  it("does not inherit Redmond's per-capita band", () => {
+    // Duvall is ~8,800 people against Redmond's 82,380. A band copied from a
+    // neighbour is the one guard that cannot catch a units error, because the
+    // tie gate is unit-invariant.
+    const d = getEntity('Duvall');
+    const r = getEntity('Redmond');
+    expect(d.perCapitaBand).not.toEqual(r.perCapitaBand);
   });
 });

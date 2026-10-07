@@ -191,6 +191,19 @@ export interface Municipality {
     // must be read as 'unknown'. Normalise through normalizeAuditGrade() in
     // src/data/auditGrade.ts.
     audit_grade?: string | null;
+    // ACCOUNTING-BASIS: what measurement basis the figure is ON — GAAP, cash,
+    // modified cash. Optional for the same reason as the three above, and the
+    // reason is LIVE right now rather than historical: `ev-accounts-api`
+    // selects budget columns one by one and does not yet return this one, so
+    // every row arrives without it. Absent must read as 'unknown'. Normalise
+    // through normalizeAccountingBasis() in
+    // src/data/accountingBasisVocabulary.ts.
+    //
+    // ⚠ This is a SEPARATE QUESTION from audit_grade. Duvall's figures are
+    // AUDITED and NOT GAAP — an unmodified opinion on the BARS regulatory
+    // basis and an adverse opinion on U.S. GAAP, in the same report. No single
+    // axis can carry both facts, which is why there are two.
+    accounting_basis?: string | null;
   }>;
   /**
    * The compact alternative, returned by `?datasets=summary`. Read it through
@@ -247,6 +260,16 @@ export interface BudgetData {
     // `audited_gaap` on a non-GAAP measurement basis; assurance and
     // comparability are separate questions. See src/data/auditGrade.ts.
     auditGrade?: import('../data/auditGrade').AuditGrade | null;
+    // ACCOUNTING-BASIS: the measurement basis totalBudget is ON. Absent means
+    // 'unknown' -- TT has not recorded it -- never a guess, because asserting
+    // a basis nobody read is the exact failure this axis exists to prevent.
+    //
+    // ⚠⚠ ORTHOGONAL TO auditGrade, and the pair is the whole point: Duvall's
+    // figures are AUDITED (unmodified opinion on the BARS regulatory basis)
+    // and NOT GAAP (adverse opinion on U.S. GAAP), stated in one report. The
+    // chip copy says DIFFERENT, never worse. See
+    // src/data/accountingBasisVocabulary.ts.
+    accountingBasis?: import('../data/accountingBasisVocabulary').AccountingBasis | null;
     // For salaries
     totalCompensation?: number;
     totalEmployees?: number;

@@ -278,6 +278,27 @@ const CHANGES_RE = /changes?\s+in\s+fund\s+balances?/i;
 // readable, and "the scope line is misspelled" is not a reason to refuse a
 // filing. The optional 'n' cannot match anything else meaningful.
 const GOVFUNDS_RE = /govern?mental\s+funds/i;
+// ── THE CASH-BASIS BARS STATEMENT ───────────────────────────────────────────
+// ⚠⚠ Duvall (MCAG 0391) publishes no GAAP governmental-funds statement and
+// never has — its auditor issues an ADVERSE opinion on U.S. GAAP. The caption
+// is `Fund Resources and Uses Arising from Cash Transactions`, there is no
+// fund-balance section, and TITLE_RE / CHANGES_RE / GOVFUNDS_RE match NOTHING
+// anywhere in this corpus. A SECOND CAPTION, not a relaxation: a page still
+// has to carry both printed Total rows and still has to pass the exclusions,
+// and the fiduciary twin (`Fiduciary Fund Resources and Uses Arising from Cash
+// Transactions`, printed in every Duvall report) is caught by EXCLUDE_RE's
+// `fiduciary` exactly as before.
+const BARS_TITLE_RE = /fund\s+resources\s+and\s+uses\s+arising\s+from\s+cash\s+transactions/i;
+// ⚠⚠ ON A BARS STATEMENT THE MEMO COLUMN IS PRINTED FIRST: `Total for All
+// Funds (Memo Only)` is column 0 and `001 General Fund` is column 1. Matched
+// WHITESPACE-SQUASHED because `-table` prints `001 General` and `Fund` on
+// separate lines (and FY2016-FY2020 print `001  GENERAL` with two spaces).
+//
+// Narrowing the candidates on this header is also what makes a BIENNIAL
+// document resolvable: the statement repeats once per group of funds with the
+// same caption and the same printed year, and exactly one page per fiscal year
+// carries `001 General`.
+const BARS_GF_COLUMN_SQUASHED = /001general/i;
 const TOTAL_REV_RE = /^total\s+(operating\s+)?revenues?\b/i;
 const TOTAL_EXP_RE = /^total\s+expenditures\b/i;
 const REV_HEAD_RE = /^revenues?\b/i;
@@ -306,23 +327,53 @@ function captionBlockEnd(lines) {
   return i > 0 ? i + 1 : Math.min(lines.length, 25);
 }
 
-function findStatementPage(pages, label) {
+function findStatementPage(pages, label, fy = null) {
   const cands = [];
   const rejected = [];
   pages.forEach((pg, i) => {
     const flat = pg.replace(/\s+/g, ' ');
-    if (!TITLE_RE.test(flat)) return;
-    if (!CHANGES_RE.test(flat)) return;
+    const isBars = BARS_TITLE_RE.test(flat);
+    if (!isBars) {
+      if (!TITLE_RE.test(flat)) return;
+      if (!CHANGES_RE.test(flat)) return;
+    }
     const lines = pg.split('\n');
     const trimmed = lines.map((l) => l.trim());
     if (!trimmed.some((t) => TOTAL_REV_RE.test(t))) return;
     if (!trimmed.some((t) => TOTAL_EXP_RE.test(t))) return;
     const headFlat = lines.slice(0, captionBlockEnd(lines)).join(' ').replace(/\s+/g, ' ');
-    if (!GOVFUNDS_RE.test(headFlat)) { rejected.push(`p${i + 1}: caption does not say "Governmental Funds"`); return; }
+    // ⚠ Only the GAAP presentation is asked for a "Governmental Funds" scope
+    // line. A BARS statement never prints it, and requiring a phrase the
+    // document cannot contain is not a safety property.
+    if (!isBars && !GOVFUNDS_RE.test(headFlat)) { rejected.push(`p${i + 1}: caption does not say "Governmental Funds"`); return; }
     const ex = headFlat.match(EXCLUDE_RE);
     if (ex) { rejected.push(`p${i + 1}: caption is a "${ex[0]}" page`); return; }
     if (CONTINUATION_RE.test(headFlat)) { rejected.push(`p${i + 1}: caption declares itself a continuation page`); return; }
-    if (!GF_CAPTION_RE.test(headFlat)) { rejected.push(`p${i + 1}: caption carries no General Fund column`); return; }
+    if (isBars) {
+      if (!BARS_GF_COLUMN_SQUASHED.test(headFlat.replace(/\s+/g, ''))) {
+        rejected.push(`p${i + 1}: caption carries no "001 General" column`); return;
+      }
+    } else if (!GF_CAPTION_RE.test(headFlat)) {
+      rejected.push(`p${i + 1}: caption carries no General Fund column`); return;
+    }
+    // ── A DOCUMENT MAY CARRY MORE THAN ONE YEAR ─────────────────────────────
+    // ⚠⚠ Duvall is audited BIENNIALLY and ARN 1036127 holds a COMPLETE
+    // statement for FY2022 AND FY2023. Two pages legitimately survive, and
+    // this file treats more than one candidate as FATAL precisely so page
+    // choice never rests on document order — the more so here, because that
+    // document prints FY2023 FIRST, so "earliest" would hand FY2022 the wrong
+    // year's money and tie at $0.
+    //
+    // A candidate is dropped only when it STATES a period and that period is
+    // some OTHER year. That is evidence, not ordering. One that states no
+    // period at all is KEPT, so assertPageYear still refuses it downstream and
+    // no existing entity's behaviour moves.
+    if (fy !== null) {
+      const stated = flat.match(/end(?:ed|ing)\s*december\s*3\s*1\s*,?\s*(\d{4})/i);
+      if (stated && Number(stated[1]) !== fy) {
+        rejected.push(`p${i + 1}: states "${stated[0].trim()}", not FY${fy}`); return;
+      }
+    }
     cands.push(i);
   });
   if (!cands.length) {
@@ -410,12 +461,82 @@ function moneyCells(line) {
  */
 function gfTotalOnPage(pageText, mode, label) {
   const want = mode === 'revenue' ? TOTAL_REV_RE : TOTAL_EXP_RE;
-  const hits = pageText.split('\n').map((l) => l.trim()).filter((t) => want.test(t));
+  // ⚠ The RAW line is kept alongside the trimmed one. The trimmed form is what
+  // TOTAL_*_RE must match (they are anchored at ^), but the column geometry
+  // below is measured in the page's own character positions, which trimming
+  // would shift left by the whole label indent and misalign against the
+  // caption lines.
+  const raw = pageText.split('\n').filter((l) => want.test(l.trim()));
+  const hits = raw.map((l) => l.trim());
   if (!hits.length) throw new Error(`${label}: resolved page has no ${mode === 'revenue' ? 'Total revenues' : 'Total expenditures'} row`);
   if (hits.length > 1) throw new Error(`${label}: resolved page has ${hits.length} total rows for ${mode} — ambiguous: ${hits.map((h) => JSON.stringify(h)).join(' | ')}`);
   const cells = moneyCells(hits[0]);
   if (!cells.length) throw new Error(`${label}: total row carries no money cells — ${JSON.stringify(hits[0])}`);
-  return { value: cells[0], cells, row: hits[0] };
+  // ⚠⚠ `cells[0]` IS NOT ALWAYS THE GENERAL FUND. Nine WA entities print it
+  // first; Duvall prints `Total for All Funds (Memo Only)` first and
+  // `001 General Fund` second, so cells[0] there is an ALL-FUNDS figure that
+  // is internally consistent and roughly 4x the General Fund — and comparing
+  // it against the DB would make this check report a false mismatch on a
+  // correct load, or pass on an incorrect one.
+  //
+  // The ordinal is read off the page's own caption, never configured. See
+  // generalFundCellIndex.
+  const k = generalFundCellIndex(pageText, raw[0], cells.length);
+  return { value: cells[k], cells, row: hits[0], cellIndex: k };
+}
+
+/**
+ * Which money cell of the Total row is the General Fund, from the page's own
+ * printed column caption.
+ *
+ * ⚠ Independent of the loader and of verify-wa-rederive.mjs, as everything in
+ * this file is. It answers 0 whenever the caption cannot be located, which is
+ * what this code did unconditionally before Duvall, so no existing entity can
+ * move; and when it does answer non-zero, the figure it selects is compared
+ * against the database, so a wrong answer is a loud mismatch rather than a
+ * quiet pass.
+ */
+function generalFundCellIndex(pageText, totalRow, ncells) {
+  const bands = cellBands(totalRow, ncells);
+  if (!bands) return 0;
+  const lines = pageText.split('\n');
+  const end = captionBlockEnd(lines);
+  const stacks = bands.map(() => []);
+  for (let i = 0; i < end; i++) {
+    for (const m of lines[i].matchAll(/\S+(?: \S+)*/g)) {
+      const mid = (m.index + m.index + m[0].length) / 2;
+      const k = bands.findIndex((b) => mid >= b.left && mid < b.right);
+      if (k >= 0) stacks[k].push(m[0]);
+    }
+  }
+  // ⚠ The caption is STACKED before the exclusion is tested. Bainbridge FY2014
+  // prints `General` over `Obligation Bond` on two lines, so a single line's
+  // group is the bare word `General` and what disqualifies it is below.
+  // `General Governmental` must still be ACCEPTED — Tacoma FY2003 prints that
+  // over a real General Fund column.
+  const hits = [];
+  stacks.forEach((c, k) => {
+    if (/general(?!\s*(?:government(?!al)|obligation))/i.test(c)) hits.push(k);
+  });
+  if (hits.length === 1) return hits[0];
+  if (hits.length > 1) return hits.includes(0) ? 0 : hits[0];
+  return 0;
+}
+
+/** Column bands on a `-table` total row, by the midpoint-of-gap rule. */
+function cellBands(line, ncells) {
+  const spans = [];
+  MONEY_RE.lastIndex = 0;
+  let m;
+  while ((m = MONEY_RE.exec(line)) !== null) {
+    if (!/^\d+$/.test(m[0].replace(/[(),\s]/g, ''))) continue;
+    spans.push({ start: m.index, end: m.index + m[0].length });
+  }
+  if (spans.length !== ncells || spans.length < 2) return null;
+  return spans.map((c, k) => ({
+    left: k === 0 ? spans[0].start - (spans[1].start - spans[0].start) / 2 : (spans[k - 1].end + spans[k].start) / 2,
+    right: k === spans.length - 1 ? Infinity : (spans[k].end + spans[k + 1].start) / 2,
+  }));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -829,7 +950,7 @@ async function main() {
           const label = `${e.key} FY${fy} ${ds}`;
           checked++;
           try {
-            const ind = findStatementPage(pages, label);
+            const ind = findStatementPage(pages, label, fy);
             assertPageYear(ind.text, fy, label);
             const units = unitsOf(ind.text);
             if (!unitsSeen.has(units)) unitsSeen.set(units, []);

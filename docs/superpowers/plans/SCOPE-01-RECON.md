@@ -1439,3 +1439,85 @@ silently, because nothing measures whether it is complete. The seam detector doe
 * **Step 3, Chris's copy review — the gate.** Nothing ships until that happens.
 * The label currently renders on the city dashboard's summary panel. Whether it should also sit on
   the icicle/sunburst headers is a design call worth making once the copy is settled.
+
+---
+
+## Task 11 — re-measuring the six drifted expectations (2026-10-06)
+
+`scripts/classifyFundScope.mjs` had been **INERT FROM #132 (2026-09) TO
+2026-10-06**. Six problems across five registry entries made the partition gate
+refuse to write, so for roughly a month it measured nothing. It failed CLOSED
+and every loader in those families writes `fund_scope` directly, so no row was
+mis-stamped — but a gate that cannot run is how an invariant stops being read.
+The file's own note asked for this session by name.
+
+### 11.1 Pattern bug, or did the table grow?
+
+The gate reports both as one message ("claims N rows, MORE than the M Task 1
+recorded — OVER-MATCHING, fix the pattern"), and they need opposite responses.
+They were told apart by measuring three things per entry, never by assuming:
+
+1. **Does every claimed string belong to that publisher?** All six patterns are
+   anchored `^...$` on the publisher's full report title. None can reach
+   another source.
+2. **Is any string claimed by more than one entry?** Zero, for all six.
+3. **Does the entity count reconcile with that load's own record?** Yes, for
+   all six — and this is the decisive one, because it is an independent number
+   nobody was editing to make a gate pass.
+
+### 11.2 The measurements
+
+Read with a paged query under a total order on `id`. ⚠ `DISTINCT ids == rows`
+is asserted on every line — a paged read over this table has silently
+duplicated rows four times, and that equality is the guard that catches it. The
+whole table measured 287,039 rows / 287,039 distinct ids.
+
+| entry | rows | distinct ids | strings | entities | reconciles with |
+|---|---|---|---|---|---|
+| `mi-treasury-f65-gf` | 58,228 | 58,228 | 32 | 1,856 | MI F-65 sweep: 1,856 units |
+| `mi-treasury-f65-tg` | 58,228 | 58,228 | 32 | 1,856 | same sweep, other scope |
+| `fl-dfs-afr` | 12,764 | 12,764 | 34 | 479 | FL DFS #132: 479 governments |
+| `pa-dced-clgs30-muni` | 50,034 | 50,034 | 20 | 2,553 | PA DCED #133 |
+| `pa-dced-clgs30-county` | 1,044 | 1,044 | 20 | 66 | PA DCED #133 |
+| `in-county-acfr-tg` | 198 | 198 | 198 | 17 | IN county route: 17 GAAP counties |
+
+Cross-sums, each matching a figure recorded by that milestone and not by this
+one: MI 58,228 × 2 = **116,456 rows**; PA 50,034 + 1,044 = **51,078 rows**
+across 2,553 + 66 = **2,619 governments**.
+
+**Verdict: TABLE GREW, six times. No pattern was changed.** Three entries
+carried pilot-era counts (MI 64 + 64, FL 190) measured before their statewide
+sweeps landed; three (`pa-dced-clgs30-muni`, `pa-dced-clgs30-county`,
+`in-county-acfr-tg`) had **no expectation at all**, which is the worse failure —
+an entry claiming rows nobody ever measured.
+
+### 11.3 The write was proved to be a no-op before it was authorised
+
+Re-measuring an expectation makes a gate pass; it does not prove the rows
+underneath are right. So every claimed row was compared against what the
+registry would stamp it:
+
+```
+already agree with the registry : 276,258
+unclaimed (stay unknown)        :  10,781
+WOULD CHANGE                    :       0
+```
+
+**Zero.** The loaders and the registry agree on all 276,258 rows, which turns
+the old note's claim that "nothing is mis-stamped" from an assumption into a
+measurement. The whole-corpus write was therefore NOT run — 276k identical
+updates is churn against production with no effect.
+
+### 11.4 What changed in the repo
+
+* `EXPECTED_ROWS` moved out of `scripts/classifyFundScope.mjs` into
+  `scripts/data/fundScopeExpectations.mjs`. ⚠ Not cosmetic: a test may not
+  import a module carrying a shebang (CRLF + Vite's shebang strip takes the
+  whole suite down with a `SyntaxError` naming no file), and the new tests
+  import these numbers.
+* `checkPartition` moved to `scripts/lib/fundScope.mjs` for the same reason and
+  now takes its expectations as a parameter, so the pure library carries no
+  milestone's row counts.
+* `tests/fundScope.test.mjs` pins all six values, the MI halves' equality, the
+  PA halves' sum, and — the one that prevents a recurrence — that **every**
+  registry entry has an expectation at all.

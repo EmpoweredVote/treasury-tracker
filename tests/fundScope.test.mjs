@@ -352,3 +352,98 @@ describe('the shipped registry', () => {
     expect(ids.every((id) => /^[a-z0-9-]+$/.test(id))).toBe(true);
   });
 });
+
+// ── `--only <entryId>`: scoping a write without weakening the partition ──────
+//
+// The whole-corpus gate can be held red for YEARS by an entry nobody on the
+// current milestone can adjudicate — Redmond shipped with fund_scope='unknown'
+// for exactly that reason, which made the site tell readers "we have not
+// verified which funds this figure covers" about 22 rows whose General Fund
+// column had been independently re-derived and audited.
+//
+// `--only` must therefore let one clean entry be written while OTHER entries
+// are broken, WITHOUT becoming a quiet --force: a problem involving the
+// selected entry still blocks.
+import { checkPartition } from '../scripts/lib/fundScope.mjs';
+
+describe('checkPartition --only scoping', () => {
+  // Local expectations: the pure function takes them as a parameter so the
+  // library carries no milestone's row counts.
+  const EXP = { 'wa-sao': 308, 'mi-treasury-f65-gf': 64 };
+  const partition = (rowsById) => ({
+    byEntry: new Map(Object.entries(rowsById).map(([id, rows]) => [id, { scope: 'general_fund', sources: [`src-${id}`], rows }])),
+    unknownRows: 0,
+    overlaps: [],
+  });
+
+  it('still blocks when the SELECTED entry is the one that is wrong', () => {
+    // wa-sao claims more than expected -> must block even under --only.
+    const r = checkPartition(partition({ 'wa-sao': 999999 }), 999999, { only: 'wa-sao', expected: EXP });
+    expect(r.ok).toBe(false);
+    expect(r.problems.join(' ')).toMatch(/wa-sao/);
+  });
+
+  it('does NOT block on a problem that belongs to a DIFFERENT entry', () => {
+    // A foreign entry drifting must not hold the selected one hostage.
+    const r = checkPartition(
+      partition({ 'wa-sao': 308, 'mi-treasury-f65-gf': 58228 }), 58536, { only: 'wa-sao', expected: EXP });
+    expect(r.ok).toBe(true);
+    expect(r.deferred.join(' ')).toMatch(/mi-treasury-f65-gf/);
+  });
+
+  it('blocks on an overlap that involves the selected entry', () => {
+    const p = partition({ 'wa-sao': 308 });
+    p.overlaps = [{ src: 'WA State Auditor — x', hits: ['wa-sao', 'other'], rows: 1 }];
+    const r = checkPartition(p, 308, { only: 'wa-sao', expected: EXP });
+    expect(r.ok).toBe(false);
+  });
+
+  it('without --only, behaves exactly as before — any problem blocks', () => {
+    const r = checkPartition(partition({ 'wa-sao': 308, 'mi-treasury-f65-gf': 58228 }), 58536, { expected: EXP });
+    expect(r.ok).toBe(false);
+  });
+});
+
+// ── The EXPECTED_ROWS table must describe the table as it is TODAY ───────────
+//
+// classifyFundScope was INERT from #132 (2026-09) to 2026-10-06: five entries
+// carried pilot-era counts while four statewide sweeps landed, so the gate
+// refused to write and measured nothing for a month. It failed CLOSED, so no
+// row was mis-stamped — but a gate that cannot run is not a gate.
+//
+// These pin the re-measured values so the same drift is a test failure next
+// time rather than a silent refusal nobody reads.
+import { EXPECTED_ROWS } from '../scripts/data/fundScopeExpectations.mjs';
+
+describe('EXPECTED_ROWS covers every statewide family', () => {
+  it('carries the re-measured counts for the four 2026 statewide sweeps', () => {
+    // Each number was measured in the live table with the entry's own anchored
+    // pattern, with DISTINCT ids equal to the row count and zero strings
+    // claimed by any other entry. Entity counts independently reconcile with
+    // each sweep's own record.
+    expect(EXPECTED_ROWS['mi-treasury-f65-gf']).toBe(58228);   // 1,856 units
+    expect(EXPECTED_ROWS['mi-treasury-f65-tg']).toBe(58228);   // 1,856 units
+    expect(EXPECTED_ROWS['fl-dfs-afr']).toBe(12764);           // 479 govts
+    expect(EXPECTED_ROWS['pa-dced-clgs30-muni']).toBe(50034);  // 2,553 munis
+    expect(EXPECTED_ROWS['pa-dced-clgs30-county']).toBe(1044); // 66 counties
+    expect(EXPECTED_ROWS['in-county-acfr-tg']).toBe(198);      // 17 counties
+  });
+
+  it('keeps the two Michigan halves equal — they are one sweep split by scope', () => {
+    // 58,228 x 2 = 116,456, the MI F-65 statewide total. If these ever diverge,
+    // one scope lost rows the other kept.
+    expect(EXPECTED_ROWS['mi-treasury-f65-gf']).toBe(EXPECTED_ROWS['mi-treasury-f65-tg']);
+  });
+
+  it('keeps the two Pennsylvania halves summing to the sweep total', () => {
+    expect(EXPECTED_ROWS['pa-dced-clgs30-muni'] + EXPECTED_ROWS['pa-dced-clgs30-county'])
+      .toBe(51078);
+  });
+
+  it('gives EVERY registry entry an expectation, so none can claim unmeasured', () => {
+    const missing = FUND_SCOPE_REGISTRY
+      .map((e) => e.id)
+      .filter((id) => EXPECTED_ROWS[id] === undefined);
+    expect(missing, `registry entries with no EXPECTED_ROWS: ${missing.join(', ')}`).toEqual([]);
+  });
+});

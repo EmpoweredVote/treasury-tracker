@@ -498,6 +498,7 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
                   scope={operatingData.metadata.fundScope}
                   basis={operatingData.metadata.basis}
                   auditGrade={operatingData.metadata.auditGrade}
+                  accountingBasis={operatingData.metadata.accountingBasis}
                   datasetLabel={revenueData ? 'Money out' : undefined}
                 />
               )}
@@ -506,6 +507,7 @@ const PlainLanguageSummary: React.FC<PlainLanguageSummaryProps> = ({
                   scope={revenueData.metadata.fundScope}
                   basis={revenueData.metadata.basis}
                   auditGrade={revenueData.metadata.auditGrade}
+                  accountingBasis={revenueData.metadata.accountingBasis}
                   datasetLabel={operatingData ? 'Money in' : undefined}
                   withExplainer={!operatingData}
                 />

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { AUDIT_GRADE, AUDIT_GRADE_VALUES, validateAxisRegistry } from '../scripts/lib/budgetAxes.mjs';
 import { AUDIT_GRADE_REGISTRY, gradeFor, mnOsaGradeFor } from '../scripts/data/auditGradeRegistry.mjs';
+import { ACCOUNTING_BASIS_REGISTRY } from '../scripts/data/accountingBasisRegistry.mjs';
 
 describe('audit grade registry', () => {
   it('is structurally valid', () => {
@@ -219,5 +220,68 @@ describe('gradeFor', () => {
   // discovered here rather than in production.
   it('cannot tell El Paso County TX from El Paso County CO by label alone', () => {
     expect(gradeFor(elPaso(2020)).entryId).toBe('co-springs-epc-acfr-gf');
+  });
+});
+
+// ── Duvall, WA — the first WA entity graded, and it is NOT GAAP ─────────────
+describe('WA SAO — Duvall is audited_ocboa, never audited_gaap', () => {
+  const duvall = (fy, kind = 'Revenue by Source') =>
+    `WA State Auditor — Duvall Annual Financial Report FY${fy} (General Fund, ${kind})`;
+  const redmond = (fy, kind = 'Revenue by Source') =>
+    `WA State Auditor — Redmond Annual Financial Report FY${fy} (General Fund, ${kind})`;
+
+  it('grades every loaded Duvall year audited_ocboa', () => {
+    // ⚠⚠ `audited_gaap` here would be a FALSE PUBLIC CLAIM about a document
+    // whose auditor issues an ADVERSE opinion on U.S. GAAP in so many words.
+    for (const fy of [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]) {
+      for (const kind of ['Revenue by Source', 'Expenditure by Function']) {
+        expect(gradeFor(duvall(fy, kind)).value, `FY${fy} ${kind}`)
+          .toBe(AUDIT_GRADE.AUDITED_OCBOA);
+      }
+    }
+  });
+
+  it('does NOT claim Redmond, which shares the publisher prefix', () => {
+    // ⚠ Redmond and Duvall are both King County, both `WA State Auditor — `,
+    // and they share no accounting basis. A prefix match would grade eleven
+    // Redmond years off Duvall's opinion.
+    expect(gradeFor(redmond(2024))).toEqual({ value: 'unknown', entryId: null });
+    expect(gradeFor(redmond(2024, 'Expenditure by Function')))
+      .toEqual({ value: 'unknown', entryId: null });
+  });
+
+  it('does not grade a Duvall year outside the loaded window', () => {
+    // FY2015 and earlier are excluded by the floor rule and were never read;
+    // FY2026 does not exist yet. Neither inherits this opinion.
+    expect(gradeFor(duvall(2015))).toEqual({ value: 'unknown', entryId: null });
+    expect(gradeFor(duvall(2026))).toEqual({ value: 'unknown', entryId: null });
+  });
+
+  it('agrees with the accounting-basis registry about which rows are Duvall', () => {
+    // The two axes carry the two halves of one fact — AUDITED and NOT GAAP —
+    // so a row either axis claims and the other does not is a defect in one of
+    // them. Pinning it here is cheaper than discovering it as a chip that says
+    // "cash basis" next to a grade that says GAAP.
+    const basis = ACCOUNTING_BASIS_REGISTRY.find((e) => e.id === 'wa-sao-duvall-cash');
+    // ⚠⚠ SAMPLE OUTSIDE THE WINDOW TOO, or this test cannot fail. Sampling
+    // only years inside both patterns passes whether or not they agree — and
+    // they did NOT: the basis entry matched FY\d{4} while the grade entry
+    // enumerates FY2016-FY2025, so a future FY2026 load would have landed
+    // `accounting_basis = cash` (an unevidenced claim about a document nobody
+    // has read, which this registry's own header forbids) next to
+    // `audit_grade = unknown`.
+    for (const fy of [2015, 2026, 2031]) {
+      for (const kind of ['Revenue by Source', 'Expenditure by Function']) {
+        expect(basis.match.test(duvall(fy, kind)), `FY${fy} ${kind} basis`).toBe(false);
+        expect(gradeFor(duvall(fy, kind)).value, `FY${fy} ${kind} grade`).toBe('unknown');
+      }
+    }
+    for (const fy of [2016, 2020, 2025]) {
+      for (const kind of ['Revenue by Source', 'Expenditure by Function']) {
+        expect(basis.match.test(duvall(fy, kind)), `FY${fy} ${kind}`).toBe(true);
+        expect(gradeFor(duvall(fy, kind)).entryId).toBe('wa-sao-duvall-ocboa');
+      }
+    }
+    expect(basis.match.test(redmond(2024))).toBe(false);
   });
 });
