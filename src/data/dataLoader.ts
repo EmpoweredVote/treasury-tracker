@@ -7,6 +7,7 @@
 
 import { normalizeScope, normalizeReportingEntity } from './fundScopeVocabulary';
 import { normalizeAuditGrade } from './auditGrade';
+import { normalizeAccountingBasis } from './accountingBasisVocabulary';
 import { chooseDisplaySeries, normalizeBasis, type SeriesKey } from './budgetSeries';
 import type { BudgetData, BudgetCategory, FederalContext, LinkedTransactionSummary, Municipality, OrgFinancialSummary, SearchResult, HydratedMunicipality } from '../types/budget';
 import type { EntityAlias } from '../utils/entityRouting';
@@ -431,8 +432,13 @@ export function pickBudgetForSeries(
 /**
  * Transform API response to BudgetData format.
  * City object is passed separately since ev-accounts budgets don't embed municipality.
+ *
+ * ⚠ Exported for the same reason `pickBudgetForSeries` above is: it is a pure
+ * function over an API row, and the axis normalisation it performs is the only
+ * place "absent means unknown" is decided. Testing it through a mocked fetch
+ * would test the mock. See src/data/dataLoader.accountingBasis.test.ts.
  */
-function transformAPIResponse(budget: any, categories: BudgetCategory[], city?: any): BudgetData {
+export function transformAPIResponse(budget: any, categories: BudgetCategory[], city?: any): BudgetData {
   return {
     budgetId: budget.id,
     metadata: {
@@ -455,7 +461,14 @@ function transformAPIResponse(budget: any, categories: BudgetCategory[], city?: 
       // legal value. ⚠ Absent becomes 'unknown' -- the honest reading of "the API
       // has not told us" -- and NEVER a graded value, which would have Treasury
       // Tracker assert an audit it never read.
-      auditGrade: normalizeAuditGrade(budget.audit_grade)
+      auditGrade: normalizeAuditGrade(budget.audit_grade),
+      // ACCOUNTING-BASIS: normalised here like the others. ⚠ `ev-accounts-api`
+      // does NOT return this column yet — it selects budget fields one by one —
+      // so today every row takes the absent path and reads 'unknown', which
+      // renders no chip at all. That is deliberate and is why the frontend can
+      // ship ahead of the API: the failure direction is silence, never a basis
+      // claim TT has not read.
+      accountingBasis: normalizeAccountingBasis(budget.accounting_basis)
     },
     categories: categories
   };

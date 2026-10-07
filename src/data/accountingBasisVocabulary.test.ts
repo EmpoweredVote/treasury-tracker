@@ -66,4 +66,20 @@ describe('isComparableBasisPair — the TS mirror of the JS rule', () => {
     expect(isComparableBasisPair(null, 'cash')).toBe(true);
     expect(isComparableBasisPair(undefined, undefined)).toBe(true);
   });
+
+  it('treats an EMPTY STRING as absence, not as a basis that differs', () => {
+    // ⚠ The type says this cannot happen; the runtime disagrees. An API that
+    // returns `""` for a column it has not populated is the shape every axis
+    // in this repo has already met, and `""` read as a KNOWN basis would
+    // REFUSE a comparison on the strength of a blank field.
+    //
+    // ⚠⚠ The guard that makes this true is also what broke `npm run build`:
+    // `v !== ''` against a narrowed union is a no-overlap error under
+    // `tsc -b`, which is the build, while `tsc --noEmit` passes it. This test
+    // is why the guard is kept and cast rather than deleted to appease the
+    // compiler.
+    expect(isComparableBasisPair('' as never, 'gaap')).toBe(true);
+    expect(isComparableBasisPair('cash', '' as never)).toBe(true);
+    expect(isComparableBasisPair('' as never, '' as never)).toBe(true);
+  });
 });

@@ -71,8 +71,21 @@ export function isComparableBasisPair(
   a: AccountingBasis | null | undefined,
   b: AccountingBasis | null | undefined,
 ): boolean {
+  // ⚠⚠ THE EMPTY-STRING GUARD IS DELIBERATE AND THE CAST IS WHY IT COMPILES.
+  // `v !== ''` against the narrowed union is a no-overlap error under
+  // `tsc -b` — which is what `npm run build` runs — while `tsc --noEmit`
+  // accepts it. That difference left this branch's build RED from the commit
+  // that added this function until it was caught by actually running the
+  // build; it is the same "tests pass, build fails" trap this repo has hit
+  // before with `erasableSyntaxOnly`.
+  //
+  // The guard is kept rather than deleted to appease the compiler, because the
+  // type is a claim about callers and `''` is a thing APIs really return for a
+  // column they have not populated. Read as a KNOWN basis, `''` would REFUSE a
+  // comparison on the strength of a blank field. Pinned by
+  // "treats an EMPTY STRING as absence" in the sibling test.
   const known = (v: AccountingBasis | null | undefined): boolean =>
-    typeof v === 'string' && v !== '' && v !== 'unknown';
+    typeof v === 'string' && (v as string) !== '' && v !== 'unknown';
   if (!known(a) || !known(b)) return true;   // absence never blocks
   return a === b;
 }
