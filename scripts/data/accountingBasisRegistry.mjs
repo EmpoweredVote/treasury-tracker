@@ -51,7 +51,19 @@ export const ACCOUNTING_BASIS_REGISTRY = [
   {
     // ⚠ FIRST, and named explicitly. See the header.
     id: 'wa-sao-duvall-cash',
-    match: /^WA State Auditor — Duvall Annual Financial Report FY\d{4} \(General Fund, (?:Expenditure by Function|Revenue by Source)\)$/,
+    // ⚠⚠ THE YEARS ARE ENUMERATED TO THE LOADED WINDOW, exactly as the
+    // audit-grade twin's are. `FY\d{4}` looks harmless and is not: the two
+    // entries carry the two halves of one fact about one document, so a year
+    // inside one pattern and outside the other is a row published with half a
+    // description. A future FY2026 load would have landed `accounting_basis =
+    // cash` — an unevidenced claim about a document NOBODY HAS READ, which
+    // this file's own header forbids — beside `audit_grade = unknown`.
+    // FY2015 and earlier were never read either (the floor rule excludes them)
+    // and must not inherit the basis from a document they are not in.
+    // tests/auditGradeRegistry.test.mjs asserts the two agree, sampling years
+    // OUTSIDE the window as well as inside it, because a sample taken only
+    // inside passes whether or not they agree.
+    match: /^WA State Auditor — Duvall Annual Financial Report FY(?:201[6-9]|202[0-5]) \(General Fund, (?:Expenditure by Function|Revenue by Source)\)$/,
     value: ACCOUNTING_BASIS.CASH,
     evidence: {
       document: "City of Duvall FY2023 Financial Statements Audit Report, WA State Auditor "

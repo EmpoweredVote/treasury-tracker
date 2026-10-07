@@ -263,6 +263,19 @@ describe('WA SAO — Duvall is audited_ocboa, never audited_gaap', () => {
     // them. Pinning it here is cheaper than discovering it as a chip that says
     // "cash basis" next to a grade that says GAAP.
     const basis = ACCOUNTING_BASIS_REGISTRY.find((e) => e.id === 'wa-sao-duvall-cash');
+    // ⚠⚠ SAMPLE OUTSIDE THE WINDOW TOO, or this test cannot fail. Sampling
+    // only years inside both patterns passes whether or not they agree — and
+    // they did NOT: the basis entry matched FY\d{4} while the grade entry
+    // enumerates FY2016-FY2025, so a future FY2026 load would have landed
+    // `accounting_basis = cash` (an unevidenced claim about a document nobody
+    // has read, which this registry's own header forbids) next to
+    // `audit_grade = unknown`.
+    for (const fy of [2015, 2026, 2031]) {
+      for (const kind of ['Revenue by Source', 'Expenditure by Function']) {
+        expect(basis.match.test(duvall(fy, kind)), `FY${fy} ${kind} basis`).toBe(false);
+        expect(gradeFor(duvall(fy, kind)).value, `FY${fy} ${kind} grade`).toBe('unknown');
+      }
+    }
     for (const fy of [2016, 2020, 2025]) {
       for (const kind of ['Revenue by Source', 'Expenditure by Function']) {
         expect(basis.match.test(duvall(fy, kind)), `FY${fy} ${kind}`).toBe(true);

@@ -46,10 +46,17 @@ target_column_label = 'General Fund'
     because TestDuvallShape reads 5,941,972 (General Fund Taxes) and refuses
     8,108,336 (the memo cell one position to its left) out of that same column.
 
-target_column_header = '001 General Fund'
+target_column_header = '001 General'
+    ⚠⚠ THREE WORDS, NOT FOUR. It is NOT '001 General Fund', and this docstring
+    said so for a while: `-table` renders the header block COLUMN-WISE, so the
+    neighbouring columns' header text falls BETWEEN `001 General` and `Fund`
+    and NO contiguous match — squashed or not — can span them. The four-word
+    form matches zero pages in every year of the window. See DUVALL-RECON.md §7
+    for the rendered header block.
+
     ⚠⚠ The statement REPEATS, once per group of funds, with identical row
-    labels and DIFFERENT fund columns, and `001 General Fund` is on the FIRST
-    page every time. Selecting a later page would read a different fund's money
+    labels and DIFFERENT fund columns, and the General Fund column is on the
+    FIRST page every time. Selecting a later page would read a different fund's money
     under the General Fund label. Exactly one page per fiscal year prints this
     header, which is what makes the biennial year-selection below unambiguous.
 
@@ -57,9 +64,14 @@ select_fiscal_year = True
     ⚠⚠ DUVALL IS AUDITED BIENNIALLY. ARN 1036127 is ONE document carrying a
     complete statement for FY2022 AND for FY2023, saved under both filenames
     (identical bytes — the sha manifest pins one digest under two paths, which
-    is correct and must not be "fixed"). Taking the earliest qualifying page
-    would publish FY2022's money under the FY2023 label and tie at $0. The page
-    is chosen by its own printed `For the Year Ended December 31, <FY>`.
+    is correct and must not be "fixed"). The page is chosen by its own printed
+    `For the Year Ended December 31, <FY>`, never by position.
+
+    ⚠⚠ MEASURED, AND INVERTED FROM THE OBVIOUS GUESS: that document prints
+    FY2023 FIRST and FY2022 SECOND (find_statement_pages returns [11, 17] and
+    chunk 11 is FY2023). So taking the earliest qualifying page would publish
+    FY2023's money under the FY2022 label — not the other way round — and tie
+    at exactly $0 doing it. Do not reason about which year "must" come first.
 
 leading_account_code = True
     BARS line codes LEAD every label: `310 Taxes`, `30810 Reserved`,

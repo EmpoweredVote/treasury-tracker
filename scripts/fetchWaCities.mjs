@@ -216,8 +216,12 @@ export const REDMOND_ARNS = {
  * will pin ONE digest under TWO paths, which is CORRECT and must not be
  * "fixed": they are the same document. The statement is then chosen by its own
  * printed `For the Year Ended December 31, <FY>` caption, never by position —
- * see select_statement_for_fy in scripts/lib/acfrGF.py. Taking the first
- * candidate would publish FY2022's money under FY2023 and tie at exactly $0.
+ * see select_statement_for_fy in scripts/lib/acfrGF.py.
+ *
+ * ⚠⚠ MEASURED, AND INVERTED FROM THE OBVIOUS GUESS: ARN 1036127 prints FY2023
+ * FIRST and FY2022 SECOND, so taking the first candidate would publish
+ * FY2023's money under the FY2022 label — not the other way round — and tie at
+ * exactly $0 doing it.
  *
  * Audit periods read from BeginAuditPeriod/EndAuditPeriod, never inferred:
  *   ARN 69662   covers FY2003-FY2004   ARN 1013701 covers FY2012-FY2013

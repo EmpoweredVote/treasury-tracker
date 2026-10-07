@@ -5,10 +5,28 @@
  *
  * ⚠⚠ DUVALL IS THE FIRST NON-GAAP ENTITY IN THIS ROSTER. It reports on the
  * BARS regulatory basis and its auditor issues TWO opinions in one report:
- * UNMODIFIED on that regulatory basis and ADVERSE on U.S. GAAP. The rows this
- * driver writes are therefore `audit_grade = audited_ocboa` and
- * `accounting_basis = cash` — audited, and not GAAP. `audited_gaap` here would
- * be a false public claim about a document that explicitly denies GAAP.
+ * UNMODIFIED on that regulatory basis and ADVERSE on U.S. GAAP. Its rows must
+ * end up `audit_grade = audited_ocboa` and `accounting_basis = cash` — audited,
+ * and not GAAP. `audited_gaap` here would be a false public claim about a
+ * document that explicitly denies GAAP.
+ *
+ * ⚠⚠ THIS DRIVER WRITES NEITHER OF THOSE. Both arrive from SEPARATE stampers
+ * that must be run AFTER it, every time, including after a single `--fy`
+ * reload:
+ *
+ *     node scripts/stampBudgetAxes.mjs
+ *     node scripts/classifyFundScope.mjs --only wa-sao
+ *     node scripts/stampAuditGrade.mjs
+ *     node scripts/stampAccountingBasis.mjs
+ *     node scripts/verifyAxisStamps.mjs --like "WA State Auditor — Duvall%"
+ *
+ * ⚠⚠ A LOAD IS NOT A STAMP, and this is not a theoretical warning. loadEntity
+ * DELETES AND RE-INSERTS, so a reload gives the rows NEW IDS carrying the
+ * column defaults — `unknown` on all five axes. Reloading FY2016-FY2019 to fix
+ * a label did exactly that, and every partition gate stayed green over it
+ * because they all count rows by `data_source` and none of them reads the
+ * column. Four years were published reading "Audit status not established"
+ * about an audited report. `verifyAxisStamps.mjs` is the check that sees it.
  *
  * Thin driver over scripts/lib/waSaoLoad.mjs -- every guard (FY-vs-filename
  * cross-check, $0 tie gate, mapped-total == computed_total, sanity ceiling,
