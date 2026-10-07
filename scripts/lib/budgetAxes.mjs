@@ -90,6 +90,43 @@ export const AUDIT_GRADE = Object.freeze({
 });
 export const AUDIT_GRADE_VALUES = Object.freeze(Object.values(AUDIT_GRADE));
 
+/**
+ * HOW A FIGURE WAS MEASURED — the accounting basis of the statements it came
+ * from. A FOURTH axis, independent of the other three.
+ *
+ * ⚠⚠ NOT `basis`. `treasury.budgets.basis` is CHECK (basis IN
+ * ('actual','adopted','unknown')) and means "closed-year actual, or adopted
+ * budget". That is a different question and it already earns its keep —
+ * overloading it would destroy both meanings.
+ *
+ * ⚠⚠ NOT `audit_grade` EITHER. That axis is ASSURANCE: how much independent
+ * checking stands behind the figure. Measurement and assurance are
+ * independent. Brown County SD is audited to Government Auditing Standards ON
+ * A MODIFIED CASH BASIS, and an UNAUDITED cash-basis source must also be
+ * describable — deriving this axis from `audited_ocboa` would make that source
+ * invisible and would re-encode the very confusion the OCBOA migration was
+ * written to escape.
+ *
+ * ⚠ ASSURANCE IS NOT COMPARABILITY, and neither is this axis a ranking. `cash`
+ * is not a worse `gaap`; it is a different measurement. A reader comparing an
+ * OCBOA General Fund against a GAAP one is comparing two different things, and
+ * saying so is this axis's whole job.
+ *
+ * Every value is grounded in a document TT holds or is loading. No speculative
+ * values: an unused vocabulary value is a claim nobody can falsify.
+ */
+export const ACCOUNTING_BASIS = Object.freeze({
+  /** U.S. GAAP. Redmond WA, Aberdeen SD, every ACFR-derived family. */
+  GAAP: 'gaap',
+  /** Modified cash. Brown County SD — statements titled `... - MODIFIED CASH BASIS`. */
+  MODIFIED_CASH: 'modified_cash',
+  /** Cash. Duvall WA — WA BARS regulatory basis, ADVERSE opinion on U.S. GAAP. */
+  CASH: 'cash',
+  /** Nobody has looked. The default, and a correct outcome rather than a shortfall. */
+  UNKNOWN: 'unknown',
+});
+export const ACCOUNTING_BASIS_VALUES = Object.freeze(Object.values(ACCOUNTING_BASIS));
+
 function hasEvidence(entry) {
   const e = entry?.evidence;
   if (!e || typeof e !== 'object') return false;
