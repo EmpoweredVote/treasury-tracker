@@ -820,6 +820,71 @@ export const AUDIT_GRADE_REGISTRY = [
     },
   },
   {
+    // ── 2026-10-07, issue #219. THE SECOND WA ENTITY GRADED, and the first at
+    // plain `audited_gaap`. Redmond, Bellevue and Kent all carried `unknown`
+    // while DUVALL — the smallest of the four, and the only non-GAAP filer —
+    // read "Audited". All four are WA State Auditor documents, so a reader
+    // comparing them saw the small city marked audited and the large ones
+    // marked unknown, with REDMOND HOLDING THE STRONGER OPINION of the two.
+    //
+    // Nothing regressed to cause that: before Duvall was graded, nothing in WA
+    // was marked audited and the contrast could not arise. A latent gap became
+    // reader-facing, which is when it became worth closing.
+    //
+    // ⚠⚠ THIS IS NOT A WIDENING OF `wa-sao-duvall-ocboa`, AND MUST NEVER BE.
+    // `audited_ocboa` means audited on a basis OTHER than GAAP. Redmond files a
+    // GAAP ACFR, so inheriting Duvall's grade would be a false public claim in
+    // the opposite direction — and because all four entities share the
+    // `WA State Auditor — ` prefix, a prefix pattern would do it silently. The
+    // entity name is literal and anchored at both ends, exactly as Duvall's is.
+    //
+    // ⚠⚠ NOR DOES IT COPY `wa-sao-gaap`'s SHORTCUT. That accounting-basis entry
+    // infers its value from the statement CAPTION, a deviation recorded in its
+    // own evidence string. Assurance is a stronger claim than measurement
+    // basis: inferring "audited" from a caption is how a wrong audit grade
+    // ships. Every year below was read from its own opinion letter.
+    //
+    // ⚠ YEARS ARE ENUMERATED to the loaded window — FY2011-FY2016 and
+    // FY2020-FY2024. FY2017-FY2019 are in the corpus but UNREADABLE (a +29
+    // byte-shifted text layer in which every label decodes and no digit does),
+    // and FY2006-FY2010 are readable but excluded by the floor rule. None of
+    // the three groups may inherit an opinion nobody read for them.
+    id: 'wa-sao-redmond-audited-gaap',
+    match: /^WA State Auditor — Redmond Annual Financial Report FY(?:201[1-6]|202[0-4]) \(General Fund, (?:Expenditure by Function|Revenue by Source)\)$/,
+    value: AUDIT_GRADE.AUDITED_GAAP,
+    evidence: {
+      document: 'City of Redmond annual financial reports, WA State Auditor, read from the '
+        + 'eleven PDFs in docs/Redmond/ — redmond-2011-acfr.pdf through '
+        + 'redmond-2024-acfr.pdf, one per loaded fiscal year. Checked per document by '
+        + 'scripts/verifyCoKsOpinions.py (opinion PRESENT: 11 of 11 in the text layer, 0 '
+        + 'requiring OCR, 0 not found) and scripts/checkOpinionType.py (opinion CLEAN: 11 '
+        + 'of 11, 0 modified, 0 unreadable), whose --selftest passes and is the gate on the '
+        + 'detector itself.',
+      figures: 'EVERY ONE OF THE ELEVEN YEARS carries an unmodified opinion on the basic '
+        + 'financial statements, stated in conformity with GAAP. The opinion sentence reads '
+        + '"In our opinion, the financial statements referred to above present fairly, in '
+        + 'all material respects, the respective financial position of the governmental '
+        + 'activities, the business-type activities, each major fund and the aggregate '
+        + 'remaining fund information of the City of Redmond, as of December 31, <year>, '
+        + 'and the respective changes in financial position and, where applicable, cash '
+        + 'flows thereof for the year then ended in accordance with accounting principles '
+        + 'generally accepted in the United States of America." (FY2011-FY2015 print the '
+        + 'older "in conformity with" wording for the same thing.) '
+        + 'Counted document-wide across all eleven: a clean opinion heading '
+        + '("Unmodified Opinion" FY2016+, "Unqualified Opinion" FY2011-FY2015) appears '
+        + 'TWICE in each, "qualified opinion" with a (?<!un) lookbehind appears ZERO times, '
+        + 'and "adverse opinion" appears ZERO times. No regulatory-basis, BARS-manual or '
+        + 'other-comprehensive-basis language appears anywhere near the opinion sentence, '
+        + 'which is what separates this grade from Duvall\'s audited_ocboa. '
+        + '⚠ THE FIRST "in our opinion" IN EVERY ONE OF THESE DOCUMENTS IS THE FEDERAL '
+        + 'SINGLE-AUDIT COMPLIANCE OPINION ("the City complied, in all material respects, '
+        + 'with the types of compliance requirements..."), which says nothing about the '
+        + 'financial statements. The evidence above is read from a window around the '
+        + 'fair-presentation sentence instead, which is the only place a modifier can mean '
+        + 'the opinion on the statements.',
+    },
+  },
+  {
     // ── 2026-10-06, Duvall phase 2. THE FIRST WA ENTITY GRADED AT ALL, and it
     // is NOT GAAP. Washington's other nine entities in this roster publish
     // GAAP ACFRs and remain `unknown` here because nobody has read their
