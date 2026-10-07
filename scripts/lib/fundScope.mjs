@@ -71,6 +71,45 @@ export function isComparableScope(scope) {
 }
 
 /**
+ * May these two figures be drawn against each other?
+ *
+ * Composes the two axes that decide it: the FUND SCOPE (which funds the figure
+ * covers) and the ACCOUNTING BASIS (how it was measured). Neither excuses the
+ * other.
+ *
+ * ── ⚠⚠ THE RULE IS "REFUSE ONLY WHEN BOTH ARE KNOWN AND DIFFERENT" ──────────
+ *
+ * The inverse is a trap worth naming, because it is the phrasing that sounds
+ * more rigorous. "Comparable only if both are known and equal" is defensible
+ * in the abstract and catastrophic in practice: `accounting_basis` starts at
+ * 100% `unknown` and will stay mostly unknown for a long time — `audit_grade`
+ * is 68% unknown today — so that rule would switch off cross-entity comparison
+ * across nearly the whole site on the day it shipped.
+ *
+ * So the gate fires only on a PROVEN mismatch (Duvall cash vs Redmond GAAP;
+ * Brown County SD modified cash vs Aberdeen SD GAAP) and is otherwise
+ * invisible. This is the same failure-direction discipline the rest of this
+ * module uses, pointed at the other error: never declare two figures
+ * comparable without evidence, and never declare them INcomparable without
+ * evidence either.
+ *
+ * ⚠ `cash` vs `modified_cash` is also a refusal. "Both non-GAAP, therefore
+ * comparable" is the same mistake one level down.
+ *
+ * @param {{scope: string, accountingBasis?: string|null}} a
+ * @param {{scope: string, accountingBasis?: string|null}} b
+ * @returns {boolean}
+ */
+export function isComparablePair(a, b) {
+  if (!a || !b) return false;
+  if (!isComparableScope(a.scope) || !isComparableScope(b.scope)) return false;
+  const known = (v) => typeof v === 'string' && v !== '' && v !== 'unknown';
+  // Absence never blocks. See the warning above.
+  if (!known(a.accountingBasis) || !known(b.accountingBasis)) return true;
+  return a.accountingBasis === b.accountingBasis;
+}
+
+/**
  * @typedef {object} Evidence
  * @property {string} document The independent document reconciled against
  * @property {string} figures  The figures that matched, written out
