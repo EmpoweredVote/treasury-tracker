@@ -30,6 +30,13 @@ import extractBellevue            # noqa: E402
 import extractKent                # noqa: E402
 import extractRedmond             # noqa: E402
 import extractDuvall              # noqa: E402
+# ⚠⚠ THE ONLY TWO `multipage=True` ENTITIES IN THE REPO, and until the
+# multipage refusal was added they were imported NOWHERE in this suite -- so
+# a guard written about the multipage path was tested against no multipage
+# config at all. Importing them is what makes TestMultipageRefusesIgnoredFields
+# non-vacuous: if the refusal is ever widened, these two fail at import.
+import extractAberdeenSD          # noqa: E402
+import extractBrownCountySD       # noqa: E402
 
 # Transcribed from King County FY2020-era GF statement (values thousands-scale
 # in the real document; kept as bare ints here since these tests exercise
@@ -3111,6 +3118,194 @@ class TestDuvallFiscalYearFromFilename(unittest.TestCase):
 
     def test_it_returns_None_when_the_basename_carries_no_year(self):
         self.assertIsNone(fy_from_path('docs/Duvall/statements.pdf'))
+
+
+class TestLeadingAccountCodeShapes(unittest.TestCase):
+    """What `_CODE_AT_START` actually strips -- and what it does NOT.
+
+    ⚠⚠ THIS EXISTS BECAUSE A DOCSTRING CLAIMED MORE THAN THE REGEX DELIVERS.
+    `extractDuvall.py` cited `30810 Reserved` and
+    `388 / 588 Prior Period Adjustments, Net` as codes the flag handles. It
+    handles NEITHER. The claim was harmless for Duvall -- those rows sit
+    outside the revenue and expenditure sections -- but it is exactly the
+    description the next entity's config would be written from, and an
+    unstripped code is read as MONEY by `_MONEY`.
+
+    Pinning the real behaviour here means the next person reads a measured
+    fact instead of an aspiration.
+    """
+
+    def _span(self, line):
+        import lib.acfrGF as mod
+        prev = mod._LEADING_CODE
+        mod._LEADING_CODE = True
+        try:
+            return mod._code_span(line)
+        finally:
+            mod._LEADING_CODE = prev
+
+    def test_a_three_digit_code_is_stripped(self):
+        s = self._span('310 Taxes')
+        self.assertIsNotNone(s)
+        self.assertEqual('310 Taxes'[s[0]:s[1]], '310')
+
+    def test_a_three_digit_code_with_decimals_is_stripped(self):
+        line = '335.01 Bank franchise tax'
+        s = self._span(line)
+        self.assertIsNotNone(s)
+        self.assertEqual(line[s[0]:s[1]], '335.01')
+
+    def test_a_FIVE_digit_code_is_NOT_stripped(self):
+        # `\d{3}` matches '308', then the lookahead demands whitespace and
+        # finds '1'. No match at all -- the whole code stays on the label.
+        self.assertIsNone(self._span('30810 Reserved'))
+
+    def test_a_COMPOUND_code_strips_ONLY_ITS_FIRST_HALF(self):
+        # ⚠⚠ The sharp edge: '588' survives and is left exposed to `_MONEY`.
+        line = '388 / 588 Prior Period Adjustments, Net'
+        s = self._span(line)
+        self.assertIsNotNone(s)
+        self.assertEqual(line[s[0]:s[1]], '388')
+        self.assertIn('588', line[s[1]:])
+
+    def test_the_flag_off_strips_nothing(self):
+        import lib.acfrGF as mod
+        prev = mod._LEADING_CODE
+        mod._LEADING_CODE = False
+        try:
+            self.assertIsNone(mod._code_span('310 Taxes'))
+        finally:
+            mod._LEADING_CODE = prev
+
+
+class TestMultipageRefusesIgnoredFields(unittest.TestCase):
+    """`multipage` takes a different path that reads neither of these fields.
+
+    ⚠⚠ A CONFIG THAT SETS THEM AND ALSO SETS `multipage` GETS NO ERROR AND NO
+    EFFECT. `extract()` branches to `find_statement_span`, which never consults
+    `select_fiscal_year` or `target_column_header` -- both live inside
+    `resolve_statement_page`, on the other branch.
+
+    The consequence is the shape this library is most dangerous in: the config
+    LOOKS like it pins the fiscal year and the column, the extractor quietly
+    takes the earliest qualifying span and the leftmost band, and the result
+    ties at $0 against the document's own total while describing a different
+    year or a different fund. A refusal at construction is the whole fix.
+    """
+
+    def _cfg(self, **kw):
+        base = dict(city='Test, XX', parents=(), root_leaves=(),
+                    revenue_parents=(), revenue_group_members=())
+        base.update(kw)
+        return CityConfig(**base)
+
+    def test_multipage_with_select_fiscal_year_REFUSES(self):
+        with self.assertRaises(ValueError) as e:
+            self._cfg(multipage=True, select_fiscal_year=True)
+        self.assertIn('multipage', str(e.exception).lower())
+
+    def test_multipage_with_target_column_header_REFUSES(self):
+        with self.assertRaises(ValueError) as e:
+            self._cfg(multipage=True, target_column_header='001 General')
+        self.assertIn('multipage', str(e.exception).lower())
+
+    def test_the_refusal_NAMES_the_field_so_the_message_is_actionable(self):
+        with self.assertRaises(ValueError) as e:
+            self._cfg(multipage=True, select_fiscal_year=True)
+        self.assertIn('select_fiscal_year', str(e.exception))
+
+    def test_either_field_ALONE_is_fine(self):
+        self._cfg(select_fiscal_year=True)
+        self._cfg(target_column_header='001 General')
+
+    def test_multipage_ALONE_is_fine(self):
+        # ⚠ Every existing multipage entity must keep constructing. If this
+        # fails, the guard is too wide and will break a shipped extractor.
+        self._cfg(multipage=True)
+
+
+class TestShippedMultipageConfigsStillConstruct(unittest.TestCase):
+    """The refusal must not reach a config that was correct before it existed.
+
+    ⚠ A validation added to `CityConfig.__init__` runs for EVERY entity. These
+    two are the repo's only real `multipage=True` configs; if the guard is ever
+    broadened, this is what says so, loudly, instead of an extractor failing
+    the next time someone runs it by hand.
+    """
+
+    def test_aberdeen_sd_constructs(self):
+        self.assertTrue(extractAberdeenSD.CONFIG.multipage)
+        self.assertFalse(getattr(extractAberdeenSD.CONFIG, 'select_fiscal_year', False))
+
+    def test_brown_county_sd_constructs(self):
+        self.assertTrue(extractBrownCountySD.CONFIG.multipage)
+        self.assertFalse(getattr(extractBrownCountySD.CONFIG, 'select_fiscal_year', False))
+
+    def test_redmond_is_NOT_multipage(self):
+        # ⚠ Its docstring says `multipage=True` only to forbid it -- a grep for
+        # the literal matches the prose. The config itself must stay single-page,
+        # because turning it on silently reopens the FY2007-FY2010 era decision.
+        self.assertFalse(extractRedmond.CONFIG.multipage)
+
+
+TRAILING_PENDING_LINES = [
+    'Revenues',
+    'Property taxes                                   100',
+    'Charges for',
+    'Environment',
+    'Total revenues                                   100',
+]
+TRAILING_PENDING_ANCHOR = 'Total revenues                                   100'
+
+
+class TestTrailingContinuationDiscardsAPendingFragment(unittest.TestCase):
+    """A trailing continuation sets `pending = ''` -- losing a forward fragment.
+
+    \u26a0\u26a0 TWO WRAP DIRECTIONS CAN MEET ON ADJACENT LINES. The forward wrap
+    accumulates a labelless line into `pending`, waiting for the row below it.
+    A TRAILING continuation then fires, appends itself to the row ABOVE, and
+    clears `pending` -- throwing the forward fragment away without a word.
+
+    The next row is then published under a TRUNCATED name: real money under a
+    name the document does not contain. That is the exact defect this feature
+    was added to fix (`Environment Social Services`), reappearing from the
+    other direction, and the $0 tie cannot see a label.
+
+    Unreachable in Duvall's corpus -- the only entity declaring
+    `trailing_label_continuations` -- which is why it is a refusal rather than
+    a silent repair: there is no observed document to infer the right
+    resolution from, and guessing would be how the wrong one ships.
+    """
+
+    def _cfg(self):
+        return CityConfig(city='X', parents=(), root_leaves=(),
+                          revenue_parents=(), revenue_group_members=(),
+                          column_strategy='ordinal',
+                          trailing_label_continuations=('environment',))
+
+    def test_it_REFUSES_rather_than_dropping_the_fragment(self):
+        with self.assertRaises(ValueError) as e:
+            build_revenue(TRAILING_PENDING_LINES,
+                          anchors(TRAILING_PENDING_ANCHOR), self._cfg())
+        msg = str(e.exception)
+        self.assertIn('Charges for', msg)
+        self.assertIn('Environment', msg)
+
+    def test_a_trailing_continuation_with_NO_pending_fragment_still_works(self):
+        # \u26a0 The guard must not break the feature it protects. Duvall's real
+        # shape -- a valued row, then its trailing word -- has no pending
+        # fragment and must still merge.
+        lines = [
+            'Revenues',
+            'Natural and Economic                             100',
+            'Environment',
+            'Total revenues                                   100',
+        ]
+        tree, total, _ = build_revenue(
+            lines, anchors('Total revenues                                   100'),
+            self._cfg())
+        self.assertEqual(total, 100)
+        self.assertEqual([c['n'] for c in tree['c']], ['Natural and Economic Environment'])
 
 
 if __name__ == '__main__':

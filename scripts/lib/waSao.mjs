@@ -102,9 +102,35 @@ const BARS_ANCHOR = /fund resources and uses arising from cash transactions/i;
  * it is -- which is exactly what happened to all ten of Duvall's.
  */
 export function classifyReport(pageCount, text) {
-  const lines = String(text).split('\n').filter(l => !/reconciliation/i.test(l));
-  const gaap = lines.some(l => GAAP_ANCHOR.test(l));
-  const bars = lines.some(l => BARS_ANCHOR.test(l) && !/fiduciary/i.test(l));
+  const lines = String(text).split('\n');
+
+  // ⚠⚠ THE QUALIFIER IS READ FROM THE ANCHOR LINE *PLUS THE LINE ABOVE IT*.
+  //
+  // Both captions this function must refuse are STACKED on the page --
+  // `Fiduciary` over `Fund Resources and Uses...`, `Reconciliation of the` over
+  // `Statement of Revenues...`. Whether the qualifier ends up on the same
+  // extracted line as the anchor is a property of the TEXT LAYER, not of the
+  // document: `pdftotext` splits one stacked caption differently between
+  // issuers, and between years of the same issuer.
+  //
+  // Read per-line, both exclusions are defeated by a wrap, and the failure is
+  // silent and expensive -- custodial money published under a General Fund
+  // label, or a reconciliation schedule read as the statement. Both tie at $0.
+  //
+  // ⚠ The window is ONE line, deliberately. It is wide enough for a two-line
+  // stacked caption and narrow enough that an unrelated earlier line cannot
+  // disqualify a real statement. A document whose statement appears more than
+  // once (contents page and the statement itself) still matches at the real
+  // occurrence, because every line is tested.
+  const caption = (i) => `${lines[i - 1] ?? ''} ${lines[i]}`;
+  const anchoredBy = (re, disqualifier) =>
+    lines.some((l, i) => re.test(l) && !disqualifier.test(caption(i)));
+
+  const gaap = anchoredBy(GAAP_ANCHOR, /reconciliation/i);
+  // ⚠ `reconciliation` disqualifies the BARS anchor too: the original filtered
+  // those lines out before EITHER test, and narrowing that here would be an
+  // unrelated behaviour change smuggled into a wrap fix.
+  const bars = anchoredBy(BARS_ANCHOR, /fiduciary|reconciliation/i);
   if (!gaap && !bars) {
     return { ok: false, reason: 'no governmental funds statement anchor found (image-only scan?)' };
   }

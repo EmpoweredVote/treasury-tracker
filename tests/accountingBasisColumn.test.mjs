@@ -32,8 +32,49 @@ describe('the accounting_basis column', () => {
   });
 
   it('defaults to unknown and is NOT NULL — nothing is classified by absence', () => {
+    // ⚠ `declaring[0]` is correct HERE and nowhere else in this file: the
+    // `NOT NULL DEFAULT` text only ever appears in the migration that ADDS the
+    // column, so reading the newest declaration (right for the CHECK below)
+    // would find no match at all. What `[0]` cannot see is a LATER migration
+    // weakening what it established -- that is the next test's job, and
+    // without it this assertion is a claim about history, not about the schema
+    // in force.
     const sql = readFileSync(`${MIGRATIONS}/${declaring[0]}`, 'utf8');
     expect(sql).toMatch(/accounting_basis\s+text\s+NOT NULL\s+DEFAULT\s+'unknown'/i);
+  });
+
+  it('is not weakened by any LATER migration', () => {
+    // ⚠⚠ THE SAME ARGUMENT THE HEADER MAKES FOR THE CHECK APPLIES HERE.
+    //
+    // Reading the original migration keeps PASSING after a later one does
+    // `ALTER COLUMN accounting_basis DROP NOT NULL`, `DROP DEFAULT`, or drops
+    // the column outright -- the original still says what it always said. A
+    // row arriving NULL would then be classified by absence, which is the one
+    // thing this axis was built to prevent: `unknown` is a VALUE that means
+    // "not established", and NULL is the absence of an answer to a question
+    // nobody asked.
+    const all = readdirSync(MIGRATIONS).filter((f) => f.endsWith('.sql')).sort();
+    const after = all.slice(all.indexOf(declaring[0]) + 1);
+
+    const WEAKENING = [
+      /alter\s+column\s+accounting_basis\s+drop\s+not\s+null/i,
+      /alter\s+column\s+accounting_basis\s+drop\s+default/i,
+      /drop\s+column\s+(?:if\s+exists\s+)?accounting_basis/i,
+    ];
+
+    const offenders = [];
+    for (const f of after) {
+      const sql = readFileSync(`${MIGRATIONS}/${f}`, 'utf8');
+      for (const re of WEAKENING) {
+        if (re.test(sql)) offenders.push(`${f}: ${re}`);
+      }
+      // A redefined default is only acceptable if it is still 'unknown'.
+      const setDefault = /alter\s+column\s+accounting_basis\s+set\s+default\s+('[a-z_]*')/i.exec(sql);
+      if (setDefault && setDefault[1] !== "'unknown'") {
+        offenders.push(`${f}: default changed to ${setDefault[1]}`);
+      }
+    }
+    expect(offenders, 'a later migration weakens accounting_basis').toEqual([]);
   });
 
   it('the CHECK in force covers EXACTLY the vocabulary', () => {

@@ -250,4 +250,51 @@ describe('Duvall', () => {
     const r = getEntity('Redmond');
     expect(d.perCapitaBand).not.toEqual(r.perCapitaBand);
   });
+
+  // ⚠⚠ THE TEST ABOVE PASSES FOR *ANY* BAND AT ALL.
+  //
+  // `not.toEqual` is satisfied by `[0, 0]`, by a band copied from a third city,
+  // or by one that admits every figure ever printed. It asserts that two values
+  // differ, which is not the property anyone cares about: what matters is that
+  // Duvall's band BINDS DUVALL. These tests assert that directly, so the band
+  // cannot silently become decorative.
+  //
+  // The figures are MEASURED, not assumed -- Duvall FY2024 General Fund
+  // operating is $7,801,148 against an OFM population of 8,810, i.e. ~$885.5
+  // per capita. See the roster's own populationNote for the OFM line.
+  it('brackets Duvall\'s own measured per-capita figure', () => {
+    const d = getEntity('Duvall');
+    const perCapita = 7_801_148 / d.population;   // ~885.5
+
+    const [lo, hi] = d.verifyPerCapitaBand;
+    expect(lo, 'band floor must be positive').toBeGreaterThan(0);
+    expect(hi, 'band must be ordered').toBeGreaterThan(lo);
+    expect(perCapita).toBeGreaterThan(lo);
+    expect(perCapita).toBeLessThan(hi);
+  });
+
+  it('rejects the units errors it exists to catch', () => {
+    // The $0 tie gate is unit-invariant: a whole statement read in thousands
+    // ties perfectly against its own printed total. The per-capita band is the
+    // ONLY guard that fires on it, so it must actually exclude the wrong scale.
+    const d = getEntity('Duvall');
+    const [lo, hi] = d.verifyPerCapitaBand;
+    const correct = 7_801_148 / d.population;
+
+    for (const [factor, name] of [[1000, 'read in thousands'], [1 / 1000, 'scaled down 1000x'],
+      [10, 'off by 10x'], [1 / 10, 'off by 0.1x']]) {
+      const wrong = correct * factor;
+      expect(wrong >= lo && wrong <= hi, `a figure ${name} must fall outside the band`).toBe(false);
+    }
+  });
+
+  it('is tighter than the load-time band, not a copy of it', () => {
+    // Two bands exist on purpose: a wide one at load, a narrow one at verify.
+    // If they were equal the second gate would measure nothing.
+    const d = getEntity('Duvall');
+    const [loadLo, loadHi] = d.perCapitaBand;
+    const [vLo, vHi] = d.verifyPerCapitaBand;
+    expect(vLo).toBeGreaterThan(loadLo);
+    expect(vHi).toBeLessThan(loadHi);
+  });
 });

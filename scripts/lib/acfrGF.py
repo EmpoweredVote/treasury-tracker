@@ -638,6 +638,40 @@ class CityConfig:
         self.target_column_label = target_column_label
         self.target_column_header = target_column_header
         self.select_fiscal_year = bool(select_fiscal_year)
+        # ⚠⚠ `multipage` TAKES A DIFFERENT PATH THAT READS NEITHER OF THESE.
+        #
+        # `extract()` branches to `find_statement_span` when multipage is set.
+        # Both `select_fiscal_year` and `target_column_header` are consumed
+        # inside `resolve_statement_page`, on the OTHER branch -- so a config
+        # setting either alongside multipage gets no error and no effect.
+        #
+        # That is this library's most dangerous shape: the config LOOKS like it
+        # pins the fiscal year and the fund column, the extractor silently takes
+        # the earliest qualifying span and the leftmost band, and the result
+        # TIES AT $0 against the document's own printed total while describing
+        # a different year or a different fund. The tie gate cannot see it; the
+        # per-capita band is the only other guard and it will not fire on a
+        # neighbouring year.
+        #
+        # Refusing at construction costs one line and closes it. Widening the
+        # multipage path to honour them is the real fix if an entity ever needs
+        # both -- this refusal is what makes that need visible instead of
+        # silent.
+        ignored_under_multipage = [
+            name for name, value in (('select_fiscal_year', self.select_fiscal_year),
+                                     ('target_column_header', self.target_column_header))
+            if value
+        ]
+        if self.multipage and ignored_under_multipage:
+            raise ValueError(
+                'multipage=True IGNORES %s: the multipage path resolves its own '
+                'statement span and never consults %s. Setting both reads the '
+                'earliest qualifying span and ties at $0 while describing the '
+                'wrong year or column. Either drop multipage, or widen '
+                'find_statement_span to honour the field.'
+                % (' and '.join(ignored_under_multipage),
+                   'it' if len(ignored_under_multipage) == 1 else 'them'))
+
         if (self.subparents and subparent_close == 'members'
                 and not self.subparent_member_prefixes):
             # The exact shape of the `revenue_parents`-without-members trap that
@@ -2340,6 +2374,29 @@ def build_revenue(lines, col_anchors, cfg):
             # the next line, so the default forward-wrap published
             # `Environment Social Services`.
             if low in cfg.trailing_label_continuations and _last_emitted is not None:
+                # ⚠⚠ A PENDING FORWARD FRAGMENT HERE WOULD BE THROWN AWAY.
+                #
+                # `pending` holds a labelless line waiting for the row BELOW it.
+                # This branch appends to the row ABOVE and then clears it, so
+                # two wrap directions meeting on adjacent lines silently drop
+                # the forward fragment -- and the next row publishes real money
+                # under a TRUNCATED name. That is the very defect
+                # `trailing_label_continuations` was added to fix
+                # (`Environment Social Services`), arriving from the other side,
+                # and no tie gate can see a label.
+                #
+                # Unreachable in Duvall's corpus, the only entity that declares
+                # this option. It REFUSES rather than guessing precisely because
+                # there is no observed document to infer the right merge from:
+                # inventing one is how the wrong label ships at a $0 tie.
+                if pending:
+                    raise ValueError(
+                        'trailing continuation %r would discard the pending label '
+                        'fragment %r. Two wrap directions meet on adjacent lines '
+                        'and the correct merge cannot be inferred -- declare the '
+                        'document\'s real shape (label_fixes or empty_rows) '
+                        'instead of letting a row publish under a truncated name.'
+                        % (lbl, pending))
                 _last_emitted['n'] = _fix_label(
                     norm_label('%s %s' % (_last_emitted['n'], lbl)), cfg)
                 pending = ''
@@ -2540,6 +2597,29 @@ def build_operating(lines, col_anchors, cfg):
             # the next line, so the default forward-wrap published
             # `Environment Social Services`.
             if low in cfg.trailing_label_continuations and _last_emitted is not None:
+                # ⚠⚠ A PENDING FORWARD FRAGMENT HERE WOULD BE THROWN AWAY.
+                #
+                # `pending` holds a labelless line waiting for the row BELOW it.
+                # This branch appends to the row ABOVE and then clears it, so
+                # two wrap directions meeting on adjacent lines silently drop
+                # the forward fragment -- and the next row publishes real money
+                # under a TRUNCATED name. That is the very defect
+                # `trailing_label_continuations` was added to fix
+                # (`Environment Social Services`), arriving from the other side,
+                # and no tie gate can see a label.
+                #
+                # Unreachable in Duvall's corpus, the only entity that declares
+                # this option. It REFUSES rather than guessing precisely because
+                # there is no observed document to infer the right merge from:
+                # inventing one is how the wrong label ships at a $0 tie.
+                if pending:
+                    raise ValueError(
+                        'trailing continuation %r would discard the pending label '
+                        'fragment %r. Two wrap directions meet on adjacent lines '
+                        'and the correct merge cannot be inferred -- declare the '
+                        'document\'s real shape (label_fixes or empty_rows) '
+                        'instead of letting a row publish under a truncated name.'
+                        % (lbl, pending))
                 _last_emitted['n'] = _fix_label(
                     norm_label('%s %s' % (_last_emitted['n'], lbl)), cfg)
                 pending = ''
