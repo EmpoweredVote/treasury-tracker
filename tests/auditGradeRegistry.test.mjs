@@ -245,9 +245,18 @@ describe('WA SAO — Duvall is audited_ocboa, never audited_gaap', () => {
     // ⚠ Redmond and Duvall are both King County, both `WA State Auditor — `,
     // and they share no accounting basis. A prefix match would grade eleven
     // Redmond years off Duvall's opinion.
-    expect(gradeFor(redmond(2024))).toEqual({ value: 'unknown', entryId: null });
-    expect(gradeFor(redmond(2024, 'Expenditure by Function')))
-      .toEqual({ value: 'unknown', entryId: null });
+    //
+    // ⚠⚠ THIS ASSERTED `unknown` UNTIL ISSUE #219. Redmond now has an entry of
+    // its OWN, read from its own opinion letters, so the thing to assert is no
+    // longer "Redmond is ungraded" — it is that whatever grade Redmond carries
+    // did not come from DUVALL'S entry, and is never the OCBOA value. Leaving
+    // the old assertion would have forced the next person to either weaken it
+    // or grade Redmond wrongly to keep it green.
+    for (const kind of ['Revenue by Source', 'Expenditure by Function']) {
+      const g = gradeFor(redmond(2024, kind));
+      expect(g.entryId, kind).not.toBe('wa-sao-duvall-ocboa');
+      expect(g.value, kind).not.toBe(AUDIT_GRADE.AUDITED_OCBOA);
+    }
   });
 
   it('does not grade a Duvall year outside the loaded window', () => {
@@ -283,5 +292,80 @@ describe('WA SAO — Duvall is audited_ocboa, never audited_gaap', () => {
       }
     }
     expect(basis.match.test(redmond(2024))).toBe(false);
+  });
+});
+
+// ── Redmond, WA — issue #219: audited_gaap, read per year ────────────────
+describe('WA SAO — Redmond is audited_gaap, and never inherits Duvall', () => {
+  const rm = (fy, kind = 'Revenue by Source') =>
+    `WA State Auditor — Redmond Annual Financial Report FY${fy} (General Fund, ${kind})`;
+
+  // The loaded window: FY2011-FY2016 and FY2020-FY2024. 11 years, 22 rows.
+  const LOADED = [2011, 2012, 2013, 2014, 2015, 2016, 2020, 2021, 2022, 2023, 2024];
+
+  it('grades every one of the 22 loaded rows audited_gaap', () => {
+    for (const fy of LOADED) {
+      for (const kind of ['Revenue by Source', 'Expenditure by Function']) {
+        expect(gradeFor(rm(fy, kind)).value, `FY${fy} ${kind}`)
+          .toBe(AUDIT_GRADE.AUDITED_GAAP);
+      }
+    }
+  });
+
+  it('does NOT grade the three UNREADABLE years', () => {
+    // ⚠⚠ FY2017-FY2019 carry a +29 byte-shifted text layer in which every
+    // LABEL decodes and no DIGIT does. They are in the corpus and are not
+    // loaded; nobody read an opinion for them, so nobody may claim one.
+    for (const fy of [2017, 2018, 2019]) {
+      expect(gradeFor(rm(fy)), `FY${fy}`).toEqual({ value: 'unknown', entryId: null });
+    }
+  });
+
+  it('does NOT grade the years the floor rule excluded', () => {
+    // FY2006-FY2010 parse fine and are deliberately not loaded. A grade here
+    // would be a claim about a row that does not exist.
+    for (const fy of [2006, 2007, 2008, 2009, 2010]) {
+      expect(gradeFor(rm(fy)), `FY${fy}`).toEqual({ value: 'unknown', entryId: null });
+    }
+  });
+
+  it('does not run past the end of the window', () => {
+    expect(gradeFor(rm(2025))).toEqual({ value: 'unknown', entryId: null });
+  });
+
+  it('never reaches the other WA entities that share the prefix', () => {
+    // ⚠⚠ THE MIRROR OF DUVALL'S GUARD. Bellevue and Kent are also
+    // `WA State Auditor — `, also King County, also GAAP filers — and nobody
+    // has read their opinion letters. They must stay `unknown` until someone
+    // does, which is the correct failure direction.
+    for (const name of ['Duvall', 'Bellevue', 'Kent']) {
+      const src = `WA State Auditor — ${name} Annual Financial Report FY2024 (General Fund, Revenue by Source)`;
+      expect(gradeFor(src).entryId, name).not.toBe('wa-sao-redmond-audited-gaap');
+    }
+  });
+
+  it('carries evidence naming the opinion, not merely asserting one', () => {
+    const e = AUDIT_GRADE_REGISTRY.find((x) => x.id === 'wa-sao-redmond-audited-gaap');
+    expect(e).toBeTruthy();
+    // The documents actually read.
+    expect(e.evidence.document).toMatch(/docs\/Redmond\//);
+    expect(e.evidence.document).toMatch(/verifyCoKsOpinions|checkOpinionType/);
+    // The opinion wording, quoted.
+    expect(e.evidence.figures).toMatch(/present fairly, in all material respects/i);
+    expect(e.evidence.figures).toMatch(/generally accepted in the United States/i);
+    // ⚠ And the trap, recorded: the FIRST "in our opinion" in these documents
+    // is the federal single-audit COMPLIANCE opinion and says nothing about the
+    // financial statements.
+    expect(e.evidence.figures).toMatch(/single-audit compliance opinion/i);
+  });
+
+  it('does not describe itself in OCBOA terms', () => {
+    // ⚠ The one way this entry could be wrong in the same breath as being
+    // right: Redmond is GAAP. Any regulatory-basis language here would mean
+    // the evidence was copied from Duvall rather than read.
+    const e = AUDIT_GRADE_REGISTRY.find((x) => x.id === 'wa-sao-redmond-audited-gaap');
+    const all = `${e.evidence.document} ${e.evidence.figures}`;
+    expect(all).not.toMatch(/BARS manual/i);
+    expect(all).not.toMatch(/adverse opinion on U\.S\. GAAP/i);
   });
 });
