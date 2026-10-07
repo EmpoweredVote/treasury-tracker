@@ -73,6 +73,7 @@ uppercase ("TOTAL REVENUES"). Case-sensitive matching fails CLOSED there
 reason to make each city rediscover that.
 """
 
+import os
 import sys
 import re
 import json
@@ -442,6 +443,78 @@ class CityConfig:
 
                  ⚠ A subtotal also CLOSES the group (and any open sub-group), so
                  rows printed after it land at root, where the issuer put them.
+
+    target_column_label
+                 The NAME the document prints over the targeted column, when
+                 that column has one. Without it a non-zero `target_column`
+                 gets the honest generic label `Fund column N`, because an
+                 arbitrary index has no name in the document -- see
+                 `scope_label`, where calling an unnamed column "General Fund"
+                 would be the LA TRAN defect.
+
+                 ⚠ Declaring it is a CLAIM ABOUT THE DOCUMENT and the claim is
+                 what gets published in the tree's root label. It is only ever
+                 correct alongside a shape test that reads a named figure out
+                 of that exact column -- see TestDuvallShape, which asserts
+                 Taxes is 5,941,972 (the General Fund cell) and NOT 8,108,336
+                 (the memo cell one position to its left).
+
+                 ⚠⚠ IT CANNOT RELABEL `target_column='last'`. That column is
+                 Total Governmental Funds by construction and seventeen Indiana
+                 counties depend on it; a declaration there is ignored.
+
+    target_column_header
+                 A literal printed in the targeted column's HEADER, used to
+                 narrow which page is the statement. Whitespace-insensitive,
+                 so a header wrapped across lines (`001 General` / `Fund`)
+                 still matches.
+
+                 ⚠⚠ THIS IS WHAT MAKES A BIENNIAL DOCUMENT RESOLVABLE. Duvall's
+                 statement repeats once per GROUP OF FUNDS -- identical row
+                 labels, different fund columns, the same `For the Year Ended`
+                 caption on every repeat -- so several pages per year qualify
+                 as "the statement" and several claim the same fiscal year.
+                 Exactly one page per year prints `001 General`. Narrowing on
+                 the column header first is what leaves `select_fiscal_year`
+                 with an unambiguous choice instead of a refusal.
+
+                 ⚠ MATCHED WHITESPACE-SQUASHED AND CONTIGUOUS, which is
+                 why Duvall declares `001 General` and not `001 General Fund`:
+                 `-table` renders the header block COLUMN-WISE, so the
+                 neighbouring columns' header text falls BETWEEN those two
+                 words and no contiguous match can span them.
+
+                 Unset means no narrowing: every other entity is unaffected.
+
+    select_fiscal_year
+                 When true, the statement page is chosen by its OWN PRINTED
+                 `For the Year Ended <fy_end>, <YYYY>` caption matching the
+                 fiscal year in the PDF's FILENAME, instead of by taking the
+                 earliest qualifying page.
+
+                 ⚠⚠ FOR A BIENNIAL REPORT THE EARLIEST QUALIFYING PAGE IS THE
+                 WRONG YEAR. Duvall is audited biennially and ARN 1036127
+                 carries a complete statement for FY2022 AND FY2023, and it
+                 ties at exactly $0 whichever one you read -- indistinguishable
+                 from a correct load by every arithmetic gate in this repo.
+
+                 ⚠ MEASURED, AND INVERTED FROM THE OBVIOUS GUESS: that
+                 document prints FY2023 FIRST and FY2022 SECOND
+                 (find_statement_pages returns [11, 17]; chunk 11 is FY2023).
+                 Taking the earliest candidate would therefore have published
+                 FY2023's money under the FY2022 label, not the other way
+                 round. Do not reason about which year "must" come first.
+
+                 ⚠ The filename is the authority because it already is:
+                 `discoverPdfsByFY` in scripts/lib/waSaoLoad.mjs maps fiscal
+                 year to path by the filename, so this reads the year from the
+                 same place rather than introducing a second authority that
+                 can disagree with it. The consequence is that the loader's
+                 extracted.fiscal_year-vs-filename cross-check becomes
+                 tautological for such an entity; what replaces it is the
+                 REFUSAL below, which is stronger -- a document that does not
+                 print the requested year fails loudly instead of silently
+                 yielding its first statement.
     """
 
     def __init__(self, city, parents, root_leaves=(), source_rounding=None,
@@ -462,7 +535,9 @@ class CityConfig:
                  subparents=(), subparent_member_prefixes=(),
                  subparent_close='members',
                  revenue_subparents=(), revenue_group_close='members',
-                 subtotal_prefixes=(), leading_account_code=False):
+                 subtotal_prefixes=(), leading_account_code=False,
+                 target_column_label=None, target_column_header=None,
+                 select_fiscal_year=False):
         if not isinstance(units, int) or isinstance(units, bool):
             raise TypeError(
                 'CityConfig.units must be an int, got %r (%s). A float would '
@@ -522,6 +597,9 @@ class CityConfig:
         self.revenue_group_close = revenue_group_close
         self.subtotal_prefixes = tuple(p.lower() for p in subtotal_prefixes)
         self.leading_account_code = bool(leading_account_code)
+        self.target_column_label = target_column_label
+        self.target_column_header = target_column_header
+        self.select_fiscal_year = bool(select_fiscal_year)
         if (self.subparents and subparent_close == 'members'
                 and not self.subparent_member_prefixes):
             # The exact shape of the `revenue_parents`-without-members trap that
@@ -1105,11 +1183,25 @@ def find_statement_page(pages, statement_anchor=None, revenue_total_labels=('tot
     so requiring the literal keeps that page from ever qualifying even when
     `revenue_total_labels` is widened to include `'total operating
     revenues'`."""
+    cands = _statement_candidates(pages, statement_anchor, revenue_total_labels,
+                                  exclude_ignore)
+    if not cands:
+        return None, None
+    return cands[0]
+
+
+def _statement_candidates(pages, statement_anchor, revenue_total_labels,
+                          exclude_ignore, target_column_header=None):
+    """Every page qualifying as the primary statement, in document order."""
     anchor = re.compile(statement_anchor, re.I | re.M) if statement_anchor else None
     cands = []
     # ⚠ Every literal is squashed the same way the page is — see _squash.
     want_rev = [_squash(lbl) for lbl in revenue_total_labels]
     want_exp = _squash('total expenditures')
+    # ⚠ Squashed too, so a column header WRAPPED across lines still matches:
+    # `-table` renders Duvall's as `001 General` on one line and `Fund` on the
+    # next, which no one-line regex can see.
+    want_col = _squash(target_column_header) if target_column_header else None
     excluded = [(x, _squash(x)) for x in _EXCLUDE]
     for i, pg in enumerate(pages):
         low = _squash(pg)
@@ -1119,13 +1211,67 @@ def find_statement_page(pages, statement_anchor=None, revenue_total_labels=('tot
             continue
         if 'general' not in low or 'fund' not in low:
             continue
+        if want_col and want_col not in low:
+            continue
         if any(sq in low for raw, sq in excluded if raw not in exclude_ignore):
             continue
         cands.append((i, pg))
+    cands.sort()
+    return cands
+
+
+def find_statement_pages(pages, cfg):
+    """All qualifying statement pages for `cfg`, as (index, text), in order.
+
+    ⚠ `find_statement_page` takes loose arguments and returns only the first
+    candidate; this one takes the CONFIG, because `target_column_header` is a
+    per-entity fact and the whole reason more than one candidate can exist and
+    still be distinguishable.
+    """
+    return _statement_candidates(pages, cfg.statement_anchor, cfg.revenue_total_labels,
+                                 cfg.exclude_ignore,
+                                 getattr(cfg, 'target_column_header', None))
+
+
+# ⚠ The BASENAME only. A path can carry a year of its own — an archive folder,
+# a dated working directory — and the document's year is the one in its name.
+_FY_IN_NAME = re.compile(r'(20\d{2})')
+
+
+def fy_from_path(pdf_path):
+    """The fiscal year encoded in a PDF's FILENAME, or None.
+
+    The loader already maps fiscal year to path by the filename
+    (`discoverPdfsByFY`), so this reads the same authority rather than adding a
+    second one. See `CityConfig.select_fiscal_year`.
+    """
+    m = _FY_IN_NAME.search(os.path.basename(str(pdf_path)))
+    return int(m.group(1)) if m else None
+
+
+def resolve_statement_page(pages, cfg, fiscal_year):
+    """(index, text) of the statement page to read, honouring `cfg`.
+
+    Without `select_fiscal_year` this is the earliest qualifying page, exactly
+    as before. With it, the page whose OWN PRINTED year is `fiscal_year` — see
+    `select_statement_for_fy` for why a miss is fatal rather than a fallback.
+
+    Returns (None, None) when no page qualifies at all, matching
+    `find_statement_page`, so `extract()`'s existing not-found branch still
+    reports the same thing.
+    """
+    cands = find_statement_pages(pages, cfg)
     if not cands:
         return None, None
-    cands.sort()
-    return cands[0]
+    if not getattr(cfg, 'select_fiscal_year', False):
+        return cands[0]
+    if fiscal_year is None:
+        raise ValueError(
+            '%s declares select_fiscal_year but no fiscal year was resolved from the '
+            'filename; refusing to guess which of %d candidate statements to read'
+            % (cfg.city, len(cands)))
+    k = select_statement_for_fy([pg for _, pg in cands], fiscal_year)
+    return cands[k]
 
 # A real printed figure is comma-grouped or carries cents. A repeated page
 # header contains only bare integers -- a year, a page number, a "(Continued)".
@@ -1451,6 +1597,13 @@ def scope_label(cfg):
         return 'Total Governmental Funds'
     if t == 0:
         return 'General Fund'
+    # ⚠ A declared name, and ONLY a declared one, replaces the generic label.
+    # See `target_column_label`: the declaration is a claim about the document
+    # and is only sound next to a shape test that reads a named figure out of
+    # that exact column.
+    declared = getattr(cfg, 'target_column_label', None)
+    if declared:
+        return declared
     return 'Fund column %d' % t
 
 
@@ -2499,8 +2652,11 @@ def extract(pdf_path, mode, cfg):
     if cfg.multipage:
         pi, pg, span_pages, span_raw = find_statement_span(pages, cfg)
     else:
-        pi, pg = find_statement_page(pages, cfg.statement_anchor, cfg.revenue_total_labels,
-                                     cfg.exclude_ignore)
+        # ⚠ `resolve_statement_page` IS `find_statement_page` for every entity
+        # that declares neither `target_column_header` nor `select_fiscal_year`
+        # — same candidates, same earliest-wins rule. It diverges only where a
+        # document carries more than one statement that qualifies.
+        pi, pg = resolve_statement_page(pages, cfg, fy_from_path(pdf_path))
     if pg is None:
         print('  ERROR: primary GF statement not found in %s' % pdf_path, file=sys.stderr)
         sys.exit(3)

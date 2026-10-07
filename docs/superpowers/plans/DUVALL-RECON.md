@@ -68,10 +68,28 @@ exists in every year of the window; only the wrapping varies.
 
 Codes are 3-digit, 5-digit (`30810`), and compound (`388 / 588`).
 
-Without `leading_account_code=True` the library's `_MONEY` pattern reads `310`
-as a **value**: every group heading becomes a ~$310 leaf, no group opens, the
-tree comes back flat, and the total is only slightly over — plausible enough to
-ship. The flag exists because Aberdeen SD prints the same chart of accounts.
+`leading_account_code=True` is set because that is a true description of the
+document.
+
+> ⚠⚠ **CORRECTED 2026-10-06 (Task 6, phase 2).** This section originally said
+> that without the flag the library's `_MONEY` pattern reads `310` as a value,
+> the tree comes back flat and the total is slightly over. **That is not true
+> of this corpus and was never measured.** Setting the flag to `False` and
+> re-running **all twenty** real combinations produces **byte-identical**
+> totals and identical trees. The reason is geometric: under `pdftotext
+> -table` the code sits in its own column ~17 characters from the label and
+> nowhere near a column anchor, and the anchors are measured from
+> `Total Revenues:`, a row that carries no code at all.
+>
+> The flag is KEPT — it describes the document and is the documented remedy if
+> that geometry ever shifts — but it is **defence in depth, not a guard that
+> fires**, and the selftest that pins it says so. The guard that actually
+> fires is `target_column=1` plus the shape tests that name the figure.
+> Recording this matters because a flag advertised as load-bearing, which
+> changes nothing, is the vacuous-gate failure this repo keeps shipping.
+
+The flag exists in the library because Aberdeen SD prints the same chart of
+accounts.
 
 ## 5. The window is FY2016–FY2025, and the floor rule is what ends it
 
@@ -135,13 +153,50 @@ without re-reading this section.
 
 ```python
 statement_anchor       = 'Fund Resources and Uses Arising from Cash Transactions'
-leading_account_code   = True
+leading_account_code   = True     # true of the document; defence in depth, see §4
 target_column          = 1        # ⚠ NOT 0 — the memo column is first
+target_column_label    = 'General Fund'   # else the tree is rooted "Fund column 1"
+target_column_header   = '001 General'    # ⚠ NOT '001 General Fund' — see below
+select_fiscal_year     = True     # ⚠⚠ the biennial ARN, see §5 and the note below
 units                  = 1
 fy_end                 = ('December', 31)
 decimal_money          = False    # whole dollars in this window only
 multipage              = False    # the GF column is on the FIRST page of the set
+revenue_total_labels   = ('total revenues:',)   # ⚠ the trailing colon is printed
+source_rounding        = {(2025, 'revenue'): -1, (2025, 'operating'): 1}
 ```
+
+**⚠ `target_column_header` is `'001 General'`, not `'001 General Fund'.**
+`-table` renders the header block COLUMN-WISE, so the neighbouring columns'
+text falls BETWEEN `001 General` and `Fund`:
+
+```
+                      Total for All                        102
+                      Funds             001 General         Transportation
+                      (Memo Only)       Fund        101  Street Fund
+```
+
+No contiguous match — whitespace-squashed or not — can span those two words.
+`001 General` alone is present in every year of the window (FY2016–FY2020 print
+it `001  GENERAL`, which squashes the same) and appears on exactly ONE
+qualifying page per fiscal year.
+
+**⚠⚠ THE BIENNIAL DOCUMENT PRINTS FY2023 FIRST AND FY2022 SECOND.** Measured on
+ARN 1036127: `find_statement_pages` returns chunks `[11, 17]`, and chunk 11 is
+**FY2023**. The "earliest qualifying page" rule — the library's default, and
+what the plan assumed would be wrong only for FY2023 — would in fact have
+published **FY2023's money under the FY2022 label**. The error is inverted from
+the obvious guess, which is exactly why the page is selected by the year it
+prints rather than by its position.
+
+**⚠ FY2025 disagrees with itself by $1, on BOTH sides, in opposite
+directions.** Read off the General Fund column: revenue components sum to
+7,260,303 against a printed `Total Revenues: 7,260,304`; expenditure components
+sum to 7,101,535 against a printed `Total Expenditures: 7,101,534`. Every
+component matches the page digit for digit, so the document is internally
+inconsistent — this is not a mis-parse. Both are registered as EXACT deltas,
+never as a tolerance, and the roster's `expectedResidues: 2` asserts the count.
+The other nine years tie at a bare $0 on both sides.
 
 ⚠ The statement repeats across several pages, one per group of funds, with the
 same rows and DIFFERENT fund columns. `001 General Fund` is on the FIRST page

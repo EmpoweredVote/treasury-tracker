@@ -13,7 +13,8 @@ from lib.acfrGF import (CityConfig, column_value, classify, build_revenue,
                          target_cell_is_dash_zero, scope_label, label_of, parse_money,
                          nums_with_pos, _expenditure_lines, _is_section_end,
                          _section, _END_EXPENDITURE_LABELS, build_operating,
-                         anchors as _anchors, select_statement_for_fy)
+                         anchors as _anchors, select_statement_for_fy,
+                         find_statement_pages, resolve_statement_page, fy_from_path)
 # The SHIPPED Bainbridge configs themselves, not copies of them -- see
 # TestShippedBainbridgeConfigsAreWholeDollars at the bottom of this file for
 # why the real objects have to be under test rather than a local fixture.
@@ -28,6 +29,7 @@ import extractVancouver           # noqa: E402
 import extractBellevue            # noqa: E402
 import extractKent                # noqa: E402
 import extractRedmond             # noqa: E402
+import extractDuvall              # noqa: E402
 
 # Transcribed from King County FY2020-era GF statement (values thousands-scale
 # in the real document; kept as bare ints here since these tests exercise
@@ -2758,6 +2760,325 @@ class TestBiennialStatementSelection(unittest.TestCase):
                  'presented for information only.']
         with self.assertRaises(ValueError):
             select_statement_for_fy(prose, 2023)
+
+
+# ── Duvall, WA — the real BARS statement shape ──────────────────────────────
+# Transcribed VERBATIM from `pdftotext -table docs/Duvall/duvall-2024-acfr.pdf`,
+# at the offsets the grid actually emits. ⚠ `pdftotext -layout` on this same
+# page INTERLEAVES the label column and the money rows -- labels and values
+# drift apart by several rows -- so `-table` is not a preference here, it is the
+# only rendering of this corpus that can be read at all.
+#
+# ⚠⚠ THE MEMO COLUMN IS PRINTED FIRST. `Total for All Funds (Memo Only)` is
+# column 0 and `001 General Fund` is column 1. Every assertion below that names
+# a General Fund figure is naming the SECOND number on its line.
+DUVALL_HEADER_LINES = [
+    '                                                                Total for All                                          102',
+    '                                                                Funds             001 General                          Transportation',
+    '                                                                (Memo Only)       Fund            101  Street Fund     Benefit Dist.',
+]
+DUVALL_REV_LINES = [
+    'Revenues',
+    '310              Taxes                                          8,108,336         5,941,972            384,906                  457,018',
+    '320              Licenses and Permits                           1,310,520         345,219              70,310                          -',
+    '330              Intergovernmental Revenues                     2,991,775         241,665              161,918                  450,274',
+    '340              Charges for Goods and Services                 11,881,983        282,333                           -                  -',
+    '350              Fines and Penalties                            44,816                  5,669                       -                  -',
+    '360              Miscellaneous Revenues                         4,315,203         258,064              8,147                    28,359',
+    'Total Revenues:                                                 28,652,633        7,074,922            625,281                  935,651',
+]
+DUVALL_REV_ANCHOR = DUVALL_REV_LINES[-1]
+
+DUVALL_EXP_LINES = [
+    'Expenditures',
+    '510              General Government                             3,399,750         1,726,327                         -                  -',
+    '520              Public Safety                                  3,441,833         3,432,013                         -                  -',
+    '530              Utilities                                      5,486,605                      -                    -                  -',
+    '540              Transportation                                 1,368,785         604,141              551,034                        28',
+    '550              Natural/Economic Environment                   1,675,944         1,037,371                         -                  -',
+    '560              Social Services                                44,228                  44,228                      -                  -',
+    '570              Culture and Recreation                         1,234,796         957,068                           -                  -',
+    'Total Expenditures:                                             16,651,941        7,801,148            551,034                        28',
+]
+DUVALL_EXP_ANCHOR = DUVALL_EXP_LINES[-1]
+
+
+# Synthetic statement pages in Duvall's real shape, for the page-RESOLUTION
+# tests. Module level so both the generic tests and the shipped-config test use
+# the same pages — a shipped-config test that built its own would be testing a
+# copy, which is the hole the `target_column_header=None` mutation exposed.
+_DUVALL_PAGE_HEAD = ('City of Duvall\n'
+                     'Fund Resources and Uses Arising from Cash Transactions\n'
+                     'For the Year Ended December 31, %d\n')
+_DUVALL_PAGE_BODY = 'Total Revenues: 1,000\nTotal Expenditures: 900\n'
+
+
+def duvall_gf_page(fy):
+    """The page carrying the `001 General` column — one per fiscal year."""
+    return (_DUVALL_PAGE_HEAD % fy
+            + '                 Total for All     001 General     101 Street\n'
+            + '                     Funds             Fund           Fund\n'
+            + _DUVALL_PAGE_BODY)
+
+
+def duvall_other_funds_page(fy):
+    """A repeat of the same statement for a DIFFERENT group of funds.
+
+    ⚠ Same caption, same rows, same printed year — and it still says "General
+    Government", so a naive 'general' + 'fund' page test accepts it. Only the
+    column header tells the two apart.
+    """
+    return (_DUVALL_PAGE_HEAD % fy
+            + '                 104 Building &    105 American Rescue Plan Act\n'
+            + '                  Permit Fund\n'
+            + _DUVALL_PAGE_BODY
+            + '510              General Government        5\n')
+
+
+class TestShippedDuvallConfig(unittest.TestCase):
+    """Pins the SHIPPED Duvall config object, not a copy of it."""
+
+    def test_duvall_declares_its_BARS_line_codes_as_codes(self):
+        # ⚠ HONESTY NOTE, measured 2026-10-06 and NOT what the plan assumed.
+        # This flag is DEFENCE IN DEPTH for Duvall, not the thing that makes
+        # the parse correct. Flipping it to False and re-running all twenty
+        # real combinations produces BYTE-IDENTICAL totals, because under
+        # `pdftotext -table` the code sits in its own column ~17 characters
+        # from the label and nowhere near any column anchor -- and the anchors
+        # are measured from `Total Revenues:`, a row that carries no code at
+        # all. The flag is kept because it is a TRUE description of the
+        # document and is the documented remedy if that geometry ever shifts,
+        # but it is recorded here as inert rather than left looking like a
+        # guard that fires. The guard that actually fires is
+        # TestDuvallShape.test_the_general_fund_column_is_read_not_the_memo_column.
+        self.assertTrue(extractDuvall.CONFIG.leading_account_code)
+
+    def test_duvall_narrows_the_statement_page_by_the_target_columns_header(self):
+        # ⚠⚠ MEASURED ON THE REAL DOCUMENTS: without this, FY2024 has FIVE
+        # qualifying pages (one per group of funds, same rows, different
+        # funds) and the BIENNIAL ARN 1036127 has candidates for both years.
+        # `001 General` is on exactly one page per fiscal year.
+        # ⚠ It is '001 General', not '001 General Fund': `-table` prints the
+        # header column-wise, so the other columns' text falls BETWEEN
+        # '001 General' and 'Fund' and no contiguous match can span them.
+        self.assertEqual(extractDuvall.CONFIG.target_column_header, '001 General')
+
+    def test_the_shipped_config_resolves_a_biennial_document_to_the_right_year(self):
+        # ⚠⚠ Uses the SHIPPED config object, not a copy. The mutation that
+        # found this hole was `target_column_header=None`, which left every
+        # other Duvall test green while making FY2022 and FY2023 ambiguous.
+        # ⚠ FY2023 FIRST, FY2022 SECOND — that is the real print order of ARN
+        # 1036127, measured. The "earliest qualifying page" rule would have
+        # given FY2023's money to BOTH years.
+        pages = [duvall_gf_page(2023), duvall_other_funds_page(2023),
+                 duvall_gf_page(2022)]
+        self.assertEqual(resolve_statement_page(pages, extractDuvall.CONFIG, 2022)[0], 2)
+        self.assertEqual(resolve_statement_page(pages, extractDuvall.CONFIG, 2023)[0], 0)
+
+    def test_duvall_registers_exactly_the_two_FY2025_rounding_acceptances(self):
+        # ⚠ These are EXACT deltas confirmed by reading the page, not a
+        # tolerance, and the roster's expectedResidues: 2 asserts the COUNT.
+        # Widening this dict is how a one-digit mis-parse gets waved through.
+        self.assertEqual(extractDuvall.CONFIG.source_rounding,
+                         {(2025, 'revenue'): -1, (2025, 'operating'): 1})
+
+    def test_duvall_does_NOT_target_the_memo_column(self):
+        # ⚠⚠ `Total for All Funds (Memo Only)` is printed FIRST. target_column=0
+        # would publish ALL-FUNDS money under a General Fund label, tying at $0.
+        self.assertNotEqual(extractDuvall.CONFIG.target_column, 0)
+
+    def test_duvall_units_is_whole_dollars(self):
+        self.assertEqual(extractDuvall.CONFIG.units, 1)
+
+    def test_duvall_fy_end_is_december_31(self):
+        self.assertEqual(extractDuvall.CONFIG.fy_end, ('December', 31))
+
+    def test_duvall_declares_the_BARS_caption_not_the_GAAP_one(self):
+        # The GAAP caption `_TITLE` matches does not exist anywhere in this
+        # corpus, so without an anchor no page qualifies at all.
+        self.assertIsNotNone(extractDuvall.CONFIG.statement_anchor)
+        self.assertRegex(extractDuvall.CONFIG.statement_anchor,
+                         r'(?i)cash\s*\+?\s*transactions|Cash Transactions')
+
+    def test_duvall_names_the_column_it_reads(self):
+        # ⚠ target_column=1 would otherwise label the tree "Fund column 1".
+        # The declaration is what makes the label honest, and the shape tests
+        # below are what make the declaration true.
+        self.assertEqual(extractDuvall.CONFIG.target_column_label, 'General Fund')
+
+    def test_duvall_selects_its_statement_by_printed_fiscal_year(self):
+        # ARN 1036127 carries FY2022 AND FY2023. Without this the FY2023 load
+        # reads FY2022's money and ties at exactly $0 while doing it.
+        self.assertTrue(extractDuvall.CONFIG.select_fiscal_year)
+
+    def test_duvall_declares_no_multipage(self):
+        # The statement repeats once per GROUP OF FUNDS, all with the same
+        # rows and DIFFERENT fund columns. Joining those pages would add other
+        # funds' money to the General Fund tree.
+        self.assertFalse(extractDuvall.CONFIG.multipage)
+
+    def test_duvall_prints_whole_dollars_in_the_window(self):
+        # FY2015 and earlier print CENTS. decimal_money=True appearing here
+        # would mean someone extended the window past the era boundary.
+        self.assertFalse(extractDuvall.CONFIG.decimal_money)
+
+
+class TestDuvallShape(unittest.TestCase):
+    """The parse, against the real page."""
+
+    def test_the_general_fund_column_is_read_not_the_memo_column(self):
+        tree, total, _ = build_revenue(
+            DUVALL_REV_LINES, anchors(DUVALL_REV_ANCHOR), extractDuvall.CONFIG)
+        by_name = {c['n']: c['a'] for c in tree['c']}
+        # ⚠ THE LOAD-BEARING ASSERTION. The memo figure for Taxes is 8,108,336
+        # and the General Fund figure is 5,941,972. Reading the memo column
+        # ties at $0 on every row and passes every arithmetic gate.
+        self.assertEqual(by_name['Taxes'], 5941972)
+        self.assertEqual(by_name['Licenses and Permits'], 345219)
+        self.assertEqual(by_name['Charges for Goods and Services'], 282333)
+        self.assertEqual(total, 5941972 + 345219 + 241665 + 282333 + 5669 + 258064)
+        self.assertEqual(total, 7074922)          # the printed General Fund total
+        self.assertNotEqual(total, 28652633)      # the printed MEMO total
+
+    def test_a_BARS_code_never_becomes_a_leaf(self):
+        tree, _, _ = build_revenue(
+            DUVALL_REV_LINES, anchors(DUVALL_REV_ANCHOR), extractDuvall.CONFIG)
+        for c in tree['c']:
+            self.assertNotRegex(c['n'], r'^\d{3}(\.\d+)?$')
+            self.assertNotIn(c['a'], (310, 320, 330, 340, 350, 360))
+
+    def test_the_expenditure_side_reads_the_general_fund_column_too(self):
+        tree, total, _ = build_operating(
+            DUVALL_EXP_LINES, anchors(DUVALL_EXP_ANCHOR), extractDuvall.CONFIG)
+        by_name = {c['n']: c['a'] for c in tree['c']}
+        self.assertEqual(by_name['General Government'], 1726327)
+        self.assertEqual(by_name['Public Safety'], 3432013)
+        self.assertEqual(total, 7801148)          # printed General Fund total
+        self.assertNotEqual(total, 16651941)      # printed MEMO total
+
+    def test_a_dash_zero_cell_is_recorded_and_dropped_not_given_a_neighbours_money(self):
+        # `530 Utilities` prints 5,486,605 in the MEMO column and a BARE DASH
+        # in the General Fund column. Three wrong answers are available here
+        # and all three tie at $0: take the memo cell (5,486,605), take the
+        # next fund's cell, or drop the row silently. The library's rule is
+        # that a $0 General Fund row is dropped and NAMED in `zero_rows`, so
+        # the drop stays auditable — this asserts that rule holds through
+        # Duvall's shifted column, which is where it could break.
+        tree, total, zero_rows = build_operating(
+            DUVALL_EXP_LINES, anchors(DUVALL_EXP_ANCHOR), extractDuvall.CONFIG)
+        by_name = {c['n']: c['a'] for c in tree['c']}
+        self.assertNotIn('Utilities', by_name)
+        self.assertIn('Utilities', zero_rows)
+        self.assertEqual(total, 7801148)
+
+    def test_the_tree_is_FLAT_no_parents_open(self):
+        # The BARS statement has no `Current:` / `Debt service:` grouping. A
+        # config that declared parents here would nest rows under a heading
+        # that does not exist on the page and still tie at $0.
+        tree, _, _ = build_operating(
+            DUVALL_EXP_LINES, anchors(DUVALL_EXP_ANCHOR), extractDuvall.CONFIG)
+        for c in tree['c']:
+            self.assertNotIn('c', c, '%s opened a group; the BARS statement is flat' % c['n'])
+
+
+class TestScopeLabelNamesTheColumnItReads(unittest.TestCase):
+    """`target_column_label` is the ONLY way a non-zero column gets a name."""
+
+    def test_an_undeclared_non_zero_column_keeps_the_honest_generic_label(self):
+        # Unchanged behaviour: an arbitrary index has no name in the document.
+        cfg = CityConfig(city='X', parents=(), target_column=1)
+        self.assertEqual(scope_label(cfg), 'Fund column 1')
+
+    def test_a_declared_column_is_named(self):
+        cfg = CityConfig(city='X', parents=(), target_column=1,
+                         target_column_label='General Fund')
+        self.assertEqual(scope_label(cfg), 'General Fund')
+
+    def test_column_zero_is_still_General_Fund_without_a_declaration(self):
+        cfg = CityConfig(city='X', parents=(), target_column=0)
+        self.assertEqual(scope_label(cfg), 'General Fund')
+
+    def test_last_still_means_total_governmental(self):
+        # ⚠ A declaration must NOT be able to relabel the 'last' column, which
+        # is Total Governmental Funds by construction. Seventeen Indiana
+        # counties depend on that and a relabel there is the LA TRAN defect.
+        cfg = CityConfig(city='X', parents=(), target_column='last',
+                         target_column_label='General Fund')
+        self.assertEqual(scope_label(cfg), 'Total Governmental Funds')
+
+
+class TestStatementPageResolution(unittest.TestCase):
+    """Choosing WHICH page, which is where the biennial trap lives.
+
+    ⚠⚠ Duvall's statement REPEATS, once per group of funds, with identical row
+    labels and DIFFERENT fund columns, and every repeat prints the same `For
+    the Year Ended` caption. So "the page that claims this fiscal year" is not
+    unique and `select_statement_for_fy` would refuse on all of them. What IS
+    unique is the page that prints the TARGET COLUMN'S OWN HEADER -- exactly
+    one page per fiscal year carries `001 General Fund`. Narrowing on that
+    first is what makes the year-selection unambiguous.
+    """
+
+    CFG = CityConfig(city='Duvall, WA', parents=(), target_column=1,
+                     target_column_label='General Fund',
+                     statement_anchor=r'Fund Resources and Uses Arising from Cash Transactions',
+                     revenue_total_labels=('total revenues',),
+                     select_fiscal_year=True,
+                     target_column_header='001 General')
+
+    def test_only_the_page_carrying_the_target_column_header_qualifies(self):
+        pages = [duvall_gf_page(2024), duvall_other_funds_page(2024),
+                 duvall_other_funds_page(2024)]
+        hits = find_statement_pages(pages, self.CFG)
+        self.assertEqual([i for i, _ in hits], [0])
+
+    def test_a_biennial_document_resolves_to_the_requested_year(self):
+        # ⚠⚠ THE DEFECT THIS EXISTS FOR. ARN 1036127 is ONE document carrying
+        # a full statement for FY2022 and for FY2023. Taking the first
+        # candidate publishes FY2022's money under FY2023 and ties at $0.
+        pages = [duvall_gf_page(2022), duvall_other_funds_page(2022),
+                 duvall_gf_page(2023), duvall_other_funds_page(2023)]
+        self.assertEqual(resolve_statement_page(pages, self.CFG, 2022)[0], 0)
+        self.assertEqual(resolve_statement_page(pages, self.CFG, 2023)[0], 2)
+
+    def test_it_REFUSES_a_year_the_document_does_not_carry(self):
+        pages = [duvall_gf_page(2022), duvall_gf_page(2023)]
+        with self.assertRaises(ValueError):
+            resolve_statement_page(pages, self.CFG, 2024)
+
+    def test_a_single_year_document_resolves_to_its_one_page(self):
+        pages = [duvall_gf_page(2024), duvall_other_funds_page(2024)]
+        self.assertEqual(resolve_statement_page(pages, self.CFG, 2024)[0], 0)
+
+    def test_an_undeclared_header_leaves_every_candidate_qualifying(self):
+        # Unchanged behaviour for every other entity: no target_column_header
+        # means no extra narrowing, and the earliest candidate wins.
+        cfg = CityConfig(city='X', parents=(),
+                         statement_anchor=r'Fund Resources and Uses Arising from Cash Transactions',
+                         revenue_total_labels=('total revenues',))
+        pages = [duvall_gf_page(2024), duvall_other_funds_page(2024)]
+        self.assertEqual([i for i, _ in find_statement_pages(pages, cfg)], [0, 1])
+        self.assertEqual(resolve_statement_page(pages, cfg, None)[0], 0)
+
+
+class TestDuvallFiscalYearFromFilename(unittest.TestCase):
+    """The requested year comes from the FILENAME, and that is deliberate.
+
+    `discoverPdfsByFY` in scripts/lib/waSaoLoad.mjs already maps FY to path by
+    the filename, so the filename is the authority for WHICH document is being
+    read. Deriving the requested statement year from the same place keeps one
+    authority instead of two that can disagree.
+    """
+
+    def test_it_reads_the_year_out_of_the_basename(self):
+        self.assertEqual(fy_from_path('docs/Duvall/duvall-2023-acfr.pdf'), 2023)
+        self.assertEqual(fy_from_path(r'C:\docs\Duvall\duvall-2016-acfr.pdf'), 2016)
+
+    def test_a_directory_year_does_not_win_over_the_basename(self):
+        self.assertEqual(fy_from_path('docs/2024-archive/duvall-2016-acfr.pdf'), 2016)
+
+    def test_it_returns_None_when_the_basename_carries_no_year(self):
+        self.assertIsNone(fy_from_path('docs/Duvall/statements.pdf'))
 
 
 if __name__ == '__main__':
