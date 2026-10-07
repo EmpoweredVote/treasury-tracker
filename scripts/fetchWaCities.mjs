@@ -207,6 +207,35 @@ export const REDMOND_ARNS = {
   2022: 1035798, 2023: 1038568, 2024: 1040508,
 };
 
+/**
+ * Duvall, MCAG 0391 — CASH-BASIS BARS, not GAAP.
+ *
+ * ⚠⚠ ONE ARN APPEARS TWICE. Duvall is audited BIENNIALLY, and each biennial
+ * report carries a full statement for BOTH covered years, so the same document
+ * is saved under both filenames. Identical bytes, two names — the sha manifest
+ * will pin ONE digest under TWO paths, which is CORRECT and must not be
+ * "fixed": they are the same document. The statement is then chosen by its own
+ * printed `For the Year Ended December 31, <FY>` caption, never by position —
+ * see select_statement_for_fy in scripts/lib/acfrGF.py. Taking the first
+ * candidate would publish FY2022's money under FY2023 and tie at exactly $0.
+ *
+ * Audit periods read from BeginAuditPeriod/EndAuditPeriod, never inferred:
+ *   ARN 69662   covers FY2003-FY2004   ARN 1013701 covers FY2012-FY2013
+ *   ARN 1009156 covers FY2010-FY2011   ARN 1018682 covers FY2014-FY2015
+ *   ARN 1036127 covers FY2022-FY2023   <- the only biennial pair IN the window
+ *
+ * ⚠ FY2003-FY2015 are pinned NOWHERE here on purpose: they are excluded by the
+ * floor rule (the statement's shape changes between FY2015 and FY2016), and
+ * SIX of them are perfectly READABLE on a different config. Pinning an ARN for
+ * a year the roster does not load is exactly what processDuvall.js's stray-ARN
+ * guard refuses — see scripts/lib/waRoster.mjs for each year's reason.
+ */
+export const DUVALL_ARNS = {
+  2016: 1019869, 2017: 1023192, 2018: 1025265, 2019: 1027182,
+  2020: 1029480, 2021: 1032480, 2022: 1036127, 2023: 1036127,
+  2024: 1038791, 2025: 1040405,
+};
+
 export const ARNS_BY_CITY = {
   Tacoma: TACOMA_ARNS,
   Spokane: SPOKANE_ARNS,
@@ -215,6 +244,7 @@ export const ARNS_BY_CITY = {
   Kent: KENT_ARNS,
   Everett: EVERETT_ARNS,
   Redmond: REDMOND_ARNS,
+  Duvall: DUVALL_ARNS,
 };
 
 function pageCount(pdfPath) {

@@ -130,8 +130,8 @@ export const ENTITY_TYPE_MONTHS = {
  * commit as the load.
  */
 export const BASELINE = {
-  localRows: 358,
-  localEntities: 11,
+  localRows: 378,
+  localEntities: 12,
   stateRows: 12,
   schoolDistrictRows: 0,
   dataSourceRows: 0,   // waSaoLoad.mjs creates its data_sources row EPHEMERALLY and deletes it
@@ -148,6 +148,7 @@ export const LOCAL_ROWS_BY_ENTITY = {
   Seattle: 34,
   Bellevue: 24,
   Redmond: 22,
+  Duvall: 20,
   'King County': 16,
 };
 

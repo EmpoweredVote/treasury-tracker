@@ -71,6 +71,23 @@ export function reportFileUrl(arn) {
 
 const MIN_STATEMENT_PAGES = 40;
 
+// ⚠⚠ A CASH-BASIS BARS FILER IS A SMALL DOCUMENT. Duvall's ten filings run
+// 27-34 pages (54 for the biennial one, which carries two years), against
+// 76-188 for a GAAP city. 40 rejected every single one of them. This floor
+// applies ONLY to the BARS caption, so a GAAP city's 33-page opinion letter is
+// still refused at 40 -- that asymmetry is the whole point and is tested.
+const MIN_BARS_STATEMENT_PAGES = 20;
+
+// The GAAP caption. Every WA city in this roster except Duvall prints it.
+const GAAP_ANCHOR = /statement of revenues,?\s+expenditures/i;
+
+// The BARS regulatory-basis caption. ⚠ `Fiduciary Fund Resources and Uses
+// Arising from Cash Transactions` is printed in EVERY Duvall report and is a
+// different statement reporting custodial money. It is excluded by line, the
+// same way the Reconciliation decoy is, rather than being allowed to qualify a
+// document that carries no governmental-funds statement at all.
+const BARS_ANCHOR = /fund resources and uses arising from cash transactions/i;
+
 /**
  * Content guard. An opinion-letter-only report and an image-only scan are both
  * rejected here rather than downstream, so a bad year fails loudly at fetch
@@ -79,19 +96,25 @@ const MIN_STATEMENT_PAGES = 40;
  * The "Reconciliation of the Statement of Revenues, Expenditures..." line is
  * a decoy that appears in every report including the 4-page letters, so it is
  * excluded before the anchor test rather than after.
+ *
+ * ⚠ THE ANCHOR DECIDES THE FLOOR, not the other way round. Checking the page
+ * count first would reject a BARS filing before anything ever looked at what
+ * it is -- which is exactly what happened to all ten of Duvall's.
  */
 export function classifyReport(pageCount, text) {
-  if (!(pageCount >= MIN_STATEMENT_PAGES)) {
-    return { ok: false, reason: `page count ${pageCount} < ${MIN_STATEMENT_PAGES} (opinion letter, not statements)` };
-  }
-  const anchored = String(text)
-    .split('\n')
-    .filter(l => !/reconciliation/i.test(l))
-    .some(l => /statement of revenues,?\s+expenditures/i.test(l));
-  if (!anchored) {
+  const lines = String(text).split('\n').filter(l => !/reconciliation/i.test(l));
+  const gaap = lines.some(l => GAAP_ANCHOR.test(l));
+  const bars = lines.some(l => BARS_ANCHOR.test(l) && !/fiduciary/i.test(l));
+  if (!gaap && !bars) {
     return { ok: false, reason: 'no governmental funds statement anchor found (image-only scan?)' };
   }
-  return { ok: true, reason: 'statements present' };
+  // A document carrying the GAAP caption is held to the GAAP floor even if it
+  // also carries the BARS one: the stricter floor wins, never the looser.
+  const floor = gaap ? MIN_STATEMENT_PAGES : MIN_BARS_STATEMENT_PAGES;
+  if (!(pageCount >= floor)) {
+    return { ok: false, reason: `page count ${pageCount} < ${floor} (opinion letter, not statements)` };
+  }
+  return { ok: true, reason: gaap ? 'statements present' : 'BARS cash-basis statements present' };
 }
 
 export async function fetchReportPdf(arn) {

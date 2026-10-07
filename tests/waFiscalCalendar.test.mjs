@@ -34,13 +34,13 @@ describe('Washington has THREE fiscal calendars, not one', () => {
   });
 
   it('records that nothing in this population needs changing', () => {
-    expect(BASELINE.localRows).toBe(358);
+    expect(BASELINE.localRows).toBe(378);
     expect(BASELINE.stateRows).toBe(12);
     expect(BASELINE.schoolDistrictRows).toBe(0);
     // waSaoLoad.mjs creates its data_sources row ephemerally and deletes it.
     expect(BASELINE.dataSourceRows).toBe(0);
-    expect(Object.values(LOCAL_ROWS_BY_ENTITY).reduce((a, b) => a + b, 0)).toBe(358);
-    expect(Object.keys(LOCAL_ROWS_BY_ENTITY)).toHaveLength(11);
+    expect(Object.values(LOCAL_ROWS_BY_ENTITY).reduce((a, b) => a + b, 0)).toBe(378);
+    expect(Object.keys(LOCAL_ROWS_BY_ENTITY)).toHaveLength(12);
   });
 
   it('carries a per-entity baseline for Redmond', () => {
@@ -51,6 +51,13 @@ describe('Washington has THREE fiscal calendars, not one', () => {
     // silence. The aggregate would still catch it, which is exactly the kind of
     // "caught by something else" that stops being true later.
     expect(LOCAL_ROWS_BY_ENTITY.Redmond).toBe(22);
+  });
+
+  it('carries a per-entity baseline for Duvall', () => {
+    // 10 fiscal years x operating+revenue. ⚠ Duvall's window comes from NINE
+    // documents, not ten: ARN 1036127 is one biennial report carrying both
+    // FY2022 and FY2023. A reader counting PDFs would expect 18 and be wrong.
+    expect(LOCAL_ROWS_BY_ENTITY.Duvall).toBe(20);
   });
 
   it('gives EVERY loadable WA roster entity a per-entity baseline', () => {

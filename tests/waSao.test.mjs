@@ -79,6 +79,49 @@ describe('classifyReport', () => {
       'Reconciliation of the Statement of Revenues, Expenditures and Changes in Fund Balance');
     expect(r.ok).toBe(false);
   });
+
+  // ── CASH-BASIS BARS FILERS ────────────────────────────────────────────────
+  // Duvall (MCAG 0391) files on the BARS regulatory basis. Its statements are
+  // captioned `Fund Resources and Uses Arising from Cash Transactions` — the
+  // GAAP caption this guard was written for DOES NOT EXIST anywhere in its
+  // corpus — and its whole annual report runs 27-34 pages, where a GAAP city's
+  // runs 76-188. Both halves of the guard therefore rejected all ten of
+  // Duvall's filings, which is how this was found.
+  const BARS = ['City of Duvall',
+                'Fund Resources and Uses Arising from Cash Transactions',
+                'For the Year Ended December 31, 2024',
+                'Total Revenues: 12,345,678'].join('\n');
+
+  it('accepts a BARS cash-basis annual report', () => {
+    expect(classifyReport(33, BARS).ok).toBe(true);
+  });
+
+  it('still rejects a BARS opinion letter that merely names the statement', () => {
+    // The page floor is lower for BARS, not absent. Duvall's smallest real
+    // filing is 27pp (FY2017); its opinion letters are single digits.
+    const r = classifyReport(6, BARS);
+    expect(r.ok).toBe(false);
+    expect(r.reason).toMatch(/page count/i);
+  });
+
+  it('does not accept the FIDUCIARY cash statement as the anchor', () => {
+    // Every Duvall report also prints `Fiduciary Fund Resources and Uses
+    // Arising from Cash Transactions`. A document carrying ONLY that one is
+    // not a governmental-funds statement, and loading it would publish
+    // custodial money under a General Fund label.
+    const r = classifyReport(33,
+      'Fiduciary Fund Resources and Uses Arising from Cash Transactions');
+    expect(r.ok).toBe(false);
+    expect(r.reason).toMatch(/statement/i);
+  });
+
+  it('does NOT lower the page floor for a GAAP report', () => {
+    // ⚠ The whole risk of this change is that a GAAP city's 33-page opinion
+    // letter starts passing. The lower floor must apply ONLY to the BARS
+    // caption.
+    expect(classifyReport(33, STMT).ok).toBe(false);
+    expect(classifyReport(33, STMT).reason).toMatch(/page count/i);
+  });
 });
 
 describe('fetchReportPdf', () => {
