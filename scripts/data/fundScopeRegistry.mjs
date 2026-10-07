@@ -731,7 +731,27 @@ export const FUND_SCOPE_REGISTRY = [
              + '$227,841,000 EXACTLY. Total Governmental Funds columns are 341,682 and 376,377, '
              + 'so 61.7% / 60.5%; columns sum exactly. The two probes print in DIFFERENT units '
              + '(dollars vs thousands), so the tie also confirms the loader normalised units '
-             + 'per document rather than assuming one scale.',
+             + 'per document rather than assuming one scale. '
+             + 'DUVALL FY2024 (whole dollars, FY ends Dec 31), added 2026-10-06 because the '
+             + 'two probes above are GAAP governmental-funds statements and Duvall\'s document '
+             + 'is NOT one — it is captioned "Fund Resources and Uses Arising from Cash '
+             + 'Transactions", has no fund-balance section, and PRINTS ITS COLUMNS IN A '
+             + 'DIFFERENT ORDER. Establishing scope therefore could not be carried over and '
+             + 'was re-read: docs/Duvall/duvall-2024-acfr.pdf prints, under the column headed '
+             + '"001 General Fund", Total Revenues: 7,074,922 and Total Expenditures: '
+             + '7,801,148 — the stored figures EXACTLY. '
+             + '⚠⚠ THE COLUMN IMMEDIATELY TO ITS LEFT is "Total for All Funds (Memo '
+             + 'Only)", reading 28,652,633 and 16,651,941, i.e. the stored figure is 24.7% / '
+             + '46.9% of all funds. That memo column is printed FIRST, so it is the column a '
+             + 'positional reader takes by default, and it is internally consistent — it would '
+             + 'have tied at exactly $0 while publishing all-funds money under a General Fund '
+             + 'label. The scope claim here rests on having read the SECOND column, which '
+             + 'scripts/extractDuvall.py declares (target_column=1) and the acfrGF selftest '
+             + 'pins by naming the figure. '
+             + '⚠ Duvall is also the only entity under this pattern that is NOT GAAP: its '
+             + 'rows carry audit_grade=audited_ocboa and accounting_basis=cash. Scope is '
+             + 'unaffected — general_fund is a fund-population claim, not a basis claim — but a '
+             + 'reader comparing Duvall against the GAAP entities here must see the basis chip.',
     },
   },
 

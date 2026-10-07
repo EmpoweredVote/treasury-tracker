@@ -302,7 +302,16 @@ export const EXPECTED_ROWS = Object.freeze({
   // ones the gate is flagging as over-matching. `--only <entryId>` exists for
   // this situation — it writes one entry, and only when that entry is itself
   // clean and in no overlap.
-  'wa-sao': 308,
+  // RE-MEASURED 2026-10-06 (phase 2): 308 -> 328, exactly +20 = Duvall's
+  // 10 fiscal years x operating+revenue. Same byte-identical pattern again.
+  //
+  // ⚠⚠ DUVALL'S SCOPE IS NOT INHERITED FROM THE ENTRY'S EVIDENCE. This entry
+  // was evidenced on Spokane and Tacoma GAAP statements, which Duvall's
+  // documents do not resemble — different caption, different column ORDER,
+  // the memo column printed FIRST. The scope claim is re-established on
+  // Duvall's own page in scripts/data/fundScopeRegistry.mjs; read that before
+  // assuming the 20 new rows are covered by the old evidence.
+  'wa-sao': 328,
   'mn-osa': 21794,
   'oh-aos': 6616,
   // ── MA DLS (MA-01) ────────────────────────────────────────────────────────

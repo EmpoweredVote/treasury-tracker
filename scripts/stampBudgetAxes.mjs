@@ -65,15 +65,23 @@ export const EXPECTED_BASIS_ROWS = Object.freeze({
   'ca-sco-derived-tg': 7650,
   'ca-sco-county-exp': 1188,
   'ca-sco-county-rev': 1188,
-  // RE-MEASURED 2026-10-06: 286 -> 308, exactly +22, with nothing else moved.
-  // The 22 are Redmond, WA (MCAG 0425), the ninth WA SAO entity: 11 fiscal
-  // years x operating+revenue, loaded this milestone. The pattern
-  // /^WA State Auditor — / is byte-identical to the one that measured 286 —
-  // this is the table changing underneath, not a pattern change, which is the
-  // case this file's header permits once explained. Every other entry in this
-  // gate matched its expectation exactly on the same run.
-  // Evidence: docs/superpowers/specs/2026-10-06-redmond-duvall-accounting-basis-design.md §2.
-  'wa-sao': 308,
+  // RE-MEASURED 2026-10-06 (phase 2): 308 -> 328, exactly +20, with nothing
+  // else moved. The 20 are Duvall, WA (MCAG 0391), the tenth WA SAO entity:
+  // 10 fiscal years x operating+revenue, loaded this milestone. The earlier
+  // 286 -> 308 was Redmond's 22 (11 years x 2) in phase 1.
+  //
+  // The pattern /^WA State Auditor — / is byte-identical to the one that
+  // measured 286 and 308 — this is the table changing underneath, not a
+  // pattern change, which is the case this file's header permits once
+  // explained. The gate FIRED on the stale 308 the first time it ran after
+  // the load, which is the whole point of pinning it.
+  //
+  // ⚠ Duvall's rows are CASH BASIS, which this axis cannot say: `basis` here
+  // means actual-vs-adopted, and all 20 are `actual`. What they are measured
+  // ON lives in `accounting_basis` — see scripts/data/accountingBasisRegistry.mjs.
+  // Evidence: docs/superpowers/specs/2026-10-06-redmond-duvall-accounting-basis-design.md §2
+  // and docs/superpowers/plans/DUVALL-RECON.md.
+  'wa-sao': 328,
   'state-acfr-gf': 1448,
   'mn-osa': 21794,
   'oh-aos': 6616,
@@ -471,7 +479,13 @@ export const EXPECTED_REPORTING_ENTITY_ROWS = Object.freeze({
   // EXPECTED_BASIS_ROWS above. Redmond is primary_government like every other
   // WA SAO entity: the SAO's bound statements present component units
   // discretely, and TT sums only the governmental funds column.
-  'wa-sao': 308,
+  //
+  // RE-MEASURED 2026-10-06 (phase 2): 308 -> 328, the +20 being Duvall.
+  // ⚠ Duvall's BARS statements state the same boundary differently and reach
+  // the same answer: Note 1 says "Component units are required to be
+  // disclosed but are not included in the financial statements", so the
+  // General Fund column is the primary government and nothing else.
+  'wa-sao': 328,
   // Florida DFS, re-measured 2026-09-02 after the statewide sweep. Same 12,764
   // rows as the basis entry above; primary_government because DFS publishes
   // discretely presented component units in their own twelfth fund column and TT
