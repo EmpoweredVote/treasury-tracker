@@ -2374,6 +2374,29 @@ def build_revenue(lines, col_anchors, cfg):
             # the next line, so the default forward-wrap published
             # `Environment Social Services`.
             if low in cfg.trailing_label_continuations and _last_emitted is not None:
+                # ⚠⚠ A PENDING FORWARD FRAGMENT HERE WOULD BE THROWN AWAY.
+                #
+                # `pending` holds a labelless line waiting for the row BELOW it.
+                # This branch appends to the row ABOVE and then clears it, so
+                # two wrap directions meeting on adjacent lines silently drop
+                # the forward fragment -- and the next row publishes real money
+                # under a TRUNCATED name. That is the very defect
+                # `trailing_label_continuations` was added to fix
+                # (`Environment Social Services`), arriving from the other side,
+                # and no tie gate can see a label.
+                #
+                # Unreachable in Duvall's corpus, the only entity that declares
+                # this option. It REFUSES rather than guessing precisely because
+                # there is no observed document to infer the right merge from:
+                # inventing one is how the wrong label ships at a $0 tie.
+                if pending:
+                    raise ValueError(
+                        'trailing continuation %r would discard the pending label '
+                        'fragment %r. Two wrap directions meet on adjacent lines '
+                        'and the correct merge cannot be inferred -- declare the '
+                        'document\'s real shape (label_fixes or empty_rows) '
+                        'instead of letting a row publish under a truncated name.'
+                        % (lbl, pending))
                 _last_emitted['n'] = _fix_label(
                     norm_label('%s %s' % (_last_emitted['n'], lbl)), cfg)
                 pending = ''
@@ -2574,6 +2597,29 @@ def build_operating(lines, col_anchors, cfg):
             # the next line, so the default forward-wrap published
             # `Environment Social Services`.
             if low in cfg.trailing_label_continuations and _last_emitted is not None:
+                # ⚠⚠ A PENDING FORWARD FRAGMENT HERE WOULD BE THROWN AWAY.
+                #
+                # `pending` holds a labelless line waiting for the row BELOW it.
+                # This branch appends to the row ABOVE and then clears it, so
+                # two wrap directions meeting on adjacent lines silently drop
+                # the forward fragment -- and the next row publishes real money
+                # under a TRUNCATED name. That is the very defect
+                # `trailing_label_continuations` was added to fix
+                # (`Environment Social Services`), arriving from the other side,
+                # and no tie gate can see a label.
+                #
+                # Unreachable in Duvall's corpus, the only entity that declares
+                # this option. It REFUSES rather than guessing precisely because
+                # there is no observed document to infer the right merge from:
+                # inventing one is how the wrong label ships at a $0 tie.
+                if pending:
+                    raise ValueError(
+                        'trailing continuation %r would discard the pending label '
+                        'fragment %r. Two wrap directions meet on adjacent lines '
+                        'and the correct merge cannot be inferred -- declare the '
+                        'document\'s real shape (label_fixes or empty_rows) '
+                        'instead of letting a row publish under a truncated name.'
+                        % (lbl, pending))
                 _last_emitted['n'] = _fix_label(
                     norm_label('%s %s' % (_last_emitted['n'], lbl)), cfg)
                 pending = ''

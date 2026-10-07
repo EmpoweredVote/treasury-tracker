@@ -3248,5 +3248,65 @@ class TestShippedMultipageConfigsStillConstruct(unittest.TestCase):
         self.assertFalse(extractRedmond.CONFIG.multipage)
 
 
+TRAILING_PENDING_LINES = [
+    'Revenues',
+    'Property taxes                                   100',
+    'Charges for',
+    'Environment',
+    'Total revenues                                   100',
+]
+TRAILING_PENDING_ANCHOR = 'Total revenues                                   100'
+
+
+class TestTrailingContinuationDiscardsAPendingFragment(unittest.TestCase):
+    """A trailing continuation sets `pending = ''` -- losing a forward fragment.
+
+    \u26a0\u26a0 TWO WRAP DIRECTIONS CAN MEET ON ADJACENT LINES. The forward wrap
+    accumulates a labelless line into `pending`, waiting for the row below it.
+    A TRAILING continuation then fires, appends itself to the row ABOVE, and
+    clears `pending` -- throwing the forward fragment away without a word.
+
+    The next row is then published under a TRUNCATED name: real money under a
+    name the document does not contain. That is the exact defect this feature
+    was added to fix (`Environment Social Services`), reappearing from the
+    other direction, and the $0 tie cannot see a label.
+
+    Unreachable in Duvall's corpus -- the only entity declaring
+    `trailing_label_continuations` -- which is why it is a refusal rather than
+    a silent repair: there is no observed document to infer the right
+    resolution from, and guessing would be how the wrong one ships.
+    """
+
+    def _cfg(self):
+        return CityConfig(city='X', parents=(), root_leaves=(),
+                          revenue_parents=(), revenue_group_members=(),
+                          column_strategy='ordinal',
+                          trailing_label_continuations=('environment',))
+
+    def test_it_REFUSES_rather_than_dropping_the_fragment(self):
+        with self.assertRaises(ValueError) as e:
+            build_revenue(TRAILING_PENDING_LINES,
+                          anchors(TRAILING_PENDING_ANCHOR), self._cfg())
+        msg = str(e.exception)
+        self.assertIn('Charges for', msg)
+        self.assertIn('Environment', msg)
+
+    def test_a_trailing_continuation_with_NO_pending_fragment_still_works(self):
+        # \u26a0 The guard must not break the feature it protects. Duvall's real
+        # shape -- a valued row, then its trailing word -- has no pending
+        # fragment and must still merge.
+        lines = [
+            'Revenues',
+            'Natural and Economic                             100',
+            'Environment',
+            'Total revenues                                   100',
+        ]
+        tree, total, _ = build_revenue(
+            lines, anchors('Total revenues                                   100'),
+            self._cfg())
+        self.assertEqual(total, 100)
+        self.assertEqual([c['n'] for c in tree['c']], ['Natural and Economic Environment'])
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

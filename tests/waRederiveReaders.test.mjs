@@ -826,3 +826,49 @@ describe('table: bands may be corroborated from the other section of the same pa
       .toThrow(/CONTRADICT/);
   });
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// A TRAILING LABEL FRAGMENT MUST NOT RENAME THE GROUP ABOVE THE LEAF.
+// ═══════════════════════════════════════════════════════════════════════════
+describe('coded page: a trailing fragment renames the LEAF, not its GROUP', () => {
+  // ⚠ `lastLeaf` carries BOTH the leaf and its root, and the merge wrote the
+  // tail onto both. The code's own comment states the assumption it rests on:
+  // "Both the root and the leaf carry the label on a flat statement". On a
+  // NESTED statement the root is the GROUP HEADING, and the merge renames it
+  // to the leaf's label -- so a group called `Current` would be published as
+  // `Natural and Economic Environment`, swallowing the heading of every
+  // sibling beneath it.
+  //
+  // Unreachable today: Duvall is the only entity whose pages carry leading
+  // account codes, and its statement is flat. It is fixed rather than noted
+  // because the next BARS filer with a grouped statement would hit it on load,
+  // and a wrong LABEL ties at $0 exactly like a right one.
+  const ncols = 3;
+  // ⚠ Three valued rows is the minimum pageUsesLeadingAccountCodes will give a
+  // verdict on; with two it returns false and this branch is never reached.
+  // ⚠ Two conditions must BOTH hold for the merge branch to be reached, and
+  // each silently skips it: pageUsesLeadingAccountCodes needs >=3 rows whose
+  // figures are THOUSANDS-SEPARATED (FORMATTED_FIGURE_RE ignores bare digits),
+  // and rawRows must be non-empty. A fixture that misses either tests nothing.
+  const total = 'Total expenditures                        1,106,599   3,000   6,000';
+  const body = [
+    'Current:',
+    '310 Natural and Economic                  1,037,371   1,000   2,000',
+    'Environment',
+    '320 Other                                    44,228   1,000   2,000',
+    '330 Third                                    25,000   1,000   2,000',
+  ];
+
+  it('keeps the group heading intact', () => {
+    const read = makeRowReader(body, total, ncols, 'fixture');
+    const roots = buildOperating(body, read, (v) => v, []);
+    expect(roots.map((r) => r.label)).toEqual(['Current']);
+  });
+
+  it('still joins the fragment onto the leaf it belongs to', () => {
+    const read = makeRowReader(body, total, ncols, 'fixture');
+    const roots = buildOperating(body, read, (v) => v, []);
+    expect(roots[0].children.map((c) => c.label))
+      .toEqual(['310 Natural and Economic Environment', '320 Other', '330 Third']);
+  });
+});

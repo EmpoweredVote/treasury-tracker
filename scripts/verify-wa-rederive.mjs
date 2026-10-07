@@ -1675,7 +1675,21 @@ export function buildOperating(body, readRow, scale, rawRows, indents = new Map(
       if (codedPage && !LEADING_ACCOUNT_CODE_RE.test(line) && rawRows.length) {
         const tail = normLabel(`${rawRows[rawRows.length - 1].label} ${r.label}`);
         rawRows[rawRows.length - 1].label = tail;
-        if (lastLeaf) { lastLeaf.leaf.label = tail; lastLeaf.root.label = tail; }
+        // ⚠⚠ THE ROOT IS ONLY THE LEAF ON A *FLAT* STATEMENT.
+        //
+        // `lastLeaf` carries both the leaf and the root it was filed under.
+        // Writing the tail to both is right when they are the same node, and
+        // renames the GROUP HEADING when they are not -- so `Current` becomes
+        // `Natural and Economic Environment` and the heading of every sibling
+        // beneath it is gone. A wrong label ties at $0 exactly like a right one.
+        //
+        // Unreachable while Duvall is the only entity whose pages carry leading
+        // account codes and its statement is flat; the next BARS filer with a
+        // grouped statement would hit it on first load.
+        if (lastLeaf) {
+          lastLeaf.leaf.label = tail;
+          if (lastLeaf.root === lastLeaf.leaf) lastLeaf.root.label = tail;
+        }
         pending = '';
         continue;
       }
@@ -1785,7 +1799,21 @@ export function buildRevenue(body, readRow, scale, rawRows, indents) {
       if (codedPage && !LEADING_ACCOUNT_CODE_RE.test(line) && rawRows.length) {
         const tail = normLabel(`${rawRows[rawRows.length - 1].label} ${r.label}`);
         rawRows[rawRows.length - 1].label = tail;
-        if (lastLeaf) { lastLeaf.leaf.label = tail; lastLeaf.root.label = tail; }
+        // ⚠⚠ THE ROOT IS ONLY THE LEAF ON A *FLAT* STATEMENT.
+        //
+        // `lastLeaf` carries both the leaf and the root it was filed under.
+        // Writing the tail to both is right when they are the same node, and
+        // renames the GROUP HEADING when they are not -- so `Current` becomes
+        // `Natural and Economic Environment` and the heading of every sibling
+        // beneath it is gone. A wrong label ties at $0 exactly like a right one.
+        //
+        // Unreachable while Duvall is the only entity whose pages carry leading
+        // account codes and its statement is flat; the next BARS filer with a
+        // grouped statement would hit it on first load.
+        if (lastLeaf) {
+          lastLeaf.leaf.label = tail;
+          if (lastLeaf.root === lastLeaf.leaf) lastLeaf.root.label = tail;
+        }
         pending = '';
         continue;
       }
