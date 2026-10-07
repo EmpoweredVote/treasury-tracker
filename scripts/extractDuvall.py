@@ -74,9 +74,30 @@ select_fiscal_year = True
     at exactly $0 doing it. Do not reason about which year "must" come first.
 
 leading_account_code = True
-    BARS line codes LEAD every label: `310 Taxes`, `30810 Reserved`,
-    `388 / 588 Prior Period Adjustments, Net`, so the flag is a true
-    description of the document.
+    BARS line codes LEAD every label, so the flag is a true description of the
+    document -- but it does NOT follow that every code is stripped.
+
+    ⚠⚠ MEASURED, because the earlier wording here cited shapes the regex
+    cannot handle. `_CODE_AT_START` is `\d{3}(?:\.\d{1,2})?(?=\s\S)` -- THREE
+    digits, an optional 1-2 decimal places, then exactly one space:
+
+        '310 Taxes'                                 strips '310'
+        '335.01 Bank franchise tax'                 strips '335.01'
+        '30810 Reserved'                            NO MATCH  (five digits)
+        '388 / 588 Prior Period Adjustments, Net'   strips '388' ONLY
+
+    The last one is the sharp edge: `588` survives the strip and is left
+    exposed to `_MONEY`. It is harmless HERE only because BARS prior-period
+    adjustments sit outside the revenue and expenditure sections this extractor
+    reads -- not because the flag handled them. An entity that prints a
+    five-digit or compound code INSIDE either section needs the regex widened
+    first, and would tie at $0 while wrong if it were not.
+
+    Pinned by TestLeadingAccountCodeShapes in acfrGF.selftest.py, so this
+    description cannot drift away from the regex again.
+
+    ⚠ The flag is INERT for this corpus regardless -- output is byte-identical
+    with it off, measured across all 20 combinations.
 
     ⚠ IT IS DEFENCE IN DEPTH HERE, NOT THE THING THAT MAKES THE PARSE CORRECT,
     and that is a CORRECTION to what DUVALL-RECON.md §4 originally claimed.

@@ -96,7 +96,6 @@ interface ScopeLabelProps {
   auditGrade?: AuditGrade | null;
   /** Optional dataset name, so a page showing two figures says which is which. */
   datasetLabel?: string;
-  /** Render the shared explainer inline when expanded. Default true. */
   /**
    * HOW the figure was MEASURED — GAAP, modified cash or cash. Absent renders
    * nothing rather than guessing, like `basis` and `auditGrade`.
@@ -112,6 +111,7 @@ interface ScopeLabelProps {
    * would be noise on two hundred thousand rows rather than information.
    */
   accountingBasis?: AccountingBasis | null;
+  /** Render the shared explainer inline when expanded. Default true. */
   withExplainer?: boolean;
   className?: string;
 }

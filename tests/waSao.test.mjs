@@ -115,6 +115,44 @@ describe('classifyReport', () => {
     expect(r.reason).toMatch(/statement/i);
   });
 
+  // ── ⚠⚠ A STACKED CAPTION WRAPS, AND BOTH EXCLUSIONS WERE PER-LINE ────────
+  //
+  // Both guards below ask "does THIS line also say Fiduciary / Reconciliation".
+  // The captions they defend against are STACKED on the page, so whether the
+  // qualifier shares a line with the anchor is a property of the text layer,
+  // not of the document. `pdftotext` splits one stacked caption differently
+  // between issuers and between years of the same issuer.
+  //
+  // Failure direction matters: a defeated exclusion publishes CUSTODIAL money
+  // under a General Fund label, or reads a reconciliation schedule as the
+  // statement. Both tie at $0 while wrong.
+
+  it('rejects the FIDUCIARY statement even when the caption WRAPS', () => {
+    const wrapped = ['City of Duvall',
+                     'Fiduciary',
+                     'Fund Resources and Uses Arising from Cash Transactions',
+                     'For the Year Ended December 31, 2024'].join('\n');
+    const r = classifyReport(33, wrapped);
+    expect(r.ok, 'a wrapped Fiduciary caption must not read as governmental funds').toBe(false);
+  });
+
+  it('rejects a Reconciliation schedule even when the caption WRAPS', () => {
+    const wrapped = ['City of Example',
+                     'Reconciliation of the',
+                     'Statement of Revenues, Expenditures and Changes in Fund Balance'].join('\n');
+    const r = classifyReport(80, wrapped);
+    expect(r.ok, 'a wrapped Reconciliation caption must not read as the statement').toBe(false);
+  });
+
+  it('still accepts a real statement that merely FOLLOWS an unrelated line', () => {
+    // ⚠ The widened window must not reject a valid report. The qualifier has to
+    // belong to the caption, not merely precede it somewhere on the page.
+    const ok = ['Table of Contents',
+                'Statement of Revenues, Expenditures, and Changes in Fund Balance',
+                'Total Revenues 24,379,173'].join('\n');
+    expect(classifyReport(76, ok).ok).toBe(true);
+  });
+
   it('does NOT lower the page floor for a GAAP report', () => {
     // ⚠ The whole risk of this change is that a GAAP city's 33-page opinion
     // letter starts passing. The lower floor must apply ONLY to the BARS
