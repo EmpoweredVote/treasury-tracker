@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
+import { scaleMoney } from './data/scaleMoney';
 import { FileText, Heart } from 'lucide-react'
 import { AppHeader } from './components/AppHeader';
 import { SiteFooter } from '@empoweredvote/ev-ui';
@@ -1121,8 +1122,11 @@ function App() {
       subcategories: cat.subcategories?.map(scaleCat),
       lineItems: cat.lineItems?.map(li => ({
         ...li,
-        approvedAmount: li.approvedAmount / divisor,
-        actualAmount: li.actualAmount / divisor,
+        // ⚠⚠ `null / divisor` IS 0. Dividing directly turned "no adopted
+        // budget" into a hard $0 in the per-person view only — so the two
+        // views of one row disagreed. See src/data/scaleMoney.ts (#217).
+        approvedAmount: scaleMoney(li.approvedAmount, divisor),
+        actualAmount: scaleMoney(li.actualAmount, divisor),
       })),
     });
     return {

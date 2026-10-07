@@ -19,6 +19,17 @@ interface LineItemsTableProps {
   categoryName: string;
 }
 
+/**
+ * ⚠⚠ A null amount renders an EM DASH, never $0.
+ *
+ * Hiding the whole column (see `visibleMoneyColumns`) handles a source with no
+ * budget at all. It does nothing for a MIXED table, where some rows carry a
+ * budget and others do not: the column is shown and a null cell reads as $0,
+ * so the false claim simply moves from the column to the row.
+ */
+const formatMoney = (amount: number | null | undefined): string =>
+  (amount === null || amount === undefined) ? '\u2014' : formatCurrency(amount);
+
 const formatCurrency = (amount: number): string => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -28,7 +39,18 @@ const formatCurrency = (amount: number): string => {
   }).format(amount);
 };
 
-const calculateVariance = (approved: number, actual: number): { amount: number; percentage: number } => {
+/**
+ * ⚠⚠ RETURNS null WHEN EITHER SIDE IS ABSENT. A variance against a budget
+ * nobody published is an invented number: with `approved = null` the old
+ * arithmetic gave `actual - null = actual` and `actual / null = Infinity`, so
+ * a grant-funded line rendered "+$1,200,000 (+Infinity%)" in red.
+ */
+const calculateVariance = (
+  approved: number | null | undefined,
+  actual: number | null | undefined,
+): { amount: number; percentage: number } | null => {
+  if (approved === null || approved === undefined) return null;
+  if (actual === null || actual === undefined) return null;
   const amount = actual - approved;
   const percentage = approved !== 0 ? (amount / approved) * 100 : 0;
   return { amount, percentage };
@@ -48,8 +70,10 @@ export default function LineItemsTable({ lineItems, categoryName }: LineItemsTab
   // reader Redmond budgeted $0 and spent $140,249,393.
   const cols = visibleMoneyColumns(lineItems);
 
-  const totalApproved = lineItems.reduce((sum, item) => sum + item.approvedAmount, 0);
-  const totalActual = lineItems.reduce((sum, item) => sum + item.actualAmount, 0);
+  // ⚠ `sum + null` is `sum` in JS, so these were accidentally right. Made
+  // explicit so a later Number()/spread cannot quietly turn them into NaN.
+  const totalApproved = lineItems.reduce((sum, item) => sum + (item.approvedAmount ?? 0), 0);
+  const totalActual = lineItems.reduce((sum, item) => sum + (item.actualAmount ?? 0), 0);
   const totalVariance = calculateVariance(totalApproved, totalActual);
 
   // ⚠ Sort by a column that HAS figures. Sorting by approvedAmount on an
@@ -57,7 +81,7 @@ export default function LineItemsTable({ lineItems, categoryName }: LineItemsTab
   // appeared in whatever order the API happened to return — Public safety,
   // 47% of Redmond's general fund, could land anywhere in the table.
   const sortedItems = [...lineItems].sort((a, b) => (cols.budgeted
-    ? b.approvedAmount - a.approvedAmount
+    ? (b.approvedAmount ?? 0) - (a.approvedAmount ?? 0)
     : (b.actualAmount ?? 0) - (a.actualAmount ?? 0)));
 
   return (
@@ -117,17 +141,17 @@ export default function LineItemsTable({ lineItems, categoryName }: LineItemsTab
                   </td>
                   {cols.budgeted && (
                     <td className="px-4 py-3 text-sm font-medium text-[#1C1C1C] dark:text-ev-gray-200 text-right tabular-nums">
-                      {formatCurrency(item.approvedAmount)}
+                      {formatMoney(item.approvedAmount)}
                     </td>
                   )}
                   {cols.actual && (
                     <td className="px-4 py-3 text-sm font-medium text-[#1C1C1C] dark:text-ev-gray-200 text-right tabular-nums">
-                      {formatCurrency(item.actualAmount)}
+                      {formatMoney(item.actualAmount)}
                     </td>
                   )}
                   {cols.variance && (
-                  <td className={`px-4 py-3 text-right tabular-nums ${getVarianceClasses(variance.amount)}`}>
-                    {variance.amount !== 0 ? (
+                  <td className={`px-4 py-3 text-right tabular-nums ${getVarianceClasses(variance?.amount ?? 0)}`}>
+                    {variance && variance.amount !== 0 ? (
                       <div className="flex flex-col items-end gap-0.5">
                         <span className="text-sm font-medium">
                           {variance.amount > 0 ? '+' : ''}{formatCurrency(variance.amount)}
@@ -152,17 +176,17 @@ export default function LineItemsTable({ lineItems, categoryName }: LineItemsTab
               </td>
               {cols.budgeted && (
                 <td className="px-4 py-3 text-sm font-bold text-ev-muted-blue text-right tabular-nums">
-                  {formatCurrency(totalApproved)}
+                  {formatMoney(cols.budgeted ? totalApproved : null)}
                 </td>
               )}
               {cols.actual && (
                 <td className="px-4 py-3 text-sm font-bold text-ev-muted-blue text-right tabular-nums">
-                  {formatCurrency(totalActual)}
+                  {formatMoney(cols.actual ? totalActual : null)}
                 </td>
               )}
               {cols.variance && (
-              <td className={`px-4 py-3 text-right tabular-nums ${getVarianceClasses(totalVariance.amount)}`}>
-                {totalVariance.amount !== 0 ? (
+              <td className={`px-4 py-3 text-right tabular-nums ${getVarianceClasses(totalVariance?.amount ?? 0)}`}>
+                {totalVariance && totalVariance.amount !== 0 ? (
                   <div className="flex flex-col items-end gap-0.5">
                     <span className="text-sm font-bold">
                       {totalVariance.amount > 0 ? '+' : ''}{formatCurrency(totalVariance.amount)}

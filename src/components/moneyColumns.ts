@@ -50,7 +50,10 @@ export interface MoneyColumns {
 
 const NONE: MoneyColumns = { budgeted: false, actual: false, variance: false, note: null };
 
-const published = (items: LineItem[], pick: (li: LineItem) => number | undefined): boolean =>
+const published = (
+  items: LineItem[],
+  pick: (li: LineItem) => number | null | undefined,
+): boolean =>
   items.some((li) => {
     const v = pick(li);
     return typeof v === 'number' && Number.isFinite(v) && v !== 0;

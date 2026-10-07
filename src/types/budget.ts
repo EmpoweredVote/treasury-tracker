@@ -23,8 +23,17 @@ export interface SearchResult {
 
 export interface LineItem {
   description: string;
-  approvedAmount: number;
-  actualAmount: number;
+  /**
+   * ⚠⚠ NULL MEANS "THIS SOURCE PUBLISHED NO ADOPTED BUDGET" — issue #217.
+   * It is NOT zero. The API preserves the database's NULL rather than coercing
+   * it, because a BARS or GAAP statement reports what was SPENT and never what
+   * was budgeted. Rendering a null as $0 told a reader the City of Redmond
+   * budgeted nothing and spent $140,249,393.
+   */
+  approvedAmount: number | null;
+  /** ⚠ Nullable for the mirrored reason: an adopted-budget-only source has no
+   * actuals, and 0 there says the government spent nothing. */
+  actualAmount: number | null;
   metadata?: {
     // For salaries
     basePay?: number;
