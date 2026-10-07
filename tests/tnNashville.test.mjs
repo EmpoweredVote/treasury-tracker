@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { EXPECTED_ROWS } from '../scripts/data/fundScopeExpectations.mjs';
 
 import {
   TN_ENTITIES, TN_LOAD_WINDOW, NASHVILLE_LOAD_YEARS, NASHVILLE_ACFR_URLS,
@@ -16,13 +16,20 @@ const src = (mode, fy) => 'Metro Nashville ACFR — General Fund '
   + `${mode === 'operating' ? 'Expenditure by Function' : 'Revenue by Source'} (FY${fy} actual, GAAP basis)`;
 
 /**
- * ⚠ READ AS TEXT, NEVER IMPORTED. `scripts/classifyFundScope.mjs` carries a
- * shebang, and a `#!` on any module a test imports breaks `npm test` on Windows
- * — the defect `tests/waSao.test.mjs` guards against.
+ * ⚠ This used to READ `scripts/classifyFundScope.mjs` AS TEXT and regex the
+ * number out, because that file carries a shebang and a `#!` on any module a
+ * test imports breaks `npm test` on Windows (the defect
+ * `tests/waSao.test.mjs` guards against, which fired on exactly this import
+ * while this file was being written).
+ *
+ * As of 2026-10-06 the counts live in `scripts/data/fundScopeExpectations.mjs`,
+ * which has NO shebang, so they are imported properly. The regex version
+ * silently returned `null` for a missing id — indistinguishable from "this
+ * entry is absent", which is exactly what a partition expectation must never
+ * be vague about.
  */
 function expectedRowsFor(id) {
-  const m = new RegExp(`'${id}':\\s*(\\d+),`).exec(readFileSync('scripts/classifyFundScope.mjs', 'utf8'));
-  return m ? Number(m[1]) : null;
+  return EXPECTED_ROWS[id] ?? null;
 }
 
 describe('Nashville-Davidson is ONE consolidated entity', () => {

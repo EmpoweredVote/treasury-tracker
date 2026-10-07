@@ -403,3 +403,47 @@ describe('checkPartition --only scoping', () => {
     expect(r.ok).toBe(false);
   });
 });
+
+// ── The EXPECTED_ROWS table must describe the table as it is TODAY ───────────
+//
+// classifyFundScope was INERT from #132 (2026-09) to 2026-10-06: five entries
+// carried pilot-era counts while four statewide sweeps landed, so the gate
+// refused to write and measured nothing for a month. It failed CLOSED, so no
+// row was mis-stamped — but a gate that cannot run is not a gate.
+//
+// These pin the re-measured values so the same drift is a test failure next
+// time rather than a silent refusal nobody reads.
+import { EXPECTED_ROWS } from '../scripts/data/fundScopeExpectations.mjs';
+
+describe('EXPECTED_ROWS covers every statewide family', () => {
+  it('carries the re-measured counts for the four 2026 statewide sweeps', () => {
+    // Each number was measured in the live table with the entry's own anchored
+    // pattern, with DISTINCT ids equal to the row count and zero strings
+    // claimed by any other entry. Entity counts independently reconcile with
+    // each sweep's own record.
+    expect(EXPECTED_ROWS['mi-treasury-f65-gf']).toBe(58228);   // 1,856 units
+    expect(EXPECTED_ROWS['mi-treasury-f65-tg']).toBe(58228);   // 1,856 units
+    expect(EXPECTED_ROWS['fl-dfs-afr']).toBe(12764);           // 479 govts
+    expect(EXPECTED_ROWS['pa-dced-clgs30-muni']).toBe(50034);  // 2,553 munis
+    expect(EXPECTED_ROWS['pa-dced-clgs30-county']).toBe(1044); // 66 counties
+    expect(EXPECTED_ROWS['in-county-acfr-tg']).toBe(198);      // 17 counties
+  });
+
+  it('keeps the two Michigan halves equal — they are one sweep split by scope', () => {
+    // 58,228 x 2 = 116,456, the MI F-65 statewide total. If these ever diverge,
+    // one scope lost rows the other kept.
+    expect(EXPECTED_ROWS['mi-treasury-f65-gf']).toBe(EXPECTED_ROWS['mi-treasury-f65-tg']);
+  });
+
+  it('keeps the two Pennsylvania halves summing to the sweep total', () => {
+    expect(EXPECTED_ROWS['pa-dced-clgs30-muni'] + EXPECTED_ROWS['pa-dced-clgs30-county'])
+      .toBe(51078);
+  });
+
+  it('gives EVERY registry entry an expectation, so none can claim unmeasured', () => {
+    const missing = FUND_SCOPE_REGISTRY
+      .map((e) => e.id)
+      .filter((id) => EXPECTED_ROWS[id] === undefined);
+    expect(missing, `registry entries with no EXPECTED_ROWS: ${missing.join(', ')}`).toEqual([]);
+  });
+});
