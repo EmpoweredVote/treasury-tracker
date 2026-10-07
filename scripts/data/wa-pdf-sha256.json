@@ -614,5 +614,45 @@
   "Redmond|2024": {
     "sha256": "a47249059601b76237528dd0f1528f4ffb0eeaff72774d6b43f856c017404705",
     "bytes": 3091611
+  },
+  "Duvall|2016": {
+    "sha256": "051998f942d1ac30fcd7777d47f41c1351ce071d467299037abc00f4b3790fdf",
+    "bytes": 1486417
+  },
+  "Duvall|2017": {
+    "sha256": "fe327d333b04ab1473da248d5d5afb91bee5046634b34e562081631b49a776e8",
+    "bytes": 1148389
+  },
+  "Duvall|2018": {
+    "sha256": "744c676a591d17d48e58bb9c9a0eee4aa660601456726c4818711afbfda427eb",
+    "bytes": 1501247
+  },
+  "Duvall|2019": {
+    "sha256": "11cb5a59c558b1180abf7a97f211aeb92f76993854b8b70de1afa07226945561",
+    "bytes": 1595336
+  },
+  "Duvall|2020": {
+    "sha256": "b3e0cbccb239d000be20323fa255181c94e86ea8e33096bba752863bedd2ea92",
+    "bytes": 1625656
+  },
+  "Duvall|2021": {
+    "sha256": "c78d79a1f8d24f60b6778fff5db3972a6fab3fac263872cae574f24268cd8da3",
+    "bytes": 1291733
+  },
+  "Duvall|2022": {
+    "sha256": "2734843cb8bcd7d7fa166ed118bd77417de852ca360ad344182c595e31ebdf9d",
+    "bytes": 1734877
+  },
+  "Duvall|2023": {
+    "sha256": "2734843cb8bcd7d7fa166ed118bd77417de852ca360ad344182c595e31ebdf9d",
+    "bytes": 1734877
+  },
+  "Duvall|2024": {
+    "sha256": "9c547fbda3486f8399064cf7aa34ad296cc7da846e712211c21423667e2641c2",
+    "bytes": 1473229
+  },
+  "Duvall|2025": {
+    "sha256": "d9bf97c96df156ed0ac3820039c7585965c0e0a16b95b1b0ae143d31b800319e",
+    "bytes": 1203597
   }
 }
