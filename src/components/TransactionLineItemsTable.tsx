@@ -26,7 +26,10 @@ const formatDate = (dateString: string): string => {
 
 export default function TransactionLineItemsTable({ lineItems, categoryName }: TransactionLineItemsTableProps) {
   // Calculate total
-  const totalAmount = lineItems.reduce((sum, item) => sum + item.actualAmount, 0);
+  // ⚠ `actualAmount` became nullable with #217. `sum + null` is `sum`, so this
+  // was accidentally right; made explicit so a later Number()/spread cannot
+  // turn the total into NaN.
+  const totalAmount = lineItems.reduce((sum, item) => sum + (item.actualAmount ?? 0), 0);
 
   // Sort by date descending (most recent first)
   const sortedItems = [...lineItems].sort((a, b) => {
@@ -112,7 +115,7 @@ export default function TransactionLineItemsTable({ lineItems, categoryName }: T
                   {item.metadata?.vendor || '—'}
                 </td>
                 <td className="px-4 py-3 text-sm font-bold text-ev-muted-blue text-right whitespace-nowrap tabular-nums align-top">
-                  {formatCurrency(item.actualAmount)}
+                  {item.actualAmount === null ? '\u2014' : formatCurrency(item.actualAmount)}
                 </td>
               </tr>
             ))}

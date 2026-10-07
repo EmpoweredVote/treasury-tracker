@@ -74,6 +74,53 @@ describe('LineItemsTable does not claim a $0 budget', () => {
     expect(safety).toBeLessThan(general);
   });
 
+  // ═════════════════════════════════════════════════════════════════════
+  // A MIXED TABLE: THE SAME LIE, ONE ROW DOWN.
+  // ═════════════════════════════════════════════════════════════════════
+  //
+  // ⚠⚠ Hiding the column handles a source with NO budget at all. It does
+  // nothing for a source where SOME rows carry a budget and others do not:
+  // the column is shown, and a null cell inside it reads as $0. The claim
+  // simply moves from the column to the row.
+  //
+  // This only becomes reachable once the API preserves null (ev-accounts
+  // #922) — which is exactly why it is written now, while the shape is fresh,
+  // rather than after someone sees a $0 they cannot explain.
+  const MIXED = [
+    item('Police', 5_000_000, 4_800_000),
+    { description: 'Grant-funded unit', approvedAmount: null, actualAmount: 1_200_000 },
+  ];
+
+  it('renders an em dash, not $0, for a row with no budget figure', () => {
+    const html = render(MIXED);
+    expect(html).toContain('Grant-funded unit');
+    expect(html).not.toContain('$0');
+  });
+
+  it('still shows the budget of the rows that have one', () => {
+    const html = render(MIXED);
+    expect(html).toContain('5,000,000');
+    expect(html).toContain('4,800,000');
+  });
+
+  it('shows no variance for a row that has nothing to compare', () => {
+    // ⚠ A variance against an absent budget is an invented number. Showing
+    // +$1,200,000 / +∞% there would be worse than showing nothing.
+    const html = render(MIXED);
+    expect(html).not.toContain('1,200,000.0%');
+    expect(html).not.toContain('Infinity');
+    expect(html).not.toContain('NaN');
+  });
+
+  it('totals only what was actually published', () => {
+    // ⚠ `sum + null` is `sum` in JS, so the total was accidentally right.
+    // Asserting it means a later `Number(x)` or a spread cannot quietly turn
+    // it into NaN.
+    const html = render(MIXED);
+    expect(html).toContain('5,000,000');
+    expect(html).not.toContain('NaN');
+  });
+
   it('keeps all three columns for a source that publishes both sides', () => {
     // ⚠ The no-regression half: this must not strip columns from a real
     // budget-vs-actual source.
