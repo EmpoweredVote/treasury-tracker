@@ -8,6 +8,7 @@
 import { normalizeScope, normalizeReportingEntity } from './fundScopeVocabulary';
 import { normalizeAuditGrade } from './auditGrade';
 import { normalizeAccountingBasis } from './accountingBasisVocabulary';
+import { promoteWrapperCategories } from './wrapperCategories';
 import { chooseDisplaySeries, normalizeBasis, type SeriesKey } from './budgetSeries';
 import type { BudgetData, BudgetCategory, FederalContext, LinkedTransactionSummary, Municipality, OrgFinancialSummary, SearchResult, HydratedMunicipality } from '../types/budget';
 import type { EntityAlias } from '../utils/entityRouting';
@@ -462,15 +463,19 @@ export function transformAPIResponse(budget: any, categories: BudgetCategory[], 
       // has not told us" -- and NEVER a graded value, which would have Treasury
       // Tracker assert an audit it never read.
       auditGrade: normalizeAuditGrade(budget.audit_grade),
-      // ACCOUNTING-BASIS: normalised here like the others. ⚠ `ev-accounts-api`
-      // does NOT return this column yet — it selects budget fields one by one —
-      // so today every row takes the absent path and reads 'unknown', which
-      // renders no chip at all. That is deliberate and is why the frontend can
-      // ship ahead of the API: the failure direction is silence, never a basis
-      // claim TT has not read.
+      // ACCOUNTING-BASIS: normalised here like the others. ✅ `ev-accounts-api`
+      // RETURNS this column as of ev-accounts #899 (merged 2026-10-07); measured
+      // live, a Duvall FY2024 row comes back `accounting_basis: 'cash'`.
+      // ⚠ The normalisation stays exactly as strict: an absent or unrecognised
+      // value reads 'unknown' and renders no chip, so a future source that omits
+      // the column produces silence rather than a basis claim TT has not read.
       accountingBasis: normalizeAccountingBasis(budget.accounting_basis)
     },
-    categories: categories
+    // ⚠ ISSUE #218 — PRESENTATION ONLY, and the last thing done to the payload.
+    // A GAAP statement's `Current` wrapper held 97-99% of the money and hid
+    // every function beneath it. Promotion moves NO money (asserted to the
+    // penny) and leaves a cash-basis filer's categories untouched.
+    categories: promoteWrapperCategories(categories)
   };
 }
 
