@@ -290,18 +290,21 @@ export const EXPECTED_ROWS = Object.freeze({
   // "claims exactly what Task 1 measured" and wrote 308 rows. The number is
   // therefore validated in place, not merely asserted.
   //
-  // ⚠⚠ THE UNSCOPED GATE STILL FAILS, AND NOT BECAUSE OF THIS NUMBER. Six
-  // problems across five OTHER entries predate this milestone and remain
-  // UNRESOLVED: mi-treasury-f65-gf / -tg (58,228 vs 64), fl-dfs-afr
-  // (12,764 vs 190), pa-dced-clgs30-muni (50,034, no entry),
-  // pa-dced-clgs30-county (1,044, no entry) and in-county-acfr-tg (198, no
-  // entry). Each belongs to a later statewide load whose rows this registry
-  // now legitimately claims, so each needs re-measuring against its own recon.
+  // ✅ RESOLVED. This block used to warn that the UNSCOPED gate still failed on
+  // six problems across five other entries (mi-treasury-f65, fl-dfs-afr, the
+  // two pa-dced-clgs30 entries and in-county-acfr-tg). Those were re-measured
+  // in 155c5e35 and the warning was already stale when phase 2 began; it is
+  // cleared here rather than left standing, because a false "this gate is
+  // known-red" note is how a real failure gets waved past.
   //
-  // ⚠ Do NOT clear them with --force: that writes EVERY entry, including the
-  // ones the gate is flagging as over-matching. `--only <entryId>` exists for
-  // this situation — it writes one entry, and only when that entry is itself
-  // clean and in no overlap.
+  // MEASURED 2026-10-06, unscoped, after Duvall: "every entry claims exactly
+  // what Task 1 measured, nothing double-claimed, nothing lost" —
+  // claimed 276,278 + unknown 10,781 = 287,059.
+  //
+  // ⚠ Do NOT clear a future failure with --force: that writes EVERY entry,
+  // including the ones the gate is flagging as over-matching. `--only
+  // <entryId>` exists for that — it writes one entry, and only when that entry
+  // is itself clean and in no overlap.
   // RE-MEASURED 2026-10-06 (phase 2): 308 -> 328, exactly +20 = Duvall's
   // 10 fiscal years x operating+revenue. Same byte-identical pattern again.
   //
