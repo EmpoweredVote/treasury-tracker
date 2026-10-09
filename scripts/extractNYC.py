@@ -122,5 +122,60 @@ CONFIG = CityConfig(
     underscore_rules=True,
 )
 
+# The SAME statement, read on its last column (Total Governmental Funds). The
+# scope label is DERIVED by the library from `target_column`, so this config
+# cannot claim a scope it does not read.
+#
+# ⚠⚠ THE HARD CASE IS FY2015-FY2018. Each prints exactly ONE five-cell row,
+# always `Public safety and judicial`, where the Adjustments/Eliminations cell
+# is EMPTY -- not a dash, nothing at all:
+#
+#     General government          2,468,539  789,667  --  128,008  --  3,386,214
+#     Public safety and judicial  8,826,839  302,856  --  --            9,129,695
+#
+# A reader that materialises `--` as zero and then trusts the token COUNT drops
+# that row, losing 9,129,695 / 9,652,787 / 10,058,916 / 10,418,804 (thousands)
+# from FY2015 / FY2016 / FY2017 / FY2018. Token count alone cannot tell you
+# WHICH column is blank. FY2019 onward are clean.
+CONFIG_TOTAL = CityConfig(
+    city='New York City',
+    parents=('current operations', 'debt service'),
+    root_leaves=(),
+    label_fixes=LABEL_FIXES,
+    fy_end=('June', 30),
+    units=1000,
+    statement_anchor=STATEMENT_ANCHOR,
+    exclude_ignore=('reconciliation', 'net position'),
+    select_fiscal_year=True,
+    underscore_rules=True,
+    target_column='last',
+    # ⚠⚠ ORDINAL, AND THE GENERAL FUND CONFIG ABOVE DELIBERATELY STAYS ON THE
+    # DEFAULT `positional`. This is NOT per-year curve-fitting -- it is one
+    # choice per SCOPE, for a mechanical reason that holds in all 24 years:
+    #
+    #   `positional` anchors the column grid from the fully-populated Total
+    #   rows and assigns each figure to the nearest edge. It CANNOT anchor the
+    #   Adjustments/Eliminations column, which is `--` or outright EMPTY on
+    #   most rows, so `'last'` lands one column short. Measured on FY2024:
+    #   it read `General government` as -43,100 -- the Adjustments cell (431)
+    #   -- against a printed total of 6,286,459.
+    #
+    #   The General Fund is column 0, left of every dash column, so nothing
+    #   about this touches it; it stays on `positional` unchanged.
+    #
+    # `ordinal` cuts at column SLOTS and counts dash-runs, so it resolves
+    # `'last'` against the true column count. 48/48 total-column extractions
+    # tie at exactly $0 under it, FY2015-FY2018 blank-cell rows included.
+    column_strategy='ordinal',
+)
+
 if __name__ == '__main__':
-    run_cli(CONFIG)
+    # ⚠ Parsed and REMOVED before `run_cli`, which owns every other flag.
+    _scope = 'general'
+    if '--scope' in sys.argv:
+        _i = sys.argv.index('--scope')
+        _scope = sys.argv[_i + 1]
+        del sys.argv[_i:_i + 2]
+    if _scope not in ('general', 'total'):
+        raise SystemExit(f"--scope must be 'general' or 'total', got {_scope!r}")
+    run_cli(CONFIG_TOTAL if _scope == 'total' else CONFIG)
