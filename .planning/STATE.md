@@ -310,7 +310,7 @@ None of these block anything; all were surfaced during v2.22 and deliberately no
 |----------|------|--------|
 | cross-repo | Essentials `coverage.json` carries no Bainbridge Island / Kitsap County record | **documented gap, not a TT change** — TT correctly paints no tether icon. Belongs to the Essentials repo, same as v2.20's WI gap |
 | presentation | `cities/seattle.jpg` + `cities/king-county.jpg` exist in the shared bucket but are absent from `CURATED_CITY_BANNERS` | **open** — v2.21's entities fall through to Wikipedia while licensed assets sit unused. Needs each credit TRANSCRIBED from Essentials' `buildingImages.js`; never infer from a filename |
-| planning-debt | `.planning/ROADMAP.md` + `MILESTONES.md` have no v2.21 or v2.22 entry | **open** — both milestones ran on superpowers plans. STATE.md now records v2.22; the roadmap still ends at v2.20 |
+| planning-debt | `.planning/ROADMAP.md` + `MILESTONES.md` have no v2.21 or v2.22 entry | **✅ CLOSED (re-measured 2026-10-09)** — the row was stale. ROADMAP.md carries v2.21 ×3 and v2.22 ×2; MILESTONES.md carries v2.21 ×10 and v2.22 ×5. The one artifact still missing is the **git tag `v2.22`** (v2.20, v2.21, v2.23+ all exist) |
 | naming | SourceChip prop is still `fetchDate`, API field still `fetchedAt` | **deferred from v2.20** — the naming that produced the "fetched" vs "as of" bug |
 | todo | `2026-06-30-authenticated-deeplink-redirect-to-home-jurisdiction.md` | **deferred** — frontend-routing follow-up carried since v2.12 |
 
@@ -548,20 +548,77 @@ Resume file: `docs/superpowers/plans/2026-09-16-stable-key-verification.md`
 
 ### Next Session
 
-**RESUME AT: one of two things, and they are not the same size.**
+⚠⚠ **THIS SECTION WAS STALE FROM 2026-08-18 TO 2026-10-09.** It advertised a
+finished task as the highest-value work available, and sent at least one session
+after it. Everything below was re-measured against production on 2026-10-09
+before being written. **If you are reading this more than a month after that
+date, re-measure before trusting it.**
 
-**The highest-value task is not in any SCOPE milestone: one MA ACFR.** 16,816 rows — 21% of the database — are `unknown` because the MA DLS revenue report's `Transfers` column is an all-governmental-funds figure, making its published total a hybrid. Expenditures point clearly at `general_fund` (2.59% from the ACFR vs 20.35% from Total Governmental). It needs **one audited document from a town that runs its own schools** — Amherst is a regional-school-district town and a poor witness. Newton, Somerville and Arlington all return HTTP 403 to scripted fetches, so this needs a human or another route, which is exactly why it keeps not happening. Landing it moves `general_fund` from 2.2% to ~23% and `unknown` from 33% to ~12%.
+#### ✅ Done, do not redo
 
-**Otherwise SCOPE-03**, which is scoped but not planned: the GF ⇄ Total Governmental ⇄ All Funds toggle, and making the enterprise slice visible. Its foundation is now in place. Read, in this order:
+* **The MA ACFR task is COMPLETE** — shipped 2026-08-18, seven weeks before this
+  section still described it as pending. Production, 2026-10-09: all **16,826** MA
+  DLS rows across **351 municipalities** are `general_fund`, none `unknown`.
+  Corpus `unknown` is **3.7%** (10,661 of 287,059), not the "33% → ~12%" this
+  section predicted as the prize. Evidence town was **Natick**; the rules are
+  pinned in `.planning/MA-01-RECON.md`.
+  ⚠ The expenditure match was **over-claimed from Natick alone** ($2 apart on
+  FY2024). Lexington gives 0.34%—1.7% and FY2025 inverts, because UMAS is applied
+  with local judgement. **The REVENUE rule is the robust one** (0.017%/0.094%/0.055%),
+  the opposite of what the first pass suggested.
+  ⚠ The 403 wall was never statewide: with the full browser header set it is
+  **Newton, Arlington and Brockton only**. Somerville — named here as blocked —
+  returns 200, as do Cambridge, Worcester, Framingham, Lowell, Springfield,
+  Lexington and Natick. `Sec-Fetch-*` + `Upgrade-Insecure-Requests` are the
+  load-bearing headers; Playwright `--headless=new --dump-dom` is the fallback for
+  TLS/JA3 fingerprinting, which headers cannot defeat.
 
-1. `docs/superpowers/plans/SCOPE-02-CLOSEOUT.md`
-2. `docs/superpowers/plans/SCOPE-01-CLOSEOUT.md` and `SCOPE-01-RECON.md`
+* **SCOPE-03 is BUILT**, not "scoped but not planned". `src/components/FundSeriesToggle.tsx`
+  shipped in PR #31, with follow-ups through PRs #49 and #50. SCOPE-04 then derived
+  7,650 Total Governmental rows across 488 CA entities.
 
-**Chris's framing, which is the point of the whole arc:** the transfer between an enterprise fund and the general fund is where money gets quietly reclassified, and a tool that only ever shows one total cannot show that movement. Enterprise/ISF is **59% of Long Beach, 52% of Anaheim, 50% of Modesto** — under a GF-only view, more than half the city is invisible.
+* **Both "broken instruments" are FIXED.** Re-run 2026-10-09:
+  * `verify-fund-scope.mjs` → exit 0, all checks pass. It got its exclusion
+    mechanism (224,482 rows created since v2.24, excluded); the frozen figure digest
+    is unchanged at `60098de6`. The "false alarm on every run" warning is retired.
+  * `verify-scope-seams.mjs` → exit 0, and it is no longer scope-blind: it reports
+    **0 seams between two known scopes** and states that same-year dual rows are not
+    seams and are policed by `verify-budget-axes.mjs`. The "phantom zero-gap seams"
+    warning is retired.
 
-⚠ **Fix the instruments before triaging the seam backlog with them.** Two are known-broken and both are cheap:
-* `verify-fund-scope.mjs` reports a false alarm on every run — it never got the exclusion mechanism. A harness nobody believes is worse than no harness.
-* `detectSeams` is scope-blind, so it manufactures phantom zero-gap seams for legally-coexisting rows. Redefining what a "seam" means once series exist is a genuine SCOPE-03 design question.
+#### ⭐ RESUME AT: the seam triage queue — 21 seams, 11 entities
+
+`node --env-file=.env scripts/verify-scope-seams.mjs` prints it. Measured
+2026-10-09: **21 seams, all 21 involving `unknown`, 0 between two known scopes.**
+By transition:
+
+| transition | count | what it means |
+|---|---|---|
+| `all_funds+total_governmental` → `unknown` | 10 | **a new fiscal year arrived unclassified** |
+| `unknown` → `general_fund` | 7 | mostly FY2001—2003 state-ACFR history meeting classified years |
+| `general_fund` → `unknown` | 4 | includes at least one KNOWN-CORRECT case — see below |
+
+⚠ **Not every seam is a defect, and the queue does not know which.** Cambridge
+FY2025→2026 (`general_fund` → `unknown`, +4.2%) is **correct**: revenue equals
+operating to the dollar ($992,181,320), the balanced-adopted-budget signature, and
+no FY2026 workbook exists. Confirm before "fixing" anything here.
+
+⭐ The largest cluster is one recurring shape: **San Diego and San Francisco
+FY2024→2025 both land `unknown` on arrival.** A new year arriving unclassified is a
+known, repeated pattern, not 10 unrelated bugs. Fixing the arrival path is worth
+more than triaging 10 rows.
+
+#### Smaller, known, unfixed
+
+* **`v2.22` was never tagged.** `v2.20`, `v2.21`, `v2.23`+ all exist.
+  ⚠ The planning-debt row above claiming ROADMAP/MILESTONES "have no v2.21 or
+  v2.22 entry" is **itself stale** — measured 2026-10-09, ROADMAP has both and
+  MILESTONES has v2.21 ×10, v2.22 ×5. The missing artifact is the git tag only.
+* **31 deferred minors** from three retired SDD workspaces are in **issue #231**,
+  unverified against current `main`. The workspaces themselves are archived at
+  `OneDrive/Documents/treasury-tracker-archive/sdd/` (121 files, sha256-verified).
+* **Four dev-scope Dependabot alerts** remain (source-map-js, brace-expansion ×3).
+  The only runtime one, dompurify, was taken in PR #230.
 
 ⚠ **Traps this arc has already paid for. Do not rediscover them:**
 * **A raw NUL byte in source makes git treat the file as binary**, killing diff and blame. It fired **three times** in SCOPE-02 alone. Write `U+0000`, never the byte.
@@ -573,8 +630,6 @@ Resume file: `docs/superpowers/plans/2026-09-16-stable-key-verification.md`
 * ⛔ **Never query Utah's BigQuery table** — unpartitioned, ~$132 on 2026-06-19.
 
 To start the next one: `/gsd-new-milestone`. If it runs as a superpowers spec + plan again, **tag and update `.planning/` in the same step** — that drifted on four milestones running before v2.24 and v2.25 fixed it.
-
-
 ## Performance Metrics
 
 | Phase | Plan | Duration | Notes |
