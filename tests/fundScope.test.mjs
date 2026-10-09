@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  classify, validateRegistry, SCOPE, SCOPE_VALUES,
+  classify, validateRegistry, compareTallies, SCOPE, SCOPE_VALUES,
   NON_COMPARABLE_SCOPES, isComparableScope,
 } from '../scripts/lib/fundScope.mjs';
 import { FUND_SCOPE_REGISTRY } from '../scripts/data/fundScopeRegistry.mjs';
@@ -123,6 +123,51 @@ describe('the SF / SD own-portal budget sources (SCOPE-01-RECON §12)', () => {
       // -- which would make this pass for the wrong reason the moment it stopped matching.
       expect(String(got.entryId), src).not.toMatch(/^(sf|sd)-own-portal/);
     }
+  });
+});
+
+describe('compareTallies — what was predicted vs what the table holds', () => {
+  // #235. classifyFundScope.mjs printed a post-write tally computed from what the
+  // REGISTRY CLAIMS, under the heading "verify in SQL", and the SQL did not match:
+  // predicted general_fund 77,792 / unknown 10,771, measured 77,912 / 10,651. The
+  // gap is rows classified but claimed by no entry (#234), so it is not constant —
+  // it reads like drift. A number printed after a write must be a measurement.
+  it('reports no discrepancy when the table matches the prediction', () => {
+    const r = compareTallies(
+      { general_fund: 10, all_funds: 5, unknown: 2 },
+      { general_fund: 10, all_funds: 5, unknown: 2 },
+    );
+    expect(r.ok).toBe(true);
+    expect(r.deltas).toEqual([]);
+  });
+
+  it('reports the signed delta per scope, largest first', () => {
+    const r = compareTallies(
+      { general_fund: 77792, unknown: 10771 },
+      { general_fund: 77912, unknown: 10651 },
+    );
+    expect(r.ok).toBe(false);
+    expect(r.deltas).toEqual([
+      { scope: 'general_fund', predicted: 77792, measured: 77912, delta: 120 },
+      { scope: 'unknown', predicted: 10771, measured: 10651, delta: -120 },
+    ]);
+  });
+
+  it('still reports when the TOTALS agree but the distribution does not', () => {
+    // The actual #235 shape: the two sides balance, so a total-only check passes
+    // while every bucket is wrong.
+    const r = compareTallies(
+      { general_fund: 100, unknown: 50 },
+      { general_fund: 120, unknown: 30 },
+    );
+    expect(r.ok).toBe(false);
+    expect(r.deltas.map((d) => d.delta)).toEqual([20, -20]);
+  });
+
+  it('treats a scope missing from one side as zero, not as absent', () => {
+    // A scope that drops to zero must show as a delta, not vanish from the report.
+    const r = compareTallies({ all_funds: 7 }, {});
+    expect(r.deltas).toEqual([{ scope: 'all_funds', predicted: 7, measured: 0, delta: -7 }]);
   });
 });
 

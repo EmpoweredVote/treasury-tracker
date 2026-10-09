@@ -34,7 +34,7 @@
  */
 
 import { parseArgs } from 'node:util';
-import { classify, validateRegistry, checkPartition, SCOPE, SCOPE_VALUES } from './lib/fundScope.mjs';
+import { classify, validateRegistry, checkPartition, compareTallies, SCOPE, SCOPE_VALUES } from './lib/fundScope.mjs';
 import { FUND_SCOPE_REGISTRY } from './data/fundScopeRegistry.mjs';
 import { EXPECTED_ROWS } from './data/fundScopeExpectations.mjs';
 
@@ -108,6 +108,25 @@ export function plan(sourceCounts, registry) {
     g.rows += rows;
   }
   return { byEntry, unknownSources, unknownRows, overlaps };
+}
+
+/**
+ * Count rows per fund_scope FROM THE TABLE.
+ *
+ * `head: true` with an exact count asks Postgres for the number and transfers no
+ * rows, so this is four cheap queries rather than a 287k-row read.
+ */
+async function fetchScopeCounts(supabase) {
+  const counts = {};
+  for (const scope of SCOPE_VALUES) {
+    const { count, error } = await supabase
+      .schema('treasury').from('budgets')
+      .select('id', { count: 'exact', head: true })
+      .eq('fund_scope', scope);
+    if (error) throw new Error(`count ${scope}: ${error.message}`);
+    counts[scope] = count ?? 0;
+  }
+  return counts;
 }
 
 async function updateScope(supabase, sources, scope) {
@@ -208,14 +227,38 @@ async function main() {
   }
   console.log(`  ${total.toLocaleString()} rows stamped`);
 
-  const tally = new Map();
-  for (const s of SCOPE_VALUES) tally.set(s, 0);
-  for (const [, g] of p.byEntry) tally.set(g.scope, tally.get(g.scope) + g.rows);
-  tally.set(SCOPE.UNKNOWN, p.unknownRows);
-  console.log('\n── expected tally (verify in SQL) ──');
-  for (const [s, n] of [...tally].sort((a, b) => b[1] - a[1])) {
-    if (n) console.log(`  ${s.padEnd(20)} ${String(n).padStart(6)} (${(n / totalRows * 100).toFixed(1)}%)`);
+  // ⚠ READ THE TABLE BACK. This block used to print a tally derived from what the
+  // registry CLAIMS, headed "verify in SQL" — and the SQL did not match it (#235).
+  // A number printed after a write is a measurement or it is nothing.
+  const predicted = {};
+  for (const s of SCOPE_VALUES) predicted[s] = 0;
+  for (const [, g] of p.byEntry) predicted[g.scope] += g.rows;
+  predicted[SCOPE.UNKNOWN] = p.unknownRows;
+
+  const measured = await fetchScopeCounts(supabase);
+  const measuredTotal = Object.values(measured).reduce((a, b) => a + b, 0);
+
+  console.log('\n── measured after write (read back from treasury.budgets) ──');
+  for (const [s, n] of Object.entries(measured).sort((a, b) => b[1] - a[1])) {
+    if (n) console.log(`  ${s.padEnd(20)} ${String(n).padStart(6)} (${(n / measuredTotal * 100).toFixed(1)}%)`);
   }
+
+  const cmp = compareTallies(predicted, measured);
+  if (cmp.ok) {
+    console.log('\n✅ the table holds exactly what the registry claims');
+    return;
+  }
+
+  // Not an error: the write updates matched rows and leaves the rest alone, so a
+  // row classified by some other path keeps its scope. Say so, with the numbers.
+  console.log('\n⚠ the table does NOT match what the registry claims — rows carrying a');
+  console.log('  scope no entry claims keep it, because the write only touches matches:');
+  for (const d of cmp.deltas) {
+    const sign = d.delta > 0 ? '+' : '';
+    console.log(`  ${d.scope.padEnd(20)} registry claims ${String(d.predicted).padStart(6)}`
+      + `   table holds ${String(d.measured).padStart(6)}   ${sign}${d.delta}`);
+  }
+  console.log('  See issue #234. This is a provenance gap, not a figure moving.');
 }
 
 if (import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.endsWith('classifyFundScope.mjs')) {
