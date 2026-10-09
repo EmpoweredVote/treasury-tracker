@@ -586,28 +586,52 @@ date, re-measure before trusting it.**
     seams and are policed by `verify-budget-axes.mjs`. The "phantom zero-gap seams"
     warning is retired.
 
-#### ⭐ RESUME AT: the seam triage queue — 21 seams, 11 entities
+#### ✅ The seam queue is WORKED (2026-10-09, the same day it was written here)
 
-`node --env-file=.env scripts/verify-scope-seams.mjs` prints it. Measured
-2026-10-09: **21 seams, all 21 involving `unknown`, 0 between two known scopes.**
-By transition:
+21 → **17**, and the 17 are not a backlog. `verify-scope-seams.mjs` prints them;
+every one was triaged against its own evidence and **all 17 are by design**:
 
-| transition | count | what it means |
+| seams | what | why it is not a defect |
 |---|---|---|
-| `all_funds+total_governmental` → `unknown` | 10 | **a new fiscal year arrived unclassified** |
-| `unknown` → `general_fund` | 7 | mostly FY2001—2003 state-ACFR history meeting classified years |
-| `general_fund` → `unknown` | 4 | includes at least one KNOWN-CORRECT case — see below |
+| 6 | Long Beach / Anaheim / Bakersfield FY2024→25 | Ruling 9 — SCO has no FY2025 to continue the series |
+| 6 | CT / WI / MA FY2001→02/03 | the sources say `pre-GASB-34 combined` in their own labels |
+| 3 | KY FY2023, NV FY2024 | the two NASBO ACFR-gap fallbacks `scripts/loadStateGF.mjs` names in its own header |
+| 2 | Cambridge FY2025→26 | revenue equals operating to the dollar; no FY2026 workbook exists |
 
-⚠ **Not every seam is a defect, and the queue does not know which.** Cambridge
-FY2025→2026 (`general_fund` → `unknown`, +4.2%) is **correct**: revenue equals
-operating to the dollar ($992,181,320), the balanced-adopted-budget signature, and
-no FY2026 workbook exists. Confirm before "fixing" anything here.
+⚠⚠ **DO NOT "CLOSE" THE NASBO PAIR.** NASBO's General Fund is budgetary and the
+State ACFR's is GAAP: Nevada reads $12.4B then $5.27B. Relabelling to close that
+seam would publish a 57% drop as real continuity. The seam IS the warning.
 
-⭐ The largest cluster is one recurring shape: **San Diego and San Francisco
-FY2024→2025 both land `unknown` on arrival.** A new year arriving unclassified is a
-known, repeated pattern, not 10 unrelated bugs. Fixing the arrival path is worth
-more than triaging 10 rows.
+The 4 that were real are fixed (PR #233): San Diego and San Francisco FY2025
+arrived `unknown` and are now `all_funds`, reconciled to the dollar against each
+publisher's own data. RECON §12.
 
+Two findings came out of doing it, both closed the same day: #234 (120 rows
+carried a scope no registry entry evidenced — now evidenced, RECON §13, and
+`verify-fund-scope.mjs` fails on a recurrence) and #235 (the classifier printed a
+post-write tally it had forecast rather than measured).
+
+#### ⭐ RESUME AT: pick one, they are independent
+
+**Nothing is blocked and nothing is large.** In rough order of value:
+
+1. **#238** — Brown County SD FY2024 stores an expenditure $3.17 under its printed
+   General Fund total. Small, but the tie gate deliberately has NO tolerance, so a
+   drift it accepts anyway is worth understanding. The issue's hypothesis is
+   cents-to-dollars conversion on the only `decimal_money=True` entity —
+   **unmeasured**. Likely 8 rows; check whether any other entity runs decimal mode.
+2. **#231** — 31 deferred minors from three retired SDD workspaces. ⚠ 3-8 weeks
+   old and **not re-checked against current `main`**; confirm each still reproduces
+   before acting. Some are certainly already fixed.
+3. **`v2.22` was never tagged.** `v2.20`, `v2.21`, `v2.23`+ all exist. A judgement
+   call on a two-month-old commit, which is why it is still sitting here.
+4. **Four Dependabot alerts**, all **dev scope** (source-map-js, brace-expansion
+   ×3, uuid). The only runtime one, dompurify, was taken in PR #230. Bumping the
+   rest drags transitive churn for no user-facing gain.
+
+⚠ What is NOT next: the MA ACFR (shipped 2026-08-18) and SCOPE-03 (shipped,
+PR #31 + #49/#50). This section claimed both were pending for seven weeks — see
+the note at the top of Next Session.
 #### Smaller, known, unfixed
 
 * **`v2.22` was never tagged.** `v2.20`, `v2.21`, `v2.23`+ all exist.
