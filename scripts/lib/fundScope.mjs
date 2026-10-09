@@ -250,6 +250,38 @@ export function validateRegistry(registry) {
  * Holding one milestone's correctness hostage to another's bookkeeping is a
  * worse failure than scoping the write.
  */
+/**
+ * Compare a PREDICTED scope tally against one MEASURED from the table.
+ *
+ * ⚠ A number printed after a write must be a measurement, not a forecast.
+ * `classifyFundScope.mjs` used to print a tally computed from what the registry
+ * CLAIMS, under the heading "verify in SQL" — and the SQL did not match:
+ * predicted `general_fund 77,792 / unknown 10,771`, measured `77,912 / 10,651`.
+ * The write updates matched rows and leaves everything else alone, so the two
+ * disagree by however many rows carry a scope no entry claims. That count is not
+ * constant, which makes the discrepancy read like drift (see issue #234).
+ *
+ * A verification instruction nobody can satisfy trains people to skip
+ * verification, which is the same defect class as a harness that false-alarms.
+ *
+ * Scopes present on one side only count as zero on the other, so a bucket that
+ * drops to zero shows as a delta instead of vanishing from the report.
+ *
+ * @returns {{ok: boolean, deltas: {scope, predicted, measured, delta}[]}}
+ *          deltas are non-zero only, largest absolute difference first.
+ */
+export function compareTallies(predicted = {}, measured = {}) {
+  const scopes = new Set([...Object.keys(predicted), ...Object.keys(measured)]);
+  const deltas = [];
+  for (const scope of scopes) {
+    const p = Number(predicted[scope] ?? 0);
+    const m = Number(measured[scope] ?? 0);
+    if (p !== m) deltas.push({ scope, predicted: p, measured: m, delta: m - p });
+  }
+  deltas.sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta) || a.scope.localeCompare(b.scope));
+  return { ok: deltas.length === 0, deltas };
+}
+
 export function checkPartition({ byEntry, unknownRows, overlaps }, totalRows, opts = {}) {
   const EXPECTED_ROWS = opts.expected ?? {};
   const only = opts.only ?? null;
