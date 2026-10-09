@@ -53,7 +53,7 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { getSupabase, fetchScopeRows } from './lib/scopeDb.mjs';
-import { validateRegistry, SCOPE_VALUES, SCOPE } from './lib/fundScope.mjs';
+import { validateRegistry, auditClassified, SCOPE_VALUES, SCOPE } from './lib/fundScope.mjs';
 import { compositeDigest, frozenIdDigest } from './lib/scopeVerify.mjs';
 import { FUND_SCOPE_REGISTRY } from './data/fundScopeRegistry.mjs';
 
@@ -119,6 +119,34 @@ async function main() {
   const illegal = rows.filter((r) => !SCOPE_VALUES.includes(r.fund_scope));
   if (illegal.length === 0) pass(`every value is one of: ${SCOPE_VALUES.join(', ')}`);
   else fail(`${illegal.length} rows hold a value outside the CHECK set: ${[...new Set(illegal.map((r) => r.fund_scope))].join(', ')}`);
+
+  // ⚠⚠ THE CHECK THE PARTITION GATE CANNOT MAKE (issue #234). That gate balances
+  // `claimed + unknown = total`, which is equally true when a CLASSIFIED row was
+  // claimed by nobody — so 120 rows carried general_fund with no entry behind
+  // them, written by loaders that never touch the registry, and every harness
+  // stayed green. The registry's guarantee was only ever enforced on the
+  // classifier's write path.
+  const audit = auditClassified(rows, FUND_SCOPE_REGISTRY);
+  if (audit.unclaimed.length === 0) {
+    pass('every CLASSIFIED row is claimed by a registry entry — no unevidenced scope');
+  } else {
+    const n = audit.unclaimed.reduce((a, g) => a + g.rows, 0);
+    fail(`${n} rows carry a scope NO registry entry claims — unevidenced, from ${audit.unclaimed.length} sources`);
+    for (const g of audit.unclaimed.slice(0, 10)) {
+      console.log(`     ${String(g.rows).padStart(5)} rows  ${g.scope.padEnd(19)} ${g.dataSource.slice(0, 80)}`);
+    }
+    if (audit.unclaimed.length > 10) console.log(`     … and ${audit.unclaimed.length - 10} more sources`);
+  }
+
+  if (audit.mismatched.length === 0) {
+    pass('no row disagrees with the entry that claims it (no stale stamp)');
+  } else {
+    const n = audit.mismatched.reduce((a, g) => a + g.rows, 0);
+    fail(`${n} rows hold a scope the registry no longer agrees with — re-run classifyFundScope.mjs`);
+    for (const g of audit.mismatched.slice(0, 10)) {
+      console.log(`     ${String(g.rows).padStart(5)} rows  table=${g.stored} registry=${g.registry}  ${g.dataSource.slice(0, 60)}`);
+    }
+  }
 
   // ── 3. The tally, with unknown SHOWN ─────────────────────────────────────
   const t = new Map();

@@ -1299,6 +1299,92 @@ export const FUND_SCOPE_REGISTRY = [
     },
   },
 
+  // ── Knight session 8's local ACFR families (SCOPE-01-RECON.md §13) ─────────
+  // Added 2026-10-09 for issue #234: these 120 rows carried a general_fund that
+  // NO entry claimed. They were written at load time, bypassing the registry —
+  // so the scope was right but nothing evidenced it, and nothing would have
+  // caught it if one had been wrong.
+  //
+  // ⚠ EVERY reconciliation below reads the General Fund column AND the Total
+  // Governmental column off the SAME printed page. The $0 tie gate cannot tell
+  // them apart: components summing to their own column's total is equally true
+  // of the wrong column. The gap between the two columns is the evidence.
+  {
+    id: 'ms-local-acfr-gf',
+    match: /^(?:City of Biloxi|Harrison County) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20[0-9]{2} actual, GAAP basis\)$/,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'City of Biloxi FY2022 ACFR p.32 and Harrison County MS FY2023 ACFR p.25, '
+              + 'governmental-funds Statement of Revenues, Expenditures and Changes in Fund '
+              + 'Balances (SCOPE-01-RECON.md §13.1)',
+      figures: 'Biloxi FY2022: the General column prints total revenues 72,024,503 and total '
+             + 'expenditures 67,650,414 — equal to the stored figures. The row\'s four '
+             + 'governmental columns (General 72,024,503 + General Capital 24,246,749 + Debt '
+             + 'Service 8,274,927 + 1,518,432) sum to the printed Total Governmental '
+             + '106,064,611 EXACTLY, which is what identifies the columns. Total Governmental '
+             + 'is 47% larger than what we store, so this is the General Fund and not the '
+             + 'total. Harrison County FY2023: General 79,426,573 / 74,896,057 stored, against '
+             + 'Total Governmental 143,166,966 / 144,753,649 on the same line.',
+    },
+  },
+
+  {
+    id: 'ky-lfucg-acfr-gf',
+    match: /^Lexington-Fayette Urban County Government ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20[0-9]{2} actual, GAAP basis\)$/,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'Lexington-Fayette Urban County Government FY2024 ACFR p.60, governmental-funds '
+              + 'Statement of Revenues, Expenditures and Changes in Fund Balances '
+              + '(SCOPE-01-RECON.md §13.2)',
+      figures: 'The General column prints Total Revenues 492,988,023 and Total Expenditures '
+             + '479,514,093 — equal to the stored figures. The same lines print Total '
+             + 'Governmental 640,717,123 and 657,534,383, with Urban Services, Federal and '
+             + 'State Grants and a fourth governmental column in between. 30% and 37% larger '
+             + 'respectively, so the stored figure cannot be the total.',
+    },
+  },
+
+  {
+    id: 'nd-local-acfr-gf',
+    match: /^(?:City of Grand Forks|Grand Forks County) ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20[0-9]{2} actual, GAAP basis\)$/,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'City of Grand Forks FY2024 ACFR p.46 and Grand Forks County FY2024 ACFR p.13, '
+              + 'governmental-funds Statement of Revenues, Expenditures and Changes in Fund '
+              + 'Balances (SCOPE-01-RECON.md §13.3)',
+      figures: 'City FY2024: General prints total revenues 51,508,950 and total expenditures '
+             + '48,652,113 — the stored figures — against a Total Governmental column of '
+             + '108,345,392 / 105,247,924 further right on the same lines, past Debt Service '
+             + 'Special Assessments and two Capital Project columns. County FY2024: General '
+             + '27,210,456 / 28,559,580 stored, against Total Governmental 50,985,519 / '
+             + '77,822,217, past a Jail Expansion and a Special Revenue column.',
+    },
+  },
+
+  {
+    id: 'sd-local-acfr-gf',
+    match: /^(?:City of Aberdeen ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20[0-9]{2} actual, GAAP basis\)|Brown County ACFR — General Fund (?:Expenditure by Function|Revenue by Source) \(FY20[0-9]{2} actual, modified cash basis\))$/,
+    scope: SCOPE.GENERAL_FUND,
+    evidence: {
+      document: 'City of Aberdeen FY2024 ACFR pp.26-27 and Brown County SD FY2024 ACFR pp.18-21, '
+              + 'governmental-funds statements (SCOPE-01-RECON.md §13.4)',
+      figures: 'Aberdeen FY2024: the General Fund column prints total revenues 30,485,309 and '
+             + 'total expenditures 26,080,034 — the stored figures — against Total Governmental '
+             + '51,403,559 / 57,335,865, past Park and Recreation, Airport and Special Sales '
+             + 'Tax columns. Brown County FY2024 prints CENTS: General total revenues '
+             + '22,577,328.55 (stored 22,577,329, the correct rounding) against Total '
+             + 'Governmental 32,873,437.91. '
+             + '⚠ Brown County\'s expenditure side is the one figure in this reconciliation '
+             + 'that does NOT round cleanly: the page prints General 18,313,778.17 while we '
+             + 'store 18,313,775, $3.17 short. The four columns do tie to the printed total '
+             + '(18,313,778.17 + 11,616,398.69 + 903,956.85 + 1,854,228.84 = 32,688,362.55), '
+             + 'so the COLUMN identification is not in doubt and the scope stands. The $3.17 '
+             + 'is a separate, filed question about cents-to-dollars conversion on a '
+             + '`decimal_money=True` entity — it is NOT evidence about fund scope, and it is '
+             + 'recorded here rather than rounded away.',
+    },
+  },
+
   // ── The cities' OWN portals (SCOPE-01-RECON.md §12) ────────────────────────
   // Added 2026-10-09 to close 4 of the 21 scope seams: FY2024 SCO actuals
   // (all_funds) stepping into an FY2025 row that sat at `unknown`.

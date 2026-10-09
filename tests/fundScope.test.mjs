@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  classify, validateRegistry, compareTallies, SCOPE, SCOPE_VALUES,
+  classify, validateRegistry, compareTallies, auditClassified, SCOPE, SCOPE_VALUES,
   NON_COMPARABLE_SCOPES, isComparableScope,
 } from '../scripts/lib/fundScope.mjs';
 import { FUND_SCOPE_REGISTRY } from '../scripts/data/fundScopeRegistry.mjs';
@@ -168,6 +168,99 @@ describe('compareTallies — what was predicted vs what the table holds', () => 
     // A scope that drops to zero must show as a delta, not vanish from the report.
     const r = compareTallies({ all_funds: 7 }, {});
     expect(r.deltas).toEqual([{ scope: 'all_funds', predicted: 7, measured: 0, delta: -7 }]);
+  });
+});
+
+describe('the session-8 local ACFR families (SCOPE-01-RECON §13)', () => {
+  // #234. 120 rows carried a general_fund that NO registry entry claimed — they
+  // were written at load time, bypassing the registry whose stated guarantee is
+  // that an unevidenced claim is "structurally incapable of reaching the
+  // database". The scopes were right; the evidence was missing.
+  const SOURCES = [
+    'City of Biloxi ACFR — General Fund Revenue by Source (FY2022 actual, GAAP basis)',
+    'Harrison County ACFR — General Fund Expenditure by Function (FY2023 actual, GAAP basis)',
+    'Lexington-Fayette Urban County Government ACFR — General Fund Revenue by Source (FY2024 actual, GAAP basis)',
+    'City of Grand Forks ACFR — General Fund Expenditure by Function (FY2024 actual, GAAP basis)',
+    'Grand Forks County ACFR — General Fund Revenue by Source (FY2024 actual, GAAP basis)',
+    'City of Aberdeen ACFR — General Fund Expenditure by Function (FY2024 actual, GAAP basis)',
+    'Brown County ACFR — General Fund Revenue by Source (FY2024 actual, modified cash basis)',
+  ];
+
+  it('classifies all seven entities as general_fund', () => {
+    for (const src of SOURCES) {
+      expect(classify(src, FUND_SCOPE_REGISTRY).scope, src).toBe(SCOPE.GENERAL_FUND);
+    }
+  });
+
+  it('does NOT claim the Total Governmental column of the same statements', () => {
+    // Every reconciliation in RECON §13 reads the General Fund column and the
+    // Total Governmental column off the SAME page, because the $0 tie gate is
+    // blind to a wrong-column read. A future Total Governmental loader for these
+    // same entities must NOT inherit general_fund from these entries.
+    for (const src of [
+      'City of Biloxi ACFR — Total Governmental Expenditure by Function (FY2022 actual, GAAP basis)',
+      'Brown County ACFR — Total Governmental Revenue by Source (FY2024 actual, modified cash basis)',
+    ]) {
+      expect(classify(src, FUND_SCOPE_REGISTRY).scope, src).toBe(SCOPE.UNKNOWN);
+    }
+  });
+
+  it('keeps Aberdeen SD and Brown County SD on their own basis wording', () => {
+    // Aberdeen is GAAP; Brown County, its own parent county, is modified cash.
+    // The pattern spells both out rather than allowing either word for either
+    // entity, so a basis that silently changed would stop matching and show up
+    // as a row-count drift instead of being absorbed.
+    expect(classify('City of Aberdeen ACFR — General Fund Revenue by Source (FY2024 actual, modified cash basis)',
+      FUND_SCOPE_REGISTRY).scope).toBe(SCOPE.UNKNOWN);
+    expect(classify('Brown County ACFR — General Fund Revenue by Source (FY2024 actual, GAAP basis)',
+      FUND_SCOPE_REGISTRY).scope).toBe(SCOPE.UNKNOWN);
+  });
+});
+
+describe('auditClassified — can the gate SEE an unevidenced classification?', () => {
+  // #234 part 2. The partition gate balances `claimed + unknown = total`, which
+  // is true whether or not a CLASSIFIED row was claimed by anyone — so 120 rows
+  // sat general_fund with no entry behind them and no harness noticed. The
+  // registry's guarantee ("structurally incapable of reaching the database") was
+  // enforced on the write path only, and the loaders do not use it.
+  const reg2 = [
+    { id: 'e1', match: /^Known Source$/, scope: SCOPE.GENERAL_FUND,
+      evidence: { document: 'doc', figures: '1 = 1' } },
+  ];
+
+  it('is silent when every classified row is claimed', () => {
+    const r = auditClassified([
+      { data_source: 'Known Source', fund_scope: SCOPE.GENERAL_FUND },
+      { data_source: 'Nobody Claims This', fund_scope: SCOPE.UNKNOWN },
+    ], reg2);
+    expect(r.unclaimed).toEqual([]);
+    expect(r.mismatched).toEqual([]);
+  });
+
+  it('reports a CLASSIFIED row no entry claims', () => {
+    const r = auditClassified([
+      { data_source: 'Loader Wrote This', fund_scope: SCOPE.GENERAL_FUND },
+      { data_source: 'Loader Wrote This', fund_scope: SCOPE.GENERAL_FUND },
+    ], reg2);
+    expect(r.unclaimed).toEqual([
+      { dataSource: 'Loader Wrote This', scope: SCOPE.GENERAL_FUND, rows: 2 },
+    ]);
+  });
+
+  it('does NOT report unknown rows — an honest unknown is the point', () => {
+    const r = auditClassified([{ data_source: 'Anything', fund_scope: SCOPE.UNKNOWN }], reg2);
+    expect(r.unclaimed).toEqual([]);
+  });
+
+  it('reports a row whose stored scope DISAGREES with the entry that claims it', () => {
+    // A stale stamp: the registry was corrected but the table was never re-run.
+    const r = auditClassified([
+      { data_source: 'Known Source', fund_scope: SCOPE.ALL_FUNDS },
+    ], reg2);
+    expect(r.mismatched).toEqual([
+      { dataSource: 'Known Source', stored: SCOPE.ALL_FUNDS, registry: SCOPE.GENERAL_FUND, rows: 1 },
+    ]);
+    expect(r.unclaimed).toEqual([]);
   });
 });
 
