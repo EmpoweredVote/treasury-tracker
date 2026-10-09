@@ -2,7 +2,7 @@
 """
 City of Bainbridge Island, WA — General Fund extractor, EARLY ERA (GAAP actuals).
 
-COVERS FY2004, FY2005, FY2007 and FY2008 ONLY. For FY2010-FY2025 use
+COVERS FY2004, FY2005, FY2007 and FY2008 ONLY. For FY2012-FY2025 use
 scripts/extractBainbridge.py instead -- that era's expenditure tree is
 genuinely differently shaped (see below) and CityConfig is one tree shape
 per config, not an era-aware switch. FY2006 has no usable filing (image-only
