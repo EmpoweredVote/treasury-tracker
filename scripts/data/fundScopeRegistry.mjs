@@ -1298,6 +1298,81 @@ export const FUND_SCOPE_REGISTRY = [
              + '`sboa_id`, not on anything inferred here.',
     },
   },
+
+  // ── The cities' OWN portals (SCOPE-01-RECON.md §12) ────────────────────────
+  // Added 2026-10-09 to close 4 of the 21 scope seams: FY2024 SCO actuals
+  // (all_funds) stepping into an FY2025 row that sat at `unknown`.
+  //
+  // ⚠ Anchored to the exact strings. /^San Francisco/ would claim every future
+  // SF loader no reconciliation covers — the over-matching this registry exists
+  // to prevent, guarded by a test in tests/fundScope.test.mjs.
+  {
+    id: 'sf-own-portal-exp',
+    match: /^San Francisco Operating Budget$/,
+    scope: SCOPE.ALL_FUNDS,
+    evidence: {
+      document: 'San Francisco\'s own publication — DataSF Socrata dataset xdgd-c79v '
+              + '("Budget"), queried FY2025 at data.sfgov.org (SCOPE-01-RECON.md §12.1)',
+      figures: 'FY2025 Spending grouped by fund_type sums to $15,917,870,152, equal to the '
+             + 'stored total to the DOLLAR. General Fund alone is $5,608,624,155 — 35% of it — '
+             + 'so this is NOT general_fund. It is not total_governmental either: the total '
+             + 'includes Enterprise $7,217,628,938 and Internal Service $9,140,317 '
+             + '(proprietary), Pension/Other Trust $52,787,363, Agency $9,123,994 and '
+             + 'Investment Trust $0 (fiduciary), and Component Units $25,368,111. '
+             + 'The entry claims FY2025-2028, so all four were checked on both sides: every '
+             + 'year carries proprietary AND fiduciary fund types (11, 11, 11, 10 types; '
+             + 'totals 15,917,870,152 / 15,990,860,523 / 16,851,826,113 / 17,215,010,270).',
+    },
+  },
+
+  {
+    id: 'sf-own-portal-rev',
+    match: /^San Francisco Revenue Budget$/,
+    scope: SCOPE.ALL_FUNDS,
+    evidence: {
+      document: 'Same dataset, revenue_or_spending=\'Revenue\' (SCOPE-01-RECON.md §12.1)',
+      figures: 'FY2025 Revenue sums to $15,917,870,147 against the stored $15,917,870,147 — '
+             + 'the $5 difference from the spending side is the publisher\'s own rounding, '
+             + 'carried not corrected. Revenue equals spending in every loaded year, the '
+             + 'balanced-adopted-budget signature. Same 11 fund types as the spending side, '
+             + 'so the same proprietary + fiduciary reasoning applies.',
+    },
+  },
+
+  {
+    id: 'sd-own-portal-exp',
+    match: /^San Diego Operating Budget$/,
+    scope: SCOPE.ALL_FUNDS,
+    evidence: {
+      document: 'San Diego\'s own publication — seshat.datasd.org '
+              + 'budget_operating_datasd.csv, 548,811 rows (SCOPE-01-RECON.md §12.2)',
+      figures: 'FY25 budget_cycle=\'adopted\' totals $10,322,176,721, which is NEITHER stored '
+             + 'figure — one CSV carries revenue and expenditure together, split by the '
+             + 'leading digit of account_number. The `5…` half is $4,865,783,435, equal to '
+             + 'the stored operating total to the DOLLAR. Its fund mix: General Fund '
+             + '$2,160,943,165 (44%), Enterprise $1,483,153,343, Special Revenue '
+             + '$1,003,444,590, Internal Service $191,947,579, Capital Project $26,294,758 — '
+             + 'so NOT general_fund, and Enterprise + Internal Service put it past '
+             + 'total_governmental. '
+             + '⚠ `report_fy` is a TWO-DIGIT year (\'25\'); a four-digit comparison matches '
+             + 'nothing and reports $0, which reads like an empty dataset rather than a bad '
+             + 'query. That cost a pass here.',
+    },
+  },
+
+  {
+    id: 'sd-own-portal-rev',
+    match: /^San Diego Revenue Budget$/,
+    scope: SCOPE.ALL_FUNDS,
+    evidence: {
+      document: 'Same CSV, account_number `4…` half (SCOPE-01-RECON.md §12.2)',
+      figures: 'The `4…` half is $5,456,393,286, equal to the stored revenue total to the '
+             + 'DOLLAR, and `4…` + `5…` reproduces the CSV\'s own $10,322,176,721 exactly. '
+             + 'Same five fund types as the expenditure half — Enterprise $2,170,770,060, '
+             + 'General Fund $2,076,498,262, Special Revenue $956,807,857, Internal Service '
+             + '$184,096,945, Capital Project $68,220,162.',
+    },
+  },
 ];
 
 export default FUND_SCOPE_REGISTRY;

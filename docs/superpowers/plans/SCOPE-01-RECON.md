@@ -1521,3 +1521,108 @@ updates is churn against production with no effect.
 * `tests/fundScope.test.mjs` pins all six values, the MI halves' equality, the
   PA halves' sum, and — the one that prevents a recurrence — that **every**
   registry entry has an expectation at all.
+
+## Task 12 — the SF / SD own-portal budget sources (2026-10-09)
+
+Four sources arrived unclassified and were producing **4 of the 21 scope seams**:
+San Diego and San Francisco both step from FY2024 SCO actuals (`all_funds` +
+`total_governmental`) into an FY2025 row sitting at `unknown`.
+
+Both publishers expose the underlying data, so neither needed an ACFR.
+
+### 12.1 San Francisco — Socrata `xdgd-c79v`, ties to the dollar
+
+`data.sfgov.org/resource/xdgd-c79v`, FY2025, `revenue_or_spending='Spending'`,
+grouped by `fund_type`:
+
+| fund_type | FY2025 spending |
+|---|---:|
+| Enterprise Funds | 7,217,628,938 |
+| General Fund | 5,608,624,155 |
+| Special Revenue Funds | 2,511,534,805 |
+| Debt Service Funds | 407,014,979 |
+| Capital Projects Funds | 76,532,490 |
+| Pension, Other Employee and Other Trust | 52,787,363 |
+| Component Units | 25,368,111 |
+| Internal Service Funds | 9,140,317 |
+| Agency Funds | 9,123,994 |
+| Permanent Fund | 115,000 |
+| Investment Trust Fund | 0 |
+| **TOTAL** | **15,917,870,152** |
+
+`treasury.budgets` stores **15,917,870,152** for
+`San Francisco Operating Budget` FY2025 — **$0 difference**.
+
+**Not General Fund:** the General Fund alone is 5,608,624,155, 35% of the stored
+figure. **Not Total Governmental either:** the total includes Enterprise and
+Internal Service (proprietary), Pension/Agency/Investment Trust (fiduciary) and
+Component Units. `all_funds` is the only value that describes it.
+
+⚠ The entry claims FY2025–FY2028 (the cron loads four years), so all four were
+checked, both sides — **every year carries proprietary AND fiduciary funds**:
+
+| FY | spending | fund types | proprietary | fiduciary |
+|---|---:|---:|---|---|
+| 2025 | 15,917,870,152 | 11 | yes | yes |
+| 2026 | 15,990,860,523 | 11 | yes | yes |
+| 2027 | 16,851,826,113 | 11 | yes | yes |
+| 2028 | 17,215,010,270 | 10 | yes | yes |
+
+Revenue matches spending in every year (FY2025 revenue 15,917,870,147, a $5
+rounding difference the publisher itself carries) — the balanced-adopted-budget
+signature, the same one that makes Cambridge FY2026 a legitimate `unknown`.
+
+### 12.2 San Diego — `seshat.datasd.org` CSV, both halves tie to the dollar
+
+`budget_operating_datasd.csv`, 548,811 rows. ⚠ **`report_fy` is a TWO-DIGIT year**
+(`'25'`, not `'2025'`) — a four-digit comparison silently matches nothing and
+reports a $0 total, which reads like an empty dataset rather than a bad query.
+
+FY25 `budget_cycle='adopted'` totals **10,322,176,721**, which is neither stored
+figure. It is both of them: **one CSV carries revenue and expenditure together**,
+split by the leading digit of `account_number`:
+
+| account_number | total | stored as |
+|---|---:|---|
+| `4…` | 5,456,393,286 | `San Diego Revenue Budget` FY2025 — **$0 difference** |
+| `5…` | 4,865,783,435 | `San Diego Operating Budget` FY2025 — **$0 difference** |
+
+Fund composition, expenditure half: General Fund 2,160,943,165 · Enterprise
+1,483,153,343 · Special Revenue 1,003,444,590 · Internal Service 191,947,579 ·
+Capital Project 26,294,758. Revenue half has the same five.
+
+**Not General Fund** (GF is 44% of the expenditure half) and **not Total
+Governmental** (Enterprise and Internal Service are proprietary). `all_funds`.
+
+### 12.3 What this does NOT claim
+
+The patterns are anchored to the four exact strings. They do not claim any other
+San Diego or San Francisco source, present or future — guarded by a test naming
+`San Francisco Salaries`, `San Diego Salaries`, `San Francisco Capital Budget`
+and `San Diego Adopted Budget`, none of which this reconciliation covers.
+
+### 12.4 Rows claimed (house style: rows / DISTINCT ids / strings / entities)
+
+| entry | rows | distinct ids | strings | entities | years |
+|---|---:|---:|---:|---:|---|
+| `sf-own-portal-exp` | 4 | 4 | 1 | 1 | FY2025–2028 |
+| `sf-own-portal-rev` | 4 | 4 | 1 | 1 | FY2025–2028 |
+| `sd-own-portal-exp` | 1 | 1 | 1 | 1 | FY2025 |
+| `sd-own-portal-rev` | 1 | 1 | 1 | 1 | FY2025 |
+
+rows == distinct ids on all four, so no paged read duplicated anything.
+
+### 12.5 The seams this closes, and the one thing it does not fix
+
+Closing these 4 makes FY2024 `all_funds` adjoin FY2025 `all_funds`. It does **not**
+make the two years comparable in every sense: FY2024 is SCO **actuals** and FY2025
+is the city's **adopted** budget. That difference lives on the `basis` axis, which
+already records it (`basis='adopted'`), and is policed by `verify-budget-axes.mjs`,
+not by the scope seam detector.
+
+⚠ The remaining 17 seams were triaged the same day and **every one is by design**:
+6 are Ruling 9 source-coverage (SCO has no FY2025 for Long Beach / Anaheim /
+Bakersfield), 6 are `pre-GASB-34 combined` CAFR rows for CT / WI / MA FY2001,
+3 are the two documented NASBO ACFR-gap fallbacks (KY FY2023, NV FY2024 — see
+`scripts/loadStateGF.mjs`, which names them), and 2 are Cambridge FY2025→2026,
+where revenue equals operating to the dollar and no FY2026 workbook exists.

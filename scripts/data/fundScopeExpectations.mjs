@@ -382,4 +382,24 @@ export const EXPECTED_ROWS = Object.freeze({
   // are the 17 GAAP-filing counties that route established.
   'in-county-acfr-tg': 198,
   'in-gateway-afr': 16878,
+  // SCOPE-01-RECON.md §12, measured 2026-10-09 against the live table.
+  // The cities' OWN portals, added to close 4 of the 21 scope seams. Four NEW
+  // families, so no pre-existing count moved.
+  //   rows / DISTINCT ids / strings / entities, the house style:
+  //     sf-own-portal-exp   4 / 4 / 1 / 1   FY2025-2028 (the cron loads four years)
+  //     sf-own-portal-rev   4 / 4 / 1 / 1   FY2025-2028
+  //     sd-own-portal-exp   1 / 1 / 1 / 1   FY2025 only
+  //     sd-own-portal-rev   1 / 1 / 1 / 1   FY2025 only
+  // rows == distinct ids on all four, so no paged read duplicated anything.
+  // ⚠ SF will GROW: the cron loads forward (FY2025-2028 today). A later count of
+  // 5 or 6 is a family that grew, not a pattern bug — but MEASURE before saying so,
+  // and check the new year still carries proprietary + fiduciary fund types, which
+  // is the whole basis for all_funds here.
+  // ⚠ SD is pinned at 1 each because FY2026 rows in the source CSV still carry an
+  // EMPTY budget_cycle, so the loader's `adopted` filter returns nothing for them.
+  // Confirmed still true 2026-10-09: ('26','') = 32,596 rows.
+  'sf-own-portal-exp': 4,
+  'sf-own-portal-rev': 4,
+  'sd-own-portal-exp': 1,
+  'sd-own-portal-rev': 1,
 });
