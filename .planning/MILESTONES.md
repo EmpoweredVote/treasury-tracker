@@ -405,7 +405,20 @@ CO-SPRINGS unblocked those years, it never loaded them.
 
 ---
 
-## v2.22 Bainbridge Island, WA + Kitsap County Onboarding (Shipped: 2026-08-15)
+## v2.22 Bainbridge Island, WA + Kitsap County Onboarding (Shipped: 2026-08-15, tag `v2.22` at `2358c41`)
+
+> ⚠ **The tag was cut on 2026-10-09, nearly two months late.** v2.20, v2.21, v2.23 and
+> v2.24 all carry annotated tags; this milestone was recorded in STATE.md, ROADMAP.md and
+> this file, and simply never got one. Found while checking that three retired SDD
+> workspaces had really shipped before deleting them.
+>
+> ⚠ **It points at `2358c41`, not at the merge `a5ac920`.** At the merge,
+> `scripts/lib/waSao.mjs` still carried `#!/usr/bin/env node`, which broke `npm test` on
+> Windows; `496e28e` removed it in the very next commit and added the covering test.
+> Tagging the merge would have pinned a state whose suite fails on the maintainer's own
+> platform. `2358c41` is the last commit of this milestone — the commit after it opens
+> WA-CITIES-01's spec — and v2.23 sets the same precedent by pointing at a trailing fix
+> rather than at its merge.
 
 **Tasks completed:** 12 of 12 (no GSD phases — plan: `docs/superpowers/plans/2026-08-14-bainbridge-island-kitsap-onboarding.md`)
 
