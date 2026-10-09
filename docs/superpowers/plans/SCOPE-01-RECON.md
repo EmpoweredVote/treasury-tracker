@@ -1626,3 +1626,111 @@ Bakersfield), 6 are `pre-GASB-34 combined` CAFR rows for CT / WI / MA FY2001,
 3 are the two documented NASBO ACFR-gap fallbacks (KY FY2023, NV FY2024 — see
 `scripts/loadStateGF.mjs`, which names them), and 2 are Cambridge FY2025→2026,
 where revenue equals operating to the dollar and no FY2026 workbook exists.
+
+## Task 13 — the session-8 local ACFR families, and the hole they revealed (2026-10-09)
+
+Issue #234. **120 rows carried a `general_fund` that no registry entry claimed.**
+They were written at load time by the session-8 extractors, which do not use the
+classifier's write path — so the registry's stated guarantee, that an unevidenced
+claim is *structurally incapable* of reaching the database, held for 276,278 rows
+and silently not for these.
+
+**The scopes were right. The evidence was missing.** Adding these four entries
+moves no row: `general_fund` stayed at 77,912 across the write. What changes is
+that a reader can now check the claim, and a harness can now fail on it.
+
+### 13.0 How each entity-year was reconciled
+
+For every family, the General Fund column **and** the Total Governmental column
+were read off the **same printed page**.
+
+⚠ This is the only reading that answers the question. The $0 tie gate cannot:
+components summing to their own column's total is equally true of the wrong
+column, which is why `reference_acfr_gf_extractor_howto` lists wrong-column reads
+among the failure modes that produce a tree tying at $0.
+
+### 13.1 `ms-local-acfr-gf` — 40 rows, 2 entities
+
+**City of Biloxi FY2022 ACFR p.32**, governmental funds:
+
+| | General | Gen. Capital | Debt Svc | 4th | **Total Governmental** |
+|---|---:|---:|---:|---:|---:|
+| Total revenues | **72,024,503** | 24,246,749 | 8,274,927 | 1,518,432 | 106,064,611 |
+| Total expenditures | **67,650,414** | 12,209,684 | 8,684,586 | 1,536,484 | 90,081,168 |
+
+Stored: 72,024,503 / 67,650,414 — the General column. The four columns sum to the
+printed Total Governmental **exactly** (72,024,503 + 24,246,749 + 8,274,927 +
+1,518,432 = 106,064,611), which is what identifies the columns rather than
+assuming left-to-right order. Total Governmental is 47% larger than what we store.
+
+**Harrison County MS FY2023 ACFR p.25**: General **79,426,573 / 74,896,057**
+(stored), against Total Governmental 143,166,966 / 144,753,649, past Road,
+Hurricane Zeta, American Rescue Plan and Other Governmental columns.
+
+### 13.2 `ky-lfucg-acfr-gf` — 20 rows, 1 entity
+
+**Lexington-Fayette Urban County Government FY2024 ACFR p.60**: General
+**492,988,023 / 479,514,093** (stored), against Total Governmental 640,717,123 /
+657,534,383, past Urban Services and Federal and State Grants. 30% and 37% larger.
+
+### 13.3 `nd-local-acfr-gf` — 34 rows, 2 entities
+
+**City of Grand Forks FY2024 ACFR p.46**: General **51,508,950 / 48,652,113**
+(stored), against Total Governmental 108,345,392 / 105,247,924 — past Debt Service
+Special Assessments and two Capital Project columns.
+
+**Grand Forks County FY2024 ACFR p.13**: General **27,210,456 / 28,559,580**
+(stored), against Total Governmental 50,985,519 / 77,822,217, past Jail Expansion
+and Special Revenue.
+
+### 13.4 `sd-local-acfr-gf` — 26 rows, 2 entities, and one $3.17
+
+**City of Aberdeen FY2024 ACFR pp.26-27**: General Fund **30,485,309 / 26,080,034**
+(stored), against Total Governmental 51,403,559 / 57,335,865, past Park and
+Recreation, Airport and Special Sales Tax.
+
+**Brown County SD FY2024 ACFR pp.18-21** is the OCBOA filer and **prints cents**:
+
+```
+Total Revenues      22,577,328.55   7,868,344.17   960,737.23   1,467,027.96   32,873,437.91
+Total Expenditures  18,313,778.17  11,616,398.69   903,956.85   1,854,228.84   32,688,362.55
+                    ^ General                                                  ^ Total Governmental
+```
+
+Stored revenue 22,577,329 is the correct rounding of 22,577,328.55.
+
+⚠ **Stored expenditure is 18,313,775 — $3.17 short of the printed 18,313,778.17.**
+Recorded, not rounded away. The column identification is not in doubt: the four
+columns tie to the printed total exactly (18,313,778.17 + 11,616,398.69 +
+903,956.85 + 1,854,228.84 = 32,688,362.55), and Total Governmental is 78% larger
+than the stored figure, so the **scope conclusion stands on its own**. The $3.17
+is a separate question — `decimal_money=True` runs the pipeline in exact cents
+while the row stores whole dollars, and the library's own contract says the
+emitted total is the COMPONENT SUM, never the printed total — and is filed
+separately rather than treated as evidence about fund scope.
+
+⚠ The exact-string search for `18,313,775` found nothing in any of the four Brown
+County PDFs, which looked at first like the figure being untraceable to its cited
+document. It was a cents problem, not a provenance problem. **A failed string
+search is a question, not a finding.**
+
+### 13.5 The gate that could not see this
+
+`checkPartition` balances `claimed + unknown = total`. That identity holds whether
+or not a **classified** row was claimed by anyone, so these 120 rows were invisible
+to it — and to `verify-fund-scope.mjs`, which asked only whether every row had a
+legal value.
+
+`auditClassified()` now asks the missing question, and `verify-fund-scope.mjs`
+fails on it. Two findings, kept separate because they mean different things:
+
+* **unclaimed** — a classified row no entry matches. Its scope rests on nothing a
+  reader can check. (#234's shape.)
+* **mismatched** — an entry claims the source but for a *different* scope than the
+  table holds: a stale stamp, the registry corrected and the table never re-run.
+
+Rows at `unknown` are never reported; an honest unknown is the point of the bucket.
+
+⚠ Proven by removing `ky-lfucg-acfr-gf` from the registry and re-running: the gate
+reports exactly 20 rows and names them. A gate nobody has watched fail is not
+known to work.

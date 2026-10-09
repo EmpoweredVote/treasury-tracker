@@ -251,6 +251,59 @@ export function validateRegistry(registry) {
  * worse failure than scoping the write.
  */
 /**
+ * Audit rows that ALREADY carry a scope against the registry.
+ *
+ * ⚠⚠ THE PARTITION GATE CANNOT SEE THIS. It balances `claimed + unknown =
+ * total`, which holds whether or not a CLASSIFIED row was claimed by anyone. So
+ * 120 rows sat at `general_fund` with no entry behind them (issue #234) and no
+ * harness noticed: the registry's guarantee — that an unevidenced claim is
+ * structurally incapable of reaching the database — was enforced on the
+ * classifier's write path, and the loaders do not use that path.
+ *
+ * Two findings, deliberately separated because they mean different things:
+ *
+ *   unclaimed   a classified row whose data_source matches NO entry. Its scope
+ *               rests on nothing a reader can check. This is #234's shape.
+ *   mismatched  an entry claims the source but for a DIFFERENT scope than the
+ *               table holds — a stale stamp, i.e. the registry was corrected and
+ *               the table never re-run.
+ *
+ * Rows at `unknown` are never reported. An honest unknown is the point of the
+ * bucket, not a defect.
+ *
+ * @param rows [{data_source, fund_scope}]
+ * @returns {{unclaimed: {dataSource, scope, rows}[], mismatched: {dataSource, stored, registry, rows}[]}}
+ */
+export function auditClassified(rows, registry) {
+  const unclaimed = new Map();
+  const mismatched = new Map();
+
+  for (const r of rows ?? []) {
+    const stored = r?.fund_scope;
+    if (!stored || stored === SCOPE.UNKNOWN) continue;
+
+    const { scope } = classify(r.data_source, registry);
+    if (scope === SCOPE.UNKNOWN) {
+      const k = `${r.data_source}\u0000${stored}`;
+      if (!unclaimed.has(k)) unclaimed.set(k, { dataSource: r.data_source, scope: stored, rows: 0 });
+      unclaimed.get(k).rows += 1;
+    } else if (scope !== stored) {
+      const k = `${r.data_source}\u0000${stored}\u0000${scope}`;
+      if (!mismatched.has(k)) {
+        mismatched.set(k, { dataSource: r.data_source, stored, registry: scope, rows: 0 });
+      }
+      mismatched.get(k).rows += 1;
+    }
+  }
+
+  const byRows = (a, b) => b.rows - a.rows || a.dataSource.localeCompare(b.dataSource);
+  return {
+    unclaimed: [...unclaimed.values()].sort(byRows),
+    mismatched: [...mismatched.values()].sort(byRows),
+  };
+}
+
+/**
  * Compare a PREDICTED scope tally against one MEASURED from the table.
  *
  * ⚠ A number printed after a write must be a measurement, not a forecast.

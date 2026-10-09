@@ -398,6 +398,21 @@ export const EXPECTED_ROWS = Object.freeze({
   // ⚠ SD is pinned at 1 each because FY2026 rows in the source CSV still carry an
   // EMPTY budget_cycle, so the loader's `adopted` filter returns nothing for them.
   // Confirmed still true 2026-10-09: ('26','') = 32,596 rows.
+  // SCOPE-01-RECON.md §13, measured 2026-10-09. Issue #234: these 120 rows were
+  // already classified general_fund, by the loaders, with NO registry entry
+  // behind them. Adding the entries does not move a single row — it makes an
+  // existing classification evidenced and auditable. Four NEW families:
+  //     ms-local-acfr-gf   40 / 40 / 20 / 2   Biloxi 30 + Harrison County 10
+  //     ky-lfucg-acfr-gf   20 / 20 / 20 / 1   Lexington-Fayette FY2016-2025
+  //     nd-local-acfr-gf   34 / 34 / 34 / 2   Grand Forks city 20 + county 14
+  //     sd-local-acfr-gf   26 / 26 / 26 / 2   Aberdeen 18 + Brown County 8
+  // rows == distinct ids on all four. ⚠ `strings` equals rows here because each
+  // data_source names its own entity AND fiscal year AND dataset — the same
+  // shape as in-county-acfr-tg, not the one-string-per-family shape above.
+  'ms-local-acfr-gf': 40,
+  'ky-lfucg-acfr-gf': 20,
+  'nd-local-acfr-gf': 34,
+  'sd-local-acfr-gf': 26,
   'sf-own-portal-exp': 4,
   'sf-own-portal-rev': 4,
   'sd-own-portal-exp': 1,
