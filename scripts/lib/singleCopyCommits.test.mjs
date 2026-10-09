@@ -31,7 +31,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
-import { analyzeWorktree, makeGitRunner } from './singleCopyCommits.mjs';
+import { analyzeRepo, makeGitRunner } from './singleCopyCommits.mjs';
 
 let dir;
 let git;
@@ -73,9 +73,9 @@ afterEach(() => {
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
-describe('analyzeWorktree', () => {
+describe('analyzeRepo', () => {
   it('reports nothing when every commit is on a remote ref', () => {
-    const report = analyzeWorktree(git);
+    const report = analyzeRepo(git);
     expect(report.unpushed).toBe(0);
     expect(report.exposed).toEqual([]);
   });
@@ -92,7 +92,7 @@ describe('analyzeWorktree', () => {
     publishMaster();
     run('checkout', '-q', 'work');
 
-    const report = analyzeWorktree(git);
+    const report = analyzeRepo(git);
     expect(report.unpushed).toBe(1);
     expect(report.exposed).toEqual([]);
     expect(report.backed).toHaveLength(1);
@@ -114,7 +114,7 @@ describe('analyzeWorktree', () => {
     publishMaster();
     run('checkout', '-q', 'work');
 
-    const report = analyzeWorktree(git);
+    const report = analyzeRepo(git);
     expect(report.exposed).toEqual([]);
     expect(report.backed).toHaveLength(1);
   });
@@ -131,14 +131,14 @@ describe('analyzeWorktree', () => {
     publishMaster();
     run('checkout', '-q', 'work');
 
-    expect(analyzeWorktree(git).exposed).toEqual([]);
+    expect(analyzeRepo(git).exposed).toEqual([]);
   });
 
   it('reports a commit whose content is in no baseline commit, and names the file', () => {
     write('CC_0188_new_migration.sql', 'alter table questions add column options_scale jsonb;\n');
     const sha = commit('feat: add a migration that exists nowhere else');
 
-    const report = analyzeWorktree(git);
+    const report = analyzeRepo(git);
     expect(report.exposed).toHaveLength(1);
     expect(report.exposed[0].sha).toBe(sha);
     expect(report.exposed[0].files).toEqual(['CC_0188_new_migration.sql']);
@@ -153,10 +153,29 @@ describe('analyzeWorktree', () => {
     write('draft.ts', 'second attempt\n');
     const last = commit('wip: second attempt');
 
-    const report = analyzeWorktree(git);
+    const report = analyzeRepo(git);
     expect(report.exposed).toHaveLength(1);
     expect(report.exposed[0].sha).toBe(last);
     expect(report.superseded).toHaveLength(1);
+  });
+
+  it('finds exposed work on a branch that is NOT checked out', () => {
+    // ⚠ THE FALSE ALL-CLEAR. Scanning only HEAD means every branch nobody has
+    // checked out is invisible — and pruning stale branches is exactly when
+    // someone asks this question. A tool that answers "clean" there is worse
+    // than no tool.
+    write('on-head.txt', 'head work' + String.fromCharCode(10));
+    commit('feat: work on the checked-out branch');
+    run('checkout', '-q', '-b', 'forgotten');
+    write('only-here.sql', 'create table nobody_else_has (id int);' + String.fromCharCode(10));
+    const hidden = commit('feat: work on a branch nobody has open');
+    run('checkout', '-q', 'work');
+
+    const report = analyzeRepo(git);
+    const row = report.exposed.find((c) => c.sha === hidden);
+    expect(row, 'a branch that is not HEAD must still be scanned').toBeDefined();
+    expect(row.files).toEqual(['only-here.sql']);
+    expect(row.branches).toContain('forgotten');
   });
 
   it('does not call a deletion exposure', () => {
@@ -171,7 +190,7 @@ describe('analyzeWorktree', () => {
     fs.rmSync(path.join(dir, 'doomed.txt'));
     commit('chore: delete it');
 
-    expect(analyzeWorktree(git).exposed).toEqual([]);
+    expect(analyzeRepo(git).exposed).toEqual([]);
   });
 
   it('classifies a merge commit against its first parent, not against nothing', () => {
@@ -187,7 +206,7 @@ describe('analyzeWorktree', () => {
     run('-c', 'user.name=T', '-c', 'user.email=t@example.com',
         'merge', '-q', '--no-ff', 'master', '-m', 'Merge branch master into work');
 
-    const report = analyzeWorktree(git);
+    const report = analyzeRepo(git);
     // The merge introduces only master's file, which is on the baseline; the
     // branch's own commit is the single-copy one.
     expect(report.exposed.map((c) => c.subject)).toEqual(['feat: branch work']);
@@ -202,7 +221,7 @@ describe('analyzeWorktree', () => {
       execFileSync('git', ['config', 'core.autocrlf', 'false'], { cwd: bare });
       execFileSync('git', ['-c', 'user.name=T', '-c', 'user.email=t@example.com',
         'commit', '-q', '--allow-empty', '-m', 'solo'], { cwd: bare });
-      const report = analyzeWorktree(makeGitRunner(bare));
+      const report = analyzeRepo(makeGitRunner(bare));
       expect(report.baseline).toBeNull();
       expect(report.note).toMatch(/no remote baseline/);
     } finally {

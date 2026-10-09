@@ -4,7 +4,7 @@
  * NO SHEBANG — kept importable (the shebang/CRLF guard covers any module a test
  * imports; see scripts/checkStagedNulBytes.mjs).
  *
- * Answers one question, for every working directory of every repo named:
+ * Answers one question, for every local branch of every repo named:
  * **is there committed work here that exists nowhere else?**
  *
  * ── WHY THIS IS NOT `git log --not --remotes` ───────────────────────────────
@@ -14,19 +14,20 @@
  * disk and nowhere on earth. A gate that cries wolf 52 times out of 57 is a
  * gate nobody reads, which is how the five stayed invisible for a week.
  *
- * The classification rule, and the two filters that failed before it, are
+ * The classification rule, and the four filters that failed before it, are
  * documented in scripts/lib/singleCopyCommits.mjs.
  *
  * ⚠ READ-ONLY, BY DESIGN. It is meant to be pointed at other people's
  * checkouts — including ⛔ C:/EV-Accounts, where a checkout, a new ref or a
  * written object would be an intrusion. It runs `rev-list`, `diff-tree`,
- * `rev-parse` and `status`; it writes nothing, fetches nothing, and needs no
- * network. That also means it compares against the remote refs this machine
- * last FETCHED: a branch pushed from elsewhere since then still reads as
- * exposed until someone fetches. False alarm, never a false all-clear.
+ * `rev-parse`, `log`, `for-each-ref`, `worktree list` and `status`; it writes
+ * nothing, fetches nothing, and needs no network. That also means it compares
+ * against the remote refs this machine last FETCHED: a branch pushed from
+ * elsewhere since then still reads as exposed until someone fetches. False
+ * alarm, never a false all-clear.
  *
- * Run it before clearing a session, or any time the answer to "do we have
- * anything to push?" needs to be better than a guess.
+ * Run it before clearing a session, before pruning branches, or any time the
+ * answer to "do we have anything to push?" needs to be better than a guess.
  *
  * Exit codes:  0 nothing single-copy   1 EXPOSED work found   2 INCONCLUSIVE
  *
@@ -36,7 +37,7 @@
  */
 
 import path from 'path';
-import { analyzeWorktree, listWorktrees, makeGitRunner } from './lib/singleCopyCommits.mjs';
+import { analyzeRepo, listWorktrees, makeGitRunner } from './lib/singleCopyCommits.mjs';
 
 function parseArgs(argv) {
   const repos = [];
@@ -52,63 +53,88 @@ function parseArgs(argv) {
   return { repos: repos.length ? repos : [process.cwd()], baseline };
 }
 
+/**
+ * Worktree HEADs that belong to no branch, so analyzeRepo can scan them too.
+ * Also totals uncommitted tracked changes, which are per-worktree state.
+ */
+function surveyWorktrees(repoGit, worktrees) {
+  const detached = [];
+  let dirty = 0;
+  for (const wt of worktrees) {
+    const git = makeGitRunner(wt);
+    try {
+      if (git(['rev-parse', '--abbrev-ref', 'HEAD']) === 'HEAD') detached.push(git(['rev-parse', 'HEAD']));
+      dirty += git(['status', '--porcelain', '--untracked-files=no']).split('\n').filter(Boolean).length;
+    } catch {
+      // A worktree whose directory is gone still lists; it has nothing to read.
+    }
+  }
+  return { detached, dirty };
+}
+
 function main() {
   const { repos, baseline } = parseArgs(process.argv.slice(2));
 
   let exposed = 0;
   let backed = 0;
   let inconclusive = 0;
-  let scanned = 0;
   let dirty = 0;
+  let refs = 0;
 
   for (const repo of repos) {
+    let git;
     let worktrees;
     try {
-      worktrees = listWorktrees(makeGitRunner(repo));
+      git = makeGitRunner(repo);
+      worktrees = listWorktrees(git);
     } catch {
       console.log(`\n${repo}\n  ⚠ INCONCLUSIVE — not a git repository, or git could not read it`);
       inconclusive += 1;
       continue;
     }
 
-    console.log(`\n${repo}  (${worktrees.length} working ${worktrees.length === 1 ? 'tree' : 'trees'})`);
+    const survey = surveyWorktrees(git, worktrees);
+    dirty += survey.dirty;
 
-    for (const wt of worktrees) {
-      scanned += 1;
-      let report;
-      try {
-        report = analyzeWorktree(makeGitRunner(wt), { baseline });
-      } catch (err) {
-        console.log(`  ⚠ INCONCLUSIVE  ${path.basename(wt)} — ${err.message.split('\n')[0]}`);
-        inconclusive += 1;
-        continue;
-      }
+    let report;
+    try {
+      report = analyzeRepo(git, { baseline, extraRefs: survey.detached });
+    } catch (err) {
+      console.log(`\n${repo}\n  ⚠ INCONCLUSIVE — ${err.message.split('\n')[0]}`);
+      inconclusive += 1;
+      continue;
+    }
 
-      if (report.dirty) dirty += report.dirty;
+    console.log(
+      `\n${repo}  (${report.refsScanned} refs, ` +
+        `${worktrees.length} working ${worktrees.length === 1 ? 'tree' : 'trees'})`,
+    );
 
-      if (report.note) {
-        console.log(`  ⚠ INCONCLUSIVE  ${path.basename(wt)} — ${report.note}`);
-        inconclusive += 1;
-        continue;
-      }
+    if (report.note) {
+      console.log(`  ⚠ INCONCLUSIVE — ${report.note}`);
+      inconclusive += 1;
+      continue;
+    }
 
-      for (const row of report.exposed) {
-        exposed += 1;
-        console.log(`  ⛔ EXPOSED  ${row.sha.slice(0, 9)}  ${row.subject}`);
-        console.log(`       on ${report.branch}, in ${path.basename(wt)}`);
-        for (const f of row.files) console.log(`       absent from ${report.baseline}:  ${f}`);
-      }
-      backed += report.backed.length + report.superseded.length;
+    refs += report.refsScanned;
+    backed += report.backed.length + report.superseded.length;
+
+    for (const row of report.exposed) {
+      exposed += 1;
+      console.log(`  ⛔ EXPOSED  ${row.sha.slice(0, 9)}  ${row.subject}`);
+      console.log(`       on ${row.branches.join(', ')}`);
+      for (const f of row.files) console.log(`       absent from ${report.baseline}:  ${f}`);
     }
   }
 
   console.log(
-    `\nscanned ${scanned} working ${scanned === 1 ? 'tree' : 'trees'} — ${exposed} exposed, ` +
-      `${backed} already on the baseline, ${inconclusive} inconclusive`,
+    `\nscanned ${refs} refs — ${exposed} exposed, ${backed} already on the baseline, ` +
+      `${inconclusive} inconclusive`,
   );
   if (dirty) {
     console.log(
-      `${dirty} uncommitted change${dirty === 1 ? '' : 's'} to tracked files (also single-copy, but that is ordinary work in progress — not counted as a finding)`,
+      `${dirty} uncommitted change${dirty === 1 ? '' : 's'} to tracked files ` +
+        '(also single-copy, but that is ordinary work in progress — not counted as a finding)',
     );
   }
 
