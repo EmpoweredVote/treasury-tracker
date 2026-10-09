@@ -605,6 +605,29 @@ class CityConfig:
         self.statement_anchor = statement_anchor
         self.section_header_mode = section_header_mode
         self.fy_end = fy_end
+        # ⚠ Deferred minor from BAINBRIDGE-KITSAP Task 4, verified still live and
+        # fixed 2026-10-09 (issue #231). Every SIBLING of this parameter already
+        # refuses a bad value at construction — column_strategy,
+        # section_header_mode, revenue_group_close, subparent_close — so this one
+        # being silent was an inconsistency, not a policy.
+        #
+        # `revenue_total_labels='total revenues'` is the natural typo for a
+        # one-element tuple, and Python turns it into a tuple of single
+        # CHARACTERS. `()` compiles to `^(?:)\b`, which matches almost any line.
+        # Both keep "working": the revenue section simply closes on the wrong
+        # line, and the tree then ties at $0 around the wrong boundary — the
+        # failure mode this whole module is built to refuse.
+        if isinstance(revenue_total_labels, str):
+            raise ValueError(
+                'revenue_total_labels must be a tuple of labels, not a bare string %r — '
+                'a string becomes a tuple of single characters' % revenue_total_labels)
+        revenue_total_labels = tuple(revenue_total_labels)
+        if not revenue_total_labels:
+            raise ValueError('revenue_total_labels must name at least one label; '
+                             '() matches almost any line')
+        if any(not str(lbl).strip() for lbl in revenue_total_labels):
+            raise ValueError('revenue_total_labels contains an empty label: %r'
+                             % (revenue_total_labels,))
         self.revenue_total_labels = tuple(lbl.lower() for lbl in revenue_total_labels)
         self.revenue_section_header = str(revenue_section_header).lower()
         self.expenditures_follow_revenue_total = bool(expenditures_follow_revenue_total)

@@ -1441,7 +1441,11 @@ class TestKitsapShape(unittest.TestCase):
         self.assertIn('Debt Service', roots)
         self.assertIn('Capital Outlay', roots)
         debt = next(c for c in tree['c'] if c['n'] == 'Debt Service')
-        child_names = [i['n'] for i in debt.get('i', [])] + [c['n'] for c in debt.get('c', [])]
+        # The extractor's tree carries only 'n'/'a'/'c'; 'i' is the budget-row
+        # shape and was a stale-brief artifact here, so debt.get('i', []) was
+        # always []. Removed 2026-10-09 (issue #231) so the assertion reads what
+        # it actually checks.
+        child_names = [c['n'] for c in debt.get('c', [])]
         self.assertIn('Principal', child_names)
         self.assertIn('Interest & Other Charges', child_names)
 
@@ -3198,6 +3202,57 @@ class TestMultipageRefusesIgnoredFields(unittest.TestCase):
                     revenue_parents=(), revenue_group_members=())
         base.update(kw)
         return CityConfig(**base)
+
+    def test_a_BARE_STRING_revenue_total_labels_REFUSES(self):
+        """Deferred minor from BAINBRIDGE-KITSAP Task 4, verified still live
+        2026-10-09 (issue #231).
+
+        `revenue_total_labels='total revenues'` is the natural typo for a
+        one-element tuple, and Python makes it a 16-element tuple of single
+        CHARACTERS. Every sibling of this parameter already refuses a bad value
+        at construction -- column_strategy, section_header_mode,
+        revenue_group_close, subparent_close -- so this one being silent is an
+        inconsistency, not a policy.
+
+        The failure it produces is the bad kind: the labels still "work", so a
+        revenue section closes on whichever line happens to start with 't', and
+        the tree ties at $0 around the wrong boundary.
+        """
+        with self.assertRaises(ValueError) as e:
+            self._cfg(revenue_total_labels='total revenues')
+        self.assertIn('revenue_total_labels', str(e.exception))
+        # ⚠ Assert the message NAMES the string case. Without this the test
+        # passes with the isinstance guard deleted, because a label containing a
+        # SPACE trips the empty-label check instead -- caught by mutating the
+        # guard away and watching nothing fail.
+        self.assertIn('string', str(e.exception))
+
+    def test_a_bare_string_with_NO_SPACES_still_REFUSES(self):
+        """The case only the isinstance guard can catch.
+
+        'totalrevenues' becomes ('t','o','t','a','l',...) with no empty element,
+        so every other check passes it and the config silently closes its revenue
+        section on any line starting with one of those letters.
+        """
+        with self.assertRaises(ValueError) as e:
+            self._cfg(revenue_total_labels='totalrevenues')
+        self.assertIn('string', str(e.exception))
+
+    def test_an_EMPTY_revenue_total_labels_REFUSES(self):
+        """`()` compiles to `^(?:)\b`, which matches almost any line."""
+        with self.assertRaises(ValueError) as e:
+            self._cfg(revenue_total_labels=())
+        self.assertIn('revenue_total_labels', str(e.exception))
+
+    def test_an_EMPTY_LABEL_inside_revenue_total_labels_REFUSES(self):
+        with self.assertRaises(ValueError) as e:
+            self._cfg(revenue_total_labels=('total revenues', '   '))
+        self.assertIn('revenue_total_labels', str(e.exception))
+
+    def test_a_normal_tuple_is_still_accepted(self):
+        cfg = self._cfg(revenue_total_labels=('total revenues', 'total operating revenues'))
+        self.assertEqual(cfg.revenue_total_labels,
+                         ('total revenues', 'total operating revenues'))
 
     def test_multipage_with_select_fiscal_year_REFUSES(self):
         with self.assertRaises(ValueError) as e:
