@@ -95,6 +95,37 @@ describe('classify', () => {
   });
 });
 
+describe('the SF / SD own-portal budget sources (SCOPE-01-RECON §12)', () => {
+  // These four sources arrived unclassified and produced 4 of the 21 scope seams
+  // on 2026-10-09: FY2024 SCO actuals (all_funds) meeting an FY2025 row at
+  // `unknown`. Both publishers' own data reconciles to the dollar and both carry
+  // PROPRIETARY funds (Enterprise, Internal Service) -- so neither is
+  // general_fund, and neither is total_governmental either.
+  it('classifies all four as all_funds', () => {
+    for (const src of [
+      'San Francisco Operating Budget', 'San Francisco Revenue Budget',
+      'San Diego Operating Budget', 'San Diego Revenue Budget',
+    ]) {
+      expect(classify(src, FUND_SCOPE_REGISTRY).scope, src).toBe(SCOPE.ALL_FUNDS);
+    }
+  });
+
+  it('does NOT claim a differently-named source from the same cities', () => {
+    // The over-matching guard this registry exists to enforce. A pattern like
+    // /^San Francisco/ would claim any future SF loader no reconciliation covers.
+    for (const src of [
+      'San Francisco Salaries', 'San Diego Salaries',
+      'San Francisco Capital Budget', 'San Diego Adopted Budget',
+      'CA State Controller - Expenditures',
+    ]) {
+      const got = classify(src, FUND_SCOPE_REGISTRY);
+      // String() because an unmatched source returns entryId null, and toMatch(null) throws
+      // -- which would make this pass for the wrong reason the moment it stopped matching.
+      expect(String(got.entryId), src).not.toMatch(/^(sf|sd)-own-portal/);
+    }
+  });
+});
+
 describe('SCOPE', () => {
   it('matches the treasury.budgets CHECK constraint exactly', () => {
     // Drift between this enum and the constraint is a write that fails in
