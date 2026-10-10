@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useMemo } from 'react';
 import * as d3 from 'd3';
 import type { BudgetCategory } from '../types/budget';
 import { getCategoryColor } from '../utils/chartColors';
+import { buildSunburstHierarchy, arcEmphasis, ARC_OPACITY } from '../data/sunburstLevels';
 import './BudgetSunburst.css';
 import { formatMoneyCompact } from '../utils/formatMoney';
 
@@ -39,28 +40,13 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const currentRotationRef = useRef<number>(0);
 
-  // Build hierarchical data structure for D3
-  const hierarchyData = useMemo(() => {
-    const buildHierarchy = (cats: BudgetCategory[], rootIndex?: number): HierarchyNode[] => {
-      return cats.map((cat, i) => {
-        const idx = rootIndex !== undefined ? rootIndex : i;
-        return {
-          name: cat.name,
-          value: cat.subcategories && cat.subcategories.length > 0 ? undefined : cat.amount,
-          categoryIndex: idx,
-          category: cat,
-          children: cat.subcategories && cat.subcategories.length > 0
-            ? buildHierarchy(cat.subcategories, idx)
-            : undefined,
-        };
-      });
-    };
-
-    return {
-      name: 'Budget',
-      children: buildHierarchy(categories),
-    };
-  }, [categories]);
+  // ⚠ The builder lives in `data/sunburstLevels.ts`. It decides every arc's
+  // colour, it was wrong for every drilled ring, and a component cannot carry a
+  // test for that here.
+  const hierarchyData = useMemo(() => ({
+    name: 'Budget',
+    children: buildSunburstHierarchy(categories) as HierarchyNode[],
+  }), [categories]);
 
   // Get the path of category names for highlighting
   const currentPathNames = useMemo(() => {
@@ -220,22 +206,11 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
       return false;
     };
 
-    // Check if a node is a sibling (same parent as a path node, but not in path itself)
-    const isSibling = (node: PartitionNode): boolean => {
-      const nodePath = getNodePath(node);
-
-      // Not a sibling if it's in the path
-      if (isInCurrentPath(node)) return false;
-
-      // Check if parent is in path
-      const parentPath = nodePath.slice(0, -1);
-      if (parentPath.length === 0) return false; // Top level has no siblings in this sense
-
-      const parentInPath = parentPath.length <= currentPathNames.length &&
-                          parentPath.every((name, i) => name === currentPathNames[i]);
-
-      return parentInPath;
-    };
+    // ⚠ `isSibling` was REMOVED on 2026-10-10. It answered "is this node's
+    // parent on the path", which is true both for a sibling of a path node and
+    // for a child of the SELECTION — two groups that must be drawn
+    // differently. `arcEmphasis` in data/sunburstLevels.ts separates them by
+    // depth and is covered by tests.
 
     // Get descendants as PartitionNodes, filtered by visibility
     const allNodes = partitionedRoot.descendants().filter(d => d.depth > 0) as PartitionNode[];
@@ -280,14 +255,14 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
       .attr('class', 'arc')
       .attr('d', d => arc(d) || '')
       .attr('fill', d => getCategoryColor(d.data.categoryIndex ?? 0))
-      .attr('fill-opacity', d => {
-        // In path = full opacity, siblings = semi-transparent
-        if (isInCurrentPath(d)) return 1;
-        if (isSibling(d)) return 0.3;
-        // Top level when nothing selected
-        if (currentPathNames.length === 0) return 1;
-        return 0.3;
-      })
+      // ⚠⚠ THE CURRENT LEVEL IS NEVER THE FAINTEST THING ON THE CHART. This
+      // used to ask `isSibling`, which returns true for ANY node whose parent
+      // is on the path — lumping a true sibling of a path node (`Debt Service`)
+      // together with a CHILD OF THE SELECTION (`Education` under `Current
+      // Operations`). The second group is the level the reader just drilled
+      // into and is reading about in the cards below, and it was drawn at 0.3
+      // beneath a parent at 1.0. See data/sunburstLevels.ts.
+      .attr('fill-opacity', d => ARC_OPACITY[arcEmphasis(getNodePath(d), currentPathNames)])
       .attr('stroke', d => {
         if (isInCurrentPath(d)) return '#FED12E';
         return 'rgba(255,255,255,0.5)';
@@ -336,12 +311,12 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
         d3.select(this)
           .transition()
           .duration(100)
-          .attr('fill-opacity', () => {
-            if (isInCurrentPath(d)) return 1;
-            if (isSibling(d)) return 0.3;
-            if (currentPathNames.length === 0) return 1;
-            return 0.3;
-          })
+          // ⚠⚠ THE SAME CALL AS THE INITIAL FILL, DELIBERATELY. This restore
+          // path carried its own copy of the rule, so fixing only the first
+          // one would have put the dimmed-current-level defect back the moment
+          // a reader moved the pointer off an arc — visible nowhere in a
+          // screenshot, and only on hover-out.
+          .attr('fill-opacity', ARC_OPACITY[arcEmphasis(getNodePath(d), currentPathNames)])
           .attr('stroke-width', () => {
             if (isCurrentSelection(d)) return 4;
             if (isInCurrentPath(d)) return 3;
