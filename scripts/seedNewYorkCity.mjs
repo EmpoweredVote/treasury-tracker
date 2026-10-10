@@ -29,7 +29,12 @@ export const NYC_ENTITY = {
   entityType: 'city',
   state: 'NY',
   geoid: '3651000',          // FIPS place
-  geoidBasis: 'census_place',
+  // ⚠ NOT a free-text label. `municipalities_geoid_shape` is a CHECK
+  // constraint keying the required geoid LENGTH off this exact vocabulary;
+  // anything outside it falls to ELSE -1 and the row is rejected. A 7-digit
+  // place geoid is `census-pep-162-exact`, and SUMLEV 162 is precisely the
+  // record the population was read from.
+  geoidBasis: 'census-pep-162-exact',
   countyId: null,            // see the header -- deliberate, not missing
   // ⚠ READ FROM THE SOURCE, NOT RECALLED. Census PEP
   // `sub-est2024_36.csv`, SUMLEV 162 / STATE 36 / PLACE 51000
