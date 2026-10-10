@@ -2,7 +2,27 @@ import React, { useRef, useEffect, useMemo } from 'react';
 import * as d3 from 'd3';
 import type { BudgetCategory } from '../types/budget';
 import { getCategoryColor } from '../utils/chartColors';
-import { buildSunburstHierarchy, arcEmphasis, ARC_OPACITY } from '../data/sunburstLevels';
+import { useElementWidth } from '../hooks/useElementWidth';
+
+/**
+ * ⚠ Mirrors `BudgetIcicle`'s rule, because the two charts show the same rows:
+ * prefer a curated plain name, and title-case a raw ALL-CAPS database label.
+ * Without it a sunburst arc would read `GENERAL GOVERNMENT` beside a bar and a
+ * card both reading `General Government`.
+ */
+function displayName(node: { name: string; category?: BudgetCategory }): string {
+  const plain = node.category?.enrichment?.plainName;
+  if (plain) return plain;
+  const n = node.name ?? '';
+  if (n === n.toUpperCase() && n.length > 2) {
+    return n.toLowerCase().replace(/(?:^|[\s\-–])\S/g, (c) => c.toUpperCase());
+  }
+  return n;
+}
+import {
+  buildSunburstHierarchy, arcEmphasis, ARC_OPACITY,
+  fitArcLabel, arcLabelTransform, SUNBURST_LABEL_PX,
+} from '../data/sunburstLevels';
 import './BudgetSunburst.css';
 import { formatMoneyCompact } from '../utils/formatMoney';
 
@@ -40,6 +60,16 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const currentRotationRef = useRef<number>(0);
 
+  // ⚠⚠ A LABEL'S LEGIBILITY IS IN PIXELS, BUT ITS GEOMETRY IS IN viewBox UNITS.
+  // The SVG scales to fill `.sunburst-container` (capped at 500px), so a font
+  // size fixed in viewBox units renders at whatever the scale factor makes it —
+  // 14 units is 7px on a desktop and 5px on a phone, i.e. unreadable in both.
+  // Measuring the container lets the font size be chosen so the RENDERED size
+  // is constant, and the fit test then naturally admits fewer labels on a
+  // narrow screen, where each one costs more room. Same rule as the icicle's
+  // label floor.
+  const [, containerWidth] = useElementWidth<HTMLDivElement>(containerRef);
+
   // ⚠ The builder lives in `data/sunburstLevels.ts`. It decides every arc's
   // colour, it was wrong for every drilled ring, and a component cannot carry a
   // test for that here.
@@ -76,13 +106,23 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
     const size = 900;
     const radius = size / 2;
 
-    // Display dimensions - show full width, crop top/bottom slightly
-    const displayHeight = size * 0.7;
-    const cropTop = (size - displayHeight) / 2; // Center the crop vertically
-
+    // ⚠⚠ THE VIEWBOX IS SQUARE, AND THAT IS THE FIX. It used to be
+    // `size * 0.7` tall, described as cropping "slightly": a circle of
+    // diameter 900 inside a 630-tall window, so 135 units — 70 rendered pixels
+    // at the container's 500px cap — were cut off the top AND the bottom.
+    // Those straight horizontal edges read as a rendering fault, and what they
+    // actually cut was DATA: a sunburst encodes a category in every direction,
+    // so the arcs nearest twelve and six o'clock were clipped mid-wedge.
+    //
+    // ⚠ The alternative was to keep the short window and shrink the radius to
+    // 315 to fit inside it. That clips nothing either, but it costs 30% of the
+    // chart's diameter on a chart already capped at 500px by
+    // `.sunburst-container`, and the arc labels below need every unit of ring
+    // width there is. Squaring the viewBox makes the section ~141px taller at
+    // full width and keeps the chart its own size.
     const svg = d3.select(svgRef.current)
       .attr('width', '100%')
-      .attr('viewBox', `${-size / 2} ${-size / 2 + cropTop} ${size} ${displayHeight}`)
+      .attr('viewBox', `${-size / 2} ${-size / 2} ${size} ${size}`)
       .attr('preserveAspectRatio', 'xMidYMid meet')
       .style('font-family', 'Manrope, sans-serif')
       .style('display', 'block')
@@ -326,6 +366,50 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
         d3.select('#sunburst-tooltip').style('opacity', 0);
       });
 
+    // ── ARC LABELS ────────────────────────────────────────────────────────
+    //
+    // ⚠⚠ THE CHART USED TO CARRY NONE AT ALL. Every figure was tooltip-only,
+    // so it could not be read without a pointer and could not be read at all
+    // on a touch screen, while the bars beside it label any segment with room.
+    //
+    // ⚠ Labelled only where the arc is NOT dimmed — the path and the current
+    // level. White text on a 0.3-opacity fill is near-white on white, so
+    // labelling a dim arc would add an unreadable string rather than a fact.
+    //
+    // ⚠ `pointer-events: none` on the whole layer, or a label would swallow
+    // the click and the hover of the arc it sits on.
+    const scale = containerWidth && containerWidth > 0 ? containerWidth / size : null;
+    if (scale) {
+      const fontSize = SUNBURST_LABEL_PX / scale;
+      rotatableGroup.append('g')
+        .attr('class', 'sunburst-labels')
+        .style('pointer-events', 'none')
+        .selectAll('text')
+        .data(visibleNodes.filter(d =>
+          arcEmphasis(getNodePath(d), currentPathNames) !== 'dim'))
+        .join('text')
+        .text(d => fitArcLabel({
+          label: displayName(d.data),
+          innerRadius: ringInner(d.depth),
+          outerRadius: ringOuter(d.depth) - 1,
+          startAngle: d.x0,
+          endAngle: d.x1,
+          fontSize,
+        }) ?? '')
+        .attr('transform', d => arcLabelTransform(
+          d.x0, d.x1, (ringInner(d.depth) + ringOuter(d.depth) - 1) / 2))
+        .attr('text-anchor', 'middle')
+        .attr('dominant-baseline', 'central')
+        .attr('font-size', fontSize)
+        .attr('font-weight', 600)
+        .attr('fill', '#ffffff')
+        // A hairline of the fill colour behind the glyphs, drawn first, so a
+        // label stays legible where it crosses the pad gap between two arcs.
+        .attr('paint-order', 'stroke')
+        .attr('stroke', 'rgba(0,0,0,0.25)')
+        .attr('stroke-width', fontSize * 0.12);
+    }
+
     // Add center circle - always shows total budget
     svg.append('circle')
       .attr('r', centerRadius)
@@ -415,7 +499,11 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
         const renderedWidth = svgRef.current.clientWidth;
         const scale = renderedWidth / size;
         const centerX = renderedWidth / 2;
-        const centerY = (displayHeight * scale) / 2;
+        // ⚠ Was `displayHeight * scale`, the CROPPED height. The viewBox is
+        // square now, so the rendered centre is half the rendered width — and
+        // this is why the crop could not be changed without touching the
+        // callout: it placed the box against the viewBox, not the circle.
+        const centerY = (size * scale) / 2;
         const boxX = centerX + lineEndX * scale;
         const boxY = centerY + lineEndY * scale;
 
@@ -448,7 +536,7 @@ const BudgetSunburst: React.FC<BudgetSunburstProps> = ({
       }
     }
 
-  }, [hierarchyData, currentPathNames, navigationPath, totalBudget, onPathClick]);
+  }, [hierarchyData, currentPathNames, navigationPath, totalBudget, onPathClick, containerWidth]);
 
   // Get current category info for the callout
   const currentCategory = navigationPath.length > 0 ? navigationPath[navigationPath.length - 1] : null;

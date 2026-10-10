@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { buildSunburstHierarchy, arcEmphasis, ARC_OPACITY } from './sunburstLevels';
+import {
+  buildSunburstHierarchy, arcEmphasis, ARC_OPACITY, fitArcLabel, arcLabelTransform,
+} from './sunburstLevels';
 import { sortCategoriesByAmount } from './sortCategories';
 import {
   NYC_CURRENT_OPERATIONS,
@@ -102,5 +104,89 @@ describe('arcEmphasis', () => {
     expect(arcEmphasis(['Current Operations'], [])).toBe('current');
     expect(arcEmphasis(['Debt Service'], [])).toBe('current');
     expect(arcEmphasis(['Current Operations', 'Education'], [])).toBe('dim');
+  });
+});
+
+/**
+ * ⚠ The sunburst drew NO arc labels at all before 2026-10-10 — tooltip-only, so
+ * unreadable without a pointer and unreadable full stop on a touch screen.
+ *
+ * Geometry below is the real chart: viewBox 900, radius 450, centre circle
+ * 126, so a two-ring tree gives each ring (450 − 130) / 2 = 160 units. The
+ * container is capped at 500px, so the scale is about 0.52 and an 11px label
+ * is ~21 viewBox units.
+ */
+describe('fitArcLabel', () => {
+  const RING = { innerRadius: 130, outerRadius: 289 };   // ring 1 of a 2-ring tree
+  const FONT = 21;                                        // 11px at the 500px cap
+  const fit = (label: string, sweep: number, ring = RING, fontSize = FONT) =>
+    fitArcLabel({ label, ...ring, startAngle: 0, endAngle: sweep, fontSize });
+
+  it('labels a wide arc with its full name', () => {
+    // Education is 29.3% of the level — 0.29 of a turn.
+    expect(fit('Education', 2 * Math.PI * 0.293)).toBe('Education');
+  });
+
+  it('ELLIPSISES rather than hiding, when only a fragment fits', () => {
+    // ⚠⚠ SVG `<text>` has no `text-overflow`, so without this the chart would
+    // label its two widest arcs and stay unreadable. 160 units of ring at a
+    // 21-unit font is ~12 characters.
+    const out = fit('Environmental protection', 2 * Math.PI * 0.061);
+    expect(out).toMatch(/…$/);
+    expect(out!.length).toBeLessThanOrEqual(13);
+    expect('Environmental protection').toContain(out!.slice(0, -1));
+  });
+
+  it('refuses a wedge too THIN to carry a line of text', () => {
+    // Libraries is 0.3% of the level. The ring is fat; the wedge is a hair.
+    expect(fit('Libraries', 2 * Math.PI * 0.003)).toBeNull();
+  });
+
+  it('refuses a ring too NARROW for five characters, however wide the wedge', () => {
+    // The other dimension, which a single fraction test cannot see: half the
+    // circle, but a ring 20 units deep.
+    expect(fit('Education', Math.PI, { innerRadius: 400, outerRadius: 420 })).toBeNull();
+  });
+
+  it('admits fewer labels as the chart gets smaller', () => {
+    // The font grows in viewBox units as the container shrinks, which is what
+    // keeps the RENDERED size constant — so a narrow screen naturally labels
+    // less. Same behaviour as the icicle's pixel floor.
+    const sweep = 2 * Math.PI * 0.061;
+    expect(fit('Housing', sweep, RING, 21)).not.toBeNull();   // 500px container
+    expect(fit('Housing', sweep, RING, 60)).toBeNull();        // ~180px container
+  });
+
+  it('never returns an empty or whitespace label', () => {
+    expect(fit('', 1)).toBeNull();
+    const out = fit('A very long label indeed', 2);
+    expect(out).not.toBeNull();
+    expect(out!.trim()).toBe(out);
+  });
+
+  it('refuses nonsense geometry instead of drawing at it', () => {
+    expect(fit('X', 0)).toBeNull();
+    expect(fit('X', 1, { innerRadius: 300, outerRadius: 300 })).toBeNull();
+    expect(fit('X', 1, RING, 0)).toBeNull();
+    expect(fit('X', 1, RING, NaN)).toBeNull();
+  });
+});
+
+describe('arcLabelTransform', () => {
+  it('reads outward on the right half', () => {
+    // Three o'clock: rotate 0°, push out, no flip.
+    expect(arcLabelTransform(Math.PI / 2, Math.PI / 2, 200))
+      .toBe('rotate(0) translate(200,0) rotate(0)');
+  });
+
+  it('FLIPS on the left half, so a label is never upside down', () => {
+    // ⚠ d3 angles run clockwise from twelve o'clock, so anything past π points
+    // leftward and would read backwards.
+    expect(arcLabelTransform(1.5 * Math.PI, 1.5 * Math.PI, 200))
+      .toBe('rotate(180) translate(200,0) rotate(180)');
+  });
+
+  it('places the label at the middle of its ring', () => {
+    expect(arcLabelTransform(0, Math.PI, 123)).toContain('translate(123,0)');
   });
 });
