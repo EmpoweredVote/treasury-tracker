@@ -1,5 +1,8 @@
-#!/usr/bin/env node
 /**
+ * NO SHEBANG — a test imports this module, and the repo guard refuses a
+ * `#!` on any module a test reaches: a shebang plus CRLF breaks the whole
+ * Vite suite with an error naming no file. Run it with `node <path>`.
+ *
  * Seed the City of New York -- TT's first New York local government.
  *
  * ⚠ `county_id` IS NULL BY DESIGN. NYC is larger than every one of the five

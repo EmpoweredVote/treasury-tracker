@@ -71,6 +71,16 @@ const EXEMPT = {
  * would be duplicated by a re-run if they stopped.
  */
 const REQUIRED = {
+  // ⚠⚠ NYC is the first caller to write TWO SCOPES for the SAME city-year, so
+  // the axis pair is not decoration here — it is the only thing separating the
+  // two series. Measured in the live table after the 2026-10-09 load:
+  //     general_fund      / actual / published  48 rows
+  //     total_governmental/ actual / published  48 rows
+  // 96 rows, 96 distinct (fiscal_year, dataset_type, fund_scope) keys. Omit
+  // p_fund_scope and both passes would ask for unknown/unknown, collide on one
+  // key, and the second scope would overwrite the first rather than sit beside
+  // it — the failure would look like a successful load of half the data.
+  'loadNYCAcfrs.mjs': 'NYC ACFR — 96 rows, general_fund + total_governmental / actual (two scopes per city-year)',
   // ⚠ Georgia is the first REQUIRED caller whose pair is MIXED — `unknown`
   // scope with a real `actual` basis — so it is worth being explicit about why
   // it is not EXEMPT. EXEMPT means "omits the params because the family is

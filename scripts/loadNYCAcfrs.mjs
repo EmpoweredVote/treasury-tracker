@@ -1,5 +1,8 @@
-#!/usr/bin/env node
 /**
+ * NO SHEBANG — a test imports this module, and the repo guard refuses a
+ * `#!` on any module a test reaches: a shebang plus CRLF breaks the whole
+ * Vite suite with an error naming no file. Run it with `node <path>`.
+ *
  * New York City ACFR -> treasury.budgets. FY2002-FY2025, TWO fund scopes.
  *
  * ⚠⚠ DELIBERATELY NOT BUILT ON scripts/lib/acfrGfLoad.mjs. Two reasons, both
