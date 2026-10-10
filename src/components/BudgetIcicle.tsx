@@ -4,6 +4,8 @@ import { buildIcicleLevels, type BarSegment } from '../data/icicleLevels';
 import { getCategoryColor } from '../utils/chartColors';
 import { formatMoneyCompact, formatMoneyExact } from '../utils/formatMoney';
 import { BRAND_BAR_COLORS, getContrastText } from '../utils/brandColors';
+import { canFitLabel } from '../utils/segmentLabelFit';
+import { useElementWidth } from '../hooks/useElementWidth';
 import './BudgetIcicle.css';
 
 function displayName(cat: BudgetCategory): string {
@@ -42,6 +44,14 @@ const BudgetIcicle: React.FC<BudgetIcicleProps> = ({
     [categories, navigationPath, totalBudget],
   );
 
+  // ⚠⚠ A SEGMENT'S LABEL FITS OR DOES NOT FIT IN PIXELS, NEVER IN PERCENT.
+  // Every segment is sized as a share of this element, so its share has to be
+  // multiplied back out by a MEASURED width before it can be compared with the
+  // room a 12px label needs. `width` is null until that measurement lands, and
+  // `canFitLabel` falls back to the old percentage rule while it is — see
+  // src/utils/segmentLabelFit.ts.
+  const [containerRef, containerWidth] = useElementWidth<HTMLDivElement>();
+
   // ⚠ A nonprofit's whole ledger is smaller than one municipal line item, so
   // abbreviating it would round away the figure rather than tidy it.
   const formatCurrency = (amount: number) =>
@@ -65,16 +75,10 @@ const BudgetIcicle: React.FC<BudgetIcicleProps> = ({
     }
   };
 
-  // Determine if text can fit in segment
-  const canFitText = (width: number, isAncestor: boolean) => {
-    // Rough heuristic: need at least 8% width for abbreviated text
-    // For ancestor (compressed) bars, need less since they're shorter text
-    return width >= (isAncestor ? 6 : 8);
-  };
 
   return (
     <div className="icicle-wrapper">
-      <div className="icicle-container">
+      <div className="icicle-container" ref={containerRef}>
         {levels.map((level, levelIndex) => (
           <div
             key={levelIndex}
@@ -84,7 +88,7 @@ const BudgetIcicle: React.FC<BudgetIcicleProps> = ({
           >
             {level.segments.map((segment, segmentIndex) => {
               const isClickable = true;
-              const showText = canFitText(segment.width, level.isAncestor);
+              const showText = canFitLabel(segment.width, containerWidth, level.isAncestor);
 
               // ⚠⚠ COLOURED BY POSITION IN ITS OWN LEVEL — the same rule, and the
               // same `DATA_VIZ_HUES` cycle, that `CategoryList` uses for the cards
